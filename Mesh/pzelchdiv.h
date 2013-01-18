@@ -197,6 +197,8 @@ public:
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
+		/** @brief Refinement along the element */
+		virtual void PRefine(int order);
 	
 };
 

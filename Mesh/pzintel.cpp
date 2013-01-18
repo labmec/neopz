@@ -1493,10 +1493,12 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 
 void TPZInterpolatedElement::PRefine(int order) {
 	SetPreferredOrder(order);
-	int side;
-	for(side=0; side<NConnects(); side++) {
-		IdentifySideOrder(side);
-	}
+	
+		TPZGeoEl *gel = Reference();
+		int ns = gel->NSides();
+		for (int is=0; is<ns; is++) {
+				IdentifySideOrder(is);
+		}
 }
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {

@@ -14,6 +14,8 @@
 #include "TPZGeoLinear.h"
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
+#include "pzgengrid.h"
+#include "TPZSkylineNSymStructMatrix.h"
 
 #include <cmath>
 
@@ -136,45 +138,51 @@ const REAL Pi=4.*atan(1.);
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		double x = pt[0];
 		double y = pt[1];
+		double fator=(-1)*(x*x+y*y);
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		disp[0]= 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
+		disp[0]= (-4.)*x*exp(fator)*(-2.+(-1.)*fator);//2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
 		return;
 }
 void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
 		TPZVec<REAL> disp;
-    p[0]= sin(Pi*x)*sin(Pi*y);//(1.)*pow(pow(x,2) + pow(y,2),0.25);-sin(Pi*x)*cos(Pi*y);//(1-x*x)*(1-y*y)*exp(x);//(1-x*x)*(1-y*y);//Solucao
-		flux(0,0)= (-1.)*Pi*cos(Pi*x)*sin(Pi*y);//(1.)*x/(2.*pow(pow(x,2) + pow(y,2),0.75));//Pi*cos(Pi*x)*cos(Pi*y);//2.*exp(x)*x*(1. - pow(y,2.)) - exp(x)*(1. - pow(x,2.))*(1. - pow(y,2.));//2*x*(1-y*y);//
-		flux(1,0)= (-1.)*Pi*cos(Pi*y)*sin(Pi*x);//(1.)*y/(2.*pow(pow(x,2) + pow(y,2),0.75)); //Pi*sin(Pi*y)*sin(Pi*x);//2.*exp(x)*(1. - pow(x,2.))*y;//2*(1-x*x)*y; dy
-		flux(2,0)= 2*Pi*Pi*sin(Pi*x)*sin(Pi*y);//pow(pow(x,2) + pow(y,2),0.25);//-2.*pow(Pi,2.)*sin(Pi*x)*cos(Pi*y);//coloco o divergetne aq para testar
+		double fator=(-1.)*(x*x+y*y);
+    p[0]= x*exp(fator);//sin(Pi*x)*sin(Pi*y);//Solucao
+		flux(0,0)= (-1.)*(exp(fator)+(-2.)*x*x*exp(fator));//(-1.)*Pi*cos(Pi*x)*sin(Pi*y);//dx
+		flux(1,0)= (-1.)*((-2.)*x*y*exp(fator));//(-1.)*Pi*cos(Pi*y)*sin(Pi*x);// dy
+		flux(2,0)= (-4.)*x*exp(fator)*(-2.+(-1.)*fator);//2*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//coloco o divergetne aq para testar
 		
 		
 }
 void CC1(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
-		//double x=pt[0];
+		double x=pt[0];
 		//double y=pt[1];
-		f[0] = 0.;//2*(1-x*x);// 
+		double fator=-4.-x*x;
+		f[0] = exp(fator)*x;//0.;//2*(1-x*x);// 
 		
 }
 void CC2(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 		//double x=pt[0];
-		double y=pt[1];
-		f[0] = Pi*cos(Pi*y);//0.;//2*(1-x*x);// 
+		double y=pt[0];
+		double fator=-4.-y*y;
+		f[0] = 2.*exp(fator);//2.*//Pi*cos(Pi*y);//0.;//2*(1-x*x);// 
 		
 }
 void CC3(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
-		//double x=pt[0];
+		double x=pt[0];
 		//double y=pt[1];
-		f[0]=0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
+		double fator=-4.-x*x;
+		f[0]=x*exp(fator);//0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
 void CC4(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 		//double x=pt[0];
-		double y=pt[1];
-		f[0]=-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
+		double y=pt[0];
+		double fator=-4.-y*y;
+		f[0]=-2.*exp(fator);//-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
 
-TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
+TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		
 
 		TPZCompMesh *comp = new TPZCompMesh(&gmesh);
@@ -193,42 +201,45 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 		mat->SetForcingFunctionExact(exata1);
 			
 		///Criar condicoes de contorno
+				
+		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
+		TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
+		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
+		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
 		
 		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
-		TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);
-		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);
-		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
-//		TPZMaterial *bnd5 = automat->CreateBC (automat,-5,0,val1,val2);
-//		TPZMaterial *bnd6 = automat->CreateBC (automat,-6,0,val1,val2);
-//		TPZMaterial *bnd7 = automat->CreateBC (automat,-7,0,val1,val2);
-//		TPZMaterial *bnd8 = automat->CreateBC (automat,-8,0,val1,val2);
+		TPZMaterial *bnd = automat->CreateBC (automat,-1,1,val1,val2);
+		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,1,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,1,val1,val2);
+		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,1,val1,val2);
 		
-			comp->SetAllCreateFunctionsHDivPressure();
-	//	comp->SetAllCreateFunctionsContinuous();
+			bnd->SetForcingFunction(fCC1);
+			bnd2->SetForcingFunction(fCC2);
+			bnd3->SetForcingFunction(fCC3);
+			bnd4->SetForcingFunction(fCC4);
 		
+	
 		///Inserir condicoes de contorno
 		comp->InsertMaterialObject(bnd);
 		comp->InsertMaterialObject(bnd2);
 		comp->InsertMaterialObject(bnd3);
 		comp->InsertMaterialObject(bnd4);	
-//		comp->InsertMaterialObject(bnd5);
-//		comp->InsertMaterialObject(bnd6);
-//		comp->InsertMaterialObject(bnd7);
-//		comp->InsertMaterialObject(bnd8);
-		
+
+		comp->SetAllCreateFunctionsHDivPressure();
+		//	comp->SetAllCreateFunctionsContinuous();		
 			
 		
   	//AutoBuild()
 		//AQUI: AutoBuild(mat1)
 //		std::set< int > SETmat1;
-//		SETmat1.insert(40);
-//		SETmat1.insert(41);
-//		SETmat1.insert(42);
-//		SETmat1.insert(43);
+//		SETmat1.insert(1);
+//		SETmat1.insert(-1);
+//		SETmat1.insert(-2);
+//		SETmat1.insert(-3);
+//		SETmat1.insert(-4);
 //		comp->AutoBuild(SETmat1);
-		
+//		
 //#ifdef LOG4CXX
 //		{
 //				std::stringstream sout;
@@ -236,7 +247,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 //				LOGPZ_DEBUG(logger,sout.str())
 //		}
 //#endif
-		
+
 		
 		// Ajuste da estrutura de dados computacional
 		comp->AutoBuild();
@@ -260,40 +271,37 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 				TPZInterpolatedElement *intel;
 				TPZCompEl *cel = comp->ElementVec()[iel];
 				
-				
-//				intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-//				if(intel){
-//				
-//			
-//						if (cel->Dimension()==2 && iel%2==0) {
-//								
-//								intel->PRefine(porder+1);
-//						
-//						}
-//				}
-				
+			if (prefine) {
+					
+			
 				intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-				if(intel)
-				{
-						int ncon = intel->NConnects();
-						for (int i=0; i<ncon; i++)
-						{
-								int indexcon = intel->ConnectIndex(i);
-								if (indexcon%2==0) {
-										intel->PRefine(porder+1);
-								}
+				if(intel){
+				
+						int fator=iel%2;
+			
+						if (cel->Dimension()==2 && fator==0) {
 								
-								if (indexcon%5==0) {
-										intel->PRefine(porder+2);
-								}
-								
+								intel->PRefine(porder+1);
+													
+						}
 								
 						
+						if(cel->Dimension()==2 && fator!=0) {
+								
+								intel->PRefine(porder);
+																
+
 						}
+					
+						
 				}
+			}
+				
+				
 		}
-		  	
+		comp->LoadReferences();
 		comp->ExpandSolution();
+		comp->AdjustBoundaryElements();
 		
 		comp->SetName("Malha Computacional com ordens diferentes");	
 #ifdef LOG4CXX
@@ -326,10 +334,10 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 		
 		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
-		TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);//1
-		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
-		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
+		TPZMaterial *bnd = automat->CreateBC (automat,4,0,val1,val2);//1
+		TPZMaterial *bnd2 = automat->CreateBC (automat,5,0,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (automat,6,0,val1,val2);//1
+		TPZMaterial *bnd4 = automat->CreateBC (automat,7,0,val1,val2);
 		
 		//	TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
 		//    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
@@ -380,7 +388,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		TPZGeoEl *elvec[nelem];	
 		const int dim = 2;//AQUI
 		
-		REAL co[nnode][dim] ={{0.,0.},{1.,0.},{1.,1.},{0.,1.}};// {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};
+		REAL co[nnode][dim] ={{-2.,-2},{2.,-2},{2.,2.},{-2.,2.}};//{{0.,0.},{1.,0.},{1.,1.},{0.,1.}};// 
 		int indices[2][nnode];//como serao enumerados os nos
 		
 		//el 1
@@ -415,8 +423,8 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		}
 		
 		int index;
-		elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,40,index); //AQUI
-		elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,41,index); //AQUI
+		elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,1,index); //AQUI
+		elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,1,index); //AQUI
 		
 		
 		gmesh->BuildConnectivity();
@@ -833,15 +841,19 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 }
 
 void SolveLU ( TPZAnalysis &an ){
-
 		TPZCompMesh *malha = an.Mesh();
+		time_t tempoinicial;
+		time_t tempofinal;
+		time(&tempoinicial);
 		//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
-		TPZFStructMatrix mat( malha );
+		TPZSkylineStructMatrix mat(malha);
+		//	TPZFStructMatrix mat( malha );
 		//	TPZSpStructMatrix mat( malha );
 		TPZStepSolver<REAL> solv;
 		
-		solv.SetDirect ( ELU );
-		//		solv.SetDirect(ECholesky);
+		//solv.SetDirect ( ELU );
+		//solv.SetDirect(ECholesky);
+		solv.SetDirect(ELDLt);
 		
 		std::cout << "ELU " << std::endl;
 		an.SetSolver ( solv );
@@ -849,10 +861,21 @@ void SolveLU ( TPZAnalysis &an ){
 		std::cout << std::endl;
 		an.Solution().Redim ( 0,0 );
 		std::cout << "Assemble " << std::endl;
+		time(&tempofinal);
+		std::cout << "Antes do assemble " << tempofinal - tempoinicial << std::endl;
+		
+		time(&tempoinicial);
 		an.Assemble();
+		time(&tempofinal);
+		std::cout << "  Tempo do assemble " << tempofinal - tempoinicial << std::endl;
+		
+		time(&tempoinicial);	
 		an.Solve();
+		time(&tempofinal);
+		std::cout << "  Tempo do assemble " << tempofinal - tempoinicial << std::endl;
+		
 		std::cout << std::endl;
-		std::cout << "No equacoes = " << malha->NEquations() << std::endl;
+		std::cout << "  No equacoes = " << malha->NEquations() << std::endl;
 		// cout << "Banda = " << malha->BandWidth() << endl;
 }
 
@@ -872,4 +895,64 @@ void ChangeP(TPZCompMesh * cmesh, TPZCompEl * cel, int newP)
 						}
 		//cmesh->AddCompElfromPorderContainer(cel);
 }
+
+TPZGeoMesh * GeoMeshGrid( int h){
+		// Rectangular geometric mesh using TPZGenGrid 
+		
+			TPZVec < int > refin(2);
+			TPZVec < REAL > corx0(2);
+			TPZVec < REAL > corx1(2);
+			//int  	numlayer = 1; // Layers Numbers
+			//REAL  	rotation = 0.5; // For testing purpose 
+		int numlayer=1;
+			// refinement level
+			refin[0] = 2;
+			refin[1] = 2;
+			//	x0	lower left coordinate
+		corx0[0] = -2.0;//0.0;
+		corx0[1] = -2.0;//0.0;	
+			//	x1	upper right coordinate 
+		corx1[0] = 2.0;//1.0;
+		corx1[1] = 2.0;//1.0;	
+			
+			TPZGenGrid geomesh(refin,corx0,corx1,numlayer);
+			TPZGeoMesh * gmesh = new TPZGeoMesh;
+			geomesh.Read(gmesh);
+			
+			// Setting BC conditions
+			geomesh.SetBC(gmesh,4,0);
+			geomesh.SetBC(gmesh,5,0);
+			geomesh.SetBC(gmesh,6,0);
+			geomesh.SetBC(gmesh,7,0);
+		
+		// refinamento
+		for ( int ref = 0; ref < h; ref++ )
+		{// h indica o numero de refinamentos
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				for ( int i = 0; i < n; i++ )
+				{
+						TPZGeoEl * gel = gmesh->ElementVec() [i];
+						//if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
+						if(!gel->HasSubElement())
+						{
+								gel->Divide(filhos);
+						}	
+				}//for i
+		}//ref
+		
+		
+		
+		
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				gmesh->Print(sout);
+				LOGPZ_DEBUG(logger, sout.str().c_str());
+		}
+#endif 		 		 
+		return gmesh;
+}
+
+
 

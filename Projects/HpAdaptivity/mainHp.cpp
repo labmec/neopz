@@ -80,24 +80,28 @@ int main()
 	for (int porder=1; porder<2; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<4;h++){
+			for(int h=0;h<1;h++){
 			erro<<std::endl;
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;
-			TPZGeoMesh *gmesh = MalhaGeo(h,hrefine);
+					bool prefine=false;
+					TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
 					//gmesh->Print();
-//    std::ofstream file("MalhaPAdaptativa.vtk");
-//		PrintGMeshVTK( gmesh, file);
+
+			//TPZGeoMesh *gmesh =GeoMeshGrid(h);
+    std::ofstream file("MalhaPAdaptativa.vtk");
+		PrintGMeshVTK( gmesh, file);
 
 			
-			TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder);
+			TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
 
             
 			//2. Resolve o problema
 		
 		 TPZAnalysis analysis(cmesh);
-					cmesh->SaddlePermute();
+					erro<< "Num Dofs "<<cmesh->NEquations()<<std::endl;
+		 cmesh->SaddlePermute();
 		 SolveLU ( analysis );
 		//	ofstream file("Solutout");
     //        analysis.Solution().Print("solution", file);
@@ -119,16 +123,16 @@ int main()
 			analysis.PostProcess(calcErro,erro);
 			
 			//4. visualizacao grafica usando vtk
-			 TPZVec<std::string> scalnames(1), vecnames(1);
+			 TPZVec<std::string> scalnames(2), vecnames(2);
 			 
 			// scalnames[0] = "Divergence";
-			 scalnames[0] = "Pressure";
-			// scalnames[1] = "ExactPressure";
+			 scalnames[1] = "Pressure";
+			 scalnames[0] = "ExactPressure";
 			 //	scalnames[2] = "ExactDiv";
 			 
 			 
-			// vecnames[0] = "ExactFlux";
-			 vecnames[0] = "Flux";
+			 vecnames[0] = "ExactFlux";
+			 vecnames[1] = "Flux";
 			 //scalnames[2] = "Divergence";
 			 
 			 
@@ -140,6 +144,7 @@ int main()
 			 int div = 2;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
+			 
 			 
 			
 		}}

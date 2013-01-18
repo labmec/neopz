@@ -237,42 +237,67 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
 				 
 				 if (TSHAPE::Type()==ETriangle){
  
-			if(connect< NConnects()){
-					int iside = connect+TSHAPE::NCornerNodes;
-					if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
-					{
-							PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
-							return -1;
- 
-					}
-					int order = ConnectOrder(connect);
- 
-					if(order < 0) return 0;
- 
-					TPZStack<int> smallsides;
-					TSHAPE::LowerDimensionSides(iside,smallsides);
-					if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)//i.e., trata-se do lado de mesma dimensao que o elemento
-					{
-							int NShapeFace = 0;
-							for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
-									int sideorder= this->SideOrder(nside);
-									NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
- 
-							}
-							return (NShapeFace + TSHAPE::Dimension*TSHAPE::NConnectShapeF(iside,order))  ;
- 
-					}
-					else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1)//i.e., trata-se do lado de 1 dimensao a menos que a dimensao do elemento
-					{
-							int NShapeF = 0;
-							for(int j=0;j< smallsides.NElements();j++)
-							{
-									NShapeF += TSHAPE::NConnectShapeF(j,order);
-							}
-							int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
-							return (result);
-					}
-			}
+						 if(connect< NConnects()){
+								 int iside = connect+TSHAPE::NCornerNodes;
+								 if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
+								 {
+										 PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
+										 return -1;
+										 
+								 }
+								int order = ConnectOrder(connect);
+
+								if(order < 0) return 0;
+
+								TPZStack<int> smallsides;
+								TSHAPE::LowerDimensionSides(iside,smallsides);
+								if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)//i.e., trata-se do lado de mesma dimensao que o elemento
+								{
+//									int NShapeFace = 0;
+//									for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
+//											int sideorder= this->SideOrder(nside);
+//											int nfunc=TSHAPE::NConnectShapeF(nside,order/*sideorder*/);
+//								#ifdef LOG4CXX
+//											{
+//													std::stringstream sout;
+//													sout << endl<<"side : " <<nside<<" Connect : " << connect << " order "<< sideorder<<" num func. de forma " << nfunc<<std::endl;
+//													LOGPZ_DEBUG(logger,sout.str())
+//											}
+//								#endif
+//											NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
+//											
+////											if (NShapeFace==1) {
+////													DebugStop();
+////											}
+//
+//
+//									}
+//									int aux=TSHAPE::Dimension*TSHAPE::NConnectShapeF(iside,order);
+//									int result=NShapeFace + aux;
+										int result= order*order-1;
+//								#ifdef LOG4CXX
+//									{
+//											std::stringstream sout;
+//											sout << endl<<"Connect : " << connect << " num func. de forma " << result<<std::endl;
+//											LOGPZ_DEBUG(logger,sout.str())
+//									}
+//								#endif
+									
+									
+									return (result)  ;
+
+								}
+								else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1)//i.e., trata-se do lado de 1 dimensao a menos que a dimensao do elemento
+								{
+									int NShapeF = 0;
+									for(int j=0;j< smallsides.NElements();j++)
+									{
+											NShapeF += TSHAPE::NConnectShapeF(j,order);
+									}
+									int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
+									return (result);
+								}
+						}
 	}
 
  
@@ -358,8 +383,8 @@ int TPZCompElHDiv<TSHAPE>::PreferredSideOrder(int side) {
 		return -1;
 	}
 	if(connect<NConnects()) {
-		int order =this->fPreferredOrder;
-		return this->AdjustPreferredSideOrder(side,order);
+			int order =this->fPreferredOrder;
+			return order;//this->AdjustPreferredSideOrder(side,order);
 	}
 	PZError << "TPZCompElHDiv<TSHAPE>::PreferredSideOrder called for connect = " << connect << "\n";
 	return 0;
@@ -512,22 +537,22 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
     int nn=TPZCompElHDiv::NConnects();
     for(in=0;in<nn;in++){
-#ifdef LOG4CXX
 				TPZConnect *con = &this->Connect(in);
 				int seqnum= con->SequenceNumber();
-				std::stringstream sout;
-				sout << "conect " << in<< "seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
-				LOGPZ_DEBUG(logger,sout.str())
-#endif
+//#ifdef LOG4CXX
+//				std::stringstream sout;
+//				sout << "conect " << in<< " seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
+//				LOGPZ_DEBUG(logger,sout.str())
+//#endif
 				result += TPZCompElHDiv::NConnectShapeF(in);
 		}
 		
 		
-#ifdef LOG4CXX
-    std::stringstream sout;
-    sout << "Num funcoes associada ao fluxo " << result;
-    LOGPZ_DEBUG(logger,sout.str())
-#endif
+//#ifdef LOG4CXX
+//    std::stringstream sout;
+//    sout << "Num funcoes associada ao fluxo " << result;
+//    LOGPZ_DEBUG(logger,sout.str())
+//#endif
     return result;
 		
 
@@ -599,8 +624,10 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
             else if(jvec==16 || jvec ==17)
             {
                 int lside = VectorSide[jvec];
-                int order = SideOrder(lside)+1;		//coloquei mais um pq agora passo a ordem certa				
-                int nshape = TSHAPE::NConnectShapeF(lside,order);//order-1);
+               // int order = SideOrder(lside)+1;		//coloquei mais um pq agora passo a ordem certa			
+								int conectside=SideConnectLocId(0,lside);
+								int order=ConnectOrder(conectside);
+                int nshape = TSHAPE::NConnectShapeF(lside,order+1);//order-1);
                 TPZFNMatrix<25> sideorders(2,nshape);
                 int ksi,eta;
                 int loccount = 0;
@@ -611,8 +638,8 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                     case 3:
                     case 4:
                     case 7:
-                        for (ksi=0; ksi<order-1; ksi++) {
-                            for (eta=0; eta<order-1; eta++) {
+                        for (ksi=0; ksi<order/*-1*/; ksi++) {
+                            for (eta=0; eta<order/*-1*/; eta++) {
                                 sideorders(0,loccount) = ksi+2;
                                 sideorders(1,loccount) = eta+2;
                                 loccount++;
@@ -623,8 +650,8 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                     case 6:
                     case 1:
                     case 5:
-                        for (eta=0; eta<order-1; eta++) {
-                            for (ksi=0; ksi<order-1; ksi++) {
+                        for (eta=0; eta<order/*-1*/; eta++) {
+                            for (ksi=0; ksi<order/*-1*/; ksi++) {
                                 sideorders(0,loccount) = ksi+2;
                                 sideorders(1,loccount) = eta+2;
                                 loccount++;
@@ -673,11 +700,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 												if (orderksi<=pressureorder) {
 														if (!(orderksi == pressureorder+1 && ordereta == pressureorder)) 
 														{
-//																if (ordereta==3) {
-//																		std::cout<<" O q houve ? "<<std::endl;
-//																	//	DebugStop();
-//																}
-																										
+																						
 //#ifdef LOG4CXX
 //																std::stringstream sout;
 //																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
@@ -723,24 +746,50 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
         int count=0;
         for(int jvec=0;jvec< VectorSide.NElements();jvec++)
         {
+						
+						if (jvec==2||jvec==5||jvec==8) {
+								int lside=VectorSide[jvec];
+								int fshape1= FirstIndex[lside];
+								//int fshape2= FirstIndex[lside+1];
+								int nconside=SideConnectLocId(0,lside);
+								int nshapecon=NConnectShapeF(nconside);
+								int fshape2= fshape1+nshapecon-2;
+								for (int ishape=fshape1; ishape<fshape2; ishape++)
+								{
+//#ifdef LOG4CXX
+//										std::stringstream sout;
+//										sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//										LOGPZ_DEBUG(logger,sout.str())
+//#endif
+										ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+								}
+						}
+						else{
+						
             int lside=VectorSide[jvec];
             int fshape1= FirstIndex[lside];
             int fshape2= FirstIndex[lside+1];
             for (int ishape=fshape1; ishape<fshape2; ishape++)
             {
+//								#ifdef LOG4CXX
+//								                   std::stringstream sout;
+//								                   sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//								                    LOGPZ_DEBUG(logger,sout.str())
+//								#endif
                 ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
             }
+						}
             
         }
         
     }
     
     
-//#ifdef LOG4CXX
-//    std::stringstream sout;
-//    sout << " ShapeAndVec " << ShapeAndVec;
-//    LOGPZ_DEBUG(logger,sout.str())
-//#endif
+#ifdef LOG4CXX
+    std::stringstream sout;
+    sout << " ShapeAndVec " << ShapeAndVec;
+    LOGPZ_DEBUG(logger,sout.str())
+#endif
     
 }
 
@@ -1062,13 +1111,13 @@ for (int i=0; i< ncon; i++) {
 		
 
 		nshape=TSHAPE::NShapeF(order);
-#ifdef LOG4CXX
-		{
-				std::stringstream sout;
-				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;;
-				LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
+//#ifdef LOG4CXX
+//		{
+//				std::stringstream sout;
+//				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;;
+//				LOGPZ_DEBUG(logger,sout.str())
+//		}
+//#endif
 
 
 }
@@ -1189,6 +1238,51 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
         << " trying to restore an object id " << this->ClassId() << " for an package of id = " << classid;
 		LOGPZ_ERROR ( logger, sout.str().c_str() );
 	}
+}
+//refinamento
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::PRefine(int order) {
+		this->SetPreferredOrder(order);
+		int side;
+		int icon;
+		int ncon=NConnects();
+		for(icon=0; icon<ncon-1; icon++) {//somente para os conects de fluxo
+				TPZConnect &con = this->Connect(icon);
+				con.SetOrder(order);
+				side= ConnectSideLocId(icon);
+				//
+#ifdef LOG4CXX
+				{
+						std::stringstream sout;
+						sout << "side " << side << " order " << this->PreferredSideOrder(side)<<std::endl;
+						LOGPZ_DEBUG(logger,sout.str())
+				}
+#endif
+				
+				//
+				this->IdentifySideOrder(side);
+		}
+		// conect da pressao
+		TPZCompElHDivPressure<TSHAPE> *hdivpressure = dynamic_cast<TPZCompElHDivPressure<TSHAPE> *>(this);
+		TPZConnect &con = this->Connect(ncon-1);
+		
+		if (TSHAPE::Type()==EQuadrilateral) {
+				hdivpressure->SetPressureOrder(order);
+				con.SetOrder(order);
+
+		}
+		else {
+				hdivpressure->SetPressureOrder(order-1);
+				con.SetOrder(order-1);
+
+		}
+		int nshape = hdivpressure-> NConnectShapeF(ncon-1);
+		con.SetNShape(nshape);
+		int seqnum = con.SequenceNumber();
+		this->Mesh()->Block().Set(seqnum,nshape);
+
+		
+		
 }
 
 

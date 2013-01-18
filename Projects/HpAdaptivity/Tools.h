@@ -57,7 +57,7 @@ TPZGeoMesh * MalhaGeo2(const int h);
 //Malha computacional convencional
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
-TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder);
+TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine);
 // funcao de forcing funciton
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
@@ -66,6 +66,8 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux );
 
 //metodo para graficar a sol no mathematica
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol);
+//cria malhas do tipo Grid
+TPZGeoMesh * GeoMeshGrid( int h);
 
 //aplicacao de condicoes de contorno
 void CC1(const TPZVec<REAL> &pt, TPZVec<REAL> &f);

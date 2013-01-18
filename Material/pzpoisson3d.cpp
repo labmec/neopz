@@ -622,29 +622,50 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	Solution(data,11,sol);//pressao
 	Solution(data,10,dsol);//fluxo
 	Solution(data,14,div);//divergente
+		
+#ifdef LOG4CXX
+		{
+		std::stringstream sout;
+		sout<< "\n";
+		sout << " Pto  " << data.x << std::endl;
+		sout<< " pressao exata " <<u_exact <<std::endl;
+		sout<< " pressao aprox " <<sol <<std::endl;
+		sout<< " ---- "<<std::endl;
+		sout<< " fluxo exato " <<du_exact<<std::endl;
+		sout<< " fluxo aprox " <<dsol<<std::endl;
+		sout<< " ---- "<<std::endl;
+		sout<< " div exato " <<du_exact(2,0)<<std::endl;
+		sout<< " div aprox " <<div<<std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 	
-	std::cout << "calculo do divergente "<<div<<std::endl;
-	int id;
-	std::cout<<"pto "<<data.x[0] << "  " << data.x[1] << "  sol exata " << u_exact << "  sol aprox " << sol << " \n dsol exata " <<  du_exact << "\n  dsolaprox " << dsol << std::endl;	
-	std::cout<<"\n";
-	std::cout<<"div exato "<<du_exact(2,0)<<" div aprox "<< div<<std::endl;
-	
+
 	//values[0] : pressure error using L2 norm
-	std::cout<< " pressao  "<<u_exact[0]<<" pressao "<<sol[0]<<std::endl;
-    REAL diff = abs(u_exact[0]-sol[0]);
-	values[0]  = diff*diff;
+   REAL diffP = abs(u_exact[0]-sol[0]);
+	values[0]  = diffP*diffP;
 	//values[1] : flux error using L2 norm
-	for(id=0; id<fDim; id++) {
-        REAL diff = abs(dsol[id] - du_exact(id,0));
-		values[1]  += abs(fK)*diff*diff;
+	for(int id=0; id<fDim; id++) {
+        REAL diffFlux = abs(dsol[id] - du_exact(id,0));
+		values[1]  += abs(fK)*diffFlux*diffFlux;
 	}
 	//values[2] : divergence using L2 norm 
-    diff = abs(div[0] - du_exact(2,0));
-	values[2]=diff*diff;
+    REAL diffDiv = abs(div[0] - du_exact(2,0));
+	values[2]=diffDiv*diffDiv;
 	//values[3] : Hdiv norm => values[1]+values[2];
 	values[3]= values[1]+values[2];
+		
+#ifdef LOG4CXX
+		{
+		std::stringstream sout;
+		sout << " Erro pressao  " << values[0]<< std::endl;
+		sout<< "Erro fluxo  " <<values[1]<<std::endl;
+		sout<< " Erro div " <<values[2] <<std::endl;		
+		LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 	
-	std::cout<< "erro pressao  "<<values[0]<<" erro fluxo "<<values[1]<<std::endl;
+
 }
 
 void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
