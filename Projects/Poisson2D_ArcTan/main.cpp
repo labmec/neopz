@@ -231,7 +231,8 @@ int main() {
                 TPZCompEl *cel = cmesh->ElementVec()[nelem++];
                 if(!cel) continue;
                 level = cel->Reference()->Level();
-                p = (highlevel-level)+1;
+                p = (highlevel-level);
+				if(!p) p = 1;     // Fazendo os dois maiores niveis de refinamento devem ter ordem 1
                 if(p > pinit) p = pinit;
                 ((TPZInterpolatedElement*)cel)->PRefine(p);
             }
