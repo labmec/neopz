@@ -138,6 +138,12 @@ public:
         return intel->GetIntegrationRule();
     }
     
+    virtual TPZIntPoints &GetIntegrationRule()
+    {
+        TPZInterpolationSpace *intel = ReferredIntel();
+        return intel->GetIntegrationRule();
+    }
+    
     virtual int Dimension() const{
         TPZInterpolationSpace *intel = ReferredIntel();
         return intel->Dimension();

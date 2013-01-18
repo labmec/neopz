@@ -199,7 +199,11 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	std::map<int, TPZMaterial * >::const_iterator mit;
 	nelem = NMaterials();
 	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
-		mit->second->Print(out);
+        TPZMaterial *mat = mit->second;
+        if (!mat) {
+            DebugStop();
+        }
+		mat->Print(out);
 	}
 }
 
@@ -1822,7 +1826,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 			AllCels[i] = cel;
 			continue;
 		}
-		TPZManVector<TPZFemSol> facejump;
+		TPZSolVec facejump;
 		face->EvaluateInterfaceJump(facejump,opt);
 		const int leftel  = face->LeftElement()->Index();
 		const int rightel = face->RightElement()->Index();

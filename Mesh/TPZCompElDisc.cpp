@@ -1036,6 +1036,13 @@ const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
 	return *(fIntRule.operator->());
 }
 
+TPZIntPoints &TPZCompElDisc::GetIntegrationRule() {
+	if(this->fIntRule == 0){
+		DebugStop();
+	}
+	return *(fIntRule.operator->());
+}
+
 int TPZCompElDisc::MaxOrderExceptExternalShapes(){
 	return TPZInterpolationSpace::MaxOrder();
 }

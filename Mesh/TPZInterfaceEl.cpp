@@ -1205,7 +1205,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 			datar.sol.Resize(0);
 			datar.dsol.Resize(0);
 		}
-		TPZManVector<TPZFemSol> localjump(numbersol);
+		TPZSolVec localjump(numbersol);
         for (int is=0; is<numbersol; is++) {
             localjump[is].Resize(njump,0.);
         }

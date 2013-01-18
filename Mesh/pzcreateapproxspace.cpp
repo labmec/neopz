@@ -218,44 +218,18 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
 	
 }
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem(int dimension)
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 {
 	// These ones will be always continuous for viscoelasticity
-	fp[EPoint] = CreatePointEl;
-	fp[EOned] = CreateLinearEl;
-	fp[ETriangle] = CreateTriangleEl;
-	fp[EQuadrilateral] = CreateQuadEl;
-	
-	if (dimension < 3 && dimension > 0) 	// If the mesh is dimension < 3, it doesnt matter which 3d elements create for viscoelasticity
-	{
-    fp[ETetraedro] = CreateTetraEl;
-    fp[EPiramide] = CreatePyramEl;
-    fp[EPrisma] = CreatePrismEl;
-    fp[ECube] = CreateCubeEl;
-	}
-	else if (dimension == 3) // Otherwise it creates 3d elements with memory
-	{
-		fp[ETetraedro] = CreateTetraElWithMem;
+	fp[EPoint] = CreatePointElWithMem;
+	fp[EOned] = CreateLinearElWithMem;
+	fp[ETriangle] = CreateTriangleElWithMem;
+	fp[EQuadrilateral] = CreateQuadElWithMem;	
+    fp[ETetraedro] = CreateTetraElWithMem;
     fp[EPiramide] = CreatePyramElWithMem;
     fp[EPrisma] = CreatePrismElWithMem;
     fp[ECube] = CreateCubeElWithMem;
-	}
-	else
-	{
-		PZError << "Invalid dimension value in TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem(int dimension) \n";
-		DebugStop();
-	}
 
-    /*
-	pzgeom::TPZGeoPoint::fp =  CreatePointElWithMem;
-	pzgeom::TPZGeoLinear::fp =  CreateLinearElWithMem;
-	pzgeom::TPZGeoQuad::fp = CreateQuadElWithMem;
-	pzgeom::TPZGeoTriangle::fp =  CreateTriangleElWithMem;
-	pzgeom::TPZGeoPrism::fp = CreatePrismElWithMem;
-	pzgeom::TPZGeoTetrahedra::fp = CreateTetraElWithMem;
-	pzgeom::TPZGeoPyramid::fp = CreatePyramElWithMem;
-	pzgeom::TPZGeoCube::fp = CreateCubeElWithMem;
-     */
 }
 
 

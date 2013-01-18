@@ -54,7 +54,7 @@ public:
     /** @brief Create an approximation space with continous elements with memory. Only dimension 3 elements quem have memory in viscoelastic materials
 		 @ param dimension dimension of the mesh
 		 */	
-    void SetAllCreateFunctionsContinuousWithMem(int dimension);
+    void SetAllCreateFunctionsContinuousWithMem();
     
     /** @brief Set custom function pointers */
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);

@@ -149,7 +149,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	
     this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     
-#ifdef LOG4CXX
+#ifdef LOG4CXX_keep
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
@@ -539,10 +539,10 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	REAL zero = 0.;
 	TPZManVector<REAL,3> x(3,zero);
 	//TPZManVector<TPZManVector<REAL,10>, 10> u(1);
-	TPZManVector<TPZManVector<STATE, 10>, 10> u(1);
+	TPZSolVec u(1);
     u[0].resize(nvar);
 	//TPZManVector<TPZFNMatrix<30>, 10> du(1);
-	TPZManVector<TPZFNMatrix<30, STATE>, 10> du(1);
+	TPZGradSolVec du(1);
     du[0].Redim(dimension,nvar);
 	
 	int numintpoints = intrule->NPoints();
@@ -1271,8 +1271,8 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 	TPZManVector<int,3> maxorder(dim,intrule->GetMaxOrder());
 	intrule->SetOrder(maxorder);
 	
-	TPZManVector<TPZManVector<STATE,10>, 10> sol;
-	TPZManVector<TPZFNMatrix<30,STATE>, 10> dsol;
+	TPZSolVec sol;
+	TPZGradSolVec dsol;
 	TPZFNMatrix<9> axes(3,3,0.);
 	REAL weight;
 	

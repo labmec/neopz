@@ -122,7 +122,10 @@ public:
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
 	virtual const TPZIntPoints &GetIntegrationRule() const = 0;
-	
+    
+	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+ 	virtual TPZIntPoints &GetIntegrationRule() = 0;
+    
 	/** @brief Returns the inner radius value. */
 	virtual REAL InnerRadius();
 	

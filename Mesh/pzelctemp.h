@@ -122,6 +122,10 @@ public:
 		return fIntRule;
 	}
 	
+	virtual TPZIntPoints &GetIntegrationRule() {
+		return fIntRule;
+	}
+	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
 	/** @brief Saves the element data to a stream */

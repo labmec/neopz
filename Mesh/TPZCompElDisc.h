@@ -214,6 +214,9 @@ protected:
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
 	virtual const TPZIntPoints &GetIntegrationRule() const;
 	
+	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+	virtual TPZIntPoints &GetIntegrationRule();
+	
 	/** @brief Type of the element */
 	virtual MElementType Type() {return EDiscontinuous;}
 	
