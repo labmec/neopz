@@ -121,8 +121,8 @@ void TPZGeoMesh::Print (std::ostream & out)
 	int nnodes = fNodeVec.NElements();
 	for(i=0; i<nnodes; i++)
 	{
+		out << "Index: " << i << " ";
 		fNodeVec[i].Print(out);
-		out << "\n";
 	}
 	out << "\n\tGeometric Element Information:\n\n";
 	int nelem = fElementVec.NElements();
