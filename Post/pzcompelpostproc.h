@@ -31,6 +31,7 @@ class TPZMaterialData;
 static LoggerPtr CompElPostProclogger(Logger::getLogger("mesh.TPZCompElPostProc"));
 #endif
 
+using namespace std;
 
 
 /**
