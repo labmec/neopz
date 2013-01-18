@@ -494,7 +494,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL 
 		if(fabs(r-centerdist) < distance) {
 			
 			counter++;
-			if(counter >2)
+			if(counter >2 && counter != 4)
 
 			gel->Divide(sub);
 			
