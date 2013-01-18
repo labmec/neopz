@@ -633,8 +633,10 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 			newnodeindex =  elvec[nel-1].ConnectIndex();
 			SetConnectIndex(nodloc,newnodeindex);
 		} else {
-            int order = cmesh->GetDefaultOrder();
+            // corner nodes have order 1
+            int order = 1;//cmesh->GetDefaultOrder();
             int nshape = NConnectShapeF(nodloc);
+            // create the connects with order 1
 			newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 			TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
 			if(newnod.HasDependency()) {
@@ -651,7 +653,8 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 				int side_neig = father.Side();
 				TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *>( father.Element() );
 				if (cel){
-					newnod.SetOrder(cel->SideOrder(side_neig));
+                    // corner nodes to not change order
+					//newnod.SetOrder(cel->SideOrder(side_neig));
 					RestrainSide(side,cel,side_neig);
 				}
 			}
