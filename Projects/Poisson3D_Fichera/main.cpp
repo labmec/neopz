@@ -53,6 +53,9 @@ int nstate = 2;
 
 char saida[512];
 ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because it has many energy faults
+ofstream outgeo("Poisson3DGeoMesh.txt");   
+ofstream outcompbefore("Poisson3DInitialCMesh.txt");
+ofstream outcompafter("Poisson3DLastCMesh.txt");
 
 /** Printing level */
 int gPrintLevel = 0;
@@ -157,7 +160,8 @@ int main(int argc, char *argv[]) {
 			TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);
 			cmesh->SetName("Computational mesh for Fichera problem");
 			dim = cmesh->Dimension();
-			gmesh3D->Print(out);
+			gmesh3D->Print(outgeo);
+			cmesh->Print(outcompbefore);
 			
             // Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
             // A cada nivel disminue em uma unidade o p, mas não será menor de 1.
@@ -178,6 +182,7 @@ int main(int argc, char *argv[]) {
             nelem = 0;
             while(highlevel && nelem < cmesh->NElements()) {
                 TPZCompEl *cel = cmesh->ElementVec()[nelem++];
+				int celindex = cel->Index();
                 if(!cel) continue;
                 level = cel->Reference()->Level();
                 p = (highlevel-level)+1;
@@ -187,7 +192,7 @@ int main(int argc, char *argv[]) {
 			
 			cmesh->ExpandSolution();
 			cmesh->CleanUpUnconnectedNodes();
-			cmesh->Print();
+			cmesh->Print(outcompafter);
 			
 			// closed generation mesh process
 			time (& endtime);
@@ -266,9 +271,13 @@ int main(int argc, char *argv[]) {
 			
 			delete cmesh;
 			delete gmesh3D;
+			break;
 		}
 	}
 	out.close();
+	outgeo.close();
+	outcompbefore.close();
+	outcompafter.close();
 	fileerrors.close();
 	return 0;
 }
@@ -389,7 +398,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
 	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
-	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
+	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,1,2);
 	gmesh3D->SetName("First Mesh Extruded");
 	/* Dirichlet boundary condition for inferior cubes
 	TPZGeoElBC gelbcD(gmesh3D->ElementVec()[0],21,-1);   // Dirichlet condition for hexahedra//
@@ -415,7 +424,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
 	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
-	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,2,-1);
+	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,2,1);
 	gmesh3D2->SetName("Second Mesh Extruded");
 	/* Dirichlet boundary condition for inferior cubes
 	TPZGeoElBC gelbcD10(gmesh3D2->ElementVec()[0],21,-1);   // Dirichlet condition for hexahedra
@@ -437,7 +446,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
 	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
-	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,-1);
+	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,1);
 	gmesh3D3->SetName("Third Mesh Extruded");
 	/* Dirichlet boundary condition for inferior cubes
 	TPZGeoElBC gelbcD20(gmesh3D3->ElementVec()[0],22,-1);   // Dirichlet condition for hexahedra
