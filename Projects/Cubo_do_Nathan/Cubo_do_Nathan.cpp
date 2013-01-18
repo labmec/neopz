@@ -295,7 +295,7 @@ int main()
 	InsertViscoElasticity(cmesh);
 	
 	cmesh->SetDefaultOrder(porder);
-	cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
+	cmesh->SetAllCreateFunctionsContinuousWithMem();//dimension);
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
 	
@@ -733,7 +733,7 @@ void Teste()
 	InsertViscoElasticity(cmesh);
 	
 	cmesh->SetDefaultOrder(porder);
-	cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
+	cmesh->SetAllCreateFunctionsContinuousWithMem();//dimension);
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
 	
@@ -751,7 +751,7 @@ void Teste()
 	InsertViscoElasticity(cmesh2);
 	
 	cmesh2->SetDefaultOrder(2);
-	cmesh2->SetAllCreateFunctionsContinuousWithMem(dimension);
+	cmesh2->SetAllCreateFunctionsContinuousWithMem();//dimension);
 	cmesh2->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct2(cmesh2);

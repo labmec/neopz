@@ -9,7 +9,7 @@
 #include "tpzautopointer.h"
 #include "tpzcompmeshreferred.h"
 #include "pzstring.h"
-#include "pzelastoplasticanalysis.h"
+//#include "pzelastoplasticanalysis.h"
 #include "pzcreateapproxspace.h"
 
 #include <map>
