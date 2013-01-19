@@ -39,7 +39,7 @@ class TPZFileEqnStorage;
  * @ingroup frontal structural
  */
 /** 
- * TPZParFrontStructMatrix is derived fron TPZFrontStructMatrix.
+ * TPZParFrontStructMatrix is derived from TPZFrontStructMatrix.
  * It uses TPZParFrontMatrix as its FrontalMatrix
  */
 template<class front>

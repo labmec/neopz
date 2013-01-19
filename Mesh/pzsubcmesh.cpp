@@ -918,11 +918,11 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	if (numeq != numeq2 || numeq > numeq3) {
 		DebugStop();
 	}
-	int numextconnects = fConnectIndex.NElements();
-	int nconnects = fConnectVec.NElements();
 	
 	// check whether the connects are properly enumerated
 #ifdef DEBUG 
+	int numextconnects = fConnectIndex.NElements();
+	int nconnects = fConnectVec.NElements();
 	int numintconnects = nconnects-numextconnects-nconstrconnects;
 	{
 		int globeq = TPZCompMesh::NEquations();

@@ -252,10 +252,9 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
 
 TPZCompEl *TPZAgglomerateElement::SubElement(int sub) const{
-	
-	int nsubs = NIndexes();
-	
+
 #ifdef DEBUG
+	int nsubs = NIndexes();
 	if(sub < 0  || sub > nsubs){
 		PZError << "TPZAgglomerateElement::SubElement sub-element out of range\n";
 		return NULL;

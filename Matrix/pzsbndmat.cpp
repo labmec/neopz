@@ -30,7 +30,7 @@ TPZSBMatrix<TVar>::TPZSBMatrix( int dim, int band )
 : TPZMatrix<TVar>( dim, dim )
 {
 	fBand = ( band > (dim - 1) ? (dim - 1) : band );
-	fDiag = new( TVar[Size()] );
+	fDiag = new TVar[Size()];
 	if ( fDiag == NULL )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSBMatrix( dim ) <Error creating Matrix>" );
 	
@@ -441,7 +441,7 @@ TPZSBMatrix<TVar>::Redim(const int newDim ,const int)
 		this->fRow = this->fCol = newDim;
 		if ( this->fDiag != NULL )
 			delete( this->fDiag );
-		this->fDiag = new( TVar[Size()] );
+		this->fDiag = new TVar[Size()];
 		if ( fDiag == NULL )
 			TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>" );
     }
@@ -483,7 +483,7 @@ TPZSBMatrix<TVar>::SetBand(const int newBand )
 	if ( this->fBand > (this->Dim() - 1) )
 		return( 0 );
 	
-	TVar *newDiag = new( TVar[this->Dim() * (newBand + 1)] );
+	TVar *newDiag = new TVar[this->Dim() * (newBand + 1)];
 	
 	// Copia os elementos antigos para a nova alocacao.
 	REAL *pNew = newDiag;
@@ -832,7 +832,7 @@ TPZSBMatrix<TVar>::Copy(const TPZSBMatrix<TVar> &A )
 {
 	this->fBand = A.fBand;
 	this->fRow = this->fCol = A.Dim();
-	this->fDiag = new( TVar[Size()] );
+	this->fDiag = new TVar[Size()];
 	this->fDecomposed  = A.fDecomposed;
 	this->fDefPositive = A.fDefPositive;
 	

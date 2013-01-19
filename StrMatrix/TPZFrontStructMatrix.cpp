@@ -648,6 +648,7 @@ void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 	for(i=0; i<nelem; i++)
 	{
 		el = fElementOrder[i];
+        if(el<0) continue;
 		cel = fMesh->ElementVec()[el];
 		if(!cel) continue;
 		std::set<int> indepconnects, depconnects;

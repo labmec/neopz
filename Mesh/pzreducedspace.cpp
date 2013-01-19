@@ -330,8 +330,8 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
 {
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
-    const int ncon = this->NConnects();
 #ifdef DEBUG
+    const int ncon = this->NConnects();
     if (ncon != 1) {
         DebugStop();
     }
