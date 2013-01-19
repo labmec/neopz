@@ -91,15 +91,13 @@ void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> 
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 
-void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim);
-
 void formatTimeInSec(char *strtime,int timeinsec);
 
 void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
 
 int problem = 1;
 
-
+// MAIN FUNCTION TO NUMERICAL SOLVE
 /** Laplace equation on square - Volker John article 2000 */
 
 int main() {
@@ -136,7 +134,7 @@ int main() {
 				time (& sttime);
 				
 				// Generating geometric mesh 2D
-				out << "\nGenerating geometric mesh bi-dimensional ...\n" << "\tRefinement: " << nref+1 << "TypeRef: " << ntyperefs << " TypeEl: " << typeel << " Threads: " << nthread;
+				cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
 				
 				int nelem;
@@ -154,8 +152,6 @@ int main() {
 					REAL radius = 0.19;
 					for(i=0;i<nref;i+=2) {
 						// To refine elements with center near to points than radius
-						//				RefineGeoElements(2,gmesh,Points,radius,isdefined);
-						// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
 						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 						radius *= 0.35;
@@ -169,7 +165,6 @@ int main() {
 					REAL radius = 0.2;
 					for(i=0;i<nref+1;i++) {
 						// To refine elements with center near to points than radius
-						// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
 						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 						radius *= 0.6;
 					}
@@ -224,13 +219,13 @@ int main() {
 				formatTimeInSec(tempo, time_elapsed);
 				out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
 				
-				// Solving linear equations
+				// SOLVING PROCESS
 				// Initial steps
 				TPZAnalysis an(cmesh);
 				
 				TPZParSkylineStructMatrix strskyl(cmesh,nthread);
 				an.SetStructuralMatrix(strskyl);
-				out << "Solving HP-Adaptive Methods....step: " << nref+1 << "  Threads " << nthread << "StrSkyline\n";
+				out << "Solving HP-Adaptive Methods...\n";
 				
 				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
 				direct->SetDirect(ECholesky);
@@ -248,25 +243,18 @@ int main() {
 				time_elapsed = endtime - sttime;
 				formatTimeInSec(tempo, time_elapsed);
 				
-				char pp[3];
-				sprintf(pp,"%d",pinit);
-				out << "\t....step: " << nref+1 << "  Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+				out << "\tRefinement: " << nref << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				// Post processing
-				TPZStack<std::string> scalarnames, vecnames;
 				std::string filename = "Poisson2DSol";
-				filename += "_p";
+				char pp[256];
+				sprintf(pp,"TR%dE%dP%2dH%2dP%d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
-				filename += "_hL";
-				sprintf(pp,"%d",nref+1);
-				filename += pp;
-				sprintf(pp,"_PAR%d",nthread);
-				filename += pp;
-				if(!ntyperefs) filename += "One";
 				filename += ".vtk";
 				
-				scalarnames.Push("POrder");
+				TPZStack<std::string> scalarnames, vecnames;
 				scalarnames.Push("Solution");
+				scalarnames.Push("POrder");
 				scalarnames.Push("KDuDx");
 				scalarnames.Push("KDuDy");
 				scalarnames.Push("KDuDz");
@@ -622,52 +610,10 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	return (result*temp);
 }
 
-void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim) {
-    int i, it, nelem = cmesh->NElements();
-    
-    TPZBlock<REAL> flux;
-    
-    TPZVec<REAL> point(3,0.), x(3,0.);
-    REAL weight = 0.;
-    
-    TPZInterpolatedElement *cel;
-    int var = 1;                       // For solution of "state" or "Displacement"
-    TPZVec<REAL> SolCel(5,0.0);
-    TPZVec<REAL> SolCelExact(5,0.0);
-    TPZFMatrix<REAL> DSolCel(5,5,0.0);
-    
-    error = 0.; errorL2 = 0.;
-    REAL errorLoc, errorLocL1;
-    for(i=0;i<nelem;i++) {
-        errorLoc = errorLocL1 = 0.;
-        cel = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
-        if(!cel || cel->Dimension() != dim) continue;
-        int npoints = cel->GetIntegrationRule().NPoints();
-        for(it=0;it<npoints;it++){
-            cel->GetIntegrationRule().Point(it,point,weight);
-            cel->Reference()->X(point,x);
-            cel->Solution(point,var,SolCel);
-			if(!problem)
-				ExactSolNull(x,SolCelExact,DSolCel);
-			else if(problem==1)
-				ExactSolCircle(x,SolCelExact,DSolCel);
-			else if(problem==2)
-				ExactSolProduct(x,SolCelExact,DSolCel);
-            errorLocL1 += weight * fabs(SolCel[0] - SolCelExact[0]);
-            errorLoc += weight * (SolCel[0] - SolCelExact[0])*(SolCel[0] - SolCelExact[0]);
-        }
-        errorLocL1 *= fabs(cel->Reference()->Volume());
-        errorLoc *= fabs(cel->Reference()->Volume());
-        error += fabs(errorLocL1);
-        errorL2 += errorLoc;
-    }
-    errorLoc = errorL2;
-    errorL2 = sqrt(errorLoc);
-}
 
 /////
 
-/////
+/////   ANOTHER TESTS
 
 // bi-dimensional problem for elasticity on square domain
 int main_GID() {

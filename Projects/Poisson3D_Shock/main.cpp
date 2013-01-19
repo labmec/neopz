@@ -1,5 +1,5 @@
 /**
- * @file Poisson 3D on Fichera corner as Ander Solin presentation
+ * @file Poisson 3D in hexahedra with shock problem
  */
 
 #include "pzshapelinear.h"
@@ -53,12 +53,11 @@ ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because 
 int gPrintLevel = 0;
 bool gDebug = false;
 
-//TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
 void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
+void BCShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
 
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f);
 
@@ -72,10 +71,9 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL
 TPZGeoMesh *ConstructingFicheraCorner(REAL L,bool print = false);
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
 
+void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim);
 void formatTimeInSec(char *strtime,int timeinsec);
 
-
-// MAIN FUNCTION TO NUMERICAL SOLVE OF THE FICHERA CORNER PROBLEM
 int main(int argc, char *argv[]) {
 	
 #ifdef LOG4CXX
@@ -100,19 +98,19 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int i, nref, NRefs = 9;
-	int nthread, NThreads = 2;
+	int i, nref, NRefs = 7;
+	int nthread, NThreads = 4;
 	int dim = 3;
     for(int typeel=0;typeel<4;typeel++) {
 		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
 			for(nref=0;nref<NRefs;nref++) {
-				if(nref > 4) nthread = NThreads+(nref-4);
+				if(nref > 5) nthread = NThreads;
 				else nthread = 1;
 				
 				// Initializing the generation mesh process
 				time(&sttime);
 				// Constructing geometric mesh as Fichera corner using hexahedra
-				cout << "\nConstructing Fichera problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+				cout << "\nConstructing Shock problem in cube. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel);
 				// h_refinement
 				TPZManVector<REAL> point(3,0.);
@@ -121,6 +119,8 @@ int main(int argc, char *argv[]) {
 				if(ntyperefs) {
 					for(i=0;i<nref;i+=2) {
 						// To refine elements with center near to points than radius
+						//				RefineGeoElements(2,gmesh,Points,radius,isdefined);
+						// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
 						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
 						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
 						radius *= 0.6;
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
 				else {
 					for(i=0;i<nref+1;i++) {
 						// To refine elements with center near to points than radius
+						// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
 						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
 						radius *= 0.6;
 					}
@@ -145,7 +146,7 @@ int main(int argc, char *argv[]) {
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 2, pinit;
+				int p = 4, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]) {
 				
 				//--- END construction of the meshes
 				
-				// SOLVING PROCESS
+				// Solving linear equations
 				// Initial steps
 				out << "Solving HP-Adaptive Methods...\n";
 				
@@ -217,7 +218,7 @@ int main(int argc, char *argv[]) {
 				// Post processing
 				char pp[3];
 				std::string filename = "Poisson3DSol_";
-				sprintf(pp,"TR%dE%dP%02dH%02dP%d",ntyperefs,typeel,nthread,nref,pinit);
+				sprintf(pp,"TR%dE%dP%2dH%2dP%d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
 				filename += ".vtk";
 				
@@ -241,7 +242,7 @@ int main(int argc, char *argv[]) {
 				an.PostProcess(0,dim);
 				
 				// Computing error
-				an.SetExact(ExactSolin);
+				an.SetExact(ExactShock);
 				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
 				an.PostProcess(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
@@ -262,31 +263,29 @@ int main(int argc, char *argv[]) {
 //////////   FICHERA CORNER - Problem as Anders Solin Presentation   ///////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
-	REAL raiz = sqrt(quad_r);
-	sol[0] = sqrt(raiz);
-	REAL den = sol[0]*sol[0]*sol[0];
-	if(!IsZero(den)) {
+void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	sol[0] = sqrt( sqrt (quad_r) );
+	if(!IsZero(sol[0])) {
+		REAL den = sol[0]*sol[0]*sol[0];
 		dsol(0,0) = .5*x[0]/den;
 		dsol(1,0) = .5*x[1]/den;
-		dsol(2,0) = .5*x[2]/den;
+		dsol(1,0) = .5*x[2]/den;
 	}
 	else {
 		dsol(0,0) = dsol(1,0) = dsol(2,0) = 0.;
 	}
 }
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
-	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
-	REAL raiz = sqrt(quad_r);
-	bcsol[0] = sqrt(raiz);
+void BCShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	bcsol[0] = sqrt( sqrt (quad_r) );	
 }
 
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
-	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
-	REAL raiz = sqrt(quad_r * quad_r * quad_r);
-	f[0] = -3./(4.0*sqrt(raiz));
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	REAL raiz = sqrt( sqrt(quad_r));
+	f[0] = -3./(4.*(raiz*raiz*raiz));
 }
 
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
@@ -308,11 +307,8 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	
 	// Boundary conditions
 	// Dirichlet
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCShock);
 	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-	val1.PutVal(0,0,1.);
-	val1.PutVal(1,1,1.);
-	val1.PutVal(2,2,1.);
 	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);
@@ -323,7 +319,6 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	return cmesh;
 }
 
-// CONSTRUCTION OF THE FICHERA CORNER FROM A CUBE - SUBDIVIDING ITS - AND DELETING A RIGHT TOP CUBE SON
 TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
 	
 	// CREATING A CUBE WITH MASS CENTER THE ORIGIN AND VOLUME = INITIALL*INITIALL*INITIALL 
@@ -539,102 +534,3 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 }
 
 
-
-
-// CONSTRUCTING A GEOMETRIC MESH AS FICHERA CORNER, USING EXTRUDE AND MERGE MESHES
-
-/// ALERT !!!!!!!!!    ALERT !!!!!!!!
-
-// WAS DETECTED PROBLEM IN MERGE AND READ METHOD OF THE TPZGENGRID CLASS
-
-/// ALERT !!!!!!!!!    ALERT !!!!!!!!
-/// ALERT !!!!!!!!!    ALERT !!!!!!!!
-/// ALERT !!!!!!!!!    ALERT !!!!!!!!
-
-TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) {
-	
-	TPZManVector<REAL> x0(3,-InitialL), x1(3,-InitialL);  // Corners of the rectangular mesh.
-	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
-	
-	// Mesh as a hexahedra with large edge (2 units) and was cutting a small hexahedra with edge with 1 unit:
-	// 1) The bottom rectangular mesh has four corners: (1,-1,-1), (1,1,-1), (-1,1,-1) and (-1,-1,-1)
-	// and was divides in four segments on X and four on Y, then hx = 0.5 and hy = 0.5
-	if(print) out << "Generating (1) bottom geometric mesh bi-dimensional ...\n";
-	
-	
-	
-	TPZGeoMesh* gmesh = new TPZGeoMesh;
-	x0[0] = InitialL; x0[1] = x0[2] = -InitialL;
-	x1[0] = x1[2] = - InitialL; x1[1] = InitialL;
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetElementType(0);       // type = 0 means rectangular elements
-	gen.Read(gmesh);             // generating grid in gmesh
-	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
-	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
-	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,1,2);
-	gmesh3D->SetName("First Mesh Extruded");
-	/* Dirichlet boundary condition for inferior cubes
-	 TPZGeoElBC gelbcD(gmesh3D->ElementVec()[0],21,-1);   // Dirichlet condition for hexahedra//
-	 TPZGeoElBC gelbcD1(gmesh3D->ElementVec()[0],24,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD2(gmesh3D->ElementVec()[1],21,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD3(gmesh3D->ElementVec()[1],22,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD4(gmesh3D->ElementVec()[2],23,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD5(gmesh3D->ElementVec()[2],24,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD6(gmesh3D->ElementVec()[2],25,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD7(gmesh3D->ElementVec()[3],22,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD8(gmesh3D->ElementVec()[3],23,-1);   // Dirichlet condition for hexahedra
-	 */
-	// 2) The left upper rectangular mesh has four corners: (1,-1,0), (1,0,0), (-1,0,0) and (-1,-1,0)
-	// and was divides in one segment on X and two on Y, then hx = hy = 1.
-	TPZGeoMesh *gmesh2 = new TPZGeoMesh;
-	if(print) out << "Generating (2) left upper geometric mesh bi-dimensional ...\n";
-	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
-	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
-	nx[0] = 2; nx[1] = 1;
-	gen.SetData(nx,x0,x1,0);
-	gen.Read(gmesh2);             // generating grid in gmesh
-	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
-	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
-	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,2,1);
-	gmesh3D2->SetName("Second Mesh Extruded");
-	/* Dirichlet boundary condition for inferior cubes
-	 TPZGeoElBC gelbcD10(gmesh3D2->ElementVec()[0],21,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD11(gmesh3D2->ElementVec()[0],23,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD12(gmesh3D2->ElementVec()[0],24,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD13(gmesh3D2->ElementVec()[1],21,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD14(gmesh3D2->ElementVec()[1],22,-1);   // Dirichlet condition for hexahedra
-	 */
-	// 3) The right upper rectangular mesh has four corners: (0,0,0), (0,1,0), (-1,1,0) and (-1,0,0)
-	// and was divides in one segment on X and two on Y, then hx = hy = 1.
-	TPZGeoMesh *gmesh3 = new TPZGeoMesh;
-	if(print) out << "Generating (3) left upper geometric mesh bi-dimensional ...\n";
-	x0[0] = x0[1] = x0[2] = 0.;
-	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
-	nx[0] = nx[1] = 1;
-	gen.SetData(nx,x0,x1,0);       // type = 0 means rectangular elements
-	gen.Read(gmesh3);             // generating grid in gmesh
-	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
-	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
-	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,1);
-	gmesh3D3->SetName("Third Mesh Extruded");
-	/* Dirichlet boundary condition for inferior cubes
-	 TPZGeoElBC gelbcD20(gmesh3D3->ElementVec()[0],22,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD21(gmesh3D3->ElementVec()[0],23,-1);   // Dirichlet condition for hexahedra
-	 TPZGeoElBC gelbcD22(gmesh3D3->ElementVec()[0],24,-1);   // Dirichlet condition for hexahedra
-	 */
-	// Merge two meshes
-	gen.MergeGeoMesh(gmesh3D,gmesh3D2,1);
-	gen.MergeGeoMesh(gmesh3D,gmesh3D3,1);
-	
-	// Cleaning unnecessary meshes
-	delete gmesh3D2;
-	delete gmesh3D3;
-	
-	return gmesh3D;
-}

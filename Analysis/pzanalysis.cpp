@@ -388,7 +388,6 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 				lastEl=true;
 			}
 		}
-		
 	}
 	int nerrors = errors.NElements();
 	ervec.Resize(2*nerrors);
@@ -406,10 +405,6 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
-			for(i=0;i<3;i++)
-				ervec[i] = sqrt(values[i]);
-			for(i=nerrors;i<nerrors+4;i++)
-				ervec[i] = sqrt(values2[i]);
 		}
 		else{
 			out << endl << "############" << endl;
@@ -422,10 +417,6 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values2[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values2[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values2[2])  <<endl;
-			for(i=0;i<4;i++)
-				ervec[i] = sqrt(values[i]);
-			for(i=nerrors;i<nerrors+3;i++)
-				ervec[i] = sqrt(values2[i]);
 		}
 	}
 	else {
@@ -440,10 +431,6 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values2[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values2[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values2[2])  <<endl;
-			for(i=0;i<4;i++)
-				ervec[i] = sqrt(values[i]);
-			for(i=nerrors;i<nerrors+3;i++)
-				ervec[i] = sqrt(values2[i]);
 		}
 		else{
 			out << endl << "############" << endl;
@@ -456,11 +443,11 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
-			for(i=0;i<3;i++)
-				ervec[i] = sqrt(values[i]);
-			for(i=nerrors;i<nerrors+4;i++)
-				ervec[i] = sqrt(values2[i]);
 		}
+		for(i=0;i<nerrors;i++)
+			ervec[i] = sqrt(values[i]);
+		for(i=nerrors;i<2*nerrors;i++)
+			ervec[i] = sqrt(values2[i-nerrors]);
 	}
 	return;
 }

@@ -672,27 +672,34 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	values.Resize(5);
-	TPZManVector<REAL> dudxEF(1), dudyEF(1);
+	values.Resize(NEvalErrors());
+	TPZManVector<REAL> dudxEF(1,0.), dudyEF(1,0.),dudzEF(1,0.);
 	this->Solution(u,dudx,axes, this->VariableIndex("KDuDx"), dudxEF);
-	this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
-    REAL diff = abs(dudxEF[0]/this->fK - du_exact(0,0));
+    REAL diff = (dudxEF[0]/this->fK) - du_exact(0,0);
 	values[3] = diff*diff;
-    diff = abs((dudyEF[0]/this->fK - du_exact(1,0)));
-	values[4] = diff*diff;
+	if(fDim > 1) {
+		this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
+		diff = (dudyEF[0]/this->fK) - du_exact(1,0);
+		values[4] = diff*diff;
+		if(fDim > 2) {
+			this->Solution(u,dudx,axes, this->VariableIndex("KDuDz"), dudzEF);
+			diff = (dudzEF[0]/this->fK) - du_exact(2,0);
+			values[5] = diff*diff;
+		}
+	}
 	
 	TPZManVector<REAL> sol(1),dsol(3,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	int id;
 	//values[1] : eror em norma L2
-    diff = fabs(sol[0] - u_exact[0]);
+    diff = sol[0] - u_exact[0];
 	values[1]  = diff*diff;
 	//values[2] : erro em semi norma H1
 	values[2] = 0.;
 	for(id=0; id<fDim; id++) {
-        diff = fabs((dsol[id] - du_exact(id,0)));
-		values[2]  += fabs(fK)*diff*diff;
+        diff = dsol[id] - du_exact(id,0);
+		values[2]  += abs(fK)*diff*diff;
 	}
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];

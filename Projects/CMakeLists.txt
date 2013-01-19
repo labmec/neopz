@@ -15,6 +15,7 @@ ENABLE_TESTING()
 			# Tutorial about hp-adaptive techniques
 			add_subdirectory(Poisson2D_ArcTan)
 			add_subdirectory(Poisson3D_Fichera)
+			add_subdirectory(Poisson3D_Shock)
 
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)

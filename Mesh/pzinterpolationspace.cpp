@@ -1036,8 +1036,9 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	
 	TPZMaterialData data;
 	this->InitMaterialData(data);
+	int nintpoints = intrule->NPoints();
 	
-	for(int nint = 0; nint < intrule->NPoints(); nint++) {
+	for(int nint = 0; nint < nintpoints; nint++) {
 		
 		intrule->Point(nint,intpoint,weight);
 		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
