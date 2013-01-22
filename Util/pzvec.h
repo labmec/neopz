@@ -83,6 +83,40 @@ public:
 	 * @param index element in the vector which will be acessed
 	 * @return a reference to the element specified by index\
 	 */
+#ifdef WIN32
+	T& operator[]( const int index ) const
+	{
+#ifdef DEBUG
+		if( index < 0 || index >= fNElements )
+		{
+            PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
+            PZError << "|" << std::endl;
+            PZError << "+-> NElements = " << NElements() << std::endl;
+            PZError << "|" << std::endl;
+            PZError << "+-> Index = " << index << std::endl;
+            DebugStop();
+            exit( -1 );
+		}
+#endif
+		return fStore[ index ];
+	}
+	T& operator[]( const unsigned int index ) const
+	{
+#ifdef DEBUG
+		if( index >= fNElements )
+		{
+            PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
+            PZError << "|" << std::endl;
+            PZError << "+-> NElements = " << NElements() << std::endl;
+            PZError << "|" << std::endl;
+            PZError << "+-> Index = " << index << std::endl;
+            DebugStop();
+            exit( -1 );
+		}
+#endif
+		return fStore[ index ];
+	}
+#endif //WIN32
 	T& operator[]( const long index ) const
 	{
 #ifdef DEBUG
