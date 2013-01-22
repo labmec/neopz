@@ -70,7 +70,7 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 
-TPZGeoMesh *ConstructingFicheraCorner(REAL L,bool print = false);
+TPZGeoMesh *ConstructingFicheraCorner(REAL L,int typeel=0);
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
 
 void formatTimeInSec(char *strtime,int timeinsec);
@@ -101,10 +101,10 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 9;
+	int nref, NRefs = 7;
 	int nthread, NThreads = 2;
 	int dim = 3;
-    for(int typeel=0;typeel<4;typeel++) {
+    for(int typeel=0;typeel<1;typeel++) {
 		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
 			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 4) nthread = NThreads+(nref-4);
@@ -303,7 +303,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 }
 
 // CONSTRUCTION OF THE FICHERA CORNER FROM A CUBE - SUBDIVIDING ITS - AND DELETING A RIGHT TOP CUBE SON
-TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
+TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel) {
 	
 	// CREATING A CUBE WITH MASS CENTER THE ORIGIN AND VOLUME = INITIALL*INITIALL*INITIALL 
 	REAL co[8][3] = {
@@ -350,6 +350,17 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
 	// DELETING A CUBE 6th
 	delete gmesh->ElementVec()[7];
 	
+	switch(typeel) {
+		case 1:
+		// Refinar todo elemento cubo como dois prismas
+			break;
+		case 2:
+			// Refinar todo elemento cubo como tres piramides
+			break;
+		case 3:
+			// Refinar todo elemento cubo como quatro tetrahedros
+			break;
+	}
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
