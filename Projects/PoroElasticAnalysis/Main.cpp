@@ -1832,6 +1832,7 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 		{
 			mymaterial[imat]->SetTimeValue(TimeValue);
 		}
+		
 		PoroelasticMassMatrix->Multiply(LastSolution,RhsTemporal);
 		TotalRhs = PoroelasticLoadVector + RhsTemporal;		
 		

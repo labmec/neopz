@@ -934,6 +934,14 @@ int TPZPoroElastic2d::VariableIndex(const std::string &name)
 	if(!strcmp("EGammaX",name.c_str()))						return	27;
 	if(!strcmp("EGammaY",name.c_str()))						return	28;
 	if(!strcmp("EGammaXY",name.c_str()))					return	29;
+	
+	// Principal Space
+	if(!strcmp("Sigma1",name.c_str()))						return	30;
+	if(!strcmp("Sigma2",name.c_str()))						return	31;
+	if(!strcmp("Theta1",name.c_str()))						return	32;
+	if(!strcmp("Theta2",name.c_str()))						return	33;	
+	if(!strcmp("I1",name.c_str()))							return	34;
+	if(!strcmp("J2",name.c_str()))							return	35;		
 		
 	return TPZMaterial::VariableIndex(name);
 }
@@ -967,7 +975,12 @@ int TPZPoroElastic2d::NSolutionVariables(int var){
 	if(var == 26)	return 1;
 	if(var == 29)	return 1;
 	if(var == 28)	return 1;	
-	if(var == 27)	return 1;		
+	if(var == 27)	return 1;
+	if(var == 30)	return 3;	
+	if(var == 31)	return 3;
+	if(var == 32)	return 1;
+	if(var == 33)	return 1;	
+	if(var == 34)	return 1;	
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -1085,10 +1098,24 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	}
 	else
 	{
-		SigX = -((flambda + 2*fmu)*(epsx) + (flambda)*epsy - falpha*SolP[0]);
-		SigY = -((flambda + 2*fmu)*(epsy) + (flambda)*epsx - falpha*SolP[0]);	
+		SigX = ((flambda + 2*fmu)*(epsx) + (flambda)*epsy - falpha*SolP[0]);
+		SigY = ((flambda + 2*fmu)*(epsy) + (flambda)*epsx - falpha*SolP[0]);	
 		SigZ = flambda*divu - falpha*SolP[0];
 		Tau = 2.0*fmu*epsxy;		
+	}
+	
+	REAL PI = atan(1.)*4.;	
+	REAL R = sqrt( pow((SigX - SigY)/2,2) + pow(Tau,2));
+	REAL C = (SigX + SigY)/2;
+	REAL Sigma1 = C + R;
+	REAL Sigma2 = C - R;
+	
+	// Sigma1 is the largest stress regadless of sign
+	if (abs(Sigma2) > abs(Sigma1)) 
+	{
+		REAL tmp = Sigma1;
+		Sigma1 = Sigma2;
+		Sigma2 = tmp;
 	}
 	
 	//	Hydrostatic stress
@@ -1288,6 +1315,32 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		}	
 		return;
 	}	
+	
+	//	Principal Stress
+	if(var == 30){
+		Solout[0]=Sigma1;
+		return;
+	}
+	
+	//	Secondary Stress
+	if(var == 31){
+		Solout[0]=Sigma2;
+		return;
+	}	
+	
+	//	Fist Invariant
+	if(var == 34){
+		REAL I1 = SigX+SigY;
+		Solout[0]=I1;
+		return;
+	}
+	
+	//	Desviatoric Second Invariant
+	if(var == 35){
+		REAL J2 = (pow(SigX + SigY,2) - (3*(-pow(SigX,2) - pow(SigY,2) + pow(SigX + SigY,2) - 2*pow(Tau,2)))/2.)/2.;
+		Solout[0]=J2;
+		return;
+	}
 	
 }
 

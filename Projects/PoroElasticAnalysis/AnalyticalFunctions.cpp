@@ -113,7 +113,7 @@ using namespace std;
 		sol[2] = -(1.- xD - uD);	
 				
 		flux(0,0)=0.0;
-		flux(1,0)=(1.- sigD);
+		flux(1,0)=-(1.- sigD);
 		flux(2,0)=0.0;
 		flux(3,0)=0.0;
 		flux(4,0)=-qDxD;
@@ -243,9 +243,9 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 		Pressure = -(1/(4*PI))*Exponential_Integral_Ei(-Zz);
 		Ux = x*(1/(8*PI))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
 		Uy = y*(1/(8*PI))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
-		Sigx = -(1/(4*PI))*((alpha*G)/(lamb+2.0*G))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(x,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
-		Sigy = -(1/(4*PI))*((alpha*G)/(lamb+2.0*G))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(y,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
-		Tauxy = -(1/(4*PI*pow(r,2)))*((2*alpha*G)/(lamb+2.0*G))*(x*y)*((1/Zz)*(1-exp(-Zz)));	
+		Sigx = (1/(4*PI))*((alpha*G)/(lamb+2.0*G))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(x,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+		Sigy = (1/(4*PI))*((alpha*G)/(lamb+2.0*G))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(y,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+		Tauxy = (1/(4*PI*pow(r,2)))*((2*alpha*G)/(lamb+2.0*G))*(x*y)*((1/Zz)*(1-exp(-Zz)));	
 		Qx = (x/(2.0*PI*pow(r,2)))*exp(-Zz);
 		Qy = (y/(2.0*PI*pow(r,2)))*exp(-Zz);		
 
