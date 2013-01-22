@@ -181,7 +181,7 @@ public:
 	TPZFMatrix<TVar> &operator-=(const TVar val )  { return operator+=( -val ); }
 	TPZFMatrix<TVar> &operator*=(const TVar val );
 	
-	TPZFMatrix<TVar> operator-() const;// { return operator*( -1.0 ); }
+//	TPZFMatrix<TVar> operator-() const;// { return operator*( -1.0 ); }
 
 	/** @} */
 	

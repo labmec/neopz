@@ -103,7 +103,7 @@ public:
 	T& operator[]( const unsigned int index ) const
 	{
 #ifdef DEBUG
-		if( index >= fNElements )
+		if( index >= (unsigned int)fNElements )
 		{
             PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
             PZError << "|" << std::endl;

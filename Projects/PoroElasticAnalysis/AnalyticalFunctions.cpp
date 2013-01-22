@@ -156,8 +156,13 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 	REAL yD = abs(y)/H;
 	REAL xi = (yD/(2.0*sqrt(tD)));
 	
+#ifdef USING_BOOST
+	pD = boost::math::erf(xi);
+	uDy = -(((2.0*sqrt(tD)*exp(-pow(xi,2)))/(sqrt(PI))) - yD*(boost::math::erfc(xi)));
+#else
 	pD = erf(xi);
 	uDy = -(((2.0*sqrt(tD)*exp(-pow(xi,2)))/(sqrt(PI))) - yD*(erfc(xi)));
+#endif
 	qDy = -((exp(-pow(xi,2)))/(sqrt(tD)*sqrt(PI)));
 
 	sol[0] = pD;

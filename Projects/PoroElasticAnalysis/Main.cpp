@@ -1925,6 +1925,7 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 void *InitalPressureCalculations(REAL &PressureValue,TPZVec <REAL> &PointCoordinates)
 {
 	PressureValue = 0.0;
+	return NULL;
 }
 
 void SetInitialConditions(TPZAnalysis &AnalysisToInitialize, TPZCompMesh * ComputationalMesh, TPZFMatrix<REAL> &ComputationalMeshInitialSolution, void ( *PointerToFunction(REAL &,TPZVec <REAL> &)))

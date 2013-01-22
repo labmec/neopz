@@ -1541,7 +1541,9 @@ void TPZCompCloneMesh::Print (ostream & out) const {
     }
     out << "\n\tMaterial Information:\n\n";
     std::map<int, TPZMaterial * >::const_iterator it;
+#ifndef WIN32
 #warning Comentei o for abaixo
+#endif
 //     for (it=MaterialVec().begin(); it!=MaterialVec().end(); it++) {
 //         it->second->Print(out);
 //     }
