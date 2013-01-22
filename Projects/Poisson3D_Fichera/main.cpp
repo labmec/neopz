@@ -67,6 +67,7 @@ void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 
 TPZGeoMesh *ConstructingFicheraCorner(REAL L,bool print = false);
@@ -100,7 +101,7 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int i, nref, NRefs = 9;
+	int nref, NRefs = 9;
 	int nthread, NThreads = 2;
 	int dim = 3;
     for(int typeel=0;typeel<4;typeel++) {
@@ -114,38 +115,16 @@ int main(int argc, char *argv[]) {
 				// Constructing geometric mesh as Fichera corner using hexahedra
 				cout << "\nConstructing Fichera problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel);
+
 				// h_refinement
-				TPZManVector<REAL> point(3,0.);
-				REAL r = 0.0, radius = 0.9;
-				bool isdefined = false;
-				if(ntyperefs) {
-					for(i=0;i<nref;i+=2) {
-						// To refine elements with center near to points than radius
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-					if(i==nref) {
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-				}
-				else {
-					for(i=0;i<nref+1;i++) {
-						// To refine elements with center near to points than radius
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-				}
-				// Constructing connectivities
-				gmesh3D->ResetConnectivities();
-				gmesh3D->BuildConnectivity();
+				// Refining near the points belong a circunference with radio r - maxime distance radius
+				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
 				sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
 				PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 2, pinit;
+				int p = 4, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);
@@ -410,6 +389,35 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
 	gmesh->BuildConnectivity();
 	
 	return gmesh;
+}
+
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
+	TPZManVector<REAL> point(3,0.);
+	REAL r = 0.0, radius = 0.9;
+	int i;
+	bool isdefined = false;
+	if(ntyperefs) {
+		for(i=0;i<nref;i+=2) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+		if(i==nref) {
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+	}
+	else {
+		for(i=0;i<nref+1;i++) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
 }
 
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL r,REAL &distance,bool &isdefined) {

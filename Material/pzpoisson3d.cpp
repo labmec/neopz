@@ -117,11 +117,12 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 	TPZFMatrix<REAL> &jacinv = data.jacinv;
 	int phr = phi.Rows();
 
+	REAL fXfLoc = fXf;
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
-		fXf = res[0];
+		fXfLoc = res[0];
 	}
 	REAL delx = 0.;
 	STATE ConvDirAx[3] = {0.};
@@ -159,8 +160,8 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 		int kd;
 		STATE dphiic = 0;
 		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
-		ef(in, 0) += - weight * ( fXf*phi(in,0) 
-								 +0.5*fSD*delx*fC*dphiic*fXf
+		ef(in, 0) += weight * ( fXfLoc*phi(in,0) 
+								 +0.5*fSD*delx*fC*dphiic*fXfLoc
 								 );
 		for( int jn = 0; jn < phr; jn++ ) {
 			for(kd=0; kd<fDim; kd++) {
@@ -190,10 +191,11 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	 **/
     
     //TPZVec<REAL>  &x = data.x;
+	REAL fXfLoc = fXf;
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
-		fXf = res[0];
+		fXfLoc = res[0];
 	}
 	int numvec = data.fVecShapeIndex.NElements();
 	int numdual = data.numberdualfunctions;
@@ -236,7 +238,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	}
 	for(i=0; i<numdual; i++)
 	{
-		ef(numvec+i,0) += (-1.)*weight*fXf*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
+		ef(numvec+i,0) += (-1.)*weight*fXfLoc*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
 	}
     
 }
@@ -1206,10 +1208,11 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 
 REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
 	// residual = -fK Laplac(u) + fC * div(fConvDir*u) - (-fXf)
+	REAL fXfLoc = fXf;
 	if(fForcingFunction) {
 		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(X,res);
-		fXf = res[0];
+		fXfLoc = res[0];
 	}
 	
 	STATE laplacU;
@@ -1223,7 +1226,7 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 		divBetaU = this->fC * ( this->fConvDir[0] * dsol(0,0) + this->fConvDir[1] * dsol(1,0) );
 	} 
 	
-	REAL result = abs(-this->fK * laplacU + divBetaU - (-fXf));
+	REAL result = abs(-this->fK * laplacU + divBetaU - (-fXfLoc));
 	return (result*result);
 }//method
 

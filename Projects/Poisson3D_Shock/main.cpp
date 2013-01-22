@@ -53,6 +53,8 @@ ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because 
 int gPrintLevel = 0;
 bool gDebug = false;
 
+void PrintToCompareWithExactSolution(TPZCompMesh *cmesh);
+
 void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
 void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
@@ -67,6 +69,7 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 
 TPZGeoMesh *ConstructingFicheraCorner(REAL L,bool print = false);
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
@@ -98,11 +101,11 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int i, nref, NRefs = 7;
+	int nref, NRefs = 4;
 	int nthread, NThreads = 4;
 	int dim = 3;
-    for(int typeel=0;typeel<4;typeel++) {
-		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+    for(int typeel=0;typeel<1;typeel++) {
+		for(int ntyperefs=0;ntyperefs<1;ntyperefs++) {
 			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 5) nthread = NThreads;
 				else nthread = 1;
@@ -113,35 +116,9 @@ int main(int argc, char *argv[]) {
 				cout << "\nConstructing Shock problem in cube. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel);
 				// h_refinement
-				TPZManVector<REAL> point(3,0.);
-				REAL r = 0.0, radius = 0.9;
-				bool isdefined = false;
-				if(ntyperefs) {
-					for(i=0;i<nref;i+=2) {
-						// To refine elements with center near to points than radius
-						//				RefineGeoElements(2,gmesh,Points,radius,isdefined);
-						// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-					if(i==nref) {
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-				}
-				else {
-					for(i=0;i<nref+1;i++) {
-						// To refine elements with center near to points than radius
-						// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
-						RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-				}
-				// Constructing connectivities
-				gmesh3D->ResetConnectivities();
-				gmesh3D->BuildConnectivity();
-				sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
+				// Refining near to the origin
+				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
+				sprintf(saida,"gmesh_%d_%d.vtk",nref,ntyperefs);
 				PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 				
 				// Creating computational mesh
@@ -216,7 +193,7 @@ int main(int argc, char *argv[]) {
 				out << "\tRefinement: " << nref << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				// Post processing
-				char pp[3];
+				char pp[64];
 				std::string filename = "Poisson3DSol_";
 				sprintf(pp,"TR%dE%dP%2dH%2dP%d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
@@ -249,6 +226,7 @@ int main(int argc, char *argv[]) {
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 				
+				
 				delete cmesh;
 				delete gmesh3D;
 			}
@@ -262,8 +240,65 @@ int main(int argc, char *argv[]) {
 ////////////////////////////////////////////////////////////////////////////////////////
 //////////   FICHERA CORNER - Problem as Anders Solin Presentation   ///////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
-
 void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	sol[0] = quad_r;
+	//if(!IsZero(sol[0])) {
+	//	REAL den = sol[0];
+		dsol(0,0) = 2.*x[0];
+		dsol(1,0) = 2.*x[1];
+		dsol(2,0) = 2.*x[2];
+	//}
+	//else {
+	//	dsol(0,0) = dsol(1,0) = dsol(2,0) = 0.;
+	//}
+}
+
+void BCShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	bcsol[0] = quad_r;	
+}
+
+void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+	//REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	//REAL raiz = sqrt(quad_r);
+	f[0] = -6.0;
+}
+
+void PrintToCompareWithExactSolution(TPZCompMesh *cmesh) {
+	int nel = cmesh->NElements();
+	int dim = cmesh->Dimension();
+	TPZCompEl *cel;
+	TPZVec<REAL> qsi(3,0.);
+	TPZVec<REAL> center(3,0.);
+	TPZFMatrix<REAL> phi(27,1);
+	TPZFMatrix<REAL> dphix(3,27);
+	TPZFMatrix<REAL> axes;
+	TPZSolVec sol(1);
+	TPZGradSolVec dsol;
+	TPZVec<REAL> solexact(1);
+	TPZFMatrix<REAL> dsolexact(3,1);
+	std::cout << endl;
+	for(int i=0;i<nel;i++) {
+		cel = cmesh->ElementVec()[i];
+		if(!cel || cel->Dimension() != dim) continue;
+		// Solution at center of the element
+		cel->Reference()->CenterPoint(cel->Reference()->NSides()-1,qsi);
+		cel->Reference()->X(qsi,center);
+		cel->ComputeSolution(qsi,sol,dsol,axes);
+		ExactShock(center,solexact,dsolexact);
+		std::cout << "\nPC: " << center[0] << "," << center[1] << "," << center[2] << " E: " << solexact[0] << " A: " << sol[0][0];
+		// Solution at first connect of the element
+		cel->Reference()->CenterPoint(0,qsi);
+		cel->Reference()->X(qsi,center);
+		cel->ComputeSolution(qsi,sol,dsol,axes);
+		ExactShock(center,solexact,dsolexact);
+		std::cout << "\nP0: " << center[0] << "," << center[1] << "," << center[2] << " E: " << solexact[0] << " A: " << sol[0][0];
+		
+	}
+}
+/*
+ void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	sol[0] = sqrt( sqrt (quad_r) );
 	if(!IsZero(sol[0])) {
@@ -287,7 +322,7 @@ void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL raiz = sqrt( sqrt(quad_r));
 	f[0] = -3./(4.*(raiz*raiz*raiz));
 }
-
+*/
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	
 	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
@@ -361,15 +396,27 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
 	
 	// SUBDIVIDING A CUBE
 	TPZVec<TPZGeoEl*> sub;
-	gmesh->ElementVec()[0]->Divide(sub);
+//	gmesh->ElementVec()[0]->Divide(sub);
 	
 	// DELETING A CUBE 6th
-	delete gmesh->ElementVec()[7];
+//	delete gmesh->ElementVec()[7];
 	
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
-	// INSERTING BOUNDARY ELEMENT IN THE INITIAL GEOMETRIC MESH
+	TPZGeoElBC gbc10(gmesh->ElementVec()[0],20,-1);
+	// face 1 lateral left
+	TPZGeoElBC gbc11(gmesh->ElementVec()[0],21,-1);
+	// face 2 lateral front
+	TPZGeoElBC gbc12(gmesh->ElementVec()[0],22,-1);
+	// face 3 lateral right
+	TPZGeoElBC gbc13(gmesh->ElementVec()[0],23,-1);
+	// face 4 lateral back
+	TPZGeoElBC gbc14(gmesh->ElementVec()[0],24,-1);
+	// top condition
+	TPZGeoElBC gbc15(gmesh->ElementVec()[0],25,-1);
+
+	/* INSERTING BOUNDARY ELEMENT IN THE INITIAL GEOMETRIC MESH
 	// bottom condition
 	TPZGeoElBC gbc10(gmesh->ElementVec()[1],20,-1);
 	TPZGeoElBC gbc20(gmesh->ElementVec()[2],20,-1);
@@ -384,11 +431,11 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
 	TPZGeoElBC gbc12(gmesh->ElementVec()[2],22,-1);
 	TPZGeoElBC gbc22(gmesh->ElementVec()[3],22,-1);
 	TPZGeoElBC gbc32(gmesh->ElementVec()[6],22,-1);
-	TPZGeoElBC gbc42(gmesh->ElementVec()[8],22,-1);
+	TPZGeoElBC gbc42(gmesh->ElementVec()[7],22,-1);
 	// face 3 lateral right
 	TPZGeoElBC gbc13(gmesh->ElementVec()[3],23,-1);
 	TPZGeoElBC gbc23(gmesh->ElementVec()[4],23,-1);
-	TPZGeoElBC gbc33(gmesh->ElementVec()[6],23,-1);
+	TPZGeoElBC gbc33(gmesh->ElementVec()[7],23,-1);
 	TPZGeoElBC gbc43(gmesh->ElementVec()[8],23,-1);
 	// face 4 lateral back
 	TPZGeoElBC gbc14(gmesh->ElementVec()[1],24,-1);
@@ -396,17 +443,45 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, bool print) {
 	TPZGeoElBC gbc34(gmesh->ElementVec()[5],24,-1);
 	TPZGeoElBC gbc44(gmesh->ElementVec()[8],24,-1);
 	// top condition
-	TPZGeoElBC gbc15(gmesh->ElementVec()[3],25,-1);
+	TPZGeoElBC gbc15(gmesh->ElementVec()[7],25,-1);
 	TPZGeoElBC gbc25(gmesh->ElementVec()[5],25,-1);
 	TPZGeoElBC gbc35(gmesh->ElementVec()[6],25,-1);
 	TPZGeoElBC gbc45(gmesh->ElementVec()[8],25,-1);
-	
+	*/
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
 	return gmesh;
 }
 
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
+	TPZManVector<REAL> point(3,0.);
+	REAL r = 0.0, radius = 0.9;
+	int i;
+	bool isdefined = false;
+	if(ntyperefs) {
+		for(i=0;i<nref;i+=2) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+		if(i==nref) {
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+	}
+	else {
+		for(i=0;i<nref;i++) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL r,REAL &distance,bool &isdefined) {
 	TPZManVector<REAL> centerpsi(3), center(3);
 	// Refinamento de elementos selecionados
