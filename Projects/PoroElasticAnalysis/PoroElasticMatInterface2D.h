@@ -47,6 +47,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
 	PoroElasticMatInterface2D(int mat,int dim, bool DoContribute, REAL fmu);
+
 	
 //	/** @brief Copies the data of one TPZElasticityMaterial object to another */
 //	ElasticMatInterface2D(const ElasticMatInterface2D &copy);
@@ -179,7 +180,7 @@ private:
 	bool fcontribute;
 	
 	/** @brief REAL Static friction coefficient  */
-	REAL fFrictionmu;	
+	REAL fFrictionmu;       
 	
 };
 

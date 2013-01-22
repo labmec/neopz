@@ -976,11 +976,12 @@ int TPZPoroElastic2d::NSolutionVariables(int var){
 	if(var == 29)	return 1;
 	if(var == 28)	return 1;	
 	if(var == 27)	return 1;
-	if(var == 30)	return 3;	
-	if(var == 31)	return 3;
+	if(var == 30)	return 1;	
+	if(var == 31)	return 1;
 	if(var == 32)	return 1;
 	if(var == 33)	return 1;	
-	if(var == 34)	return 1;	
+	if(var == 34)	return 1;
+	if(var == 35)	return 1;	
 	return TPZMaterial::NSolutionVariables(var);
 }
 
