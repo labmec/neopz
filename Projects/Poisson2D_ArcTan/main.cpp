@@ -120,7 +120,7 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int i, nref, NRefs = 11;
+	int i, nref, NRefs = 10;
 	int nthread, NThreads = 3;
 	int dim = 2;
 	
