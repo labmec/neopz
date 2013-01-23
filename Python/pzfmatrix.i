@@ -11,6 +11,7 @@
 //%ignore operator<<( std::ostream& Out, const TPZVec< T2 >& v );
 //%ignore operator T*() const;
 %ignore *::operator-() const;
+%ignore operator const double *;
 
 // Include the header file
 %include "pzsave.i"

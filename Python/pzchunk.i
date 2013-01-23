@@ -13,7 +13,6 @@
 
 // Include the header file
 %include "../Util/pzchunk.h"
-%include "pzgeoel.i"
 %include "pzvec.i"
 %include "pzmanvector.i"
 
@@ -37,5 +36,7 @@
    }
 }
 
-
+%template(IntTPZChunkVector) TPZChunkVector<int>;
+%include "pzgeoel.i"
+%template(TPZChunkVector_TPZGeoEl) TPZChunkVector<TPZGeoEl *>;
 

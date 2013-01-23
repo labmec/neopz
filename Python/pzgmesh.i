@@ -1,6 +1,7 @@
 // SWIG interface
 %module TPZGeoMesh
 %include "pzsave.i"
+%include "pzgeoel.i"
 %{
 #include "../Mesh/pzgmesh.h"
 %}
