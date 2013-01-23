@@ -1,5 +1,5 @@
 /**
- * @file Poisson 3D on Fichera corner as Ander Solin presentation
+ * @file Poisson 3D on Fichera corner: First problem as Ander Solin presentation. Second problem as Rachowicz article 2006
  */
 
 #include "pzshapelinear.h"
@@ -53,14 +53,11 @@ ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because 
 int gPrintLevel = 0;
 bool gDebug = false;
 
-//TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
-void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
 void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-
 void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
-
-void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f);
+void FforcingSolin(const TPZVec<REAL> &x, TPZVec<REAL> &f);
 
 //void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
@@ -70,11 +67,14 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 
-TPZGeoMesh *ConstructingFicheraCorner(REAL L,int typeel=0);
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
+TPZGeoMesh *ConstructingFicheraCorner(REAL L,int typeel=0,int problem = 1);
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int problem=1);
 
 void formatTimeInSec(char *strtime,int timeinsec);
 
+// problem = 1 represents the Poisson as Solin presentation
+// problem = 2 represents the Poisson as Rachowicz Ficher corner problem
+int problem = 2;
 
 // MAIN FUNCTION TO NUMERICAL SOLVE OF THE FICHERA CORNER PROBLEM
 int main(int argc, char *argv[]) {
@@ -113,8 +113,13 @@ int main(int argc, char *argv[]) {
 				// Initializing the generation mesh process
 				time(&sttime);
 				// Constructing geometric mesh as Fichera corner using hexahedra
+				out << "\nFICHERA CORNER:";
+				if(problem==1)
+					out << "\t As SOLIN Presentation.";
+				else if(problem==2) 
+					out << "\t As Rachowicz (2006).";
 				cout << "\nConstructing Fichera problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
-				TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel);
+				TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel,problem);
 
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
@@ -129,13 +134,13 @@ int main(int argc, char *argv[]) {
 				int p = 6, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
-				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);
+				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1,problem);
 				cmesh->SetName("Computational mesh for Fichera problem");
 				dim = cmesh->Dimension();
 				
 				// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
 				// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
-				int level, highlevel = 0;
+				int level = 0, highlevel = 0;
 				int nelem = 0;
 				while(nelem < cmesh->NElements()) {
 					TPZCompEl *cel = cmesh->ElementVec()[nelem++];
@@ -198,6 +203,8 @@ int main(int argc, char *argv[]) {
 				// Post processing
 				char pp[3];
 				std::string filename = "Poisson3DSol_";
+				if(problem==1) filename += "S_";
+				else if(problem==2) filename += "R_";
 				sprintf(pp,"TR%dE%dP%02dH%02dP%d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
 				filename += ".vtk";
@@ -222,7 +229,10 @@ int main(int argc, char *argv[]) {
 				an.PostProcess(0,dim);
 				
 				// Computing error
-				an.SetExact(ExactSolin);
+				if(problem==1)
+					an.SetExact(ExactSolin);
+				else if(problem==2)
+					an.SetExact(ExactRachowicz);
 				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
 				an.PostProcess(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
@@ -264,13 +274,43 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 	bcsol[0] = sqrt(raiz);
 }
 
-void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void FforcingSolin(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r * quad_r * quad_r);
 	f[0] = 3./(4.0*sqrt(raiz));
 }
 
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
+void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
+	REAL raiz = sqrt(quad_r);
+	sol[0] = sqrt(raiz);
+	REAL den = sol[0]*sol[0]*sol[0];
+	if(!IsZero(den)) {
+		dsol(0,0) = .5*x[0]/den;
+		dsol(1,0) = .5*x[1]/den;
+		dsol(2,0) = .5*x[2]/den;
+	}
+	else {
+		dsol(0,0) = dsol(1,0) = dsol(2,0) = 0.;
+	}
+}
+
+void BCRachowiczN(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
+	REAL raiz = sqrt(quad_r);
+	bcsol[0] = sqrt(raiz);
+}
+void BCRachowiczD(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+	bcsol[0] = 0.0;
+}
+
+void FforcingRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
+	REAL raiz = sqrt(quad_r * quad_r * quad_r);
+	f[0] = 3./(4.0*sqrt(raiz));
+}
+
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int problem) {
 	
 	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
@@ -281,23 +321,52 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	TPZVec<REAL> convd(3,0.);
 	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
 	if(hasforcingfunction) {
-		mat->SetForcingFunction(new TPZDummyFunction<STATE>(Ff));
+		switch(problem) {
+			case 1:
+				mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingSolin));
+				break;
+			case 2:
+				mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingRachowicz));
+				break;
+		}
 	}
 	cmesh->InsertMaterialObject(mat);
 	// Make compatible dimension of the model and the computational mesh
 	cmesh->SetDimModel(mat->Dimension());
 	
 	// Boundary conditions
-	// Dirichlet
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
 	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-	val1.PutVal(0,0,1.);
-	val1.PutVal(1,1,1.);
-	val1.PutVal(2,2,1.);
-	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
-	bnd->SetForcingFunction(FunctionBC);
-	cmesh->InsertMaterialObject(bnd);
-	
+	switch(problem) {
+		case 1:
+		{
+			// Dirichlet 
+			TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+			val1.PutVal(0,0,1.);
+			val1.PutVal(1,1,1.);
+			val1.PutVal(2,2,1.);
+			TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+			bnd->SetForcingFunction(FunctionBC);
+			cmesh->InsertMaterialObject(bnd);
+		}
+		break;
+		case 2:
+		{
+			// Neumann
+			TPZAutoPointer<TPZFunction<STATE> > FunctionBCN = new TPZDummyFunction<STATE>(BCRachowiczN);
+			val1.PutVal(0,0,1.);
+			val1.PutVal(1,1,1.);
+			val1.PutVal(2,2,1.);
+			TPZMaterial *bndN = mat->CreateBC(mat,-1,1,val1,val2);
+			bndN->SetForcingFunction(FunctionBCN);
+			cmesh->InsertMaterialObject(bndN);
+			// Dirichlet
+//			TPZAutoPointer<TPZFunction<STATE> > FunctionBCD = new TPZDummyFunction<STATE>(BCRachowiczD);
+			TPZMaterial *bndD = mat->CreateBC(mat,-2,0,val1,val2);
+//			bndD->SetForcingFunction(FunctionBCD);
+			cmesh->InsertMaterialObject(bndD);
+		}
+		break;
+	}			
 	cmesh->AutoBuild();
 	cmesh->AdjustBoundaryElements();
 	cmesh->ExpandSolution();
@@ -305,7 +374,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 }
 
 // CONSTRUCTION OF THE FICHERA CORNER FROM A CUBE - SUBDIVIDING ITS - AND DELETING A RIGHT TOP CUBE SON
-TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel) {
+TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 	
 	// CREATING A CUBE WITH MASS CENTER THE ORIGIN AND VOLUME = INITIALL*INITIALL*INITIALL 
 	REAL co[8][3] = {
@@ -347,12 +416,13 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel) {
 	
 	// SUBDIVIDING A CUBE
 	TPZVec<TPZGeoEl*> sub;
-	gmesh->ElementVec()[0]->Divide(sub);
-	
-	// DELETING A CUBE 6th
-	delete gmesh->ElementVec()[7];
 	
 	switch(typeel) {
+		case 0:
+			gmesh->ElementVec()[0]->Divide(sub);
+			// DELETING A CUBE 6th
+			delete gmesh->ElementVec()[7];
+			break;
 		case 1:
 		// Refinar todo elemento cubo como dois prismas
 			break;
@@ -367,36 +437,76 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel) {
 	gmesh->BuildConnectivity();
 	
 	// INSERTING BOUNDARY ELEMENT IN THE INITIAL GEOMETRIC MESH
-	// bottom condition
-	TPZGeoElBC gbc10(gmesh->ElementVec()[1],20,-1);
-	TPZGeoElBC gbc20(gmesh->ElementVec()[2],20,-1);
-	TPZGeoElBC gbc30(gmesh->ElementVec()[3],20,-1);
-	TPZGeoElBC gbc40(gmesh->ElementVec()[4],20,-1);
-	// face 1 lateral left
-	TPZGeoElBC gbc11(gmesh->ElementVec()[1],21,-1);
-	TPZGeoElBC gbc21(gmesh->ElementVec()[2],21,-1);
-	TPZGeoElBC gbc31(gmesh->ElementVec()[5],21,-1);
-	TPZGeoElBC gbc41(gmesh->ElementVec()[6],21,-1);
-	// face 2 lateral front
-	TPZGeoElBC gbc12(gmesh->ElementVec()[2],22,-1);
-	TPZGeoElBC gbc22(gmesh->ElementVec()[3],22,-1);
-	TPZGeoElBC gbc32(gmesh->ElementVec()[6],22,-1);
-	TPZGeoElBC gbc42(gmesh->ElementVec()[8],22,-1);
-	// face 3 lateral right
-	TPZGeoElBC gbc13(gmesh->ElementVec()[3],23,-1);
-	TPZGeoElBC gbc23(gmesh->ElementVec()[4],23,-1);
-	TPZGeoElBC gbc33(gmesh->ElementVec()[6],23,-1);
-	TPZGeoElBC gbc43(gmesh->ElementVec()[8],23,-1);
-	// face 4 lateral back
-	TPZGeoElBC gbc14(gmesh->ElementVec()[1],24,-1);
-	TPZGeoElBC gbc24(gmesh->ElementVec()[4],24,-1);
-	TPZGeoElBC gbc34(gmesh->ElementVec()[5],24,-1);
-	TPZGeoElBC gbc44(gmesh->ElementVec()[8],24,-1);
-	// top condition
-	TPZGeoElBC gbc15(gmesh->ElementVec()[3],25,-1);
-	TPZGeoElBC gbc25(gmesh->ElementVec()[5],25,-1);
-	TPZGeoElBC gbc35(gmesh->ElementVec()[6],25,-1);
-	TPZGeoElBC gbc45(gmesh->ElementVec()[8],25,-1);
+	switch(problem) {
+		case 1:
+		{
+			// bottom condition
+			TPZGeoElBC gbc10(gmesh->ElementVec()[1],20,-1);
+			TPZGeoElBC gbc20(gmesh->ElementVec()[2],20,-1);
+			TPZGeoElBC gbc30(gmesh->ElementVec()[3],20,-1);
+			TPZGeoElBC gbc40(gmesh->ElementVec()[4],20,-1);
+			// face 1 lateral left
+			TPZGeoElBC gbc11(gmesh->ElementVec()[1],21,-1);
+			TPZGeoElBC gbc21(gmesh->ElementVec()[2],21,-1);
+			TPZGeoElBC gbc31(gmesh->ElementVec()[5],21,-1);
+			TPZGeoElBC gbc41(gmesh->ElementVec()[6],21,-1);
+			// face 2 lateral front
+			TPZGeoElBC gbc12(gmesh->ElementVec()[2],22,-1);
+			TPZGeoElBC gbc22(gmesh->ElementVec()[3],22,-1);
+			TPZGeoElBC gbc32(gmesh->ElementVec()[6],22,-1);
+			TPZGeoElBC gbc42(gmesh->ElementVec()[8],22,-1);
+			// face 3 lateral right
+			TPZGeoElBC gbc13(gmesh->ElementVec()[3],23,-1);
+			TPZGeoElBC gbc23(gmesh->ElementVec()[4],23,-1);
+			TPZGeoElBC gbc33(gmesh->ElementVec()[6],23,-1);
+			TPZGeoElBC gbc43(gmesh->ElementVec()[8],23,-1);
+			// face 4 lateral back
+			TPZGeoElBC gbc14(gmesh->ElementVec()[1],24,-1);
+			TPZGeoElBC gbc24(gmesh->ElementVec()[4],24,-1);
+			TPZGeoElBC gbc34(gmesh->ElementVec()[5],24,-1);
+			TPZGeoElBC gbc44(gmesh->ElementVec()[8],24,-1);
+			// top condition
+			TPZGeoElBC gbc15(gmesh->ElementVec()[3],25,-1);
+			TPZGeoElBC gbc25(gmesh->ElementVec()[5],25,-1);
+			TPZGeoElBC gbc35(gmesh->ElementVec()[6],25,-1);
+			TPZGeoElBC gbc45(gmesh->ElementVec()[8],25,-1);
+		}
+		break;
+		case 2:
+		{
+			// bottom condition
+			TPZGeoElBC gbc10(gmesh->ElementVec()[1],20,-1);
+			TPZGeoElBC gbc20(gmesh->ElementVec()[2],20,-1);
+			TPZGeoElBC gbc30(gmesh->ElementVec()[3],20,-1);
+			TPZGeoElBC gbc40(gmesh->ElementVec()[4],20,-1);
+			// face 1 lateral left
+			TPZGeoElBC gbc11(gmesh->ElementVec()[1],21,-1);
+			TPZGeoElBC gbc21(gmesh->ElementVec()[2],21,-1);
+			TPZGeoElBC gbc31(gmesh->ElementVec()[5],21,-1);
+			TPZGeoElBC gbc41(gmesh->ElementVec()[6],21,-1);
+			// face 2 lateral front
+			TPZGeoElBC gbc12(gmesh->ElementVec()[2],22,-1);
+			TPZGeoElBC gbc22(gmesh->ElementVec()[3],22,-1);
+			TPZGeoElBC gbc32(gmesh->ElementVec()[6],22,-1);
+			TPZGeoElBC gbc42(gmesh->ElementVec()[8],22,-2);
+			// face 3 lateral right
+			TPZGeoElBC gbc13(gmesh->ElementVec()[3],23,-1);
+			TPZGeoElBC gbc23(gmesh->ElementVec()[4],23,-1);
+			TPZGeoElBC gbc33(gmesh->ElementVec()[6],23,-2);
+			TPZGeoElBC gbc43(gmesh->ElementVec()[8],23,-1);
+			// face 4 lateral back
+			TPZGeoElBC gbc14(gmesh->ElementVec()[1],24,-1);
+			TPZGeoElBC gbc24(gmesh->ElementVec()[4],24,-1);
+			TPZGeoElBC gbc34(gmesh->ElementVec()[5],24,-1);
+			TPZGeoElBC gbc44(gmesh->ElementVec()[8],24,-1);
+			// top condition
+			TPZGeoElBC gbc15(gmesh->ElementVec()[3],25,-2);
+			TPZGeoElBC gbc25(gmesh->ElementVec()[5],25,-1);
+			TPZGeoElBC gbc35(gmesh->ElementVec()[6],25,-1);
+			TPZGeoElBC gbc45(gmesh->ElementVec()[8],25,-1);
+		}
+		break;
+	}
 	
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
