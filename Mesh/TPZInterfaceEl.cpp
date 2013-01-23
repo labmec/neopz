@@ -995,7 +995,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		return;
 	}
 	
-	
 	//TPZMaterialData data;
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
@@ -1004,7 +1003,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int nshaper = right->NShapeF();
 	const int nstatel = left->Material()->NStateVariables();
 	const int nstater = right->Material()->NStateVariables();
-	//	this->InitMaterialData(data,left,right);
 	
 	TPZMaterialData dataright;
 	TPZMaterialData dataleft;
@@ -1023,7 +1021,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		ef.Reset();
 		return;
 	}
-	
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
 	TPZManVector<int> ConnectIndexL, ConnectIndexR;
@@ -1089,7 +1086,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
 	const int npoints = intrule->NPoints();
 	
-	//		integration points in left and right elements: making transformations to neighbour elements
+	//integration points in left and right elements: making transformations to neighbour elements
 	TPZTransform TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
@@ -1111,14 +1108,11 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 
-        //left->ComputeShape(LeftIntPoint, dataleft.x, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv, dataleft.phi, dataleft.dphix);
-		//right->ComputeShape(RightIntPoint, dataright.x, dataright.jacobian, dataright.axes, dataright.detjac, dataright.jacinv, dataright.phi, dataright.dphix);
-        data.x = dataleft.x;
 		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
 		this->ComputeRequiredData(data);
-		
-		
+		data.x = dataleft.x;
+        
 		mat->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
 		
 	}//loop over integration points
