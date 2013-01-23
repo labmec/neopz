@@ -101,14 +101,14 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 7;
+	int nref, NRefs = 10;
 	int nthread, NThreads = 2;
 	int dim = 3;
     for(int typeel=0;typeel<1;typeel++) {
 		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
 			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 4) nthread = NThreads+(nref-4);
-				else nthread = 1;
+				else nthread = NThreads;
 				
 				// Initializing the generation mesh process
 				time(&sttime);
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 6, pinit;
+				int p = 7, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1,problem);
