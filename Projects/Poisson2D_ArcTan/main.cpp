@@ -542,9 +542,10 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 	gmesh->BuildConnectivity();
 }
 
+/** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	//	REAL Epsilon = 1000000;
-	REAL B = 16./M_PI;
+/*	REAL B = 16./M_PI;
 	REAL F = 2*sqrt(ValueK);
 	REAL G = -0.4375;
 	
@@ -557,20 +558,38 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
 	
 	force[0] = B*(sum*(M_PI+2*arctan)+(num/den));
-	force[0] *= ValueK;
-}
-
-void RightTermProduct(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
-	force[0] = 32.*(x[0]*(x[0]-1.)+x[1]*(x[1]-1.));
-}
-void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	sol[0] = 16*x[0]*x[1]*(1-x[0])*(1-x[1]);
-	dsol(0,0) = 16*(1.-2*x[0])*(1.-x[1])*x[1];
-	dsol(1,0) = 16*(1.-2*x[1])*(1.-x[0])*x[0];
+	force[0] *= -ValueK;*/
+	REAL B = (16.0*ValueK)/M_PI;
+	REAL F = (-0.5)*sqrt(ValueK);
+	
+	REAL sum = x[0]*(x[0]-1.) + x[1]*(x[1]-1.);
+	REAL prod = x[0]*(x[0]-1.)*x[1]*(x[1]-1.);
+	
+	REAL temp = F*((7./4.)+4*sum);
+	REAL arctan = atan(temp);
+	REAL den = (1+temp*temp);
+	
+	force[0] = B*(sum*(M_PI+2.*arctan)-((8*F*(2.+5*sum))/den)+((32*F*prod*temp)/(den*den)));
 }
 
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	REAL F = 2*sqrt(ValueK);
+	REAL B = 8./M_PI;
+	REAL F = (-0.5)*sqrt(ValueK);
+	
+    REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+    REAL prod = prodx*prody;
+	REAL sum = prodx + prody;
+	
+	REAL temp = F*((7./4.)+4*sum);
+	REAL arctan = atan(temp);
+    // Solution
+	sol[0] = B*prod*(M_PI+ 2*arctan);
+    // Partial derivaties
+    REAL den = 1.+temp*temp;
+    dsol(0,0) = B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)-((8*F*prodx)/den));
+    dsol(1,0) = B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)-((8*F*prody)/den));
+/*	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
@@ -583,10 +602,11 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
 	frac = 2*prod*F*(1.-2*x[1]);
 	frac = frac/(1+arc*arc);
-	dsol(1,0) = (8./ M_PI)*(temp + frac);
+	dsol(1,0) = (8./ M_PI)*(temp + frac);*/
+    
 }
 REAL PartialDerivateX(const TPZVec<REAL> &x) {
-	REAL F = 2*sqrt(ValueK);
+/*	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
@@ -595,10 +615,22 @@ REAL PartialDerivateX(const TPZVec<REAL> &x) {
 	REAL frac = 2*F*prodx;
 	frac = frac/(1+arc*arc);
 	temp -= frac;
-	return (result*temp);
+	return (result*temp);*/
+	REAL B = 8./M_PI;
+	REAL F = (-0.5)*sqrt(ValueK);
+	
+    REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+	REAL sum = prodx + prody;
+	
+	REAL temp = F*((7./4.)+4*sum);
+	REAL arctan = atan(temp);
+    REAL den = 1.+temp*temp;
+    return ( B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)-((8*F*prodx)/den)));
 }
+
 REAL PartialDerivateY(const TPZVec<REAL> &x) {
-	REAL F = 2*sqrt(ValueK);
+/*	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
@@ -607,9 +639,30 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	REAL frac = 2*F*prody;
 	frac = frac/(1+arc*arc);
 	temp -= frac;
-	return (result*temp);
+	return (result*temp);*/
+    REAL B = 8./M_PI;
+	REAL F = (-0.5)*sqrt(ValueK);
+	
+    REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+	REAL sum = prodx + prody;
+	
+	REAL temp = F*((7./4.)+4*sum);
+	REAL arctan = atan(temp);
+    REAL den = 1.+temp*temp;
+
+    return (B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)-((8*F*prody)/den)));
 }
 
+// PROBLEM WITH PRODUCT
+void RightTermProduct(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
+	force[0] = 32.*(x[0]*(x[0]-1.)+x[1]*(x[1]-1.));
+}
+void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+	sol[0] = 16*x[0]*x[1]*(1-x[0])*(1-x[1]);
+	dsol(0,0) = 16*(1.-2*x[0])*(1.-x[1])*x[1];
+	dsol(1,0) = 16*(1.-2*x[1])*(1.-x[0])*x[0];
+}
 
 /////
 
