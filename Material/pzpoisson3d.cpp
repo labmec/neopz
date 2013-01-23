@@ -160,9 +160,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 		int kd;
 		STATE dphiic = 0;
 		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
-		ef(in, 0) += - weight * ( fXfLoc*phi(in,0) 
-								 +0.5*fSD*delx*fC*dphiic*fXfLoc
-								 );
+		ef(in, 0) += - weight * fXfLoc * ( phi(in,0) + 0.5*fSD*delx*fC*dphiic );
 		for( int jn = 0; jn < phr; jn++ ) {
 			for(kd=0; kd<fDim; kd++) {
 				ek(in,jn) += weight * (
@@ -186,13 +184,13 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 {
 	/** monta a matriz
 	 |A B^T |  = |0 |
-	 |B 0		|		 |f |
+	 |B 0   |    |f |
 	 
 	 **/
     
     //TPZVec<REAL>  &x = data.x;
 	REAL fXfLoc = fXf;
-	if(fForcingFunction) {            // phi(in, 0) = phi_in
+	if(fForcingFunction) {                           // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
 		fXfLoc = res[0];

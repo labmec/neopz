@@ -119,12 +119,14 @@ int main(int argc, char *argv[]) {
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
 				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
-				sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
-				PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+				if(nref == NRefs-1) {
+					sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
+					PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+				}
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 4, pinit;
+				int p = 6, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);

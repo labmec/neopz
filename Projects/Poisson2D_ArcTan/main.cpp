@@ -63,7 +63,7 @@ using namespace pzshape;
 int materialId = 4;
 int anothertests = 1;
 char saida[512];
-ofstream out("ConsolePoisson3D.txt");             // To store output of the console
+ofstream out("ConsolePoisson2D.txt");             // To store output of the console
 
 STATE ValueK = 1000000;
 
@@ -78,16 +78,13 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,REAL &distance,bool &isdefined);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+
+void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force);
-void RightTermProduct(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 
-void ExactSolNull(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	sol.Fill(0.0);
-	dsol.Zero();
-}
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 
@@ -137,41 +134,13 @@ int main() {
 				cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
 				
-				int nelem;
-				bool isdefined = false;
-				
-				// Refinando no local desejado
-				int npoints = 1000;
-				TPZVec<REAL> point(3);
-				point[0] = point[1] = 0.5; point[2] = 0.0;
-				REAL r = 0.25;
-				TPZVec<TPZManVector<REAL> > Points(npoints);
-				GetPointsOnCircunference(npoints,point,r,Points);
-				
-				if(ntyperefs) {
-					REAL radius = 0.19;
-					for(i=0;i<nref;i+=2) {
-						// To refine elements with center near to points than radius
-						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-						radius *= 0.35;
-					}
-					if(i==nref) {
-						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-						radius *= 0.4;
-					}
+				// h_refinement
+				// Refining near the points belong a circunference with radio r - maxime distance radius
+				RefiningNearCircunference(dim,gmesh,nref,ntyperefs);
+				if(nref == NRefs-1) {
+					sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
+					PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
 				}
-				else {
-					REAL radius = 0.2;
-					for(i=0;i<nref+1;i++) {
-						// To refine elements with center near to points than radius
-						RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-						radius *= 0.6;
-					}
-				}
-				// Constructing connectivities
-				gmesh->ResetConnectivities();
-				gmesh->BuildConnectivity();
 				
 				// Creating computational mesh (approximation space and materials)
 				int p = 7, pinit;
@@ -186,7 +155,7 @@ int main() {
 				// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
 				// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
 				int level = 0, highlevel = 0;
-				nelem = 0;
+				int nelem = 0;
 				while(nelem < cmesh->NElements()) {
 					TPZCompEl *cel = cmesh->ElementVec()[nelem++];
 					if(cel) {
@@ -269,12 +238,9 @@ int main() {
 				an.PostProcess(0,dim);
 				
 				// Computing error
-				if(!problem)
-					an.SetExact(ExactSolNull);
-				else if(problem==1)
+				if(problem==1)
 					an.SetExact(ExactSolCircle);
-				else if(problem==2)
-					an.SetExact(ExactSolProduct);
+				
 				fileerrors << "Refinement: " << nref+1 << "  Threads: " << nthread << "  NEquations: " << cmesh->NEquations();
 				an.PostProcess(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
@@ -348,6 +314,45 @@ void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVe
 		point[1] = center[1]+radius*sin(i*angle);
 		Points[i] = point;
 	}
+}
+
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
+
+	int i;
+	bool isdefined = false;
+	
+	// Refinando no local desejado
+	int npoints = 1000;
+	TPZVec<REAL> point(3);
+	point[0] = point[1] = 0.5; point[2] = 0.0;
+	REAL r = 0.25;
+	TPZVec<TPZManVector<REAL> > Points(npoints);
+	GetPointsOnCircunference(npoints,point,r,Points);
+	
+	if(ntyperefs) {
+		REAL radius = 0.19;
+		for(i=0;i<nref;i+=2) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.35;
+		}
+		if(i==nref) {
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.4;
+		}
+	}
+	else {
+		REAL radius = 0.2;
+		for(i=0;i<nref+1;i++) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
 }
 
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined) {
@@ -472,13 +477,11 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	TPZMaterial *mat = new TPZMatPoisson3d(4,dim);
 	TPZVec<REAL> convd(3,0.);
 	((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
-    //    TPZMaterial * mat = new TPZElasticityMaterial(4,ElasticityModulus,0.3,0.,0.);
 	switch(hasforcingfunction) {
 		case 1:
 			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermCircle));
 			break;
 		case 2:
-			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermProduct));
 			break;
 		default:
 			break;
@@ -489,34 +492,13 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	
 	// Creating four boundary condition
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
-	TPZMaterial *bcBottom, *bcRigth, *bcTop, *bcLeft;
+	TPZMaterial *bc;
 	
-	// Condicion livre - nada para hacer
-    bcLeft = mat->CreateBC(mat,-5,0,val1,val2);
-    cmesh->InsertMaterialObject(bcLeft);
 	// Condicion de Dirichlet fijando la posicion de la placa
-	if(!hasforcingfunction) val1(1,1) = 1000000.;
-    bcBottom = mat->CreateBC(mat,-1,0,val1,val2);
-	cmesh->InsertMaterialObject(bcBottom);
-	// Condicion de aplicar una fuerza horizontal
-	if(!hasforcingfunction) {
-		val1(1,1) = 0.;
-		val2(1,0) = 10.;
-		bcTop = mat->CreateBC(mat,-2,1,val1,val2);
-	}
-	else 
-		bcTop = mat->CreateBC(mat,-2,0,val1,val2);
-	cmesh->InsertMaterialObject(bcTop);
-	// Aplicando fuerza zero
-	if(!hasforcingfunction) {
-		val2(1,0) = 0.;
-		bcRigth = mat->CreateBC(mat,-3,1,val1,val2);
-	}
-	else 
-		bcRigth = mat->CreateBC(mat,-3,0,val1,val2);
-	cmesh->InsertMaterialObject(bcRigth);
-	
-	// Inserting boundary conditions into computational mesh
+	if(!hasforcingfunction) 
+		val1(1,1) = 1000000.;
+    bc = mat->CreateBC(mat,-1,0,val1,val2);
+	cmesh->InsertMaterialObject(bc);
 	
     cmesh->AutoBuild();
 	cmesh->ExpandSolution();
@@ -545,7 +527,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	//	REAL Epsilon = 1000000;
-/*	REAL B = 16./M_PI;
+	REAL B = (16.*ValueK)/M_PI;
 	REAL F = 2*sqrt(ValueK);
 	REAL G = -0.4375;
 	
@@ -558,38 +540,36 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
 	
 	force[0] = B*(sum*(M_PI+2*arctan)+(num/den));
-	force[0] *= -ValueK;*/
-	REAL B = (16.0*ValueK)/M_PI;
+/*	REAL B = (-16.0*ValueK)/M_PI;
+	// Computing Q(x,y) = 2*Sqrt[ValueK]*(.25^2-(x-0.5)^2-(y-0.5)^2)  Doing F = -0.5*Sqrt[ValueK]  Then Q=F*(7/4 + 4 Sum)
 	REAL F = (-0.5)*sqrt(ValueK);
-	
 	REAL sum = x[0]*(x[0]-1.) + x[1]*(x[1]-1.);
-	REAL prod = x[0]*(x[0]-1.)*x[1]*(x[1]-1.);
-	
 	REAL temp = F*((7./4.)+4*sum);
 	REAL arctan = atan(temp);
+
+	REAL prod = x[0]*(x[0]-1.)*x[1]*(x[1]-1.);
 	REAL den = (1+temp*temp);
 	
-	force[0] = B*(sum*(M_PI+2.*arctan)-((8*F*(2.+5*sum))/den)+((32*F*prod*temp)/(den*den)));
+	force[0] = B*(sum*(M_PI+2.*arctan)+((8*F*(2.+5*sum))/den)-((32*F*prod*temp)/(den*den)));*/
 }
 
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	REAL B = 8./M_PI;
+/*	REAL B = 8./M_PI;
 	REAL F = (-0.5)*sqrt(ValueK);
-	
-    REAL prodx = x[0]*(x[0]-1.);
+	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
-    REAL prod = prodx*prody;
 	REAL sum = prodx + prody;
-	
 	REAL temp = F*((7./4.)+4*sum);
 	REAL arctan = atan(temp);
+	
+    REAL prod = prodx*prody;
     // Solution
 	sol[0] = B*prod*(M_PI+ 2*arctan);
     // Partial derivaties
     REAL den = 1.+temp*temp;
-    dsol(0,0) = B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)-((8*F*prodx)/den));
-    dsol(1,0) = B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)-((8*F*prody)/den));
-/*	REAL F = 2*sqrt(ValueK);
+    dsol(0,0) = B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)+((8*F*prodx)/den));
+    dsol(1,0) = B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((8*F*prody)/den));*/
+	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
@@ -602,8 +582,7 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
 	frac = 2*prod*F*(1.-2*x[1]);
 	frac = frac/(1+arc*arc);
-	dsol(1,0) = (8./ M_PI)*(temp + frac);*/
-    
+	dsol(1,0) = (8./ M_PI)*(temp + frac);    
 }
 REAL PartialDerivateX(const TPZVec<REAL> &x) {
 /*	REAL F = 2*sqrt(ValueK);
@@ -626,7 +605,7 @@ REAL PartialDerivateX(const TPZVec<REAL> &x) {
 	REAL temp = F*((7./4.)+4*sum);
 	REAL arctan = atan(temp);
     REAL den = 1.+temp*temp;
-    return ( B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)-((8*F*prodx)/den)));
+    return ( B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)+((8*F*prodx)/den)));
 }
 
 REAL PartialDerivateY(const TPZVec<REAL> &x) {
@@ -651,18 +630,9 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	REAL arctan = atan(temp);
     REAL den = 1.+temp*temp;
 
-    return (B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)-((8*F*prody)/den)));
+    return (B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((8*F*prody)/den)));
 }
 
-// PROBLEM WITH PRODUCT
-void RightTermProduct(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
-	force[0] = 32.*(x[0]*(x[0]-1.)+x[1]*(x[1]-1.));
-}
-void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	sol[0] = 16*x[0]*x[1]*(1-x[0])*(1-x[1]);
-	dsol(0,0) = 16*(1.-2*x[0])*(1.-x[1])*x[1];
-	dsol(1,0) = 16*(1.-2*x[1])*(1.-x[0])*x[0];
-}
 
 /////
 
@@ -1118,7 +1088,6 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
 void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
-void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 
