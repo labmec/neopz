@@ -160,7 +160,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 		int kd;
 		STATE dphiic = 0;
 		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
-		ef(in, 0) += weight * ( fXfLoc*phi(in,0) 
+		ef(in, 0) += - weight * ( fXfLoc*phi(in,0) 
 								 +0.5*fSD*delx*fC*dphiic*fXfLoc
 								 );
 		for( int jn = 0; jn < phr; jn++ ) {

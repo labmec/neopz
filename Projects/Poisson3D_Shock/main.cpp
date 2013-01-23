@@ -259,10 +259,11 @@ void BCShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 	bcsol[0] = quad_r;	
 }
 
+/** NOTE: Forcing function in TPZMatPoisson3d is negative */
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	//REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	//REAL raiz = sqrt(quad_r);
-	f[0] = -6.0;
+	f[0] = 6.0;
 }
 
 void PrintToCompareWithExactSolution(TPZCompMesh *cmesh) {

@@ -265,7 +265,7 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r * quad_r * quad_r);
-	f[0] = -3./(4.0*sqrt(raiz));
+	f[0] = 3./(4.0*sqrt(raiz));
 }
 
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
