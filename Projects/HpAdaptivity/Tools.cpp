@@ -138,27 +138,47 @@ const REAL Pi=4.*atan(1.);
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		double x = pt[0];
 		double y = pt[1];
-		double fator=(-1)*(x*x+y*y);
+		//double fator=(-1)*(x*x+y*y);
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		disp[0]= (-4.)*x*exp(fator)*(-2.+(-1.)*fator);//2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
+		//disp[0]= 2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
+		disp[0]=(-1)*(-10*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) + 5*exp(10*pow(y,2))*(1 + exp(10*pow(x,2)))*(-1 + x)*pow(x,2)*(-5 + x*(9 + 20*(-1 + x)*x))*pow(-1 + y,2)*pow(y,2) - 
+		 2*pow(x,3)*(1 + 6*(-1 + y)*y) + pow(x,4)*(1 + 6*(-1 + y)*y) + pow(x,2)*(1 + 6*(-1 + y)*y*(1 + (-1 + y)*y)) + exp(5*pow(x,2))*(-(exp(5*pow(x,2))*	(pow(-1 + x,2)*pow(x,2) - 6*pow(-1 + x,2)*pow(x,2)*y + 
+		(1 + 2*(-1 + x)*x*(3 + 4*x*(-7 + x*(12 + 25*(-1 + x)*x))))*pow(y,2) - 2*(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,3) + 
+		(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,4))) +	2*exp(10*pow(y,2))*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) - 200*pow(x,5)*pow(-1 + y,2)*pow(y,2) + 100*pow(x,6)*pow(-1 + y,2)*pow(y,2) - 
+		2*pow(x,3)*(1 + (-1 + y)*y*(6 + 5*y*(-17 + 5*y*(5 + 8*(-1 + y)*y)))) + pow(x,4)*(1 + (-1 + y)*y*(6 + 5*y*(-39 + y*(47 + 40*(-1 + y)*y)))) + pow(x,2)*(1 + (-1 + y)*y*(6 + y*(-81 + y*(121 + 200*(-1 + y)*y)))))*
+	sinh(5*pow(x,2)))));																																																																	 
 		return;
 }
 void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
 		TPZVec<REAL> disp;
-		double fator=(-1.)*(x*x+y*y);
-    p[0]= x*exp(fator);//sin(Pi*x)*sin(Pi*y);//Solucao
-		flux(0,0)= (-1.)*(exp(fator)+(-2.)*x*x*exp(fator));//(-1.)*Pi*cos(Pi*x)*sin(Pi*y);//dx
-		flux(1,0)= (-1.)*((-2.)*x*y*exp(fator));//(-1.)*Pi*cos(Pi*y)*sin(Pi*x);// dy
-		flux(2,0)= (-4.)*x*exp(fator)*(-2.+(-1.)*fator);//2*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//coloco o divergetne aq para testar
+		//double fator=(-1.)*(x*x+y*y);
+    p[0]= sin(Pi*x)*sin(Pi*y);//x*exp(fator);//Solucao
+		flux(0,0)= (-1.)*Pi*cos(Pi*x)*sin(Pi*y);//(-1.)*exp(fator)+2.*x*x*exp(fator);//dx
+		flux(1,0)= (-1.)*Pi*cos(Pi*y)*sin(Pi*x);//2.*x*y*exp(fator);// dy
+		flux(2,0)= 2*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//coloco o divergetne aq para testar
 		
 		
 }
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &pressao, TPZFMatrix<REAL> &flux ) {
+		double x=pt[0];
+		double y=pt[1];
+		pressao[0]=5*(-1 + exp(10*pow(x,2)))*(-1 + exp(10*pow(y,2)))*pow(1 - x,2)*pow(x,2)*pow(1 - y,2)*pow(y,2);
+		flux(0,0)= -10*(-1 + exp(10*pow(y,2)))*(-1 + x)*x*(1 - 2*x + exp(10*pow(x,2))*(-1 + 2*x*(1 + 5*(-1 + x)*x)))*pow(-1 + y,2)*pow(y,2);
+		flux(1,0)=-10*(-1 + exp(10*pow(x,2)))*pow(-1 + x,2)*pow(x,2)*(-1 + y)*y*(1 - 2*y + exp(10*pow(y,2))*(-1 + 2*y*(1 + 5*(-1 + y)*y)));
+		flux(2,0)=(-1)*(-10*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) + 5*exp(10*pow(y,2))*(1 + exp(10*pow(x,2)))*(-1 + x)*pow(x,2)*(-5 + x*(9 + 20*(-1 + x)*x))*pow(-1 + y,2)*pow(y,2) - 
+										 2*pow(x,3)*(1 + 6*(-1 + y)*y) + pow(x,4)*(1 + 6*(-1 + y)*y) + pow(x,2)*(1 + 6*(-1 + y)*y*(1 + (-1 + y)*y)) + exp(5*pow(x,2))*(-(exp(5*pow(x,2))*	(pow(-1 + x,2)*pow(x,2) - 6*pow(-1 + x,2)*pow(x,2)*y + 
+										(1 + 2*(-1 + x)*x*(3 + 4*x*(-7 + x*(12 + 25*(-1 + x)*x))))*pow(y,2) - 2*(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,3) + 
+										(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,4))) +	2*exp(10*pow(y,2))*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) - 
+										200*pow(x,5)*pow(-1 + y,2)*pow(y,2) + 100*pow(x,6)*pow(-1 + y,2)*pow(y,2) - 	2*pow(x,3)*(1 + (-1 + y)*y*(6 + 5*y*(-17 + 5*y*(5 + 8*(-1 + y)*y)))) + pow(x,4)*(1 + (-1 + y)*y*(6 + 5*y*(-39 + y*(47 + 40*(-1 + y)*y)))) + pow(x,2)*(1 + (-1 + y)*y*(6 + y*(-81 + y*(121 + 200*(-1 + y)*y)))))*
+										 sinh(5*pow(x,2)))));
+}
+
 void CC1(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 		double x=pt[0];
 		//double y=pt[1];
-		double fator=-4.-x*x;
+		double fator=-x*x;//-4.-x*x;
 		f[0] = exp(fator)*x;//0.;//2*(1-x*x);// 
 		
 }
@@ -178,8 +198,8 @@ void CC3(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 void CC4(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 		//double x=pt[0];
 		double y=pt[0];
-		double fator=-4.-y*y;
-		f[0]=-2.*exp(fator);//-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
+		//double fator=-4.-y*y;
+		f[0]=0.;//-2.*exp(fator);//-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
 
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
@@ -197,28 +217,29 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
+		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata2);
 		mat->SetForcingFunctionExact(exata1);
 			
 		///Criar condicoes de contorno
-				
+		/*		
 		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
 		TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
 		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
 		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
+		 */
 		
 		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
-		TPZMaterial *bnd = automat->CreateBC (automat,-1,1,val1,val2);
-		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,1,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,1,val1,val2);
-		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,1,val1,val2);
-		
+		TPZMaterial *bnd = automat->CreateBC (automat,-4,0,val1,val2);
+		TPZMaterial *bnd2 = automat->CreateBC (automat,-5,0,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (automat,-6,0,val1,val2);
+		TPZMaterial *bnd4 = automat->CreateBC (automat,-7,0,val1,val2);
+		/*
 			bnd->SetForcingFunction(fCC1);
 			bnd2->SetForcingFunction(fCC2);
 			bnd3->SetForcingFunction(fCC3);
 			bnd4->SetForcingFunction(fCC4);
-		
+		*/
 	
 		///Inserir condicoes de contorno
 		comp->InsertMaterialObject(bnd);
@@ -227,7 +248,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		comp->InsertMaterialObject(bnd4);	
 
 		comp->SetAllCreateFunctionsHDivPressure();
-		//	comp->SetAllCreateFunctionsContinuous();		
+		//comp->SetAllCreateFunctionsContinuous();		
 			
 		
   	//AutoBuild()
@@ -334,10 +355,10 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 		
 		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
-		TPZMaterial *bnd = automat->CreateBC (automat,4,0,val1,val2);//1
-		TPZMaterial *bnd2 = automat->CreateBC (automat,5,0,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (automat,6,0,val1,val2);//1
-		TPZMaterial *bnd4 = automat->CreateBC (automat,7,0,val1,val2);
+		TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);//1
+		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
+		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
 		
 		//	TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
 		//    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
@@ -388,7 +409,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		TPZGeoEl *elvec[nelem];	
 		const int dim = 2;//AQUI
 		
-		REAL co[nnode][dim] ={{-2.,-2},{2.,-2},{2.,2.},{-2.,2.}};//{{0.,0.},{1.,0.},{1.,1.},{0.,1.}};// 
+		REAL co[nnode][dim] ={{0.,0.},{1.,0.},{1.,1.},{0.,1.}};// {{0.,0.},{2.,0},{2.,2.},{0.,2.}};//{{-2.,-2},{2.,-2},{2.,2.},{-2.,2.}};//
 		int indices[2][nnode];//como serao enumerados os nos
 		
 		//el 1
@@ -900,21 +921,22 @@ TPZGeoMesh * GeoMeshGrid( int h){
 		// Rectangular geometric mesh using TPZGenGrid 
 		
 			TPZVec < int > refin(2);
-			TPZVec < REAL > corx0(2);
-			TPZVec < REAL > corx1(2);
+			TPZVec < REAL > corx0(3);
+			TPZVec < REAL > corx1(3);
 			//int  	numlayer = 1; // Layers Numbers
 			//REAL  	rotation = 0.5; // For testing purpose 
 		int numlayer=1;
 			// refinement level
-			refin[0] = 2;
-			refin[1] = 2;
+			refin[0] = 1;
+			refin[1] = 1;
 			//	x0	lower left coordinate
-		corx0[0] = -2.0;//0.0;
-		corx0[1] = -2.0;//0.0;	
+		corx0[0] = 0.0;
+		corx0[1] = 0.0;	
+		corx0[2] = 0.0;
 			//	x1	upper right coordinate 
-		corx1[0] = 2.0;//1.0;
-		corx1[1] = 2.0;//1.0;	
-			
+		corx1[0] =1.0;// 2.0;//1.0;
+		corx1[1] = 1.0;//2.0;//1.0;	
+			corx1[2] = 0.0;
 			TPZGenGrid geomesh(refin,corx0,corx1,numlayer);
 			TPZGeoMesh * gmesh = new TPZGeoMesh;
 			geomesh.Read(gmesh);
