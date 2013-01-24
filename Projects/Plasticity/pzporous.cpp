@@ -423,7 +423,7 @@ template <class T, class TMEM>
 void TPZMatPorous<T, TMEM >::ComputePorePressure(TPZMaterialData & data, REAL & Pp, TPZVec<REAL> & dPp)
 {
 	int dim = Dimension(), i;
-	int intPt = data.intPtIndex;
+	int intPt = data.intGlobPtIndex;
 	
 	// Retrieving information at time n
 	Pp = TBASEPOROUS(T, TMEM)::fMemory[intPt].fPorePressure;
@@ -438,7 +438,7 @@ template <class T, class TMEM>
 void TPZMatPorous<T, TMEM >::UpdatePorePressure(TPZMaterialData & data)
 {
 	int dim = Dimension(), i;
-	int intPt = data.intPtIndex;
+	int intPt = data.intGlobPtIndex;
 	
 	// updating n+1 information
 	TBASEPOROUS(T, TMEM)::fMemory[intPt].fPorePressure += data.sol[0][dim];

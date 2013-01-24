@@ -28,7 +28,7 @@ TPZViscoelastic::TPZViscoelastic(TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D
 	std::cout<<fE<<std::endl;
 	std::cout<<"poisson"<<std::endl;
 	std::cout<<fPoisson<<std::endl;
-	TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::Print(std::cout,id);
+	TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::Print(std::cout);
 	
 	
 }
@@ -48,7 +48,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		//{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
 		TPZFNMatrix<9> Deriv(3,3);
 		
-		int index = data.intPtIndex;
+		int index = data.intGlobPtIndex;
 		//int index = 0;    
 		TPZFNMatrix<6>  qsi;//
 	    qsi = MemItem(index);
@@ -95,7 +95,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
 		//{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
 		TPZFNMatrix<9> Deriv(3,3);
 		
-		int index = data.intPtIndex;
+		int index = data.intGlobPtIndex;
 		TPZFNMatrix<6>  qsi;
 		TPZFNMatrix<6>  Strain(6,1);
 		TPZFNMatrix<6>  qsin1(6,1);

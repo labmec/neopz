@@ -24,36 +24,36 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
    public:
 
       enum SOLUTIONVARS{ENone = -1,
-	                    EDisplacement = 0,
-		                EDisplacementX,
-		                EDisplacementY,
-		                EDisplacementZ,
-		  				ENormalStrain,
-		  				EShearStrain,
-		  				ENormalStress,
-		  				EShearStress,
-                        EPrincipalStress,
-		                EStress1,
-		                EPrincipalStrain,
-		                EStrain1,
-		                EPrincipalStressDirection1,
-		                EPrincipalStressDirection2,
-		                EPrincipalStressDirection3,
-		                EI1Stress,
-		                EJ2Stress,
-		                EI1J2Stress,
-		                EDirStress,
-		                EDirStrain,
-	  					EVolElasticStrain,
-	  					EVolPlasticStrain,
-	                    EVolTotalStrain,
-		                EVolTEPStrain,
-	                    EAlpha,
-	                    EPlasticSteps,
-                        EPlasticSqJ2,
-						EYield,
-						ENormalPlasticStrain,
-						EMisesStress
+	                    EDisplacement = 0,//0
+		                EDisplacementX,//1
+		                EDisplacementY,//2
+		                EDisplacementZ,//3
+		  				ENormalStrain,//4
+		  				EShearStrain,//5
+		  				ENormalStress,//6
+		  				EShearStress,//7
+                        EPrincipalStress,//8
+		                EStress1,//9
+		                EPrincipalStrain,//10
+		                EStrain1,//11
+		                EPrincipalStressDirection1,//12
+		                EPrincipalStressDirection2,//13
+		                EPrincipalStressDirection3,//14
+		                EI1Stress,//15
+		                EJ2Stress,//16
+		                EI1J2Stress,//17
+		                EDirStress,//18
+		                EDirStrain,//19
+	  					EVolElasticStrain,//20
+	  					EVolPlasticStrain,//21
+	                    EVolTotalStrain,//22
+		                EVolTEPStrain,//23
+	                    EAlpha,//24
+	                    EPlasticSteps,//25
+                        EPlasticSqJ2,//26
+						EYield,//27
+						ENormalPlasticStrain,//28
+						EMisesStress//29
           
 				//		ERadialDisplacement,
 				//		ERadialStressR,
