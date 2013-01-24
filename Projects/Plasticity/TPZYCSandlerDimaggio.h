@@ -487,7 +487,7 @@ private:
         if(count > 10)
         {
             std::stringstream sout;
-            sout << "interation count " << count;
+            sout << "iteration count " << count;
             LOGPZ_DEBUG(loggerSM, sout.str())
         }
 #endif
@@ -664,7 +664,13 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
     
     T I1 = sigma.I1();
     T J2 = sigma.J2();
-    T SQRTJ2 = sqrt(J2);
+    T SQRTJ2;
+    if (shapeFAD::val(J2) > 1.e-12) {
+        SQRTJ2 = sqrt(J2);
+    }
+    else {
+        SQRTJ2 = 1.e-6;
+    }
 	
 	{
 		//f1 - Modified Drucker-Prager as shear Yield Criterium / Plastic Potential

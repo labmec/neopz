@@ -38,7 +38,7 @@
 
 #include "pzstring.h"
 
-REAL propPG(REAL ratio, int nrad, int ncirc, int i)
+inline REAL propPG(REAL ratio, int nrad, int ncirc, int i)
 {
 	REAL q = 1.5;
 	
@@ -53,7 +53,7 @@ REAL propPG(REAL ratio, int nrad, int ncirc, int i)
 const REAL pi = 3.1415927;
 
 template <class T>
-void AddVec(T & target, const T & v1, const T & v2, const REAL multipl1 = 1., const REAL multipl2 = 1.)
+inline void AddVec(T & target, const T & v1, const T & v2, const REAL multipl1 = 1., const REAL multipl2 = 1.)
 {
     int size  = v1.NElements();
 	int size2 = v2.NElements();
@@ -69,12 +69,12 @@ void AddVec(T & target, const T & v1, const T & v2, const REAL multipl1 = 1., co
 }
 
 template <class T>
-void SubtrVec(T & target, const T & v1, const T & v2)
+inline void SubtrVec(T & target, const T & v1, const T & v2)
 {
 	AddVec(target, v1, v2, 1., -1.);
 }
 
-TPZGeoMesh * CreateGMesh(TPZVec< TPZVec< REAL > > & pt,
+inline TPZGeoMesh * CreateGMesh(TPZVec< TPZVec< REAL > > & pt,
 					     TPZVec< TPZVec< int > > & el,
 					     MElementType ElType,
 					     int matId)
@@ -101,7 +101,7 @@ TPZGeoMesh * CreateGMesh(TPZVec< TPZVec< REAL > > & pt,
 
 
 
-REAL propPA(REAL ratio, int nrad, int ncirc, int i)
+inline REAL propPA(REAL ratio, int nrad, int ncirc, int i)
 {
 	REAL rncirc = ncirc;
 	REAL rnrad  = nrad;
@@ -116,7 +116,7 @@ REAL propPA(REAL ratio, int nrad, int ncirc, int i)
 }
 
 
-void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStress, TPZTensor<REAL> &endStress, int steps)
+inline void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStress, TPZTensor<REAL> &endStress, int steps)
 {
 
 	REAL multipl;
@@ -126,7 +126,7 @@ void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStress, TPZ
 	diffStress = endStress;
 	diffStress.Add(initialStress, -1.);
 	
-	for(i = 0; i <= steps; i++)
+	for(i = 1; i <= steps; i++)
 	{
 		cout << "Starting step " << i << " of " << steps << endl;
 		if(i == 0)
@@ -149,7 +149,7 @@ void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStress, TPZ
 
 
 
-void QuarterWellboreGeom(int ncirc,
+static void QuarterWellboreGeom(int ncirc,
 						 REAL ioratio,
 						 TPZVec< TPZVec<REAL> > &pt,
 						 TPZVec< TPZVec<int> > &el,
@@ -159,7 +159,7 @@ void QuarterWellboreGeom(int ncirc,
 {
 
 	
-	REAL pi = 3.1415927;
+	REAL pi = M_PI;
 	int i, j;
 	ncirc = 2 * (ncirc / 2); //ensuring it's even
 	int ncircpt = ncirc + 1;
@@ -378,7 +378,7 @@ void QuarterWellboreGeom(int ncirc,
 #include "pzpostprocanalysis.h"
 #include "pzelastoplasticanalysis.h"
 
-TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
+static TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 										int ncirc,
 										REAL ioratio,
 						  				TPZMaterial * pMat,
@@ -525,7 +525,7 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	return pCMesh;
 }
 
-void QuarterWellboreGeom2d(int ncirc,
+static void QuarterWellboreGeom2d(int ncirc,
 						 REAL ioratio,
 						 TPZVec< TPZVec<REAL> > &pt,
 						 TPZVec< TPZVec<int> > &el,
@@ -752,7 +752,7 @@ void QuarterWellboreGeom2d(int ncirc,
 }
 
 
-TPZCompMesh * CreateQuarterWellboreMesh2d( int gOrder,
+static TPZCompMesh * CreateQuarterWellboreMesh2d( int gOrder,
 										int ncirc,
 										REAL ioratio,
 						  				TPZMaterial * pMat,

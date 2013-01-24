@@ -120,6 +120,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 	TPZFNMatrix<9> Dep(3,3);
 	TPZFNMatrix<3>  DeltaStrain(3,1);
 	TPZFNMatrix<3>  Stress(3,1);
+    int ptindex = data.intGlobPtIndex;
 
  
 //	feclearexcept(FE_ALL_EXCEPT);
@@ -130,15 +131,27 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 //		DebugStop();
 //	}
 //	
-	this->ComputeDeltaStrainVector(data, DeltaStrain);
-//	res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW);
-//	if(res)
-//	{
-//		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-//		DebugStop();
-//	}
-	this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
-    
+    if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 1) 
+    {
+        // Loop over the solutions if update memory is true
+        TPZSolVec locsol(data.sol);
+        TPZGradSolVec locdsol(data.dsol);
+        int numsol = locsol.size();
+     
+        for (int is=0; is<numsol; is++) 
+        {
+            data.sol[0] = locsol[is];
+            data.dsol[0] = locdsol[is];
+            
+            this->ComputeDeltaStrainVector(data, DeltaStrain);
+            this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+        }
+    }
+    else 
+    {
+        this->ComputeDeltaStrainVector(data, DeltaStrain);
+        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);        
+    }
     feclearexcept(FE_ALL_EXCEPT);
     if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT	)) {
         std::cout << "division by zero reported\n";
@@ -149,7 +162,8 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 	{
 		std::stringstream sout;
 		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
-		sout << "\nIntegration Point index = " << data.intPtIndex;
+		sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
+		sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
 		sout << "\ndata.axes = " << data.axes;
 		sout << "\nDep " <<endl;
 		sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
@@ -175,6 +189,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 		DebugStop();
 	}
 */
+    ptindex = 0;
 	int nstate = NStateVariables();
 	REAL val;/*,val1,val2,val3,val4*/;
 	

@@ -70,6 +70,11 @@ public:
 	 * @param ResetOutputDisplacements [in] Informs whether to add or reset the deltaSolution to the cumulative solution.
 	 */
 	virtual REAL AcceptSolution(const int ResetOutputDisplacements = 0);
+    
+    TPZFMatrix<REAL> &CumulativeSolution()
+    {
+        return fCumSol;
+    }
 	
 	void SetPrecond(TPZMatrixSolver<REAL> &precond);
 	

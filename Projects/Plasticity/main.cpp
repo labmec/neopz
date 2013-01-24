@@ -232,7 +232,7 @@ static void calcVonMisesBar()
 	TPZElastoPlasticAnalysis EPAnalysis(compmesh1,cout);
     SolverSetUp(EPAnalysis,compmesh1);
 	
-	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
+	TPZPostProcAnalysis PPAnalysis(compmesh1);
 	TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
 	PPAnalysis.SetStructuralMatrix(structmatrix);
     
@@ -318,7 +318,7 @@ void calctalude()
 	TPZElastoPlasticAnalysis EPAnalysis(compmesh1,cout);
     SolverSetUp(EPAnalysis,compmesh1);
 	
-	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
+	TPZPostProcAnalysis PPAnalysis(compmesh1);
 	TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
 	PPAnalysis.SetStructuralMatrix(structmatrix);
     

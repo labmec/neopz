@@ -1,4 +1,5 @@
 
+#include "poroelastoplastic.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -76,10 +77,14 @@
 #include "TPZMohrCoulomb.h"
 #include "TPZDruckerPrager.h"
 
+#include "pzelasmat.h"
 #include "pzelastoplastic2D.h"
 #include "tpzycvonmisescombtresca.h"
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
+
+#include "TPZVTKGeoMesh.h"
+
 
 #include "BrazilianTestGeoMesh.h"
 
@@ -96,17 +101,20 @@ void RotateMesh(TPZGeoMesh &geomesh, REAL angleDegree,int rotateabout);
 void calcSDBar();
 TPZGeoMesh * BarMesh(int h);
 void Cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes);
-void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat);
 void wellcmesh();
 void wellboreanalysis();
 
+#include "pzlog.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
+#endif
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
 #include <math.h>
 
-void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
+void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement)
 {
 /*    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(2,2,0.), EndStress2(3,3,0.);
     TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
@@ -131,9 +139,9 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
     
     TPZFMatrix<REAL> f1(3,1,0.);
     TPZFMatrix<REAL> k1(3,3,0.);
-    k1(0,0)=-44.3;
-    k1(1,1)=-58.2;
-    k1(2,2)=-53.8;
+    k1(0,0)=Confinement.XX();
+    k1(1,1)=Confinement.YY();
+    k1(2,2)=Confinement.ZZ();
     TPZMaterial *bc1 = mat->CreateBC(mat,-2,4,k1,f1);
     CMesh->InsertMaterialObject(bc1);
     
@@ -141,9 +149,9 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
    
     TPZFMatrix<REAL> k2(3,3,0.);
     TPZFMatrix<REAL> f2(3,1,0.);
-    k2(0,0)=-44.3;
-    k2(1,1)=-58.2;
-    k2(2,2)=-53.8;
+    k2(0,0)=Confinement.XX();
+    k2(1,1)=Confinement.YY();
+    k2(2,2)=Confinement.ZZ();
     TPZMaterial * bc2 = mat->CreateBC(mat,-3,4,k2,f2);
     CMesh->InsertMaterialObject(bc2);
     
@@ -162,18 +170,24 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
     
     TPZMaterial * bc4 = mat->CreateBC(mat,-5,3,k4,f4);
     CMesh->InsertMaterialObject(bc4);
-    
+    CMesh->SetDefaultOrder(2);
     CMesh->AutoBuild();
-    CMesh->Print(cout);
-    
+
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        CMesh->Print(sout);
+        LOGPZ_DEBUG(logger , sout.str())
+    }
+#endif
 }
 
 
 void wellboreanalyis()
 {
 
-    TPZGeoMesh *gmesh;
-    gmesh = GeoMeshClass::WellBore2d();
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    GeoMeshClass::WellBore2d(gmesh);
     ofstream arg("wellgeomeshlog.txt");
     gmesh->Print(arg);
     
@@ -189,8 +203,13 @@ void wellboreanalyis()
     
 	TPZMatElastoPlastic2D<TPZSandlerDimaggio> PlasticSD(1,1);
     
+    TPZTensor<STATE> Confinement;
+    Confinement.XX() = -44.3;
+    Confinement.YY() = -58.2;
+    Confinement.ZZ() = -53.8;
+    
     TPZTensor<REAL> initstress,finalstress;
-    REAL hydro = -(44.3+58.2+53.8);
+    REAL hydro = Confinement.I1();
     hydro -= SD.fYC.fA*SD.fYC.fR;
     hydro /= 3.;
     finalstress.XX() = hydro;
@@ -199,9 +218,7 @@ void wellboreanalyis()
     
     PrepareInitialMat(SD, initstress, finalstress, 10);
     initstress = finalstress;
-    finalstress.XX() = -44.3;
-    finalstress.YY() = -58.2;
-    finalstress.ZZ() = -53.8;
+    finalstress = Confinement;
     PrepareInitialMat(SD, initstress, finalstress, 10);
     
     TPZMaterial *plastic(&PlasticSD);
@@ -209,10 +226,23 @@ void wellboreanalyis()
     PlasticSD.SetPlasticity(SD);
     compmesh1->InsertMaterialObject(plastic);
     
-    CmeshWell(compmesh1,plastic);
+    CmeshWell(compmesh1,plastic,Confinement);
+  
+    
+
     
     TPZElastoPlasticAnalysis analysis(compmesh1,cout);
 
+    // Eh preciso colocar depois da criacao do objeto analysis porque o sequence number muda na construcao do analyse
+    TPZCompMesh locmesh(*compmesh1);
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        compmesh1->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
     
 
     SolverSetUp2(analysis,compmesh1);
@@ -224,7 +254,7 @@ void wellboreanalyis()
     int BCId=-2;
     TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
     TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
-    int steps = 10;
+    int steps = 5;
     
     TPZFNMatrix<9,STATE> mattemp(3,3,0.), matinit(3,3,0.),matfinal(3,3,0.), matincrement(3,3,0.);
     matinit = pBC->Val1();
@@ -235,26 +265,25 @@ void wellboreanalyis()
     matincrement *= (1./steps);
     mattemp = matinit;
     
-    
     std::string vtkFile = "pocoplastico.vtk";
-    matincrement.Print("Incremento de tensao",std::cout);
-    
-    TPZPostProcAnalysis ppanalysis(&analysis);
-	TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+    TPZPostProcAnalysis ppanalysis(analysis.Mesh());
+    TPZFStructMatrix structmatrix(ppanalysis.Mesh());
     structmatrix.SetNumThreads(8);
     ppanalysis.SetStructuralMatrix(structmatrix);
     
     TPZVec<int> PostProcMatIds(1,1);
- 	TPZStack<std::string> PostProcVars, scalNames, vecNames;
-	SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
-//    
-	ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
-//	
-	analysis.TransferSolution(ppanalysis);
-//
-	ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
-//		
-	ppanalysis.PostProcess(0/*pOrder*/);
+    TPZStack<std::string> PostProcVars, scalNames, vecNames;
+    SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
+    //    
+    ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+    //
+    ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+    //	
+    
+    matincrement.Print("Incremento de tensao",std::cout);
+    
+    int neq = analysis.Mesh()->Solution().Rows();
+    TPZFMatrix<STATE> allsol(neq,steps+1,0.);
     
     
     for(int i=0;i<=steps;i++)
@@ -275,18 +304,78 @@ void wellboreanalyis()
         vecnames[0]="Displacement";
         // vecnames[1]="NormalStrain";
 
+        TPZFMatrix<STATE> &sol = analysis.Mesh()->Solution();
+        for (int ieq=0; ieq<neq; ieq++) {
+            allsol(ieq,i) = sol(ieq,0);
+        }
     
-        const int dim = 2;
         analysis.AcceptSolution();
-       
+        
+        
         analysis.TransferSolution(ppanalysis);
-        ppanalysis.PostProcess(0/*pOrder*/);
+        ppanalysis.PostProcess(0);// pOrder
+        
 
         mattemp += matincrement;
         
-        
     }
     
+    locmesh.Solution() = allsol;
+    
+
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (locmesh.MaterialVec()[1]);
+    if (pMatWithMem2) {
+        pMatWithMem2->SetUpdateMem(true);
+    }
+    TPZFMatrix<STATE> locrhs(neq,steps,0.);
+    TPZSkylineStructMatrix skylstr(&locmesh);
+    TPZMatrix<STATE> *matrix = skylstr.TPZStructMatrix::CreateAssemble(locrhs, 0);
+    delete matrix;
+    locmesh.Solution() = analysis.CumulativeSolution();
+    pMatWithMem2->SetUpdateMem(false);
+
+/*
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem1 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (analysis.Mesh()->MaterialVec()[1]);
+    int elnum = 89;
+    TPZCompEl *cel1 = analysis.Mesh()->ElementVec()[elnum];
+    TPZCompEl *cel2 = locmesh.ElementVec()[elnum];
+    TPZInterpolationSpace *intel1 = dynamic_cast<TPZInterpolationSpace *>(cel1);
+    TPZInterpolationSpace *intel2 = dynamic_cast<TPZInterpolationSpace *>(cel2);
+    TPZMaterialData data1,data2;
+    data1.intPtIndex = 0;
+    data2.intPtIndex = 0;
+    TPZManVector<REAL,3> qsi(2,0.);
+    REAL weight;
+    intel1->GetIntegrationRule().Point(0, qsi, weight);
+    intel1->InitMaterialData(data1);
+    intel2->InitMaterialData(data2);
+    intel1->ComputeRequiredData(data1, qsi);
+    intel2->ComputeRequiredData(data2, qsi);
+    TPZManVector<STATE,4> solout2(1),solout1(1);
+    int var = pMatWithMem2->VariableIndex("PlasticSqJ2");
+    pMatWithMem2->Solution(data2, var, solout2);
+    pMatWithMem1->Solution(data1, var, solout1);
+*/    
+    {
+        std::string vtkFile = "pocoplastico_copy.vtk";
+        
+        TPZPostProcAnalysis ppanalysis(&locmesh);
+        TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+        structmatrix.SetNumThreads(8);
+        ppanalysis.SetStructuralMatrix(structmatrix);
+        
+        TPZVec<int> PostProcMatIds(1,1);
+        TPZStack<std::string> PostProcVars, scalNames, vecNames;
+        SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
+        //    
+        ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+        //	
+        analysis.TransferSolution(ppanalysis);
+        //
+        ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+        //		
+        ppanalysis.PostProcess(0/*pOrder*/);
+    }
 
 
 }
@@ -299,17 +388,21 @@ void wellelastic()
     TPZElasticityMaterial *elastic = new TPZElasticityMaterial(1,E,nu,0,0,planestrain);
     elastic->SetPreStress(-44.3, -58.2, 0., -53.8);
     
-    TPZGeoMesh *gmesh;
-    gmesh = GeoMeshClass::WellBore2d();
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    GeoMeshClass::WellBore2d(gmesh);
     ofstream arg("wellgeomeshlog.txt");
     gmesh->Print(arg);
     
-    
+    TPZTensor<STATE> Confinement;
+    Confinement.XX() = -44.3;
+    Confinement.YY() = -58.2;
+    Confinement.ZZ() = -53.8;
+
     std::string vtkFile = "pocoelastic.vtk";
     TPZCompEl::SetgOrder(1);
 	TPZCompMesh *compmesh1 = new TPZCompMesh(gmesh);
     compmesh1->InsertMaterialObject(elastic);
-    CmeshWell(compmesh1,elastic);
+    CmeshWell(compmesh1,elastic,Confinement);
     TPZAnalysis analysis(compmesh1,cout);
     TPZFStructMatrix structmatrix(compmesh1);
 	analysis.SetStructuralMatrix(structmatrix);
@@ -468,7 +561,7 @@ void calcSDBar()
 	TPZElastoPlasticAnalysis EPAnalysis(compmesh1,cout);
     SolverSetUp2(EPAnalysis,compmesh1);
 	
-	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
+	TPZPostProcAnalysis PPAnalysis(compmesh1);
 	TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
 	PPAnalysis.SetStructuralMatrix(structmatrix);
     
@@ -626,7 +719,7 @@ void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
     //TPZFStructMatrix full(fCmesh)
 	TPZSkylineStructMatrix full(fCmesh);
-    full.SetNumThreads(8);
+    full.SetNumThreads(0);
 	an.SetStructuralMatrix(full);
     
     
@@ -637,6 +730,9 @@ void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh)
     // step.SetDirect(ELU);
 	an.SetSolver(step);
 	
+
+
+
 }
 
 void SetUPPostProcessVariables2(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames )
@@ -1069,7 +1165,7 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
     SolverSet(EPAnalysis,pCMesh);
     
     
-	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
+	TPZPostProcAnalysis PPAnalysis(pCMesh);
     
     
 	TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
@@ -1340,7 +1436,7 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
     
 	// Preparing Post Process
     
-	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
+	TPZPostProcAnalysis PPAnalysis(pCMesh);
     
     TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
 	PPAnalysis.SetStructuralMatrix(structmatrix);
@@ -1407,8 +1503,44 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
     
 }
 
-int main()
+#define MACOS
+#ifdef MACOS
+
+#include <iostream>
+#include <math.h>
+#include <signal.h>
+#include <fenv.h>
+#include <xmmintrin.h>
+
+#define ENABLE_FPO_EXCEPTIONS _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
+
+
+#define DECLARE_FPO_HANDLER_FUNC void InvalidFPOHandler(int signo) {\
+    switch(signo) {\
+    case SIGFPE: std::cout << "ERROR : Invalid Arithmetic operation." << std::endl; break;\
+    }\
+    exit(signo);\
+}
+
+#define ATTACH_FPO_SIGNAL struct sigaction act = {};\
+    act.sa_handler = InvalidFPOHandler;\
+    sigaction(SIGFPE, &act, NULL);
+
+
+DECLARE_FPO_HANDLER_FUNC;
+#endif
+
+#include "WellBoreAnalysis.h"
+
+int main ()
 {
+    
+#ifdef MACOS
+    
+    ENABLE_FPO_EXCEPTIONS;
+    ATTACH_FPO_SIGNAL;
+    
+#endif
     
     InitializePZLOG();
 	
@@ -1423,6 +1555,13 @@ int main()
      int & nrad)
      
      */
+    
+    TPZWellBoreAnalysis well;
+    TPZWellBoreAnalysis::StandardConfiguration(well);
+    well.ExecuteInitialSimulation();
+    well.DivideElementsAbove(0.03);
+    well.PostProcess();
+    well.ExecuteSimulation();
     
     wellboreanalyis();
     //wellelastic();

@@ -704,7 +704,7 @@ void TPZElastoPlasticAnalysis::TransferSolution(TPZPostProcAnalysis & ppanalysis
    
 	
 	fSolution = fCumSol;
-	 fSolution.Print();
+//	 fSolution.Print();
 	TPZAnalysis::LoadSolution();//Carrega a solucao convergida no analysis
 	//passa o cum sol para o post
 	ppanalysis.TransferSolution();//Transfere solucao convergida para o pos processamento

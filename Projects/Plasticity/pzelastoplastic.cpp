@@ -9,10 +9,11 @@
 #include "TPZYCDruckerPrager.h"
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
+#include "pzlog.h"
 
 #ifdef LOG4CXX
-#include "pzlog.h"
 static LoggerPtr elastoplasticLogger(Logger::getLogger("material.pzElastoPlastic"));
+static LoggerPtr updatelogger(Logger::getLogger("material.pzElastoPlastic.update"));
 #endif
 
 
@@ -121,7 +122,7 @@ void TPZMatElastoPlastic<T,TMEM>::Print(std::ostream &out, const int memory)
 	out << this->Name();
 	out << "\n with template argurment T = " << fPlasticity.Name();
 	out << "\n Base material Data:\n";
-	TPZMatWithMem<TMEM>::Print(out, memory);
+	TPZMatWithMem<TMEM>::PrintMem(out, memory);
 	out << "\n Localy defined members:";
 	out << "\n Body Forces: " << fForce;
 	out << "\n Post process direction: " << fPostProcessDirection;
@@ -163,8 +164,10 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
    if(!strcmp("YieldSurface",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EYield;
 	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain;
 	if(!strcmp("EMisesStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EMisesStress;
+	if(!strcmp("PlasticSqJ2El",     name.c_str()))  return 100;
 	//if(!strcmp("ERadialStressR",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ERadialStressR;
 	//if(!strcmp("ERadialStressTheta",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ERadialStressTheta;
+    return TPZMatWithMem<TMEM>::VariableIndex(name);
    PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
    return -1;
 /*	ERadialDisplacement,
@@ -207,6 +210,7 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
    if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha 
 	if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;
+    if(var == 100) return 1;
    PZError << "TPZElasticity3D::NSolutionVariables Error\n";
    return -1;
 }
@@ -226,7 +230,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 {
 	
 
-	int intPt = data.intPtIndex;
+	int intPt = data.intGlobPtIndex;
 	T plasticloc(fPlasticity);
     plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
 
@@ -236,27 +240,27 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 			Solout[i] = data.sol[0][i];
 		}//for
 	}//EDisplacement
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)Solout[0] = data.sol[0][0];
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementY)Solout[0] = data.sol[0][1];
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementZ)Solout[0] = data.sol[0][2];
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain){
 		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
 		Solout[0] = totalStrain.XX();
 		Solout[1] = totalStrain.YY();
 		Solout[2] = totalStrain.ZZ();
 	}//ENormalStrain 
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EShearStrain){
 		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
 		Solout[0] = totalStrain.XY();
 		Solout[1] = totalStrain.XZ();
 		Solout[2] = totalStrain.YZ();
 	}//EShearStrain 
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStress){
 		TPZTensor<REAL> & Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
 		Solout[0] = Sigma.XX();
@@ -264,21 +268,21 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 		Solout[2] = Sigma.ZZ();
 
 	}//ENormalStress 
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EShearStress){
 		TPZTensor<REAL> & Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
 		Solout[0] = Sigma.XY();
 		Solout[1] = Sigma.XZ();
 		Solout[2] = Sigma.YZ();
 	}//EShearStress 
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStress){
 		/*
 		 TPZFNMatrix<6> Stress(6,1);
 		 this->ComputeStressVector(data, Stress);
 		 this->EigenValues(Stress, Solout);*/
 	}//EPrincipalStress - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EStress1){
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
@@ -286,14 +290,13 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 		 this->EigenValues(Stress, PrincipalStress);
 		 Solout[0] = PrincipalStress[0];*/
 	}//EStress1 - makes sense only if the evaluated point refers to an identified integration point
-	
-	
+	else	
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain){
 		/*TPZFNMatrix<6> Strain(6,1);
 		 this->ComputeStrainVector(data, Strain);
 		 this->EigenValues(Strain, Solout);*/
 	}//EPrincipalStrain
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EStrain1){
 		/*TPZFNMatrix<6> Strain(6,1);
 		 TPZManVector<REAL, 3> PrincipalStrain(3);
@@ -301,72 +304,72 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 		 this->EigenValues(Strain, PrincipalStrain);
 		 Solout[0] = PrincipalStrain[0];*/
 	}//EStrain1  
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1){
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
 		 this->EigenVectors(Stress, Solout, 0);*/
 	}//EPrincipalStressDirection1 - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2){
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
 		 this->EigenVectors(Stress, Solout, 1);  */
 	}//EPrincipalStressDirection2 - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3){
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
 		 this->EigenVectors(Stress, Solout, 2);   */
 	}//EPrincipalStressDirection3 - makes sense only if the evaluated point refers to an identified integration point    
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EI1Stress){
 		TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
 		Solout[0] = Sigma.I1();
 	}//EI1Stress - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EJ2Stress){
 		TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
 		Solout[0] = Sigma.J2();
 	}//EJ2Stress - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EI1J2Stress){
 		TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
 		Solout[0] = Sigma.I1();
 		Solout[1] = Sigma.J2();
 	}//EI1J2Stress - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDirStress){
 		/*TPZFNMatrix<6> Stress(6,1);
 		 this->ComputeStressVector(data, Stress);
 		 this->ApplyDirection(Stress, Solout);*/
 	}//EDirStress - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDirStrain){
 		/*TPZFNMatrix<6> Strain(6,1);
 		 this->ComputeStrainVector(data, Strain);
 		 this->ApplyDirection(Strain, Solout);*/
 	}//EDirStrain
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
 		Solout[0] = plasticStrain.I1();
 	}//EVolPlasticStrain - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EVolElasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
 		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
 		Solout[0] = totalStrain.I1() - plasticStrain.I1();
 	}//EVolElasticStrain - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EVolTotalStrain){
 		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
 		Solout[0] = totalStrain.I1();
 	}//EVolElasticStrain - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EVolTEPStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
 		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
@@ -374,33 +377,33 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 		Solout[2] = plasticStrain.I1();
 		Solout[1] =	Solout[0] - Solout[2];
 	}//EVolTEPStrain - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
 		Solout[0] = sqrt(plasticStrain.J2());
 	}//EVolTEPStrain - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EAlpha){
 		Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fAlpha;
 	}//EAlpha - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps){
 		Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps;
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
         
         TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
         plasticloc.Phi(EpsT,Solout);
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
         Solout[0] = plasticStrain.XX();
         Solout[1] = plasticStrain.YY();
         Solout[2] = plasticStrain.ZZ();
 	}
-	
+	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress){
 		TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
 		REAL J2 =Sigma.J2();
@@ -408,8 +411,9 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 		Solout[0]=temp;
 
 	}//VonMisesStress
-
-	
+    else {
+        TPZMatWithMem<TMEM>::Solution(data,var,Solout);
+    }
 }
 
 template <class T, class TMEM>
@@ -420,7 +424,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
   {
     std::stringstream sout;
     sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
-	sout << "\nIntegration Point index = " << data.intPtIndex;
+	sout << "\nIntegration Point index = " << data.intGlobPtIndex;
     LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
   }
 #endif
@@ -807,7 +811,7 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TP
 {
     ComputeDeltaStrainVector(data, Strain);
 	
-	TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[data.intPtIndex].fPlasticState.fEpsT;
+	TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[data.intGlobPtIndex].fPlasticState.fEpsT;
 	
 	int i;
 	for( i = 0; i < 6; i++ )Strain(i,0) = Strain(i,0) + EpsT.fData[i];
@@ -844,7 +848,7 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
 												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
-	int intPt = data.intPtIndex;//, plasticSteps;
+	int intPt = data.intGlobPtIndex;//, plasticSteps;
     if(intPt >= TPZMatWithMem<TMEM>::fMemory.NElements())
     {
         std::cout << "The Elastoplastic material does not have a properly initialized memory\n";
@@ -871,6 +875,14 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Point index " << intPt << " Coordinate " << data.x << std::endl;
+            sout << "Sigma " << Sigma << " plastic state " << plasticloc.GetState() << " plastic steps " << plasticloc.IntegrationSteps();
+            LOGPZ_DEBUG(updatelogger, sout.str())
+        }
+#endif
 	}
 	
 }
@@ -879,7 +891,7 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & Strain, 
 												TPZFMatrix<REAL> & Stress)
 {
-	int intPt = data.intPtIndex;
+	int intPt = data.intGlobPtIndex;
     T plasticloc(fPlasticity);
 	plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
 	
@@ -895,11 +907,11 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	
 	Sigma.CopyTo(Stress);	
 	
-	if(TPZMatWithMem<TMEM>::fUpdateMem > 0)
+	if(TPZMatWithMem<TMEM>::fUpdateMem == true)
 	{
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
-		TPZMatWithMem<TMEM>::fUpdateMem--;
+//		TPZMatWithMem<TMEM>::fUpdateMem--;
 	}
 }
 
