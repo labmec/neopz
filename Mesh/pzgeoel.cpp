@@ -381,7 +381,7 @@ void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dime
 	}
 }
 
-void TPZGeoEl::GetLowerSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
+void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
 {
     int nsons = this->NSubElements();
     for(int s = 0; s < nsons; s++)
@@ -394,7 +394,7 @@ void TPZGeoEl::GetLowerSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
         }
         else
         {
-            son->GetLowerSubElements(unrefinedSons);
+            son->GetHigherSubElements(unrefinedSons);
         }
     }
 }
@@ -779,7 +779,7 @@ bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
     {
         TPZGeoEl * highFather = LowestFather();
         TPZVec<TPZGeoEl *> sons;
-        highFather->GetLowerSubElements(sons);
+        highFather->GetHigherSubElements(sons);
         for(int s = 0; s < sons.NElements(); s++)
         {
             REAL sonRadius = sons[s]->SmallerEdge();

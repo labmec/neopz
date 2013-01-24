@@ -495,7 +495,7 @@ public:
 	 **/
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
     
-    virtual void GetLowerSubElements(TPZVec<TPZGeoEl*> &unrefinedSons);
+    virtual void GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons);
 	
 	/**
 	 * @brief This method will return a partition of the side of the current element \n

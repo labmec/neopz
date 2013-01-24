@@ -651,7 +651,7 @@ void TPZGeoElSide::AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &son
         return;
     }
     TPZVec<TPZGeoEl*> lowerSubelements(0);
-    this->Element()->GetLowerSubElements(lowerSubelements);
+    this->Element()->GetHigherSubElements(lowerSubelements);
     int nlowerSubelements = lowerSubelements.NElements();
     for(int sub = 0; sub < nlowerSubelements; sub++)
     {

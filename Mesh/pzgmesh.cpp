@@ -495,7 +495,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     if(gel->HasSubElement())
     {
         TPZVec<TPZGeoEl*> subElements(0);
-        gel->GetLowerSubElements(subElements);
+        gel->GetHigherSubElements(subElements);
         
         int nsons = subElements.NElements();
         TPZGeoEl * son = NULL;
