@@ -10,6 +10,7 @@
 #endif
 
 #include "pzvec.h"
+#include "pzvec_extras.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -421,8 +422,85 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 	return gnkeep;
 }
 
+/** by Philippe 2013 */
+/** @brief Returns the element that is close to the given point x */
+TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int & InitialElIndex, int targetDim)
+{
+    TPZManVector<REAL,3> xcenter(3);
+    TPZManVector<TPZManVector<REAL, 3>, 8> cornercenter;
+    TPZGeoEl *gelnext = ElementVec()[InitialElIndex];
+    TPZGeoEl *gel = 0;
+    REAL geldist;
+    std::map<REAL,int> cornerdist;
+    while (gel != gelnext) {
+        gel = gelnext;
+        gelnext = 0;
+        cornerdist.clear();
+        // compute the corner coordinates
+        for (int ic=0; ic<gel->NCornerNodes(); ic++) {
+            TPZManVector<REAL,3> xcorner(3);
+            gel->NodePtr(ic)->GetCoordinates(xcorner);
+            REAL dist = 0.;
+            for (int i=0; i<3; i++) {
+                dist += (x[i]-xcorner[i])*(x[i]-xcorner[i]);
+            }
+            dist = sqrt(dist);
+            cornerdist[dist]=ic;
+        }
+        // compute the distance of the center of the element
+        {
+            geldist = 0.;
+            TPZManVector<REAL,3> xcenter(3);
+            TPZGeoElSide gelside(gel,gel->NSides()-1);
+            gelside.CenterX(xcenter);
+            geldist = dist(x,xcenter);
+        }
+        // find the closest corner node
+        REAL closestcorner = cornerdist.begin()->first;
+        // if the center node is closer than the cornernode, return the element
+        if (geldist < closestcorner) {
+            InitialElIndex = gel->Index();
+            return gel;
+        }
+        // look for all neighbours of the corner side
+        TPZGeoElSide gelside(gel,cornerdist.begin()->second);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        std::map<REAL,int> distneigh;
+        while (neighbour != gelside) {
+            if (neighbour.Element()->Dimension() == targetDim)
+            {
+                TPZManVector<REAL,3> center(3);
+                TPZGeoElSide centerneigh(neighbour.Element(),neighbour.Element()->NSides()-1);
+                centerneigh.CenterX(center);
+                REAL distcenter = dist(center,x);
+                distneigh[distcenter] = neighbour.Element()->Index();
+            }
+            neighbour = neighbour.Neighbour();
+        }
+        // choose the element whose center is closest to the coordinate
+        REAL gelnextdist = 0.;
+        if (distneigh.size() == 0) {
+            gelnext = gel;
+            gelnextdist = geldist;
+        }
+        else {
+            gelnext = ElementVec()[distneigh.begin()->second];
+            gelnextdist = distneigh.begin()->first;
+        }
+        // return if its center distance is larger than the distance of the current element
+        if (geldist < gelnextdist) {
+            InitialElIndex = gel->Index();
+            return gel;
+        }
+    }
+    InitialElIndex = gel->Index();
+    return gel;
+}
+
+
 TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex, int targetDim)
 {
+    FindCloseElement(x, InitialElIndex,targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
     
     if(qsi.NElements() != gel->Dimension())
@@ -430,7 +508,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
         qsi.Resize(gel->Dimension(), 0.);
     }
     
-    TPZVec<REAL> projection(gel->Dimension());
+    TPZManVector<REAL,3> projection(gel->Dimension());
     int count = 0;
     bool mustStop = false;
     bool projectOrthogonal = true;
@@ -480,6 +558,23 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             projectOrthogonal = false;
             bissectionCalled++;
         }
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            TPZManVector<REAL,3> par(neighSide.Dimension()),xloc(3,0.);
+            neighSide.CenterPoint(par);
+            neighSide.X(par, xloc);
+            REAL dist = 0.;
+            for (int i=0; i<3; i++) {
+                dist += (x[i]-xloc[i])*(x[i]-xloc[i]);
+            }
+            dist = sqrt(dist);
+            sout << "within element " << gel->Index() << " parameter is " << qsi << " projected parameter " << projection;
+            sout << "\nBest guess is on side " << side << " which gives neighSide " << neighSide << std::endl;
+            sout << "Distance of the center point is " << dist;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         count++;
         if(count > NElements())
         {
@@ -489,6 +584,9 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     
     if(mustStop)
     {
+#ifdef DEBUG
+        DebugStop();
+#endif
         return NULL;//not found...
     }
     
