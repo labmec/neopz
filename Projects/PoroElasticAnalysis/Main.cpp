@@ -553,7 +553,7 @@ int main(int argc, char *argv[])
 		materialist[imat]->SetTimeStep(Delta,Theta);			
 	}	
 	
-	InitialSolution = PoroelasticAnalysisInitial.Solution();
+//	PoroelasticAnalysis.LoadSolution(PoroelasticAnalysisInitial.Solution());
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "FileName" ).ToElement();		
 	CharContainer = Container->Attribute("ProblemName");
 	std::string Outputre(CharContainer);
@@ -1870,7 +1870,8 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 		{
 			TotalRhs=PoroelasticLoadVector;
 			an.Rhs() = TotalRhs;
-			an.Solve(); 
+			an.Solve();
+			InitialSolution = an.Solution();
 			std::stringstream outputfiletemp;
 			outputfiletemp << FileName << ".vtk";
 			std::string plotfile = outputfiletemp.str();
