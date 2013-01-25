@@ -113,6 +113,23 @@ double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y)
 	return sum;
 }
 
+template < class T1 >
+REAL dist(TPZVec<T1> &vec1, TPZVec<T1> &vec2)
+{
+#ifdef DEBUG
+    if(vec1.size() != vec2.size())
+    {
+        DebugStop();
+    }
+#endif
+    REAL dist = 0.;
+    for (int i=0; i<vec1.size(); i++) {
+        dist += (vec1[i]-vec2[i])*(vec1[i]-vec2[i]);
+    }
+    dist = sqrt(dist);
+    return dist;
+}
+
 //--| SORTING |-----------------------------------------------------------------
 /** @brief Sorting the elements into v */
 template< class T >
