@@ -1272,7 +1272,8 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 	REAL BodyForceY		=	0.0;
 	REAL diff			=	0.0;
 	REAL S				=	0.0;
-	REAL Se				=	0.0;	
+	REAL Se				=	0.0;
+	REAL SFluid			=	0.0;	
 	
 	for(int imat = 0; imat < GeometryInfo.MatNumber; imat++)
 	{	
@@ -1288,30 +1289,47 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 		RockPorosity	= GeometryInfo.fMaterialDataVec[imat].fProperties[2];		
 		diff = (Permeability)/(FluidViscosity);
 		MixtureDensity = (1 - RockPorosity) * RockDensity + RockPorosity * FluidDensity;
+		SFluid = LambdaU;
 		// Using Gravity field
 		BodyForceX		= Gravitationalconstant * Gravity_Xdirection * MixtureDensity;	
 		BodyForceY		= Gravitationalconstant * Gravity_Ydirection * MixtureDensity;
 		
+		
+		
 		if (Lambda != LambdaU) 
 		{
-			S = ((pow(alpha,2))/((LambdaU-Lambda)))*((LambdaU+2.0*G)/(Lambda+2.0*G));
-			Se = (pow(alpha,2))/((LambdaU-Lambda));
+			if (alpha != 0.0) {
+				S = ((pow(alpha,2))/((LambdaU-Lambda)))*((LambdaU+2.0*G)/(Lambda+2.0*G));
+				Se = (pow(alpha,2))/((LambdaU-Lambda));
+			}
+			else 
+			{
+				S = (1)/(3*Lambda+2.0*G);
+				Se = RockPorosity*(SFluid + S);
+			}
 			
 		}
 		else
 		{
+			
 			S = (pow(alpha,2)/(Lambda+2.0*G));
 			Se = 0;
 			
-			
 		}		
+		
 		
 		if (Dimensionless) 
 		{
+			if (alpha != 0.0) {
+				Se				= Se/S;
+			}
+			else 
+			{
+				Se				= 1.0;
+			}			
 			Lambda			= Lambda*S;
 			LambdaU			= LambdaU*S;			
 			G				= G*S;
-			Se				= Se/S;
 			Permeability	= 1.0;
 			FluidViscosity	= 1.0;
 			
