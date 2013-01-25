@@ -206,7 +206,6 @@ void TPZAnalysis::AssembleResidual(){
         cout << "\n Malha nula! " <<endl;
         DebugStop();
     }
-    this->Mesh()->Print();
 	int sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
