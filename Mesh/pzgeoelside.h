@@ -144,6 +144,9 @@ public:
     /** @brief return the coordinates of the center in master element space (associated with the side) */
 	void CenterPoint(TPZVec<REAL> &center) const;
     
+    /** @brief return the coordinates of the center of the side in real space */
+	void CenterX(TPZVec<REAL> &Xcenter) const;
+    
     /** @brief compute the normal to the point from left to right neighbour */
     void Normal(TPZVec<REAL> &point, TPZGeoEl *left, TPZGeoEl *right, TPZVec<REAL> &normal) const;
     

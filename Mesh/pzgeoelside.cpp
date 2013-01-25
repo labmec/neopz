@@ -349,6 +349,15 @@ void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center) const
     tr.Apply(gelcenter, center);
 }
 
+/** @brief return the coordinates of the center of the side in real space */
+void TPZGeoElSide::CenterX(TPZVec<REAL> &Xcenter) const
+{
+	if(!fGeoEl) return;
+    TPZManVector<REAL,3> gelcenter(fGeoEl->Dimension());
+	fGeoEl->CenterPoint(fSide,gelcenter);
+    fGeoEl->X(gelcenter, Xcenter);
+}
+
 void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	if(fSide < fGeoEl->NCornerNodes())
     {
