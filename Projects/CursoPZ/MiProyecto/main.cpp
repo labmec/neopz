@@ -16,6 +16,7 @@
 
 #include "pzintel.h"
 #include "pzcompel.h"
+#include "pzcheckmesh.h"
 
 #include "pzmaterial.h"
 #include "pzbndcond.h"
@@ -35,6 +36,9 @@
 
 #include "pzgeoelbc.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.fischera"));
+#endif
 
 using namespace std;
 using namespace pzshape;
@@ -73,7 +77,7 @@ int main(int argc, char *argv[]) {
     
 
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
-	int i, nref, NRefs = 3;
+	int i, nref, NRefs = 5;
 	int dim = 3;
 	int nelem = 0;
     
@@ -248,6 +252,16 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	cmesh->InsertMaterialObject(bnd);
 	
 	cmesh->AutoBuild();
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        TPZCheckMesh tst(cmesh,&sout);
+        tst.VerifyAllConnects();
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif    
+    
     cmesh->AdjustBoundaryElements();
     cmesh->ExpandSolution();
 	cmesh->CleanUpUnconnectedNodes();
