@@ -501,7 +501,7 @@ int main(int argc, char *argv[])
 	
 	for(int imat = 0; imat < GeometryInfo.MatNumber; imat++)
 	{		
-		materialist[imat]->SetTimeStep(0.0,Theta);
+		materialist[imat]->SetTimeStep(1.0,Theta);
 		materialist[imat]->SetTimeValue(0.0);			
 	}	
 	
