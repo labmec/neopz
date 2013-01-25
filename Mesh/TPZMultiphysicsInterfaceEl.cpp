@@ -332,6 +332,7 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
 /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
 void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, TPZMaterialData &data)
 {
+    data.intGlobPtIndex = -1;
     TPZGeoEl *gel = Reference();
     TPZGeoElSide gelside(gel,gel->NSides()-1);
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
@@ -343,6 +344,7 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, T
 /** @brief Compute the required data from the neighbouring elements */
 void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data)
 {
+    DebugStop();
     //Neighbour->ComputeR
 }
 

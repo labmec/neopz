@@ -381,6 +381,7 @@ void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZ
         TPZGeoEl *gel = intel->Reference();
         TPZManVector<REAL> locpt(gel->Dimension());
         trvec[iel].Apply(point, locpt);
+        datavec[iel].intGlobPtIndex = -1;
         intel->ComputeRequiredData(datavec[iel], locpt);
     }
 }
