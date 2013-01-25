@@ -88,7 +88,7 @@ int TPZPostProcMat::NStateVariables()
 void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX_keep
   {
     std::stringstream sout;
     sout << ">>> TPZPostProcMat::Solution() *** called for variable index = " << var;
