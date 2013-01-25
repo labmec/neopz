@@ -21,7 +21,8 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctions(0){
 	this->SetAllRequirements(false);
-	this->intPtIndex = -1;
+	this->intLocPtIndex = -1;
+    this->intGlobPtIndex = -1;
     this->sol.Resize(1);
     this->dsol.Resize(1);
 }
@@ -49,7 +50,8 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
 	this->dsol = cp.dsol;
 	this->HSize = cp.HSize;
 	this->detjac = cp.detjac;
-	this->intPtIndex = cp.intPtIndex;
+	this->intLocPtIndex = cp.intLocPtIndex;
+	this->intGlobPtIndex = cp.intGlobPtIndex;
     this->XCenter = cp.XCenter;
 	this->fVecShapeIndex = cp.fVecShapeIndex;
 	this->fNormalVec = cp.fNormalVec;
@@ -98,7 +100,8 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 	buf.Write(&HSize,1);
 	buf.Write(&detjac,1);
     buf.Write(XCenter);
-	buf.Write(&intPtIndex,1);
+	buf.Write(&intLocPtIndex,1);
+	buf.Write(&intGlobPtIndex,1);
 }
 
 /** Read the element data from a stream */
@@ -128,7 +131,8 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
 	buf.Read(&HSize,1);
 	buf.Read(&detjac,1);
     buf.Read(XCenter);
-	buf.Read(&intPtIndex,1);
+	buf.Read(&intLocPtIndex,1);
+	buf.Read(&intGlobPtIndex,1);
 }
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
@@ -205,7 +209,8 @@ void TPZMaterialData::Print(std::ostream &out) const
 	out << "HSize " << HSize << std::endl;
 	out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
-	out << "intPtIndex " << intPtIndex << std::endl;
+	out << "intLocPtIndex " << intLocPtIndex << std::endl;
+	out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
 }
 
 /** Print the data in a format suitable for Mathematica */
@@ -230,5 +235,6 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
 	out << "HSize = " << HSize << ";" << std::endl;
 	out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
-	out << "intPtIndex = " << intPtIndex << ";" <<std::endl;
+	out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
+	out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
 }

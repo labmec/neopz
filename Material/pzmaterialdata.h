@@ -22,9 +22,9 @@
 /// Represent the state variables of a finite element approximation
 typedef TPZManVector<STATE, 10> TPZFemSol;
 /// Represents the gradient of a state variable of a finite element approximation
-typedef TPZFNMatrix<30, STATE> TPZFemGradSol;
-typedef TPZVec<TPZFemSol> TPZSolVec;
-typedef TPZVec<TPZFemGradSol> TPZGradSolVec;
+typedef TPZFNMatrix<15, STATE> TPZFemGradSol;
+typedef TPZManVector<TPZFemSol,20> TPZSolVec;
+typedef TPZManVector<TPZFemGradSol,20> TPZGradSolVec;
 
 
 class TPZMaterialData : public TPZSaveable {
@@ -63,9 +63,9 @@ public:
     /// maximum polinomial order of the shape functions
 	int p;
     /// vector of the solutions at the integration point
-	TPZManVector<TPZFemSol, 10> sol;
+	TPZSolVec sol;
     /// vector of the derivatives of the solution at the integration point
-	TPZManVector<TPZFemGradSol, 10> dsol;
+	TPZGradSolVec dsol;
     /// measure of the size of the element
 	REAL HSize;
     /// determinant of the jacobian
@@ -84,7 +84,10 @@ public:
 	
 	/** @brief Index of the current integration point being evaluated **/
 	/** Needed for materials with memory **/
-	int intPtIndex;
+	int intLocPtIndex;
+    
+    /** @brief global point index */
+    int intGlobPtIndex;
 	
 	/** @brief Default constructor */
 	TPZMaterialData();
