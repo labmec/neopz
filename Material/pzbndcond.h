@@ -80,14 +80,18 @@ protected:
 	
 	public :
 	/** @brief Copy constructor */
-	TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCs(bc.fBCs), fBCVal1(bc.fBCVal1),
-    fBCVal2(bc.fBCVal2), fValFunction(NULL){
+	TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCs(bc.fBCs), fType(-1), fBCVal1(bc.fBCVal1),
+    fBCVal2(bc.fBCVal2), fMaterial(0), fValFunction(NULL){
 		fMaterial = bc.fMaterial;
 		fType = bc.fType;
 	}
 	/** @brief Default constructor */
-	TPZBndCond() : TPZDiscontinuousGalerkin(), fBCs(1), fBCVal1(),
-    fBCVal2(), fValFunction(NULL){
+	TPZBndCond() : TPZDiscontinuousGalerkin(), fBCs(), fType(-1), fBCVal1(),
+    fBCVal2(), fMaterial(0), fValFunction(NULL){
+	}
+	/** @brief Default constructor */
+	TPZBndCond(int matid) : TPZDiscontinuousGalerkin(matid), fBCs(0), fType(-1), fBCVal1(),
+    fBCVal2(), fMaterial(0), fValFunction(NULL){
 	}
 	/** @brief Default destructor */
     ~TPZBndCond(){}
