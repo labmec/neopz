@@ -24,14 +24,16 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	TPZElasticityMaterial();
 	/** 
 	 * @brief Creates an elastic material with:
-	 * @param num material id
+	 * @param id material id
 	 * @param E elasticity modulus
 	 * @param nu poisson coefficient
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress = 1);
+	TPZElasticityMaterial(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress = 1);
+    
+    TPZElasticityMaterial(int id);
 	
 	/** @brief Copies the data of one TPZElasticityMaterial object to another */
 	TPZElasticityMaterial(const TPZElasticityMaterial &copy);
@@ -42,6 +44,23 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Default destructor */
 	virtual ~TPZElasticityMaterial();
 	
+    /** @brief Set elasticity parameters */
+    void SetElasticity(REAL E, REAL nu)
+    {
+        fE	= E;  // Young modulus
+        fnu	= nu;   // poisson coefficient
+        fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
+        fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
+
+    }
+    
+    /** @brief Set forcing function */
+    void SetBodyForce(REAL fx, REAL fy)
+    {
+        ff[0] = fx;
+        ff[1] = fy;
+        ff[2] = 0.;
+    }
 	/** @brief Returns the model dimension */
 	int Dimension() { return 2;}
 	

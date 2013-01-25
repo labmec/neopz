@@ -40,6 +40,27 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
     fPostProcIndex = 0;
 }
 
+TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZDiscontinuousGalerkin(id) {
+	fE	= -1.;  // Young modulus
+	fnu	= -1.;   // poisson coefficient
+	ff[0]	= 0.; // X component of the body force
+	ff[1]	= 0.; // Y component of the body force
+	ff[2] = 0.; // Z component of the body force - not used for this class
+	fEover1MinNu2 = -1.;  //G = E/2(1-nu);
+	fEover21PlusNu = -1.;//E/(1-nu)
+    
+	
+	//Added by Cesar 2001/03/16
+	fPreStressXX = 0.;  //Prestress in the x direction
+	fPreStressYY = 0.;  //Prestress in the y direction
+	fPreStressXY = 0.;  //Prestress in the z direction
+	fPreStressZZ = 0.;  //Prestress in the z direction
+	fPlaneStress = -1;
+    
+    // Added by Philippe 2012
+    fPostProcIndex = 0;
+}
+
 TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZDiscontinuousGalerkin(num) {
 	
 	fE	= E;  // Young modulus
@@ -87,8 +108,8 @@ void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REA
     fPreStressZZ = Sigzz;
 }
 
+
 void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
-    
     
     TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
     if(shapetype==data.EVecShape){
@@ -123,14 +144,14 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		//		PZError.show();
 	}
 	if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
-		TPZManVector<STATE> res(3);
+		TPZManVector<STATE,3> res(3);
 		fForcingFunction->Execute(data.x,res);
 		ff[0] = res[0];
 		ff[1] = res[1];
 		ff[2] = res[2];
 	}
 	
-	TPZFMatrix<STATE> du(2,2);
+	TPZFNMatrix<4,STATE> du(2,2);
 	/*
 	 * Plain strain materials values
 	 */
@@ -144,8 +165,8 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		
         for (int col = 0; col < efc; col++) 
         {
-            ef(2*in, col) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // dire�o x
-            ef(2*in+1, col) += weight * (ff[1] * phi(in, 0)- du(1,0)*fPreStressYY - du(0,0)*fPreStressXY);// dire�o y <<<----
+            ef(2*in, col) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
+            ef(2*in+1, col) += weight * (ff[1] * phi(in, 0)- du(1,0)*fPreStressYY - du(0,0)*fPreStressXY);// direcao y <<<----
         }		
 		for( int jn = 0; jn < phr; jn++ ) {
 			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
@@ -549,6 +570,7 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
 	if(!strcmp("Displacement6",name.c_str()))    return 7;
 	if(!strcmp("Stress",name.c_str()))           return 10;
+	if(!strcmp("Flux",name.c_str()))           return 10;
     if(!strcmp("J2",name.c_str()))           return 20;
     if(!strcmp("I1",name.c_str()))           return 21;
 
