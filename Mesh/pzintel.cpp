@@ -867,7 +867,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 			}
 		}
 	}
-#ifdef LOG4CXX
+#ifdef LOG4CXX_keep
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         M->Print("MSS = ",sout,EMathematicaInput);

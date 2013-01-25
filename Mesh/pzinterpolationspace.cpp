@@ -146,7 +146,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	//DebugStop();
 	//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
 	//}//fNeedsNeighborSol
-	
+	data.intGlobPtIndex = -1;
     this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     
 #ifdef LOG4CXX_keep
@@ -320,7 +320,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 		intrule->Point(int_ind,intpoint,weight);
 		//this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
 		//weight *= fabs(data.detjac);
-		data.intPtIndex = int_ind;
+		data.intLocPtIndex = int_ind;
 		this->ComputeRequiredData(data, intpoint);
         weight *= fabs(data.detjac);
 
@@ -368,7 +368,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 		
 		//weight *= fabs(data.detjac);
 		
-		data.intPtIndex = int_ind;
+		data.intLocPtIndex = int_ind;
 		
 		this->ComputeRequiredData(data, intpoint);
         weight *= fabs(data.detjac);
