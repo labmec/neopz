@@ -168,6 +168,12 @@ protected:
 	/** This method will create the stiffness matrix but without assembling */
 	TPZMatrixSolver<STATE> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
 	
+    /** @brief ste the step for post processing */
+    void SetStep(int step)
+    {
+        fStep = step;
+    }
+    
 	/** @brief Sets time will be used in dx files */
 	void SetTime(REAL time);
 	/** @brief Gets time used in dx files */
