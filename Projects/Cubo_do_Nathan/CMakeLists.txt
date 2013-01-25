@@ -1,4 +1,4 @@
-set(main_SRCS Cubo_do_Nathan.cpp pzpostprocanalysis.h pzpostprocanalysis.cpp pzcompelpostproc.h pzpostprocmat.h pzpostprocmat.cpp)
+set(main_SRCS Cubo_do_Nathan.cpp)
 
 add_executable(Cubo_do_Nathan ${main_SRCS})
 
