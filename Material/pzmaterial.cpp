@@ -83,6 +83,7 @@ void TPZMaterial::Print(std::ostream & out) {
 
 int TPZMaterial::VariableIndex(const std::string &name) {
 	if(!strcmp(name.c_str(),"state")) return 0;
+	if(!strcmp(name.c_str(),"State")) return 0;
 	if(!strcmp(name.c_str(),"POrder")) return 99;
 	if(!strcmp(name.c_str(),"Error")) return 100;
 	if(!strcmp(name.c_str(),"TrueError")) return 101;
