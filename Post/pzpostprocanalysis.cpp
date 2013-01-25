@@ -23,11 +23,11 @@ static LoggerPtr PPAnalysisLogger(Logger::getLogger("analysis.postproc"));
 
 using namespace std;
 
-TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainAnalysis(NULL)
+TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainMesh(NULL)
 {	
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMainAnalysis(pRef)
+TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZAnalysis(), fpMainMesh(pRef)
 {
 //    
 //    TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
@@ -52,7 +52,7 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
     
     
 
-    TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
+    TPZCompMesh* pcMainMesh = fpMainMesh;
     
     TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
@@ -77,7 +77,7 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 	int i, j, nMat, matNumber;
 
 
-	TPZCompMesh * pcMainMesh = fpMainAnalysis->Mesh();
+	TPZCompMesh * pcMainMesh = fpMainMesh;
 	
 	TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
@@ -146,42 +146,82 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 	int i, nelem = elvec.NElements();
 	int neltocreate = 0;
 	int index;
-	for(i=0; i<nelem; i++) {
-		TPZGeoEl *gel = elvec[i];
-		if(!gel) continue;
-		if(!gel->HasSubElement()) {
-			neltocreate++;
-		}
-	}
+    // build a data structure indicating which geometric elements will be post processed
+    fpMainMesh->LoadReferences();
+    std::map<TPZGeoEl *,TPZCompEl *> geltocreate;
+    for (i=0; i<nelem; i++) {
+        if (!elvec[i]) {
+            continue;
+        }
+        if (elvec[i]->Reference()) {
+            geltocreate[elvec[i]] = elvec[i]->Reference();
+        }
+    }
+    Mesh()->Reference()->ResetReference();
+    Mesh()->LoadReferences();
+    neltocreate = geltocreate.size();
+    
 	std::set<int> matnotfound;
 	int nbl = Mesh()->Block().NBlocks();
 	if(neltocreate > nbl) Mesh()->Block().SetNBlocks(neltocreate);
 	Mesh()->Block().SetNBlocks(nbl);
-	for(i=0; i<nelem; i++) {
-		TPZGeoEl *gel = elvec[i];
+    
+    std::map<TPZGeoEl *, TPZCompEl *>::iterator it;
+    for (it=geltocreate.begin(); it!= geltocreate.end(); it++) 
+    {
+		TPZGeoEl *gel = it->first;
 		if(!gel) continue;
-		if(!gel->HasSubElement()) {
-			int matid = gel->MaterialId();
-			TPZMaterial * mat = Mesh()->FindMaterial(matid);
-			if(!mat)
-			{
-				matnotfound.insert(matid);
-				continue;
-			}
-			int printing = 0;
-			if (printing) {
-				gel->Print(cout);
-			}
+        int matid = gel->MaterialId();
+        TPZMaterial * mat = Mesh()->FindMaterial(matid);
+        if(!mat)
+        {
+            matnotfound.insert(matid);
+            continue;
+        }
+        int printing = 0;
+        if (printing) {
+            gel->Print(cout);
+        }
 			
-			//if(!gel->Reference() && gel->NumInterfaces() == 0)
-			//gel->CreateCompEl(*Mesh(),index);
-			//gel->ResetReference();
-			Mesh()->CreateCompEl(gel,index);
-            gel->ResetReference();
+        Mesh()->CreateCompEl(gel,index);
+        TPZCompEl *cel = Mesh()->ElementVec()[index];
+        TPZCompEl *celref = it->second;
+        int nc = cel->NConnects();
+        int ncref = celref->NConnects();
+        if (nc != ncref) {
+            DebugStop();
+        }
+        TPZInterpolationSpace *celspace = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZInterpolationSpace *celrefspace = dynamic_cast<TPZInterpolationSpace *>(celref);
+        for (int ic=0; ic<nc; ic++) {
+            int conorder = celref->Connect(ic).Order();
+            cel->Connect(ic).SetOrder(conorder);
+            int nshape = celspace->NConnectShapeF(ic);
+            cel->Connect(ic).SetNShape(nshape);
+        }
+        TPZIntPoints &intrule = celspace->GetIntegrationRule();
+        TPZVec<int> intorder(gel->Dimension(),0);
+        const TPZIntPoints &intruleref = celrefspace->GetIntegrationRule();
+        intruleref.GetOrder(intorder);
+        intrule.SetOrder(intorder);
+#ifdef DEBUG
+        if (intrule.NPoints() != intruleref.NPoints()) {
+            DebugStop();
+        }
+#endif
+        gel->ResetReference();
 			
-		}
 	}
-	
+    
+    // we changed the properties of the connects
+    // now synchronize the connect properties with the block sizes
+	int nc= Mesh()->NConnects();
+    for (int ic=0; ic<nc; ic++) {
+        TPZConnect &c = Mesh()->ConnectVec()[ic];
+        int blsize = c.NShape()*c.NState();
+        int seqnum = c.SequenceNumber();
+        Mesh()->Block().Set(seqnum, blsize);
+    }
 	Mesh()->InitializeBlock();
 #ifdef LOG4CXX
     if(PPAnalysisLogger->isDebugEnabled())
@@ -221,6 +261,28 @@ void TPZPostProcAnalysis::TransferSolution()
     fSolution = Rhs();
     TPZAnalysis::LoadSolution();
     
+    TPZCompMeshReferred *compref = dynamic_cast<TPZCompMeshReferred *>(Mesh());
+    if (!compref) {
+        DebugStop();
+    }
+    TPZCompMesh *solmesh = fpMainMesh;
+    int numelsol = solmesh->ElementSolution().Cols();
+    int nelem = compref->NElements();
+    compref->ElementSolution().Redim(nelem, numelsol);
+    if (numelsol) 
+    {
+        for (int el=0; el<nelem; el++) {
+            TPZCompEl *cel = compref->ReferredEl(el);
+            if (!cel) {
+                continue;
+            }
+            int index = cel->Index();
+            for (int isol=0; isol<numelsol; isol++) {
+                compref->ElementSolution()(el,isol) = solmesh->ElementSolution()(index,isol);
+            }
+        }
+    }
+
 
 	
 }

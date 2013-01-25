@@ -24,7 +24,7 @@ class TPZPostProcAnalysis : public TPZAnalysis {
 
 public:
 
-TPZPostProcAnalysis(TPZAnalysis * pRef);
+TPZPostProcAnalysis(TPZCompMesh * pRef);
 
 TPZPostProcAnalysis();
 
@@ -60,7 +60,7 @@ static void SetAllCreateFunctionsContinuous();
 		void AutoBuildDisc();
 protected:
 	
-	TPZAnalysis * fpMainAnalysis;
+	TPZCompMesh * fpMainMesh;
 
 /**
  * TPZCompElPostProc<TCOMPEL> creation function setup
