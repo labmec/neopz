@@ -35,14 +35,7 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Coeficient which multiplies the Laplacian operator. */
 	STATE fK;
-	
-	/** @brief Coeficient which multiplies the Laplacian operator associated to right neighbour element of the interface */
-	/** 
-	 * The coefficient of left neighbour is fK. \n
-	 * It is for use with discontinuous Galerkin method. Default value for fRightK is fK.
-	 */
-	STATE fRightK;
-	
+		
 	/** @brief Variable which multiplies the convection term of the equation */
 	REAL fC;
 	
@@ -86,6 +79,12 @@ public:
 	static STATE gAlfa;
 	
 	TPZMatPoisson3d(int nummat, int dim);
+    
+    TPZMatPoisson3d(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.), fC(0.), fSymmetry(0.), fSD(0.)
+        ,fPenaltyType(ENoPenalty)
+    {
+    
+    }
 	
 	TPZMatPoisson3d();
 	
@@ -115,6 +114,32 @@ public:
 	virtual TPZMaterial * NewMaterial(){
 		return new TPZMatPoisson3d(*this);
 	}
+    
+    /** 
+	 * @brief Fill material data parameter with necessary requirements for the
+	 * @since April 10, 2007
+	 */
+	/** 
+	 * Contribute method. Here, in base class, all requirements are considered as necessary. 
+	 * Each derived class may optimize performance by selecting only the necessary data.
+     */
+    virtual void FillDataRequirements(TPZMaterialData &data)
+    {
+        data.SetAllRequirements(false);
+    }
+	    
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    {
+        data.SetAllRequirements(false);
+        if (type == 50) {
+            data.fNeedsSol = true;
+        }
+        if (type == 3) {
+            data.fNeedsNormal = true;
+        }
+    }
+    
 	
 	int Dimension() { return fDim;}
 	
@@ -123,6 +148,15 @@ public:
 	void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
 	
 	void GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir);
+    
+    void SetDimension(int dim)
+    {
+        if(dim<0 || dim >3)
+        {
+            DebugStop();
+        }
+        fDim = dim;
+    }
 	
 	void SetInternalFlux(STATE flux)
 	{
@@ -134,19 +168,6 @@ public:
 		fSD = sd;
 	}
 	
-	/**
-	 * @brief Define fK of right neighbour element. \n 
-	 * It is used with discontinuous Galerkin on the computation of ContributeInterface methods */
-	/**
-	 * Attention that method SetParameters override the modifications of this method. \n
-	 * Then call it after SetParameters and never before or it will have no effect.
-	 */
-	void SetRightK(STATE rightK) {
-		this->fRightK = rightK;
-	}
-	STATE GetRightK(){
-		return this->fRightK;
-	}
 	
 	virtual void Print(std::ostream & out);
 	

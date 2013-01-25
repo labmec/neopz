@@ -31,7 +31,6 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
 	fConvDir[2] = 0.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
-	this->SetRightK(fK);
 	this->SetNoPenalty();
 }
 
@@ -43,7 +42,6 @@ TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1),
 	fConvDir[2] = 0.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
-	this->SetRightK(fK);
 	this->SetNoPenalty();
 }
 
@@ -56,7 +54,6 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fK   = copy.fK;
-	this->fRightK = copy.fRightK;
 	fC   = copy.fC;
 	for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
 	fSymmetry = copy.fSymmetry;
@@ -68,7 +65,6 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
 
 void TPZMatPoisson3d::SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir) {
 	fK = diff;
-	this->SetRightK(fK);
 	fC = conv;
 	int d;
 	for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
@@ -91,7 +87,6 @@ int TPZMatPoisson3d::NStateVariables() {
 void TPZMatPoisson3d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "Laplace operator multiplier fK "<< fK << endl;
-	out << "Laplace operator multiplier fK of right neighbour " << this->fRightK << endl;
 	out << "Convection coeficient fC " << fC << endl;
 	out << "Convection direction " << fConvDir[0] << ' ' << fConvDir[1] << ' ' <<  fConvDir[2] << endl;
 	out << "Forcing vector fXf " << fXf << endl;
@@ -371,7 +366,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 /** Returns the variable index associated with the name */
 int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("Solution",name.c_str()))        return  1;
-	if(!strcmp("Derivate",name.c_str()))        return  2;
+	if(!strcmp("Derivative",name.c_str()))        return  2;
 	if(!strcmp("KDuDx",name.c_str()))           return  3;
 	if(!strcmp("KDuDy",name.c_str()))           return  4;
 	if(!strcmp("KDuDz",name.c_str()))           return  5;
@@ -379,6 +374,7 @@ int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("MinusKGradU",name.c_str()))     return  7;
 	if(!strcmp("p",name.c_str()))               return  8;
 	if(!strcmp("Laplac",name.c_str()))          return  9;
+	if(!strcmp("Stress",name.c_str()))          return  10;    
 	if(!strcmp("Flux",name.c_str()))            return  10;
 	if(!strcmp("Pressure",name.c_str()))        return  11;
 	
@@ -837,7 +833,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	//diffusion term
 	STATE leftK, rightK;
 	leftK  = this->fK;
-	rightK = this->GetRightK();
+	rightK = this->fK;
 	
 	// 1) phi_I_left, phi_J_left
 	for(il=0; il<nrowl; il++) {
@@ -914,7 +910,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	if (this->fPenaltyConstant == 0.) return;
 	
 	leftK  = this->fK;
-	rightK = this->GetRightK();
+	rightK = this->fK;
 	
 	
 	
@@ -1237,7 +1233,6 @@ void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid){
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
 	buf.Write(&fK, 1);
-	buf.Write(&fRightK, 1);
 	buf.Write(&fC, 1);
 	buf.Write(fConvDir, 3);
 	buf.Write(&fSymmetry, 1);
@@ -1251,7 +1246,6 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);
 	buf.Read(&fK, 1);
-	buf.Read(&fRightK, 1);
 	buf.Read(&fC, 1);
 	buf.Read(fConvDir, 3);
 	buf.Read(&fSymmetry, 1);
