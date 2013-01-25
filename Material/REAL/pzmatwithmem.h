@@ -8,6 +8,7 @@
 
 #include "pzmaterial.h"
 #include "pzadmchunk.h"
+#include "pzelast3d.h"
 //#include "pzviscoelastic.h"
 
 /**
@@ -65,12 +66,18 @@ public:
 	
 	/** @brief Frees an entry in the material with memory internal history storage */
 	virtual void FreeMemItem(int index);
+    
+    /** @ Reset the memory index to its default value */
+    void ResetMemItem(int index)
+    {
+        fMemory[index] = fDefaultMem;
+    }
 	
 	/** @brief Sets the default memory settings for initialization */
 	virtual void SetDefaultMem(TMEM & defaultMem);
 	
 	/** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
-	virtual void SetUpdateMem(int update = 1);
+	virtual void SetUpdateMem(bool update);
 	
 protected:
 	
@@ -82,7 +89,7 @@ protected:
 	TMEM fDefaultMem;
 	
 	/** @brief Flag to indicate wether the memory data are to be updated in an assemble loop */
-	int fUpdateMem;
+	bool fUpdateMem;
 };
 
 template <class TMEM, class TFather>
@@ -125,23 +132,15 @@ inline void TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::PrintMem(std::ostr
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::PrintMem(std::ostream &out, const int memory)
 {
-	TMEM fooMEM;
-	//out << "\nTPZMatWithMem< " << fooMEM.Name() << " > Material\n";
-	out << "\n fDefaultMem = \n" << fDefaultMem;
-	out << "\n fUpdateMem = " << fUpdateMem;
-	int i, size = fMemory.NElements();
-	out << "\n fMemory with " << size << " elements";
-	if(memory)
+	out << "\nfDefaultMem = \n" << fDefaultMem;
+	out << "\nfUpdateMem = " << fUpdateMem;
+	int size = fMemory.NElements();
+	out << "\nfMemory with " << size << " elements";
+	if(memory && memory < size)
 	{
-		out << "\n fMemory elements:";
-		for(i = 0; i < size; i++)
-		{
-			out << "\n " << i << ": "; 
-			fMemory[i].Print(out);
-		}
+		out << "\nfMemory element : " << memory << std::endl;
+        fMemory[memory].Print(out);
 	}
-	out << "\nEnd of TPZMatWithMem< " << fooMEM.Name() << " >::Print\n";
-    TFather::Print(out);
 }
 
 template <class TMEM, class TFather>
@@ -207,7 +206,7 @@ void TPZMatWithMem<TMEM,TFather>::SetDefaultMem(TMEM & defaultMem)
 }
 
 template <class TMEM, class TFather>
-void TPZMatWithMem<TMEM,TFather>::SetUpdateMem(int update)
+void TPZMatWithMem<TMEM,TFather>::SetUpdateMem(bool update)
 {
 	fUpdateMem = update;
 }
