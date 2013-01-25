@@ -12,7 +12,10 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzelasAXImat.h"
+#include "pzelasmat.h"
 #include "pzbndcond.h"
+
+#include "TPZVTKGeoMesh.h"
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
@@ -44,10 +47,10 @@ int main()
     InitializePZLOG();
 //    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 
-    const int nel=299;
+    const int nel=2;
     TPZVec<int> nx(2,nel);
     nx[1] = 1;
-    TPZVec<REAL> x0(3,0.),x1(3,300.);
+    TPZVec<REAL> x0(3,0.),x1(3,2.);
     x0[0] = 1.;
     x1[1] = 1.;
     TPZGenGrid gengrid(nx,x0,x1);
@@ -57,6 +60,8 @@ int main()
     gengrid.SetBC(gmesh,1,-2);
     TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
     
+    std::ofstream gmeshfile("gmesh.vtk");
+    TPZVTKGeoMesh::PrintCMeshVTK(gmesh.operator->(), gmeshfile,true);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -83,10 +88,11 @@ int main()
     if(!strcmp("Sigmatt",name.c_str()))       return 5;
     if(!strcmp("Taurz",name.c_str()))         return 6;
      */
-    scalnames.Push("Sigmarr");
-    scalnames.Push("Sigmazz");
-    scalnames.Push("Sigmatt");
-    scalnames.Push("Taurz");
+    scalnames.Push("SigmaX");
+    scalnames.Push("SigmaY");
+    scalnames.Push("TauXY");
+    scalnames.Push("Pressure");
+    vecnames.Push("displacement");
     an.DefineGraphMesh(2, scalnames, vecnames, "perkins.vtk");
     int postprocessresolution = 2;
     an.PostProcess(postprocessresolution);
@@ -107,26 +113,27 @@ TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh)
     REAL Elast = 1000.;
     REAL nu = 0.3;
     REAL fx(0.),fy(0.);
-    TPZElasticityAxiMaterial *aximat = new TPZElasticityAxiMaterial(1,Elast,nu,fx,fy);
+    TPZElasticityMaterial *aximat = new TPZElasticityMaterial(1,Elast,nu,fx,fy);
     //aximat->SetForcingFunction(forceX);
-    aximat->SetTemperature(100.);
-    aximat->SetTemperatureFunction(TemperatureFunction);
+    //aximat->SetTemperature(100.);
+    //aximat->SetTemperatureFunction(TemperatureFunction);
     TPZMaterial * autoaximat(aximat);
     cmesh->InsertMaterialObject(autoaximat);
     int mixed = 2;
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
     val1(1,1) = 100.;
+    val1(0,0) = 100.;
     TPZBndCond *bnd = aximat->CreateBC(autoaximat, pointbc, mixed, val1, val2);
     TPZMaterial * autobnd(bnd);
     cmesh->InsertMaterialObject(autobnd);
     val1.Zero();
-    val2(0,0) = 1.*0.;
+    val2(0,0) = 10.;
     int neumann = 1;
     int rightbc = -2;
     TPZBndCond *bnd2 = aximat->CreateBC(autoaximat, rightbc, neumann, val1, val2);
     TPZMaterial * autobnd2(bnd2);
     cmesh->InsertMaterialObject(autobnd2);
-    val2(0,0) = -10.*0.;
+    val2(0,0) = -10.;
     int leftbc = -1;
     TPZBndCond *bnd3 = aximat->CreateBC(autoaximat, leftbc, neumann, val1, val2);
     TPZMaterial * autobnd3(bnd3);
