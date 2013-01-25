@@ -159,8 +159,12 @@ public:
 	TPZGeoNode* FindNode(TPZVec<REAL> &co);
     
     /** by Caju 2012 */
-    /** @brief Returns the element that contains the quiven point x and it respective point in parametric domain qsi */
+    /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex, int targetDim = 0);
+	
+    /** by Philippe 2013 */
+    /** @brief Returns the element that is close to the given point x */
+    TPZGeoEl * FindCloseElement(TPZVec<REAL> &x, int & InitialElIndex, int targetDim = 0);
 	
 	/** @brief Alternative method for computing the connectivity */
 	void BuildConnectivityOld();
