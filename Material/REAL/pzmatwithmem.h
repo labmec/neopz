@@ -77,7 +77,7 @@ public:
 	virtual void SetDefaultMem(TMEM & defaultMem);
 	
 	/** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
-	virtual void SetUpdateMem(bool update);
+	virtual void SetUpdateMem(bool update = 1);
 	
 protected:
 	

@@ -204,8 +204,8 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 	LeftPoroelastic->Solution(dataleftvec,5,LeftTau);
 	RightPoroelastic->Solution(datarightvec,5,RightTau);		
 
-	REAL t[2] = {-data.normal[1],data.normal[0]};
-	REAL n[2] = {data.normal[0],data.normal[1]};
+	REAL n[2] = {-data.normal[1],data.normal[0]};
+	REAL t[2] = {-data.normal[0],-data.normal[1]};
 		
 	REAL NormalOnRight	= 0.0;
 	REAL NormalOnLeft	= 0.0;

@@ -19,7 +19,7 @@
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
-#include "TPZMTAssemble.h"
+//#include "TPZMTAssemble.h"
 
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
