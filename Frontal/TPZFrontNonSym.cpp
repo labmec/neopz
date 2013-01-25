@@ -183,7 +183,7 @@ void TPZFrontNonSym<std::complex<long double> >::DecomposeOneEquation(int ieq, T
 template<class TVar>
 void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarray)
 {
-	std::cout<<" fNextRigidBodyMode AQQQQ "<<this->fNextRigidBodyMode<<endl;
+	//std::cout<<" fNextRigidBodyMode AQQQQ "<<this->fNextRigidBodyMode<<endl;
 	
 	//	if (this->fNextRigidBodyMode > this->fLocal.NElements()|| this->fNextRigidBodyMode == this->fLocal.NElements()) {
 	//	DebugStop();
