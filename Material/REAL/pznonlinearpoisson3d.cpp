@@ -444,7 +444,7 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMateri
 	//diffusion term
 	STATE leftK, rightK;
 	leftK  = this->fK;
-	rightK = this->GetRightK();
+	rightK = this->fK;
 	
 	//Compute GradSol . normal
 	STATE DSolLNormal = 0.;

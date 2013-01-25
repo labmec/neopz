@@ -322,7 +322,7 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
 	//diffusion term
 	REAL leftK, rightK;
 	leftK  = this->fK;
-	rightK = this->GetRightK();
+	rightK = this->fK;
 	
 	//Compute GradSol . normal
 	REAL DSolLNormal = 0.;
