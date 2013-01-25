@@ -33,6 +33,21 @@ public:
         SetAllCreateFunctionsContinuous();
     }
     
+    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy)
+    {
+        for (int i=0; i<8; i++) {
+            fp[i] = copy.fp[i];
+        }
+    }
+    
+    TPZCreateApproximationSpace &operator=(const TPZCreateApproximationSpace &copy)
+    {
+        for (int i=0; i<8; i++) {
+            fp[i] = copy.fp[i];
+        }
+        return *this;
+    }
+    
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
