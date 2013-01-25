@@ -1500,7 +1500,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
                 // the equation was not computed and the plasticity function is positive
                 if(!BoolValidEq) 
                 {
-                    validEqs[i] = 1;
+//                    validEqs[i] = 1;
 //                    count++;
                 }
                 break;
