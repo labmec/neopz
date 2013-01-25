@@ -186,6 +186,7 @@ void TPZReducedSpace::InitMaterialData(TPZMaterialData &data)
 void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
                                  TPZVec<REAL> &qsi)
 {
+    data.intGlobPtIndex = -1;
     ShapeX(qsi, data.phi, data.dphix, data.axes);
     
     if (data.fNeedsSol) {
