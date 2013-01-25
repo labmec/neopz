@@ -261,6 +261,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	TPZMaterialData data, dataRef;
 	this      ->InitMaterialData(data);
 	pIntSpRef ->InitMaterialData(dataRef);
+    dataRef.fNeedsSol = true;
 	data.p	= this      ->MaxOrder();
 	dataRef.p = pIntSpRef ->MaxOrder();
 	int dim = pIntSpRef ->Dimension();
@@ -282,7 +283,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	int nshape = this->NShapeF();
 	TPZFMatrix<REAL> ekTemp(nshape, nshape, 0.);
 	
-	TPZVec<int> varIndex;
+	TPZManVector<int,10> varIndex;
 	int stackedVarSize = pPostProcMat->NStateVariables();
 	pPostProcMat->GetPostProcessVarIndexList(varIndex);
 	TPZManVector<REAL> Sol;
@@ -303,8 +304,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		
 		weight    *= fabs(data.detjac);
 		weightRef *= fabs(dataRef.detjac);
-		data   .intPtIndex = int_ind;
-		dataRef.intPtIndex = int_ind;
+		data   .intLocPtIndex = int_ind;
+		dataRef.intLocPtIndex = int_ind;
 		this      ->ComputeRequiredData(data,    intpoint);
 		pIntSpRef ->ComputeRequiredData(dataRef, intpointRef);
 		
@@ -318,9 +319,15 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		// stacking the solutions to post process.
 		for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
 		{
-			int nsolvars = pMaterialRef->NSolutionVariables(varIndex[var_ind]);
+            int variableindex = varIndex[var_ind];
+			int nsolvars = pMaterialRef->NSolutionVariables(variableindex);
 			Sol.Resize(nsolvars);
-			pMaterialRef->Solution(dataRef, varIndex[var_ind], Sol);
+            if (variableindex < 100) {
+                pMaterialRef->Solution(dataRef, variableindex, Sol);
+            }
+            else {
+                pCompElRef->Solution(intpointRef, variableindex, Sol);
+            }
 			for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
 			index += nsolvars;		
 		}
@@ -356,6 +363,14 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	    for(int i_sh = 0; i_sh < nshape; i_sh++)
 		  	ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh); 
 	}
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "Element index " << this->fIndex << std::endl;
+        ef.fMat.Print("Post Processed ",sout);
+        LOGPZ_DEBUG(CompElPostProclogger, sout.str())
+    }
+#endif
 	
 	cout << "*";
 	cout.flush();
