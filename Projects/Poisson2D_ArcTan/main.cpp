@@ -117,15 +117,15 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int i, nref, NRefs = 10;
-	int nthread, NThreads = 3;
+	int nref, NRefs = 10;
+	int nthread, NThreads = 4;
 	int dim = 2;
 	
-	for(int typeel=0;typeel<2;typeel++) {
-		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-			for(nref=2;nref<NRefs;nref++) {
+	for(int typeel=1;typeel<2;typeel++) {
+        for(nref=1;nref<NRefs;nref++) {
+            for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
 				if(nref > 5) nthread = NThreads;
-				else nthread = 1;
+				else nthread = 2;
 				
 				// Initializing the generation mesh process
 				time (& sttime);
@@ -143,7 +143,7 @@ int main() {
 				}
 				
 				// Creating computational mesh (approximation space and materials)
-				int p = 7, pinit;
+				int p = 8, pinit;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
 				dim = cmesh->Dimension();

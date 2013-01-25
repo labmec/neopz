@@ -98,14 +98,14 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 6;
+	int nref, NRefs = 11;
 	int nthread, NThreads = 4;
 	int dim = 3;
     for(int typeel=0;typeel<1;typeel++) {
-		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-			for(nref=0;nref<NRefs;nref++) {
-				if(nref > 5) nthread = NThreads;
-				else nthread = 1;
+        for(nref=0;nref<NRefs;nref++) {
+            for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+				if(nref > 6) nthread = NThreads;
+				else nthread = 2;
 				
 				// Initializing the generation mesh process
 				time(&sttime);
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 6, pinit;
+				int p = 8, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 				
 				// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
 				// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
-				int level, highlevel = 0;
+				int level = 0, highlevel = 0;
 				int nelem = 0;
 				while(nelem < cmesh->NElements()) {
 					TPZCompEl *cel = cmesh->ElementVec()[nelem++];
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
 //////////   FICHERA CORNER - Problem as Anders Solin Presentation   ///////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	TPZVec<REAL> C0(3,0.25);
+	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	sol[0] = atan(ALFA * ( R0 - sqrt(3.)) );
@@ -252,13 +252,13 @@ void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 }
 
 void BCDirichletShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
-	TPZVec<REAL> C0(3,0.25);
+	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	bcsol[0] = atan(ALFA * ( R0 - sqrt(3.)) );
 }
 void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
-	TPZVec<REAL> C0(3,0.25);
+	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
@@ -267,7 +267,7 @@ void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 	bcsol[0] = (ALFA*(x[0]-C0[0]))/den;
 }
 void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
-	TPZVec<REAL> C0(3,0.25);
+	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
@@ -276,7 +276,7 @@ void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 	bcsol[0] = (ALFA*(x[1]-C0[1]))/den;
 }
 void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
-	TPZVec<REAL> C0(3,0.25);
+	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
@@ -287,7 +287,7 @@ void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 
 /** NOTE: Forcing function in TPZMatPoisson3d is negative */
 void FforcingShock(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
-	TPZVec<REAL> C0(3,0.25);
+	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	REAL temp =  (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
@@ -402,27 +402,27 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 }
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
-	TPZManVector<REAL> point(3,0.75);
-	REAL r = 0.0, radius = 0.2;
+	TPZManVector<REAL> point(3,-0.25);
+	REAL r = sqrt(3.0), radius = 0.5;
 	int i;
-	bool isdefined = false;
+	bool isdefined = true;
 	if(ntyperefs) {
 		for(i=0;i<nref;i+=2) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.9;
+			radius *= 0.5;
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.9;
+			radius *= 0.5;
 		}
 	}
 	else {
 		for(i=0;i<nref+1;i++) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.9;
+			radius *= 0.5;
 		}
 	}
 	// Constructing connectivities

@@ -74,7 +74,7 @@ void formatTimeInSec(char *strtime,int timeinsec);
 
 // problem = 1 represents the Poisson as Solin presentation
 // problem = 2 represents the Poisson as Rachowicz Ficher corner problem
-int problem = 2;
+int problem = 1;
 
 // MAIN FUNCTION TO NUMERICAL SOLVE OF THE FICHERA CORNER PROBLEM
 int main(int argc, char *argv[]) {
@@ -105,9 +105,9 @@ int main(int argc, char *argv[]) {
 	int nthread, NThreads = 2;
 	int dim = 3;
     for(int typeel=0;typeel<1;typeel++) {
-		for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-			for(nref=0;nref<NRefs;nref++) {
-				if(nref > 4) nthread = NThreads+(nref-4);
+        for(nref=0;nref<NRefs;nref++) {
+            for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+				if(nref > 4) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
 				// Initializing the generation mesh process
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 7, pinit;
+				int p = 8, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1,problem);
