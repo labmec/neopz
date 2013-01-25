@@ -1122,10 +1122,10 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         }
     }
     int countNewton = 0;
-    
+    int switchvalid = 0;
     
     do{//while(RemoveInvalidEqs(epsRes_FAD));
-        
+        switchvalid++;
         // verifying if it is necessary to impose post-peak material behavior
         TPZTensor<REAL> sigmaGuess;
         REAL AGuess;
@@ -1259,13 +1259,18 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         
         countReset++;
         
-    }while(RemoveInvalidEqs(delGamma_FAD, epsRes_FAD, validEqs));
+    }while(switchvalid < 3 && RemoveInvalidEqs(delGamma_FAD, epsRes_FAD, validEqs));
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     // updating output variables
     //for(i=0; i<6; i++) Np1.fEpsP.fData[i] = Np1_FAD.EpsP().fData[i].val();
     //Np1.fAlpha = Np1_FAD.Alpha().val();
+#ifdef DEBUG
+    if (switchvalid == 3) {
+        std::cout << __FUNCTION__ << " should stop switchvalid\n";
+    }
+#endif
     Np1_FAD.CopyTo(Np1);
     
     for(i=0; i<YC_t::NYield; i++)
@@ -1496,7 +1501,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
                 if(!BoolValidEq) 
                 {
                     validEqs[i] = 1;
-                    count++;
+//                    count++;
                 }
                 break;
             case (false):

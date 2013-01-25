@@ -437,7 +437,21 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
 //	cout << "\nLocalSolve: fSolution=\n";
 //	for(i = 0; i < 4; i++)cout << "\t" << fSolution(i);
 
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fRhs.Print("Right hand side",sout);
+        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
+    }
+#endif
     TPZAnalysis::Solve();
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fSolution.Print("Solution",sout);
+        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
+    }
+#endif
 
 //    cout << "\n DisplacementSIZE = "<< fSolution << endl; 
   //  cout << "\n Displacement = "<< fSolution << endl; 

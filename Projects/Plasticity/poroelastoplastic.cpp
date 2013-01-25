@@ -170,7 +170,7 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinem
     
     TPZMaterial * bc4 = mat->CreateBC(mat,-5,3,k4,f4);
     CMesh->InsertMaterialObject(bc4);
-    CMesh->SetDefaultOrder(2);
+//    CMesh->SetDefaultOrder(2);
     CMesh->AutoBuild();
 
 #ifdef LOG4CXX
