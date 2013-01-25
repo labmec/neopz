@@ -118,9 +118,10 @@ public:
 	 */
 	TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
-	/** @brief Sets & Gets the value of gOrder */
+	/** @brief Sets the value of the default interpolation order */
 	static void SetgOrder( int order );
 	
+    /** @brief Set the default value of the interpolation order */
 	static int GetgOrder();
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
@@ -213,14 +214,6 @@ public:
 	 * @brief Methods that modify private data
 	 * @{
 	 */
-	
-	/**
-	 * @brief Creates corresponding graphical element(s) if the dimension matches
-	 * graphical elements are used to generate output files
-	 * @param graphmesh graphical mesh where the element will be created
-	 * @param dimension target dimension of the graphical element
-	 */
-	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
 	
 	/** @brief Loads the solution within the internal data structure of the element */ 
 	/** 
@@ -349,11 +342,29 @@ public:
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
 	
+	/**
+	 * @brief Creates corresponding graphical element(s) if the dimension matches
+	 * graphical elements are used to generate output files
+	 * @param graphmesh graphical mesh where the element will be created
+	 * @param dimension target dimension of the graphical element
+	 */
+	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
+	
 	/** @brief Integrates a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<REAL> & value){
 		value.Fill(0.);
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
+    
+    /** @brief Get the indices of the vector of element memory associated with the integration points */
+    /**
+     * Will return an empty vector if no memory is associated with the integration point
+     * Is implemented in TPZCompElWithMem
+     */
+    virtual void GetMemoryIndices(TPZVec<int> &indices) const
+    {
+        indices.resize(0);
+    }
 	
 	/**
 	 * @brief Calculates the solution - sol - for the variable var
