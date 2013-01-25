@@ -198,7 +198,7 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
 	int numelements;
 	
 	string FileName;
-	FileName = "wellcil.txt";
+	FileName = "../wellcil.txt";
     ifstream read (FileName.c_str());
     
     // gRefDBase.InitializeRefPatterns();

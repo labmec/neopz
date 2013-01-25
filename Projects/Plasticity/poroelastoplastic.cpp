@@ -1560,8 +1560,10 @@ int main ()
     TPZWellBoreAnalysis::StandardConfiguration(well);
     well.ExecuteInitialSimulation();
     well.DivideElementsAbove(0.03);
-    well.PostProcess();
+    well.PostProcess(1);
     well.ExecuteSimulation();
+    
+    return 0;
     
     wellboreanalyis();
     //wellelastic();
