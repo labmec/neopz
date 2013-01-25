@@ -144,8 +144,8 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
 		g_extended = g.operator->();
 	TPZCompMesh *c = new TPZCompMesh(g_extended);
 	TPZVec<REAL> sol(1,0.);
-	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
-	c->InsertMaterialObject(material.operator->());
+	TPZMaterial * material = new TPZL2Projection(1,2,1,sol);
+	c->InsertMaterialObject(material);
 	c->SetDefaultOrder(order);
 	c->AutoBuild();
 	return c;
