@@ -497,7 +497,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 			
 			//msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
 							 // datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
-			datavec[iref].intPtIndex = int_ind;
+			datavec[iref].intLocPtIndex = int_ind;
 			msp->ComputeRequiredData(datavec[iref], intpoint);
 		}
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
