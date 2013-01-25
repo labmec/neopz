@@ -106,6 +106,8 @@ public:
     TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh);
 	/** @brief Copy constructor */
 	TPZCompMesh(const TPZCompMesh &copy);
+    /** @brief copy the content of the mesh */
+    TPZCompMesh &operator=(const TPZCompMesh &copy);
 	
 	/** @brief Simple Destructor */
 	virtual ~TPZCompMesh();

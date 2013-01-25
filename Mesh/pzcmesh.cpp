@@ -1346,6 +1346,19 @@ void TPZCompMesh::SetElementSolution(int i, TPZVec<REAL> &sol) {
 	if(sol.NElements() != NElements()) {
 		cout << "TPZCompMesh::SetElementSolution size of the vector doesn't match\n";
 	}
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        REAL norm=0.;
+        for (int i=0; i<sol.size(); i++) {
+            norm += sol[i];
+        }
+        norm = sqrt(norm);
+        sout << "Norma da solucao " << i << " norma " << norm;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	if(fElementSolution.Cols() <= i) fElementSolution.Resize(NElements(),i+1);
 	int el,nel= NElements();
 	for(el=0; el<nel; el++) {
@@ -1422,7 +1435,7 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
 fReference(copy.fReference),fConnectVec(copy.fConnectVec),
 fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fSolution(copy.fSolution), fBlock(copy.fBlock),
-fElementSolution(copy.fElementSolution)
+fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 {
 	fDefaultOrder = copy.fDefaultOrder;
 	fReference->ResetReference();
@@ -1463,6 +1476,43 @@ fElementSolution(copy.fElementSolution)
 	}
 	fDimModel = copy.fDimModel;
 	fName = copy.fName;
+}
+
+TPZCompMesh &TPZCompMesh::operator=(const TPZCompMesh &copy)
+{
+    CleanUp();
+    fReference = copy.fReference;
+    fReference->ResetReference();
+    fConnectVec = copy.fConnectVec;
+    copy.CopyMaterials(*this);
+    fSolutionBlock = copy.fSolutionBlock;
+    fSolution = copy.fSolution;
+    fSolutionBlock.SetMatrix(&fSolution);
+    fBlock = copy.fBlock;
+    fBlock.SetMatrix(&fSolution);
+    fElementSolution = copy.fElementSolution;
+    fDefaultOrder = copy.fDefaultOrder;
+    int nel = copy.fElementVec.NElements();
+    fElementVec.Resize(nel);
+    int iel;
+    for(iel = 0; iel<nel; iel++) fElementVec[iel] = 0;
+    for(iel = 0; iel<nel; iel++) {
+        TPZCompEl *cel = copy.fElementVec[iel];
+        if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
+        {
+                cel->Clone(*this);
+        }
+    }
+    for(iel = 0; iel<nel; iel++) 
+    {
+        TPZCompEl *cel = copy.fElementVec[iel];
+        if(cel && dynamic_cast<TPZInterfaceElement* >(cel) ) cel->Clone(*this);
+    }
+    fDimModel = copy.fDimModel;
+    fName = copy.fName;
+    fCreate = copy.fCreate;
+
+    return *this;
 }
 
 TPZCompMesh* TPZCompMesh::Clone() const {
