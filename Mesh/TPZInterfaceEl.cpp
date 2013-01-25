@@ -1543,6 +1543,7 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
                                               TPZInterpolationSpace *elem,
                                               TPZVec<REAL> &IntPoint){
     
+    data.intGlobPtIndex = -1;
     //elem->ComputeShape(IntPoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     elem->ComputeShape(IntPoint,data);
     
@@ -1554,6 +1555,7 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
 {
 
+    data.intGlobPtIndex = -1;
 	if (data.fNeedsSol){
         // the interface elements have no approximation space!!
         DebugStop();
