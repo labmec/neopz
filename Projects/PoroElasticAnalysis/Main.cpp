@@ -553,6 +553,7 @@ int main(int argc, char *argv[])
 		materialist[imat]->SetTimeStep(Delta,Theta);			
 	}	
 	
+	InitialSolution = PoroelasticAnalysisInitial.Solution();
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "FileName" ).ToElement();		
 	CharContainer = Container->Attribute("ProblemName");
 	std::string Outputre(CharContainer);
@@ -1312,8 +1313,17 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 		else
 		{
 			
-			S = (pow(alpha,2)/(Lambda+2.0*G));
-			Se = 0;
+			if (alpha != 0.0) {
+				S = (pow(alpha,2)/(Lambda+2.0*G));
+				Se = 0;
+			}
+			else 
+			{
+				S = (1.0)/(3*Lambda+2.0*G);
+				Se = 0;
+			}			
+			
+
 			
 		}		
 		
@@ -1325,7 +1335,9 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 			}
 			else 
 			{
-				Se				= 1.0;
+				if (Se != 0.0) {
+					Se				= 1.0;
+				}
 			}			
 			Lambda			= Lambda*S;
 			LambdaU			= LambdaU*S;			
