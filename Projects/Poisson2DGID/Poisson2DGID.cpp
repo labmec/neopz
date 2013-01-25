@@ -48,7 +48,13 @@ int main()
 	#ifdef LOG4CXX
 		InitializePZLOG();
 	#endif		
-
+/*
+    TPZReadGIDGrid readgid;
+    std::string name("oneD.dump");
+    TPZGeoMesh *gmesh = readgid.GeometricGIDMesh(name);
+    gmesh->Print();
+    delete gmesh;
+ */
 	//	Files to read
 	std::string GeoGridFile;	
 //	GeoGridFile = "SQDomain.dump";
@@ -132,7 +138,13 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 		}
 	}
 //	End: This part depends on Material parameters	
-
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	{	
 				
 		cmesh->AutoBuild();
