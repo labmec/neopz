@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
 				scalarnames.Push("NormKDu");
 				scalarnames.Push("Pressure");
 				
-				vecnames.Push("Derivate");
+				vecnames.Push("Derivative");
 				vecnames.Push("Flux");
 				vecnames.Push("MinusKGradU");
 				// END Determining the name of the variables
