@@ -885,7 +885,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	TPZBlock<REAL> MBlocksmall(0,numsidenodes_small), MBlocklarge(0,numsidenodes_large);
 	for(in = 0; in<numsidenodes_small; in++) {
 		int locid = SideConnectLocId(in,side);
-        int nshape = NConnectShapeF(locid);
+        unsigned int nshape = NConnectShapeF(locid);
 #ifdef DEBUG
         TPZConnect &c = Connect(locid);
         if(c.NShape() != nshape)
@@ -897,7 +897,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	}
 	for(in = 0; in<numsidenodes_large; in++) {
 		int locid = large->SideConnectLocId(in,neighbourside);
-        int nshape = large->NConnectShapeF(locid);
+        unsigned int nshape = large->NConnectShapeF(locid);
 #ifdef DEBUG
         TPZConnect &c = large->Connect(locid);
         if (c.NShape() != nshape) {
@@ -1565,7 +1565,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	TPZVec<STATE> sol(numdof,0.);
 	for(i=0;i<ncon;i++)
     {
-        int nshape = NConnectShapeF(i);
+        unsigned int nshape = NConnectShapeF(i);
 #ifdef DEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape() != nshape || c.NState() != numdof) {

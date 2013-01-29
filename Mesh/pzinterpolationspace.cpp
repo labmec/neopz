@@ -434,7 +434,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        int nshapec = NConnectShapeF(i);
+        unsigned int nshapec = NConnectShapeF(i);
 #ifdef DEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape() != nshapec || c.NState() != numdof) {
@@ -1341,7 +1341,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	cormatsize = 0;
 	for(in=0;in<cornod; in++) {
 		int c = connectlistcoarse[in];
-		int blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
+		unsigned int blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
 #ifdef DEBUG
         TPZConnect &con = coarsel.Mesh()->ConnectVec()[c];
         if(con.NShape() != blsize)
@@ -1381,7 +1381,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	TPZBlock<REAL> locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
-        int nshape = NConnectShapeF(in);
+        unsigned int nshape = NConnectShapeF(in);
 #ifdef DEBUG
         TPZConnect &c = Connect(in);
         if(c.NShape() != nshape)

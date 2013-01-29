@@ -289,6 +289,11 @@ public:
 			fForcingFunction = fp;
     }
 
+	/** @brief Returns a procedure as source function for the material */
+	TPZAutoPointer<TPZFunction<STATE> > &ForcingFunction() {
+		return fForcingFunction;
+	}
+	
     /** 
 	 * @brief Sets a procedure as exact solution for the problem
 	 * @param fp pointer of exact solution function

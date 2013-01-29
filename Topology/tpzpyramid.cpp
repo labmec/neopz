@@ -697,9 +697,10 @@ namespace pztopology {
 				else
 				{
                     SidePar[0] = -((eta*(-1. + qsi + zeta) + (-1. + zeta)*(-1. + qsi + 5.*zeta))/((-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta)));
-                    JacToSide(0,0) = (8.*(-1. + zeta)*zeta*(-1. + eta + zeta))/pow((-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta),2);
-                    JacToSide(0,1) = (8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/pow((-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta),2);
-                    JacToSide(0,2) = (-8.*((-1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/pow((-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta),2);
+					REAL den = (-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta);
+                    JacToSide(0,0) = (8.*(-1. + zeta)*zeta*(-1. + eta + zeta))/(den*den);
+                    JacToSide(0,1) = (8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/(den*den);
+                    JacToSide(0,2) = (-8.*((-1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/(den*den);
 				}
 				break;
 				
@@ -720,9 +721,10 @@ namespace pztopology {
 				else
 				{
                     SidePar[0] = (-((1. + qsi - 5.*zeta)*(-1. + zeta)) + eta*(-1. - qsi + zeta))/(eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta));
-                    JacToSide(0,0) = (-8.*(-1. + zeta)*zeta*(-1. + eta + zeta))/pow(eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta),2);
-                    JacToSide(0,1) = (-8.*(1. + qsi - zeta)*(-1. + zeta)*zeta)/pow(eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta),2);
-                    JacToSide(0,2) = (8.*((1. + qsi)*(-1. + zeta)*(-1. + zeta) - eta*(qsi + (-1. + zeta)*(-1. + zeta) - 2.*qsi*zeta)))/pow(eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta),2);
+					REAL den = eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta);
+                    JacToSide(0,0) = (-8.*(-1. + zeta)*zeta*(-1. + eta + zeta))/(den*den);
+                    JacToSide(0,1) = (-8.*(1. + qsi - zeta)*(-1. + zeta)*zeta)/(den*den);
+                    JacToSide(0,2) = (8.*((1. + qsi)*(-1. + zeta)*(-1. + zeta) - eta*(qsi + (-1. + zeta)*(-1. + zeta) - 2.*qsi*zeta)))/(den*den);
 				}
 				break;
 				
@@ -743,9 +745,10 @@ namespace pztopology {
 				else
 				{
                     SidePar[0] = -1. + (8.*(-1. + zeta)*zeta)/(eta*(-1. - qsi + zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta));
-                    JacToSide(0,0) = (-8.*(-1. + zeta)*zeta*(-1. - eta + zeta))/pow(eta*(-1. - qsi + zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta),2);
-                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. - qsi + zeta))/pow(eta*(-1. - qsi + zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta),2);
-                    JacToSide(0,2) = (8.*((1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*(qsi + (-1. + zeta)*(-1. + zeta) - 2.*qsi*zeta)))/pow(eta*(1. + qsi - zeta) - (-1. + zeta)*(1. + qsi + 3.*zeta),2);
+					REAL den = eta*(-1. - qsi + zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta);
+                    JacToSide(0,0) = (-8.*(-1. + zeta)*zeta*(-1. - eta + zeta))/(den*den);
+                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. - qsi + zeta))/(den*den);
+                    JacToSide(0,2) = (8.*((1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*(qsi + (-1. + zeta)*(-1. + zeta) - 2.*qsi*zeta)))/(den*den);
 				}
 				break;
 				
@@ -766,9 +769,10 @@ namespace pztopology {
 				else
 				{
                     SidePar[0] = (-(eta*(-1. + qsi + zeta)) + (-1. + zeta)*(-1. + qsi + 5.*zeta))/(-((-1. + qsi - 3.*zeta)*(-1. + zeta)) + eta*(-1. + qsi + zeta));
-                    JacToSide(0,0) = (-8.*(1. + eta - zeta)*(-1. + zeta)*zeta)/pow((-1. + qsi - 3.*zeta)*(-1. + zeta) - eta*(-1. + qsi + zeta),2);
-                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/pow((-1. + qsi - 3.*zeta)*(-1. + zeta) - eta*(-1. + qsi + zeta),2);
-                    JacToSide(0,2) = (8.*(-((-1. + qsi)*(-1. + zeta)*(-1. + zeta)) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/pow((-1. + qsi - 3.*zeta)*(-1. + zeta) - eta*(-1. + qsi + zeta),2);
+					REAL den = (-1. + qsi - 3.*zeta)*(-1. + zeta) - eta*(-1. + qsi + zeta);
+                    JacToSide(0,0) = (-8.*(1. + eta - zeta)*(-1. + zeta)*zeta)/(den*den);
+                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/(den*den);
+                    JacToSide(0,2) = (8.*(-((-1. + qsi)*(-1. + zeta)*(-1. + zeta)) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/(den*den);
 				}
 				break;
 				
