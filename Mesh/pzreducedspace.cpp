@@ -231,7 +231,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        int nshape = NConnectShapeF(i);
+        unsigned int nshape = NConnectShapeF(i);
 #ifdef DEBUG
         TPZConnect &c = Connect(i);
         if(c.NShape() != nshape || c.NState() != numdof)
@@ -270,7 +270,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        int nshape = NConnectShapeF(i);
+        unsigned int nshape = NConnectShapeF(i);
 #ifdef DEBUG
         TPZConnect &c = Connect(i);
         if(c.NShape() != nshape || c.NState() != numdof)

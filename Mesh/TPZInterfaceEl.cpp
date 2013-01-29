@@ -786,8 +786,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	
 	int nshapel = left ->NShapeF();
 	int nshaper = right->NShapeF();
-	const int nstatel = left->Material()->NStateVariables();
-	const int nstater = right->Material()->NStateVariables();
+	const unsigned int nstatel = left->Material()->NStateVariables();
+	const unsigned int nstater = right->Material()->NStateVariables();
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
 	TPZManVector<int> ConnectIndexL, ConnectIndexR;
@@ -806,7 +806,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	int ic = 0;
 	int n = ConnectL.NElements();
 	for(int i = 0; i < n; i++) {
-		const int nshape = left->NConnectShapeF(i);
+		const unsigned int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
 #ifdef DEBUG
         TPZConnect &c = left->Connect(i);
@@ -821,7 +821,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 	n = ConnectR.NElements();
 	for(int i = 0; i < n; i++) {
-		const int nshape = right->NConnectShapeF(i);
+		const unsigned int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
 #ifdef DEBUG
         TPZConnect &c = right->Connect(i);
@@ -867,8 +867,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	
 	int nshapel = left ->NShapeF();
 	int nshaper = right->NShapeF();
-	const int nstatel = left->Material()->NStateVariables();
-	const int nstater = right->Material()->NStateVariables();
+	const unsigned int nstatel = left->Material()->NStateVariables();
+	const unsigned int nstater = right->Material()->NStateVariables();
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
 	TPZManVector<int> ConnectIndexL, ConnectIndexR;
@@ -894,7 +894,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	int ic = 0;
 	int n = ConnectL.NElements();
 	for(int i = 0; i < n; i++) {
-		const int nshape = left->NConnectShapeF(i);
+		const unsigned int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
 #ifdef DEBUG
         TPZConnect &c = left->Connect(i);
@@ -921,7 +921,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 	n = ConnectR.NElements();
 	for(int i = 0; i < n; i++) {
-		const int nshape = right->NConnectShapeF(i);
+		const unsigned int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
 #ifdef DEBUG
         TPZConnect &c = right->Connect(i);

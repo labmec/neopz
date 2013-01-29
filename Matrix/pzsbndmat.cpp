@@ -486,8 +486,8 @@ TPZSBMatrix<TVar>::SetBand(const int newBand )
 	TVar *newDiag = new TVar[this->Dim() * (newBand + 1)];
 	
 	// Copia os elementos antigos para a nova alocacao.
-	REAL *pNew = newDiag;
-	REAL *pOld = fDiag;
+	TVar *pNew = newDiag;
+	TVar *pOld = fDiag;
 	int newSize  = newBand + 1;
 	int oldSize  = fBand + 1;
 	int minSize  = MIN( newSize, oldSize );
@@ -888,3 +888,5 @@ int TPZSBMatrix<TVar>::DerivedFrom(char *classname){
 
 // Inicializando os templates
 template class TPZSBMatrix<double>;
+template class TPZSBMatrix<long double>;
+

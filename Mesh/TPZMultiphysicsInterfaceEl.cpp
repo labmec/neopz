@@ -417,10 +417,7 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (LeftSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(RightSide.Element());
-	
-    TPZGeoEl *leftgel = leftel->Reference();
-    TPZGeoEl *rightgel = rightel->Reference();	
-	
+		
     TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
     TPZMaterialData data;
     InitMaterialData(datavecleft, leftel);
