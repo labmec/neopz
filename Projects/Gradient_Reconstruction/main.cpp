@@ -134,10 +134,6 @@ int main(int argc, char *argv[]) {
     normal_plano[0]=coef_a;
     normal_plano[1]=coef_b;
     
-    REAL anglo = 0.;//M_PI/4.;
-    REAL x0 = 0.;
-    REAL y0= 0.;
-    
     int p = 4;
     
     ofstream erro("erro.txt");
@@ -470,7 +466,8 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     
     //Criar matrix de rigidez e vetor de carga
     int numloadcases;
-    for(int im=0; im<cmesh->MaterialVec().size(); im++){
+	unsigned int im;
+    for(im=0; im<cmesh->MaterialVec().size(); im++){
         if(!cmesh->MaterialVec()[im]) continue;
         numloadcases = cmesh->MaterialVec()[im]->NumLoadCases();
         break;

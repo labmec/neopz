@@ -26,15 +26,30 @@ source_group(External FILES ${pzexternal_STAT_SRCS})
 source_group(External\\Sloan FILES ${sloan_SRCS})
 
 #creating pz lib and groups of the sources files
-set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS} 
-	${pzperfutil_STAT_SRCS} ${pzmatrix_STAT_SRCS} 
-        ${pzlinearsolvers_STAT_SRCS} ${pzfrontal_STAT_SRCS} 
-        ${pztopology_STAT_SRCS} ${pzgeom_STAT_SRCS} ${pzmesh_STAT_SRCS} 
-	${pzspecialmaps_STAT_SRCS} ${pzshape_STAT_SRCS} ${pzrefine_STAT_SRCS} 
-	${pzmultigrid_STAT_SRCS} ${pzstrmatrix_STAT_SRCS} ${pzsubstruct_STAT_SRCS} 
-	${pzmaterial_STAT_SRCS} ${pzpre_STAT_SRCS} 
-	${pzanalysis_STAT_SRCS} ${pzpost_STAT_SRCS} 
-	${pzintegral_STAT_SRCS} ${pzexternal_STAT_SRCS} ${sloan_SRCS} ${pz_configh}
+set(pzsources 
+	${pzanalysis_STAT_SRCS} 
+	${pzcommon_STAT_SRCS} 
+	${pzexternal_STAT_SRCS} ${sloan_SRCS}
+	${pzfrontal_STAT_SRCS} 
+	${pzgeom_STAT_SRCS} 
+	${pzintegral_STAT_SRCS} 
+        ${pzlinearsolvers_STAT_SRCS}
+	${pzmaterial_STAT_SRCS} 
+	${pzmatrix_STAT_SRCS} 
+	${pzmesh_STAT_SRCS} 
+	${pzmultigrid_STAT_SRCS} 
+	${pzperfutil_STAT_SRCS} 
+	${pzpre_STAT_SRCS} 
+	${pzpost_STAT_SRCS}
+	${pzrefine_STAT_SRCS} 
+	${pzsave_STAT_SRCS} 
+	${pzshape_STAT_SRCS} 
+	${pzspecialmaps_STAT_SRCS} 
+	${pzstrmatrix_STAT_SRCS} 
+	${pzsubstruct_STAT_SRCS}
+        ${pztopology_STAT_SRCS} 
+	${pzutil_STAT_SRCS} 
+	${pz_configh}
 	)
 
 #creating target pz library and installing it

@@ -9,8 +9,11 @@ ENABLE_TESTING()
 			#add_subdirectory(PDElinear2D)
 		else(BUILD_COMPLEX_PROJECTS)
 
-			#Curso PZ:
-			add_subdirectory(CursoPZ)
+			#Using discontinuous approximation functions
+			add_subdirectory(descontinuo)
+
+                        #Testing gradient reconstruction
+			add_subdirectory(Gradient_Reconstruction)
 
 			# Tutorial about hp-adaptive techniques
 			add_subdirectory(Poisson2D_ArcTan)
@@ -23,18 +26,12 @@ ENABLE_TESTING()
 			#Testing and using shape functions
 			add_subdirectory(testshape)
             
-                        #Testing gradient reconstruction
-			add_subdirectory(Gradient_Reconstruction)
-
 			#Generic Example 2D with elasticity, using matrices phi, phi, etc
 			add_subdirectory(testmat)
 
 			#Using visual matrix of the DX
 			add_subdirectory(visualmatrix)
 			
-			#Using discontinuous approximation functions
-			add_subdirectory(descontinuo)
-
 			#source_group(CursoPZ FILES ${pzcurso})
 			#source_group(Shape FILES ${pztutorshape})
 			#source_group(Geometry FILES ${pztutorgeom})
@@ -45,6 +42,10 @@ ENABLE_TESTING()
 
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
 			#add_subdirectory(Finite3DElasticity)
+
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
+
 		endif(BUILD_COMPLEX_PROJECTS)
 
 
