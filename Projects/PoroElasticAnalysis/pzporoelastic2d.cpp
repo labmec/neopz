@@ -308,19 +308,6 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 	TPZFMatrix<REAL>  &phiu = datavec[0].phi;
 	TPZFMatrix<REAL>  &phip = datavec[1].phi;
 	
-	TPZVec <REAL> Coordenates = datavec[0].x;
-	TPZFMatrix<REAL> &axes=datavec[0].axes;
-	REAL Vectorx = Coordenates[0]*axes[0];
-	REAL Vectory = Coordenates[1]*axes[1];
-	REAL Vector[2] = {Vectorx,Vectory};
-	REAL VectorMagnitude = sqrt(pow(Coordenates[0]*axes[0],2) + pow(Coordenates[1]*axes[1],2));
-	REAL NormalVectox = Vectorx/VectorMagnitude;
-	REAL NormalVectoy = Vectory/VectorMagnitude;	
-
-	REAL n[2] = {NormalVectox,NormalVectoy};		
-	REAL t[2] = {-NormalVectoy,NormalVectox};
-
-	
 	int phru = phiu.Rows();
 	int phrp = phip.Rows();
 	short in,jn;
@@ -678,8 +665,8 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			//	Elasticity Equation			
 			for(in = 0 ; in < phru; in++) 
 			{
-				ef(2*in, 0)				+= v2[0] * phiu(in, 0) * weight * (n[0]);
-				ef(2*in+1, 0)			+= v2[1] * phiu(in, 0) * weight * (n[0]);
+//				ef(2*in, 0)				+= v2[0] * phiu(in, 0) * weight * (n[0]);
+//				ef(2*in+1, 0)			+= v2[1] * phiu(in, 0) * weight * (n[0]);
 				
 				for (jn = 0 ; jn < phru; jn++) 
 				{
@@ -717,22 +704,22 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			//	Elasticity Equation			
 			for(in = 0 ; in < phru; in++) 
 			{
-				ef(2*in, 0)				+= v2[0] * phiu(in, 0) * weight * (n[0]);
-				ef(2*in+1, 0)			+= v2[1] * phiu(in, 0) * weight * (n[1]);
+		//		ef(2*in, 0)				+= v2[0] * phiu(in, 0) * weight * (n[0]);
+		//		ef(2*in+1, 0)			+= v2[1] * phiu(in, 0) * weight * (n[1]);
 				
 				for (jn = 0 ; jn < phru; jn++) 
 				{
-					ek(2*in,2*jn)		+= bc.Val1()(0,0)*phiu(in,0)*
-					phiu(jn,0)*weight * (n[0]);
+//					ek(2*in,2*jn)		+= bc.Val1()(0,0)*phiu(in,0)*
+//					phiu(jn,0)*weight * (n[0]);
+//					
+//					ek(2*in+1,2*jn)		+= bc.Val1()(1,0)*phiu(in,0)*
+//					phiu(jn,0)*weight * (n[0]);
 					
-					ek(2*in+1,2*jn)		+= bc.Val1()(1,0)*phiu(in,0)*
-					phiu(jn,0)*weight * (n[0]);
-					
-					ek(2*in+1,2*jn+1)	+= bc.Val1()(1,1)*phiu(in,0)*
-					phiu(jn,0)*weight * (n[1]);
-					
-					ek(2*in,2*jn+1)		+= bc.Val1()(0,1)*phiu(in,0)*
-					phiu(jn,0)*weight * (n[1]);
+//					ek(2*in+1,2*jn+1)	+= bc.Val1()(1,1)*phiu(in,0)*
+//					phiu(jn,0)*weight * (n[1]);
+//					
+//					ek(2*in,2*jn+1)		+= bc.Val1()(0,1)*phiu(in,0)*
+//					phiu(jn,0)*weight * (n[1]);
 				}
 			} 
 			
@@ -750,7 +737,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			//	Elasticity Equation			
 			for(in = 0 ; in < phru; in++) 
 			{
-				ef(2*in+1, 0)			+= v2[1] * phiu(in, 0) * weight * (n[0]);
+//				ef(2*in+1, 0)			+= v2[1] * phiu(in, 0) * weight * (n[0]);
 				
 				for (jn = 0 ; jn < phru; jn++) 
 				{
@@ -760,11 +747,11 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 //					ek(2*in+1,2*jn)		+= bc.Val1()(1,0)*phiu(in,0)*
 //					phiu(jn,0)*weight;
 					
-					ek(2*in+1,2*jn+1)	+= bc.Val1()(1,1)*phiu(in,0)*
-					phiu(jn,0)*weight;
-					
-					ek(2*in,2*jn+1)		+= bc.Val1()(0,1)*phiu(in,0)*
-					phiu(jn,0)*weight;
+//					ek(2*in+1,2*jn+1)	+= bc.Val1()(1,1)*phiu(in,0)*
+//					phiu(jn,0)*weight;
+//					
+//					ek(2*in,2*jn+1)		+= bc.Val1()(0,1)*phiu(in,0)*
+//					phiu(jn,0)*weight;
 				}
 			} 
 			
@@ -802,7 +789,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			//	Elasticity Equation			
 			for(in = 0 ; in < phru; in++) 
 			{
-				ef(2*in, 0)				+= v2[0] * phiu(in, 0) * weight * (n[0]);
+//				ef(2*in, 0)				+= v2[0] * phiu(in, 0) * weight * (n[0]);
 				
 				for (jn = 0 ; jn < phru; jn++) 
 				{
@@ -1105,8 +1092,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		Tau = 2.0*fmu*epsxy;		
 	}
 	
-	REAL PI = atan(1.)*4.;	
-	REAL R = sqrt( pow((SigX - SigY)/2,2) + pow(Tau,2));
+	REAL R = sqrt( ((SigX - SigY)/2)*((SigX - SigY)/2) + Tau*Tau);
 	REAL C = (SigX + SigY)/2;
 	REAL Sigma1 = C + R;
 	REAL Sigma2 = C - R;
@@ -1338,7 +1324,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 	//	Desviatoric Second Invariant
 	if(var == 35){
-		REAL J2 = (pow(SigX + SigY,2) - (3*(-pow(SigX,2) - pow(SigY,2) + pow(SigX + SigY,2) - 2*pow(Tau,2)))/2.)/2.;
+		REAL J2 = ((SigX + SigY)*(SigX + SigY) - (3*(-SigX*SigX - SigY*SigY + (SigX + SigY)*(SigX + SigY) - 2*Tau*Tau))/2.)/2.;
 		Solout[0]=J2;
 		return;
 	}

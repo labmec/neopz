@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
 				scalarnames.Push("Solution");
 				scalarnames.Push("Pressure");
 				
-				vecnames.Push("Derivate");
+				vecnames.Push("Derivative");
 				vecnames.Push("Flux");
 				an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
 				an.PostProcess(0,dim);				

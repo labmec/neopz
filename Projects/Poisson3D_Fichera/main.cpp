@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
 				else if(problem==2)
 					an.SetExact(ExactRachowicz);
 				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
-				an.PostProcess(ervec,out);
+				an.PostProcessError(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;

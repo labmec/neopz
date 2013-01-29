@@ -230,7 +230,7 @@ int main() {
 				scalarnames.Push("NormKDu");
 				scalarnames.Push("Pressure");
 				
-				vecnames.Push("Derivate");
+				vecnames.Push("Derivative");
 				vecnames.Push("Flux");
 				vecnames.Push("MinusKGradU");
 				an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
@@ -242,7 +242,7 @@ int main() {
 					an.SetExact(ExactSolCircle);
 				
 				fileerrors << "Refinement: " << nref+1 << "  Threads: " << nthread << "  NEquations: " << cmesh->NEquations();
-				an.PostProcess(ervec,out);
+				an.PostProcessError(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
