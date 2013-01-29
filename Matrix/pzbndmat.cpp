@@ -33,21 +33,22 @@ template<class TVar>
 TPZFBMatrix<TVar>::TPZFBMatrix( int dim, int band_width )
 : TPZMatrix<TVar>( dim, dim )
 {
-	int size;
+	unsigned long size;
 	fBand = band_width;
-	size  = dim * (2*fBand + 1);
+	size  = (2*fBand + 1);
+	size *= dim;
 	if(size) {
 		fElem = new TVar[ size ] ;
-		if ( fElem == NULL ) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
+		if ( fElem == NULL ) 
+			TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
+		// Zera a Matriz.
+		TVar *p   = fElem;
+		TVar *end = fElem + size;
+		while ( p < end )
+			*p++ = (TVar)(0.0);
 	} else {
 		fElem = NULL;
-	}
-	
-	// Zera a Matriz.
-	TVar *p   = fElem;
-	TVar *end = fElem + size;
-	while ( p < end )
-		*p++ = (TVar)(0.0);
+	}	
 }
 
 
@@ -60,7 +61,7 @@ TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
 : TPZMatrix<TVar>( A.Dim(), A.Dim() )
 {
 	// Philippe 20/10/97
-	int size = A.Dim()*(2 * A.fBand + 1);
+	unsigned long size = A.Dim()*(2 * A.fBand + 1);
 	fBand = A.fBand;
 	fElem = new TVar[ size ] ;
 	
@@ -70,7 +71,7 @@ TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
 	// Copia a matriz
 	TVar *src = A.fElem;
 	TVar *dst = fElem;
-	for ( int i = 0; i < size; i++ )
+	for (unsigned long i = 0L; i < size; i++ )
 		*dst++ = *src++;
 }
 
@@ -134,12 +135,12 @@ TPZFBMatrix<TVar>::operator=(const TPZFBMatrix<TVar> & A )
 	if(this == &A) return *this;
 	//  int size = A.Dim() * A.fBand;
 	//Philippe 23/10/97
-	int size = A.Dim() * (1+2*A.fBand);
-	int oldsize = Dim()+2*fBand;
+	unsigned long size = A.Dim() * (1+2*A.fBand);
+	unsigned long oldsize = Dim()+2*fBand;
 	if(oldsize != size && fElem) delete [] fElem;
 	
 	if(oldsize != size && size) fElem = new TVar[size] ;
-	else if(size == 0) fElem = 0;
+	else if(size == 0L) fElem = 0;
 	if ( size && fElem == NULL )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
 	
@@ -426,11 +427,11 @@ TPZFBMatrix<TVar>
 TPZFBMatrix<TVar>::operator*(const TVar value ) const
 {
 	TPZFBMatrix<TVar> res( Dim(), fBand );
-	int size = Dim() * (2*fBand + 1);
+	unsigned long size = Dim() * (2*fBand + 1);
 	
 	TVar *dst = res.fElem;
 	TVar *src = fElem;
-	for ( int i = 0; i < size; i++ )
+	for (unsigned long i = 0L; i < size; i++ )
 		*dst++ = (*src++) * value;
 	
 	return( res );
@@ -449,9 +450,9 @@ TPZFBMatrix<std::complex<float> >::operator*=(const std::complex<float> value )
 {
 	if ( value.real() != 1.0 || value.imag() != 0. )
     {
-		int size = Dim() * (2*fBand + 1);
+		unsigned long size = Dim() * (2*fBand + 1);
         std::complex<float> *dst = fElem;
-		for ( int i = 0; i < size; i++ )
+		for ( unsigned long i = 0L; i < size; i++ )
 			*dst++ *= value;
     }
 	
@@ -464,9 +465,9 @@ TPZFBMatrix<std::complex<double> >::operator*=(const std::complex<double> value 
 {
 	if ( value.real() != 1.0 || value.imag() != 0. )
     {
-		int size = Dim() * (2*fBand + 1);
+		unsigned long size = Dim() * (2*fBand + 1);
         std::complex<double> *dst = fElem;
-		for ( int i = 0; i < size; i++ )
+		for ( unsigned long i = 0L; i < size; i++ )
 			*dst++ *= value;
     }
 	
@@ -479,11 +480,11 @@ template<class TVar>
 TPZFBMatrix<TVar> &
 TPZFBMatrix<TVar>::operator*=(const TVar value )
 {
-	if ( value != 1.0 )
+	if ( value != (TVar)1.0 )
     {
-		int size = Dim() * (2*fBand + 1);
+		unsigned long size = Dim() * (2*fBand + 1);
 		TVar *dst = fElem;
-		for ( int i = 0; i < size; i++ )
+		for ( unsigned long i = 0L; i < size; i++ )
 			*dst++ *= value;
     }
 	
@@ -511,7 +512,8 @@ TPZFBMatrix<TVar>::Resize(const int newRows,const int newCols)
 		return( 1 );
 	
 	int bandSize = 2 * fBand + 1;
-	TVar *newElem = new TVar[ newRows * bandSize ] ;
+	unsigned long size = newRows*bandSize;
+	TVar *newElem = new TVar[ size ] ;
 	if ( !newElem )
 		return TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	
@@ -553,8 +555,8 @@ TPZFBMatrix<TVar>::Redim(const int newRows,const int newCols )
 	
 	if ( fElem  )  delete []fElem;
 	
-	int size = newRows * (2 * fBand + 1);
-	if(size) {
+	unsigned long size = newRows * (2 * fBand + 1);
+	if(size>0) {
 		fElem = new TVar[ size ] ;
 		if ( fElem == NULL ) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	} else {
@@ -578,7 +580,7 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Zero()
 {
-	int size = Dim() * (2 * fBand + 1);
+	unsigned long size = Dim() * (2 * fBand + 1);
 	
 	TVar *p = fElem,*plast=fElem+size;
 	while(p < plast) *p++ = (TVar)(0.0);
@@ -599,7 +601,7 @@ TPZFBMatrix<TVar>::SetBand( int newBand )
 	if ( newBand >= Dim() )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 	
-	int newSize = Dim() * (2 * newBand + 1);
+	unsigned long newSize = Dim() * (2 * newBand + 1);
 	TVar *newElem = new TVar[ newSize ] ;
 	if ( newElem == NULL )
 		return TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
@@ -627,8 +629,7 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 {
 	T->Resize( Dim(), Dim() );
 	
-	int end,
-    begin;
+	int end, begin;
 	//REAL *p = fElem;
 	for ( int r = 0; r < Dim(); r++ )
     {
@@ -860,7 +861,8 @@ int TPZFBMatrix<TVar>::DerivedFrom(const char *classname) const {
 
 template class TPZFBMatrix<long double>;
 template class TPZFBMatrix<double>;
-template class TPZFBMatrix<int>;
 template class TPZFBMatrix<float>;
+template class TPZFBMatrix<int>;
+template class TPZFBMatrix<std::complex<long double> >;
 template class TPZFBMatrix<std::complex<double> >;
 template class TPZFBMatrix<std::complex<float> >;

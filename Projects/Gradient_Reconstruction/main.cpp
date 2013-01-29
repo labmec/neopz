@@ -37,6 +37,10 @@
 #include <math.h>
 using namespace std;
 
+#ifdef USING_BOOST
+#include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
+#endif
+
 /*
  *Projeto para validar a reconstucao do gradiente
  *Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
@@ -138,13 +142,13 @@ int main(int argc, char *argv[]) {
     
     ofstream erro("erro.txt");
     
-    for(int nrefs=1;nrefs<4;nrefs++)
+    for(int nrefs=5;nrefs<6;nrefs++)
     {
          erro << "\n\nRESOLVENDO COM FEM: p = " << p << "  E h = "<< nrefs << "\n";
         
         // geometric mesh (initial)
         //TPZGeoMesh * gmesh = GMesh(2,anglo,x0,y0,nrefs);
-        TPZGeoMesh * gmesh = GMesh2(nrefs,1);
+        TPZGeoMesh * gmesh = GMesh2(nrefs,2);
         
 //        TPZVec<TPZGeoEl *> sub, subsub;
 //        TPZGeoEl *gel = 0;
@@ -1126,7 +1130,11 @@ void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     
     double x = pt[0];
+#ifdef USING_BOOST
+    disp[0]=0.05*sqrt(M_PI)*(boost::math::erf(10.*(x-1.)));
+#else
     disp[0]=0.05*sqrt(M_PI)*erf(10.*(x-1.));
+#endif
 }
 
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
