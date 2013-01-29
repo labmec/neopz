@@ -239,6 +239,11 @@ public:
 	void SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
+    
+    /** @brief Compute the local error over all elements and global errors in several norms and print out 
+        *Without calculating the errors of the variables space hdiv
+     */
+    virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
 	
 	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
