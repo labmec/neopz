@@ -51,7 +51,7 @@ public:
             /** @brief Number of state variables associated with each shape function */
             unsigned char fNState;
             /** @brief Number of shape functions associated with the connect */
-            unsigned char fNShape;
+            unsigned int fNShape;
             /** @brief Whether the equations associated with the connect should be condensed */
             bool fIsCondensed;
             /** @brief Whether the connnect is associated with a lagrange multiplier */
@@ -139,7 +139,7 @@ public:
         return fCompose.fNState;
     }
     
-    unsigned char NShape() const
+    unsigned int NShape() const
     {
         return fCompose.fNShape;
     }
