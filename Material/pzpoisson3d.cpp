@@ -307,6 +307,12 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	STATE v2[1];
 	v2[0] = bc.Val2()(0,0);
 	
+	if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in                          // JORGE 2013 01 26
+		TPZManVector<STATE> res(1);
+		bc.fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+		v2[0] = res[0];
+	}
+
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
 			for(in = 0 ; in < phr; in++) {

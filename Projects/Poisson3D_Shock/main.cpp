@@ -98,13 +98,13 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 11;
+	int nref, NRefs = 10;
 	int nthread, NThreads = 4;
 	int dim = 3;
     for(int typeel=0;typeel<1;typeel++) {
         for(nref=0;nref<NRefs;nref++) {
             for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-				if(nref > 6) nthread = NThreads;
+				if(nref > 6) nthread = 2*NThreads;
 				else nthread = 2;
 				
 				// Initializing the generation mesh process
@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
 					TPZCompEl *cel = cmesh->ElementVec()[nelem++];
 					if(!cel) continue;
 					level = cel->Reference()->Level();
-					p = (highlevel-level)+1;
-					if(!p) p = 1;     // Fazendo os dois maiores niveis de refinamento devem ter ordem 1
+					p = (highlevel-level);
+					if(!p || p<0) p = 1;     // Fazendo os dois maiores niveis de refinamento devem ter ordem 1
 					if(p > pinit) p = pinit;
 					((TPZInterpolatedElement*)cel)->PRefine(p);
 				}
@@ -294,7 +294,7 @@ void FforcingShock(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL den = R0*temp*temp;
 	if(IsZero(den))
 		DebugStop();
-	f[0] = (2*ALFA*(1.+ALFA*ALFA*sqrt(3.)*(sqrt(3.)-R0)))/den;
+	f[0] = (2*ALFA*(1.+(3.*ALFA*ALFA)-(ALFA*ALFA*sqrt(3.)*R0)))/den;
 }
 
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
@@ -318,6 +318,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Dirichlet on face into the coordinate planes XY YZ XZ
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCDirichletShock);
 	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	val1.PutVal(0,0,1.); val1.PutVal(1,1,1.); val1.PutVal(2,2,1.);
 	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);
@@ -403,7 +404,7 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 	TPZManVector<REAL> point(3,-0.25);
-	REAL r = sqrt(3.0), radius = 0.5;
+	REAL r = sqrt(3.0), radius = .6;
 	int i;
 	bool isdefined = true;
 	if(ntyperefs) {
@@ -411,18 +412,18 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.5;
+			radius *= 0.35;
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.5;
+			radius *= 0.6;
 		}
 	}
 	else {
 		for(i=0;i<nref+1;i++) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.5;
+			radius *= 0.65;
 		}
 	}
 	// Constructing connectivities

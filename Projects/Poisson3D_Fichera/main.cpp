@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
 				scalarnames.Push("NormKDu");
 				scalarnames.Push("Pressure");
 				
-				vecnames.Push("Derivate");
+				vecnames.Push("Derivative");
 				vecnames.Push("Flux");
 				vecnames.Push("MinusKGradU");
 				// END Determining the name of the variables
@@ -264,7 +264,7 @@ void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 		dsol(2,0) = .5*x[2]/den;
 	}
 	else {
-		dsol(0,0) = dsol(1,0) = dsol(2,0) = 0.;
+		DebugStop();
 	}
 }
 
@@ -276,8 +276,12 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 
 void FforcingSolin(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
-	REAL raiz = sqrt(quad_r * quad_r * quad_r);
-	f[0] = 3./(4.0*sqrt(raiz));
+	REAL raiz = sqrt( sqrt(quad_r * quad_r * quad_r) );
+	if(!IsZero(raiz)) {
+		f[0] = 3./(4.0*raiz);
+	} else {
+		DebugStop();
+	}
 }
 
 void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
@@ -291,7 +295,7 @@ void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 		dsol(2,0) = .5*x[2]/den;
 	}
 	else {
-		dsol(0,0) = dsol(1,0) = dsol(2,0) = 0.;
+		DebugStop();
 	}
 }
 
@@ -524,7 +528,7 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.6;
+			radius *= 0.4;
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
