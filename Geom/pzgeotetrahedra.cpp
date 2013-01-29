@@ -10,8 +10,6 @@
 #include "pzshapetetra.h"
 #include "tpzgeoelrefpattern.h"
 
-#include <cmath>
-
 using namespace pzshape;
 using namespace std;
 
@@ -170,9 +168,10 @@ namespace pzgeom {
 			{
 				if(OriginalPoint[1] == 1. || OriginalPoint[2] == 1.)
 				{
-					ChangedPoint[0] = (0.5*tol)/sqrt(0.25 + pow(OriginalPoint[1],2) + pow(OriginalPoint[2],2));
-					ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol) / sqrt(0.25 + pow(OriginalPoint[1],2) + pow(OriginalPoint[2],2));
-					ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(0.25 + pow(OriginalPoint[1],2) + pow(OriginalPoint[2],2));
+					REAL den = 0.25 + OriginalPoint[1]*OriginalPoint[1] + OriginalPoint[2]*OriginalPoint[2];
+					ChangedPoint[0] = (0.5*tol)/sqrt(den);
+					ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol) / sqrt(den);
+					ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(den);
 				}
 				break;
 			}
@@ -181,9 +180,10 @@ namespace pzgeom {
 			{
 				if(OriginalPoint[0] + OriginalPoint[1] == 0.)
 				{
-					ChangedPoint[0] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[2],2));
-					ChangedPoint[1] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[2],2));
-					ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(0.5 + pow(OriginalPoint[2],2));
+					REAL den = 0.5 + OriginalPoint[2]*OriginalPoint[2];
+					ChangedPoint[0] = (0.5*tol)/sqrt(den);
+					ChangedPoint[1] = (0.5*tol)/sqrt(den);
+					ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(den);
 				}
 				break;
 			}
@@ -192,9 +192,10 @@ namespace pzgeom {
 			{
 				if(OriginalPoint[0] == 1. || OriginalPoint[2] == 1.)
 				{
-					ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[2],2));
-					ChangedPoint[1] = (0.5*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[2],2));
-					ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[2],2));
+					REAL den = 0.25 + OriginalPoint[0]*OriginalPoint[0] + OriginalPoint[2]*OriginalPoint[2];
+					ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(den);
+					ChangedPoint[1] = (0.5*tol)/sqrt(den);
+					ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(den);
 				}
 				break;
 			}
@@ -203,9 +204,10 @@ namespace pzgeom {
 			{
 				if(OriginalPoint[0]== 1. || OriginalPoint[1] == 1.)
 				{
-					ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[1],2));
-					ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[1],2));
-					ChangedPoint[2] = (0.5*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[1],2));
+					REAL den = 0.25 + OriginalPoint[0]*OriginalPoint[0] + OriginalPoint[1]*OriginalPoint[1];
+					ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(den);
+					ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol)/sqrt(den);
+					ChangedPoint[2] = (0.5*tol)/sqrt(den);
 				}
 				break;
 			}
@@ -214,9 +216,10 @@ namespace pzgeom {
 			{
 				if(OriginalPoint[0] + OriginalPoint[2] == 0.)
 				{
-					ChangedPoint[0] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[1],2));
-					ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol)/sqrt(0.5 + pow(OriginalPoint[1],2));
-					ChangedPoint[2] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[1],2));
+					REAL den = 0.5 + OriginalPoint[1]*OriginalPoint[1];
+					ChangedPoint[0] = (0.5*tol)/sqrt(den);
+					ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol)/sqrt(den);
+					ChangedPoint[2] = (0.5*tol)/sqrt(den);
 				}
 				break;
 			}
@@ -225,9 +228,10 @@ namespace pzgeom {
 			{
 				if(OriginalPoint[1] + OriginalPoint[2] == 0.)
 				{
-					ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(0.5 + pow(OriginalPoint[0],2));
-					ChangedPoint[1] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[0],2));
-					ChangedPoint[2] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[0],2));
+					REAL den = 0.5 + OriginalPoint[0]*OriginalPoint[0];
+					ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(den);
+					ChangedPoint[1] = (0.5*tol)/sqrt(den);
+					ChangedPoint[2] = (0.5*tol)/sqrt(den);
 				}
 				break;
 			}

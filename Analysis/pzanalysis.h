@@ -240,8 +240,9 @@ public:
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
-    /** @brief Compute the local error over all elements and global errors in several norms and print out 
-        *Without calculating the errors of the variables space hdiv
+    /**
+	 * @brief Compute the local error over all elements and global errors in several norms and print out 
+	 * without calculating the errors of the variables for hdiv spaces.
      */
     virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
 	

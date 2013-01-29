@@ -122,9 +122,9 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    if (fForcingFunction) {
-        DebugStop();
-    }
+//    if (fForcingFunction) {
+  //      DebugStop();
+    //}
 	fMaterial->ContributeBC(data,weight,ek,ef,*this);
 }
 

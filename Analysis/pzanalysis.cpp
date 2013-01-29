@@ -451,7 +451,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	return;
 }
 
-void TPZAnalysis::PostProcessError(TPZVec<REAL> &, std::ostream &out ){
+void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
     
     int neq = fCompMesh->NEquations();
     TPZVec<REAL> ux((int) neq);
@@ -460,10 +460,10 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &, std::ostream &out ){
     fCompMesh->LoadSolution(fSolution);
     //	SetExact(&Exact);
     TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
-    TPZManVector<REAL,3> errors(3);
+    TPZManVector<REAL,10> errors(10);
     errors.Fill(0.0);
-    int nel = elvec.NElements();
-    for(int i=0;i<nel;i++) {
+    int i, nel = elvec.NElements();
+    for(i=0;i<nel;i++) {
         TPZCompEl *el = (TPZCompEl *) elvec[i];
         if(el) {
             errors.Fill(0.0);
@@ -476,7 +476,9 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &, std::ostream &out ){
     }
     
     int nerrors = errors.NElements();
-    
+	ervec.Resize(nerrors);
+	ervec.Fill(-10.0);
+
     if (nerrors < 3) {
         PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
         out<<endl<<"############"<<endl;
@@ -491,6 +493,9 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &, std::ostream &out ){
         for(int ier = 3; ier < nerrors; ier++)
             out << endl << "other norms = " << sqrt(values[ier]) << endl;
     }
+	// Returns the square of the calculated errors.
+	for(i=0;i<nerrors;i++)
+		ervec[i] = sqrt(values[i]);
     return;
 }
 

@@ -214,8 +214,6 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & va
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
 		return;
 	}
-	const int dim = this->Dimension();
-	REAL weight;
 
 	int nref = fElementVec.size();
 	TPZVec<TPZMaterialData> datavec;
@@ -383,7 +381,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	
 	int i;
 	for(i=0; i<ncon; i++){
-        int ndof = Connect(i).NDof(*Mesh());
+        unsigned int ndof = Connect(i).NDof(*Mesh());
 #ifdef DEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape()*c.NState() != ndof) {
