@@ -61,7 +61,7 @@ TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
 : TPZMatrix<TVar>( A.Dim(), A.Dim() )
 {
 	// Philippe 20/10/97
-	unsigned long size = A.Dim()*(2 * A.fBand + 1);
+	unsigned long size = ((unsigned long)A.Dim())*(2 * A.fBand + 1);
 	fBand = A.fBand;
 	fElem = new TVar[ size ] ;
 	
@@ -135,8 +135,8 @@ TPZFBMatrix<TVar>::operator=(const TPZFBMatrix<TVar> & A )
 	if(this == &A) return *this;
 	//  int size = A.Dim() * A.fBand;
 	//Philippe 23/10/97
-	unsigned long size = A.Dim() * (1+2*A.fBand);
-	unsigned long oldsize = Dim()+2*fBand;
+	unsigned long size = ((unsigned long)A.Dim()) * (1+2*A.fBand);
+	unsigned long oldsize = ((unsigned long)Dim())+2*fBand;
 	if(oldsize != size && fElem) delete [] fElem;
 	
 	if(oldsize != size && size) fElem = new TVar[size] ;
@@ -171,7 +171,7 @@ TPZFBMatrix<TVar>::operator+(const TPZFBMatrix<TVar> & A ) const
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 	
 	int newBand, minBand;
-	int inc_pa, inc_pm, inc_pr;
+	unsigned long inc_pa, inc_pm, inc_pr;
 	if ( fBand < A.fBand )
     {
 		newBand = A.fBand;
@@ -218,7 +218,7 @@ TPZFBMatrix<TVar>::operator-(const TPZFBMatrix<TVar> & A ) const
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
 	
 	int newBand, minBand;
-	int inc_pa, inc_pm, inc_pr;
+	unsigned long inc_pa, inc_pm, inc_pr;
 	if ( fBand < A.fBand )
     {
 		newBand = A.fBand;
@@ -270,7 +270,7 @@ TPZFBMatrix<TVar>::operator+=(const TPZFBMatrix<TVar> & A )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 	
 	int newBand, minBand;
-	int inc_pa, inc_pm;
+	unsigned long inc_pa, inc_pm;
 	if ( fBand < A.fBand )
     {
 		newBand = A.fBand;
@@ -316,7 +316,7 @@ TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> & A )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
 	
 	int newBand, minBand;
-	int inc_pa, inc_pm;
+	unsigned long inc_pa, inc_pm;
 	if ( fBand < A.fBand )
     {
 		newBand = A.fBand;
@@ -427,7 +427,7 @@ TPZFBMatrix<TVar>
 TPZFBMatrix<TVar>::operator*(const TVar value ) const
 {
 	TPZFBMatrix<TVar> res( Dim(), fBand );
-	unsigned long size = Dim() * (2*fBand + 1);
+	unsigned long size = ((unsigned long)Dim()) * (2*fBand + 1);
 	
 	TVar *dst = res.fElem;
 	TVar *src = fElem;
@@ -450,7 +450,8 @@ TPZFBMatrix<std::complex<float> >::operator*=(const std::complex<float> value )
 {
 	if ( value.real() != 1.0 || value.imag() != 0. )
     {
-		unsigned long size = Dim() * (2*fBand + 1);
+		unsigned long size = (2*fBand + 1);
+        size *= Dim();
         std::complex<float> *dst = fElem;
 		for ( unsigned long i = 0L; i < size; i++ )
 			*dst++ *= value;
@@ -465,7 +466,8 @@ TPZFBMatrix<std::complex<double> >::operator*=(const std::complex<double> value 
 {
 	if ( value.real() != 1.0 || value.imag() != 0. )
     {
-		unsigned long size = Dim() * (2*fBand + 1);
+		unsigned long size = (2*fBand + 1);
+        size *= Dim();
         std::complex<double> *dst = fElem;
 		for ( unsigned long i = 0L; i < size; i++ )
 			*dst++ *= value;
@@ -482,7 +484,8 @@ TPZFBMatrix<TVar>::operator*=(const TVar value )
 {
 	if ( value != (TVar)1.0 )
     {
-		unsigned long size = Dim() * (2*fBand + 1);
+		unsigned long size = (2*fBand + 1);
+        size *= Dim();
 		TVar *dst = fElem;
 		for ( unsigned long i = 0L; i < size; i++ )
 			*dst++ *= value;
@@ -512,7 +515,8 @@ TPZFBMatrix<TVar>::Resize(const int newRows,const int newCols)
 		return( 1 );
 	
 	int bandSize = 2 * fBand + 1;
-	unsigned long size = newRows*bandSize;
+	unsigned long size = bandSize;
+    size *= newRows;
 	TVar *newElem = new TVar[ size ] ;
 	if ( !newElem )
 		return TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
@@ -555,7 +559,8 @@ TPZFBMatrix<TVar>::Redim(const int newRows,const int newCols )
 	
 	if ( fElem  )  delete []fElem;
 	
-	unsigned long size = newRows * (2 * fBand + 1);
+	unsigned long size = (2 * fBand + 1);
+    size *= newRows;
 	if(size>0) {
 		fElem = new TVar[ size ] ;
 		if ( fElem == NULL ) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
@@ -580,7 +585,8 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Zero()
 {
-	unsigned long size = Dim() * (2 * fBand + 1);
+	unsigned long size = (2 * fBand + 1);
+    size *= Dim();
 	
 	TVar *p = fElem,*plast=fElem+size;
 	while(p < plast) *p++ = (TVar)(0.0);
@@ -601,7 +607,8 @@ TPZFBMatrix<TVar>::SetBand( int newBand )
 	if ( newBand >= Dim() )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 	
-	unsigned long newSize = Dim() * (2 * newBand + 1);
+	unsigned long newSize = (2 * newBand + 1);
+    newSize *= Dim();
 	TVar *newElem = new TVar[ newSize ] ;
 	if ( newElem == NULL )
 		return TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
@@ -665,7 +672,7 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
     int k;
     for ( k = 0; k < min ; k++ )
     {
-        TVar *iPtr = fElem+fBand*(2*k+1)+k;
+        TVar *iPtr = fElem+((unsigned long)fBand)*(2*k+1)+k;
         TVar pivot = *iPtr;
         if ( IsZero(pivot))
         {
@@ -681,10 +688,10 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
         //         pivot = *iPtr;
         //       }
         
-        TVar *jFirstPtr = fElem+fBand*(2*k+3)+k+1;
+        TVar *jFirstPtr = fElem+((unsigned long)fBand)*(2*k+3)+k+1;
         imax = k+fBand+1;
         if(imax > rows) imax = rows;
-        TVar *kLastPtr = fElem+fBand*(2*k+1)+imax;
+        TVar *kLastPtr = fElem+((unsigned long)fBand)*(2*k+1)+imax;
         TVar *kPtr, *jPtr;
         for ( int i = k+1; i < imax; i++ )
         {
@@ -700,7 +707,7 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
         }
         kFirstPtr += 2*fBand+1;
     }
-    TVar *iPtr = fElem+fBand*(2*k+1)+k;
+    TVar *iPtr = fElem+((unsigned long)fBand)*(2*k+1)+k;
     TVar pivot = *iPtr;
     if ( IsZero(pivot))
     {
@@ -732,17 +739,17 @@ TPZFBMatrix<TVar>::Decompose_LU()
 	TVar *kFirstPtr = fElem+fBand+1;
 	for ( int k = 0; k < min ; k++ )
     {
-		TVar *iPtr = fElem+fBand*(2*k+1)+k;
+		TVar *iPtr = fElem+((unsigned long)fBand)*(2*k+1)+k;
 		TVar pivot = *iPtr;
 		if ( IsZero(pivot) )
 		{
 			TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
 		}
 		
-		TVar *jFirstPtr = fElem+fBand*(2*k+3)+k+1;
+		TVar *jFirstPtr = fElem+((unsigned long)fBand)*(2*k+3)+k+1;
 		imax = k+fBand+1;
 		if(imax > rows) imax = rows;
-		TVar *kLastPtr = fElem+fBand*(2*k+1)+imax;
+		TVar *kLastPtr = fElem+((unsigned long)fBand)*(2*k+1)+imax;
 		TVar *kPtr, *jPtr;
 		for ( int i = k+1; i < imax; i++ )
 		{
@@ -773,10 +780,10 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
         for ( int col = 0; col < colb; col++ ) {
 			int firstj = i-fBand;
 			if(firstj < 0) firstj=0;
-			TVar *jptr = fElem+fBand*(2*i+1)+firstj;
-			TVar *iiptr = fElem+fBand*(2*i+1)+i;
-			TVar *Biptr = BfElem+i+rowb*col;
-			TVar *Bjptr = BfElem+firstj+rowb*col;
+			TVar *jptr = fElem+((unsigned long)fBand)*(2*i+1)+firstj;
+			TVar *iiptr = fElem+((unsigned long)fBand)*(2*i+1)+i;
+			TVar *Biptr = BfElem+i+((unsigned long)rowb)*col;
+			TVar *Bjptr = BfElem+firstj+((unsigned long)rowb)*col;
 			while(jptr < iiptr) {
 				*Biptr -= *jptr++ * *Bjptr++;
 			}
@@ -786,11 +793,11 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
         for ( i = rowb-1; i >= 0; i-- ) {
 			int jlast = i+fBand+1;
 			if(jlast > rowb) jlast = rowb;
-			TVar *jlastptr = fElem + fBand*(2*i+1)+jlast;
-			TVar *jptr = fElem + fBand*(2*i+1)+i+1;
-			TVar *Biptr = BfElem+i+rowb*col;
+			TVar *jlastptr = fElem + ((unsigned long)fBand)*(2*i+1)+jlast;
+			TVar *jptr = fElem + ((unsigned long)fBand)*(2*i+1)+i+1;
+			TVar *Biptr = BfElem+i+((unsigned long)rowb)*col;
 			int j=i+1;
-			TVar *Bjptr = BfElem+j+rowb*col;
+			TVar *Bjptr = BfElem+j+((unsigned long)rowb)*col;
 			while(jptr < jlastptr) {
 				*Biptr -= *jptr++ * *(Bjptr++);
 			}

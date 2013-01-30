@@ -356,7 +356,8 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv;
-		bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
+		bool result;
+        result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
         for (int i=0; i<eigv.size(); i++) {
             Solout[i] = eigv[i];
         }
@@ -373,7 +374,8 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		this->ComputeStressTensor(StressTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
-		bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
+		bool result;
+        result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
 		Solout[0] = PrincipalStress[0];
 #ifdef DEBUG        
 		if (result == false){
@@ -389,7 +391,8 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv;
-		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
+		bool result;
+        result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
         for (int i=0; i<eigv.size(); i++) {
             Solout[i] = eigv[i];
         }
@@ -406,7 +409,8 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		this->ComputeStrainTensor(StrainTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
-		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStrain);
+		bool result;
+        result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStrain);
 		Solout[0] = PrincipalStrain[0];
 #ifdef DEBUG    
 		if (result == false){
@@ -444,7 +448,8 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		this->ComputeStressTensor(StressTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
-		bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
+		bool result;
+        result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
 #ifdef DEBUG        
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
@@ -624,7 +629,8 @@ void TPZElasticity3D::PrincipalDirection(TPZFMatrix<STATE> &DSol, TPZVec< STATE 
 	this->ComputeStrainTensor(StrainTensor, DSol);
 	int numiterations = 1000;
 	REAL tol = TPZElasticity3D::gTolerance;
-	bool result = StrainTensor.SolveEigensystemJacobi(numiterations, tol, Solout, Eigenvectors); //Solout is used to store Eigenvaleus, but its values will be replaced below
+	bool result;
+    result = StrainTensor.SolveEigensystemJacobi(numiterations, tol, Solout, Eigenvectors); //Solout is used to store Eigenvaleus, but its values will be replaced below
 #ifdef DEBUG        
 	if (result == false){
 		PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;

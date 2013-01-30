@@ -253,7 +253,8 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
         TPZManVector<STATE,3> eigv(3,0.);
-		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
+		bool result;
+        result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
         for (int i=0; i<3; i++) {
             Solout[i] = eigv[i];
         }
