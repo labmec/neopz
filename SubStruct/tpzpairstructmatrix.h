@@ -26,6 +26,7 @@ class TPZPairStructMatrix
 	int fNumThreads;
 	
 	void PermuteScatter(TPZVec<int> &index);
+	void PermuteScatter(TPZVec<long> &index);
 	
 public:
 	
@@ -105,6 +106,7 @@ public:
 			return fMaterialIds.size()==0 || fMaterialIds.find(matid) != fMaterialIds.end();
 		}
 		void PermuteScatter(TPZVec<int> &index);
+		void PermuteScatter(TPZVec<long> &index);
 		
 	};
 	

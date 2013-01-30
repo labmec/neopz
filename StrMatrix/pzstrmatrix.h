@@ -111,7 +111,7 @@ public:
 	}
 	
 	/** @brief Filter out the equations which are out of the range */
-	static void FilterEquations(TPZVec<int> &origindex, TPZVec<int> &destindex, int mineq, int upeq);
+	static void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex, int mineq, int upeq);
 	
 	/** @brief Set the set of material ids which will be considered when assembling the system */
 	void SetMaterialIds(const std::set<int> &materialids);

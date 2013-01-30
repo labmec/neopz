@@ -136,7 +136,7 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int> &destination) {
 }
 
 template<class TVar>
-void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int> &source, TPZVec<int> &destination) {
+void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
 	if(rhs.Cols() != this->Cols() && source.NElements()) {
 		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
 		DebugStop();

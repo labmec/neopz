@@ -407,7 +407,7 @@ public:
   TPZMatrix<STATE>*  first;
   TPZMatrix<STATE>*  second;
   TPZFMatrix<STATE>& rhs;
-  TPZVec<int>&       fPermuteScatter;
+  TPZVec<long>&       fPermuteScatter;
   const TPZCompMesh& mesh;
 
   parallel_assemble_task_t(const TPZCompMesh& _mesh, int _mineq, int _maxeq, TPZMatrix<STATE> *_first, 
@@ -531,6 +531,15 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 	
 }
 
+void TPZPairStructMatrix::PermuteScatter(TPZVec<long> &index)
+{
+	int nel = index.NElements();
+	int iel;
+	for(iel = 0; iel<nel; iel++)
+	{
+		index[iel] = ((long)fPermuteScatter[index[iel]]);
+	}
+}
 void TPZPairStructMatrix::PermuteScatter(TPZVec<int> &index)
 {
 	int nel = index.NElements();
@@ -669,6 +678,15 @@ void TPZPairStructMatrix::ThreadData::PermuteScatter(TPZVec<int> &index)
 		index[iel] = fPermuteScatter[index[iel]];
 	}
 }
+void TPZPairStructMatrix::ThreadData::PermuteScatter(TPZVec<long> &index)
+{
+	int nel = index.NElements();
+	int iel;
+	for(iel = 0; iel<nel; iel++)
+	{
+		index[iel] = ((long)fPermuteScatter[index[iel]]);
+	}
+}
 
 
 // The function which will compute the assembly
@@ -772,7 +790,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 #endif
 				// Release the mutex
 				PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
-				TPZManVector<int,300> destindex(ek->fDestinationIndex);
+				TPZManVector<long,300> destindex(ek->fDestinationIndex);
 				data->PermuteScatter(destindex);
 				
 				// Assemble the matrix

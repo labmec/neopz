@@ -412,10 +412,10 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationin
 }
 
 template<class TVar>
-void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &source, TPZVec<int> &destinationindex) {
+void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &source, TPZVec<long> &destinationindex) {
 	
 	int nelem = source.NElements();
-  	int icoef,jcoef,ieq,jeq,ieqs,jeqs;
+  	long icoef,jcoef,ieq,jeq,ieqs,jeqs;
 	if(IsSimetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];

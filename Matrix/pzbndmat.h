@@ -108,6 +108,7 @@ private:
 	
 	int Clear();
 	
+//	TPZVec<TVar> fElem;
 	TVar *fElem;
 	int  fBand;
 };
@@ -121,7 +122,7 @@ inline int
 TPZFBMatrix<TVar>::PutVal(const int row,const int col,const TVar& value )
 {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
-		fElem[ fBand * (2*row + 1) + col ] = value;
+		fElem[((unsigned long) fBand * (2*row + 1)) + col ] = value;
 	return( 1 );
 }
 
@@ -133,7 +134,7 @@ template<class TVar>
 inline const TVar &
 TPZFBMatrix<TVar>::GetVal(const int row,const int col ) const {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
-		return( fElem[ fBand * (2*row + 1) + col ] );
+		return( fElem[ ((unsigned long)fBand * (2*row + 1)) + col ] );
 	this->gZero = (TVar)0;
 	return( this->gZero );
 }
@@ -142,7 +143,7 @@ template<class TVar>
 inline TVar &TPZFBMatrix<TVar>::operator()(const int row, const int col){  
 	if( (col+fBand >= row) && (col <= (row+fBand)) )
 	{
-		return( fElem[ fBand * (2*row + 1) + col ] );
+		return( fElem[ ((unsigned long)fBand * (2*row + 1)) + col ] );
 	}
     DebugStop();
 	this->gZero = (TVar)(0);

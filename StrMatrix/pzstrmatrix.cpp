@@ -388,7 +388,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
 }
 
 /// filter out the equations which are out of the range
-void TPZStructMatrix::FilterEquations(TPZVec<int> &origindex, TPZVec<int> &destindex, int fMinEq, int upeq)
+void TPZStructMatrix::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex, int fMinEq, int upeq)
 {
 	if(fMinEq == -1 || upeq == -1) return;
 	int count = 0;

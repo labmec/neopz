@@ -343,7 +343,7 @@ public:
 	 * @param sourceindex Contains source indexes on current matrix
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
-	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);
+	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
 	
 	/**
 	 * @name Inquire

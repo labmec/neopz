@@ -116,14 +116,14 @@ void TPZElementMatrix::ComputeDestinationIndices(){
     if (!this->HasDependency()){
 		this->fSourceIndex.Resize(this->fMat.Rows());
 		this->fDestinationIndex.Resize(this->fMat.Rows());
-		int destindex = 0;
-        int fullmatindex = 0;
+		long destindex = 0L;
+        long fullmatindex = 0L;
 		const int numnod = this->NConnects();
 		for(int in = 0; in < numnod; in++){
 			const int npindex = this->ConnectIndex(in);
 			TPZConnect &np = this->fMesh->ConnectVec()[npindex];
 			int blocknumber = np.SequenceNumber();
-			int firsteq = this->fMesh->Block().Position(blocknumber);
+			long firsteq = this->fMesh->Block().Position(blocknumber);
 			int ndf = this->fMesh->Block().Size(blocknumber);
             if(np.HasDependency() || np.IsCondensed()) {
                 fullmatindex += ndf;
@@ -147,8 +147,8 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 	}//if
 	else{
     
-        int destindex = 0;
-        int fullmatindex = 0;
+        long destindex = 0L;
+        long fullmatindex = 0L;
         this->fDestinationIndex.Resize(this->fConstrMat.Rows());
         this->fSourceIndex.Resize(this->fConstrMat.Rows());
         int numnod = this->fConstrConnect.NElements();
@@ -156,7 +156,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
             const int npindex = this->fConstrConnect[in];
             TPZConnect &np = this->fMesh->ConnectVec()[npindex];
             int blocknumber = np.SequenceNumber();
-            int firsteq = this->fMesh->Block().Position(blocknumber);
+            long firsteq = this->fMesh->Block().Position(blocknumber);
             int ndf = this->fMesh->Block().Size(blocknumber);
             if(np.HasDependency() || np.IsCondensed()) {
                 fullmatindex += ndf;

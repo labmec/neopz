@@ -679,7 +679,7 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
         {
             (*iPtr) = (*iPtr)+(TVar)1.;
             pivot = pivot+(TVar)1.;
-            std::cout << __PRETTY_FUNCTION__ << " at row " << k << " is singular\n";
+//            std::cout << __PRETTY_FUNCTION__ << " at row " << k << " is singular\n";
 			//            TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
         }
         

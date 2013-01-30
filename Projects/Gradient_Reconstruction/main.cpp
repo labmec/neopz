@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     
     ofstream erro("erro.txt");
     
-    for(int nrefs=1;nrefs<6;nrefs++)
+    for(int nrefs=5;nrefs<6;nrefs++)
     {
          erro << "\n\nRESOLVENDO COM FEM: p = " << p << "  E h = "<< nrefs << "\n";
         

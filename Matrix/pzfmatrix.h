@@ -103,7 +103,7 @@ public:
 	 * @param source Source index on rhs
 	 * @param destination Destine index on current matrix
 	 */
-	void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int> &source, TPZVec<int> &destination);
+	void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec<long> &destination);
 	
 	/**
 	 * B = this * X

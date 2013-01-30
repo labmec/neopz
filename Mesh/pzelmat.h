@@ -49,7 +49,7 @@ struct TPZElementMatrix {
 	//TPZBlock<REAL> fConstrBlock;
 	TPZBlock<STATE> fConstrBlock;
 	
-	TPZManVector<int> fDestinationIndex, fSourceIndex;
+	TPZManVector<long> fDestinationIndex, fSourceIndex;
 	
 	int fNumStateVars;
 	
