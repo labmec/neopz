@@ -193,8 +193,8 @@ int main(int argc, char *argv[]) {
 
         
         // Print gradient reconstructed
-//        string plotfile("FEMSolution.vtk");
-//        PosProcessamento(an,cmesh,plotfile);
+        string plotfile("FEMSolution.vtk");
+        PosProcessamento(an,cmesh,plotfile);
         
         erro << "\n\nRESOLVENDO COM RECONST. GRADIENT: p = " << p << "  E h = "<< nrefs << "\n";
 
@@ -227,8 +227,8 @@ int main(int argc, char *argv[]) {
         an.PostProcessError(posproc2,erro);
         cout<<endl;
 
-//        string plotfile2("SolutionReconstGradient.vtk");
-//        PosProcessamento(an,cmesh,plotfile2);
+        //string plotfile2("SolutionReconstGradient.vtk");
+        //PosProcessamento(an,cmesh,plotfile2);
 
     }
     return 0;
@@ -692,7 +692,7 @@ void PosProcessamento(TPZAnalysis &an, TPZCompMesh *Cmesh, std::string plotfile)
 	TPZManVector<std::string,10> scalnames(2), vecnames(2);
 	scalnames[0] = "Solution";
     scalnames[1] = "ExactPressure";
-    vecnames[0] = "Derivate";
+    vecnames[0] = "Derivative";
     vecnames[1] = "ExactFlux";
     
 	const int dim = Cmesh->Dimension();
@@ -1160,7 +1160,7 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     double x = pt[0];
     double aux1 = -100.*(1 - 2.*x + x*x);
     double aux2 = exp(aux1);
-    disp[0]=(200.*x - 200.)*aux2;
+    disp[0]=-(200.*x - 200.)*aux2;
 }
 
 void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
@@ -1175,10 +1175,12 @@ void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
     deriv(0,0)=exp(val);
 }
 
+#include "TPZSkylineNSymStructMatrix.h"
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {			
 	TPZBandStructMatrix full(Cmesh); //caso nao-simetrico
 	//TPZSkylineStructMatrix full(Cmesh); //caso simetrico
+    //TPZSkylineNSymStructMatrix full(Cmesh);//caso nao-simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<REAL> step;
 	//step.SetDirect(ELDLt); //caso simetrico
