@@ -41,11 +41,11 @@ using namespace std;
 #include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
 #endif
 
-/*
- *Projeto para validar a reconstucao do gradiente
- *Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
- *Solucao: u(x,y) = a*x + b*y
-*/
+/**
+ * Projeto para validar a reconstucao do gradiente
+ * Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
+ * Solucao: u(x,y) = a*x + b*y
+ */
 
 REAL const coef_a = 2.;
 REAL const coef_b = 4.;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     
     ofstream erro("erro.txt");
     
-    for(int nrefs=5;nrefs<6;nrefs++)
+    for(int nrefs=1;nrefs<6;nrefs++)
     {
          erro << "\n\nRESOLVENDO COM FEM: p = " << p << "  E h = "<< nrefs << "\n";
         

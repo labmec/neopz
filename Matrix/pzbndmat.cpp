@@ -672,7 +672,8 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
     int k;
     for ( k = 0; k < min ; k++ )
     {
-        TVar *iPtr = fElem+((unsigned long)fBand)*(2*k+1)+k;
+        TVar *iPtr = fElem;
+		iPtr += ((unsigned long)fBand*(2*k+1)+k);
         TVar pivot = *iPtr;
         if ( IsZero(pivot))
         {
@@ -688,10 +689,12 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
         //         pivot = *iPtr;
         //       }
         
-        TVar *jFirstPtr = fElem+((unsigned long)fBand)*(2*k+3)+k+1;
+        TVar *jFirstPtr = fElem;
+		jFirstPtr += (((unsigned long)fBand)*(2*k+3)+k+1);
         imax = k+fBand+1;
         if(imax > rows) imax = rows;
-        TVar *kLastPtr = fElem+((unsigned long)fBand)*(2*k+1)+imax;
+        TVar *kLastPtr = fElem;
+		kLastPtr += (((unsigned long)fBand)*(2*k+1)+imax);
         TVar *kPtr, *jPtr;
         for ( int i = k+1; i < imax; i++ )
         {
@@ -707,7 +710,8 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
         }
         kFirstPtr += 2*fBand+1;
     }
-    TVar *iPtr = fElem+((unsigned long)fBand)*(2*k+1)+k;
+    TVar *iPtr = fElem;
+	iPtr += (((unsigned long)fBand)*(2*k+1)+k);
     TVar pivot = *iPtr;
     if ( IsZero(pivot))
     {
