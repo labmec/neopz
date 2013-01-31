@@ -33,6 +33,8 @@
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
 
+#include "TPZVTKGeoMesh.h"
+
 #include <iostream>
 #include <math.h>
 using namespace std;
@@ -66,11 +68,18 @@ int const dirichlet =0;
 int const neumann = 1;
 int const mixed = 2;
 
+
+void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance);
+
+
+
 TPZFMatrix<REAL> MatrixR(REAL ang);
 TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int nh);
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, bool isdiscontinuous);
 
-TPZGeoMesh *GMesh2(int nh, int nrefdir);
+TPZGeoMesh *GMesh2();
 TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous);
 
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
@@ -139,44 +148,28 @@ int main(int argc, char *argv[]) {
     normal_plano[1]=coef_b;
     
     int p = 4;
-    
+    char saida[256];
     ofstream erro("erro.txt");
-    
-    for(int nrefs=5;nrefs<6;nrefs++)
+	int dim = 2;
+    int MaxRefs = 7;
+    for(int nrefs=1;nrefs<MaxRefs;nrefs++)
     {
          erro << "\n\nRESOLVENDO COM FEM: p = " << p << "  E h = "<< nrefs << "\n";
         
         // geometric mesh (initial)
         //TPZGeoMesh * gmesh = GMesh(2,anglo,x0,y0,nrefs);
-        TPZGeoMesh * gmesh = GMesh2(nrefs,2);
+        TPZGeoMesh * gmesh = GMesh2();
+		// Refining near the points belong a circunference with radio r - maxime distance radius
+		RefiningNearLine(dim,gmesh,nrefs);
         
-//        TPZVec<TPZGeoEl *> sub, subsub;
-//        TPZGeoEl *gel = 0;
-//        int conta = 0;
-//        while(!gel)
-//        {
-//            gel = gmesh->ElementVec()[conta++];
-//            if(gel->Dimension() != gmesh->Reference()->Dimension())
-//            {
-//                gel = 0;
-//                continue;
-//            }
-//            gel->Divide(sub);
-//            sub[1]->Divide(subsub);
-//        }
-
-        ofstream arg1("gmesh_inicial.txt");
-        gmesh->Print(arg1);
+		if(nrefs == MaxRefs-1) {
+			sprintf(saida,"initialgmesh_%d.vtk",nrefs);
+			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
+		}
         
         // First computational mesh
         //TPZCompMesh * cmesh= CMesh(gmesh,p,true);
         TPZCompMesh * cmesh= CMesh2(gmesh,p,true);
-        ofstream arg2("cmesh_inicial.txt");
-        cmesh->Print(arg2);
-            
-        
-        ofstream arg3("gmesh_final.txt");
-        gmesh->Print(arg3);
         
         // Solving
         TPZAnalysis an(cmesh);
@@ -193,8 +186,10 @@ int main(int argc, char *argv[]) {
 
         
         // Print gradient reconstructed
-        string plotfile("FEMSolution.vtk");
-        PosProcessamento(an,cmesh,plotfile);
+		char saidaVTK[256];
+		sprintf(saidaVTK,"FEMSolution_%d.vtk",nrefs);
+        string plotfile(saidaVTK);
+//        PosProcessamento(an,cmesh,plotfile);
         
         erro << "\n\nRESOLVENDO COM RECONST. GRADIENT: p = " << p << "  E h = "<< nrefs << "\n";
 
@@ -228,11 +223,66 @@ int main(int argc, char *argv[]) {
         cout<<endl;
 
         //string plotfile2("SolutionReconstGradient.vtk");
-        //PosProcessamento(an,cmesh,plotfile2);
+        PosProcessamento(an,cmesh,plotfile);
 
     }
     return 0;
 }
+
+void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		if(gmesh->ElementVec()[i])
+			DataElement[i] = (gmesh->ElementVec()[i])->Dimension();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref) {
+	
+	int i;
+	
+	// Refinando no local desejado
+	TPZVec<REAL> point(3);
+	point[0] = 1.; point[1] = point[2] = 0.0;
+	REAL r = 0.0;
+	
+	REAL radius = 0.75;
+	for(i=0;i<nref+1;i++) {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius);
+		radius *= 0.75;
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance) {
+	TPZManVector<REAL> centerpsi(3), center(3);
+	// Refinamento de elementos selecionados
+	TPZGeoEl *gel;
+	TPZVec<TPZGeoEl *> sub;
+	
+	int nelem = 0;
+	int ngelem=gmesh->NElements();
+
+	while(nelem<ngelem) {
+		gel = gmesh->ElementVec()[nelem++];
+		if(gel->Dimension()!=dim || gel->HasSubElement()) continue;
+		gel->CenterPoint(gel->NSides()-1,centerpsi);
+		gel->X(centerpsi,center);
+		REAL centerdist = abs(center[0] - point[0]);
+		if(fabs(r-centerdist) < distance) {
+			gel->Divide(sub);
+		}
+	}
+}
+
 
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid) {
     
@@ -825,9 +875,9 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 	return gmesh;
 }
 
-TPZGeoMesh *GMesh2(int nh, int nrefdir){
+TPZGeoMesh *GMesh2(){
     
-    int Qnodes = 10;
+    int Qnodes = 6;
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	gmesh->SetMaxNodeId(Qnodes-1);
@@ -841,7 +891,7 @@ TPZGeoMesh *GMesh2(int nh, int nrefdir){
 	//indice dos nos
     int id;
 	id = 0;
-    REAL dx = 0.5;
+    REAL dx = 1.;
 	for (int i=0; i<Qnodes/2;i++) {
 		
 		Node[id].SetNodeId(id);
@@ -863,7 +913,7 @@ TPZGeoMesh *GMesh2(int nh, int nrefdir){
 	//indice dos elementos
 	id = 0;
     
-    for(int i = 0; i<Qnodes/2-1; i++){
+    for(int i = 0; i<0.5*Qnodes-1; i++){
         TopolQuad[0] = i;
         TopolQuad[1] = i+1;
         TopolQuad[2] = (Qnodes-2)-i;
@@ -871,48 +921,62 @@ TPZGeoMesh *GMesh2(int nh, int nrefdir){
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
         id++;
     }
-    
-    TopolLine[0] = 2;
-    TopolLine[1] = 7;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId+1,*gmesh);
-    id++;
-    
-//    TopolPoint[0] = 2;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,matId+1,*gmesh);
-//    id++;
-//    
-//    TopolPoint[0] = 7;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,matId+1,*gmesh);
-//    id++;
-
-    
-    for(int i = 0; i<Qnodes/2-1; i++){
-        TopolLine[0] = i;
-        TopolLine[1] = i+1;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
-        id++;
-    }
-    
-    TopolLine[0] = (Qnodes/2)-1;
-    TopolLine[1] = Qnodes/2;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
-    id++;
-    
-    for(int i = 0; i<Qnodes/2-1; i++){
-        TopolLine[0] = (Qnodes/2) + i;
-        TopolLine[1] = (Qnodes/2+1) + i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
-    id++;
-    }
-    
-    TopolLine[0] = Qnodes-1;
-    TopolLine[1] = 0;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
-    
 	gmesh->BuildConnectivity();
     
-    //------------------ fazer refinamento direcional ------------------------------------
-    set<int> SETmatRef;
+	// Boundary elements
+	TPZGeoElBC gbc10(gmesh->ElementVec()[0],4,bc0);
+	TPZGeoElBC gbc11(gmesh->ElementVec()[0],6,bc2);
+	TPZGeoElBC gbc12(gmesh->ElementVec()[0],7,bc3);
+	TPZGeoElBC gbc13(gmesh->ElementVec()[1],4,bc0);
+	TPZGeoElBC gbc14(gmesh->ElementVec()[1],5,bc1);
+	TPZGeoElBC gbc15(gmesh->ElementVec()[1],6,bc2);
+
+	gmesh->ResetConnectivities();
+    gmesh->BuildConnectivity();
+	
+	return gmesh;
+}
+    /*------------------ fazer refinamento direcional ------------------------------------
+	 TopolLine[0] = 1;
+	 TopolLine[1] = 4;
+	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+	 id++;
+	 
+	 //    TopolPoint[0] = 2;
+	 //    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,matId+1,*gmesh);
+	 //    id++;
+	 //    
+	 //    TopolPoint[0] = 7;
+	 //    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,matId+1,*gmesh);
+	 //    id++;
+	 
+	 
+	 for(int i = 0; i<Qnodes/2-1; i++){
+	 TopolLine[0] = i;
+	 TopolLine[1] = i+1;
+	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+	 id++;
+	 }
+	 
+	 TopolLine[0] = (Qnodes/2)-1;
+	 TopolLine[1] = Qnodes/2;
+	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+	 id++;
+	 
+	 for(int i = 0; i<Qnodes/2-1; i++){
+	 TopolLine[0] = (Qnodes/2) + i;
+	 TopolLine[1] = (Qnodes/2+1) + i;
+	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+	 id++;
+	 }
+	 
+	 TopolLine[0] = Qnodes-1;
+	 TopolLine[1] = 0;
+	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+	 
+	 gmesh->BuildConnectivity();
+
+	 set<int> SETmatRef;
     for(int j = 0; j < nrefdir; j++)
     {
         int nel = gmesh->NElements();
@@ -939,7 +1003,7 @@ TPZGeoMesh *GMesh2(int nh, int nrefdir){
 	}//ref
 	
 	return gmesh;
-}
+}*/
 
 
 TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
