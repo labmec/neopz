@@ -407,7 +407,7 @@ public:
   TPZMatrix<STATE>*  first;
   TPZMatrix<STATE>*  second;
   TPZFMatrix<STATE>& rhs;
-  TPZVec<long>&       fPermuteScatter;
+  TPZVec<int>&       fPermuteScatter;
   const TPZCompMesh& mesh;
 
   parallel_assemble_task_t(const TPZCompMesh& _mesh, int _mineq, int _maxeq, TPZMatrix<STATE> *_first, 
