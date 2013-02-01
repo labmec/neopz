@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
         //2. Plotar as normas do erros
         an.SetExact(SolucaoExata);
         TPZVec<REAL> posproc;
-        cout<<"ERROS\n";
+        cout<<"ERROS FEM\n";
         //an.PostProcess(posproc,cout);
         an.PostProcessError(posproc,erro);
         cout<<endl;
@@ -189,43 +189,29 @@ int main(int argc, char *argv[]) {
 		char saidaVTK[256];
 		sprintf(saidaVTK,"FEMSolution_%d.vtk",nrefs);
         string plotfile(saidaVTK);
-//        PosProcessamento(an,cmesh,plotfile);
+        PosProcessamento(an,cmesh,plotfile);
         
         erro << "\n\nRESOLVENDO COM RECONST. GRADIENT: p = " << p << "  E h = "<< nrefs << "\n";
-
-        // validation of the method that reconstruction gradienet
-//        TPZFMatrix<REAL> gradients;
-//        PosProcessGradientReconstruction(cmesh,1,gradients);
-//        gradients.Print();
-          //SaidaMathGradiente(gradients);
-        
+       
         //l2 projection of the gradient into finite element space  
         ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
-
-        //TPZFMatrix<REAL> newsolution = cmesh->Solution();
-       // TPZFMatrix<REAL> difsolution = oldsolution-newsolution;
-
-        //oldsolution.Print();
-        //newsolution.Print();
-        //difsolution.Print();
-         //REAL res = Norm(difsolution);
-//        if(res > 1.e-8){
-//            DebugStop();
-//        }
 
         an.LoadSolution(cmesh->Solution());
         //2. Plotar as normas do erros
         an.SetExact(SolucaoExata);
         TPZVec<REAL> posproc2;
-        cout<<"ERROS\n";
-        //an.PostProcess(posproc2,cout);
+        cout<<"ERROS L2\n";
         an.PostProcessError(posproc2,erro);
         cout<<endl;
 
-        //string plotfile2("SolutionReconstGradient.vtk");
-        PosProcessamento(an,cmesh,plotfile);
+		sprintf(saidaVTK,"L2PROJSolution_%d.vtk",nrefs);
+        string plotfile2(saidaVTK);
+        PosProcessamento(an,cmesh,plotfile2);
 
+		delete cmesh;
+		delete gmesh;
     }
+	erro.close();
     return 0;
 }
 
