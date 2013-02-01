@@ -70,8 +70,8 @@ void TPZSkylMatrix<TVar>::AddSameStruct(TPZSkylMatrix<TVar> &B, double k){
 	}
 #endif
 	
-	const int n = this->fStorage.NElements();
-	for(int i = 0; i < n; i++) this->fStorage[i] += TVar(k)*B.fStorage[i];
+	const long n = this->fStorage.NElements();
+	for(long i = 0L; i < n; i++) this->fStorage[i] += TVar(k)*B.fStorage[i];
 	
 }
 
