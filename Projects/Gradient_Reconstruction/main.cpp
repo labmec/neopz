@@ -517,7 +517,8 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     TPZFMatrix<STATE> rhs;
     rhs.Redim(neq,numloadcases);
     
-    TPZBandStructMatrix stmatrix(cmesh);
+    //TPZBandStructMatrix stmatrix(cmesh);
+	TPZSkylineStructMatrix stmatrix(cmesh);
     TPZMatrix<STATE> *stiffmatrix = stmatrix.Create();
     
     int matid;
@@ -569,7 +570,7 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     
     //Solve linear system and transfer the solution to computational mesh
     TPZStepSolver<REAL> step;
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     step.SetMatrix(stiffmatrix);
     TPZFMatrix<REAL> result;
     step.Solve(rhs, result);
@@ -1228,9 +1229,9 @@ void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
 #include "TPZSkylineNSymStructMatrix.h"
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {			
-	TPZBandStructMatrix full(Cmesh); //caso nao-simetrico
+	//TPZBandStructMatrix full(Cmesh); //caso nao-simetrico
 	//TPZSkylineStructMatrix full(Cmesh); //caso simetrico
-    //TPZSkylineNSymStructMatrix full(Cmesh);//caso nao-simetrico
+    TPZSkylineNSymStructMatrix full(Cmesh);//caso nao-simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<REAL> step;
 	//step.SetDirect(ELDLt); //caso simetrico
