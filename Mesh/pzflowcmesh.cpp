@@ -119,7 +119,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
 		TPZCompEl *cel = fElementVec[iel];
 		if(!cel)continue;
 		TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
-		int porder;
+		int porder = 0;
 		if(disc) 
 		{
 			porder = disc->Degree();

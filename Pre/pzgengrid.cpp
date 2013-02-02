@@ -278,7 +278,7 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge,int ma
 	TPZManVector<REAL> coordtomerge(3,0.);
 	TPZGeoNode *nodetomerge;
 	TPZGeoEl *gel;
-	int newid, oldid;
+	int newid = -1, oldid = -1;
 	// Verifing each node in gridtomerge if exist into the gridinitial (as same coordinates). It is inefficient.
 	for(i=0;i<nnodestomerge;i++) {
 		nodetomerge = &(gridtomerge->NodeVec()[i]);
@@ -439,9 +439,9 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 }
 
 void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
-	int ix;
-	int iy;
-	int ilayer;
+	int ix = 0;
+	int iy = 0;
+	int ilayer = 0;
 	if(fElementType == 0 || fElementType == 1) {
 		if(i < (fNx[0]+1)*(fNx[1]+1)) {
 			ilayer = 0;

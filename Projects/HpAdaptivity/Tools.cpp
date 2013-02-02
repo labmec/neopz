@@ -197,7 +197,7 @@ void CC3(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 }
 void CC4(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 		//double x=pt[0];
-		double y=pt[0];
+		//double y=pt[0];
 		//double fator=-4.-y*y;
 		f[0]=0.;//-2.*exp(fator);//-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }

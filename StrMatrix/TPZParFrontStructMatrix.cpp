@@ -287,7 +287,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		//Searches for next element
 		int i=0;
 		int aux = -1;
-		TPZElementMatrix *ekaux, *efaux;
+		TPZElementMatrix *ekaux = 0, *efaux = 0;
 		PZ_PTHREAD_MUTEX_LOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::GlobalAssemble()");
 #ifdef LOG4CXX
 		{

@@ -38,7 +38,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		
 		
 		//criando o connect da variavel dual
-		int nshape;
+		int nshape = 0;
 		
 		if (TSHAPE::Type()==EQuadrilateral) {
 				nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial);

@@ -959,7 +959,7 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 		fRefPatternMesh.NodeVec()[inode].Initialize(inode,coord,fRefPatternMesh);
 	}
 	
-	TPZGeoEl *father;
+	TPZGeoEl *father = 0;
 	//criacao dos elementos geometricos que definem a particao
 	int ntype, nummat, naorners, incid, el;
 	for(el=0; el<nelems; el++)//os sub-elementos podem nao ter de uma mesma geometria
@@ -1040,7 +1040,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 		fRefPatternMesh.NodeVec()[inode].Initialize(inode,coord,fRefPatternMesh);
 	}
 	
-	TPZGeoEl *father;
+	TPZGeoEl *father = 0;
 	//criacao dos elementos geometricos que definem a particao
 	int ntype, nummat, naorners, incid, el;
 	for(el=0; el<nelems; el++)//os sub-elementos podem nao ter de uma mesma geometria

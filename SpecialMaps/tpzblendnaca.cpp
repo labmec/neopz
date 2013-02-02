@@ -119,8 +119,8 @@ REAL TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt)
     REAL distlow,distup;
     REAL ptl[2],ptu[2];
     int ip,maxp=maxPt;
-    REAL par,parlow;
-	REAL parup = 0.0L;
+    REAL par,parlow = (REAL)0.0;
+	REAL parup = (REAL)0.0;
     for(ip=0; ip<=maxp; ip++)
     {
         par = ip*fCord/maxp;
