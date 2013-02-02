@@ -181,7 +181,7 @@ template<class TVar>
 void * TPZSkylParMatrix<TVar>::ParallelCholesky(void *t) {
 	
 	TPZSkylParMatrix<TVar> *loc = (TPZSkylParMatrix<TVar> *) t;
-	int aux_col;//, k;
+	int aux_col = -1;//, k;
 	int col, prevcol;
 	prevcol=0;
 	PZ_PTHREAD_MUTEX_LOCK(&skymutex, "TPZSkylParMatrix::ParallelCholesky()");
@@ -250,7 +250,7 @@ template<class TVar>
 void * TPZSkylParMatrix<TVar>::ParallelLDLt(void *t) {
 	
 	TPZSkylParMatrix<TVar> *loc = (TPZSkylParMatrix<TVar> *) t;
-	int aux_col;//, k;
+	int aux_col = -1;//, k;
 	int col, prevcol;
 	prevcol=0;
 	PZ_PTHREAD_MUTEX_LOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt()");

@@ -1351,8 +1351,8 @@ void TPZCompMesh::SetElementSolution(int i, TPZVec<REAL> &sol) {
     {
         std::stringstream sout;
         REAL norm=0.;
-        for (int i=0; i<sol.size(); i++) {
-            norm += sol[i];
+        for (long ii=0; ii<sol.size(); ii++) {
+            norm += sol[ii];
         }
         norm = sqrt(norm);
         sout << "Norma da solucao " << i << " norma " << norm;

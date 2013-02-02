@@ -1586,7 +1586,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 	TVar res = (TVar)2. * (TVar)tol;
 	const int size = this->Rows();
 	int i, j;
-	int p, q;
+	int p = -1, q = -1;
 	TVar maxval, theta, cost, sint, aux, aux2, Spp, Sqq, Spq;
 	while (iter < numiterations){
 		/** First of all find the max value off diagonal */

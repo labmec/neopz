@@ -1496,7 +1496,7 @@ void TPZSkylNSymMatrix<TVar>::Read(TPZStream &buf, void *context )
 	TPZVec<int> skyl(this->Rows()+1,0), skyl2(this->Rows()+1,0);
 	TPZSaveable::ReadObjects(buf, skyl);
 	TPZSaveable::ReadObjects(buf, skyl2);
-	TVar *ptr = 0, *ptr2;
+	TVar *ptr = 0, *ptr2 = 0;
 	if (this->Rows()) {
 		ptr = &fStorage[0];
 		ptr2 = &fStorageb[0];

@@ -1006,7 +1006,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(int blk_sz)
   if (this->fDecomposed )  
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	
-  TVar pivot;
+  TVar pivot = (TVar)0.;
   TVar minpivot = 10000.;
   int dimension = this->Dim();
 

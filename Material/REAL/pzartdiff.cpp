@@ -79,7 +79,7 @@ REAL TPZArtDiff::OptimalDelta()
 
 REAL TPZArtDiff::Delta(REAL deltax, TPZVec<STATE> & sol)
 {
-	REAL dX;
+	REAL dX = 0.;
 	
 	if(fDelta > 0.)dX = deltax * fDelta;
 	if(fDelta < 0.)dX =-fDelta;

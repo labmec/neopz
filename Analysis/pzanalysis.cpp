@@ -364,7 +364,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	TPZManVector<REAL,10> errors(10);
 	errors.Fill(0.0);
 	int nel = elvec.NElements();
-	int matId0;
+	int matId0 = 0;
 	for(i=0;i<nel;i++) {
         TPZCompEl *cel = elvec[i];
         if(!cel) continue;

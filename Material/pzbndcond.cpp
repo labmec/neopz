@@ -17,7 +17,7 @@ void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {
 	int matid = Id();
 	
 	TPZMaterial * refmaterial = Material();
-	TPZMaterial * newrefmaterial;
+	TPZMaterial * newrefmaterial = NULL;
 	int refmatid = 0;
 	if(refmaterial) {
 		refmaterial->Clone(matvec);

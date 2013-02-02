@@ -361,7 +361,7 @@ void TPZGaussRule::ComputingGaussJacobiQuadrature(int *npoints,long double alpha
 	TPZVec<long double> c;
 	long double cc, delta, dp2;
 	int i;
-	long double p1, prod, r1, r2, r3, temp, x0;
+	long double p1, prod, r1, r2, r3, temp, x0 = 0.0;
 	
 	Location.Resize((*npoints),0.0L);
 	Weight.Resize((*npoints),0.0L);

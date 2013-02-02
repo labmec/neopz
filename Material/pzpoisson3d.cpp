@@ -1215,8 +1215,8 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 		fXfLoc = res[0];
 	}
 	
-	STATE laplacU;
-	STATE divBetaU;
+	STATE laplacU = (STATE)0;
+	STATE divBetaU = (STATE)0;
 	if(this->Dimension() == 1){
 		laplacU = dsol(1,0);
 		divBetaU = this->fC * this->fConvDir[0] * dsol(0,0);
