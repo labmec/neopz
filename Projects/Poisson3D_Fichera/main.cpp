@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 	char tempo[256];
     
 	// To compute the errors
-	ofstream fileerrors("ErrorsHPProcess3D.txt");
+	ofstream fileerrors("ErrorsHP3D_Fichera.txt");
     
 	TPZVec<REAL> ervec(100,0.0);
 	// Printing computed errors
@@ -105,8 +105,8 @@ int main(int argc, char *argv[]) {
 	int nthread, NThreads = 2;
 	int dim = 3;
     for(int typeel=0;typeel<1;typeel++) {
-        for(nref=0;nref<NRefs;nref++) {
-            for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+        for(nref=6;nref<NRefs;nref++) {
+            for(int ntyperefs=1;ntyperefs<2;ntyperefs++) {
 				if(nref > 4) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 				// Refining near the points belong a circunference with radio r - maxime distance radius
 				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
 				if(nref == NRefs-1) {
-					sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
+					sprintf(saida,"gmesh_3DFichera_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 					PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 				}
 				
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
 				std::string filename = "Poisson3DSol_";
 				if(problem==1) filename += "S_";
 				else if(problem==2) filename += "R_";
-				sprintf(pp,"TR%dE%dP%02dH%02dP%d",ntyperefs,typeel,nthread,nref,pinit);
+				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
 				filename += ".vtk";
 				
@@ -610,15 +610,15 @@ void formatTimeInSec(char *strtime,int timeinsec) {
 	}
 	// Formating
 	if(anos)
-		sprintf(strtime,"%d a, %d m, %d d, %d:%d:%d",anos,meses,dias,horas,minutos,segundos);
+		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
 	else {
 		if(meses) 
-			sprintf(strtime,"%d m, %d d, %d:%d:%d",meses,dias,horas,minutos,segundos);
+			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
 		else {
 			if(dias)
-				sprintf(strtime,"%d d, %d:%d:%d",dias,horas,minutos,segundos);
+				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
 			else
-				sprintf(strtime,"%d:%d:%d",horas,minutos,segundos);
+				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
 		}
 	}
 }

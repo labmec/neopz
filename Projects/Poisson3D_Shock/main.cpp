@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 	char tempo[256];
     
 	// To compute the errors
-	ofstream fileerrors("ErrorsHPProcess3D.txt");
+	ofstream fileerrors("ErrorsHP3D_Shock.txt");
     
 	TPZVec<REAL> ervec(100,0.0);
 	// Printing computed errors
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 				// Refining near to the origin
 				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
 				if(nref==NRefs-1) {
-					sprintf(saida,"gmesh_%d_%d.vtk",nref,ntyperefs);
+					sprintf(saida,"gmesh_3DShock_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 					PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 				}
 				
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
 				// Post processing
 				char pp[64];
 				std::string filename = "Poisson3DSol_";
-				sprintf(pp,"TR%dE%dP%2dH%2dP%d",ntyperefs,typeel,nthread,nref,pinit);
+				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
 				filename += ".vtk";
 				
@@ -494,15 +494,15 @@ void formatTimeInSec(char *strtime,int timeinsec) {
 	}
 	// Formating
 	if(anos)
-		sprintf(strtime,"%d a, %d m, %d d, %d:%d:%d",anos,meses,dias,horas,minutos,segundos);
+		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
 	else {
 		if(meses) 
-			sprintf(strtime,"%d m, %d d, %d:%d:%d",meses,dias,horas,minutos,segundos);
+			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
 		else {
 			if(dias)
-				sprintf(strtime,"%d d, %d:%d:%d",dias,horas,minutos,segundos);
+				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
 			else
-				sprintf(strtime,"%d:%d:%d",horas,minutos,segundos);
+				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
 		}
 	}
 }

@@ -110,7 +110,7 @@ int main() {
 	int time_elapsed;
 	char tempo[256];
 	
-	ofstream fileerrors("ErrorsHPProcess3D.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+	ofstream fileerrors("ErrorsHP2D_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
 	
 	// To compute the errors
 	TPZManVector<REAL> ervec(100,0.0);
@@ -138,7 +138,7 @@ int main() {
 				// Refining near the points belong a circunference with radio r - maxime distance radius
 				RefiningNearCircunference(dim,gmesh,nref,ntyperefs);
 				if(nref == NRefs-1) {
-					sprintf(saida,"meshextrudedmerged_%d_%d.vtk",nref,ntyperefs);
+					sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 					PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
 				}
 				
@@ -217,7 +217,7 @@ int main() {
 				// Post processing
 				std::string filename = "Poisson2DSol";
 				char pp[256];
-				sprintf(pp,"TR%dE%dP%2dH%2dP%d",ntyperefs,typeel,nthread,nref,pinit);
+				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,nref,pinit);
 				filename += pp;
 				filename += ".vtk";
 				
@@ -292,15 +292,15 @@ void formatTimeInSec(char *strtime,int timeinsec) {
 	}
 	// Formating
 	if(anos)
-		sprintf(strtime,"%d a, %d m, %d d, %d:%d:%d",anos,meses,dias,horas,minutos,segundos);
+		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
 	else {
 		if(meses) 
-			sprintf(strtime,"%d m, %d d, %d:%d:%d",meses,dias,horas,minutos,segundos);
+			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
 		else {
 			if(dias)
-				sprintf(strtime,"%d d, %d:%d:%d",dias,horas,minutos,segundos);
+				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
 			else
-				sprintf(strtime,"%d:%d:%d",horas,minutos,segundos);
+				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
 		}
 	}
 }
