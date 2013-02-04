@@ -35,19 +35,6 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/External/sloan"
  )
 
-#To insert doxygen documentation file and other text files into the project environment (to facility changes)
-#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
-file(GLOB_RECURSE makefiles *Lists.txt)
-
-file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
-
-#creating text files group 
-source_group(CMakefilesPZ FILES ${makefilespz})
-source_group(CMakefilesProjects FILES ${makefilesproject})
-source_group(CMakefilesUnitTest FILES ${makefilesunittest})
-add_custom_target(CMake_Files SOURCES ${makefiles})
-add_custom_target(Doxygen_Files SOURCES  ${doxyfiles})
-
 ## inserting main definitions
 #specifying the path to neopz source code
 add_definitions(-DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
@@ -356,13 +343,27 @@ endif()
 #Enabling tests
 ENABLE_TESTING()
 
+#To insert cmakelist files as a group 
+if(BUILD_TUTORIAL)
+	#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
+	file(GLOB_RECURSE makefiles *Lists.txt)
+
+	#creating text files group 
+	source_group(CMakefilesPZ FILES ${makefilespz})
+	source_group(CMakefilesProjects FILES ${makefilesproject})
+	source_group(CMakefilesUnitTest FILES ${makefilesunittest})
+	add_custom_target(CMAKE_Files SOURCES ${makefiles})
+endif(BUILD_TUTORIAL)
+
+#To insert doxygen documentation files
+file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
+add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
+
 
 #################################################################3
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
-#set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"
-#	CACHE STRING "Log file to control CMake process"
-#	) 
+#set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt" CACHE STRING "Log file to control CMake process" ) 
 
 #If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
 #foreach(arq ${makefiles}) 

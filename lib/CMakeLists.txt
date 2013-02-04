@@ -90,4 +90,4 @@ endif()
 #install(TARGETS pzmatrix ARCHIVE DESTINATION lib)
 
 #Verifying the content of the strings
-#file(APPEND "${LogFile}" "${pzsources}   ..  \n\n")
+#file(APPEND "${LogFile}" "${refpatterns_STAT_SRCS}   ..  \n\n")

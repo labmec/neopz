@@ -101,12 +101,14 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 10;
+	int nref, NRefs = 8;
 	int nthread, NThreads = 2;
 	int dim = 3;
-    for(int typeel=0;typeel<1;typeel++) {
-        for(nref=6;nref<NRefs;nref++) {
-            for(int ntyperefs=1;ntyperefs<2;ntyperefs++) {
+	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+		fileerrors << "Type of refinement: " << ntyperefs+1 << " Level. " << endl;
+		for(int typeel=0;typeel<1;typeel++) {
+			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-four prisms, 2-four pyramids,3-two tetrahedras, two prisms, one pyramid, 4-three prisms." << endl;
+			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 4) nthread = 2*NThreads;
 				else nthread = NThreads;
 				

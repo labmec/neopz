@@ -29,10 +29,14 @@
 
 #include "pzlog.h"
 
+#include "pzshapecube.h"
+#include "TPZGeoCube.h"
 #include "pzgeoelbc.h"
+#include "tpzgeoelrefpattern.h"
 
 using namespace std;
 using namespace pzshape;
+using namespace pzgeom;
 
 /**
  * @addtogroup Tutorials
@@ -94,18 +98,20 @@ int main(int argc, char *argv[]) {
     
 	TPZVec<REAL> ervec(100,0.0);
 	// Printing computed errors
-	fileerrors << "Approximation Error: " << std::endl;
+	fileerrors << "Approximation Error - Shock problem: " << std::endl;
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 10;
+	int nref, NRefs = 8;
 	int nthread, NThreads = 4;
 	int dim = 3;
-    for(int typeel=0;typeel<1;typeel++) {
-        for(nref=0;nref<NRefs;nref++) {
-            for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+		fileerrors << "Type of refinement: " << ntyperefs+1 << " Level. " << endl;
+		for(int typeel=0;typeel<5;typeel++) {
+			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-four prisms, 2-four pyramids,3-two tetrahedras, two prisms, one pyramid, 4-three prisms." << endl;
+			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 6) nthread = 2*NThreads;
-				else nthread = 2;
+				else nthread = NThreads;
 				
 				// Initializing the generation mesh process
 				time(&sttime);
@@ -382,20 +388,175 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 		int index;
 		elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
 	}
+	TPZVec<TPZGeoEl *> sub;
+	if(typeel == 1) {  // hexahedron -> four prisms
+		// Dividing hexahedron in prisms
+		std::string filename = REFPATTERNDIR;
+		filename += "/3D_Hexa_directional_2faces.rpt";
+		
+		TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+		if(!gRefDBase.FindRefPattern(refpat))
+		{
+			gRefDBase.InsertRefPattern(refpat);
+		}
+		TPZGeoEl *gel = gmesh->ElementVec()[0];
+		TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+		gelrp->SetRefPattern(refpat);
+		gel->Divide(sub);
+	}
+	else if(typeel == 2) {
+		// Dividing hexahedron in four pyramids
+		std::string filename = REFPATTERNDIR;
+		filename += "/3D_Hexa_Rib_Side_08.rpt";
+		
+		TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+		if(!gRefDBase.FindRefPattern(refpat))
+		{
+			gRefDBase.InsertRefPattern(refpat);
+		}
+		TPZGeoEl *gel = gmesh->ElementVec()[0];
+		TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+		gelrp->SetRefPattern(refpat);
+		gel->Divide(sub);
+	}
+	else if(typeel == 3) {
+		// Dividing hexahedron in two tetrahedras, two prisms and one pyramid
+		std::string filename = REFPATTERNDIR;
+		filename += "/3D_Hexa_Rib_Side_16_17_18.rpt";
+		
+		TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+		if(!gRefDBase.FindRefPattern(refpat))
+		{
+			gRefDBase.InsertRefPattern(refpat);
+		}
+		TPZGeoEl *gel = gmesh->ElementVec()[0];
+		TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+		gelrp->SetRefPattern(refpat);
+		gel->Divide(sub);
+	}
+	else if(typeel == 4) {  // hexahedron -> three prisms
+		// Dividing hexahedron in prisms
+		std::string filename = REFPATTERNDIR;
+		filename += "/3D_Hexa_Rib_Side_16_18.rpt";
+		
+		TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+		if(!gRefDBase.FindRefPattern(refpat))
+		{
+			gRefDBase.InsertRefPattern(refpat);
+		}
+		TPZGeoEl *gel = gmesh->ElementVec()[0];
+		TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+		gelrp->SetRefPattern(refpat);
+		gel->Divide(sub);
+	}
 	gmesh->BuildConnectivity();
 	
-	// face 0 (20) bottom XY - face 1 (21) lateral left XZ - face 4 (24) lateral back YZ : Dirichlet
-	TPZGeoElBC gbc10(gmesh->ElementVec()[0],20,-1);
-	TPZGeoElBC gbc11(gmesh->ElementVec()[0],21,-1);
-	TPZGeoElBC gbc12(gmesh->ElementVec()[0],24,-1);
-	
-	// face 2 (22) Neumann - Partial derivative (du/dx) - lateral front
-	TPZGeoElBC gbc13(gmesh->ElementVec()[0],22,-2);
-	// face 3 (23) Neumann - Partial derivative (du/dy) - lateral right
-	TPZGeoElBC gbc14(gmesh->ElementVec()[0],23,-3);
-	// face 5 (25) Neumann - Partial derivative (du/dz) - top
-	TPZGeoElBC gbc15(gmesh->ElementVec()[0],25,-4);
-
+	switch(typeel) {
+		case 0:
+		{
+			// face 0 (20) bottom XY - face 1 (21) lateral left XZ - face 4 (24) lateral back YZ : Dirichlet
+			TPZGeoElBC gbc10(gmesh->ElementVec()[0],20,-1);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[0],21,-1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[0],24,-1);
+			
+			// face 2 (22) Neumann - Partial derivative (du/dx) - lateral front
+			TPZGeoElBC gbc13(gmesh->ElementVec()[0],22,-2);
+			// face 3 (23) Neumann - Partial derivative (du/dy) - lateral right
+			TPZGeoElBC gbc14(gmesh->ElementVec()[0],23,-3);
+			// face 5 (25) Neumann - Partial derivative (du/dz) - top
+			TPZGeoElBC gbc15(gmesh->ElementVec()[0],25,-4);
+		}
+			break;
+		case 1:
+		{
+			// First sub element - faces: 15, 16, 18 and 19
+			TPZGeoElBC gbc10(gmesh->ElementVec()[1],15,-1);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[1],16,-1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[1],18,-1);
+			TPZGeoElBC gbc13(gmesh->ElementVec()[1],19,-3);
+			// Second sub element - faces: 15 and 19
+			TPZGeoElBC gbc20(gmesh->ElementVec()[2],15,-1);
+			TPZGeoElBC gbc21(gmesh->ElementVec()[2],19,-3);
+			// Third sub element - faces: 15, 16, 17 and 19
+			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
+			TPZGeoElBC gbc31(gmesh->ElementVec()[3],17,-2);
+			TPZGeoElBC gbc32(gmesh->ElementVec()[3],18,-4);
+			TPZGeoElBC gbc33(gmesh->ElementVec()[3],19,-3);
+			// Fouthrd sub element - faces: 15, 17, 18 and 19
+			TPZGeoElBC gbc40(gmesh->ElementVec()[4],15,-1);
+			TPZGeoElBC gbc41(gmesh->ElementVec()[4],17,-4);
+			TPZGeoElBC gbc42(gmesh->ElementVec()[4],18,-1);
+			TPZGeoElBC gbc43(gmesh->ElementVec()[4],19,-3);
+			gmesh->ElementVec()[1]->Divide(sub);
+			gmesh->ElementVec()[3]->Divide(sub);
+		}
+			break;
+		case 2:
+		{
+			// First sub element - faces: 13, 14 and 17
+			TPZGeoElBC gbc10(gmesh->ElementVec()[1],13,-2);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[1],14,-1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[1],17,-1);
+			// Second sub element - faces: 13 and 14
+			TPZGeoElBC gbc20(gmesh->ElementVec()[2],13,-3);
+			TPZGeoElBC gbc21(gmesh->ElementVec()[2],14,-1);
+			// Third sub element - faces: 13, 14 and 17
+			TPZGeoElBC gbc30(gmesh->ElementVec()[3],13,-1);
+			TPZGeoElBC gbc31(gmesh->ElementVec()[3],14,-1);
+			TPZGeoElBC gbc32(gmesh->ElementVec()[3],17,-1);
+			// Fouthrd sub element - faces: 13 and 14
+			TPZGeoElBC gbc40(gmesh->ElementVec()[4],13,-4);
+			TPZGeoElBC gbc41(gmesh->ElementVec()[4],14,-1);
+		}
+			break;
+		case 3:
+		{
+			// First sub element - faces: 10, 11 and 13
+			TPZGeoElBC gbc10(gmesh->ElementVec()[1],10,-4);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[1],11,-1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[1],13,-2);
+			// Second sub element - faces: 10, 11 and 13
+			TPZGeoElBC gbc20(gmesh->ElementVec()[2],10,-4);
+			TPZGeoElBC gbc21(gmesh->ElementVec()[2],11,-2);
+			TPZGeoElBC gbc22(gmesh->ElementVec()[2],13,-3);
+			// Third sub element - faces: 15, 16, 18 and 19
+			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-3);
+			TPZGeoElBC gbc31(gmesh->ElementVec()[3],16,-1);
+			TPZGeoElBC gbc32(gmesh->ElementVec()[3],18,-4);
+			TPZGeoElBC gbc33(gmesh->ElementVec()[3],19,-1);
+			// Fouthrd sub element - faces: 15, 18 and 19
+			TPZGeoElBC gbc40(gmesh->ElementVec()[4],15,-1);
+			TPZGeoElBC gbc41(gmesh->ElementVec()[4],18,-1);
+			TPZGeoElBC gbc42(gmesh->ElementVec()[4],19,-3);
+			// Fifth sub element - faces: 13 and 15
+			TPZGeoElBC gbc50(gmesh->ElementVec()[5],13,-2);
+			TPZGeoElBC gbc51(gmesh->ElementVec()[5],15,-4);
+			gmesh->ElementVec()[3]->Divide(sub);
+			gmesh->ElementVec()[4]->Divide(sub);
+		}
+			break;
+		case 4:
+		{
+			// First sub element - faces: 15, 16, 18 and 19
+			TPZGeoElBC gbc10(gmesh->ElementVec()[1],15,-3);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[1],16,-1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[1],18,-4);
+			TPZGeoElBC gbc13(gmesh->ElementVec()[1],19,-1);
+			// Second sub element - faces: 15, 16, 18 and 19
+			TPZGeoElBC gbc20(gmesh->ElementVec()[2],15,-1);
+			TPZGeoElBC gbc21(gmesh->ElementVec()[2],16,-2);
+			TPZGeoElBC gbc22(gmesh->ElementVec()[2],18,-4);
+			TPZGeoElBC gbc23(gmesh->ElementVec()[2],19,-3);
+			// Third sub element - faces: 15, 17 and 19
+			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
+			TPZGeoElBC gbc31(gmesh->ElementVec()[3],17,-1);
+			TPZGeoElBC gbc32(gmesh->ElementVec()[3],19,-3);
+			gmesh->ElementVec()[1]->Divide(sub);
+			gmesh->ElementVec()[2]->Divide(sub);
+			gmesh->ElementVec()[3]->Divide(sub);
+		}
+			break;
+	}
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
@@ -404,7 +565,7 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 	TPZManVector<REAL> point(3,-0.25);
-	REAL r = sqrt(3.0), radius = .6;
+	REAL r = sqrt(3.0), radius = .9;
 	int i;
 	bool isdefined = true;
 	if(ntyperefs) {
@@ -416,7 +577,6 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.5;
 		}
 	}
 	else {

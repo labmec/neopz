@@ -117,15 +117,17 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref, NRefs = 10;
-	int nthread, NThreads = 4;
+	int nref, NRefs = 9;
+	int nthread, NThreads = 3;
 	int dim = 2;
 	
-	for(int typeel=1;typeel<2;typeel++) {
-        for(nref=1;nref<NRefs;nref++) {
-            for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-				if(nref > 5) nthread = NThreads;
-				else nthread = 2;
+	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+		fileerrors << "Type of refinement: " << ntyperefs+1 << " Level. " << endl;
+		for(int typeel=0;typeel<2;typeel++) {
+			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
+			for(nref=1;nref<NRefs;nref++) {
+				if(nref > 5) nthread = 2*NThreads;
+				else nthread = NThreads;
 				
 				// Initializing the generation mesh process
 				time (& sttime);

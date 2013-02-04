@@ -7,5 +7,6 @@ file(GLOB sources *.cpp)
 
 set(pzrefine_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
 
+# files with description of the refinement patterns
 
 add_subdirectory(RefPatterns)
