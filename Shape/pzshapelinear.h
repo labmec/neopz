@@ -65,6 +65,11 @@ namespace pzshape {
 		static void Legendre(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
 		/**
+		 * @brief Jacobi orthogonal polynomials
+		 */
+		static void Jacobi(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
+		
+		/**
 		 * @brief Legendre function computing several derivatives.
 		 * @see Legendre(Real, int, TPZFMatrix, TPZFMatrix)
 		 */

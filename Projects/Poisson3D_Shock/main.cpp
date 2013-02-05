@@ -573,7 +573,9 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.3;
+			if(nref < 5) radius *= 0.3;
+			else if(nref < 7) radius *= 0.2;
+			else radius *= 0.1;
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
@@ -583,7 +585,9 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 		for(i=0;i<nref+1;i++) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.5;
+			if(nref < 5) radius *= 0.5;
+			else if(nref < 7) radius *= 0.25;
+			else radius *= 0.1;
 		}
 	}
 	// Constructing connectivities

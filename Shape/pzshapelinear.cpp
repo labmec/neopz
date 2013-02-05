@@ -129,6 +129,9 @@ namespace pzshape {
 		
 	} //end of method
 	
+	void TPZShapeLinear::Jacobi(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	}
+	
 	// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
 	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Chebyshev;
 	

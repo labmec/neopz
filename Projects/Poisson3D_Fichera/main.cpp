@@ -30,9 +30,13 @@
 #include "pzlog.h"
 
 #include "pzgeoelbc.h"
+#include "TPZGeoCube.h"
+
+#include "tpzgeoelrefpattern.h"
 
 using namespace std;
 using namespace pzshape;
+using namespace pzgeom;
 
 /**
  * @addtogroup Tutorials
@@ -101,13 +105,13 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 8;
+	int nref, NRefs = 2;
 	int nthread, NThreads = 3;
 	int dim = 3;
 	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
-		for(int typeel=0;typeel<1;typeel++) {
-			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-four prisms, 2-four pyramids,3-two tetrahedras, two prisms, one pyramid, 4-three prisms." << endl;
+		for(int typeel=0;typeel<3;typeel++) {
+			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-three prisms, 2-four pyramids." << endl;
 			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 4) nthread = 2*NThreads;
 				else nthread = NThreads;
@@ -430,10 +434,128 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 			delete gmesh->ElementVec()[7];
 			break;
 		case 1:
-		// Refinar todo elemento cubo como dois prismas
+		{
+			gmesh->ElementVec()[0]->Divide(sub);
+			gmesh->ResetConnectivities();
+			gmesh->BuildConnectivity();
+			// Dividing hexahedron in three prisms
+			// First the hexahedra with z < 0
+			std::string filename = REFPATTERNDIR;
+			filename += "/3D_Hexa_Rib_Side_16_18.rpt";
+			
+			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+			if(!gRefDBase.FindRefPattern(refpat))
+			{
+				gRefDBase.InsertRefPattern(refpat);
+			}
+			TPZGeoElRefPattern <TPZGeoCube> *gelrp;
+			TPZGeoEl *gel;
+			for(int i=1;i<5;i++) {
+				if(i==7) i++;
+				gel = gmesh->ElementVec()[i];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+			}
+			// Second the hexahedra with z > 0
+			filename = REFPATTERNDIR;
+			filename += "/3D_Hexa_Rib_Side_8_10.rpt";
+			
+			TPZAutoPointer<TPZRefPattern> refpat2 = new TPZRefPattern(filename);
+			if(!gRefDBase.FindRefPattern(refpat2))
+			{
+				gRefDBase.InsertRefPattern(refpat2);
+			}
+			for(int i=5;i<9;i++) {
+				if(i==7) i++;
+				gel = gmesh->ElementVec()[i];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat2);
+				gel->Divide(sub);
+			}
+			// DELETING A CUBE 6th
+			delete gmesh->ElementVec()[7];
+		}
 			break;
 		case 2:
-			// Refinar todo elemento cubo como tres piramides
+			{
+				gmesh->ElementVec()[0]->Divide(sub);
+				gmesh->ResetConnectivities();
+				gmesh->BuildConnectivity();
+				// Dividing hexahedron in four pyramids
+				TPZGeoElRefPattern <TPZGeoCube> *gelrp;
+				TPZGeoEl *gel;
+				TPZAutoPointer<TPZRefPattern> refpat;
+				std::string filename;
+				filename = REFPATTERNDIR;
+				filename += "/3D_Hexa_Rib_Side_14.rpt";
+				
+				refpat = new TPZRefPattern(filename);
+				if(!gRefDBase.FindRefPattern(refpat))
+				{
+					gRefDBase.InsertRefPattern(refpat);
+				}
+				gel = gmesh->ElementVec()[1];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+				gel = gmesh->ElementVec()[2];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+
+				filename = REFPATTERNDIR;
+				filename += "/3D_Hexa_Rib_Side_12.rpt";
+				
+				refpat = new TPZRefPattern(filename);
+				if(!gRefDBase.FindRefPattern(refpat))
+				{
+					gRefDBase.InsertRefPattern(refpat);
+				}
+				gel = gmesh->ElementVec()[3];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+				gel = gmesh->ElementVec()[4];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+
+				filename = REFPATTERNDIR;
+				filename += "/3D_Hexa_Rib_Side_10.rpt";
+				
+				refpat = new TPZRefPattern(filename);
+				if(!gRefDBase.FindRefPattern(refpat))
+				{
+					gRefDBase.InsertRefPattern(refpat);
+				}
+				gel = gmesh->ElementVec()[5];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+				gel = gmesh->ElementVec()[6];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+
+				filename = REFPATTERNDIR;
+				filename += "/3D_Hexa_Rib_Side_08.rpt";
+				
+				refpat = new TPZRefPattern(filename);
+				if(!gRefDBase.FindRefPattern(refpat))
+				{
+					gRefDBase.InsertRefPattern(refpat);
+				}
+				gel = gmesh->ElementVec()[8];
+				gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+				gelrp->SetRefPattern(refpat);
+				gel->Divide(sub);
+
+				gmesh->ResetConnectivities();
+				gmesh->BuildConnectivity();
+				// DELETING A CUBE 6th
+				delete gmesh->ElementVec()[7];
+			}
 			break;
 		case 3:
 			// Refinar todo elemento cubo como quatro tetrahedros
@@ -446,36 +568,112 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 	switch(problem) {
 		case 1:
 		{
-			// bottom condition
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],20,-1);
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],20,-1);
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],20,-1);
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],20,-1);
-			// face 1 lateral left
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],21,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],21,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[5],21,-1);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[6],21,-1);
-			// face 2 lateral front
-			TPZGeoElBC gbc12(gmesh->ElementVec()[2],22,-1);
-			TPZGeoElBC gbc22(gmesh->ElementVec()[3],22,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[6],22,-1);
-			TPZGeoElBC gbc42(gmesh->ElementVec()[8],22,-1);
-			// face 3 lateral right
-			TPZGeoElBC gbc13(gmesh->ElementVec()[3],23,-1);
-			TPZGeoElBC gbc23(gmesh->ElementVec()[4],23,-1);
-			TPZGeoElBC gbc33(gmesh->ElementVec()[6],23,-1);
-			TPZGeoElBC gbc43(gmesh->ElementVec()[8],23,-1);
-			// face 4 lateral back
-			TPZGeoElBC gbc14(gmesh->ElementVec()[1],24,-1);
-			TPZGeoElBC gbc24(gmesh->ElementVec()[4],24,-1);
-			TPZGeoElBC gbc34(gmesh->ElementVec()[5],24,-1);
-			TPZGeoElBC gbc44(gmesh->ElementVec()[8],24,-1);
-			// top condition
-			TPZGeoElBC gbc15(gmesh->ElementVec()[3],25,-1);
-			TPZGeoElBC gbc25(gmesh->ElementVec()[5],25,-1);
-			TPZGeoElBC gbc35(gmesh->ElementVec()[6],25,-1);
-			TPZGeoElBC gbc45(gmesh->ElementVec()[8],25,-1);
+			// All boundary conditions are Dirichlet
+			if(typeel==2) {    // Pyramids
+				TPZGeoElBC gbc10(gmesh->ElementVec()[10],13,-1);
+				TPZGeoElBC gbc11(gmesh->ElementVec()[11],13,-1);
+				TPZGeoElBC gbc12(gmesh->ElementVec()[12],13,-1);
+				TPZGeoElBC gbc13(gmesh->ElementVec()[13],13,-1);
+				TPZGeoElBC gbc14(gmesh->ElementVec()[14],13,-1);
+				TPZGeoElBC gbc15(gmesh->ElementVec()[16],13,-1);
+				TPZGeoElBC gbc16(gmesh->ElementVec()[17],13,-1);
+				TPZGeoElBC gbc17(gmesh->ElementVec()[17],16,-1);
+				TPZGeoElBC gbc18(gmesh->ElementVec()[18],13,-1);
+				TPZGeoElBC gbc19(gmesh->ElementVec()[18],16,-1);
+				TPZGeoElBC gbc20(gmesh->ElementVec()[19],16,-1);
+				TPZGeoElBC gbc21(gmesh->ElementVec()[20],13,-1);
+				TPZGeoElBC gbc22(gmesh->ElementVec()[22],13,-1);
+				TPZGeoElBC gbc23(gmesh->ElementVec()[23],13,-1);
+				TPZGeoElBC gbc24(gmesh->ElementVec()[24],13,-1);
+				TPZGeoElBC gbc25(gmesh->ElementVec()[26],13,-1);
+				TPZGeoElBC gbc26(gmesh->ElementVec()[27],13,-1);
+				TPZGeoElBC gbc27(gmesh->ElementVec()[28],13,-1);
+				TPZGeoElBC gbc28(gmesh->ElementVec()[29],13,-1);
+				TPZGeoElBC gbc29(gmesh->ElementVec()[29],15,-1);
+				TPZGeoElBC gbc30(gmesh->ElementVec()[30],13,-1);
+				TPZGeoElBC gbc32(gmesh->ElementVec()[31],15,-1);
+				TPZGeoElBC gbc33(gmesh->ElementVec()[32],13,-1);
+				TPZGeoElBC gbc34(gmesh->ElementVec()[32],16,-1);
+				TPZGeoElBC gbc35(gmesh->ElementVec()[33],13,-1);
+				TPZGeoElBC gbc36(gmesh->ElementVec()[34],13,-1);
+				TPZGeoElBC gbc37(gmesh->ElementVec()[35],13,-1);
+				TPZGeoElBC gbc38(gmesh->ElementVec()[36],13,-1);
+			}
+			else if(typeel==1) {            // Case in three Prisms
+				TPZGeoElBC gbc10(gmesh->ElementVec()[9],16,-1);
+				TPZGeoElBC gbc11(gmesh->ElementVec()[9],19,-1);
+				TPZGeoElBC gbc12(gmesh->ElementVec()[10],15,-1);
+				TPZGeoElBC gbc13(gmesh->ElementVec()[11],15,-1);
+				TPZGeoElBC gbc15(gmesh->ElementVec()[11],17,-1);
+				TPZGeoElBC gbc16(gmesh->ElementVec()[12],19,-1);
+				TPZGeoElBC gbc17(gmesh->ElementVec()[13],15,-1);
+				TPZGeoElBC gbc18(gmesh->ElementVec()[13],16,-1);
+				TPZGeoElBC gbc19(gmesh->ElementVec()[14],15,-1);
+				TPZGeoElBC gbc20(gmesh->ElementVec()[14],17,-1);
+				TPZGeoElBC gbc21(gmesh->ElementVec()[15],15,-1);
+				TPZGeoElBC gbc22(gmesh->ElementVec()[15],18,-1);
+				TPZGeoElBC gbc23(gmesh->ElementVec()[16],16,-1);
+				TPZGeoElBC gbc41(gmesh->ElementVec()[16],18,-1);
+				TPZGeoElBC gbc42(gmesh->ElementVec()[16],19,-1);
+				TPZGeoElBC gbc24(gmesh->ElementVec()[17],17,-1);
+				TPZGeoElBC gbc25(gmesh->ElementVec()[17],19,-1);
+				TPZGeoElBC gbc26(gmesh->ElementVec()[18],15,-1);
+				TPZGeoElBC gbc27(gmesh->ElementVec()[18],16,-1);
+				TPZGeoElBC gbc28(gmesh->ElementVec()[19],19,-1);
+				TPZGeoElBC gbc29(gmesh->ElementVec()[20],17,-1);
+				TPZGeoElBC gbc43(gmesh->ElementVec()[20],19,-1);
+				TPZGeoElBC gbc30(gmesh->ElementVec()[21],16,-1);
+				TPZGeoElBC gbc44(gmesh->ElementVec()[21],19,-1);
+				TPZGeoElBC gbc45(gmesh->ElementVec()[22],15,-1);
+				TPZGeoElBC gbc31(gmesh->ElementVec()[23],15,-1);
+				TPZGeoElBC gbc32(gmesh->ElementVec()[23],17,-1);
+				TPZGeoElBC gbc34(gmesh->ElementVec()[24],15,-1);
+				TPZGeoElBC gbc46(gmesh->ElementVec()[24],19,-1);
+				TPZGeoElBC gbc47(gmesh->ElementVec()[25],15,-1);
+				TPZGeoElBC gbc35(gmesh->ElementVec()[25],16,-1);
+				TPZGeoElBC gbc48(gmesh->ElementVec()[25],19,-1);
+				TPZGeoElBC gbc49(gmesh->ElementVec()[26],15,-1);
+				TPZGeoElBC gbc50(gmesh->ElementVec()[26],17,-1);
+				TPZGeoElBC gbc36(gmesh->ElementVec()[26],19,-1);
+				TPZGeoElBC gbc51(gmesh->ElementVec()[27],15,-1);
+				TPZGeoElBC gbc52(gmesh->ElementVec()[27],16,-1);
+				TPZGeoElBC gbc38(gmesh->ElementVec()[28],16,-1);
+				TPZGeoElBC gbc54(gmesh->ElementVec()[28],19,-1);
+				TPZGeoElBC gbc40(gmesh->ElementVec()[29],17,-1);
+				TPZGeoElBC gbc55(gmesh->ElementVec()[29],19,-1);
+			}
+			else {
+				// bottom condition
+				TPZGeoElBC gbc10(gmesh->ElementVec()[1],20,-1);
+				TPZGeoElBC gbc20(gmesh->ElementVec()[2],20,-1);
+				TPZGeoElBC gbc30(gmesh->ElementVec()[3],20,-1);
+				TPZGeoElBC gbc40(gmesh->ElementVec()[4],20,-1);
+				// face 1 lateral left
+				TPZGeoElBC gbc11(gmesh->ElementVec()[1],21,-1);
+				TPZGeoElBC gbc21(gmesh->ElementVec()[2],21,-1);
+				TPZGeoElBC gbc31(gmesh->ElementVec()[5],21,-1);
+				TPZGeoElBC gbc41(gmesh->ElementVec()[6],21,-1);
+				// face 2 lateral front
+				TPZGeoElBC gbc12(gmesh->ElementVec()[2],22,-1);
+				TPZGeoElBC gbc22(gmesh->ElementVec()[3],22,-1);
+				TPZGeoElBC gbc32(gmesh->ElementVec()[6],22,-1);
+				TPZGeoElBC gbc42(gmesh->ElementVec()[8],22,-1);
+				// face 3 lateral right
+				TPZGeoElBC gbc13(gmesh->ElementVec()[3],23,-1);
+				TPZGeoElBC gbc23(gmesh->ElementVec()[4],23,-1);
+				TPZGeoElBC gbc33(gmesh->ElementVec()[6],23,-1);
+				TPZGeoElBC gbc43(gmesh->ElementVec()[8],23,-1);
+				// face 4 lateral back
+				TPZGeoElBC gbc14(gmesh->ElementVec()[1],24,-1);
+				TPZGeoElBC gbc24(gmesh->ElementVec()[4],24,-1);
+				TPZGeoElBC gbc34(gmesh->ElementVec()[5],24,-1);
+				TPZGeoElBC gbc44(gmesh->ElementVec()[8],24,-1);
+				// top condition
+				TPZGeoElBC gbc15(gmesh->ElementVec()[3],25,-1);
+				TPZGeoElBC gbc25(gmesh->ElementVec()[5],25,-1);
+				TPZGeoElBC gbc35(gmesh->ElementVec()[6],25,-1);
+				TPZGeoElBC gbc45(gmesh->ElementVec()[8],25,-1);
+			}
 		}
 		break;
 		case 2:
@@ -522,7 +720,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 	TPZManVector<REAL> point(3,0.);
-	REAL r = 0.0, radius = 0.7;
+	REAL r = 0.0, radius = 1.2;
 	int i;
 	bool isdefined = false;
 	if(ntyperefs==2) {
@@ -530,7 +728,9 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.4;
+			if(nref < 5) radius *= 0.4;
+			else if(nref < 7) radius *= 0.2;
+			else radius *= 0.1;
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
@@ -540,7 +740,9 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 		for(i=0;i<nref+1;i++) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.6;
+			if(nref < 5) radius *= 0.6;
+			else if(nref < 7) radius *= 0.3;
+			else radius *= 0.15;
 		}
 	}
 	// Constructing connectivities
