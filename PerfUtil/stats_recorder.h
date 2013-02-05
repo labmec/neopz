@@ -259,6 +259,187 @@ class RUsageRunStat : public RunStat
 
 #endif
 
+#ifdef HAS_LIBPFM
+//#include <perfmon/pfmlib_perf_event.h>
+//#include "perf_util.h"
+
+/*
+  TODO:
+  1- Initialize the libpfm
+  ret = pfm_initialize();
+  if (ret != PFM_SUCCESS) error;
+
+ */
+
+class LIBPFMCounter 
+{
+ Public:
+
+ private:
+  perf_event_desc_t event;
+
+};
+
+class LIBPFMRunStat : public RunStat
+{
+ private:
+
+  bool counters_enabled;
+  bool counters_created;
+  vector<perf_event_desc_t> counters;
+
+ public:
+
+ LIBPFMRunStat() : 
+  counters_enable(false), counters_created(false)
+    {
+      clearStats();
+    }
+
+  /* Start recording the execution statistics. */
+  void start()
+  {
+    // Check whether libpfm was properly initialized.
+    if (!libpfm_man.ok()) return;
+    
+    // Create counters
+    for (int i=0; i<counters.size(); i++) {
+      fds[i].hw.read_format = PERF_FORMAT_SCALE;
+      fds[i].hw.disabled = 1; /* do not start now */
+      /* each event is in an independent group (multiplexing likely) */
+      fds[i].fd = perf_event_open(&fds[i].hw, 0, -1, -1, 0);
+      if (fds[i].fd == -1)
+	err(1, "cannot open event %d", i);
+    }
+
+    counters_created;
+
+    // Enable counters attached to this thread
+    if (prctl(PR_TASK_PERF_EVENTS_ENABLE)) {
+      // ERROR(prctl(enable) failed)
+      
+    }
+    counters_enable = true;
+  }
+
+  /* Stop recording the execution statistics. */
+  void stop()
+  {
+    if (counters_enable != true) return;
+    if (prctl(PR_TASK_PERF_EVENTS_DISABLE)) {
+      // ERROR (prctl(disable) failed)
+      
+
+
+    //struct rusage self, children;
+    //getrusage(RUSAGE_SELF, &self);
+    //getrusage(RUSAGE_CHILDREN, &children);
+    //#define SET_TOTAL(fld) total_self.fld += (self.fld - lap_self.fld); total_children.fld += (children.fld - lap_children.fld)
+    ////struct timeval ru_utime; /* user time used */
+    ////struct timeval ru_stime; /* system time used */
+    //SET_TOTAL(ru_maxrss);          /* integral max resident set size */
+    //SET_TOTAL(ru_ixrss);           /* integral shared text memory size */
+    //SET_TOTAL(ru_idrss);           /* integral unshared data size */
+    //SET_TOTAL(ru_isrss);           /* integral unshared stack size */
+    //SET_TOTAL(ru_minflt);          /* page reclaims */
+    //SET_TOTAL(ru_majflt);          /* page faults */
+    //SET_TOTAL(ru_nswap);           /* swaps */
+    //SET_TOTAL(ru_inblock);         /* block input operations */
+    //SET_TOTAL(ru_oublock);         /* block output operations */
+    //SET_TOTAL(ru_msgsnd);          /* messages sent */
+    //SET_TOTAL(ru_msgrcv);          /* messages received */
+    //SET_TOTAL(ru_nsignals);        /* signals received */
+    //SET_TOTAL(ru_nvcsw);           /* voluntary context switches */
+    //SET_TOTAL(ru_nivcsw);          /* involuntary context switches */
+  }
+
+  /**
+   * Print the statistics.
+   * TODO: create a table, update it, and print the table.
+   */
+  void print(ostream& os) const
+  {
+//    stringstream header;
+//    stringstream values;
+//#define PRINT_FLD(hd,fld) header << ",SELF_" << hd << ",CHD_" << hd; values << "," << total_self.fld << "," << total_children.fld
+//
+//    //struct timeval ru_utime; /* user time used */
+//    //struct timeval ru_stime; /* system time used */
+//    PRINT_FLD("RU_MAXRSS",ru_maxrss);          /* integral max resident set size */
+//    PRINT_FLD("RU_IXRSS",ru_ixrss);           /* integral shared text memory size */
+//    PRINT_FLD("RU_IDRSS",ru_idrss);           /* integral unshared data size */
+//    PRINT_FLD("RU_ISRSS",ru_isrss);           /* integral unshared stack size */
+//    PRINT_FLD("RU_MINFLT",ru_minflt);          /* page reclaims */
+//    PRINT_FLD("RU_MAJFLT",ru_majflt);          /* page faults */
+//    PRINT_FLD("RU_NSWAP",ru_nswap);           /* swaps */
+//    PRINT_FLD("RU_INBLOCK",ru_inblock);         /* block input operations */
+//    PRINT_FLD("RU_OUBLOCK",ru_oublock);         /* block output operations */
+//    PRINT_FLD("RU_MSGND",ru_msgsnd);          /* messages sent */
+//    PRINT_FLD("RU_MSGRCV",ru_msgrcv);          /* messages received */
+//    PRINT_FLD("RU_NSIGNAL",ru_nsignals);        /* signals received */
+//    PRINT_FLD("RU_NVCSW",ru_nvcsw);           /* voluntary context switches */
+//    PRINT_FLD("RU_NIVSW",ru_nivcsw);          /* involuntary context switches */
+//    os << "HEADERS" << header.str() << endl;
+//    os << "VALUES" << values.str() << endl;
+  }
+
+  /**
+   * Append metrics to the statistics table.  The idea is to keep one
+   * table for each segment of code. New runs are appended to the
+   * table.  
+   * Returns: the new_row number if Ok 
+   *          the setCell error code (< 0) if Error.
+  */
+  int setCellValues(CSVStringTable& st, unsigned row) const 
+  {
+//    if (st.nRows() <= row) return -1;
+//
+//#define APPEND_LONG_FLD(hd,fld)						\
+//    { int ret; string header("SELF_"); header += hd;			\
+//      if ((ret = st.setCell(row, header, total_self.fld, true)))	\
+//	return ret;							\
+//      header = "CHD_"; header += hd;					\
+//      if ((ret = st.setCell(row, header, total_children.fld, true)))	\
+//	return ret;							\
+//    }
+//
+//    //struct timeval ru_utime; /* user time used */
+//    //struct timeval ru_stime; /* system time used */
+//    APPEND_LONG_FLD("RU_MAXRSS",ru_maxrss);          /* integral max resident set size */
+//    APPEND_LONG_FLD("RU_IXRSS",ru_ixrss);           /* integral shared text memory size */
+//    APPEND_LONG_FLD("RU_IDRSS",ru_idrss);           /* integral unshared data size */
+//    APPEND_LONG_FLD("RU_ISRSS",ru_isrss);           /* integral unshared stack size */
+//    APPEND_LONG_FLD("RU_MINFLT",ru_minflt);          /* page reclaims */
+//    APPEND_LONG_FLD("RU_MAJFLT",ru_majflt);          /* page faults */
+//    APPEND_LONG_FLD("RU_NSWAP",ru_nswap);           /* swaps */
+//    APPEND_LONG_FLD("RU_INBLOCK",ru_inblock);         /* block input operations */
+//    APPEND_LONG_FLD("RU_OUBLOCK",ru_oublock);         /* block output operations */
+//    APPEND_LONG_FLD("RU_MSGND",ru_msgsnd);          /* messages sent */
+//    APPEND_LONG_FLD("RU_MSGRCV",ru_msgrcv);          /* messages received */
+//    APPEND_LONG_FLD("RU_NSIGNAL",ru_nsignals);        /* signals received */
+//    APPEND_LONG_FLD("RU_NVCSW",ru_nvcsw);           /* voluntary context switches */
+//    APPEND_LONG_FLD("RU_NIVSW",ru_nivcsw);          /* involuntary context switches */
+//
+    return 0; // Return ok
+  }
+
+  void clearStats()
+  {
+//    memset(&lap_self, 0, sizeof(lap_self));
+//    memset(&lap_children, 0, sizeof(lap_children));
+//    memset(&total_self, 0, sizeof(total_self));
+//    memset(&total_children, 0, sizeof(total_children));
+  }
+
+ protected:
+
+  //  struct rusage lap_self, lap_children;
+  //  struct rusage total_self, total_children;
+
+};
+
+#endif
+
 #include<pz_gettime.h>
 
 class ElapsedTimeRunStat : public RunStat
@@ -341,6 +522,10 @@ class RunStatsRecorder
   /** Constructor. Create the RunStat items that should be measured. */
   RunStatsRecorder() : n_laps(0)
     {
+#ifdef HAS_LIBPFM
+      /* Add the resource usage statistics. */
+      stat_items.push_back(new LIBPFMRunStat());
+#endif
 #ifdef HAS_GETRUSAGE
       /* Add the resource usage statistics. */
       stat_items.push_back(new RUsageRunStat());

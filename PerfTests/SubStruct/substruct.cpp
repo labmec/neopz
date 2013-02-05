@@ -107,6 +107,8 @@ clarg::argString gen_sig_ckpt2("-gen_c2_md5", "generates MD5 signature for check
 clarg::argString chk_sig_ckpt2("-chk_c2_md5", "compute MD5 signature for checkpoint 2 and check against MD5 at file.", "ckpt2.md5");
 clarg::argString gen_sig_ckpt3("-gen_c3_md5", "generates MD5 signature for checkpoint 3 and dump into file.", "ckpt3.md5");
 clarg::argString chk_sig_ckpt3("-chk_c3_md5", "compute MD5 signature for checkpoint 3 and check against MD5 at file.", "ckpt3.md5");
+clarg::argString gen_sig_ckpt4("-gen_c4_md5", "generates MD5 signature for checkpoint 4 and dump into file.", "ckpt4.md5");
+clarg::argString chk_sig_ckpt4("-chk_c4_md5", "compute MD5 signature for checkpoint 4 and check against MD5 at file.", "ckpt4.md5");
 
 clarg::argString dc1("-dc1", "dump checkpoint 1 to file", "ckpt1.ckpt");
 clarg::argString dc2("-dc2", "dump checkpoint 2 to file", "ckpt2.ckpt");
@@ -119,7 +121,7 @@ clarg::argString mp("-mp", "starts execution from beginning - read a \"malha_pre
 clarg::argInt plevel     ("-p", "plevel", 1);
 clarg::argInt nt_sm("-nt_sm", "Dohr (l1): number of threads to process the submeshes", 0);
 clarg::argInt nt_d("-nt_d", "Dohr (l1): number of threads to decompose each submesh", 0);
-clarg::argInt nt_a("-nt_a", "Pair (l2): number of threads to assemble each submesh", 0);
+clarg::argInt nt_a("-nt_a", "Pair (l2): number of threads to assemble each submesh (multiply by nt_sm)", 0);
 clarg::argBool dohr_tbb("-dohr_tbb", "assemble TPZDohrStructMatrix (level 1) using TBB", false);
 clarg::argBool pair_tbb("-pair_tbb", "assemble TPZPairStructMatrix (level 2) using TBB", false);
 clarg::argInt nt_multiply("-nt_m", "number of threads to multiply", 0);
@@ -141,6 +143,19 @@ RunStatsTable create_rst  ("-cre_rdt", "Create statistics raw data table (step 2
 RunStatsTable assemble_rst("-ass_rdt", "Assemble statistics raw data table (step 3)");
 RunStatsTable precond_rst ("-pre_rdt", "Precond statistics raw data table (step 3)");
 RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table (step 4)");
+
+#ifdef USING_LIKWID
+#define PERF_START(obj)				\
+  likwid_markerStartRegion(#obj);		\
+  obj.start()
+#define PERF_STOP(obj)				\
+  obj.stop();					\
+  likwid_markerStopRegion(#obj)
+#else
+#define PERF_START(obj) obj.start()
+#define PERF_STOP(obj) obj.stop()
+#endif
+
 
 class FileStreamWrapper
 {
@@ -178,7 +193,18 @@ protected:
   TPZBFileStream bfs;  
 };
 
+#ifdef USING_LIKWID
+#include<likwid.h>
 
+struct likwid_manager_t {
+  likwid_manager_t() {
+    likwid_markerInit();
+  }
+  ~likwid_manager_t() {
+    likwid_markerClose();
+  }
+} likwid_manager;
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -188,6 +214,8 @@ int main(int argc, char *argv[])
 #ifdef USING_TBB
     task_scheduler_init init;
 #endif
+
+    int main_ret = EXIT_SUCCESS;
     
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
@@ -218,7 +246,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    total_rst.start();
+    PERF_START(total_rst);
 
     if (pair_tbb.was_set())
       TPZPairStructMatrix::gNumThreads = -1;
@@ -357,9 +385,10 @@ int main(int argc, char *argv[])
     
     /* Work between checkpoint 1 and checkpoint 2 */
     if (running) {
-      create_rst.start();
+
+      PERF_START(create_rst);
       matptr = dohrstruct->Create();
-      create_rst.stop();
+      PERF_STOP(create_rst);
     
       if (dc2.was_set())
       {
@@ -433,21 +462,19 @@ int main(int argc, char *argv[])
     if (running) 
     {
 
-      assemble_rst.start();
+      PERF_START(assemble_rst);
       TPZAutoPointer<TPZGuiInterface> gui;
       rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
       VERBOSE(1,"dohrstruct->Assemble()" << endl);
       if (dohr_tbb.was_set())
         dohrstruct->AssembleTBB(*matptr,*rhs, gui);
       else
-        dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());
+        dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());      
+      PERF_STOP(assemble_rst);
       
-      assemble_rst.stop();
-      
-      precond_rst.start();
+      PERF_START(precond_rst);
       precond = dohrstruct->Preconditioner();
-      precond_rst.stop();
-      
+      PERF_STOP(precond_rst);
       
       if (dc3.was_set())
       {
@@ -531,9 +558,9 @@ int main(int argc, char *argv[])
       
       cg.SetCG(500,pre,1.e-8,0);
       
-      solve_rst.start();
+      PERF_START(solve_rst);
       cg.Solve(*rhs,diag);
-      solve_rst.stop();
+      PERF_STOP(solve_rst);
     
       TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = 
 	dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
@@ -543,6 +570,37 @@ int main(int argc, char *argv[])
       }
       
       dohrptr->AddInternalSolution(diag);
+
+
+      /* Gen/Check checkpoint 4 MD5 signature? */
+      if (gen_sig_ckpt4.was_set() || chk_sig_ckpt4.was_set())
+      {
+        TPZMD5Stream sig;
+
+	dohrptr->Write(sig, 0);
+	diag.Write(sig, 0);
+	cg.Write(sig, 0);
+        //cmeshauto->Reference()->Write(sig, 0);
+        //cmeshauto->Write(sig, 0);
+        //matptr->Write(sig, 1);
+        //precond->Write(sig, 1);
+        //rhs->Write(sig, 0);
+
+        int ret;
+        if (chk_sig_ckpt4.was_set()) {
+          if ((ret=sig.CheckMD5(chk_sig_ckpt4.get_value()))) {
+            cerr << "ERROR(ret=" << ret << ") : MD5 Signature for checkpoint 4 does not match." << endl;
+	    main_ret = 1;
+          }
+        }
+        if (gen_sig_ckpt4.was_set()) {
+          if ((ret=sig.WriteMD5(gen_sig_ckpt4.get_value()))) {
+            cerr << "ERROR (ret=" << ret << ") when writting ckpt 4 MD5 Signature to file: " 
+                 << gen_sig_ckpt4.get_value() << endl;
+	    main_ret = 2;
+          }
+        }
+      }
       
       typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
       const subtype &sublist = dohrptr->SubStructures(); 
@@ -612,14 +670,13 @@ int main(int argc, char *argv[])
       int istep = 0;
       vtkmesh.DrawMesh(numcases);
       vtkmesh.DrawSolution(istep, 1.);
-      
     }
 
+    PERF_STOP(total_rst);
+      
     if (gmesh != NULL) delete gmesh;
-      
-    total_rst.stop();
-      
-    return EXIT_SUCCESS;
+
+    return main_ret;
 }
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
