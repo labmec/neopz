@@ -102,10 +102,10 @@ int main(int argc, char *argv[]) {
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
 	int nref, NRefs = 8;
-	int nthread, NThreads = 2;
+	int nthread, NThreads = 3;
 	int dim = 3;
-	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-		fileerrors << "Type of refinement: " << ntyperefs+1 << " Level. " << endl;
+	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
+		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
 		for(int typeel=0;typeel<1;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-four prisms, 2-four pyramids,3-two tetrahedras, two prisms, one pyramid, 4-three prisms." << endl;
 			for(nref=0;nref<NRefs;nref++) {
@@ -126,10 +126,10 @@ int main(int argc, char *argv[]) {
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
 				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
-				if(nref == NRefs-1) {
-					sprintf(saida,"gmesh_3DFichera_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
-					PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
-				}
+	//			if(nref == NRefs-1) {
+	//				sprintf(saida,"gmesh_3DFichera_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
+	//				PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+	//			}
 				
 				// Creating computational mesh
 				/** Set polynomial order */
@@ -200,14 +200,14 @@ int main(int argc, char *argv[]) {
 				time_elapsed = endtime - sttime;
 				formatTimeInSec(tempo,time_elapsed);
 				
-				out << "\tRefinement: " << nref << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				// Post processing
 				char pp[3];
 				std::string filename = "Poisson3DSol_";
 				if(problem==1) filename += "S_";
 				else if(problem==2) filename += "R_";
-				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,nref,pinit);
+				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,(nref+1),pinit);
 				filename += pp;
 				filename += ".vtk";
 				
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
 					an.SetExact(ExactSolin);
 				else if(problem==2)
 					an.SetExact(ExactRachowicz);
-				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
+				fileerrors << "Refinement: " << nref+1 << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
 				an.PostProcessError(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
@@ -522,10 +522,10 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 	TPZManVector<REAL> point(3,0.);
-	REAL r = 0.0, radius = 0.9;
+	REAL r = 0.0, radius = 0.7;
 	int i;
 	bool isdefined = false;
-	if(ntyperefs) {
+	if(ntyperefs==2) {
 		for(i=0;i<nref;i+=2) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
@@ -534,7 +534,6 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.6;
 		}
 	}
 	else {

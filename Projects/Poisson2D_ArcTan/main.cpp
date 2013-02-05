@@ -28,7 +28,6 @@
 #include "pzstepsolver.h"
 
 #include "TPZParSkylineStructMatrix.h"
-//#include "TPZParFrontStructMatrix.h"
 #include "pzsbstrmatrix.h"
 #include "pzfstrmatrix.h"
 
@@ -121,8 +120,8 @@ int main() {
 	int nthread, NThreads = 3;
 	int dim = 2;
 	
-	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-		fileerrors << "Type of refinement: " << ntyperefs+1 << " Level. " << endl;
+	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
+		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
 		for(int typeel=0;typeel<2;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
 			for(nref=1;nref<NRefs;nref++) {
@@ -139,10 +138,10 @@ int main() {
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
 				RefiningNearCircunference(dim,gmesh,nref,ntyperefs);
-				if(nref == NRefs-1) {
-					sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
-					PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
-				}
+		//		if(nref == NRefs-1) {
+		//			sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
+		//			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
+		//		}
 				
 				// Creating computational mesh (approximation space and materials)
 				int p = 8, pinit;
@@ -214,12 +213,12 @@ int main() {
 				time_elapsed = endtime - sttime;
 				formatTimeInSec(tempo, time_elapsed);
 				
-				out << "\tRefinement: " << nref << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				// Post processing
 				std::string filename = "Poisson2DSol";
 				char pp[256];
-				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,nref,pinit);
+				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,(nref+1),pinit);
 				filename += pp;
 				filename += ".vtk";
 				
@@ -331,7 +330,7 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 	TPZVec<TPZManVector<REAL> > Points(npoints);
 	GetPointsOnCircunference(npoints,point,r,Points);
 	
-	if(ntyperefs) {
+	if(ntyperefs==2) {
 		REAL radius = 0.19;
 		for(i=0;i<nref;i+=2) {
 			// To refine elements with center near to points than radius
@@ -341,7 +340,6 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 		}
 		if(i==nref) {
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			radius *= 0.4;
 		}
 	}
 	else {

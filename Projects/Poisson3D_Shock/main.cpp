@@ -102,11 +102,11 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 9;
-	int nthread, NThreads = 4;
+	int nref, NRefs = 8;
+	int nthread, NThreads = 2;
 	int dim = 3;
-	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
-		fileerrors << "Type of refinement: " << ntyperefs+1 << " Level. " << endl;
+	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
+		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
 		for(int typeel=0;typeel<5;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-four prisms, 2-four pyramids,3-two tetrahedras, two prisms, one pyramid, 4-three prisms." << endl;
 			for(nref=0;nref<NRefs;nref++) {
@@ -568,7 +568,7 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 	REAL r = sqrt(3.0), radius = .9;
 	int i;
 	bool isdefined = true;
-	if(ntyperefs) {
+	if(ntyperefs == 2) {
 		for(i=0;i<nref;i+=2) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
