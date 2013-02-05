@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 8;
+	int nref, NRefs = 9;
 	int nthread, NThreads = 4;
 	int dim = 3;
 	for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
@@ -121,10 +121,10 @@ int main(int argc, char *argv[]) {
 				// h_refinement
 				// Refining near to the origin
 				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
-				if(nref==NRefs-1) {
-					sprintf(saida,"gmesh_3DShock_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
-					PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
-				}
+			//	if(nref==NRefs-1) {
+			//		sprintf(saida,"gmesh_3DShock_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
+			//		PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+			//	}
 				
 				// Creating computational mesh
 				/** Set polynomial order */
@@ -529,8 +529,8 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 			TPZGeoElBC gbc41(gmesh->ElementVec()[4],18,-1);
 			TPZGeoElBC gbc42(gmesh->ElementVec()[4],19,-3);
 			// Fifth sub element - faces: 13 and 15
-			TPZGeoElBC gbc50(gmesh->ElementVec()[5],13,-2);
-			TPZGeoElBC gbc51(gmesh->ElementVec()[5],15,-4);
+			TPZGeoElBC gbc50(gmesh->ElementVec()[5],14,-2);
+			TPZGeoElBC gbc51(gmesh->ElementVec()[5],16,-4);
 			gmesh->ElementVec()[3]->Divide(sub);
 			gmesh->ElementVec()[4]->Divide(sub);
 		}
