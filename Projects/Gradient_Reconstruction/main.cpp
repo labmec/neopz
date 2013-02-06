@@ -1221,7 +1221,11 @@ void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
     sol[0]=0.;
     
     double x = pt[0];
+#ifdef USING_BOOST
+    sol[0] = 0.05*sqrt(M_PI)*(boost::math::erf(10.*(x-1.)));
+#else
     sol[0] = 0.05*sqrt(M_PI)*erf(10.*(x-1.));
+#endif
     REAL val = -100.*(x-1.)*(x-1.);
     deriv(0,0)=exp(val);
 }
