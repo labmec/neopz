@@ -208,8 +208,12 @@ int main(int argc, char *argv[]) {
         string plotfile2(saidaVTK);
         PosProcessamento(an,cmesh,plotfile2);
 
-		delete cmesh;
-		delete gmesh;
+		//delete cmesh;
+		//delete gmesh;
+        cmesh->CleanUp();
+        delete gmesh;
+
+        
     }
 	erro.close();
     return 0;
@@ -239,7 +243,7 @@ void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref) {
 	REAL r = 0.0;
 	
 	REAL radius = 0.75;
-	for(i=0;i<nref+1;i++) {
+	for(i=0;i<nref;i++) {
 		// To refine elements with center near to points than radius
 		RefineGeoElements(dim,gmesh,point,r,radius);
 		radius *= 0.75;
@@ -518,7 +522,7 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     rhs.Redim(neq,numloadcases);
     
     //TPZBandStructMatrix stmatrix(cmesh);
-	TPZSkylineStructMatrix stmatrix(cmesh);
+    TPZSkylineStructMatrix stmatrix(cmesh);
     TPZMatrix<STATE> *stiffmatrix = stmatrix.Create();
     
     int matid;
@@ -570,6 +574,7 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     
     //Solve linear system and transfer the solution to computational mesh
     TPZStepSolver<REAL> step;
+    //step.SetDirect(ELU);
     step.SetDirect(ELDLt);
     step.SetMatrix(stiffmatrix);
     TPZFMatrix<REAL> result;
@@ -1023,14 +1028,14 @@ TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
-    TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc);
-    TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc);
+    //TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc);
+    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
     
     val2(0,0) =  0.0886226925452758;
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
@@ -1038,8 +1043,8 @@ TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     val2(0,0) =  -0.0886226925452758;
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     
-    BCond0->SetForcingFunction(fCC0);
-    BCond2->SetForcingFunction(fCC2);
+    //BCond0->SetForcingFunction(fCC0);
+    //BCond2->SetForcingFunction(fCC2);
     
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
