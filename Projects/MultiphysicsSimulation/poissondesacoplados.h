@@ -15,16 +15,16 @@
  * @ingroup material
  * @author Agnaldo de Farias
  * @since 10/18/2011
- * @brief DESCRIBE PLEASE
- */
-/**
+ * @brief Contains the TPZMatPoissonDesacoplado class which implements an uncoupled system of the two Poisson equation 
+*/
+/*
  * \f$ fK1 Laplac(u)  = fXf1 ==> Int{fK1 Grad(u).n v}ds - Int{fK1 Grad(u)Grad(v)}dx = Int{fxf1 v}dx   (Eq. 1)  \f$ 
  *
  * \f$ fK2 Laplac(p)  = fXf2  ==> Int{fK2 Grad(p).n v}ds - Int{fK2 Grad(p)Grad(v)}dx = Int{fxf2 v}dx   (Eq. 2) \f$ 
  */
 
 
-class TwoUncoupledPoisson : public TPZDiscontinuousGalerkin {
+class TPZMatPoissonDesacoplado : public TPZDiscontinuousGalerkin {
 
 protected:
 	/** @brief Forcing function value */
@@ -39,15 +39,15 @@ protected:
 	REAL fK2;
 	
 public:
-	TwoUncoupledPoisson();
+	TPZMatPoissonDesacoplado();
 	
-	TwoUncoupledPoisson(int matid, int dim);
+	TPZMatPoissonDesacoplado(int matid, int dim);
 	
-	virtual ~TwoUncoupledPoisson();
+	virtual ~TPZMatPoissonDesacoplado();
 	
 	virtual void Print(std::ostream & out);
 	
-	virtual std::string Name() { return "TwoUncoupledPoisson"; }
+	virtual std::string Name() { return "TPZMatPoissonDesacoplado"; }
 	
 	int Dimension() {return fDim;}
 	

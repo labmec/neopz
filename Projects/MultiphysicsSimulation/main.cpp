@@ -68,8 +68,8 @@ const int interfacemat = 3;
 
 TPZGeoMesh *MalhaGeom(bool interface1);
 
-TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder);
-TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder);
+TPZCompMesh *MalhaCompU(TPZGeoMesh * gmesh,int pOrder);
+TPZCompMesh*MalhaCompP(TPZGeoMesh * gmesh, int pOrder);
 TPZCompMesh *MalhaCompComInterf(TPZGeoMesh * gmesh,int pOrder);
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcess(TPZAnalysis &an, std::string plotfile);
@@ -87,7 +87,7 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
 
 void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
 
-int main2(int argc, char *argv[])
+int main1(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	std::string logs("log4cxx.doubleprojection1d");
@@ -104,12 +104,12 @@ int main2(int argc, char *argv[])
 	
 		
 	// First computational mesh
-	TPZCompMesh * cmesh1= MalhaComp(gmesh,  p);
+	TPZCompMesh * cmesh1= MalhaCompU(gmesh,  p);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
 			
 	// Second computational mesh
-	TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p+1);
+	TPZCompMesh * cmesh2 = MalhaCompP(gmesh, p+1);
 	ofstream arg3("cmesh2.txt");
 	cmesh2->Print(arg3);
 	
@@ -176,7 +176,7 @@ int main2(int argc, char *argv[])
 	mphysics->SetAllCreateFunctionsMultiphysicElem();
 	
 	int MatId = 1;
-	TwoUncoupledPoisson *mymaterial = new TwoUncoupledPoisson(MatId, 2);
+	TPZMatPoissonDesacoplado *mymaterial = new TPZMatPoissonDesacoplado(MatId, 2);
 	mymaterial->SetParameters(-1., -0.1);
 	mymaterial->SetInternalFlux(8.,0.);
 	ofstream argm("mymaterial.txt");
@@ -420,7 +420,7 @@ TPZGeoMesh *MalhaGeom(bool interface1)
 	
 }
 
-TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
+TPZCompMesh*MalhaCompU(TPZGeoMesh * gmesh, int pOrder)
 {
 	/// criar materiais
 	int dim = 2;
@@ -468,7 +468,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	return cmesh;
 }
 
-TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
+TPZCompMesh*MalhaCompP(TPZGeoMesh * gmesh, int pOrder)
 {
 	/// criar materiais
 	int dim = 2;

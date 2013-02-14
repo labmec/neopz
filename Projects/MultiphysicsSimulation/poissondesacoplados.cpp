@@ -1,7 +1,5 @@
+
 /*
- *  LaplacianosDesacoplados.cpp
- *  PZ
- *
  *  Created by Agnaldo on 10/18/11.
  *  Copyright 2011 __MyCompanyName__. All rights reserved.
  *
@@ -17,24 +15,24 @@
 
 using namespace std;
 
-TwoUncoupledPoisson::TwoUncoupledPoisson():TPZDiscontinuousGalerkin(), fXf1(0.), fXf2(0.),fDim(1){
+TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado():TPZDiscontinuousGalerkin(), fXf1(0.), fXf2(0.),fDim(1){
 	fK1 = 1.;
 	fK2 = 1.;
 }
 
-TwoUncoupledPoisson::TwoUncoupledPoisson(int matid, int dim):TPZDiscontinuousGalerkin(matid), fXf1(0.), fXf2(0.),fDim(dim){
+TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado(int matid, int dim):TPZDiscontinuousGalerkin(matid), fXf1(0.), fXf2(0.),fDim(dim){
 	fK1 = 1.;
 	fK2 = 1.;
 }
 
-TwoUncoupledPoisson::~TwoUncoupledPoisson(){
+TPZMatPoissonDesacoplado::~TPZMatPoissonDesacoplado(){
 }
 
-int TwoUncoupledPoisson::NStateVariables() {
+int TPZMatPoissonDesacoplado::NStateVariables() {
 	return 1;
 }
 
-void TwoUncoupledPoisson::Print(std::ostream &out) {
+void TPZMatPoissonDesacoplado::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "Laplace operator multiplier fK  da primeira equacao  "<< fK1 << endl;
 	out << "Laplace operator multiplier fK  da segunda equacao  "<< fK2<< endl;
@@ -45,7 +43,7 @@ void TwoUncoupledPoisson::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatPoissonDesacoplado::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 
 	
 	int nref =  datavec.size();
@@ -54,6 +52,7 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 		DebugStop();
 	}
 	
+    
 	TPZFMatrix<REAL>  &phiu =  datavec[0].phi;
 	TPZFMatrix<REAL> &dphiu = datavec[0].dphix;
 	int phru = phiu.Rows();
@@ -63,7 +62,8 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 	int phrp = phip.Rows();
 	
 	//Equacao de Poisson
-	//primeiro equacao
+	// ------ primeiro equacao ------
+    
 	int kd, in, jn;
 	for(in = 0; in < phru; in++ ) {		
 		ef(in, 0) += weight*fXf1*phiu(in,0); 
@@ -75,7 +75,14 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 		}
 	}
 	
-	//segundo equacao
+	//----- segundo equacao ------
+    
+    if(fForcingFunction) {
+		TPZManVector<STATE> res(1);
+		fForcingFunction->Execute(datavec[1].x,res);
+		fXf2 = res[0];
+	}
+    
 	for(in = 0; in < phrp; in++) {
 		ef(in+phru, 0) += weight*fXf2*phip(in,0); 
 		
@@ -88,7 +95,7 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 
 }
 
-void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
+void TPZMatPoissonDesacoplado::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
 									   TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
 	
 	
@@ -97,10 +104,10 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 		cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
 		DebugStop();
 	}
-	if (bc.Type() > 1 ) {
-		cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
-		DebugStop();
-	}
+//	if (bc.Type() > 1 ) {
+//		cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
+//		DebugStop();
+//	}
 	
 	TPZFMatrix<REAL>  &phiu = datavec[0].phi;
 	TPZFMatrix<REAL>  &phip = datavec[1].phi;
@@ -113,8 +120,9 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 	v2[1] = bc.Val2()(1,0);
 	
 	switch (bc.Type()) {
-		case 0 :			// Dirichlet condition
-			//primeira equacao
+		case 0 : // Dirichlet condition
+			
+            //primeira equacao
 			for(in = 0 ; in < phru; in++) {
 				ef(in,0) += gBigNumber * v2[0]*phiu(in,0)*weight;
 				for (jn = 0 ; jn < phru; jn++) {
@@ -131,7 +139,7 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 			}
 			break;
 			
-		case 1 :			// Neumann condition
+		case 1 : // Neumann condition
 			//primeira equacao
 			for(in = 0 ; in < phru; in++) {
 				ef(in,0) += v2[0] * phiu(in,0) * weight;
@@ -142,11 +150,28 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 				ef(in+phru,0) += v2[1] * phip(in,0) * weight;
 			}
 			break;
+            
+        case 10 : // Neumann-Dirichlet condition
+            
+			//primeira equacao
+			for(in = 0 ; in < phru; in++) {
+				ef(in,0) += v2[0] * phiu(in,0) * weight;
+			}
+			
+			//segunda equacao
+			for(in = 0 ; in < phrp; in++) {
+				ef(in+phru,0) += gBigNumber * v2[1]*phip(in,0)*weight;
+				for (jn = 0 ; jn < phrp; jn++) {
+					ek(in+phru,jn+phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+				}
+			}
+			break;
+
 	}
 		
 }
 
-//void TwoUncoupledPoisson::ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight,
+//void TPZMatPoissonDesacoplado::ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight,
 //                                          TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 //	
 //	TPZFMatrix<REAL> &dphiLdAxesu = datavec[0].dphixl;
@@ -250,7 +275,7 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 //}
 
 /** Returns the variable index associated with the name */
-int TwoUncoupledPoisson::VariableIndex(const std::string &name){
+int TPZMatPoissonDesacoplado::VariableIndex(const std::string &name){
 	if(!strcmp("SolutionU",name.c_str()))        return  1;
 	if(!strcmp("SolutionP",name.c_str()))        return  2;
 	if(!strcmp("DerivateU",name.c_str()))        return  3;
@@ -259,14 +284,14 @@ int TwoUncoupledPoisson::VariableIndex(const std::string &name){
 	return TPZMaterial::VariableIndex(name);
 }
 
-int TwoUncoupledPoisson::NSolutionVariables(int var){
+int TPZMatPoissonDesacoplado::NSolutionVariables(int var){
 	if(var == 1) return 1;
 	if(var == 2) return 1;
 	if((var == 3) || (var == 4)) return fDim;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZMatPoissonDesacoplado::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
@@ -313,11 +338,11 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 }
 
 
-void TwoUncoupledPoisson::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatPoissonDesacoplado::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	DebugStop();
 }
 
-void TwoUncoupledPoisson::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZMatPoissonDesacoplado::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 //int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
