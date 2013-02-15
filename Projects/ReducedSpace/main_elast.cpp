@@ -103,7 +103,7 @@ REAL ED = /*1044.24*/1994.27;
 REAL nu = 0.2;
 REAL viscD = /*1.12953e-13*//*2.88263e-16*/2.65732e-14;
 REAL signD =1.;
-REAL QinD = /*0.00255205*/ /*1.*/0.0216685;
+REAL QinD = /*0.00255205*/ /*1.*/-0.0216685;
 REAL tD = /*0.00934543*//*0.00002385*/0.000219858;
 REAL deltaTD = tD/30;
 //
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(0,LxD,LyD,LxD/2,1);
+	TPZGeoMesh * gmesh = GMesh(1,LxD,LyD,LxD/2,1);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
 //    ofstream vtkgmesh("gmesh_inicial.vtk");

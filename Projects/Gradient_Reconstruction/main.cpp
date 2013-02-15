@@ -147,11 +147,11 @@ int main(int argc, char *argv[]) {
     normal_plano[0]=coef_a;
     normal_plano[1]=coef_b;
     
-    int p = 4;
+    int p = 1;
     char saida[256];
     ofstream erro("erro.txt");
 	int dim = 2;
-    int MaxRefs = 7;
+    int MaxRefs = 2;
     for(int nrefs=1;nrefs<MaxRefs;nrefs++)
     {
          erro << "\n\nRESOLVENDO COM FEM: p = " << p << "  E h = "<< nrefs << "\n";
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
         cout<<endl;
 
         
-        // Print gradient reconstructed
+        // Print solution by FEM
 		char saidaVTK[256];
 		sprintf(saidaVTK,"FEMSolution_%d.vtk",nrefs);
         string plotfile(saidaVTK);
@@ -1022,8 +1022,6 @@ TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     
     TPZMaterial * mat(material);
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDimModel(dim);
-    
     cmesh->InsertMaterialObject(mat);
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
@@ -1238,9 +1236,9 @@ void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
 #include "TPZSkylineNSymStructMatrix.h"
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {			
-	//TPZBandStructMatrix full(Cmesh); //caso nao-simetrico
+	TPZBandStructMatrix full(Cmesh); //caso nao-simetrico
 	//TPZSkylineStructMatrix full(Cmesh); //caso simetrico
-    TPZSkylineNSymStructMatrix full(Cmesh);//caso nao-simetrico
+    //TPZSkylineNSymStructMatrix full(Cmesh);//caso nao-simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<REAL> step;
 	//step.SetDirect(ELDLt); //caso simetrico

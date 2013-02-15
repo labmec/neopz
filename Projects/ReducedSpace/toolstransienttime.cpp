@@ -185,21 +185,21 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         }
 
         ///>>>>>>> Calculo da Integral-J
-        meshvec[0]->LoadReferences();
-        
-        TPZVec<REAL> Origin(3,0.);
-        Origin[0] = 0.5;
-        TPZVec<REAL> normalDirection(3,0.);
-        normalDirection[2] = 1.;
-        REAL radius = 0.3;
-        REAL pressure = 1.;
-        Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);
-
-        JIntegral2D integralJ;
-        integralJ.PushBackPath2D(Jpath);
-        
-        TPZVec<REAL> KI(3,0.);
-        KI = integralJ.IntegratePath2D(0);
+//        meshvec[0]->LoadReferences();
+//        
+//        TPZVec<REAL> Origin(3,0.);
+//        Origin[0] = 0.5;
+//        TPZVec<REAL> normalDirection(3,0.);
+//        normalDirection[2] = 1.;
+//        REAL radius = 0.3;
+//        REAL pressure = 1.;
+//        Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);
+//
+//        JIntegral2D integralJ;
+//        integralJ.PushBackPath2D(Jpath);
+//        
+//        TPZVec<REAL> KI(3,0.);
+//        KI = integralJ.IntegratePath2D(0);
         /////////////////////////////
         
         InitialSolution = mphysics->Solution();
