@@ -1054,6 +1054,7 @@ void TPZRefPatternTools::RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &m
 	for(int s = 0; s < nsides; s++)
 	{
 		TPZGeoElSide gelside(gel,s);
+        gelside = gelside.LowestFatherSide();
 		TPZGeoElSide neighside(gelside.Neighbour());
 		while(gelside != neighside)
 		{
@@ -1074,7 +1075,6 @@ void TPZRefPatternTools::RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &m
 					std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 					return;
 				}
-				
 			}
 			neighside = neighside.Neighbour();
 		}

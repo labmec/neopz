@@ -23,6 +23,8 @@ const int __2DfractureMat_outside = -30;//2D elements outside fracture (i.e.: no
 
 const int __2DfractureMat_inside = -40;//2D elements inside fracture (i.e.: already fractured)
 
+const int __1DwellInjection = -100;
+
 //BCs surrounding
 const int __2DfarfieldMat = -50;//2D elements in plane x,z (y_max > 0 = farfield)
 

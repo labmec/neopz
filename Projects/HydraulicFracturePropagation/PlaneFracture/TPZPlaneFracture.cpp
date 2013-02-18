@@ -26,8 +26,10 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 
+
 #include "adapt.h"
 #include "TPZJIntegral.h"
+#include "TPZReynoldsFlow.h"
 
 using namespace pztopology;
 
@@ -120,7 +122,10 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
                                                bool printVTKfile)
 {
     int porder = 2;
+    REAL flowRate = 1.e-3;//(m3/s)/m
     TPZCompMesh * fractureCMesh = this->GetFractureCompMesh(poligonalChain,porder,sigmaTraction,pressureInsideCrack);
+    
+    TPZCompMeshReferred * reynoldsCMesh = this->GetReynoldsCompMesh(fractureCMesh,porder,flowRate);
     
     int neq = fractureCMesh->NEquations();
     std::cout << "Numero de equacoes = " << neq << std::endl;
@@ -232,6 +237,36 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
     }
     
     cmesh->AutoBuild();
+    
+    return cmesh;
+}
+//------------------------------------------------------------------------------------------------------------
+
+
+TPZCompMeshReferred * TPZPlaneFracture::GetReynoldsCompMesh(TPZCompMesh * cmeshElast, int porder, REAL flowRate)
+{
+    TPZCompMeshReferred * cmesh = new TPZCompMeshReferred(cmeshElast->Reference());
+    cmesh->SetDefaultOrder(porder);
+    
+    REAL visc = 1.e-3;
+    REAL staticPotential = 1.;
+    REAL deltaT = 60.;//1min
+    TPZMaterial * materialFract = new TPZReynoldsFlow(__2DfractureMat_inside, visc,deltaT,staticPotential);
+    
+    TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,flowRate);
+    TPZMaterial * materialInjectionBC = materialFract->CreateBC(materialInjectionBC, __1DwellInjection, 1, val1, val2);
+    
+    cmesh->InsertMaterialObject(materialFract);
+    cmesh->InsertMaterialObject(materialInjectionBC);
+    
+    cmesh->SetAllCreateFunctionsContinuousReferred();
+    
+    std::set<int> matIds;
+    matIds.insert(__2DfractureMat_inside);
+    matIds.insert(__1DwellInjection);
+    
+    cmesh->AutoBuild(matIds);
+    cmesh->LoadReferred(cmeshElast);
     
     return cmesh;
 }
@@ -1594,6 +1629,8 @@ void TPZPlaneFracture::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fr
 	}
 }
 //------------------------------------------------------------------------------------------------------------
+
+
 
 
 

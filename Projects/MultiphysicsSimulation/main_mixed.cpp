@@ -399,16 +399,6 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         
     }
 #endif
-    
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//        std::stringstream sout;
-//        sout<<"\n\n Malha Computacional_2 pressure\n ";
-//        cmesh->Print(sout);
-//        LOGPZ_DEBUG(logdata,sout.str());
-//	}
-//#endif
 	
 	return cmesh;
 }
@@ -427,7 +417,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mymaterial = new TPZMixedPoisson(MatId,dim);
     mymaterial->SetParameters(coefk);
     
-//    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+//  TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
 //	mymaterial->SetForcingFunction(force1);
     
     REAL fxy=8.;
@@ -435,8 +425,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
-    
-    //TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(ForcingBC);
+//  TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(ForcingBC);
     
     
     
@@ -470,17 +459,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-//    
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//        std::stringstream sout;
-//        sout<<"\n\n Malha Computacional Multiphysic\n ";
-//        mphysics->Print(sout);
-//        LOGPZ_DEBUG(logdata,sout.str());
-//	}
-//#endif
-//    
+
     return mphysics;
 }
 
@@ -550,8 +529,7 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 	vecnames[0]  = "Flux";
     vecnames[1]  = "GradFluxX";
     scalnames[0] = "Pressure";
-		
-	
+			
 	const int dim = 2;
 	int div =2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
@@ -587,8 +565,6 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    
-    
     
     REAL diff = 1.;
 	REAL conv = 0.;

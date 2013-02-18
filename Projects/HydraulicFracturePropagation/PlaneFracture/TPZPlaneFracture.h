@@ -19,6 +19,7 @@
 
 
 #include "TPZPlaneFractureMaterials.h"
+#include "tpzcompmeshreferred.h"
 
 
 /// Real as tolerance 
@@ -189,6 +190,8 @@ class TPZPlaneFracture
     
     TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                       int porder, REAL sigmaTraction, REAL pressureInsideCrack);
+    
+    TPZCompMeshReferred * GetReynoldsCompMesh(TPZCompMesh * cmeshElast, int porder, REAL flowRate);
     
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements

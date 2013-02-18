@@ -557,6 +557,7 @@ int TPZNLFluidStructure2d::VariableIndex(const std::string &name){
 	if(!strcmp("DisplacementY",name.c_str()))  return 4;
     if(!strcmp("SigmaX",name.c_str()))        return  5;
 	if(!strcmp("SigmaY",name.c_str()))        return  6;
+    
     if(!strcmp("Displacement",name.c_str()))        return  7;
     
     return TPZMaterial::VariableIndex(name);

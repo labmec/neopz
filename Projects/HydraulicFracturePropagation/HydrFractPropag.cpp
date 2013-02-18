@@ -105,7 +105,7 @@ int mainCRAZY(int argc, char * const argv[])
 }
 
 
-int mainSIF(int argc, char * const argv[])
+int main(int argc, char * const argv[])
 {    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -760,7 +760,7 @@ void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
 
 //#define writeAgain
 
-int main(int argc, char * const argv[])
+int main2D(int argc, char * const argv[])
 {
 #ifdef usingRefdir
     #ifdef writeAgain

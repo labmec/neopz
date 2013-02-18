@@ -458,7 +458,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int & InitialElIndex, i
         // find the closest corner node
         REAL closestcorner = cornerdist.begin()->first;
         // if the center node is closer than the cornernode, return the element
-        if (geldist < closestcorner) {
+        if (geldist < closestcorner || closestcorner < 1.e-15) {
             InitialElIndex = gel->Index();
             return gel;
         }
@@ -488,7 +488,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int & InitialElIndex, i
             gelnextdist = distneigh.begin()->first;
         }
         // return if its center distance is larger than the distance of the current element
-        if (geldist < gelnextdist) {
+        if (geldist <= gelnextdist) {
             InitialElIndex = gel->Index();
             return gel;
         }

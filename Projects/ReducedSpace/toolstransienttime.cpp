@@ -138,6 +138,33 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
 	int cent = 1;
 	TimeValue = cent*deltaT;
     
+    ///////////////////J-integral/////////////////////////////////////////////////
+    REAL XcrackTip = -1.;
+    TPZGeoMesh * gm = meshvec[0]->Reference();
+    for(int ell = 0; ell < gm->NElements(); ell++)
+    {
+        if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == -6)
+        {
+            int nodeIndex = gm->ElementVec()[ell]->NodeIndex(0);
+            XcrackTip = gm->NodeVec()[nodeIndex].Coord(0);
+            break;
+        }
+    }
+    if(XcrackTip < 1.E-3)
+    {
+        DebugStop();
+    }
+    TPZVec<REAL> Origin(3,0.);
+    Origin[0] = XcrackTip;
+    TPZVec<REAL> normalDirection(3,0.);
+    normalDirection[2] = 1.;
+    REAL radius = 0.3;
+    REAL pressure = 1.;
+    Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);    
+    JIntegral2D integralJ;
+    integralJ.PushBackPath2D(Jpath);
+    //////////////////////////////////////////////////////////////////////////////
+    
 	while (TimeValue <= maxTime) //passo de tempo
 	{	
         outfile << "Saida" << cent << "={";
@@ -174,7 +201,8 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
             nit++;
         }
         
-        if(cent%1==0){
+        if(cent%1==0)
+        {
             SaidaMathPressao(meshvec, mphysics);
             outfile << "};\n";
             
@@ -184,22 +212,11 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
             PosProcessMult(meshvec,mphysics,an,plotfile);
         }
 
+        meshvec[0]->LoadReferences();
+        
         ///>>>>>>> Calculo da Integral-J
-//        meshvec[0]->LoadReferences();
-//        
-//        TPZVec<REAL> Origin(3,0.);
-//        Origin[0] = 0.5;
-//        TPZVec<REAL> normalDirection(3,0.);
-//        normalDirection[2] = 1.;
-//        REAL radius = 0.3;
-//        REAL pressure = 1.;
-//        Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);
-//
-//        JIntegral2D integralJ;
-//        integralJ.PushBackPath2D(Jpath);
-//        
-//        TPZVec<REAL> KI(3,0.);
-//        KI = integralJ.IntegratePath2D(0);
+        TPZVec<REAL> KI(3,0.);
+        KI = integralJ.IntegratePath2D(0);
         /////////////////////////////
         
         InitialSolution = mphysics->Solution();
