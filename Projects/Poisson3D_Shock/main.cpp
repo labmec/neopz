@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 			// Constructing geometric mesh as hexahedra
 			cout << "\nConstructing Shock problem in cube. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 			TPZGeoMesh *gmesh3D = ConstructingCubePositiveOctant(InitialL,typeel);
-			REAL radius = 
+			REAL radius = 0.9;
 			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 4) nthread = 2*NThreads;
 				else nthread = NThreads;
@@ -123,6 +123,11 @@ int main(int argc, char *argv[]) {
 				// h_refinement
 				// Refining near to the origin
 				RefiningNearCircunference(dim,gmesh3D,radius,ntyperefs);
+				if(ntyperefs==2) {
+					nref++;
+					radius *= 0.3;
+				}
+				else radius *= 0.5;
 			//	if(nref==NRefs-1) {
 			//		sprintf(saida,"gmesh_3DShock_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 			//		PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
@@ -566,8 +571,8 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 }
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs) {
-	TPZManVector<REAL> point(3,0.);
-	REAL r = 0.0;
+	TPZManVector<REAL> point(3,-0.25);
+	REAL r = sqrt(3.0);
 	bool isdefined = true;
 	
 	if(ntyperefs==2) {

@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 2;
+	int nref, NRefs = 7;
 	int nthread, NThreads = 2;
 	int dim = 3;
 	// Problem
@@ -135,8 +135,10 @@ int main(int argc, char *argv[]) {
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
 				RefiningNearCircunference(dim,gmesh3D,radius,ntyperefs);
-				if(ntyperefs==2)
+				if(ntyperefs==2) {
+					nref++;
 					radius *= 0.4;
+				}
 				else
 					radius *= 0.6;
 				//			if(nref == NRefs-1) {

@@ -78,6 +78,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,REAL &distance,bool &isdefined);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs);
 
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
@@ -128,8 +129,9 @@ int main() {
 			// Generating geometric mesh 2D
 			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
+			REAL radius = 0.2;
 
-			for(nref=1;nref<NRefs;nref++) {
+			for(nref=2;nref<NRefs;nref++) {
 				if(nref > 5) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
@@ -138,7 +140,14 @@ int main() {
 								
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
-				RefiningNearCircunference(dim,gmesh,1,ntyperefs);
+				RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
+				if(ntyperefs==2) {
+					nref++;
+					radius *= 0.35;
+				}
+				else
+					radius *= 0.6;
+
 		//		if(nref == NRefs-1) {
 		//			sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 		//			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
@@ -317,6 +326,25 @@ void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVe
 		Points[i] = point;
 	}
 }
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs) {
+	TPZVec<REAL> point(3);
+	point[0] = point[1] = 0.5; point[2] = 0.0;
+	REAL r = 0.25;
+	bool isdefined = true;
+	
+	if(ntyperefs==2) {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+	}
+	else {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 
@@ -324,12 +352,9 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 	bool isdefined = false;
 	
 	// Refinando no local desejado
-	int npoints = 1000;
 	TPZVec<REAL> point(3);
 	point[0] = point[1] = 0.5; point[2] = 0.0;
 	REAL r = 0.25;
-	TPZVec<TPZManVector<REAL> > Points(npoints);
-	GetPointsOnCircunference(npoints,point,r,Points);
 	
 	if(ntyperefs==2) {
 		REAL radius = 0.19;
