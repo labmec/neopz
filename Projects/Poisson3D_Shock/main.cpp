@@ -72,6 +72,7 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs);
 
 TPZGeoMesh *ConstructingCubePositiveOctant(REAL L,int typeel);
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
@@ -102,25 +103,26 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 8;
+	int nref, NRefs = 7;
 	int nthread, NThreads = 2;
 	int dim = 3;
 	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
-		for(int typeel=0;typeel<5;typeel++) {
+		for(int typeel=0;typeel<4;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-four prisms, 2-four pyramids,3-two tetrahedras, two prisms, one pyramid, 4-three prisms." << endl;
+			// Constructing geometric mesh as hexahedra
+			cout << "\nConstructing Shock problem in cube. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+			TPZGeoMesh *gmesh3D = ConstructingCubePositiveOctant(InitialL,typeel);
+			REAL radius = 
 			for(nref=0;nref<NRefs;nref++) {
-				if(nref > 6) nthread = 2*NThreads;
+				if(nref > 4) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
 				// Initializing the generation mesh process
 				time(&sttime);
-				// Constructing geometric mesh as hexahedra
-				cout << "\nConstructing Shock problem in cube. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
-				TPZGeoMesh *gmesh3D = ConstructingCubePositiveOctant(InitialL,typeel);
 				// h_refinement
 				// Refining near to the origin
-				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
+				RefiningNearCircunference(dim,gmesh3D,radius,ntyperefs);
 			//	if(nref==NRefs-1) {
 			//		sprintf(saida,"gmesh_3DShock_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 			//		PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
@@ -232,8 +234,8 @@ int main(int argc, char *argv[]) {
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 
 				delete cmesh;
-				delete gmesh3D;
 			}
+			delete gmesh3D;
 		}
 	}
 	out.close();
@@ -561,6 +563,25 @@ TPZGeoMesh *ConstructingCubePositiveOctant(REAL InitialL,int typeel) {
 	gmesh->BuildConnectivity();
 	
 	return gmesh;
+}
+
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs) {
+	TPZManVector<REAL> point(3,0.);
+	REAL r = 0.0;
+	bool isdefined = true;
+	
+	if(ntyperefs==2) {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+	}
+	else {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
 }
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {

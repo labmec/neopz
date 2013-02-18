@@ -68,6 +68,7 @@ void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 
@@ -106,11 +107,22 @@ int main(int argc, char *argv[]) {
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
 	int nref, NRefs = 2;
-	int nthread, NThreads = 3;
+	int nthread, NThreads = 2;
 	int dim = 3;
+	// Problem
+	out << "\nFICHERA CORNER:";
+	if(problem==1)
+		out << "\t As SOLIN Presentation.";
+	else if(problem==2) 
+		out << "\t As Rachowicz (2006).";
+	
 	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
 		for(int typeel=0;typeel<3;typeel++) {
+			REAL radius = 1.2;
+			// Constructing geometric mesh as Fichera corner using hexahedra
+			TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel,problem);
+			
 			fileerrors << "Type of element: " << typeel << " (0-hexahedra, 1-three prisms, 2-four pyramids." << endl;
 			for(nref=0;nref<NRefs;nref++) {
 				if(nref > 4) nthread = 2*NThreads;
@@ -118,26 +130,23 @@ int main(int argc, char *argv[]) {
 				
 				// Initializing the generation mesh process
 				time(&sttime);
-				// Constructing geometric mesh as Fichera corner using hexahedra
-				out << "\nFICHERA CORNER:";
-				if(problem==1)
-					out << "\t As SOLIN Presentation.";
-				else if(problem==2) 
-					out << "\t As Rachowicz (2006).";
 				cout << "\nConstructing Fichera problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
-				TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel,problem);
-
+				
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
-				RefiningNearCircunference(dim,gmesh3D,nref,ntyperefs);
-	//			if(nref == NRefs-1) {
-	//				sprintf(saida,"gmesh_3DFichera_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
-	//				PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
-	//			}
+				RefiningNearCircunference(dim,gmesh3D,radius,ntyperefs);
+				if(ntyperefs==2)
+					radius *= 0.4;
+				else
+					radius *= 0.6;
+				//			if(nref == NRefs-1) {
+				//				sprintf(saida,"gmesh_3DFichera_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
+				//				PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+				//			}
 				
 				// Creating computational mesh
 				/** Set polynomial order */
-				int p = 8, pinit;
+				int p = 6, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1,problem);
@@ -246,8 +255,8 @@ int main(int argc, char *argv[]) {
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 				
 				delete cmesh;
-				delete gmesh3D;
 			}
+			delete gmesh3D;
 		}
 	}
 	out.close();
@@ -718,6 +727,24 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 	return gmesh;
 }
 
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs) {
+	TPZManVector<REAL> point(3,0.);
+	REAL r = 0.0;
+	bool isdefined = true;
+
+	if(ntyperefs==2) {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+	}
+	else {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 	TPZManVector<REAL> point(3,0.);
 	REAL r = 0.0, radius = 1.2;

@@ -120,24 +120,25 @@ int main() {
 	int nthread, NThreads = 3;
 	int dim = 2;
 	
+
 	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
 		for(int typeel=0;typeel<2;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
+			// Generating geometric mesh 2D
+			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
+
 			for(nref=1;nref<NRefs;nref++) {
 				if(nref > 5) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
 				// Initializing the generation mesh process
 				time (& sttime);
-				
-				// Generating geometric mesh 2D
-				cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
-				TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
-				
+								
 				// h_refinement
 				// Refining near the points belong a circunference with radio r - maxime distance radius
-				RefiningNearCircunference(dim,gmesh,nref,ntyperefs);
+				RefiningNearCircunference(dim,gmesh,1,ntyperefs);
 		//		if(nref == NRefs-1) {
 		//			sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
 		//			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
@@ -249,8 +250,8 @@ int main() {
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 				
 				delete cmesh;
-				delete gmesh;
 			}
+			delete gmesh;
 		}
 	}
 	
