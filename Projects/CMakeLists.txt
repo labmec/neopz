@@ -20,6 +20,8 @@ ENABLE_TESTING()
 			add_subdirectory(Poisson2D_ArcTan_Disc)
 			add_subdirectory(Poisson3D_Fichera)
 			add_subdirectory(Poisson3D_Shock)
+			# the auto adaptive process is working again!!!
+			add_subdirectory(adaptivity)
 
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)
@@ -84,8 +86,7 @@ ENABLE_TESTING()
 			endif()
 			##########################
 			add_subdirectory(MultipleLoad)
-			# the auto adaptive process is working again!!!
-			add_subdirectory(adaptivity)
+
 			# add_subdirectory(adaptivity_refactor)
 						
 			add_subdirectory(Cubo_do_Nathan)
