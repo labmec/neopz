@@ -99,18 +99,18 @@ void PosProcessamento1(TPZAnalysis &an, std::string plotfile);
 static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
-//
-REAL LxD = 1;
-REAL LyD = 0.5;
-REAL LD = 0.5;
-REAL HD = 0.5;
-REAL ED = /*1044.24*/1994.27;
-REAL nu = 0.2;
-REAL viscD = /*1.12953e-13*//*2.88263e-16*/2.65732e-14;
-REAL signD =1.;
-REAL QinD = /*0.00255205*/ /*1.*/-0.0216685;
-REAL tD = /*0.00934543*//*0.00002385*/0.000219858;
-REAL deltaTD = tD/30;
+//Dados sem adimensionalizar
+REAL LxD = 2.;
+REAL LyD = 1.;
+REAL LD = 1.;
+REAL HD = 1.;
+REAL ED = 100.;
+REAL nu = 0.35;
+REAL viscD = 1.;
+REAL signD = 1.;
+REAL QinD = -1.;
+REAL tD = 5.;
+REAL deltaTD = 0.1;
 //
 
 //#define malhaAgnaldo
@@ -120,15 +120,15 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
-    int p = 1;
+    int p = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
-#ifdef malhaAgnaldo
-	TPZGeoMesh * gmesh = GMesh(2,LxD,LyD,LxD/2,1);
-#else
-    TPZGeoMesh * gmesh = PlaneMesh(LxD/2., LxD, LyD, LxD/8.);
-#endif
+//#ifdef malhaAgnaldo
+	TPZGeoMesh * gmesh = GMesh(4,LxD,LyD,LxD/2,1);
+//#else
+ //   TPZGeoMesh * gmesh = PlaneMesh(LxD/2., LxD, LyD, LxD/8.);
+//#endif
     
     //computational mesh elastic
 /** >>> Resolvendo um problema modelo de elastica linear para utilizar a solucao 
@@ -859,17 +859,17 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     val1(0,0) = big;
     TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bcmixedy, mix_elast, val1, val2);
     
-    REAL vazao = -QinD;
+    REAL vazao = QinD;
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=vazao;
-    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bcfluxIn,neum_pressure, val1, val2);
+    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bcfluxIn, neum_pressure, val1, val2);
     
     
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=0.0;
-    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bcfluxOut,neum_pressure, val1, val2);
+    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bcfluxOut, neum_pressure, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);

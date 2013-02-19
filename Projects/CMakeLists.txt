@@ -23,6 +23,9 @@ ENABLE_TESTING()
 			# the auto adaptive process is working again!!!
 			add_subdirectory(adaptivity)
 
+			#Example of the  multi-physics simulation with discontinuous Galerkin
+ 			add_subdirectory(PauloBosing)
+
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)
 
