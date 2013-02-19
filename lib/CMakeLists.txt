@@ -78,6 +78,10 @@ if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
 endif()
 
+if (USING_ATLAS)
+  target_link_libraries(pz ${ATLAS_LIB})
+endif()
+
 #install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
 
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
