@@ -193,15 +193,15 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarra
 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
 	
 #endif
-#ifdef USING_ATLAS
-	CBLAS_ORDER order = CblasColMajor;
-	CBLAS_UPLO up_lo = CblasUpper;
-	int sz = fFront;
-	long incx = 1;
-	double db = -1.;//AuxVec[ilocal];
-	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
-	//cout << "Using ATLAS" << endl;
-#endif
+// #ifdef USING_ATLAS
+// 	CBLAS_ORDER order = CblasColMajor;
+// 	CBLAS_UPLO up_lo = CblasUpper;
+// 	int sz = fFront;
+// 	long incx = 1;
+// 	double db = -1.;//AuxVec[ilocal];
+// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
+// 	//cout << "Using ATLAS" << endl;
+// #endif
 #ifndef USING_BLAS
 #ifndef USING_ATLAS
 	int j=0;

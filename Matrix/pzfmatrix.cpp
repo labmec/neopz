@@ -637,25 +637,25 @@ void TPZFMatrix<TVar>::ZAXPY(const TVar alpha,const TPZFMatrix<TVar> &p) {
 	while(pt < ptlast) *pt++ += alpha * *pp++;
 #endif
 #endif
-#ifdef USING_ATLAS
-	//Como definir o tamanho dos vetores
-	int size  = (fRow*fCol) ;
-	cblas_daxpy(size, alpha, &p.fElem[0], 1, &fElem[0], 1);
-#endif
-#ifdef USING_BLAS
-	//Como definir o tamanho dos vetores
-	int size  = (fRow*fCol) ;
-	cblas_daxpy(size, alpha, &p.fElem[0], 1, &fElem[0], 1);
-#endif
+// #ifdef USING_ATLAS
+// 	//Como definir o tamanho dos vetores
+// 	int size  = (fRow*fCol) ;
+// 	cblas_daxpy(size, alpha, &p.fElem[0], 1, &fElem[0], 1);
+// #endif
+// #ifdef USING_BLAS
+// 	//Como definir o tamanho dos vetores
+// 	int size  = (fRow*fCol) ;
+// 	cblas_daxpy(size, alpha, &p.fElem[0], 1, &fElem[0], 1);
+// #endif
 }
 
 template<class TVar>
 void TPZFMatrix<TVar>::TimesBetaPlusZ(const TVar beta,const TPZFMatrix<TVar> &z) {
-#ifdef USING_ATLAS
-	int size = fRow*fCol;
-	cblas_dscal(size,beta,fElem,1);
-	cblas_daxpy(size,1.,z.fElem,1,fElem,1);
-#else
+// #ifdef USING_ATLAS
+// 	int size = fRow*fCol;
+// 	cblas_dscal(size,beta,fElem,1);
+// 	cblas_daxpy(size,1.,z.fElem,1,fElem,1);
+// #else
 	
 	TVar * pt = fElem,  *ptlast = fElem + this->fRow*this->fCol;
 	TVar * pz = z.fElem;
@@ -664,7 +664,7 @@ void TPZFMatrix<TVar>::TimesBetaPlusZ(const TVar beta,const TPZFMatrix<TVar> &z)
 		*pt *= (beta);
 		*pt++ += *pz++;
 	}
-#endif
+// #endif
 }
 
 /******** Operacoes com MATRIZES GENERICAS ********/
@@ -1209,15 +1209,15 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
 	int size = (A.Rows())*A.Cols();
 	TVar result = 0.;
 	if(!size) return result;
-#ifdef USING_ATLAS
-	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-	return result;
-	
-#elif USING_BLAS
-	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-	return result;
-	
-#else
+// #ifdef USING_ATLAS
+// 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+// 	return result;
+// 	
+// #elif USING_BLAS
+// 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+// 	return result;
+// 	
+// #else
 	const TVar *fpA = &A.g(0,0), *fpB = &B.g(0,0);
 	const TVar *fpLast = fpA+size;
 	while(fpA < fpLast) 
@@ -1225,7 +1225,7 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
 		result += (*fpA++ * *fpB++); 
 	}
 	return result;
-#endif
+// #endif
 }
 
 template

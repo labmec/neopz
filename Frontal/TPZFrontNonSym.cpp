@@ -210,15 +210,15 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 	TPZVec<TVar> AuxVecRow(this->fFront);
 	TPZVec<TVar> AuxVecCol(this->fFront);
 	
-#ifdef USING_ATLAS
-	cblas_dcopy(this->fFront, &Element(0, ilocal), 1, &AuxVecCol[0], 1);
-	cblas_dcopy(this->fFront, &Element(ilocal, 0), this->fMaxFront, &AuxVecRow[0], 1);
-#else
+// #ifdef USING_ATLAS
+// 	cblas_dcopy(this->fFront, &Element(0, ilocal), 1, &AuxVecCol[0], 1);
+// 	cblas_dcopy(this->fFront, &Element(ilocal, 0), this->fMaxFront, &AuxVecRow[0], 1);
+// #else
 	for(i=0;i<this->fFront;i++){
 		AuxVecCol[i]=Element(i,ilocal);
 		AuxVecRow[i]=Element(ilocal,i);
 	}
-#endif
+// #endif
 	
 	TVar diag = AuxVecRow[ilocal];
 	
@@ -238,29 +238,29 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 		}
 	}
 	
-#ifdef USING_ATLAS
-	
-	cblas_dscal(this->fFront, (1/diag), &AuxVecCol[0], 1);
-	
-#else
+// #ifdef USING_ATLAS
+// 	
+// 	cblas_dscal(this->fFront, (1/diag), &AuxVecCol[0], 1);
+// 	
+// #else
 	for(i=0;i<this->fFront;i++){
 		AuxVecCol[i]/=diag;
 	}
-#endif
+// #endif
 	this->fWork+=this->fFront*this->fFront;
-#ifdef USING_ATLAS
-	//Blas utilizatioin
-	CBLAS_ORDER order = CblasColMajor;
-	//     CBLAS_UPLO up_lo = CblasUpper;
-	long sz = this->fFront;
-	long incx = 1;
-	long stride = this->fMaxFront;
-	double db = -1.;//AuxVec[ilocal];
-	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
-	cblas_dger(order, sz, sz, db,
-			   &AuxVecCol[0], incx,
-			   &AuxVecRow[0], incx, &Element(0,0), stride);
-#endif
+// #ifdef USING_ATLAS
+// 	//Blas utilizatioin
+// 	CBLAS_ORDER order = CblasColMajor;
+// 	//     CBLAS_UPLO up_lo = CblasUpper;
+// 	long sz = this->fFront;
+// 	long incx = 1;
+// 	long stride = this->fMaxFront;
+// 	double db = -1.;//AuxVec[ilocal];
+// 	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
+// 	cblas_dger(order, sz, sz, db,
+// 			   &AuxVecCol[0], incx,
+// 			   &AuxVecRow[0], incx, &Element(0,0), stride);
+// #endif
 #ifdef USING_BLAS
 	//Blas utilizatioin  
 	CBLAS_ORDER order = CblasColMajor;
@@ -301,16 +301,16 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 	}
     eqnarray.EndEquation();
 	
-#ifdef USING_ATLAS
-	TPZVec<double> zero(this->fFront, 0.);
-	cblas_dcopy(this->fFront, &Element(0, ilocal), 1, &zero[0], 1);
-	cblas_dcopy(this->fFront, &Element(ilocal, 0), this->fMaxFront, &zero[0], 1);
-#else
+// #ifdef USING_ATLAS
+// 	TPZVec<double> zero(this->fFront, 0.);
+// 	cblas_dcopy(this->fFront, &Element(0, ilocal), 1, &zero[0], 1);
+// 	cblas_dcopy(this->fFront, &Element(ilocal, 0), this->fMaxFront, &zero[0], 1);
+// #else
 	for(i=0;i<this->fFront;i++){
         Element(i,ilocal)=0.;
         Element(ilocal,i)=0.;
     }
-#endif
+// #endif
 	
     FreeGlobal(ieq);
     fDecomposeType=ELU;
