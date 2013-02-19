@@ -118,9 +118,10 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
+    double pressureInMiddleOfFract = 0.;
     
     outfile << "Saida" << 0 << "={";
-    SaidaMathPressao(meshvec, mphysics);
+    SaidaMathPressao(meshvec, mphysics, pressureInMiddleOfFract);
     outfile << "};\n";
     
 	int nrows;
@@ -138,6 +139,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
 	int cent = 1;
 	TimeValue = cent*deltaT;
     
+    ///>>>>>>> Calculo da Integral-J
     ///////////////////J-integral/////////////////////////////////////////////////
     REAL XcrackTip = -1.;
     TPZGeoMesh * gm = meshvec[0]->Reference();
@@ -159,14 +161,10 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     TPZVec<REAL> normalDirection(3,0.);
     normalDirection[2] = 1.;
     REAL radius = 0.3;
-    REAL pressure = 1.;
-    Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);    
-    JIntegral2D integralJ;
-    integralJ.PushBackPath2D(Jpath);
-    //////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     
 	while (TimeValue <= maxTime) //passo de tempo
-	{	
+	{
         outfile << "Saida" << cent << "={";
         
         //Criando matriz de rigidez (tangente) matK e vetor de carga (residuo)
@@ -203,7 +201,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         
         if(cent%1==0)
         {
-            SaidaMathPressao(meshvec, mphysics);
+            SaidaMathPressao(meshvec, mphysics,pressureInMiddleOfFract);
             outfile << "};\n";
             
             std::stringstream outputfiletemp;
@@ -215,6 +213,11 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         meshvec[0]->LoadReferences();
         
         ///>>>>>>> Calculo da Integral-J
+        ///////////////////J-integral/////////////////////////////////////////////////
+        REAL pressure = pressureInMiddleOfFract;
+        Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);
+        JIntegral2D integralJ;
+        integralJ.PushBackPath2D(Jpath);
         TPZVec<REAL> KI(3,0.);
         KI = integralJ.IntegratePath2D(0);
         /////////////////////////////
@@ -245,9 +248,10 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     outfile.close();
 }
 
-void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
+void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, double & pressureInMiddleOfFract)
 {
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    pressureInMiddleOfFract = -1.;
     
     std::map<REAL,REAL> time_pressure;
     
@@ -270,6 +274,10 @@ void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh
             REAL pos = out[0];
             REAL press = data.sol[0][0];
             time_pressure[pos] = press;
+            if(i >= meshvec[1]->ElementVec().NElements()/2 && pressureInMiddleOfFract < 0.)
+            {
+                pressureInMiddleOfFract = press;
+            }
         }
         if(out[0] > 50.) continue;
     }

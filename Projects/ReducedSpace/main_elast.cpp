@@ -70,6 +70,7 @@ int const freey = 3;
 int const freex = 4;
 
 int const  neum_elast =10;
+int const  dir_elast =11;
 int const  mix_elast = 20;
 int const neum_pressure = 21;
 int const dir_pressure = 22;
@@ -104,13 +105,13 @@ REAL LxD = 2.;
 REAL LyD = 1.;
 REAL LD = 1.;
 REAL HD = 1.;
-REAL ED = 100.;
-REAL nu = 0.35;
-REAL viscD = 1.;
-REAL signD = 1.;
-REAL QinD = -1.;
-REAL tD = 5.;
-REAL deltaTD = 0.1;
+REAL ED = 0.3E5;
+REAL nu = 0.25;
+REAL viscD = 0.001;
+REAL signD = 1.E5;
+REAL QinD =  1.E-3;
+REAL tD = 10.;
+REAL deltaTD = 1.;
 //
 
 //#define malhaAgnaldo
@@ -622,8 +623,8 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,dirichlet, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bcneumannzero,dirichlet, val1, val2);
      
     val1.Redim(2,2);
     val2.Redim(2,1);
@@ -684,8 +685,8 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,dirichlet, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bcneumannzero,dirichlet, val1, val2);
     
     val1.Redim(2,2);
     val2.Redim(2,1);
@@ -849,10 +850,10 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     val1(1,1) = big;
     TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bcmixedx,mix_elast, val1, val2);
     
-//    val2.Redim(3,1);
-//    val1.Redim(3,2);
-//    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bcneumannzero,neum_elast, val1, val2);
-//    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bcneumannzero,neum_elast, val1, val2);
+    val2.Redim(3,1);
+    val1.Redim(3,2);
+    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bcneumannzero,dir_elast, val1, val2);
+    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bcneumannzero,dir_elast, val1, val2);
     
     val2.Redim(3,1);
     val1.Redim(3,2);
@@ -874,8 +875,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
-//    mphysics->InsertMaterialObject(BCond3);
-//    mphysics->InsertMaterialObject(BCond4);
+    mphysics->InsertMaterialObject(BCond3);
+    mphysics->InsertMaterialObject(BCond4);
     mphysics->InsertMaterialObject(BCond5);
     mphysics->InsertMaterialObject(BCond6);
     mphysics->InsertMaterialObject(BCond7);

@@ -345,6 +345,11 @@ public:
     
     virtual TPZVec<REAL> IntegratePath2D(int p);
     
+    Path2D * Path(int p)
+    {
+        return fPath2DVec[p];
+    }
+    
 private:
     
     TPZVec<Path2D*> fPath2DVec;

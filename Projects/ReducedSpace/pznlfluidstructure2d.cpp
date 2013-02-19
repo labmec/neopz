@@ -348,9 +348,9 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
         //--- residuo ----
         for (int il = 0; il <fNumLoadCases; il++)
         {
-            ef(in,il)+= (-1.)*weight*factor*(phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1])
+            ef(in,il)+= weight*factor*(phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1])
                         
-                        + weight*(phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1]);
+                        - weight*(phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1]);
         }
         
         //----- matriz tangente -----
@@ -358,12 +358,12 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
         for (int jn = 0; jn <nc_u; jn++)
         {
             REAL phi_jun = phi_u(0,jn)*datavec[0].normal[0] + phi_u(1,jn)*datavec[0].normal[1];
-            ek(in,jn) += weight*factor*(phi_u(0,in)*phi_jun*datavec[0].normal[0] + phi_u(1,in)*phi_jun*datavec[0].normal[1]);
+            ek(in,jn) += (-1.)*weight*factor*(phi_u(0,in)*phi_jun*datavec[0].normal[0] + phi_u(1,in)*phi_jun*datavec[0].normal[1]);
         }
         
         for (int jp = 0; jp <phrp; jp++)
         {
-            ek(in,jp+nc_u) += (-1.)*weight*(phi_u(0,in)*phi_p(jp,0)*datavec[0].normal[0] + phi_u(1,in)*phi_p(jp,0)*datavec[0].normal[1]);
+            ek(in,jp+nc_u) += weight*(phi_u(0,in)*phi_p(jp,0)*datavec[0].normal[0] + phi_u(1,in)*phi_p(jp,0)*datavec[0].normal[1]);
         }
     }
     
@@ -521,6 +521,12 @@ void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
         {
             // Calculate the matrix contribution for pressure
             ApplyNeumann_U(datavec, weight,ek, ef,bc);
+            break;
+        }
+        case 11:        // Dirichlet condition only on the elasticity equation
+        {
+            // Calculate the matrix contribution for pressure
+             ApplyDirichlet_U(datavec, weight, ek,ef,bc);
             break;
         }
             
