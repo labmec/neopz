@@ -79,7 +79,7 @@ if (USING_METIS)
 endif()
 
 if (USING_ATLAS)
-  target_link_libraries(pz ${ATLAS_LIB})
+  target_link_libraries(pz ${CBLAS_LIB} ${ATLAS_LIB})
 endif()
 
 #install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})

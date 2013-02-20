@@ -58,7 +58,7 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
  	#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
 
 #To search files or libraries
-	set(SEARCH_DIRS ENV PATH /usr/local/atlas/include /usr/local/atlas/lib /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include)
+	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
 #To install neopz/include
 	set(NEOPZ_INCLUDE ${PROJECT_SOURCE_DIR}/../externallibs/neopz/include)
 #To install neopz library
@@ -214,7 +214,8 @@ option(USING_ATLAS "Whether the ATLAS library will be linked in" OFF)
 if(USING_ATLAS)
 	add_definitions(-DUSING_ATLAS)
 	find_path(ATLAS_INCLUDE cblas.h PATHS ${SEARCH_DIRS})
-	find_library(ATLAS_LIB NAMES libatlas.dylib atlas.lib libatlas.so libatlas.a PATHS ${SEARCH_DIRS})
+	find_library(ATLAS_LIB NAMES libatlas.dylib libtatlas.dylib atlas.lib libatlas.so libtatlas.so libatlas.a PATHS ${SEARCH_DIRS})
+	find_library(CBLAS_LIB NAMES libcblas.dylib libtcblas.dylib cblas.lib libcblas.so libtcblas.so libcblas.a PATHS ${SEARCH_DIRS})
 	if(ATLAS_INCLUDE-NOTFOUND)
 		set (ATLAS_INCLUDE "" CACHE PATH "Directory where ATLAS header files can be found")
 	else()
@@ -222,6 +223,9 @@ if(USING_ATLAS)
 	endif()
 	if(ATLAS_LIB-NOTFOUND)
 		set (ATLAS_LIB "" CACHE PATH "Directory where the ATLAS library can be found")
+	endif()
+	if(CBLAS_LIB-NOTFOUND)
+		set (CBLAS_LIB "" CACHE PATH "Directory where the ATLAS library can be found")
 	endif()
 endif(USING_ATLAS)
 
