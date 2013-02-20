@@ -31,24 +31,24 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 //#define IsZero( a )  ( fabs(a) < 1.e-20)
 
-#ifdef USING_ATLAS
-extern "C"{
-#include <cblas.h>
-};
-double cblas_ddot(const int N, const double *X, const int incX,
-                  const double *Y, const int incY);
-void cblas_daxpy(const int N, const void *alpha, const void *X,
-                 const int incX, void *Y, const int incY);
-#endif
-#ifdef USING_BLAS
-extern "C"{
-#include "cblas.h"
-};
-double cblas_ddot(const int N, const double *X, const int incX,
-                  const double *Y, const int incY);
-void cblas_daxpy(const int N, const void *alpha, const void *X,
-                 const int incX, void *Y, const int incY);
-#endif
+// #ifdef USING_ATLAS
+// extern "C"{
+// #include <cblas.h>
+// };
+// double cblas_ddot(const int N, const double *X, const int incX,
+//                   const double *Y, const int incY);
+// void cblas_daxpy(const int N, const void *alpha, const void *X,
+//                  const int incX, void *Y, const int incY);
+// #endif
+// #ifdef USING_BLAS
+// extern "C"{
+// #include "cblas.h"
+// };
+// double cblas_ddot(const int N, const double *X, const int incX,
+//                   const double *Y, const int incY);
+// void cblas_daxpy(const int N, const void *alpha, const void *X,
+//                  const int incX, void *Y, const int incY);
+// #endif
 
 
 using namespace std;
@@ -629,14 +629,14 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator-=(const TPZFMatrix<TVar> &A ) {
 template <class TVar>
 void TPZFMatrix<TVar>::ZAXPY(const TVar alpha,const TPZFMatrix<TVar> &p) {
 	
-#ifndef USING_ATLAS
-#ifndef USING_BLAS
+// #ifndef USING_ATLAS
+// #ifndef USING_BLAS
 	TVar * pt = fElem;
 	TVar * pp = p.fElem;
 	TVar * ptlast = fElem + this->fRow*this->fCol;
 	while(pt < ptlast) *pt++ += alpha * *pp++;
-#endif
-#endif
+// #endif
+// #endif
 // #ifdef USING_ATLAS
 // 	//Como definir o tamanho dos vetores
 // 	int size  = (fRow*fCol) ;

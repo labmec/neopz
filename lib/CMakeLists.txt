@@ -78,7 +78,7 @@ if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
 endif()
 
-if (USING_ATLAS)
+if (USING_BLAS)
   target_link_libraries(pz ${CBLAS_LIB} ${ATLAS_LIB})
 endif()
 

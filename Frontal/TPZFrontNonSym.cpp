@@ -6,19 +6,19 @@
 #include "TPZFrontNonSym.h"
 #include "tpzeqnarray.h"
 
-#ifdef USING_BLAS
-void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
-                const double alpha, const double  *X, const int incX,
-                const double  *Y, const int incY, double  *A, const int lda);
-#endif
-#ifdef USING_ATLAS
-void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
-                const double alpha, const double  *X, const int incX,
-                const double  *Y, const int incY, double  *A, const int lda);
-void cblas_dscal(const int N, const double alpha, double *X, const int incX);
-void cblas_dcopy(const int N, const double *X, const int incX,
-                 double *Y, const int incY);
-#endif
+// #ifdef USING_BLAS
+// void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
+//                 const double alpha, const double  *X, const int incX,
+//                 const double  *Y, const int incY, double  *A, const int lda);
+// #endif
+// #ifdef USING_ATLAS
+// void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
+//                 const double alpha, const double  *X, const int incX,
+//                 const double  *Y, const int incY, double  *A, const int lda);
+// void cblas_dscal(const int N, const double alpha, double *X, const int incX);
+// void cblas_dcopy(const int N, const double *X, const int incX,
+//                  double *Y, const int incY);
+// #endif
 
 /** @brief Initializing tolerance for current implementations */
 const REAL TOL=1.e-10;
@@ -261,22 +261,22 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 // 			   &AuxVecCol[0], incx,
 // 			   &AuxVecRow[0], incx, &Element(0,0), stride);
 // #endif
-#ifdef USING_BLAS
-	//Blas utilizatioin  
-	CBLAS_ORDER order = CblasColMajor;
-	//     CBLAS_UPLO up_lo = CblasUpper;
-	long sz = this->fFront;
-	long incx = 1;
-	long stride = this->fMaxFront;
-	double db = -1.;//AuxVec[ilocal];
-	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
-	cblas_dger(order, sz, sz, db,
-			   &AuxVecCol[0], incx,
-			   &AuxVecRow[0], incx, &Element(0,0), stride);
-	
-#endif
-#ifndef	USING_ATLAS
-#ifndef USING_BLAS
+// #ifdef USING_BLAS
+// 	//Blas utilizatioin  
+// 	CBLAS_ORDER order = CblasColMajor;
+// 	//     CBLAS_UPLO up_lo = CblasUpper;
+// 	long sz = this->fFront;
+// 	long incx = 1;
+// 	long stride = this->fMaxFront;
+// 	double db = -1.;//AuxVec[ilocal];
+// 	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
+// 	cblas_dger(order, sz, sz, db,
+// 			   &AuxVecCol[0], incx,
+// 			   &AuxVecRow[0], incx, &Element(0,0), stride);
+// 	
+// #endif
+// #ifndef	USING_ATLAS
+// #ifndef USING_BLAS
 	int j;
 	for(i=0;i<this->fFront;i++){
 		for(j=0;j<this->fFront;j++) Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
@@ -284,8 +284,8 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 	
 	/*     Print("After correct elimination",cout);
 	 */
-#endif
-#endif
+// #endif
+// #endif
     AuxVecRow[ilocal]=1.;
     eqnarray.BeginEquation(ieq);
     eqnarray.AddTerm(ieq,diag);
