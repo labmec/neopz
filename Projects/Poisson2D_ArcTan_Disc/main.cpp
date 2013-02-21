@@ -70,7 +70,7 @@ int const matIdL2Proj = 2;
 char saida[512];
 ofstream out("ConsolePoisson2D.txt");             // To store output of the console
 
-STATE ValueK = 1000000;
+STATE ValueK = 10000;
 
 std::string Archivo = PZSOURCEDIR;
 
@@ -85,7 +85,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,R
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 
-void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+void PrintGeoMeshVTKWithGradientAsData(TPZCompMesh *gmesh,char *filename);
 
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 
@@ -140,18 +140,14 @@ int main() {
 	char tempo[256];
 	
 	ofstream fileerrors("ErrorsHP2D_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
-	
-	// To compute the errors
-	TPZManVector<REAL> ervec(100,0.0);
-	// Printing computed errors
-	fileerrors << "Approximation Error: " << std::endl;
+	time (& sttime);
 	
 	int dim = 2;
-    int p = 3;
+    int p = 2;
     
     //Sem adaptatividade
     TPZGeoMesh *gmesh = CreateGeoMesh();
-    UniformRefine(gmesh, 3);
+    UniformRefine(gmesh, 2);
     RefiningNearCircunference(dim,gmesh,3,1);
    
     TPZCompMesh *cmesh = CreateMesh(gmesh, p, dim, true);
@@ -159,136 +155,44 @@ int main() {
     TPZAnalysis an(cmesh);
     SystemSolve(an, cmesh);
     
-    std::string filename = "Poisson2DSol.vtk";
-    SaidaSolVTK(an, cmesh, filename);
-    
+	// Calculando o tempo que demorou para calcular em cada cenario 
+	time (& endtime);
+	time_elapsed = endtime - sttime;
+	formatTimeInSec(tempo, time_elapsed);
+	// Printing information
+	fileerrors << "Approximation Error: Solving time = " << time_elapsed << std::endl;
+
+    std::string filename = "Poisson2DGradient.vtk";
+    PrintGeoMeshVTKWithGradientAsData(cmesh, filename);
     
     //------ RESOLVENDO COM RECONST. GRADIENT ------
     
     //l2 projection of the gradient into finite element space
-    ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
-    an.LoadSolution(cmesh->Solution());
-    std::string filename2 = "L2PROJSolution.vtk";
-    SaidaSolVTK(an,cmesh,filename2);
+//    ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
+  //  an.LoadSolution(cmesh->Solution());
+//    std::string filename2 = "L2PROJSolution.vtk";
+  //  SaidaSolVTK(an,cmesh,filename2);
     
     cmesh->CleanUp();
+	delete cmesh;
     delete gmesh;
-	
-//		for(int typeel=0;typeel<2;typeel++) {
-//			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
-//				
-//				// Initializing the generation mesh process
-//				time (& sttime);
-//				
-//				TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
-//				
-//				// h_refinement
-//				// Refining near the points belong a circunference with radio r - maxime distance radius
-//				RefiningNearCircunference(dim,gmesh,3,1);
-//		//		if(nref == NRefs-1) {
-//		//			sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
-//		//			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
-//		//		}
-//				
-//				// Creating computational mesh (approximation space and materials)
-//				int p = 8, pinit;
-//				TPZCompEl::SetgOrder(1);
-//				TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem,true);
-//				dim = cmesh->Dimension();
-//				
-//				// Selecting orthogonal polynomial family to construct shape functions
-//				if(anothertests)
-//					TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-//				
-//				// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
-//				// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
-//				int level = 0, highlevel = 0;
-//				int nelem = 0;
-//				while(nelem < cmesh->NElements()) {
-//					TPZCompEl *cel = cmesh->ElementVec()[nelem++];
-//					if(cel) {
-//						level = cel->Reference()->Level();
-//					}
-//					if(level > highlevel)
-//						highlevel = level;
-//				}
-//				// Identifying maxime interpolation order
-//				if(highlevel>p-1) pinit = p;
-//				else pinit = highlevel+1;
-//				// Put order 1 for more refined element and (highlevel - level)+1 for others, but order not is greater than initial p
-//				nelem = 0;
-//				while(highlevel && nelem < cmesh->NElements()) {
-//					TPZCompEl *cel = cmesh->ElementVec()[nelem++];
-//					if(!cel) continue;
-//					level = cel->Reference()->Level();
-//					p = (highlevel-level);
-//					if(!p) p = 1;     // Fazendo os dois maiores niveis de refinamento devem ter ordem 1
-//					if(p > pinit) p = pinit;
-//                    //((TPZInterpolatedElement*)cel)->PRefine(p);
-//                    TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(cel);
-//                    if(!InterpEl) continue; //It is an interface element. It is dont have approximation function
-//                    InterpEl->PRefine(p);
-//					
-//				}
-//				cmesh->ExpandSolution();
-//				cmesh->CleanUpUnconnectedNodes();
-//				
-//				// closed generation mesh process
-//				time (& endtime);
-//				time_elapsed = endtime - sttime;
-//				time_elapsed = endtime - sttime;
-//				formatTimeInSec(tempo, time_elapsed);
-//				out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
-//				
-//				// SOLVING PROCESS
-//				// Initial steps
-//				TPZAnalysis an(cmesh);
-//				
-//				//TPZSkylineNSymStructMatrix strskyl(cmesh);
-//                TPZBandStructMatrix strskyl(cmesh);
-//				an.SetStructuralMatrix(strskyl);
-//				out << "Solving HP-Adaptive Methods...\n";
-//				
-//				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
-//				direct->SetDirect(ELU);
-//				an.SetSolver(*direct);
-//				delete direct;
-//				direct = 0;
-//				
-//				// Initializing the solving process
-//				time (& sttime);
-//				// Solving
-//				an.Run();
-//				
-//				// Calculando o tempo que demorou para calcular em cada cenario 
-//				time (& endtime);
-//				time_elapsed = endtime - sttime;
-//				formatTimeInSec(tempo, time_elapsed);
-//								
-//				// Post processing
-//				std::string filename = "Poisson2DSol";
-//				filename += ".vtk";
-//                SaidaSolVTK(an, cmesh, filename);
-//            				
-//				// Computing error
-//				if(problem==1)
-//					an.SetExact(ExactSolCircle);
-//				
-//				fileerrors << "  NEquations: " << cmesh->NEquations();
-//				an.PostProcessError(ervec,out);
-//				for(int rr=0;rr<ervec.NElements();rr++)
-//					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
-//				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
-//				
-//				delete cmesh;
-//				delete gmesh;
-//	}
-//	
-//	fileerrors << std::endl << std::endl;
-//	fileerrors.close();
-//	out.close();
     
 	return 0;
+}
+void PrintGeoMeshVTKWithGradientAsData(TPZCompMesh *cmesh,char *filename) {
+	int i, size = cmesh->NElements();
+	int dim = cmesh->Dimension();
+	TPZChunkVector<REAL> DataElement;
+	DataElement.Resize(dim*size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		if(cmesh->ElementVec()[i])
+			DataElement[i] = (cmesh->ElementVec()[i])->Dimension();
+		else
+			DataElement[i] = -10.0;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(cmesh, filename, DataElement);
 }
 
 void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int matid_l2proj){
@@ -527,10 +431,12 @@ void SaidaSolVTK(TPZAnalysis &an, TPZCompMesh *Cmesh, std::string plotfile){
    // scalarnames.Push("KDuDz");
     scalarnames.Push("NormKDu");
     scalarnames.Push("Pressure");
+	scalarnames.Push("GradienteNorma");
     
     vecnames.Push("Derivative");
     vecnames.Push("Flux");
     vecnames.Push("MinusKGradU");
+	vecnames.Push("Gradiente");
     
     an.DefineGraphMesh(dim,scalarnames,vecnames,plotfile);
 	an.PostProcess(div,dim);

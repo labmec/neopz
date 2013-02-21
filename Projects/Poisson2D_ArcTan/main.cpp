@@ -92,12 +92,209 @@ void formatTimeInSec(char *strtime,int timeinsec);
 
 void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
 
+void DeterminingPOrderOnLevelHRefinement(TPZCompMesh *cmesh,int p);
+
 int problem = 1;
 
 // MAIN FUNCTION TO NUMERICAL SOLVE
 /** Laplace equation on square - Volker John article 2000 */
-
 int main() {
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
+	// To compute processing times
+	time_t sttime;
+	time_t endtime;
+	int time_elapsed;
+	char tempo[256];
+	
+	ofstream fileerrors("ErrorsHP2D_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+	
+	// To compute the errors
+	TPZManVector<REAL> ervec(100,0.0);
+	// Printing computed errors
+	fileerrors << "Approximation Error: " << std::endl;
+	
+	int nref, NRefs = 9;
+	int nthread, NThreads = 3;
+	int dim = 2;
+	
+	
+	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
+		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
+		for(int typeel=0;typeel<2;typeel++) {
+			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
+			// Generating geometric mesh 2D
+			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
+			REAL radius = 0.2;
+			
+			for(nref=2;nref<NRefs;nref++) {
+				if(nref > 5) nthread = 2*NThreads;
+				else nthread = NThreads;
+				
+				// Initializing the generation mesh process
+				time (& sttime);
+				
+				// h_refinement
+				// Refining near the points belong a circunference with radio r - maxime distance radius
+				RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
+				if(ntyperefs==2) {
+					nref++;
+					radius *= 0.35;
+				}
+				else
+					radius *= 0.6;
+				
+				//		if(nref == NRefs-1) {
+				//			sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
+				//			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
+				//		}
+				
+				// Creating computational mesh (approximation space and materials)
+				int p = 8, pinit;
+				TPZCompEl::SetgOrder(1);
+				TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
+				dim = cmesh->Dimension();
+				
+				// Selecting orthogonal polynomial family to construct shape functions
+				if(anothertests)
+					TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
+				
+				// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
+				// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
+				DeterminingPOrderOnLevelHRefinement(cmesh,p);
+
+				// Uniform h-refinement to create a refined computational mesh 
+				UniformRefine(gmesh,1);
+				TPZCompMesh *cfinemesh = CreateMesh(gmesh,dim,problem);
+				DeterminingPOrderOnLevelHRefinement(cfinemesh,p);
+				
+				// closed generation mesh process
+				time (& endtime);
+				time_elapsed = endtime - sttime;
+				time_elapsed = endtime - sttime;
+				formatTimeInSec(tempo, time_elapsed);
+				out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
+				
+				// SOLVING PROCESS
+				// Initial steps
+				TPZAnalysis an(cmesh);
+				TPZAnalysis anfine(cfinemesh);
+				
+				TPZParSkylineStructMatrix strskyl(cmesh,nthread);
+				an.SetStructuralMatrix(strskyl);
+				out << "Solving HP-Adaptive Methods...\n";
+				TPZParSkylineStructMatrix finestrskyl(cfinemesh,nthread);
+				anfine.SetStructuralMatrix(finestrskyl);
+				
+				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				direct->SetDirect(ECholesky);
+				an.SetSolver(*direct);
+				anfine.SetSolver(*direct);
+				delete direct;
+				direct = 0;
+				
+				// Initializing the solving process
+				time (& sttime);
+				// Solving
+				an.Run();
+				anfine.Run();
+				
+				// Calculando o tempo que demorou para calcular em cada cenario 
+				time (& endtime);
+				time_elapsed = endtime - sttime;
+				formatTimeInSec(tempo, time_elapsed);
+				
+				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+				
+				// Post processing
+				std::string filename = "Poisson2DSol";
+				char pp[256];
+				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,(nref+1),pinit);
+				filename += pp;
+				std::string finefilename = filename;
+				finefilename += "Fine.vtk";
+				filename += ".vtk";
+				
+				TPZStack<std::string> scalarnames, vecnames;
+				scalarnames.Push("Solution");
+				scalarnames.Push("POrder");
+				scalarnames.Push("KDuDx");
+				scalarnames.Push("KDuDy");
+				scalarnames.Push("KDuDz");
+				scalarnames.Push("NormKDu");
+				scalarnames.Push("Pressure");
+				
+				vecnames.Push("Derivative");
+				vecnames.Push("Flux");
+				vecnames.Push("MinusKGradU");
+				an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
+				anfine.DefineGraphMesh(dim,scalarnames,vecnames,finefilename);				
+				
+				an.PostProcess(0,dim);
+				anfine.PostProcess(0,dim);
+				
+				// Computing error
+				if(problem==1) {
+					an.SetExact(ExactSolCircle);
+					anfine.SetExact(ExactSolCircle);
+				}
+				
+				fileerrors << "Refinement: " << nref+1 << "  Threads: " << nthread << "  NEquations: " << cmesh->NEquations();
+				an.PostProcessError(ervec,out);
+				int rr;
+				for(rr=0;rr<ervec.NElements();rr++)
+					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
+				anfine.PostProcessError(ervec,out);
+				for(rr=0;rr<ervec.NElements();rr++)
+					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
+				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+				
+				delete cmesh;
+				delete cfinemesh;
+			}
+			delete gmesh;
+		}
+	}
+	
+	fileerrors << std::endl << std::endl;
+	fileerrors.close();
+	out.close();
+	return 0;	
+}
+
+void DeterminingPOrderOnLevelHRefinement(TPZCompMesh *cmesh,int p) {
+	int level = 0, highlevel = 0;
+	int pinit;
+	int nelem = 0;
+	while(nelem < cmesh->NElements()) {
+		TPZCompEl *cel = cmesh->ElementVec()[nelem++];
+		if(cel) {
+			level = cel->Reference()->Level();
+		}
+		if(level > highlevel)
+			highlevel = level;
+	}
+	// Identifying maxime interpolation order
+	if(highlevel>p-1) pinit = p;
+	else pinit = highlevel+1;
+	// Put order 1 for more refined element and (highlevel - level)+1 for others, but order not is greater than initial p
+	nelem = 0;
+	while(highlevel && nelem < cmesh->NElements()) {
+		TPZCompEl *cel = cmesh->ElementVec()[nelem++];
+		if(!cel) continue;
+		level = cel->Reference()->Level();
+		p = (highlevel-level);
+		if(!p) p = 1;     // Fazendo os dois maiores niveis de refinamento devem ter ordem 1
+		if(p > pinit) p = pinit;
+		((TPZInterpolatedElement*)cel)->PRefine(p);
+	}
+	cmesh->ExpandSolution();
+	cmesh->CleanUpUnconnectedNodes();
+}
+
+// Function with hp-adaptive process, but it hasn't automatic detection for apply hp-refinement
+int main_NoAutoHP() {
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
@@ -268,52 +465,6 @@ int main() {
 	fileerrors.close();
 	out.close();
 	return 0;
-}
-
-void formatTimeInSec(char *strtime,int timeinsec) {
-	if(!strtime) return;
-	memset(strtime,0,strlen(strtime));
-	//	strtime[0] = '\0';
-	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
-	while(1) {
-		if(timeinsec < 60) {
-			segundos = timeinsec;
-			break;
-		}
-		else {
-			timeinsec -= 60;
-			minutos++;
-			if(minutos > 59) {
-				minutos -= 60;
-				horas++;
-				if(horas > 23) {
-					horas -= 24;
-					dias++;
-					if(dias > 29) {
-						dias -= 30;
-						meses++;
-						if(meses > 11) {
-							meses -= 12;
-							anos++;
-						}
-					}
-				}
-			}
-		}
-	}
-	// Formating
-	if(anos)
-		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
-	else {
-		if(meses) 
-			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
-		else {
-			if(dias)
-				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
-			else
-				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
-		}
-	}
 }
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
@@ -1840,3 +1991,49 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 }
+void formatTimeInSec(char *strtime,int timeinsec) {
+	if(!strtime) return;
+	memset(strtime,0,strlen(strtime));
+	//	strtime[0] = '\0';
+	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
+	while(1) {
+		if(timeinsec < 60) {
+			segundos = timeinsec;
+			break;
+		}
+		else {
+			timeinsec -= 60;
+			minutos++;
+			if(minutos > 59) {
+				minutos -= 60;
+				horas++;
+				if(horas > 23) {
+					horas -= 24;
+					dias++;
+					if(dias > 29) {
+						dias -= 30;
+						meses++;
+						if(meses > 11) {
+							meses -= 12;
+							anos++;
+						}
+					}
+				}
+			}
+		}
+	}
+	// Formating
+	if(anos)
+		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+	else {
+		if(meses) 
+			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+		else {
+			if(dias)
+				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+			else
+				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
+		}
+	}
+}
+

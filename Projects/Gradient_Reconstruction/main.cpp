@@ -16,6 +16,7 @@
 #include "pzpoisson3d.h"
 #include "pzmat1dlin.h"
 
+#include "pzgengrid.h"
 #include "pzgradient.h"
 #include "pzl2projection.h"
 
@@ -39,10 +40,6 @@
 #include <math.h>
 using namespace std;
 
-#ifdef USING_BOOST
-#include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
-#endif
-
 /**
  * Projeto para validar a reconstucao do gradiente
  * Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
@@ -57,6 +54,7 @@ TPZVec<REAL> normal_plano(2,0.);
 const int NN = 300;
 
 int const matId =1;
+
 int const matIdL2Proj = 2;
 int const matInterf = 3;
 int const bc0=-1; //em y=0
@@ -68,11 +66,14 @@ int const dirichlet =0;
 int const neumann = 1;
 int const mixed = 2;
 
-
+REAL ValueK = 1000;
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
-void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref);
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance);
 
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
+
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref);
 
 
 TPZFMatrix<REAL> MatrixR(REAL ang);
@@ -88,7 +89,11 @@ void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
-void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);
+
+TPZGeoMesh *CreateGeoMesh(int typeel);
+REAL MeanCell(TPZCompEl *cel,int IntOrder);
+REAL ExactSolution(const TPZVec<REAL> &pt);
+void GradExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &dsol);
 
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
@@ -105,23 +110,18 @@ void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMes
  *@param grad out: Value of the gradient reconstructed
  *@param var in: Index of the Solution Variable
  */
-void GradReconstructionByLeastSquares(TPZCompEl *cel, TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa, TPZFMatrix<REAL> &Grad, int var);
-void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var);
-//void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous = false);
-void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL> &datagradients);
+void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center,TPZVec<REAL> &Grad);
 
-/*
- *@brief Method to replace the solution by finite element method from the reconstruction of the gradient.
- *Using the L2 projection
- *@param cmesh in:  Computational mesh
- *@param var in: Index of the Solution Variable
- *@param matid_l2proj in: Id of the l2 projection material
- */
-void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int matid_l2proj);
+// Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
+void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elData);
+void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+
+void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var);
+void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datagradients);
 
 void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs);
 
-void SaidaMathGradiente(TPZFMatrix<REAL> gradients);
+void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &out);
 
 //Trocar todos os elementos do cmesh apontando para o material TPZL2ProjectionFromGradient
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
@@ -129,6 +129,9 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
+
+int MaxRefs = 6;
+int InitRefs = 1;
 
 int main(int argc, char *argv[]) {
 
@@ -141,192 +144,210 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeUniformRefPattern(EOned);
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	gRefDBase.InitializeUniformRefPattern(ETriangle);
-	
-    gradU[0]=coef_a;
-    gradU[1]=coef_b;
-    normal_plano[0]=coef_a;
-    normal_plano[1]=coef_b;
-    
-    int p = 1;
+	    
+    int p = 2;
     char saida[256];
-    ofstream erro("erro.txt");
 	int dim = 2;
-    int MaxRefs = 2;
-    for(int nrefs=1;nrefs<MaxRefs;nrefs++)
-    {
-         erro << "\n\nRESOLVENDO COM FEM: p = " << p << "  E h = "<< nrefs << "\n";
-        
-        // geometric mesh (initial)
-        //TPZGeoMesh * gmesh = GMesh(2,anglo,x0,y0,nrefs);
-        TPZGeoMesh * gmesh = GMesh2();
-		// Refining near the points belong a circunference with radio r - maxime distance radius
-		RefiningNearLine(dim,gmesh,nrefs);
-        
-		if(nrefs == MaxRefs-1) {
-			sprintf(saida,"initialgmesh_%d.vtk",nrefs);
-			PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
-		}
-        
-        // First computational mesh
-        //TPZCompMesh * cmesh= CMesh(gmesh,p,true);
-        TPZCompMesh * cmesh= CMesh2(gmesh,p,true);
-        
-        // Solving
-        TPZAnalysis an(cmesh);
-        mySolve(an,cmesh);
-        //TPZFMatrix<REAL> oldsolution = cmesh->Solution();
-        
-        //2. Plotar as normas do erros
-        an.SetExact(SolucaoExata);
-        TPZVec<REAL> posproc;
-        cout<<"ERROS FEM\n";
-        //an.PostProcess(posproc,cout);
-        an.PostProcessError(posproc,erro);
-        cout<<endl;
-
-        
-        // Print solution by FEM
-		char saidaVTK[256];
-		sprintf(saidaVTK,"FEMSolution_%d.vtk",nrefs);
-        string plotfile(saidaVTK);
-        PosProcessamento(an,cmesh,plotfile);
-        
-        erro << "\n\nRESOLVENDO COM RECONST. GRADIENT: p = " << p << "  E h = "<< nrefs << "\n";
-       
-        //l2 projection of the gradient into finite element space  
-        ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
-
-        an.LoadSolution(cmesh->Solution());
-        //2. Plotar as normas do erros
-        an.SetExact(SolucaoExata);
-        TPZVec<REAL> posproc2;
-        cout<<"ERROS L2\n";
-        an.PostProcessError(posproc2,erro);
-        cout<<endl;
-
-		sprintf(saidaVTK,"L2PROJSolution_%d.vtk",nrefs);
-        string plotfile2(saidaVTK);
-        PosProcessamento(an,cmesh,plotfile2);
-
-		//delete cmesh;
-		//delete gmesh;
-        cmesh->CleanUp();
-        delete gmesh;
-
-        
-    }
-	erro.close();
-    return 0;
-}
-
-void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
-	int i, size = gmesh->NElements();
-	TPZChunkVector<int> DataElement;
-	DataElement.Resize(size);
-	// Making dimension of the elements as data element
-	for(i=0;i<size;i++) {
-		if(gmesh->ElementVec()[i])
-			DataElement[i] = (gmesh->ElementVec()[i])->Dimension();
-		else
-			DataElement[i] = -999;
-	}
-	// Printing geometric mesh to visualization in Paraview
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
-}
-void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref) {
 	
-	int i;
-	
-	// Refinando no local desejado
-	TPZVec<REAL> point(3);
-	point[0] = 1.; point[1] = point[2] = 0.0;
-	REAL r = 0.0;
-	
-	REAL radius = 0.75;
-	for(i=0;i<nref;i++) {
-		// To refine elements with center near to points than radius
-		RefineGeoElements(dim,gmesh,point,r,radius);
-		radius *= 0.75;
-	}
-	// Constructing connectivities
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance) {
-	TPZManVector<REAL> centerpsi(3), center(3);
-	// Refinamento de elementos selecionados
-	TPZGeoEl *gel;
-	TPZVec<TPZGeoEl *> sub;
-	
-	int nelem = 0;
-	int ngelem=gmesh->NElements();
+	// Output file in Mathematica format
+	sprintf(saida,"Gradiente2Math.nb");
+	ofstream outfilemath(saida);
 
-	while(nelem<ngelem) {
-		gel = gmesh->ElementVec()[nelem++];
-		if(gel->Dimension()!=dim || gel->HasSubElement()) continue;
-		gel->CenterPoint(gel->NSides()-1,centerpsi);
-		gel->X(centerpsi,center);
-		REAL centerdist = abs(center[0] - point[0]);
-		if(fabs(r-centerdist) < distance) {
-			gel->Divide(sub);
+	for(int typeel=0;typeel<1;typeel++) {
+		for(int nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+		{
+			// geometric mesh (initial)
+			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
+			// Refining near the points belong a circunference with radio r - maxime distance radius
+			//		RefiningNearLine(dim,gmesh,nrefs);
+			RefiningNearCircunference(dim,gmesh,nrefs,1);    
+			
+			// First computational mesh
+			//TPZCompMesh * cmesh= CMesh(gmesh,p,true);
+			TPZCompMesh * cmesh= CMesh2(gmesh,p,true);
+			
+			// Computing gradient reconstructed
+			TPZFMatrix<REAL> gradients;
+			PosProcessGradientReconstruction(cmesh,gradients);
+			
+			// Printing to VTK
+			sprintf(saida,"Gradientes_H%d_E%d.vtk",nrefs,typeel);
+			PrintDataMeshVTK(cmesh,saida,gradients);
+			// Printing to Mathematica
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+//			gradients.Resize(gradients.Rows(),gradients.Cols()-1);
+//			sprintf(saida,"Grad_H%d_E%d.nb",nrefs,typeel);
+//			ofstream output(saida);
+//			gradients.Print("Gradient Reconstructed",output,EMathematicaInput);
+			
+			cmesh->CleanUp();
+			delete cmesh;
+			delete gmesh;
+			
 		}
 	}
+	outfilemath.close();
+
+	return 0;
 }
 
-
-void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid) {
-    
-    // Changes material Id only elements with required id (matid)
-    if(cel->Material()->Id() != oldmatid) return;
-
-    //mudar o material id
-    TPZGeoEl *gel;
-    gel = cel->Reference();
-    gel->SetMaterialId(newmatid);
+REAL ExactSolution(const TPZVec<REAL> &x) {
+	REAL F = 2*sqrt(ValueK);
+	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+	REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+	REAL prod = prodx*prody;
+	return (8*prod*(1+(2./M_PI)*(atan(arc))));
+	//	return (coef_a*x[0]*x[0] + coef_b*x[1]);
+}
+void GradExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &dsol) {
+	REAL F = 2*sqrt(ValueK);
+	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+	REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+	REAL prod = prodx*prody;
+	REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
+	REAL frac = 2*prod*F*(1.-2*x[0]);
+	frac = frac/(1+arc*arc);
+	dsol[0] = (8./M_PI)*(temp + frac);
+	temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
+	frac = 2*prod*F*(1.-2*x[1]);
+	frac = frac/(1+arc*arc);
+	dsol[1] = (8./ M_PI)*(temp + frac);    
 }
 
-ofstream outfile1("SaidaGradiente.nb");
-void SaidaMathGradiente(TPZFMatrix<REAL> gradients){
-    
-    outfile1<<" data = {";
-    for(int i = 0;  i< gradients.Rows(); i++)
+void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream &outfile) {
+	int i, j;
+    int dim = (gradients.Cols()-1)/2;
+	TPZManVector<REAL> x(3), xunit(3), xorth(3);
+	
+	TPZFMatrix<REAL> Grads(gradients.Rows(),5);
+	REAL r, Grad, temp;
+	TPZVec<REAL> center(dim);
+	TPZVec<REAL> GradExact(dim);
+	
+    for(i=0;i<gradients.Rows();i++)
     {
-        outfile1<<"{" << gradients(i,1)<< ", " << gradients(i,2)<<"}";
-        if(i!= gradients.Rows()-1) outfile1<<", ";
-        if(i== gradients.Rows()-1) outfile1<<"};"<<std::endl;
+		r = temp = 0.0;
+		for(j=0;j<dim;j++) {
+			center[j] = gradients(i,j);
+			x[j] = gradients(i,j)-0.5;
+			r += x[j]*x[j];
+			temp += gradients(i,dim+j)*gradients(i,dim+j);
+		}
+		// Calculando o gradiente exato para cada centro
+		GradExactSolution(center,GradExact);
+		Grad = sqrt(temp);
+		temp = r;
+		r = sqrt(temp);
+		for(j=0;j<dim;j++) {
+			//	if(!IsZero(r)) 
+			xunit[j] = x[j]/r;
+			//	else xunit[j] = 0.;
+			if(!j) xorth[1] = -xunit[0];
+			else xorth[0] = xunit[1];
+		}
+		
+        Grads(i,0) = r;
+		Grads(i,1) = Grad;
+		Grads(i,2) = xunit[0]*gradients(i,dim)+xunit[1]*gradients(i,dim+1);
+		Grads(i,3) = xorth[0]*gradients(i,dim)+xorth[1]*gradients(i,dim+1);
+		Grads(i,4) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
     }
-    outfile1<<"ListPlot[data, Joined -> True, PlotRange -> All, Frame -> True]"<<endl;
+	
+	// Printing in mathematica format
+	char name[256];
+	int countbyrow = 0;
+	sprintf(name,"GradNormH%dE%d",nref,typeel);
+	outfile << "(*H-Refinement = " << nref << "  Type of element = " << typeel << " *)" << std::endl;
+    outfile << name << " = {";
+    for(i=0;i<gradients.Rows();i++)
+    {
+        outfile << "{" << Grads(i,0) << ", " << Grads(i,1) << ", " << Grads(i,2) << ", " << Grads(i,3) << ", " << Grads(i,4) << "}";
+		countbyrow++;
+        if(i != gradients.Rows()-1) {
+			if(countbyrow==3) {
+				outfile << ", " << endl;
+				countbyrow = 0;
+			}
+			else
+				outfile << ", ";
+		}
+        if(i == gradients.Rows()-1) outfile << "};" << std::endl;
+    }
+	//    outfile << "ListPlot[Table[{"<< name << "[[i,1]],"<< name <<"[[i,2]]},{i,1,Length["<<name<<"]}], PlotRange -> All, Frame -> True]" << endl;
+//    outfile << "ListPlot[Table[{"<< name << "[[i,1]],"<< name <<"[[i,3]]},{i,1,Length["<<name<<"]}], PlotRange -> All, Frame -> True]" << endl;
+    outfile << "List" << nref << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,3]]},{i,1,Length["<<name<<"]}];" << endl;
+	outfile << "ListPlot[List"<< nref << ", PlotRange -> All, Frame -> True]" << endl;
+ //   outfile << "ListPlot[Table[{"<< name << "[[i,1]],"<< name <<"[[i,4]]},{i,1,Length["<<name<<"]}], PlotRange -> All, Frame -> True]" << endl << endl;
+	// Printing original matrix
+/*	sprintf(name,"GradMatrixH%dE%d",nref,typeel);
+    outfile << name << " = {";
+	countbyrow = 0;
+    for(i=0;i<gradients.Rows();i++)
+    {
+        outfile << "{" << gradients(i,0)-0.5 << ", " << gradients(i,1)-0.5 << ", " << gradients(i,2) << ", " << gradients(i,3) << "}";
+		countbyrow = 0;
+        if(i != gradients.Rows()-1) {
+			if(countbyrow==3) {
+				outfile << ", " << endl;
+				countbyrow=0;
+			}
+			else {
+				outfile << ", ";			
+			}
+		}
+        if(i == gradients.Rows()-1) outfile << "};" << std::endl;
+    }*/
+	if(nref==MaxRefs-1) {			
+		outfile << "ListExact = Table[{"<< name << "[[i,1]],"<< name <<"[[i,5]]},{i,1,Length["<<name<<"]}];" << endl;
+		outfile << "ListPlot[{";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << "List" << i+1;
+			if(i!=nref-1) outfile << ",";
+			else outfile << ",ListExact}";
+		}
+		outfile << ",DataRange-> {";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << i << ",";
+			if(i==nref-1) outfile << 2*i << "}";
+		}
+		outfile << ",PlotRange->All,Frame->True]" << endl;
+	}
 }
 
-
-
-/** Reconstrucción del gradiente utilizando la linearizacion (Taylor) de la solución para los centros de todos los elementos vecinos */
-/** Formula: u(xbi,ybi,zbi) = u(xa,ya,za) + a*(xbi-xa) + b*(ybi-ya) + c*(zbi-za)  ->  donde Grad(u) ~= (a,b,c) */
-/** (xa,ya,za) es el centro del elemento donde queremos aproximar o gradiente de u */
-/** (xbi,ybi,zbi) son los centros de los elementos vecinos al elemento corriente por alguno de sus lados, e enumerados por i */
-
-void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var) {
-    
+TPZGeoMesh *CreateGeoMesh(int typeel) {
+	TPZGeoMesh* gmesh = new TPZGeoMesh;
+	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
+	x1[2] = 0.;
+	TPZManVector<int> nx(4,4);   // subdivisions in X and in Y. 
+	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen.SetElementType(typeel);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+	gen.Read(gmesh,matId);             // generating grid in gmesh
+	return gmesh;
+}
+void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center,TPZVec<REAL> &Grad) {
+    TPZFMatrix<REAL> grad;
     int dim;
     dim = cel->Mesh()->Dimension();
     
     // Nada sera realizado para elementos com dimensao diferente da dimensao do problema
     if(!cel || cel->Dimension()!=dim) DebugStop();
-    
-	int nstates=0;
-    nstates = cel->Material()->NSolutionVariables(var);
+	REAL solalfa;
+	REAL solbeta;
     
     int k, side;
+	// Integration order to calculate cell mean of solution
+	int intOrder = 2;
     
 	TPZStack<TPZCompElSide> neighs;
 	int nneighs;
 	
     center.Resize(3, 0.);
-    solalfa.Resize(nstates,0.0);
-	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0), solbeta(nstates,0.0);;
+	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0);
 	
 	TPZFMatrix<REAL> A(dim,dim);  // Linear System matrix
-	grad.Redim(dim,1);   
+	grad.Redim(dim,1);
 	
 	// matrizes para aplicar o metodo dos minimos quadrados
 	TPZFMatrix<REAL> DeltaH;
@@ -338,7 +359,8 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     gelalfa->CenterPoint(gelalfa->NSides()-1,centerpsi);
     center.Fill(0.);
     gelalfa->X(centerpsi,center);
-    cel->Solution(centerpsi,var,solalfa);
+	
+	solalfa = MeanCell(cel,intOrder);
     
     neighs.Resize(0);
     
@@ -386,25 +408,343 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
         centerbeta.Fill(0.0);
         gelbeta->CenterPoint(gelbeta->NSides()-1,centerpsi);
         gelbeta->X(centerpsi,centerbeta);
-        gelbeta->Reference()->Solution(centerpsi,var,solbeta);
+        solbeta = MeanCell(gelbeta->Reference(),intOrder);
         
         for(k=0;k<dim;k++)
         {
             DeltaH(ineighs,k) = centerbeta[k] - center[k];
         }
-        DifSol(ineighs,0) = solbeta[nstates-1] - solalfa[nstates-1];
-        
+        DifSol(ineighs,0) = solbeta - solalfa;
         counter ++;
     }
-     
+    
     // Resolviendo el sistema por los minimos cuadrados: DeltaH_t * DifSol = DeltaH_t * DeltaH * Grad(u)
     A.Zero();
     DeltaH.Transpose(&DeltaHTranspose);
     grad = DeltaHTranspose*DifSol;
     A = DeltaHTranspose*DeltaH;
-    if(counter > 0){
+    if(counter > 0)
         A.SolveDirect(grad,ELU);
-    }
+	
+	// Return gradient vector
+	Grad.Resize(dim);
+	for(int j=0;j<dim;j++)
+		Grad[j] = grad(j,0);
+}
+void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datagradients){
+    
+    // Redimensionando a matriz dos dados da reconstruca de gradientes
+    int dim  = cmesh->Dimension();
+    int nelem = cmesh->NElements();
+    datagradients.Redim(nelem,2*dim+1);
+	
+    TPZManVector<REAL,3> center;
+    TPZManVector<REAL> Grad(dim);
+    
+	int i, k;
+	int counter = 0;
+	
+	
+    TPZCompEl *cel;
+    // Calculando el gradiente por elemento computacional
+    for(i=0;i<nelem;i++) {
+        
+        cel = cmesh->ElementVec()[i];
+        
+        // Nada sera realizado para elementos con dimension diferente de la dimension del problema
+        if(!cel || cel->Dimension()!=dim) continue;
+		center.Fill(0.0);
+		Grad.Fill(0.0);
+        
+        GradientReconstructionByLeastSquares(cel, center, Grad);
+		
+        //data of the vector gradiente
+        for(k=0;k<dim;k++){
+            datagradients(counter,k) = center[k];//centro do elemento
+            datagradients(counter,dim+k) = Grad[k];//valor do gradiente
+        }
+		// Increment a last column to store index of the finite element
+		datagradients(counter,2*dim) = cel->Index();
+        
+		counter++;
+	}
+    // Redimensionando la matriz de los gradientes
+    datagradients.Resize(counter,2*dim+1);
+}
+
+// Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
+void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elData)
+{
+	std::ofstream file(filename);
+#ifdef DEBUG
+	if(!file.is_open())
+		DebugStop();
+#endif
+	
+	int dim = cmesh->Dimension();
+	TPZGeoMesh *gmesh = cmesh->Reference();
+	int nelements = elData.Rows();
+	
+	std::stringstream connectivity, type, cellval1, cellval2, cellval3;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int t, c, el;
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	int counternodes = gmesh->NNodes();
+	TPZGeoEl *gel;
+	TPZVec<REAL> centerpsi(3);
+	TPZManVector<REAL> center(3);
+	TPZManVector<REAL> gradient(3);
+	int counter = 0;
+	
+	for(el = 0; el < nelements; el++)
+	{
+		gel = cmesh->ElementVec()[elData(el,2*dim)]->Reference();
+		if(!gel || gel->Reference()->Dimension()!=dim)
+			continue;
+		
+		MElementType elt = gel->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(t = 0; t < elNnodes; t++)
+		{
+			actualNode = gel->NodeIndex(t);
+			if(actualNode < 0) 
+				DebugStop();
+			
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
+		type << elType << std::endl;
+		REAL gradN, Norm, tempN = 0.0, temp = 0.0;
+		TPZVec<REAL> v(3);
+		for(c=0;c<dim;c++) {
+			v[c] = elData(counter,c);
+			tempN += v[c]*v[c];
+			gradient[c] = elData(counter,dim+c);
+			temp += gradient[c]*gradient[c];
+		}
+		Norm = sqrt(tempN);
+		gradN = sqrt(temp);
+		for(c=0;c<dim;c++) {
+			if(IsZero(Norm)) v[c] = 0.;
+			else v[c] /= Norm;
+		}
+		TPZVec<REAL> vort(3);
+		vort[0] = -v[1];
+		vort[1] = v[0];
+		vort[2] = 0.0;
+
+		cellval1 << gradN << std::endl;
+		if(dim == 2) {
+			cellval2 << vort[0]*gradient[0] + vort[1]*gradient[1] << std::endl;
+			cellval3 << v[0]*gradient[0] + v[1]*gradient[1] << std::endl;
+		}
+		else {
+			cellval2 << elData(counter,1) << std::endl;
+			cellval3 << elData(counter,0) << std::endl;
+		}			
+		counter++;
+		nVALIDelements++;
+	}
+	
+	// Printing all nodes of the mesh
+	file << counternodes << " float" << std::endl;
+	for(t=0;t<counternodes;t++) {
+		TPZGeoNode *node = &(gmesh->NodeVec()[t]);
+		for(c = 0; c < 3; c++) {
+			double coord = node->Coord(c);
+			file << coord << " ";
+		}			
+		file << std::endl;
+	}
+	
+	file << std::endl << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str() << std::endl;
+	
+	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+	int nsubstructures = 3;
+	file << "FIELD FieldData "<< nsubstructures << std::endl;
+	
+	file << "Substruct1 1 " << nVALIDelements << " float" << std::endl;
+	
+	file << cellval1.str();
+		
+	file << "Substruct2 1 " << nVALIDelements << " float" << std::endl;
+	
+	file << cellval2.str();
+	
+	file << "Substruct3 1 " << nVALIDelements << " float" << std::endl;
+	
+	file << cellval3.str();
+
+	file.close();
+}
+
+void PrintCompMeshVTKWithGradientAsData(TPZCompMesh *cmesh,char *filename,TPZFMatrix<REAL> &elData) {
+	int i, size = cmesh->NElements();
+	int counter = 0;
+	for(i=0;i<size;i++) {
+		TPZCompEl *cel = cmesh->ElementVec()[i];
+		if(!cel || cel->Dimension()!=cmesh->Dimension())
+			continue;
+		counter++;
+	}
+	if(counter != elData.Rows() || elData.Cols() != cmesh->Dimension())
+		DebugStop();
+	// Printing geometric mesh to visualization in Paraview
+	PrintDataMeshVTK(cmesh, filename, elData);
+}
+
+REAL MeanCell(TPZCompEl *cel,int IntOrder) {
+	TPZIntPoints *pointIntRule = ((TPZInterpolatedElement*)cel)->Reference()->CreateSideIntegrationRule((cel->Reference()->NSides())-1,IntOrder);
+	int it, npoints = pointIntRule->NPoints();
+	REAL integral = 0.0;
+	TPZManVector<REAL> point(3,0.);
+	TPZManVector<REAL> xpoint(3,0.);
+	REAL weight;
+	for (it=0;it<npoints;it++){
+		pointIntRule->Point(it,point,weight);
+		weight /= cel->Reference()->RefElVolume();
+		cel->Reference()->X(point,xpoint);
+		integral += weight * ExactSolution(xpoint);
+	}
+	//REAL area = cel->Reference()->Volume();
+	return integral;
+}
+
+void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref) {
+	
+	int i;
+	
+	// Refinando no local desejado
+	TPZManVector<REAL> point(3);
+	point[0] = .5; point[1] = point[2] = 0.0;
+	REAL r = 0.0;
+	
+	REAL radius = 0.9;
+	for(i=0;i<nref;i++) {
+		// To refine elements with center near to points than radius
+		RefineGeoElements(dim,gmesh,point,r,radius);
+		radius *= 0.8;
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
+	
+	int i;
+	bool isdefined = false;
+	
+	// Refinando no local desejado
+	TPZVec<REAL> point(3);
+	point[0] = point[1] = 0.5; point[2] = 0.0;
+	REAL r = 0.25;
+	
+	if(ntyperefs==2) {
+		REAL radius = 0.19;
+		for(i=0;i<nref;i+=2) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			if(nref < 5) radius *= 0.35;
+			else if(nref < 7) radius *= 0.2;
+			else radius *= 0.1;
+		}
+		if(i==nref) {
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+		}
+	}
+	else {
+		REAL radius = 0.4;
+		for(i=0;i<nref+1;i++) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			radius *= 0.6;
+		}
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined) {
+	TPZManVector<REAL> centerpsi(3), center(3);
+	// Refinamento de elementos selecionados
+	TPZGeoEl *gel;
+	TPZVec<TPZGeoEl *> sub;
+	
+	int nelem = 0;
+	int ngelem=gmesh->NElements();
+	// na esquina inferior esquerda Nó = (0,-1,0)
+	while(nelem<ngelem) {
+		gel = gmesh->ElementVec()[nelem++];
+		if(gel->Dimension()!=dim || gel->HasSubElement()) continue;
+		gel->CenterPoint(gel->NSides()-1,centerpsi);
+		gel->X(centerpsi,center);
+		if(!isdefined) {
+			TPZVec<REAL> FirstNode(3,0.);
+			gel->CenterPoint(0,centerpsi);
+			gel->X(centerpsi,FirstNode);
+			REAL distancia = TPZGeoEl::Distance(center,FirstNode);
+			if(distancia > distance) distance = distancia;
+			isdefined = true;
+		}
+		REAL centerdist = TPZGeoEl::Distance(center,point);
+		if(fabs(r-centerdist) < distance) {
+			gel->Divide(sub);
+		}
+	}
+}
+
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance) {
+	TPZManVector<REAL> centerpsi(3), center(3);
+	// Refinamento de elementos selecionados
+	TPZGeoEl *gel;
+	TPZVec<TPZGeoEl *> sub;
+	
+	int nelem = 0;
+	int ngelem=gmesh->NElements();
+
+	while(nelem<ngelem) {
+		gel = gmesh->ElementVec()[nelem++];
+		if(gel->Dimension()!=dim || gel->HasSubElement()) continue;
+		gel->CenterPoint(gel->NSides()-1,centerpsi);
+		gel->X(centerpsi,center);
+		REAL centerdist = abs(center[0] - point[0]);
+		if(fabs(r-centerdist) < distance) {
+			gel->Divide(sub);
+		}
+	}
+}
+
+
+void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid) {
+    
+    // Changes material Id only elements with required id (matid)
+    if(cel->Material()->Id() != oldmatid) return;
+
+    //mudar o material id
+    TPZGeoEl *gel;
+    gel = cel->Reference();
+    gel->SetMaterialId(newmatid);
 }
 
 void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var) {
@@ -492,118 +832,22 @@ void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &ce
     A = DeltaHTranspose*DeltaH;
     A.SolveDirect(grad,ELU);
 }
-
-
-void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int matid_l2proj){
-    
-    // Redimensionando a matriz dos dados da reconstruca de gradientes
-    int dim  = cmesh->Dimension();
-    int nelem = cmesh->NElements();
-    
-    TPZManVector<REAL,3> center;
-    TPZManVector<REAL> solalfa;
-    TPZFMatrix<REAL> Grad;
-    
-    //criar ponteiro para TPZFunction
-    TPZGradient *pGrad = new TPZGradient;
-    TPZAutoPointer<TPZFunction<STATE> > fp(pGrad);
-    
-    //Criar matrix de rigidez e vetor de carga
-    int numloadcases;
-	unsigned int im;
-    for(im=0; im<cmesh->MaterialVec().size(); im++){
-        if(!cmesh->MaterialVec()[im]) continue;
-        numloadcases = cmesh->MaterialVec()[im]->NumLoadCases();
-        break;
-    }
-    
-    int neq = cmesh->NEquations();
-    TPZFMatrix<STATE> rhs;
-    rhs.Redim(neq,numloadcases);
-    
-    //TPZBandStructMatrix stmatrix(cmesh);
-    TPZSkylineStructMatrix stmatrix(cmesh);
-    TPZMatrix<STATE> *stiffmatrix = stmatrix.Create();
-    
-    int matid;
-    
-    for(int i=0; i<nelem; i++)
-    {
-        TPZCompEl *cel = cmesh->ElementVec()[i];
-        TPZElementMatrix ek(cel->Mesh(), TPZElementMatrix::EK);
-        TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
-        
-        // Nada sera realizado para elementos con dimension diferente de la dimension del problema
-        if(cel->Dimension()!=dim) continue;
-            
-        matid = cel->Material()->Id();
-        
-        //gradient reconstruction
-        GradientReconstructionByLeastSquares(cel, center, solalfa, Grad,var);
-        
-        //set data of the gradient reconstructed
-        pGrad->SetData(center, Grad, solalfa[0]);
-        
-        //change material id current to material id of the L2ProjectionMaterial 
-        ChangeMaterialIdIntoCompElement(cel, matid, matid_l2proj);
-        
-        //set forcing function of l2 projection material
-        TPZMaterial *mat = cel->Material();
-        mat->SetForcingFunction(fp);
-        
-        //load the matrix ek and vector ef of the element
-        cel->CalcStiff(ek,ef);
-        
-        //assemble pos l2 projection
-        AssembleGlobalMatrix(cel, ek, ef, *stiffmatrix, rhs);
-        
-        //Return for original material and current solution of the mesh
-        ChangeMaterialIdIntoCompElement(cel, matid_l2proj, matid);
-    }
-    
-        
-//#ifdef LOG4CXX
-//    if(logdata->isDebugEnabled())
-//    {
-//        std::stringstream sout;
-//        stiffmatrix->Print("Matriz de Rigidez: ",sout,EMathematicaInput);
-//        rhs.Print("Right Handside", sout,EMathematicaInput);
-//        LOGPZ_DEBUG(logdata,sout.str())
-//    }
-//#endif
-    
-    //Solve linear system and transfer the solution to computational mesh
-    TPZStepSolver<REAL> step;
-    //step.SetDirect(ELU);
-    step.SetDirect(ELDLt);
-    step.SetMatrix(stiffmatrix);
-    TPZFMatrix<REAL> result;
-    step.Solve(rhs, result);
-    cmesh->LoadSolution(result);
-    
-    //stiffmatrix->SolveDirect(rhs,ELU);
-    //cmesh->LoadSolution(rhs);
-
+void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		if(gmesh->ElementVec()[i])
+			DataElement[i] = (gmesh->ElementVec()[i])->Dimension();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
 }
 
 void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs){
-    
-//    
-//#ifdef CHECKCONSISTENCY
-//    extern TPZCheckConsistency stiffconsist("ElementStiff");
-//    stiffconsist.SetOverWrite(true);
-//    bool result;
-//    result = stiffconsist.CheckObject(ek.fMat);
-//    if(!result)
-//    {
-//        globalresult = false;
-//        std::stringstream sout;
-//        sout << "element " << iel << " computed differently";
-//        LOGPZ_ERROR(loggerCheck,sout.str())
-//    }
-//    
-//#endif
-    
     
     if(!el->HasDependency()) {
         ek.ComputeDestinationIndices();
@@ -640,7 +884,7 @@ void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix 
 //#endif
     }
 }
-
+/*
 void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL> &datagradients){
     
     // Redimensionando a matriz dos dados da reconstruca de gradientes
@@ -678,7 +922,7 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL
     	}
     // Redimensionando la matriz de los gradientes
     datagradients.Resize(counter,3*dim);    
-}
+}*/
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
 	int i, nstates;
@@ -883,7 +1127,7 @@ TPZGeoMesh *GMesh2(){
 	//indice dos nos
     int id;
 	id = 0;
-    REAL dx = 1.;
+    REAL dx = .5;
 	for (int i=0; i<Qnodes/2;i++) {
 		
 		Node[id].SetNodeId(id);
@@ -896,8 +1140,8 @@ TPZGeoMesh *GMesh2(){
 	for (int i=0; i<Qnodes/2;i++) {
 		
 		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0, 2. - i*dx);//coord x
-		Node[id].SetCoord(1, 2.);//coord y
+		Node[id].SetCoord(0, 1. - i*dx);//coord x
+		Node[id].SetCoord(1, 1.);//coord y
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
@@ -1017,8 +1261,8 @@ TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ForcingF);
     material->SetForcingFunction(myforce);
     
-    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata);
-	material->SetForcingFunctionExact(solExata);
+//    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata);
+//	material->SetForcingFunctionExact(solExata);
     
     TPZMaterial * mat(material);
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
@@ -1184,11 +1428,7 @@ void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     
     double x = pt[0];
-#ifdef USING_BOOST
-    disp[0]=0.05*sqrt(M_PI)*(boost::math::erf(10.*(x-1.)));
-#else
     disp[0]=0.05*sqrt(M_PI)*erf(10.*(x-1.));
-#endif
 }
 
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
@@ -1217,20 +1457,9 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     disp[0]=-(200.*x - 200.)*aux2;
 }
 
-void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
-    
-    deriv(0,0)=0.;
-    deriv(1,0)=0.;
-    sol[0]=0.;
-    
-    double x = pt[0];
-#ifdef USING_BOOST
-    sol[0] = 0.05*sqrt(M_PI)*(boost::math::erf(10.*(x-1.)));
-#else
-    sol[0] = 0.05*sqrt(M_PI)*erf(10.*(x-1.));
-#endif
-    REAL val = -100.*(x-1.)*(x-1.);
-    deriv(0,0)=exp(val);
+void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol) {
+	REAL x = pt[0];
+    sol[0] = -100.*(x-1.)*(x-1.);
 }
 
 #include "TPZSkylineNSymStructMatrix.h"

@@ -174,8 +174,8 @@ int main() {
     cmesh->CleanUpUnconnectedNodes();
 		
 	// Printing geo mesh to check
-	TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
-	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
+	//TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
+	//TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
 
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
