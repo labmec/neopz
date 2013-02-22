@@ -162,7 +162,8 @@ int main() {
 	// Printing information
 	fileerrors << "Approximation Error: Solving time = " << time_elapsed << std::endl;
 
-    std::string filename = "Poisson2DGradient.vtk";
+	char filename[256];
+    sprintf(filename,"Poisson2DGradient.vtk");
     PrintGeoMeshVTKWithGradientAsData(cmesh, filename);
     
     //------ RESOLVENDO COM RECONST. GRADIENT ------
@@ -192,7 +193,7 @@ void PrintGeoMeshVTKWithGradientAsData(TPZCompMesh *cmesh,char *filename) {
 			DataElement[i] = -10.0;
 	}
 	// Printing geometric mesh to visualization in Paraview
-	TPZVTKGeoMesh::PrintGMeshVTK(cmesh, filename, DataElement);
+	//TPZVTKGeoMesh::PrintGMeshVTK(cmesh, filename, DataElement);
 }
 
 void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int matid_l2proj){

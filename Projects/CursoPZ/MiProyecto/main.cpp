@@ -43,6 +43,8 @@ static LoggerPtr logger(Logger::getLogger("pz.fischera"));
 using namespace std;
 using namespace pzshape;
 
+int materialId = 1;
+int materialBC1 = -1;
 
 // output files  -> Because it has many energy faults
 std::ofstream out("output.txt");
@@ -232,7 +234,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	cmesh->SetAllCreateFunctionsContinuous();
 	
 	// Creating Poisson material
-	TPZMaterial *mat = new TPZMatPoisson3d(1,dim);
+	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
 	TPZVec<REAL> convd(3,0.);
 	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
 	if(hasforcingfunction) {
@@ -247,7 +249,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Dirichlet
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
 	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);
 	

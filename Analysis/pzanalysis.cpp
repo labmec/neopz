@@ -456,7 +456,7 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
     int neq = fCompMesh->NEquations();
     TPZVec<REAL> ux((int) neq);
     TPZVec<REAL> sigx((int) neq);
-    TPZManVector<REAL,3> values(3,0.);
+    TPZManVector<REAL,10> values(10,0.);
     fCompMesh->LoadSolution(fSolution);
     //	SetExact(&Exact);
     TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
@@ -491,7 +491,7 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
         out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
         out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
         for(int ier = 3; ier < nerrors; ier++)
-            out << endl << "other norms = " << sqrt(values[ier]) << endl;
+            out << endl << "other norms = " << sqrt(ervec[ier]) << endl;
     }
 	// Returns the square of the calculated errors.
 	for(i=0;i<nerrors;i++)

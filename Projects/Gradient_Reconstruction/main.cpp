@@ -35,6 +35,7 @@
 #include "pzlog.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "TPZReadGIDGrid.h"
 
 #include <iostream>
 #include <math.h>
@@ -130,8 +131,8 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
-int MaxRefs = 6;
-int InitRefs = 3;
+int MaxRefs = 3;
+int InitRefs = 1;
 
 int main(int argc, char *argv[]) {
 
@@ -144,49 +145,60 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeUniformRefPattern(EOned);
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	gRefDBase.InitializeUniformRefPattern(ETriangle);
-	    
-    int p = 1;
+
+    int p;
     char saida[256];
 	int dim = 2;
 	
-	// Output file in Mathematica format
-	sprintf(saida,"Gradiente2Math.nb");
-	ofstream outfilemath(saida);
-
-	for(int typeel=0;typeel<2;typeel++) {
-		for(int nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
-		{
-			// geometric mesh (initial)
-			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
-			// Refining near the points belong a circunference with radio r - maxime distance radius
-			//		RefiningNearLine(dim,gmesh,nrefs);
-			RefiningNearCircunference(dim,gmesh,nrefs,1);    
-			
-			// First computational mesh
-			//TPZCompMesh * cmesh= CMesh(gmesh,p,true);
-			TPZCompMesh * cmesh= CMesh2(gmesh,p,true);
-			
-			// Computing gradient reconstructed
-			TPZFMatrix<REAL> gradients;
-			PosProcessGradientReconstruction(cmesh,gradients);
-			
-			// Printing to VTK
-			sprintf(saida,"Gradientes_H%d_E%d.vtk",nrefs,typeel);
-			PrintDataMeshVTK(cmesh,saida,gradients);
-			// Printing to Mathematica
-			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
-//			gradients.Resize(gradients.Rows(),gradients.Cols()-1);
-//			sprintf(saida,"Grad_H%d_E%d.nb",nrefs,typeel);
-//			ofstream output(saida);
-//			gradients.Print("Gradient Reconstructed",output,EMathematicaInput);
-			
-			cmesh->CleanUp();
-			delete cmesh;
-			delete gmesh;
-			
+	for(p=1;p<3;p++) {
+		// Output file in Mathematica format
+		sprintf(saida,"Gradiente2Math_TR%d.nb",p);
+		ofstream outfilemath(saida);
+		// Running by type of element
+		for(int typeel=0;typeel<2;typeel++) {
+			for(int nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+			{
+				// geometric mesh (initial)
+				TPZGeoMesh *gmesh;
+				TPZReadGIDGrid grid;
+				std::string nombre;
+				if(!typeel) {
+					nombre = "RegionQuadrada.dump";
+				}
+				else {
+					nombre = "RegionQuadradaT.dump";
+				}
+				gmesh = grid.GeometricGIDMesh(nombre);
+				// Refining near the points belong a circunference with radio r - maxime distance radius
+				//		RefiningNearLine(dim,gmesh,nrefs);
+				RefiningNearCircunference(dim,gmesh,nrefs,p);    
+				
+				// First computational mesh
+				//TPZCompMesh * cmesh= CMesh(gmesh,p,true);
+				TPZCompMesh * cmesh= CMesh2(gmesh,1,true);
+				
+				// Computing gradient reconstructed
+				TPZFMatrix<REAL> gradients;
+				PosProcessGradientReconstruction(cmesh,gradients);
+				
+				// Printing to VTK
+				sprintf(saida,"Gradientes_H%d_E%d.vtk",nrefs,typeel);
+				PrintDataMeshVTK(cmesh,saida,gradients);
+				// Printing to Mathematica
+				SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+				//			gradients.Resize(gradients.Rows(),gradients.Cols()-1);
+				//			sprintf(saida,"Grad_H%d_E%d.nb",nrefs,typeel);
+				//			ofstream output(saida);
+				//			gradients.Print("Gradient Reconstructed",output,EMathematicaInput);
+				
+				cmesh->CleanUp();
+				delete cmesh;
+				delete gmesh;
+				
+			}
 		}
+		outfilemath.close();
 	}
-	outfilemath.close();
 
 	return 0;
 }

@@ -59,12 +59,13 @@
 using namespace std;
 using namespace pzshape;
 
-int materialId = 4;
+int materialId = 1;
+int materialBC1 = 2;
 int anothertests = 1;
 char saida[512];
 ofstream out("ConsolePoisson2D.txt");             // To store output of the console
 
-STATE ValueK = 1000000;
+STATE ValueK = 10000;
 
 std::string Archivo = PZSOURCEDIR;
 
@@ -114,7 +115,7 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref, NRefs = 9;
+	int nref, NRefs = 7;
 	int nthread, NThreads = 3;
 	int dim = 2;
 	
@@ -123,12 +124,18 @@ int main() {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
 		for(int typeel=0;typeel<2;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
+			std::string nombre;
+			if(!typeel) nombre = "RegionQuadrada.dump";
+			else nombre = "RegionQuadradaT.dump";
+
 			// Generating geometric mesh 2D
-			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
-			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
-			REAL radius = 0.2;
+			cout << "\nConstructing Poisson 2D problem. Refinement: ";
+			TPZGeoMesh *gmesh = CreateGeoMesh(nombre);
+
+			REAL radius = 0.25;
 			
-			for(nref=2;nref<NRefs;nref++) {
+			for(nref=3;nref<NRefs;nref++) {
+				cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				if(nref > 5) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
@@ -140,10 +147,10 @@ int main() {
 				RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
 				if(ntyperefs==2) {
 					nref++;
-					radius *= 0.35;
+					radius *= 0.5;
 				}
 				else
-					radius *= 0.6;
+					radius *= 0.7;
 				
 				//		if(nref == NRefs-1) {
 				//			sprintf(saida,"gmesh_2DArcTan_H%dTR%dE%d.vtk",nref,ntyperefs,typeel);
@@ -151,7 +158,7 @@ int main() {
 				//		}
 				
 				// Creating computational mesh (approximation space and materials)
-				int p = 8, pinit;
+				int p = 6, pinit;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
 				dim = cmesh->Dimension();
@@ -314,7 +321,7 @@ int main_NoAutoHP() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref, NRefs = 9;
+	int nref, NRefs = 6;
 	int nthread, NThreads = 3;
 	int dim = 2;
 	
@@ -325,10 +332,16 @@ int main_NoAutoHP() {
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
 			// Generating geometric mesh 2D
 			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
-			TPZGeoMesh *gmesh = CreateGeoMesh(typeel);
+			TPZGeoMesh *gmesh;
+			std::string nombre;
+			if(!typeel)
+				nombre = "RegionQuadrada.dump";
+			else
+				nombre = "RegionQuadradaT.dump";
+			gmesh = CreateGeoMesh(nombre);
 			REAL radius = 0.2;
 
-			for(nref=2;nref<NRefs;nref++) {
+			for(nref=3;nref<NRefs;nref++) {
 				if(nref > 5) nthread = 2*NThreads;
 				else nthread = NThreads;
 				
@@ -615,19 +628,19 @@ TPZGeoMesh *CreateGeoMesh(int typeel) {
 	// Bottom is fixed
 	point[0] = 0.; point[1] = 0.;
 	pointlast[0] = 1.; pointlast[1] = 0.;
-	gen.SetBC(gmesh,point,pointlast,-1);
+	gen.SetBC(gmesh,point,pointlast,materialBC1);
 	// Top boundary has vertical force applied
 	point[0] = 1.; point[1] = 0.;
 	pointlast[0] = 1.; pointlast[1] = 1.;
-	gen.SetBC(gmesh,point,pointlast,-1);
+	gen.SetBC(gmesh,point,pointlast,materialBC1);
 	// Vertical right boundary has horizontal force applied to left
 	point[0] = 1.; point[1] = 1.;
 	pointlast[0] = 0.; pointlast[1] = 1.;
-	gen.SetBC(gmesh,point,pointlast,-1);
+	gen.SetBC(gmesh,point,pointlast,materialBC1);
 	// Vertical right boundary has horizontal force applied to left
 	point[0] = 0.; point[1] = 1.;
 	pointlast[0] = 0.; pointlast[1] = 0.;
-	gen.SetBC(gmesh,point,pointlast,-1);
+	gen.SetBC(gmesh,point,pointlast,materialBC1);
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	return gmesh;
@@ -655,7 +668,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	cmesh->SetAllCreateFunctionsContinuous();
 	
     // Creating Poisson material
-	TPZMaterial *mat = new TPZMatPoisson3d(4,dim);
+	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
 	TPZVec<REAL> convd(3,0.);
 	((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
 	switch(hasforcingfunction) {
@@ -678,7 +691,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Condicion de Dirichlet fijando la posicion de la placa
 	if(!hasforcingfunction) 
 		val1(1,1) = 1000000.;
-    bc = mat->CreateBC(mat,-1,0,val1,val2);
+    bc = mat->CreateBC(mat,materialBC1,0,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
     cmesh->AutoBuild();
