@@ -131,7 +131,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
 int MaxRefs = 6;
-int InitRefs = 1;
+int InitRefs = 3;
 
 int main(int argc, char *argv[]) {
 
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	gRefDBase.InitializeUniformRefPattern(ETriangle);
 	    
-    int p = 2;
+    int p = 1;
     char saida[256];
 	int dim = 2;
 	
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
 	sprintf(saida,"Gradiente2Math.nb");
 	ofstream outfilemath(saida);
 
-	for(int typeel=0;typeel<1;typeel++) {
+	for(int typeel=0;typeel<2;typeel++) {
 		for(int nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
@@ -221,10 +221,10 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
     int dim = (gradients.Cols()-1)/2;
 	TPZManVector<REAL> x(3), xunit(3), xorth(3);
 	
-	TPZFMatrix<REAL> Grads(gradients.Rows(),5);
+	TPZFMatrix<REAL> Grads(gradients.Rows(),7);
 	REAL r, Grad, temp;
 	TPZVec<REAL> center(dim);
-	TPZVec<REAL> GradExact(dim);
+	TPZVec<REAL> GradExact(dim,0.0);
 	
     for(i=0;i<gradients.Rows();i++)
     {
@@ -241,18 +241,21 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		temp = r;
 		r = sqrt(temp);
 		for(j=0;j<dim;j++) {
-			//	if(!IsZero(r)) 
+			if(IsZero(r)) continue;
 			xunit[j] = x[j]/r;
-			//	else xunit[j] = 0.;
-			if(!j) xorth[1] = -xunit[0];
-			else xorth[0] = xunit[1];
 		}
-		
+		// Vetor ortogonal
+		if(dim==2) {
+			xorth[0] = -xunit[1];
+			xorth[1] = xunit[0];
+		}			
         Grads(i,0) = r;
 		Grads(i,1) = Grad;
 		Grads(i,2) = xunit[0]*gradients(i,dim)+xunit[1]*gradients(i,dim+1);
 		Grads(i,3) = xorth[0]*gradients(i,dim)+xorth[1]*gradients(i,dim+1);
-		Grads(i,4) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
+		Grads(i,4) = sqrt(GradExact[0]*GradExact[0]+GradExact[1]*GradExact[1]);
+		Grads(i,5) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
+		Grads(i,6) = xorth[0]*GradExact[0]+xorth[1]*GradExact[1];
     }
 	
 	// Printing in mathematica format
@@ -263,7 +266,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
     outfile << name << " = {";
     for(i=0;i<gradients.Rows();i++)
     {
-        outfile << "{" << Grads(i,0) << ", " << Grads(i,1) << ", " << Grads(i,2) << ", " << Grads(i,3) << ", " << Grads(i,4) << "}";
+        outfile << "{" << Grads(i,0) << ", " << Grads(i,1) << ", " << Grads(i,2) << ", " << Grads(i,3) << ", " << Grads(i,4) << ", " << Grads(i,5) << ", " << Grads(i,6) << "}";
 		countbyrow++;
         if(i != gradients.Rows()-1) {
 			if(countbyrow==3) {
@@ -275,20 +278,67 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		}
         if(i == gradients.Rows()-1) outfile << "};" << std::endl;
     }
-	//    outfile << "ListPlot[Table[{"<< name << "[[i,1]],"<< name <<"[[i,2]]},{i,1,Length["<<name<<"]}], PlotRange -> All, Frame -> True]" << endl;
-//    outfile << "ListPlot[Table[{"<< name << "[[i,1]],"<< name <<"[[i,3]]},{i,1,Length["<<name<<"]}], PlotRange -> All, Frame -> True]" << endl;
-    outfile << "List" << nref << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,3]]},{i,1,Length["<<name<<"]}];" << endl;
-	outfile << "ListPlot[List"<< nref << ", PlotRange -> All, Frame -> True]" << endl;
- //   outfile << "ListPlot[Table[{"<< name << "[[i,1]],"<< name <<"[[i,4]]},{i,1,Length["<<name<<"]}], PlotRange -> All, Frame -> True]" << endl << endl;
+	// Creating lists of the results Norm(GradR), GradRU.UnitVec, GradRU.OrthVec, Norm(Grad), GradU.UnitVec and GradU.OrthVec
+    outfile << "NormGradRU" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,2]]},{i,1,Length["<<name<<"]}];" << endl;
+//	outfile << "ListPlot[NormGradRU"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
+    outfile << "GradRUPointV" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,3]]},{i,1,Length["<<name<<"]}];" << endl;
+//	outfile << "ListPlot[GradRUPointV"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
+    outfile << "GradRUPointVOrth" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,4]]},{i,1,Length["<<name<<"]}];" << endl;
+//	outfile << "ListPlot[GradRUPointVOrth"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
+	
+	if(nref==MaxRefs-1) {
+		// List plot of the Norm of gradients incremented with norm gradient exact
+		outfile << "NormGradUExact" << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,5]]},{i,1,Length["<<name<<"]}];" << endl;
+		outfile << "ListPlot[{";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << "NormGradRU" << i+1 << typeel;
+			if(i!=nref-1) outfile << ",";
+			else outfile << ",NormGradUExact" << typeel << "}";
+		}
+		outfile << ",DataRange-> {";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << i << ",";
+			if(i==nref-1) outfile << 4*i << "}";
+		}
+		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"||Grad||\"}]" << endl;
+		// List plot of the scalar product gradR with unitV incremented with scalar product gradient exact with unitV
+		outfile << "GradUPointVExact" << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,6]]},{i,1,Length["<<name<<"]}];" << endl;
+		outfile << "ListPlot[{";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << "GradRUPointV" << i+1 << typeel;
+			if(i!=nref-1) outfile << ",";
+			else outfile << ",GradUPointVExact" << typeel << "}";
+		}
+		outfile << ",DataRange-> {";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << i << ",";
+			if(i==nref-1) outfile << 4*i << "}";
+		}
+		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vunit\"}]" << endl;
+		// List plot of the scalar product gradR with V orthogonal incremented with scalar product gradient exact with V orthogonal
+		outfile << "GradUPointVOrthExact" << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,7]]},{i,1,Length["<<name<<"]}];" << endl;
+		outfile << "ListPlot[{";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << "GradRUPointVOrth" << i+1 << typeel;
+			if(i!=nref-1) outfile << ",";
+			else outfile << ",GradUPointVOrthExact" << typeel << "}";
+		}
+		outfile << ",DataRange-> {";
+		for(i=InitRefs-1;i<nref;i++) {
+			outfile << i << ",";
+			if(i==nref-1) outfile << 4*i << "}";
+		}
+		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vorth\"}]" << endl;
+	}
 	// Printing original matrix
 /*	sprintf(name,"GradMatrixH%dE%d",nref,typeel);
-    outfile << name << " = {";
+	outfile << name << " = {";
 	countbyrow = 0;
-    for(i=0;i<gradients.Rows();i++)
-    {
-        outfile << "{" << gradients(i,0)-0.5 << ", " << gradients(i,1)-0.5 << ", " << gradients(i,2) << ", " << gradients(i,3) << "}";
+	for(i=0;i<gradients.Rows();i++)
+	{
+		outfile << "{" << gradients(i,0)-0.5 << ", " << gradients(i,1)-0.5 << ", " << gradients(i,2) << ", " << gradients(i,3) << "}";
 		countbyrow = 0;
-        if(i != gradients.Rows()-1) {
+		if(i != gradients.Rows()-1) {
 			if(countbyrow==3) {
 				outfile << ", " << endl;
 				countbyrow=0;
@@ -297,30 +347,15 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 				outfile << ", ";			
 			}
 		}
-        if(i == gradients.Rows()-1) outfile << "};" << std::endl;
-    }*/
-	if(nref==MaxRefs-1) {			
-		outfile << "ListExact = Table[{"<< name << "[[i,1]],"<< name <<"[[i,5]]},{i,1,Length["<<name<<"]}];" << endl;
-		outfile << "ListPlot[{";
-		for(i=InitRefs-1;i<nref;i++) {
-			outfile << "List" << i+1;
-			if(i!=nref-1) outfile << ",";
-			else outfile << ",ListExact}";
-		}
-		outfile << ",DataRange-> {";
-		for(i=InitRefs-1;i<nref;i++) {
-			outfile << i << ",";
-			if(i==nref-1) outfile << 2*i << "}";
-		}
-		outfile << ",PlotRange->All,Frame->True]" << endl;
-	}
+		if(i == gradients.Rows()-1) outfile << "};" << std::endl;
+	}*/
 }
 
 TPZGeoMesh *CreateGeoMesh(int typeel) {
 	TPZGeoMesh* gmesh = new TPZGeoMesh;
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 	x1[2] = 0.;
-	TPZManVector<int> nx(4,4);   // subdivisions in X and in Y. 
+	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(typeel);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 	gen.Read(gmesh,matId);             // generating grid in gmesh
