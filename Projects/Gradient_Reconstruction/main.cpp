@@ -149,57 +149,147 @@ int main(int argc, char *argv[]) {
     int p;
     char saida[256];
 	int dim = 2;
+	int typeel, nrefs;
 	
-	for(p=1;p<3;p++) {
-		// Output file in Mathematica format
-		sprintf(saida,"Gradiente2Math_TR%d.nb",p);
-		ofstream outfilemath(saida);
-		// Running by type of element
-		for(int typeel=0;typeel<2;typeel++) {
-			for(int nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
-			{
-				// geometric mesh (initial)
-				TPZGeoMesh *gmesh;
-				TPZReadGIDGrid grid;
-				std::string nombre;
-				if(!typeel) {
-					nombre = "RegionQuadrada.dump";
-				}
-				else {
-					nombre = "RegionQuadradaT.dump";
-				}
-				gmesh = grid.GeometricGIDMesh(nombre);
-				// Refining near the points belong a circunference with radio r - maxime distance radius
-				//		RefiningNearLine(dim,gmesh,nrefs);
-				RefiningNearCircunference(dim,gmesh,nrefs,p);    
-				
-				// First computational mesh
-				//TPZCompMesh * cmesh= CMesh(gmesh,p,true);
-				TPZCompMesh * cmesh= CMesh2(gmesh,1,true);
-				
-				// Computing gradient reconstructed
-				TPZFMatrix<REAL> gradients;
-				PosProcessGradientReconstruction(cmesh,gradients);
-				
-				// Printing to VTK
-				sprintf(saida,"Gradientes_H%d_E%d.vtk",nrefs,typeel);
-				PrintDataMeshVTK(cmesh,saida,gradients);
-				// Printing to Mathematica
-				SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
-				//			gradients.Resize(gradients.Rows(),gradients.Cols()-1);
-				//			sprintf(saida,"Grad_H%d_E%d.nb",nrefs,typeel);
-				//			ofstream output(saida);
-				//			gradients.Print("Gradient Reconstructed",output,EMathematicaInput);
-				
-				cmesh->CleanUp();
-				delete cmesh;
-				delete gmesh;
-				
-			}
+	// Utilizando para um refinamento localizado sobre uma malha gerada pelo GID
+	// Output file in Mathematica format
+	sprintf(saida,"Grad2MathUnifMeshRUnif.nb");
+	ofstream outfilemath(saida);
+	TPZGeoMesh *gmesh;
+	TPZCompMesh *cmesh;
+	
+	for(typeel=0;typeel<2;typeel++) {
+		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+		{
+			// geometric mesh (initial)
+			gmesh = CreateGeoMesh(typeel);
+			// Refining near the points belong a circunference with radio r - maxime distance radius
+			RefiningNearCircunference(dim,gmesh,nrefs,1);    
+			
+			// computational mesh
+			cmesh= CMesh2(gmesh,p,true);
+			
+			// Computing gradient reconstructed
+			TPZFMatrix<REAL> gradients;
+			PosProcessGradientReconstruction(cmesh,gradients);
+			
+			// Printing to VTK
+			sprintf(saida,"Grad_UnifMeshRUnif_H%d_E%d.vtk",nrefs,typeel);
+			PrintDataMeshVTK(cmesh,saida,gradients);
+			// Printing to Mathematica
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			
+			cmesh->CleanUp();
+			delete cmesh;
+			delete gmesh;
+			
+		}
+	}
+	outfilemath.close();
+
+	// Utilizando para um refinamento localizado sobre uma malha uniforme
+	// Output file in Mathematica format
+	sprintf(saida,"Grad2MathUnifMeshRNoUnif.nb");
+	outfilemath.open(saida);
+	
+	for(typeel=0;typeel<2;typeel++) {
+		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+		{
+			// geometric mesh (initial)
+			gmesh = CreateGeoMesh(typeel);
+			// Refining near the points belong a circunference with radio r - maxime distance radius
+			RefiningNearCircunference(dim,gmesh,nrefs,1);    
+			
+			// First computational mesh
+			cmesh= CMesh2(gmesh,p,true);
+			
+			// Computing gradient reconstructed
+			TPZFMatrix<REAL> gradients;
+			PosProcessGradientReconstruction(cmesh,gradients);
+			
+			// Printing to VTK
+			sprintf(saida,"Grad_UnifMeshRNoUnif_H%d_E%d.vtk",nrefs,typeel);
+			PrintDataMeshVTK(cmesh,saida,gradients);
+			// Printing to Mathematica
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			
+			cmesh->CleanUp();
+			delete cmesh;
+			delete gmesh;
+			
+		}
 		}
 		outfilemath.close();
 	}
 
+	// Utilizando para um refinamento uniforme sobre uma malha gerada pelo GID
+	// Output file in Mathematica format
+	sprintf(saida,"Grad2Math_GIDRUnif.nb");
+	outfilemath.open(saida);
+	
+	for(typeel=0;typeel<2;typeel++) {
+		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+		{
+			// geometric mesh (initial)
+			gmesh = CreateGeoMesh(typeel);
+			// Uniform refinements
+			UniformRefine(nrefs,gmesh);
+			
+			// First computational mesh
+			cmesh= CMesh2(gmesh,p,true);
+			
+			// Computing gradient reconstructed
+			TPZFMatrix<REAL> gradients;
+			PosProcessGradientReconstruction(cmesh,gradients);
+			
+			// Printing to VTK
+			sprintf(saida,"Grad_GIDRUnif_H%d_E%d.vtk",nrefs,typeel);
+			PrintDataMeshVTK(cmesh,saida,gradients);
+			// Printing to Mathematica
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			
+			cmesh->CleanUp();
+			delete cmesh;
+			delete gmesh;
+			
+		}
+	}
+	outfilemath.close();
+	
+	// Utilizando para um refinamento localizado sobre uma malha gerada pelo GID
+	// Output file in Mathematica format
+	sprintf(saida,"Grad2Math_GIDRNoUnif.nb");
+	outfilemath.open(saida);
+	
+	for(typeel=0;typeel<2;typeel++) {
+		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+		{
+			// geometric mesh (initial)
+			gmesh = CreateGeoMesh(typeel);
+			// Refining near the points belong a circunference with radio r - maxime distance radius
+			RefiningNearCircunference(dim,gmesh,nrefs,1);    
+			
+			// First computational mesh
+			cmesh= CMesh2(gmesh,p,true);
+			
+			// Computing gradient reconstructed
+			TPZFMatrix<REAL> gradients;
+			PosProcessGradientReconstruction(cmesh,gradients);
+			
+			// Printing to VTK
+			sprintf(saida,"Grad_GIDRNoUnif_H%d_E%d.vtk",nrefs,typeel);
+			PrintDataMeshVTK(cmesh,saida,gradients);
+			// Printing to Mathematica
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			
+			cmesh->CleanUp();
+			delete cmesh;
+			delete gmesh;
+			
+		}
+	}
+	outfilemath.close();
+	
 	return 0;
 }
 
@@ -234,10 +324,11 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 	TPZManVector<REAL> x(3), xunit(3), xorth(3);
 	
 	TPZFMatrix<REAL> Grads(gradients.Rows(),7);
+
 	REAL r, Grad, temp;
 	TPZVec<REAL> center(dim);
 	TPZVec<REAL> GradExact(dim,0.0);
-	
+	REAL error = 0.0;
     for(i=0;i<gradients.Rows();i++)
     {
 		r = temp = 0.0;
@@ -260,7 +351,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		if(dim==2) {
 			xorth[0] = -xunit[1];
 			xorth[1] = xunit[0];
-		}			
+		}
         Grads(i,0) = r;
 		Grads(i,1) = Grad;
 		Grads(i,2) = xunit[0]*gradients(i,dim)+xunit[1]*gradients(i,dim+1);
@@ -268,11 +359,31 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		Grads(i,4) = sqrt(GradExact[0]*GradExact[0]+GradExact[1]*GradExact[1]);
 		Grads(i,5) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
 		Grads(i,6) = xorth[0]*GradExact[0]+xorth[1]*GradExact[1];
+		error += ((Grads(i,4)-Grad)*(Grads(i,4)-Grad));
     }
 	
 	// Printing in mathematica format
 	char name[256];
 	int countbyrow = 0;
+	// Printing original matrix
+//	sprintf(name,"GradMatrixH%dE%d",nref,typeel);
+//	outfile << name << " = {";
+//	for(i=0;i<gradients.Rows();i++)
+//	{
+//		outfile << "{" << gradients(i,0) << ", " << gradients(i,1) << ", " << gradients(i,2) << ", " << gradients(i,3) << "}";
+//		countbyrow++;
+//		if(i != gradients.Rows()-1) {
+//			if(countbyrow==5) {
+//				outfile << ", " << endl;
+//				countbyrow=0;
+//			}
+//			else {
+//				outfile << ", ";			
+//			}
+//		}
+//		if(i == gradients.Rows()-1) outfile << "};" << std::endl;
+//	}
+//	countbyrow = 0;
 	sprintf(name,"GradNormH%dE%d",nref,typeel);
 	outfile << "(*H-Refinement = " << nref << "  Type of element = " << typeel << " *)" << std::endl;
     outfile << name << " = {";
@@ -297,6 +408,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 //	outfile << "ListPlot[GradRUPointV"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
     outfile << "GradRUPointVOrth" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,4]]},{i,1,Length["<<name<<"]}];" << endl;
 //	outfile << "ListPlot[GradRUPointVOrth"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
+	outfile << "Error" << nref << "E" << typeel << " = " << sqrt(error) << "/Length[NormGradRU" << nref << typeel << "];" << endl;
 	
 	if(nref==MaxRefs-1) {
 		// List plot of the Norm of gradients incremented with norm gradient exact
@@ -312,7 +424,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 			outfile << i << ",";
 			if(i==nref-1) outfile << 4*i << "}";
 		}
-		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"||Grad||\"}]" << endl;
+		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"||Grad||\"}]" << endl << endl;
 		// List plot of the scalar product gradR with unitV incremented with scalar product gradient exact with unitV
 		outfile << "GradUPointVExact" << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,6]]},{i,1,Length["<<name<<"]}];" << endl;
 		outfile << "ListPlot[{";
@@ -326,7 +438,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 			outfile << i << ",";
 			if(i==nref-1) outfile << 4*i << "}";
 		}
-		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vunit\"}]" << endl;
+		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vunit\"}]" << endl << endl;
 		// List plot of the scalar product gradR with V orthogonal incremented with scalar product gradient exact with V orthogonal
 		outfile << "GradUPointVOrthExact" << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,7]]},{i,1,Length["<<name<<"]}];" << endl;
 		outfile << "ListPlot[{";
@@ -340,27 +452,25 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 			outfile << i << ",";
 			if(i==nref-1) outfile << 4*i << "}";
 		}
-		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vorth\"}]" << endl;
-	}
-	// Printing original matrix
-/*	sprintf(name,"GradMatrixH%dE%d",nref,typeel);
-	outfile << name << " = {";
-	countbyrow = 0;
-	for(i=0;i<gradients.Rows();i++)
-	{
-		outfile << "{" << gradients(i,0)-0.5 << ", " << gradients(i,1)-0.5 << ", " << gradients(i,2) << ", " << gradients(i,3) << "}";
-		countbyrow = 0;
-		if(i != gradients.Rows()-1) {
-			if(countbyrow==3) {
-				outfile << ", " << endl;
-				countbyrow=0;
-			}
-			else {
-				outfile << ", ";			
-			}
+		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vorth\"}]" << endl << endl;
+		// Vector of the errors on number of elements
+		outfile << "NElementsE" << typeel << " = {";
+		for(int k =0; k < nref; k++) {
+			outfile << "Length[NormGradRU" << k+1 << typeel;
+			if(k!=nref-1) outfile << "],";
+			else outfile << "]}";
 		}
-		if(i == gradients.Rows()-1) outfile << "};" << std::endl;
-	}*/
+		outfile << endl;
+		outfile << "ErrorsE" << typeel << " = {";
+		for(int k =0; k < nref; k++) {
+			outfile << "Error" << k+1 << "E" << typeel;
+			if(k!=nref-1) outfile << ",";
+			else outfile << "}";
+		}
+		outfile << endl;
+		outfile << "ListPlot[Table[{NElementsE" << typeel << "[[i]],ErrorsE" << typeel << "[[i]]}],{i,1,Length[NElementsE" << typeel << "]}]" << endl << endl;
+	}
+	outfile << endl;
 }
 
 TPZGeoMesh *CreateGeoMesh(int typeel) {
