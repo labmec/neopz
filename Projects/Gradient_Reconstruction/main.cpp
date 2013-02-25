@@ -92,6 +92,10 @@ void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
 
 TPZGeoMesh *CreateGeoMesh(int typeel);
+TPZGeoMesh *CreateGeoMesh(std::string &nome);
+
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+
 REAL MeanCell(TPZCompEl *cel,int IntOrder);
 REAL ExactSolution(const TPZVec<REAL> &pt);
 void GradExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &dsol);
@@ -122,7 +126,7 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
 
 void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs);
 
-void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &out);
+void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &out,bool uniform = true);
 
 //Trocar todos os elementos do cmesh apontando para o material TPZL2ProjectionFromGradient
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
@@ -131,8 +135,8 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
-int MaxRefs = 3;
-int InitRefs = 1;
+int MaxRefs = 7;
+int InitRefs = 0;
 
 int main(int argc, char *argv[]) {
 
@@ -164,7 +168,7 @@ int main(int argc, char *argv[]) {
 			// geometric mesh (initial)
 			gmesh = CreateGeoMesh(typeel);
 			// Refining near the points belong a circunference with radio r - maxime distance radius
-			RefiningNearCircunference(dim,gmesh,nrefs,1);    
+			UniformRefine(gmesh,nrefs);
 			
 			// computational mesh
 			cmesh= CMesh2(gmesh,p,true);
@@ -211,13 +215,11 @@ int main(int argc, char *argv[]) {
 			sprintf(saida,"Grad_UnifMeshRNoUnif_H%d_E%d.vtk",nrefs,typeel);
 			PrintDataMeshVTK(cmesh,saida,gradients);
 			// Printing to Mathematica
-			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath,false);
 			
 			cmesh->CleanUp();
 			delete cmesh;
 			delete gmesh;
-			
-		}
 		}
 		outfilemath.close();
 	}
@@ -231,9 +233,15 @@ int main(int argc, char *argv[]) {
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
-			gmesh = CreateGeoMesh(typeel);
+			std::string nombre = PZSOURCEDIR;
+			if(!typeel)
+				nombre += "/Projects/Gradient_Reconstruction/RegionQuadrada.dump";
+			else 
+				nombre += "/Projects/Gradient_Reconstruction/RegionQuadradaT.dump";
+			gmesh = CreateGeoMesh(nombre);
+			if(!gmesh) break;
 			// Uniform refinements
-			UniformRefine(nrefs,gmesh);
+			UniformRefine(gmesh,nrefs);
 			
 			// First computational mesh
 			cmesh= CMesh2(gmesh,p,true);
@@ -265,7 +273,13 @@ int main(int argc, char *argv[]) {
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
-			gmesh = CreateGeoMesh(typeel);
+			std::string nombre = PZSOURCEDIR;
+			if(!typeel)
+				nombre += "/Projects/Gradient_Reconstruction/RegionQuadrada.dump";
+			else 
+				nombre += "/Projects/Gradient_Reconstruction/RegionQuadradaT.dump";
+			gmesh = CreateGeoMesh(nombre);
+			if(!gmesh) break;
 			// Refining near the points belong a circunference with radio r - maxime distance radius
 			RefiningNearCircunference(dim,gmesh,nrefs,1);    
 			
@@ -280,7 +294,7 @@ int main(int argc, char *argv[]) {
 			sprintf(saida,"Grad_GIDRNoUnif_H%d_E%d.vtk",nrefs,typeel);
 			PrintDataMeshVTK(cmesh,saida,gradients);
 			// Printing to Mathematica
-			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath,false);
 			
 			cmesh->CleanUp();
 			delete cmesh;
@@ -318,7 +332,24 @@ void GradExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &dsol) {
 	dsol[1] = (8./ M_PI)*(temp + frac);    
 }
 
-void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream &outfile) {
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {    
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+            gel->Divide(filhos);
+        }
+    }
+	// Re-constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
+
+void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream &outfile,bool uniform) {
 	int i, j;
     int dim = (gradients.Cols()-1)/2;
 	TPZManVector<REAL> x(3), xunit(3), xorth(3);
@@ -468,9 +499,27 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 			else outfile << "}";
 		}
 		outfile << endl;
-		outfile << "ListPlot[Table[{NElementsE" << typeel << "[[i]],ErrorsE" << typeel << "[[i]]}],{i,1,Length[NElementsE" << typeel << "]}]" << endl << endl;
+		if(uniform) {
+			outfile << "ListPlot[Table[{1./Sqrt[NElementsE" << typeel << "[[i]]],ErrorsE" << typeel << "[[i]]},{i,1,Length[NElementsE" << typeel;
+			outfile << "]}],Joined->True,AxesLabel->{\"h\",\"Error\"},PlotMarkers->Automatic,AxesOrigin ->{0.0,0.0}]" << endl << endl;
+		}
+		else {
+			outfile << "ListPlot[Table[{Log[NElementsE" << typeel << "[[i]]],Log[ErrorsE" << typeel << "[[i]]]},{i,1,Length[NElementsE" << typeel;
+			outfile << "]}],Joined->True,AxesLabel->{\"h\",\"Error\"},PlotMarkers->Automatic,AxesOrigin ->{0.0,0.0}]" << endl << endl;
+		}
 	}
 	outfile << endl;
+}
+
+TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
+	
+	// Ejemplo uni-dimensional para la generacion de una malla para un reservatorio 
+	TPZReadGIDGrid grid;
+	TPZGeoMesh *meshgrid = grid.GeometricGIDMesh(archivo);
+	if(!meshgrid->NElements())
+		return 0;
+	
+	return meshgrid;
 }
 
 TPZGeoMesh *CreateGeoMesh(int typeel) {

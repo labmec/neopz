@@ -332,12 +332,14 @@ int main_NoAutoHP() {
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
 			// Generating geometric mesh 2D
 			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+
 			TPZGeoMesh *gmesh;
-			std::string nombre;
+			// geometric mesh (initial)
+			std::string nombre = PZSOURCEDIR;
 			if(!typeel)
-				nombre = "RegionQuadrada.dump";
-			else
-				nombre = "RegionQuadradaT.dump";
+				nombre += "/Projects/Poisson2D_ArcTan/RegionQuadrada.dump";
+			else 
+				nombre += "/Projects/Poisson2D_ArcTan/RegionQuadradaT.dump";
 			gmesh = CreateGeoMesh(nombre);
 			REAL radius = 0.2;
 
