@@ -55,7 +55,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	/**
-	 * @brief Computes a contribution to the stiffness matrix and load vector at one integration point
+	 * @brief Computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
 	 * @param data [in]
 	 * @param dataleft [in]
 	 * @param dataright [in]
@@ -92,7 +92,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
     
 	/**
-	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
+	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point 
 	 * @param data [in]
 	 * @param dataleft [in]
 	 * @param weight [in]
@@ -102,6 +102,19 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) = 0;
+    
+    /**
+	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point to multiphysics simulation
+	 * @param data [in]
+	 * @param dataleft [in]
+	 * @param weight [in]
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @param bc [in] is the boundary condition object
+	 * @since February 21, 2013
+	 */
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one BC integration point

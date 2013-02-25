@@ -46,9 +46,17 @@ void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
-    DebugStop();
+    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+	this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
+
 }
+
+void TPZDiscontinuousGalerkin::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    
+    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+	this->ContributeBCInterface(data, dataleft, weight, fakeek, ef, bc);
+}
+
 
 
 void TPZDiscontinuousGalerkin::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
