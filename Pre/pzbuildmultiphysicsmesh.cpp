@@ -437,9 +437,22 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 }
 
 
-void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh  *cMesh, int ndiv)
+void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndiv)
 {
-	TPZVec<int > subindex;
+
+    TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
+    int nel = elvec.NElements();
+    for(int el=0; el < nel; el++){
+        TPZCompEl * compEl = elvec[el];
+        if(!compEl) continue;
+        
+        if(compEl->IsInterface()){
+            compEl->Reference()->ResetReference();
+            delete compEl;
+        }
+    }
+    
+	TPZVec<int > subindex(0);
 	for (int iref = 0; iref < ndiv; iref++) {
 		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
 		int nel = elvec.NElements(); 
@@ -447,7 +460,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh  *cMesh, int nd
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
 			int ind = compEl->Index();
-            if(compEl->Reference()->Dimension() > 0){
+            if(compEl->Dimension() >0/* cMesh->Dimension()*/){
                 compEl->Divide(ind, subindex, 0);
             }
             
