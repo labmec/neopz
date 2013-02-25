@@ -105,7 +105,7 @@ int mainCRAZY(int argc, char * const argv[])
 }
 
 
-int main(int argc, char * const argv[])
+int main3D(int argc, char * const argv[])
 {    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -122,8 +122,8 @@ int main(int argc, char * const argv[])
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
-    REAL lengthX = 5.;
-    REAL lengthY = 7.;
+    REAL lengthX = 2.;
+    REAL lengthY = 1.;
     
     REAL lw = 10.;
     REAL bulletDepthIni =  0.;
@@ -756,11 +756,11 @@ void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
 
 #define usingRefUnif
 //#define usingRefdir
-#define usingQPoints
+//#define usingQPoints
 
 //#define writeAgain
 
-int main2D(int argc, char * const argv[])
+int main/*2D*/(int argc, char * const argv[])
 {
 #ifdef usingRefdir
     #ifdef writeAgain
@@ -771,16 +771,16 @@ int main2D(int argc, char * const argv[])
     #endif
 #endif
     
-    REAL lf = 2.;
-    REAL ldom = 6.;
-    REAL hdom = 20.;
-    REAL lmax = 0.4;
+    REAL lf = 1.;
+    REAL ldom = 2.;
+    REAL hdom = 1.;
+    REAL lmax = 0.25;
     TPZGeoMesh * gmesh = PlaneMesh(lf, ldom, hdom, lmax);
     
     std::ofstream pppt("ppt.txt");
     for(int ppp = 5; ppp <= 5; ppp++)
     {
-        REAL pressure = ppp;
+        REAL pressure = 433.424801571747;
         REAL traction = 0.;
         TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure,traction);
         
@@ -971,7 +971,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
 #endif
     
 #ifdef usingRefUnif
-    int nrefUnif = 1;
+    int nrefUnif = 2;
     for(int ref = 0; ref < nrefUnif; ref++)
     {
         nelem = gmesh->NElements();
@@ -1040,7 +1040,7 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
     cmesh->SetDefaultOrder(2);
     cmesh->SetAllCreateFunctionsContinuous();
     
-    STATE young = 0.29e5;
+    STATE young = 0.3e5;
     STATE poisson = 0.25;
     
     int planeStrain = 0;
@@ -1058,8 +1058,8 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
         f(0,0) = 1.;
         TPZBndCond * nullXleft = materialLin->CreateBC(materialLin, __2DleftMat, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(nullXleft);
-//        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, __2DrightMat, directionalNullDirich, k, f);
-//        cmesh->InsertMaterialObject(nullXright);
+        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, __2DrightMat, directionalNullDirich, k, f);
+        cmesh->InsertMaterialObject(nullXright);
         
         f.Zero();
         f(1,0) = 1.;
@@ -1067,9 +1067,13 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
         cmesh->InsertMaterialObject(nullYoutside);
         
         k.Zero();
-        f(1,0) = traction;
-        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, __2DfarfieldMat, newmann, k, f);
+//        f(1,0) = traction;
+//        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, __2DfarfieldMat, newmann, k, f);
+//        cmesh->InsertMaterialObject(newmanFarfield);
+        f(1,0) = 1.;
+        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, __2DfarfieldMat, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(newmanFarfield);
+        
         f(1,0) = pressureInsideCrack;
         TPZBndCond * newmanInside = materialLin->CreateBC(materialLin, __2DfractureMat_inside, newmann, k, f);
         cmesh->InsertMaterialObject(newmanInside);

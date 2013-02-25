@@ -347,7 +347,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<std::pair<REAL,RE
 	
 	GenerateCrackBoundary(refinedMesh, elIdSequence);
     SeparateElementsInMaterialSets(refinedMesh);
-    TurnIntoQuarterPoint(refinedMesh);
+    TurnIntoQuarterPoint(refinedMesh); 
     
     //    std::ofstream cc("cc.vtk");
     //    TPZVTKGeoMesh::PrintGMeshVTK(refinedMesh, cc, true);

@@ -37,7 +37,7 @@ class ToolsTransient {
     
     static TPZCompMesh *CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int matId, int pOrder, TPZVec<STATE> &solini);
     
-    static void SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, double & pressureInMiddleOfFract);
+    static void SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
     
     //Retona a solucao inicial referente a uma malha computacional
     static TPZFMatrix<REAL> InitialSolution(TPZGeoMesh *gmesh, TPZCompMesh * cmesh, int matId, int porder, REAL valsol);
@@ -46,6 +46,7 @@ class ToolsTransient {
     
     static TPZFMatrix<REAL> SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, int matId, REAL valIni);
     
+    static void PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int solNum);
 };
 
 #endif

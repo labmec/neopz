@@ -118,10 +118,9 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
-    double pressureInMiddleOfFract = 0.;
     
     outfile << "Saida" << 0 << "={";
-    SaidaMathPressao(meshvec, mphysics, pressureInMiddleOfFract);
+    SaidaMathPressao(meshvec, mphysics);
     outfile << "};\n";
     
 	int nrows;
@@ -160,7 +159,9 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     Origin[0] = XcrackTip;
     TPZVec<REAL> normalDirection(3,0.);
     normalDirection[2] = 1.;
-    REAL radius = 0.3;
+    REAL radius = 0.5;
+    
+    std::ofstream saidaAreaW("AreaW.nb");
     ////////////////////////////////////////////////////////////////////////////
     
 	while (TimeValue <= maxTime) //passo de tempo
@@ -201,7 +202,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         
         if(cent%1==0)
         {
-            SaidaMathPressao(meshvec, mphysics,pressureInMiddleOfFract);
+            SaidaMathPressao(meshvec, mphysics);
             outfile << "};\n";
             
             std::stringstream outputfiletemp;
@@ -214,18 +215,70 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         
         ///>>>>>>> Calculo da Integral-J
         ///////////////////J-integral/////////////////////////////////////////////////
-        REAL pressure = pressureInMiddleOfFract;
+            TPZVec<REAL> xx(3,0.), qsii(2,0.);
+            xx[0] = XcrackTip - radius;
+            int initialEl = 0;
+            TPZGeoEl * geoEl = (meshvec[0])->Reference()->FindElement(xx, qsii, initialEl, 2);
+            if(!geoEl)
+            {
+                DebugStop();
+            }
+            TPZCompEl * compEl = geoEl->Reference();
+            
+            TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+            TPZMaterialData data;
+            intpEl->InitMaterialData(data);
+            
+            intpEl->ComputeShape(qsii, data);
+            intpEl->ComputeSolution(qsii, data);
+            
+            TPZFMatrix<REAL> Sigma(2,2);
+            Sigma.Zero();
+        
+            TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
+            
+            TPZVec<REAL> Solout(3);
+            int var;
+            
+            var = 10;//Stress Tensor
+            elast2D->Solution(data, var, Solout);
+            Sigma(0,0) = Solout[0];
+            Sigma(1,1) = Solout[1];
+            Sigma(0,1) = Solout[2];
+            Sigma(1,0) = Solout[2];
+            
+            REAL SigmaYY = Sigma(1,1);
+        
+        REAL pressure = -SigmaYY;
         Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);
         JIntegral2D integralJ;
         integralJ.PushBackPath2D(Jpath);
-        TPZVec<REAL> KI(3,0.);
+        TPZVec<REAL> KI(2,0.);
         KI = integralJ.IntegratePath2D(0);
+        
+        PlotWIntegral(meshvec[0], saidaAreaW, TimeValue);
         /////////////////////////////
         
         InitialSolution = mphysics->Solution();
         cent++;
         TimeValue = cent*deltaT;
     }
+    saidaAreaW << "Qinj=0.001;\n\n";
+    saidaAreaW << "TrapArea[displ_]:=Block[{displSize, area, baseMin, baseMax, h},\n";
+    saidaAreaW << "displSize = Length[displ];\n";
+    saidaAreaW << "area = 0;\n";
+    saidaAreaW << "For[i = 1, i < displSize,\n";
+    saidaAreaW << "baseMin = displ[[i, 2]];\n";
+    saidaAreaW << "baseMax = displ[[i + 1, 2]];\n";
+    saidaAreaW << "h = displ[[i + 1, 1]] - displ[[i, 1]];\n";
+    saidaAreaW << "area += (baseMin + baseMax)/2.*h;\n";
+    saidaAreaW << "i++;];\n";
+    saidaAreaW << "area];\n\n";
+    saidaAreaW << "Areas = {TrapArea[displ1], TrapArea[displ2], TrapArea[displ3],TrapArea[displ4], TrapArea[displ5], TrapArea[displ6],TrapArea[displ7], TrapArea[displ8], TrapArea[displ9],TrapArea[displ10]};\n\n";    
+    saidaAreaW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0, 0},PlotStyle -> {PointSize[0.02]}];\n";
+    saidaAreaW << "QinjPlot = Plot[Qinj*t, {t, 1, 10}, PlotStyle -> Red];\n";
+    saidaAreaW << "Show[WintegralPlot, QinjPlot]\n";
+    
     
     //saida para mathematica
     outfile << "SAIDAS={";
@@ -248,10 +301,65 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     outfile.close();
 }
 
-void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, double & pressureInMiddleOfFract)
+void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int solNum)
+{
+    out << "displ" << solNum << "={";
+    int npts = 1;
+ 
+    int iniId = 0;
+    TPZGeoMesh * gmesh = cmesh->Reference();
+    for(int el = 0; el < gmesh->NElements(); el++)
+    {
+        TPZGeoEl * gel1D = gmesh->ElementVec()[el];
+        if(!gel1D || gel1D->HasSubElement())
+        {
+            continue;
+        }
+        if(gel1D->MaterialId() == 2)//1D crack element
+        {
+            if(gel1D->Dimension() != 1)
+            {
+                DebugStop();
+            }
+            TPZVec<REAL> qsi1D(1,0.), qsi2D(2,0.), XX(3,0.);
+            
+            for(int p = -npts; p < +npts; p++)
+            {
+                qsi1D[0] = double(p)/npts;
+                gel1D->X(qsi1D, XX);
+                TPZGeoEl * gel = gmesh->FindElement(XX, qsi2D, iniId, 2);
+                
+                TPZCompEl * compEl = gel->Reference();
+                TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+                TPZMaterialData data;
+                intpEl->InitMaterialData(data);
+
+                intpEl->ComputeShape(qsi2D, data);
+                intpEl->ComputeSolution(qsi2D, data);
+                
+                TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
+                
+                TPZVec<REAL> Solout(3);
+                int var;
+                
+                var = 9;//Displacement
+                elast2D->Solution(data, var, Solout);
+                REAL displacementX = Solout[0];
+                REAL displacementY = Solout[1];
+                REAL posX = XX[0] + displacementX;
+                REAL posY = XX[1] + displacementY;
+                
+                out << "{" << posX << "," << posY << "}";
+                out << ",";
+            }
+        }
+    }
+    out << "{1,0}" << "};\n";
+}
+
+void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
 {
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    pressureInMiddleOfFract = -1.;
     
     std::map<REAL,REAL> time_pressure;
     
@@ -274,10 +382,6 @@ void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh
             REAL pos = out[0];
             REAL press = data.sol[0][0];
             time_pressure[pos] = press;
-            if(i >= meshvec[1]->ElementVec().NElements()/2 && pressureInMiddleOfFract < 0.)
-            {
-                pressureInMiddleOfFract = press;
-            }
         }
         if(out[0] > 50.) continue;
     }

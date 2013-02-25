@@ -125,11 +125,11 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-//#ifdef malhaAgnaldo
+#ifdef malhaAgnaldo
 	TPZGeoMesh * gmesh = GMesh(4,LxD,LyD,LxD/2,1);
-//#else
- //   TPZGeoMesh * gmesh = PlaneMesh(LxD/2., LxD, LyD, LxD/8.);
-//#endif
+#else
+   TPZGeoMesh * gmesh = PlaneMesh(LxD/2., LxD, LyD, LxD/8.);
+#endif
     
     //computational mesh elastic
 /** >>> Resolvendo um problema modelo de elastica linear para utilizar a solucao 
