@@ -505,6 +505,10 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
 		subindex.Resize(0);
 		return;
 	}
+    
+    // The refinement pattern may be adjusted during the division process. 02/25/2013
+    nsubs = ref->NSubElements();
+	subindex.Resize(nsubs);
 	
 	this->Mesh()->ElementVec()[index] = NULL;
 	ref->ResetReference();
