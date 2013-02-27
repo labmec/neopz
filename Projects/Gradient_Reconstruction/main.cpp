@@ -221,8 +221,8 @@ int main(int argc, char *argv[]) {
 			delete cmesh;
 			delete gmesh;
 		}
-		outfilemath.close();
 	}
+	outfilemath.close();
 
 	// Utilizando para um refinamento uniforme sobre uma malha gerada pelo GID
 	// Output file in Mathematica format
@@ -390,7 +390,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		Grads(i,4) = sqrt(GradExact[0]*GradExact[0]+GradExact[1]*GradExact[1]);
 		Grads(i,5) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
 		Grads(i,6) = xorth[0]*GradExact[0]+xorth[1]*GradExact[1];
-		error += ((Grads(i,4)-Grad)*(Grads(i,4)-Grad));
+		error += ((Grads(i,4)-Grad)*(Grads(i,4)-Grad)*gradients(i,2*dim));
     }
 	
 	// Printing in mathematica format
@@ -669,8 +669,8 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
             datagradients(counter,k) = center[k];//centro do elemento
             datagradients(counter,dim+k) = Grad[k];//valor do gradiente
         }
-		// Increment a last column to store index of the finite element
-		datagradients(counter,2*dim) = cel->Index();
+		// Increment a last column to store volume of the finite element
+		datagradients(counter,2*dim) = cel->VolumeOfEl();
         
 		counter++;
 	}
