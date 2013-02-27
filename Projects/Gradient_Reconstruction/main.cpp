@@ -36,6 +36,7 @@
 
 #include "TPZVTKGeoMesh.h"
 #include "TPZReadGIDGrid.h"
+#include "TPZExtendGridDimension.h"
 
 #include <iostream>
 #include <math.h>
@@ -67,7 +68,11 @@ int const dirichlet =0;
 int const neumann = 1;
 int const mixed = 2;
 
+// Alfa -> Coefficient of the arctang argument
+REAL ALFA = 20.;
+
 REAL ValueK = 1000;
+
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance);
@@ -90,15 +95,15 @@ void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
-
+TPZGeoMesh *CreateGeoMesh();
 TPZGeoMesh *CreateGeoMesh(int typeel);
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 
 REAL MeanCell(TPZCompEl *cel,int IntOrder);
-REAL ExactSolution(const TPZVec<REAL> &pt);
-void GradExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &dsol);
+REAL ExactSolution(int dim,const TPZVec<REAL> &pt);
+void GradExactSolution(int dim,const TPZVec<REAL> &x, TPZVec<REAL> &dsol);
 
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
@@ -136,7 +141,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
 int MaxRefs = 7;
-int InitRefs = 0;
+int InitRefs = 1;
 
 int main(int argc, char *argv[]) {
 
@@ -303,33 +308,85 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	outfilemath.close();
+
+	// Three dimensional case
+	sprintf(saida,"Grad2Math_3D_RUnif.nb");
+	outfilemath.open(saida);
+	for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+	{
+		// geometric mesh (initial)
+		gmesh = CreateGeoMesh();
+		// Refining near the points belong a circunference with radio r - maxime distance radius
+		UniformRefine(gmesh,nrefs);
+		
+		// computational mesh
+		cmesh= CMesh2(gmesh,p,true);
+		
+		// Computing gradient reconstructed
+		TPZFMatrix<REAL> gradients;
+		PosProcessGradientReconstruction(cmesh,gradients);
+		
+		// Printing to VTK
+		sprintf(saida,"Grad3D_UnifMeshRUnif_H%d_E%d.vtk",nrefs,typeel);
+		PrintDataMeshVTK(cmesh,saida,gradients);
+		// Printing to Mathematica
+		SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+		
+		cmesh->CleanUp();
+		delete cmesh;
+		delete gmesh;
+		
+	}
+	outfilemath.close();
 	
 	return 0;
 }
 
-REAL ExactSolution(const TPZVec<REAL> &x) {
-	REAL F = 2*sqrt(ValueK);
-	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
-	REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL prod = prodx*prody;
-	return (8*prod*(1+(2./M_PI)*(atan(arc))));
-	//	return (coef_a*x[0]*x[0] + coef_b*x[1]);
+REAL ExactSolution(int dim,const TPZVec<REAL> &x) {
+	REAL result = 0.;
+	if(dim==2) {
+		REAL F = 2*sqrt(ValueK);
+		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		REAL prodx = x[0]*(x[0]-1.);
+		REAL prody = x[1]*(x[1]-1.);
+		REAL prod = prodx*prody;
+		result = (8*prod*(1+(2./M_PI)*(atan(arc))));
+	}
+	else if(dim == 3) {
+		TPZVec<REAL> C0(3,-0.25);
+		
+		REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
+		result = atan(ALFA * ( R0 - sqrt(3.)) );
+	}
+	return result;
 }
-void GradExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &dsol) {
-	REAL F = 2*sqrt(ValueK);
-	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
-	REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL prod = prodx*prody;
-	REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
-	REAL frac = 2*prod*F*(1.-2*x[0]);
-	frac = frac/(1+arc*arc);
-	dsol[0] = (8./M_PI)*(temp + frac);
-	temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
-	frac = 2*prod*F*(1.-2*x[1]);
-	frac = frac/(1+arc*arc);
-	dsol[1] = (8./ M_PI)*(temp + frac);    
+void GradExactSolution(int dim,const TPZVec<REAL> &x, TPZVec<REAL> &dsol) {
+	if(dim==2) {
+		REAL F = 2*sqrt(ValueK);
+		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		REAL prodx = x[0]*(x[0]-1.);
+		REAL prody = x[1]*(x[1]-1.);
+		REAL prod = prodx*prody;
+		REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
+		REAL frac = 2*prod*F*(1.-2*x[0]);
+		frac = frac/(1+arc*arc);
+		dsol[0] = (8./M_PI)*(temp + frac);
+		temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
+		frac = 2*prod*F*(1.-2*x[1]);
+		frac = frac/(1+arc*arc);
+		dsol[1] = (8./ M_PI)*(temp + frac);
+	}
+	else if(dim==3) {
+		TPZVec<REAL> C0(3,-0.25);
+		
+		REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
+		REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
+		if(IsZero(den))
+			DebugStop();
+		dsol[0] = (ALFA*(x[0]-C0[0]))/den;
+		dsol[1] = (ALFA*(x[1]-C0[1]))/den;
+		dsol[2] = (ALFA*(x[2]-C0[2]))/den;
+	}
 }
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
@@ -351,7 +408,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 
 void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream &outfile,bool uniform) {
 	int i, j;
-    int dim = (gradients.Cols()-1)/2;
+    int dim = (gradients.Cols()-2)/2;
 	TPZManVector<REAL> x(3), xunit(3), xorth(3);
 	
 	TPZFMatrix<REAL> Grads(gradients.Rows(),7);
@@ -363,19 +420,30 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
     for(i=0;i<gradients.Rows();i++)
     {
 		r = temp = 0.0;
-		for(j=0;j<dim;j++) {
-			center[j] = gradients(i,j);
-			x[j] = gradients(i,j)-0.5;
-			r += x[j]*x[j];
-			temp += gradients(i,dim+j)*gradients(i,dim+j);
+		if(dim==2) {
+			for(j=0;j<dim;j++) {
+				center[j] = gradients(i,j);
+				x[j] = gradients(i,j)-0.5;
+				r += x[j]*x[j];
+				temp += gradients(i,dim+j)*gradients(i,dim+j);
+			}
+		}
+		else if(dim==3) {
+			for(j=0;j<dim;j++) {
+				center[j] = gradients(i,j);
+				x[j] = gradients(i,j)+0.25;
+				r += x[j]*x[j];
+				temp += gradients(i,dim+j)*gradients(i,dim+j);
+			}
 		}
 		// Calculando o gradiente exato para cada centro
-		GradExactSolution(center,GradExact);
+		GradExactSolution(dim,center,GradExact);
 		Grad = sqrt(temp);
 		temp = r;
 		r = sqrt(temp);
 		for(j=0;j<dim;j++) {
-			if(IsZero(r)) continue;
+			if(IsZero(r)) 
+				continue;
 			xunit[j] = x[j]/r;
 		}
 		// Vetor ortogonal
@@ -383,13 +451,27 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 			xorth[0] = -xunit[1];
 			xorth[1] = xunit[0];
 		}
+		else if(dim==3) {
+			xorth = xunit;
+		}
         Grads(i,0) = r;
 		Grads(i,1) = Grad;
-		Grads(i,2) = xunit[0]*gradients(i,dim)+xunit[1]*gradients(i,dim+1);
-		Grads(i,3) = xorth[0]*gradients(i,dim)+xorth[1]*gradients(i,dim+1);
-		Grads(i,4) = sqrt(GradExact[0]*GradExact[0]+GradExact[1]*GradExact[1]);
-		Grads(i,5) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
-		Grads(i,6) = xorth[0]*GradExact[0]+xorth[1]*GradExact[1];
+		Grads(i,2) = 0.0;
+		for(j=0;j<dim;j++) 
+			Grads(i,2) += xunit[j]*gradients(i,dim+j);
+		Grads(i,3) = 0.0;
+		for(j=0;j<dim;j++) 
+			Grads(i,3) = xorth[j]*gradients(i,dim+j);
+		temp = 0.0;
+		for(j=0;j<dim;j++) 
+			temp += (GradExact[j]*GradExact[j]);
+		Grads(i,4) = sqrt(temp);
+		Grads(i,5) = 0.0;
+		for(j=0;j<dim;j++) 
+			Grads(i,5) += xunit[j]*GradExact[j];
+		Grads(i,6) = 0.0;
+		for(j=0;j<dim;j++) 
+			Grads(i,6) += xorth[j]*GradExact[j];
 		error += ((Grads(i,4)-Grad)*(Grads(i,4)-Grad)*gradients(i,2*dim+1));
     }
 	
@@ -434,11 +516,8 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
     }
 	// Creating lists of the results Norm(GradR), GradRU.UnitVec, GradRU.OrthVec, Norm(Grad), GradU.UnitVec and GradU.OrthVec
     outfile << "NormGradRU" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,2]]},{i,1,Length["<<name<<"]}];" << endl;
-//	outfile << "ListPlot[NormGradRU"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
     outfile << "GradRUPointV" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,3]]},{i,1,Length["<<name<<"]}];" << endl;
-//	outfile << "ListPlot[GradRUPointV"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
     outfile << "GradRUPointVOrth" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,4]]},{i,1,Length["<<name<<"]}];" << endl;
-//	outfile << "ListPlot[GradRUPointVOrth"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
 	outfile << "Error" << nref << "E" << typeel << " = " << sqrt(error) << ";" << endl;
 	
 	if(nref==MaxRefs-1) {
@@ -452,8 +531,8 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		}
 		outfile << ",DataRange-> {";
 		for(i=InitRefs-1;i<nref;i++) {
-			outfile << i << ",";
-			if(i==nref-1) outfile << 4*i << "}";
+			outfile << i+2 << ",";
+			if(i==nref-1) outfile << 4*(i+2) << "}";
 		}
 		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"||Grad||\"}]" << endl << endl;
 		// List plot of the scalar product gradR with unitV incremented with scalar product gradient exact with unitV
@@ -466,8 +545,8 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		}
 		outfile << ",DataRange-> {";
 		for(i=InitRefs-1;i<nref;i++) {
-			outfile << i << ",";
-			if(i==nref-1) outfile << 4*i << "}";
+			outfile << i+2 << ",";
+			if(i==nref-1) outfile << 4*(i+2) << "}";
 		}
 		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vunit\"}]" << endl << endl;
 		// List plot of the scalar product gradR with V orthogonal incremented with scalar product gradient exact with V orthogonal
@@ -480,27 +559,27 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		}
 		outfile << ",DataRange-> {";
 		for(i=InitRefs-1;i<nref;i++) {
-			outfile << i << ",";
-			if(i==nref-1) outfile << 4*i << "}";
+			outfile << i+2 << ",";
+			if(i==nref-1) outfile << 4*(i+2) << "}";
 		}
 		outfile << ",PlotRange->All,Frame->True,AxesLabel->{\"r\",\"GradU.Vorth\"}]" << endl << endl;
 		// Vector of the errors on number of elements
 		outfile << "NElementsE" << typeel << " = {";
-		for(int k =0; k < nref; k++) {
+		for(int k=InitRefs-1; k < nref; k++) {
 			outfile << "Length[NormGradRU" << k+1 << typeel;
 			if(k!=nref-1) outfile << "],";
 			else outfile << "]}";
 		}
 		outfile << endl;
 		outfile << "ErrorsE" << typeel << " = {";
-		for(int k =0; k < nref; k++) {
+		for(int k =InitRefs-1; k < nref; k++) {
 			outfile << "Error" << k+1 << "E" << typeel;
 			if(k!=nref-1) outfile << ",";
 			else outfile << "}";
 		}
 		outfile << endl;
 		if(uniform) {
-			outfile << "ListPlot[Table[{1./Sqrt[NElementsE" << typeel << "[[i]]],ErrorsE" << typeel << "[[i]]},{i,1,Length[NElementsE" << typeel;
+			outfile << "ListPlot[Table[{1./Power[NElementsE" << typeel << "[[i]],1./" << dim << "],ErrorsE" << typeel << "[[i]]},{i,1,Length[NElementsE" << typeel;
 			outfile << "]}],Joined->True,AxesLabel->{\"h\",\"Error\"},PlotMarkers->Automatic,AxesOrigin ->{0.0,0.0}]" << endl << endl;
 		}
 		else {
@@ -524,13 +603,33 @@ TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 
 TPZGeoMesh *CreateGeoMesh(int typeel) {
 	TPZGeoMesh* gmesh = new TPZGeoMesh;
-	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
+	REAL MaxX = 1.;
+	TPZManVector<REAL> x0(3,0.), x1(3,MaxX);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 	x1[2] = 0.;
-	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
+	int nParts = 2;
+	TPZManVector<int> nx(nParts,nParts);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(typeel);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 	gen.Read(gmesh,matId);             // generating grid in gmesh
+
 	return gmesh;
+}
+TPZGeoMesh *CreateGeoMesh() {
+	TPZGeoMesh* gmesh = new TPZGeoMesh;
+	REAL MaxX = 1.;
+	TPZManVector<REAL> x0(3,0.), x1(3,MaxX);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
+	x1[2] = 0.;
+	int nParts = 2;
+	TPZManVector<int> nx(nParts,nParts);   // subdivisions in X and in Y. 
+	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen.SetElementType(0);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+	gen.Read(gmesh,matId);             // generating grid in gmesh
+	
+	REAL InitialH = MaxX/nParts;
+	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
+	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(nParts,3,3);
+	
+	return gmesh3D;
 }
 void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center,TPZVec<REAL> &Grad) {
     TPZFMatrix<REAL> grad;
@@ -824,6 +923,7 @@ void PrintCompMeshVTKWithGradientAsData(TPZCompMesh *cmesh,char *filename,TPZFMa
 REAL MeanCell(TPZCompEl *cel,int IntOrder) {
 	TPZIntPoints *pointIntRule = ((TPZInterpolatedElement*)cel)->Reference()->CreateSideIntegrationRule((cel->Reference()->NSides())-1,IntOrder);
 	int it, npoints = pointIntRule->NPoints();
+	int dim = cel->Mesh()->Dimension();
 	REAL integral = 0.0;
 	TPZManVector<REAL> point(3,0.);
 	TPZManVector<REAL> xpoint(3,0.);
@@ -832,7 +932,7 @@ REAL MeanCell(TPZCompEl *cel,int IntOrder) {
 		pointIntRule->Point(it,point,weight);
 		weight /= cel->Reference()->RefElVolume();
 		cel->Reference()->X(point,xpoint);
-		integral += weight * ExactSolution(xpoint);
+		integral += weight * ExactSolution(dim,xpoint);
 	}
 	//REAL area = cel->Reference()->Volume();
 	return integral;
@@ -1133,7 +1233,7 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL
 }*/
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
-	int i;
+	int i, nstates;
 	TPZCompEl *cel;
 	for(i=0;i<cmesh->NElements();i++) {
 		cel = cmesh->ElementVec()[i];
@@ -1453,7 +1553,14 @@ TPZGeoMesh *GMesh2(){
 TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
 {
     /// criar materiais
-	int dim = 2;
+	int ngelem = gmesh->NElements();
+	TPZGeoEl *gel;
+	int dim = 0;
+	for(int j=0;j<ngelem;j++) {
+		gel = gmesh->ElementVec()[j];
+		if(gel->MaterialId() > 0 && dim < gel->Dimension())
+			dim = gel->Dimension();
+	}
 	TPZMatPoisson3d *material = new TPZMatPoisson3d(matId,dim);
     
     REAL diff=1.;
