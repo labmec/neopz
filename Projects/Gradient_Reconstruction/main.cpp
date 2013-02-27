@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	gRefDBase.InitializeUniformRefPattern(ETriangle);
 
-    int p;
+    int p = 1;
     char saida[256];
 	int dim = 2;
 	int typeel, nrefs;
@@ -390,7 +390,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 		Grads(i,4) = sqrt(GradExact[0]*GradExact[0]+GradExact[1]*GradExact[1]);
 		Grads(i,5) = xunit[0]*GradExact[0]+xunit[1]*GradExact[1];
 		Grads(i,6) = xorth[0]*GradExact[0]+xorth[1]*GradExact[1];
-		error += ((Grads(i,4)-Grad)*(Grads(i,4)-Grad)*gradients(i,2*dim));
+		error += ((Grads(i,4)-Grad)*(Grads(i,4)-Grad)*gradients(i,2*dim+1));
     }
 	
 	// Printing in mathematica format
@@ -439,7 +439,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int nref,int typeel,ofstream 
 //	outfile << "ListPlot[GradRUPointV"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
     outfile << "GradRUPointVOrth" << nref << typeel << " = Table[{"<< name << "[[i,1]],"<< name <<"[[i,4]]},{i,1,Length["<<name<<"]}];" << endl;
 //	outfile << "ListPlot[GradRUPointVOrth"<< nref << typeel << ", PlotRange -> All, Frame -> True]" << endl;
-	outfile << "Error" << nref << "E" << typeel << " = " << sqrt(error) << "/Length[NormGradRU" << nref << typeel << "];" << endl;
+	outfile << "Error" << nref << "E" << typeel << " = " << sqrt(error) << ";" << endl;
 	
 	if(nref==MaxRefs-1) {
 		// List plot of the Norm of gradients incremented with norm gradient exact
@@ -642,7 +642,7 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
     // Redimensionando a matriz dos dados da reconstruca de gradientes
     int dim  = cmesh->Dimension();
     int nelem = cmesh->NElements();
-    datagradients.Redim(nelem,2*dim+1);
+    datagradients.Redim(nelem,2*dim+2);
 	
     TPZManVector<REAL,3> center;
     TPZManVector<REAL> Grad(dim);
@@ -670,12 +670,14 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
             datagradients(counter,dim+k) = Grad[k];//valor do gradiente
         }
 		// Increment a last column to store volume of the finite element
-		datagradients(counter,2*dim) = cel->VolumeOfEl();
+		datagradients(counter,2*dim) = cel->Index();
+		datagradients(counter,2*dim+1) = cel->VolumeOfEl();
         
 		counter++;
 	}
     // Redimensionando la matriz de los gradientes
-    datagradients.Resize(counter,2*dim+1);
+	k = datagradients.Cols();
+    datagradients.Resize(counter,k);
 }
 
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
@@ -1131,7 +1133,7 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL
 }*/
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
-	int i, nstates;
+	int i;
 	TPZCompEl *cel;
 	for(i=0;i<cmesh->NElements();i++) {
 		cel = cmesh->ElementVec()[i];
