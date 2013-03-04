@@ -111,6 +111,7 @@ TPZMaterial * TPZReynoldsFlow::NewMaterial()
 int TPZReynoldsFlow::ClassId() const
 {
     DebugStop();
+	return -999;
 }
 
 void TPZReynoldsFlow::Write(TPZStream &buf, int withclassid)
