@@ -31,7 +31,11 @@
  *
  */
 
-class TPZNLFluidStructure2d: public TPZDiscontinuousGalerkin{
+#include "pzmatwithmem.h"
+
+
+class TPZNLFluidStructure2d : public TPZMatWithMem<REAL, TPZDiscontinuousGalerkin>
+{
     
 protected:
 	
@@ -55,10 +59,9 @@ protected:
 	
 	/** @brief term that multiplies the Laplacian operator, outflow to the poros medio and right side
      * @note \f$fvisc f$ => viscosidade do fluido
-     * @note \f$fQL f$ => vazao para o meio poroso
      * @note \f$fXf f$ => vetor de carga
      */
-    REAL fvisc, fQL;
+    REAL fvisc;
     REAL fXf;
     
     /** @brief tensao de confinamento do solido*/
@@ -79,7 +82,16 @@ protected:
 	enum EState { ELastState = 0, ECurrentState = 1 };
 	static EState gState;
     
+    //////Leakoff
+    REAL FictitiousTime(TPZMaterialData &data);
+    REAL Ql(TPZMaterialData &data);
+    void UpdateVl(TPZMaterialData &data);
+    
+    REAL fCl, fP, fvsp;
+    
+    
 public:
+    
 	TPZNLFluidStructure2d();
 	
 	TPZNLFluidStructure2d(int matid, int dim);
@@ -100,11 +112,13 @@ public:
      *@param visc viscosidade do fluido
      *@param QL vazao para o meio poroso
     */
-	void SetParameters(REAL Hw, REAL &visc, REAL &QL)
+	void SetParameters(REAL Hw, REAL &visc, REAL Cl, REAL P, REAL vsp)
 	{
         fHw = Hw;
         fvisc = visc;
-        fQL = QL;
+        fCl = Cl;
+        fP = P;
+        fvsp = vsp;
 	}
 	
 	/**

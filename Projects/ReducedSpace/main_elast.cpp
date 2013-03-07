@@ -803,6 +803,7 @@ void PosProcessamento1(TPZAnalysis &an, std::string plotfile){
 	an.Print("nothing",out);
 }
 
+
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial){
     
     //Creating computational mesh for multiphysic elements
@@ -828,8 +829,13 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //TPZFMatrix<REAL> xf(1,1,0.);
     REAL hw = HD;
     REAL xvisc = viscD;
-    REAL xql = 0.;
-    mymaterial->SetParameters(hw, xvisc, xql);
+    REAL Cl = 0.0007;
+    REAL prelation = 1.;
+    REAL vsp = 0.00001;
+    mymaterial->SetParameters(hw, xvisc, Cl, prelation, vsp);
+    REAL vlAcum = vsp;
+	mymaterial->SetDefaultMem(vlAcum);
+    mymaterial->PushMemItem();
     
     
     TPZMaterial *mat(mymaterial);

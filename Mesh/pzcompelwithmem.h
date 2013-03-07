@@ -72,6 +72,8 @@ public:
 	}
 	
 	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
+    
+    int GetGlobalIntegrationPointIndex(TPZMaterialData &data);
 	
 protected:
 	
@@ -254,16 +256,20 @@ void TPZCompElWithMem<TBASE>::CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE>
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
 														 TPZVec<REAL> &qsi){
-	TBASE::ComputeRequiredData(data, qsi); 
-	if (data.intLocPtIndex >= 0) {
-        data.intGlobPtIndex = fIntPtIndices[ data.intLocPtIndex ]; // returning the 
-    }
-    else
-    {
-        data.intGlobPtIndex = -1;
-    }
+	TBASE::ComputeRequiredData(data, qsi);
+    data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
 	//material index for the n-th CompEl integration point									
 	
+}
+
+template <class TBASE>
+inline int TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialData &data)
+{
+    int glIntegralPt = -1;
+    if (data.intLocPtIndex >= 0) {
+        glIntegralPt = fIntPtIndices[ data.intLocPtIndex ]; // returning the
+    }
+    return glIntegralPt;
 }
 
 template <class TBASE>

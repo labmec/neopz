@@ -24,6 +24,7 @@
 #include "pzmaterialdata.h"
 #include "pzinterpolationspace.h"
 #include "pzlog.h"
+#include "pzcompelwithmem.h"
 
 #include <set>
 
@@ -486,7 +487,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
 		for (int iref=0; iref<fElementVec.size(); iref++)
-		{			
+		{
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
             if (!msp) {
                 continue;
@@ -494,10 +495,12 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 			trvec[iref].Apply(intpointtemp, intpoint);
 			
 			//msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
-							 // datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
+            // datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
 			datavec[iref].intLocPtIndex = int_ind;
+            
 			msp->ComputeRequiredData(datavec[iref], intpoint);
 		}
+        
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
 	

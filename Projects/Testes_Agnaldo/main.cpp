@@ -471,8 +471,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
 	int dim = 2;
-	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim); 
+	TPZMatPoisson3d * material = new TPZMatPoisson3d(matId,dim); 
 	material->NStateVariables();
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
