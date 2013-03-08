@@ -311,7 +311,7 @@ void TPZAdaptMesh::CreateClones(){
         
         TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReferenceCompMesh);
         clonecompmesh->AutoBuild();
-        fCloneMeshes .Push(clonecompmesh);    
+        fCloneMeshes.Push(clonecompmesh);    
     }
 }
 

@@ -372,29 +372,29 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 /** Returns the variable index associated with the name */
 int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("Solution",name.c_str()))        return  1;
-	if(!strcmp("Derivative",name.c_str()))        return  2;
+	if(!strcmp("Derivative",name.c_str()))      return  2;
 	if(!strcmp("KDuDx",name.c_str()))           return  3;
 	if(!strcmp("KDuDy",name.c_str()))           return  4;
 	if(!strcmp("KDuDz",name.c_str()))           return  5;
 	if(!strcmp("NormKDu",name.c_str()))         return  6;
 	if(!strcmp("MinusKGradU",name.c_str()))     return  7;
-	if(!strcmp("p",name.c_str()))               return  8;
+	if(!strcmp("POrder",name.c_str()))          return  8;
 	if(!strcmp("Laplac",name.c_str()))          return  9;
 	if(!strcmp("Stress",name.c_str()))          return  10;    
 	if(!strcmp("Flux",name.c_str()))            return  10;
 	if(!strcmp("Pressure",name.c_str()))        return  11;
 	
-	if(!strcmp("ExactPressure",name.c_str()))        return  12;
-	if(!strcmp("ExactFlux",name.c_str()))        return  13;
-	if(!strcmp("Divergence",name.c_str()))        return  14;
+	if(!strcmp("ExactPressure",name.c_str()))   return  12;
+	if(!strcmp("ExactFlux",name.c_str()))       return  13;
+	if(!strcmp("Divergence",name.c_str()))      return  14;
 	if(!strcmp("ExactDiv",name.c_str()))        return  15;
 	
-	if(!strcmp("PressureOmega1",name.c_str()))        return  16;
-	if(!strcmp("PressureOmega2",name.c_str()))        return  17;
-	if(!strcmp("FluxOmega1",name.c_str()))        return  18;
+	if(!strcmp("PressureOmega1",name.c_str()))  return  16;
+	if(!strcmp("PressureOmega2",name.c_str()))  return  17;
+	if(!strcmp("FluxOmega1",name.c_str()))      return  18;
     
-    if(!strcmp("GradFluxX",name.c_str()))            return  19;
-    if(!strcmp("GradFluxY",name.c_str()))            return  20;
+    if(!strcmp("GradFluxX",name.c_str()))       return  19;
+    if(!strcmp("GradFluxY",name.c_str()))       return  20;
 	return TPZMaterial::VariableIndex(name);
 }
 
@@ -450,10 +450,10 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				Solout[id] = -1. * this->fK * dsolp[id];
 			}
 		}
-			break;
+			break;*/
 		case 8:
 			Solout[0] = data.p;
-			break;*/
+			break;
 		case 10:
 			if (data.numberdualfunctions) {
 				
