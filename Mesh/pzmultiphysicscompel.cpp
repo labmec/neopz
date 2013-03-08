@@ -24,7 +24,7 @@
 #include "pzmaterialdata.h"
 #include "pzinterpolationspace.h"
 #include "pzlog.h"
-#include "pzcompelwithmem.h"
+//#include "pzcompelwithmem.h"
 
 #include <set>
 
