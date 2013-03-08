@@ -1,4 +1,8 @@
-//#include "pzgclonemesh.h"
+/**
+ * @file
+ * @brief This file contains the tests for validation auto-adaptive algorithms
+ */
+
 #include "pzcclonemesh.h"
 #include "pzonedref.h"
 
@@ -70,7 +74,7 @@ void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 
 /** Functions to create particular mesh */
 /** Allows user to choose an option for creating a mesh */
-TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool usr);
+TPZCompMesh *ReadCase(int &nref, int &opt,bool usr);
 /** Creating selected mesh */
 TPZCompMesh *CreateMesh();
 TPZCompMesh *CreateSillyMesh();
@@ -90,6 +94,10 @@ TPZCompMesh *Create3DExpMesh();
 TPZCompMesh *ReadKumar(char *filename);
 /** Identify maxime level of refinement for all geometric elements referenced by computational elements */
 int MaxLevel(TPZCompMesh *mesh);
+
+
+/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
+bool DefineModelDimension(TPZCompMesh *cmesh);
 
 
 /** VARIABLES ??? */
@@ -149,7 +157,7 @@ int main() {
 
 	// Initializing variables
     int nref = 0;
-    int dim = 0;
+    int dim;
     int opt = 0;
 
 	// output files
@@ -161,7 +169,8 @@ int main() {
     gDebug = 0;
     
 	/** Choosing mesh */
-    TPZCompMesh *cmesh = ReadCase(nref,dim,opt,user);
+    TPZCompMesh *cmesh = ReadCase(nref,opt,user);
+	dim = cmesh->Dimension();
 	
 	if(rotating) {
 		InitializeRotation(alfa,transx,transy,Rot,RotInv);
@@ -172,10 +181,9 @@ int main() {
     cmesh->SetName("Malha Computacional Original");
     
     cmesh->CleanUpUnconnectedNodes();
-		
 	// Printing geo mesh to check
 	//TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
-	//TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
+	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
 
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
@@ -186,13 +194,13 @@ int main() {
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
         vecnames.Push("state");
-    }else if(nstate == 2) {
+    } else if(nstate == 2) {
         scalnames.Push("sig_x");
         scalnames.Push("sig_y");
         scalnames.Push("tau_xy");
         vecnames.Push("state");
     }
-    if(dim < 3 && nstate == 2){
+    if(dim < 3 && nstate == 2) {
         vecnames.Push("displacement");
     }
     
@@ -368,8 +376,34 @@ int main() {
     return 0;
 }
 
+/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
+bool DefineModelDimension(TPZCompMesh *cmesh) {
+	if(!cmesh || !cmesh->NElements()) return false;
+	TPZCompEl *cel;
+	int dim = -1;
+	// Run over all computational elements and check its type to define the dimension of the model
+	for(int i=0;i<cmesh->NElements();i++) {
+		cel = cmesh->ElementVec()[i];
+		if(!cel) continue;
+		int type = cel->Type();
+		if(!type) dim = (dim > -1) ? dim : 0;
+		else if(type==1) dim = (dim > 0) ? dim : 1;
+		else if(type > 1 && type < 4)
+			dim = (dim > 1) ? dim : 2;
+		else if(type > 3 && type < 8)
+			dim = 3;
+		// If exist a three dimensional element, finish
+		if(dim == 3) break;
+	}
+	// Whether the dimension is invalid return false
+	if(dim == -1) return false;
+	// If dimension is valid set into the computational mesh
+	cmesh->SetDimModel(dim);
+	return true;
+}
+
 /** Let be the user choose the type to created mesh, returning this option (opt), dimension of the problem and number of required refinements */
-TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool user){
+TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     
     std::cout << "**************************************" << std::endl;
     std::cout << "******Auto adaptive test code********" << std::endl;
@@ -380,7 +414,7 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool user){
     << "\n4 - 3D Simples \n5 - 3D Canto\n" <<"6 - Tetraedro\n7 - Prisma\n8 - All elements\n9 - All topologies\n10 Aleatorio\n"
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
-    opt = 0;
+    opt = 5;
 	if(user)
 		std::cin >> opt;
 	else
@@ -447,8 +481,8 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool user){
             cmesh = CreateMesh();
     }
     
-    dim = 2;
-    opt > 3 ? dim=3 : dim = 2;
+    if(!DefineModelDimension(cmesh))
+		DebugStop();
     
     std::cout << "number of refinement steps : ";
     nref = 0;
