@@ -23,7 +23,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 
 TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZMatWithMem<REAL, TPZDiscontinuousGalerkin>(){
+TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
     
     fmatId = 0;
     fDim = 2;
@@ -46,7 +46,7 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZMatWithMem<REAL, TPZDisconti
     fvsp = 0.;
 }
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim): TPZMatWithMem<REAL, TPZDiscontinuousGalerkin>(matid){
+TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim): TPZDiscontinuousGalerkin(matid){
     
     fmatId = matid;
     fDim = dim;
@@ -235,7 +235,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL>  &dphi_p =  datavec[1].dphix;
     TPZManVector<REAL,3> sol_p=datavec[1].sol[0];
     TPZFMatrix<REAL> &dsol_p=datavec[1].dsol[0];
-    REAL actQl = this->Ql(datavec[0]);
+    REAL actQl = this->Ql(datavec[1].gelElId, datavec[1].intLocPtIndex, datavec[1].NintPts);
     
     int phrp = phi_p.Rows();
     
@@ -708,7 +708,7 @@ void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec
 }
 
 
-REAL TPZNLFluidStructure2d::FictitiousTime(TPZMaterialData &data)
+REAL TPZNLFluidStructure2d::FictitiousTime(int gelId)
 {
     #ifdef DEBUG
     if(fCl < 1.E-15 || fP < 1.E-15)
@@ -717,33 +717,45 @@ REAL TPZNLFluidStructure2d::FictitiousTime(TPZMaterialData &data)
     }
     #endif
     
-    int index = data.intGlobPtIndex;
-    REAL vl = MemItem(index);
+    std::map<int,REAL>::iterator it = fGelId_vl.find(gelId);
+    if(it == fGelId_vl.end())
+    {
+        fGelId_vl[gelId] = fvsp;
+        it = fGelId_vl.find(gelId);
+    }
+    
+    REAL vl = it->second;
+    if(vl < fvsp)
+    {
+        DebugStop();
+    }
     REAL tStar = (vl-fvsp)*(vl-fvsp)/(4.*fCl*fCl*fP*fP);
     
     return tStar;
 }
 
-REAL TPZNLFluidStructure2d::Ql(TPZMaterialData &data)
+REAL TPZNLFluidStructure2d::Ql(int gelId, int locIntPt, int NintPts)
 {
-    REAL tStar = FictitiousTime(data);
+    REAL tStar = FictitiousTime(gelId);
     REAL tau = tStar + fTimeStep;
     
     REAL ql = fCl/sqrt(tau)*fP;
     
-    UpdateVl(data);
-    
-    return ql;
+    return 0.;//-ql;
 }
 
-void TPZNLFluidStructure2d::UpdateVl(TPZMaterialData &data)
+void TPZNLFluidStructure2d::UpdateLeakoff()
 {
-    REAL tStar = FictitiousTime(data);
-    REAL tau = tStar + fTimeStep;
-    
-    REAL vl = fvsp + 2.*fCl*sqrt(tau)*fP;
-    
-    int index = data.intGlobPtIndex;
-    this->MemItem(index) = vl;
+    std::map<int,REAL>::iterator it;
+    for(it = fGelId_vl.begin(); it != fGelId_vl.end(); it++)
+    {
+        int gelId = it->first;
+        REAL tStar = FictitiousTime(gelId);
+        REAL tau = tStar + fTimeStep;
+        
+        REAL vl = fvsp + 2.*fCl*sqrt(tau)*fP;
+        
+        it->second = vl;
+    }
 }
 

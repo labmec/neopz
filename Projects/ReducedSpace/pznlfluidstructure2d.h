@@ -31,10 +31,8 @@
  *
  */
 
-#include "pzmatwithmem.h"
 
-
-class TPZNLFluidStructure2d : public TPZMatWithMem<REAL, TPZDiscontinuousGalerkin>
+class TPZNLFluidStructure2d : public TPZDiscontinuousGalerkin
 {
     
 protected:
@@ -83,12 +81,12 @@ protected:
 	static EState gState;
     
     //////Leakoff
-    REAL FictitiousTime(TPZMaterialData &data);
-    REAL Ql(TPZMaterialData &data);
-    void UpdateVl(TPZMaterialData &data);
+    REAL FictitiousTime(int gelId);
+    REAL Ql(int gelId, int locIntPt, int NintPts);
     
     REAL fCl, fP, fvsp;
     
+    std::map<int,REAL> fGelId_vl;
     
 public:
     
@@ -120,6 +118,21 @@ public:
         fP = P;
         fvsp = vsp;
 	}
+    
+    REAL Cl()
+    {
+        return fCl;
+    }
+    REAL P()
+    {
+        return fP;
+    }
+    REAL vsp()
+    {
+        return fvsp;
+    }
+    
+    void UpdateLeakoff();
 	
 	/**
 	 * @brief Set parameters of elastic material:

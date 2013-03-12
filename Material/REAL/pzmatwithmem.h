@@ -9,8 +9,6 @@
 #include "pzmaterial.h"
 #include "pzadmchunk.h"
 #include "pzelast3d.h"
-#include "pzdiscgal.h"
-
 //#include "pzviscoelastic.h"
 
 /**
@@ -134,26 +132,7 @@ inline void TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::PrintMem(std::ostr
     TPZElasticity3D::Print(out);
 }
 
-template <>
-inline void TPZMatWithMem<REAL,TPZDiscontinuousGalerkin>::PrintMem(std::ostream &out, const int memory)
-{	
-    out << "\nTPZMatWithMem<TPZFMatrix,TPZDiscontinuousGalerkin> Material\n";
-    out << "\n fDefaultMem = \n" << fDefaultMem;
-    out << "\n fUpdateMem = " << fUpdateMem;
-    int i, size = fMemory.NElements();
-    out << "\n fMemory with " << size << " elements";
-    if(memory)
-    {
-        out << "\n fMemory elements:";
-        for(i = 0; i < size; i++)
-        {
-            out << "\n " << i << ": ";
-            out << "\n " << "vl = " << fMemory[i] << std::endl;
-        }
-    }
-    out << "\nEnd of TPZMatWithMem<TPZFMatrix,TPZDiscontinuousGalerkin >::Print\n";
-    TPZDiscontinuousGalerkin::Print(out);
-}
+
 
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::PrintMem(std::ostream &out, const int memory)
@@ -181,27 +160,6 @@ int TPZMatWithMem<TMEM,TFather>::ClassId() const
 	return -1;
 }
 
-template<>
-inline void TPZMatWithMem<REAL,TPZDiscontinuousGalerkin>::Write(TPZStream &buf, int withclassid)
-{
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
-    
-    int size = fMemory.NElements();
-    buf.Write(&size,1);
-    int i;
-    for(i = 0; i < size; i++) buf.Write(&fMemory[i],1);
-}
-
-template<>
-inline void TPZMatWithMem<REAL,TPZDiscontinuousGalerkin>::Read(TPZStream &buf, void *context)
-{
-    TPZDiscontinuousGalerkin::Read(buf, context);
-    
-    int i,size;
-    buf.Read(&size,1);
-    fMemory.Resize(size);
-    for(i = 0; i < size; i++) buf.Read(&fMemory[i],1);
-}
 
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid)

@@ -416,6 +416,10 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 	TPZVec<int> nshape(nref);
 	for (int iref = 0; iref<nref; iref++) 
 	{
+        if(fElementVec[iref])
+        {
+            dataVec[iref].gelElId = fElementVec[iref]->Reference()->Id();
+        }
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if (!msp) {
             continue;
@@ -486,7 +490,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		intrule->Point(int_ind,intpointtemp,weight);
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
-		for (int iref=0; iref<fElementVec.size(); iref++)
+
+        int ElemVecSize = fElementVec.size();
+		for (int iref=0; iref < ElemVecSize; iref++)
 		{
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
             if (!msp) {
@@ -497,10 +503,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 			//msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
             // datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
 			datavec[iref].intLocPtIndex = int_ind;
-            
+            datavec[iref].NintPts = intrulepoints;
+
 			msp->ComputeRequiredData(datavec[iref], intpoint);
 		}
-        
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
 	

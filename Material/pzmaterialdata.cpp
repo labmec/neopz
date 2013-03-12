@@ -23,8 +23,10 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
 	this->SetAllRequirements(false);
 	this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
+    this->NintPts = -1;
     this->sol.Resize(1);
     this->dsol.Resize(1);
+    this->gelElId = -1;
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {
@@ -52,10 +54,12 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
 	this->detjac = cp.detjac;
 	this->intLocPtIndex = cp.intLocPtIndex;
 	this->intGlobPtIndex = cp.intGlobPtIndex;
+    this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
 	this->fVecShapeIndex = cp.fVecShapeIndex;
 	this->fNormalVec = cp.fNormalVec;
 	this->numberdualfunctions = cp.numberdualfunctions;
+    this->gelElId = cp.gelElId;
 	
 	return *this;
 }
@@ -102,6 +106,8 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
     buf.Write(XCenter);
 	buf.Write(&intLocPtIndex,1);
 	buf.Write(&intGlobPtIndex,1);
+    buf.Write(&NintPts,1);
+    buf.Write(&gelElId,1);
 }
 
 /** Read the element data from a stream */
@@ -133,6 +139,8 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(XCenter);
 	buf.Read(&intLocPtIndex,1);
 	buf.Read(&intGlobPtIndex,1);
+    buf.Read(&NintPts,1);
+    buf.Read(&gelElId,1);
 }
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
@@ -211,6 +219,8 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "XCenter " << XCenter << std::endl;
 	out << "intLocPtIndex " << intLocPtIndex << std::endl;
 	out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
+    out << "NintPts " << NintPts << std::endl;
+    out << "gelElId " << gelElId << std::endl;
 }
 
 /** Print the data in a format suitable for Mathematica */
@@ -237,4 +247,6 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
     out << "XCenter = {" << XCenter << "};" << std::endl;
 	out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
 	out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
+    out << "NintPts = " << NintPts << ";" <<std::endl;
+    out << "gelElId = " << gelElId << ";" <<std::endl;
 }

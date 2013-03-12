@@ -118,6 +118,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
+    //mymaterial->UpdateLeakoff();
     
     outfile << "Saida" << 0 << "={";
     SaidaMathPressao(meshvec, mphysics);
@@ -199,6 +200,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
             res = Norm(res_total);
             nit++;
         }
+        mymaterial->UpdateLeakoff();
         
         if(cent%1==0)
         {
@@ -263,7 +265,8 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         cent++;
         TimeValue = cent*deltaT;
     }
-    saidaAreaW << "Qinj=0.001;\n\n";
+    
+    saidaAreaW << "Qinj=0.001;(*cuidado!!! Inserido hardcode no arquivo de saida*)\n\n";
     saidaAreaW << "TrapArea[displ_]:=Block[{displSize, area, baseMin, baseMax, h},\n";
     saidaAreaW << "displSize = Length[displ];\n";
     saidaAreaW << "area = 0;\n";
@@ -274,9 +277,19 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     saidaAreaW << "area += (baseMin + baseMax)/2.*h;\n";
     saidaAreaW << "i++;];\n";
     saidaAreaW << "area];\n\n";
-    saidaAreaW << "Areas = {TrapArea[displ1], TrapArea[displ2], TrapArea[displ3],TrapArea[displ4], TrapArea[displ5], TrapArea[displ6],TrapArea[displ7], TrapArea[displ8], TrapArea[displ9],TrapArea[displ10]};\n\n";    
-    saidaAreaW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0, 0},PlotStyle -> {PointSize[0.02]}];\n";
-    saidaAreaW << "QinjPlot = Plot[Qinj*t, {t, 1, 10}, PlotStyle -> Red];\n";
+    saidaAreaW << "Areas = {";
+    int nsteps = maxTime/deltaT;
+    for(int ig = 1; ig<=nsteps; ig++)
+    {
+        saidaAreaW << "{" << ig*deltaT << ",TrapArea[displ" << ig*deltaT << "]}";
+        if(ig != nsteps)
+        {
+            saidaAreaW << ",";
+        }
+    }
+    saidaAreaW << "};\n\n";
+    saidaAreaW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0, 0},PlotStyle -> {PointSize[0.01]}];\n";
+    saidaAreaW << "QinjPlot = Plot[Qinj*t-(" << mymaterial->vsp()*100000 << "*10^(-5)+2*" << mymaterial->Cl() << "*" << mymaterial->P() << "*t^(0.5)" << "), {t, 1, " << maxTime << "}, PlotStyle -> Red];\n";
     saidaAreaW << "Show[WintegralPlot, QinjPlot]\n";
     
     
@@ -308,6 +321,7 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int 
  
     int iniId = 0;
     TPZGeoMesh * gmesh = cmesh->Reference();
+    bool isFirstTime = true;
     for(int el = 0; el < gmesh->NElements(); el++)
     {
         TPZGeoEl * gel1D = gmesh->ElementVec()[el];
@@ -348,13 +362,27 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int 
                 REAL displacementY = Solout[1];
                 REAL posX = XX[0] + displacementX;
                 REAL posY = XX[1] + displacementY;
-                
+                if(posX < 1.E-5)
+                {
+                    posX = 0.;
+                }
+                if(posY < 1.E-5)
+                {
+                    posY = 0.;
+                }
+                if(isFirstTime)
+                {
+                    isFirstTime = false;
+                }
+                else
+                {
+                    out << ",";
+                }
                 out << "{" << posX << "," << posY << "}";
-                out << ",";
             }
         }
     }
-    out << "{1,0}" << "};\n";
+    out << "};\n";
 }
 
 void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)

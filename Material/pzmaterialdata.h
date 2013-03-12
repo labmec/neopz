@@ -75,6 +75,10 @@ public:
 	
     /// number of dual function (e.g. pressure in HDiv approximations)
 	int numberdualfunctions;
+    
+    //Id of associated geo element
+    int gelElId;
+    
     /// correspondence between normal vector index and index of the shape functions
 	TPZManVector<std::pair<int,int> > fVecShapeIndex;
     /// list of normal vectors
@@ -88,6 +92,9 @@ public:
     
     /** @brief global point index */
     int intGlobPtIndex;
+    
+    /** @brief amounth of points in the integrstion rule */
+    int NintPts;
 	
 	/** @brief Default constructor */
 	TPZMaterialData();

@@ -110,8 +110,8 @@ REAL nu = 0.25;
 REAL viscD = 0.001;
 REAL signD = 1.E5;
 REAL QinD =  1.E-3;
-REAL tD = 10.;
-REAL deltaTD = 1.;
+REAL tD = 1000.;
+REAL deltaTD = 10.;
 //
 
 //#define malhaAgnaldo
@@ -522,7 +522,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
 #endif
     
 #ifdef usingRefUnif
-    int nrefUnif = 2;
+    int nrefUnif = 3;
     for(int ref = 0; ref < nrefUnif; ref++)
     {
         nelem = gmesh->NElements();
@@ -833,9 +833,6 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     REAL prelation = 1.;
     REAL vsp = 0.00001;
     mymaterial->SetParameters(hw, xvisc, Cl, prelation, vsp);
-    REAL vlAcum = vsp;
-	mymaterial->SetDefaultMem(vlAcum);
-    mymaterial->PushMemItem();
     
     
     TPZMaterial *mat(mymaterial);
