@@ -71,7 +71,7 @@ clarg::argBool br("-br", "binary reference. Reference decomposed matrix file for
 clarg::argBool bi("-bi", "binary input. Input file format == binary.", false);
 clarg::argBool bd("-bd", "binary dump. Dump file format == binary.", false);
 clarg::argBool h("-h", "help message", false);
-clarg::argBool copy_matrix_inside_thread("-cot", "copy on thread - copy matrix inside thread.", false);
+clarg::argBool rea("-rea", "reallocate matrix inside matrix.", false);
 clarg::argInt mstats("-mstats", "Matrix statistics vebosity level.", 0);
 clarg::argInt maxcol("-maxcol", "Limit computation to max column (Use Resize(maxcol)).", 0);
 clarg::argString gen_dm_sig("-gen_dm_md5", "generates MD5 signature for decomposed matrix into file.", "decomposed_matrix.md5");
@@ -136,7 +136,7 @@ protected:
 
 #include <sched.h>     //sched_getcpu
 
-std::vector< TPZSkylMatrix<REAL>* > matrices;
+std::vector< TPZAutoPointer<TPZSkylMatrix<REAL> > > matrices;
 
 cpu_set_t dies_mask_array[8];
 cpu_set_t mask_core0;
@@ -282,12 +282,11 @@ void* compute_decompose(void* m)
     cout << "Thread " << idx << " at cpu " << cpuid << endl;
   }
 
-  TPZSkylMatrix<REAL>* matrix;
-  if (copy_matrix_inside_thread.was_set()) {
-    matrix = new TPZSkylMatrix<REAL>(*matrices[idx]);
+  TPZAutoPointer<TPZSkylMatrix<REAL> > matrix = matrices[idx];
+
+  if (rea.was_set()) {
+    matrix.ReallocForNuma(-1);
   }
-  else
-    matrix = matrices[idx];
 
 #define CASE_OP(opid,method)				\
   case opid:						\
@@ -301,10 +300,6 @@ void* compute_decompose(void* m)
     CASE_OP(3,Decompose_Cholesky_blk(cholesky_blk.get_value()));
   default:
     std::cerr << "ERROR: Invalid matrix operation type." << std::endl;
-  }
-
-  if (copy_matrix_inside_thread.was_set()) {
-    delete matrix;
   }
 
   return NULL;
@@ -370,7 +365,7 @@ int main(int argc, char *argv[])
 	unsigned node = t%num_nodes;
 	numa_bitmask_setbit(nodemask,node);
 	numa_set_membind(nodemask);
-	TPZSkylMatrix<REAL>* mp = new TPZSkylMatrix<REAL>(matrix);
+	TPZAutoPointer<TPZSkylMatrix<REAL> > mp = new TPZSkylMatrix<REAL>(matrix);
 	matrices.push_back(mp);
       }
       numa_bitmask_setall(nodemask);
@@ -379,13 +374,14 @@ int main(int argc, char *argv[])
     }
     else {
       for(int t=0; t<nthreads; t++) {
-	TPZSkylMatrix<REAL>* mp = new TPZSkylMatrix<REAL>(matrix);
+	TPZAutoPointer<TPZSkylMatrix<REAL> > mp = new TPZSkylMatrix<REAL>(matrix);
 	matrices.push_back(mp);
       }
     }
 #else
     for(int t=0; t<nthreads; t++) {
-      TPZSkylMatrix<REAL>* mp = new TPZSkylMatrix<REAL>(matrix);
+
+      TPZAutoPointer<TPZSkylMatrix<REAL> > mp = new TPZSkylMatrix<REAL>(matrix);
       matrices.push_back(mp);
     }
 #endif 

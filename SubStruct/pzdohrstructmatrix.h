@@ -181,7 +181,7 @@ struct ThreadDohrmanAssembly {
 		return *this;
 	}
 	
-	void AssembleMatrices(pthread_mutex_t &testthread);
+	void AssembleMatrices(pthread_mutex_t &testthread, int numa_node);
 };
 
 /**

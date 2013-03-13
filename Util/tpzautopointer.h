@@ -83,6 +83,21 @@ class TPZAutoPointer {
 			fPointer = 0;
 		}
 		
+	  void ReallocForNuma(int node_id)
+	  {
+	    // -2: Do not realloc
+	    // -1: Realloc to the node that is currently running this thread.
+	    // node_id>=0 : Realloc to node_id 
+
+	    if (node_id == -2) return;
+
+	    //TODO: Currently relying on first-touch policy to implement case -1
+
+	    T2* old = fPointer;
+	    fPointer = (T2*) fPointer->Clone();
+	    delete old;
+	  }
+
 		/** @brief Increment the counter */
 		void Increment()
 		{
@@ -160,6 +175,11 @@ public:
 		return fRef->fPointer;
 	}
 	
+	void ReallocForNuma(int node)
+	{
+	  fRef->ReallocForNuma(node);
+	}
+
 	/** @brief Returns if pointer was attributed */
 	operator bool() const{
 		return (this->fRef->fPointer != 0);

@@ -198,16 +198,24 @@ protected:
 
 struct likwid_manager_t {
   likwid_manager_t() {
+    std::cout << "Calling likwid_markerInit()" << std::endl;
     likwid_markerInit();
   }
   ~likwid_manager_t() {
     likwid_markerClose();
+    std::cout << "Calling likwid_markerClose()" << std::endl;
   }
-} likwid_manager;
+};
+
 #endif
 
 int main(int argc, char *argv[])
 {
+
+#ifdef USING_LIKWID
+likwid_manager_t likwid_manager;
+#endif
+
 #ifdef LOG4CXX
     InitializePZLOG("log4cxx.cfg");
 #endif

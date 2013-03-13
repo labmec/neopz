@@ -41,6 +41,8 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 #include "pz_pthread.h"
 #include "clock_timer.h"
 #include "timing_analysis.h"
+#include "arglib.h"
+#include "run_stats_table.h"
 
 #ifdef USING_TBB
 #include "tbb/parallel_for.h" 
@@ -57,10 +59,8 @@ static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
                              pthread_mutex_t* TestThread);
 
-static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
-                         TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t *testthread);
-static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
-                              TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t *testthread);
+static void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
+static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : 
 TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
@@ -313,8 +313,8 @@ public:
       work_item_t<TVar>& wi = *it;
       TPZSubCompMesh* submesh = SubMesh(fMesh, wi.fSubMeshIndex);
       ::AssembleMatrices(submesh, wi.fSubstruct, fAssembly,NULL);
-      ::DecomposeBig(submesh, wi.fSubstruct, fAssembly,NULL);
-      ::DecomposeInternal(submesh, wi.fSubstruct, fAssembly,NULL);
+      ::DecomposeBig(wi.fSubstruct, -2 /* Do not realloc */);
+      ::DecomposeInternal(wi.fSubstruct, -2 /* Do not realloc */);
     }
   }
 
@@ -326,8 +326,8 @@ public:
       const work_item_t<TVar>& wi = work_items[i];
       TPZSubCompMesh* submesh = SubMesh(fMesh, wi.fSubMeshIndex);
       ::AssembleMatrices(submesh, wi.fSubstruct, fAssembly,NULL);
-      ::DecomposeBig(submesh, wi.fSubstruct, fAssembly,NULL);
-      ::DecomposeInternal(submesh, wi.fSubstruct, fAssembly,NULL);
+      ::DecomposeBig(wi.fSubstruct,-2 /* Do not realloc */);
+      ::DecomposeInternal(wi.fSubstruct,-2 /* Do not realloc */);
     }
   } 
 
@@ -388,186 +388,168 @@ void TPZDohrStructMatrix::AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> 
   
   return; // dohrgeneric;
 }
+
+template<class T>
+struct ThreadDohrmanAssemblyList_ThreadArgs_t
+{
+  ThreadDohrmanAssemblyList_ThreadArgs_t() : thread_idx(-1), list(NULL) {}
+
+  /* Thread index. */
+  unsigned thread_idx;
+  /* Thread descriptor. */
+  pthread_t pthread;
+  /* List of items to be assembled. */
+  ThreadDohrmanAssemblyList<T>* list;
+};
+
     /**
      * @brief Assemble the global system of equations into the matrix which has already been created 
     */
+
+/* Run statistics. */
+RunStatsTable dohr_ass   ("-tpz_dohr_ass", "Raw data table statistics for TPZDohrStructMatrix::Assemble assemble (first)");
+RunStatsTable dohr_dec   ("-tpz_dohr_dec", "Raw data table statistics for TPZDohrStructMatrix::Assemble decompose (second)");
+
 void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, 
                                    TPZAutoPointer<TPZGuiInterface> guiInterface, 
                                    unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
-
 #ifdef PERF_ANALYSIS
-	ClockTimer timer;
-	TimingAnalysis ta;
+  ClockTimer timer;
+  TimingAnalysis ta;
 #endif
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Initial setup");
+  
+  TPZMatrix<STATE> *dohrgeneric = &mat;    
+  TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
+  const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
+  
+  int nsub = NSubMesh(fMesh);
+  std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
+  
+  /* Create a list of items to assemble. */
+  ThreadDohrmanAssemblyList<STATE> worklist;
+  for (int isub=0; isub<nsub ; isub++) {
+    TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+    if(!submesh) continue;
+    ThreadDohrmanAssembly<STATE> *work = 
+      new ThreadDohrmanAssembly<STATE>(fMesh,isub,*it,fDohrAssembly);
+    worklist.Append(work);
+    it++;
+  }
+  
+  if(guiInterface){
+    if(guiInterface->AmIKilled()){
+      return ;//0;
+    }
+  }
+  
+  // First pass : assembling the matrices
+  ThreadDohrmanAssemblyList<STATE> worklistAssemble(worklist);
+  std::list<TPZAutoPointer<ThreadDohrmanAssembly<STATE> > >::iterator itwork = 
+    worklistAssemble.fList.begin();
+  while (itwork != worklistAssemble.fList.end()) {
+    (*itwork)->fTask = ThreadDohrmanAssembly<STATE>::EComputeMatrix;
+    itwork++;
+  }
+	
+  dohr_ass.start();
+  if (numthreads_assemble == 0) {
+    /* Put the main thread to work on all items. */
+    ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> targ;
+    targ.thread_idx=0;
+    targ.list = &worklistAssemble;
+    ThreadDohrmanAssemblyList<STATE>::ThreadWork(&targ);
+  }
+  else {
+    /* Threads arguments. */
+    std::vector<ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> > args(numthreads_assemble);
 
-#ifdef PERF_DEBUG
-	std::cout << "Computing the system of equations for each substructure (TPZDohrStructMatrix::CreateAssemble)\n";
-#endif
-    
-    TPZMatrix<STATE> *dohrgeneric = &mat;    
-	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
-	const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
-	
-	int nsub = NSubMesh(fMesh);
-	std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
-	
-	ThreadDohrmanAssemblyList<STATE> worklist;
-	
-	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Initial setup");
-
-#ifdef PERF_DEBUG
-	std::cout << "TPZDohrStructMatrix::Assemble() - numthreads_assemble: " << numthreads_assemble 
-		  << ", numthreads_decompose: " << numthreads_decompose << std::endl;	
-#endif
-
-	TIME_SEC_BEG(timer, (numthreads_assemble > 0)?"TPZDohrStructMatrix::Assemble() - Assembly setup":
-		     "TPZDohrStructMatrix::Assemble() - Assembly and Decompose (seq. version)");
-
-	int isub;
-	for (isub=0; isub<nsub ; isub++) {
-		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
-		if(!submesh) 
-		{
-			continue;
-		}
-		ThreadDohrmanAssembly<STATE> *work = new ThreadDohrmanAssembly<STATE>(fMesh,isub,*it,fDohrAssembly);
-		//EBORIN: FIXME - It does not work when numthreads_assemble == 0  and numthreads_decompose > 0?
-		if (numthreads_assemble > 0) {
-			worklist.Append(work);
-		}
-		else {
-			work->fTask = ThreadDohrmanAssembly<STATE>::EComputeMatrix;
-			work->AssembleMatrices((worklist.fTestThreads));
-			work->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeBig;
-			work->AssembleMatrices((worklist.fTestThreads));
-			work->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeInternal;
-			work->AssembleMatrices((worklist.fTestThreads));
-			delete work;
-		}
-		it++;
-	}
-	
-	std::vector<pthread_t> allthreads_assemble(numthreads_assemble);
-	unsigned int itr;
-	if(guiInterface){
-		if(guiInterface->AmIKilled()){
-			return ;//0;
-		}
-	}
-	
-	// First pass : assembling the matrices
-	ThreadDohrmanAssemblyList<STATE> worklistAssemble(worklist);
-	std::list<TPZAutoPointer<ThreadDohrmanAssembly<STATE> > >::iterator itwork = worklistAssemble.fList.begin();
-	while (itwork != worklistAssemble.fList.end()) {
-		(*itwork)->fTask = ThreadDohrmanAssembly<STATE>::EComputeMatrix;
-		itwork++;
-	}
-	
-	if (numthreads_assemble > 0) {
-		TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Assembly setup");
-		TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Assemble threads");
-	}
-	else {
-		TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Assembly and Decompose (seq. version)");
-	}
-	
-	/* Assemble multi-threaded */
-	for(itr=1; itr<numthreads_assemble; itr++)
-        {
-	  PZ_PTHREAD_CREATE(&allthreads_assemble[itr], NULL, 
-			    ThreadDohrmanAssemblyList<STATE>::ThreadWork, 
-			    &worklistAssemble, __FUNCTION__);
-	}
-	if (numthreads_assemble > 0) {
-	  /* Put the main thread to work. */
-	  ThreadDohrmanAssemblyList<STATE>::ThreadWork(&worklistAssemble);
-	}
-	/* Sync. */
-	for(itr=1; itr<numthreads_assemble; itr++)
-        {
-	  PZ_PTHREAD_JOIN(allthreads_assemble[itr], NULL, __FUNCTION__);
-	}
-
-	if (numthreads_assemble > 0) {
-	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Assemble threads");
+    /* Assemble multi-threaded */
+    for(unsigned itr=0; itr<numthreads_assemble; itr++)
+    {
+      ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>* targ = &(args[itr]);
+      targ->thread_idx=itr;
+      targ->list = &worklistAssemble;
+      PZ_PTHREAD_CREATE(&targ->pthread, NULL, 
+			ThreadDohrmanAssemblyList<STATE>::ThreadWork, 
+			targ, __FUNCTION__);
+    }
+    /* Sync. */
+    for(unsigned itr=0; itr<numthreads_assemble; itr++)
+    {
+      PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
+    }
+  }
+  dohr_ass.stop();
+  
 #ifdef LOG4CXX2
-        int isub = 0;
-        for (it=sublist.begin(); it!=sublist.end(); it++) {
-            std::stringstream sout;
-            sout << "Substructure number " << isub <<std::endl;
-            isub++;
-            (*it)->Print(sout);
-            LOGPZ_DEBUG(logger, sout.str())
-        }
+  int isub = 0;
+  for (it=sublist.begin(); it!=sublist.end(); it++) {
+    std::stringstream sout;
+    sout << "Substructure number " << isub <<std::endl;
+    isub++;
+    (*it)->Print(sout);
+    LOGPZ_DEBUG(logger, sout.str())
+  }
 #endif
-	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Decompose setup");
-	}
+  
+  // Second  pass : decomposing 
+  // Philippe: this may be easier to adapt the code for NUMA.
+  // Edson: TODO: Measure time again.
+  ThreadDohrmanAssemblyList<STATE> worklistDecompose;
+  itwork = worklist.fList.begin();
+  while (itwork != worklist.fList.end()) {
+    TPZAutoPointer<ThreadDohrmanAssembly<STATE> > pt1 = new ThreadDohrmanAssembly<STATE> (*itwork);
+    pt1->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeBig;
+    worklistDecompose.Append(pt1);
+    TPZAutoPointer<ThreadDohrmanAssembly<STATE> > pt2 = new ThreadDohrmanAssembly<STATE>(*itwork);
+    pt2->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeInternal;
+    worklistDecompose.Append(pt2);
+    itwork++;
+  }
 	
-	// Second  pass : decomposing 
-	ThreadDohrmanAssemblyList<STATE> worklistDecompose;
-	itwork = worklist.fList.begin();
-	while (itwork != worklist.fList.end()) {
-		TPZAutoPointer<ThreadDohrmanAssembly<STATE> > pt1 = new ThreadDohrmanAssembly<STATE> (*itwork);
-		pt1->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeBig;
-		worklistDecompose.Append(pt1);
-		TPZAutoPointer<ThreadDohrmanAssembly<STATE> > pt2 = new ThreadDohrmanAssembly<STATE>(*itwork);
-		pt2->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeInternal;
-		worklistDecompose.Append(pt2);
-		itwork++;
-	}
-	
-	if (numthreads_assemble > 0) {
+  dohr_dec.start();
+  if (numthreads_decompose == 0) {
+    /* Compute it sequentialy */
+    ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> targ;
+    targ.thread_idx = 0;
+    targ.list = &worklistDecompose;
+    ThreadDohrmanAssemblyList<STATE>::ThreadWork(&targ);
+  }
+  else {
+    /* Threads arguments. */
+    std::vector<ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> > 
+      args(numthreads_decompose);
+    for(unsigned itr=0; itr<numthreads_decompose; itr++)
+    {
+      ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>& targ = args[itr];
+      targ.thread_idx=itr;
+      targ.list = &worklistDecompose;
+      PZ_PTHREAD_CREATE(&targ.pthread, NULL,
+			ThreadDohrmanAssemblyList<STATE>::ThreadWork, 
+			&targ, __FUNCTION__);
+    }
+    for(unsigned itr=0; itr<numthreads_decompose; itr++)
+    {
+      PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
+    }
+  }
+  dohr_dec.stop();
 
-	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Decompose setup");
-	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Decompose threads");
-	
-	  if (numthreads_decompose == 0) {
-	    /* Compute it sequentialy */
-	    ThreadDohrmanAssemblyList<STATE>::ThreadWork(&worklistDecompose);
-	  }
-	  else {
-	    std::vector<pthread_t> allthreads_decompose(numthreads_decompose);
-	    for(itr=1; itr<numthreads_decompose; itr++)
-	      {
-		PZ_PTHREAD_CREATE(&allthreads_decompose[itr], NULL,
-				  ThreadDohrmanAssemblyList<STATE>::ThreadWork, 
-				  &worklistDecompose, __FUNCTION__);
-	      }
-	    /* Put the main thread to work */
-	    if (numthreads_decompose > 0) {
-	      ThreadDohrmanAssemblyList<STATE>::ThreadWork(&worklistDecompose);
-	    }
-	    for(itr=1; itr<numthreads_decompose; itr++)
-	      {
-		PZ_PTHREAD_JOIN(allthreads_decompose[itr], NULL, __FUNCTION__);
-	      }
-	  }
-	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Decompose threads");
-	}
+  // Post processing (TODO: check whethe it is time consuming
+  int isub;
+  for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
+    TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
+    (*it)->ContributeRhs(rhsloc);
+    fDohrAssembly->Assemble(isub,rhsloc,rhs);
+  }
 
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Post processing added after Nathan");
-	for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
-		TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
-		(*it)->ContributeRhs(rhsloc);
-        fDohrAssembly->Assemble(isub,rhsloc,rhs);
-	}
-	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Post processing added after Nathan");
+  dohr->Initialize();
+  TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
+  precond->Initialize();
+  fDohrPrecond = precond;
 
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Post processing");
-	dohr->Initialize();
-	TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
-	precond->Initialize();
-	fDohrPrecond = precond;
-
-	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Post processing");
-
-#ifdef PERF_ANALYSIS
-	ta.share_report(std::cout);
-#endif
-
-	return; // dohrgeneric;
+  return; // dohrgeneric;
 }
 
 /**
@@ -1379,45 +1361,73 @@ void dump_matrix(TPZAutoPointer<TPZMatrix<STATE> > Stiffness)
 
 #endif
 
-void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
-                  TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t* TestThread)
-{
-	
-	{
-		TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matredbig = substruct->fMatRedComplete;
-		
-		TPZAutoPointer<TPZMatrix<STATE> > Stiffness = matredbig->K00();
-		
-#ifdef USE_LDLT_DECOMPOSITION
-		Stiffness->Decompose_LDLt();
-#else
-		Stiffness->Decompose_Cholesky();
+//EBORIN: consumes tasks from the ThreadDohrmanAssemblyList list. The tasks
+//        are ThreadDohrmanAssembly::AssembleMatrices
+
+#ifdef USING_LIBNUMA
+#include<numa.h>
+class NUMA_mng_t {
+
+public:
+  NUMA_mng_t() {
+    max_node_id = numa_max_node();
+    next_rr_node = 0;
+  }
+  /** Return the number of nodes on the system. 
+   *  Nodes are identified from 0 to num_nodes-1. */
+  unsigned get_num_nodes() {return (max_node_id+1);}
+  /** Return the next node on a round-robin fashion. */
+  unsigned get_rr_node_id() {return (next_rr_node++);}
+
+private:
+  
+  unsigned max_node_id;
+  /** Next round-robin node. */
+  unsigned next_rr_node;
+};
+
+NUMA_mng_t NUMA;
+#endif
+    
+clarg::argBool naa("-naDALora", "NUMA aware Dohrman Assembly List thread work objects re-allocation.", false);
+
+#ifdef USING_LIBNUMA
+  clarg::argBool nats("-naDALtws", "NUMA aware (node round-robin) Dohrman Assembly List thread work scheduling.", false);
 #endif
 
+void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node)
+{
+  TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matredbig = substruct->fMatRedComplete;
+  TPZAutoPointer<TPZMatrix<STATE> > Stiffness = matredbig->K00();
 
-		substruct->Initialize();
-	}
+  Stiffness.ReallocForNuma(numa_node);
+
+#ifdef USE_LDLT_DECOMPOSITION
+  Stiffness->Decompose_LDLt();
+#else
+  Stiffness->Decompose_Cholesky();
+#endif
+
+  substruct->Initialize();
 }
-void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
-                       TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t* TestThread)
+
+void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node)
 {
-	
-	{
-		TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matred = substruct->fMatRed;
-		TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matred->K00();
+  TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matred = substruct->fMatRed;
+  TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matred->K00();
+
+  InternalStiffness.ReallocForNuma(numa_node);
 
 #ifdef USE_LDLT_DECOMPOSITION
-		InternalStiffness->Decompose_LDLt();
+  InternalStiffness->Decompose_LDLt();
 #else
-		InternalStiffness->Decompose_Cholesky();
+  InternalStiffness->Decompose_Cholesky();
 #endif
-	}
-	
 }
 
 //EComputeMatrix, EDecomposeInternal, EDecomposeBig
 template<class TVar>
-void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest)
+void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest, int numa_node)
 {	
 	ThreadDohrmanAssembly *threadData = this;
 	TPZSubCompMesh *submesh = SubMesh(threadData->fMesh,threadData->fSubMeshIndex);
@@ -1426,10 +1436,10 @@ void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest)
 			::AssembleMatrices(submesh,threadData->fSubstruct,threadData->fAssembly,&threadtest);
 			break;
 		case EDecomposeInternal:
-			DecomposeInternal(submesh,threadData->fSubstruct,threadData->fAssembly,&threadtest);
+			DecomposeInternal(threadData->fSubstruct, numa_node);
 			break;
 		case EDecomposeBig:
-			DecomposeBig(submesh,threadData->fSubstruct,threadData->fAssembly,&threadtest);
+		  DecomposeBig(threadData->fSubstruct, numa_node);
 			break;
 		default:
 			DebugStop();
@@ -1485,21 +1495,39 @@ TPZAutoPointer<ThreadDohrmanAssembly<TVar> > ThreadDohrmanAssemblyList<TVar>::Ne
 	return result;
 }
 
-//EBORIN: consumes tasks from the ThreadDohrmanAssemblyList list. The tasks
-//        are ThreadDohrmanAssembly::AssembleMatrices
 template<class TVar>
 void *ThreadDohrmanAssemblyList<TVar>::ThreadWork(void *voidptr)
 {
-	ThreadDohrmanAssemblyList *List = (ThreadDohrmanAssemblyList *)(voidptr);
-	
-	TPZAutoPointer<ThreadDohrmanAssembly<TVar> > runner = List->NextObject();
-	
-	while (runner) {
-		std::cout << '+'; std::cout.flush();
-		runner->AssembleMatrices((List->fTestThreads));
-		runner = List->NextObject();
-	}
-	return 0;
+  ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>* args = 
+    (ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>*) (voidptr);
+
+  /* bind thread and newlly allocated memory to node if -naDALtws is set. */
+  int node_id = -2 /* Do not realloc */;
+
+#ifdef USING_LIBNUMA
+  if (nats.was_set()) {
+    struct bitmask* nodemask = numa_allocate_nodemask();
+    numa_bitmask_clearall(nodemask);
+    numa_bitmask_setbit(nodemask,args->thread_idx%NUMA.get_num_nodes());
+    numa_bind(nodemask);
+    numa_free_nodemask(nodemask);
+  }
+  if (naa.was_set()) {
+    node_id = args->thread_idx%NUMA.get_num_nodes();
+  }
+#else
+  if (naa.was_set()) {
+    node_id = -1; /* Realloc */
+  }
+#endif
+
+  TPZAutoPointer<ThreadDohrmanAssembly<TVar> > runner = args->list->NextObject();
+  
+  while (runner) {
+    runner->AssembleMatrices(args->list->fTestThreads,node_id);
+    runner = args->list->NextObject();
+  }
+  return 0;
 }
 
 // Identify the external connects
