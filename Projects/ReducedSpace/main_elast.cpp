@@ -102,14 +102,14 @@ static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
 
 //Dados sem adimensionalizar
 REAL LxD = 2.;
-REAL LyD = 1.;
+REAL LyD = 2.;
 REAL LD = 1.;
 REAL HD = 1.;
 REAL ED = 0.3E5;
 REAL nu = 0.25;
 REAL viscD = 0.001;
-REAL signD = 1.E5;
-REAL QinD =  1.E-3;
+REAL signD = 0.3E5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
+REAL QinD  = 1.E-3;
 REAL tD = 1000.;
 REAL deltaTD = 10.;
 //

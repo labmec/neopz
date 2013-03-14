@@ -82,7 +82,7 @@ protected:
     
     //////Leakoff
     REAL FictitiousTime(int gelId);
-    REAL Ql(int gelId, int locIntPt, int NintPts);
+    REAL Ql(int gelId);
     
     REAL fCl, fP, fvsp;
     

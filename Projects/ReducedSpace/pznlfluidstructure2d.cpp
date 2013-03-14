@@ -97,7 +97,10 @@ void TPZNLFluidStructure2d::Print(std::ostream &out) {
 
 void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
     
-    if(gState == ELastState) return;
+    if(gState == ELastState)
+    {
+        return;
+    }
     
     int nref =  datavec.size();
 	if (nref != 2 ) {
@@ -227,6 +230,7 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     ContributePressure(datavec, weight, ek, ef);
 }
 
+std::ofstream outKju("outKju.txt");
 void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
     
     if(!datavec[1].phi) return;
@@ -235,7 +239,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL>  &dphi_p =  datavec[1].dphix;
     TPZManVector<REAL,3> sol_p=datavec[1].sol[0];
     TPZFMatrix<REAL> &dsol_p=datavec[1].dsol[0];
-    REAL actQl = this->Ql(datavec[1].gelElId, datavec[1].intLocPtIndex, datavec[1].NintPts);
+    REAL actQl = this->Ql(datavec[1].gelElId);
     
     int phrp = phi_p.Rows();
     
@@ -342,7 +346,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     
     if(gState == ELastState) return;
     REAL auxvar = 0.817*(1-fnu)*fHw;
-    REAL factor =fG/auxvar;
+    REAL factor = 0.;//fG/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
@@ -619,7 +623,7 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     {
         if(!datavec[1].phi) return;
         REAL un = 0.817*(1-fnu)*(SolP[0]-fSigConf)*fHw/fG;
-        REAL factor = (un*un*un)/(12.*fvisc);
+        REAL factor = 0.;//(un*un*un)/(12.*fvisc);
         
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;
@@ -734,14 +738,14 @@ REAL TPZNLFluidStructure2d::FictitiousTime(int gelId)
     return tStar;
 }
 
-REAL TPZNLFluidStructure2d::Ql(int gelId, int locIntPt, int NintPts)
+REAL TPZNLFluidStructure2d::Ql(int gelId)
 {
     REAL tStar = FictitiousTime(gelId);
     REAL tau = tStar + fTimeStep;
     
     REAL ql = fCl/sqrt(tau)*fP;
     
-    return 0.;//-ql;
+    return 0.;//-ql; ////<<<< por enquanto preciso validar sem leakoff!!!
 }
 
 void TPZNLFluidStructure2d::UpdateLeakoff()
