@@ -19,8 +19,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZMultiPhysicsElement"));
 #endif
 
 
-
-
 void TPZMultiphysicsElement::CreateInterfaces()
 {
     //nao verifica-se caso o elemento de contorno
@@ -100,15 +98,10 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		int matid;
 		int thisdim = this->Dimension();
 		int neighbourdim = list[is].Element()->Dimension();
-        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Reference()->MaterialId(), list[0].Element()->Reference()->MaterialId() );
-		if (matid == GMESHNOMATERIAL && thisdim == neighbourdim){
-			//      matid = this->Material()->Id();
-            continue;
-        }
-        else if(matid == GMESHNOMATERIAL && thisdim != neighbourdim)
+        
+        if(thisdim != neighbourdim)
         {
-            // verify if either of the neighbours is a boundary condition
-			if (thisdim < neighbourdim) 
+            if (thisdim < neighbourdim)
             {
                 // return the material id of boundary condition IF the associated material is derived from bndcond
                 TPZMaterial *mat = this->Material();
@@ -117,11 +110,13 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
                 {
                     matid = this->Material()->Id();
                 }
-                else {
+                else
+                {
+                    matid = this->Mesh()->Reference()->InterfaceMaterial(this->Reference()->MaterialId(),list[0].Element()->Reference()->MaterialId());
                     continue;
                 }
             }
-			else 
+			else
             {
                 TPZMaterial *mat = list[is].Element()->Material();
                 TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
@@ -129,11 +124,53 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
                     matid = bnd->Id();
                 }
                 else {
+                    matid = this->Mesh()->Reference()->InterfaceMaterial(this->Reference()->MaterialId(), list[0].Element()->Reference()->MaterialId());
                     continue;
                 }
             }
-		}
-		
+        }else
+        {
+            matid = this->Mesh()->Reference()->InterfaceMaterial(this->Reference()->MaterialId(), list[0].Element()->Reference()->MaterialId());
+            if(matid == GMESHNOMATERIAL)
+            {
+                continue;
+            }
+        }
+        
+        
+//        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Reference()->MaterialId(), list[0].Element()->Reference()->MaterialId());
+//		if (matid == GMESHNOMATERIAL && thisdim == neighbourdim){
+//			//      matid = this->Material()->Id();
+//            continue;
+//        }
+//        else if(matid == GMESHNOMATERIAL && thisdim != neighbourdim)
+//        {
+//            // verify if either of the neighbours is a boundary condition
+//			if (thisdim < neighbourdim) 
+//            {
+//                // return the material id of boundary condition IF the associated material is derived from bndcond
+//                TPZMaterial *mat = this->Material();
+//                TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+//                if(bnd)
+//                {
+//                    matid = this->Material()->Id();
+//                }
+//                else {
+//                    continue;
+//                }
+//            }
+//			else 
+//            {
+//                TPZMaterial *mat = list[is].Element()->Material();
+//                TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+//                if (bnd) {
+//                    matid = bnd->Id();
+//                }
+//                else {
+//                    continue;
+//                }
+//            }
+//		}
 		
 		int index;
 		
@@ -154,12 +191,12 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		if(Dimension() > list[is].Reference().Dimension()){
 			//o de volume eh o direito caso um deles seja BC
 			//a normal aponta para fora do contorno
-			TPZCompElSide thiscompelside(this, thisside);
+			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide neighcompelside(list[is]);
 			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
 		} else {
 			//caso contrario ou caso ambos sejam de volume
-			TPZCompElSide thiscompelside(this, thisside);
+			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide neighcompelside(list[is]);
 			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
 		}
@@ -227,11 +264,11 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		
 		if(Dimension() > lowcel->Dimension()){
 			//para que o elemento esquerdo seja de volume
-			TPZCompElSide thiscompelside(this, thisside);
+			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
 			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
 		} else {
-			TPZCompElSide thiscompelside(this, thisside);
+			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
 #ifdef LOG4CXX_KEEP
             if (logger->isDebugEnabled())
