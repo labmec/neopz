@@ -124,12 +124,60 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 	
 }
 
+/*{
+    //ComputeNodElCon();
+	out << "\n\t\tCOMPUTABLE GRID INFORMATIONS:\n\n";
+	out << "TITLE-> " << fName << "\n\n";
+	
+	out << "number of connects            = " << NConnects() << std::endl;
+	out << "number of elements            = " << NElements() << std::endl;
+	out << "number of materials           = " << NMaterials() << std::endl;
+	//  out << "number of nodal bound cond    = " << NBCConnects() << endl;
+	
+	out << "\n\t Connect Information:\n\n";
+	int i, nelem = NConnects();
+	for(i=0; i<nelem; i++) {
+		if(fConnectVec[i].SequenceNumber() == -1) {
+			if(fConnectVec[i].HasDependency()) {
+				cout << "TPZCompMesh::Print inconsistency of connect\n";
+				cout << "Index " << i << ' ';
+				fConnectVec[i].Print(*this,std::cout);
+			}
+			continue;
+		}
+		out << "Index " << i << ' ';
+		fConnectVec[i].Print(*this,out);
+	}
+	out << "\n\t Computable Element Information:\n\n";
+	nelem = NElements();
+	for(i=0; i<nelem; i++) {
+		if(!fElementVec[i]) continue;
+		TPZCompEl *el = fElementVec[i];
+		out << "Index " << i << ' ';
+		el->Print(out);
+		if(!el->Reference()) continue;
+		out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
+	}
+	out << "\n\tMaterial Information:\n\n";
+	std::map<int, TPZMaterial * >::const_iterator mit;
+	nelem = NMaterials();
+	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
+        TPZMaterial *mat = mit->second;
+        if (!mat) {
+            DebugStop();
+        }
+		mat->Print(out);
+	}
+
+}*/
+
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
-	out << "Output for a computable element index: " << fIndex << std::endl;
+    
+ 	out <<"\nOutput for a computable element index: " << fIndex;
 	if(this->Reference())
 	{
-		out << "Center coordinate: ";
+		out << "\nCenter coordinate: ";
 		TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
 		TPZVec< REAL > centerEuclid( 3,0.);
 		this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
@@ -144,27 +192,36 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
 		out << "No material\n";
 	}
 	
-	out << "Number of connects = " << NConnects() << " Node indexes : ";
+	out << "Number of connects = " << NConnects();
+    out << "\nNode indexes : ";
 	int nod;
 	for(nod=0; nod< NConnects(); nod++)
 	{
 		out << ConnectIndex(nod) <<  ' ' ;
 	}
-	
-	TPZManVector<TPZTransform> tr;
-	AffineTransform(tr);
-	for(int ii=0;ii<tr.size();ii++)
-	{
-        if (!fElementVec[ii]) {
-            out << "\nSem elemento para malha computacional " << ii+1 <<"\n";
+    if(this->Reference())
+        out << "\nReference Index = " << this->Reference()->Index() << std::endl;
+    
+    out << "\nComputational elements this multi-physics element: \n";
+    int nmesh  = fElementVec.size();
+    for(int iel = 0; iel< nmesh; iel++ ){
+        
+        out << "\nComputational element belonging to the mesh " << iel+1 <<":";
+        TPZCompEl *cel = fElementVec[iel];
+        if(!cel){
+            out << "\n There is not element to computational mesh " << iel+1 <<"\n";
             continue;
         }
-		out << "\n"<<std::endl; 
-		out << "Transformacao para o elemento de index "<< fElementVec[ii]->Index() << "  pertencente a malha computacional " << ii+1 << std::endl;
-		out << tr[ii] << std::endl;
-	}
-	
-	out << std::endl;
+        cel->Print(out);
+        if(!cel->Reference()) continue;
+		out << "\tReference Index = " << cel->Reference()->Index();
+        
+        TPZManVector<TPZTransform> tr;
+        AffineTransform(tr);
+        out << "\n\tAffine transformation of the multiphysics element for this computational element:"<<"\n";
+        out << std::endl;
+		out <<"\t" << tr[iel];
+    }
 }
 
 
@@ -523,7 +580,6 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 	for (int iref=0;  iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		 msp->MaxOrder();
 		ordervec[iref] =  msp->MaxOrder();
 	}
 	TPZMaterial * material = Material();
