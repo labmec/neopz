@@ -190,10 +190,13 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	for(i=0; i<nelem; i++) {
 		if(!fElementVec[i]) continue;
 		TPZCompEl *el = fElementVec[i];
-		out << "Index " << i << ' ';
+		out << "\nIndex " << i << ' ';
 		el->Print(out);
-		if(!el->Reference()) continue;
-		out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
+        TPZMultiphysicsElement *mpel = dynamic_cast<TPZMultiphysicsElement *>(el);
+        if(!mpel){
+            if(!el->Reference()) continue;
+            out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
+        }
 	}
 	out << "\n\tMaterial Information:\n\n";
 	std::map<int, TPZMaterial * >::const_iterator mit;
