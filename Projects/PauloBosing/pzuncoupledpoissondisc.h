@@ -22,9 +22,9 @@
  * @brief Contains the TPZMatUncoupledPoissonDisc class which implements an uncoupled system of the two Poisson equation
  */
 /*
- * \f$ - fK1 Laplac(u)  = fXf1 ==> Int{fK1 Grad(u)Grad(v)}dx  - Int{fK1 Grad(u).n v}ds = Int{fxf1 v}dx   (Eq. 1)  \f$
+ * \f$ - fK1 Laplac(u1)  = fXf1 ==> Int{fK1 Grad(u1)Grad(v)}dx  - Int{fK1 Grad(u1).n v}ds = Int{fxf1 v}dx   (Eq. 1)  \f$
  *
- * \f$ - fK2 Laplac(p)  = fXf2 ==> Int{fK2 Grad(p)Grad(v)}dx - Int{fK2 Grad(p).n v}ds  = Int{fxf2 v}dx   (Eq. 2) \f$
+ * \f$ - fK2 Laplac(u2)  = fXf2 ==> Int{fK2 Grad(u2)Grad(v)}dx - Int{fK2 Grad(u2).n v}ds  = Int{fxf2 v}dx   (Eq. 2) \f$
  */
 
 

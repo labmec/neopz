@@ -88,7 +88,7 @@ void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
-int main(int argc, char *argv[])
+int main1(int argc, char *argv[])
 {
     // Ordem polinomial das funções de aproximação
 	int p = 2;

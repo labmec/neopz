@@ -67,6 +67,7 @@ const int lagrangemat = 2;
 const int interfacemat = 3;
 
 TPZGeoMesh *MalhaGeom(bool interface1);
+TPZGeoMesh *MalhaGeom2();
 
 TPZCompMesh *MalhaCompU(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh*MalhaCompP(TPZGeoMesh * gmesh, int pOrder);
@@ -87,18 +88,18 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
 
 void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
 
-int main1(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
 #endif
 	
-	int p =1;
+	int p =2;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = MalhaGeom(false);
+	TPZGeoMesh * gmesh = MalhaGeom2();
 	ofstream arg1("gmeshZero.txt");
 	gmesh->Print(arg1);
 	
@@ -116,11 +117,11 @@ int main1(int argc, char *argv[])
 	// Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	//RefinUniformElemComp(cmesh1,2);
+	RefinUniformElemComp(cmesh1,2);
 	// Refine the 7th element of the cmesh1
-	RefinElemComp(cmesh1, 7);
+	//RefinElemComp(cmesh1, 7);
 	// Refine the 10th element of the cmesh1
-	RefinElemComp(cmesh1, 10);
+	//RefinElemComp(cmesh1, 10);
 	// Adjust the boundary elements after refine
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
@@ -136,10 +137,10 @@ int main1(int argc, char *argv[])
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
 	//refinamento uniform
-	//RefinUniformElemComp(cmesh2,3);
+	RefinUniformElemComp(cmesh2,3);
 	// Refine 6th and 7th elements (as uniform refine)
-	RefinElemComp(cmesh2, 6);
-	RefinElemComp(cmesh2, 7);
+	//RefinElemComp(cmesh2, 6);
+	//RefinElemComp(cmesh2, 7);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
 	
@@ -152,17 +153,17 @@ int main1(int argc, char *argv[])
 
 	
 	//--- Resolver usando a primeira malha computacional ---
-	TPZAnalysis an1(cmesh1);
-	SolveSist(an1, cmesh1);
-	std::string plotfile("saidaSolution_cmesh1.vtk");
-	PosProcess(an1, plotfile);
+	//TPZAnalysis an1(cmesh1);
+	//SolveSist(an1, cmesh1);
+//	std::string plotfile("saidaSolution_cmesh1.vtk");
+//	PosProcess(an1, plotfile);
 	//---------------------------
 	
 	//--- Resolver usando a segunda malha computacional ---
-	TPZAnalysis an2(cmesh2);
-	SolveSist(an2, cmesh2);
-	std::string plotfile2("saidaSolution_cmesh2.vtk");
-	PosProcess(an2, plotfile2);
+	//TPZAnalysis an2(cmesh2);
+	//SolveSist(an2, cmesh2);
+	//std::string plotfile2("saidaSolution_cmesh2.vtk");
+	//PosProcess(an2, plotfile2);
 	//---------------------------
 	
 	// List of the computational meshes
@@ -416,6 +417,81 @@ TPZGeoMesh *MalhaGeom(bool interface1)
 	//ofstream arg("gmesh.txt");
 //	gmesh->Print(arg);
 		
+	return gmesh;
+	
+}
+
+TPZGeoMesh *MalhaGeom2()
+{
+	
+	int Qnodes = 4;
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+	
+	TPZVec <int> TopolQuad(4);
+	TPZVec <int> TopolLine(2);
+	
+	//indice dos nos
+	int id = 0;
+	REAL valx;
+	REAL dx=1.;
+	for(int xi = 0; xi < Qnodes/2; xi++)
+	{
+		valx = xi*dx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx );//coord X
+		Node[id].SetCoord(1 ,0. );//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	for(int xi = 0; xi < Qnodes/2; xi++)
+	{
+		valx = 1. - xi*dx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx );//coord X
+		Node[id].SetCoord(1 ,1. );//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	//indice dos elementos
+	id = 0;
+	TopolLine[0] = 0;
+	TopolLine[1] = 1;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcN,*gmesh);
+	id++;
+	
+	TopolLine[0] = 1;
+	TopolLine[1] = 2;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcDR,*gmesh);
+	id++;
+	
+	TopolLine[0] = 2;
+	TopolLine[1] = 3;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcN,*gmesh);
+	id++;
+	
+	TopolLine[0] = 3;
+	TopolLine[1] = 0;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcDL,*gmesh);
+	id++;
+	
+	TopolQuad[0] = 0;
+	TopolQuad[1] = 1;
+	TopolQuad[2] = 2;
+	TopolQuad[3] = 3;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+	
+	
+    gmesh->BuildConnectivity();
+    
+	//ofstream arg("gmesh.txt");
+    //	gmesh->Print(arg);
+    
 	return gmesh;
 	
 }
