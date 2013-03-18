@@ -245,6 +245,12 @@ protected:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    /**
+	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
+	 * @since March 5, 2013
+	 */
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
