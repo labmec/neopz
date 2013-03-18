@@ -38,17 +38,17 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
                                                                     TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index),fLeftElSide(leftside), fRightElSide(rightside)
 {
 	
-//	ref->SetReference(this);
-//	ref->IncrementNumInterfaces();
+	ref->SetReference(this);
+	ref->IncrementNumInterfaces();
 //	
 //	if (fLeftElSide.Side() == -1 || fRightElSide.Side() == -1){
 //		PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
 //		DebugStop();
 //	}
 //	
-//	this->SetLeftRightElement(fLeftElSide, fRightElSide);
-//	
-//	this->IncrementElConnected();
+	//this->SetLeftRightElement(leftside, rightside);
+	
+	this->IncrementElConnected();
 	
 }
 
@@ -179,7 +179,7 @@ int TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 }
 
 
-
+#include "pzmultiphysicscompel.h"
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
 	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (Material());
@@ -202,14 +202,25 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         DebugStop();
     }
 #endif
+       
     TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
     TPZMaterialData data;
     InitMaterialData(datavecleft, leftel);
     InitMaterialData(datavecright, rightel);
+    
     TPZManVector<TPZTransform> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
+       
     InitMaterialData(data);
+    int nmesh =datavecleft.size();
+    for(int id = 0; id<nmesh; id++){
+        datavecleft[id].fNeedsNormal=true;
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel->Element(id));
+        datavecleft[id].p =msp->MaxOrder();
+    }
+    data.fNeedsHSize=true;
+    
     int intleftorder = leftel->IntegrationOrder();
     int intrightorder = rightel->IntegrationOrder();
     int integrationorder = MAX(intleftorder, intrightorder);
@@ -226,6 +237,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     // compute the transformation between neighbours
     gelside.SideTransform3(neighleft, trleft);
     gelside.SideTransform3(neighright, trright);
+    
     TPZTransform leftloctr = leftgel->SideToSideTransform(neighleft.Side(), leftgel->NSides()-1);
     TPZTransform rightloctr = rightgel->SideToSideTransform(neighright.Side(), rightgel->NSides()-1);
     // transform from the element to the interior of the neighbours
@@ -243,6 +255,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
         trright.Apply(Point, rightPoint);
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
+        
+        data.x = datavecleft[0].x;
         material->ContributeInterface(data , datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }	
 	
@@ -304,6 +318,42 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
 	
 }//void
 
+void TPZMultiphysicsInterfaceElement::ComputeCenterNormal(TPZVec<REAL> &normal) const{
+    
+    TPZGeoEl *gel = Reference();
+    int dim = gel->Dimension();
+    int nsides = gel->NSides();
+    TPZManVector<REAL> center(dim);
+    gel->CenterPoint(nsides-1 , center);
+    TPZGeoElSide gelside(gel,nsides-1);
+    gelside.Normal(center, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), normal);
+}
+
+void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
+	
+	TPZCompEl::Print(out);
+	out << "\nInterface element : \n";
+	if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent\n";
+	else{
+		out << "\tLeft Geometric Index: " << LeftElement()->Reference()->Index() << std::endl;
+		out << "\tLeft Geometric Id: " << LeftElement()->Reference()->Id() << std::endl;
+		out << "\tElement Dimension " << LeftElement()->Reference()->Dimension() << std::endl;
+	}
+	
+	if(!RightElement() || !RightElement()->Reference()) out << "\tNULL RightElement - this is inconsistent";
+	else{
+		out << "\tRight Geometric Index: " << RightElement()->Reference()->Index() << std::endl;
+		out << "\tRight Geometric Id: " << RightElement()->Reference()->Id() << std::endl;
+		out << "\tElement Dimension " << RightElement()->Reference()->Dimension() << std::endl;
+	}
+	
+	out << "\tMaterial id : " << Reference()->MaterialId() << std::endl;
+	
+    TPZVec<REAL> center_normal;
+    ComputeCenterNormal(center_normal);
+    out << "\tNormal vector (at center point): ";
+	out << "(" << center_normal[0] << "," << center_normal[1] << "," << center_normal[2] << ")\n";
+}
 
 /** @brief Initialize the material data for the neighbouring element */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel)
@@ -326,7 +376,6 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
     data.jacobian.Redim(dim,dim);
 	data.jacinv.Redim(dim,dim);
 	data.x.Resize(3);
-    
 }
 
 /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
@@ -338,6 +387,19 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, T
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
     //ComputeRequiredData(Point,data);
     gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+    
+    if (data.fNeedsHSize){
+		const int dim = this->Dimension();
+		REAL faceSize;
+		if (dim == 0){//it means I am a point
+            DebugStop();
+            faceSize = 1.;
+		}
+		else{
+			faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio
+		}
+		data.HSize = faceSize;
+	}
 
 }
 

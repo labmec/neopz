@@ -140,6 +140,25 @@ public:
         return fLeftElSide;
     }
     
+    /** @brief Returns the right element from the element interface */
+	TPZCompEl *RightElement() const {
+		return fRightElSide.Element();
+	}
+	
+	/** @brief Returns the left element from the element interface */
+	TPZCompEl *LeftElement() const {
+		return fLeftElSide.Element();
+	}
+
+    void ComputeCenterNormal(TPZVec<REAL> &normal) const;
+    
+   // void ComputeNormal(TPZVec<REAL> &qsi, TPZVec<REAL> &normal);
+    
+    /**
+	 * @brief Prints element data
+	 * @param out Indicates the device where the data will be printed
+	 */
+	virtual void Print(std::ostream &out = std::cout) const;
 	
     /** @brief Initialize the material data for the neighbouring element */
     void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel);
