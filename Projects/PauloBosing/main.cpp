@@ -89,7 +89,7 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
-bool thereis_inteface = false;
+bool disc_functions = false;
 
 int main(int argc, char *argv[])
 {
@@ -110,29 +110,19 @@ int main(int argc, char *argv[])
 	int p = 2;
     
     
-	// Criando a malha geométrica
+	//---- Criando a malha geométrica ----
 	TPZGeoMesh * gmesh = MalhaGeom();
     ofstream arg1("gmesh_inicial.txt");
 	gmesh->Print(arg1);
 	
-	// Criando a primeira malha computacional
-	TPZCompMesh * cmesh1= MalhaCompUm(gmesh, p,thereis_inteface);
-    ofstream arg2("cmesh_edp1.txt");
-	cmesh1->Print(arg2);
-    
-    ofstream arg10("gmesh_ed1_inicial.txt");
-	gmesh->Print(arg10);
+	//---- Criando a primeira malha computacional -----
+	TPZCompMesh * cmesh1= MalhaCompUm(gmesh, p,disc_functions);
+
+	//----- Criando a segunda malha computacional ------
+	TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p+1,disc_functions);
 
     
-	// Criando a segunda malha computacional
-	TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p,thereis_inteface);
-    ofstream arg3("cmesh_edp2.txt");
-	cmesh2->Print(arg3);
-    
-    ofstream arg11("gmesh_ed2_inicial.txt");
-	gmesh->Print(arg11);
-    
-/*-------Refinando as malhas de cada equacao-------*/
+// -------Refinando as malhas de cada equacao-------
 	
     // Refinando a malha da primeira equação
     gmesh->ResetReference();
@@ -141,14 +131,9 @@ int main(int argc, char *argv[])
     TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,2);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
-    if (thereis_inteface==true) CreatInterface(cmesh1);
 
     ofstream arg4("cmesh_edp1_final.txt");
 	cmesh1->Print(arg4);
-	ofstream arg5("gmesh_edp1.txt");
-	gmesh->Print(arg5);
-	ofstream file3("gmesh_edp1.vtk");
-	//PrintGMeshVTK(gmesh, file3);
 
 	// Refinando a malha da segunda equação
 	gmesh->ResetReference();
@@ -157,61 +142,18 @@ int main(int argc, char *argv[])
     TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
-    if (thereis_inteface==true) CreatInterface(cmesh2);
 
     ofstream arg6("cmesh_edp2_final.txt");
 	cmesh2->Print(arg6);
-	ofstream arg7("gmesh_edp2.txt");
-	gmesh->Print(arg7);
-	ofstream file4("gmesh_edp2.vtk");
-	//PrintGMeshVTK(gmesh, file4);
     
-/*--- Resolver usando a primeira malha computacional. apenas para conferir resultados -----*/
-	TPZAnalysis an1(cmesh1);
-	ResolverSistema(an1, cmesh1,false);
-	std::string plotfile1("saidaSolution_cmesh1.vtk");
-	SaidaSolucao(an1, plotfile1);
-	//---------------------------
-	
-/*------ Resolver usando a segunda malha computacional. apenas para conferir resultados -----*/
-	TPZAnalysis an2(cmesh2);
-	ResolverSistema(an2, cmesh2,false);
-	std::string plotfile2("saidaSolution_cmesh2.vtk");
-	SaidaSolucao(an2, plotfile2);
-	//---------------------------
+    //--- Criando a malha computacional multifísica ----
     
-    cmesh1->CleanUp();
-    cmesh2->CleanUp();
-    delete cmesh1;
-    delete cmesh2;
-    delete gmesh;
-    
-    gmesh = MalhaGeom();
-	cmesh1= MalhaCompUm(gmesh, p,thereis_inteface);
-    cmesh2 = MalhaCompDois(gmesh, p,thereis_inteface);
-    
-    gmesh->ResetReference();
-	cmesh1->LoadReferences();
-    // Refinando a malha com dois níveis de refinamneto uniforme
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,2);
-	cmesh1->AdjustBoundaryElements();
-	cmesh1->CleanUpUnconnectedNodes();
-    
-        
-	// Refinando a malha da segunda equação
-	gmesh->ResetReference();
-	cmesh2->LoadReferences();
-	// Refinando a malha com três níveis de refinamneto uniforme
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3);
-	cmesh2->AdjustBoundaryElements();
-	cmesh2->CleanUpUnconnectedNodes();
-    
-    /*--- Criando a malha computacional multifísica----*/
     // Criando um vetor de malhas computacionais
 	TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh1;
 	meshvec[1] = cmesh2;
     
+    // Criando a malha computacional multifisica
     TPZMatUncoupledPoissonDisc * multiphysics_material;
     TPZCompMesh * mphysics = MalhaCompMultifisica(gmesh,meshvec,multiphysics_material);
     
@@ -225,8 +167,6 @@ int main(int argc, char *argv[])
     ofstream arg18("mphysics_cmesh.txt");
 	mphysics->Print(arg18);
 
-	
-    /*---------- Etapa 5 ----------*/
     // Arquivo de saida para plotar a solução
     string plotfile3("Solution_mphysics.vtk");
     SaidaSolucaoMultifisica(meshvec, mphysics, an, plotfile3);
@@ -482,7 +422,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZGeoMesh * gmesh,TPZVec<TPZCompMesh *> meshv
     mphysics->Reference()->ResetReference();
     mphysics->LoadReferences();
     
-    if (thereis_inteface==true){
+    if (disc_functions==true){
         //criar elementos de interface
         int nel = mphysics->ElementVec().NElements();
         for(int el = 0; el < nel; el++)
