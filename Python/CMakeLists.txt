@@ -19,6 +19,11 @@ if(BUILD_PYTHON_BINDING)
 
     add_library(TPZPython SHARED ${TPZPython_src} ${pzsources})
 
-    target_link_libraries(TPZPython pz)
+    IF (APPLE)
+        target_link_libraries(TPZPython pz python)
+    ELSE()
+        target_link_libraries(TPZPython pz)
+    ENDIF()
+
     
 endif()

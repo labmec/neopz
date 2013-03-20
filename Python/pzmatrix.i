@@ -8,6 +8,8 @@
 %ignore *::operator=; //method copy created
 %ignore *::operator[]; //methods __getitem__ and __setitem__ created
 %ignore *::PrintMath(const char *name = 0, std::ostream &out = std::cout);
+%ignore *::AddKel;
+%ignore *::AddFel;
 %ignore ddot;
 %ignore operator >> (std::istream& in,TPZMatrix<TT>& A) ;
 //%ignore operator<<(std::ostream &out, const std::pair<int,int> &element);
