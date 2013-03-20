@@ -25,5 +25,9 @@ if(BUILD_PYTHON_BINDING)
         target_link_libraries(TPZPython pz)
     ENDIF()
 
+    IF (NOT WIN32)
+	SET_TARGET_PROPERTIES(TPZPython PROPERTIES PREFIX "_")
+	SET_TARGET_PROPERTIES(TPZPython PROPERTIES SUFFIX ".so")
+    ENDIF()
     
 endif()
