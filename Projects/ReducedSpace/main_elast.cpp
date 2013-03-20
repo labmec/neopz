@@ -91,7 +91,6 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh);
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 void SaidaPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
-void SaidaPressao(TPZCompMesh * cmesh);
 
 void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento1(TPZAnalysis &an, std::string plotfile);
@@ -109,7 +108,7 @@ REAL ED = 0.3E5;
 REAL nu = 0.25;
 REAL viscD = 0.001;
 REAL signD = 0.3E5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
-REAL QinD  = 1.E-3;
+REAL QinD  = -1.E-3;
 REAL tD = 1000.;
 REAL deltaTD = 10.;
 //
@@ -137,10 +136,6 @@ int main(int argc, char *argv[])
 	TPZCompMesh * cmesh_elast = CMeshElastic(gmesh, p);
     TPZAnalysis an1(cmesh_elast);
     MySolve(an1, cmesh_elast);
-                
-//    string plotfile("saidaSolution_mesh1.vtk");
-//    PosProcessamento1(an1, plotfile);
-    
     
 /** >>> Passando a malha computacional jah processada do problema modelo elastico para a malha do problema elastico que serah acoplado.
     Esta malha que foi passada servirah como espaco de aproximacao da malha do problema elastico que serah acoplado */
@@ -171,37 +166,11 @@ int main(int argc, char *argv[])
     
     
 /** >>> Metodo de resolucao de problema transient */
-    //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     TPZAnalysis *an = new TPZAnalysis(mphysics);
     TPZFMatrix<REAL> InitialSolution = an->Solution();
     ToolsTransient::SolveSistTransient(deltaT, maxTime, InitialSolution, an, mymaterial, meshvec, mphysics);
     
     return 0;
-}
-
-ofstream outfile1("SaidaPressao1.nb");
-void SaidaPressao(TPZCompMesh * cmesh){
-    outfile1<<" Saida2 = {";
-    for(int i = 0;  i< cmesh->ElementVec().NElements(); i++)
-    {
-        TPZCompEl * cel =cmesh->ElementVec()[i];
-        TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*>(cel);
-        if(!sp) continue;
-        TPZVec<REAL> qsi(1,0.),out(3,0.);
-        TPZMaterialData data;
-        sp->InitMaterialData(data);
-        for(int j = 0; j < 1; j++){
-            qsi[0] = -1.+2.*i/10.;
-            sp->ComputeShape(qsi, data);
-            sp->ComputeSolution(qsi, data);
-            TPZVec<REAL> SolP = data.sol[0]; 
-            cel->Reference()->X(qsi,out);
-            outfile1<<"{" << out[0]<< ", " << data.sol[0]<<"}";
-        }
-        if(i!= cmesh->ElementVec().NElements()-1) outfile1<<", ";
-        if(i== cmesh->ElementVec().NElements()-1) outfile1<<"};"<<std::endl;
-    }
-    outfile1<<"ListPlot[Saida2,Joined->True]"<<endl;
 }
 
 TPZGeoMesh *GMesh(int nh,REAL Lx, REAL Ly, REAL Lmax,int nfrac){
@@ -315,20 +284,6 @@ TPZGeoMesh *GMesh(int nh,REAL Lx, REAL Ly, REAL Lmax,int nfrac){
             gel->Divide (filhos);
 		}//for i
 	}//ref
-    
-     //gRefDBase.InitializeRefPatterns();
-    
-//    int nrefdir = 2;
-//    std::set<int> matNewm;
-//    matNewm.insert(matId2);
-//    for(int ii = 0; ii < nrefdir; ii++)
-//    {
-//        int nels = gmesh->NElements();
-//        for(int iel = 0; iel < nels; iel++)
-//        {
-//            TPZRefPatternTools::RefineDirectional(gmesh->ElementVec()[iel], matNewm);
-//        }
-//    }
 
 	return gmesh;
 }
@@ -760,7 +715,6 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
     cmesh->InsertMaterialObject(BCond1);
-   // cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
 	
 	//Ajuste da estrutura de dados computacional
@@ -781,10 +735,6 @@ void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	//step.SetDirect(ELU);
 	an.SetSolver(step);
 	an.Run();
-	
-	//Saida de Dados: solucao e  grafico no VT
-	ofstream file("Solutout");
-	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 
 void PosProcessamento1(TPZAnalysis &an, std::string plotfile){
@@ -799,8 +749,6 @@ void PosProcessamento1(TPZAnalysis &an, std::string plotfile){
 	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
 }
 
 
@@ -825,8 +773,6 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mymaterial->SetfPlaneProblem(planestrain);
 
     //data pressure
-    //TPZFMatrix<REAL> xk(1,1,1.);
-    //TPZFMatrix<REAL> xf(1,1,0.);
     REAL hw = HD;
     REAL xvisc = viscD;
     REAL Cl = 0.0007;
@@ -893,17 +839,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-    //    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Computacional Multiphysic\n ";
-    //        mphysics->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str());
-    //	}
-    //#endif
-    //    
+
     return mphysics;
 }
 
@@ -959,8 +895,7 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
     TPZFMatrix<REAL> val13(2,2,0.), val23(2,1,0.);
     val13(0,0) = big;
     TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,dirichlet, val13, val23);
-    
-    
+        
     cmesh->InsertMaterialObject(BCond4);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
@@ -979,7 +914,4 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 	int div =0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
-    
 }

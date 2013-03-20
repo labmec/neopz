@@ -183,9 +183,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
             an->Rhs() = res_total;
             an->Solve();
             
-            std::ofstream file("SolutoutP.txt");
-            an->Solution().Print("solution", file);
-            
             an->LoadSolution(SolIterK + an->Solution());
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -210,11 +207,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();
             PosProcessMult(meshvec,mphysics,an,plotfile);
-        }
-        
-        if(TimeValue == maxTime)
-        {
-            TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
         }
 
         meshvec[0]->LoadReferences();
@@ -263,7 +255,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
 //        KI = integralJ.IntegratePath2D(0);
         /////////////////////////////
         
-        PlotWIntegral(meshvec[0], saidaAreaW, TimeValue);
+        PlotWIntegral(mphysics, saidaAreaW, TimeValue);
         
         InitialSolution = mphysics->Solution();
         cent++;
@@ -293,7 +285,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     }
     saidaAreaW << "};\n\n";
     saidaAreaW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0, 0},PlotStyle -> {PointSize[0.01]}];\n";
-    saidaAreaW << "QinjPlot = Plot[Qinj*t-0*(" << mymaterial->vsp()*100000 << "*10^(-5)+2*" << mymaterial->Cl() << "*" << mymaterial->P() << "*t^(0.5)" << "), {t, 1, " << maxTime << "}, PlotStyle -> Red];\n";
+    saidaAreaW << "QinjPlot = Plot[Qinj*t-2*(" << mymaterial->vsp()*100000 << "*10^(-5)+2*" << mymaterial->Cl() << "*" << mymaterial->P() << "*t^(0.5)" << "), {t, 1, " << maxTime << "}, PlotStyle -> Red];\n";
     saidaAreaW << "Show[WintegralPlot, QinjPlot]\n";
     
     
@@ -328,57 +320,33 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int 
     out << "displ" << solNum << "={";
     int npts = 1;
  
-    int iniId = 0;
-    TPZGeoMesh * gmesh = cmesh->Reference();
     bool isFirstTime = true;
-    for(int el = 0; el < gmesh->NElements(); el++)
+    for(int el = 0; el < cmesh->NElements(); el++)
     {
-        TPZGeoEl * gel1D = gmesh->ElementVec()[el];
-        if(!gel1D || gel1D->HasSubElement())
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if(!cel) continue;
+        TPZGeoEl * gel = cel->Reference();
+        int crak1DMatId = 2;
+        if(!gel || gel->HasSubElement() || gel->Dimension() != 1 || gel->MaterialId() != crak1DMatId)
         {
             continue;
         }
-        if(gel1D->MaterialId() == 2)//1D crack element
+
         {
-            if(gel1D->Dimension() != 1)
-            {
-                DebugStop();
-            }
             TPZVec<REAL> qsi1D(1,0.), qsi2D(2,0.), XX(3,0.);
             
             for(int p = -npts; p < +npts; p++)
             {
                 qsi1D[0] = double(p)/npts;
-                gel1D->X(qsi1D, XX);
-                TPZGeoEl * gel = gmesh->FindElement(XX, qsi2D, iniId, 2);
+                gel->X(qsi1D, XX);
                 
-                TPZCompEl * compEl = gel->Reference();
-                TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
-                TPZMaterialData data;
-                intpEl->InitMaterialData(data);
+                TPZManVector<REAL,2> solOut(1);
+                int var = 8;
+                cel->Solution(qsi1D, var, solOut);
+                REAL w = solOut[0];
 
-                intpEl->ComputeShape(qsi2D, data);
-                intpEl->ComputeSolution(qsi2D, data);
-                
-                TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
-                
-                TPZVec<REAL> Solout(3);
-                int var;
-                
-                var = 9;//Displacement
-                elast2D->Solution(data, var, Solout);
-                REAL displacementX = Solout[0];
-                REAL displacementY = Solout[1];
-                REAL posX = XX[0] + displacementX;
-                REAL posY = XX[1] + displacementY;
-                if(posX < 1.E-5)
-                {
-                    posX = 0.;
-                }
-                if(posY < 1.E-5)
-                {
-                    posY = 0.;
-                }
+                REAL posX = XX[0];
+                REAL posY = w;
                 if(isFirstTime)
                 {
                     isFirstTime = false;
@@ -389,7 +357,7 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int 
                 }
                 out << "{" << posX << "," << posY << "}";
             }
-        }
+        }//<<<
     }
     out << "};\n";
 }
@@ -455,9 +423,6 @@ void ToolsTransient::PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* 
 	int div =0;
 	an->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an->PostProcess(div);
-    //an->PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an->Print("nothing",out);
 }
 
 TPZFMatrix<REAL> ToolsTransient::SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, int matId, REAL valIni){

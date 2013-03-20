@@ -243,8 +243,6 @@ int main(int argc, char *argv[])
 	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile3);
 	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
 	//----------
 	
 		
@@ -667,22 +665,6 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	//Saida de Dados: solucao e  grafico no VTK 
 	ofstream file("Solution.out");
 	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
-	
-//#ifdef VTK
-//	{
-//		TPZManVector<std::string,10> scalnames(1), vecnames(1);
-//		scalnames[0] = "Solution";
-//		vecnames[0]= "Derivate";
-//		
-//		std::string plotfile("saidaSolution.vtk");
-//		const int dim = 2;
-//		int div = 0;
-//		an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-//		an.PostProcess(div,dim);
-//		std::ofstream out("malha.txt");
-//		an.Print("nothing",out);
-//	}
-//#endif	
 }
 
 void PosProcess(TPZAnalysis &an, std::string plotfile){
@@ -694,8 +676,6 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
 }
 
 void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){

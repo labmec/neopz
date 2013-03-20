@@ -773,14 +773,14 @@ int main/*2D*/(int argc, char * const argv[])
     
     REAL lf = 1.;
     REAL ldom = 2.;
-    REAL hdom = 1.;
+    REAL hdom = 2.;
     REAL lmax = 0.25;
     TPZGeoMesh * gmesh = PlaneMesh(lf, ldom, hdom, lmax);
     
     std::ofstream pppt("ppt.txt");
-    for(int ppp = 5; ppp <= 5; ppp++)
+    for(int ppp = 1; ppp <= 100; ppp++)
     {
-        REAL pressure = 433.424801571747;
+        REAL pressure = 250.*ppp;
         REAL traction = 0.;
         TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure,traction);
         
@@ -807,31 +807,32 @@ int main/*2D*/(int argc, char * const argv[])
         scalnames[2] = "TauXY";
         
         int div = 0;
-        std::string postp("postp2d.vtk");
-        an.DefineGraphMesh(2,scalnames,vecnames,postp);
+        std::stringstream postp;
+        postp << "Elastic2dP" << (int)(pressure) << ".vtk";
+        an.DefineGraphMesh(2,scalnames,vecnames,postp.str());
         an.PostProcess(div,2);
         
         ////2D J-Integral
-        TPZVec<REAL> Origin(3,0.);
-        for(int el = 0; el < gmesh->NElements(); el++)
-        {
-            if(gmesh->ElementVec()[el]->MaterialId() == __1DcrackTipMat)
-            {
-                Origin[0] = gmesh->ElementVec()[el]->Node(0).Coord(0);
-                break;
-            }
-        }
-        
-        TPZVec<REAL> normalDirection(3,0.);
-        normalDirection[2] = 1.;
-        REAL radius = 0.5;  //  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        Path2D * j2Dpath = new Path2D(cmesh, Origin, normalDirection, radius, pressure);
-        
-        JIntegral2D Jpath;
-        Jpath.PushBackPath2D(j2Dpath);
-        TPZVec<REAL> j2Dintegral = Jpath.IntegratePath2D(0);
-        
-        pppt << j2Dintegral[0] << "\n";
+//        TPZVec<REAL> Origin(3,0.);
+//        for(int el = 0; el < gmesh->NElements(); el++)
+//        {
+//            if(gmesh->ElementVec()[el]->MaterialId() == __1DcrackTipMat)
+//            {
+//                Origin[0] = gmesh->ElementVec()[el]->Node(0).Coord(0);
+//                break;
+//            }
+//        }
+//        
+//        TPZVec<REAL> normalDirection(3,0.);
+//        normalDirection[2] = 1.;
+//        REAL radius = 0.5;  //  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//        Path2D * j2Dpath = new Path2D(cmesh, Origin, normalDirection, radius, pressure);
+//        
+//        JIntegral2D Jpath;
+//        Jpath.PushBackPath2D(j2Dpath);
+//        TPZVec<REAL> j2Dintegral = Jpath.IntegratePath2D(0);
+//        
+//        pppt << j2Dintegral[0] << "\n";
     }
     return 0;
 }
@@ -971,7 +972,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
 #endif
     
 #ifdef usingRefUnif
-    int nrefUnif = 2;
+    int nrefUnif = 3;
     for(int ref = 0; ref < nrefUnif; ref++)
     {
         nelem = gmesh->NElements();
