@@ -572,8 +572,7 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    val1(1,1) = big;
-    TPZMaterial * BCond2 = material->CreateBC(mat, bcmixedx,mixed, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(mat, bcmixedx,dirichlet, val1, val2);
     
     
     val1.Redim(2,2);
