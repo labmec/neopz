@@ -358,7 +358,7 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::ofstream & out, int 
                 intpEl->ComputeSolution(qsi2D, data);
                 elast2D->Solution(data, var, Solout);
                 
-                REAL posX = XX[0]/* + Solout[0]*/;//<< inconsistencia na lei de conservacao pois só há dy/dt (dw/dt), nao incluindo dx/dt !!!
+                REAL posX = XX[0];
                 REAL posY = 2.*(Solout[1]);
                 if(fabs(posX) < 1.E-5)
                 {
