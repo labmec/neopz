@@ -110,7 +110,7 @@ public:
      *@param visc viscosidade do fluido
      *@param QL vazao para o meio poroso
     */
-	void SetParameters(REAL Hw, REAL &visc, REAL Cl, REAL P, REAL vsp)
+	void SetParameters(REAL Hw, REAL visc, REAL Cl, REAL P, REAL vsp)
 	{
         fHw = Hw;
         fvisc = visc;

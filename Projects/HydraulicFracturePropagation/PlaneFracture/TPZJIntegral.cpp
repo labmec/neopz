@@ -1123,11 +1123,11 @@ TPZVec<REAL> JIntegral3D::IntegratePath3D(int p)
         answ[i] = linJintegral[i] + arcJintegral[i] + areaJIntegral[i];
     }
     
-    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
-    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
-    std::cout << "DeltaT integracao area = " << areaInt.seconds() << " s" << std::endl;
-    std::cout << "Jx AREA = " << areaJIntegral[0] << "\n";
-    std::cout << "J = " << answ[0] << "\n";
+//    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
+//    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
+//    std::cout << "DeltaT integracao area = " << areaInt.seconds() << " s" << std::endl;
+//    std::cout << "Jx AREA = " << areaJIntegral[0] << "\n";
+//    std::cout << "J = " << answ[0] << "\n";
     
     return answ;
 }
@@ -1205,9 +1205,9 @@ TPZVec<REAL> JIntegral2D::IntegratePath2D(int p)
         answ[i] = linJintegral[i] + arcJintegral[i];
     }
     
-    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
-    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
-    std::cout << "J = " << answ[0] << "\n";
+//    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
+//    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
+//    std::cout << "J = " << answ[0] << "\n";
     
     return answ;
 }
