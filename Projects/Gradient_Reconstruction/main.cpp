@@ -26,6 +26,8 @@
 #include "pzgeoquad.h"
 #include "pzgeopoint.h"
 
+#include "pzgeoelbc.h"
+
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
 #include "pzstrmatrix.h"
@@ -87,7 +89,7 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, bool isdiscontinuous);
 
 TPZGeoMesh *GMesh2();
-TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous);
+TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous);
 
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
@@ -95,8 +97,7 @@ void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
-TPZGeoMesh *CreateGeoMesh();
-TPZGeoMesh *CreateGeoMesh(int typeel);
+TPZGeoMesh *CreateGeoMesh(MElementType typeel);
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
@@ -140,8 +141,8 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
-int MaxRefs = 4;
-int InitRefs = 1;
+int MaxRefs = 9;
+int InitRefs = 5;
 
 int main(int argc, char *argv[]) {
 
@@ -157,18 +158,16 @@ int main(int argc, char *argv[]) {
 
     int p = 1;
     char saida[256];
-	int dim = 2;
-	MElementType typeel = 0;
+	int dim = 0;
+	MElementType typeel = EOned;
 	int nrefs;
 	
-	// Utilizando para um refinamento localizado sobre uma malha gerada pelo GID
+	// One dimensional case - Uniform refinement on regular mesh
 	// Output file in Mathematica format
-	sprintf(saida,"Grad2MathUnifMeshRUnif.nb");
+	sprintf(saida,"Grad2MathUnifMeshRUnif1D.nb");
 	ofstream outfilemath(saida);
 	TPZGeoMesh *gmesh;
 	TPZCompMesh *cmesh;
-
-	// One dimensional case
 	for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 	{
 		// geometric mesh (initial)
@@ -193,15 +192,51 @@ int main(int argc, char *argv[]) {
 		delete cmesh;
 		delete gmesh;
 	}
+	outfilemath.close();
+	// One dimensional case - refinement localized on regular mesh
+	// Output file in Mathematica format
+	sprintf(saida,"Grad2MathUnifMeshRNoUnif1D.nb");
+	outfilemath.open(saida);
+	for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+	{
+		// geometric mesh (initial)
+		gmesh = CreateGeoMesh(typeel);
+		// Refining near the points belong a circunference with radio r - maxime distance radius
+		RefiningNearCircunference(dim,gmesh,nrefs,1);
+		
+		// computational mesh
+		cmesh= CreateCMesh(gmesh,p,true);
+		
+		// Computing gradient reconstructed
+		TPZFMatrix<REAL> gradients;
+		PosProcessGradientReconstruction(cmesh,gradients);
+		
+		// Printing to VTK
+		sprintf(saida,"Grad_UnifMeshRUnif_H%d_E%d.vtk",nrefs,typeel);
+		PrintDataMeshVTK(cmesh,saida,gradients);
+		// Printing to Mathematica
+		SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+		
+		cmesh->CleanUp();
+		delete cmesh;
+		delete gmesh;
+	}
+	outfilemath.close();
 	
-	for(typeel=2;typeel<4;typeel++) {
+	// Utilizando para um refinamento localizado sobre uma malha uniforme
+	// Output file in Mathematica format
+	sprintf(saida,"Grad2MathUnifMeshRUnif2D.nb");
+	outfilemath.open(saida);
+	// Bi-dimensional case: triangles and quadrilaterals, on regular mesh and uniform refinement
+	while(1) {
+		if(typeel==ETriangle) typeel = EQuadrilateral;
+		if(typeel==EOned) typeel = ETriangle;
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
 			gmesh = CreateGeoMesh(typeel);
 			// Refining near the points belong a circunference with radio r - maxime distance radius
 			UniformRefine(gmesh,nrefs);
-			
 			// computational mesh
 			cmesh= CreateCMesh(gmesh,p,true);
 			
@@ -214,35 +249,33 @@ int main(int argc, char *argv[]) {
 			PrintDataMeshVTK(cmesh,saida,gradients);
 			// Printing to Mathematica
 			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
-			
 			cmesh->CleanUp();
 			delete cmesh;
 			delete gmesh;
-			
 		}
+		if(typeel==EQuadrilateral) break;
 	}
 	outfilemath.close();
 
 	// Utilizando para um refinamento localizado sobre uma malha uniforme
 	// Output file in Mathematica format
-	sprintf(saida,"Grad2MathUnifMeshRNoUnif.nb");
+	sprintf(saida,"Grad2MathUnifMeshRNoUnif2D.nb");
 	outfilemath.open(saida);
-	
-	for(typeel=0;typeel<2;typeel++) {
+	while(1) {
+		if(typeel==ETriangle) typeel = EQuadrilateral;
+		if(typeel==EOned) typeel = ETriangle;
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
 			gmesh = CreateGeoMesh(typeel);
 			// Refining near the points belong a circunference with radio r - maxime distance radius
-			RefiningNearCircunference(dim,gmesh,nrefs,1);    
-			
+			RefiningNearCircunference(dim,gmesh,nrefs,1);
 			// First computational mesh
 			cmesh= CreateCMesh(gmesh,p,true);
 			
 			// Computing gradient reconstructed
 			TPZFMatrix<REAL> gradients;
 			PosProcessGradientReconstruction(cmesh,gradients);
-			
 			// Printing to VTK
 			sprintf(saida,"Grad_UnifMeshRNoUnif_H%d_E%d.vtk",nrefs,typeel);
 			PrintDataMeshVTK(cmesh,saida,gradients);
@@ -253,15 +286,18 @@ int main(int argc, char *argv[]) {
 			delete cmesh;
 			delete gmesh;
 		}
+		if(typeel==EQuadrilateral) break;
 	}
 	outfilemath.close();
 
 	// Utilizando para um refinamento uniforme sobre uma malha gerada pelo GID
 	// Output file in Mathematica format
-	sprintf(saida,"Grad2Math_GIDRUnif.nb");
+	sprintf(saida,"Grad2Math_GIDRUnif2D.nb");
 	outfilemath.open(saida);
 	
-	for(typeel=0;typeel<2;typeel++) {
+	while(1) {
+		if(typeel==ETriangle) typeel = EQuadrilateral;
+		if(typeel==EOned) typeel = ETriangle;
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
@@ -293,15 +329,18 @@ int main(int argc, char *argv[]) {
 			delete gmesh;
 			
 		}
+		if(typeel==EQuadrilateral) break;
 	}
 	outfilemath.close();
 	
 	// Utilizando para um refinamento localizado sobre uma malha gerada pelo GID
 	// Output file in Mathematica format
-	sprintf(saida,"Grad2Math_GIDRNoUnif.nb");
+	sprintf(saida,"Grad2Math_GIDRNoUnif2D.nb");
 	outfilemath.open(saida);
 	
-	for(typeel=0;typeel<2;typeel++) {
+	while(1) {
+		if(typeel==ETriangle) typeel = EQuadrilateral;
+		if(typeel==EOned) typeel = ETriangle;
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
@@ -314,7 +353,6 @@ int main(int argc, char *argv[]) {
 			if(!gmesh) break;
 			// Refining near the points belong a circunference with radio r - maxime distance radius
 			RefiningNearCircunference(dim,gmesh,nrefs,1);    
-			
 			// First computational mesh
 			cmesh= CreateCMesh(gmesh,p,true);
 			
@@ -333,13 +371,15 @@ int main(int argc, char *argv[]) {
 			delete gmesh;
 			
 		}
+		if(typeel==EQuadrilateral) break;
 	}
 	outfilemath.close();
 
 	// Three dimensional case
 	sprintf(saida,"Grad2Math_3D_RUnif.nb");
 	outfilemath.open(saida);
-	for(typeel=7;typeel<8;typeel++) {	// from 4(tetrahedra) to 7(hexahedra)
+	while(1) {
+		typeel = ECube;
 		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
 		{
 			// geometric mesh (initial)
@@ -365,6 +405,40 @@ int main(int argc, char *argv[]) {
 			delete gmesh;
 			
 		}
+		if(typeel==ECube) break;
+	}
+	outfilemath.close();
+	
+	// Three dimensional case
+	sprintf(saida,"Grad2Math_3D_RNoUnif.nb");
+	outfilemath.open(saida);
+	while(1) {
+		typeel = ECube;
+		for(nrefs=InitRefs;nrefs<MaxRefs;nrefs++)
+		{
+			// geometric mesh (initial)
+			gmesh = CreateGeoMesh(typeel);
+			// Refining near the points belong a circunference with radio r - maxime distance radius
+			RefiningNearCircunference(dim,gmesh,nrefs,1);
+			// computational mesh
+			cmesh= CreateCMesh(gmesh,p,true);
+			
+			// Computing gradient reconstructed
+			TPZFMatrix<REAL> gradients;
+			PosProcessGradientReconstruction(cmesh,gradients);
+			
+			// Printing to VTK
+			sprintf(saida,"Grad3D_UnifMeshRUnif_H%d_E%d.vtk",nrefs,typeel);
+			PrintDataMeshVTK(cmesh,saida,gradients);
+			// Printing to Mathematica
+			SaidaMathGradiente(gradients,nrefs,typeel,outfilemath);
+			
+			cmesh->CleanUp();
+			delete cmesh;
+			delete gmesh;
+			
+		}
+		if(typeel==ECube) break;
 	}
 	outfilemath.close();
 	
@@ -422,7 +496,7 @@ void GradExactSolution(int dim,const TPZVec<REAL> &x, TPZVec<REAL> &dsol) {
 	else if(dim==3) {
 		TPZVec<REAL> C0(3,-0.25);
 		REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-		REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
+		REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(2.))*(R0-sqrt(2.)));
 		if(IsZero(den))
 			DebugStop();
 		dsol[0] = (ALFA*(x[0]-C0[0]))/den;
@@ -644,80 +718,116 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 	TPZGeoMesh* gmesh = new TPZGeoMesh;
 	REAL MaxX = 1.;
 	TPZManVector<REAL> x0(3,0.), x1(3,MaxX);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
-	if(typeel<1) return 0;
-	else if(typeel == 1) {
-		x1[1] = x1[2] = 0.;
-		int Qnodes = 2;
-		
-		gmesh->SetMaxNodeId(Qnodes-1);
-		gmesh->NodeVec().Resize(Qnodes);
-		TPZVec<TPZGeoNode> Node(Qnodes);
-		
-		TPZVec <int> TopolLine(2);
-		TPZVec <int> TopolPoint(1);
-		
-		int id = 0;
-		for (int j=0; j<2;j++) {
-			Node[id].SetNodeId(id);
-			Node[id].SetCoord(0,x0);//coord x
-			Node[id].SetCoord(1, mRA.GetVal(1, j));//coord y
-			gmesh->NodeVec()[id] = Node[id];
+	
+	switch(typeel) {
+		case EOned:
+		{
+			x1[1] = x1[2] = 0.;
+			int Qnodes = 2;
+			
+			gmesh->SetMaxNodeId(Qnodes-1);
+			gmesh->NodeVec().Resize(Qnodes);
+			TPZVec<TPZGeoNode> Node(Qnodes);
+			
+			TPZVec <int> TopolLine(2);
+			TPZVec <int> TopolPoint(1);
+			
+			int id = 0;
+			for (int j=0; j<2;j++) {
+				Node[id].SetNodeId(id);
+				if(!j) Node[id].SetCoord(x0);//coord x
+				else Node[id].SetCoord(x1);
+				gmesh->NodeVec()[id] = Node[id];
+				id++;
+			}
+			
+			//indice dos elementos
+			id = 0;
+			
+			TopolLine[0] = 0;
+			TopolLine[1] = 1;
+			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
 			id++;
+			
+			TopolPoint[0] = 0;
+			new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc0,*gmesh);
+			id++;
+			TopolPoint[0] = 1;
+			new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1,*gmesh);
+			gmesh->BuildConnectivity();
+			
+			for ( int ref = 0; ref < 2; ref++ ) {
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				for ( int i = 0; i < n; i++ ) {
+					TPZGeoEl *gel = gmesh->ElementVec() [i];
+					if (gel->Dimension() == 1) gel->Divide (filhos);
+					gel->Divide (filhos);
+				}//for i
+			}//ref
 		}
-		
-		//indice dos elementos
-		id = 0;
-					
-		TopolLine[0] = 0;
-		TopolLine[1] = 1;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
-		id++;
-		
-		TopolPoint[0] = 0;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc0,*gmesh);
-		id++;
-		TopolPoint[1] = 1;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1,*gmesh);
-		gmesh->BuildConnectivity();
-		
-		for ( int ref = 0; ref < nh; ref++ ) {
-			TPZVec<TPZGeoEl *> filhos;
-			int n = gmesh->NElements();
-			for ( int i = 0; i < n; i++ ) {
-				TPZGeoEl * gel = gmesh->ElementVec() [i];
-				if (gel->Dimension() == 2) gel->Divide (filhos);
-				gel->Divide (filhos);
-			}//for i
-		}//ref
+			break;
+		case ETriangle:
+		{
+			x1[2] = 0.;
+			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
+			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
+			gen.SetElementType(1);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			gen.Read(gmesh,matId);             // generating grid in gmesh
+			gmesh->BuildConnectivity();
+			TPZGeoElBC gbc10(gmesh->ElementVec()[0],3,bc0);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[0],4,bc1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[0],5,bc0);
+			gmesh->ResetConnectivities();
+			gmesh->BuildConnectivity();
+		}
+			break;
+		case EQuadrilateral:
+		{
+			x1[2] = 0.;
+			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
+			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
+			if(typeel==ETriangle) gen.SetElementType(1);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			else gen.SetElementType(0);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			gen.Read(gmesh,matId);             // generating grid in gmesh
+			gmesh->BuildConnectivity();
+			TPZGeoElBC gbc10(gmesh->ElementVec()[0],4,bc0);
+			TPZGeoElBC gbc11(gmesh->ElementVec()[0],5,bc1);
+			TPZGeoElBC gbc12(gmesh->ElementVec()[0],6,bc0);
+			TPZGeoElBC gbc13(gmesh->ElementVec()[0],7,bc0);
+			gmesh->ResetConnectivities();
+			gmesh->BuildConnectivity();
+		}
+			break;
+		case ECube:
+		{
+			TPZGeoMesh *gmeshtemp;
+			x1[2] = 0.;
+			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
+			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+			gen.SetElementType(0);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			gen.Read(gmeshtemp,matId);             // generating grid in gmesh
+			
+			REAL InitialH = MaxX;
+			TPZExtendGridDimension gmeshextend(gmeshtemp,InitialH);
+			gmesh = gmeshextend.ExtendedMesh(1,bc0,bc0);
+			gmesh->BuildConnectivity();
+			TPZGeoElBC gbc21(gmesh->ElementVec()[0],21,bc1);
+			TPZGeoElBC gbc22(gmesh->ElementVec()[0],22,bc1);
+			TPZGeoElBC gbc23(gmesh->ElementVec()[0],23,bc1);
+			TPZGeoElBC gbc24(gmesh->ElementVec()[0],24,bc1);
+			
+			gmesh->ResetConnectivities();
+			gmesh->BuildConnectivity();
+		}
+			break;
+		default:
+			return 0;
 	}
-	else if(typeel > 1) {
-		x1[2] = 0.;
-		int nParts = 2;
-		TPZManVector<int> nx(nParts,nParts);   // subdivisions in X and in Y. 
-		TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
-		int typeEl2D;
-		gen.SetElementType(typeel);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
-		gen.Read(gmesh,matId);             // generating grid in gmesh
-	}
+	
 	return gmesh;
 }
-TPZGeoMesh *CreateGeoMesh() {
-	TPZGeoMesh* gmesh = new TPZGeoMesh;
-	REAL MaxX = 1.;
-	TPZManVector<REAL> x0(3,0.), x1(3,MaxX);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
-	x1[2] = 0.;
-	int nParts = 2;
-	TPZManVector<int> nx(nParts,nParts);   // subdivisions in X and in Y. 
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetElementType(0);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
-	gen.Read(gmesh,matId);             // generating grid in gmesh
-	
-	REAL InitialH = MaxX/nParts;
-	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
-	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(nParts,3,3);
-	
-	return gmesh3D;
-}
+
 void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center,TPZVec<REAL> &Grad) {
     TPZFMatrix<REAL> grad;
     int dim;
@@ -1047,32 +1157,33 @@ void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref) {
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
 	
 	int i;
-	bool isdefined = false;
 	
 	// Refinando no local desejado
 	TPZVec<REAL> point(3);
-	point[0] = point[1] = 0.5; point[2] = 0.0;
-	REAL r = 0.25;
+	point[0] = point[1] = point[2] = -0.25;
+	if(dim==1) point[1] = point[2] = 0.0;
+	else if(dim==2) point[2] = 0.0;
+	REAL r = sqrt(2.);
 	
 	if(ntyperefs==2) {
-		REAL radius = 0.19;
+		REAL radius = 0.2;
 		for(i=0;i<nref;i+=2) {
 			// To refine elements with center near to points than radius
-			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius);
+			RefineGeoElements(dim,gmesh,point,r,radius);
 			if(nref < 5) radius *= 0.35;
 			else if(nref < 7) radius *= 0.2;
 			else radius *= 0.1;
 		}
 		if(i==nref) {
-			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius);
 		}
 	}
 	else {
 		REAL radius = 0.4;
 		for(i=0;i<nref+1;i++) {
 			// To refine elements with center near to points than radius
-			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius);
 			radius *= 0.6;
 		}
 	}
@@ -1123,7 +1234,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL
 		if(gel->Dimension()!=dim || gel->HasSubElement()) continue;
 		gel->CenterPoint(gel->NSides()-1,centerpsi);
 		gel->X(centerpsi,center);
-		REAL centerdist = abs(center[0] - point[0]);
+		REAL centerdist = TPZGeoEl::Distance(center,point);
 		if(fabs(r-centerdist) < distance) {
 			gel->Divide(sub);
 		}
@@ -1267,57 +1378,8 @@ void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix 
         
         stiffmatrix.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
         rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-        
-//#ifdef LOG4CXX
-//        if(logdata->isDebugEnabled())
-//        {
-//            std::stringstream sout;
-//            ek.Print(sout);
-//            ef.Print(sout);
-//            LOGPZ_DEBUG(logdata,sout.str())
-//        }
-//#endif
     }
 }
-/*
-void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL> &datagradients){
-    
-    // Redimensionando a matriz dos dados da reconstruca de gradientes
-    int dim  = cmesh->Dimension();
-    int nelem = cmesh->NElements();
-    datagradients.Redim(nelem,3*dim);
-    
-    TPZManVector<REAL,3> center;
-    TPZManVector<REAL> solalfa;
-    TPZFMatrix<REAL> Grad;
-    
-	int i, k;
-	int counter = 0;
-
-   
-    TPZCompEl *cel;
-    // Calculando el gradiente por elemento computacional
-    for(i=0;i<nelem;i++) {
-        
-        cel = cmesh->ElementVec()[i];
-        
-        // Nada sera realizado para elementos con dimension diferente de la dimension del problema
-        if(cel->Dimension()!=dim) continue;
-        
-        GradientReconstructionByLeastSquares(cel, center, solalfa, Grad,var);
-		
-        //data of the vector gradiente
-        for(k=0;k<dim;k++){
-            if(!k) datagradients(counter,0) = cel->Index();//Id do elemento
-            datagradients(counter,dim+k) = center[k];//centro do elemento
-            if(!IsZero(Grad(k,0))) datagradients(counter,2*dim+k) = Grad(k,0);//valor do gradiente
-        }
-        
-		counter++;
-    	}
-    // Redimensionando la matriz de los gradientes
-    datagradients.Resize(counter,3*dim);    
-}*/
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
 	int i, nstates;
@@ -1391,7 +1453,6 @@ TPZFMatrix<REAL> MatrixR(REAL ang)
 	return r;
 }
 
-#include "pzgeoelbc.h"
 
 TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int nh){
     
@@ -1567,77 +1628,8 @@ TPZGeoMesh *GMesh2(){
 	
 	return gmesh;
 }
-    /*------------------ fazer refinamento direcional ------------------------------------
-	 TopolLine[0] = 1;
-	 TopolLine[1] = 4;
-	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
-	 id++;
-	 
-	 //    TopolPoint[0] = 2;
-	 //    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,matId+1,*gmesh);
-	 //    id++;
-	 //    
-	 //    TopolPoint[0] = 7;
-	 //    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,matId+1,*gmesh);
-	 //    id++;
-	 
-	 
-	 for(int i = 0; i<Qnodes/2-1; i++){
-	 TopolLine[0] = i;
-	 TopolLine[1] = i+1;
-	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
-	 id++;
-	 }
-	 
-	 TopolLine[0] = (Qnodes/2)-1;
-	 TopolLine[1] = Qnodes/2;
-	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
-	 id++;
-	 
-	 for(int i = 0; i<Qnodes/2-1; i++){
-	 TopolLine[0] = (Qnodes/2) + i;
-	 TopolLine[1] = (Qnodes/2+1) + i;
-	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
-	 id++;
-	 }
-	 
-	 TopolLine[0] = Qnodes-1;
-	 TopolLine[1] = 0;
-	 new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
-	 
-	 gmesh->BuildConnectivity();
 
-	 set<int> SETmatRef;
-    for(int j = 0; j < nrefdir; j++)
-    {
-        int nel = gmesh->NElements();
-        for (int iref = 0; iref < nel; iref++)
-        {
-            TPZVec<TPZGeoEl*> filhos;
-            TPZGeoEl * gelref = gmesh->ElementVec()[iref];
-            if(!gelref) continue;
-            SETmatRef.insert(matId + 1);
-            //TPZRefPatternTools::RefineDirectional(gelref, SETmatRef);
-            TPZRefPatternTools::RefineUniformIfNeighMat(gelref, SETmatRef);
-        }		
-    }
-    
-    //refinamento uniforme
-    for ( int ref = 0; ref < nh; ref++ ) {
-		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for ( int i = 0; i < n; i++ ) {
-			TPZGeoEl * gel = gmesh->ElementVec() [i];
-			if (gel->Dimension() == 2) gel->Divide (filhos);
-            gel->Divide (filhos);
-		}//for i
-	}//ref
-	
-	return gmesh;
-}*/
-
-
-TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
+TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
 {
     /// criar materiais
 	int ngelem = gmesh->NElements();
@@ -1663,17 +1655,11 @@ TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ForcingF);
     material->SetForcingFunction(myforce);
     
-//    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata);
-//	material->SetForcingFunctionExact(solExata);
-    
     TPZMaterial * mat(material);
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->InsertMaterialObject(mat);
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
-    
-    //TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc);
-    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
@@ -1686,9 +1672,6 @@ TPZCompMesh *CMesh2(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     
     val2(0,0) =  -0.0886226925452758;
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    
-    //BCond0->SetForcingFunction(fCC0);
-    //BCond2->SetForcingFunction(fCC2);
     
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);

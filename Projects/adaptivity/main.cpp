@@ -163,18 +163,15 @@ int main() {
 #endif
 	
 	// Initializing a ref patterns
-	//gRefDBase.InitializeAllUniformRefPatterns();
+	gRefDBase.InitializeAllUniformRefPatterns();
 	//gRefDBase.InitializeRefPatterns();
-	gRefDBase.InitializeUniformRefPattern(EOned);
-	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	gRefDBase.InitializeUniformRefPattern(ETriangle);
 
 	// To visualization of the geometric mesh
 //	std::ofstream fgeom("GMesh.vtk");
-	std::ofstream fgeomfromcomp("GMeshFromComp.vtk");
+//	std::ofstream fgeomfromcomp("GMeshFromComp.vtk");
 
 	// Initializing variables
-    int nref = 0;
+    int nref = 2;
     int dim;
     int opt = 0;
 
@@ -201,7 +198,7 @@ int main() {
     cmesh->CleanUpUnconnectedNodes();
 	// Printing geo mesh to check
 //	TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
-	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
+//	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
 
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
@@ -211,12 +208,12 @@ int main() {
     if(nstate == 1) {
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
-        vecnames.Push("state");
+//        vecnames.Push("state");
     } else if(nstate == 2) {
         scalnames.Push("sig_x");
         scalnames.Push("sig_y");
         scalnames.Push("tau_xy");
-        vecnames.Push("state");
+//        vecnames.Push("state");
     }
     if(dim < 3 && nstate == 2) {
         vecnames.Push("displacement");
@@ -291,7 +288,7 @@ int main() {
             an.Run();
 			
 			// Post processing
-            an.PostProcess(4,dim);
+            an.PostProcess(0,dim);
             {
                 std::ofstream out(MeshFileName.c_str());
                 cmesh->LoadReferences();
@@ -312,10 +309,9 @@ int main() {
             
             TPZAdaptMesh adapt;
             adapt.SetCompMesh (cmesh);
-            
+
             std::cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << r << "\n\n\n\n";
-            
-            //if(r==4) gPrintLevel = 1;
+
             time_t sttime;
             time (& sttime);
             TPZCompMesh *adptmesh;
@@ -410,7 +406,9 @@ int main() {
 		CompareNeighbours(cmesh->Reference());
 		delete cmesh;
 	}
-	fgeomfromcomp.close();
+	
+//	fgeom.close();
+//	fgeomfromcomp.close();
     return 0;
 }
 
@@ -453,7 +451,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
 	// Some preferred values
-    opt = 5; nref = 1; 
+    opt = 5; nref = 3; 
 	int p = 3;
 	
 	if(user)
@@ -485,7 +483,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
         }
         case (5) :{
 			REAL EdgeLenght = 1;
-			int TypeEl = ECube;  // ECube - hexahedra, EPrisma, EPiramide, ETetrahedro
+			MElementType TypeEl = ECube;  // ECube - hexahedra, EPrisma, EPiramide, ETetrahedro
             TPZGeoMesh *gmesh = ConstructingFicheraCorner(EdgeLenght,TypeEl,problem);
 			cmesh = CreateMeshToFicheraCornerProblem(gmesh,3,true,problem);
             break;
@@ -1045,7 +1043,7 @@ TPZCompMesh *CreateSimple3DMesh() {
 
 // CONSTRUCTION OF THE FICHERA CORNER FROM A CUBE - SUBDIVIDING ITS - AND DELETING A RIGHT TOP CUBE SON
 TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
-	
+
 	// CREATING A CUBE WITH MASS CENTER THE ORIGIN AND VOLUME = INITIALL*INITIALL*INITIALL 
 	REAL co[8][3] = {
 		{-InitialL,-InitialL,-InitialL},
@@ -1090,6 +1088,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 	switch(typeel) {
 		case ECube:
 			gmesh->ElementVec()[0]->Divide(sub);
+			gmesh->Print();
 			// DELETING A CUBE 6th
 			delete gmesh->ElementVec()[7];
 			break;

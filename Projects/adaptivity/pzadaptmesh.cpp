@@ -213,7 +213,6 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     return adapted;
 }
 
-
 void TPZAdaptMesh::GetReferenceElements(){
     if (!fReferenceCompMesh){
         cout << "TPZAdaptMesh::Error:\n computational mesh must be initialized to call GetReferenceElements!\n";
@@ -222,9 +221,6 @@ void TPZAdaptMesh::GetReferenceElements(){
     std::set<TPZGeoEl*> georef;
     //  fReferenceCompMesh->GetRefPatches(fGeoRef);
     fReferenceCompMesh->GetRefPatches(georef);
-//    int i;
-    //    int nel = fGeoRef.NElements();
-//    int nel = georef.size();
     
 #ifndef CLONEBCTOO
     //This will exclude geometric elements associated to bc from clone creation
@@ -258,10 +254,16 @@ void TPZAdaptMesh::BuildReferencePatch(){
     tmpcmesh->CleanUpUnconnectedNodes();
     TPZStack <int> patchelindex;
     TPZStack <TPZGeoEl *> toclonegel;
+    TPZStack<int> elgraph;
+#ifdef DEBUG
+    TPZManVector<int> n2elgraph;
+    TPZManVector<int> n2elgraphid;
+    TPZManVector<int> elgraphindex;
+#else
     TPZVec<int> n2elgraph;
     TPZVec<int> n2elgraphid;
-    TPZStack<int> elgraph;
     TPZVec<int> elgraphindex;
+#endif	
     tmpcmesh->GetNodeToElGraph(n2elgraph,n2elgraphid,elgraph,elgraphindex);
     // we use the  node to elgraph structure to decide which elements will be included
     int clnel = tmpcmesh->NElements();
