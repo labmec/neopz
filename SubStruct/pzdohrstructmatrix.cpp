@@ -1284,7 +1284,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
-		pairstructmatrix.Assemble(-1, -1, Stiffness.operator->(), matredptr, substruct->fLocalLoad);
+		pairstructmatrix.Assemble(Stiffness.operator->(), matredptr, substruct->fLocalLoad);
         
         
 		// fLocalLoad is in the original ordering of the submesh
@@ -1716,7 +1716,9 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 	int meshdim = fMesh->Dimension();
 	int nel = fMesh->NElements();
 	int mincount = nel/nsub/20;
+    // contains for each subdomain the set of neighbouring domains
 	TPZVec<std::set<int> > domain_neighbours(nsub);
+    // contains for each domain the number of cells within that domain
 	std::map<int,int> domain_index_count;
 	int iel;
 	for (iel=0; iel<nel; iel++) {
@@ -1725,18 +1727,32 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 			continue;
 		}
 		int mydomainindex = domain_index[cel->Index()];
+//        if (mydomainindex == 0) {
+//            std::stringstream sout;
+//            cel->Print(sout);
+//            TPZGeoEl *gel = cel->Reference();
+//            if (gel) {
+//                gel->Print(sout);
+//            }
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
 		domain_index_count[mydomainindex]++;
 		TPZGeoEl *gel = cel->Reference();
 		if (!gel) {
 			continue;
 		}
 		int nsides = gel->NSides();
+        int geldim = gel->Dimension();
 		int is;
 		for (is=0; is<nsides; is++) {
 			int sidedim = gel->SideDimension(is);
-			if (sidedim != connectdimension) {
+			if (sidedim != connectdimension && geldim>=connectdimension) {
 				continue;
 			}
+            if (geldim < connectdimension && is != nsides-1)
+            {
+                continue;
+            }
 			TPZGeoElSide gelside(gel,is);
 			TPZStack<TPZCompElSide> elsidevec;
 			gelside.ConnectedCompElementList(elsidevec, 0, 0);
@@ -1759,19 +1775,46 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 			}
 			if (nneighvalid == 0) 
 			{
-				// include a boundary as a neighbour
+				// include the boundary as a ficticious neighbour index
 				domain_neighbours[mydomainindex].insert(-1);
 			}
 		}
 	}
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        for (int i=0; i<domain_neighbours.size(); i++) {
+            std::set<int>::const_iterator it;
+            sout << "Domain index " << i << " neighbours ";
+            for (it=domain_neighbours[i].begin(); it != domain_neighbours[i].end(); it++) {
+                sout << *it << " ";
+            }
+            sout << std::endl;
+        }
+        std::map<int,int>::const_iterator it = domain_index_count.begin();
+        while (it != domain_index_count.end()) {
+            sout << "Domain index " << it->first << " number of elements " << it->second << std::endl;
+            it++;
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+        
+    }
+#endif
+    // compute a destination domain index for each domain (used for clustering domains)
 	int isub;
 	TPZManVector<int> domain_dest(nsub,-1);
 	int count = 0;
 	for (isub=0; isub < nsub; isub++) 
 	{
+        // if the subdomain is neighbour to only one subdomain
+        // this means that the subdomain is isolated (only boundaries as neighbours) (not treated)
+        // or that the domain is embedded in another domain
 		if (domain_neighbours[isub].size() == 1 ) 
 		{
+            // merge both subdomains
 			int target = *(domain_neighbours[isub].begin());
+            // target == -1 is not treated here
 			if (domain_dest[target] == -1 && domain_dest[isub] == -1) 
 			{
 				domain_dest[isub] = count;
@@ -1790,6 +1833,8 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 		}
 		else if(domain_dest[isub] == -1 && domain_index_count[isub] < mincount)
 		{
+            // the domain has very little elements
+            // the domain has at least two neighbouring domains (may include the ficticious -1 domain)
 			std::map<int,int> sizeDomain;
 			std::set<int>::iterator it;
 			for (it = domain_neighbours[isub].begin(); it != domain_neighbours[isub].end(); it++) {
