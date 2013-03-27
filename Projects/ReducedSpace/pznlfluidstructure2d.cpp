@@ -341,8 +341,6 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
             ek(in,jn) += big*(phi_u(0,in)*phi_u(0,jn) + phi_u(1,in)*phi_u(1,jn))*weight;
         }
     }
-    
-
 }
 
 void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc){

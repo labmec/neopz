@@ -398,18 +398,14 @@ TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     val1.Redim(2,2);
     val2.Redim(2,1);
     TPZMaterial * BCond2 = material->CreateBC(mat, dirichletElastMatId, dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, dirichletElastMatId, dirichlet, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, dirichletElastMatId, dirichlet, val1, val2);
      
     val1(0,0) = big;
-    TPZMaterial * BCond5 = material->CreateBC(mat, blockedXElastMatId, mixed, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, blockedXElastMatId, mixed, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond1);
 	cmesh->InsertMaterialObject(BCond2);
 	cmesh->InsertMaterialObject(BCond3);
-	cmesh->InsertMaterialObject(BCond4);
-	cmesh->InsertMaterialObject(BCond5);
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -451,11 +447,9 @@ TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pO
     val1.Redim(2,2);
     val2.Redim(2,1);
     TPZMaterial * BCond2 = material->CreateBC(mat, dirichletElastMatId, dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, dirichletElastMatId, dirichlet, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, dirichletElastMatId, dirichlet, val1, val2);
     
     val1(0,0) = big;
-    TPZMaterial * BCond5 = material->CreateBC(mat, blockedXElastMatId, mixed, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, blockedXElastMatId, mixed, val1, val2);
 
     int numsol = cmesh->Solution().Cols();
     cmeshreferred->AllocateNewConnect(numsol, 1, 1);
@@ -465,8 +459,6 @@ TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pO
     cmeshreferred->InsertMaterialObject(BCond1);
     cmeshreferred->InsertMaterialObject(BCond2);
     cmeshreferred->InsertMaterialObject(BCond3);
-    cmeshreferred->InsertMaterialObject(BCond4);
-    cmeshreferred->InsertMaterialObject(BCond5);
     
 	cmeshreferred->SetDefaultOrder(pOrder);
     cmeshreferred->SetDimModel(dim);
@@ -570,20 +562,18 @@ TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mes
     val2.Redim(3,1);
     val1.Redim(3,2);
     TPZMaterial * BCond2 = mymaterial->CreateBC(mat, dirichletElastMatId, dir_elast, val1, val2);
-    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, dirichletElastMatId, dir_elast, val1, val2);
-    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, dirichletElastMatId, dir_elast, val1, val2);
     
     val1(0,0) = big;
-    TPZMaterial * BCond5 = mymaterial->CreateBC(mat, blockedXElastMatId, mix_elast, val1, val2);
+    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, blockedXElastMatId, mix_elast, val1, val2);
     
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2,0) = QinD;
-    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bcfluxIn, neum_pressure, val1, val2);
+    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bcfluxIn, neum_pressure, val1, val2);
     
     val2.Redim(3,1);
     val1.Redim(3,2);
-    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bcfluxOut, neum_pressure, val1, val2);
+    TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bcfluxOut, neum_pressure, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);
@@ -591,8 +581,6 @@ TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mes
     mphysics->InsertMaterialObject(BCond3);
     mphysics->InsertMaterialObject(BCond4);
     mphysics->InsertMaterialObject(BCond5);
-    mphysics->InsertMaterialObject(BCond6);
-    mphysics->InsertMaterialObject(BCond7);
 
     mphysics->AutoBuild();
 	mphysics->AdjustBoundaryElements();
