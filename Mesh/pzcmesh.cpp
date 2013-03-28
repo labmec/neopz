@@ -598,7 +598,6 @@ void TPZCompMesh::ComputeNodElCon(TPZVec<int> &nelconnected ) const {
 
 
 int TPZCompMesh::NEquations() {
-	
 	int neq = 0;
 	int i, ncon = NConnects();
 	for(i=0; i<ncon; i++) {

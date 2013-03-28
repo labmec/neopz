@@ -886,24 +886,11 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	for(in = 0; in<numsidenodes_small; in++) {
 		int locid = SideConnectLocId(in,side);
         unsigned int nshape = NConnectShapeF(locid);
-#ifdef DEBUG
-        TPZConnect &c = Connect(locid);
-        if(c.NShape() != nshape)
-        {
-            DebugStop();
-        }
-#endif
 		MBlocksmall.Set(in,nshape);
 	}
 	for(in = 0; in<numsidenodes_large; in++) {
 		int locid = large->SideConnectLocId(in,neighbourside);
         unsigned int nshape = large->NConnectShapeF(locid);
-#ifdef DEBUG
-        TPZConnect &c = large->Connect(locid);
-        if (c.NShape() != nshape) {
-            DebugStop();
-        }
-#endif
 		MBlocklarge.Set(in,nshape);
 	}
 	

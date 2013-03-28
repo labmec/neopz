@@ -114,11 +114,16 @@ public:
 	 * Return reference element index
 	 */
 	TPZGeoEl * GetMeshRootElement(){return fGeoRoot;}
-
+	
+	std::set<TPZGeoEl *> &PatchElements()
+	{
+		return fPatchElements;
+	}
     /**
      * returns true if the element is a sibling of the set of patch elements
      */
 	int IsPatchSon(TPZGeoEl *gel) const;
+	int IsNeighBCForPatchSon(TPZGeoEl *gel) const;
 
 	/**
 	 * Test and validation routines

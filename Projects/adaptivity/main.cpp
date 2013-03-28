@@ -155,6 +155,7 @@ void BCSolution(const TPZVec<REAL> &x,TPZVec<REAL> &result);
 void Solution(const TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix<REAL> &deriv);
 void LoadSolution(TPZFMatrix<REAL> &axes,const TPZVec<REAL> &X,TPZFMatrix<REAL> &u,TPZFMatrix<REAL> &du);
 
+
 /** MAIN FUNCTION */
 int main() {
 
@@ -451,7 +452,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
 	// Some preferred values
-    opt = 5; nref = 3; 
+    opt = 1; nref = 3; 
 	int p = 3;
 	
 	if(user)
@@ -460,7 +461,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
 		std::cout << "Option " << opt << std::endl;
 
     TPZCompMesh *cmesh;
-    switch (opt){
+    switch (opt) {
         case (0) :{
             cmesh = CreateSillyMesh();
             break;
@@ -1088,7 +1089,6 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, int typeel,int problem) {
 	switch(typeel) {
 		case ECube:
 			gmesh->ElementVec()[0]->Divide(sub);
-			gmesh->Print();
 			// DELETING A CUBE 6th
 			delete gmesh->ElementVec()[7];
 			break;

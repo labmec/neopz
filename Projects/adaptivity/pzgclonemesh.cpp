@@ -67,16 +67,25 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
             CloneElement(gel);
             // verificar se neighbour.Element ja esta no map --->>>> já é feito no CloneElement
             TPZGeoEl *localpatch = fMapElements[patch[i]];
+#ifdef DEBUG 
+			if (localpatch == 0) {
+				DebugStop();
+			}
+#endif
             fPatchElements.insert(localpatch);
             AddBoundaryConditionElements(patch[i]);
-        }
+
+//			cout << "Printing fPatchElements("<< i << "_NEl_" << fPatchElements.size() << ") : " << endl;
+//			std::set<TPZGeoEl *>::iterator it;
+//			for(it=fPatchElements.begin();it!=fPatchElements.end();it++) {
+//				(*it)->Print(cout);
+//			}
+		}
     }
-    
-    //  Print(cout);
-    
 }
 
-void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
+// IT IS BAD !!!! IMPROVE IT !!!
+void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd) {
     int nsides = eltoadd->NSides();
     int is;
     for(is=0; is<nsides; is++) {
@@ -87,8 +96,10 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
 #endif
         while(neighbour != elside) {
             if(neighbour.Element()->Dimension() < eltoadd->Dimension() &&
-               neighbour.Side() == neighbour.Element()->NSides() - 1 &&
-               neighbour.Element()->Reference()) {
+               neighbour.Side() == neighbour.Element()->NSides() - 1
+               // && neighbour.Element()->Reference()
+			   ) {
+			   
                 TPZGeoEl *gel = neighbour.Element();
                 if (HasElement(gel)) {
                     neighbour = neighbour.Neighbour();
@@ -101,7 +112,8 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
                 }
                 CloneElement(gel);
                 // verificar se neighbour.Element ja esta no map
-                TPZGeoEl *localpatch = fMapElements[neighbour.Element()];
+          //      TPZGeoEl *localpatch = fMapElements[neighbour.Element()];
+				TPZGeoEl *localpatch = fMapElements[gel];							// Jorge 2013/03/28
                 fPatchElements.insert(localpatch);
             }
             neighbour = neighbour.Neighbour();
@@ -194,6 +206,17 @@ int TPZGeoCloneMesh::HasNode(int nodeindex){
 
 int TPZGeoCloneMesh::HasElement(TPZGeoEl *el){
     if(!el) return 0;
+/*	std::map<TPZGeoEl *,TPZGeoEl *>::iterator it;
+	it = fMapElements.find(el);
+	if(it!=fMapElements.end()) {
+		(*it).first->Print();
+		(*it).second->Print();
+		for(it=fMapElements.begin();it!=fMapElements.end();it++) {
+			(*it).first->Print();
+			(*it).second->Print();
+		}
+	}
+*/	
     return (fMapElements.find(el) != fMapElements.end());
 }
 
@@ -213,6 +236,20 @@ int TPZGeoCloneMesh:: IsPatchSon(TPZGeoEl *gel) const {
     while(gel) {
         if (fPatchElements.find(gel) != fPatchElements.end()) return 1;
         gel = gel->Father();
+    }
+    return 0;
+}
+int TPZGeoCloneMesh:: IsNeighBCForPatchSon(TPZGeoEl *gel) const {
+    if (!gel) return 0;
+	TPZGeoElSide gelside(gel,gel->NSides()-1);
+	std::set<TPZGeoEl *>::iterator it;
+    for(it = fPatchElements.begin();it!=fPatchElements.end();it++) {
+		int nsides = (*it)->NSides();
+		for(int c=0;c<nsides-1;c++)
+		{
+			if((*it)->NeighbourExists(c,gelside))
+				return 1;
+		}
     }
     return 0;
 }

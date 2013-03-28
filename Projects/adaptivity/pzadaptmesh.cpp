@@ -11,6 +11,9 @@
 #include "pzquad.h"
 #include "pzmaterial.h"
 #include "pzonedref.h"
+
+#include "TPZVTKGeoMesh.h"
+
 using namespace std;
 
 TPZAdaptMesh::TPZAdaptMesh(){
@@ -117,6 +120,8 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     BuildReferencePatch();
     
     //Creates the patch clones; fReferenceCompMesh is the original computational mesh
+	
+	// First, asserting connects in computational mesh
     fReferenceCompMesh->ComputeNodElCon();
     
     int printing = 0;
@@ -141,13 +146,15 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
             fFineCloneMeshes [cliter] = 0;
             continue;
         }
-        fFineCloneMeshes  [cliter] = fCloneMeshes [cliter]->UniformlyRefineMesh();
-        {
+        fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh();
+		printing = 1;
+        if(printing) {
             ofstream out("output.txt");
-            fCloneMeshes [cliter]->Print(out);
+            fCloneMeshes[cliter]->Print(out);
+			fFineCloneMeshes[cliter]->Print(out);
             out.close();
         }
-        fCloneMeshes [cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec);
+        fCloneMeshes[cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec);
     }
     
     //Ordena o vetor de erros
@@ -239,7 +246,7 @@ void TPZAdaptMesh::GetReferenceElements(){
 #endif
 }
 
-void TPZAdaptMesh::BuildReferencePatch(){
+void TPZAdaptMesh::BuildReferencePatch() {
     
     // the fGeoRef elements are a partition of the computational domain (should be)
     // create a computational element based on each reference element
@@ -252,18 +259,14 @@ void TPZAdaptMesh::BuildReferencePatch(){
         tmpcmesh->CreateCompEl(fGeoRef[i],index);
     } 
     tmpcmesh->CleanUpUnconnectedNodes();
+	tmpcmesh->ExpandSolution();
     TPZStack <int> patchelindex;
     TPZStack <TPZGeoEl *> toclonegel;
     TPZStack<int> elgraph;
-#ifdef DEBUG
-    TPZManVector<int> n2elgraph;
-    TPZManVector<int> n2elgraphid;
-    TPZManVector<int> elgraphindex;
-#else
     TPZVec<int> n2elgraph;
     TPZVec<int> n2elgraphid;
     TPZVec<int> elgraphindex;
-#endif	
+
     tmpcmesh->GetNodeToElGraph(n2elgraph,n2elgraphid,elgraph,elgraphindex);
     // we use the  node to elgraph structure to decide which elements will be included
     int clnel = tmpcmesh->NElements();
@@ -281,12 +284,58 @@ void TPZAdaptMesh::BuildReferencePatch(){
         int sum = fPatch.NElements();
         fPatchIndex.Push(sum);
     }
+	
+#ifdef DEBUG2 
+	// CAJU TOOL
+	{
+		std::string filename("cMeshVtk.");
+		{
+			std::stringstream finalname;
+			finalname << filename << 0 << ".vtk";
+			ofstream file(finalname.str().c_str());
+			/** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
+			//static void PrintCMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
+			TPZVTKGeoMesh::PrintCMeshVTK(gmesh,file,true);
+		}
+		for (int ip=0; ip<clnel; ip++) {
+			int firstindex = fPatchIndex[ip];
+			int lastindex = fPatchIndex[ip+1];
+			gmesh->ResetReference();
+			tmpcmesh->LoadReferences();
+			std::set<TPZGeoEl *> loaded;
+			for (int ind=firstindex; ind<lastindex; ind++) {
+				TPZGeoEl *gel = fPatch[ind];
+				loaded.insert(gel);
+			}
+			int ngel = gmesh->NElements();
+			for (int el=0; el<ngel; el++) {
+				TPZGeoEl *gel = gmesh->ElementVec()[el];
+				if (!gel) {
+					continue;
+				}
+				if (gel->Reference() && loaded.find(gel) == loaded.end()) {
+					gel->ResetReference();
+				}
+			}
+			std::stringstream finalname;
+			finalname << filename << ip+1 << ".vtk";
+			ofstream file(finalname.str().c_str());
+			/** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
+			//static void PrintCMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
+			TPZVTKGeoMesh::PrintCMeshVTK(gmesh,file,true);
+			
+		}
+	}
+#endif
+	// cleaning reference to computational elements into temporary cmesh
     gmesh->ResetReference();
     delete tmpcmesh;
+	// loading references between geometric and computational meshes (originals)
     fReferenceCompMesh->LoadReferences();
 }
 
 void TPZAdaptMesh::CreateClones(){
+	// asserting references of the original meshes
     fReferenceCompMesh->Reference()->ResetReference();
     fReferenceCompMesh->LoadReferences();
     TPZGeoMesh *geomesh = fReferenceCompMesh->Reference();
@@ -294,7 +343,8 @@ void TPZAdaptMesh::CreateClones(){
     TPZStack<TPZGeoEl*> patch;
     
     int clid,elid;
-    for (clid=0; clid<fPatchIndex.NElements()-1;clid++){
+    for (clid=0; clid<fPatchIndex.NElements()-1;clid++) {
+		// making clone of the original geometric mesh, only to construct computational clone
         TPZGeoCloneMesh *geoclone = new TPZGeoCloneMesh(geomesh);
         TPZStack<TPZGeoEl*> patch;
         for (elid=fPatchIndex[clid];elid<fPatchIndex[clid+1];elid++){
@@ -303,16 +353,15 @@ void TPZAdaptMesh::CreateClones(){
         geoclone->SetElements(patch,fGeoRef[clid]);
         TPZVec<TPZGeoEl *> sub;
         //    int ngcel = geoclone->ElementVec().NElements();
-        int printing = 0;
+        int printing = 1;
         if(printing) {
             ofstream out("test.txt",ios::app);
             geoclone->Print(out);
         }
         
-        //      geoclone->Print(std::cout);
-        
         TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReferenceCompMesh);
         clonecompmesh->AutoBuild();
+		// Computational mesh clone is stored
         fCloneMeshes.Push(clonecompmesh);    
     }
 }

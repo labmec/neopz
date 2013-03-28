@@ -1284,7 +1284,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
-		pairstructmatrix.Assemble(Stiffness.operator->(), matredptr, substruct->fLocalLoad);
+		pairstructmatrix.Assemble(-1,-1,Stiffness.operator->(), matredptr, substruct->fLocalLoad);
         
         
 		// fLocalLoad is in the original ordering of the submesh

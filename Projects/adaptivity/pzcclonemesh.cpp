@@ -70,10 +70,8 @@ void TPZCompCloneMesh::AutoBuild() {
     
     if (gDebug) {
         gclm->Print(cout);
-        //Reference()->Print(cout);
     }
-    
-    
+
     for(i=0; i<nelem; i++) {
         TPZGeoEl *gel = elvec[i];
         if(!gel){
@@ -84,16 +82,15 @@ void TPZCompCloneMesh::AutoBuild() {
         if (reference_gel) {
             TPZCompEl *cel = reference_gel->Reference();
             if (cel){
-                if(gclm->IsPatchSon(gel)) {
-                    
+                if(gclm->IsPatchSon(gel)) {        // || gclm->IsNeighBCForPatchSon(gel)) {
 #ifdef LOG4CXX
                     {
                         std::stringstream sout;
                         sout << "TPZCompCloneMesh::AutoBuild : Creating computational element for geometric element:\n";
-                        gel->Print();
+                        gel->Print(sout);
                         LOGPZ_DEBUG(logger, sout.str())
                     }
-#endif      
+#endif
                     TPZCompEl *clcel = this->CreateCompEl(gel,index);
                     TPZInterpolatedElement *cintel = dynamic_cast<TPZInterpolatedElement *>(cel);
                     if (!cintel) {
@@ -106,23 +103,21 @@ void TPZCompCloneMesh::AutoBuild() {
                         DebugStop();
                     }
                     clone_intel->PRefine(porder);
-                    
-                    
+
                     if (gDebug){
                         cout << "TPZCompCloneMesh::AutoBuild : Computational element created:\n" << endl;
                         clcel->Print();
                     }
-                    
+
                     int ncon = clcel->NConnects();
-                    for (j=0; j<ncon; j++){
+                    for (j=0; j<ncon; j++) {
                         int refcon = cel->ConnectIndex(j);
                         int conid = clcel->ConnectIndex(j);
-                        
-                        if (gDebug){
+                        if (gDebug) {
                             cout << "Connects --- Reference :  " << refcon << "   Clone   " << conid << endl;
                         }
-                        
-                        if (! HasConnect(refcon) ){
+
+                        if (! HasConnect(refcon) ) {
                             fMapConnects [refcon] = conid;
                             if(conid == fOriginalConnects.NElements()) {
                                 fOriginalConnects.Push(refcon);
@@ -135,8 +130,30 @@ void TPZCompCloneMesh::AutoBuild() {
                         }
                     }
                 }
-                else {
-                    DebugStop();
+				else {
+					if(1) {
+					// IF gel is not into patch of the GeoRoot must no created a computational element
+					}
+					else {
+#ifdef LOG4CXX
+						if (logger->isDebugEnabled()) {
+							std::stringstream sout;
+							sout << "The following element is not found in the patch\n";
+							gel->Print(sout);
+							
+							std::set<TPZGeoEl *>::iterator it;
+							int i=0;
+							for(it = gclm->PatchElements().begin(); it != gclm->PatchElements().end(); it++)
+							{
+								sout << "output for patch element " << i << std::endl;
+								(*it)->Print(sout);
+								i++;
+							}
+							LOGPZ_DEBUG(logger,sout.str())
+						}
+#endif
+						DebugStop();
+					}
                 }
             }
         }
@@ -541,6 +558,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     }
     // why can't we clone the boundary elements?
     TPZCompMesh *cmesh = Clone();
+	cmesh->ExpandSolution();
     // put the elements back in
     nelem = elementpointers.NElements();
     for(el=0; el<nelem; el++) {
@@ -559,8 +577,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     
     TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     nelem = elementvec.NElements();
-    
-    
+
     // Compact the datastructure of the element vector
     // we need to copy the elements of the clone mesh to avoid applying the refinement on
     // elements inserted into the data structure
@@ -642,9 +659,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         }
     }
     cmesh->SetDefaultOrder(tempgorder);
-    cmesh->ExpandSolution();
     cmesh->InitializeBlock();
-    
     // we should check whether the solution of the refined mesh is equal to the solution of the original mesh
     
     return cmesh;
