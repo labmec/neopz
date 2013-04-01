@@ -19,15 +19,18 @@ if(BUILD_PYTHON_BINDING)
 
     add_library(TPZPython SHARED ${TPZPython_src} ${pzsources})
 
-    IF (APPLE)
-        target_link_libraries(TPZPython pz python)
+    IF (APPLE OR WIN32)
+        target_link_libraries(TPZPython pz ${PYTHON_LIBRARY}) #python)
     ELSE()
         target_link_libraries(TPZPython pz)
     ENDIF()
 
     IF (NOT WIN32)
-	SET_TARGET_PROPERTIES(TPZPython PROPERTIES PREFIX "_")
-	SET_TARGET_PROPERTIES(TPZPython PROPERTIES SUFFIX ".so")
+		SET_TARGET_PROPERTIES(TPZPython PROPERTIES PREFIX "_")
+		SET_TARGET_PROPERTIES(TPZPython PROPERTIES SUFFIX ".so")
+	ELSE()
+		SET_TARGET_PROPERTIES(TPZPython PROPERTIES PREFIX "_")
+		SET_TARGET_PROPERTIES(TPZPython PROPERTIES SUFFIX ".pyd")
     ENDIF()
     
 endif()

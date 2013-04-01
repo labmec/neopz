@@ -54,8 +54,12 @@ set(pzsources
 
 #creating target pz library and installing it
 if (BUILD_PYTHON_BINDING)
-  #Build a shared library to be used with python binding
-  add_library(pz SHARED ${pzsources})
+	IF (NOT WIN32)
+		#Build a shared library to be used with python binding
+		add_library(pz SHARED ${pzsources})
+	ELSE()
+		add_library(pz STATIC ${pzsources})
+	ENDIF()
 else()
   #Build a static library (default)
   add_library(pz ${pzsources})

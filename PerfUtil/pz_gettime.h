@@ -1,4 +1,5 @@
 #ifndef PZ_GETTIME_H
+#define PZ_GETTIME_H
 
 #include <config.h>
 

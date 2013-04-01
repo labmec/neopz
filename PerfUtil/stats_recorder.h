@@ -4,7 +4,9 @@
  */
 #ifndef STATS_RECORDER_H
 
+#ifndef VC
 #define HAS_GETRUSAGE
+#endif
 
 #include<sstream>  // stringstream
 #include<string.h> // memset
