@@ -50,7 +50,7 @@ bool anothertests = false;
 int nstate = 2;
 
 // Alfa -> Coefficient of the arctang argument
-REAL ALFA = 20.;
+REAL ALFA = 50.;
 
 char saida[512];
 ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because it has many energy faults

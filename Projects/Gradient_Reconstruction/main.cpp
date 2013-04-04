@@ -71,7 +71,7 @@ int const neumann = 1;
 int const mixed = 2;
 
 // Alfa -> Coefficient of the arctang argument
-REAL ALFA = 20.;
+REAL ALFA = 50.;
 
 REAL ValueK = 1000;
 
@@ -451,19 +451,19 @@ REAL ExactSolution(int dim,const TPZVec<REAL> &x) {
 		TPZVec<REAL> C0(1,-0.25);
 		
 		REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]));
-		result = atan(ALFA * ( R0 - sqrt(2.)) );
+		result = atan(ALFA * ( R0 - 0.75) );
 	}
 	else if(dim==2) {
 		TPZVec<REAL> C0(2,-0.25);
 		
 		REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]));
-		result = atan(ALFA * ( R0 - sqrt(2.)) );
+		result = atan(ALFA * ( R0 - 0.75) );
 	}
 	else if(dim == 3) {
 		TPZVec<REAL> C0(3,-0.25);
 		
 		REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-		result = atan(ALFA * ( R0 - sqrt(2.)) );
+		result = atan(ALFA * ( R0 - 0.75) );
 	}
 	else {
 		REAL F = 2*sqrt(ValueK);

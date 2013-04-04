@@ -46,6 +46,8 @@ public:
 	/**
 	 * @brief This method will build a list of all connect indices which depend on 
 	 * the connect passed in the argument list
+	 * @param connect Index of connect
+	 * @param dependlist List of connect indexes which depend on connect
 	 */
 	void BuildDependList(int connect, TPZStack<int> &dependlist);
 	
@@ -58,12 +60,22 @@ public:
 	/**
 	 * @brief This method will verify if the connects which depend on the connect
 	 * passed in the argument list will actually generate a dependency
+	 * @param connect Index of the connect
 	 */
 	int VerifyConnect(int connect);
 	
-	/// Loop over all connects verifying
-	int VerifyAllConnects();
+	/**
+	 * @brief This method will verify if the number of shape functions in connect 
+	 * is compatible with the size of the corresponding block into fBlock
+	 * @param connect Index of the connect
+	 */
+	int VerifyCompatibilityBetweenNShapesAndBlockSize(int connect);
 	
+	/**
+	 * @brief Loop over all connects verifying dependency and the compatibility between number of shapes in connect
+	 * with the size of the block into fBlock corresponding to connect
+	 */
+	int VerifyAllConnects();
 	
 	/**
 	 * @brief This method will verify whether the fSiderOrder data structure is in sink with the Order of the Connect
@@ -72,6 +84,7 @@ public:
 	int CheckConnectOrderConsistency();
 	
 private:
+	/** WARNING : only was implemented para uma variavel de estado */
 	int fNState;
 	
 };

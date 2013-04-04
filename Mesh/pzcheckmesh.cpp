@@ -14,7 +14,7 @@ using namespace std;
 TPZCheckMesh::TPZCheckMesh(TPZCompMesh *mesh, std::iostream *out) {
 	fMesh = mesh;
 	fOut = out;
-	fNState = 1;
+	fNState = 1;   /** WARNING */
 }
 
 void TPZCheckMesh::BuildDependList(int connect, TPZStack<int> &dependlist) {
@@ -48,6 +48,21 @@ TPZCompElSide TPZCheckMesh::FindElement(int connect) {
 	return nullside;
 }
 
+int TPZCheckMesh::VerifyCompatibilityBetweenNShapesAndBlockSize(int connect) {
+	int check = 1;
+	TPZConnect &df = fMesh->ConnectVec()[connect];
+	if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) return check;
+	int dofsize = df.NShape()*df.NState();
+	// check the consistency between the block size and the data structure of the connect
+	{
+		int seqnum = df.SequenceNumber();
+		int blsize = fMesh->Block().Size(seqnum);
+		if (blsize != dofsize) {
+			check = 0;
+		}
+	}
+	return check;
+}
 
 int TPZCheckMesh::VerifyConnect(int connect) {
 	
@@ -119,14 +134,13 @@ void TPZCheckMesh::DependencyReport(int connect, TPZCompElSide & large) {
 	}
 }
 
-
-int TPZCheckMesh::VerifyAllConnects(){
+int TPZCheckMesh::VerifyAllConnects() {
 	int ncon = fMesh->NConnects();
 	int i;
 	int check = 1;
 	for (i=0; i<ncon; i++){
 		//(*fOut) << "Startint to check consistency for connect " << i << endl;
-		if (!VerifyConnect(i)){
+		if (!VerifyConnect(i) || !VerifyCompatibilityBetweenNShapesAndBlockSize(i)) {
 			check = 0;
 			(*fOut) << "Check failed for connect: " << i << endl;
 		}
@@ -134,17 +148,14 @@ int TPZCheckMesh::VerifyAllConnects(){
 	return check;
 }
 
-int TPZCheckMesh::CheckDimensions()
-{
+int TPZCheckMesh::CheckDimensions() {
 	int check = 0;
 	check = CheckElementShapeDimension();
 	int check2 = CheckConstraintDimension();
 	return (check || check2);
-	
 }
 
-int TPZCheckMesh::CheckElementShapeDimension()
-{
+int TPZCheckMesh::CheckElementShapeDimension() {
 	int check = 0;
 	int nelem = fMesh->ElementVec().NElements();
 	int el;
@@ -158,6 +169,7 @@ int TPZCheckMesh::CheckElementShapeDimension()
 		for(ic=0; ic<nc; ic++) {
 			int cind = cint->ConnectIndex(ic);
 			int nshape = cint->NConnectShapeF(ic);
+			fNState = 1;                                                      /// WARNING
 			int seqnum = fMesh->ConnectVec()[cind].SequenceNumber();
 			int blsize = fMesh->Block().Size(seqnum);
 			if(nshape*fNState != blsize) {

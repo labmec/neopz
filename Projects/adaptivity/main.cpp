@@ -165,7 +165,7 @@ int main() {
 	
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
-	//gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeRefPatterns();
 
 	// To visualization of the geometric mesh
 //	std::ofstream fgeom("GMesh.vtk");
@@ -173,6 +173,7 @@ int main() {
 
 	// Initializing variables
     int nref = 2;
+	int p = 1;
     int dim;
     int opt = 0;
 
@@ -185,6 +186,7 @@ int main() {
     gDebug = 0;
     
 	/** Choosing mesh */
+	TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = ReadCase(nref,opt,user);
 	dim = cmesh->Dimension();
 	
@@ -452,7 +454,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
 	// Some preferred values
-    opt = 1; nref = 3; 
+    opt = 5; nref = 3; 
 	int p = 3;
 	
 	if(user)
@@ -986,19 +988,11 @@ TPZCompMesh *CreateSimple3DMesh() {
     }
     
     gmesh->BuildConnectivity();
-    
-    //TPZVec<TPZGeoEl *> sub;
-    //elvec[0]->Divide(sub);
-    //   	elvec[1]->Divide(sub);
-    //   	elvec[2]->Divide(sub);
-    
-    
+	
     // bc -1 -> Dirichlet at the bottom face of the cube
     TPZGeoElBC gbc1(elvec[0],20,-1);
-    
     // bc -2 -> Neumann at the top face of the cube
     TPZGeoElBC gbc2(elvec[0],25,-2);
-    
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
@@ -1037,7 +1031,6 @@ TPZCompMesh *CreateSimple3DMesh() {
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
-    //cmesh->ExpandSolution();
     
     return cmesh;
 }

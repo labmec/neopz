@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Projeto elaborado para resolver el problema de Poisson 2D sobre una placa plana con circunferencia de radio 1/2 centrada en (0.5,0.5)
+ * @brief Projecto elaborado para resolver el problema de Poisson 2D sobre una placa plana con circunferencia de radio 1/2 centrada en (0.5,0.5)
  */
 
 #include "pzlog.h"

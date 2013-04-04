@@ -1465,6 +1465,10 @@ fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 			 #endif*/
 		}
 	}
+	/** Update data into all the connects */
+	ComputeNodElCon();
+//	int nconn = fConnectVec.NElements();
+//	for(iel=0;
 	/*#ifdef LOG4CXX
 	 {
 	 std::stringstream sout;
@@ -1472,10 +1476,10 @@ fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 	 LOGPZ_DEBUG(logger,sout.str())
 	 }
 	 #endif*/
-	for(iel = 0; iel<nel; iel++) {
-		TPZCompEl *cel = copy.fElementVec[iel];
-		if(cel && dynamic_cast<TPZInterfaceElement* >(cel) ) cel->Clone(*this);
-	}
+//	for(iel = 0; iel<nel; iel++) {
+//		TPZCompEl *cel = copy.fElementVec[iel];
+//		if(cel && dynamic_cast<TPZInterfaceElement* >(cel) ) cel->Clone(*this);
+//	}
 	fDimModel = copy.fDimModel;
 	fName = copy.fName;
 }

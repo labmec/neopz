@@ -558,7 +558,6 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     }
     // why can't we clone the boundary elements?
     TPZCompMesh *cmesh = Clone();
-	cmesh->ExpandSolution();
     // put the elements back in
     nelem = elementpointers.NElements();
     for(el=0; el<nelem; el++) {
@@ -572,8 +571,6 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
 #endif
     Reference()->ResetReference();
     cmesh->LoadReferences();
-    
-//    Reference()->Print(std::cout);
     
     TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     nelem = elementvec.NElements();
@@ -590,7 +587,6 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     
     nelem = copyel.NElements();
     for(el=0; el<nelem; el++) {
-        
         TPZCompEl *cel = copyel[el];
         TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
         if(!cint) continue;
@@ -605,7 +601,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         TPZVec<int> subelindex;
         cint->Divide(el,subelindex,1);
         
-        if (gDebug){
+        if (gDebug) {
             cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After Divide\n";
             int idbg, indbg, neldbg = subelindex.NElements();
             for (idbg = 0; idbg<neldbg; idbg++){
@@ -659,21 +655,17 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         }
     }
     cmesh->SetDefaultOrder(tempgorder);
-    cmesh->InitializeBlock();
+	cmesh->AutoBuild();
     // we should check whether the solution of the refined mesh is equal to the solution of the original mesh
     
     return cmesh;
 }
 
-void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
-                                 TPZVec<REAL> &ervec,
-                                 void(*f)(const TPZVec<REAL> &loc,
-                                          TPZVec<REAL> &val,
-                                          TPZFMatrix<REAL> &deriv),
-                                 TPZVec<REAL> &truervec){
+void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
+                                 void(*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+                                 TPZVec<REAL> &truervec) {
     //Evaluates the solution for the fine mesh
     //Computes the error estimator as the diference between "this" and "fine"
-    
     if (fine->Reference()->Reference() != fine){
         fine->Reference()->ResetReference();
         fine->LoadReferences();
@@ -689,12 +681,12 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
         Solution().Print("coarse mesh solution",test);
         fine->Reference()->Print(test);
         fine->Print(test);
+		fine->Block().Print("block : ",test);
         fine->Solution().Print("fine mesh solution", test);
+		test.close();
     }
-    
-    
+
     int computesolution = 1;
-    //  fine->Solution().Print();
     if(computesolution) {
         TPZSkylineStructMatrix clfstr(fine);
         TPZAnalysis clfan(fine);
@@ -709,29 +701,6 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
             clfan.Solution().Print();
         }
     }
-    /*   if(computesolution) { */
-    /*     TPZSkylineStructMatrix clfstr(fine); */
-    /*     TPZAnalysis clfan(fine); */
-    /*     TPZStepSolver jacobi; */
-    /*     TPZStepSolver cg; */
-    /*     clfan.SetStructuralMatrix(clfstr); */
-    /*     clfan.SetSolver(cg); */
-    /*     clfan.Assemble(); */
-    /*     jacobi.ShareMatrix(clfan.Solver()); */
-    /*     jacobi.SetJacobi(1,0,0); */
-    /*     cg.ShareMatrix(clfan.Solver()); */
-    /*     cg.SetCG(5,jacobi,1E-6,1); */
-    /*     clfan.SetSolver(cg); */
-    /*     clfan.Solve(); */
-    /*     int printing=0; */
-    /*     if(printing) { */
-    /*       clfan.Solution().Print(); */
-    /*     } */
-    /*   } */
-    //  clfan.Rhs().Print();
-    //  cout << "Solution of the fine mesh\n";
-    //   clfan.Solution().Print();
-    
     Reference()->ResetReference();
     LoadReferences();
     TPZMaterial * mat = fine->MaterialVec().rbegin()->second;
@@ -740,10 +709,6 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fine->ElementVec();
     int numel = elementvec.NElements();
     int el;
-    //  TPZGeoCloneMesh *gclmesh = dynamic_cast<TPZGeoCloneMesh *> (Reference());
-    /*   fine->SetName("Malha Fina"); */
-    /*   fine->Print(); */
-    /*   fine->Reference()->Print(); */
     for(el=0; el<numel; el++) {
         cel = elementvec[el];
         if (!cel) continue;
@@ -760,8 +725,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
         //    else cel = 0;
         //    orgeomesh->ResetReference();
         //    aux->LoadReferences();
-        
-        
+
         if(!cel) continue;
         TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
         if (!cint) continue;
@@ -1042,8 +1006,6 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
         }
         int jn;
         for(jn=0; jn<numdof; jn++) {
-            //       error += (locsol[jn]-corsol[jn])*(locsol[jn]-corsol[jn])*weight;
-            //       if(f) truerror += (corsol[jn]-truesol[jn])*(corsol[jn]-truesol[jn])*weight;
             for(d=0; d<dim; d++) {
                 error += (locdsol(d,jn)-cordsol(d,jn))*(locdsol(d,jn)-cordsol(d,jn))*weight;
                 if(f) truerror += (cordsol(d,jn)-truedsol(d,jn))*(cordsol(d,jn)-truedsol(d,jn))*weight;

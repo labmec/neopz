@@ -42,20 +42,24 @@ TPZConnect::~TPZConnect() {
 TPZConnect::TPZConnect(const TPZConnect &copy) {
 	fSequenceNumber = copy.fSequenceNumber;
 	fNElConnected = copy.fNElConnected;
+	fNShape = copy.fNShape;
 	//	fOrder = copy.fOrder;
     fFlags = copy.fFlags;
     fDependList = 0;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
 }
 
-
-
 TPZConnect &TPZConnect::operator=(const TPZConnect &copy) {
 	if(this == &copy) return *this;
 	if(fDependList) delete fDependList;
 	fSequenceNumber = copy.fSequenceNumber;
 	fNElConnected = copy.fNElConnected;
-	//	fOrder = copy.fOrder;
+	SetNShape(copy.fNShape);
+	SetOrder(copy.fCompose.fOrder);
+	SetNState(copy.fCompose.fNState);
+	SetCondensed(copy.fCompose.fIsCondensed);
+	SetPressure(copy.fCompose.fIsPressure);
+	
     fFlags = copy.fFlags;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
     return *this;
@@ -459,6 +463,7 @@ void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
 	fSequenceNumber = orig.fSequenceNumber;
 	fNElConnected = orig.fNElConnected;
     fFlags = orig.fFlags;
+	fNShape = orig.fNShape;
 	TPZDepend * depend = orig.fDependList;
 	bool copydepend = true;
 	while ( depend )

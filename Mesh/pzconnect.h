@@ -180,7 +180,9 @@ public:
         {
             DebugStop();
         }
-        fNShape = nshape;
+		if(!nshape) fNShape = 0;
+		else
+			fNShape = nshape;
     }
 	
 	/** @brief Access function to return the order associated with the connect */

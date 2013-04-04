@@ -147,7 +147,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
             continue;
         }
         fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh();
-		printing = 1;
+		printing = 0;
         if(printing) {
             ofstream out("output.txt");
             fCloneMeshes[cliter]->Print(out);
@@ -164,9 +164,6 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
         ervec[i]=fElementError[i];
     }
     Sort(fElementError,perm);
-    
-    //  REAL totalerror = 0.;
-    //  REAL totaltruerror = 0.;
     //somatório dos componentes do vetor de erro
     for(i=0; i<nelmesh; i++) error += fElementError[i];
     
@@ -199,8 +196,6 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
             }
         }
     }
-    // TPZMaterial * mat = fCloneMeshes [0]->MaterialVec().rbegin()->second;
-    //  int nstate = mat->NStateVariables();
     
     TPZStack <TPZGeoEl*> gelstack;
     TPZStack <int> porder;
@@ -210,11 +205,6 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
         if (! fFineCloneMeshes [i]) continue;
         fCloneMeshes [i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMeshes [i],gelstack,porder);
     }
-    
-    /*   int igeo,ngeoel = gelstack.NElements(); */
-    /*   for (igeo =0; igeo<ngeoel; igeo++){ */
-    /*     gelstack[igeo]->Print(); */
-    /*   } */
     
     TPZCompMesh * adapted =   CreateCompMesh(fReferenceCompMesh,gelstack,porder);
     return adapted;
