@@ -64,7 +64,7 @@ TPZConnect &TPZConnect::operator=(const TPZConnect &copy) {
 void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	int orde = fCompose.fOrder;
 	int nstate  = fCompose.fNState;
-	int nshape  = fCompose.fNShape;
+	int nshape  = fNShape;
 	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << IsPressure();
 	if(fSequenceNumber > -1)
 	{
@@ -94,7 +94,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 
 void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 {
-	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fCompose.fNShape ;
+	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fNShape ;
 	out << " coordinate " << cp;
 	if(fSequenceNumber > -1)
 	{
@@ -423,6 +423,7 @@ void TPZConnect::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fSequenceNumber,1);
 	buf.Write(&fNElConnected,1);
     buf.Write(&fFlags,1);
+    buf.Write(&fNShape);
 	if(fDependList)
 	{
 		fDependList->Write(buf);
@@ -440,6 +441,7 @@ void TPZConnect::Read(TPZStream &buf, void *context)
 	buf.Read(&fNElConnected,1);
 	//	buf.Read(&fOrder,1);
     buf.Read(&fFlags,1);
+    buf.Read(&fNShape);
 	int seq;
 	buf.Read(&seq,1);
 	if(seq >= 0)

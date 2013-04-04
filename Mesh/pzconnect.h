@@ -50,14 +50,15 @@ public:
             unsigned char fOrder;
             /** @brief Number of state variables associated with each shape function */
             unsigned char fNState;
-            /** @brief Number of shape functions associated with the connect */
-            unsigned int fNShape;
             /** @brief Whether the equations associated with the connect should be condensed */
             bool fIsCondensed;
             /** @brief Whether the connnect is associated with a lagrange multiplier */
             bool fIsPressure;
         } fCompose;
     };
+    /** @brief Number of shape functions associated with the connect */
+    unsigned int fNShape;
+
 	
 public:
 	/** @brief Structure to reference dependency */
@@ -128,7 +129,7 @@ public:
 	 */
 	int NDof() const
     {
-        return fCompose.fNShape*fCompose.fNState;
+        return fNShape*fCompose.fNState;
     }
     
     /**
@@ -141,7 +142,7 @@ public:
     
     unsigned int NShape() const
     {
-        return fCompose.fNShape;
+        return fNShape;
     }
 
 	/** @brief Returns the Sequence number of the connect object */
@@ -179,7 +180,7 @@ public:
         {
             DebugStop();
         }
-        fCompose.fNShape = nshape;
+        fNShape = nshape;
     }
 	
 	/** @brief Access function to return the order associated with the connect */
