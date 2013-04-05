@@ -176,13 +176,11 @@ public:
     /** @brief Set the number of shape functions associated with the connect */
     void SetNShape(int nshape)
     {
-        if(nshape < 0 || nshape > 500)   /// Jorge to work with p = 20 for quadrilaterals
+        if(nshape < 0 || nshape > 600)   /// Jorge to work with p = 20 for quadrilaterals or p>8 for 3D problems
         {
             DebugStop();
         }
-		if(!nshape) fNShape = 0;
-		else
-			fNShape = nshape;
+		fNShape = nshape;
     }
 	
 	/** @brief Access function to return the order associated with the connect */
