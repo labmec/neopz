@@ -217,7 +217,7 @@ class StageFour_t: public tbb::filter
   TPZMatrix<TVar>& fGlobMatrix2;
   const TPZVec<int>& fPermuteScatter;
 
-  void PermuteScatter(TPZVec<int> &index)
+  void PermuteScatter(TPZVec<long int> &index)
   {
 	int nel = index.NElements();
 	int iel;
