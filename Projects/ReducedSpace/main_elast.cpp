@@ -91,24 +91,56 @@ void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
-//Dados sem adimensionalizar
-const REAL LxD = 2.;
-const REAL LyD = 2.;
-const REAL LD = 1.;
-const REAL HD = 1.;
-const REAL ED = 0.3E5;
-const REAL nu = 0.25;
-const REAL viscD = 0.001;
-const REAL signD = 0.3E5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
-const REAL QinD  = -1.E-3;
-const REAL tD = 1000.;
-const REAL deltaTD = 10.;
-
-//data pressure
-const REAL Cl = 0.0007;
-const REAL prelation = 1.;
-const REAL vsp = 0.00001;
+//Dimensions:
+//const REAL Lx = 2.;
+//const REAL Ly = 2.;
+//const REAL Lf = 1.;
+//const REAL Hf = 1.;
+////Elastic properties:
+//const REAL ED = 0.3E5;
+//const REAL nu = 0.25;
+////Fluid property:
+//const REAL visc = 0.001;
+////BCs:
+//const REAL sigN = 0.3E5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
+//const REAL Qinj  = -1.E-3;
+////time:
+//const REAL Ttot = 1000.;
+//const REAL deltaT = 10.;
+////Leakoff:
+//const REAL Cl = 0.0007;
+//const REAL Pe = 1.;
+//const REAL Pref = 2000.;
+//const REAL vsp = 0.00001;
 //
+
+
+
+ //Dimensions:
+ const REAL Lx = 400.;
+ const REAL Ly = 400.;
+ REAL Lf = 50.;
+ const REAL Hf = 1.;
+ //Elastic properties:
+ const REAL ED = 3.9E4;//MPa
+ const REAL nu = 0.25;
+ //Fluid property:
+ const REAL visc = 0.001E-6;//MPa.s
+ //BCs:
+ const REAL sigN = 61.5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
+ const REAL Qinj  = -0.01/Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
+ //time:
+ const REAL Ttot = 100.;
+ const int nsteps = 20;
+ const REAL deltaT = Ttot/nsteps;
+ //Leakoff:
+ const REAL Cl = 0.00005;
+ const REAL Pe = 60.;//MPa
+ const REAL SigmaConf = 61.;//MPa
+ const REAL Pref = 8.8;//MPa
+const REAL vsp = 0.1;
+ //
+ 
 
 
 int main(int argc, char *argv[])
@@ -121,7 +153,7 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-    TPZGeoMesh * gmesh = PlaneMesh(LxD/2., LxD, LyD, LxD/8.);
+    TPZGeoMesh * gmesh = PlaneMesh(Lf, Lx, Ly, 10.);
     
     //computational mesh elastic
 /** >>> Resolvendo um problema modelo de elastica linear para utilizar a solucao 
@@ -153,9 +185,8 @@ int main(int argc, char *argv[])
     TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh, meshvec, mymaterial);
     mphysics->SetDefaultOrder(p);
     
-    REAL deltaT = deltaTD; //second
     mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = tD;
+    REAL maxTime = Ttot;
     
     
 /** >>> Metodo de resolucao de problema transient */
@@ -392,7 +423,7 @@ TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     REAL big = material->gBigNumber;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(1,0) = signD;
+    val2(1,0) = sigN;
     TPZMaterial * BCond1 = material->CreateBC(mat, pressureMatId, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -441,7 +472,7 @@ TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pO
     REAL big = material->gBigNumber;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(1,0) = signD;
+    val2(1,0) = sigN;
     TPZMaterial * BCond1 = material->CreateBC(mat, pressureMatId, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -497,7 +528,7 @@ TPZCompMesh * CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     
     ///Inserir condicao de contorno
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(0,0) = QinD;
+    val2(0,0) = Qinj;
     TPZMaterial * BCond1 = material->CreateBC(mat, bcfluxIn, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -546,7 +577,7 @@ TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mes
     mymaterial->SetElasticParameters(ED, nu, fx, fy);
     mymaterial->SetfPlaneProblem(planestrain);
 
-    mymaterial->SetParameters(HD, viscD, Cl, prelation, vsp);
+    mymaterial->SetParameters(Hf, Lf, visc, Qinj, Cl, Pe, SigmaConf, Pref, vsp);
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
@@ -556,7 +587,7 @@ TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mes
     REAL big = mymaterial->gBigNumber;
     
     TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
-    val2(1,0) = signD;
+    val2(1,0) = sigN;
     TPZMaterial * BCond1 = mymaterial->CreateBC(mat, pressureMatId, neumann, val1, val2);
     
     val2.Redim(3,1);
@@ -568,7 +599,7 @@ TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mes
     
     val2.Redim(3,1);
     val1.Redim(3,2);
-    val2(2,0) = QinD;
+    val2(2,0) = Qinj;
     TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bcfluxIn, neum_pressure, val1, val2);
     
     val2.Redim(3,1);

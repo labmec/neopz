@@ -49,8 +49,11 @@ protected:
     /** @brief Shear modulus */
     REAL fG;
 	
-    /** @brief width of fractures */
-    REAL fHw;
+    /** @brief width of fracture */
+    REAL fHf;
+    
+    /** @brief Length of fracture */
+    REAL fLf;
     
 	/** @brief Problem dimension */
 	int fDim;
@@ -81,10 +84,13 @@ protected:
 	static EState gState;
     
     //////Leakoff
-    REAL FictitiousTime(int gelId);
-    REAL Ql(int gelId);
+    public:
+
+    REAL Ql(int gelId, REAL pfrac);
+    REAL Qlvl(REAL vl, REAL pfrac);
+    REAL dQldp(int gelId, REAL pfrac);
     
-    REAL fCl, fP, fvsp;
+    REAL fQinj, fCl, fPe, fPref, fvsp;
     
     std::map<int,REAL> fGelId_vl;
     
@@ -104,35 +110,68 @@ public:
 	
 	virtual int NStateVariables();
 	
+    void SetLfrac(REAL Lf)
+    {
+        fLf = Lf;
+    }
     
-	/** @brief Parameters of pressure: 
+	/** 
+     *@brief Parameters of pressure:
      *@param Hw altura da fratura
      *@param visc viscosidade do fluido
      *@param QL vazao para o meio poroso
     */
-	void SetParameters(REAL Hw, REAL visc, REAL Cl, REAL P, REAL vsp)
+	void SetParameters(REAL Hf, REAL Lf, REAL visc, REAL Qinj, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp)
 	{
-        fHw = Hw;
+        fHf = Hf;
+        fLf = Lf;
         fvisc = visc;
+        fQinj = Qinj;
         fCl = Cl;
-        fP = P;
+        fPe = Pe;
+        fSigConf = SigmaConf;
+        fPref = Pref;
         fvsp = vsp;
 	}
     
+    REAL Hf()
+    {
+        return fHf;
+    }
+    REAL Lf()
+    {
+        return fLf;
+    }
+    REAL visc()
+    {
+        return fvisc;
+    }
+    REAL Qinj()
+    {
+        return fQinj;
+    }
     REAL Cl()
     {
         return fCl;
     }
-    REAL P()
+    REAL Pe()
     {
-        return fP;
+        return fPe;
+    }
+    REAL SigmaConf()
+    {
+        return fSigConf;
+    }
+    REAL Pref()
+    {
+        return fPref;
     }
     REAL vsp()
     {
         return fvsp;
     }
     
-    void UpdateLeakoff();
+    void UpdateLeakoff(REAL pfrac);
 	
 	/**
 	 * @brief Set parameters of elastic material:
@@ -151,11 +190,6 @@ public:
 		ff[0] = fx;
 		ff[1] = fy;
 	}
-    
-    void SetTensaoConfinamento(REAL sigcf){
-        
-        fSigConf = sigcf;
-    }
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state
