@@ -604,7 +604,7 @@ TPZCompMesh *CreateSillyMesh(){
     TPZGeoElBC t4(gel[0],6,-2);
     geomesh->Print(std::cout);
 	    
-    // Criação da malha computacional
+    // Criacao da malha computacional
     TPZCompMesh *comp = new TPZCompMesh(geomesh);
     
     // Criar e inserir os materiais na malha
@@ -613,15 +613,12 @@ TPZCompMesh *CreateSillyMesh(){
     
     TPZMaterial * meumat = mat;
     
-    // Condições de contorno
+    // Condicoes de contorno
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
     bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
-    
-    // bnd->SetForcingFunction(Forcing1);
-    // comp->InsertMaterialObject(bnd);
     
     // Neumann
     TPZFMatrix<REAL> val3(3,3,1);
@@ -629,16 +626,12 @@ TPZCompMesh *CreateSillyMesh(){
     bnd = meumat->CreateBC (meumat,-2,1,val1,val2);
     comp->InsertMaterialObject(bnd);
     
-    // comp->Print(cout);
-    
     // Ajuste da estrutura de dados computacional
     comp->AutoBuild();
     //  comp->Print(cout);
     comp->AdjustBoundaryElements();
     //  comp->Print(cout);
     comp->CleanUpUnconnectedNodes();
-    //  comp->Print(cout);
-//	geomesh->Print(std::cout);
 
     /*  //	comp->Print(output); */
     /*  TPZInterpolatedElement *intel = dynamic_cast <TPZInterpolatedElement *> (comp->ElementVec()[1]); */
