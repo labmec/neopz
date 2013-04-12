@@ -5,6 +5,7 @@
 
 #include "pzcclonemesh.h"
 #include "pzonedref.h"
+#include "pzadaptmesh.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
@@ -27,7 +28,6 @@
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzadaptmesh.h"
 
 #include "pzmaterial.h"
 #include "pzbndcond.h"
@@ -74,7 +74,7 @@ int gPrintLevel = 0;
 /** angle ??? */
 static REAL angle = 0.2;
 /** Whether the user must to be input data through keyboard */
-bool user = false;
+bool user = true;
 
 /** FUNCTION DEFINITIONS */
 /** Forcing function: disp = Forcing1(x)  */
@@ -165,7 +165,7 @@ int main() {
 	
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
-	gRefDBase.InitializeRefPatterns();
+//	gRefDBase.InitializeRefPatterns();
 
 	// To visualization of the geometric mesh
 //	std::ofstream fgeom("GMesh.vtk");
@@ -177,15 +177,13 @@ int main() {
     int dim;
     int opt = 0;
 
-	// output files
+	// Output files
     std::ofstream convergence("conv3d.txt");
     std::ofstream out("output.txt");
 
-	/** Set polynomial order */
-    TPZCompEl::SetgOrder(mygorder);
-    gDebug = 0;
-    
 	/** Choosing mesh */
+	/** Set polynomial order */
+    gDebug = 0;
 	TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = ReadCase(nref,opt,user);
 	dim = cmesh->Dimension();
@@ -981,12 +979,15 @@ TPZCompMesh *CreateSimple3DMesh() {
     }
     
     gmesh->BuildConnectivity();
-	
     // bc -1 -> Dirichlet at the bottom face of the cube
     TPZGeoElBC gbc1(elvec[0],20,-1);
     // bc -2 -> Neumann at the top face of the cube
     TPZGeoElBC gbc2(elvec[0],25,-2);
     
+	UniformRefine(3, *gmesh);
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+	
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
     TPZMaterial * mat = new TPZMaterialTest3D(1);

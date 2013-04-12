@@ -116,7 +116,8 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
-		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
+		TPZFMatrix<STATE> dres(Dimension(),1);
+		fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
 		fXfLoc = res[0];
 	}
 	REAL delx = 0.;
