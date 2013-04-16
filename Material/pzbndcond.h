@@ -69,9 +69,9 @@ protected:
 	/** @brief boundary condition type */
 	int 		fType;
 	/** @brief first value of boundary condition */
- 	TPZFMatrix<STATE> fBCVal1;
+ 	TPZFNMatrix<9,STATE> fBCVal1;
 	/** @brief second value of boundary condition */
-	TPZFMatrix<STATE> fBCVal2;
+	TPZFNMatrix<3,STATE> fBCVal2;
 	/** @brief pointer to material which created bc */
 	TPZMaterial * fMaterial;
 	
