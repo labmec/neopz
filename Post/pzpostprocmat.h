@@ -180,7 +180,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
 	
 protected:
 		
-		TPZVec<TPZPostProcVar> fVars;
+		TPZManVector<TPZPostProcVar,20> fVars;
 		int fDimension;
 };
 
