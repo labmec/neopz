@@ -632,7 +632,7 @@ likwid_manager_t likwid_manager;
 	  TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
 	  if(vmat)
 	  {
-	    vmat->SetUpdateMem();
+	    vmat->SetUpdateMem(true);
 	  }
 	}	
         subcount++;
