@@ -78,7 +78,41 @@ void TPZMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 }
 
 void TPZMaterial::Print(std::ostream & out) {
+    out << __PRETTY_FUNCTION__ << std::endl;
 	out << std::endl << "Material Id = " << fId << std::endl;
+    out << "Linear context " << fLinearContext << std::endl;
+    out << "Num loadcases " << fNumLoadCases << std::endl;
+    out << "Big number " << gBigNumber << std::endl;
+    
+    if (!fForcingFunction) {
+        out << "Has no forcing function\n";
+    }
+    else {
+        out << "Forcing function\n";
+        fForcingFunction->Print(out);
+    }
+    if (!fForcingFunctionExact) {
+        out << "Has no exact forcing function\n";
+    }
+    else {
+        out << "Forcing function exact\n";
+        fForcingFunctionExact->Print(out);
+    }
+    if (!fTimeDependentForcingFunction) {
+        out << "Has no time dependent forcing function\n";
+    }
+    else {
+        out << "Time dependent forcing function\n";
+        fTimeDependentForcingFunction->Print(out);
+    }
+    if (!fTimedependentFunctionExact) {
+        out << "No time dependent forcing function exact\n";
+    }
+    else {
+        out << "Time dependent forcing function exact\n";
+        fTimedependentFunctionExact->Print(out);
+    }
+    
 }
 
 int TPZMaterial::VariableIndex(const std::string &name) {
@@ -282,6 +316,8 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
         buf.Write(&minone);
     }
     buf.Write(&fNumLoadCases);
+    int linearcontext = fLinearContext;
+    buf.Write(&linearcontext);
     /*
 	 int forcingIdx = -1;
 	 if (fForcingFunction)
@@ -320,6 +356,14 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
         fForcingFunction = func;
     }
     buf.Read(&fNumLoadCases);
+    int linearcontext;
+    buf.Read(&linearcontext);
+    if (linearcontext) {
+        fLinearContext = true;
+    }
+    else {
+        fLinearContext = false;
+    }
     /*
 	 int forcingIdx = -1;
 	 buf.Read( &forcingIdx,1 );
