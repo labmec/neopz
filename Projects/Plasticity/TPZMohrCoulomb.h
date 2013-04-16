@@ -29,7 +29,7 @@ static LoggerPtr loggerMohrCoulomb(Logger::getLogger("MCC"));
 #define MOHRCOULOMBPARENT TPZPlasticStep<TPZYCMohrCoulomb, TPZThermoForceA, TPZElasticResponse>
 
 
-class TPZMohrCoulomb : public MOHRCOULOMBPARENT, public TPZSaveable  {
+class TPZMohrCoulomb : public MOHRCOULOMBPARENT  {
 	
 public:
 	
@@ -103,9 +103,9 @@ public:
 		return TPZMOHRCOULOMB_ID;	
 	}
 	
-	virtual void Write(TPZStream &buf, int withclassid)
+	virtual void Write(TPZStream &buf) const
 	{
-		TPZSaveable::Write(buf, withclassid);
+		MOHRCOULOMBPARENT::Write(buf);
 				
 		buf. Write(&fYC.fPhi, 1);
 		
@@ -128,9 +128,9 @@ public:
 		
 	}
 
-	virtual void Read(TPZStream &buf, void *context)
+	virtual void Read(TPZStream &buf)
 	{
-	   TPZSaveable::Read(buf, context);
+	   MOHRCOULOMBPARENT::Read(buf);
 
         buf. Read(&fYC.fPhi, 1);
 		

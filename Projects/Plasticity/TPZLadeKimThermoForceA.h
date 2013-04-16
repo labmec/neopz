@@ -35,7 +35,21 @@ public:
 	   fPa	= source.fPa;
 		return *this;
     }
+    
+    void Write(TPZStream &buf) const
+    {
+        buf.Write(&fRho);
+        buf.Write(&fD);
+        buf.Write(&fPa);
+    }
 
+    void Read(TPZStream &buf) 
+    {
+        buf.Read(&fRho);
+        buf.Read(&fD);
+        buf.Read(&fPa);
+    }
+    
 	const char * Name() const
     {
 	   return "TPZLadeKimThermoForceA";	

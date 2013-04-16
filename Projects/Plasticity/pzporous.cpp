@@ -462,5 +462,5 @@ template class TPZMatPorous< TPZMatElastoPlastic<TPZSandlerDimaggio, TPZPoroElas
 */
 
 template class TPZMatPorous< TPZLadeKim, TPZPoroElastoPlasticMem >;
-template class TPZMatPorous< TPZSandlerDimaggio, TPZPoroElastoPlasticMem >;
+template class TPZMatPorous< TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZPoroElastoPlasticMem >;
 template class TPZMatPorous<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;

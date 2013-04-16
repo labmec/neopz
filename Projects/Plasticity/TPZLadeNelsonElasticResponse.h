@@ -55,6 +55,22 @@ public:
 	   fPa		= source.fPa;
 		return *this;
     }
+    
+    void Write(TPZStream &buf) const
+    {
+        buf.Write(&fLambda);
+        buf.Write(&fM);
+        buf.Write(&fPoisson);
+        buf.Write(&fPa);
+    }
+	
+    void Read(TPZStream &buf) 
+    {
+        buf.Read(&fLambda);
+        buf.Read(&fM);
+        buf.Read(&fPoisson);
+        buf.Read(&fPa);
+    }
 	
 	const char * Name() const
     {

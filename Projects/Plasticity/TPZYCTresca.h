@@ -80,6 +80,25 @@ public:
     h[0] = 1.;
   }
 
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
+    
+    void Write(TPZStream &out) const
+    {
+        
+    }
+    
+    void Read(TPZStream &buf)
+    {
+        
+    }
+
 protected:
   /**
    * @brief Compute the inverse angle of the tresca yield criterium formula and the related data

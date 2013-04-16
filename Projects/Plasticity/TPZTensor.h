@@ -174,6 +174,19 @@ public:
         }
     }
     
+    /// Method to write to a pzstream
+    void Write(TPZStream &out) const
+    {
+        //const TPZVec<T> *engane = &fData;
+        TPZSaveable::WriteObjects(out,fData);
+    }
+    
+    ///Method to read the object from a pzstream
+    void Read(TPZStream &input)
+    {
+        TPZSaveable::ReadObjects(input,fData);
+    }
+    
     operator TPZFMatrix<T>() const
     {
         TPZFMatrix<T> result(3,3);
@@ -353,6 +366,34 @@ public:
      * The derivative of the  3rd invariant of deviatoric tensor
      */
     void dJ3(TPZTensor<T> &deriv) const;
+    
+    /**
+     * @brief adjust the tensor to the given values of I1 and sqj2
+     */
+    void Adjust(TPZVec<T> &sigIJ, TPZTensor<T> &result) const
+    {
+        TPZTensor<T> S;
+        this->S(S);
+        TPZTensor<T> Diag;
+        Diag.Identity();
+        Diag *= sigIJ[0]/T(3.);
+        T J2 = this->J2();
+        T sqj2 = sqrt(J2);
+        REAL sqj2val = shapeFAD::val(sqj2);
+        T ratio;
+        if (fabs(sqj2val) > 1.e-6) 
+        {
+            ratio = sigIJ[1]/sqj2;
+        }
+        else
+        {
+            ratio = T(1.);
+        }
+        S *= ratio;
+        S += Diag;
+        result = S;
+        
+    }
 	
 	/**
 	 * Returns the Haigh-Westergaard stress representation
@@ -1607,6 +1648,11 @@ inline void TPZTensor<REAL>::Print(std::ostream &output) const {
 
 template <>
 inline void TPZTensor<TFad<6,REAL> >::Print(std::ostream &output) const {
+    output << "XX = " << XX() << "\nXY = " << XY() << "\nXZ = " << XZ() << "\nYY = " << YY() << "\nYZ() = " << YZ() << "\nZZ = " << ZZ() << std::endl;
+}
+
+template <>
+inline void TPZTensor<TFad<9,REAL> >::Print(std::ostream &output) const {
     output << "XX = " << XX() << "\nXY = " << XY() << "\nXZ = " << XZ() << "\nYY = " << YY() << "\nYZ() = " << YZ() << "\nZZ = " << ZZ() << std::endl;
 }
 

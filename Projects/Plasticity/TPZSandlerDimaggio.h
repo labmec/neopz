@@ -7,16 +7,17 @@
 
 #include "pzlog.h"
 #include "TPZPlasticStep.h"
-#include "TPZYCSandlerDimaggio.h"
+#include "TPZYCSandlerDimaggioL.h"
 #include "TPZSandlerDimaggioThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
 #include "pzsave.h"
 #include "TPZPlasticStepID.h"
 
-#define SANDLERDIMAGGIOPARENT TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
+#define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
 
-class TPZSandlerDimaggio : public SANDLERDIMAGGIOPARENT, public TPZSaveable  {
+template<class SANDLERDIMAGGIOPARENT>
+class TPZSandlerDimaggio : public SANDLERDIMAGGIOPARENT  {
 
 public:
 
@@ -26,17 +27,18 @@ public:
 
     TPZSandlerDimaggio(REAL alpha=0./*-1.e-9*/):SANDLERDIMAGGIOPARENT(alpha) // avoiding nan
     {
-		fMaterialTensionSign = 1;//Quando este numero for positivo carremento de compressao e negativo
+		this->fMaterialTensionSign = 1;//Quando este numero for positivo carremento de compressao e negativo
+        
     }
 
     TPZSandlerDimaggio(const TPZSandlerDimaggio & source):SANDLERDIMAGGIOPARENT(source)
     {
-		fMaterialTensionSign = 1;
+		this->fMaterialTensionSign = 1;
     }
 
     TPZSandlerDimaggio & operator=(const TPZSandlerDimaggio & source)
     {
-		fMaterialTensionSign = 1;
+		this->fMaterialTensionSign = 1;
 		SANDLERDIMAGGIOPARENT::operator=(source);
 		
 		return *this;
@@ -60,56 +62,57 @@ public:
 		return TPZSANDLERDIMAGGIO_ID;	
 	}
 	
-	virtual void Write(TPZStream &buf, int withclassid)
+	virtual void Write(TPZStream &buf) const
 	{
-	   TPZSaveable::Write(buf, withclassid);
+	   SANDLERDIMAGGIOPARENT::Write(buf);
 		
-	   buf. Write(&fYC.fA, 1);
-	   buf. Write(&fYC.fB, 1);
-	   buf. Write(&fYC.fC, 1);
-	   buf. Write(&fYC.fD, 1);
-	   buf. Write(&fYC.fR, 1);
-	   buf. Write(&fYC.fW, 1);	
+	   buf. Write(&this->fYC.fA, 1);
+	   buf. Write(&this->fYC.fB, 1);
+	   buf. Write(&this->fYC.fC, 1);
+	   buf. Write(&this->fYC.fD, 1);
+	   buf. Write(&this->fYC.fR, 1);
+	   buf. Write(&this->fYC.fW, 1);	
 		
-	   buf. Write(&fER.fLambda, 1);
-	   buf. Write(&fER.fMu, 1);	
+	   buf. Write(&this->fER.fLambda, 1);
+	   buf. Write(&this->fER.fMu, 1);	
 
-	   buf. Write(&fResTol, 1);
-	   buf. Write(&fIntegrTol, 1);
-	   buf. Write(&fMaxNewton, 1);
-	   buf. Write(&fMinLambda, 1);
+	   buf. Write(&this->fResTol, 1);
+	   buf. Write(&this->fIntegrTol, 1);
+	   buf. Write(&this->fMaxNewton, 1);
+	   buf. Write(&this->fMinLambda, 1);
 		
-	   buf. Write(&fN.fEpsT.fData[0], 6);
-	   buf. Write(&fN.fEpsP.fData[0], 6);
-	   buf. Write(&fN.fAlpha, 1);
+	   buf. Write(&this->fN.fEpsT.fData[0], 6);
+	   buf. Write(&this->fN.fEpsP.fData[0], 6);
+	   buf. Write(&this->fN.fAlpha, 1);
 		
 	   // fPlasticMem does not need to be stored
 			
 	}
 
-	virtual void Read(TPZStream &buf, void *context)
+	virtual void Read(TPZStream &buf)
 	{
-	   TPZSaveable::Read(buf, context);
+	   SANDLERDIMAGGIOPARENT::Read(buf);
 		
-	   buf. Read(&fYC.fA, 1);
-	   buf. Read(&fYC.fB, 1);
-	   buf. Read(&fYC.fC, 1);
-	   buf. Read(&fYC.fR, 1);
-	   buf. Read(&fYC.fW, 1);	
+	   buf. Read(&this->fYC.fA, 1);
+	   buf. Read(&this->fYC.fB, 1);
+	   buf. Read(&this->fYC.fC, 1);
+       buf. Read(&this->fYC.fD, 1);
+	   buf. Read(&this->fYC.fR, 1);
+	   buf. Read(&this->fYC.fW, 1);	
 		
-	   buf. Read(&fER.fLambda, 1);
-	   buf. Read(&fER.fMu, 1);	
+	   buf. Read(&this->fER.fLambda, 1);
+	   buf. Read(&this->fER.fMu, 1);	
 		
-	   buf. Read(&fResTol, 1);
-	   buf. Read(&fIntegrTol, 1);
-	   buf. Read(&fMaxNewton, 1);
-	   buf. Read(&fMinLambda, 1);
+	   buf. Read(&this->fResTol, 1);
+	   buf. Read(&this->fIntegrTol, 1);
+	   buf. Read(&this->fMaxNewton, 1);
+	   buf. Read(&this->fMinLambda, 1);
 		
-	   buf. Read(&fN.fEpsT.fData[0], 6);
-	   buf. Read(&fN.fEpsP.fData[0], 6);
-	   buf. Read(&fN.fAlpha, 1);
+	   buf. Read(&this->fN.fEpsT.fData[0], 6);
+	   buf. Read(&this->fN.fEpsP.fData[0], 6);
+	   buf. Read(&this->fN.fAlpha, 1);
 		
-	   fPlasticMem.Resize(0);
+	   this->fPlasticMem.Resize(0);
 	}	
 
     /**
@@ -127,7 +130,8 @@ public:
                REAL D, REAL W)
     {
        SANDLERDIMAGGIOPARENT::fYC.SetUp(A, B, C, D, R, W);
-       SANDLERDIMAGGIOPARENT::fER.SetUp(E, poisson);
+        SANDLERDIMAGGIOPARENT::fN.fAlpha = this->fYC.InitialDamage();        
+        SANDLERDIMAGGIOPARENT::fER.SetUp(E, poisson);
     }
 
 
@@ -194,17 +198,17 @@ protected:
     */
     virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
 	{
-		const int nyield = fYC.NYield;
+		const int nyield = this->fYC.NYield;
 		
 		SANDLERDIMAGGIOPARENT::ComputeDep(sigma, Dep);
 
-		TPZVec<REAL> plastifLen(nyield, 0.);
-		int n = fPlasticMem.NElements();
-		REAL deltaAlpha = fabs(fPlasticMem[n-1].fPlasticState.fAlpha - fPlasticMem[1].fPlasticState.fAlpha); 
+		TPZManVector<REAL,3> plastifLen(nyield, 0.);
+		int n = this->fPlasticMem.NElements();
+		REAL deltaAlpha = fabs(this->fPlasticMem[n-1].fPlasticState.fAlpha - this->fPlasticMem[1].fPlasticState.fAlpha); 
 		
-		IntegrationOverview(plastifLen);
+		this->IntegrationOverview(plastifLen);
 		
-		// if the plastification ocurred maily in the first (0th) yield function, which is
+		// if the plastification ocurred mainly in the first (0th) yield function, which is
 		// perfectly plastic, then the stiffness matrix may be singular.
 		if(  (plastifLen[0] > 0.9 && plastifLen[1] < 0.1) ||
 		     (plastifLen[0] < 1.e-10 && plastifLen[1] > 0.9 && deltaAlpha < 1.e-10) )
@@ -354,7 +358,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
         REAL E = 1305, //ksi (9000MPa)
         poisson = 0.25;
         
-        material.fER.SetUp(E, poisson);
+//        material.fER.SetUp(E, poisson);
         
         REAL A = 10.,//2.61, //ksi  = 18 in MPa
         B = 0.169, // ksi   0.0245 in MPa
@@ -363,7 +367,8 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
         R = 1.5,
         W = 0.0908;
         
-        material.fYC.SetUp(A, B, C, D, R, W);
+//        material.fYC.SetUp(A, B, C, D, R, W);
+        material.SetUp(poisson, E, A, B, C, R, D, W);
 	}
 	
 	static void UncDeepSandResPSI(TPZSandlerDimaggio & material)

@@ -471,7 +471,11 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
         elastic = false;
     }
     
-    if( ep == EAuto ) elastic = IsStrainElastic(Np1) == 1;
+    if( ep == EAuto ) 
+    {
+        bool result = IsStrainElastic(Np1);
+        elastic = (result == 1);
+    }
     
     if(elastic)
     {
@@ -1170,7 +1174,13 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         //      REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
         
         ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1/*precond*/, 1/*ResetUnvalidEqs*/);
-        
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            tangent.Print("A = ",sout, EMathematicaInput);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         countNewton = 0;
         
         do{
@@ -1200,6 +1210,11 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             // update the independent variables (their partial derivatives remain unchanged)
             lambda = UpdatePlasticVars(N, Np1_FAD, delGamma_FAD, epsRes_FAD, Sol, validEqs);
             
+            
+            if(countNewton > 8)
+            {
+                std::cout << "I should stop\n";
+            }
             // recompute the residual
             PlasticResidual<REAL, TFAD>(N, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
             
@@ -1699,6 +1714,11 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
     
     // alphaRes = alpha(n+1)-alpha(n)-Sum delGamma * H
     alphaRes_T2 = Np1_T2.Alpha() - N_T1.Alpha();
+    
+    T2 multiplier;
+    
+    fYC.AlphaMultiplier(Np1_T2.Alpha(), multiplier);
+    alphaRes_T2 *= multiplier;
     for(i=0; i<nyield; i++)
     {
         alphaRes_T2 -= delGamma_T2[i] * HMidPt_T2[i]; // 1 eq
@@ -2000,7 +2020,63 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
     
     //cout << "\nstarting ProcessStrain/ComputeDep";
     //cout.flush();
+    /// DEBUG DEBUG
+    /*
+    TPZYCSandlerDimaggio *yc = (TPZYCSandlerDimaggio *)(&fYC);
+    TPZYCSandlerDimaggioL *ycl = dynamic_cast<TPZYCSandlerDimaggioL *>(yc);
+    TPZManVector<REAL> epsx(50),sigx(50),dsig(50),epsv(50),L(50),DepsVdL(50);
     
+    for(int i=0; i<50; i++)
+    {
+        epsTotal.XX() = -0.025*i/50.;
+        epsTotal.YY() = -0.025*i/50.;
+        epsTotal.ZZ() = -0.025*i/50.;
+        ProcessStrain(epsTotal, EAuto);
+        ComputeDep(EEpsilon, Dep_mat);
+        ApplyStrain(epsTotal);
+        REAL diagdep = 0;
+        for (int j=0; j< 6; j++) {
+            diagdep += Dep_mat(j,0);
+        }
+        epsx[i] = epsTotal[0];
+        sigx[i] = EEpsilon[0];
+        dsig[i] = diagdep;
+        if (ycl) {
+            int n = this->fPlasticMem.size();
+            L[i] = this->fPlasticMem[n-1].fPlasticState.fAlpha;
+            yc->EpspFromL(L[i], epsv[i]);
+            yc->DEpspDL(L[i], DepsVdL[i]);
+        }
+        else {
+            REAL X;
+            int n = this->fPlasticMem.size();
+            epsv[i] = this->fPlasticMem[n-1].fPlasticState.fAlpha;
+            yc->ComputeX(epsv[i], X);
+            yc->SolveL(X, L[i]);
+            yc->DEpspDL(L[i], DepsVdL[i]);
+        }
+        {
+            std::stringstream sout;
+            sout << "Sigma " << EEpsilon << std::endl;
+            sout << "espTotal " << epsTotal << std::endl;
+            sout << "D Sigma_x/Deps" << diagdep;
+            Dep_mat.Print("depmat",sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+    }
+    {
+        std::stringstream sout;
+        sout << "eps = { "<< epsx << "};\n";
+        sout << "sig = { "<< sigx << "};\n";
+        sout << "dsigdeps = { " << dsig << " };\n";
+        sout << "epsv = { " << epsv << " };\n";
+        sout << "L = { " << L << " };\n";
+        sout << "depsvdl = { " << DepsVdL << " };\n";
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+    epsTotal = TPZTensor<REAL>();
+    */ 
+    ///
     // evaluating the plastic integration, stress tensor and jacobian
     //ProcessStrainNoSubIncrement(epsTotal,EAuto);
     ProcessStrain(epsTotal, EAuto);
@@ -2021,6 +2097,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
         TPZFNMatrix<nVars*nVars> *matc = new TPZFNMatrix<nVars*nVars>(nVars,nVars);
         *matc = Dep_mat;
         
+#ifdef LOG4CXX
+
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            Dep_mat.Print("Derivative",sout);
+            sout << "EEpsilon " << EEpsilon << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
         //              cout << "\nNewton Method Step " << k << "\nDep=" << Dep_mat << endl << residual_mat;
         //              cout.flush();
         
@@ -2034,23 +2121,40 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
         //cout << "\n solve ended:" << sol_mat;
         //cout.flush();
         
-        for(i = 0; i < nVars; i ++)epsTotal.fData[i] -= sol_mat(i,0);
+        TPZTensor<REAL> epsTotalPrev(epsTotal);
+        REAL scalefactor = 1.;
+        REAL resnormprev = resnorm;
         
-        //cout << "\nstarting ProcessStrain/ComputeDep";
-        //cout.flush();
-        
-        // evaluating the plastic integration, stress tensor and jacobian
-        //   ProcessStrainNoSubIncrement(epsTotal,ep);
-        ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
-        ComputeDep(EEpsilon, Dep_mat);
-        
-        //cout << "\nended ProcessStrain/ComputeDep";
-        //cout.flush();
-        
-        resnorm = 0.;
-        for(i = 0; i < nVars; i++)residual_mat(i,0) = EEpsilon.fData[i] - sigma.fData[i];
-        for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
-        resnorm = sqrt(resnorm);
+        do {
+            for(i = 0; i < nVars; i ++)epsTotal.fData[i] = epsTotalPrev.fData[i] - scalefactor*sol_mat(i,0);
+            
+#ifdef LOG4CXX
+            
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Next epsTotal " << epsTotal << std::endl;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            //cout << "\nstarting ProcessStrain/ComputeDep";
+            //cout.flush();
+            
+            // evaluating the plastic integration, stress tensor and jacobian
+            //   ProcessStrainNoSubIncrement(epsTotal,ep);
+            ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
+            ComputeDep(EEpsilon, Dep_mat);
+            
+            //cout << "\nended ProcessStrain/ComputeDep";
+            //cout.flush();
+            
+            resnorm = 0.;
+            for(i = 0; i < nVars; i++)residual_mat(i,0) = EEpsilon.fData[i] - sigma.fData[i];
+            for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
+            resnorm = sqrt(resnorm);
+
+            scalefactor *= 0.5;
+        } while (resnorm > resnormprev);
         //cout << "\nresidual = " << resnorm;
         
 #ifdef LOG4CXX
@@ -2225,6 +2329,49 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationOverview(TPZVec<REAL> & plasti
 }
 
 template <class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::Write(TPZStream &buf) const
+{
+    fYC.Write(buf);
+    fTFA.Write(buf);
+    fER.Write(buf);
+    buf.Write(&fResTol);
+    buf.Write(&fIntegrTol);
+    buf.Write(&fMaxNewton);
+    buf.Write(&fMinLambda);
+    buf.Write(&fMinStepSize);
+    fN.Write(buf);
+    if (fPlasticMem.NElements() > 0) {
+        DebugStop();
+    }
+    buf.Write(&fMaterialTensionSign);
+    buf.Write(&fInterfaceTensionSign);
+    buf.Write(&fMaterialElasticOrPlastic);
+    
+    
+}
+
+template <class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::Read(TPZStream &buf)
+{
+    fYC.Read(buf);
+    fTFA.Read(buf);
+    fER.Read(buf);
+    buf.Read(&fResTol);
+    buf.Read(&fIntegrTol);
+    buf.Read(&fMaxNewton);
+    buf.Read(&fMinLambda);
+    buf.Read(&fMinStepSize);
+    fN.Read(buf);
+    if (fPlasticMem.NElements() > 0) {
+        DebugStop();
+    }
+    buf.Read(&fMaterialTensionSign);
+    buf.Read(&fInterfaceTensionSign);
+    buf.Read(&fMaterialElasticOrPlastic);
+}
+
+
+template <class YC_t, class TF_t, class ER_t>
 TPZTensor<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::gRefDeform;
 
 
@@ -2328,9 +2475,54 @@ void  TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZEl
     }
 #endif
 }
+template <>
+void  TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::InitialGuess(
+                                                                                                             const TPZPlasticState<REAL> &N,
+                                                                                                             TPZPlasticState<REAL> &Np1,
+                                                                                                             TPZVec<REAL> &delGamma,
+                                                                                                             TPZVec<int> &validEqs
+                                                                                                             )
+{
+    TPZTensor<REAL> EpN = N.fEpsP;
+    TPZTensor<REAL> ETotal = Np1.fEpsT;
+    TPZTensor<REAL> ETrial = ETotal;
+    TPZTensor<REAL> sigmaTrial;
+    ETrial.Add(EpN, -1.);
+    fER.Compute(ETrial, sigmaTrial);
+    TPZTensor<REAL> sigproj;
+    fYC.InitialGuess(fER, N.fAlpha, sigmaTrial, Np1.fAlpha, delGamma, sigproj);
+    TPZTensor<REAL> sigPlast(sigmaTrial);
+    sigPlast.Add(sigproj, -1.);
+    fER.ComputeDeformation(sigPlast, Np1.fEpsP);
+    Np1.fEpsP.Add(N.fEpsP, 1.);
+    validEqs.Fill(0);
+    for (int i=0; i<2; i++) {
+        if (delGamma[i] > 0.) {
+            validEqs[i]=1;
+        }
+    }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "epsp next " << Np1.fAlpha << std::endl;
+        sout << "delGamma " << delGamma << std::endl;
+        sout << "validEqs " << validEqs << std::endl;
+        TPZManVector<REAL,2> Residual(2);
+        fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
+        sout << "residual before projection" << Residual << std::endl;
+        fYC.Compute(sigproj, Np1.fAlpha, Residual, 1);
+        sout << "residual after projection" << Residual << std::endl;
+        LOGPZ_DEBUG(loggerSM, sout.str())
+    }
+#endif
+}
 
 
 template class TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;
 
+template class TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;
+
 
 template void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<REAL>(TPZPlasticState<REAL> const&, TPZTensor<REAL>&, REAL&) const;
+
+template void TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<REAL>(TPZPlasticState<REAL> const&, TPZTensor<REAL>&, REAL&) const;

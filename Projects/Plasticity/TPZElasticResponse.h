@@ -28,7 +28,28 @@ public:
        fMu		= source.fMu;
 	   return *this;
    }
+    
+    REAL K() const
+    {
+        return fLambda+2.*fMu/3.;
+    }
+    
+    REAL G() const
+    {
+        return fMu;
+    }
 	
+    void Write(TPZStream &buf) const
+    {
+        buf.Write(&fLambda);
+        buf.Write(&fMu);
+    }
+    
+    void Read(TPZStream &buf)
+    {
+        buf.Read(&fLambda);
+        buf.Read(&fMu);        
+    }
    /**
 	* @brief Construtor da classe em funcao das variaveis de lame
 	* @param elast primeira variavel de lame

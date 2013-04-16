@@ -29,6 +29,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr EPAnalysisLogger(Logger::getLogger("analysis.elastoplastic"));
+static LoggerPtr loggertest(Logger::getLogger("testing"));
 #endif
 
 using namespace std;
@@ -92,6 +93,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 
    normRhs = this->LocalAssemble(0/*precondNormRhs*/);
 
+    
    UpdatePrecond();
 
 #ifdef LOG4CXX
@@ -110,7 +112,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 
     vector<REAL> normu, normf;
 
-    
+    REAL RhsNormPrev = Norm(fRhs);
 
    do{
 	  iter++;
@@ -132,28 +134,46 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	  fSolution = prevsol;
 	   
 */
-	  fSolution += prevSol; 
-	  prevSol = fSolution;
-	   
-	  TPZAnalysis::LoadSolution();
-       
  
 //
-//      TPZFMatrix nextSol;
-//      REAL LineSearchTol = 1e-3 * Norm(fSolution);
-//      const int niter = 5;
-//      this->LineSearch(prevSol, fSolution, nextSol, LineSearchTol, niter);
-//      fSolution = nextSol;
-            
-	   
-	  fRhs.Zero();
-	   
-	  normRhs = this->LocalAssemble(0/*precondNormRhs*/);
+       REAL RhsNormResult = RhsNormPrev;
+       if(1 && RhsNormResult > tol)
+       {
+          TPZFMatrix<STATE> nextSol, Solkeep(fSolution);
+          REAL LineSearchTol = 1e-3 * Norm(fSolution);
+          const int niter = 10;
+          REAL factor = this->LineSearch(prevSol, Solkeep, nextSol, RhsNormPrev, RhsNormResult, niter);
+           std::cout << "Line search factor " << factor << " iter " << iter << std::endl;
+//#ifdef DEBUG
+//           {
+//               std::cout << "Norm prevSol " << Norm(prevSol) << " Norm Solution " << Norm(Solkeep) << " Norm nextsol " << Norm(nextSol) << std::endl;
+//           }
+//#endif
+          fSolution = nextSol;
+           normRhs = RhsNormResult;
+       }
+       else {
+//#ifdef DEBUG
+//           {
+//               std::cout << "Norm prevSol " << Norm(prevSol) << " Norm Solution " << Norm(fSolution) << std::endl;
+//           }
+//#endif
+           fSolution += prevSol; 
+           TPZAnalysis::LoadSolution();
+           RhsNormResult = normRhs;
+           
+
+       }
+//       fRhs.Zero();
+//       normRhs = this->LocalAssemble(0/*precondNormRhs*/);
+
+       prevSol = fSolution;
+       RhsNormPrev = RhsNormResult;
 
 	   normu.push_back(normDelU);
        normf.push_back(normRhs);
 	   cout << "ITERACAO DE NEWTON = "<< iter <<endl;
-	   cout << "NORMA VETOR = "<< normRhs <<endl;
+	   cout << "NORMA VETOR RESIDUAL = "<< normRhs <<endl;
 	   cout << "NORMA normDelU = "<< normDelU <<endl;
 	   arg1 << iter <<"\t"<<normRhs << endl;
 	   arg2 << iter <<"\t"<<normDelU << endl;
@@ -199,7 +219,24 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 
 }
 
-REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter){
+REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter){
+    
+    TPZFMatrix<REAL> Interval = DeltaW;
+    REAL scalefactor = 1.;
+    int iter = 0;
+    do {
+        Interval *= scalefactor;
+        NextW = Wn;
+        NextW += Interval;
+        LoadSolution(NextW);
+//        AssembleResidual();
+        RhsNormResult = LocalAssemble(0);
+        std::cout << "Scale factor " << scalefactor << " resnorm " << RhsNormResult << std::endl;
+        scalefactor *= 0.5;
+        iter++;
+    } while (RhsNormResult > RhsNormPrev && iter < niter);
+    scalefactor *= 2.;
+    /*
 	REAL error = 2.*tol+1.;
 	REAL A, B, L, M;
 	TPZFMatrix<REAL> ak, bk, lambdak, muk, Interval;
@@ -289,7 +326,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix
 		}
 	}
 	//REAL MeanAlpha = sum/ncontrib;
-	alphafile << /*MeanAlpha << "\t" <<*/ "ALPHA = " << ALPHA << "\n";
+	alphafile << MeanAlpha << "\t" << "ALPHA = " << ALPHA << "\n";
 	alphafile.flush();
 #endif
 	
@@ -302,7 +339,8 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix
 		return 1.;
 	}
 	
-	return ALPHA;
+     */
+	return scalefactor;
 	
 }//void
 
@@ -317,39 +355,49 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	
 	TPZFMatrix<REAL> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
+    
+#ifdef LOG4CXX_keep
+    {
+        std::stringstream sout;
+        fSolution.Print("Solution for checkconv",sout);
+        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
+    }
+#endif
 	
 	if(checkconv){
 		TPZVec<REAL> coefs(1,1.);
-		TPZFMatrix<REAL> range(numeq,1,1.);
+		TPZFMatrix<REAL> range(numeq,1,1.e-5);
 		CheckConvergence(*this,fSolution,range,coefs);
 	}
+    
+    REAL RhsNormPrev = LocalAssemble(0);
 	
 	while(error > tol && iter < numiter) {
 		
 		fSolution.Redim(0,0);
-		Assemble();
-		Solve();
+        REAL RhsNormResult = 0.;
+		LocalSolve();
 		if (linesearch){
 			TPZFMatrix<REAL> nextSol;
-			REAL LineSearchTol = 1e-3 * Norm(fSolution);
 			const int niter = 10;
-			this->LineSearch(prevsol, fSolution, nextSol, LineSearchTol, niter);
+			this->LineSearch(prevsol, fSolution, nextSol, RhsNormPrev, RhsNormResult, niter);
 			fSolution = nextSol;
 		}
 		else{
 			fSolution += prevsol;
+            LoadSolution(fSolution);
+            AssembleResidual();
+            RhsNormResult = Norm(fRhs);
 		}
 		
 		prevsol -= fSolution;
 		REAL normDeltaSol = Norm(prevsol);
 		prevsol = fSolution;
-		this->LoadSolution(fSolution);
-		this->AssembleResidual();
-		REAL NormResLambda = Norm(fRhs);
-		REAL norm = NormResLambda;
+		REAL norm = RhsNormResult;
+        RhsNormPrev = RhsNormResult;
 		//       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
-        std::cout << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << endl;
-        std::cout << "Iteracao n : " << (iter+1) << " : fRhs : " << fRhs << endl;
+        std::cout << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << RhsNormResult << endl;
+//        std::cout << "Iteracao n : " << (iter+1) << " : fRhs : " << fRhs << endl;
 		
 		if(norm < tol) {
 			 std::cout << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
@@ -386,6 +434,17 @@ REAL TPZElastoPlasticAnalysis::LocalAssemble(int precond)
 	
     TPZMatrix<REAL> * pMatrix = TPZAnalysis::fSolver->Matrix().operator->();
 	
+    std::set<int>::iterator it;
+    for (it = fEquationstoZero.begin(); it != fEquationstoZero.end(); it++) {
+        int eq = *it;
+        for (int i=0; i<size; i++) {
+            pMatrix->Put(eq, i, 0.);
+            pMatrix->Put(i, eq, 0.);
+        }
+        pMatrix->Put(eq, eq, 1.);
+        fRhs.Put(eq, 0, 0.);
+    }
+    
     if(precond && pMatrix)
 	{
 		TPZFMatrix<REAL> localRhs = fRhs;
@@ -398,6 +457,16 @@ REAL TPZElastoPlasticAnalysis::LocalAssemble(int precond)
 	{
 		norm = Norm(fRhs);
 	}
+    
+#ifdef LOG4CXX
+    if (loggertest->isDebugEnabled()) {
+        std::stringstream sout;
+        pMatrix->Print("Global Matrix",sout);
+        fRhs.Print("Rhs", sout);
+        LOGPZ_DEBUG(loggertest, sout.str())
+    }
+#endif
+
 //	ofstream fileout("rigidez.nb");
 //	fSolver->Matrix()->Print("Rigidez = ", fileout, EMathematicaInput);
 //	#ifdef LOG4CXX
@@ -433,7 +502,10 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
 	}
 	#endif
 	
-	int i;
+    std::set<int>::iterator it;
+    for (it = fEquationstoZero.begin(); it != fEquationstoZero.end(); it++) {
+        fRhs(*it,0) = 0.;
+    }
 //	cout << "\nLocalSolve: fSolution=\n";
 //	for(i = 0; i < 4; i++)cout << "\t" << fSolution(i);
 
@@ -570,7 +642,7 @@ int TPZElastoPlasticAnalysis::NumCases(){
 
 void TPZElastoPlasticAnalysis::Residual(TPZFMatrix<REAL> &residual, int icase){
 	int neq = fCompMesh->NEquations();
-	TPZFMatrix<REAL> tangent(neq,neq);
+//	TPZFMatrix<REAL> tangent(neq,neq);
 	residual.Redim(neq,1);
 	TPZFStructMatrix substitute(Mesh());
 	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
@@ -959,4 +1031,46 @@ TPZCompEl * TPZElastoPlasticAnalysis::CreateTetraElWithMem(TPZGeoEl *gel, TPZCom
 TPZCompEl * TPZElastoPlasticAnalysis::CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int &index)
 {
 	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeTriang > >(mesh,gel,index);
+}
+
+void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
+{
+    fEquationstoZero.clear();
+    int nel = fCompMesh->NElements();
+    for (int iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = fCompMesh->ElementVec()[iel];
+        if (!cel) {
+            continue;
+        }
+        TPZMaterial *mat = cel->Material();
+        if (!mat) {
+            continue;
+        }
+        int matid = mat->Id();
+        if (fMaterialIds.find(matid) == fMaterialIds.end()) {
+            continue;
+        }
+        int direction = fMaterialIds[matid];
+        int nc = cel->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            int seqnum = c.SequenceNumber();
+            int pos = fCompMesh->Block().Position(seqnum);
+            int blsize = fCompMesh->Block().Size(seqnum);
+            for (int i=pos+direction; i<pos+blsize; i+=2) {
+                fEquationstoZero.insert(i);
+            }
+        }
+    }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "Equations to zero ";
+        std::set<int>::iterator it;
+        for (it=fEquationstoZero.begin(); it!= fEquationstoZero.end(); it++) {
+            sout << *it << " ";
+        }
+        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
+    }
+#endif
 }

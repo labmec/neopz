@@ -82,6 +82,25 @@ public:
     template <class T> 
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
 
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
+    
+    void Write(TPZStream &buf) const
+    {
+        
+    }
+
+    void Read(TPZStream &buf)
+    {
+        
+    }
+    
 public:
 //////////////////CheckConv related methods/////////////////////
 
@@ -190,12 +209,12 @@ public:
 
 
 template <class T>
-void TPZYCVonMises::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const{
+void TPZYCVonMises::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &phi, int checkForcedYield) const{
 	
 	T J2 = sigma.J2();
 	T temp = sqrt(T(3.)*J2);
 	T result = temp-A;
-    res[0] = result;
+    phi[0] = result;
 }
 
 template <class T> 

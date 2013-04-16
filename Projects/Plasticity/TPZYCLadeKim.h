@@ -57,7 +57,33 @@ public:
 		fForceYield = source.fForceYield;
 		return *this;
     }
+    
+    void Write(TPZStream &buf) const
+    {
+        buf.Write(&fKsi1);
+        buf.Write(&fh);
+        buf.Write(&fAlpha);
+        buf.Write(&fKsi2);
+        buf.Write(&fMu);
+        buf.Write(&fNeta1);
+        buf.Write(&fm);
+        buf.Write(&fPa);
+        buf.Write(&fForceYield);
+    }
 
+    void Read(TPZStream &buf)
+    {
+        buf.Read(&fKsi1);
+        buf.Read(&fh);
+        buf.Read(&fAlpha);
+        buf.Read(&fKsi2);
+        buf.Read(&fMu);
+        buf.Read(&fNeta1);
+        buf.Read(&fm);
+        buf.Read(&fPa);
+        buf.Read(&fForceYield);
+    }
+    
 	const char * Name() const
     {
 	   return "TPZYCLadeKim";	
@@ -138,6 +164,15 @@ public:
        fm     = m;
        fPa    = pa;
 	
+    }
+
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
     }
 
 	/**

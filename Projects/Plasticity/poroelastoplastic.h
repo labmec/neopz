@@ -13,7 +13,7 @@ class TPZCompMesh;
 class TPZMaterial;
 #include "TPZTensor.h"
 
-void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement);
+void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
 
 #endif

@@ -52,7 +52,19 @@ public:
 	{
 		// nothing to be done in this yield criterium
 	}
+    
+    void Write(TPZStream &buf) const
+    {
+        fVonMises.Write(buf);
+        fTresca.Write(buf);
+    }
 		
+    void Read(TPZStream &buf) 
+    {
+        fVonMises.Read(buf);
+        fTresca.Read(buf);
+    }
+    
 protected:
   /** @brief Pointer to Von Mises's yield criteria object */
   TPZYCVonMises fVonMises;
@@ -97,6 +109,14 @@ public:
   template <class T>
   void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
 
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
     
 public:
 

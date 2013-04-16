@@ -50,6 +50,15 @@ public:
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
+    void Write(TPZStream &buf) const
+    {
+        
+    }
+    
+    void Read(TPZStream &buf)
+    {
+        
+    }
 private:
 
 };

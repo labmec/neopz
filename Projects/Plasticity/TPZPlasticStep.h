@@ -43,6 +43,8 @@ public:
 	virtual const char * Name()const = 0;
 	virtual void Print(std::ostream & out)const = 0;
 	virtual void SetTensionSign(int sign) = 0;
+    //virtual void Write(TPZStream &buf) const = 0;
+    virtual void Read(TPZStream &buf) = 0;
 	
 };
 
@@ -163,6 +165,14 @@ public:
 	 */
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
 	
+    /**
+     * @brief Reset the plastic memory
+     */
+    void ResetPlasticMem()
+    {
+        fPlasticMem.Resize(0);
+    }
+    
 	/**
 	 * Defines whether the tension/extension sign is desired by the external user.
 	 *
@@ -558,7 +568,15 @@ protected:
 	
 public:
 	void SetMaterialElasticOrPlastic(int choice=1/*plastic*/);
+    
+    void SetResidualTolerance(STATE tol)
+    {
+        fResTol = tol;
+    }
 	
+    virtual void Write(TPZStream &buf) const;
+    
+    virtual void Read(TPZStream &buf);
 public:
 	
     /** @brief Object which represents the yield criterium */
@@ -569,11 +587,12 @@ public:
     ER_t fER;
 	
 	
-public:
+protected:
 	
 	/** @brief Residual tolerance accepted in the plastic loop processes */
 	REAL fResTol;
 	
+public:
 	/** @brief Tolerance desired in the Plastic integration processes */
 	REAL fIntegrTol;
 	

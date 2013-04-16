@@ -37,7 +37,7 @@
  * fact that the elastic response and the plastic flow rules are 
  * singular at null stresses.
 */
-class TPZLadeKim : public LADEKIMPARENT, public TPZSaveable  {
+class TPZLadeKim : public LADEKIMPARENT  {
 
 public:
 
@@ -122,9 +122,9 @@ public:
 		return TPZLADEKIM_ID;	
 	}
 	
-	virtual void Write(TPZStream &buf, int withclassid)
+	virtual void Write(TPZStream &buf) const
 	{
-	   TPZSaveable::Write(buf, withclassid);
+	   LADEKIMPARENT::Write(buf);
 
 	   buf. Write(&faPa, 1);	
 	   buf. Write(&fInitialEps.fEpsT[0], 6);
@@ -136,9 +136,28 @@ public:
 	   buf. Write(&fYC.fAlpha, 1);
 	   buf. Write(&fYC.fKsi2, 1);
 	   buf. Write(&fYC.fMu, 1);
-	   fPlasticMem.Resize(0);
+        
+        fInitialEps.Write(buf);
 	}
 
+	virtual void Read(TPZStream &buf) 
+	{
+        LADEKIMPARENT::Read(buf);
+        
+        buf. Read(&faPa, 1);	
+        buf. Read(&fInitialEps.fEpsT[0], 6);
+        buf. Read(&fInitialEps.fEpsP[0], 6);
+        buf. Read(&fInitialEps.fAlpha, 1);			
+		
+        buf. Read(&fYC.fKsi1, 1);
+        buf. Read(&fYC.fh, 1);
+        buf. Read(&fYC.fAlpha, 1);
+        buf. Read(&fYC.fKsi2, 1);
+        buf. Read(&fYC.fMu, 1);
+        
+        fInitialEps.Read(buf);
+	}
+    
     /**
     Set the plastic state variables
     */

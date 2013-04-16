@@ -26,7 +26,7 @@
 #define WILLAMWARNKEPARENT TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse>
 
 
-class TPZWillamWarnke : public WILLAMWARNKEPARENT, public TPZSaveable  {
+class TPZWillamWarnke : public WILLAMWARNKEPARENT  {
 	
 public:
 	
@@ -99,16 +99,27 @@ public:
 		return TPZWILLAMWARNKEPARENT_ID;	
 	}
 	
-	virtual void Write(TPZStream &buf, int withclassid)
+	virtual void Write(TPZStream &buf) const
 	{
-		TPZSaveable::Write(buf, withclassid);
 		
-		buf. Write(&faPa, 1);	
-		buf. Write(&fInitialEps.fEpsT.fData[0], 6);
-		buf. Write(&fInitialEps.fEpsP.fData[0], 6);
-		buf. Write(&fInitialEps.fAlpha, 1);			
+		buf. Write(&faPa, 1);
+        fInitialEps.Write(buf);
+//		buf. Write(&fInitialEps.fEpsT.fData[0], 6);
+//		buf. Write(&fInitialEps.fEpsP.fData[0], 6);
+//		buf. Write(&fInitialEps.fAlpha, 1);			
 		
-		fPlasticMem.Resize(0);
+//		fPlasticMem.Resize(0);
+	}
+	
+	virtual void Read(TPZStream &buf)
+	{		
+		buf. Read(&faPa, 1);
+        fInitialEps.Read(buf);
+//		buf. Read(&fInitialEps.fEpsT.fData[0], 6);
+//		buf. Read(&fInitialEps.fEpsP.fData[0], 6);
+//		buf. Read(&fInitialEps.fAlpha, 1);			
+		
+        //		fPlasticMem.Resize(0);
 	}
 	
 	
@@ -119,7 +130,7 @@ private:
     REAL faPa;
 	
 
-    TPZPlasticState<REAL> fInitialEps;
+    TPZPlasticState<STATE> fInitialEps;
 	
 	
 };

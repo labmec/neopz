@@ -120,7 +120,17 @@ public:
     template <class T> 
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
 	
-	virtual void Write(TPZStream &buf, int withclassid);
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
+    
+    
+	virtual void Write(TPZStream &buf, int withclassid) const;
 	virtual void Read(TPZStream &buf, void *context);
 	virtual int ClassId() const;
 
@@ -275,16 +285,17 @@ void TPZYCDruckerPrager::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h
 }
 
 
-inline void TPZYCDruckerPrager::Write(TPZStream &buf, int withclassid)
+inline void TPZYCDruckerPrager::Write(TPZStream &buf, int withclassid = 0) const
 {
 }
-inline void TPZYCDruckerPrager::Read(TPZStream &buf, void *context)
+inline void TPZYCDruckerPrager::Read(TPZStream &buf, void *context = 0)
 {
 }
 inline int TPZYCDruckerPrager::ClassId() const
 {
-	return 888888;
+	return 888889;
 }
-inline template class TPZRestoreClass<TPZYCDruckerPrager, 888888> ;
+
+template class TPZRestoreClass<TPZYCDruckerPrager, 888889> ;
 
 #endif//TPZYDruckerPrager

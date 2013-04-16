@@ -34,7 +34,7 @@ public:
 
   enum {NYield = 2};
 	
-    TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.){ }
+    TPZYCSandlerDimaggio():fA(0.),fB(0.),fC(0.),fD(0.),fW(0.),fR(0.), fIsonCap(false){ }
 	
     TPZYCSandlerDimaggio(const TPZYCSandlerDimaggio & source)
     {
@@ -44,6 +44,7 @@ public:
 		fD = source.fD;
 		fW = source.fW;
 		fR = source.fR;
+        fIsonCap = source.fIsonCap;
     }
 
     TPZYCSandlerDimaggio & operator=(const TPZYCSandlerDimaggio & source)
@@ -54,7 +55,33 @@ public:
 		fD = source.fD;
 		fW = source.fW;
 		fR = source.fR;
+        fIsonCap = source.fIsonCap;
 		return *this;
+    }
+    
+    void Write(TPZStream &buf) const
+    {
+        buf.Write(&fA);
+        buf.Write(&fB);
+        buf.Write(&fC);
+        buf.Write(&fD);
+        buf.Write(&fW);
+        buf.Write(&fR);
+    }
+    
+    void Read(TPZStream &buf)
+    {
+        buf.Read(&fA);
+        buf.Read(&fB);
+        buf.Read(&fC);
+        buf.Read(&fD);
+        buf.Read(&fW);
+        buf.Read(&fR);
+    }
+    
+    virtual ~TPZYCSandlerDimaggio()
+    {
+        
     }
 
 	const char * Name() const
@@ -71,6 +98,7 @@ public:
 		out << "\n fD = " << fD;
 		out << "\n fR = " << fR;
 		out << "\n fW = " << fW;
+        out << "\n IsonCap " << fIsonCap;
     }
 	
 	int GetForceYield()
@@ -133,6 +161,22 @@ public:
 	   fD = D;
 	   fR = R;
 	   fW = W;
+        fIsonCap = false;
+    }
+    
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
+
+    
+    inline REAL InitialDamage()
+    {
+        return 0.;
     }
     
     /**
@@ -149,11 +193,11 @@ public:
                       TPZVec<REAL> &delgamma, TPZTensor<REAL> &sigproj);
 
     /**
-     * value of x for which F(x)=0
+     * value of x for which F(x)=0.1 fA
      */
     REAL FZero() const
     {
-        return log(fA/fC)/fB;
+        return log(0.9*fA/fC)/fB;
     }
     
     /**
@@ -161,9 +205,28 @@ public:
      */
     REAL LMax() const
     {
-        return FZero()-0.001;
+        return FZero();
     }
-private:
+    
+    /**
+     * compute epsp as a function from L
+     */
+    template<class T>
+    void EpspFromL(const T &L, T &epsp) const;
+    
+    /**
+     * compute the derivative of epsp as a function from L
+     */
+    template<class T>
+    void DEpspDL(const T &L, T& depspdL) const;
+    
+    /**
+     * compute the second derivative of epsp as a function from L
+     */
+    template<class T>
+    void D2EpspDL2(const T &L, T& d2epspdL2) const;
+    
+public:
    /**
     Solves for the invariant I1 value at the intersection
 	of shear and hardening cap yield criteria. 
@@ -172,8 +235,9 @@ private:
 	In this implementation L should be negative in compression.
    */
    template <class T>
-   void SolveL(const T & X, T & L, REAL relTol = 1.e-6) const;
+   void SolveL(const T & X, T & L, REAL relTol = 1.e-10) const;
 
+protected:
     /** compute the derivative of the L function as a function of epsp (A)
      * @param[in] L value of the L function corresponding to A
      * @param[in] value of the volumetric plastic strain
@@ -199,7 +263,28 @@ private:
    */
    template <class T>
    void ComputedF(const T & L, T & dF) const;
+    
+    /**
+     * Compute the second derivative of F
+     */
+    void ComputeD2F(REAL L, REAL &D2F) const;
+    
+    /**
+     * @brief compute the distance between the trial point and the point on the F1 curve
+     */
+    REAL Distance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const;
+    
+    /**
+     * @brief compute the derivative of the distance with respect to L
+     */
+    REAL DDistance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const;
+    
+    /**
+     * @brief compute the second derivative of the distance with respect to L
+     */
+    REAL D2Distance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const;
 
+public:
    /**
     Evaluates X(EpsilonPvol), the value of the first invariant
 	of an hidrostatic stress tensor at the cap yield surface.
@@ -208,6 +293,7 @@ private:
    template <class T>
    void ComputeX(const T & A, T & X) const;
     
+protected:
     /**
      * Computes the value of volumetric plastic strain as a function of L
      */
@@ -231,75 +317,48 @@ private:
         REAL F;
         ComputeF(L, F);
         const REAL K = ER.fLambda+2.*ER.fMu/3.;
-        REAL funcepsp = 3.*K*delepsp-(sigtrialIJ[0]-(L+F*fR*cos(theta)));
+        REAL fac1 = 3.*K*delepsp;
+        REAL fac2 = (sigtrialIJ[0]-(L+F*fR*cos(theta)));
+
+        REAL funcepsp = fac1-fac2;
         return funcepsp;
     }
     
     /**
-     * compute the value of the equation which determines the orthogonality of the projection
+     Compute the value of the equation which equates the evolution of the plastic deformation
      */
-    REAL FuncTheta(const TPZElasticResponse &ER, REAL theta, REAL epsp, REAL delepsp, TPZVec<REAL> &sigtrialIJ) const
+    REAL FuncEpspUsingL(const TPZElasticResponse &ER, REAL theta, REAL epspini, REAL L, TPZVec<REAL> &sigtrialIJ)
     {
-        REAL I1 = sigtrialIJ[0];
-        REAL sqJ2 = sigtrialIJ[1];
-        REAL X,L;
-        ComputeX(epsp+delepsp, X);
-        SolveL(X, L);
+        REAL epsp = ComputeEpsp(L);
+        REAL delepsp = epsp - epspini;
         REAL F;
         ComputeF(L, F);
         const REAL K = ER.fLambda+2.*ER.fMu/3.;
-        const REAL G = ER.fMu;
-        REAL y = 9.*K*(sqJ2-F*sin(theta));
-        REAL x = G*fR*(I1-(L+F*fR*cos(theta)));
-        REAL res = theta-atan2(y, x);
-        return res;
-    }
-    /**
-     * compute the value of the equation which determines the orthogonality of the projection
-     */
-    REAL FuncTheta2(const TPZElasticResponse &ER, REAL theta, REAL epsp, REAL delepsp, TPZVec<REAL> &sigtrialIJ) const
-    {
-        REAL I1 = sigtrialIJ[0];
-        REAL sqJ2 = sigtrialIJ[1];
-        REAL X,L;
-        ComputeX(epsp+delepsp, X);
-        SolveL(X, L);
-        REAL F;
-        ComputeF(L, F);
-        const REAL K = ER.fLambda+2.*ER.fMu/3.;
-        const REAL G = ER.fMu;
-        REAL y = (sqJ2-F*sin(theta));
-        REAL x = G*fR/(9.*K)*(I1-(L+F*fR*cos(theta)));
-        REAL res = x*sin(theta)-y*cos(theta);
-#ifdef LOG4CXX
-        {
-            std::stringstream sout;
-            sout << "x = " << x << " y = " << y << " theta = " << theta << " res = " << res;
-            LOGPZ_DEBUG(loggerSM, sout.str())
-        }
-#endif
-        return res;
-    }
-    /**
-     * compute the value of the distance which determines the orthogonality of the projection
-     */
-    REAL DistTheta(const TPZElasticResponse &ER, REAL theta, REAL epsp, REAL delepsp, TPZVec<REAL> &sigtrialIJ) const
-    {
-        REAL I1 = sigtrialIJ[0];
-        REAL sqJ2 = sigtrialIJ[1];
-        REAL X,L;
-        ComputeX(epsp+delepsp, X);
-        SolveL(X, L);
-        REAL F;
-        ComputeF(L, F);
-        const REAL K = ER.fLambda+2.*ER.fMu/3.;
-        const REAL G = ER.fMu;
-        REAL y = (sqJ2-F*sin(theta));
-        REAL x = (I1-(L+F*fR*cos(theta)));
-        REAL dist = G*x*x/2.+9.*K*y*y/2.;
-        return dist;
+        REAL fac1 = 3.*K*delepsp;
+        REAL fac2 = (sigtrialIJ[0]-(L+F*fR*cos(theta)));
+        
+        REAL funcepsp = fac1-fac2;
+        return funcepsp;
     }
     
+    /**
+     * compute the derivative of the function FuncEpsp with respect to theta and delepsp
+     */
+    void DFuncEpspUsingL(const TPZElasticResponse &ER, REAL theta, REAL L, TPZVec<REAL> &sigtrialIJ, TPZVec<REAL> &result) const
+    {
+        REAL DepspDL, Dtheta, DerivL;
+        DEpspDL(L, DepspDL);
+        REAL F,DF;
+        ComputeF(L, F);
+        ComputedF(L, DF);
+        Dtheta = -F*fR*sin(theta);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        DerivL = 3.*K*DepspDL+(1.+DF*fR*cos(theta));
+        result[0] = Dtheta;
+        result[1] = DerivL;
+        
+    }
+
     /**
      * compute the derivative of the function FuncEpsp with respect to theta and delepsp
      */
@@ -318,6 +377,144 @@ private:
         Depsp = 3.*K+(DL+DF*fR*cos(theta));
         result[0] = Dtheta;
         result[1] = Depsp;        
+    }
+    
+    /**
+     Compute the value of the equation which equates the evolution of the plastic deformation
+     */
+    REAL FuncEpspL(const TPZElasticResponse &ER, REAL theta, REAL L, REAL deltaL, TPZVec<REAL> &sigtrialIJ)
+    {
+        REAL DepspDL;
+        DEpspDL(L, DepspDL);
+        REAL F;
+        ComputeF(L, F);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        REAL fac1 = 3.*K*deltaL*DepspDL;
+        REAL fac2 = (sigtrialIJ[0]-(L+F*fR*cos(theta)));
+        REAL funcepsp = fac1-fac2;
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "funcepsp " << funcepsp << " theta " << theta << " L " << L << " deltaL " << deltaL;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
+#ifdef DEBUG2
+        REAL epsp,epspini;
+        EpspFromL(L, epsp);
+        EpspFromL(L-deltaL, epspini);
+        REAL funcepsp2 = FuncEpsp(ER, theta, epspini, epsp-epspini, sigtrialIJ);
+        REAL diff = 3.*K*((deltaL*DepspDL)-(epsp-epspini));
+        REAL diff2 = funcepsp-funcepsp2;
+#endif
+        return funcepsp;
+    }
+    
+    /**
+     * compute the derivative of the function FuncEpsp with respect to theta and delepsp
+     */
+    void DFuncEpspL(const TPZElasticResponse &ER, REAL theta, REAL L, REAL deltaL, TPZVec<REAL> &sigtrialIJ, TPZVec<REAL> &result) const
+    {
+        REAL DepspDL, D2epspDL2, Dtheta, DerivL;
+        DEpspDL(L, DepspDL);
+        D2EpspDL2(L, D2epspDL2);
+        REAL F,DF;
+        ComputeF(L, F);
+        ComputedF(L, DF);
+        Dtheta = -F*fR*sin(theta);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        DerivL = 3.*K*DepspDL+3.*K*deltaL*D2epspDL2+(1.+DF*fR*cos(theta));
+        result[0] = Dtheta;
+        result[1] = DerivL;
+        
+    }
+    /**
+     * compute the value of the equation which determines the orthogonality of the projection
+     */
+    REAL FuncThetaL(const TPZElasticResponse &ER, REAL theta, REAL L, TPZVec<REAL> &sigtrialIJ) const
+    {
+        REAL I1 = sigtrialIJ[0];
+        REAL sqJ2 = sigtrialIJ[1];
+        REAL F;
+        ComputeF(L, F);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        const REAL G = ER.fMu;
+        REAL y = 9.*K*(sqJ2-F*sin(theta));
+        REAL x = G*fR*(I1-(L+F*fR*cos(theta)));
+        REAL res = theta-atan2(y, x);
+        return res;
+    }
+    
+    /**
+     * compute the value of the equation which determines the orthogonality of the projection
+     */
+    REAL FuncTheta(const TPZElasticResponse &ER, REAL theta, REAL epsp, REAL delepsp, TPZVec<REAL> &sigtrialIJ) const
+    {
+        REAL X,L;
+        ComputeX(epsp+delepsp, X);
+        SolveL(X, L);
+        REAL res = FuncThetaL(ER, theta, L, sigtrialIJ);
+        return res;
+    }
+    
+    /**
+     * compute the value of the equation which determines the orthogonality of the projection
+     */
+    REAL FuncTheta2L(const TPZElasticResponse &ER, REAL theta, REAL L, TPZVec<REAL> &sigtrialIJ) const
+    {
+        REAL I1 = sigtrialIJ[0];
+        REAL sqJ2 = sigtrialIJ[1];
+        REAL F;
+        ComputeF(L, F);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        const REAL G = ER.fMu;
+        REAL y = (sqJ2-F*sin(theta));
+        REAL x = G*fR/(9.*K)*(I1-(L+F*fR*cos(theta)));
+        REAL res = x*sin(theta)-y*cos(theta);
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "x = " << x << " y = " << y << " theta = " << theta << " res = " << res;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
+        return res;
+    }
+    /**
+     * compute the value of the equation which determines the orthogonality of the projection
+     */
+    REAL FuncTheta2(const TPZElasticResponse &ER, REAL theta, REAL epsp, REAL delepsp, TPZVec<REAL> &sigtrialIJ) const
+    {
+        REAL X,L;
+        ComputeX(epsp+delepsp, X);
+        SolveL(X, L);
+        return FuncTheta2L(ER, theta, L, sigtrialIJ);
+    }
+    /**
+     * compute the value of the distance which determines the orthogonality of the projection
+     */
+    REAL DistThetaL(const TPZElasticResponse &ER, REAL theta, REAL L, TPZVec<REAL> &sigtrialIJ) const
+    {
+        REAL I1 = sigtrialIJ[0];
+        REAL sqJ2 = sigtrialIJ[1];
+        REAL F;
+        ComputeF(L, F);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        const REAL G = ER.fMu;
+        REAL y = (sqJ2-F*sin(theta));
+        REAL x = (I1-(L+F*fR*cos(theta)));
+        REAL dist = G*x*x/2.+9.*K*y*y/2.;
+        return dist;
+    }
+    /**
+     * compute the value of the distance which determines the orthogonality of the projection
+     */
+    REAL DistTheta(const TPZElasticResponse &ER, REAL theta, REAL epsp, REAL delepsp, TPZVec<REAL> &sigtrialIJ) const
+    {
+        REAL X,L;
+        ComputeX(epsp+delepsp, X);
+        SolveL(X, L);
+        return DistThetaL(ER, theta, L, sigtrialIJ);
     }
     
     /**
@@ -379,16 +576,51 @@ private:
         result[1] = Depsp;
     }
     
+    /**
+     * compute the derivative of the function FuncTheta with respect to theta and delepsp
+     */
+    void DFuncTheta2L(const TPZElasticResponse &ER, REAL theta, REAL L, TPZVec<REAL> &sigtrialIJ, TPZVec<REAL> &result) const
+    {
+        REAL I1 = sigtrialIJ[0];
+        REAL sqJ2 = sigtrialIJ[1];
+        REAL DL,F,DF,Dtheta,Depsp;
+        DL = 1.;
+        ComputeF(L, F);
+        ComputedF(L, DF);
+        const REAL K = ER.fLambda+2.*ER.fMu/3.;
+        const REAL G = ER.fMu;
+        REAL x = G*fR/(9.*K)*(I1-(L+F*fR*cos(theta)));
+        REAL y = (sqJ2-F*sin(theta));
+        REAL dxepsp = -G*fR/(9.*K)*(DL+DF*fR*cos(theta));
+        REAL dyepsp = -DF*sin(theta);
+        REAL dxtheta = G*fR/(9.*K)*F*fR*sin(theta);
+        REAL dytheta = -F*cos(theta);
+        Dtheta = dxtheta*sin(theta)-dytheta*cos(theta)+x*cos(theta)+y*sin(theta);
+        Depsp = dxepsp*sin(theta)-dyepsp*cos(theta);
+        result[0] = Dtheta;
+        result[1] = Depsp;
+    }
+    
     void UpdateSigtrialIJ(const TPZElasticResponse &ER, REAL epsp, REAL theta, TPZVec<REAL> &sigtrialIJ)
     {
-        REAL X,L,F;
+        REAL X,L;
         ComputeX(epsp, X);
         LInitialGuess(X, L);
         SolveL(X, L);
+        UpdateSigtrialIJL(ER, L, theta, sigtrialIJ);
+    }
+    
+    void UpdateSigtrialIJL(const TPZElasticResponse &ER, REAL L, REAL theta, TPZVec<REAL> &sigtrialIJ)
+    {
+        REAL F;
         ComputeF(L,F);
         sigtrialIJ[0] = L+F*fR*cos(theta);
         sigtrialIJ[1] = F*sin(theta);
     }
+    
+protected:
+    /// Projeto o ponto sobre a superficie F1, atualiza o L
+    void NewtonF1(const TPZElasticResponse &ER, REAL &L, TPZVec<REAL> &sigtrialIJ);
     
 	void NewtonF2(const TPZElasticResponse &ER, REAL &epsp, TPZVec<REAL> &sigtrialIJ)
     {
@@ -503,6 +735,233 @@ private:
         epsp += delepsp;
         UpdateSigtrialIJ(ER, epsp, theta, sigtrialIJ);
     }
+
+    void NewtonF3(const TPZElasticResponse &ER, REAL &epsp, TPZVec<REAL> &sigtrialIJ)
+    {
+        REAL restheta, resdelepsp,disttheta;
+        REAL theta = 0.;
+        REAL epspini = epsp;
+        REAL X,L,F;
+        ComputeX(epsp, X);
+        LInitialGuess(X, L);
+        SolveL(X, L);
+        ComputeF(L, F);
+        REAL Lini = L;
+        disttheta = DistThetaL(ER, theta, L, sigtrialIJ);
+        // Look for a best guess for theta
+        for (REAL thetaguess=0.; thetaguess <= M_PI; thetaguess += M_PI/20.) {
+            REAL distnew = DistThetaL(ER, thetaguess, L, sigtrialIJ);
+            if (fabs(distnew) < fabs(disttheta)) {
+                theta = thetaguess;
+                disttheta = distnew;
+            }
+        }
+        bool secondquadrant = false;
+        if (sigtrialIJ[0] < L) {
+            secondquadrant = true;
+        }
+        if (theta < M_PI/2 && secondquadrant) {
+            theta = M_PI/2+M_PI/20.;
+        }
+        if (L < -5.) {
+            REAL arcs = sigtrialIJ[1]/F;
+            if (arcs < 1.) {
+                theta = asin(arcs);
+                if (secondquadrant) {
+                    theta = M_PI-theta;
+                }
+            }
+            L = sigtrialIJ[0]-F*fR*cos(theta);
+        }
+        
+        // perform Newton iterations
+        restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
+        resdelepsp = FuncEpspUsingL(ER, theta, epspini, L, sigtrialIJ);
+        REAL error = sqrt(restheta*restheta+resdelepsp*resdelepsp);
+        int count = 0;
+        while((fabs(restheta) > 1.e-13 || fabs(resdelepsp) > 1.e-13) && count < 100)
+        {
+            REAL errprev = error;
+            TPZFNMatrix<4,REAL> tangent(2,2);
+            TPZFNMatrix<2,REAL> resmat(2,1);
+            TPZManVector<REAL,2> tantheta(2,0.), tandelepsp(2,0.);
+            DFuncEpspUsingL(ER, theta, L, sigtrialIJ, tandelepsp);
+            DFuncTheta2L(ER, theta, L, sigtrialIJ, tantheta);
+            for (int i=0; i<2; i++) {
+                tangent(1,i) = tandelepsp[i];
+                tangent(0,i) = tantheta[i];
+            }
+            resmat(0,0) = restheta;
+            resmat(1,0) = resdelepsp;
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                tangent.Print("tangent matrix",sout);
+                resmat.Print("residual",sout);
+                LOGPZ_DEBUG(loggerSM, sout.str())
+            }
+#endif
+            std::list<int> singular;
+            tangent.SolveDirect(resmat, ELU, singular);
+            REAL thetaprev = theta;
+            REAL Lprev = L;
+            theta = thetaprev-resmat(0,0);
+            L = Lprev-resmat(1,0);
+            restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
+            resdelepsp = FuncEpspUsingL(ER, theta, epspini, L, sigtrialIJ);
+            error = sqrt(restheta*restheta+resdelepsp*resdelepsp);
+            int iline = 0;
+            while(error > errprev && iline < 5)
+            {
+                resmat *= 0.5;
+                theta = thetaprev-resmat(0,0);
+                L = Lprev-resmat(1,0);
+                restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
+                resdelepsp = FuncEpspUsingL(ER, theta, epspini, L, sigtrialIJ);
+                error = sqrt(restheta*restheta+resdelepsp*resdelepsp);
+                iline++;
+            }
+            count++;
+        }
+#ifdef LOG4CXX
+        if(count > 10)
+        {
+            std::stringstream sout;
+            sout << "iteration count " << count;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
+        
+        epsp = ComputeEpsp(L);
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "sigtrialIJ input " << sigtrialIJ << " epsp input " << epspini << "\ndelepsp = " << epsp-epspini
+            << " theta = " << theta << " Linitial " << Lini << " L " << L;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
+        UpdateSigtrialIJL(ER, L, theta, sigtrialIJ);
+    }
+
+protected:
+    
+	void NewtonF2L(const TPZElasticResponse &ER, REAL &L, TPZVec<REAL> &sigtrialIJ)
+    {
+        REAL restheta, resdeltaL,disttheta;
+        REAL theta = 0.;
+        disttheta = DistThetaL(ER, theta, L, sigtrialIJ);
+        // Look for a best guess for theta
+        for (REAL thetaguess=0.; thetaguess <= M_PI; thetaguess += M_PI/20.) {
+            REAL distnew = DistThetaL(ER, thetaguess, L, sigtrialIJ);
+            if (fabs(distnew) < fabs(disttheta)) {
+                theta = thetaguess;
+                disttheta = distnew;
+            }
+        }
+        REAL Lini(L),Fini;
+        ComputeF(Lini, Fini);
+        bool secondquadrant = false;
+        if (sigtrialIJ[0] < Lini) {
+            secondquadrant = true;
+        }
+        if (theta < M_PI/2 && secondquadrant) {
+            theta = M_PI/2+M_PI/20.;
+        }
+        REAL deltaL = 0.;
+//        if (Lini < -5. || sigtrialIJ[0] < -5.) {
+        if (Lini < -5. && sigtrialIJ[0] < 0.) {
+            REAL arcs = sigtrialIJ[1]/Fini;
+            if (arcs < 1.) {
+                theta = asin(arcs);
+                if (secondquadrant) {
+                    theta = M_PI-theta;
+                }
+            }
+            L = sigtrialIJ[0]-Fini*fR*cos(theta);
+            deltaL = L-Lini;
+        }
+        
+        // perform Newton iterations
+        restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
+        resdeltaL = FuncEpspL(ER, theta, L, deltaL, sigtrialIJ);
+        REAL error = sqrt(restheta*restheta+resdeltaL*resdeltaL);
+        int count = 0;
+        REAL diagTheta = 1., diagL = 1.;
+        REAL maxres = max(fabs(restheta/diagTheta),fabs(resdeltaL/diagL));
+        REAL maxresprev = maxres+1.;
+        while((maxres > 1.e-10 || maxres < maxresprev) && count < 150)
+        {
+            maxresprev = maxres;
+            REAL errprev = error;
+            TPZFNMatrix<4,REAL> tangent(2,2);
+            TPZFNMatrix<2,REAL> resmat(2,1);
+            TPZManVector<REAL,2> tantheta(2,0.), tandeltaL(2,0.);
+            DFuncEpspL(ER, theta, L, deltaL, sigtrialIJ, tandeltaL);
+            DFuncTheta2L(ER, theta, L, sigtrialIJ, tantheta);
+            for (int i=0; i<2; i++) {
+                tangent(1,i) = tandeltaL[i];
+                tangent(0,i) = tantheta[i];
+            }
+            diagTheta = tangent(0,0);
+            diagL = tangent(1,1);
+            resmat(0,0) = restheta;
+            resmat(1,0) = resdeltaL;
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                tangent.Print("tangent matrix",sout);
+                resmat.Print("residual",sout);
+                LOGPZ_DEBUG(loggerSM, sout.str())
+            }
+#endif
+            std::list<int> singular;
+            tangent.SolveDirect(resmat, ELU, singular);
+            REAL thetaprev = theta;
+            REAL deltaLprev = deltaL;
+            theta = thetaprev-resmat(0,0);
+            deltaL = deltaLprev-resmat(1,0);
+            L = Lini+deltaL;
+            restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
+            resdeltaL = FuncEpspL(ER, theta, L, deltaL, sigtrialIJ);
+            error = sqrt(restheta*restheta+resdeltaL*resdeltaL);
+            int iline = 0;
+            while(error > errprev && iline < 5 && maxres > 1.e-10)
+            {
+                resmat *= 0.5;
+                theta = thetaprev-resmat(0,0);
+                deltaL = deltaLprev-resmat(1,0);
+                L = Lini + deltaL;
+                restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
+                resdeltaL = FuncEpspL(ER, theta, L, deltaL, sigtrialIJ);
+                error = sqrt(restheta*restheta+resdeltaL*resdeltaL);
+                iline++;
+            }
+            maxres = max(fabs(restheta/diagTheta),fabs(resdeltaL/diagL));
+            count++;
+            if (count > 9 && maxres < 1.e-10) {
+                break;
+            }
+        }
+#ifdef LOG4CXX
+        if(count > 10)
+        {
+            std::stringstream sout;
+            sout << "iteration count " << count;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
+        
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "sigtrialIJ input " << sigtrialIJ << " L input " << Lini << "\ndeltaL = " << deltaL
+            << " theta = " << theta;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
+        UpdateSigtrialIJL(ER, L, theta, sigtrialIJ);
+    }
 public:
 
 		
@@ -527,6 +986,11 @@ public:
 	 cap.
    */
    REAL fR;
+    
+    /**
+     Flag indicating the point is projected on the cap or not
+     */
+    bool fIsonCap;
 
 
 public:
@@ -826,10 +1290,7 @@ inline void TPZYCSandlerDimaggio::SolveL(const T & X, T & L, REAL relTol) const
 	// so that the evaluation with FAD Type and converged L evaluates the
 	// derivatives
 	while(
-		  fabs( (REAL)shapeFAD::val(res) ) /
-		  max( (REAL)fabs(shapeFAD::val(X) ), (REAL).000001 ) // avoiding division by zero
-		  > relTol ||
-		  i<1)
+		  fabs( (REAL)shapeFAD::val(res) ) > relTol || i<1)
 	{
         i++;
 		
@@ -886,6 +1347,11 @@ inline void TPZYCSandlerDimaggio::ComputedF(const T & L, T & dF) const
 {
 	dF = L * T(fB);
 	dF = exp(dF) * T(-fC*fB);	
+}
+
+inline void TPZYCSandlerDimaggio::ComputeD2F(const REAL L, REAL & d2F) const
+{
+	d2F = exp(L*fB) * (-fC*fB*fB);	
 }
 
 template <class T>
@@ -1243,14 +1709,9 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
         TPZManVector<REAL,2> sigtrialIJ(2);
         sigtrialIJ[0] = I1;
         sigtrialIJ[1] = sqJ2;
-        NewtonF2(ER, epsp, sigtrialIJ);
-        REAL j2Scale = 1;
-        if (sqJ2 > 1.e-6) {
-            j2Scale = sigtrialIJ[1]/sqJ2;
-        }
-        sigproj.Identity();
-        sigproj.Multiply(1./3., sigtrialIJ[0]);
-        sigproj.Add(S, j2Scale);
+        REAL epspprev = epsp;
+        NewtonF3(ER, epsp, sigtrialIJ);
+        sigtrial.Adjust(sigtrialIJ, sigproj);
         epspproj = epsp;
         TPZManVector<TPZTensor<REAL>,2> Ndir(2);
         this->N(sigproj, epspproj, Ndir, 1);
@@ -1261,7 +1722,13 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
         for (int i=0; i<6; i++) {
             REAL diff = fabs(scale*Ndir[1][i]-epsPlast[i]);
             if (diff > 1.e-6) {
-                DebugStop();
+                epsp = epspprev;
+                sigtrialIJ[0] = I1;
+                sigtrialIJ[1] = sqJ2;
+
+                NewtonF3(ER, epsp, sigtrialIJ);
+
+//                DebugStop();
             }
         }
         delgamma[0] = 0.;
@@ -1286,6 +1753,130 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
     }
     // falta calcular delgamma
 }
+
+/**
+ * compute epsp as a function from L
+ */
+template<class T>
+void TPZYCSandlerDimaggio::EpspFromL(const T &L, T &epsp) const
+{
+    T FL;
+    ComputeF(L,FL);
+    T fac1 = T(fD)*(L-FL*T(fR));
+    epsp = (exp(fac1)-T(1.))*T(fW);
+}
+
+/**
+ * compute the derivative of epsp as a function from L
+ */
+template<class T>
+void TPZYCSandlerDimaggio::DEpspDL(const T &L, T& depspdL) const
+{
+    T FL;
+    ComputeF(L, FL);
+    T fac1 = T(fD)*(L-FL*T(fR));
+    T fac2 = (T(1.)+T(fB*fC*fR)*exp(T(fB)*L));
+    depspdL = T(fD*fW)*exp(fac1)*fac2;
+}
+
+/**
+ * compute the second derivative of epsp as a function from L
+ */
+template<class T>
+void TPZYCSandlerDimaggio::D2EpspDL2(const T &L, T& d2epspdL2) const
+{
+    T FL;
+    ComputeF(L, FL);
+    T fac1 = T(fD)*(L-FL*T(fR));
+    T BCR = T(fB*fC*fR)*exp(T(fB)*L);
+    T fac2 = T(1.)+BCR;
+    T fac3 = T(fB)*BCR+T(fD)*fac2*fac2;
+    d2epspdL2 = T(fD*fW)*exp(fac1)*fac3;
+    
+}
+
+/// Projeto o ponto sobre a superficie F1, atualiza o L
+inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L, TPZVec<REAL> &sigtrialIJ)
+{
+    REAL resultL = L;
+    REAL ddist = DDistance(ER, resultL, sigtrialIJ);
+    while(ddist < 0.)
+    {
+        resultL += 1.;
+        ddist = DDistance(ER,resultL, sigtrialIJ);
+    }
+    REAL ddistnext = fabs(ddist)+1;
+    while (fabs(ddist) > 1.e-10 || fabs(ddistnext) > fabs(ddist)) {
+        ddist = ddistnext;
+        REAL d2dist = D2Distance(ER, resultL, sigtrialIJ);
+        resultL -= ddist/d2dist;
+        ddistnext = DDistance(ER, resultL, sigtrialIJ);
+    }
+    sigtrialIJ[0] = resultL;
+    REAL F;
+    ComputeF(resultL, F);
+    sigtrialIJ[1] = F;
+    // compute the increase in epsp
+    // compute L such that depsp/dL (delta L) = delta epsp
+    L = resultL;
+}
+
+/**
+ * @brief compute the distance between the trial point and the point on the F1 curve
+ */
+inline REAL TPZYCSandlerDimaggio::Distance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const
+{
+    REAL I1 = sigtrialIJ[0];
+    REAL sqj2 = sigtrialIJ[1];
+    REAL x = L;
+    REAL y;
+    ComputeF(L, y);
+    REAL delx = x-I1;
+    REAL dely = y-sqj2;
+    REAL dist = ER.G()*delx*delx/2. + dely*dely*9.*ER.K()/2.;
+    return dist;
+}
+
+/**
+ * @brief compute the derivative of the distance with respect to L
+ */
+inline REAL TPZYCSandlerDimaggio::DDistance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const
+{
+    REAL I1 = sigtrialIJ[0];
+    REAL sqj2 = sigtrialIJ[1];
+    REAL x = L;
+    REAL y,dy;
+    ComputeF(L, y);
+    ComputedF(L, dy);
+    REAL delx = x-I1;
+    REAL dely = y-sqj2;
+    REAL ddely = dy;
+    REAL ddelx = 1;
+    REAL ddist = ER.G()*ddelx*delx + ddely*dely*9.*ER.K();
+    return ddist;
+}
+
+/**
+ * @brief compute the second derivative of the distance with respect to L
+ */
+inline REAL TPZYCSandlerDimaggio::D2Distance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const
+{
+    REAL I1 = sigtrialIJ[0];
+    REAL sqj2 = sigtrialIJ[1];
+    REAL x = L;
+    REAL y,dy,d2y;
+    ComputeF(L, y);
+    ComputedF(L, dy);
+    ComputeD2F(L, d2y);
+    REAL delx = x-I1;
+    REAL dely = y-sqj2;
+    REAL ddely = dy;
+    REAL ddelx = 1;
+    REAL d2dist = ER.G()*ddelx*ddelx + ddely*ddely*9.*ER.K()+d2y*dely*9.*ER.K();
+    return d2dist;
+    
+}
+
 
 
 #endif //TPZYCSANDLERDIMAGGIO_H

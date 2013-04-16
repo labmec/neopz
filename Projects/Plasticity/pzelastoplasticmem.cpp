@@ -5,10 +5,10 @@
 #include "poroelastoplasticid.h"
 
 
-TPZElastoPlasticMem::TPZElastoPlasticMem(): fSigma(), fPlasticState(), fPlasticSteps(0),fPhi() { }
+TPZElastoPlasticMem::TPZElastoPlasticMem(): fSigma(), fPlasticState(), fPlasticSteps(0),fPhi(0.), fDisplacement(3,0.) { }
 	
 TPZElastoPlasticMem::TPZElastoPlasticMem(const TPZElastoPlasticMem & source):
-                          fSigma(source.fSigma), fPlasticState(source.fPlasticState), fPlasticSteps(source.fPlasticSteps), fPhi(source.fPhi) { }
+                          fSigma(source.fSigma), fPlasticState(source.fPlasticState), fPlasticSteps(source.fPlasticSteps), fPhi(source.fPhi), fDisplacement(source.fDisplacement) { }
 
 
 TPZElastoPlasticMem::~TPZElastoPlasticMem(){ }
@@ -21,6 +21,7 @@ void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fPlasticState.fEpsP[0],6);
 	buf.Write(&fPlasticState.fAlpha,1);
 	buf.Write(&fPlasticSteps,1);
+    buf.Write(&fDisplacement[0],3);
 //	buf.Write(&fPlasticState.fPhi,1);
 }
 
@@ -32,16 +33,18 @@ void TPZElastoPlasticMem::Read(TPZStream &buf, void *context)
 	buf.Read(&fPlasticState.fEpsP[0],6);
 	buf.Read(&fPlasticState.fAlpha,1);
 	buf.Read(&fPlasticSteps,1);
+    buf.Read(&fDisplacement[0],3);
 //	buf.Read(&fPlasticState.fPhi,1);
 }
 
 void TPZElastoPlasticMem::Print(std::ostream &out)const
 {
 	out << Name();
-	out << "\n fSigma = " << fSigma;
-	out << "\n fPlasticState = " << fPlasticState;
-	out << "\n fPlasticSteps = " << fPlasticSteps;
-	out << "\n fPhi = " << fPhi;
+	out << "\nfSigma = " << fSigma;
+	out << "\nfPlasticState = " << fPlasticState;
+	out << "\nfPlasticSteps = " << fPlasticSteps;
+    out << "\nfDisplacement = " << fDisplacement;
+	out << "\nfPhi = " << fPhi;
 }
 
 const std::string TPZElastoPlasticMem::Name()const
@@ -60,6 +63,7 @@ const TPZElastoPlasticMem & TPZElastoPlasticMem::operator=(const TPZElastoPlasti
 	fPlasticState = source.fPlasticState;
 	fPlasticSteps = source.fPlasticSteps;
 	fPhi  = source.fPhi;
+    fDisplacement = source.fDisplacement;
 	
 	return *this;
 }

@@ -21,7 +21,7 @@ static LoggerPtr loggerDrucker(Logger::getLogger("plasticity.Drucker"));
 #define DRUCKERPARENT TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse>
 
 
-class TPZDruckerPrager : public DRUCKERPARENT, public TPZSaveable  {
+class TPZDruckerPrager : public DRUCKERPARENT  {
 	
 public:
 	
@@ -106,18 +106,27 @@ public:
 		return TPZDRUCKERPRAGER_ID;	
 	}
 	
-	virtual void Write(TPZStream &buf, int withclassid)
+	void Write(TPZStream &buf) const
 	{
-		TPZSaveable::Write(buf, withclassid);
+		DRUCKERPARENT::Write(buf);
 		
 		buf. Write(&faPa, 1);	
-		buf. Write(&fInitialEps.fEpsT[0], 6);
-		buf. Write(&fInitialEps.fEpsP[0], 6);
-		buf. Write(&fInitialEps.fAlpha, 1);			
+        fInitialEps.Write(buf);
+//		buf. Write(&fInitialEps.fEpsT[0], 6);
+//		buf. Write(&fInitialEps.fEpsP[0], 6);
+//		buf. Write(&fInitialEps.fAlpha, 1);			
 		
-		fPlasticMem.Resize(0);
 	}
 
+	void Read(TPZStream &buf) 
+	{
+		DRUCKERPARENT::Read(buf);
+		
+		buf. Read(&faPa, 1);	
+        fInitialEps.Read(buf);
+		
+	}
+    
 
 public:
     

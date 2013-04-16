@@ -109,8 +109,17 @@ public:
     template <class T> 
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
 	
-	virtual void Write(TPZStream &buf, int withclassid);
-	virtual void Read(TPZStream &buf, void *context);
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
+
+//	virtual void Write(TPZStream &buf, int withclassid) const;
+//	virtual void Read(TPZStream &buf, void *context);
 	virtual int ClassId() const;
 	
 	TPZTensor<REAL> gRefTension;
@@ -168,6 +177,39 @@ public:
 		}
 		
     }
+    
+    void Write(TPZStream &out, int withclassid = 0) const
+    {
+        TPZSaveable::Write(out, withclassid);
+        out.Write(&fPhi);
+        out.Write(&fa);
+        out.Write(&fb);
+        out.Write(&fcConcrete);
+        out.Write(&fcoesion);
+        out.Write(&fa0);
+        out.Write(&fa1);
+        out.Write(&fa2);
+        out.Write(&fb0);
+        out.Write(&fb1);
+        out.Write(&fb2);
+    }
+	
+    void Read(TPZStream &input, void *context = 0)
+    {
+        TPZSaveable::Read(input,context);
+        input.Read(&fPhi);
+        input.Read(&fa);
+        input.Read(&fb);
+        input.Read(&fcConcrete);
+        input.Read(&fcoesion);
+        input.Read(&fa0);
+        input.Read(&fa1);
+        input.Read(&fa2);
+        input.Read(&fb0);
+        input.Read(&fb1);
+        input.Read(&fb2);
+    }
+    
 	
 public:
 	REAL fPhi;
@@ -374,16 +416,11 @@ void TPZYCWillamWarnke::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h,
 }
 
 
-inline void TPZYCWillamWarnke::Write(TPZStream &buf, int withclassid)
-{
-}
-inline void TPZYCWillamWarnke::Read(TPZStream &buf, void *context)
-{
-}
 inline int TPZYCWillamWarnke::ClassId() const
 {
 	return 888888;
 }
-inline template class TPZRestoreClass<TPZYCWillamWarnke, 888888> ;
+
+template class TPZRestoreClass<TPZYCWillamWarnke, 888888> ;
 
 #endif//TPZYCWillamWarnke

@@ -22,7 +22,7 @@
 #define VONMISESPARENT TPZPlasticStep<TPZYCVonMises, TPZThermoForceA, TPZElasticResponse>
 
 
-class TPZVonMises : public VONMISESPARENT, public TPZSaveable  {
+class TPZVonMises : public VONMISESPARENT  {
 	
 public:
 	
@@ -80,11 +80,11 @@ public:
 		return TPZVONMISES_ID;	
 	}
 	
-	virtual void Write(TPZStream &buf, int withclassid)
+	virtual void Write(TPZStream &buf) const
 	{
 	}
 	
-	virtual void Read(TPZStream &buf, void *context)
+	virtual void Read(TPZStream &buf)
 	{
 	}	
     

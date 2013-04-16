@@ -37,6 +37,20 @@ public:
         // nothing to be done in this yield criterium
     }
     
+    void Write(TPZStream &out) const
+    {
+        out.Write(&fPhi);
+        out.Write(&fCoesion);
+        out.Write(&fPi);
+    }
+    
+    void Read(TPZStream &input)
+    {
+        input.Read(&fPhi);
+        input.Read(&fCoesion);
+        input.Read(&fPi);
+    }
+    
     /**
      * Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
      * is forced to behave in post-peak in order to avoid equation switching during Newton's method
@@ -94,6 +108,15 @@ public:
      */
     template <class T>
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
+
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
 
     
 public:

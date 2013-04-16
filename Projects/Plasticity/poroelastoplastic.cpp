@@ -38,6 +38,8 @@
 #include "TPZSpStructMatrix.h"
 #include "pzbdstrmatrix.h"
 #include "pzstepsolver.h"
+
+#include "pzbfilestream.h"
 #include <sstream>
 
 
@@ -89,7 +91,7 @@
 #include "BrazilianTestGeoMesh.h"
 
 
-void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio *pSD);
+void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD);
 
 void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void SetUPPostProcessVariables2(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames );
@@ -114,7 +116,7 @@ using namespace pzshape; // needed for TPZShapeCube and related classes
 
 #include <math.h>
 
-void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement)
+void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
 {
 /*    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(2,2,0.), EndStress2(3,3,0.);
     TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
@@ -144,7 +146,16 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinem
     k1(2,2)=Confinement.ZZ();
     TPZMaterial *bc1 = mat->CreateBC(mat,-2,4,k1,f1);
     CMesh->InsertMaterialObject(bc1);
+
     
+    // type 6 constraints in x and y
+    // type 5 only normal constraint
+    TPZFNMatrix<9> k5(3,3,0.),f5(3,1,pressure);
+    for (int i=0; i<3; i++) {
+        k5(i,i) = 1.e5;
+    }
+    TPZMaterial *bc5 = mat->CreateBC(mat, -6, 6, k5, f5);
+    CMesh->InsertMaterialObject(bc5);
 
    
     TPZFMatrix<REAL> k2(3,3,0.);
@@ -194,14 +205,14 @@ void wellboreanalyis()
     TPZCompEl::SetgOrder(1);
 	TPZCompMesh *compmesh1 = new TPZCompMesh(gmesh);
     
-    TPZSandlerDimaggio SD;
-    TPZSandlerDimaggio::UncDeepSandTest(SD);
-    SD.fResTol = 1.e-11;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandTest(SD);
+    SD.SetResidualTolerance(1.e-10);
     SD.fIntegrTol = 1.;
     
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
-	TPZMatElastoPlastic2D<TPZSandlerDimaggio> PlasticSD(1,1);
+	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> > PlasticSD(1,1);
     
     TPZTensor<STATE> Confinement;
     Confinement.XX() = -44.3;
@@ -226,7 +237,7 @@ void wellboreanalyis()
     PlasticSD.SetPlasticity(SD);
     compmesh1->InsertMaterialObject(plastic);
     
-    CmeshWell(compmesh1,plastic,Confinement);
+    CmeshWell(compmesh1,plastic,Confinement,hydro);
   
     
 
@@ -402,7 +413,7 @@ void wellelastic()
     TPZCompEl::SetgOrder(1);
 	TPZCompMesh *compmesh1 = new TPZCompMesh(gmesh);
     compmesh1->InsertMaterialObject(elastic);
-    CmeshWell(compmesh1,elastic,Confinement);
+    CmeshWell(compmesh1,elastic,Confinement,-29.3);
     TPZAnalysis analysis(compmesh1,cout);
     TPZFStructMatrix structmatrix(compmesh1);
 	analysis.SetStructuralMatrix(structmatrix);
@@ -543,10 +554,10 @@ void calcSDBar()
     
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
-    TPZSandlerDimaggio SD;
-    TPZSandlerDimaggio::McCormicRanchSand(SD);
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSand(SD);
     
-	TPZMatElastoPlastic<TPZSandlerDimaggio> PlasticSD(1);
+	TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> > PlasticSD(1);
 	PlasticSD.SetPlasticity(SD);
     
     TPZMaterial *plastic(&PlasticSD);
@@ -593,7 +604,7 @@ void calcSDBar()
     int bc =-2;
     
     ManageIterativeProcess2(EPAnalysis ,beginforce,endforce,bc, nsteps,&PPAnalysis);
-    EPAnalysis.Solution().Print();
+    EPAnalysis.Solution().Print("EPAnalysis.Solution");
     
 	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"x.vtk");
 	PPAnalysis.PostProcess(0);
@@ -1555,14 +1566,102 @@ int main ()
      int & nrad)
      
      */
-    
+//    TPZWellBoreAnalysis::CheckDeformation();
+    int startfrom = 4;
     TPZWellBoreAnalysis well;
-    TPZWellBoreAnalysis::StandardConfiguration(well);
-    well.ExecuteInitialSimulation();
-    well.DivideElementsAbove(0.03);
-    well.PostProcess(1);
-    well.ExecuteSimulation();
+    if (startfrom == 0) 
+    {
+        TPZWellBoreAnalysis::StandardConfiguration(well);
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore0.bin");
+        well.Write(save);
+//        well.ExecuteInitialSimulation();
+    }
+    if (startfrom ==1)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore0.bin");
+        well.Read(read);
+    }
+    if (startfrom <= 1)
+    {
+        well.ExecuteInitialSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore.bin");
+        well.Write(save);
+    }
+
+    if (startfrom == 2)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore.bin");
+        well.Read(read);
+    }
+    if (startfrom <= 2) {
+        well.ExecuteSimulation();
+        well.VerifyGlobalEquilibrium();
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore2.bin");
+        well.Write(save);
+        
+    }
+    if (startfrom == 3)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore2.bin");
+        well.Read(read);
+    }
+    if (startfrom <= 3) {
+         //well.ChangeMaterialId(-2, -6);
+        well.DeleteElementsAbove(0.120);
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore3.bin");
+        well.Write(save);
+
+    }
+    if (startfrom == 4)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore3.bin");
+        well.Read(read);
+    }
+    if (startfrom <= 4) 
+    {
+        well.RelaxWellSpring(0.01);
+        well.ExecuteSimulation();
+        well.RelaxWellSpring(0.);
+        well.ExecuteSimulation();
+        well.ChangeMaterialId(-6, -2);
+//        well.RelaxWellSpring(0.1);
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore4.bin");
+        well.Write(save);
+    }
+    if (startfrom == 5)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore4.bin");
+        well.Read(read);
+    }
+    if (startfrom == 6) {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore5.bin");
+        well.Read(read);
+
+    }
     
+    for (int i=0; i<10; i++) {
+        std::cout << "repeat number " << i << std::endl;
+        well.RelaxWellSpring(0.1);
+        well.ExecuteSimulation();
+        if (i==6) {
+            TPZBFileStream save;
+            save.OpenWrite("Wellbore5.bin");
+            well.Write(save);
+        }
+    }
     return 0;
     
     wellboreanalyis();
@@ -1580,7 +1679,7 @@ int main ()
 	int testNumber, matNumber;
 	TPZPlasticBase *pMat;
 	TPZLadeKim * pLK = NULL;
-	TPZSandlerDimaggio * pSD = NULL;
+	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> * pSD = NULL;
 	typedef TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> TPZDruckerPrager;
 	TPZDruckerPrager * pDP = NULL;
 	REAL loadMultipl;
@@ -1611,36 +1710,36 @@ int main ()
 	switch(matNumber)
 	{
         case(1):
-            pSD = new TPZSandlerDimaggio();
-		    TPZSandlerDimaggio::McCormicRanchSand(*pSD);
+            pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSand(*pSD);
 			pMat = pSD;
 		    fileName << "_SDMc";
 		    loadMultipl = -0.001;
             break;
 		case(2):
-			pSD = new TPZSandlerDimaggio();
-		    TPZSandlerDimaggio::McCormicRanchSandMod(*pSD);
+			pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSandMod(*pSD);
 			pMat = pSD;
 		    fileName << "_SDMM";
 		    loadMultipl = -0.001;
             break;
 		case(3):
-			pSD = new TPZSandlerDimaggio();
-		    TPZSandlerDimaggio::UncDeepSandResPSI(*pSD);
+			pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandResPSI(*pSD);
 			pMat = pSD;
 		    fileName << "_SDDS";
 		    loadMultipl = -1;
             break;
 		case(4):
-			pSD = new TPZSandlerDimaggio();
-		    TPZSandlerDimaggio::UncDeepSandResMPa(*pSD);
+			pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandResMPa(*pSD);
 			pMat = pSD;
 		    fileName << "_SDDSMPa";
 		    loadMultipl = -1/145.03773801;
             break;
 		case(5):
-			pSD = new TPZSandlerDimaggio();
-		    TPZSandlerDimaggio::PRSMatMPa(*pSD);
+			pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::PRSMatMPa(*pSD);
 			pMat = pSD;
 		    fileName << "_PRSLMPa";
 		    loadMultipl = -1/145.03773801;
@@ -1703,7 +1802,7 @@ int main ()
         }
         case 3://FIGURA 11-a
         {
-            TPZSandlerDimaggio sandler;
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> sandler;
             sandler.McCormicRanchSand(sandler);
             ofstream outfiletxty("FIGURA11A.txt");
             TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
@@ -1734,7 +1833,7 @@ int main ()
         }
         case 4://FIGURA 12
         {
-            TPZSandlerDimaggio sandler;
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> sandler;
             sandler.McCormicRanchSand(sandler);
             ofstream outfiletxty("FIGURA12.txt");
             TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
@@ -1768,7 +1867,7 @@ int main ()
         }
         case 5://FIGURA 13
         {
-            TPZSandlerDimaggio sandler3;
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> sandler3;
             ofstream outfiletxt("FIGURA13.txt");
             TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
             
@@ -1796,7 +1895,7 @@ int main ()
         case 6:
         {
             
-            TPZSandlerDimaggio sandler3;
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> sandler3;
             ofstream outfiletxt("FIGURA14.txt");
             TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
             
@@ -1830,9 +1929,9 @@ int main ()
 
 #include "TPZGenSpecialGrid.h"
 
-void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD);
+void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD);
 
-void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio *pSD)
+void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD)
 {
     TPZVec<REAL> coords(0);
     TPZGeoMesh *gmesh = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(coords, 0.001,1);
@@ -1877,9 +1976,9 @@ void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio *p
     
 }
 
-int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio *pSD, TPZVec<REAL> &stressresult);
+int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD, TPZVec<REAL> &stressresult);
 
-void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD)
+void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD)
 {
     int ncon = cmesh->NConnects();
     TPZVec<int> computed(ncon,0);
@@ -1912,7 +2011,7 @@ void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD)
     }
 }
 
-int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio *pSD,TPZVec<REAL> &stressresult)
+int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD,TPZVec<REAL> &stressresult)
 {
     REAL mult = 1.;
     REAL incr = 1.;
@@ -1923,7 +2022,7 @@ int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio *pSD,TPZVec<REAL>
     stresscenter.XX() = 0.1;
     stresscenter.YY() = 0.1;
     stresscenter.ZZ() = 0.1;
-    SANDLERDIMAGGIOPARENT *pSDP = dynamic_cast<SANDLERDIMAGGIOPARENT *>(pSD);
+    SANDLERDIMAGGIOSTEP1 *pSDP = dynamic_cast<SANDLERDIMAGGIOSTEP1 *>(pSD);
     pSDP->fER.ComputeDeformation(stresstensor,epsilon);
     pSDP->fER.ComputeDeformation(stresscenter, epscenter);
     TPZTensor<REAL> epsstart(epsilon);

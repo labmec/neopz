@@ -14,6 +14,16 @@ template <class T>
 class TPZPlasticState
 {
 
+    // class member variables
+	
+public:	
+	// Tensors to hold the total and plastic strain tensors
+	TPZTensor<T> fEpsT, fEpsP;
+	
+	// Plastic damage variable
+	T fAlpha;
+    
+
 public:
 	
 	/**
@@ -88,18 +98,13 @@ public:
 	const T & Alpha() const 
 		{ return fAlpha; }
 
-	
-	
-	// class member variables
-	
-public:	
-	// Tensors to hold the total and plastic strain tensors
-	TPZTensor<T> fEpsT, fEpsP;
-	
-	// Plastic damage variable
-	T fAlpha;
+    
+    void Write(TPZStream &buf) const;
+    
+    void Read(TPZStream &buf);
 
-	
+//    template<>
+
 };
 
 template <class T>
@@ -172,5 +177,35 @@ void TPZPlasticState<T>::CopyTo(TPZPlasticState<T1> & target) const
 	EpsP().CopyTo(target.fEpsP);
 	target.fAlpha = shapeFAD::val( Alpha() );
 }
+
+template<class T>
+void TPZPlasticState<T>::Write(TPZStream &buf) const
+{
+    DebugStop();
+}
+
+template<class T>
+void TPZPlasticState<T>::Read(TPZStream &buf)
+{
+    DebugStop();
+}
+
+template<>
+inline void TPZPlasticState<STATE>::Write(TPZStream &buf) const
+{
+    buf.Write(&fEpsT.fData[0],6);
+    buf.Write(&fEpsP.fData[0],6);
+    buf.Write(&fAlpha);
+}
+
+template<>
+inline void TPZPlasticState<STATE>::Read(TPZStream &buf)
+{
+    buf.Read(&fEpsT.fData[0],6);
+    buf.Read(&fEpsP.fData[0],6);
+    buf.Read(&fAlpha);
+}
+
+
 
 #endif

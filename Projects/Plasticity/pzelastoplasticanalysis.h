@@ -37,7 +37,7 @@ public:
     
 	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
     
-	virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter);
+	virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter);
 	
 	/**
 	 * @brief The code below manages the update of a certain boundary condition (BCId)
@@ -86,6 +86,14 @@ public:
 	
 	void TransferSolution(TPZPostProcAnalysis & ppanalysis);
 	
+    void AddNoPenetration(int matid, int direction)
+    {
+        fMaterialIds[matid] = direction;
+    }
+    
+    /// build the fEquationstoZero datastructure based on the fMaterialIds data structure
+    void IdentifyEquationsToZero();
+    
 protected:	
 	
 	/**
@@ -122,6 +130,13 @@ protected:
 	TPZFMatrix<REAL> fCumSol;
 	
 	TPZMatrixSolver<REAL> * fPrecond;
+    
+    /// Equations with zero dirichlet boundary condition
+    std::set<int> fEquationstoZero;
+    
+    /// Materials with no penetration boundary conditions
+    // the second value of the map indicates x (0) or y (1) restraint
+    std::map<int,int> fMaterialIds;
 	
 	/**
 	 * TPZCompElWithMem<TBASE> creation function setup

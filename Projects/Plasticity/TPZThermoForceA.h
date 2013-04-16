@@ -5,6 +5,7 @@
 
 #include "pzvec.h"
 #include "pzreal.h"
+#include "pzfilebuffer.h"
 
 /**
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
@@ -47,6 +48,18 @@ public:
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
+    void Write(TPZStream &buf) const
+    {
+        buf.Write(&fSigmaYield0);
+        buf.Write(&fK);
+    }
+    
+    void Read(TPZStream &buf)
+    {
+        buf.Read(&fSigmaYield0);
+        buf.Read(&fK);
+        
+    }
 public:
 
     /**

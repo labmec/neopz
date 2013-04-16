@@ -18,7 +18,7 @@ static LoggerPtr updatelogger(Logger::getLogger("material.pzElastoPlastic.update
 
 
 template <class T, class TMEM>
-TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic() : TPZMatWithMem<TMEM>(), fForce(), fRhoB(0), fPostProcessDirection(), fPlasticity(), fTol(1.e-6)
+TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic() : TPZMatWithMem<TMEM>(), fForce(), fRhoB(0), fPostProcessDirection(), fTol(1.e-6)
 {
 	fForce.Resize(3,0);
 	fForce[1] = -9.8; // proper gravity acceleration in m/s^2
@@ -36,12 +36,15 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic() : TPZMatWithMem<TMEM>(), fFor
 }
 
 template <class T, class TMEM>
-TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(id), fForce(), fRhoB(0), fPostProcessDirection(), fPlasticity(), fTol(1.e-6)
+TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(id), fForce(), fRhoB(0), fPostProcessDirection(), fTol(1.e-6)
 {
 	fForce.Resize(3,0);
 	fForce[1] = -9.8; // proper gravity acceleration in m/s^2 -> 1=y 0=x 2=z
 	fPostProcessDirection.Resize(3,0);
 	fPostProcessDirection[0] = 1.;
+    
+    TPZPlasticState<STATE> def;
+    
 
 #ifdef LOG4CXX
   {
@@ -56,7 +59,7 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(i
 template <class T, class TMEM>
 TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(const TPZMatElastoPlastic &mat) : TPZMatWithMem<TMEM>(mat), 
                                fForce(mat.fForce), fRhoB(mat.fRhoB), fPostProcessDirection(mat.fPostProcessDirection),
-                               fPlasticity(mat.fPlasticity), fTol(mat.fTol)
+                            fTol(mat.fTol)
 {
 #ifdef LOG4CXX
   {
@@ -66,6 +69,7 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(const TPZMatElastoPlastic &mat)
   }
 #endif
 }
+
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::SetPlasticity(T & plasticity)
@@ -83,12 +87,14 @@ void TPZMatElastoPlastic<T,TMEM>::SetPlasticity(T & plasticity)
 	fPlasticity = plasticity;
 	
 	fPlasticity.SetTensionSign(1);
+    
+    T plastloc(fPlasticity);
 	
 	TMEM memory;
 	
-	memory.fPlasticState = fPlasticity.GetState();
+	memory.fPlasticState = plastloc.GetState();
 	
-	fPlasticity.ApplyStrainComputeSigma(memory.fPlasticState.fEpsT, memory.fSigma);	
+	plastloc.ApplyStrainComputeSigma(memory.fPlasticState.fEpsT, memory.fSigma);	
 	
 	this->SetDefaultMem(memory);
 	
@@ -103,6 +109,7 @@ void TPZMatElastoPlastic<T,TMEM>::SetPlasticity(T & plasticity)
 #endif
 	
 }
+
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::SetBulkDensity(REAL & RhoB)
@@ -128,6 +135,20 @@ void TPZMatElastoPlastic<T,TMEM>::Print(std::ostream &out, const int memory)
 	out << "\n Post process direction: " << fPostProcessDirection;
 	out << "\n Tolerance for internal post processing iterations: " << fTol;
 	out << "\n Internal plasticity <T> member:\n";
+	fPlasticity.Print(out);
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlastic<T,TMEM>::Print(std::ostream &out)
+{
+    out << __PRETTY_FUNCTION__ << std::endl;
+	out << this->Name();
+    TPZMatWithMem<TMEM>::Print(out);
+	out << "\nBody Forces: " << fForce;
+    out << "\nfRhoB = " << fRhoB;
+	out << "\nPost process direction: " << fPostProcessDirection;
+	out << "\nTolerance for internal post processing iterations: " << fTol;
+	out << "\nInternal plasticity <T> member:\n";
 	fPlasticity.Print(out);
 }
 
@@ -164,6 +185,7 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
    if(!strcmp("YieldSurface",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EYield;
 	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain;
 	if(!strcmp("EMisesStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EMisesStress;
+	if(!strcmp("DisplacementMem",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMem;
 	if(!strcmp("PlasticSqJ2El",     name.c_str()))  return 100;
 	//if(!strcmp("ERadialStressR",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ERadialStressR;
 	//if(!strcmp("ERadialStressTheta",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ERadialStressTheta;
@@ -209,10 +231,10 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2)              return 1;
    if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha 
 	if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
+	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)          return 3; 
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;
     if(var == 100) return 1;
-   PZError << "TPZElasticity3D::NSolutionVariables Error\n";
-   return -1;
+    return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
 
 template <class T, class TMEM>
@@ -240,6 +262,13 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 			Solout[i] = data.sol[0][i];
 		}//for
 	}//EDisplacement
+    else 
+    if (var == EDisplacementMem) 
+    {
+        for (int i=0; i<3; i++) {
+            Solout[i] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i];
+        }
+    }
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)Solout[0] = data.sol[0][0];
 	else
@@ -765,7 +794,92 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
-	TPZMaterial::Contribute(data, weight, ef);//not efficient but here to remember reimplementing it when Contribute becomes robust
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
+        sout << "\nIntegration Point index = " << data.intGlobPtIndex;
+        LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
+    }
+#endif
+	
+    TPZFMatrix<REAL> &dphi = data.dphix, dphiXYZ;
+    TPZFMatrix<REAL> &phi  = data.phi;
+    TPZFMatrix<REAL> &axes = data.axes, axesT;
+    TPZManVector<REAL,3> &x = data.x;
+    
+    // rotating the shape functions to the XYZ coordinates
+    axes.Transpose(&axesT);
+    axesT.Multiply(dphi,dphiXYZ);	
+    /*	
+     cout << "\n phi(" << data.intPtIndex << ") =";
+     for(int i = 0; i < data.phi.Rows(); i++)cout << " " << data.phi(i,0);
+     cout << endl << dphiXYZ;
+     cout << endl << axes;
+     */
+    const int phr = phi.Rows();
+    if(this->fForcingFunction)
+        this->fForcingFunction->Execute(x,this->fForce);
+    
+    //this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
+    //{dvdy*dudx, dvdy*dudy, dvdy*dudz},
+    //{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
+    TPZFNMatrix<9>  Deriv(3,3);
+//    TPZFNMatrix<36> Dep(6,6);
+    TPZFNMatrix<6>  DeltaStrain(6,1);
+    TPZFNMatrix<6>  Stress(6,1);//, StressN(6,1);
+    
+    this->ComputeDeltaStrainVector(data, DeltaStrain);
+    this->ApplyDeltaStrain(data,DeltaStrain,Stress);
+//    this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+	
+    //int dim = Dimension();
+    int nstate = NStateVariables();
+    REAL val;
+    
+    int in;
+    for(in = 0; in < phr; in++) { //in: test function index
+        
+        // fForce represents the gravity acceleration
+        //First equation: fb and fk
+        val  = fRhoB * fForce[0] * phi(in,0); // fb
+        val -= Stress(_XX_,0) * dphiXYZ(0,in); // |
+        val -= Stress(_XY_,0) * dphiXYZ(1,in); // fk
+        val -= Stress(_XZ_,0) * dphiXYZ(2,in); // |
+        ef(in*nstate+0,0) += weight * val;
+        
+        //Second equation: fb and fk
+        val  = fRhoB * fForce[1] * phi(in,0); // fb
+        val -= Stress(_XY_,0) * dphiXYZ(0,in); // |
+        val -= Stress(_YY_,0) * dphiXYZ(1,in); // fk
+        val -= Stress(_YZ_,0) * dphiXYZ(2,in); // |
+        ef(in*nstate+1,0) += weight * val;
+        
+        //third equation: fb and fk
+        val  = fRhoB * fForce[2] * phi(in,0); // fb
+        val -= Stress(_XZ_,0) * dphiXYZ(0,in); // |
+        val -= Stress(_YZ_,0) * dphiXYZ(1,in); // fk
+        val -= Stress(_ZZ_,0) * dphiXYZ(2,in); // |
+        ef(in*nstate+2,0) += weight * val;
+        
+    }//in
+	
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute ***";
+		//sout << " Resultant rhs vector:\n" << ef;
+		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
+	}
+    //#ifdef DEBUG
+    //   if ( !ek.VerifySymmetry( 1.e-8 ) )
+    //	{
+    //		std::stringstream sout;
+    //    	sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
+    //    	LOGPZ_WARN(elastoplasticLogger,sout.str().c_str());
+    //	}
+    //#endif
+#endif
 }
 
 template <class T, class TMEM>
@@ -823,7 +937,7 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & dat
 	TPZFNMatrix<9> DSolXYZ(3,3,0.);
 	data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
     cout << "\n data dsol \n";
-	data.dsol[0].Print();
+	data.dsol[0].Print("data.sol");
     DeltaStrain.Redim(6,1);
     DeltaStrain(_XX_,0) = DSolXYZ(0,0);
     DeltaStrain(_YY_,0) = DSolXYZ(1,1);
@@ -875,6 +989,11 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
+        int solsize = data.sol[0].size();
+		for(int i=0; i<solsize; i++) 
+        {
+            TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i] += data.sol[0][i];
+        }
 #ifdef LOG4CXX
         {
             std::stringstream sout;
@@ -902,8 +1021,8 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	
 	plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
     
-    cout << "\n Memoria " << endl;
-    TPZMatWithMem<TMEM>::fMemory[intPt].Print();
+//    cout << "\n Memoria " << endl;
+//    TPZMatWithMem<TMEM>::fMemory[intPt].Print();
 	
 	Sigma.CopyTo(Stress);	
 	
@@ -911,6 +1030,12 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	{
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
+		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
+        int solsize = data.sol[0].size();
+		for(int i=0; i<solsize; i++) 
+        {
+            TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i] += data.sol[0][i];
+        }
 //		TPZMatWithMem<TMEM>::fUpdateMem--;
 	}
 }
@@ -1000,26 +1125,26 @@ std::string TPZMatElastoPlastic<T,TMEM>::Name()
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Write(TPZStream &buf, int withclassid)
 {
-	TPZSaveable::Write(buf, withclassid);
+	//TPZSaveable::Write(buf, withclassid);
 
-    TPZMatWithMem<TMEM>::Write(buf, 0);
+    TPZMatWithMem<TMEM>::Write(buf, withclassid);
 	
 	buf. Write(&fForce[0], 3);	
 	buf. Write(&fPostProcessDirection[0], 3);	
-	//fPlasticity.Write(buf, 0);
+	fPlasticity.Write(buf);
     buf. Write(&fTol, 1);
 }
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Read(TPZStream &buf, void *context)
 {
-    TPZSaveable::Read(buf, context);
+//    TPZSaveable::Read(buf, context);
 	
 	TPZMatWithMem<TMEM>::Read(buf, context);
 	
     buf. Read(&fForce[0], 3);	
     buf. Read(&fPostProcessDirection[0], 3);
-    //fPlasticity.Read(buf, context);
+    fPlasticity.Read(buf);
     buf. Read(&fTol, 1);
 }
 
@@ -1080,7 +1205,7 @@ template class TPZMatElastoPlastic<TPZWillamWarnke>;
 
 
 template class TPZMatElastoPlastic<TPZLadeKim, TPZElastoPlasticMem>;
-template class TPZMatElastoPlastic<TPZSandlerDimaggio, TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>;
 
 
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZElastoPlasticMem>;
@@ -1096,6 +1221,6 @@ template class TPZMatElastoPlastic<TPZVonMises>;
 
 
 template class TPZMatElastoPlastic<TPZLadeKim, TPZPoroElastoPlasticMem>;
-template class TPZMatElastoPlastic<TPZSandlerDimaggio, TPZPoroElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 

@@ -53,7 +53,8 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
                         EPlasticSqJ2,//26
 						EYield,//27
 						ENormalPlasticStrain,//28
-						EMisesStress//29
+						EMisesStress,//29
+                        EDisplacementMem //30
           
 				//		ERadialDisplacement,
 				//		ERadialStressR,
@@ -98,8 +99,11 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       virtual int NStateVariables() { return 3; }
 
       /** print out the data associated with the material*/
-      virtual void Print(std::ostream &out = std::cout, const int memory = 0);
+      virtual void Print(std::ostream &out, const int memory);
 
+    /** print out the data associated with the material*/
+    virtual void Print(std::ostream &out);
+    
       /**returns the variable index associated with the name*/
       virtual int VariableIndex(const std::string &name);
 

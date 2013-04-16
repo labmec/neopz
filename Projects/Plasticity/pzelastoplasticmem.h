@@ -55,6 +55,8 @@ public:
 	int fPlasticSteps;
 	
 	REAL fPhi;
+    
+    TPZManVector<REAL,3> fDisplacement;
 	
 };
 

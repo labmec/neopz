@@ -60,6 +60,16 @@ public:
 	template <class T> 
 	void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 	
+    
+    void Write(TPZStream &buf) const
+    {
+        
+    }
+    
+    void Read(TPZStream &buf)
+    {
+        
+    }
 	//////////////////CheckConv related methods/////////////////////
 public:
 	

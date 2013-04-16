@@ -65,6 +65,31 @@ public:
   template <class T>
 	void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
 
+    /**
+     * Multiplicador para o caso onde utilizamos uma variavel de dano modificada
+     */
+    template <class T>
+    void AlphaMultiplier(const T &A, T &multiplier) const
+    {
+        multiplier = T(1.);
+    }
+    
+    void Write(TPZStream &buf, int withclassid = 0) const
+    {
+        T_YCBASE::Write(buf,withclassid);
+        buf.Write(&fYieldT);
+    }
+    void Read(TPZStream &buf, void *context = 0) 
+    {
+        T_YCBASE::Read(buf,context);
+        buf.Read(&fYieldT);
+    }
+    
+    virtual int ClassId() const
+    {
+        // please implement me
+        DebugStop();
+    }
 protected:
 	
 	REAL fYieldT;

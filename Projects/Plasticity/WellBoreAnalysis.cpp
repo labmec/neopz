@@ -12,6 +12,8 @@
 #include "BrazilianTestGeoMesh.h"
 #include "poroelastoplastic.h"
 #include "pzgeoelbc.h"
+#include "TPZVTKGeoMesh.h"
+#include "pzplasticdiagnostic.h"
 #include <iostream>
 
 #include "pzlog.h"
@@ -19,7 +21,7 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 #endif
-TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fPostProcessNumber(0)
+TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPostProcessNumber(0)
 {
     
 }
@@ -28,6 +30,51 @@ TPZWellBoreAnalysis::~TPZWellBoreAnalysis()
 {
     
 }
+
+/// write the object on the stream
+void TPZWellBoreAnalysis::Write(TPZStream &output)
+{
+    fCurrentConfig.Write(output);
+    int seqsize = fSequence.size();
+    output.Write(&seqsize);
+    std::list<TPZWellBoreAnalysis::TConfig>::iterator it;
+    for (it = fSequence.begin(); it != fSequence.end(); it++) {
+        it->Write(output);
+    }
+    output.Write(&fPostProcessNumber);
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fCurrentConfig.fCMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+}
+
+/// read the object from the stream
+void TPZWellBoreAnalysis::Read(TPZStream &input)
+{
+    fCurrentConfig.Read(input);
+    int seqsize;
+    input.Read(&seqsize);
+    for (int i=0; i<seqsize; i++) {
+        TPZWellBoreAnalysis::TConfig config;
+        config.Read(input);
+        fSequence.push_back(config);
+    }
+    input.Read(&fPostProcessNumber);
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fCurrentConfig.fCMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+}
+
 
 void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 {
@@ -39,21 +86,22 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     obj.fCurrentConfig.fGMesh.Print(arg);
     
     obj.fCurrentConfig.fCMesh.SetReference(gmesh);
-    obj.fCurrentConfig.fCMesh.SetDefaultOrder(2);
+    obj.fCurrentConfig.fCMesh.SetDefaultOrder(1);
     TPZCompMesh *compmesh1 = &obj.fCurrentConfig.fCMesh;
     
-    TPZSandlerDimaggio::UncDeepSandTest(obj.fCurrentConfig.fSD);
-    TPZSandlerDimaggio &SD = obj.fCurrentConfig.fSD;
-    SD.fResTol = 1.e-11;
-    SD.fIntegrTol = 1.;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandTest(obj.fCurrentConfig.fSD);
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> &SD = obj.fCurrentConfig.fSD;
+    SD.SetResidualTolerance(1.e-10);
+    SD.fIntegrTol = 10.;
     
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
-	TPZMatElastoPlastic2D<TPZSandlerDimaggio> *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio>(1,1);
+	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> >(1,1);
     
     obj.fCurrentConfig.fConfinement.XX() = -44.3;
     obj.fCurrentConfig.fConfinement.YY() = -58.2;
     obj.fCurrentConfig.fConfinement.ZZ() = -53.8;
+    obj.fCurrentConfig.fFluidPressure = -29.3;
     
     
     TPZTensor<REAL> initstress,finalstress;
@@ -68,15 +116,87 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     initstress = finalstress;
     finalstress = obj.fCurrentConfig.fConfinement;
     PrepareInitialMat(SD, initstress, finalstress, 10);
+    SD.ResetPlasticMem();
     
     TPZMaterial *plastic(PlasticSD);
     
     PlasticSD->SetPlasticity(SD);
     compmesh1->InsertMaterialObject(plastic);
     
-    CmeshWell(compmesh1,plastic,obj.fCurrentConfig.fConfinement);
+    CmeshWell(compmesh1,plastic,obj.fCurrentConfig.fConfinement,obj.fCurrentConfig.fFluidPressure);
 
 }
+
+void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
+{
+    
+    std::ofstream out(filename.c_str());
+    TPZTensor<STATE> epstotal,sigma, S, pressure ;
+    sigma.XX() = 1.;
+    sigma.XY() = 1.;
+    STATE i1 = sigma.I1();
+    pressure.Identity();
+    pressure *= i1/3.;
+    sigma.S(S);
+    STATE sqj2 = sqrt(sigma.J2());
+    S *= 1./sqj2;
+    sqj2 = S.J2();
+    out << "deform = Table[0,{50}];" << std::endl;
+    out << "tension = Table[0,{50}];" << std::endl;
+    int nangles = 100;
+    
+    for (int i=0; i<nangles; i++) {
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandTest(SD);
+        SD.SetResidualTolerance(1.e-10);
+        SD.fIntegrTol = 1.;
+
+        const int nincrements = 100;
+        TPZManVector<std::pair<STATE, STATE>,100 > epst(nincrements),sigvec(nincrements);
+        STATE angle = i*M_PI/nangles;
+        STATE ca = cos(angle);
+        STATE sa = sin(angle);
+        TPZTensor<STATE> deformbase,p1(pressure), s1(S);
+        p1 *= ca;
+        s1 *= sa;
+        deformbase = p1;
+        deformbase += s1;
+        STATE catest = deformbase.I1();
+        STATE satest = sqrt(deformbase.J2());
+        catest -= ca;
+        satest -= fabs(sa);
+        for (int j=0; j< nincrements; j++) {
+            STATE scale = 0.1*j/nincrements;
+            TPZTensor<STATE> epstotal(deformbase);
+            epstotal *= scale;
+            TPZTensor<STATE> sigma;
+            STATE i1 = epstotal.I1();
+            STATE sqj2deform = sqrt(epstotal.J2());
+            STATE diff[2] = {i1-ca*scale,sqj2deform-fabs(sa)*scale};
+            if (fabs(diff[0]) > 1.e-6 || fabs(diff[1]) > 1.e-6) {
+                DebugStop();
+            }
+            epst[j].first = ca*scale;
+            epst[j].second = sa*scale;
+            SD.fYC.fIsonCap = false;
+            if(i==6 && j== 8)
+            {
+                std::cout << "I should stop\n";
+            }
+            SD.ApplyStrainComputeSigma(epstotal,sigma);
+            // print I1 and sqrt(J2)
+            REAL i1sigma = sigma.I1();
+            REAL sqj2 = sqrt(sigma.J2());
+            sigvec[j].first = i1sigma;
+            sigvec[j].second = sqj2;
+        }
+        out << "deform[[" << i+1 << "]] = " <<  epst << ";" << std::endl;
+        out << "tension[[" << i+1 << "]] = " << sigvec << ";" << std::endl;
+    }
+
+}
+
+
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fConfinement(), fSD(), fFluidPressure(0.),
                     fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2()
@@ -112,6 +232,44 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     return *this;
 }
 
+/// Write the data to the output stream
+void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
+{
+    out.Write(&fInnerRadius);
+    out.Write(&fOuterRadius);
+    fConfinement.Write(out);
+    fSD.Write(out);
+    out.Write(&fFluidPressure);
+    fGMesh.Write(out, 0);
+    fCMesh.Write(out, 0);
+    fAllSol.Write(out, 0);
+    TPZSaveable::WriteObjects(out,fPlasticDeformSqJ2);
+    int verify = 83562;
+    out.Write(&verify);
+}
+
+/// Read the data from the input stream
+void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
+{
+    input.Read(&fInnerRadius);
+    input.Read(&fOuterRadius);
+    fConfinement.Read(input);
+    fSD.Read(input);
+    input.Read(&fFluidPressure);
+    fGMesh.Read(input, 0);
+    fCMesh.Read(input, &fGMesh);
+    fAllSol.Read(input, 0);
+    TPZSaveable::ReadObjects(input,fPlasticDeformSqJ2);
+    int verify = 0;
+    input.Read(&verify);
+    if (verify != 83562)
+    {
+        DebugStop();
+    }
+}
+
+
+
 void TPZWellBoreAnalysis::ExecuteInitialSimulation()
 {
     TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
@@ -120,6 +278,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation()
     full.SetNumThreads(4);
 	analysis.SetStructuralMatrix(full);
     
+    analysis.AddNoPenetration(-5, 0);
+    analysis.AddNoPenetration(-4, 1);
+    analysis.IdentifyEquationsToZero();
     
 	TPZStepSolver<REAL> step;
     step.SetDirect(ECholesky);
@@ -146,8 +307,8 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation()
 #endif
     TPZFNMatrix<9,STATE> mattemp(3,3,0.), matinit(3,3,0.),matfinal(3,3,0.), matincrement(3,3,0.);
     matinit = pBC->Val1();
-    matfinal(0,0) = -29.3;
-    matfinal(1,1) = -29.3;
+    matfinal(0,0) = fCurrentConfig.fFluidPressure;//-29.3;
+    matfinal(1,1) = fCurrentConfig.fFluidPressure;//-29.3;
     
     matincrement = matfinal-matinit;
     matincrement *= (1./nsteps);
@@ -161,8 +322,13 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation()
     
     for(int i=0;i<=nsteps;i++)
     {
+        std::cout << "Initial Simulation Step " << i << " out of " << nsteps << std::endl;
         pBC->Val1()=mattemp;
-        analysis.IterativeProcess(cout, 1.e-8, 30);
+        int numNewton = 7;
+//        bool linesearch = true;
+//        bool checkconv = true;
+//        analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
+        analysis.IterativeProcess(cout, 1.e-8, numNewton);
         
         //analysis.Solution().Print();
         //analysis.AcceptSolution();
@@ -176,6 +342,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation()
             fCurrentConfig.fAllSol(ieq,i) = sol(ieq,0);
         }
         
+        TPZPlasticDiagnostic diag(analysis.Mesh());
+        diag.CheckGlobal();
+        
         analysis.AcceptSolution();
         
         fCurrentConfig.ComputeElementDeformation();
@@ -187,11 +356,14 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation()
             PostProcess(1);// pOrder
         }
         
-        fPostProcessNumber++;            
+        fCurrentConfig.VerifyGlobalEquilibrium();
+        //fPostProcessNumber++;            
         
         mattemp += matincrement;
         
     }
+    
+    fCurrentConfig.VerifyGlobalEquilibrium();
     
     fSequence.push_back(fCurrentConfig);
 #ifdef LOG4CXX
@@ -210,9 +382,12 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     full.SetNumThreads(4);
 	analysis.SetStructuralMatrix(full);
     
-    
+    analysis.AddNoPenetration(-5, 0);
+    analysis.AddNoPenetration(-4, 1);
+    analysis.IdentifyEquationsToZero();
+
 	TPZStepSolver<REAL> step;
-    step.SetDirect(ECholesky);
+    step.SetDirect(ELDLt);
 	analysis.SetSolver(step);
     
     
@@ -235,8 +410,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     int neq = analysis.Mesh()->Solution().Rows();
     fCurrentConfig.fAllSol.Redim(neq, 1);
     
-    
-    analysis.IterativeProcess(cout, 1.e-8, 30);
+    int NumIter = 7;
+    analysis.IterativeProcess(cout, 1.e-8, NumIter);
         
         //analysis.Solution().Print();
         //analysis.AcceptSolution();
@@ -255,7 +430,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     fCurrentConfig.ComputeElementDeformation();
     
     PostProcess(1);// pOrder
-    fPostProcessNumber++;
+    
+    fCurrentConfig.VerifyGlobalEquilibrium();
 
     fSequence.push_back(fCurrentConfig);
 }
@@ -444,8 +620,226 @@ void TPZWellBoreAnalysis::TConfig::ComputeElementDeformation()
     fCMesh.SetElementSolution(0, fPlasticDeformSqJ2);
 }
 
+/// Verify the global equilibrium of the forces by boundary condition
+void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium(std::ostream &out)
+{
+    int neq = fCMesh.NEquations();
+    
+    TPZFMatrix<STATE> rhsDirichlet(neq,1,0.);
+    this->ComputeRhsExceptMatid(-4, rhsDirichlet);
+//    this->ComputeRhsExceptMatid(-5, rhsDirichlet);
+    
+    TPZStack<int,10> boundaryconditionlist;
+    std::set<int> allmaterials;
+    std::map<int,TPZMaterial *>::iterator itmat;
+    std::map<int,TPZMaterial *> &matmap = fCMesh.MaterialVec();
+    for (itmat = matmap.begin(); itmat != matmap.end(); itmat++) {
+        TPZMaterial *mat = itmat->second;
+        TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+        int matid = itmat->first;
+        allmaterials.insert(matid);
+        if (matid == -4 || matid == -5) {
+            continue;
+        }
+        if (bnd) {
+            boundaryconditionlist.Push(itmat->first);
+        }
+    }
+    std::map<int, TPZManVector<REAL,2> > ForceResultantsExcept, ForceResultantsOnly;
+    for(int ib=0; ib<boundaryconditionlist.size(); ib++)
+    {
+        int bc = boundaryconditionlist[ib];
+        {
+            TPZFMatrix<STATE> rhs(neq,1,0.);
+            this->ComputeRhsForMatid(bc, rhs);
+            this->ComputeXYForce(rhs , ForceResultantsOnly[ib]);
+        }
+        {
+            TPZFMatrix<STATE> rhs(neq,1,0.);
+            this->ComputeRhsExceptMatid(bc, rhs);
+            rhs -= rhsDirichlet;
+            this->ComputeXYForce(rhs , ForceResultantsExcept[ib]);
+        }
+        
+    }
+    
+    TPZManVector<REAL,2> totalforce(2,0.), dirichletforce(2,0.);
+    ComputeXYForce(rhsDirichlet, dirichletforce);
+    totalforce[0] = -dirichletforce[0];
+    totalforce[1] = -dirichletforce[1];
+    out <<  "FORCE RESULTANTS\n";
+    out << "Dirichlet force " << dirichletforce << std::endl;
+    for (int ib=0; ib<boundaryconditionlist.size(); ib++) {
+        int bc = boundaryconditionlist[ib];
+        if (bc<0) {
+            totalforce[0] += ForceResultantsOnly[ib][0];
+            totalforce[1] += ForceResultantsOnly[ib][1];
+        }
+        out << "Force computing only BC = " << bc << " x-force = " << ForceResultantsOnly[ib][0] << " y-force = " << ForceResultantsOnly[ib][1] << std::endl;
+        out << "Force computing except BC = " << bc << " x-force = " << ForceResultantsExcept[ib][0] << " y-force = " << ForceResultantsExcept[ib][1] << std::endl;
+    }
+    out << "Force resultants " << totalforce << std::endl;
+}
+
+/// Verify the global equilibrium of the forces by boundary condition
+void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
+{
+    TPZStack<int,10> boundaryconditionlist;
+    std::set<int> allmaterials;
+    std::map<int,TPZMaterial *>::iterator itmat;
+    std::map<int,TPZMaterial *> &matmap = fCMesh.MaterialVec();
+    for (itmat = matmap.begin(); itmat != matmap.end(); itmat++) {
+        TPZMaterial *mat = itmat->second;
+        TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+        allmaterials.insert(itmat->first);
+        if (bnd) {
+            boundaryconditionlist.Push(itmat->first);
+        }
+    }
+    if (boundaryconditionlist[0] != -6 || boundaryconditionlist[2] != -4) {
+        DebugStop();
+    }
+    boundaryconditionlist[0] = -4;
+    boundaryconditionlist[2] = -6;
+    TPZManVector<TPZManVector<REAL,2>, 10> ForceResultants(boundaryconditionlist.size()+1);
+    int neq = fCMesh.NEquations();
+    TPZFMatrix<STATE> rhs4(neq,1,0.),rhs5(neq,1,0.);
+    for(int ib=0; ib<boundaryconditionlist.size(); ib++)
+    {
+        int bc = boundaryconditionlist[ib];
+        TPZFStructMatrix str(&fCMesh);
+        std::set<int> matset(allmaterials);
+        matset.erase(bc);
+        str.SetMaterialIds(matset);
+        TPZFMatrix<STATE> rhs(neq,1,0.);
+        //        if (bc > -4) {
+        //            matset.erase(-5);
+        //            matset.erase(-4);
+        //        }
+        str.Assemble(rhs,0);
+        // correct for the Dirichlet boundary conditions
+        rhs -= rhs4;
+        rhs -= rhs5;
+        //        if (bc == -5) {
+        //            rhs5 = rhs;
+        //        }
+        //        if (bc == -4) {
+        //            rhs4 = rhs;
+        //        }
+        std::set<int> xeqs,yeqs;
+        for (int el=0; el<fCMesh.NElements(); el++) {
+            TPZCompEl *cel = fCMesh.ElementVec()[el];
+            if (!cel || !cel->Reference()) {
+                continue;
+            }
+            int matid = cel->Reference()->MaterialId();
+            if (matid != bc) {
+                continue;
+            }
+            int nc = cel->Reference()->NCornerNodes();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                int seq = c.SequenceNumber();
+                int pos = fCMesh.Block().Position(seq);
+                xeqs.insert(pos);
+                yeqs.insert(pos+1);
+            }
+        }
+        ForceResultants[ib].Resize(2,0.);
+        std::set<int>::iterator it;
+        for(it = xeqs.begin(); it != xeqs.end(); it++)
+        {
+            ForceResultants[ib][0] += rhs(*it,0);
+            if (bc == -5) {
+                rhs5(*it,0) = rhs(*it,0);
+            }
+        }
+        for(it = yeqs.begin(); it != yeqs.end(); it++)
+        {
+            ForceResultants[ib][1] += rhs(*it,0);
+            if (bc == -4) {
+                rhs4(*it,0) = rhs(*it,0);
+            }
+        }
+    }
+    REAL normrhs = 0.;
+    {
+        boundaryconditionlist.Push(1);
+        int ib = boundaryconditionlist.size()-1;
+        ForceResultants[ib].Resize(2,0.);
+        TPZFStructMatrix str(&fCMesh);
+        TPZFMatrix<STATE> rhs(neq,1,0.);
+        str.Assemble(rhs, 0);
+        rhs -= rhs4;
+        rhs -= rhs5;
+        normrhs = Norm(rhs);
+        ForceResultants[ib].Resize(2, 0.);
+        for (int i=0; i<neq/2; i++) {
+            ForceResultants[ib][0] += rhs(2*i,0);
+            ForceResultants[ib][1] += rhs(2*i+1,0);
+        }
+    }
+    
+    TPZManVector<REAL,2> totalforce(2,0.);
+    out <<  "FORCE RESULTANTS\n";
+    for (int ib=0; ib<boundaryconditionlist.size(); ib++) {
+        int bc = boundaryconditionlist[ib];
+        if (bc<0) {
+            totalforce[0] += ForceResultants[ib][0];
+            totalforce[1] += ForceResultants[ib][1];
+        }
+        out << "Boundary condition " << bc << " x-force = " << ForceResultants[ib][0] << " y-force = " << ForceResultants[ib][1] << std::endl;
+    }
+    out << "Force resultants " << totalforce << std::endl;
+    out << "Norm rhs " << normrhs << std::endl;
+}
+
+/// Compute the Rhs for the mesh minus the elements with matid
+// this method is cumulative (sums to the rhs)
+void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<STATE> &rhs)
+{
+    std::set<int> allmaterials;
+    std::map<int,TPZMaterial *>::iterator itmat;
+    std::map<int,TPZMaterial *> &matmap = fCMesh.MaterialVec();
+    for (itmat = matmap.begin(); itmat != matmap.end(); itmat++) {
+        allmaterials.insert(itmat->first);
+    }
+    allmaterials.erase(matid);
+    TPZFStructMatrix str(&fCMesh);
+    str.SetMaterialIds(allmaterials);
+    str.Assemble(rhs, 0);
+
+    
+}
+
+/// Compute the contribution of only matid
+// this method is cumulative (sums to the rhs)
+void TPZWellBoreAnalysis::TConfig::ComputeRhsForMatid(int matid, TPZFMatrix<STATE> &rhs)
+{
+    std::set<int> allmaterials;
+    allmaterials.insert(matid);
+    TPZFStructMatrix str(&fCMesh);
+    str.SetMaterialIds(allmaterials);
+    str.Assemble(rhs, 0);
+}
+
+/// Compute the resultant x and y force
+void TPZWellBoreAnalysis::TConfig::ComputeXYForce(TPZFMatrix<STATE> &rhs, TPZVec<STATE> &force)
+{
+    force.Resize(2, 0.);
+    force.Fill(0.);
+    int nel = rhs.Rows();
+    for (int i=0; i<nel; i++) {
+        force[i%2] += rhs(i,0);
+    }
+}
+
+
 void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
 {
+    fCMesh.Reference()->ResetReference();
+    fCMesh.LoadReferences();
+    int ndel = 0;
     int nelem = fCMesh.NElements();
     for (int el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
@@ -453,8 +847,12 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
             continue;
         }
         if (fPlasticDeformSqJ2[el] > sqj2) {
+            TPZGeoEl *gel = cel->Reference();
             delete cel;
+            gel->SetMaterialId(50);
+            ndel++;
         }
+        //gel->ResetReference();
     }
     // put boundary conditions on the sides which have no neighbours
     for (int el=0; el<nelem; el++) {
@@ -480,7 +878,7 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
                 }
                 else if (gel->Dimension() == 2) {
                     // create a boundary condition
-                    TPZGeoElBC gbc(gelside, -3);
+                    TPZGeoElBC gbc(gelside, -6);
                     TPZGeoEl *bc = gbc.CreatedElement();
                     // create the corresponding computational element
                     int index;
@@ -489,12 +887,80 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
             }
         }
     }
+    TPZMaterial *mat = fCMesh.FindMaterial(-6);
+    if (!mat) {
+        DebugStop();
+    }
+    TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+    if (!bnd) {
+        DebugStop();
+    }
+    bnd->Val1()(0,0) = 1.e8;
+    bnd->Val1()(1,1) = 1.e8;
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        fCMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    {
+        std::ofstream file("AdjustedMesh.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(fCMesh.Reference(), file, true);
+    }
+    
+    std::cout << "Number of elements deleted " << ndel << std::endl;
 }
+
+// Diminish the spring which stabilizes the well by the given factor
+void TPZWellBoreAnalysis::TConfig::RelaxWellSpring(REAL factor)
+{
+    TPZMaterial *mat = fCMesh.FindMaterial(-6);
+    if (!mat) {
+        DebugStop();
+    }
+    TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+    if (!bnd) {
+        DebugStop();
+    }
+    bnd->Val1() *= factor;
+    bnd->Val1().Print("Value of the spring",std::cout);
+    bnd->Val2().Print("Fluid pressure ",std::cout);
+}
+
 
 /// Change the polynomial order of element using the plastic deformation as threshold
 void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, std::set<int> &elindices)
 {
-    DebugStop();
+    fGMesh.ResetReference();
+    fCMesh.LoadReferences();
+    int nelem = fCMesh.NElements();
+    for (int el=0; el<nelem; el++) {
+        TPZCompEl *cel = fCMesh.ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        if (!intel) {
+            DebugStop();
+        }
+        if (fCMesh.ElementSolution()(el,0) < sqj2) {
+            continue;
+        }
+        TPZStack<int> subels;
+        int index = cel->Index();
+        elindices.insert(index);
+        intel->SetPreferredOrder(porder);
+    }
+    fCMesh.AdjustBoundaryElements();
+    fCMesh.InitializeBlock();
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fCMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 /// Divide the element using the plastic deformation as threshold
@@ -586,6 +1052,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     scalNames.Push("Alpha");
     scalNames.Push("PlasticSqJ2");
     scalNames.Push("PlasticSqJ2El");
+    scalNames.Push("POrder");
     //    scalnames[1] = "PlasticSteps";
     //    scalnames[2] = "VolElasticStrain";
     //    scalnames[3] = "VolPlasticStrain";
@@ -593,12 +1060,13 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     scalNames.Push("I1Stress");
     scalNames.Push("J2Stress");
     
-	//vecNames.Push("Displacement");
+	vecNames.Push("Displacement");
     vecNames.Push("YieldSurface");
     vecNames.Push("NormalStress");
     vecNames.Push("ShearStress");
     vecNames.Push("NormalStrain");
     vecNames.Push("ShearStrain");
+    vecNames.Push("DisplacementMem");
     for (int i=0; i<scalNames.size(); i++) {
         PostProcVars.Push(scalNames[i]);
     }

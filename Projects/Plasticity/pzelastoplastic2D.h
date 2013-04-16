@@ -53,14 +53,25 @@ public:
 	/** returns the number of state variables associated with the material*/
 	virtual int NStateVariables() { return 2; }
 	
+    /** @brief Prints out the data associated with the material */
+    virtual void Print(std::ostream &out);
+
 	/** print out the data associated with the material*/
-	virtual void Print(std::ostream &out = std::cout, const int memory = 0);
+	virtual void Print(std::ostream &out, const int memory);
 	
 	
 	/**returns the solution associated with the var index based on
 	 * the finite element approximation*/
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
+	/**
+	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 */
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -71,6 +82,10 @@ public:
 	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
+    /**
+     * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
+     */
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
 	 * @param data [in] stores all input data
@@ -97,6 +112,14 @@ public:
 	 */
 	void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
 									TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
+	
+	/** Calls the plasticity template aggregate applyStrainComputeDep method
+	 *  @param data [in]
+	 *  @param DeltaStrain [in]
+	 *  @param Stress [out]
+	 */
+	void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+									TPZFMatrix<REAL> & Stress);
 	
 	
 	/**To create another material of the same type*/
