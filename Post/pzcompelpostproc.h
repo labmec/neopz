@@ -322,7 +322,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
             int variableindex = varIndex[var_ind];
 			int nsolvars = pMaterialRef->NSolutionVariables(variableindex);
 			Sol.Resize(nsolvars);
-            if (variableindex < 100) {
+            if (variableindex < 99) {
                 pMaterialRef->Solution(dataRef, variableindex, Sol);
             }
             else {
@@ -372,8 +372,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
     }
 #endif
 	
-	cout << "*";
-	cout.flush();
+//	cout << "*";
+//	cout.flush();
 }
 
 template <class TCOMPEL>
