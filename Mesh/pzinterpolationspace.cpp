@@ -62,6 +62,12 @@ int TPZInterpolationSpace::MaxOrder(){
 	return result;
 }
 
+void TPZInterpolationSpace::Print(std::ostream &out) const {
+    out << __PRETTY_FUNCTION__ << std::endl;
+    TPZCompEl::Print(out);
+    out << "PreferredSideOrder " << fPreferredOrder << std::endl;
+}
+
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                          TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                          REAL &detjac, TPZFMatrix<REAL> &jacinv,
@@ -189,8 +195,15 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	
 	thisGeoEl = this->Reference();
 	thisFace = thisGeoEl->NSides() - 1;
+    TPZGeoElSide thisside(thisGeoEl,thisFace);
+    TPZCompMesh *cmesh = this->Mesh();
 	
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
+    int matid = neighbourGeoElSide.Element()->MaterialId();
+    while (!cmesh->FindMaterial(matid) && neighbourGeoElSide != thisside) {
+        neighbourGeoElSide = neighbourGeoElSide.Neighbour();
+        matid = neighbourGeoElSide.Element()->MaterialId();
+    }
 	neighbourGeoEl = neighbourGeoElSide.Element();
 	neighbourFace = neighbourGeoEl->NSides() - 1;
 
@@ -203,6 +216,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 
 	thisGeoEl->     CenterPoint(thisFace,      thisCenter);
 	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
+    
 	
 	thisGeoEl->     X(thisCenter,     thisXVol);
 	neighbourGeoEl->X(neighbourCenter,neighbourXVol);
@@ -456,6 +470,9 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 	}
 	if(var == 99) {
 		sol[0] = GetPreferredOrder();
+//        if (sol[0] != 2) {
+//            std::cout << __PRETTY_FUNCTION__ << " preferred order " << sol[0] << std::endl;
+//        }
 		return;
 	}
 	
