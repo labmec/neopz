@@ -63,7 +63,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	if(numscal || numvec)(fOutFile) << "POINT_DATA " << NPoints() << endl;
 	if(numscal)
 	{
-		TPZVec<int> scalind(0);
+		TPZManVector<int> scalind(0);
 		scalind.Fill(-1,0,numscal);
 		scalind.Resize(numscal);
 		for(n=0; n<numscal; n++) {
