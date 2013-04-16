@@ -94,7 +94,9 @@ public:
      */
     void GetMemoryIndices(TPZVec<int> &indices) const;
 
-	
+    /// Modify the maximum order an integration rule can integrate
+	void SetIntegrationRule(int ord);
+    
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
@@ -220,6 +222,21 @@ inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
 	fIntPtIndices.Resize(0);
 	
 }
+
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::SetIntegrationRule(int ord)
+{
+    TBASE::SetIntegrationRule(ord);
+    // verify if the number of integration points changed
+    const TPZIntPoints &intrule = TBASE::GetIntegrationRule();
+	int intrulepoints = intrule.NPoints();
+    if (intrulepoints != fIntPtIndices.size()) {
+        SetFreeIntPtIndices();
+        PrepareIntPtIndices();
+    }
+
+}
+
 
 /** @brief Get the indices of the vector of element memory associated with the integration points */
 /**
