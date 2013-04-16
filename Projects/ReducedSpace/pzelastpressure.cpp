@@ -249,7 +249,7 @@ void TPZElastPressure::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int phc = phiu.Cols();
-    ef.Print();
+    ef.Print("ef");
     for (int in = 0; in < phc; in++) 
     {
         for (int il = 0; il <fNumLoadCases; il++) 
@@ -384,8 +384,8 @@ void TPZElastPressure::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
         std::cout << " The space to elasticity problem must be reduced space.\n";
 		DebugStop();
     }
-	bc.Val1().Print();
-    bc.Val2().Print();
+	bc.Val1().Print("bc.Val1");
+    bc.Val2().Print("bc.Val2");
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition in  both elasticity and pressure equations
 			

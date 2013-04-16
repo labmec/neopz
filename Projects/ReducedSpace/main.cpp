@@ -83,7 +83,7 @@ int main2(int argc, char *argv[])
 
     TPZFMatrix<REAL> solucao;
     solucao=cmesh->Solution();
-    solucao.Print();
+    solucao.Print("solucao");
     
     TPZCompMeshReferred *cmeshreferred = CMeshReferred(gmesh, cmesh, p);
     cmeshreferred->ComputeNodElCon();
