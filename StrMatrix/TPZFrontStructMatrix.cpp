@@ -50,9 +50,18 @@ void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected
 		if(seqn < 0) continue;
 		int firsteq = fMesh->Block().Position(seqn);
 		int lasteq = firsteq+fMesh->Block().Size(seqn);
-		if(firsteq < fMinEq || firsteq >= fMaxEq) continue;
-		int ind;
-		for(ind=firsteq;ind<lasteq;ind++) numelconnected[ind-fMinEq] = fMesh->ConnectVec()[ic].NElConnected();
+        int numactive = fEquationFilter.NumActive(firsteq, lasteq);
+		if(!numactive) continue;
+        if (numactive != lasteq-firsteq) {
+            DebugStop();
+        }
+        TPZManVector<long> firstind(numactive),destindex(numactive);
+        for (int i = 0; i<numactive; i++) {
+            firstind[i] = i;
+            destindex[i] = firsteq+i;
+        }
+        fEquationFilter.Filter(firstind, destindex);
+		for(int ind=0;ind<destindex.size();ind++) numelconnected[destindex[ind] ] = fMesh->ConnectVec()[ic].NElConnected();
 	}
 }
 
@@ -207,16 +216,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 template<class front>
 TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-	int neq = fMesh->NEquations();
-	if(HasRange())
-	{
-		neq = fMaxEq-fMinEq;
-	}
-	else
-	{
-		fMinEq = 0;
-		fMaxEq = neq;
-	}
+    int neq = fEquationFilter.NEq();
 	TPZManVector <int> numelconnected(neq,0);
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(neq);//(fMesh->NEquations());
 	
@@ -260,8 +260,8 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZF
 	int iel;
 	int numel = 0, nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);
-	TPZManVector<int> destinationindex(0);
-	TPZManVector<int> sourceindex(0);
+	TPZManVector<long> destinationindex(0);
+	TPZManVector<long> sourceindex(0);
 	
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
 	
@@ -286,7 +286,7 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZF
 		//Builds elements stiffness matrix
 		el->CalcStiff(ek,ef);
 		ek.ComputeDestinationIndices();
-		FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+		FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 		//ek.fMat->Print(out);
 		//ef.fMat->Print();
 		if(!f_quiet)
@@ -413,7 +413,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
 		//ef.fMat->Print("rhs has no constraint",test);
 		//test.flush();
 		ek.ComputeDestinationIndices();
-		this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+		this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
 		{
             std::stringstream sout;
@@ -430,7 +430,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
         ek.ApplyConstraints();
         ef.ApplyConstraints();
         ek.ComputeDestinationIndices();
-        FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+        FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
         {
 			std::stringstream sout;
@@ -500,7 +500,8 @@ int TPZFrontStructMatrix<front>::main() {
 	cout << "Refinement ";
 	cin >> refine;
 	cout << endl;
-	UniformRefine(refine,gmesh);
+    DebugStop();
+//	UniformRefine(refine,gmesh);
 	
 	
 	

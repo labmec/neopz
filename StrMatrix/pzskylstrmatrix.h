@@ -21,6 +21,12 @@ class TPZMatrix;
 class TPZSkylineStructMatrix : public TPZStructMatrix {
 protected:
     
+    /** @brief the equations which should actually be assembled */
+    TPZVec<int> fActiveEquations;
+    
+    /** @brief Equation destination */
+    TPZVec<int> fEquationDestination;
+    
     /** Returns the skyline matrix object */
     virtual TPZMatrix<STATE> * ReallyCreate(int neq, const TPZVec<int> &skyline);
     
@@ -40,9 +46,6 @@ public:
 	
     virtual TPZStructMatrix * Clone();
     
-    /** @brief Adapt the skyline for a range of equations */
-    void FilterSkyline(TPZVec<int> &skyline);
-	
 public:
 	
 };

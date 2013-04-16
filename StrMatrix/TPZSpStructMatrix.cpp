@@ -60,16 +60,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
     return stiff;
 }
 TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
-    int neq = fMesh->NEquations();
-    if(HasRange())
-    {
-		neq = fMaxEq-fMinEq;
-    }
-    else
-    {
-		fMinEq = 0;
-		fMaxEq = neq;
-    }
+    int neq = fEquationFilter.NEq();
 	/*    if(fMesh->FatherMesh()) {
 	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
 	 neq = smesh->NumInternalEquations();
@@ -102,7 +93,10 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     for(i=0;i<nblock;i++){
 		int iblsize = fMesh->Block().Size(i);
 		int iblpos = fMesh->Block().Position(i);
-		if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
+        int numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+        if (!numactive) {
+            continue;
+        }
 		totaleq += iblsize;
 		int icfirst = nodegraphindex[i];
 		int iclast = nodegraphindex[i+1];
@@ -113,7 +107,10 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 			int col = nodegraph[j];
 			int colsize = fMesh->Block().Size(col);
 			int colpos = fMesh->Block().Position(col);
-			if(colpos < fMinEq || colpos >= fMaxEq) continue;
+            int numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
+            if (!numactive) {
+                continue;
+            }
 			totalvar += iblsize*colsize;
 		}
     }
@@ -129,7 +126,10 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     for(i=0;i<nblock;i++){
 		int iblsize = fMesh->Block().Size(i);
 		int iblpos = fMesh->Block().Position(i);
-		if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
+        int numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+        if (!numactive) {
+            continue;
+        }
 		int ibleq;
 		for(ibleq=0; ibleq<iblsize; ibleq++) {
 			Eq[ieq] = pos;
@@ -145,10 +145,15 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 					diagonalinsert = 1;
 					int colsize = fMesh->Block().Size(i);
 					int colpos = fMesh->Block().Position(i);
+                    TPZManVector<long> destindices(colsize);
+                    for (int i=0; i<colsize; i++) {
+                        destindices[i] = colpos+i;
+                    }
+                    fEquationFilter.Filter(destindices);
 					int jbleq;
-					for(jbleq=0; jbleq<colsize; jbleq++) {
+					for(jbleq=0; jbleq<destindices.size(); jbleq++) {
 						//             if(colpos+jbleq == ieq) continue;
-						EqCol[pos] = colpos+jbleq-fMinEq;
+						EqCol[pos] = destindices[jbleq];
 						EqValue[pos] = 0.;
 						//            colpos++;
 						pos++;
@@ -156,9 +161,13 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 				}
 				colsize = fMesh->Block().Size(col);
 				colpos = fMesh->Block().Position(col);
-				if(colpos < fMinEq || colpos >= fMaxEq) continue;
-				for(jbleq=0; jbleq<colsize; jbleq++) {
-					EqCol[pos] = colpos-fMinEq;
+                TPZManVector<long> destindices(colsize);
+                for (int i=0; i<colsize; i++) {
+                    destindices[i] = colpos+i;
+                }
+                fEquationFilter.Filter(destindices);
+				for(jbleq=0; jbleq<destindices.size(); jbleq++) {
+					EqCol[pos] = destindices[jbleq];
 					EqValue[pos] = 0.;
 					colpos++;
 					pos++;
@@ -169,10 +178,15 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 				diagonalinsert = 1;
 				int colsize = fMesh->Block().Size(i);
 				int colpos = fMesh->Block().Position(i);
+                TPZManVector<long> destindices(colsize);
+                for (int i=0; i<colsize; i++) {
+                    destindices[i] = colpos+i;
+                }
+                fEquationFilter.Filter(destindices);
 				int jbleq;
-				for(jbleq=0; jbleq<colsize; jbleq++) {
+				for(jbleq=0; jbleq<destindices.size(); jbleq++) {
 					//             if(colpos+jbleq == ieq) continue;
-					EqCol[pos] = colpos+jbleq-fMinEq;
+					EqCol[pos] = destindices[jbleq];
 					EqValue[pos] = 0.;
 					//            colpos++;
 					pos++;
@@ -233,8 +247,8 @@ int TPZSpStructMatrix::main() {
 	cout << "Refinement ";
 	cin >> refine;
 	cout << endl;
-	
-	UniformRefine(refine,gmesh);
+	DebugStop();
+//	UniformRefine(refine,gmesh);
 	
 	TPZGeoElBC gelbc(gel,4,-4);
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);

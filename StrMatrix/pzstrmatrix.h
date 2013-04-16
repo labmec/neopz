@@ -16,6 +16,8 @@
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
 
+#include "pzequationfilter.h"
+
 class TPZCompMesh;
 template<class TVar>
 class TPZMatrix;
@@ -28,7 +30,7 @@ class TPZFMatrix;
  * @brief Refines geometrical mesh (all the elements) num times 
  * @ingroup geometry
  */
-void UniformRefine(int num, TPZGeoMesh &m);
+//void UniformRefine(int num, TPZGeoMesh &m);
 
 /**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
@@ -100,30 +102,36 @@ public:
 	/** @brief Determine that the assembly refers to a range of equations */
 	void SetEquationRange(int mineq, int maxeq)
 	{
-		fMinEq = mineq;
-		fMaxEq = maxeq;
+        fEquationFilter.Reset();
+        fEquationFilter.SetMinMaxEq(mineq, maxeq);
 	}
 	
 	/** @brief Verify if a range has been specified */
-	bool HasRange()
+	virtual bool HasRange() const
 	{
-		return (fMinEq != -1 && fMaxEq != -1);
+		return fEquationFilter.IsActive();
 	}
+    
+    /// Access method for the mesh pointer
+    TPZCompMesh *Mesh() const
+    {
+        return fMesh;
+    }
 	
 	/** @brief Filter out the equations which are out of the range */
-	static void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex, int mineq, int upeq);
+	virtual void FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const;
 	
 	/** @brief Set the set of material ids which will be considered when assembling the system */
 	void SetMaterialIds(const std::set<int> &materialids);
 	
 	/** @brief Establish whether the element should be computed */
-	bool ShouldCompute(int matid)
+	bool ShouldCompute(int matid) const
 	{
 		const unsigned int size = fMaterialIds.size();
 		return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
 	}
 	/** @brief Returns the material ids */
-	std::set<int> MaterialIds()
+	const std::set<int> &MaterialIds()
 	{
 		return fMaterialIds;
 	}
@@ -134,11 +142,11 @@ protected:
 	struct ThreadData
 	{
 		/// Initialize the mutex semaphores and others
-		ThreadData(TPZCompMesh &mesh,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, int mineq, int maxeq, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+		ThreadData(TPZStructMatrix *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
 		/// Destructor: Destroy the mutex semaphores and others
 		~ThreadData();
 		/// Current structmatrix object
-		TPZCompMesh *fMesh;
+		TPZStructMatrix *fStruct;
 		/// Gui interface object
 		TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 		/// Mutexes (to choose which element is next)
@@ -149,12 +157,6 @@ protected:
 		TPZMatrix<STATE> *fGlobMatrix;
 		/// Global rhs vector
 		TPZFMatrix<STATE> *fGlobRhs;
-		/// Minimum equation to be assembled
-		int fMinEq;
-		/// Maximum equation to be assembled
-		int fMaxEq;
-		/// Material identifiers which need to be computed
-		std::set<int> fMaterialIds;
 		/// List of computed element matrices (autopointers?)
 		std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > fSubmitted;
 		/// Elements which are being processed
@@ -173,7 +175,7 @@ protected:
 		/// Establish whether the element should be computed
 		bool ShouldCompute(int matid)
 		{
-			return fMaterialIds.size()==0 || fMaterialIds.find(matid) != fMaterialIds.end();
+            return fStruct->ShouldCompute(matid);
 		}
 		
 	};
@@ -187,8 +189,9 @@ protected:
     /** @brief Autopointer control of the computational mesh */
     TPZAutoPointer<TPZCompMesh> fCompMesh;
 	
-	/** @brief Equation range for assembly of the global matrix */
-	int fMinEq, fMaxEq;
+    /// Object which will determine which equations will be assembled
+    TPZEquationFilter fEquationFilter;
+    
 	
 	bool fOnlyInternal;
 	

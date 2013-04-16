@@ -37,16 +37,7 @@ TPZMatrix<STATE> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAu
 }
 
 TPZMatrix<STATE> * TPZFStructMatrix::Create(){
-	int neq = fMesh->NEquations();
-	if(HasRange())
-	{
-		neq = fMaxEq-fMinEq;
-	}
-	else
-	{
-		fMaxEq = neq;
-		fMinEq = 0;
-	}
+	int neq = fEquationFilter.NEq();
     
 	return new TPZFMatrix<STATE>(neq,neq,0.);
 }

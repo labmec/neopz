@@ -46,8 +46,15 @@ void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<STATE>
 			seqnum = con.SequenceNumber();
 			int eqnum = fMesh->Block().Position(seqnum);
 			if(seqnum <0 || seqnum >= nblock) continue;
-			if(HasRange() && (eqnum <fMinEq || eqnum >= fMaxEq)) continue;
 			int bsize = blocksizes[seqnum];
+            int numactive = fEquationFilter.NumActive(eqnum, eqnum+bsize);
+            if (!numactive) {
+                continue;
+            }
+            if (numactive != bsize) {
+                // Please implement me
+                DebugStop();
+            }
 			if(con.NDof(*fMesh) != bsize ) {
 				cout << "TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal wrong data structure\n";
 				continue;
@@ -82,7 +89,11 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
         bl = con.SequenceNumber();
         blsize = con.NDof(*fMesh);
         int blpos = fMesh->Block().Position(bl);
-        if(HasRange() && (blpos < fMinEq || blpos >= fMaxEq))
+        int numactiv = fEquationFilter.NumActive(blpos, blpos+blsize);
+        if (numactiv && numactiv != blsize) {
+            DebugStop();
+        }
+        if(!numactiv)
         {
 			blocksizes[bl] = 0;
         }
@@ -111,6 +122,4 @@ TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
 }
 TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
 {
-	fMinEq = 0;
-	fMaxEq = mesh->NEquations();
 }

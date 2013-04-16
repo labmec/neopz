@@ -990,7 +990,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	
 	// compute both stiffness matrices simultaneously
 	substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
-	pairstructmatrix.Assemble(-1, -1, Stiffness.operator->(), matredptr, substruct->fLocalLoad);
+	pairstructmatrix.Assemble(Stiffness.operator->(), matredptr, substruct->fLocalLoad);
 	matredbig->Simetrize();
 	matredptr->Simetrize();
 	

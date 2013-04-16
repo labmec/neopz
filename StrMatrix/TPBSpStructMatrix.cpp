@@ -74,7 +74,8 @@ int TPBSpStructMatrix::main() {
 	cin >> refine;
 	cout << endl;
 	
-	UniformRefine(refine,gmesh);
+    DebugStop();
+//	UniformRefine(refine,gmesh);
 	
 	
 	TPZGeoElBC gelbc(gel,4,-4);
@@ -231,16 +232,8 @@ TPZMatrix<STATE> * TPBSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZA
 }
 TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     //checked
-    int neq = fMesh->NEquations();
-    if(HasRange())
-    {
-		neq = fMaxEq-fMinEq;
-    }
-    else
-    {
-		fMinEq = 0;
-		fMaxEq = neq;
-    }
+    
+    int neq = fEquationFilter.NEq();
     TPZFYsmpMatrix<STATE> * mat = new TPZFYsmpMatrix<STATE>(neq,neq);
 	
     /**Rearange elements order*/
@@ -273,7 +266,13 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     for(i=0;i<nblock;i++){
 		int iblsize = fMesh->Block().Size(i);
 		int iblpos = fMesh->Block().Position(i);
-		if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
+        int numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+        if (!numactive) {
+            continue;
+        }
+        if (numactive != iblsize) {
+            DebugStop();
+        }
 		totaleq += iblsize;
 		int icfirst = nodegraphindex[i];
 		int iclast = nodegraphindex[i+1];
@@ -284,7 +283,10 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
 			int col = nodegraph[j];
 			int colsize = fMesh->Block().Size(col);
 			int colpos = fMesh->Block().Position(col);
-			if(colpos < fMinEq || colpos >= fMaxEq) continue;
+            int numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
+            if (!numactive) {
+                continue;
+            }
 			totalvar += iblsize*colsize;
 		}
     }
@@ -300,7 +302,10 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     for(i=0;i<nblock;i++){
 		int iblsize = fMesh->Block().Size(i);
 		int iblpos = fMesh->Block().Position(i);
-		if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
+        int numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+        if (!numactive) {
+            continue;
+        }
 		int ibleq;
 		for(ibleq=0; ibleq<iblsize; ibleq++) {
 			Eq[ieq] = pos;
@@ -326,7 +331,10 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
 				int col = nodegraph[j];
 				colsize = fMesh->Block().Size(col);
 				colpos = fMesh->Block().Position(col);
-                if(colpos < fMinEq || colpos >= fMaxEq) continue;
+                int numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
+                if (!numactive) {
+                    continue;
+                }
                 for(jbleq=0; jbleq<colsize; jbleq++) {
 					EqCol[pos] = -1;//colpos;
 					EqValue[pos] = 0.;

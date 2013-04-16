@@ -13,6 +13,9 @@
 #include "TPZGuiInterface.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
+#include "pzstrmatrix.h"
+
+class TPZStructMatrix;
 
 /**
  * @ingroup substructure
@@ -20,10 +23,8 @@
  */
 class TPZPairStructMatrix
 {
-	TPZCompMesh *fMesh;
 	TPZVec<int> fPermuteScatter;
-	std::set<int> fMaterialIds;
-	int fNumThreads;
+    TPZStructMatrix fStrMatrix;
 	
 	void PermuteScatter(TPZVec<int> &index);
 	void PermuteScatter(TPZVec<long> &index);
@@ -33,32 +34,37 @@ public:
 	static int gNumThreads;
 	
 	TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permutescatter);
+    
+    ~TPZPairStructMatrix()
+    {
+        
+    }
 	
 	void SetNumThreads(int numthreads)
 	{
-		fNumThreads = numthreads;
+		fStrMatrix.SetNumThreads(numthreads);
 	}
 	
 	/** @brief Set the set of material ids which will be considered when assembling the system */
 	void SetMaterialIds(const std::set<int> &materialids);
 	
-	void Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
-	void TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, 
+	void Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
+	void TBBAssemble(TPZMatrix<STATE> *first, 
                      TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
 
-	void SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
+	void SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
 	
-	void MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
+	void MultiThread_Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
 	
 	/** @brief Contains the thread data for matrices divided in sub structures. */
 	struct ThreadData
 	{
 		/** @brief Initialize the mutex semaphores and others */
-		ThreadData(TPZCompMesh &mesh,TPZMatrix<STATE> &mat1, TPZMatrix<STATE> &mat2, TPZFMatrix<STATE> &rhs, int mineq, int maxeq);
+		ThreadData(TPZStructMatrix *strmatrix,TPZMatrix<STATE> &mat1, TPZMatrix<STATE> &mat2, TPZFMatrix<STATE> &rhs);
 		/** @brief Destroy the mutex semaphores and others */
 		~ThreadData();
 		/** @brief Current structmatrix object */
-		TPZCompMesh *fMesh;
+		TPZStructMatrix *fStrMatrix;
 		/** @brief Mutexes (to choose which element is next) */
 		pthread_mutex_t fAccessElement;
 		/** @brief Semaphore (to wake up the first assembly thread) */
@@ -71,12 +77,6 @@ public:
 		TPZMatrix<STATE> *fGlobMatrix2;
 		/** @brief Global rhs */
 		TPZFMatrix<STATE> *fGlobRhs;
-		/** @brief Minimum equation to be assembled */
-		int fMinEq;
-		/** @brief Maximum equation to be assembled */
-		int fMaxEq;
-		/** @brief Material identifiers which need to be computed */
-		std::set<int> fMaterialIds;
 		/** @brief Vector which defines the permutation of all equations to internal equations */
 		TPZVec<int> fPermuteScatter;
 		/** @brief List of computed element matrices (autopointers?) */
@@ -103,7 +103,7 @@ public:
 		/** @brief Establish whether the element should be computed */
 		bool ShouldCompute(int matid)
 		{
-			return fMaterialIds.size()==0 || fMaterialIds.find(matid) != fMaterialIds.end();
+            return fStrMatrix->ShouldCompute(matid);
 		}
 		void PermuteScatter(TPZVec<int> &index);
 		void PermuteScatter(TPZVec<long> &index);

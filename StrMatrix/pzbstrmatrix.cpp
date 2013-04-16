@@ -22,8 +22,7 @@ TPZMatrix<STATE> * TPZBandStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TP
 }
 
 TPZMatrix<STATE> * TPZBandStructMatrix::Create(){
-    int neq = fMesh->NEquations();
-    if(HasRange()) neq = fMaxEq-fMinEq;
+    int neq = fEquationFilter.NEq();
     int band = fMesh->BandWidth();
     return new TPZFBMatrix<STATE>(neq,band);
 }

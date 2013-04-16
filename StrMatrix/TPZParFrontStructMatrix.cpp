@@ -546,8 +546,8 @@ int TPZParFrontStructMatrix<front>::main() {
 	cout << "Refinement ";
 	cin >> refine;
 	cout << endl;
-	
-	UniformRefine(refine,gmesh);
+	DebugStop();
+	//UniformRefine(refine,gmesh);
 	
 	
 	TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -688,16 +688,7 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
 	
 	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-	int neq = this->fMesh->NEquations();
-	if(this->HasRange())
-	{
-		neq = this->fMaxEq-this->fMinEq;
-	}
-	else
-	{
-		this->fMinEq = 0;
-		this->fMaxEq = neq;
-	}
+	int neq = this->fEquationFilter.NEq();
 	
 	//  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
 	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>(neq);

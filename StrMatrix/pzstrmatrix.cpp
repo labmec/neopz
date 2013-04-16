@@ -19,7 +19,6 @@
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
-//#include "TPZMTAssemble.h"
 
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
@@ -42,7 +41,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
-TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMinEq(-1), fMaxEq(-1) {
+TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
 	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (mesh);
 	if (submesh) {
@@ -54,7 +53,7 @@ TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMinEq(-1), fMaxEq(-1) {
 	this->SetNumThreads(0);
 }
 
-TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fMinEq(-1), fMaxEq(-1) {
+TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
 	fMesh = cmesh.operator->();
 	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
 	if (submesh) {
@@ -66,10 +65,11 @@ TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(
 	this->SetNumThreads(0);
 }
 
-TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy){
-	fMesh = copy.fMesh;
-	fMinEq = copy.fMinEq;
-	fMaxEq = copy.fMaxEq;
+TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
+{
+    if (copy.fCompMesh) {
+        fCompMesh = copy.fCompMesh;
+    }
 	fMaterialIds = copy.fMaterialIds;
 	fNumThreads = copy.fNumThreads;
 	fOnlyInternal = copy.fOnlyInternal;
@@ -218,10 +218,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 		
 		if(!el->HasDependency()) {
 			ek.ComputeDestinationIndices();
-			if(fMinEq != -1 || fMaxEq != -1)
-			{
-				FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
-			}
+            fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
 //			TPZSFMatrix<STATE> test(stiffness);
 //			TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
 //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
@@ -253,10 +250,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 			ek.ApplyConstraints();
 			ef.ApplyConstraints();
 			ek.ComputeDestinationIndices();
-			if(fMinEq != -1 || fMaxEq != -1)
-			{
-				FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
-			}
+            fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
 			stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
@@ -325,19 +319,13 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TP
 		
 		if(!el->HasDependency()) {
 			ef.ComputeDestinationIndices();
-			if(fMinEq != -1 && fMaxEq != -1)
-			{
-				FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
-			}
+            fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
 			rhs.AddFel(ef.fMat, ef.fSourceIndex, ef.fDestinationIndex);
 		} else {
 			// the element has dependent nodes
 			ef.ApplyConstraints();
 			ef.ComputeDestinationIndices();
-			if(fMinEq != -1 && fMaxEq != -1)
-			{
-				FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
-			}
+            fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
 			rhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
 		}
 		
@@ -352,12 +340,12 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TP
 		LOGPZ_DEBUG(logger,sout.str().c_str());
 	}
 #endif
-	
+    //std::cout << std::endl;
 }
 
 void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-	ThreadData threaddata(*fMesh,mat,rhs,fMinEq,fMaxEq,fMaterialIds,guiInterface);
+	ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
 	const int numthreads = this->fNumThreads;
 	TPZVec<pthread_t> allthreads(numthreads);
 	int itr;
@@ -388,22 +376,10 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
 }
 
 /// filter out the equations which are out of the range
-void TPZStructMatrix::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex, int fMinEq, int upeq)
+void TPZStructMatrix::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
 {
-	if(fMinEq == -1 || upeq == -1) return;
-	int count = 0;
-	int nel = origindex.NElements();
-	int i;
-	for(i=0; i<nel; i++)
-	{
-		if(destindex[i] >= fMinEq && destindex[i] < upeq)
-		{
-			origindex[count] = origindex[i];
-			destindex[count++] = destindex[i]-fMinEq;
-		}
-	}
-	origindex.Resize(count);
-	destindex.Resize(count);
+    //destindex = origindex;
+    fEquationFilter.Filter(origindex, destindex);
 	
 }
 
@@ -427,18 +403,13 @@ TPZMatrix<STATE> * TPZStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAu
 	
 }
 
-TPZStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix<STATE> &mat,
-										TPZFMatrix<STATE> &rhs, int mineq, int maxeq,
+TPZStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat, TPZMatrix<STATE> &mat,
+										TPZFMatrix<STATE> &rhs, 
 										std::set<int> &MaterialIds,
 										TPZAutoPointer<TPZGuiInterface> guiInterface)
-: fMesh(&mesh),
-fGuiInterface(guiInterface),
-fGlobMatrix(&mat), fGlobRhs(&rhs),
-fMinEq(mineq), fMaxEq(maxeq),
-fNextElement(0)
+        : fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fNextElement(0)
 {
 	
-	fMaterialIds = MaterialIds;
 	PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrix::ThreadData::ThreadData()");
 	/*	sem_t *sem_open( ... );
 	 int sem_close(sem_t *sem);
@@ -482,7 +453,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	ThreadData *data = (ThreadData *) datavoid;
 	// compute the next element (this method is threadsafe)
 	int iel = data->NextElement();
-	TPZCompMesh *cmesh = data->fMesh;
+	TPZCompMesh *cmesh = data->fStruct->fMesh;
 	TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
 	int nel = cmesh->NElements();
 	while(iel < nel)
@@ -505,9 +476,9 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 		if(!el->HasDependency()) {
 			ek->ComputeDestinationIndices();
 			
-			if(data->fMinEq != -1 || data->fMaxEq != -1)
+			if(data->fStruct->HasRange())
 			{
-				FilterEquations(ek->fSourceIndex,ek->fDestinationIndex,data->fMinEq,data->fMaxEq);
+				data->fStruct->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
 			}
 #ifdef LOG4CXX
 			if(loggerel->isDebugEnabled())
@@ -524,9 +495,9 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 			ek->ApplyConstraints();
 			ef->ApplyConstraints();
 			ek->ComputeDestinationIndices();
-			if(data->fMinEq != -1 || data->fMaxEq != -1)
+			if(data->fStruct->HasRange())
 			{
-				FilterEquations(ek->fSourceIndex,ek->fDestinationIndex,data->fMinEq,data->fMaxEq);
+				data->fStruct->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
 			}
 #ifdef LOG4CXX
 			if(loggerel2->isDebugEnabled() && el->Reference() &&  el->Reference()->MaterialId() == 1 && el->IsInterface())
@@ -575,7 +546,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 {
 	ThreadData *data = (ThreadData *) threaddata;
-	TPZCompMesh *cmesh = data->fMesh;
+	TPZCompMesh *cmesh = data->fStruct->fMesh;
 	TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
 	int nel = cmesh->NElements();
 	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZStructMatrix::ThreadData::ThreadAssembly");
@@ -678,14 +649,14 @@ int TPZStructMatrix::ThreadData::NextElement()
         PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
 	int iel;
 	int nextel = fNextElement;
-	TPZCompMesh *cmesh = fMesh;
+	TPZCompMesh *cmesh = fStruct->fMesh;
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
 	int nel = elementvec.NElements();
 	for(iel=fNextElement; iel < nel; iel++)
 	{
 		TPZCompEl *el = elementvec[iel];
 		if(!el) continue;
-		if(fMaterialIds.size() == 0) break;
+		if(fStruct->fMaterialIds.size() == 0) break;
 		TPZMaterial * mat = el->Material();
 		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
 		if(!mat)
@@ -694,7 +665,7 @@ int TPZStructMatrix::ThreadData::NextElement()
 			{
 				continue;
 			}
-			else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
+			else if(submesh->NeedsComputing(fStruct->fMaterialIds) == false) continue;
 		}
 		else 
 		{
@@ -780,6 +751,7 @@ void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 	}
 }
 
+/*
 void UniformRefine(int num, TPZGeoMesh &m){
 	
 	int ref;
@@ -806,4 +778,4 @@ void UniformRefine(int num, TPZGeoMesh &m){
         cout << endl;
 	}
 }
-
+*/

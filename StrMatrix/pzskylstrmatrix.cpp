@@ -27,8 +27,7 @@ TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh
 }
 
 TPZMatrix<STATE> * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	int neq = fMesh->NEquations();
-	if(HasRange()) neq = fMaxEq-fMinEq;
+	int neq = fEquationFilter.NEq();
 	TPZMatrix<STATE> *stiff = Create();
 	rhs.Redim(neq,1);
 	Assemble(*stiff,rhs, guiInterface);
@@ -50,15 +49,8 @@ TPZMatrix<STATE> * TPZSkylineStructMatrix::Create(){
 	else {
 		fMesh->Skyline(skyline);
 	}
-    if(HasRange())
-    {
-		neq = fMaxEq-fMinEq;
-		FilterSkyline(skyline);
-    }
-	else {
-		// This statement is needed for compatibility with TPZSubCompMesh The number of equations of the stiffness matrix corresponds to "only" the internal nodes
-		neq = skyline.NElements();
-	}
+    fEquationFilter.FilterSkyline(skyline);
+    neq = fEquationFilter.NEq();
 	
     return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<STATE>(neq,skyline);
 }
@@ -74,17 +66,6 @@ TPZMatrix<STATE> * TPZSkylineStructMatrix::ReallyCreate(int neq, const TPZVec<in
 TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){
 }
 
-/*!
- \fn TPZSkylineStructMatrix::FilterSkyline()
- */
-void TPZSkylineStructMatrix::FilterSkyline(TPZVec<int> &skyline)
-{
-	if(!HasRange()) return;
-	//  int neq = skyline.NElements();
-	int ieq;
-	for(ieq = fMinEq; ieq < fMaxEq; ieq++)
-	{
-		skyline[ieq-fMinEq] = skyline[ieq]-fMinEq;
-	}
-	skyline.Resize(fMaxEq-fMinEq);
-}
+
+
+

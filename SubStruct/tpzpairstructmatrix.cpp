@@ -33,14 +33,14 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 
 int TPZPairStructMatrix::gNumThreads = 0;
 
-TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permutescatter)
+TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permutescatter) : fStrMatrix(mesh)
 {
-	fMesh = mesh;
 	fPermuteScatter = permutescatter;
 #ifdef PERF_DEBUG
 	std::cout << "fNumThreads e "<< fNumThreads << " gNumThreads esta setando para " << gNumThreads << endl; 
 #endif
-	fNumThreads = gNumThreads;
+    fStrMatrix.SetNumThreads(gNumThreads);
+
 }
 
 #ifdef USING_TBB
@@ -361,8 +361,8 @@ public:
   /** Execute work items serially. */
   void run_serial()
   {
-    TPZElementMatrix ek(&mesh, TPZElementMatrix::EK);
-    TPZElementMatrix ef(&mesh, TPZElementMatrix::EF);
+    TPZElementMatrix ek(fStrMatrix->Mesh(), TPZElementMatrix::EK);
+    TPZElementMatrix ef(fStrMatrix->Mesh(), TPZElementMatrix::EF);
 
     std::vector<TPZCompEl*>::iterator it = work_items.begin();
     for(; it != work_items.end(); it++)
@@ -381,8 +381,7 @@ public:
       
       ek.ComputeDestinationIndices();
 
-      if(mineq != -1 && maxeq != -1)
-        TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
+    fStrMatrix->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
       
       // ThreadAssembly 1
       if(!has_dependency) 
@@ -402,33 +401,33 @@ public:
     }
   }
 
-  int mineq;
-  int maxeq;
   TPZMatrix<STATE>*  first;
   TPZMatrix<STATE>*  second;
   TPZFMatrix<STATE>& rhs;
   TPZVec<int>&       fPermuteScatter;
-  const TPZCompMesh& mesh;
+    TPZStructMatrix *fStrMatrix;
 
-  parallel_assemble_task_t(const TPZCompMesh& _mesh, int _mineq, int _maxeq, TPZMatrix<STATE> *_first, 
+  parallel_assemble_task_t(TPZStructMatrix *strmat, int _mineq, int _maxeq, TPZMatrix<STATE> *_first, 
                            TPZMatrix<STATE> *_second, TPZFMatrix<STATE> &_rhs, TPZVec<int>& permuteScatter) :
-    mineq(_mineq), maxeq(_maxeq), first(_first), second(_second), 
-    rhs(_rhs), fPermuteScatter(permuteScatter), mesh(_mesh)
-  {}
+    first(_first), second(_second), 
+    rhs(_rhs), fPermuteScatter(permuteScatter), fStrMatrix(strmat)
+  {
+      fStrMatrix->SetEquationRange(_mineq, _maxeq);
+  }
 
 };
 
 #include"arglib.h"
 clarg::argInt tbb_pair_pipe_tokens("-tbb_pair_ntokens", "# tokens during assemble TPZPairStructMatrix (level 2) using TBB", 128);
 
-void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, 
+void TPZPairStructMatrix::TBBAssemble(TPZMatrix<STATE> *first, 
                                       TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
 #ifndef USING_TBB
 
   cerr << "TPZPairStructMatrix::TBBAssemble() invoked, but TBB "
        << "was not linked. Executing SerialAssemble!" << endl;
-  return SerialAssemble(mineq, maxeq, first, second, rhs);
+  return SerialAssemble(first, second, rhs);
 
 #else // if USING_TBB
   int iel;
@@ -457,10 +456,10 @@ void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *fi
 #endif // USING_TBB
 }
 
-void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
+void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
 	int iel;
-	TPZCompMesh &mesh = *fMesh;
+	TPZCompMesh &mesh = *fStrMatrix.Mesh();
 	int nelem = mesh.NElements();
 	TPZElementMatrix ek(&mesh, TPZElementMatrix::EK),ef(&mesh, TPZElementMatrix::EF);
     
@@ -480,11 +479,8 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 		
 		if(!el->HasDependency()) {
 			ek.ComputeDestinationIndices();
-            //FIXME: (Edson) - O operador é  && ou ||? O método paralelo é diferente!
-			if(mineq != -1 && maxeq != -1)
-			{
-				TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
-			}
+            fStrMatrix.FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+			
 			first->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 			PermuteScatter(ek.fDestinationIndex);
@@ -504,10 +500,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 			ef.ApplyConstraints();
 			ek.ComputeDestinationIndices();
             //FIXME: (Edson) - O operador é  && ou ||
-			if(mineq != -1 && maxeq != -1)
-			{
-				TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
-			}
+            fStrMatrix.FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 			first->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			PermuteScatter(ek.fDestinationIndex);
@@ -550,7 +543,7 @@ void TPZPairStructMatrix::PermuteScatter(TPZVec<int> &index)
 	}
 }
 
-void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
+void TPZPairStructMatrix::Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
 #ifdef PERF_DEBUG
   std::cout << "TPZPairStructMatrix::Assemble = Assembling the system of equations with " << fNumThreads
@@ -562,19 +555,20 @@ void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first
 #endif
   // Find a better way to select among TBB, pthread or serial execution!
 
-  if (fNumThreads < 0)
-    TBBAssemble(mineq, maxeq, first, second, rhs);
-  else if(fNumThreads > 0)
-    MultiThread_Assemble(mineq, maxeq, first, second, rhs);
+    int numthreads = fStrMatrix.GetNumThreads();
+  if (numthreads < 0)
+    TBBAssemble(first, second, rhs);
+  else if(numthreads > 0)
+    MultiThread_Assemble(first, second, rhs);
   else 
-    SerialAssemble(mineq,maxeq,first,second,rhs);
+    SerialAssemble(first,second,rhs);
 }
 
-void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
+void TPZPairStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
-	ThreadData threaddata(*fMesh,*first,*second,rhs,mineq,maxeq);
+	ThreadData threaddata(&fStrMatrix,*first,*second,rhs);
 	threaddata.fPermuteScatter = fPermuteScatter;
-	const int numthreads = this->fNumThreads;
+	const int numthreads = fStrMatrix.GetNumThreads();
 	std::vector<pthread_t> allthreads(numthreads+1);
 	int itr;
 	for(itr=0; itr<numthreads; itr++)
@@ -596,11 +590,10 @@ void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<S
 	}
 }
 
-TPZPairStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix<STATE> &mat1, TPZMatrix<STATE> &mat2, 
-											TPZFMatrix<STATE> &rhs, int mineq, int maxeq)
-: fMesh(&mesh), 
-fGlobMatrix1(&mat1), fGlobMatrix2(&mat2), fGlobRhs(&rhs),
-fMinEq(mineq), fMaxEq(maxeq),fNextElement(0)
+TPZPairStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat, TPZMatrix<STATE> &mat1, TPZMatrix<STATE> &mat2, 
+											TPZFMatrix<STATE> &rhs)
+: fStrMatrix(strmat), 
+fGlobMatrix1(&mat1), fGlobMatrix2(&mat2), fGlobRhs(&rhs),fNextElement(0)
 {	
   PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZPairStructMatrix::ThreadData::ThreadData()");
 }
@@ -615,7 +608,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	ThreadData *data = (ThreadData *) datavoid;
 	// compute the next element (this method is threadsafe)
 	int iel = data->NextElement();
-	TPZCompMesh *cmesh = data->fMesh;
+	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
 	while(iel < nel)
 	{
@@ -634,10 +627,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadWork(void *datavoid)
 		if(!el->HasDependency()) {
 			ek->ComputeDestinationIndices();
 			
-			if(data->fMinEq != -1 || data->fMaxEq != -1)
-			{
-				TPZStructMatrix::FilterEquations(ek->fSourceIndex,ek->fDestinationIndex,data->fMinEq,data->fMaxEq);
-			}
+            data->fStrMatrix->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
 #ifdef LOG4CXX
 			if(loggerel->isDebugEnabled())
 			{
@@ -652,10 +642,8 @@ void *TPZPairStructMatrix::ThreadData::ThreadWork(void *datavoid)
 			ek->ApplyConstraints();
 			ef->ApplyConstraints();
 			ek->ComputeDestinationIndices();
-			if(data->fMinEq != -1 || data->fMaxEq != -1)
-			{
-				TPZStructMatrix::FilterEquations(ek->fSourceIndex,ek->fDestinationIndex,data->fMinEq,data->fMaxEq);
-			}
+            data->fStrMatrix->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
+
 		}
 		
 		
@@ -693,7 +681,7 @@ void TPZPairStructMatrix::ThreadData::PermuteScatter(TPZVec<long> &index)
 void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 {
 	ThreadData *data = (ThreadData *) threaddata;
-	TPZCompMesh *cmesh = data->fMesh;
+	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
 	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 	int nextel = data->fNextElement;
@@ -760,7 +748,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 {
 	ThreadData *data = (ThreadData *) threaddata;
-	TPZCompMesh *cmesh = data->fMesh;
+	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
 	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 	int nextel = data->fNextElement;
@@ -828,14 +816,13 @@ int TPZPairStructMatrix::ThreadData::NextElement()
         PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::NextElement()");
 	int iel;
 	int nextel = fNextElement;
-	TPZCompMesh *cmesh = fMesh;
+	TPZCompMesh *cmesh = fStrMatrix->Mesh();
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
 	int nel = elementvec.NElements();
 	for(iel=fNextElement; iel < nel; iel++)
 	{
 		TPZCompEl *el = elementvec[iel];
 		if(!el) continue;
-		if(fMaterialIds.size() == 0) break;
 		TPZMaterial * mat = el->Material();
 		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
 		if(!mat)
@@ -844,7 +831,7 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 			{
 				continue;
 			}
-			else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
+			else if(submesh->NeedsComputing(fStrMatrix->MaterialIds()) == false) continue;
 		}
 		else 
 		{
@@ -886,7 +873,7 @@ void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPoin
 // Set the set of material ids which will be considered when assembling the system
 void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 {
-	fMaterialIds = materialids;
+	fStrMatrix.SetMaterialIds(materialids);
 #ifdef LOG4CXX
 	{
 		std::set<int>::const_iterator it;
@@ -899,34 +886,4 @@ void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	if(!fMesh)
-	{
-		LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-		return;
-	}
-	int iel;
-	TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-	int nel = elvec.NElements();
-	for(iel=0; iel<nel; iel++)
-	{
-		TPZCompEl *cel = elvec[iel];
-		if(!cel) continue;
-		TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-		if(!subcmesh) continue;
-		TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
-		if(!anal)
-		{
-			LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-			DebugStop();
-			//subcmesh->SetAnalysis();
-			//anal=subcmesh->GetAnalysis();
-		}
-		TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-		if(!str)
-		{
-			LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-			continue;
-		}
-		str->SetMaterialIds(materialids);
-	}
 }
