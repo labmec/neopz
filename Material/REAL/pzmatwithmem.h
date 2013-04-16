@@ -46,6 +46,9 @@ public:
 	/** @brief Prints out the data associated with the material */
 	virtual void PrintMem(std::ostream &out = std::cout, const int memory = 0);
 	
+    /** @brief Prints out the data associated with the material */
+    virtual void Print(std::ostream &out);
+
 	virtual TMEM & MemItem(const int i) const;
 	
 public:
@@ -135,6 +138,25 @@ inline void TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::PrintMem(std::ostr
 
 
 template <class TMEM, class TFather>
+void TPZMatWithMem<TMEM,TFather>::Print(std::ostream &out)
+{
+    out << __PRETTY_FUNCTION__ << std::endl;
+    TFather::Print(out);
+
+	out << "\nfDefaultMem = \n" << fDefaultMem;
+	out << "\nfUpdateMem = " << fUpdateMem;
+	int size = fMemory.NElements();
+	out << "\nfMemory with " << size << " elements";
+	for(int i=0; i<size; i++)
+	{
+		out << "\nfMemory element : " << i << std::endl;
+        fMemory[i].Print(out);
+	}
+    
+}
+
+
+template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::PrintMem(std::ostream &out, const int memory)
 {
 	out << "\nfDefaultMem = \n" << fDefaultMem;
@@ -165,7 +187,9 @@ template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid)
 {	
 	TFather::Write(buf, withclassid);
-	
+	int updatemem = fUpdateMem;
+    buf.Write(&updatemem);
+    fDefaultMem.Write(buf,0);
 	int size = fMemory.NElements();
     buf.Write(&size,1);
 	int i;
@@ -177,7 +201,15 @@ template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::Read(TPZStream &buf, void *context)
 {
 	TFather::Read(buf, context);
-	
+	int updatemem;
+    buf.Read(&updatemem);
+    if (updatemem) {
+        fUpdateMem = true;
+    }
+    else {
+        fUpdateMem = false;
+    }
+    fDefaultMem.Read(buf,0);
 	int i,size;
 	buf.Read(&size,1);
     fMemory.Resize(size);
@@ -185,6 +217,7 @@ void TPZMatWithMem<TMEM,TFather>::Read(TPZStream &buf, void *context)
 		fMemory[i].Read(buf, context);
 	
 }
+
 
 template <class TMEM, class TFather>
 int TPZMatWithMem<TMEM,TFather>::PushMemItem(int sourceIndex)
