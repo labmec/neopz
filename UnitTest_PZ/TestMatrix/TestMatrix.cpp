@@ -10,6 +10,7 @@
 #include "pzespmat.h"
 #include "pzsbndmat.h"
 #include "pzsfulmat.h"
+#include "pzskylnsymmat.h"
 
 #ifdef USING_BOOST
 
@@ -111,23 +112,19 @@ void TestingInverseWithAutoFill(int rows,int bnd) {
 */
 template <class matx>
 void TestingMultiplyOperatorWithAutoFill(int dim) {
-	int i, j;
-	REAL val;
 	// ma times inv must to be a identity matrix
 	matx ma(dim,dim);
 	ma.AutoFill();
 
-	matx inv(dim,dim);
-	matx macpy(ma);
+	TPZFMatrix<REAL> duplicate(ma);
+	TPZFMatrix<REAL> square,square2;
 
-	macpy.Inverse(inv);
-	macpy = ma*inv;
-	// Checking whether result matrix is the identity matrix
-	for(i=0;i<dim;i++) {
-		for(j=0;j<dim;j++) {
-			val = fabs(macpy.GetVal(i,j));
-			if(i==j) BOOST_CHECK(IsZero(val - 1.0));
-			else BOOST_CHECK(IsZero(val));
+	square2 = duplicate*duplicate;
+	square = ma*duplicate;
+	// Checking whether both matrices are equal
+	for(int i=0;i<dim;i++) {
+		for(int j=0;j<dim;j++) {
+            BOOST_CHECK_EQUAL(square.GetVal(i, j), square2.GetVal(i, j));
 		}
 	}
 }
@@ -142,23 +139,20 @@ void TestingMultiplyOperatorWithAutoFill(int dim) {
 */
 template <class matx>
 void TestingMultiplyWithAutoFill(int dim) {
-	int i, j;
-	REAL val;
 	// ma times inv must to be a identity matrix
 	matx ma(dim,dim);
 	ma.AutoFill();
 
-	matx inv(dim,dim);
-	matx res(ma);
+	TPZFMatrix<REAL> duplicate(ma), square,square2;
 
-	res.Inverse(inv);
-	ma.Multiply(inv,res);
+//    ma.Print("SkylineNS");
+//    duplicate.Print("FullMat");
+	ma.Multiply(duplicate,square);
+    duplicate.Multiply(duplicate, square2);
 	// Checking whether result matrix is the identity matrix
-	for(i=0;i<dim;i++) {
-		for(j=0;j<dim;j++) {
-			val = fabs(res.GetVal(i,j));
-			if(i==j) BOOST_CHECK(IsZero(val - 1.0));
-			else BOOST_CHECK(IsZero(val));
+	for(int i=0;i<dim;i++) {
+		for(int j=0;j<dim;j++) {
+            BOOST_CHECK_CLOSE(square(i,j), square2(i,j), 1.e-14);
 		}
 	}
 }
@@ -225,6 +219,8 @@ BOOST_AUTO_TEST_CASE(inverse_tests)
 		TestingInverseWithAutoFill<TPZFNMatrix<9,REAL> >(dim,dim);
 	//	TestingInverseWithAutoFill<TPZSBMatrix>(dim);
 	//	TestingInverseWithAutoFill<TPZSFMatrix>(dim);
+        TestingInverseWithAutoFill<TPZSkylNSymMatrix<REAL> >(dim);
+        
 	}
 }
 
@@ -232,6 +228,7 @@ BOOST_AUTO_TEST_CASE(multiply_tests)
 {
 	int dim;
 	for(dim = 3;dim < 100; dim+=5) {
+		TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<REAL> >(dim);
 		TestingMultiplyWithAutoFill<TPZFMatrix<REAL> >(dim);
 	}
 }
@@ -240,6 +237,7 @@ BOOST_AUTO_TEST_CASE(multiplyoperator_tests)
 	int dim;
 	for(dim = 3;dim < 100; dim+=5) {
 		TestingMultiplyOperatorWithAutoFill<TPZFMatrix<REAL> >(dim);
+		//TestingMultiplyOperatorWithAutoFill<TPZSkylNSymMatrix<REAL> >(dim);
 	}
 }
 BOOST_AUTO_TEST_CASE(transpose_tests)
@@ -247,6 +245,7 @@ BOOST_AUTO_TEST_CASE(transpose_tests)
 	int rows, cols;
 	for(rows = 3;rows < 4; rows+=5) {
 		for(cols = 3;cols < 100;cols+=5) {
+//			TestingTransposeWithAutoFill<TPZSkylNSymMatrix<REAL> >(rows,cols);
 			TestingTransposeWithAutoFill<TPZFMatrix<REAL> >(rows,cols);
 		}
 	}
