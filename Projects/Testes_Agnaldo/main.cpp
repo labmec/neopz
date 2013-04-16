@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     TPZCompMesh  * cmeshL2 = CMeshPressureL2(gmesh, pp, solini);
     TPZAnalysis anL2(cmeshL2);
     SolveSist(anL2, cmeshL2);
-    anL2.Solution().Print();
+    anL2.Solution().Print("anL2.Solution");
     
     an3.LoadSolution(anL2.Solution());
 //    an3.Solution().Print();

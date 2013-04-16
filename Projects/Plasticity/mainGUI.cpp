@@ -82,7 +82,7 @@ void MaterialPointTests()
     TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
     
     
-    TPZSandlerDimaggio sandler;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> sandler;
     //sandler.McCormicRanchSand(sandler);
     REAL poisson, E, A, B, C, R, D, W;
     
@@ -145,7 +145,7 @@ void MaterialPointTests()
     //////// ENSAIO TRIAXIAL /////////////////////////
     
     
-    TPZSandlerDimaggio sandler2;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> sandler2;
     
     //cin >> E;
     E = 100; //ksi

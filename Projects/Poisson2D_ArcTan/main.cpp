@@ -302,15 +302,15 @@ int main() {
 					int prt;
 					std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
 					
-#ifdef LOG4CXX
-					if (loggerconv->isDebugEnabled())
-					{
-						std::stringstream sout;
-						sout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
-						<< " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
-						LOGPZ_DEBUG(loggerconv, sout.str())
-					}
-#endif
+//#ifdef LOG4CXX
+//					if (loggerconv->isDebugEnabled())
+//					{
+//						std::stringstream sout;
+//						sout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
+//						<< " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+//						LOGPZ_DEBUG(loggerconv, sout.str())
+//					}
+//#endif
 					
 					convergence  << cmesh->NEquations() << "\t"
 					<< valerror << "\t"
@@ -1712,7 +1712,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 			 * @param cmesh Computational mesh with solution */
 			TPZFMatrix<REAL> gradients;
 			GradientReconstructionByLeastSquares(gradients,comp,0,0,true);
-			gradients.Print();
+			gradients.Print("gradients");
 			
 			// Post processing
 			an.PostProcess(1,dim);

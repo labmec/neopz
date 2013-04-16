@@ -174,7 +174,7 @@ int main() {
     TPZFMatrix<STATE> sol = secondmesh->Solution();
     TPZFMatrix<STATE> result;
     skyl->MultAdd(sol, rhs, result,1.,-1.);
-    result.Print();
+    result.Print("result");
     TPZVec<std::string> scalnames(2);
     scalnames[0] = "Sign1";
     scalnames[1] = "Sign2";

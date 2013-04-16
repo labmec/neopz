@@ -88,7 +88,7 @@ int main() {
     TPZFMatrix<REAL> gradients;
 	// Redimension of gradients storage
 	GradientReconstruction(cmesh,gradients);
-	gradients.Print();
+	gradients.Print("gradients");
     
 	// Post processing
 	TPZManVector<std::string> scalarnames(0), vecnames(2);

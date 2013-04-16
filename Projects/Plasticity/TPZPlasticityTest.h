@@ -286,7 +286,7 @@ inline void SandlerDimaggioIsotropicCompression()//
     TPZFNMatrix<6*6> Dep(6,6,0.);
     
     
-    TPZSandlerDimaggio SD;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
     
     cout << "\n Put the value of strain you want to add in each step of your loat test: (sugg.0.0001) ";
     REAL straininput;
@@ -315,7 +315,7 @@ inline void SandlerDimaggioIsotropicCompression()//
     switch (choice) {
         case(0):
         {
-            TPZSandlerDimaggio::McCormicRanchSandMod(SD);
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSandMod(SD);
             std::ofstream outfiletxt("TPZSandlerDimaggioMcCormicRanchSandMod(SD).txt");
             
             for(int step=0;step<length;step++)
@@ -329,7 +329,7 @@ inline void SandlerDimaggioIsotropicCompression()//
         }
         case(1):
         {
-            TPZSandlerDimaggio::McCormicRanchSandMod2(SD);
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSandMod2(SD);
             std::ofstream outfiletxt("TPZSandlerDimaggioMcCormicRanchSandMod2.txt");
             for(int step=0;step<length;step++)
             {
@@ -343,7 +343,7 @@ inline void SandlerDimaggioIsotropicCompression()//
         }
         case(2):
         {
-            TPZSandlerDimaggio::UncDeepSandRes(SD);
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandRes(SD);
             std::ofstream outfiletxt("TPZLadeKimUncDeepSandRes.txt");
             for(int step=0;step<length;step++)
             {
@@ -357,7 +357,7 @@ inline void SandlerDimaggioIsotropicCompression()//
         }
         case(3):
         {
-            TPZSandlerDimaggio::UncDeepSandResPSI(SD);
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandResPSI(SD);
             std::ofstream outfiletxt("TPZLadeKimUncDeepSandResPSI.txt");
             for(int step=0;step<length;step++)
             {
@@ -371,7 +371,7 @@ inline void SandlerDimaggioIsotropicCompression()//
         }
         case(4):
         {
-            TPZSandlerDimaggio::UncDeepSandResMPa(SD);
+            TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandResMPa(SD);
             std::ofstream outfiletxt("TPZLadeKimUncDeepSandResMPa.txt");
             for(int step=0;step<length;step++)
             {
@@ -847,8 +847,8 @@ inline void LKLoadingTest()
         
     }
     
-    TPZSandlerDimaggio SD;
-    TPZSandlerDimaggio::McCormicRanchSand(SD);
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSand(SD);
     
     deltastrain.XX() = -0.005;
     deltastrain.XY() = 0.;
@@ -1184,7 +1184,7 @@ inline void LKBiaxialTest()
             cout << "\n Tolerance (sugg. 0.0001) ";
             cin >> restol;
             
-            LK2.fResTol = restol;
+            LK2.SetResidualTolerance(restol);
             
             LK2.SetUp(poisson, M, lambda,
                       a, m, neta1,
@@ -1857,15 +1857,15 @@ inline int TPZPlasticTest::CreatePlasticModel(T * ( & pPlasticModel), const char
 	}
 	if(!strncmp(line,"SandlerDimaggio.McCormicRanchSandMod",36))
 	{
-		TPZSandlerDimaggio * pSD = new TPZSandlerDimaggio();
-		TPZSandlerDimaggio::McCormicRanchSandMod(*pSD);
+		TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> * pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSandMod(*pSD);
 		pPlasticModel = pSD;
 		return 1;
 	}
 	if(!strncmp(line,"SandlerDimaggio.McCormicRanchSand",33))
 	{
-		TPZSandlerDimaggio * pSD = new TPZSandlerDimaggio();
-		TPZSandlerDimaggio::McCormicRanchSand(*pSD);
+		TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> * pSD = new TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>();
+		TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSand(*pSD);
 		pPlasticModel = pSD;
 		return 1;
 	}
@@ -2885,8 +2885,8 @@ inline void TPZPlasticTest::UndocumentedTest3()
 	
 	TPZFNMatrix<6*6> Dep(6,6,0.);
 	
-	TPZSandlerDimaggio SD;
-	TPZSandlerDimaggio::McCormicRanchSand(SD);
+	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::McCormicRanchSand(SD);
 	SD.SetIntegrTol(1.e-0);
 	
 	SD.ApplyStrainComputeDep(strain,sigma,Dep);

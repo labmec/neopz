@@ -14,12 +14,12 @@ int main() {
    a(2,0) = 1.;
    a(2,2) = 2.;
    Orthogonalization_CGS(a,q,r);
-   q.Print();
+   q.Print("q");
    REAL resultstore[8];
    TPZFMatrix<REAL> qt(3,3,0.),result(0,0,resultstore,8);
    q.Multiply(q,result,1);
    //q.Transpose(&qt);
-   result.Print();
+   result.Print("result");
 /*   TPZFMatria(0,0) = 1;x c(5,5,1.0);
    TPZFMatrix<REAL> d(5,5);
       for(int i=0; i<b.Rows();i++)

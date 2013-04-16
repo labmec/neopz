@@ -336,8 +336,8 @@ void GradReconstructionByLeastSquares_Self(TPZCompEl *cel,TPZFMatrix<REAL> &Grad
 	DeltaH.Transpose(&DeltaHTranspose);
 	Grad = DeltaHTranspose*DifSol;
 	A = DeltaHTranspose*DeltaH;
-	A.Print();
-	Grad.Print();
+	A.Print("A");
+	Grad.Print("Grad");
 	A.SolveDirect(Grad,ELU);
 }
 

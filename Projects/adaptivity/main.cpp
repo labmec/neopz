@@ -984,7 +984,8 @@ TPZCompMesh *CreateSimple3DMesh() {
     // bc -2 -> Neumann at the top face of the cube
     TPZGeoElBC gbc2(elvec[0],25,-2);
     
-	UniformRefine(3, *gmesh);
+    DebugStop();
+	//UniformRefine(3, *gmesh);
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	

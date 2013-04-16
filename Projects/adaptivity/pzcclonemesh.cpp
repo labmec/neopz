@@ -698,7 +698,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         
         int printing=0;
         if(printing) {
-            clfan.Solution().Print();
+            clfan.Solution().Print("clfan.Solution");
         }
     }
     Reference()->ResetReference();
