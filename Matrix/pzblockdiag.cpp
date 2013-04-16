@@ -516,14 +516,14 @@ int TPZBlockDiagonal<TVar>::main() {
 	blocksize[2] = 1;
 	TPZBlockDiagonal bd1(blocksize,ref);
 	TPZBlockDiagonal bd2(bd1);
-	ref.Print("original matrix");
+	ref.Print("original matrix",std::cout);
 	bd1.Solve_LU(&ref);
 	bd1.Solve_LU(&ref);
-	ref.Print("after inverting the diagonal");
+	ref.Print("after inverting the diagonal",std::cout);
 	TPZFMatrix<TVar> ref2;
 	bd2.Multiply(ref,ref2);
 	bd2.Multiply(ref2,ref);
-	ref.Print("restoring the original matrix");
+	ref.Print("restoring the original matrix",std::cout);
 	return 1;
 	
 }
