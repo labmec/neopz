@@ -450,7 +450,7 @@ void TPZFrontSym<TVar>::main()
 	DecomposeType decType = ECholesky;
 	Prova.SolveDirect(Load, decType);
 	
-	Load.Print();
+	Load.Print("load");
 	//TestFront.Print(OutFile, output);
 	
 	Result.EqnForward(Load_2, decType);

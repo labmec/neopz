@@ -278,9 +278,9 @@ void TPZEqnArray<TVar>::main()
 		}
 	}
 
-	MatrixA.Print("Teste 1");
+	MatrixA.Print("Teste 1",std::cout);
 	MatrixA.Decompose_Cholesky();
-	MatrixA.Print("Decomposta");
+	MatrixA.Print("Decomposta",std::cout);
 	
 	TPZEqnArray<TVar> Test;
 	Test.Reset();
