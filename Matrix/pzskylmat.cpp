@@ -787,8 +787,9 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		pivot = fElem[k][0] - sum;
-		if ( pivot < 1.e-10 ) {
+		if ( pivot < 1.e-9 ) {
 			singular.push_back(k);
+            std::cout << __FUNCTION__ << "Singular equation pivot " << pivot << " k " << k << std::endl;
 			pivot = 1.;
 		}
 		// A matriz nao e' definida positiva.
