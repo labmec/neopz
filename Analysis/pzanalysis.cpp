@@ -243,7 +243,7 @@ void TPZAnalysis::Assemble()
 	{
 		TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
 		fSolver->SetMatrix(mat);
-		//aqui TPZFMatrix<STATE> n� �nula
+		//aqui TPZFMatrix<STATE> nao eh nula
 	}
 #ifdef LOG4CXX
     {
@@ -283,6 +283,12 @@ void TPZAnalysis::Solve() {
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+    
+//    {
+//        std::ofstream out("Matrix.nb");
+//        fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
+//
+//    }
 	fSolver->Solve(residual, delu);
 #ifdef LOG4CXX
     std::stringstream sout;
