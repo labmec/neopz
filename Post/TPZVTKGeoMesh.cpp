@@ -133,10 +133,15 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		{
 			continue;
 		}
-		if(gel->HasSubElement())
-		{
-			continue;
-		}
+        // toto
+        if(!gel->Reference())
+        {
+            continue;
+        }
+//		if(gel->HasSubElement())
+//		{
+//			continue;
+//		}
 		
         MElementType elt = gel->Type();
 		int elNnodes = MElementType_NNodes(elt);
