@@ -224,10 +224,15 @@ public:
 	/** @brief Input operation*/
 	template <class TT> friend std::istream & operator >> (std::istream& in,TPZMatrix<TT>& A) ;
 	
+    virtual void Print(std::ostream &out) const 
+    {
+        std::string name = __PRETTY_FUNCTION__;
+        Print(name.c_str(),out);
+    }
 	/** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
-	virtual void Print(const char *name = 0, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
+	virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 	
-	void PrintMath(const char *name = 0, std::ostream &out = std::cout);
+	void PrintMath(const char *name, std::ostream &out);
 	
 	/** @brief Returns number of rows */
 	int Rows() const;
