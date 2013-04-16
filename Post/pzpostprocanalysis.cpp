@@ -193,6 +193,11 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         }
         TPZInterpolationSpace *celspace = dynamic_cast<TPZInterpolationSpace *>(cel);
         TPZInterpolationSpace *celrefspace = dynamic_cast<TPZInterpolationSpace *>(celref);
+        int porder = celrefspace->GetPreferredOrder();
+//        if (porder != 2) {
+//            std::cout << "I should stop porder = " << porder << std::endl;
+//        }
+        celspace->SetPreferredOrder(porder);
         for (int ic=0; ic<nc; ic++) {
             int conorder = celref->Connect(ic).Order();
             cel->Connect(ic).SetOrder(conorder);
