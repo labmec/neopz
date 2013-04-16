@@ -264,6 +264,9 @@ option(BUILD_PROJECTS "To build specific projects." OFF)
 #To building all the performance projects developed with PZ environment
 option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
+#To building all the plasticity materials
+option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
+
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
