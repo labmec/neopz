@@ -62,6 +62,14 @@ public:
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() = 0;
+    
+    /** @brief Print a brief statement */
+    virtual void Print(std::ostream &out)
+    {
+        out << __PRETTY_FUNCTION__ << std::endl;
+        out << "NFunctions = " << NFunctions() << std::endl;
+        out << "Polynomial Order = " << PolynomialOrder() << std::endl;
+    }
 	
 };
 
