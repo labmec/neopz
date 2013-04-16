@@ -429,4 +429,25 @@ std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 	return Out;
 }
 
+inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<double,double> >& v )
+{
+
+	Out << "{";
+    
+	long size = v.NElements();
+	
+    if(size > 0)
+    {
+        for( long ii = 0; ii < size; ii++ )
+        {
+            Out << "{" << v[ii].first << ',' << v[ii].second << "}";
+            if( ii < size-1) Out << ",";
+        }
+    }
+	
+    Out << "}";
+	return Out;
+}
+
+
 #endif
