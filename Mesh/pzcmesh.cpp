@@ -1806,6 +1806,8 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 	fSolution.Write(buf,0);
 	fSolutionBlock.Write(buf,0);
 	fBlock.Write(buf,0);
+    int classid = ClassId();
+    buf.Write(&classid);
 	
 }
 
@@ -1836,6 +1838,11 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	fSolution.Read(buf,0);
 	fSolutionBlock.Read(buf,&fSolution);
 	fBlock.Read(buf,&fSolution);
+    int classid;
+    buf.Read(&classid );
+    if (classid != ClassId()) {
+        DebugStop();
+    }
 }
 
 #include "TPZGeoElement.h"
