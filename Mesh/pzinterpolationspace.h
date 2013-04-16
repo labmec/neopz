@@ -71,6 +71,9 @@ public:
     
     public:
     
+    
+    virtual void Print(std::ostream &out) const;
+
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
 	 * @param[in] intpoint point in master element coordinates 
