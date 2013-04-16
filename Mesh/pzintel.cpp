@@ -1434,6 +1434,8 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 }
 
 void TPZInterpolatedElement::Print(std::ostream &out) const {
+    out << __PRETTY_FUNCTION__ << std::endl;
+    TPZInterpolationSpace::Print(out);
 	out << "Index = " << fIndex ;
 	out << " - Center coordinate: ";
 	for (int i=0;i<Reference()->NCornerNodes();i++)
@@ -1444,7 +1446,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 	}
 	out << std::endl;
 		int nconects=this->NConnects();
-	out << "Number of connects = " << this->NConnects() << " Node indexes : ";
+	out << "Number of connects = " << this->NConnects() << " Node indexes/NShape : ";
 	int nod;
 	for(nod=0; nod< nconects/*NConnects()*/; nod++)
 		out << ConnectIndex(nod) <<  '/' << NConnectShapeF(nod) << ' ' ;
