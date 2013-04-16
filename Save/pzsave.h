@@ -103,7 +103,7 @@ public:
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
 	
 	template<class T>
-	static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<T> &vec)
 	{
 		int c,nc = vec.NElements();
 		buf.Write(&nc,1);
@@ -111,7 +111,7 @@ public:
 	}
 	
 	template<class T>
-	static void WriteObjects(TPZStream &buf, std::vector<T> &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<T> &vec)
 	{
 		int c,nc = vec.size();
 		buf.Write(&nc,1);
@@ -119,7 +119,7 @@ public:
 	}
 	
 	template<class T, int EXP>
-	static void WriteObjects(TPZStream &buf, TPZChunkVector<T,EXP> &vec)
+	static void WriteObjects(TPZStream &buf, const TPZChunkVector<T,EXP> &vec)
 	{
 		int c,nc = vec.NElements();
 		buf.Write(&nc,1);
@@ -506,7 +506,7 @@ public:
 		ReadObjects(buf,vec.fNFree);
 	}
 	
-	static void WriteObjects(TPZStream &buf, TPZVec<float> &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<float> &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
@@ -525,35 +525,35 @@ public:
         }
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<float> &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<float> &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
 	
-	static void WriteObjects(TPZStream &buf, TPZVec<double> &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<double> &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<double> &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<double> &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
 	
-	static void WriteObjects(TPZStream &buf, TPZVec<std::complex<double> > &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<std::complex<double> > &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<std::complex<double> > &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<std::complex<double> > &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);
