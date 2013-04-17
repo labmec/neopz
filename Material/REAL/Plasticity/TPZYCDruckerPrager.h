@@ -296,6 +296,4 @@ inline int TPZYCDruckerPrager::ClassId() const
 	return 888889;
 }
 
-template class TPZRestoreClass<TPZYCDruckerPrager, 888889> ;
-
 #endif//TPZYDruckerPrager

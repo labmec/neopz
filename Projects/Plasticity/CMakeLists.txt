@@ -16,6 +16,7 @@ if(USING_FAD)
 	target_link_libraries(PlasticityGUI pz)
 	
 	file(COPY SnubDodecahedron.txt DESTINATION .)
+	file(COPY wellcil.txt DESTINATION .)
 
 endif()
 
