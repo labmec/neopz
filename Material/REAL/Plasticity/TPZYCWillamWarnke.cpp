@@ -9,3 +9,4 @@
 
 #include "TPZYCWillamWarnke.h"
 
+template class TPZRestoreClass<TPZYCWillamWarnke, 888888> ;

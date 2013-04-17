@@ -421,6 +421,4 @@ inline int TPZYCWillamWarnke::ClassId() const
 	return 888888;
 }
 
-template class TPZRestoreClass<TPZYCWillamWarnke, 888888> ;
-
 #endif//TPZYCWillamWarnke
