@@ -19,6 +19,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Shape"
 	"${PROJECT_SOURCE_DIR}/Material"
 	"${PROJECT_SOURCE_DIR}/Material/REAL"
+	"${PROJECT_SOURCE_DIR}/Material/REAL/Plasticity"
 	"${PROJECT_SOURCE_DIR}/Material/Complex"
 	"${PROJECT_SOURCE_DIR}/Multigrid"
 	"${PROJECT_SOURCE_DIR}/Mesh"
