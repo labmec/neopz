@@ -44,7 +44,7 @@ using namespace pzshape; // needed for TPZShapeCube and related classes
 
 static void calcVonMisesBar();
 void MohrCoulombTestX();
-void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes);
+void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat);//,REAL theta,int axes);
 void taludecmesh(TPZCompMesh *CMesh, TPZMaterial * mat);
 void calctalude();
 TPZGeoMesh * barmesh(int h);
@@ -223,7 +223,9 @@ static void calcVonMisesBar()
     
     REAL theta = 45;
     int axes=2;
-    cmesh(compmesh1,plastic,theta,axes);
+    //cmesh(compmesh1,plastic,theta,axes);
+    // FIX ME
+    DebugStop();
     
     ofstream arg2("barcmesh.txt");
     compmesh1->Print(arg2);

@@ -336,6 +336,6 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
     TPZVTKGeoMesh::PrintGMeshVTK(gMesh,predio,true);
     
     //
-	return gMesh;
+	//return gMesh;
 }
 
