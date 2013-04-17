@@ -11,7 +11,7 @@
 
 #include "pzelctemp.h" // TPZIntelGen<TSHAPE>
 #include "pzshapecube.h" // TPZShapeCube
-#include "pzcompelwithmem.h"
+//#include "pzcompelwithmem.h"
 #include "pzelastoplastic.h"
 #include "pzporous.h"
 #include "TPZLadeKim.h"
