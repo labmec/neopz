@@ -14,6 +14,8 @@
 #include "TPZTensor.h"
 #include "pzgeoel.h"
 
+void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
+
 
 class TPZWellBoreAnalysis
 {

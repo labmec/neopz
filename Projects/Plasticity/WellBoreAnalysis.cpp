@@ -10,7 +10,7 @@
 #include "pzelastoplasticanalysis.h"
 #include "pzelastoplastic2D.h"
 #include "BrazilianTestGeoMesh.h"
-#include "poroelastoplastic.h"
+//#include "poroelastoplastic.h"
 #include "pzgeoelbc.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzplasticdiagnostic.h"
@@ -21,6 +21,86 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 #endif
+
+
+void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
+{
+/*    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(2,2,0.), EndStress2(3,3,0.);
+    TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
+    TPZTensor<REAL> OCStress, beginOCStress, loadStress, loadStress2, initialStrain, FarFieldStress, TestStress;
+	
+	REAL alpha=0.8;
+	REAL PorePressure = 4397.;//PSI
+    REAL L=3000.,LDA=1200.,terra=0.9,agua=0.447;//PSI/ft
+    REAL SigmaV  = agua*3.28*LDA+terra*3.28*(L-LDA);
+	REAL Sigmah = 0.8 * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
+    
+	loadStress.XX()=1.;
+    loadStress.YY()=1.;
+	
+	loadStress *= 1.*(Sigmah - PorePressure * alpha);
+    EndStress(0,0)=1.*(Sigmah - PorePressure * alpha);
+    EndStress(1,1)=1.*(Sigmah - PorePressure * alpha);
+    loadStress.CopyToTensor(EndStress);
+
+ */
+    
+    
+    TPZFMatrix<REAL> f1(3,1,0.);
+    TPZFMatrix<REAL> k1(3,3,0.);
+    k1(0,0)=Confinement.XX();
+    k1(1,1)=Confinement.YY();
+    k1(2,2)=Confinement.ZZ();
+    TPZMaterial *bc1 = mat->CreateBC(mat,-2,4,k1,f1);
+    CMesh->InsertMaterialObject(bc1);
+
+    
+    // type 6 constraints in x and y
+    // type 5 only normal constraint
+    TPZFNMatrix<9> k5(3,3,0.),f5(3,1,pressure);
+    for (int i=0; i<3; i++) {
+        k5(i,i) = 1.e5;
+    }
+    TPZMaterial *bc5 = mat->CreateBC(mat, -6, 6, k5, f5);
+    CMesh->InsertMaterialObject(bc5);
+
+   
+    TPZFMatrix<REAL> k2(3,3,0.);
+    TPZFMatrix<REAL> f2(3,1,0.);
+    k2(0,0)=Confinement.XX();
+    k2(1,1)=Confinement.YY();
+    k2(2,2)=Confinement.ZZ();
+    TPZMaterial * bc2 = mat->CreateBC(mat,-3,4,k2,f2);
+    CMesh->InsertMaterialObject(bc2);
+    
+    
+    TPZFMatrix<REAL> k3(2,2,0.);
+    TPZFMatrix<REAL> f3(2,1,0.);
+    f3(1,0)=1.;
+   // k3(1,1)=1.e12;
+    TPZMaterial * bc3 = mat->CreateBC(mat,-4,3,k3,f3);
+    CMesh->InsertMaterialObject(bc3);
+    
+    TPZFMatrix<REAL> k4(2,2,0.);
+    TPZFMatrix<REAL> f4(2,1,0.);
+     f4(0,0)=1.;
+    //k4(0,0)=1.e12;
+    
+    TPZMaterial * bc4 = mat->CreateBC(mat,-5,3,k4,f4);
+    CMesh->InsertMaterialObject(bc4);
+//    CMesh->SetDefaultOrder(2);
+    CMesh->AutoBuild();
+
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        CMesh->Print(sout);
+        LOGPZ_DEBUG(logger , sout.str())
+    }
+#endif
+}
+
+
 TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPostProcessNumber(0)
 {
     
