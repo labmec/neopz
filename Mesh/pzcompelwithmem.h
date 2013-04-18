@@ -313,18 +313,13 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >::ClassId() con
 	return TPZCOMPELWITHMEMPOINTID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >, TPZCOMPELWITHMEMPOINTID>;
-
 #include "pzshapelinear.h"
-
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >::ClassId() const
 {
 	return TPZCOMPELWITHMEMLINEARID;
 }
-
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >, TPZCOMPELWITHMEMLINEARID>;
 
 #include "pzshapetriang.h"
 
@@ -334,8 +329,6 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >::ClassId() co
 	return TPZCOMPELWITHMEMTRIANGID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >, TPZCOMPELWITHMEMTRIANGID>;
-
 #include "pzshapequad.h"
 
 template<>
@@ -343,8 +336,6 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >::ClassId() cons
 {
 	return TPZCOMPELWITHMEMQUADID;
 }
-
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >, TPZCOMPELWITHMEMQUADID>;
 
 #include "pzshapecube.h"
 
@@ -354,8 +345,6 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >::ClassId() cons
 	return TPZCOMPELWITHMEMCUBEID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >, TPZCOMPELWITHMEMCUBEID>;
-
 #include "pzshapetetra.h"
 
 template<>
@@ -363,8 +352,6 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >::ClassId() con
 {
 	return TPZCOMPELWITHMEMTETRAID;
 }
-
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >, TPZCOMPELWITHMEMTETRAID>;
 
 #include "pzshapeprism.h"
 
@@ -374,8 +361,6 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >::ClassId() con
 	return TPZCOMPELWITHMEMPRISMID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >, TPZCOMPELWITHMEMPRISMID>;
-
 #include "pzshapepiram.h"
 
 template<>
@@ -383,7 +368,5 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >::ClassId() con
 {
 	return TPZCOMPELWITHMEMPIRAMID;
 }
-
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >, TPZCOMPELWITHMEMPIRAMID>;
 
 #endif
