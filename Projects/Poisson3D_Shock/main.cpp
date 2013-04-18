@@ -96,10 +96,10 @@ int main(int argc, char *argv[]) {
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
-	char tempo[256];
+	char tempo[512];
     
 	// To print computed errors
-    char errorname[MAX_PATH];
+    char errorname[512];
     ofstream fileerrors;
 	TPZVec<REAL> ervec(100,0.0);
 	fileerrors << "Approximation Error - Shock problem: " << std::endl;
@@ -109,11 +109,13 @@ int main(int argc, char *argv[]) {
 	int nref, NRefs = 7;
 	int nthread, NThreads = 2;
     for(int dim=1;dim<4;dim++) {
-        sprintf("ErrorsHP_%dD.txt",dim);
+        sprintf(errorname,"ErrorsHP_%dD.txt",dim);
         fileerrors.open(errorname);
-        for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
-            fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
-            for(MElementType typeel=EOned;typeel<EPolygonal;typeel++) {
+		MElementType typeel;
+		for(int itypeel=(int)ETetraedro;itypeel<(int)EPolygonal;itypeel++) {
+			typeel = (MElementType)itypeel;
+			for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
+				fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
                 fileerrors << "Type of element: " << typeel << endl;
                 // Constructing geometric mesh as hexahedra
                 cout << "\nConstructing Shock problem in cube [0,1]^" << dim << ". Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
@@ -265,17 +267,6 @@ void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
     }
 	sol[0] = Product * (1. + (2./M_PI)*atan( 2*sqrt(ALFA) * ( Radio*Radio - R0 )));
     
-    
-	REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
-	REAL frac = 2*prod*F*(1.-2*x[0]);
-	frac = frac/(1+arc*arc);
-	dsol(0,0) = (8./M_PI)*(temp + frac);
-	temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
-	frac = 2*prod*F*(1.-2*x[1]);
-	frac = frac/(1+arc*arc);
-	dsol(1,0) = (8./ M_PI)*(temp + frac);
-
-    
 	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
 	if(IsZero(den))
 		DebugStop();
@@ -419,20 +410,17 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	};
 	TPZVec<TPZVec<int> > indices;
     switch(typeel) {
-        case EONed:
-            nnode = 2;
-            nelem = 1;
-            indices.Resize(nelem,{0,1});
-	
-
+        case EOned:
+		case ETriangle:
+		case EQuadrilateral:
+			return 0;
         default:
             break;
     }
     
-            
-            
-            TPZGeoEl *elvec[nelem];
-            TPZGeoMesh *gmesh = new TPZGeoMesh();
+
+	TPZGeoEl *elvec[nelem];
+	TPZGeoMesh *gmesh = new TPZGeoMesh();
 
 	int nod;
 	for(nod=0; nod<nnode; nod++) {
@@ -452,6 +440,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	TPZVec<TPZGeoEl *> sub;
     switch (typeel) {
         case EPrisma:   // hexahedron -> four prisms
+		{
             // Dividing hexahedron in prisms
             std::string filename = REFPATTERNDIR;
             filename += "/3D_Hexa_directional_2faces.rpt";
@@ -465,9 +454,10 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
             TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
             gelrp->SetRefPattern(refpat);
             gel->Divide(sub);
-            
+		}   
             break;
         case EPiramide:
+		{
             // Dividing hexahedron in four pyramids
             std::string filename = REFPATTERNDIR;
             filename += "/3D_Hexa_Rib_Side_08.rpt";
@@ -481,8 +471,9 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
             TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
             gelrp->SetRefPattern(refpat);
             gel->Divide(sub);
-
+		}
         case ETetraedro:
+		{
             // Dividing hexahedron in two tetrahedras, two prisms and one pyramid
             std::string filename = REFPATTERNDIR;
             filename += "/3D_Hexa_Rib_Side_16_17_18.rpt";
@@ -496,7 +487,9 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
             TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
             gelrp->SetRefPattern(refpat);
             gel->Divide(sub);
+		}
         default:
+		{
             // hexahedron -> three prisms
             // Dividing hexahedron in prisms
             std::string filename = REFPATTERNDIR;
@@ -511,6 +504,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
             TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
             gelrp->SetRefPattern(refpat);
             gel->Divide(sub);
+		}
             break;
     }
 
@@ -621,6 +615,8 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 			gmesh->ElementVec()[3]->Divide(sub);
 		}
 			break;
+		default:
+			return 0;
 	}
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();

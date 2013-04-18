@@ -149,7 +149,7 @@ int main() {
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
-	char tempo[256];
+	char tempo[512];
 	
 	// Output files
     std::ofstream convergence("conv3d.txt");
@@ -169,8 +169,8 @@ int main() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
 //		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++) {
-//		for(int itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++) {
-		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++) {
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++) {
+//		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++) {
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;

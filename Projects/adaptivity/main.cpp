@@ -452,7 +452,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
 	// Some preferred values
-    opt = 5; nref = 3; 
+    opt = 0; nref = 3; 
 	int p = 3;
 	
 	if(user)
@@ -984,7 +984,7 @@ TPZCompMesh *CreateSimple3DMesh() {
     // bc -2 -> Neumann at the top face of the cube
     TPZGeoElBC gbc2(elvec[0],25,-2);
     
-    DebugStop();
+ //   DebugStop();
 	//UniformRefine(3, *gmesh);
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
