@@ -143,7 +143,7 @@ int main() {
 	time (& sttime);
 	
 	int dim = 2;
-    int p = 2;
+    int p = 0;
     
     //Sem adaptatividade
     TPZGeoMesh *gmesh = CreateGeoMesh();
@@ -162,17 +162,20 @@ int main() {
 	// Printing information
 	fileerrors << "Approximation Error: Solving time = " << time_elapsed << std::endl;
 
-	char filename[256];
-    sprintf(filename,"Poisson2DGradient.vtk");
-    PrintGeoMeshVTKWithGradientAsData(cmesh, filename);
+	//char filename[256];
+    //sprintf(filename,"Poisson2DGradient.vtk");
+    //PrintGeoMeshVTKWithGradientAsData(cmesh, filename);
+     std::string filename = "SolutionSemRecGrad.vtk";
+    SaidaSolVTK(an, cmesh, filename);
+     
     
     //------ RESOLVENDO COM RECONST. GRADIENT ------
     
     //l2 projection of the gradient into finite element space
-//    ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
-  //  an.LoadSolution(cmesh->Solution());
-//    std::string filename2 = "L2PROJSolution.vtk";
-  //  SaidaSolVTK(an,cmesh,filename2);
+    ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
+    an.LoadSolution(cmesh->Solution());
+    std::string filename2 = "L2PROJSolution.vtk";
+    SaidaSolVTK(an,cmesh,filename2);
     
     cmesh->CleanUp();
 	delete cmesh;
@@ -429,15 +432,9 @@ void SaidaSolVTK(TPZAnalysis &an, TPZCompMesh *Cmesh, std::string plotfile){
     scalarnames.Push("POrder");
     scalarnames.Push("KDuDx");
     scalarnames.Push("KDuDy");
-   // scalarnames.Push("KDuDz");
-    scalarnames.Push("NormKDu");
-    scalarnames.Push("Pressure");
-	scalarnames.Push("GradienteNorma");
     
     vecnames.Push("Derivative");
-    vecnames.Push("Flux");
     vecnames.Push("MinusKGradU");
-	vecnames.Push("Gradiente");
     
     an.DefineGraphMesh(dim,scalarnames,vecnames,plotfile);
 	an.PostProcess(div,dim);

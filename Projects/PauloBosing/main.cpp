@@ -109,7 +109,6 @@ int main(int argc, char *argv[])
     // Ordem polinomial das funções de aproximação
 	int p = 2;
     
-    
 	//---- Criando a malha geométrica ----
 	TPZGeoMesh * gmesh = MalhaGeom();
     ofstream arg1("gmesh_inicial.txt");
@@ -173,7 +172,6 @@ int main(int argc, char *argv[])
     
 	return EXIT_SUCCESS;
 }
-
 
 
 TPZGeoMesh *MalhaGeom()
@@ -489,8 +487,8 @@ void CreatInterface(TPZCompMesh *cmesh){
         }
     }
     
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
+   // cmesh->AdjustBoundaryElements();
+    //cmesh->CleanUpUnconnectedNodes();
 }
 
 #define VTK
