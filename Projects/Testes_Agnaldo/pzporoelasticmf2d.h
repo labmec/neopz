@@ -75,7 +75,7 @@ protected:
     
 	int fmatId;
 	
-	/** @brief State: one ou one+1 */
+	/** @brief State: n ou n+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
 	static EState gState;
 	
