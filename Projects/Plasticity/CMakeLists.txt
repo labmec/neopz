@@ -7,7 +7,7 @@ list (REMOVE_ITEM sources ${to_remove_from_sources})
 set(main1_SRCS main.cpp poroelastoplastic.cpp ${sources} ${headers})
 set(main2_SRCS mainGUI.cpp ${sources} ${headers})
 
-if(USING_FAD)
+if(USING_FAD AND BUILD_PLASTICITY_MATERIALS)
 
 	add_executable(Plasticity ${main1_SRCS})
 	target_link_libraries(Plasticity pz)
