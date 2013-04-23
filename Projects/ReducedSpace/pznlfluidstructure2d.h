@@ -86,9 +86,11 @@ protected:
     //////Leakoff
     public:
 
-    REAL Ql(int gelId, REAL pfrac);
-    REAL Qlvl(REAL vl, REAL pfrac);
-    REAL dQldp(int gelId, REAL pfrac);
+    REAL VlFtau(REAL pfrac, REAL tau);
+    REAL FictitiousTime(REAL VlAcum, REAL pfrac);
+    REAL QlFVl(int gelId, REAL pfrac);
+    REAL dQlFVl(int gelId, REAL pfrac);
+    void UpdateLeakoff(REAL pfrac);
     
     REAL fQinj, fCl, fPe, fPref, fvsp;
     
@@ -170,8 +172,6 @@ public:
     {
         return fvsp;
     }
-    
-    void UpdateLeakoff(REAL pfrac);
 	
 	/**
 	 * @brief Set parameters of elastic material:

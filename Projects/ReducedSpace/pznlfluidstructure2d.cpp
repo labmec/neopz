@@ -255,8 +255,8 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
     {
-        REAL actQl = this->Ql(datavec[1].gelElId, sol_p[0]);
-        REAL actdQldp = this->dQldp(datavec[1].gelElId, sol_p[0]);
+        REAL actQl = this->QlFVl(datavec[1].gelElId, sol_p[0]);
+        REAL actdQldp = this->dQlFVl(datavec[1].gelElId, sol_p[0]);
         
         REAL uy = sol_u[1];
         REAL w = 2.*uy;
@@ -735,80 +735,87 @@ void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec
 
 ////////////////////////////////////////////////////////////////// Leakoff
 
-REAL TPZNLFluidStructure2d::Ql(int gelId, REAL pfrac)
+REAL TPZNLFluidStructure2d::VlFtau(REAL pfrac, REAL tau)
+{
+    REAL Clcorr = fCl * sqrt((pfrac + fSigConf - fPe)/fPref);
+    REAL Vl = 2. * Clcorr * sqrt(tau) + fvsp;
+    
+    return Vl;
+}
+
+REAL TPZNLFluidStructure2d::FictitiousTime(REAL VlAcum, REAL pfrac)
+{
+    REAL tStar = 0.;
+    if(VlAcum > fvsp)
+    {
+        REAL Clcorr = fCl * sqrt((pfrac + fSigConf - fPe)/fPref);
+        tStar = (VlAcum - fvsp)*(VlAcum - fvsp)/( (2. * Clcorr) * (2. * Clcorr) );
+    }
+    
+    return tStar;
+}
+
+REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
 {
     std::map<int,REAL>::iterator it = fGelId_vl.find(gelId);
-    
     if(it == fGelId_vl.end())
     {
-        fGelId_vl[gelId] = 1.001*fvsp;
+        fGelId_vl[gelId] = 0.;
         it = fGelId_vl.find(gelId);
     }
+    REAL VlAcum = it->second;
     
-    REAL vl = it->second;
-    REAL ql = Qlvl(vl,pfrac);
-
-    return ql;
+    REAL tStar = FictitiousTime(VlAcum, pfrac);
+    REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
+    REAL Ql = (Vlnext - VlAcum)/fTimeStep;
+    
+    return Ql;
 }
 
-REAL TPZNLFluidStructure2d::Qlvl(REAL vl, REAL pfrac)
-{
-    REAL ql = 0.;
-    if(vl <= fvsp)
-    {
-        REAL fictTime = -(fPref*fvsp*fvsp)/(4.*fCl*fCl*(fPe - pfrac - fSigConf));
-        ql = fvsp/fictTime;
-    }
-    else
-    {
-        ql = ( 2.*fCl*fCl*( (pfrac + fSigConf) - (fPe) ) ) / ( fPref*(vl - fvsp) );
-    }
-    
-    return ql;
-}
-
-REAL TPZNLFluidStructure2d::dQldp(int gelId, REAL pfrac)
+REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
 {
     std::map<int,REAL>::iterator it = fGelId_vl.find(gelId);
-    
-    #ifdef DEBUG
     if(it == fGelId_vl.end())
     {
-        DebugStop();
+        fGelId_vl[gelId] = 0.;
+        it = fGelId_vl.find(gelId);
     }
-    #endif
+    REAL VlAcum = it->second;
     
-    REAL vl = it->second;
-    REAL dqldp = 0.;
-    
-    if(vl <= fvsp)
+    REAL deltaPfrac = fabs(pfrac/1000.);
+    if(deltaPfrac < 1.E-15)
     {
-        dqldp = (-0.25*fPref*fvsp*fvsp)/(fCl*fCl*(fPe - fSigConf - pfrac)*(fPe - fSigConf - pfrac));
-    }
-    else
-    {
-        dqldp = ( 2.*fCl*fCl ) / ( fPref*(vl - fvsp) );
+        deltaPfrac = 1.E-10;
     }
     
-    return dqldp;
-}
+    /////////////////////////////////////////////////Ql menor
+    REAL tStar0 = FictitiousTime(VlAcum, pfrac-deltaPfrac);
+    REAL Vlnext0 = VlFtau(pfrac, tStar0 + fTimeStep);
+    REAL Ql0 = (Vlnext0 - VlAcum)/fTimeStep;
+    
+    /////////////////////////////////////////////////Ql maior
+    REAL tStar1 = FictitiousTime(VlAcum, pfrac+deltaPfrac);
+    REAL Vlnext1 = VlFtau(pfrac, tStar1 + fTimeStep);
+    REAL Ql1 = (Vlnext1 - VlAcum )/fTimeStep;
 
+    /////////////////////////////////////////////////
+    REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
+    
+    return dQldpfrac;
+}
 
 void TPZNLFluidStructure2d::UpdateLeakoff(REAL pfrac)
 {
-    
-    int nsubsteps = 10;
     std::map<int,REAL>::iterator it;
+    
     for(it = fGelId_vl.begin(); it != fGelId_vl.end(); it++)
     {
-        REAL vl = it->second;
-        REAL vlAcum = vl;
-        for(int step = 0; step < nsubsteps; step++)
-        {
-            REAL QLactual = Qlvl(vlAcum, pfrac);
-            vlAcum += QLactual*fTimeStep/nsubsteps;
-        }
-        it->second = vlAcum;
+        REAL VlAcum = it->second;
+        REAL tStar = FictitiousTime(VlAcum, pfrac);
+        REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
+        
+        it->second = Vlnext;
     }
+    std::cout << "pfrac = " << pfrac << std::endl;
 }
 

@@ -128,17 +128,17 @@ static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
  const REAL visc = 0.001E-6;//MPa.s
  //BCs:
  const REAL sigN = 61.5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
- const REAL Qinj  = -0.01/Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
+ const REAL Qinj  = -3./Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
  //time:
  const REAL Ttot = 100.;
- const int nsteps = 20;
+ const REAL nsteps = 20.;
  const REAL deltaT = Ttot/nsteps;
  //Leakoff:
  const REAL Cl = 0.00005;
- const REAL Pe = 60.;//MPa
- const REAL SigmaConf = 61.;//MPa
- const REAL Pref = 8.8;//MPa
-const REAL vsp = 0.1;
+ const REAL Pe = 10.;//MPa
+ const REAL SigmaConf = 11.;//MPa
+ const REAL Pref = 85000.;//MPa
+const REAL vsp = 0.01;
  //
  
 
