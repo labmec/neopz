@@ -1063,7 +1063,7 @@ void  TPZPlasticStep<YC_t, TF_t, ER_t>::InitialGuess(
 
 template <class YC_t, class TF_t, class ER_t>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
-                                                  const TPZPlasticState<REAL> &N,
+                                                  const TPZPlasticState<REAL> &NN,
                                                   TPZPlasticState<REAL> &Np1,
                                                   TPZVec<REAL> &delGamma,
                                                   REAL &normEpsPErr,
@@ -1092,7 +1092,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         LOGPZ_DEBUG(pointloadconfig,sout.str())
     }
 #endif
-    InitialGuess(N, Np1, delGamma,validEqs);
+    InitialGuess(NN, Np1, delGamma,validEqs);
 #ifdef LOG4CXX
     {
         std::stringstream sout;//1, sout2;
@@ -1147,7 +1147,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         }
 #endif
         
-        PlasticResidual<REAL, TFAD>(N, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
+        PlasticResidual<REAL, TFAD>(NN, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
         
 #ifdef LOG4CXX
         {
@@ -1208,7 +1208,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             st.Solve(ResVal,Sol,0);
             
             // update the independent variables (their partial derivatives remain unchanged)
-            lambda = UpdatePlasticVars(N, Np1_FAD, delGamma_FAD, epsRes_FAD, Sol, validEqs);
+            lambda = UpdatePlasticVars(NN, Np1_FAD, delGamma_FAD, epsRes_FAD, Sol, validEqs);
             
             
             if(countNewton > 8)
@@ -1216,7 +1216,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
                 std::cout << "I should stop\n";
             }
             // recompute the residual
-            PlasticResidual<REAL, TFAD>(N, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
+            PlasticResidual<REAL, TFAD>(NN, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
             
 #ifdef LOG4CXX
             {
