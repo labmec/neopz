@@ -5,7 +5,9 @@
 
 #include "TPZTensor.h"
 #include "pzlog.h"
+#ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
+#endif
 
 #ifdef LOG4CXX_PLASTICITY
 static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));

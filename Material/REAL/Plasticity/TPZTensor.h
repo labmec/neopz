@@ -8,8 +8,10 @@
 #include "fadType.h"
 #include <math.h>
 #include "pzlog.h"
+#ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #pragma STDC FENV_ACCESS ON
+#endif
 
 #define _XX_ 0
 #define _XY_ 1
@@ -166,7 +168,7 @@ public:
     /**
      Construct a tensor based on its eigensystem decomposition
      */
-    TPZTensor(const TPZTensor<T>::TPZDecomposed &eigensystem) : fData(6, T(0.))
+    TPZTensor(const TPZDecomposed &eigensystem) : fData(6, T(0.))
     {
         (*this).Scale(0.);
         for (int i=0; i<eigensystem.fEigenvectors.size(); i++) {
@@ -425,7 +427,7 @@ public:
     /**
 	 * Computes the eigenvectors and eigenvalues based on (page 742 Computational methods for computational plasticity/Souza Neto)
 	 */
-    void EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem) const;
+    void EigenSystem(TPZDecomposed &eigensystem) const;
 	
 	
 	
@@ -838,7 +840,7 @@ static T UpdateNewton(const T &x, const T &I1, const T &I2, const T &I3)
 }
 
 template <class T>
-void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
+void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 {
     T I1,I2,I3,R,theta,Q,x1,x2,x3,costheta,e1temp,e2temp,e3temp;
     I1 = (this->I1());
@@ -1370,7 +1372,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	{
 		Lode *= T(0.999);
 	}
-    
+#ifdef MACOS
 //    feclearexcept(FE_ALL_EXCEPT);
 //	int res = fetestexcept(FE_ALL_EXCEPT);
 //	if(res)
@@ -1388,7 +1390,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
         std::cout << "invalid result reported\n";
         DebugStop();
     }
-
+#endif
     //	T denominador;
     //	denominador = ( J2t*J2t*J2t * T(4.) - J3t*J3t * T(27.) );
     //	T temp;

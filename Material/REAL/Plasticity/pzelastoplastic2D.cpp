@@ -23,7 +23,9 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzelastoplastic2D.h"
+#ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
+#endif
 
 #ifdef LOG4CXX
 #include "pzlog.h"
@@ -180,11 +182,13 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
         this->ComputeDeltaStrainVector(data, DeltaStrain);
         this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);        
     }
+#ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
     if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT	)) {
         std::cout << "division by zero reported\n";
         DebugStop();
     }
+#endif
 	
 #ifdef LOG4CXX
 	{
@@ -342,11 +346,13 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
         this->ApplyDeltaStrain(data,DeltaStrain,Stress);
 //        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);        
     }
+#ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
     if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT	)) {
         std::cout << "division by zero reported\n";
         DebugStop();
     }
+#endif
 	
 #ifdef LOG4CXX
 	{

@@ -5,7 +5,9 @@
 
 #include "TPZTensor.h"
 #include "pzlog.h"
+#ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
+#endif
 
 #ifdef LOG4CXX_PLASTICITY
 //static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
@@ -224,7 +226,7 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
     
     //res[0]=res0;
     //fFlag =true;
-    
+#ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
 	int Res = fetestexcept(FE_ALL_EXCEPT);
 	if(Res)
@@ -239,7 +241,7 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
 		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
 		DebugStop();
 	}
-    
+#endif 
 }
 
 template <class T>

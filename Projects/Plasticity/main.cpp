@@ -193,9 +193,9 @@ int main2()
         
     
     } while (epstotal.XX() < 0.0035);
-    return 0;
+
     */
-    
+    return 0;
 }
 
 
@@ -261,7 +261,7 @@ static void calcVonMisesBar()
 	int nsteps,taxa,nnewton;
 	nnewton = 30;
 	nsteps =1;
-	taxa = 1.;
+	taxa = 1;
 	REAL beginforce = 209.9999;
 	REAL endforce = 209.9999;
     int bc =-2;
@@ -347,7 +347,7 @@ void calctalude()
 	int nsteps,taxa,nnewton;
 	nnewton = 5;
 	nsteps =5;
-	taxa = 1.;
+	taxa = 1;
 	REAL beginforce = 0.1;
 	REAL endforce = 0.2;
     int bc =1;
@@ -590,9 +590,9 @@ void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REA
     coef3 = mu*((2*nu)/(1-2*nu));
     
     TPZMatHyperElastic * mathyper = new TPZMatHyperElastic(nummat,e,mu,nu,lambda, coef1,coef2,coef3);
-    TPZMaterial *hyper(mathyper);
-    compmesh1->InsertMaterialObject(hyper);
-    cmesh(compmesh1, hyper);
+	TPZMaterial *hyperm(mathyper);
+    compmesh1->InsertMaterialObject(hyperm);
+    cmesh(compmesh1, hyperm);
     ofstream arg2("hyper.txt");
     compmesh1->Print(arg2);
     

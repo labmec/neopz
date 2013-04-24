@@ -495,7 +495,7 @@ void calcSDBar()
 	int nsteps,taxa,nnewton;
 	nnewton = 30;
 	nsteps =10;
-	taxa = 1.;
+	taxa = 1;
 	REAL beginforce = -0.0001;
 	REAL endforce = -0.00145;
     int bc =-2;
@@ -1411,7 +1411,7 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
     
 }
 
-#define MACOS
+//#define MACOS
 #ifdef MACOS
 
 #include <iostream>
