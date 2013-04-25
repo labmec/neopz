@@ -88,7 +88,7 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
 
 void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
 
-int main(int argc, char *argv[])
+int main1(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	std::string logs("log4cxx.doubleprojection1d");

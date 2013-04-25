@@ -66,6 +66,8 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial);
 
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 
 TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZPoroElasticMF2d *mymateria, TPZCompMesh *mphysics);
@@ -101,6 +103,7 @@ int main(int argc, char *argv[])
 	
 	// geometric mesh (initial)
 	TPZGeoMesh * gmesh = GMesh(triang,1.,1.);
+    UniformRefine(gmesh, 3);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     
@@ -120,7 +123,7 @@ int main(int argc, char *argv[])
     ofstream arg4("cmesh3_inicial.txt");
     cmesh3->Print(arg4);
     
-    
+ /*
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
@@ -150,13 +153,14 @@ int main(int argc, char *argv[])
     ofstream arg7("cmesh3_final.txt");
     cmesh3->Print(arg7);
     
+    */
     
     //	Set initial conditions for pressure
     TPZAnalysis an3(cmesh3);
 	SolveSist(an3, cmesh3);
 	int nrs = an3.Solution().Rows();
 	TPZFMatrix<REAL> solucao1(nrs,1,1000.);
-    TPZVec<REAL> solini(nrs,1.);
+    TPZVec<REAL> solini(nrs,1000.);
 //	cmesh3->Solution() = solucao1;
 //    cmesh3->LoadSolution(solucao1);
     
@@ -394,6 +398,22 @@ TPZGeoMesh *GMesh2(REAL w, REAL L){
     
 	return gmesh;
 }
+
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+            gel->Divide(filhos);
+        }
+    }
+    //	gmesh->BuildConnectivity();
+}
+
 
 TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 {
