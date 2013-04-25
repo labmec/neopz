@@ -75,6 +75,9 @@ public:
         
         /// Compute the resultant x and y force
         void ComputeXYForce(TPZFMatrix<STATE> &rhs, TPZVec<STATE> &force);
+	
+        /// Return gmesh
+        TPZGeoMesh * GetGeoMesh();
 
         // Geometry of mesh
         /// radius of the well
@@ -165,6 +168,11 @@ public:
     void VerifyGlobalEquilibrium(std::ostream &out = std::cout)
     {
         fCurrentConfig.VerifyGlobalEquilibrium(out);
+    }
+    
+    TConfig * GetCurrentConfig ()
+    {
+        return &fCurrentConfig;
     }
 
 static void StandardConfiguration(TPZWellBoreAnalysis &obj);

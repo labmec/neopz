@@ -1086,6 +1086,10 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<int> 
 #endif
 }
 
+TPZGeoMesh * TPZWellBoreAnalysis::TConfig::GetGeoMesh() {
+  return &this->fGMesh;
+}
+
 /// Reset the plastic memory of the integration points of these elements
 void TPZWellBoreAnalysis::ApplyHistory(std::set<int> &elindices)
 {
