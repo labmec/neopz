@@ -1079,13 +1079,13 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-        sout << "alpha = " << N.fAlpha << std::endl;
-        TPZFNMatrix<6,REAL> Ep(N.fEpsP),EpsT(Np1.fEpsT);
+        sout << "alpha = " << NN.fAlpha << std::endl;
+        TPZFNMatrix<6,REAL> Ep(NN.fEpsP),EpsT(Np1.fEpsT);
         TPZTensor<REAL> sigmaT, deformElast;
         Ep.Print("Ep = ",sout,EMathematicaInput);
         EpsT.Print("Etotal = ",sout,EMathematicaInput);
         deformElast = Np1.fEpsT;
-        deformElast.Add(N.fEpsP, -1.);
+        deformElast.Add(NN.fEpsP, -1.);
         fER.Compute(deformElast,sigmaT);
         TPZFNMatrix<6,REAL> sigma(sigmaT);
         sigma.Print("sigmaTrial = ",sout,EMathematicaInput);
