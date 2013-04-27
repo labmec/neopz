@@ -161,7 +161,7 @@ int main() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref, NRefs = 7;
-	int nthread, NThreads = 3;
+	int nthread, NThreads = 2;
     int dim;
 	
     //Working on regular meshes
@@ -169,7 +169,8 @@ int main() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
 //		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++) {
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++) {
+		for(int itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++) {
+//		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++) {
 //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++) {
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -186,7 +187,7 @@ int main() {
 			dim = DefineDimensionOverElementType(typeel);
 			
 			// Some refinements as initial step
-			UniformRefinement(2,gmesh,dim);
+			UniformRefinement(3,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
 			int p = 6, pinit;
@@ -197,8 +198,10 @@ int main() {
 			cmesh->SetName("Malha Computacional Original");
 			
 			// Printing geometric mesh to validate
-			sprintf(saida,"gmesh_%dDFichera_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
-			PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(gmesh,saida);
+			if(gDebug) {
+				sprintf(saida,"gmesh_%dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
+				PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(gmesh,saida);
+			}
 
 			// Selecting orthogonal polynomial family to construct shape functions
 			if(anothertests)
@@ -210,7 +213,7 @@ int main() {
 			scalnames.Push("Solution");
 			
 			// Solving adaptive process
-			for(nref=3;nref<NRefs;nref++) {
+			for(nref=1;nref<NRefs;nref++) {
 				cout << "\nConstructing Poisson problem " << dim << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
 				if(nref > 5) nthread = 2*NThreads;
 				else nthread = NThreads;
@@ -256,7 +259,7 @@ int main() {
 				
 				// Post processing
 				an.PostProcess(1,dim);
-				{
+				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
 					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), out, false);
@@ -289,7 +292,7 @@ int main() {
 				std::cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << nref << "\n\n\n\n";
 				
 				TPZCompMesh *adptmesh;
-				if(nref>1) {
+				if(NRefs>1) {
 					time (& sttime);
 					adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,0);
 					
@@ -328,11 +331,13 @@ int main() {
 				adapt.DeleteElements(cmesh);
 				delete cmesh;
 				cmesh = 0;
-				if(nref>1) {
+				if(NRefs>1) {
 					cmesh = adptmesh;
 					cmesh->CleanUpUnconnectedNodes();
 				}
 			}
+			if(gmesh)
+				delete gmesh;
 		}
 	}
 	
@@ -481,6 +486,41 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			break;
 		case EQuadrilateral:
 		{
+			const int nnode = 4;
+			REAL co[nnode][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
+			
+			TPZGeoEl *elvec[1];
+			gmesh = new TPZGeoMesh();
+			
+			int nod;
+			for(nod=0; nod<nnode; nod++) {
+				int nodind = gmesh->NodeVec().AllocateNewElement();
+				TPZVec<REAL> coord(3);
+				coord[0] = co[nod][0];
+				coord[1] = co[nod][1];
+				coord[2] = co[nod][2];
+				gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+			}
+			
+			int el = 0;
+//			for(el=0; el<nelem; el++) {
+				TPZVec<int> nodind(nnode);
+				for(nod=0; nod<nnode; nod++) nodind[nod]=nod;
+				int index;
+				elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,materialId,index);
+//			}
+			
+			gmesh->BuildConnectivity();
+			
+			// bc -1 -> Dirichlet
+			TPZGeoElBC gbc1(elvec[0],4,-1);
+			TPZGeoElBC gbc2(elvec[0],5,-1);
+			TPZGeoElBC gbc3(elvec[0],6,-1);
+			TPZGeoElBC gbc4(elvec[0],7,-1);
+			gmesh->ResetConnectivities();
+			gmesh->BuildConnectivity();
+		}
+/*		{
 			gmesh = new TPZGeoMesh;
 			TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 			x1[2] = 0.;
@@ -496,10 +536,52 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 
 			gmesh->ResetConnectivities();
 			gmesh->BuildConnectivity();
-		}
+		}*/
 			break;
 		case ETriangle:
 		{
+			const int nelem = 2;
+			const int nnode = 4;
+			
+			REAL co[nnode][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
+			int indices[nelem][nnode] = {{0,1,2},{0,2,3}};
+			
+			TPZGeoEl *elvec[nelem];
+			gmesh = new TPZGeoMesh();
+			
+			int nod;
+			for(nod=0; nod<nnode; nod++) {
+				int nodind = gmesh->NodeVec().AllocateNewElement();
+				TPZVec<REAL> coord(3);
+				coord[0] = co[nod][0];
+				coord[1] = co[nod][1];
+				coord[2] = co[nod][2];
+				gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+			}
+			
+			int el;
+			for(el=0; el<nelem; el++) {
+				TPZVec<int> nodind(3);
+				for(nod=0; nod<3; nod++) nodind[nod]=indices[el][nod];
+				int index;
+				elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
+			}
+			
+			gmesh->BuildConnectivity();
+			
+			// bc -1 -> Dirichlet
+			TPZGeoElBC gbc1(elvec[0],3,-1);
+			TPZGeoElBC gbc2(elvec[0],4,-1);
+			TPZGeoElBC gbc3(elvec[1],4,-1);
+			TPZGeoElBC gbc4(elvec[1],5,-1);
+			gmesh->ResetConnectivities();
+			gmesh->BuildConnectivity();
+		}
+			break;
+		{
+			// bc -2 -> Neumann at the right x==1
+/*			TPZGeoElBC gbc2(elvec[0],5,-2);
+			
 			gmesh = new TPZGeoMesh;
 			TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 			x1[2] = 0.;
@@ -514,7 +596,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			TPZGeoElBC gbc13(gmesh->ElementVec()[1],5,bc0);
 
 			gmesh->ResetConnectivities();
-			gmesh->BuildConnectivity();
+			gmesh->BuildConnectivity();*/
 		}
 			break;
 		case ETetraedro:
@@ -566,8 +648,21 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	int el;
 	for(el=0; el<nelem; el++) {
 		int index;
-		elvec[el] = gmesh->CreateGeoElement(typeel,indices[el],1,index);
+		elvec[el] = gmesh->CreateGeoElement(ECube,indices[el],1,index);
 	}
+    gmesh->BuildConnectivity();
+	
+	// Introduzing boundary condition for cube - ALL DIRICHLET
+	// face 0 (20) bottom XY - face 1 (21) lateral left XZ - face 4 (24) lateral back YZ : Dirichlet
+	TPZGeoElBC gbc10(gmesh->ElementVec()[0],20,-1);
+	TPZGeoElBC gbc11(gmesh->ElementVec()[0],21,-1);
+	TPZGeoElBC gbc12(gmesh->ElementVec()[0],24,-1);
+	// face 2 (22) Neumann - Partial derivative (du/dx) - lateral front
+	TPZGeoElBC gbc13(gmesh->ElementVec()[0],22,-1);
+	// face 3 (23) Neumann - Partial derivative (du/dy) - lateral right
+	TPZGeoElBC gbc14(gmesh->ElementVec()[0],23,-1);
+	// face 5 (25) Neumann - Partial derivative (du/dz) - top
+	TPZGeoElBC gbc15(gmesh->ElementVec()[0],25,-1);
 
 	TPZVec<TPZGeoEl *> sub;
 	std::string filename = REFPATTERNDIR;
@@ -641,9 +736,9 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
             break;
     }
 	
-	gmesh->BuildConnectivity();
+//	gmesh->BuildConnectivity();
 	
-	switch(typeel) {
+/*	switch(typeel) {
 		case ECube:
 		{
 			// face 0 (20) bottom XY - face 1 (21) lateral left XZ - face 4 (24) lateral back YZ : Dirichlet
@@ -748,7 +843,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 			gmesh->ElementVec()[3]->Divide(sub);
 		}
 			break;
-	}
+	}*/
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	

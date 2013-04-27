@@ -452,7 +452,7 @@ TPZCompMesh *ReadCase(int &nref, int &opt,bool user){
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
 	// Some preferred values
-    opt = 0; nref = 3; 
+    opt = 2; nref = 3; 
 	int p = 3;
 	
 	if(user)
