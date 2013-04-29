@@ -1451,6 +1451,7 @@ int main ()
 #endif
     
     InitializePZLOG();
+    gRefDBase.InitializeAllUniformRefPatterns();
 	
    // TPZGeoMesh * mesh = GeoMeshClass::WellBore2d();
     
@@ -1464,7 +1465,7 @@ int main ()
      
      */
 //    TPZWellBoreAnalysis::CheckDeformation();
-    int startfrom = 4;
+    int startfrom = 2;
     TPZWellBoreAnalysis well;
     if (startfrom == 0) 
     {
@@ -1495,8 +1496,17 @@ int main ()
         well.Read(read);
     }
     if (startfrom <= 2) {
+        well.PRefineElementAbove(0., 2);
+//        well.DivideElementsAbove(0.04);
         well.ExecuteSimulation();
         well.VerifyGlobalEquilibrium();
+        TPZStack<std::string> postprocess;
+        postprocess.Push("I1J2Stress");
+        TPZFMatrix<STATE> valuetable;
+        TPZManVector<REAL,3> x(3,0.);
+        x[0] = 1.1;
+        well.PostProcessedValues(x , postprocess, valuetable);
+        valuetable.Print("Post processed I1=J2",std::cout);
         TPZBFileStream save;
         save.OpenWrite("Wellbore2.bin");
         well.Write(save);

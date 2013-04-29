@@ -1,7 +1,7 @@
 // $Id: TPZYCSandlerDimaggio.h,v 1.11 2009-06-29 22:54:01 erick Exp $
 
-#ifndef TPZYCSANDLERDIMAGGIOL_H
-#define TPZYCSANDLERDIMAGGIOL_H
+#ifndef TPZYCSANDLERDIMAGGIOL2_H
+#define TPZYCSANDLERDIMAGGIOL2_H
 
 #include "TPZYCSandlerDimaggioL.h"
 #include "pzlog.h"
@@ -115,6 +115,10 @@ public:
         return L;
 
     }
+
+    /// project the point on the intersection of the F1 and F2 surface
+    void ProjectBorder(const TPZElasticResponse &ER, REAL &L, TPZVec<STATE> &sigtrialIJ);
+    
 public:
 
 		
@@ -132,7 +136,7 @@ public:
 
 
 template <class T>
-inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const
+inline void TPZYCSandlerDimaggioL2::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const
 {
 	// the termoforce A in this case is assumed to be the
 	// plastic volumetric strain itself. In fact it is not,
@@ -220,7 +224,12 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
 #ifdef DEBUG
         {
             std::stringstream sout;
-            T sqj2 = sqrt(J2);
+            
+            T sqj2 = J2;
+            if(fabs(shapeFAD::val(J2)) > 1.e-6)
+            {
+                sqj2 = sqrt(sqj2);
+            }
             sout << "Computing the distance from cap entry I1 " << I1 << " sqJ2 " << sqj2 << " lmax " << lmax << " F(lmax) " << FI1;
             LOGPZ_DEBUG(loggerSML, sout.str())
         }
@@ -230,7 +239,7 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
 }
 
 template <class T> 
-inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
+inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
 
 	// the termoforce A in this case is assumed to be the
@@ -408,7 +417,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 
 
 template <class T> 
-inline void TPZYCSandlerDimaggioL::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h, int checkForcedYield) const
+inline void TPZYCSandlerDimaggioL2::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h, int checkForcedYield) const
 {
 
  	// the termoforce A in this case is assumed to be the
@@ -447,7 +456,7 @@ inline void TPZYCSandlerDimaggioL::H(const TPZTensor<T> & sigma,const T & A, TPZ
         }	
 
         {//f2 - ellipsoidal hardening/softening cap
-            if (shapeFAD::val(I1) < shapeFAD::val(L)) 
+            if (shapeFAD::val(I1) < shapeFAD::val(A)) 
             {
                 T FL;
                 T L = A;
@@ -519,7 +528,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
 #endif
     fIsonCap = false;
 
-    if (yield[1] <= 0. && I1 < Lextern) {
+    if (yield[1] >= 0. && I1 < Lextern) {
         surfaceprojected = 1;
         NewtonF2L(ER, L, sigtrialIJ);
         
@@ -527,13 +536,25 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
         Lproj = L;
         
     }
-    else if(yield[0] <= 0. && I1 >= Lextern)
+    else if(yield[0] >= 0. && I1 >= Lextern)
     {
         surfaceprojected = 0;
         NewtonF1(ER, L, sigtrialIJ);
         sigtrial.Adjust(sigtrialIJ, sigproj);
+        
+        TPZManVector<REAL,2> yieldCheck(2,0.);
+        Compute(sigproj, L, yieldCheck, 0);
+        if (yieldCheck[1] > 0.) {
+            L = Lextern;
+            sigtrialIJ = sigtrialIJkeep;
+            ProjectBorder(ER, L, sigtrialIJ);
+            sigtrial.Adjust(sigtrialIJ, sigproj);
+            surfaceprojected = 2;
+        }
+        
+        REAL LMAX = LMax();
 
-        if(sigtrialIJ[0] > LMax())
+        if(sigtrialIJ[0] > LMAX)
         {
             fIsonCap = true;
             sigtrialIJ[0] = LMax();
@@ -662,55 +683,81 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
     }
     if (fIsonCap == false) 
     {
-        if (surfaceprojected != 0 && surfaceprojected != 1) {
+        if (surfaceprojected != 0 && surfaceprojected != 1 && surfaceprojected != 2) {
             DebugStop();
         }
-        REAL i1Ndir = Ndir[surfaceprojected].I1();
-        REAL sqj2Ndir = sqrt(Ndir[surfaceprojected].J2());
-        REAL theta1 = atan2(sqj2Ndir,i1Ndir);
-        REAL theta2 = atan2(epsplastIJ[1],epsplastIJ[0]);
-        REAL difftheta = theta1-theta2;
-        REAL sigplnorm = sigPlast.Norm();
-        if (fabs(difftheta) > 1.e-4 && sigplnorm > 1.e-10) {
-            std::cout << "difftheta " << difftheta << " theta1 " << theta1 << " theta2 " << theta2 << std::endl;
+        if (surfaceprojected == 0 || surfaceprojected == 1) 
+        {
+            REAL i1Ndir = Ndir[surfaceprojected].I1();
+            REAL sqj2Ndir = sqrt(Ndir[surfaceprojected].J2());
+            REAL theta1 = atan2(sqj2Ndir,i1Ndir);
+            REAL theta2 = atan2(epsplastIJ[1],epsplastIJ[0]);
+            REAL difftheta = theta1-theta2;
+            REAL sigplnorm = sigPlast.Norm();
+            if (fabs(difftheta) > 1.e-4 && sigplnorm > 1.e-10) {
+                std::cout << "difftheta " << difftheta << " theta1 " << theta1 << " theta2 " << theta2 << std::endl;
+            }
+            REAL theta = 0.;
+        
+            if (surfaceprojected == 1) {
+                REAL FL;
+                ComputeF(Lproj, FL);
+                REAL cst = i1Ndir*(FL*fR)/6.;
+                REAL sst = sqj2Ndir*FL;
+                REAL check = 1.-cst*cst-sst*sst;
+                if (fabs(check) > 1.e-6) {
+                    std::cout << "check = " << check << " cst " << cst << " sst " << sst << std::endl;
+                }
+                theta = atan2(sst,cst);
+                
+                REAL xdist = sigtrialIJ[0]-Lproj;
+                REAL ydist = sigtrialIJ[1];
+                REAL theta3 = atan2(ydist, xdist/fR);
+                
+                REAL thetadiff = theta-theta3;
+                if (fabs(thetadiff) > 1.e-6) {
+                    std::cout  << " thetadiff " << thetadiff << " theta " << theta << " theta3 " << theta3 << std::endl;
+                }
+                    // verificar pelo angulo
+                REAL verify = FuncTheta2L(ER, theta, Lproj, sigtrialIJkeep);
+                if (fabs(verify) > 1.e-9) {
+                    std::cout << "Validity of functheta " << verify;
+                }
+            }
+            Lproj = L;
+            REAL scale = epsPlast.Norm()/Ndir[surfaceprojected].Norm();
+            for (int i=0; i<6; i++) {
+                REAL diff = fabs(scale*Ndir[surfaceprojected][i]-epsPlast[i]);
+                if (diff > 1.e-6) {
+                    DebugStop();
+                }
+            }
+            delgamma[0] = 0.;
+            delgamma[1] = 0.;
+            delgamma[surfaceprojected] = scale;
         }
-        REAL theta = 0.;
-        if (surfaceprojected == 1) {
-            REAL FL;
-            ComputeF(Lproj, FL);
-            REAL cst = i1Ndir*(FL*fR)/6.;
-            REAL sst = sqj2Ndir*FL;
-            REAL check = 1.-cst*cst-sst*sst;
-            if (fabs(check) > 1.e-6) {
-                std::cout << "check = " << check << " cst " << cst << " sst " << sst << std::endl;
-            }
-            theta = atan2(sst,cst);
-            
-            REAL xdist = sigtrialIJ[0]-Lproj;
-            REAL ydist = sigtrialIJ[1];
-            REAL theta3 = atan2(ydist, xdist/fR);
-            
-            REAL thetadiff = theta-theta3;
-            if (fabs(thetadiff) > 1.e-6) {
-                std::cout  << " thetadiff " << thetadiff << " theta " << theta << " theta3 " << theta3 << std::endl;
-            }
-                // verificar pelo angulo
-            REAL verify = FuncTheta2L(ER, theta, Lproj, sigtrialIJkeep);
-            if (fabs(verify) > 1.e-9) {
-                std::cout << "Validity of functheta " << verify;
-            }
-        }
-        Lproj = L;
-        REAL scale = epsPlast.Norm()/Ndir[surfaceprojected].Norm();
-        for (int i=0; i<6; i++) {
-            REAL diff = fabs(scale*Ndir[surfaceprojected][i]-epsPlast[i]);
-            if (diff > 1.e-6) {
+        else 
+        {
+            STATE I1NDir0 = Ndir[0].I1();
+            STATE I1NDir1 = Ndir[1].I1();
+            if (fabs(I1NDir1) > 1.e-6) {
                 DebugStop();
             }
+            delgamma[0] = epsplastIJ[0]/I1NDir0;
+            STATE sqj2 = sqrt(Ndir[0].J2());
+            STATE resj2 = epsplastIJ[1]-delgamma[0]*sqj2;
+            STATE sqj2Ndir1 = sqrt(Ndir[1].J2());
+            delgamma[1] = resj2/sqj2Ndir1;
+            TPZTensor<STATE> delepsp(Ndir[0]);
+            delepsp *= delgamma[0];
+            delepsp.Add(Ndir[1], delgamma[1]);
+            for (int i=0; i<6; i++) {
+                STATE diff = delepsp[i]-epsPlast[i];
+                if (fabs(diff) > 1.e-8) {
+                    DebugStop();
+                }
+            }
         }
-        delgamma[0] = 0.;
-        delgamma[1] = 0.;
-        delgamma[surfaceprojected] = scale;
     }
     else
     {
@@ -754,6 +801,33 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
         DebugStop();
     }
 }
+
+/// project the point on the intersection of the F1 and F2 surface
+inline void TPZYCSandlerDimaggioL2::ProjectBorder(const TPZElasticResponse &ER, REAL &L, TPZVec<STATE> &sigtrialIJ)
+{
+    REAL residueL = 0.;
+    REAL K = ER.K();
+    STATE depspdl; 
+    REAL resultL = L;
+    DEpspDL(resultL, depspdl );
+    residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-resultL);
+    while(fabs(residueL) > 1.e-10)
+    {
+        STATE d2epspdl2;
+        D2EpspDL2(resultL, d2epspdl2);
+        STATE dres = 3.*K*depspdl+3.*K*(resultL-L)*d2epspdl2+1.;
+        resultL -= residueL/dres;
+        DEpspDL(resultL, depspdl );
+        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-resultL);
+    }
+    STATE F;
+    ComputeF(resultL, F);
+    sigtrialIJ[0] = resultL;
+    sigtrialIJ[1] = F;
+    L = resultL;
+
+}
+
 
 
 

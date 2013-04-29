@@ -8,6 +8,7 @@
 #include "pzlog.h"
 #include "TPZPlasticStep.h"
 #include "TPZYCSandlerDimaggioL.h"
+#include "TPZYCSandlerDimaggioL2.h"
 #include "TPZSandlerDimaggioThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzvec_extras.h"
@@ -15,6 +16,7 @@
 #include "TPZPlasticStepID.h"
 
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
+#define SANDLERDIMAGGIOSTEP2 TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
 
 template<class SANDLERDIMAGGIOPARENT>
 class TPZSandlerDimaggio : public SANDLERDIMAGGIOPARENT  {

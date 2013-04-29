@@ -12,6 +12,8 @@
 #include "TPZYCLadeKim.h"
 #include "TPZLadeKimThermoForceA.h"
 #include "TPZYCSandlerDimaggio.h"
+#include "TPZYCSandlerDimaggioL.h"
+#include "TPZYCSandlerDimaggioL2.h"
 #include "TPZSandlerDimaggio.h"
 #include "TPZSandlerDimaggioThermoForceA.h"
 #include "tpzycvonmisescombtresca.h"
@@ -2517,12 +2519,59 @@ void  TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZE
 #endif
 }
 
+template <>
+void  TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::InitialGuess(
+                                                                                                              const TPZPlasticState<REAL> &N,
+                                                                                                              TPZPlasticState<REAL> &Np1,
+                                                                                                              TPZVec<REAL> &delGamma,
+                                                                                                              TPZVec<int> &validEqs
+                                                                                                              )
+{
+    TPZTensor<REAL> EpN = N.fEpsP;
+    TPZTensor<REAL> ETotal = Np1.fEpsT;
+    TPZTensor<REAL> ETrial = ETotal;
+    TPZTensor<REAL> sigmaTrial;
+    ETrial.Add(EpN, -1.);
+    fER.Compute(ETrial, sigmaTrial);
+    TPZTensor<REAL> sigproj;
+    fYC.InitialGuess(fER, N.fAlpha, sigmaTrial, Np1.fAlpha, delGamma, sigproj);
+    TPZTensor<REAL> sigPlast(sigmaTrial);
+    sigPlast.Add(sigproj, -1.);
+    fER.ComputeDeformation(sigPlast, Np1.fEpsP);
+    Np1.fEpsP.Add(N.fEpsP, 1.);
+    validEqs.Fill(0);
+    for (int i=0; i<2; i++) {
+        if (delGamma[i] > 0.) {
+            validEqs[i]=1;
+        }
+    }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "epsp next " << Np1.fAlpha << std::endl;
+        sout << "delGamma " << delGamma << std::endl;
+        sout << "validEqs " << validEqs << std::endl;
+        TPZManVector<REAL,2> Residual(2);
+        fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
+        sout << "residual before projection" << Residual << std::endl;
+        fYC.Compute(sigproj, Np1.fAlpha, Residual, 1);
+        sout << "residual after projection" << Residual << std::endl;
+        LOGPZ_DEBUG(loggerSM, sout.str())
+    }
+#endif
+}
+
+
 
 template class TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;
 
 template class TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;
 
+template class TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;
+
 
 template void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<REAL>(TPZPlasticState<REAL> const&, TPZTensor<REAL>&, REAL&) const;
 
 template void TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<REAL>(TPZPlasticState<REAL> const&, TPZTensor<REAL>&, REAL&) const;
+
+template void TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<REAL>(TPZPlasticState<REAL> const&, TPZTensor<REAL>&, REAL&) const;

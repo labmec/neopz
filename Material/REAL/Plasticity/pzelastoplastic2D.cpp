@@ -619,6 +619,17 @@ TPZMaterial * TPZMatElastoPlastic2D<T,TMEM>::NewMaterial()
 	return new TPZMatElastoPlastic2D<T,TMEM>(*this);
 }
 
+template <>
+int TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZSANDLERDIMAGGIOL_ID + NUMPLASTICMODELS;
+}
+
+template <>
+int TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZSANDLERDIMAGGIOL2_ID + NUMPLASTICMODELS;
+}
 
 template <class T, class TMEM>
 int TPZMatElastoPlastic2D<T,TMEM>::ClassId() const
@@ -693,6 +704,7 @@ template class TPZMatElastoPlastic2D<TPZWillamWarnke>;
 
 template class TPZMatElastoPlastic2D<TPZLadeKim, TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
 
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZElastoPlasticMem>;
@@ -708,6 +720,8 @@ template class TPZMatElastoPlastic2D<TPZVonMises>;
 
 template class TPZMatElastoPlastic2D<TPZLadeKim, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZPoroElastoPlasticMem>;
+template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
-template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>,TPZMATELASTOPLASTIC_ID + BASEPLASTICMODEL_ID - NUMPLASTICMODELS >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>, TPZSANDLERDIMAGGIOL_ID + NUMPLASTICMODELS >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOL2_ID + NUMPLASTICMODELS>;

@@ -137,6 +137,13 @@ void TPZWellBoreAnalysis::Write(TPZStream &output)
 void TPZWellBoreAnalysis::Read(TPZStream &input)
 {
     fCurrentConfig.Read(input);
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fCurrentConfig.fGMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     int seqsize;
     input.Read(&seqsize);
     for (int i=0; i<seqsize; i++) {
@@ -145,13 +152,6 @@ void TPZWellBoreAnalysis::Read(TPZStream &input)
         fSequence.push_back(config);
     }
     input.Read(&fPostProcessNumber);
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        fCurrentConfig.fCMesh.Print(sout);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
     
 }
 
@@ -169,16 +169,17 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     obj.fCurrentConfig.fCMesh.SetDefaultOrder(1);
     TPZCompMesh *compmesh1 = &obj.fCurrentConfig.fCMesh;
     
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandTest(obj.fCurrentConfig.fSD);
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> &SD = obj.fCurrentConfig.fSD;
+//    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = obj.fCurrentConfig.fSD;
     SD.SetResidualTolerance(1.e-10);
     SD.fIntegrTol = 10.;
     
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
-	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> >(1,1);
+	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
     
-    obj.fCurrentConfig.fConfinement.XX() = -44.3;
+    obj.fCurrentConfig.fConfinement.XX() = -44.3;// MPa
     obj.fCurrentConfig.fConfinement.YY() = -58.2;
     obj.fCurrentConfig.fConfinement.ZZ() = -53.8;
     obj.fCurrentConfig.fFluidPressure = -29.3;
@@ -221,13 +222,13 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
     STATE sqj2 = sqrt(sigma.J2());
     S *= 1./sqj2;
     sqj2 = S.J2();
-    out << "deform = Table[0,{50}];" << std::endl;
-    out << "tension = Table[0,{50}];" << std::endl;
-    int nangles = 100;
+    const int nangles = 100;
+    out << "deform = Table[0,{" << nangles << "}];" << std::endl;
+    out << "tension = Table[0,{" << nangles << "}];" << std::endl;
     
     for (int i=0; i<nangles; i++) {
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandTest(SD);
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> SD;
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(SD);
         SD.SetResidualTolerance(1.e-10);
         SD.fIntegrTol = 1.;
 
@@ -259,10 +260,6 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
             epst[j].first = ca*scale;
             epst[j].second = sa*scale;
             SD.fYC.fIsonCap = false;
-            if(i==6 && j== 8)
-            {
-                std::cout << "I should stop\n";
-            }
             SD.ApplyStrainComputeSigma(epstotal,sigma);
             // print I1 and sqrt(J2)
             REAL i1sigma = sigma.I1();
@@ -294,7 +291,13 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
 
 TPZWellBoreAnalysis::TConfig::~TConfig()
 {
-    
+    if (fGMesh.NElements() > 87) 
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        fGMesh.ElementVec()[87]->Print();
+    }
+    fCMesh.CleanUp();
+    fCMesh.SetReference(0);
 }
 
 TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZWellBoreAnalysis::TConfig &copy)
@@ -558,9 +561,6 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
         intpoints.Point(ip, point, weight);
         data2.intLocPtIndex = ip;
         intel2->ComputeRequiredData(data2, point);
-        if (data2.intGlobPtIndex == 8334) {
-            std::cout << "I should stop\n";
-        }
 #ifdef LOG4CXX
         {
             int memoryindex = data2.intGlobPtIndex;
@@ -1024,6 +1024,11 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
         if (!intel) {
             DebugStop();
         }
+        TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (cel->Material());
+        if (!pMatWithMem2) {
+            continue;
+        }
+
         if (fCMesh.ElementSolution()(el,0) < sqj2) {
             continue;
         }
@@ -1195,3 +1200,96 @@ void TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
     ApplyHistory(elindices);
     fCurrentConfig.ComputeElementDeformation();
 }
+
+/// GetPostProcessedValues
+void TPZWellBoreAnalysis::PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::string> &variables, TPZFMatrix<STATE> &values)
+{
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCurrentConfig.fCMesh.MaterialVec()[1]);
+    pMatWithMem2->SetUpdateMem(true);
+    
+    // identify the post process indices and number of results for each index
+    int varsize = variables.size();
+    TPZManVector<int,10> varindices(varsize,-1),firstindex(varsize+1,-1),numvar(varsize,-1);
+    int numvalid = 0;
+    firstindex[0] = 0;
+    for (int iv=0; iv<varsize; iv++) {
+        varindices[numvalid] = pMatWithMem2->VariableIndex(variables[iv]);
+        if (varindices[numvalid] != -1) {
+            numvar[numvalid] = pMatWithMem2->NSolutionVariables(varindices[numvalid]);
+            firstindex[numvalid+1] = firstindex[numvalid]+numvar[numvalid];
+            numvalid++;
+        }
+    }
+    varindices.Resize(numvalid);
+    firstindex.Resize(numvalid+1);
+    numvar.Resize(numvalid);
+    values.Resize(0, firstindex[numvalid]);
+    
+    // compute the number of post processing variables and their first index
+    std::list<TConfig>::iterator listit;
+    // create a new integration point to train the deformation history
+    int pointid = pMatWithMem2->PushMemItem();
+    for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
+        TPZGeoMesh *gmesh1 = &(listit->fGMesh);
+        TPZManVector<REAL,3> qsi(2,0.);
+        int elementid;
+        TPZMaterialData data1;
+        data1.x = x;
+        data1.intLocPtIndex = 0;
+        // find the element which contains the coordinate
+        
+        TPZGeoEl *gel1 = gmesh1->FindElement(data1.x, qsi, elementid,2);
+        if (!gel1) {
+            DebugStop();
+        }
+        TPZCompEl *cel1 = gel1->Reference();
+        if (!cel1) {
+            DebugStop();
+        }
+        // compute the solutions at the point
+        TPZInterpolationSpace *intel1 = dynamic_cast<TPZInterpolationSpace *>(cel1);
+        if (!intel1) {
+            DebugStop();
+        }
+
+        // expand the result matrix
+        int valuesfirstindex = values.Rows();
+        int nsol = listit->fAllSol.Cols();
+        // we don't initialize the values because they will be set in the procedure
+        values.Resize(valuesfirstindex+nsol, values.Cols());
+        // copy the solution to a local variable
+        int solsize = listit->fAllSol.Rows();
+        TPZFMatrix<STATE> locsol(solsize,1);
+        for (int isol = 0; isol < nsol; isol++) 
+        {
+            // load one solution at a time
+            for (int ic=0; ic<solsize; ic++) {
+                locsol(ic,0) = listit->fAllSol(ic,isol);
+            }
+            listit->fCMesh.LoadSolution(locsol);
+            intel1->InitMaterialData(data1);
+            data1.fNeedsSol = true;
+            intel1->ComputeRequiredData(data1, qsi);
+            data1.intGlobPtIndex = pointid;
+            // initialize the material data object
+            TPZFMatrix<STATE> EF(0,0);
+            data1.phi.Resize(0, 1);
+            data1.dphix.Resize(data1.dphix.Rows(), 0);
+            pMatWithMem2->Contribute(data1, 1., EF);
+            // call the post processing method
+            for (int iv=0; iv<numvalid; iv++) 
+            {
+                TPZManVector<STATE,10> solution(numvar[iv],0.);
+                pMatWithMem2->Solution(data1, varindices[iv], solution);
+                // put the data in the output matrix
+                for (int is=0; is<numvar[iv]; is++) {
+                    values(valuesfirstindex+isol,firstindex[iv]+is) = solution[is];
+                }
+            }
+        }
+    }
+    pMatWithMem2->FreeMemItem(pointid);
+    pMatWithMem2->SetUpdateMem(false);
+    
+}
+

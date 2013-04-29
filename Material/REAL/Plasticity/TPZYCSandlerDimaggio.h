@@ -1795,29 +1795,61 @@ void TPZYCSandlerDimaggio::D2EpspDL2(const T &L, T& d2epspdL2) const
     
 }
 
-/// Projeto o ponto sobre a superficie F1, atualiza o L
+/// Projeto o ponto sobre a superficie F1, atualiza o L e sigtrialIJ
 inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L, TPZVec<REAL> &sigtrialIJ)
 {
     REAL resultL = L;
-    REAL ddist = DDistance(ER, resultL, sigtrialIJ);
+    TPZManVector<STATE,2> sigProj(sigtrialIJ);
+    REAL ddist = DDistance(ER, resultL, sigProj);
     while(ddist < 0.)
     {
         resultL += 1.;
-        ddist = DDistance(ER,resultL, sigtrialIJ);
+        ddist = DDistance(ER,resultL, sigProj);
     }
     REAL ddistnext = fabs(ddist)+1;
     while (fabs(ddist) > 1.e-10 || fabs(ddistnext) > fabs(ddist)) {
         ddist = ddistnext;
-        REAL d2dist = D2Distance(ER, resultL, sigtrialIJ);
+        REAL d2dist = D2Distance(ER, resultL, sigProj);
         resultL -= ddist/d2dist;
-        ddistnext = DDistance(ER, resultL, sigtrialIJ);
+        ddistnext = DDistance(ER, resultL, sigProj);
     }
-    sigtrialIJ[0] = resultL;
+    sigProj[0] = resultL;
     REAL F;
     ComputeF(resultL, F);
-    sigtrialIJ[1] = F;
+    sigProj[1] = F;
     // compute the increase in epsp
     // compute L such that depsp/dL (delta L) = delta epsp
+    REAL K = ER.K();
+    STATE depspdl; 
+    DEpspDL(resultL, depspdl );
+    STATE residueL;
+#ifdef DEBUG_KEEP
+    TPZFMatrix<STATE> table(2,200,0.);
+    int count = 0;
+    for (resultL = -1.; resultL< 10.; resultL += 0.1) {
+        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+        table(0,count) = resultL;
+        table(1,count) = residueL;
+        count++;
+    }
+    table.Resize(2,count);
+    {
+        std::ofstream fout("resfunc.nb");
+        table.Print("resfunc", fout,EMathematicaInput);
+    }
+#endif
+    resultL = L;
+    residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+    while(fabs(residueL) > 1.e-10)
+    {
+        STATE d2epspdl2;
+        D2EpspDL2(resultL, d2epspdl2);
+        STATE dres = 3.*K*depspdl+3.*K*(resultL-L)*d2epspdl2;
+        resultL -= residueL/dres;
+        DEpspDL(resultL, depspdl );
+        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+    }
+    sigtrialIJ = sigProj;
     L = resultL;
 }
 

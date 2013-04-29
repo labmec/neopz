@@ -1108,6 +1108,20 @@ void TPZMatElastoPlastic::SetData(std::istream &data)
     data >> fDeltaT; // to be removed in the elastoplastic material and readded to the poroelastoplastic material
 }*/
 
+template <>
+int TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZSANDLERDIMAGGIOL_ID;
+}
+
+template <>
+int TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZSANDLERDIMAGGIOL2_ID;
+}
+
+
+
 template <class T, class TMEM>
 int TPZMatElastoPlastic<T,TMEM>::ClassId() const
 {
@@ -1206,6 +1220,7 @@ template class TPZMatElastoPlastic<TPZWillamWarnke>;
 
 template class TPZMatElastoPlastic<TPZLadeKim, TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
 
 
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZElastoPlasticMem>;
@@ -1222,5 +1237,6 @@ template class TPZMatElastoPlastic<TPZVonMises>;
 
 template class TPZMatElastoPlastic<TPZLadeKim, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZPoroElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 

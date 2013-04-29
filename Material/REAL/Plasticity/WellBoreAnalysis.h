@@ -89,7 +89,7 @@ public:
         TPZTensor<STATE> fConfinement;
         
         /// Parameters of the Sandler DiMaggio plasticity
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> fSD;
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
         /// Fluid pressure
         REAL fFluidPressure;
         
@@ -163,6 +163,9 @@ public:
     
     /// Post process the results of the current configuration
     void PostProcess(int resolution);
+    
+    /// GetPostProcessedValues
+    void PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::string> &variables, TPZFMatrix<STATE> &values);
     
     /// verify the global equilibrium for the current configuration
     void VerifyGlobalEquilibrium(std::ostream &out = std::cout)
