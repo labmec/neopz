@@ -108,6 +108,7 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 private:
 	
 	friend class TPZSaveable;
+    friend class TPZGeoMesh;
 	
 	/**
 	 * @brief Internal variable indicating the type of compacting scheme.

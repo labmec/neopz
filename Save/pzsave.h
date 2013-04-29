@@ -500,11 +500,16 @@ public:
 		int c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
-		for(c=0; c<nc; c++) vec[c] = dynamic_cast<T *>(Restore(buf,context));
+		for(c=0; c<nc; c++) 
+        {
+            vec[c] = dynamic_cast<T *>(Restore(buf,context));
+        }
 		buf.Read(&vec.fCompactScheme,1);
 		ReadObjects(buf,vec.fFree);
 		ReadObjects(buf,vec.fNFree);
 	}
+    
+	
 	
 	static void WriteObjects(TPZStream &buf, const TPZVec<float> &vec)
 	{
