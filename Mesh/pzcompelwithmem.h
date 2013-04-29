@@ -138,11 +138,6 @@ TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TBASE() {
 }
 
 template<class TBASE>
-TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
-	SetFreeIntPtIndices();
-}
-
-template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 TBASE(mesh, gel, index){
 	PrepareIntPtIndices();

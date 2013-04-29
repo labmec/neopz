@@ -30,7 +30,13 @@ void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context)
 			}
 		}
 		
-		if(it != RefPatternList.end()) fRefPattern =*it;
+		if(it != RefPatternList.end()) 
+        {
+            fRefPattern =*it;
+        }
+        else {
+            DebugStop();
+        }
 	}
 	TPZSaveable::ReadObjects(str, this->fSubEl);
 }
@@ -47,6 +53,7 @@ void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
 template <class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):TPZGeoElRefLess<TGeo>(DestMesh,cp),
 fRefPattern(cp.fRefPattern) {
+
 	this->fSubEl = cp.fSubEl;
 }
 

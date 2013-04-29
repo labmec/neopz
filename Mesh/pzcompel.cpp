@@ -112,9 +112,6 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<S
 int TPZCompEl::gOrder = 2;
 
 TPZCompEl::TPZCompEl() {
-#ifdef LOG4CXX
-	LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-#endif
 	fMesh = 0;
 	fIndex = -1;
 }

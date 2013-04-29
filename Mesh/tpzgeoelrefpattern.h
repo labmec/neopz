@@ -151,9 +151,8 @@ TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh,
 //--| IMPLEMENTATION |----------------------------------------------------------
 
 template<class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TGeo>(){
-	fSubEl.Resize(1);
-	fSubEl[0] = -1;
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TGeo>(), fSubEl(0), fRefPattern(0)
+{
 }
 
 template<class TGeo>

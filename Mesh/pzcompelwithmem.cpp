@@ -5,6 +5,12 @@
 
 #include "pzcompelwithmem.h"
 
+template<class TBASE>
+TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
+	SetFreeIntPtIndices();
+}
+
+
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >, TPZCOMPELWITHMEMPOINTID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >, TPZCOMPELWITHMEMLINEARID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >, TPZCOMPELWITHMEMTRIANGID>;
