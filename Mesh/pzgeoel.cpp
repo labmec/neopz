@@ -418,6 +418,7 @@ int TPZGeoEl::WhichSubel(){
 			father->Print(sout);
 			sout << "Son element\n";
 			Print(sout);
+            Mesh()->Print(sout);
 			LOGPZ_ERROR(logger,sout.str())
 		}
 #endif
