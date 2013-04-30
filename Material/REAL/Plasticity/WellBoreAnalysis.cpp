@@ -1232,7 +1232,7 @@ void TPZWellBoreAnalysis::PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::strin
     for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
         TPZGeoMesh *gmesh1 = &(listit->fGMesh);
         TPZManVector<REAL,3> qsi(2,0.);
-        int elementid;
+        int elementid = 0;
         TPZMaterialData data1;
         data1.x = x;
         data1.intLocPtIndex = 0;
