@@ -67,7 +67,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
 const bool triang = false;
-const int teste = 2;
+const int teste = 1;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -76,92 +76,104 @@ int main(int argc, char *argv[])
 #endif
     
     ofstream arg12("Erro.txt");
-    for (int p =2; p<3; p++) {
+    for (int p =1; p<2; p++)
+    {
         arg12<<"\n Ordem = " << p <<endl;
-        for(int h=1; h<2;h++){
-             arg12<<" Refinamento h  = " << h <<endl;
-   // int p = 5;
-	//primeira malha
-	
-	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(triang);
-    //UniformRefine(gmesh,h);
-   // ofstream arg1("gmesh_inicial.txt");
-   // gmesh->Print(arg1);
-    
-    // First computational mesh
-	TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
-    //ofstream arg2("cmesh1_inicial.txt");
-    //cmesh1->Print(arg2);
+        for(int h=1; h<2;h++)
+        {
+            arg12<<" Refinamento h  = " << h <<endl;
+            // int p = 5;
+            //primeira malha
 
-    
-//	// Second computational mesh
-	TPZCompMesh * cmesh2 = CMeshPressure(gmesh, p-1);
-   // ofstream arg3("cmesh2_inicial.txt");
-   // cmesh2->Print(arg3);
+            // geometric mesh (initial)
+            TPZGeoMesh * gmesh = GMesh(triang);
+            //UniformRefine(gmesh,h);
+            // ofstream arg1("gmesh_inicial.txt");
+            // gmesh->Print(arg1);
+
+            // First computational mesh
+            TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
+            //ofstream arg2("cmesh1_inicial.txt");
+            //cmesh1->Print(arg2);
 
 
-    // Cleaning reference of the geometric mesh to cmesh1
-	gmesh->ResetReference();
-	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h);
-	cmesh1->AdjustBoundaryElements();
-	cmesh1->CleanUpUnconnectedNodes();
-    ofstream arg9("cmesh1_final.txt");
-    cmesh1->Print(arg9);
-	
-	
-	// Cleaning reference to cmesh2
-	gmesh->ResetReference();
-	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h);
-	cmesh2->AdjustBoundaryElements();
-	cmesh2->CleanUpUnconnectedNodes();
-    ofstream arg100("cmesh2_final.txt");
-    cmesh2->Print(arg100);
+            // Second computational mesh
+            TPZCompMesh * cmesh2 = CMeshPressure(gmesh, p-1);
+            // ofstream arg3("cmesh2_inicial.txt");
+            // cmesh2->Print(arg3);
 
-    TPZAnalysis an3(cmesh2);
-    SolveSyst(an3, cmesh2);
-    
 
-    //malha multifisica
-    TPZVec<TPZCompMesh *> meshvec(2);
-	meshvec[0] = cmesh1;
-	meshvec[1] = cmesh2;
-    TPZMixedPoisson * mymaterial;
-    TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-    ofstream arg4("mphysic.txt");
-	mphysics->Print(arg4);
+            // Cleaning reference of the geometric mesh to cmesh1
+            gmesh->ResetReference();
+            cmesh1->LoadReferences();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h);
+            cmesh1->AdjustBoundaryElements();
+            cmesh1->CleanUpUnconnectedNodes();
+            //ofstream arg4("cmesh1_final.txt");
+            //cmesh1->Print(arg4);
 
-    ofstream arg7("gmesh_Final.txt");
-	gmesh->Print(arg7);
-    
-    TPZAnalysis an(mphysics);
-	SolveSyst(an, mphysics);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    string plotfile("Solution_mphysics.vtk");
-    PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
-    
-    
-    
-    //solucao HDiv
-    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
-    ofstream arg6("cmesh_HdivInicial.txt");
-	cmesh3->Print(arg6);
-    
-    ofstream arg10("gmesh_final.txt");
-    gmesh->Print(arg10);
-    
-    TPZAnalysis an2(cmesh3);
-    SolveSyst(an2, cmesh3);
+
+            // Cleaning reference to cmesh2
+            gmesh->ResetReference();
+            cmesh2->LoadReferences();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h);
+            cmesh2->AdjustBoundaryElements();
+            cmesh2->CleanUpUnconnectedNodes();
+            //ofstream arg5("cmesh2_final.txt");
+            //cmesh2->Print(arg5);
+
+            //malha multifisica
+            TPZVec<TPZCompMesh *> meshvec(2);
+            meshvec[0] = cmesh1;
+            meshvec[1] = cmesh2;
+            TPZMixedPoisson * mymaterial;
+            TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
+            ofstream arg6("mphysic.txt");
+            mphysics->Print(arg6);
+
+            ofstream arg7("gmesh_Final.txt");
+            gmesh->Print(arg7);
+
+            TPZAnalysis an(mphysics);
+            SolveSyst(an, mphysics);
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+
+            TPZVec<REAL> erros;
+            arg12<<" Erro da simulacao multifisica  para o flux" <<endl;
+
+            TPZAnalysis an1(cmesh1);
+            an1.SetExact(*SolExata2);
+            an1.PostProcessError(erros, arg12);
+
+            arg12<<" \nErro da simulacao multifisica  para a pressao" <<endl;
+            TPZAnalysis an2(cmesh2);
+            an2.SetExact(*SolExata2);
+            an2.PostProcessError(erros, arg12);
+
+
+            string plotfile("Solution_mphysics.vtk");
+            PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+
+
+
+            //solucao HDivPressure
+            TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
+            ofstream arg8("cmesh_HdivInicial.txt");
+            cmesh3->Print(arg8);
+
+            ofstream arg10("gmesh_final.txt");
+            gmesh->Print(arg10);
+
+            TPZAnalysis an3(cmesh3);
+            SolveSyst(an3, cmesh3);
+
+            arg12<<" \nErro da HdivPressure  " <<endl;
+            an3.SetExact(*SolExata2);
+            an3.PostProcess(erros, arg12);
+
+            string plotile2("Solution_HDiv.vtk");
+            PosProcessHDiv(an2, plotile2);
             
-    TPZVec<REAL> erros;
-    an2.SetExact(*SolExata2);
-    an2.PostProcess(erros, arg12);
-            
-    string plotile2("Solution_HDiv.vtk");
-    PosProcessHDiv(an2, plotile2);
- 
         }
     }
     return 0;
