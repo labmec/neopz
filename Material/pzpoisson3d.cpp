@@ -396,6 +396,7 @@ int TPZMatPoisson3d::VariableIndex(const std::string &name){
     
     if(!strcmp("GradFluxX",name.c_str()))       return  19;
     if(!strcmp("GradFluxY",name.c_str()))       return  20;
+     if(!strcmp("FluxL2",name.c_str()))            return  21;//Only To calculate l2 error
 	return TPZMaterial::VariableIndex(name);
 }
 
@@ -419,6 +420,7 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
 	if (var==18) return 3;
     if (var==19) return 3;
     if (var==20) return 3;
+    if (var==21) return fDim;
 	
 	
 	return TPZMaterial::NSolutionVariables(var);
@@ -467,6 +469,12 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 			}
 			
 			break;
+            
+        case 21:
+            Solout[0]=data.sol[0][0];
+            Solout[1]=data.sol[0][1];
+			break;
+            
 		case 11:
 			if (data.numberdualfunctions) {
 				Solout[0]=data.sol[0][2];
@@ -623,7 +631,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	
 	TPZVec<REAL> sol(1),dsol(fDim),div(1);
 	Solution(data,11,sol);//pressao
-	Solution(data,10,dsol);//fluxo
+	Solution(data,21,dsol);//fluxo
 	Solution(data,14,div);//divergente
 		
 #ifdef LOG4CXX
