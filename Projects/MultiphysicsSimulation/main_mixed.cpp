@@ -48,13 +48,13 @@ TPZGeoMesh *GMesh(bool triang_elements);
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial);
+
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void SolExata1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux);
+void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
-void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux);
 void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux);
-
-void ForcingBC(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
@@ -66,7 +66,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-const bool triang = false;
+const bool triang = true;
 const int teste = 1;
 int main(int argc, char *argv[])
 {
@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
 #endif
     
     ofstream arg12("Erro.txt");
-    for (int p =1; p<2; p++)
+    for (int p =3; p<4; p++)
     {
         arg12<<"\n Ordem = " << p <<endl;
-        for(int h=1; h<2;h++)
+        for(int h=3; h<4;h++)
         {
             arg12<<" Refinamento h  = " << h <<endl;
             // int p = 5;
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             cmesh1->CleanUpUnconnectedNodes();
             //ofstream arg4("cmesh1_final.txt");
             //cmesh1->Print(arg4);
-
+            
 
             // Cleaning reference to cmesh2
             gmesh->ResetReference();
@@ -143,18 +143,18 @@ int main(int argc, char *argv[])
             arg12<<" Erro da simulacao multifisica  para o flux" <<endl;
 
             TPZAnalysis an1(cmesh1);
-            an1.SetExact(*SolExata2);
+            if (teste==1) an1.SetExact(*SolExata1);
+            else an1.SetExact(*SolExata2);
             an1.PostProcessError(erros, arg12);
 
             arg12<<" \nErro da simulacao multifisica  para a pressao" <<endl;
             TPZAnalysis an2(cmesh2);
-            an2.SetExact(*SolExata2);
+            if (teste==1) an2.SetExact(*SolExata1);
+            else an2.SetExact(*SolExata2);
             an2.PostProcessError(erros, arg12);
-
 
             string plotfile("Solution_mphysics.vtk");
             PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
-
 
 
             //solucao HDivPressure
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
             SolveSyst(an3, cmesh3);
 
             arg12<<" \nErro da HdivPressure  " <<endl;
-            an3.SetExact(*SolExata2);
+            an3.SetExact(*SolExata1);
             an3.PostProcess(erros, arg12);
 
             string plotile2("Solution_HDiv.vtk");
@@ -364,11 +364,11 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     /// criar materiais
 	int dim = 2;
 	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim); 
+	material = new TPZMatPoisson3d(matId,dim);
 	material->NStateVariables();
     
-//    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
-//	material->SetForcingFunction(force1);
+    //    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+    //	material->SetForcingFunction(force1);
 	
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
@@ -415,14 +415,13 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
         {
             if(triang==true) celdisc->SetTotalOrderShape();
-            else celdisc->SetTensorialShape(); 
+            else celdisc->SetTensorialShape();
         }
-            
+        
     }
     
     
-    
-#ifdef DEBUG   
+#ifdef DEBUG
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];
@@ -432,7 +431,16 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         
     }
 #endif
-	
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Computacional_2 pressure\n ";
+    //        cmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str());
+    //	}
+    //#endif
 	return cmesh;
 }
 
@@ -469,7 +477,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     if(teste==1){
         force1 = new TPZDummyFunction<REAL>(Forcing1);
         mymaterial->SetForcingFunction(force1);
-        fCC0 = new TPZDummyFunction<STATE>(ForcingBC);
+        fCC0 = new TPZDummyFunction<STATE>(ForcingBC1);
     }
     else{
         REAL fxy=8.;
@@ -534,7 +542,7 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     disp[1]= (4.*y*(1. - y) + 1);
 }
 
-void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
    // double x = pt[0];
     double y = pt[1];
     flux.Resize(3, 1);
@@ -545,7 +553,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux
     flux(2,0)=8;
 }
 
-void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
+void SolExata1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
     double x = pt[0];
     double y = pt[1];
     flux.Resize(3, 1);
@@ -556,7 +564,7 @@ void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flu
 }
 
 
-void ForcingBC(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     double x = pt[0];
     //double y = 0.;
     disp[0]= Pi*sin(Pi*x);
