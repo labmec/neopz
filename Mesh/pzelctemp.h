@@ -63,7 +63,7 @@ public:
 	virtual MElementType Type();
 	
 	virtual int NConnects() const {
-		return TSHAPE::NSides;
+		return fConnectIndexes.size();
 	}
 	
 	virtual void SetConnectIndex(int i, int connectindex);

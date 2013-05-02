@@ -1452,8 +1452,19 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 		out << ConnectIndex(nod) <<  '/' << NConnectShapeF(nod) << ' ' ;
 	out << endl;
 	out << "Side orders = ";
-	for (nod=0; nod< NConnects(); nod++) out << SideOrder(nod) << ' ';
-	out << endl;
+    int NSides = Reference()->NSides();
+    for (int is=0; is<NSides; is++) {
+        int nsconnect = NSideConnects(is);
+        out << " side " << is << " orders ";
+        for (int ic=0; ic<nsconnect; ic++) {
+            int sloc = SideConnectLocId(ic, is);
+            int order = Connect(sloc).Order();
+            out << order << " ";
+        }
+        out << std::endl;
+    }
+//	for (nod=0; nod< NConnects(); nod++) out << SideOrder(nod) << ' ';
+//	out << endl;
 	TPZMaterial * material = Material();
 	if(!material)
 	{

@@ -62,6 +62,10 @@ public:
 		mesh->SetAllCreateFunctionsHDiv();
 	}
 	
+    /** @brief Prints the relevant data of the element to the output stream */
+	virtual void Print(std::ostream &out = std::cout) const;
+	
+
 	
 	virtual MElementType Type();
 	

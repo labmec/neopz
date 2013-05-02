@@ -1227,6 +1227,16 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order) {
 		
 }
 
+/** @brief Prints the relevant data of the element to the output stream */
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
+{
+    out << __PRETTY_FUNCTION__ << std::endl;
+    TPZIntelGen<TSHAPE>::Print(out);
+    
+}
+
+
 
 #include "pzshapecube.h"
 #include "TPZRefCube.h"

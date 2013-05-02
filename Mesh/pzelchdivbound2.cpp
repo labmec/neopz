@@ -27,6 +27,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 	//for(i=0; i<TSHAPE::NSides; i++) this->fConnectIndexes[i]=-1;
 		this->fConnectIndexes[0]=-1;
 	gel->SetReference(this);
+    TPZIntelGen<TSHAPE>::fConnectIndexes.resize(1);
 		
 		this->fConnectIndexes[0] = this->CreateMidSideConnect(2);
 #ifdef LOG4CXX
@@ -110,11 +111,10 @@ template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
 TPZIntelGen<TSHAPE>(mesh,copy)
 {
-	int i;
-	for(i=0;i<TSHAPE::NSides;i++)
-	{
-		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
-	}
+//	for(int i=0;i<TSHAPE::NSides;i++)
+//	{
+//		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
+//	}
     int index = copy.fneighbour.Element()->Index();
     TPZCompEl *cel = this->Mesh()->ElementVec()[index];
     if (!cel) {

@@ -274,6 +274,13 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{
 				CreateCompEl(gel,index);
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    fElementVec[index]->Print(sout);
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
 			}
 		}
 	}

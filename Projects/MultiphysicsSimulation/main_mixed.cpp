@@ -71,8 +71,9 @@ const int teste = 1;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	std::string logs("../logmixedproblem.cfg");
-	InitializePZLOG("../logmixedproblem.cfg");
+//	std::string logs("../logmixedproblem.cfg");
+//	InitializePZLOG("../logmixedproblem.cfg");
+    InitializePZLOG();
 #endif
     
     ofstream arg12("Erro.txt");

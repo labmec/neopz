@@ -56,12 +56,8 @@ TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
-TPZInterpolatedElement(mesh,copy), fConnectIndexes(TSHAPE::NSides,-1),fIntRule(copy.fIntRule) {
+TPZInterpolatedElement(mesh,copy), fConnectIndexes(copy.fConnectIndexes),fIntRule(copy.fIntRule) {
 	fPreferredOrder = copy.fPreferredOrder;
-	int i;
-	for(i=0;i<TSHAPE::NSides;i++) {
-		fConnectIndexes[i] = copy.fConnectIndexes[i];
-	}
 }
 
 
