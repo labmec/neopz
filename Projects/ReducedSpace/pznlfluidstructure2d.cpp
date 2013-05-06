@@ -782,23 +782,27 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     }
     REAL VlAcum = it->second;
     
-    REAL deltaPfrac = fabs(pfrac/1000.);
+    REAL deltaPfrac = fabs(pfrac/10000.);
     if(deltaPfrac < 1.E-15)
     {
         deltaPfrac = 1.E-10;
     }
-    
-    /////////////////////////////////////////////////Ql menor
-    REAL tStar0 = FictitiousTime(VlAcum, pfrac-deltaPfrac);
-    REAL Vlnext0 = VlFtau(pfrac, tStar0 + fTimeStep);
-    REAL Ql0 = (Vlnext0 - VlAcum)/fTimeStep;
+    deltaPfrac = MIN(deltaPfrac, 0.001);
     
     /////////////////////////////////////////////////Ql maior
-    REAL tStar1 = FictitiousTime(VlAcum, pfrac+deltaPfrac);
-    REAL Vlnext1 = VlFtau(pfrac, tStar1 + fTimeStep);
+    REAL pfracUP = pfrac + deltaPfrac;
+    REAL tStar1 = FictitiousTime(VlAcum, pfracUP);
+    REAL Vlnext1 = VlFtau(pfracUP, tStar1 + fTimeStep);
     REAL Ql1 = (Vlnext1 - VlAcum )/fTimeStep;
-
-    /////////////////////////////////////////////////
+    //...
+    
+    /////////////////////////////////////////////////Ql menor
+    REAL pfracDOWN = pfrac - deltaPfrac;
+    REAL tStar0 = FictitiousTime(VlAcum, pfracDOWN);
+    REAL Vlnext0 = VlFtau(pfracDOWN, tStar0 + fTimeStep);
+    REAL Ql0 = (Vlnext0 - VlAcum)/fTimeStep;
+    //...
+    
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
 
     return dQldpfrac;
