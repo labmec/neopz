@@ -23,6 +23,7 @@ public:
 	
 	void JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint);
 	void JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint);
+    void JacobianConv(TPZFMatrix<REAL> &jacobian, TPZVec< REAL > StartPoint);
 	
 	/**
      * @brief Type in Function method (.cpp arquive) the function to be integrated

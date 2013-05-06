@@ -268,31 +268,31 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
             ef(in+nPhiU,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
             
             //termo (unˆ3/(12*mi))*(dv/dx)*(dp/dx)
-            ef(in+nPhiU,0) += (-1.) * weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dsol_p(0,0);
+            ef(in+nPhiU,0) += (-1.) * weight * (w*w*w/(12.*fvisc)) * dsol_p(0,0) * dphi_p(0,in);
             
             //termo un*v/deltaT
-            ef(in+nPhiU,0) += (-1.) * weight * phi_p(in,0) * w/fTimeStep;
+            ef(in+nPhiU,0) += (-1.) * weight * w/fTimeStep * phi_p(in,0);
 
             
             //------Matriz tangente-----
             //termo (phip_i)*(phiun_j)/deltaT
             for(int jn = 0; jn < nPhiU; jn++)
             {
-                ek(in+nPhiU, jn) += weight * 1./fTimeStep * phi_p(in,0) * 2.*phi_u(1,jn);
+                ek(in+nPhiU, jn) += (+1.) * weight * ( 1./fTimeStep * (2.*phi_u(1,jn)) ) * phi_p(in,0);
             }
             
             //termo (unˆ2/4*mi)*(dp/dx)*(dphip_i)*(phiun_j)
             for(int jn = 0; jn < nPhiU; jn++)
             {
-                ek(in+nPhiU, jn) += weight * 3.*w*w/(12.*fvisc) * (2.*phi_u(1,jn)) * dphi_p(0,in) * dsol_p(0,0);
+                ek(in+nPhiU, jn) += (+1.) * weight * ( 3.*w*w/(12.*fvisc) * (2.*phi_u(1,jn)) ) * dsol_p(0,0) * dphi_p(0,in);
             }
             
             //termo (unˆ3/12*mi)*(dphip_i)*(dphip_j)
             for(int jn = 0; jn < phrp; jn++)
             {
-                ek(in+nPhiU, jn+nPhiU) += weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dphi_p(0,jn);
+                ek(in+nPhiU, jn+nPhiU) += (+1.) * weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dphi_p(0,jn);
                 
-                ek(in+nPhiU, jn+nPhiU) += weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
+                ek(in+nPhiU, jn+nPhiU) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
             }
         }
     }
@@ -760,7 +760,7 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     std::map<int,REAL>::iterator it = fGelId_vl.find(gelId);
     if(it == fGelId_vl.end())
     {
-        fGelId_vl[gelId] = 0.;
+        fGelId_vl[gelId] = 0.;//Nao coloque vsp! Eh ZERO mesmo!
         it = fGelId_vl.find(gelId);
     }
     REAL VlAcum = it->second;
@@ -768,7 +768,7 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     REAL tStar = FictitiousTime(VlAcum, pfrac);
     REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
     REAL Ql = (Vlnext - VlAcum)/fTimeStep;
-    
+
     return Ql;
 }
 
@@ -800,14 +800,16 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
 
     /////////////////////////////////////////////////
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
-    
+
     return dQldpfrac;
 }
 
+std::ofstream outVl("vl.txt");
 void TPZNLFluidStructure2d::UpdateLeakoff(REAL pfrac)
 {
     std::map<int,REAL>::iterator it;
     
+    int outVlCount = 0;
     for(it = fGelId_vl.begin(); it != fGelId_vl.end(); it++)
     {
         REAL VlAcum = it->second;
@@ -815,6 +817,11 @@ void TPZNLFluidStructure2d::UpdateLeakoff(REAL pfrac)
         REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
         
         it->second = Vlnext;
+        if(outVlCount == 0)
+        {
+            outVl << VlAcum << "\n";
+        }
+        outVlCount++;
     }
     std::cout << "pfrac = " << pfrac << std::endl;
 }

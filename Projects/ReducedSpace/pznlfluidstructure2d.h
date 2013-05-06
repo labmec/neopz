@@ -206,6 +206,11 @@ public:
 		fTimeStep = delt;
 	}
     
+    REAL TimeStep()
+    {
+        return fTimeStep;
+    }
+    
     int MatId()
     {
         return fmatId;

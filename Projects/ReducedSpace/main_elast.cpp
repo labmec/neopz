@@ -88,7 +88,7 @@ void SaidaPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
+static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
 //Dimensions:
@@ -128,17 +128,17 @@ static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
  const REAL visc = 0.001E-6;//MPa.s
  //BCs:
  const REAL sigN = 61.5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
- const REAL Qinj  = -3./Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
+ const REAL Qinj  = -50./Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
  //time:
- const REAL Ttot = 100.;
- const REAL nsteps = 20.;
+ const REAL Ttot = 50.;//sem bug -> Ttot = 50.
+ const REAL nsteps = 20.;//sem bug -> nsteps = 20.
  const REAL deltaT = Ttot/nsteps;
  //Leakoff:
- const REAL Cl = 0.00005;
+ const REAL Cl = 0.01;
  const REAL Pe = 10.;//MPa
  const REAL SigmaConf = 11.;//MPa
- const REAL Pref = 85000.;//MPa
-const REAL vsp = 0.01;
+ const REAL Pref = 60000.;//MPa
+ const REAL vsp = 0.001;
  //
  
 
@@ -147,6 +147,12 @@ int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
+#endif
+    
+#ifdef LOG4CXX
+//    std::stringstream str;
+//    str << "TESTANDO!!!";
+//    LOGPZ_DEBUG(logger,str.str());    
 #endif
     
     int p = 2;

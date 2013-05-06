@@ -22,9 +22,6 @@
 #include "pzreducedspace.h"
 #include "tpzcompmeshreferred.h"
 
-#include <fstream>
-#include <sstream>
-
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
@@ -115,7 +112,7 @@ TPZAutoPointer <TPZMatrix<REAL> > ToolsTransient::MassMatrix(TPZNLFluidStructure
 
 void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REAL> InitialSolution , TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
 {
-    std::ofstream outPW("OUTPUT.nb");
+    std::ofstream outPW("OUTPUT.txt");
     
     std::string outputfile;
 	outputfile = "TransientSolution";
@@ -124,11 +121,14 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
-    //mymaterial->UpdateLeakoff();
     
     outP << "Saida" << 0 << "={";
     SaidaMathPressao(meshvec, mphysics, outP);
     outP << "};\n";
+    
+    meshvec[0]->LoadReferences();
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    PlotWIntegral(meshvec[0], outW, 0.);
     
 	int nrows;
 	nrows = an->Solution().Rows();
@@ -199,9 +199,22 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
             StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
             
             res_total = fres + Mass_X_SolTimeN;
-            //res_total.Print();
+
             res = Norm(res_total);
+            std::cout << res << std::endl;
             nit++;
+        }
+        std::cout << "----------------\n";
+
+        if(res >= tol)
+        {
+            std::cout << cent << " , res = " << res << std::endl;
+            DebugStop();
+        }
+        if(nit >= maxit)
+        {
+            std::cout << cent << " , nit = " << nit << std::endl;
+            DebugStop();
         }
         
         REAL pfracMedio = SaidaMathPressao(meshvec, mphysics, outP);
@@ -214,7 +227,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         std::string plotfile = outputfiletemp.str();
         PosProcessMult(meshvec,mphysics,an,plotfile);
         
-        meshvec[0]->LoadReferences();
+        //meshvec[0]->LoadReferences();
         
         ///>>>>>>> Calculo da Integral-J
         ///////////////////J-integral/////////////////////////////////////////////////
@@ -274,20 +287,19 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         TimeValue = cent*deltaT;
     }
     
-    outW << "Qinj=" << fabs(mymaterial->Qinj()) << ";\n\n";
-    outW << "TrapArea[displ_]:=Block[{displSize, area, baseMin, baseMax, h},\n";
+    outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
     outW << "displSize = Length[displ];\n";
     outW << "area = 0;\n";
     outW << "For[i = 1, i < displSize,\n";
     outW << "baseMin = displ[[i, 2]];\n";
     outW << "baseMax = displ[[i + 1, 2]];\n";
     outW << "h = displ[[i + 1, 1]] - displ[[i, 1]];\n";
-    outW << "area += (baseMin + baseMax)/2.*h;\n";
+    outW << "area += (baseMin+baseMax)*h/2;\n";
     outW << "i++;];\n";
     outW << "area];\n\n";
     outW << "Areas = {";
     int nsteps = maxTime/deltaT;
-    for(int ig = 1; ig<=nsteps; ig++)
+    for(int ig = 0; ig<=nsteps; ig++)
     {
         outW << "{" << ig*deltaT << ",TrapArea[displ" << (int)(ig*deltaT/timeScale) << "]}";
         if(ig != nsteps)
@@ -296,13 +308,68 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         }
     }
     outW << "};\n\n";
-    outW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0, 0},PlotStyle -> {PointSize[0.01]},AxesLabel->{\"t\",\"V\"},Filling->Axis];\n";
-    outW << "vInj[t_]=Qinj*t;\n";
-    outW << "vfiltrado[t_]=" << mymaterial->Lf() << "*(Integrate[2*(" << mymaterial->Cl() << "/Sqrt[tau]*Sqrt[((press[tau]+" << mymaterial->SigmaConf() << "-" << mymaterial->Pe() << ")/" << mymaterial->Pref() << ")]),{tau,0,t}]);\n";
-    outW << "vf[t_]=vInj[t]-vfiltrado[t];\n";
-    outW << "QinjPlot = Plot[vf[t], {t, 1, " << maxTime << "}, PlotStyle -> Red,AxesOrigin->{0,0}];\n";
-    outW << "Show[QinjPlot,WintegralPlot]\n";
     
+    outW << "Qinj=" << fabs(mymaterial->Qinj()) << ";\n";
+    outW << "Ttot = " << maxTime << ";\n";
+    outW << "nsteps = " << cent-1 << ";\n";
+    outW << "dt = Ttot/nsteps;\n\n";
+    outW << "clnum = " << mymaterial->Cl()*100000 << "*10^-5;\n";
+    outW << "pfracnum[t_] := press[t + dt/20];\n";
+    outW << "SigConfnum = " << mymaterial->SigmaConf() << ";\n";
+    outW << "Penum = " << mymaterial->Pe() << ";\n";
+    outW << "Prefnum = " << mymaterial->Pref() << ";\n";
+    outW << "vspnum = " << mymaterial->vsp()*100000 << "*10^-5;\n";
+    outW << "Lfnum = " << mymaterial->Lf() << ";\n\n";
+    outW << "vlini = 0;\n";
+    outW << "(* FIM DOS INPUTS *)\n\n";
+    
+    outW << "(* KERNEL *)\n";
+    
+    outW << "vlF\\[Tau][cl_, pfrac_, SigConf_, Pe_, Pref_, vsp_, \\[Tau]_] :=Block[{clcorr, vlcomputed},\n";
+    outW << "clcorr = N[cl Sqrt[(pfrac + SigConf - Pe)/Pref]];\n";
+    outW << "vlcomputed = N[2 clcorr Sqrt[\\[Tau]] + vsp];\n";
+    outW << "vlcomputed\n";
+    outW << "];\n\n";
+    
+    outW << "qlFvlacumANDvlacumnext[vlacum_, dt_, cl_, pfrac_, SigConf_, Pe_,Pref_, vsp_] := Block[{clcorr, tstar, vlacumNext, qlcomputed},\n";
+    outW << "clcorr = N[cl Sqrt[(pfrac + SigConf - Pe)/Pref]];\n";
+    outW << "tstar = If[vlacum < vsp, 0, N[(vlacum - vsp)^2/(4 clcorr^2)]];\n";
+    outW << "vlacumNext =vlF\\[Tau][cl, pfrac, SigConf, Pe, Pref, vsp, tstar + dt];\n";
+    outW << "qlcomputed = N[(vlacumNext - vlacum)/dt];\n";
+    outW << "{qlcomputed, vlacumNext, tstar, tstar + dt}\n";
+    outW << "];\n\n";
+    
+    outW << "qlVec = {};\n";
+    outW << "vlVec = {{0, 0}};\n";
+    outW << "tstarsss = {};\n\n";
+    
+    outW << "pass = False;\n";
+    outW << "vlnext = vlini;\n";
+    outW << "For[step = 0, step < nsteps, step++,\n";
+    outW << "QlactVlnext = qlFvlacumANDvlacumnext[vlnext, dt, clnum, pfracnum[step*dt],SigConfnum, Penum, Prefnum, vspnum];\n";
+    outW << "qlact = QlactVlnext[[1]];\n";
+    outW << "vlnext = QlactVlnext[[2]];\n";
+    outW << "AppendTo[qlVec, {(step)*dt, qlact}];\n";
+    outW << "AppendTo[vlVec, {(step + 1)*dt, vlnext}];\n";
+    outW << "AppendTo[tstarsss, {QlactVlnext[[3]], QlactVlnext[[4]]}];\n";
+    outW << "];\n";
+    outW << "(* FIM DO KERNEL *)\n\n";
+    
+    outW << "(* OUTPUTS *)\n";
+    outW << "plVLnum =ListPlot[vlVec, AxesOrigin -> {0,0}, Joined -> True,PlotRange -> All, Filling -> Axis, AxesLabel -> {\"T\", \"VL\"},PlotStyle -> {Red, Thickness[0.012]}];\n";
+    outW << "plQLnum =ListPlot[qlVec, AxesOrigin -> {0,0}, Joined -> True,PlotRange -> All, PlotStyle -> {Red, Thickness[0.012]},Filling -> Axis, AxesLabel -> {\"T\", \"QL\"}];\n\n";
+    
+    outW << "Show[plQLnum]\n";
+    outW << "Show[plVLnum]\n\n";
+    
+    outW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0,0},PlotStyle -> {PointSize[0.015]},AxesLabel->{\"t\",\"V\"},Filling->Axis];\n";
+    outW << "vInjTable = Table[{t,Qinj*t},{t,0,Ttot, dt}];\n";
+    outW << "vInj[t_] = Interpolation[vInjTable, InterpolationOrder -> 0][t];\n";
+    outW << "vfiltrado[t_] =Interpolation[vlVec, InterpolationOrder -> 0][t];\n";
+    outW << "vf[t_]=vInj[t]-vfiltrado[t];\n";
+    outW << "QfinalPlot = Plot[vf[t], {t, 0, Ttot}, PlotStyle -> Red,AxesOrigin->{0,0}];\n";
+    outW << "Show[WintegralPlot,QfinalPlot]\n";
+    outW << "(* FIM DOS OUTPUTS *)\n\n";
     
     //saida para mathematica
     outP << "SAIDAS={";
@@ -504,3 +571,4 @@ TPZFMatrix<REAL> ToolsTransient::SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cme
     
     return InitSol;
 }
+
