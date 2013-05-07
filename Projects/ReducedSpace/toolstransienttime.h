@@ -34,11 +34,13 @@ class ToolsTransient {
     
     ~ToolsTransient();
     
-    static void SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+    static void SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an,
+                                   TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
     
     static TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics);
     
-    static void StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis *an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
+    static void StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis *an,
+                                   TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
     
     static TPZCompMesh *CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int matId, int pOrder, TPZVec<STATE> &solini);
     

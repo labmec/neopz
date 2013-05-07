@@ -98,7 +98,8 @@ void TPZNLFluidStructure2d::Print(std::ostream &out) {
 }
 
 
-void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
     
     if(gState == ELastState)
     {
@@ -149,7 +150,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	REAL nu2 = (1.-2.*fnu)/2.;
 	REAL F = fE/((1.+fnu)*(1.-2.*fnu));
     
-	for(int in = 0; in < phcu; in++) {
+	for(int in = 0; in < phcu; in++)
+    {
 		dphix_i(0,0) = dphi_u(0,in)*axes(0,0)+dphi_u(1,in)*axes(1,0);
 		dphix_i(1,0) = dphi_u(0,in)*axes(0,1)+dphi_u(1,in)*axes(1,1);
 		dphiy_i(0,0) = dphi_u(2,in)*axes(0,0)+dphi_u(3,in)*axes(1,0);
@@ -233,8 +235,9 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     ContributePressure(datavec, weight, ek, ef);
 }
 
-void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
-    
+void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
+
     if(!datavec[1].phi) return;
     
     TPZFMatrix<REAL>  & phi_p = datavec[1].phi;
@@ -253,59 +256,62 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     }
     int nPhiU = 1;
     
+    REAL uy = sol_u[1];
+    REAL w = 2.*uy;
+    
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
     {
         REAL actQl = this->QlFVl(datavec[1].gelElId, sol_p[0]);
         REAL actdQldp = this->dQlFVl(datavec[1].gelElId, sol_p[0]);
         
-        REAL uy = sol_u[1];
-        REAL w = 2.*uy;
-        
         for(int in = 0; in < phrp; in++)
         {
             //----Residuo----
-            //termo Ql*v
-            ef(in+nPhiU,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
-            
-            //termo (unˆ3/(12*mi))*(dv/dx)*(dp/dx)
+            //termo (wˆ3/(12*mi))*gradP * gradVp
             ef(in+nPhiU,0) += (-1.) * weight * (w*w*w/(12.*fvisc)) * dsol_p(0,0) * dphi_p(0,in);
             
-            //termo un*v/deltaT
+            //termo w/deltaT * Vp
             ef(in+nPhiU,0) += (-1.) * weight * w/fTimeStep * phi_p(in,0);
+            
+            //termo 2Ql * Vp
+            ef(in+nPhiU,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
 
             
             //------Matriz tangente-----
-            //termo (phip_i)*(phiun_j)/deltaT
             for(int jn = 0; jn < nPhiU; jn++)
             {
-                ek(in+nPhiU, jn) += (+1.) * weight * ( 1./fTimeStep * (2.*phi_u(1,jn)) ) * phi_p(in,0);
-            }
-            
-            //termo (unˆ2/4*mi)*(dp/dx)*(dphip_i)*(phiun_j)
-            for(int jn = 0; jn < nPhiU; jn++)
-            {
+                //termo D[ (wˆ3/(12*mi))*gradP * gradVp , w ]
                 ek(in+nPhiU, jn) += (+1.) * weight * ( 3.*w*w/(12.*fvisc) * (2.*phi_u(1,jn)) ) * dsol_p(0,0) * dphi_p(0,in);
             }
             
-            //termo (unˆ3/12*mi)*(dphip_i)*(dphip_j)
+            for(int jn = 0; jn < nPhiU; jn++)
+            {
+                //termo D[ w/deltaT * Vp , w ]
+                ek(in+nPhiU, jn) += (+1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
+            }
+            
             for(int jn = 0; jn < phrp; jn++)
             {
+                //termo D[ (wˆ3/(12*mi))*gradP * gradVp , p ]
                 ek(in+nPhiU, jn+nPhiU) += (+1.) * weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dphi_p(0,jn);
                 
+                //termo D[ 2Ql * Vp , p]
                 ek(in+nPhiU, jn+nPhiU) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
             }
         }
     }
     
     //Last state (n): Matrix mass
-    //termo (phip_i)*(phiun_j)/deltaT
 	if(gState == ELastState)
     {
         for(int in = 0; in < phrp; in++)
         {
-            for(int jn=0; jn < nPhiU; jn++)
+            //termo wlastState/deltaT * Vp
+            //ef(in+nPhiU,0) += (+1.) * weight * w/fTimeStep * phi_p(in,0);
+            
+            for(int jn = 0; jn < nPhiU; jn++)
             {
-                ek(in+nPhiU, jn) += weight * 2. * phi_p(in,0) * phi_u(1,jn)/fTimeStep;
+                ek(in+nPhiU, jn) += (-1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
             }
         }
     }

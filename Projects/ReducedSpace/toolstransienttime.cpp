@@ -118,7 +118,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
 	outputfile = "TransientSolution";
     
     std::stringstream outP, outW, outJ;
-    
+
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
     
@@ -571,4 +571,3 @@ TPZFMatrix<REAL> ToolsTransient::SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cme
     
     return InitSol;
 }
-
