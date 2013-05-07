@@ -36,6 +36,7 @@ class TPZMohrCoulombNeto
     
 public:
     
+    /// Internal structure to represent the plastic memory (plastic deformation and damage)
     struct TPlasticState
     {
         TPlasticState() : fEpsPlastic(), fEpsPlasticBar(0.)
@@ -62,10 +63,16 @@ public:
             out << "Acumulated plastic deformation " << fEpsPlasticBar << std::endl;
         }
         
+        /// plastic deformation tensor
         TPZTensor<REAL> fEpsPlastic;
+        
+        /// accumulated damage
         REAL fEpsPlasticBar;
     };
     
+    
+    /// structure which contains the decision tree of the return map
+    // we can only expect a consistent tangent matrix if the decision tree remains the same
     struct TComputeSequence
     {
         TComputeSequence() : fWhichPlane(ENoPlane), fGamma(0)
@@ -95,6 +102,8 @@ public:
     };
     
 protected:
+    
+    /// information of the plastic state of the material point
     TPZMohrCoulombNeto::TPlasticState fState;
 
     
@@ -127,6 +136,7 @@ public:
         fState.Print(out);
     }
     
+    /// the hardening function and its derivative
     template<class T>
     void PlasticityFunction(T epsp, T &sigmay, T &H) const
     {
@@ -138,6 +148,7 @@ public:
             H = T(12904.8);
     }
     
+    /// a piecewise linear hardening function
     template<class T>
     void PieceWise(T epbar, T &m, T & fx)const
     {

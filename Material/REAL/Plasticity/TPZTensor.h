@@ -875,7 +875,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
     
     costheta=R/denom;
     
-    if(shapeFAD::val(costheta)<-(1.-1.e-12))
+    if(shapeFAD::val(costheta) < -(1.-1.e-12))
     {
         costheta = -1.;
         theta = M_PI;
