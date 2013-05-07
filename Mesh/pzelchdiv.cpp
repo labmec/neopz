@@ -50,6 +50,10 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
     
 	
     int sideorder = SideOrder(TSHAPE::NSides-1);
+    if(TSHAPE::Type()==EQuadrilateral)
+    {
+        sideorder++;
+    }
 	sideorder = 2*sideorder;
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	TPZManVector<int,3> order(3,sideorder);
@@ -1110,7 +1114,10 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
-	
+	if (TSHAPE::Type()==EQuadrilateral) {
+        int maxorder = this->MaxOrder();
+        data.p = maxorder+1;
+    }
 #ifdef LOG4CXX
 		{
 				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHDiv")

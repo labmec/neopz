@@ -303,8 +303,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	
 	
 	TPZMaterialData data;
-	this->InitMaterialData(data);
 	data.p = this->MaxOrder();
+	this->InitMaterialData(data);
 	
 	int dim = Dimension();
 	TPZManVector<REAL,3> intpoint(dim,0.);
