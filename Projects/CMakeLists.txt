@@ -16,7 +16,7 @@ ENABLE_TESTING()
 			add_subdirectory(Gradient_Reconstruction)
 
 			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Poisson2D_ArcTan)
+			add_subdirectory(Poisson_ArcTan)
 			add_subdirectory(Poisson2D_ArcTan_Disc)
 			add_subdirectory(Poisson3D_Fichera)
 			add_subdirectory(Poisson3D_Shock)
