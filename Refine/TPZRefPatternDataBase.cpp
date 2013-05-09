@@ -249,7 +249,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::GetUniformRefPattern(MEleme
 	}
 	
 #ifdef DEBUG
-	if(!UnifRefPat)
+	if(!UnifRefPat && type != EPoint)
 	{
 		std::cout << "Uniform refpattern " << unifRefName << " was not initialized!" << std::endl;
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;

@@ -126,7 +126,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     
     int printing = 0;
     if(printing) {
-        ofstream test("test.txt",ios::app);
+        ofstream test("testAdaptMesh.txt",ios::app);
         fReferenceCompMesh->Print(test);
         fReferenceCompMesh->Reference()->Print(test);
     }
@@ -343,9 +343,9 @@ void TPZAdaptMesh::CreateClones(){
         geoclone->SetElements(patch,fGeoRef[clid]);
         TPZVec<TPZGeoEl *> sub;
         //    int ngcel = geoclone->ElementVec().NElements();
-        int printing = 1;
+        int printing = 0;
         if(printing) {
-            ofstream out("test.txt",ios::app);
+            ofstream out("testAdaptMesh.txt",ios::app);
             geoclone->Print(out);
         }
         

@@ -339,7 +339,7 @@ void TPZCompCloneMesh::AutoBuild() {
  
  int printing = 0;
  if(printing) {
- ofstream test("test.txt",ios::app);
+ ofstream test("testAdaptMesh.txt",ios::app);
  Print(test);
  }
  
@@ -416,7 +416,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
     
     int printing = 0;
     if(printing) {
-        ofstream test("test.txt",ios::app);
+        ofstream test("testAdaptMesh.txt",ios::app);
         Print(test);
     }
     
@@ -601,7 +601,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         TPZVec<int> subelindex;
         cint->Divide(el,subelindex,1);
         
-        if (gDebug) {
+        if(gDebug) {
             cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After Divide\n";
             int idbg, indbg, neldbg = subelindex.NElements();
             for (idbg = 0; idbg<neldbg; idbg++){
@@ -614,7 +614,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         }
         
         int isub;
-        for (isub=0; isub<subelindex.NElements();isub++){
+        for(isub=0; isub<subelindex.NElements();isub++){
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelindex[isub]]);
             intel->PRefine(porder+1);
 #ifdef HUGE_DEBUG
@@ -623,7 +623,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
                 chk.VerifyAllConnects();
             }
 #endif
-            if (gDebug){
+            if(gDebug) {
                 cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After PRefine\n";
                 intel->Print(cout);
             }
@@ -676,7 +676,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
     
     int diagnostic = 0;
     if(diagnostic) {
-        ofstream test("test.txt",ios::app);
+        ofstream test("testAdaptMesh.txt",ios::app);
         Print(test);
         Solution().Print("coarse mesh solution",test);
         fine->Reference()->Print(test);

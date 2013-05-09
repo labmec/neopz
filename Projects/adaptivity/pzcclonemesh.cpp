@@ -339,7 +339,7 @@ void TPZCompCloneMesh::AutoBuild() {
  
  int printing = 0;
  if(printing) {
- ofstream test("test.txt",ios::app);
+ ofstream test("testAdaptMesh.txt",ios::app);
  Print(test);
  }
  
@@ -416,7 +416,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
     
     int printing = 0;
     if(printing) {
-        ofstream test("test.txt",ios::app);
+        ofstream test("testAdaptMesh.txt",ios::app);
         Print(test);
     }
     
@@ -676,7 +676,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
     
     int diagnostic = 0;
     if(diagnostic) {
-        ofstream test("test.txt",ios::app);
+        ofstream test("testAdaptMesh.txt",ios::app);
         Print(test);
         Solution().Print("coarse mesh solution",test);
         fine->Reference()->Print(test);

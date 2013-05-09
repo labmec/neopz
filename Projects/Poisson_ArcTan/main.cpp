@@ -86,7 +86,7 @@ int bc0 = -1;
 int materialBC1 = 2;
 int anothertests = 1;
 char saida[512];
-ofstream out("ConsolePoisson2D.txt");             // To store output of the console
+ofstream out("OutPoissonArcTan.txt");             // To store output of the console
 
 int gDebug = 0;
 
@@ -98,7 +98,7 @@ REAL alfa = M_PI/6.;
 REAL transx = 3.;
 REAL transy = 0.;
 
-STATE ValueK = 10000;
+STATE ValueK = 1000;
 
 std::string Archivo = PZSOURCEDIR;
 
@@ -143,8 +143,15 @@ int problem = 1;
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square - Volker John article 2000 */
 int main() {
+
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
+	
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
+ //   gRefDBase.InitializeRefPatterns();
+
 	// To compute processing times
 	time_t sttime;
 	time_t endtime;
@@ -152,8 +159,8 @@ int main() {
 	char tempo[512];
 	
 	// Output files
-    std::ofstream convergence("conv3d.txt");
-	std::ofstream fileerrors("ErrorsHP2D_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+    std::ofstream convergence("convergence.txt");
+	std::ofstream fileerrors("ErrorsHP_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
 	
 	// To compute the errors
 	TPZManVector<REAL> ervec(100,0.0);
@@ -188,7 +195,7 @@ int main() {
 			dim = DefineDimensionOverElementType(typeel);
 			
 			// Some refinements as initial step
-			UniformRefinement(3,gmesh,dim);
+			UniformRefinement(5,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
 			int p = 3, pinit;
@@ -241,14 +248,14 @@ int main() {
 				
 				cmesh->SetName("Malha computacional adaptada");
 				// Printing geometric and computational mesh
-				if (gDebug == 1){
+				if(gDebug) {
 					cmesh->Reference()->Print(std::cout);
 					cmesh->Print(std::cout);
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
-			//	TPZParSkylineStructMatrix strskyl(cmesh,nthread);
-				TPZSkylineStructMatrix strskyl(cmesh);
+				TPZParSkylineStructMatrix strskyl(cmesh,nthread);
+			//	TPZSkylineStructMatrix strskyl(cmesh);
 				an.SetStructuralMatrix(strskyl);
 				
 				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
@@ -264,7 +271,7 @@ int main() {
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
-					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), out, false);
+					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
 				}
 				
 				// closed generation mesh process
@@ -272,7 +279,7 @@ int main() {
 				
 				time(&endtime);
 				time_elapsed = endtime - sttime;
-				formatTimeInSec(tempo, time_elapsed);
+				formatTimeInSec(tempo,time_elapsed);
 				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				
@@ -289,9 +296,9 @@ int main() {
 				//===================================================
 				
 				TPZAdaptMesh adapt;
-				adapt.SetCompMesh (cmesh);
+				adapt.SetCompMesh(cmesh);
 				
-				std::cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << nref << "\n\n\n\n";
+				std::cout << "\n\n\nEntering Auto Adaptive Methods... step " << nref << "\n\n";
 				
 				TPZCompMesh *adptmesh;
 				if(NRefs>1) {
@@ -302,7 +309,7 @@ int main() {
 					time (& endtime);
 					
 					int time_elapsed = endtime - sttime;
-					std::cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
+					std::cout << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
 					
 					int prt;
 					std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
@@ -2494,15 +2501,15 @@ int main_NoAutoHP() {
 		for(int typeel=0;typeel<2;typeel++) {
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
 			// Generating geometric mesh 2D
-			cout << "\nConstructing Poisson 2D problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+			cout << "\nConstructing Poisson problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 			
 			TPZGeoMesh *gmesh;
 			// geometric mesh (initial)
 			std::string nombre = PZSOURCEDIR;
 			if(!typeel)
-				nombre += "/Projects/Poisson2D_ArcTan/RegionQuadrada.dump";
+				nombre += "/Projects/Poisson_ArcTan/RegionQuadrada.dump";
 			else 
-				nombre += "/Projects/Poisson2D_ArcTan/RegionQuadradaT.dump";
+				nombre += "/Projects/Poisson_ArcTan/RegionQuadradaT.dump";
 			gmesh = CreateGeoMesh(nombre);
 			REAL radius = 0.2;
 			
@@ -2601,7 +2608,7 @@ int main_NoAutoHP() {
 				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				// Post processing
-				std::string filename = "Poisson2DSol";
+				std::string filename = "PoissonSolution";
 				char pp[256];
 				sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,(nref+1),pinit);
 				filename += pp;
