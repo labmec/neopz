@@ -367,7 +367,7 @@ void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TV
 		fK01.MultAdd(U1,(F0),u0,-1,1);
 	} else {
         TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
-        fK01.MultAdd(U1,K01U1,fF0,-1.,1.);
+        fK01.MultAdd(U1,fF0,K01U1,-1.,1.);
         DecomposeK00();
         fSolver->Solve(K01U1, u0);
 	}
