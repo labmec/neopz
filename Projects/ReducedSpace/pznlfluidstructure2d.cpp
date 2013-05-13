@@ -237,7 +237,6 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
 void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
-
     if(!datavec[1].phi) return;
     
     TPZFMatrix<REAL>  & phi_p = datavec[1].phi;
@@ -305,13 +304,10 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
 	if(gState == ELastState)
     {
         for(int in = 0; in < phrp; in++)
-        {
-            //termo wlastState/deltaT * Vp
-            //ef(in+nPhiU,0) += (+1.) * weight * w/fTimeStep * phi_p(in,0);
-            
+        {            
             for(int jn = 0; jn < nPhiU; jn++)
             {
-                ek(in+nPhiU, jn) += (-1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
+                ek(in+nPhiU, jn) += (+1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
             }
         }
     }

@@ -55,6 +55,8 @@ class ToolsTransient {
     static TPZFMatrix<REAL> SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, int matId, REAL valIni);
     
     static void PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum);
+    
+    static void ComputeKI(TPZCompMesh * elastMesh, REAL radius, std::stringstream & outFile, int cent = -1, REAL TimeValue = -1, bool firstCall = true);
 };
 
 #endif

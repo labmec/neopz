@@ -27,6 +27,7 @@
 static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
 #endif
 
+
 const double timeScale = 1.;
 
 ToolsTransient::ToolsTransient(){
@@ -81,14 +82,15 @@ TPZCompMesh * ToolsTransient::CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int 
 	return cmesh;
 }
 
-void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis *an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec)
+void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics,
+                                        TPZAnalysis *an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec)
 {
 	mymaterial->SetCurrentState();
     TPZFStructMatrix matsk(mphysics);
-    //TPZSkylineStructMatrix matsk(mphysics);
+
 	an->SetStructuralMatrix(matsk);
 	TPZStepSolver<REAL> step;
-	//step.SetDirect(ELDLt);
+
 	step.SetDirect(ELU);
 	an->SetSolver(step);
     
@@ -98,7 +100,8 @@ void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCo
 	fvec = an->Rhs();
 }
 
-TPZAutoPointer <TPZMatrix<REAL> > ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics){
+TPZAutoPointer <TPZMatrix<REAL> > ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics)
+{
     
     mymaterial->SetLastState();
 	TPZSpStructMatrix matsp(mphysics);
@@ -145,31 +148,14 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
 	int cent = 1;
 	TimeValue = cent*deltaT;
     
-    ///>>>>>>> Calculo da Integral-J
-    ///////////////////J-integral/////////////////////////////////////////////////
-    outJ << "J={";
-    REAL XcrackTip = -1.;
-    TPZGeoMesh * gm = meshvec[0]->Reference();
-    int bcfluxOutMat = -20;//ver materialId no arquivo main_elast.cpp
-    for(int ell = 0; ell < gm->NElements(); ell++)
-    {
-        if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == bcfluxOutMat)
-        {
-            int nodeIndex = gm->ElementVec()[ell]->NodeIndex(0);
-            XcrackTip = gm->NodeVec()[nodeIndex].Coord(0);
-            break;
-        }
-    }
-    if(XcrackTip < 1.E-3)
-    {
-        DebugStop();
-    }
-    TPZVec<REAL> Origin(3,0.);
-    Origin[0] = XcrackTip;
-    TPZVec<REAL> normalDirection(3,0.);
-    normalDirection[2] = 1.;
+    ////////// Calculo da Integral-J ///
     REAL radius = 0.5;
-    ////////////////////////////////////////////////////////////////////////////
+    ComputeKI(meshvec[0], radius, outJ);
+    ////////////////////////////////////
+    
+    
+    
+    
     
 	while (TimeValue <= maxTime) //passo de tempo
 	{
@@ -183,6 +169,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         REAL tol = 1.e-8;
         int maxit = 15;
         int nit = 0;
+        
         
         res_total = fres + Mass_X_SolTimeN;
         while(res > tol && nit < maxit) //itercao de Newton
@@ -206,15 +193,16 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         }
         std::cout << "----------------\n";
 
+        
         if(res >= tol)
         {
             std::cout << cent << " , res = " << res << std::endl;
-            DebugStop();
+            //DebugStop();
         }
         if(nit >= maxit)
         {
             std::cout << cent << " , nit = " << nit << std::endl;
-            DebugStop();
+            //DebugStop();
         }
         
         REAL pfracMedio = SaidaMathPressao(meshvec, mphysics, outP);
@@ -229,55 +217,9 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         
         //meshvec[0]->LoadReferences();
         
-        ///>>>>>>> Calculo da Integral-J
-        ///////////////////J-integral/////////////////////////////////////////////////
-        TPZVec<REAL> xx(3,0.), qsii(2,0.);
-        xx[0] = XcrackTip - radius;
-        int initialEl = 0;
-        TPZGeoEl * geoEl = (meshvec[0])->Reference()->FindElement(xx, qsii, initialEl, 2);
-        if(!geoEl)
-        {
-            DebugStop();
-        }
-        TPZCompEl * compEl = geoEl->Reference();
-
-        TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
-        TPZMaterialData data;
-        intpEl->InitMaterialData(data);
-
-        intpEl->ComputeShape(qsii, data);
-        intpEl->ComputeSolution(qsii, data);
-
-        TPZFMatrix<REAL> Sigma(2,2);
-        Sigma.Zero();
-
-        TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
-
-        TPZVec<REAL> Solout(3);
-        int var;
-
-        var = 10;//Stress Tensor
-        elast2D->Solution(data, var, Solout);
-        Sigma(0,0) = Solout[0];
-        Sigma(1,1) = Solout[1];
-        Sigma(0,1) = Solout[2];
-        Sigma(1,0) = Solout[2];
-
-        REAL SigmaYY = Sigma(1,1);
-
-        REAL pressure = -SigmaYY;
-        Path2D * Jpath = new Path2D(meshvec[0], Origin, normalDirection, radius, pressure);
-        JIntegral2D integralJ;
-        integralJ.PushBackPath2D(Jpath);
-        TPZVec<REAL> KI(2,0.);
-        KI = integralJ.IntegratePath2D(0);
-        
-        if(cent != 1)
-        {
-            outJ << ",";
-        }
-        outJ << "{" << TimeValue << "," << KI[0] << "}";
-        /////////////////////////////
+        ////////// Calculo da Integral-J //////////////////////////
+        ComputeKI(meshvec[0], radius, outJ, cent, TimeValue, false);
+        ///////////////////////////////////////////////////////////
 
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
         PlotWIntegral(meshvec[0], outW, TimeValue);
@@ -286,6 +228,10 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         cent++;
         TimeValue = cent*deltaT;
     }
+    
+    
+    
+    
     
     outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
     outW << "displSize = Length[displ];\n";
@@ -401,6 +347,75 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     
     outPW << "(*** PRESSAO ***)\n" << outP.str() << "\n\n\n\n\n(*** W ***)\n" << outW.str() << "\n\n\n\n\n(*** J ***)\n" << outJ.str();
     outPW.close();
+}
+
+void ToolsTransient::ComputeKI(TPZCompMesh * elastMesh, REAL radius, std::stringstream & outFile, int cent, REAL TimeValue, bool firstCall)
+{
+    if(firstCall == true)
+    {
+        outFile << "J={";
+    }
+    else
+    {
+        REAL XcrackTip = -1.;
+        TPZGeoMesh * gm = elastMesh->Reference();
+        int bcfluxOutMat = -20;//ver materialId no arquivo main_elast.cpp
+        for(int ell = 0; ell < gm->NElements(); ell++)
+        {
+            if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == bcfluxOutMat)
+            {
+                int nodeIndex = gm->ElementVec()[ell]->NodeIndex(0);
+                XcrackTip = gm->NodeVec()[nodeIndex].Coord(0);
+                break;
+            }
+        }
+        if(XcrackTip < 1.E-3)
+        {
+            DebugStop();
+        }
+        TPZVec<REAL> Origin(3,0.);
+        Origin[0] = XcrackTip;
+        TPZVec<REAL> normalDirection(3,0.);
+        normalDirection[2] = 1.;
+        
+        //////////// Computing pressure at middle point of crack length /////
+        TPZVec<REAL> xx(3,0.), qsii(2,0.);
+        xx[0] = XcrackTip/2.;
+        int initialEl = 0;
+        TPZGeoEl * geoEl = elastMesh->Reference()->FindElement(xx, qsii, initialEl, 2);
+        if(!geoEl)
+        {
+            DebugStop();
+        }
+        TPZCompEl * compEl = geoEl->Reference();
+        if(!compEl)
+        {
+            DebugStop();
+        }
+        TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+        TPZMaterialData data;
+        intpEl->InitMaterialData(data);
+        intpEl->ComputeShape(qsii, data);
+        intpEl->ComputeSolution(qsii, data);
+        TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
+        TPZVec<REAL> Solout(3);
+        int var = 10;//Stress Tensor
+        elast2D->Solution(data, var, Solout); 
+        REAL pressure = -Solout[1];
+        /////////////////////////////////////////////////////////////////////
+        
+        Path2D * Jpath = new Path2D(elastMesh, Origin, normalDirection, radius, pressure);
+        JIntegral2D integralJ;
+        integralJ.PushBackPath2D(Jpath);
+        TPZVec<REAL> KI(2,0.);
+        KI = integralJ.IntegratePath2D(0);
+        
+        if(cent != 1)
+        {
+            outFile << ",";
+        }
+        outFile << "{" << TimeValue << "," << KI[0] << "}";
+    }
 }
 
 void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum)
