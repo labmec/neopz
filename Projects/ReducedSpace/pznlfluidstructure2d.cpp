@@ -30,16 +30,16 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
     fPlaneStress = 1.;
     
 	fE = 0.;
-    fnu =0.;
-    fG =0.;
-    fHf=0.;
+    fnu = 0.;
+    fG = 0.;
+    fHf = 0.;
     
     fvisc = 0.;
-    fSigConf =0.;
+    fSigConf = 0.;
     
 	ff.resize(fDim);
-	ff[0]=0.;
-	ff[1]=0.;
+	ff[0] = 0.;
+	ff[1] = 0.;
     
     fCl = 0.;
     fPe = 0.;
@@ -54,16 +54,16 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim): TPZDiscontinuo
     fPlaneStress = 1.;
     
 	fE = 0.;
-    fnu =0.;
-    fG =0.;
-    fHf=0.;
+    fnu = 0.;
+    fG = 0.;
+    fHf = 0.;
     
     fvisc = 0.;
-    fSigConf =0.;
+    fSigConf = 0.;
     
 	ff.resize(fDim);
-	ff[0]=0.;
-	ff[1]=0.;
+	ff[0] = 0.;
+	ff[1] = 0.;
     
     fCl = 0.;
     fPe = 0.;
