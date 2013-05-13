@@ -66,7 +66,7 @@ public:
 	 * @param[in] alpha damage variable
 	 */
 	
-  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12)
+  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30)
 	{ 
 		fN.fAlpha = alpha; 
 	}
@@ -81,6 +81,7 @@ public:
 		fYC			= source.fYC;
 		fER			= source.fER;
 		fResTol		= source.fResTol;
+		fMaxNewton = source.fMaxNewton;
 		fN			= source.fN;
 	}
 	
@@ -94,6 +95,7 @@ public:
 		fYC			= source.fYC;
 		fER			= source.fER;
 		fResTol		= source.fResTol;
+		fMaxNewton = source.fMaxNewton;
 		fN			= source.fN;
 
 		return *this;
@@ -112,12 +114,12 @@ public:
 		out << "\n" << this->Name();
 		out << "\n YC_t:";
 		fYC.Print(out);
-		out << "\n TF_t:";
 		out << "\n ER_t:";
 		fER.Print(out);
 		out << "\nTPZPlasticStepPV Internal members:";
 		out << "\n fResTol = " << fResTol;
-		out << "\n fN = ";
+		out << "\n fMaxNewton = " << fMaxNewton;
+		out << "\n fN = "; // PlasticState
 		fN.Print(out);
 	}
 		
@@ -216,8 +218,8 @@ protected:
 	/** @brief Residual tolerance accepted in the plastic loop processes */
 	REAL fResTol;
 	
-public:
-
+	/** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
+	int fMaxNewton;	// COLOCAR = 30 (sugestao do erick!)
 	
 protected:
 	
