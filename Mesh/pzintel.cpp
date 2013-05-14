@@ -1326,7 +1326,8 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 	ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional �dividido
 	if(!pv.NElements()) {
 		sub.Resize(0);
-		LOGPZ_ERROR(logger,"Exiting Divide: no subelements acquired");
+		if(Type() != EPoint)
+			LOGPZ_ERROR(logger,"Exiting Divide: no subelements acquired");
 		return;
 	}
 	// The refinement pattern may be adjusted during the division process

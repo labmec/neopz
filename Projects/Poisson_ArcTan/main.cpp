@@ -98,7 +98,7 @@ REAL alfa = M_PI/6.;
 REAL transx = 3.;
 REAL transy = 0.;
 
-STATE ValueK = 1000;
+STATE ValueK = 100000;
 
 std::string Archivo = PZSOURCEDIR;
 
@@ -167,7 +167,7 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref, NRefs = 10;
+	int nref, NRefs = 15;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -195,10 +195,10 @@ int main() {
 			dim = DefineDimensionOverElementType(typeel);
 			
 			// Some refinements as initial step
-			UniformRefinement(5,gmesh,dim);
+			UniformRefinement(2,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
-			int p = 3, pinit;
+			int p = 1, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
@@ -254,8 +254,8 @@ int main() {
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
-				TPZParSkylineStructMatrix strskyl(cmesh,nthread);
-			//	TPZSkylineStructMatrix strskyl(cmesh);
+			//	TPZParSkylineStructMatrix strskyl(cmesh,nthread);
+				TPZSkylineStructMatrix strskyl(cmesh);
 				an.SetStructuralMatrix(strskyl);
 				
 				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
@@ -934,9 +934,38 @@ void UniformRefine(TPZGeoMesh* gmesh,int nDiv)
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce) {
 	int dim = dforce.Cols();
-	//	REAL Epsilon = 1000000;
-	REAL B = (16.*ValueK)/M_PI;
+	
+	REAL B = ValueK/M_PI;
 	REAL F = 2*sqrt(ValueK);
+	REAL Coeff;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B *= (-2.)*Coeff;
+
+	REAL prod, arc;
+	if(dim==1) {
+		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5));
+		prod = x[0]*(x[0] - 1.);
+	}
+	else if(dim == 2) {
+		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5) - (x[1]-0.5)*(x[1]-.5));
+		prod = x[0]*(x[0] - 1.)*x[1]*(x[1] - 1.);
+	}
+	else {
+		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5) - (x[1]-0.5)*(x[1]-.5) - (x[2]-0.5)*(x[2]-.5));
+		prod = x[0]*(x[0] - 1.)*x[1]*(x[1] - 1.)*x[2]*(x[2] - 1.);
+	}
+	REAL temp, den;
+	den = 1. + arc*arc;
+	temp = (1.-2.*x[0])*(1.-2.*x[0]);
+	force[0] = B*(M_PI - (2*F/den)*(1.+5*prod) - (2*F*F*prod*temp*arc)*(1./(den*den)) + 2.*atan(arc));
+	force[0[ *= -1.;
+	
+	/**  Verificando 
 	REAL G = -0.4375;
 	
 	REAL sum;
@@ -958,6 +987,9 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL
 	num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
 	
 	force[0] = B*(sum*(M_PI+2*arctan)+(num/den));
+	*/ 
+	 
+	 
 	/*	REAL B = (-16.0*ValueK)/M_PI;
 	// Computing Q(x,y) = 2*Sqrt[ValueK]*(.25^2-(x-0.5)^2-(y-0.5)^2)  Doing F = -0.5*Sqrt[ValueK]  Then Q=F*(7/4 + 4 Sum)
 	REAL F = (-0.5)*sqrt(ValueK);
@@ -990,48 +1022,51 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	int dim = dsol.Rows();
 	REAL F = 2*sqrt(ValueK);
 	if(dim == 1) {
+		REAL Coeff = -2.;
 		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
-		sol[0] = 8*prodx*(1+(2./M_PI)*(atan(arc)));
-		REAL temp = (2*x[0]-1.)*(M_PI + 2*atan(arc));
-		REAL frac = 2*prodx*F*(1.-2*x[0]);
+		sol[0] = Coeff*prodx*(1+(2./M_PI)*(atan(arc)));
+		REAL temp = M_PI + 2*atan(arc);
+		REAL frac = 2*prodx*F;
 		frac = frac/(1+arc*arc);
-		dsol(0,0) = (8./M_PI)*(temp + frac);
+		dsol(0,0) = (Coeff/M_PI)*(2*x[0]-1.)*(temp + frac);
 	}
 	else if(dim == 2) {
+		REAL Coeff = 8.;
 		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
 		REAL prody = x[1]*(x[1]-1.);
 		REAL prod = prodx*prody;
-		sol[0] = 8*prod*(1+(2./M_PI)*(atan(arc)));
+		sol[0] = Coeff*prod*(1+(2./M_PI)*(atan(arc)));
 		REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
 		REAL frac = 2*prod*F*(1.-2*x[0]);
 		frac = frac/(1+arc*arc);
-		dsol(0,0) = (8./M_PI)*(temp + frac);
+		dsol(0,0) = (Coeff/M_PI)*(temp + frac);
 		temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
 		frac = 2*prod*F*(1.-2*x[1]);
 		frac = frac/(1+arc*arc);
-		dsol(1,0) = (8./ M_PI)*(temp + frac);
+		dsol(1,0) = (Coeff/ M_PI)*(temp + frac);
 	}
 	else if(dim == 3) {
+		REAL Coeff = -32;
 		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
 		REAL prody = x[1]*(x[1]-1.);
 		REAL prodz = x[2]*(x[2]-1.);
 		REAL prod = prodx*prody*prodz;
-		sol[0] = 8*prod*(1+(2./M_PI)*(atan(arc)));
+		sol[0] = Coeff*prod*(1+(2./M_PI)*(atan(arc)));
 		REAL temp = prody*prodz*(2*x[0]-1.)*(M_PI + 2*atan(arc));
 		REAL frac = 2*prod*F*(1.-2*x[0]);
 		frac = frac/(1+arc*arc);
-		dsol(0,0) = (8./M_PI)*(temp + frac);
+		dsol(0,0) = (Coeff/M_PI)*(temp + frac);
 		temp = prodx*prodz*(2*x[1]-1.)*(M_PI + 2*atan(arc));
 		frac = 2*prod*F*(1.-2*x[1]);
 		frac = frac/(1+arc*arc);
-		dsol(1,0) = (8./ M_PI)*(temp + frac);    
+		dsol(1,0) = (Coeff/ M_PI)*(temp + frac);    
 		temp = prodx*prody*(2*x[2]-1.)*(M_PI + 2*atan(arc));
 		frac = 2*prod*F*(1.-2*x[2]);
 		frac = frac/(1+arc*arc);
-		dsol(2,0) = (8./ M_PI)*(temp + frac);    
+		dsol(2,0) = (Coeff/ M_PI)*(temp + frac);    
 	}
 	else {
 		DebugStop();
@@ -1048,7 +1083,8 @@ REAL PartialDerivateX(const TPZVec<REAL> &x) {
 	frac = frac/(1+arc*arc);
 	temp -= frac;
 	return (result*temp);*/
-	REAL B = 8./M_PI;
+	REAL Coeff = 8.;
+	REAL B = Coeff/M_PI;
 	REAL F = (-0.5)*sqrt(ValueK);
 	
     REAL prodx = x[0]*(x[0]-1.);
@@ -1058,7 +1094,7 @@ REAL PartialDerivateX(const TPZVec<REAL> &x) {
 	REAL temp = F*((7./4.)+4*sum);
 	REAL arctan = atan(temp);
     REAL den = 1.+temp*temp;
-    return ( B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)+((8*F*prodx)/den)));
+    return ( B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)+((Coeff*F*prodx)/den)));
 }
 
 REAL PartialDerivateY(const TPZVec<REAL> &x) {
@@ -1072,7 +1108,8 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	frac = frac/(1+arc*arc);
 	temp -= frac;
 	return (result*temp);*/
-    REAL B = 8./M_PI;
+	REAL Coeff = 8.;
+    REAL B = Coeff/M_PI;
 	REAL F = (-0.5)*sqrt(ValueK);
 	
     REAL prodx = x[0]*(x[0]-1.);
@@ -1083,7 +1120,7 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	REAL arctan = atan(temp);
     REAL den = 1.+temp*temp;
 
-    return (B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((8*F*prody)/den)));
+    return (B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((Coeff*F*prody)/den)));
 }
 
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
@@ -2471,6 +2508,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,R
 }
 
 // Function with hp-adaptive process, but it hasn't automatic detection for apply hp-refinement
+//int main_NoAutoHP() {
 int main_NoAutoHP() {
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -2498,7 +2536,10 @@ int main_NoAutoHP() {
 	
 	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
-		for(int typeel=0;typeel<2;typeel++) {
+		for(int itypeel=0;itypeel<2;itypeel++) {
+			MElementType typeel;
+			if(!itypeel) typeel = EOned;
+			else typeel = EQuadrilateral;
 			fileerrors << "Type of element: " << typeel << " (0-quadrilateral, 1-triangle." << endl;
 			// Generating geometric mesh 2D
 			cout << "\nConstructing Poisson problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
@@ -2506,11 +2547,12 @@ int main_NoAutoHP() {
 			TPZGeoMesh *gmesh;
 			// geometric mesh (initial)
 			std::string nombre = PZSOURCEDIR;
-			if(!typeel)
-				nombre += "/Projects/Poisson_ArcTan/RegionQuadrada.dump";
-			else 
-				nombre += "/Projects/Poisson_ArcTan/RegionQuadradaT.dump";
-			gmesh = CreateGeoMesh(nombre);
+//			if(!typeel)
+//				nombre += "/Projects/Poisson_ArcTan/RegionQuadrada.dump";
+//			else 
+//				nombre += "/Projects/Poisson_ArcTan/RegionQuadradaT.dump";
+//			gmesh = CreateGeoMesh(nombre);
+			gmesh = CreateGeoMesh(typeel);
 			REAL radius = 0.2;
 			
 			for(nref=3;nref<NRefs;nref++) {

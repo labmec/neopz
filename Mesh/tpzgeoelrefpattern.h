@@ -357,11 +357,14 @@ void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> 
 template<class TGeo>
 void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	if (!fRefPattern) {
-		if(!gRefDBase.GetUniformRefPattern(this->Type()))
+		MElementType typeel = this->Type();
+		if(typeel == EPoint)
+			return;
+		if(!gRefDBase.GetUniformRefPattern(typeel))
 		{
-			gRefDBase.InitializeUniformRefPattern(this->Type());
+			gRefDBase.InitializeUniformRefPattern(typeel);
 		}
-		TPZAutoPointer<TPZRefPattern> uniform = gRefDBase.GetUniformRefPattern(this->Type());
+		TPZAutoPointer<TPZRefPattern> uniform = gRefDBase.GetUniformRefPattern(typeel);
 		std::list<TPZAutoPointer<TPZRefPattern> > compat;
 		TPZRefPatternTools::GetCompatibleRefPatterns(this,compat);
 		std::list<TPZAutoPointer<TPZRefPattern> >::iterator it = compat.begin();
