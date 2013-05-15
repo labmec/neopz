@@ -167,7 +167,7 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref, NRefs = 15;
+	int nref, NRefs = 10;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -963,7 +963,7 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL
 	den = 1. + arc*arc;
 	temp = (1.-2.*x[0])*(1.-2.*x[0]);
 	force[0] = B*(M_PI - (2*F/den)*(1.+5*prod) - (2*F*F*prod*temp*arc)*(1./(den*den)) + 2.*atan(arc));
-	force[0[ *= -1.;
+	force[0] *= -1.;
 	
 	/**  Verificando 
 	REAL G = -0.4375;
@@ -1049,7 +1049,7 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	}
 	else if(dim == 3) {
 		REAL Coeff = -32;
-		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
 		REAL prody = x[1]*(x[1]-1.);
 		REAL prodz = x[2]*(x[2]-1.);
