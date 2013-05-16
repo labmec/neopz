@@ -483,15 +483,13 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
     int nn=TPZCompElHDiv::NConnects();
     for(in=0;in<nn;in++){
-//				TPZConnect *con = &this->Connect(in);
-//				int seqnum= con->SequenceNumber();
 //#ifdef LOG4CXX
 //				std::stringstream sout;
 //				sout << "conect " << in<< " seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
 //				LOGPZ_DEBUG(logger,sout.str())
 //#endif
-				result += TPZCompElHDiv::NConnectShapeF(in);
-		}
+        result += TPZCompElHDiv::NConnectShapeF(in);
+    }
 		
 		
 //#ifdef LOG4CXX
@@ -534,51 +532,45 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
         }
         
         for(int jvec=0;jvec< VectorSide.NElements();jvec++)
-            
         {
-            if (jvec==2||jvec==5||jvec==8||jvec==11){
+            if (jvec==2||jvec==5||jvec==8||jvec==11)
+            {
                 int lside=VectorSide[jvec];
-								int nconside=SideConnectLocId(0,lside);
-								int nshapecon=NConnectShapeF(nconside);
-								if (nshapecon > 2) {							
-								
-                int fshape1= FirstIndex[lside];
-										
-               // int fshape2= FirstIndex[lside+1]-1;//estou tentando tirar a ultima funcao
-										int fshape2= fshape1+ nshapecon-2; //FirstIndex[lside+1]-(nshapecon-2);//FirstIndex[lside+1]-nconside+1;
+                int nconside=SideConnectLocId(0,lside);
+                int nshapecon=NConnectShapeF(nconside);
+                if (nshapecon > 2)
+                {
+                    int fshape1= FirstIndex[lside];
+                    int fshape2= fshape1+ nshapecon-2;
 										
 //#ifdef LOG4CXX
-//										std::stringstream sout;
-//										sout << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
-//										LOGPZ_DEBUG(logger,sout.str())
+//                    std::stringstream sout;
+//                    sout << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
+//                    LOGPZ_DEBUG(logger,sout.str())
 //#endif
-										
-										for (int ishape=fshape1; ishape<fshape2; ishape++)
-										{
-//		#ifdef LOG4CXX
-//												std::stringstream sout;
-//												sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//												LOGPZ_DEBUG(logger,sout.str())
-//		#endif
-												ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
-												
-										}
-								}
-                
-                
+                    for (int ishape=fshape1; ishape<fshape2; ishape++)
+                    {
+//#ifdef LOG4CXX
+//                        std::stringstream sout;
+//                        sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//                        LOGPZ_DEBUG(logger,sout.str())
+//#endif
+                        ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                    }
+                }
             }
             else if(jvec==16 || jvec ==17)
             {
                 int lside = VectorSide[jvec];
-               // int order = SideOrder(lside)+1;		//coloquei mais um pq agora passo a ordem certa			
-								int conectside=SideConnectLocId(0,lside);
-								int order=ConnectOrder(conectside);
+
+                int conectside=SideConnectLocId(0,lside);
+                int order=ConnectOrder(conectside);
                 int nshape = TSHAPE::NConnectShapeF(lside,order+1);//order-1);
                 TPZFNMatrix<25> sideorders(2,nshape);
                 int ksi,eta;
                 int loccount = 0;
                 int transid = TSHAPE::GetTransformId(ids);
-                switch (transid) 
+                switch (transid)
                 {
                     case 0:
                     case 3:
@@ -612,65 +604,62 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 int ish=0;
                 int fshape1 = FirstIndex[lside];
 //#ifdef LOG4CXX
-//								{
-//                std::stringstream sout;
-//                sideorders.Print("SideOrders= ", sout ,EFormatted);
-//                LOGPZ_DEBUG(logger,sout.str())
-//								}
+//                {
+//                    std::stringstream sout;
+//                    sideorders.Print("SideOrders= ", sout ,EFormatted);
+//                    LOGPZ_DEBUG(logger,sout.str())
+//                }
 //#endif
 								
 								
-                for (ish=0; ish<nshape; ish++) {
-										int orderksi = sideorders(0,ish);
-										int ordereta = sideorders(1,ish);
-										
-										
-										if (jvec ==16) {
-												bool etacheck = ordereta <= pressureorder;
-												if (etacheck) 
-												{
-														if (!(ordereta == pressureorder+1 && orderksi == pressureorder)) 
-														{
-																ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
+                for (ish=0; ish<nshape; ish++)
+                {
+                    int orderksi = sideorders(0,ish);
+                    int ordereta = sideorders(1,ish);
+                    
+                    if (jvec ==16)
+                    {
+                        bool etacheck = ordereta <= pressureorder;
+                        if (etacheck)
+                        {
+                            if (!(ordereta == pressureorder+1 && orderksi == pressureorder))
+                            {
+                                ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
 												
 //#ifdef LOG4CXX
-//																std::stringstream sout;
-//																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
-//																sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
-//																LOGPZ_DEBUG(logger,sout.str())
+//                                std::stringstream sout;
+//                                sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
+//                                sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
+//                                LOGPZ_DEBUG(logger,sout.str())
 //#endif
-														}
-												}
-										}
-										if (jvec ==17) {
-												if (orderksi<=pressureorder) {
-														if (!(orderksi == pressureorder+1 && ordereta == pressureorder)) 
-														{
-																						
+                            }
+                        }
+                    }
+                    if (jvec ==17) {
+                        if (orderksi<=pressureorder) {
+                            if (!(orderksi == pressureorder+1 && ordereta == pressureorder))
+                            {
 //#ifdef LOG4CXX
-//																std::stringstream sout;
-//																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
-//																sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
-//																LOGPZ_DEBUG(logger,sout.str())
+//                                std::stringstream sout;
+//                                sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
+//                                sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
+//                                LOGPZ_DEBUG(logger,sout.str())
 //#endif
-																ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
-														}
-												}
-										}
+                                ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
+                            }
+                        }
+                    }
                 }
             }
-
             else{
-                
-                
                 int lside=VectorSide[jvec];
                 int fshape1= FirstIndex[lside];
                 int fshape2= FirstIndex[lside+1];
-								
+                
 //#ifdef LOG4CXX
-//								std::stringstream sout;
-//								sout << " lside "<< lside << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
-//								LOGPZ_DEBUG(logger,sout.str())
+//                std::stringstream sout;
+//                sout << " lside "<< lside << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
+//                LOGPZ_DEBUG(logger,sout.str())
 //#endif
                 for (int ishape=fshape1; ishape<fshape2; ishape++){
 //#ifdef LOG4CXX
@@ -682,54 +671,50 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                     
                 }
             }
-            
         }
-        
     }
     
     else{
-        
         int count=0;
         for(int jvec=0;jvec< VectorSide.NElements();jvec++)
         {
-						
-						if (jvec==2||jvec==5||jvec==8) {
-								int lside=VectorSide[jvec];
-								int fshape1= FirstIndex[lside];
-								//int fshape2= FirstIndex[lside+1];
-								int nconside=SideConnectLocId(0,lside);
-								int nshapecon=NConnectShapeF(nconside);
-								int fshape2= fshape1+nshapecon-2;
-								for (int ishape=fshape1; ishape<fshape2; ishape++)
-								{
-//#ifdef LOG4CXX
-//										std::stringstream sout;
-//										sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//										LOGPZ_DEBUG(logger,sout.str())
-//#endif
-										ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
-								}
-						}
-						else{
-						
-            int lside=VectorSide[jvec];
-            int fshape1= FirstIndex[lside];
-            int fshape2= FirstIndex[lside+1];
-            for (int ishape=fshape1; ishape<fshape2; ishape++)
+            if (jvec==2||jvec==5||jvec==8)
             {
-//								#ifdef LOG4CXX
-//								                   std::stringstream sout;
-//								                   sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//								                    LOGPZ_DEBUG(logger,sout.str())
-//								#endif
-                ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                int lside=VectorSide[jvec];
+                int fshape1= FirstIndex[lside];
+                //int fshape2= FirstIndex[lside+1];
+                int nconside=SideConnectLocId(0,lside);
+                int nshapecon=NConnectShapeF(nconside);
+                int fshape2= fshape1+nshapecon-2;
+                for (int ishape=fshape1; ishape<fshape2; ishape++)
+                {
+//#ifdef LOG4CXX
+//                    std::stringstream sout;
+//                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//                    LOGPZ_DEBUG(logger,sout.str())
+//#endif
+                    ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                }
             }
-						}
-            
+            else
+            {
+                int lside=VectorSide[jvec];
+                int fshape1= FirstIndex[lside];
+                int fshape2= FirstIndex[lside+1];
+                for (int ishape=fshape1; ishape<fshape2; ishape++)
+                {
+//#ifdef LOG4CXX
+//                   std::stringstream sout;
+//                   sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//                    LOGPZ_DEBUG(logger,sout.str())
+//#endif
+
+                    ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                }
+            }
         }
-        
     }
-    
+
     
 #ifdef LOG4CXX
     std::stringstream sout;
@@ -907,62 +892,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     }
 }
 
-//template<class TSHAPE>
-//void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
-//{
-//    const int numdof = this->Material()->NStateVariables();
-//    const int ncon = this->NConnects();
-//    
-//	TPZBlock<STATE> &block =this->Mesh()->Block();
-//    TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
-//    int numbersol = MeshSol.Cols();
-//    
-//	int nsol= this->Dimension()+1;
-//    data.sol.Resize(numbersol);
-//    data.dsol.Resize(numbersol);
-//    for (int is=0; is<numbersol; is++) {
-//        data.sol[is].Resize(nsol,1);//2 components to the flow  and 1 to the div
-//        data.sol[is].Fill(0);
-//		
-//    }
-//	//solution associated with the flow
-//	int iv = 0,ishape=0,ivec=0,cols, jv=0;
-//    for(int in=0; in<ncon ; in++) {
-//		TPZConnect *df = &this->Connect(in);
-//		int dfseq = df->SequenceNumber();
-//		int dfvar = block.Size(dfseq);
-//		int pos = block.Position(dfseq);
-//		
-//		for(int jn=0; jn<dfvar; jn++) {
-//			ivec=data.fVecShapeIndex[jv ].first;
-//			ishape=data.fVecShapeIndex[jv].second;
-//			
-//			TPZFNMatrix<3> ivecDiv(3,1);
-//			ivecDiv(0,0) = data.fNormalVec(0,ivec);
-//			ivecDiv(1,0) = data.fNormalVec(1,ivec);
-//			ivecDiv(2,0) = data.fNormalVec(2,ivec);
-//			TPZFNMatrix<3> axesvec(3,1);
-//			data.axes.Multiply(ivecDiv,axesvec);
-//			
-//			for (int ilinha=0; ilinha<this->Dimension(); ilinha++) {
-//				cols=iv%numdof;
-//				for (int is=0; is<numbersol; is++) {
-//                    data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-//                    data.sol[is][nsol-1] += (STATE)axesvec(ilinha,0)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
-//                    
-//                }
-//				
-//			}
-//			
-//			jv++;
-//		}
-//		
-//		iv++;
-//	}
-//	
-//}
-
-
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12)
 {
@@ -1114,10 +1043,10 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
-	if (TSHAPE::Type()==EQuadrilateral) {
-        int maxorder = this->MaxOrder();
-        data.p = maxorder+1;
-    }
+//	if (TSHAPE::Type()==EQuadrilateral) {
+//        int maxorder = this->MaxOrder();
+//        data.p = maxorder+1;
+//    }
 #ifdef LOG4CXX
 		{
 				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHDiv")
@@ -1243,7 +1172,16 @@ void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
     
 }
 
-
+template<class TSHAPE>
+int TPZCompElHDiv<TSHAPE>::MaxOrder(){
+    
+    int maxorder = TPZInterpolationSpace::MaxOrder();
+    if(TSHAPE::Type()==EQuadrilateral){
+        return maxorder+1;
+    }
+    
+    return maxorder;
+}
 
 #include "pzshapecube.h"
 #include "TPZRefCube.h"

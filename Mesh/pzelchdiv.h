@@ -135,9 +135,10 @@ public:
 	/**
      * @brief return the number of continuous functions 
      **/
-	
 	void NShapeContinuous(TPZVec<int> &order, int &nshape  );
 	
+    virtual int MaxOrder();
+    
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
