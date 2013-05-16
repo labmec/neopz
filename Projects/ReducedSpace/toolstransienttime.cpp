@@ -84,7 +84,7 @@ ToolsTransient::~ToolsTransient(){
 //}
 
 void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics,
-                                        TPZAnalysis *an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec)
+                                        TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec)
 {
 	mymaterial->SetCurrentState();
     TPZFStructMatrix matsk(mphysics);
@@ -97,7 +97,7 @@ void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCo
     
     an->Assemble();
 	
-	matK1 = an->StructMatrix(); //<<< essa bodega está retornando matriz 0x0 !!!
+    matK1 = an->Solver().Matrix();
 
 	fvec = an->Rhs();
 }
@@ -135,7 +135,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     meshvec[0]->LoadSolution(chutenewton);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     TPZFMatrix<REAL> SolIterK = mphysics->Solution();
-	TPZFMatrix<REAL> matK;
+	TPZAutoPointer< TPZMatrix<REAL> > matK;
 	TPZFMatrix<REAL> fres(mphysics->NEquations(),1);
     TPZFMatrix<REAL> fmat(mphysics->NEquations(),1);
     fres.Zero();
@@ -160,7 +160,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
 
         fres.Zero();
         StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
-        int nr = matK.Rows();
         
         res_total = fres + fmat;
         REAL res = Norm(res_total);
@@ -226,7 +225,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         cent++;
         TimeValue = cent*deltaT;
         
-        //CheckConv(an->Solution() , an, mymaterial, meshvec, mphysics);
+        CheckConv(an->Solution() , an, mymaterial, meshvec, mphysics);
     }
     
     outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
@@ -606,7 +605,7 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
                                TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
 {
 	int neq = mphysics->NEquations();
-    int nsteps = 5;
+    int nsteps = 7;
     
     TPZFMatrix<REAL> fxIni(neq,1);
     TPZFMatrix<REAL> fxAprox(neq,1);
@@ -615,23 +614,22 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
     TPZFMatrix<REAL> errorVec(neq,1,0.);
 	TPZFMatrix<REAL> errorNorm(nsteps,1,0.);
     
-    TPZFMatrix<REAL> fLIni;
-    TPZFMatrix<REAL> fLtemp;
+    TPZAutoPointer< TPZMatrix<REAL> > fLIni;
+    TPZAutoPointer< TPZMatrix<REAL> > fLtemp;
     
     TPZFMatrix<REAL> dFx(neq,1);
     
     TPZFMatrix<REAL> qsiIni = actQsi;
 
-    fxIni.Zero();
-    fLIni.Zero();
     StiffMatrixLoadVec(mymaterial, mphysics, an, fLIni, fxIni);
     
-    if(fLIni.Rows() != neq || fLIni.Cols() != neq)
+    
+    if(fLIni->Rows() != neq || fLIni->Cols() != neq || fLIni->IsDecomposed())
     {
         DebugStop();
     }
     
-    TPZVec<REAL> deltaQsi(neq,0.1);
+    TPZVec<REAL> deltaQsi(neq,0.01);
     double alpha;
     
     for(int i = 0; i < nsteps; i++)
@@ -644,7 +642,7 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
         {
             for(int c = 0; c < neq; c++)
             {
-                dFx(r,0) +=  fLIni.GetVal(r,c) * (alpha * deltaQsi[c]);
+                dFx(r,0) +=  fLIni->GetVal(r,c) * (alpha * deltaQsi[c]);
             }
         }
         fxAprox = fxIni + dFx;
@@ -656,7 +654,7 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
         }
         an->LoadSolution(actQsi);
         fxExato.Zero();
-        fLtemp.Zero();
+        if(fLtemp) fLtemp->Zero();
         StiffMatrixLoadVec(mymaterial, mphysics, an, fLtemp, fxExato);
         
         ///Erro
@@ -674,6 +672,6 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
     std::cout << "Convergence Order:\n";
     for(int j = 2; j < nsteps; j++)
     {
-        std::cout << ( log(errorNorm(1,0)) - log(errorNorm(j,0)) )/( errorNorm(0.1) - errorNorm(j/10.) ) << "\n";
+        std::cout << ( log(errorNorm(1,0)) - log(errorNorm(j,0)) )/( log(0.1) - log(j/10.) ) << "\n";
     }
 }
