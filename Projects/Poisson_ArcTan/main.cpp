@@ -167,7 +167,7 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref, NRefs = 10;
+	int nref, NRefs = 15;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -195,7 +195,7 @@ int main() {
 			dim = DefineDimensionOverElementType(typeel);
 			
 			// Some refinements as initial step
-			UniformRefinement(2,gmesh,dim);
+			UniformRefinement(1,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
 			int p = 1, pinit;
@@ -267,7 +267,7 @@ int main() {
 				an.Run();
 				
 				// Post processing
-				an.PostProcess(1,dim);
+				an.PostProcess(0,dim);
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
@@ -933,18 +933,18 @@ void UniformRefine(TPZGeoMesh* gmesh,int nDiv)
 
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce) {
-	int dim = dforce.Cols();
+	int dim = dforce.Rows();
 	
 	REAL B = ValueK/M_PI;
 	REAL F = 2*sqrt(ValueK);
 	REAL Coeff;
 	if(dim==1)
-		Coeff = -2.;
+		 Coeff = -2.;
 	else if(dim==2)
 		Coeff = 8.;
 	else
 		Coeff = -32.;
-	B *= (-2.)*Coeff;
+	B *= (2.*Coeff);
 
 	REAL prod, arc;
 	if(dim==1) {
@@ -961,9 +961,11 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL
 	}
 	REAL temp, den;
 	den = 1. + arc*arc;
-	temp = (1.-2.*x[0])*(1.-2.*x[0]);
-	force[0] = B*(M_PI - (2*F/den)*(1.+5*prod) - (2*F*F*prod*temp*arc)*(1./(den*den)) + 2.*atan(arc));
-	force[0] *= -1.;
+	temp = 2.*x[0] - 1.;   // D prod / dx
+	force[0] = M_PI + 2.*atan(arc);
+	force[0] += ((-2.)*F*(prod+ temp*temp)/den);
+	force[0] += ((-1.)*F*prod*arc*(0.5*F-8.*arc)/(den*den));
+	force[0] *= B;
 	
 	/**  Verificando 
 	REAL G = -0.4375;
@@ -1021,18 +1023,23 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
     dsol(1,0) = B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((8*F*prody)/den));*/
 	int dim = dsol.Rows();
 	REAL F = 2*sqrt(ValueK);
+	REAL Coeff;
+	REAL B;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B = Coeff/M_PI;
 	if(dim == 1) {
-		REAL Coeff = -2.;
 		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
-		sol[0] = Coeff*prodx*(1+(2./M_PI)*(atan(arc)));
-		REAL temp = M_PI + 2*atan(arc);
-		REAL frac = 2*prodx*F;
-		frac = frac/(1+arc*arc);
-		dsol(0,0) = (Coeff/M_PI)*(2*x[0]-1.)*(temp + frac);
+		REAL temp = M_PI+2.*(atan(arc));
+		sol[0] = B*prodx*temp;
+		dsol(0,0) = B*(2*x[0]-1.)*(temp - ((2*F*prodx)/(1+arc*arc)));
 	}
 	else if(dim == 2) {
-		REAL Coeff = 8.;
 		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
 		REAL prody = x[1]*(x[1]-1.);
@@ -1048,7 +1055,6 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 		dsol(1,0) = (Coeff/ M_PI)*(temp + frac);
 	}
 	else if(dim == 3) {
-		REAL Coeff = -32;
 		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
 		REAL prodx = x[0]*(x[0]-1.);
 		REAL prody = x[1]*(x[1]-1.);
