@@ -116,7 +116,7 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 				MFMesh->ConnectVec()[counter].SetSequenceNumber(seqnum);
 				MFMesh->ConnectVec()[counter].SetNState(refcon.NState());
 				MFMesh->ConnectVec()[counter].SetNShape(refcon.NShape());
-                MFMesh->ConnectVec()[counter].SetPressure(refcon.IsPressure());
+                MFMesh->ConnectVec()[counter].SetPressure(refcon.IsLagrMult());
 				int ndof = refcon.NDof(*cmeshVec[imesh]);
 				MFMesh->Block().Set(seqnum,ndof);
 				seqnum++;
@@ -436,8 +436,8 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 
 }
 
-
-void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndiv)
+#include "TPZCompElDisc.h"
+void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndiv, bool isLagrMult)
 {
 
     TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
@@ -466,9 +466,37 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
             
 		}
 	}
+    
+    cMesh->AdjustBoundaryElements();
+	cMesh->CleanUpUnconnectedNodes();
+    
+    
+    //When is using one mesh with L2 space for pressure  
+    if(isLagrMult==true)
+    {
+        int ncon = cMesh->NConnects();
+        for(int i=0; i<ncon; i++)
+        {
+            TPZConnect &newnod = cMesh->ConnectVec()[i];
+            newnod.SetPressure(true);
+        }
+        
+        int nel = cMesh->NElements();
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = cMesh->ElementVec()[i];
+            if(!cel) continue;
+            TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+            celdisc->SetConstC(1.);
+            celdisc->SetCenterPoint(0, 0.);
+            celdisc->SetCenterPoint(1, 0.);
+            celdisc->SetCenterPoint(2, 0.);
+            celdisc->SetTrueUseQsiEta();
+        }
+
+    }
 }
 
-void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int indexEl){
+void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int indexEl, bool isLagrMult){
 	
 	TPZVec<int > subindex; 
 	int nel = cMesh->ElementVec().NElements(); 
@@ -479,7 +507,34 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int inde
 		if(ind==indexEl){
 			compEl->Divide(indexEl, subindex, 1);
 		}
-	}	
+	}
+    
+	cMesh->AdjustBoundaryElements();
+	cMesh->CleanUpUnconnectedNodes();
+    
+    
+    //When is using one mesh with L2 space for pressure
+    if(isLagrMult==true)
+    {
+        int ncon = cMesh->NConnects();
+        for(int i=0; i<ncon; i++)
+        {
+            TPZConnect &newnod = cMesh->ConnectVec()[i];
+            newnod.SetPressure(true);
+        }
+        
+        int nel = cMesh->NElements();
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = cMesh->ElementVec()[i];
+            if(!cel) continue;
+            TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+            celdisc->SetConstC(1.);
+            celdisc->SetCenterPoint(0, 0.);
+            celdisc->SetCenterPoint(1, 0.);
+            celdisc->SetCenterPoint(2, 0.);
+            celdisc->SetTrueUseQsiEta();
+        }
+    }
 }
 
 
