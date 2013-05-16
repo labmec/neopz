@@ -161,6 +161,7 @@ void TPZAnalysis::SetBlockNumber(){
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
 	fRenumber->Resequence(perm,iperm);
 	fCompMesh->Permute(perm);
+    fCompMesh->SaddlePermute();
 	
 #endif
 	
