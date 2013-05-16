@@ -455,10 +455,7 @@ public:
 	 * @brief Returns the index of the pressure connect
      * @note Returns -1 if their is no pressure connect
      */
-    virtual int PressureConnectIndex() const
-    {
-        return -1;
-    }
+    virtual int PressureConnectIndex() const;
 
 	/**
 	 * @brief Domain Decomposition.\n

@@ -885,3 +885,25 @@ void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMa
     DebugStop();
 }
 
+/**
+ * @brief Returns the index of the pressure connect
+ * @note Returns -1 if their is no pressure connect
+ */
+int TPZCompEl::PressureConnectIndex() const
+{
+    int ncon = NConnects();
+    int index = -1;
+    int count = 0;
+    for (int ic=0; ic<ncon ; ic++) {
+        int locconnectindex = ConnectIndex(ic);
+        TPZConnect &c = fMesh->ConnectVec()[locconnectindex];
+        if (c.IsLagrMult()) {
+            index = ic;
+            count++;
+        }
+    }
+    if (count > 1) {
+        DebugStop();
+    }
+    return index;
+}
