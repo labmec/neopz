@@ -267,35 +267,32 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
         {
             //----Residuo----
             //termo (wˆ3/(12*mi))*gradP * gradVp
-            ef(in+nPhiU,0) += (-1.) * weight * (w*w*w/(12.*fvisc)) * dsol_p(0,0) * dphi_p(0,in);
+            ef(nPhiU+in,0) += (-1.) * weight * (w*w*w/(12.*fvisc)) * dsol_p(0,0) * dphi_p(0,in);
             
             //termo w/deltaT * Vp
-            ef(in+nPhiU,0) += (-1.) * weight * w/fTimeStep * phi_p(in,0);
+            ef(nPhiU+in,0) += (-1.) * weight * w/fTimeStep * phi_p(in,0);
             
             //termo 2Ql * Vp
-            ef(in+nPhiU,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
+            ef(nPhiU+in,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
 
             
             //------Matriz tangente-----
             for(int jn = 0; jn < nPhiU; jn++)
             {
                 //termo D[ (wˆ3/(12*mi))*gradP * gradVp , w ]
-                ek(in+nPhiU, jn) += (+1.) * weight * ( 3.*w*w/(12.*fvisc) * (2.*phi_u(1,jn)) ) * dsol_p(0,0) * dphi_p(0,in);
-            }
-            
-            for(int jn = 0; jn < nPhiU; jn++)
-            {
+                ek(nPhiU+in, jn) += (+1.) * weight * ( 3.*w*w/(12.*fvisc) * (2.*phi_u(1,jn)) ) * dsol_p(0,0) * dphi_p(0,in);
+
                 //termo D[ w/deltaT * Vp , w ]
-                ek(in+nPhiU, jn) += (+1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
+                ek(nPhiU+in, jn) += (+1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
             }
             
             for(int jn = 0; jn < phrp; jn++)
             {
                 //termo D[ (wˆ3/(12*mi))*gradP * gradVp , p ]
-                ek(in+nPhiU, jn+nPhiU) += (+1.) * weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dphi_p(0,jn);
+                ek(nPhiU+in, nPhiU+jn) += (+1.) * weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dphi_p(0,jn);
                 
                 //termo D[ 2Ql * Vp , p]
-                ek(in+nPhiU, jn+nPhiU) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
+                ek(nPhiU+in, nPhiU+jn) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
             }
         }
     }
@@ -305,10 +302,8 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     {
         for(int in = 0; in < phrp; in++)
         {            
-            for(int jn = 0; jn < nPhiU; jn++)
-            {
-                ek(in+nPhiU, jn) += (+1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
-            }
+            //termo w/deltaT * Vp
+            ef(nPhiU+in,0) += (+1.) * weight * w/fTimeStep * phi_p(in,0);
         }
     }
     
@@ -829,6 +824,5 @@ void TPZNLFluidStructure2d::UpdateLeakoff(REAL pfrac)
         }
         outVlCount++;
     }
-    std::cout << "pfrac = " << pfrac << std::endl;
 }
 

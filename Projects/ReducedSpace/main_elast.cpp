@@ -67,9 +67,9 @@ int const dirichlet = 0;
 int const neumann   = 1;
 int const mixed     = 2;
 
-int const  neum_elast   = 10;
-int const  dir_elast    = 11;
-int const  mix_elast    = 20;
+int const neum_elast    = 10;
+int const dir_elast     = 11;
+int const mix_elast     = 20;
 int const neum_pressure = 21;
 int const dir_pressure  = 22;
 
@@ -193,7 +193,6 @@ int main(int argc, char *argv[])
     
     mymaterial->SetTimeStep(deltaT);
     REAL maxTime = Ttot;
-    
     
 /** >>> Metodo de resolucao de problema transient */
     TPZAnalysis *an = new TPZAnalysis(mphysics);
@@ -478,7 +477,6 @@ TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pO
     REAL big = material->gBigNumber;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(1,0) = sigN;
     TPZMaterial * BCond1 = material->CreateBC(mat, pressureMatId, neumann, val1, val2);
     
     val1.Redim(2,2);

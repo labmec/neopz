@@ -37,26 +37,30 @@ class ToolsTransient {
     static void SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an,
                                    TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
     
-    static TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics);
+    static void MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics, TPZFMatrix<REAL> & Un);
     
     static void StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis *an,
                                    TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
     
-    static TPZCompMesh *CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int matId, int pOrder, TPZVec<STATE> &solini);
+    //static TPZCompMesh *CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int matId, int pOrder, TPZVec<STATE> &solini);
     
     //retorna pressao na metade do comprimento da fratura
-    static REAL SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, std::stringstream & outP);
+    static void SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, std::stringstream & outP);
+    static REAL PressaoMedia(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, std::map<REAL,REAL> & pos_pressure);
     
     //Retona a solucao inicial referente a uma malha computacional
-    static TPZFMatrix<REAL> InitialSolution(TPZGeoMesh *gmesh, TPZCompMesh * cmesh, int matId, int porder, REAL valsol);
+    //static TPZFMatrix<REAL> InitialSolution(TPZGeoMesh *gmesh, TPZCompMesh * cmesh, int matId, int porder, REAL valsol);
     
     static void PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis *an, std::string plotfile);
     
-    static TPZFMatrix<REAL> SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, int matId, REAL valIni);
+    //static TPZFMatrix<REAL> SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, int matId, REAL valIni);
     
     static void PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum);
     
     static void ComputeKI(TPZCompMesh * elastMesh, REAL radius, std::stringstream & outFile, int cent = -1, REAL TimeValue = -1, bool firstCall = true);
+    
+    static void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
+                          TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 };
 
 #endif
