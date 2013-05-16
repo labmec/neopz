@@ -67,7 +67,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
 const bool triang = true;
-const int teste = 1;
+const int teste = 2;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     for (int p =3; p<4; p++)
     {
         arg12<<"\n Ordem = " << p <<endl;
-        for(int h=3; h<4;h++)
+        for(int h=2; h<3;h++)
         {
             arg12<<" Refinamento h  = " << h <<endl;
             // int p = 5;
@@ -99,7 +99,11 @@ int main(int argc, char *argv[])
 
 
             // Second computational mesh
-            TPZCompMesh * cmesh2 = CMeshPressure(gmesh, p-1);
+            TPZCompMesh * cmesh2;
+            if(triang==true){
+               cmesh2 = CMeshPressure(gmesh, p-1);
+            }
+            else cmesh2 = CMeshPressure(gmesh, p);
             // ofstream arg3("cmesh2_inicial.txt");
             // cmesh2->Print(arg3);
 
@@ -107,9 +111,7 @@ int main(int argc, char *argv[])
             // Cleaning reference of the geometric mesh to cmesh1
             gmesh->ResetReference();
             cmesh1->LoadReferences();
-            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h);
-            cmesh1->AdjustBoundaryElements();
-            cmesh1->CleanUpUnconnectedNodes();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h,false);
             //ofstream arg4("cmesh1_final.txt");
             //cmesh1->Print(arg4);
             
@@ -117,9 +119,7 @@ int main(int argc, char *argv[])
             // Cleaning reference to cmesh2
             gmesh->ResetReference();
             cmesh2->LoadReferences();
-            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h);
-            cmesh2->AdjustBoundaryElements();
-            cmesh2->CleanUpUnconnectedNodes();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,true);
             //ofstream arg5("cmesh2_final.txt");
             //cmesh2->Print(arg5);
 
@@ -129,16 +129,27 @@ int main(int argc, char *argv[])
             meshvec[1] = cmesh2;
             TPZMixedPoisson * mymaterial;
             TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-            ofstream arg6("mphysic.txt");
-            mphysics->Print(arg6);
+//            ofstream arg6("mphysic.txt");
+//            mphysics->Print(arg6);
 
             ofstream arg7("gmesh_Final.txt");
             gmesh->Print(arg7);
 
             TPZAnalysis an(mphysics);
+            
+            ofstream arg10("mphysic_posAnalysis.txt");
+            mphysics->Print(arg10);
+            
             SolveSyst(an, mphysics);
+            
+            ofstream arg6("mphysic.txt");
+            mphysics->Print(arg6);
+            
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-
+            
+            ofstream arg9("mphysic_apos_Transferfrom.txt");
+            mphysics->Print(arg9);
+/*
             TPZVec<REAL> erros;
             arg12<<" Erro da simulacao multifisica  para o flux" <<endl;
 
@@ -152,29 +163,32 @@ int main(int argc, char *argv[])
             if (teste==1) an2.SetExact(*SolExata1);
             else an2.SetExact(*SolExata2);
             an2.PostProcessError(erros, arg12);
-
+*/
             string plotfile("Solution_mphysics.vtk");
             PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
 
 
             //solucao HDivPressure
             TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
-            ofstream arg8("cmesh_HdivInicial.txt");
-            cmesh3->Print(arg8);
+//            ofstream arg8("cmesh_HdivInicial.txt");
+//            cmesh3->Print(arg8);
 
-            ofstream arg10("gmesh_final.txt");
-            gmesh->Print(arg10);
+//            ofstream arg10("gmesh_final.txt");
+//            gmesh->Print(arg10);
 
             TPZAnalysis an3(cmesh3);
             SolveSyst(an3, cmesh3);
+            ofstream arg8("cmesh_HdivInicial.txt");
+            cmesh3->Print(arg8);
 
-            arg12<<" \nErro da HdivPressure  " <<endl;
-            an3.SetExact(*SolExata1);
-            an3.PostProcess(erros, arg12);
+//            arg12<<" \nErro da HdivPressure  " <<endl;
+//            an3.SetExact(*SolExata1);
+//            an3.PostProcess(erros, arg12);
+
 
             string plotile2("Solution_HDiv.vtk");
-            PosProcessHDiv(an2, plotile2);
-            
+            PosProcessHDiv(an3, plotile2);
+
         }
     }
     return 0;
@@ -412,6 +426,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         celdisc->SetCenterPoint(0, 0.);
         celdisc->SetCenterPoint(1, 0.);
         celdisc->SetCenterPoint(2, 0.);
+        celdisc->SetTrueUseQsiEta();
         if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
         {
             if(triang==true) celdisc->SetTotalOrderShape();
@@ -507,8 +522,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         BCond1 = mymaterial->CreateBC(mat, bc1,neumann, val11, val21);
         BCond3 = mymaterial->CreateBC(mat, bc3,neumann, val11, val21);
         
-        BCond1->SetForcingFunction(fCC23);
-        BCond3->SetForcingFunction(fCC23);
+        //BCond1->SetForcingFunction(fCC23);
+        //BCond3->SetForcingFunction(fCC23);
     }
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
@@ -538,8 +553,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 	//double x = pt[0];
     double y = pt[1];
-    disp[0] = 0.;
-    disp[1]= (4.*y*(1. - y) + 1);
+    disp[0]= 4.*y*(1. - y) + 1.;
 }
 
 void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
@@ -571,7 +585,7 @@ void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     //disp[1]= 0.;
 }
 
-
+#include "pzbstrmatrix.h"
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {			
 	//TPZBandStructMatrix full(fCmesh);
@@ -682,8 +696,8 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
         BCond1 = material->CreateBC(mat, bc1,neumann, val11, val21);
         BCond3 = material->CreateBC(mat, bc3,neumann, val11, val21);
         
-        BCond1->SetForcingFunction(fCC23);
-        BCond3->SetForcingFunction(fCC23);
+        //BCond1->SetForcingFunction(fCC23);
+        //BCond3->SetForcingFunction(fCC23);
     }
     
     cmesh->SetAllCreateFunctionsHDivPressure();

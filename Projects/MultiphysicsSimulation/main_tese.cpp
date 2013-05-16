@@ -110,7 +110,7 @@ int main2(int argc, char *argv[])
     gmesh->ResetReference();
 	cmesh1->LoadReferences();
     // Refinando a malha com dois níveis de refinamneto uniforme
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1, 2);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1, 2,false);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     
@@ -118,7 +118,7 @@ int main2(int argc, char *argv[])
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
 	// Refinando a malha com três níveis de refinamneto uniforme
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2, 3);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2, 3,false);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     

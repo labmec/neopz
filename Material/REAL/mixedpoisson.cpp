@@ -123,7 +123,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for(int ip=0; ip<phrp; ip++){
          ef(phrq+ip,0) += (-1.)*weight*ff*phip(ip,0);
     }
-
+//
 //#ifdef LOG4CXX
 //    if(logdata->isDebugEnabled())
 //	{
