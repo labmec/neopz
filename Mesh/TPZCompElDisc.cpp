@@ -108,6 +108,7 @@ TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fEx
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 	this->fIntRule = this->CreateIntegrationRule();
+    fUseQsiEta = false;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
@@ -115,6 +116,7 @@ TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCente
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
+    fUseQsiEta = false;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
@@ -129,6 +131,7 @@ TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(cop
 	}
 	
 	this->SetExternalShapeFunction(copy.fExternalShape);
+    fUseQsiEta = copy.fUseQsiEta;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
@@ -148,6 +151,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 	}
 	
 	this->SetExternalShapeFunction(copy.fExternalShape);
+    fUseQsiEta = copy.fUseQsiEta;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
@@ -167,6 +171,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 		this->fIntRule = NULL;
 	}
 	this->SetExternalShapeFunction(copy.fExternalShape);
+    fUseQsiEta = copy.fUseQsiEta;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
@@ -186,6 +191,7 @@ TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCen
 	//CreateInterfaces();
 	
 	this->fIntRule = this->CreateIntegrationRule();
+    fUseQsiEta = false;
 	
 }
 
@@ -223,8 +229,12 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	}//if
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	
-	ref->X(intpoint, X);
-	this->Shape(intpoint,X,phi,dphix);
+    if(fUseQsiEta==true){
+        this->Shape(intpoint,intpoint,phi,dphix);
+    }else{
+        ref->X(intpoint, X);
+        this->Shape(intpoint,X,phi,dphix);
+    }
 	
 	//axes is identity in discontinuous elements
 	axes.Resize(dphix.Rows(), dphix.Rows());

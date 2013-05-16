@@ -77,6 +77,9 @@ protected:
 	
 	/** @brief Normalizing constant for shape functions */
 	REAL fConstC;
+    
+    /**  @brief Variable to choose the  qsi point or the X point  in the calculus of the phis and dphis */
+    bool fUseQsiEta;
 	
 	/** @brief A pz function to allow the inclusion of extra shape functions which are defined externally. */
 	TPZAutoPointer<TPZFunction<REAL> > fExternalShape;
@@ -224,6 +227,10 @@ protected:
 	REAL ConstC() const {return fConstC;}
 	
 	void SetConstC(REAL c){fConstC = c;}
+    
+    void SetTrueUseQsiEta(){
+        fUseQsiEta = true;
+    }
 	
 	/** @brief Returns the center point */
 	void InternalPoint(TPZVec<REAL> &point);
