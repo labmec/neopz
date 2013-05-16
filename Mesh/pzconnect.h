@@ -53,7 +53,7 @@ public:
             /** @brief Whether the equations associated with the connect should be condensed */
             bool fIsCondensed;
             /** @brief Whether the connnect is associated with a lagrange multiplier */
-            bool fIsPressure;
+            bool fIsLagrMult;
         } fCompose;
     };
     /** @brief Number of shape functions associated with the connect */
@@ -197,15 +197,15 @@ public:
     
     /** @brief Access method to return the indication whether the connect is associated with a pressure lagrange multiplier
      */
-    bool IsPressure() const
+    bool IsLagrMult() const
     {
-        return fCompose.fIsPressure;
+        return fCompose.fIsLagrMult;
     }
     
     /** @brief Set the connect as a pressure connect or not */
     void SetPressure(bool flag)
     {
-        fCompose.fIsPressure = flag;
+        fCompose.fIsLagrMult = flag;
     }
 
     /** @brief Set the connect as a condensed connect or not */
