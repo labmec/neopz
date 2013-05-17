@@ -214,7 +214,7 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     TPZAutoPointer<TPZFunction<STATE> > fp(pGrad);
     
     //Criar matrix de rigidez e vetor de carga
-    int numloadcases;
+    int numloadcases=0;
 	unsigned int im;
     for(im=0; im<cmesh->MaterialVec().size(); im++){
         if(!cmesh->MaterialVec()[im]) continue;

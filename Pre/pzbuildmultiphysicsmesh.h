@@ -66,7 +66,7 @@ public:
 	 * @param cMesh [in]: computational mesh
 	 * @param ndiv [in]: number of refinements
 	 */
-	static void UniformRefineCompMesh(TPZCompMesh  *cMesh, int ndiv, bool isLagrMult);
+	static void UniformRefineCompMesh(TPZCompMesh  *cMesh, int ndiv, bool isLagrMult=true);
 	
 	/**
 	 * brief Uniform refinement of the computational element

@@ -615,6 +615,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			gmesh = ConstructingPositiveCube(1.,typeel);
 			break;
 		default:
+            gmesh = 0;
 			break;
 	}
 
@@ -946,85 +947,38 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL
 		Coeff = -32.;
 	B *= (2.*Coeff);
 
-	REAL prod, arc;
+	REAL Prod, prodx, prody, prodz;
+    REAL Soma, arc, den;
+    prodx = x[0]*(x[0] - 1.);
 	if(dim==1) {
 		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5));
-		prod = x[0]*(x[0] - 1.);
+        prody = prodz = 1.;
+        Soma = 1.;
 	}
 	else if(dim == 2) {
 		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5) - (x[1]-0.5)*(x[1]-.5));
-		prod = x[0]*(x[0] - 1.)*x[1]*(x[1] - 1.);
+        prody = x[1]*(x[1] - 1.);
+        prodz = 1.;
+        Soma = prodx + prody;
 	}
 	else {
 		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5) - (x[1]-0.5)*(x[1]-.5) - (x[2]-0.5)*(x[2]-.5));
-		prod = x[0]*(x[0] - 1.)*x[1]*(x[1] - 1.)*x[2]*(x[2] - 1.);
+		prody = x[1]*(x[1] - 1.);
+		prodz = x[2]*(x[2] - 1.);
+        Soma = prodx*prody + prodx*prodz + prody*prodz;
 	}
-	REAL temp, den;
+    Prod = prodx*prody*prodz;
 	den = 1. + arc*arc;
-	temp = 2.*x[0] - 1.;   // D prod / dx
-	force[0] = M_PI + 2.*atan(arc);
-	force[0] += ((-2.)*F*(prod+ temp*temp)/den);
-	force[0] += ((-1.)*F*prod*arc*(0.5*F-8.*arc)/(den*den));
+	force[0] = Soma*(M_PI + 2.*atan(arc));
+	force[0] += (-2.)*(F/den)*(5*dim*Prod+Soma);
+	force[0] += (F*Prod*arc*(8.*arc-0.5*F)/(den*den));
 	force[0] *= B;
-	
-	/**  Verificando 
-	REAL G = -0.4375;
-	
-	REAL sum;
-	REAL prod;
-	REAL temp, arctan, den, num;
-	
-	sum = x[0]*(x[0]-1) + x[1]*(x[1]-1) + x[2]*(x[2]-1.);
-	if(dim == 1)
-		prod = x[0]*(x[0]-1);
-	else if(dim == 2)
-		prod = x[0]*(x[0]-1)*x[1]*(x[1]-1);
-	else if(dim == 3)
-		prod = x[0]*(x[0]-1)*x[1]*(x[1]-1)*x[2]*(x[2]-1.);
-	else DebugStop();
-	
-	temp = F*(G-sum);
-	arctan = atan(temp);
-	den = (1+temp*temp)*(1+temp*temp);
-	num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
-	
-	force[0] = B*(sum*(M_PI+2*arctan)+(num/den));
-	*/ 
-	 
-	 
-	/*	REAL B = (-16.0*ValueK)/M_PI;
-	// Computing Q(x,y) = 2*Sqrt[ValueK]*(.25^2-(x-0.5)^2-(y-0.5)^2)  Doing F = -0.5*Sqrt[ValueK]  Then Q=F*(7/4 + 4 Sum)
-	REAL F = (-0.5)*sqrt(ValueK);
-	REAL sum = x[0]*(x[0]-1.) + x[1]*(x[1]-1.);
-	REAL temp = F*((7./4.)+4*sum);
-	REAL arctan = atan(temp);
-
-	REAL prod = x[0]*(x[0]-1.)*x[1]*(x[1]-1.);
-	REAL den = (1+temp*temp);
-	
-	force[0] = B*(sum*(M_PI+2.*arctan)+((8*F*(2.+5*sum))/den)-((32*F*prod*temp)/(den*den)));*/
 }
 
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-/*	REAL B = 8./M_PI;
-	REAL F = (-0.5)*sqrt(ValueK);
-	REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL sum = prodx + prody;
-	REAL temp = F*((7./4.)+4*sum);
-	REAL arctan = atan(temp);
-	
-    REAL prod = prodx*prody;
-    // Solution
-	sol[0] = B*prod*(M_PI+ 2*arctan);
-    // Partial derivaties
-    REAL den = 1.+temp*temp;
-    dsol(0,0) = B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)+((8*F*prodx)/den));
-    dsol(1,0) = B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((8*F*prody)/den));*/
 	int dim = dsol.Rows();
 	REAL F = 2*sqrt(ValueK);
-	REAL Coeff;
-	REAL B;
+	REAL Coeff, B;
 	if(dim==1)
 		Coeff = -2.;
 	else if(dim==2)
@@ -1032,101 +986,134 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	else
 		Coeff = -32.;
 	B = Coeff/M_PI;
+    REAL arc = F;
+    REAL Prod, temp;
+    REAL prody = 1.;
+    REAL prodz = 1.;
+    REAL prodx = x[0]*(x[0]-1.);
 	if(dim == 1) {
-		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
-		REAL prodx = x[0]*(x[0]-1.);
-		REAL temp = M_PI+2.*(atan(arc));
-		sol[0] = B*prodx*temp;
-		dsol(0,0) = B*(2*x[0]-1.)*(temp - ((2*F*prodx)/(1+arc*arc)));
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
 	}
 	else if(dim == 2) {
-		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
-		REAL prodx = x[0]*(x[0]-1.);
-		REAL prody = x[1]*(x[1]-1.);
-		REAL prod = prodx*prody;
-		sol[0] = Coeff*prod*(1+(2./M_PI)*(atan(arc)));
-		REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
-		REAL frac = 2*prod*F*(1.-2*x[0]);
-		frac = frac/(1+arc*arc);
-		dsol(0,0) = (Coeff/M_PI)*(temp + frac);
-		temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
-		frac = 2*prod*F*(1.-2*x[1]);
-		frac = frac/(1+arc*arc);
-		dsol(1,0) = (Coeff/ M_PI)*(temp + frac);
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		prody = x[1]*(x[1]-1.);
 	}
 	else if(dim == 3) {
-		REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
-		REAL prodx = x[0]*(x[0]-1.);
-		REAL prody = x[1]*(x[1]-1.);
-		REAL prodz = x[2]*(x[2]-1.);
-		REAL prod = prodx*prody*prodz;
-		sol[0] = Coeff*prod*(1+(2./M_PI)*(atan(arc)));
-		REAL temp = prody*prodz*(2*x[0]-1.)*(M_PI + 2*atan(arc));
-		REAL frac = 2*prod*F*(1.-2*x[0]);
-		frac = frac/(1+arc*arc);
-		dsol(0,0) = (Coeff/M_PI)*(temp + frac);
-		temp = prodx*prodz*(2*x[1]-1.)*(M_PI + 2*atan(arc));
-		frac = 2*prod*F*(1.-2*x[1]);
-		frac = frac/(1+arc*arc);
-		dsol(1,0) = (Coeff/ M_PI)*(temp + frac);    
-		temp = prodx*prody*(2*x[2]-1.)*(M_PI + 2*atan(arc));
-		frac = 2*prod*F*(1.-2*x[2]);
-		frac = frac/(1+arc*arc);
-		dsol(2,0) = (Coeff/ M_PI)*(temp + frac);    
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		prody = x[1]*(x[1]-1.);
+		prodz = x[2]*(x[2]-1.);
 	}
 	else {
 		DebugStop();
 	}
+    Prod = prodx*prody*prodz;
+    temp = M_PI + 2.*atan(arc);
+    sol[0] = B*Prod*temp;
+    dsol(0,0) = B*prody*prodz*(2*x[0]-1.)*(temp - ((2*F*prodx)/(1+arc*arc)));
+    if(dim==2) {
+        dsol(1,0) = B*prodx*prodz*(2*x[1]-1.)*(temp - ((2*F*prody)/(1+arc*arc)));
+    }
+    else if(dim==3) {
+        dsol(2,0) = B*prodx*prody*(2*x[2]-1.)*(temp - ((2*F*prodz)/(1+arc*arc)));
+    }
 }
-REAL PartialDerivateX(const TPZVec<REAL> &x) {
-/*	REAL F = 2*sqrt(ValueK);
-	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
-	REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL result = (8./M_PI)*prody*(2*x[0]-1);
-	REAL temp = M_PI + 2*atan(arc);
-	REAL frac = 2*F*prodx;
-	frac = frac/(1+arc*arc);
-	temp -= frac;
-	return (result*temp);*/
-	REAL Coeff = 8.;
-	REAL B = Coeff/M_PI;
-	REAL F = (-0.5)*sqrt(ValueK);
-	
+REAL PartialDerivateX(int dim,const TPZVec<REAL> &x) {
+	REAL F = 2*sqrt(ValueK);
+	REAL Coeff, B;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B = Coeff/M_PI;
+    REAL arc=F, prody=1., prodz=1., Prod, temp;
     REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL sum = prodx + prody;
-	
-	REAL temp = F*((7./4.)+4*sum);
-	REAL arctan = atan(temp);
-    REAL den = 1.+temp*temp;
-    return ( B*prody*(2*x[0] - 1.)*(M_PI+(2*arctan)+((Coeff*F*prodx)/den)));
+	if(dim == 1) {
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+	}
+	else if(dim == 2) {
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		prody = x[1]*(x[1]-1.);
+	}
+	else if(dim == 3) {
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		prody = x[1]*(x[1]-1.);
+		prodz = x[2]*(x[2]-1.);
+	}
+	else {
+		DebugStop();
+        return 0.;
+	}
+    Prod = prodx*prody*prodz;
+    temp = M_PI + 2.*atan(arc);
+    return (B*prody*prodz*(2*x[0]-1.)*(temp - ((2*F*prodx)/(1+arc*arc))));
 }
 
-REAL PartialDerivateY(const TPZVec<REAL> &x) {
-/*	REAL F = 2*sqrt(ValueK);
-	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
-	REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL result = (8./M_PI)*prodx*(2*x[1]-1);
-	REAL temp = M_PI + 2*atan(arc);
-	REAL frac = 2*F*prody;
-	frac = frac/(1+arc*arc);
-	temp -= frac;
-	return (result*temp);*/
-	REAL Coeff = 8.;
-    REAL B = Coeff/M_PI;
-	REAL F = (-0.5)*sqrt(ValueK);
-	
+REAL PartialDerivateY(int dim,const TPZVec<REAL> &x) {
+	REAL F = 2*sqrt(ValueK);
+	REAL Coeff, B;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B = Coeff/M_PI;
+    REAL arc=F, prody=1., prodz=1., Prod, temp;
     REAL prodx = x[0]*(x[0]-1.);
-	REAL prody = x[1]*(x[1]-1.);
-	REAL sum = prodx + prody;
-	
-	REAL temp = F*((7./4.)+4*sum);
-	REAL arctan = atan(temp);
-    REAL den = 1.+temp*temp;
+	if(dim == 1) {
+		arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+	}
+	else if(dim == 2) {
+		arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		prody = x[1]*(x[1]-1.);
+	}
+	else if(dim == 3) {
+		arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		prody = x[1]*(x[1]-1.);
+		prodz = x[2]*(x[2]-1.);
+	}
+	else {
+		DebugStop();
+        return 0.;
+	}
+    Prod = prodx*prody*prodz;
+    temp = M_PI + 2.*atan(arc);
+    return (B*prodx*prodz*(2*x[1]-1.)*(temp - ((2*F*prody)/(1+arc*arc))));
+}
 
-    return (B*prodx*(2*x[1] - 1.)*(M_PI+(2*arctan)+((Coeff*F*prody)/den)));
+REAL PartialDerivateZ(int dim,const TPZVec<REAL> &x) {
+	REAL F = 2*sqrt(ValueK);
+	REAL Coeff, B;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B = Coeff/M_PI;
+    REAL arc=F, prody=1., prodz=1., Prod, temp;
+    REAL prodx = x[0]*(x[0]-1.);
+	if(dim == 1) {
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+	}
+	else if(dim == 2) {
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		prody = x[1]*(x[1]-1.);
+	}
+	else if(dim == 3) {
+		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		prody = x[1]*(x[1]-1.);
+		prodz = x[2]*(x[2]-1.);
+	}
+	else {
+		DebugStop();
+        return 0.;
+	}
+    Prod = prodx*prody*prodz;
+    temp = M_PI + 2.*atan(arc);
+    return (B*prodx*prody*(2*x[2]-1.)*(temp - ((2*F*prodz)/(1+arc*arc))));
 }
 
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
@@ -1617,8 +1604,8 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 			}
 			gradients(counter,dim+k) = center[k];
 			if(!k) {
-				REAL dudx = PartialDerivateX(center);
-				REAL dudy = PartialDerivateY(center);
+				REAL dudx = PartialDerivateX(dim,center);
+				REAL dudy = PartialDerivateY(dim,center);
 				REAL dist = sqrt(dudx*dudx + dudy*dudy);
 				if(!IsZero(dist)) {
 					gradients(counter,2*dim) = dudx/dist;
