@@ -140,6 +140,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     TPZFMatrix<REAL> fmat(mphysics->NEquations(),1);
     fres.Zero();
     fmat.Zero();
+    MassMatrix(mymaterial, mphysics, fmat);
     
 	REAL TimeValue = 0.0;
 	int cent = 1;
