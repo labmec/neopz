@@ -46,6 +46,11 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
     LOG4CXX_DEBUG(logger,sout.str())
   }
 #endif
+    if (this->fNNodes == 0) {
+        perm.resize(0);
+        inverseperm.resize(0);
+        return;
+    }
   Graph G;
   size_type i;
   size_type elgraphsize = fElementGraphIndex.NElements()-1;
