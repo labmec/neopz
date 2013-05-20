@@ -233,7 +233,7 @@ TPZMatrix<STATE> * TPBSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZA
 TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     //checked
     
-    int neq = fEquationFilter.NEq();
+    int neq = fEquationFilter.NActiveEquations();
     TPZFYsmpMatrix<STATE> * mat = new TPZFYsmpMatrix<STATE>(neq,neq);
 	
     /**Rearange elements order*/

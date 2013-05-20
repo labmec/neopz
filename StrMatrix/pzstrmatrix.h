@@ -56,20 +56,7 @@ public:
 	int GetNumThreads() const{
 		return this->fNumThreads;
 	}
-	
-	/** @brief Calling this method indicates that only internal equations whould be assembled */
-	/** This is the default behaviour for objects of type TPZSubCompMesh */
-	void AssembleOnlyInternalEquations()
-	{
-		fOnlyInternal = true;
-	}
-	
-	/** @brief Calling this method indicates all equations should be assembled this behaviour is default for objects of type TPZCompMesh */
-	void AssembleAllEquations()
-	{
-		fOnlyInternal = false;
-	}
-	
+		
 	virtual TPZMatrix<STATE> * Create();
 	
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
@@ -111,6 +98,18 @@ public:
 	{
 		return fEquationFilter.IsActive();
 	}
+    
+    /// access method for the equation filter
+    TPZEquationFilter &EquationFilter()
+    {
+        return fEquationFilter;
+    }
+    
+    /// number of equations after applying the filter
+    int NReducedEquations() const
+    {
+        return fEquationFilter.NActiveEquations();
+    }
     
     /// Access method for the mesh pointer
     TPZCompMesh *Mesh() const
@@ -192,9 +191,6 @@ protected:
     /// Object which will determine which equations will be assembled
     TPZEquationFilter fEquationFilter;
     
-	
-	bool fOnlyInternal;
-	
 protected:
 	
 	/** @brief Set of material ids to be considered. It is a private attribute. */

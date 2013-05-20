@@ -125,13 +125,19 @@ int main1(int argc, char *argv[])
 				cmesh = new TPZCompMesh(gmesh);
 				cmesh->SetDimModel(3);
 				cmesh->SetDefaultOrder(plevel);
-				//cmesh->SetAllCreateFunctionsContinuousWithMem();
-				//cmesh->SetAllCreateFunctionsContinuous();
-				InsertViscoElasticityCubo(cmesh);
+				cmesh->SetAllCreateFunctionsContinuous();
+                InsertElasticity(cmesh);
+//				cmesh->SetAllCreateFunctionsContinuousWithMem();
+//				InsertViscoElasticityCubo(cmesh);
 				cmesh->AutoBuild();
 			}
 		}
 		
+        {
+            std::ofstream sout("cmesh_nw.txt");
+            cmesh->Print(sout);
+        }
+
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
 		int numthread_assemble = 0;
@@ -1107,18 +1113,68 @@ int main2(int argc, char *argv[])
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
-	int nummat = 1;
-	STATE E = 1.e6;
-	STATE poisson = 0.3;
+	int nummat = 1, neumann = 1, mixed = 2;
+	//	int dirichlet = 0;
+	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;   //, dirp2 = -6;
 	TPZManVector<STATE> force(3,0.);
-	force[1] = 20.;
-	TPZElasticity3D *elast = new TPZElasticity3D(nummat,E,poisson,force);
-	TPZMaterial * elastauto(elast);
+	//force[1] = 0.;
+    
+	STATE ElaE = 1000., poissonE = 0.2;   //, poissonV = 0.1, ElaV = 100.; 
+    
+	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
+	lambdaV = 11.3636;
+	muV = 45.4545;
+	alpha = 1.;	
+	deltaT = 0.01;
+	
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+	//viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, ElaE, poissonE, lambdaV, muV, alphaT, force);
+	TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, ElaE, poissonE, force);
+	
+	TPZFNMatrix<6> qsi(6,1,0.);
+	//viscoelast->SetDefaultMem(qsi); //elast
+	//int index = viscoelast->PushMemItem(); //elast
+	TPZMaterial * viscoelastauto(viscoelast);
+	mesh->InsertMaterialObject(viscoelastauto);
+	
+	// Neumann em x = 1;
 	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
-	TPZBndCond *bc = elast->CreateBC(elastauto, -1, 0, val1, val2);
-	TPZMaterial * bcauto(bc);
-	mesh->InsertMaterialObject(elastauto);
-	mesh->InsertMaterialObject(bcauto);
+	val2(0,0) = 1.;
+	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
+	TPZMaterial * bcauto4(bc4);
+	mesh->InsertMaterialObject(bcauto4);
+	
+	// Neumann em x = -1;
+	val2(0,0) = -1.;
+	TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
+	TPZMaterial * bcauto5(bc5);
+	mesh->InsertMaterialObject(bcauto5);
+	
+	val2.Zero();
+	// Dirichlet em -1 -1 -1 xyz;
+	val1(0,0) = 1e4;
+	val1(1,1) = 1e4;
+	val1(2,2) = 1e4;
+	TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
+	TPZMaterial * bcauto1(bc1);
+	mesh->InsertMaterialObject(bcauto1);
+	
+	// Dirichlet em 1 -1 -1 yz;
+	val1(0,0) = 0.;
+	val1(1,1) = 1e4;
+	val1(2,2) = 1e4;
+	TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
+	TPZMaterial * bcauto2(bc2);
+	mesh->InsertMaterialObject(bcauto2);
+	
+	// Dirichlet em 1 1 -1 z;
+	val1(0,0) = 0.;
+	val1(1,1) = 0.;
+	val1(2,2) = 1e4;
+	TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
+	TPZMaterial * bcauto3(bc3);
+	mesh->InsertMaterialObject(bcauto3);
 }
 
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
@@ -1519,7 +1575,7 @@ TPZGeoMesh *MalhaCubo()
 		
 	}
 	
-	ofstream arg("malhaPZ1BC.txt");
+	ofstream arg("malhaPZ1BC_NW.txt");
 	gMesh->Print(arg);
 	
 	std::ofstream out("Cube.vtk");

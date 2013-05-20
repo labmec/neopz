@@ -60,7 +60,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
     return stiff;
 }
 TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
-    int neq = fEquationFilter.NEq();
+    int neq = fEquationFilter.NActiveEquations();
 	/*    if(fMesh->FatherMesh()) {
 	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
 	 neq = smesh->NumInternalEquations();
@@ -161,6 +161,9 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 				}
 				colsize = fMesh->Block().Size(col);
 				colpos = fMesh->Block().Position(col);
+                if (fEquationFilter.NumActive(colpos, colpos+colsize) == 0) {
+                    continue;
+                }
                 TPZManVector<long> destindices(colsize);
                 for (int i=0; i<colsize; i++) {
                     destindices[i] = colpos+i;

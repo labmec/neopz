@@ -34,6 +34,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
 	"${PROJECT_SOURCE_DIR}/External"
 	"${PROJECT_SOURCE_DIR}/External/sloan"
+	"${PROJECT_SOURCE_DIR}/Projects/ProdIndex/SWXUtil"
  )
 
 ## inserting main definitions

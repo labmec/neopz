@@ -44,24 +44,11 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
 	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (mesh);
-	if (submesh) {
-		fOnlyInternal = true;
-	}
-	else {
-		fOnlyInternal = false;
-	}
 	this->SetNumThreads(0);
 }
 
 TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
 	fMesh = cmesh.operator->();
-	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
-	if (submesh) {
-		fOnlyInternal = true;
-	}
-	else {
-		fOnlyInternal = false;
-	}
 	this->SetNumThreads(0);
 }
 
@@ -72,7 +59,6 @@ TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy) : fMesh(copy.fMesh
     }
 	fMaterialIds = copy.fMaterialIds;
 	fNumThreads = copy.fNumThreads;
-	fOnlyInternal = copy.fOnlyInternal;
 }
 
 TPZStructMatrix::~TPZStructMatrix() {}
@@ -88,21 +74,64 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
 }
 
 void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	if(this->fNumThreads){
-		this->MultiThread_Assemble(stiffness,rhs,guiInterface);
-	}
-	else{
-		this->Serial_Assemble(stiffness,rhs,guiInterface);
-	}
+	
+    if (fEquationFilter.IsActive()) {
+        int neqcondense = fEquationFilter.NActiveEquations();
+#ifdef DEBUG
+        if (stiffness.Rows() != neqcondense) {
+            DebugStop();
+        }
+#endif
+        TPZFMatrix<STATE> rhsloc(neqcondense,rhs.Cols(),0.);
+        if(this->fNumThreads){
+            this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+        }
+        else{
+            this->Serial_Assemble(stiffness,rhs,guiInterface);
+        }
+
+        fEquationFilter.Scatter(rhsloc, rhs);
+    }
+    else 
+    {
+        if(this->fNumThreads){
+            this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+        }
+        else{
+            this->Serial_Assemble(stiffness,rhs,guiInterface);
+        }
+    }
 }
 
 void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	if(this->fNumThreads){
-		this->MultiThread_Assemble(rhs,guiInterface);
-	}
-	else{
-		this->Serial_Assemble(rhs,guiInterface);
-	}
+    if(fEquationFilter.IsActive())
+    {
+        int neqcondense = fEquationFilter.NActiveEquations();
+        int neqexpand = fEquationFilter.NEqExpand();
+        if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
+        {
+            DebugStop();
+        }
+        TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
+        if(this->fNumThreads)
+        {
+            this->MultiThread_Assemble(rhsloc,guiInterface);
+        }
+        else
+        {
+            this->Serial_Assemble(rhsloc,guiInterface);
+        }
+        fEquationFilter.Scatter(rhsloc,rhs);
+    }
+    else
+    {
+        if(this->fNumThreads){
+            this->MultiThread_Assemble(rhs,guiInterface);
+        }
+        else{
+            this->Serial_Assemble(rhs,guiInterface);
+        }
+    }
 }
 
 
@@ -110,7 +139,7 @@ void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInte
 void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
 	
 	if(!fMesh){
-		LOGPZ_ERROR(logger,"pthread_Assemble called without mesh")
+		LOGPZ_ERROR(logger,"Serial_Assemble called without mesh")
 		DebugStop();
 	}
 #ifdef LOG4CXX
@@ -122,7 +151,12 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 		
 	}
 #endif
-	
+#ifdef DEBUG
+    if (rhs.Rows() != fEquationFilter.NActiveEquations()) {
+        DebugStop();
+    }
+#endif
+    
 	int iel;
 	int nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
@@ -386,6 +420,7 @@ void TPZStructMatrix::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &des
 TPZMatrix<STATE> * TPZStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	TPZMatrix<STATE> *stiff = Create();
+    
 	int neq = stiff->Rows();
 	rhs.Redim(neq,1);
     Assemble(*stiff,rhs,guiInterface);

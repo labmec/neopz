@@ -87,6 +87,11 @@ int main(int argc, char *argv[])
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
+        {
+            std::ofstream sout("cmesh_ref.txt");
+            cmesh->Print(sout);
+        }
+        
 		int numthread_assemble = 0; //RAUL
 		int numthread_decompose = 0; //RAUL
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);

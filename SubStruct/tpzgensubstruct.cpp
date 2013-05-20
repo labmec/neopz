@@ -73,7 +73,8 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 	if(fDimension == 2)
 	{
 		TPZVec<int> nx(2,1);
-		TPZVec<REAL> x0(2,0.),x1(2,1.);
+		TPZVec<REAL> x0(3,0.),x1(3,1.);
+        x1[2] = 0.;
 		TPZGenGrid gen(nx,x0,x1,1,0.);
 		gen.Read(gmesh);
 	} else if(fDimension == 3)
@@ -918,8 +919,8 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
     TPZSkylineStructMatrix skylstr(submesh);
 	TPZAutoPointer<TPZGuiInterface> toto = new TPZGuiInterface;
 	int neq = dynamic_cast<TPZCompMesh *>(submesh)->NEquations();
-	skylstr.SetEquationRange(0,neq);
-	skylstr.AssembleAllEquations();
+//	skylstr.SetEquationRange(0,neq);
+	skylstr.EquationFilter().Reset();
     substruct->fStiffness = TPZAutoPointer<TPZMatrix<STATE> > (skylstr.CreateAssemble(substruct->fLocalLoad,toto));
 	
 	// This should happen in the remote processor
@@ -955,7 +956,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	// create a skyline matrix based on the current numbering of the mesh
 	// put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
 	TPZSkylineStructMatrix skylstr(submesh);
-	skylstr.AssembleAllEquations();
+	skylstr.EquationFilter().Reset();
 	
 	TPZAutoPointer<TPZMatrix<STATE> > Stiffness = skylstr.Create();
 	TPZMatRed<STATE,TPZFMatrix<STATE> > *matredbig = new TPZMatRed<STATE, TPZFMatrix<STATE> >(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());

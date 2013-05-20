@@ -1068,11 +1068,9 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 	if(numThreads > 0){
 		str = new TPZParSkylineStructMatrix(this,numThreads);
-		str->AssembleOnlyInternalEquations();
 	}
 	else{
 		str = new TPZSkylineStructMatrix(this);
-		str->AssembleOnlyInternalEquations();
 	}
 		
 		SaddlePermute();

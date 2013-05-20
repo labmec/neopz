@@ -40,20 +40,9 @@ TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
 }
 
 TPZMatrix<STATE> * TPZParSkylineStructMatrix::Create(){
-    int neq = fMesh->NEquations();
+    int neq = fEquationFilter.NActiveEquations();
     TPZVec<int> skyline;
-	if (fOnlyInternal) {
-		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
-		if (submesh) {
-			submesh->SkylineInternal(skyline);
-		}
-		else {
-			fMesh->Skyline(skyline);
-		}
-	}
-	else {
-		fMesh->Skyline(skyline);
-	}
+    fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
     neq = skyline.size();
     return new TPZSkylParMatrix<STATE>(neq,skyline,fNumThreads);

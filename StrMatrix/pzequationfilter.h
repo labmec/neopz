@@ -7,33 +7,56 @@
 class TPZEquationFilter
 {
 public:
-    TPZEquationFilter(int numeq) : fNumEq(numeq), fMinEq(0), fMaxEq(numeq), fActiveEqs(), fDestIndices()
+
+    TPZEquationFilter(int numeq) : fNumEq(numeq), fNumActive(numeq), fActiveEqs(), fDestIndices()
     {
-        
+
     }
-    
+
+    TPZEquationFilter(const TPZEquationFilter&cp):fNumEq(cp.fNumEq),fNumActive(cp.fNumActive),
+           fActiveEqs(cp.fActiveEqs),fDestIndices(cp.fDestIndices)
+    {
+      ///nothing here
+    }
+
+    ~TPZEquationFilter()
+    {
+      ///nothing here
+    }
+
+    TPZEquationFilter & operator=(const TPZEquationFilter&cp)
+    {
+        this->fNumEq = cp.fNumEq;
+        this->fNumActive = cp.fNumActive;
+        this->fActiveEqs = cp.fActiveEqs;
+        this->fDestIndices = cp.fDestIndices;
+        return *this;
+    }
+
+    ///Define as equacoes ativas de [mineq, maxeq)
     void SetMinMaxEq(int mineq, int maxeq)
     {
-        if (mineq <0 || mineq>=fNumEq || maxeq < mineq || maxeq > fNumEq) {
-            // unhandled case - inconsistent data
-            DebugStop();
-        }
-        
-        fMinEq = mineq;
-        fMaxEq = maxeq;
-        
-        if (fNumEq && fDestIndices.size() == fNumEq) {
-            // please implement me!
-            DebugStop();
-        }
+      if (mineq < 0 || mineq > fNumEq ||
+          maxeq < 0 || maxeq > fNumEq ||
+          mineq > maxeq){
+          DebugStop();
+      }
+
+      const int n = maxeq-mineq;
+      TPZVec<int> activeEquations(n);
+      for(int i = 0; i < n; i++){
+        activeEquations[i] = i + mineq;
+      }
+      this->SetActiveEquations( activeEquations );
+        fNumActive = activeEquations.size();
     }
-    
+
+    ///Define as equacoes ativas
     void SetActiveEquations(TPZVec<int> &active)
     {
-        if (fMinEq != 0 || fMaxEq != fNumEq) {
-            // Please implement me
-            DebugStop();
-        }
+        if(fActiveEqs.NElements()) DebugStop();///oops, call reset first
+
+        ///removendo duplicados e reordenando
         std::set<int> activeset;
         int neq = active.size();
         if (neq) {
@@ -49,41 +72,25 @@ public:
             fDestIndices[*it] = count++;
         }
     }
-    
+
+    /// Reset method
     void Reset()
     {
-        fMinEq = 0;
-        fMaxEq = fNumEq;
+        fNumActive = fNumEq;
         fActiveEqs.Resize(0);
         fDestIndices.Resize(0);
     }
-    
+
+    /** Filtra as equações:
+     * @param orig [in][out] - remove de orig equacoes nao ativas
+     * @param dest [in][out] - remove de dest as equcoes nao ativas
+     */
     void Filter(TPZVec<long> &orig, TPZVec<long> &dest) const
     {
-        if (fMinEq == 0 && fMaxEq == fNumEq && fDestIndices.size() == 0) {
+        if (fDestIndices.size() == 0) {
             return;
         }
-        if (fMinEq != 0 || fMaxEq != fNumEq) 
-        {
-            int count = 0;
-            int numeq = dest.size();
-            for (int i=0; i<numeq; i++) {
-                if (dest[i] >= fMinEq && dest[i] < fMaxEq) {
-                    orig[count] = orig[count];
-                    dest[count] = dest[i]-fMinEq;
-                    count++;
-                }
-            }
-            orig.Resize(count);
-            dest.Resize(count);
-            if (fNumEq && fDestIndices.size()) {
-                DebugStop();
-            }
-        }
-        if (fDestIndices.size()) {
-            if (fMinEq != 0 || fMaxEq != fNumEq) {
-                DebugStop();
-            }
+        else {
             int count = 0;
             int numeq = dest.size();
             for (int i=0; i<numeq; i++) {
@@ -97,31 +104,16 @@ public:
             dest.Resize(count);
         }
     }
-    
+
+    /** Filtra as equações:
+      * @param dest [in][out] - remove de dest as equacoes nao ativas
+      */
     void Filter(TPZVec<long> &dest) const
     {
-        if (fMinEq == 0 && fMaxEq == fNumEq && fDestIndices.size() == 0) {
+        if (fDestIndices.size() == 0) {
             return;
         }
-        if (fMinEq != 0 || fMaxEq != fNumEq) 
-        {
-            int count = 0;
-            int numeq = dest.size();
-            for (int i=0; i<numeq; i++) {
-                if (dest[i] >= fMinEq && dest[i] < fMaxEq) {
-                    dest[count] = dest[i]-fMinEq;
-                    count++;
-                }
-            }
-            dest.Resize(count);
-            if (fNumEq && fDestIndices.size()) {
-                DebugStop();
-            }
-        }
-        if (fDestIndices.size()) {
-            if (fMinEq != 0 || fMaxEq != fNumEq) {
-                DebugStop();
-            }
+        else{
             int count = 0;
             int numeq = dest.size();
             for (int i=0; i<numeq; i++) {
@@ -133,24 +125,23 @@ public:
             dest.Resize(count);
         }
     }
-    
-    int NEq() const
+
+    ///Retorna o numero de equacoes ativas do sistema
+    int NActiveEquations() const
     {
-        if (!Consistent()) {
-            DebugStop();
-        }
-        if (fMinEq != 0 || fMaxEq != fNumEq) {
-            return fMaxEq-fMinEq;
-        }
-        if (fActiveEqs.size()) {
-            return fActiveEqs.size();
-        }
+        return fNumActive;
+    }
+
+    ///Retorna o numero de equacoes do sistema original
+    int NEqExpand() const
+    {
         return fNumEq;
     }
-    
+
+    ///Retorna se o filtro esta ativo
     bool IsActive() const
     {
-        if (fMinEq == 0 && fMaxEq == fNumEq && fDestIndices.size() == 0) {
+        if (fNumActive == fNumEq) {
             return false;
         }
         else {
@@ -158,28 +149,65 @@ public:
         }
 
     }
-    
-    int NumActive(int minindex, int maxindex)
+
+    ///Expande o vetor para o sistema original, zerando posicao de equacoes nao ativas
+    template<class T>
+    void Scatter(const TPZFMatrix<T> &small, TPZFMatrix<T> &expand) const
     {
-        if (maxindex < minindex || !Consistent()) {
+        int neqcondense = this->NActiveEquations();
+        if(small.Rows() != neqcondense || expand.Rows() != fNumEq)
+        {
+            DebugStop();
+        }
+        if(! IsActive())
+        {
+            expand = small;
+            return;
+        }
+        expand.Zero();
+
+
+#ifdef DEBUG
+        {
+            for(int i=0; i<neqcondense; i++)
+            {
+                if(fActiveEqs[i] >= fNumEq)
+                {
+                    DebugStop();
+                }
+            }
+        }
+#endif
+        for(int i=0; i<neqcondense; i++) expand(fActiveEqs[i],0) = small.GetVal(i,0);
+
+    }///void
+
+    ///Reduz o vetor para o sistema de equacoes ativas
+    template<class T>
+    void Gather(const TPZFMatrix<T> &large, TPZFMatrix<T> &gathered) const
+    {
+        int neqcondense = this->NActiveEquations();
+        if(gathered.Rows() != neqcondense || large.Rows() != fNumEq)
+        {
+            DebugStop();
+        }
+        if(! IsActive())
+        {
+            gathered = large;
+            return;
+        }
+        gathered.Zero();
+        for(int i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
+    }
+
+    ///Retorna o numero de equacoes ativas entre [minindex,maxindex)
+    int NumActive(int minindex, int maxindex) const
+    {
+        if (minindex < 0 || maxindex < 0 || minindex >= fNumEq || maxindex >= fNumEq ||
+            maxindex < minindex) {
             DebugStop();
         }
         if (!IsActive()) {
-            return maxindex-minindex;
-        }
-        if (fMinEq != 0 || fMaxEq != fNumEq) {
-            if (maxindex < fMinEq) {
-                maxindex = fMinEq;
-            }
-            if (minindex < fMinEq) {
-                minindex = fMinEq;
-            }
-            if (minindex > fMaxEq) {
-                minindex = fMaxEq;
-            }
-            if (maxindex > fMaxEq) {
-                maxindex = fMaxEq;
-            }
             return maxindex-minindex;
         }
         int numactive = 0;
@@ -194,68 +222,44 @@ public:
     /*!
      \fn FilterSkyline()
      */
-    void FilterSkyline(TPZVec<int> &skyline)
+    void FilterSkyline(TPZVec<int> &skyline) const
     {
         if (!IsActive()) {
             return;
         }
-        if (!Consistent()) {
-            DebugStop();
-        }
-        if (!fActiveEqs.size()) 
+
+        for (int ieq = 0; ieq<fActiveEqs.size(); ieq++)
         {
-            //  int neq = skyline.NElements();
-            int ieq;
-            for(ieq = fMinEq; ieq < fMaxEq; ieq++)
-            {
-                skyline[ieq-fMinEq] = skyline[ieq]-fMinEq;
+            int skyl = skyline[fActiveEqs[ieq]];
+            while (fDestIndices[skyl] == -1 && skyl < fNumEq) {
+                skyl++;
             }
-            skyline.Resize(fMaxEq-fMinEq);
-        }
-        else {
-            for (int ieq = 0; ieq<fActiveEqs.size(); ieq++) 
-            {
-                int skyl = skyline[fActiveEqs[ieq]];
-                while (fDestIndices[skyl] == -1 && skyl < fNumEq) {
-                    skyl++;
-                }
 #ifdef DEBUG
-                // all active equations should have a destination
-                if (skyl > fActiveEqs[ieq] || fDestIndices[skyl] < 0) {
-                    DebugStop();
-                }
-#endif
-                skyline[ieq] = fDestIndices[skyl];
+            // all active equations should have a destination
+            if (skyl > fActiveEqs[ieq] || fDestIndices[skyl] < 0) {
+                DebugStop();
             }
-            skyline.resize(fActiveEqs.size());
+#endif
+            skyline[ieq] = fDestIndices[skyl];
         }
+        skyline.Resize(fActiveEqs.size());
+
     }
-    
+
 
 private:
-    
+
+    /// Numero de equacoes do sistema original
     int fNumEq;
-    int fMinEq;
-    int fMaxEq;
     
+    /// Numero de equacoes ativas
+    int fNumActive;
+
+    /// Equacoes ativas
     TPZVec<int> fActiveEqs;
+
+    /// Posicao das equacoes originais no sistema reduzido
     TPZVec<int> fDestIndices;
-    
-    bool Consistent() const
-    {
-        bool filterone = false;
-        if (fMinEq != 0 || fMaxEq != fNumEq) {
-            filterone = true;
-        }
-        bool filtertwo = false;
-        if (fNumEq && fDestIndices.size() == fNumEq) {
-            filtertwo = true;
-        }
-        if (filterone && filtertwo) {
-            return false;
-        }
-        return true;
-    }
     
 };
 

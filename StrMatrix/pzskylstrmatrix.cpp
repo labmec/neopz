@@ -26,32 +26,11 @@ TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh
 {
 }
 
-TPZMatrix<STATE> * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	int neq = fEquationFilter.NEq();
-	TPZMatrix<STATE> *stiff = Create();
-	rhs.Redim(neq,1);
-	Assemble(*stiff,rhs, guiInterface);
-    return stiff;
-}
-
 TPZMatrix<STATE> * TPZSkylineStructMatrix::Create(){
-    int neq = fMesh->NEquations();
     TPZVec<int> skyline;
-	if (fOnlyInternal) {
-		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
-		if (submesh) {
-			submesh->SkylineInternal(skyline);
-		}
-		else {
-			fMesh->Skyline(skyline);
-		}
-	}
-	else {
-		fMesh->Skyline(skyline);
-	}
+    fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
-    neq = fEquationFilter.NEq();
-	
+    int neq = fEquationFilter.NActiveEquations();	
     return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<STATE>(neq,skyline);
 }
 

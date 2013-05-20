@@ -37,7 +37,7 @@ TPZMatrix<STATE> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAu
 }
 
 TPZMatrix<STATE> * TPZFStructMatrix::Create(){
-	int neq = fEquationFilter.NEq();
+	int neq = fEquationFilter.NActiveEquations();
     
 	return new TPZFMatrix<STATE>(neq,neq,0.);
 }

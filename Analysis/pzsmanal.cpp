@@ -38,7 +38,12 @@ void TPZSubMeshAnalysis::Assemble(){
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
     if(!fSolver->Matrix())
     {
+        if (fStructMatrix->HasRange()) {
+            DebugStop();
+        }
+        fStructMatrix->SetEquationRange(0, numinternal);
         fSolver->SetMatrix(fStructMatrix->Create());	
+        fStructMatrix->EquationFilter().Reset();
     }
     matred->SetMaxNumberRigidBodyModes(fMesh->NumberRigidBodyModes());
 	//	fReducableStiff.SetK00(fSolver->Matrix());

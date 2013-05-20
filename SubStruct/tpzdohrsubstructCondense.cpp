@@ -254,6 +254,13 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 	PermuteGather (itrelat2->second, fLocalLoad, resglobal, 0, nglob);
 	fMatRed->SetF(resglobal);
 	fMatRed->F1Red(resloc);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        resglobal.Print("resglobal ",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	resglobal.Zero();
 	PermuteScatter(itrelat->second, resloc, resglobal, 0, fNumExternalEquations);
 	PermuteGather(itrelat->second, resglobal, rhs, 0, fNumExternalEquations);
@@ -295,14 +302,14 @@ void TPZDohrSubstructCondense<TVar>::UGlobal(TPZFMatrix<TVar> &UGlob, TPZFMatrix
 		DebugStop();
 		return;
 	}
-		TPZFMatrix<TVar> uloc(nglob,ncols,0.);
-		{
-			TPZFNMatrix<200> uext(fNumExternalEquations,ncols);
-			fMatRed->UGlobal2(UGlob,uloc);
+    TPZFMatrix<TVar> uloc(nglob,ncols,0.);
+    {
+        TPZFNMatrix<200> uext(fNumExternalEquations,ncols);
+        fMatRed->UGlobal2(UGlob,uloc);
 //			PermuteGather(itrelat->second, UGlob, uext, 0, fNumExternalEquations);
-			
-		}
-		PermuteScatter(itrelat2->second, uloc, USub , 0, nglob);
+        
+    }
+    PermuteScatter(itrelat2->second, uloc, USub , 0, nglob);
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;

@@ -431,8 +431,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
   for (int isub=0; isub<nsub ; isub++) {
     TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
     if(!submesh) continue;
-    ThreadDohrmanAssembly<STATE> *work = 
-      new ThreadDohrmanAssembly<STATE>(fMesh,isub,*it,fDohrAssembly);
+    ThreadDohrmanAssembly<STATE> *work = new ThreadDohrmanAssembly<STATE>(fMesh,isub,*it,fDohrAssembly);
     worklist.Append(work);
     it++;
   }
@@ -482,15 +481,19 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
   }
   dohr_ass.stop();
   
-#ifdef LOG4CXX2
-  int isub = 0;
-  for (it=sublist.begin(); it!=sublist.end(); it++) {
-    std::stringstream sout;
-    sout << "Substructure number " << isub <<std::endl;
-    isub++;
-    (*it)->Print(sout);
-    LOGPZ_DEBUG(logger, sout.str())
-  }
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) 
+    {
+      int isub = 0;
+      for (it=sublist.begin(); it!=sublist.end(); it++) {
+        std::stringstream sout;
+        sout << "Substructure number " << isub <<std::endl;
+        isub++;
+          TPZDohrSubstructCondense<STATE> *ptr = (*it).operator->();
+        (*it)->fMatRed->Print("Matred",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+      }
+    }
 #endif
   
   // Second  pass : decomposing 
@@ -1189,7 +1192,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		// create a skyline matrix based on the current numbering of the mesh
 		// put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
 		TPZSkylineStructMatrix skylstr(submesh);
-		skylstr.AssembleAllEquations();
+        skylstr.EquationFilter().Reset();
 		
 		
 		TPZAutoPointer<TPZMatrix<STATE> > Stiffness = skylstr.Create();
@@ -1815,6 +1818,9 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
             // merge both subdomains
 			int target = *(domain_neighbours[isub].begin());
             // target == -1 is not treated here
+            if (target == -1) {
+                continue;
+            }
 			if (domain_dest[target] == -1 && domain_dest[isub] == -1) 
 			{
 				domain_dest[isub] = count;

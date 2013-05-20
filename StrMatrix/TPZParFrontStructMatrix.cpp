@@ -688,7 +688,7 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
 	
 	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-	int neq = this->fEquationFilter.NEq();
+	int neq = this->fEquationFilter.NActiveEquations();
 	
 	//  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
 	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>(neq);
