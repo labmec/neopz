@@ -1157,7 +1157,9 @@ void TPZCompMesh::Permute(TPZVec<long> &permute) {
 		}
 		sout << "Permutation " << permute;
         std::set<int> permset;
-        permset.insert(&permute[0],(&permute[permute.size()-1]+1));
+        if (permute.size() != 0) {
+            permset.insert(&permute[0],(&permute[permute.size()-1]+1));
+        }
         sout << " permute size " << permute.size() << " no dist elements " << permset.size();
 		LOGPZ_DEBUG(logger,sout.str())
 	}
