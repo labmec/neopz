@@ -103,7 +103,10 @@ void VisualMatrixVTK(TPZFMatrix<TVar> & matrix, const std::string &outfilename)
 	out << "CELL_DATA " << nelx*nely << std::endl;
 	out << "SCALARS mat_value float 1\n";
 	out << "LOOKUP_TABLE default\n";
-	const TVar *elem = &matrix(0,0);
+	const TVar *elem = 0;
+    if (neltotal) {
+        elem = &matrix(0,0);
+    }
 	for (i=0; i<neltotal; i++) {
 		out << *(elem+i) << std::endl;
 	}
