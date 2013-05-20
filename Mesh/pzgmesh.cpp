@@ -500,7 +500,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int & InitialElIndex, i
 
 TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex, int targetDim)
 {
-    FindCloseElement(x, InitialElIndex,targetDim);
+    FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
     
     if(qsi.NElements() != gel->Dimension())
@@ -513,7 +513,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     bool mustStop = false;
     bool projectOrthogonal = true;
     int bissectionCalled = 0;
-    while(gel->ComputeXInverseAlternative(x, qsi) == false && bissectionCalled < 2 && mustStop == false)
+    while(gel->ComputeXInverseAlternative(x, qsi) == false && mustStop == false)
     {
         int side = -1;
         if(projectOrthogonal)
@@ -557,6 +557,10 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
         {
             projectOrthogonal = false;
             bissectionCalled++;
+            if(bissectionCalled == 2)
+            {
+                mustStop = true;
+            }
         }
 #ifdef LOG4CXX
         {
