@@ -193,7 +193,8 @@ void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 	for (isub=0; isub<nsub; isub++) {
 		int nc = fAssemble->fCoarseEqs[isub].NElements();
 		int ic;
-		int mineq = fAssemble->fCoarseEqs[isub][0];
+		int mineq = 0;
+        if(nc != 0) mineq = fAssemble->fCoarseEqs[isub][0];
 		for (ic=0; ic<nc; ic++) {
 			int eq = fAssemble->fCoarseEqs[isub][ic];
 			mineq = mineq > eq ? eq : mineq;
