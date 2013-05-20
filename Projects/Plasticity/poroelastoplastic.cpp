@@ -1496,16 +1496,40 @@ int main ()
         well.Read(read);
     }
     if (startfrom <= 2) {
-        well.PRefineElementAbove(0., 2);
-//        well.DivideElementsAbove(0.04);
-        well.ExecuteSimulation();
-        well.VerifyGlobalEquilibrium();
+        //well.PRefineElementAbove(0., 2);
+        //well.DivideElementsAbove(0.0);
+//        well.ExecuteSimulation();
+//        well.VerifyGlobalEquilibrium();
         TPZStack<std::string> postprocess;
         postprocess.Push("I1J2Stress");
         TPZFMatrix<STATE> valuetable;
-        TPZManVector<REAL,3> x(3,0.);
-        x[0] = 1.1;
-        well.PostProcessedValues(x , postprocess, valuetable);
+        //TPZManVector<REAL,3> x(3,0.);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(well.GetCurrentConfig()->fCMesh.ElementVec()[0]);
+        if (!intel) {
+            DebugStop();
+        }
+        TPZIntPoints &intpoints = intel->GetIntegrationRule();
+        TPZManVector<REAL> ksi(2,0.),xco(3,0.);
+        REAL weight;
+        intpoints.Point(0, ksi, weight);
+        TPZMaterialData data;
+        intel->InitMaterialData(data);
+        intel->ComputeRequiredData(data, ksi);
+        TPZManVector<int> memindices(intpoints.NPoints());
+        intel->GetMemoryIndices(memindices);
+        data.intGlobPtIndex = memindices[0];
+        TPZMaterial *mat = intel->Material();
+        int varindex = mat->VariableIndex("I1J2Stress");
+        int nvar = mat->NSolutionVariables(varindex);
+        TPZManVector<STATE> post(nvar);
+        mat->Solution(data, varindex, post);
+        std::cout << "Post processed " << post << std::endl;
+        intel->Reference()->X(ksi, xco);
+        //x[0] = 1.1;
+        well.PostProcessedValues(xco , postprocess, valuetable);
+        valuetable.Print("Post processed I1=J2",std::cout);
+        xco.Fill(0.);
+        well.PostProcessedValues(xco , postprocess, valuetable);
         valuetable.Print("Post processed I1=J2",std::cout);
         TPZBFileStream save;
         save.OpenWrite("Wellbore2.bin");

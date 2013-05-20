@@ -73,6 +73,9 @@ public:
         // this method is cumulative (sums to the rhs)
         void ComputeRhsForMatid(int matid, TPZFMatrix<STATE> &rhs);
         
+        /// Zera os componentes do rhs para connects diferentes do zero
+        void FilterRhs(TPZFMatrix<STATE> &rhs);
+        
         /// Compute the resultant x and y force
         void ComputeXYForce(TPZFMatrix<STATE> &rhs, TPZVec<STATE> &force);
 	

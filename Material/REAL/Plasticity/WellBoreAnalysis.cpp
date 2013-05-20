@@ -166,7 +166,8 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     obj.fCurrentConfig.fGMesh.Print(arg);
     
     obj.fCurrentConfig.fCMesh.SetReference(gmesh);
-    obj.fCurrentConfig.fCMesh.SetDefaultOrder(1);
+    int defaultporder = 2;
+    obj.fCurrentConfig.fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &obj.fCurrentConfig.fCMesh;
     
 //    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
@@ -182,7 +183,8 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     obj.fCurrentConfig.fConfinement.XX() = -44.3;// MPa
     obj.fCurrentConfig.fConfinement.YY() = -58.2;
     obj.fCurrentConfig.fConfinement.ZZ() = -53.8;
-    obj.fCurrentConfig.fFluidPressure = -29.3;
+//    obj.fCurrentConfig.fFluidPressure = -29.3;
+    obj.fCurrentConfig.fFluidPressure = -2;
     
     
     TPZTensor<REAL> initstress,finalstress;
@@ -850,6 +852,26 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
         TPZFStructMatrix str(&fCMesh);
         TPZFMatrix<STATE> rhs(neq,1,0.);
         str.Assemble(rhs, 0);
+        // zerar os residuos referente a connects que nao sao de vertice
+        for (int el=0; el<fCMesh.NElements(); el++) {
+            TPZCompEl *cel = fCMesh.ElementVec()[el];
+            if (!cel || !cel->Reference()) {
+                continue;
+            }
+            int ncorner = cel->Reference()->NCornerNodes();
+            int nc = cel->NConnects();
+            for (int ic=ncorner; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                int seq = c.SequenceNumber();
+                int pos = fCMesh.Block().Position(seq);
+                int blsize = fCMesh.Block().Size(seq);
+                for (int ibl =0; ibl<blsize; ibl++) {
+                    rhs(pos+ibl,0) = 0.;
+                }
+            }
+        }
+        
+        
         rhs -= rhs4;
         rhs -= rhs5;
         normrhs = Norm(rhs);
@@ -874,6 +896,32 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
     out << "Norm rhs " << normrhs << std::endl;
 }
 
+/// Zera os componentes do rhs para connects diferentes do zero
+void TPZWellBoreAnalysis::TConfig::FilterRhs(TPZFMatrix<STATE> &rhs)
+{
+    // zerar os residuos referente a connects que nao sao de vertice
+    for (int el=0; el<fCMesh.NElements(); el++) {
+        TPZCompEl *cel = fCMesh.ElementVec()[el];
+        if (!cel || !cel->Reference()) {
+            continue;
+        }
+        int ncorner = cel->Reference()->NCornerNodes();
+        int nc = cel->NConnects();
+        for (int ic=ncorner; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            int seq = c.SequenceNumber();
+            int pos = fCMesh.Block().Position(seq);
+            int blsize = fCMesh.Block().Size(seq);
+            for (int ibl =0; ibl<blsize; ibl++) {
+                rhs(pos+ibl,0) = 0.;
+            }
+        }
+    }
+    
+}
+
+
+
 /// Compute the Rhs for the mesh minus the elements with matid
 // this method is cumulative (sums to the rhs)
 void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<STATE> &rhs)
@@ -888,6 +936,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<S
     TPZFStructMatrix str(&fCMesh);
     str.SetMaterialIds(allmaterials);
     str.Assemble(rhs, 0);
+    FilterRhs(rhs);
 
     
 }
@@ -901,6 +950,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsForMatid(int matid, TPZFMatrix<STAT
     TPZFStructMatrix str(&fCMesh);
     str.SetMaterialIds(allmaterials);
     str.Assemble(rhs, 0);
+    FilterRhs(rhs);
 }
 
 /// Compute the resultant x and y force
@@ -1062,6 +1112,10 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<int> 
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         if (!intel) {
             DebugStop();
+        }
+        TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (cel->Material());
+        if (!pMatWithMem2) {
+            continue;
         }
         if (fCMesh.ElementSolution()(el,0) < sqj2) {
             continue;

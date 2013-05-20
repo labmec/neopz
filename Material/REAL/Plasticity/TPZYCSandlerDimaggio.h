@@ -1807,10 +1807,17 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
         ddist = DDistance(ER,resultL, sigProj);
     }
     REAL ddistnext = fabs(ddist)+1;
-    while (fabs(ddist) > 1.e-10 || fabs(ddistnext) > fabs(ddist)) {
+    REAL correct = 1.;
+    while ((fabs(ddist) > 1.e-10 && fabs(correct) > 1.e-14) || fabs(ddistnext) > fabs(ddist)) {
         ddist = ddistnext;
         REAL d2dist = D2Distance(ER, resultL, sigProj);
+        correct = ddist/d2dist;
+        
         resultL -= ddist/d2dist;
+        if (fabs(resultL) > 1.) {
+            correct /= resultL;
+        }
+
         ddistnext = DDistance(ER, resultL, sigProj);
     }
     sigProj[0] = resultL;
