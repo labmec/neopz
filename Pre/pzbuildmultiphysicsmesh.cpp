@@ -430,10 +430,28 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 //	cmesh->Reference()->Print(arg3);
 
 	cmesh->InitializeBlock();
-    
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
-
+    
+    
+    //Set the connect as a Lagrange multiplier  
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        if(!cel) continue;
+        
+        int mid = cel->Material()->Id();
+        
+        if(mid==LagrangeMat){
+            
+            int nsides = cel->Reference()->NSides();
+            
+            for(int i = 0; i<nsides; i++){
+                TPZConnect &newnod = cel->Connect(i);
+                newnod.SetPressure(true);
+            }
+        }
+    }
 }
 
 #include "TPZCompElDisc.h"
