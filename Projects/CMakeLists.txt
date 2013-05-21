@@ -25,6 +25,9 @@ ENABLE_TESTING()
 
 			#Example of the  multi-physics simulation with discontinuous Galerkin
  			add_subdirectory(PauloBosing)
+
+			#Example of the hybrid mesh
+			add_subdirectory(HybridMesh)
 			
 			#Example of the  convection problem
 			add_subdirectory(Problema_Transporte)
