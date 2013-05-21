@@ -32,13 +32,16 @@ DadosMalhas::DadosMalhas(){
     fLref = 0.;
     fkovervisc = 0.;
     
+    fvalsourceterm = 0.;
+    
     //dados da malha geometrica
     fmatId =1;
     fbcBottom = -1;
     fbcRight = -2;
     fbcTop = -3;
     fbcLeft = -4;
-    fbcPointSource = -5;
+    fbcSourceTerm = 2;
+    
     
     fdirichlet =0;
     fneumann = 1;
@@ -75,7 +78,7 @@ DadosMalhas & DadosMalhas::operator=(const DadosMalhas &copy){
     fbcRight = copy.fbcRight;
     fbcTop = copy.fbcTop;
     fbcLeft = copy.fbcLeft;
-    fbcPointSource = copy.fbcPointSource;
+    fbcSourceTerm = copy.fbcSourceTerm;
     
     fdirichlet = copy.fdirichlet;
     fneumann = copy.fneumann;
@@ -87,6 +90,8 @@ DadosMalhas & DadosMalhas::operator=(const DadosMalhas &copy){
     fpref= copy.fpref;
     fLref = copy.fLref;
     fkovervisc = copy.fkovervisc;
+    
+    fvalsourceterm = copy.fvalsourceterm;
     
 	return *this;
 }
@@ -210,150 +215,6 @@ TPZGeoMesh *DadosMalhas::GMesh(bool triang_elements, REAL L, REAL w){
     
 	return gmesh;
 }
-
-TPZGeoMesh * DadosMalhas::GMeshBarryMercer(REAL Lx, REAL Ly){
-    
-    int Qnodes = 25;
-	
-	TPZGeoMesh * gmesh = new TPZGeoMesh;
-	gmesh->SetMaxNodeId(Qnodes-1);
-	gmesh->NodeVec().Resize(Qnodes);
-	TPZVec<TPZGeoNode> Node(Qnodes);
-	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolLine(2);
-    TPZVec <int> TopolPoint(1);
-	
-	//indice dos nos
-	int id = 0;
-	REAL valx;
-    REAL valy;
-	for(int jy = 0; jy < Qnodes/5; jy++)
-	{
-		valy = (Ly/4.)*jy;
-        
-        valx = 0.;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx);//coord X
-		Node[id].SetCoord(1 ,valy);//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-        
-        valx = Lx/4.;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx);//coord X
-		Node[id].SetCoord(1 ,valy);//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-        
-        valx = Lx/2.;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx);//coord X
-		Node[id].SetCoord(1 ,valy);//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-        
-        valx = Lx/2. + Lx/4. ;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx);//coord X
-		Node[id].SetCoord(1 ,valy);//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-        
-        valx = Lx;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx);//coord X
-		Node[id].SetCoord(1 ,valy);//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-    }
-	
-		
-	//indice dos elementos
-	id = 0;
-    for(int i = 0; i< 4; i++)
-    {
-        TopolQuad[0] = 0 + 5*i;
-        TopolQuad[1] = 1 + 5*i;
-        TopolQuad[2] = 6 + 5*i;
-        TopolQuad[3] = 5 + 5*i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
-        
-        TopolQuad[0] = 1 + 5*i;
-        TopolQuad[1] = 2 + 5*i;
-        TopolQuad[2] = 7 + 5*i;
-        TopolQuad[3] = 6 + 5*i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
-        
-        TopolQuad[0] = 2 + 5*i;
-        TopolQuad[1] = 3 + 5*i;
-        TopolQuad[2] = 8 + 5*i;
-        TopolQuad[3] = 7 + 5*i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
-        
-        TopolQuad[0] = 3 + 5*i;
-        TopolQuad[1] = 4 + 5*i;
-        TopolQuad[2] = 9 + 5*i;
-        TopolQuad[3] = 8 + 5*i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
-    }
-    
-    for(int i =0; i<4; i++)
-    {
-        TopolLine[0] = 0 + i;
-        TopolLine[1] = 1 + i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcBottom,*gmesh);
-        id++;
-    }
-    
-    for(int i = 0; i<4; i++)
-    {
-        TopolLine[0] = 4 + 5*i;
-        TopolLine[1] = 9 + 5*i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcRight,*gmesh);
-        id++;
-    }
-    
-    for(int i = 0; i<4; i++)
-    {
-        TopolLine[0] = 24 - i;
-        TopolLine[1] = 23 - i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcTop,*gmesh);
-        id++;
-    }
-    
-    for(int i = 0; i<4; i++)
-    {
-        TopolLine[0] = 20 - 5*i;
-        TopolLine[1] = 15 - 5*i;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcLeft,*gmesh);
-        id++;
-    }
-    
-    TopolPoint[0] = 6;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,fbcPointSource,*gmesh);
-   
-    
-	gmesh->BuildConnectivity();
-    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Geometrica Inicial\n ";
-    //        gmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
-    
-	return gmesh;
-    
-}
-
 
 TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w){
     
@@ -845,6 +706,50 @@ TPZCompMesh *DadosMalhas::MalhaCompTerzaghi(TPZGeoMesh * gmesh, TPZVec<TPZCompMe
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
     mphysics->InsertMaterialObject(BCond4);
+    
+    mphysics->AutoBuild();
+	mphysics->AdjustBoundaryElements();
+	mphysics->CleanUpUnconnectedNodes();
+    
+    // Creating multiphysic elements into mphysics computational mesh
+	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    
+    return mphysics;
+}
+
+TPZCompMesh *DadosMalhas::MalhaCompBarryMercer(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata){
+    
+    //Creating computational mesh for multiphysic elements
+	gmesh->ResetReference();
+	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+    
+    int MatId=fmatId;
+    int dim =2;
+    
+    int planestress = 0; // This is a Plain strain problem
+    
+    mymaterial = new TPZPoroElasticMF2d(MatId,dim);
+    
+    mymaterial->SetfPlaneProblem(planestress);
+    mymaterial->SetParameters(fperm, fvisc);
+    mymaterial->SetElasticityParameters(fEyoung, fpoisson, falpha, fSe, ffx, ffy);
+    mymaterial->SetSourceTerm(fvalsourceterm);
+    
+    TPZMaterial *mat(mymaterial);
+    mphysics->InsertMaterialObject(mat);
+    
+	mymaterial->SetForcingFunctionExact(solExata);
+    
+    ///Inserir condicao de contorno
+	TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+    
+    TPZMaterial * BCond5 = mymaterial->CreateBC(mat,fbcSourceTerm,3, val1, val2);
+    
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    
+    mphysics->InsertMaterialObject(BCond5);
     
     mphysics->AutoBuild();
 	mphysics->AdjustBoundaryElements();

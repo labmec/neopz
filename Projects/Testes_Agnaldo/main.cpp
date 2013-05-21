@@ -40,6 +40,8 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include "TPZVTKGeoMesh.h"
+
 #include <iostream>
 #include <math.h>
 using namespace std;
@@ -51,7 +53,8 @@ REAL ftimeatual = 0.;
 
 void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
-
+void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
+void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
@@ -286,7 +289,7 @@ void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL>
 
 
 //problema de Terzaghi com Se!=0
-int main(int argc, char *argv[]){
+int main_Terz(int argc, char *argv[]){
 #ifdef LOG4CXX
 	std::string logs("../logporoelastc2d.cfg");
 	InitializePZLOG("../logporoelastc2d.cfg");
@@ -446,7 +449,7 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
     REAL poisson = 0.2;
     REAL lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
     REAL mu = 0.5*Eyoung/(1.+poisson);
-
+    
 	REAL visc =1.e-4;
 	REAL perm =  1.e-10;
     
@@ -477,21 +480,21 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
     REAL aux1= (alpha*F)/(Se*(Ku + (4./3.)*mu));
     REAL aux2=0.;
     REAL aux3=0.;
-
+    
     if(dimensionless==true)
     {
         for (in =0; in<1000; in++)
         {
             aux2 = 4./(PI*(2.*in + 1.));
             aux3 = Pi*(2.*in + 1.)/2.;
-
+            
             sump += aux2*sin(aux3*y)*exp(-aux3*aux3*tp);
-
+            
             sumuyH += 0.5*aux2*aux2*exp(-aux3*aux3*tp);
-
+            
             sumVDy += cos(aux3*y)*exp(-aux3*aux3*tp);
         }
-
+        
         p = sump;
         uyH = SInfty + (S0 - SInfty)*sumuyH/aux1;
         VDy = (-2.)*sumVDy;
@@ -499,20 +502,20 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
         sol[0] = p;
         sol[1] = -uyH;
         flux(1,0) = VDy;
-            
+        
     }else{
         for (in =0; in<1000; in++)
         {
             aux2 = 4./(PI*(2.*in + 1.));
             aux3 = Pi*(2.*in + 1.)/(2.*H);
-
+            
             sump += aux2*sin(aux3*y)*exp(-aux3*aux3*Cf*tp);
-
+            
             sumuyH += 0.5*aux2*aux2*exp(-aux3*aux3*Cf*tp);
-
+            
             sumVDy += cos(aux3*y)*exp(-aux3*aux3*Cf*tp);
         }
-
+        
         p = aux1*sump;
         uyH = SInfty + (S0 - SInfty)*sumuyH;
         VDy = -(2./H)*kappa*aux1*sumVDy;
@@ -524,3 +527,128 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
     }
 }
 
+
+int main(int argc, char *argv[]){
+
+    {//NAO APAGAR!!!
+        char buf[] =
+        "16 10 "
+        "-50 Qua000022224 "
+        "-1 -1 0 "
+        "1 -1 0 "
+        "1 1 0  "
+        "-1 1 0 "
+        "-0.33333 -1 0  "
+        "+0.33333 -1 0  "
+        "+1 -0.33333 0  "
+        "+1 +0.33333 0  "
+        "+0.33333 +1 0  "
+        "-0.33333 +1 0  "
+        "-1 +0.33333 0  "
+        "-1 -0.33333 0  "
+        "-0.33333 -0.33333 0    "
+        "+0.33333 -0.33333 0    "
+        "+0.33333 +0.33333 0    "
+        "-0.33333 +0.33333 0    "
+        "3 4 0  1  2  3 "
+        "3 4 0 4 12 11  "
+        "3 4 4 5 13 12  "
+        "3 4 5 1 6 13   "
+        "3 4 11 12 15 10    "
+        "3 4 12 13 14 15    "
+        "3 4 13 6 7 14  "
+        "3 4 10 15 9 3  "
+        "3 4 15 14 8 9  "
+        "3 4 14 7 2 8   ";
+        std::istringstream str(buf);
+        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
+        gRefDBase.InsertRefPattern(refp);
+        if(!refp)
+        {
+            DebugStop();
+        }
+    }
+    
+    
+    REAL Lx = 1.;
+    REAL Ly = 1.;
+    DadosMalhas * mydata = new DadosMalhas();
+    TPZGeoMesh * gmesh = mydata->GMesh(false,Lx,Ly);
+    
+    RefinamentoPadrao3x3(gmesh,0);
+    
+    TPZVec<REAL> pt(3);
+    pt[0] = Lx/4.;
+    pt[1] = Ly/4.;
+    pt[2] = 0.;
+    int newmatId = mydata->GetIdSourceTerm();//mat id of the source term
+    REAL Area;
+    RefinamentoPadrao3x3(gmesh, 2,pt, true, newmatId, Area);
+    
+    std::ofstream malhaGeo("gmesh2D.txt");
+    gmesh->Print(malhaGeo);
+
+    
+    return 0;
+}
+
+void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref){
+    
+   TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
+    if(!refpOutroLugar) DebugStop();
+  
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < nref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==2)
+            {
+                gel->SetRefPattern(refpOutroLugar);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+        }
+    }
+       
+    std::ofstream malhaOut("malhaOut.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+}
+
+void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area){
+
+    TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
+    if(!refpOutroLugar) DebugStop();
+       
+    int iniEl = 0;
+    TPZVec<REAL> qsi(2,0.);
+
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < nref; r++)
+    {
+        gel = gmesh->FindElement(pt, qsi, iniEl);
+        if(!gel) DebugStop();
+        if(gel->Dimension()==2)
+        {
+            gel->SetRefPattern(refpOutroLugar);
+            TPZVec<TPZGeoEl*> sons;
+            gel->Divide(sons);
+        }
+    }
+    
+    if(changeMatId==true)
+    {
+        gel = gmesh->FindElement(pt, qsi, iniEl);
+        if(!gel) DebugStop();
+        gel->SetMaterialId(newmatId);
+        Area = gel->Volume();
+    }
+                
+    std::ofstream malhaOut("malhaOut2.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+
+    
+}

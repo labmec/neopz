@@ -58,7 +58,6 @@ public:
     
     TPZGeoMesh *GMesh(bool triang_elements, REAL L, REAL w);
     
-    TPZGeoMesh *GMeshBarryMercer(REAL Lx, REAL Ly);
  
     TPZGeoMesh *GMesh2(REAL L, REAL w);
     TPZGeoMesh *GMesh3(REAL L, REAL w);
@@ -74,6 +73,8 @@ public:
     TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
     
     TPZCompMesh *MalhaCompTerzaghi(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
+    
+    TPZCompMesh *MalhaCompBarryMercer(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
 
     
     void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
@@ -117,6 +118,15 @@ public:
         fkovervisc = kovervisc;
     }
     
+    int GetIdSourceTerm(){
+        return fbcSourceTerm;
+    }
+    
+    void SetValSourceTerm(REAL sf){
+        
+        fvalsourceterm = sf;
+    }
+    
 protected:
     
     //dados do material
@@ -134,13 +144,15 @@ protected:
     REAL fLref;
     REAL fkovervisc;
     
+    REAL fvalsourceterm;
+    
     //dados da malha geometrica
     int fmatId;
     int fbcBottom;
     int fbcRight;
     int fbcTop;
     int fbcLeft;
-    int fbcPointSource;
+    int fbcSourceTerm;
     
     int  fdirichlet;
     int  fneumann;
@@ -148,7 +160,6 @@ protected:
     int  fdirfreey_neum;
     int  fdirneum;
     int  fmixedneum;
-
 };
 
 #endif /* defined(__PZ__mymeshes__) */
