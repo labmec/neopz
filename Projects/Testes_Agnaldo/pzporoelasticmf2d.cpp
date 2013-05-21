@@ -67,6 +67,8 @@ TPZPoroElasticMF2d::TPZPoroElasticMF2d(int matid, int dim):TPZDiscontinuousGaler
 	fDim = dim;
     fLref = 0.;
     
+    fmatIdSourceTerm = 0;
+    
 	ff.resize(2);
 	ff[0]=0.;
 	ff[1]=0.;
@@ -106,7 +108,9 @@ TPZPoroElasticMF2d &TPZPoroElasticMF2d::operator=(const TPZPoroElasticMF2d &copy
     fReturnSolutionDimension = copy.fReturnSolutionDimension;
     fCf = copy.fCf;
     fSaux = copy.fSaux;
+    
     fSf=copy.fSf;
+    fmatIdSourceTerm=copy.fmatIdSourceTerm;
     
     return *this;
 }
@@ -214,7 +218,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
         // Calculate the matrix contribution for pressure. Matrix (-1)*D
 		for(int in = 0; in < phrp; in++)
 		{
-			ef(2*phru+phrq+in,0) +=  weight*fSf*phip(in,0);
+			ef(2*phru+phrq+in,0) +=0.;
 			for(int jn = 0; jn < phrp; jn++)
 			{
 				ek(in+2*phru+phrq, jn+2*phru+phrq) += (-1.)*fSe*weight*phip(in,0)*phip(jn,0);
@@ -419,6 +423,19 @@ void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, R
     }
 }
 
+void TPZPoroElasticMF2d::ApplySourceTerm_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
+    
+    TPZFMatrix<REAL>  &phip =  datavec[2].phi;
+    int phru = datavec[0].phi.Rows();
+    int phrq = datavec[1].fVecShapeIndex.NElements();
+    int phrp =  phip.Rows();
+    
+    for(int in = 0; in < phrp; in++)
+    {
+        ef(2*phru+phrq+in,0) += weight*fSf*phip(in,0);
+    }
+}
+
 void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<> &ek,
                                       TPZFMatrix<> &ef,TPZBndCond &bc)
 {
@@ -489,6 +506,11 @@ void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weig
             ApplyMixed_U(datavec, weight, ek, ef, bc);
             ApplyNeumann_QP(datavec, weight, ek, ef, bc);
             break;
+            
+        case 3: //Condition of source term in the pressure's equation to mixed problem
+            ApplySourceTerm_P(datavec, weight, ek, ef, bc);
+            break;
+
             
     }
 	

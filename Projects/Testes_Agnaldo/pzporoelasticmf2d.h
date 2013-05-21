@@ -99,6 +99,8 @@ protected:
     
 	int fmatId;
     
+    int fmatIdSourceTerm;
+    
     bool fReturnSolutionDimension;
 	
 	/** @brief State: one ou one+1 */
@@ -124,8 +126,14 @@ public:
 	int Dimension() {return fDim;}
 	
 	virtual int NStateVariables();
+    
+    void SetIdSourceTerm(int idsourceterm){
+        
+        fmatIdSourceTerm = idsourceterm;
+    }
 	
 	void SetLastState(){ gState = ELastState; }
+    
 	void SetCurrentState(){ gState = ECurrentState; }
     
 	/** @brief Parameters of rock and fluid: */
@@ -300,6 +308,11 @@ public:
      * @brief Applies to Mixed boundary condition for mixed problem (pressure and flux)
      */
     void ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /*
+     * @brief Applies to condition of source term in the pressure's equation to mixed problem (pressure and flux)
+     */
+    void ApplySourceTerm_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
 	
 	virtual int VariableIndex(const std::string &name);
 	
