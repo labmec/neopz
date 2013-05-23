@@ -103,7 +103,7 @@ public:
     void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex);
 	
     /**@brief Add a contribution of a stiffness matrix*/
-    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
+    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);
 	
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);

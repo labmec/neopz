@@ -134,7 +134,7 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
 	
     /** 
 	 * @brief Forward substitution and result is on b

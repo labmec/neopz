@@ -180,9 +180,11 @@ public:
 #endif
         for(int i=0; i<neqcondense; i++) expand(fActiveEqs[i],0) = small.GetVal(i,0);
 
-    }///void
+    }
 
-    ///Reduz o vetor para o sistema de equacoes ativas
+    /**
+     * @brief Reduce the vector to the number of active equations.
+     */
     template<class T>
     void Gather(const TPZFMatrix<T> &large, TPZFMatrix<T> &gathered) const
     {
@@ -200,7 +202,9 @@ public:
         for(int i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
     }
 
-    ///Retorna o numero de equacoes ativas entre [minindex,maxindex)
+    /**
+     * @brief Returns the number of active equations between [minindex,maxindex]
+     */
     int NumActive(int minindex, int maxindex) const
     {
         if (minindex < 0 || maxindex < 0 || minindex >= fNumEq || maxindex >= fNumEq ||

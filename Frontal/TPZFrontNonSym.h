@@ -116,7 +116,7 @@ public:
 	 * @param sourceindex Source index
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
+    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);
 	
 	/** @brief Extract the front matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
