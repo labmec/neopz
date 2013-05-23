@@ -195,7 +195,7 @@ int main() {
 			dim = DefineDimensionOverElementType(typeel);
 			
 			// Some refinements as initial step
-			UniformRefinement(4,gmesh,dim);
+			UniformRefinement(3,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
 			int p = 2, pinit;

@@ -658,7 +658,7 @@ REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL per
     //Ordena o vetor de erros
     int nelem = errvec.NElements();
     int i;
-    REAL error;
+    REAL error = 0.0;
     for(i=0; i<nelem; i++) {
         perm[i] = i;
         //ervec[i]=fElementError[i];
@@ -666,7 +666,8 @@ REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL per
     Sort(fElementError,perm);
     //somatório dos componentes do vetor de erro
     for(i=0; i<nelem; i++) error += fElementError[i];
-    REAL ninetyfivepercent,auxerror = 0.;
+    REAL ninetyfivepercent = 0.;
+    REAL auxerror = 0.;
     for(i=0;i<nelem;i++){
         auxerror += fElementError[perm[i]];
         if (auxerror >=  percenterror*error){

@@ -135,7 +135,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     // Each element of the vector contains a computational mesh
     CreateClones();
     int ncl = fCloneMeshes .NElements();
-    fFineCloneMeshes .Resize(ncl);
+    fFineCloneMeshes.Resize(ncl);
     
     //Creates an uniformly refined mesh and evaluates the error
     for (cliter = 0; cliter<ncl; cliter++){

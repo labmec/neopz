@@ -2564,9 +2564,10 @@ TPZCompMesh *Create3DDiscMesh() {
     //gmesh->Print(MALHAG);
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZMaterial *mat;
+    TPZMaterial *mat = 0;
     if(nstate == 3) {
         mat = new TPZMaterialTest3D(1);
+        if(!mat) DebugStop();
         TPZFMatrix<REAL> mp (3,1,0.);
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
