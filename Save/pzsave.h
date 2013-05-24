@@ -565,42 +565,42 @@ public:
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
 	
-	static void WriteObjects(TPZStream &buf, TPZVec<long double> &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<long double> &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<long double> &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<long double> &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
 	
-	static void WriteObjects(TPZStream &buf, TPZVec<std::complex<long double> > &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<std::complex<long double> > &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<std::complex<long double> > &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<std::complex<long double> > &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
 
-	static void WriteObjects(TPZStream &buf, TPZVec<std::complex<float> > &vec)
+	static void WriteObjects(TPZStream &buf, const TPZVec<std::complex<float> > &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<std::complex<float> > &vec)
+	static void WriteObjects(TPZStream &buf, const std::vector<std::complex<float> > &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);

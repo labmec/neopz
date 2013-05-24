@@ -564,6 +564,10 @@ likwid_manager_t likwid_manager;
       pre.SetMultiply();
       TPZStepSolver<REAL> cg(dohr);
       
+      /* Configure the CG solver to iterate:
+	 - until it converges (residual <= 1.e-8), or
+	 - until it reaches 500 itearations.
+      */
       cg.SetCG(500,pre,1.e-8,0);
       
       PERF_START(solve_rst);

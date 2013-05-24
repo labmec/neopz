@@ -148,6 +148,7 @@ public:
 	 * @param withclassid
 	 */
 	virtual void Write( TPZStream &buf, int withclassid );
+	virtual void Write( TPZStream &buf, int withclassid ) const;
 	
 
 	virtual std::string ClassName() const   { return( "TPZSkylMatrix"); }

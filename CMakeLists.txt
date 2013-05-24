@@ -230,6 +230,20 @@ if(USING_BLAS)
 	endif()
 endif(USING_BLAS)
 
+#enabling PAPI library 
+option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
+if(USING_PAPI)
+        add_definitions(-DUSING_PAPI)
+        find_path(PAPI_INCLUDE NAMES papi.h PATHS ${SEARCH_DIRS})
+        find_library(PAPI_LIB NAMES libpapi.a libpapi.so PATHS ${SEARCH_DIRS})
+        if(PAPI_INCLUDE-NOTFOUND)
+                set (PAPI_INCLUDE "" CACHE PATH "Directory where papi.h can be found")
+        endif()
+        if(PAPI_LIB-NOTFOUND)
+                set (PAPI_LIB "" CACHE PATH "Directory where the papi library can be found")
+        endif()
+endif(USING_PAPI)
+
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)

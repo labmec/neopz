@@ -700,16 +700,19 @@ TPZSkylMatrix<TVar>::Redim( int newDim , int)
 	return( 1 );
 }
 
-//EBORIN: Uncomment the following line to enable matrices do be dumped before decomposed
+//EBORIN: Uncomment the following lines to enable matrices do be dumped before decompose/subst
 #define DUMP_BEFORE_DECOMPOSE
-#ifdef DUMP_BEFORE_DECOMPOSE
+#define DUMP_BEFORE_SUBST
+
+
+#if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)
 
 #include "pzbfilestream.h"
 #include "arglib.h"
 pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
 unsigned matrix_unique_id = 0;
 clarg::argString dm_prefix("-dm_prefix", 
-			   "Filename prefix for matrices dumped before decompose", 
+			   "Filename prefix for matrices dumped before decompose/subst", 
 			   "matrix_");
 template<class TVar>
 void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
@@ -718,12 +721,28 @@ void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
   PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrix");
   std::stringstream fname;
   fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
-  std::cout << "Dump matrix before decompose... (file: " << fname << ")" << std::endl;
+  std::cout << "Dump matrix before... (file: " << fname << ")" << std::endl;
   TPZBFileStream fs;
   fs.OpenWrite(fname.str());
   m->Write(fs, 0);
-  std::cout << "Dump matrix before decompose... [Done]" << std::endl;
+  std::cout << "Dump matrix before... [Done]" << std::endl;
   PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrix");
+}
+
+template<class TVar>
+void dump_matrices(const TPZMatrix<TVar>* a, const TPZMatrix<TVar>* b, const char* fn_annotation)
+{
+  if (!dm_prefix.was_set()) return;
+  PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrices");
+  std::stringstream fname;
+  fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
+  std::cout << "Dump matrix before... (file: " << fname << ")" << std::endl;
+  TPZBFileStream fs;
+  fs.OpenWrite(fname.str());
+  a->Write(fs, 0);
+  b->Write(fs, 0);
+  std::cout << "Dump matrix before... [Done]" << std::endl;
+  PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrices");
 }
 #endif
 
@@ -1309,6 +1328,10 @@ TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
 	if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
 	
+#ifdef DUMP_BEFORE_SUBST
+	dump_matrices(this, B, "TPZSkylMatrix::Subst_Forward(B)");
+#endif
+
 	//	std::cout << "SubstForward this " << (void *) this << " neq " << Dim() << " normb " << Norm(*B) << std::endl;
 	int dimension=this->Dim();
     for ( int j = 0; j < B->Cols(); j++ )
@@ -1356,7 +1379,10 @@ TPZSkylMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
 	if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
-	
+		
+#ifdef DUMP_BEFORE_SUBST
+	dump_matrices(this, B, "TPZSkylMatrix::Subst_Backward(B)");
+#endif
 	int Dimension = this->Dim();
 	if(!Dimension) return 1;	// nothing to do
 	int j;
@@ -1548,6 +1574,22 @@ void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
 
 template <class TVar>
 void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
+{
+	TPZMatrix<TVar>::Write(buf,withclassid);
+    TPZSaveable::WriteObjects(buf, fStorage);
+    TPZVec<int> skyl(this->Rows()+1,0);
+    TVar *ptr = 0;
+    if (this->Rows()) {
+        ptr = &fStorage[0];
+    }
+    for (int i=0; i<this->Rows()+1; i++) {
+        skyl[i] = fElem[i] - ptr;
+    }
+    TPZSaveable::WriteObjects(buf, skyl);
+}
+
+template <class TVar>
+void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
 	TPZMatrix<TVar>::Write(buf,withclassid);
     TPZSaveable::WriteObjects(buf, fStorage);
