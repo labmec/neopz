@@ -268,7 +268,6 @@ void TPZAdaptMesh::BuildReferencePatch() {
         tmpcmesh->GetElementPatch(n2elgraph,n2elgraphid,elgraph,elgraphindex,ipatch,patchelindex);
         for (j=0; j<patchelindex.NElements(); j++){
             TPZGeoEl *gel = tmpcmesh->ElementVec()[patchelindex[j]]->Reference();
-            //      int count = 0;
             if(gel) fPatch.Push(gel);
         }
         int sum = fPatch.NElements();
@@ -313,7 +312,6 @@ void TPZAdaptMesh::BuildReferencePatch() {
 			/** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
 			//static void PrintCMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
 			TPZVTKGeoMesh::PrintCMeshVTK(gmesh,file,true);
-			
 		}
 	}
 #endif
@@ -330,8 +328,6 @@ void TPZAdaptMesh::CreateClones(){
     fReferenceCompMesh->LoadReferences();
     TPZGeoMesh *geomesh = fReferenceCompMesh->Reference();
     
-    TPZStack<TPZGeoEl*> patch;
-    
     int clid,elid;
     for (clid=0; clid<fPatchIndex.NElements()-1;clid++) {
 		// making clone of the original geometric mesh, only to construct computational clone
@@ -341,9 +337,8 @@ void TPZAdaptMesh::CreateClones(){
             patch.Push(fPatch[elid]);
         }
         geoclone->SetElements(patch,fGeoRef[clid]);
-        TPZVec<TPZGeoEl *> sub;
-        //    int ngcel = geoclone->ElementVec().NElements();
-        int printing = 0;
+
+		int printing = 0;
         if(printing) {
             ofstream out("testAdaptMesh.txt",ios::app);
             geoclone->Print(out);

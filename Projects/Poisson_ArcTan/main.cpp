@@ -157,7 +157,7 @@ int main() {
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
-	char tempo[512];
+	char time_formated[512];
 	
 	// Output files
     std::ofstream convergence("convergence.txt");
@@ -273,15 +273,12 @@ int main() {
 					cmesh->LoadReferences();
 					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
 				}
-				
-				// closed generation mesh process
-				
+				// generation mesh process finished
 				
 				time(&endtime);
 				time_elapsed = endtime - sttime;
-				formatTimeInSec(tempo,time_elapsed);
-				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
-				
+				formatTimeInSec(time_formated,time_elapsed);
+				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
 				// Initializing the auto adaptive process
 				REAL valerror =0.;
@@ -314,16 +311,6 @@ int main() {
 					int prt;
 					std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
 					
-//#ifdef LOG4CXX
-//					if (loggerconv->isDebugEnabled())
-//					{
-//						std::stringstream sout;
-//						sout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
-//						<< " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
-//						LOGPZ_DEBUG(loggerconv, sout.str())
-//					}
-//#endif
-					
 					convergence  << cmesh->NEquations() << "\t"
 					<< valerror << "\t"
 					<< valtruerror << "\t"
@@ -353,7 +340,7 @@ int main() {
 	fileerrors << std::endl << std::endl;
 	fileerrors.close();
 	out.close();
-	return 0;	
+	return 0;
 }
 int main_Failed() {
 
@@ -369,7 +356,7 @@ int main_Failed() {
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
-	char tempo[512];
+	char time_formated[512];
 	
 	// Output files
     std::ofstream convergence("convergence.txt");
@@ -488,8 +475,8 @@ int main_Failed() {
 				// closed generation mesh process
 				time(&endtime);
 				time_elapsed = endtime - sttime;
-				formatTimeInSec(tempo,time_elapsed);
-				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+				formatTimeInSec(time_formated,time_elapsed);
+				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
 				// Initializing the auto adaptive process
 				REAL valerror =0.;
@@ -2539,7 +2526,7 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 void formatTimeInSec(char *strtime,int timeinsec) {
 	if(!strtime) return;
 	memset(strtime,0,strlen(strtime));
-	//	strtime[0] = '\0';
+
 	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
 	while(1) {
 		if(timeinsec < 60) {
@@ -2569,15 +2556,15 @@ void formatTimeInSec(char *strtime,int timeinsec) {
 	}
 	// Formating
 	if(anos)
-		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+		sprintf_s(strtime,strlen(strtime),"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
 	else {
 		if(meses) 
-			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+			sprintf_s(strtime,strlen(strtime),"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
 		else {
 			if(dias)
-				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+				sprintf_s(strtime,strlen(strtime),"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
 			else
-				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
+				sprintf_s(strtime,strlen(strtime),"%02d:%02d:%02d",horas,minutos,segundos);
 		}
 	}
 }
@@ -2759,7 +2746,7 @@ int main_NoAutoHP() {
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
-	char tempo[256];
+	char time_formated[256];
 	
 	ofstream fileerrors("ErrorsHP2D_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
 	
@@ -2859,8 +2846,8 @@ int main_NoAutoHP() {
 				time (& endtime);
 				time_elapsed = endtime - sttime;
 				time_elapsed = endtime - sttime;
-				formatTimeInSec(tempo, time_elapsed);
-				out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
+				formatTimeInSec(time_formated, time_elapsed);
+				out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n";
 				
 				// SOLVING PROCESS
 				// Initial steps
@@ -2884,9 +2871,9 @@ int main_NoAutoHP() {
 				// Calculando o tempo que demorou para calcular em cada cenario 
 				time (& endtime);
 				time_elapsed = endtime - sttime;
-				formatTimeInSec(tempo, time_elapsed);
+				formatTimeInSec(time_formated, time_elapsed);
 				
-				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
 				// Post processing
 				std::string filename = "PoissonSolution";
@@ -2919,7 +2906,7 @@ int main_NoAutoHP() {
 				an.PostProcessError(ervec,out);
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
-				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << time_formated << std::endl;
 				
 				delete cmesh;
 			}
