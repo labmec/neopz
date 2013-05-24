@@ -2,6 +2,8 @@
 #define PZEQUATIONFILTERHPP
 
 #include "pzvec.h"
+#include "pzfmatrix.h"
+
 #include <set>
 
 class TPZEquationFilter
@@ -138,7 +140,9 @@ public:
         return fNumEq;
     }
 
-    ///Retorna se o filtro esta ativo
+	/**
+	 * Returns true if the filter is active
+	 */
     bool IsActive() const
     {
         if (fNumActive == fNumEq) {
@@ -150,22 +154,23 @@ public:
 
     }
 
-    ///Expande o vetor para o sistema original, zerando posicao de equacoes nao ativas
-    template<class T>
-    void Scatter(const TPZFMatrix<T> &small, TPZFMatrix<T> &expand) const
+	/**
+	 * Expands the vector small to a original system, fill zeros into the no active equations.
+	 */
+	template<class TVar>
+    void Scatter(const TPZFMatrix<TVar> &vsmall, TPZFMatrix<TVar> &vexpand) const
     {
         int neqcondense = this->NActiveEquations();
-        if(small.Rows() != neqcondense || expand.Rows() != fNumEq)
+        if(vsmall.Rows() != neqcondense || vexpand.Rows() != fNumEq)
         {
             DebugStop();
         }
         if(! IsActive())
         {
-            expand = small;
+            vexpand = vsmall;
             return;
         }
-        expand.Zero();
-
+        vexpand.Zero();
 
 #ifdef DEBUG
         {
@@ -178,8 +183,7 @@ public:
             }
         }
 #endif
-        for(int i=0; i<neqcondense; i++) expand(fActiveEqs[i],0) = small.GetVal(i,0);
-
+        for(int i=0; i<neqcondense; i++) vexpand(fActiveEqs[i],0) = vsmall.GetVal(i,0);
     }
 
     /**
@@ -223,9 +227,6 @@ public:
         return numactive;
     }
     
-    /*!
-     \fn FilterSkyline()
-     */
     void FilterSkyline(TPZVec<int> &skyline) const
     {
         if (!IsActive()) {
