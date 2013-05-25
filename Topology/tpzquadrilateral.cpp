@@ -312,14 +312,14 @@ namespace pztopology {
 			}
 		}
 		PZError << "TPZShapeQuad::SideToSideTransform highside not found sidefrom "
-		<< sidefrom << ' ' << sideto << endl;
+		<< sidefrom << ' ' << sideto << ".\n";
 		return TPZTransform(0);
 	}
 	
 	
 	int TPZQuadrilateral::SideDimension(int side) {
 		if(side<0 || side >= NSides) {
-			PZError << "TPZShapeQuad::SideDimension side " << side << endl;
+			PZError << "TPZShapeQuad::SideDimension. Out of scope side " << side << ".\n";
 			return -1;
 		}
 		return sidedimension[side];
@@ -327,7 +327,7 @@ namespace pztopology {
 	
 	int TPZQuadrilateral::NContainedSides(int side) {
 		if(side<0 || side>8) {
-			PZError << "TPZShapeQuad::NContainedSides. Bad parameter i.\n";
+			PZError << "TPZShapeQuad::NContainedSides. Bad parameter side = " << side << ".\n";
 			return 0;
 		}
 		if(side<4) return 1;
@@ -337,7 +337,7 @@ namespace pztopology {
 	
 	int TPZQuadrilateral::NumSides(int dimension) {
 		if(dimension<0 || dimension> 2) {
-			PZError << "TPZShapeQuad::NumSides. Bad parameter i.\n";
+			PZError << "TPZShapeQuad::NumSides. Bad parameter dimension = " << dimension << ".\n";
 			return 0;
 		}
 		if(dimension==0) return 4;

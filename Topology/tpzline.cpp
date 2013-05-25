@@ -283,10 +283,10 @@ namespace pztopology {
 	}
 	
 	
-	int TPZLine::NContainedSides(int i) {
-		if(i==0 || i==1) return 1;
-		else if(i==2) return 3;
-		PZError << "TPZLine::NContainedSides. Bad parameter i = " << i << " .\n";
+	int TPZLine::NContainedSides(int side) {
+		if(side==0 || side==1) return 1;
+		else if(side==2) return 3;
+		PZError << "TPZLine::NContainedSides. Bad parameter side = " << side << " .\n";
 		return 0;
 	}
 	

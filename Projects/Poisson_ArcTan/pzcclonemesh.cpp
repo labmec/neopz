@@ -481,11 +481,14 @@ void TPZCompCloneMesh::CreateCloneBC(){
         neighbours.Push(bcelsides[ibc].Reference());
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(bcelsides[ibc].Reference().Element());
         int side = bcelsides[ibc].Side();
-        int nsideconnects = intel->NSideConnects(bcelsides[0].Side());
+//        int nsideconnects = intel->NSideConnects(bcelsides[0].Side());
+        int nsideconnects = intel->NSideConnects(side);                 /// JORGE MAIO 2013
         TPZStack<int> pordersbefore;
         TPZStack<int> connectindexes;
         for (int ic=0; ic<nsideconnects; ic++) {
-            connectindexes.Push(intel->SideConnectIndex(ic, side));
+			int Index = intel->SideConnectIndex(ic, side);
+			if(Index == -1) continue;
+            connectindexes.Push(Index);
             pordersbefore.Push((intel->SideConnect(ic, side))->Order());
         }
 #endif

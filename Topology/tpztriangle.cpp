@@ -367,7 +367,7 @@ namespace pztopology {
 	
 	TPZIntPoints * TPZTriangle::CreateSideIntegrationRule(int side, int order){
 		if(side < 0 || side>6) {
-			PZError << "TPZTriangle::CreateSideIntegrationRule wrong side " << side << endl;
+			PZError << "TPZTriangle::CreateSideIntegrationRule wrong side = " << side << ".\n";
 			return 0;
 		}
 		if(side<3) return new TPZInt1Point(order);     // sides 0 to 2 are vertices (corners)
@@ -409,7 +409,7 @@ namespace pztopology {
 	
 	int TPZTriangle::NContainedSides(int side) {
 		if(side<0 || side>6) {
-			PZError << "TPZShapeTriang::NContainedSides. Bad parameter i.\n";
+			PZError << "TPZShapeTriang::NContainedSides. Bad parameter side = " << side << ".\n";
 			return 0;
 		}
 		if(side<3) return 1;
@@ -434,7 +434,7 @@ namespace pztopology {
 			case 6:
 				return c;
 			default:
-				PZError << "TPZShapeTriang::ContainedSideLocId, connect = " << c << endl;
+				PZError << "TPZShapeTriang::ContainedSideLocId, connect = " << c << ".\n";
 				return -1;
 		}
 	}
