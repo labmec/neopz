@@ -55,6 +55,7 @@ using namespace std;
 
 int const reservMatId   = 1; //elastic
 int const pressureMatId = 2; //pressure
+int const multiFisicMatId = 1;//multiphisics
 
 int const dirichletElastMatId = -1;
 int const neumannElastMatId   = -2;
@@ -128,7 +129,7 @@ static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
  const REAL visc = 0.001E-6;//MPa.s
  //BCs:
  const REAL sigN = 61.5;/// <<< sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
- const REAL Qinj  = -50./Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
+ const REAL Qinj  = -0.1/Hf;///vazao de 1 asa de fratura dividido pela altura da fratura
  //time:
  const REAL Ttot = 50.;//sem bug -> Ttot = 50.
  const REAL nsteps = 20.;//sem bug -> nsteps = 20.
@@ -568,9 +569,8 @@ TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mes
 	gmesh->ResetReference();
 	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
     
-    int MatId=1;
-    int dim =2;
-    mymaterial = new TPZNLFluidStructure2d(MatId,dim);
+    int dim = 2;
+    mymaterial = new TPZNLFluidStructure2d(multiFisicMatId,dim);
     
     //data elasticity
     REAL fx = 0.;

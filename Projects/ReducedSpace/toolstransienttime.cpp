@@ -113,6 +113,8 @@ void ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *
 
 void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REAL> InitialSolution , TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
 {
+    //CheckConv(an->Solution(), an, mymaterial, meshvec, mphysics);
+    
     std::ofstream outPW("OUTPUT.txt");
     
     std::string outputfile;
@@ -121,7 +123,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     std::stringstream outP, outW, outJ;
     
     outP << "Saida" << 0 << "={";
-    SaidaMathPressao(meshvec, mphysics, outP);
+    SaidaMathPressao(meshvec, mphysics, mymaterial, outP);
     outP << "};\n";
     
     meshvec[0]->LoadReferences();
@@ -130,17 +132,14 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     
 	int nrows;
 	nrows = an->Solution().Rows();
-	TPZFMatrix<REAL> res_total(nrows,1,0.0);
-    TPZFMatrix<REAL> chutenewton(meshvec[0]->Solution().Rows(),1,1.);
-    meshvec[0]->LoadSolution(chutenewton);
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+	TPZFMatrix<REAL> res_total(nrows,1,0.);
+    
     TPZFMatrix<REAL> SolIterK = mphysics->Solution();
 	TPZAutoPointer< TPZMatrix<REAL> > matK;
 	TPZFMatrix<REAL> fres(mphysics->NEquations(),1);
     TPZFMatrix<REAL> fmat(mphysics->NEquations(),1);
     fres.Zero();
     fmat.Zero();
-    MassMatrix(mymaterial, mphysics, fmat);
     
 	REAL TimeValue = 0.0;
 	int cent = 1;
@@ -151,10 +150,23 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     ComputeKI(meshvec[0], radius, outJ);
     ////////////////////////////////////
     
-    std::map<REAL,REAL> notUsedHere;
-    REAL pfracMedio = 0.;
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
-    std::ofstream saida("s.txt");
+    MassMatrix(mymaterial, mphysics, fmat);
+    
+    {
+        std::stringstream outputfiletemp;
+        outputfiletemp << outputfile << ".vtk";
+        std::string plotfile = outputfiletemp.str();
+        PosProcessMult(meshvec,mphysics,an,plotfile);
+    }
+    
+    {
+        TPZFMatrix<REAL> chutenewton(meshvec[0]->Solution().Rows(),1,1.);
+        meshvec[0]->LoadSolution(chutenewton);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    }
+    
 	while (TimeValue <= maxTime) //passo de tempo
 	{
         outP << "Saida" << (int)(TimeValue/timeScale) << "={";
@@ -190,9 +202,8 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         fmat.Zero();
         MassMatrix(mymaterial, mphysics,fmat);
         
-        std::map<REAL,REAL> notUsedHere;
-        pfracMedio = PressaoMedia(meshvec, mphysics, notUsedHere);
-        mymaterial->UpdateLeakoff(pfracMedio);
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+        mymaterial->UpdateLeakoff(meshvec[1]);
         
         ComputeKI(meshvec[0], radius, outJ, cent, TimeValue, false);
         
@@ -208,7 +219,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         }
         
         {
-            SaidaMathPressao(meshvec, mphysics, outP);
+            SaidaMathPressao(meshvec, mphysics, mymaterial, outP);
             outP << "};\n";
         }
         
@@ -225,8 +236,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         InitialSolution = mphysics->Solution();
         cent++;
         TimeValue = cent*deltaT;
-        
-        CheckConv(an->Solution() , an, mymaterial, meshvec, mphysics);
     }
     
     outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
@@ -261,7 +270,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     outW << "Penum = " << mymaterial->Pe() << ";\n";
     outW << "Prefnum = " << mymaterial->Pref() << ";\n";
     outW << "vspnum = " << mymaterial->vsp()*100000 << "*10^-5;\n";
-    outW << "Lfnum = " << mymaterial->Lf() << ";\n\n";
     outW << "vlini = 0;\n";
     outW << "(* FIM DOS INPUTS *)\n\n";
     
@@ -308,13 +316,13 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     outW << "vInjTable = Table[{t,Qinj*t},{t,0,Ttot, dt}];\n";
     outW << "vInj[t_] = Interpolation[vInjTable, InterpolationOrder -> 0][t];\n";
     outW << "vfiltrado[t_] =Interpolation[vlVec, InterpolationOrder -> 0][t];\n";
-    outW << "vf[t_]=vInj[t]-vfiltrado[t];\n";
+    outW << "vf[t_] = vInj[t-dt]-2*Lfnum*vfiltrado[t-dt];(*eh dado um shift no tempo por problemas do interpolation*)\n";
     outW << "QfinalPlot = Plot[vf[t], {t, 0, Ttot}, PlotStyle -> Red,AxesOrigin->{0,0}];\n";
     outW << "Show[WintegralPlot,QfinalPlot]\n";
     outW << "(* FIM DOS OUTPUTS *)\n\n";
     
     //saida para mathematica
-    outP << "SAIDAS={";
+    outP << "SAIDAS={Saida0,";
     for(int i = 1; i < cent; i++)
     {
         outP << "Saida" << (int)(i*deltaT/timeScale);
@@ -331,9 +339,13 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     outP << "maxy=Max[Transpose[Flatten[SAIDAS,1]][[2]]];\n\n";
     
     outP << "Manipulate[ListPlot[SAIDAS[[n]],Joined->True,AxesOrigin->{0,0},PlotRange->{{0,maxx},{0,maxy}},AxesLabel->{\"pos\",\"p\"}],{n,1,Length[SAIDAS],1}]\n\n";
+    outP << "Lfnum = " << mymaterial->Lf() << ";\n\n";
     outP << "TimePressVec = {};\n";
     outP << "For[pos = 1, pos <= Length[SAIDAS], pos++,\n";
-    outP << "AppendTo[TimePressVec, {pos*" << deltaT << ",(SAIDAS[[pos]])[[Round[Length[SAIDAS[[pos]]]/2], 2]]}];\n];\n";
+    
+    outP << "fp=Interpolation[SAIDAS[[pos]],InterpolationOrder->0];\n";
+    outP << "AppendTo[TimePressVec, {(pos - 1)*" << deltaT << ", fp[Lfnum/2]}];];\n";
+    
     outP << "ListPlot[TimePressVec, Joined -> True,AxesLabel->{\"t\",\"p\"},AxesOrigin->{0,0}]\n";
     outP << "press = Interpolation[TimePressVec,InterpolationOrder->0];\n";
     
@@ -484,10 +496,10 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW,
     outW << "};\n";
 }
 
-void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, std::stringstream & outP)
+void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZNLFluidStructure2d * &mymaterial, std::stringstream & outP)
 {
     std::map<REAL,REAL> pos_pressure;
-    PressaoMedia(meshvec,mphysics,pos_pressure);
+    FillPositionPressure(meshvec,mphysics,pos_pressure);
     
     int posCount = 0;
     std::map<REAL,REAL>::iterator it, itaux;
@@ -506,21 +518,29 @@ void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh
     }
 }
 
-REAL ToolsTransient::PressaoMedia(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh * mphysics, std::map<REAL,REAL> & pos_pressure)
+void ToolsTransient::FillPositionPressure(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh * mphysics, std::map<REAL,REAL> & pos_pressure)
 {
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
 
     int pressureMatId = 2;//ver arquivo main_elast (pois contem os materialIds)
     
-    for(int i = 0;  i< meshvec[1]->ElementVec().NElements(); i++)
+    for(int i = 0;  i < meshvec[1]->ElementVec().NElements(); i++)
     {
         TPZCompEl * cel = meshvec[1]->ElementVec()[i];
         if(cel->Reference()->MaterialId() != pressureMatId)
         {
             continue;
         }
+        if(cel->Reference()->Dimension() != 1)
+        {
+            continue;
+        }
         TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*> (cel);
-        if(!sp) continue;
+        if(!sp)
+        {
+            continue;
+        }
+
         TPZVec<REAL> qsi(1,0.), Xqsi(3,0.);
         TPZMaterialData data;
         sp->InitMaterialData(data);
@@ -534,30 +554,6 @@ REAL ToolsTransient::PressaoMedia(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh * m
         REAL press = data.sol[0][0];
         pos_pressure[pos] = press;
     }
-    
-    REAL middlePress = -1.;
-    int sz = pos_pressure.size();
-    int middle = sz/2, posCount = 0;
-    
-    if(middle == 0)
-    {
-        DebugStop();
-    }
-
-    std::map<REAL,REAL>::iterator it, itaux;
-    for(it = pos_pressure.begin(); it != pos_pressure.end(); it++)
-    {
-        itaux = it;
-        itaux++;
-        REAL press = it->second;
-        if(posCount == middle)
-        {
-            middlePress = press;
-        }
-        posCount++;
-    }
-    
-    return middlePress;
 }
 
 void ToolsTransient::PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis *an, std::string plotfile)
@@ -604,7 +600,7 @@ void ToolsTransient::PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* 
 
 void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
                                TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
-{
+{    
 	int neq = mphysics->NEquations();
     int nsteps = 7;
     
@@ -620,22 +616,30 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
     
     TPZFMatrix<REAL> dFx(neq,1);
     
-    TPZFMatrix<REAL> qsiIni = actQsi;
-
+    for(int i = 0; i < actQsi.Rows(); i++)
+    {
+        REAL val = (double)(rand())*(1.e-10);
+        actQsi(i,0) = val;
+    }
+    an->LoadSolution(actQsi);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    
     StiffMatrixLoadVec(mymaterial, mphysics, an, fLIni, fxIni);
     
+    TPZFMatrix<REAL> qsiIni = actQsi;
     
     if(fLIni->Rows() != neq || fLIni->Cols() != neq || fLIni->IsDecomposed())
     {
         DebugStop();
     }
     
-    TPZVec<REAL> deltaQsi(neq,0.01);
+    TPZVec<REAL> deltaQsi(neq,0.01), alphas(nsteps);
     double alpha;
     
     for(int i = 0; i < nsteps; i++)
     {
-        alpha = i/10.;
+        alpha = (i+1)/10.;
+        alphas[i] = alpha;
         
         ///Fx aproximado
         dFx.Zero();
@@ -643,10 +647,11 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
         {
             for(int c = 0; c < neq; c++)
             {
-                dFx(r,0) +=  fLIni->GetVal(r,c) * (alpha * deltaQsi[c]);
+                dFx(r,0) +=  (-1.) * fLIni->GetVal(r,c) * (alpha * deltaQsi[c]); // (-1) porque fLini = -D[res,sol]
             }
         }
         fxAprox = fxIni + dFx;
+        //std::cout << "Aprox : " << fxAprox(3,0) << std::endl;
         
         ///Fx exato
         for(int r = 0; r < neq; r++)
@@ -654,9 +659,12 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
             actQsi(r,0) = qsiIni(r,0) + (alpha * deltaQsi[r]);
         }
         an->LoadSolution(actQsi);
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+        
         fxExato.Zero();
         if(fLtemp) fLtemp->Zero();
         StiffMatrixLoadVec(mymaterial, mphysics, an, fLtemp, fxExato);
+        //std::cout << "Exato : " << fxExato(3,0) << std::endl;
         
         ///Erro
         errorVec.Zero();
@@ -671,8 +679,8 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
     }
     
     std::cout << "Convergence Order:\n";
-    for(int j = 2; j < nsteps; j++)
+    for(int j = 1; j < nsteps; j++)
     {
-        std::cout << ( log(errorNorm(1,0)) - log(errorNorm(j,0)) )/( log(0.1) - log(j/10.) ) << "\n";
+        std::cout << ( log(errorNorm(j,0)) - log(errorNorm(j-1,0)) )/( log(alphas[j]) - log(alphas[j-1]) ) << "\n";
     }
 }

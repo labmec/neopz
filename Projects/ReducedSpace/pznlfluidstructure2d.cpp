@@ -15,6 +15,7 @@
 #include "pzelasmat.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
+#include "pzintel.h"
 
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -780,11 +781,14 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     REAL VlAcum = it->second;
     
     REAL deltaPfrac = fabs(pfrac/10000.);
-    if(deltaPfrac < 1.E-15)
+    if(deltaPfrac < 1.E-10)
     {
         deltaPfrac = 1.E-10;
     }
-    deltaPfrac = MIN(deltaPfrac, 0.001);
+    else if(deltaPfrac > 1.E-3)
+    {
+        deltaPfrac = 1.E-3;
+    }
     
     /////////////////////////////////////////////////Ql maior
     REAL pfracUP = pfrac + deltaPfrac;
@@ -806,13 +810,59 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
 }
 
 std::ofstream outVl("vl.txt");
-void TPZNLFluidStructure2d::UpdateLeakoff(REAL pfrac)
+void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
 {
     std::map<int,REAL>::iterator it;
     
     int outVlCount = 0;
-    for(it = fGelId_vl.begin(); it != fGelId_vl.end(); it++)
+    for(int i = 0;  i < cmesh->ElementVec().NElements(); i++)
     {
+        ///////////////////////
+        TPZCompEl * cel = cmesh->ElementVec()[i];
+        TPZGeoEl * gel = cel->Reference();
+        
+        #ifdef DEBUG
+        if(!cel)
+        {
+            DebugStop();
+        }
+        #endif
+        
+        TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*> (cel);
+        if(!sp || gel->Dimension() != 1)
+        {
+            continue;
+        }
+        
+        #ifdef DEBUG
+        int pressMatId = 2;//veja no main_elast
+        if(!gel || gel->MaterialId() != pressMatId)
+        {
+            DebugStop();
+        }
+        #endif
+        
+        TPZVec<REAL> qsi(1,0.);
+        cel->Reference()->CenterPoint(cel->Reference()->NSides()-1, qsi);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        
+        qsi[0] = -1.;
+        sp->ComputeShape(qsi, data);
+        sp->ComputeSolution(qsi, data);
+
+        REAL pfrac = data.sol[0][0];
+        ///////////////////////
+        
+        it = fGelId_vl.find(gel->Id());
+        
+        #ifdef DEBUG
+        if(it == fGelId_vl.end())
+        {
+            DebugStop();
+        }
+        #endif
+        
         REAL VlAcum = it->second;
         REAL tStar = FictitiousTime(VlAcum, pfrac);
         REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
@@ -824,5 +874,11 @@ void TPZNLFluidStructure2d::UpdateLeakoff(REAL pfrac)
         }
         outVlCount++;
     }
+    
+    #ifdef DEBUG
+    if(outVlCount != fGelId_vl.size())
+    {
+        DebugStop();
+    }
+    #endif
 }
-

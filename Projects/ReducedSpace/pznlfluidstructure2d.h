@@ -90,7 +90,7 @@ protected:
     REAL FictitiousTime(REAL VlAcum, REAL pfrac);
     REAL QlFVl(int gelId, REAL pfrac);
     REAL dQlFVl(int gelId, REAL pfrac);
-    void UpdateLeakoff(REAL pfrac);
+    void UpdateLeakoff(TPZCompMesh * cmesh);
     
     REAL fQinj, fCl, fPe, fPref, fvsp;
     
