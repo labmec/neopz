@@ -92,9 +92,9 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     ervec.Fill(0.);
     truervec.Fill(0.);
     effect.Fill(0.);
-    fElementError.Fill(0);
+    fElementError.Fill(0.);
     
-    for (cliter=0;cliter<nelmesh;cliter++)  fElementError[cliter] = 0.;
+//    for (cliter=0;cliter<nelmesh;cliter++)  fElementError[cliter] = 0.;
     
     //Used to evaluate the error when the true solution is provided======
     TPZVec<int> perm(nelmesh,0);
