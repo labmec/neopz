@@ -84,7 +84,7 @@ int gPrintLevel = 0;
 int materialId = 1;
 int bc0 = -1;
 int materialBC1 = 2;
-int anothertests = 1;
+int anothertests = 0;
 char saida[512];
 ofstream out("OutPoissonArcTan.txt");             // To store output of the console
 
@@ -165,10 +165,7 @@ int main() {
 	// Output files
     std::ofstream convergence("convergence.txt");
 	std::ofstream fileerrors("ErrorsHP_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
-	
-	// To compute the errors
-	TPZManVector<REAL> ervec(100,0.0);
-	// Printing computed errors
+	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 5;
@@ -180,8 +177,8 @@ int main() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
 	//	for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
-//		for(int itypeel=(int)EOned;itypeel<(int)ETriangle;itypeel++)
-		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+//		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
