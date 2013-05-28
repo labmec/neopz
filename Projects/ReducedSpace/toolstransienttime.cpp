@@ -167,7 +167,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     }
     
-	while (TimeValue <= maxTime) //passo de tempo
+	while (TimeValue <= (maxTime + deltaT/100000.) ) //passo de tempo
 	{
         outP << "Saida" << (int)(TimeValue/timeScale) << "={";
 
@@ -249,7 +249,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
     outW << "i++;];\n";
     outW << "area];\n\n";
     outW << "Areas = {";
-    int nsteps = maxTime/deltaT;
+    int nsteps = maxTime/deltaT + 0.5;
     for(int ig = 0; ig<=nsteps; ig++)
     {
         outW << "{" << ig*deltaT << ",TrapArea[displ" << (int)(ig*deltaT/timeScale) << "]}";
