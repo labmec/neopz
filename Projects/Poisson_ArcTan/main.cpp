@@ -2521,15 +2521,31 @@ void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec) {
 	}
 	// Formating
 	if(anos)
+#ifdef WIN32
 		sprintf_s(strtime,lenstrtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+#else
+		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+#endif
 	else {
 		if(meses) 
+#ifdef WIN32
 			sprintf_s(strtime,lenstrtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+#else
+			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+#endif
 		else {
 			if(dias)
+#ifdef WIN32
 				sprintf_s(strtime,lenstrtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+#else
+				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+#endif
 			else
+#ifdef WIN32
 				sprintf_s(strtime,lenstrtime,"%02d:%02d:%02d",horas,minutos,segundos);
+#else
+				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
+#endif
 		}
 	}
 }
