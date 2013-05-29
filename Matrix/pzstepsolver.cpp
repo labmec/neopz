@@ -104,6 +104,8 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			break;
 		case TPZStepSolver::ECG:
 			mat->SolveCG(numiterations,*fPrecond,F,result,residual,tol,fFromCurrent);
+			cout << "Number of equations " << mat->Rows() << std::endl;
+			cout << "Number of CG iterations " << numiterations << " tol = " << tol << endl;
             fNumIterations = numiterations;
 #ifdef LOG4CXX
 		{
