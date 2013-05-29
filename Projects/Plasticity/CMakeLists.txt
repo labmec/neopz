@@ -17,6 +17,8 @@ if(USING_FAD AND BUILD_PLASTICITY_MATERIALS)
 	
 	file(COPY SnubDodecahedron.txt DESTINATION .)
 	file(COPY wellcil.txt DESTINATION .)
+	file(COPY ensaio_UCS_all_columns.txt DESTINATION .)
+	file(COPY ensaio_all_columns.txt DESTINATION .)
 
 endif()
 
