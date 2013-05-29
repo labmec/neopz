@@ -21,7 +21,7 @@ if(BUILD_PERF_TESTS)
   # Add perf test applications here
   add_subdirectory(SubStruct)
   add_subdirectory(DecomposeLDLt)
-  add_subdirectory(Subst)
+  # add_subdirectory(Subst) Directory Not Existent
   add_subdirectory(NumaTests)
   add_subdirectory(GFlopsTest)
 
