@@ -5,17 +5,17 @@ ENABLE_TESTING()
 ADD_TEST (SubStruct_Test SubStruct_Test)
 
 #Checking generated files
-SET (filename "Cube.vtk")
-SET (expectedMD5 "64aa9b689c442c5bf3b0a2b428fc0985")
-add_test (SubStruct_Test_${filename} "${CMAKE_COMMAND}" "-Dfilename:STRING=${filename}" "-DexpectedMD5:STRING=${expectedMD5}" "-P" "${CMAKE_SOURCE_DIR}/Tests/MD5FileTest.cmake")
+#SET (filename "Cube.vtk")
+#SET (expectedMD5 "64aa9b689c442c5bf3b0a2b428fc0985")
+#add_test (SubStruct_Test_${filename} "${CMAKE_COMMAND}" "-Dfilename:STRING=${filename}" "-DexpectedMD5:STRING=${expectedMD5}" "-P" "${CMAKE_SOURCE_DIR}/Tests/MD5FileTest.cmake")
 
 #SET (filename "dohrmann_elastic.scal_vec.0.vtk")
 #SET (expectedMD5 "faf74fdba1075ee2bc3b4917bfe7eb5e")
 #add_test (SubStruct_Test_${filename} "${CMAKE_COMMAND}" "-Dfilename:STRING=${filename}" "-DexpectedMD5:STRING=${expectedMD5}" "-P" "${CMAKE_SOURCE_DIR}/Tests/MD5FileTest.cmake")
 
-SET (filename "malhaPZ1BC.txt")
-SET (expectedMD5 "fdc16e681800611f9730a5ffcf9d231b")
-add_test (SubStruct_Test_${filename} "${CMAKE_COMMAND}" "-Dfilename:STRING=${filename}" "-DexpectedMD5:STRING=${expectedMD5}" "-P" "${CMAKE_SOURCE_DIR}/Tests/MD5FileTest.cmake")
+#SET (filename "malhaPZ1BC.txt")
+#SET (expectedMD5 "fdc16e681800611f9730a5ffcf9d231b")
+#add_test (SubStruct_Test_${filename} "${CMAKE_COMMAND}" "-Dfilename:STRING=${filename}" "-DexpectedMD5:STRING=${expectedMD5}" "-P" "${CMAKE_SOURCE_DIR}/Tests/MD5FileTest.cmake")
 
 #Checking generated files
 #SET (filename "CheckPoint1.txt")

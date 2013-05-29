@@ -1,7 +1,7 @@
 ENABLE_TESTING()
 
 #Running the executable and test if it will run ok
-ADD_TEST (Plasticity Plasticity)
+#ADD_TEST (Plasticity Plasticity)
 
 #Checking generated files
 #SET (filename "barmesh.txt")
