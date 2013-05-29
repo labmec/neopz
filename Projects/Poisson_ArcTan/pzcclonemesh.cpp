@@ -729,7 +729,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         //    orgeomesh->ResetReference();
         //    aux->LoadReferences();
 
-        if(!cel) continue;
+//        if(!cel) continue;
         TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
         if (!cint) continue;
         int ncon = cint->NConnects();
@@ -755,20 +755,22 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         int index = GetOriginalElementIndex(anelindex);
         REAL truerror = 0.;
         REAL erro =  ElementError(cint,cintlarge,transform,f,truerror);
-        REAL ervecbefore = ervec[index];
-        REAL truervecvbefore = truervec[index];
+        ervec[index] += erro;
+		bool printnl = false;
         
-        ervec[index] = ervecbefore+erro;
-        if(erro > 1.0e-8 || truerror > 1.e-8) {//CEDRIC
+        if(!IsZero(erro)) {
             cout << "index: " << index << "  Erro contribuido: " << erro;
+			printnl = true;
         }
-        if(f){
-            if (truerror > 0)  truervec[index]  = truervecvbefore + truerror;
-            if(erro > 1.0e-8 || truerror > 1.e-8) {//CEDRIC
+		// If the solution exists printing the truerror
+        if(f) {
+            if (truerror > 0)  truervec[index] += truerror;
+            if(!IsZero(truerror)) {//CEDRIC
                 cout << " erro real " << truerror << " eff local " << erro/truerror;
+				printnl = true;
             }
         }
-        if(erro > 1.0e-8 || truerror > 1.e-8) cout << endl;
+        if(printnl) cout << endl;
     }
 }
 

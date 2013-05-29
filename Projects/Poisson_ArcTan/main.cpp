@@ -159,8 +159,8 @@ int main() {
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
-	const int lenstrtime = 512;
-	char time_formated[lenstrtime];
+	char time_formated[256];
+	memset(time_formated,0,256);
 	
 	// Output files
     std::ofstream convergence("convergence.txt");
@@ -168,7 +168,7 @@ int main() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 5;
+	int nref = 1, NRefs = 6;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -200,7 +200,7 @@ int main() {
 //				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
 //			}
 			// Some refinements as initial step
-			UniformRefinement(1,gmesh,dim);
+			UniformRefinement(2,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
 			int p = 2, pinit;
@@ -282,7 +282,7 @@ int main() {
 				
 				time(&endtime);
 				time_elapsed = endtime - sttime;
-				formatTimeInSec(time_formated,lenstrtime,time_elapsed);
+				formatTimeInSec(time_formated,256,time_elapsed);
 				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
 				// Initializing the auto adaptive process

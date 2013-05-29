@@ -483,53 +483,77 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
-inline REAL ZeroTolerance(){
+inline REAL ZeroTolerance() {
 	return 1.e-10;
 }
 #ifdef _AUTODIFF
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 template<class T>
-inline bool IsZero( T a ){
+inline bool IsZero( T a ) {
 	return ( fabs( a.val() ) < ZeroTolerance() );
 }
 #endif
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 //template<>
-inline bool IsZero( long double a ){
-	return ( fabs( a ) < 1.e-16 );
-}
-//template<>
-inline bool IsZero( double a ){
+inline bool IsZero( long double a ) {
+#ifdef WIN32
 	return ( fabs( a ) < 1.e-12 );
+#else
+	return ( fabs( a ) < 1.e-16 );
+#endif
 }
 //template<>
-inline bool IsZero( float a ){
+inline bool IsZero( double a ) {
+#ifdef WIN32
+	return ( fabs( a ) < 1.e-9 );
+#else
+	return ( fabs( a ) < 1.e-12 );
+#endif
+}
+//template<>
+inline bool IsZero( float a ) {
+#ifdef WIN32
+	return ( fabs( a ) < 1.e-5 );
+#else
 	return ( fabs( a ) < 1.e-6 );
+#endif
 }
 //template<>
-inline bool IsZero( std::complex<long double> a ){
+inline bool IsZero( std::complex<long double> a ) {
+#ifdef WIN32
+	return ( fabs( a ) < 1.e-12 );
+#else
 	return ( fabs( a ) < 1.e-16 );
+#endif
 }
 //template<>
-inline bool IsZero( std::complex<double> a ){
-	return ( fabs( a ) < 1.e-16 );
+inline bool IsZero( std::complex<double> a ) {
+#ifdef WIN32
+	return ( fabs( a ) < 1.e-9 );
+#else
+	return ( fabs( a ) < 1.e-12 );
+#endif
 }
 //template<>
-inline bool IsZero( std::complex<float> a ){
+inline bool IsZero( std::complex<float> a ) {
+#ifdef WIN32
+	return ( fabs( a ) < 1.e-5 );
+#else
 	return ( fabs( a ) < 1.e-7 );
+#endif
 }
 //template<>
-inline bool IsZero( int a ){
+inline bool IsZero( int a ) {
 	return ( a==0 );
 }
 /// Returns the maximum value between a and b
 template <class T>
-inline const T& Max( const T &a, const T &b ){
+inline const T& Max( const T &a, const T &b ) {
 	return a > b ? a : b;
 }
 /// Returns the minimum value between a and b
 template <class T>
-inline const T& Min( const T & a, const T &b ){
+inline const T& Min( const T & a, const T &b ) {
 	return a < b ? a : b;
 }
 

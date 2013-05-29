@@ -201,12 +201,12 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     TPZStack <int> porder;
     
     //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
-    for (i=0;i<fCloneMeshes .NElements();i++){
-        if (! fFineCloneMeshes [i]) continue;
+    for (i=0;i<fCloneMeshes.NElements();i++){
+        if (! fFineCloneMeshes[i]) continue;
         fCloneMeshes [i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMeshes [i],gelstack,porder);
     }
     
-    TPZCompMesh * adapted =   CreateCompMesh(fReferenceCompMesh,gelstack,porder);
+    TPZCompMesh *adapted = CreateCompMesh(fReferenceCompMesh,gelstack,porder);
     return adapted;
 }
 
