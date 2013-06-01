@@ -111,7 +111,8 @@ class TPZCompCloneMesh : public TPZCompMesh {
    * the error and true error are accumulated in ervec and truervec
    * ervec and truervec are indexed according to the original computational mesh
    */
-  void MeshError(TPZCompMesh *fine, TPZVec<REAL> &ervec, void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),TPZVec<REAL> &truervec);
+  void MeshError(TPZCompMesh *fine, TPZVec<REAL> &ervec, void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+	  TPZVec<REAL> &truervec, std::ofstream &out);
 
   /**
    * Returns the uniformly hp refined mesh base on this mesh

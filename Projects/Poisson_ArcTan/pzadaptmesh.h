@@ -48,8 +48,8 @@ class TPZAdaptMesh {
 			       TPZVec<REAL> &ervec, 
 			       void (*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 			       TPZVec<REAL> &truervec, 
-			       TPZVec<REAL> &effect,
-			       int use_trueerror = 0);
+			       TPZVec<REAL> &effect, std::ofstream &out,
+			       int use_trueerror = 0,MElementType eltype=EOned);
 
 
 static void DeleteElements(TPZCompMesh *mesh);

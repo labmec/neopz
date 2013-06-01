@@ -666,7 +666,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
 
 void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
                                  void(*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
-                                 TPZVec<REAL> &truervec) {
+                                 TPZVec<REAL> &truervec,std::ofstream &out) {
     //Evaluates the solution for the fine mesh
     //Computes the error estimator as the diference between "this" and "fine"
     if (fine->Reference()->Reference() != fine){
@@ -718,18 +718,6 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         TPZGeoEl *gel = cel->Reference();
         if (!IsSonOfRootElement(gel)) continue;
         
-        //convergencia...
-        //    TPZGeoMesh *orgeomesh = fCloneReference->Reference();
-        //    TPZCompMesh *aux =  orgeomesh->Reference();
-        //    orgeomesh->ResetReference();
-        //    fCloneReference->LoadReferences();
-        //   int orgcelind = GetOriginalElementIndex(el);
-        //    if (orgcelind >= 0) cel = fCloneReference->ElementVec()[orgcelind];
-        //    else cel = 0;
-        //    orgeomesh->ResetReference();
-        //    aux->LoadReferences();
-
-//        if(!cel) continue;
         TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
         if (!cint) continue;
         int ncon = cint->NConnects();
@@ -738,7 +726,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         TPZGeoElSide gellarge(gelside);
         while(!gellarge.Reference().Exists() && gellarge.Father2().Exists()) gellarge = gellarge.Father2();
         if(!gellarge.Reference().Exists()) {
-            cout << "TPZCompCloneMesh::BuildTransferMatrix element " << el << " found no corresponding element\n";
+            out << "TPZCompCloneMesh::BuildTransferMatrix element " << el << " found no corresponding element\n";
             continue;
         }
         TPZCompElSide cellargeside = gellarge.Reference();
@@ -750,7 +738,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         int anelindex = cellarge->Index();
         if (anelindex < 0 || anelindex >=  NElements()) {
             anelindex = cellarge->Reference()->Father()->Reference()->Index();
-            cout << "TPZCompCloneMesh::ERROR\nFine clone reference called!!\n";
+            out << "TPZCompCloneMesh::ERROR\nFine clone reference called!!\n";
         }
         int index = GetOriginalElementIndex(anelindex);
         REAL truerror = 0.;
@@ -759,18 +747,18 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
 		bool printnl = false;
         
         if(!IsZero(erro)) {
-            cout << "index: " << index << "  Erro contribuido: " << erro;
+            out << "index: " << index << "  Erro contribuido: " << erro;
 			printnl = true;
         }
 		// If the solution exists printing the truerror
         if(f) {
             if (truerror > 0)  truervec[index] += truerror;
             if(!IsZero(truerror)) {//CEDRIC
-                cout << " erro real " << truerror << " eff local " << erro/truerror;
+                out << " erro real " << truerror << " eff local " << erro/truerror;
 				printnl = true;
             }
         }
-        if(printnl) cout << endl;
+        if(printnl) out << endl;
     }
 }
 

@@ -123,6 +123,8 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL &radius,int ntyper
 // Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+/** Print the elements of the computational mesh with associated element data */
+void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData);
 
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce);
 
@@ -168,7 +170,7 @@ int main() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 6;
+	int nref = 1, NRefs = 7;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -301,26 +303,25 @@ int main() {
 				adapt.SetCompMesh(cmesh);
 				
 				std::cout << "\n\n\nEntering Auto Adaptive Methods... step " << nref << "\n\n";
-				
+				fileerrors << "\n\nEntering Auto Adaptive Methods... step " << nref << "\n";
+
 				TPZCompMesh *adptmesh;
 				if(NRefs>1) {
 					time (& sttime);
-					adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,0);
+					adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,fileerrors,0,typeel);
 					
 					time_t endtime;
 					time (& endtime);
 					
 					int time_elapsed = endtime - sttime;
 					std::cout << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
+					fileerrors << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
 					
 					int prt;
 					std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
-					
-					convergence  << cmesh->NEquations() << "\t"
-					<< valerror << "\t"
-					<< valtruerror << "\t"
-					<< ( valtruerror / valerror ) <<  "\t"
-					<< sttime <<std::endl;
+					fileerrors << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+
+					convergence  << cmesh->NEquations() << "\t" << valerror << "\t" << valtruerror << "\t" << ( valtruerror / valerror ) <<  "\t" << sttime <<std::endl;
 					for (prt=0;prt<ervec.NElements();prt++) {
 						std::cout <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << std::endl;
 					}
@@ -2410,7 +2411,23 @@ void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *file
 	// Printing geometric mesh to visualization in Paraview
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
 }
-
+/*
+void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[i];
+		if(gel && gel->Reference())
+			DataElement[i] = elData[gel->Reference()->Index()];
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+*/
 void InitializeSolver(TPZAnalysis &an) {
 	TPZStepSolver<REAL> step;
 	TPZBandStructMatrix matrix(an.Mesh());
@@ -3312,7 +3329,7 @@ int main_Failed() {
 				TPZCompMesh *adptmesh;
 				if(NRefs>1) {
 					time (& sttime);
-					adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,0);
+					adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,fileerrors,0,typeel);
 					
 					time_t endtime;
 					time (& endtime);

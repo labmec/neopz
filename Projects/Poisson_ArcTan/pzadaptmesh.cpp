@@ -77,10 +77,34 @@ void TPZAdaptMesh::CleanUp(){
     fFineCloneMeshes .Resize(0);
 }
 
+void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<TPZVec<REAL> > &elData) {
+	if(!gmesh || !elData.NElements())
+		return;
+	int i, j, size = gmesh->NElements();
+
+	TPZVec<TPZVec<REAL> > DataElement;
+	DataElement.Resize(size);
+	int ndata = elData[0].NElements();
+	for(i=0;i<size;i++)
+		DataElement[i].Resize(ndata);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[i];
+		if(gel && gel->Reference())
+			for(j=0;j<ndata;j++)
+				DataElement[i][j] = elData[gel->Reference()->Index()][j];
+		else
+			for(j=0;j<ndata;j++)
+				DataElement[i][j] = -1.0;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+
 TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<REAL> &ervec, 
                                            void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
                                            TPZVec<REAL> &truervec, 
-                                           TPZVec<REAL> &effect, int use_trueerror){
+                                           TPZVec<REAL> &effect, ofstream &out, int use_trueerror,MElementType eltype){
     int i;
     //clone analysis
     int cliter;
@@ -93,8 +117,6 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     truervec.Fill(0.);
     effect.Fill(0.);
     fElementError.Fill(0.);
-    
-//    for (cliter=0;cliter<nelmesh;cliter++)  fElementError[cliter] = 0.;
     
     //Used to evaluate the error when the true solution is provided======
     TPZVec<int> perm(nelmesh,0);
@@ -136,13 +158,22 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     CreateClones();
     int ncl = fCloneMeshes .NElements();
     fFineCloneMeshes.Resize(ncl);
-    
+	static int count = 0;
+
+	bool gDebug = false;
+	char saida[512];
+	TPZVec<TPZVec<REAL> > ErrorVecData;
+	ErrorVecData.Resize(nelmesh);
+	for(i=0;i<nelmesh;i++)
+		ErrorVecData[i].Resize(2);
+
     //Creates an uniformly refined mesh and evaluates the error
-    for (cliter = 0; cliter<ncl; cliter++){
+    for (cliter = 0; cliter<ncl; cliter++) {
+		ErrorVecData.clear();
         //Análise dos Clones
         TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMeshes [cliter]->Reference());
         //       if (gcmesh && gcmesh->GetMeshRootElement()->MaterialId() < 0) continue;
-        if (gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))){
+        if(gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))) {
             fFineCloneMeshes [cliter] = 0;
             continue;
         }
@@ -154,11 +185,37 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 			fFineCloneMeshes[cliter]->Print(out);
             out.close();
         }
-        fCloneMeshes[cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec);
+        fCloneMeshes[cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec,out);
+		// Printing errors on geometric mesh to validate
+		memset(saida,0,512);
+		if(gDebug) {
+			for(i=0;i<nelmesh;i++) {
+				ErrorVecData[i][0] = fElementError[i];
+				ErrorVecData[i][1] = truervec[i];
+			}
+			
+			sprintf(saida,"ErroOnCMeshFrom_Patch%d_Iter%d.vtk",cliter,count);
+			PrintGeoMeshAsCompMeshInVTKWithElementData((TPZGeoMesh *)gcmesh,saida,ErrorVecData);
+		}
     }
-    
+	// To validate we print all the calculated errors by geo mesh
+	ErrorVecData.clear();
+	ErrorVecData.Resize(nelmesh);
+	for(i=0;i<nelmesh;i++)
+		ErrorVecData[i].Resize(3);
+	for(i=0;i<nelmesh;i++) {
+		ErrorVecData[i][0] = fElementError[i];
+		ErrorVecData[i][1] = truervec[i];
+		if(IsZero(truervec[i]))
+			ErrorVecData[i][2] = -1.;
+		else
+			ErrorVecData[i][2] = fElementError[i]/truervec[i];
+	}
+	// Printing calculated errors for each element in computational mesh
+	sprintf(saida,"ErroOnCMeshFrom_Iter%d.vtk",count++);
+	PrintGeoMeshAsCompMeshInVTKWithElementData(fReferenceCompMesh->Reference(),saida,ErrorVecData);
+
     //Ordena o vetor de erros
-    
     for(i=0; i<nelmesh; i++) {
         perm[i] = i;
         ervec[i]=fElementError[i];
@@ -207,6 +264,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     }
     
     TPZCompMesh *adapted = CreateCompMesh(fReferenceCompMesh,gelstack,porder);
+	ErrorVecData.clear();
     return adapted;
 }
 
