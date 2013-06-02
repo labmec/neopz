@@ -170,7 +170,7 @@ int main() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 7;
+	int nref = 1, NRefs = 5;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -202,7 +202,7 @@ int main() {
 //				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
 //			}
 			// Some refinements as initial step
-			UniformRefinement(2,gmesh,dim);
+			UniformRefinement(1,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
 			int p = 2, pinit;

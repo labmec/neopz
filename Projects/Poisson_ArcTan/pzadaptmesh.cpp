@@ -85,8 +85,10 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 	TPZVec<TPZVec<REAL> > DataElement;
 	DataElement.Resize(size);
 	int ndata = elData[0].NElements();
-	for(i=0;i<size;i++)
+	for(i=0;i<size;i++) {
 		DataElement[i].Resize(ndata);
+		DataElement[i].Fill(0.0);
+	}
 	// Making dimension of the elements as data element
 	for(i=0;i<size;i++) {
 		TPZGeoEl *gel = gmesh->ElementVec()[i];

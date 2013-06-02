@@ -571,12 +571,12 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZ
 	file << type.str() << std::endl;
 	
 	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
-	file << "FIELD FieldData 1" << std::endl;
+	file << "FIELD FieldData " << ndatas << std::endl;
 
 	for(dat=0;dat<ndatas;dat++) {
-		file << "Substructure " << dat+1 << " " << nVALIDelements << " float" << std::endl;
+		file << "Substructure" << dat+1 << " 1 " << nVALIDelements << " float" << std::endl;
 		file << datael[dat].str();
-		file << std::endl << std::endl;
+		file << std::endl;
 	}
 	if(datael)
 		delete[] datael;
