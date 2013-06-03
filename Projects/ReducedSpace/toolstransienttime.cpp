@@ -22,7 +22,6 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSpStructMatrix.h"
-#include "pzelastpressure.h"
 #include "pznlfluidstructure2d.h"
 #include "pzfstrmatrix.h"
 #include "../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.h"
