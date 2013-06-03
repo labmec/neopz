@@ -16,6 +16,8 @@
 #include "pzvec.h"
 #include "pzfmatrix.h"
 
+#include "pznlfluidstructureMaterials.h"
+
 #include <iostream>
 
 /**
@@ -55,6 +57,9 @@ protected:
     /** @brief Length of fracture */
     REAL fLf;
     
+    /** @brief Length of domain (in X axis) */
+    REAL fLdomain;
+    
 	/** @brief Problem dimension */
 	int fDim;
 	
@@ -92,7 +97,7 @@ protected:
     REAL dQlFVl(int gelId, REAL pfrac);
     void UpdateLeakoff(TPZCompMesh * cmesh);
     
-    REAL fQinj, fCl, fPe, fPref, fvsp;
+    REAL fQinj, fCl, fPe, fPref, fvsp, fKIc;
     
     std::map<int,REAL> fGelId_vl;
     
@@ -118,13 +123,25 @@ public:
     }
     
 	/** 
-     *@brief Parameters of pressure:
-     *@param Hw altura da fratura
-     *@param visc viscosidade do fluido
-     *@param QL vazao para o meio poroso
+     *@brief Parameters:
+     * @param E elasticity modulus
+	 * @param nu poisson coefficient
+     * @param fx forcing function \f$ -x = fx \f$
+	 * @param fy forcing function \f$ -y = fy \f$
+     * @param Hw altura da fratura
+     * @param visc viscosidade do fluido
+     * @param QL vazao para o meio poroso
     */
-	void SetParameters(REAL Hf, REAL Lf, REAL visc, REAL Qinj, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp)
+	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy,
+                       REAL Hf, REAL Lf, REAL visc, REAL Qinj,
+                       REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Ldomain)
 	{
+        fE = E;
+		fnu = nu;
+        fG = 0.5*(E/(1.+fnu));
+		ff[0] = fx;
+		ff[1] = fy;
+        
         fHf = Hf;
         fLf = Lf;
         fvisc = visc;
@@ -134,7 +151,21 @@ public:
         fSigConf = SigmaConf;
         fPref = Pref;
         fvsp = vsp;
+        
+        fKIc = KIc;
+        
+        fLdomain = Ldomain;
 	}
+    
+    REAL Young()
+    {
+        return fE;
+    }
+    
+    REAL Poisson()
+    {
+        return fnu;
+    }
     
     REAL Hf()
     {
@@ -172,24 +203,15 @@ public:
     {
         return fvsp;
     }
+    REAL KIc()
+    {
+        return fKIc;
+    }
+    REAL Ldomain()
+    {
+        return fLdomain;
+    }
 	
-	/**
-	 * @brief Set parameters of elastic material:
-	 * @param E elasticity modulus
-	 * @param nu poisson coefficient
-     * @param G Shear modulus
-	 * @param fx forcing function \f$ -x = fx \f$
-	 * @param fy forcing function \f$ -y = fy \f$
-	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
-	 */
-	void SetElasticParameters(REAL E, REAL nu,  REAL fx, REAL fy)
-	{
-		fE = E;
-		fnu = nu;
-        fG = 0.5*(E/(1.+fnu));
-		ff[0] = fx;
-		ff[1] = fy;
-	}
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state

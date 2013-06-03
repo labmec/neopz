@@ -835,8 +835,7 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         }
         
         #ifdef DEBUG
-        int pressMatId = 2;//veja no main_elast
-        if(!gel || gel->MaterialId() != pressMatId)
+        if(!gel || gel->MaterialId() != globPressureMatId)
         {
             DebugStop();
         }

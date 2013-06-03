@@ -19,7 +19,10 @@
 #include "tpzautopointer.h"
 #include "pzanalysis.h"
 #include "pzfmatrix.h"
+#include "tpzcompmeshreferred.h"
 #include "pzl2projection.h"
+
+#include "pznlfluidstructureMaterials.h"
 
 #include <fstream>
 #include <sstream>
@@ -33,6 +36,23 @@ class ToolsTransient {
     ToolsTransient();
     
     ~ToolsTransient();
+    
+    //---------------------------------------------------------------
+    
+    static TPZGeoMesh * Mesh2D(REAL lf, REAL ldom, REAL hdom, REAL lmax);
+    
+    static TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh, int pOrder, REAL E, REAL poisson, REAL sigN);
+    static TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, REAL E, REAL poisson);
+    static TPZCompMesh * CMeshPressure(TPZGeoMesh *gmesh, int pOrder, REAL Qinj);
+    static TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial,
+                                              REAL ED, REAL nu, REAL fx, REAL fy, REAL Hf, REAL Lf, REAL visc,
+                                              REAL Qinj, REAL Cl, REAL Pe, REAL SigmaConf, REAL sigN, REAL Pref, REAL vsp, REAL KIc, REAL Lx);
+    
+    static void SaidaPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+    
+    static void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
+    
+    //---------------------------------------------------------------
     
     static void SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an,
                                    TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
@@ -57,7 +77,10 @@ class ToolsTransient {
     
     static void PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum);
     
-    static void ComputeKI(TPZCompMesh * elastMesh, REAL radius, std::stringstream & outFile, int cent = -1, REAL TimeValue = -1, bool firstCall = true);
+    static REAL ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, REAL poisson,
+                                     REAL radius, std::stringstream & outFile, int cent = -1, REAL TimeValue = -1, bool firstCall = true);
+    
+    static bool PropagateOneStep(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZNLFluidStructure2d * &mymaterial);
     
     static void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
                           TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
