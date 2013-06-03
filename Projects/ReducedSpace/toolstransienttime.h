@@ -9,24 +9,10 @@
 #ifndef PZ_toolstransienttime_h
 #define PZ_toolstransienttime_h
 
-#include <iostream>
-
-#include "pzelastpressure.h"
-#include "pznlfluidstructure2d.h"
 #include "pzcmesh.h"
-#include "pzvec.h"
-#include "pzmatrix.h"
-#include "tpzautopointer.h"
 #include "pzanalysis.h"
-#include "pzfmatrix.h"
 #include "tpzcompmeshreferred.h"
-#include "pzl2projection.h"
-
-#include "pznlfluidstructureMaterials.h"
-
-#include <fstream>
-#include <sstream>
-
+#include "pznlfluidstructure2d.h"
 
 
 class ToolsTransient {

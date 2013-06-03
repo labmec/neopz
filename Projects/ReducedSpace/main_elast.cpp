@@ -7,57 +7,8 @@
 //
 
 
-#include "pzgmesh.h"
-#include "pzcmesh.h"
-#include "tpzcompmeshreferred.h"
-#include "pzreferredcompel.h"
-#include "pzcompel.h"
-#include "pzbndcond.h"
-#include "TPZInterfaceEl.h"
-#include "pzinterpolationspace.h"
-
-#include "pzpoisson3d.h"
-#include "pzelasmat.h"
-//#include "pzmat1dlin.h"
-#include "pzelastpressure.h"
-#include "pznlfluidstructure2d.h"
-
-//#include "tpzgeoelrefpattern.h"
-//#include "TPZGeoLinear.h"
-//#include "tpztriangle.h"
-//#include "pzgeoquad.h"
-//#include "pzgeopoint.h"
-
-#include "pzanalysis.h"
-#include "pznonlinanalysis.h"
-#include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
-#include "pzstepsolver.h"
-#include "pzreducedspace.h"
 #include "pzfstrmatrix.h"
-#include "pzlog.h"
-
-#include "pzbuildmultiphysicsmesh.h"
-
-#include "TPZVTKGeoMesh.h"
-
-#include <iostream>
-#include <math.h>
-
-#include <fstream>
-#include <sstream>
-
 #include "toolstransienttime.h"
-
-#include "tpzchangeel.h"
-
-#include "pznlfluidstructureMaterials.h"
-
-using namespace std;
-
-
-
-
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
@@ -67,7 +18,7 @@ static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
     //Dimensions:
     const REAL Lx = 400.;
     const REAL Ly = 400.;
-    REAL Lf = 50.;
+    const REAL Lf = 50.;
     const REAL Hf = 1.;
     //Elastic properties:
     const REAL ED = 3.9E4;//MPa
