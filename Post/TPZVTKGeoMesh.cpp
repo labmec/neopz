@@ -133,11 +133,6 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		{
 			continue;
 		}
-        // toto
-        if(!gel->Reference())
-        {
-            continue;
-        }
 //		if(gel->HasSubElement())
 //		{
 //			continue;
