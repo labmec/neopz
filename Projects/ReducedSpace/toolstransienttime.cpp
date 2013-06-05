@@ -41,18 +41,26 @@ ToolsTransient::ToolsTransient(){
     
 }
 
+ToolsTransient::ToolsTransient(int pOrder,
+                               REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, REAL Visc, REAL SigN,
+                               REAL Qinj, REAL Ttot, REAL Nsteps, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
+{
+    fpOrder = pOrder;
+    fInputData.SetData(Lx, Ly, Lf, Hf, E, Poiss, Fx, Fy, Visc, SigN, Qinj, Ttot, Nsteps, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+}
+
 ToolsTransient::~ToolsTransient(){
     
 }
 
 //------------------------------------------------------------------------------------
 
-TPZGeoMesh * ToolsTransient::Mesh2D(REAL lf, REAL ldom, REAL hdom, REAL lmax)
+TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
 {
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
-    int ndivV = int(ldom/lmax + 0.5);
-    int ndivH = int(hdom/lmax + 0.5);
+    int ndivV = int(fInputData.Lx()/lmax + 0.5);
+    int ndivH = int(fInputData.Ly()/lmax + 0.5);
     
     int ncols = ndivV + 1;
     int nrows = ndivH + 1;
@@ -60,11 +68,11 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     
     gmesh->NodeVec().Resize(nnodes);
     
-    REAL deltadivV = ldom/ndivV;
-    REAL deltandivH = hdom/ndivH;
+    REAL deltadivV = fInputData.Lx()/ndivV;
+    REAL deltandivH = fInputData.Ly()/ndivH;
     
     int nid = 0;
-    REAL cracktipDist = lf;
+    REAL cracktipDist = fInputData.Lf();
     int colCracktip = -1;
     for(int r = 0; r < nrows; r++)
     {
@@ -72,8 +80,8 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         {
             REAL x = c*deltadivV;
             REAL y = r*deltandivH;
-            REAL dist = fabs(lf-x);
-            if(dist < cracktipDist)
+            REAL dist = fabs(fInputData.Lf()-x);
+            if(r == 0 && dist < cracktipDist)
             {
                 cracktipDist = dist;
                 colCracktip = c;
@@ -251,7 +259,7 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     return gmesh;
 }
 
-TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh, int pOrder, REAL E, REAL poisson, REAL sigN)
+TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh)
 {
     /// criar materiais
 	int dim = 2;
@@ -262,14 +270,14 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh, int pOrder, REAL E
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, E, poisson, force[0], force[1], planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, fInputData.E(), fInputData.Poiss(), fInputData.Fx(), fInputData.Fy(), planestrain);
     
     TPZMaterial * mat(material);
     material->NStateVariables();
     
     ///criar malha computacional
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDefaultOrder(fpOrder);
 	cmesh->SetDimModel(dim);
     cmesh->InsertMaterialObject(mat);
     
@@ -277,7 +285,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh, int pOrder, REAL E
     REAL big = material->gBigNumber;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(1,0) = sigN;
+    val2(1,0) = fInputData.SigN();
     TPZMaterial * BCond1 = material->CreateBC(mat, globPressureMatId, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -300,7 +308,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh, int pOrder, REAL E
 	return cmesh;
 }
 
-TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, REAL E, REAL poisson){
+TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh){
     
     /// criar materiais
 	int dim = 2;
@@ -309,7 +317,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMes
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, E, poisson, force[0], force[1], planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, fInputData.E(), fInputData.Poiss(), fInputData.Fx(), fInputData.Fy(), planestrain);
 	material->NStateVariables();
     
     
@@ -341,7 +349,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMes
     cmeshreferred->InsertMaterialObject(BCond2);
     cmeshreferred->InsertMaterialObject(BCond3);
     
-	cmeshreferred->SetDefaultOrder(pOrder);
+	cmeshreferred->SetDefaultOrder(fpOrder);
     cmeshreferred->SetDimModel(dim);
 	
     gmesh->ResetReference();
@@ -353,7 +361,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMes
     return cmeshreferred;
 }
 
-TPZCompMesh * ToolsTransient::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, REAL Qinj){
+TPZCompMesh * ToolsTransient::CMeshPressure(TPZGeoMesh *gmesh){
     
     /// criar materiais
 	int dim = 1;
@@ -372,13 +380,13 @@ TPZCompMesh * ToolsTransient::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, REAL 
     
     ///criar malha computacional
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDefaultOrder(fpOrder);
 	cmesh->SetDimModel(dim);
     cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(0,0) = Qinj;
+    val2(0,0) = fInputData.Qinj();
     TPZMaterial * BCond1 = material->CreateBC(mat, globBCfluxIn, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -408,9 +416,7 @@ void ToolsTransient::MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	an.Run();
 }
 
-TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial,
-                                                   REAL ED, REAL nu, REAL fx, REAL fy, REAL Hf, REAL Lf, REAL visc,
-                                                   REAL Qinj, REAL Cl, REAL Pe, REAL SigmaConf, REAL sigN, REAL Pref, REAL vsp, REAL KIc, REAL Lx){
+TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial){
     
     //Creating computational mesh for multiphysic elements
 	gmesh->ResetReference();
@@ -422,7 +428,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     //int planestress = 1;
     int planestrain = 0;
     mymaterial->SetfPlaneProblem(planestrain);
-    mymaterial->SetParameters(ED, nu, fx, fy, Hf, Lf, visc, Qinj, Cl, Pe, SigmaConf, Pref, vsp, KIc, Lx);
+    mymaterial->SetParameters(fInputData.E(), fInputData.Poiss(), fInputData.Fx(), fInputData.Fy(), fInputData.Hf(), fInputData.Lf(), fInputData.Visc(), fInputData.Qinj(), fInputData.Cl(), fInputData.Pe(), fInputData.SigmaConf(), fInputData.Pref(), fInputData.vsp(), fInputData.KIc(), fInputData.Lx());
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
@@ -432,7 +438,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     REAL big = mymaterial->gBigNumber;
     
     TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
-    val2(1,0) = sigN;
+    val2(1,0) = fInputData.SigN();
     TPZMaterial * BCond1 = mymaterial->CreateBC(mat, globPressureMatId, neumann, val1, val2);
     
     val2.Redim(3,1);
@@ -444,7 +450,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     
     val2.Redim(3,1);
     val1.Redim(3,2);
-    val2(2,0) = Qinj;
+    val2(2,0) = fInputData.Qinj();
     TPZMaterial * BCond4 = mymaterial->CreateBC(mat, globBCfluxIn, globNeum_pressure, val1, val2);
     
     val2.Redim(3,1);
