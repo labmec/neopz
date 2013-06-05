@@ -221,18 +221,15 @@ public:
 	{
 		fPlaneStress = planestress;
 	}
-	
     /// Set the timestep
 	void SetTimeStep(REAL delt)
 	{
 		fTimeStep = delt;
 	}
-    
     REAL TimeStep()
     {
         return fTimeStep;
     }
-    
     int MatId()
     {
         return fmatId;
