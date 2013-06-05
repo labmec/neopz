@@ -378,6 +378,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 	
 	file.close();
 }
+
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REAL> &elData)
 {
