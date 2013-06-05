@@ -12,9 +12,9 @@
 
 #include "TPZVTKGeoMesh.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
-#endif
+//#ifdef LOG4CXX
+//static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+//#endif
 
 
 
