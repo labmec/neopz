@@ -149,7 +149,7 @@ int TPZPolynomial::GetRoots(TPZVec<REAL> & r) {
     int i;
     for (i = 0; i < 3; i++)
         if (fCo[i] == -99.999) {
-            cout << "TPZPolynomial::GetRoots.\nERRO: Coeficientes ainda não foram especificados.\n";
+            cout << "TPZPolynomial::GetRoots.\nERRO: Coeficientes ainda nao foram especificados.\n";
             return -1;
         }
 	r  = fReal;

@@ -918,8 +918,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	// this should happen in the remote processor
     TPZSkylineStructMatrix skylstr(submesh);
 	TPZAutoPointer<TPZGuiInterface> toto = new TPZGuiInterface;
-	int neq = dynamic_cast<TPZCompMesh *>(submesh)->NEquations();
-//	skylstr.SetEquationRange(0,neq);
+
 	skylstr.EquationFilter().Reset();
     substruct->fStiffness = TPZAutoPointer<TPZMatrix<STATE> > (skylstr.CreateAssemble(substruct->fLocalLoad,toto));
 	

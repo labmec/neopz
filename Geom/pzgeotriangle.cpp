@@ -84,11 +84,11 @@ namespace pzgeom {
 	void TPZGeoTriangle::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &fVectorSide){
 		if(coord.Rows()!=3)
 		{
-			cout<< "Erro na dimens‹o das linhas de coord"<< endl;
+			cout<< "Erro na dimensao das linhas de coord"<< endl;
 		}
 		if(coord.Cols()!=3)
 		{
-			cout<< "Erro na dimens‹o das colunas de coord"<< endl;
+			cout<< "Erro na dimensao das colunas de coord"<< endl;
 		}
 		TPZVec<REAL> p1(3), p2(3), p3(3),result(3);
 		for(int j=0;j<3;j++)

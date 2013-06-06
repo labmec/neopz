@@ -28,7 +28,7 @@ int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZV
 	TPZNumeric::ProdVetorial(desloc1, desloc2, aux);
 	REAL norm = inner_product(&aux[0], &aux[3], &aux[0], REAL(0.0));
 	if(norm <= 1e-10){
-		cerr << "TPZPlane::SetPlane - Erro: Pontos alinhados não é possível determinar um único plano\n";
+		cerr << "TPZPlane::SetPlane - Erro: Pontos alinhados nao eh possivel determinar um unico plano\n";
 		return 0;
 	}
 	else{
