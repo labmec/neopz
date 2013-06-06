@@ -17,6 +17,7 @@
 #include "pzfmatrix.h"
 
 #include "pznlfluidstructureMaterials.h"
+#include "pznlfluidstructureData.h"
 
 #include <iostream>
 
@@ -41,37 +42,14 @@ protected:
 	
 	/** @brief Forcing vector */
 	TPZVec<REAL>  ff;
-	
-	/** @brief Elasticity modulus */
-	REAL fE;
-	
-	/** @brief Poison coeficient */
-	REAL fnu;
-    
-    /** @brief Shear modulus */
-    REAL fG;
-	
-    /** @brief width of fracture */
-    REAL fHf;
-    
-    /** @brief Length of fracture */
-    REAL fLf;
-    
-    /** @brief Length of domain (in X axis) */
-    REAL fLdomain;
     
 	/** @brief Problem dimension */
 	int fDim;
 	
 	/** @brief term that multiplies the Laplacian operator, outflow to the poros medio and right side
-     * @note \f$fvisc f$ => viscosidade do fluido
      * @note \f$fXf f$ => vetor de carga
      */
-    REAL fvisc;
     REAL fXf;
-    
-    /** @brief tensao de confinamento do solido*/
-    REAL fSigConf;
 	
 	/** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
@@ -81,8 +59,7 @@ protected:
 	
 	REAL fmatId;
     
-    /// timestep [s]
-	REAL fTimeStep;
+    InputDataStruct * fInputData;
     
     /** @brief State: one ou one+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
@@ -96,8 +73,6 @@ protected:
     REAL QlFVl(int gelId, REAL pfrac);
     REAL dQlFVl(int gelId, REAL pfrac);
     void UpdateLeakoff(TPZCompMesh * cmesh);
-    
-    REAL fQinj, fCl, fPe, fPref, fvsp, fKIc;
     
     std::map<int,REAL> fGelId_vl;
     
@@ -116,102 +91,11 @@ public:
 	int Dimension() {return fDim;}
 	
 	virtual int NStateVariables();
-	
-    void SetLfrac(REAL Lf)
-    {
-        fLf = Lf;
-    }
     
-	/** 
-     *@brief Parameters:
-     * @param E elasticity modulus
-	 * @param nu poisson coefficient
-     * @param fx forcing function \f$ -x = fx \f$
-	 * @param fy forcing function \f$ -y = fy \f$
-     * @param Hw altura da fratura
-     * @param visc viscosidade do fluido
-     * @param QL vazao para o meio poroso
-    */
-	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy,
-                       REAL Hf, REAL Lf, REAL visc, REAL Qinj,
-                       REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Ldomain)
+	void SetInputData(InputDataStruct * inputData)
 	{
-        fE = E;
-		fnu = nu;
-        fG = 0.5*(E/(1.+fnu));
-		ff[0] = fx;
-		ff[1] = fy;
-        
-        fHf = Hf;
-        fLf = Lf;
-        fvisc = visc;
-        fQinj = Qinj;
-        fCl = Cl;
-        fPe = Pe;
-        fSigConf = SigmaConf;
-        fPref = Pref;
-        fvsp = vsp;
-        
-        fKIc = KIc;
-        
-        fLdomain = Ldomain;
+        fInputData = inputData;
 	}
-    
-    REAL Young()
-    {
-        return fE;
-    }
-    
-    REAL Poisson()
-    {
-        return fnu;
-    }
-    
-    REAL Hf()
-    {
-        return fHf;
-    }
-    REAL Lf()
-    {
-        return fLf;
-    }
-    REAL visc()
-    {
-        return fvisc;
-    }
-    REAL Qinj()
-    {
-        return fQinj;
-    }
-    REAL Cl()
-    {
-        return fCl;
-    }
-    REAL Pe()
-    {
-        return fPe;
-    }
-    REAL SigmaConf()
-    {
-        return fSigConf;
-    }
-    REAL Pref()
-    {
-        return fPref;
-    }
-    REAL vsp()
-    {
-        return fvsp;
-    }
-    REAL KIc()
-    {
-        return fKIc;
-    }
-    REAL Ldomain()
-    {
-        return fLdomain;
-    }
-	
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state
@@ -221,15 +105,7 @@ public:
 	{
 		fPlaneStress = planestress;
 	}
-    /// Set the timestep
-	void SetTimeStep(REAL delt)
-	{
-		fTimeStep = delt;
-	}
-    REAL TimeStep()
-    {
-        return fTimeStep;
-    }
+    
     int MatId()
     {
         return fmatId;
@@ -325,6 +201,15 @@ public:
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
     
     void ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    
+    std::map<int,REAL> GetLeakoffData()
+    {
+        return fGelId_vl;
+    }
+    void SetLeakoffData(std::map<int,REAL> leakoffMap)
+    {
+        fGelId_vl = leakoffMap;
+    }
 };
 
 #endif /* defined(__PZ__pznlfluidstructure2d__) */

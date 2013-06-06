@@ -10,23 +10,16 @@
 
 #include "toolstransienttime.h"
 
-#include "tpzgeoelrefpattern.h"
-#include "TPZGeoLinear.h"
-#include "tpztriangle.h"
-#include "pzgeoquad.h"
-#include "pzgeopoint.h"
+
 #include "pzmat1dlin.h"
 #include "pzbuildmultiphysicsmesh.h"
-#include "pzcompel.h"
 #include "pzintel.h"
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSpStructMatrix.h"
-#include "pznlfluidstructure2d.h"
 #include "pzfstrmatrix.h"
 #include "../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.h"
 #include "pzreducedspace.h"
-#include "tpzcompmeshreferred.h"
 #include "pzbndcond.h"
 
 #include "pzlog.h"
@@ -35,18 +28,17 @@ static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
 #endif
 
 
-const double timeScale = 1.;
-
 ToolsTransient::ToolsTransient(){
     
 }
 
 ToolsTransient::ToolsTransient(int pOrder,
                                REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, REAL Visc, REAL SigN,
-                               REAL Qinj, REAL Ttot, REAL Nsteps, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
+                               REAL Qinj, REAL Ttot, REAL deltaT, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
 {
     fpOrder = pOrder;
-    fInputData.SetData(Lx, Ly, Lf, Hf, E, Poiss, Fx, Fy, Visc, SigN, Qinj, Ttot, Nsteps, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+    fInputData = new InputDataStruct;
+    fInputData->SetData(Lx, Ly, Lf, Hf, E, Poiss, Fx, Fy, Visc, SigN, Qinj, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);
 }
 
 ToolsTransient::~ToolsTransient(){
@@ -55,46 +47,97 @@ ToolsTransient::~ToolsTransient(){
 
 void ToolsTransient::Run()
 {
-    //Principal Geometric Mesh (Lf initial)
-    TPZGeoMesh * gmesh = this->Mesh2D(10.);
+    REAL deltaT = fInputData->deltaT();
+    REAL maxTime = fInputData->Ttot();
+    REAL actTime = deltaT;
     
-    /** Resolvendo um problema modelo de elastica linear para utilizar a
-     solucao como espaco de aproximacao do problema nao linear (acoplado) */
-	TPZCompMesh * cmesh_elast = this->CMeshElastic(gmesh);
-    TPZAnalysis an1(cmesh_elast);
-    this->SolveInitialElasticity(an1, cmesh_elast);
     
-    /** Passando a malha computacional jah processada do problema modelo elastico para a malha do problema elastico que serah acoplado.
-     Esta malha que foi passada servirah como espaco de aproximacao da malha do problema elastico que serah acoplado */
-    TPZCompMeshReferred * cmesh_referred = this->CMeshReduced(gmesh, cmesh_elast);
-    cmesh_referred->ComputeNodElCon();
-    TPZFStructMatrix fstr(cmesh_referred);
-    TPZFMatrix<STATE> rhs;//(1);
-    TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
-	
-    /** Criando a malha computacional para o problema de fluxo de fluido */
-    TPZCompMesh * cmesh_pressure = this->CMeshPressure(gmesh);
+    bool propagate = true;
+    TPZFMatrix<REAL> InitialSolution(0,0);
     
-    /** Problema multifisico : acoplamento das 2 malhas computacionais anteriores (elastica e fluxo) */
-    TPZVec<TPZCompMesh *> meshvec(2);
-	meshvec[0] = cmesh_referred;
-	meshvec[1] = cmesh_pressure;
+    std::string outputfile;
+	outputfile = "TransientSolution";
+    std::ofstream outPWJ("OUTPUT.txt");
+    std::stringstream outP, outW, outJ;
     
-    gmesh->ResetReference();
-	TPZNLFluidStructure2d * mymaterial = NULL;
+    int step = 1, postProcGraphStep = 0;
+    REAL Jradius = 0.5;//Jintegral radius
     
-    /** Serah utilizado o material criado (pznlfluidstructure2D do Agnaldo) */
-    TPZCompMesh * mphysics = this->MalhaCompMultphysics(gmesh, meshvec, mymaterial);
-    mphysics->SetDefaultOrder(fpOrder);
+    std::map<int,REAL> leakoffMap;
     
-    REAL deltaT = fInputData.deltaT();
-    mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = fInputData.Ttot();
+    int propagCount = 0;
+    while (propagate)
+    {
+        //Principal Geometric Mesh (Lf initial)
+        TPZGeoMesh * gmesh = this->Mesh2D(10.);
+        
+        /** Resolvendo um problema modelo de elastica linear para utilizar a
+         solucao como espaco de aproximacao do problema nao linear (acoplado) */
+        TPZCompMesh * cmesh_elast = this->CMeshElastic(gmesh);
+        TPZAnalysis an1(cmesh_elast);
+        this->SolveInitialElasticity(an1, cmesh_elast);
+        
+        /** Passando a malha computacional jah processada do problema modelo elastico para a malha do problema elastico que serah acoplado.
+         Esta malha que foi passada servirah como espaco de aproximacao da malha do problema elastico que serah acoplado */
+        TPZCompMeshReferred * cmesh_referred = this->CMeshReduced(gmesh, cmesh_elast);
+        cmesh_referred->ComputeNodElCon();
+        TPZFStructMatrix fstr(cmesh_referred);
+        TPZFMatrix<STATE> rhs;//(1);
+        TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
+        
+        /** Criando a malha computacional para o problema de fluxo de fluido */
+        TPZCompMesh * cmesh_pressure = this->CMeshPressure(gmesh);
+        
+        /** Problema multifisico : acoplamento das 2 malhas computacionais anteriores (elastica e fluxo) */
+        TPZVec<TPZCompMesh *> meshvec(2);
+        meshvec[0] = cmesh_referred;
+        meshvec[1] = cmesh_pressure;
+        
+        gmesh->ResetReference();
+        TPZNLFluidStructure2d * mymaterial = NULL;
+        
+        /** Serah utilizado o material criado (pznlfluidstructure2D do Agnaldo) */
+        TPZCompMesh * mphysics = this->MalhaCompMultphysics(gmesh, meshvec, mymaterial);
+        mphysics->SetDefaultOrder(fpOrder);
+        
+        /** Metodo de resolucao de problema transiente */
+        TPZAnalysis *an = new TPZAnalysis(mphysics);
+        if(propagCount == 0)
+        {
+            outP << "Saida" << 0 << "={";
+            SaidaMathPressao(meshvec, mphysics, mymaterial, outP);
+            outP << "};\n";
+            
+            meshvec[0]->LoadReferences();
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+            PlotWIntegral(meshvec[0], outW, 0.);
+            
+            std::stringstream outputfiletemp;
+            outputfiletemp << outputfile << ".vtk";
+            std::string plotfile = outputfiletemp.str();
+            PosProcessMult(meshvec,mphysics,an,plotfile);
+            
+            ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ);
+        }
+        else
+        {
+            an->LoadSolution(InitialSolution);
+            meshvec[0]->LoadReferences();
+            mymaterial->SetLeakoffData(leakoffMap);
+
+            an->SetStep(postProcGraphStep);
+        }
+        propagate = this->SolveSistTransient(deltaT, actTime, maxTime, InitialSolution, an, mymaterial, meshvec, mphysics, step,
+                                             Jradius, outP, outW, outJ, outputfile);
+
+        leakoffMap = mymaterial->GetLeakoffData();
+        postProcGraphStep = an->GetStep();
+        propagCount++;
+        fInputData->fKIc = 1000.;
+    }
     
-    /** Metodo de resolucao de problema transiente */
-    TPZAnalysis *an = new TPZAnalysis(mphysics);
-    TPZFMatrix<REAL> InitialSolution = an->Solution();
-    this->SolveSistTransient(deltaT, maxTime, InitialSolution, an, mymaterial, meshvec, mphysics);
+    outPWJ << "(*** PRESSAO ***)\n" << outP.str() << "\n\n\n\n\n(*** W ***)\n" << outW.str() << "\n\n\n\n\n(*** J ***)\n" << outJ.str();
+    outPWJ.close();
 }
 
 //------------------------------------------------------------------------------------
@@ -104,8 +147,8 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
 {
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
-    int ndivV = int(fInputData.Lx()/lmax + 0.5);
-    int ndivH = int(fInputData.Ly()/lmax + 0.5);
+    int ndivV = int(fInputData->Lx()/lmax + 0.5);
+    int ndivH = int(fInputData->Ly()/lmax + 0.5);
     
     int ncols = ndivV + 1;
     int nrows = ndivH + 1;
@@ -113,11 +156,11 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
     
     gmesh->NodeVec().Resize(nnodes);
     
-    REAL deltadivV = fInputData.Lx()/ndivV;
-    REAL deltandivH = fInputData.Ly()/ndivH;
+    REAL deltadivV = fInputData->Lx()/ndivV;
+    REAL deltandivH = fInputData->Ly()/ndivH;
     
     int nid = 0;
-    REAL cracktipDist = fInputData.Lf();
+    REAL cracktipDist = fInputData->Lf();
     int colCracktip = -1;
     for(int r = 0; r < nrows; r++)
     {
@@ -125,7 +168,7 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
         {
             REAL x = c*deltadivV;
             REAL y = r*deltandivH;
-            REAL dist = fabs(fInputData.Lf()-x);
+            REAL dist = fabs(fInputData->Lf()-x);
             if(r == 0 && dist < cracktipDist)
             {
                 cracktipDist = dist;
@@ -315,7 +358,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh)
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, fInputData.E(), fInputData.Poiss(), fInputData.Fx(), fInputData.Fy(), planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, fInputData->E(), fInputData->Poisson(), fInputData->Fx(), fInputData->Fy(), planestrain);
     
     TPZMaterial * mat(material);
     material->NStateVariables();
@@ -330,7 +373,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh)
     REAL big = material->gBigNumber;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(1,0) = fInputData.SigN();
+    val2(1,0) = fInputData->SigN();
     TPZMaterial * BCond1 = material->CreateBC(mat, globPressureMatId, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -362,7 +405,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMes
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, fInputData.E(), fInputData.Poiss(), fInputData.Fx(), fInputData.Fy(), planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, fInputData->E(), fInputData->Poisson(), fInputData->Fx(), fInputData->Fy(), planestrain);
 	material->NStateVariables();
     
     
@@ -431,7 +474,7 @@ TPZCompMesh * ToolsTransient::CMeshPressure(TPZGeoMesh *gmesh){
     
     ///Inserir condicao de contorno
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(0,0) = fInputData.Qinj();
+    val2(0,0) = fInputData->Qinj();
     TPZMaterial * BCond1 = material->CreateBC(mat, globBCfluxIn, neumann, val1, val2);
     
     val1.Redim(2,2);
@@ -473,7 +516,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     //int planestress = 1;
     int planestrain = 0;
     mymaterial->SetfPlaneProblem(planestrain);
-    mymaterial->SetParameters(fInputData.E(), fInputData.Poiss(), fInputData.Fx(), fInputData.Fy(), fInputData.Hf(), fInputData.Lf(), fInputData.Visc(), fInputData.Qinj(), fInputData.Cl(), fInputData.Pe(), fInputData.SigmaConf(), fInputData.Pref(), fInputData.vsp(), fInputData.KIc(), fInputData.Lx());
+    mymaterial->SetInputData(fInputData);
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
@@ -483,7 +526,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     REAL big = mymaterial->gBigNumber;
     
     TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
-    val2(1,0) = fInputData.SigN();
+    val2(1,0) = fInputData->SigN();
     TPZMaterial * BCond1 = mymaterial->CreateBC(mat, globPressureMatId, neumann, val1, val2);
     
     val2.Redim(3,1);
@@ -495,7 +538,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     
     val2.Redim(3,1);
     val1.Redim(3,2);
-    val2(2,0) = fInputData.Qinj();
+    val2(2,0) = fInputData->Qinj();
     TPZMaterial * BCond4 = mymaterial->CreateBC(mat, globBCfluxIn, globNeum_pressure, val1, val2);
     
     val2.Redim(3,1);
@@ -596,25 +639,12 @@ void ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *
 }
 
 
-void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<REAL> InitialSolution , TPZAnalysis *an,
-                                        TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
+bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxTime, TPZFMatrix<REAL> & InitialSolution , TPZAnalysis *an,
+                                        TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int & step,
+                                        REAL Jradius, std::stringstream & outP, std::stringstream & outW, std::stringstream & outJ,
+                                        std::string & outputfile)
 {
     //CheckConv(an->Solution(), an, mymaterial, meshvec, mphysics);
-    
-    std::ofstream outPW("OUTPUT.txt");
-    
-    std::string outputfile;
-	outputfile = "TransientSolution";
-    
-    std::stringstream outP, outW, outJ;
-    
-    outP << "Saida" << 0 << "={";
-    SaidaMathPressao(meshvec, mphysics, mymaterial, outP);
-    outP << "};\n";
-    
-    meshvec[0]->LoadReferences();
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    PlotWIntegral(meshvec[0], outW, 0.);
     
 	int nrows;
 	nrows = an->Solution().Rows();
@@ -627,35 +657,20 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
     fres.Zero();
     fmat.Zero();
     
-	REAL TimeValue = 0.0;
-	int step = 1;
-	TimeValue = deltaT;
-    
-    ////////// Calculo da Integral-J ///
-    REAL radius = 0.5;
-    ComputeKIPlaneStrain(meshvec[0], mymaterial->Young(), mymaterial->Poisson(), radius, outJ);
-    ////////////////////////////////////
-    
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
     MassMatrix(mymaterial, mphysics, fmat);
     
-    {
-        std::stringstream outputfiletemp;
-        outputfiletemp << outputfile << ".vtk";
-        std::string plotfile = outputfiletemp.str();
-        PosProcessMult(meshvec,mphysics,an,plotfile);
-    }
-    
+    if(InitialSolution.Rows() == 0)
     {
         TPZFMatrix<REAL> chutenewton(meshvec[0]->Solution().Rows(),1,1.);
         meshvec[0]->LoadSolution(chutenewton);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     }
     
-	while(TimeValue <= (maxTime + deltaT/1000.) ) //passo de tempo
+	while(actTime <= (maxTime + deltaT/1000.) ) //passo de tempo
 	{
-        outP << "Saida" << (int)(TimeValue/timeScale) << "={";
+        outP << "Saida" << (int)(actTime) << "={";
 
         fres.Zero();
         StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
@@ -691,17 +706,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
         mymaterial->UpdateLeakoff(meshvec[1]);
         
-        REAL KI = ComputeKIPlaneStrain(meshvec[0], mymaterial->Young(), mymaterial->Poisson(), radius, outJ, step, TimeValue, false);
-//        if (KI > mymaterial->KIc())// ***** PROPAGOU *****
-//        {
-//            bool reachEdge = PropagateOneStep(meshvec, mphysics, mymaterial);
-//            if(reachEdge)
-//            {
-//                return;
-//            }
-//            continue;
-//        }
-        
         if(res >= tol)
         {
             std::cout << step << " , normRes = " << res << std::endl;
@@ -726,11 +730,17 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
         }
 
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-        PlotWIntegral(meshvec[0], outW, TimeValue);
+        PlotWIntegral(meshvec[0], outW, actTime);
         
         InitialSolution = mphysics->Solution();
         step++;
-        TimeValue += deltaT;
+        actTime += deltaT;
+        
+        REAL KI = ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ, step, actTime, false);
+        if (KI > fInputData->KIc())
+        {
+            return true; // ***** PROPAGOU *****
+        }
     }
     
     outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
@@ -747,7 +757,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
     int nsteps = maxTime/deltaT + 0.5;
     for(int ig = 0; ig<=nsteps; ig++)
     {
-        outW << "{" << ig*deltaT << ",TrapArea[displ" << (int)(ig*deltaT/timeScale) << "]}";
+        outW << "{" << ig*deltaT << ",TrapArea[displ" << (int)(ig*deltaT) << "]}";
         if(ig != nsteps)
         {
             outW << ",";
@@ -755,16 +765,16 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
     }
     outW << "};\n\n";
     
-    outW << "Qinj=" << fabs(mymaterial->Qinj()) << ";\n";
+    outW << "Qinj=" << fabs(fInputData->Qinj()) << ";\n";
     outW << "Ttot = " << maxTime << ";\n";
     outW << "nsteps = " << step-1 << ";\n";
     outW << "dt = Ttot/nsteps;\n\n";
-    outW << "clnum = " << mymaterial->Cl()*100000 << "*10^-5;\n";
+    outW << "clnum = " << fInputData->Cl()*100000 << "*10^-5;\n";
     outW << "pfracnum[t_] := press[t + dt/20];\n";
-    outW << "SigConfnum = " << mymaterial->SigmaConf() << ";\n";
-    outW << "Penum = " << mymaterial->Pe() << ";\n";
-    outW << "Prefnum = " << mymaterial->Pref() << ";\n";
-    outW << "vspnum = " << mymaterial->vsp()*100000 << "*10^-5;\n";
+    outW << "SigConfnum = " << fInputData->SigmaConf() << ";\n";
+    outW << "Penum = " << fInputData->Pe() << ";\n";
+    outW << "Prefnum = " << fInputData->Pref() << ";\n";
+    outW << "vspnum = " << fInputData->vsp()*100000 << "*10^-5;\n";
     outW << "vlini = 0;\n";
     outW << "(* FIM DOS INPUTS *)\n\n";
     
@@ -820,7 +830,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
     outP << "SAIDAS={Saida0,";
     for(int i = 1; i < step; i++)
     {
-        outP << "Saida" << (int)(i*deltaT/timeScale);
+        outP << "Saida" << (int)(i*deltaT);
         if(i < step-1)
         {
             outP << ",";
@@ -834,7 +844,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
     outP << "maxy=Max[Transpose[Flatten[SAIDAS,1]][[2]]];\n\n";
     
     outP << "Manipulate[ListPlot[SAIDAS[[n]],Joined->True,AxesOrigin->{0,0},PlotRange->{{0,maxx},{0,maxy}},AxesLabel->{\"pos\",\"p\"}],{n,1,Length[SAIDAS],1}]\n\n";
-    outP << "Lfnum = " << mymaterial->Lf() << ";\n\n";
+    outP << "Lfnum = " << fInputData->Lf() << ";\n\n";
     outP << "TimePressVec = {};\n";
     outP << "For[pos = 1, pos <= Length[SAIDAS], pos++,\n";
     
@@ -848,8 +858,7 @@ void ToolsTransient::SolveSistTransient(REAL deltaT, REAL maxTime, TPZFMatrix<RE
     outJ << "};\n";
     outJ << "ListPlot[J, Joined -> True,AxesLabel->{\"t\",\"KIplanestrain\"},AxesOrigin->{0,0},Filling->Axis]\n";
     
-    outPW << "(*** PRESSAO ***)\n" << outP.str() << "\n\n\n\n\n(*** W ***)\n" << outW.str() << "\n\n\n\n\n(*** J ***)\n" << outJ.str();
-    outPW.close();
+    return false;//Atingiu o final, não propagando portanto!
 }
 
 REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, REAL poisson,
@@ -860,7 +869,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, R
     
     if(firstCall == true)
     {
-        outFile << "J={{0,0},";
+        outFile << "J={{0,0}";
     }
     else
     {
@@ -927,16 +936,10 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, R
     return KI;
 }
 
-bool ToolsTransient::PropagateOneStep(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZNLFluidStructure2d * &mymaterial)
-{
-    //todo : alterar cc das malhas computacionais (globBCfluxOut vs globPointNotUsed , globPressureMatId vs globDirichletElastMatId)
-    return false;
-}
-
 void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum)
 {
     TPZCompMeshReferred * cmeshref = dynamic_cast<TPZCompMeshReferred*>(cmesh);
-    outW << "displ" << (int)(solNum/timeScale) << "={";
+    outW << "displ" << (int)(solNum) << "={";
     int npts = 1;
     
     bool isFirstTime = true;

@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     REAL SigmaConf = 11.;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
-    REAL KIc = 300.;
+    REAL KIc = 100.;
     int p = 2;
     
     ToolsTransient ToolTrans(p, Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, Visc, SigN, QinjTot, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);

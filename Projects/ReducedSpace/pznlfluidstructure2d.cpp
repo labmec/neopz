@@ -30,22 +30,9 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
     fDim = 2;
     fPlaneStress = 1.;
     
-	fE = 0.;
-    fnu = 0.;
-    fG = 0.;
-    fHf = 0.;
-    
-    fvisc = 0.;
-    fSigConf = 0.;
-    
-	ff.resize(fDim);
+    ff.resize(fDim);
 	ff[0] = 0.;
 	ff[1] = 0.;
-    
-    fCl = 0.;
-    fPe = 0.;
-    fPref = 0.;
-    fvsp = 0.;
 }
 
 TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim): TPZDiscontinuousGalerkin(matid){
@@ -54,22 +41,9 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim): TPZDiscontinuo
     fDim = dim;
     fPlaneStress = 1.;
     
-	fE = 0.;
-    fnu = 0.;
-    fG = 0.;
-    fHf = 0.;
-    
-    fvisc = 0.;
-    fSigConf = 0.;
-    
-	ff.resize(fDim);
+    ff.resize(fDim);
 	ff[0] = 0.;
 	ff[1] = 0.;
-    
-    fCl = 0.;
-    fPe = 0.;
-    fPref = 0.;
-    fvsp = 0.;
 }
 
 TPZNLFluidStructure2d::~TPZNLFluidStructure2d(){
@@ -83,15 +57,15 @@ int TPZNLFluidStructure2d::NStateVariables() {
 void TPZNLFluidStructure2d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
-	out << "\t E   = " << fE   << std::endl;
-	out << "\t nu   = " << fnu   << std::endl;
+	out << "\t E   = " << fInputData->E() << std::endl;
+	out << "\t nu   = " << fInputData->Poisson()   << std::endl;
 	out << "\t Forcing function F   = " << ff[0] << ' ' << ff[1]   << std::endl;
-    out << "altura da fratura fHf "<< fHf << std::endl;
-	out << "Viscosidade do fluido fvisc "<< fvisc << std::endl;
-    out << "Carter fCl " << fCl << std::endl;
-    out << "Pressao estatica fPe " << fPe << std::endl;
-    out << "Pressao de referencia (Carter) fPref " << fPref << std::endl;
-    out << "Spurt loss fvsp " << fvsp << std::endl;
+    out << "altura da fratura fHf "<< fInputData->Hf() << std::endl;
+	out << "Viscosidade do fluido fvisc "<< fInputData->Visc() << std::endl;
+    out << "Carter fCl " << fInputData->Cl() << std::endl;
+    out << "Pressao estatica fPe " << fInputData->Pe() << std::endl;
+    out << "Pressao de referencia (Carter) fPref " << fInputData->Pref() << std::endl;
+    out << "Spurt loss fvsp " << fInputData->vsp() << std::endl;
 	out << "2D problem " << fPlaneStress << std::endl;
 	out << "Base Class properties :";
 	TPZMaterial::Print(out);
@@ -145,11 +119,14 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	/*
 	 * Plain strain materials values
 	 */
-    REAL fEover1MinNu2 = fE/(1-fnu*fnu);  ///4G(lamb+G)/(lamb+2G)
-    REAL fEover21PlusNu = 2.*fE/(2.*(1.+fnu));/*fE/(2.*(1+fnu));*/ ///2G=2mi
-	REAL nu1 = 1 - fnu;//(1-nu)
-	REAL nu2 = (1.-2.*fnu)/2.;
-	REAL F = fE/((1.+fnu)*(1.-2.*fnu));
+    REAL young = fInputData->E();
+    REAL poisson = fInputData->Poisson();
+
+    REAL fEover1MinNu2 = young/(1-poisson*poisson);  ///4G(lamb+G)/(lamb+2G)
+    REAL fEover21PlusNu = 2.*young/(2.*(1.+poisson));/*fE/(2.*(1+fnu));*/ ///2G=2mi
+	REAL nu1 = 1 - poisson;//(1-nu)
+	REAL nu2 = (1.-2.*poisson)/2.;
+	REAL F = young/((1.+poisson)*(1.-2.*poisson));
     
 	for(int in = 0; in < phcu; in++)
     {
@@ -174,9 +151,9 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 			if (fPlaneStress != 1){/* Plain Strain State */
                 ef(in,col) += (-1.)*weight*(nu1*dphix_i(0,0)*dsolx_j(0,0) + nu2*dphix_i(1,0)*dsolx_j(1,0) +
                                      
-                                     fnu*dphix_i(0,0)*dsoly_j(1,0) + nu2*dphix_i(1,0)*dsoly_j(0,0) +
+                                     poisson*dphix_i(0,0)*dsoly_j(1,0) + nu2*dphix_i(1,0)*dsoly_j(0,0) +
                                      
-                                     fnu*dphiy_i(1,0)*dsolx_j(0,0) + nu2*dphiy_i(0,0)*dsolx_j(1,0) +
+                                     poisson*dphiy_i(1,0)*dsolx_j(0,0) + nu2*dphiy_i(0,0)*dsolx_j(1,0) +
                                      
                                      nu1*dphiy_i(1,0)*dsoly_j(1,0) + nu2*dphiy_i(0,0)*dsoly_j(0,0))*F;
 			}
@@ -203,9 +180,9 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 			if (fPlaneStress != 1){/* Plain Strain State */
                 ek(in,jn) += weight*(nu1*dphix_i(0,0)*dphix_j(0,0) + nu2*dphix_i(1,0)*dphix_j(1,0) +
                                      
-                                     fnu*dphix_i(0,0)*dphiy_j(1,0) + nu2*dphix_i(1,0)*dphiy_j(0,0) +
+                                     poisson*dphix_i(0,0)*dphiy_j(1,0) + nu2*dphix_i(1,0)*dphiy_j(0,0) +
                                      
-                                     fnu*dphiy_i(1,0)*dphix_j(0,0) + nu2*dphiy_i(0,0)*dphix_j(1,0) +
+                                     poisson*dphiy_i(1,0)*dphix_j(0,0) + nu2*dphiy_i(0,0)*dphix_j(1,0) +
                                      
                                      nu1*dphiy_i(1,0)*dphiy_j(1,0) + nu2*dphiy_i(0,0)*dphiy_j(0,0))*F;
 			}
@@ -259,6 +236,9 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     REAL uy = sol_u[1];
     REAL w = 2.*uy;
     
+    REAL visc = fInputData->Visc();
+    REAL deltaT = fInputData->deltaT();
+    
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
     {
         REAL actQl = this->QlFVl(datavec[1].gelElId, sol_p[0]);
@@ -268,10 +248,10 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
         {
             //----Residuo----
             //termo (wˆ3/(12*mi))*gradP * gradVp
-            ef(nPhiU+in,0) += (-1.) * weight * (w*w*w/(12.*fvisc)) * dsol_p(0,0) * dphi_p(0,in);
+            ef(nPhiU+in,0) += (-1.) * weight * (w*w*w/(12.*visc)) * dsol_p(0,0) * dphi_p(0,in);
             
             //termo w/deltaT * Vp
-            ef(nPhiU+in,0) += (-1.) * weight * w/fTimeStep * phi_p(in,0);
+            ef(nPhiU+in,0) += (-1.) * weight * w/deltaT * phi_p(in,0);
             
             //termo 2Ql * Vp
             ef(nPhiU+in,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
@@ -281,16 +261,16 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
             for(int jn = 0; jn < nPhiU; jn++)
             {
                 //termo D[ (wˆ3/(12*mi))*gradP * gradVp , w ]
-                ek(nPhiU+in, jn) += (+1.) * weight * ( 3.*w*w/(12.*fvisc) * (2.*phi_u(1,jn)) ) * dsol_p(0,0) * dphi_p(0,in);
+                ek(nPhiU+in, jn) += (+1.) * weight * ( 3.*w*w/(12.*visc) * (2.*phi_u(1,jn)) ) * dsol_p(0,0) * dphi_p(0,in);
 
                 //termo D[ w/deltaT * Vp , w ]
-                ek(nPhiU+in, jn) += (+1.) * weight * ( 2./fTimeStep * phi_u(1,jn) ) * phi_p(in,0);
+                ek(nPhiU+in, jn) += (+1.) * weight * ( 2./deltaT * phi_u(1,jn) ) * phi_p(in,0);
             }
             
             for(int jn = 0; jn < phrp; jn++)
             {
                 //termo D[ (wˆ3/(12*mi))*gradP * gradVp , p ]
-                ek(nPhiU+in, nPhiU+jn) += (+1.) * weight * (w*w*w/(12.*fvisc)) * dphi_p(0,in) * dphi_p(0,jn);
+                ek(nPhiU+in, nPhiU+jn) += (+1.) * weight * (w*w*w/(12.*visc)) * dphi_p(0,in) * dphi_p(0,jn);
                 
                 //termo D[ 2Ql * Vp , p]
                 ek(nPhiU+in, nPhiU+jn) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
@@ -304,7 +284,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
         for(int in = 0; in < phrp; in++)
         {            
             //termo w/deltaT * Vp
-            ef(nPhiU+in,0) += (+1.) * weight * w/fTimeStep * phi_p(in,0);
+            ef(nPhiU+in,0) += (+1.) * weight * w/deltaT * phi_p(in,0);
         }
     }
     
@@ -349,7 +329,7 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc){
     
     if(gState == ELastState) return;
-    REAL auxvar = 0.817*(1-fnu)*fHf;
+    REAL auxvar = 0.817*(1-fInputData->Poisson())*fInputData->Hf();
     REAL factor = 0.;//fG/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -624,6 +604,11 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     DSolU=datavec[0].dsol[0];
     axesU=datavec[0].axes;
     
+    REAL young = fInputData->E();
+    REAL poisson = fInputData->Poisson();
+    REAL sigmaConf = fInputData->SigmaConf();
+    REAL Hf = fInputData->Hf();
+    
     if(var == 1)
     {
         if(!datavec[1].phi) return;
@@ -633,8 +618,9 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     if (var == 2)
     {
+        REAL fG = 1.;//AQUICAJU!!!
         if(!datavec[1].phi) return;
-        REAL un = 0.817*(1-fnu)*(SolP[0]-fSigConf)*fHf/fG;
+        REAL un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/fG;
         REAL factor = 0.;//(un*un*un)/(12.*fvisc);
         
 		int id;
@@ -672,16 +658,16 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         
         epsx = DSolU(0,0);// du/dx
         epsy = DSolU(1,1);// dv/dy
-        REAL Gmodule = fE/(1-fnu*fnu);
+        REAL Gmodule = young/(1-poisson*poisson);
         
         
         if (this->fPlaneStress){
-            SigX = Gmodule*(epsx+fnu*epsy);
-            SigY = Gmodule*(fnu*epsx+epsy);
+            SigX = Gmodule*(epsx+poisson*epsy);
+            SigY = Gmodule*(poisson*epsx+epsy);
         }
         else{
-            SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy);
-            SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy);
+            SigX = young/((1.-2.*poisson)*(1.+poisson))*((1.-poisson)*epsx+poisson*epsy);
+            SigY = young/((1.-2.*poisson)*(1.+poisson))*(poisson*epsx+(1.-poisson)*epsy);
         }
         
         if(var == 5) {
@@ -735,19 +721,31 @@ void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec
 
 REAL TPZNLFluidStructure2d::VlFtau(REAL pfrac, REAL tau)
 {
-    REAL Clcorr = fCl * sqrt((pfrac + fSigConf - fPe)/fPref);
-    REAL Vl = 2. * Clcorr * sqrt(tau) + fvsp;
+    REAL Cl = fInputData->Cl();
+    REAL sigmaConf = fInputData->SigmaConf();
+    REAL Pe = fInputData->Pe();
+    REAL Pref = fInputData->Pref();
+    REAL vsp = fInputData->vsp();
+    
+    REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
+    REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
     
     return Vl;
 }
 
 REAL TPZNLFluidStructure2d::FictitiousTime(REAL VlAcum, REAL pfrac)
 {
+    REAL Cl = fInputData->Cl();
+    REAL sigmaConf = fInputData->SigmaConf();
+    REAL Pe = fInputData->Pe();
+    REAL Pref = fInputData->Pref();
+    REAL vsp = fInputData->vsp();
+    
     REAL tStar = 0.;
-    if(VlAcum > fvsp)
+    if(VlAcum > vsp)
     {
-        REAL Clcorr = fCl * sqrt((pfrac + fSigConf - fPe)/fPref);
-        tStar = (VlAcum - fvsp)*(VlAcum - fvsp)/( (2. * Clcorr) * (2. * Clcorr) );
+        REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
+        tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
     }
     
     return tStar;
@@ -763,9 +761,11 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     }
     REAL VlAcum = it->second;
     
+    REAL deltaT = fInputData->deltaT();
+    
     REAL tStar = FictitiousTime(VlAcum, pfrac);
-    REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
-    REAL Ql = (Vlnext - VlAcum)/fTimeStep;
+    REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
+    REAL Ql = (Vlnext - VlAcum)/deltaT;
 
     return Ql;
 }
@@ -790,18 +790,19 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
         deltaPfrac = 1.E-3;
     }
     
+    REAL deltaT = fInputData->deltaT();
     /////////////////////////////////////////////////Ql maior
     REAL pfracUP = pfrac + deltaPfrac;
     REAL tStar1 = FictitiousTime(VlAcum, pfracUP);
-    REAL Vlnext1 = VlFtau(pfracUP, tStar1 + fTimeStep);
-    REAL Ql1 = (Vlnext1 - VlAcum )/fTimeStep;
+    REAL Vlnext1 = VlFtau(pfracUP, tStar1 + deltaT);
+    REAL Ql1 = (Vlnext1 - VlAcum )/deltaT;
     //...
     
     /////////////////////////////////////////////////Ql menor
     REAL pfracDOWN = pfrac - deltaPfrac;
     REAL tStar0 = FictitiousTime(VlAcum, pfracDOWN);
-    REAL Vlnext0 = VlFtau(pfracDOWN, tStar0 + fTimeStep);
-    REAL Ql0 = (Vlnext0 - VlAcum)/fTimeStep;
+    REAL Vlnext0 = VlFtau(pfracDOWN, tStar0 + deltaT);
+    REAL Ql0 = (Vlnext0 - VlAcum)/deltaT;
     //...
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
@@ -862,9 +863,11 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         }
         #endif
         
+        REAL deltaT = fInputData->deltaT();
+        
         REAL VlAcum = it->second;
         REAL tStar = FictitiousTime(VlAcum, pfrac);
-        REAL Vlnext = VlFtau(pfrac, tStar + fTimeStep);
+        REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
         
         it->second = Vlnext;
         if(outVlCount == 0)
