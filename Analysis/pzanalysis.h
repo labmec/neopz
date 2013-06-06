@@ -173,6 +173,10 @@ protected:
     {
         fStep = step;
     }
+    int GetStep()
+    {
+        return fStep;
+    }
     
 	/** @brief Sets time will be used in dx files */
 	void SetTime(REAL time);
