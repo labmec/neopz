@@ -44,6 +44,10 @@
 #include <math.h>
 using namespace std;
 
+#ifdef USING_BOOST
+	#include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
+#endif
+
 /**
  * Projeto para validar a reconstucao do gradiente
  * Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
@@ -1813,7 +1817,11 @@ void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     
     double x = pt[0];
+#ifdef USING_BOOST
+    disp[0]=0.05*sqrt(M_PI)*boost::math::erf(10.*(x-1.));
+#else
     disp[0]=0.05*sqrt(M_PI)*erf(10.*(x-1.));
+#endif
 }
 
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
