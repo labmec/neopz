@@ -230,23 +230,15 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     for(i=0;i<nelmesh;i++) error += fElementError[i];
     
     // Determining minimum error for applying p-refinement or h-refinement     // It's WRONG
-    REAL sixtyfivepercent = 0.0, auxerror = 0.0;
-    bool sixty = false;
-    for(i=0;i<nelmesh-1;i++) {
-        if(!IsZero(fElementError[perm[i]]) && !IsZero(fElementError[perm[i+1]]) && fabs(fElementError[perm[i]]-fElementError[perm[i+1]])>1.e-6) {
-            sixty = true;
-            break;
-        }
+    REAL minimumerror = 0.0, auxerror = 0.0;
+    int counter = 0;
+    for(i=0;i<nelmesh;i++) {
+        auxerror += fElementError[perm[i]];
+        if(!IsZero(fElementError[perm[i]]))
+            counter++;
     }
-    if(sixty) {
-        for(i=0;i<nelmesh;i++) {
-            auxerror += fElementError[perm[i]];
-            if(auxerror >= 0.65*error) {
-                sixtyfivepercent = fElementError[perm[i]];
-                break;
-            }
-        }
-    }
+    if(counter)
+        minimumerror = auxerror/counter - 100*ZeroTolerance();
     
     if(f) {
         for(i=0; i<nelmesh; i++) {
@@ -274,7 +266,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
     for (i=0;i<ncl;i++) {
         if(!fFineCloneMeshes[i]) continue;
-        fCloneMeshes[i]->ApplyRefPattern(sixtyfivepercent,fElementError,fFineCloneMeshes[i],gelstack,porder);
+        fCloneMeshes[i]->ApplyRefPattern(minimumerror,fElementError,fFineCloneMeshes[i],gelstack,porder);
     }
     
     TPZCompMesh *adapted = CreateCompMesh(fReferenceCompMesh,gelstack,porder);
