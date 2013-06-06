@@ -413,7 +413,7 @@ void TPZGeoCloneMesh::Print (ostream & out) {
     out << "\n\tGeometric Element Information:\n\n";
     int nelem = ElementVec().NElements();
     for(i=0; i<nelem; i++) {
-        out << "elelelelelelelelelelelelelelelelelelelelelelelelelel\n";
+        out << "Cloned element\n";
         if(ElementVec()[i]) ElementVec()[i]->Print(out);
         out << "\n";
         out << "Reference Element:";
@@ -426,7 +426,7 @@ void TPZGeoCloneMesh::Print (ostream & out) {
 
 int TPZGeoCloneMesh::main(){
 	cout << "**************************************" << endl;
-  	cout << "******Obtenção de Patches!************" << endl;
+  	cout << "****** Getting Patchs!************" << endl;
 	cout << "**************************************" << endl;
     
     /*******************************************************

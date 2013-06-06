@@ -41,9 +41,9 @@ using namespace std;
 template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
 static ofstream gDeduce("deduce.txt");
-//static int zero = 0;
 
-TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects(){
+TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects()
+{
     fCloneReference = cmesh;
     //Cria um clone do vetor de materiais da malha mesh
     std::map<int, TPZMaterial * >::const_iterator it;
@@ -51,13 +51,12 @@ TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : T
         //    mat->Print();
         it->second->Clone(MaterialVec());
     }
-    //	Reference()->Print(cout);
 }
 
 TPZCompCloneMesh::~TPZCompCloneMesh() {
 }
 
-void TPZCompCloneMesh::AutoBuild() {
+void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
     TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
     int i,j, nelem = elvec.NElements();
     int index;
@@ -171,7 +170,7 @@ void TPZCompCloneMesh::AutoBuild() {
     }
     
     
-    CreateCloneBC();
+    CreateCloneBC(MaxOrder);
     
 //    int go = 0;
     for (int dim=0; dim<3; dim++) 
@@ -379,7 +378,7 @@ void TPZCompCloneMesh::AutoBuild() {
  }
  */
 
-void TPZCompCloneMesh::CreateCloneBC(){
+void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
     int i,j;//elementos e lados de elementos
     TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
@@ -412,7 +411,8 @@ void TPZCompCloneMesh::CreateCloneBC(){
 //    int tmporder = cmesh->GetDefaultOrder();
 //    cmesh->SetDefaultOrder(10);
     int tmporder = GetDefaultOrder();
-    SetDefaultOrder(10);
+    // Defining maxime order of shape functions in clone meshes
+    SetDefaultOrder(MaxOrder);
     
     int printing = 0;
     if(printing) {
@@ -489,14 +489,16 @@ void TPZCompCloneMesh::CreateCloneBC(){
 			int Index = intel->SideConnectIndex(ic, side);
 			if(Index == -1) continue;
             connectindexes.Push(Index);
-            pordersbefore.Push((intel->SideConnect(ic, side))->Order());
+            int orderbefore = (intel->SideConnect(ic, side))->Order();
+            pordersbefore.Push(orderbefore);
         }
 #endif
         TPZCompEl *celbc = bcelsides[ibc].Element()->CreateBCCompEl(bcelsides[ibc].Side(),-1000,*this);
 #ifdef DEBUG
         TPZStack<int> pordersafter;
         for (int ic=0; ic<nsideconnects; ic++) {
-            pordersafter.Push((intel->SideConnect(ic, side))->Order());
+            int orderafter = (intel->SideConnect(ic, side))->Order();
+            pordersafter.Push(orderafter);
         }
         
 #ifdef LOG4CXX
@@ -512,7 +514,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
 #endif
 
         for (int ic = 0; ic<nsideconnects; ic++) {
-            if(pordersbefore[ic] != pordersafter[ic] || connectindexes[ic] != celbc->ConnectIndex(ic))
+            if(((pordersbefore[ic] != pordersafter[ic]) && (pordersafter[ic] == MaxOrder && pordersbefore[ic]>MaxOrder)) || connectindexes[ic] != celbc->ConnectIndex(ic))
             {
                 DebugStop();
             }
@@ -1021,16 +1023,16 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
     //  LoadReferences();
     fine->LoadReferences();
     
-    TPZMaterial * mat = MaterialVec().rbegin()->second;
+    TPZMaterial *mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
-    TPZOneDRef fn (nstate);
+    TPZOneDRef fn(nstate);
     
     /*   TPZStack<TPZGeoEl *> gelstack; */
     /*   TPZStack<int> porders; */
     
     //  int test = gclmesh->NReference();
     
-    for (i=0;i<NElements();i++){
+    for(i=0;i<NElements();i++) {
         /*     TPZGeoEl *reference_gel =  gclmesh->ReferenceElement(i); */
         /*     if (!reference_gel){ */
         /*       cout << "TPZCompCloneMesh::ApplyRefPattern ERROR!\nFine mesh is loaded, pattern analysis needs coarse mesh!"; */
@@ -1041,9 +1043,9 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
         TPZGeoEl *gel = cel->Reference();
         
         //if the element is a reference element ...
-        if (!IsSonOfRootElement(gel)) continue;
+        if(!IsSonOfRootElement(gel)) continue;
         int anelindex = cel->Index();
-        if (anelindex < 0 || anelindex >=  NElements()) {
+        if(anelindex<0 || anelindex>=NElements()) {
             anelindex = cel->Reference()->Father()->Reference()->Index();
         }
         int orgelindex = GetOriginalElementIndex(anelindex);
@@ -1082,20 +1084,20 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
 void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *cint,
                                       TPZStack<TPZGeoEl *> &subels, TPZStack<int> &porders) {
     
-    //obtencão do elemento geométrico de cint
+    //obtencao do elemento geometrico de cint
     TPZGeoEl *gel = cint->Reference();
-    //número de conects de cint
+    //numero de conects de cint
     int ncon = cint->NConnects();
     //ordem do elemento
     int intorder = cint->SideOrder(ncon-1);
     gDeduce << "Internal order = " << intorder << endl;
-    //Identifica a malha geométrica de geo
+    //Identifica a malha geometrica de geo
     TPZGeoMesh *gmesh = gel->Mesh();
-    //número de nós
+    //numero de nos
     int ncorners = gel->NCornerNodes();
     TPZVec<int> cornerid(ncorners);
     TPZVec<int> cornerindexes(ncorners);
-    //ordem p para cada nó
+    //ordem p para cada no
     TPZVec<int> localporders(ncorners);
     int ids;
     for(ids=0; ids<ncorners; ids++) {
@@ -1114,19 +1116,18 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     
 //    int maxp = TPZOneDRef::gMaxP;
     
-    //Calcula o número de arestas
+    //Calcula o numero de arestas
     for(side=0; side<nsides; side++) if(gel->SideDimension(side) == 1) n1dsides++;
     
-    //Vetor de padrões de refinamento com dimensão igual ao
-    //número de arestas refinamento unidimensional
+    //Vetor de padrões de refinamento com dimensao igual ao
+    //numero de arestas refinamento unidimensional
     TPZManVector<TPZRefPattern,4> refpattern(n1dsides);
     n1dsides = 0;
     for(side=0; side<nsides; side++) {
-        //só considera as arestas
+        //soh considera as arestas
         int sidedimension = gel->SideDimension(side);
         if(sidedimension != 1) continue;
-        //obtém a ordem do elemento
-        //    int level = gel->Level();
+        //obtem a ordem do elemento
         TPZStack<TPZCompElSide> subelsides;
         TPZStack<TPZCompElSide> auxsubelsides;
         TPZGeoElSide gelside(gel,side);
@@ -1135,7 +1136,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         //       cout << "TPZAnalyseElement coarse element without neighbour\n";
         //       continue;
         //     }
-        //obtém a lista de elementos computacionais que são
+        //obtem a lista de elementos computacionais que sao
         //derivados pelos lados subelsides de gelside
         //	gel->GetSubElements2(side,subelsides,1);
         //gelside.HigherLevelCompElementList2(subelsides,1,1);
@@ -1166,7 +1167,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         
         TPZGeoElSide gels1 = subelsides[0].Reference();
         TPZGeoElSide gels2 = subelsides[1].Reference();
-        //verifica a ordem dos nós do centro da  aresta
+        //verifica a ordem dos nos do centro da aresta
         if(gels1.SideNodeIndex(1) != gels2.SideNodeIndex(0)) {
             TPZCompElSide temp = subelsides[0];
             subelsides[0]=subelsides[1];
@@ -1206,11 +1207,11 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         id[2] = gmesh->NodeVec()[index[2]].Id();
         //     cout << "side = " << side << " indexes " << id[0] << ' ' << id[1] << ' ' << id[2] << endl;
         REAL del[3];
-        //calcula a distancia entre os nos da aresta
+        // calcula a distancia entre os nos da aresta
         for(i=0; i<3; i++) del[i] = gmesh->NodeVec()[index[1]].Coord(i)-gmesh->NodeVec()[index[0]].Coord(i);
         REAL delx = sqrt(del[0]*del[0]+del[1]*del[1]+del[2]*del[2]);
         
-        //obtém a lista de connects da aresta
+        //obtem a lista de connects da aresta
         TPZCompMesh *cmesh = subelsides[0].Element()->Mesh();
         TPZConnect *connects[5];
         TPZInterpolatedElement *c1 = (TPZInterpolatedElement *) subelsides[0].Element();
@@ -1223,7 +1224,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         connects[4] = c2->SideConnect(1,s2);
         connects[3] = c2->SideConnect(2,s2);
         
-        //calcula o número de graus de liberdade da aresta
+        //calcula o numero de graus de liberdade da aresta
         int dof = 0;
         for(i=0; i<5; i++) dof += connects[i]->NDof(*cmesh);         //??
         TPZFMatrix<REAL> U(dof,1);
@@ -1244,7 +1245,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         int hp1, hp2;
         REAL hperror;
         
-        //Para cada aresta é calculado o menor erro através do cálculo do refinamento unidimensional
+        //Para cada aresta eh calculado o menor erro atraves do calculo do refinamento unidimensional
         REAL error = f.BestPattern(U,id,p1,p2,hp1, hp2, hperror,delx);
         //define o refinamento para o elemento??
         TPZRefPattern optimal(id[0],id[1],id[2],p1,p2,hp1,hp2,hperror,error);
@@ -1509,14 +1510,6 @@ void TPZCompCloneMesh::Print (ostream & out) const {
         if(!el->Reference()) continue;
         out << "\tReference Id = " << el->Reference()->Id() << endl;
     }
-    out << "\n\tMaterial Information:\n\n";
-    std::map<int, TPZMaterial * >::const_iterator it;
-#ifndef WIN32
-#warning Comentei o for abaixo
-#endif
-//     for (it=MaterialVec().begin(); it!=MaterialVec().end(); it++) {
-//         it->second->Print(out);
-//     }
 }
 
 TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {

@@ -350,7 +350,7 @@ void TPZAdaptMesh::CreateClones(){
         }
         
         TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReferenceCompMesh);
-        clonecompmesh->AutoBuild();
+        clonecompmesh->AutoBuild(fMaxP);
 		// Computational mesh clone is stored
         fCloneMeshes.Push(clonecompmesh);    
     }

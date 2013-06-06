@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief This file contains the tests for validation auto-adaptive algorithms
- * @note Projecto elaborado para resolver el problema de Poisson 2D sobre una placa plana con circunferencia de radio 1/2 centrada en (0.5,0.5)
+ * @note The solution is a function (Arc Tangent) with high gradient on points with radius r=0.25 from a center C with coordinates equal to 0.5 . The gradient depends on parameter e, we are using e = 10^6 to high gradient.
  */
 
 #include "tpzgeoelrefpattern.h"
@@ -170,7 +170,8 @@ int main() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 5;
+	int nref = 1, NRefs = 12;
+    int ninitialrefs = 2;
 	int nthread = 1, NThreads = 2;
     int dim;
 	
@@ -178,7 +179,7 @@ int main() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-	//	for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
+//		for(int itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
 		{
@@ -196,16 +197,23 @@ int main() {
 			}
 			dim = DefineDimensionOverElementType(typeel);
 			
-			// Printing geometric mesh to validate
-//			{
-//				sprintf(saida,"gmesh1PR_%dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
-//				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
-//			}
-			// Some refinements as initial step
-			UniformRefinement(1,gmesh,dim);
+			// Defining initial refinements and total refinements depends on dimension of the model
+			if(dim==3) {
+                ninitialrefs = 2;
+                NRefs = 8;
+            }
+            else if(dim==2) {
+                ninitialrefs = 1;
+                NRefs = 12;
+            }
+            else {
+                ninitialrefs = 4;
+                NRefs = 15;
+            }
+            UniformRefinement(ninitialrefs,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
-			int p = 2, pinit;
+			int p = 5, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
@@ -214,7 +222,7 @@ int main() {
 			
 			// Printing geometric mesh to validate
 			if(gDebug) {
-				sprintf(saida,"gmesh_%dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
+				sprintf(saida,"gmesh_%2dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
 				PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(gmesh,saida);
 			}
 
@@ -242,14 +250,14 @@ int main() {
 				{
 					std::stringstream sout;
 					int angle = (int) (alfa*180./M_PI + 0.5);
-					sout << "Poisson" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << nref << "P" << pinit << "_Ang" << angle << ".vtk";
+					sout << "Poisson" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << "_Ang" << angle << ".vtk";
 					an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
 				}
 				std::string MeshFileName;
 				{
 					std::stringstream sout;
 					int angle = (int) (alfa*180./M_PI + 0.5);
-					sout << "meshAngle" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << nref << "P" << pinit << "_Ang" << angle << ".vtk";
+					sout << "meshAngle" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << "_Ang" << angle << ".vtk";
 					MeshFileName = sout.str();
 				}
 				

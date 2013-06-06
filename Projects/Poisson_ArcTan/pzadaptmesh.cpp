@@ -16,7 +16,7 @@
 
 using namespace std;
 
-TPZAdaptMesh::TPZAdaptMesh(){
+TPZAdaptMesh::TPZAdaptMesh(int maxorder) {
     fReferenceCompMesh = 0;
     fGeoRef.Resize(0);
     fPatch.Resize(0);
@@ -24,15 +24,15 @@ TPZAdaptMesh::TPZAdaptMesh(){
     fElementError.Resize(0);
     fCloneMeshes .Resize(0);
     fFineCloneMeshes .Resize(0);
-    fMaxP = 10;
+    fMaxP = maxorder;
 }
 
-TPZAdaptMesh::~TPZAdaptMesh(){
+TPZAdaptMesh::~TPZAdaptMesh() {
     CleanUp();
 }
 
-void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh){
-    if(!mesh){
+void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh) {
+    if(!mesh) {
         cout <<"TPZAdaptMesh::Error:\n computational reference mesh must not be NULL!\n";
         return;
     }
@@ -43,8 +43,8 @@ void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh){
     fElementError.Fill(0.);
 }
 
-void TPZAdaptMesh::SetMaxP(int maxp){
-    if (maxp < 1) {
+void TPZAdaptMesh::SetMaxP(int maxp) {
+    if(maxp < 1) {
         cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greter than 0... trying to set maximum p to " 
         << maxp << endl;
         return;
@@ -66,7 +66,7 @@ void TPZAdaptMesh::CleanUp(){
             DeleteElements(fFineCloneMeshes [i]);
             delete fFineCloneMeshes [i];
         }
-        //<-
+        
         fCloneMeshes [i]->LoadReferences();
         RemoveCloneBC(fCloneMeshes [i]);
         DeleteElements(fCloneMeshes [i]);
@@ -103,10 +103,10 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
 }
 
-TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<REAL> &ervec, 
+TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<REAL> &ervec, 
                                            void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
                                            TPZVec<REAL> &truervec, 
-                                           TPZVec<REAL> &effect, ofstream &out, int use_trueerror,MElementType eltype){
+                                           TPZVec<REAL> &effect, ofstream &out, int use_trueerror, MElementType eltype){
     int i;
     //clone analysis
     int cliter;
@@ -121,7 +121,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     fElementError.Fill(0.);
     
     //Used to evaluate the error when the true solution is provided======
-    TPZVec<int> perm(nelmesh,0);
+    TPZManVector<int> perm(nelmesh,0);
     TPZVec<REAL> auxerrorvec(nelmesh,0.);
     REAL minerror = 0.;
     //===================================================================
@@ -142,7 +142,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     
     //Generates the patch - put the data into fPatch and fPatchIndexes
     BuildReferencePatch();
-    
+    out << "Number of Patchs " << fPatchIndex.NElements() - 1 << std::endl;
     //Creates the patch clones; fReferenceCompMesh is the original computational mesh
 	
 	// First, asserting connects in computational mesh
@@ -153,12 +153,14 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
         ofstream test("testAdaptMesh.txt",ios::app);
         fReferenceCompMesh->Print(test);
         fReferenceCompMesh->Reference()->Print(test);
+        test.close();
     }
     
     // Create the clone meshes and put the data in fCloneMeshes
     // Each element of the vector contains a computational mesh
     CreateClones();
-    int ncl = fCloneMeshes .NElements();
+    int ncl = fCloneMeshes.NElements();
+    out << "Number of cloned meshes " << ncl << std::endl;
     fFineCloneMeshes.Resize(ncl);
 	static int count = 0;
 
@@ -173,7 +175,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     for (cliter = 0; cliter<ncl; cliter++) {
 		ErrorVecData.clear();
         //Análise dos Clones
-        TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMeshes [cliter]->Reference());
+        TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMeshes[cliter]->Reference());
         //       if (gcmesh && gcmesh->GetMeshRootElement()->MaterialId() < 0) continue;
         if(gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))) {
             fFineCloneMeshes [cliter] = 0;
@@ -182,10 +184,11 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
         fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh();
 		printing = 0;
         if(printing) {
-            ofstream out("output.txt");
-            fCloneMeshes[cliter]->Print(out);
-			fFineCloneMeshes[cliter]->Print(out);
-            out.close();
+            sprintf(saida,"OutputE%d_Cliter%d.txt",((int)eltype),cliter);
+            ofstream outtemp(saida);
+            fCloneMeshes[cliter]->Print(outtemp);
+			fFineCloneMeshes[cliter]->Print(outtemp);
+            outtemp.close();
         }
         fCloneMeshes[cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec,out);
 		// Printing errors on geometric mesh to validate
@@ -196,7 +199,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 				ErrorVecData[i][1] = truervec[i];
 			}
 			
-			sprintf(saida,"ErroOnCMeshFrom_Patch%d_Iter%d.vtk",cliter,count);
+			sprintf(saida,"ErroOnCMesh%2dDFrom_Patch%d_Iter%d.vtk",fReferenceCompMesh->Dimension(),cliter,count);
 			PrintGeoMeshAsCompMeshInVTKWithElementData((TPZGeoMesh *)gcmesh,saida,ErrorVecData);
 		}
     }
@@ -214,29 +217,39 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 			ErrorVecData[i][2] = fElementError[i]/truervec[i];
 	}
 	// Printing calculated errors for each element in computational mesh
-	sprintf(saida,"ErroOnCMeshFrom_Iter%d.vtk",count++);
+	sprintf(saida,"ErroOnCMesh%2dDFrom_Iter%d.vtk",fReferenceCompMesh->Dimension(),count++);
 	PrintGeoMeshAsCompMeshInVTKWithElementData(fReferenceCompMesh->Reference(),saida,ErrorVecData);
 
     //Ordena o vetor de erros
-    for(i=0; i<nelmesh; i++) {
+    for(i=0;i<nelmesh;i++) {
         perm[i] = i;
         ervec[i]=fElementError[i];
     }
     Sort(fElementError,perm);
-    //somatório dos componentes do vetor de erro
-    for(i=0; i<nelmesh; i++) error += fElementError[i];
+    //somatorio dos componentes do vetor de erro
+    for(i=0;i<nelmesh;i++) error += fElementError[i];
     
-    REAL ninetyfivepercent,auxerror = 0.;
-    for(i=0;i<nelmesh;i++){
-        auxerror += fElementError[perm[i]];
-        if (auxerror >= 0.65*error){
-            ninetyfivepercent = fElementError[perm[i]];
+    // Determining minimum error for applying p-refinement or h-refinement     // It's WRONG
+    REAL sixtyfivepercent = 0.0, auxerror = 0.0;
+    bool sixty = false;
+    for(i=0;i<nelmesh-1;i++) {
+        if(!IsZero(fElementError[perm[i]]) && !IsZero(fElementError[perm[i+1]]) && fabs(fElementError[perm[i]]-fElementError[perm[i+1]])>1.e-6) {
+            sixty = true;
             break;
+        }
+    }
+    if(sixty) {
+        for(i=0;i<nelmesh;i++) {
+            auxerror += fElementError[perm[i]];
+            if(auxerror >= 0.65*error) {
+                sixtyfivepercent = fElementError[perm[i]];
+                break;
+            }
         }
     }
     
     if(f) {
-        for(i=0; i<nelmesh; i++){
+        for(i=0; i<nelmesh; i++) {
             truerror += truervec[i];
         }
     }
@@ -246,12 +259,11 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     effect.Fill(0.);
     if(f) {
         for(i=0; i<nelmesh; i++) {
-            if(truervec[i] >= 1.e-4*truerror && truervec[i] >= 5e-20 ) {
+            if(truervec[i] >= 1.e-4*truerror && truervec[i] >= 5e-20) {
                 effect[i] = ervec[i]/truervec[i];
             }
             else {
                 effect[i]=0.;
-                //truervec[i]=0.;
             }
         }
     }
@@ -260,9 +272,9 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     TPZStack <int> porder;
     
     //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
-    for (i=0;i<fCloneMeshes.NElements();i++){
-        if (! fFineCloneMeshes[i]) continue;
-        fCloneMeshes [i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMeshes [i],gelstack,porder);
+    for (i=0;i<ncl;i++) {
+        if(!fFineCloneMeshes[i]) continue;
+        fCloneMeshes[i]->ApplyRefPattern(sixtyfivepercent,fElementError,fFineCloneMeshes[i],gelstack,porder);
     }
     
     TPZCompMesh *adapted = CreateCompMesh(fReferenceCompMesh,gelstack,porder);
@@ -270,8 +282,8 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     return adapted;
 }
 
-void TPZAdaptMesh::GetReferenceElements(){
-    if (!fReferenceCompMesh){
+void TPZAdaptMesh::GetReferenceElements() {
+    if(!fReferenceCompMesh) {
         cout << "TPZAdaptMesh::Error:\n computational mesh must be initialized to call GetReferenceElements!\n";
         return;
     }
@@ -282,15 +294,15 @@ void TPZAdaptMesh::GetReferenceElements(){
 #ifndef CLONEBCTOO
     //This will exclude geometric elements associated to bc from clone creation
     std::set<TPZGeoEl *>::iterator it;
-    for (it=georef.begin();it!=georef.end(); it++){ 
+    for(it=georef.begin();it!=georef.end();it++) {
         int id = (*it)->MaterialId();
-        if (id > 0){
+        if (id > 0) {
             fGeoRef.Push(*it);
         }
     }
 #else
     std::set<TPZGeoEl *>::iterator it;
-    for (it=georef.begin();it!=georef.end(); it++){ 
+    for(it=georef.begin();it!=georef.end();it++) {
         fGeoRef.Push(*it);
     }
 #endif
@@ -405,7 +417,7 @@ void TPZAdaptMesh::CreateClones(){
         }
         
         TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReferenceCompMesh);
-        clonecompmesh->AutoBuild();
+        clonecompmesh->AutoBuild(fMaxP);
 		// Computational mesh clone is stored
         fCloneMeshes.Push(clonecompmesh);    
     }
@@ -713,7 +725,7 @@ REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL per
     //Ordena o vetor de erros
     int nelem = errvec.NElements();
     int i;
-    REAL error;
+    REAL error = 0.0;
     for(i=0; i<nelem; i++) {
         perm[i] = i;
         //ervec[i]=fElementError[i];
@@ -721,7 +733,7 @@ REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL per
     Sort(fElementError,perm);
     //somatório dos componentes do vetor de erro
     for(i=0; i<nelem; i++) error += fElementError[i];
-    REAL ninetyfivepercent,auxerror = 0.;
+    REAL ninetyfivepercent = 0.,auxerror = 0.;
     for(i=0;i<nelem;i++){
         auxerror += fElementError[perm[i]];
         if (auxerror >=  percenterror*error){

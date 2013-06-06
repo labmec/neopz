@@ -22,7 +22,7 @@ class TPZAdaptMesh {
 	 void RemoveCloneBC(TPZCompMesh *mesh);
 
   /** @brief Simple constructor */
-  TPZAdaptMesh();    
+  TPZAdaptMesh(int maxorder = 10);
   
   /** @brief Simple destructor */
   ~TPZAdaptMesh();

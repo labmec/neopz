@@ -49,12 +49,12 @@ int TPZCheckGeom::PerformCheck() {
 		TPZStack<TPZGeoEl *> subel;
 		gel->Divide(subel);		
 		if(iel==3){//TESTE
-			cout << "\nElemento PirÁmide\n";			
+			cout << "\nElemento Piramide\n";
 		}//TESTE
 		if(iel == 4)
 			cout << "\nElemento de Linha";
 		if(iel == 5)
-			cout << "\nElemento Quadrilátero\n";
+			cout << "\nElemento Quadrilatero\n";
 		check = (CheckElement(gel) || check);
 		check = (CheckRefinement(gel) || check);
 	}
