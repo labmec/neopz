@@ -379,7 +379,7 @@ void TPZCompCloneMesh::AutoBuild() {
  }
  */
 
-void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
+void TPZCompCloneMesh::CreateCloneBC() {
     int i,j;//elementos e lados de elementos
     TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
@@ -387,8 +387,7 @@ void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
     TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
     TPZMaterial *bnd = mat->CreateBC (mat,-1000,50,val1,val2);
     InsertMaterialObject(bnd);
-    
-    
+
     Reference()->ResetReference();
     LoadReferences();
     ComputeNodElCon();
@@ -412,7 +411,7 @@ void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
 //    int tmporder = cmesh->GetDefaultOrder();
 //    cmesh->SetDefaultOrder(10);
     int tmporder = GetDefaultOrder();
-    SetDefaultOrder(MaxOrder);
+    SetDefaultOrder(TPZOneDRef::gMaxP);
     
     int printing = 0;
     if(printing) {
@@ -509,7 +508,7 @@ void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
 #endif
 
         for (int ic = 0; ic<nsideconnects; ic++) {
-            if(((pordersbefore[ic] != pordersafter[ic]) && (pordersbefore[ic]==MaxOrder && pordersafter[ic]>MaxOrder)) || connectindexes[ic] != celbc->ConnectIndex(ic))
+            if(((pordersbefore[ic] != pordersafter[ic]) && (pordersbefore[ic]==TPZOneDRef::gMaxP && pordersafter[ic]>TPZOneDRef::gMaxP)) || connectindexes[ic] != celbc->ConnectIndex(ic))
             {
                 DebugStop();
             }

@@ -56,7 +56,7 @@ TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : T
 TPZCompCloneMesh::~TPZCompCloneMesh() {
 }
 
-void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
+void TPZCompCloneMesh::AutoBuild() {
     TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
     int i,j, nelem = elvec.NElements();
     int index;
@@ -170,7 +170,7 @@ void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
     }
     
     
-    CreateCloneBC(MaxOrder);
+    CreateCloneBC();
     
 //    int go = 0;
     for (int dim=0; dim<3; dim++) 
@@ -183,13 +183,13 @@ void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
             if (orig_gel) {
                 TPZCompEl *orig_cel = orig_gel->Reference();
                 if (orig_cel){
-                    if(!cloned_gel){
+                    if(!cloned_gel) {
                         cout << "TPZCompCloneMesh::AutoBuild: null geometric element detected" << endl;
                         continue;
                     }
                     if(gclm->IsPatchSon(cloned_gel)) {
                         
-                        if (gDebug){
+                        if(gDebug) {
                             cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n"
                             << endl;
                             cloned_gel->Print();
@@ -197,8 +197,7 @@ void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
                         
                         TPZCompEl *cloned_cel = cloned_gel->Reference();//this->CreateCompEl(gel,index);
                         
-                        if(!cloned_cel)
-                        {
+                        if(!cloned_cel) {
                             DebugStop();
                         }
                         
@@ -215,11 +214,12 @@ void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
                             LOGPZ_DEBUG(logger, sout.str())
                         }
 #endif
-                        for (j=0;j<orgintel->Reference()->NSides();j++){
-                            
+                        for (j=0;j<orgintel->Reference()->NSides();j++)
+                        {
                             // we have to process from lower dimension sides to higher dimension sides
                             // applying a constraint can modify the higher dimension sides
-                            if (orgintel->Reference()->SideDimension(j) != dim) {
+                            if (orgintel->Reference()->SideDimension(j) != dim)
+                            {
                                 continue;
                             }
                             
@@ -283,7 +283,7 @@ void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
     
     //	Print(cout);
     
-    //Copiar Solução Bloco a Bloco
+    //Copiar Solucao Bloco a Bloco
     int nc = fCloneReference->NConnects();
     for (i=0;i<nc;i++)
     {
@@ -378,7 +378,7 @@ void TPZCompCloneMesh::AutoBuild(int MaxOrder) {
  }
  */
 
-void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
+void TPZCompCloneMesh::CreateCloneBC(){
     int i,j;//elementos e lados de elementos
     TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
@@ -412,7 +412,7 @@ void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
 //    cmesh->SetDefaultOrder(10);
     int tmporder = GetDefaultOrder();
     // Defining maxime order of shape functions in clone meshes
-    SetDefaultOrder(MaxOrder);
+    SetDefaultOrder(TPZOneDRef::gMaxP);
     
     int printing = 0;
     if(printing) {
@@ -514,7 +514,7 @@ void TPZCompCloneMesh::CreateCloneBC(int MaxOrder){
 #endif
 
         for (int ic = 0; ic<nsideconnects; ic++) {
-            if(((pordersbefore[ic] != pordersafter[ic]) && (pordersafter[ic] == MaxOrder && pordersbefore[ic]>MaxOrder)) || connectindexes[ic] != celbc->ConnectIndex(ic))
+            if(((pordersbefore[ic] != pordersafter[ic]) && !(pordersafter[ic] == TPZOneDRef::gMaxP && pordersbefore[ic]>TPZOneDRef::gMaxP)) || connectindexes[ic] != celbc->ConnectIndex(ic))
             {
                 DebugStop();
             }

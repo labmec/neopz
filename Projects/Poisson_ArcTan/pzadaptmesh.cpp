@@ -24,7 +24,7 @@ TPZAdaptMesh::TPZAdaptMesh(int maxorder) {
     fElementError.Resize(0);
     fCloneMeshes .Resize(0);
     fFineCloneMeshes .Resize(0);
-    fMaxP = maxorder;
+    TPZOneDRef::gMaxP = maxorder;
 }
 
 TPZAdaptMesh::~TPZAdaptMesh() {
@@ -45,36 +45,34 @@ void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh) {
 
 void TPZAdaptMesh::SetMaxP(int maxp) {
     if(maxp < 1) {
-        cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greter than 0... trying to set maximum p to " 
-        << maxp << endl;
-        return;
+        cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greater than 0... You given " << maxp << ". Trying to set maximum p to new value " << 1 << endl;
+        maxp = 1;
     }
-    fMaxP = maxp;
-    TPZOneDRef::gMaxP = fMaxP;
+    TPZOneDRef::gMaxP = maxp;
 }
 
-void TPZAdaptMesh::CleanUp(){
+void TPZAdaptMesh::CleanUp() {
     int i;
-    for (i=0;i<fCloneMeshes .NElements();i++){
+    for(i=0;i<fCloneMeshes .NElements();i++) {
         TPZGeoCloneMesh *gmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMeshes [i]->Reference());
         gmesh->ResetReference();
         //Cesar July 2003 ->
         //If some reference element is not used to analyse error its fine clone mesh is not created!
-        if (fFineCloneMeshes [i]){
-            fFineCloneMeshes [i]->LoadReferences();
-            RemoveCloneBC(fFineCloneMeshes [i]);
-            DeleteElements(fFineCloneMeshes [i]);
-            delete fFineCloneMeshes [i];
+        if(fFineCloneMeshes[i]) {
+            fFineCloneMeshes[i]->LoadReferences();
+            RemoveCloneBC(fFineCloneMeshes[i]);
+            DeleteElements(fFineCloneMeshes[i]);
+            delete fFineCloneMeshes[i];
         }
         
-        fCloneMeshes [i]->LoadReferences();
-        RemoveCloneBC(fCloneMeshes [i]);
-        DeleteElements(fCloneMeshes [i]);
-        delete fCloneMeshes [i];
+        fCloneMeshes[i]->LoadReferences();
+        RemoveCloneBC(fCloneMeshes[i]);
+        DeleteElements(fCloneMeshes[i]);
+        delete fCloneMeshes[i];
         delete gmesh;
     }
-    fCloneMeshes .Resize(0);
-    fFineCloneMeshes .Resize(0);
+    fCloneMeshes.Resize(0);
+    fFineCloneMeshes.Resize(0);
 }
 
 void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<TPZVec<REAL> > &elData) {
@@ -409,7 +407,7 @@ void TPZAdaptMesh::CreateClones(){
         }
         
         TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReferenceCompMesh);
-        clonecompmesh->AutoBuild(fMaxP);
+        clonecompmesh->AutoBuild();
 		// Computational mesh clone is stored
         fCloneMeshes.Push(clonecompmesh);    
     }

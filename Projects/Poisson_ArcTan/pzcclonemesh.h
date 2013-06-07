@@ -127,7 +127,7 @@ protected:
     int HasConnect(int cnid);
     
     /** @brief Creates the Dirichlet Boundary Condition along the patch sides */
-    void CreateCloneBC(int MaxOrder = 10);
+    void CreateCloneBC();
     
     /**
      * @brief Verifies if the given element is son of the Geometric Reference Element
@@ -168,8 +168,8 @@ public:
     
     //@}
     
-    /** Creates the computational elements, and the degree of freedom nodes */
-    void AutoBuild(int MaxOrder);
+    /** Creates the computational elements, and the degree of freedom nodes and copy solution from original computational mesh */
+    virtual void AutoBuild();
     
     /**
      * @brief Given the solution of the global system of equations, computes and stores the
