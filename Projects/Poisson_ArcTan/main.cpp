@@ -179,8 +179,8 @@ int main() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-//		for(int itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
+//		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
@@ -204,7 +204,7 @@ int main() {
             }
             else if(dim==2) {
                 ninitialrefs = 1;
-                NRefs = 12;
+                NRefs = 13;
             }
             else {
                 ninitialrefs = 4;
