@@ -59,7 +59,6 @@ TPZMatrix<STATE> * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
 
 int TPZParSkylineStructMatrix::main() {
 	
-	int refine=5;
 	int order=6;
 	
 	TPZGeoMesh gmesh;

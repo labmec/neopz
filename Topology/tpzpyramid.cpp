@@ -214,13 +214,16 @@ namespace pztopology {
 		if(side <5 && node == 0) return side;
 		if(side >= 5 && side <13 && node < 2) return SideNodes[side-5][node];
 		if(side == 13 && node <4) return FaceNodes[side-13][node];
-		if(side >13 && side < 18)
-			if (node <3) return FaceNodes[side-13][node];
-			else if (node==3) return -1;//Previsto receber pelas faces triangulares - Cesar 2003-01-02
-		
+		if(side >13 && side < 18) {
+			if(node <3) {
+                return FaceNodes[side-13][node];
+            }
+			else if(node==3) {
+                return -1;//Previsto receber pelas faces triangulares - Cesar 2003-01-02
+            }
+        }
 		if(side == 18 && node < 5) return node;
-		PZError << "TPZPyramid::SideNodeLocId inconsistent side or node " << side
-		<< ' ' << node << endl;
+		PZError << "TPZPyramid::SideNodeLocId inconsistent side or node " << side << ' ' << node << endl;
 		return -1;
 	}
 	

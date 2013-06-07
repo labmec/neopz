@@ -20,10 +20,8 @@ using namespace std;
 
 #ifdef USING_TBB
 #include "tbb/tbb.h" 
-//#include "tbb/pipeline.h" 
-//#include "tbb/parallel_for.h" 
-//#include "tbb/blocked_range.h" 
-using namespace tbb; 
+
+using namespace tbb;
 #endif
 
 #ifdef LOG4CXX
@@ -52,7 +50,7 @@ struct PipeItem_t
   TPZElementMatrix ef;
 };
 
-/* First stage: select thse TPZCompEl elements to be processed. */
+/** @brief First stage: select these TPZCompEl elements to be processed. */
 class StageOne_t : public tbb::filter
 {
   unsigned current_iel;
@@ -85,7 +83,6 @@ public:
     TPZCompEl* el = NULL;
     bool found = false;
     
-    //cout << "current_iel (" << current_iel << ") / nelem (" << nelem << ")" << endl;
     while(current_iel < nelem) 
     {
       el = elementvec[current_iel++];
@@ -136,7 +133,7 @@ public:
   }
 };
 
-/* Second stage: compute the ek and ef matrices. */
+/** @brief Second stage: compute the ek and ef matrices. */
 class StageTwo_t: public tbb::filter 
 {
   TPZCompMesh *mesh;
@@ -176,7 +173,7 @@ public:
   }
 };
 
-/* Third stage: compute the first matrix and the rhs. */
+/** @brief Third stage: compute the first matrix and the rhs. */
 template<class TVar>
 class StageThree_t: public tbb::filter 
 {
@@ -210,7 +207,7 @@ public:
   }
 };
 
-/* Fourth stage: compute the second matrix. */
+/** @brief Fourth stage: compute the second matrix. */
 template<class TVar>
 class StageFour_t: public tbb::filter 
 {
@@ -250,12 +247,12 @@ public:
 
 #endif // USING TBB
 
-/* 
-   Iterações do laço podem ser executadas em paralelo. 
-   - 1: Utilizar um parallel_for: (simples, mas não explora paralelismo entre threadassembly 1 e 2.
-   - 2: Utilizar árvore de tarefas: Podemos explorar o paralelismo entre threadassembly 1 e 2, mas
-   o código pode ficar grande.
-*/
+/**
+ * @brief Iterações do laço podem ser executadas em paralelo. \n
+ * - 1: Utilizar um parallel_for: (simples, mas não explora paralelismo entre threadassembly 1 e 2. \n
+ * - 2: Utilizar árvore de tarefas: Podemos explorar o paralelismo entre threadassembly 1 e 2, mas \n
+ * O código pode ficar grande.
+ */
 template<class TVar>
 class parallel_assemble_task_t
 {
@@ -550,10 +547,8 @@ void TPZPairStructMatrix::Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *se
 	    << " threads (TPZPairStructMatrix::gNumThreads = " << TPZPairStructMatrix::gNumThreads  << ")\n";
 #endif
 
-#ifndef WIN32
-#warning "Fixme!!!"
-#endif
-  // Find a better way to select among TBB, pthread or serial execution!
+    /// "Fixme!!!"   "Fixme!!!"   "Fixme!!!"   "Fixme!!!"
+  /// @note Find a better way to select among TBB, pthread or serial execution! in this TPZPairStructMatrix::Assemble
 
     int numthreads = fStrMatrix.GetNumThreads();
   if (numthreads < 0)

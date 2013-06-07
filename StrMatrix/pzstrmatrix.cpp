@@ -43,7 +43,6 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
-	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (mesh);
 	this->SetNumThreads(0);
 }
 

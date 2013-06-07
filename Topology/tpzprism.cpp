@@ -272,18 +272,18 @@ namespace pztopology {
 	{
 		if(side<6 && node == 0) return side;
 		if(side>= 6 && side < 15 && node<2) return SideNodes[side-6][node];
-		if(side==15)
-			if (node < 3) return FaceNodes[side-15][node];
-			else if (node == 3) return -1; //previsto para faces triangulares
-		
+		if(side==15) {
+			if(node < 3) return FaceNodes[side-15][node];
+			else if(node == 3) return -1; //previsto para faces triangulares
+		}
 		if(side>15 && side <19 && node <4) return FaceNodes[side-15][node];
-		if(side==19)
-			if (node<3) return FaceNodes[side-15][node];
-			else if (node == 3) return -1; // Previsto p/ faces triangulares
+		if(side==19) {
+			if(node<3) return FaceNodes[side-15][node];
+			else if(node == 3) return -1; // Previsto p/ faces triangulares
+        }
 		
 		if(side==20 && node<6) return node;
-		PZError << "TPZPrism::SideNodeLocId inconsistent side or node " << side
-		<< ' ' << node << endl;
+		PZError << "TPZPrism::SideNodeLocId inconsistent side or node " << side << ' ' << node << endl;
 		return -1;
 	}
 	
