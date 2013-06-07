@@ -106,21 +106,21 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, c
 	aux = aux + Belongs(ponto2);
 	aux = aux + Belongs(ponto3);
 	TPZVec<REAL> aux1(3), aux2(3);
-	if(aux==3){
+	if(aux==3) {
 		/**verificando se os pontos estão alinhados */
 		//criando vetores de deslocalmentos entre pontos
-		for(i=0; i<3; i++){
+		for(i=0;i<3;i++) {
 			aux1[i]=100.*(ponto1[i]-ponto2[i]);
 			aux2[i]=100.*(ponto2[i]-ponto3[i]);
 		}
 		//verificando se os vetores de deslocamentos tem a mesma direção
 		aux=0;    
 		TPZNumeric::ProdVetorial(aux1, aux2, aux1);
-		for(i=0; i<3; i++){
+		for(i=0;i<3;i++) {
 			if(fabs(aux1[i])<0.0000009) aux++;
 		}
-		if(aux==3){
-			cout << "TPZPlane::Belongs(p1, p2, p3) - Warning: Os 3 pontos de entrada estão alinhados\n";
+		if(aux==3) {
+			cout << "TPZPlane::Belongs(p1, p2, p3) - Warning: Os 3 pontos de entrada estao alinhados\n";
 		}
 		return true;
 	}
@@ -128,15 +128,15 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, c
 }
 
 /** Calcula o determinante da matriz[3][3]. */
-void MatrixDet(REAL matrix[3][3], REAL &det){
+void MatrixDet(REAL matrix[3][3], REAL &det) {
 	det = MatrixDet(matrix);	
 }
 
 /** Calcula o determinante da matriz[3][3]. */
-REAL MatrixDet(REAL matrix[3][3]){
+REAL MatrixDet(REAL matrix[3][3]) {
 	int i;
 	REAL aux = 0.0;
-	for(i=0; i<3; i++){
+	for(i=0; i<3; i++) {
 		aux = aux +(matrix[i%3][0]*matrix[(i+1)%3][1]*matrix[(i+2)%3][2])-(matrix[(i+2)%3][0]*matrix[(i+1)%3][1]*matrix[i%3][2]);
 	}
 	return aux;	

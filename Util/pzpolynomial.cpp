@@ -216,43 +216,38 @@ int TPZPolynomial::SetRoots() {
                 }
             }
             if (j == 10002 || j == 10000) {
-                cout << "TPZPolynomial::SetRoots().\nErro no cálculo das raízes!!!!! j= " << j << "\n";
+                cout << "TPZPolynomial::SetRoots().\nErro no calculo das raizes!!!!! j= " << j << "\n";
                 //cout << fCo[3] << "x³ + " << fCo[2] << "x² + " << fCo[1] << "x + " << fCo[0] << " = 0.0\n";
                 return -1;
             }
             REAL teste;
             teste = fCo[3] * X[0] * X[0] * X[0] + fCo[2] * X[0] + fCo[1] * X[0] + fCo[0];
-            cout << "Resultado da 1a raiz na equação" << teste << "\n";
-            //Fim do cálculo da primeira raiz (X[0])
-            //Redução da equação característica a grau 2.
-			//REAL b0;
+            cout << "Resultado da 1a raiz na equacao" << teste << "\n";
+            //Fim do calculo da primeira raiz (X[0])
+            //Reducao da equacao caracteristica de grau 2.
 			REAL  b1, b2, b3;
 			b3 = fCo[3];
 			b2 = fCo[2] + X[0] * b3;
 			b1 = fCo[1] + X[0] * b2;
-			//b0 = fCo[0] + X[0] * b1;
 			
-            /** Cálculo das outras duas raízes (X[1] e X[2]) b3*x² + b2*x + b1 = 0 */
-            //cout<<b3<<"x² + "<<b2<<"x + "<<b1<<" = 0.0\n";
+            /** Calculo das outras duas raizes (X[1] e X[2]) b3*x² + b2*x + b1 = 0 */
             REAL delta;
             delta = b2 * b2 - 4.0 * b1 * b3;
             if (delta < 0.0) {
-                cerr << "TPZPolynomial::SetRoots() - warning: Raízes não reais!! Delta =" << delta << "\t" << X[0] << "\n";
-                cout << fCo[3] << "x³ + " << fCo[2] << "x² + " << fCo[1] << "x + " << fCo[0] << " = 0.0\n";
-                cout << b3 << "x² + " << b2 << "x + " << b1 << " = 0.0\n";
+                cerr << "TPZPolynomial::SetRoots() - warning: Raizes nao reais!! Delta =" << delta << "\t" << X[0] << "\n";
+                cout << fCo[3] << "x >= + " << fCo[2] << "x <= + " << fCo[1] << "x + " << fCo[0] << " = 0.0\n";
+                cout << b3 << "x<= + " << b2 << "x + " << b1 << " = 0.0\n";
                 X[1] = 0.0;
                 X[2] = 0.0;
                 sort(&X[0], &X[3], greater<REAL>());
 				fReal = X;
-//				copy(&X[0], &X[3], &fReal[0]);
             }
             else {
                 X[1] = (-b2 - sqrt(delta)) / (2.0 * b3);
                 X[2] = (-b2 + sqrt(delta)) / (2.0 * b3);
-                //Colocação das tensões em ordem crescente
+                // Ordenando as tensoes de forma crescente
                 sort(&X[0], &X[3], greater<REAL>());
 				fReal = X;
-//				copy(&X[0], &X[3], &fReal[0]);
             }
         }
     }
