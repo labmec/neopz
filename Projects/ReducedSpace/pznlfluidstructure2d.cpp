@@ -820,7 +820,6 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
     {
         ///////////////////////
         TPZCompEl * cel = cmesh->ElementVec()[i];
-        TPZGeoEl * gel = cel->Reference();
         
         #ifdef DEBUG
         if(!cel)
@@ -829,8 +828,15 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         }
         #endif
         
+        TPZGeoEl * gel = cel->Reference();
+        
+        if(gel->Dimension() != 1)
+        {
+            continue;
+        }
+        
         TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*> (cel);
-        if(!sp || gel->Dimension() != 1)
+        if(!sp)
         {
             continue;
         }
@@ -847,7 +853,6 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         TPZMaterialData data;
         sp->InitMaterialData(data);
         
-        qsi[0] = -1.;
         sp->ComputeShape(qsi, data);
         sp->ComputeSolution(qsi, data);
 

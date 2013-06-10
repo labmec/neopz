@@ -136,7 +136,7 @@ void ToolsTransient::Run()
         fInputData->fKIc = 1000.;
     }
     
-    outPWJ << "(*** PRESSAO ***)\n" << outP.str() << "\n\n\n\n\n(*** W ***)\n" << outW.str() << "\n\n\n\n\n(*** J ***)\n" << outJ.str();
+    outPWJ << "(*** PRESSAO ***)\n" << outP.str() << "\n\n(*** W ***)\n" << outW.str() << "\n\n(*** J ***)\n" << outJ.str();
     outPWJ.close();
 }
 
@@ -732,13 +732,13 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
         PlotWIntegral(meshvec[0], outW, actTime);
         
-        InitialSolution = mphysics->Solution();
         step++;
         actTime += deltaT;
         
         REAL KI = ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ, step, actTime, false);
         if (KI > fInputData->KIc())
         {
+            InitialSolution = mphysics->Solution();
             return true; // ***** PROPAGOU *****
         }
     }
