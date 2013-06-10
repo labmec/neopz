@@ -329,7 +329,7 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc){
     
     if(gState == ELastState) return;
-    REAL auxvar = 0.817*(1-fInputData->Poisson())*fInputData->Hf();
+    REAL auxvar = 0.817*(1.-fInputData->Poisson())*fInputData->Hf();
     REAL factor = 0.;//fG/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -618,9 +618,9 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     if (var == 2)
     {
-        REAL fG = 1.;//AQUICAJU!!!
+        REAL G = young/(2.*(1.+poisson));
         if(!datavec[1].phi) return;
-        REAL un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/fG;
+        REAL un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
         REAL factor = 0.;//(un*un*un)/(12.*fvisc);
         
 		int id;
