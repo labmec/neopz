@@ -10,7 +10,8 @@
 #include "tpzintpoints.h"
 #include "pzintel.h"
 #include "pzgnode.h"
-#include "math.h"
+#include <cmath>
+using namespace std;
 
 TPZGradientReconstruction::TPZGradientReconstruction(int var){
     
@@ -113,7 +114,7 @@ void TPZGradientReconstruction::CalcWeights(TPZCompEl *cel, std::set<TPZCompEl *
         
         dist[ineighs]=gel->Distance(centerneigh, nodecelX);
         
-        sum += 1./pow(dist[ineighs],paramk);
+        sum += 1./pow((REAL)dist[ineighs],paramk);
     }
     
     weights.Resize(dist.size(), 0.);
@@ -121,7 +122,7 @@ void TPZGradientReconstruction::CalcWeights(TPZCompEl *cel, std::set<TPZCompEl *
     
     for (int i = 0; i<dist.size(); i++)
     {
-        temp = 1./pow(dist[ineighs],paramk);
+        temp = 1./pow((REAL)dist[ineighs],paramk);
         weights[i] = temp/sum;
         if(weights[i]<0 || weights[i]>1) DebugStop();
     }
