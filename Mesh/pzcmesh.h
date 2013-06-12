@@ -420,12 +420,12 @@ public:
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */
 	virtual void AutoBuild(const std::set<int> &MaterialIDs){
-		this->AutoBuild(&MaterialIDs);
+		fCreate.BuildMesh(*this,MaterialIDs);
 	}
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	virtual void AutoBuild(){
-		this->AutoBuild(NULL);
+		fCreate.BuildMesh(*this);
 	}
 		
 	/** @brief Creates the computational elements, and the degree of freedom nodes */

@@ -79,10 +79,20 @@ class TPZGeoElSide {
 	TPZGeoEl *fGeoEl;
 	int fSide;
 public:
+    
+    /// return the number of element/side pairs which compose the current set of points
 	int NSubElements();
+    
+    /// build the list of element/side pairs which compose the current set of points
 	void GetSubElements2(TPZStack<TPZGeoElSide> &subelements);
+    
+    /// returns the father/side pair which contains this/side and is strictly larger than this/side
 	TPZGeoElSide StrictFather();
+    
+    /// returns the father/side pair which contains the set of points associated with this/side
 	TPZGeoElSide Father2();
+    
+    /// return the element/side pair which contains this/side and has a computational element associated
 	TPZCompElSide LowerLevelCompElementList2(int onlyinterpolated);
 	
 	/** @brief Checks whether other is a relative (son or ancestor) of this */

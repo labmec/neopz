@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
             // ofstream arg1("gmesh_inicial.txt");
             // gmesh->Print(arg1);
 
+            /*
             // First computational mesh
             TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
             //ofstream arg2("cmesh1_inicial.txt");
@@ -159,6 +160,7 @@ int main(int argc, char *argv[])
             an1.PostProcessError(erros, arg12);
 
             arg12<<" \nErro da simulacao multifisica  para a pressao" <<endl;
+             
             TPZAnalysis an2(cmesh2);
             if (teste==1) an2.SetExact(*SolExata1);
             else an2.SetExact(*SolExata2);
@@ -166,7 +168,7 @@ int main(int argc, char *argv[])
 */
             string plotfile("Solution_mphysics.vtk");
             PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
-
+*/
 
             //solucao HDivPressure
             TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
@@ -177,6 +179,8 @@ int main(int argc, char *argv[])
 //            gmesh->Print(arg10);
 
             TPZAnalysis an3(cmesh3);
+            ofstream arg8("cmesh_HdivInicial.txt");
+            cmesh3->Print(arg8);
             SolveSyst(an3, cmesh3);
             ofstream arg8("cmesh_HdivInicial.txt");
             cmesh3->Print(arg8);

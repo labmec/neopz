@@ -30,6 +30,11 @@
 
 #include "pzcompelwithmem.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcreateapproximationspace"));
+#endif
+
+
 using namespace pzshape;
 
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
@@ -123,13 +128,73 @@ TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
  * @brief Creates the computational elements, and the degree of freedom nodes
  */ 
 /** Only element of material id in the set<int> will be created */
-void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs){
-    cmesh.AutoBuild(MaterialIDs);
+void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs) const {
+	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh.Reference()->ElementVec();
+	int i, nelem = elvec.NElements();
+	int neltocreate = 0;
+	int index;
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			neltocreate++;
+		}
+	}
+	std::set<int> matnotfound;
+	int nbl = cmesh.Block().NBlocks();
+    if(neltocreate > nbl) 
+    {
+        cmesh.Block().SetNBlocks(neltocreate);
+    }
+    cmesh.Block().SetNBlocks(nbl);
+	
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			int matid = gel->MaterialId();
+			TPZMaterial * mat = cmesh.FindMaterial(matid);
+			if(!mat)
+			{
+				matnotfound.insert(matid);
+				continue;
+			}
+			int printing = 0;
+			if (printing) {
+				gel->Print(cout);
+			}
+			
+			//checking material in MaterialIDs
+            std::set<int>::const_iterator found = MaterialIDs.find(matid);
+            if (found == MaterialIDs.end()) continue;
+			
+			if(!gel->Reference() && gel->NumInterfaces() == 0)
+			{
+				CreateCompEl(gel,cmesh,index);
+                if (fCreateHybridMesh) {
+                    cmesh.ElementVec()[index]->Reference()->ResetReference();
+                }
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    cmesh.ElementVec()[index]->Print(sout);
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+			}
+		}
+	}
+	cmesh.InitializeBlock();
 }
 
 /** @brief Creates the computational elements, and the degree of freedom nodes */
-void TPZCreateApproximationSpace::AutoBuild(TPZCompMesh &cmesh){
-    cmesh.AutoBuild();
+void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh) const {
+    std::set<int> materialids;
+    std::map<int,TPZMaterial *>::iterator it;
+    for (it = cmesh.MaterialVec().begin(); it != cmesh.MaterialVec().end(); it++) {
+        materialids.insert(it->first);
+    }
+    BuildMesh(cmesh,materialids);
 }
 
 void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs){
@@ -352,7 +417,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
 /*
  * @brief Create a computational element using the function pointer for the topology
  */
-TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index)
+TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index) const
 {
     switch (gel->Type()) {
         case EPoint:

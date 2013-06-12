@@ -25,15 +25,21 @@ class TPZCreateApproximationSpace
 {
     /** @brief Function pointer which determines what type of computational element will be created */
     TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+    
+    /// @brief boolean indicating if each element should be created disconnected from the others
+    /**
+     * this flag allows to create hybrid meshes (default is false)
+     */
+    bool fCreateHybridMesh;
 
 public:
     
-    TPZCreateApproximationSpace()
+    TPZCreateApproximationSpace() : fCreateHybridMesh(false)
     {
         SetAllCreateFunctionsContinuous();
     }
     
-    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy)
+    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) : fCreateHybridMesh(copy.fCreateHybridMesh)
     {
         for (int i=0; i<8; i++) {
             fp[i] = copy.fp[i];
@@ -45,6 +51,7 @@ public:
         for (int i=0; i<8; i++) {
             fp[i] = copy.fp[i];
         }
+        fCreateHybridMesh = copy.fCreateHybridMesh;
         return *this;
     }
     
@@ -75,14 +82,14 @@ public:
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
     
     /** @brief Create a computational element using the function pointer for the topology */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index) const;
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */
-	static void BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs);
+	void BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs) const;
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
-	static void AutoBuild(TPZCompMesh &cmesh);
+	void BuildMesh(TPZCompMesh &cmesh) const;
     
     /** @brief Creates the interface elements */ 
 	/** Only element of material id in the set<int> will be created */
@@ -113,7 +120,13 @@ public:
     /** @brief Create interface elements between the computational elements */
     static void CreateInterfaceElements(TPZCompMesh *mesh, bool onlydiscontinuous = true, bool multiphysics = false);
     
-    
+    /** @brief Determine if the mesh will be created with disconnected elements
+     * After the mesh is created, interface elements need to be created "by hand"
+     */
+    void CreateDisconnectedElements(bool create = false)
+    {
+        fCreateHybridMesh = create;
+    }
 };
 
 /** @brief Creates computational point element */

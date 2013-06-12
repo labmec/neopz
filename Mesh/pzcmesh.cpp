@@ -230,62 +230,13 @@ TPZMaterial * TPZCompMesh::FindMaterial(int matid){	// find the material object 
 }
 
 void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
-	TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
-	int i, nelem = elvec.NElements();
-	int neltocreate = 0;
-	int index;
-	for(i=0; i<nelem; i++) {
-		TPZGeoEl *gel = elvec[i];
-		if(!gel) continue;
-		if(!gel->HasSubElement()) {
-			neltocreate++;
-		}
-	}
-	std::set<int> matnotfound;
-	int nbl = fBlock.NBlocks();
-		if(neltocreate > nbl) 
-		{
-				fBlock.SetNBlocks(neltocreate);
-		}
-				fBlock.SetNBlocks(nbl);
-	
-	for(i=0; i<nelem; i++) {
-		TPZGeoEl *gel = elvec[i];
-		if(!gel) continue;
-		if(!gel->HasSubElement()) {
-			int matid = gel->MaterialId();
-			TPZMaterial * mat = this->FindMaterial(matid);
-			if(!mat)
-			{
-				matnotfound.insert(matid);
-				continue;
-			}
-			int printing = 0;
-			if (printing) {
-				gel->Print(cout);
-			}
-			
-			//checking material in MaterialIDs
-			if(MaterialIDs){
-				std::set<int>::const_iterator found = MaterialIDs->find(matid);
-				if (found == MaterialIDs->end()) continue;
-			}
-			
-			if(!gel->Reference() && gel->NumInterfaces() == 0)
-			{
-				CreateCompEl(gel,index);
-#ifdef LOG4CXX
-                {
-                    std::stringstream sout;
-                    fElementVec[index]->Print(sout);
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-			}
-		}
-	}
-	
-	InitializeBlock();
+    if(MaterialIDs)
+    {
+        fCreate.BuildMesh(*this, *MaterialIDs);        
+    }
+    else {
+        fCreate.BuildMesh(*this);
+    }
 	
 }
 

@@ -263,34 +263,57 @@ void TPZAnalysis::Solve() {
     {
         DebugStop();
     }
-	
-	TPZFMatrix<STATE> residual(fRhs);
-	TPZFMatrix<STATE> delu(fSolution);
-	if(fSolution.Rows() != numeq) {
-        fSolution.Redim(numeq,1);
-    } else {
-        
-    }
-	//      STATE normres  = Norm(residual);
-	//	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
+	int nReducedEq = fStructMatrix->NReducedEquations();
+    if (nReducedEq == numeq) 
+    {
+        TPZFMatrix<STATE> residual(fRhs);
+        TPZFMatrix<STATE> delu(numeq,1,0.);
+        //      STATE normres  = Norm(residual);
+        //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-	{
-        TPZFMatrix<STATE> res2(fRhs);
-        fSolver->Matrix()->Residual(fSolution,fRhs,res2);
-		std::stringstream sout;
-		sout << "Residual norm " << Norm(res2) << std::endl;
-//		res2.Print("Residual",sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
+        if (logger->isDebugEnabled())
+        {
+            TPZFMatrix<STATE> res2(fRhs);
+            fSolver->Matrix()->Residual(fSolution,fRhs,res2);
+            std::stringstream sout;
+            sout << "Residual norm " << Norm(res2) << std::endl;
+    //		res2.Print("Residual",sout);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
     
-//    {
-//        std::ofstream out("Matrix.nb");
-//        fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
-//
-//    }
-	fSolver->Solve(residual, delu);
+    //    {
+    //        std::ofstream out("Matrix.nb");
+    //        fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
+    //
+    //    }
+        fSolver->Solve(residual, delu);
+        fSolution = delu;
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            if(!fSolver->Matrix()->IsDecomposed())
+            {
+                TPZFMatrix<STATE> res2(fRhs);
+                fSolver->Matrix()->Residual(delu,fRhs,res2);
+                std::stringstream sout;
+                sout << "Residual norm " << Norm(res2) << std::endl;
+                //            res2.Print("Residual",sout);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+        }
+#endif
+    
+    }
+    else 
+    {
+        TPZFMatrix<STATE> residual(nReducedEq,1,0.);
+    	TPZFMatrix<STATE> delu(nReducedEq,1,0.);
+        fStructMatrix->EquationFilter().Gather(fRhs,residual);
+	    fSolver->Solve(residual, delu);
+        fSolution.Zero();
+        fStructMatrix->EquationFilter().Scatter(delu,fSolution);
+    }
 #ifdef LOG4CXX
     std::stringstream sout;
     TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *> (fSolver);
@@ -317,23 +340,7 @@ void TPZAnalysis::Solve() {
 		delu.Print("delu",sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-	{
-        if(!fSolver->Matrix()->IsDecomposed())
-        {
-            TPZFMatrix<STATE> res2(fRhs);
-            fSolver->Matrix()->Residual(delu,fRhs,res2);
-            std::stringstream sout;
-            sout << "Residual norm " << Norm(res2) << std::endl;
-//            res2.Print("Residual",sout);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-	}
-#endif
-	fSolution = delu;
-	
+#endif	
 	fCompMesh->LoadSolution(fSolution);
 }
 

@@ -59,7 +59,7 @@ public:
 	 * @param LagrangeMat [in]: index Lagrange material
 	 * @param InterfaceMat [in]: index interface material
 	 */	
-	static void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
+	static void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, std::set<int> &BCMaterialIds, int LagrangeMat, int InterfaceMat);
 	
 	/**
 	 * brief Uniform refinement of the computational mesh

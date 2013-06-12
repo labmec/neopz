@@ -186,6 +186,8 @@ namespace pzgeom {
                        
                 }//method
             
+            // project the point towards the center of the element
+            // find the intersecting side
             int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain){
                 const int nsides = Topology::NSides;
                 const int dim = Topology::Dimension;
