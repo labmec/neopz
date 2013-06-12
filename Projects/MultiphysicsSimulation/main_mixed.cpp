@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
             if (teste==1) an2.SetExact(*SolExata1);
             else an2.SetExact(*SolExata2);
             an2.PostProcessError(erros, arg12);
-*/
+
             string plotfile("Solution_mphysics.vtk");
             PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
 */
@@ -179,8 +179,6 @@ int main(int argc, char *argv[])
 //            gmesh->Print(arg10);
 
             TPZAnalysis an3(cmesh3);
-            ofstream arg8("cmesh_HdivInicial.txt");
-            cmesh3->Print(arg8);
             SolveSyst(an3, cmesh3);
             ofstream arg8("cmesh_HdivInicial.txt");
             cmesh3->Print(arg8);

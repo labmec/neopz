@@ -257,6 +257,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     
 	//criar set dos materiais
     std::set<int> MaterialIDs;
+    std::set<int> BCMaterialIDs;
     MaterialIDs.insert(matInterno);
     MaterialIDs.insert(lagrangemat);
     MaterialIDs.insert(interfacemat);
@@ -264,9 +265,13 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     MaterialIDs.insert(bc2);
     MaterialIDs.insert(bc3);
     MaterialIDs.insert(bc4);
+    BCMaterialIDs.insert(bc1);
+    BCMaterialIDs.insert(bc2);
+    BCMaterialIDs.insert(bc3);
+    BCMaterialIDs.insert(bc4);
 
     
-    TPZBuildMultiphysicsMesh::BuildHybridMesh(cmesh, MaterialIDs, lagrangemat, interfacemat);
+    TPZBuildMultiphysicsMesh::BuildHybridMesh(cmesh, MaterialIDs, BCMaterialIDs, lagrangemat, interfacemat);
         
 	return cmesh;
 }
