@@ -259,12 +259,12 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     std::set<int> MaterialIDs;
     std::set<int> BCMaterialIDs;
     MaterialIDs.insert(matInterno);
-    MaterialIDs.insert(lagrangemat);
-    MaterialIDs.insert(interfacemat);
-    MaterialIDs.insert(bc1);
-    MaterialIDs.insert(bc2);
-    MaterialIDs.insert(bc3);
-    MaterialIDs.insert(bc4);
+//     MaterialIDs.insert(lagrangemat);
+//     MaterialIDs.insert(interfacemat);
+//     MaterialIDs.insert(bc1);
+//     MaterialIDs.insert(bc2);
+//     MaterialIDs.insert(bc3);
+//     MaterialIDs.insert(bc4);
     BCMaterialIDs.insert(bc1);
     BCMaterialIDs.insert(bc2);
     BCMaterialIDs.insert(bc3);
