@@ -426,9 +426,19 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 /** @brief Returns the element that is close to the given point x */
 TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int & InitialElIndex, int targetDim)
 {
+    // this method will not work if targetDim == 0 because it navigates through elements of dimension targetDim
     TPZManVector<REAL,3> xcenter(3);
     TPZManVector<TPZManVector<REAL, 3>, 8> cornercenter;
+    // what happens if gelnext == 0 or if InitialIndex is out of scope??
+    if (InitialElIndex >= fElementVec.NElements()) {
+        DebugStop();
+    }
     TPZGeoEl *gelnext = ElementVec()[InitialElIndex];
+    
+    if (gelnext == 0) {
+        DebugStop();
+    }
+    
     TPZGeoEl *gel = 0;
     REAL geldist;
     std::map<REAL,int> cornerdist;
@@ -534,12 +544,16 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             {
                 neighSide = neighSide.Neighbour();
             }
+            // why is targetDim == 0 a special case?
+            // if targetDim == 0 we should look for the closest node and hope to find a point element there
             else if(targetDim > 0 && neighSide.Element()->Dimension() != targetDim)
             {
                 neighSide = neighSide.Neighbour();
             }
             else
             {
+                // why is this neighbour better?
+                // the parameter should be projected using SideToSideTransform
                 targetNeighFound = true;
             }
         }

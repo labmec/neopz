@@ -171,7 +171,7 @@ public:
     /**
     Retrieve the plastic state variables
     */
-    virtual const TPZPlasticState<REAL> GetState () const
+    virtual TPZPlasticState<REAL> GetState () const
     {
 		TPZPlasticState<REAL> temp = LADEKIMPARENT::GetState();
 		temp -= fInitialEps;

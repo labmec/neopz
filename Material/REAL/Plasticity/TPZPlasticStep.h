@@ -36,7 +36,7 @@ public:
 	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
     virtual void SetState(const TPZPlasticState<REAL> &state) = 0;
-	virtual const TPZPlasticState<REAL> GetState() const = 0;
+	virtual TPZPlasticState<REAL> GetState() const = 0;
 	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const = 0;
 	virtual int IntegrationSteps()const = 0;
 	virtual void SetIntegrTol(REAL integrTol)=0;
@@ -156,7 +156,7 @@ public:
 	
 	/**
 	 * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
-	 * This methid should be used only for test purposes because it isn't fully robust. Some
+	 * This method should be used only for test purposes because it isn't fully robust. Some
 	 * materials, specially those perfectly plastic and with softening, may fail when applying
 	 * the Newton Method on ProcessLoad.
 	 *
@@ -281,7 +281,7 @@ public:
     virtual void SetUp(const TPZTensor<REAL> & epsTotal);
 	
     /** @brief Retrieve the plastic state variables */	
-    virtual const TPZPlasticState<REAL> GetState()const;
+    virtual TPZPlasticState<REAL> GetState()const;
 	
 	/** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
 	virtual int IntegrationSteps()const;
@@ -322,7 +322,7 @@ protected:
 	
 public:
     /** @brief Retrieves the plastic state variables - makes no interface sign checks */	
-    virtual const TPZPlasticState<REAL> GetState_Internal()const;
+    virtual TPZPlasticState<REAL> GetState_Internal()const;
 	
 protected:
 

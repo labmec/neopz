@@ -266,7 +266,7 @@ void TPZGeoEl::Print(std::ostream & out) {
 			out << endl;
 		}
 	}
-	out << "Reference element: " << fReference << endl;
+	out << "Reference element pointer address: " << fReference << endl;
 	if (this->Reference()) out << "Reference element index : " << this->Reference()->Index() << endl;
 	out << "fNumInterfaces = " << fNumInterfaces << endl;
 }
@@ -1685,10 +1685,19 @@ int TPZGeoEl::NormalOrientation(int side)
 	}
 	TPZGeoElSide thisside(this,side);
 	TPZGeoElSide neighbour(thisside.Neighbour());
-	if(!neighbour.Exists() || neighbour.Element()->Dimension() < dimel) 
+    // case there is no neighbour (should put a debugstop here)
+	if(!neighbour.Exists() ) 
 	{
 		return 1;
 	}
+    
+    // look for a neighbour of equal dimension
+    while (neighbour.Element()->Dimension() != Dimension() && neighbour != thisside) {
+        neighbour = neighbour.Neighbour();
+    }
+    if (neighbour == thisside) {
+        return 1;
+    }
 	
 	TPZGeoElSide fatherside = thisside.Father2();
 	while(fatherside.Exists() && fatherside.Dimension() == dimside)//a segunda condicional eu inclui agora
@@ -1698,6 +1707,10 @@ int TPZGeoEl::NormalOrientation(int side)
 	}
 //	fatherside = thisside.Neighbour();
     neighbour = thisside.Neighbour();
+    // Considerando elementos hibridos, o elemento pode ter um vizinho de dimensao menor
+    while (neighbour.Element()->Dimension() != Dimension() && neighbour != thisside) {
+        neighbour = neighbour.Neighbour();
+    }
 //	while (fatherside.Exists()&& fatherside.Dimension() == dimside) {//eu inclui agora a segunda condicao
 //		neighbour = fatherside;
 //		fatherside = fatherside.Father2();

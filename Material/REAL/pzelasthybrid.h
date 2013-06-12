@@ -23,7 +23,7 @@
 
 /**
  * @ingroup material
- * @brief This class implements a two dimensional elastic material to hybrid method. It is derivate from the class TPZElasticityMaterial.
+ * @brief This class implements a two dimensional elastic material to hybrid method. It is derived from the class TPZElasticityMaterial.
  */
 class TPZElasticityHybridMaterial : public TPZElasticityMaterial {
 	

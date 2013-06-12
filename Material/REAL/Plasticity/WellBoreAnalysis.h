@@ -14,14 +14,16 @@
 #include "TPZTensor.h"
 #include "pzgeoel.h"
 
+/// create de standard mesh
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
-
+/// Class which simulates the stability of a wellbore
 class TPZWellBoreAnalysis
 {
     
 public:
     
+    /// this class represents a particular stage of the wellbore analysis
     struct TConfig
     {
         TConfig();
@@ -120,12 +122,16 @@ public:
     /// read the object from the stream
     void Read(TPZStream &input);
     
+    /// Computes the tension state transferring the geological stress state to the hidrostatic stress state
     void ExecuteInitialSimulation();
     
+    /// Computes an equilibrium state corresponding to the current boundary conditions
     void ExecuteSimulation();
     
+    /// verify the integrity of the elasto plastic material that is being used
     static void CheckDeformation(std::string filename = "deform.nb");
     
+    /// transfer the solution from the current configuration to the given configuration
     void TransferSolutionTo(TConfig &config);
     
     void DeleteElementsAbove(REAL sqj2)
@@ -139,6 +145,7 @@ public:
         fCurrentConfig.RelaxWellSpring(factor);
     }
     
+    /// Set the polynomial order of the elements which exceed plastic deformation
     void PRefineElementAbove(REAL sqj2, int porder)
     {
         std::set<int> elindices;
@@ -147,6 +154,7 @@ public:
         ApplyHistory(elindices);
     }
     
+    /// change the material id of the geometric elements of the current configuration
     void ChangeMaterialId(int idFrom, int idTo)
     {
         TPZGeoMesh *gmesh = &fCurrentConfig.fGMesh;
@@ -176,23 +184,28 @@ public:
         fCurrentConfig.VerifyGlobalEquilibrium(out);
     }
     
+    /// Access method
     TConfig * GetCurrentConfig ()
     {
         return &fCurrentConfig;
     }
 
+    /// Initialize the object with standard parameters
 static void StandardConfiguration(TPZWellBoreAnalysis &obj);
 
     
 private:
     
-    /// Reset the plastic memory of the integration points of these elements
+    /// Recompute the plastic memory of the integration points of these elements
     void ApplyHistory(std::set<int> &elindices);
     
+    /// The object with the current configuration
     TConfig fCurrentConfig;
     
+    /// The list of all previous configurations
     std::list<TConfig> fSequence;
     
+    /// Index associated with the post processing file
     int fPostProcessNumber;
     
 };

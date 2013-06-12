@@ -1,0 +1,86 @@
+
+#ifndef MAINGUIH
+#define MAINGUIH
+
+#include "TPZSandlerDimaggio.h"
+
+class TPZPlasticityTest
+{
+    /// variable indicating if the maximum z stress is given
+    bool fZStressKnown;
+    
+    /// variable indicating if the maximum r stress is given
+    bool fRStressKnown;
+
+    /// stress at which pores are closed
+    TPZManVector<STATE,2> fPoreStressRZ;
+    
+    /// simulated strain corresponding to porestress
+    TPZManVector<STATE,2> fPoreStrainRZ;
+    
+    /// stress as read from the laboratory test
+    TPZFMatrix<STATE> fStressRZInput;
+    
+    /// strain as read from the laboratory test
+    TPZFMatrix<STATE> fStrainRZInput;
+    
+    /// stress as computed by the simulation
+    TPZFMatrix<STATE> fStressRZSimulated;
+    
+    /// strain as computed by the simulation
+    TPZFMatrix<STATE> fStrainRZSimulated;
+    
+    /// Sandler DiMaggio 
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSandler;
+    
+    /// Number of steps between both states
+    int fNumSteps;
+    
+public:
+    
+    /// Default constructor
+    TPZPlasticityTest();
+    
+    /// either the stress is determined or the deformation
+    void SetZStressKnown(bool zstressknown)
+    {
+        fZStressKnown = zstressknown;
+    }
+    
+    /// either the stress is determined or the deformation
+    void SetRStressKnown(bool rstressknown)
+    {
+        fRStressKnown = rstressknown;
+    }
+    
+    /// set the stress at which pores are closed
+    void SetPoreClosingStress(TPZVec<STATE> &porestress)
+    {
+        fPoreStressRZ = porestress;
+    }
+    
+    /// read the input strain and stress from the laboratory file
+    void ReadInputStrainStress(const std::string &filename);
+    
+    /// set the SandlerDimaggio object
+    void SetSandlerDimaggio(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)
+    {
+        fSandler = obj;
+    }
+    
+    /// compute the stress strain curve
+    void PerformSimulation();
+    
+protected:
+    
+    /// Get the stress to the pore stress
+    void ApplyInitialStress();
+    
+    /// Evoluate the stress and strain to step ist
+    // Be aware that this method modifies the data fSandler
+    void EvoluateToStep(TPZVec<STATE> &strainRZ, TPZVec<STATE> &stressRZ);
+    
+    
+};
+
+#endif

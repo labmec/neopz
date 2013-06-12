@@ -541,18 +541,26 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
         surfaceprojected = 0;
         NewtonF1(ER, L, sigtrialIJ);
         sigtrial.Adjust(sigtrialIJ, sigproj);
-        
-        TPZManVector<REAL,2> yieldCheck(2,0.);
-        Compute(sigproj, L, yieldCheck, 0);
-        if (yieldCheck[1] > 0.) {
-            L = Lextern;
-            sigtrialIJ = sigtrialIJkeep;
-            ProjectBorder(ER, L, sigtrialIJ);
-            sigtrial.Adjust(sigtrialIJ, sigproj);
-            surfaceprojected = 2;
+
+        REAL LMAX = LMax();
+
+        if(sigtrialIJ[0] <= LMAX)
+        {
+            TPZManVector<REAL,2> yieldCheck(2,0.);
+            Compute(sigproj, L, yieldCheck, 0);
+            if (fabs(yieldCheck[0]) > 1.e-8) {
+                DebugStop();
+            }
+            
+            if (yieldCheck[1] > 0.) {
+                L = Lextern;
+                sigtrialIJ = sigtrialIJkeep;
+                ProjectBorder(ER, L, sigtrialIJ);
+                sigtrial.Adjust(sigtrialIJ, sigproj);
+                surfaceprojected = 2;
+            }
         }
         
-        REAL LMAX = LMax();
 
         if(sigtrialIJ[0] > LMAX)
         {

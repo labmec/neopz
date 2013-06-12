@@ -67,7 +67,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(
 }
 
 template <class YC_t, class TF_t, class ER_t>
-const TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState_Internal() const
+TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState_Internal() const
 {
     return fN;
 }
@@ -94,7 +94,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState(
 
 
 template <class YC_t, class TF_t, class ER_t>
-const TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const
+TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const
 {
     int multipl = SignCorrection();
     TPZPlasticState<REAL> N(fN);

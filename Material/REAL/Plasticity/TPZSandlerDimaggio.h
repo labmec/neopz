@@ -140,7 +140,7 @@ public:
     /**
     Retrieve the plastic state variables
     */
-    virtual const TPZPlasticState<REAL> GetState() const
+    virtual TPZPlasticState<REAL> GetState() const
     {
         return SANDLERDIMAGGIOPARENT::GetState();
     }
