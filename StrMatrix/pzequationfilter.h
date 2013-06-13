@@ -211,7 +211,7 @@ public:
      */
     int NumActive(int minindex, int maxindex) const
     {
-        if (minindex < 0 || maxindex < 0 || minindex >= fNumEq || maxindex >= fNumEq ||
+        if (minindex < 0 || maxindex < 0 || minindex > fNumEq || maxindex > fNumEq ||
             maxindex < minindex) {
             DebugStop();
         }
