@@ -61,33 +61,42 @@ public:
  
     TPZGeoMesh *GMesh2(REAL L, REAL w);
     TPZGeoMesh *GMesh3(REAL L, REAL w);
+    TPZGeoMesh *GMesh4(REAL L, REAL w);
     
     void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
     
-    TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder);
+    TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool twomaterial);
     
-    TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
+    TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial);
     
-    TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder,bool triang);
+    TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder,bool triang, bool twomaterial);
     
     TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
     
     TPZCompMesh *MalhaCompTerzaghi(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
     
-    TPZCompMesh *MalhaCompBarryMercer(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
+    TPZCompMesh *MalhaCompBarryMercer(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZAutoPointer<TPZFunction<STATE> > sourceterm, TPZAutoPointer<TPZFunction<STATE> > solExata);
 
     
     void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 
 
     TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZPoroElasticMF2d *mymateria, TPZCompMesh *mphysics);
+    
+    TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZCompMesh *mphysics);
 
     void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
+    
+    void StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
 
     void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 
     void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymaterial,
                         TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int ntimestep, REAL &timeatual);
+    
+    void SolveSistBarryMercert(REAL deltaT,REAL maxTime, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int ntimestep, REAL &timeatual);
+    
+    void SolveSistWithError(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int ntimestep, REAL &timeatual, TPZAutoPointer<TPZFunction<STATE> > solExata1, TPZAutoPointer<TPZFunction<STATE> > solExata2, int h,  ofstream saidaerro);
 
 
     TPZCompMesh *CMeshPressureL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini, bool triang);
@@ -160,6 +169,7 @@ protected:
     int  fdirfreey_neum;
     int  fdirneum;
     int  fmixedneum;
+    int  fmixeddirich;
 };
 
 #endif /* defined(__PZ__mymeshes__) */

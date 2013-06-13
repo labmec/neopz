@@ -66,7 +66,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-const bool triang = true;
+const bool triang = false;
 const int teste = 2;
 int main(int argc, char *argv[])
 {
