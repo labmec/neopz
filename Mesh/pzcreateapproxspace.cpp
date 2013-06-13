@@ -161,7 +161,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 			}
 			int printing = 0;
 			if (printing) {
-				gel->Print(cout);
+				gel->Print(std::cout);
 			}
 			
 			//checking material in MaterialIDs
