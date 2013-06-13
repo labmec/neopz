@@ -84,6 +84,14 @@ void TPZMatUncoupledPoissonDisc::Contribute(TPZVec<TPZMaterialData> &datavec, RE
 	TPZFMatrix<REAL> &dphiu2 = datavec[1].dphix;
 	int phru2 = phiu2.Rows();
 	
+    //----- nas duas equacoes ------
+    if(fForcingFunction) {
+		TPZManVector<STATE> res(1);
+		fForcingFunction->Execute(datavec[1].x,res);
+		fXf1 = res[0];
+        fXf2 = res[0];
+	}
+    
 	//Equacao de Poisson
 	// ------ primeira equacao ------
     
@@ -98,12 +106,12 @@ void TPZMatUncoupledPoissonDisc::Contribute(TPZVec<TPZMaterialData> &datavec, RE
 		}
 	}
 	
-	//----- segunda equacao ------
-    if(fForcingFunction) {
-		TPZManVector<STATE> res(1);
-		fForcingFunction->Execute(datavec[1].x,res);
-		fXf2 = res[0];
-	}
+//	//----- so na segunda equacao ------
+//    if(fForcingFunction) {
+//		TPZManVector<STATE> res(1);
+//		fForcingFunction->Execute(datavec[1].x,res);
+//		fXf2 = res[0];
+//	}
     
 	for(in = 0; in < phru2; in++) {
 		ef(in+phru1, 0) += -1.*weight*fXf2*phiu2(in,0);
