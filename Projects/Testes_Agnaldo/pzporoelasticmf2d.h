@@ -312,7 +312,7 @@ public:
     /*
      * @brief Applies to condition of source term in the pressure's equation to mixed problem (pressure and flux)
      */
-    void ApplySourceTerm_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    //void ApplySourceTerm_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
 	
 	virtual int VariableIndex(const std::string &name);
 	

@@ -216,9 +216,15 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
         }
         
         // Calculate the matrix contribution for pressure. Matrix (-1)*D
+        if(fForcingFunction) {
+            TPZManVector<STATE> res(1);
+            fForcingFunction->Execute(datavec[2].x,res);
+            fSf = res[0];
+        }
+
 		for(int in = 0; in < phrp; in++)
 		{
-			ef(2*phru+phrq+in,0) +=0.;
+			ef(2*phru+phrq+in,0) += (-1.)*fTimeStep*weight*fSf*phip(in,0);//source term
 			for(int jn = 0; jn < phrp; jn++)
 			{
 				ek(in+2*phru+phrq, jn+2*phru+phrq) += (-1.)*fSe*weight*phip(in,0)*phip(jn,0);
@@ -384,7 +390,6 @@ void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL wei
             ek(2*in,2*jn+1) += bc.Val1()(0,1)*phiu(in,0)*phiu(jn,0)*weight;
         }
     }
-    
 }
 
 void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
@@ -423,18 +428,18 @@ void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, R
     }
 }
 
-void TPZPoroElasticMF2d::ApplySourceTerm_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
-    
-    TPZFMatrix<REAL>  &phip =  datavec[2].phi;
-    int phru = datavec[0].phi.Rows();
-    int phrq = datavec[1].fVecShapeIndex.NElements();
-    int phrp =  phip.Rows();
-    
-    for(int in = 0; in < phrp; in++)
-    {
-        ef(2*phru+phrq+in,0) += weight*fSf*phip(in,0);
-    }
-}
+//void TPZPoroElasticMF2d::ApplySourceTerm_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
+//    
+//    TPZFMatrix<REAL>  &phip =  datavec[2].phi;
+//    int phru = datavec[0].phi.Rows();
+//    int phrq = datavec[1].fVecShapeIndex.NElements();
+//    int phrp =  phip.Rows();
+//    
+//    for(int in = 0; in < phrp; in++)
+//    {
+//        ef(2*phru+phrq+in,0) += weight*fSf*phip(in,0);
+//    }
+//}
 
 void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<> &ek,
                                       TPZFMatrix<> &ef,TPZBndCond &bc)
@@ -502,14 +507,19 @@ void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weig
             ApplyNeumann_QP(datavec, weight, ek, ef, bc);
             break;
             
-        case 21: //Dirichlet condition free in y for elastic and Neumann condition for mixed problem
+        case 20: //Mixed condition for elastic and Dirichlet condition for mixed problem
+            ApplyMixed_U(datavec, weight, ek, ef, bc);
+            ApplyDirichlet_QP(datavec, weight, ef, bc);
+            break;
+            
+        case 21: //Mixed condition for elastic and Neumann condition for mixed problem
             ApplyMixed_U(datavec, weight, ek, ef, bc);
             ApplyNeumann_QP(datavec, weight, ek, ef, bc);
             break;
             
-        case 3: //Condition of source term in the pressure's equation to mixed problem
-            ApplySourceTerm_P(datavec, weight, ek, ef, bc);
-            break;
+//        case 3: //Condition of source term in the pressure's equation to mixed problem
+//            ApplySourceTerm_P(datavec, weight, ek, ef, bc);
+//            break;
 
             
     }
@@ -546,13 +556,17 @@ int TPZPoroElasticMF2d::VariableIndex(const std::string &name){
 	//variables of fluid
 	if(!strcmp("PorePressure",name.c_str()))        return  8;
 	if(!strcmp("Fluxo",name.c_str()))        return  9;//using Hdiv
+    if(!strcmp("FluxoX",name.c_str()))        return  17;//using Hdiv
+    if(!strcmp("FluxoY",name.c_str()))        return  18;//using Hdiv
     if(!strcmp("MinusKMuGradP",name.c_str()))     return  10;
 	
 	//Exact soluion
 	if(!strcmp("ExactPressure",name.c_str()))  return 11;
-    if(!strcmp("ExactDisplacementY",name.c_str()))  return 12;
-    if(!strcmp("ExactSigmaY",name.c_str()))  return 13;
-    if(!strcmp("ExactFluxo",name.c_str()))  return 14;
+    if(!strcmp("ExactDisplacementX",name.c_str()))  return 12;
+    if(!strcmp("ExactDisplacementY",name.c_str()))  return 13;
+    if(!strcmp("ExactSigmaX",name.c_str()))  return 14;
+    if(!strcmp("ExactSigmaY",name.c_str()))  return 15;
+    if(!strcmp("ExactFluxo",name.c_str()))  return 16;
     
 	return TPZMaterial::VariableIndex(name);
 }
@@ -573,7 +587,11 @@ int TPZPoroElasticMF2d::NSolutionVariables(int var){
 	if(var == 11) return 1;
     if(var == 12) return 1;
     if(var == 13) return 1;
-    if(var == 14) return fDim;
+    if(var == 14) return 1;
+    if(var == 15) return 1;
+    if(var == 16) return fDim;
+    if(var == 17) return 1;
+    if(var == 18) return 1;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -585,7 +603,7 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 	TPZFMatrix<> DSolU, DSolP;
 	TPZFMatrix<> axesU, axesP;
 	
-	TPZVec<REAL> ptx(3), solExata(3);
+	TPZVec<REAL> ptx(3), solExata(5);
 	TPZFMatrix<> flux(2,1);
 	
 	SolU=datavec[0].sol[0];
@@ -707,13 +725,36 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 		return;
 	}//var9
     
+    if (var == 17){
+        if(fReturnSolutionDimension ==true){
+            Solout[0] = fpref*(fkovervisc)*datavec[1].sol[0][0];
+        }
+        else{
+            Solout[0] = datavec[1].sol[0][0];
+        }
+        
+		return;
+	}//var17
+
+    if (var == 18){
+        if(fReturnSolutionDimension ==true){
+            Solout[0] = fpref*(fkovervisc)*datavec[1].sol[0][1];
+        }
+        else{
+            Solout[0] = datavec[1].sol[0][1];
+        }
+        
+		return;
+	}//var18
+
+    
     if (var == 10){
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;
 		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
 		for(id=0 ; id<fDim; id++) {
             if(fReturnSolutionDimension==true) Solout[id] = -1.*dsoldx(id,0)*fpref*(fkovervisc);
-			else Solout[id] = -1.*(fk/fvisc)*dsoldx(id,0);
+			else Solout[id] = -1.*dsoldx(id,0);
 		}
 		return;
 	}//var10
@@ -736,14 +777,26 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[2];
 		return;
-	}//var12
+	}//var13
     
     if(var == 14){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[3];
+		return;
+	}//var14
+    
+    if(var == 15){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[4];
+		return;
+	}//var15
+    
+    if(var == 16){
 		fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
 		Solout[0] = flux(0,0);
         Solout[1] = flux(1,0);
 		return;
-	}//var14
+	}//var16
 }
 
 
