@@ -269,10 +269,16 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 			{
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
-                TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
-                gel->CenterPoint(gel->NSides()-1, center);
-                gel->X(center, xcenter);
-                sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
+                if(gel)
+                {
+                    TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
+                    gel->CenterPoint(gel->NSides()-1, center);
+                    gel->X(center, xcenter);
+                    sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
+                }
+                else {
+                    sout << "Stiffness for computational element without associated geometric element\n";
+                }
 				ek.Print(sout);
 				ef.Print(sout);
 				LOGPZ_DEBUG(loggerel,sout.str())

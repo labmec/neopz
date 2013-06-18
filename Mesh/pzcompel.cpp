@@ -111,9 +111,7 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<S
 
 int TPZCompEl::gOrder = 2;
 
-TPZCompEl::TPZCompEl() {
-	fMesh = 0;
-	fIndex = -1;
+TPZCompEl::TPZCompEl() : fMesh(0), fIndex(-1), fReferenceIndex(-1) {
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
@@ -897,7 +895,7 @@ int TPZCompEl::PressureConnectIndex() const
     for (int ic=0; ic<ncon ; ic++) {
         int locconnectindex = ConnectIndex(ic);
         TPZConnect &c = fMesh->ConnectVec()[locconnectindex];
-        if (c.IsLagrMult()) {
+        if (c.LagrangeMultiplier() && ! c.IsCondensed()) {
             index = ic;
             count++;
         }

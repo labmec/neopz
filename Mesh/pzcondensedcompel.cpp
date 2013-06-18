@@ -19,7 +19,10 @@ TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref)
     }
     fReferenceCompEl = ref;
     fMesh = ref->Mesh();
-    SetReference(ref->Reference()->Index());
+    TPZGeoEl *gel = ref->Reference();
+    if (gel) {
+        SetReference(gel->Index());
+    }
     SetIndex(ref->Index());
     fMesh->ElementVec()[fIndex] = this;
     int ncon = ref->NConnects();
@@ -195,7 +198,7 @@ void TPZCondensedCompEl::Resequence()
 	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
     //TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(k00);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
-	step->SetDirect(ECholesky);
+	step->SetDirect(ELDLt);
     fCondensed.SetSolver(step);
     fCondensed.Redim(nint+next,nint);
 }
@@ -222,6 +225,13 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     int dim1 = fCondensed.Dim1();
     TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fCondensed.Print("Reduced",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	fCondensed.K11Reduced(K11, F1);
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
     int dim0 = dim-K11.Rows();
@@ -231,6 +241,14 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             ek.fMat(i,j) = K11.GetVal(i-dim0,j-dim0);
         }
     }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        ek.fMat.Print("EK11Reduced",sout,EMathematicaInput);
+        ef.fMat.Print("EF11Reduced",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 
@@ -320,7 +338,7 @@ void TPZCondensedCompEl::LoadSolution()
         int seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
-            bl(seqnum,ibl,0,0) = elsol(count++,0);
+            bl(seqnum,0,ibl,0) = elsol(count++,0);
         }
     }
 }

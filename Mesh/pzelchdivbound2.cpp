@@ -392,7 +392,8 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		return;
 	}
 	TPZGeoEl *neighel = neighbour.Element();
-	TPZManVector<int> normalsides;
+	TPZManVector<int,9> normalsides;
+//    TPZFNMatrix<100,REAL> normalvec;
 	neighel->ComputeNormals(neighbour.Side(),data.fNormalVec, normalsides);
 //#ifdef LOG4CXX
 //	{
@@ -507,8 +508,24 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension ){
 		return ;
 	}
-    phi.Zero();
-    dphi.Zero();
+    TPZGeoEl *gel = this->Reference();
+    int nc = gel->NCornerNodes();
+    TPZManVector<int,8> id(nc);
+    for (int ic=0; ic<nc; ic++) {
+        id[ic] = gel->Node(ic).Id();
+    }
+    TPZVec<int> ord;
+    this->GetInterpolationOrder(ord);
+
+    TSHAPE::Shape(point,id,ord,phi,dphi);
+    if (id[0] > id[1]) {
+        REAL tmp = phi(0,0);
+        phi(0,0) = phi(1,0);
+        phi(1,0) = tmp;
+        tmp = dphi(0,0);
+        dphi(0,0) = dphi(0,1);
+        dphi(0,1) = tmp;
+    }
     return;
 }
 
@@ -555,21 +572,21 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 #endif
 		
 		//-----ordenando os id's
-		int i, j, min, x;
-		for (i = 0; i < nnodes; ++i) {
-				min = i;
-				for (j = i+1; j < nnodes; ++j){
-						if (id[j] < id[min])  min = j;
-				x = id[i]; 
-				id[i] = id[min]; 
-				id[min] = x;
-				}
-		}	
+//		int i, j, min, x;
+//		for (i = 0; i < nnodes; ++i) {
+//				min = i;
+//				for (j = i+1; j < nnodes; ++j){
+//						if (id[j] < id[min])  min = j;
+//				x = id[i]; 
+//				id[i] = id[min]; 
+//				id[min] = x;
+//				}
+//		}	
 		
 #ifdef LOG4CXX
 		{
 				std::stringstream sout;
-				sout<< "---Id local Reordeanado---"<<id<<std::endl;
+				sout<< "---Id local Reordenado---"<<id<<std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
@@ -594,6 +611,15 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 		TPZVec<int> ord;
 		neighel->GetInterpolationOrder(ord);
 		TSHAPE::Shape(pt,id,ord,phi,dphi);
+//    if(id[0] > id[1])
+//    {
+//        REAL phival = phi(0,0);
+//        phi(0,0) = phi(1,0);
+//        phi(1,0) = phival;
+//        REAL dphival = dphi(0,0);
+//        dphi(0,0) = dphi(0,1);
+//        dphi(0,1) = dphival;
+//    }
 		
 		
 //		TPZTransform tr(thisgeoside.Dimension()),tr2; 

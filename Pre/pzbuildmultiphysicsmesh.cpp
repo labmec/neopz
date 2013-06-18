@@ -126,7 +126,7 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 				MFMesh->ConnectVec()[counter].SetSequenceNumber(seqnum);
 				MFMesh->ConnectVec()[counter].SetNState(refcon.NState());
 				MFMesh->ConnectVec()[counter].SetNShape(refcon.NShape());
-                MFMesh->ConnectVec()[counter].SetPressure(refcon.IsLagrMult());
+                MFMesh->ConnectVec()[counter].SetLagrangeMultiplier(refcon.LagrangeMultiplier());
 				int ndof = refcon.NDof(*cmeshVec[imesh]);
 				MFMesh->Block().Set(seqnum,ndof);
 				seqnum++;
@@ -388,22 +388,23 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
             DebugStop();
         } 
         for (int lp=0; lp<nelsides; ++lp) {
-            TPZCompElSide right = celsides[lp];
-            TPZCompElSide left(gel->Reference(),is);
+            TPZCompElSide left = celsides[lp];
+            TPZCompElSide right(gel->Reference(),is);
             
             TPZGeoEl *gelright=right.Reference().Element();
-            int matidleft=gel->MaterialId();// sempre é LagrangeMat
-            int matidright =gelright->MaterialId();
+            TPZGeoEl *gelleft = left.Reference().Element();
+            int matidleft = gelleft->MaterialId();// sempre é LagrangeMat
+            int matidright = gelright->MaterialId();
             ///???? o InterfaceMaterial não esta fazendo o que preciso. Por isso nao estou usando matid !
-            const int matid = cmesh->Reference()->InterfaceMaterial(matidleft, matidright );
+            const int interfacematid = cmesh->Reference()->InterfaceMaterial(matidleft, matidright );
             
             // there is no need to create a lagrange multiplier between an interior element and boundary element
-            if(matid == 0) 
+            if(interfacematid == 0) 
             {
-                continue;
+                DebugStop();
             }
             
-            TPZGeoEl *interfaceEl = gel->CreateBCGeoEl(is, matid);
+            TPZGeoEl *interfaceEl = gel->CreateBCGeoEl(is, interfacematid);
             int index;
             new TPZInterfaceElement(*cmesh,interfaceEl,index,left,right);
             
@@ -432,7 +433,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
             
             for(int i = 0; i<nsides; i++){
                 TPZConnect &newnod = cel->Connect(i);
-                newnod.SetPressure(true);
+                newnod.SetLagrangeMultiplier(2);
             }
         }
     }
@@ -480,7 +481,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
         for(int i=0; i<ncon; i++)
         {
             TPZConnect &newnod = cMesh->ConnectVec()[i];
-            newnod.SetPressure(true);
+            newnod.SetLagrangeMultiplier(1);
         }
         
         int nel = cMesh->NElements();
@@ -522,7 +523,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int inde
         for(int i=0; i<ncon; i++)
         {
             TPZConnect &newnod = cMesh->ConnectVec()[i];
-            newnod.SetPressure(true);
+            newnod.SetLagrangeMultiplier(1);
         }
         
         int nel = cMesh->NElements();

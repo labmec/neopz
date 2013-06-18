@@ -567,6 +567,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
                 break;
 			default:
 				cout << "It is not implemented for side = " << side << endl;
+                DebugStop();
 				return;
 		}
 		if(fElementType == 1) {

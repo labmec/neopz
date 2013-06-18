@@ -97,7 +97,7 @@ public:
 	int NShapeF() const;
 	
 	/** @brief Returns the number of shape functions on a side*/
-	int NSideShapeF(int side);
+	int NSideShapeF(int side) const;
 	
 	/** @brief Returns the number of dof nodes along side iside*/
 	virtual int NSideConnects(int iside) const = 0;

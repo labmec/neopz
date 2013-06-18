@@ -746,7 +746,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
     }
     if (nsideshape != this->NSideShapeF(side)) {
         // create a philoc and copy
-        TPZFNMatrix<200> philoc(nsideshape,1),dphiloc(TSHAPE::SideDimension(side),nsideshape);
+        TPZFNMatrix<200,REAL> philoc(nsideshape,1),dphiloc(TSHAPE::SideDimension(side),nsideshape);
         TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,philoc,dphiloc);
         int nsh = phi.Rows();
         for (int ish = 0; ish < nsh; ish++) {

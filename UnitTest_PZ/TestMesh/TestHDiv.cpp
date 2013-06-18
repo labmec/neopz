@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     TPZGeoMesh *gmesh = cmesh->Reference();
     TPZManVector<int,4> nodeids(4,0), nodesperm(4,0);
-    TPZGeoEl *gel = gmesh->ElementVec()[4];
+    TPZGeoEl *gel = gmesh->ElementVec()[0];
     for (int i = 0; i<4; i++) {
         nodeids[i] = gel->NodePtr(i)->Id();
     }
@@ -187,10 +187,10 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZGenGrid grid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     grid.Read(gmesh);
-    grid.SetBC(gmesh, 0, -1);
-    grid.SetBC(gmesh, 1, -1);
-    grid.SetBC(gmesh, 2, -1);
-    grid.SetBC(gmesh, 3, -1);
+    grid.SetBC(gmesh, 4, -1);
+    grid.SetBC(gmesh, 5, -1);
+    grid.SetBC(gmesh, 6, -1);
+    grid.SetBC(gmesh, 7, -1);
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
     TPZMatPoisson3d *matpois = new TPZMatPoisson3d(1, 2);
     TPZMaterial *pois(matpois);
@@ -206,6 +206,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
 #ifdef LOG4CXX
     {
         std::stringstream sout;
+        gmesh->Print(sout);
         cmesh->Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
@@ -318,7 +319,7 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         interB->Shape(pointElB, phiB, dphiB);
         nshapeA = phiA.Rows();
         nshapeB = phiB.Rows();
-        BOOST_CHECK_EQUAL(nshapeA, nshapeB);
+        BOOST_CHECK_EQUAL(nSideshapeA, nSideshapeB);
 
         TPZManVector<REAL> shapesA(nSideshapeA), shapesB(nSideshapeB);
         int nwrongkeep(nwrong);

@@ -50,10 +50,12 @@ public:
             unsigned char fOrder;
             /** @brief Number of state variables associated with each shape function */
             unsigned char fNState;
+            /** @brief Whether the connnect is associated with a lagrange multiplier, indicating the level 
+             * level n multipliers need to be numbered after the multipliers of level n-1
+            */
+            unsigned char fLagrangeMultiplier;
             /** @brief Whether the equations associated with the connect should be condensed */
             bool fIsCondensed;
-            /** @brief Whether the connnect is associated with a lagrange multiplier */
-            bool fIsLagrMult;
         } fCompose;
     };
     /** @brief Number of shape functions associated with the connect */
@@ -110,7 +112,7 @@ public:
         SetNShape(0);
         ResetElConnected();
         SetCondensed(false);
-        SetPressure(false);
+        SetLagrangeMultiplier(0);
         if (fDependList) {
             DebugStop();
             delete fDependList;
@@ -197,15 +199,15 @@ public:
     
     /** @brief Access method to return the indication whether the connect is associated with a pressure lagrange multiplier
      */
-    bool IsLagrMult() const
+    unsigned char LagrangeMultiplier() const
     {
-        return fCompose.fIsLagrMult;
+        return fCompose.fLagrangeMultiplier;
     }
     
     /** @brief Set the connect as a pressure connect or not */
-    void SetPressure(bool flag)
+    void SetLagrangeMultiplier(unsigned char mult)
     {
-        fCompose.fIsLagrMult = flag;
+        fCompose.fLagrangeMultiplier = mult;
     }
 
     /** @brief Set the connect as a condensed connect or not */

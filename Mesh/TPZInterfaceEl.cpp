@@ -1497,34 +1497,36 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 		DebugStop();
 	}
 	mat->FillDataRequirementsInterface(data);
-	int nshape = elem->NShapeF();
-	const int nstate = elem->Material()->NStateVariables();
-	const int dim = elem->Dimension();
-	data.phi.Redim(nshape,1);
-	data.dphix.Redim(dim,nshape);
-	data.axes.Redim(dim,3);
-	data.jacobian.Redim(dim,dim);
-	data.jacinv.Redim(dim,dim);
-    data.x.Resize(3, 0.);
-	data.p = elem->MaxOrder();
-    int numbersol = Mesh()->Solution().Cols();
-    data.sol.resize(numbersol);
-    data.dsol.resize(numbersol);
-	if (data.fNeedsNeighborSol){
-        for (int is=0; is<numbersol; is++) {
-            data.sol[is].Resize(nstate);
-            data.dsol[is].Redim(dim,nstate);
-        }
-	}
-	
-	//this values needs to be computed only once
-	if(data.fNeedsNeighborCenter){
-		TPZManVector<REAL,3> qsi(3);
-		data.XCenter.Resize(3);
-		TPZGeoEl * gel = elem->Reference();
-		gel->CenterPoint(gel->NSides()-1,qsi);
-		gel->X(qsi,data.XCenter);
-	}
+    elem->InitMaterialData(data);
+//	int nshape = elem->NShapeF();
+//
+//	const int nstate = elem->Material()->NStateVariables();
+//	const int dim = elem->Dimension();
+//	data.phi.Redim(nshape,1);
+//	data.dphix.Redim(dim,nshape);
+//	data.axes.Redim(dim,3);
+//	data.jacobian.Redim(dim,dim);
+//	data.jacinv.Redim(dim,dim);
+//    data.x.Resize(3, 0.);
+//	data.p = elem->MaxOrder();
+//    int numbersol = Mesh()->Solution().Cols();
+//    data.sol.resize(numbersol);
+//    data.dsol.resize(numbersol);
+//	if (data.fNeedsNeighborSol){
+//        for (int is=0; is<numbersol; is++) {
+//            data.sol[is].Resize(nstate);
+//            data.dsol[is].Redim(dim,nstate);
+//        }
+//	}
+//	
+//	//this values needs to be computed only once
+//	if(data.fNeedsNeighborCenter){
+//		TPZManVector<REAL,3> qsi(3);
+//		data.XCenter.Resize(3);
+//		TPZGeoEl * gel = elem->Reference();
+//		gel->CenterPoint(gel->NSides()-1,qsi);
+//		gel->X(qsi,data.XCenter);
+//	}
 	
 }//void
 

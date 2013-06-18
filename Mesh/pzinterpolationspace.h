@@ -42,11 +42,54 @@ public:
 	/** Inserts the element within the data structure of the mesh */
 	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
+    /**
+	 * @name data access methods
+	 * @brief Methods which allow to access the internal data structure of the element
+	 * @{
+	 */
+	
+	/** @brief Prints the relevant data of the element to the output stream */
+	virtual void Print(std::ostream &out = std::cout) const;
+	
+	/** @brief Returns the number of shape functions on a side*/
+	int NSideShapeF(int side) const
+    {
+        return NShapeF();
+    }
+	
+	/** @brief Returns the number of dof nodes along side iside*/
+	virtual int NSideConnects(int iside) const 
+    {
+        return NConnects();
+    }
+	
+	/**
+	 * @brief Returns the local node number of icon along is
+	 * @param icon connect number along side is
+	 * @param is side which is being queried
+	 */
+	virtual int SideConnectLocId(int icon,int is) const
+    {
+        return icon;
+    }
+		
+	/** @brief Returns the index of the c th connect object along side is*/
+	int SideConnectIndex(int icon,int is) const
+    {
+        return ConnectIndex(icon);
+    }
+	
+	/** @brief Returns a pointer to the icon th connect object along side is */
+	TPZConnect *SideConnect(int icon,int is) const
+    {
+        return &Connect(icon);
+    }
+    
 	/** @brief It returns the shapes number of the element */
 	virtual int NShapeF() const = 0;
 	
 	/** @brief Returns the number of shapefunctions associated with a connect*/
-	virtual int NConnectShapeF(int inod) const = 0;
+	virtual int NConnectShapeF(int icon) const = 0;
 	
 	/** @brief Returns the max order of interpolation. */
 	virtual int MaxOrder();
@@ -62,18 +105,37 @@ public:
 	 * of the element along the sides to compute the number of shapefunctions
 	 */
 	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) = 0;
+    
+    
+    
 	
-    //private:
+    /**
+	 * @name Computational methods
+	 * @brief Methods used to perform computations on the interpolated element
+	 * @{
+	 */
     
 	/** @brief Compute shape functions based on master element in the classical FEM manner. */
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
 							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
     
+    
+	
+	/** @brief Compute the values of the shape function along the side*/
+	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    {
+        TPZGeoEl *gel = Reference();
+        TPZManVector<REAL,3> ptout(gel->Dimension());
+        Reference()->ProjectPoint(side, point, gel->NSides()-1, ptout);
+        Shape(ptout, phi, dphi);
+    }
+	
+	/** @} */
+	
+
     public:
     
     
-    virtual void Print(std::ostream &out) const;
-
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
 	 * @param[in] intpoint point in master element coordinates 

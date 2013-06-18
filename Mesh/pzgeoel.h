@@ -397,6 +397,13 @@ public:
 	 * to the master element space of a higher dimension side
 	 */
 	virtual TPZTransform SideToSideTransform(int sidefrom,int sideto)= 0;
+    
+    /// Project the point from one side to another. The dimension of the points needs to be configured properly
+    virtual void ProjectPoint(int sidefrom, TPZVec<REAL> &ptin, int sideto, TPZVec<REAL> &ptout)
+    {
+        TPZTransform tr = SideToSideTransform(sidefrom, sideto);
+        tr.Apply(ptin, ptout);
+    }
 	
 	/** @brief Compute the projection of the point within the interior of the element to the side of the element */
 	TPZTransform Projection(int side);

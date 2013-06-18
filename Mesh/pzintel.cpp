@@ -69,7 +69,7 @@ int TPZInterpolatedElement::NShapeF() const {
 	return res;
 }
 
-int TPZInterpolatedElement::NSideShapeF(int side) {
+int TPZInterpolatedElement::NSideShapeF(int side) const {
 	int ns = NSideConnects(side);
 	int in,res=0;
 	for(in=0;in<ns;in++) res+= NConnectShapeF(SideConnectLocId(in,side));

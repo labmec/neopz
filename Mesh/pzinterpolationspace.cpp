@@ -415,12 +415,12 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
         int nshape = NConnectShapeF(i);
         TPZConnect &c = Connect(i);
         int nstate = c.NState();
-//#ifdef DEBUG
-//        if(c.NShape() != nshape || c.NState() != numdof)
-//        {
-//            DebugStop();
-//        }
-//#endif
+#ifdef DEBUG
+        if(c.NShape() != nshape || c.NState() != numdof)
+        {
+            DebugStop();
+        }
+#endif
 		ek.fBlock.Set(i,nshape*nstate);
 		ef.fBlock.Set(i,nshape*nstate);
         numeq += nshape*nstate;

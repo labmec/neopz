@@ -94,6 +94,9 @@ protected:
     
     /** @brief The object which defines the type of space being created */
     TPZCreateApproximationSpace fCreate;
+    
+    /// Modify the permute vector swapping the lagrangeq with maxeq and shifting the intermediate equations
+    void ModifyPermute(TPZVec<long> &permute, long lagrangeq, long maxeq);
 	
 public:
 	
@@ -610,7 +613,7 @@ inline int TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
     c.SetNShape(nshape);
     c.SetNState(nstate);
     c.SetOrder(order);
-    c.SetPressure(false);
+    c.SetLagrangeMultiplier(0);
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
 	fBlock.Set(blocknum,nshape*nstate);

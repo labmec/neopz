@@ -58,7 +58,7 @@ TPZConnect &TPZConnect::operator=(const TPZConnect &copy) {
 	SetOrder(copy.fCompose.fOrder);
 	SetNState(copy.fCompose.fNState);
 	SetCondensed(copy.fCompose.fIsCondensed);
-	SetPressure(copy.fCompose.fIsLagrMult);
+	SetLagrangeMultiplier(copy.fCompose.fLagrangeMultiplier);
 	
     fFlags = copy.fFlags;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
@@ -69,7 +69,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	int orde = fCompose.fOrder;
 	int nstate  = fCompose.fNState;
 	int nshape  = fNShape;
-	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << IsLagrMult();
+	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << (int) LagrangeMultiplier();
 	if(fSequenceNumber > -1)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);

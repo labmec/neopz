@@ -46,16 +46,16 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		if (TSHAPE::Type()==ETriangle) {
 				nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
 		}
-    int nstate = 1;
+        int nstate = 1;
 		this->fConnectIndexes.Resize(NConnects());
 		int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,this->fPressureOrder);
 		TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
-    newnod.SetPressure(true);
+        newnod.SetLagrangeMultiplier(1);
 		this->fConnectIndexes[this->NConnects()-1]=newnodeindex;
 		int seqnum = newnod.SequenceNumber();
-    newnod.SetPressure(true);
-    mesh.Block().Set(seqnum,nshape);
-    mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()-1]].IncrementElConnected();
+        newnod.SetLagrangeMultiplier(1);
+        mesh.Block().Set(seqnum,nshape);
+        mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()-1]].IncrementElConnected();
 		
 		//		for (int i=0; i<this->NConnects(); i++) {
 		//#ifdef LOG4CXX
@@ -537,7 +537,7 @@ void TPZCompElHDivPressure<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		//		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 		//	}
 		//#endif
-    
+    data.fShapeType = TPZMaterialData::EVecandShape;
     TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
     data.numberdualfunctions = NConnectShapeF(NConnects()-1);
 }

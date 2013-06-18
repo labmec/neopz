@@ -445,6 +445,9 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
 	fF1=(TPZFMatrix<TVar>)0;//(TVar)NULL;
 	this->fRow = dim;
 	this->fCol = dim;
+    fIsReduced = false;
+    fK01IsComputed = false;
+
 	return 0;
 }
 
@@ -452,6 +455,8 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
 template<class TVar, class TSideMatrix>
 int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	if(fK00) fK00->Zero();
+    fIsReduced = false;
+    fK01IsComputed = false;
 	fK01.Zero();
 	fK10.Zero();
 	fK11.Zero();

@@ -34,7 +34,7 @@ public:
     
     enum MShapeFunctionType {EScalarShape, EVecandShape, EVecShape};
     // EScalarShape : regular shape functions: one shape function used for all state variables (default)
-    // EVecandShape : HDiv type shape function a scalar function multiplied by a vector
+    // EVecandShape : HDiv type shape function and a scalar function
     // EVecShape : a vector valued shape function
     
     MShapeFunctionType fShapeType;

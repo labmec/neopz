@@ -1215,7 +1215,7 @@ int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial)
 	
 	//error message
 	std::stringstream mess;
-	mess << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found ";
+	mess << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found left " << leftmaterial << " right " << rightmaterial ;
 	PZError << mess.str()  << std::endl;
 	return GMESHNOMATERIAL;
 }

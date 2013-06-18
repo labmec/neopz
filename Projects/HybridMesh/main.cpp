@@ -26,6 +26,7 @@
 #include "TPZParSkylineStructMatrix.h"
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"
+#include "pzfstrmatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
 #include "TPBSpStructMatrix.h"
@@ -33,11 +34,14 @@
 #include "pzbstrmatrix.h"
 
 #include "pzpoisson3d.h"
+#include "pzhybridpoisson.h"
 #include "pzpoisson3dreferred.h"
 #include "pzelasmat.h" 
 #include "pzelasthybrid.h"
 
 #include "pzbuildmultiphysicsmesh.h"
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
 
 #include "pzlog.h"
 
@@ -71,6 +75,10 @@ const int bc4 = -4;
 TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly);
 TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder);
 
+void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, int lagrangemat);
+
+void ResetMesh(TPZCompMesh *cmesh);
+
 
 int main(int argc, char *argv[])
 {
@@ -88,14 +96,38 @@ int main(int argc, char *argv[])
 	gmesh->Print(arg1);
     	
 	TPZCompMesh * cmesh= MalhaComp(gmesh, p);
-	ofstream arg2("cmesh.txt");
-	cmesh->Print(arg2);
+
+
+    
+    int neq = cmesh->NEquations();
+    TPZFMatrix<STATE> stiff(neq,neq,0.),rhs(neq,1,0.);
+    TPZFStructMatrix fstr(cmesh);
+    fstr.Assemble(stiff, rhs, 0);
+    
+    ofstream arg4("stiffness.txt");
+    stiff.Print("Global Stiffness matrix",arg4);
 	
+    TPZAnalysis an(cmesh);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    TPZFStructMatrix fullstr(cmesh);
+    an.SetStructuralMatrix(fullstr);
+    an.SetSolver(step);
+    an.Run();
+
+    ofstream arg2("cmesh.txt");
+	cmesh->Print(arg2);
+
+    
     ofstream arg3("gmesh.txt");
 	gmesh->Print(arg3);
     
     ofstream file("malhageometrica.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, true);
+    
+    ResetMesh(cmesh);
+    delete cmesh;
+    delete gmesh;
     
 	return EXIT_SUCCESS;
 }
@@ -169,11 +201,11 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 	id++;
     
     // define entre quais materiais vou criar interfaces e o terceiro argumento é o tipo de material que quero nessa interface.
-    gmesh->AddInterfaceMaterial(lagrangemat,matInterno, interfacemat);
-    gmesh->AddInterfaceMaterial(lagrangemat,bc1, bc1);
-    gmesh->AddInterfaceMaterial(lagrangemat,bc2, bc2);
-    gmesh->AddInterfaceMaterial(lagrangemat,bc3, bc3);
-    gmesh->AddInterfaceMaterial(lagrangemat,bc4, bc4);
+    gmesh->AddInterfaceMaterial(matInterno,lagrangemat, interfacemat);
+//    gmesh->AddInterfaceMaterial(lagrangemat,bc1, bc1);
+//    gmesh->AddInterfaceMaterial(lagrangemat,bc2, bc2);
+//    gmesh->AddInterfaceMaterial(lagrangemat,bc3, bc3);
+//    gmesh->AddInterfaceMaterial(lagrangemat,bc4, bc4);
 
     //construir a malha
 	gmesh->BuildConnectivity();
@@ -194,13 +226,13 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 }
 
 
-TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
+TPZCompMesh* MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 {
 	/// criar materiais
 	int dim = 2;
     TPZMatPoisson3d *material = new TPZMatPoisson3d(matInterno,dim);
-    TPZMatPoisson3d *matlagrange = new TPZMatPoisson3d(lagrangemat, dim);
-    TPZMatPoisson3d *matinterface = new TPZMatPoisson3d(interfacemat,dim);
+    TPZMatPoisson3d *matlagrange = new TPZHybridPoisson(lagrangemat, dim);
+    TPZMatPoisson3d *matinterface = new TPZHybridPoisson(interfacemat,dim);
     
 	TPZMaterial * mat1(material);
 	TPZMaterial * mat2(matlagrange);
@@ -230,13 +262,6 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	
 	///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-	REAL uN=0.;
-	val2(0,0)=uN;
-	TPZMaterial * BCondN1 = material->CreateBC(mat1, bc1,neumann, val1, val2);
-	cmesh->InsertMaterialObject(BCondN1);
-    
-    TPZMaterial * BCondN2 = material->CreateBC(mat1, bc3,neumann, val1, val2);
-    cmesh->InsertMaterialObject(BCondN2);
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uD=0.;
@@ -247,6 +272,15 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	TPZMaterial * BCondD2 = material->CreateBC(mat1, bc4,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondD2);
 	
+	REAL uN=0.;
+	val2(0,0)=uN;
+
+	TPZMaterial * BCondN1 = material->CreateBC(mat1, bc1,dirichlet, val1, val2);
+	cmesh->InsertMaterialObject(BCondN1);
+    
+    TPZMaterial * BCondN2 = material->CreateBC(mat1, bc3,dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(BCondN2);
+
     cmesh->SetAllCreateFunctionsHDivPressure();
 
 	set<int> SETmat1;
@@ -269,7 +303,11 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 //    cmesh->AutoBuild(MaterialIDs);
     
     TPZBuildMultiphysicsMesh::BuildHybridMesh(cmesh, MaterialIDs, BCMaterialIDs, lagrangemat, interfacemat);
+    BuildElementGroups(cmesh, matInterno, interfacemat,lagrangemat);
     
+//    TPZMaterial *lagrange = cmesh->MaterialVec()[lagrangemat];
+//    cmesh->MaterialVec().erase(lagrangemat);
+//    delete lagrange;
     
 //    int nel = cmesh->NElements();
 //    for(int i=0; i<nel; i++){
@@ -290,4 +328,105 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 //    }
     
     return cmesh;
+}
+
+void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, int lagrangemat)
+{
+    int nel = cmesh->NElements();
+    std::map<int,TPZElementGroup *> elgroup;
+    cmesh->LoadReferences();
+    for (int el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (gel && gel->MaterialId() == materialid) {
+            int index;
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+            elgroup[el] = elgr;
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "Creating an element group around element index " << el;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+        }
+    }
+    for (std::map<int,TPZElementGroup *>::iterator it = elgroup.begin(); it != elgroup.end(); it++) {
+        TPZCompEl *cel = cmesh->ElementVec()[it->first];
+        TPZGeoEl *gel = cel->Reference();
+        int dim = gel->Dimension();
+        int nsides = gel->NSides();
+        for (int is=0; is<nsides; is++) {
+            int sidedim = gel->SideDimension(is);
+            if (sidedim != dim-1) {
+                continue;
+            }
+            TPZStack<TPZCompElSide> equal;
+            TPZGeoElSide gelside(gel,is);
+            gelside.EqualLevelCompElementList(equal, 0, 0);
+            // look for the interface elements (which look at me)
+            int neq = equal.size();
+            for (int eq =0; eq < neq; eq++) {
+                TPZCompElSide eqsize = equal[eq];
+                TPZCompEl *eqcel = eqsize.Element();
+                TPZGeoEl *eqgel = eqcel->Reference();
+                if (!eqgel) {
+                    continue;
+                }
+                int matid = eqgel->MaterialId();
+                if (matid == interfacemat) {
+                    TPZInterfaceElement *interface = dynamic_cast<TPZInterfaceElement *>(eqcel);
+                    if (!interface ) {
+                        DebugStop();
+                    }
+                    TPZCompEl *left = interface->LeftElement();
+                    TPZCompEl *right = interface->RightElement();
+                    if (left == cel || right == cel) {
+                        it->second->AddElement(interface);
+                        eqgel->ResetReference();
+                    }
+                }
+                // look for the boundary elements (all elements which are not lagrange materials)
+                else if (matid != lagrangemat && eqgel->Dimension() == dim-1)
+                {
+                    it->second->AddElement(eqcel);
+                    eqgel->ResetReference();
+                }
+            }
+        }
+        it->second->AddElement(cel);
+        gel->ResetReference();
+    }
+    cmesh->ComputeNodElCon();
+    nel = cmesh->NElements();
+    for (int el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+        if (elgr) {
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+        }
+    }
+    cmesh->CleanUpUnconnectedNodes();
+}
+
+void ResetMesh(TPZCompMesh *cmesh)
+{
+    int nel = cmesh->NElements();
+    for (int el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
+        if (cond) {
+            cond->Unwrap();
+        }
+    }
+    for (int el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+        if (elgr) {
+            elgr->Unwrap();
+        }
+    }
 }

@@ -1943,6 +1943,7 @@ void TPZCompMesh::AssembleError(TPZFMatrix<REAL> &estimator, int errorid){
 	
 }
 
+/*
 void TPZCompMesh::SaddlePermute()
 {
     
@@ -1975,17 +1976,17 @@ void TPZCompMesh::SaddlePermute()
             permute[ip]=ip;
         }
         
-        TPZCompEl *elvec= ElementVec()[jel];
+        TPZCompEl *cel= ElementVec()[jel];
         //	int idtroca=0;
         int eqmax=0;
-        if(!elvec)continue;
+        if(!cel)continue;
 //        int ncon=elvec->NConnects();
         std::set<int> connects;
-        elvec->BuildConnectList(connects );
+        cel->BuildConnectList(connects );
         //	if(ncon==1) continue;
-        int pressureconectindex = elvec->PressureConnectIndex();
+        int pressureconectindex = cel->PressureConnectIndex();
         if(pressureconectindex == -1) continue;
-        long eqpress=elvec->Connect(pressureconectindex).SequenceNumber();
+        long eqpress=cel->Connect(pressureconectindex).SequenceNumber();
 
         for (std::set<int>::const_iterator it= connects.begin(); it != connects.end(); it++) {
 //        for (int icon=0; icon< ncon-1; icon++) {
@@ -2008,18 +2009,187 @@ void TPZCompMesh::SaddlePermute()
             permute[jperm]=jperm-1;
             
         }
-        /*
-         #ifdef LOG4CXX
-         {
-         std::stringstream sout;
-         sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;
-         LOGPZ_DEBUG(logger, sout.str().c_str());
-         }
-         #endif
-         */
+        
+//         #ifdef LOG4CXX
+//         {
+//         std::stringstream sout;
+//         sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;
+//         LOGPZ_DEBUG(logger, sout.str().c_str());
+//         }
+//         #endif
+         
         Permute(permute);
         
     }		
+}
+*/
+
+void TPZCompMesh::SaddlePermute()
+{
+    TPZVec<long> permute;
+    long numinternalconnects = NIndependentConnects();
+    permute.Resize(numinternalconnects,0);
+    for (int i=0; i<numinternalconnects; i++) {
+        permute[i] = i;
+    }
+    int nel = NElements();
+    for (int el = 0; el<nel ; el++) {
+        TPZCompEl *cel = ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        unsigned char minlagrange = 0, maxlagrange = 256;
+        int nc = cel->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            long seqnum = c.SequenceNumber();
+            if (seqnum >= numinternalconnects) {
+                continue;
+            }
+            unsigned char lagrange = c.LagrangeMultiplier();
+            if (lagrange < minlagrange) {
+                minlagrange = lagrange;
+            }
+            if (lagrange > maxlagrange) {
+                maxlagrange = lagrange;
+            }
+        }
+        for (unsigned char lagrange = minlagrange+1; lagrange <= maxlagrange; lagrange++) {
+            long maxeq = -1;
+            for (int ic=0; ic<nc ; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.SequenceNumber() >= numinternalconnects) {
+                    continue;
+                }
+                if (c.LagrangeMultiplier() < lagrange) {
+                    long origeq = c.SequenceNumber();
+                    if(maxeq < permute[origeq])
+                    {
+                        maxeq = permute[origeq];
+                    }
+                }
+            }
+            if (maxeq < 0) {
+                continue;
+            }
+            std::set<long> lagrangeseqnum;
+            for (int ic=nc-1; ic>=0 ; ic--) {
+                TPZConnect &c = cel->Connect(ic);
+                int clagrange = c.LagrangeMultiplier();
+                long ceqnum = c.SequenceNumber();
+                if (ceqnum > numinternalconnects) {
+                    continue;
+                }
+                int ceq = permute[ceqnum];
+                if (clagrange == lagrange && ceq < maxeq) {
+                    lagrangeseqnum.insert(ceqnum);
+                }
+            }
+            std::set<long>::reverse_iterator it;
+            for (it = lagrangeseqnum.rbegin(); it != lagrangeseqnum.rend(); it++) {
+                long ceq = permute[*it];
+                ModifyPermute(permute, ceq, maxeq);
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout << "Put ceq = " << ceq << "after maxeq = " << maxeq << std::endl;
+                    sout << permute;
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+            }
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "Resequence for element " << el << std::endl;
+                for (int ic=0; ic<nc; ic++) {
+                    TPZConnect &c = cel->Connect(ic);
+                    c.Print(*this,sout);
+                    sout << "New seqnum = " << permute[c.SequenceNumber()] << std::endl;
+                }
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+        }
+    }
+#ifdef LOG4CXX
+    {
+        for (int el=0; el<nel; el++) {
+            TPZCompEl *cel = ElementVec()[el];
+            if (!cel) {
+                continue;
+            }
+            int nc = cel->NConnects();
+            std::stringstream sout;
+            sout << "Resequence for element " << el << std::endl;
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                c.Print(*this,sout);
+                if (c.SequenceNumber() < numinternalconnects) {
+                    sout << "New seqnum = " << permute[c.SequenceNumber()] << std::endl;
+                }
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+    }
+    {
+        std::stringstream sout;
+        sout << "Saddle permute permutation ";
+        sout << permute ;
+        LOGPZ_DEBUG(logger, sout.str())        
+    }
+#endif
+    Permute(permute );
+
+}
+
+/// Modify the permute vector swapping the lagrangeq with maxeq and shifting the intermediate equations
+void TPZCompMesh::ModifyPermute(TPZVec<long> &permute, long lagrangeq, long maxeq)
+{
+    int neq = permute.size();
+#ifdef DEBUG
+    if (lagrangeq < 0 || lagrangeq >= neq || maxeq < 0 || maxeq >= neq) {
+        DebugStop();
+    }
+#endif
+    // find the equation which maps to lagrangeq
+    //int lagrangeqindex = permuteinv[lagrangeq];
+    TPZVec<long> accpermute(neq,0),input(permute);
+    for (int i=0; i<neq; i++) {
+        accpermute[i] = i;
+    }
+    
+    int lagrangeqindex = lagrangeq;
+
+    // this equation should never be sent forwards
+    if (accpermute[lagrangeqindex] > lagrangeq) {
+        DebugStop();
+    }
+    
+    accpermute[lagrangeqindex] = maxeq;
+    int index = lagrangeqindex+1;
+    while (index < neq && (accpermute[index] <= maxeq || accpermute[index] < index)) {
+        accpermute[index] = accpermute[index]-1;
+        index++;
+    }
+    for (int i=0; i<neq; i++) {
+        permute[i] = accpermute[input[i]];
+    }
+    
+#ifdef DEBUG
+    {
+        std::set<long> acc;
+        for (int i=0; i<neq; i++) {
+            acc.insert(permute[i]);
+        }
+        if (acc.size() != neq) {
+            std::cout << "input " << input << std::endl;
+            std::cout << "accpermute " << accpermute << std::endl;
+            std::cout << "permute " << permute << std::endl;
+            DebugStop();
+        }
+    }
+#endif
 }
 
 /** @brief adds the connect indexes associated with base shape functions to the set */
