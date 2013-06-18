@@ -417,7 +417,8 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     for(int i=0; i<ncon; i++)
     {
         TPZConnect &newnod = cmesh->ConnectVec()[i];
-        newnod.SetPressure(true);
+        //newnod.SetPressure(true);
+	newnod.SetLagrangeMultiplier(1);
     }
     
     int nel = cmesh->NElements();

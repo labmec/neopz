@@ -693,7 +693,8 @@ TPZCompMesh *DadosMalhas::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool tria
     for(int i=0; i<ncon; i++)
     {
         TPZConnect &newnod = cmesh->ConnectVec()[i];
-        newnod.SetPressure(true);
+        //newnod.SetPressure(true);
+	newnod.SetLagrangeMultiplier(1);
     }
     
     ///set order total da shape
@@ -1413,7 +1414,8 @@ TPZCompMesh *DadosMalhas::CMeshPressureL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<
     for(int i=0; i<ncon; i++)
     {
         TPZConnect &newnod = cmesh->ConnectVec()[i];
-        newnod.SetPressure(true);
+        //newnod.SetPressure(true);
+	newnod.SetLagrangeMultiplier(1);
     }
     
     ///set order total da shape
