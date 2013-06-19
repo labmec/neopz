@@ -482,6 +482,8 @@ likwid_manager_t likwid_manager;
         dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());      
       PERF_STOP(assemble_rst);
       
+      return 0;
+      
       PERF_START(precond_rst);
       precond = dohrstruct->Preconditioner();
       PERF_STOP(precond_rst);
@@ -688,6 +690,7 @@ likwid_manager_t likwid_manager;
 
     PERF_STOP(total_rst);
       
+    
     if (gmesh != NULL) delete gmesh;
 
     return main_ret;

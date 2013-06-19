@@ -72,6 +72,23 @@ void TPZMatrix<TVar>::Substract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &result
     }
 }
 
+template<class TVar>
+void TPZMatrix<TVar>::Simetrize() {
+  
+  if ( Rows() != Cols() ) {
+    Error( "Simetrize only work for square matrices" );
+  }
+  
+  int row,col;
+  int fDim1 = Rows();
+  for(row=0; row<fDim1; row++) {
+    for(col=row+1; col<fDim1; col++) {
+      this->s(col,row) = this->s(row,col);
+    }
+  }
+  
+}
+
 /** @brief Implements sum of matrices: \f$ A+B \f$ */
 template<class TVar>
 TPZFMatrix<TVar> operator+(const TPZMatrix<TVar> &A, const TPZMatrix<TVar> &B ) {

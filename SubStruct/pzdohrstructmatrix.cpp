@@ -32,6 +32,7 @@
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 #include "TPZVTKGeoMesh.h"
+#include <stdlib.h>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
@@ -49,6 +50,10 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 #include "tbb/blocked_range.h" 
 using namespace tbb; 
 #endif
+
+#include <papi.h>
+
+static float stiff_sum = 0;
 
 /** @brief Return the number of submeshes */
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
@@ -451,6 +456,11 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     itwork++;
   }
 	
+  float rtime, ptime, mflops, ltime;
+  long long flpops;
+
+  PAPI_flops ( &rtime, &ptime, &flpops, &mflops );
+   
   dohr_ass.start();
   if (numthreads_assemble == 0) {
     /* Put the main thread to work on all items. */
@@ -480,6 +490,13 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     }
   }
   dohr_ass.stop();
+  
+  PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
+		
+  printf("Assemble Time: %.2f \t", ltime-rtime);
+  printf("Assemble Stiffness : %.2f seconds\n", stiff_sum);
+  
+  return;
   
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) 
@@ -1287,12 +1304,22 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
+		
+		float rtime, ptime, mflops, ltime;
+	  	long long flpops;
+
+		PAPI_flops ( &rtime, &ptime, &flpops, &mflops );
+	    
 		pairstructmatrix.Assemble(Stiffness.operator->(), matredptr, substruct->fLocalLoad);
         
+		PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
+		//printf("Stiff: %.2f \t", ltime-rtime);
+        
+		stiff_sum += ltime-rtime;
         
 		// fLocalLoad is in the original ordering of the submesh
-		matredbig->Simetrize();
-		matredptr->Simetrize();
+		matredbig->SimetrizeMatRed();
+		matredptr->SimetrizeMatRed();
 		
 		substruct->fWeights.Resize(Stiffness->Rows());
 		int i;
@@ -1530,6 +1557,7 @@ void *ThreadDohrmanAssemblyList<TVar>::ThreadWork(void *voidptr)
     runner->AssembleMatrices(args->list->fTestThreads,node_id);
     runner = args->list->NextObject();
   }
+    
   return 0;
 }
 

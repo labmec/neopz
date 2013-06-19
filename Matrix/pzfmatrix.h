@@ -20,8 +20,12 @@
 #include "pzsave.h"
 #include "pzmatrixid.h"
 
+
 template <class T>
 class TPZVec;
+
+template <class TVar>
+class TPZVerySparseMatrix;
 
 /** 
  * @addtogroup matrix
@@ -47,6 +51,7 @@ template<class TVar=REAL>
 class TPZFMatrix: public TPZMatrix<TVar> {
 	
 public:
+  
 	/** @brief Simple constructor */
 	TPZFMatrix() : TPZMatrix<TVar>( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
 	/**
@@ -73,11 +78,19 @@ public:
 		if(rows*columns) fElem = new TVar[rows*columns];
 	}
 
+    /**
+     * @brief Copy constructor specialized form TPZVerySparseMatrix
+     * @param refmat Used as a model for current object
+	 */
+	TPZFMatrix(const TPZVerySparseMatrix <TVar> & A);
+	
 	/**
      * @brief Copy constructor
      * @param refmat Used as a model for current object
 	 */
 	TPZFMatrix(const TPZFMatrix<TVar> & refmat);
+	
+
 	
 	CLONEDEF(TPZFMatrix<TVar>)
 	TPZFMatrix(const TPZMatrix<TVar> & refmat);

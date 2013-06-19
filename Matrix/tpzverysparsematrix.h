@@ -48,6 +48,9 @@ public:
 	
 	TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp);
 	
+	/** @brief Simetrizes copies the data of the matrix to make its data simetric */
+	void Simetrize();
+
 	/** @brief Put values checking bounds */
 	virtual int PutVal(const int row, const int col, const TVar &val);
 	
@@ -89,6 +92,9 @@ public:
 						 TPZFMatrix<TVar> & z, const TVar alpha = 1, const TVar beta = 0,
 						 const int opt = 0, const int stride = 1) const;
 	
+	/** @brief It makes *T the transpose of current matrix. */
+	void Transpose(TPZVerySparseMatrix<TVar>* T) const;
+
 	/** @brief Saveable methods */
 	int ClassId() const
 	{
@@ -96,6 +102,8 @@ public:
 	}
 	virtual void Write(TPZStream &buf, int withclassid);
 	virtual void Read(TPZStream &buf, void *context);
+	
+	std::map<std::pair<int, int>, TVar> getMap() const { return fExtraSparseData; }
 	
 private:
 	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */

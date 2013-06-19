@@ -10,7 +10,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzerror.h"
-
+#include "tpzverysparsematrix.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -59,6 +59,7 @@ using namespace std;
 template <class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat), fElem(0),fGiven(0),fSize(0) {
 	if(this->fRow*this->fCol) {
+	  
 		fElem = new TVar[this->fRow*this->fCol];
 		TVar * p = fElem;
 		int i,j;
@@ -69,6 +70,7 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat),
 		}
 	}
 }
+
 
 /********************************/
 /*** Constructor( TPZFMatrix<TVar> & ) ***/
@@ -87,6 +89,34 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
     TVar * p = fElem;
     memcpy(p,src,(size_t)size*sizeof(TVar));
 }
+
+/********************************/
+/*** Constructor( TPZVerySparseMatrix<TVar> & ) ***/
+
+template<class TVar>
+TPZFMatrix<TVar>::TPZFMatrix(const TPZVerySparseMatrix <TVar> & A) 
+: TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
+  
+  int size = this->fRow * this->fCol;
+  if(!size) return;
+  fElem = new TVar[ size ] ;
+    
+#ifdef DEBUG2
+  if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
+#endif
+    
+  typename std::map <std::pair<int, int>, TVar>::const_iterator it = A.getMap().begin();
+  typename std::map <std::pair<int, int>, TVar>::const_iterator end = A.getMap().end();
+
+  memset(fElem, 0, (size_t)size*sizeof(TVar));
+  
+  for (; it != end; it++) {
+    const std::pair<int, int>& key = it->first;
+    PutVal(key.first, key.second, it->second);
+  }
+  
+}
+
 
 
 /******** Operacoes com matrizes FULL  ********/

@@ -57,13 +57,68 @@ TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZ
 }
 
 template<class TVar>
+void TPZVerySparseMatrix<TVar>::Simetrize() {
+  
+  int rows = this->Rows();
+  int cols = this->Cols();
+  
+  // TODO: introduce error handling mechanism  
+  if ( rows != cols) {
+      cerr << "Error: Simetrize only work for square matrices";
+      return;
+  }
+  
+  typename std::map <std::pair<int, int>, TVar>::iterator it = this->fExtraSparseData.begin();
+  typename std::map <std::pair<int, int>, TVar>::iterator end = this->fExtraSparseData.end();
+  typename std::map <std::pair<int, int>, TVar>::iterator next;
+  
+  std::list< std::pair< std::pair<int, int>, TVar > > temp;
+  
+  for(; it != end; it=next) {
+    const std::pair<int, int>& key = it->first;
+    next = it;
+    next++;
+    
+    if(key.first < key.second) {
+      temp.push_back( std::pair< std::pair<int, int>, TVar > (std::pair<int, int>(key.second, key.first), it->second));
+    }
+    else if (key.first > key.second) {
+      this->fExtraSparseData.erase(it);
+    }
+  }
+  
+  typename std::list< std::pair< std::pair<int, int>, TVar > >::iterator at = temp.begin();
+  typename std::list< std::pair< std::pair<int, int>, TVar > >::iterator atEnd = temp.end();
+  
+  	for(; at != atEnd; at++) {
+		this->fExtraSparseData [ at->first ] = at->second;
+	}
+
+}
+
+template<class TVar>
+void TPZVerySparseMatrix<TVar>::Transpose(TPZVerySparseMatrix<TVar> *T) const {
+  int rows = this->Rows();
+  int cols = this->Cols();
+  T->Resize( cols, rows );
+  T->fExtraSparseData.clear();
+  typename std::map <std::pair<int, int>, TVar>::const_iterator it = this->fExtraSparseData.begin();
+  typename std::map <std::pair<int, int>, TVar>::const_iterator end = this->fExtraSparseData.end();
+
+  for (; it != end; it++) {
+    const std::pair<int, int>& key = it->first;
+    T->fExtraSparseData[std::pair<int,int>(key.second, key.first)] = it->second;
+  }
+}
+
+template<class TVar>
 const TVar & TPZVerySparseMatrix<TVar>::GetVal(int row, int col) const
 {
     if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
         cout<< "ERRO! em TPZVerySparseMatrix::GetVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
         this->gZero = 0.;
-		return this->gZero;
+	return this->gZero;
     }
 	
     pair <int,int> position(row,col);

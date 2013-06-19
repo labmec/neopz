@@ -184,7 +184,7 @@ public:
 	
 	/** @brief If fK00 is simetric, only part of the matrix is accessible to external objects. */
 	/** Simetrizes copies the data of the matrix to make its data simetric */
-	void Simetrize();
+	void SimetrizeMatRed();
 	
 	/** @brief Saveable methods */
 	int ClassId() const;

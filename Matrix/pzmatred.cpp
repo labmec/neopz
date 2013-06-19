@@ -55,18 +55,23 @@ int TPZMatRed<TVar, TSideMatrix>::IsSimetric() const {
 }
 
 template<class TVar, class TSideMatrix>
-void TPZMatRed<TVar, TSideMatrix>::Simetrize() {
+void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 	// considering fK00 is simetric, only half of the object is assembled.
 	// this method simetrizes the matrix object
 	
 	if(!fK00 || !this->fK00->IsSimetric()) return;
 	fK01.Transpose(&fK10);
+	
+	fK11.Simetrize();
+	
+	/*
 	int row,col;
 	for(row=0; row<fDim1; row++) {
 		for(col=row+1; col<fDim1; col++) {
 			(fK11)(col,row) = (fK11)(row,col);
 		}
 	}
+	*/
 }
 
 template<class TVar, class TSideMatrix>
@@ -204,7 +209,7 @@ void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<T
 	if(!fK01IsComputed)
 	{
         DecomposeK00();
-		Simetrize();
+		SimetrizeMatRed();
 		fSolver->Solve(fK01,fK01);
         TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *>(fSolver.operator->());
         std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;

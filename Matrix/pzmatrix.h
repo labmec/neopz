@@ -368,6 +368,10 @@ public:
 	/** @brief Checks if current matrix is square */
 	inline int IsSquare() const { return fRow == fCol;}
 	
+	/** @brief Simetrizes copies upper plan to the lower plan, making its data simetric */
+	virtual void Simetrize();
+	
+	
 	/** @brief Checks if current matrix is definite positive */
 	virtual int IsDefPositive() const{ return 0; }
 	/** @brief Checks if current matrix is already decomposed */
