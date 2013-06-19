@@ -378,14 +378,14 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
                 }
                 int matid = eqgel->MaterialId();
                 if (matid == interfacemat) {
-                    TPZInterfaceElement *interface = dynamic_cast<TPZInterfaceElement *>(eqcel);
-                    if (!interface ) {
+                    TPZInterfaceElement *interfacee = dynamic_cast<TPZInterfaceElement *>(eqcel);
+                    if (!interfacee ) {
                         DebugStop();
                     }
-                    TPZCompEl *left = interface->LeftElement();
-                    TPZCompEl *right = interface->RightElement();
+                    TPZCompEl *left = interfacee->LeftElement();
+                    TPZCompEl *right = interfacee->RightElement();
                     if (left == cel || right == cel) {
-                        it->second->AddElement(interface);
+                        it->second->AddElement(interfacee);
                         eqgel->ResetReference();
                     }
                 }
