@@ -494,66 +494,74 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				
 				Solout[0]=flux(0,0);
 				Solout[1]=flux(1,0);
-				break;
-			case 14:
-				Solout[0]=data.sol[0][data.sol[0].NElements()-1];
-				break;
-			case 16:
-				if (data.numberdualfunctions) {
-					Solout[0]=data.sol[0][2];
-				}
-				else {
-					std::cout<<"Pressao somente em Omega1"<<std::endl;
-					Solout[0]=0;//NULL;
-				}
-				
-				break;
-			case 17:
-				if (!data.numberdualfunctions) {
-					Solout[0]=data.sol[0][0];
-				}
-				else {
-					std::cout<<"Pressao somente em omega2"<<std::endl;
-					Solout[0]=0;//NULL;
-				}
-				
-				break;
-			case 18:
-				if( data.numberdualfunctions){
-					Solout[0]=data.sol[0][0];//fluxo de omega1
-					Solout[1]=data.sol[0][1];
-					//	Solout[2]=data.sol[2];
-					return;
-				}
-            case 19:
-                if(data.numberdualfunctions){
-                    Solout[0]=data.dsol[0](0,0);//fluxo de omega1
-                    Solout[1]=data.dsol[0](1,0);
-                    Solout[2]=data.dsol[0](2,0);
-                return;
-                }
-            case 20:
-                if( data.numberdualfunctions){
-                    Solout[0]=data.dsol[0](0,1);//fluxo de omega1
-                    Solout[1]=data.dsol[0](1,1);
-                    Solout[2]=data.dsol[0](2,1);
-                return;
-                }
+            break;
+            
+        case 14:
+        {
+            Solout[0]=data.sol[0][data.sol[0].NElements()-1];
+        }
+            break;
+          
+        case 15:
+        {
+            fForcingFunctionExact->Execute(data.x,pressure,flux);
+            Solout[0]=flux(2,0);
+        }
+            break;
 
-				else {
-					std::cout<<"Pressao somente em omega2"<<std::endl;
-					Solout[0]=0;//NULL;
-				}
+            
+        case 16:
+            if (data.numberdualfunctions) {
+					Solout[0]=data.sol[0][2];
+            }
+            else {
+                std::cout<<"Pressao somente em Omega1"<<std::endl;
+                Solout[0]=0;//NULL;
+            }
 				
-				break;
+            break;
+        
+        case 17:
+            if (!data.numberdualfunctions) {
+                Solout[0]=data.sol[0][0];
+            }
+            else {
+                std::cout<<"Pressao somente em omega2"<<std::endl;
+                Solout[0]=0;//NULL;
+            }
 				
-				
-			default:
-			
-                this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);	
-                break;
-			
-	}
+            break;
+        case 18:
+            if( data.numberdualfunctions){
+                Solout[0]=data.sol[0][0];//fluxo de omega1
+                Solout[1]=data.sol[0][1];
+                //	Solout[2]=data.sol[2];
+                return;
+            }
+        
+        case 19:
+            if(data.numberdualfunctions){
+                Solout[0]=data.dsol[0](0,0);//fluxo de omega1
+                Solout[1]=data.dsol[0](1,0);
+                Solout[2]=data.dsol[0](2,0);
+                return;
+            }
+        case 20:
+            if( data.numberdualfunctions){
+                Solout[0]=data.dsol[0](0,1);//fluxo de omega1
+                Solout[1]=data.dsol[0](1,1);
+                Solout[2]=data.dsol[0](2,1);
+                return;
+            }
+            else {
+                std::cout<<"Pressao somente em omega2"<<std::endl;
+                Solout[0]=0;//NULL;
+            }
+            break;
+        default:
+            this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);
+            break;
+    }
 #endif
 }
 
@@ -645,7 +653,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 		sout<< " fluxo exato " <<du_exact<<std::endl;
 		sout<< " fluxo aprox " <<dsol<<std::endl;
 		sout<< " ---- "<<std::endl;
-		sout<< " div exato " <<du_exact(2,0)<<std::endl;
+		if(du_exact.Rows()>fDim) sout<< " div exato " <<du_exact(2,0)<<std::endl;
 		sout<< " div aprox " <<div<<std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 		}
@@ -660,11 +668,14 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
         REAL diffFlux = abs(dsol[id] - du_exact(id,0));
 		values[1]  += abs(fK)*diffFlux*diffFlux;
 	}
-	//values[2] : divergence using L2 norm 
-    REAL diffDiv = abs(div[0] - du_exact(2,0));
-	values[2]=diffDiv*diffDiv;
-	//values[3] : Hdiv norm => values[1]+values[2];
-	values[3]= values[1]+values[2];
+    
+    if(du_exact.Rows()>fDim){
+        //values[2] : divergence using L2 norm
+        REAL diffDiv = abs(div[0] - du_exact(2,0));
+        values[2]=diffDiv*diffDiv;
+        //values[3] : Hdiv norm => values[1]+values[2];
+        values[3]= values[1]+values[2];
+    }
 		
 #ifdef LOG4CXX
 		{
