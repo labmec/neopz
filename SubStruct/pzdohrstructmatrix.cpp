@@ -51,9 +51,11 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 using namespace tbb; 
 #endif
 
+#ifdef USING_PAPI
 #include <papi.h>
 
 static float stiff_sum = 0;
+#endif
 
 /** @brief Return the number of submeshes */
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
@@ -458,9 +460,11 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 	
   float rtime, ptime, mflops, ltime;
   long long flpops;
-
+  
+#ifdef USING_PAPI
   PAPI_flops ( &rtime, &ptime, &flpops, &mflops );
-   
+#endif
+  
   dohr_ass.start();
   if (numthreads_assemble == 0) {
     /* Put the main thread to work on all items. */
@@ -490,14 +494,14 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     }
   }
   dohr_ass.stop();
-  
+#ifdef USING_PAPI
   PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
-		
+
   printf("Assemble Time: %.2f \t", ltime-rtime);
   printf("Assemble Stiffness : %.2f seconds\n", stiff_sum);
   
   return;
-  
+#endif
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) 
     {
@@ -1304,19 +1308,19 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
-		
+#ifdef USING_PAPI
 		float rtime, ptime, mflops, ltime;
 	  	long long flpops;
 
 		PAPI_flops ( &rtime, &ptime, &flpops, &mflops );
-	    
+#endif
 		pairstructmatrix.Assemble(Stiffness.operator->(), matredptr, substruct->fLocalLoad);
-        
+#ifdef USING_PAPI
 		PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
 		//printf("Stiff: %.2f \t", ltime-rtime);
         
 		stiff_sum += ltime-rtime;
-        
+#endif
 		// fLocalLoad is in the original ordering of the submesh
 		matredbig->SimetrizeMatRed();
 		matredptr->SimetrizeMatRed();
