@@ -232,14 +232,14 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 	}
     
     if(var==3){
-        Solout[0]=datavec[0].dsol[0](0,0);//fluxo de omega1
+        Solout[0]=datavec[0].dsol[0](0,0);
         Solout[1]=datavec[0].dsol[0](1,0);
         Solout[2]=datavec[0].dsol[0](2,0);
         return;
     }
 
     if(var==4){
-        Solout[0]=datavec[0].dsol[0](0,1);//fluxo de omega1
+        Solout[0]=datavec[0].dsol[0](0,1);
         Solout[1]=datavec[0].dsol[0](1,1);
         Solout[2]=datavec[0].dsol[0](2,1);
         return;

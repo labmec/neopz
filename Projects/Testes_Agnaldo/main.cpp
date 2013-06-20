@@ -135,7 +135,7 @@ int main_murad(int argc, char *argv[])
     
     ofstream saidaerro("Erro.txt");
 
-    int pu = 2;
+    int pu = 1;
     int pq = pu;
     int pp;
     if(triang==true){
@@ -530,7 +530,7 @@ int main(int argc, char *argv[]){
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    bool triang = true;
+    bool triang = false;
    fdimensionless = true;
     
     REAL Eyoung = 1.e5;
@@ -578,7 +578,7 @@ int main(int argc, char *argv[]){
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = sig0/pref;
         pini =pini/pref;
-        timeT = timeT*Cf/(Ly*Ly);
+        timeT = 0.1;// timeT*Cf/(Ly*Ly);
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
@@ -594,171 +594,174 @@ int main(int argc, char *argv[]){
     
     ofstream saidaerro("Erro.txt");
     
-    int pu = 2;
-    int pq = pu;
-    int pp;
-    if(triang==true){
-        pp = pq-1;
-    }else{
-        pp = pq;
-    }
     
-    int h;
-    saidaerro<<"\n CALCULO DO ERRO, ELEM. RIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-    for (h = 0; h< 8; h++)
+    for(int p =2; p<4; p++)
     {
-        
-        saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
-        // geometric mesh (initial)
-        TPZGeoMesh * gmesh = mydata->GMesh(triang,Lx,Ly);
-        //mydata->RefiningNearLine(2, gmesh, 4);
-
-
-        // First computational mesh
-        TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,false);
-
-        // second computational mesh
-        TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq, false);
-
-        // Third computational mesh
-        TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang, false);
-
-        // Cleaning reference of the geometric mesh to cmesh1
-        gmesh->ResetReference();
-        cmesh1->LoadReferences();
-        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h,false);
-        cmesh1->AdjustBoundaryElements();
-        cmesh1->CleanUpUnconnectedNodes();
-
-
-        // Cleaning reference to cmesh2
-        gmesh->ResetReference();
-        cmesh2->LoadReferences();
-        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,false);
-        cmesh2->AdjustBoundaryElements();
-        cmesh2->CleanUpUnconnectedNodes();
-
-        // Cleaning reference to cmesh3
-        gmesh->ResetReference();
-        cmesh3->LoadReferences();
-        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,h,true);
-
-        cmesh3->AdjustBoundaryElements();
-        cmesh3->CleanUpUnconnectedNodes();
-
-
-        //	Set initial conditions for pressure
-        TPZAnalysis an3(cmesh3);
-        int nrs = an3.Solution().Rows();
-        TPZVec<REAL> solini(nrs,pini);
-
-        TPZCompMesh  * cmeshL2 = mydata->CMeshPressureL2(gmesh, pp, solini,triang);
-        TPZAnalysis anL2(cmeshL2);
-        mydata->SolveSist(anL2, cmeshL2);
-        //anL2.Solution().Print("sol");
-
-        an3.LoadSolution(anL2.Solution());
-
-        //malha multifisica
-        TPZVec<TPZCompMesh *> meshvec(3);
-        meshvec[0] = cmesh1;
-        meshvec[1] = cmesh2;
-        meshvec[2] = cmesh3;
-        TPZPoroElasticMF2d * mymaterial;
-        TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(TerzaghiProblem1D);
-        TPZCompMesh * mphysics = mydata->MalhaCompTerzaghi(gmesh,meshvec,mymaterial,solExata);
-
-        
-        int NDeltaT = 1000;
-        int intervsaidas = NDeltaT/10;
-        REAL deltaT=timeT/NDeltaT; //second
-        mymaterial->SetTimeStep(deltaT);
-        REAL maxTime = timeT;
-
-        //mydata->SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics,100,ftimeatual);
-
-        
-        //==== Imprimir erros ======
-        TPZAnalysis an(mphysics);
-        TPZFMatrix<REAL> Initialsolution = an.Solution();
-        Initialsolution.Print("solini");
-
-        std::string outputfile;
-        outputfile = "TransientSolution";
-
-        //        std::stringstream outputfiletemp;
-        //        outputfiletemp << outputfile << ".vtk";
-        //        std::string plotfile = outputfiletemp.str();
-        //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-
-        //Criando matriz de massa (matM)
-        TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
-
-        //Criando matriz de rigidez (matK) e vetor de carga
-        TPZFMatrix<REAL> matK;
-        TPZFMatrix<REAL> fvec;
-        mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
-
-        int nrows;
-        nrows = matM->Rows();
-        TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
-        TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
-        TPZFMatrix<REAL> Lastsolution = Initialsolution;
-
-        REAL TimeValue = 0.0;
-        int cent = 1;
-        TimeValue = cent*deltaT;
-        while (TimeValue <= maxTime)
-        {
-            ftimeatual  = TimeValue;
-            // This time solution i for Transient Analytic Solution
-            mymaterial->SetTimeValue(TimeValue);
-            matM->Multiply(Lastsolution,TotalRhstemp);
-            
-            TotalRhs = fvec + TotalRhstemp;
-            an.Rhs() = TotalRhs;
-            an.Solve();
-            Lastsolution = an.Solution();
-            
-            if(cent%intervsaidas==0){
-                saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
-                
-                std::stringstream outputfiletemp;
-                outputfiletemp << outputfile << ".vtk";
-                std::string plotfile = outputfiletemp.str();
-                mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-                
-                
-                TPZVec<REAL> erros;
-                
-                saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
-                TPZAnalysis an22(cmesh2);
-                an22.SetExact(*SolucaoPQTerzaghi);
-                an22.PostProcessError(erros, saidaerro);
-                
-                saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
-                TPZAnalysis an32(cmesh3);
-                an32.SetExact(*SolucaoPQTerzaghi);
-                an32.PostProcessError(erros, saidaerro);
-            }
-            
-            
-            cent++;
-            TimeValue = cent*deltaT;
+        int pu = p;
+        int pq = pu;
+        int pp;
+        if(triang==true){
+            pp = pq-1;
+        }else{
+            pq=pu-1;
+            pp = pq;
         }
+        
+        int h;
+        saidaerro<<"\n CALCULO DO ERRO, ELEM. QUAD., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
+        for (h = 0; h< 8; h++)
+        {
+            
+            saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
+            // geometric mesh (initial)
+            TPZGeoMesh * gmesh = mydata->GMesh(triang,Lx,Ly);
+            //mydata->RefiningNearLine(2, gmesh, 4);
 
-        cmesh1->CleanUp();
-        cmesh2->CleanUp();
-        cmesh3->CleanUp();
-        //mphysics->CleanUp();
-        delete cmesh1;
-        delete cmesh2;
-        delete cmesh3;
-        //delete mphysics;
-        delete gmesh;
 
+            // First computational mesh
+            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,false);
+
+            // second computational mesh
+            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq, false);
+
+            // Third computational mesh
+            TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang, false);
+
+            // Cleaning reference of the geometric mesh to cmesh1
+            gmesh->ResetReference();
+            cmesh1->LoadReferences();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h,false);
+            cmesh1->AdjustBoundaryElements();
+            cmesh1->CleanUpUnconnectedNodes();
+
+
+            // Cleaning reference to cmesh2
+            gmesh->ResetReference();
+            cmesh2->LoadReferences();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,false);
+            cmesh2->AdjustBoundaryElements();
+            cmesh2->CleanUpUnconnectedNodes();
+
+            // Cleaning reference to cmesh3
+            gmesh->ResetReference();
+            cmesh3->LoadReferences();
+            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,h,true);
+
+            cmesh3->AdjustBoundaryElements();
+            cmesh3->CleanUpUnconnectedNodes();
+
+
+            //	Set initial conditions for pressure
+            TPZAnalysis an3(cmesh3);
+            int nrs = an3.Solution().Rows();
+            TPZVec<REAL> solini(nrs,pini);
+
+            TPZCompMesh  * cmeshL2 = mydata->CMeshPressureL2(gmesh, pp, solini,triang);
+            TPZAnalysis anL2(cmeshL2);
+            mydata->SolveSist(anL2, cmeshL2);
+            //anL2.Solution().Print("sol");
+
+            an3.LoadSolution(anL2.Solution());
+
+            //malha multifisica
+            TPZVec<TPZCompMesh *> meshvec(3);
+            meshvec[0] = cmesh1;
+            meshvec[1] = cmesh2;
+            meshvec[2] = cmesh3;
+            TPZPoroElasticMF2d * mymaterial;
+            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(TerzaghiProblem1D);
+            TPZCompMesh * mphysics = mydata->MalhaCompTerzaghi(gmesh,meshvec,mymaterial,solExata);
+
+            
+            int NDeltaT = 10000;
+            int intervsaidas = NDeltaT/20;
+            REAL deltaT=timeT/NDeltaT; //second
+            mymaterial->SetTimeStep(deltaT);
+            REAL maxTime = timeT;
+
+            //mydata->SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics,100,ftimeatual);
+
+            
+            //==== Imprimir erros ======
+            TPZAnalysis an(mphysics);
+            TPZFMatrix<REAL> Initialsolution = an.Solution();
+
+            std::string outputfile;
+            outputfile = "TransientSolution";
+
+            //        std::stringstream outputfiletemp;
+            //        outputfiletemp << outputfile << ".vtk";
+            //        std::string plotfile = outputfiletemp.str();
+            //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+
+            //Criando matriz de massa (matM)
+            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
+
+            //Criando matriz de rigidez (matK) e vetor de carga
+            TPZFMatrix<REAL> matK;
+            TPZFMatrix<REAL> fvec;
+            mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+
+            int nrows;
+            nrows = matM->Rows();
+            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<REAL> Lastsolution = Initialsolution;
+
+            REAL TimeValue = 0.0;
+            int cent = 1;
+            TimeValue = cent*deltaT;
+            while (TimeValue <= maxTime)
+            {
+                ftimeatual  = TimeValue;
+                // This time solution i for Transient Analytic Solution
+                mymaterial->SetTimeValue(TimeValue);
+                matM->Multiply(Lastsolution,TotalRhstemp);
+                
+                TotalRhs = fvec + TotalRhstemp;
+                an.Rhs() = TotalRhs;
+                an.Solve();
+                Lastsolution = an.Solution();
+                
+                if(cent%intervsaidas==0){
+                    saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
+                    
+                    std::stringstream outputfiletemp;
+                    outputfiletemp << outputfile << ".vtk";
+                    std::string plotfile = outputfiletemp.str();
+                    mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+                    
+                    
+                    TPZVec<REAL> erros;
+                    
+                    saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
+                    TPZAnalysis an22(cmesh2);
+                    an22.SetExact(*SolucaoPQTerzaghi);
+                    an22.PostProcessError(erros, saidaerro);
+                    
+                    saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
+                    TPZAnalysis an32(cmesh3);
+                    an32.SetExact(*SolucaoPQTerzaghi);
+                    an32.PostProcessError(erros, saidaerro);
+                }
+                
+                
+                cent++;
+                TimeValue = cent*deltaT;
+            }
+
+            cmesh1->CleanUp();
+            cmesh2->CleanUp();
+            cmesh3->CleanUp();
+            //mphysics->CleanUp();
+            delete cmesh1;
+            delete cmesh2;
+            delete cmesh3;
+            //delete mphysics;
+            delete gmesh;
+
+        }
     }
-
     
     return 0;
 }
@@ -880,16 +883,16 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
     REAL Cf = (1./Se)*kappa*(K + (4./3.)*mu)/(Ku + (4./3.)*mu);
     
 	int in;
-	REAL p = 0.0, VDy = 0.0, DivVD = 0.0;
-    REAL sump = 0.0, sumDiv = 0.0, sumVDy=0.0;
+	REAL p = 0.0, VDy = 0.0;// DivVD = 0.0;
+    REAL sump = 0.0, sumVDy=0.0;//, sumDiv = 0.0;
     
 	REAL PI = atan(1.)*4.;
 	
 	sol.Resize(1, 0.);
-    flux.Resize(3,1);
+    flux.Resize(2,1);
     flux(0,0)=0.;
     flux(1,0)=0.;
-    flux(2,0)=0.;
+    //flux(2,0)=0.;
 	
     REAL aux1= (alpha*F)/(Se*(Ku + (4./3.)*mu));
     REAL aux2=0.;
@@ -906,16 +909,16 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
             
             sumVDy += cos(aux3*y)*exp(-aux3*aux3*tp);
             
-            sumDiv += (-aux3)*sin(aux3*y)*exp(-aux3*aux3*tp);
+            //sumDiv += (-aux3)*sin(aux3*y)*exp(-aux3*aux3*tp);
         }
         
         p = sump;
         VDy = -2.*sumVDy;
-        DivVD = 2.*sumDiv;
+        //DivVD = 2.*sumDiv;
         
         sol[0] = p;
         flux(1,0) = -VDy;
-        flux(2,0) = -DivVD;
+        //flux(2,0) = -DivVD;
         
     }else{
         for (in =0; in<1000; in++)
@@ -927,16 +930,16 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
             
             sumVDy += cos(aux3*y)*exp(-aux3*aux3*Cf*tp);
             
-            sumDiv += (-aux3)*sin(aux3*y)*exp(-aux3*aux3*tp);
+            //sumDiv += (-aux3)*sin(aux3*y)*exp(-aux3*aux3*tp);
         }
         
         p = aux1*sump;
         VDy = (2./H)*kappa*aux1*sumVDy;
-        DivVD = (2./H)*kappa*aux1*sumDiv;
+       // DivVD = (2./H)*kappa*aux1*sumDiv;
         
         sol[0] = p;
         flux(1,0) = -VDy;
-        flux(2,0) = -DivVD;
+        //flux(2,0) = -DivVD;
     }
 }
 

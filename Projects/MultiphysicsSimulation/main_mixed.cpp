@@ -66,8 +66,8 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-const bool triang = false;
-const int teste = 2;
+const bool triang = true;
+const int teste = 1;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -76,11 +76,12 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
+    TPZVec<REAL> erros;
     ofstream arg12("Erro.txt");
-    for (int p =3; p<4; p++)
+    for (int p = 1; p< 5; p++)
     {
         arg12<<"\n Ordem = " << p <<endl;
-        for(int h=2; h<3;h++)
+        for(int h = 0; h < 6;h++)
         {
             arg12<<" Refinamento h  = " << h <<endl;
             // int p = 5;
@@ -92,7 +93,7 @@ int main(int argc, char *argv[])
             // ofstream arg1("gmesh_inicial.txt");
             // gmesh->Print(arg1);
 
-            /*
+          
             // First computational mesh
             TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
             //ofstream arg2("cmesh1_inicial.txt");
@@ -133,25 +134,24 @@ int main(int argc, char *argv[])
 //            ofstream arg6("mphysic.txt");
 //            mphysics->Print(arg6);
 
-            ofstream arg7("gmesh_Final.txt");
-            gmesh->Print(arg7);
+//            ofstream arg7("gmesh_Final.txt");
+//            gmesh->Print(arg7);
 
             TPZAnalysis an(mphysics);
             
-            ofstream arg10("mphysic_posAnalysis.txt");
-            mphysics->Print(arg10);
+//           ofstream arg10("mphysic_posAnalysis.txt");
+//            mphysics->Print(arg10);
             
             SolveSyst(an, mphysics);
             
-            ofstream arg6("mphysic.txt");
-            mphysics->Print(arg6);
+//            ofstream arg6("mphysic.txt");
+//            mphysics->Print(arg6);
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
-            ofstream arg9("mphysic_apos_Transferfrom.txt");
-            mphysics->Print(arg9);
-/*
-            TPZVec<REAL> erros;
+//            ofstream arg9("mphysic_apos_Transferfrom.txt");
+//            mphysics->Print(arg9);
+
             arg12<<" Erro da simulacao multifisica  para o flux" <<endl;
 
             TPZAnalysis an1(cmesh1);
@@ -168,8 +168,8 @@ int main(int argc, char *argv[])
 
             string plotfile("Solution_mphysics.vtk");
             PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
-*/
 
+/*
             //solucao HDivPressure
             TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
 //            ofstream arg8("cmesh_HdivInicial.txt");
@@ -183,13 +183,16 @@ int main(int argc, char *argv[])
             ofstream arg8("cmesh_HdivInicial.txt");
             cmesh3->Print(arg8);
 
-//            arg12<<" \nErro da HdivPressure  " <<endl;
-//            an3.SetExact(*SolExata1);
-//            an3.PostProcess(erros, arg12);
+            //TPZVec<REAL> erros;
+            arg12<<" \nErro da HdivPressure  " <<endl;
+            if (teste==1) an3.SetExact(*SolExata1);
+            else an3.SetExact(*SolExata2);
+            an3.PostProcess(erros, arg12);
 
 
             string plotile2("Solution_HDiv.vtk");
             PosProcessHDiv(an3, plotile2);
+ */
 
         }
     }
@@ -492,12 +495,18 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZMaterial * BCond2;
     TPZMaterial * BCond3;
     
+    TPZAutoPointer<TPZFunction<STATE> > solExata;
     if(teste==1){
+        solExata = new TPZDummyFunction<STATE>(SolExata1);
+        mymaterial->SetForcingFunctionExact(solExata);
+
         force1 = new TPZDummyFunction<REAL>(Forcing1);
         mymaterial->SetForcingFunction(force1);
         fCC0 = new TPZDummyFunction<STATE>(ForcingBC1);
     }
     else{
+        solExata = new TPZDummyFunction<STATE>(SolExata2);
+        mymaterial->SetForcingFunctionExact(solExata);
         REAL fxy=8.;
         mymaterial->SetInternalFlux(fxy);
         fCC23 = new TPZDummyFunction<STATE>(ForcingBC2);
@@ -571,6 +580,10 @@ void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flu
 }
 
 void SolExata1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
+    
+    disp.Resize(1, 0.);
+    flux.Resize(3, 1.);
+    flux(0,0)=flux(1,0)=flux(2,0)=0.;
     double x = pt[0];
     double y = pt[1];
     flux.Resize(3, 1);
@@ -623,10 +636,15 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 }
 
 void PosProcessHDiv(TPZAnalysis &an, std::string plotfile){
-	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	TPZManVector<std::string,10> scalnames(4), vecnames(2);
 	scalnames[0] = "Pressure";
+    scalnames[1] = "Divergence";
+    scalnames[2] = "ExactPressure";
+    scalnames[3] = "ExactDiv";
+    
 	vecnames[0]= "Flux";
-	
+    vecnames[1]= "ExactFlux";
+    
 	const int dim = 2;
 	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
@@ -648,8 +666,6 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     
-    
-    
     REAL diff = 1.;
 	REAL conv = 0.;
 	TPZVec<REAL> convdir(3,0.);
@@ -664,14 +680,19 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond2;
     TPZMaterial * BCond3;
     
+    TPZAutoPointer<TPZFunction<STATE> > solExata;
     if(teste==1){
+        solExata = new TPZDummyFunction<STATE>(SolExata1);
         force1 = new TPZDummyFunction<REAL>(Forcing1);
         material->SetForcingFunction(force1);
+        material->SetForcingFunctionExact(solExata);
         // fCC0 = new TPZDummyFunction<STATE>(ForcingBC);
     }
     else{
+        solExata = new TPZDummyFunction<STATE>(SolExata2);
         REAL fxy=8.;
         material->SetInternalFlux(fxy);
+        material->SetForcingFunctionExact(solExata);
         fCC23 = new TPZDummyFunction<STATE>(ForcingBC2);
     }
     
