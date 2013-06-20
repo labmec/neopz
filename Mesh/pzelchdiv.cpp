@@ -70,6 +70,7 @@ TPZIntelGen<TSHAPE>(mesh,copy)
 	{
 		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
 	}
+    
 }
 
 template<class TSHAPE>
@@ -98,7 +99,6 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 		}
 		this-> fConnectIndexes[i] = lcIdx;
 	}
-	
 }
 
 template<class TSHAPE>
@@ -110,6 +110,7 @@ TPZIntelGen<TSHAPE>()
 	for(i=0;i<TSHAPE::NSides;i++) {
 		this-> fConnectIndexes[i] = -1;
 	}
+    
 }
 
 template<class TSHAPE>
@@ -149,6 +150,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
 	}
 #endif
 }
+
  template<class TSHAPE>
  int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
  {
@@ -672,7 +674,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 }
             }
         }
-    }
+    }//end to EQuadrilateral 
     
     else{
         int count=0;
@@ -1062,16 +1064,14 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		
     int pressureorder=0;
 		if (TSHAPE::Type()==EQuadrilateral) {
-				pressureorder=this->fPreferredOrder;//ver como melhorar..?
+            pressureorder=this->fPreferredOrder;//ver como melhorar..?
 		}
 		else {
 				pressureorder=this->fPreferredOrder-1;
 		}
 
-		
-		
-		
     IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
+    
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -1119,28 +1119,33 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 }
 //refinamento
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::PRefine(int order) {
-		this->SetPreferredOrder(order);
-		int side;
-		int icon;
-		int ncon=NConnects();
-		for(icon=0; icon<ncon-1; icon++) {//somente para os conects de fluxo
-				TPZConnect &con = this->Connect(icon);
-				con.SetOrder(order);
-				side= ConnectSideLocId(icon);
-				//
+void TPZCompElHDiv<TSHAPE>::PRefine(int order)
+{
+    this->SetPreferredOrder(order);
+    int side;
+    int icon;
+    int ncon=NConnects();
+    int nnodes = this->Reference()->NNodes();
+    for(icon=0; icon<nnodes+1; icon++)
+    {//somente para os conects de fluxo
+        TPZConnect &con = this->Connect(icon);
+        con.SetOrder(order);
+        side= ConnectSideLocId(icon);
+        
 #ifdef LOG4CXX
-				{
-						std::stringstream sout;
-						sout << "side " << side << " order " << this->PreferredSideOrder(side)<<std::endl;
-						LOGPZ_DEBUG(logger,sout.str())
-				}
+{
+        std::stringstream sout;
+        sout << "side " << side << " order " << this->PreferredSideOrder(side)<<std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+}
 #endif
-				
-				//
-				this->IdentifySideOrder(side);
-		}
+        
+        this->IdentifySideOrder(side);
+    }
 		// conect da pressao
+    
+    if(ncon>nnodes+1)
+    {
 		TPZCompElHDivPressure<TSHAPE> *hdivpressure = dynamic_cast<TPZCompElHDivPressure<TSHAPE> *>(this);
 		TPZConnect &con = this->Connect(ncon-1);
 		
@@ -1158,7 +1163,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order) {
 		con.SetNShape(nshape);
 		int seqnum = con.SequenceNumber();
 		this->Mesh()->Block().Set(seqnum,nshape);
-
+    }
 		
 		
 }
