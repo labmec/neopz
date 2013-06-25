@@ -530,7 +530,7 @@ int main(int argc, char *argv[]){
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    bool triang = false;
+    bool triang = true;
    fdimensionless = true;
     
     REAL Eyoung = 1.e5;
@@ -578,7 +578,7 @@ int main(int argc, char *argv[]){
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = sig0/pref;
         pini =pini/pref;
-        timeT = 0.1;// timeT*Cf/(Ly*Ly);
+        timeT = 0.01;// timeT*Cf/(Ly*Ly);
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
@@ -595,7 +595,7 @@ int main(int argc, char *argv[]){
     ofstream saidaerro("Erro.txt");
     
     
-    for(int p =2; p<4; p++)
+    for(int p =1; p<3; p++)
     {
         int pu = p;
         int pq = pu;
@@ -609,7 +609,7 @@ int main(int argc, char *argv[]){
         
         int h;
         saidaerro<<"\n CALCULO DO ERRO, ELEM. QUAD., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 0; h< 8; h++)
+        for (h = 0; h< 7; h++)
         {
             
             saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
