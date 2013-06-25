@@ -47,8 +47,7 @@ ToolsTransient::~ToolsTransient(){
 }
 
 void ToolsTransient::Run()
-{std::stringstream saidaANTESTransfSol, saidaDEPOISTransfSol;
-    
+{
     REAL deltaT = fInputData->deltaT();
     REAL maxTime = fInputData->Ttot();
     REAL actTime = deltaT;
@@ -106,20 +105,16 @@ void ToolsTransient::Run()
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             TransferElasticSolution(lastElastCMesh, cmesh_referred);
             TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-            PlotWIntegral(cmesh_referred, saidaDEPOISTransfSol, propagCount);
             TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+            
+            meshvec[0]->LoadReferences();
+            mymaterial->SetLeakoffData(leakoffMap);
         }
         
         /** Metodo de resolucao de problema transiente */
         TPZAnalysis *an = new TPZAnalysis(mphysics);
-        if(lastElastCMesh)
-        {
-//            an->LoadSolution();
-//            {
-//                std::string plotfile = "000DEPOIS.vtk";
-//                PosProcessMult(an, plotfile);
-//            }
-        }
+        an->SetStep(postProcGraphStep);
+
         if(propagCount == 0)
         {
             outP << "Saida" << 0 << "={";
@@ -137,13 +132,7 @@ void ToolsTransient::Run()
             
             ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ);
         }
-        else
-        {
-            meshvec[0]->LoadReferences();
-            mymaterial->SetLeakoffData(leakoffMap);
 
-            an->SetStep(postProcGraphStep);
-        }
         propagate = this->SolveSistTransient(deltaT, actTime, maxTime, an, mymaterial, meshvec, mphysics, step,
                                              Jradius, outP, outW, outJ, outputfile);
 
@@ -157,19 +146,10 @@ void ToolsTransient::Run()
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
         lastCMeshRef = cmesh_elast;
         lastElastCMesh = cmesh_referred;
-        
-        {
-//            std::string plotfile = "000ANTES.vtk";
-//            PosProcessMult(an, plotfile);
-            PlotWIntegral(cmesh_referred, saidaANTESTransfSol, propagCount);
-        }
     }
     
     outPWJ << "(*** PRESSAO ***)\n" << outP.str() << "\n\n(*** W ***)\n" << outW.str() << "\n\n(*** J ***)\n" << outJ.str();
     outPWJ.close();
-    
-    std::ofstream cc("areasTransf.txt");
-    cc << "ANTES:\n" << saidaANTESTransfSol.str() << "\n\n\nDEPOIS:\n" << saidaDEPOISTransfSol.str() << "\n\n";
 }
 
 //------------------------------------------------------------------------------------
