@@ -107,13 +107,8 @@ void ToolsTransient::Run()
             TransferElasticSolution(lastElastCMesh, cmesh_referred);
             TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
             PlotWIntegral(cmesh_referred, saidaDEPOISTransfSol, propagCount);
+            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         }
-        else
-        {
-            TPZFMatrix<REAL> solIni(cmesh_referred->Solution().Rows(),1,1.);
-            cmesh_referred->LoadSolution(solIni);
-        }
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
         /** Metodo de resolucao de problema transiente */
         TPZAnalysis *an = new TPZAnalysis(mphysics);
@@ -745,6 +740,13 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
     MassMatrix(mymaterial, mphysics, fmat);
+    
+    if(step == 1)
+    {
+        TPZFMatrix<REAL> chutenewton(meshvec[0]->Solution().Rows(),1,1.);
+        meshvec[0]->LoadSolution(chutenewton);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    }
     
 	while(actTime <= (maxTime + deltaT/1000.) ) //passo de tempo
 	{
