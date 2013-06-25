@@ -407,8 +407,6 @@ void TPZReducedSpace::SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh)
 	functions[EPiramide] = CreateReducedElement;
 	functions[ECube] = CreateReducedElement;
     cmesh->ApproxSpace().SetCreateFunctions(functions);
-    
-    
 }
 
 TPZCompEl* TPZReducedSpace::Clone(TPZCompMesh &mesh) const{

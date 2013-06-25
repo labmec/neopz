@@ -40,6 +40,12 @@ TPZMaterial * TPZL2Projection::NewMaterial(){
 
 void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
+    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+    if(shapetype==data.EVecShape){
+        ContributeVecShape(data,weight,ek, ef);
+        return;
+    }
+    
     TPZManVector<STATE> solloc(fSol);
 	if (this->HasForcingFunction()){
         solloc.Resize(fForcingFunction->NFunctions());
@@ -75,6 +81,45 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 		for(int ivi = 0; ivi < nvars; ivi++){
 			const int posI = nvars*i+ivi;
 			ef(posI,0) += (STATE)weight*(STATE)fScale*(STATE)data.phi(i,0)*solloc[ivi];
+		}//ivi
+	}//for i
+}
+
+void TPZL2Projection::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    TPZManVector<STATE> solloc(fSol);
+	if (this->HasForcingFunction()){
+        solloc.Resize(fForcingFunction->NFunctions());
+		this->fForcingFunction->Execute(data.x, solloc);
+	}
+    
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	
+	const int nvariables = this->fNStateVars;
+    const int vecFuncSize = data.phi.Rows();
+    const int nshape = data.phi.Cols();
+    if(nvariables != vecFuncSize)
+    {
+        //Nao implementado neste material ainda
+        DebugStop();
+    }
+    
+	if (this->fIsReferred){
+        //Nao implementado neste material ainda
+        DebugStop();
+	}//if
+	
+	for(int i = 0; i < nshape; i++){
+		for(int j = 0; j < nshape; j++){
+			for(int ivi = 0; ivi < nvariables; ivi++){
+                ek(i,j) += weight*fScale*data.phi(ivi,i)*data.phi(ivi,j);
+			}//ivi
+		}//for j
+		for(int ivi = 0; ivi < nvariables; ivi++){
+			ef(i,0) += (STATE)weight*(STATE)fScale*(STATE)data.phi(ivi,i)*solloc[ivi];
 		}//ivi
 	}//for i
 }

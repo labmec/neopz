@@ -74,6 +74,7 @@ public:
     }
     
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeVecShape(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
 	{
@@ -105,6 +106,7 @@ public:
 	
 	/** @brief Returns number of state variables */
 	virtual int NStateVariables(){ return this->fNStateVars; }
+    
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
 	 * @param data [in] stores all input data
@@ -115,8 +117,7 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
-	{
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
 	
@@ -147,7 +148,6 @@ public:
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
-	
 };
 
 #endif

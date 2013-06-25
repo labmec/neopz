@@ -18,13 +18,14 @@
 
 
 
-class ToolsTransient {
+class ToolsTransient
+{
     
     public:
     
     ToolsTransient();
     ToolsTransient(int pOrder,
-                   REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, REAL Visc, REAL SigN,
+                   REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, REAL Visc, TPZVec<REAL> & SigN,
                    REAL Qinj, REAL Ttot, REAL Nsteps, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc);
     
     ~ToolsTransient();
@@ -34,17 +35,18 @@ class ToolsTransient {
     void Run();
     
         TPZGeoMesh * Mesh2D(REAL lmax);
-        TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh);
+        TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh, REAL SigmaN);
         void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
         TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh);
         TPZCompMesh * CMeshPressure(TPZGeoMesh *gmesh);
         TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial);
         
-        bool SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxTime, TPZFMatrix<REAL> & InitialSolution, TPZAnalysis *an,
+        bool SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxTime, TPZAnalysis *an,
                                 TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int & step,
                                 REAL Jradius, std::stringstream & outP, std::stringstream & outW, std::stringstream & outJ,
                                 std::string & outputfile);
     
+    void TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TPZCompMeshReferred * cmeshTo);
     //---------------------------------------------------------------
     
     void MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics, TPZFMatrix<REAL> & Un);
@@ -58,7 +60,7 @@ class ToolsTransient {
 
     void FillPositionPressure(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, std::map<REAL,REAL> & pos_pressure);
     
-    void PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis *an, std::string plotfile);
+    void PosProcessMult(TPZAnalysis *an, std::string plotfile);
     
     void PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum);
     
@@ -74,6 +76,44 @@ class ToolsTransient {
     int fpOrder;
     
     InputDataStruct * fInputData;
+    
+};
+
+
+
+template<class TVar>
+class TSolFunction : public TPZFunction<TVar>
+{
+    
+    public:
+    
+    /**
+     * Class constructor
+     */
+    TSolFunction();
+    
+    TSolFunction(TPZCompMesh * cmesh);
+    
+    /**
+     * Class destructor
+     */
+    ~TSolFunction();
+    
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f);
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df);
+    
+    /** Returns number of functions.
+     */
+    virtual int NFunctions();
+    
+    /** Polynomial order of this function. In case of non-polynomial
+     * function it can be a reasonable approximation order.
+     */
+    virtual int PolynomialOrder();
+    
+    TPZCompMesh * fcmesh;
+    int fIniIndex;
+    
 };
 
 #endif

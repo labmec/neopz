@@ -30,7 +30,10 @@ int main(int argc, char *argv[])
     REAL Fx = 0.;
     REAL Fy = 0.;
     REAL Visc = 0.001E-6;
-    REAL SigN = 61.5;
+    
+    TPZVec<REAL> SigN(1);
+    SigN[0] = 61.5;
+    
     REAL QinjTot  = -0.2;//Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel. Aqui vai Qinj total mesmo!!!
     REAL Ttot = 50.;
     REAL deltaT = Ttot/20.;
@@ -39,7 +42,7 @@ int main(int argc, char *argv[])
     REAL SigmaConf = 11.;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
-    REAL KIc = 100.;
+    REAL KIc = 1.;
     int p = 2;
     
     ToolsTransient ToolTrans(p, Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, Visc, SigN, QinjTot, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);

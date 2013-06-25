@@ -653,8 +653,6 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         
         DSolxy[0][0] = DSolU(0,0)*axesU(0,0)+DSolU(1,0)*axesU(1,0);
         DSolxy[1][1] = DSolU(0,1)*axesU(0,1)+DSolU(1,1)*axesU(1,1);
-    //    epsx = DSolxy[0][0];// du/dx
-    //	epsy = DSolxy[1][1];// dv/dy
         
         epsx = DSolU(0,0);// du/dx
         epsy = DSolU(1,1);// dv/dy
@@ -767,7 +765,7 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
     REAL Ql = (Vlnext - VlAcum)/deltaT;
 
-    return Ql;
+    return 0.;//Ql;
 }
 
 REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
@@ -807,7 +805,7 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
 
-    return dQldpfrac;
+    return 0.;//dQldpfrac;
 }
 
 std::ofstream outVl("vl.txt");

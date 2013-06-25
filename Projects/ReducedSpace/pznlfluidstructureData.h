@@ -22,7 +22,7 @@ public:
         
     }
     
-    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy, REAL Visc, REAL SigN,
+    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy, REAL Visc, TPZVec<REAL> & SigN,
                  REAL QinjTot, REAL Ttot, REAL deltaT, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
     {
         fLx = Lx;
@@ -73,7 +73,7 @@ public:
     REAL Fx() { return fFx; }
     REAL Fy() { return fFy; }
     REAL Visc() { return fVisc; }
-    REAL SigN() { return fSigN; }
+    REAL SigN(int pos) { return fSigN[pos]; }
     REAL Qinj() { return fQinj; }
     REAL Ttot() { return fTtot; }
     REAL deltaT() { return fdeltaT; }
@@ -102,7 +102,7 @@ public:
     REAL fVisc;//viscosidade do fluido de injecao
     
     //BCs:
-    REAL fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
+    TPZVec<REAL> fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
     REAL fQinj;//vazao de 1 asa de fratura dividido pela altura da fratura
     
     //time:
