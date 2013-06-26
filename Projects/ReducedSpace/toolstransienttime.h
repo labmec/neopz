@@ -47,6 +47,8 @@ class ToolsTransient
                                 std::string & outputfile);
     
     void TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TPZCompMeshReferred * cmeshTo);
+    REAL IntegrateUy(TPZCompMesh * cmesh);
+    
     //---------------------------------------------------------------
     
     void MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics, TPZFMatrix<REAL> & Un);
@@ -101,6 +103,7 @@ class TSolFunction : public TPZFunction<TVar>
     
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df);
+    virtual void ComputeUy(const TPZVec<REAL> &x, REAL &uy);
     
     /** Returns number of functions.
      */

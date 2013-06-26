@@ -22,6 +22,7 @@
 #include "pzreducedspace.h"
 #include "pzbndcond.h"
 #include "pzl2projection.h"
+#include "tpzmathtools.cpp"
 
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -103,8 +104,9 @@ void ToolsTransient::Run()
         if(lastElastCMesh)
         {
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+            
             TransferElasticSolution(lastElastCMesh, cmesh_referred);
-            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+            
             TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
             
             meshvec[0]->LoadReferences();
@@ -651,6 +653,8 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     
     std::cout << "\n******************** TRANSFERINDO ********************\n\n";
     
+    REAL AreaFrom = IntegrateUy(cmeshFrom);
+    
     TPZAutoPointer< TPZFunction<STATE> > func = new TSolFunction<STATE>(cmeshFrom);
     
     //////L2Projection material
@@ -685,9 +689,51 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     
     anTo.LoadSolution();
 
-    
     //////Replacing original material
     it->second = elastMat;
+    
+    
+    ///Integral correction
+    REAL AreaTo = IntegrateUy(cmeshTo);
+    
+    if(fabs(AreaTo) > 1.E-18)
+    {
+        REAL alpha = AreaFrom/AreaTo;
+        
+        TPZFMatrix<REAL> solutionTo = cmeshTo->Solution();
+        for(int r = 0; r < solutionTo.Rows(); r++)
+        {
+            for(int c = 0; c < solutionTo.Cols(); c++)
+            {
+                solutionTo(r,c) *= alpha;
+            }
+        }
+        
+        cmeshTo->LoadSolution(solutionTo);
+    }
+}
+
+REAL ToolsTransient::IntegrateUy(TPZCompMesh * cmesh)
+{
+    REAL integral = 0.;
+    for(int c = 0; c < cmesh->NElements(); c++)
+    {
+        TPZCompEl * cel = cmesh->ElementVec()[c];
+        if(!cel || cel->Material()->Id() != globPressureMatId)
+        {
+            continue;
+        }
+        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(cel);
+        if(!intel)
+        {
+            DebugStop();
+        }
+        TPZVec<REAL> value;
+        intel->Integrate(0, value);
+        integral += value[1];
+    }
+    
+    return integral;
 }
 
 void ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics, TPZFMatrix<REAL> & Un)
@@ -1322,6 +1368,14 @@ template<class TVar>
 void TSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
 {
     DebugStop();
+}
+
+template<class TVar>
+void TSolFunction<TVar>::ComputeUy(const TPZVec<REAL> &x, REAL &uy)
+{
+    TPZVec<TVar> f;
+    Execute(x, f);
+    uy = f[1];
 }
 
 template<class TVar>
