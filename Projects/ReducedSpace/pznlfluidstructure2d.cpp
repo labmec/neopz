@@ -764,7 +764,8 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     REAL tStar = FictitiousTime(VlAcum, pfrac);
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
     REAL Ql = (Vlnext - VlAcum)/deltaT;
-
+    
+    std::cout << " >>>>>>>>>>>>> Leakoff DESATIVADO!!! <<<<<<<<<<<<<< \n";
     return 0.;//Ql;
 }
 
@@ -805,6 +806,7 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
 
+    std::cout << " >>>>>>>>>>>>> Leakoff DESATIVADO!!! <<<<<<<<<<<<<< \n";
     return 0.;//dQldpfrac;
 }
 
