@@ -1167,7 +1167,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
 		for(iv = 0; iv < varsize; iv++) {
-#if !BUILD_COMPLEX_PROJECTS	
+#ifdef BUILD_COMPLEX_PROJECTS
 			DebugStop();
 #else
 			value[iv] += sol[iv]*weight;
