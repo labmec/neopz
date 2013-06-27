@@ -82,7 +82,7 @@ public:
      * @brief Copy constructor specialized form TPZVerySparseMatrix
      * @param refmat Used as a model for current object
 	 */
-	TPZFMatrix(const TPZVerySparseMatrix <TVar> & A);
+	TPZFMatrix(TPZVerySparseMatrix<TVar> & A);
 	
 	/**
      * @brief Copy constructor
@@ -393,20 +393,15 @@ public:
 template<class TVar>
 TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
 
-
 /** @brief Returns the norm of the matrix A */
 template<class TVar>
 TVar Norm(const TPZFMatrix<TVar> &A);
-
-
-
-
 
 /**************/
 /*** PutVal ***/
 template<class TVar>
 inline int TPZFMatrix<TVar>::PutVal(const int row, const int col,const TVar & value ) {
-	fElem[ ((unsigned)col) * this->Rows() + row ] = value;
+ 	fElem[ ((unsigned)col) * this->Rows() + row ] = value;
 	return( 1 );
 }
 

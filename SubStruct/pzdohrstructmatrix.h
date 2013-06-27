@@ -6,7 +6,6 @@
 #ifndef PZDOHRSTRUCTMATRIX 
 #define PZDOHRSTRUCTMATRIX
 
-
 #include "pzstrmatrix.h"
 #include "tpzdohrassembly.h"
 #include "pzsubcmesh.h"

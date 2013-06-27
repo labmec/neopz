@@ -61,9 +61,9 @@ static LoggerPtr logger(Logger::getLogger("main"));
 
 #ifdef USING_TBB
 #include "tbb/task_scheduler_init.h"
-using namespace tbb; 
+using namespace tbb;
 // If you have issues with: dyld: Library not loaded: libtbb.dylib
-// try setting the LD path. Ex: 
+// try setting the LD path. Ex:
 //   export DYLD_FALLBACK_LIBRARY_PATH=/Users/borin/Desktop/neopz/tbb40_297oss/lib/
 #endif
 
@@ -92,7 +92,7 @@ void help(const char* prg)
     cout << " starting_point = {-st1|-st2|-st3}" << endl;
     
     clarg::arguments_descriptions(cout, "  ", "\n");
-} 
+}
 
 clarg::argString cf1("-cf1", "starts execution from checkpoint 1 (read checkpoint file)", "ckpt1.ckpt");
 clarg::argString cf2("-cf2", "starts execution from checkpoint 2 (read checkpoint file)", "ckpt2.ckpt");
@@ -148,11 +148,11 @@ RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table (step 4
 
 #ifdef USING_LIKWID
 #define PERF_START(obj)				\
-  likwid_markerStartRegion(#obj);		\
-  obj.start()
+likwid_markerStartRegion(#obj);		\
+obj.start()
 #define PERF_STOP(obj)				\
-  obj.stop();					\
-  likwid_markerStopRegion(#obj)
+obj.stop();					\
+likwid_markerStopRegion(#obj)
 #else
 #define PERF_START(obj) obj.start()
 #define PERF_STOP(obj) obj.stop()
@@ -161,70 +161,69 @@ RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table (step 4
 
 class FileStreamWrapper
 {
-public: 
-  FileStreamWrapper() {}
-  ~FileStreamWrapper() {}
-  
-  void OpenWrite(const std::string& fn)
-  {
-    if (bc.was_set())
-      bfs.OpenWrite(fn);
-    else
-      fs.OpenWrite(fn);
-  }
-
-  void OpenRead(const std::string& fn)
-  {
-    if (bc.was_set())
-      bfs.OpenRead(fn);
-    else
-      fs.OpenRead(fn);
-  }
-
-  operator TPZStream&() 
-  {
-    if (bc.was_set())
-      return bfs;
-    else
-      return fs;
-  }
-
+public:
+    FileStreamWrapper() {}
+    ~FileStreamWrapper() {}
+    
+    void OpenWrite(const std::string& fn)
+    {
+        if (bc.was_set())
+            bfs.OpenWrite(fn);
+        else
+            fs.OpenWrite(fn);
+    }
+    
+    void OpenRead(const std::string& fn)
+    {
+        if (bc.was_set())
+            bfs.OpenRead(fn);
+        else
+            fs.OpenRead(fn);
+    }
+    
+    operator TPZStream&()
+    {
+        if (bc.was_set())
+            return bfs;
+        else
+            return fs;
+    }
+    
 protected:
-
-  TPZFileStream  fs;
-  TPZBFileStream bfs;  
+    TPZFileStream  fs;
+    TPZBFileStream bfs;
 };
 
 #ifdef USING_LIKWID
 #include<likwid.h>
 
 struct likwid_manager_t {
-  likwid_manager_t() {
-    std::cout << "Calling likwid_markerInit()" << std::endl;
-    likwid_markerInit();
-  }
-  ~likwid_manager_t() {
-    likwid_markerClose();
-    std::cout << "Calling likwid_markerClose()" << std::endl;
-  }
+    likwid_manager_t() {
+        std::cout << "Calling likwid_markerInit()" << std::endl;
+        likwid_markerInit();
+    }
+    ~likwid_manager_t() {
+        likwid_markerClose();
+        std::cout << "Calling likwid_markerClose()" << std::endl;
+    }
 };
 
 #endif
 
 int main(int argc, char *argv[])
 {
-
+    
 #ifdef USING_LIKWID
-likwid_manager_t likwid_manager;
+    likwid_manager_t likwid_manager;
 #endif
-
+    
 #ifdef LOG4CXX
     InitializePZLOG("log4cxx.cfg");
 #endif
 #ifdef USING_TBB
     task_scheduler_init init;
 #endif
-
+    
     int main_ret = EXIT_SUCCESS;
     
     /* Parse the arguments */
@@ -240,7 +239,7 @@ likwid_manager_t likwid_manager;
     
     /* Verbose macro. */
     unsigned verbose = verb_level.get_value();
-#define VERBOSE(level,...) if (level <= verbose) cout << __VA_ARGS__
+#   define VERBOSE(level,...) if (level <= verbose) cout << __VA_ARGS__
     
     if (verbose >= 1) {
         std::cout << "- Arguments -----------------------" << std::endl;
@@ -248,20 +247,20 @@ likwid_manager_t likwid_manager;
         std::cout << "-----------------------------------" << std::endl;
     }
     
-    if (!mp.was_set() && !mc.was_set() && !cf1.was_set() && 
-        !cf2.was_set() && !cf3.was_set()) 
+    if (!mp.was_set() && !mc.was_set() && !cf1.was_set() &&
+        !cf2.was_set() && !cf3.was_set())
     {
         cerr << "A \"starting_point\" must be provided!" << endl;
         help(argv[0]);
         return 1;
     }
-
+    
     PERF_START(total_rst);
-
+    
     if (pair_tbb.was_set())
-      TPZPairStructMatrix::gNumThreads = -1;
+        TPZPairStructMatrix::gNumThreads = -1;
     else
-      TPZPairStructMatrix::gNumThreads = nt_a.get_value();
+        TPZPairStructMatrix::gNumThreads = nt_a.get_value();
     
     TPZGeoMesh  *gmesh = 0;
     TPZAutoPointer<TPZCompMesh> cmeshauto = 0;
@@ -269,7 +268,7 @@ likwid_manager_t likwid_manager;
     TPZFMatrix<REAL> *rhs = NULL;
     TPZMatrix<REAL> *matptr = 0;
     int dim = dim_arg.get_value();
-    TPZCompEl::SetgOrder(plevel.get_value());    
+    TPZCompEl::SetgOrder(plevel.get_value());
     
     bool running = false;
     
@@ -283,7 +282,7 @@ likwid_manager_t likwid_manager;
                 << "mp, mc, cf1, cf2 or cf3" << endl;
                 exit(1);
             }
-            else  
+            else
                 running = true;
             
             gmesh = MalhaPredio();
@@ -347,23 +346,23 @@ likwid_manager_t likwid_manager;
             cmeshauto->Write(sig, 0);
             dohrstruct->Write(sig);
             if (chk_sig_ckpt1.was_set()) {
-              int ret;
-              if ((ret=sig.CheckMD5(chk_sig_ckpt1.get_value()))) {
-                cerr << "ERROR: MD5 Signature for checkpoint 1 does not match. (ret = " << ret << ")" << endl;
-                return 1;
-              }
+                int ret;
+                if ((ret=sig.CheckMD5(chk_sig_ckpt1.get_value()))) {
+                    cerr << "ERROR: MD5 Signature for checkpoint 1 does not match. (ret = " << ret << ")" << endl;
+                    return 1;
+                }
             }
             if (gen_sig_ckpt1.was_set()) {
-              int ret;
+                int ret;
                 if ((ret = sig.WriteMD5(gen_sig_ckpt1.get_value()))) {
-                  cerr << "ERROR when writing ckpt 1 MD5 Signature to file (ret = " << ret << "): " 
-                       << gen_sig_ckpt1.get_value() << endl;
-                  return 1;
-              }
+                    cerr << "ERROR when writing ckpt 1 MD5 Signature to file (ret = " << ret << "): "
+                    << gen_sig_ckpt1.get_value() << endl;
+                    return 1;
+                }
             }
         }
     }
-
+    
     if(st1.was_set()) running = false;
     
     // Start from Checkpoint 1
@@ -373,7 +372,7 @@ likwid_manager_t likwid_manager;
             cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
             exit(1);
         }
-        else  
+        else
             running = true;
         
         gmesh = new TPZGeoMesh;
@@ -395,51 +394,51 @@ likwid_manager_t likwid_manager;
     
     /* Work between checkpoint 1 and checkpoint 2 */
     if (running) {
-
-      PERF_START(create_rst);
-      matptr = dohrstruct->Create();
-      PERF_STOP(create_rst);
-    
-      if (dc2.was_set())
-      {
-        VERBOSE(1, "Dumping checkpoint 2 into: " << dc2.get_value() << endl);
-        FileStreamWrapper CheckPoint2;
-        CheckPoint2.OpenWrite(dc2.get_value());
-        SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Reference()->Write()");
-        cmeshauto->Reference()->Write(CheckPoint2, 0);
-        SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Write()");
-        cmeshauto->Write(CheckPoint2, 0);
-        SAVEABLE_STR_NOTE(CheckPoint2,"matptr->Write()");
-        matptr->Write(CheckPoint2, 1);
-        SAVEABLE_STR_NOTE(CheckPoint2,"dohrstruct->Write()");
-        dohrstruct->Write(CheckPoint2);
-      }
-
-      /* Gen/Check checkpoint 2 MD5 signature? */
-      if (gen_sig_ckpt2.was_set() || chk_sig_ckpt2.was_set())
-      {
-        TPZMD5Stream sig;
-        cmeshauto->Reference()->Write(sig, 0);
-        cmeshauto->Write(sig, 0);
-        matptr->Write(sig, 1);
-        dohrstruct->Write(sig);
-
-        if (chk_sig_ckpt2.was_set()) {
-          if (sig.CheckMD5(chk_sig_ckpt2.get_value())) {
-            cerr << "ERROR: MD5 Signature for checkpoint 2 does not match." << endl;
-            return 1;
-          }
+        
+        PERF_START(create_rst);
+        matptr = dohrstruct->Create();
+        PERF_STOP(create_rst);
+        
+        if (dc2.was_set())
+        {
+            VERBOSE(1, "Dumping checkpoint 2 into: " << dc2.get_value() << endl);
+            FileStreamWrapper CheckPoint2;
+            CheckPoint2.OpenWrite(dc2.get_value());
+            SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Reference()->Write()");
+            cmeshauto->Reference()->Write(CheckPoint2, 0);
+            SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Write()");
+            cmeshauto->Write(CheckPoint2, 0);
+            SAVEABLE_STR_NOTE(CheckPoint2,"matptr->Write()");
+            matptr->Write(CheckPoint2, 1);
+            SAVEABLE_STR_NOTE(CheckPoint2,"dohrstruct->Write()");
+            dohrstruct->Write(CheckPoint2);
         }
-        if (gen_sig_ckpt2.was_set()) {
-          if (sig.WriteMD5(gen_sig_ckpt2.get_value())) {
-            cerr << "ERROR when writing ckpt 2 MD5 Signature to file: " 
-                 << gen_sig_ckpt2.get_value() << endl;
-            return 1;
-          }
+        
+        /* Gen/Check checkpoint 2 MD5 signature? */
+        if (gen_sig_ckpt2.was_set() || chk_sig_ckpt2.was_set())
+        {
+            TPZMD5Stream sig;
+            cmeshauto->Reference()->Write(sig, 0);
+            cmeshauto->Write(sig, 0);
+            matptr->Write(sig, 1);
+            dohrstruct->Write(sig);
+            
+            if (chk_sig_ckpt2.was_set()) {
+                if (sig.CheckMD5(chk_sig_ckpt2.get_value())) {
+                    cerr << "ERROR: MD5 Signature for checkpoint 2 does not match." << endl;
+                    return 1;
+                }
+            }
+            if (gen_sig_ckpt2.was_set()) {
+                if (sig.WriteMD5(gen_sig_ckpt2.get_value())) {
+                    cerr << "ERROR when writing ckpt 2 MD5 Signature to file: "
+                    << gen_sig_ckpt2.get_value() << endl;
+                    return 1;
+                }
+            }
         }
-      }
     }
-
+    
     if(st2.was_set()) running = false;
     
     // Start from Checkpoint 2
@@ -449,85 +448,83 @@ likwid_manager_t likwid_manager;
             cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
             exit(1);
         }
-        else  
+        else
             running = true;
         
         FileStreamWrapper CheckPoint2;
         CheckPoint2.OpenRead(cf2.get_value());
         gmesh = new TPZGeoMesh;
-	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        SAVEABLE_SKIP_NOTE(CheckPoint2);
         gmesh->Read(CheckPoint2,0);
         cmeshauto = new TPZCompMesh(gmesh);
-	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        SAVEABLE_SKIP_NOTE(CheckPoint2);
         cmeshauto->Read(CheckPoint2, &gmesh);
-	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        SAVEABLE_SKIP_NOTE(CheckPoint2);
         matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
         dohrstruct = new TPZDohrStructMatrix(cmeshauto);
-	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        SAVEABLE_SKIP_NOTE(CheckPoint2);
         dohrstruct->Read(CheckPoint2);
     }
     
     TPZAutoPointer<TPZMatrix<REAL> > precond = NULL;
     /* Work between checkpoint 2 and checkpoint 3 */
-    if (running) 
+    if (running)
     {
-
-      PERF_START(assemble_rst);
-      TPZAutoPointer<TPZGuiInterface> gui;
-      rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
-      VERBOSE(1,"dohrstruct->Assemble()" << endl);
-      if (dohr_tbb.was_set())
-        dohrstruct->AssembleTBB(*matptr,*rhs, gui);
-      else
-        dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());      
-      PERF_STOP(assemble_rst);
-      
-      return 0;
-      
-      PERF_START(precond_rst);
-      precond = dohrstruct->Preconditioner();
-      PERF_STOP(precond_rst);
-      
-      if (dc3.was_set())
-      {
-        VERBOSE(1, "Dumping checkpoint 3 into: " << dc3.get_value() << endl);
-        FileStreamWrapper CheckPoint3;
-        CheckPoint3.OpenWrite(dc3.get_value());
-        cmeshauto->Reference()->Write(CheckPoint3, 0);
-        cmeshauto->Write(CheckPoint3, 0);
-        matptr->Write(CheckPoint3, 1);
-        precond->Write(CheckPoint3, 1);
-        rhs->Write(CheckPoint3, 0);
-      }
-      
-      /* Gen/Check checkpoint 3 MD5 signature? */
-      if (gen_sig_ckpt3.was_set() || chk_sig_ckpt3.was_set())
-      {
-        TPZMD5Stream sig;
-        cmeshauto->Reference()->Write(sig, 0);
-        cmeshauto->Write(sig, 0);
-        matptr->Write(sig, 1);
-        precond->Write(sig, 1);
-        rhs->Write(sig, 0);
-        int ret;
-        if (chk_sig_ckpt3.was_set()) {
-          if ((ret=sig.CheckMD5(chk_sig_ckpt3.get_value()))) {
-            cerr << "ERROR(ret=" << ret << ") : MD5 Signature for checkpoint 3 does not match." << endl;
-            return 1;
-          }
+        
+        PERF_START(assemble_rst);
+        TPZAutoPointer<TPZGuiInterface> gui;
+        rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
+        VERBOSE(1,"dohrstruct->Assemble()" << endl);
+        if (dohr_tbb.was_set())
+            dohrstruct->AssembleTBB(*matptr,*rhs, gui);
+        else
+            dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());
+        PERF_STOP(assemble_rst);
+        
+        PERF_START(precond_rst);
+        precond = dohrstruct->Preconditioner();
+        PERF_STOP(precond_rst);
+        
+        if (dc3.was_set())
+        {
+            VERBOSE(1, "Dumping checkpoint 3 into: " << dc3.get_value() << endl);
+            FileStreamWrapper CheckPoint3;
+            CheckPoint3.OpenWrite(dc3.get_value());
+            cmeshauto->Reference()->Write(CheckPoint3, 0);
+            cmeshauto->Write(CheckPoint3, 0);
+            matptr->Write(CheckPoint3, 1);
+            precond->Write(CheckPoint3, 1);
+            rhs->Write(CheckPoint3, 0);
         }
-        if (gen_sig_ckpt3.was_set()) {
-          if ((ret=sig.WriteMD5(gen_sig_ckpt3.get_value()))) {
-            cerr << "ERROR (ret=" << ret << ") when writing ckpt 3 MD5 Signature to file: " 
-                 << gen_sig_ckpt3.get_value() << endl;
-            return 1;
-          }
+        
+        /* Gen/Check checkpoint 3 MD5 signature? */
+        if (gen_sig_ckpt3.was_set() || chk_sig_ckpt3.was_set())
+        {
+            TPZMD5Stream sig;
+            cmeshauto->Reference()->Write(sig, 0);
+            cmeshauto->Write(sig, 0);
+            matptr->Write(sig, 1);
+            precond->Write(sig, 1);
+            rhs->Write(sig, 0);
+            int ret;
+            if (chk_sig_ckpt3.was_set()) {
+                if ((ret=sig.CheckMD5(chk_sig_ckpt3.get_value()))) {
+                    cerr << "ERROR(ret=" << ret << ") : MD5 Signature for checkpoint 3 does not match." << endl;
+                    return 1;
+                }
+            }
+            if (gen_sig_ckpt3.was_set()) {
+                if ((ret=sig.WriteMD5(gen_sig_ckpt3.get_value()))) {
+                    cerr << "ERROR (ret=" << ret << ") when writing ckpt 3 MD5 Signature to file: "
+                    << gen_sig_ckpt3.get_value() << endl;
+                    return 1;
+                }
+            }
         }
-      }
     }
-
+    
     if(st3.was_set()) running = false;
-
+    
     // Start from Checkpoint 3
     if (cf3.was_set())
     {
@@ -535,7 +532,7 @@ likwid_manager_t likwid_manager;
             cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
             exit(1);
         }
-        else  
+        else
             running = true;
         gmesh = new TPZGeoMesh;
         cmeshauto = new TPZCompMesh(gmesh);
@@ -553,146 +550,146 @@ likwid_manager_t likwid_manager;
         rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
         rhs->Read(CheckPoint3, 0);
     }
-
+    
     if (running) {
-
-      /* Work after checkpoint 3 */
-      TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
-      
-      int neq = dohr->Rows();
-      TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
-      
-      VERBOSE(1, "Number of equations " << neq << endl);
-      
-      TPZStepSolver<REAL> pre(precond);
-      pre.SetMultiply();
-      TPZStepSolver<REAL> cg(dohr);
-      
-      /* Configure the CG solver to iterate:
-	 - until it converges (residual <= 1.e-8), or
-	 - until it reaches 500 itearations.
-      */
-      cg.SetCG(500,pre,1.e-8,0);
-      
-      PERF_START(solve_rst);
-      cg.Solve(*rhs,diag);
-      PERF_STOP(solve_rst);
-    
-      TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = 
-	dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
-      
-      if (!dohrptr) {
-        DebugStop();
-      }
-      
-      dohrptr->AddInternalSolution(diag);
-
-
-      /* Gen/Check checkpoint 4 MD5 signature? */
-      if (gen_sig_ckpt4.was_set() || chk_sig_ckpt4.was_set())
-      {
-        TPZMD5Stream sig;
-
-	dohrptr->Write(sig, 0);
-	diag.Write(sig, 0);
-	cg.Write(sig, 0);
-        //cmeshauto->Reference()->Write(sig, 0);
-        //cmeshauto->Write(sig, 0);
-        //matptr->Write(sig, 1);
-        //precond->Write(sig, 1);
-        //rhs->Write(sig, 0);
-
-        int ret;
-        if (chk_sig_ckpt4.was_set()) {
-          if ((ret=sig.CheckMD5(chk_sig_ckpt4.get_value()))) {
-            cerr << "ERROR(ret=" << ret << ") : MD5 Signature for checkpoint 4 does not match." << endl;
-	    main_ret = 1;
-          }
-        }
-        if (gen_sig_ckpt4.was_set()) {
-          if ((ret=sig.WriteMD5(gen_sig_ckpt4.get_value()))) {
-            cerr << "ERROR (ret=" << ret << ") when writting ckpt 4 MD5 Signature to file: " 
-                 << gen_sig_ckpt4.get_value() << endl;
-	    main_ret = 2;
-          }
-        }
-      }
-      
-      typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
-      const subtype &sublist = dohrptr->SubStructures(); 
-      subtype::const_iterator it = sublist.begin();
-      int subcount=0;
-      while (it != sublist.end()) {
         
-        TPZFMatrix<REAL> subext,subu;
-        dohrptr->fAssembly->Extract(subcount,diag,subext);
-        (*it)->UGlobal(subext,subu);
-        TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
-        submesh->LoadSolution(subu);
+        /* Work after checkpoint 3 */
+        TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
         
-        //ViscoElastico
-        //Atualizando memoria do material
-        std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
-        std::map<int ,TPZMaterial * >::iterator itmat;
-        for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
-	{
-	  TPZMaterial * mat = itmat->second;
-	  TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
-	  if(vmat)
-	  {
-	    vmat->SetUpdateMem(true);
-	  }
-	}	
-        subcount++;
-        it++;
-      }
-    
+        int neq = dohr->Rows();
+        TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+        
+        VERBOSE(1, "Number of equations " << neq << endl);
+        
+        TPZStepSolver<REAL> pre(precond);
+        pre.SetMultiply();
+        TPZStepSolver<REAL> cg(dohr);
+        
+        /* Configure the CG solver to iterate:
+         - until it converges (residual <= 1.e-8), or
+         - until it reaches 500 itearations.
+         */
+        cg.SetCG(500,pre,1.e-8,0);
+        
+        PERF_START(solve_rst);
+        cg.Solve(*rhs,diag);
+        PERF_STOP(solve_rst);
+        
+        TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr =
+        dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
+        
+        if (!dohrptr) {
+            DebugStop();
+        }
+        
+        dohrptr->AddInternalSolution(diag);
+        
+        
+        /* Gen/Check checkpoint 4 MD5 signature? */
+        if (gen_sig_ckpt4.was_set() || chk_sig_ckpt4.was_set())
+        {
+            TPZMD5Stream sig;
+            
+            dohrptr->Write(sig, 0);
+            diag.Write(sig, 0);
+            cg.Write(sig, 0);
+            //cmeshauto->Reference()->Write(sig, 0);
+            //cmeshauto->Write(sig, 0);
+            //matptr->Write(sig, 1);
+            //precond->Write(sig, 1);
+            //rhs->Write(sig, 0);
+            
+            int ret;
+            if (chk_sig_ckpt4.was_set()) {
+                if ((ret=sig.CheckMD5(chk_sig_ckpt4.get_value()))) {
+                    cerr << "ERROR(ret=" << ret << ") : MD5 Signature for checkpoint 4 does not match." << endl;
+                    main_ret = 1;
+                }
+            }
+            if (gen_sig_ckpt4.was_set()) {
+                if ((ret=sig.WriteMD5(gen_sig_ckpt4.get_value()))) {
+                    cerr << "ERROR (ret=" << ret << ") when writting ckpt 4 MD5 Signature to file: "
+                    << gen_sig_ckpt4.get_value() << endl;
+                    main_ret = 2;
+                }
+            }
+        }
+        
+        typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
+        const subtype &sublist = dohrptr->SubStructures();
+        subtype::const_iterator it = sublist.begin();
+        int subcount=0;
+        while (it != sublist.end()) {
+            
+            TPZFMatrix<REAL> subext,subu;
+            dohrptr->fAssembly->Extract(subcount,diag,subext);
+            (*it)->UGlobal(subext,subu);
+            TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
+            submesh->LoadSolution(subu);
+            
+            //ViscoElastico
+            //Atualizando memoria do material
+            std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
+            std::map<int ,TPZMaterial * >::iterator itmat;
+            for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++)
+            {
+                TPZMaterial * mat = itmat->second;
+                TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
+                if(vmat)
+                {
+                    vmat->SetUpdateMem(true);
+                }
+            }
+            subcount++;
+            it++;
+        }
+        
 #ifdef LOG4CXX
-      {
-        std::stringstream sout;
-        diag.Print("Resultado do processo iterativo",sout);
-        LOGPZ_INFO(loggerconverge,sout.str())
-      }
-#endif	
-    
-      TPZMaterial * mat = cmeshauto->FindMaterial(1);
-      int nstate = mat->NStateVariables();
-      int nscal = 0, nvec = 0;
-      if(nstate ==1) 
-	{
-	  nscal = 1;
-	}
-      else
-	{
-	  nvec = 1;
-	}
-      TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
-      if(nscal == 1)
-	{
-	  scalnames[0]="state";            
-	}
-      else
-	{
-	  vecnames[0] = "state";
-	}
-      std::string postprocessname("dohrmann_visco.vtk");
-      TPZVTKGraphMesh vtkmesh(cmeshauto.operator->(),dim,mat,scalnames,vecnames);
-      vtkmesh.SetFileName(postprocessname);
-      vtkmesh.SetResolution(1);
-      int numcases = 1;
-      
-      
-      // Iteracoes de tempo
-      int istep = 0;
-      vtkmesh.DrawMesh(numcases);
-      vtkmesh.DrawSolution(istep, 1.);
+        {
+            std::stringstream sout;
+            diag.Print("Resultado do processo iterativo",sout);
+            LOGPZ_INFO(loggerconverge,sout.str())
+        }
+#endif
+        
+        TPZMaterial * mat = cmeshauto->FindMaterial(1);
+        int nstate = mat->NStateVariables();
+        int nscal = 0, nvec = 0;
+        if(nstate ==1)
+        {
+            nscal = 1;
+        }
+        else
+        {
+            nvec = 1;
+        }
+        TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
+        if(nscal == 1)
+        {
+            scalnames[0]="state";
+        }
+        else
+        {
+            vecnames[0] = "state";
+        }
+        std::string postprocessname("dohrmann_visco.vtk");
+        TPZVTKGraphMesh vtkmesh(cmeshauto.operator->(),dim,mat,scalnames,vecnames);
+        vtkmesh.SetFileName(postprocessname);
+        vtkmesh.SetResolution(1);
+        int numcases = 1;
+        
+        
+        // Iteracoes de tempo
+        int istep = 0;
+        vtkmesh.DrawMesh(numcases);
+        vtkmesh.DrawSolution(istep, 1.);
     }
-
+    
     PERF_STOP(total_rst);
-      
+    
     
     if (gmesh != NULL) delete gmesh;
-
+    
     return main_ret;
 }
 
@@ -716,93 +713,93 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
-        int nummat = 1;
-        TPZManVector<STATE> force(3,0.);
-        force[1] = 20.;
-        STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
-        
-        STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
-        lambdaV = 11.3636;
-        muV = 45.4545;
-        alpha = 1.;     
-        deltaT = 0.01;
-        
-        TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
-        viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
-        
-        TPZMaterial * viscoelastauto(viscoelast);
-        TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
-        TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
-        TPZFNMatrix<6> qsi(6,1,0.);
-        viscoelast->SetDefaultMem(qsi); //elast
-        viscoelast->PushMemItem(); //elast
-        TPZMaterial * bcauto(bc);
-        mesh->InsertMaterialObject(viscoelastauto);
-        mesh->InsertMaterialObject(bcauto);     
+    int nummat = 1;
+    TPZManVector<STATE> force(3,0.);
+    force[1] = 20.;
+    STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1;
+    
+    STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
+    lambdaV = 11.3636;
+    muV = 45.4545;
+    alpha = 1.;
+    deltaT = 0.01;
+    
+    TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+    viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
+    
+    TPZMaterial * viscoelastauto(viscoelast);
+    TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
+    TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
+    TPZFNMatrix<6> qsi(6,1,0.);
+    viscoelast->SetDefaultMem(qsi); //elast
+    viscoelast->PushMemItem(); //elast
+    TPZMaterial * bcauto(bc);
+    mesh->InsertMaterialObject(viscoelastauto);
+    mesh->InsertMaterialObject(bcauto);
 }
 
 void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 {
-       mesh->SetDimModel(3);
-       int nummat = 1, neumann = 1, mixed = 2;
-       //      int dirichlet = 0;
-       int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;
-       TPZManVector<REAL> force(3,0.);
-       //force[1] = 0.;
-       REAL Ela = 1000, poisson = 0.; 
-       REAL lambdaV = 0, muV = 0, alphaT = 0;
-       lambdaV = 11.3636;
-       muV = 45.4545;
-       alphaT = 0.01;  
-       
-       
-       //TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
-       TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
-       
-       TPZFNMatrix<6> qsi(6,1,0.);
-       //viscoelast->SetDefaultMem(qsi); //elast
-       //int index = viscoelast->PushMemItem(); //elast
-       TPZMaterial * viscoelastauto(viscoelast);
-       mesh->InsertMaterialObject(viscoelastauto);
-       
-       // Neumann em x = 1;
-       TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
-       val2(0,0) = 1.;
-       TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
-       TPZMaterial * bcauto4(bc4);
-       mesh->InsertMaterialObject(bcauto4);
-       
-       // Neumann em x = -1;
-       val2(0,0) = -1.;
-       TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
-       TPZMaterial * bcauto5(bc5);
-       mesh->InsertMaterialObject(bcauto5);
-       
-       val2.Zero();
-       // Dirichlet em -1 -1 -1 xyz;
-       val1(0,0) = 1e4;
-       val1(1,1) = 1e4;
-       val1(2,2) = 1e4;
-       TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
-       TPZMaterial * bcauto1(bc1);
-       mesh->InsertMaterialObject(bcauto1);
-       
-       // Dirichlet em 1 -1 -1 yz;
-       val1(0,0) = 0.;
-       val1(1,1) = 1e4;
-       val1(2,2) = 1e4;
-       TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
-       TPZMaterial * bcauto2(bc2);
-       mesh->InsertMaterialObject(bcauto2);
-       
-       // Dirichlet em 1 1 -1 z;
-       val1(0,0) = 0.;
-       val1(1,1) = 0.;
-       val1(2,2) = 1e4;
-       TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
-       TPZMaterial * bcauto3(bc3);
-       mesh->InsertMaterialObject(bcauto3);
-}       
+    mesh->SetDimModel(3);
+    int nummat = 1, neumann = 1, mixed = 2;
+    //      int dirichlet = 0;
+    int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;
+    TPZManVector<REAL> force(3,0.);
+    //force[1] = 0.;
+    REAL Ela = 1000, poisson = 0.;
+    REAL lambdaV = 0, muV = 0, alphaT = 0;
+    lambdaV = 11.3636;
+    muV = 45.4545;
+    alphaT = 0.01;
+    
+    
+    //TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+    TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+    
+    TPZFNMatrix<6> qsi(6,1,0.);
+    //viscoelast->SetDefaultMem(qsi); //elast
+    //int index = viscoelast->PushMemItem(); //elast
+    TPZMaterial * viscoelastauto(viscoelast);
+    mesh->InsertMaterialObject(viscoelastauto);
+    
+    // Neumann em x = 1;
+    TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
+    val2(0,0) = 1.;
+    TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
+    TPZMaterial * bcauto4(bc4);
+    mesh->InsertMaterialObject(bcauto4);
+    
+    // Neumann em x = -1;
+    val2(0,0) = -1.;
+    TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
+    TPZMaterial * bcauto5(bc5);
+    mesh->InsertMaterialObject(bcauto5);
+    
+    val2.Zero();
+    // Dirichlet em -1 -1 -1 xyz;
+    val1(0,0) = 1e4;
+    val1(1,1) = 1e4;
+    val1(2,2) = 1e4;
+    TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
+    TPZMaterial * bcauto1(bc1);
+    mesh->InsertMaterialObject(bcauto1);
+    
+    // Dirichlet em 1 -1 -1 yz;
+    val1(0,0) = 0.;
+    val1(1,1) = 1e4;
+    val1(2,2) = 1e4;
+    TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
+    TPZMaterial * bcauto2(bc2);
+    mesh->InsertMaterialObject(bcauto2);
+    
+    // Dirichlet em 1 1 -1 z;
+    val1(0,0) = 0.;
+    val1(1,1) = 0.;
+    val1(2,2) = 1e4;
+    TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
+    TPZMaterial * bcauto3(bc3);
+    mesh->InsertMaterialObject(bcauto3);
+}
 
 TPZGeoMesh *MalhaPredio()
 {
@@ -810,7 +807,7 @@ TPZGeoMesh *MalhaPredio()
 	int numnodes=-1;
 	int numelements=-1;
 	
-	string FileName = mp.get_value();	
+	string FileName = mp.get_value();
 	{
 		bool countnodes = false;
 		bool countelements = false;
@@ -859,7 +856,7 @@ TPZGeoMesh *MalhaPredio()
 	std::string str(buf);
 	int in;
 	for(in=0; in<numnodes; in++)
-	{ 
+	{
 		read >> nodeId;
 		read >> nodecoordX;
 		read >> nodecoordY;
@@ -913,7 +910,7 @@ TPZGeoMesh *MalhaPredio()
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
 			// na face z = 0
 			TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
-			for (int i = 0; i < 4; i++) 
+			for (int i = 0; i < 4; i++)
 			{
 				int pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
@@ -929,7 +926,7 @@ TPZGeoMesh *MalhaPredio()
 			{
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,matBCid);	
+				TPZGeoElBC(tetraSide,matBCid);
 			}
 		}
 	}
@@ -937,7 +934,7 @@ TPZGeoMesh *MalhaPredio()
 	ofstream arg("malhaPZ.txt");
 	gMesh->Print(arg);
 	ofstream predio("GeoPredio.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gMesh,predio,true); 
+	TPZVTKGeoMesh::PrintGMeshVTK(gMesh,predio,true);
 	
 	return gMesh;
 }
@@ -996,7 +993,7 @@ TPZGeoMesh *MalhaCubo()
 	std::string str(buf);
 	int in;
 	for(in=0; in<numnodes; in++)
-	{ 
+	{
 		read >> nodeId;
 		read >> nodecoordX;
 		read >> nodecoordY;
@@ -1052,7 +1049,7 @@ TPZGeoMesh *MalhaCubo()
 			
 			// na face x = 1
 			TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
-			for (int i = 0; i < 4; i++) 
+			for (int i = 0; i < 4; i++)
 			{
 				int pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
@@ -1068,13 +1065,13 @@ TPZGeoMesh *MalhaCubo()
 			{
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,neumann1);	
+				TPZGeoElBC(tetraSide,neumann1);
 			}
 			
 			// Na face x = -1
 			ncoordzVec.Resize(0);
 			sizeOfVec = 0;
-			for (int i = 0; i < 4; i++) 
+			for (int i = 0; i < 4; i++)
 			{
 				int pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
@@ -1091,7 +1088,7 @@ TPZGeoMesh *MalhaCubo()
 			{
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,neumann2);	
+				TPZGeoElBC(tetraSide,neumann2);
 			}
 			
 		}
@@ -1108,20 +1105,20 @@ TPZGeoMesh *MalhaCubo()
 	
 	/* refine mesh */
 	if (ref.was_set()) {
-
+        
 		int nh = ref.get_value();
-
+        
 		for ( int ref = 0; ref < nh; ref++ ){
 			TPZVec<TPZGeoEl *> filhos;
 			int n = gMesh->NElements();
 			for ( int i = 0; i < n; i++ ){
 				TPZGeoEl * gel = gMesh->ElementVec() [i];
 		        
-			   if(!gel) continue;
-			   if(gel->Dimension() < 1) continue;
-		       if(gel->HasSubElement()) continue;
-
-			   gel->Divide (filhos);
+                if(!gel) continue;
+                if(gel->Dimension() < 1) continue;
+                if(gel->HasSubElement()) continue;
+                
+                gel->Divide (filhos);
 			}
 		}
 	}
@@ -1180,7 +1177,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 	TPZManVector<int> subindex(nelem,-1);
 	int iel;
 	int nsub = 0;
-	for (iel=0; iel<nelem; iel++) 
+	for (iel=0; iel<nelem; iel++)
 	{
 		TPZCompEl *cel = cmesh->ElementVec()[iel];
 		if (!cel) {
@@ -1200,7 +1197,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 		subindex[iel] = floor;
 	}
 	
-#ifdef DEBUG 
+#ifdef DEBUG
 	{
 		TPZGeoMesh *gmesh = cmesh->Reference();
 		int nelgeo = gmesh->NElements();

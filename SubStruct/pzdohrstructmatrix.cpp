@@ -458,8 +458,6 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     itwork++;
   }
 	
-  float rtime, ptime, mflops, ltime;
-  long long flpops;
   
 #ifdef USING_PAPI
   PAPI_flops ( &rtime, &ptime, &flpops, &mflops );
@@ -493,14 +491,13 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
       PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
     }
   }
-  dohr_ass.stop();
+
 #ifdef USING_PAPI
   PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
 
   printf("Assemble Time: %.2f \t", ltime-rtime);
   printf("Assemble Stiffness : %.2f seconds\n", stiff_sum);
   
-  return;
 #endif
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) 

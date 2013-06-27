@@ -103,19 +103,18 @@ public:
 	virtual void Write(TPZStream &buf, int withclassid);
 	virtual void Read(TPZStream &buf, void *context);
 	
-	std::map<std::pair<int, int>, TVar> getMap() const { return fExtraSparseData; }
-	
+	std::map<std::pair<int, int>, TVar> getMap() { return fExtraSparseData; }
+    
 private:
 	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */
 	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, TVar> & TheMap);
 	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, TVar> & TheMap);
 	
-	
-	
 protected:
-	
-	/** @brief Save elements different from zero, of Sparse matrix */
+    
+    /** @brief Save elements different from zero, of Sparse matrix */
 	std::map<std::pair<int, int>, TVar> fExtraSparseData;
+
 };
 
 #endif
