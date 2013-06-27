@@ -134,7 +134,7 @@ public:
     void Run(int nelem)
     {
 //        TPZGeoMesh *gmesh = HexaMesh(1);
-        TPZGeoMesh *gmesh = PyramidMesh(4);    
+        TPZGeoMesh *gmesh = PyramidMesh(nelem);
 #ifdef LOG4CXX
         {
             std::stringstream sout;
@@ -193,17 +193,17 @@ class ForceFunction : public TPZFunction<STATE>
             val[0] -= vx*vy*vz;
         }
     }
-    
+
     virtual int NFunctions()
     {
         return 1;
     }
-    
+
     virtual int PolynomialOrder()
     {
         return 5;
     }
-    
+
 };
 
 void formatTimeInSec(char *strtime,int timeinsec);
@@ -217,9 +217,11 @@ int main(int argc, char *argv[]) {
 #endif
     TCedricTest cedric;
     
-    cedric.Run(1);
+    cedric.Run(6);
     
     return 1;
+    
+    
 	// Initializing a ref patterns
 //	gRefDBase.InitializeAllUniformRefPatterns();
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
