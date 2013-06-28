@@ -38,6 +38,7 @@ void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh) {
     }
     CleanUp();
     fReferenceCompMesh = mesh;
+    fReferenceCompMesh->SetDimModel(mesh->Dimension());
     int nel = fReferenceCompMesh->ElementVec().NElements();
     fElementError.Resize(nel);
     fElementError.Fill(0.);
@@ -196,7 +197,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
 				ErrorVecData[i][1] = truervec[i];
 			}
 			
-			sprintf(saida,"ErroOnCMesh%2dDFrom_Patch%d_Iter%d.vtk",fReferenceCompMesh->Dimension(),cliter,count);
+			sprintf(saida,"ErroOnCMesh%02dDFrom_Patch%d_Iter%d.vtk",fReferenceCompMesh->Dimension(),cliter,count);
 			PrintGeoMeshAsCompMeshInVTKWithElementData((TPZGeoMesh *)gcmesh,saida,ErrorVecData);
 		}
     }
@@ -214,7 +215,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
 			ErrorVecData[i][2] = fElementError[i]/truervec[i];
 	}
 	// Printing calculated errors for each element in computational mesh
-	sprintf(saida,"ErroOnCMesh%2dDFrom_Iter%d.vtk",fReferenceCompMesh->Dimension(),count++);
+	sprintf(saida,"ErroOnCMesh%02dDFrom_Iter%d.vtk",fReferenceCompMesh->Dimension(),count++);
 	PrintGeoMeshAsCompMeshInVTKWithElementData(fReferenceCompMesh->Reference(),saida,ErrorVecData);
 
     //Ordena o vetor de erros

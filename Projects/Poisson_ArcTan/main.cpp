@@ -147,8 +147,7 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
-
-bool usethreads = false;
+bool usethreads = true;
 bool SolveSymmetricPoissonProblemOnCubeMesh();
 bool SolveLaplaceProblemOnLShapeMesh();
 
@@ -162,7 +161,7 @@ int main() {
 	
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
-  //  gRefDBase.InitializeRefPatterns();
+    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnCubeMesh())
@@ -190,7 +189,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 1;
+    int ninitialrefs = 3;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -200,7 +199,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		MElementType typeel;
 		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 		{
-            if(itypeel != 4) continue;
+            if(itypeel == 1 || itypeel == 4 || itypeel == 5) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -228,7 +227,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
-			int p = 2, pinit;
+			int p = 1, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);
