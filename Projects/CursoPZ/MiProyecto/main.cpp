@@ -13,7 +13,6 @@
 #include "TPZVTKGeoMesh.h"
 
 #include "pzbstrmatrix.h"
-
 #include "pzintel.h"
 #include "pzcompel.h"
 #include "pzcheckmesh.h"
@@ -157,21 +156,25 @@ public:
         
         TPZAnalysis analysis(cmesh);
 
+        ofstream saida("Errors.txt",ios::app);
+        saida << "****\n\nRodando com " << nelem << " elementos\n";
+        saida << "No de equacoes " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
         analysis.SetExact(Exact);
         TPZManVector<STATE> errvec;
-        analysis.PostProcessError(errvec,std::cout);
+        analysis.PostProcessError(errvec,saida);
 
         
         TPZSkylineStructMatrix skylstr(cmesh);
+        skylstr.SetNumThreads(20);
         analysis.SetStructuralMatrix(skylstr);
         TPZStepSolver<STATE> step;
         step.SetDirect(ECholesky);
         analysis.SetSolver(step);
         analysis.Run();
         
-        analysis.PostProcessError(errvec,std::cout);
+        analysis.PostProcessError(errvec,saida);
         
-        std::cout << "errvec " << errvec << std::endl;
+        saida << "errvec " << errvec << std::endl;
         
     }
 
@@ -217,7 +220,8 @@ int main(int argc, char *argv[]) {
 #endif
     TCedricTest cedric;
     
-    cedric.Run(6);
+//    cedric.Run(2);
+    cedric.Run(40);
     
     return 1;
     
