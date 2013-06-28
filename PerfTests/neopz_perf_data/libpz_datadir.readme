@@ -1,0 +1,6 @@
+The LibPZ performance test input and output data files.
+
+Due to checkpointing, the contents of this directory may grow very
+fast. Whenever this becomes really big, we may need move it to another
+repository.
+

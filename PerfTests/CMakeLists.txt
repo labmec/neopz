@@ -15,6 +15,7 @@ if(BUILD_PERF_TESTS)
   	message (FATAL_ERROR "ERROR: Please specify a valid directory for PERFTEST_DATA_DIR")
   endif()
 
+
   # This variable is used inside the run scripts
   set(PERFTEST_APPS_DIR ${CMAKE_CURRENT_BINARY_DIR})
 

@@ -58,7 +58,7 @@ public:
 	
 	enum GraphType { KMC, KMCExpensive, Sloan };
 	
-	GraphType fGType;
+	
 	
 	TPZBoostGraph(GraphType tp) : TPZRenumbering(), fGType(tp)
 	{
@@ -75,7 +75,7 @@ public:
 	 */
 	void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
 	void Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
-	
+	void setGType(GraphType M) { fGType = M; }
 	/**
 	 * @brief This will reset all datastructures the object may contain. \n
 	 * Node resequencing algorithms may require a possibly large amount of temporary data
@@ -100,7 +100,10 @@ private:
 	// = get(vertex_index, G);  
 	TPZVec<int> m_Connects;
 	
+    GraphType fGType;
 };
+
+
 
 #endif // USING_BOOST
 

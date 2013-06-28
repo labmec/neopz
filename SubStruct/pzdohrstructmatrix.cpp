@@ -108,7 +108,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		int nel = elgraphindex.NElements()-1;
 #ifdef USING_BOOST
 		TPZBoostGraph boost(nel,nindep);
-		boost.fGType = TPZBoostGraph::KMCExpensive;
+		boost.setGType(TPZBoostGraph::KMC);
 		boost.SetElementGraph(elgraph, elgraphindex);
 		boost.Resequence(perm, iperm);
 #else
@@ -136,7 +136,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		int nel = elgraphindex.NElements()-1;
 #ifdef USING_BOOST
 		TPZBoostGraph boost(nel,nindep);
-		boost.fGType = TPZBoostGraph::KMCExpensive;
+		boost.setGType(TPZBoostGraph::KMC);
 		boost.SetElementGraph(elgraph, elgraphindex);
 		boost.Resequence(perm, iperm);
 #else
