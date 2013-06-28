@@ -310,7 +310,7 @@ TPZVec<T>& TPZVec<T>::operator=( const T& a )
 
 
 template< class T >
-void TPZVec<T>::Resize(const long newsize,const T& object){
+void TPZVec<T>::Resize(const long newsize,const T& object) {
 #ifndef NODEBUG
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
@@ -330,13 +330,14 @@ void TPZVec<T>::Resize(const long newsize,const T& object){
 	for(;i<newsize;i++) {   // then only to case : large=fNElement < newsize
 		newstore[i] = object;
 	}
-	delete[] fStore;
+    if(fStore)
+        delete[] fStore;
 	fStore = newstore;
 	fNElements = newsize;//cedric 20/11/99 e 29/04/00
 }
 
 template< class T >
-void TPZVec<T>::Resize(const long newsize){
+void TPZVec<T>::Resize(const long newsize) {
 #ifndef NODEBUG
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
@@ -359,7 +360,7 @@ void TPZVec<T>::Resize(const long newsize){
 	for(i=0L; i<large; i++) {
 		newstore[i] = fStore[i];
 	}
-	if (fStore) delete[] fStore;
+	if(fStore) delete[] fStore;
 	fStore = newstore;
 	fNElements = newsize;
 }
