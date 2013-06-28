@@ -424,6 +424,49 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	return cmesh;
 }
 
+TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
+	
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+	// Creating Poisson material
+	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
+//	TPZVec<REAL> convd(3,0.);
+//	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
+	if(hasforcingfunction) {
+		mat->SetForcingFunction(new TPZDummyFunction<STATE>(Ff));
+	}
+	cmesh->InsertMaterialObject(mat);
+	// Make compatible dimension of the model and the computational mesh
+	cmesh->SetDimModel(mat->Dimension());
+	cmesh->SetAllCreateFunctionsContinuous();
+    
+	// Boundary conditions
+	// Dirichlet
+	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
+	bnd->SetForcingFunction(FunctionBC);
+	cmesh->InsertMaterialObject(bnd);
+	
+	cmesh->AutoBuild();
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        TPZCheckMesh tst(cmesh,&sout);
+        tst.VerifyAllConnects();
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->ExpandSolution();
+	cmesh->CleanUpUnconnectedNodes();
+	return cmesh;
+}
+
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL r,REAL &distance,bool &isdefined) {
 	TPZManVector<REAL> centerpsi(3), center(3);
 	// Refinamento de elementos selecionados

@@ -103,8 +103,7 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 
 TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<REAL> &ervec, 
                                            void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
-                                           TPZVec<REAL> &truervec, 
-                                           TPZVec<REAL> &effect, ofstream &out, int use_trueerror, MElementType eltype){
+                                           TPZVec<REAL> &truervec,TPZVec<REAL> &effect,ofstream &out,int use_trueerror,MElementType eltype) {
     int i;
     //clone analysis
     int cliter;
