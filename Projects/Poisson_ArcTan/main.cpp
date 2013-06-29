@@ -90,7 +90,7 @@ char saida[512];
 ofstream out("OutPoissonArcTan.txt");             // To store output of the console
 ofstream outLaplace("OutLaplace.txt");
 
-int gDebug = 0;
+int gDebug = 1;
 
 /** Rotation data */
 bool rotating = false;
@@ -147,7 +147,7 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
-bool usethreads = true;
+bool usethreads = false;
 bool SolveSymmetricPoissonProblemOnCubeMesh();
 bool SolveLaplaceProblemOnLShapeMesh();
 
@@ -161,7 +161,7 @@ int main() {
 	
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
-//    gRefDBase.InitializeRefPatterns();
+    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnCubeMesh())
@@ -189,7 +189,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 2;
+    int ninitialrefs = 0;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -199,7 +199,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		MElementType typeel;
 		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 		{
-            if(itypeel == 1 || itypeel == 4 || itypeel == 5) continue;
+            if(itypeel != 4) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -771,6 +771,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 	return gmesh;
 }
 
+#include "TPZRefPatternDataBase.h"
 TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	// CREATING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
     // Dependig on dimension of the typeel
@@ -839,16 +840,40 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	TPZVec<TPZGeoEl *> sub;
 	std::string filename = REFPATTERNDIR;
     switch (typeel) {
+        case ENoType:
+        {
+            char buf[1024];
+			std::istringstream str(buf);
+			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
+			TPZAutoPointer<TPZRefPattern> refpatFound = gRefDBase.FindRefPattern(refpat);
+			if(!refpatFound)
+			{
+				gRefDBase.InsertRefPattern(refpat);
+			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
+			}
+			refpat->InsertPermuted();
+        }
+    break;
+
         case EPrisma:   // hexahedron -> four prisms
 		{
             // Dividing hexahedron in four prisms (anymore)
             filename += "/3D_Hexa_directional_2faces.rpt";
             
             TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-            if(!gRefDBase.FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = gRefDBase.FindRefPattern(refpat);
+            if(!refpatFound)
             {
                 gRefDBase.InsertRefPattern(refpat);
             }
+			else
+			{
+				refpatFound->SetName(refpat->Name());
+			}
+			refpat->InsertPermuted();
             TPZGeoEl *gel = gmesh->ElementVec()[0];
             TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
             gelrp->SetRefPattern(refpat);
@@ -1061,19 +1086,19 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
 	indices[0][3] = 4;
 	// nodes to second element
 	indices[1][0] = 1;
-	indices[1][1] = 3;
-	indices[1][2] = 2;
+	indices[1][1] = 2;
+	indices[1][2] = 3;
 	indices[1][3] = 6;
 	// nodes to third element
-	indices[2][0] = 1;
-	indices[2][1] = 6;
-	indices[2][2] = 4;
-	indices[2][3] = 5;
+	indices[2][0] = 4;
+	indices[2][1] = 5;
+	indices[2][2] = 6;
+	indices[2][3] = 1;
 	// nodes to fourth element
-	indices[3][0] = 4;
-	indices[3][1] = 6;
-	indices[3][2] = 3;
-	indices[3][3] = 7;
+	indices[3][0] = 6;
+	indices[3][1] = 7;
+	indices[3][2] = 4;
+	indices[3][3] = 3;
 	// nodes to fifth element
 	indices[4][0] = 1;
 	indices[4][1] = 4;
@@ -1100,27 +1125,79 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
 	TPZGeoElBC gbc09(gmesh->ElementVec()[1],7,id_bc0);
 	TPZGeoElBC gbc10(gmesh->ElementVec()[1],8,id_bc0);
 	TPZGeoElBC gbc11(gmesh->ElementVec()[1],9,id_bc0);
-	TPZGeoElBC gbc12(gmesh->ElementVec()[2],5,id_bc0);
-	TPZGeoElBC gbc13(gmesh->ElementVec()[2],7,id_bc0);
-	TPZGeoElBC gbc14(gmesh->ElementVec()[2],8,id_bc0);
-	TPZGeoElBC gbc15(gmesh->ElementVec()[2],9,id_bc0);
-	TPZGeoElBC gbc16(gmesh->ElementVec()[3],7,id_bc0);
-	TPZGeoElBC gbc17(gmesh->ElementVec()[3],8,id_bc0);
-	TPZGeoElBC gbc18(gmesh->ElementVec()[3],9,id_bc0);
+	TPZGeoElBC gbc12(gmesh->ElementVec()[2],4,id_bc0);
+	TPZGeoElBC gbc13(gmesh->ElementVec()[2],5,id_bc0);
+	TPZGeoElBC gbc14(gmesh->ElementVec()[2],6,id_bc0);
+	TPZGeoElBC gbc15(gmesh->ElementVec()[2],8,id_bc0);
+	TPZGeoElBC gbc16(gmesh->ElementVec()[3],4,id_bc0);
+	TPZGeoElBC gbc17(gmesh->ElementVec()[3],5,id_bc0);
+	TPZGeoElBC gbc18(gmesh->ElementVec()[3],8,id_bc0);
     
 	// face 0 (20) bottom XY
+	std::string filename = REFPATTERNDIR;
+    filename += "/2D_Triang_Rib_3.rpt";
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+    TPZAutoPointer<TPZRefPattern> refpatFound = gRefDBase.FindRefPattern(refpat);
+    if(!refpatFound)
+        gRefDBase.InsertRefPattern(refpat);
+    else
+        refpatFound->SetName(refpat->Name());
+    refpat->InsertPermuted();
+//    TPZGeoEl *gel = gmesh->ElementVec()[0];
+//    TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
+//    gelrp->SetRefPattern(refpat);
+
 	TPZGeoElBC gbc20(gmesh->ElementVec()[0],10,id_bc0);
+    TPZGeoEl* gel = gbc20.CreatedElement();
+    TPZGeoElRefPattern <TPZGeoTriangle> *gelrp;
+    if(gel) {
+        gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+        gelrp->SetRefPattern(refpat);
+    }
 	TPZGeoElBC gbc21(gmesh->ElementVec()[0],11,id_bc0);
+    gel = gbc21.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
 	TPZGeoElBC gbc22(gmesh->ElementVec()[0],13,id_bc0);
+    gel = gbc22.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
 	TPZGeoElBC gbc23(gmesh->ElementVec()[1],10,id_bc0);
+    gel = gbc23.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
 	TPZGeoElBC gbc24(gmesh->ElementVec()[1],12,id_bc0);
+    gel = gbc24.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
 	TPZGeoElBC gbc25(gmesh->ElementVec()[1],13,id_bc0);
-	TPZGeoElBC gbc26(gmesh->ElementVec()[2],11,id_bc0);
-	TPZGeoElBC gbc27(gmesh->ElementVec()[2],12,id_bc0);
-	TPZGeoElBC gbc28(gmesh->ElementVec()[2],13,id_bc0);
-	TPZGeoElBC gbc29(gmesh->ElementVec()[3],11,id_bc0);
-	TPZGeoElBC gbc30(gmesh->ElementVec()[3],12,id_bc0);
-	TPZGeoElBC gbc31(gmesh->ElementVec()[3],13,id_bc0);
+    gel = gbc25.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
+	TPZGeoElBC gbc26(gmesh->ElementVec()[2],10,id_bc0);
+    gel = gbc26.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
+	TPZGeoElBC gbc27(gmesh->ElementVec()[2],11,id_bc0);
+    gel = gbc27.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
+	TPZGeoElBC gbc28(gmesh->ElementVec()[2],12,id_bc0);
+    gel = gbc28.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
+	TPZGeoElBC gbc29(gmesh->ElementVec()[3],10,id_bc0);
+    gel = gbc29.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
+	TPZGeoElBC gbc30(gmesh->ElementVec()[3],11,id_bc0);
+    gel = gbc30.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
+	TPZGeoElBC gbc31(gmesh->ElementVec()[3],12,id_bc0);
+    gel = gbc31.CreatedElement();
+    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
+    gelrp->SetRefPattern(refpat);
     
 	return gmesh;
 }
