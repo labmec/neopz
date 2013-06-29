@@ -161,7 +161,7 @@ int main() {
 	
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
-    gRefDBase.InitializeRefPatterns();
+//    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnCubeMesh())
@@ -189,7 +189,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 3;
+    int ninitialrefs = 2;
 	int nthread = 2, NThreads = 4;
     int dim;
 	

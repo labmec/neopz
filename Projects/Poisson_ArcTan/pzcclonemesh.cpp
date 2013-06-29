@@ -604,6 +604,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         }
         
         TPZVec<int> subelindex;
+        if(cint->GetPreferredOrder()>TPZOneDRef::gMaxP)         // Jorge 2013_06_29
+            cint->PRefine(TPZOneDRef::gMaxP);
         cint->Divide(el,subelindex,1);
         
         if(gDebug) {
