@@ -366,7 +366,33 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		{
 			std::cout << "\n\tinserting uniform refpattern: tetrahedre\n";
 			char buf[] =
-			"10  7"
+            "11  13  "
+            "-50   UnifTet "
+            "0.   0.   0. "
+            "1.   0.   0. "
+            "0.   1.   0. "
+            "0.   0.   1. "
+            "0.5  0.   0. "
+            "0.5  0.5  0. "
+            "0.   0.5  0. "
+            "0.   0.   0.5 "
+            "0.5  0.   0.5 "
+            "0    0.5  0.5 "
+            "0.33333  0.33333  0.33333 "
+            "4    4    0  1  2  3 "
+            "4    4    0  4  6  7 "
+            "4    4    4  1  5  8 "
+            "4    4    5  2  6  9 "
+            "4    4    7  8  9  3 "
+            "4    4    4  5  6  10 "
+            "4    4    4  6  7  10 "
+            "4    4    4  7  8  10 "
+            "4    4    4  5  8  10 "
+            "4    4    8  5  9  10 "
+            "4    4    5  6  9  10 "
+            "4    4    9  7  6  10 "
+            "4    4    7  8  9  10 ";
+/*			"10  7"
 			"-50	UnifTet	"
 			"0.	0.		0. "
 			"1.	0.		0. "
@@ -385,6 +411,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"4		4		7	8	9	3 "
 			"5		5		4	8	9	6	7 "
 			"5		5		8	4	6	9	5 ";
+ */
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
 			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);

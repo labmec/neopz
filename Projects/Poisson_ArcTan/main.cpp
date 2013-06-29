@@ -90,7 +90,7 @@ char saida[512];
 ofstream out("OutPoissonArcTan.txt");             // To store output of the console
 ofstream outLaplace("OutLaplace.txt");
 
-int gDebug = 1;
+int gDebug = 0;
 
 /** Rotation data */
 bool rotating = false;
@@ -127,6 +127,8 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL &radius,int ntyper
 // Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+void PrintGeoMeshAsCompMeshInVTKWithElementIDAsData(TPZGeoMesh *gmesh,char *filename);
+void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename);
 /** Print the elements of the computational mesh with associated element data */
 void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData);
 
@@ -161,7 +163,7 @@ int main() {
 	
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
-    gRefDBase.InitializeRefPatterns();
+//    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnCubeMesh())
@@ -189,7 +191,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 0;
+    int ninitialrefs = 1;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -224,6 +226,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             else {
                 NRefs = 25;
             }
+			// Printing geometric mesh to validate
+			if(gDebug) {
+				sprintf(saida,"gmesh_%2dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
+				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
+			}
             UniformRefinement(ninitialrefs,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
@@ -233,13 +240,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);
 			gmesh->SetName("Malha Geometrica original");
 			cmesh->SetName("Malha Computacional Original");
-			
-			// Printing geometric mesh to validate
 			if(gDebug) {
-				sprintf(saida,"gmesh_%2dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
-				PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(gmesh,saida);
+				sprintf(saida,"gmesh_%2dD_H%dTR%dE%dIndex.vtk",dim,nref,regular,typeel);
+				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 			}
-
+			
 			// Selecting orthogonal polynomial family to construct shape functions
 			if(anothertests)
 				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
@@ -1134,7 +1139,19 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
 	TPZGeoElBC gbc18(gmesh->ElementVec()[3],8,id_bc0);
     
 	// face 0 (20) bottom XY
-	std::string filename = REFPATTERNDIR;
+	TPZGeoElBC gbc20(gmesh->ElementVec()[0],10,id_bc0);
+	TPZGeoElBC gbc21(gmesh->ElementVec()[0],11,id_bc0);
+	TPZGeoElBC gbc22(gmesh->ElementVec()[0],13,id_bc0);
+	TPZGeoElBC gbc23(gmesh->ElementVec()[1],10,id_bc0);
+	TPZGeoElBC gbc24(gmesh->ElementVec()[1],11,id_bc0);
+	TPZGeoElBC gbc25(gmesh->ElementVec()[1],12,id_bc0);
+	TPZGeoElBC gbc26(gmesh->ElementVec()[2],10,id_bc0);
+	TPZGeoElBC gbc27(gmesh->ElementVec()[2],11,id_bc0);
+	TPZGeoElBC gbc28(gmesh->ElementVec()[2],12,id_bc0);
+	TPZGeoElBC gbc29(gmesh->ElementVec()[3],10,id_bc0);
+	TPZGeoElBC gbc30(gmesh->ElementVec()[3],11,id_bc0);
+	TPZGeoElBC gbc31(gmesh->ElementVec()[3],12,id_bc0);
+/*	std::string filename = REFPATTERNDIR;
     filename += "/2D_Triang_Rib_3.rpt";
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
     TPZAutoPointer<TPZRefPattern> refpatFound = gRefDBase.FindRefPattern(refpat);
@@ -1143,62 +1160,47 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
     else
         refpatFound->SetName(refpat->Name());
     refpat->InsertPermuted();
-//    TPZGeoEl *gel = gmesh->ElementVec()[0];
-//    TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
-//    gelrp->SetRefPattern(refpat);
 
-	TPZGeoElBC gbc20(gmesh->ElementVec()[0],10,id_bc0);
     TPZGeoEl* gel = gbc20.CreatedElement();
     TPZGeoElRefPattern <TPZGeoTriangle> *gelrp;
     if(gel) {
         gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
         gelrp->SetRefPattern(refpat);
     }
-	TPZGeoElBC gbc21(gmesh->ElementVec()[0],11,id_bc0);
     gel = gbc21.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc22(gmesh->ElementVec()[0],13,id_bc0);
     gel = gbc22.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc23(gmesh->ElementVec()[1],10,id_bc0);
     gel = gbc23.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc24(gmesh->ElementVec()[1],12,id_bc0);
     gel = gbc24.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc25(gmesh->ElementVec()[1],13,id_bc0);
     gel = gbc25.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc26(gmesh->ElementVec()[2],10,id_bc0);
     gel = gbc26.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc27(gmesh->ElementVec()[2],11,id_bc0);
     gel = gbc27.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc28(gmesh->ElementVec()[2],12,id_bc0);
     gel = gbc28.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc29(gmesh->ElementVec()[3],10,id_bc0);
     gel = gbc29.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc30(gmesh->ElementVec()[3],11,id_bc0);
     gel = gbc30.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-	TPZGeoElBC gbc31(gmesh->ElementVec()[3],12,id_bc0);
     gel = gbc31.CreatedElement();
     gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
     gelrp->SetRefPattern(refpat);
-    
+*/
 	return gmesh;
 }
 
@@ -2942,6 +2944,37 @@ void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *file
 	// Printing geometric mesh to visualization in Paraview
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
 }
+void PrintGeoMeshAsCompMeshInVTKWithElementIDAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[i];
+		if(gel && gel->Reference())
+			DataElement[i] = gel->Id();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[i];
+		if(gel && gel->Reference())
+			DataElement[i] = gel->Id();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+
 /*
 void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData) {
 	int i, size = gmesh->NElements();
