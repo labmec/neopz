@@ -835,6 +835,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	sigx  = (sigma[0] - sigma_exact[0]);
 	sigy  = (sigma[1] - sigma_exact[1]);
 	sigxy = (sigma[2] - sigma_exact[2]);
+    
 	//values[0] = calculo do erro estimado em norma Energia
 	values[0] = fE*(sigx*sigx + sigy*sigy + 2*fnu*sigx*sigy)/(1-fnu*fnu);
 	values[0] = (values[0] + .5*fE*sigxy*sigxy/(1+fnu));
@@ -845,8 +846,10 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	//values[1] : erro em norma L2 em deslocamentos
 	values[1] = pow((REAL)fabs(u[0] - u_exact[0]),(REAL)2.0)+pow((REAL)fabs(u[1] - u_exact[1]),(REAL)2.0);
 	
-	//values[2] : erro estimado
-	values[2] = 0.;
+	//values[2] : erro estimado na norma H1
+    REAL SemiH1 =0.;
+    for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++) SemiH1 += (du(i,j) - du_exact(i,j)) * (du(i,j) - du_exact(i,j));
+	values[2] = values[1] + SemiH1;
 }
 
 
