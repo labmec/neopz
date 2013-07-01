@@ -130,10 +130,17 @@ public:
     /// verify if the faces without neighbour should be orthogonal to the main planes
     void CheckConsistency(TPZGeoMesh *mesh);
     
-    void Run(int nelem)
+    void Run(int nelem,int geocase)
     {
-//        TPZGeoMesh *gmesh = HexaMesh(1);
-        TPZGeoMesh *gmesh = PyramidMesh(nelem);
+        TPZGeoMesh *gmesh;
+        switch(geocase) {
+            case 1:
+                gmesh = HexaMesh(nelem);
+                break;
+            case 2:
+                gmesh = PyramidMesh(nelem);
+                break;
+        }
 #ifdef LOG4CXX
         {
             std::stringstream sout;
@@ -159,20 +166,22 @@ public:
         ofstream saida("Errors.txt",ios::app);
         saida << "****\n\nRodando com " << nelem << " elementos\n";
         saida << "No de equacoes " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        std::cout << "****\n\nRodando com " << nelem << " elementos\n";
+        std::cout << "No de equacoes " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
         analysis.SetExact(Exact);
         TPZManVector<STATE> errvec;
-        analysis.PostProcessError(errvec,saida);
+//        analysis.PostProcessError(errvec,std::cout);
 
         
         TPZSkylineStructMatrix skylstr(cmesh);
-        skylstr.SetNumThreads(20);
+//        skylstr.SetNumThreads(20);
         analysis.SetStructuralMatrix(skylstr);
         TPZStepSolver<STATE> step;
         step.SetDirect(ECholesky);
         analysis.SetSolver(step);
         analysis.Run();
         
-        analysis.PostProcessError(errvec,saida);
+        analysis.PostProcessError(errvec,std::cout);
         
         saida << "errvec " << errvec << std::endl;
         
@@ -218,18 +227,22 @@ int main(int argc, char *argv[]) {
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
-    TCedricTest cedric;
     
-//    cedric.Run(2);
-    cedric.Run(40);
+    // setting p order
+    /** Set polynomial order */
+    int p = 2;
+    TPZCompEl::SetgOrder(p);
+
+	// Initializing a ref patterns
+	gRefDBase.InitializeAllUniformRefPatterns();
+    
+    TCedricTest cedric;
+    for(int gcase=1;gcase<2;gcase++)
+        for(int nelem=3;nelem<50;nelem*=2)
+            cedric.Run(nelem,gcase);
     
     return 1;
     
-    
-	// Initializing a ref patterns
-//	gRefDBase.InitializeAllUniformRefPatterns();
-	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	gRefDBase.InitializeUniformRefPattern(ECube);
     
 
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
