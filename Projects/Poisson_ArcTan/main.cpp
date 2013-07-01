@@ -135,6 +135,8 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce);
 
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 
@@ -166,8 +168,8 @@ int main() {
 //    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-    if(!SolveSymmetricPoissonProblemOnCubeMesh())
-        return 1;
+   // if(!SolveSymmetricPoissonProblemOnCubeMesh())
+     //   return 1;
     
     // Solving laplace problema on LShape domain in 2D.
     if(!SolveLaplaceProblemOnLShapeMesh())
@@ -191,7 +193,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 1;
+    int ninitialrefs = 2;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -384,7 +386,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 12;
+	int nref = 1, NRefs = 15;
     int ninitialrefs = 2;
 	int nthread = 2, NThreads = 4;
 	
@@ -445,7 +447,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 				
 				// Introduzing exact solution depending on the case
 				TPZAnalysis an(cmesh);
-				an.SetExact(ExactSolCircle);
+				an.SetExact(ExactSolLaplace);
 				{
 					std::stringstream sout;
 					sout << "Laplace_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
@@ -507,7 +509,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 				TPZCompMesh *adaptmesh;
 				if(NRefs>1) {
 					time(&sttime);
-					adaptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,fileerrors,0,typeel);
+					adaptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolLaplace,truervec,effect,fileerrors,0,typeel);
                     if(!adaptmesh) return false;
 					
 					time_t endtime;
@@ -557,8 +559,8 @@ TPZGeoMesh *CreateLShapeGeoMesh(MElementType typeel) {
 		{
             const int nelem = 12;
             const int nnodes = 11;
-            REAL co[11][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.},{0.5,-0.5},{0.5,0.5},{-0.5,0.5}};
-            int indices[nelem][3] = {{0,3,9},{0,1,9},{1,2,9},{2,3,9},{0,3,10},{3,4,10},{4,5,10},{0,5,10},{0,7,11},{0,5,11},{5,6,11},{6,7,11}};
+            REAL co[nnodes][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.},{0.5,-0.5},{0.5,0.5},{-0.5,0.5}};
+            int indices[nelem][3] = {{0,3,8},{0,1,8},{1,2,8},{2,3,8},{0,3,9},{3,4,9},{4,5,9},{0,5,9},{0,7,10},{0,5,10},{5,6,10},{6,7,10}};
             TPZGeoEl *elvec[nelem];
             int nod;
             for(nod=0; nod<nnodes; nod++) {
@@ -1485,21 +1487,43 @@ TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 	return meshgrid;
 }
 
-void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
 	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
     REAL angle = 0;
     if(IsZero(x[0])) {
-        if(x[1]>0) angle = 0.5*M_PI;
-        else angle = -0.5*M_PI;
+        if(x[1]>0)
+            angle = 0.5*M_PI;
+        else {
+            sol[0] = 0.;
+            return;
+        }
+    }
+    else
+        angle = atan(x[1]/x[0]);
+    if(angle < -0.5*M_PI || angle > M_PI)
+        DebugStop();
+    sol[0] = 0.5*pow(radius,0.3333333333)*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
+}
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol) {
+	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
+    REAL angle = 0;
+    if(IsZero(x[0])) {
+        if(x[1]>0)
+            angle = 0.5*M_PI;
+        else {
+            sol[0] = 0.;
+            return;
+        }
     }
     else
         angle = atan(x[1]/x[0]);
     sol[0] = 0.5*pow(radius,1./3.)*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
+    dsol.Zero();
 }
 
-//*************************************
-//*******L Shape Quadrilateral*********
-//*************************************
+//************************************************************************
+//**********   Creating computational mesh with materials    *************
+//************************************************************************
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
@@ -1527,6 +1551,8 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	
 	// Creating four boundary condition
     TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+    for(int i=0;i<dim;i++)
+        val1.PutVal(i,i,1.);
 	TPZMaterial *bc = 0, *bc1 = 0;
     switch(hasforcingfunction) {
         case 1:
@@ -1535,8 +1561,9 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
             break;
         default:
             // Condicion de Dirichlet fijando la posicion de la placa
+            bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
             bc1 = mat->CreateBC(mat,id_bc1,0,val1,val2);
-            bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplace));
+            bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplaceBC));
             break;
     }
 
