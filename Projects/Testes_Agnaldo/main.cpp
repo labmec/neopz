@@ -73,7 +73,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 #endif
 
 //problema murad e Loula
-int main_murad(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     
 #ifdef LOG4CXX
@@ -121,7 +121,7 @@ int main_murad(int argc, char *argv[])
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = sig0/pref;
         pini =pini/pref;
-        timeT = timeT*Cf/(Ly*Ly);
+        timeT = 1.;//timeT*Cf/(Ly*Ly);
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
@@ -134,20 +134,24 @@ int main_murad(int argc, char *argv[])
     mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
     
     ofstream saidaerro("Erro.txt");
-
-    int pu = 1;
-    int pq = pu;
-    int pp;
-    if(triang==true){
-        pp = pq-1;
-    }else{
-        pq = pu;
-        pp = pq;
-    }
     
-    int h;
-    saidaerro<<"\n CALCULO DO ERRO, ELEM. RIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-    for (h = 0; h< 6; h++) {
+    
+    for(int p = 1; p < 4; p++)
+    {
+        int pu = p;
+        int pq = pu;
+        int pp;
+        if(triang==true){
+            pp = pq-1;
+        }else{
+            pq=pu-1;
+            pp = pq;
+        }
+        
+        int h;
+        saidaerro<<"\n CALCULO DO ERRO, ELEM. RIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
+        for (h = 0; h< 7; h++)
+        {
         
         saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
     
@@ -211,7 +215,7 @@ int main_murad(int argc, char *argv[])
 
 
         //	Set initial conditions for pressure
-        /*
+
         TPZAnalysis an3(cmesh3);
         mydata->SolveSist(an3, cmesh3);
         int nrs = an3.Solution().Rows();
@@ -226,7 +230,6 @@ int main_murad(int argc, char *argv[])
         
         an3.LoadSolution(anL2.Solution());
         //    an3.Solution().Print();
-         */
 
         //malha multifisica
         TPZVec<TPZCompMesh *> meshvec(3);
@@ -239,7 +242,9 @@ int main_murad(int argc, char *argv[])
 //        ofstream arg8("mphysic.txt");
 //        mphysics->Print(arg8);
 
-        REAL deltaT=timeT/1000; //secondpra
+        int NDeltaT = 1000000;
+        int intervsaidas = NDeltaT/20;
+        REAL deltaT=timeT/NDeltaT; //second
         mymaterial->SetTimeStep(deltaT);
         REAL maxTime = timeT;
 
@@ -269,7 +274,7 @@ int main_murad(int argc, char *argv[])
         
         TPZAnalysis an(mphysics);
         TPZFMatrix<REAL> Initialsolution = an.Solution();
-        Initialsolution.Print("solini");
+        //Initialsolution.Print("solini");
         
         std::string outputfile;
         outputfile = "TransientSolution";
@@ -308,7 +313,7 @@ int main_murad(int argc, char *argv[])
             an.Solve();
             Lastsolution = an.Solution();
             
-            if(cent%100==0){
+            if(cent%intervsaidas==0){
                 saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
                 std::stringstream outputfiletemp;
                 outputfiletemp << outputfile << ".vtk";
@@ -349,6 +354,7 @@ int main_murad(int argc, char *argv[])
         delete cmesh3;
         //delete mphysics;
         delete gmesh;
+    }
     }
     return 0;
 }
@@ -423,8 +429,6 @@ void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> 
 	REAL pini = 1000.;
 	REAL lamb = 8333.33;
 	REAL mi = 12500.0;
-//	REAL visc =0.001;
-//	REAL perm =  1.e-10;
 	REAL H=1.;
 	REAL tp = ftimeatual;
 	int in;
@@ -469,21 +473,20 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL>
 	REAL x = ptx[1];
 	
 	REAL pini = 1000.;
-//	REAL lamb = 8333.33;
-//	REAL mi = 12500.0;
 	REAL visc =0.001;
 	REAL perm =  1.e-10;
 	REAL H=1.;
 	REAL tp = ftimeatual;
 	int in;
-	REAL pD = 0.0, VDy=0.0, divD;
-    REAL sumpD = 0.0, sumVDy=0.0, sumDiv = 0.0;
+	REAL pD = 0.0, VDy=0.0;
+    REAL sumpD = 0.0, sumVDy=0.0;
     
     REAL M =0.;
 	REAL PI = atan(1.)*4.;
 	
     sol.Resize(1, 0.);//p, ux, uy, sigx, sigy
     flux.Redim(3, 1);
+    flux(0,0)=flux(1,0)=flux(2,0)=0.;
 	
 	REAL tD = tp;//(lamb+2.*mi)*perm*tp/(visc*H*H);
 	REAL xD = fabs(1.-x)/H;
@@ -491,46 +494,33 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL>
 		
 		M = PI*(2.*in+1.)/2.;
 		sumpD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
-//		sumuD += (2./(M*M))*cos(M*xD)*exp(-1.*M*M*tD);
-//		sumsigD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
         sumVDy+= 2.*cos(M*xD)*exp(-1.*M*M*tD);
-        sumDiv += -2.*M*sin(M*xD)*exp(-1.*M*M*tD);
 	}
 	
     pD = sumpD;
-//    uD = (H/H - xD) - sumuD;
-//    sigD = -1. + sumsigD;
     VDy = sumVDy;
-    divD = sumDiv;
     
     if(sol_dimensionless==true){
         sol[0] = pD;
-//        sol[2] = (-1.)*uD;
-//        sol[4] = sigD;
         
         flux(1,0) = (1.)*VDy;
-        flux(2,0) = (1.)*divD;
     }else{
         
-        sol[0] = pD*pini;
-//        sol[2] = (-1.)*uD*(pini*H)/(lamb+2.*mi);
-//        sol[4] = (sigD)*pini;
-        
+        sol[0] = pD*pini;        
         flux(1,0) = (1.)*VDy*pini*(perm/visc);
-        flux(2,0) = (1.)*divD*pini*(perm/visc*H);
     }
 }
 
 
 
 //problema de Terzaghi com Se!=0
-int main(int argc, char *argv[]){
+int main_Terzaghi(int argc, char *argv[]){
 #ifdef LOG4CXX
 	std::string logs("../logporoelastc2d.cfg");
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    bool triang = true;
+    bool triang = false;
    fdimensionless = true;
     
     REAL Eyoung = 1.e5;
@@ -578,7 +568,7 @@ int main(int argc, char *argv[]){
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = sig0/pref;
         pini =pini/pref;
-        timeT = 0.01;// timeT*Cf/(Ly*Ly);
+        timeT = 0.1;// timeT*Cf/(Ly*Ly);
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
@@ -595,7 +585,7 @@ int main(int argc, char *argv[]){
     ofstream saidaerro("Erro.txt");
     
     
-    for(int p =1; p<3; p++)
+    for(int p =2; p<3; p++)
     {
         int pu = p;
         int pq = pu;
