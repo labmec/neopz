@@ -16,7 +16,7 @@ static LoggerPtr logger(Logger::getLogger("pz.adapt.pzonedref"));
 
 //ofstream TPZOneDRef::fLogFile("onedref.txt");
 
-int TPZOneDRef::gMaxP = 10;
+int TPZOneDRef::gMaxP = 12;
 
 TPZOneDRef::TPZOneDRef(int nstate) : fMS1S1(gMaxP+1,gMaxP+1,0.),
 				     fMS1B(gMaxP+1,gMaxP+1,0.),

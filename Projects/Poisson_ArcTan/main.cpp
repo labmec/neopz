@@ -151,7 +151,7 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
-bool usethreads = false;
+bool usethreads = true;
 bool SolveSymmetricPoissonProblemOnCubeMesh();
 bool SolveLaplaceProblemOnLShapeMesh();
 
@@ -168,8 +168,8 @@ int main() {
 //    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-   // if(!SolveSymmetricPoissonProblemOnCubeMesh())
-     //   return 1;
+    if(!SolveSymmetricPoissonProblemOnCubeMesh())
+        return 1;
     
     // Solving laplace problema on LShape domain in 2D.
     if(!SolveLaplaceProblemOnLShapeMesh())
@@ -193,9 +193,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 2;
+    int ninitialrefs = 3;
 	int nthread = 2, NThreads = 4;
     int dim;
+    int MaxPOrder = TPZOneDRef::gMaxP;
 	
     //Working on regular meshes
     for(int regular=1; regular>0; regular--) {
@@ -203,7 +204,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		MElementType typeel;
 		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 		{
-            if(itypeel != 4) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -220,9 +220,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
-                NRefs = 12;
+                MaxPOrder = 5;
+                NRefs = 5;
             }
             else if(dim==2) {
+                MaxPOrder = 10;
                 NRefs = 18;
             }
             else {
@@ -320,7 +322,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				REAL valtruerror=0.;
 				TPZVec<REAL> ervec,truervec,effect;
 				
-				TPZAdaptMesh adapt;
+				TPZAdaptMesh adapt(MaxPOrder);
 				adapt.SetCompMesh(cmesh);
 				
 				out << "\n\nEntering Auto Adaptive Methods... step " << nref << "\n";
@@ -388,7 +390,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 	
 	int nref = 1, NRefs = 15;
     int ninitialrefs = 2;
-	int nthread = 2, NThreads = 4;
+	int nthread = 1, NThreads = 4;
 	
     //Working on regular meshes
     for(int regular=1; regular>0; regular--) {

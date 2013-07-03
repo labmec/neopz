@@ -532,7 +532,7 @@ int TPZCompCloneMesh::HasConnect(int cnid){
     return (fMapConnects.find(cnid) != fMapConnects.end());
 }
 
-TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
+TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
     ExpandSolution();
 #ifdef HUGE_DEBUG
     if(gPrintLevel ==2) {
@@ -600,15 +600,15 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         int ncon = cint->NConnects();
         int porder = cint->PreferredSideOrder(ncon-1);
         
-        if (gDebug){
+        if (gDebug) {
             cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data Before PRefine\n";
             cout << "NConnects() :  " << ncon << "   POrder : " << porder;
         }
         
         TPZVec<int> subelindex;
-        // Can not exist a interpolated element with bigger order than Max order P
-        if(cint->GetPreferredOrder()>TPZOneDRef::gMaxP)         // Jorge 2013_06_29
-            cint->PRefine(TPZOneDRef::gMaxP);
+        // The interpolated elements can not to have a order bigger than max order defined to p-adaptive process
+        if(cint->GetPreferredOrder()>maxp)
+            cint->PRefine(maxp);
         cint->Divide(el,subelindex,1);
         
         if(gDebug) {

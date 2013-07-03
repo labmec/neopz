@@ -98,9 +98,10 @@ public:
                    TPZVec<REAL> &truervec, std::ofstream &out);
     
     /**
-     * Returns the uniformly hp refined mesh base on this mesh
+     * @brief Returns the uniformly hp refined mesh base on this mesh
+     * @param maxp Maxime order to using when a element to be divided.
      */
-    TPZCompMesh * UniformlyRefineMesh();
+    TPZCompMesh * UniformlyRefineMesh(int maxp);
     
     
     REAL ElementError(TPZInterpolatedElement *fine,

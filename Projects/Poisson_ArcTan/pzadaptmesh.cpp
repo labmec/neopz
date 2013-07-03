@@ -24,7 +24,7 @@ TPZAdaptMesh::TPZAdaptMesh(int maxorder) {
     fElementError.Resize(0);
     fCloneMeshes .Resize(0);
     fFineCloneMeshes .Resize(0);
-    TPZOneDRef::gMaxP = maxorder;
+    fMaxP = maxorder;
 }
 
 TPZAdaptMesh::~TPZAdaptMesh() {
@@ -49,6 +49,15 @@ void TPZAdaptMesh::SetMaxP(int maxp) {
         cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greater than 0... You given " << maxp << ". Trying to set maximum p to new value " << 1 << endl;
         maxp = 1;
     }
+    if(maxp > 12) maxp = 12;
+    fMaxP = maxp;
+}
+void TPZAdaptMesh::SetOneDMaxP(int maxp) {
+    if(maxp < 1) {
+        cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greater than 0... You given " << maxp << ". Trying to set maximum p to new value " << 1 << endl;
+        maxp = 1;
+    }
+    if(maxp > 12) maxp = 12;
     TPZOneDRef::gMaxP = maxp;
 }
 
@@ -179,7 +188,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
             fFineCloneMeshes [cliter] = 0;
             continue;
         }
-        fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh();
+        fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh(fMaxP);
 		printing = 0;
         if(printing) {
             sprintf(saida,"OutputE%d_Cliter%d.txt",((int)eltype),cliter);

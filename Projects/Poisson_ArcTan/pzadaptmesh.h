@@ -30,8 +30,11 @@ public:
     /** @brief Defines the computational reference mesh */
     void SetCompMesh(TPZCompMesh * mesh);
     
-    /** @brief Defines the maximum p order of an element, it is stored in TPZOneDRef::gMaxP (global variable) */
+    /** @brief Defines the maximum p order of an element when used p-adaptive process */
     void SetMaxP(int maxp);
+    
+    /** @brief Defines the maximum p order of an element, it is stored in TPZOneDRef::gMaxP (global variable) */
+    void SetOneDMaxP(int maxp);
     
     /**
      * @brief Public interface to get the optmally refined mesh
@@ -123,6 +126,9 @@ private:
     
     /** @brief Refined clone meshes */
     TPZStack <TPZCompMesh *> fFineCloneMeshes ;
+    
+    /** @brief Maxime order for p adaptive process */
+    int fMaxP;
     
     /** @brief Delete temporary clone meshes from memory */
     void CleanUp();
