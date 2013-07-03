@@ -206,16 +206,16 @@ public:
         
         // To post process
         /** Variable names for post processing */
-        TPZStack<std::string> scalnames, vecnames;
-        scalnames.Push("Solution");
+     //   TPZStack<std::string> scalnames, vecnames;
+     //   scalnames.Push("Solution");
 
-        std::stringstream sout;
-        sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << ".vtk";
-        analysis.DefineGraphMesh(2,scalnames,vecnames,sout.str());
+     //   std::stringstream sout;
+     //   sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << ".vtk";
+     //   analysis.DefineGraphMesh(2,scalnames,vecnames,sout.str());
         
         analysis.Run();
         
-        analysis.PostProcess(0,3);
+     //   analysis.PostProcess(0,3);
 
         analysis.PostProcessError(errvec,std::cout);
         
@@ -273,8 +273,8 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeAllUniformRefPatterns();
     
     TCedricTest cedric;
-    for(int gcase=1;gcase<3;gcase++)
-        for(int nelem=42;nelem<50;nelem*=2)
+    for(int gcase=1;gcase<2;gcase++)
+        for(int nelem=40;nelem<50;nelem*=2)
             cedric.Run(nelem,gcase);
     
     return 1;
