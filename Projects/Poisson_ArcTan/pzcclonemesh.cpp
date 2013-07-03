@@ -45,6 +45,8 @@ static ofstream gDeduce("deduce.txt");
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects()
 {
     fCloneReference = cmesh;
+    // preserve Model dimension from original computational mesh
+    SetDimModel(cmesh->Dimension());
     //Cria um clone do vetor de materiais da malha mesh
     std::map<int, TPZMaterial * >::const_iterator it;
     for(it=cmesh->MaterialVec().begin(); it != cmesh->MaterialVec().end() ; it++) {
@@ -604,6 +606,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         }
         
         TPZVec<int> subelindex;
+        // Can not exist a interpolated element with bigger order than Max order P
         if(cint->GetPreferredOrder()>TPZOneDRef::gMaxP)         // Jorge 2013_06_29
             cint->PRefine(TPZOneDRef::gMaxP);
         cint->Divide(el,subelindex,1);
