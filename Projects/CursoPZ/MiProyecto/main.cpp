@@ -61,6 +61,23 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL
 TPZGeoMesh *ConstructingFicheraCorner();
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
 
+bool gDebug = false;
+
+void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[i];
+		if(gel && gel->Reference())
+			DataElement[i] = gel->Dimension();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
 
 
 class TCedricTest
@@ -151,6 +168,13 @@ public:
         CheckConsistency(gmesh);
         AddBoundaryElements(gmesh);
         
+        // Printing geometric mesh to validate
+        if(gDebug) {
+            char saida[1024];
+            sprintf(saida,"gmesh_Case%d_NEl%02d.vtk",geocase,nelem);
+            PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(gmesh,saida);
+        }
+
         TPZCompMesh *cmesh = GenerateCompMesh(gmesh);
         
 #ifdef LOG4CXX
@@ -179,8 +203,20 @@ public:
         TPZStepSolver<STATE> step;
         step.SetDirect(ECholesky);
         analysis.SetSolver(step);
+        
+        // To post process
+        /** Variable names for post processing */
+        TPZStack<std::string> scalnames, vecnames;
+        scalnames.Push("Solution");
+
+        std::stringstream sout;
+        sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << ".vtk";
+        analysis.DefineGraphMesh(2,scalnames,vecnames,sout.str());
+        
         analysis.Run();
         
+        analysis.PostProcess(0,3);
+
         analysis.PostProcessError(errvec,std::cout);
         
         saida << "errvec " << errvec << std::endl;
@@ -237,8 +273,8 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeAllUniformRefPatterns();
     
     TCedricTest cedric;
-    for(int gcase=1;gcase<2;gcase++)
-        for(int nelem=3;nelem<50;nelem*=2)
+    for(int gcase=1;gcase<3;gcase++)
+        for(int nelem=42;nelem<50;nelem*=2)
             cedric.Run(nelem,gcase);
     
     return 1;
@@ -556,7 +592,7 @@ TPZGeoMesh *TCedricTest::PyramidMesh(int nelem)
 #ifdef LOG4CXX
                 {
                     std::stringstream sout;
-                    sout << "Cube nodes " << nodes;
+                    sout << "Pyramid nodes " << nodes;
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
