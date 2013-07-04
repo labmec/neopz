@@ -151,7 +151,10 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
-bool usethreads = true;
+
+bool usethreads = false;
+int MaxPOrder = TPZOneDRef::gMaxP;
+
 bool SolveSymmetricPoissonProblemOnCubeMesh();
 bool SolveLaplaceProblemOnLShapeMesh();
 
@@ -168,8 +171,8 @@ int main() {
 //    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-    if(!SolveSymmetricPoissonProblemOnCubeMesh())
-        return 1;
+  //  if(!SolveSymmetricPoissonProblemOnCubeMesh())
+    //    return 1;
     
     // Solving laplace problema on LShape domain in 2D.
     if(!SolveLaplaceProblemOnLShapeMesh())
@@ -196,7 +199,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     int ninitialrefs = 3;
 	int nthread = 2, NThreads = 4;
     int dim;
-    int MaxPOrder = TPZOneDRef::gMaxP;
 	
     //Working on regular meshes
     for(int regular=1; regular>0; regular--) {
@@ -396,8 +398,9 @@ bool SolveLaplaceProblemOnLShapeMesh() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
+            MaxPOrder = 4;
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
             std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
@@ -501,7 +504,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 				REAL valtruerror=0.;
 				TPZVec<REAL> ervec,truervec,effect;
 				
-				TPZAdaptMesh adapt;
+				TPZAdaptMesh adapt(MaxPOrder);
 				adapt.SetCompMesh(cmesh);
 				
 				outLaplace << "\n\nEntering Auto Adaptive Methods... step " << nref << "\n";
@@ -524,6 +527,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 					int prt;
 					outLaplace << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
 					fileerrors << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+                    std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
                     
 					convergence  << cmesh->NEquations() << "\t" << valerror << "\t" << valtruerror << "\t" << ( valtruerror / valerror ) <<  "\t" << sttime <<std::endl;
 					for (prt=0;prt<ervec.NElements();prt++) {

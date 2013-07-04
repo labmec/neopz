@@ -70,9 +70,10 @@ public:
     
     void GenerateNodes(TPZGeoMesh *gmesh, int nelem);
     
-    TPZGeoMesh *PyramidMesh(int nelem);
-    
-    TPZGeoMesh *HexaMesh(int nelem);
+    /** Constructing geometrical mesh depends on type of element wished. */
+    TPZGeoMesh *PyramidalAndTetrahedralMesh(int nelem);
+    TPZGeoMesh *TetrahedralMesh(int nelem);
+    TPZGeoMesh *HexahedralMesh(int nelem);
 
     void AddBoundaryElements(TPZGeoMesh *gmesh);
 
@@ -126,10 +127,16 @@ public:
         TPZGeoMesh *gmesh;
         switch(geocase) {
             case 1:
-                gmesh = HexaMesh(nelem);
+                std::cout << "Type of element: Hexahedral.\n";
+                gmesh = HexahedralMesh(nelem);
                 break;
             case 2:
-                gmesh = PyramidMesh(nelem);
+                std::cout << "Type of element: Pyramidal and tetrahedral.\n";
+                gmesh = PyramidalAndTetrahedralMesh(nelem);
+                break;
+            case 3:
+                std::cout << "Type of elements: Tetrahedral.\n";
+                gmesh = TetrahedralMesh(nelem);
                 break;
         }
 #ifdef LOG4CXX
@@ -246,8 +253,11 @@ int main(int argc, char *argv[]) {
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
         for(int gcase=1;gcase<2;gcase++)
-            for(int nelem=3;nelem<50;nelem*=2)
+            for(int nelem=3;nelem<50;nelem*=2) {
+                if(nelem>30)
+                    nelem = 36;
                 cedric.Run(nelem,gcase);
+            }
     }
     
     return 1;
@@ -281,7 +291,7 @@ void TCedricTest::GenerateNodes(TPZGeoMesh *gmesh, int nelem)
     }
 }
 
-TPZGeoMesh *TCedricTest::PyramidMesh(int nelem)
+TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh, nelem);
@@ -325,8 +335,46 @@ TPZGeoMesh *TCedricTest::PyramidMesh(int nelem)
     gmesh->BuildConnectivity();
     return gmesh;
 }
+TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem)
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    GenerateNodes(gmesh, nelem);
+    
+    for (int i=0; i<nelem; i++) {
+        for (int j=0; j<nelem; j++) {
+            for (int k=0; k<nelem; k++) {
+                TPZManVector<int,8> nodes(8,0);
+                nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
+                nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
+                nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
+                nodes[3] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
+                nodes[4] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
+                nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
+                nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
+                nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout << "Pyramid nodes " << nodes;
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+                for (int el=0; el<2; el++)
+                {
+                    TPZManVector<int,4> elnodes(4);
+                    for (int il=0; il<4; il++) {
+                        elnodes[il] = nodes[tetraedra[el][il]];
+                    }
+                    gmesh->CreateGeoElement(ETetraedro, elnodes, 1, index);
+                }
+            }
+        }
+    }
+    gmesh->BuildConnectivity();
+    return gmesh;
+}
 
-TPZGeoMesh *TCedricTest::HexaMesh(int nelem)
+TPZGeoMesh *TCedricTest::HexahedralMesh(int nelem)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh, nelem);

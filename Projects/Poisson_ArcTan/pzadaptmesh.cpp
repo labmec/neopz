@@ -149,7 +149,8 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     
     //Generates the patch - put the data into fPatch and fPatchIndexes
     BuildReferencePatch();
-    out << "Number of Patchs " << fPatchIndex.NElements() - 1 << std::endl;
+    out << "NElements " << nelmesh << ". Number of Patchs " << fPatchIndex.NElements() - 1 << std::endl;
+    std::cout << "NElements " << nelmesh << ". Number of Patchs " << fPatchIndex.NElements() - 1 << std::endl;
     //Creates the patch clones; fReferenceCompMesh is the original computational mesh
 	
 	// First, asserting connects in computational mesh
@@ -168,6 +169,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     CreateClones();
     int ncl = fCloneMeshes.NElements();
     out << "Number of cloned meshes " << ncl << std::endl;
+    std::cout << "Number of cloned meshes " << ncl << std::endl;
     fFineCloneMeshes.Resize(ncl);
 	static int count = 0;
 
@@ -197,6 +199,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
 			fFineCloneMeshes[cliter]->Print(outtemp);
             outtemp.close();
         }
+        std::cout << cliter << " ";
         fCloneMeshes[cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec,out);
 		// Printing errors on geometric mesh to validate
 		memset(saida,0,512);
@@ -237,15 +240,17 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     for(i=0;i<nelmesh;i++) error += fElementError[i];
     
     // Determining minimum error for applying p-refinement or h-refinement     // It's WRONG
-    REAL minimumerror = 0.0, auxerror = 0.0;
+    REAL minimumerror = 1.0, auxerror = 0.0;
     int counter = 0;
     for(i=0;i<nelmesh;i++) {
         auxerror += fElementError[perm[i]];
-        if(!IsZero(fElementError[perm[i]]))
+        if(!IsZero(fElementError[perm[i]])) {
             counter++;
+            minimumerror = (minimumerror < fElementError[perm[i]] ? minimumerror : fElementError[perm[i]]);
+        }
     }
     if(counter)
-        minimumerror = auxerror/counter - 100*ZeroTolerance();
+        minimumerror -= 100*ZeroTolerance();
     
     if(f) {
         for(i=0; i<nelmesh; i++) {
@@ -271,6 +276,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     TPZStack <int> porder;
     
     //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
+    std::cout << "Aplying ref pattern after analisis of the error on the clone meshes.\n";
     for (i=0;i<ncl;i++) {
         if(!fFineCloneMeshes[i]) continue;
         fCloneMeshes[i]->ApplyRefPattern(minimumerror,fElementError,fFineCloneMeshes[i],gelstack,porder);
