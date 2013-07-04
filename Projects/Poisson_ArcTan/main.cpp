@@ -390,7 +390,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 15;
+	int nref = 1, NRefs = 18;
     int ninitialrefs = 2;
 	int nthread = 1, NThreads = 4;
 	
@@ -398,7 +398,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 		{
             MaxPOrder = 4;
 			typeel = (MElementType)itypeel;

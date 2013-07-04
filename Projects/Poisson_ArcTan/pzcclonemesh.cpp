@@ -46,7 +46,7 @@ TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : T
 {
     fCloneReference = cmesh;
     // preserve Model dimension from original computational mesh
-    SetDimModel(cmesh->Dimension());
+    if(cmesh) SetDimModel(cmesh->Dimension());
     //Cria um clone do vetor de materiais da malha mesh
     std::map<int, TPZMaterial * >::const_iterator it;
     for(it=cmesh->MaterialVec().begin(); it != cmesh->MaterialVec().end() ; it++) {
