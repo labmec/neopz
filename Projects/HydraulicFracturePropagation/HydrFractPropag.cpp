@@ -105,7 +105,7 @@ int mainCRAZY(int argc, char * const argv[])
 }
 
 
-int main3D(int argc, char * const argv[])
+int main/*3D*/(int argc, char * const argv[])
 {    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -122,21 +122,20 @@ int main3D(int argc, char * const argv[])
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
-    REAL lengthX = 2.;
-    REAL lengthY = 1.;
+    REAL lengthX = 250.;
+    REAL lengthY = 50.;
     
-    REAL lw = 10.;
+    REAL lw = 100.;
     REAL bulletDepthIni =  0.;
-    REAL bulletDepthFin = 10.;
+    REAL bulletDepthFin = 100.;
     
-    TPZVec< std::map<REAL,REAL> > pos_stress(2);
+    TPZVec< std::map<REAL,REAL> > pos_stress(1);
     pos_stress[0][0.]    = 1.;
-    pos_stress[0][10.]  = 1.;
+    pos_stress[0][100.]  = 1.;
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY);
     
-    TPZVec< std::pair<REAL,REAL> > fractureDots(2);
-    fractureDots[0] =  std::make_pair(1.,-0.5);
-    fractureDots[1] =  std::make_pair(1.,-9.5);
+    TPZVec< std::pair<REAL,REAL> > fractureDots;
+    FillFractureDotsExampleCrazy(fractureDots);
     
     
     TPZTimer clockIni2("PartyBegins2");
@@ -760,7 +759,7 @@ void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
 
 //#define writeAgain
 
-int main/*2D*/(int argc, char * const argv[])
+int main2D(int argc, char * const argv[])
 {
 #ifdef usingRefdir
     #ifdef writeAgain

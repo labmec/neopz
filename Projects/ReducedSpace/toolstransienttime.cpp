@@ -658,24 +658,25 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     TPZAutoPointer< TPZFunction<STATE> > func = new TSolFunction<STATE>(cmeshFrom);
     
     //////L2Projection material
-    int dim = cmeshFrom->Dimension();
-    int pOrder = cmeshTo->GetDefaultOrder();
-    int nsol = 2;
-    TPZVec<REAL> solini(nsol,0.);
-    TPZL2Projection * materialL2 = new TPZL2Projection(globReservMatId, dim, nsol, solini, pOrder);
-    materialL2->SetForcingFunction(func);
+//    int dim = cmeshFrom->Dimension();
+//    int pOrder = cmeshTo->GetDefaultOrder();
+//    int nsol = 2;
+//    TPZVec<REAL> solini(nsol,0.);
+//    TPZL2Projection * materialL2 = new TPZL2Projection(globReservMatId, dim, nsol, solini, pOrder);
+//    materialL2->SetForcingFunction(func);
 
     //////Swapping materials
     TPZMaterial * elastMat = NULL;
-    std::map<int,TPZMaterial*>::iterator it;
-    for(it = cmeshTo->MaterialVec().begin(); it != cmeshTo->MaterialVec().end(); it++)
+    std::map<int,TPZMaterial*>::iterator it = cmeshTo->MaterialVec().find(globReservMatId);
+    if(it != cmeshTo->MaterialVec().end())
     {
-        if(it->second->Id() == globReservMatId)
-        {
-            elastMat = it->second;
-            it->second = materialL2;
-            break;
-        }
+        elastMat = it->second;
+        elastMat->SetForcingFunction(func);
+//        it->second = materialL2;
+    }
+    else
+    {
+        DebugStop();//cade o mardito material???
     }
     
     //////Solving
@@ -690,7 +691,8 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     anTo.LoadSolution();
 
     //////Replacing original material
-    it->second = elastMat;
+    //it->second = elastMat;
+    elastMat->SetForcingFunction(NULL);
     
     
     ///Integral correction

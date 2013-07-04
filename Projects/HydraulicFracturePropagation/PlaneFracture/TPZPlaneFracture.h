@@ -26,14 +26,14 @@
 const REAL __smallNum = 1.E-5;
 
 /** @brief maximum element edge length */
-const REAL __maxLength = 0.8;
+const REAL __maxLength = 10.;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
-const int __EdgeStretchesQTD = 10; //will be used for refpatterns
+const int __EdgeStretchesQTD = 5; //will be used for refpatterns
 
 /** @brief Multiplier of __EdgeStretchesQTD for fine edge intersection modulation */
-const int __TrimQTDmultiplier = 5; //will be used for searching direction between dots from poligonal chain
+const int __TrimQTDmultiplier = 3; //will be used for searching direction between dots from poligonal chain
 
 
 

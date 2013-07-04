@@ -122,10 +122,10 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
                                                bool printVTKfile)
 {
     int porder = 2;
-    REAL flowRate = 1.e-3;//(m3/s)/m
+    //REAL flowRate = 1.e-3;//(m3/s)/m
     TPZCompMesh * fractureCMesh = this->GetFractureCompMesh(poligonalChain,porder,sigmaTraction,pressureInsideCrack);
     
-    TPZCompMeshReferred * reynoldsCMesh = this->GetReynoldsCompMesh(fractureCMesh,porder,flowRate);
+    //TPZCompMeshReferred * reynoldsCMesh = this->GetReynoldsCompMesh(fractureCMesh,porder,flowRate);
     
     int neq = fractureCMesh->NEquations();
     std::cout << "Numero de equacoes = " << neq << std::endl;
@@ -141,33 +141,47 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
     an.SetSolver(step);
     an.Run();
     
-    
+    if(printVTKfile)
+    {
+        TPZManVector<std::string,10> scalnames(0), vecnames(1);
+        
+//        scalnames[0] = "EDisplacementX";
+//        scalnames[1] = "EDisplacementY";
+//        scalnames[2] = "SigmaX";
+//        scalnames[3] = "SigmaY";
+        vecnames[0] = "Displacement";
+        
+        const int dim = 3;
+        int div =0;
+        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
+        an.PostProcess(div);
+    }
     
     /////// Example of J-Integral
     
-    TPZVec<REAL> originXYZ(3,0.), direction(3,0.);
-    
-    int POSmiddle1D = int(REAL(fcrackBoundaryElementsIds.NElements())/2. + 0.5);
-    int middle1DId = fcrackBoundaryElementsIds[POSmiddle1D];
-    
-    TPZVec<REAL> originQSI(1,0.);
-    TPZGeoEl * gel1D = fractureCMesh->Reference()->ElementVec()[middle1DId];
-    gel1D->X(originQSI, originXYZ);
-    
-    direction[0] = 0.;
-    direction[1] = 0.;
-    direction[2] = 1.;
-    
-    originXYZ[2] = -5.;
-    
-    REAL radius = 0.6;
-    Path3D * Path3DMiddle = new Path3D(fractureCMesh, originXYZ, direction, radius, pressureInsideCrack);
-    
-    JIntegral3D jInt;
-    jInt.PushBackPath3D(Path3DMiddle);
-    TPZVec<REAL> Jvector(3);
-    
-    Jvector = jInt.IntegratePath3D(0);
+//    TPZVec<REAL> originXYZ(3,0.), direction(3,0.);
+//    
+//    int POSmiddle1D = int(REAL(fcrackBoundaryElementsIds.NElements())/2. + 0.5);
+//    int middle1DId = fcrackBoundaryElementsIds[POSmiddle1D];
+//    
+//    TPZVec<REAL> originQSI(1,0.);
+//    TPZGeoEl * gel1D = fractureCMesh->Reference()->ElementVec()[middle1DId];
+//    gel1D->X(originQSI, originXYZ);
+//    
+//    direction[0] = 0.;
+//    direction[1] = 0.;
+//    direction[2] = 1.;
+//    
+//    originXYZ[2] = -5.;
+//    
+//    REAL radius = 0.6;
+//    Path3D * Path3DMiddle = new Path3D(fractureCMesh, originXYZ, direction, radius, pressureInsideCrack);
+//    
+//    JIntegral3D jInt;
+//    jInt.PushBackPath3D(Path3DMiddle);
+//    TPZVec<REAL> Jvector(3);
+//    
+//    Jvector = jInt.IntegratePath3D(0);
 }
 
 /** PRIVATE METHODS */
@@ -224,9 +238,10 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         
         ///////////farField
         k.Zero();
-        f(1,0) = sigmaTraction;
+        f(1,0) = 1.;//sigmaTraction; AQUICAJU
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(-304, young, poisson, force);
-        TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, newmann, k, f);
+        //TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, newmann, k, f);
+        TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f); //AQUICAJU
         cmesh->InsertMaterialObject(newmannFarfield);
         
         ///////////insideFract
@@ -246,27 +261,27 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
 TPZCompMeshReferred * TPZPlaneFracture::GetReynoldsCompMesh(TPZCompMesh * cmeshElast, int porder, REAL flowRate)
 {
     TPZCompMeshReferred * cmesh = new TPZCompMeshReferred(cmeshElast->Reference());
-    cmesh->SetDefaultOrder(porder);
-    
-    REAL visc = 1.e-3;
-    REAL staticPotential = 1.;
-    REAL deltaT = 60.;//1min
-    TPZMaterial * materialFract = new TPZReynoldsFlow(__2DfractureMat_inside, visc,deltaT,staticPotential);
-    
-    TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,flowRate);
-    TPZMaterial * materialInjectionBC = materialFract->CreateBC(materialInjectionBC, __1DwellInjection, 1, val1, val2);
-    
-    cmesh->InsertMaterialObject(materialFract);
-    cmesh->InsertMaterialObject(materialInjectionBC);
-    
-    cmesh->SetAllCreateFunctionsContinuousReferred();
-    
-    std::set<int> matIds;
-    matIds.insert(__2DfractureMat_inside);
-    matIds.insert(__1DwellInjection);
-    
-    cmesh->AutoBuild(matIds);
-    cmesh->LoadReferred(cmeshElast);
+//    cmesh->SetDefaultOrder(porder);
+//    
+//    REAL visc = 1.e-3;
+//    REAL staticPotential = 1.;
+//    REAL deltaT = 60.;//1min
+//    TPZMaterial * materialFract = new TPZReynoldsFlow(__2DfractureMat_inside, visc,deltaT,staticPotential);
+//    
+//    TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,flowRate);
+//    TPZMaterial * materialInjectionBC = materialFract->CreateBC(materialInjectionBC, __1DwellInjection, 1, val1, val2);
+//    
+//    cmesh->InsertMaterialObject(materialFract);
+//    cmesh->InsertMaterialObject(materialInjectionBC);
+//    
+//    cmesh->SetAllCreateFunctionsContinuousReferred();
+//    
+//    std::set<int> matIds;
+//    matIds.insert(__2DfractureMat_inside);
+//    matIds.insert(__1DwellInjection);
+//    
+//    cmesh->AutoBuild(matIds);
+//    cmesh->LoadReferred(cmeshElast);
     
     return cmesh;
 }
@@ -1524,7 +1539,7 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 
 void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * refinedMesh)
 {
-    REAL desiredSize = 0.05;//desired characteristic size of quarter point elements
+    REAL desiredSize = __maxLength;//desired characteristic size of quarter point elements <<< AQUICAJU
     int ndiv = log((__maxLength/2.)/desiredSize)/log(2.);
     if(ndiv < 1)
     {

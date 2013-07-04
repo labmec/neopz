@@ -330,7 +330,8 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     
     if(gState == ELastState) return;
     REAL auxvar = 0.817*(1.-fInputData->Poisson())*fInputData->Hf();
-    REAL factor = 0.;//fG/auxvar;
+    REAL G = fInputData->E()/(2.*(1. + fInputData->Poisson()));
+    REAL factor = 0.;//G/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
@@ -607,6 +608,7 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     REAL young = fInputData->E();
     REAL poisson = fInputData->Poisson();
     REAL sigmaConf = fInputData->SigmaConf();
+    REAL visc = fInputData->Visc();
     REAL Hf = fInputData->Hf();
     
     if(var == 1)
@@ -618,10 +620,10 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     if (var == 2)
     {
-        REAL G = young/(2.*(1.+poisson));
         if(!datavec[1].phi) return;
+        REAL G = young/(2.*(1.+poisson));
         REAL un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
-        REAL factor = 0.;//(un*un*un)/(12.*fvisc);
+        REAL factor = 0.;//(un*un*un)/(12.*visc);
         
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;
@@ -859,12 +861,10 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         
         it = fGelId_vl.find(gel->Id());
         
-        #ifdef DEBUG
         if(it == fGelId_vl.end())
         {
             DebugStop();
         }
-        #endif
         
         REAL deltaT = fInputData->deltaT();
         
@@ -881,9 +881,9 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
     }
     
     #ifdef DEBUG
-    if(outVlCount != fGelId_vl.size())
+    if(outVlCount < fGelId_vl.size())
     {
-        //DebugStop();
+        DebugStop();
     }
     #endif
 }
