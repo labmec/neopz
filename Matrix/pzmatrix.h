@@ -856,13 +856,15 @@ inline int TPZMatrix<TVar>::Dim() const{
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int> &singular) {
-	if ( IsSimetric() ) Error( "LU decomposition is a not symetric decomposition" );
+	if ( IsSimetric() )
+        Error( "LU decomposition is a not symetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
 }
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B ) {
-	if ( IsSimetric() ) Error( "LU decomposition is a not symetric decomposition" );
+	if ( IsSimetric() )
+        Error( "LU decomposition is a not symetric decomposition" );
 	return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
 }
 /**********************/
