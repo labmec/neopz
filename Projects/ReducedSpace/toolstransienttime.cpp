@@ -31,6 +31,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
 
 
 ToolsTransient::ToolsTransient(){
+    fMustStop = true;
     
 }
 
@@ -41,6 +42,7 @@ ToolsTransient::ToolsTransient(int pOrder,
     fpOrder = pOrder;
     fInputData = new InputDataStruct;
     fInputData->SetData(Lx, Ly, Lf, Hf, E, Poiss, Fx, Fy, Visc, SigN, Qinj, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+    fMustStop = false;
 }
 
 ToolsTransient::~ToolsTransient(){
@@ -59,15 +61,17 @@ void ToolsTransient::Run()
     std::string outputfile;
 	outputfile = "TransientSolution";
     std::ofstream outPWJ("OUTPUT.txt");
-    std::stringstream outP, outW, outJ;
+    std::stringstream outP, outW, outJ, outVl;
+    
+    outVl << "vlAcum={0";
     
     int step = 1, postProcGraphStep = 0;
     REAL Jradius = 0.5;//Jintegral radius
     
-    std::map<int,REAL> leakoffMap;
+    //std::map<int,REAL> leakoffMap;
     
     const REAL lmax = 10.;
-    TPZCompMesh * lastCMeshRef = NULL;
+    TPZCompMesh * lastMPhysicsCMesh = NULL;
     TPZCompMeshReferred * lastElastCMesh = NULL;
     
     int propagCount = 0;
@@ -104,12 +108,10 @@ void ToolsTransient::Run()
         if(lastElastCMesh)
         {
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-            
             TransferElasticSolution(lastElastCMesh, cmesh_referred);
-            
             TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
             
-            meshvec[0]->LoadReferences();
+            std::map<int,REAL> leakoffMap = TransferLeakoff(lastMPhysicsCMesh, cmesh_pressure,outVl);
             mymaterial->SetLeakoffData(leakoffMap);
         }
         
@@ -125,7 +127,7 @@ void ToolsTransient::Run()
             
             meshvec[0]->LoadReferences();
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-            PlotWIntegral(meshvec[0], outW, 0.);
+            PlotWIntegral(meshvec[0], outW, 0);
             
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
@@ -138,7 +140,7 @@ void ToolsTransient::Run()
         propagate = this->SolveSistTransient(deltaT, actTime, maxTime, an, mymaterial, meshvec, mphysics, step,
                                              Jradius, outP, outW, outJ, outputfile);
 
-        leakoffMap = mymaterial->GetLeakoffData();
+        //leakoffMap = mymaterial->GetLeakoffData();
         postProcGraphStep = an->GetStep();
         propagCount++;
         
@@ -146,11 +148,70 @@ void ToolsTransient::Run()
         fInputData->SetLf(newLfrac);
         
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-        lastCMeshRef = cmesh_elast;
+        lastMPhysicsCMesh = mphysics;
         lastElastCMesh = cmesh_referred;
     }
     
-    outPWJ << "(*** PRESSAO ***)\n" << outP.str() << "\n\n(*** W ***)\n" << outW.str() << "\n\n(*** J ***)\n" << outJ.str();
+    outVl << "};\n";
+    
+    outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
+    outW << "displSize = Length[displ];\n";
+    outW << "area = 0;\n";
+    outW << "For[i = 1, i < displSize,\n";
+    outW << "baseMin = displ[[i, 2]];\n";
+    outW << "baseMax = displ[[i + 1, 2]];\n";
+    outW << "h = displ[[i + 1, 1]] - displ[[i, 1]];\n";
+    outW << "area += (baseMin+baseMax)*h/2;\n";
+    outW << "i++;];\n";
+    outW << "area];\n\n";
+    outW << "Areas = {";
+    int nsteps = maxTime/deltaT + 0.5;
+    for(int ig = 0; ig<=nsteps; ig++)
+    {
+        outW << "{" << ig*deltaT << ",TrapArea[displ" << ig << "]+2*vlAcum[[" << ig+1 << "]]}";
+        if(ig != nsteps)
+        {
+            outW << ",";
+        }
+    }
+    outW << "};\n\n";
+    
+    outW << "Qinj=" << fabs(fInputData->Qinj()) << ";\n";
+    outW << "Ttot = " << maxTime << ";\n";
+    outW << "nsteps = " << step-1 << ";\n";
+    outW << "dt = Ttot/nsteps;\n\n";
+    outW << "(* FIM DOS INPUTS *)\n\n";
+    
+    outW << "(* OUTPUTS *)\n";
+    
+    outW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0,0},PlotStyle -> {PointSize[0.015]},AxesLabel->{\"t\",\"V\"},Filling->Axis];\n";
+    outW << "VinjPlot = Plot[Qinj*t, {t, 0, Ttot}, AxesLabel -> {\"t\", \"Volume Injetado\"}, PlotStyle -> Red,AxesOrigin->{0,0}];\n";
+    outW << "Show[VinjPlot,WintegralPlot]\n";
+    outW << "(* FIM DOS OUTPUTS *)\n\n";
+    
+    //saida para mathematica
+    outP << "SAIDAS={Saida0,";
+    for(int i = 1; i < step; i++)
+    {
+        outP << "Saida" << i;
+        if(i < step-1)
+        {
+            outP << ",";
+        }
+    }
+    outP << "};\n\n";
+    
+    outP << "minx=Min[Transpose[Flatten[SAIDAS,1]][[1]]];\n";
+    outP << "maxx=Max[Transpose[Flatten[SAIDAS,1]][[1]]];\n";
+    outP << "miny=Min[Transpose[Flatten[SAIDAS,1]][[2]]];\n";
+    outP << "maxy=Max[Transpose[Flatten[SAIDAS,1]][[2]]];\n\n";
+    
+    outP << "Manipulate[ListPlot[SAIDAS[[n]],Joined->True,AxesOrigin->{0,0},PlotRange->{{0,maxx},{0,maxy}},AxesLabel->{\"pos\",\"p\"}],{n,1,Length[SAIDAS],1}]\n\n";
+    
+    outJ << "};\n";
+    outJ << "ListPlot[J, Joined -> True,AxesLabel->{\"t\",\"KIplanestrain\"},AxesOrigin->{0,0},Filling->Axis]\n";
+    
+    outPWJ << "(*** PRESSAO ***)\n" << outP.str() << "\n\n(*** W ***)\n" << outVl.str() << "\n\n" << outW.str() << "\n\n(*** J ***)\n" << outJ.str();
     outPWJ.close();
 }
 
@@ -581,49 +642,6 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
 
 //------------------------------------------------------------------------------------
 
-//TPZFMatrix<REAL> ToolsTransient::InitialSolution(TPZGeoMesh *gmesh, TPZCompMesh * cmesh, int matId, int porder, REAL valsol){
-//    
-//    TPZAnalysis an(cmesh);
-//	int nrs = an.Solution().Rows();
-//    TPZVec<REAL> initsol(nrs,valsol);
-//    int dim = cmesh->Dimension();
-//    
-//    TPZCompMesh  * cmesh_projL2 = CMeshProjectionL2(gmesh, dim, matId, porder, initsol);
-//    TPZAnalysis anL2(cmesh_projL2);
-//	TPZSkylineStructMatrix full(cmesh_projL2);
-//	anL2.SetStructuralMatrix(full);
-//	TPZStepSolver<REAL> step;
-//	step.SetDirect(ELDLt);
-//	anL2.SetSolver(step);
-//	anL2.Run();
-//    
-//    TPZFMatrix<REAL> InitialSolution=anL2.Solution();
-//    cmesh->LoadSolution(InitialSolution);
-//    
-//    return InitialSolution;
-//}
-
-//TPZCompMesh * ToolsTransient::CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int matId, int pOrder, TPZVec<STATE> &solini)
-//{
-//    /// criar materiais
-//	TPZL2Projection *material;
-//	material = new TPZL2Projection(matId, dim, 1, solini, pOrder);
-//    
-//    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-//    cmesh->SetDimModel(dim);
-//    TPZMaterial * mat(material);
-//    cmesh->InsertMaterialObject(mat);
-//    
-//	cmesh->SetAllCreateFunctionsContinuous();
-//    
-//	cmesh->SetDefaultOrder(pOrder);
-//    cmesh->SetDimModel(dim);
-//	
-//	//Ajuste da estrutura de dados computacional
-//	cmesh->AutoBuild();
-//    
-//	return cmesh;
-//}
 
 void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics,
                                         TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec)
@@ -653,9 +671,9 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     
     std::cout << "\n******************** TRANSFERINDO ********************\n\n";
     
-    REAL AreaFrom = IntegrateUy(cmeshFrom);
+    REAL AreaFrom = IntegrateSolution(cmeshFrom, 0);
     
-    TPZAutoPointer< TPZFunction<STATE> > func = new TSolFunction<STATE>(cmeshFrom);
+    TPZAutoPointer< TPZFunction<STATE> > func = new TElastSolFunction<STATE>(cmeshFrom);
     
     //////L2Projection material
 //    int dim = cmeshFrom->Dimension();
@@ -696,7 +714,7 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     
     
     ///Integral correction
-    REAL AreaTo = IntegrateUy(cmeshTo);
+    REAL AreaTo = IntegrateSolution(cmeshTo, 0);
     
     if(fabs(AreaTo) > 1.E-18)
     {
@@ -715,7 +733,7 @@ void ToolsTransient::TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TP
     }
 }
 
-REAL ToolsTransient::IntegrateUy(TPZCompMesh * cmesh)
+REAL ToolsTransient::IntegrateSolution(TPZCompMesh * cmesh, int variable)
 {
     REAL integral = 0.;
     for(int c = 0; c < cmesh->NElements(); c++)
@@ -731,11 +749,90 @@ REAL ToolsTransient::IntegrateUy(TPZCompMesh * cmesh)
             DebugStop();
         }
         TPZVec<REAL> value;
-        intel->Integrate(0, value);
-        integral += value[1];
+        intel->Integrate(variable, value);
+        
+        if(value.NElements() == 1)//integrando Leakoff (vlAcum)
+        {
+            integral += value[0];
+        }
+        else if(value.NElements() == 2)//Integrando uy (w)
+        {
+            integral += value[1];
+        }
     }
     
     return integral;
+}
+
+
+std::map<int,REAL> ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh, TPZCompMesh * newFluidCMesh, std::stringstream & outVl)
+{
+    //////L2Projection material
+    int dim = 1;
+    int pOrder = 0;
+    int nsol = 1;
+    TPZVec<REAL> solini(nsol,0.);
+    TPZL2Projection * materialL2 = new TPZL2Projection(globPressureMatId, dim, nsol, solini, pOrder);
+    
+    TPZAutoPointer< TPZFunction<STATE> > func = new TLeakoffFunction<STATE>(oldMphysicsCMesh);
+    materialL2->SetForcingFunction(func);
+    
+    //////Inserindo na malha 1D
+    TPZCompMesh * cmeshTemp = new TPZCompMesh(newFluidCMesh->Reference());
+    
+    cmeshTemp->SetAllCreateFunctionsDiscontinuous();
+    cmeshTemp->AdjustBoundaryElements();
+
+    cmeshTemp->InsertMaterialObject(materialL2);
+    
+	cmeshTemp->AutoBuild();
+    
+    ///////Solving
+    TPZAnalysis anTemp(cmeshTemp);
+    TPZSkylineStructMatrix full(cmeshTemp);
+    anTemp.SetStructuralMatrix(full);
+    TPZStepSolver<REAL> step;
+    step.SetDirect(ELDLt);
+    anTemp.SetSolver(step);
+    anTemp.Run();
+    
+    anTemp.LoadSolution();
+    
+    {
+        REAL vlAcum = IntegrateSolution(cmeshTemp, 1);
+        outVl << "," << vlAcum;
+    }
+
+    std::map<int,REAL> newLeakoff;
+    
+    for(int cel = 0; cel < cmeshTemp->NElements(); cel++)
+    {
+        TPZCompEl * compEl = cmeshTemp->ElementVec()[cel];
+        TPZGeoEl * geoEl = compEl->Reference();
+        
+        int gelId = geoEl->Id();
+        TPZVec<REAL> center(geoEl->Dimension());
+        geoEl->CenterPoint(geoEl->NSides()-1, center);
+        
+        TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+        TPZMaterialData data;
+        intpEl->InitMaterialData(data);
+        intpEl->ComputeShape(center, data);
+        intpEl->ComputeSolution(center, data);
+        TPZL2Projection * L2proj = dynamic_cast<TPZL2Projection *>(compEl->Material());
+        TPZVec<REAL> Solout(1);
+        int var = 1;//TPZL2Projection::ESolution
+        L2proj->Solution(data, var, Solout);
+        
+        REAL vl = Solout[0];
+        if(vl < 0.)
+        {
+            vl = 0.;
+        }
+        newLeakoff[gelId] = vl;
+    }
+    
+    return newLeakoff;
 }
 
 void ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics, TPZFMatrix<REAL> & Un)
@@ -745,7 +842,6 @@ void ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *
 	TPZAutoPointer<TPZGuiInterface> guiInterface;
     matsp.CreateAssemble(Un,guiInterface);
 }
-
 
 bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxTime, TPZAnalysis *an,
                                         TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int & step,
@@ -776,9 +872,9 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     }
     
-	while(actTime <= (maxTime + deltaT/1000.) ) //passo de tempo
+	while( fMustStop == false ) //passo de tempo
 	{
-        outP << "Saida" << (int)(actTime) << "={";
+        outP << "Saida" << step << "={";
 
         fres.Zero();
         StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
@@ -838,10 +934,14 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
         }
 
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-        PlotWIntegral(meshvec[0], outW, actTime);
+        PlotWIntegral(meshvec[0], outW, step);
         
         step++;
         actTime += deltaT;
+        if( actTime > (maxTime + deltaT/1000.) )
+        {
+            fMustStop = true;
+        }
         
         REAL KI = ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ, step, actTime, false);
         if (KI > fInputData->KIc())
@@ -849,121 +949,6 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
             return true; // ***** PROPAGOU *****
         }
     }
-    
-    outW << "\nTrapArea[displ_]:=Block[{displSize,area,baseMin,baseMax,h},\n";
-    outW << "displSize = Length[displ];\n";
-    outW << "area = 0;\n";
-    outW << "For[i = 1, i < displSize,\n";
-    outW << "baseMin = displ[[i, 2]];\n";
-    outW << "baseMax = displ[[i + 1, 2]];\n";
-    outW << "h = displ[[i + 1, 1]] - displ[[i, 1]];\n";
-    outW << "area += (baseMin+baseMax)*h/2;\n";
-    outW << "i++;];\n";
-    outW << "area];\n\n";
-    outW << "Areas = {";
-    int nsteps = maxTime/deltaT + 0.5;
-    for(int ig = 0; ig<=nsteps; ig++)
-    {
-        outW << "{" << ig*deltaT << ",TrapArea[displ" << (int)(ig*deltaT) << "]}";
-        if(ig != nsteps)
-        {
-            outW << ",";
-        }
-    }
-    outW << "};\n\n";
-    
-    outW << "Qinj=" << fabs(fInputData->Qinj()) << ";\n";
-    outW << "Ttot = " << maxTime << ";\n";
-    outW << "nsteps = " << step-1 << ";\n";
-    outW << "dt = Ttot/nsteps;\n\n";
-    outW << "clnum = " << fInputData->Cl()*100000 << "*10^-5;\n";
-    outW << "pfracnum[t_] := press[t + dt/20];\n";
-    outW << "SigConfnum = " << fInputData->SigmaConf() << ";\n";
-    outW << "Penum = " << fInputData->Pe() << ";\n";
-    outW << "Prefnum = " << fInputData->Pref() << ";\n";
-    outW << "vspnum = " << fInputData->vsp()*100000 << "*10^-5;\n";
-    outW << "vlini = 0;\n";
-    outW << "(* FIM DOS INPUTS *)\n\n";
-    
-    outW << "(* KERNEL *)\n";
-    
-    outW << "vlF\\[Tau][cl_, pfrac_, SigConf_, Pe_, Pref_, vsp_, \\[Tau]_] :=Block[{clcorr, vlcomputed},\n";
-    outW << "clcorr = N[cl Sqrt[(pfrac + SigConf - Pe)/Pref]];\n";
-    outW << "vlcomputed = N[2 clcorr Sqrt[\\[Tau]] + vsp];\n";
-    outW << "vlcomputed\n";
-    outW << "];\n\n";
-    
-    outW << "qlFvlacumANDvlacumnext[vlacum_, dt_, cl_, pfrac_, SigConf_, Pe_,Pref_, vsp_] := Block[{clcorr, tstar, vlacumNext, qlcomputed},\n";
-    outW << "clcorr = N[cl Sqrt[(pfrac + SigConf - Pe)/Pref]];\n";
-    outW << "tstar = If[vlacum < vsp, 0, N[(vlacum - vsp)^2/(4 clcorr^2)]];\n";
-    outW << "vlacumNext =vlF\\[Tau][cl, pfrac, SigConf, Pe, Pref, vsp, tstar + dt];\n";
-    outW << "qlcomputed = N[(vlacumNext - vlacum)/dt];\n";
-    outW << "{qlcomputed, vlacumNext, tstar, tstar + dt}\n";
-    outW << "];\n\n";
-    
-    outW << "qlVec = {};\n";
-    outW << "vlVec = {{0, 0}};\n";
-    outW << "tstarsss = {};\n\n";
-    
-    outW << "pass = False;\n";
-    outW << "vlnext = vlini;\n";
-    outW << "For[step = 0, step < nsteps, step++,\n";
-    outW << "QlactVlnext = qlFvlacumANDvlacumnext[vlnext, dt, clnum, pfracnum[step*dt],SigConfnum, Penum, Prefnum, vspnum];\n";
-    outW << "qlact = QlactVlnext[[1]];\n";
-    outW << "vlnext = QlactVlnext[[2]];\n";
-    outW << "AppendTo[qlVec, {(step)*dt, qlact}];\n";
-    outW << "AppendTo[vlVec, {(step + 1)*dt, vlnext}];\n";
-    outW << "AppendTo[tstarsss, {QlactVlnext[[3]], QlactVlnext[[4]]}];\n";
-    outW << "];\n";
-    outW << "(* FIM DO KERNEL *)\n\n";
-    
-    outW << "(* OUTPUTS *)\n";
-    outW << "plVLnum =ListPlot[vlVec, AxesOrigin -> {0,0}, Joined -> True,PlotRange -> All, Filling -> Axis, AxesLabel -> {\"T\", \"VL\"},PlotStyle -> {Red, Thickness[0.012]}];\n";
-    outW << "plQLnum =ListPlot[qlVec, AxesOrigin -> {0,0}, Joined -> True,PlotRange -> All, PlotStyle -> {Red, Thickness[0.012]},Filling -> Axis, AxesLabel -> {\"T\", \"QL\"}];\n\n";
-    
-    outW << "Show[plQLnum]\n";
-    outW << "Show[plVLnum]\n\n";
-    
-    outW << "WintegralPlot =ListPlot[Areas, AxesOrigin -> {0,0},PlotStyle -> {PointSize[0.015]},AxesLabel->{\"t\",\"V\"},Filling->Axis];\n";
-    outW << "vInjTable = Table[{t,Qinj*t},{t,0,Ttot, dt}];\n";
-    outW << "vInj[t_] = Interpolation[vInjTable, InterpolationOrder -> 0][t];\n";
-    outW << "vfiltrado[t_] =Interpolation[vlVec, InterpolationOrder -> 0][t];\n";
-    outW << "vf[t_] = vInj[t-dt]-2*Lfnum*vfiltrado[t-dt];(*eh dado um shift no tempo por problemas do interpolation*)\n";
-    outW << "QfinalPlot = Plot[vf[t], {t, 0, Ttot}, PlotStyle -> Red,AxesOrigin->{0,0}];\n";
-    outW << "Show[WintegralPlot,QfinalPlot]\n";
-    outW << "(* FIM DOS OUTPUTS *)\n\n";
-    
-    //saida para mathematica
-    outP << "SAIDAS={Saida0,";
-    for(int i = 1; i < step; i++)
-    {
-        outP << "Saida" << (int)(i*deltaT);
-        if(i < step-1)
-        {
-            outP << ",";
-        }
-    }
-    outP << "};\n\n";
-    
-    outP << "minx=Min[Transpose[Flatten[SAIDAS,1]][[1]]];\n";
-    outP << "maxx=Max[Transpose[Flatten[SAIDAS,1]][[1]]];\n";
-    outP << "miny=Min[Transpose[Flatten[SAIDAS,1]][[2]]];\n";
-    outP << "maxy=Max[Transpose[Flatten[SAIDAS,1]][[2]]];\n\n";
-    
-    outP << "Manipulate[ListPlot[SAIDAS[[n]],Joined->True,AxesOrigin->{0,0},PlotRange->{{0,maxx},{0,maxy}},AxesLabel->{\"pos\",\"p\"}],{n,1,Length[SAIDAS],1}]\n\n";
-    outP << "Lfnum = " << fInputData->Lf() << ";\n\n";
-    outP << "TimePressVec = {};\n";
-    outP << "For[pos = 1, pos <= Length[SAIDAS], pos++,\n";
-    
-    outP << "fp=Interpolation[SAIDAS[[pos]],InterpolationOrder->0];\n";
-    outP << "AppendTo[TimePressVec, {(pos - 1)*" << deltaT << ", fp[Lfnum/2]}];];\n";
-    
-    outP << "ListPlot[TimePressVec, Joined -> True,AxesLabel->{\"t\",\"p\"},AxesOrigin->{0,0}]\n";
-    outP << "press = Interpolation[TimePressVec,InterpolationOrder->0];\n";
-    
-    
-    outJ << "};\n";
-    outJ << "ListPlot[J, Joined -> True,AxesLabel->{\"t\",\"KIplanestrain\"},AxesOrigin->{0,0},Filling->Axis]\n";
     
     return false;//Atingiu o final, não propagando portanto!
 }
@@ -1047,7 +1032,7 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW,
 {
     cmesh->LoadReferences();
     TPZCompMeshReferred * cmeshref = dynamic_cast<TPZCompMeshReferred*>(cmesh);
-    outW << "displ" << (int)(solNum) << "={";
+    outW << "displ" << solNum << "={";
     int npts = 1;
     
     bool isFirstTime = true;
@@ -1194,30 +1179,6 @@ void ToolsTransient::PosProcessMult(TPZAnalysis *an, std::string plotfile)
 	an->PostProcess(div);
 }
 
-//TPZFMatrix<REAL> ToolsTransient::SetSolution(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder, int matId, REAL valIni){
-//    
-//    TPZAnalysis an(cmesh);
-//    int dim = cmesh->Dimension();
-//	int nrs = an.Solution().Rows();
-//    TPZVec<REAL> loadvec(nrs,valIni);
-//    TPZCompMesh  * cmesh_projL2 = ToolsTransient::CMeshProjectionL2(gmesh,dim, matId, pOrder, loadvec);
-//    TPZAnalysis anL2(cmesh_projL2);
-//    
-//    //Solve
-//	TPZSkylineStructMatrix full(cmesh_projL2);
-//	anL2.SetStructuralMatrix(full);
-//	TPZStepSolver<REAL> step;
-//	step.SetDirect(ELDLt);
-//	anL2.SetSolver(step);
-//	anL2.Run();
-//    
-//    TPZFMatrix<REAL> InitSol;
-//    InitSol = anL2.Solution();
-//    
-//    return InitSol;
-//}
-
-
 void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
                                TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
 {    
@@ -1310,32 +1271,32 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an, TPZNLF
 
 
 template<class TVar>
-TSolFunction<TVar>::TSolFunction()
+TElastSolFunction<TVar>::TElastSolFunction()
 {
-    fIniIndex = 0;
+    fIniElIndex = 0;
     fcmesh = NULL;
 }
 
 template<class TVar>
-TSolFunction<TVar>::TSolFunction(TPZCompMesh * cmesh)
+TElastSolFunction<TVar>::TElastSolFunction(TPZCompMesh * cmesh)
 {
-    fIniIndex = 0;
+    fIniElIndex = 0;
     this->fcmesh = cmesh;
 }
 
 template<class TVar>
-TSolFunction<TVar>::~TSolFunction()
+TElastSolFunction<TVar>::~TElastSolFunction()
 {
-    fIniIndex = 0;
+    fIniElIndex = 0;
     fcmesh = NULL;
 }
 
 template<class TVar>
-void TSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
+void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
 {
     TPZVec<REAL> xcp(x);
-    TPZVec<REAL> qsi2D(fcmesh->Dimension(),0.);
-    TPZGeoEl * gel = fcmesh->Reference()->FindElement(xcp, qsi2D, fIniIndex, fcmesh->Dimension());
+    TPZVec<REAL> qsi2D(2,0.);
+    TPZGeoEl * gel = fcmesh->Reference()->FindElement(xcp, qsi2D, fIniElIndex, 2);
 
     if(!gel)
     {
@@ -1367,28 +1328,124 @@ void TSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
 }
 
 template<class TVar>
-void TSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
+void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
 {
     DebugStop();
 }
 
 template<class TVar>
-void TSolFunction<TVar>::ComputeUy(const TPZVec<REAL> &x, REAL &uy)
-{
-    TPZVec<TVar> f;
-    Execute(x, f);
-    uy = f[1];
-}
-
-template<class TVar>
-int TSolFunction<TVar>::NFunctions()
+int TElastSolFunction<TVar>::NFunctions()
 {
     return 2;
 }
 
 template<class TVar>
-int TSolFunction<TVar>::PolynomialOrder()
+int TElastSolFunction<TVar>::PolynomialOrder()
 {
     return fcmesh->GetDefaultOrder();
+}
+
+
+//---------------------------------------------------------------
+
+
+template<class TVar>
+TLeakoffFunction<TVar>::TLeakoffFunction()
+{
+    fIniElIndex = 0;
+    fcmesh = NULL;
+    fleakoffMap.clear();
+}
+
+template<class TVar>
+TLeakoffFunction<TVar>::TLeakoffFunction(TPZCompMesh * cmesh)
+{
+    this->fIniElIndex = 0;
+    this->fcmesh = cmesh;
+    
+    std::map<int,TPZMaterial*>::iterator it = cmesh->MaterialVec().find(globMultiFisicMatId);
+    if(it != cmesh->MaterialVec().end())
+    {
+        TPZNLFluidStructure2d * fluidMat = dynamic_cast<TPZNLFluidStructure2d*>(it->second);
+        if(fluidMat)
+        {
+            this->fleakoffMap = fluidMat->GetLeakoffData();
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
+    else
+    {
+        DebugStop();
+    }
+}
+
+template<class TVar>
+TLeakoffFunction<TVar>::~TLeakoffFunction()
+{
+    fIniElIndex = 0;
+    fcmesh = NULL;
+    fleakoffMap.clear();
+}
+
+template<class TVar>
+void TLeakoffFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
+{
+    TPZVec<REAL> xcp(x);
+    TPZVec<REAL> qsi1D(1,0.);
+    TPZGeoEl * gel = fcmesh->Reference()->FindElement(xcp, qsi1D, fIniElIndex, 1);
+    if(!gel)
+    {
+        DebugStop();
+    }
+    
+    if(gel->MaterialId() != globPressureMatId)
+    {
+        TPZGeoElSide gelSide(gel->NSides()-1);
+        TPZGeoElSide neighSide(gelSide.Neighbour());
+        while(neighSide != gelSide)
+        {
+            if(neighSide.Element()->MaterialId() == globPressureMatId)
+            {
+                gel = neighSide.Element();
+            }
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    if(gel->MaterialId() != globPressureMatId)
+    {
+        f[0] = 0.;
+        return;
+    }
+    
+    int elId = gel->Id();
+    std::map<int,REAL>::iterator it = fleakoffMap.find(elId);
+    if(it == fleakoffMap.end())
+    {
+        DebugStop();
+    }
+    
+    f.Resize(1);
+    f[0] = it->second;
+}
+
+template<class TVar>
+void TLeakoffFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
+{
+    DebugStop();
+}
+
+template<class TVar>
+int TLeakoffFunction<TVar>::NFunctions()
+{
+    return 1;
+}
+
+template<class TVar>
+int TLeakoffFunction<TVar>::PolynomialOrder()
+{
+    return 0;
 }
 

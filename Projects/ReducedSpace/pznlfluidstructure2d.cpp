@@ -75,7 +75,6 @@ void TPZNLFluidStructure2d::Print(std::ostream &out) {
 
 void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
-    
     if(gState == ELastState)
     {
         return;
@@ -810,7 +809,7 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     return dQldpfrac;
 }
 
-std::ofstream outVl("vl.txt");
+
 void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
 {
     std::map<int,REAL>::iterator it;
@@ -873,10 +872,7 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
         
         it->second = Vlnext;
-        if(outVlCount == 0)
-        {
-            outVl << VlAcum << "\n";
-        }
+
         outVlCount++;
     }
     

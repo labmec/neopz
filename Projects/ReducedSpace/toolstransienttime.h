@@ -47,7 +47,8 @@ class ToolsTransient
                                 std::string & outputfile);
     
     void TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TPZCompMeshReferred * cmeshTo);
-    REAL IntegrateUy(TPZCompMesh * cmesh);
+    REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);
+    std::map<int,REAL> TransferLeakoff(TPZCompMesh * oldMphysicsCMesh, TPZCompMesh * newFluidCMesh, std::stringstream & outVl);
     
     //---------------------------------------------------------------
     
@@ -76,6 +77,7 @@ class ToolsTransient
     //---------------------------------------------------------------
     
     int fpOrder;
+    bool fMustStop;
     
     InputDataStruct * fInputData;
     
@@ -84,7 +86,7 @@ class ToolsTransient
 
 
 template<class TVar>
-class TSolFunction : public TPZFunction<TVar>
+class TElastSolFunction : public TPZFunction<TVar>
 {
     
     public:
@@ -92,18 +94,17 @@ class TSolFunction : public TPZFunction<TVar>
     /**
      * Class constructor
      */
-    TSolFunction();
+    TElastSolFunction();
     
-    TSolFunction(TPZCompMesh * cmesh);
+    TElastSolFunction(TPZCompMesh * cmesh);
     
     /**
      * Class destructor
      */
-    ~TSolFunction();
+    ~TElastSolFunction();
     
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df);
-    virtual void ComputeUy(const TPZVec<REAL> &x, REAL &uy);
     
     /** Returns number of functions.
      */
@@ -115,8 +116,43 @@ class TSolFunction : public TPZFunction<TVar>
     virtual int PolynomialOrder();
     
     TPZCompMesh * fcmesh;
-    int fIniIndex;
+    int fIniElIndex;
     
+};
+
+template<class TVar>
+class TLeakoffFunction : public TPZFunction<TVar>
+{
+    
+public:
+    
+    /**
+     * Class constructor
+     */
+    TLeakoffFunction();
+    
+    TLeakoffFunction(TPZCompMesh * cmesh);
+    
+    /**
+     * Class destructor
+     */
+    ~TLeakoffFunction();
+    
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f);
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df);
+    
+    /** Returns number of functions.
+     */
+    virtual int NFunctions();
+    
+    /** Polynomial order of this function. In case of non-polynomial
+     * function it can be a reasonable approximation order.
+     */
+    virtual int PolynomialOrder();
+    
+    TPZCompMesh * fcmesh;
+    int fIniElIndex;
+    std::map<int,REAL> fleakoffMap;
 };
 
 #endif
