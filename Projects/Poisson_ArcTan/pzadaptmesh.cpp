@@ -246,11 +246,11 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
         auxerror += fElementError[perm[i]];
         if(!IsZero(fElementError[perm[i]])) {
             counter++;
-            minimumerror = (minimumerror < fElementError[perm[i]] ? minimumerror : fElementError[perm[i]]);
+//            minimumerror = (minimumerror < fElementError[perm[i]] ? minimumerror : fElementError[perm[i]]);
         }
     }
     if(counter)
-        minimumerror -= 100*ZeroTolerance();
+        minimumerror = fabs(auxerror/counter) - 100*ZeroTolerance();
     
     if(f) {
         for(i=0; i<nelmesh; i++) {
