@@ -157,6 +157,7 @@ public:
         }
 
         TPZCompMesh *cmesh = GenerateCompMesh(gmesh);
+        int dim = cmesh->Dimension();
         
 #ifdef LOG4CXX
         {
@@ -178,7 +179,7 @@ public:
 
         
         TPZSkylineStructMatrix skylstr(cmesh);
-//        skylstr.SetNumThreads(20);
+        skylstr.SetNumThreads(20);
         analysis.SetStructuralMatrix(skylstr);
         TPZStepSolver<STATE> step;
         step.SetDirect(ELDLt);
@@ -191,11 +192,11 @@ public:
 
         std::stringstream sout;
         sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << "_P" << POrder << ".vtk";
-        analysis.DefineGraphMesh(3,scalnames,vecnames,sout.str());
+        analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
         
         analysis.Run();
         
-        analysis.PostProcess(0,3);
+        analysis.PostProcess(0,dim);
 
         analysis.PostProcessError(errvec,std::cout);
         
