@@ -173,10 +173,10 @@ public:
 	virtual void CalcResidual(TPZElementMatrix &ef);
 	
 	/** @brief Initialize element matrix in which is computed CalcStiff */
-	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
 	/** @brief Initialize element matrix in which is computed in CalcResidual */
-	void InitializeElementMatrix(TPZElementMatrix &ef);
+	virtual void InitializeElementMatrix(TPZElementMatrix &ef);
 	
 	/** @brief Returns minimum and maximum values for each state variable */
 	/** 
