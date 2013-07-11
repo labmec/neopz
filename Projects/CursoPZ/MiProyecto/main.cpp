@@ -362,6 +362,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem)
                 for (int el=0; el<2; el++)
                 {
                     TPZManVector<int,4> elnodes(4);
+                    int index;
                     for (int il=0; il<4; il++) {
                         elnodes[il] = nodes[tetraedra[el][il]];
                     }

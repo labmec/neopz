@@ -222,7 +222,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
 		ErrorVecData[i][0] = fElementError[i];
 		ErrorVecData[i][1] = truervec[i];
 		if(IsZero(truervec[i]))
-			ErrorVecData[i][2] = -1.;
+			ErrorVecData[i][2] = fElementError[i];
 		else
 			ErrorVecData[i][2] = fElementError[i]/truervec[i];
 	}
@@ -267,7 +267,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
                 effect[i] = ervec[i]/truervec[i];
             }
             else {
-                effect[i]=0.;
+                effect[i]=ervec[i];
             }
         }
     }
