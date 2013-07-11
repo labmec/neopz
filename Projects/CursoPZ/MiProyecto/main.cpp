@@ -252,10 +252,10 @@ int main(int argc, char *argv[]) {
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=1;gcase<2;gcase++)
+        for(int gcase=0;gcase<2;gcase++)
             for(int nelem=3;nelem<50;nelem*=2) {
                 if(nelem>30)
-                    nelem = 36;
+                    nelem = 30;
                 cedric.Run(nelem,gcase);
             }
     }
