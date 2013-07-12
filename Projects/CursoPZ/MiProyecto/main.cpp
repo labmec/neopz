@@ -182,7 +182,7 @@ public:
         TPZManVector<STATE> errvec;
 
         TPZSkylineStructMatrix skylstr(cmesh);
-    //    skylstr.SetNumThreads(30);
+        skylstr.SetNumThreads(30);
         analysis.SetStructuralMatrix(skylstr);
         TPZStepSolver<STATE> step;
         step.SetDirect(ELDLt);
@@ -251,13 +251,13 @@ int main(int argc, char *argv[]) {
 
     // setting p order
     /** Set polynomial order */
-    for(POrder=1;POrder<3;POrder++) {
+    for(POrder=1;POrder<4;POrder++) {
         TPZCompEl::SetgOrder(POrder);
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=3;gcase<4;gcase++)
-            for(int nelem=4;nelem<35;nelem+=5) {
+        for(int gcase=1;gcase<4;gcase++)
+            for(int nelem=3;nelem<30;nelem+=5) {
                 cedric.Run(nelem,gcase);
             }
     }
@@ -339,41 +339,6 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem)
 }
 TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata)
 {
-/*    TPZGeoMesh *gmesh = new TPZGeoMesh;
-    GenerateNodes(gmesh, nelem);
-    
-    for (int i=0; i<nelem; i++) {
-        for (int j=0; j<nelem; j++) {
-            for (int k=0; k<nelem; k++) {
-                TPZManVector<int,8> nodes(8,0);
-                nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
-                nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
-                nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
-                nodes[3] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-                nodes[4] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
-                nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
-                nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
-                nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
-                {
-                    std::stringstream sout;
-                    sout << "Pyramid nodes " << nodes;
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-                for (int el=0; el<2; el++)
-                {
-                    TPZManVector<int,4> elnodes(4);
-                    int index;
-                    for (int il=0; il<4; il++) {
-                        elnodes[il] = nodes[tetraedra[el][il]];
-                    }
-                    gmesh->CreateGeoElement(ETetraedro, elnodes, 1, index);
-                }
-            }
-        }
-    }
-    gmesh->BuildConnectivity(); */
     // CONSIDERING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
     // And dividing into five tetrahedras
     TPZGeoMesh *gmesh = new TPZGeoMesh();
@@ -441,19 +406,6 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata)
 
     UniformRefinement((int)(nelemdata/5),gmesh,3);
 
-    /* face 0 (20) bottom XY
-    TPZGeoElBC gbc20(gmesh->ElementVec()[0],10,id_bc0);
-    TPZGeoElBC gbc21(gmesh->ElementVec()[0],11,id_bc0);
-    TPZGeoElBC gbc22(gmesh->ElementVec()[0],13,id_bc0);
-    TPZGeoElBC gbc23(gmesh->ElementVec()[1],10,id_bc0);
-    TPZGeoElBC gbc24(gmesh->ElementVec()[1],11,id_bc0);
-    TPZGeoElBC gbc25(gmesh->ElementVec()[1],12,id_bc0);
-    TPZGeoElBC gbc26(gmesh->ElementVec()[2],10,id_bc0);
-    TPZGeoElBC gbc27(gmesh->ElementVec()[2],11,id_bc0);
-    TPZGeoElBC gbc28(gmesh->ElementVec()[2],12,id_bc0);
-    TPZGeoElBC gbc29(gmesh->ElementVec()[3],10,id_bc0);
-    TPZGeoElBC gbc30(gmesh->ElementVec()[3],11,id_bc0);
-    TPZGeoElBC gbc31(gmesh->ElementVec()[3],12,id_bc0); */
     return gmesh;
 }
 

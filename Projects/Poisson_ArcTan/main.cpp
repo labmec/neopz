@@ -204,7 +204,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)ETetraedro;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -223,7 +223,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
                 MaxPOrder = 5;
-                NRefs = 5;
+                NRefs = 4;
             }
             else if(dim==2) {
                 MaxPOrder = 10;
