@@ -364,21 +364,21 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 4://ETetraedro
 		{
-			std::cout << "\n\tinserting uniform refpattern: tetrahedre\n";
+			std::cout << "\n\tinserting uniform refpattern: tetrahedra\n";
 			char buf[] =
             "11  13  "
             "-50   UnifTet "
-            "0.   0.   0. "
-            "1.   0.   0. "
-            "0.   1.   0. "
-            "0.   0.   1. "
-            "0.5  0.   0. "
-            "0.5  0.5  0. "
-            "0.   0.5  0. "
-            "0.   0.   0.5 "
-            "0.5  0.   0.5 "
-            "0    0.5  0.5 "
-            "0.33333  0.33333  0.33333 "
+            "0.    0.    0. "
+            "1.    0.    0. "
+            "0.    1.    0. "
+            "0.    0.    1. "
+            "0.5   0.    0. "
+            "0.5   0.5   0. "
+            "0.    0.5   0. "
+            "0.    0.    0.5 "
+            "0.5   0.    0.5 "
+            "0     0.5   0.5 "
+            "0.25  0.25  0.25 "
             "4    4    0  1  2  3 "
             "4    4    0  4  6  7 "
             "4    4    4  1  5  8 "

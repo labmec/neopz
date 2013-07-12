@@ -38,10 +38,10 @@ TPZIntRuleList::TPZIntRuleList() {
                  fminl(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
 #endif
 	// Cleaning integration rules vectors
-	fintlist.Resize(maxorder+1);
-	fintlistT.Resize(maxorder+1);
-	fintlistT3D.Resize(maxorder+1);
-	fintlistP3D.Resize(maxorder+1);
+	fintlist.Resize(maxorder+1,NULL);
+	fintlistT.Resize(maxorder+1,NULL);
+	fintlistT3D.Resize(maxorder+1,NULL);
+	fintlistP3D.Resize(maxorder+1,NULL);
 
 	first++;
 }

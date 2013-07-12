@@ -182,7 +182,7 @@ public:
         TPZManVector<STATE> errvec;
 
         TPZSkylineStructMatrix skylstr(cmesh);
-        skylstr.SetNumThreads(30);
+    //    skylstr.SetNumThreads(30);
         analysis.SetStructuralMatrix(skylstr);
         TPZStepSolver<STATE> step;
         step.SetDirect(ELDLt);
@@ -251,13 +251,13 @@ int main(int argc, char *argv[]) {
 
     // setting p order
     /** Set polynomial order */
-    for(POrder=3;POrder<4;POrder++) {
+    for(POrder=1;POrder<3;POrder++) {
         TPZCompEl::SetgOrder(POrder);
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=1;gcase<3;gcase++)
-            for(int nelem=3;nelem<35;nelem+=5) {
+        for(int gcase=3;gcase<4;gcase++)
+            for(int nelem=4;nelem<35;nelem+=5) {
                 cedric.Run(nelem,gcase);
             }
     }
@@ -439,7 +439,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata)
     }
     gmesh->BuildConnectivity();
 
-    UniformRefinement((int)((nelemdata)/2),gmesh,3);
+    UniformRefinement((int)(nelemdata/5),gmesh,3);
 
     /* face 0 (20) bottom XY
     TPZGeoElBC gbc20(gmesh->ElementVec()[0],10,id_bc0);
