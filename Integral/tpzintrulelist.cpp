@@ -28,6 +28,20 @@ TPZIntRuleList::TPZIntRuleList() {
 	fintlistT.Resize(0);
 	fintlistT3D.Resize(0);
 	fintlistP3D.Resize(0);
+    
+    int maxorder;
+#ifdef VC
+	maxorder = min(TPZIntRuleT::NRULESTRIANGLE_ORDER, \
+			   min(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
+#else
+	maxorder = fminl(TPZIntRuleT::NRULESTRIANGLE_ORDER, \
+                 fminl(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
+#endif
+	// Cleaning integration rules vectors
+	fintlist.Resize(maxorder+1);
+	fintlistT.Resize(maxorder+1);
+	fintlistT3D.Resize(maxorder+1);
+	fintlistP3D.Resize(maxorder+1);
 
 	first++;
 }

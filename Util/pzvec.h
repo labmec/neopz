@@ -330,8 +330,10 @@ void TPZVec<T>::Resize(const long newsize,const T& object) {
 	for(;i<newsize;i++) {   // then only to case : large=fNElement < newsize
 		newstore[i] = object;
 	}
-    if(fStore)
+    if(fStore) {
         delete[] fStore;
+        fStore = 0;
+    }
 	fStore = newstore;
 	fNElements = newsize;//cedric 20/11/99 e 29/04/00
 }

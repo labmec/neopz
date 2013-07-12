@@ -46,11 +46,14 @@ using namespace std;
 /** Using shape library from NeoPZ code */
 using namespace pzshape;
 
-bool gDebug = true;
+bool gDebug = false;
 int POrder = 1;
+
+int MaterialId = 1;
 
 /** To print geometric elements with respective dimension */
 void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
 
 
 /** To numerical test from Cedric+Renato publication */
@@ -75,7 +78,7 @@ public:
     TPZGeoMesh *TetrahedralMesh(int nelem);
     TPZGeoMesh *HexahedralMesh(int nelem);
 
-    void AddBoundaryElements(TPZGeoMesh *gmesh);
+    int AddBoundaryElements(TPZGeoMesh *gmesh);
 
     TPZCompMesh *GenerateCompMesh(TPZGeoMesh *gmesh);
 
@@ -125,6 +128,7 @@ public:
     void Run(int nelem,int geocase)
     {
         TPZGeoMesh *gmesh;
+        std::cout << "\n\nRunning Cedric Test: \t";
         switch(geocase) {
             case 1:
                 std::cout << "Type of element: Hexahedral.\n";
@@ -147,7 +151,7 @@ public:
         }
 #endif
         CheckConsistency(gmesh);
-        AddBoundaryElements(gmesh);
+        int nelembc = AddBoundaryElements(gmesh);
         
         // Printing geometric mesh to validate
         if(gDebug) {
@@ -169,22 +173,21 @@ public:
         
         TPZAnalysis analysis(cmesh);
 
-        ofstream saida("Errors.txt",ios::app);
-        saida << "****\n\nRodando com " << nelem << " elementos. Order = " << POrder << "\n";
-        saida << "No de equacoes " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
-        std::cout << "****\n\nRodando com " << nelem << " elementos. Order = " << POrder << "\n";
-        std::cout << "No de equacoes " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        ofstream arq_saida("Errors.txt",ios::app);
+        arq_saida << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        arq_saida << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        std::cout << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        std::cout << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
         analysis.SetExact(Exact);
         TPZManVector<STATE> errvec;
 
-        
         TPZSkylineStructMatrix skylstr(cmesh);
-        skylstr.SetNumThreads(20);
+        skylstr.SetNumThreads(30);
         analysis.SetStructuralMatrix(skylstr);
         TPZStepSolver<STATE> step;
         step.SetDirect(ELDLt);
         analysis.SetSolver(step);
-        
+
         // To post process
         /** Variable names for post processing */
         TPZStack<std::string> scalnames, vecnames;
@@ -200,7 +203,7 @@ public:
 
         analysis.PostProcessError(errvec,std::cout);
         
-        saida << "errvec " << errvec << std::endl;
+        arq_saida << "errvec " << errvec << std::endl;
         
     }
 
@@ -248,15 +251,13 @@ int main(int argc, char *argv[]) {
 
     // setting p order
     /** Set polynomial order */
-    for(POrder=1;POrder<4;POrder++) {
+    for(POrder=3;POrder<4;POrder++) {
         TPZCompEl::SetgOrder(POrder);
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=0;gcase<2;gcase++)
-            for(int nelem=3;nelem<50;nelem*=2) {
-                if(nelem>30)
-                    nelem = 30;
+        for(int gcase=1;gcase<3;gcase++)
+            for(int nelem=3;nelem<35;nelem+=5) {
                 cedric.Run(nelem,gcase);
             }
     }
@@ -323,12 +324,12 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem)
                         elnodes[il] = nodes[pyramid[el][il]];
                     }
                     int index;
-                    gmesh->CreateGeoElement(EPiramide, elnodes, 1, index);
+                    gmesh->CreateGeoElement(EPiramide, elnodes, MaterialId, index);
                     elnodes.resize(4);
                     for (int il=0; il<4; il++) {
                         elnodes[il] = nodes[tetraedra[el][il]];
                     }
-                    gmesh->CreateGeoElement(ETetraedro, elnodes, 1, index);
+                    gmesh->CreateGeoElement(ETetraedro, elnodes, MaterialId, index);
                 }
             }
         }
@@ -336,9 +337,9 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem)
     gmesh->BuildConnectivity();
     return gmesh;
 }
-TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem)
+TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata)
 {
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
+/*    TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh, nelem);
     
     for (int i=0; i<nelem; i++) {
@@ -372,7 +373,87 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem)
             }
         }
     }
+    gmesh->BuildConnectivity(); */
+    // CONSIDERING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
+    // And dividing into five tetrahedras
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    REAL InitialL = 1.0;
+    
+    const int nelem = 5;
+    const int nnode = 8;
+    REAL co[nnode][3] = {
+        {0.,0.,0.},
+        {InitialL,0.,0.},
+        {InitialL,InitialL,0.},
+        {0.,InitialL,0.},
+        {0.,0.,InitialL},
+        {InitialL,0.,InitialL},
+        {InitialL,InitialL,InitialL},
+        {0.,InitialL,InitialL},
+    };
+    int nod;
+    for(nod=0; nod<nnode; nod++) {
+        int nodind = gmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        coord[0] = co[nod][0];
+        coord[1] = co[nod][1];
+        coord[2] = co[nod][2];
+        gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    }
+    
+    TPZVec<TPZVec<int> > indices(nelem);
+    int nnodebyelement = 4;
+    int el;
+    for(el=0;el<nelem;el++)
+        indices[el].Resize(nnodebyelement);
+    // nodes to first element
+    indices[0][0] = 0;
+    indices[0][1] = 1;
+    indices[0][2] = 3;
+    indices[0][3] = 4;
+    // nodes to second element
+    indices[1][0] = 1;
+    indices[1][1] = 2;
+    indices[1][2] = 3;
+    indices[1][3] = 6;
+    // nodes to third element
+    indices[2][0] = 4;
+    indices[2][1] = 5;
+    indices[2][2] = 6;
+    indices[2][3] = 1;
+    // nodes to fourth element
+    indices[3][0] = 6;
+    indices[3][1] = 7;
+    indices[3][2] = 4;
+    indices[3][3] = 3;
+    // nodes to fifth element
+    indices[4][0] = 1;
+    indices[4][1] = 4;
+    indices[4][2] = 6;
+    indices[4][3] = 3;
+    
+    TPZGeoEl *elvec[nelem];
+    for(el=0; el<nelem; el++) {
+        int index;
+        elvec[el] = gmesh->CreateGeoElement(ETetraedro,indices[el],MaterialId,index);
+    }
     gmesh->BuildConnectivity();
+
+    UniformRefinement((int)((nelemdata)/2),gmesh,3);
+
+    /* face 0 (20) bottom XY
+    TPZGeoElBC gbc20(gmesh->ElementVec()[0],10,id_bc0);
+    TPZGeoElBC gbc21(gmesh->ElementVec()[0],11,id_bc0);
+    TPZGeoElBC gbc22(gmesh->ElementVec()[0],13,id_bc0);
+    TPZGeoElBC gbc23(gmesh->ElementVec()[1],10,id_bc0);
+    TPZGeoElBC gbc24(gmesh->ElementVec()[1],11,id_bc0);
+    TPZGeoElBC gbc25(gmesh->ElementVec()[1],12,id_bc0);
+    TPZGeoElBC gbc26(gmesh->ElementVec()[2],10,id_bc0);
+    TPZGeoElBC gbc27(gmesh->ElementVec()[2],11,id_bc0);
+    TPZGeoElBC gbc28(gmesh->ElementVec()[2],12,id_bc0);
+    TPZGeoElBC gbc29(gmesh->ElementVec()[3],10,id_bc0);
+    TPZGeoElBC gbc30(gmesh->ElementVec()[3],11,id_bc0);
+    TPZGeoElBC gbc31(gmesh->ElementVec()[3],12,id_bc0); */
     return gmesh;
 }
 
@@ -401,7 +482,7 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(int nelem)
                 }
 #endif
                 int index;
-                gmesh->CreateGeoElement(ECube, nodes, 1, index);
+                gmesh->CreateGeoElement(ECube, nodes, MaterialId, index);
             }
         }
     }
@@ -460,28 +541,30 @@ void TCedricTest::CheckConsistency(TPZGeoMesh *mesh)
 
 TPZCompMesh *TCedricTest::GenerateCompMesh(TPZGeoMesh *gmesh)
 {
-    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     int dim=3;
-    
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+
+    /** Inserting material */
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,dim);
-    
     TPZAutoPointer<TPZFunction<STATE> > force = new ForceFunction;
-    
     poiss->SetForcingFunction(force );
+    cmesh->InsertMaterialObject(poiss);
     
+    /** Inserting boundary condition - Dirichlet with value 0.0 */
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     TPZBndCond *bc = new TPZBndCond(poiss, -1, 0, val1, val2);
-    
-    cmesh->InsertMaterialObject(poiss);
     cmesh->InsertMaterialObject(bc);
     
+    /** Constructing computational mesh */
     cmesh->AutoBuild();
     
     return cmesh;
 }
 
-void TCedricTest::AddBoundaryElements(TPZGeoMesh *gmesh)
+int TCedricTest::AddBoundaryElements(TPZGeoMesh *gmesh)
 {
+    int nelembc = 0;
     int nelem = gmesh->NElements();
     for (int el = 0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];
@@ -493,12 +576,38 @@ void TCedricTest::AddBoundaryElements(TPZGeoMesh *gmesh)
             }
             if (gelside.Neighbour() == gelside) {
                 TPZGeoElBC(gelside, -1);
+                nelembc++;
             }
         }
     }
+    return nelembc;
 }
 
 
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
+  TPZManVector<TPZGeoEl*> filhos;
+  for(int D=0; D<nDiv; D++)
+  {
+      int nels = gmesh->NElements();
+      for(int elem = 0; elem < nels; elem++)
+      {    
+          TPZGeoEl * gel = gmesh->ElementVec()[elem];
+          if(!gel || gel->HasSubElement())
+              continue;
+          if(dim > 0 && gel->Dimension() != dim) continue;
+          if(!allmaterial){
+              if(gel->MaterialId() == matidtodivided){
+                  gel->Divide(filhos);
+              }
+          }
+          else{
+              gel->Divide(filhos);
+          }
+      }
+  }
+  gmesh->ResetConnectivities();
+  gmesh->BuildConnectivity();
+}
 
 
 /**********************************************************************
