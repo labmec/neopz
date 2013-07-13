@@ -40,6 +40,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
 #endif
 
+// output files  -> Because it has many energy faults
+std::ofstream out("output.txt");
 
 /** Using standard library for C++ */
 using namespace std;
@@ -132,14 +134,17 @@ public:
         switch(geocase) {
             case 1:
                 std::cout << "Type of element: Hexahedral.\n";
+                out << "Type of element: Hexahedral.\n";
                 gmesh = HexahedralMesh(nelem);
                 break;
             case 2:
                 std::cout << "Type of element: Pyramidal and tetrahedral.\n";
+                out << "Type of element: Pyramidal and tetrahedral.\n";
                 gmesh = PyramidalAndTetrahedralMesh(nelem);
                 break;
             case 3:
                 std::cout << "Type of elements: Tetrahedral.\n";
+                out << "Type of elements: Tetrahedral.\n";
                 gmesh = TetrahedralMesh(nelem);
                 break;
         }
@@ -175,9 +180,24 @@ public:
 
         ofstream arq_saida("Errors.txt",ios::app);
         arq_saida << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        switch(geocase) {
+            case 1:
+                arq_saida << "Type of element: Hexahedral.\n";
+                break;
+            case 2:
+                arq_saida << "Type of element: Pyramidal and tetrahedral.\n";
+                break;
+            case 3:
+                arq_saida << "Type of elements: Tetrahedral.\n";
+                break;
+            default:
+                arq_saida << "Undefined type.\n";
+        }
         arq_saida << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
         std::cout << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
         std::cout << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        out << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
         analysis.SetExact(Exact);
         TPZManVector<STATE> errvec;
 
@@ -202,9 +222,19 @@ public:
         analysis.PostProcess(0,dim);
 
         analysis.PostProcessError(errvec,std::cout);
+        analysis.PostProcessError(errvec,out);
         
         arq_saida << "errvec " << errvec << std::endl;
-        
+     
+        /** Cleaning allocated meshes */
+        if(cmesh) {
+            delete cmesh;
+            cmesh = NULL;
+        }
+        if(gmesh) {
+            delete gmesh;
+            gmesh = NULL;
+        }
     }
 
 };
@@ -251,13 +281,13 @@ int main(int argc, char *argv[]) {
 
     // setting p order
     /** Set polynomial order */
-    for(POrder=1;POrder<4;POrder++) {
+    for(POrder=2;POrder<4;POrder++) {
         TPZCompEl::SetgOrder(POrder);
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=1;gcase<4;gcase++)
-            for(int nelem=3;nelem<30;nelem+=5) {
+        for(int gcase=3;gcase<4;gcase++)
+            for(int nelem=3;nelem<20;nelem+=5) {
                 cedric.Run(nelem,gcase);
             }
     }
@@ -536,7 +566,8 @@ int TCedricTest::AddBoundaryElements(TPZGeoMesh *gmesh)
 }
 
 
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided)
+{
   TPZManVector<TPZGeoEl*> filhos;
   for(int D=0; D<nDiv; D++)
   {
@@ -555,6 +586,16 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
           else{
               gel->Divide(filhos);
           }
+          if(gDebug) {
+              REAL volgel = fabs(gel->Volume());
+              REAL sumvol = 0.;
+              for(int nsubs=0;nsubs<gel->NSubElements();nsubs++)
+                  sumvol += fabs(filhos[nsubs]->Volume());
+              if(!IsZero(volgel-sumvol)) {
+                  std::cout << "Division of geometric element " << elem << " is wrong.\n";
+                  DebugStop();
+              }
+          }
       }
   }
   gmesh->ResetConnectivities();
@@ -570,8 +611,6 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 int materialId = 1;
 int materialBC1 = -1;
 
-// output files  -> Because it has many energy faults
-std::ofstream out("output.txt");
 TPZVec<REAL> ervec(100,0.0);
 
 void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);

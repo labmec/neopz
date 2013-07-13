@@ -171,8 +171,8 @@ int main() {
 //    gRefDBase.InitializeRefPatterns();
 
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-  //  if(!SolveSymmetricPoissonProblemOnCubeMesh())
-    //    return 1;
+    if(!SolveSymmetricPoissonProblemOnCubeMesh())
+        return 1;
     
     // Solving laplace problema on LShape domain in 2D.
     if(!SolveLaplaceProblemOnLShapeMesh())
@@ -204,7 +204,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-		for(int itypeel=(int)ETetraedro;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -223,7 +223,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
                 MaxPOrder = 5;
-                NRefs = 4;
+                NRefs = 6;
             }
             else if(dim==2) {
                 MaxPOrder = 10;
@@ -234,7 +234,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
 			// Printing geometric mesh to validate
 			if(gDebug) {
-				sprintf(saida,"gmesh_%2dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
+				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
 				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
 			}
             UniformRefinement(ninitialrefs,gmesh,dim);
@@ -247,7 +247,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			gmesh->SetName("Malha Geometrica original");
 			cmesh->SetName("Malha Computacional Original");
 			if(gDebug) {
-				sprintf(saida,"gmesh_%2dD_H%dTR%dE%dIndex.vtk",dim,nref,regular,typeel);
+				sprintf(saida,"gmesh_%02dD_H%dTR%dE%dIndex.vtk",dim,nref,regular,typeel);
 				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 			}
 			
