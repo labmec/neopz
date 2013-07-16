@@ -164,8 +164,19 @@ public:
             sprintf(saida,"gmesh_Case%d_NEl%02d_P%d.vtk",geocase,nelem,POrder);
             PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(gmesh,saida);
         }
+        ofstream arq_saida("Errors.txt",ios::app);
 
         TPZCompMesh *cmesh = GenerateCompMesh(gmesh);
+        if(!cmesh) {
+            if(gmesh) {
+                delete gmesh;
+                gmesh = 0;
+            }
+            arq_saida << "Computational mesh is Null for NElem = " << nelem << " Case : " << geocase << std::endl;
+            std::cout << "Computational mesh is Null for NElem = " << nelem << " Case : " << geocase << std::endl;
+            out << "Computational mesh is Null for NElem = " << nelem << " Case : " << geocase << std::endl;
+            return;
+        }
         int dim = cmesh->Dimension();
         
 #ifdef LOG4CXX
@@ -175,59 +186,54 @@ public:
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        // To preserve RAM memory
-        if(cmesh->NEquations() < 750000) {
-            
-            
-            TPZAnalysis analysis(cmesh);
-            
-            ofstream arq_saida("Errors.txt",ios::app);
-            arq_saida << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
-            switch(geocase) {
-                case 1:
-                    arq_saida << "Type of element: Hexahedral.\n";
-                    break;
-                case 2:
-                    arq_saida << "Type of element: Pyramidal and tetrahedral.\n";
-                    break;
-                case 3:
-                    arq_saida << "Type of elements: Tetrahedral.\n";
-                    break;
-                default:
-                    arq_saida << "Undefined type.\n";
-            }
-            arq_saida << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
-            std::cout << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
-            std::cout << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
-            out << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
-            out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
-            analysis.SetExact(Exact);
-            TPZManVector<STATE> errvec;
-            
-            TPZSkylineStructMatrix skylstr(cmesh);
-            skylstr.SetNumThreads(30);
-            analysis.SetStructuralMatrix(skylstr);
-            TPZStepSolver<STATE> step;
-            step.SetDirect(ELDLt);
-            analysis.SetSolver(step);
-            
-            // To post process
-            /** Variable names for post processing */
-            TPZStack<std::string> scalnames, vecnames;
-            scalnames.Push("Solution");
-            
-            std::stringstream sout;
-            sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << "_P" << POrder << ".vtk";
-            analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
-            
-            analysis.Run();
-            
-            analysis.PostProcess(0,dim);
-            
-            analysis.PostProcessError(errvec,std::cout);
-            analysis.PostProcessError(errvec,out);
-            
-            arq_saida << "errvec " << errvec << std::endl;
+        
+        TPZAnalysis analysis(cmesh);
+
+        arq_saida << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        switch(geocase) {
+            case 1:
+                arq_saida << "Type of element: Hexahedral.\n";
+                break;
+            case 2:
+                arq_saida << "Type of element: Pyramidal and tetrahedral.\n";
+                break;
+            case 3:
+                arq_saida << "Type of elements: Tetrahedral.\n";
+                break;
+            default:
+                arq_saida << "Undefined type.\n";
+        }
+        arq_saida << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        std::cout << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        std::cout << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        out << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+        out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+        analysis.SetExact(Exact);
+        TPZManVector<STATE> errvec;
+
+        TPZSkylineStructMatrix skylstr(cmesh);
+        skylstr.SetNumThreads(30);
+        analysis.SetStructuralMatrix(skylstr);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt);
+        analysis.SetSolver(step);
+
+        // To post process
+        /** Variable names for post processing */
+        TPZStack<std::string> scalnames, vecnames;
+        scalnames.Push("Solution");
+
+        std::stringstream sout;
+        sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << "_P" << POrder << ".vtk";
+        analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+        
+        analysis.Run();
+        
+        analysis.PostProcess(0,dim);
+
+        analysis.PostProcessError(errvec,std::cout);
+        analysis.PostProcessError(errvec,out);
+        
         }
         
         /** Cleaning allocated meshes */
@@ -273,6 +279,7 @@ class ForceFunction : public TPZFunction<STATE>
 };
 
 
+
 // MAIN FUNCTION FOR NUMERICAL TESTS TO CEDRIC CLASS
 int main(int argc, char *argv[]) {
 	
@@ -298,6 +305,9 @@ int main(int argc, char *argv[]) {
     
     return 1;
 }
+
+
+
 
 static int pyramid[2][5]=
 {
@@ -374,6 +384,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata)
 {
     // CONSIDERING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
     // And dividing into five tetrahedras
+    int nrefs = nelemdata/5;
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     REAL InitialL = 1.0;
     
@@ -437,8 +448,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata)
     }
     gmesh->BuildConnectivity();
 
-    int nrefines = (nelemdata/5)+2;
-    UniformRefinement(nrefines,gmesh,3);
+    UniformRefinement(nrefs,gmesh,3);
 
     return gmesh;
 }
@@ -544,6 +554,11 @@ TPZCompMesh *TCedricTest::GenerateCompMesh(TPZGeoMesh *gmesh)
     
     /** Constructing computational mesh */
     cmesh->AutoBuild();
+    
+    if(cmesh->NEquations() > 400000) {
+        delete cmesh;
+        cmesh = 0;
+    }
     
     return cmesh;
 }

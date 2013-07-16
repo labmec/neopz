@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
                 cout << "\nConstructing Shock problem in cube [0,1]^" << dim << ". Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
                 TPZGeoMesh *gmesh = ConstructingPositiveCube(InitialL,typeel);
                 UniformRefinement(1,gmesh,3);
-                REAL radius = 0.12;
+                REAL radius = 0.1;
                 for(nref=0;nref<NRefs;nref++) {
                     if(nref > 4) nthread = 2*NThreads;
                     else nthread = NThreads;
@@ -130,8 +130,9 @@ int main(int argc, char *argv[]) {
                     time(&sttime);
                     // h_refinement
                     // Refining near to the origin
+                    if(!nref) RefiningNearCircunference(dim,gmesh,radius,1);
                     RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
-                    radius *= (0.1/ntyperefs);
+                    radius *= 0.1;
                     
                     // Creating computational mesh
                     /** Set polynomial order */
@@ -695,7 +696,6 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL 
                 subacum.Resize(nsubacum+nsubs,NULL);
                 for(int p=0;p<nsubs;p++)
                     subacum[nsubacum+p] = sub[p];
-                break;
             }
         }
         int nsubacumtot = subacum.NElements();
