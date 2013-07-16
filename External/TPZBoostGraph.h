@@ -23,7 +23,7 @@
  * From Boost Sloan_Ordering example
  */
 typedef boost::adjacency_list<
-boost::vecS,
+boost::setS,
 boost::vecS, 
 boost::undirectedS,
 boost::property<

@@ -58,11 +58,6 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
     size_type elgraphsize = fElementGraphIndex.NElements()-1;
     TPZManVector<int> nconnects(fNNodes,0);
     
-    int edge_counter = 0;
-    struct timeval start_time, end_time;
-    
-    gettimeofday(&start_time, NULL);
-    
     for(i=0; i < elgraphsize; i++)
     {
         int first, second;
@@ -74,19 +69,11 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
             for(k=j+1; k<second; k++)
             {
                 add_edge(fElementGraph[j],fElementGraph[k],G);
-                edge_counter++;
-                //printf("edge [ %d -> %d ]\n", fElementGraph[j], fElementGraph[k]);
                 nconnects[fElementGraph[j]]++;
             }
         }
     }
-    
-    gettimeofday(&end_time, NULL);
-    
-    double run_time = ((end_time.tv_sec  - start_time.tv_sec) * 1000000u + end_time.tv_usec - start_time.tv_usec) / 1.e6;
-    
-    printf("\nEdge Counter: %d \t Time: %.2f\n", edge_counter, run_time);
-    
+        
     for(i=0; i< (size_type)nconnects.size(); i++)
     {
         if(!nconnects[i])
@@ -133,9 +120,6 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
     for(size_type i = 0; i < (size_type)l_perm.size(); i++) l_perm[i]=-1;
     for(size_type i = 0; i < (size_type)l_perm.size(); i++) inv_perm[i]=0;
     perm.Resize(fNNodes,-1);
-    
-    gettimeofday(&start_time, NULL);
-    
     
     switch(fGType)
     {
@@ -193,13 +177,6 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
             
     }
     
-    gettimeofday(&end_time, NULL);
-    
-    run_time = ((end_time.tv_sec  - start_time.tv_sec) * 1000000u + end_time.tv_usec - start_time.tv_usec) / 1.e6;
-    
-    printf("Sort Time: %.2f\n", run_time);
-    
-    
     for (size_type c = 0; c != (size_type)inv_perm.size(); ++c)
     {
         l_perm[inv_perm[c]] = c;
@@ -213,8 +190,8 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
      }
      std::cout << std::endl;
      */
-    property_map<Graph, vertex_index_t>::type
-    index_map = get(vertex_index, G);
+//    property_map<Graph, vertex_index_t>::type
+//    index_map = get(vertex_index, G);
     
     /*    std::cout << "  bandwidth: "
      << bandwidth(G, make_iterator_property_map(&l_perm[0], index_map, l_perm[0]))
