@@ -21,7 +21,8 @@ public:
 	 * band of the resulting stiffeness matrix.
 	 */
 	virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-	/** @brief Constructor. */
+	
+    /** @brief Constructor. */
 	/** 
 	 * Instantiates an object which will compute the resequencing
 	 * scheme of the metis package.

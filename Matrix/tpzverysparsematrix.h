@@ -50,7 +50,7 @@ public:
 	
 	/** @brief Simetrizes copies the data of the matrix to make its data simetric */
 	void Simetrize();
-
+    
 	/** @brief Put values checking bounds */
 	virtual int PutVal(const int row, const int col, const TVar &val);
 	
@@ -94,7 +94,7 @@ public:
 	
 	/** @brief It makes *T the transpose of current matrix. */
 	void Transpose(TPZVerySparseMatrix<TVar>* T) const;
-
+    
 	/** @brief Saveable methods */
 	int ClassId() const
 	{
@@ -114,7 +114,7 @@ protected:
     
     /** @brief Save elements different from zero, of Sparse matrix */
 	std::map<std::pair<int, int>, TVar> fExtraSparseData;
-
+    
 };
 
 #endif
