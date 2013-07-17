@@ -1664,11 +1664,19 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
     if (fGreater.size() == 0) {
         return;
     }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fGMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     // project the nodes on the elliptic boundaries
     for (int iy=0; iy < nx[1]+1; iy++) {
         int index = iy*(nx[0]+1);
         TPZManVector<REAL,3> co(3);
         fGMesh.NodeVec()[index].GetCoordinates(co);
+        REAL xinit = co[0];
         bool changed = ProjectNode(co);
         if (changed) {
             REAL xadjust = co[0];
@@ -1677,9 +1685,10 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
             fGMesh.NodeVec()[endindex].GetCoordinates(endco);
             REAL xend = endco[0];
             for (int ix=0; ix< nx[0]+1; ix++) {
-                REAL correctx = xadjust + (ix*(xend-xadjust))/nx[0];
                 TPZManVector<REAL,3> nodeco(3);
                 fGMesh.NodeVec()[index+ix].GetCoordinates(nodeco);
+                REAL factor = (nodeco[0]-xinit)/(xend-xinit);
+                REAL correctx = xadjust + factor*(xend-xadjust);
                 nodeco[0] = correctx;
                 fGMesh.NodeVec()[index+ix].SetCoord(nodeco);
             }
@@ -1698,9 +1707,11 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
         REAL a = fGreater[ellips];
         REAL b = fSmaller[ellips];
         REAL xadjust = a*sqrt(1.-co[1]*co[1]/(b*b));
-        co[0] = xadjust;
+        if (xadjust > co[0]) {
+            co[0] = xadjust;
+            return true;
+        }
         // only one adjustment can be applied
-        return true;
     }
     return false;
 }
