@@ -92,6 +92,8 @@ public:
         /// Create the geometric and computational mesh based on the configuration parameters
         void CreateMesh();
         
+        void ModifyWellElementsToQuadratic();
+        
         /// Initialize the Sandler DiMaggio object and create the computational mesh
         void CreateComputationalMesh(int porder);
         

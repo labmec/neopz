@@ -10,6 +10,7 @@
 #include "pzelastoplasticanalysis.h"
 #include "pzelastoplastic2D.h"
 #include "BrazilianTestGeoMesh.h"
+#include "tpzchangeel.h"
 //#include "poroelastoplastic.h"
 #include "pzgeoelbc.h"
 #include "TPZVTKGeoMesh.h"
@@ -1661,6 +1662,7 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
     std::ofstream out("Wellbore.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, out,true);
 #endif
+    
     if (fGreater.size() == 0) {
         return;
     }
@@ -1693,6 +1695,65 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
                 fGMesh.NodeVec()[index+ix].SetCoord(nodeco);
             }
         }
+    }
+}
+
+void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
+{
+    Phil, este eh o metodo que fiz!
+    Parece que a chamada ProjectNode(nodeCoord) (linha 1736) nao estah projetando legal!!!
+    Abraço.
+    
+    Caju.
+    
+    int nelem = fGMesh.NElements();
+    for(int el = 0; el < nelem; el++)
+    {
+        TPZGeoEl * bcGel = fGMesh.ElementVec()[el];
+        
+#ifdef DEBUG
+        if(!bcGel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        if(bcGel->MaterialId() != -2)
+        {
+            continue;
+        }
+        
+#ifdef DEBUG
+        if(bcGel->Dimension() != 1)
+        {
+            DebugStop();
+        }
+#endif
+        if(bcGel->HasSubElement() || bcGel->Father())
+        {
+            DebugStop();//este metodo nao funciona para elementos refinados e/ou filhos
+        }
+        int inner1DSide = 2;
+        
+        bcGel = TPZChangeEl::ChangeToQuadratic(&fGMesh, el);
+        
+        TPZGeoElSide bcSide(bcGel,inner1DSide);
+        int nodeIdlocal = 2;
+        int nodeIdnodevec = -1;
+        nodeIdnodevec = bcGel->NodeIndex(nodeIdlocal);
+        
+        TPZVec<REAL> nodeCoord(3,0.);
+        fGMesh.NodeVec()[nodeIdnodevec].GetCoordinates(nodeCoord);
+        ProjectNode(nodeCoord);
+        
+        TPZGeoElSide neighSide(bcSide.Neighbour());
+        while(neighSide != bcSide)
+        {
+            TPZGeoEl * quadraticGel = TPZChangeEl::ChangeToQuadratic(&fGMesh, neighSide.Element()->Index());
+            neighSide = quadraticGel->Neighbour(neighSide.Side());
+        }
+        
+        fGMesh.NodeVec()[nodeIdnodevec].SetCoord(nodeCoord);
     }
 }
 
