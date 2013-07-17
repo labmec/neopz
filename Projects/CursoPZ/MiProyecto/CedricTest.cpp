@@ -34,32 +34,22 @@
 static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
 #endif
 
-//bool gDebug = false;
-//int POrder = 1;
-
-//int MaterialId = 1;
-
 
 TPZManVector<REAL,3> TCedricTest::fX0(3,0.5), TCedricTest::fEps(3,0.1);
 
 void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out) {
     TPZGeoMesh *gmesh;
-    out << "\n\nRunning Cedric Test: \t";
     switch(geocase) {
         case 1:
-            out << "Type of element: Hexahedral.\n";
             gmesh = HexahedralMesh(nsubdivisions,MaterialId);
             break;
         case 2:
-            out << "Type of element: Pyramidal and tetrahedral.\n";
             gmesh = PyramidalAndTetrahedralMesh(nsubdivisions,MaterialId);
             break;
         case 3:
-            out << "Type of elements: Tetrahedral(phil).\n";
             gmesh = TetrahedralMesh(nsubdivisions,MaterialId);
             break;
         case 4:
-            out << "Type of elements: Tetrahedral.\n";
             gmesh = TetrahedralMeshUsingRefinement(nsubdivisions,MaterialId);
             break;
     }
@@ -114,8 +104,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
             break;
     }
     
-    out << "****\n\nCriando para " << nsubdivisions << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos." << std::endl;
-    out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+    out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS: ";
     analysis.SetExact(Exact);
     TPZManVector<STATE> errvec;
     

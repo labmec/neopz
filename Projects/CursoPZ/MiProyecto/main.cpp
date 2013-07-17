@@ -69,10 +69,11 @@ int main(int argc, char *argv[]) {
     
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
-    
+
     // To store errors
-    ofstream arq("Errors.txt", std::ios::app);
-    std::cout << "\nCedricTest.\n\n";
+    ofstream arq("Errors.txt");
+    std::cout << "\nRUNNING CedricTest.\n\n";
+    arq << "\nRUNNING CedricTest:\n\n";
 
     // setting p order
     /** Set polynomial order */
@@ -82,10 +83,10 @@ int main(int argc, char *argv[]) {
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=3;gcase<4;gcase++) {
-            std::cout << "\tCase " << gcase << std::endl;
+        for(int gcase=1;gcase<4;gcase++) {
+            std::cout << "\n\tCase " << gcase;
             for(int nsubdivisions=3;nsubdivisions<35;nsubdivisions+=5) {
-                std::cout << "\t\tNumber of sub-divisions " << nsubdivisions << std::endl;
+                std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions;
                 cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
             }
         }

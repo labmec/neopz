@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
                         if(nref<2)
                             radius *= 0.22;
                         else
-                            radius *= 0.3;
+                            radius *= 0.45;
                     }
                     else
                         radius *= 0.1;
