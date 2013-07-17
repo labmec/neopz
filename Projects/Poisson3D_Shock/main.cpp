@@ -107,32 +107,49 @@ int main(int argc, char *argv[]) {
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
 	int nref, NRefs = 3;
+    int NMaxTypeRefs = 4;
 	int nthread, NThreads = 2;
     for(int dim=3;dim<4;dim++) {
         sprintf(errorname,"ErrorsHP_%dD.txt",dim);
         fileerrors.open(errorname);
 		MElementType typeel;
+        REAL radius = 0.9;
 		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++) {
 			typeel = (MElementType)itypeel;
-			for(int ntyperefs=1;ntyperefs<5;ntyperefs++) {
+			for(int ntyperefs=2;ntyperefs<NMaxTypeRefs;ntyperefs++) {
+                if(ntyperefs==1)
+                    NRefs = 8;
+                else if(ntyperefs==2)
+                    NRefs = 5;
+                else
+                    NRefs = 3;
 				fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
                 fileerrors << "Type of element: " << typeel << endl;
                 // Constructing geometric mesh as hexahedra
-                cout << "\nConstructing Shock problem in cube [0,1]^" << dim << ". Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
+                cout << "\nConstructing Shock problem in cube [0,1]^" << dim << ". TypeRef: " << ntyperefs << " TypeElement: " << typeel << std::endl;
                 TPZGeoMesh *gmesh = ConstructingPositiveCube(InitialL,typeel);
                 UniformRefinement(1,gmesh,3);
-                REAL radius = 0.1;
                 for(nref=0;nref<NRefs;nref++) {
                     if(nref > 4) nthread = 2*NThreads;
                     else nthread = NThreads;
                     
                     // Initializing the generation mesh process
                     time(&sttime);
+                    cout << "Refinement: " << nref+1 << " Threads: " << nthread << std::endl << std::endl;
                     // h_refinement
                     // Refining near to the origin
                     if(!nref) RefiningNearCircunference(dim,gmesh,radius,1);
-                    RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
-                    radius *= 0.1;
+                    else RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
+                    if(ntyperefs==1)
+                        radius *= 0.3;
+                    else if(ntyperefs==2) {
+                        if(nref<2)
+                            radius *= 0.22;
+                        else
+                            radius *= 0.3;
+                    }
+                    else
+                        radius *= 0.1;
                     
                     // Creating computational mesh
                     /** Set polynomial order */
@@ -670,6 +687,8 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL r,REAL &distance,int ntyperefs) {
 	TPZManVector<REAL> centerpsi(3), center(3);
+    int nsubs, nsubacum, p, k, q;
+    REAL centerdist;
 	// Refinamento de elementos selecionados
 	TPZGeoEl *gel;
 	TPZVec<TPZGeoEl *> sub;
@@ -685,27 +704,40 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL 
 		gel = gmesh->ElementVec()[nelem++];
 		if(!gel || gel->Dimension()!=dim || gel->HasSubElement()) continue;
         // element will be divided if any of their nodes is near to circunference
-        for(int i=0;i<gel->NCornerNodes();i++) {
+/*        for(int i=0;i<gel->NCornerNodes();i++) {
             TPZGeoNode* node = gel->NodePtr(i);
             node->GetCoordinates(center);
-            REAL centerdist = TPZGeoEl::Distance(center,point);
-            if(fabs(r-centerdist) < distance) {
+            centerdist = TPZGeoEl::Distance(center,point);
+            if(fabs(r-centerdist) < distance && !gel->NSubElements()) {
                 gel->Divide(sub);
-                int nsubs = gel->NSubElements();
-                int nsubacum = subacum.NElements();
+                nsubs = gel->NSubElements();
+                nsubacum = subacum.NElements();
                 subacum.Resize(nsubacum+nsubs,NULL);
-                for(int p=0;p<nsubs;p++)
+                for(p=0;p<nsubs;p++)
                     subacum[nsubacum+p] = sub[p];
             }
-        }
+        }*/
+//        if(!gel->NSubElements()) {
+            gel->CenterPoint(gel->NSides()-1,centerpsi);
+            gel->X(centerpsi,center);
+            centerdist = TPZGeoEl::Distance(center,point);
+            if(fabs(r-centerdist) < distance && !gel->NSubElements()) {
+                gel->Divide(sub);
+                nsubs = gel->NSubElements();
+                nsubacum = subacum.NElements();
+                subacum.Resize(nsubacum+nsubs,NULL);
+                for(p=0;p<nsubs;p++)
+                    subacum[nsubacum+p] = sub[p];
+            }
+  //      }
         int nsubacumtot = subacum.NElements();
         if(ntyperefs>1) {
-            for(int k=0;k<nsubacumtot;k++) {
+            for(k=0;k<nsubacumtot;k++) {
                 if(!subacum[k]) continue;
                 subacum[k]->Divide(subsub);
                 if(ntyperefs>2) {
                     TPZVec<TPZGeoEl *> subsubsub;
-                    for(int q=0;q<subsub.NElements();q++)
+                    for(q=0;q<subsub.NElements();q++)
                         subsub[q]->Divide(subsubsub);
                 }
             }

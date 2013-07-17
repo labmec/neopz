@@ -42,21 +42,25 @@ static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
 
 TPZManVector<REAL,3> TCedricTest::fX0(3,0.5), TCedricTest::fEps(3,0.1);
 
-void TCedricTest::Run(int nelem,int geocase,int POrder,int MaterialId) {
+void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out) {
     TPZGeoMesh *gmesh;
-    std::cout << "\n\nRunning Cedric Test: \t";
+    out << "\n\nRunning Cedric Test: \t";
     switch(geocase) {
         case 1:
-            std::cout << "Type of element: Hexahedral.\n";
-            gmesh = HexahedralMesh(nelem,MaterialId);
+            out << "Type of element: Hexahedral.\n";
+            gmesh = HexahedralMesh(nsubdivisions,MaterialId);
             break;
         case 2:
-            std::cout << "Type of element: Pyramidal and tetrahedral.\n";
-            gmesh = PyramidalAndTetrahedralMesh(nelem,MaterialId);
+            out << "Type of element: Pyramidal and tetrahedral.\n";
+            gmesh = PyramidalAndTetrahedralMesh(nsubdivisions,MaterialId);
             break;
         case 3:
-            std::cout << "Type of elements: Tetrahedral.\n";
-            gmesh = TetrahedralMesh(nelem,MaterialId);
+            out << "Type of elements: Tetrahedral(phil).\n";
+            gmesh = TetrahedralMesh(nsubdivisions,MaterialId);
+            break;
+        case 4:
+            out << "Type of elements: Tetrahedral.\n";
+            gmesh = TetrahedralMeshUsingRefinement(nsubdivisions,MaterialId);
             break;
     }
 #ifdef LOG4CXX
@@ -69,17 +73,14 @@ void TCedricTest::Run(int nelem,int geocase,int POrder,int MaterialId) {
     CheckConsistency(gmesh);
     int nelembc = AddBoundaryElements(gmesh);
     
-    // Printing geometric mesh to validate
-    std::ofstream arq_saida("Errors.txt",std::ios::app);
-    
+    /** Generating computational mesh */
     TPZCompMesh *cmesh = GenerateCompMesh(gmesh);
     if(!cmesh) {
         if(gmesh) {
             delete gmesh;
             gmesh = NULL;
         }
-        arq_saida << "Computational mesh is Null for NElem = " << nelem << " Case : " << geocase << std::endl;
-        std::cout << "Computational mesh is Null for NElem = " << nelem << " Case : " << geocase << std::endl;
+        out << "Computational mesh is Null for sub divisions : " << nsubdivisions << ". Case : " << geocase << std::endl;
         return;
     }
     int dim = cmesh->Dimension();
@@ -94,25 +95,27 @@ void TCedricTest::Run(int nelem,int geocase,int POrder,int MaterialId) {
     
     TPZAnalysis analysis(cmesh);
     
-    arq_saida << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+    out << "****\n\nCriando para " << nsubdivisions << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
     switch(geocase) {
         case 1:
-            arq_saida << "Type of element: Hexahedral.\n";
+            out << "Type of element: Hexahedral.\n";
             break;
         case 2:
-            arq_saida << "Type of element: Pyramidal and tetrahedral.\n";
+            out << "Type of element: Pyramidal and tetrahedral.\n";
+            break;
+        case 4:
+            out << "Type of elements: Tetrahedral.\n";
             break;
         case 3:
-            arq_saida << "Type of elements: Tetrahedral.\n";
+            out << "Type of elements: Tetrahedral(phil).\n";
             break;
         default:
-            arq_saida << "Undefined type.\n";
+            out << "Undefined type.\n";
             break;
     }
     
-    arq_saida << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
-    std::cout << "****\n\nCriando para " << nelem << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos." << std::endl;
-    std::cout << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
+    out << "****\n\nCriando para " << nsubdivisions << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos." << std::endl;
+    out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS:" << std::endl;
     analysis.SetExact(Exact);
     TPZManVector<STATE> errvec;
     
@@ -129,14 +132,14 @@ void TCedricTest::Run(int nelem,int geocase,int POrder,int MaterialId) {
     scalnames.Push("Solution");
     
     std::stringstream sout;
-    sout << "Laplace_MESH_" << geocase <<  "_NEls" << nelem << "_P" << POrder << ".vtk";
+    sout << std::setprecision(2) << "Laplace_MESH" << geocase <<  "_Div" << nsubdivisions << "_P" << POrder << ".vtk";
     analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
     
     analysis.Run();
     
     analysis.PostProcess(0,dim);
     
-    analysis.PostProcessError(errvec,std::cout);
+    analysis.PostProcessError(errvec,out);
     
     /** Cleaning allocated meshes */
     if(cmesh) {
@@ -164,17 +167,17 @@ class ForceFunction : public TPZFunction<STATE>
             val[0] -= vx*vy*vz;
         }
     }
-
+    
     virtual int NFunctions()
     {
         return 1;
     }
-
+    
     virtual int PolynomialOrder()
     {
         return 5;
     }
-
+    
 };
 
 static int pyramid[2][5]=
@@ -187,6 +190,16 @@ static int tetraedra[2][4]=
     {1,2,5,4},
     {4,7,3,2}
 };
+static int tetraedra_2[6][4]=
+{
+    {1,2,5,4},
+    {4,7,3,2},
+    {0,1,2,4},
+    {0,2,3,4},
+    {4,5,6,2},
+    {4,6,7,2}
+};
+
 
 void TCedricTest::GenerateNodes(TPZGeoMesh *gmesh, int nelem)
 {
@@ -224,7 +237,7 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem,int MaterialId)
 #ifdef LOG4CXX
                 {
                     std::stringstream sout;
-                    sout << "Pyramid nodes " << nodes;
+                    sout << "Pyramid and tetrahedral nodes " << nodes;
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
@@ -249,9 +262,49 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem,int MaterialId)
     return gmesh;
 }
 
+TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem,int MaterialId)
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    GenerateNodes(gmesh,nelem);
+    
+    for (int i=0; i<nelem; i++) {
+        for (int j=0; j<nelem; j++) {
+            for (int k=0; k<nelem; k++) {
+                TPZManVector<int,8> nodes(8,0);
+                nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
+                nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
+                nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
+                nodes[3] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
+                nodes[4] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
+                nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
+                nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
+                nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout << "Tetrahedral nodes " << nodes;
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+                for (int el=0; el<6; el++)
+                {
+                    TPZManVector<int,4> elnodes(4);
+                    int index;
+                    for (int il=0; il<4; il++) {
+                        elnodes[il] = nodes[tetraedra_2[el][il]];
+                    }
+                    gmesh->CreateGeoElement(ETetraedro, elnodes, MaterialId, index);
+                }
+            }
+        }
+    }
+    gmesh->BuildConnectivity();
+    return gmesh;
+}
+
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
 
-TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata,int MaterialId)
+TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(int nelemdata,int MaterialId)
 {
     // CONSIDERING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
     // And dividing into five tetrahedras
@@ -318,9 +371,9 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelemdata,int MaterialId)
         elvec[el] = gmesh->CreateGeoElement(ETetraedro,indices[el],MaterialId,index);
     }
     gmesh->BuildConnectivity();
-
+    
     UniformRefinement(nrefs,gmesh,3);
-
+    
     return gmesh;
 }
 
@@ -361,15 +414,15 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(int nelem,int MaterialId)
 void TCedricTest::CheckConsistency(TPZGeoMesh *mesh)
 {
     int nel = mesh->NElements();
-    for (int el=0; el<nel; el++) {
+    for(int el=0; el<nel; el++) {
         TPZGeoEl *gel = mesh->ElementVec()[el];
         int nsides = gel->NSides();
-        for (int is=0; is<nsides; is++) {
+        for(int is=0; is<nsides; is++) {
             TPZGeoElSide gelside(gel,is);
-            if (gelside.Dimension() != 2) {
+            if(gelside.Dimension() != 2) {
                 continue;
             }
-            if (gelside.Neighbour() != gelside) {
+            if(gelside.Neighbour() != gelside) {
                 continue;
             }
             TPZManVector<REAL,2> xi(2,0.);
@@ -387,19 +440,19 @@ void TCedricTest::CheckConsistency(TPZGeoMesh *mesh)
             REAL tol = 1.e-6;
             REAL xmin = 1., xmax = 0.;
             int numtol = 0;
-            for (int i=0; i<3; i++) {
+            for(int i=0; i<3; i++) {
                 if(xmin > x[i]) xmin = x[i];
-                if (xmax < x[i]) {
+                if(xmax < x[i]) {
                     xmax = x[i];
                 }
-                if (normal[i] > tol) {
+                if(normal[i] > tol) {
                     numtol++;
                 }
             }
-            if (numtol != 1) {
+            if(numtol != 1) {
                 DebugStop();
             }
-            if (xmin > tol && xmax < 1.-tol) {
+            if(xmin > tol && xmax < 1.-tol) {
                 DebugStop();
             }
         }
@@ -411,7 +464,7 @@ TPZCompMesh *TCedricTest::GenerateCompMesh(TPZGeoMesh *gmesh)
     int dim=3;
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
-
+    
     /** Inserting material */
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,dim);
     TPZAutoPointer<TPZFunction<STATE> > force = new ForceFunction;
@@ -425,11 +478,6 @@ TPZCompMesh *TCedricTest::GenerateCompMesh(TPZGeoMesh *gmesh)
     
     /** Constructing computational mesh */
     cmesh->AutoBuild();
-    
-    if(cmesh->NEquations() > 400000) {
-        delete cmesh;
-        cmesh = 0;
-    }
     
     return cmesh;
 }

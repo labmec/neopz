@@ -60,9 +60,6 @@ void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *file
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
 
 
-
-
-
 // MAIN FUNCTION FOR NUMERICAL TESTS TO CEDRIC CLASS
 int main(int argc, char *argv[]) {
 	
@@ -72,28 +69,33 @@ int main(int argc, char *argv[]) {
     
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
+    
+    // To store errors
+    ofstream arq("Errors.txt", std::ios::app);
+    std::cout << "\nCedricTest.\n\n";
 
     // setting p order
     /** Set polynomial order */
     for(POrder=1;POrder<4;POrder++) {
+        std::cout << "\nInterpolation order " << POrder << std::endl;
         TPZCompEl::SetgOrder(POrder);
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=3;gcase<4;gcase++)
-            for(int nelem=3;nelem<35;nelem+=5) {
-                cedric.Run(nelem,gcase,POrder,MaterialId);
+        for(int gcase=3;gcase<4;gcase++) {
+            std::cout << "\tCase " << gcase << std::endl;
+            for(int nsubdivisions=3;nsubdivisions<35;nsubdivisions+=5) {
+                std::cout << "\t\tNumber of sub-divisions " << nsubdivisions << std::endl;
+                cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
             }
+        }
     }
-    
     return 1;
 }
 
 
 
-
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided)
-{
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
   TPZManVector<TPZGeoEl*> filhos;
   for(int D=0; D<nDiv; D++)
   {

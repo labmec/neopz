@@ -18,9 +18,10 @@ public:
     void GenerateNodes(TPZGeoMesh *gmesh, int nelem);
 
     /** Constructing geometrical mesh depends on type of element wished. */
+    TPZGeoMesh *HexahedralMesh(int nelem,int MaterialId);
     TPZGeoMesh *PyramidalAndTetrahedralMesh(int nelem,int MaterialId);
     TPZGeoMesh *TetrahedralMesh(int nelem,int MaterialId);
-    TPZGeoMesh *HexahedralMesh(int nelem,int MaterialId);
+    TPZGeoMesh *TetrahedralMeshUsingRefinement(int nelem,int MaterialId);
 
     int AddBoundaryElements(TPZGeoMesh *gmesh);
 
@@ -62,7 +63,7 @@ public:
     /// verify if the faces without neighbour should be orthogonal to the main planes
     void CheckConsistency(TPZGeoMesh *mesh);
     
-    void Run(int nelem,int geocase,int POrder,int MaterialId);
+    void Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out=std::cout);
 };
 
 #endif
