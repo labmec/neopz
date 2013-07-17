@@ -76,6 +76,15 @@ public:
         fMemory[index] = fDefaultMem;
     }
 	
+    /// Reset all memory items
+    void ResetMemory()
+    {
+        int nmem = fMemory.NElements();
+        for (int im=0; im<nmem; im++) {
+            ResetMemItem(im);
+        }
+    }
+    
 	/** @brief Sets the default memory settings for initialization */
 	virtual void SetDefaultMem(TMEM & defaultMem);
 	

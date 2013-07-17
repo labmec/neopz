@@ -237,7 +237,7 @@ void TPZElasticityMaterial::FillBoundaryConditionDataRequirement(int type,TPZMat
 {
     data.fNeedsSol = false;
     data.fNeedsNormal = false;
-    if (type == 4 || type == 5) {
+    if (type == 4 || type == 5 || type == 6) {
         data.fNeedsNormal = true;
     }
     
@@ -317,16 +317,6 @@ void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight
             }
 		}
 	}
-}
-
-void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
-{
-    int numbersol = data.dsol.size();
-    int ipos = 0;
-    if (fPostProcIndex < numbersol) {
-        ipos = fPostProcIndex;
-    }
-	this->Solution(data.sol[ipos], data.dsol[ipos], data.axes, var, Solout);
 }
 
 
@@ -443,14 +433,51 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
             }
             break;
             
-        case 5:
-			for(in = 0 ; in < phi.Rows(); in++)
-			{
-				ef(nstate*in+0,0) += v2[0] * phi(in,0) * weight * (data.normal[0]);
-				ef(nstate*in+1,0) += v2[0] * phi(in,0) * weight * (data.normal[1]);
-			}
+		case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
+            {
+                TPZFNMatrix<2,STATE> res(2,1,0.);
+                for(in = 0 ; in < phi.Rows(); in++)
+                {
+                    ef(nstate*in+0,0) += (v2[0]*data.normal[0]) * phi(in,0) * weight ;
+                    ef(nstate*in+1,0) += (v2[0]*data.normal[1]) * phi(in,0) * weight ;
+                    for(jn=0; jn<phi.Rows(); jn++)
+                    {
+                        for(int idf=0; idf<2; idf++) for(int jdf=0; jdf<2; jdf++)
+                        {
+                            ek(nstate*in+idf,nstate*jn+jdf) += bc.Val1()(idf,jdf)*data.normal[idf]*data.normal[jdf]*phi(in,0)*phi(jn,0)*weight;
+                            //BUG FALTA COLOCAR VAL2
+                            //                        DebugStop();
+                        }
+                    }
+                    
+                }
+            }
 			break;
+			
+		case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
+            {
+                TPZFNMatrix<2,STATE> res(2,1,0.);
+                for(in = 0 ; in < phi.Rows(); in++)
+                {
+                    ef(nstate*in+0,0) += (v2[0]*data.normal[0]) * phi(in,0) * weight ;
+                    ef(nstate*in+1,0) += (v2[0]*data.normal[1]) * phi(in,0) * weight ;
+                    for(jn=0; jn<phi.Rows(); jn++)
+                    {
+                        for(int idf=0; idf<2; idf++) for(int jdf=0; jdf<2; jdf++)
+                        {
+                            ek(nstate*in+idf,nstate*jn+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
+                            //BUG FALTA COLOCAR VAL2
+                            //                        DebugStop();
+                        }
+                    }
+                    
+                }
+                
+            }
+            break;
 
+            
+            
             
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
 } // 1 Val1 : a leitura �00 01 10 11
@@ -555,6 +582,8 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
     */
     
 	if(!strcmp("displacement",name.c_str()))     return 9;
+	if(!strcmp("Displacement",name.c_str()))     return 9;
+	if(!strcmp("DisplacementMem",name.c_str()))     return 9;
 	if(!strcmp("Pressure",name.c_str()))         return 1;
 	if(!strcmp("MaxStress",name.c_str()))        return 2;
 	if(!strcmp("PrincipalStress1",name.c_str())) return 3;
@@ -573,7 +602,19 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("Flux",name.c_str()))           return 10;
     if(!strcmp("J2",name.c_str()))           return 20;
     if(!strcmp("I1",name.c_str()))           return 21;
-
+    if(!strcmp("J2Stress",name.c_str()))           return 20;
+    if(!strcmp("I1Stress",name.c_str()))           return 21;
+    if(!strcmp("Alpha",name.c_str()))        return 22;
+    if(!strcmp("PlasticSqJ2",name.c_str()))        return 22;
+    if(!strcmp("PlasticSqJ2El",name.c_str()))        return 22;
+    if(!strcmp("YieldSurface",name.c_str()))        return 27;
+    if(!strcmp("NormalStress",name.c_str()))        return 23;
+    if(!strcmp("ShearStress",name.c_str()))        return 24;
+    if(!strcmp("NormalStrain",name.c_str()))        return 25;
+    if(!strcmp("ShearStrain",name.c_str()))        return 26;
+    
+    
+    
 	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
 	return TPZMaterial::VariableIndex(name);
 }
@@ -609,13 +650,30 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
             return 1;
         case 21:
             return 1;
+        case 22:
+            return 1;
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+            return 3;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
 	}  
 }
 
-
-void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
+void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    int numbersol = data.dsol.size();
+    int ipos = 0;
+    if (fPostProcIndex < numbersol) {
+        ipos = fPostProcIndex;
+    }
+    
+    TPZVec<STATE> &Sol = data.sol[ipos];
+    TPZFMatrix<STATE> &DSol = data.dsol[ipos];
+    TPZFMatrix<REAL> &axes = data.axes;
 	
 	REAL epsx;
 	REAL epsy;
@@ -786,8 +844,37 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
             Solout[0]=I1;
             break;
         }
+        case 22:
+            Solout[0] = 0.;
+            break;
+        case 23:
+            // normal stress
+            Solout[0] = SigX;
+            Solout[1] = SigY;
+            Solout[2] = SigZ;
+            break;
+        case 24:
+            // shear stress
+            Solout[0] = TauXY;
+            Solout[1] = 0.;
+            Solout[2] = 0.;
+            break;
+        case 25:
+            Solout[0] = epsx;
+            Solout[1] = epsy;
+            Solout[2] = epsz;
+            break;
+        case 26:
+            Solout[0] = epsxy;
+            Solout[1] = 0.;
+            Solout[2] = 0.;
+            break;
+        case 27:
+            Solout[0] = 0.;
+            Solout[1] = 0.;
+            Solout[2] = 0.;
+            break;
 		default:
-			cout << "TPZElasticityMaterial::Solution Error\n";
 			TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 			break;
 	}
@@ -814,18 +901,9 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	
 	//tens�s aproximadas : uma forma
 	gamma = du(1,0)+du(0,1);
-	sigma[0] = fEover1MinNu2*(du(0,0)+fnu*du(1,1));
-	sigma[1] = fEover1MinNu2*(fnu*du(0,0)+du(1,1));
-	sigma[2] = fE*0.5/(1.+fnu)*gamma;
-	
-	//tens�s aproximadas : outra forma
-	TPZVec<REAL> sol(1);
-	Solution(u,du,axes,5,sol);
-	sigma[0] = sol[0];
-	Solution(u,du,axes,6,sol);
-	sigma[1] = sol[0];
-	Solution(u,du,axes,8,sol);
-	sigma[2] = sol[0];
+	sigma[0] = fPreStressXX+fEover1MinNu2*(du(0,0)+fnu*du(1,1));
+	sigma[1] = fPreStressYY+fEover1MinNu2*(fnu*du(0,0)+du(1,1));
+	sigma[2] = fPreStressXY+fE*0.5/(1.+fnu)*gamma;
 	
 	//exata
 	gamma = du_exact(1,0)+du_exact(0,1);

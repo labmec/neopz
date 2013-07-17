@@ -34,7 +34,7 @@ static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzstructmatrix"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
 static LoggerPtr loggerelmat(Logger::getLogger("pz.strmatrix.elementmat"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"));
 #endif
 
 #ifdef CHECKCONSISTENCY
@@ -430,7 +430,7 @@ TPZMatrix<STATE> * TPZStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAu
 	rhs.Redim(neq,1);
     Assemble(*stiff,rhs,guiInterface);
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
 	if(loggerel->isDebugEnabled())
 	{
 		std::stringstream sout;

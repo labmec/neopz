@@ -637,7 +637,9 @@ void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REA
         
 		pBC->Val2() = mattemp;
         cout<< "\n pBC->Val2() = " <<pBC->Val2()<<endl;
-		analysis.IterativeProcess(cout, 1.e-5, 30);
+        bool linesearch = false;
+        bool checkconv = false;
+		analysis.IterativeProcess(cout, 1.e-5, 30, linesearch, checkconv);
         
         analysis.AcceptSolution();
         cout << "\nPostSolution "<< endl<< pPost->Solution();
@@ -675,7 +677,9 @@ void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL 
         //  mat->SetBulkDensity(increment);
         
 		pMC->SetBulkDensity(tempmattemp);
-		analysis.IterativeProcess(cout, 1.e-5, 5);
+        bool linesearch = false;
+        bool checkconv = false;
+		analysis.IterativeProcess(cout, 1.e-5, 5, linesearch, checkconv);
         
         analysis.AcceptSolution();
         cout << "\nPostSolution "<< endl<< pPost->Solution();

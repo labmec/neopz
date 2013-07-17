@@ -170,6 +170,15 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
 	   * and an the total number of equations
 	   */
 	  void GetPostProcessVarIndexList(TPZVec<int> & varIndexList);
+    
+    /**
+     * @brief Return the name of the ith postproc variable
+     */
+    void GetPostProcVarName(int index, std::string &varname)
+    {
+        varname = fVars[index].fName;
+        
+    }
 
 	  /**
 	   * @brief Informs the vector with all the variable indexes requested for post processing

@@ -1,4 +1,4 @@
-#include "poroelastoplastic.h"
+ #include "poroelastoplastic.h"
 //#include "pzskylstrmatrix.h"
 //#include "TPZReadGIDGrid.h"
 #include "pzelctemp.h" // TPZIntelGen<TSHAPE>
@@ -197,7 +197,9 @@ void wellboreanalyis()
     for(int i=0;i<=steps;i++)
     {
         pBC->Val1()=mattemp;
-        analysis.IterativeProcess(cout, 1.e-8, 30);
+        bool linesearch = false;
+        bool checkconv = false;
+        analysis.IterativeProcess(cout, 1.e-8, 30, linesearch, checkconv);
         
         //analysis.Solution().Print();
         //analysis.AcceptSolution();
@@ -705,7 +707,9 @@ void ManageIterativeProcess2(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, RE
         
 		pBC->Val2() = mattemp;
         cout<< "\n pBC->Val2() = " <<pBC->Val2()<<endl;
-		analysis.IterativeProcess(cout, 1.e-5, 30);
+        bool linesearch = false;
+        bool checkconv = false;
+		analysis.IterativeProcess(cout, 1.e-5, 30, linesearch, checkconv);
         
         analysis.AcceptSolution();
         
@@ -744,7 +748,9 @@ void ManageIterativeProcessPesoProprio2(TPZElastoPlasticAnalysis &analysis ,REAL
         //  mat->SetBulkDensity(increment);
         
 		pMC->SetBulkDensity(tempmattemp);
-		analysis.IterativeProcess(cout, 1.e-5, 5);
+        bool linesearch = false;
+        bool checkconv = false;
+		analysis.IterativeProcess(cout, 1.e-5, 5, linesearch, checkconv);
         
         analysis.AcceptSolution();
         cout << "\nPostSolution "<< endl<< pPost->Solution();
@@ -1411,7 +1417,7 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
     
 }
 
-//#define MACOS
+#define MACOS
 #ifdef MACOS
 
 #include <iostream>
@@ -1469,12 +1475,46 @@ int main ()
     TPZWellBoreAnalysis well;
     if (startfrom == 0) 
     {
-        TPZWellBoreAnalysis::StandardConfiguration(well);
+        REAL innerradius = 4.25*0.0254;
+        REAL outerradius = 3.;
+        well.SetInnerOuterRadius(innerradius, outerradius);
+        TPZManVector<STATE,3> confinement(3,0.);
+        confinement[0] = -45.9;
+        confinement[1] = -62.1;
+        confinement[2] = -48.2;
+//        well.SetConfinementStresses(confinement, 28.9);
+//
+        well.SetConfinementStresses(confinement, 19.5);
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL A = 152.54;
+        REAL B = 0.0015489;
+        REAL C = 146.29;
+        REAL R = 0.91969;
+        REAL D = 0.018768;
+        REAL W = 0.006605;
+        well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+        int divisions = 20;
+        REAL delx = 0.2*innerradius*M_PI_2/divisions;
+        TPZManVector<int,2> numdiv(2,divisions);
+        numdiv[1] = 40;
+        well.SetMeshTopology(delx, numdiv);
+        well.GetCurrentConfig()->CreateMesh();
+        int porder = 2;
+        well.GetCurrentConfig()->CreateComputationalMesh(porder);
+//        well.LinearConfiguration(1);
+        well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Wellbore0.bin");
         well.Write(save);
-//        well.ExecuteInitialSimulation();
-    }
+    }    
+//    if (startfrom == 0) 
+//    {
+//        TPZWellBoreAnalysis::StandardConfiguration(well);
+//        TPZBFileStream save;
+//        save.OpenWrite("Wellbore0.bin");
+//        well.Write(save);
+//    }
     if (startfrom ==1)
     {
         TPZBFileStream read;
@@ -1483,54 +1523,72 @@ int main ()
     }
     if (startfrom <= 1)
     {
-        well.ExecuteInitialSimulation();
+        int nsteps = 3;
+        int numnewton = 80;
+        well.ExecuteInitialSimulation(nsteps, numnewton);
         TPZBFileStream save;
-        save.OpenWrite("Wellbore.bin");
+        save.OpenWrite("Wellbore1.bin");
         well.Write(save);
     }
 
     if (startfrom == 2)
     {
         TPZBFileStream read;
-        read.OpenRead("Wellbore.bin");
+        read.OpenRead("Wellbore1.bin");
         well.Read(read);
     }
     if (startfrom <= 2) {
+        
+        REAL a = well.GetCurrentConfig()->fInnerRadius*1.03409;
+        REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
+        well.AddEllipticBreakout(a, b);
+        well.PostProcess(1);
+        well.ExecuteSimulation();
+        
         //well.PRefineElementAbove(0., 2);
-        //well.DivideElementsAbove(0.0);
-//        well.ExecuteSimulation();
+        well.DivideElementsAbove(0.0001);
+        int nsteps = 3;
+        int numnewton = 80;
+        
+        well.ExecuteInitialSimulation(nsteps,numnewton);
+
+        well.ExecuteSimulation();
 //        well.VerifyGlobalEquilibrium();
-        TPZStack<std::string> postprocess;
-        postprocess.Push("I1J2Stress");
-        TPZFMatrix<STATE> valuetable;
-        //TPZManVector<REAL,3> x(3,0.);
-        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(well.GetCurrentConfig()->fCMesh.ElementVec()[0]);
-        if (!intel) {
-            DebugStop();
+        if(0)
+        {
+            
+            TPZStack<std::string> postprocess;
+            postprocess.Push("I1J2Stress");
+            TPZFMatrix<STATE> valuetable;
+            //TPZManVector<REAL,3> x(3,0.);
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(well.GetCurrentConfig()->fCMesh.ElementVec()[0]);
+            if (!intel) {
+                DebugStop();
+            }
+            TPZIntPoints &intpoints = intel->GetIntegrationRule();
+            TPZManVector<REAL> ksi(2,0.),xco(3,0.);
+            REAL weight;
+            intpoints.Point(0, ksi, weight);
+            TPZMaterialData data;
+            intel->InitMaterialData(data);
+            intel->ComputeRequiredData(data, ksi);
+            TPZManVector<int> memindices(intpoints.NPoints());
+            intel->GetMemoryIndices(memindices);
+            data.intGlobPtIndex = memindices[0];
+            TPZMaterial *mat = intel->Material();
+            int varindex = mat->VariableIndex("I1J2Stress");
+            int nvar = mat->NSolutionVariables(varindex);
+            TPZManVector<STATE> post(nvar);
+            mat->Solution(data, varindex, post);
+            std::cout << "Post processed " << post << std::endl;
+            intel->Reference()->X(ksi, xco);
+            //x[0] = 1.1;
+            well.PostProcessedValues(xco , postprocess, valuetable);
+            valuetable.Print("Post processed I1=J2",std::cout);
+            xco.Fill(0.);
+            well.PostProcessedValues(xco , postprocess, valuetable);
+            valuetable.Print("Post processed I1=J2",std::cout);
         }
-        TPZIntPoints &intpoints = intel->GetIntegrationRule();
-        TPZManVector<REAL> ksi(2,0.),xco(3,0.);
-        REAL weight;
-        intpoints.Point(0, ksi, weight);
-        TPZMaterialData data;
-        intel->InitMaterialData(data);
-        intel->ComputeRequiredData(data, ksi);
-        TPZManVector<int> memindices(intpoints.NPoints());
-        intel->GetMemoryIndices(memindices);
-        data.intGlobPtIndex = memindices[0];
-        TPZMaterial *mat = intel->Material();
-        int varindex = mat->VariableIndex("I1J2Stress");
-        int nvar = mat->NSolutionVariables(varindex);
-        TPZManVector<STATE> post(nvar);
-        mat->Solution(data, varindex, post);
-        std::cout << "Post processed " << post << std::endl;
-        intel->Reference()->X(ksi, xco);
-        //x[0] = 1.1;
-        well.PostProcessedValues(xco , postprocess, valuetable);
-        valuetable.Print("Post processed I1=J2",std::cout);
-        xco.Fill(0.);
-        well.PostProcessedValues(xco , postprocess, valuetable);
-        valuetable.Print("Post processed I1=J2",std::cout);
         TPZBFileStream save;
         save.OpenWrite("Wellbore2.bin");
         well.Write(save);
@@ -1544,7 +1602,8 @@ int main ()
     }
     if (startfrom <= 3) {
          //well.ChangeMaterialId(-2, -6);
-        well.DeleteElementsAbove(0.120);
+        well.DeleteElementsAbove(0.0005);
+        well.ChangeMaterialId(-6, -2);
         well.ExecuteSimulation();
         TPZBFileStream save;
         save.OpenWrite("Wellbore3.bin");
@@ -1559,11 +1618,16 @@ int main ()
     }
     if (startfrom <= 4) 
     {
+//        well.ChangeMaterialId(-6, -2);
+//        int nsteps = 3;
+//        int numnewton = 80;
+//
+//        well.ExecuteInitialSimulation(nsteps,numnewton);
+        well.VerifyTangentValidity();
+        
         well.RelaxWellSpring(0.01);
-        well.ExecuteSimulation();
         well.RelaxWellSpring(0.);
         well.ExecuteSimulation();
-        well.ChangeMaterialId(-6, -2);
 //        well.RelaxWellSpring(0.1);
         well.ExecuteSimulation();
         TPZBFileStream save;

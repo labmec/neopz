@@ -151,8 +151,6 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
         return mu;
     }
 	
-protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 
     /** @brief Returns the solution associated with the var index based on the finite element approximation */

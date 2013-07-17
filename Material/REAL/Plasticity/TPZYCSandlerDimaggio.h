@@ -18,7 +18,7 @@
 #ifdef LOG4CXX
 #include "pzlog.h"
 
-static LoggerPtr loggerSM(Logger::getLogger("plasticity.SM"));
+static LoggerPtr loggerSM(Logger::getLogger("material.plasticity.SM"));
 
 #endif
 
@@ -870,7 +870,7 @@ protected:
         }
         REAL deltaL = 0.;
 //        if (Lini < -5. || sigtrialIJ[0] < -5.) {
-        if (Lini < -5. && sigtrialIJ[0] < 0.) {
+        if (Lini*fB*log(fC) < -5. && sigtrialIJ[0] < 0.) {
             REAL arcs = sigtrialIJ[1]/Fini;
             if (arcs < 1.) {
                 theta = asin(arcs);
@@ -1798,6 +1798,7 @@ void TPZYCSandlerDimaggio::D2EpspDL2(const T &L, T& d2epspdL2) const
 /// Projeto o ponto sobre a superficie F1, atualiza o L e sigtrialIJ
 inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L, TPZVec<REAL> &sigtrialIJ)
 {
+    
     REAL resultL = L;
     TPZManVector<STATE,2> sigProj(sigtrialIJ);
     REAL ddist = DDistance(ER, resultL, sigProj);
@@ -1846,7 +1847,13 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
     }
 #endif
     resultL = L;
+    DEpspDL(resultL, depspdl );
     residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+    while (residueL < 0.) {
+        resultL += 1.;
+        DEpspDL(resultL, depspdl );
+        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+    }
     while(fabs(residueL) > 1.e-10)
     {
         STATE d2epspdl2;

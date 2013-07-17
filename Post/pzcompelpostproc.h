@@ -28,7 +28,7 @@ class TPZMaterialData;
 #include "TPZShapeDisc.h" 
 
 #ifdef LOG4CXX
-static LoggerPtr CompElPostProclogger(Logger::getLogger("mesh.TPZCompElPostProc"));
+static LoggerPtr CompElPostProclogger(Logger::getLogger("pz.mesh.TPZCompElPostProc"));
 #endif
 
 using namespace std;
@@ -317,6 +317,14 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		data.sol[0].Resize(stackedVarSize,0.);
 		int index = 0;
 		// stacking the solutions to post process.
+#ifdef LOG4CXX
+        if(CompElPostProclogger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Integration point " << int_ind << " x = " << dataRef.x << " GradSol = " << dataRef.dsol[0] ;
+            LOGPZ_DEBUG(CompElPostProclogger, sout.str())
+        }
+#endif
 		for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
 		{
             int variableindex = varIndex[var_ind];
@@ -328,6 +336,16 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
             else {
                 pCompElRef->Solution(intpointRef, variableindex, Sol);
             }
+#ifdef LOG4CXX
+            if(CompElPostProclogger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                std::string varname;
+                pPostProcMat->GetPostProcVarName(var_ind, varname);
+                sout << varname << " -value- " << Sol;
+                LOGPZ_DEBUG(CompElPostProclogger, sout.str())
+            }
+#endif
 			for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
 			index += nsolvars;		
 		}
@@ -363,7 +381,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	    for(int i_sh = 0; i_sh < nshape; i_sh++)
 		  	ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh); 
 	}
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     {
         std::stringstream sout;
         sout << "Element index " << this->fIndex << std::endl;

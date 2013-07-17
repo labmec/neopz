@@ -49,6 +49,7 @@ template <class T, class TMEM>
 TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D(const TPZMatElastoPlastic2D<T,TMEM> &mat) : TPZMatElastoPlastic<T,TMEM>(mat), fPlaneStrain(mat.fPlaneStrain)
 {
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << ">>> TPZMatElastoPlastic2D<T,TMEM>() copy constructor called ***";
@@ -191,6 +192,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 #endif
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -284,6 +286,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
@@ -355,6 +358,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 #endif
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -401,6 +405,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
     
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
@@ -571,6 +576,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
 			
 		default:
 #ifdef LOG4CXX
+        if(elastoplasticLogger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::ContributeBC *** WRONG BOUNDARY CONDITION TYPE = " << bc.Type();

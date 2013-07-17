@@ -298,7 +298,7 @@ protected:
       TPZManVector<REAL,3> fPostProcessDirection;
 	
 	  /**
-	   * Elastoplastic material object instatiation
+	   * Elastoplastic material object instantiation
 	   * this instantiation avoids several instantiations
 	   * for each use of this object
 	   */

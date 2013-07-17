@@ -12,8 +12,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr elastoplasticLogger(Logger::getLogger("material.pzElastoPlastic"));
-static LoggerPtr updatelogger(Logger::getLogger("material.pzElastoPlastic.update"));
+static LoggerPtr elastoplasticLogger(Logger::getLogger("pz.material.pzElastoPlastic"));
+static LoggerPtr updatelogger(Logger::getLogger("pz.material.pzElastoPlastic.update"));
 #endif
 
 
@@ -26,11 +26,12 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic() : TPZMatWithMem<TMEM>(), fFor
 	fPostProcessDirection[0] = 1.;
 	
 #ifdef LOG4CXX
-  {
-    std::stringstream sout;
-    sout << ">>> TPZMatElastoPlastic<T,TMEM>() constructor called ***";
-    LOGPZ_INFO(elastoplasticLogger,sout.str().c_str());
-  }
+    if(elastoplasticLogger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << ">>> TPZMatElastoPlastic<T,TMEM>() constructor called ***";
+        LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
+    }
 #endif
 	
 }
@@ -47,10 +48,11 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(i
     
 
 #ifdef LOG4CXX
+    if (elastoplasticLogger->isDebugEnabled()) 
   {
     std::stringstream sout;
     sout << ">>> TPZMatElastoPlastic<T,TMEM>(int id) constructor called with id = " << id << " ***";
-    LOGPZ_INFO(elastoplasticLogger,sout.str().c_str());
+    LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
   }
 #endif
 	
@@ -62,10 +64,11 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(const TPZMatElastoPlastic &mat)
                             fTol(mat.fTol)
 {
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
   {
     std::stringstream sout;
     sout << ">>> TPZMatElastoPlastic<T,TMEM>() copy constructor called ***";
-    LOGPZ_INFO(elastoplasticLogger,sout.str().c_str());
+    LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
   }
 #endif
 }
@@ -75,12 +78,13 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::SetPlasticity(T & plasticity)
 {
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
   {
     std::stringstream sout;
     sout << ">>> TPZMatElastoPlastic<T,TMEM>::SetUpPlasticity ***";
 	sout << "\n with plasticity argument:\n";
 	plasticity.Print(sout);
-    LOGPZ_INFO(elastoplasticLogger,sout.str().c_str());
+    LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
   }
 #endif
 	
@@ -99,12 +103,13 @@ void TPZMatElastoPlastic<T,TMEM>::SetPlasticity(T & plasticity)
 	this->SetDefaultMem(memory);
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
   {
     std::stringstream sout;
     sout << "<< TPZMatElastoPlastic<T,TMEM>::SetUpPlasticity ***";
 	sout << "\n with computed stresses:\n";
 	sout << memory.fSigma;
-    LOGPZ_INFO(elastoplasticLogger,sout.str().c_str());
+    LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
   }
 #endif
 	
@@ -306,6 +311,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EShearStress 
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStress){
+        DebugStop();
 		/*
 		 TPZFNMatrix<6> Stress(6,1);
 		 this->ComputeStressVector(data, Stress);
@@ -313,6 +319,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EPrincipalStress - makes sense only if the evaluated point refers to an identified integration point
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EStress1){
+        DebugStop();
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
@@ -321,12 +328,14 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EStress1 - makes sense only if the evaluated point refers to an identified integration point
 	else	
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain){
+        DebugStop();
 		/*TPZFNMatrix<6> Strain(6,1);
 		 this->ComputeStrainVector(data, Strain);
 		 this->EigenValues(Strain, Solout);*/
 	}//EPrincipalStrain
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EStrain1){
+        DebugStop();
 		/*TPZFNMatrix<6> Strain(6,1);
 		 TPZManVector<REAL, 3> PrincipalStrain(3);
 		 this->ComputeStrainVector(data, Strain);
@@ -335,6 +344,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EStrain1  
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1){
+        DebugStop();
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
@@ -342,6 +352,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EPrincipalStressDirection1 - makes sense only if the evaluated point refers to an identified integration point
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2){
+        DebugStop();
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
@@ -349,6 +360,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EPrincipalStressDirection2 - makes sense only if the evaluated point refers to an identified integration point
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3){
+        DebugStop();
 		/*TPZFNMatrix<6> Stress(6,1);
 		 TPZManVector<REAL, 3> PrincipalStress(3);
 		 this->ComputeStressVector(data, Stress);
@@ -450,6 +462,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 {
 
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
   {
     std::stringstream sout;
     sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -651,6 +664,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
   }//in
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -676,6 +690,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 									   TPZBndCond &bc)
 {
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
   {
     std::stringstream sout;
     sout << ">>> TPZMatElastoPlastic<T,TMEM>::ContributeBC *** with bc.Type()=" << bc.Type();
@@ -795,6 +810,7 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -865,6 +881,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
     }//in
 	
 #ifdef LOG4CXX
+    if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute ***";

@@ -247,6 +247,7 @@ void TPZAnalysis::Assemble()
 		//aqui TPZFMatrix<STATE> nao eh nula
 	}
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         fRhs.Print("Rhs",sout);

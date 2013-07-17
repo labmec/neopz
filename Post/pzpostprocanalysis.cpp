@@ -18,7 +18,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr PPAnalysisLogger(Logger::getLogger("analysis.postproc"));
+static LoggerPtr PPAnalysisLogger(Logger::getLogger("pz.analysis.postproc"));
 #endif
 
 using namespace std;

@@ -288,7 +288,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 				#ifdef STATE_COMPLEX
 				  sprintf(number, "%16.16Lf",(long double)fabs(val));
 				#else
-				  sprintf(number, "%16.16Lf",(long double)val);
+				  sprintf(number, "%16.8Lf",(long double)val);
 				#endif
 				out << number;
 				if(col < Cols()-1)

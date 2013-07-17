@@ -153,7 +153,7 @@ void TPZCompMesh::CleanUp() {
 	
 	fBlock.SetNBlocks(0);
 	fSolutionBlock.SetNBlocks(0);
-	fSolution.Redim(0,0);
+	fSolution.Redim(0,1);
 }
 
 void TPZCompMesh::SetName (const string &nm) {
@@ -1100,6 +1100,7 @@ void TPZCompMesh::Permute(TPZVec<long> &permute) {
 	//     PZError << "TPZCompMesh::Permute : permute vector size not equal to fBlock size\n";
 	//   }
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (this);
@@ -1238,6 +1239,7 @@ void TPZCompMesh::AdjustBoundaryElements() {
 					// I wouldnt know when this test could fail
 					if(fatherside.Exists()) {
 #ifdef LOG4CXX
+                        if(logger->isDebugEnabled())
 						{
 							std::stringstream sout;
 							sout << "Dividing element " << el << " of type " << elp->Reference()->TypeName();
@@ -1310,6 +1312,7 @@ void TPZCompMesh::SetElementSolution(int i, TPZVec<REAL> &sol) {
 	}
     
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         REAL norm=0.;
@@ -2090,6 +2093,7 @@ void TPZCompMesh::SaddlePermute()
                 long ceq = permute[*it];
                 ModifyPermute(permute, ceq, maxeq);
 #ifdef LOG4CXX
+                if(logger->isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Put ceq = " << ceq << "after maxeq = " << maxeq << std::endl;
@@ -2099,6 +2103,7 @@ void TPZCompMesh::SaddlePermute()
 #endif
             }
 #ifdef LOG4CXX
+            if(logger->isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Resequence for element " << el << std::endl;
@@ -2113,6 +2118,7 @@ void TPZCompMesh::SaddlePermute()
         }
     }
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         for (int el=0; el<nel; el++) {
             TPZCompEl *cel = ElementVec()[el];
@@ -2132,6 +2138,7 @@ void TPZCompMesh::SaddlePermute()
             LOGPZ_DEBUG(logger, sout.str())
         }
     }
+    if (logger->isDebugEnabled()) 
     {
         std::stringstream sout;
         sout << "Saddle permute permutation ";

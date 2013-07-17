@@ -16,7 +16,7 @@
 #ifdef LOG4CXX
 #include "pzlog.h"
 
-static LoggerPtr loggerSML(Logger::getLogger("plasticity.SML"));
+static LoggerPtr loggerSML(Logger::getLogger("material.plasticity.SML"));
 
 #endif
 

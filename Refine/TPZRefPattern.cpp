@@ -783,6 +783,7 @@ void TPZRefPattern::InsertPermuted()
 		TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refp);
 		
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled()) 
 		{
 			std::stringstream sout;
 			sout << "Permutation " << it->fPermute;

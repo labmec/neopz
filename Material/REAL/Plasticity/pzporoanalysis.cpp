@@ -126,7 +126,9 @@ void TPZPoroElastoPlasticAnalysis::Run(std::ostream &out,REAL tol ,int numiter,
 }
 #endif
 
-	IterativeProcess(out, tol, numiter);
+    bool linesearch = false;
+    bool checkconv = false;
+	IterativeProcess(out, tol, numiter,linesearch,checkconv);
 		
 	#ifdef LOG4CXX
 	{

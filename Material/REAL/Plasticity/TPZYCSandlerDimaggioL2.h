@@ -16,7 +16,7 @@
 #ifdef LOG4CXX
 #include "pzlog.h"
 
-static LoggerPtr loggerSML2(Logger::getLogger("plasticity.SML2"));
+static LoggerPtr loggerSML2(Logger::getLogger("material.plasticity.SML2"));
 
 #endif
 
@@ -517,6 +517,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
     Compute(sigtrial, L, yield, 0);
     int surfaceprojected = -1;
 #ifdef LOG4CXX
+    if (loggerSML->isDebugEnabled()) 
     {
         std::stringstream sout;
         sout << "Value of fIsonCap " << fIsonCap;
@@ -715,6 +716,9 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
                 REAL check = 1.-cst*cst-sst*sst;
                 if (fabs(check) > 1.e-6) {
                     std::cout << "check = " << check << " cst " << cst << " sst " << sst << std::endl;
+                    L = Lextern;
+                    sigtrialIJ = sigtrialIJkeep;
+                    NewtonF2L(ER, L, sigtrialIJ);
                 }
                 theta = atan2(sst,cst);
                 

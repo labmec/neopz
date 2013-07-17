@@ -25,17 +25,27 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZElastoPlasticAnalysis();
 	
+    
+    /// Assemble the stiffness matrix, eliminating the lines and columns with Dirichlet Boundary condition
 	virtual REAL LocalAssemble(int precond = 0);
 	
+    /// Invert the system of equations eliminating the equations with Dirichlet condition
 	virtual REAL LocalSolve();
+    
+    /// Apply zero on the lines and columns of the Dirichlet boundary conditions
+    void AdjustTangentMatrix(TPZMatrix<STATE> &matrix);
+    
+    /// Apply zero to the equations of the Dirichlet boundary conditions
+    void AdjustResidual(TPZFMatrix<STATE> &rhs);
 	
 	/**
 	 * @brief It process a Newton's method to solve the non-linear problem.
 	 * In this implementation, the line search is temporarily disabled.
 	 */
-	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter);
-    
 	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
+    
+    /// Iterative process using the linear elastic material as tangent matrix
+    virtual void IterativeProcess(std::ostream &out, TPZAutoPointer<TPZMatrix<STATE> > linearmatrix, REAL tol, int numiter, bool linesearch);
     
 	virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter);
 	

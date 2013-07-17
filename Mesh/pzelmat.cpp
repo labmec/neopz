@@ -140,7 +140,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
-			sout<<" fSourceIndex " <<fSourceIndex<< " fDestinationIndex "<<fDestinationIndex<<std::endl;
+			sout<<"fSourceIndex " <<fSourceIndex<< "\nfDestinationIndex "<<fDestinationIndex<<std::endl;
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif

@@ -3,7 +3,7 @@
 //  PZ
 //
 //  Created by phil on 1/18/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 LabMeC. All rights reserved.
 //
 
 #ifndef PZ_WellBoreAnalysis_h
@@ -13,6 +13,8 @@
 #include "TPZSandlerDimaggio.h"
 #include "TPZTensor.h"
 #include "pzgeoel.h"
+
+class TPZElasticityMaterial;
 
 /// create de standard mesh
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
@@ -42,6 +44,9 @@ public:
         
         /// Apply the deformation of the configuration to the element
         void ApplyDeformation(TPZCompEl *cel);
+        
+        /// Verify tangent elasto plastic relation
+        void VerifyPlasticTangent(TPZCompEl *cel);
         
         /// Compute the maximum plastic element deformation associated with each element
         void ComputeElementDeformation();
@@ -80,7 +85,21 @@ public:
         
         /// Compute the resultant x and y force
         void ComputeXYForce(TPZFMatrix<STATE> &rhs, TPZVec<STATE> &force);
-	
+        
+        /// Add elliptic breakout
+        void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis);
+
+        /// Create the geometric and computational mesh based on the configuration parameters
+        void CreateMesh();
+        
+        /// Initialize the Sandler DiMaggio object and create the computational mesh
+        void CreateComputationalMesh(int porder);
+        
+                
+        /// project the node on the boundary
+        // returns true if the coordinate was changed
+        bool ProjectNode(TPZVec<REAL> &co);
+        
         /// Return gmesh
         TPZGeoMesh * GetGeoMesh();
 
@@ -89,6 +108,20 @@ public:
         REAL fInnerRadius;
         /// radius of the computational domain
         REAL fOuterRadius;
+        
+        /// number of elements in the radial and circumferential direction
+        TPZManVector<int,2> fNx;
+        
+        /// Size of the first element in the radial direction
+        REAL fDelx;
+        
+        /// Elliptic break out maior axis
+        // Greater has to be ascending and greater than fInnerRadius
+        TPZManVector<REAL,3> fGreater;
+        
+        /// Elliptic breakout minor axis
+        // Minor has to be decreasing and smaller than fInnerRadius
+        TPZManVector<REAL,3> fSmaller;
         
         /// confinement stress
         TPZTensor<STATE> fConfinement;
@@ -123,13 +156,20 @@ public:
     void Read(TPZStream &input);
     
     /// Computes the tension state transferring the geological stress state to the hidrostatic stress state
-    void ExecuteInitialSimulation();
+    /**
+     * @param nsteps number of loading steps (the actual number of loading steps is one higher)
+     * @param numnewton number of allowed newton iterations
+     */
+    void ExecuteInitialSimulation(int nsteps, int numnewton);
     
     /// Computes an equilibrium state corresponding to the current boundary conditions
     void ExecuteSimulation();
     
     /// verify the integrity of the elasto plastic material that is being used
     static void CheckDeformation(std::string filename = "deform.nb");
+    
+    /// verify if the stress tangent is computed correctly
+    void VerifyTangentValidity();
     
     /// transfer the solution from the current configuration to the given configuration
     void TransferSolutionTo(TConfig &config);
@@ -153,6 +193,9 @@ public:
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
     }
+    
+    /// Modify the geometry of the domain simulating an elliptic breakout
+    void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis);
     
     /// change the material id of the geometric elements of the current configuration
     void ChangeMaterialId(int idFrom, int idTo)
@@ -192,9 +235,44 @@ public:
 
     /// Initialize the object with standard parameters
 static void StandardConfiguration(TPZWellBoreAnalysis &obj);
+    
+    /// Configure the wellbore analysis to perform a linear analysis
+    void LinearConfiguration(int porder);
 
+    /// Define the geometry of the simulation
+    void SetInnerOuterRadius(REAL inner, REAL outer)
+    {
+        fCurrentConfig.fInnerRadius = inner;
+        fCurrentConfig.fOuterRadius = outer;
+    }
+    
+    void SetMeshTopology(REAL delx, TPZVec<int> &nx)
+    {
+        fCurrentConfig.fDelx = delx;
+        fCurrentConfig.fNx = nx;
+    }
+    
+    /// Define the geological stress state and well pressure
+    void SetConfinementStresses(TPZVec<STATE> &stress, STATE wellpressure)
+    {
+        fCurrentConfig.fConfinement.XX() = stress[0];
+        fCurrentConfig.fConfinement.YY() = stress[1];
+        fCurrentConfig.fConfinement.ZZ() = stress[2];
+        fCurrentConfig.fFluidPressure = wellpressure;
+    }
+    
+    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
+    {
+        fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
+    }
     
 private:
+    
+    /// Compute the linear elastic stiffness matrix
+    void ComputeLinearMatrix();
+    
+    /// Set the parameters of the linear material
+    void ConfigureLinearMaterial(TPZElasticityMaterial &mat);
     
     /// Recompute the plastic memory of the integration points of these elements
     void ApplyHistory(std::set<int> &elindices);
@@ -207,6 +285,10 @@ private:
     
     /// Index associated with the post processing file
     int fPostProcessNumber;
+    
+    /// Linear Elastic Stiffness matrix
+    TPZAutoPointer<TPZMatrix<STATE> > fLinearMatrix;
+    
     
 };
 

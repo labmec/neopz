@@ -22,7 +22,9 @@ void TPZPlasticDiagnostic::CheckGlobal()
 {
     TPZSkylineStructMatrix strmat(fMesh);
     TPZFMatrix<STATE> referenceres, solution(fMesh->Solution());
-    TPZFMatrix<STATE> rhs(solution.Rows(),1,0.);
+    int neq = fMesh->NEquations();
+    TPZFMatrix<STATE> rhs(neq,1,0.);
+    solution.Resize(neq, 1);
     fMesh->Solution().Zero();
     TPZMatrix<STATE> *matrix = strmat.CreateAssemble(referenceres, 0);
 //    TPZFMatrix<STATE> compareres(solution.Rows(),1,0.);
@@ -60,4 +62,5 @@ void TPZPlasticDiagnostic::CheckGlobal()
     }
     std::cout << "Residues " << residues << std::endl;
     std::cout << "Global convergence rates " << rate << std::endl;
+    delete matrix;
 }

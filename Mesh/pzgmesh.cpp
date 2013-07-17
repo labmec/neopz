@@ -577,6 +577,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             }
         }
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
         {
             std::stringstream sout;
             TPZManVector<REAL,3> par(neighSide.Dimension()),xloc(3,0.);
