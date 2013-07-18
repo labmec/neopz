@@ -121,7 +121,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     scalnames.Push("Solution");
     
     std::stringstream sout;
-    sout << std::setprecision(2) << "Laplace_MESH" << geocase <<  "_Div" << nsubdivisions << "_P" << POrder << ".vtk";
+    sout << std::setprecision(2) << "Laplace_P" << POrder << "_MESH" << geocase <<  "_Div" << nsubdivisions << ".vtk";
     analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
     
     analysis.Run();

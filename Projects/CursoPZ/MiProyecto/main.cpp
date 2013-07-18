@@ -67,6 +67,17 @@ int main(int argc, char *argv[]) {
 	InitializePZLOG();
 #endif
     
+    if(argc == 1) return 1;
+    POrder = atoi(argv[1]);
+    
+    int gcaseinit = 1;
+    int gcaseend = 4;
+    if(argc > 2) {
+        gcaseinit = atoi(argv[2]);
+        if(argc > 3)
+            gcaseend = atoi(argv[3]);
+    }
+    
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
 
@@ -77,21 +88,21 @@ int main(int argc, char *argv[]) {
 
     // setting p order
     /** Set polynomial order */
-    for(POrder=1;POrder<4;POrder++) {
+//    for(POrder=3;POrder<4;POrder++) {
         std::cout << "\nInterpolation order " << POrder << std::endl;
         TPZCompEl::SetgOrder(POrder);
 
         TCedricTest cedric;
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-        for(int gcase=1;gcase<4;gcase++) {
+        for(int gcase=gcaseinit;gcase<gcaseend;gcase++) {
             std::cout << "\n\tCase " << gcase;
             for(int nsubdivisions=3;nsubdivisions<35;nsubdivisions+=5) {
                 std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions;
                 cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
             }
         }
-    }
-    return 1;
+//    }
+    return 0;
 }
 
 

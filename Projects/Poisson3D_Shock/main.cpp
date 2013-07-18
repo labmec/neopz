@@ -70,8 +70,7 @@ void FforcingShock(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df)
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,int ntyperefs);
-void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL,3> &points,REAL r,REAL &distance,int ntyperefs);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs);
 
 TPZGeoMesh *ConstructingPositiveCube(REAL L,MElementType typeel);
@@ -82,6 +81,7 @@ void formatTimeInSec(char *strtime,int timeinsec);
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
+REAL Radius[3][10] = {{0.3,0.25,0.2,0.15,0.075,0.025,0.008,0.004,0.002,0.001},{0.3,0.2,0.075,0.008,0.002,0.0005,0.0,0.0,0.0,0.0},{0.3,0.2,0.025,0.002,0.0005,0.0,0.0,0.0,0.0,0.0}};
 
 int main(int argc, char *argv[]) {
 
@@ -113,14 +113,14 @@ int main(int argc, char *argv[]) {
         sprintf(errorname,"ErrorsHP_%dD.txt",dim);
         fileerrors.open(errorname);
 		MElementType typeel;
-        REAL radius = 0.9;
+        REAL radius = 0.0;
 		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++) {
 			typeel = (MElementType)itypeel;
-			for(int ntyperefs=2;ntyperefs<NMaxTypeRefs;ntyperefs++) {
+			for(int ntyperefs=1;ntyperefs<NMaxTypeRefs;ntyperefs++) {
                 if(ntyperefs==1)
-                    NRefs = 8;
+                    NRefs = 9;
                 else if(ntyperefs==2)
-                    NRefs = 5;
+                    NRefs = 4;
                 else
                     NRefs = 3;
 				fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
@@ -130,6 +130,7 @@ int main(int argc, char *argv[]) {
                 TPZGeoMesh *gmesh = ConstructingPositiveCube(InitialL,typeel);
                 UniformRefinement(1,gmesh,3);
                 for(nref=0;nref<NRefs;nref++) {
+                    radius = Radius[ntyperefs-1][nref];
                     if(nref > 4) nthread = 2*NThreads;
                     else nthread = NThreads;
                     
@@ -138,22 +139,13 @@ int main(int argc, char *argv[]) {
                     cout << "Refinement: " << nref+1 << " Threads: " << nthread << std::endl << std::endl;
                     // h_refinement
                     // Refining near to the origin
-                    if(!nref) RefiningNearCircunference(dim,gmesh,radius,1);
-                    else RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
-                    if(ntyperefs==1)
-                        radius *= 0.3;
-                    else if(ntyperefs==2) {
-                        if(nref<2)
-                            radius *= 0.22;
-                        else
-                            radius *= 0.45;
-                    }
-                    else
-                        radius *= 0.1;
+//                    if(!nref) RefiningNearCircunference(dim,gmesh,radius,1);
+//                    else
+                    RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
                     
                     // Creating computational mesh
                     /** Set polynomial order */
-                    int p = 3, pinit;
+                    int p = 5, pinit;
                     pinit = p;
                     TPZCompEl::SetgOrder(1);
                     TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);
@@ -247,6 +239,7 @@ int main(int argc, char *argv[]) {
                     an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
                     
                     an.PostProcess(0,dim);
+                    ervec.Fill(0.0);
                     
                     // Computing error
                     an.SetExact(ExactShock);
@@ -648,7 +641,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 }
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs) {
-	TPZManVector<REAL> point(3,-0.25);
+	TPZManVector<REAL,3> point(3,-0.25);
 	REAL r = sqrt(3.0);
 
     // To refine elements with center near to points than radius, some times as ntyperefs
@@ -659,34 +652,8 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntypere
 	gmesh->BuildConnectivity();
 }
 
-void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
-	TPZManVector<REAL> point(3,-0.25);
-    if(dim<3) {
-        point[2] = 0.0;
-        if(dim==1)
-            point[1] = 0.0;
-    }
-	REAL r = sqrt(3.0), radius = .5;
-	int i, j;
-	bool isdefined = true;
-    for(i=0;i<nref;i+=2) {
-        // To refine elements with center near to points than radius
-        for(j=0;j<ntyperefs;j++)
-            RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-        if(nref < 5) radius *= 0.3;
-        else if(nref < 7) radius *= 0.2;
-        else radius *= 0.1;
-    }
-    if(i==nref) {
-        RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-    }
-	// Constructing connectivities
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
-
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL r,REAL &distance,int ntyperefs) {
-	TPZManVector<REAL> centerpsi(3), center(3);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL,3> &point,REAL r,REAL &distance,int ntyperefs) {
+	TPZManVector<REAL,3> centerpsi(3), center(3);
     int nsubs, nsubacum, p, k, q;
     REAL centerdist;
 	// Refinamento de elementos selecionados
