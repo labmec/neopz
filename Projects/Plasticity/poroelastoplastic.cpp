@@ -1542,11 +1542,14 @@ int main ()
         REAL a = well.GetCurrentConfig()->fInnerRadius*1.03409;
         REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
         well.AddEllipticBreakout(a, b);
+        a *= 1.25;
+        b *= 0.33;
+        well.AddEllipticBreakout(a, b);
         well.PostProcess(1);
 #ifdef LOG4CXX
         {
             std::stringstream sout;
-            well.GetCurrentConfig()->fCMesh.Print(sout);
+            well.GetCurrentConfig()->fGMesh.Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif

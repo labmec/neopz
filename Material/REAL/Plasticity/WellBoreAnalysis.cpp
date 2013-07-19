@@ -1808,6 +1808,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 // returns true if the coordinate was changed
 bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
 {
+    bool wasadjusted = false;
     for (int ellips = fGreater.size()-1; ellips >=0; ellips--) {
         if (co[1] > fSmaller[ellips]) {
             continue;
@@ -1817,11 +1818,11 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
         REAL xadjust = a*sqrt(1.-co[1]*co[1]/(b*b));
         if (xadjust > co[0]) {
             co[0] = xadjust;
-            return true;
+            wasadjusted = true;
         }
         // only one adjustment can be applied
     }
-    return false;
+    return wasadjusted;
 }
 
 
