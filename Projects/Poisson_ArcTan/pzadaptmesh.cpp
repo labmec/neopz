@@ -199,7 +199,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
 			fFineCloneMeshes[cliter]->Print(outtemp);
             outtemp.close();
         }
-        std::cout << cliter << " ";
+        std::cout << cliter << " " << fCloneMeshes[cliter]->NElements() << " " << fCloneMeshes[cliter]->NEquations() << " ";
         fCloneMeshes[cliter]->MeshError(fFineCloneMeshes [cliter],fElementError,f,truervec,out);
 		// Printing errors on geometric mesh to validate
 		memset(saida,0,512);

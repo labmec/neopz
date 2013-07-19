@@ -70,6 +70,7 @@
 
 #include <time.h>
 #include <stdio.h>
+
 #include <fstream>
 #include <cmath>
 
@@ -170,13 +171,13 @@ int main() {
 	gRefDBase.InitializeAllUniformRefPatterns();
 //    gRefDBase.InitializeRefPatterns();
 
-    // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-    if(!SolveSymmetricPoissonProblemOnCubeMesh())
-        return 1;
-    
     // Solving laplace problema on LShape domain in 2D.
     if(!SolveLaplaceProblemOnLShapeMesh())
         return 2;
+    
+    // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
+    if(!SolveSymmetricPoissonProblemOnCubeMesh())
+        return 1;
     
     return 0;
 }
@@ -204,7 +205,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)ETetraedro;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -227,7 +228,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 10;
-                NRefs = 18;
+                NRefs = 15;
             }
             else {
                 NRefs = 25;
@@ -390,7 +391,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 18;
+	int nref = 1, NRefs = 10;
     int ninitialrefs = 2;
 	int nthread = 1, NThreads = 4;
 	
@@ -1495,8 +1496,8 @@ TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 
 void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
 	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
-    REAL angle = 0;
-    if(IsZero(x[0])) {
+    REAL angle = atan2(x[1],x[0]);;
+/*    if(IsZero(x[0])) {
         if(x[1]>0)
             angle = 0.5*M_PI;
         else {
@@ -1507,8 +1508,8 @@ void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
     else
         angle = atan(x[1]/x[0]);
     if(angle < -0.5*M_PI || angle > M_PI)
-        DebugStop();
-    sol[0] = 0.5*pow(radius,0.3333333333)*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
+        DebugStop();*/
+    sol[0] = 0.5*pow(radius,(1./3.))*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
 }
 void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol) {
 	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
