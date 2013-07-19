@@ -201,9 +201,9 @@ namespace pzrefine {
 			index = (gel)->NodeIndex(side);
 			return; 
 		}
-		//o nó medio da face é o centro e o nó medio do centro é o centro
-		//como nó de algum filho se este existir
-		//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+		//o no medio da face eh o centro e o no medio do centro e o centro
+		//como no de algum filho se este existir
+		//caso tenha filhos eh o canto de algum filho, se nao tiver filhos retorna -1
 		if(gel->HasSubElement()) {
 			side-=TPZShapeQuad::NCornerNodes;
 			index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);

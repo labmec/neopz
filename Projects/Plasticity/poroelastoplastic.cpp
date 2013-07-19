@@ -1543,14 +1543,27 @@ int main ()
         REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
         well.AddEllipticBreakout(a, b);
         well.PostProcess(1);
-        well.ExecuteSimulation();
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            well.GetCurrentConfig()->fCMesh.Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+//        well.PostProcess(1);
+        int nsteps = 3;
+        int numnewton = 80;
+//        well.ExecuteSimulation();
+//        well.ExecuteInitialSimulation(nsteps,numnewton);
         
         //well.PRefineElementAbove(0., 2);
         well.DivideElementsAbove(0.0001);
-        int nsteps = 3;
-        int numnewton = 80;
+        well.PRefineElementAbove(0.0001, 3);
+//
+//        well.PostProcess(1);
         
-        well.ExecuteInitialSimulation(nsteps,numnewton);
+        //well.ExecuteInitialSimulation(nsteps,numnewton);
 
         well.ExecuteSimulation();
 //        well.VerifyGlobalEquilibrium();

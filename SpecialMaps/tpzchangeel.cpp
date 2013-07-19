@@ -177,6 +177,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         NewElem->SetFather(father);
     }
     
+    // melhor utilizar neigh.SetConnectivity...
     for(int s = 0; s < nsides; s++)
     {
         TPZGeoEl * tempEl = NewElem;

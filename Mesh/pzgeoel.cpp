@@ -239,13 +239,13 @@ void TPZGeoEl::Print(std::ostream & out) {
 	if (fMatId < 0) out << "boundary condition " << fMatId << endl;
 	else out << "Material id        " << fMatId << endl;
 	if (!Father()) out << "no father\n";
-	else out << "Father id          " << Father()->Id() << endl;
+	else out << "Father index          " << Father()->Index() << endl;
 	if (!SubElement(0)) out << "no subelements";
 	else {
-		out << "Subelements ids     ";
+		out << "Subelement indexes     ";
 		for (i = 0;i < NSubElements();i++) {
 			if (!SubElement(i) ) continue;
-			out << SubElement(i)->Id() << ' ' ;
+			out << SubElement(i)->Index() << ' ' ;
 		}
 	}
 	out << endl;
@@ -258,9 +258,8 @@ void TPZGeoEl::Print(std::ostream & out) {
             out << "No neighbour\n";
         }
 		else {
-			int count = 0;
-			while (neighbour != thisside && count++ < 10) {
-				out << neighbour.Element()->Id() << "/" << neighbour.Side() << ' ';
+			while (neighbour != thisside ) {
+				out << neighbour.Element()->Index() << "/" << neighbour.Side() << ' ';
 				neighbour = neighbour.Neighbour();
 			}
 			out << endl;
@@ -272,9 +271,9 @@ void TPZGeoEl::Print(std::ostream & out) {
 }
 
 void TPZGeoEl::PrintTopologicalInfo(std::ostream & out) {
-    int elId = this->Id();
+    int elIndex = this->Index();
     int nnodes = this->NNodes();
-    out << "Element id: " << elId << "\n";
+    out << "Element index: " << elIndex << "\n";
     
     for(int n = 0; n < nnodes; n++) {
         REAL nodeX = this->NodePtr(n)->Coord(0);

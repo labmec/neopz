@@ -85,7 +85,7 @@ public:
 	int NSubElements() const;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	int NSideSubElements2(int side) const;
+	int NSideSubElements(int side) const;
 	
 	/** @brief Returns a pointer to the subelement is*/
 	TPZGeoEl *SubElement(int is) const;

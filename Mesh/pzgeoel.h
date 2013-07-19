@@ -286,7 +286,7 @@ public:
 	virtual int NSubElements() const = 0;
 
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	virtual int NSideSubElements2(int side) const = 0;
+	virtual int NSideSubElements(int side) const = 0;
 	
 	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
 	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;

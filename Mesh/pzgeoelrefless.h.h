@@ -184,16 +184,9 @@ TPZGeoElRefLess<TGeo>::NSubElements() const {
 template<class TGeo>
 int
 TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
-	//return TRef::NSideSubElements(side);
 	return 0;
 }
 
-template<class TGeo>
-int
-TPZGeoElRefLess<TGeo>::NSideSubElements2(int side) const {
-	// return TRef::NSideSubElements(side);
-	return 0;
-}
 
 template<class TGeo>
 TPZGeoEl *

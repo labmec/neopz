@@ -734,7 +734,7 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 		}
 		while(neighside != gelside)
 		{
-			if(neighside.Element()->HasSubElement() && neighside.Element()->NSideSubElements2(neighside.Side()) > 1)
+			if(neighside.Element()->HasSubElement() && neighside.Element()->NSideSubElements(neighside.Side()) > 1)
 			{
 				thereIsAnyNeighbourRefined = true;
 				

@@ -624,7 +624,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             if(son->ComputeXInverseAlternative(x, qsiSonVec[s]))
             {
                 qsi = qsiSonVec[s];
-                InitialElIndex = son->Id();
+                InitialElIndex = son->Index();
                 return son;
             }
         }
@@ -648,14 +648,14 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
 
             qsi = qsiSonVec[sonPosition];
             son = subElements[sonPosition];
-            InitialElIndex = son->Id();
+            InitialElIndex = son->Index();
 
             return son;
         }
     }
     else
     {
-        InitialElIndex = gel->Id();
+        InitialElIndex = gel->Index();
         return gel;
     }
     

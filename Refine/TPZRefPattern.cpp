@@ -677,7 +677,7 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &ne
 	TPZManVector<int> sideindices(0);
 	while(neighbour.Element() && neighbour != gelside)
 	{
-		if(neighbour.HasSubElement() && neighbour.Element()->NSideSubElements2(neighbour.Side()) > 1)
+		if(neighbour.HasSubElement() && neighbour.Element()->NSideSubElements(neighbour.Side()) > 1)
 		{
 			neighbour.Element()->MidSideNodeIndices(neighbour.Side(),sideindices);
 			break;

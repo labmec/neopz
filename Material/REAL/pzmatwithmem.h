@@ -168,15 +168,18 @@ void TPZMatWithMem<TMEM,TFather>::Print(std::ostream &out)
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::PrintMem(std::ostream &out, const int memory)
 {
-	out << "\nfDefaultMem = \n" << fDefaultMem;
-	out << "\nfUpdateMem = " << fUpdateMem;
+//	out << "\nfDefaultMem = \n" << fDefaultMem;
+//	out << "\nfUpdateMem = " << fUpdateMem;
 	int size = fMemory.NElements();
-	out << "\nfMemory with " << size << " elements";
-	if(memory && memory < size)
+//	out << "\nfMemory with " << size << " elements";
+	if(memory >=0 && memory < size)
 	{
-		out << "\nfMemory element : " << memory << std::endl;
+		out << "fMemory element : " << memory << std::endl;
         fMemory[memory].Print(out);
 	}
+    else{
+        out << "Memory index out of range : memory " << memory << " no elements " << size << std::endl;
+    }
 }
 
 template <class TMEM, class TFather>

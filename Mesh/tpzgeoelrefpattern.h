@@ -77,7 +77,7 @@ public:
 	int NSubElements() const;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements(side) */
-	int NSideSubElements2(int side) const;
+	int NSideSubElements(int side) const;
 	
 	/** @brief Returns a pointer to the subelement is*/
 	TPZGeoEl *SubElement(int is) const;
@@ -278,7 +278,7 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 }
 
 template<class TGeo>
-int TPZGeoElRefPattern<TGeo>::NSideSubElements2(int side) const{
+int TPZGeoElRefPattern<TGeo>::NSideSubElements(int side) const{
 	if (!fRefPattern) return 0;
 	return this->GetRefPattern()->NSideSubElements(side);
 }

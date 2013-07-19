@@ -160,23 +160,26 @@ void TPZMatElastoPlastic<T,TMEM>::Print(std::ostream &out)
 template <class T, class TMEM>
 int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
 {
-   if(!strcmp("Displacement",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacement;
-   if(!strcmp("DisplacementX",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementX;
-   if(!strcmp("DisplacementY",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementY;
-   if(!strcmp("DisplacementZ",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementZ;
-   if(!strcmp("NormalStress",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStress;
-   if(!strcmp("ShearStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStress;
-   if(!strcmp("NormalStrain",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStrain;
-   if(!strcmp("ShearStrain",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStrain;
-   if(!strcmp("PrincipalStress",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStress;
-   if(!strcmp("Stress1",                  name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStress1;
-   if(!strcmp("PrincipalStrain",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain;
-   if(!strcmp("Strain1",                  name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStrain1;  
-   if(!strcmp("PrincipalStressDirection1",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1;
-   if(!strcmp("PrincipalStressDirection2",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2;
-   if(!strcmp("PrincipalStressDirection3",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3;
-   if(!strcmp("I1Stress",                 name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1Stress;
-   if(!strcmp("J2Stress",                 name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EJ2Stress;
+    if(!strcmp("Displacement",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacement;
+    if(!strcmp("DisplacementX",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementX;
+    if(!strcmp("DisplacementY",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementY;
+    if(!strcmp("DisplacementZ",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementZ;
+    if(!strcmp("NormalStress",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStress;
+    if(!strcmp("ShearStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStress;
+    if(!strcmp("NormalStrain",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStrain;
+    if(!strcmp("ShearStrain",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStrain;
+    if(!strcmp("PrincipalStress",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStress;
+    if(!strcmp("Stress1",                  name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStress1;
+    if(!strcmp("PrincipalStrain",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain;
+    if(!strcmp("Strain1",                  name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStrain1;  
+    if(!strcmp("PrincipalStressDirection1",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1;
+    if(!strcmp("PrincipalStressDirection2",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2;
+    if(!strcmp("PrincipalStressDirection3",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3;
+    if(!strcmp("I1Stress",                 name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1Stress;
+    if(!strcmp("J2Stress",                 name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EJ2Stress;
+    if(!strcmp("I1HorStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1HorStress;
+    if(!strcmp("J2HorStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EJ2HorStress;
+    
    if(!strcmp("I1J2Stress",               name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1J2Stress;
    if(!strcmp("DirStress",                name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDirStress;
    if(!strcmp("DirStrain",                name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDirStrain;
@@ -206,38 +209,40 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
 template <class T, class TMEM>
 int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
 {
-   if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacement)              return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)             return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementY)             return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementZ)             return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStress)           return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStress)              return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EShearStress)               return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain)              return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EShearStrain)               return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain)              return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EStress1)                   return 1; 
-   if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain)           return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EStrain1)                   return 1;  
-   if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1) return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2) return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3) return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EI1Stress)                  return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EJ2Stress)                  return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EI1J2Stress)                return 2;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EDirStress)                 return 3;  
-   if(var == TPZMatElastoPlastic<T,TMEM>::EDirStrain)                 return 3;  
-   if(var == TPZMatElastoPlastic<T,TMEM>::EVolElasticStrain)          return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain)          return 1; 
-   if(var == TPZMatElastoPlastic<T,TMEM>::EVolTotalStrain)            return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EVolTEPStrain)              return 3;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EAlpha)                     return 1;  
-   if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps)              return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacement)              return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)             return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementY)             return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementZ)             return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStress)           return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStress)              return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EShearStress)               return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain)              return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EShearStrain)               return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain)              return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EStress1)                   return 1; 
+    if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain)           return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EStrain1)                   return 1;  
+    if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1) return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2) return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3) return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EI1Stress)                  return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EJ2Stress)                  return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EI1HorStress)              return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EJ2HorStress)              return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EI1J2Stress)                return 2;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDirStress)                 return 3;  
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDirStrain)                 return 3;  
+    if(var == TPZMatElastoPlastic<T,TMEM>::EVolElasticStrain)          return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain)          return 1; 
+    if(var == TPZMatElastoPlastic<T,TMEM>::EVolTotalStrain)            return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EVolTEPStrain)              return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EAlpha)                     return 1;  
+    if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps)              return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2)              return 1;
-   if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha 
-	if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
-	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)          return 3; 
-	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha 
+    if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
+    if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)          return 3; 
+    if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;
     if(var == 100) return 1;
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
@@ -383,6 +388,19 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 		Solout[1] = Sigma.J2();
 	}//EI1J2Stress - makes sense only if the evaluated point refers to an identified integration point
 	else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EI1HorStress){
+        TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+        Solout[0] = Sigma.XX()+Sigma.YY();
+    }//EI1J2Stress - makes sense only if the evaluated point refers to an identified integration point
+    else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EJ2HorStress){
+        TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+        Sigma.XZ() = 0.;
+        Sigma.ZZ() = 0.;
+        Sigma.YZ() = 0.;
+        Solout[0] = Sigma.J2();
+    }//EI1J2Stress - makes sense only if the evaluated point refers to an identified integration point
+    else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDirStress){
 		/*TPZFNMatrix<6> Stress(6,1);
 		 this->ComputeStressVector(data, Stress);

@@ -197,9 +197,6 @@ public:
 	/** @brief Returns the number of subelements of the same dimension of the element at the side*/
 	virtual  int NSideSubElements(int side) const;
 	
-	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	virtual  int NSideSubElements2(int side) const;
-	
 	/**
 	 * @brief Method which creates a computational boundary condition element based
 	 * on the current geometric element, a side and a boundary condition number

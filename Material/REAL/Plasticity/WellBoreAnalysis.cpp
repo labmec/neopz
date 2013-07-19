@@ -617,6 +617,7 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
     }
     TPZCompMesh *cmesh2 = cel2->Mesh();
     TPZGeoMesh *gmesh1 = &fGMesh;
+    TPZCompMesh *cmesh1 = gmesh1->Reference();
     
     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (cmesh2->MaterialVec()[1]);
     if (pMatWithMem2) {
@@ -625,6 +626,7 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
     else {
         DebugStop();
     }
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem1 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (cmesh1->MaterialVec()[1]);
     
     if (intel2->Material() != pMatWithMem2) {
         DebugStop();
@@ -648,7 +650,7 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
         intpoints.Point(ip, point, weight);
         data2.intLocPtIndex = ip;
         intel2->ComputeRequiredData(data2, point);
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if(logger->isDebugEnabled())
         {
             int memoryindex = data2.intGlobPtIndex;
@@ -690,6 +692,26 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
         pMatWithMem2->Contribute(data2, weight, ek, ef);
         data2.phi.Resize(data2phir, data2phic);
         data2.dphix.Resize(data2dphir, data2dphic);
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            int memoryindex = data2.intGlobPtIndex;
+            std::stringstream sout;
+            sout << "Local integration point index " << data2.intLocPtIndex << std::endl;
+            sout << "qsi coordinate " << qsi << std::endl;
+            pMatWithMem2->PrintMem(sout,memoryindex);
+            sout << "\noriginal element index " << cel2->Index() << std::endl;
+            sout << "projected element index " << cel1->Index() << std::endl;
+            if(cel1->Index() == cel2->Index())
+            {
+                sout << "Same point index in the original mesh " << std::endl;
+                sout << "qsi coordinate " << qsi << std::endl;
+                pMatWithMem1->PrintMem(sout,memoryindex);
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
     }
     pMatWithMem2->SetUpdateMem(false);
 
@@ -1427,6 +1449,8 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     //    scalnames[4] = "VolTotalStrain";
     scalNames.Push("I1Stress");
     scalNames.Push("J2Stress");
+    scalNames.Push("I1HorStress");
+    scalNames.Push("J2HorStress");
     
 	vecNames.Push("Displacement");
     vecNames.Push("YieldSurface");
@@ -1480,10 +1504,18 @@ void TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
     if (logger->isDebugEnabled()) 
     {
         std::stringstream sout;
-        sout << "Element indices that will be refined ";
+        sout << "Element indices that have been created ";
         for (std::set<int>::iterator it = elindices.begin(); it!= elindices.end(); it++) {
             sout << *it << " ";
         }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        fCurrentConfig.fGMesh.Print(sout);    
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -1615,6 +1647,13 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
     fGMesh.CleanUp();
     CreateMesh();
     CreateComputationalMesh(2);
+    int BCId=-2;
+    TPZMaterial * mat = fCMesh.FindMaterial(BCId);
+    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    
+    pBC->Val1()(0,0) = -fFluidPressure;//-29.3;
+    pBC->Val1()(1,1) = -fFluidPressure;//-29.3;
+
     
 }
 
@@ -1700,11 +1739,11 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
 
 void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 {
-    Phil, este eh o metodo que fiz!
-    Parece que a chamada ProjectNode(nodeCoord) (linha 1736) nao estah projetando legal!!!
-    Abraço.
-    
-    Caju.
+//    Phil, este eh o metodo que fiz!
+//    Parece que a chamada ProjectNode(nodeCoord) (linha 1736) nao estah projetando legal!!!
+//    Abraço.
+//    
+//    Caju.
     
     int nelem = fGMesh.NElements();
     for(int el = 0; el < nelem; el++)
@@ -1742,7 +1781,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         int nodeIdnodevec = -1;
         nodeIdnodevec = bcGel->NodeIndex(nodeIdlocal);
         
-        TPZVec<REAL> nodeCoord(3,0.);
+        TPZManVector<REAL,3> nodeCoord(3,0.);
         fGMesh.NodeVec()[nodeIdnodevec].GetCoordinates(nodeCoord);
         ProjectNode(nodeCoord);
         
@@ -1755,6 +1794,14 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         
         fGMesh.NodeVec()[nodeIdnodevec].SetCoord(nodeCoord);
     }
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        fGMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 /// project the node on the boundary

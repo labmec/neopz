@@ -75,7 +75,7 @@ int TPZGeoElement<TGeo,TRef>::NSubElements() const
 }
 
 template<class TGeo, class TRef>
-int TPZGeoElement<TGeo,TRef>::NSideSubElements2(int side) const
+int TPZGeoElement<TGeo,TRef>::NSideSubElements(int side) const
 {
 	return TRef::NSideSubElements(side);
 }

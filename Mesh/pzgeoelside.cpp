@@ -770,10 +770,10 @@ TPZGeoElSide TPZGeoElSide::StrictFather()
 {
 	TPZGeoElSide father = Father2();
 	int nfathsub = 0;
-	if(father.Exists()) nfathsub = father.fGeoEl->NSideSubElements2(father.fSide);
+	if(father.Exists()) nfathsub = father.fGeoEl->NSideSubElements(father.fSide);
 	while(father.Exists() && nfathsub == 1) {
 		father = father.Father2();
-		if(father.Exists()) nfathsub = father.fGeoEl->NSideSubElements2(father.fSide);
+		if(father.Exists()) nfathsub = father.fGeoEl->NSideSubElements(father.fSide);
 	}
 	return father;
 }
@@ -844,7 +844,7 @@ int TPZGeoElSide::NSubElements()
 {
 	
 	if(!Exists()) return -1;
-	return fGeoEl->NSideSubElements2(fSide);
+	return fGeoEl->NSideSubElements(fSide);
 }
 
 void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZGeoElSide> &neighvec){
