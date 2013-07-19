@@ -73,7 +73,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 #endif
 
 //problema murad e Loula
-int main(int argc, char *argv[])
+int main_Loula(int argc, char *argv[])
 {
     
 #ifdef LOG4CXX
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     ofstream saidaerro("Erro.txt");
     
     
-    for(int p = 1; p < 4; p++)
+    for(int p = 3; p < 4; p++)
     {
         int pu = p;
         int pq = pu;
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
         }
         
         int h;
-        saidaerro<<"\n CALCULO DO ERRO, ELEM. RIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 0; h< 7; h++)
+        saidaerro<<"\n CALCULO DO ERRO, ELEM. TRIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
+        for (h = 4; h< 5; h++)
         {
         
         saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 //        ofstream arg8("mphysic.txt");
 //        mphysics->Print(arg8);
 
-        int NDeltaT = 1000000;
+        int NDeltaT = 10000;
         int intervsaidas = NDeltaT/20;
         REAL deltaT=timeT/NDeltaT; //second
         mymaterial->SetTimeStep(deltaT);
@@ -934,7 +934,7 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
 }
 
 //Problema Barry and Mercer
-int main_BarryMercer(int argc, char *argv[]){
+int main(int argc, char *argv[]){
 
     
     bool triang=false;
@@ -1055,7 +1055,7 @@ int main_BarryMercer(int argc, char *argv[]){
     TPZGeoMesh * gmesh = mydata->GMesh4(Lx,Ly);
     
     mydata->UniformRefine(gmesh, 1);
-    RefinamentoPadrao3x3(gmesh,2);
+    RefinamentoPadrao3x3(gmesh,1);
     
     TPZVec<REAL> pt(3);
     pt[0] = Lx/4.;
@@ -1063,7 +1063,7 @@ int main_BarryMercer(int argc, char *argv[]){
     pt[2] = 0.;
     int newmatId = mydata->GetIdSourceTerm();//mat id of the source term
     REAL Area;
-    RefinamentoPadrao3x3(gmesh,4,pt, true, newmatId, Area);
+    RefinamentoPadrao3x3(gmesh,2,pt, true, newmatId, Area);
     felarea = Area;
     
     std::ofstream malhaGeo("gmesh2D.txt");
@@ -1072,16 +1072,9 @@ int main_BarryMercer(int argc, char *argv[]){
     
     mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
     
-    int pu = 3;
-    int pq = 3;
-    int pp;
-    if(triang==true){
-        pp = pq-1;
-    }else{
-        pq=2;
-        pp = pq;
-    }
-    
+    int pu = 2;
+    int pq = 1;
+    int pp = 1;
     
     // First computational mesh
     TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true);
