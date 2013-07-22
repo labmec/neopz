@@ -1,6 +1,6 @@
 //EBORIN: Uncomment the following lines to enable matrices do be dumped before decompose/subst
-#define DUMP_BEFORE_DECOMPOSE
-#define DUMP_BEFORE_SUBST
+//#define DUMP_BEFORE_DECOMPOSE
+//#define DUMP_BEFORE_SUBST
 
 
 #ifdef USING_NEW_SKYLMAT
