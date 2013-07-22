@@ -229,6 +229,12 @@ if(USING_BLAS)
 	endif()
 endif(USING_BLAS)
 
+#enabling the new skyline matrix format 
+option(USING_NEW_SKYLMAT "Enable the new skyline matrix format" OFF)
+if(USING_NEW_SKYLMAT)
+        add_definitions(-DUSING_NEW_SKYLMAT)
+endif(USING_NEW_SKYLMAT)
+
 #enabling PAPI library 
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)

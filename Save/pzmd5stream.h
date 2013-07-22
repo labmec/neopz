@@ -10,9 +10,9 @@
 
 #include <stdio.h>
 
-//Fixme: Protect this with ifdef
+#ifdef USING_OPENSSL
 #include <openssl/md5.h>
-
+#endif
 
 /**
  * @brief Implements the interface to write and check MD5 files. \ref save "Persistency"
@@ -22,10 +22,12 @@
 class TPZMD5Stream : public TPZStream
 {
 
+#ifdef USING_OPENSSL
   /** @brief The MD5 signature. */
   MD5_CTX md5_sig;
-  
+
   unsigned char digest[MD5_DIGEST_LENGTH];
+#endif
 
   int last_status; // 1 == SUCCESS
 
@@ -78,6 +80,7 @@ public:
    */
   int CheckMD5(FILE* fh) 
   {
+#ifdef USING_OPENSSL
     unsigned char this_digest[MD5_DIGEST_LENGTH];
     unsigned char file_digest[MD5_DIGEST_LENGTH];
 
@@ -99,6 +102,9 @@ public:
     }
     
     return compare_digests (this_digest, file_digest, MD5_DIGEST_LENGTH);
+#else
+    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
+#endif
   }
 
   /**
@@ -127,6 +133,7 @@ public:
    */
   int WriteMD5(FILE* fh) 
   {
+#ifdef USING_OPENSSL
     unsigned char digest[MD5_DIGEST_LENGTH];
 
     if (last_status != 1)
@@ -140,6 +147,9 @@ public:
       return 2;
 
     return 0; // Return OK
+#else
+    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
+#endif
   }
   
   /**
@@ -148,7 +158,11 @@ public:
    */
   int ResetMD5() 
   {
+#ifdef USING_OPENSSL
     return MD5_Init(&md5_sig);
+#else
+    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
+#endif
   }
   
   /** @brief Writes size integers at pointer location p */
@@ -200,11 +214,14 @@ public:
 
   /** @brief Writes size objects of the class T at pointer location p */
   template<class T>
-	void  Writes(const T *p, int size) 
-	{
-      if (last_status == 1)
-        last_status = MD5_Update(&md5_sig, (const void*) p, sizeof(T)*size);
-	}
+  void  Writes(const T *p, int size) {
+#ifdef USING_OPENSSL
+    if (last_status == 1)
+      last_status = MD5_Update(&md5_sig, (const void*) p, sizeof(T)*size);
+#else
+    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
+#endif
+  }
 
   /** @brief Reads size integers from pointer location p */
   virtual void Read(int *p, int size) {
