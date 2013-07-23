@@ -52,7 +52,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	TPZCompMesh *coarse = fCompMesh;
 	
 	fCompMesh = mesh;
-	SetBlockNumber();
+	OptimizeBandwidth();
 	TPZSkylineStructMatrix skstr(mesh);
 	SetStructuralMatrix(skstr);
 	int nmeshes = fSolvers.NElements();

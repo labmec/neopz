@@ -66,7 +66,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		out.flush();	  
 		HPAdapt(CurrentEtaAdmissible,out);//processa os restantes elementos ; (nadmerror)
 		Mesh()->AdjustBoundaryElements();
-		SetBlockNumber();
+		OptimizeBandwidth();
 		TPZSkylineStructMatrix skystr(fCompMesh);
 		SetStructuralMatrix(skystr);
 		TPZStepSolver<STATE> sol;

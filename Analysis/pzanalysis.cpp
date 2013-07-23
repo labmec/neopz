@@ -77,33 +77,36 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 }
 
 
-TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
+TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh);
+	this->SetCompMesh(mesh, mustOptimizeBandwidth);
 }
 
-TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out) :
+TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh.operator ->());
+	this->SetCompMesh(mesh.operator ->(), mustOptimizeBandwidth);
 }
 
 
-void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh) {
+void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
 	fCompMesh = mesh;
 	fGeoMesh = mesh->Reference();
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
 	if(fSolver) fSolver->ResetMatrix();
-	SetBlockNumber();
+	if(mustOptimizeBandwidth)
+    {
+        OptimizeBandwidth();
+    }
 	fStep = 0;
 	fTime = 0.;
 	fCompMesh->ExpandSolution();
@@ -121,7 +124,7 @@ TPZAnalysis::~TPZAnalysis(void){
 	}
 }
 
-void TPZAnalysis::SetBlockNumber(){
+void TPZAnalysis::OptimizeBandwidth(){
 	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo
 #ifdef WIN32
 	if(!fCompMesh) return;

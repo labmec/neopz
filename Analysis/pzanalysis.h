@@ -96,10 +96,10 @@ protected:
     void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
 	
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
-	TPZAnalysis(TPZCompMesh *mesh,std::ostream &out = std::cout);
+	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
 	
 	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
-	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out = std::cout);
+	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
 	
 	/** @brief Defines gui interface object */
 	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
@@ -120,7 +120,7 @@ protected:
 	}
 	
 	/** @brief Set the computational mesh of the analysis. */
-	void SetCompMesh(TPZCompMesh * mesh);
+	void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
 	
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
@@ -128,7 +128,7 @@ protected:
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
 	/** @brief Sets the computer connection block number from the graphical connections block number otimization */
-	void SetBlockNumber();
+	void OptimizeBandwidth();
 	
 	/** @brief Returns the dimension of the material which has the highest dimension */
 	int HighestDimension();
