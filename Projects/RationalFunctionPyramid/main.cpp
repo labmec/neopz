@@ -37,7 +37,7 @@
 
 #include "pzgeoelbc.h"
 
-/** Initialiazing file for Log4CXX for this project */
+/** Initialiazing file for Log4CXX for this project. */
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
 #endif
@@ -54,6 +54,7 @@ bool gDebug = false;
 int POrder = 1;
 
 int MaterialId = 1;
+int MaterialBC1 = -1;
 
 /** To print geometric elements with respective dimension */
 void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
@@ -67,27 +68,17 @@ int main(int argc, char *argv[]) {
 	InitializePZLOG();
 #endif
     
-    int gcaseinit = 1, gcaseend = 4;
-    int nsubdivisionsinit = 33, nsubdivisionsend = 35, nsubdivisionsinterval = 5;
-    if(argc == 1) {
-		POrder = 3;
-		gcaseinit = 3;
-		gcaseend = gcaseinit+1;
-	}
-	else {
-		POrder = atoi(argv[1]);
-		if(argc > 2) {
-			gcaseinit = atoi(argv[2]);
-			if(argc > 3) gcaseend = atoi(argv[3]);
-			else gcaseend = gcaseinit+1;
-			if(!argv[4]) nsubdivisionsinit = 3;
-			else nsubdivisionsinit = atoi(argv[4]);
-			if(!argv[5]) nsubdivisionsend = 35;
-			else nsubdivisionsend = atoi(argv[5]);
-			if(!argv[6]) nsubdivisionsinterval = 5;
-			else nsubdivisionsinterval = atoi(argv[6]);
-		}
-	}
+    if(argc == 1) return 1;
+    POrder = atoi(argv[1]);
+    
+    int gcaseinit = 1;
+    int gcaseend = 4;
+    if(argc > 2) {
+        gcaseinit = atoi(argv[2]);
+        if(argc > 3)
+            gcaseend = atoi(argv[3]);
+    }
+    
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
 
@@ -106,7 +97,7 @@ int main(int argc, char *argv[]) {
         // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
         for(int gcase=gcaseinit;gcase<gcaseend;gcase++) {
             std::cout << "\n\tCase " << gcase;
-            for(int nsubdivisions=nsubdivisionsinit;nsubdivisions<nsubdivisionsend;nsubdivisions+=nsubdivisionsinterval) {
+            for(int nsubdivisions=3;nsubdivisions<35;nsubdivisions+=5) {
                 std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions;
                 cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
             }
@@ -152,109 +143,6 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
   gmesh->BuildConnectivity();
 }
 
-
-/**********************************************************************
- ******************************   PUCP - Lima Peru   ******************
- ******************************   Learning NeoPZ     ******************
- *********************************************************************/
-
-int materialId = 1;
-int materialBC1 = -1;
-
-TPZVec<REAL> ervec(100,0.0);
-
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
-
-void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f);
-
-
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
-
-TPZGeoMesh *ConstructingFicheraCorner();
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
-
-void formatTimeInSec(char *strtime,int timeinsec);
-
-/** MAIN FUNCTION TO FIRST TEST WITH NEOPZ */
-int main() {
-
-	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
-	int i, nref, NRefs = 5;
-	int dim = 3;
-	int nelem = 0;
-    
-    for(nref=2;nref<NRefs;nref++) {
-		
-        // Constructing geometric mesh as Fichera corner using hexahedra
-        TPZGeoMesh *gmesh3D = ConstructingFicheraCorner();
-// h_refinement
-        TPZManVector<REAL> point(3,0.);
-        REAL r = 0.0, radius = 0.9;
-        bool isdefined = false;
- 
-		// The initial mesh is a cube then we are going to refine one level (8 cubes will be created)
-		RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-		TPZVec<TPZGeoEl*> sub;
-		// The fifth element will be divided
-		gmesh3D->ElementVec()[4]->Divide(sub);
-        
-        // Creating computational mesh
-        /** Set polynomial order */
-        int p = 2;
-        TPZCompEl::SetgOrder(p);
-        TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1);
-		cmesh->SetName("Computational mesh for Fichera problem");
-		dim = cmesh->Dimension();
-		cmesh->Print();
-
-// p-refinement
-        TPZInterpolatedElement *intel;
-		nelem = cmesh->NElements();
-		// Searching a first cube not null and the order will be decremented
-        for(i=0;i<nelem;i++) {
-            intel = (TPZInterpolatedElement*)(cmesh->ElementVec()[i]);
-            if(!intel) continue;
-			intel->PRefine(1);
-			break;
-        }
-        cmesh->ExpandSolution();
-        cmesh->CleanUpUnconnectedNodes();
-
-		//--- END construction of the meshes
-        
-		/** Variable names for post processing */
-        TPZStack<std::string> scalarnames, vecnames;
-		scalarnames.Push("POrder");
-		scalarnames.Push("Solution");
-        
-        // Introduzing exact solution
-        TPZAnalysis an (cmesh);
-        TPZSkylineStructMatrix strskyl(cmesh);
-        an.SetStructuralMatrix(strskyl);
-        
-        TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
-        direct->SetDirect(ECholesky);
-        an.SetSolver(*direct);
-        delete direct;
-        direct = 0;
-        
-        // Solving
-        an.Run();
-               
-        // Post processing
-        std::string filename = "Poisson3DSol.vtk";
-        an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
-        
-        an.PostProcess(0,dim);
-        
-        delete cmesh;
-        delete gmesh3D;
-	}
-    out.close();
-	return 0;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //////////   FICHERA CORNER - Problem as Anders Solin Presentation   ///////////////////
@@ -323,7 +211,7 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 	bcsol[0] = sqrt( sqrt (quad_r) );	
 }
 
-void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f,TPZFMatrix<REAL> &df) {
+void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	REAL raiz = sqrt( sqrt(quad_r));
 	f[0] = -3./(4.*(raiz*raiz*raiz));
@@ -336,7 +224,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	cmesh->SetAllCreateFunctionsContinuous();
 	
 	// Creating Poisson material
-	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
+	TPZMaterial *mat = new TPZMatPoisson3d(MaterialId,dim);
 	TPZVec<REAL> convd(3,0.);
 	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
 	if(hasforcingfunction) {
@@ -351,7 +239,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Dirichlet
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
 	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
+	TPZMaterial *bnd = mat->CreateBC(mat,MaterialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);
 	
@@ -379,7 +267,7 @@ TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunctio
 	cmesh->SetAllCreateFunctionsContinuous();
 	
 	// Creating Poisson material
-	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
+	TPZMaterial *mat = new TPZMatPoisson3d(MaterialId,dim);
 //	TPZVec<REAL> convd(3,0.);
 //	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
 	if(hasforcingfunction) {
@@ -394,7 +282,7 @@ TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunctio
 	// Dirichlet
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
 	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
+	TPZMaterial *bnd = mat->CreateBC(mat,MaterialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);
 	
@@ -460,84 +348,3 @@ void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *file
 	// Printing geometric mesh to visualization in Paraview
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
 }
-
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
-    TPZManVector<TPZGeoEl*> filhos;
-    for(int D=0; D<nDiv; D++)
-    {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
-        {
-            TPZGeoEl * gel = gmesh->ElementVec()[elem];
-            if(!gel || gel->HasSubElement())
-                continue;
-            if(dim > 0 && gel->Dimension() != dim) continue;
-            if(!allmaterial){
-                if(gel->MaterialId() == matidtodivided){
-                    gel->Divide(filhos);
-                }
-            }
-            else{
-                gel->Divide(filhos);
-            }
-            if(gDebug) {
-                REAL volgel = fabs(gel->Volume());
-                REAL sumvol = 0.;
-                for(int nsubs=0;nsubs<gel->NSubElements();nsubs++)
-                    sumvol += fabs(filhos[nsubs]->Volume());
-                if(!IsZero(volgel-sumvol)) {
-                    std::cout << "Division of geometric element " << elem << " is wrong.\n";
-                    DebugStop();
-                }
-            }
-        }
-    }
-    gmesh->ResetConnectivities();
-    gmesh->BuildConnectivity();
-}
-
-/** MAIN FUNCTION FOR NUMERICAL TESTS TO CEDRIC CLASS
-int main(int argc, char *argv[]) {
-	
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
-    
-    if(argc == 1) return 1;
-    POrder = atoi(argv[1]);
-    
-    int gcaseinit = 1;
-    int gcaseend = 4;
-    if(argc > 2) {
-        gcaseinit = atoi(argv[2]);
-        if(argc > 3)
-            gcaseend = atoi(argv[3]);
-    }
-    
-	// Initializing a ref patterns
-	gRefDBase.InitializeAllUniformRefPatterns();
-    
-    // To store errors
-    ofstream arq("Errors.txt");
-    std::cout << "\nRUNNING CedricTest.\n\n";
-    arq << "\nRUNNING CedricTest:\n\n";
-    
-    // setting p order
-    // Set polynomial order
-    //    for(POrder=3;POrder<4;POrder++) {
-    std::cout << "\nInterpolation order " << POrder << std::endl;
-    TPZCompEl::SetgOrder(POrder);
-    
-    TCedricTest cedric;
-    // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-    for(int gcase=gcaseinit;gcase<gcaseend;gcase++) {
-        std::cout << "\n\tCase " << gcase;
-        for(int nsubdivisions=3;nsubdivisions<35;nsubdivisions+=5) {
-            std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions;
-            cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
-        }
-    }
-    //    }
-    return 0;
-}
-*/

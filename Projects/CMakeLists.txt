@@ -58,6 +58,9 @@ ENABLE_TESTING()
 			#Curso PZ:
 			add_subdirectory(CursoPZ)
 
+			# Simple project to test rational function defined by Cedric on pyramids
+			add_subdirectory(RationalFunctionPyramid)
+
 		endif(BUILD_COMPLEX_PROJECTS)
 
 
