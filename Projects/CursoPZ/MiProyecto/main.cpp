@@ -25,8 +25,6 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 
-#include "CedricTest.h"
-
 #include "TPZRefPatternTools.h"
 
 #include "TPZParSkylineStructMatrix.h"
@@ -72,7 +70,7 @@ void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 
 void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
 
-void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f);
+void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f,TPZMatrix<REAL> &bf);
 
 
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
@@ -364,41 +362,6 @@ void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *file
 	}
 	// Printing geometric mesh to visualization in Paraview
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
-}
-
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
-    TPZManVector<TPZGeoEl*> filhos;
-    for(int D=0; D<nDiv; D++)
-    {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
-        {
-            TPZGeoEl * gel = gmesh->ElementVec()[elem];
-            if(!gel || gel->HasSubElement())
-                continue;
-            if(dim > 0 && gel->Dimension() != dim) continue;
-            if(!allmaterial){
-                if(gel->MaterialId() == matidtodivided){
-                    gel->Divide(filhos);
-                }
-            }
-            else{
-                gel->Divide(filhos);
-            }
-            if(gDebug) {
-                REAL volgel = fabs(gel->Volume());
-                REAL sumvol = 0.;
-                for(int nsubs=0;nsubs<gel->NSubElements();nsubs++)
-                    sumvol += fabs(filhos[nsubs]->Volume());
-                if(!IsZero(volgel-sumvol)) {
-                    std::cout << "Division of geometric element " << elem << " is wrong.\n";
-                    DebugStop();
-                }
-            }
-        }
-    }
-    gmesh->ResetConnectivities();
-    gmesh->BuildConnectivity();
 }
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
