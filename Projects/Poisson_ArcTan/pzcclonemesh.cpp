@@ -607,8 +607,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
         
         TPZVec<int> subelindex;
         // The interpolated elements can not to have a order bigger than max order defined to p-adaptive process
-        if(cint->GetPreferredOrder()>maxp)
-            cint->PRefine(maxp);
+     //   if(cint->GetPreferredOrder()>maxp)
+     //       cint->PRefine(maxp);
         cint->Divide(el,subelindex,1);
         
         if(gDebug) {
