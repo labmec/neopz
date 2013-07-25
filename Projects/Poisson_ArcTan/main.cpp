@@ -391,7 +391,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 	// Initial message to print computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int nref = 1, NRefs = 10;
+	int nref = 1, NRefs = 12;
     int ninitialrefs = 2;
 	int nthread = 1, NThreads = 4;
 	
@@ -401,7 +401,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 		MElementType typeel;
 		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 		{
-            MaxPOrder = 4;
+            MaxPOrder = 7;
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
             std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
