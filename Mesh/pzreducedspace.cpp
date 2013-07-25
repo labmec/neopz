@@ -162,7 +162,6 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
 
 
 void TPZReducedSpace::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data){
-    
     ShapeX(qsi,data);
 }
 
@@ -302,18 +301,29 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 {
     TPZCompMesh *cmesh = Mesh();
     TPZCompMeshReferred *cmeshref = dynamic_cast<TPZCompMeshReferred *>(cmesh);
+    
 #ifdef DEBUG
     if (!cmeshref) {
         DebugStop();
     }
 #endif
+    
     TPZCompEl *cel = cmeshref->ReferredEl(Index());
+    
+#ifdef DEBUG
+    if (!cel) {
+        DebugStop();
+    }
+#endif
+    
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+
 #ifdef DEBUG
     if (!intel) {
         DebugStop();
     }
 #endif
+    
     return intel;
 }
 

@@ -25,7 +25,7 @@ class ToolsTransient
     
     ToolsTransient();
     ToolsTransient(int pOrder,
-                   REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, REAL Visc, TPZVec<REAL> & SigN,
+                   REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, int NStripes, REAL Visc, REAL SigN,
                    REAL Qinj, REAL Ttot, REAL Nsteps, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc);
     
     ~ToolsTransient();
@@ -35,7 +35,8 @@ class ToolsTransient
     void Run();
     
         TPZGeoMesh * Mesh2D(REAL lmax);
-        TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh, REAL SigmaN);
+        TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh);
+        void SetSigmaNStripeNum(TPZCompMesh * cmesh, int actStripe);
         void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
         TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh);
         TPZCompMesh * CMeshPressure(TPZGeoMesh *gmesh);

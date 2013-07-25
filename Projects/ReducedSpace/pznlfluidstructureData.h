@@ -9,6 +9,8 @@
 #ifndef PZ_pznlfluidstructureData_h
 #define PZ_pznlfluidstructureData_h
 
+#include "pznlfluidstructureMaterials.h"
+
 class InputDataStruct
 {
 public:
@@ -22,7 +24,7 @@ public:
         
     }
     
-    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy, REAL Visc, TPZVec<REAL> & SigN,
+    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy, int NStripes, REAL Visc, REAL SigN,
                  REAL QinjTot, REAL Ttot, REAL deltaT, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
     {
         fLx = Lx;
@@ -34,6 +36,7 @@ public:
         fPoisson = Poisson;
         fFx = Fx;
         fFy = Fy;
+        fNStripes = NStripes;
         
         fVisc = Visc;
         
@@ -72,8 +75,9 @@ public:
     REAL Poisson() { return fPoisson; }
     REAL Fx() { return fFx; }
     REAL Fy() { return fFy; }
+    int NStripes() { return fNStripes; }
     REAL Visc() { return fVisc; }
-    REAL SigN(int pos) { return fSigN[pos]; }
+    REAL SigN() { return fSigN; }
     REAL Qinj() { return fQinj; }
     REAL Ttot() { return fTtot; }
     REAL deltaT() { return fdeltaT; }
@@ -97,12 +101,13 @@ public:
     REAL fPoisson;//Poisson
     REAL fFx;//Bodyforces in x
     REAL fFy;//Bodyforces in y
+    int fNStripes;//Amounth of pressure stripes for reduced space elastic references
     
     //Fluid property:
     REAL fVisc;//viscosidade do fluido de injecao
     
     //BCs:
-    TPZVec<REAL> fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
+    REAL fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
     REAL fQinj;//vazao de 1 asa de fratura dividido pela altura da fratura
     
     //time:

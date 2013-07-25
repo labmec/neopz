@@ -523,12 +523,17 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         int svec;
-        if(msp){
+        if(msp)
+        {
             ordervec.Resize(ordervec.size()+1);
             svec = ordervec.size();
-        } else continue;
+        }
+        else
+        {
+            continue;
+        }
 		datavec[iref].p = msp->MaxOrder();
-		ordervec[svec-1] = datavec[iref].p; 
+		ordervec[svec-1] = datavec[iref].p;
 	}
 	int order = material->IntegrationRuleOrder(ordervec);
 	
