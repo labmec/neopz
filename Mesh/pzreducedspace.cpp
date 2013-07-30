@@ -341,12 +341,14 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
 {
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
+    
 #ifdef DEBUG
     const int ncon = this->NConnects();
     if (ncon != 1) {
         DebugStop();
     }
 #endif
+    
     TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     sol.Resize(numbersol);
@@ -386,15 +388,11 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
         }
 #endif
         for (int is=0; is<numbersol; is++) {
-            
-            //sol[is][jn%numdof] += (STATE)phi(jn%numdof,jn/numdof)*MeshSol(pos+jn,is);
-            
             for(d=0; d<numdof; d++){
-                sol[is][d%numdof] += (STATE)phi(d,jn/numdof)*MeshSol(pos+jn,is);
+                sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);//AQUICAJU
             }
             for(d=0; d<dim*numdof; d++){
-                //dsol[is](d%dim,iv/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
-                dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn/numdof)*MeshSol(pos+jn,is);
+                dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
             }
         }
     }

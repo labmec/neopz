@@ -471,7 +471,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 #endif
 	
 	TPZVec<int> nshape(nref);
-	for (int iref = 0; iref<nref; iref++) 
+	for (int iref = 0; iref < nref; iref++)
 	{
         if(fElementVec[iref])
         {
@@ -554,7 +554,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		weight *= fabs(detJac);
 
         int ElemVecSize = fElementVec.size();
-		for (int iref=0; iref < ElemVecSize; iref++)
+		for (int iref = 0; iref < ElemVecSize; iref++)
 		{
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
             if (!msp) {

@@ -11,6 +11,7 @@
 #include "toolstransienttime.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "TPZRefPatternDataBase.h"
 
 //#ifdef LOG4CXX
 //static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
@@ -20,6 +21,16 @@
 
 int main(int argc, char *argv[])
 {
+//    gRefDBase.InitializeRefPatterns();
+//    TPZAutoPointer<TPZRefPattern> refp = gRefDBase.FindRefPattern("Hex000000001101000011010000000");
+//    if(refp)
+//    {
+//        std::ofstream outR("jubilula.vtk");
+//        refp->PrintVTK(outR);
+//    }
+//    std::ofstream outR("RefPatterns.rpt");
+//    gRefDBase.WriteRefPatternDBase(outR);
+    
     //Propagation criterion
     REAL Lx = 400.;
     REAL Ly = 400.;
@@ -29,7 +40,7 @@ int main(int argc, char *argv[])
     REAL Poiss = 0.25;
     REAL Fx = 0.;
     REAL Fy = 0.;
-    int NStripes = 4;
+    int NStripes = 5;
     REAL Visc = 0.001E-6;
     
     REAL SigN = 61.5;

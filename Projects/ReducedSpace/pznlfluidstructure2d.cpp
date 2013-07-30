@@ -99,7 +99,7 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	TPZFMatrix<REAL> &phi_u = datavec[0].phi;
 	TPZFMatrix<REAL> &axes=datavec[0].axes;
     
-    TPZManVector<REAL,3> sol_u=datavec[0].sol[0];
+    TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
 	TPZFMatrix<REAL> &dsol_u=datavec[0].dsol[0];
     
 	int phcu = phi_u.Cols();
@@ -221,13 +221,19 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL> & dsol_p = datavec[1].dsol[0];
     
     TPZFMatrix<REAL> & phi_u = datavec[0].phi;
-    TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
+    
+    int nsolu = datavec[0].sol.NElements();
+    REAL w = 0.;
+    
+    for(int s = 0; s < nsolu; s++)
+    {
+        TPZManVector<REAL,3> sol_u = datavec[0].sol[s];
+        REAL uy = sol_u[1];
+        w += 2.*uy;
+    }
     
     int phipCols = phi_p.Rows();
     int phiuCols = phi_u.Cols();
-    
-    REAL uy = sol_u[1];
-    REAL w = 2.*uy;
     
     REAL visc = fInputData->Visc();
     REAL deltaT = fInputData->deltaT();
@@ -297,6 +303,7 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
     //  if(gState == ELastState) return;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
+    
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
 	const REAL big  = TPZMaterial::gBigNumber;
 	int phc = phi_u.Cols();
@@ -327,6 +334,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     REAL factor = 0.;//G/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
+    
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
     
     REAL sol_un = sol_u[0]*datavec[0].normal[0] + sol_u[1]*datavec[0].normal[1];
@@ -377,6 +385,7 @@ void TPZNLFluidStructure2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL 
     if(gState == ELastState) return;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
+    
     TPZManVector<REAL,3> sol_u =datavec[0].sol[0];
 	int phc = phi_u.Cols();
     

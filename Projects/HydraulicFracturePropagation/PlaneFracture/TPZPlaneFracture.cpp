@@ -1539,7 +1539,7 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 
 void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * refinedMesh)
 {
-    REAL desiredSize = __maxLength;//desired characteristic size of quarter point elements <<< AQUICAJU
+    REAL desiredSize = __maxLength;
     int ndiv = log((__maxLength/2.)/desiredSize)/log(2.);
     if(ndiv < 1)
     {

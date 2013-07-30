@@ -57,6 +57,7 @@ ToolsTransient::~ToolsTransient(){
     
 }
 
+
 void ToolsTransient::Run()
 {
     REAL deltaT = fInputData->deltaT();
@@ -91,6 +92,7 @@ void ToolsTransient::Run()
         int NStripes = fInputData->NStripes();
         TPZFMatrix<STATE> solutions(0,0);
         
+        TPZAnalysis an1;
         for(int stripe = 0; stripe < NStripes; stripe++)
         {
             /** Resolvendo um problema modelo de elastica linear para utilizar a
@@ -98,7 +100,7 @@ void ToolsTransient::Run()
             SetSigmaNStripeNum(cmesh_elast,stripe);
             
             bool mustOptimizeBandwidth = (stripe == 0);
-            TPZAnalysis an1(cmesh_elast, mustOptimizeBandwidth);
+            an1.SetCompMesh(cmesh_elast, mustOptimizeBandwidth);
             this->SolveInitialElasticity(an1, cmesh_elast);
             if(stripe == 0)
             {
@@ -843,23 +845,27 @@ REAL ToolsTransient::IntegrateSolution(TPZCompMesh * cmesh, int variable)
 
 std::map<int,REAL> ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh, TPZCompMesh * newFluidCMesh, std::stringstream & outVl)
 {
+    TPZCompMesh * cmeshTemp = new TPZCompMesh(newFluidCMesh->Reference());
+    cmeshTemp->SetAllCreateFunctionsDiscontinuous();
+    cmeshTemp->AdjustBoundaryElements();
+    
     //////L2Projection material
     int dim = 1;
     int pOrder = 0;
     int nsol = 1;
     TPZVec<REAL> solini(nsol,0.);
-    TPZL2Projection * materialL2 = new TPZL2Projection(globPressureMatId, dim, nsol, solini, pOrder);
     
-    TPZAutoPointer< TPZFunction<STATE> > func = new TLeakoffFunction<STATE>(oldMphysicsCMesh);
-    materialL2->SetForcingFunction(func);
+    int NStripes = fInputData->NStripes();
+    for(int stripe = 0; stripe < NStripes; stripe++)
+    {
+        TPZL2Projection * materialL2 = new TPZL2Projection(globPressureMatId + stripe, dim, nsol, solini, pOrder);
+        
+        TPZAutoPointer< TPZFunction<STATE> > func = new TLeakoffFunction<STATE>(oldMphysicsCMesh);
+        materialL2->SetForcingFunction(func);
     
-    //////Inserindo na malha 1D
-    TPZCompMesh * cmeshTemp = new TPZCompMesh(newFluidCMesh->Reference());
-    
-    cmeshTemp->SetAllCreateFunctionsDiscontinuous();
-    cmeshTemp->AdjustBoundaryElements();
-
-    cmeshTemp->InsertMaterialObject(materialL2);
+        //////Inserindo na malha 1D
+        cmeshTemp->InsertMaterialObject(materialL2);
+    }
     
 	cmeshTemp->AutoBuild();
     
@@ -907,6 +913,15 @@ std::map<int,REAL> ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMes
         }
         newLeakoff[gelId] = vl;
     }
+    
+//    {
+//        std::ofstream outDepois("LeakoffDEPOIS.txt");
+//        std::map<int,REAL>::iterator it;
+//        for(it = newLeakoff.begin(); it != newLeakoff.end(); it++)
+//        {
+//            outDepois << it->second << "\n";
+//        }
+//    }
     
     return newLeakoff;
 }
@@ -989,7 +1004,7 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
         if(res >= tol)
         {
             std::cout << step << " , normRes = " << res << std::endl;
-            //DebugStop();
+            DebugStop();
         }
         if(nit >= maxit)
         {
@@ -1081,9 +1096,9 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, R
         intpEl->ComputeShape(qsii, data);
         intpEl->ComputeSolution(qsii, data);
         TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
-        TPZVec<REAL> Solout(3);
+        TPZVec<REAL> Solout(3,0.);
         int var = 10;//Stress Tensor
-        elast2D->Solution(data, var, Solout); 
+        elast2D->CombinedSolution(data, var, Solout);
         REAL pressure = -Solout[1];
         /////////////////////////////////////////////////////////////////////
         
@@ -1155,7 +1170,7 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW,
                 
                 intpEl->ComputeShape(qsi2D, data);
                 intpEl->ComputeSolution(qsi2D, data);
-                elast2D->Solution(data, var, Solout);
+                elast2D->CombinedSolution(data, var, Solout);
                 
                 REAL posX = XX[0];
                 REAL posY = 2.*(Solout[1]);
@@ -1402,7 +1417,7 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
     intpEl->ComputeSolution(qsi2D, data);
     
     int var = 0;
-    elast->Solution(data, var, Solout);
+    elast->CombinedSolution(data, var, Solout);
     f = Solout;
 }
 
@@ -1457,6 +1472,15 @@ TLeakoffFunction<TVar>::TLeakoffFunction(TPZCompMesh * cmesh)
     {
         DebugStop();
     }
+    
+//    {
+//        std::ofstream outAntes("LeakoffANTES.txt");
+//        std::map<int,REAL>::iterator it;
+//        for(it = fleakoffMap.begin(); it != fleakoffMap.end(); it++)
+//        {
+//            outAntes << it->second << "\n";
+//        }
+//    }
 }
 
 template<class TVar>
