@@ -880,23 +880,6 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL
 	}
 }
 
-void TPZElasticityMaterial::CombinedSolution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
-{
-    Solout.Fill(0.);
-    
-    int nsol = data.sol.NElements();
-    for(int sol = 0; sol < nsol; sol++)
-    {
-        TPZVec<REAL> SoloutTemp(Solout.NElements(),0.);
-        this->SetPostProcessIndex(sol);
-        this->Solution(data, var, SoloutTemp);
-        for(int p = 0; p < Solout.NElements(); p++)
-        {
-            Solout[p] += SoloutTemp[p];
-        }
-    }
-    this->SetPostProcessIndex(0);
-}
 
 void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
 	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {

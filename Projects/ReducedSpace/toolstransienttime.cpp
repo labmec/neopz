@@ -1170,7 +1170,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, R
         TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
         TPZVec<REAL> Solout(3,0.);
         int var = 10;//Stress Tensor
-        elast2D->CombinedSolution(data, var, Solout);
+        elast2D->Solution(data, var, Solout);
         REAL pressure = -Solout[1];
         /////////////////////////////////////////////////////////////////////
         
@@ -1242,7 +1242,7 @@ void ToolsTransient::PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW,
                 
                 intpEl->ComputeShape(qsi2D, data);
                 intpEl->ComputeSolution(qsi2D, data);
-                elast2D->CombinedSolution(data, var, Solout);
+                elast2D->Solution(data, var, Solout);
                 
                 REAL posX = XX[0];
                 REAL posY = 2.*(Solout[1]);
@@ -1489,7 +1489,7 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
     intpEl->ComputeSolution(qsi2D, data);
     
     int var = 0;
-    elast->CombinedSolution(data, var, Solout);
+    elast->Solution(data, var, Solout);
     f = Solout;
 }
 

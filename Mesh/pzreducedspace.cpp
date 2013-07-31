@@ -389,7 +389,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
 #endif
         for (int is=0; is<numbersol; is++) {
             for(d=0; d<numdof; d++){
-                sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);//AQUICAJU
+                sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);
             }
             for(d=0; d<dim*numdof; d++){
                 dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);

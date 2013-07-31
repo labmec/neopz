@@ -155,11 +155,6 @@ public:
 
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
- 
-    /** Same as Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout), but combine all solutions, in case there is more than 1.
-     *  It means that for obtain data.sol, procedure will execute "+=" fPostProcIndex from 0 to nsolutions
-     */
-	void CombinedSolution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
     
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
