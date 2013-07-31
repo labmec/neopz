@@ -24,6 +24,17 @@
 #include "pzl2projection.h"
 #include "tpzmathtools.cpp"
 
+//Plasticidade
+#include "pzelastoplasticanalysis.h"
+#include "TPZSandlerDimaggio.h"
+#include "TPZThermoForceA.h"
+#include "TPZElasticResponse.h"
+#include "TPZTensor.h"
+#include "BrazilianTestGeoMesh.h"
+#include "pzpostprocmat.h"
+#include "pzpostprocanalysis.h"
+//Plasticidade
+
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
@@ -57,6 +68,67 @@ ToolsTransient::~ToolsTransient(){
     
 }
 
+
+void ToolsTransient::RunPlasticity()
+{
+    REAL Jradius = 0.5;//Jintegral radius
+    
+    //std::map<int,REAL> leakoffMap;
+    
+    const REAL lmax = 10.;
+    
+    TPZGeoMesh * gmesh = this->Mesh2D(lmax);
+    
+    TPZCompMesh * cmesh = CMeshElastoPlastic(gmesh, fInputData->SigN());
+    TPZElastoPlasticAnalysis an(cmesh,std::cout);
+    
+    this->SolveInitialElastoPlasticity(an, cmesh);
+    
+    std::cout << "<<<<<<<<<<<<<<<<<<<<<<< 0\n";
+    std::stringstream notUsedHere("none.txt");
+    REAL KI = ComputeKIPlaneStrain(cmesh, fInputData->E(), fInputData->Poisson(), Jradius, notUsedHere);
+    std::cout << "KI = " << KI << " >>>>>>>>>>>>>>>>>>>\n\n\n";
+    
+    std::string vtkFile = "pocoplastico.vtk";
+    TPZPostProcAnalysis ppanalysis(cmesh);
+    ppanalysis.SetStep(0);
+    TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+    structmatrix.SetNumThreads(8);
+    ppanalysis.SetStructuralMatrix(structmatrix);
+    
+    TPZVec<int> PostProcMatIds(1,1);
+    TPZStack<std::string> PostProcVars, scalNames, vecNames;
+    scalNames.Push("Alpha");
+    scalNames.Push("PlasticSqJ2");
+    scalNames.Push("PlasticSqJ2El");
+    scalNames.Push("POrder");
+    
+    scalNames.Push("I1Stress");
+    scalNames.Push("J2Stress");
+    
+    vecNames.Push("Displacement");
+    vecNames.Push("YieldSurface");
+    vecNames.Push("NormalStress");
+    vecNames.Push("ShearStress");
+    vecNames.Push("NormalStrain");
+    vecNames.Push("ShearStrain");
+    vecNames.Push("DisplacementMem");
+    for (int i=0; i<scalNames.size(); i++)
+    {
+        PostProcVars.Push(scalNames[i]);
+    }
+    for (int i=0; i<vecNames.size(); i++)
+    {
+        PostProcVars.Push(vecNames[i]);
+    }
+    //
+    ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+    //
+    ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+    //	
+    ppanalysis.TransferSolution();
+    ppanalysis.PostProcess(0);// pOrder    
+}
 
 void ToolsTransient::Run()
 {
@@ -1550,3 +1622,88 @@ int TLeakoffFunction<TVar>::PolynomialOrder()
     return 0;
 }
 
+void ToolsTransient::SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh)
+{
+	TPZSkylineStructMatrix full(Cmesh);
+    full.SetNumThreads(0);
+	analysis.SetStructuralMatrix(full);
+    
+	TPZStepSolver<REAL> step;
+    step.SetDirect(ELDLt);
+	analysis.SetSolver(step);
+    
+    int NumIter = 2;
+    bool linesearch = true;
+    bool checkconv = false;
+    
+    analysis.IterativeProcess(cout, 1.e-6, NumIter, linesearch, checkconv);
+    
+    analysis.AcceptSolution();
+}
+
+TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
+{
+    /// criar materiais
+    int dim = 2;
+    
+    TPZVec<REAL> force(dim,0.);
+    
+    //int planestress = 1;
+    int planestrain = 1;
+    
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> SD;
+    REAL poisson = 0.203;
+    REAL elast = 29269.;
+    REAL A = 152.54;
+    REAL B = 0.0015489;
+    REAL C = 146.29;
+    REAL R = 0.91969;
+    REAL D = 0.018768;
+    REAL W = 0.006605;
+    SD.SetUp(poisson, elast, A, B, C, R, D, W);
+    SD.SetResidualTolerance(1.e-10);
+    SD.fIntegrTol = 10.;
+    
+    TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > (globReservMatId,planestrain);
+    
+    TPZMaterial * mat(PlasticSD);
+    PlasticSD->SetPlasticity(SD);
+    
+    TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (mat);
+    
+    ///criar malha computacional
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDefaultOrder(fpOrder);
+    cmesh->SetDimModel(dim);
+    cmesh->InsertMaterialObject(pMatWithMem);
+    
+    TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(cmesh);
+    
+    
+    
+    ///Inserir condicao de contorno
+    REAL big = mat->gBigNumber;
+    
+    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    val2(1,0) = SigmaN;
+    TPZMaterial * BCond1 = PlasticSD->CreateBC(pMatWithMem, globPressureMatId, neumann, val1, val2);
+    
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    TPZMaterial * BCond2 = PlasticSD->CreateBC(pMatWithMem, globDirichletElastMatId, dirichlet, val1, val2);
+    
+    val1(0,0) = big;
+    TPZMaterial * BCond3 = PlasticSD->CreateBC(pMatWithMem, globBlockedXElastMatId, mixed, val1, val2);
+    
+    //cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    return cmesh;
+}

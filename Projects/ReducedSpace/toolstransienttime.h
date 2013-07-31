@@ -15,7 +15,7 @@
 #include "pznlfluidstructure2d.h"
 
 
-
+class TPZElastoPlasticAnalysis;
 
 
 class ToolsTransient
@@ -33,6 +33,7 @@ class ToolsTransient
     //---------------------------------------------------------------
     
     void Run();
+    void RunPlasticity();
     
         TPZGeoMesh * Mesh2D(REAL lmax);
         TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh);
@@ -74,6 +75,10 @@ class ToolsTransient
     
     void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
                           TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+    
+    void SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh);
+    
+    TPZCompMesh * CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN);    
     
     //---------------------------------------------------------------
     
