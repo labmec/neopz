@@ -26,6 +26,7 @@
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzmultiphysicscompel.h"
+#include "TPZRefpattern.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
@@ -2027,6 +2028,7 @@ void TPZCompMesh::SaddlePermute()
 }
 */
 
+
 void TPZCompMesh::SaddlePermute()
 {
     TPZVec<long> permute;
@@ -2046,6 +2048,7 @@ void TPZCompMesh::SaddlePermute()
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
             long seqnum = c.SequenceNumber();
+            // if seqnum is larger than internal connects the equation is restrained, no permutation is necessary
             if (seqnum >= numinternalconnects) {
                 continue;
             }
@@ -2080,7 +2083,7 @@ void TPZCompMesh::SaddlePermute()
                 TPZConnect &c = cel->Connect(ic);
                 int clagrange = c.LagrangeMultiplier();
                 long ceqnum = c.SequenceNumber();
-                if (ceqnum > numinternalconnects) {
+                if (ceqnum >= numinternalconnects) {
                     continue;
                 }
                 int ceq = permute[ceqnum];
@@ -2110,7 +2113,13 @@ void TPZCompMesh::SaddlePermute()
                 for (int ic=0; ic<nc; ic++) {
                     TPZConnect &c = cel->Connect(ic);
                     c.Print(*this,sout);
-                    sout << "New seqnum = " << permute[c.SequenceNumber()] << std::endl;
+                    if (c.SequenceNumber() < numinternalconnects) {
+                        sout << "New seqnum = " << permute[c.SequenceNumber()] << std::endl;
+                    }
+                    else
+                    {
+                        sout << "Connect with restraint, seqnum " << c.SequenceNumber() << std::endl;
+                    }
                 }
                 LOGPZ_DEBUG(logger, sout.str())
             }
