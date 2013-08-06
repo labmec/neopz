@@ -154,11 +154,10 @@ void ToolsTransient::Run()
     TPZCompMeshReferred * lastElastCMesh = NULL;
     
     int propagCount = 0;
-    while (propagate)
+    while(propagate)
     {
         //Principal Geometric Mesh (Lf initial)
         TPZGeoMesh * gmesh = this->Mesh2D(lmax);
-        
         TPZCompMesh * cmesh_elast = this->CMeshElastic(gmesh);
         
         int NStripes = fInputData->NStripes();
