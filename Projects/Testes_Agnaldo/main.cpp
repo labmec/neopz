@@ -62,6 +62,8 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
 void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
 void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);
 
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area);
@@ -935,7 +937,13 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
 
 //Problema Barry and Mercer
 int main(int argc, char *argv[]){
-
+    
+    #ifdef LOG4CXX
+        InitializePZLOG();
+    #endif
+    
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     
     bool triang=false;
     bool dimensionless=true;
@@ -1023,6 +1031,7 @@ int main(int argc, char *argv[]){
         "3 4 14 7 2 8   ";
         std::istringstream str(buf);
         TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
+        refp->GenerateSideRefPatterns();
         gRefDBase.InsertRefPattern(refp);
         if(!refp)
         {
@@ -1030,88 +1039,194 @@ int main(int argc, char *argv[]){
         }
     }
     
-    {//NAO APAGAR!!!
-        char buf[] =
-        "4 4 "
-        "-50 Lin000022224 "
-        "-1 0 0 "
-        "1 0 0 "
-        "-0.33333 0 0  "
-        "+0.33333 0 0  "
-        "1 2 0 1  "
-        "1 2 0 2  "
-        "1 2 2 3  "
-        "1 2 3 1  ";
-        std::istringstream str(buf);
-        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
-        gRefDBase.InsertRefPattern(refp);
-        if(!refp)
-        {
-            DebugStop();
-        }
-    }
-
+    //    {//NAO APAGAR!!!
+    //        char buf[] =
+    //        "4 4 "
+    //        "-50 Lin000022224 "
+    //        "-1 0 0 "
+    //        "1 0 0 "
+    //        "-0.33333 0 0  "
+    //        "+0.33333 0 0  "
+    //        "1 2 0 1  "
+    //        "1 2 0 2  "
+    //        "1 2 2 3  "
+    //        "1 2 3 1  ";
+    //        std::istringstream str(buf);
+    //        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
+    //        gRefDBase.InsertRefPattern(refp);
+    //        if(!refp)
+    //        {
+    //            DebugStop();
+    //        }
+    //    }
+    
+    
     DadosMalhas * mydata = new DadosMalhas();
-    TPZGeoMesh * gmesh = mydata->GMesh4(Lx,Ly);
-    
-    mydata->UniformRefine(gmesh, 1);
-    RefinamentoPadrao3x3(gmesh,1);
     
     TPZVec<REAL> pt(3);
     pt[0] = Lx/4.;
     pt[1] = Ly/4.;
     pt[2] = 0.;
-    int newmatId = mydata->GetIdSourceTerm();//mat id of the source term
     REAL Area;
-    RefinamentoPadrao3x3(gmesh,2,pt, true, newmatId, Area);
-    felarea = Area;
     
-    std::ofstream malhaGeo("gmesh2D.txt");
-    gmesh->Print(malhaGeo);
-    
-    
-    mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
-    
-    int pu = 2;
-    int pq = 1;
-    int pp = 1;
-    
-    // First computational mesh
-    TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true);
-    ofstream arg1("cmesh1.txt");
-    cmesh1->Print(arg1);
-    
-    // second computational mesh
-	TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true);
-    ofstream arg2("cmesh2.txt");
-    cmesh2->Print(arg2);
-    
-	// Third computational mesh
-    TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang,true);
-    ofstream arg3("cmesh3.txt");
-    cmesh3->Print(arg3);
-
-    //malha multifisica
-    TPZVec<TPZCompMesh *> meshvec(3);
-	meshvec[0] = cmesh1;
-	meshvec[1] = cmesh2;
-    meshvec[2] = cmesh3;
-    
-    TPZAutoPointer<TPZFunction<STATE> > sourceterm = new TPZDummyFunction<STATE>(ForcingSource);
-    TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerProblem2D);
-    
-    TPZCompMesh * mphysics = mydata->MalhaCompBarryMercer(gmesh,meshvec,sourceterm, solExata);
-    ofstream arg8("mphysic.txt");
-	mphysics->Print(arg8);
-    
-    ofstream arg9("gmesh_final.txt");
-	gmesh->Print(arg9);
-    
-    REAL deltaT=timeT/10; //second
-    REAL maxTime = timeT;
-    fdeltaT = deltaT;
-    
-    mydata->SolveSistBarryMercert(deltaT, maxTime, meshvec, mphysics,1,ftimeatual);
+    ofstream saidaerro("Erro.txt");
+    for(int p = 1; p<2; p++)
+    {
+        int pu = p+1;
+        int pq = p;
+        int pp = p;
+        int h;
+        
+        saidaerro<<"\n CALCULO DO ERRO, ELEM. TRIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
+        for (h = 1; h< 2; h++)
+        {
+            
+            saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
+            
+            TPZGeoMesh * gmesh = mydata->GMesh4(Lx,Ly);
+            mydata->UniformRefine(gmesh, h);
+            RefinamentoPadrao3x3(gmesh,h);
+            
+            int newmatId = mydata->GetIdSourceTerm();//mat id of the source term
+            RefinamentoPadrao3x3(gmesh,h,pt, true, newmatId, Area);
+            felarea = Area;
+            
+            //            std::ofstream malhaGeo("gmesh2D.txt");
+            //            gmesh->Print(malhaGeo);
+            
+            
+            mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
+            
+            
+            // First computational mesh
+            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true);
+            ofstream arg1("cmesh1.txt");
+            cmesh1->Print(arg1);
+            
+            // second computational mesh
+            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true);
+            ofstream arg2("cmesh2.txt");
+            cmesh2->Print(arg2);
+            
+            // Third computational mesh
+            TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang,true);
+            ofstream arg3("cmesh3.txt");
+            cmesh3->Print(arg3);
+            
+            //malha multifisica
+            TPZVec<TPZCompMesh *> meshvec(3);
+            meshvec[0] = cmesh1;
+            meshvec[1] = cmesh2;
+            meshvec[2] = cmesh3;
+            
+            TPZAutoPointer<TPZFunction<STATE> > sourceterm = new TPZDummyFunction<STATE>(ForcingSource);
+            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerProblem2D);
+            
+            TPZCompMesh * mphysics = mydata->MalhaCompBarryMercer(gmesh,meshvec,sourceterm, solExata);
+            ofstream arg8("mphysic.txt");
+            mphysics->Print(arg8);
+            
+            //            ofstream arg9("gmesh_final.txt");
+            //            gmesh->Print(arg9);
+            
+            
+            int NDeltaT = 1;
+            int intervsaidas = NDeltaT/1;
+            REAL deltaT=timeT/NDeltaT; //second
+            REAL maxTime = timeT;
+            fdeltaT = deltaT;
+            
+            //mydata->SolveSistBarryMercert(deltaT, maxTime, meshvec, mphysics,1,ftimeatual);
+            
+            
+            ///======== Impimir Erros ========
+            TPZMaterial *mat1 = mphysics->FindMaterial(mydata->GetMatId());
+            TPZMaterial *mat2 = mphysics->FindMaterial(mydata->GetMatId()+1);
+            TPZPoroElasticMF2d * mat12 = dynamic_cast<TPZPoroElasticMF2d *>(mat1);
+            TPZPoroElasticMF2d * mat22 = dynamic_cast<TPZPoroElasticMF2d *>(mat2);
+            
+            mat12->SetTimeStep(deltaT);
+            mat22->SetTimeStep(deltaT);
+            
+            TPZAnalysis an(mphysics);
+            TPZFMatrix<REAL> Initialsolution = an.Solution();
+            
+            std::string outputfile;
+            outputfile = "TransientSolution";
+            
+            //Criando matriz de massa (matM)
+            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mphysics);
+            
+            //Criando matriz de rigidez (matK) e vetor de carga
+            TPZFMatrix<REAL> matK;
+            TPZFMatrix<REAL> fvec;
+            mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec);
+            
+            int nrows;
+            nrows = matM->Rows();
+            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<REAL> Lastsolution = Initialsolution;
+            
+            REAL TimeValue = 0.0;
+            int cent = 1;
+            TimeValue = cent*deltaT;
+            while (TimeValue <= maxTime)
+            {
+                ftimeatual  = TimeValue;
+                // This time solution i for Transient Analytic Solution
+                matM->Multiply(Lastsolution,TotalRhstemp);
+                mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec);
+                
+                TotalRhs = fvec + TotalRhstemp;
+                an.Rhs() = TotalRhs;
+                an.Solve();
+                Lastsolution = an.Solution();
+                
+                if(cent%intervsaidas==0)
+                {
+                    saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
+                    
+                    std::stringstream outputfiletemp;
+                    outputfiletemp << outputfile << ".vtk";
+                    std::string plotfile = outputfiletemp.str();
+                    mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+                    
+                    TPZVec<REAL> erros;
+                    
+                    saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
+                    TPZAnalysis an12(cmesh1);
+                    an12.SetExact(*SolucaoUBarryMercer);
+                    an12.PostProcessError(erros, saidaerro);
+                    
+                    
+                    saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
+                    TPZAnalysis an22(cmesh2);
+                    an22.SetExact(*SolucaoPQBarryMercer);
+                    an22.PostProcessError(erros, saidaerro);
+                    
+                    saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
+                    TPZAnalysis an32(cmesh3);
+                    an32.SetExact(*SolucaoPQBarryMercer);
+                    an32.PostProcessError(erros, saidaerro);
+                }
+                
+                cent++;
+                TimeValue = cent*deltaT;
+                
+            }
+            
+            cmesh1->CleanUp();
+            cmesh2->CleanUp();
+            cmesh3->CleanUp();
+            //mphysics->CleanUp();
+            delete cmesh1;
+            delete cmesh2;
+            delete cmesh3;
+            //delete mphysics;
+            delete gmesh;
+        }
+    }
     
     return 0;
 }
@@ -1165,7 +1280,7 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix
 	
     int in, jq;
     REAL PI = atan(1.)*4.;
-
+    
     sol.Resize(5, 0.);
 	
     flux(0,0)=0.;
@@ -1189,38 +1304,205 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix
             wtil = gammaq*ptil/gammanq;
             temp = 4./(Lx*Ly);
             
-            sump += -temp*ptil*sin(gamman*x)*sin(gammaq*y);
+            sump += temp*ptil*sin(gamman*x)*sin(gammaq*y); //(multiplicado por -1, multipliquei depois da soma)
             sumux += temp*util*cos(gamman*x)*sin(gammaq*y);
             sumuy += temp*wtil*sin(gamman*x)*cos(gammaq*y);
-            sumVDx += -temp*ptil*gamman*cos(gamman*x)*sin(gammaq*y);
-            sumVDy += -temp*ptil*gammaq*sin(gamman*x)*cos(gammaq*y);
+            sumVDx += temp*ptil*gamman*cos(gamman*x)*sin(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+            sumVDy += temp*ptil*gammaq*sin(gamman*x)*cos(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
         }
     }
     
     if(dimensionless == false){
-        sol[0] = (lamb+2.*mu)*sump;
+        sol[0] = -(lamb+2.*mu)*sump;
         sol[1] = Lref*sumux;
         sol[2] = Lref*sumuy;
-        flux(0,0) = -kovervisc*(lamb+2.*mu)*sumVDx;
-        flux(1,0) = -kovervisc*(lamb+2.*mu)*sumVDy;
+        flux(0,0) = kovervisc*(lamb+2.*mu)*sumVDx; //(multiplicado por -kovervisc, cancela com o outro sinal de menos)
+        flux(1,0) = kovervisc*(lamb+2.*mu)*sumVDy; //(multiplicado por -kovervisc, cancela com o outro sinal de menos)
     }
     else{
-        sol[0] = sump;
+        sol[0] = -sump;
         sol[1] = sumux;
         sol[2] = sumuy;
-        flux(0,0) = -sumVDx;
-        flux(1,0) = -sumVDy;
+        flux(0,0) = sumVDx;//(multiplicado por -kovervisc, cancela com o outro sinal de menos)
+        flux(1,0) = sumVDy;//(multiplicado por -kovervisc, cancela com o outro sinal de menos)
     }
+}
+
+void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
+    
+    
+    bool dimensionless = true;
+    
+    REAL x = ptx[0];
+	REAL y = ptx[1];
+	
+    //dados adimensional
+    REAL Lx = 1.;
+    REAL Ly = 1.;
+    REAL x0 = 0.25;
+    REAL y0= 0.25;
+    REAL perm = 1.;
+    REAL visc = 1.;
+    REAL kovervisc =perm/visc;
+    REAL tp = ftimeatual;
+    
+    //dados com dimensao
+    REAL beta = 0.;
+    REAL Lref = 0.;
+    REAL lamb=0., mu=0.;
+    if(dimensionless == false){
+        
+        REAL Eyoung = 1.e5;
+        REAL poisson = 0.1;
+        lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+        mu = 0.5*Eyoung/(1.+poisson);
+        perm =  1.e-6;
+        visc =1.e-4;
+        kovervisc =perm/visc;
+        Lx =1.;
+        Ly = 1.;
+        Lref = sqrt(Lx*Ly);
+        beta = (lamb+2.*mu)*kovervisc/Lref;
+        tp = beta*tp;
+    }
+	
+    int in, jq;
+    REAL PI = atan(1.)*4.;
+    
+    sol.Resize(2, 0.);// ux, uy;
+    deriv.Resize(2,2);//sigx, sigxy, sigyx, sigy
+    deriv(0,0) = deriv(0,1) = deriv(1,0) = deriv(1,1) = 0.;
+    
+    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+	REAL ptil = 0., util = 0., wtil =0., temp=0.;
+    REAL sumux = 0., sumuy = 0., sumsigx=0., sumsigy=0., sumsigxy=0.;
+    
+    for(in=1; in<500; in++)
+    {
+        gamman = in*PI;
+        for(jq=1; jq<500; jq++)
+        {
+            gammaq = jq*PI;
+            gammanq = gamman*gamman + gammaq*gammaq;
+            temp = -2./(gammanq*gammanq+1);
+            
+            ptil = temp*sin(gamman*x0)*sin(gammaq*y0)*(gammanq*sin(tp) - cos(tp) + exp(-gammanq*tp));
+            util = gamman*ptil/gammanq;
+            wtil = gammaq*ptil/gammanq;
+            temp = 4./(Lx*Ly);
+            
+            sumux += temp*util*cos(gamman*x)*sin(gammaq*y);
+            sumuy += temp*wtil*sin(gamman*x)*cos(gammaq*y);
+            sumsigx += gamman*temp*util*sin(gamman*x)*sin(gammaq*y);//multiplicado por -1
+            sumsigy += gammaq*temp*wtil*sin(gamman*x)*sin(gammaq*y);//multiplicado por -1
+            sumsigxy += gammaq*temp*util*cos(gamman*x)*cos(gammaq*y);
+        }
+    }
+    
+    if(dimensionless == false){
+        std::cout<<"nao foi calculdo\n";
+        DebugStop();
+    }
+    else{
+        sol[0] = sumux;
+        sol[1] = sumuy;
+        deriv(0,0) = -sumsigx;
+        deriv(1,1) = -sumsigy;
+        deriv(0,1) = sumsigxy;
+        deriv(1,0) = sumsigxy;
+    }
+    
+}
+
+void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+    
+    bool dimensionless = true;
+    
+    REAL x = ptx[0];
+	REAL y = ptx[1];
+	
+    //dados adimensional
+    REAL Lx = 1.;
+    REAL Ly = 1.;
+    REAL x0 = 0.25;
+    REAL y0= 0.25;
+    REAL perm = 1.;
+    REAL visc = 1.;
+    REAL kovervisc =perm/visc;
+    REAL tp = ftimeatual;
+    
+    //dados com dimensao
+    REAL beta = 0.;
+    REAL Lref = 0.;
+    REAL lamb=0., mu=0.;
+    if(dimensionless == false){
+        
+        REAL Eyoung = 1.e5;
+        REAL poisson = 0.1;
+        lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+        mu = 0.5*Eyoung/(1.+poisson);
+        perm =  1.e-6;
+        visc =1.e-4;
+        kovervisc =perm/visc;
+        Lx =1.;
+        Ly = 1.;
+        Lref = sqrt(Lx*Ly);
+        beta = (lamb+2.*mu)*kovervisc/Lref;
+        tp = beta*tp;
+    }
+	
+    int in, jq;
+    REAL PI = atan(1.)*4.;
+    
+    sol.Resize(1, 0.);
+	flux.Redim(3, 1);
+    flux(0,0)=flux(1,0)=flux(2,0)=0.;
+    
+    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+	REAL ptil = 0., util = 0., wtil =0., temp=0.;
+    REAL sump=0., sumVDx = 0., sumVDy=0.;
+    
+    for(in=1; in<500; in++)
+    {
+        gamman = in*PI;
+        for(jq=1; jq<500; jq++)
+        {
+            gammaq = jq*PI;
+            gammanq = gamman*gamman + gammaq*gammaq;
+            temp = -2./(gammanq*gammanq+1);
+            
+            ptil = temp*sin(gamman*x0)*sin(gammaq*y0)*(gammanq*sin(tp) - cos(tp) + exp(-gammanq*tp));
+            util = gamman*ptil/gammanq;
+            wtil = gammaq*ptil/gammanq;
+            temp = 4./(Lx*Ly);
+            
+            sump += temp*ptil*sin(gamman*x)*sin(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+            sumVDx += temp*ptil*gamman*cos(gamman*x)*sin(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+            sumVDy += temp*ptil*gammaq*sin(gamman*x)*cos(gammaq*y);
+        }
+    }
+    
+    if(dimensionless == false){
+        sol[0] = -(lamb+2.*mu)*sump;
+        flux(0,0) = kovervisc*(lamb+2.*mu)*sumVDx;//(multiplicado por -kovervisc, cancela com o outro sinal de menos)
+        flux(1,0) = kovervisc*(lamb+2.*mu)*sumVDy;
+    }
+    else{
+        sol[0] = -sump;
+        flux(0,0) = sumVDx;//(multiplicado por -kovervisc, cancela com o outro sinal de menos)
+        flux(1,0) = sumVDy;
+    }
+    
 }
 
 
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref){
     
-   TPZAutoPointer<TPZRefPattern> refp2D = gRefDBase.FindRefPattern("Qua000022224");
-   TPZAutoPointer<TPZRefPattern> refp1D = gRefDBase.FindRefPattern("Lin000022224");
+    TPZAutoPointer<TPZRefPattern> refp2D = gRefDBase.FindRefPattern("Qua000022224");
+    //TPZAutoPointer<TPZRefPattern> refp1D = gRefDBase.FindRefPattern("Lin000022224");
     
     if(!refp2D) DebugStop();
-  
+    
     TPZGeoEl * gel = NULL;
     for(int r = 0; r < nref; r++)
     {
@@ -1237,26 +1519,33 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref){
             }
             if(gel->Dimension()==1)
             {
-                gel->SetRefPattern(refp1D);
-                TPZVec<TPZGeoEl*> sons;
-                gel->Divide(sons);
+                TPZAutoPointer<TPZRefPattern> refp1D = TPZRefPatternTools::PerfectMatchRefPattern(gel);
+                if(refp1D)
+                {
+                    gel->SetRefPattern(refp1D);
+                    TPZVec<TPZGeoEl*> sons;
+                    gel->Divide(sons);
+                }
+                else{
+                    DebugStop();//nao conseguiu refinar elementos 1D baseados no refp do pai
+                }
             }
-
+            
         }
     }
-       
+    
     std::ofstream malhaOut("malhaOut.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
 }
 
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area){
-
+    
     TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
     if(!refpOutroLugar) DebugStop();
-       
+    
     int iniEl = 0;
     TPZVec<REAL> qsi(2,0.);
-
+    
     TPZGeoEl * gel = NULL;
     for(int r = 0; r < nref; r++)
     {
@@ -1267,6 +1556,31 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
             gel->SetRefPattern(refpOutroLugar);
             TPZVec<TPZGeoEl*> sons;
             gel->Divide(sons);
+            for(int edg = gel->NNodes(); edg < gel->NSides(); edg++)
+            {
+                TPZGeoElSide gelS(gel,edg);
+                if(gelS.Dimension() > 1)
+                {
+                    break;
+                }
+                TPZGeoElSide neighS(gelS.Neighbour());
+                while(neighS != gelS)
+                {
+                    if(neighS.Element()->Dimension() == 1)
+                    {
+                        TPZAutoPointer<TPZRefPattern> refp = gel->GetRefPattern();
+                        TPZAutoPointer<TPZRefPattern> refp2 = refp->SideRefPattern(gelS.Side());
+                        if(refp2)
+                        {
+                            TPZGeoEl * gel1D = neighS.Element();
+                            gel1D->SetRefPattern(refp2);
+                            TPZVec<TPZGeoEl*> sons2;
+                            gel1D->Divide(sons2);
+                        }
+                    }
+                    neighS = neighS.Neighbour();
+                }
+            }
         }
     }
     
@@ -1277,7 +1591,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
         gel->SetMaterialId(newmatId);
         Area = gel->Volume();
     }
-                
+    
     std::ofstream malhaOut("malhaOut2.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
 }

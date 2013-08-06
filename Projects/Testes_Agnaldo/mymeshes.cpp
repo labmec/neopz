@@ -1068,24 +1068,26 @@ void DadosMalhas::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMe
 {
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
-	TPZManVector<std::string,10> scalnames(7), vecnames(1);
+	TPZManVector<std::string,10> scalnames(2), vecnames(4);
 	//scalnames[0] = "DisplacementX";
-	scalnames[0] = "DisplacementY";
-    //scalnames[2] = "SigmaX";
-	scalnames[1] = "SigmaY";
-	scalnames[2] = "PorePressure";
-    scalnames[3] = "FluxoY";
-	//vecnames[0] = "Fluxo";
+	//scalnames[1] = "DisplacementY";
+    vecnames[0] = "Displacement";
+    //    scalnames[2] = "SigmaX";
+    //	scalnames[1] = "SigmaY";
+	scalnames[0] = "PorePressure";
+    //scalnames[3] = "FluxoY";
+	vecnames[1] = "Fluxo";
 	//vecnames[1] = "MinusKMuGradP";
     
-    scalnames[4] = "ExactPressure";
+    scalnames[1] = "ExactPressure";
     //scalnames[6] = "FluxoX";
     
-    //scalnames[6] = "ExactDisplacementX";
-    scalnames[5] = "ExactDisplacementY";
-   // scalnames[8] = "ExactSigmaX";
-    scalnames[6] = "ExactSigmaY";
-    vecnames[0]  = "ExactFluxo";
+    //scalnames[2] = "ExactDisplacementX";
+    //scalnames[3] = "ExactDisplacementY";
+    // scalnames[8] = "ExactSigmaX";
+    //scalnames[6] = "ExactSigmaY";
+    vecnames[2]  = "ExactFluxo";
+    vecnames[3]  = "ExactDisplacement";
 	
 	const int dim = 2;
 	int div =0;

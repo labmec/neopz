@@ -136,6 +136,10 @@ public:
         fvalsourceterm = sf;
     }
     
+    int GetMatId(){
+        return fmatId;
+    }
+    
 protected:
     
     //dados do material
