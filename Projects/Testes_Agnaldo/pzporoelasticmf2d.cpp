@@ -568,6 +568,8 @@ int TPZPoroElasticMF2d::VariableIndex(const std::string &name){
     if(!strcmp("ExactSigmaY",name.c_str()))  return 15;
     if(!strcmp("ExactFluxo",name.c_str()))  return 16;
     
+    if(!strcmp("ExactDisplacement",name.c_str()))  return 19;
+    
 	return TPZMaterial::VariableIndex(name);
 }
 
@@ -592,6 +594,7 @@ int TPZPoroElasticMF2d::NSolutionVariables(int var){
     if(var == 16) return fDim;
     if(var == 17) return 1;
     if(var == 18) return 1;
+    if(var == 19) return fDim;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -778,6 +781,13 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 		Solout[0] = solExata[2];
 		return;
 	}//var13
+    
+    if(var == 19){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[1];
+        Solout[1] = solExata[2];
+		return;
+	}//var19
     
     if(var == 14){
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
