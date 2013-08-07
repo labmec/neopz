@@ -22,6 +22,10 @@
 static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 #endif
 
+
+InputDataStruct globInputData;
+
+
 TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
 
 TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
@@ -57,15 +61,15 @@ int TPZNLFluidStructure2d::NStateVariables() {
 void TPZNLFluidStructure2d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
-	out << "\t E   = " << fInputData->E() << std::endl;
-	out << "\t nu   = " << fInputData->Poisson()   << std::endl;
+	out << "\t E   = " << globInputData.E() << std::endl;
+	out << "\t nu   = " << globInputData.Poisson()   << std::endl;
 	out << "\t Forcing function F   = " << ff[0] << ' ' << ff[1]   << std::endl;
-    out << "altura da fratura fHf "<< fInputData->Hf() << std::endl;
-	out << "Viscosidade do fluido fvisc "<< fInputData->Visc() << std::endl;
-    out << "Carter fCl " << fInputData->Cl() << std::endl;
-    out << "Pressao estatica fPe " << fInputData->Pe() << std::endl;
-    out << "Pressao de referencia (Carter) fPref " << fInputData->Pref() << std::endl;
-    out << "Spurt loss fvsp " << fInputData->vsp() << std::endl;
+    out << "altura da fratura fHf "<< globInputData.Hf() << std::endl;
+	out << "Viscosidade do fluido fvisc "<< globInputData.Visc() << std::endl;
+    out << "Carter fCl " << globInputData.Cl() << std::endl;
+    out << "Pressao estatica fPe " << globInputData.Pe() << std::endl;
+    out << "Pressao de referencia (Carter) fPref " << globInputData.Pref() << std::endl;
+    out << "Spurt loss fvsp " << globInputData.vsp() << std::endl;
 	out << "2D problem " << fPlaneStress << std::endl;
 	out << "Base Class properties :";
 	TPZMaterial::Print(out);
@@ -117,8 +121,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	/*
 	 * Plain strain materials values
 	 */
-    REAL young = fInputData->E();
-    REAL poisson = fInputData->Poisson();
+    REAL young = globInputData.E();
+    REAL poisson = globInputData.Poisson();
 
     REAL fEover1MinNu2 = young/(1-poisson*poisson);  ///4G(lamb+G)/(lamb+2G)
     REAL fEover21PlusNu = 2.*young/(2.*(1.+poisson));/*fE/(2.*(1+fnu));*/ ///2G=2mi
@@ -235,8 +239,8 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     int phipCols = phi_p.Rows();
     int phiuCols = phi_u.Cols();
     
-    REAL visc = fInputData->Visc();
-    REAL deltaT = fInputData->deltaT();
+    REAL visc = globInputData.Visc();
+    REAL deltaT = globInputData.deltaT();
     
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
     {
@@ -329,8 +333,8 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc){
     
     if(gState == ELastState) return;
-    REAL auxvar = 0.817*(1.-fInputData->Poisson())*fInputData->Hf();
-    REAL G = fInputData->E()/(2.*(1. + fInputData->Poisson()));
+    REAL auxvar = 0.817*(1.-globInputData.Poisson())*globInputData.Hf();
+    REAL G = globInputData.E()/(2.*(1. + globInputData.Poisson()));
     REAL factor = 0.;//G/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -607,11 +611,11 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     DSolU=datavec[0].dsol[0];
     axesU=datavec[0].axes;
     
-    REAL young = fInputData->E();
-    REAL poisson = fInputData->Poisson();
-    REAL sigmaConf = fInputData->SigmaConf();
-    REAL visc = fInputData->Visc();
-    REAL Hf = fInputData->Hf();
+    REAL young = globInputData.E();
+    REAL poisson = globInputData.Poisson();
+    REAL sigmaConf = globInputData.SigmaConf();
+    REAL visc = globInputData.Visc();
+    REAL Hf = globInputData.Hf();
     
     if(var == 1)
     {
@@ -723,11 +727,11 @@ void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec
 
 REAL TPZNLFluidStructure2d::VlFtau(REAL pfrac, REAL tau)
 {
-    REAL Cl = fInputData->Cl();
-    REAL sigmaConf = fInputData->SigmaConf();
-    REAL Pe = fInputData->Pe();
-    REAL Pref = fInputData->Pref();
-    REAL vsp = fInputData->vsp();
+    REAL Cl = globInputData.Cl();
+    REAL sigmaConf = globInputData.SigmaConf();
+    REAL Pe = globInputData.Pe();
+    REAL Pref = globInputData.Pref();
+    REAL vsp = globInputData.vsp();
     
     REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
     REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
@@ -737,11 +741,11 @@ REAL TPZNLFluidStructure2d::VlFtau(REAL pfrac, REAL tau)
 
 REAL TPZNLFluidStructure2d::FictitiousTime(REAL VlAcum, REAL pfrac)
 {
-    REAL Cl = fInputData->Cl();
-    REAL sigmaConf = fInputData->SigmaConf();
-    REAL Pe = fInputData->Pe();
-    REAL Pref = fInputData->Pref();
-    REAL vsp = fInputData->vsp();
+    REAL Cl = globInputData.Cl();
+    REAL sigmaConf = globInputData.SigmaConf();
+    REAL Pe = globInputData.Pe();
+    REAL Pref = globInputData.Pref();
+    REAL vsp = globInputData.vsp();
     
     REAL tStar = 0.;
     if(VlAcum > vsp)
@@ -763,7 +767,7 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     }
     REAL VlAcum = it->second;
     
-    REAL deltaT = fInputData->deltaT();
+    REAL deltaT = globInputData.deltaT();
     
     REAL tStar = FictitiousTime(VlAcum, pfrac);
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
@@ -792,7 +796,7 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
         deltaPfrac = 1.E-3;
     }
     
-    REAL deltaT = fInputData->deltaT();
+    REAL deltaT = globInputData.deltaT();
     /////////////////////////////////////////////////Ql maior
     REAL pfracUP = pfrac + deltaPfrac;
     REAL tStar1 = FictitiousTime(VlAcum, pfracUP);
@@ -861,7 +865,7 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
             DebugStop();
         }
         
-        REAL deltaT = fInputData->deltaT();
+        REAL deltaT = globInputData.deltaT();
         
         REAL VlAcum = it->second;
         REAL tStar = FictitiousTime(VlAcum, pfrac);

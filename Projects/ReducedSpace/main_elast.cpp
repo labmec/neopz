@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     REAL Poiss = 0.25;
     REAL Fx = 0.;
     REAL Fy = 0.;
-    int NStripes = 5;
+    int NStripes = 1;
     REAL Visc = 0.001E-6;
     
     REAL SigN = 61.5;
@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
     REAL KIc = 1.;
     int p = 2;
     
-    ToolsTransient ToolTrans(p, Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+    globInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+    ToolsTransient ToolTrans(p);
 	
 	ToolTrans.Run();
     

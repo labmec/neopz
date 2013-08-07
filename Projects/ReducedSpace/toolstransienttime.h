@@ -24,9 +24,7 @@ class ToolsTransient
     public:
     
     ToolsTransient();
-    ToolsTransient(int pOrder,
-                   REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, int NStripes, REAL Visc, REAL SigN,
-                   REAL Qinj, REAL Ttot, REAL Nsteps, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc);
+    ToolsTransient(int pOrder);
     
     ~ToolsTransient();
     
@@ -84,9 +82,6 @@ class ToolsTransient
     
     int fpOrder;
     bool fMustStop;
-    
-    InputDataStruct * fInputData;
-    
 };
 
 

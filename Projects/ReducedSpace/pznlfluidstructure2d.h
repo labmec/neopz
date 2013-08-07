@@ -35,6 +35,9 @@
  */
 
 
+extern InputDataStruct globInputData;
+
+
 class TPZNLFluidStructure2d : public TPZDiscontinuousGalerkin
 {
     
@@ -58,8 +61,6 @@ protected:
 	int fPlaneStress;
 	
 	REAL fmatId;
-    
-    InputDataStruct * fInputData;
     
     /** @brief State: one ou one+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
@@ -91,11 +92,6 @@ public:
 	int Dimension() {return fDim;}
 	
 	virtual int NStateVariables();
-    
-	void SetInputData(InputDataStruct * inputData)
-	{
-        fInputData = inputData;
-	}
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state

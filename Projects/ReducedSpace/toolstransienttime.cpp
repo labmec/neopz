@@ -49,15 +49,11 @@ ToolsTransient::ToolsTransient(){
     
 }
 
-ToolsTransient::ToolsTransient(int pOrder,
-                               REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poiss, REAL Fx, REAL Fy, int NStripes, REAL Visc, REAL SigN,
-                               REAL Qinj, REAL Ttot, REAL deltaT, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
+ToolsTransient::ToolsTransient(int pOrder)
 {
     fpOrder = pOrder;
-    fInputData = new InputDataStruct;
-    fInputData->SetData(Lx, Ly, Lf, Hf, E, Poiss, Fx, Fy, NStripes, Visc, SigN, Qinj, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);
     fMustStop = false;
-    
+    int NStripes = globInputData.NStripes();
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         locSetPressureMatIds.insert(globPressureMatId + stripe);
@@ -79,14 +75,14 @@ void ToolsTransient::RunPlasticity()
     
     TPZGeoMesh * gmesh = this->Mesh2D(lmax);
     
-    TPZCompMesh * cmesh = CMeshElastoPlastic(gmesh, fInputData->SigN());
+    TPZCompMesh * cmesh = CMeshElastoPlastic(gmesh, globInputData.SigN());
     TPZElastoPlasticAnalysis an(cmesh,std::cout);
     
     this->SolveInitialElastoPlasticity(an, cmesh);
     
     std::cout << "<<<<<<<<<<<<<<<<<<<<<<< 0\n";
     std::stringstream notUsedHere("none.txt");
-    REAL KI = ComputeKIPlaneStrain(cmesh, fInputData->E(), fInputData->Poisson(), Jradius, notUsedHere);
+    REAL KI = ComputeKIPlaneStrain(cmesh, globInputData.E(), globInputData.Poisson(), Jradius, notUsedHere);
     std::cout << "KI = " << KI << " >>>>>>>>>>>>>>>>>>>\n\n\n";
     
     std::string vtkFile = "pocoplastico.vtk";
@@ -132,8 +128,8 @@ void ToolsTransient::RunPlasticity()
 
 void ToolsTransient::Run()
 {
-    REAL deltaT = fInputData->deltaT();
-    REAL maxTime = fInputData->Ttot();
+    REAL deltaT = globInputData.deltaT();
+    REAL maxTime = globInputData.Ttot();
     REAL actTime = deltaT;
     
     
@@ -160,7 +156,7 @@ void ToolsTransient::Run()
         TPZGeoMesh * gmesh = this->Mesh2D(lmax);
         TPZCompMesh * cmesh_elast = this->CMeshElastic(gmesh);
         
-        int NStripes = fInputData->NStripes();
+        int NStripes = globInputData.NStripes();
         TPZFMatrix<STATE> solutions(0,0);
         
         TPZAnalysis an1;
@@ -232,7 +228,7 @@ void ToolsTransient::Run()
             std::string plotfile = outputfiletemp.str();
             PosProcessMult(an,plotfile);
             
-            ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ);
+            ComputeKIPlaneStrain(meshvec[0], globInputData.E(), globInputData.Poisson(), Jradius, outJ);
         }
 
         propagate = this->SolveSistTransient(deltaT, actTime, maxTime, an, mymaterial, meshvec, mphysics, step,
@@ -242,8 +238,8 @@ void ToolsTransient::Run()
         postProcGraphStep = an->GetStep();
         propagCount++;
         
-        REAL newLfrac = fInputData->Lf() + lmax;
-        fInputData->SetLf(newLfrac);
+        REAL newLfrac = globInputData.Lf() + lmax;
+        globInputData.SetLf(newLfrac);
         
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
         lastMPhysicsCMesh = mphysics;
@@ -274,7 +270,7 @@ void ToolsTransient::Run()
     }
     outW << "};\n\n";
     
-    outW << "Qinj=" << fabs(fInputData->Qinj()) << ";\n";
+    outW << "Qinj=" << fabs(globInputData.Qinj()) << ";\n";
     outW << "Ttot = " << maxTime << ";\n";
     outW << "nsteps = " << step-1 << ";\n";
     outW << "dt = Ttot/nsteps;\n\n";
@@ -320,8 +316,8 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
 {
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
-    int ndivV = int(fInputData->Lx()/lmax + 0.5);
-    int ndivH = int(fInputData->Ly()/lmax + 0.5);
+    int ndivV = int(globInputData.Lx()/lmax + 0.5);
+    int ndivH = int(globInputData.Ly()/lmax + 0.5);
     
     int ncols = ndivV + 1;
     int nrows = ndivH + 1;
@@ -329,11 +325,11 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
     
     gmesh->NodeVec().Resize(nnodes);
     
-    REAL deltadivV = fInputData->Lx()/ndivV;
-    REAL deltandivH = fInputData->Ly()/ndivH;
+    REAL deltadivV = globInputData.Lx()/ndivV;
+    REAL deltandivH = globInputData.Ly()/ndivH;
     
     int nid = 0;
-    REAL cracktipDist = fInputData->Lf();
+    REAL cracktipDist = globInputData.Lf();
     int colCracktip = -1;
     for(int r = 0; r < nrows; r++)
     {
@@ -341,7 +337,7 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
         {
             REAL x = c*deltadivV;
             REAL y = r*deltandivH;
-            REAL dist = fabs(fInputData->Lf()-x);
+            REAL dist = fabs(globInputData.Lf()-x);
             if(r == 0 && dist < cracktipDist)
             {
                 cracktipDist = dist;
@@ -381,7 +377,7 @@ TPZGeoMesh * ToolsTransient::Mesh2D(REAL lmax)
     
     gmesh->BuildConnectivity();
     
-    REAL stripeWidth = fInputData->Lf() / fInputData->NStripes();
+    REAL stripeWidth = globInputData.Lf() / globInputData.NStripes();
     int nelem = gmesh->NElements();
     for(int el = 0; el < nelem; el++)
     {
@@ -542,7 +538,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh)
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, fInputData->E(), fInputData->Poisson(), fInputData->Fx(), fInputData->Fy(), planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, globInputData.E(), globInputData.Poisson(), globInputData.Fx(), globInputData.Fy(), planestrain);
     
     TPZMaterial * mat(material);
     
@@ -557,7 +553,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic(TPZGeoMesh *gmesh)
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-    int NStripes = fInputData->NStripes();
+    int NStripes = globInputData.NStripes();
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         TPZMaterial * BCond1 = material->CreateBC(mat, globPressureMatId + stripe, neumann, val1, val2);
@@ -606,7 +602,7 @@ void ToolsTransient::SetSigmaNStripeNum(TPZCompMesh * cmesh, int actStripe)
         }
         else if(stripe == actStripe)
         {
-            bcmat->Val2()(1,0) = fInputData->SigN();
+            bcmat->Val2()(1,0) = globInputData.SigN();
         }
         else if(stripe > actStripe)
         {
@@ -625,7 +621,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMes
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, fInputData->E(), fInputData->Poisson(), fInputData->Fx(), fInputData->Fy(), planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, globInputData.E(), globInputData.Poisson(), globInputData.Fx(), globInputData.Fy(), planestrain);
 	material->NStateVariables();
     
     
@@ -639,7 +635,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZGeoMesh *gmesh, TPZCompMes
     REAL big = material->gBigNumber;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    int NStripes = fInputData->NStripes();
+    int NStripes = globInputData.NStripes();
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         TPZMaterial * BCond1 = material->CreateBC(mat, globPressureMatId + stripe, neumann, val1, val2);
@@ -686,7 +682,7 @@ TPZCompMesh * ToolsTransient::CMeshPressure(TPZGeoMesh *gmesh){
     TPZFMatrix<REAL> xc(1,1,0.);
     TPZFMatrix<REAL> xb(1,1,0.);
     TPZFMatrix<REAL> xf(1,1,-2.);
-    int NStripes = fInputData->NStripes();
+    int NStripes = globInputData.NStripes();
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         TPZMat1dLin *material;
@@ -701,7 +697,7 @@ TPZCompMesh * ToolsTransient::CMeshPressure(TPZGeoMesh *gmesh){
         {
             ///Inserir condicao de contorno
             TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-            val2(0,0) = fInputData->Qinj();
+            val2(0,0) = globInputData.Qinj();
             TPZMaterial * BCond1 = material->CreateBC(mat, globBCfluxIn, neumann, val1, val2);
             cmesh->InsertMaterialObject(BCond1);
         }
@@ -745,7 +741,6 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     //int planestress = 1;
     int planestrain = 0;
     mymaterial->SetfPlaneProblem(planestrain);
-    mymaterial->SetInputData(fInputData);
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
@@ -755,8 +750,8 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     REAL big = mymaterial->gBigNumber;
     
     TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
-    //val2(1,0) = fInputData->SigN();//<<<<<<<<<<< AQUICAJU : Acho que nao precisaria setar o sigmaN uma vez que vai mudando com pressao acoplada!!!
-    int NStripes = fInputData->NStripes();
+    //val2(1,0) = globInputData.SigN();//<<<<<<<<<<< AQUICAJU : Acho que nao precisaria setar o sigmaN uma vez que vai mudando com pressao acoplada!!!
+    int NStripes = globInputData.NStripes();
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         TPZMaterial * BCond1 = mymaterial->CreateBC(mat, globPressureMatId + stripe, neumann, val1, val2);
@@ -772,7 +767,7 @@ TPZCompMesh * ToolsTransient::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TP
     
     val2.Redim(3,1);
     val1.Redim(3,2);
-    val2(2,0) = fInputData->Qinj();
+    val2(2,0) = globInputData.Qinj();
     TPZMaterial * BCond4 = mymaterial->CreateBC(mat, globBCfluxIn, globNeum_pressure, val1, val2);
     
     val2.Redim(3,1);
@@ -926,7 +921,7 @@ std::map<int,REAL> ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMes
     int nsol = 1;
     TPZVec<REAL> solini(nsol,0.);
     
-    int NStripes = fInputData->NStripes();
+    int NStripes = globInputData.NStripes();
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         TPZL2Projection * materialL2 = new TPZL2Projection(globPressureMatId + stripe, dim, nsol, solini, pOrder);
@@ -1105,8 +1100,8 @@ bool ToolsTransient::SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxT
             fMustStop = true;
         }
         
-        REAL KI = ComputeKIPlaneStrain(meshvec[0], fInputData->E(), fInputData->Poisson(), Jradius, outJ, step, actTime, false);
-        if (KI > fInputData->KIc())
+        REAL KI = ComputeKIPlaneStrain(meshvec[0], globInputData.E(), globInputData.Poisson(), Jradius, outJ, step, actTime, false);
+        if (KI > globInputData.KIc())
         {
             return true; // ***** PROPAGOU *****
         }
