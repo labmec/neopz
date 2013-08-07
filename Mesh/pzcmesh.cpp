@@ -26,7 +26,7 @@
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzmultiphysicscompel.h"
-#include "TPZRefpattern.h"
+#include "TPZRefPattern.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
