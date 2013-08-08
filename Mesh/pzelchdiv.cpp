@@ -991,7 +991,7 @@ for (int i=0; i< ncon; i++) {
 //#ifdef LOG4CXX
 //		{
 //				std::stringstream sout;
-//				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;;
+//				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;
 //				LOGPZ_DEBUG(logger,sout.str())
 //		}
 //#endif

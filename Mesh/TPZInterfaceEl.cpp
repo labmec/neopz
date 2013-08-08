@@ -443,7 +443,7 @@ int TPZInterfaceElement::main(TPZCompMesh &cmesh){
 			PZError << "TPZInterfaceElement::main computational element with null reference\n";
 			DebugStop();
 		}
-		int nsides = geo->NSides();;
+		int nsides = geo->NSides();
 		for(iside=0;iside<nsides;iside++){
 			if(geo->SideDimension(iside) != InterfaceDimension) continue;
 			TPZCompElSide compside(cel,iside);

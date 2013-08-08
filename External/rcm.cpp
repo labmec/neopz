@@ -578,7 +578,7 @@ void adj_print_some ( int node_num, int node_lo, int node_hi, int adj_num,
   cout << "\n";
   cout << "  Sparse adjacency structure:\n";
   cout << "\n";
-  cout << "  Number of nodes       = " << node_num << "\n";;
+  cout << "  Number of nodes       = " << node_num << "\n";
   cout << "  Number of adjacencies = " << adj_num << "\n";
   cout << "\n";
   cout << "  Node Min Max      Nonzeros \n";

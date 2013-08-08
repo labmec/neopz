@@ -115,7 +115,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	efr	= ef.Rows();
 	efc	= ef.Cols();
 	ekr	= ek.Rows();
-	ekc	= ek.Rows();;
+	ekc	= ek.Rows();
 	
 	// Data validation
 	if(ekr != (2*phru + phrp) || ekc != (2*phru + phrp) || efr != (2*phru + phrp) || efc != 1)

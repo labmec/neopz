@@ -84,7 +84,7 @@ template<class TGeo, class TRef>
 TPZGeoEl *TPZGeoElement<TGeo,TRef>::SubElement(int is) const
 {
 	if(is<0 || is>(TRef::NSubEl - 1)){
-		std::cout << "TPZGeoElement::SubElement index error is= " << is << std::endl;;
+		std::cout << "TPZGeoElement::SubElement index error is= " << is << std::endl;
 	}
 	if(fSubEl[is] == -1) return 0;
 	return this->Mesh()->ElementVec()[fSubEl[is]];

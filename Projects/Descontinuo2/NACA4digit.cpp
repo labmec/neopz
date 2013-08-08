@@ -651,7 +651,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
       index = indexEl + l + p -1;
       nodes[0] = firstExitPt2 + (2*(l+p) -1)*(i-1) + 1;
       nodes[1] = nodes[0] - 1;
-      nodes[2] = nodes[1] + (l+p)*2 - 1;;
+      nodes[2] = nodes[1] + (l+p)*2 - 1;
       nodes[3] = nodes[2] + 1;
       elms[index] = nodes;
       // lower elements

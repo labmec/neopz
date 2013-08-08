@@ -43,11 +43,13 @@ int main(int argc, char *argv[])
     int NStripes = 1;
     REAL Visc = 0.001E-6;
     
-    REAL SigN = 61.5;
+    REAL SigN = 6.15;
     
     REAL QinjTot  = -0.2;//Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel. Aqui vai Qinj total mesmo!!!
-    REAL Ttot = 15.;//60.;
-    REAL deltaT = Ttot/5.;//20.
+    REAL Ttot = 15;//60.;
+    REAL maxDeltaT = Ttot/5.;//20.
+    int nTimes = 1;
+    
     REAL Cl = 0.005;
     REAL Pe = 10.;
     REAL SigmaConf = 11.;
@@ -56,7 +58,7 @@ int main(int argc, char *argv[])
     REAL KIc = 1.;
     int p = 2;
     
-    globInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, deltaT, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+    globFractInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc);
     ToolsTransient ToolTrans(p);
 	
 	ToolTrans.Run();

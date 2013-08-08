@@ -483,7 +483,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	TPZVec<STATE> expand_sol(numsols);
 	TPZVec<REAL> expand_nodes(numsols);
  	TPZVec<REAL> qsi(1);
-	int exp_iel = -1;;
+	int exp_iel = -1;
 	for(iel=0;iel<nnodes-1;iel++) {
 		TPZManVector<REAL> locsol(1);
 		exp_iel++;

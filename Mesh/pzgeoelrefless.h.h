@@ -225,7 +225,7 @@ template<class TGeo>
 TPZGeoEl *
 TPZGeoElRefLess<TGeo>::SubElement(int is) const {
 	if(is<0 || is>1){//(TRef::NSubEl - 1)){
-		std::cout << "TPZGeoElRefLess::SubElement index error is= " << is << std::endl;;
+		std::cout << "TPZGeoElRefLess::SubElement index error is= " << is << std::endl;
 	}
 	//  return fSubEl[is];
 	return 0;

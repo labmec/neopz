@@ -204,7 +204,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		
 		/*     if(!(parfront->fCurrentElement%20)){
 		 cout << endl << "Computing " << parfront->fCurrentElement << " on thread " << pthread_self() << endl;
-		 cout << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed" << "     " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled" << endl;;
+		 cout << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed" << "     " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled" << endl;
 		 }
 		 cout << '*';
 		 cout.flush();

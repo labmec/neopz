@@ -233,7 +233,7 @@ namespace pztopology {
             case (1):
             {
                 nodeCoord[0] =  1.;
-                nodeCoord[1] = -1.;;
+                nodeCoord[1] = -1.;
                 break;
             }
             case (2):

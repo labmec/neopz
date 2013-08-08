@@ -362,7 +362,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
         TPZGeoElSide gelSide(gel,edg);
         
         int initNode = gelSide.SideNodeLocIndex(0);
-        int finalNode = gelSide.SideNodeLocIndex(1);; 
+        int finalNode = gelSide.SideNodeLocIndex(1); 
         int meshInitNode = gelSide.SideNodeIndex(0);
         int meshFinalNode = gelSide.SideNodeIndex(1);
         /**

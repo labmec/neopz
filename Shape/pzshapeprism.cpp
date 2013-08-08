@@ -26,7 +26,7 @@ namespace pzshape {
 		{-1.,-2.,0.}                                     //{ 1., 2.,0.}
 	};
 	
-	REAL TPZShapePrism::gRibSum3dPrisma1d[9] = {-1.,0.,1.,0.,0.,0.,-1.,0.,1.};;//{-1.,0.,-1.,0.,0.,0.,-1.,0.,-1.};
+	REAL TPZShapePrism::gRibSum3dPrisma1d[9] = {-1.,0.,1.,0.,0.,0.,-1.,0.,1.};//{-1.,0.,-1.,0.,0.,0.,-1.,0.,-1.};
 	
 	//Projection of the point within a piramide to a face
 	REAL TPZShapePrism::gFaceTrans3dPrisma2d[5][2][3] = {//par�metros de faces

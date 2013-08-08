@@ -10,85 +10,46 @@
 #define PZ_pznlfluidstructureData_h
 
 #include "pznlfluidstructureMaterials.h"
+#include "pzreal.h"
 
 class InputDataStruct
 {
 public:
     
-    InputDataStruct()
-    {
-        
-    }
-    ~InputDataStruct()
-    {
-        
-    }
+    InputDataStruct();
+    ~InputDataStruct();
     
     void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy, int NStripes, REAL Visc, REAL SigN,
-                 REAL QinjTot, REAL Ttot, REAL deltaT, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc)
-    {
-        fLx = Lx;
-        fLy = Ly;
-        fLf = Lf;
-        fHf = Hf;
-        
-        fE = E;
-        fPoisson = Poisson;
-        fFx = Fx;
-        fFy = Fy;
-        fNStripes = NStripes;
-        
-        fVisc = Visc;
-        
-        fSigN = SigN;
-        
-        REAL Qinj1asa = QinjTot / 2.;
-        REAL QinjSecao = Qinj1asa / Hf;
-        fQinj = QinjSecao;
-        
-        fTtot = Ttot;
-        fdeltaT = deltaT;
-        
-        fCl = Cl;
-        fPe = Pe;
-        fSigmaConf = SigmaConf;
-        fPref = Pref;
-        fvsp = vsp;
-        
-        fKIc = KIc;
-    }
+                 REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc);
     
-    void SetLf(REAL Lf)
-    {
-        fLf = Lf;
-    }
-    void DeltaT(REAL deltaT)
-    {
-        fdeltaT = deltaT;
-    }
+    void SetLf(REAL Lf);
     
-    REAL Lx() { return fLx; }
-    REAL Ly() { return fLy; }
-    REAL Lf() { return fLf; }
-    REAL Hf() { return fHf; }
-    REAL E() { return fE; }
-    REAL Poisson() { return fPoisson; }
-    REAL Fx() { return fFx; }
-    REAL Fy() { return fFy; }
-    int NStripes() { return fNStripes; }
-    REAL Visc() { return fVisc; }
-    REAL SigN() { return fSigN; }
-    REAL Qinj() { return fQinj; }
-    REAL Ttot() { return fTtot; }
-    REAL deltaT() { return fdeltaT; }
-    REAL Cl() { return fCl; }
-    REAL Pe() { return fPe; }
-    REAL SigmaConf() { return fSigmaConf; }
-    REAL Pref() { return fPref; }
-    REAL vsp() { return fvsp; }
-    REAL KIc() { return fKIc; }
+    REAL Lx();
+    REAL Ly();
+    REAL Lf();
+    REAL Hf();
+    REAL E();
+    REAL Poisson();
+    REAL Fx();
+    REAL Fy();
+    int NStripes();
+    REAL Visc();
+    REAL SigN();
+    REAL Qinj();
+    REAL Ttot();
+    REAL actTime();
+    REAL actDeltaT();
+    REAL Cl();
+    REAL Pe();
+    REAL SigmaConf();
+    REAL Pref();
+    REAL vsp();
+    REAL KIc();
+    void SetMinDeltaT();
+    void NextDeltaT();
+    void NextActTime();
     
-//private:
+private:
     
     //Dimensions:
     REAL fLx;//Dimensao em x do domínio da malha do MEF
@@ -112,7 +73,11 @@ public:
     
     //time:
     REAL fTtot;//Tempo total da simulacao
-    REAL fdeltaT;//deltaT
+    REAL factTime;//tempo atual (em segundos)
+    REAL fmaxDeltaT;//delta T maximo
+    REAL fminDeltaT;//delta T minimo
+    REAL factDeltaT;//delta T atual
+    int fNDeltaTsteps;//quantidade de incrementos do deltaT para definir o deltaT minimo
     
     //Leakoff:
     REAL fCl;//Carter
@@ -124,5 +89,8 @@ public:
     //Propagation criterion
     REAL fKIc;
 };
+
+
+extern InputDataStruct globFractInputData;
 
 #endif

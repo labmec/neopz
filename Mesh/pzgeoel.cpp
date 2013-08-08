@@ -1419,7 +1419,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 					TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 					ElemSide.SideTransform3(NeighSide,NeighTransf);
 					this->SetNeighbourInfo(side,NeighSide,NeighTransf);
-					return;;
+					return;
 				}// !TPZGeoElMapped
 			}//if IsRelative == false
 		}
@@ -1436,7 +1436,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 				TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 				ElemSide.SideTransform3(NeighSide,NeighTransf);
 				this->SetNeighbourInfo(side,NeighSide,NeighTransf);
-				return;;
+				return;
 			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();

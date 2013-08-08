@@ -41,7 +41,7 @@ class ToolsTransient
         TPZCompMesh * CMeshPressure(TPZGeoMesh *gmesh);
         TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial);
         
-        bool SolveSistTransient(REAL & deltaT, REAL & actTime, REAL maxTime, TPZAnalysis *an,
+        bool SolveSistTransient(TPZAnalysis *an,
                                 TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int & step,
                                 REAL Jradius, std::stringstream & outP, std::stringstream & outW, std::stringstream & outJ,
                                 std::string & outputfile);
@@ -67,9 +67,9 @@ class ToolsTransient
     
     void PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum);
     
-    REAL ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL young, REAL poisson,
+    REAL ComputeKIPlaneStrain(TPZCompMesh * elastMesh,
                               REAL radius, std::stringstream & outFile, int cent = -1,
-                              REAL TimeValue = -1, bool firstCall = true);
+                              bool firstCall = true);
     
     void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
                           TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);

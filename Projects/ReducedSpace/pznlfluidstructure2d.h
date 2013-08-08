@@ -35,9 +35,6 @@
  */
 
 
-extern InputDataStruct globInputData;
-
-
 class TPZNLFluidStructure2d : public TPZDiscontinuousGalerkin
 {
     

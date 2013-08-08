@@ -335,37 +335,37 @@ void TPZMulticamadaOrthotropic::ComputeCenterForces() {
 		}
 	}
 	fMX[2]  = (fMX[0]-fMX[1]) * fCorrect;
-	fMY[2]  = (fMY[0]-fMY[1]) * fCorrect;;
-	fMXY[2] = (fMXY[0]-fMXY[1]) * fCorrect;;
-	fNX[2]  = (fNX[0]-fNX[1]) * fCorrect;;
-	fNY[2]  = (fNY[0]-fNY[1]) * fCorrect;;
-	fNXY[2] = (fNXY[0]-fNXY[1]) * fCorrect;;
-	fQX[2]  = (fQX[0]-fQX[1]) * fCorrect;;
-	fQY[2]  = (fQY[0]-fQY[1]) * fCorrect;;
+	fMY[2]  = (fMY[0]-fMY[1]) * fCorrect;
+	fMXY[2] = (fMXY[0]-fMXY[1]) * fCorrect;
+	fNX[2]  = (fNX[0]-fNX[1]) * fCorrect;
+	fNY[2]  = (fNY[0]-fNY[1]) * fCorrect;
+	fNXY[2] = (fNXY[0]-fNXY[1]) * fCorrect;
+	fQX[2]  = (fQX[0]-fQX[1]) * fCorrect;
+	fQY[2]  = (fQY[0]-fQY[1]) * fCorrect;
 	
-	fdMXdX[2] = (fdMXdX[0]-fdMXdX[1]) * fCorrect;;
+	fdMXdX[2] = (fdMXdX[0]-fdMXdX[1]) * fCorrect;
 	//  fdMYdX[2] = fdMYdX[1]-fdMYdX[0];
 	fdMYdX[2] = 0.;
-	fdMXYdX[2] = (fdMXYdX[0]-fdMXYdX[1]) * fCorrect;;
-	fdNXdX[2] = (fdNXdX[0]-fdNXdX[1]) * fCorrect;;
+	fdMXYdX[2] = (fdMXYdX[0]-fdMXYdX[1]) * fCorrect;
+	fdNXdX[2] = (fdNXdX[0]-fdNXdX[1]) * fCorrect;
 	//  fdNYdX[2] = fdNYdX[1]-fdNYdX[0];
 	fdNYdX[2] = 0.;
-	fdNXYdX[2] = (fdNXYdX[0]-fdNXYdX[1]) * fCorrect;;
-	fdQXdX[2] = (fdQXdX[0]-fdQXdX[1]) * fCorrect;;
+	fdNXYdX[2] = (fdNXYdX[0]-fdNXYdX[1]) * fCorrect;
+	fdQXdX[2] = (fdQXdX[0]-fdQXdX[1]) * fCorrect;
 	//  fdQYdX[2] = fdQYdX[1]-fdQYdX[0];
 	fdQYdX[2] = 0.;
 	
 	//  fdMXdY[2] = fdMXdY[1]-fdMXdY[0];
 	fdMXdY[2] = 0.;
-	fdMYdY[2] = (fdMYdY[0]-fdMYdY[1]) * fCorrect;;
-	fdMXYdY[2] = (fdMXYdY[0]-fdMXYdY[1]) * fCorrect;;
+	fdMYdY[2] = (fdMYdY[0]-fdMYdY[1]) * fCorrect;
+	fdMXYdY[2] = (fdMXYdY[0]-fdMXYdY[1]) * fCorrect;
 	// fdNXdY[2] = fdNXdY[1]-fdNXdY[0];
 	fdNXdY[2] = 0.;
-	fdNYdY[2] = (fdNYdY[0]-fdNYdY[1]) * fCorrect;;
-	fdNXYdY[2] = (fdNXYdY[0]-fdNXYdY[1]) * fCorrect;;
+	fdNYdY[2] = (fdNYdY[0]-fdNYdY[1]) * fCorrect;
+	fdNXYdY[2] = (fdNXYdY[0]-fdNXYdY[1]) * fCorrect;
 	//  fdQXdY[2] = fdQXdY[1]-fdQXdY[0];
 	fdQXdY[2] = 0.;
-	fdQYdY[2] = (fdQYdY[0]-fdQYdY[1]) * fCorrect;;
+	fdQYdY[2] = (fdQYdY[0]-fdQYdY[1]) * fCorrect;
 	
 }
 
