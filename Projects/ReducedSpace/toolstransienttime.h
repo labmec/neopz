@@ -33,46 +33,37 @@ class ToolsTransient
     void Run();
     void RunPlasticity();
     
-        TPZGeoMesh * Mesh2D(REAL lmax);
-        TPZCompMesh * CMeshElastic(TPZGeoMesh *gmesh);
-        void SetSigmaNStripeNum(TPZCompMesh * cmesh, int actStripe);
-        void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
-        TPZCompMeshReferred * CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh);
-        TPZCompMesh * CMeshPressure(TPZGeoMesh *gmesh);
-        TPZCompMesh * MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZNLFluidStructure2d * &mymaterial);
-        
-        bool SolveSistTransient(TPZAnalysis *an,
-                                TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, int & step,
-                                REAL Jradius, std::stringstream & outP, std::stringstream & outW, std::stringstream & outJ,
-                                std::string & outputfile);
+    void InitializeUncoupledMeshesAttributes(REAL Lmax_edge);
+    TPZCompMesh * ElastCMeshReferenceProcessed(REAL Lmax_edge);
+    void Mesh2D(REAL lmax);
+    TPZCompMesh * CMeshElastic();
+    void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
+    void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
+    TPZCompMeshReferred * CMeshReduced(TPZCompMesh * cmeshref);
+    TPZCompMesh * CMeshPressure();
+    void InitializeMultphysicsMeshAttribute();
     
-    void TransferElasticSolution(TPZCompMeshReferred * cmeshFrom, TPZCompMeshReferred * cmeshTo);
-    REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);
-    std::map<int,REAL> TransferLeakoff(TPZCompMesh * oldMphysicsCMesh, TPZCompMesh * newFluidCMesh, std::stringstream & outVl);
+    bool SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded);
+    
+    void TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompMesh * lastElastReferredCMesh);
+    void TransferElasticSolution(TPZCompMesh * cmeshFrom);
+    REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);//0 = meshvec[0] ; 1 = meshvec[1]
+    std::map<int,REAL> TransferLeakoff(TPZCompMesh * oldMphysicsCMesh);
     
     //---------------------------------------------------------------
     
-    void MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics, TPZFMatrix<REAL> & Un);
+    void MassMatrix(TPZFMatrix<REAL> & Un);
     
-    void StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis *an,
-                                   TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
-
-    void SaidaPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+    void StiffMatrixLoadVec(TPZAnalysis *an,
+                            TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
     
-    void SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZNLFluidStructure2d * &mymaterial, std::stringstream & outP);
-
-    void FillPositionPressure(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, std::map<REAL,REAL> & pos_pressure);
+    void PostprocessPressure();
+    void PostProcessAcumVolW();
+    void PostProcessVolLeakoff();
     
-    void PosProcessMult(TPZAnalysis *an, std::string plotfile);
+    REAL ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL radius);
     
-    void PlotWIntegral(TPZCompMesh *cmesh, std::stringstream & outW, int solNum);
-    
-    REAL ComputeKIPlaneStrain(TPZCompMesh * elastMesh,
-                              REAL radius, std::stringstream & outFile, int cent = -1,
-                              bool firstCall = true);
-    
-    void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial,
-                          TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+    void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an);
     
     void SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh);
     
@@ -82,6 +73,14 @@ class ToolsTransient
     
     int fpOrder;
     bool fMustStop;
+    
+    TPZNLFluidStructure2d * fCouplingMaterial;
+    TPZGeoMesh * fgmesh;
+    
+    /** fmeshvec[0] = Malha computacional elastica do tipo referred */
+    /** fmeshvec[1] = Malha computacional de fluxo 1D */
+    TPZVec<TPZCompMesh *> fmeshvec;
+    TPZCompMesh * fmphysics;
 };
 
 

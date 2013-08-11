@@ -523,7 +523,9 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     bool mustStop = false;
     bool projectOrthogonal = true;
     int bissectionCalled = 0;
-    while(gel->ComputeXInverseAlternative(x, qsi) == false && mustStop == false)
+    while(gel->ComputeXInverseAlternative(x, qsi) == false &&
+          gel->Dimension() != targetDim &&
+          mustStop == false)
     {
         int side = -1;
         if(projectOrthogonal)
@@ -541,19 +543,20 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
         while(mySide != neighSide && targetNeighFound == false)
         {
             if(neighSide.Element()->LowestFather() == mySide.Element()->LowestFather())
-            {
+            {   // it means that neighSide->element is my own Lowest father, so
+                // is not the targetNeigh... its better keep searching!!!
                 neighSide = neighSide.Neighbour();
             }
-            // why is targetDim == 0 a special case?
-            // if targetDim == 0 we should look for the closest node and hope to find a point element there
-            else if(targetDim > 0 && neighSide.Element()->Dimension() != targetDim)
+            else if(neighSide.Element()->Dimension() != targetDim)
             {
+                // it means that neighSide->element() dont have the targetDim,
+                // is not the targetNeigh... its better keep searching!!!
                 neighSide = neighSide.Neighbour();
             }
             else
             {
-                // why is this neighbour better?
-                // the parameter should be projected using SideToSideTransform
+                // it means that this neighbour is a good candidate!!!
+                // (because is not my ancestor, not even with dimension != targetDim)
                 targetNeighFound = true;
             }
         }

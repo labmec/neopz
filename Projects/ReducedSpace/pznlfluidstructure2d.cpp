@@ -813,7 +813,6 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     return dQldpfrac;
 }
 
-
 void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
 {
     std::map<int,REAL>::iterator it;

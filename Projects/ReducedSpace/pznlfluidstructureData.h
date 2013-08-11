@@ -10,7 +10,10 @@
 #define PZ_pznlfluidstructureData_h
 
 #include "pznlfluidstructureMaterials.h"
+#include "pzanalysis.h"
 #include "pzreal.h"
+#include <map.h>
+#include <fstream.h>
 
 class InputDataStruct
 {
@@ -19,8 +22,9 @@ public:
     InputDataStruct();
     ~InputDataStruct();
     
-    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy, int NStripes, REAL Visc, REAL SigN,
-                 REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes, REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc);
+    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy,
+                 int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
+                 REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius);
     
     void SetLf(REAL Lf);
     
@@ -45,6 +49,7 @@ public:
     REAL Pref();
     REAL vsp();
     REAL KIc();
+    REAL Jradius();
     void SetMinDeltaT();
     void NextDeltaT();
     void NextActTime();
@@ -87,10 +92,125 @@ private:
     REAL fvsp;//spurt loss
     
     //Propagation criterion
+    REAL fJradius;
     REAL fKIc;
 };
 
 
+
+
+class OutputDataStruct
+{
+public:
+    
+    OutputDataStruct();
+    ~OutputDataStruct();
+    
+    int NTimes();
+    void InsertTposP(int time, std::map<REAL,REAL> & posPmap);
+    void InsertTposVolLeakoff(int time, REAL pos, REAL Ql);
+    void InsertTAcumVolW(int time, REAL vol);
+    void InsertTAcumVolLeakoff(int time, REAL vol);
+    void InsertTKI(int time, REAL KI);
+    void SetQinj1WingAndLfracmax(REAL Qinj1wing, REAL Lfracmax);
+    
+    void PlotElasticVTK(TPZAnalysis * an, int anCount = -1);
+    void PrintMathematica(std::ofstream & outf);
+    
+    struct posP
+    {
+    public:
+        
+        posP()
+        {
+            fposP.clear();
+        }
+        ~posP()
+        {
+            fposP.clear();
+        }
+        void PrintMathematica(std::ofstream & outf)
+        {
+#ifdef DEBUG
+            if(fposP.size() == 0)
+            {
+                DebugStop();
+            }
+#endif
+            std::map<REAL,REAL>::iterator itposP;
+            std::map<REAL,REAL>::iterator itposPLast = fposP.end();
+            itposPLast--;
+            
+            outf << "{";
+            for(itposP = fposP.begin(); itposP != fposP.end(); itposP++)
+            {
+                outf << "{" << itposP->first << "," << itposP->second << "}";
+                if(itposP != itposPLast)
+                {
+                    outf << ",";
+                }
+            }
+            outf << "}";
+        }
+        
+        std::map<REAL,REAL> fposP;
+    };
+    
+    struct posVolLeakoff
+    {
+    public:
+        posVolLeakoff()
+        {
+            fposVolLeakoff.clear();
+        }
+        ~posVolLeakoff()
+        {
+            fposVolLeakoff.clear();
+        }
+        void InsertPoint(REAL pos, REAL Ql)
+        {
+            fposVolLeakoff[pos] = Ql;
+        }
+        void PrintMathematica(std::ofstream & outf)
+        {
+#ifdef DEBUG
+            if(fposVolLeakoff.size() == 0)
+            {
+                DebugStop();
+            }
+#endif
+            std::map<REAL,REAL>::iterator itposVolLeakoff;
+            std::map<REAL,REAL>::iterator itposVolLeakoffLast = fposVolLeakoff.end();
+            itposVolLeakoffLast--;
+            
+            outf << "{";
+            for(itposVolLeakoff = fposVolLeakoff.begin(); itposVolLeakoff != fposVolLeakoff.end(); itposVolLeakoff++)
+            {
+                outf << "{" << itposVolLeakoff->first << "," << itposVolLeakoff->second << "}";
+                if(itposVolLeakoff != itposVolLeakoffLast)
+                {
+                    outf << ",";
+                }
+            }
+            outf << "}";
+        }
+        
+        std::map<REAL,REAL> fposVolLeakoff;
+    };
+    
+    //maps indexed by time
+    std::map<int,posP> fTposP;
+    std::map<int,posVolLeakoff> fTposVolLeakoff;
+    std::map<int,REAL> fTAcumVolW;
+    std::map<int,REAL> fTAcumVolLeakoff;
+    std::map<int,REAL> fTKI;
+    REAL fQinj1wing;
+    REAL fLfracMax;
+};
+
+
 extern InputDataStruct globFractInputData;
+
+extern OutputDataStruct globFractOutputData;
 
 #endif

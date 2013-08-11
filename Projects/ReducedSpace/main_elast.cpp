@@ -45,21 +45,58 @@ int main(int argc, char *argv[])
     
     REAL SigN = 6.15;
     
-    REAL QinjTot  = -0.2;//Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel. Aqui vai Qinj total mesmo!!!
-    REAL Ttot = 15;//60.;
-    REAL maxDeltaT = Ttot/5.;//20.
-    int nTimes = 1;
+    /**
+     * Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
+     * Aqui vai Qinj total mesmo!!!
+     */
+    REAL QinjTot  = -0.2;
+
+    REAL Ttot = 16; /** em segundos */
+    REAL maxDeltaT = Ttot/2.;//5.; /** em segundos */
+    int nTimes = 1; /**  */
     
     REAL Cl = 0.005;
     REAL Pe = 10.;
     REAL SigmaConf = 11.;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
-    REAL KIc = 1.;
+    REAL KIc = 1.E15;
+    REAL Jradius = 0.5;
+    
     int p = 2;
     
-    globFractInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc);
+    globFractInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius);
     ToolsTransient ToolTrans(p);
+    
+    std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+    std::cout << "****\n";
+    std::cout << "*****\n";
+    std::cout << "******\n";
+    std::cout << "*******\n";
+    std::cout << "********\n";
+    std::cout << "**********\n";
+    std::cout << "*************\n";
+    std::cout << "*******************\n";
+    std::cout << "*************************\n";
+    std::cout << "*************************************\n";
+    std::cout << "*************************************************\n";
+    std::cout << "*******************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "**********************************************************************\n";
+    std::cout << "Lembre-se de deixar os minT, maxT, actT etc como inteiros!!!\n";
+    std::cout << "*******************************************************\n";
+    std::cout << "*******************************************************\n";
+    std::cout << "*******************************************************\n";
+    std::cout << "*******************************************************\n";
+    std::cout << "*******************************************************\n";
+//    LEIA ACIMA!!!
 	
 	ToolTrans.Run();
     
