@@ -46,34 +46,67 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     QFont MenuBold;
     MenuBold.setBold(true);
 
+    QMenu *mySubMenuAxis = new QMenu ("Set Axis");
+    QActionGroup *groupSubmenuAxis = new QActionGroup (this);
+    QAction *aSetAxis1 = mySubMenuAxis->addAction("Tension x Deformation");
+    aSetAxis1->setCheckable(true);
+    aSetAxis1->setChecked(true);
+    aSetAxis1->setActionGroup(groupSubmenuAxis);
+    QAction *aSetAxis2 = mySubMenuAxis->addAction("I1 x sqrt(J2)");
+    aSetAxis2->setCheckable(true);
+    aSetAxis2->setActionGroup(groupSubmenuAxis);
 
-    QMenu *mySubMenuX = new QMenu("Set X");
-    QActionGroup* groupSubMenuX = new QActionGroup( this );
-    QAction *aSetX1 = mySubMenuX->addAction("Tension");
-    aSetX1->setCheckable(true);
-    aSetX1->setActionGroup(groupSubMenuX);
-    QAction *aSetX2 = mySubMenuX->addAction("Deformation");
-    aSetX2->setCheckable(true);
-    aSetX2->setChecked(true);
-    aSetX2->setActionGroup(groupSubMenuX);
+//    QMenu *mySubMenuX = new QMenu("Set X");
+//    QActionGroup* groupSubMenuX = new QActionGroup( this );
+//    QAction *aSetX1 = mySubMenuX->addAction("Time");
+//    aSetX1->setCheckable(true);
+//    aSetX1->setActionGroup(groupSubMenuX);
+//    QAction *aSetX2 = mySubMenuX->addAction("sigma Axial Total");
+//    aSetX2->setCheckable(true);
+//    aSetX2->setChecked(true);
+//    aSetX2->setActionGroup(groupSubMenuX);
+//    QAction *aSetX3 = mySubMenuX->addAction("sigma Axial Desv");
+//    aSetX3->setCheckable(true);
+//    aSetX3->setActionGroup(groupSubMenuX);
+//    QAction *aSetX4 = mySubMenuX->addAction("sigma Conf");
+//    aSetX4->setCheckable(true);
+//    aSetX4->setActionGroup(groupSubMenuX);
+//    QAction *aSetX5 = mySubMenuX->addAction("Def Axial");
+//    aSetX5->setCheckable(true);
+//    aSetX5->setActionGroup(groupSubMenuX);
+//    QAction *aSetX6 = mySubMenuX->addAction("Def Lateral");
+//    aSetX6->setCheckable(true);
+//    aSetX6->setActionGroup(groupSubMenuX);
 
-    QMenu *mySubMenuY = new QMenu("Set Y");
-    QActionGroup* groupSubMenuY = new QActionGroup( this );
-    QAction *aSetY1 = mySubMenuY->addAction("Time");
-    aSetY1->setCheckable(true);
-    aSetY1->setActionGroup(groupSubMenuY);
-    QAction *aSetY2 = mySubMenuY->addAction("Y");
-    aSetY2->setCheckable(true);
-    aSetY2->setChecked(true);
-    aSetY2->setActionGroup(groupSubMenuY);
+//    QMenu *mySubMenuY = new QMenu("Set Y");
+//    QActionGroup* groupSubMenuY = new QActionGroup( this );
+//    QAction *aSetY1 = mySubMenuY->addAction("Time");
+//    aSetY1->setCheckable(true);
+//    aSetY1->setActionGroup(groupSubMenuY);
+//    QAction *aSetY2 = mySubMenuY->addAction("sigma Axial Total");
+//    aSetY2->setCheckable(true);
+//    aSetY2->setActionGroup(groupSubMenuY);
+//    QAction *aSetY3 = mySubMenuY->addAction("sigma Axial Desv");
+//    aSetY3->setCheckable(true);
+//    aSetY3->setActionGroup(groupSubMenuY);
+//    QAction *aSetY4 = mySubMenuY->addAction("sigma Conf");
+//    aSetY4->setCheckable(true);
+//    aSetY4->setActionGroup(groupSubMenuY);
+//    QAction *aSetY5 = mySubMenuY->addAction("Def Axial");
+//    aSetY5->setCheckable(true);
+//    aSetY5->setChecked(true);
+//    aSetY5->setActionGroup(groupSubMenuY);
+//    QAction *aSetY6 = mySubMenuY->addAction("Def Lateral");
+//    aSetY6->setCheckable(true);
+//    aSetY6->setActionGroup(groupSubMenuY);
 
     menuPlot = new QMenu ();
     menuPlot->setFont(MenuBold);
-    menuPlot->addMenu(mySubMenuX);
-    menuPlot->addMenu(mySubMenuY);
+    menuPlot->addMenu(mySubMenuAxis);
+//    menuPlot->addMenu(mySubMenuY);
 
-    connect (mySubMenuX, SIGNAL(triggered(QAction*)), this, SLOT(XTypeChanged (QAction*)));
-    connect (mySubMenuY, SIGNAL(triggered(QAction*)), this, SLOT(YTypeChanged (QAction*)));
+    connect (mySubMenuAxis, SIGNAL(triggered(QAction*)), this, SLOT(AxisChanged_slot (QAction*)));
+//    connect (mySubMenuY, SIGNAL(triggered(QAction*)), this, SLOT(YTypeChanged (QAction*)));
 
 //    connect (aSetX2, SIGNAL(triggered()), this, SLOT(X2Type()));
 
@@ -218,6 +251,10 @@ void Plot::createCurve(int pos, QVector <double> *X, QVector <double> *Y, int ch
 
     this->replot();
     this->AdjustScale();
+
+    //naming axis
+    this->setAxisTitle(QwtPlot::yLeft, "Tension");
+    this->setAxisTitle(QwtPlot::xBottom, "Deformation");
 }
 
 // Get index of coords vector of a given curve
@@ -514,18 +551,22 @@ void Plot::mouseReleaseEvent( QMouseEvent * event ) {
     }
 }
 
-void Plot::XTypeChanged (QAction *action) {
+void Plot::AxisChanged_slot (QAction *action) {
 
-    qDebug() << "X TypeChanged " << action->text()  ;
+  qDebug() << "Axis Changed !!! " << action->text()  ;
 
-    if (action->text() == "Tension") {
-        qDebug() << "usar coluna tensao";
-    }
+//    if (action->text() == "Tension") {
+//        qDebug() << "usar coluna tensao";
+//    }
 
+    emit AxisChanged_signal(this, action->text());
 
 }
 
-void Plot::YTypeChanged (QAction *action) {
+//void Plot::YTypeChanged (QAction *action) {
 
-    qDebug() << "Y TypeChanged " << action->text() ;
-}
+////    qDebug() << "Y TypeChanged " << action->text();
+
+//    emit YCoordsChanged(this, action->text());
+
+//}

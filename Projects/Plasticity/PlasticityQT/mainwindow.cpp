@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include "initialpointdock.h"
 #include "ui_initialpointdock.h"
+#include "globalconfig.h"
+#include "ui_globalconfig.h"
 #include <iostream>
 #include <limits>
 using namespace std;
@@ -35,6 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle(tr("Plasticity"));
 
+//    ui->dockWidget_2->setGeometry(ui->dockWidget_2->geometry().x(),ui->dockWidget_2->geometry().y(), 500, 500);
+//    ui->dockWidgetContents_2->setGeometry(ui->dockWidgetContents_2->geometry().x(),ui->dockWidgetContents_2->geometry().y(), 500, 500);
+//    ui->centralWidget->setGeometry(ui->centralWidget->geometry().x(),ui->centralWidget->geometry().y(), 5, 5);
+//    ui->dockWidget_2->setMinimumWidth(0);
+
     // Creating objects and linking them to their pointers
     this->FilesList = new QHash <int, TXT > ;
 
@@ -42,40 +49,39 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Test 1
     ui->Plot_1->setTitle("TEST 01");
-//    ui->Plot_1->setAxisTitle( QwtPlot::xBottom, "Deformation" );
-//    ui->Plot_1->setAxisTitle( QwtPlot::yLeft, "Tension" );
     connect(ui->Plot_1->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_1->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
+    connect(ui->Plot_1, SIGNAL(AxisChanged_signal (Plot*, QString)),
+            this, SLOT(ChangePlotAxis (Plot*,QString)));
     // Initial Plot where graphs will be ploted
     currentPlot = ui->Plot_1;
     ui->Plot_1->setHighlighted(true);
     // Test 2
     ui->Plot_2->setTitle("TEST 02");
-//    ui->Plot_2->setAxisTitle( QwtPlot::xBottom, "Deformation" );
-//    ui->Plot_2->setAxisTitle( QwtPlot::yLeft, "Tension" );
     connect(ui->Plot_2->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_2->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
+    connect(ui->Plot_2, SIGNAL(AxisChanged_signal (Plot*, QString)),
+            this, SLOT(ChangePlotAxis(Plot*,QString)));
     // Test 3
     ui->Plot_3->setTitle("TEST 03");
-//    ui->Plot_3->setAxisTitle( QwtPlot::xBottom, "Deformation" );
-//    ui->Plot_3->setAxisTitle( QwtPlot::yLeft, "Tension" );
     connect(ui->Plot_3->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_3->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
+    connect(ui->Plot_3, SIGNAL(AxisChanged_signal (Plot*, QString)),
+            this, SLOT(ChangePlotAxis (Plot*,QString)));
     // Test 4
     ui->Plot_4->setTitle("TEST 04");
-//    ui->Plot_4->setAxisTitle( QwtPlot::xBottom, "-" );
-//    ui->Plot_4->setAxisTitle( QwtPlot::yLeft, "-" );
     connect(ui->Plot_4->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_4->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-
+    connect(ui->Plot_4, SIGNAL(AxisChanged_signal (Plot*, QString)),
+            this, SLOT(ChangePlotAxis (Plot*,QString)));
 
     on_actionZoom_toggled(false);
 
@@ -83,10 +89,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
         this, SLOT(ShowListContextMenu(const QPoint&)));
-
-
-
-
 
     QSettings settings("myapp.ini", QSettings::IniFormat);
     settings.setValue("editor/wrapMargin", 68);
@@ -263,6 +265,7 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         selectpointdock->setSymbPoint(indexEndPoint, indexCurve, Plot::endPoint);
         selectpointdock->setWindowTitle(listItem->text());
         selectpointdock->setFloating(1);
+        selectpointdock->setGeometry(300,250,selectpointdock->width(),selectpointdock->height());
         selectpointdock->show();
 
     }
@@ -305,7 +308,6 @@ void MainWindow::on_actionOpenFile_triggered()
             return;
         }
 
-//        QTextStream *in_curve = new QTextStream (&curve_file);
         double valueX, valueY;
         QVector<double> *Xvalues;
         QVector<double> *Yvalues;
@@ -316,6 +318,7 @@ void MainWindow::on_actionOpenFile_triggered()
         QVector<double> *defAxial = new QVector<double>();
         QVector<double> *defLateral = new QVector<double>();
         QVector<double> *defVol = new QVector<double>();
+
         int countLines = 0;
         double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
                Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
@@ -338,9 +341,7 @@ void MainWindow::on_actionOpenFile_triggered()
             line = curve_file.readLine();
             line.chop(1); // to remove \n of the end
 
-//            strings = line.split( QRegExp( "[ \\t]+") );
             strings = line.split( QRegExp("[\\t]+") );
-
 
             if (strings.size() < 2) continue;
 
@@ -352,9 +353,11 @@ void MainWindow::on_actionOpenFile_triggered()
                 defLateral->insert( countLines, QVariant(strings.value(5)).toDouble() );
                 defVol->insert( countLines, QVariant(strings.value(7)).toDouble() );
 
+                // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
                 valueY = QVariant(strings.value(1)).toDouble(); //sigmaAxialDesv
                 valueX = QVariant(strings.value(3)).toDouble(); //defAxial
 
+                // Coordenadas Default (TensaoxDeformacao)
                 Xvalues = defAxial;
                 Yvalues = sigmaAxialDesv;
             }
@@ -369,12 +372,14 @@ void MainWindow::on_actionOpenFile_triggered()
                 defLateral->insert( countLines, QVariant(strings.value(9)).toDouble() );
                 defVol->insert( countLines, QVariant(strings.value(11)).toDouble() );
 
+                // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
                 valueY = QVariant(strings.value(1)).toDouble(); //sigmaAxialTotal
                 valueX = QVariant(strings.value(7)).toDouble(); //defAxial
 
+                // Coordenadas Default (TensaoxDeformacao)
                 Xvalues = defAxial;
                 Yvalues = sigmaAxialDesv;
-            }
+          }
 
             if (valueX < Xsmallest) Xsmallest = valueX;
             if (valueX > Xbiggest) Xbiggest = valueX;
@@ -426,4 +431,86 @@ void MainWindow::on_actionOpenFile_triggered()
 void MainWindow::on_actionExportPlot_triggered()
 {
     currentPlot->exportPlot();
+}
+
+void MainWindow::ChangePlotAxis(Plot* plot_ptr,QString PlotAxis)
+{
+    qDebug() << "CHANGE PLOT AXIS!!!!!!!" << plot_ptr << PlotAxis;
+    //xvalues_ptr mudar pelo XCoords(TEXTO da nova coordenada)
+    //OU
+    //Chamar o updatecurves para todas as curvas - parametros:
+    // index_curve: foreach para percorrer toda a lista de curvas do plot
+    // startpoint e endpoint: pegar da struct curves
+    //OU (ULTIMO CASO)
+    //plot_ptr->delete all curves :vai apagar as curvas da lista de curvas do plot
+    //elas vao continuar na listinha do lado, mas talvez com check - FORCAR O UNCHECK!
+
+
+    // mudar os eixos de plotagem (colunas a serem lidas no arquivo)
+    // mudar os nomes dos eixos
+
+    foreach (int i, plot_ptr->CurvesList->keys())
+    {
+        if (PlotAxis == "Tension x Deformation") {
+
+            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+
+            d_curve_tmp.X = this->FilesList->value(i).defAxial;
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
+
+            //re-inserting new value
+            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+
+            //naming axis
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, "Tension");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, "Deformation");
+
+            // update curve with new data
+            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+        }
+
+        else if (PlotAxis == "I1 x sqrt(J2)") {
+
+            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+
+            d_curve_tmp.Y = this->FilesList->value(i).defAxial;
+            d_curve_tmp.X = this->FilesList->value(i).sigmaAxialDesv;
+
+            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE I1 E J2
+
+            //re-inserting new value
+            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+
+            //naming axis
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, "I1");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, "sqrt(J2)");
+
+            // update curve with new data
+            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+        }
+    }
+
+}
+
+//void MainWindow::ChangeYCoords(Plot* plot_ptr,QString YCoords)
+//{
+//    qDebug() << "SLOT CHANGE Y!!!!!!!!!!!!!!!!!!" << plot_ptr << YCoords;
+//}
+
+void MainWindow::on_actionShow_Parameter_List_triggered()
+{
+    ui->dockWidget_2->show();
+}
+
+void MainWindow::on_actionRUN_triggered()
+{
+    // EXECUTAR SIMULATION!!!!!!!!!!!!!!!!
+    // Fazer o load dos valores dos contadores e rodar o simulation (mainGUI.cpp)
+}
+
+void MainWindow::on_actionGlobal_Config_triggered()
+{
+    GlobalConfig *globalconfigdock = new GlobalConfig(this);
+    globalconfigdock->setGeometry(300,250,globalconfigdock->width(),globalconfigdock->height());
+    globalconfigdock->show();
 }

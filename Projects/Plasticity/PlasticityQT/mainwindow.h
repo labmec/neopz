@@ -16,7 +16,7 @@ class Plot;
 struct TXT {
             QString name; QVector<double> *X; QVector<double> *Y;
             QVector<double> *time; QVector<double> *sigmaAxialTotal; QVector<double> *sigmaAxialDesv; QVector<double> *sigmaConf;
-            QVector<double> *defAxial; QVector<double> *defLateral; QVector<double> *defVol;
+            QVector<double> *defAxial; QVector<double> *defLateral; QVector<double> *defVol; QVector<double> *I1; QVector<double> *RAIZDEJ2;
             testTypes testType;
            };
 
@@ -45,8 +45,16 @@ private slots:
     void fullscreenOnPlot(Plot *plotTmp);
     void ShowListContextMenu(const QPoint& pos);
     void updateCurve(int indexCurves, int indexStartPoint, int indexEndPoint);
+    void ChangePlotAxis(Plot *plot_ptr, QString PlotAxis);
+//    void ChangeYCoords(Plot *plot_ptr, QString YCoords);
 
     void on_actionExportPlot_triggered();
+
+    void on_actionShow_Parameter_List_triggered();
+
+    void on_actionRUN_triggered();
+
+    void on_actionGlobal_Config_triggered();
 
 private:
     Ui::MainWindow *ui;

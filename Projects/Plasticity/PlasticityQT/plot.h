@@ -92,9 +92,12 @@ public Q_SLOTS:
 
     void mouseReleaseEvent( QMouseEvent * event );
 
-    void XTypeChanged (QAction *action);
-    void YTypeChanged (QAction *action);
+    void AxisChanged_slot (QAction *action);
+//    void YTypeChanged (QAction *action);
 
+signals:
+    void AxisChanged_signal (Plot* plot_ptr, QString XCoord);
+//    void YCoordsChanged (Plot* plot_ptr, QString YCoord);
 };
 
 #endif // PLOT_H

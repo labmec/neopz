@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GlobalConfig</class>
+ <widget class="QDockWidget" name="GlobalConfig">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>221</height>
+   </rect>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="floating">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>DockWidget</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <widget class="QwtCounter" name="Counter">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>40</y>
+      <width>121</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="numButtons">
+     <number>1</number>
+    </property>
+    <property name="maxValue">
+     <double>1000.000000000000000</double>
+    </property>
+    <property name="value">
+     <double>100.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QwtCounter" name="Counter_2">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>80</y>
+      <width>121</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="numButtons">
+     <number>1</number>
+    </property>
+    <property name="basicstep" stdset="0">
+     <double>0.000001100000000</double>
+    </property>
+    <property name="minValue">
+     <double>-10000.000000000000000</double>
+    </property>
+    <property name="maxValue">
+     <double>1000.000000000000000</double>
+    </property>
+    <property name="stepButton1">
+     <number>1</number>
+    </property>
+    <property name="value">
+     <double>0.000100000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>50</y>
+      <width>66</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>N Steps</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>90</y>
+      <width>141</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Int. Tolerance UCS</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>130</y>
+      <width>151</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Int. Tolerance Triaxial</string>
+    </property>
+   </widget>
+   <widget class="QwtCounter" name="Counter_3">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>120</y>
+      <width>121</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="numButtons">
+     <number>1</number>
+    </property>
+    <property name="basicstep" stdset="0">
+     <double>0.000001100000000</double>
+    </property>
+    <property name="minValue">
+     <double>-10000.000000000000000</double>
+    </property>
+    <property name="maxValue">
+     <double>1000.000000000000000</double>
+    </property>
+    <property name="stepButton1">
+     <number>1</number>
+    </property>
+    <property name="value">
+     <double>0.000001000000000</double>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QwtCounter</class>
+   <extends>QWidget</extends>
+   <header>qwt_counter.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

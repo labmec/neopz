@@ -5,18 +5,16 @@
 #-------------------------------------------------
 
 #Begin FAD
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/"
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/Fad"
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/TinyFad"
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/TinyFadET"
+INCLUDEPATH += "/home/felps/FAD/"
+INCLUDEPATH += "/home/felps/FAD/Fad"
+INCLUDEPATH += "/home/felps/FAD/TinyFad"
+INCLUDEPATH += "/home/felps/FAD/TinyFadET"
 #End FAD
 
 #Begin PZ
-#INCLUDEPATH += "C:/Users/Raul/Desktop/pzlib/include"
-#LIBS += -L"C:/Users/Raul/Desktop/pzlib/lib" -lpz
-INCLUDEPATH += "/dados/GOOGLE_PZ/PZLIB/include"
-LIBS += -L"/dados/GOOGLE_PZ/PZLIB/" -lpz
-DEFINES += PZSOURCEDIR=\"/dados/GOOGLE_PZ/neopz_build_teste\" REFPATTERNDIR=\"/dados/GOOGLE_PZ/neopz_build_teste/Refine/RefPatterns\"
+INCLUDEPATH += "/home/felps/neopz_lib/include"
+LIBS += -L"/home/felps/neopz_lib/" -lpz
+DEFINES += PZSOURCEDIR=\"/home/felps/neopz_code\" REFPATTERNDIR=\"/home/felps/neopz_code\"
 DEFINES += USING_BOOST _AUTODIFF LOG4CXX USING_METIS BUILD_UNITTESTING BUILD_TUTORIAL REALdouble STATEdouble
 #End PZ
 
@@ -30,44 +28,11 @@ INCLUDEPATH += "/usr/local/include/"
 LIBS += -L"/usr/local/include/" -lmetis
 #End METIS
 
-QWT_ROOT = /usr/local/qwt-6.0.2-svn/
-include( $${QWT_ROOT}/features/qwtconfig.pri )
+#Begin QWT
+INCLUDEPATH += "/usr/local/include/"
+LIBS += -L"/usr/local/include/" -lqwt
+#End QWT
 
-#    QWT_CONFIG += QwtFramework
-
-
-QMAKE_RPATHDIR *= $${QWT_ROOT}/lib
-
-contains(QWT_CONFIG, QwtFramework) {
-
-    LIBS      += -F$${QWT_ROOT}/lib/
-
-}
-else {
-
-    LIBS      += -L$${QWT_ROOT}/lib
-}
-
-IPATH       = $${INCLUDEPATH}
-qtAddLibrary(qwt)
-INCLUDEPATH = $${IPATH}
-INCLUDEPATH += $${QWT_ROOT}/lib/qwt.framework/Headers
-
-#contains(QWT_CONFIG, QwtSvg) {
-
-#    QT += svg
-#}
-#else {
-
-    DEFINES += QWT_NO_SVG
-#}
-
-
-win32 {
-    contains(QWT_CONFIG, QwtDll) {
-        DEFINES    += QT_DLL QWT_DLL
-    }
-}
 
 QT       += core gui
 
@@ -80,14 +45,17 @@ SOURCES += main.cpp\
     plot.cpp \
     simulation.cpp \
     initialpointdock.cpp \
-    canvaspicker.cpp
+    canvaspicker.cpp \
+    globalconfig.cpp
 
 HEADERS  += mainwindow.h \
     plot.h \
     simulation.h \
     initialpointdock.h \
     canvaspicker.h \
-    common.h
+    common.h \
+    globalconfig.h
 
 FORMS    += mainwindow.ui \
-    initialpointdock.ui
+    initialpointdock.ui \
+    globalconfig.ui
