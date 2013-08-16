@@ -614,7 +614,6 @@ int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int>
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-//#define DECOMPOSE_CHOLESKY_VEC_OPT1
 //#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_GETVAL_OPT1
 
@@ -1725,7 +1724,6 @@ TPZSkylMatrix<TVar>::operator()(const int r) {
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-//#define DECOMPOSE_CHOLESKY_VEC_OPT1
 //#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_PUTVAL_OPT1
 //#define SKYLMATRIX_GETVAL_OPT1
@@ -2329,19 +2327,12 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 				TVar *elem_i = &fElem[i][j];
 				TVar *end_i  = fElem[i+1];
 				elem_k = &(fElem[k][1]);
-#ifdef DECOMPOSE_CHOLESKY_VEC_OPT1
-#warning "Using experimental (vectorizable) version of TPZSkylMatrix<TVar>::Decompose_Cholesky(...)"
-				//EBORIN: Is it really worth it? How large are the non zero part of the columns?
-				//EBORIN: Should we make the column arrays multiple of the machine vector size?
+				// Vectorizable loop
 				unsigned max_l = end_i - elem_i;
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
 				for(unsigned l=0; l<max_l; l++) 
 				  sum += (*elem_i++) * (*elem_k++);
-#else
-				//EBORIN: This code does not seem to be vectorized by the icc compiler.
-				while ( (elem_i < end_i) && (elem_k < end_k) ) sum += (*elem_i++) * (*elem_k++);
-#endif
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
 				fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
 			} else if ( Size(i) == j ) fElem[i][j-1] /= pivot;
@@ -2470,19 +2461,12 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 				TVar *elem_i = &fElem[i][j];
 				TVar *end_i  = fElem[i+1];
 				elem_k = &(fElem[k][1]);
-#ifdef DECOMPOSE_CHOLESKY_VEC_OPT1
-#warning "Using experimental (vectorizable) version of TPZSkylMatrix<TVar>::Decompose_Cholesky(...)"
-				//EBORIN: Is it really worth it? How large are the non zero part of the columns?
-				//EBORIN: Should we make the column arrays multiple of the machine vector size?
+				// Vectorizable loop
 				unsigned max_l = end_i - elem_i;
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
 				for(unsigned l=0; l<max_l; l++) 
 				  sum += (*elem_i++) * (*elem_k++);
-#else
-				//EBORIN: This code does not seem to be vectorized by the icc compiler.
-				while ( (elem_i < end_i) && (elem_k < end_k) ) sum += (*elem_i++) * (*elem_k++);
-#endif
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
 				fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
 			} else if ( Size(i) == j ) fElem[i][j-1] /= pivot;

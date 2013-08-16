@@ -90,7 +90,7 @@ if (USING_PAPI)
   target_link_libraries(pz ${PAPI_LIB})
 endif()
 
-#install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
+install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 
