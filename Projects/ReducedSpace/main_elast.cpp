@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
      * Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
      * Aqui vai Qinj total mesmo!!!
      */
-    REAL QinjTot  = -0.2;
+    REAL QinjTot  = -0.8;
 
     REAL Ttot = 16; /** em segundos */
     REAL maxDeltaT = Ttot/2.;//5.; /** em segundos */
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     REAL SigmaConf = 11.;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
-    REAL KIc = 1.E15;
+    REAL KIc = 1.;
     REAL Jradius = 0.5;
     
     int p = 2;

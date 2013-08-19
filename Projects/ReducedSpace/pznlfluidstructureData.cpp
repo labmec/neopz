@@ -407,6 +407,30 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
     outf << "(* Qinj 1 wing and Lfrac max *)\n";
     outf << "Qinj1wing=" << fQinj1wing << ";\n";
     outf << "LfracMax=" << fLfracMax << ";\n\n";
+    
+    outf << "maxp = Max[Transpose[Flatten[posvsPvsT, 1]][[2]]];\n";
+    outf << "Manipulate[ListPlot[posvsPvsT[[t]], Joined -> True,PlotLabel ->\"Graphic A: Position x Pressure @ \" <> ToString[times[[t]]] <> \"s\",AxesLabel -> {\"position (m)\", \"pressure (Pa)\"}, Filling -> Axis,PlotRange -> {{0, LfracMax}, {0, maxp}}], {t, 1, ntimes, 1}]\n\n";
+    
+    outf << "maxleakoff = Max[Transpose[Flatten[posvsVolleakoffvsT, 1]][[2]]];\n";
+    outf << "Manipulate[ListPlot[posvsVolleakoffvsT[[t]], Joined -> True,PlotLabel ->\"Graphic B: Position x Leakoff penetration @ \" <> ToString[times[[t]]] <>\"s\", AxesLabel -> {\"position (m)\", \"leakoff penetration (m)\"},Filling -> Axis, PlotRange -> {{0, LfracMax}, {0, maxleakoff}}], {t, 1,ntimes, 1}]\n\n";
+    
+    outf << "maxinj = Qinj1wing*times[[ntimes]];\n";
+    outf << "GrC = Plot[Qinj1wing*t, {t, 0, times[[ntimes]]},PlotLabel -> \"Graphic C: Time x Volume Injected\",AxesLabel -> {\"time (s)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    
+    outf << "GrD = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic D: Time x Fracture Volume\",AxesLabel -> {\"time (s)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    
+    outf << "GrE = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic E: Time x Leakoff volume\",AxesLabel -> {\"time (s)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    
+    outf << "WplusLeakoff = {};\n";
+    outf << "For[tt = 1, tt <= ntimes,\n";
+    outf << "AppendTo[WplusLeakoff, {times[[tt]], TvsVolW[[tt, 2]] + TvsVolLeakoff[[tt, 2]]}];\n";
+    outf << "tt++;\n";
+    outf << "];\n";
+    outf << "GrF = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic F: Grahics (D+E)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
+    outf << "Show[GrC, GrD, GrE, GrF]\n\n";
+    
+    outf << "maxki = Max[Transpose[TvsKI][[2]]];\n";
+    outf << "ListPlot[TvsKI, Joined -> True, PlotLabel -> \"Graphic G: Time x KI\", AxesLabel -> {\"time (s)\", \"KI (Pa.m2)\"},Filling -> Axis,PlotRange -> {{0, times[[ntimes]]}, {0, maxki}}]\n";
 }
 
 InputDataStruct globFractInputData;
