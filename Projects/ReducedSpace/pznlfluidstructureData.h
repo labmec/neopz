@@ -12,8 +12,8 @@
 #include "pznlfluidstructureMaterials.h"
 #include "pzanalysis.h"
 #include "pzreal.h"
-#include <map.h>
-#include <fstream.h>
+#include <map>
+#include <fstream>
 
 class InputDataStruct
 {
