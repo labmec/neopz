@@ -213,7 +213,7 @@ int TPZEulerConsLaw::NFluxes()
 
 //-----------------Solutions
 
-void TPZEulerConsLaw::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZEulerConsLaw::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
 	
 	if(fabs(Sol[0]) < 1.e-10) {
 		PZError << "\nTPZEulerConsLaw::Solution: Density almost null\n"
@@ -1047,13 +1047,13 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
 					// Modified w2 invariant: w2 = p/rho^(gamma-1)
 					// or w2 = c^2/(gamma * rho^(gamma-1))
-					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (fGamma - 1.)));
+					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (T)(fGamma - 1.)));
 					// w5 computed based on flow state
 					w5 = un + T(2.) * c / T(fGamma - 1.);
 					
 					// computing ghost values
 					cghost = (w5 - w1) * T((fGamma - 1.)/4.);
-					solR[0] = pow(cghost * cghost / (T(fGamma) * w2), (1./(fGamma - 1.)));
+					solR[0] = pow(((T)cghost * cghost / (T(fGamma) * w2)), (T)(1./(fGamma - 1.)));
 					unghost = (w1 + w5) / T(2.);
 					usghost = us / un * unghost;
 					for(i = 1; i < nstate - 1; i++)
@@ -1179,13 +1179,13 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
 					// Modified w2 invariant: w2 = p/rho^(gamma-1)
 					// or w2 = c^2/(gamma * rho^(gamma-1))
-					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (fGamma - 1.)));   // Unbelived - only is defined for pow(float, float) and pow(long double, long double) !!! Jorge
+					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (T)(fGamma - 1.)));   // Unbelived - only is defined for pow(float, float) and pow(long double, long double) !!! Jorge
 					// w5 computed based on flow state
 					w5 = un + T(2.) * c / T(fGamma - 1.);
 					
 					// computing ghost values
 					cghost = (w5 - w1) * T((fGamma - 1.)/4.);
-					solR[0] = pow(cghost * cghost / (T(fGamma) * w2),(1./(fGamma - 1.)));
+					solR[0] = pow(cghost * cghost / (T(fGamma) * w2),(T)(1./(fGamma - 1.)));
 					unghost = (w1 + w5) / T(2.);
 					usghost = us / un * unghost;
 					for(i = 1; i < nstate - 1; i++)

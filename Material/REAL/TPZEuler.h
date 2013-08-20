@@ -76,9 +76,9 @@ public:
 	
     virtual int NSolutionVariables(int var);
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {

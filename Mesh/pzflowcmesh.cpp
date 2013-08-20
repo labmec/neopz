@@ -20,7 +20,7 @@ TPZFlowCompMesh::TPZFlowCompMesh() : TPZCompMesh() {
 REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 	
 	int nel = ElementVec().NElements(), i, nstate, dim, elDim;
-	TPZManVector<REAL> density(1), velocity(1);// sol(nstate);
+	TPZManVector<STATE> density(1), velocity(1);// sol(nstate);
 	//TPZManVector<STATE> density(1), sol, velocity(1);// sol(nstate);
 	REAL maxvel = 0.0, veloc, sound, gamma;
 	STATE press;

@@ -83,7 +83,7 @@ protected:
 	virtual int NEvalErrors() {return this->GetNonNullMaterial()->NEvalErrors();}
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux){
+	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
 		flux.Fill(0.);
 	}
 	

@@ -20,7 +20,7 @@ TPZMaterial * TPZEuler::NewMaterial() {
 	return result;
 }
 void TPZEuler::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
-						TPZVec<REAL> &Solout){
+						TPZVec<STATE> &Solout){
 	if(var == 1) {
 		Solout.Resize(1);
 		Solout[0] = gEul.Pressure(Sol);

@@ -55,7 +55,7 @@ void TPZThermicElast3D::ContributeThermalStress(TPZVec<STATE> &sol, TPZFMatrix<R
 }//method
 
 void TPZThermicElast3D::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-                                 TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
+                                 TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout){
 	
 	if (var == EPrincipalStress || var == EVonMisesStress || var == EStress || var == EStress1){
 		//When computing a stress solution, the thermal stress must be subtracted from the elastic stress

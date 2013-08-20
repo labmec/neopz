@@ -53,7 +53,7 @@ int TPZIncNavierStokesKEps::NSolutionVariables(int var){
 }
 
 void TPZIncNavierStokesKEps::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-									  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
+									  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout){
 	
 	if (var == EK){
 		Solout[0] = Sol[EK];  

@@ -284,7 +284,7 @@ void TPZCompElHDivPressure<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &poi
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressure<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol){
+void TPZCompElHDivPressure<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol){
 		
         TPZMaterialData data;
 		InitMaterialData(data);

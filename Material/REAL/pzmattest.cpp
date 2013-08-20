@@ -130,7 +130,7 @@ int TPZMaterialTest::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMaterialTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZMaterialTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
 	
 	if(var == 0 || var == 1) {
       	Solout[0] = Sol[0];//function
@@ -155,7 +155,7 @@ void TPZMaterialTest::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	TPZVec<REAL> sol(1),dsol(2);
+	TPZVec<STATE> sol(1),dsol(2);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	for (int i = 0; i < 3; i++)

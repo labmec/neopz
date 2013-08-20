@@ -347,7 +347,7 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 // 	v2[0] = bc.Val2()(0,0);
 // 	v2[1] = bc.Val2()(1,0);
     
-	TPZFMatrix<REAL> &v1 = bc.Val1();
+	TPZFMatrix<STATE> &v1 = bc.Val1();
     int nstate = NStateVariables();
     
     
@@ -663,7 +663,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 	}  
 }
 
-void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 {
     int numbersol = data.dsol.size();
     int ipos = 0;

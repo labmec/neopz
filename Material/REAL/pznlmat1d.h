@@ -49,7 +49,7 @@ protected:
 //						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -85,7 +85,7 @@ public:
 	
 //	virtual int ClassId() const;
 	
-	virtual REAL Eps(TPZVec<REAL> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
+	virtual STATE Eps(TPZVec<STATE> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 	
 protected:
 	/** @brief Cross Section Area */

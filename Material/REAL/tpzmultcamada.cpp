@@ -6,7 +6,7 @@
 #include "tpzmultcamada.h"
 #include "pzmatplaca2.h"
 
-void TPZMultCamada::Solution(TPZVec < STATE > & Sol, TPZFMatrix<STATE> & DSol, TPZFMatrix<REAL> & axes, int var, TPZVec < REAL > & Solout) {
+void TPZMultCamada::Solution(TPZVec < STATE > & Sol, TPZFMatrix<STATE> & DSol, TPZFMatrix<REAL> & axes, int var, TPZVec < STATE > & Solout) {
 
 	if(var == 2) {
 		Solout.Resize(3);
@@ -22,7 +22,7 @@ void TPZMultCamada::Solution(TPZVec < STATE > & Sol, TPZFMatrix<STATE> & DSol, T
 	}
 	int i, j, idf;
 	if (var >= 50 && var <= 57) {
-		TPZVec < REAL > SoloutAcc(3, 0.);
+		TPZVec < STATE > SoloutAcc(3, 0.);
 		REAL Ma[3];
 		REAL aut1,aut2;
 		Solout.Resize(3);

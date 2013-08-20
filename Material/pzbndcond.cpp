@@ -101,8 +101,8 @@ void TPZBndCond::Read(TPZStream &buf, void *context)
 
 void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 										   REAL weight,
-										   TPZVec<REAL> &nkL,
-										   TPZVec<REAL> &nkR,
+										   TPZVec<STATE> &nkL,
+										   TPZVec<STATE> &nkR,
 										   int &errorid){
 	
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);

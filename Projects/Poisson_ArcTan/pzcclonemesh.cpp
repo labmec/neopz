@@ -402,7 +402,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
     TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
     int dim = mat->Dimension();
-    TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
+    TPZFMatrix<STATE> val1(nstate,nstate,0.),val2(nstate,1,0.);
     TPZMaterial *bnd = mat->CreateBC (mat,-1000,50,val1,val2);
     InsertMaterialObject(bnd);
     
@@ -780,7 +780,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
     if(computesolution) {
         TPZSkylineStructMatrix clfstr(fine);
         TPZAnalysis clfan(fine);
-        TPZStepSolver<REAL> cldirect;
+        TPZStepSolver<STATE> cldirect;
         cldirect.SetDirect(ELDLt);
         clfan.SetStructuralMatrix(clfstr);
         clfan.SetSolver(cldirect);
@@ -891,11 +891,11 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
     TPZAutoPointer<TPZIntPoints> intrule = fine->GetIntegrationRule().Clone();
     int dimension = fine->Dimension();
     int numdof = fine->Material()->NStateVariables();
-    TPZBlock<REAL> &locblock = fine->Mesh()->Block();
-    TPZFMatrix<REAL> &locsolmesh = fine->Mesh()->Solution();
+    TPZBlock<STATE> &locblock = fine->Mesh()->Block();
+    TPZFMatrix<STATE> &locsolmesh = fine->Mesh()->Solution();
     
-    TPZBlock<REAL> &corblock = coarse->Mesh()->Block();
-    TPZFMatrix<REAL> &corsolmesh = coarse->Mesh()->Solution();
+    TPZBlock<STATE> &corblock = coarse->Mesh()->Block();
+    TPZFMatrix<STATE> &corsolmesh = coarse->Mesh()->Solution();
     
     TPZVec<REAL> locsol(numdof);
     TPZFMatrix<REAL> locdsol(dimension,numdof);

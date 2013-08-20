@@ -89,7 +89,7 @@ public:
      * @param var [in] number of solution variables. See  NSolutionVariables() method
      * @param Solout [out] is the solution vector
      */	
-     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	

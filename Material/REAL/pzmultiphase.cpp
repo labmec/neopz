@@ -43,7 +43,7 @@ void TPZMultiphase::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
 #ifdef DEBUG
 	int nref =  datavec.size();
@@ -56,7 +56,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
    
 }
 
-void TPZMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
 #ifdef DEBUG
     int nref =  datavec.size();
@@ -87,11 +87,11 @@ int TPZMultiphase::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
-	TPZVec<REAL> SolP, SolQ;
+	TPZVec<STATE> SolP, SolQ;
     
 	SolQ = datavec[0].sol[0];
 	SolP = datavec[1].sol[0];

@@ -208,7 +208,7 @@ void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterial
 	Stress(2,1) += qsi(_YZ_,0);
 }
 
-void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 {
     int numbersol = data.sol.size();
     if (numbersol != 1) {

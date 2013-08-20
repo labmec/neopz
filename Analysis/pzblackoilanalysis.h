@@ -29,7 +29,7 @@ class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {
 	
 private:
 	/** @brief To store last load vector */
-	TPZFMatrix<REAL> fLastState;
+	TPZFMatrix<STATE> fLastState;
 	
 public:
 	/** @brief Constructor for given time step */
@@ -70,7 +70,7 @@ public:
 	REAL &TimeStep();
 	
 	/** @brief Sets a vector InitialSol as initial solution to start iterative process */ 
-	void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
+	void SetInitialSolution(TPZFMatrix<STATE> & InitialSol);
 	/** @brief Zeroes solution to start iterative process */
 	void SetInitialSolutionAsZero();
 	

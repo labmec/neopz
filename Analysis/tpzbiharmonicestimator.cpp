@@ -33,7 +33,7 @@ std::ofstream CE ( "debugContributeErros.txt" );
 // std::ofstream CoutPontual ( "solPontual.txt" );
 void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 												  REAL weight,
-												  TPZVec<STATE> &nk){
+												  TPZVec<REAL> &nk){
 	TPZVec<STATE> u_exactp(1);
 	TPZFMatrix<STATE> du_exactp(9,1);
 	TPZVec<STATE> u_exactd(1);
@@ -98,8 +98,8 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	TPZFMatrix<STATE> dsolR=dataright.dsol[0];
 	STATE faceSize=data.HSize;
 	
-	STATE alpha=gSigmaA*(pow((STATE)LeftPOrder,gL_alpha)+pow((STATE)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
-	STATE betta=gSigmaB*(pow((STATE)LeftPOrder,gL_betta)+pow((STATE)RightPOrder,gL_betta)) /(2.*pow(faceSize,gM_betta) );
+	STATE alpha=gSigmaA*(pow((STATE)LeftPOrder,(STATE)gL_alpha)+pow((STATE)RightPOrder,(STATE)gL_alpha)) /(2.*pow(faceSize,(STATE)gM_alpha));
+	STATE betta=gSigmaB*(pow((STATE)LeftPOrder,(STATE)gL_betta)+pow((STATE)RightPOrder,(STATE)gL_betta)) /(2.*pow(faceSize,(STATE)gM_betta));
 	
 	// solucoes exatas
 	TPZVec<STATE> u_exactp(1);
@@ -241,8 +241,8 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	
-	STATE alpha = gSigmaA*pow((STATE)LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
-	STATE betta = gSigmaB*pow((STATE)LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);
+	STATE alpha = gSigmaA*pow((STATE)LeftPOrder, (STATE)gL_alpha) /  pow(faceSize, (STATE)gM_alpha);
+	STATE betta = gSigmaB*pow((STATE)LeftPOrder, (STATE)gL_betta) /  pow(faceSize, (STATE)gM_betta);
 	
 	STATE u = dataleft.sol[0][0];
 	STATE gradu[2];
@@ -300,7 +300,7 @@ STATE L2ErrorDual = 0.;
 
 void TPZBiharmonicEstimator::ContributeErrorsSimple(TPZMaterialData &data,
 													REAL weight,
-													TPZVec<STATE> &nk){
+													TPZVec<REAL> &nk){
 	int phis = data.phi.Rows();
 	int dphir = data.dphix.Rows();
 	OrderSolution(data);
@@ -411,7 +411,7 @@ void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix
 									TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 									TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 									TPZVec<REAL> &values) {
-	TPZVec<REAL> sol(1), dsol(9,0.);
+	TPZVec<STATE> sol(1), dsol(9,0.);
 	
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);

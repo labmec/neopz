@@ -878,7 +878,7 @@ int TPZElasticityAxiMaterial::NSolutionVariables(int var)
 
 /** returns the solution associated with the var index based
  on the finite element approximation*/
-void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 {
 	if(var == 0) 
 	{
@@ -1223,7 +1223,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 	mydata.x = x;
 	
 	//tensoes aproximadas : outra forma
-	TPZVec<REAL> sol(1);
+	TPZVec<STATE> sol(1);
 	Solution(mydata,5,sol);
 	sigma[0] = sol[0];
 	Solution(mydata,6,sol);

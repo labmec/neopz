@@ -40,11 +40,11 @@ public:
 	 * where u is the current solution and Z and Z1 are the dual solution. */
 	virtual void ContributeErrorsDual(TPZMaterialData &data,
 									  REAL weight,
-									  TPZVec<STATE> &nk);
+									  TPZVec<REAL> &nk);
 	
 	virtual void ContributeErrors(TPZMaterialData &data,
 								  REAL weight,
-								  TPZVec<STATE> &nk,
+								  TPZVec<REAL> &nk,
 								  int &errorid)
 	{
 		if (errorid == 0) this->ContributeErrorsDual(data,weight,nk);
@@ -89,7 +89,7 @@ public:
 	
 	virtual void ContributeErrorsSimple(TPZMaterialData &data,
 										REAL weight,
-										TPZVec<STATE> &nk);
+										TPZVec<REAL> &nk);
 	
 	
 	virtual void ContributeInterfaceErrorsSimple(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,

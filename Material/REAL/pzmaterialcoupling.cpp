@@ -27,7 +27,7 @@ TPZMaterialCoupling::TPZMaterialCoupling() {
 TPZMaterialCoupling::~TPZMaterialCoupling() {
 }
 
-void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
+void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 	
 	TPZFMatrix<REAL>  &phiH1 = dataright.phi;
 	TPZFMatrix<REAL>  &phiHdiv = dataleft.phi;		

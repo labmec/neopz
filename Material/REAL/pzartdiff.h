@@ -181,12 +181,12 @@ public:
 	 * @note T must be a FAD class type, so the consistent Divergent jacobian is evaluated
 	 */
 	template <class T>
-	void Divergent(TPZFMatrix<REAL> &dsol,
+	void Divergent(TPZFMatrix<STATE> &dsol,
 				   TPZFMatrix<REAL> & phi,
 				   TPZFMatrix<REAL> & dphi,
 				   TPZVec<TPZDiffMatrix<T> > & Ai,
-				   TPZVec<REAL> & Div,
-				   TPZDiffMatrix<REAL> * dDiv);
+				   TPZVec<STATE> & Div,
+				   TPZDiffMatrix<STATE> * dDiv);
 	
 	
 	

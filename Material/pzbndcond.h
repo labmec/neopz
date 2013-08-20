@@ -298,8 +298,8 @@ protected:
 	
 	void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 								   REAL weight,
-								   TPZVec<REAL> &nkL,
-								   TPZVec<REAL> &nkR,
+								   TPZVec<STATE> &nkL,
+								   TPZVec<STATE> &nkR,
 								   int &errorid);
 	
 	void  ContributeErrors(TPZMaterialData &data,// aqui
@@ -312,7 +312,7 @@ protected:
 	
 	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
-											 TPZVec<REAL> &nk,
+											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
 											 int &errorid
 											 ){

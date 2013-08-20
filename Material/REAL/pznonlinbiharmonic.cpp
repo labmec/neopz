@@ -111,7 +111,7 @@ int TPZNonLinBiharmonic::NSolutionVariables(int var){
 }
 
 void TPZNonLinBiharmonic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,
-								   int var,TPZVec<REAL> &Solout){
+								   int var,TPZVec<STATE> &Solout){
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
 		Solout.Resize(DSol.Rows());
@@ -133,7 +133,7 @@ void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u, TPZFMatri
 								 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 								 TPZVec<REAL> &values) {
 	
-	TPZVec<REAL> sol(1), dsol(8,0.);
+	TPZVec<STATE> sol(1), dsol(8,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
     //values[1] : error em norma L2

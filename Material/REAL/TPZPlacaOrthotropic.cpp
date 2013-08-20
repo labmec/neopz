@@ -46,7 +46,7 @@ void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix<REAL> &T) {
 	//  if(ksi < -1. || ksi > 1.) return;
 	//  TPZManVector<REAL,3> co(3,0.);
 	//  co[2] = ksi;
-	TPZManVector<REAL> tensor(9);
+	TPZManVector<STATE> tensor(9);
 	fIntel->Solution(ksi,fTensorVar,tensor);
 	int i;
 	for(i=0; i<9; i++) {//original
@@ -298,7 +298,7 @@ void TPZPlacaOrthotropic::GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi, T
 	//  TPZManVector<REAL,3> co(3,0.);
 	//  co[2] = ksi;
 	TPZManVector<REAL,3> pos(1,0.), ksi1(3,0.), ksi2(3,0.), x1(3,0.), x2(3,0.);
-	TPZManVector<REAL> tensor1(0,0.), tensor2(9,0.);
+	TPZManVector<STATE> tensor1(0,0.), tensor2(9,0.);
 	ksi1[0] = ksi[0]-graddir[0];
 	ksi1[1] = ksi[1]-graddir[1];
 	ksi1[2] = ksi[2]-graddir[2];

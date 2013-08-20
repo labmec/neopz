@@ -1911,7 +1911,8 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 void TPZCompMesh::AssembleError(TPZFMatrix<REAL> &estimator, int errorid){
 	int iel, i;
 	const int nelem = this->NElements();
-	TPZManVector<REAL> locerror(7), errorL(7), errorR(7);
+	TPZManVector<REAL> locerror(7);
+    TPZManVector<STATE> errorL(7), errorR(7);
 	
 	estimator.Resize(nelem, 7);
 	estimator.Zero();

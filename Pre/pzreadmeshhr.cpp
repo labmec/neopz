@@ -198,7 +198,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 				fInputFile >> nstate;
 				int ist;
 				REAL diff, conv;
-				TPZVec<STATE> dir(3,0.);
+				TPZVec<REAL> dir(3,0.);
 				fInputFile >> diff >> conv;
 				for(ist=0; ist<3; ist++)
 				{

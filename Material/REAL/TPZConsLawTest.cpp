@@ -321,7 +321,7 @@ int TPZConsLawTest::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZConsLawTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,int var,TPZVec<REAL> &Solout){
+void TPZConsLawTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,int var,TPZVec<STATE> &Solout){
 	
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
@@ -339,14 +339,14 @@ void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
 							TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 							TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	TPZVec<REAL> sol(1),dsol(3);
+	TPZVec<STATE> sol(1),dsol(3);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	REAL dx = dsol[0]*axes(0,0)+dsol[1]*axes(1,0)+dsol[2]*axes(2,0);
 	REAL dy = dsol[0]*axes(0,1)+dsol[1]*axes(1,1)+dsol[2]*axes(2,1);
 	REAL dz = dsol[0]*axes(0,2)+dsol[1]*axes(1,2)+dsol[2]*axes(2,2);
 	//values[1] : eror em norma L2
-	values[1]  = pow(sol[0] - u_exact[0],(REAL)2.0);
+	values[1]  = pow(sol[0] - u_exact[0],(STATE)2.0);
 	//values[2] : erro em semi norma H1
 	values[2]  = pow(dx - du_exact(0,0),(REAL)2.0);
 	values[2] += pow(dy - du_exact(1,0),(REAL)2.0);

@@ -134,7 +134,7 @@ int TPZEulerEquation::NSolutionVariables(int var) {
 	return 0;
 }
 
-void TPZEulerEquation::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
+void TPZEulerEquation::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {
 	
 #ifndef LinearConvection
 	if(IsZero(Sol[0])){

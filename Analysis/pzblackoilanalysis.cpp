@@ -28,7 +28,7 @@ TPZBlackOilAnalysis::~TPZBlackOilAnalysis(){
 	//nothing to be done here
 }
 
-void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix<REAL> & InitialSol){
+void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix<STATE> & InitialSol){
 	const int nrows = this->Mesh()->Solution().Rows();
 	const int ncols = this->Mesh()->Solution().Cols();
 	if ( (InitialSol.Rows() != nrows) || (InitialSol.Cols() != ncols) ){
@@ -41,7 +41,7 @@ void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix<REAL> & InitialSol){
 }
 
 void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
-	TPZFMatrix<REAL> & MeshSol = this->Mesh()->Solution();
+	TPZFMatrix<STATE> & MeshSol = this->Mesh()->Solution();
 	this->fSolution.Redim( MeshSol.Rows(), MeshSol.Cols() );
 	this->fSolution.Zero();
 }
@@ -65,7 +65,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 	this->SetAllMaterialsDeltaT();
 	const double TotalTime = fTimeStep*fNIter;
 	
-	TPZFMatrix<REAL> prevsol, lastsol;
+	TPZFMatrix<STATE> prevsol, lastsol;
 	
 	for(; this->fSimulationTime < TotalTime; ){
 		
@@ -91,7 +91,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 			this->Solve();
 			
 			if (linesearch){
-				TPZFMatrix<REAL> nextSol;
+				TPZFMatrix<STATE> nextSol;
 				REAL LineSearchTol = 1e-3 * Norm(fSolution);
 				const int niter = 3;
 				this->LineSearch(prevsol, fSolution, nextSol, LineSearchTol, niter);
@@ -320,7 +320,8 @@ double TPZBlackOilAnalysis::PressaoMedia(TPZBlackOilAnalysis &an, int matid){
 	an.LoadSolution(an.Solution());
 	TPZCompMesh * cmesh = an.Mesh();
 	const int nel = cmesh->NElements();
-	TPZVec<REAL> qsi(3), sol(1);
+	TPZVec<REAL> qsi(3);
+    TPZVec<STATE> sol(1);
 	double press = 0.;
 	double AccVol = 0.;
 	double locVol = 0.;
@@ -345,7 +346,8 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
 	
 	an.LoadSolution(an.Solution());
 	TPZCompMesh * cmesh = an.Mesh();
-	TPZVec<REAL> qsi(3), sol(1);
+	TPZVec<REAL> qsi(3);
+    TPZVec<STATE> sol(1);
 	
 	TPZElementMatrix ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
 	

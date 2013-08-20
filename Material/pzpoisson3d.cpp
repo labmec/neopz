@@ -1237,7 +1237,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	aux = (Lsol - Rsol);
 	
 	//*= h ^ -gAlfa
-	aux *= pow(elsize, (REAL(-1.)) * gAlfa);
+	aux *= pow(elsize, (STATE(-1.)) * gAlfa);
     REAL auxnorm = abs(aux);
 	values[1] = auxnorm * auxnorm;
 	

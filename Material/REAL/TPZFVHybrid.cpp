@@ -174,7 +174,7 @@ int TPZMatHybrid::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatHybrid::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZMatHybrid::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
 	
 	if(var == 1) {
 		cout << "TPZMatHybrid::Solution implementar Pressao\n";
@@ -198,7 +198,7 @@ void TPZMatHybrid::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &
 void TPZMatHybrid::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &,
 						  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	TPZVec<REAL> sol(1),dsol(2);
+	TPZVec<STATE> sol(1),dsol(2);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	for (int i = 0; i < 3; i++)

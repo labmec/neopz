@@ -322,7 +322,7 @@ int TPZElasticity3D::NSolutionVariables(int var) {
 	return -1;
 }
 
-void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
+void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {
 	
 	if(var == TPZElasticity3D::EDisplacement) {
 		int i;

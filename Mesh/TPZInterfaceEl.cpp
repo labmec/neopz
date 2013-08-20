@@ -1235,8 +1235,8 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 }//method
 
 void TPZInterfaceElement::ComputeErrorFace(int errorid,
-										   TPZVec<REAL> &errorL,
-										   TPZVec<REAL> &errorR){
+										   TPZVec<STATE> &errorL,
+										   TPZVec<STATE> &errorR){
 	
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
 	if(!mat){

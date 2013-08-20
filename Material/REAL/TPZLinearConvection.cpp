@@ -28,7 +28,7 @@ TPZMaterial * TPZLinearConvection::NewMaterial() {
 	return result;
 }
 void TPZLinearConvection::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
-								   TPZVec<REAL> &Solout){
+								   TPZVec<STATE> &Solout){
 	if(var == 1) {
 		Solout.Resize(2);
 		Solout[0] = Sol[0]*fConvect[0];

@@ -323,8 +323,8 @@ public:
 	
 	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeErrorFace(int errorid,
-								  TPZVec<REAL> &errorL,
-								  TPZVec<REAL> &errorR);
+								  TPZVec<STATE> &errorL,
+								  TPZVec<STATE> &errorR);
 	
 	/** @brief Integrate a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<REAL> & value);

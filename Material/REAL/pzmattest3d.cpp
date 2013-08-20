@@ -148,7 +148,7 @@ int TPZMaterialTest3D::NSolutionVariables(int var)
 
 
 void TPZMaterialTest3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
-                                 TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout)
+                                 TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout)
 {
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	else if(var == 2)
@@ -173,7 +173,7 @@ void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<
 							   TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,TPZVec<STATE> & u_exact,
 							   TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values)
 {
-	TPZManVector<REAL> sol(1),dsol(3);
+	TPZManVector<STATE> sol(1),dsol(3);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	if(dudx.Rows()<3)
@@ -183,19 +183,19 @@ void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<
 		STATE parc1 = fabs(dx-dudx(0,0));
 		STATE parc2 = fabs(dy-dudx(1,0));
 		//Norma L2
-		values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0);
+		values[1] = pow(fabs(u[0] - u_exact[0]),(STATE)2.0);
 		//seminorma
-		values[2] = pow(parc1,(REAL)2.)+pow(parc2,(REAL)2.);
+		values[2] = pow(parc1,(STATE)2.)+pow(parc2,(STATE)2.);
 		//Norma Energia
 		values[0] = values[1]+values[2];
 		return;
 	}
 	//values[1] : eror em norma L2
-	values[1]  = pow(sol[0] - u_exact[0],(REAL)2.0);
+	values[1]  = pow(sol[0] - u_exact[0],(STATE)2.0);
 	//values[2] : erro em semi norma H1
-	values[2]  = pow(dsol[0] - du_exact(0,0),(REAL)2.0);
-	if(dudx.Rows()>1) values[2] += pow(dsol[1] - du_exact(1,0),(REAL)2.0);
-	if(dudx.Rows()>2) values[2] += pow(dsol[2] - du_exact(2,0),(REAL)2.0);
+	values[2]  = pow(dsol[0] - du_exact(0,0),(STATE)2.0);
+	if(dudx.Rows()>1) values[2] += pow(dsol[1] - du_exact(1,0),(STATE)2.0);
+	if(dudx.Rows()>2) values[2] += pow(dsol[2] - du_exact(2,0),(STATE)2.0);
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
 }
