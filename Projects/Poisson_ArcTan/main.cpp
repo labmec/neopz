@@ -1509,7 +1509,7 @@ void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
         angle = atan(x[1]/x[0]);
     if(angle < -0.5*M_PI || angle > M_PI)
         DebugStop();*/
-    sol[0] = 0.5*pow(radius,(1./3.))*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
+    sol[0] = 0.5*pow(radius,(REAL)(1./3.))*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
 }
 void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol) {
 	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
@@ -1524,7 +1524,7 @@ void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &
     }
     else
         angle = atan(x[1]/x[0]);
-    sol[0] = 0.5*pow(radius,1./3.)*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
+    sol[0] = 0.5*pow(radius,(REAL)1./3.)*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
     dsol.Zero();
 }
 
@@ -2937,7 +2937,7 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 	//    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow(r,(REAL)onethird);
   	sol[0] = rexp*sin(onethird*(theta+PI/2));
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
   	grad(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
