@@ -184,20 +184,20 @@ public:
     virtual int NSolutionVariables(int var);
     
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * left, TPZCompEl * ritgh);	
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * ritgh);	
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */
-    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
     
 public:
     
@@ -381,15 +381,6 @@ public:
         return -1.;
     }
     
-    /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
-    
-    /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid);
-    
-    /** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
-    
     /**
      * @brief Pushes a new entry in the context of materials with memory,
      * returning its index at the internal storage stack.
@@ -404,14 +395,26 @@ public:
     void SetLinearContext(bool IsLinear);
     
     /** @brief Returns fLinearContext attribute */
-    bool GetLinearContext() const;
+    bool GetLinearContext() const {
+        return fLinearContext;
+    }
     
+    /** @{
+     * @name Save and Load methods
+     */
+    
+    /** @brief Unique identifier for serialization purposes */
+    virtual int ClassId() const;
+    
+    /** @brief Saves the element data to a stream */
+    virtual void Write(TPZStream &buf, int withclassid);
+    
+    /** @brief Reads the element data from a stream */
+    virtual void Read(TPZStream &buf, void *context);
+    
+    /** @} */
 	
 };
-
-inline bool TPZMaterial::GetLinearContext() const{
-    return fLinearContext;
-}
 
 /** @brief Extern variable - Vector of force values */
 extern TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;

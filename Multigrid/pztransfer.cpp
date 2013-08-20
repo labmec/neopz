@@ -323,8 +323,10 @@ void TPZTransfer<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B,
 }
 
 template class TPZTransfer<float>;
-
 template class TPZTransfer<double>;
-template class TPZTransfer<std::complex<double> >;
-
 template class TPZTransfer<long double>;
+
+template class TPZTransfer<std::complex<double> >;
+template class TPZTransfer<std::complex<float> >;
+template class TPZTransfer<std::complex<long double> >;
+

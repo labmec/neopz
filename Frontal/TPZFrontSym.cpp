@@ -227,9 +227,9 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarra
 	//	PrintGlobal("After", output);
 }
 template<class TVar>
-void TPZFrontSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
+void TPZFrontSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex)
 {
-	int i, j, ilocal, jlocal, nel;
+	long i, j, ilocal, jlocal, nel;
 	nel=sourceindex.NElements();
 	for (i = 0; i < nel; i++) {
 		// message #1.1.1 to this:TPZFront
@@ -244,9 +244,9 @@ void TPZFrontSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex
 	}
 }
 template<class TVar>
-void TPZFrontSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex)
+void TPZFrontSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex)
 {
-	int i, j, ilocal, jlocal, nel;
+	long i, j, ilocal, jlocal, nel;
 	nel = destinationindex.NElements();
 	for(i=0;i<nel;i++){
 		ilocal = this->Local(destinationindex[i]);
@@ -323,9 +323,9 @@ void TPZFrontSym<TVar>::Compress(){
 	//	PrintGlobal("After Compress",output);
 }
 template<class TVar>
-void TPZFrontSym<TVar>::SymbolicAddKel(TPZVec < int > & destinationindex)
+void TPZFrontSym<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
 {
-	int i, loop_limit, aux;
+	long i, loop_limit, aux;
 	loop_limit=destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
 		aux=destinationindex[i];
@@ -336,15 +336,15 @@ void TPZFrontSym<TVar>::SymbolicAddKel(TPZVec < int > & destinationindex)
 	
 }
 template<class TVar>
-void TPZFrontSym<TVar>::SymbolicDecomposeEquations(int mineq, int maxeq)
+void TPZFrontSym<TVar>::SymbolicDecomposeEquations(long mineq, long maxeq)
 {
-	int i;
+	long i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
 template<class TVar>
-void TPZFrontSym<TVar>::DecomposeEquations(int mineq, int maxeq, TPZEqnArray<TVar> & eqnarray){
+void TPZFrontSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArray<TVar> & eqnarray){
 	// message #1.1 to eqnarray:TPZEqnArray
-	int ieq;
+	long ieq;
 	eqnarray.Reset();
 	eqnarray.SetSymmetric();
 	//cout << "Decomposing from " << mineq << " to " << maxeq << "\n";
@@ -397,7 +397,7 @@ void TPZFrontSym<TVar>::main()
 	TPZFrontSym TestFront(matsize);
 	
 	
-	TPZVec<int> DestIndex(matsize);
+	TPZVec<long> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 	
 	TestFront.SymbolicAddKel(DestIndex);

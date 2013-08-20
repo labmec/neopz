@@ -277,7 +277,7 @@ int run(std::istream & input, std::ostream & output)
 			output << "\nDelta\n";
 			input >> delta;
 			options << delta << std::endl;
-			sprintf(number, "%lf_", delta);
+			sprintf(number, "%lf_", ((double)delta));
 			filename += number;
 		}
 		
@@ -330,7 +330,7 @@ int run(std::istream & input, std::ostream & output)
 		output << "\nCFL\n";
 		input >> CFL;
 		options << CFL << std::endl;
-		sprintf(number, "CFL%lf_", CFL);
+		sprintf(number, "CFL%lf_", (double)CFL);
 		filename += number;
 		
 		output << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";

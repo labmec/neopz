@@ -73,14 +73,14 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
 	
     /**
 	 * @brief Add a contribution of a stiffness matrix putting it on destination indexes position
 	 * @param elmat Member stiffness matrix beeing added
 	 * @param destinationindex Positioning of such members on global stiffness matrix
      */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex);
 	
 	/** @brief Sets the flag fFinish to its true value*/    		
 	void FinishWriting();    		

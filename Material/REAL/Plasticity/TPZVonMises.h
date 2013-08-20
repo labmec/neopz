@@ -51,7 +51,10 @@ public:
 		return "TPZVonMises";	
 	}
 	
-	
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+        VONMISESPARENT::SetUp(epsTotal);
+    }
+
 	void SetUp()
 	{
 		

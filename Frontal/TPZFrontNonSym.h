@@ -70,13 +70,13 @@ public:
 	 * @param maxeq finishing index of equations to be decomposed
 	 * @param result result of decomposition.
      */
-    void DecomposeEquations(int mineq, int maxeq, TPZEqnArray<TVar> & result);
+    void DecomposeEquations(long mineq, long maxeq, TPZEqnArray<TVar> & result);
 	
     /** @brief Decompose these equations in a symbolic way and store freed indexes in fFree */
-    void SymbolicDecomposeEquations(int mineq, int maxeq);
+    void SymbolicDecomposeEquations(long mineq, long maxeq);
 	
 	/** @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
-	void SymbolicAddKel(TPZVec < int > & destinationindex);
+	void SymbolicAddKel(TPZVec < long > & destinationindex);
 	
     /** @brief Compress data structure */
     void Compress();
@@ -108,7 +108,7 @@ public:
 	 * @param elmat Already formed element matrix
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex);
+    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix
@@ -116,7 +116,7 @@ public:
 	 * @param sourceindex Source index
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
 	
 	/** @brief Extract the front matrix */
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);

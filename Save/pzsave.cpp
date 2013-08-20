@@ -75,6 +75,11 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
 	it = Map().find(classid);
 	if(it == Map().end()) 
 	{
+//        it = Map().begin();
+//        while(it!=Map().end()) {
+//            std::cout << it->first << std::endl;
+//            it++;
+//        }
 		cout << "TPZSaveable trying to restore unknown object " << classid << endl;
 		{
 			std::stringstream sout;
@@ -117,4 +122,6 @@ bool TPZSaveable::Compare(TPZSaveable *copy, bool override) const
 	return false;
 }
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZSaveable, -1>;
+#endif

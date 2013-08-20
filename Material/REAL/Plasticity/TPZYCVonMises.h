@@ -220,7 +220,7 @@ void TPZYCVonMises::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &p
 template <class T> 
 void TPZYCVonMises::N(const TPZTensor<T> & sigma,const T & A, TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
-	T  temp1= sqrt(T(3.)/T(2.));
+//	T  temp1= sqrt(T(3.)/T(2.));
 	TPZTensor<T> s;
 	sigma.S(s);
 	//T NORM	= sqrt(s.XX()*s.XX()+s.YY()*s.YY()+s.ZZ()*s.ZZ()+T(2.)*(s.XY()*s.XY())+T(2.)*(s.XZ()*s.XZ())+T(2.)*(s.YZ()*s.YZ()));

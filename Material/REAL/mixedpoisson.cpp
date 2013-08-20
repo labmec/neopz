@@ -1,10 +1,9 @@
-//
-//  mixedpoisson.cpp
-//  PZ
-//
-//  Created by Agnaldo Farias on 5/28/12.
-//  Copyright (c) 2012 LabMec-Unicamp. All rights reserved.
-//
+/**
+ * @file
+ * @brief Contains the methods of the TPZMixedPoisson class (multiphysics environment)
+ * @author Agnaldo Farias
+ * @date 2012/05/28
+ */
 
 #include "pzlog.h"
 #include "mixedpoisson.h"
@@ -19,18 +18,18 @@
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1){
+TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
 	fk = 1.;
 	ff = 0.;
 }
 
-TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim){
+TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
 	fk = 1.;
 	ff = 0.;
   
 }
 
-TPZMixedPoisson::~TPZMixedPoisson(){
+TPZMixedPoisson::~TPZMixedPoisson() {
 }
 
 int TPZMixedPoisson::NStateVariables() {
@@ -45,7 +44,7 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) {
     
 #ifdef DEBUG
 	int nref =  datavec.size();

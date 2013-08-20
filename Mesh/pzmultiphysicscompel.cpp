@@ -321,7 +321,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & va
 
 
 template<class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol) 
+void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol) 
 {
 	
 	if(var >= 100) {

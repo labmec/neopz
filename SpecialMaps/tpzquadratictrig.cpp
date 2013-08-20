@@ -205,9 +205,10 @@ template<>
 int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICTRIANGLEID;
 }
-template class 
+#ifndef BORLAND
+template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
-
+#endif
 
 template class TPZGeoElRefLess<TPZQuadraticTrig>;
 template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;

@@ -6,9 +6,9 @@
 
 /// Default constructor
 TPZPlasticityTest::TPZPlasticityTest() : fZStressKnown(false), fRStressKnown(false), fPoreStressRZ(2,0.), fPoreStrainRZ(2,0.), fStressRZInput(0,2,0.),
-                fStrainRZInput(0,2,0.), fStressRZSimulated(0,2,0.), fStrainRZSimulated(0,2,0.), fNumSteps(200)
+                fStrainRZInput(0,2,0.), fStressRZSimulated(0,2,0.), fStrainRZSimulated(0,2,0.)
 {
-    
+    fNumSteps = 200;
 }
 
 /// Get the stress to the pore stress

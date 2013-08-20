@@ -89,6 +89,7 @@ public:
     {
         // please implement me
         DebugStop();
+        return -1;
     }
 protected:
 	

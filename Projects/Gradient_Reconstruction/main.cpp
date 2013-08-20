@@ -805,7 +805,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			break;
 		case ECube:
 		{
-			TPZGeoMesh *gmeshtemp;
+			TPZGeoMesh *gmeshtemp = NULL;
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
 			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  

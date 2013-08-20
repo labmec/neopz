@@ -76,6 +76,112 @@ void TPZMaterialData::SetAllRequirements(bool set){
 	this->fNeedsNormal = set;
 }
 
+/** @brief Compare the object for identity with the object pointed to, eventually copy the object */
+/** compare both objects bitwise for identity. Put an entry in the log file if different overwrite the calling object if the override flag is true */
+bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
+{
+	TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
+	if(!comp) return false;
+	bool result = true;
+	bool locres;
+	locres = phi.Compare(&comp->phi,override);
+	if(!locres)
+	{
+		LOGPZ_DEBUG(loggerCheck,"phi different")
+	}
+	result = result && locres;
+	locres = dphix.Compare(&comp->dphix,override);
+	if(!locres)
+	{
+		LOGPZ_DEBUG(loggerCheck,"dphix different")
+	}
+	result = result && locres;
+	locres = axes.Compare(&comp->axes,override);
+	if(!locres)
+	{
+		LOGPZ_DEBUG(loggerCheck,"axes different")
+	}
+	result = result && locres;
+	locres = jacobian.Compare(&comp->jacobian,override);
+	if(!locres)
+	{
+		LOGPZ_DEBUG(loggerCheck,"jacobian different")
+	}
+	result = result && locres;
+	locres = jacinv.Compare(&comp->jacinv,override);
+	if(!locres)
+	{
+		LOGPZ_DEBUG(loggerCheck,"jacinv different")
+	}
+	result = result && locres;
+	return true;
+}
+
+// Compare the object for identity with the object pointed to, eventually copy the object
+/*
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
+{
+	return true;
+}
+
+/** Print the data */
+void TPZMaterialData::Print(std::ostream &out) const
+{
+	phi.Print("phi",out);
+	dphix.Print("dphix",out);
+	axes.Print("axes",out);
+	jacobian.Print("jacobian",out);
+	jacinv.Print("jacinv",out);
+	out << "normal " << normal << std::endl;
+	out << "x " << x << std::endl;
+	out << "p " << p << std::endl;
+	out << "sol " << sol << std::endl;
+    int nsol = dsol.size();
+    for (int is=0; is<nsol; is++) {
+        dsol[is].Print("dsol",out);
+		
+    }
+	
+	out << "HSize " << HSize << std::endl;
+	out << "detjac " << detjac << std::endl;
+    out << "XCenter " << XCenter << std::endl;
+	out << "intLocPtIndex " << intLocPtIndex << std::endl;
+	out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
+    out << "NintPts " << NintPts << std::endl;
+    out << "gelElId " << gelElId << std::endl;
+}
+
+/** Print the data in a format suitable for Mathematica */
+void TPZMaterialData::PrintMathematica(std::ostream &out) const
+{
+	phi.Print("phi = ",out,EMathematicaInput);
+	dphix.Print("dphix = ",out,EMathematicaInput);
+	axes.Print("axes = ",out,EMathematicaInput);
+	jacobian.Print("jacobian = ",out,EMathematicaInput);
+	jacinv.Print("jacinv = ",out,EMathematicaInput);
+	out << "normal = {" << normal << "};" << std::endl;
+	out << "x = {" << x << "};" << std::endl;
+	out << "p = " << p << ";" << std::endl;
+	out << "sol = { " << sol << "};" << std::endl;
+    int nsol=dsol.size();
+    for (int is=0; is<nsol; is++) {
+        std::stringstream sout;
+        sout << "dsol" << is << " = ";
+        dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
+    }
+	
+	out << "HSize = " << HSize << ";" << std::endl;
+	out << "detjac = " << detjac << ";" << std::endl;
+    out << "XCenter = {" << XCenter << "};" << std::endl;
+	out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
+	out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
+    out << "NintPts = " << NintPts << ";" <<std::endl;
+    out << "gelElId = " << gelElId << ";" <<std::endl;
+}
+
 /** Save the element data to a stream */
 void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 {
@@ -143,110 +249,6 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&gelElId,1);
 }
 
-/** @brief Compare the object for identity with the object pointed to, eventually copy the object */
-/** compare both objects bitwise for identity. Put an entry in the log file if different overwrite the calling object if the override flag is true */
-bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
-{
-	TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
-	if(!comp) return false;
-	bool result = true;
-	bool locres;
-	locres = phi.Compare(&comp->phi,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"phi different")
-	}
-	result = result && locres;
-	locres = dphix.Compare(&comp->dphix,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"dphix different")
-	}
-	result = result && locres;
-	locres = axes.Compare(&comp->axes,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"axes different")
-	}
-	result = result && locres;
-	locres = jacobian.Compare(&comp->jacobian,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"jacobian different")
-	}
-	result = result && locres;
-	locres = jacinv.Compare(&comp->jacinv,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"jacinv different")
-	}
-	result = result && locres;
-	return true;
-}
-
-// Compare the object for identity with the object pointed to, eventually copy the object
-/*
- * compare both objects bitwise for identity. Put an entry in the log file if different
- * overwrite the calling object if the override flag is true
- */
-bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
-{
-	return true;
-}
-
+#ifndef BORLAND
 template class TPZRestoreClass<TPZMaterialData,TPZMATERIALDATAID>;
-
-/** Print the data */
-void TPZMaterialData::Print(std::ostream &out) const
-{
-	phi.Print("phi",out);
-	dphix.Print("dphix",out);
-	axes.Print("axes",out);
-	jacobian.Print("jacobian",out);
-	jacinv.Print("jacinv",out);
-	out << "normal " << normal << std::endl;
-	out << "x " << x << std::endl;
-	out << "p " << p << std::endl;
-	out << "sol " << sol << std::endl;
-    int nsol = dsol.size();
-    for (int is=0; is<nsol; is++) {
-        dsol[is].Print("dsol",out);
-		
-    }
-	
-	out << "HSize " << HSize << std::endl;
-	out << "detjac " << detjac << std::endl;
-    out << "XCenter " << XCenter << std::endl;
-	out << "intLocPtIndex " << intLocPtIndex << std::endl;
-	out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
-    out << "NintPts " << NintPts << std::endl;
-    out << "gelElId " << gelElId << std::endl;
-}
-
-/** Print the data in a format suitable for Mathematica */
-void TPZMaterialData::PrintMathematica(std::ostream &out) const
-{
-	phi.Print("phi = ",out,EMathematicaInput);
-	dphix.Print("dphix = ",out,EMathematicaInput);
-	axes.Print("axes = ",out,EMathematicaInput);
-	jacobian.Print("jacobian = ",out,EMathematicaInput);
-	jacinv.Print("jacinv = ",out,EMathematicaInput);
-	out << "normal = {" << normal << "};" << std::endl;
-	out << "x = {" << x << "};" << std::endl;
-	out << "p = " << p << ";" << std::endl;
-	out << "sol = { " << sol << "};" << std::endl;
-    int nsol=dsol.size();
-    for (int is=0; is<nsol; is++) {
-        std::stringstream sout;
-        sout << "dsol" << is << " = ";
-        dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
-    }
-	
-	out << "HSize = " << HSize << ";" << std::endl;
-	out << "detjac = " << detjac << ";" << std::endl;
-    out << "XCenter = {" << XCenter << "};" << std::endl;
-	out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
-	out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
-    out << "NintPts = " << NintPts << ";" <<std::endl;
-    out << "gelElId = " << gelElId << ";" <<std::endl;
-}
+#endif

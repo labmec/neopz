@@ -105,6 +105,9 @@ public:
        this->ApplyLoad(nullSigma, epsA /* initial total strain */);
 	   fInitialEps = LADEKIMPARENT::GetState();
     }
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+        LADEKIMPARENT::SetUp(epsTotal);
+    }
 	
 	virtual void Print(std::ostream & out) const
 	{

@@ -168,7 +168,7 @@ public:
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 						  TPZFMatrix<REAL> &axes,int var,
-						  TPZVec<REAL> &Solout)=0;
+						  TPZVec<STATE> &Solout)=0;
 public:
 	/** 
 	 * @brief Returns the solution associated with the var index based on
@@ -177,9 +177,9 @@ public:
 	 * @param[in] var Number of the variable wished
 	 * @param[out] Solout Vector with the computed solution values
 	 */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 	{
-		TPZMaterial::Solution(data,var,Solout);
+		TPZDiscontinuousGalerkin::Solution(data,var,Solout);
 	}
 	
 	/** @} */
@@ -197,7 +197,7 @@ public:
 							REAL weight,
 							TPZFMatrix<STATE> &ef)
 	{
-		TPZMaterial::Contribute(data,weight,ef);
+		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
@@ -221,7 +221,7 @@ public:
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
-		TPZMaterial::ContributeBC(data,weight,ef,bc);
+		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
 	
 	/** @} */

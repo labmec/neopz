@@ -230,8 +230,10 @@ int TPZFlowCompMesh::ClassId() const
 	return TPZFLOWCOMPMESHID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZFlowCompMesh, TPZFLOWCOMPMESHID>;
+#endif
 
 void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid)
 {

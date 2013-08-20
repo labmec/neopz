@@ -56,17 +56,18 @@ void TPZReynoldsFlow::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
     if(f_nplus1Computation == false)//estamos no passo n
     {
         REAL simmetryy = 2.;
-        REAL wn = simmetryy * data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
+        STATE wn = simmetryy;
+        wn *= data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
         for(int i = 0; i < data.phi.Rows(); i++)
         {
-            ef(i,0) += weight * (wn/f_deltaT) * data.phi(i,0);
+            ef(i,0) += weight * wn* ((REAL(1.))/f_deltaT) * data.phi(i,0);
         }
     }
     else//estamos no passo n+1
     {
         REAL simmetryy = 2.;
-        REAL wnplus1 = simmetryy * data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
-        REAL w3 = wnplus1*wnplus1*wnplus1;
+        STATE wnplus1 = simmetryy * data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
+        STATE w3 = wnplus1*wnplus1*wnplus1;
         REAL carterGAMMA = 1.;//TODO : Outra cmesh ou estrutura de dados? Lembre-se que valria com o tempo e no espaco!!!
         for(int i = 0; i < data.phi.Rows(); i++)
         {
@@ -76,7 +77,7 @@ void TPZReynoldsFlow::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
         {
             for(int j = 0; j < data.phi.Rows(); j++)
             {
-                ek(i,j) += weight * (w3/(12.*f_visc) * (data.dphix(0,j)*data.dphix(0,i) + data.dphix(1,j)*data.dphix(1,i)));
+                ek(i,j) += weight * w3 * ((REAL(1.))/((REAL(12.))*f_visc)) * (data.dphix(0,j)*data.dphix(0,i) + data.dphix(1,j)*data.dphix(1,i));
                 ek(i,j) += weight * (carterGAMMA*data.phi(j,0)*data.phi(i,0));
             }
         }

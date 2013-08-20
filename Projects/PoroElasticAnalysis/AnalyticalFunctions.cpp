@@ -23,17 +23,18 @@ using namespace std;
 	{
 		
 		// Define the relations for each variable in the right hand side of the StateVariable at the current PDE.
-		
-		REAL x = ptx[0];
-		REAL y = ptx[1];
-		REAL z = 0.0;
+		REAL x, y, z;
+		x = ptx[0];
+		y = ptx[1];
+		z = 0.0;
 		
 		REAL hour = 3600;
 		REAL day = 86400;
-		REAL month = 30*day;
-		REAL year = 365*day;
-		REAL delta = 99.9999*hour;
-		REAL MaxTime = 100.0*hour;
+        REAL month, year, delta, MaxTime;
+		month = 30*day;
+		year = 365*day;
+		delta = 99.9999*hour;
+		MaxTime = 100.0*hour;
 		
 		
 		switch (WhichStateVariable) 
@@ -74,15 +75,16 @@ using namespace std;
 		REAL y = ptx[1];
 		
 		// Definitions	
-		REAL PI = atan(1.)*4.;	
-		REAL c = 1.6;							//	[m2/s]	
-		REAL cm = 4.9375e-11;					//	[1/Pa]
-		REAL SigTop = 1.e8;						//	[Pa]
-		REAL Gamma = 0.3333333333;					//	[-]
-		REAL rockrho = 2500.0;					//	[kg/m3]
-		REAL gravity = 9.81;					//	[m/s2]
-		REAL visc =0.001;		
-		REAL Po = SigTop*Gamma;
+		REAL PI = atan(1.)*4.;
+        REAL c, cm, SigTop, Gamma, rockrho, gravity, visc, Po;
+		c = 1.6;							//	[m2/s]
+		cm = 4.9375e-11;					//	[1/Pa]
+		SigTop = 1.e8;						//	[Pa]
+		Gamma = 0.3333333333;					//	[-]
+		rockrho = 2500.0;					//	[kg/m3]
+		gravity = 9.81;					//	[m/s2]
+		visc =0.001;
+		Po = SigTop*Gamma;
 		
 		REAL segtime = 0.0;						//	[s]
 		segtime = timestep;		
@@ -125,18 +127,19 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 	//REAL x = ptx[0];
 	REAL y = ptx[1];
 	
-	// Definitions	
-	REAL PI = atan(1.)*4.;	
-	REAL c = 1.6;							//	[m2/s]	
-	REAL cm = 4.9375e-11;					//	[1/Pa]
-	REAL SigTop = 1.e8;						//	[Pa]
-	REAL Gamma = 0.3333333333;					//	[-]
-	REAL rockrho = 2500.0;					//	[kg/m3]
-	REAL gravity = 9.81;					//	[m/s2]
-	REAL visc =0.001;		
-	REAL Po = SigTop*Gamma;
+	// Definitions
+	REAL PI = atan(1.)*4.;
+	REAL c, cm, SigTop, Gamma, rockrho, gravity, visc, Po, segtime;
+	c = 1.6;							//	[m2/s]
+	cm = 4.9375e-11;					//	[1/Pa]
+	SigTop = 1.e8;						//	[Pa]
+	Gamma = 0.3333333333;					//	[-]
+	rockrho = 2500.0;					//	[kg/m3]
+	gravity = 9.81;					//	[m/s2]
+	visc =0.001;
+	Po = SigTop*Gamma;
 	
-	REAL segtime = 0.0;						//	[s]
+	segtime = 0.0;						//	[s]
 	
 	
 	segtime = timestep;		
@@ -144,7 +147,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 		segtime = 1.0e-10;
 	}
 	
-	int in;
+//	int in;
 	REAL pD = 0.0, uDx = 0.0,uDy = 0.0, sigDy = 0.0, qDy = 0.0;
 	
 	sol[0]=0.0;
@@ -202,17 +205,19 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 		}		
 		
 		// Parameters definition from: Altmann-J.B._Poroelastic-contribution-to-the-reservoir-stress-path_2010
-		REAL lamb = 8.3e9;						//	[Pa]
-		REAL lambu = 13.4e9;					//	[Pa]
-		REAL alpha = 0.7;						//	[-]
-		REAL G= 5.5e9;							//	[Pa]
-		REAL rhof = 1000.0;						//	[kg/m3]	
-		REAL S = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[1/Pa]
-		REAL Gamma = ((lambu-lamb)/(alpha*(lambu+2.0*G)));
+        REAL lamb, lambu, alpha, G, rhof, S, Gamma;
+		lamb = 8.3e9;						//	[Pa]
+		lambu = 13.4e9;					//	[Pa]
+		alpha = 0.7;						//	[-]
+		G= 5.5e9;							//	[Pa]
+		rhof = 1000.0;						//	[kg/m3]
+		S = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[1/Pa]
+		Gamma = ((lambu-lamb)/(alpha*(lambu+2.0*G)));
 
-		REAL qRate = -20.0;						//	[kg/s]
-		REAL c= 0.083;							//	[m2/s]
-		REAL kovermu = c*S;
+		REAL qRate, c, kovermu;
+        qRate = -20.0;						//	[kg/s]
+		c= 0.083;							//	[m2/s]
+		kovermu = c*S;
 		REAL PI = atan(1.)*4.;
 
 		sol[0]=0.;		// Pressure
@@ -271,23 +276,24 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 	void SolutionExactRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 		//REAL x = ptx[0];
 		REAL x = ptx[0];//-12500;
-		
-		
+
 		//	Parameters
-		REAL Eyoung = 1.43e10;					//	[Pa]
-		REAL poisson = 0.3;						//	[-]
-		REAL alpha=0.0;///((1.19667e10)*3);//1.70667e10		1.19667e10					//	[-]
+		REAL Eyoung, poisson, alpha;
+        Eyoung = 1.43e10;					//	[Pa]
+		poisson = 0.3;						//	[-]
+		alpha=0.0;///((1.19667e10)*3);//1.70667e10		1.19667e10					//	[-]
 		
 		REAL Phi= 1.0;//9.60784e-11;//1.35695e-10				//	[-]
-		REAL Ct = 1.0;					//	[kg/m3]
-		REAL Se = Ct*Phi;							//	[m2/s]	
-		REAL Visc = 1.0;						//	[Pa.s]
-		REAL Kmed = 1.0;//7.8784288e-15;//1.109542e-14						//	[m2]
-		REAL Qo = 2.0;
-		REAL Bo = 1.0;
-		REAL PI = atan(1.)*4.;
-		REAL segtime = 0.0;					//	[s]	
+        REAL Ct, Se,Visc, Kmed, Qo, Bo, segtime;
+		Ct = 1.0;					//	[kg/m3]
+		Se = Ct*Phi;							//	[m2/s]
+		Visc = 1.0;						//	[Pa.s]
+		Kmed = 1.0;//7.8784288e-15;//1.109542e-14						//	[m2]
+		Qo = 2.0;
+		Bo = 1.0;
+		segtime = 0.0;					//	[s]
 		
+		REAL PI = atan(1.)*4.;
 		
 		//	REAL Phi= 0.18;//9.60784e-11;//1.35695e-10				//	[-]
 		//	REAL Ct = (150.0e-6)*(1/(98066.50));					//	[kg/m3]
@@ -362,16 +368,18 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 	void ExactSolutionMandelsProblemwitheffect(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
 	{
 		// Defition of variables
-		REAL x = ptx[0];
-		REAL y = ptx[1];
-		REAL z = 0.0;
-		REAL PI = atan(1.)*4.;	
-		REAL B = 0.8;
-		REAL vu = 0.4;
-		REAL v = 0.2;		
-		REAL F = 100000.0;
-		REAL L = 100.0;
-		REAL c = 0.000777778;
+        REAL x, y, z, PI;
+		x = ptx[0];
+		y = ptx[1];
+		z = 0.0;
+		PI = atan(1.)*4.;
+        REAL B, vu, v, F, L, c;
+		B = 0.8;
+		vu = 0.4;
+		v = 0.2;
+		F = 100000.0;
+		L = 100.0;
+		c = 0.000777778;
 		
 		sol[0]=0.;
 		sol[1]=0.;
@@ -485,12 +493,13 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 			9668.25, 9690.24, 10061., 10516.5, 10582.5, 10767.8, 11229.6, \
 			13997.4, 17283.5};	
 
-		REAL H=1.0;
-		REAL pD = 0.0;
-		REAL qD = 0.0;
-		REAL uxD = 0.0;
-		REAL uyD = 0.0;		
-		REAL tD = timestep;
+		REAL H, pD, qD, uxD, uyD, tD;
+        H=1.0;
+		pD = 0.0;
+		qD = 0.0;
+		uxD = 0.0;
+		uyD = 0.0;
+		tD = timestep;
 //		REAL tD = timestep*(c/pow(L,2));		
 //		REAL xD = x/L;
 		REAL xD = x;
@@ -536,9 +545,10 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 
 	void InitialPressureDistribution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol)
 	{
-		REAL x = ptx[0];
-		REAL y = ptx[1];
-		REAL z = ptx[2];		
+		REAL x, y, z;
+        x = ptx[0];
+		y = ptx[1];
+		z = ptx[2];
 		sol[0]=0.;
 //		sol[1]=0.;
 //		sol[2]=0.;

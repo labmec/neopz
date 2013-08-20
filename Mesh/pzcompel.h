@@ -374,7 +374,7 @@ public:
 	 * @param var variable name
 	 * @param sol vetor for the solution
 	 */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
 	
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
 		std::cout <<"Imposed for Hdiv solution ";

@@ -1831,7 +1831,7 @@ TPZMaterial *Quadrado(int grau){
 	//construtor descont�nuo
 	cmesh->SetAllCreateFunctionsDiscontinuous();
 	gmesh->BuildConnectivity();
-	TPZMaterial *mat;// = new TPZMatHybrid(nummat,dim);
+	TPZMaterial *mat = NULL;// = new TPZMatHybrid(nummat,dim);
 	DebugStop(); //mat->SetForcingFunction(Function);
 	TPZMaterial *matauto(mat);
 	cmesh->InsertMaterialObject(matauto);

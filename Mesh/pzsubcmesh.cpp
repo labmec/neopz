@@ -39,8 +39,13 @@ static LoggerPtr logger2(Logger::getLogger("pz.mesh.tpzcompmesh"));
 
 /// Number of elements to test 
 const int numel=1;
+
+// Construction/Destruction
+#ifndef STATE_COMPLEX
+
 /// Angle in radians to test
 static REAL angle = 0.2;
+
 
 /// Defining function force (external to material) \f$ F(x,y) = (0.5-y)seno(angle) + (x-0.5)[coseno(angle) - 1] \f$ \f$ (F = disp) \f$
 static void Forcing(const TPZVec<REAL> &x, TPZVec<STATE> &disp) {
@@ -49,9 +54,6 @@ static void Forcing(const TPZVec<REAL> &x, TPZVec<STATE> &disp) {
 	disp[2] = 0.;
 }
 
-
-// Construction/Destruction
-#ifndef STATE_COMPLEX
 int TPZSubCompMesh::main() {
 	//	int index;
 	
@@ -1467,8 +1469,9 @@ int TPZSubCompMesh::ClassId() const
 	return TPZSUBCOMPMESHID;
 }
 
-template class
-TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
+#ifndef BORLAND
+template class TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
+#endif
 
 /**
  Save the element data to a stream

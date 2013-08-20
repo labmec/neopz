@@ -196,7 +196,7 @@ namespace pzshape {
 		}
 		// compute the contributions of the extended side shape functions
 		
-		REAL bubble = (1.+ExtendPoint)*(1.-ExtendPoint);
+//		REAL bubble = (1.+ExtendPoint)*(1.-ExtendPoint);
 		// for each side
         int is;
 		for(is = 0; is < TFather::Top::NSides; is++)

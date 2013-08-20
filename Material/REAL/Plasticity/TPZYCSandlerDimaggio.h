@@ -403,9 +403,9 @@ protected:
         REAL epsp,epspini;
         EpspFromL(L, epsp);
         EpspFromL(L-deltaL, epspini);
-        REAL funcepsp2 = FuncEpsp(ER, theta, epspini, epsp-epspini, sigtrialIJ);
-        REAL diff = 3.*K*((deltaL*DepspDL)-(epsp-epspini));
-        REAL diff2 = funcepsp-funcepsp2;
+ //       REAL funcepsp2 = FuncEpsp(ER, theta, epspini, epsp-epspini, sigtrialIJ);
+      //  REAL diff = 3.*K*((deltaL*DepspDL)-(epsp-epspini));
+      //  REAL diff2 = funcepsp-funcepsp2;
 #endif
         return funcepsp;
     }
@@ -1910,14 +1910,14 @@ inline REAL TPZYCSandlerDimaggio::DDistance(const TPZElasticResponse &ER, REAL L
  */
 inline REAL TPZYCSandlerDimaggio::D2Distance(const TPZElasticResponse &ER, REAL L, TPZVec<REAL> &sigtrialIJ) const
 {
-    REAL I1 = sigtrialIJ[0];
+//    REAL I1 = sigtrialIJ[0];
     REAL sqj2 = sigtrialIJ[1];
-    REAL x = L;
+//    REAL x = L;
     REAL y,dy,d2y;
     ComputeF(L, y);
     ComputedF(L, dy);
     ComputeD2F(L, d2y);
-    REAL delx = x-I1;
+ //   REAL delx = x-I1;
     REAL dely = y-sqj2;
     REAL ddely = dy;
     REAL ddelx = 1;

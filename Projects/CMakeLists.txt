@@ -9,6 +9,9 @@ ENABLE_TESTING()
 			#add_subdirectory(PDElinear2D)
 		else(BUILD_COMPLEX_PROJECTS)
 
+			# project to save and load a computational mesh
+			add_subdirectory(SaveAndLoad)
+
 			#Using discontinuous approximation functions
 			add_subdirectory(descontinuo)
 

@@ -491,8 +491,12 @@ struct ThreadDohrmanAssemblyList_ThreadArgs_t
  */
 
 /* Run statistics. */
+/** Jorge comments this code because is missing a file ARGLIB.CPP. 
+ This file is in PERFUTIL directory and must to be added to solve linking problems.
+*/
 RunStatsTable dohr_ass   ("-tpz_dohr_ass", "Raw data table statistics for TPZDohrStructMatrix::Assemble assemble (first)");
 RunStatsTable dohr_dec   ("-tpz_dohr_dec", "Raw data table statistics for TPZDohrStructMatrix::Assemble decompose (second)");
+
 
 void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs,
                                    TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -568,6 +572,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
         }
     }
+    dohr_ass.stop();
     
 #ifdef USING_PAPI
     PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
@@ -584,7 +589,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             std::stringstream sout;
             sout << "Substructure number " << isub <<std::endl;
             isub++;
-            TPZDohrSubstructCondense<STATE> *ptr = (*it).operator->();
+           // TPZDohrSubstructCondense<STATE> *ptr = (*it).operator->();
             (*it)->fMatRed->Print("Matred",sout);
             LOGPZ_DEBUG(logger, sout.str())
         }

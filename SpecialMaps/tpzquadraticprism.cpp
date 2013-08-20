@@ -334,8 +334,10 @@ template<>
 int TPZGeoElRefPattern<TPZQuadraticPrism>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICPRISM;
 }
-template class 
+#ifndef BORLAND
+template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPrism>, TPZGEOELEMENTQUADRATICPRISM>;
+#endif
 
 
 template class pzgeom::TPZNodeRep<15,TPZQuadraticPrism>;

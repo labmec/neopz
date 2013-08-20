@@ -82,7 +82,7 @@ int TPZUncoupledMultiPhysics::NSolutionVariables(int index) {
     return fReferredMaterials[matid]->NSolutionVariables(varindex);
 }
 
-void TPZUncoupledMultiPhysics::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+void TPZUncoupledMultiPhysics::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
     int matindex = var/10000;
     int varindex = var%10000;
     int numbersol = data.dsol.size();
@@ -92,7 +92,7 @@ void TPZUncoupledMultiPhysics::Solution(TPZMaterialData &data, int var, TPZVec<R
 	fReferredMaterials[matindex]->Solution(data, varindex, Solout);
 }
 
-void TPZUncoupledMultiPhysics::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZUncoupledMultiPhysics::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	if (datavec.size()==1) {
 		this->Solution(datavec[0], var, Solout);
 	}

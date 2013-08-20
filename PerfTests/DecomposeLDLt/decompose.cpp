@@ -21,6 +21,8 @@
 #include <numa.h>
 #endif // USING_LIBNUMA
 
+#include "pzlog.h"
+
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));

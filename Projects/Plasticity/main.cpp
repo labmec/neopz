@@ -221,8 +221,8 @@ static void calcVonMisesBar()
     TPZMaterial *plastic(&PlasticVonM);
     compmesh1->InsertMaterialObject(plastic);
     
-    REAL theta = 45;
-    int axes=2;
+//    REAL theta = 45;
+//    int axes=2;
     //cmesh(compmesh1,plastic,theta,axes);
     // FIX ME
     DebugStop();
@@ -271,10 +271,7 @@ static void calcVonMisesBar()
 	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick8.vtk");
 	PPAnalysis.PostProcess(0);
 	PPAnalysis.CloseGraphMesh();
-	
-    
-    
-    
+
 }
 
 

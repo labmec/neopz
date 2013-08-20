@@ -55,7 +55,7 @@ static LoggerPtr logger(Logger::getLogger("Hdiv3D.main"));
 
 using namespace std;
 
-/** Resolver o problema do tipo 
+/** Resolver o problema do tipo
  * -Laplac(u) = 0
  * du/dn = lambda u em todo contorno
  */
@@ -75,21 +75,19 @@ int main()
 #endif
 	for (int porder=2; porder<3; porder++) {
 		
-			for(int h=1;h<2;h++){
+        for(int h=1;h<2;h++){
 			//1. Criacao da malha geom. e computacional
-					bool hrefine=false;
-					bool prefine=true;
+            bool hrefine=false;
+            bool prefine=true;
 			TPZGeoMesh *gmesh = MalhaGeoTetraedro(h,hrefine);
-					//gmesh->Print();
-    std::ofstream file("MalhaPAdaptativa.vtk");
-		PrintGMeshVTK( gmesh, file);
-
-			
-			TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
-
-			
+            //gmesh->Print();
+            std::ofstream file("MalhaPAdaptativa.vtk");
+            PrintGMeshVTK( gmesh, file);
+            
+            TPZCompMesh *cmesh = NULL;
+            cmesh = CompMeshPAdap(*gmesh,porder,prefine);
 		}
-	
+        
 	}
 	
 	

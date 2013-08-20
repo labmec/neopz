@@ -649,9 +649,10 @@ int TPZCompElHDivPressure<TPZShapePoint>::ClassId() const
 		return TPZHDIVPOINT_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>, TPZHDIVPOINT_PRESSURE_ID>;
-
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapeLinear>::ClassId() const
@@ -659,8 +660,10 @@ int TPZCompElHDivPressure<TPZShapeLinear>::ClassId() const
 		return TPZHDIVLINEAR_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapeLinear>, TPZHDIVLINEAR_PRESSURE_ID>;
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapeTriang>::ClassId() const
@@ -668,8 +671,10 @@ int TPZCompElHDivPressure<TPZShapeTriang>::ClassId() const
 		return TPZHDIVTRIANGLE_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTriang>, TPZHDIVTRIANGLE_PRESSURE_ID>;
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapeQuad>::ClassId() const
@@ -677,8 +682,10 @@ int TPZCompElHDivPressure<TPZShapeQuad>::ClassId() const
 		return TPZHDIVQUAD_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapeQuad>, TPZHDIVQUAD_PRESSURE_ID>;
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapeCube>::ClassId() const
@@ -686,8 +693,10 @@ int TPZCompElHDivPressure<TPZShapeCube>::ClassId() const
 		return TPZHDIVCUBE_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapeCube>, TPZHDIVCUBE_PRESSURE_ID>;
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapeTetra>::ClassId() const
@@ -695,8 +704,10 @@ int TPZCompElHDivPressure<TPZShapeTetra>::ClassId() const
 		return TPZHDIVTETRA_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTetra>, TPZHDIVTETRA_PRESSURE_ID>;
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapePrism>::ClassId() const
@@ -704,8 +715,10 @@ int TPZCompElHDivPressure<TPZShapePrism>::ClassId() const
 		return TPZHDIVPRISM_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapePrism>, TPZHDIVPRISM_PRESSURE_ID>;
+#endif
 
 template<>
 int TPZCompElHDivPressure<TPZShapePiram>::ClassId() const
@@ -713,8 +726,10 @@ int TPZCompElHDivPressure<TPZShapePiram>::ClassId() const
 		return TPZHDIVPYRAM_PRESSURE_ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAM_PRESSURE_ID>;
+#endif
 
 
 template class TPZCompElHDivPressure<TPZShapeTriang>;

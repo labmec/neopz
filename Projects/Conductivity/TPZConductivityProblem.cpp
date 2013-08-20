@@ -46,7 +46,7 @@ bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override)
     TPZConductivityProblem *cp = dynamic_cast<TPZConductivityProblem *>(copy);
     if(!cp) return false;
     bool result = true;
-    if(fabs(fDelx[0] - cp->fDelx[0]) > 1.e-6 || fabs(fDelx[1] - cp->fDelx[1] > 1.e-6)) result = false; 
+    if(fabs(fDelx[0] - cp->fDelx[0]) > 1.e-6 || fabs(fDelx[1] - cp->fDelx[1]) > 1.e-6) result = false;
     if(fNx[0] != cp->fNx[0] || fNx[1] != fNx[1]) result = false;
     if(fabs((fConductivity-cp->fConductivity)/fConductivity) > 1.e-10) result = false;
     if(fabs((fBridgeVoidRatio-cp->fBridgeVoidRatio)/fBridgeVoidRatio) > 1.e-10) result = false;
@@ -65,7 +65,7 @@ bool TPZConductivityProblem::Compare (TPZSaveable *copy, bool override) const
     TPZConductivityProblem *cp = dynamic_cast<TPZConductivityProblem *>(copy);
     if(!cp) return false;
     bool result = true;
-    if(fabs(fDelx[0] - cp->fDelx[0]) > 1.e-6 || fabs(fDelx[1] - cp->fDelx[1] > 1.e-6)) result = false; 
+    if(fabs(fDelx[0] - cp->fDelx[0]) > 1.e-6 || fabs(fDelx[1] - cp->fDelx[1]) > 1.e-6) result = false;
     if(fNx[0] != cp->fNx[0] || fNx[1] != fNx[1]) result = false;
     if(fabs((fConductivity-cp->fConductivity)/fConductivity) > 1.e-10) result = false;
     if(fabs((fBridgeVoidRatio-cp->fBridgeVoidRatio)/fBridgeVoidRatio) > 1.e-10) result = false;

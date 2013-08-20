@@ -703,8 +703,10 @@ int TPZInterfaceElement::ClassId() const
 	return TPZINTERFACEELEMENTID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
+#endif
 
 /**
  Save the element data to a stream
@@ -1390,7 +1392,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	int ip, iv;
 	value.Resize(varsize);
 	value.Fill(0.);
-	TPZManVector<REAL> locval(varsize);
+	TPZManVector<STATE> locval(varsize);
 	for(ip=0;ip<npoints;ip++){
 		intrule->Point(ip,intpoint,weight);
 		ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
@@ -1401,10 +1403,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
 		discgal->SolutionDisc(data, datal, datar, variable, locval);
 		for(iv = 0; iv < varsize; iv++) {
-#if BUILD_COMPLEX_PROJECTS
-			DebugStop();
+#ifdef STATE_COMPLEX
+			value[iv] += locval[iv].real()*weight;
 #else
-			value[iv] += locval[iv]*weight;
+            value[iv] += locval[iv]*weight;
 #endif
 		}//for iv
 	}//for ip

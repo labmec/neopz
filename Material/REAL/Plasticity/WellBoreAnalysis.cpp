@@ -579,7 +579,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     
     int NumIter = 60;
     bool linesearch = true;
-    bool checkconv = false;
+//    bool checkconv = false;
 //    analysis.IterativeProcess(cout, 1.e-8, NumIter, linesearch, checkconv);
     analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, NumIter, linesearch);
         
@@ -828,7 +828,7 @@ void TPZWellBoreAnalysis::TransferSolutionTo(TConfig &config)
     cmesh1.Solution() = fCurrentConfig.fAllSol;
     
     int nel = cmesh2.NElements();
-    TPZGeoMesh *gmesh1 = cmesh1.Reference();
+//    TPZGeoMesh *gmesh1 = cmesh1.Reference();
     TPZMaterial *mat1 = cmesh1.FindMaterial(1);
     if (!mat1) {
         DebugStop();
@@ -847,7 +847,7 @@ void TPZWellBoreAnalysis::TransferSolutionTo(TConfig &config)
     if (varindex1 == -1) {
         DebugStop();
     }
-    int elementid = 0;
+//    int elementid = 0;
     TPZManVector<REAL,3> qsi(3,0.);
     
     for (int el =0; el<nel; el++) {
@@ -1482,7 +1482,7 @@ void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
     fCurrentConfig.AddEllipticBreakout(MaiorAxis, MinorAxis);
     std::set<int> elindices;
     int nel = fCurrentConfig.fCMesh.NElements();
-    for (int el; el<nel; el++) {
+    for (int el=0; el<nel; el++) {
         TPZCompEl *cel = fCurrentConfig.fCMesh.ElementVec()[el];
         if(cel && cel->Reference() && cel->Reference()->MaterialId() == 1)
         {
@@ -1490,7 +1490,6 @@ void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
         }
     }
     ApplyHistory(elindices);
-
 }
 
 

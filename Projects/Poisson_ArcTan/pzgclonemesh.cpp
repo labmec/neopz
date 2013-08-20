@@ -25,6 +25,12 @@
 //#include "pzelgt3d.h"
 #include "pzelasmat.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoclonemesh"));
+#endif
+
 //static int zero=0;
 //static TPZGeoEl *zeropoint = 0;
 
@@ -35,6 +41,10 @@ TPZGeoCloneMesh::TPZGeoCloneMesh(TPZGeoMesh *ref) : TPZGeoMesh(), fMapNodes(),fM
         cout << "TPZGeoCloneMesh::Error\n Reference mesh and reference element must not be NULL!\n";
     }
     fGeoReference = ref;
+    fGeoRoot = 0; //will be setted in SetElements method!
+}
+TPZGeoCloneMesh::TPZGeoCloneMesh() : TPZGeoMesh(), fMapNodes(),fMapElements() {
+    fGeoReference = NULL;
     fGeoRoot = 0; //will be setted in SetElements method!
 }
 
@@ -623,3 +633,118 @@ int TPZGeoCloneMesh::main(){
     
 }
 
+int TPZGeoCloneMesh::ClassId() const
+{
+	return TPZGEOCLONEMESHID;
+}
+
+void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
+{
+    TPZGeoMesh::Read(buf,context);
+	try
+	{
+		
+        fGeoReference = dynamic_cast<TPZGeoMesh *>(Restore(buf, 0));
+        
+        ReadObjects<int>(buf,fMapNodes);
+        
+        std::map<int,int> MappingElements;
+        
+        TPZGeoEl *gelorig, *gelcloned;
+        ReadObjects<int>(buf,MappingElements);
+        std::map<int,int>::iterator it = MappingElements.begin();
+        while(it != MappingElements.end()) {
+            gelorig = fGeoReference->ElementVec()[it->first];
+            gelcloned = ElementVec()[it->second];
+            fMapElements.insert(std::make_pair(gelorig,gelcloned));
+            it++;
+        }
+        
+        // Writing index of the elements in fReferenceElement
+        TPZStack<int> RefElements;
+        ReadObjects(buf,RefElements);
+        for(int ii=0;ii<RefElements.size();ii++) {
+            fReferenceElement.push_back(fGeoReference->ElementVec()[RefElements[ii]]);
+        }
+
+        // Reading index of the elements in fPatchElement
+        std::set<int> PatchElements;
+        ReadObjects(buf,PatchElements);
+        std::set<int>::iterator itpatch = PatchElements.begin();
+        while(itpatch != PatchElements.end()) {
+            fPatchElements.insert(fGeoReference->ElementVec()[*itpatch]);
+            itpatch++;
+        }
+        
+        int indexroot;
+        buf.Read(&indexroot);
+        fGeoRoot = ElementVec()[indexroot];
+
+	}
+	catch(const exception& e)
+	{
+		cout << "Exception catched! " << e.what() << std::endl;
+		cout.flush();
+	}
+}
+
+void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
+{
+    TPZGeoMesh::Write(buf,withclassid);
+	try
+	{
+
+        if(!fGeoReference) {
+            std::cout << "Cloned geo mesh without geometric mesh from which this mesh is cloned." << std::endl;
+            DebugStop();
+        }
+        fGeoReference->Write(buf,true);
+        
+        WriteObjects(buf,fMapNodes);
+        
+        // Maps elements with original elements
+        std::map<int,int> MappingElements;
+        TPZGeoEl *gel;
+        int indexorig, indexcloned;
+        std::map<TPZGeoEl* , TPZGeoEl* >::iterator it;
+        for(it=fMapElements.begin();it!=fMapElements.end();it++) {
+            gel = it->first;
+            indexorig = gel->Index();
+            gel = it->second;
+            indexcloned = gel->Index();
+            MappingElements.insert(std::make_pair(indexorig,indexcloned));
+        }
+        WriteObjects(buf,MappingElements);
+        
+        // Writing index of the elements in fReferenceElement
+        TPZStack<int> RefElements;
+        int sz = fReferenceElement.size();
+        for(int ii=0;ii<sz;ii++) {
+            RefElements.push_back(fReferenceElement[ii]->Index());
+        }
+        WriteObjects(buf,RefElements);
+        // Have to save a compact structure of the vector??
+
+        // Writing index of the elements in fPatchElement
+        std::set<int> PatchElements;
+        std::set<TPZGeoEl* >::iterator itpatch = fPatchElements.begin();
+        while(itpatch != fPatchElements.end()) {
+            PatchElements.insert((*itpatch)->Index());
+            itpatch++;
+        }
+        WriteObjects(buf,PatchElements);
+        
+        int rootindex = fGeoRoot->Index();
+        buf.Write(&rootindex,1);
+	}
+	catch(const exception& e)
+	{
+		cout << "Exception catched! " << e.what() << std::endl;
+		cout.flush();
+		DebugStop();
+	}
+}//method
+
+#ifndef BORLAND
+template class TPZRestoreClass<TPZGeoCloneMesh,TPZGEOCLONEMESHID>;
+#endif

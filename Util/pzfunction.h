@@ -200,7 +200,8 @@ public:
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid)
     {
-        DebugStop();
+//        DebugStop();
+        TPZSaveable::Write(buf,withclassid);
     }
 	
 	/** @brief Reads the element data from a stream */

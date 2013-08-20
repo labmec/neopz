@@ -29,6 +29,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
+static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
 #endif
 
 
@@ -1334,6 +1335,13 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 	int nsubelements = ref->NSubElements();
 	sub.Resize(nsubelements);
 	
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << (void*)Mesh() << " Divide " << Index() << " " << Reference()->Index();
+        LOGPZ_DEBUG(loggerdiv, sout.str())
+    }
+#endif
 	
 	int i;
 	
@@ -1408,7 +1416,7 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 	TPZFNMatrix<9> axes(3,3,0.);
 	TPZFNMatrix<9> jacobian(dim,dim), jacinv(dim,dim);
 	
-	TPZManVector<REAL> sol(numdof, 0.), othersol(numdof,0.);
+	TPZManVector<STATE> sol(numdof, 0.), othersol(numdof,0.);
 	TPZVec<REAL> intpoint(dim,0.);
 	REAL weight = 0.;
 	REAL detjac;
@@ -1493,6 +1501,13 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 void TPZInterpolatedElement::PRefine(int order) {
 	SetPreferredOrder(order);
 	
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << (void*)Mesh() << " PRefine " << Index() << " " << Reference()->Index() << " " << order;
+        LOGPZ_DEBUG(loggerdiv, sout.str())
+    }
+#endif
 		TPZGeoEl *gel = Reference();
 		int ns = gel->NSides();
 		for (int is=0; is<ns; is++) {
@@ -1515,7 +1530,7 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 		LOGPZ_ERROR(logger,"Exiting MeanSolution: is not implemented to nvars != 1.");
 		return 0.;
 	}
-	TPZManVector<REAL> sol(nvars,0.);
+	TPZManVector<STATE> sol(nvars,0.);
 	
 	int i;
 	TPZFMatrix<REAL> axes(3,3,0.);
@@ -1524,7 +1539,7 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 	REAL detjac;
 	TPZVec<REAL> intpoint(dim,0.);
 	REAL weight = 0.;
-	STATE meanvalue = 0.;
+	REAL meanvalue = 0.;
 	REAL area = 0.;
 	TPZGeoEl *ref = Reference();
 	
@@ -1535,9 +1550,13 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 		/** Compute the solution value at point integration*/
 		Solution(intpoint,var,sol);
 		area += weight*fabs(detjac);
-		meanvalue += ((STATE)(weight*fabs(detjac))*sol[0]);   //  meanvalue += (weight*fabs(detjac)*sol[j]);
+#ifdef STATE_COMPLEX
+		meanvalue += (weight*fabs(detjac))*sol[0].real();   //  meanvalue += (weight*fabs(detjac)*sol[j]);
+#else
+        meanvalue += (weight*fabs(detjac))*sol[0];
+#endif
 	}
-	return fabs(meanvalue*(STATE)(1./area));
+    return (meanvalue/area);
 }
 
 /**Compute the contribution to stiffness matrix and load vector on the element*/

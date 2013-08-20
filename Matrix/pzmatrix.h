@@ -340,8 +340,8 @@ public:
 	 * @param elmat Element matrix to be contributed
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
-	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int> &destinationindex);
-	
+	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &destinationindex);
+
 	/**
 	 * @brief Add a contribution of a stiffness matrix
 	 * @param elmat Element matrix to be contributed

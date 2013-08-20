@@ -88,7 +88,9 @@ public:
     /** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh)
     {
+#ifndef STATE_COMPLEX
 		mesh->SetAllCreateFunctionsHDivPressure();
+#endif
 	}
 	
 	virtual MElementType Type();

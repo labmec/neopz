@@ -124,9 +124,9 @@ public:
 						   , TPZVec < int > & destinationindex //! Positioning of such members on global stiffness matrix
 						   );    
 	
-	void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int> & destinationindex);    
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<long> & destinationindex);
 	
-	void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int> & sourceindex, TPZVec<int> & destinationindex);    
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<long> & sourceindex, TPZVec<long> & destinationindex);
 	
 	void MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatrix<TVar> & Res);
 	

@@ -1537,8 +1537,10 @@ template class TPZSkylMatrix<std::complex<float> >;
 template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass<TPZSkylMatrix<float>, TSKYLMATRIX_FLOAT_ID>;
+#endif
 
 template class TPZSkylMatrix<long double>;
 template class TPZSkylMatrix<std::complex<long double> >;
@@ -3293,9 +3295,11 @@ template class TPZSkylMatrix<std::complex<float> >;
 template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass<TPZSkylMatrix<float>, TSKYLMATRIX_FLOAT_ID>;
-
+#endif
+    
 template class TPZSkylMatrix<long double>;
 template class TPZSkylMatrix<std::complex<long double> >;
 

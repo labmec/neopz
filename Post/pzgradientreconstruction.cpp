@@ -225,24 +225,25 @@ REAL TPZGradientReconstruction::MeanCell(TPZCompEl *cel,int IntOrder)
 	TPZManVector<REAL> point(3,0.);
 	TPZManVector<REAL> xpoint(3,0.);
 	REAL weight;
-	for (it=0;it<npoints;it++)
-    {
+	for(it=0;it<npoints;it++) {
 		pointIntRule->Point(it,point,weight);
 		weight /= cel->Reference()->RefElVolume();
 		cel->Reference()->X(point,xpoint);
         
-        TPZVec<REAL> sol;
+        TPZVec<STATE> sol;
         cel->Solution(xpoint, fvar, sol);
-        if(sol.size()!=1){
-            
+        if(sol.size()!=1) {
             PZError << "TPZGradientReconstruction::The number of solutions variable can not be other than 1.\n";
             DebugStop();
         }
+#ifdef STATE_COMPLEX
+        integral += weight*sol[0].real();
+#else
         integral += weight*sol[0];
+#endif
     }
 	return integral;
 }
-
 
 void TPZGradientReconstruction::GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center,TPZVec<REAL> &Grad) {
    

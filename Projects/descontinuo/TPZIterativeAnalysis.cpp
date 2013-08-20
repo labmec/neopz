@@ -166,7 +166,7 @@ void TPZIterativeAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
   TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(CompMesh);//= new TPZFlowCompMesh(CompMesh->Reference());
   REAL maxveloc = fm->MaxVelocityOfMesh();
   REAL deltax = CompMesh->LesserEdgeOfMesh();//REAL deltax = CompMesh->DeltaX();//REAL deltax = CompMesh->MaximumRadiusOfEl();
-  TPZCompElDisc *disc;
+  TPZCompElDisc *disc = NULL;
   int degree = disc->Degree();
   TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
   law->SetTimeStep(maxveloc,deltax,degree);

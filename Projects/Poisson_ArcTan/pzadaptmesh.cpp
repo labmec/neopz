@@ -16,6 +16,10 @@
 
 using namespace std;
 
+// Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified=NULL,bool check=false);
+
+
 TPZAdaptMesh::TPZAdaptMesh(int maxorder) {
     fReferenceCompMesh = 0;
     fGeoRef.Resize(0);
@@ -113,7 +117,7 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 
 TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<REAL> &ervec, 
                                            void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
-                                           TPZVec<REAL> &truervec,TPZVec<REAL> &effect,ofstream &out,int use_trueerror,MElementType eltype) {
+                                           TPZVec<REAL> &truervec,TPZVec<REAL> &effect,ofstream &out,int use_trueerror,MElementType eltype,int print) {
     int i;
     //clone analysis
     int cliter;
@@ -190,7 +194,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
             fFineCloneMeshes [cliter] = 0;
             continue;
         }
-        fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh(fMaxP);
+        fFineCloneMeshes[cliter] = fCloneMeshes[cliter]->UniformlyRefineMesh(fMaxP,print);
 		printing = 0;
         if(printing) {
             sprintf(saida,"OutputE%d_Cliter%d.txt",((int)eltype),cliter);
@@ -226,6 +230,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
 		else
 			ErrorVecData[i][2] = fElementError[i]/truervec[i];
 	}
+    
 	// Printing calculated errors for each element in computational mesh
 	sprintf(saida,"ErroOnCMesh%02dDFrom_Iter%d.vtk",fReferenceCompMesh->Dimension(),count++);
 	PrintGeoMeshAsCompMeshInVTKWithElementData(fReferenceCompMesh->Reference(),saida,ErrorVecData);
@@ -276,14 +281,21 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<R
     TPZStack <int> porder;
     
     //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
-    std::cout << "Aplying ref pattern after analisis of the error on the clone meshes.\n";
+    //std::cout << "Aplying ref pattern after analisis of the error on the clone meshes.\n";
     for (i=0;i<ncl;i++) {
         if(!fFineCloneMeshes[i]) continue;
         fCloneMeshes[i]->ApplyRefPattern(minimumerror,fElementError,fFineCloneMeshes[i],gelstack,porder);
     }
     
     TPZCompMesh *adapted = CreateCompMesh(fReferenceCompMesh,gelstack,porder);
+    // recording in disk the computational mesh data
+    static int countermesh = 0;
+    if(print > 0) {
+        SaveCompMesh(fReferenceCompMesh,countermesh++);
+    }
+    
 	ErrorVecData.clear();
+    std::cout << endl;
     return adapted;
 }
 
@@ -423,6 +435,17 @@ void TPZAdaptMesh::CreateClones(){
         
         TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReferenceCompMesh);
         clonecompmesh->AutoBuild();
+/*#ifdef LOG4CXX
+        {
+            TPZFileStream fstr;
+            std::stringstream sout;
+            sout << "LOG/" << (void*) clonecompmesh << ".txt";
+            std::string filename(sout.str());
+            fstr.OpenWrite(filename);
+            clonecompmesh->Reference()->Write(fstr,1);
+            clonecompmesh->Write(fstr,1);
+        }
+#endif */
 		// Computational mesh clone is stored
         fCloneMeshes.Push(clonecompmesh);    
     }

@@ -787,7 +787,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol)
+void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
 {	
     TPZMaterialData data;
 	InitMaterialData(data);
@@ -1257,72 +1257,68 @@ int TPZCompElHDiv<TPZShapePoint>::ClassId() const
 	return TPZHDIVPOINTID;
 }
 
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
-
-
 template<>
 int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
 {
 	return TPZHDIVLINEARID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZHDIVLINEARID>;
-
 template<>
 int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
 {
 	return TPZHDIVTRIANGLEID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>, TPZHDIVTRIANGLEID>;
-
 template<>
 int TPZCompElHDiv<TPZShapeQuad>::ClassId() const
 {
 	return TPZHDIVQUADID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>, TPZHDIVQUADID>;
-
 template<>
 int TPZCompElHDiv<TPZShapeCube>::ClassId() const
 {
 	return TPZHDIVCUBEID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>, TPZHDIVCUBEID>;
-
 template<>
 int TPZCompElHDiv<TPZShapeTetra>::ClassId() const
 {
 	return TPZHDIVTETRAID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>, TPZHDIVTETRAID>;
-
 template<>
 int TPZCompElHDiv<TPZShapePrism>::ClassId() const
 {
 	return TPZHDIVPRISMID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>, TPZHDIVPRISMID>;
-
 template<>
 int TPZCompElHDiv<TPZShapePiram>::ClassId() const
 {
 	return TPZHDIVPYRAMID;
 }
 
+#ifndef BORLAND
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
+
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZHDIVLINEARID>;
+
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>, TPZHDIVTRIANGLEID>;
+
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>, TPZHDIVQUADID>;
+
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>, TPZHDIVCUBEID>;
+
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>, TPZHDIVTETRAID>;
+
+template class
+TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>, TPZHDIVPRISMID>;
+
 template class
 TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
+#endif
+
 
 
 template class TPZCompElHDiv<TPZShapeTriang>;

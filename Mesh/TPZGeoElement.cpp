@@ -50,57 +50,73 @@ template<>
 int TPZGeoElement<TPZGeoPoint,TPZRefPoint>::ClassId() const {
 	return TPZFGEOELEMENTPOINTID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoPoint,TPZRefPoint>, TPZFGEOELEMENTPOINTID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoLinear,TPZRefLinear>::ClassId() const {
 	return TPZFGEOELEMENTLINEARID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoLinear,TPZRefLinear>, TPZFGEOELEMENTLINEARID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoQuad,TPZRefQuad>::ClassId() const {
 	return TPZFGEOELEMENTQUADID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoQuad,TPZRefQuad>, TPZFGEOELEMENTQUADID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
 	return TPZFGEOELEMENTRIANGLEID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>, TPZFGEOELEMENTRIANGLEID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoCube,TPZRefCube>::ClassId() const {
 	return TPZFGEOELEMENTCUBEID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoCube,TPZRefCube>, TPZFGEOELEMENTCUBEID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoPrism,TPZRefPrism>::ClassId() const {
 	return TPZFGEOELEMENTPRISMID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoPrism,TPZRefPrism>, TPZFGEOELEMENTPRISMID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
 	return TPZFGEOELEMENTTETRAID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>, TPZFGEOELEMENTTETRAID>;
+#endif
 
 template<>
 int TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
 	return TPZFGEOELEMENTPYRAMID;
 }
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>, TPZFGEOELEMENTPYRAMID>;
+#endif
 
 #else
 

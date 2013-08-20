@@ -76,9 +76,8 @@ public:
 									   TPZFMatrix<STATE> &ek,
 									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
-	virtual void Contribute(TPZMaterialData &data,
-							REAL weight,
-							TPZFMatrix<STATE> &ef)
+    
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef)
 	{
 		TPZMatPoisson3d::Contribute(data,weight,ef);
 	}

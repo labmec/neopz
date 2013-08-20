@@ -1564,9 +1564,11 @@ template class TPZFMatrix<double>;
 template class TPZFMatrix<long double>;
 
 template class TPZFMatrix<int>;
+#ifndef BORLAND
 template class TPZRestoreClass< TPZFMatrix<double> , TPZFMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass< TPZFMatrix<float> , TPZFMATRIX_FLOAT_ID>;
 template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE_ID>;
+#endif
 
 #ifdef _AUTODIFF
 #include "fad.h"

@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 				TPZAnalysis an(cmesh);
 				mySolve(an,cmesh);
 				
-				ctime(&starttime);
+				ctime(&endtime);
 				cout << "\n Time solving: " << endtime-starttime << endl;
 				
 				// Pos processing

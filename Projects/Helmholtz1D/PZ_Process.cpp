@@ -95,7 +95,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	
 	REAL k0 = 2 * M_PI / lambda;
 	std::complex<REAL> imaginary(0, 1);  
-	std::complex<REAL> q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
+	std::complex<REAL> q = imaginary * (REAL(2.)) * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
 	std::complex<REAL> gama = imaginary * k0 * std::cos(theta);
 	
 	val1(0, 0) = 0;
@@ -142,7 +142,7 @@ TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, 
 	
 	REAL k0 = 2 * M_PI / lambda;
 	STATE imaginary(0, 1);  
-	STATE q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
+	STATE q = imaginary * (REAL(2.)) * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
 	STATE gama = imaginary * k0 * std::cos(theta);
 	
 	val1(0, 0) = gama;        
@@ -274,7 +274,7 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 	int i, j, k, nnodes;
 	int nelem = cmesh->ElementVec().NElements();
 	int dim = cmesh->Dimension();   // Dimension of the model
-	double w;
+	REAL w;
 	if(var-1 < 0) var = 1;
 	// Map to store the points and values 
 	map<REAL,TPZVec<REAL> > Graph;
@@ -289,7 +289,9 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 		// If var is higher than nstates of the element, go to next element
 		//if(var > nstates)
 		//	continue;
-		TPZVec<REAL> qsi(3,0.), sol(nstates,0.), outfem(3,0.);
+		TPZVec<REAL> qsi(3,0.), outfem(3,0.);
+        TPZVec<STATE> sol(nstates,0.);
+        REAL Sol;
 		nnodes = gel->NNodes();
 		if(pointsByElement < nnodes) pointsByElement = nnodes;
 		for(j=0;j<gel->NNodes();j++) {
@@ -297,11 +299,12 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 			gel->CenterPoint(j,qsi);
 			sp->Solution(qsi,0,sol);
 			cel->Reference()->X(qsi,outfem);
-			// Jointed point coordinates and solution value on			
+			// Jointed point coordinates and solution value on
 			for(k=0;k<3;k++) tograph[k] = outfem[k];
-			tograph[k] = sol[var-1];
+			((STATE)tograph[k]) = sol[var-1];
+            ((STATE)Sol) = sol[var-1];
 			Graph.insert(pair<REAL,TPZVec<REAL> >(outfem[0],tograph));
-			Graphics.insert(pair<TPZVec<REAL>,REAL>(outfem,sol[var-1]));
+			Graphics.insert(pair<TPZVec<REAL>,REAL>(outfem,Sol));
 			// If cel is point gets one point value
 			if(cel->Type() == EPoint) {
 				break;
@@ -328,9 +331,10 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 			cel->Reference()->X(qsi,outfem);
 			// Jointed point coordinates and solution value on
 			for(k=0;k<3;k++) tograph[k] = outfem[k];
-			tograph[k] = sol[var-1];
+			((STATE)tograph[k]) = sol[var-1];
+            ((STATE)Sol) = sol[var-1];
 			Graph.insert(pair<REAL,TPZVec<REAL> >(outfem[0],tograph));
-			Graphics.insert(pair<TPZVec<REAL>,REAL>(outfem,sol[var-1]));
+			Graphics.insert(pair<TPZVec<REAL>,REAL>(outfem,Sol));
 		}
 	}
 	

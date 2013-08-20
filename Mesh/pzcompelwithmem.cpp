@@ -11,6 +11,7 @@ TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
 }
 
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >, TPZCOMPELWITHMEMPOINTID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >, TPZCOMPELWITHMEMLINEARID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >, TPZCOMPELWITHMEMTRIANGID>;
@@ -19,6 +20,6 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCub
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >, TPZCOMPELWITHMEMTETRAID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >, TPZCOMPELWITHMEMPRISMID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >, TPZCOMPELWITHMEMPIRAMID>;
-
+#endif
 
 

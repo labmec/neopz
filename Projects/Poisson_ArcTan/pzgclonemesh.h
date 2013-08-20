@@ -12,7 +12,6 @@ contained within the TPZGeoMesh.
 #define PZGEOCLONEMESHH
 
 #include "pzgmesh.h"
-#include "pzadaptmesh.h"
 #include "pzstack.h"
 
 #include <map>
@@ -21,7 +20,7 @@ contained within the TPZGeoMesh.
 class TPZGeoNode;
 class TPZGeoEl;
 
-
+class TPZAdaptMesh;
 
 class  TPZGeoCloneMesh : public TPZGeoMesh
 {
@@ -74,6 +73,7 @@ protected:
 public:
   	/**Constructors and destructor*/
   	TPZGeoCloneMesh(TPZGeoMesh *mesh);
+  	TPZGeoCloneMesh();
 
 	/*Destructor*/
 	virtual ~TPZGeoCloneMesh();
@@ -129,6 +129,18 @@ public:
 	 * Test and validation routines
 	 */
 	static int main();
+
+	/** @brief Returns the unique identifier for reading/writing objects to streams */
+	virtual int ClassId() const;
+	/** @brief Save the element data to a stream */
+	virtual void Write(TPZStream &buf, int withclassid);
+	
+	/** @brief Read the element data from a stream */
+	virtual void Read(TPZStream &buf, void *context);
+    
+    TPZGeoMesh *GeoReference() {
+        return fGeoReference;
+    }
 
 protected:
 	/**

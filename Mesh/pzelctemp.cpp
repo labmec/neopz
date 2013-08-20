@@ -369,9 +369,10 @@ int TPZIntelGen<pzshape::TPZShapePoint>::ClassId() const
 	return TPZINTELPOINTID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
-
+#endif
 
 #include "pzshapelinear.h"
 template<>
@@ -380,8 +381,10 @@ int TPZIntelGen<pzshape::TPZShapeLinear>::ClassId() const
 	return TPZINTELLINEARID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
+#endif
 
 #include "pzshapetriang.h"
 template<>
@@ -390,8 +393,10 @@ int TPZIntelGen<pzshape::TPZShapeTriang>::ClassId() const
 	return TPZINTELTRIANGLEID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
+#endif
 
 #include "pzshapequad.h"
 template<>
@@ -400,8 +405,10 @@ int TPZIntelGen<pzshape::TPZShapeQuad>::ClassId() const
 	return TPZINTELQUADID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
+#endif
 
 #include "pzshapecube.h"
 template<>
@@ -410,8 +417,10 @@ int TPZIntelGen<pzshape::TPZShapeCube>::ClassId() const
 	return TPZINTELCUBEID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
+#endif
 
 #include "pzshapetetra.h"
 template<>
@@ -420,8 +429,10 @@ int TPZIntelGen<pzshape::TPZShapeTetra>::ClassId() const
 	return TPZINTELTETRAID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
+#endif
 
 #include "pzshapeprism.h"
 template<>
@@ -430,8 +441,10 @@ int TPZIntelGen<TPZShapePrism>::ClassId() const
 	return TPZINTELPRISMID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
+#endif
 
 #include "pzshapepiram.h"
 template<>
@@ -440,9 +453,10 @@ int TPZIntelGen<TPZShapePiram>::ClassId() const
 	return TPZINTELPYRAMID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
-
+#endif
 
 
 #include "TPZRefCube.h"

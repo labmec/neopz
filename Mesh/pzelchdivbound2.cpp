@@ -730,36 +730,37 @@ int TPZCompElHDivBound2<TPZShapePoint>::ClassId() const
 {
 	return TPZHDIVBOUND2POINTID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>, TPZHDIVBOUNDPOINTID>;
-
 template<>
 int TPZCompElHDivBound2<TPZShapeLinear>::ClassId() const
 {
 	return TPZHDIVBOUND2LINEARID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>, TPZHDIVBOUNDLINEARID>;
-
 template<>
 int TPZCompElHDivBound2<TPZShapeTriang>::ClassId() const
 {
 	return TPZHDIVBOUND2TRIANGLEID;
 }
-
-template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>, TPZHDIVBOUNDTRIANGLEID>;
-
 template<>
 int TPZCompElHDivBound2<TPZShapeQuad>::ClassId() const
 {
 	return TPZHDIVBOUND2QUADID;
 }
 
+
+#ifndef BORLAND
+template class
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>, TPZHDIVBOUNDPOINTID>;
+
+template class
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>, TPZHDIVBOUNDLINEARID>;
+
+template class
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>, TPZHDIVBOUNDTRIANGLEID>;
+
 template class
 TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>, TPZHDIVBOUNDQUADID>;
+#endif
+
 
 template class TPZCompElHDivBound2<TPZShapeTriang>;
 template class TPZCompElHDivBound2<TPZShapePoint>;

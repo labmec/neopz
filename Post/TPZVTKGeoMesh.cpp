@@ -607,7 +607,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
 	TPZGeoEl *gel;
 	TPZCompEl *cel;
 	TPZVec<REAL> qsi(3,0.);
-	TPZVec<REAL> sol;
+	TPZVec<STATE> sol;
 	
 	for(el = 0; el < nelements; el++)
 	{

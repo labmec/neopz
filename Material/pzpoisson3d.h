@@ -178,17 +178,23 @@ public:
 	 * @{
 	 */
 	 
-	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) {
+		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+	}
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+        TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);
+    }
+	
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+        TPZDiscontinuousGalerkin::ContributeBC(datavec,weight,ek,ef,bc);
+    }
+
+    
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
-	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ef)
-	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
-	}
 #ifdef _AUTODIFF
 	/** @brief Computes contribution to the energy at an integration point */
 	void ContributeEnergy(TPZVec<REAL> &x,
@@ -198,14 +204,12 @@ public:
 						  REAL weight);
 #endif
 	
+	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+	}
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
-	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ef,TPZBndCond &bc)
-	{
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
-	}
 
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
@@ -224,14 +228,12 @@ public:
 	}
 
 #ifdef _AUTODIFF
-	
-	virtual void ContributeBCEnergy(TPZVec<REAL> & x,
-									TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+	virtual void ContributeBCEnergy(TPZVec<REAL> &x,TPZVec<FADFADREAL> &sol, FADFADREAL &U,
 									REAL weight, TPZBndCond &bc);
-	
 #endif
 
 	/** @} */
+    
 	
 	virtual int VariableIndex(const std::string &name);
 	
@@ -240,10 +242,18 @@ public:
 	virtual int NFluxes(){ return 3;}
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) {
+        TPZDiscontinuousGalerkin::Solution(datavec,var,Solout);
+    }
+    
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) {
+        TPZDiscontinuousGalerkin::FillDataRequirements(datavec);
+    }
+    
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
 public:
 	
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
 	
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 	
@@ -280,12 +290,19 @@ public:
 	
 	virtual int IsInterfaceConservative(){ return 1;}
 	
-	virtual int ClassId() const;
+    virtual int ClassId() const {
+        return TPZMATPOISSON3D;
+    }
 	
 	virtual void Write(TPZStream &buf, int withclassid);
 	
 	virtual void Read(TPZStream &buf, void *context);
-	
+
 };
+
+#ifndef BORLAND
+template class TPZRestoreClass<TPZMatPoisson3d,TPZMATPOISSON3D>;
+#endif
+
 
 #endif

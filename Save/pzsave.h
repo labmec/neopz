@@ -219,6 +219,18 @@ public:
 			}
 		}
 	}
+    template<class T>
+    static void WriteObjectPointers(TPZStream &buf, std::set<T* > &vec)
+	{
+		int nel = vec.size();
+		buf.Write(&nel,1);
+        typedef typename  std::set<T* >::iterator vec_it;
+        vec_it it;
+        while (it != vec.end()) {
+            it-> Write(buf,1);
+            it++;
+        }
+	}
 	
 	template<class T, int EXP>
 	static void WriteObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec)
@@ -482,6 +494,7 @@ public:
 		}
 	}
 	
+
 	template<class T, int EXP>
 	static void ReadObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec, void *context)
 	{

@@ -114,10 +114,10 @@ class TPZElasticity3D : public TPZMaterial {
 	virtual int NSolutionVariables(int var);
 protected:
 	/** @brief Post-processing method. Based on solution Sol and its derivatives DSol, it computes the post-processed variable var */
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -158,8 +158,8 @@ public:
 	
 	void SetMaterialDataLame(STATE lambda, STATE mu)
 	{
-		fE = mu*(3*lambda+2*mu)/(lambda + mu);
-		fPoisson = lambda/(2*(lambda + mu));
+		fE = mu*((REAL(3))*lambda+((REAL(2))*mu))/(lambda + mu);
+		fPoisson = lambda/((REAL(2))*(lambda + mu));
         SetC();
 	}
 	

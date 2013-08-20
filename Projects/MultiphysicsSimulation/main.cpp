@@ -851,7 +851,7 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 {
-	TPZGeoMesh *gmesh;
+	TPZGeoMesh *gmesh = NULL;
 	
 	//    RefPatternMesh();
 	//TPZGeoMesh * gmesh = refp->Mesh();

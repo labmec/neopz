@@ -101,4 +101,7 @@ template class TPZMGSolver<float>;
 template class TPZMGSolver<double>;
 template class TPZMGSolver<long double>;
 
+
+#ifndef BORLAND
 template class TPZRestoreClass<TPZMGSolver<REAL>, TPZMGSOLVER_ID>;
+#endif

@@ -292,7 +292,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
         }
     #endif
 	
-	REAL ResTol = 1.e-6;
+//	REAL ResTol = 1.e-6;
 	
 	REAL L_REAL;
 //  REAL X_REAL;

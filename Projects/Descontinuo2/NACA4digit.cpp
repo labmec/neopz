@@ -701,168 +701,170 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
 }
 
 TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< int > > & elms,
-			   MElementType ElType, int matId,
-			   TPZVec<TPZGeoEl *> & gEls,
-			   int nSubdiv)
+                               TPZVec< TPZVec< int > > & elms,
+                               MElementType ElType, int matId,
+                               TPZVec<TPZGeoEl *> & gEls,
+                               int nSubdiv)
 {
-   //TPZGeoMesh * gmesh = new TPZGeoMesh;
-
-   gEls.Resize(elms.NElements());
-   gmesh->NodeVec().Resize(nodes.NElements());
-   int i,j;
-
-   for(i = 0; i < nodes.NElements(); i++)
-   {
-      gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
-   }
-
-   for( i = 0; i < elms.NElements(); i++)
-   {
-      gEls[i] = gmesh->CreateGeoElement(ElType, elms[i], matId, i);
-   }
-
-// Constructing neighborhood
-
-   gmesh->BuildConnectivity();
-
-
-
-   {// Dividing elements to create a mesh of 4 elems around NACA surface
-
-     //first row near naca
-     TPZVec<TPZGeoEl * > firstDiv, secondDiv, thirdDiv;
-     TPZManVector<REAL, 3> pt(3,0.);
-     int ii;//, jj;
-     for(i = 0; i < 2*m; i++)
-       {
-	 gEls[i]->Divide(firstDiv);
-	 pt[0] = firstDiv[0]->NodePtr(1)->Coord(0);
-	 pt[1] = firstDiv[0]->NodePtr(1)->Coord(1);
-	 profile.ProjectPoint(pt, 32*m + 1);
-	 firstDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
-	 firstDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
-
-	 if(fabs(i-m+.5) > 3*m/4 || fabs(i-m+.5) < m/5)
-	 {
-            for(j = 0; j < 2; j++) {
-	      firstDiv[j]->Divide(secondDiv);
-	      pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
-	      pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
-	      profile.ProjectPoint(pt, 64*m + 1);
-	      secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
-	      secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
-	      for(ii = 0; ii < 2; ii++)
-	      {
-	        secondDiv[ii]->Divide(thirdDiv);
-	        pt[0] = thirdDiv[0]->NodePtr(1)->Coord(0);
-	        pt[1] = thirdDiv[0]->NodePtr(1)->Coord(1);
-	        profile.ProjectPoint(pt, 256*m + 1);
-	        thirdDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
-	        thirdDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
-	      }
-	      if(i == 0 || i == 2*m-1)
-	         for(ii = 2; ii < 4; ii++)
-	         {
-	           secondDiv[ii]->Divide(thirdDiv);
-	         }
-	    }
-	    for(j = 2; j < 4; j++)
-	    {
-              firstDiv[j]->Divide(secondDiv);
-	    }
-	 }else{
-            for(j = 0; j < 2; j++) {
-	      firstDiv[j]->Divide(secondDiv);
-	      pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
-	      pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
-	      profile.ProjectPoint(pt, 8*m + 1);
-	      secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
-	      secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
-	    }
-         }
-       }
-
-     // first n/3 rows of elements near naca
-     for(i = 2*m; i < 2*(n/3)*m; i++)
-     {
-        gEls[i]->Divide(firstDiv);
-	if( ((i==2*m)||(i==4*m-1)) )
-	    for(j = 0; j < 4; j++)
-	    {
-              firstDiv[j]->Divide(secondDiv);
-	    }
-     }
-
-     // exit mesh
-     for(j = 0; j < p; j++)
-	{
-	   for(i = 0; i < min(2*(p-j+1),2*l); i++)
-           {
-	     gEls[2*m*n+j*(l*2)+i]->Divide(firstDiv);
-             if(i < 2 && j < p )
-	       if(j < p/4)
-	       {
-	          for(ii = 0; ii < 2; ii++)
-	          {
-                     firstDiv[ii + 2*i]->Divide(secondDiv);
-		     if(j < p/4)
-		     {
-                        secondDiv[2*i]->Divide(thirdDiv);
-		        secondDiv[2*i+1]->Divide(thirdDiv);
-		     }
-		     firstDiv[ii + 2 -2*i]->Divide(secondDiv);
-                  }
-	       }else{
-	          for(ii = 0; ii < 2; ii++)
-	          {
-                     firstDiv[ii + 2 * i]->Divide(secondDiv);
-		  }
-
-               }
-	   }
-	}
-     // conic exit mesh
-     for(i = 0; i < n-l; i++)
-     {
-        int index = 2*m*n + 2*l*p + l + p + 2*(l+p)*i;
-        gEls[index-1]->Divide(firstDiv);
-	{
-	   if(i == 0)
-	   {
-	      firstDiv[0]->Divide(secondDiv);
-	      firstDiv[1]->Divide(secondDiv);
-	   }else{
-	      firstDiv[1]->Divide(secondDiv);
-	      firstDiv[2]->Divide(secondDiv);
-	   }
-	}
-	gEls[index]->Divide(firstDiv);
-	{
-	   if(i == 0)
-	   {
-	      firstDiv[2]->Divide(secondDiv);
-	      firstDiv[3]->Divide(secondDiv);
-	   }else{
-	      firstDiv[0]->Divide(secondDiv);
-	      firstDiv[3]->Divide(secondDiv);
-	   }
-	}
-     }
-
-     // shock wings
-     for(i = n/3; i < n/2-1; i++)
-        for(j = l + i - n/3; j < m; j++)
+    //TPZGeoMesh * gmesh = new TPZGeoMesh;
+    
+    gEls.Resize(elms.NElements());
+    gmesh->NodeVec().Resize(nodes.NElements());
+    int i,j;
+    
+    for(i = 0; i < nodes.NElements(); i++)
+    {
+        gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
+    }
+    
+    for( i = 0; i < elms.NElements(); i++)
+    {
+        gEls[i] = gmesh->CreateGeoElement(ElType, elms[i], matId, i);
+    }
+    
+    // Constructing neighborhood
+    
+    gmesh->BuildConnectivity();
+    
+    
+    
+    {// Dividing elements to create a mesh of 4 elems around NACA surface
+        
+        //first row near naca
+        TPZVec<TPZGeoEl * > firstDiv, secondDiv, thirdDiv;
+        TPZManVector<REAL, 3> pt(3,0.);
+        int ii;//, jj;
+        for(i = 0; i < 2*m; i++)
         {
-	   gEls[i*2*m+j]->Divide(firstDiv);
-	   gEls[(i+1)*2*m-j-1]->Divide(firstDiv);
+            gEls[i]->Divide(firstDiv);
+            pt[0] = firstDiv[0]->NodePtr(1)->Coord(0);
+            pt[1] = firstDiv[0]->NodePtr(1)->Coord(1);
+            profile.ProjectPoint(pt, 32*m + 1);
+            firstDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+            firstDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+            
+            if(fabs(i-m+.5) > 3*m/4 || fabs(i-m+.5) < m/5)
+            {
+                for(j = 0; j < 2; j++) {
+                    firstDiv[j]->Divide(secondDiv);
+                    pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
+                    pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
+                    profile.ProjectPoint(pt, 64*m + 1);
+                    secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+                    secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+                    for(ii = 0; ii < 2; ii++)
+                    {
+                        secondDiv[ii]->Divide(thirdDiv);
+                        pt[0] = thirdDiv[0]->NodePtr(1)->Coord(0);
+                        pt[1] = thirdDiv[0]->NodePtr(1)->Coord(1);
+                        profile.ProjectPoint(pt, 256*m + 1);
+                        thirdDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+                        thirdDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+                    }
+                    if(i == 0 || i == 2*m-1)
+                        for(ii = 2; ii < 4; ii++)
+                        {
+                            secondDiv[ii]->Divide(thirdDiv);
+                        }
+                }
+                for(j = 2; j < 4; j++)
+                {
+                    firstDiv[j]->Divide(secondDiv);
+                }
+            }else{
+                for(j = 0; j < 2; j++) {
+                    firstDiv[j]->Divide(secondDiv);
+                    pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
+                    pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
+                    profile.ProjectPoint(pt, 8*m + 1);
+                    secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+                    secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+                }
+            }
         }
-
-   }
-
-  // if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
-
-   return gmesh;
+        
+        // first n/3 rows of elements near naca
+        for(i = 2*m; i < 2*(n/3)*m; i++)
+        {
+            gEls[i]->Divide(firstDiv);
+            if( ((i==2*m)||(i==4*m-1)) )
+                for(j = 0; j < 4; j++)
+                {
+                    firstDiv[j]->Divide(secondDiv);
+                }
+        }
+        
+        // exit mesh
+        for(j = 0; j < p; j++)
+        {
+            for(i = 0; i < min(2*(p-j+1),2*l); i++)
+            {
+                gEls[2*m*n+j*(l*2)+i]->Divide(firstDiv);
+                if(i < 2 && j < p ) {
+                    if(j < p/4)
+                    {
+                        for(ii = 0; ii < 2; ii++)
+                        {
+                            firstDiv[ii + 2*i]->Divide(secondDiv);
+                            if(j < p/4)
+                            {
+                                secondDiv[2*i]->Divide(thirdDiv);
+                                secondDiv[2*i+1]->Divide(thirdDiv);
+                            }
+                            firstDiv[ii + 2 -2*i]->Divide(secondDiv);
+                        }
+                    }
+                    else{
+                        for(ii = 0; ii < 2; ii++)
+                        {
+                            firstDiv[ii + 2 * i]->Divide(secondDiv);
+                        }
+                        
+                    }
+                }
+            }
+        }
+        // conic exit mesh
+        for(i = 0; i < n-l; i++)
+        {
+            int index = 2*m*n + 2*l*p + l + p + 2*(l+p)*i;
+            gEls[index-1]->Divide(firstDiv);
+            {
+                if(i == 0)
+                {
+                    firstDiv[0]->Divide(secondDiv);
+                    firstDiv[1]->Divide(secondDiv);
+                }else{
+                    firstDiv[1]->Divide(secondDiv);
+                    firstDiv[2]->Divide(secondDiv);
+                }
+            }
+            gEls[index]->Divide(firstDiv);
+            {
+                if(i == 0)
+                {
+                    firstDiv[2]->Divide(secondDiv);
+                    firstDiv[3]->Divide(secondDiv);
+                }else{
+                    firstDiv[0]->Divide(secondDiv);
+                    firstDiv[3]->Divide(secondDiv);
+                }
+            }
+        }
+        
+        // shock wings
+        for(i = n/3; i < n/2-1; i++)
+            for(j = l + i - n/3; j < m; j++)
+            {
+                gEls[i*2*m+j]->Divide(firstDiv);
+                gEls[(i+1)*2*m-j-1]->Divide(firstDiv);
+            }
+        
+    }
+    
+    // if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
+    
+    return gmesh;
 }
 
 

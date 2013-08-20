@@ -30,7 +30,7 @@
  */
 
 
-class TPZMixedPoisson : public TPZMatPoisson3d{
+class TPZMixedPoisson : public TPZMatPoisson3d {
     
 protected:
 	/** @brief Forcing function value */
@@ -55,15 +55,15 @@ public:
     
     virtual int NStateVariables();
 	
-	void SetParameters(REAL dif){
+	void SetParameters(REAL dif) {
 		fk = dif;
 	}
 	
-	void GetParameters(REAL &dif){
+	void GetParameters(REAL &dif) {
 		dif = fk;
 	}
 	
-	void SetInternalFlux(REAL flux){
+	void SetInternalFlux(REAL flux) {
 		ff = flux;
 	}
     
@@ -74,10 +74,9 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-	  virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
-	 virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
-    
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
 	
 	virtual int VariableIndex(const std::string &name);

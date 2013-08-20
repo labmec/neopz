@@ -156,9 +156,10 @@ template<>
 int TPZGeoElRefPattern<TPZQuadraticLine>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICLINEID;
 }
-template class 
+#ifndef BORLAND
+template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
-
+#endif
 
 
 template class pzgeom::TPZNodeRep<3,TPZQuadraticLine>;

@@ -15,6 +15,8 @@
 #include "pzbfilestream.h" // TPZBFileStream, TPZFileStream
 #include "pzmd5stream.h"
 
+#include "pzlog.h"
+
 #include <fstream>
 #include <string>
 

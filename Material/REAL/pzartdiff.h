@@ -995,5 +995,9 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
 	}
 }
 
+#ifndef BORLAND
+template class TPZRestoreClass<TPZArtDiff,TPZARTDIFFID>;
+#endif
+
 #endif
 

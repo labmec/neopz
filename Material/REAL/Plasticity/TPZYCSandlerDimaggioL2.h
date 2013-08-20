@@ -262,7 +262,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
         }
     #endif
 	
-	REAL ResTol = 1.e-6;
+//	REAL ResTol = 1.e-6;
 	
 	REAL L_REAL;
 //  REAL X_REAL;
@@ -358,7 +358,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
         {
         
             T FL2 = FL * FL;
-            T FL3 = FL2;// / T(2.);
+//            T FL3 = FL2;// / T(2.);
         
             T Temp = (I1-L)/ T(fR * fR) - I1 / T(6.);
             Temp = Temp / FL2 * T(2.);

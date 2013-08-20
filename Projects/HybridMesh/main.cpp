@@ -405,8 +405,9 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
     for (int el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
-        if (elgr) {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+        if(elgr) {
+            TPZCondensedCompEl *cond = NULL;
+            cond = new TPZCondensedCompEl(elgr);
         }
     }
     cmesh->CleanUpUnconnectedNodes();

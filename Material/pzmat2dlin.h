@@ -19,7 +19,7 @@ class TPZVec;
  * @ingroup material
  * @brief Implements a bi-dimensional linear problem.
  */
-class TPZMat2dLin : public TPZMaterial{
+class TPZMat2dLin : public TPZMaterial {
 	
 	TPZFMatrix<STATE>    fKxx, fKxy, fKyx, fKyy, fKx0, fK0x, fKy0, fK0y, fK00, fXf;
 	public :
@@ -91,9 +91,9 @@ class TPZMat2dLin : public TPZMaterial{
 	virtual int NSolutionVariables(int index);
 	
 protected:
-	void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout);
+	void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<STATE> &Solout);
 public:
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -102,14 +102,22 @@ public:
 	
 	TPZBndCond *OutflowFlux(TPZMaterial * &reference, int bc);
 	
+    /** @{
+     * @name Save and Load methods
+     */
+    
 	/** @brief returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
+    
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
+    /**
+     * @}
+     */
 };
 
 #endif

@@ -919,6 +919,8 @@ template class TPZDohrSubstruct<float>;
 template class TPZDohrSubstruct<double>;
 template class TPZDohrSubstruct<long double>;
 
+//#ifdef STATE_COMPLEX
 template class TPZDohrSubstruct<std::complex<float> >;
 template class TPZDohrSubstruct<std::complex<double> >;
 template class TPZDohrSubstruct<std::complex<long double> >;
+//#endif

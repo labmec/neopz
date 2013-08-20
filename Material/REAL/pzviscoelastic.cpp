@@ -318,4 +318,6 @@ int TPZViscoelastic::ClassId() const
 	return TPZVISCOELASTICITYMATERIALID;
 }
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZViscoelastic,TPZVISCOELASTICITYMATERIALID>;
+#endif

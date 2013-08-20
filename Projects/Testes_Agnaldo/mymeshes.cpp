@@ -366,7 +366,7 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
     
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	REAL co[9][2] = {{0.,0.},{L/2,0.},{L,0.},{0.,w/2},{L/2,w/2},{L,w/2},{0.,w},{L/2,w},{L,w}};
-	int indices[1][9] = {{0,1,2,3,4,5,6,7,8}};
+//	int indices[1][9] = {{0,1,2,3,4,5,6,7,8}};
 	
 	int nnode = 9;
 	const int nelem = 5;
@@ -437,7 +437,7 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w){
     
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	REAL co[4][2] = {{0.,0.},{L,0.},{L,w},{0.,w}};
-	int indices[1][4] = {{0,1,2,3}};
+//	int indices[1][4] = {{0,1,2,3}};
 	
 	int nnode = 4;
 	const int nelem = 1;

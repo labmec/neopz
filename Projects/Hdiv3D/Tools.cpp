@@ -623,8 +623,8 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 
 TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
-		int nelem=4;
-		TPZGeoEl *elvec[4/*nelem*/];
+//		const int nelem=4;
+//		TPZGeoEl *elvec[nelem];
 		//Criar ns
 		const int nnode = 9;//AQUI
 		const int dim = 2;//AQUI
@@ -632,7 +632,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		REAL co[nnode][dim] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.},{0.5,0},{1.,0.5},{0.5,1.},{0.,0.5},{0.5,0.5}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.},{0.,-1.},{0.,1.}};
 		
 		
-		int nodindAll[4][4]={{0,4,8,7},{4,1,5,8},{8,5,2,6},{7,8,6,3}};//como serao enumerados os nos
+//		int nodindAll[4][4]={{0,4,8,7},{4,1,5,8},{8,5,2,6},{7,8,6,3}};//como serao enumerados os nos
 		
 		
 		int nod;

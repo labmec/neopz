@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Project to save and load information of meshes into the disk.
+ */
 #include "pzvec.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
@@ -7,6 +10,7 @@
 #include "pzcheckgeom.h"
 
 #include "pzmatrix.h"
+#include "pzsave.h"
 
 #include "pzgeoel.h"
 #include "pzgnode.h"
@@ -28,14 +32,23 @@
 #include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
 
+#include "TPZRefPatternTools.h"
+
+#include "../Poisson_ArcTan/pzgclonemesh.h"
+#include "../Poisson_ArcTan/pzcclonemesh.h"
+
 #include <time.h>
 #include <stdio.h>
 #include <fstream>
 
 #include "pzlog.h"
 
-void ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands);
+int ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands);
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &command);
+
+
+int gDebug = 0;
+
 
 /** Ideia principal: Recuperar uma malha computacional do disco, realizar mudancas registradas em um arquivo (lendo apenas as linhas com o referencia ao nome da malha, e a malha final deve ser a mesma obtida no processo inicial.
  */
@@ -45,27 +58,33 @@ int main() {
     InitializePZLOG();
 #endif
     
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
+   // gRefDBase.InitializeRefPatterns();
+
     TPZFileStream fstr;
     std::string filename, cmeshname;
-    std::cout << "Name of file to load mesh ";
+    std::cout << std::endl << "INPUT - Name of file to load mesh ";
     std::cin >> cmeshname;
     filename = cmeshname + ".txt";
-    cmeshname.insert(11,1,0);
     fstr.OpenRead(filename);
+    cmeshname.insert(11,1,0);
 	
-    // Creating geometric mesh
-	TPZGeoMesh gmesh;
-    gmesh.Read(fstr,0);
-    TPZCompMesh cmesh;
-    cmesh.Read(fstr,&gmesh);
-    int dim = cmesh.Dimension();
+    // Files with information meshes
+    std::ofstream outfirstmesh("InitialCMesh.txt");
     std::ofstream outmesh("FinalCMesh.txt");
-    
-    // Reading file "tpzinterpolateddivide.log"
-    TPZStack<std::string> commands;
-    std::ifstream log("tpzinterpolateddivide.txt");
-    ExtractingCommandRegistered(log,cmeshname,commands);
-    cmesh.Print(outmesh);
+
+    // Creating geometric mesh
+	TPZGeoMesh* gmesh;
+    gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::Restore(fstr,0));
+//    gmesh.Read(fstr,0);
+    TPZCompMesh* cmesh;
+    cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::Restore(fstr,gmesh));
+//    cmesh.Read(fstr,gmesh);
+    cmesh->AutoBuild();
+    int dim = cmesh->Dimension();
+    cmesh->Print(outfirstmesh);
+    outfirstmesh.close();
     
     /** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
@@ -74,48 +93,144 @@ int main() {
 
     // Resolver
     // Solve using symmetric matrix then using Cholesky (direct method)
-    TPZAnalysis an(&cmesh);
-    TPZSkylineStructMatrix strskyl(&cmesh);
+    TPZAnalysis an(cmesh);
+    TPZSkylineStructMatrix strskyl(cmesh);
     an.SetStructuralMatrix(strskyl);
     {
         std::stringstream sout;
-        sout << "Poisson" << dim << "D_MESH.vtk";
-        an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+        sout << "LoadMesh_" << dim << "D.vtk";
+  //      an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
     }
 
     // Post processing
     an.PostProcess(0,dim);
 
+    // Cleaning LOG directory
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
+    
+
+    // Reading file "pzinterpolateddivide.txt"
+    TPZStack<std::string> commands;
+    std::ifstream log("pzinterpolatedrefine.txt");
+    if(ExtractingCommandRegistered(log,cmeshname,commands)) {
+        ApplyCommand(cmesh,commands);
+        cmesh->AutoBuild();
+        cmesh->ExpandSolution();
+    }
+
+    cmesh->Print(outmesh);
+    outmesh.close();
+    TPZAnalysis analysis(cmesh);
+    {
+        std::stringstream sout;
+        sout << "LoadAndRefinedMesh_" << dim << "D.vtk";
+        analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+    }
+    
+    // Post processing
+    analysis.PostProcess(0,dim);
+
+
+    std::cout << std::endl << "\tThe END." << std::endl;
     return 0;
 }
 
-// read a log line to extract command after a identifier (pointer of computational object)
-int GetCommand(std::string &command,int &argindex) {
+// Save information of the current mesh in disk
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,bool check) {
+    if(!cmesh || timessave < 0) {
+        std::cout << "SaveCompMesh - Bad argument: " << (void *)cmesh << " " << timessave << std::endl;
+        return;
+    }
+#ifdef LOG4CXX
+    {
+        TPZFileStream fstrthis;
+        std::stringstream soutthis;
+        if(cmeshmodified) soutthis << (void*)cmeshmodified;
+        else soutthis << (void*)cmesh;
+        // Rename the computational mesh
+        cmesh->SetName(soutthis.str());
+        soutthis << "_" << timessave;
+        std::string filenamethis("LOG/");
+        filenamethis.append(soutthis.str());
+        filenamethis.append(".txt");
+        fstrthis.OpenWrite(filenamethis);
+        
+        // Renaming the geometric mesh
+        std::stringstream gout;
+        gout << (void*)cmesh->Reference();
+        cmesh->Reference()->SetName(gout.str());
+        
+        // Save geometric mesh data
+        cmesh->Reference()->Write(fstrthis,0);
+        // Save computational mesh data
+        cmesh->Write(fstrthis,0);
+        // To check printing computational mesh data in file
+        if(check) {
+            std::string filename("Mesh_");
+            filename.append(soutthis.str());
+            filename.append(".txt");
+            std::ofstream arq(filename.c_str());
+            cmesh->Print(arq);
+        }
+    }
+#endif
+}
+
+/* read a log line to extract command after a identifier (pointer of computational object)
+int GetCommand(std::string &command,int nargs,TPZManVector<int,5> &argindex) {
     std::string commandknowed[32];
     commandknowed[0] = "Divide";
     commandknowed[1] = "PRefine";
+    std::stringstream commandline(command);
+    std::string commandname;
+    commandline >> commandname >> nargs;
+    argindex = new 
     
     for(int i=0;i<2;i++) {
-        if(command.compare(commandknowed[i])>0)
+        if(command.compare(commandknowed[i].c_str()))
             return i;
     }
     return -1;
-}
-void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &command) {
-    int i, index;
-    TPZVec<int> subs;
-    for(i=0;i<command.NElements();i++) {
-        int icommand = GetCommand(command[i],index);
-        switch(icommand) {
-            case 0:
-                cmesh->Divide(index,subs);
-            default:
-                break;
+}*/
+void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
+    int i;
+    long index, indexcel;
+    std::string commandname;
+    TPZGeoMesh *gmesh = NULL;
+    gmesh = cmesh->Reference();
+
+    // Making all divide first
+    for(i=0;i<commands.NElements();i++) {
+        std::stringstream commandline(commands[i]);
+        commandline >> commandname;
+        if(!commandname.compare("Divide")) {
+            TPZVec<int> subs;
+            commandline >> index;
+            commandline >> index;
+            indexcel = gmesh->ElementVec()[index]->Reference()->Index();
+            cmesh->Divide(indexcel, subs, 1);
+        }
+    }
+    // Making all refines
+    for(i=0;i<commands.NElements();i++) {
+        std::stringstream commandline(commands[i]);
+        commandline >> commandname;
+        if(!commandname.compare("PRefine")) {
+            int order;
+            commandline >> index;
+            commandline >> index;
+            commandline >> order;
+            indexcel = gmesh->ElementVec()[index]->Reference()->Index();
+            TPZInterpolatedElement *cint = dynamic_cast <TPZInterpolatedElement *> (cmesh->ElementVec()[indexcel]);
+            cint->PRefine(order);
         }
     }
 }
-// Read tpzinterpolateddivide.log and apply all the refinements on cmesh
-void ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands) {
+// Read tpzinterpolateddivide.txt and apply all the refinements on cmesh
+// Returns the number of commands extracted
+int ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands) {
     std::string meshname;
     std::string commandline;
 
@@ -123,11 +238,14 @@ void ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZS
         std::getline(file, commandline);
         std::stringstream strcommand(commandline);
         strcommand >> meshname;
-        bool c = meshname==cmeshname;
-        if(!c) {
+        if(!meshname.compare(cmeshname.c_str())) {
             char command[256];
+            char *p;
             strcommand.getline(command,256);
-            commands.Push(command);
+            p = command;
+            while(*p == ' ') p++;
+            if(*p) commands.Push(p);
         }
     }
+    return commands.NElements();
 }

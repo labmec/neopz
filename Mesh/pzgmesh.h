@@ -48,6 +48,7 @@ template <class TGeo> class TPZGeoElRefPattern;
 
 class  TPZGeoMesh : public TPZSaveable {
 	
+protected:
 	/** @brief TPZGeoMesh name for model identification */
 	std::string fName;
 	
@@ -125,7 +126,7 @@ public:
 	
 	int ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
 	
-	void SetName(const char *name);
+	void SetName(const std::string &nm);
 	
 	std::string &Name() { return fName; }
 	

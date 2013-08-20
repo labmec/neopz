@@ -849,4 +849,3 @@ int TPZArtDiff::ClassId() const {
     return TPZARTDIFFID;
 }
 
-template class TPZRestoreClass<TPZArtDiff,TPZARTDIFFID>;

@@ -531,12 +531,15 @@ int TPZBlock<std::complex<long double> >::ClassId() const
 }
 
 
+#ifndef BORLAND
 template class TPZRestoreClass< TPZBlock<float> , TPZBLOCK_FLOAT_ID>;
 template class TPZRestoreClass< TPZBlock<double> , TPZBLOCK_DOUBLE_ID>;
 template class TPZRestoreClass< TPZBlock<long double> , TPZBLOCK_LONG_DOUBLE_ID>;
 template class TPZRestoreClass< TPZBlock<std::complex<float> > , TPZBLOCK_COMPLEX_FLOAT_ID>;
 template class TPZRestoreClass< TPZBlock<std::complex<double> > , TPZBLOCK_COMPLEX_DOUBLE_ID>;
 template class TPZRestoreClass< TPZBlock<std::complex<long double> > , TPZBLOCK_COMPLEX_LONG_DOUBLE_ID>;
+#endif
+
 
 /** Saves the element data to a stream */
 template<class TVar>

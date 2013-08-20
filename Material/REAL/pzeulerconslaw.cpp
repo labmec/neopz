@@ -2517,6 +2517,8 @@ int TPZEulerConsLaw::ClassId() const {
     return TPZEULERCONSLAW2ID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZEulerConsLaw, TPZEULERCONSLAW2ID>;
+#endif
 

@@ -461,8 +461,11 @@ int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const
 	return TPZGEOELEMENTELLIPSE3DID;
 }
 
+
+#ifndef BORLAND
 template class 
 TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>, TPZGEOELEMENTELLIPSE3DID>;
+#endif
 
 
 template class TPZGeoElRefLess<TPZEllipse3D>;

@@ -59,14 +59,12 @@ int TPZHelmholtzComplex1D::NSolutionVariables(int var) {
 }
     
 /** @brief Returns the solution associated with the var index based on the finite element approximation */
-void TPZHelmholtzComplex1D::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
-#ifdef STATE_COMPLEX
+void TPZHelmholtzComplex1D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) {
 	if(var == 0) {
 		Solout[0] = data.sol[0][0].real();
 		Solout[1] = data.sol[0][0].imag();
 		return;
 	}
-#endif
 	TPZMaterial::Solution(data, var, Solout);
 }
 

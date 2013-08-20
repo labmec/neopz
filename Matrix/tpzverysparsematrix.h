@@ -93,7 +93,10 @@ public:
 						 const int opt = 0, const int stride = 1) const;
 	
 	/** @brief It makes *T the transpose of current matrix. */
-	void Transpose(TPZVerySparseMatrix<TVar>* T) const;
+	virtual void Transpose(TPZVerySparseMatrix<TVar>* T) const;
+	virtual void Transpose(TPZMatrix<TVar>*const T) const {
+        TPZMatrix<TVar>::Transpose(T);
+    }
     
 	/** @brief Saveable methods */
 	int ClassId() const

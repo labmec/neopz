@@ -256,23 +256,23 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 	
 	int numeq = ef.fMat.Rows();
-	TPZFMatrix<REAL> efTemp(numeq,1,0.);
+	TPZFMatrix<STATE> efTemp(numeq,1,0.);
 	
 	TPZMaterialData data, dataRef;
-	this      ->InitMaterialData(data);
-	pIntSpRef ->InitMaterialData(dataRef);
+	this->InitMaterialData(data);
+	pIntSpRef->InitMaterialData(dataRef);
     dataRef.fNeedsSol = true;
-	data.p	= this      ->MaxOrder();
-	dataRef.p = pIntSpRef ->MaxOrder();
-	int dim = pIntSpRef ->Dimension();
+	data.p	= this->MaxOrder();
+	dataRef.p = pIntSpRef->MaxOrder();
+	int dim = pIntSpRef->Dimension();
 	TPZManVector<REAL,3> intpoint(dim,0.);
 	TPZManVector<REAL,3> intpointRef(dim,0);
 	REAL weight = 0.;
 	REAL weightRef = 0;
-	const TPZIntPoints &intrule    = this      ->GetIntegrationRule();
-	const TPZIntPoints &intruleRef = pIntSpRef ->GetIntegrationRule();
+	const TPZIntPoints &intrule    = this->GetIntegrationRule();
+	const TPZIntPoints &intruleRef = pIntSpRef->GetIntegrationRule();
 	
-	int intrulepoints    = intrule.   NPoints();
+	int intrulepoints    = intrule.NPoints();
 	int intrulepointsRef = intruleRef.NPoints();
 	if(intrulepoints != intrulepointsRef)
 	{
@@ -281,12 +281,12 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	}
 	
 	int nshape = this->NShapeF();
-	TPZFMatrix<REAL> ekTemp(nshape, nshape, 0.);
+	TPZFMatrix<STATE> ekTemp(nshape, nshape, 0.);
 	
 	TPZManVector<int,10> varIndex;
 	int stackedVarSize = pPostProcMat->NStateVariables();
 	pPostProcMat->GetPostProcessVarIndexList(varIndex);
-	TPZManVector<REAL> Sol;
+	TPZVec<STATE> Sol;
 	
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
 	{
@@ -354,15 +354,15 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		
 	}//loop over integration points
 	
-	TPZFMatrix<REAL> ekCopy(ekTemp);
+	TPZFMatrix<STATE> ekCopy(ekTemp);
 	
-	TPZFMatrix<REAL> rhsTemp(nshape, 1, 0.);
+	TPZFMatrix<STATE> rhsTemp(nshape, 1, 0.);
 	for(int i_st = 0; i_st < stackedVarSize; i_st++)
 	{
 		
 		efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
 		
-	    TPZFMatrix<REAL> rhsCopy(rhsTemp), result;
+	    TPZFMatrix<STATE> rhsCopy(rhsTemp), result;
 		//	int status = ekTemp.Solve_Cholesky(&(rhsTemp));
 	    int status = ekTemp.Solve_LU(&(rhsTemp));
 		

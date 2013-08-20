@@ -125,4 +125,6 @@ template class TPZSequenceSolver<std::complex<double> >;
 template class TPZSequenceSolver<long double>;
 template class TPZSequenceSolver<std::complex<long double> >;
 
+#ifndef BORLAND
 template class TPZRestoreClass< TPZSequenceSolver<REAL>, TPZSQUENCESOLVER_ID>;
+#endif

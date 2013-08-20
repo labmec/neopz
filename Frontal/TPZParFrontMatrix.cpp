@@ -72,7 +72,7 @@ TPZParFrontMatrix<TVar, store, front>::~TPZParFrontMatrix(){
 }
 
 template<class TVar, class store, class front>
-void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex)
+void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex)
 {
 	
 	// message #1.3 to fFront:TPZFront
@@ -84,7 +84,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-	int mineq, maxeq;
+	long mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {
@@ -105,7 +105,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 	this->fDecomposed = this->fFront.GetDecomposeType();
 } 
 template<class TVar, class store, class front>
-void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
+void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
@@ -115,7 +115,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-	int mineq, maxeq;
+	long mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {

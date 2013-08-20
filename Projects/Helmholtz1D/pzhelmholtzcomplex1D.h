@@ -59,7 +59,7 @@ public:
     virtual int NSolutionVariables(int var);
     
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
 
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.

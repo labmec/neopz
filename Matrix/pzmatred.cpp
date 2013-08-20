@@ -724,5 +724,8 @@ template class TPZMatRed<std::complex<float>, TPZFMatrix<std::complex<float> > >
 template class TPZMatRed<std::complex<double>, TPZFMatrix<std::complex<double> > >;
 template class TPZMatRed<std::complex<long double>, TPZFMatrix<std::complex<long double> > >;
 
+
+#ifndef BORLAND
 template class TPZRestoreClass<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> >, TPZMATRED_VERYSPARSE_ID>;
 template class TPZRestoreClass<TPZMatRed<REAL, TPZFMatrix<REAL> >, TPZMATRED_FMATRIX_ID>;
+#endif

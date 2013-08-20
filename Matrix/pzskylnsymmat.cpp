@@ -1605,6 +1605,8 @@ template class TPZSkylNSymMatrix<std::complex<double> >;
 template class TPZSkylNSymMatrix<long double>;
 template class TPZSkylNSymMatrix<std::complex<long double> >;
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZSkylNSymMatrix<double>, TSKYLNSYMMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass<TPZSkylNSymMatrix<float>, TSKYLNSYMMATRIX_FLOAT_ID>;
+#endif
 

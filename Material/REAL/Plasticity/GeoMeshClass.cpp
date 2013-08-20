@@ -109,7 +109,7 @@ TPZGeoMesh * GeoMeshClass::Talude()
     // gRefDBase.InitializeRefPatterns();
     
     
-    int nodeId = 0, elementId = 0, matElId = 1;
+    int nodeId = 0, elementId = 0;
     
     double nodecoordX , nodecoordY , nodecoordZ ;
     read >> numnodes;

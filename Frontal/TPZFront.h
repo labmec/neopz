@@ -52,9 +52,9 @@ public:
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth 
 	 * @param destinationindex Destination index of each element added
 	 */
-	void SymbolicAddKel(TPZVec < int > & destinationindex);
+	void SymbolicAddKel(TPZVec < long > & destinationindex);
 
-	int Work(){
+	int Work() {
 		return fWork;
 	}
 	

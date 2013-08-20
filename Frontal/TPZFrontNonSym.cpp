@@ -318,9 +318,9 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
+void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex)
 {
-	int i, j, ilocal, jlocal, nel;
+	long i, j, ilocal, jlocal, nel;
 	nel=sourceindex.NElements();
 	for (i = 0; i < nel; i++) {
 		// message #1.1.1 to this:TPZFront
@@ -336,9 +336,9 @@ void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourcein
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex)
+void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex)
 {
-    int i, j, ilocal, jlocal, nel;
+    long i, j, ilocal, jlocal, nel;
     nel = destinationindex.NElements();
     for(i=0;i<nel;i++){
         ilocal = this->Local(destinationindex[i]);
@@ -402,7 +402,7 @@ void TPZFrontNonSym<TVar>::Compress(){
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::SymbolicAddKel(TPZVec < int > & destinationindex)
+void TPZFrontNonSym<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
 {
 	int i, loop_limit, aux;
 	loop_limit=destinationindex.NElements();
@@ -416,16 +416,16 @@ void TPZFrontNonSym<TVar>::SymbolicAddKel(TPZVec < int > & destinationindex)
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::SymbolicDecomposeEquations(int mineq, int maxeq)
+void TPZFrontNonSym<TVar>::SymbolicDecomposeEquations(long mineq, long maxeq)
 {
-	int i;
+	long i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
 
 template<class TVar>
-void TPZFrontNonSym<TVar>::DecomposeEquations(int mineq, int maxeq, TPZEqnArray<TVar> & eqnarray){
+void TPZFrontNonSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArray<TVar> & eqnarray){
 	// message #1.1 to eqnarray:TPZEqnArray
-	int ieq;
+	long ieq;
 	
 	eqnarray.Reset();
 	eqnarray.SetNonSymmetric();
@@ -487,7 +487,7 @@ void TPZFrontNonSym<TVar>::main()
 	TPZFrontNonSym TestFront(matsize);
 	
 	
-	TPZVec<int> DestIndex(matsize);
+	TPZVec<long> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 	
 	TestFront.SymbolicAddKel(DestIndex);

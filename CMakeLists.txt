@@ -369,13 +369,14 @@ install(FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
 set(pz_configh ${CONFIG_H})# PARENT_SCOPE)
 
 #increment all the directories where the sources files is
-
+if(STATE_REAL)
 add_subdirectory(PerfUtil)
 if(BUILD_PERF_TESTS)
 	add_subdirectory(PerfTests)
 endif()
 if (BUILD_PYTHON_BINDING)
 	add_subdirectory(Python)
+endif()
 endif()
 
 add_subdirectory(Util)

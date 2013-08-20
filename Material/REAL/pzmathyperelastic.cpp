@@ -88,7 +88,16 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 			}
 		}
 	}
-	
+/*    for(int ii=0;ii<3;ii++)
+        for(int jj=0;jj<3;jj++) {
+            fK2[ii][jj] = (STATE)0.;
+            fK3[ii][jj] = (STATE)0.;
+            fK4[ii][jj] = (STATE)0.;
+            fK6[ii][jj] = (STATE)0.;
+            fK7[ii][jj] = (STATE)0.;
+            fK8[ii][jj] = (STATE)0.;
+        }
+*/
 #else
 	int i;
 	STATE global[3][3][9];
@@ -140,7 +149,7 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	fK6[2][0] =  vx;
 	fK6[2][1] = -ux-1.;
 	
-	for(i=0; i<3; i++) fK7[i][i] = 0.;
+	fK7[0][0] = fK7[1][1] = fK7[2][2] = 0.;
 	fK7[0][1] =  wy;
 	fK7[0][2] = -vy-1.;
 	fK7[1][0] = -wy;

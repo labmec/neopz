@@ -115,3 +115,7 @@ void VisualMatrixVTK(TPZFMatrix<TVar> & matrix, const std::string &outfilename)
 template void VisualMatrix<float>(TPZFMatrix<float> & matrix, const std::string &outfilename);
 template void VisualMatrix<double>(TPZFMatrix<double> & matrix, const std::string &outfilename);
 template void VisualMatrix<long double>(TPZFMatrix<long double> & matrix, const std::string &outfilename);
+
+template void VisualMatrix<std::complex<float> >(TPZFMatrix<std::complex<float> > & matrix, const std::string &outfilename);
+template void VisualMatrix<std::complex<double> >(TPZFMatrix<std::complex<double> > & matrix, const std::string &outfilename);
+template void VisualMatrix<std::complex<long double> >(TPZFMatrix<std::complex<long double> > & matrix, const std::string &outfilename);

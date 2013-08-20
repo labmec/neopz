@@ -1056,9 +1056,8 @@ template <class T>
 void TPZTensor<T>::HaighWestergaard(T &LodeAngle, T &qsi, T &rho,
 									TPZTensor<T> & dLodeAngle, TPZTensor<T> & dQsi, TPZTensor<T> & dRho) const
 {
-	T I1(this->I1()),
-	J2(this->J2()),
-	J3(this->J3());
+//	T I1(this->I1()),
+    T J2(this->J2()), J3(this->J3());
 	T sqrtJ2 = sqrt(J2);
 	
 	TPZTensor<T> dJ2, dJ3;
@@ -1073,7 +1072,7 @@ void TPZTensor<T>::HaighWestergaard(T &LodeAngle, T &qsi, T &rho,
 	TPZTensor<T> TempTensor;
 	
 	LodeAngle = acos( J3/J2/sqrtJ2*T( sqrt(27.)/2.) ) / T(3.);
-	T pi23 = T(2. * M_PI / 3.);
+//	T pi23 = T(2. * M_PI / 3.);
 	
 	T temp = sqrt( T(3.) / ( J2*J2*J2 * T(4.) - J3*J3 * T(27.)) );
 	
@@ -1138,7 +1137,8 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const
     //    if(I2<T(1.e-6))I2=T(1.e-6);
     //    if(I3<T(1.e-6))I3=T(1.e-6);
     
-    T R,THETA,Q,temp,temp2,verif;
+    T R,THETA,Q,temp,temp2;
+//    T verif;
     R = ( T(-2.)*(I1*I1*I1)+ T(9.)*I1*I2 - T(27.)* I3 )/54.;
     Q = ( (I1*I1) - (T(3.)*I2) )/T(9.);
     temp2 = (sqrt(Q*Q*Q));
@@ -1492,9 +1492,8 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 template <class T>
 void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTensor<T> &dSigma2,TPZTensor<T> &dSigma3)const
 {
-	T I1(this->I1()),
-	J2(this->J2()),
-	J3(this->J3());
+	T I1(this->I1()), J2(this->J2());
+//	T J3(this->J3());
 	
 	if(fabs( shapeFAD::val(J2) ) < 1.e-6)J2 = 1.e-6;
     //	if(fabs( shapeFAD::val(J2) ) < 1.e-6)return;

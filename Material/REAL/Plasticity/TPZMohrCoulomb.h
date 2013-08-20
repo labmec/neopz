@@ -91,6 +91,10 @@ public:
 		MOHRCOULOMBPARENT::fER.SetUp(young, poisson);
 	}
 	
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+        MOHRCOULOMBPARENT::SetUp(epsTotal);
+    }
+
 	virtual void Print(std::ostream & out) const
 	{
 		out << "\n" << this->Name();

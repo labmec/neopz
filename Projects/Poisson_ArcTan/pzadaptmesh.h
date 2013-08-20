@@ -50,7 +50,7 @@ public:
                                  void (*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
                                  TPZVec<REAL> &truervec, TPZVec<REAL> &effect,
                                  std::ofstream &out,
-                                 int use_trueerror = 0,MElementType eltype=EOned);
+                                 int use_trueerror = 0,MElementType eltype=EOned,int print = 0);
     
     static void DeleteElements(TPZCompMesh *mesh);
     

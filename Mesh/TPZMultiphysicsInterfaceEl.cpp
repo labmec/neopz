@@ -457,7 +457,7 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 	
 }
 
-void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol)
+void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol)
 {
 	
 	if(var >= 100) {

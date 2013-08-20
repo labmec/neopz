@@ -93,7 +93,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 				ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
 				break;
 			default:
-				PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+				PZError << "TPZNonLinearPoisson3d::Contribute dimension error " << fDim << endl;
 		}
 	}
 	
@@ -234,7 +234,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 				ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
 				break;
 			default:
-				PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+				PZError << "TPZNonLinearPoisson3d::Contribute dimension error " << fDim << endl;
 		}
 	}
 	

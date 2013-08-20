@@ -173,7 +173,7 @@ int TPZMaterial::NSolutionVariables(int index) {
 	return 0;
 }
 
-void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -181,23 +181,23 @@ void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);
 }
 
-void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
     this->Solution(datavec, var, Solout);
 }
 
-void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout)
+void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
 {
 		this->Solution(data,dataleftvec,datarightvec, var, Solout);
 }
 
-void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl *left, TPZCompEl *ritgh)
+void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *ritgh)
 {
 	this->Solution(data,dataleftvec,datarightvec, var, Solout, left, ritgh);
 }
 
 void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMatrix<REAL> &/*axes*/,int var,
-						   TPZVec<REAL> &Solout){
+						   TPZVec<STATE> &Solout){
 #ifdef STATE_COMPLEX
     if(var == 0) 
     {
@@ -245,7 +245,7 @@ void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 	this->ContributeBC(data, weight, fakeek, ef, bc);
 }
 
-void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	int nref=datavec.size();
 	if (nref== 1) {
 		this->Contribute(datavec[0], weight, ek,ef);

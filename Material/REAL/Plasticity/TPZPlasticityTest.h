@@ -1716,7 +1716,8 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			pPlasticModel->ApplyLoad(tempStress, tempStrain);
 			
-			int intSteps = pPlasticModel->IntegrationSteps();
+			int intSteps = 0;
+            intSteps = pPlasticModel->IntegrationSteps();
 			
 			//evaluating the converged sigma
 			pPlasticModel->ApplyStrainComputeSigma(tempStrain, tempStress);
@@ -2129,7 +2130,7 @@ inline void TPZPlasticTest::DruckerPragerTest()
 
 inline void TPZPlasticTest::MohrCoulombTest()
 {
-	int choice =1;
+//	int choice =1;
 	//TPZPlasticTest::InitializeLOG();
 	ofstream outfiletxt("mohrcoulomb.txt"); 
 	
@@ -2272,7 +2273,7 @@ inline void TPZPlasticTest::ModifiedMohrCoulombTest()
 
 inline void TPZPlasticTest::WillamWarnkeTest()
 {
-	int choice =1;
+//	int choice =1;
 	//TPZPlasticTest::InitializeLOG();
 	ofstream outfiletxt("TPZYCWillamWarnke.txt"); 
 	
@@ -2682,7 +2683,7 @@ inline void TPZPlasticTest::DruckerTest()
          }*/
 		cout << "\nstep "<< step;	
 		DP.ApplyLoad(stress,strain);
-		REAL pa = stress.I1()/3.;
+//		REAL pa = stress.I1()/3.;
 		outfiletxt1 << strain.XX() << " " << fabs(stress.XX()) << "\n";
 		outfiletxt2 << strain.YY() << " " << fabs(stress.XX()) << "\n";
 		outfiletxt3 << strain.ZZ() << " " << fabs(stress.XX()) << "\n"; 

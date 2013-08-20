@@ -305,8 +305,10 @@ int TPZCompElHDivPressureBound<TPZShapePoint>::ClassId() const
 	return TPZHDIVBOUND2POINTID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapePoint>, TPZHDIVBOUNDPOINTID>;
+#endif
 
 template<>
 int TPZCompElHDivPressureBound<TPZShapeLinear>::ClassId() const
@@ -314,8 +316,10 @@ int TPZCompElHDivPressureBound<TPZShapeLinear>::ClassId() const
 	return TPZHDIVBOUND2LINEARID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeLinear>, TPZHDIVBOUNDLINEARID>;
+#endif
 
 template<>
 int TPZCompElHDivPressureBound<TPZShapeTriang>::ClassId() const
@@ -323,8 +327,10 @@ int TPZCompElHDivPressureBound<TPZShapeTriang>::ClassId() const
 	return TPZHDIVBOUND2TRIANGLEID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeTriang>, TPZHDIVBOUNDTRIANGLEID>;
+#endif
 
 template<>
 int TPZCompElHDivPressureBound<TPZShapeQuad>::ClassId() const
@@ -332,8 +338,11 @@ int TPZCompElHDivPressureBound<TPZShapeQuad>::ClassId() const
 	return TPZHDIVBOUND2QUADID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>, TPZHDIVBOUNDQUADID>;
+#endif
+
 
 template class TPZCompElHDivBound2<TPZShapeTriang>;
 template class TPZCompElHDivBound2<TPZShapePoint>;

@@ -378,7 +378,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
     TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
     
     REAL normEpsPErr = 0.;
-    int counter = 0;
+//    int counter = 0;
     REAL lambda = 0.;
     
     succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);

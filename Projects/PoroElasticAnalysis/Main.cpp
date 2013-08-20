@@ -123,9 +123,8 @@ int main(int argc, char *argv[])
 {
 
 	//	Reading arguments 
-	char * Filetoload;	
+	char *Filetoload = NULL;
 	{
-		int argisize = argc;
 		using namespace std;
 		if (argc != 2)
 		{
@@ -201,7 +200,8 @@ int main(int argc, char *argv[])
 	
 	TPZReadGIDGrid GeometryInfoini;
 	GeometryInfoini.SetfDimensionlessL(atof(LDimension));
-	TPZGeoMesh * gmeshini = GeometryInfoini.GeometricGIDMesh(GridFileNameini);		
+	TPZGeoMesh * gmeshini = NULL;
+    gmeshini = GeometryInfoini.GeometricGIDMesh(GridFileNameini);
 	
 	TPZReadGIDGrid GeometryInfo;
 	GeometryInfo.SetfDimensionlessL(atof(LDimension));
@@ -241,7 +241,8 @@ int main(int argc, char *argv[])
 	bool UseRefMat = atoi(CharContainer);	
 	
 	if (UseRefMat) 
-	{	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "Grid" ).FirstChild( "RefMaterials" ).FirstChild( "Mat" ).ToElement();	
+	{
+        Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "Grid" ).FirstChild( "RefMaterials" ).FirstChild( "Mat" ).ToElement();
 		for( Container; Container; Container=Container->NextSiblingElement())
 		{
 			int HrefMat = atoi(Container->Attribute( "URef"));
@@ -448,7 +449,7 @@ int main(int argc, char *argv[])
 	
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "TimeData" ).FirstChild( "TimeControls" ).ToElement();		
 	CharContainer = Container->Attribute("Initial");	
-	REAL InitialTime = atof(CharContainer);
+//	REAL InitialTime = atof(CharContainer);
 	
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "TimeData" ).FirstChild( "TimeControls" ).ToElement();			
 	CharContainer = Container->Attribute("Final");	
@@ -471,7 +472,7 @@ int main(int argc, char *argv[])
 	std::ifstream Timefile (CharContainer);
 	
 	// Reading time schedule
-	REAL TimeValue	=	0.0;
+//	REAL TimeValue	=	0.0;
 	TPZVec <REAL> PrintStep(NTimeValues,0);
 	int itime = 0;
 	
@@ -1473,7 +1474,8 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				REAL KNU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[1];
 				REAL KTU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				REAL KNP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];
-				REAL KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
+				REAL KTP;
+                KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
 				REAL friction = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[5];				
 				bool docontribute = true;
 				
@@ -1524,7 +1526,8 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				REAL KNU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[1];
 				REAL KTU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				REAL KNP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];
-				REAL KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
+				REAL KTP;
+                KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
 				REAL friction = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[5];	
 				bool docontribute = false;				
 				
@@ -1626,7 +1629,7 @@ void PostProcessElasticity(TPZAnalysis &an, std::string plotfile)
 
 void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile, int dim)
 {
-	TPZBuildMultiphysicsMesh * Objectdumy;
+	TPZBuildMultiphysicsMesh * Objectdumy = NULL;
 	Objectdumy->TransferFromMultiPhysics(meshvec, mphysics);
 	
 	// TiXmlElement dummy object

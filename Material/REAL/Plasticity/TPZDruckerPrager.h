@@ -81,6 +81,9 @@ public:
 		
 	}
     
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+        DRUCKERPARENT::SetUp(epsTotal);
+    }
     
 	
 	REAL YieldRadius(TPZPlasticState<REAL> state)

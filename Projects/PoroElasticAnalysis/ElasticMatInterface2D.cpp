@@ -122,9 +122,7 @@ void ElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZMateri
 			ek(2*ir+1+2*nrowl,2*jr+2*nrowl) += weight * (+ kn *phiR(ir)*phiR(jr)*nx(1,0) + kt*phiR(ir)*phiR(jr)*tx(1,0));
 			ek(2*ir+2*nrowl,2*jr+1+2*nrowl) += weight * (+ kn *phiR(ir)*phiR(jr)*nx(0,1) + kt*phiR(ir)*phiR(jr)*tx(0,1));	
 		}
-	}	
-	
-
+	}
 	
 }
 

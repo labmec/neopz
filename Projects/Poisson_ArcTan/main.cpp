@@ -81,19 +81,23 @@ using namespace pzgeom;
 /** VARIABLES */
 /** Printing level */
 int gPrintLevel = 0;
+int printing = 1;
 
 int materialId = 1;
 int id_bc0 = -1;
 int id_bc1 = -2;
 int materialBC1 = 2;
 int anothertests = 0;
+
 char saida[512];
+
 ofstream out("OutPoissonArcTan.txt");             // To store output of the console
 ofstream outLaplace("OutLaplace.txt");
 
 int gDebug = 0;
 
-/** Rotation data */
+
+/** Rotation data to construct deformed meshes */
 bool rotating = false;
 TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
 /** angle ??? */
@@ -101,10 +105,16 @@ REAL alfa = M_PI/6.;
 REAL transx = 3.;
 REAL transy = 0.;
 
+
+/** PROBLEM WITH HIGH GRADIENT ON CIRCUNFERENCE  ---  DATA */
 STATE ValueK = 100000;
 
+
+/** To identify localization of PZ resources */
 std::string Archivo = PZSOURCEDIR;
 
+
+/** Functions to construction of geometry of problems */
 TPZGeoMesh *CreateLShapeGeoMesh(MElementType typeel);
 TPZGeoMesh *CreateGeoMesh(MElementType typeel);
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
@@ -118,12 +128,17 @@ TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL);
 TPZGeoMesh *ConstructingPyramidsInCube(REAL InitialL);
 TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typeel);
 
+/** Fucntions to apply refinement. */
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,REAL &distance,bool &isdefined);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL &radius,int ntyperefs);
+
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
+
+void DeterminingPOrderOnLevelHRefinement(TPZCompMesh *cmesh,int p);
 
 // Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
@@ -133,31 +148,42 @@ void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *f
 /** Print the elements of the computational mesh with associated element data */
 void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData);
 
+
+/** Functions for Differential equation - Right terms, solutions and derivatives */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce);
 
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
 
-void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 
+/** Utilitaries */
 void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
 
 void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
-
-void DeterminingPOrderOnLevelHRefinement(TPZCompMesh *cmesh,int p);
 
 int DefineDimensionOverElementType(MElementType typeel);
 void GetFilenameFromGID(MElementType typeel, std::string &name);
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
+// To save meshes in disk
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified=NULL,bool check=false);
+// Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
+//void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified=NULL,bool check=false);
 
+
+/** PROBLEMS */
+bool SolveSymmetricPoissonProblemOnCubeMesh();
+bool SolveLaplaceProblemOnLShapeMesh();
+
+// Generic data for problems to solve
 bool usethreads = false;
 int MaxPOrder = TPZOneDRef::gMaxP;
 
-bool SolveSymmetricPoissonProblemOnCubeMesh();
-bool SolveLaplaceProblemOnLShapeMesh();
+TPZManVector<REAL,3> CCircle(3,0.5);
+REAL RCircle = 0.25;
+
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
@@ -172,8 +198,8 @@ int main() {
 //    gRefDBase.InitializeRefPatterns();
 
     // Solving laplace problema on LShape domain in 2D.
-    if(!SolveLaplaceProblemOnLShapeMesh())
-        return 2;
+ //   if(!SolveLaplaceProblemOnLShapeMesh())
+   //     return 2;
     
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnCubeMesh())
@@ -181,6 +207,7 @@ int main() {
     
     return 0;
 }
+
 
 bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	// To compute processing times
@@ -197,7 +224,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 12;
-    int ninitialrefs = 3;
+    int ninitialrefs = 1;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -205,7 +232,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-		for(int itypeel=(int)ETetraedro;itypeel<(int)EPolygonal;itypeel++)
+//		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)ETetraedro;itypeel<(int)EPiramide;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -224,7 +252,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
                 MaxPOrder = 5;
-                NRefs = 6;
+                NRefs = 8;
             }
             else if(dim==2) {
                 MaxPOrder = 10;
@@ -241,17 +269,17 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
-			int p = 1, pinit;
+			int p = 2, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
-			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);
+			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25
 			gmesh->SetName("Malha Geometrica original");
 			cmesh->SetName("Malha Computacional Original");
 			if(gDebug) {
 				sprintf(saida,"gmesh_%02dD_H%dTR%dE%dIndex.vtk",dim,nref,regular,typeel);
 				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 			}
-			
+
 			// Selecting orthogonal polynomial family to construct shape functions
 			if(anothertests)
 				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
@@ -260,9 +288,14 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			TPZStack<std::string> scalnames, vecnames;
 			scalnames.Push("POrder");
 			scalnames.Push("Solution");
-			
+
+#ifdef LOG4CXX
+            // Cleaning log4cxx files
+            InitializePZLOG();
+#endif
+            
 			// Solving adaptive process
-			for(nref=1;nref<NRefs;nref++) {
+			for(nref=0;nref<NRefs;nref++) {
 				out << "\nConstructing Poisson problem " << dim << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
                 std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
 				if(nref > 5) nthread = 2*NThreads;
@@ -313,8 +346,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					cmesh->LoadReferences();
 					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
 				}
+                
 				// generation mesh process finished
-				
 				time(&endtime);
 				time_elapsed = endtime - sttime;
 				formatTimeInSec(time_formated,256,time_elapsed);
@@ -332,15 +365,19 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                 std::cout << "\n\nEntering Auto Adaptive Methods... step " << nref << "\n";
 				fileerrors << "\n\nEntering Auto Adaptive Methods... step " << nref << "\n";
 
-				TPZCompMesh *adaptmesh;
+				TPZCompMesh *adaptmesh = NULL;
 				if(NRefs>1) {
 					time(&sttime);
-					adaptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,fileerrors,0,typeel);
-                    if(!adaptmesh) return false;
-					
+					adaptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,fileerrors,0,typeel,printing);
+                    // Saving computational mesh before adaptive process
+                    if(!adaptmesh)
+                        return false;
+                    SaveCompMesh(cmesh,(10+nref),adaptmesh,true);
+
+                    printing = (int)(!nref);
+
 					time_t endtime;
 					time(&endtime);
-					
 					int time_elapsed = endtime - sttime;
 					out << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
 					fileerrors << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
@@ -356,6 +393,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				
 				out.flush();
+
 				cmesh->Reference()->ResetReference();
 				cmesh->LoadReferences();
 				adapt.DeleteElements(cmesh);
@@ -365,14 +403,17 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					cmesh = adaptmesh;
 					cmesh->CleanUpUnconnectedNodes();
 				}
+                // Saving computational mesh after adaptive process
+                SaveCompMesh(adaptmesh,(100+nref),NULL,true);
 			}
 			if(gmesh)
 				delete gmesh;
 		}
 	}
 	
-	fileerrors << std::endl << std::endl;
+	fileerrors << std::endl << "Finished running.\n" << std::endl << std::endl;
 	fileerrors.close();
+    std::cout << std::endl << "Finished running.\n" << std::endl << std::endl;
 	out.close();
     return true;
 }
@@ -423,7 +464,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 			int p = 2, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
-			TPZCompMesh *cmesh = CreateMesh(gmesh,2,0);
+			TPZCompMesh *cmesh = CreateMesh(gmesh,2,1);
 			gmesh->SetName("Malha Geometrica original");
 			cmesh->SetName("Malha Computacional Original");
 			
@@ -1482,6 +1523,7 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 
 	return gmesh;
 }
+
 //*******Shell to deforming************
 TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 	
@@ -1494,39 +1536,6 @@ TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 	return meshgrid;
 }
 
-void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
-	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
-    REAL angle = atan2(x[1],x[0]);;
-/*    if(IsZero(x[0])) {
-        if(x[1]>0)
-            angle = 0.5*M_PI;
-        else {
-            sol[0] = 0.;
-            return;
-        }
-    }
-    else
-        angle = atan(x[1]/x[0]);
-    if(angle < -0.5*M_PI || angle > M_PI)
-        DebugStop();*/
-    sol[0] = 0.5*pow(radius,(REAL)(1./3.))*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
-}
-void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol) {
-	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
-    REAL angle = 0;
-    if(IsZero(x[0])) {
-        if(x[1]>0)
-            angle = 0.5*M_PI;
-        else {
-            sol[0] = 0.;
-            return;
-        }
-    }
-    else
-        angle = atan(x[1]/x[0]);
-    sol[0] = 0.5*pow(radius,(REAL)1./3.)*(sqrt(3)*sin(angle/3.)+cos(angle/3.));
-    dsol.Zero();
-}
 
 //************************************************************************
 //**********   Creating computational mesh with materials    *************
@@ -1562,15 +1571,18 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
         val1.PutVal(i,i,1.);
 	TPZMaterial *bc = 0, *bc1 = 0;
     switch(hasforcingfunction) {
+        case 0:
         case 1:
             // Condicion de Dirichlet fijando la posicion de la placa
             bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
             break;
-        default:
+        case 2:
             // Condicion de Dirichlet fijando la posicion de la placa
             bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
             bc1 = mat->CreateBC(mat,id_bc1,0,val1,val2);
             bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplaceBC));
+            break;
+        default:
             break;
     }
 
@@ -1584,22 +1596,10 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
     return cmesh;
 }
 
-void UniformRefine(TPZGeoMesh* gmesh,int nDiv)
-{
-    for(int D = 0; D < nDiv; D++)
-    {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
-        {    
-            TPZVec< TPZGeoEl * > filhos;
-            TPZGeoEl * gel = gmesh->ElementVec()[elem];
-            gel->Divide(filhos);
-        }
-    }
-	// Re-constructing connectivities
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
+
+/** PROBLEMS TO SOLVING */
+
+/** ARC TANGENT PROBLEM */
 
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce) {
@@ -1620,18 +1620,18 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL
     REAL Soma, arc, den;
     prodx = x[0]*(x[0] - 1.);
 	if(dim==1) {
-		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5));
+		arc = F*(RCircle*RCircle - (x[0]-CCircle[0])*(x[0]-CCircle[0]));
         prody = prodz = 1.;
         Soma = 1.;
 	}
 	else if(dim == 2) {
-		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5) - (x[1]-0.5)*(x[1]-.5));
+		arc = F*(RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1])));
         prody = x[1]*(x[1] - 1.);
         prodz = 1.;
         Soma = prodx + prody;
 	}
 	else {
-		arc = F*(0.25*0.25 - (x[0]-0.5)*(x[0]-.5) - (x[1]-0.5)*(x[1]-.5) - (x[2]-0.5)*(x[2]-.5));
+		arc = F*(RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
 		prody = x[1]*(x[1] - 1.);
 		prodz = x[2]*(x[2] - 1.);
         Soma = prodx*prody + prodx*prodz + prody*prodz;
@@ -1661,14 +1661,14 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
     REAL prodz = 1.;
     REAL prodx = x[0]*(x[0]-1.);
 	if(dim == 1) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+		arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
 	}
 	else if(dim == 2) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
 		prody = x[1]*(x[1]-1.);
 	}
 	else if(dim == 3) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
 		prody = x[1]*(x[1]-1.);
 		prodz = x[2]*(x[2]-1.);
 	}
@@ -1699,14 +1699,14 @@ REAL PartialDerivateX(int dim,const TPZVec<REAL> &x) {
     REAL arc=F, prody=1., prodz=1., Prod, temp;
     REAL prodx = x[0]*(x[0]-1.);
 	if(dim == 1) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+		arc *= (RCircle*RCircle - (x[0]-CCircle[0])*(x[0]-CCircle[0]));
 	}
 	else if(dim == 2) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1])));
 		prody = x[1]*(x[1]-1.);
 	}
 	else if(dim == 3) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
 		prody = x[1]*(x[1]-1.);
 		prodz = x[2]*(x[2]-1.);
 	}
@@ -1732,14 +1732,14 @@ REAL PartialDerivateY(int dim,const TPZVec<REAL> &x) {
     REAL arc=F, prody=1., prodz=1., Prod, temp;
     REAL prodx = x[0]*(x[0]-1.);
 	if(dim == 1) {
-		arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+		arc *= (RCircle*RCircle - (x[0]-CCircle[0])*(x[0]-CCircle[0]));
 	}
 	else if(dim == 2) {
-		arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1])));
 		prody = x[1]*(x[1]-1.);
 	}
 	else if(dim == 3) {
-		arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
 		prody = x[1]*(x[1]-1.);
 		prodz = x[2]*(x[2]-1.);
 	}
@@ -1765,14 +1765,14 @@ REAL PartialDerivateZ(int dim,const TPZVec<REAL> &x) {
     REAL arc=F, prody=1., prodz=1., Prod, temp;
     REAL prodx = x[0]*(x[0]-1.);
 	if(dim == 1) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5));
+		arc *= (RCircle*RCircle - (x[0]-CCircle[0])*(x[0]-CCircle[0]));
 	}
 	else if(dim == 2) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1])));
 		prody = x[1]*(x[1]-1.);
 	}
 	else if(dim == 3) {
-		arc *= ((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5) - (x[2] - 0.5)*(x[2] - 0.5));
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
 		prody = x[1]*(x[1]-1.);
 		prodz = x[2]*(x[2]-1.);
 	}
@@ -1783,6 +1783,62 @@ REAL PartialDerivateZ(int dim,const TPZVec<REAL> &x) {
     Prod = prodx*prody*prodz;
     temp = M_PI + 2.*atan(arc);
     return (B*prodx*prody*(2*x[2]-1.)*(temp - ((2*F*prodz)/(1+arc*arc))));
+}
+
+/** LAPLACE PROBLEM ON L-SHAPE DOMAIN (2D) */
+
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
+	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
+    REAL angle = atan2(x[1],x[0]);;
+    /*    if(IsZero(x[0])) {
+     if(x[1]>0)
+     angle = 0.5*M_PI;
+     else {
+     sol[0] = 0.;
+     return;
+     }
+     }
+     else
+     angle = atan(x[1]/x[0]);
+     if(angle < -0.5*M_PI || angle > M_PI)
+     DebugStop();*/
+    sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
+}
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol) {
+	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
+    REAL angle = 0;
+    if(IsZero(x[0])) {
+        if(x[1]>0)
+            angle = 0.5*M_PI;
+        else {
+            sol[0] = 0.;
+            return;
+        }
+    }
+    else
+        angle = atan(x[1]/x[0]);
+    sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
+    dsol.Zero();
+}
+
+
+/** UTILITARY TOOL */
+
+void UniformRefine(TPZGeoMesh* gmesh,int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+            gel->Divide(filhos);
+        }
+    }
+	// Re-constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
 }
 
 /** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
@@ -1860,6 +1916,88 @@ void GetFilenameFromGID(MElementType typeel, std::string &nombre) {
 			break;
 	}
 }
+
+
+// Save information of the current mesh in disk
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,bool check) {
+    if(!cmesh || timessave < 0) {
+        std::cout << "SaveCompMesh - Bad argument: " << (void *)cmesh << " " << timessave << std::endl;
+        return;
+    }
+#ifdef LOG4CXX
+    {
+        TPZFileStream fstrthis;
+        std::stringstream soutthis;
+        if(cmeshmodified) soutthis << (void*)cmeshmodified;
+        else soutthis << (void*)cmesh;
+        // Rename the computational mesh
+        cmesh->SetName(soutthis.str());
+        soutthis << "_" << timessave;
+        std::string filenamethis("LOG/");
+        filenamethis.append(soutthis.str());
+        filenamethis.append(".txt");
+        fstrthis.OpenWrite(filenamethis);
+        
+        // Renaming the geometric mesh
+        std::stringstream gout;
+        gout << (void*)cmesh->Reference();
+        cmesh->Reference()->SetName(gout.str());
+        
+        // Save geometric mesh data
+        int classid = cmesh->Reference()->ClassId();
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        cmesh->Reference()->Write(fstrthis,0);
+        // Save computational mesh data
+        classid = cmesh->ClassId();
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        cmesh->Write(fstrthis,0);
+        // To check printing computational mesh data in file
+        if(check) {
+            std::string filename("Mesh_");
+            filename.append(soutthis.str());
+            filename.append(".txt");
+            std::ofstream arq(filename.c_str());
+            cmesh->Print(arq);
+        }
+    }
+#endif
+}
+/* Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
+void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified,bool check) {
+    if(!cmesh || timessave < 0) {
+        std::cout << "SaveCompMesh - Bad argument: " << (void *)cmesh << " " << timessave << std::endl;
+        return;
+    }
+#ifdef LOG4CXX
+    {
+        TPZFileStream fstrthis;
+        std::stringstream soutthis;
+        if(cmeshmodified) soutthis << (void*)cmeshmodified << "_" << timessave;
+        else soutthis << (void*)cmesh << "_" << timessave;
+        
+        std::string filenamethis("LOG/");
+        filenamethis.append(soutthis.str());
+        filenamethis.append(".txt");
+        fstrthis.OpenWrite(filenamethis);
+        soutthis << (void*)cmesh->Reference();
+        
+        cmesh->Reference()->SetName(soutthis.str());
+        // salvar o geoclone mesh. NESTA ESCRITURA vai salvar o gmesh tambem
+        cmesh->Reference()->Write(fstrthis,0);
+        // salvar o compclone mesh. NESTA ESCRITURA vai salval o compmesh tambem
+        cmesh->Write(fstrthis,0);
+        // To check
+        if(check) {
+            std::string filename("Mesh_");
+            filename.append(soutthis.str());
+            filename.append(".txt");
+            std::ofstream arq(filename.c_str());
+            cmesh->Print(arq);
+        }
+    }
+#endif
+}
+*/
 
 /////
 
@@ -3088,7 +3226,7 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 				continue;
 			if(dim > 0 && gel->Dimension() != dim) continue;
 			if(!allmaterial){
-				if(gel->MaterialId() == matidtodivided){
+				if(gel->MaterialId() == matidtodivided) {
 					gel->Divide(filhos);
 				}
 			}

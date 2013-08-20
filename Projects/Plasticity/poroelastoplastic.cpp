@@ -987,6 +987,14 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 		    fileName << "_Load3";
             break;
 		default:
+		    L=0;
+		    LDA=0;
+		    alpha = 0.;
+		    GammaSea = 0.;
+		    MudWeight = 0.;
+		    kh = 0.;
+		    kH = 0.;
+		    OCR = 0.;
 			cout << "Unhandled Case. Exiting...";
             break;
 	}
@@ -1218,6 +1226,14 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
 		    fileName << "_Load3";
             break;
 		default:
+		    L=0;
+		    LDA=0;
+		    alpha = 0.;
+		    GammaSea = 0.;
+		    MudWeight = 0.;
+		    kh = 0.;
+		    kH = 0.;
+		    OCR = 0.;
 			cout << "Unhandled Case. Exiting...";
             break;
 	}
@@ -1555,8 +1571,8 @@ int main ()
 #endif
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
 //        well.PostProcess(1);
-        int nsteps = 3;
-        int numnewton = 80;
+//        int nsteps = 3;
+//        int numnewton = 80;
 //        well.ExecuteSimulation();
 //        well.ExecuteInitialSimulation(nsteps,numnewton);
         
@@ -1862,7 +1878,8 @@ int main ()
                 
                 sandler.ApplyStrainComputeSigma(eps, sigma);//UCS
                 cout << "\n sigma "<<sigma <<endl;
-                REAL j2= sigma.J2();
+                REAL j2 = 0.;
+                j2 = sigma.J2();
                 state  = sandler.GetState();
                 if(i==50)
                 {

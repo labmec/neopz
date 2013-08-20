@@ -13,6 +13,8 @@
 #include "pzstream.h"
 #include "pzmaterialid.h"
 
+#include "pzpoisson3d.h"
+
 using namespace std;
 
 void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
@@ -170,7 +172,7 @@ int TPZMat2dLin::NSolutionVariables(int index) {
 }
 
 
-void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout) {
+void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<STATE> &Solout) {
 	
 	if(var == 0) {
 #ifndef STATE_COMPLEX
@@ -249,13 +251,13 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 	return TPZMaterial::CreateBC(reference,bc,3,val1,val2);
 }
 
+/** TPZSaveable methods ***/
+
 /** returns the unique identifier for reading/writing objects to streams */
 int TPZMat2dLin::ClassId() const
 {
 	return TPZMAT2DLINID;
 }
-
-template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
 
 /** Save the element data to a stream */
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
@@ -305,3 +307,7 @@ void TPZMat2dLin::Read(TPZStream &buf, void *context)
 	fK00.Read(buf,0);
 	fXf.Read(buf,0);
 }
+
+#ifndef BORLAND
+template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
+#endif

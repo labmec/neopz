@@ -135,16 +135,16 @@ public:
 protected:
 	/** @brief It returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation*/
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
     /** @brief Returns the solution associated with the var index based on the finite element approximation*/
-	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}

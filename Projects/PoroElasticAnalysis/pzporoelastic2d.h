@@ -209,17 +209,19 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
-	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int var);
 
 	//public:
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
-	
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
+        TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
+    }
 //	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
 	
 	/**
@@ -231,7 +233,14 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
-							 REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+							 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+									 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+        TPZDiscontinuousGalerkin::ContributeInterface(data,dataleftvec,datarightvec,weight,ek,ef);
+    }
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) {
+        TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
+    }
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -243,7 +252,7 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
-                                       REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+                                       REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
 	/** @name Contribute methods
 	 * @{
@@ -256,7 +265,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) {
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 		DebugStop();
 	}
     
@@ -270,7 +279,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 		DebugStop();
 	}	
 };

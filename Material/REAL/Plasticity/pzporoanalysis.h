@@ -23,6 +23,10 @@ public:
 	
 	virtual void Run(std::ostream &out,REAL tol, int numiter,
 					 TPZPostProcAnalysis * ppAnalysis, int res);
+	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
+	virtual void Run(std::ostream &out = std::cout) {
+        TPZAnalysis::Run(out);
+    }
 	
 	/**
 	 * @brief Informs the pertinent poroelastoplastic materials the current timestep

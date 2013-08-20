@@ -285,7 +285,9 @@ int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICTETRAID;
 }
 
+#ifndef BORLAND
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
+#endif
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
 template class TPZGeoElRefLess<TPZQuadraticTetra>;

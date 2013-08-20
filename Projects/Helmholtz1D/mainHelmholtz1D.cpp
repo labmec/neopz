@@ -156,7 +156,7 @@ void AlphaComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &alpha) {
 	std::complex<REAL> m(1.,0.);
 	//std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
 	std::complex<REAL> eps(1., 0.);
-	std::complex<REAL> alph = 1. / eps;   
+	std::complex<REAL> alph = (REAL(1.))/eps;
 	
 	alpha[0] = alph;
 }
@@ -173,7 +173,7 @@ void BetaComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &beta) {
 	std::complex<REAL> m(1.,0.);
 	//std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
 	std::complex<REAL> eps(1., 0.);
-	std::complex<REAL> alph = 1. / eps;
+	std::complex<REAL> alph = (REAL(1.))/eps;
 	std::complex<REAL> bet = -(k0 * k0) * (m - alph * (std::sin(theta) * std::sin(theta)));
 	
 	beta[0] = bet;

@@ -170,10 +170,10 @@ int TPZFYsmpMatrix<TVar>::PutVal(const int row, const int col, const TVar &Value
     }
 }
 template<class TVar>
-void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int> & destinationindex){
-    int i,j,k = 0;
+void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<long> & destinationindex){
+    long i,j,k = 0;
     TVar value=0.;
-    int ipos,jpos;
+    long ipos,jpos;
     for(i=0;i<elmat.Rows();i++){
         for(j=0;j<elmat.Rows();j++){
             ipos=destinationindex[i];
@@ -213,10 +213,10 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int> & destin
 }
 
 template<class TVar>
-void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int> & sourceindex, TPZVec<int> & destinationindex){
-	int i,j,k = 0;
+void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<long> & sourceindex, TPZVec<long> & destinationindex){
+	long i,j,k = 0;
 	TVar value=0.;
-	int ipos,jpos;
+	long ipos,jpos;
 	for(i=0;i<sourceindex.NElements();i++){
 		for(j=0;j<sourceindex.NElements();j++){
 			ipos=destinationindex[i];

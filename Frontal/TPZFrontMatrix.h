@@ -103,7 +103,7 @@ public:
 	 * @param lower_eq Starting index
 	 * @param upper_eq Finishing index
 	 */
-    void EquationsToDecompose(TPZVec<int> &destinationindex, int &lower_eq, int &upper_eq);
+    void EquationsToDecompose(TPZVec<long> &destinationindex, long &lower_eq, long &upper_eq);
 	
 	
     /** Add a matrix to the frontal matrix */
@@ -120,13 +120,13 @@ public:
 	 * @param elmat Indicates number of elements connected to that equation
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth. It does it symbolicaly
 	 * @param destinationindex Array containing destination indexes.
 	 */
-    void SymbolicAddKel(TPZVec < int > & destinationindex);
+    void SymbolicAddKel(TPZVec < long > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix 
@@ -134,7 +134,7 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
 	
     /** 
 	 * @brief Forward substitution and result is on b

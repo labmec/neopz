@@ -973,7 +973,7 @@ int TPZPoroElastic2d::NSolutionVariables(int var){
 }
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
@@ -1331,12 +1331,12 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 }
 
-void TPZPoroElastic2d::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZPoroElastic2d::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 	DebugStop();
 }
 
-void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 

@@ -869,8 +869,10 @@ int TPZCompElDisc::ClassId() const
 	return TPZCOMPELDISCID;
 }
 
+#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
+#endif
 
 /**
  Save the element data to a stream

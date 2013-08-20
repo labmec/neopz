@@ -160,9 +160,9 @@ int TPZFront<TVar>::Local(int global){
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 template<class TVar>
-void TPZFront<TVar>::SymbolicAddKel(TPZVec < int > & destinationindex)
+void TPZFront<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
 {
-	int i, loop_limit, aux;
+	long i, loop_limit, aux;
 	loop_limit=destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
 		aux=destinationindex[i];
@@ -211,7 +211,7 @@ void TPZFront<TVar>::main()
 	TPZFront TestFront(matsize);
 	
 	
-	TPZVec<int> DestIndex(matsize);
+	TPZVec<long> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 	
 	TestFront.SymbolicAddKel(DestIndex);

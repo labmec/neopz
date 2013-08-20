@@ -77,6 +77,7 @@ public:
    *         -1 if an error ocurred when computing this MD5 digest
    *         -2 if the digests are different
    *         -3 error when computing this MD5 signature (last_status != 1)
+   *          1 if is disable OPENSSL
    */
   int CheckMD5(FILE* fh) 
   {
@@ -105,6 +106,7 @@ public:
 #else
     std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
 #endif
+      return 1;
   }
 
   /**
@@ -130,6 +132,7 @@ public:
    *          2 if an error ocurred when writing the MD5 to the file
    *         -1 if an error ocurred when computing this MD5 digest
    *         -3 error when computing this MD5 signature (last_status != 1)
+   *          1 if it is not enable OPENSSL
    */
   int WriteMD5(FILE* fh) 
   {
@@ -150,6 +153,7 @@ public:
 #else
     std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
 #endif
+      return 1;
   }
   
   /**
@@ -163,6 +167,7 @@ public:
 #else
     std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
 #endif
+      return 0;
   }
   
   /** @brief Writes size integers at pointer location p */

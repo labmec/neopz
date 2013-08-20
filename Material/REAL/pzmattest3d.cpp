@@ -253,5 +253,6 @@ int TPZMaterialTest3D::ClassId() const
 	return TPZMATTEST3DID;
 }
 
-template class
-TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
+#ifndef BORLAND
+template class TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
+#endif

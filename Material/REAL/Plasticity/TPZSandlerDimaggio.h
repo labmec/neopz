@@ -135,7 +135,9 @@ public:
         SANDLERDIMAGGIOPARENT::fN.fAlpha = this->fYC.InitialDamage();        
         SANDLERDIMAGGIOPARENT::fER.SetUp(E, poisson);
     }
-
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+        SANDLERDIMAGGIOPARENT::SetUp(epsTotal);
+    }
 
     /**
     Retrieve the plastic state variables

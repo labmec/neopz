@@ -1,19 +1,13 @@
 /**
  * \file
  * @brief Contains implementations of the TPZPlaneFracture methods.
- */
-/*
- *  TPZPlaneFracture.cpp
- *  Crack
- *
- *  Created by Cesar Lucci on 09/08/10.
- *  Copyright 2010 LabMeC. All rights reserved.
- *
+ * @author Cesar Lucci
+ * @since 09/08/2010
  */
 
 #include "TPZPlaneFracture.h"
 
-#include "pzgeopoint.h"/////MUSTDELETE
+#include "pzgeopoint.h"
 #include "TPZGeoLinear.h"
 #include "TPZVTKGeoMesh.h"
 #include "tpzgeoelrefpattern.h"
@@ -32,7 +26,6 @@
 #include "TPZReynoldsFlow.h"
 
 using namespace pztopology;
-
 
 
 /** PUBLIC METHODS */
@@ -211,7 +204,8 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
     
     ////BCs
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int newmann = 1, mixed = 2, dirichDir = 3;
+    int newmann = 1, dirichDir = 3;
+//    int mixed = 2;
     
     {
         f.Zero();

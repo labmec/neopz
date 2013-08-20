@@ -19,9 +19,15 @@
  */
 class TPZMatHyperElastic : public TPZMaterial {
 	
-	STATE fK2[3][3],fK3[3][3],fK4[3][3],fK6[3][3],fK7[3][3],fK8[3][3],fXf[3];
+    STATE fXf[3];
+#ifndef _AUTODIFF
+	STATE fK2[3][3], fK3[3][3], fK4[3][3], fK6[3][3], fK7[3][3], fK8[3][3];
 	STATE fL1[3][3],fL2[3][3],fL3[3][3],fL4[3][3],fL5[3][3],fL6[3][3],fL7[3][3],fL8[3][3],fL9[3][3],fGradtrC[3][3];
-	STATE fE1[3],fE5[3],fE9[3],fGradDetF[3][3];
+    STATE fGradDetF[3][3];
+#endif
+	STATE fE1[3],fE5[3],fE9[3];
+
+    
 	STATE fLambda,fNu,fE,fMu;
 	STATE fCoef1,fCoef2,fCoef3;
 	

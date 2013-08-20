@@ -102,7 +102,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 //	}
 //	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
-									 REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+									 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	

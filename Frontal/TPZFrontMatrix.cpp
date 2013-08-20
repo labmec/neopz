@@ -30,7 +30,7 @@ int TPZFrontMatrix<TVar, store, front>::Work(){
 	return fFront.Work();
 }
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<int> &destinationindex, int &lower_eq, int &upper_eq)
+void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<long> &destinationindex, long &lower_eq, long &upper_eq)
 {
 	int i;
 	int loop_limit, global;
@@ -69,7 +69,7 @@ void TPZFrontMatrix<TVar,store, front>::SetNumElConnected(TPZVec < int > &numelc
 
 /** Add a contribution of a stiffness matrix */
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex){
+void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & destinationindex){
 	
 	// message #1.3 to fFront:TPZFront
 	fFront.AddKel(elmat, destinationindex);
@@ -80,7 +80,7 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-	int mineq, maxeq;
+	long mineq, maxeq;
 	
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> AuxEqn;
@@ -99,7 +99,7 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 
 /** Add a contribution of a stiffness matrix */
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
+void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex)
 {
 	fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
@@ -110,7 +110,7 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 	}
 #endif
 	
-	int mineq, maxeq;
+	long mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> AuxEqn;
 	if(maxeq >= mineq) {
@@ -128,10 +128,10 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 template<class TVar, class store, class front>
-void TPZFrontMatrix<TVar,store, front>::SymbolicAddKel(TPZVec < int > & destinationindex)
+void TPZFrontMatrix<TVar,store, front>::SymbolicAddKel(TPZVec < long > & destinationindex)
 {
 	fFront.SymbolicAddKel(destinationindex);
-	int mineq, maxeq;
+	long mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	
 	if(maxeq >= mineq) {
@@ -192,7 +192,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 	KEl1(0,1)=6.;
 	KEl1(1,0)=6.;
 	KEl1(1,1)=12.;
-	TPZVec<int> DestInd1(2);
+	TPZVec<long> DestInd1(2);
 	DestInd1[0]=0;
 	DestInd1[1]=1;
 	
@@ -217,7 +217,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 		for(j=i;j<4;j++) KEl2(j,i)=KEl2(i,j);
 	}
 	
-	TPZVec<int> DestInd2(4);
+	TPZVec<long> DestInd2(4);
 	DestInd2[0]=0;
 	DestInd2[1]=1;
 	DestInd2[2]=2;
@@ -229,7 +229,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 	KEl1(1,0)=3.;
 	KEl3(1,1)=6.;
 	
-	TPZVec<int> DestInd3(2);
+	TPZVec<long> DestInd3(2);
 	DestInd3[0]=2;
 	DestInd3[1]=3;
 

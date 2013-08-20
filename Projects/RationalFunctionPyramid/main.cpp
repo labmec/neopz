@@ -70,49 +70,67 @@ int main(int argc, char *argv[]) {
     
     int gcaseinit = 1, gcaseend = 4;
     int nsubdivisionsinit = 3, nsubdivisionsend = 35, nsubdivisionsinterval = 5;
-    if(argc == 1) {
-		POrder = 3;
-		gcaseinit = 3;
-		gcaseend = gcaseinit+1;
-	}
-	else {
-		POrder = atoi(argv[1]);
-		if(argc > 2) {
+    int porder = 3;
+    switch(argc) {
+        case 7:
+            nsubdivisionsinterval = atoi(argv[6]);
+        case 6:
+            nsubdivisionsend = atoi(argv[5]);
+        case 5:
+            nsubdivisionsinit = atoi(argv[4]);
+        case 4:
+            gcaseend = atoi(argv[3]);
+        case 3:
 			gcaseinit = atoi(argv[2]);
-			if(argc > 3) gcaseend = atoi(argv[3]);
-			else gcaseend = gcaseinit+1;
-			if(!argv[4]) nsubdivisionsinit = 3;
-			else nsubdivisionsinit = atoi(argv[4]);
-			if(!argv[5]) nsubdivisionsend = 35;
-			else nsubdivisionsend = atoi(argv[5]);
-			if(!argv[6]) nsubdivisionsinterval = 5;
-			else nsubdivisionsinterval = atoi(argv[6]);
-		}
-	}
+        case 2:
+            porder = atoi(argv[1]);
+            break;
+        case 1:
+            std::cout << "\nCommand line: Program p_order geomesh_initial geomesh_last n_initial n_final dn_interval (h = 1/n)" << std::endl;
+            std::cout << "\nRunning with: Executavel " << porder << " " << gcaseinit << " " << gcaseend << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << "\n";
+            out << "\nRunning with: Executavel " << porder << " " << gcaseinit << " " << gcaseend << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << "\n";
+            break;
+        default:
+            std::cout << "\nBad number of arguments. Finishing." << std::endl;
+            return 1;
+    }
+    if(porder < 1 || gcaseinit < 0 || gcaseend < 0 || nsubdivisionsinit < 1 || nsubdivisionsend <= nsubdivisionsinit || nsubdivisionsinterval < 1) {
+        std::cout << "\nBad parameter.";
+        out << "\nBad parameter.";
+    }
+    if(porder > 12 || gcaseinit > 4 || gcaseend > 4 || nsubdivisionsinit > 100 || nsubdivisionsend > 100) {
+        std::cout << "\nParameter out of avaliable limit.";
+        out << "\nParameter out of avaliable limit.";
+    }
+
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
     
     // To store errors
-    ofstream arq("Errors.txt");
+    std::ofstream arq("Errors.txt");
     std::cout << "\nRUNNING CedricTest.\n\n";
+    out << "\nRUNNING CedricTest.\n\n";
     arq << "\nRUNNING CedricTest:\n\n";
     
     // setting p order
     /** Set polynomial order */
-    //    for(POrder=3;POrder<4;POrder++) {
-    std::cout << "\nInterpolation order " << POrder << std::endl;
-    TPZCompEl::SetgOrder(POrder);
-    
-    TCedricTest cedric;
-    // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra)
-    for(int gcase=gcaseinit;gcase<gcaseend;gcase++) {
-        std::cout << "\n\tCase " << gcase;
-        for(int nsubdivisions=nsubdivisionsinit;nsubdivisions<nsubdivisionsend;nsubdivisions+=nsubdivisionsinterval) {
-            std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions;
-            cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
+    for(POrder=porder;POrder>0;POrder--) {
+        std::cout << "\nInterpolation order " << POrder << std::endl;
+        out << "\nInterpolation order " << POrder << std::endl;
+        TPZCompEl::SetgOrder(POrder);
+        
+        TCedricTest cedric;
+        // Loop over type of element: geocase = 1(hexahedra), 2(Pyramid+Tetrahedra), 3(Tetrahedra)
+        for(int gcase=gcaseinit;gcase<gcaseend;gcase++) {
+            std::cout << "\n\tCase " << gcase;
+            out << "\n\tCase " << gcase;
+            for(int nsubdivisions=nsubdivisionsinit;nsubdivisions<nsubdivisionsend;nsubdivisions+=nsubdivisionsinterval) {
+                std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << " ";
+                out << "\n\t\tNumber of sub-divisions " << nsubdivisions << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << " ";
+                cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
+            }
         }
     }
-    //    }
     return 0;
 }
 

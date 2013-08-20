@@ -357,6 +357,11 @@ int TPZDohrPrecond< long double,TPZDohrSubstruct<long double > >::ClassId() cons
     return TPZDOHRPRECOND_LONGDOUBLE_ID;
 }
 template<>
+int TPZDohrPrecond< std::complex<double>,TPZDohrSubstruct<std::complex<double> > >::ClassId() const
+{
+    return TPZDOHRPRECOND_COMPLEXDOUBLE_ID;
+}
+template<>
 int TPZDohrPrecond<float,TPZDohrSubstructCondense<float> >::ClassId() const
 {
     return TPZDOHRPRECONDCONDENSE_FLOAT_ID;
@@ -370,6 +375,11 @@ template<>
 int TPZDohrPrecond<long double,TPZDohrSubstructCondense<long double> >::ClassId() const
 {
     return TPZDOHRPRECONDCONDENSE_LONGDOUBLE_ID;
+}
+template<>
+int TPZDohrPrecond<std::complex<double>,TPZDohrSubstructCondense<std::complex<double> > >::ClassId() const
+{
+    return TPZDOHRPRECONDCONDENSE_COMPLEXDOUBLE_ID;
 }
 
 /**
@@ -402,11 +412,16 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
     fCoarse->Write(buf,1);
 }
 
+
+#ifndef BORLAND
+
 template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSE_DOUBLE_ID>;
 template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECOND_DOUBLE_ID>;
 
 template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >, TPZDOHRPRECONDCONDENSE_FLOAT_ID>;
 template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >, TPZDOHRPRECOND_FLOAT_ID>;
+
+#endif
 
 template class TPZDohrPrecond<float,TPZDohrSubstruct<float> >;
 template class TPZDohrPrecond<double,TPZDohrSubstruct<double> >;
@@ -415,3 +430,11 @@ template class TPZDohrPrecond<long double,TPZDohrSubstruct<long double> >;
 template class TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >;
 template class TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >;
 template class TPZDohrPrecond<long double, TPZDohrSubstructCondense<long double> >;
+
+//template class TPZDohrPrecond<std::complex<float>,TPZDohrSubstruct<std::complex<float> > >;
+template class TPZDohrPrecond<std::complex<double>,TPZDohrSubstruct<std::complex<double> > >;
+//template class TPZDohrPrecond<std::complex<long double>,TPZDohrSubstruct<std::complex<long double> > >;
+
+//template class TPZDohrPrecond<std::complex<float>, TPZDohrSubstructCondense<std::complex<float> > >;
+template class TPZDohrPrecond<std::complex<double>, TPZDohrSubstructCondense<std::complex<double> > >;
+//template class TPZDohrPrecond<std::complex<long double>, TPZDohrSubstructCondense<std::complex<long double> > >;

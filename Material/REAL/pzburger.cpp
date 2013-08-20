@@ -68,7 +68,7 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZV
 				ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
 				break;
 			default:
-				PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+				PZError << "TPZBurger::Contribute dimension error " << fDim << endl;
 		}
 	}
     
@@ -141,7 +141,7 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<S
 				ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
 				break;
 			default:
-				PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+				PZError << "TPZBurger::Contribute dimension error " << fDim << endl;
 		}
 	}
     

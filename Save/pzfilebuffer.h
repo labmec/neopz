@@ -123,6 +123,9 @@ public:
 	void OpenRead(const std::string &filename) {
 		fi.open(filename.c_str());
 	}
+    bool eof() {
+        return fi.eof();
+    }
 	
 	virtual void Write(const int *p, int size) {
 		Writes<int>(p,size);

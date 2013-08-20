@@ -34,6 +34,7 @@
 
 #include "pzmetis.h"
 #include "pzstream.h"
+
 #include <map>
 #include <sstream>
 #include <set>
@@ -66,6 +67,9 @@ fSolution(0,1) {
 		gr->ResetReference();
 		gr->SetReference(this);
 	}
+    else {
+        SetName( "Computational mesh");
+    }
 	fBlock.SetMatrix(&fSolution);
 	fSolutionBlock.SetMatrix(&fSolution);
 }
@@ -87,6 +91,9 @@ fSolution(0,1)
         SetName( fReference->Name() );
         fReference->ResetReference();
         fReference->SetReference(this);
+    }
+    else {
+        SetName( "Computational mesh");
     }
     fBlock.SetMatrix(&fSolution);
     fSolutionBlock.SetMatrix(&fSolution);
@@ -349,7 +356,7 @@ void TPZCompMesh::ExpandSolution() {
 	fSolutionBlock = fBlock;
 }
 
-void TPZCompMesh::LoadSolution(const TPZFMatrix<REAL> &mat){
+void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
 	
 	int nrow = mat.Rows();
 	int ncol = mat.Cols();
@@ -361,7 +368,11 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<REAL> &mat){
     {
         for(i=0;i<nrow;i++)
         {
+        #ifdef STATE_COMPLEX
+            val = (mat.GetVal(i,j)).real();
+            #else
             val = mat.GetVal(i,j);
+            #endif
             fSolution(i,j) =  val;
         }
         
@@ -1704,14 +1715,13 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 		PZError << "TPZCompMesh::BuildTransferMatrixDesc2 no material object found\n";
 		return;
 	}
-	TPZMaterial * mat = fMaterialVec.begin()->second;
-	//int nvar = mat->NStateVariables();
 	Reference()->ResetReference();//geom�ricos apontam para nulo
 	LoadReferences();
 	
 #ifdef STATE_COMPLEX
 	DebugStop();
 #else
+	TPZMaterial * mat = fMaterialVec.begin()->second;
 	//geom�ricos apontam para computacionais da malha atual
     int dim = mat->Dimension();
 	TPZAgglomerateElement *aggel = 0;
@@ -1782,15 +1792,13 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 void TPZCompMesh::Read(TPZStream &buf, void *context)
 {
 	TPZSaveable::Read(buf,context);
-	TPZGeoMesh *gmesh;
-    //	TPZSaveable *obj = TPZSaveable::Restore(buf,0);
-	gmesh = (TPZGeoMesh *)(context);
-    //	context = gmesh;
 	
-	this->fReference = (TPZGeoMesh *) context;
-	LoadReferences();
-	Reference()->RestoreReference(this);
-	
+	fReference = (TPZGeoMesh *) context;
+    if(fReference) {
+        LoadReferences();
+        Reference()->RestoreReference(this);
+    }
+    
 	buf.Read(&fName,1);
 	
 	buf.Read(&fDimModel,1);
@@ -2220,4 +2228,8 @@ void TPZCompMesh::BuildCornerConnectList(std::set<int> &connectindexes) const
         cel->BuildCornerConnectList(connectindexes);
     }
 }
+
+#ifndef BORLAND
+template class TPZRestoreClass<TPZCompMesh,TPZCOMPMESHID>;
+#endif
 

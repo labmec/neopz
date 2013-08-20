@@ -134,8 +134,7 @@ public:
     
 };
 
- static bool fFlag,fFlag1,fFlag2;
-
+static bool fFlag,fFlag1,fFlag2;
 
 template < class T>
 void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &res, int checkForcedYield) const

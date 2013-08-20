@@ -94,7 +94,7 @@ void TPZMetis::Print(std::ostream &out) {
 	}
 }
 
-void TPZMetis::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm){
+void TPZMetis::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm) {
 	TPZVec<int> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
 	int numelnodegraph = nodegraphindex[fNNodes];
@@ -102,19 +102,35 @@ void TPZMetis::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm){
 	{
 		nodegraph.Resize(numelnodegraph+1);
 	}
-	int nod;
+	long nod;
 	for (nod = numelnodegraph; nod>0; nod--) nodegraph[nod] = nodegraph[nod-1];
 	perm.Resize(fNNodes);
 	inverseperm.Resize(fNNodes);
-	for(nod=0;nod<fNNodes;nod++) 
+	for(nod=0;nod<fNNodes;nod++)
 	{
 		perm[nod] = inverseperm[nod] = nod;
 	}
-	
+
 #ifdef USING_METIS
+	// Using external library METIS 5
 	int numflag = 0;
 	int options = 0;
-	METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,&perm[0],&inverseperm[0]);
+    int nperms = perm.NElements();
+    int ninvers = inverseperm.NElements();
+    int *permint = new int[nperms];
+    int *inversepermint = new int[ninvers];
+    if(!permint || !inverseperm) {
+        std::cout << "TPZMetis::Resequence memory is not enough.\n";
+        return;
+    }
+    long i;
+    for(i=0L;i<nperms;i++)
+        permint[i] = (int)perm[i];
+    for(i=0L;i<nperms;i++)
+        inversepermint[i] = (int)inverseperm[i];
+    
+//	METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,&perm[0],&inverseperm[0]);
+    METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,permint,inversepermint);
 #endif
 }
 

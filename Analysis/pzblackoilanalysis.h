@@ -46,7 +46,11 @@ public:
 	/** @brief Invert the algebraic system */
 	virtual void Solve();
 	
-	virtual void Run(std::ostream &out = std::cout, bool linesearch = true);
+//	virtual void Run(std::ostream &out = std::cout, bool linesearch = true);
+    virtual void Run(std::ostream &out,bool linesearch);
+    virtual void Run(std::ostream &out = std::cout) {
+        TPZBlackOilAnalysis::Run(out,true);
+    }
 	
 	virtual void PostProcess(int resolution){ TPZAnalysis::PostProcess(resolution);}
 	

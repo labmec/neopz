@@ -1037,9 +1037,9 @@ int TPZAgglomerateElement::ClassId() const
 	return TPZAGGLOMERATEELID;
 }
 
-template class
-TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
-
+#ifndef BORLAND
+template class TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
+#endif
 /**
  Save the element data to a stream
  */

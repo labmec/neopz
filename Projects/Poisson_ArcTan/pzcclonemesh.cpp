@@ -7,6 +7,7 @@
 #include "pzgclonemesh.h"
 #include "pzcompel.h"
 #include "pzintel.h"
+#include "TPZInterfaceEl.h"
 #include "pzgeoel.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
@@ -33,17 +34,27 @@
 #include "pzanalysis.h"
 #include "pzlog.h"
 
+#include "pzstream.h"
+
+#include <string>
+
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.adapt.pzcclonemesh"));
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompclonemesh"));
 #endif
 using namespace std;
 
 template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
+// Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,bool check=false);
+void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified,bool check=false);
+
 static ofstream gDeduce("deduce.txt");
 
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects()
 {
+    if(fName.empty())
+        SetName( "Clone comp mesh");
     fCloneReference = cmesh;
     // preserve Model dimension from original computational mesh
     if(cmesh) SetDimModel(cmesh->Dimension());
@@ -53,6 +64,12 @@ TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : T
         //    mat->Print();
         it->second->Clone(MaterialVec());
     }
+}
+TPZCompCloneMesh::TPZCompCloneMesh () : TPZCompMesh(), fMapConnects()
+{
+    if(fName.empty())
+        SetName( "Clone comp mesh");
+    fCloneReference = NULL;
 }
 
 TPZCompCloneMesh::~TPZCompCloneMesh() {
@@ -495,7 +512,8 @@ void TPZCompCloneMesh::CreateCloneBC(){
             pordersbefore.Push(orderbefore);
         }
 #endif
-        TPZCompEl *celbc = bcelsides[ibc].Element()->CreateBCCompEl(bcelsides[ibc].Side(),-1000,*this);
+        TPZCompEl *celbc = NULL;
+        celbc = bcelsides[ibc].Element()->CreateBCCompEl(bcelsides[ibc].Side(),-1000,*this);
 #ifdef DEBUG
         TPZStack<int> pordersafter;
         for (int ic=0; ic<nsideconnects; ic++) {
@@ -532,7 +550,46 @@ int TPZCompCloneMesh::HasConnect(int cnid){
     return (fMapConnects.find(cnid) != fMapConnects.end());
 }
 
-TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
+TPZCompCloneMesh::TPZCompCloneMesh(const TPZCompCloneMesh &copy) {
+    fBlock = copy.fBlock;
+    fElementSolution = copy.fElementSolution;
+    fCreate = copy.fCreate;
+    fSolution = copy.fSolution;
+    fMaterialVec = copy.fMaterialVec;
+    fSolutionBlock = copy.fSolutionBlock;
+    fReference = copy.fReference;
+    fConnectVec = copy.fConnectVec;
+	fDefaultOrder = copy.fDefaultOrder;
+	fReference->ResetReference();
+	fBlock.SetMatrix(&fSolution);
+	fSolutionBlock.SetMatrix(&fSolution);
+	copy.CopyMaterials(*this);
+	int nel = copy.fElementVec.NElements();
+	fElementVec.Resize(nel);
+	int iel;
+	for(iel = 0; iel<nel; iel++) fElementVec[iel] = 0;
+	for(iel = 0; iel<nel; iel++) {
+		TPZCompEl *cel = copy.fElementVec[iel];
+		if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
+		{
+			cel->Clone(*this);
+		}
+	}
+	/** Update data into all the connects */
+	ComputeNodElCon();
+	fDimModel = copy.fDimModel;
+	fName = copy.fName;
+    fCloneReference = copy.fCloneReference;
+    fMapConnects = copy.fMapConnects;
+    fOriginalConnects = copy.fOriginalConnects;
+}
+
+/** @brief To clone this mesh */
+//TPZCompCloneMesh* TPZCompCloneMesh::Clone() const {
+//    return new TPZCompCloneMesh(*this);
+//}
+
+TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     ExpandSolution();
 #ifdef HUGE_DEBUG
     if(gPrintLevel ==2) {
@@ -552,7 +609,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
     for(el=0; el<nelem; el++) {
         TPZInterpolatedElement *bcel =  dynamic_cast<TPZInterpolatedElement *>(ElementVec()[el]);
         if(bcel) {
-            if (bcel->Material()->Id() == -1000) {
+            if(!bcel->Material() || bcel->Material()->Id() == -1000) {
                 bcgelstack.Push(bcel->Reference());
                 int nsides = bcel->NConnects();
                 int sideorder = bcel->SideOrder(nsides-1);
@@ -563,8 +620,10 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
             }
         }
     }
+    
     // why can't we clone the boundary elements?
     TPZCompMesh *cmesh = Clone();
+    
     // put the elements back in
     nelem = elementpointers.NElements();
     for(el=0; el<nelem; el++) {
@@ -578,6 +637,18 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
 #endif
     Reference()->ResetReference();
     cmesh->LoadReferences();
+
+    // STORING in disk the computational mesh data
+    // Save information of the cloned mesh (geometric mesh plus computational mesh)
+    static int countermesh = 1;
+    char name[256];
+    if(print > 0) {
+        SaveCompMesh(cmesh,countermesh,cmesh);
+        sprintf(name,"cmeshclinit_%02d.txt",countermesh);
+        std::ofstream out1(name);
+        cmesh->Print(out1);
+        out1.close();
+    }
     
     TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     nelem = elementvec.NElements();
@@ -591,7 +662,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
         if(!cel) continue;
         copyel.Push(cel);
     }
-    
+
     nelem = copyel.NElements();
     for(el=0; el<nelem; el++) {
         TPZCompEl *cel = copyel[el];
@@ -607,8 +678,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
         
         TPZVec<int> subelindex;
         // The interpolated elements can not to have a order bigger than max order defined to p-adaptive process
-     //   if(cint->GetPreferredOrder()>maxp)
-     //       cint->PRefine(maxp);
+        if(cint->GetPreferredOrder()>maxp)
+            cint->PRefine(maxp);
         cint->Divide(el,subelindex,1);
         
         if(gDebug) {
@@ -637,11 +708,10 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
                 cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After PRefine\n";
                 intel->Print(cout);
             }
-            
         }
         cmesh->ExpandSolution();
     }
-    
+
     int tempgorder = cmesh->GetDefaultOrder();
     
     // probably it would be better to create the boundary elements first
@@ -667,6 +737,16 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp) {
     cmesh->SetDefaultOrder(tempgorder);
 	cmesh->AutoBuild();
     // we should check whether the solution of the refined mesh is equal to the solution of the original mesh
+    
+    /* printing to COMPARE WITH SAVE AND LOAD PROJECT
+    if(print) {
+        sprintf(name,"cmesh_%02d.txt",countermesh);
+        std::ofstream filemesh(name);
+        cmesh->Print(filemesh);
+        filemesh.close();
+    }*/
+    if(print > 0)
+        countermesh++;
     
     return cmesh;
 }
@@ -1501,6 +1581,7 @@ void TPZCompCloneMesh::Print (ostream & out) const {
         out << "Clone connection - ";
         out << "Index " << i << ' ';
         fConnectVec[i].Print(*this,out);
+        if((i+1)>fOriginalConnects.size()) break;
         int orgcid = fOriginalConnects[i];
         out << "Original connection - " << "Index " << orgcid << " ";
         fCloneReference->ConnectVec()[orgcid].Print(*fCloneReference,out);
@@ -1522,3 +1603,63 @@ TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {
     int orgind = GetOriginalElementIndex(index);
     return dynamic_cast<TPZInterpolatedElement *> (fCloneReference->ElementVec()[orgind]);
 }
+
+
+
+int TPZCompCloneMesh::ClassId() const
+{
+	return TPZCOMPCLONEMESHID;
+}
+// Save the element data to a stream
+void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid)
+{
+    TPZCompMesh::Write(buf,withclassid);
+	try
+	{
+        if(fCloneReference) {
+            int classidref = fCloneReference->ClassId();
+            buf.Write(&classidref);
+            fCloneReference->Write(buf,withclassid);
+        }
+        else {
+            std::cout << "Mesh cloned without original mesh." << std::endl;
+            DebugStop();
+        }
+
+        WriteObjects(buf,fMapConnects);
+        WriteObjects(buf,fOriginalConnects);
+    }
+	catch(const exception& e)
+	{
+		cout << "Exception catched! " << e.what() << std::endl;
+		cout.flush();
+	}
+}
+
+// Read the element data from a stream
+void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
+{
+	TPZCompMesh::Read(buf,context);
+    try
+    {	
+        // Reading original computational mesh from which this mesh was cloned
+        fCloneReference = dynamic_cast<TPZCompMesh *>(Restore(buf, 0));
+        
+        fReference = (TPZGeoCloneMesh *) context;
+        if(fReference) {
+            LoadReferences();
+            Reference()->RestoreReference(this);
+        }
+        
+        ReadObjects(buf,fMapConnects);
+        ReadObjects(buf,fOriginalConnects);
+    }
+    catch(const exception& e)
+    {
+        cout << "Exception catched! " << e.what() << std::endl;
+        cout.flush();
+        DebugStop();
+    }
+}
+
+

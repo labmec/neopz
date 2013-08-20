@@ -401,10 +401,10 @@ void TPZMatrix<std::complex<long double> >::Print(const char *name, std::ostream
 }
 
 template<class TVar>
-void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex) {
+void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex) {
 	
-	int nelem = elmat.Rows();
-  	int icoef,jcoef,ieq,jeq;
+	long nelem = elmat.Rows();
+  	long icoef,jcoef,ieq,jeq;
 	if(IsSimetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];

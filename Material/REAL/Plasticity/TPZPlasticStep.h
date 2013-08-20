@@ -101,7 +101,7 @@ public:
 		return *this;
 	}
 	
-	virtual const char * Name() const
+	virtual const char *Name() const
 	{
 		return "TPZPlasticStep generic class";	
 	}

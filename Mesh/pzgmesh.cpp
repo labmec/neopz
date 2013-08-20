@@ -105,7 +105,7 @@ void TPZGeoMesh::CleanUp()
 	fNodeVec.CompactDataStructure(1);
 }
 
-void TPZGeoMesh::SetName (const char *nm)
+void TPZGeoMesh::SetName (const std::string &nm)
 {
 	fName = nm;
 }
