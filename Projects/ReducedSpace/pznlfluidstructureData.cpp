@@ -179,14 +179,15 @@ void InputDataStruct::SetMinDeltaT()
     factDeltaT = fminDeltaT;
 }
 
-void InputDataStruct::NextDeltaT()
+void InputDataStruct::SetNextDeltaT()
 {
     factDeltaT = std::min(fmaxDeltaT,factDeltaT+fmaxDeltaT/fNDeltaTsteps);
 }
 
-void InputDataStruct::NextActTime()
+void InputDataStruct::UpdateActTime()
 {
     factTime += factDeltaT;
+    std::cout << "\n\n=============== ActTime = " << factTime << " ===============\n\n";
 }
 
 

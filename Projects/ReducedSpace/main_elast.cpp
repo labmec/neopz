@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 //    gRefDBase.WriteRefPatternDBase(outR);
     
     //Propagation criterion
-    REAL Lx = 400.;
-    REAL Ly = 400.;
+    REAL Lx = 1000.;
+    REAL Ly = 600.;
     REAL Lf = 50.;
     REAL Hf = 1.;
     REAL Young = 3.9E4;
@@ -49,18 +49,18 @@ int main(int argc, char *argv[])
      * Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
      * Aqui vai Qinj total mesmo!!!
      */
-    REAL QinjTot  = -0.8;
+    REAL QinjTot  = -0.5;
 
-    REAL Ttot = 16; /** em segundos */
-    REAL maxDeltaT = Ttot/2.;//5.; /** em segundos */
-    int nTimes = 1; /**  */
+    REAL Ttot = 20.; /** em segundos */
+    REAL maxDeltaT = 4.; /** em segundos */
+    int nTimes = 2; /**  */
     
     REAL Cl = 0.005;
     REAL Pe = 10.;
     REAL SigmaConf = 11.;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
-    REAL KIc = 1.;
+    REAL KIc = 1200.;
     REAL Jradius = 0.5;
     
     int p = 2;

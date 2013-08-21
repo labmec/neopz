@@ -51,8 +51,8 @@ public:
     REAL KIc();
     REAL Jradius();
     void SetMinDeltaT();
-    void NextDeltaT();
-    void NextActTime();
+    void SetNextDeltaT();
+    void UpdateActTime();
     
 private:
     
