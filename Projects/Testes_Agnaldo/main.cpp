@@ -1552,7 +1552,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     TPZGeoEl * gel = NULL;
     for(int r = 0; r < nref; r++)
     {
-        gel = gmesh->FindElement(pt, qsi, iniEl);
+        gel = gmesh->FindElement(pt, qsi, iniEl, 2);
         if(!gel) DebugStop();
         if(gel->Dimension()==2)
         {
@@ -1589,7 +1589,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     
     if(changeMatId==true)
     {
-        gel = gmesh->FindElement(pt, qsi, iniEl);
+        gel = gmesh->FindElement(pt, qsi, iniEl, 2);
         if(!gel) DebugStop();
         gel->SetMaterialId(newmatId);
         Area = gel->Volume();
