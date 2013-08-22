@@ -697,6 +697,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
         int isub;
         for(isub=0; isub<subelindex.NElements();isub++){
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelindex[isub]]);
+			if(!intel) 
+				DebugStop();
             intel->PRefine(porder+1);
 #ifdef HUGE_DEBUG
             if(gPrintLevel == 2) {
