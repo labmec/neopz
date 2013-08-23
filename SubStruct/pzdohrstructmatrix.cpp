@@ -541,6 +541,8 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     
     
 #ifdef USING_PAPI
+    float rtime, ptime, mflops;
+    long long flpops;
     PAPI_flops ( &rtime, &ptime, &flpops, &mflops );
 #endif
     
@@ -575,6 +577,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     dohr_ass.stop();
     
 #ifdef USING_PAPI
+    float ltime;
     PAPI_flops ( &ltime, &ptime, &flpops, &mflops );
     
     printf("Assemble Time: %.2f \t", ltime-rtime);
