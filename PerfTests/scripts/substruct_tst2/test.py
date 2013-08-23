@@ -60,7 +60,7 @@ def setup_cmd():
 	if not os.path.isdir(builddir) :
 		error(builddir+' is an invalid build directory.', 1)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst1')
+	rundir = os.path.join(builddir,'scripts','substruct_tst2')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -76,10 +76,10 @@ def setup_cmd():
 	# Put the arguments together
         arguments = ' -mc '+inputfn
 	arguments = arguments + ' -nsub 64'
-	arguments = arguments + ' -nt_a 1' 
-	arguments = arguments + ' -nt_d 1' 
-	arguments = arguments + ' -nt_m 1' 
-	arguments = arguments + ' -nt_sm 1' 
+	arguments = arguments + ' -nt_a 64' 
+	arguments = arguments + ' -nt_d 64' 
+	arguments = arguments + ' -nt_m 64' 
+	arguments = arguments + ' -nt_sm 64' 
 	arguments = arguments + ' -p 2' 
 	arguments = arguments + ' -ass_rdt ' + assfn[1]
 	arguments = arguments + ' -cre_rdt ' + crefn[1]
@@ -132,7 +132,7 @@ def sumarize_rdt_results(rundir) :
 		results[k]=(av,ci)
 	return results
 
-description="substructure -- cubo986.msh -- serial"
+description="substructure -- cubo986.msh -- 64 threads"
 
 # Execute the test.
 def run_test(ntimes):
@@ -155,12 +155,12 @@ def usage():
 	print "\t-r : Run the experiment."
 	print "\nDESCRIPTION"
 	print "\tExecute the substruct tool collecting statistics for the following steps:"
-	print "\t ", assfn[0], ": assembling the system (serial) -- results at", assfn[1]
-	print "\t ", tpzdohrassfn[0], ": assembling (ass part) the system (serial) -- results at", tpzdohrassfn[1]
-	print "\t ", tpzdohrdecfn[0], ": assembling (dec part) the system (serial) -- results at", tpzdohrdecfn[1]
-	print "\t ", crefn[0], ": creating the sytem (serial) -- results at", crefn[1]
-	print "\t ", prefn[0], ": pre-processing (serial) -- results at", prefn[1]
-	print "\t ", solfn[0], ": solver (serial) -- results at", solfn[1]
+	print "\t ", assfn[0], ": assembling the system (parallel) -- results at", assfn[1]
+	print "\t ", tpzdohrassfn[0], ": assembling (ass part) the system (parallel) -- results at", tpzdohrassfn[1]
+	print "\t ", tpzdohrdecfn[0], ": assembling (dec part) the system (parallel) -- results at", tpzdohrdecfn[1]
+	print "\t ", crefn[0], ": creating the sytem (parallel) -- results at", crefn[1]
+	print "\t ", prefn[0], ": pre-processing (parallel) -- results at", prefn[1]
+	print "\t ", solfn[0], ": solver (parallel) -- results at", solfn[1]
 	print "\t ", totfn[0], ": total -- results at", totfn[1]
 	sys.exit(1)
 

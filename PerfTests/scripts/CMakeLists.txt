@@ -9,3 +9,4 @@ set(PERFTEST_SCRIPTS_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
   
 # Add perf scripts here
 add_subdirectory(substruct_tst1)
+add_subdirectory(substruct_tst2)

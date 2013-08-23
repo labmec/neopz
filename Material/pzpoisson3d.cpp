@@ -1308,4 +1308,6 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
 	buf.Read(&gAlfa, 1);
 }
 
-
+#ifndef BORLAND
+template class TPZRestoreClass<TPZMatPoisson3d,TPZMATPOISSON3D>;
+#endif

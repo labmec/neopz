@@ -22,6 +22,21 @@
 import sys
 import os.path
 import substruct_tst1.test
+import substruct_tst2.test
+
+ntimes_dft = 3
+
+# Available tests
+short_tests = [("substruct_tst1",substruct_tst1.test), 
+	       ("substruct_tst2",substruct_tst2.test)]
+medium_tests = []
+long_tests = []
+
+tests = short_tests + medium_tests + long_tests
+
+def error(message, status):
+	sys.stderr.write('ERROR: '+message+'\n')
+	if status != 0 : sys.exit(status)
 
 # Functions for stand alone tests
 def usage():
@@ -29,20 +44,28 @@ def usage():
 	print "\nARGUMENTS"
 	print "\t-a : Run all tests."
 	print "\t-t test_name : Run test test_name."
-	print "\t-n #times    : Run each test #times times."
+	print "\t-n #times    : Run each test #times times. (default = ",ntimes_dft,")"
 	print "\t-s           : Run all short tests."
 	print "\t-m           : Run all medium tests."
 	print "\t-l           : Run all long tests."
 	print "\nDESCRIPTION"
-	print "\tExecute the following performance tests:"
-	print "\t TODO -- describe them "
+	print "\tExecute a set of performance tests. The following tests are available:"
+	print "\tShort tests:"
+	for t in short_tests :
+		print "\t* ", t[0], ":", t[1].description
+	print "\tMedium tests:"
+	for t in medium_tests :
+		print "\t* ", t[0], ":", t[1].description
+	print "\tLong tests:"
+	for t in long_tests :
+		print "\t* ", t[0], ":", t[1].description
 	sys.exit(1)
 
 # Main - for stand alone tests only
 if __name__ == "__main__":
 	import getopt
 	allt=0
-	ntimes=1
+	ntimes=ntimes_dft
 	test = {}
 	# Process arguments
 	try :
@@ -54,22 +77,38 @@ if __name__ == "__main__":
 		elif f == '-n': ntimes=int(v)
 		elif f == '-t': test[v] = True
 		elif f == '-s':
-			# Add short tests here
-			test["substruct_tst1"] = True
-		#elif f == '-m':
-			# Add medium tests here
-		#elif f == '-l':
-			# Add long tests here
+			for t in short_tests : test[t[0]] = True
+		elif f == '-m':
+			for t in medium_tests : test[t[0]] = True
+		elif f == '-l':
+			for t in long_tests : test[t[0]] = True
 		elif f == '-h': usage()
 
+	all_results={}
+
 	# Run tests
-	if allt or ("substruct_tst1" in test) :
-		try:
-			status,results = substruct_tst1.test.run_test(ntimes)
-			if status == 0: print "Execution [OK]"
-			else          : print "Execution [FAILED]"
+	for t in tests :
+		if allt or (t[0] in test) :
+			obj=t[1]
+			try:
+				status,results = obj.run_test(ntimes)
+				all_results[t[0]]=(status,obj.description,results)
+			except:
+				error('Could not run test '+t[0],0)
+				all_results[t[0]]=(-1,obj.description,{})
+
+	# Print all results
+	for k, v in all_results.iteritems() :
+		status = v[0]
+		desc = v[1]
+		res = v[2]
+		print '** ' + k + ' **'
+		print 'desc: ', desc
+		if status != 0: 
+			print "Status [FAILED]"
+		else :
+			print "Status [OK]"
 			print "Results summary ----------------------------"
-			for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
+			for rk,rv in res.iteritems() : 
+				print '{0:10s} : {1:>16f} +- {2:<16f}'.format(rk, rv[0], rv[1])
 			print "--------------------------------------------"
-		except:
-			error("Could not run test substruct-tst1")
