@@ -1,0 +1,5 @@
+The LibPZ performance test input and reference output data files.
+
+Keep only small input and small reference output files here. These files are
+stored together with the source code at the repository.
+

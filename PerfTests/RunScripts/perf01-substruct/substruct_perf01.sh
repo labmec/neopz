@@ -42,11 +42,11 @@ for ns in 1 2 4 16 32 64; do
   IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
   OF1="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt2"
   OF2="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
-  CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc2 $OF1 -dc3 $OF2 " 
+  CMD="$APP -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc2 $OF1 -dc3 $OF2 " 
   verbose 1 "cmd: $CMD"
   /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.txt.ckpt1.p1.nsub$ns.output.txt"
-  GOLDEN1="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF1"
-  GOLDEN2="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF2"
+  GOLDEN1="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF1"
+  GOLDEN2="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF2"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"
@@ -77,10 +77,10 @@ for ns in 1 2 4 16 32 64; do
 
   IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt2"
   OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
-  CMD="$APP -cf2 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF " 
+  CMD="$APP -cf2 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF " 
   verbose 1 "cmd: $CMD"
   /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.txt.ckpt2.p1.nsub$ns.output.txt"
-  GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
+  GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"

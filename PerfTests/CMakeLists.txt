@@ -1,5 +1,5 @@
 # @file neopz/PerfTests/CMakeList.txt
-  
+
 if(BUILD_PERF_TESTS)
 
   if(NOT UNIX)  
@@ -7,30 +7,43 @@ if(BUILD_PERF_TESTS)
      message (FATAL_ERROR "ERROR: PERFTESTS may only be used on UNIX-like OS's")
   endif()
 
-  find_path(PERFTEST_DATA_DIR libpz_datadir.readme PATHS ${SEARCH_DIRS})
-  find_path(PERFTEST_DATA_DIR libpz_datadir.readme PATHS ../../neopz_perf_data)
-  find_path(PERFTEST_DATA_DIR libpz_datadir.readme PATHS ./neopz_perf_data)
+  # Search for the directory containing small data sets. Small data sets can be
+  # kept together with the source code, hence ./small_data
 
-  if(NOT PERFTEST_DATA_DIR)
-  	message (FATAL_ERROR "ERROR: Please specify a valid directory for PERFTEST_DATA_DIR")
+  find_path(PERFTEST_SMALL_DATA_DIR libpz_small_datadir.readme PATHS ./small_data)
+  if(NOT PERFTEST_SMALL_DATA_DIR)
+  	message (FATAL_ERROR "ERROR: Please specify a valid directory for PERFTEST_SMALL_DATA_DIR")
   endif()
 
+  # Search for the directory containing large data sets
+  find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ${SEARCH_DIRS})
+  find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ../../neopz_perftest_large_data)
+  find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ../neopz_perftest_large_data)
+
+  if(NOT PERFTEST_LARGE_DATA_DIR)
+  	message (FATAL_ERROR "ERROR: Please specify a valid directory for PERFTEST_LARGE_DATA_DIR")
+  endif()
 
   # This variable is used inside the run scripts
-  set(PERFTEST_APPS_DIR ${CMAKE_CURRENT_BINARY_DIR})
+  set(PERFTEST_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
+  # Include the subdirectories
+  add_subdirectory(progs)
+  add_subdirectory(scripts)
+  
+  message("PERFTEST_BASE_DIR = ${PERFTEST_APPS_DIR}")
+  message("PERFTEST_SMALL_DATA_DIR = ${PERFTEST_SMALL_DATA_DIR}")
+  message("PERFTEST_LARGE_DATA_DIR = ${PERFTEST_LARGE_DATA_DIR}")
+
+  # Old structure -- TODO: Move these to progs
   # Add perf test applications here
   add_subdirectory(SubStruct)
   add_subdirectory(DecomposeLDLt)
-  # add_subdirectory(Subst) Directory Not Existent
   add_subdirectory(NumaTests)
   add_subdirectory(GFlopsTest)
 
   # Add your run scripts into RunScripts/CMakeLists.txt
   add_subdirectory(RunScripts)
-
-  message("PERFTEST_APPS_DIR = ${PERFTEST_APPS_DIR}")
-  message("PERFTEST_DATA_DIR = ${PERFTEST_DATA_DIR}")
 
 endif(BUILD_PERF_TESTS)
 		

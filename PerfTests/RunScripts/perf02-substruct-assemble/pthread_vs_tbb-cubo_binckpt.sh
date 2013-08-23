@@ -36,13 +36,13 @@ function run_cfg
     
     IF="cubo1.p$P.nsub$NS.t.@REAL_TYPE@.bin.ckpt1"
     OF="cubo1.p$P.nsub$NS.t.@REAL_TYPE@.bin.ckpt3"
-    GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
-    MD5F="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF.md5"
+    GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
+    MD5F="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF.md5"
 
     ASSRDT="$BASEOUT.ass.rdt"
     CRERDT="$BASEOUT.cre.rdt"
 
-    ICHKF="@PERFTEST_DATA_DIR@/SubStruct/inputs/$IF"
+    ICHKF="@PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF"
 
     CMD="$APP -bc -cf1 $ICHKF -dc3 $OF -st3 -ass_rdt $ASSRDT -cre_rdt $CRERDT" 
     CMD="$CMD -chk_c3_md5 $MD5F"

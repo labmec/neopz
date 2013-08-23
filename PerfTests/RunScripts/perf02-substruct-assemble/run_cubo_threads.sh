@@ -40,14 +40,14 @@ function run_cfg
 
         IF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
         OF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
-        CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        CMD="$APP -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         
         rm -f "$OF"
         /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
         
-        GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
+        GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
         
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"

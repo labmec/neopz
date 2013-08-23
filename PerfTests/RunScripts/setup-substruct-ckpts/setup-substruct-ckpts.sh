@@ -26,7 +26,7 @@ verbose 1 "cmd: $CMD"
 # Check if application binary exists
 [ -f $APP ] || fail "Application $APP is not a file"
 
-DATADIR="@PERFTEST_DATA_DIR@"
+DATADIR="@PERFTEST_LARGE_DATA_DIR@"
 
 function gen_ckpts
 {

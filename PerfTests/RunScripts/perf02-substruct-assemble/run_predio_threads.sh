@@ -39,8 +39,8 @@ function run_cfg
         BASEOUT="predio.@REAL_TYPE@.bin.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
 
         IF="predio.p$P.nsub$ns.t.@REAL_TYPE@.bin.ckpt1"
-        MD5F="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF.md5"
-        CMD="$APP -bc -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -chk_c3_md5 $MD5F -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        MD5F="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF.md5"
+        CMD="$APP -bc -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -chk_c3_md5 $MD5F -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         

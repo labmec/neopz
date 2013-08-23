@@ -43,14 +43,14 @@ for ns in 1 2 4 8; do
 
   IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
   OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
-  CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+  CMD="$APP -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
 
   verbose 1 "cmd: $CMD"
 
   rm -f "$OF"
   /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
   
-  GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
+  GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"
