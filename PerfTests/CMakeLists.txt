@@ -21,7 +21,8 @@ if(BUILD_PERF_TESTS)
   find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ../neopz_perftest_large_data)
 
   if(NOT PERFTEST_LARGE_DATA_DIR)
-  	message (FATAL_ERROR "ERROR: Please specify a valid directory for PERFTEST_LARGE_DATA_DIR")
+  	message (WARNING "WARNING: Could not find the path for large input and reference data sets "
+	  "PERFTEST_LARGE_DATA_DIR. Performance Tests that rely on large data sets may not work!")
   endif()
 
   # This variable is used inside the run scripts

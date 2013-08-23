@@ -92,8 +92,8 @@ def setup_cmd():
 	return rundir, executable+arguments
 
 # Limits for this test
-limits = { "cpu"   : (resource.RLIMIT_CPU,     60, "Max CPU time in seconds"), 
-	   "nofile": (resource.RLIMIT_NOFILE,   7, "The maximum number of open file descriptors for the current process."),
+limits = { "cpu"   : (resource.RLIMIT_CPU,   1000, "Max CPU user time in seconds (not wall clock time)"), 
+#	   "nofile": (resource.RLIMIT_NOFILE,   7, "The maximum number of open file descriptors for the current process."),
 #	   "rss"   : (resource.RLIMIT_RSS,   1024, "The maximum resident set size that should be made available to the process"),
 #	   "fsize" : (resource.RLIMIT_FSIZE,    1, "Max size of a file which the process may create"),
 #	   "data"  : (resource.RLIMIT_DATA,  1024, "The maximum size (in bytes) of the process's heap"),
@@ -120,9 +120,17 @@ def sumarize_rdt_results(rundir) :
 				rdtfn=os.path.join(rundir,fn)
 				rdt_d=rdt.read(rdtfn)
 				elapsed_list=rdt.get_column_values(rdt_d,"ELAPSED")
-				av=stats.average(elapsed_list)
-				ci=stats.conf_int(elapsed_list, 95.0)
-			except stats.StatsError, e:
+				try:
+					av=stats.average(elapsed_list)
+				except stats.StatsError, e:
+					print "WARNING: Could not compute average for results at", fn, "(", e, ")"
+					av=0.0
+				try:
+					ci=stats.conf_int(elapsed_list, 95.0)
+				except stats.StatsError, e:
+					print "WARNING: Could not compute confidence interval for results at", fn, "(", e, ")"
+					ci=0.0
+			except stats.RdtError, e:
 				print "WARNING: error when summarizing results for", fn, "(", e, ")"
 				av=0.0
 				ci=0.0
@@ -183,7 +191,7 @@ if __name__ == "__main__":
 	if run == 1: 
 		status,results = run_test(ntimes)
 		if status == 0: print "Execution [OK]"
-		else          : print "Execution [FAILED]"
+		else          : print "Execution [FAILED] (status = ", status, ")"
 		print "Results summary ----------------------------"
 		for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
 		print "--------------------------------------------"

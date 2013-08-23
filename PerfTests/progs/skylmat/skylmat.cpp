@@ -69,10 +69,6 @@ int main(int argc, char *argv[])
     task_scheduler_init init;
 #endif
 
-#ifdef USING_LIBNUMA
-    setup_masks();
-#endif
-    
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
         cerr << "Error when parsing the arguments!" << endl;
