@@ -82,7 +82,7 @@ public:
      * @brief Copy constructor specialized form TPZVerySparseMatrix
      * @param refmat Used as a model for current object
 	 */
-	TPZFMatrix(TPZVerySparseMatrix<TVar> & A);
+      TPZFMatrix(TPZVerySparseMatrix<TVar> const & A);
 	
 	/**
      * @brief Copy constructor

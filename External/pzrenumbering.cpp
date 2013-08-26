@@ -35,23 +35,25 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphind
 	nodtoelgraph.Resize(nodtoelgraphindex[fNNodes]);
 	nodtoelgraph.Fill (-1);
 	
+    TPZVec<int> nodtoelgraphposition(nodtoelgraphindex);
+    
 	int el;
   	for(el=0; el<fNElements; el++) {
 		int firstnode = elgraphindex[el];
 		int lastnode = elgraphindex[el+1];
 		for(nod=firstnode;nod<lastnode;nod++) {
 			int gnod = elgraph[nod];
-			int firstel= nodtoelgraphindex[gnod];
-			int lastel = nodtoelgraphindex[gnod+1];
-			while(firstel<lastel && nodtoelgraph[firstel] != -1) firstel++;
-			if(firstel == lastel) {
-				PZError << "TPZCompMesh::ComputeConnecttoElGraph wrong data structure\n";
-				continue;
-			} else {
-				nodtoelgraph[firstel] = el;
-			}
-		}
-  	}
+            nodtoelgraph[nodtoelgraphposition[gnod]] = el;
+            nodtoelgraphposition[gnod]++;
+#ifdef DEBUG
+            if (nodtoelgraphposition[gnod] > nodtoelgraphindex[gnod+1]) {
+                PZError << __PRETTY_FUNCTION__ << " wrong data structure\n";
+            }
+#endif
+		    
+	}
+
+}
 }
 
 void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex){

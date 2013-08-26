@@ -17,6 +17,7 @@
 #include <boost/graph/bandwidth.hpp>
 #include <boost/graph/profile.hpp>
 #include <boost/graph/wavefront.hpp>
+#include <boost/graph/properties.hpp>
 
 /**
  * @brief Defining the graph type \n
@@ -68,6 +69,8 @@ public:
 	
 	
 	virtual ~TPZBoostGraph();
+	
+	void CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
 	
 	/**
 	 * @brief Perform the renumbering of elements. The aim of this operation is to minimize the

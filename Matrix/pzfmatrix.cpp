@@ -94,7 +94,7 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
 /*** Constructor( TPZVerySparseMatrix<TVar> & ) ***/
 
 template<class TVar>
-TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> & A)
+TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> const & A)
 : TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
     
     int size = this->fRow * this->fCol;
@@ -105,8 +105,8 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> & A)
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
     
-    typename std::map <std::pair<int, int>, TVar>::const_iterator it = A.getMap().begin();
-    typename std::map <std::pair<int, int>, TVar>::const_iterator end = A.getMap().end();
+    typename std::map <std::pair<int, int>, TVar>::const_iterator it = A.MapBegin();
+    typename std::map <std::pair<int, int>, TVar>::const_iterator end = A.MapEnd();
     
     TVar * p = fElem;
     memset(p, 0, (size_t)size*sizeof(TVar));

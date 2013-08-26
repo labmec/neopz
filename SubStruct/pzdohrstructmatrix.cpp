@@ -108,129 +108,58 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		int nindep = fMesh->NIndependentConnects();
 		fMesh->ComputeElGraph(elgraph,elgraphindex);
 		int nel = elgraphindex.NElements()-1;
-        
-        struct timeval start_time, end_time;
+#ifdef USING_BOOST
+		TPZBoostGraph boost(nel,nindep);
+		boost.setGType(TPZBoostGraph::KMC);
+		boost.SetElementGraph(elgraph, elgraphindex);
+		
+		//boost.Resequence(perm, iperm);
 
-        if (0)
-        {
-            
-            printf("\n## Graph Resequence Experiment RCM ##\n");
-            
-            gettimeofday(&start_time, NULL);
-            
-            /** @brief Converting Graph */
-            TPZRenumbering converter(nel, nindep);
-            
-            TPZVec<int> nodegraph, nodegraphindex;
-            
-            converter.ConvertGraph(elgraph, elgraphindex, nodegraph, nodegraphindex);
-            
-            gettimeofday(&end_time, NULL);
-            
-            double run_time = ((end_time.tv_sec  - start_time.tv_sec) * 1000000u + end_time.tv_usec - start_time.tv_usec) / 1.e6;
-            
-            int NbNodes = (int) nodegraphindex.NElements() - 1;
-            int NbEdges = nodegraphindex[nodegraphindex.NElements() - 1];
-            
-            printf("\t > Number of Vertexes: %d\n", NbNodes);
-            printf("\t > Number of Edges: %d\n", NbEdges);
-            printf("\t > Converting Graph \t\t Time: %.2f seconds\n", run_time);
-            
-            gettimeofday(&start_time, NULL);
-            
-            for ( int w = 0 ; w < nodegraphindex.NElements() ; w++)
-                nodegraphindex [ w ] += 1;
-            
-            for ( int q = 0 ; q < nodegraph.NElements() ; q++)
-                nodegraph [ q ] += 1;
-            
-            TPZVec<int> temp;
-            temp.Resize(NbNodes);
-            
-            genrcm ( NbNodes, NbEdges, &nodegraphindex[0], &nodegraph[0], &temp[0]);
-            
-            iperm.Resize(NbNodes);
-            perm.Resize(NbNodes);
-            
-            for ( int w = 0 ; w < NbNodes ; w++)
-            {
-                iperm [ w ] = temp [ w ] - 1 ;
-                perm [ iperm [ w ] ] = w;
-            }
-            
-            gettimeofday(&end_time, NULL);
-            
-            run_time = ((end_time.tv_sec  - start_time.tv_sec) * 1000000u + end_time.tv_usec - start_time.tv_usec) / 1.e6;
-            printf("\t > Cuthill McKee \t\t Time: %.2f seconds\n", run_time);
-            
-            
-        } else {
-#ifdef USING_BOOST
-            if (0)
-            {
-                printf("\n## Graph Resequence Experiment Boost ##\n");
-                gettimeofday(&start_time, NULL);
-            }
-            
-            TPZBoostGraph boost(nel,nindep);
-            boost.setGType(TPZBoostGraph::KMC);
-            boost.SetElementGraph(elgraph, elgraphindex);
-            boost.Resequence(perm, iperm);
-            gettimeofday(&end_time, NULL);
-            
-            if (0)
-            {
-                double run_time = ((end_time.tv_sec  - start_time.tv_sec) * 1000000u + end_time.tv_usec - start_time.tv_usec) / 1.e6;
-                printf("\t > Cuthill McKee \t\t Time: %.2f seconds\n", run_time);
-            }
+		boost.CompressedResequence(perm, iperm);
+		
 #else
-            TPZSloan sloan(nel,nindep);
-            sloan.SetElementGraph(elgraph, elgraphindex);
-            sloan.Resequence(perm, iperm);
-            
+		TPZSloan sloan(nel,nindep);
+		sloan.SetElementGraph(elgraph, elgraphindex);
+		sloan.Resequence(perm, iperm);
 #endif
-        } // DEBUG
-        
-        fMesh->Permute(perm);
-        
-    }
-    
-    
-    int nsub = NSubMesh(fMesh);
-    int isub;
-    
-    for(isub=0; isub<nsub; isub++)
-    {
-        TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
-        std::cout << '.'; std::cout.flush();
-        if(!submesh)
-        {
-            continue;
-        }
-        TPZVec<long> perm,iperm;
-        TPZStack<int> elgraph,elgraphindex;
-        int nindep = submesh->NIndependentConnects();
-        submesh->ComputeElGraph(elgraph,elgraphindex);
-        int nel = elgraphindex.NElements()-1;
-#ifdef USING_BOOST
-        TPZBoostGraph boost(nel,nindep);
-        boost.setGType(TPZBoostGraph::KMC);
-        boost.SetElementGraph(elgraph, elgraphindex);
-        boost.Resequence(perm, iperm);
-#else
-        TPZSloan sloan(nel,nindep);
-        sloan.SetElementGraph(elgraph, elgraphindex);
-        sloan.Resequence(perm, iperm);
-#endif
-        submesh->Permute(perm);
-#ifdef DEBUG
-        std::stringstream filename;
-        filename << "SubMatrix" << submesh->Index() << ".vtk";
-        TPZFMatrix<REAL> fillin(50,50);
-        submesh->ComputeFillIn(50, fillin);
-        VisualMatrix(fillin, filename.str().c_str());
-#endif
+		fMesh->Permute(perm);
 	}
+	int nsub = NSubMesh(fMesh);
+	int isub;
+	
+	for(isub=0; isub<nsub; isub++)
+	{
+		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+		std::cout << '.'; std::cout.flush();
+		if(!submesh) 
+		{
+			continue;
+		}
+		TPZVec<long> perm,iperm;
+		TPZStack<int> elgraph,elgraphindex;
+		int nindep = submesh->NIndependentConnects();
+		submesh->ComputeElGraph(elgraph,elgraphindex);
+		int nel = elgraphindex.NElements()-1;
+#ifdef USING_BOOST
+		TPZBoostGraph boost(nel,nindep);
+		boost.setGType(TPZBoostGraph::KMC);
+		boost.SetElementGraph(elgraph, elgraphindex);
+		boost.Resequence(perm, iperm);
+#else
+		TPZSloan sloan(nel,nindep);
+		sloan.SetElementGraph(elgraph, elgraphindex);
+		sloan.Resequence(perm, iperm);
+#endif
+		
+		submesh->Permute(perm);
+#ifdef DEBUG 
+		std::stringstream filename;
+		filename << "SubMatrix" << submesh->Index() << ".vtk";
+		TPZFMatrix<REAL> fillin(50,50);
+		submesh->ComputeFillIn(50, fillin);
+		VisualMatrix(fillin, filename.str().c_str());
+#endif
+	}		
 	
 	tempo.ft1comput = timeforcopute.ReturnTimeDouble(); //end of time for compute
 	std::cout << tempo.ft1comput << std::endl;
@@ -246,7 +175,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
 	
 	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(assembly);
-    
+
 	int neq = fMesh->NEquations();
 	dohr->Resize(neq,neq);
 	// fCornerEqs was initialized during the mesh generation process
@@ -257,7 +186,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	for(isub=0; isub<nsub; isub++)
 	{
 		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
-		if(!submesh)
+		if(!submesh) 
 		{
 			continue;
 		}
@@ -282,7 +211,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		int count = 0;
 		for(it=globaleqs.begin(); it!=globaleqs.end(); it++)
 		{
-			assembly->fFineEqs[isub][count++] = it->second;
+			assembly->fFineEqs[isub][count++] = it->second; 
 		}
         
 		
@@ -334,6 +263,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	}
 	return dohr;
 }
+
 
 // this will create a DohrMatrix and compute its matrices
 TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,

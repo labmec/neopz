@@ -9,6 +9,8 @@
 
 #ifdef USING_BOOST
 
+#include <boost/graph/properties.hpp>
+#include <boost/graph/compressed_sparse_row_graph.hpp>
 #include "pzlog.h"
 #include <sys/time.h>
 #include <stdio.h>
@@ -38,6 +40,70 @@ void TPZBoostGraph::ClearDataStructures()
 	TPZRenumbering::ClearDataStructures();
 }
 
+void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
+{
+  
+      /* if the graph is empty, trivial */
+    if (this->fNNodes == 0)
+    {
+        perm.resize(0);
+        inverseperm.resize(0);
+        return;
+    }
+    /* define type graph */
+    typedef boost::compressed_sparse_row_graph<boost::directedS> BoostGraph;
+    
+    /* this code is a copy modified from the method ConvertGraph. Used here to create a Compressed Sparse Row Graph Boost */
+    int nod,el;
+    TPZVec<int> nodtoelgraphindex;
+    TPZVec<int> nodtoelgraph;
+
+    NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
+
+    std::vector<std::pair<std::size_t, std::size_t> > edges;
+    edges.reserve(fNNodes*fNNodes);
+  
+    for(nod=0; nod<fNNodes; nod++) 
+    {
+        int firstel = nodtoelgraphindex[nod];
+        int lastel = nodtoelgraphindex[nod+1];
+        std::set<int> nodecon;
+        for(el=firstel; el<lastel; el++) 
+	{
+            int gel = nodtoelgraph[el];
+            int firstelnode = fElementGraphIndex[gel];
+            int lastelnode = fElementGraphIndex[gel+1];
+            nodecon.insert(&fElementGraph[firstelnode],&fElementGraph[(lastelnode-1)]+1);
+        }
+        nodecon.erase(nod);
+
+	std::set<int>::iterator it;
+        for(it = nodecon.begin(); it!= nodecon.end(); it++)
+	{
+	  edges.push_back(std::make_pair(nod, *it));
+	  edges.push_back(std::make_pair(*it, nod));
+	}
+    }
+
+    BoostGraph G(boost::edges_are_unsorted_multi_pass, edges.begin(), edges.end(), fNNodes);
+  
+    const boost::property_map<BoostGraph, boost::vertex_index_t>::type
+    boost_index_map = get(boost::vertex_index, G);
+
+    // Compute graph re-ordering
+    std::vector<std::size_t> inv_perm(fNNodes);
+
+    boost::cuthill_mckee_ordering(G, inv_perm.begin());
+    
+    perm.Resize(fNNodes);
+    inverseperm.Resize(fNNodes);
+    
+    for (std::size_t i = 0; i < fNNodes; ++i)
+    {
+      perm[inv_perm[i]] = i;
+      inverseperm[i]=inv_perm[i];
+    }
+}
 void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
 {
 #ifdef LOG4CXX
