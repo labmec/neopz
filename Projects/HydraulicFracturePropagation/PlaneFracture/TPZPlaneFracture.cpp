@@ -38,13 +38,15 @@ TPZPlaneFracture::TPZPlaneFracture()
 
 
 TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                                   TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength)
+                                   TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength, REAL Lmax)
 {
     fposTVD_stress = posTVD_stress;
     
     fInitialElIndex = 0;
     
     fPreservedMesh = new TPZGeoMesh;
+    
+    fLmax = Lmax;
     
     std::set<REAL> espacamentoVerticalTVD;
     std::list<REAL> espacamentoVerticalDEPTH;
@@ -75,7 +77,7 @@ TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletD
         
         int nrows = 1;
         REAL deltaZused = deltaZ/nrows;
-        while(deltaZused > __maxLength)
+        while(deltaZused > Lmax)
         {
             nrows++;
             deltaZused = deltaZ/nrows;
@@ -373,7 +375,7 @@ void TPZPlaneFracture::GeneratePreservedMesh(std::list<REAL> & espacamento, REAL
     
     std::list<REAL>::iterator it = espacamento.end(); it--;
     
-    int nDirRef = int(log(fabs(yLength)/__maxLength)/log(2.));
+    int nDirRef = int(log(fabs(yLength)/fLmax)/log(2.));
     int nLayers = nDirRef + 2;
     
     REAL Y = 0.;
@@ -510,7 +512,7 @@ void TPZPlaneFracture::GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL
     
     int nStretches = 1;
     REAL deltaX = xLength/nStretches;
-    while(deltaX > __maxLength)
+    while(deltaX > fLmax)
     {
         nStretches++;
         deltaX = xLength/nStretches;
@@ -1532,9 +1534,9 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 
 
 void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * refinedMesh)
-{
-    REAL desiredSize = __maxLength;
-    int ndiv = log((__maxLength/2.)/desiredSize)/log(2.);
+{return;
+    REAL desiredSize = fLmax;
+    int ndiv = log((fLmax/2.)/desiredSize)/log(2.);
     if(ndiv < 1)
     {
         ndiv = 1;

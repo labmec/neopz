@@ -25,9 +25,6 @@
 /// Real as tolerance 
 const REAL __smallNum = 1.E-5;
 
-/** @brief maximum element edge length */
-const REAL __maxLength = 10.;
-
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
 const int __EdgeStretchesQTD = 5; //will be used for refpatterns
@@ -163,10 +160,12 @@ class TPZPlaneFracture
      *              Obs.: Stress profile in each stretch is linear, defined by (initialTVD,initialStress)~(finalTVD,finalStress)
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
+     * @param Lmax    [in] : Maximum element edge length
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin, TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength);
+    TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+                     TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength, REAL Lmax);
     
 	~TPZPlaneFracture();
     
@@ -186,7 +185,7 @@ class TPZPlaneFracture
 		
     //---------------------------------------------------------------------
 	
-	private:
+	//private:
     
     TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                       int porder, REAL sigmaTraction, REAL pressureInsideCrack);
@@ -386,6 +385,9 @@ class TPZPlaneFracture
     
     /** @brief initial element index in point search (just for optimization) */
     int fInitialElIndex;
+    
+    /** @brief maximum element edge length */
+    REAL fLmax;
 };
 
 #endif

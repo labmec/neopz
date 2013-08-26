@@ -31,6 +31,7 @@ const int matPoint = -3;
 
 void FillFractureDotsExampleEllipse(TPZVec< std::pair<REAL,REAL> > &fractureDots);
 void FillFractureDotsExampleCrazy(TPZVec< std::pair<REAL,REAL> > &fractureDots);
+void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REAL> > &fractureDots);
 
 TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax);
 TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL traction);
@@ -62,6 +63,7 @@ int mainCRAZY(int argc, char * const argv[])
     
     REAL lengthX = 5.;
     REAL lengthY = 7.;
+    REAL Lmax = 10.;
     
     REAL lw = 202.;
     REAL bulletDepthTVDIni = 20.;
@@ -82,7 +84,7 @@ int mainCRAZY(int argc, char * const argv[])
     //stretch #4
     posTVD_stress[4][63.] = 8.;
     posTVD_stress[4][210.] = 10.;
-    TPZPlaneFracture plfrac(lw, bulletDepthTVDIni, bulletDepthTVDFin, posTVD_stress, lengthX, lengthY);
+    TPZPlaneFracture plfrac(lw, bulletDepthTVDIni, bulletDepthTVDFin, posTVD_stress, lengthX, lengthY, Lmax);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots(0);
     FillFractureDotsExampleEllipse(fractureDots);
@@ -104,8 +106,61 @@ int mainCRAZY(int argc, char * const argv[])
     return 0;
 }
 
+int main/*Circles*/(int argc, char * const argv[])
+{
+    std::cout << "\e";
+    TPZTimer readRef("ReadingRefPatterns");
+    readRef.start();
+    
+    #define writeAgain
+#ifdef writeAgain
+    gRefDBase.InitializeRefPatterns();
+#else
+    std::ifstream inRefP("RefPatternsUsed.txt");
+    gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
+#endif
+    
+    readRef.stop();
+    std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
+    
+    REAL lengthX = 50.;
+    REAL lengthY = 1.;
+    REAL Lmax = 1.;
+    
+    REAL lw = 100.;
+    REAL bulletDepthIni =  0.;
+    REAL bulletDepthFin = 100.;
+    
+    TPZVec< std::map<REAL,REAL> > pos_stress(1);
+    pos_stress[0][0.]    = 1.;
+    pos_stress[0][100.]  = 1.;
+    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY, Lmax);
+    
+    REAL Rini = 10.;
+    REAL Rfin = 40;
+    int nRadius = 15;
 
-int main/*3D*/(int argc, char * const argv[])
+    for(int r = 0; r < nRadius; r++)
+    {
+        std::stringstream nm;
+        nm << "circle" << r << ".vtk";
+        
+        TPZVec< std::pair<REAL,REAL> > fractureDots;
+        FillFractureDotsCircle(50., (Rfin-Rini)/(nRadius-1)*r+Rini, fractureDots);
+        TPZGeoMesh * gmesh = plfrac.GetFractureGeoMesh(fractureDots);
+        
+        std::ofstream outC(nm.str().c_str());
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outC, true);
+    }
+    
+    std::ofstream outRefP("RefPatternsUsed.txt");
+    gRefDBase.WriteRefPatternDBase(outRefP);
+    
+    return 0;
+}
+
+
+int main3D(int argc, char * const argv[])
 {    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -124,6 +179,7 @@ int main/*3D*/(int argc, char * const argv[])
     
     REAL lengthX = 250.;
     REAL lengthY = 50.;
+    REAL Lmax = 10.;
     
     REAL lw = 100.;
     REAL bulletDepthIni =  0.;
@@ -132,7 +188,7 @@ int main/*3D*/(int argc, char * const argv[])
     TPZVec< std::map<REAL,REAL> > pos_stress(1);
     pos_stress[0][0.]    = 1.;
     pos_stress[0][100.]  = 1.;
-    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY);
+    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY, Lmax);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots;
     FillFractureDotsExampleCrazy(fractureDots);
@@ -748,7 +804,24 @@ void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
 
 
 
-
+void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REAL> > &fractureDots)
+{
+    REAL Lmax = 2.;
+    int nsteps = M_PI * radius / Lmax;
+    if(nsteps < 10) nsteps = 10;
+    REAL ang = M_PI / nsteps;
+    
+    int nnodes = nsteps + 1;
+    fractureDots.Resize(nnodes);
+    
+    for(int node = 0; node < nnodes; node++)
+    {
+        REAL vx = 0.1 + radius*sin(node*ang);
+        REAL vz = radius*cos(node*ang) - center;
+        fractureDots[node] = std::make_pair(vx , vz);
+    }
+    std::cout.flush();
+}
 
 
 
