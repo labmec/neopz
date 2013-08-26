@@ -229,5 +229,9 @@ public:
   void CheckOrders(TPZCompMesh *mesh);
 };
 
+#ifndef BORLAND
+template class TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID>;
+#endif
+
 #endif
 

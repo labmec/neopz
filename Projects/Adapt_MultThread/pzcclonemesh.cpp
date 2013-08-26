@@ -1487,6 +1487,3 @@ void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
   TPZSaveable::ReadObjects (buf,fOriginalConnects);
 
 }
-
-template class
-TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID> ;
