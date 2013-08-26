@@ -23,13 +23,18 @@ import sys
 import os.path
 import substruct_tst1.test
 import substruct_tst2.test
+import substruct_tst3.test
+import substruct_tst4.test
 
 ntimes_dft = 3
 
 # Available tests
 short_tests = [("substruct_tst1",substruct_tst1.test), 
 	       ("substruct_tst2",substruct_tst2.test)]
-medium_tests = []
+
+medium_tests= [("substruct_tst3",substruct_tst3.test),
+	       ("substruct_tst4",substruct_tst4.test)]
+
 long_tests = []
 
 tests = short_tests + medium_tests + long_tests
@@ -42,9 +47,9 @@ def error(message, status):
 def usage():
 	print "\nUsage: test.py -t test_name [-a] [-h] [-n #times]\n"
 	print "\nARGUMENTS"
-	print "\t-a : Run all tests."
-	print "\t-t test_name : Run test test_name."
 	print "\t-n #times    : Run each test #times times. (default = ",ntimes_dft,")"
+	print "\t-t test_name : Run test test_name."
+	print "\t-a           : Run all tests."
 	print "\t-s           : Run all short tests."
 	print "\t-m           : Run all medium tests."
 	print "\t-l           : Run all long tests."
