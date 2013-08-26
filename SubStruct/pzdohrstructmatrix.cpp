@@ -113,9 +113,9 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		boost.setGType(TPZBoostGraph::KMC);
 		boost.SetElementGraph(elgraph, elgraphindex);
 		
-		//boost.Resequence(perm, iperm);
+		boost.Resequence(perm, iperm);
 
-		boost.CompressedResequence(perm, iperm);
+		//boost.CompressedResequence(perm, iperm);
 		
 #else
 		TPZSloan sloan(nel,nindep);
