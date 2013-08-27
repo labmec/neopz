@@ -3,8 +3,8 @@
  * @brief Contains the TPZEulerConsLaw class which implements the weak statement of the compressible euler equations.
  */
 
-#ifndef EULERCONSLAW_H
-#define EULERCONSLAW_H
+#ifndef TPZEULERCONSLAW_H
+#define TPZEULERCONSLAW_H
 
 #include <iostream>
 #include "pzmaterial.h"
@@ -542,6 +542,7 @@ protected:
 	
 	/** @} */
 };
+
 
 inline std::string TPZEulerConsLaw::Name()
 {
@@ -1370,7 +1371,7 @@ inline void TPZEulerConsLaw::uRes(TPZVec<T> & sol, T & us)
 			us = sqrt(temp)/sol[0];
 			break;
 		default:
-			PZError << "TPZArtDiff::uRes Error: invalid Dimension\n";
+			PZError << "TPZEulerConsLaw::uRes Error: invalid Dimension\n";
 	}
 }
 

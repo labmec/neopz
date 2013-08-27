@@ -3,8 +3,8 @@
  * @brief Contains the TPZArtDiff class which implements a numerical diffusivity coefficient.
  */
 
-#ifndef PZARTDIFF_H
-#define PZARTDIFF_H
+#ifndef TPZARTDIFF_HH
+#define TPZARTDIFF_HH
 
 
 #include "pzvec.h"
@@ -994,10 +994,6 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
 			PZError << "TPZArtDiff::EigenSystemBornhaus Error: Invalid Dimension\n";
 	}
 }
-
-#ifndef BORLAND
-template class TPZRestoreClass<TPZArtDiff,TPZARTDIFFID>;
-#endif
 
 #endif
 
