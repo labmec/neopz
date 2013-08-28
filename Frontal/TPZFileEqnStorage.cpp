@@ -360,7 +360,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 	int fdtmp = -1;
 #ifdef WIN32
-	fdtmp = _mktemp(filenamestorage);
+	_mktemp(filenamestorage);
 #else
 	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
@@ -372,7 +372,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 	
 	fFileName = filenamestorage;
 #ifdef WIN32
-	fIOStream = _fdopen(fdtmp,"wb"); //open for writing
+	fIOStream = fopen(filenamestorage,"wb"); //open for writing
 #else
 	fIOStream = fdopen(fdtmp,"wb"); //open for writing
 #endif
@@ -404,7 +404,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 	
 	fFileName = filenamestorage;
 #ifdef WIN32
-	fIOStream = _fdopen(fdtmp,"wb"); //open for writing
+	fIOStream = fopen(filenamestorage,"wb"); //open for writing
 #else
 	fIOStream = fdopen(fdtmp,"wb"); //open for writing
 #endif
@@ -428,7 +428,7 @@ void TPZFileEqnStorage<TVar>::Zero()
 	
 	int fdtmp = -1;
 #ifdef WIN32
-	fdtmp = _mktemp(filenamestorage);
+	_mktemp(filenamestorage);
 #else
 	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
@@ -443,7 +443,7 @@ void TPZFileEqnStorage<TVar>::Zero()
 	
 	fFileName = filenamestorage;
 #ifdef WIN32
-	fIOStream = _fdopen(fdtmp,"wb"); //open for writing
+	fIOStream = fopen(filenamestorage,"wb"); //open for writing
 #else
 	fIOStream = fdopen(fdtmp,"wb"); //open for writing
 #endif
