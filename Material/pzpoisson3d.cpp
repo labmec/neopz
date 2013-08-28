@@ -1239,7 +1239,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	
 	for(int id=0; id<fDim; id++) {
 		//Normal gradient average <grad V> = 0.5 * (grad_left.n + grad_right.n)
-		aux = (0.5) * (Ldsolnormal + Rdsolnormal);
+		aux = STATE(0.5) * (Ldsolnormal + Rdsolnormal);
 		//<grad V> - <grad exact> = <grad V> - grad exact
 		aux = aux - ExactDNormal;
 		//*= h ^ gAlfa

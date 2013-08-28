@@ -358,10 +358,10 @@ template<class TVar>
 TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
-#ifdef WIN32
-	_mktemp(filenamestorage);
-#else
 	int fdtmp = -1;
+#ifdef WIN32
+	fdtmp = _mktemp(filenamestorage);
+#else
 	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
 	
@@ -371,8 +371,11 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 	fNumHeaders=20;
 	
 	fFileName = filenamestorage;
-	
+#ifdef WIN32
+	fIOStream = _fdopen(fdtmp,"wb"); //open for writing
+#else
 	fIOStream = fdopen(fdtmp,"wb"); //open for writing
+#endif
 	/**
 	 *Writes NumHeaders and NumBlocks information in
 	 *the two initial positions on fIOStream
@@ -400,8 +403,11 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 	fNumHeaders=20;
 	
 	fFileName = filenamestorage;
-	
+#ifdef WIN32
+	fIOStream = _fdopen(fdtmp,"wb"); //open for writing
+#else
 	fIOStream = fdopen(fdtmp,"wb"); //open for writing
+#endif
 	/**
 	 *Writes NumHeaders and NumBlocks information in
 	 *the two initial positions on fIOStream
@@ -419,10 +425,11 @@ void TPZFileEqnStorage<TVar>::Zero()
 	remove(fFileName.c_str());
 	
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
-#ifdef WIN32
-	_mktemp(filenamestorage);
-#else
+	
 	int fdtmp = -1;
+#ifdef WIN32
+	fdtmp = _mktemp(filenamestorage);
+#else
 	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
 	cout << "Temporary file name " << filenamestorage << endl;
@@ -435,8 +442,11 @@ void TPZFileEqnStorage<TVar>::Zero()
 	fNumHeaders=20;
 	
 	fFileName = filenamestorage;
-	
+#ifdef WIN32
+	fIOStream = _fdopen(fdtmp,"wb"); //open for writing
+#else
 	fIOStream = fdopen(fdtmp,"wb"); //open for writing
+#endif
 	/**
 	 *Writes NumHeaders and NumBlocks information in
 	 *the two initial positions on fIOStream
