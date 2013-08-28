@@ -162,20 +162,22 @@ int main(int argc, char *argv[])
 	const char * CharContainer;	
 	TiXmlHandle docHandle( &doc );
 	
+	int returnvalue;
+		
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "InputDir" ).ToElement();
 	CharContainer = Container->Attribute("Name");
-	system(CharContainer);
+	returnvalue = system(CharContainer);
 	cout << "Creating directory using : "<< CharContainer << "\n" << endl;
 	
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "OutputDir" ).ToElement();
 	CharContainer = Container->Attribute("Name");	
-	system(CharContainer);
+	returnvalue = system(CharContainer);
 	cout << "Creating directory using : "<< CharContainer << "\n" << endl;	
 	
 	//	Creation of Mesh info folder
 	Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "DumpFolder" ).ToElement();
 	CharContainer = Container->Attribute("Name");
-	system(CharContainer);
+	returnvalue = system(CharContainer);
 	cout << "Creating directory using : "<< CharContainer << "\n" << endl;	
 
 	TiXmlElement* GridDumpName = docHandle.FirstChild( "ProblemData" ).FirstChild( "Grid" ).FirstChild( "GridDumpFile" ).ToElement();
@@ -519,7 +521,7 @@ int main(int argc, char *argv[])
 	std::stringstream outputfiletemp;
 	outputfiletemp << output << ".vtk";
 	
-	system("clear");
+	returnvalue = system("clear");
 	cout << "Calculation of initial conditions !" << endl;
 	TPZVec <REAL> PrintInital(1,0);
 	PrintInital[0]=0.0;
@@ -1953,7 +1955,8 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 		cent++;
 		TimeValue = cent*deltaT;
 	}
-	system("clear");
+	int returnvalue;
+	returnvalue = system("clear");
 }
 
 void *InitalPressureCalculations(REAL &PressureValue,TPZVec <REAL> &PointCoordinates)

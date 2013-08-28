@@ -100,6 +100,8 @@ void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	fwrite(fPos,sizeof(long  int),5,out_file);
 	double readvec[4][100];
 	int iblock =0;
+	long int sizereturn;
+	sizereturn = 0;
 	for(iblock=0; iblock<4; iblock++) {
 		long int currentpos = ftell(out_file);
 		fseek(out_file,firstpos+iblock*sizeof(long int),SEEK_SET);
@@ -112,10 +114,16 @@ void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	}
 	fclose(out_file);
 	out_file = fopen(name,"rb");
-	fread(fPos,sizeof(long int),5,out_file);
+	sizereturn = fread(fPos,sizeof(long int),5,out_file);
+#ifdef DEBUG
+	if (sizereturn != 5) DebugStop();
+#endif
 	for(iblock = 0; iblock<4; iblock++) {
 		fseek(out_file,fPos[iblock],SEEK_SET);
-		fread(readvec[iblock],sizeof(double),loop_limit,out_file);
+		sizereturn = fread(readvec[iblock],sizeof(double),loop_limit,out_file);
+#ifdef DEBUG
+		if (sizereturn != loop_limit) DebugStop();
+#endif
 	}
 }
 
@@ -153,11 +161,16 @@ void TPZFileEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) c
 {
 	TPZEqnArray<TVar> REqnArray;
 	int i;
+	long int sizereturn;
+	sizereturn = 0;
 	for(i=fBlockPos.NElements()-1;i>=0;i--){
 		if (fBlockPos[i]) {
 			fseek(fIOStream,fBlockPos[i],SEEK_SET);
 			long int position;
-			fread(&position,sizeof(long int),1,fIOStream);
+			sizereturn = fread(&position,sizeof(long int),1,fIOStream);
+#ifdef DEBUG
+			if (sizereturn != 1) DebugStop();
+#endif
 			fseek(fIOStream,position,SEEK_SET);
 			REqnArray.Read(fIOStream);
 			REqnArray.EqnBackward(f,dec); 
@@ -255,8 +268,16 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name
 		 *Opens binary files and get initial information
 		 *use this information for storage requirements
 		 */
-		fread(&fNumHeaders,sizeof(int),1,fIOStream);
-		fread(&fNumBlocks,sizeof(int),1,fIOStream);
+		long int sizereturn;
+		sizereturn = 0;
+		sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
+#ifdef DEBUG
+		if (sizereturn != 1) DebugStop();
+#endif
+		sizereturn = fread(&fNumBlocks,sizeof(int),1,fIOStream);
+#ifdef DEBUG
+		if (sizereturn != 1) DebugStop();
+#endif
 		ReadBlockPositions();
 	}else if(option=='w'){
 		fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
@@ -340,7 +361,8 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 #ifdef WIN32
 	_mktemp(filenamestorage);
 #else
-	mkstemp(filenamestorage);
+	int fdtmp = -1;
+	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
 	
 	fCurBlockPosition = -1;
@@ -350,7 +372,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 	
 	fFileName = filenamestorage;
 	
-	fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
+	fIOStream = fdopen(fdtmp,"wb"); //open for writing
 	/**
 	 *Writes NumHeaders and NumBlocks information in
 	 *the two initial positions on fIOStream
@@ -368,7 +390,8 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 #ifdef WIN32
 	_mktemp(filenamestorage);
 #else
-	mkstemp(filenamestorage);
+	int fdtmp = -1;
+	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
 	
 	fCurBlockPosition = -1;
@@ -378,7 +401,7 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 	
 	fFileName = filenamestorage;
 	
-	fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
+	fIOStream = fdopen(fdtmp,"wb"); //open for writing
 	/**
 	 *Writes NumHeaders and NumBlocks information in
 	 *the two initial positions on fIOStream
@@ -399,7 +422,8 @@ void TPZFileEqnStorage<TVar>::Zero()
 #ifdef WIN32
 	_mktemp(filenamestorage);
 #else
-	mkstemp(filenamestorage);
+	int fdtmp = -1;
+	fdtmp = mkstemp(filenamestorage); //returns file description for tmp file
 #endif
 	cout << "Temporary file name " << filenamestorage << endl;
 	cout.flush();
@@ -412,7 +436,7 @@ void TPZFileEqnStorage<TVar>::Zero()
 	
 	fFileName = filenamestorage;
 	
-	fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
+	fIOStream = fdopen(fdtmp,"wb"); //open for writing
 	/**
 	 *Writes NumHeaders and NumBlocks information in
 	 *the two initial positions on fIOStream
@@ -433,8 +457,16 @@ void TPZFileEqnStorage<TVar>::ReOpen()
 	 *Opens binary files and get initial information
 	 *use this information for storage requirements
 	 */
-	fread(&fNumHeaders,sizeof(int),1,fIOStream);
-	fread(&fNumBlocks,sizeof(int),1,fIOStream);	
+	long int sizereturn;
+	sizereturn = 0;
+	sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
+	sizereturn = fread(&fNumBlocks,sizeof(int),1,fIOStream);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 }
 
 template<class TVar>
@@ -453,8 +485,16 @@ void TPZFileEqnStorage<TVar>::OpenGeneric(char option, const char * name)
 		 *Opens binary files and get initial information
 		 *use this information for storage requirements
 		 */
-		fread(&fNumHeaders,sizeof(int),1,fIOStream);
-		fread(&fNumBlocks,sizeof(int),1,fIOStream);
+		long int sizereturn;
+		sizereturn = 0;
+		sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
+#ifdef DEBUG
+		if (sizereturn != 1) DebugStop();
+#endif
+		sizereturn = fread(&fNumBlocks,sizeof(int),1,fIOStream);
+#ifdef DEBUG
+		if (sizereturn != 1) DebugStop();
+#endif
 		ReadBlockPositions();
 	}else if(option=='w'){
 		fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
@@ -493,6 +533,8 @@ void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 	int i, ibl = 0;
 	cout << "Reading Block Positions\n";
 	cout.flush();
+	long int sizereturn;
+	sizereturn = 0;
 	for(i=0;i<fNumBlocks;i++) {
 		cout << "*";
 		cout.flush();
@@ -500,10 +542,16 @@ void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 			cout << 100*i/fNumBlocks << "% Read\n";
 			cout.flush();
 		}
-		fread(&fBlockPos[ibl],sizeof(long int),fNumHeaders-1,fIOStream);
+		sizereturn = fread(&fBlockPos[ibl],sizeof(long int),fNumHeaders-1,fIOStream);
+#ifdef DEBUG
+		if (sizereturn != fNumHeaders-1) DebugStop();
+#endif
 		ibl+=fNumHeaders-1;
 		long int nextpos;
-		fread(&nextpos,sizeof(long int),fNumHeaders-1,fIOStream);
+		sizereturn = fread(&nextpos,sizeof(long int),fNumHeaders-1,fIOStream);
+#ifdef DEBUG
+		if (sizereturn != fNumHeaders-1) DebugStop();
+#endif
 		fseek(fIOStream,nextpos,SEEK_SET);
 	}
 }

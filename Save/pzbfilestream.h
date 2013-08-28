@@ -154,7 +154,12 @@ public:
 	{
 		if(ifd)
 		{
-			fread(p,sizeof(T),size,ifd);
+			long int sizereturn;
+			sizereturn = 0;
+			sizereturn = fread(p,sizeof(T),size,ifd);
+#ifdef DEBUG
+			if (sizereturn != size) DebugStop();
+#endif
 		}
 	}
 	

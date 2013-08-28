@@ -227,31 +227,59 @@ void TPZEqnArray<TVar>::Write(FILE * outputfile){
 
 template<class TVar>
 void TPZEqnArray<TVar>::Read(FILE * inputfile) {
+	long int sizereturn;
+	sizereturn = 0;
 	/** Number of equations */
-	fread(&fNumEq,sizeof(int),1,inputfile);
+	sizereturn = fread(&fNumEq,sizeof(int),1,inputfile);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 	/** Last term added*/
-	fread(&fLastTerm,sizeof(int),1,inputfile);
-
+	sizereturn = fread(&fLastTerm,sizeof(int),1,inputfile);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 	int aux=0;
 	/** TPZStack fEqStart data */
-	fread(&aux,sizeof(int),1,inputfile);
+	sizereturn = fread(&aux,sizeof(int),1,inputfile);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 	fEqStart.Resize(aux);
-	fread(&fEqStart[0],sizeof(int), aux ,inputfile);
-	
+	sizereturn = fread(&fEqStart[0],sizeof(int), aux ,inputfile);
+#ifdef DEBUG
+	if (sizereturn != aux) DebugStop();
+#endif
 	/** TPZStack fEqNumber data */
-	fread(&aux,sizeof(int),1,inputfile);
+	sizereturn = fread(&aux,sizeof(int),1,inputfile);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 	fEqNumber.Resize(aux);
-	fread(&fEqNumber[0],sizeof(int), aux ,inputfile);
-	
+	sizereturn = fread(&fEqNumber[0],sizeof(int), aux ,inputfile);
+#ifdef DEBUG
+	if (sizereturn != aux) DebugStop();
+#endif
 	/** TPZStack fIndex data */
-	fread(&aux,sizeof(int),1,inputfile);
+	sizereturn = fread(&aux,sizeof(int),1,inputfile);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 	fIndex.Resize(aux);
-	fread(&fIndex[0],sizeof(int), aux ,inputfile);
-	
+	sizereturn = fread(&fIndex[0],sizeof(int), aux ,inputfile);
+#ifdef DEBUG
+	if (sizereturn != aux) DebugStop();
+#endif
 	/** TPZStack fEqValues data */
-	fread(&aux,sizeof(int),1,inputfile);
+	sizereturn = fread(&aux,sizeof(int),1,inputfile);
+#ifdef DEBUG
+	if (sizereturn != 1) DebugStop();
+#endif
 	fEqValues.Resize(aux);
-	fread(&fEqValues[0],sizeof(REAL), aux ,inputfile);
+	sizereturn = fread(&fEqValues[0],sizeof(REAL), aux ,inputfile);
+#ifdef DEBUG
+	if (sizereturn != aux) DebugStop();
+#endif
 	
 	this->fSymmetric = EIsSymmetric;
 	if(fNumEq && fNumEq%2==0 && fEqNumber[0]==fEqNumber[1]) fSymmetric = EIsNonSymmetric;
