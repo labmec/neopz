@@ -52,7 +52,7 @@ int main() {
   if (nnodes == 4) geo = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
   gmesh->BuildConnectivity();
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-  TPZVec<REAL> sol(1,0.);
+  TPZVec<STATE> sol(1,0.);
   TPZMaterial * material = new TPZL2Projection(1,2,1,sol);
   cmesh->InsertMaterialObject(material);
   cmesh->SetAllCreateFunctionsDiscontinuous();
@@ -124,7 +124,7 @@ int main() {
 #include "TPZCopySolve.h"
 #include "TPZSpStructMatrix.h"
 
-void ExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &deriv) {
+void ExactSolution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &deriv) {
   u.Resize(1);
   deriv.Resize(2,1);
   double Xp = x[0];
@@ -142,13 +142,13 @@ void ExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &der
   deriv(1,0) = (2.6704656055626725*Yp)/(r*r);
 }
 
-void Dirichlet(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
-  TPZFNMatrix<2> deriv(2,1);
+void Dirichlet(const TPZVec<REAL> &x, TPZVec<STATE> &f) {
+  TPZFNMatrix<2,STATE> deriv(2,1);
     TPZManVector<REAL, 3> xcopy(x);
   ExactSolution(xcopy,f,deriv);
 }
 
-void LoadFunction(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void LoadFunction(const TPZVec<REAL> &x, TPZVec<STATE> &f) {
   f.Resize(1);
   f[0] = 0.;
 }
@@ -346,7 +346,7 @@ int main1(){
 //   TPZFStructMatrix matrix(cmesh);
   TPZBandStructMatrix matrix(cmesh);
   an.SetStructuralMatrix(matrix);
-  TPZStepSolver<REAL> step;
+  TPZStepSolver<STATE> step;
   
 // #define DIRETO
 #ifdef DIRETO  
@@ -354,9 +354,9 @@ int main1(){
 #else 
 //       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
 	TPZAutoPointer<TPZGuiInterface> gui;
-	TPZFMatrix<REAL> fakeRhs(cmesh->NEquations(),1);
+	TPZFMatrix<STATE> fakeRhs(cmesh->NEquations(),1);
 	TPZBandStructMatrix PrecondMatrix(cmesh); 
-	TPZStepSolver<REAL> precond(PrecondMatrix.CreateAssemble(fakeRhs,gui));
+	TPZStepSolver<STATE> precond(PrecondMatrix.CreateAssemble(fakeRhs,gui));
 	precond.SetDirect(ELU);
       
       step.SetGMRES( 300000, 160, precond, 1.e-14, 0 );

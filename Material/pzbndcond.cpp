@@ -147,8 +147,8 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 		}
 #endif
 		for (i = 0; i <datavec[0].sol[0].NElements(); i++){
-					copy.fBCVal2(i,0) = gBigNumber*datavec[0].sol[0][i];
-					copy.fBCVal1(i,i) = gBigNumber;
+					copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
+					copy.fBCVal1(i,i) = ((STATE)gBigNumber);
         }
         copy.fType = 2;
 	}

@@ -348,9 +348,9 @@ void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
 	//values[1] : eror em norma L2
 	values[1]  = pow(sol[0] - u_exact[0],(STATE)2.0);
 	//values[2] : erro em semi norma H1
-	values[2]  = pow(dx - du_exact(0,0),(REAL)2.0);
-	values[2] += pow(dy - du_exact(1,0),(REAL)2.0);
-	values[2] += pow(dz - du_exact(2,0),(REAL)2.0);
+	values[2]  = (dx - du_exact(0,0))*(dx - du_exact(0,0));
+	values[2] += ((dy - du_exact(1,0))*(dy - du_exact(1,0)));
+	values[2] += ((dz - du_exact(2,0))*dz - du_exact(2,0));
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
 }

@@ -105,8 +105,8 @@ void *InitialDisplacementCalculations();
 
 //	This Solve Different analysis
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
-TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics);
-void SolveSistTransient(bool IsInitial,TPZVec < TPZFMatrix<REAL> > Events,TiXmlHandle ControlDoc,int Nthreads, TPZVec <REAL> &PrintEachtimeStep, std::string FileName, REAL deltaT,REAL maxTime, TPZFMatrix<REAL> &InitialSolution, 
+TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics);
+void SolveSistTransient(bool IsInitial,TPZVec < TPZFMatrix<REAL> > Events,TiXmlHandle ControlDoc,int Nthreads, TPZVec <REAL> &PrintEachtimeStep, std::string FileName, REAL deltaT,REAL maxTime, TPZFMatrix<STATE> &InitialSolution, 
 						TPZVec <TPZPoroElastic2d  * > &mymaterial , TPZAnalysis &an, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZReadGIDGrid & GeometryInfo);	
 void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
 
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 	if (UseRefMat) 
 	{
         Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "Grid" ).FirstChild( "RefMaterials" ).FirstChild( "Mat" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			int HrefMat = atoi(Container->Attribute( "URef"));
 			int Id = atoi(Container->Attribute( "Id"));	
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 		set<int> SetMatsRefDir;
 		int ndirectdivp;
 		Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "GridDirectionalRefinement" ).FirstChild( "List" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			ndirectdivp = atoi(Container->Attribute( "NDiv"));
 			int Id = atoi(Container->Attribute( "Id"));			
@@ -314,13 +314,13 @@ int main(int argc, char *argv[])
 	if (NEvents!=0) 
 	{
 		Container = docHandle.FirstChild( "ProblemData" ).FirstChild( "WellLines" ).FirstChild( "Event" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			
 			int TemptimeStep = atoi(Container->Attribute( "TimeStep"));
 			int iAlter = 0;
 			TiXmlElement* LineSource_el = Container->FirstChild("LineSource")->ToElement();
-			for( LineSource_el; LineSource_el; LineSource_el=LineSource_el->NextSiblingElement())
+			for( ; LineSource_el; LineSource_el=LineSource_el->NextSiblingElement())
 			{	
 				ALter(iAlter,0)=TemptimeStep;
 				CharContainer = LineSource_el->Attribute( "ID" );
@@ -492,7 +492,7 @@ int main(int argc, char *argv[])
 	TiXmlHandle TimesHandle( &Times );
 	
 	Container = TimesHandle.FirstChild( "Times" ).FirstChild( "Time" ).ToElement();
-	for( Container; Container; Container=Container->NextSiblingElement())
+	for( ; Container; Container=Container->NextSiblingElement())
 	{
 		CharContainer = Container->Attribute( "Value" );
 		PrintStep[itime] =  atof(CharContainer);
@@ -514,7 +514,7 @@ int main(int argc, char *argv[])
 	
 	// Calculation of initial conditions 
 	bool Initial = true;
-	TPZFMatrix<REAL> InitialSolution = PoroelasticAnalysisInitial.Solution();
+	TPZFMatrix<STATE> InitialSolution = PoroelasticAnalysisInitial.Solution();
 	std::string output(CharContainer);
 	std::stringstream outputfiletemp;
 	outputfiletemp << output << ".vtk";
@@ -527,10 +527,10 @@ int main(int argc, char *argv[])
 
 	
 	// This code identify singular blocks
-	TPZStepSolver<REAL> step;		// Create Solver object
+	TPZStepSolver<STATE> step;		// Create Solver object
 	step.SetDirect(ELDLt);			//	Symmetric case
 	PoroelasticAnalysis.SetSolver(step); //	Set solver	
-	TPZStepSolver<REAL> & temp = dynamic_cast<TPZStepSolver<REAL> &> (PoroelasticAnalysis.Solver());
+	TPZStepSolver<STATE> & temp = dynamic_cast<TPZStepSolver<STATE> &> (PoroelasticAnalysis.Solver());
 	std::list <int> & zeropivot = temp.Singular(); 
 	if (zeropivot.size()) 
 	{
@@ -538,7 +538,7 @@ int main(int argc, char *argv[])
 		PoroelasticAnalysis.Rhs().Zero();
 		PoroelasticAnalysis.Rhs()(eq,0) = -10000.0;
 		PoroelasticAnalysis.Solve();
-		TPZFMatrix<REAL> TempSolution = PoroelasticAnalysis.Solution();
+		TPZFMatrix<STATE> TempSolution = PoroelasticAnalysis.Solution();
 		std::string output;
 		output = "DumpFolder/SingularNodes";
 		std::stringstream outputfiletemp;
@@ -638,7 +638,7 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 		{
 			if(GeometryInfo.fMaterialDataVec[imat].fMatID == int(GeometryInfo.fBCMaterialDataVec[ibc].fProperties[0])) 
 			{	
-				TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);				
+				TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);				
 				TPZMaterial * BCond = MaterialElastic->CreateBC(Material,GeometryInfo.fBCMaterialDataVec[ibc].fMatID,dirichlet, val1, val2);
 				cmesh->InsertMaterialObject(BCond);				
 			}
@@ -656,7 +656,7 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 					if (int(Events[itime](iwell,2)) == GeometryInfo.fMaterialDataVec[imat].fMatID) {
 						if (TStep == int(Events[itime](iwell,0))) 
 						{
-							TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+							TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 							TPZMaterial * BCLINE = MaterialElastic->CreateBC(Material, int(Events[itime](iwell,1)),neumann, val1, val2);
 							cmesh->InsertMaterialObject(BCLINE);
 						}
@@ -916,7 +916,7 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 		{
 			if(GeometryInfo.fMaterialDataVec[imat].fMatID == int(GeometryInfo.fBCMaterialDataVec[ibc].fProperties[0])) 
 			{	
-				TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);				
+				TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);				
 				TPZMaterial * BCond = MaterialDiffusion->CreateBC(Material,GeometryInfo.fBCMaterialDataVec[ibc].fMatID,dirichlet, val1, val2);
 				cmesh->InsertMaterialObject(BCond);				
 			}
@@ -934,7 +934,7 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 					if (int(Events[itime](iwell,2)) == GeometryInfo.fMaterialDataVec[imat].fMatID) {
 						if (TStep == int(Events[itime](iwell,0))) 
 						{
-							TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+							TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 							TPZMaterial * BCLINE = MaterialDiffusion->CreateBC(Material, int(Events[itime](iwell,1)),neumann, val1, val2);
 							cmesh->InsertMaterialObject(BCLINE);
 						}
@@ -1364,7 +1364,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 		{
 			if(GeometryInfo.fMaterialDataVec[imat].fMatID == int(GeometryInfo.fBCMaterialDataVec[ibc].fProperties[0])) 
 			{	
-				TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+				TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
 				val2(0,0)=GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				val2(1,0)=GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];			
 				val2(2,0)=GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
@@ -1384,7 +1384,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 					if (int(Events[itime](iwell,2)) == GeometryInfo.fMaterialDataVec[imat].fMatID) {
 						if (TStep == int(Events[itime](iwell,0))) 
 						{
-							TPZFMatrix<REAL> val1(3,2,Events[itime](iwell,4)), val2(3,1,0.);
+							TPZFMatrix<STATE> val1(3,2,Events[itime](iwell,4)), val2(3,1,0.);
 							val2(0,0)=Events[itime](iwell,5);
 							val2(1,0)=Events[itime](iwell,6);			
 							val2(2,0)=Events[itime](iwell,7);
@@ -1595,7 +1595,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {			
 	TPZSkylineStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt);
 	an.SetSolver(step);
 	an.Run();
@@ -1650,7 +1650,7 @@ void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> mesh
 		
 		int iscalar = 0;
 		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "Scalars" ).FirstChild( "Var" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			CharContainer = Container->Attribute("Name");
 			scalnames[iscalar] = CharContainer;
@@ -1659,7 +1659,7 @@ void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> mesh
 		
 		int ivectorial = 0;
 		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "Vectorials" ).FirstChild( "Var" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			CharContainer = Container->Attribute("Name");
 			vecnames[ivectorial] = CharContainer;
@@ -1684,7 +1684,7 @@ void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> mesh
 		
 		int iscalar = 0;
 		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControlsInterface" ).FirstChild( "Scalars" ).FirstChild( "Var" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			CharContainer = Container->Attribute("Name");
 			scalnames[iscalar] = CharContainer;
@@ -1693,7 +1693,7 @@ void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> mesh
 		
 		int ivectorial = 0;
 		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControlsInterface" ).FirstChild( "Vectorials" ).FirstChild( "Var" ).ToElement();
-		for( Container; Container; Container=Container->NextSiblingElement())
+		for( ; Container; Container=Container->NextSiblingElement())
 		{
 			CharContainer = Container->Attribute("Name");
 			vecnames[ivectorial] = CharContainer;
@@ -1767,7 +1767,7 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 	}
 }
 
-TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics)
+TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics)
 {
 	
 	
@@ -1783,15 +1783,15 @@ TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec 
 	
 	matsp.SetMaterialIds(materialid);
 	TPZAutoPointer<TPZGuiInterface> guiInterface;
-	TPZFMatrix<REAL> Un;
-	TPZAutoPointer <TPZMatrix<REAL> > matK2 = matsp.CreateAssemble(Un,guiInterface);
+	TPZFMatrix<STATE> Un;
+	TPZAutoPointer <TPZMatrix<STATE> > matK2 = matsp.CreateAssemble(Un,guiInterface);
 	
 	return matK2;
 	
 }
 
 
-void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec)
+void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<STATE> &fvec)
 {
 	
 	for(int imat = 0; imat < GeometryInfo.MatNumber; imat++)
@@ -1803,7 +1803,7 @@ void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPor
 	TPZSkylineStructMatrix matsk(mphysics);
 	an.SetStructuralMatrix(matsk); 
 	an.StructMatrix()->SetNumThreads(Nthreads);
-	TPZStepSolver<REAL> step; 
+	TPZStepSolver<STATE> step; 
 	step.SetDirect(ELDLt); 
 	an.SetSolver(step); 
 	an.Assemble(); 
@@ -1814,19 +1814,19 @@ void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPor
 
 
 
-void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXmlHandle ControlDoc,int Nthreads, TPZVec <REAL> &PrintStep, std::string FileName, REAL deltaT,REAL maxTime, TPZFMatrix<REAL> &InitialSolution, TPZVec <TPZPoroElastic2d  * > &mymaterial ,
+void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXmlHandle ControlDoc,int Nthreads, TPZVec <REAL> &PrintStep, std::string FileName, REAL deltaT,REAL maxTime, TPZFMatrix<STATE> &InitialSolution, TPZVec <TPZPoroElastic2d  * > &mymaterial ,
 						TPZAnalysis &an, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics , TPZReadGIDGrid & GeometryInfo)
 {
 	
 	
 	// Calculation of Mass Matrix
 	cout << "Calculate Mass Matrix " << endl;    
-	TPZAutoPointer <TPZMatrix<REAL> > PoroelasticMassMatrix = MassMatrix(GeometryInfo,mymaterial, mphysics);
+	TPZAutoPointer <TPZMatrix<STATE> > PoroelasticMassMatrix = MassMatrix(GeometryInfo,mymaterial, mphysics);
 	cout << "Calculate Mass Matrix was done! " << endl;	
 	
 	// Calculation of Stiffness Matrix and Load Vector
 	TPZFMatrix<REAL> PoroelasticStiffnessMatrix, PoroelasticStiffnessMatrixInverse;	
-	TPZFMatrix<REAL> PoroelasticLoadVector;
+	TPZFMatrix<STATE> PoroelasticLoadVector;
 	cout << "Calculate Stiffness Matrix and Load Vector " << endl;	
 	StiffMatrixLoadVec(GeometryInfo,Nthreads,mymaterial, mphysics, an, PoroelasticStiffnessMatrix, PoroelasticLoadVector);
 	cout << "Calculate Stiffness Matrix and Load Vector was done! " << endl;	
@@ -1846,9 +1846,9 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 	
 	int nrows;
 	nrows = PoroelasticMassMatrix->Rows();
-	TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
-	TPZFMatrix<REAL> RhsTemporal(nrows,1,0.0);
-	TPZFMatrix<REAL> LastSolution = InitialSolution;
+	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
+	TPZFMatrix<STATE> RhsTemporal(nrows,1,0.0);
+	TPZFMatrix<STATE> LastSolution = InitialSolution;
 	TPZVec <TPZPoroElastic2d *>  Dummymaterialist(GeometryInfo.MatNumber,0);	
 	
 	
@@ -1939,7 +1939,7 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 					TPZSkylineStructMatrix matsk(DumpMphysics);
 					DumpAnalysis.SetStructuralMatrix(matsk);
 					DumpAnalysis.StructMatrix()->SetNumThreads(Nthreads);
-					TPZStepSolver<REAL> step;
+					TPZStepSolver<STATE> step;
 					step.SetDirect(ELDLt); 					
 					DumpAnalysis.SetSolver(step);
 					DumpAnalysis.AssembleResidual();

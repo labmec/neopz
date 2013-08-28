@@ -47,14 +47,14 @@ public:
      * @param use_trueerror: evaluates the error throgh the analitical solution provided by f
      */
     TPZCompMesh * GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<REAL> &ervec,
-                                 void (*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+                                 void (*f)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                                  TPZVec<REAL> &truervec, TPZVec<REAL> &effect,
                                  std::ofstream &out,
                                  int use_trueerror = 0,MElementType eltype=EOned,int print = 0);
     
     static void DeleteElements(TPZCompMesh *mesh);
     
-    REAL UseTrueError(TPZInterpolatedElement *coarse, void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv));
+    REAL UseTrueError(TPZInterpolatedElement *coarse, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv));
     
 protected:
 

@@ -87,9 +87,9 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 
 void PrintGeoMeshVTKWithGradientAsData(TPZCompMesh *gmesh,char *filename);
 
-void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force);
 
-void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 
@@ -115,7 +115,7 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
  *@param grad out: Value of the gradient reconstructed
  *@param var in: Index of the Solution Variable
  */
-void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var);
+void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<STATE> &solalfa,  TPZFMatrix<STATE> &grad, int var);
 
 //Trocar todos os elementos do cmesh apontando para o material TPZL2ProjectionFromGradient
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
@@ -206,8 +206,8 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     int nelem = cmesh->NElements();
     
     TPZManVector<REAL,3> center;
-    TPZManVector<REAL> solalfa;
-    TPZFMatrix<REAL> Grad;
+    TPZManVector<STATE> solalfa;
+    TPZFMatrix<STATE> Grad;
     
     //criar ponteiro para TPZFunction
     TPZGradient *pGrad = new TPZGradient;
@@ -268,15 +268,15 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     
     
     //Solve linear system and transfer the solution to computational mesh
-    TPZStepSolver<REAL> step;
+    TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     step.SetMatrix(stiffmatrix);
-    TPZFMatrix<REAL> result;
+    TPZFMatrix<STATE> result;
     step.Solve(rhs, result);
     cmesh->LoadSolution(result);
 }
 
-void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var) {
+void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<STATE> &solalfa,  TPZFMatrix<STATE> &grad, int var) {
     
     int dim;
     dim = cel->Mesh()->Dimension();
@@ -294,15 +294,16 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
 	
     center.Resize(3, 0.);
     solalfa.Resize(nstates,0.0);
-	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0), solbeta(nstates,0.0);;
+	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0);
+    TPZManVector<STATE> solbeta(nstates,0.0);;
 	
-	TPZFMatrix<REAL> A(dim,dim);  // Linear System matrix
+	TPZFMatrix<STATE> A(dim,dim);  // Linear System matrix
 	grad.Redim(dim,1);
 	
 	// matrizes para aplicar o metodo dos minimos quadrados
-	TPZFMatrix<REAL> DeltaH;
-	TPZFMatrix<REAL> DeltaHTranspose;
-	TPZFMatrix<REAL> DifSol;
+	TPZFMatrix<STATE> DeltaH;
+	TPZFMatrix<STATE> DeltaHTranspose;
+	TPZFMatrix<STATE> DifSol;
 	
     // Encontrando o centro do elemento atual (cel)
     TPZGeoEl* gelalfa = cel->Reference();
@@ -414,7 +415,7 @@ void SystemSolve(TPZAnalysis &an, TPZCompMesh *Cmesh){
     TPZBandStructMatrix strskyl(Cmesh);
     an.SetStructuralMatrix(strskyl);
     
-    TPZStepSolver<REAL> direct;
+    TPZStepSolver<STATE> direct;
     direct.SetDirect(ELU);
     an.SetSolver(direct);
 
@@ -710,7 +711,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int porder, int dim, bool isdiscontinu
     cmesh->SetDimModel(material->Dimension());
 	
 	// Creating four boundary condition
-    TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.),val2(2,1,0.);
 	
 	// Condicion de Dirichlet fijando la posicion de la placa
     TPZMaterial * BCond = material->CreateBC(mat,-1, 0, val1, val2);
@@ -771,7 +772,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 }
 
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
-void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
+void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force) {
 	//	REAL Epsilon = 1000000;
 	REAL B = (16.*ValueK)/M_PI;
 	REAL F = 2*sqrt(ValueK);
@@ -799,7 +800,7 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	force[0] = B*(sum*(M_PI+2.*arctan)+((8*F*(2.+5*sum))/den)-((32*F*prod*temp)/(den*den)));*/
 }
 
-void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 /*	REAL B = 8./M_PI;
 	REAL F = (-0.5)*sqrt(ValueK);
 	REAL prodx = x[0]*(x[0]-1.);

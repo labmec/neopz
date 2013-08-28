@@ -229,7 +229,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     cmesh->InsertMaterialObject(mat3);
 	
 	///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	REAL uN=0.;
 	val2(0,0)=uN;
 	TPZMaterial * BCondN1 = material->CreateBC(mat1, bc1,neumann, val1, val2);
@@ -238,7 +238,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     TPZMaterial * BCondN2 = material->CreateBC(mat1, bc3,neumann, val1, val2);
     cmesh->InsertMaterialObject(BCondN2);
 	
-	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
+	TPZFMatrix<STATE> val12(2,2,0.), val22(2,1,0.);
 	REAL uD=0.;
 	val22(0,0)=uD;
 	TPZMaterial * BCondD1 = material->CreateBC(mat1, bc2,dirichlet, val12, val22);
@@ -285,7 +285,7 @@ void Solve ( TPZAnalysis &an ){
 	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 	TPZFStructMatrix mat( malha );// ok! matriz estrutural cheia
 	//TPZSpStructMatrix mat( malha );//matriz estrutural esparsa (???? NÃO FUNCIONOU !!!!!!!!!!)
-	TPZStepSolver<REAL> solv;
+	TPZStepSolver<STATE> solv;
 	solv.SetDirect (  ELU );//ECholesky);// ELU , ELDLt ,
     
 	

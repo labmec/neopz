@@ -59,7 +59,7 @@ ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because 
 int gPrintLevel = 0;
 bool gDebug = false;
 
-void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactShock(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 
 void BCDirichletShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol);
 void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol);
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
                     TPZParSkylineStructMatrix strskyl(cmesh,nthread);
                     an.SetStructuralMatrix(strskyl);
                     
-                    TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+                    TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
                     direct->SetDirect(ECholesky);
                     an.SetSolver(*direct);
                     delete direct;
@@ -263,7 +263,7 @@ int main(int argc, char *argv[]) {
 ////////////////////////////////////////////////////////////////////////////////////////
 //////////   SHOCK PROBLEM    ///////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
-void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void ExactShock(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 	TPZVec<REAL> C0(3,0.5);
     REAL Radio = 0.25;
 	REAL Product = 8.;
@@ -283,13 +283,13 @@ void ExactShock(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 	dsol(2,0) = (ALFA*(x[2]-C0[2]))/den;
 }
 
-void BCDirichletShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCDirichletShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
 	bcsol[0] = atan(ALFA * ( R0 - sqrt(3.)) );
 }
-void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
@@ -298,7 +298,7 @@ void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 		DebugStop();
 	bcsol[0] = (ALFA*(x[0]-C0[0]))/den;
 }
-void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
@@ -307,7 +307,7 @@ void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 		DebugStop();
 	bcsol[0] = (ALFA*(x[1]-C0[1]))/den;
 }
-void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
@@ -318,7 +318,7 @@ void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 }
 
 /** NOTE: Forcing function in TPZMatPoisson3d is negative */
-void FforcingShock(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df) {
+void FforcingShock(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) {
 	TPZVec<REAL> C0(3,-0.25);
 	
 	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
@@ -350,7 +350,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Boundary conditions
 	// Dirichlet on face into the coordinate planes XY YZ XZ
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCDirichletShock);
-	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
 	val1.PutVal(0,0,1.); val1.PutVal(1,1,1.); val1.PutVal(2,2,1.);
 	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
@@ -775,7 +775,7 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
 }
 
 void InitializeSolver(TPZAnalysis &an) {
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	TPZBandStructMatrix matrix(an.Mesh());
 	an.SetStructuralMatrix(matrix);
 	step.SetDirect(ELU);

@@ -70,7 +70,7 @@ using namespace std;
 	}
 
 
-	void ExactSolutionfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	void ExactSolutionfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
 		//REAL x = ptx[0];
 		REAL y = ptx[1];
 		
@@ -122,7 +122,7 @@ using namespace std;
 		
 	}
 
-void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
 {
 	//REAL x = ptx[0];
 	REAL y = ptx[1];
@@ -185,7 +185,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 }
 
 
-	void ExactSolution2DLineSource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	void ExactSolution2DLineSource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
 		
 		// Variable definition
 		REAL x = ptx[0];							//	[m]	
@@ -273,7 +273,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 		flux(4,0)=Qy; // Qy			
 	}
 
-	void SolutionExactRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	void SolutionExactRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux) {
 		//REAL x = ptx[0];
 		REAL x = ptx[0];//-12500;
 
@@ -329,7 +329,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 	}
 
 	// Analytical solution for flamant problem Elasticity Theory: Applications and Numerics 
-	void ExactSolutionFlamantProblem(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+	void ExactSolutionFlamantProblem(TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
 	{
 		
 		// Defition of variables
@@ -365,7 +365,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 
 
 	// Exact Solution Madels problem ref	
-	void ExactSolutionMandelsProblemwitheffect(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+	void ExactSolutionMandelsProblemwitheffect(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
 	{
 		// Defition of variables
         REAL x, y, z, PI;
@@ -527,7 +527,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 		
 	}
 
-	void SolutionExactRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	void SolutionExactRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
 		//REAL x = ptx[0];
 		REAL x = ptx[0];//-12500;
 		REAL L = 20000.0;
@@ -543,7 +543,7 @@ void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, T
 		//	sol[2] = (-1.+ sigD)*pini;
 	}
 
-	void InitialPressureDistribution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol)
+	void InitialPressureDistribution(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol)
 	{
 		REAL x, y, z;
         x = ptx[0];

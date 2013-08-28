@@ -265,8 +265,8 @@ int main(int argc, char *argv[])
     TPZGeoMesh  *gmesh = 0;
     TPZAutoPointer<TPZCompMesh> cmeshauto = 0;
     TPZDohrStructMatrix* dohrstruct = 0;
-    TPZFMatrix<REAL> *rhs = NULL;
-    TPZMatrix<REAL> *matptr = 0;
+    TPZFMatrix<STATE> *rhs = NULL;
+    TPZMatrix<STATE> *matptr = 0;
     int dim = dim_arg.get_value();
     TPZCompEl::SetgOrder(plevel.get_value());
     
@@ -460,20 +460,20 @@ int main(int argc, char *argv[])
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         cmeshauto->Read(CheckPoint2, &gmesh);
         SAVEABLE_SKIP_NOTE(CheckPoint2);
-        matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
+        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
         dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         dohrstruct->Read(CheckPoint2);
     }
     
-    TPZAutoPointer<TPZMatrix<REAL> > precond = NULL;
+    TPZAutoPointer<TPZMatrix<STATE> > precond = NULL;
     /* Work between checkpoint 2 and checkpoint 3 */
     if (running)
     {
         
         PERF_START(assemble_rst);
         TPZAutoPointer<TPZGuiInterface> gui;
-        rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
+        rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
         VERBOSE(1,"dohrstruct->Assemble()" << endl);
         if (dohr_tbb.was_set())
             dohrstruct->AssembleTBB(*matptr,*rhs, gui);
@@ -545,9 +545,9 @@ int main(int argc, char *argv[])
         CheckPoint3.OpenRead(cf3.get_value());
         gmesh->Read(CheckPoint3, 0);
         cmeshauto->Read(CheckPoint3, gmesh);
-        matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
-        precond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matptr));
-        rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
+        matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+        precond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matptr));
+        rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
         rhs->Read(CheckPoint3, 0);
     }
     
@@ -557,13 +557,13 @@ int main(int argc, char *argv[])
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
         
         int neq = dohr->Rows();
-        TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+        TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
         VERBOSE(1, "Number of equations " << neq << endl);
         
-        TPZStepSolver<REAL> pre(precond);
+        TPZStepSolver<STATE> pre(precond);
         pre.SetMultiply();
-        TPZStepSolver<REAL> cg(dohr);
+        TPZStepSolver<STATE> cg(dohr);
         
         /* Configure the CG solver to iterate:
          - until it converges (residual <= 1.e-8), or
@@ -621,7 +621,7 @@ int main(int argc, char *argv[])
         int subcount=0;
         while (it != sublist.end()) {
             
-            TPZFMatrix<REAL> subext,subu;
+            TPZFMatrix<STATE> subext,subu;
             dohrptr->fAssembly->Extract(subcount,diag,subext);
             (*it)->UGlobal(subext,subu);
             TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
@@ -730,7 +730,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
     TPZMaterial * viscoelastauto(viscoelast);
     TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
     TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
-    TPZFNMatrix<6> qsi(6,1,0.);
+    TPZFNMatrix<6,STATE> qsi(6,1,0.);
     viscoelast->SetDefaultMem(qsi); //elast
     viscoelast->PushMemItem(); //elast
     TPZMaterial * bcauto(bc);
@@ -744,7 +744,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
     int nummat = 1, neumann = 1, mixed = 2;
     //      int dirichlet = 0;
     int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;
-    TPZManVector<REAL> force(3,0.);
+    TPZManVector<STATE> force(3,0.);
     //force[1] = 0.;
     REAL Ela = 1000, poisson = 0.;
     REAL lambdaV = 0, muV = 0, alphaT = 0;
@@ -763,7 +763,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
     mesh->InsertMaterialObject(viscoelastauto);
     
     // Neumann em x = 1;
-    TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
     val2(0,0) = 1.;
     TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
     TPZMaterial * bcauto4(bc4);

@@ -473,10 +473,10 @@ int run(std::istream & input, std::ostream & output)
 			}
 			TPZTransfer<STATE> transfer;
 			cmesh->BuildTransferMatrix(tempmesh,transfer);
-			TPZFMatrix<REAL> coarsesol = tempmesh.Solution();
+			TPZFMatrix<STATE> coarsesol = tempmesh.Solution();
 			coarsesol.Remodel(4,coarsesol.Rows()/4);
 			coarsesol.Transpose();
-			TPZFMatrix<REAL> finesol;
+			TPZFMatrix<STATE> finesol;
 			transfer.Multiply(coarsesol,finesol,0,1);
 			finesol.Transpose();
 			finesol.Remodel(finesol.Rows()*finesol.Cols(),1);

@@ -13,14 +13,14 @@
 int gDebug;
 using namespace std;
 
-void Flatten(TPZFMatrix<REAL> & coeff,
+void Flatten(TPZFMatrix<STATE> & coeff,
 			 TPZFMatrix<REAL> &phi,
 			 TPZFMatrix<REAL> &dphi,
-			 TPZVec<REAL> &sol,
-			 TPZFMatrix<REAL> & dsol);
+			 TPZVec<STATE> &sol,
+			 TPZFMatrix<STATE> & dsol);
 
 void CheckConv(const double step,
-			   TPZFMatrix<REAL> & coeff,
+			   TPZFMatrix<STATE> & coeff,
 			   TPZFMatrix<REAL> &phi,
 			   TPZFMatrix<REAL> &dphi,
 			   TPZEulerConsLaw & MatTest);
@@ -56,8 +56,8 @@ int main()
 	data.phi.Redim(nphi,1);
 	data.sol[0].Resize(nstate);
 	
-	TPZFMatrix<REAL> ef(nphi * nstate, 1, 0.);
-	TPZFMatrix<REAL> ek(nphi * nstate, nphi * nstate, 0.);
+	TPZFMatrix<STATE> ef(nphi * nstate, 1, 0.);
+	TPZFMatrix<STATE> ek(nphi * nstate, nphi * nstate, 0.);
 	
 	// generating data
 	
@@ -77,7 +77,7 @@ int main()
 			data.dphix(i,j)=45.8*i-3.2*j+2.; // any choice
 	
 	// individual solution coefficients
-	TPZFMatrix<REAL> u(nstate * nphi,1, 0.);
+	TPZFMatrix<STATE> u(nstate * nphi,1, 0.);
 	for(i = 0; i < nstate * nphi; i++)
 	{
 		u(i,0) = 10. * (double)(i+1) / (double)(i+2);
@@ -114,11 +114,11 @@ int main()
 	return 0;
 }
 
-void Flatten(TPZFMatrix<REAL> & coeff,
+void Flatten(TPZFMatrix<STATE> & coeff,
 			 TPZFMatrix<REAL> &phi,
 			 TPZFMatrix<REAL> &dphi,
-			 TPZVec<REAL> &sol,
-			 TPZFMatrix<REAL> & dsol)
+			 TPZVec<STATE> &sol,
+			 TPZFMatrix<STATE> & dsol)
 {
 	int nshape = phi.Rows();
 	int dim = dphi.Rows();
@@ -149,7 +149,7 @@ void Flatten(TPZFMatrix<REAL> & coeff,
 }
 
 void CheckConv(const double step,
-			   TPZFMatrix<REAL> & coeff,
+			   TPZFMatrix<STATE> & coeff,
 			   TPZFMatrix<REAL> &phi,
 			   TPZFMatrix<REAL> &dphi,
 			   TPZEulerConsLaw & MatTest)
@@ -160,13 +160,13 @@ void CheckConv(const double step,
 	
 	int nCoeff = coeff.Rows(), i, j;
 	
-	TPZFMatrix<REAL> deltaCoeff1(nCoeff, 1, 0.),
+	TPZFMatrix<STATE> deltaCoeff1(nCoeff, 1, 0.),
 	deltaCoeff2(nCoeff, 1, 0.),
 	updatedCoeff(nCoeff, 1, 0.);
 	
-	TPZFMatrix<REAL> Tangent(nCoeff, nCoeff, 0.),
+	TPZFMatrix<STATE> Tangent(nCoeff, nCoeff, 0.),
 	TrashTangent(nCoeff, nCoeff, 0.);
-	TPZFMatrix<REAL> F0(nCoeff,1, 0.),
+	TPZFMatrix<STATE> F0(nCoeff,1, 0.),
 	F1(nCoeff,1, 0.),
 	F2(nCoeff,1, 0.);
 	

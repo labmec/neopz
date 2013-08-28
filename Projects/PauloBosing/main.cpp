@@ -48,6 +48,7 @@
 
 #include "pzuncoupledpoissondisc.h"
 
+#include "pzfunction.h"
 
 #include "pzlog.h"
 
@@ -84,11 +85,11 @@ void SaidaSolucaoMultifisica(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh *mphysic
 void CreatInterface(TPZCompMesh *cmesh);
 void ChecarIterface(TPZCompMesh *mphysics);
 
-void SolExataU(const TPZVec<REAL> &pt, TPZVec<REAL> &solU, TPZFMatrix<REAL> &GradU);
-void SolExataP(const TPZVec<REAL> &pt, TPZVec<REAL> &solP, TPZFMatrix<REAL> &GradP);
+void SolExataU(const TPZVec<REAL> &pt, TPZVec<STATE> &solU, TPZFMatrix<STATE> &GradU);
+void SolExataP(const TPZVec<REAL> &pt, TPZVec<STATE> &solP, TPZFMatrix<STATE> &GradP);
 
 
-void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
         for(h = 0; h < 6;h++)
         {
             arg12<<"\nREFINAMENTO h  = " << h <<"\n\n";
-    
+        
             //---- Criando a malha geométrica ----
            // TPZGeoMesh * gmesh = MalhaGeom();
             TPZGeoMesh * gmesh = GMesh(true);
@@ -191,16 +192,16 @@ int main(int argc, char *argv[])
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
             TPZVec<REAL> erros;
-            arg12<<" Erro da simulacao multifisica para EDP 1 (solU)" <<endl;
+            arg12 << " Erro da simulacao multifisica para EDP 1 (solU)" << std::endl;
 
-            TPZAnalysis an1(cmesh1);
-            an1.SetExact(*SolExataP);
-            an1.PostProcessError(erros, arg12);
+            TPZAnalysis analysis1(cmesh1);
+            analysis1.SetExact(*SolExataP);
+            analysis1.PostProcessError(erros, arg12);
 
             arg12<<" \nErro da simulacao multifisica para EDP 2 (solP)" <<endl;
-            TPZAnalysis an2(cmesh2);
-            an2.SetExact(*SolExataP);
-            an2.PostProcessError(erros, arg12);
+            TPZAnalysis analysis2(cmesh2);
+            analysis2.SetExact(*SolExataP);
+            analysis2.PostProcessError(erros, arg12);
             
             
             cmesh1->CleanUp();
@@ -444,7 +445,7 @@ TPZCompMesh *MalhaCompUm(TPZGeoMesh * gmesh, int pOrder, bool isdiscontinuous)
     material->SetForcingFunction(forcef);
 	
 	///Inserir condicao de contorno
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
@@ -505,7 +506,7 @@ TPZCompMesh *MalhaCompDois(TPZGeoMesh * gmesh, int pOrder, bool isdiscontinuous)
     material->SetForcingFunction(forcef);
 	
 	///Inserir condicao de contorno
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
@@ -560,13 +561,15 @@ TPZCompMesh *MalhaCompMultifisica(TPZGeoMesh * gmesh,TPZVec<TPZCompMesh *> meshv
 	TPZMaterial * mat(mymaterial);
 	mphysics->InsertMaterialObject(mat);
     
-    
     TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF);
+
+//
+//    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingF);
     mymaterial->SetForcingFunction(forcef);
 
 	
 	///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
 //	TPZMaterial * BCond0 = mymaterial->CreateBC(mat, bc0,neumann_dirichlet, val1, val2);
 //    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc2,neumann_dirichlet, val1, val2);
@@ -673,14 +676,14 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix
     if(symmetric_matrix ==true){
         TPZSkylineStructMatrix skmat(fCmesh);
         an.SetStructuralMatrix(skmat);
-        TPZStepSolver<REAL> direct;
+        TPZStepSolver<STATE> direct;
         direct.SetDirect(ELDLt);
         an.SetSolver(direct);
     }
     else{
         TPZBandStructMatrix bdmat(fCmesh);
         an.SetStructuralMatrix(bdmat);
-        TPZStepSolver<REAL> direct;
+        TPZStepSolver<STATE> direct;
         direct.SetDirect(ELU);
         an.SetSolver(direct);
     }
@@ -691,13 +694,13 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix
 	an.Solution().Print("solution", file);
 }
 
-void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
-	double x = pt[0];
-    double y = pt[1];
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+	REAL x = pt[0];
+    REAL y = pt[1];
     disp[0]= 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
 }
 
-void SolExataU(const TPZVec<REAL> &pt, TPZVec<REAL> &solU, TPZFMatrix<REAL> &GradU){
+void SolExataU(const TPZVec<REAL> &pt, TPZVec<STATE> &solU, TPZFMatrix<STATE> &GradU){
     
     double x = pt[0];
     GradU.Resize(2, 1);
@@ -707,10 +710,10 @@ void SolExataU(const TPZVec<REAL> &pt, TPZVec<REAL> &solU, TPZFMatrix<REAL> &Gra
     GradU(1,0) = 0.;
 }
 
-void SolExataP(const TPZVec<REAL> &pt, TPZVec<REAL> &solP, TPZFMatrix<REAL> &GradP){
+void SolExataP(const TPZVec<REAL> &pt, TPZVec<STATE> &solP, TPZFMatrix<STATE> &GradP){
     
-    double x = pt[0];
-    double y = pt[1];
+    REAL x = pt[0];
+    REAL y = pt[1];
 
     GradP.Resize(2, 1);
 

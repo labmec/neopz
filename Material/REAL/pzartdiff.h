@@ -312,8 +312,8 @@ public:
 							TPZFMatrix<STATE> &dsol,
 							TPZFMatrix<REAL> &phi,
 							TPZFMatrix<REAL> &dphi,
-							TPZVec<TPZVec<REAL> > & TauDiv,
-							TPZVec<TPZDiffMatrix<REAL> > & dTauDiv);
+							TPZVec<TPZVec<STATE> > & TauDiv,
+							TPZVec<TPZDiffMatrix<STATE> > & dTauDiv);
 	/** @} */
 	
 #endif

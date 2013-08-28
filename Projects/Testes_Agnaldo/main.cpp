@@ -54,21 +54,21 @@ REAL felarea = 0.;
 bool fdimensionless;
 
 
-void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
-void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);//para calcular o erro
-void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);//para calcular o erro
+void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
+void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);//para calcular o erro
+void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv);//para calcular o erro
 
-void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
-void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
+void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
 
-void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
-void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
-void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);
+void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
+void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
+void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv);
 
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area);
 
-void ForcingSource(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
@@ -222,7 +222,7 @@ int main_Loula(int argc, char *argv[])
         TPZAnalysis an3(cmesh3);
         mydata->SolveSist(an3, cmesh3);
         int nrs = an3.Solution().Rows();
-        TPZVec<REAL> solini(nrs,pini);
+        TPZVec<STATE> solini(nrs,pini);
         //	cmesh3->Solution() = solucao1;
         //    cmesh3->LoadSolution(solucao1);
 
@@ -276,7 +276,7 @@ int main_Loula(int argc, char *argv[])
 
         
         TPZAnalysis an(mphysics);
-        TPZFMatrix<REAL> Initialsolution = an.Solution();
+        TPZFMatrix<STATE> Initialsolution = an.Solution();
         //Initialsolution.Print("solini");
         
         std::string outputfile;
@@ -288,18 +288,18 @@ int main_Loula(int argc, char *argv[])
 //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
         
         //Criando matriz de massa (matM)
-        TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
+        TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
         
         //Criando matriz de rigidez (matK) e vetor de carga
-        TPZFMatrix<REAL> matK;
-        TPZFMatrix<REAL> fvec;
+        TPZFMatrix<STATE> matK;
+        TPZFMatrix<STATE> fvec;
         mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
         
         int nrows;
         nrows = matM->Rows();
-        TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
-        TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
-        TPZFMatrix<REAL> Lastsolution = Initialsolution;
+        TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
+        TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
+        TPZFMatrix<STATE> Lastsolution = Initialsolution;
         
         REAL TimeValue = 0.0;
         int cent = 1;
@@ -362,7 +362,7 @@ int main_Loula(int argc, char *argv[])
     return 0;
 }
 
-void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
     
     bool sol_dimensionless=true;
     
@@ -422,7 +422,7 @@ void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL>
 }
 
 
-void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
+void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv){
     
     bool sol_dimensionless=true;
     
@@ -468,7 +468,7 @@ void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> 
 }
 
 
-void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
     
     bool sol_dimensionless=true;
     
@@ -649,7 +649,7 @@ int main_Terzaghi(int argc, char *argv[]){
             //	Set initial conditions for pressure
             TPZAnalysis an3(cmesh3);
             int nrs = an3.Solution().Rows();
-            TPZVec<REAL> solini(nrs,pini);
+            TPZVec<STATE> solini(nrs,pini);
 
             TPZCompMesh  * cmeshL2 = mydata->CMeshPressureL2(gmesh, pp, solini,triang);
             TPZAnalysis anL2(cmeshL2);
@@ -679,7 +679,7 @@ int main_Terzaghi(int argc, char *argv[]){
             
             //==== Imprimir erros ======
             TPZAnalysis an(mphysics);
-            TPZFMatrix<REAL> Initialsolution = an.Solution();
+            TPZFMatrix<STATE> Initialsolution = an.Solution();
 
             std::string outputfile;
             outputfile = "TransientSolution";
@@ -690,18 +690,18 @@ int main_Terzaghi(int argc, char *argv[]){
             //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
 
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
+            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
 
             //Criando matriz de rigidez (matK) e vetor de carga
-            TPZFMatrix<REAL> matK;
-            TPZFMatrix<REAL> fvec;
+            TPZFMatrix<STATE> matK;
+            TPZFMatrix<STATE> fvec;
             mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
 
             int nrows;
             nrows = matM->Rows();
-            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
-            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
-            TPZFMatrix<REAL> Lastsolution = Initialsolution;
+            TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<STATE> Lastsolution = Initialsolution;
 
             REAL TimeValue = 0.0;
             int cent = 1;
@@ -761,7 +761,7 @@ int main_Terzaghi(int argc, char *argv[]){
     return 0;
 }
 
-void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
     
     //REAL x = ptx[0];
 	REAL y = 1.- ptx[1];
@@ -849,7 +849,7 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<RE
     }
 }
 
-void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
 {
  
     bool dimensionless = true;
@@ -1152,24 +1152,24 @@ int main(int argc, char *argv[]){
             mat22->SetTimeStep(deltaT);
             
             TPZAnalysis an(mphysics);
-            TPZFMatrix<REAL> Initialsolution = an.Solution();
+            TPZFMatrix<STATE> Initialsolution = an.Solution();
             
             std::string outputfile;
             outputfile = "TransientSolution";
             
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mphysics);
+            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mphysics);
             
             //Criando matriz de rigidez (matK) e vetor de carga
-            TPZFMatrix<REAL> matK;
-            TPZFMatrix<REAL> fvec;
+            TPZFMatrix<STATE> matK;
+            TPZFMatrix<STATE> fvec;
             mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec);
             
             int nrows;
             nrows = matM->Rows();
-            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
-            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
-            TPZFMatrix<REAL> Lastsolution = Initialsolution;
+            TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<STATE> Lastsolution = Initialsolution;
             
             REAL TimeValue = 0.0;
             int cent = 1;
@@ -1234,7 +1234,7 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-void ForcingSource(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     REAL tp = ftimeatual;
     REAL deltaT = fdeltaT;
@@ -1244,7 +1244,7 @@ void ForcingSource(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     disp[0]= 2.*temp/deltaT;
 }
 
-void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
     
     bool dimensionless = true;
     
@@ -1331,7 +1331,7 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix
     }
 }
 
-void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
+void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv){
     
     
     bool dimensionless = true;
@@ -1417,7 +1417,7 @@ void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<
     
 }
 
-void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
     
     bool dimensionless = true;
     

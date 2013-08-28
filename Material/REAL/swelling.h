@@ -208,7 +208,7 @@ private:
 #ifdef _AUTODIFF
 	/** @brief Computes the mixing energy W and its first and second derivatives */
 	/** This method has been superseded by the direct computation ExactSolution */
-	void ComputeW(FADFADREAL &W, TPZVec<REAL> &N);
+	void ComputeW(FADFADREAL &W, TPZVec<STATE> &N);
 	
 #endif
 	

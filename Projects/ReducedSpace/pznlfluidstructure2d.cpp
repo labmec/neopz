@@ -330,8 +330,9 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc){
     
     if(gState == ELastState) return;
-    REAL auxvar = 0.817*(1.-globFractInputData.Poisson())*globFractInputData.Hf();
-    REAL G = globFractInputData.E()/(2.*(1. + globFractInputData.Poisson()));
+    REAL auxvar, G;
+    auxvar = 0.817*(1.-globFractInputData.Poisson())*globFractInputData.Hf();
+    G = globFractInputData.E()/(2.*(1. + globFractInputData.Poisson()));
     REAL factor = 0.;//G/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -608,11 +609,12 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     DSolU=datavec[0].dsol[0];
     axesU=datavec[0].axes;
     
-    REAL young = globFractInputData.E();
-    REAL poisson = globFractInputData.Poisson();
-    REAL sigmaConf = globFractInputData.SigmaConf();
-    REAL visc = globFractInputData.Visc();
-    REAL Hf = globFractInputData.Hf();
+    REAL young, poisson, sigmaConf, visc, Hf;
+    young = globFractInputData.E();
+    poisson = globFractInputData.Poisson();
+    sigmaConf = globFractInputData.SigmaConf();
+    visc = globFractInputData.Visc();
+    Hf = globFractInputData.Hf();
     
     if(var == 1)
     {
@@ -624,9 +626,10 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     if (var == 2)
     {
         if(!datavec[1].phi) return;
-        REAL G = young/(2.*(1.+poisson));
-        REAL un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
-        REAL factor = 0.;//(un*un*un)/(12.*visc);
+        REAL G, un, factor;
+        G = young/(2.*(1.+poisson));
+        un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
+        factor = 0.;//(un*un*un)/(12.*visc);
         
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;

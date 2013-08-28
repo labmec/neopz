@@ -71,12 +71,12 @@ void DivideAround(TPZAutoPointer<TPZGeoMesh> gmesh, int bc, int nrefine);
 void PRefineAround(TPZAutoPointer<TPZCompMesh> cmesh, int bc, int nrefine, int pstart);
 
 ///Funcao que calcula o fluxo de saida
-REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix<REAL> &solution, int bc);
+REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix<STATE> &solution, int bc);
 
 ///Parametro para a funcao
 static REAL g_Length = 0.;
 ///Insercao de uma condicao de contorno dada por uma funcao
-void forcingfunction(const TPZVec<REAL> &ponto, TPZVec<REAL> &force);
+void forcingfunction(const TPZVec<REAL> &ponto, TPZVec<STATE> &force);
 
 int main()
 {
@@ -150,7 +150,7 @@ TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
     TPZMaterial * autopoiss(poiss);
-    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
     cmesh->InsertMaterialObject(autopoiss);
     TPZBndCond *bc = new TPZBndCond(autopoiss, -1, 0, val1, val2);
     TPZMaterial * bcauto(bc);
@@ -286,7 +286,7 @@ REAL Conductivity(REAL L, REAL delta, REAL height)
     TPZSkylineStructMatrix strskyl(cmesh);
     strskyl.SetNumThreads(2);
     an.SetStructuralMatrix(strskyl);
-    TPZStepSolver<REAL> solve;
+    TPZStepSolver<STATE> solve;
     solve.SetDirect(ECholesky);
     an.SetSolver(solve);
     std::cout << "before running\n";
@@ -320,7 +320,7 @@ REAL Conductivity(REAL L, REAL delta, REAL height)
 }
 
 ///Funcao que calcula o fluxo de saida
-REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix<REAL> &solution, int bc)
+REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix<STATE> &solution, int bc)
 {
     TPZSkylineStructMatrix strskyl(cmesh);
     strskyl.SetNumThreads(2);
@@ -329,8 +329,8 @@ REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix<REAL> &solution, i
     std::set<int> matids;
     matids.insert(1);
     strskyl.SetMaterialIds(matids);
-    TPZFMatrix<REAL> rhs;
-    TPZAutoPointer<TPZMatrix<REAL> > mat = strskyl.CreateAssemble(rhs, gui);
+    TPZFMatrix<STATE> rhs;
+    TPZAutoPointer<TPZMatrix<STATE> > mat = strskyl.CreateAssemble(rhs, gui);
 
     // identify equations associated with linear shape functions of elements with materialid bc
     std::set<int> cornereqs;
@@ -375,7 +375,7 @@ REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix<REAL> &solution, i
 
 
 
-void forcingfunction(const TPZVec<REAL> &p, TPZVec<REAL> &f) 
+void forcingfunction(const TPZVec<REAL> &p, TPZVec<STATE> &f)
 {
     f[0] = p[0]/g_Length;
 }

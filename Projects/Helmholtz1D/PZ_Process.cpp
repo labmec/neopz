@@ -142,8 +142,8 @@ TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, 
 	
 	REAL k0 = 2 * M_PI / lambda;
 	STATE imaginary(0, 1);  
-	STATE q = imaginary * (REAL(2.)) * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
-	STATE gama = imaginary * k0 * std::cos(theta);
+	STATE q = imaginary * (STATE)((2.) * k0 * std::cos(theta)) * std::exp(-imaginary * (STATE)(k0 * L * std::cos(theta)));
+	STATE gama = imaginary * (STATE)(k0 * std::cos(theta));
 	
 	val1(0, 0) = gama;        
 	val2(0) = q;

@@ -849,8 +849,8 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	int numshape = NSideShapeF(side);
 	int numshapel = large->NSideShapeF(neighbourside);
 	TPZFMatrix<REAL> phis(numshape,1),dphis(2,numshape),phil(numshapel,1),dphil(2,numshapel);
-	TPZFMatrix<REAL> MSL(numshape,numshapel,0.);
-	TPZFNMatrix<1000> *M = new TPZFNMatrix<1000>(numshape,numshape,0.);
+	TPZFMatrix<STATE> MSL(numshape,numshapel,0.);
+	TPZFNMatrix<1000,STATE> *M = new TPZFNMatrix<1000,STATE>(numshape,numshape,0.);
 	TPZVec<REAL> par(3),pointl(3),point(3);
 	int in,jn;
 	REAL weight;
@@ -875,7 +875,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-	TPZStepSolver<REAL> MSolve(M);
+	TPZStepSolver<STATE> MSolve(M);
 	MSolve.SetDirect(ELU);
 	MSolve.Solve(MSL,MSL);
 	//MSolve.ResetMatrix();
@@ -907,7 +907,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 			int i,j;
 			int ipos = MBlocksmall.Position(in);
 			int jpos = MBlocklarge.Position(jn);
-			for(i=0; i<ibl; i++) for(j=0; j<jbl; j++) blocknorm(in,jn) += MSL(ipos+i,jpos+j)*MSL(ipos+i,jpos+j);
+			for(i=0; i<ibl; i++) for(j=0; j<jbl; j++) blocknorm(in,jn) += fabs(MSL(ipos+i,jpos+j))*fabs(MSL(ipos+i,jpos+j));
 			blocknorm(in,jn) /= (ibl*jbl);
 			blocknorm(in,jn) = sqrt(blocknorm(in,jn));
 		}

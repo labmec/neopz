@@ -61,7 +61,7 @@ int TPZPoroElastic2d::NStateVariables() {
 }
 
 
-void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<REAL>  &ek, TPZFMatrix<REAL> &ef){
+void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef) {
 	
 	// Th finite element formnulation at element level is implemented in this method
 	// Numerical Approximation of Reservoir Fault Stability with Linear Poroelasticty
@@ -238,7 +238,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	//	Mass Matrix Calculations
 	if(gState == ELastState)
 	{				
-		TPZFMatrix<REAL> ekk(ek.Rows(),ek.Rows(),0.0);
+		TPZFMatrix<STATE> ekk(ek.Rows(),ek.Rows(),0.0);
 		const REAL DeltaT = fTimeStep;	
 		
 		//	Matrix QcˆT		
@@ -277,7 +277,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 }
 
 //	Here is implemented the contribution for boundary conditions
-void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) 
+void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) 
 {
 	
 	//	This state calculate the contribution for the Mass Matrix
@@ -311,7 +311,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 	int phru = phiu.Rows();
 	int phrp = phip.Rows();
 	short in,jn;
-	REAL v2[3];
+	STATE v2[3];
 	v2[0] = bc.Val2()(0,0);	//	Ux displacement
 	v2[1] = bc.Val2()(1,0);	//	Uy displacement
 	v2[2] = bc.Val2()(2,0);	//	Pressure
@@ -977,12 +977,13 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
-	TPZManVector<REAL,3> SolU, SolP;
-	TPZFNMatrix <6> DSolU, DSolP;
+	TPZManVector<STATE,3> SolU, SolP;
+	TPZFNMatrix <6,STATE> DSolU, DSolP;
 	TPZFNMatrix <9> axesU, axesP;
 	
-	TPZVec<REAL> ptx(3), solExata(3);
-	TPZFMatrix<REAL> flux(5,1);
+	TPZVec<REAL> ptx(3);
+    TPZVec<STATE> solExata(3);
+	TPZFMatrix<STATE> flux(5,1);
     
     if (datavec[0].sol.size() != 1) {
         DebugStop();
@@ -1336,7 +1337,7 @@ void TPZPoroElastic2d::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZ
 	DebugStop();
 }
 
-void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	DebugStop();
 }
 

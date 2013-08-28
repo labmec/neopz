@@ -97,7 +97,7 @@ void TPZMatConvectionProblem::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
 	
     TPZFMatrix<REAL>  &phi = data.phi;
@@ -159,7 +159,7 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
 }
 
-void TPZMatConvectionProblem::ContributeBC(TPZMaterialData &datavec,REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZMatConvectionProblem::ContributeBC(TPZMaterialData &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
                                               
    
     std::cout<<" This class uses only discontinuous functions"<<std::endl;
@@ -167,7 +167,7 @@ void TPZMatConvectionProblem::ContributeBC(TPZMaterialData &datavec,REAL weight,
 }
 
 
-void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     if(gState == ELastState){
 		return;
@@ -225,7 +225,7 @@ void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMate
 	}
 }
 
-void TPZMatConvectionProblem::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZMatConvectionProblem::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     if(gState == ELastState){
 		return;
@@ -305,12 +305,12 @@ int TPZMatConvectionProblem::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize(this->NSolutionVariables(var));
 	
-	TPZVec<REAL> Sol_u;
-    TPZFMatrix<REAL> DSol_u;
+	TPZVec<STATE> Sol_u;
+    TPZFMatrix<STATE> DSol_u;
     TPZFMatrix<REAL> axes_u;
     
 	Sol_u=data.sol[0];
@@ -325,8 +325,8 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<RE
     if(var == 2){
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools<REAL>::Axes2XYZ(DSol_u, dsoldx, axes_u);
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSol_u, dsoldx, axes_u);
 			Solout[0] += fConvDir[id]*dsoldx(id,0);//derivate of u
 		}
 		return;
@@ -335,8 +335,8 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<RE
 	if(var == 3) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools<REAL>::Axes2XYZ(DSol_u, dsoldx, axes_u);
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSol_u, dsoldx, axes_u);
 			Solout[id] = dsoldx(id,0);//derivate of u
 		}
 		return;

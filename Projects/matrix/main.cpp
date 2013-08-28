@@ -1,7 +1,9 @@
 #include "pzfmatrix.h"
 //#include ".h"
 #include "pzsolve.h"
+
 void Orthogonalization_CGS(TPZFMatrix<REAL> &a, TPZFMatrix<REAL> &q,TPZFMatrix<REAL> &r);
+
 int main() {
 
 	TPZFMatrix<REAL> a(3,3,0.);

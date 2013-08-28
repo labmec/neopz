@@ -60,25 +60,25 @@ void TPZReynoldsFlow::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
         wn *= data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
         for(int i = 0; i < data.phi.Rows(); i++)
         {
-            ef(i,0) += weight * wn* ((REAL(1.))/f_deltaT) * data.phi(i,0);
+            ef(i,0) += (STATE)(weight * (1./f_deltaT) * data.phi(i,0)) * wn;
         }
     }
     else//estamos no passo n+1
     {
         REAL simmetryy = 2.;
-        STATE wnplus1 = simmetryy * data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
+        STATE wnplus1 = (STATE)simmetryy * data.sol[1][1];//data.sol = {{p},{ux,uy,uz}} e estamos interessados em uy
         STATE w3 = wnplus1*wnplus1*wnplus1;
         REAL carterGAMMA = 1.;//TODO : Outra cmesh ou estrutura de dados? Lembre-se que valria com o tempo e no espaco!!!
         for(int i = 0; i < data.phi.Rows(); i++)
         {
-            ef(i,0) += weight * (carterGAMMA * f_staticPotential - wnplus1/f_deltaT)*data.phi(i,0);
+            ef(i,0) += (STATE)(weight*data.phi(i,0)) * ((STATE)(carterGAMMA * f_staticPotential) - wnplus1*(STATE)(1./f_deltaT));
         }
         for(int i = 0; i < data.phi.Rows(); i++)
         {
             for(int j = 0; j < data.phi.Rows(); j++)
             {
-                ek(i,j) += weight * w3 * ((REAL(1.))/((REAL(12.))*f_visc)) * (data.dphix(0,j)*data.dphix(0,i) + data.dphix(1,j)*data.dphix(1,i));
-                ek(i,j) += weight * (carterGAMMA*data.phi(j,0)*data.phi(i,0));
+                ek(i,j) += w3 * (STATE)(weight * (1./(12.*f_visc)) * (data.dphix(0,j)*data.dphix(0,i) + data.dphix(1,j)*data.dphix(1,i)));
+                ek(i,j) += (STATE)(weight*carterGAMMA*data.phi(j,0)*data.phi(i,0));
             }
         }
     }
@@ -99,7 +99,7 @@ void TPZReynoldsFlow::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
     
     for(int i = 0; i < data.phi.Rows(); i++)
     {
-        ef(i,0) += weight * bc.Val2()(0,0) * data.phi(i,0);
+        ef(i,0) += (STATE)(weight* data.phi(i,0)) * bc.Val2()(0,0);
     }
 }
 

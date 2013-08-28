@@ -49,12 +49,12 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial);
 
-void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void SolExata1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux);
-void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void SolExata1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &flux);
+void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux);
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &flux);
+void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
@@ -346,7 +346,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	
     
     ///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
@@ -395,7 +395,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
@@ -487,7 +487,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     ///Inserir condicao de contorno
     TPZAutoPointer<TPZFunction<STATE> > fCC0;
-    TPZAutoPointer<TPZFunction<REAL> > force1;
+    TPZAutoPointer<TPZFunction<STATE> > force1;
     TPZAutoPointer<TPZFunction<STATE> > fCC23;
     
     TPZMaterial * BCond0;
@@ -500,7 +500,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         solExata = new TPZDummyFunction<STATE>(SolExata1);
         mymaterial->SetForcingFunctionExact(solExata);
 
-        force1 = new TPZDummyFunction<REAL>(Forcing1);
+        force1 = new TPZDummyFunction<STATE>(Forcing1);
         mymaterial->SetForcingFunction(force1);
         fCC0 = new TPZDummyFunction<STATE>(ForcingBC1);
     }
@@ -514,23 +514,23 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     
     if(teste==1){
-        TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
         BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
         BCond2 = mymaterial->CreateBC(mat, bc2,dirichlet, val1, val2);
         
         
-        TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
+        TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = mymaterial->CreateBC(mat, bc1,dirichlet, val11, val21);
         BCond3 = mymaterial->CreateBC(mat, bc3,dirichlet, val11, val21);
         
         //BCond0->SetForcingFunction(fCC0);
     }else{
-        TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,1.);
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,1.);
         BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
         BCond2 = mymaterial->CreateBC(mat, bc2,dirichlet, val1, val2);
         
         
-        TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
+        TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = mymaterial->CreateBC(mat, bc1,neumann, val11, val21);
         BCond3 = mymaterial->CreateBC(mat, bc3,neumann, val11, val21);
         
@@ -556,19 +556,19 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     return mphysics;
 }
 
-void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     double y = pt[1];
     disp[0]= 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);
 }
 
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	//double x = pt[0];
     double y = pt[1];
     disp[0]= 4.*y*(1. - y) + 1.;
 }
 
-void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &flux){
    // double x = pt[0];
     double y = pt[1];
     flux.Resize(3, 1);
@@ -579,7 +579,7 @@ void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flu
     flux(2,0)=8;
 }
 
-void SolExata1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flux){
+void SolExata1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &flux){
     
     disp.Resize(1, 0.);
     flux.Resize(3, 1.);
@@ -594,7 +594,7 @@ void SolExata1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp, TPZFMatrix<REAL> &flu
 }
 
 
-void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     //double y = 0.;
     disp[0]= Pi*sin(Pi*x);
@@ -607,7 +607,7 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	//TPZBandStructMatrix full(fCmesh);
 	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	//step.SetDirect(ELU);
 	an.SetSolver(step);
@@ -672,7 +672,7 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     material->SetParameters(diff, conv, convdir);
     
     TPZAutoPointer<TPZFunction<STATE> > fCC0;
-    TPZAutoPointer<TPZFunction<REAL> > force1;
+    TPZAutoPointer<TPZFunction<STATE> > force1;
     TPZAutoPointer<TPZFunction<STATE> > fCC23;
     
     TPZMaterial * BCond0;
@@ -683,7 +683,7 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     TPZAutoPointer<TPZFunction<STATE> > solExata;
     if(teste==1){
         solExata = new TPZDummyFunction<STATE>(SolExata1);
-        force1 = new TPZDummyFunction<REAL>(Forcing1);
+        force1 = new TPZDummyFunction<STATE>(Forcing1);
         material->SetForcingFunction(force1);
         material->SetForcingFunctionExact(solExata);
         // fCC0 = new TPZDummyFunction<STATE>(ForcingBC);
@@ -700,23 +700,23 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     ///Inserir condicao de contorno
     
     if(teste==1){
-        TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
         BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
         BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
         
         
-        TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
+        TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = material->CreateBC(mat, bc1,dirichlet, val11, val21);
         BCond3 = material->CreateBC(mat, bc3,dirichlet, val11, val21);
         
         //BCond0->SetForcingFunction(fCC0);
     }else{
-        TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,1.);
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,1.);
         BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
         BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
         
         
-        TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
+        TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = material->CreateBC(mat, bc1,neumann, val11, val21);
         BCond3 = material->CreateBC(mat, bc3,neumann, val11, val21);
         

@@ -66,7 +66,7 @@ void TPZMatUncoupledPoissonDisc::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMatUncoupledPoissonDisc::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatUncoupledPoissonDisc::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
 	
 	int nref =  datavec.size();
@@ -125,8 +125,8 @@ void TPZMatUncoupledPoissonDisc::Contribute(TPZVec<TPZMaterialData> &datavec, RE
     
 }
 
-void TPZMatUncoupledPoissonDisc::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
-                                              TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+void TPZMatUncoupledPoissonDisc::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,
+                                              TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
 	
 	int nref =  datavec.size();
@@ -649,12 +649,12 @@ int TPZMatUncoupledPoissonDisc::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatUncoupledPoissonDisc::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZMatUncoupledPoissonDisc::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
-	TPZVec<REAL> Sol_u1, Sol_u2;
-	TPZFMatrix<REAL> DSol_u1, DSol_u2;
+	TPZVec<STATE> Sol_u1, Sol_u2;
+	TPZFMatrix<STATE> DSol_u1, DSol_u2;
 	TPZFMatrix<REAL> axes_u1, axes_u2;
 	
 	Sol_u1=datavec[0].sol[0];
@@ -678,8 +678,8 @@ void TPZMatUncoupledPoissonDisc::Solution(TPZVec<TPZMaterialData> &datavec, int 
 	if(var == 3) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools<REAL>::Axes2XYZ(DSol_u1, dsoldx, axes_u1);
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSol_u1, dsoldx, axes_u1);
 			Solout[id] = dsoldx(id,0);//derivate of u
 		}
 		return;
@@ -688,8 +688,8 @@ void TPZMatUncoupledPoissonDisc::Solution(TPZVec<TPZMaterialData> &datavec, int 
 	if(var == 4) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools<REAL>::Axes2XYZ(DSol_u2, dsoldx, axes_u2);
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSol_u2, dsoldx, axes_u2);
 			Solout[id] = dsoldx(id,0);//derivate of p
 		}
 		return;
@@ -697,10 +697,10 @@ void TPZMatUncoupledPoissonDisc::Solution(TPZVec<TPZMaterialData> &datavec, int 
 }
 
 
-void TPZMatUncoupledPoissonDisc::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatUncoupledPoissonDisc::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	DebugStop();
 }
 
-void TPZMatUncoupledPoissonDisc::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZMatUncoupledPoissonDisc::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 	DebugStop();
 }

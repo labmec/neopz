@@ -195,7 +195,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZMatPoisson3d *matpois = new TPZMatPoisson3d(1, 2);
     TPZMaterial *pois(matpois);
     cmesh->InsertMaterialObject(pois);
-    TPZFNMatrix<4> val1(1,1,0.),val2(1,1,0.);
+    TPZFNMatrix<4,STATE> val1(1,1,0.),val2(1,1,0.);
     TPZBndCond *bnd = matpois->CreateBC(pois, -1, 0, val1, val2);
     TPZMaterial *matbnd(bnd);
     cmesh->InsertMaterialObject(matbnd);
@@ -363,18 +363,18 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
 }
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<REAL> > L2, TPZFMatrix<REAL> &inner);
+static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner);
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
-static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &multiplier);
+static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &multiplier);
 
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZInterpolatedElement *intel)
 {
-    TPZFMatrix<REAL> inner, multiplier;
-    TPZAutoPointer<TPZMatrix<REAL> > L2 = new TPZFMatrix<REAL>;
+    TPZFMatrix<STATE> inner, multiplier;
+    TPZAutoPointer<TPZMatrix<STATE> > L2 = new TPZFMatrix<STATE>;
     GenerateProjectionMatrix(intel, L2, inner);
-    TPZStepSolver<REAL> step(L2);
+    TPZStepSolver<STATE> step(L2);
     step.SetDirect(ELU);
     step.Solve(inner,multiplier);
     int nwrong = 0;
@@ -389,7 +389,7 @@ static void CheckDRham(TPZInterpolatedElement *intel)
 }
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<REAL> > L2, TPZFMatrix<REAL> &inner)
+static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner)
 {
     TPZMaterialData dataA;
     intel->InitMaterialData(dataA);
@@ -438,7 +438,7 @@ static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPoint
 }
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
-static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &multiplier)
+static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &multiplier)
 {
     TPZMaterialData dataA;
     intel->InitMaterialData(dataA);

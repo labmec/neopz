@@ -317,7 +317,7 @@ void TPZElementMatrix::ApplyConstraints(){
 				int send;
 				int receive;
 				int ieq;
-				REAL coef;
+				STATE coef;
 				int idf;
 				int numstate = dfn->NState();//this->fNumStateVars;
 				for(send=inpos; send<inpos+insize; send += numstate) {
@@ -325,12 +325,12 @@ void TPZElementMatrix::ApplyConstraints(){
 						coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
 						if (this->fType == TPZElementMatrix::EK){
 							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++)  {
-								(this->fConstrMat)(receive+idf,ieq) += (STATE)coef*(this->fConstrMat)(send+idf,ieq);
+								(this->fConstrMat)(receive+idf,ieq) += coef*(this->fConstrMat)(send+idf,ieq);
 							}
 						}//EK
 						else{
 							for(ieq=0; ieq<nrhs; ieq++) for(idf=0; idf<numstate; idf++) {
-								(this->fConstrMat)(receive+idf,ieq) += (STATE)coef*(this->fConstrMat)(send+idf,ieq);
+								(this->fConstrMat)(receive+idf,ieq) += coef*(this->fConstrMat)(send+idf,ieq);
 							}
 						}//EF
 					}
@@ -341,7 +341,7 @@ void TPZElementMatrix::ApplyConstraints(){
 						for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 							coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
 							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++) {
-								(this->fConstrMat)(ieq,receive+idf) += (STATE)coef*(this->fConstrMat)(ieq,send+idf);
+								(this->fConstrMat)(ieq,receive+idf) += coef*(this->fConstrMat)(ieq,send+idf);
 							}
 						}
 					}

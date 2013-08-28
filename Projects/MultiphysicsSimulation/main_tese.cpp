@@ -86,7 +86,7 @@ void PrintGMeshVTK2(TPZGeoMesh * gmesh, std::ofstream &file);
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
-void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 int main2(int argc, char *argv[])
 {
@@ -256,7 +256,7 @@ TPZCompMesh *MalhaCompUm(TPZGeoMesh * gmesh, int pOrder)
 	
     
 	///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
@@ -297,7 +297,7 @@ TPZCompMesh *MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
 	cmesh->InsertMaterialObject(mat);
 	
 	///Inserir condicao de contorno
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
@@ -337,7 +337,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZGeoMesh * gmesh,/* TPZVec<TPZCompMesh *> me
 
 	
 	///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = mymaterial->CreateBC(mat, bc0,neumann_dirichlet, val1, val2);
     TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc2,neumann_dirichlet, val1, val2);
@@ -370,7 +370,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	//TPZBandStructMatrix full(fCmesh);
 	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	//step.SetDirect(ELU);
 	an.SetSolver(step);
@@ -383,7 +383,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	
 }
 
-void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     double y = pt[1];
     disp[0]= 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);

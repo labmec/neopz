@@ -81,7 +81,7 @@ int main(){
 
 	
 	TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
@@ -268,7 +268,7 @@ void InsertElasticity(TPZCompMesh *mesh)
 	REAL ni2 = 0.;
 	REAL G = E/(2*(1+ni1));
 //	TPZFMatrix<REAL> naxes;	
-	TPZFMatrix<REAL> naxes(3,3,0.0);
+	TPZFMatrix<STATE> naxes(3,3,0.0);
 	
 	naxes(0,0)=1.0;
 	naxes(0,1)=0.0;
@@ -294,7 +294,7 @@ void InsertElasticity(TPZCompMesh *mesh)
 //	}
 //#endif	
 	
-	TPZVec< REAL > xf(6,0.0);
+	TPZVec< STATE > xf(6,0.0);
 	//xf[2] = 5;
 		
 	//TPZMatPoisson3d *p = new TPZMatPoisson3d(nummat, 2);//
@@ -306,12 +306,12 @@ void InsertElasticity(TPZCompMesh *mesh)
 	TPZMaterial * elastauto(placa);
 	mesh->InsertMaterialObject(elastauto);
 	
-	TPZFMatrix<REAL> val1bott(6,6,0.),val2bott(6,1,0.);
+	TPZFMatrix<STATE> val1bott(6,6,0.),val2bott(6,1,0.);
 	TPZBndCond *bcbott = placa->CreateBC(elastauto, dirbott, dirichlet, val1bott, val2bott);
 	TPZMaterial * bcbottauto(bcbott);
 	mesh->InsertMaterialObject(bcbottauto);
 
-	TPZFMatrix<REAL> val1top(6,6,0.),val2top(6,1,0.);
+	TPZFMatrix<STATE> val1top(6,6,0.),val2top(6,1,0.);
 	val2top(3.,0.) = 2;
 	TPZBndCond *bctop = placa->CreateBC(elastauto, dirtop, neumann, val1top, val2top);
 	TPZMaterial * bctopauto(bctop);

@@ -115,7 +115,7 @@ TPZMaterial *FluxConst3D(int grau);
 TPZMaterial *FluxConst2D(int grau);
 void ContagemDeElementos(TPZMaterial *mat);
 void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var);
-void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
+void Function(TPZVec<REAL> &x,TPZVec<STATE> &result);
 void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var);
 void Divisao (TPZCompMesh *cmesh);
 void NivelDivide(TPZCompMesh *cmesh);
@@ -466,7 +466,7 @@ void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var) {
 		TPZGeoEl *gel = el->Reference();
 		if(el && gel) {
 			out << "Elemento " << el->Reference()->Id() << endl;;
-			TPZManVector<REAL> sol(1);
+			TPZManVector<STATE> sol(1);
 			TPZVec<REAL> csi(3,0.),x(3);
 			int np = 5;
 			if(dim==3) np = 9;
@@ -526,7 +526,7 @@ void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
 			TPZGeoEl *gel = el->Reference();
 			if(el && gel) {
 				if(gel->Id()==count){
-					TPZManVector<REAL> sol(1);
+					TPZManVector<STATE> sol(1);
 					TPZVec<REAL> csi(3,0.),x(3);
 					for(int p=0;p<4;p++) {
 						if(dim==1){
@@ -672,7 +672,7 @@ TPZMaterial *Hexaedro(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
+	TPZFMatrix<STATE> val1(5,5,0.),val2(5,1,0.);
 	
 	//CC FACE 20: parede
 	val1.Zero();
@@ -790,7 +790,7 @@ TPZMaterial *ProblemaT2D(int grau){
 	cmesh->InsertMaterialObject(matauto);
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(4,4,0.),val2(4,1,0.);
+	TPZFMatrix<STATE> val1(4,4,0.),val2(4,1,0.);
 	
 	//TYPE CC
 	//0: Dirichlet
@@ -899,7 +899,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(4,4),val2(4,1);
+	TPZFMatrix<STATE> val1(4,4),val2(4,1);
 	
 	//CC ARESTA INFERIOR
 	val1.Zero();
@@ -999,7 +999,7 @@ TPZMaterial *TresTriangulos(int grau){
 	cmesh->InsertMaterialObject(matauto);
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(4,4,0.),val2(4,1,0.);
+	TPZFMatrix<STATE> val1(4,4,0.),val2(4,1,0.);
 	
 	//CC ARESTA INFERIOR: PAREDE
 	val1.Zero();
@@ -1115,7 +1115,7 @@ TPZMaterial *TresPrismas(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
+	TPZFMatrix<STATE> val1(5,5,0.),val2(5,1,0.);
 	
 	//CC parede
 	val1.Zero();
@@ -1231,7 +1231,7 @@ TPZMaterial *FluxConst3D(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
+	TPZFMatrix<STATE> val1(5,5,0.),val2(5,1,0.);
 	
 	//CC FACE: parede
 	val1.Zero();
@@ -1315,7 +1315,7 @@ TPZMaterial *FluxConst2D(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(4,4),val2(4,1);
+	TPZFMatrix<STATE> val1(4,4),val2(4,1);
 	REAL ro,u,v,vel2,p;
 	
 	//CC ARESTAS INFERIOR E SUPERIOR
@@ -1389,7 +1389,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(4,4),val2(4,1);
+	TPZFMatrix<STATE> val1(4,4),val2(4,1);
 	
 	//CC ARESTA INFERIOR : PAREDE
 	val1.Zero();
@@ -1449,7 +1449,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	return mat;
 }
 
-void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
+void Function(TPZVec<REAL> &x,TPZVec<STATE> &result){
 	
 	if(problem == -1){
 		result.Resize(4);
@@ -1609,7 +1609,7 @@ TPZMaterial *NoveCubos(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
+	TPZFMatrix<STATE> val1(5,5,0.),val2(5,1,0.);
 	
 	//CC ARESTA INFERIOR : PAREDE
 	val1.Zero();
@@ -1838,7 +1838,7 @@ TPZMaterial *Quadrado(int grau){
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
 	
 	//CC DE NEUMANN
 	
@@ -1853,7 +1853,8 @@ TPZMaterial *Quadrado(int grau){
 
 void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 	
-	TPZVec<REAL> x(3,0.0),sol;
+	TPZVec<REAL> x(3,0.0);
+    TPZVec<STATE> sol;
 	int i,nstate = mat->NStateVariables();
 	cout << "main::SetDeltaTime ENTRE PONTO NO DOMINIO\n";
 	x[0] = 2.0;

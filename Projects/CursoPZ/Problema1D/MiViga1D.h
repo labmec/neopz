@@ -68,7 +68,7 @@ public:
     virtual int VariableIndex(const std::string &name);
 
 	// @brief Para escribir la solucion en la forma que interesa
-	void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
 };
 
 #endif

@@ -179,13 +179,13 @@ TPZGeoMesh * MalhaGeoQ2(const int h);
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 int SubStructure(TPZCompMesh *cmesh, int materialid);
 void SaddlePermute(TPZCompMesh * cmesh);
-void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 	double x = pt[0];
 	double y = pt[1];
 	disp[0]= 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //
 	return;
 }
-void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
+void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux ) {
 	double x = pt[0];
 	double y = pt[1];
 	TPZVec<REAL> disp;
@@ -196,24 +196,24 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) 
 	
 	
 }
-void CC1(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 	//double x=pt[0];
 	//double y=pt[1];
 	f[0] = 0.;//2*(1-x*x);// 
 	
 }
-void CC2(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 	//double x=pt[0];
 	double y=pt[1];
 	f[0] = Pi*cos(Pi*y);//0.;//2*(1-x*x);// 
 	
 }
-void CC3(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 	//double x=pt[0];
 	//double y=pt[1];
 	f[0]=0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
-void CC4(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC4(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 	//double x=pt[0];
 	double y=pt[1];
 	f[0]=-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
@@ -501,8 +501,8 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 		
 		///Criar condicoes de contorno
 		
-		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
+		TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
+		TPZFMatrix<STATE> val11(1,1,0.), val22(1,1,0.);
 		TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);
 		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
 		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);
@@ -559,8 +559,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	mat->SetForcingFunctionExact(exata1);
 	///Inserir condicoes de contorno
 	
-	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-	TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<STATE> val11(1,1,0.), val22(1,1,0.);
 	TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);//1
 	TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
 	TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
@@ -1097,9 +1097,10 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 				//	malha->LoadSolution(sol);
 				
 				
-				TPZManVector< REAL,3 > xco(3), p(1);
-				TPZFMatrix<REAL> fluxo(3,0);
-				TPZManVector<REAL,4> solF(3,0.);
+				TPZManVector< REAL,3 > xco(3);
+                TPZManVector<STATE> p(1);
+				TPZFMatrix<STATE> fluxo(3,0);
+				TPZManVector<STATE,4> solF(3,0.);
 				
 				gel->X(pto,xco);
 				SolExata(xco, p, fluxo);
@@ -1334,7 +1335,7 @@ void SolveLU ( TPZAnalysis &an ){
 	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 	TPZFStructMatrix mat( malha );
 	//	TPZSpStructMatrix mat( malha );
-	TPZStepSolver<REAL> solv;
+	TPZStepSolver<STATE> solv;
 	
 	solv.SetDirect ( ELU );
 	//		solv.SetDirect(ECholesky);

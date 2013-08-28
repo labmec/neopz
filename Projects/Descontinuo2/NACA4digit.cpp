@@ -944,7 +944,7 @@ TPZFlowCompMesh *
 // Boundary conditions
 
    TPZMaterial *  bc;
-   TPZFMatrix<REAL> val1(4,4), val2(4,1);
+   TPZFMatrix<STATE> val1(4,4), val2(4,1);
 
    //aresta interna NACA: Wall
    val1.Zero();
@@ -1010,7 +1010,7 @@ TPZFlowCompMesh *
    compOut.close();
 
 // generating initial guess for the mesh solution
-   TPZFMatrix<REAL> Solution = cmesh->Solution();
+   TPZFMatrix<STATE> Solution = cmesh->Solution();
    Solution.Zero();
 
    int nVars = Solution.Rows();

@@ -61,15 +61,15 @@ void ElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZMateri
 //	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
 //	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 	
-	int &LeftPOrder=dataleft.p;
-	int &RightPOrder=dataright.p;
+//	int &LeftPOrder=dataleft.p;
+//	int &RightPOrder=dataright.p;
 	
-	REAL &faceSize=data.HSize;
+//	REAL &faceSize=data.HSize;
 	
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
-	int il,jl,ir,jr,id;	
+	int il,jl,ir,jr;	
 	
 	
 	for (int in = 0; in < 2*(nrowl + nrowr) ; in++) {

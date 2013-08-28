@@ -131,7 +131,7 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 		{
 			if(imat+1 == int(myreader.fBCMaterialDataVec[ibc].fProperties[0])) 
 			{	
-				TPZFMatrix<REAL> val11(1,1,myreader.fBCMaterialDataVec[ibc].fProperties[2]), val21(1,1,myreader.fBCMaterialDataVec[ibc].fProperties[3]);	
+				TPZFMatrix<STATE> val11(1,1,myreader.fBCMaterialDataVec[ibc].fProperties[2]), val21(1,1,myreader.fBCMaterialDataVec[ibc].fProperties[3]);	
 				TPZMaterial * BC = materialist[imat]->CreateBC(MatList[imat], myreader.fBCMaterialDataVec[ibc].fMatID,int(myreader.fBCMaterialDataVec[ibc].fProperties[1]), val11, val21);
 				cmesh->InsertMaterialObject(BC);	
 			}
@@ -164,7 +164,7 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 
 	TPZSkylineStructMatrix strskyl(cmesh);
 	MyAnalysis.SetStructuralMatrix(strskyl);
-	TPZStepSolver<REAL> direct;
+	TPZStepSolver<STATE> direct;
 	direct.SetDirect(ELDLt);
 	MyAnalysis.SetSolver(direct);
 	MyAnalysis.Run();

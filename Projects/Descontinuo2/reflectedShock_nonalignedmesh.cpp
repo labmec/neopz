@@ -209,7 +209,7 @@ TPZFlowCompMesh * RSNACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
 // Boundary conditions
 
    TPZMaterial *bc;
-   TPZFMatrix<REAL> val1(4,4), val2(4,1);
+   TPZFMatrix<STATE> val1(4,4), val2(4,1);
    REAL ro = 1.7,
 	u = 2.61934,
 	v = -0.50632,
@@ -275,7 +275,7 @@ TPZFlowCompMesh * RSNACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
    compOut.close();
 
 // generating initial guess for the mesh solution
-   TPZFMatrix<REAL> Solution = cmesh->Solution();
+   TPZFMatrix<STATE> Solution = cmesh->Solution();
 
    int nVars = Solution.Rows();
    for(int k = 0; k < nVars; k++)Solution(k)=.1;

@@ -329,7 +329,7 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 		// Add the contribution of the Lagrange volume fractions to the mass balance of the mixture equation
 		RES[ishape*nstate+3] -= (N[0]+N[1]+N[2])*(phi(ishape,0)*weight);
 		// Add the contribution to electro neutrality equation
-		RES[ishape*nstate+7] -= (N[1]/gVPlus-N[2]/gVMinus)*(phi(ishape,0)*gFaraday*weight);
+		RES[ishape*nstate+7] -= ((N[1]/(FADREAL)gVPlus)-(N[2]/(FADREAL)gVMinus))*(phi(ishape,0)*gFaraday*weight);
 		for(ieq=0; ieq<3; ieq++) {
 			// Add the contribution to the mass balance of the constituents
 			RES[ishape*nstate+4+ieq] += (N[ieq]*phi(ishape,0)*weight);
@@ -338,12 +338,12 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 				KGradPhi += dphi(jeq,ishape)*fKperm(ieq,jeq)*fTheta*fDelt*weight;
 			}
 			// Add the contribution of the difusion of the constituents
-			RES[ishape*nstate+4+ieq] += KGradPhi*dsol[ieq+3*(4+ieq)];
+			RES[ishape*nstate+4+ieq] += (FADREAL)KGradPhi*dsol[ieq+3*(4+ieq)];
 		}
 	}
 }
 
-void TPZSwelling::ContributePrevResidual(TPZVec<STATE> & x,
+void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 										 TPZVec<FADREAL> & sol,
 										 TPZVec<FADREAL> &dsol,
 										 TPZFMatrix<REAL> &phi,

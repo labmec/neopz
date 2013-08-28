@@ -66,9 +66,9 @@ int materialBC1 = -1;
 
 TPZVec<REAL> ervec(100,0.0);
 
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
+void BCSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
 
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f,TPZMatrix<REAL> &bf);
 
@@ -137,7 +137,7 @@ int main() {
         TPZSkylineStructMatrix strskyl(cmesh);
         an.SetStructuralMatrix(strskyl);
         
-        TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+        TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
         direct->SetDirect(ECholesky);
         an.SetSolver(*direct);
         delete direct;
@@ -207,7 +207,7 @@ TPZGeoMesh *ConstructingFicheraCorner() {
     return gmesh;
 }
 
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void ExactSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	sol[0] = sqrt( sqrt (quad_r) );
 	if(!IsZero(sol[0])) {
@@ -221,12 +221,12 @@ void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 	}
 }
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCSolin(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	bcsol[0] = sqrt( sqrt (quad_r) );	
 }
 
-void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f,TPZFMatrix<REAL> &df) {
+void Ff(const TPZVec<REAL> &x, TPZVec<STATE> &f,TPZFMatrix<STATE> &df) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	REAL raiz = sqrt( sqrt(quad_r));
 	f[0] = -3./(4.*(raiz*raiz*raiz));
@@ -253,7 +253,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Boundary conditions
 	// Dirichlet
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
-	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
 	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);
@@ -296,7 +296,7 @@ TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunctio
 	// Boundary conditions
 	// Dirichlet
 	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
-	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
 	TPZMaterial *bnd = mat->CreateBC(mat,materialBC1,0,val1,val2);
 	bnd->SetForcingFunction(FunctionBC);
 	cmesh->InsertMaterialObject(bnd);

@@ -47,7 +47,6 @@ template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
 // Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
 void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,bool check=false);
-void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified,bool check=false);
 
 static ofstream gDeduce("deduce.txt");
 
@@ -754,7 +753,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
 }
 
 void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
-                                 void(*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+                                 void(*f)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                                  TPZVec<REAL> &truervec,std::ofstream &out) {
     //Evaluates the solution for the fine mesh
     //Computes the error estimator as the diference between "this" and "fine"
@@ -876,7 +875,7 @@ int TPZCompCloneMesh::IsSonOfRootElement(TPZGeoEl *el){
 }
 
 REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform &tr,
-                                    void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),REAL &truerror){
+                                    void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),REAL &truerror){
     // accumulates the transfer coefficients between the current element and the
     // coarse element into the transfer matrix, using the transformation t
     int locnod = fine->NConnects();
@@ -949,8 +948,8 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
     //  int lin,ljn,cjn;
     int i,j,k;
     
-    TPZManVector<REAL,3> truesol(numdof);
-    TPZFNMatrix<6,REAL> truedsol(dimension,numdof);
+    TPZManVector<STATE,3> truesol(numdof);
+    TPZFNMatrix<6,STATE> truedsol(dimension,numdof);
     for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
         intrule->Point(int_ind,int_point,weight);
         REAL jacdetfine;

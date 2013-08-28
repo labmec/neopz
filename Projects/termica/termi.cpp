@@ -83,7 +83,7 @@ int main()
     TPZCompMesh cmesh(&gmesh);
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
     TPZMaterial * autopoiss(poiss);
-    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
     cmesh.InsertMaterialObject(autopoiss);
     TPZBndCond *bc = new TPZBndCond(autopoiss, -1, 0, val1, val2);
     TPZMaterial * bcauto(bc);
@@ -94,7 +94,7 @@ int main()
     TPZSkylineStructMatrix strskyl(&cmesh);
     strskyl.SetNumThreads(2);
     an.SetStructuralMatrix(strskyl);
-    TPZStepSolver<REAL> solve;
+    TPZStepSolver<STATE> solve;
     solve.SetDirect(ECholesky);
     an.SetSolver(solve);
     std::cout << "before running\n";
@@ -225,14 +225,14 @@ int main22() {
   an.SetStructuralMatrix(strmat);
 
   //Cria�o e defini�o do solver
-  TPZStepSolver<REAL> step;
+  TPZStepSolver<STATE> step;
 //  step.SetDirect(ECholesky);
   //Define-se o solver para a an�ise
   an.SetSolver(step);
 
 //  an.Assemble();
   //TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi,false);
-  TPZStepSolver<REAL> jac;
+  TPZStepSolver<STATE> jac;
   jac.SetJacobi(1,0.,0);
   jac.ShareMatrix(step);
   step.SetCG(10000,jac,1.e-10,0);
@@ -491,7 +491,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   int dim = cmesh.Reference()->ElementVec()[0]->Dimension();
   TPZMat2dLin *meumatp = new TPZMat2dLin(2);
   TPZMatPoisson3d *poismatp = new TPZMatPoisson3d(3,dim);
-  TPZVec<REAL> force(3,0.);
+  TPZVec<STATE> force(3,0.);
   TPZElasticity3D *elasmatp = new TPZElasticity3D(1,1000.,0.,force);
   TPZVec<REAL> convdir(3,0.);
   poismatp->SetParameters(1.,0.,convdir);
@@ -502,7 +502,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //deve-se consultar a documenta�o para verificar como definir os
   //par�etros. No caso em quest� o material requer tr� matrizes
   //e uma fun�o de c�culo tamb� �fornecida
-  TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+  TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
   meumatp->SetMaterial (xk,xc,xf);
 //  meumat->SetForcingFunction(forcingfunction);
 
@@ -529,7 +529,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //  - 1 = Neumann
   //  - 2 = Mista
   int nstate = atual->NStateVariables();
-  TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZFMatrix<STATE> val1(nstate,nstate,0.),val2(nstate,1,0.);
 
   //Os par�etros necess�ios �cria�o de uma condi�o de contorno s�:
   // 1) Identificador da condi�o de contorno (lembre-se que uma BC �como um material)

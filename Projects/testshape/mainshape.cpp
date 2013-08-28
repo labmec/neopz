@@ -143,7 +143,7 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
 	else 
 		g_extended = g.operator->();
 	TPZCompMesh *c = new TPZCompMesh(g_extended);
-	TPZVec<REAL> sol(1,0.);
+	TPZVec<STATE> sol(1,0.);
 	TPZMaterial * material = new TPZL2Projection(1,2,1,sol);
 	c->InsertMaterialObject(material);
 	c->SetDefaultOrder(order);

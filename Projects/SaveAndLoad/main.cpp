@@ -163,8 +163,12 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
         cmesh->Reference()->SetName(gout.str());
         
         // Save geometric mesh data
+        int classid = cmesh->Reference()->ClassId();
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
         cmesh->Reference()->Write(fstrthis,0);
         // Save computational mesh data
+        classid = cmesh->ClassId();
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
         cmesh->Write(fstrthis,0);
         // To check printing computational mesh data in file
         if(check) {

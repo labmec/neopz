@@ -106,7 +106,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     
     out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS: ";
     analysis.SetExact(Exact);
-    TPZManVector<STATE> errvec;
+    TPZManVector<REAL> errvec;
     
     TPZSkylineStructMatrix skylstr(cmesh);
     skylstr.SetNumThreads(30);
@@ -144,7 +144,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
 
 class ForceFunction : public TPZFunction<STATE>
 {
-    virtual void Execute(const TPZVec<STATE> &x, TPZVec<STATE> &val, TPZFMatrix<STATE> &df)
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &val, TPZFMatrix<STATE> &df)
     {
         val[0] = 0.;
         for (int i=0; i<3; i++) {

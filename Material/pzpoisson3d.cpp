@@ -155,14 +155,14 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 	for( int in = 0; in < phr; in++ ) {
 		int kd;
 		STATE dphiic = 0;
-		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
-		ef(in, 0) += - weight * fXfLoc * ( phi(in,0) + ((REAL)0.5)*fSD*delx*fC*dphiic );
+		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*(STATE)dphi(kd,in);
+		ef(in, 0) += - (STATE)weight * fXfLoc * ( (STATE)phi(in,0) + (STATE)(0.5*delx*fC)*fSD*dphiic );
 		for( int jn = 0; jn < phr; jn++ ) {
 			for(kd=0; kd<fDim; kd++) {
-				ek(in,jn) += weight * (
-									   +fK * ( dphi(kd,in) * dphi(kd,jn) ) 
-									   -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )
-									   +((REAL)0.5) * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+				ek(in,jn) += (STATE)weight * (
+									   +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) 
+									   - (STATE)(fC* dphi(kd,in) * phi(jn)) * ConvDirAx[kd]
+									   + (STATE)(0.5 * delx * fC * dphi(kd,jn)) * fSD * dphiic * ConvDirAx[kd]
 									   );
 			}
 		}
@@ -238,7 +238,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	}
 	for(i=0; i<numdual; i++)
 	{
-		ef(numvec+i,0) += (REAL(-1.))*weight*fXfLoc*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
+		ef(numvec+i,0) += (STATE)((-1.)*weight*data.phi(numprimalshape+i,0))*fXfLoc;//calcula o termo da matriz f
 	}
     
 }
@@ -257,7 +257,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 			for(i=0; i<numvec; i++)
 			{
 				//int ishapeind = data.fVecShapeIndex[i].second;
-				ef(i,0)+= gBigNumber * v2[0] * phi(i,0) * weight;
+				ef(i,0)+= (STATE)(gBigNumber * phi(i,0) * weight) * v2[0];
 				for (j=0; j<numvec; j++) {
 					//int jshapeind = data.fVecShapeIndex[j].second;
 					ek(i,j) += gBigNumber * phi(i,0) * phi(j,0) * weight; 
@@ -268,7 +268,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 		{// Dirichlet condition
 			int in;
 			for(in = 0 ; in < numvec; in++) {
-				ef(in,0) +=  (REAL(-1.))*v2[0] * phi(in,0) * weight;
+				ef(in,0) +=  (STATE)((-1.)* phi(in,0) * weight)*v2[0];
 			}
 		}
 			break;
@@ -277,10 +277,10 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 			int in,jn;
 			for(in = 0 ; in < numvec; in++) {
 				//int ishapeind = data.fVecShapeIndex[in].second;
-				ef(in,0) += v2[0] * phi(in,0) * weight;
+				ef(in,0) += v2[0] * (STATE)(phi(in,0) * weight);
 				for (jn = 0; jn < numvec; jn++) {
 					//	int jshapeind = data.fVecShapeIndex[jn].second;
-					ek(in,jn) += weight*bc.Val1()(0,0)*phi(in,0)*phi(jn,0);
+					ek(in,jn) += (STATE)(weight*phi(in,0)*phi(jn,0)) *bc.Val1()(0,0);
 				}
 			}
 		}
@@ -323,7 +323,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
 			for(in = 0 ; in < phr; in++) {
-				ef(in,0) += gBigNumber * v2[0] * phi(in,0) * weight;
+				ef(in,0) += (STATE)(gBigNumber* phi(in,0) * weight) * v2[0];
 				for (jn = 0 ; jn < phr; jn++) {
 					ek(in,jn) += gBigNumber * phi(in,0) * phi(jn,0) * weight;
 				}
@@ -331,15 +331,14 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 			break;
 		case 1 :			// Neumann condition
 			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(in,0) += v2[0] * phi(in,0) * weight;
+				ef(in,0) += v2[0] * (STATE)(phi(in,0) * weight);
 			}
 			break;
 		case 2 :		// mixed condition
 			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(in, 0) += v2[0] * phi(in, 0) * weight;
+				ef(in, 0) += v2[0] * (STATE)(phi(in, 0) * weight);
 				for (jn = 0 ; jn < phi.Rows(); jn++) {
-					ek(in,jn) += bc.Val1()(0,0) * phi(in,0) *
-					phi(jn,0) * weight;     // peso de contorno => integral de contorno
+					ek(in,jn) += bc.Val1()(0,0) * (STATE)(phi(in,0) * phi(jn,0) * weight);     // peso de contorno => integral de contorno
 				}
 			}
 			break;
@@ -904,9 +903,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 			for(id=0; id<fDim; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
-			ek(il,jl) += weight * leftK * (
-										   this->fSymmetry * (REAL(0.5))*dphiLinormal*phiL(jl,0)-(REAL(0.5))*dphiLjnormal*phiL(il,0)
-										   );
+			ek(il,jl) += (STATE)(weight * ( this->fSymmetry * (0.5)*dphiLinormal*phiL(jl,0)-(0.5)*dphiLjnormal*phiL(il,0))) * leftK;
 		}
 	}
 	
@@ -921,9 +918,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 			for(id=0; id<fDim; id++) {
 				dphiRjnormal += dphiR(id,jr)*normal[id];
 			}
-			ek(ir+nrowl,jr+nrowl) += weight * rightK * (
-														this->fSymmetry * ((REAL(-0.5)) * dphiRinormal * phiR(jr) ) + (REAL(0.5)) * dphiRjnormal * phiR(ir)
-														);
+			ek(ir+nrowl,jr+nrowl) += (STATE)(weight * (this->fSymmetry * ((-0.5) * dphiRinormal * phiR(jr) ) + (0.5) * dphiRjnormal * phiR(ir))) * rightK;
 		}
 	}
 	
@@ -938,9 +933,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 			for(id=0; id<fDim; id++) {
 				dphiRjnormal += dphiR(id,jr)*normal[id];
 			}
-			ek(il,jr+nrowl) += weight * (
-										 this->fSymmetry * ((REAL(-0.5)) * dphiLinormal * leftK * phiR(jr) ) - (REAL(0.5)) * dphiRjnormal * rightK * phiL(il)
-										 );
+			ek(il,jr+nrowl) += (STATE)weight * ((STATE)fSymmetry * ((STATE)((-0.5) * dphiLinormal * phiR(jr)) * leftK ) - (STATE)((0.5) * dphiRjnormal * phiL(il))* rightK );
 		}
 	}
 	
@@ -955,8 +948,8 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 			for(id=0; id<fDim; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
-			ek(ir+nrowl,jl) += weight * (
-										 this->fSymmetry * (REAL(0.5)) * dphiRinormal * rightK * phiL(jl) + (REAL(0.5)) * dphiLjnormal * leftK * phiR(ir)
+			ek(ir+nrowl,jl) += (STATE)weight * (
+										 (STATE)(fSymmetry * (0.5) * dphiRinormal * phiL(jl)) * rightK + (STATE)((0.5) * dphiLjnormal * phiR(ir)) * leftK
 										 );
 		}
 	}
@@ -1023,7 +1016,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiL(id,jl)*normal[id];
 				}
-				ek(il,jl) += weight * ((REAL(1.))/penalty) * NormalFlux_i * (leftK * NormalFlux_j);
+				ek(il,jl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
 			}
 		}
 		
@@ -1038,7 +1031,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiR(id,jr)*normal[id];
 				}      
-				ek(ir+nrowl,jr+nrowl) += weight * ((REAL(1.))/penalty) * NormalFlux_i * (rightK * NormalFlux_j);
+				ek(ir+nrowl,jr+nrowl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
 			}
 		}
 		
@@ -1053,7 +1046,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiR(id,jr)*normal[id];
 				}      
-				ek(il,jr+nrowl) += (REAL(-1.)) * weight * ((REAL(1.))/penalty) * NormalFlux_i * (rightK * NormalFlux_j);
+				ek(il,jr+nrowl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
 			}
 		}
 		
@@ -1068,7 +1061,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiL(id,jl)*normal[id];
 				}
-				ek(ir+nrowl,jl) += (REAL(-1.)) * weight * ((REAL(1.))/penalty) * NormalFlux_i * (leftK * NormalFlux_j);
+				ek(ir+nrowl,jl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
 			}
 		}
 		
@@ -1101,13 +1094,13 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 				for(id=0; id<fDim; id++) {
 					dphiLinormal += dphiL(id,il)*normal[id];
 				}
-				ef(il,0) += weight*fK*dphiLinormal*bc.Val2()(0,0) * this->fSymmetry;
+				ef(il,0) += (STATE)(weight*dphiLinormal*fSymmetry)*fK*bc.Val2()(0,0);
 				for(jl=0; jl<nrowl; jl++) {
 					REAL dphiLjnormal = 0.;
 					for(id=0; id<fDim; id++) {
 						dphiLjnormal += dphiL(id,jl)*normal[id];
 					}
-					ek(il,jl) += weight*fK*(this->fSymmetry * dphiLinormal * phiL(jl,0) - dphiLjnormal * phiL(il,0));
+					ek(il,jl) += (STATE)(weight*(fSymmetry * dphiLinormal * phiL(jl,0) - dphiLjnormal * phiL(il,0)))*fK;
 				}
 			}
 			
@@ -1120,7 +1113,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 				}
 			} else {
 				for(il=0; il<nrowl; il++) {
-					ef(il,0) -= weight * ConvNormal * bc.Val2()(0,0) * phiL(il);
+					ef(il,0) -= (STATE)(weight * ConvNormal * phiL(il)) * bc.Val2()(0,0);
 				}
 			}
 			
@@ -1128,7 +1121,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 			
 		case 1: // Neumann
 			for(il=0; il<nrowl; il++) {
-				ef(il,0) += weight*phiL(il,0)*bc.Val2()(0,0);
+				ef(il,0) += (STATE)(weight*phiL(il,0))*bc.Val2()(0,0);
 			}
 			break;
 			
@@ -1165,7 +1158,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		switch(bc.Type()) {
 			case 0: // DIRICHLET  
 				for(il=0; il<nrowl; il++) {
-					ef(il,0) += weight * penalty * phiL(il,0) * bc.Val2()(0,0);
+					ef(il,0) += (STATE)(weight * penalty * phiL(il,0)) * bc.Val2()(0,0);
 					for(jl=0; jl<nrowl; jl++) {
 						ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
 					}
@@ -1246,7 +1239,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	
 	for(int id=0; id<fDim; id++) {
 		//Normal gradient average <grad V> = 0.5 * (grad_left.n + grad_right.n)
-		aux = (REAL(0.5)) * (Ldsolnormal + Rdsolnormal);
+		aux = (0.5) * (Ldsolnormal + Rdsolnormal);
 		//<grad V> - <grad exact> = <grad V> - grad exact
 		aux = aux - ExactDNormal;
 		//*= h ^ gAlfa
@@ -1271,11 +1264,11 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 	STATE divBetaU = (STATE)0;
 	if(this->Dimension() == 1){
 		laplacU = dsol(1,0);
-		divBetaU = this->fC * this->fConvDir[0] * dsol(0,0);
+		divBetaU = (STATE)(this->fC * this->fConvDir[0]) * dsol(0,0);
 	}
 	if(this->Dimension() == 2){
 		laplacU = dsol(2,0);
-		divBetaU = this->fC * ( this->fConvDir[0] * dsol(0,0) + this->fConvDir[1] * dsol(1,0) );
+		divBetaU = (STATE)fC * ( (STATE)fConvDir[0] * dsol(0,0) + (STATE)fConvDir[1] * dsol(1,0) );
 	} 
 	
 	REAL result = abs(-this->fK * laplacU + divBetaU - (-fXfLoc));

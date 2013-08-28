@@ -1199,7 +1199,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZMaterial * viscoelastauto(viscoelast);
 	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
-	TPZFNMatrix<6> qsi(6,1,0.);
+	TPZFNMatrix<6,STATE> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
 	viscoelast->PushMemItem(); //elast
 	TPZMaterial * bcauto(bc);
@@ -1229,7 +1229,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, ElaE, poissonE, lambdaV, muV, alphaT, force);
 	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, ElaE, poissonE, force);
 	
-	TPZFNMatrix<6> qsi(6,1,0.);
+	TPZFNMatrix<6,STATE> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
 	viscoelast->PushMemItem(); //elast
 	TPZMaterial * viscoelastauto(viscoelast);

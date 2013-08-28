@@ -6,9 +6,9 @@
 //#include "pztempmat.h"
 
 template <class TConv>
-void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &range, TPZVec<REAL> &coefs){
+void CheckConvergence(TConv &obj, TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &range, TPZVec<REAL> &coefs){
 
-   TPZFMatrix<REAL> incval(range);
+   TPZFMatrix<STATE> incval(range);
    int i,j,numrows;
    numrows = state.Rows();
    for(i=0; i<numrows; i++) {
@@ -21,7 +21,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
    int ncoefs = coefs.NElements();
    for(icase = 0; icase < numcases; icase++) {
       obj.LoadSolution(state);
-      TPZFMatrix<REAL> ReferenceResidual, Tangent, EstimateRes;
+      TPZFMatrix<STATE> ReferenceResidual, Tangent, EstimateRes;
       obj.ComputeTangent(Tangent,coefs,icase);
       obj.Residual(ReferenceResidual,icase);
       EstimateRes.Redim(ReferenceResidual.Rows(),ReferenceResidual.Cols());
@@ -29,8 +29,8 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
       int interval;
       double difnorm[10] = {0.};
       for(interval = 1; interval < 10; interval++) {
-         TPZFMatrix<REAL> actualstate(state);
-         TPZFMatrix<REAL> residual;
+         TPZFMatrix<STATE> actualstate(state);
+         TPZFMatrix<STATE> residual;
          for(i=0; i<numrows; i++) {
             for(j=0; j<ncoefs; j++) {
                actualstate(i,j) += (interval/10.)*incval(i,0)*coefs[j];

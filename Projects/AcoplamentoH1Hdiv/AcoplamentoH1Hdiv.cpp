@@ -217,7 +217,7 @@ TPZGeoMesh * MalhaGeoT(const int h);
  */
 TPZFMatrix<REAL> MatrixR(REAL ang);
 
-void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 	/*	double x = pt[0];
 		double y = pt[1];
 		disp[0]= -2.*(1.-x*x) -2.*(1.-y*y);
@@ -228,21 +228,21 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		return;
 }
 
-void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
+void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
 		TPZVec<REAL> disp;
     p[0]= sin(Pi*x)*sin(Pi*y);
 		flux(0,0)= -Pi*cos(Pi*x)*sin(Pi*y);
 		flux(1,0)= - Pi*cos(Pi*y)*sin(Pi*x);
-		flux(2,0)=2.*pow(Pi,(REAL)2.)*sin(Pi*x)*sin(Pi*y);//coloco o divergente aq para testar
+		flux(2,0)=2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);//coloco o divergente aq para testar
 		
 		return;		
 		
 		
 }
-void CC1(TPZVec<REAL> &pt, TPZVec<REAL> &func){//neumann
-		func[0]=0;
+void CC1(TPZVec<REAL> &pt, TPZVec<STATE> &func){//neumann
+		func[0] = (STATE)0;
 		
 		
 }
@@ -567,7 +567,7 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		mat1->SetForcingFunctionExact(exata);
 		mat2->SetForcingFunctionExact(exata);
 		
-		TPZFMatrix<REAL> k(1,1,0.),f(1,1,0.);
+		TPZFMatrix<STATE> k(1,1,0.),f(1,1,0.);
 		//k(0,0)=BIG;
 		//	k(1,1)=BIG;
 		
@@ -699,7 +699,7 @@ void SolveLU ( TPZAnalysis &an ){
 	//	TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 		TPZFStructMatrix mat( malha );
 		//	TPZSpStructMatrix mat( malha );
-		TPZStepSolver<REAL> solv;
+		TPZStepSolver<STATE> solv;
 		
 		solv.SetDirect ( ELU );
 		//		solv.SetDirect(ECholesky);

@@ -20,7 +20,7 @@ void TPBRThermalDiscretization::ComputeStiffness()
 	for (int i=1; i<=fNElements; i++) {
 		skyline[i] = i-1;
 	}
-	TPZSkylMatrix<REAL>	*skyl = new TPZSkylMatrix<REAL>(fNElements+1,skyline);
+	TPZSkylMatrix<STATE>	*skyl = new TPZSkylMatrix<STATE>(fNElements+1,skyline);
 	REAL delx = fDomainSize/fNElements;
 	REAL diag = fTimeStep*fK/delx+fCp*fDensity*delx/2; // [KJ/(m2 C)]
 	REAL offdiag = -fTimeStep*fK/delx; // [KJ/(m2 C)]
@@ -33,11 +33,11 @@ void TPBRThermalDiscretization::ComputeStiffness()
 		skyl->PutVal(i, i+1, offdiag);
 	}
 //	skyl->Print("Band matrix",std::cout);
-	TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(skyl);
+	TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(skyl);
 	step->SetDirect(ECholesky);
 	fSolver = step;
 	fUnitFluxSolution.Redim(fNElements+1,1);
-	TPZFMatrix<REAL> rhs(fNElements+1,1,0.);
+	TPZFMatrix<STATE> rhs(fNElements+1,1,0.);
 	rhs(0,0) = 1.; // [KJ/m2]
 	fSolver->Solve(rhs, fUnitFluxSolution, 0);
 //	skyl->Print("Band matrix after decompose",std::cout);
@@ -46,9 +46,9 @@ void TPBRThermalDiscretization::ComputeStiffness()
 }
 
 /// Compute the next solution
-void TPBRThermalDiscretization::NextSolution(REAL inletTemp, TPZFMatrix<REAL> &prevSol, TPZFMatrix<REAL> &nextSol, REAL &flux)
+void TPBRThermalDiscretization::NextSolution(REAL inletTemp, TPZFMatrix<STATE> &prevSol, TPZFMatrix<STATE> &nextSol, REAL &flux)
 {
-	TPZFNMatrix<201> rhs(fNElements+1,1);
+	TPZFNMatrix<201,STATE> rhs(fNElements+1,1);
 	REAL delx = fDomainSize/fNElements;
 	rhs(0,0) = prevSol(0,0)*fCp*fDensity*delx/2.;
 	rhs(fNElements,0) = prevSol(fNElements,0)*fCp*fDensity*delx/2.; // [KJ/m2]
@@ -59,6 +59,6 @@ void TPBRThermalDiscretization::NextSolution(REAL inletTemp, TPZFMatrix<REAL> &p
 	fSolver->Solve(rhs,nextSol);
 	REAL scale = (inletTemp-nextSol(0,0))/fUnitFluxSolution(0,0); // [KJ/m2]
 	flux = scale; // [KJ/m2]
-	nextSol += scale*fUnitFluxSolution;
+	nextSol += ((STATE)scale)*fUnitFluxSolution;
 }
 

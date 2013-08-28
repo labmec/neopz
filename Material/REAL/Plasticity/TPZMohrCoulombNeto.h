@@ -109,9 +109,9 @@ protected:
     
 public:
     
-    TPZMohrCoulombNeto() : fYoung(20000.), fPoisson(0.), fPhi(M_PI/9.),fPsi(M_PI/9.), coesion(9.35)
+    TPZMohrCoulombNeto() : fYoung(20000.), fPoisson(0.), fPhi(M_PI/9.), fPsi(M_PI/9.) 
     {
-        
+        this->coesion = 9.35;
     }
     REAL Lambda()
     {
@@ -656,8 +656,6 @@ public:
 #endif*/
         return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));        
     }
-
-    
 };
 
 

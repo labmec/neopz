@@ -200,10 +200,10 @@ int main() {
 //FIM MAIN FIM MAIN FIM MAIN FIM MAIN FIM MAIN FIM MAIn FIM MAIN FIM MAIN
 void LerMaterial(TPZCompMesh &cmesh,char *filename) {
     ifstream input(filename);
-    TPZFMatrix<REAL> naxes(3,3);
+    TPZFMatrix<STATE> naxes(3,3);
     REAL ni1,ni2,h,E1,E2,G12,G13,G23,f;
     REAL n00,n01,n02,n10,n11,n12,n20,n21,n22;
-    TPZVec<REAL> xf(6), esp(1);
+    TPZVec<STATE> xf(6), esp(1);
     int matindex, numcamadas,i,numbc,camadaref, materialtype;
     input >> matindex >> numcamadas >> camadaref >> numbc >> materialtype;
     TPZMultCamada *matcamadas = new TPZMultCamada(matindex);
@@ -258,10 +258,10 @@ void LerMaterial(TPZCompMesh &cmesh,char *filename) {
 
 void OneLayer(TPZCompMesh &cmesh,char *filename) {
     ifstream input(filename);
-    TPZFMatrix<REAL> naxes(3,3);
+    TPZFMatrix<STATE> naxes(3,3);
     REAL ni1,ni2,h,E1,E2,G12,G13,G23,f;
     REAL n00,n01,n02,n10,n11,n12,n20,n21,n22;
-    TPZVec<REAL> xf(6);
+    TPZVec<STATE> xf(6);
     int matindex,i,numbc;
     input >> matindex >> numbc;
     input >> f  >>  h  >>

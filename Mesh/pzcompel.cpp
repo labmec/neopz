@@ -202,7 +202,7 @@ void TPZCompEl::LoadSolution() {
 	int maxdep = 0;
 	int in;
 	int iv,jv,idf;
-	REAL coef;
+	STATE coef;
 	for(in=0;in<totalconnects;in++)
 		maxdep = (maxdep < dependenceorder[in]) ? dependenceorder[in] : maxdep;
 	int current_order = maxdep-1;
@@ -227,7 +227,7 @@ void TPZCompEl::LoadSolution() {
 				for(iv=0; iv<nvar; iv+=numstate) {
 					for(jv=0; jv<numdepvar; jv+=numstate) {
 						coef = dep->fDepMatrix(iv/numstate,jv/numstate);
-						for(idf=0; idf<numstate; idf++) MeshSol(blpos+iv+idf,0) += (STATE)coef*MeshSol(depseqpos+jv+idf,0);
+						for(idf=0; idf<numstate; idf++) MeshSol(blpos+iv+idf,0) += coef*MeshSol(depseqpos+jv+idf,0);
 					}
 				}
 				dep = dep->fNext;

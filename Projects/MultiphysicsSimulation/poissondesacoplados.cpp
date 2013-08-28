@@ -43,7 +43,7 @@ void TPZMatPoissonDesacoplado::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMatPoissonDesacoplado::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatPoissonDesacoplado::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 
 	
 	int nref =  datavec.size();
@@ -95,8 +95,8 @@ void TPZMatPoissonDesacoplado::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 
 }
 
-void TPZMatPoissonDesacoplado::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
-									   TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+void TPZMatPoissonDesacoplado::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,
+									   TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
 	
 	int nref =  datavec.size();
@@ -291,12 +291,12 @@ int TPZMatPoissonDesacoplado::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatPoissonDesacoplado::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZMatPoissonDesacoplado::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
-	TPZVec<REAL> SolU, SolP;
-	TPZFMatrix<REAL> DSolU, DSolP;
+	TPZVec<STATE> SolU, SolP;
+	TPZFMatrix<STATE> DSolU, DSolP;
 	TPZFMatrix<REAL> axesU, axesP;
 	
 	SolU=datavec[0].sol[0];
@@ -319,8 +319,8 @@ void TPZMatPoissonDesacoplado::Solution(TPZVec<TPZMaterialData> &datavec, int va
 	if(var == 3) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools<REAL>::Axes2XYZ(DSolU, dsoldx, axesU);
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSolU, dsoldx, axesU);
 			Solout[id] = dsoldx(id,0);//derivate of u
 		}
 		return;
@@ -329,8 +329,8 @@ void TPZMatPoissonDesacoplado::Solution(TPZVec<TPZMaterialData> &datavec, int va
 	if(var == 4) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSolP, dsoldx, axesP);
 			Solout[id] = dsoldx(id,0);//derivate of p
 		}
 		return;
@@ -338,11 +338,11 @@ void TPZMatPoissonDesacoplado::Solution(TPZVec<TPZMaterialData> &datavec, int va
 }
 
 
-void TPZMatPoissonDesacoplado::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZMatPoissonDesacoplado::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	DebugStop();
 }
 
-void TPZMatPoissonDesacoplado::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZMatPoissonDesacoplado::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 //int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const

@@ -716,8 +716,8 @@ void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 	}
 }
 
-void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &dsol, TFad<9,TFad<9,REAL> > &energy) {
-	TFad<9,TFad<9,REAL> > tensor[3][3],J,TrC;
+void TPZMatHyperElastic::ComputeEnergy(STATE lambda, STATE mu,  TPZFMatrix<STATE> &dsol, TFad<9,TFad<9,STATE> > &energy) {
+	TFad<9,TFad<9,STATE> > tensor[3][3],J,TrC;
 	int i,j;
 	for(i=0; i<3; i++) {
 		for(j=0; j<3; j++) {
@@ -737,9 +737,9 @@ void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &
     tensor[0][1] * tensor[1][0] * tensor[2][2] -
     tensor[0][0] * tensor[1][2] * tensor[2][1]; //  J = det(F)
 	
-	energy = (J*J - TFad<9,REAL>(1.)) * TFad<9,REAL>(lambda/4.) -
-    log( J ) * TFad<9,REAL>((lambda/2.+mu)) +
-    (TrC - TFad<9,REAL>(3.)) * TFad<9,REAL>(mu/2.);
+	energy = (J*J - TFad<9,STATE>(1.)) * TFad<9,STATE>(lambda/4.) -
+    log( J ) * TFad<9,STATE>((lambda/2.+mu)) +
+    (TrC - TFad<9,STATE>(3.)) * TFad<9,STATE>(mu/2.);
 	
 }
 

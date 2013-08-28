@@ -57,35 +57,34 @@ void PoroElasticMatInterface2D::SetPenalty(REAL knu, REAL ktu, REAL knp, REAL kt
 	fktp = ktp;	
 }
 
-void PoroElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
-													REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void PoroElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 	if (this->fcontribute) 
 	{
 		//	Definition of penalty constants note: this constans for nolinear analysis are funtion of normal and tangencial forces.
 		REAL knu = this->fknu;
 		REAL ktu = this->fktu;
-		int sidn = ek.Rows();
+//		int sidn = ek.Rows();
 		
 		TPZFMatrix<REAL> &phiL = dataleftvec[0].phi;
 		TPZFMatrix<REAL> &phiR = datarightvec[0].phi;
 		TPZFMatrix<REAL>	&phipL	=	dataleftvec[1].phi;
-		TPZFMatrix<REAL>	&dphipL	=	dataleftvec[1].dphix;
+//		TPZFMatrix<REAL>	&dphipL	=	dataleftvec[1].dphix;
 		TPZFMatrix<REAL>	&phipR	=	datarightvec[1].phi;
-		TPZFMatrix<REAL>	&dphipR	=	datarightvec[1].dphix;	
+//		TPZFMatrix<REAL>	&dphipR	=	datarightvec[1].dphix;
 		TPZFMatrix<REAL>	du(2,2);
 		int phrpL = phipL.Rows();	
 		int phrpR = phipR.Rows();	
 		
-		int &LeftPOrder=dataleftvec[0].p;
-		int &RightPOrder=datarightvec[0].p;
+//		int &LeftPOrder=dataleftvec[0].p;
+//		int &RightPOrder=datarightvec[0].p;
 		
-		REAL &faceSize=data.HSize;
+//		REAL &faceSize=data.HSize;
 		
 		
 		int nrowl = phiL.Rows();
 		int nrowr = phiR.Rows();
-		int il,jl,ir,jr,id;	
+		int il,jl,ir,jr;
 		
 		
 		// For elastic part
@@ -172,7 +171,7 @@ int PoroElasticMatInterface2D::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * Left, TPZCompEl * Right)
+void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
 {
 	
 	Solout.Resize( this->NSolutionVariables(var));
@@ -193,9 +192,9 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
     TPZPoroElastic2d * RightPoroelastic = dynamic_cast<TPZPoroElastic2d *>(Right->Material());
 	
 	
-	TPZVec<REAL> LeftSigmaX,LeftSigmaY;
-	TPZVec<REAL> RightSigmaX,RightSigmaY;
-	TPZVec<REAL> LeftTau,RightTau;	
+	TPZVec<STATE> LeftSigmaX,LeftSigmaY;
+	TPZVec<STATE> RightSigmaX,RightSigmaY;
+	TPZVec<STATE> LeftTau,RightTau;	
 	
 	LeftPoroelastic->Solution(dataleftvec,3,LeftSigmaX);
 	RightPoroelastic->Solution(datarightvec,3,RightSigmaX);
@@ -213,7 +212,7 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 	REAL TangentialLeft	= 0.0;	
 	REAL AverageNormal	= 0.0;
 	REAL AverageTangential	= 0.0;	
-	REAL StressMagnitude = 0.0;
+//	REAL StressMagnitude = 0.0;
 	REAL Stresstrx = 0.0;
 	REAL Stresstry = 0.0;
 	REAL Stresstlx = 0.0;

@@ -116,7 +116,7 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 }
 
 TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL &truerror, TPZVec<REAL> &ervec, 
-                                           void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+                                           void(*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
                                            TPZVec<REAL> &truervec,TPZVec<REAL> &effect,ofstream &out,int use_trueerror,MElementType eltype,int print) {
     int i;
     //clone analysis
@@ -666,7 +666,7 @@ TPZInterpolatedElement * TPZAdaptMesh::LargeElement(TPZInterpolatedElement *cint
 
 
 REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse, 
-                                void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv)){
+                                void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv)){
     if (coarse->Material()->Id() < 0) return 0.0;
     
     REAL error = 0.;
@@ -705,8 +705,8 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     int numintpoints = intrule->NPoints();
     REAL weight;
     
-    TPZVec<REAL> truesol(numdof);
-    TPZFMatrix<REAL> truedsol(dimension,numdof);
+    TPZVec<STATE> truesol(numdof);
+    TPZFMatrix<STATE> truedsol(dimension,numdof);
     for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
         intrule->Point(int_ind,coarse_int_point,weight);
         //coarse->Reference()->X(coarse_int_point, xcoarse);

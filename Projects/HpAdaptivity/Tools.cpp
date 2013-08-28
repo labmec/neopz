@@ -134,13 +134,13 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 		
 		file.close();
 }
-const REAL Pi=4.*atan(1.);
-void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
+const REAL MyPi=4.*atan(1.);
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 		double x = pt[0];
 		double y = pt[1];
 		//double fator=(-1)*(x*x+y*y);
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		//disp[0]= 2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
+		//disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//2.*pow(MyPi,2.)*cos(MyPi*y)*sin(MyPi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //
 		disp[0]=(-1)*(-10*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) + 5*exp(10*pow(y,2))*(1 + exp(10*pow(x,2)))*(-1 + x)*pow(x,2)*(-5 + x*(9 + 20*(-1 + x)*x))*pow(-1 + y,2)*pow(y,2) - 
 		 2*pow(x,3)*(1 + 6*(-1 + y)*y) + pow(x,4)*(1 + 6*(-1 + y)*y) + pow(x,2)*(1 + 6*(-1 + y)*y*(1 + (-1 + y)*y)) + exp(5*pow(x,2))*(-(exp(5*pow(x,2))*	(pow(-1 + x,2)*pow(x,2) - 6*pow(-1 + x,2)*pow(x,2)*y + 
 		(1 + 2*(-1 + x)*x*(3 + 4*x*(-7 + x*(12 + 25*(-1 + x)*x))))*pow(y,2) - 2*(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,3) + 
@@ -149,19 +149,19 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	sinh(5*pow(x,2)))));																																																																	 
 		return;
 }
-void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
+void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
 		TPZVec<REAL> disp;
 		//double fator=(-1.)*(x*x+y*y);
-    p[0]= sin(Pi*x)*sin(Pi*y);//x*exp(fator);//Solucao
-		flux(0,0)= (-1.)*Pi*cos(Pi*x)*sin(Pi*y);//(-1.)*exp(fator)+2.*x*x*exp(fator);//dx
-		flux(1,0)= (-1.)*Pi*cos(Pi*y)*sin(Pi*x);//2.*x*y*exp(fator);// dy
-		flux(2,0)= 2*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//coloco o divergetne aq para testar
+    p[0]= sin(MyPi*x)*sin(MyPi*y);//x*exp(fator);//Solucao
+		flux(0,0)= (-1.)*MyPi*cos(MyPi*x)*sin(MyPi*y);//(-1.)*exp(fator)+2.*x*x*exp(fator);//dx
+		flux(1,0)= (-1.)*MyPi*cos(MyPi*y)*sin(MyPi*x);//2.*x*y*exp(fator);// dy
+		flux(2,0)= 2*MyPi*MyPi*sin(MyPi*x)*sin(MyPi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//coloco o divergetne aq para testar
 		
 		
 }
-void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &pressao, TPZFMatrix<REAL> &flux ) {
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &pressao, TPZFMatrix<STATE> &flux ) {
 		double x=pt[0];
 		double y=pt[1];
 		pressao[0]=5*(-1 + exp(10*pow(x,2)))*(-1 + exp(10*pow(y,2)))*pow(1 - x,2)*pow(x,2)*pow(1 - y,2)*pow(y,2);
@@ -175,31 +175,31 @@ void SolExata2(const TPZVec<REAL> &pt, TPZVec<REAL> &pressao, TPZFMatrix<REAL> &
 										 sinh(5*pow(x,2)))));
 }
 
-void CC1(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 		double x=pt[0];
 		//double y=pt[1];
 		double fator=-x*x;//-4.-x*x;
 		f[0] = exp(fator)*x;//0.;//2*(1-x*x);// 
 		
 }
-void CC2(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 		//double x=pt[0];
 		double y=pt[0];
 		double fator=-4.-y*y;
-		f[0] = 2.*exp(fator);//2.*//Pi*cos(Pi*y);//0.;//2*(1-x*x);// 
+		f[0] = 2.*exp(fator);//2.*//MyPi*cos(MyPi*y);//0.;//2*(1-x*x);//
 		
 }
-void CC3(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 		double x=pt[0];
 		//double y=pt[1];
 		double fator=-4.-x*x;
 		f[0]=x*exp(fator);//0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
-void CC4(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC4(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 		//double x=pt[0];
 		//double y=pt[0];
 		//double fator=-4.-y*y;
-		f[0]=0.;//-2.*exp(fator);//-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
+		f[0]=0.;//-2.*exp(fator);//-MyPi*cos(MyPi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//
 }
 
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
@@ -228,8 +228,8 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
 		 */
 		
-		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
+		TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
+		TPZFMatrix<STATE> val11(1,1,0.), val22(1,1,0.);
 		TPZMaterial *bnd = automat->CreateBC (automat,-4,0,val1,val2);
 		TPZMaterial *bnd2 = automat->CreateBC (automat,-5,0,val1,val2);
 		TPZMaterial *bnd3 = automat->CreateBC (automat,-6,0,val1,val2);
@@ -353,8 +353,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 		mat->SetForcingFunctionExact(exata1);
 		///Inserir condicoes de contorno
 		
-		TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-		TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
+		TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
+		TPZFMatrix<STATE> val11(1,1,0.), val22(1,1,0.);
 		TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);//1
 		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
 		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
@@ -839,8 +839,9 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 								//	malha->LoadSolution(sol);
 								
 								
-								TPZManVector< REAL,3 > xco(3), p(1);
-								TPZFMatrix<REAL> fluxo(3,0);
+                            TPZManVector< REAL,3 > xco(3);
+                            TPZManVector<STATE> p(1);
+								TPZFMatrix<STATE> fluxo(3,0);
 								TPZManVector<REAL,4> solF(3,0.);
 								
 								gel->X(pto,xco);
@@ -870,7 +871,7 @@ void SolveLU ( TPZAnalysis &an ){
 		TPZSkylineStructMatrix mat(malha);
 		//	TPZFStructMatrix mat( malha );
 		//	TPZSpStructMatrix mat( malha );
-		TPZStepSolver<REAL> solv;
+		TPZStepSolver<STATE> solv;
 		
 		//solv.SetDirect ( ELU );
 		//solv.SetDirect(ECholesky);

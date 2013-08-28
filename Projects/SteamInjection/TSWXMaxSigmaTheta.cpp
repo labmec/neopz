@@ -73,7 +73,7 @@ void TSWXMaxSigmaTheta::ComputeMaxSigmaTheta(double t, double b, double DistrRig
 	TPZAnalysis an(fCmesh);
 	TPZSkylineStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	an.SetSolver(step);
 	an.Run();
@@ -99,7 +99,7 @@ void TSWXMaxSigmaTheta::ComputeMaxSigmaTheta(double t, double b, double DistrRig
 		TPZVec<REAL> qsi(2);
 		celSide.Reference().Element()->CenterPoint(celSide.Side(),qsi);
 		int var = fCmesh->ElementVec()[0]->Material()->VariableIndex("Sigmatt");
-		TPZVec<REAL> sol(1);
+		TPZVec<STATE> sol(1);
 		celSide.Element()->Solution(qsi, var, sol);
 		fb_sol[t] = sol[0];
 		
@@ -349,34 +349,34 @@ void TSWXMaxSigmaTheta::CreateCompMesh(double DistrRightDown)
 	fCmesh->InsertMaterialObject(mat);
 	{
 		///Boundary Conditions
-		TPZFMatrix<REAL> DistrLEFTDown1(2,2,0.), DistrLEFTDown2(2,1,0.);
+		TPZFMatrix<STATE> DistrLEFTDown1(2,2,0.), DistrLEFTDown2(2,1,0.);
 		DistrLEFTDown2(0,0) = fDistrLeftDown;
 		TPZMaterial * DistrDownLEFTBC = mat->CreateBC(mat, matLeftDOWNid, newmann, DistrLEFTDown1, DistrLEFTDown2);
 		fCmesh->InsertMaterialObject(DistrDownLEFTBC);
 		
-		TPZFMatrix<REAL> DistrLEFTUp1(2,2,0.), DistrLEFTUp2(2,1,0.);
+		TPZFMatrix<STATE> DistrLEFTUp1(2,2,0.), DistrLEFTUp2(2,1,0.);
 		DistrLEFTUp2(0,0) = fDistrLeftUp;
 		TPZMaterial * DistrUpLEFTBC = mat->CreateBC(mat, matLeftUPid, newmann, DistrLEFTUp1, DistrLEFTUp2);
 		fCmesh->InsertMaterialObject(DistrUpLEFTBC);
 		
-		TPZFMatrix<REAL> DistrRIGHTDown1(2,2,0.), DistrRIGHTDown2(2,1,0.);
+		TPZFMatrix<STATE> DistrRIGHTDown1(2,2,0.), DistrRIGHTDown2(2,1,0.);
 		DistrRIGHTDown1(0,0) = 2.*mi/(frw+fB);
 		DistrRIGHTDown2(0,0) = DistrRightDown;
 		TPZMaterial * DistrDownRIGHTBC = mat->CreateBC(mat, matRightDOWNid, mista, DistrRIGHTDown1, DistrRIGHTDown2);
 		fCmesh->InsertMaterialObject(DistrDownRIGHTBC);
 		
-		TPZFMatrix<REAL> DistrRIGHTUp1(2,2,0.), DistrRIGHTUp2(2,1,0.);
+		TPZFMatrix<STATE> DistrRIGHTUp1(2,2,0.), DistrRIGHTUp2(2,1,0.);
 		DistrRIGHTUp1(0,0) = 2.*mi/(frw+fB);
 		DistrRIGHTUp2(0,0) = fDistrRightUp;
 		TPZMaterial * DistrUpRIGHTBC = mat->CreateBC(mat, matRightUPid, mista, DistrRIGHTUp1, DistrRIGHTUp2);
 		fCmesh->InsertMaterialObject(DistrUpRIGHTBC);
 		
-		TPZFMatrix<REAL> DistrMIDDLEDown1(2,2,0.), DistrMIDDLEDown2(2,1,0.);
+		TPZFMatrix<STATE> DistrMIDDLEDown1(2,2,0.), DistrMIDDLEDown2(2,1,0.);
 		DistrMIDDLEDown2(0,0) = fDistrMiddleDown;
 		TPZMaterial * DistrDownMIDDLEBC = mat->CreateBC(mat, matMiddleDOWNid, mista, DistrMIDDLEDown1, DistrMIDDLEDown2);
 		fCmesh->InsertMaterialObject(DistrDownMIDDLEBC);
 		
-		TPZFMatrix<REAL> DistrMIDDLEUp1(2,2,0.), DistrMIDDLEUp2(2,1,0.);
+		TPZFMatrix<STATE> DistrMIDDLEUp1(2,2,0.), DistrMIDDLEUp2(2,1,0.);
 		DistrMIDDLEUp2(0,0) = fDistrMiddleUp;
 		TPZMaterial * DistrUpMIDDLEBC = mat->CreateBC(mat, matMiddleUPid, mista, DistrMIDDLEUp1, DistrMIDDLEUp2);
 		fCmesh->InsertMaterialObject(DistrUpMIDDLEBC);
@@ -390,7 +390,7 @@ void TSWXMaxSigmaTheta::CreateCompMesh(double DistrRightDown)
 		//		fCmesh->InsertMaterialObject(DistrTOPBC);
 		
 		//CC BOTTOM (Mista) - impedindo desloc em y 
-		TPZFMatrix<REAL> DistrBOTTOM1(2,2,0.), DistrBOTTOM2(2,1,0.);
+		TPZFMatrix<STATE> DistrBOTTOM1(2,2,0.), DistrBOTTOM2(2,1,0.);
 		DistrBOTTOM1(1,1) = BigNum;
 		TPZMaterial * DistrBOTTOMBC = mat->CreateBC(mat, matBOTTOMid, mista, DistrBOTTOM1, DistrBOTTOM2);
 		fCmesh->InsertMaterialObject(DistrBOTTOMBC);

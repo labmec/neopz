@@ -194,9 +194,9 @@ void TPZCondensedCompEl::Resequence()
     for (int i=0; i<notcondensed.size(); ++i) {
         fIndexes[i+ncond] = notcondensed[i];
     }
-    //TPZAutoPointer<TPZMatrix<REAL> > k00 = new TPZFMatrix<REAL>(nint,nint,0.);
+    //TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint,nint,0.);
 	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
-    //TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(k00);
+    //TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
 	step->SetDirect(ELDLt);
     fCondensed.SetSolver(step);

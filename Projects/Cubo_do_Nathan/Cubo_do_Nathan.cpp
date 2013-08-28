@@ -300,7 +300,7 @@ int main()
 	cmesh->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
@@ -417,7 +417,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	int nummat = 1, neumann = 1, mixed = 2;
 	//	int dirichlet = 0;
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;// dirp2 = -6;
-	TPZManVector<REAL> force(3,0.);
+	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
 	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
 	
@@ -430,14 +430,14 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
 	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
 	
-	TPZFNMatrix<6> qsi(6,1,0.);
+	TPZFNMatrix<6,STATE> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
 //	int index = viscoelast->PushMemItem(); //elast
 	TPZMaterial * viscoelastauto(viscoelast);
 	mesh->InsertMaterialObject(viscoelastauto);
 	
 	// Neumann em x = 1;
-	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	val2(0,0) = 1.;
 	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
 	TPZMaterial * bcauto4(bc4);
@@ -740,7 +740,7 @@ void Teste()
 	cmesh->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
@@ -757,7 +757,7 @@ void Teste()
 	cmesh2->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct2(cmesh2);
-	TPZStepSolver<REAL> step2;
+	TPZStepSolver<STATE> step2;
 	step2.SetDirect(ECholesky);
 	TPZAnalysis an2(cmesh2);
 	an2.SetStructuralMatrix(skylstruct2);
@@ -812,11 +812,11 @@ void Teste()
 	cmesh->ExpandSolution();
 	
 	//Olhando residuo
-	TPZAutoPointer<TPZMatrix<REAL> > mat = an2.Solver().Matrix();
+	TPZAutoPointer<TPZMatrix<STATE> > mat = an2.Solver().Matrix();
 	
-	TPZFMatrix<REAL> carga = an2.Rhs();
-	const TPZFMatrix<REAL> sol = cmesh->Solution();
-	TPZFMatrix<REAL> Ku;
+	TPZFMatrix<STATE> carga = an2.Rhs();
+	const TPZFMatrix<STATE> sol = cmesh->Solution();
+	TPZFMatrix<STATE> Ku;
 	mat->Multiply(sol,Ku);
 	
 	if (cmesh->Solution().Rows() != Ku.Rows()) 
@@ -824,7 +824,7 @@ void Teste()
 		std::cout << "Solucoes de tamanho diferente" << std::endl;
 		DebugStop();
 	}
-	TPZFMatrix<REAL> sub(cmesh->Solution().Rows(),cmesh->Solution().Cols());
+	TPZFMatrix<STATE> sub(cmesh->Solution().Rows(),cmesh->Solution().Cols());
 	for (int is = 0 ; is < cmesh->Solution().Rows() ; is++) 
 	{
 		sub(is,0) = Ku(is,0) - carga(is,0);

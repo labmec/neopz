@@ -95,7 +95,7 @@ public:
      * the error and true error are accumulated in ervec and truervec
      * ervec and truervec are indexed according to the original computational mesh
      */
-    void MeshError(TPZCompMesh *fine, TPZVec<REAL> &ervec, void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+    void MeshError(TPZCompMesh *fine, TPZVec<REAL> &ervec, void(*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
                    TPZVec<REAL> &truervec, std::ofstream &out);
     
     /**
@@ -108,7 +108,7 @@ public:
     REAL ElementError(TPZInterpolatedElement *fine,
                       TPZInterpolatedElement *coarse,
                       TPZTransform &tr,
-                      void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+                      void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
                       REAL &truerror);
     
     /**

@@ -114,7 +114,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 	
 	virtual int NSolutionVariables(int var);
 	
-	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * Left, TPZCompEl * Right);	
+	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right);	
 	
 //	/** @} */
 //	

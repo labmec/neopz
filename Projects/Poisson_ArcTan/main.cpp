@@ -150,11 +150,11 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 
 
 /** Functions for Differential equation - Right terms, solutions and derivatives */
-void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce);
+void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
 
-void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
+void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
 
 
 /** Utilitaries */
@@ -331,7 +331,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                 if(usethreads) strskyl.SetNumThreads(nthread);
 				an.SetStructuralMatrix(strskyl);
 				
-				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
 				an.SetSolver(*direct);
 				delete direct;
@@ -372,9 +372,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                     // Saving computational mesh before adaptive process
                     if(!adaptmesh)
                         return false;
-                    SaveCompMesh(cmesh,(10+nref),adaptmesh,true);
-
-                    printing = (int)(!nref);
 
 					time_t endtime;
 					time(&endtime);
@@ -403,8 +400,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					cmesh = adaptmesh;
 					cmesh->CleanUpUnconnectedNodes();
 				}
-                // Saving computational mesh after adaptive process
-                SaveCompMesh(adaptmesh,(100+nref),NULL,true);
 			}
 			if(gmesh)
 				delete gmesh;
@@ -519,7 +514,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
                 if(usethreads) strskyl.SetNumThreads(nthread);
 				an.SetStructuralMatrix(strskyl);
 				
-				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
 				an.SetSolver(*direct);
 				delete direct;
@@ -1566,7 +1561,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	cmesh->SetDimModel(mat->Dimension());
 	
 	// Creating four boundary condition
-    TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+    TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
     for(int i=0;i<dim;i++)
         val1.PutVal(i,i,1.);
 	TPZMaterial *bc = 0, *bc1 = 0;
@@ -1602,7 +1597,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 /** ARC TANGENT PROBLEM */
 
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
-void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL> &dforce) {
+void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce) {
 	int dim = dforce.Rows();
 	
 	REAL B = ValueK/M_PI;
@@ -1644,7 +1639,7 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force, TPZFMatrix<REAL
 	force[0] *= B;
 }
 
-void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 	int dim = dsol.Rows();
 	REAL F = 2*sqrt(ValueK);
 	REAL Coeff, B;
@@ -1787,7 +1782,7 @@ REAL PartialDerivateZ(int dim,const TPZVec<REAL> &x) {
 
 /** LAPLACE PROBLEM ON L-SHAPE DOMAIN (2D) */
 
-void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol) {
 	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
     REAL angle = atan2(x[1],x[0]);;
     /*    if(IsZero(x[0])) {
@@ -1804,7 +1799,7 @@ void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<REAL> &sol) {
      DebugStop();*/
     sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
 }
-void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol) {
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol) {
 	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
     REAL angle = 0;
     if(IsZero(x[0])) {
@@ -1962,42 +1957,6 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
     }
 #endif
 }
-/* Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
-void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified,bool check) {
-    if(!cmesh || timessave < 0) {
-        std::cout << "SaveCompMesh - Bad argument: " << (void *)cmesh << " " << timessave << std::endl;
-        return;
-    }
-#ifdef LOG4CXX
-    {
-        TPZFileStream fstrthis;
-        std::stringstream soutthis;
-        if(cmeshmodified) soutthis << (void*)cmeshmodified << "_" << timessave;
-        else soutthis << (void*)cmesh << "_" << timessave;
-        
-        std::string filenamethis("LOG/");
-        filenamethis.append(soutthis.str());
-        filenamethis.append(".txt");
-        fstrthis.OpenWrite(filenamethis);
-        soutthis << (void*)cmesh->Reference();
-        
-        cmesh->Reference()->SetName(soutthis.str());
-        // salvar o geoclone mesh. NESTA ESCRITURA vai salvar o gmesh tambem
-        cmesh->Reference()->Write(fstrthis,0);
-        // salvar o compclone mesh. NESTA ESCRITURA vai salval o compmesh tambem
-        cmesh->Write(fstrthis,0);
-        // To check
-        if(check) {
-            std::string filename("Mesh_");
-            filename.append(soutthis.str());
-            filename.append(".txt");
-            std::ofstream arq(filename.c_str());
-            cmesh->Print(arq);
-        }
-    }
-#endif
-}
-*/
 
 /////
 
@@ -2078,7 +2037,7 @@ int main_GID() {
 		TPZSkylineStructMatrix strskyl(cmesh);
 		an.SetStructuralMatrix(strskyl);
 		// Solver (is your choose) 
-		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+		TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 		direct->SetDirect(ECholesky);
 		an.SetSolver(*direct);
 		delete direct;
@@ -2090,7 +2049,7 @@ int main_GID() {
 		 TPZBandStructMatrix full(cmesh);
 		 an.SetStructuralMatrix(full);
 		 an.Solution().Zero();
-		 TPZStepSolver<REAL> step;
+		 TPZStepSolver<STATE> step;
 		 step.SetDirect(ELU);
 		 an.SetSolver(step);
 		 */
@@ -2249,7 +2208,7 @@ int main_LDomain() {
 		TPZSkylineStructMatrix strskyl(cmesh);
 		an.SetStructuralMatrix(strskyl);
 		// Solver (is your choose) 
-		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+		TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 		direct->SetDirect(ECholesky);
 		an.SetSolver(*direct);
 		delete direct;
@@ -2315,7 +2274,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 	TPZManVector<REAL> normal(3,0.0);
 	TPZManVector<REAL> centerpsi(3,0.0);
 	TPZManVector<REAL> center(3,0.0), centerbeta(3,0.0);
-	TPZManVector<REAL> solalfa(nstates,0.0), solbeta(nstates,0.0);
+	TPZManVector<STATE> solalfa(nstates,0.0), solbeta(nstates,0.0);
 	
 	TPZFMatrix<REAL> A(dim,dim);    // Linear System matrix
 	TPZFMatrix<REAL> B(dim,1,0.);   // Linear System vector
@@ -2449,7 +2408,7 @@ int nstate = 2;
 
 //TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
 
-void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void Exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 
 void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
@@ -2554,7 +2513,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 		
 		// Boundary conditions
 		// Dirichlet
-		TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
+		TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,5.);
 		val1(0,0) = 1.;
 		TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
 		comp->InsertMaterialObject(bnd);
@@ -2636,7 +2595,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 			TPZSkylineStructMatrix strskyl(comp);
 			an.SetStructuralMatrix(strskyl);
 			
-			TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+			TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 			direct->SetDirect(ECholesky);
 			an.SetSolver(*direct);
 			delete direct;
@@ -2797,7 +2756,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 	int p = 2;
     TPZCompEl::SetgOrder(p);
 	
-	TPZVec<REAL> forces(3,0.);
+	TPZVec<STATE> forces(3,0.);
 	// Creating and inserting materials into computational mesh
     //TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
 	TPZMaterial *mat = new TPZElasticity3D(1,1.e5,0.2,forces);          // three-dimensional
@@ -2807,7 +2766,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 	
     // Boundary conditions
     // Dirichlet
-    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
+    TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,5.);
 	val1(0,0) = val1(1,1) = 1.;
     TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
@@ -2936,7 +2895,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 		TPZSkylineStructMatrix strskyl(comp);
 		an.SetStructuralMatrix(strskyl);
 		
-		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+		TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 		direct->SetDirect(ECholesky);
 		an.SetSolver(*direct);
 		delete direct;
@@ -3070,7 +3029,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 static REAL onethird = 0.33333333333333333;
 static REAL PI = 3.141592654;
 
-void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void Exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
     TPZManVector<REAL,3> x2(x);
 	//    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
@@ -3165,7 +3124,7 @@ void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename
 }
 */
 void InitializeSolver(TPZAnalysis &an) {
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	TPZBandStructMatrix matrix(an.Mesh());
 	an.SetStructuralMatrix(matrix);
 	step.SetDirect(ELU);
@@ -3466,6 +3425,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,R
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH HP ADAPTIVE REFINEMENTS BUT IT HASN´T AUTOMATIC STRATEGY TO ADAPT
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
+/*
 int main_NoAutoHP() {
 
 #ifdef LOG4CXX
@@ -3532,7 +3492,7 @@ int main_NoAutoHP() {
 			if(anothertests)
 				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
 			
-			/** Variable names for post processing */
+			// Variable names for post processing 
 			TPZStack<std::string> scalnames, vecnames;
 			scalnames.Push("POrder");
 			scalnames.Push("Solution");
@@ -3569,7 +3529,7 @@ int main_NoAutoHP() {
 				TPZSkylineStructMatrix strskyl(cmesh);
 				an.SetStructuralMatrix(strskyl);
 				
-				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
 				an.SetSolver(*direct);
 				delete direct;
@@ -3634,7 +3594,10 @@ int main_NoAutoHP() {
 	out.close();
 	return 0;
 }
+ */
+ 
 //int main_NoAutoHP() {
+/*
 int main_NoAutoHP_old() {
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -3758,7 +3721,7 @@ int main_NoAutoHP_old() {
 				an.SetStructuralMatrix(strskyl);
 				out << "Solving HP-Adaptive Methods...\n";
 				
-				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
 				an.SetSolver(*direct);
 				delete direct;
@@ -3819,7 +3782,7 @@ int main_NoAutoHP_old() {
 	out.close();
 	return 0;
 }
-
+*/
 TPZGeoMesh *CreateGeoMeshWithClassesPre(MElementType typeel) {
 	TPZManVector<REAL> point(3,0.), pointlast(3,0.);
 	TPZGeoMesh* gmesh;
@@ -4030,7 +3993,7 @@ int main_Failed() {
 				TPZSkylineStructMatrix strskyl(cmesh);
 				an.SetStructuralMatrix(strskyl);
 				
-				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
 				an.SetSolver(*direct);
 				delete direct;

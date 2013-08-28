@@ -127,7 +127,7 @@ public:
 	/**
 	 * Teste os vetores de carga
 	 */
-	void TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<REAL> &solution);
+	void TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<STATE> &solution);
 	
 	/**
 	 * Find the indices of the corner connects

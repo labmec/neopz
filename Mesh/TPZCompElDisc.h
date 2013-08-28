@@ -82,7 +82,7 @@ protected:
     bool fUseQsiEta;
 	
 	/** @brief A pz function to allow the inclusion of extra shape functions which are defined externally. */
-	TPZAutoPointer<TPZFunction<REAL> > fExternalShape;
+	TPZAutoPointer<TPZFunction<STATE> > fExternalShape;
 	
 protected:
 	
@@ -98,7 +98,7 @@ protected:
 public:
 	
 	/** @brief Define external shape functions which are stored in class attribute fExternalShape */
-	void SetExternalShapeFunction(TPZAutoPointer<TPZFunction<REAL> > externalShapes);
+	void SetExternalShapeFunction(TPZAutoPointer<TPZFunction<STATE> > externalShapes);
 	
 	/** @brief Return whether element has external shape functions set to */
 	bool HasExternalShapeFunction();

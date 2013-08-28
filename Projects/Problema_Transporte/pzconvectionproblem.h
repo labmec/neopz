@@ -122,7 +122,7 @@ public:
      * @param ef [out] is the load vector
      * @since March 2, 2013
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -133,7 +133,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since March 04, 2013
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
     /**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -145,7 +145,7 @@ public:
 	 * @param bc [in] is the boundary condition object
 	 * @since March 04, 2013
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     /**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @param data [in]
@@ -168,7 +168,7 @@ public:
      * @param var [in] number of solution variables. See  NSolutionVariables() method
      * @param Solout [out] is the solution vector
      */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
 };
 
 #endif /* defined(__PZ__pzconvectionproblem__) */

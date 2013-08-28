@@ -67,10 +67,10 @@ public:
 	struct TPZDepend
 	{
 		int			fDepConnectIndex;
-		TPZFNMatrix<50>	fDepMatrix;
+		TPZFNMatrix<50,STATE>	fDepMatrix;
 		TPZDepend		*fNext;
 		
-		TPZDepend(int DepConnectIndex,TPZFMatrix<REAL> &depmat,int ipos,int jpos, int isize, int jsize);
+		TPZDepend(int DepConnectIndex,TPZFMatrix<STATE> &depmat,int ipos,int jpos, int isize, int jsize);
 		
 		TPZDepend(const TPZDepend &copy);
 		TPZDepend(int connectindex);
@@ -242,7 +242,7 @@ public:
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
 	 * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
 	 */
-	void AddDependency(int myindex, int dependindex,TPZFMatrix<REAL> &depmat,int ipos,int jpos, int isize, int jsize);
+	void AddDependency(int myindex, int dependindex,TPZFMatrix<STATE> &depmat,int ipos,int jpos, int isize, int jsize);
 	
 	/**
 	 * @brief Remove dependency between connects if exist

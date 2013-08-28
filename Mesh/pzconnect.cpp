@@ -126,7 +126,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 	}
 }
 
-void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix<REAL> &depmat,int ipos,int jpos,int isize,int jsize){
+void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix<STATE> &depmat,int ipos,int jpos,int isize,int jsize){
 	if(dependindex == myindex) return;
 	TPZDepend *connect =0;
 	if(dependindex == -1) {
@@ -140,7 +140,7 @@ void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix<REAL> &de
 		connect->fNext = fDependList;
 		fDependList = connect;
 	} else {
-		TPZFMatrix<REAL> temp(isize,jsize);
+		TPZFMatrix<STATE> temp(isize,jsize);
 		int i,j;
 		for(i=0; i<isize; i++) for(j=0; j<jsize; j++) temp(i,j) = depmat(ipos+i,jpos+j);
 		
@@ -243,7 +243,7 @@ void TPZConnect::SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentO
 	}
 }
 
-TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix<REAL> &depmat,int ipos,int jpos, int isize, int jsize) :
+TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix<STATE> &depmat,int ipos,int jpos, int isize, int jsize) :
 fDepMatrix(isize,jsize) {
 	fDepConnectIndex = dependindex;
 	int i,j;
@@ -365,10 +365,17 @@ void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &bl
         int r,c,d;
         for(r=0; r<rows; r++) {
             for(c=0; c<cols; c++) {
-                phi(eqrem+c,0) += phi(eqloc+r)*dep->fDepMatrix(r,c);
+#ifdef STATE_COMPLEX
+                phi(eqrem+c,0) += phi(eqloc+r)*dep->fDepMatrix(r,c).real();
                 for(d=0; d<dim; d++) {
-                    dphi(d,eqrem+c) += dphi(d,eqloc+r)*dep->fDepMatrix(r,c);
+                    dphi(d,eqrem+c) += dphi(d,eqloc+r)*dep->fDepMatrix(r,c).real();
                 }
+#else
+                phi(eqrem+c,0) += phi(eqloc+r)*(REAL)(dep->fDepMatrix(r,c));
+                for(d=0; d<dim; d++) {
+                    dphi(d,eqrem+c) += dphi(d,eqloc+r)*(REAL)(dep->fDepMatrix(r,c));
+                }
+#endif
             }
         }
         dep = dep->fNext;

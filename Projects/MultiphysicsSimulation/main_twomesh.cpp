@@ -81,7 +81,7 @@ int main3(int argc, char *argv[])
     string plotfile("saidaSolution_mesh1.vtk");
     PosProcessamento(an, plotfile);
 
-    TPZFMatrix<REAL> solucao;
+    TPZFMatrix<STATE> solucao;
     solucao=cmesh->Solution();
     solucao.Print("solucao");
     
@@ -252,7 +252,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
@@ -315,7 +315,7 @@ TPZCompMeshReferred *CMeshReferred(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pO
     cmeshreferred->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
@@ -356,7 +356,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	//TPZBandStructMatrix full(fCmesh);
 	TPZSkylineStructMatrix full(Cmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	//step.SetDirect(ELU);
 	an.SetSolver(step);

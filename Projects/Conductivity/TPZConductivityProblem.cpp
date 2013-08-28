@@ -6,7 +6,6 @@
 //  Copyright 2011 UNICAMP. All rights reserved.
 //
 
-#include "pzstepsolver.h"
 #include "TPZConductivityProblem.h"
 #include "pzgengrid.h"
 #include "pzvoidflux.h"
@@ -16,6 +15,8 @@
 #include "pzanalysis.h"
 #include "TPZInterfaceEl.h"
 
+#include "pzstepsolver.h"
+
 /// set up the finite element mesh and compute the flux
 REAL TPZConductivityProblem::ComputeFlux()
 {
@@ -23,9 +24,10 @@ REAL TPZConductivityProblem::ComputeFlux()
     TPZFStructMatrix fstrmatrix(cmesh);
     TPZAnalysis an(cmesh);
     an.SetStructuralMatrix(fstrmatrix);
-    TPZStepSolver<REAL> solve;
-    solve.SetDirect(ELU);
-    an.SetSolver(solve);
+    TPZStepSolver<STATE> stepsolve;
+    
+    stepsolve.SetDirect(ELU);
+    an.SetSolver(stepsolve);
     an.Run();
     TPZVec<std::string> scalnames(1),vecnames;
     scalnames[0] = "state";
@@ -135,10 +137,10 @@ TPZAutoPointer<TPZCompMesh> TPZConductivityProblem::GenerateCompMesh()
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
     TPZMaterial * vflux = new TPZVoidFlux(1,conductivity,bridgesize);
     cmesh->InsertMaterialObject(vflux);
-    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,fDelPressure);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,((STATE)fDelPressure));
     TPZMaterial * bc1 = vflux->CreateBC(vflux, -1, 0, val1, val2);
     cmesh->InsertMaterialObject(bc1);
-    val2(0,0) = 0.;
+    val2(0,0) = ((STATE)0.);
     TPZMaterial * bc2 = vflux->CreateBC(vflux, -2, 0, val1, val2);
     cmesh->InsertMaterialObject(bc2);
     cmesh->SetAllCreateFunctionsDiscontinuous();
@@ -194,9 +196,9 @@ REAL TPZConductivityProblem::MeshFlux(TPZAutoPointer<TPZCompMesh> cmesh)
     std::set<int> matids;
     matids.insert(1);
     fstr.SetMaterialIds(matids);
-    TPZFMatrix<REAL> rhs;
+    TPZFMatrix<STATE> rhs;
     TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
-    TPZMatrix<REAL> *stiff = fstr.CreateAssemble(rhs,gui);
+    TPZMatrix<STATE> *stiff = fstr.CreateAssemble(rhs,gui);
     stiff->Multiply(cmesh->Solution(),rhs);
 //    rhs.Print("residual", std::cout);
     std::set<int> lefteq,righteq;

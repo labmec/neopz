@@ -281,8 +281,9 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 	//adding external shape functions whether they exist
 	if(!this->fExternalShape.operator ->()) return;
 	
-	TPZManVector<REAL> extPhi;
-	TPZFNMatrix<100> extDPhi, ThisPhi, ThisDPhi;  
+	TPZManVector<STATE> extPhi;
+	TPZFNMatrix<100,STATE> extDPhi;
+    TPZFNMatrix<100> ThisPhi, ThisDPhi;
 	
 	//computing external shape functions
 	this->fExternalShape->Execute(X, extPhi, extDPhi);
@@ -303,11 +304,15 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 		ThisPhi = phi;
 		phi.Resize(ndiscphi+nextphi,1);
 		phi.Zero();
-		for(int i = 0; i < ndiscphi; i++){
+		for(int i = 0; i < ndiscphi; i++) {
 			phi(i,0) = ThisPhi(i,0);
 		}
-		for(int i = 0; i < nextphi; i++){
-			phi(i+ndiscphi,0) = extPhi[i];
+		for(int i = 0; i < nextphi; i++) {
+#ifdef STATE_COMPLEX
+			phi(i+ndiscphi,0) = extPhi[i].real();
+#else
+			phi(i+ndiscphi,0) = (REAL)extPhi[i];
+#endif
 		}
 		
 	} 
@@ -333,7 +338,11 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 		}
 		for(int i = 0; i < nderiv; i++){
 			for(int j = 0; j < nextdphi; j++){
-				dphi(i,j+ndiscdphi) = extDPhi(i,j);
+#ifdef STATE_COMPLEX
+				dphi(i,j+ndiscdphi) = extDPhi(i,j).real();
+#else
+                dphi(i,j+ndiscdphi) = (REAL)extDPhi(i,j);
+#endif
 			}
 		}
 	}
@@ -842,7 +851,7 @@ void TPZCompElDisc::SetDegree(int degree) {
 	Mesh()->Block().Set(seqnum,nshapef*nvar);
 }
 
-void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction<REAL> > externalShapes){
+void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction<STATE> > externalShapes){
 	this->fExternalShape = externalShapes;
 	//in order of ajust block size because NShapeF may have changed
 	if (fConnectIndex < 0) return;

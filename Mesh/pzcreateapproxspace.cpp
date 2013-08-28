@@ -549,7 +549,7 @@ void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
             int order = 0;
             int cindex2 = cmesh.AllocateNewConnect(nshape, nstate, order);
 //            TPZConnect &c2 = cmesh.ConnectVec()[cindex];
-            TPZFNMatrix<2> depmat(2,1,1.);
+            TPZFNMatrix<2,STATE> depmat(2,1,1.);
             c.AddDependency(cindex, cindex2, depmat, 0, 0, 2, 1);
         }
     }

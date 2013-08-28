@@ -49,7 +49,7 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 	{
 		for(ic=0; ic< r; ic++)
 		{
-			ef(in*r+ic, 0) +=  weight*fXf(ic,0)*phi(in,0);
+			ef(in*r+ic, 0) +=  (STATE)(weight*phi(in,0))*fXf(ic,0);
 		}
 		for(int jn=0 ; jn<phi.Rows() ; ++jn)
 		{
@@ -59,13 +59,13 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 				REAL dphiy = dphi(0,in)*axes(0,1)+axes(1,1)*dphi(1,in);
 				REAL dphjx = dphi(0,jn)*axes(0,0)+axes(1,0)*dphi(1,jn);
 				REAL dphjy = dphi(0,jn)*axes(0,1)+axes(1,1)*dphi(1,jn);
-				ek(in*r+ic,jn*r+jc) += weight*phi(in,0)*fK00(ic,jc)*phi(jn,0) +
-				(dphix*dphjx*fKxx(ic,jc) +
-				 dphiy*dphjy*fKyy(ic,jc) +
-				 dphix*phi(jn,0)*fKx0(ic,jc) +
-				 dphiy*phi(jn,0)*fKy0(ic,jc) +
-				 phi(in,0)*dphjx*fK0x(ic,jc) +
-				 phi(in,0)*dphjy*fK0y(ic,jc) ) * weight;
+				ek(in*r+ic,jn*r+jc) += (STATE)(weight*phi(in,0)*phi(jn,0))*fK00(ic,jc) +
+				((STATE)(dphix*dphjx)*fKxx(ic,jc) +
+				 (STATE)(dphiy*dphjy)*fKyy(ic,jc) +
+				 (STATE)(dphix*phi(jn,0))*fKx0(ic,jc) +
+				 (STATE)(dphiy*phi(jn,0))*fKy0(ic,jc) +
+				 (STATE)(phi(in,0)*dphjx)*fK0x(ic,jc) +
+				 (STATE)(phi(in,0)*dphjy)*fK0y(ic,jc) ) * (STATE)weight;
 			}
 		}
 	}
@@ -94,7 +94,7 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 		case 0:
 			for(in=0 ; in<numnod ; ++in){
 				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += gBigNumber*phi(in,0)*bc.Val2()(idf,0)*weight;
+					(ef)(in*r+idf,0) += (STATE)(weight*gBigNumber*phi(in,0))*bc.Val2()(idf,0);
 				}
 				for(jn=0 ; jn<numnod ; ++jn) {
 					for(idf = 0;idf<r;idf++) {
@@ -107,7 +107,7 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 		case 1:
 			for(in=0 ; in<numnod ; ++in){
 				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+					(ef)(in*r+idf,0) += (STATE)(weight*phi(in,0))*bc.Val2()(idf,0);
 				}
 			}
 			break;
@@ -115,12 +115,12 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 		case 2:
 			for(in=0 ; in<numnod ; ++in){
 				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+					(ef)(in*r+idf,0) += (STATE)(weight*phi(in,0))*bc.Val2()(idf,0);
 				}
 				for(jn=0 ; jn<numnod ; ++jn) {
 					for(idf = 0;idf<r;idf++) {
 						for(jdf = 0;jdf<r;jdf++) {
-							ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
+							ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*(STATE)(phi(in,0)*phi(jn,0)*weight);
 						}
 					}
 				}
@@ -130,7 +130,7 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 			for(in=0; in<numnod; in++) {
 				for(idf=0; idf<r; idf++) {
 					for(jdf=0; jdf<r; jdf++) {
-						ef(in*r+idf,0) += (fKx0(idf,jdf)*axes(0,1)-fKy0(idf,jdf)*axes(0,0))*phi(in,0)*weight;
+						ef(in*r+idf,0) += (fKx0(idf,jdf)*(STATE)axes(0,1)-fKy0(idf,jdf)*(STATE)axes(0,0))*(STATE)(phi(in,0)*weight);
 					}
 				}
 			}
@@ -208,8 +208,8 @@ void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
 void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,TPZVec<STATE> &/*flux*/,
 						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	STATE dx = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
-	STATE dy = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
+	STATE dx = dudx(0,0)*(STATE)axes(0,0)+dudx(1,0)*(STATE)axes(1,0);
+	STATE dy = dudx(0,0)*(STATE)axes(0,1)+dudx(1,0)*(STATE)axes(1,1);
 	//Norma Energia
 	STATE parc1 = dx-du_exact(0,0) ;
 	STATE parc2 = dy-du_exact(1,0) ;

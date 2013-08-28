@@ -110,7 +110,7 @@ int TPZMiViga1D::NSolutionVariables(int var) {
 	return -1;
 }
 
-void TPZMiViga1D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
+void TPZMiViga1D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {
 	
 	switch(var) {
 		case 1:   // desplazamiento

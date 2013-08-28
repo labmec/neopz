@@ -26,15 +26,15 @@ class TPZMatrix;
 
 void RunFast();
 // this function will read the matrix
-TPZFYsmpMatrix<REAL> *ReadMatrix(const std::string &filename, TPZFMatrix<REAL> &rhs);
+TPZFYsmpMatrix<STATE> *ReadMatrix(const std::string &filename, TPZFMatrix<STATE> &rhs);
 
-void TimeMultiply(TPZMatrix<REAL> *mat, TPZMultiTimer &timer);
+void TimeMultiply(TPZMatrix<STATE> *mat, TPZMultiTimer &timer);
 
-void SolveJacobi(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer);
+void SolveJacobi(TPZMatrix<STATE> *mat, TPZFMatrix<STATE> &rhs, REAL tol, TPZMultiTimer &timer);
 
-void SolveCG(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer);
+void SolveCG(TPZMatrix<STATE> *mat, TPZFMatrix<STATE> &rhs, REAL tol, TPZMultiTimer &timer);
 
-void SolveSSOR(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer);
+void SolveSSOR(TPZMatrix<STATE> *mat, TPZFMatrix<STATE> &rhs, REAL tol, TPZMultiTimer &timer);
 
 void Compare(TPZMatrix<REAL> *first, TPZMatrix<REAL> *second);
 

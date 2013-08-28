@@ -95,11 +95,11 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, bool isdiscontinuous);
 TPZGeoMesh *GMesh2();
 TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous);
 
-void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
-void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void Forcingbc(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 TPZGeoMesh *CreateGeoMesh(MElementType typeel);
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
@@ -110,7 +110,7 @@ REAL MeanCell(TPZCompEl *cel,int IntOrder);
 REAL ExactSolution(int dim,const TPZVec<REAL> &pt);
 void GradExactSolution(int dim,const TPZVec<REAL> &x, TPZVec<REAL> &dsol);
 
-void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an,TPZCompMesh *Cmesh, std::string plotfile);
@@ -1257,7 +1257,7 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
     gel->SetMaterialId(newmatid);
 }
 
-void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var) {
+void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<STATE> &solalfa,  TPZFMatrix<REAL> &grad, int var) {
     
     int dim;
     dim = cel->Mesh()->Dimension();
@@ -1276,7 +1276,8 @@ void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &ce
 	
     center.Resize(3, 0.);
     solalfa.Resize(nstates,0.0);
-	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0), solbeta(nstates,0.0);;
+	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0);
+    TPZManVector<STATE> solbeta(nstates,0.0);;
 	
 	TPZFMatrix<REAL> A(dim,dim);    // Linear System matrix
 	grad.Redim(dim,1);   // Linear System vector
@@ -1400,7 +1401,7 @@ void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMes
 	int side;
 	TPZManVector<REAL> normal(3,0.0);
 	TPZManVector<REAL> center(3,0.0);
-	TPZManVector<REAL> solalfa(nstates,0.), solbeta(nstates,0.);
+	TPZManVector<STATE> solalfa(nstates,0.), solbeta(nstates,0.);
 	TPZManVector<REAL> centerside(3,0.);
 	
 	REAL measure, sidemeasure;
@@ -1666,7 +1667,7 @@ TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     cmesh->SetDimModel(dim);
     
     ///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
@@ -1752,7 +1753,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(Forcingbc3);
     
     ///Inserir condicao de contorno
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     val2(0,0)=0.;
@@ -1807,14 +1808,14 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     return cmesh;
 }
 
-void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     double y = pt[1];
     disp[0]=  coef_a*x + coef_b*y;
     
 }
 
-void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void Forcingbc(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     double x = pt[0];
 #ifdef USING_BOOST
@@ -1824,25 +1825,25 @@ void Forcingbc(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 #endif
 }
 
-void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     double y = pt[1];
     disp[0]= coef_a*x + coef_b*y;
 }
 
-void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     double y = pt[1];
     disp[0]= coef_a*x + coef_b*y;
 }
 
-void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     disp[0]= coef_a*x + coef_b*y;
 }
 
-void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     double x = pt[0];
     double aux1 = -100.*(1 - 2.*x + x*x);
@@ -1850,7 +1851,7 @@ void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     disp[0]=-(200.*x - 200.)*aux2;
 }
 
-void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<REAL> &sol) {
+void SolucaoExata(const TPZVec<REAL> &pt, TPZVec<STATE> &sol) {
 	REAL x = pt[0];
     sol[0] = -100.*(x-1.)*(x-1.);
 }
@@ -1862,7 +1863,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	//TPZSkylineStructMatrix full(Cmesh); //caso simetrico
     //TPZSkylineNSymStructMatrix full(Cmesh);//caso nao-simetrico
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	//step.SetDirect(ELDLt); //caso simetrico
 	step.SetDirect(ELU);//caso nao simetrico
 	an.SetSolver(step);

@@ -89,7 +89,7 @@ void CriacaoDeNos(int nnodes,double lista[20][3]);
 TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc);
 TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc);
 void ContagemDeElementos(TPZMaterial *mat);
-void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
+void Function(TPZVec<REAL> &x,TPZVec<STATE> &result);
 void NivelDivide(TPZCompMesh *cmesh);
 void Divisao(TPZCompMesh *cmesh);
 void TestShapesDescontinous();
@@ -206,7 +206,7 @@ int main() {
 			TPZSkylineStructMatrix stiff(cmesh);
 			an.SetStructuralMatrix(stiff);
 			an.Solution().Zero();
-			TPZStepSolver<REAL> solver;
+			TPZStepSolver<STATE> solver;
 			solver.SetDirect(ELDLt);//ELU, ECholesky
 			an.SetSolver(solver);
 			if(1){
@@ -332,7 +332,8 @@ void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoEl
 }
 
 void SetDeltaTime(TPZMaterial *mat,int nstate) {	
-	TPZVec<REAL> x(3,0.0),sol;
+	TPZVec<REAL> x(3,0.0);
+    TPZVec<STATE> sol;
 	int i;
 	x[0] = 0.5;
 	x[1] = 0.5;
@@ -560,7 +561,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
 	// boundary conditions
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(4,4),val2(4,1);
+	TPZFMatrix<STATE> val1(4,4),val2(4,1);
 	
 	//CC : a vizinhan�a geometrica foi preenchida
 	val1.Zero();
@@ -612,7 +613,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	return mat;
 }
 
-void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
+void Function(TPZVec<REAL> &x,TPZVec<STATE> &result){
 	
     result.Resize(4);
     //Condi��o inicial t =  0
@@ -667,7 +668,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
 	// boundary conditions
 	TPZBndCond *bc;
-	TPZFMatrix<REAL> val1(5,4),val2(5,1);
+	TPZFMatrix<STATE> val1(5,4),val2(5,1);
 	
 	//CC : a geometric neighboard was filled
 	val1.Zero();

@@ -118,12 +118,12 @@ int main() {
 //	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-3,TPZEulerEquation::EFreeSlip,val1,val2)));
 	// Inserts Dirichlet boundary condition - wall then zero values for all variables
 	int nstates = mat->NStateVariables();
-	TPZFMatrix<REAL> val1(nstates,nstates,0.),val2(nstates,1,0.);
-	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-1,0,val1,val2)));   // Dirichlet condition -  (wall)
+	TPZFMatrix<STATE> bcval1(nstates,nstates,0.),bcval2(nstates,1,0.);
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-1,0,bcval1,bcval2)));   // Dirichlet condition -  (wall)
 	// Inserts Neumann boundary condition - input flux
-	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-2,1,val1,val2)));   // Neumann condition - fluxo livre
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-2,1,bcval1,bcval2)));   // Neumann condition - fluxo livre
 	// Inserts Neumann boundary condition - output free flux
-	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-3,1,val1,val2)));   // Neumann condition - fluxo livre
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-3,1,bcval1,bcval2)));   // Neumann condition - fluxo livre
 	
 	// Making all the computational elements as discontinuous
 //	TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous();
@@ -150,7 +150,7 @@ int main() {
 	cmesh3->InsertMaterialObject(mat3);
 	// Inserts Dirichlet boundary condition - wall then zero values for all variables
 	int nstates3 = mat3->NStateVariables();
-	TPZFMatrix<REAL> val_1(nstates3,nstates3,0.),val_2(nstates3,1,0.);
+	TPZFMatrix<STATE> val_1(nstates3,nstates3,0.),val_2(nstates3,1,0.);
 	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3,-1,0,val_1,val_2)));   // Dirichlet condition -  (wall)
 	// Inserts Neumann boundary condition - input flux
 	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3,-2,1,val_1,val_2)));   // Neumann condition - fluxo livre

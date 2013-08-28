@@ -67,7 +67,7 @@ int main() {
 	TPZSkylineStructMatrix strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
 	// Solver (is your choose) 
-	TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 	direct->SetDirect(ECholesky);
 	an.SetSolver(*direct);
 	delete direct;
@@ -78,7 +78,7 @@ int main() {
 	TPZBandStructMatrix full(cmesh);
 	an.SetStructuralMatrix(full);
 	an.Solution().Zero();
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELU);
 	an.SetSolver(step);
 	*/
@@ -107,7 +107,7 @@ void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
 	int i = 0, side, nneighs;
 	TPZVec<REAL> normal(3,0.0);
 	TPZVec<REAL> center(3,0.);
-	TPZVec<REAL> solalfa(3,0.), solbeta(3,0.);
+	TPZVec<STATE> solalfa(3,0.), solbeta(3,0.);
 	
 	REAL measure, sidemeasure;
 	for(i=0;i<cmesh->NElements();i++) {
@@ -190,7 +190,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
 	((TPZMiViga1D *)mat)->SetLoad(0.);
 
 	// Creating four boundary condition
-    TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.),val2(2,1,0.);
 	val2(0,0) = 0.;
 	val2(1,0) = 1.0;
 	TPZMaterial *bcRight;

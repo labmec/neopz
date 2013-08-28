@@ -942,8 +942,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 	REAL Mach, temp;
 	int i;
 	//Riemann Invariants
-	T w1, w2, w5, uninf, usinf,
-    cghost, usghost, unghost, p;
+	T w1, w2, w5, uninf, usinf, cghost, usghost, unghost, p;
 	REAL cinf;
 	
 	switch (bc.Type()){
@@ -1047,7 +1046,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
 					// Modified w2 invariant: w2 = p/rho^(gamma-1)
 					// or w2 = c^2/(gamma * rho^(gamma-1))
-					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (T)(fGamma - 1.)));
+					w2 = cinf * cinf / T(fGamma * pow((T)(bc.Val2()(0,0)), (T)(fGamma - 1.)));
 					// w5 computed based on flow state
 					w5 = un + T(2.) * c / T(fGamma - 1.);
 					
@@ -1179,7 +1178,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
 					// Modified w2 invariant: w2 = p/rho^(gamma-1)
 					// or w2 = c^2/(gamma * rho^(gamma-1))
-					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (T)(fGamma - 1.)));   // Unbelived - only is defined for pow(float, float) and pow(long double, long double) !!! Jorge
+					w2 = cinf * cinf / T(fGamma * pow((T)(bc.Val2()(0,0)), (T)(fGamma - 1.)));   // Unbelived - only is defined for pow(float, float) and pow(long double, long double) !!! Jorge
 					// w5 computed based on flow state
 					w5 = un + T(2.) * c / T(fGamma - 1.);
 					
@@ -1228,7 +1227,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 			cghost = c + T((fGamma - 1.)/2.)*un;
 			// ghost density
 			// rhoghost = (cghost^2*rho^gamma/(gamma * p))^(1/gamma -1)
-			solR[0] = pow(cghost * cghost * pow(T(solL[0]),T(fGamma))/ (p * fGamma), (1./(fGamma - 1.)));
+			solR[0] = pow(cghost * cghost * pow(T(solL[0]),T(fGamma))/(T(p * fGamma)), (T)(1./(fGamma - 1.)));
 			
 			// computing velocity vector
 			usghost = 0.;

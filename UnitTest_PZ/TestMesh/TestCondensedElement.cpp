@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(globalcompute)
     TPZAnalysis an(cmesh);
     TPZSkylineStructMatrix skylstr(cmesh);
     an.SetStructuralMatrix(skylstr);
-    TPZStepSolver<REAL> step;
+    TPZStepSolver<STATE> step;
     step.SetDirect(ECholesky);
     an.SetSolver(step);
     an.Run();
@@ -108,7 +108,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZMatPoisson3d *matpois = new TPZMatPoisson3d(1, 2);
     TPZMaterial *pois(matpois);
     cmesh->InsertMaterialObject(pois);
-    TPZFNMatrix<4> val1(1,1,0.),val2(1,1,0.);
+    TPZFNMatrix<4,STATE> val1(1,1,0.),val2(1,1,0.);
     TPZBndCond *bnd = matpois->CreateBC(pois, -1, 0, val1, val2);
     TPZMaterial *matbnd(bnd);
     cmesh->InsertMaterialObject(matbnd);

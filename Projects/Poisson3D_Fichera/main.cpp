@@ -57,14 +57,14 @@ ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because 
 int gPrintLevel = 0;
 bool gDebug = false;
 
-void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
-void FforcingSolin(const TPZVec<REAL> &x, TPZVec<REAL> &f);
+void ExactSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+void BCSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
+void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f);
 
 //void InitializeSolver(TPZAnalysis &an);
-void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
+void InitialSolutionLinearConvection(TPZFMatrix<STATE> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
 				TPZParSkylineStructMatrix strskyl(cmesh,nthread);
 				an.SetStructuralMatrix(strskyl);
 				
-				TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
 				an.SetSolver(*direct);
 				delete direct;
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
 //////////   FICHERA CORNER - Problem as Anders Solin Presentation   ///////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void ExactSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r);
 	sol[0] = sqrt(raiz);
@@ -285,13 +285,13 @@ void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 	}
 }
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCSolin(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r);
 	bcsol[0] = sqrt(raiz);
 }
 
-void FforcingSolin(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt( sqrt(quad_r * quad_r * quad_r) );
 	if(!IsZero(raiz)) {
@@ -301,7 +301,7 @@ void FforcingSolin(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	}
 }
 
-void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r);
 	sol[0] = sqrt(raiz);
@@ -316,16 +316,16 @@ void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	}
 }
 
-void BCRachowiczN(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCRachowiczN(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r);
 	bcsol[0] = sqrt(raiz);
 }
-void BCRachowiczD(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+void BCRachowiczD(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	bcsol[0] = 0.0;
 }
 
-void FforcingRachowicz(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void FforcingRachowicz(const TPZVec<REAL> &x, TPZVec<STATE> &f) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt(quad_r * quad_r * quad_r);
 	f[0] = 3./(4.0*sqrt(raiz));
@@ -356,7 +356,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction,int pro
 	cmesh->SetDimModel(mat->Dimension());
 	
 	// Boundary conditions
-	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
 	switch(problem) {
 		case 1:
 		{
@@ -872,11 +872,11 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
 }
 
 void InitializeSolver(TPZAnalysis &an) {
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> stepstep;
 	TPZBandStructMatrix matrix(an.Mesh());
 	an.SetStructuralMatrix(matrix);
-	step.SetDirect(ELU);
-	an.SetSolver(step);
+	stepstep.SetDirect(ELU);
+	an.SetSolver(stepstep);
 }
 
 

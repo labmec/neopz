@@ -28,7 +28,8 @@ TPZFlowCompMesh1::TPZFlowCompMesh1(TPZGeoMesh* gr) : TPZCompMesh(gr) {
 REAL TPZFlowCompMesh1::MaxVelocityOfMesh(int nstate,REAL gamma) {
 
   int nel = ElementVec().NElements(),i;
-  TPZManVector<REAL> density(1),sol(nstate),velocity(1);
+    TPZManVector<STATE> density(1);
+    TPZVec<STATE> sol(nstate),velocity(1);
   REAL maxvel = 0.0,veloc,sound,press;
   TPZVec<REAL> param(3,0.);
   for(i=0;i<nel;i++){

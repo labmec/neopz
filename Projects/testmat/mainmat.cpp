@@ -69,10 +69,10 @@ void ExemploElasticidade(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZVec<REAL> x(2,0.);
 
 	// um vetor com o valor da solucao
-	TPZVec<REAL> sol(nstate,0.);
-
-	// uma matriz com as derivadas da funcao no ponto
-	TPZFMatrix<REAL> dsol(2,nstate,0.);
+	TPZManVector<STATE> sol(nstate,(STATE)(0.));
+    // uma matriz com as derivadas da funcao no ponto
+    TPZFNMatrix<15,STATE> dsolu(2,nstate);
+    dsolu.Zero();
 
 	// uma matriz indicando os eixos correspondentes as derivadas da funcao
 	TPZFMatrix<REAL> axes(3,3,0.);
@@ -80,13 +80,13 @@ void ExemploElasticidade(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZFMatrix<REAL> jacinv(axes);
 
 	// a matriz de rigidez e a matriz do vetor de carga
-	TPZFMatrix<REAL> ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
+	TPZFMatrix<STATE> ek(nstate*nshape,nstate*nshape,0.), ef(nstate*nshape,1,0.);
 
         TPZMaterialData data;
         data.x = x;
         data.jacinv = jacinv;
         data.sol[0] = sol;
-        data.dsol[0] = dsol;
+        data.dsol[0] = dsolu;
         data.axes = axes;
         data.phi = phi;
         data.dphix = dphi;
@@ -107,9 +107,9 @@ void ExemploGenerico2D(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZMat2dLin matexemplo(1);
 
 	// inicializar os dados do material
-	TPZFMatrix<REAL> xk(1,1,1),xc(1,2,1.),xf(1,1,1.);
+	TPZFMatrix<STATE> xkk(1,1,1),xc(1,2,1.),xf(1,1,1.);
 
-	matexemplo.SetMaterial(xk,xc,xf);
+	matexemplo.SetMaterial(xkk,xc,xf);
 
 	// a equacao e : u + du/dx + du/dy = 1
 
@@ -128,10 +128,10 @@ void ExemploGenerico2D(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZVec<REAL> x(2,0.);
 
 	// um vetor com o valor da solucao
-	TPZVec<REAL> sol(nstate,0.);
+	TPZVec<STATE> sol(nstate,0.);
 
 	// uma matriz com as derivadas da funcao no ponto
-	TPZFMatrix<REAL> dsol(2,nstate,0.);
+	TPZFMatrix<STATE> dsol(2,nstate,0.);
 
 	// uma matriz indicando os eixos correspondentes as derivadas da funcao
 	TPZFMatrix<REAL> axes(3,3,0.);
@@ -139,7 +139,7 @@ void ExemploGenerico2D(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZFMatrix<REAL> jacinv(axes);
 
 	// a matriz de rigidez e a matriz do vetor de carga
-	TPZFMatrix<REAL> ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
+	TPZFMatrix<STATE> ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
         TPZMaterialData data;
         data.x = x;

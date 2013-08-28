@@ -135,7 +135,7 @@ void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<S
 	{
 		int eqOffset = i*nshape;
 		for(i_var = 0; i_var < nshape; i_var++)
-			ef(eqOffset+i_var,0) += phi(i_var,0) * sol[i];
+			ef(eqOffset+i_var,0) += (STATE)phi(i_var,0) * sol[i];
 	}
 }
 

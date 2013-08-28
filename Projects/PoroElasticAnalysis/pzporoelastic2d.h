@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef POISSONDESACOPLADOSH
-#define POISSONDESACOPLADOSH
+#ifndef POISSONDESACOPLADOS_HH
+#define POISSONDESACOPLADOS_HH
 
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
@@ -219,7 +219,7 @@ public:
 
 	//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
+	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
         TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
     }
 //	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	

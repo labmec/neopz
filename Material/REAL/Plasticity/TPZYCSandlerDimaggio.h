@@ -746,7 +746,8 @@ protected:
         LInitialGuess(X, L);
         SolveL(X, L);
         ComputeF(L, F);
-        REAL Lini = L;
+        REAL Lini;
+        Lini = L;
         disttheta = DistThetaL(ER, theta, L, sigtrialIJ);
         // Look for a best guess for theta
         for (REAL thetaguess=0.; thetaguess <= M_PI; thetaguess += M_PI/20.) {

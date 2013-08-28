@@ -59,10 +59,10 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine);
 // funcao de forcing funciton
-void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 // definir a funcao exata
-void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux );
+void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
 
 //metodo para graficar a sol no mathematica
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol);

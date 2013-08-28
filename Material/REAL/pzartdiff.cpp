@@ -152,18 +152,18 @@ void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TP
 #ifdef _AUTODIFF
 
 template <class T>
-void TPZArtDiff::Divergent(TPZFMatrix<REAL> &dsol,
+void TPZArtDiff::Divergent(TPZFMatrix<STATE> &dsol,
 						   TPZFMatrix<REAL> & phi,
 						   TPZFMatrix<REAL> & dphi,
 						   TPZVec<TPZDiffMatrix<T> > & Ai,
-						   TPZVec<REAL> & Div,
-						   TPZDiffMatrix<REAL> * dDiv)
+						   TPZVec<STATE> & Div,
+						   TPZDiffMatrix<STATE> * dDiv)
 {
 	int nstate = Ai[0].Cols();
 	int dim = nstate - 2;
 	int nshape = dphi.Cols();
 	Div.Resize(nstate);
-	Div = REAL(0.);
+	Div = (STATE(0.));
 	
 	int i, j, k;
 	
@@ -206,7 +206,7 @@ void TPZArtDiff::Divergent(TPZFMatrix<REAL> &dsol,
 		{
 			temp = T(0.);
 			for(j = 0; j < nstate; j++)
-				temp += Ai[k](i,j) * dsol(k,j);//[j];
+				temp += Ai[k](i,j) * (T)dsol(k,j);//[j];
 			ADiv[i] = temp;
 		}
 		for(l=0;l<nshape;l++)
@@ -568,8 +568,8 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 									TPZFMatrix<STATE> &dsol,
 									TPZFMatrix<REAL> &phi,
 									TPZFMatrix<REAL> &dphi,
-									TPZVec<TPZVec<REAL> > & TauDiv,
-									TPZVec<TPZDiffMatrix<REAL> > & dTauDiv)
+									TPZVec<TPZVec<STATE> > & TauDiv,
+									TPZVec<TPZDiffMatrix<STATE> > & dTauDiv)
 {
 #ifdef _TFAD
 	typedef TFad<dim+2, REAL> TFADREALdim;
@@ -588,7 +588,7 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 	TPZVec<TPZDiffMatrix<TFADREALdim> > FADAi(dim);
 	TPZVec<TPZDiffMatrix<REAL> >           Ai(dim);
 	TPZVec<TPZDiffMatrix<TFADREALdim> > FADTau(dim);
-	TPZVec<TPZDiffMatrix<REAL> >           Tau(dim);
+	TPZVec<TPZDiffMatrix<STATE> >           Tau(dim);
 	TPZVec<TPZVec<TFADREALdim> >        FADTauDiv(dim);
 	TFADREALdim temp;
 	
@@ -634,7 +634,7 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 		{
 			temp = 0.;
 			for(j = 0; j < nstate; j++)
-				temp += FADTau[k](i,j) * Div[j];
+				temp += FADTau[k](i,j) * ((REAL)Div[j]);
 			FADTauDiv[k][i] = temp;
 		}//
 		
@@ -768,8 +768,8 @@ void TPZArtDiff::ContributeFastestImplDiff_dim(TPZFMatrix<REAL> &jacinv, TPZVec<
     REAL constant = /*-*/ weight * delta * timeStep;
     REAL buff;
 	
-    TPZVec<TPZVec<REAL> > TauDiv;
-    TPZVec<TPZDiffMatrix<REAL> > dTauDiv;
+    TPZVec<TPZVec<STATE> > TauDiv;
+    TPZVec<TPZDiffMatrix<STATE> > dTauDiv;
 	
     PrepareFastestDiff<dim>( jacinv, sol, dsol, phi, dphi, TauDiv, dTauDiv);
 	

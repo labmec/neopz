@@ -1928,11 +1928,11 @@ void TPZCompMesh::AssembleError(TPZFMatrix<REAL> &estimator, int errorid){
 			//if number of errors > 1 then resize matrix.
 			//Method Resize keeps previous values and zero new values.
 			//estimator.Resize(nelem, n);
-			for(i = 0; i < errorL.NElements()-1; i++){
-				estimator(face->LeftElement()->Index(),i) += errorL[i];
+			for(i = 0; i < errorL.NElements()-1; i++) {
+				estimator(face->LeftElement()->Index(),i) += fabs(errorL[i]);
 			}//for i
 			for(i = 0; i < errorR.NElements()-1; i++){
-				estimator(face->RightElement()->Index(),i) += errorR[i];
+				estimator(face->RightElement()->Index(),i) += fabs(errorR[i]);
 			}//for i
 		}//if
 		else{
