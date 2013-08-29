@@ -12,7 +12,7 @@
 #include <boost/graph/properties.hpp>
 #include <boost/graph/compressed_sparse_row_graph.hpp>
 #include "pzlog.h"
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <stdio.h>
 
 #ifdef LOG4CXX
