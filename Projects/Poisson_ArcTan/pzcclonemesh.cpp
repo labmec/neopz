@@ -621,7 +621,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     }
     
     // why can't we clone the boundary elements?
-    TPZCompMesh *cmesh = Clone();
+    TPZCompCloneMesh *cmesh;
+    cmesh = (TPZCompCloneMesh *)Clone();
     
     // put the elements back in
     nelem = elementpointers.NElements();

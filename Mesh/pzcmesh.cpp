@@ -2043,16 +2043,16 @@ void TPZCompMesh::SaddlePermute()
     TPZVec<long> permute;
     long numinternalconnects = NIndependentConnects();
     permute.Resize(numinternalconnects,0);
-    for (int i=0; i<numinternalconnects; i++) {
+    for (long i=0L; i<numinternalconnects; i++) {
         permute[i] = i;
     }
-    int nel = NElements();
-    for (int el = 0; el<nel ; el++) {
+    long nel = NElements();
+    for (long el = 0L; el<nel ; el++) {
         TPZCompEl *cel = ElementVec()[el];
         if (!cel) {
             continue;
         }
-        unsigned char minlagrange = 0, maxlagrange = 255;
+        unsigned char minlagrange = 0, maxlagrange = 256;
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
@@ -2138,7 +2138,7 @@ void TPZCompMesh::SaddlePermute()
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
-        for (int el=0; el<nel; el++) {
+        for (long el=0L; el<nel; el++) {
             TPZCompEl *cel = ElementVec()[el];
             if (!cel) {
                 continue;
