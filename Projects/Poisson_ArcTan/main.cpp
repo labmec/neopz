@@ -269,7 +269,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
 
 			// Creating computational mesh (approximation space and materials)
-			int p = 3, pinit;
+			int p = 2, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25

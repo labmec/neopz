@@ -549,6 +549,10 @@ int TPZCompCloneMesh::HasConnect(int cnid){
     return (fMapConnects.find(cnid) != fMapConnects.end());
 }
 
+TPZCompCloneMesh* TPZCompCloneMesh::Clone() const {
+	return new TPZCompCloneMesh(*this);
+}
+
 TPZCompCloneMesh::TPZCompCloneMesh(const TPZCompCloneMesh &copy) {
     fBlock = copy.fBlock;
     fElementSolution = copy.fElementSolution;
@@ -602,7 +606,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     TPZStack <int> bcporderstack;
     TPZStack<int> elementindex;
     TPZStack<TPZCompEl *> elementpointers;
-    int el, nelem;
+    long el, nelem;
     nelem = ElementVec().NElements();
     // take out the boundary elements with inconsistent father structure
     for(el=0; el<nelem; el++) {
@@ -621,8 +625,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     }
     
     // why can't we clone the boundary elements?
-    TPZCompCloneMesh *cmesh;
-    cmesh = (TPZCompCloneMesh *)Clone();
+    TPZCompMesh *cmesh;
+    cmesh = TPZCompMesh::Clone();
     
     // put the elements back in
     nelem = elementpointers.NElements();

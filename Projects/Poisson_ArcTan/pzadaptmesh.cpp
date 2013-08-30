@@ -519,24 +519,14 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
     //e cria uma nova malha computacional baseada nesta malha geométrica
     gmesh->ResetReference();
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-//    int nmat = mesh->MaterialVec().size();
-  //  int m;
+    cmesh->SetDimModel(mesh->Dimension());
     
     //Cria um clone do vetor de materiais da malha mesh
     mesh->CopyMaterials(*cmesh);
-    /*  for(m=0; m<nmat; m++) {
-     TPZMaterial * mat = mesh->MaterialVec()[m];
-     if(!mat) continue;
-     mat->Clone(cmesh->MaterialVec());
-     }
-     */
+
     //Idenifica o vetor de elementos computacionais de mesh
-    //  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
-    
-    int el,nelem = gelstack.NElements();
-    //  cmesh->SetName("Antes PRefine");
-    //  cmesh->Print(cout);
-    for(el=0; el<nelem; el++) {
+    long el,nelem = gelstack.NElements();
+    for(el=0L; el<nelem; el++) {
         
         //identifica os elementos geométricos passados em gelstack
         TPZGeoEl *gel = gelstack[el];
@@ -551,13 +541,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
         csint = dynamic_cast<TPZInterpolatedElement *> (cmesh->CreateCompEl(gel,celindex));
         if(!csint) continue;
         
-        //Refina em p o elemento criado
-        //	cmesh->SetName("depois criar elemento");
-        //	cmesh->Print(cout);
-        
         csint->PRefine(porders[el]);
-        //	cmesh->SetName("depois prefine no elemento");
-        //	cmesh->Print(cout);
     }
 #ifndef CLONEBCTOO
     nelem = gmesh->NElements();
@@ -597,21 +581,14 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
         }
     }
 #endif
-    //Mais einh!!
-    //	cmesh->SetName("Antes Adjust");
-    //	cmesh->Print(cout);
+
     cmesh->AdjustBoundaryElements();
-    //  cmesh->SetName("Depois");
-    //  cmesh->Print(cout);
     return cmesh;
-    
 }
 
-void TPZAdaptMesh::RemoveCloneBC(TPZCompMesh *mesh)
-{
-    int nelem = mesh->NElements();
-    int iel;
-    for(iel=0; iel<nelem; iel++) {
+void TPZAdaptMesh::RemoveCloneBC(TPZCompMesh *mesh) {
+    long nelem = mesh->NElements();
+    for(long iel=0L; iel<nelem; iel++) {
         TPZCompEl *cel = mesh->ElementVec()[iel];
         if(!cel) continue;
         int matid = cel->Material()->Id();

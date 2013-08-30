@@ -141,6 +141,9 @@ protected:
     /** @brief Creates the Dirichlet Boundary Condition along the patch sides */
     void CreateCloneBC();
     
+	/** @brief Clone this mesh */
+	TPZCompCloneMesh * Clone() const;
+
     /**
      * @brief Verifies if the given element is son of the Geometric Reference Element
      * @param el - element to analyse
