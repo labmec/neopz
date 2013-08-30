@@ -48,7 +48,7 @@ tpzdohrassfn=("dohrass", "tpzdohrass.rdt")
 tpzdohrdecfn=("dohrdec", "tpzdohrdec.rdt")
 
 # List of rdt files produced by the test
-rdtfiles_l=[assfn, crefn, prefn, solfn, totfn, tpzdohrassfn, tpzdohrdecfn]
+rdtfiles_l=[assfn, prefn, tpzdohrdecfn, solfn, totfn, crefn, tpzdohrassfn ]
 
 def error(message, status):
 	sys.stderr.write('ERROR (test.py): '+message+'\n')
@@ -58,9 +58,9 @@ def error(message, status):
 def setup_cmd():
 	# Check build directory
 	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 1)
+		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst1')
+	rundir = os.path.join(builddir,'scripts','substruct_tst5')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -118,12 +118,12 @@ def sumarize_rdt_results(rundir) :
 				try:
 					av=stats.average(elapsed_list)
 				except stats.StatsError, e:
-					print "WARNING: Could not compute average for results at", fn, "(", e, ")"
+					#print "WARNING: Could not compute average for results at", fn, "(", e, ")"
 					av=0.0
 				try:
 					ci=stats.conf_int(elapsed_list, 95.0)
 				except stats.StatsError, e:
-					print "WARNING: Could not compute confidence interval for results at", fn, "(", e, ")"
+					#print "WARNING: Could not compute confidence interval for results at", fn, "(", e, ")"
 					ci=0.0
 			except stats.RdtError, e:
 				print "WARNING: error when summarizing results for", fn, "(", e, ")"
@@ -133,6 +133,9 @@ def sumarize_rdt_results(rundir) :
 			av=0.0
 			ci=0.0
 		results[k]=(av,ci)
+	# erase time files
+	for arq in rdtfiles_l:
+		os.remove(arq[1])
 	return results
 
 description="substructure -- cubo986.msh -- serial -- "
@@ -188,14 +191,16 @@ if __name__ == "__main__":
 	subs = [ "4", "8", "12", "16", "20", "24", "28", "32", "36", "48", "64", "128"]
 	# Run test
 	if run == 1: 
+		print "# Results Summary"
+		print '{0:10s} ; '.format("nsub"),
+		for arq in rdtfiles_l:
+			print'{0:18s} ; '.format(arq[0]),
 		for item in subs:
-			print "Description :: nsub " + item
 			status,results = run_test(ntimes, item)
-			if status == 0: print "Execution [OK]"
-			else          : print "Execution [FAILED] (status = ", status, ")"
-			print "Results summary ----------------------------"
-			for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
-			print "--------------------------------------------"
+			#if status == 0: print "Execution [OK]"
+			if status != 0 : print "Execution [FAILED] (status = ", status, ")"
+			print '\n{0:10s} ; '.format(item),
+			for k,v in results.iteritems() : print '{0:>7.2f} +- {1:<7.2f} ; '.format(v[0], v[1]),
+		print "\n--------------------------------------------"
 	else:
 		print "WARNING: No options provided. (use -h for help)"
-
