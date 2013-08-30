@@ -470,6 +470,10 @@ int main(int argc, char *argv[])
     /* Work between checkpoint 2 and checkpoint 3 */
     if (running)
     {
+        if (nt_multiply.was_set() && nt_multiply.get_value() != 1)
+        {
+            dohrstruct->SetNumThreads(nt_multiply.get_value());
+        }
         
         PERF_START(assemble_rst);
         TPZAutoPointer<TPZGuiInterface> gui;

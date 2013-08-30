@@ -141,9 +141,15 @@ def sumarize_rdt_results(rundir) :
 description="substructure -- cubo986.msh -- serial -- "
 
 # Execute the test.
-def run_test(ntimes, nsub):
+def run_test(ntimes, nsub, thread):
 	rundir,cmd=setup_cmd()
+	# substructures
 	cmd = cmd + " -nsub " + nsub
+	# threads
+	cmd = cmd + ' -nt_a ' + thread 
+	cmd = cmd + ' -nt_d ' + thread
+	cmd = cmd + ' -nt_m ' + thread
+	cmd = cmd + ' -nt_sm ' + thread
 	#print cmd
 	args = shlex.split(cmd)
 	sout = subprocess.PIPE # redirect output (before: None)
@@ -189,18 +195,20 @@ if __name__ == "__main__":
 		elif f == '-h': usage()
 
 	subs = [ "4", "8", "12", "16", "20", "24", "28", "32", "36", "48", "64", "128"]
+	numthreads = [ "1" ]#, "6", "12", "18", "24"]
 	# Run test
 	if run == 1: 
-		print "# Results Summary"
-		print '{0:10s} ; '.format("nsub"),
-		for arq in rdtfiles_l:
-			print'{0:18s} ; '.format(arq[0]),
-		for item in subs:
-			status,results = run_test(ntimes, item)
-			#if status == 0: print "Execution [OK]"
-			if status != 0 : print "Execution [FAILED] (status = ", status, ")"
-			print '\n{0:10s} ; '.format(item),
-			for k,v in results.iteritems() : print '{0:>7.2f} +- {1:<7.2f} ; '.format(v[0], v[1]),
-		print "\n--------------------------------------------"
+		for thr in numthreads:
+			print "# Results Summary"
+			print '{0:s}; {1:s}; '.format("nsub", "threads"),
+			for arq in rdtfiles_l:
+				print'{0:s}; {1:s};'.format(arq[0],"err_"+arq[0]),
+			for item in subs:
+				status,results = run_test(ntimes, item, thr)
+				#if status == 0: print "Execution [OK]"
+				if status != 0 : print "Execution [FAILED] (status = ", status, ")"
+				print '\n{0:s}; {1:s};'.format(item, thr ),
+				for k,v in results.iteritems() : print '{0:.2f}; {1:.2f};'.format(v[0], v[1]),
+			print "\n--------------------------------------------"
 	else:
 		print "WARNING: No options provided. (use -h for help)"

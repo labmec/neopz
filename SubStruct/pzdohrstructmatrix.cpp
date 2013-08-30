@@ -580,6 +580,8 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
         fDohrAssembly->Assemble(isub,rhsloc,rhs);
     }
     
+    dohr->SetNumThreads(this->fNumThreads);
+
     dohr->Initialize();
     TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
     precond->Initialize();
