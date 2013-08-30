@@ -27,7 +27,7 @@ import resource
 # Try to import rdt and stats modules, if available.
 import sys
 # Add the perf_base_dir/scripts/misc to the system path to enable importing misc modules
-sys.path.append("/home/gilvan/Projetos/perf-regression/work/src/neopz/PerfTests/scripts/misc_modules/")
+sys.path.append("@PERFTEST_SCRIPTS_SRC_DIR@/misc_modules/")
 try:
 	import rdt, stats
 	summarize_results=True
@@ -36,8 +36,8 @@ except ImportError, e:
 	summarize_results=False
 
 # Variables to be defined by cmake
-builddir="/home/gilvan/Projetos/perf-regression/work/build/neopz-g++47-O2-v4874-m/PerfTests"
-datadir="/home/gilvan/Projetos/perf-regression/work/src/neopz/PerfTests/small_data"
+builddir="@PERFTEST_BASE_DIR@"
+datadir="@PERFTEST_SMALL_DATA_DIR@"
 
 assfn=("ass", "ass.rdt")
 crefn=("cre", "cre.rdt")
@@ -74,12 +74,7 @@ def setup_cmd():
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -mc '+inputfn
-	arguments = arguments + ' -nsub 64'
-	#arguments = arguments + ' -nt_a 1' 
-	#arguments = arguments + ' -nt_d 1' 
-	#arguments = arguments + ' -nt_m 1' 
-	#arguments = arguments + ' -nt_sm 1' 
+    	arguments = ' -mc '+inputfn
 	arguments = arguments + ' -p 2' 
 	arguments = arguments + ' -ass_rdt ' + assfn[1]
 	arguments = arguments + ' -cre_rdt ' + crefn[1]
@@ -140,13 +135,16 @@ def sumarize_rdt_results(rundir) :
 		results[k]=(av,ci)
 	return results
 
-description="substructure -- cubo986.msh -- serial -- nsub 6"
+description="substructure -- cubo986.msh -- serial -- "
 
 # Execute the test.
-def run_test(ntimes):
+def run_test(ntimes, nsub):
 	rundir,cmd=setup_cmd()
+	cmd = cmd + " -nsub " + nsub
+	#print cmd
 	args = shlex.split(cmd)
 	sout = subprocess.PIPE # redirect output (before: None)
+	#sout = None
 	serr = None
 	for i in range(ntimes) : 
 		p = subprocess.Popen(args, preexec_fn=setlimits, stdout=sout, stderr=serr, cwd=rundir)
@@ -187,14 +185,17 @@ if __name__ == "__main__":
 		elif f == '-n': ntimes=int(v)
 		elif f == '-h': usage()
 
+	subs = [ "4", "8", "12", "16", "20", "24", "28", "32", "36", "48", "64", "128"]
 	# Run test
 	if run == 1: 
-		status,results = run_test(ntimes)
-		if status == 0: print "Execution [OK]"
-		else          : print "Execution [FAILED] (status = ", status, ")"
-		print "Description :: " + description
-		print "Results summary ----------------------------"
-		for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
-		print "--------------------------------------------"
+		for item in subs:
+			print "Description :: nsub " + item
+			status,results = run_test(ntimes, item)
+			if status == 0: print "Execution [OK]"
+			else          : print "Execution [FAILED] (status = ", status, ")"
+			print "Results summary ----------------------------"
+			for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
+			print "--------------------------------------------"
 	else:
 		print "WARNING: No options provided. (use -h for help)"
+
