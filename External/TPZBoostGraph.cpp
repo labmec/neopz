@@ -61,7 +61,13 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
 
     std::vector<std::pair<std::size_t, std::size_t> > edges;
-    edges.reserve(fNNodes*fNNodes);
+    
+    if (fNNodes*fNNodes > edges.max_size())
+    {
+      edges.reserve(edges.max_size());
+    } else {
+      edges.reserve(fNNodes*fNNodes);
+    }
   
     for(nod=0; nod<fNNodes; nod++) 
     {
