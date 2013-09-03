@@ -198,8 +198,8 @@ public:
 
 };
 
-#ifndef BORLAND
-template class TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID>;
-#endif
+//#ifndef BORLAND
+//template class TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID>;
+//#endif
 
 #endif
