@@ -222,6 +222,7 @@ inline void TPZYCSandlerDimaggioL2::Compute(const TPZTensor<T> & sigma,const T &
         }
         res[0] = I1-T(lmax);
 #ifdef DEBUG
+        if (loggerSML->isDebugEnabled())
         {
             std::stringstream sout;
             
@@ -318,6 +319,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
 	    Ndir[0].XZ() = sigma.XZ() * Temp3;
 	    Ndir[0].XY() = sigma.XY() * Temp3;
 #ifdef LOG4CXX
+        if(loggerSML->isDebugEnabled())
         {
             std::stringstream sout;
             Ndir[0].Print(sout);
@@ -402,13 +404,16 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
     #ifdef LOG4CXX
     {
         LoggerPtr logger(Logger::getLogger("pz.plasticity.SandlerDimaggio.main"));
-        std::stringstream sout;
-        sout << "<< TPZYCSandlerDimaggioL2::N *** \n sigma = \n" << sigma
-			 << "\nI1 = " << I1 
-			 << "\nJ2 = " << J2
-			 << "\nSQRTJ2 = " << SQRTJ2
-			 << "\nNdir = \n" << Ndir;
-        //LOGPZ_DEBUG(logger,sout.str().c_str());
+        if(0 && logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "<< TPZYCSandlerDimaggioL2::N *** \n sigma = \n" << sigma
+                 << "\nI1 = " << I1 
+                 << "\nJ2 = " << J2
+                 << "\nSQRTJ2 = " << SQRTJ2
+                 << "\nNdir = \n" << Ndir;
+            LOGPZ_DEBUG(logger,sout.str().c_str());
+        }
     }
     #endif
 	
@@ -740,7 +745,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
             REAL scale = epsPlast.Norm()/Ndir[surfaceprojected].Norm();
             for (int i=0; i<6; i++) {
                 REAL diff = fabs(scale*Ndir[surfaceprojected][i]-epsPlast[i]);
-                if (diff > 1.e-6) {
+                if (diff > 8.e-5) { //Nathan Trocou!!!!
                     DebugStop();
                 }
             }

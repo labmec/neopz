@@ -632,7 +632,6 @@ protected:
 	/** @brief The tension sign in the convention defined by the external user */
 	int fInterfaceTensionSign;
 	
-	int fMaterialElasticOrPlastic;
     
     
     //ofstream fOutfile(string &str);

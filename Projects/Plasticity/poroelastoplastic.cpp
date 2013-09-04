@@ -1,4 +1,4 @@
- #include "poroelastoplastic.h"
+#include "poroelastoplastic.h"
 //#include "pzskylstrmatrix.h"
 //#include "TPZReadGIDGrid.h"
 #include "pzelctemp.h" // TPZIntelGen<TSHAPE>
@@ -1462,6 +1462,8 @@ DECLARE_FPO_HANDLER_FUNC;
 
 #include "WellBoreAnalysis.h"
 
+int startfrom = 0;
+
 int main ()
 {
     
@@ -1487,12 +1489,15 @@ int main ()
      
      */
 //    TPZWellBoreAnalysis::CheckDeformation();
-    int startfrom = 2;
+//    int startfrom = 3;
     TPZWellBoreAnalysis well;
+    REAL innerradius = 4.25*0.0254;
+    REAL outerradius = 3.;
+    REAL computedquarter = 7.05761678496926; 
+    REAL sqj2_refine = 0.0007;
+    std::cout << std::setprecision(15);
     if (startfrom == 0) 
     {
-        REAL innerradius = 4.25*0.0254;
-        REAL outerradius = 3.;
         well.SetInnerOuterRadius(innerradius, outerradius);
         TPZManVector<STATE,3> confinement(3,0.);
         confinement[0] = -45.9;
@@ -1500,7 +1505,8 @@ int main ()
         confinement[2] = -48.2;
 //        well.SetConfinementStresses(confinement, 28.9);
 //
-        well.SetConfinementStresses(confinement, 19.5);
+        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9 
+        well.SetConfinementStresses(confinement, effectivePressure);
         REAL poisson = 0.203;
         REAL elast = 29269.;
         REAL A = 152.54;
@@ -1545,6 +1551,8 @@ int main ()
         TPZBFileStream save;
         save.OpenWrite("Wellbore1.bin");
         well.Write(save);
+
+    
     }
 
     if (startfrom == 2)
@@ -1555,36 +1563,171 @@ int main ()
     }
     if (startfrom <= 2) {
         
-        REAL a = well.GetCurrentConfig()->fInnerRadius*1.03409;
-        REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
-        well.AddEllipticBreakout(a, b);
-        a *= 1.25;
-        b *= 0.33;
-        well.AddEllipticBreakout(a, b);
-        well.PostProcess(1);
-#ifdef LOG4CXX
-        {
-            std::stringstream sout;
-            well.GetCurrentConfig()->fGMesh.Print(sout);
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
+        
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
-//        well.PostProcess(1);
+        //        well.PostProcess(1);
 //        int nsteps = 3;
 //        int numnewton = 80;
-//        well.ExecuteSimulation();
-//        well.ExecuteInitialSimulation(nsteps,numnewton);
+        //        well.ExecuteSimulation();
+        //        well.ExecuteInitialSimulation(nsteps,numnewton);
         
         //well.PRefineElementAbove(0., 2);
         well.DivideElementsAbove(0.0001);
         well.PRefineElementAbove(0.0001, 3);
-//
-//        well.PostProcess(1);
-        
-        //well.ExecuteInitialSimulation(nsteps,numnewton);
-
         well.ExecuteSimulation();
+        REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
+        REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
+        REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.00000001);
+        REAL plastifiedarea = well.GetCurrentConfig()->ComputeAreaAboveSqJ2(sqj2_refine);
+        std::cout << "Analytical area " << analyticarea << " computed area " << originalarea << std::endl;
+        std::cout << "Analytical - computed area " << analyticarea-originalarea << std::endl;
+        std::cout << "Plastified area " << plastifiedarea << std::endl;
+        std::cout << "Opening angle " << openingangle << std::endl;
+        std::cout << "Saving Wellbore2.bin\n";
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore2.bin");
+        well.Write(save);
+    }
+    if (startfrom == 3) {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore2.bin");
+        well.Read(read);        
+    }
+    if (startfrom <= 3)
+    {
+        // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.010;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.79;
+        //vvalor de a e b para sqJ2 = 0.0005 p 19.5
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.03409;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
+        //vvalor de a e b para sqJ2 = 0.0007 p 19.5
+        REAL a = well.GetCurrentConfig()->fInnerRadius*1.014;
+        REAL b = well.GetCurrentConfig()->fInnerRadius*0.90;
+        well.AddEllipticBreakout(a, b);
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        //well.PostProcess(1);
+        well.ExecuteSimulation();
+        well.DivideElementsAbove(0.0001);
+        well.PRefineElementAbove(0.0001, 3);
+        well.ExecuteSimulation();
+        
+        REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
+        REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
+        REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.0001);
+        REAL plastifiedarea = well.GetCurrentConfig()->ComputeAreaAboveSqJ2(sqj2_refine);
+        std::cout << "Analytical area " << analyticarea << " computed area " << originalarea << std::endl;
+        std::cout << "computed quarter - domain area " << computedquarter-originalarea << std::endl;
+        std::cout << "Plastified area " << plastifiedarea << std::endl;
+        std::cout << "Opening angle " << openingangle << std::endl;
+        
+
+        std::cout << "Saving Wellbore3.bin\n";
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore3.bin");
+        well.Write(save);
+        
+        if(startfrom == 3)
+        {
+            TPZFileStream write;
+            write.OpenWrite("afterread.txt");
+            well.GetCurrentConfig()->Write(write);
+        }
+        else {
+            TPZFileStream write;
+            write.OpenWrite("afterrun.txt");
+            well.GetCurrentConfig()->Write(write);
+        }
+        
+    }
+    if (startfrom == 4)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore3.bin");
+        well.Read(read);        
+    }
+    if (startfrom <= 4)
+    {
+        // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.040;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.46;
+        //vvalor de a e b para sqJ2 = 0.0005 p 19.5
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.10227;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.596591;
+        //vvalor de a e b para sqJ2 = 0.0007 Pef = 19.5
+        REAL a = well.GetCurrentConfig()->fInnerRadius*1.044;
+        REAL b = well.GetCurrentConfig()->fInnerRadius*0.66;
+        well.AddEllipticBreakout(a, b);
+        well.PostProcess(1);
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteSimulation();
+        well.DivideElementsAbove(0.0001);
+        well.PRefineElementAbove(0.0001, 3);
+        well.ExecuteSimulation();
+        
+        REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
+        REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
+        REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.000001);
+        REAL plastifiedarea = well.GetCurrentConfig()->ComputeAreaAboveSqJ2(sqj2_refine);
+        std::cout << "Analytical area " << analyticarea << " computed area " << originalarea << std::endl;
+        std::cout << "computed quarter - domain area " << computedquarter-originalarea << std::endl;
+        std::cout << "Plastified area " << plastifiedarea << std::endl;
+        std::cout << "Opening angle " << openingangle << std::endl;
+        
+
+        std::cout << "Saving Wellbore4.bin\n";
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore4.bin");
+        well.Write(save);
+    }
+    if (startfrom == 5) {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore4.bin");
+        well.Read(read);        
+    }
+    if (startfrom <= 5)
+    {
+        // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.082;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.30;
+        // valor de a e b para sqJ2 = 0.0005 P = 19.5
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.17045;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.465909;
+        // valor de a e b para sqJ2 = 0.0007 P = 19.5
+        REAL a = well.GetCurrentConfig()->fInnerRadius*1.099;
+        REAL b = well.GetCurrentConfig()->fInnerRadius*0.419;
+        well.AddEllipticBreakout(a, b);
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.PostProcess(1);
+        well.ExecuteSimulation();
+        well.DivideElementsAbove(0.0001);
+        well.PRefineElementAbove(0.0001, 3);
+        well.ExecuteSimulation();
+
+        REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
+        REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
+        REAL plastifiedarea = well.GetCurrentConfig()->ComputeAreaAboveSqJ2(sqj2_refine);
+        REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.0001);
+        std::cout << "Analytical area " << analyticarea << " computed area " << originalarea << std::endl;
+        std::cout << "computed quarter - domain area " << computedquarter-originalarea << std::endl;
+        std::cout << "Plastified area " << plastifiedarea << std::endl;
+        std::cout << "Opening angle " << openingangle << std::endl;
+        
+        
+        std::cout << "Saving Wellbore5.bin\n";
+        TPZBFileStream save;
+        save.OpenWrite("Wellbore5.bin");
+        well.Write(save);
+    }
+    if (startfrom == 6)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Wellbore5.bin");
+        well.Read(read);        
+        
+    }
+    if (startfrom <= 6)
+    {
 //        well.VerifyGlobalEquilibrium();
         if(0)
         {
@@ -1621,87 +1764,25 @@ int main ()
             well.PostProcessedValues(xco , postprocess, valuetable);
             valuetable.Print("Post processed I1=J2",std::cout);
         }
-        TPZBFileStream save;
-        save.OpenWrite("Wellbore2.bin");
-        well.Write(save);
         
-    }
-    if (startfrom == 3)
-    {
-        TPZBFileStream read;
-        read.OpenRead("Wellbore2.bin");
-        well.Read(read);
-    }
-    if (startfrom <= 3) {
          //well.ChangeMaterialId(-2, -6);
         well.DeleteElementsAbove(0.0005);
         well.ChangeMaterialId(-6, -2);
         well.ExecuteSimulation();
+        std::cout << "Saving Wellbore7.bin\n";
         TPZBFileStream save;
-        save.OpenWrite("Wellbore3.bin");
+        save.OpenWrite("Wellbore7.bin");
         well.Write(save);
 
     }
-    if (startfrom == 4)
+    if (startfrom == 7)
     {
         TPZBFileStream read;
-        read.OpenRead("Wellbore3.bin");
+        read.OpenRead("Wellbore7.bin");
         well.Read(read);
-    }
-    if (startfrom <= 4) 
-    {
-//        well.ChangeMaterialId(-6, -2);
-//        int nsteps = 3;
-//        int numnewton = 80;
-//
-//        well.ExecuteInitialSimulation(nsteps,numnewton);
-        well.VerifyTangentValidity();
-        
-        well.RelaxWellSpring(0.01);
-        well.RelaxWellSpring(0.);
-        well.ExecuteSimulation();
-//        well.RelaxWellSpring(0.1);
-        well.ExecuteSimulation();
-        TPZBFileStream save;
-        save.OpenWrite("Wellbore4.bin");
-        well.Write(save);
-    }
-    if (startfrom == 5)
-    {
-        TPZBFileStream read;
-        read.OpenRead("Wellbore4.bin");
-        well.Read(read);
-    }
-    if (startfrom == 6) {
-        TPZBFileStream read;
-        read.OpenRead("Wellbore5.bin");
-        well.Read(read);
-
-    }
-    
-    for (int i=0; i<10; i++) {
-        std::cout << "repeat number " << i << std::endl;
-        well.RelaxWellSpring(0.1);
-        well.ExecuteSimulation();
-        if (i==6) {
-            TPZBFileStream save;
-            save.OpenWrite("Wellbore5.bin");
-            well.Write(save);
-        }
     }
     return 0;
     
-    wellboreanalyis();
-    //wellelastic();
-    //calcSDBar();
-    
- //   TPZAdmChunkVector<REAL> adm;
- //   adm.NFreeElements();
-    
- //   TPZChunkVector<REAL> vec(3);
-
-
-    return 0;
     
 	int testNumber, matNumber;
 	TPZPlasticBase *pMat;

@@ -311,12 +311,13 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 
-TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fConfinement(), fSD(), fFluidPressure(0.),
+TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(), fSD(), fFluidPressure(0.),
                     fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2()
 {
 }
 
-TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.fInnerRadius), fOuterRadius(conf.fOuterRadius), 
+TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.fInnerRadius), fOuterRadius(conf.fOuterRadius),fNx(conf.fNx),fDelx(conf.fDelx),
+    fGreater(conf.fGreater),fSmaller(conf.fSmaller),
         fConfinement(conf.fConfinement), fSD(conf.fSD), fFluidPressure(conf.fFluidPressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2)
 {
@@ -867,6 +868,178 @@ void TPZWellBoreAnalysis::TransferSolutionTo(TConfig &config)
     pMatWithMem2->SetUpdateMem(false);
 }
 
+/// Compute the area of the domain at which sqJ2 is above a given value
+REAL TPZWellBoreAnalysis::TConfig::ComputeAreaAboveSqJ2(REAL sqj2)
+{
+    REAL area = 0.;
+    int nelem = fCMesh.NElements();
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCMesh.MaterialVec()[1]);
+    if (!pMatWithMem2) {
+    }
+    else 
+    {
+        for (int el = 0; el<nelem; el++) {
+            TPZCompEl *cel = fCMesh.ElementVec()[el];
+            if (!cel) {
+                continue;
+            }
+            bool shouldanalyse = false;
+            TPZManVector<int> memindices;
+            cel->GetMemoryIndices(memindices);
+            int numind = memindices.size();
+            REAL sqj2el = 0.;
+            for (int ind=0; ind<numind; ind++) 
+            {
+                int memoryindex = memindices[ind];
+                if (memoryindex < 0) {
+                    continue;
+                }
+                TPZElastoPlasticMem &mem = pMatWithMem2->MemItem(memindices[ind]);
+                TPZTensor<REAL> &plastic = mem.fPlasticState.fEpsP;
+                REAL J2 = plastic.J2();
+                REAL sqj2pt = sqrt(J2);
+                if (sqj2pt > sqj2) {
+                    shouldanalyse = true;
+                }
+            }
+            if (shouldanalyse) {
+                TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+                TPZGeoEl *gel = cel->Reference();
+                if (! intel || !gel) {
+                    DebugStop();
+                }
+                TPZIntPoints &rule = intel->GetIntegrationRule();
+                int np = rule.NPoints();
+                for (int ip = 0; ip<np; ip++) {
+                    TPZManVector<REAL,3> point(2,0.);
+                    REAL weight;
+                    rule.Point(ip, point, weight);
+                    TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
+                    TPZFNMatrix<9,REAL> axes(2,3);
+                    REAL detjac;
+                    gel->Jacobian(point, jac, axes, detjac, jacinv);
+                    TPZElastoPlasticMem &mem = pMatWithMem2->MemItem(memindices[ip]);
+                    TPZTensor<REAL> &plastic = mem.fPlasticState.fEpsP;
+                    REAL J2 = plastic.J2();
+                    REAL sqj2pt = sqrt(J2);
+                    if (sqj2pt > sqj2) {
+                        area += weight*fabs(detjac);
+                    }
+                }
+            }
+        }
+    }
+    return area;
+}
+
+/// Compute the area of the domain at which sqJ2 is above a given value
+REAL TPZWellBoreAnalysis::TConfig::OpeningAngle(REAL sqj2)
+{
+    REAL angle = 0.;
+    int nelem = fCMesh.NElements();
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCMesh.MaterialVec()[1]);
+    if (!pMatWithMem2) {
+    }
+    else 
+    {
+        for (int el = 0; el<nelem; el++) {
+            TPZCompEl *cel = fCMesh.ElementVec()[el];
+            if (!cel) {
+                continue;
+            }
+            bool shouldanalyse = false;
+            TPZManVector<int> memindices;
+            cel->GetMemoryIndices(memindices);
+            int numind = memindices.size();
+            REAL sqj2el = 0.;
+            for (int ind=0; ind<numind; ind++) 
+            {
+                int memoryindex = memindices[ind];
+                if (memoryindex < 0) {
+                    continue;
+                }
+                TPZElastoPlasticMem &mem = pMatWithMem2->MemItem(memindices[ind]);
+                TPZTensor<REAL> &plastic = mem.fPlasticState.fEpsP;
+                REAL J2 = plastic.J2();
+                REAL sqj2pt = sqrt(J2);
+                if (sqj2pt > sqj2) {
+                    shouldanalyse = true;
+                }
+            }
+            if (shouldanalyse) {
+                TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+                TPZGeoEl *gel = cel->Reference();
+                if (! intel || !gel) {
+                    DebugStop();
+                }
+                TPZIntPoints &rule = intel->GetIntegrationRule();
+                int np = rule.NPoints();
+                for (int ip = 0; ip<np; ip++) {
+                    TPZManVector<REAL,3> point(2,0.);
+                    REAL weight;
+                    rule.Point(ip, point, weight);
+                    TPZManVector<REAL,3> x(3,0.);
+                    gel->X(point, x);
+                    TPZElastoPlasticMem &mem = pMatWithMem2->MemItem(memindices[ip]);
+                    TPZTensor<REAL> &plastic = mem.fPlasticState.fEpsP;
+                    REAL J2 = plastic.J2();
+                    REAL sqj2pt = sqrt(J2);
+                    if (sqj2pt > sqj2) {
+                        REAL locangle = atan2(x[1],x[0]);
+                        if (locangle > angle) {
+                            angle = locangle;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return angle;
+}
+
+
+
+/// Compute the area of the domain
+REAL TPZWellBoreAnalysis::TConfig::ComputeTotalArea()
+{
+    REAL area = 0.;
+    int nelem = fCMesh.NElements();
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCMesh.MaterialVec()[1]);
+    if (!pMatWithMem2) {
+    }
+    else 
+    {
+        for (int el = 0; el<nelem; el++) {
+            TPZCompEl *cel = fCMesh.ElementVec()[el];
+            if (!cel) {
+                continue;
+            }
+            TPZGeoEl *gel = cel->Reference();
+            if (gel->MaterialId() != 1) {
+                continue;
+            }
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            if (!intel) {
+                DebugStop();
+            }
+            TPZIntPoints &rule = intel->GetIntegrationRule();
+            int np = rule.NPoints();
+            for (int ip = 0; ip<np; ip++) {
+                TPZManVector<REAL,3> point(2,0.);
+                REAL weight;
+                rule.Point(ip, point, weight);
+                TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
+                TPZFNMatrix<9,REAL> axes(2,3);
+                REAL detjac;
+                gel->Jacobian(point, jac, axes, detjac, jacinv);
+                area += weight*fabs(detjac);
+            }
+        }
+    }
+    return area;    
+}
+
+
 // Get the vector of element plastic deformations
 void TPZWellBoreAnalysis::TConfig::ComputeElementDeformation()
 {
@@ -1403,6 +1576,11 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<int> &elindices)
     for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
         listit->fCMesh.LoadSolution(listit->fAllSol);
     }
+    
+    std::stringstream filename;
+    extern int startfrom;
+    filename << "applyhistory_" << startfrom << ".txt";
+    std::ofstream out(filename.str().c_str());
 
     std::set<int>::iterator it;
     for (it=elindices.begin(); it != elindices.end(); it++) {
@@ -1423,6 +1601,10 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<int> &elindices)
         std::list<TConfig>::iterator listit;
         for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
             listit->ApplyDeformation(cel);
+        }
+        for (int ip = 0; ip<npoints; ip++) {
+            int ind = pointindices[ip];
+            pMatWithMem2->MemItem(ind).Print(out);
         }
     }
 }
@@ -1484,7 +1666,9 @@ void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
     int nel = fCurrentConfig.fCMesh.NElements();
     for (int el=0; el<nel; el++) {
         TPZCompEl *cel = fCurrentConfig.fCMesh.ElementVec()[el];
-        if(cel && cel->Reference() && cel->Reference()->MaterialId() == 1)
+        TPZGeoEl *gel = 0;
+        if(cel) gel = cel->Reference();
+        if(cel && gel && gel->MaterialId() == 1)
         {
             elindices.insert(el);
         }
@@ -1734,6 +1918,47 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
             }
         }
     }
+    // for the refined elements, put the nodes in the middle
+    /*
+    int nel = fGMesh.NElements();
+    for (int el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh.ElementVec()[el];
+        if(!gel) continue;
+        if(! gel->HasSubElement()) continue;
+        for (int is = gel->NCornerNodes(); is < gel->NSides(); is++) {
+            TPZManVector<int,5> midsidenodeindices;
+            gel->MidSideNodeIndices(is, midsidenodeindices);
+            if (midsidenodeindices.size() != 1) {
+                DebugStop();
+            }
+            int nsnode = gel->NSideNodes(is);
+            TPZManVector<REAL,3> xmid(3,0.);
+            for (int isn=0; isn<nsnode; isn++) {
+                TPZGeoNode *ptr = gel->SideNodePtr(is, isn);
+                TPZManVector<REAL,3> xo(3);
+                ptr->GetCoordinates(xo);
+                for (int co=0; co<3; co++) xmid[co] += xo[co];
+            }
+            for(int co=0; co<3; co++) xmid[co] /= nsnode;
+            TPZGeoNode *ptr = gel->NodePtr(midsidenodeindices[0]);
+            ptr->SetCoord(xmid);
+        }
+    }
+    for (int el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh.ElementVec()[el];
+        if (!gel || gel->MaterialId() != -2) continue;
+        int nnodes = gel->NNodes();
+        for (int in=0; in<nnodes; in++) {
+            TPZGeoNode *ptr = gel->NodePtr(in);
+            TPZManVector<REAL, 3> co(3);
+            ptr->GetCoordinates(co);
+            bool project = ProjectNode(co);
+            if (project) {
+                ptr->SetCoord(co);
+            }
+        }
+    }
+     */
 }
 
 void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()

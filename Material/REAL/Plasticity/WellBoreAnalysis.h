@@ -51,6 +51,15 @@ public:
         /// Compute the maximum plastic element deformation associated with each element
         void ComputeElementDeformation();
         
+        /// Compute the area of the domain at which sqJ2 is above a given value
+        REAL ComputeAreaAboveSqJ2(REAL sqj2);
+        
+        /// Compute the area of the domain at which sqJ2 is above a given value
+        REAL OpeningAngle(REAL sqj2);
+        
+        /// Compute the area of the domain
+        REAL ComputeTotalArea();
+        
         /// Delete the elements with sqj2 above the given value;
         void DeleteElementsAbove(REAL sqj2);
         

@@ -2561,7 +2561,6 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::Write(TPZStream &buf) const
     }
     buf.Write(&fMaterialTensionSign);
     buf.Write(&fInterfaceTensionSign);
-    buf.Write(&fMaterialElasticOrPlastic);
     
     
 }
@@ -2583,7 +2582,6 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::Read(TPZStream &buf)
     }
     buf.Read(&fMaterialTensionSign);
     buf.Read(&fInterfaceTensionSign);
-    buf.Read(&fMaterialElasticOrPlastic);
 }
 
 
