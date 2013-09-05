@@ -48,7 +48,7 @@ tpzdohrassfn=("dohrass", "tpzdohrass.rdt")
 tpzdohrdecfn=("dohrdec", "tpzdohrdec.rdt")
 
 # List of rdt files produced by the test
-rdtfiles_l=[assfn, crefn, prefn, solfn, totfn, tpzdohrassfn, tpzdohrdecfn]
+rdtfiles_l=[crefn, prefn, totfn, tpzdohrassfn, tpzdohrdecfn]
 
 def error(message, status):
 	sys.stderr.write('ERROR (test.py): '+message+'\n')
@@ -60,7 +60,7 @@ def setup_cmd():
 	if not os.path.isdir(builddir) :
 		error(builddir+' is an invalid build directory.', 1)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst2')
+	rundir = os.path.join(builddir,'scripts','substruct_tst08')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -70,11 +70,18 @@ def setup_cmd():
 	if not os.path.isfile(executable) :
 		error(executable+' is an invalid executable file name.', 1)
 	# Check input file
-	inputfn = os.path.join(datadir,"substruct","inputs","Cubo986.msh")
+	inputfn = os.path.join(datadir,"substruct","inputs","8andares02.txt")
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -mc '+inputfn
+        arguments = ' -mp '+inputfn
+	arguments = arguments + ' -st3'
+	#NUMA aware Dohrman Assembly List thread work objects re-allocation.
+	arguments = arguments + ' -naDALora'
+	#NUMA aware Dohrman Assembly List thread work objects re-allocation threshold.
+	#arguments = arguments + ' -naDALorat 1835008' # 2/2MB(l2) + 6/8MB(l3)
+	#NUMA aware (node round-robin) Dohrman Assembly List thread work scheduling.
+	arguments = arguments + ' -naDALtws' 
 	arguments = arguments + ' -nsub 64'
 	arguments = arguments + ' -nt_a 64' 
 	arguments = arguments + ' -nt_d 64' 
@@ -92,7 +99,8 @@ def setup_cmd():
 	return rundir, executable+arguments
 
 # Limits for this test
-limits = { "cpu"   : (resource.RLIMIT_CPU,   1000, "Max CPU user time in seconds (not wall clock time)"), 
+# 38400 = 64 (cores) * (60) * (10) = 10 minutes in 64 cores.
+limits = { "cpu"   : (resource.RLIMIT_CPU,  38400, "Max CPU user time in seconds (not wall clock time)"), 
 #	   "nofile": (resource.RLIMIT_NOFILE,   7, "The maximum number of open file descriptors for the current process."),
 #	   "rss"   : (resource.RLIMIT_RSS,   1024, "The maximum resident set size that should be made available to the process"),
 #	   "fsize" : (resource.RLIMIT_FSIZE,    1, "Max size of a file which the process may create"),
@@ -140,7 +148,7 @@ def sumarize_rdt_results(rundir) :
 		results[k]=(av,ci)
 	return results
 
-description="substructure -- cubo986.msh -- 64 threads"
+description="substructure -- 8andares02.txt -- p2 - nsub 64 - 64 threads - realloc"
 
 # Execute the test.
 def run_test(ntimes):

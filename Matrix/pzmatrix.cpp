@@ -401,6 +401,13 @@ void TPZMatrix<std::complex<long double> >::Print(const char *name, std::ostream
 }
 
 template<class TVar>
+int TPZMatrix<TVar>::MemoryFootprint() const
+{
+  std::cout << __PRETTY_FUNCTION__ << ": Please, implement me!\n";
+  DebugStop();
+}
+
+template<class TVar>
 void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &destinationindex) {
 	
 	long nelem = elmat.Rows();

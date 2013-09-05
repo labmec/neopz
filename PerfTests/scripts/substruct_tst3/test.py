@@ -130,7 +130,7 @@ def sumarize_rdt_results(rundir) :
 				except stats.StatsError, e:
 					print "WARNING: Could not compute confidence interval for results at", fn, "(", e, ")"
 					ci=0.0
-			except stats.RdtError, e:
+			except rdt.RdtError, e:
 				print "WARNING: error when summarizing results for", fn, "(", e, ")"
 				av=0.0
 				ci=0.0

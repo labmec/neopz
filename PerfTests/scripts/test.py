@@ -25,6 +25,14 @@ import substruct_tst1.test
 import substruct_tst2.test
 import substruct_tst3.test
 import substruct_tst4.test
+import substruct_tst5.test
+import substruct_tst06.test
+import substruct_tst07.test
+import substruct_tst08.test
+import substruct_tst09.test
+import substruct_tst10.test
+import substruct_tst11.test
+import substruct_tst12.test
 
 ntimes_dft = 3
 
@@ -33,7 +41,14 @@ short_tests = [("substruct_tst1",substruct_tst1.test),
 	       ("substruct_tst2",substruct_tst2.test)]
 
 medium_tests= [("substruct_tst3",substruct_tst3.test),
-	       ("substruct_tst4",substruct_tst4.test)]
+	       ("substruct_tst4",substruct_tst4.test),
+	       ("substruct_tst06",substruct_tst06.test),
+	       ("substruct_tst07",substruct_tst07.test),
+	       ("substruct_tst08",substruct_tst08.test),
+	       ("substruct_tst09",substruct_tst09.test),
+	       ("substruct_tst10",substruct_tst10.test),
+	       ("substruct_tst11",substruct_tst11.test),
+	       ("substruct_tst12",substruct_tst12.test)]
 
 long_tests = []
 

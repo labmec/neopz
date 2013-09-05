@@ -349,7 +349,13 @@ public:
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
 	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
-	
+
+	/**
+	 * @brief Returns the approximate size of the memory footprint (amount
+	 * of memory required to store this object).
+	 */
+        virtual int MemoryFootprint() const;
+
 	/**
 	 * @name Inquire
 	 * @brief Returns information of the current object

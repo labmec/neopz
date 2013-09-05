@@ -1439,6 +1439,7 @@ NUMA_mng_t NUMA;
 #endif
 
 clarg::argBool naa("-naDALora", "NUMA aware Dohrman Assembly List thread work objects re-allocation.", false);
+clarg::argInt  naat("-naDALorat", "NUMA aware Dohrman Assembly List thread work objects re-allocation threshold.", 0);
 
 #ifdef USING_LIBNUMA
 clarg::argBool nats("-naDALtws", "NUMA aware (node round-robin) Dohrman Assembly List thread work scheduling.", false);
@@ -1448,8 +1449,10 @@ void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, in
 {
     TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matredbig = substruct->fMatRedComplete;
     TPZAutoPointer<TPZMatrix<STATE> > Stiffness = matredbig->K00();
-    
-    Stiffness.ReallocForNuma(numa_node);
+
+    if (Stiffness->MemoryFootprint() > naat.get_value()) {
+      Stiffness.ReallocForNuma(numa_node);
+    }
     
 #ifdef USE_LDLT_DECOMPOSITION
     Stiffness->Decompose_LDLt();
@@ -1465,7 +1468,9 @@ void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruc
     TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matred = substruct->fMatRed;
     TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matred->K00();
     
-    InternalStiffness.ReallocForNuma(numa_node);
+    if (InternalStiffness->MemoryFootprint() > naat.get_value()) {
+      InternalStiffness.ReallocForNuma(numa_node);
+    }
     
 #ifdef USE_LDLT_DECOMPOSITION
     InternalStiffness->Decompose_LDLt();

@@ -226,6 +226,12 @@ public:
   virtual void Write( TPZStream &buf, int withclassid ) const;
 
   virtual std::string ClassName() const { return( "TPZSkylMatrix"); }
+
+  int MemoryFootprint() const
+  {
+    return (sizeof(TVar*)*fElem.Size() + 
+	    sizeof(TVar)*fStorage.Size());
+  }
 	
 protected:
 

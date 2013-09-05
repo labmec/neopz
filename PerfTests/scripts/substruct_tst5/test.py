@@ -118,14 +118,14 @@ def sumarize_rdt_results(rundir) :
 				try:
 					av=stats.average(elapsed_list)
 				except stats.StatsError, e:
-					#print "WARNING: Could not compute average for results at", fn, "(", e, ")"
+					print "WARNING: Could not compute average for results at", fn, "(", e, ")"
 					av=0.0
 				try:
 					ci=stats.conf_int(elapsed_list, 95.0)
 				except stats.StatsError, e:
-					#print "WARNING: Could not compute confidence interval for results at", fn, "(", e, ")"
+					print "WARNING: Could not compute confidence interval for results at", fn, "(", e, ")"
 					ci=0.0
-			except stats.RdtError, e:
+			except rdt.RdtError, e:
 				print "WARNING: error when summarizing results for", fn, "(", e, ")"
 				av=0.0
 				ci=0.0
@@ -138,6 +138,7 @@ def sumarize_rdt_results(rundir) :
 		os.remove(arq[1])
 	return results
 
+# [Edson]: TODO: improve the description (why is it different from substruct_tst1? 
 description="substructure -- cubo986.msh -- serial -- "
 
 # Execute the test.
