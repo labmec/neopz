@@ -101,7 +101,7 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	TPZFMatrix<REAL> &axes=datavec[0].axes;
     
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
-	TPZFMatrix<REAL> &dsol_u=datavec[0].dsol[0];
+	TPZFMatrix<REAL> &dsol_u = datavec[0].dsol[0];
     
 	int phcu = phi_u.Cols();
 	int efcu = ef.Cols();
@@ -129,16 +129,22 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
 	for(int in = 0; in < phcu; in++)
     {
-		dphix_i(0,0) = dphi_u(0,in)*axes(0,0)+dphi_u(1,in)*axes(1,0);
-		dphix_i(1,0) = dphi_u(0,in)*axes(0,1)+dphi_u(1,in)*axes(1,1);
-		dphiy_i(0,0) = dphi_u(2,in)*axes(0,0)+dphi_u(3,in)*axes(1,0);
-		dphiy_i(1,0) = dphi_u(2,in)*axes(0,1)+dphi_u(3,in)*axes(1,1);
+		dphix_i(0,0) = dphi_u(0,in)*axes(0,0)+dphi_u(1,in)*axes(1,0);//dphix/dx
+		dphix_i(1,0) = dphi_u(0,in)*axes(0,1)+dphi_u(1,in)*axes(1,1);//dphix/dy
+		dphiy_i(0,0) = dphi_u(2,in)*axes(0,0)+dphi_u(3,in)*axes(1,0);//dphiy/dx
+		dphiy_i(1,0) = dphi_u(2,in)*axes(0,1)+dphi_u(3,in)*axes(1,1);//dphiy/dy
 		
         //Residuo
         for (int col = 0; col < efcu; col++)
         {
             //termo f*u
-            ef(in,col) += weight*(ff[0]*phi_u(0, in) + ff[1]*phi_u(1, in));
+            ef(in,col) += weight * (ff[0]*phi_u(0, in) + ff[1]*phi_u(1, in));
+            
+            //termo prestress*gradu
+            ef(in,col) += (-1.) * weight * ( dphix_i(0,0) * globFractInputData.PreStressXX() +
+                                     dphix_i(1,0) * globFractInputData.PreStressXY() +
+                                     dphiy_i(0,0) * globFractInputData.PreStressXY() +
+                                     dphiy_i(1,0) * globFractInputData.PreStressYY() );
             
             //termos da matriz
             dsolx_j(0,0) = dsol_u(0,0)*axes(0,0)+dsol_u(1,0)*axes(1,0);
@@ -195,7 +201,6 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
                                      fEover1MinNu2*dphiy_i(1,0)*dphiy_j(1,0) + fEover21PlusNu*dphiy_i(0,0)*dphiy_j(0,0));
             }
 		}//fim para a tangente
-
 	}
     
 //#ifdef LOG4CXX
@@ -668,12 +673,12 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         
         
         if (this->fPlaneStress){
-            SigX = Gmodule*(epsx+poisson*epsy);
-            SigY = Gmodule*(poisson*epsx+epsy);
+            SigX = Gmodule*(epsx+poisson*epsy) + globFractInputData.PreStressXX();
+            SigY = Gmodule*(poisson*epsx+epsy) + globFractInputData.PreStressYY();
         }
         else{
-            SigX = young/((1.-2.*poisson)*(1.+poisson))*((1.-poisson)*epsx+poisson*epsy);
-            SigY = young/((1.-2.*poisson)*(1.+poisson))*(poisson*epsx+(1.-poisson)*epsy);
+            SigX = young/((1.-2.*poisson)*(1.+poisson))*((1.-poisson)*epsx+poisson*epsy) + globFractInputData.PreStressXX();
+            SigY = young/((1.-2.*poisson)*(1.+poisson))*(poisson*epsx+(1.-poisson)*epsy) + globFractInputData.PreStressYY();
         }
         
         if(var == 5) {
@@ -696,7 +701,6 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     {
         Solout[0] = 2.*SolU[1];
     }
-
 }
 
 void TPZNLFluidStructure2d::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
@@ -743,14 +747,15 @@ REAL TPZNLFluidStructure2d::FictitiousTime(REAL VlAcum, REAL pfrac)
 {
     REAL Cl = globFractInputData.Cl();
     REAL sigmaConf = globFractInputData.SigmaConf();
-    REAL Pe = globFractInputData.Pe();
+    REAL Pest = globFractInputData.Pe();
     REAL Pref = globFractInputData.Pref();
     REAL vsp = globFractInputData.vsp();
     
     REAL tStar = 0.;
     if(VlAcum > vsp)
     {
-        REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
+        REAL Pef = pfrac + sigmaConf;
+        REAL Clcorr = Cl * sqrt((Pef - Pest)/Pref);
         tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
     }
     

@@ -929,7 +929,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     
     if(initialElasticKickIsNeeded)
     {
-        TPZFMatrix<REAL> chutenewton(fmeshvec[0]->Solution().Rows(),fmeshvec[0]->Solution().Cols(),1.);
+        TPZFMatrix<REAL> chutenewton(fmeshvec[0]->Solution().Rows(), fmeshvec[0]->Solution().Cols(), 1.);
         fmeshvec[0]->LoadSolution(chutenewton);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
     }
@@ -1012,121 +1012,88 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL radius)
     TPZVec<REAL> computedJ(2,0.);
     REAL KI = -1.;
     
-        REAL XcrackTip = -1.;
-        TPZGeoMesh * gm = elastMesh->Reference();
-        for(int ell = 0; ell < gm->NElements(); ell++)
+    REAL XcrackTip = -1.;
+    TPZGeoMesh * gm = elastMesh->Reference();
+    for(int ell = 0; ell < gm->NElements(); ell++)
+    {
+        if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == globBCfluxOut)
         {
-            if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == globBCfluxOut)
-            {
-                int nodeIndex = gm->ElementVec()[ell]->NodeIndex(0);
-                XcrackTip = gm->NodeVec()[nodeIndex].Coord(0);
-                break;
-            }
+            int nodeIndex = gm->ElementVec()[ell]->NodeIndex(0);
+            XcrackTip = gm->NodeVec()[nodeIndex].Coord(0);
+            break;
         }
-        if(XcrackTip < 1.E-3)
-        {
-            DebugStop();
-        }
-        TPZVec<REAL> Origin(3,0.);
-        Origin[0] = XcrackTip;
-        TPZVec<REAL> normalDirection(3,0.);
-        normalDirection[2] = 1.;
-        
-        //////////// Computing pressure at middle point of crack length /////
-        TPZVec<REAL> xx(3,0.), qsii(2,0.);
-        xx[0] = XcrackTip/2.;
-        int initialEl = 0;
-        TPZGeoEl * geoEl = elastMesh->Reference()->FindElement(xx, qsii, initialEl, 2);
-        if(!geoEl)
-        {
-            DebugStop();
-        }
-        TPZCompEl * compEl = geoEl->Reference();
-        if(!compEl)
-        {
-            DebugStop();
-        }
-        TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
-        TPZMaterialData data;
-        intpEl->InitMaterialData(data);
-        intpEl->ComputeShape(qsii, data);
-        intpEl->ComputeSolution(qsii, data);
-        TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
-        TPZVec<REAL> Solout(3,0.);
-        int var = 10;//Stress Tensor
-        elast2D->Solution(data, var, Solout);
-        REAL pressure = -Solout[1];
-        /////////////////////////////////////////////////////////////////////
-        
-        Path2D * Jpath = new Path2D(elastMesh, Origin, normalDirection, radius, pressure);
-        JIntegral2D integralJ;
-        integralJ.PushBackPath2D(Jpath);
-        
-        computedJ = integralJ.IntegratePath2D(0);
-        REAL young = globFractInputData.E();
-        REAL poisson = globFractInputData.Poisson();
-        KI = sqrt( (computedJ[0]*young)/(1. - poisson*poisson) );
+    }
+    if(XcrackTip < 1.E-3)
+    {
+        DebugStop();
+    }
+    TPZVec<REAL> Origin(3,0.);
+    Origin[0] = XcrackTip;
+    TPZVec<REAL> normalDirection(3,0.);
+    normalDirection[2] = 1.;
+    
+    //////////// Computing pressure at middle point of crack length /////
+    TPZVec<REAL> xx(3,0.), qsii(2,0.);
+    xx[0] = XcrackTip/2.;
+    int initialEl = 0;
+    TPZGeoEl * geoEl = elastMesh->Reference()->FindElement(xx, qsii, initialEl, 2);
+    if(!geoEl)
+    {
+        DebugStop();
+    }
+    TPZCompEl * compEl = geoEl->Reference();
+    if(!compEl)
+    {
+        DebugStop();
+    }
+    TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+    TPZMaterialData data;
+    intpEl->InitMaterialData(data);
+    intpEl->ComputeShape(qsii, data);
+    intpEl->ComputeSolution(qsii, data);
+    TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
+    TPZVec<REAL> Solout(3,0.);
+    int var = 10;//Stress Tensor
+    elast2D->Solution(data, var, Solout);
+    REAL pressure = -Solout[1];
+    /////////////////////////////////////////////////////////////////////
+    
+    Path2D * Jpath = new Path2D(elastMesh, Origin, normalDirection, radius, pressure);
+    JIntegral2D integralJ;
+    integralJ.PushBackPath2D(Jpath);
+    
+    computedJ = integralJ.IntegratePath2D(0);
+    REAL young = globFractInputData.E();
+    REAL poisson = globFractInputData.Poisson();
+    KI = sqrt( (computedJ[0]*young)/(1. - poisson*poisson) );
     
     return KI;
 }
 
 void ToolsTransient::PostprocessPressure()
 {
-    fmeshvec[0]->LoadReferences();
-    
     std::map<REAL,REAL> pos_pressure;
-    
-    //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
-    
-    for(int i = 0;  i < fmeshvec[0]->ElementVec().NElements(); i++)
+
+    for(int i = 0;  i < fmeshvec[1]->ElementVec().NElements(); i++)
     {
-        TPZCompEl * cel = fmeshvec[0]->ElementVec()[i];
-        if(locSetPressureMatIds.find(cel->Reference()->MaterialId()) == locSetPressureMatIds.end())
+        TPZCompEl * cel = fmeshvec[1]->ElementVec()[i];
+        TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*>(cel);
+        if(!sp)
         {
             continue;
         }
-        
-#ifdef DEBUG
-        if(!cel || cel->Reference()->Dimension() != 1)
-        {
-            DebugStop();
-        }
-#endif
-        
-        TPZVec<REAL> qsi1D(1,0.), qsi2D(2,0.), Xqsi(3,0.);
-        qsi1D[0] = -1.;
-        cel->Reference()->X(qsi1D,Xqsi);
-        
-#ifdef DEBUG
-        if(!cel->Reference()->Neighbour(2).Element())
-        {
-            DebugStop();
-        }
-#endif
-        
-        int elIndexIni = cel->Reference()->Neighbour(2).Element()->Index();
-        TPZGeoEl * gel2D = cel->Reference()->Mesh()->FindElement(Xqsi, qsi2D, elIndexIni, 2);
-        if(gel2D && gel2D->Reference())
-        {
-            cel = gel2D->Reference();
-        }
-        else
-        {
-            DebugStop();
-        }
-        
-        TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(cel);
         TPZMaterialData data;
-        intpEl->InitMaterialData(data);
-        intpEl->ComputeShape(qsi2D, data);
-        intpEl->ComputeSolution(qsi2D, data);
-        TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(cel->Material());
-        TPZVec<REAL> Solout(3,0.);
-        int var = 10;//Stress Tensor
-        elast2D->Solution(data, var, Solout);
+        sp->InitMaterialData(data);
+
+        TPZVec<REAL> qsi(1,0.), Xqsi(3,0.);
+        qsi[0] = -1.;
+        cel->Reference()->X(qsi,Xqsi);
         
+        sp->ComputeShape(qsi, data);
+        sp->ComputeSolution(qsi, data);
+
         REAL pos = Xqsi[0];
-        REAL press = -Solout[1];//Sigma_yy
+        REAL press = data.sol[0][0];
         pos_pressure[pos] = press;
     }
     

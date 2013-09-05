@@ -21,16 +21,6 @@
 
 int main(int argc, char *argv[])
 {
-//    gRefDBase.InitializeRefPatterns();
-//    TPZAutoPointer<TPZRefPattern> refp = gRefDBase.FindRefPattern("Hex000000001101000011010000000");
-//    if(refp)
-//    {
-//        std::ofstream outR("jubilula.vtk");
-//        refp->PrintVTK(outR);
-//    }
-//    std::ofstream outR("RefPatterns.rpt");
-//    gRefDBase.WriteRefPatternDBase(outR);
-    
     //Propagation criterion
     REAL Lx = 1000.;
     REAL Ly = 600.;
@@ -40,6 +30,10 @@ int main(int argc, char *argv[])
     REAL Poiss = 0.25;
     REAL Fx = 0.;
     REAL Fy = 0.;
+    REAL preStressXX = 0.;
+    REAL preStressXY = 0.;
+    REAL preStressYY = -50.; //(negativo : estado de compressao)
+    
     int NStripes = 1;
     REAL Visc = 0.001E-6;
     
@@ -65,7 +59,8 @@ int main(int argc, char *argv[])
     
     int p = 2;
     
-    globFractInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, NStripes, Visc, SigN, QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius);
+    globFractInputData.SetData(Lx, Ly, Lf, Hf, Young, Poiss, Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
+                               QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius);
     ToolsTransient ToolTrans(p);
     
     std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";

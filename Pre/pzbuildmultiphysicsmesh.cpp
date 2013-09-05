@@ -41,13 +41,13 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 		int iel;
 		for(iel=0; iel<nMFEl; iel++)
 		{
-            TPZCompEl *cel = MFMesh->ElementVec()[iel];
-			TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
-            TPZMultiphysicsInterfaceElement *mfint = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+            TPZCompEl * cel = MFMesh->ElementVec()[iel];
+			TPZMultiphysicsElement * mfcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
+            TPZMultiphysicsInterfaceElement * mfint = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
 			if(mfcel)
 			{
                 int found = 0;
-                TPZGeoEl *gel = mfcel->Reference();
+                TPZGeoEl * gel = mfcel->Reference();
                 TPZStack<TPZCompElSide> celstack;
                 TPZGeoElSide gelside(gel,gel->NSides()-1);
                 // if the geometric element has a reference, it is an obvious candidate

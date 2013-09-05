@@ -23,6 +23,7 @@ public:
     ~InputDataStruct();
     
     void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy,
+                 REAL preStressXX, REAL preStressXY, REAL preStressYY,
                  int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
                  REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius);
     
@@ -36,6 +37,9 @@ public:
     REAL Poisson();
     REAL Fx();
     REAL Fy();
+    REAL PreStressXX();
+    REAL PreStressXY();
+    REAL PreStressYY();
     int NStripes();
     REAL Visc();
     REAL SigN();
@@ -67,6 +71,9 @@ private:
     REAL fPoisson;//Poisson
     REAL fFx;//Bodyforces in x
     REAL fFy;//Bodyforces in y
+    REAL fPreStressXX;//pre-stress tensor XX component
+    REAL fPreStressXY;//pre-stress tensor XY component
+    REAL fPreStressYY;//pre-stress tensor YY component
     int fNStripes;//Amounth of pressure stripes for reduced space elastic references
     
     //Fluid property:

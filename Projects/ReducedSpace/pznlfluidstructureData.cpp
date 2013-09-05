@@ -20,6 +20,7 @@ InputDataStruct::~InputDataStruct()
 }
 
 void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy,
+                              REAL preStressXX, REAL preStressXY, REAL preStressYY,
                               int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
                               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius)
 {
@@ -32,6 +33,9 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL P
     fPoisson = Poisson;
     fFx = Fx;
     fFy = Fy;
+    fPreStressXX = preStressXX;
+    fPreStressXY = preStressXY;
+    fPreStressYY = preStressYY;
     fNStripes = NStripes;
     
     fVisc = Visc;
@@ -102,6 +106,21 @@ REAL InputDataStruct::Fx()
 REAL InputDataStruct::Fy()
 {
     return fFy;
+}
+
+REAL InputDataStruct::PreStressXX()
+{
+    return fPreStressXX;
+}
+
+REAL InputDataStruct::PreStressXY()
+{
+    return fPreStressXY;
+}
+
+REAL InputDataStruct::PreStressYY()
+{
+    return fPreStressYY;
 }
 
 int InputDataStruct::NStripes()
