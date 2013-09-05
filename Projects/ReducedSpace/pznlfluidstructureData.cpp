@@ -310,17 +310,12 @@ void OutputDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
         an->SetStep(anCount);
     }
     
-    TPZManVector<std::string,10> scalnames(5), vecnames(1);
-	
-	scalnames[0] = "DisplacementX";
-	scalnames[1] = "DisplacementY";
-    scalnames[2] = "SigmaX";
-    scalnames[3] = "SigmaY";
-    scalnames[4] = "Pressure";
-    vecnames[0] = "Displacement";
+    TPZManVector<std::string,10> scalnames(1), vecnames(1);
+    scalnames[0] = "SigmaY";
+    vecnames[0]  = "Displacement";
 	
 	const int dim = 2;
-	int div =0;
+	int div = 0;
 	an->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an->PostProcess(div);
 }

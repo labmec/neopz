@@ -61,7 +61,7 @@ class ToolsTransient
     void PostProcessAcumVolW();
     void PostProcessVolLeakoff();
     
-    REAL ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL radius);
+    REAL ComputeKIPlaneStrain();
     
     void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an);
     

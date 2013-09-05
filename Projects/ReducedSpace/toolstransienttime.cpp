@@ -78,8 +78,6 @@ ToolsTransient::~ToolsTransient(){
 
 void ToolsTransient::RunPlasticity()
 {
-    REAL Jradius = 0.5;//Jintegral radius
-    
     //std::map<int,REAL> leakoffMap;
     
     const REAL Lmax_edge = 10.;
@@ -93,7 +91,7 @@ void ToolsTransient::RunPlasticity()
     
     std::cout << "<<<<<<<<<<<<<<<<<<<<<<< 0\n";
     std::stringstream notUsedHere("none.txt");
-    REAL KI = ComputeKIPlaneStrain(cmesh, Jradius);
+    REAL KI = ComputeKIPlaneStrain();
     std::cout << "KI = " << KI << " >>>>>>>>>>>>>>>>>>>\n\n\n";
     
     std::string vtkFile = "pocoplastico.vtk";
@@ -152,7 +150,7 @@ void ToolsTransient::Run()
     PostprocessPressure();
     PostProcessAcumVolW();
     PostProcessVolLeakoff();
-    REAL KI = ComputeKIPlaneStrain(fmeshvec[0], globFractInputData.Jradius());
+    REAL KI = ComputeKIPlaneStrain();
     globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
     
     bool initialElasticKickIsNeeded = true;
@@ -228,6 +226,19 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed(REAL Lmax_edge)
         {
             solutions(r,stripe) = cmesh_elast->Solution()(r,0);
         }
+        
+//        {
+//            std::string plotfile = "StripeSolution.vtk";
+//            
+//            TPZManVector<std::string,10> scalnames(1), vecnames(1);
+//            scalnames[0] = "SigmaY";
+//            vecnames[0]  = "Displacement";
+//            
+//            const int dim = 2;
+//            int div = 0;
+//            an->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+//            an->PostProcess(div);
+//        }
     }
     cmesh_elast->LoadSolution(solutions);
     
@@ -547,6 +558,8 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
                                          globFractInputData.Fx(),
                                          globFractInputData.Fy(),
                                          planestrain);
+    
+    material->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
     
     TPZCompMeshReferred *cmeshreferred = new TPZCompMeshReferred(fgmesh);
     
@@ -976,7 +989,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
         fCouplingMaterial->UpdateLeakoff(fmeshvec[1]);
         globFractInputData.UpdateActTime();
         
-        REAL KI = ComputeKIPlaneStrain(fmeshvec[0], globFractInputData.Jradius());
+        REAL KI = ComputeKIPlaneStrain();
         if(KI > globFractInputData.KIc())
         {//propagou!!!
             globFractInputData.SetMinDeltaT();
@@ -1005,15 +1018,17 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
 }
 
 
-REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL radius)
+REAL ToolsTransient::ComputeKIPlaneStrain()
 {
-    elastMesh->LoadReferences();
+    REAL radius = globFractInputData.Jradius();
+    
+    fmeshvec[0]->LoadReferences();
     
     TPZVec<REAL> computedJ(2,0.);
     REAL KI = -1.;
     
     REAL XcrackTip = -1.;
-    TPZGeoMesh * gm = elastMesh->Reference();
+    TPZGeoMesh * gm = fmeshvec[0]->Reference();
     for(int ell = 0; ell < gm->NElements(); ell++)
     {
         if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == globBCfluxOut)
@@ -1036,7 +1051,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL radius)
     TPZVec<REAL> xx(3,0.), qsii(2,0.);
     xx[0] = XcrackTip/2.;
     int initialEl = 0;
-    TPZGeoEl * geoEl = elastMesh->Reference()->FindElement(xx, qsii, initialEl, 2);
+    TPZGeoEl * geoEl = fmeshvec[0]->Reference()->FindElement(xx, qsii, initialEl, 2);
     if(!geoEl)
     {
         DebugStop();
@@ -1058,7 +1073,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain(TPZCompMesh * elastMesh, REAL radius)
     REAL pressure = -Solout[1];
     /////////////////////////////////////////////////////////////////////
     
-    Path2D * Jpath = new Path2D(elastMesh, Origin, normalDirection, radius, pressure);
+    Path2D * Jpath = new Path2D(fmeshvec[0], Origin, normalDirection, radius, pressure);
     JIntegral2D integralJ;
     integralJ.PushBackPath2D(Jpath);
     

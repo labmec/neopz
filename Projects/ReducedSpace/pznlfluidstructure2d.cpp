@@ -623,14 +623,27 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     if(var == 1)
     {
-        if(!datavec[1].phi) return;
+        //Aqui nao funciona pois nao vem datavec[1] preenchido
+        //para elemento de contorno (que eh o nosso caso)!
+        DebugStop();
+        
+        if(!datavec[1].phi)
+        {
+            return;
+        }
 		Solout[0] = SolP[0];
 		return;
-	}//var1
-    
-    if (var == 2)
+	}
+    else if(var == 2)
     {
-        if(!datavec[1].phi) return;
+        //Aqui nao funciona pois nao vem datavec[1] preenchido
+        //para elemento de contorno (que eh o nosso caso)!
+        DebugStop();
+        
+        if(!datavec[1].phi)
+        {
+            return;
+        }
         REAL G, un, factor;
         G = young/(2.*(1.+poisson));
         un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
@@ -639,27 +652,23 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;
 		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
-		for(id=0 ; id<1; id++){
+		for(id=0 ; id<1; id++)
+        {
 			Solout[id] = -1.*factor*dsoldx(id,0);
 		}
 		return;
-	}//var2
-    
-    //function (state variable ux)
-	if(var == 3)
+	}
+	else if(var == 3)//function (state variable ux)
     {
 		Solout[0] = SolU[0];
 		return;
-	}//var3
-	
-	//function (state variable uy)
-	if(var == 4)
+	}
+	else if(var == 4)//function (state variable uy)
     {
 		Solout[0] = SolU[1];
 		return;
-	}//var4
-    
-    if(var == 5 || var == 6)
+	}
+    else if(var == 5 || var == 6)
     {
         REAL DSolxy[2][2];
         REAL SigX, SigY, epsx, epsy;
@@ -671,33 +680,34 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         epsy = DSolU(1,1);// dv/dy
         REAL Gmodule = young/(1-poisson*poisson);
         
-        
-        if (this->fPlaneStress){
+        if (this->fPlaneStress)
+        {
             SigX = Gmodule*(epsx+poisson*epsy) + globFractInputData.PreStressXX();
             SigY = Gmodule*(poisson*epsx+epsy) + globFractInputData.PreStressYY();
         }
-        else{
+        else
+        {
             SigX = young/((1.-2.*poisson)*(1.+poisson))*((1.-poisson)*epsx+poisson*epsy) + globFractInputData.PreStressXX();
             SigY = young/((1.-2.*poisson)*(1.+poisson))*(poisson*epsx+(1.-poisson)*epsy) + globFractInputData.PreStressYY();
         }
-        
-        if(var == 5) {
+        if(var == 5)
+        {
             Solout[0] = SigX;
             return;
-        }//var5
-        
-        if(var == 6) {
+        }
+        else if(var == 6)
+        {
             Solout[0] = SigY;
             return;
-        }//var6
+        }
     }
-    if(var == 7){
+    else if(var == 7)
+    {
 		Solout[0] = SolU[0];
 		Solout[1] = SolU[1];
 		return;
-	}//var1
-    
-    if(var == 8)
+	}
+    else if(var == 8)
     {
         Solout[0] = 2.*SolU[1];
     }
