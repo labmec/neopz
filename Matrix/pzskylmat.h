@@ -104,6 +104,12 @@ public:
 	
   CLONEDEF(TPZSkylMatrix)
 
+  virtual int MemoryFootprint() const {
+    std::cout << "I'm here!!!!!" << std::endl;
+    return (sizeof(TVar*)*fElem.Size() + 
+	    sizeof(TVar)*fStorage.Size());
+  }	
+
   /**
      @brief Modify the skyline of the matrix, throwing away its values.  The
      skyline array indicates the minimum row number which will be accessed by
@@ -227,12 +233,6 @@ public:
 
   virtual std::string ClassName() const { return( "TPZSkylMatrix"); }
 
-  int MemoryFootprint() const
-  {
-    return (sizeof(TVar*)*fElem.Size() + 
-	    sizeof(TVar)*fStorage.Size());
-  }
-	
 protected:
 
   /**
@@ -336,6 +336,12 @@ public:
 	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
 	
 	CLONEDEF(TPZSkylMatrix)
+
+	virtual int MemoryFootprint() const {
+	  return (sizeof(TVar*)*fElem.size() + 
+		  sizeof(TVar)*fStorage.size());
+	}	
+
 	/**
      @brief modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation

@@ -77,7 +77,20 @@ public:
 	virtual ~TPZMatrix();
 	
 	virtual TPZMatrix<TVar>*Clone() const = 0;
-	
+
+	/**
+	 * @brief Returns the approximate size of the memory footprint (amount
+	 * of memory required to store this object).
+	 */
+        virtual int MemoryFootprint() const {
+	  std::cout << __PRETTY_FUNCTION__ 
+		    << ": Please, implement me! (class = " << ClassId() 
+	            << std::endl;
+	  //<< ") (class name = " << ClassName() << ")" << std::endl;
+	  //DebugStop();
+	  return 0;
+	}
+
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
 	void AutoFill();
@@ -349,12 +362,6 @@ public:
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
 	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
-
-	/**
-	 * @brief Returns the approximate size of the memory footprint (amount
-	 * of memory required to store this object).
-	 */
-        virtual int MemoryFootprint() const;
 
 	/**
 	 * @name Inquire

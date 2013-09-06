@@ -97,6 +97,11 @@ public:
 
 	/** @brief Simple destructor */
 	virtual  ~TPZFMatrix();
+
+        int MemoryFootprint() const
+        {
+	  return (sizeof(TVar)*this->Rows()*this->Cols());
+	}
 	
 	int PutVal(const int row,const int col,const TVar & value );
 	const TVar &GetVal(const int row,const int col ) const;
