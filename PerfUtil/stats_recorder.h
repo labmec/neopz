@@ -156,8 +156,15 @@ public:
         getrusage(RUSAGE_SELF, &self);
         getrusage(RUSAGE_CHILDREN, &children);
 #define SET_TOTAL(fld) total_self.fld += (self.fld - lap_self.fld); total_children.fld += (children.fld - lap_children.fld)
-        //struct timeval ru_utime; /* user time used */
-        //struct timeval ru_stime; /* system time used */
+
+#define SET_TOTAL_TIMEVAL(fld)						\
+	total_self.fld.tv_sec += (self.fld.tv_sec - lap_self.fld.tv_sec); \
+	total_self.fld.tv_usec += (self.fld.tv_usec - lap_self.fld.tv_usec); \
+	total_children.fld.tv_sec += (children.fld.tv_sec - lap_children.fld.tv_sec); \
+	total_children.fld.tv_usec += (children.fld.tv_usec - lap_children.fld.tv_usec)
+	
+	SET_TOTAL_TIMEVAL(ru_utime);   /* user time used */
+	SET_TOTAL_TIMEVAL(ru_stime);   /* system time used */
         SET_TOTAL(ru_maxrss);          /* integral max resident set size */
         SET_TOTAL(ru_ixrss);           /* integral shared text memory size */
         SET_TOTAL(ru_idrss);           /* integral unshared data size */
@@ -182,10 +189,17 @@ public:
     {
         stringstream header;
         stringstream values;
+
 #define PRINT_FLD(hd,fld) header << ",SELF_" << hd << ",CHD_" << hd; values << "," << total_self.fld << "," << total_children.fld
         
-        //struct timeval ru_utime; /* user time used */
-        //struct timeval ru_stime; /* system time used */
+#define TIMEVAL_TO_DOUBLE_MS(s) ( ((double) s.tv_sec) * 1000.0 + ((double) s.tv_usec) / 1000.0)
+
+#define PRINT_TIMEVAL_FLD(hd,fld)					\
+	header << ",SELF_" << hd << ",CHD_" << hd;			\
+	values << "," << TIMEVAL_TO_DOUBLE_MS(total_self.fld) << "," << TIMEVAL_TO_DOUBLE_MS(total_children.fld)
+
+        PRINT_TIMEVAL_FLD("RU_UTIME",ru_utime);           /* user time used */
+        PRINT_TIMEVAL_FLD("RU_STIME",ru_stime);           /* system time used */
         PRINT_FLD("RU_MAXRSS",ru_maxrss);          /* integral max resident set size */
         PRINT_FLD("RU_IXRSS",ru_ixrss);           /* integral shared text memory size */
         PRINT_FLD("RU_IDRSS",ru_idrss);           /* integral unshared data size */
@@ -223,9 +237,17 @@ header = "CHD_"; header += hd;					\
 if ((ret = st.setCell(row, header, total_children.fld, true)))	\
 return ret;							\
 }
-        
-        //struct timeval ru_utime; /* user time used */
-        //struct timeval ru_stime; /* system time used */
+
+#define APPEND_TIMEVAL_FLD(hd,fld)						\
+{ int ret; string header("SELF_"); header += hd;			\
+  if ((ret = st.setCell(row, header, TIMEVAL_TO_DOUBLE_MS(total_self.fld), true))) \
+return ret;							\
+header = "CHD_"; header += hd;					\
+if ((ret = st.setCell(row, header, TIMEVAL_TO_DOUBLE_MS(total_children.fld), true)))	\
+return ret;							\
+}
+        APPEND_TIMEVAL_FLD("RU_UTIME",ru_utime);           /* user time used */
+        APPEND_TIMEVAL_FLD("RU_STIME",ru_stime);           /* system time used */
         APPEND_LONG_FLD("RU_MAXRSS",ru_maxrss);          /* integral max resident set size */
         APPEND_LONG_FLD("RU_IXRSS",ru_ixrss);           /* integral shared text memory size */
         APPEND_LONG_FLD("RU_IDRSS",ru_idrss);           /* integral unshared data size */
