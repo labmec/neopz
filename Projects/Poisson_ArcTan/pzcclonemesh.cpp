@@ -604,7 +604,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
 #endif
     TPZStack <TPZGeoEl *> bcgelstack;
     TPZStack <int> bcporderstack;
-    TPZStack<int> elementindex;
+    TPZStack<long> elementindex;
     TPZStack<TPZCompEl *> elementpointers;
     long el, nelem;
     nelem = ElementVec().NElements();
@@ -630,7 +630,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     
     // put the elements back in
     nelem = elementpointers.NElements();
-    for(el=0; el<nelem; el++) {
+    for(el=0L; el<nelem; el++) {
         ElementVec()[elementindex[el]] = elementpointers[el];
     }
 #ifdef HUGE_DEBUG
@@ -661,7 +661,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     // we need to copy the elements of the clone mesh to avoid applying the refinement on
     // elements inserted into the data structure
     TPZStack<TPZCompEl *> copyel;
-    for(el=0; el<nelem; el++) {
+    for(el=0L; el<nelem; el++) {
         TPZCompEl *cel = elementvec[el];
         if(!cel) continue;
         copyel.Push(cel);

@@ -216,12 +216,12 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
             indexcel = gmesh->ElementVec()[index]->Reference()->Index();
             cmesh->Divide(indexcel, subs, 1);
         }
-    }
+//    }
     // Making all refines
-    for(i=0;i<commands.NElements();i++) {
-        std::stringstream commandline(commands[i]);
-        commandline >> commandname;
-        if(!commandname.compare("PRefine")) {
+//    for(i=0;i<commands.NElements();i++) {
+//        std::stringstream commandline(commands[i]);
+//        commandline >> commandname;
+        else if(!commandname.compare("PRefine")) {
             int order;
             commandline >> index;
             commandline >> index;
