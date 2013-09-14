@@ -81,7 +81,7 @@ medium_tests= [("substruct_tst3",substruct_tst3.test),
 
 long_tests = []
 
-regression_tests = short_tests
+regression_tests = short_tests + medium_tests + long_tests
 # =========================
 
 # Default value for ntimes
