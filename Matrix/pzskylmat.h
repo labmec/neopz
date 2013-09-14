@@ -105,9 +105,8 @@ public:
   CLONEDEF(TPZSkylMatrix)
 
   virtual int MemoryFootprint() const {
-    std::cout << "I'm here!!!!!" << std::endl;
-    return (sizeof(TVar*)*fElem.Size() + 
-	    sizeof(TVar)*fStorage.Size());
+    return (sizeof(TVar*)*fElem.size() + 
+	    sizeof(TVar)*fStorage.size());
   }	
 
   /**

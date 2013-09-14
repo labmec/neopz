@@ -39,20 +39,20 @@ except ImportError, e:
 builddir="@PERFTEST_BASE_DIR@"
 datadir="@PERFTEST_SMALL_DATA_DIR@"
 
-assfn=("ass", "ass.rdt")
-crefn=("cre", "cre.rdt")
-prefn=("pre", "pre.rdt")
-solfn=("sol", "sol.rdt")
-totfn=("tot", "tot.rdt")
-tpzdohrassfn=("dohrass", "tpzdohrass.rdt")
-tpzdohrdecfn=("dohrdec", "tpzdohrdec.rdt")
-
-# List of rdt files produced by the test
-rdtfiles_l=[crefn, prefn, totfn, tpzdohrassfn, tpzdohrdecfn]
-
 def error(message, status):
 	sys.stderr.write('ERROR (test.py): '+message+'\n')
         sys.exit(status)
+
+#  (rdt_id, rdt_opt, rdt_filename, rdt_description)
+assfn=("ass", "-ass_rdt", "ass.rdt", "Assemble: dohrstruct->Assemble(...). Assemble element matrices and decompose matrices.")
+crefn=("cre", "-cre_rdt", "cre.rdt", "Create: dohrstruct->Create()")
+prefn=("pre", "-pre_rdt", "pre.rdt", "Preconditioner: dohrstruct->Preconditioner()")
+solfn=("sol", "-sol_rdt", "sol.rdt", "Solver: cg.Solve(...)")
+totfn=("tot", "-tot_rdt", "tot.rdt", "Total: all the steps")
+tpzdohrassfn=("dohrass", "-tpz_dohr_ass", "tpzdohrass.rdt", "Assemble element matrices")
+tpzdohrdecfn=("dohrdec", "-tpz_dohr_dec", "tpzdohrdec.rdt", "Decompose matrices")
+# List of rdt files produced by the test
+rdtfiles_l=[assfn, crefn, prefn, totfn, tpzdohrassfn, tpzdohrdecfn]
 
 # Setup the command line
 def setup_cmd():
@@ -88,13 +88,8 @@ def setup_cmd():
 	arguments = arguments + ' -nt_m 64' 
 	arguments = arguments + ' -nt_sm 64' 
 	arguments = arguments + ' -p 2' 
-	arguments = arguments + ' -ass_rdt ' + assfn[1]
-	arguments = arguments + ' -cre_rdt ' + crefn[1]
-	arguments = arguments + ' -pre_rdt ' + prefn[1]
-	arguments = arguments + ' -sol_rdt ' + solfn[1]
-	arguments = arguments + ' -tot_rdt ' + totfn[1]
-	arguments = arguments + ' -tpz_dohr_ass ' + tpzdohrassfn[1]
-	arguments = arguments + ' -tpz_dohr_dec ' + tpzdohrdecfn[1]
+	for rdtarg in rdtfiles_l :
+		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
 	# TODO: Add arguments to enforce output checking!
 	return rundir, executable+arguments
 
@@ -122,7 +117,7 @@ def sumarize_rdt_results(rundir) :
 	# Compute average and confidence interval for each rdt file.
 	for f in rdtfiles_l : 
 		k =f[0] # Step name
-		fn=f[1] # RDT file name
+		fn=f[2] # RDT file name
 		if summarize_results :
 			try: 
 				rdtfn=os.path.join(rundir,fn)
@@ -148,6 +143,16 @@ def sumarize_rdt_results(rundir) :
 		results[k]=(av,ci)
 	return results
 
+# Sumarizes the RDT (Raw data table) files information
+def sumarize_rdt_files(rundir) :
+	results = {}
+	for f in rdtfiles_l : 
+		rdt_id  = f[0]   # Step name
+		rdt_fn  = os.path.join(rundir,f[2]) # RDT file name
+		rdt_dsc = f[3]   # Description
+		results[rdt_id] = (rdt_fn, rdt_dsc)
+	return results
+
 description="substructure -- 8andares02.txt -- p2 - nsub 128 - 64 threads - realloc"
 
 # Execute the test.
@@ -161,7 +166,8 @@ def run_test(ntimes):
 		p.wait()
 		if (p.returncode != 0) : 
 			return p.returncode, {}
-	results = sumarize_rdt_results(rundir)
+	results = sumarize_rdt_files(rundir)
+	#results = sumarize_rdt_results(rundir)
 	return 0, results
 
 # Functions for stand alone tests
