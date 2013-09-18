@@ -36,7 +36,8 @@ LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Fina
     fDETdxdt = fradius/2.;
     
     fcmesh = cmesh;
-    fcrackPressure = fabs(pressure);
+    fcrackPressure = pressure;
+    //Se fcrackPressure acabar sendo positivo, teremos ponta da fratura fechando (imporei KI = 0.)!!!
     
     fInitialPoint.Resize(3, 0.);
     fInitialPoint[0] = (fFinalPoint[0] - fradius*sin((M_PI)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
@@ -198,7 +199,7 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     GradUtxy = data.dsol[0];
     
     TPZVec<REAL> Sigma_n(3,0.);
-    Sigma_n[1] = fcrackPressure;
+    Sigma_n[1] = fcrackPressure * (-1.);
     for(int r = 0; r < 3; r++)
     {
         for(int c = 0; c < 3; c++)
@@ -315,7 +316,7 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     
     TPZVec<REAL> Sigma_n(2,0.);
     
-    Sigma_n[1] = fcrackPressure;
+    Sigma_n[1] = fcrackPressure * (-1.);
     for(int r = 0; r < 2; r++)
     {
         for(int c = 0; c < 2; c++)

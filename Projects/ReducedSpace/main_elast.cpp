@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     int NStripes = 1;
     REAL Visc = 0.001E-6;
     
-    REAL SigN = 6.15;
+    REAL SigN = 10.;
     
     /**
      * Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.

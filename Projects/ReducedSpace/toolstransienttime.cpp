@@ -1047,9 +1047,9 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     TPZVec<REAL> normalDirection(3,0.);
     normalDirection[2] = 1.;
     
-    //////////// Computing pressure at middle point of crack length /////
+    //////////// Computing pressure at middle point of J arc /////
     TPZVec<REAL> xx(3,0.), qsii(2,0.);
-    xx[0] = XcrackTip/2.;
+    xx[0] = XcrackTip - globFractInputData.Jradius()/2.;
     int initialEl = 0;
     TPZGeoEl * geoEl = fmeshvec[0]->Reference()->FindElement(xx, qsii, initialEl, 2);
     if(!geoEl)
@@ -1080,6 +1080,11 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     computedJ = integralJ.IntegratePath2D(0);
     REAL young = globFractInputData.E();
     REAL poisson = globFractInputData.Poisson();
+    if(computedJ[0] < 0.)
+    {
+        //Estado compressivo!!!
+        computedJ[0] = 0.;
+    }
     KI = sqrt( (computedJ[0]*young)/(1. - poisson*poisson) );
     
     return KI;
@@ -1100,16 +1105,19 @@ void ToolsTransient::PostprocessPressure()
         TPZMaterialData data;
         sp->InitMaterialData(data);
 
-        TPZVec<REAL> qsi(1,0.), Xqsi(3,0.);
-        qsi[0] = -1.;
-        cel->Reference()->X(qsi,Xqsi);
-        
-        sp->ComputeShape(qsi, data);
-        sp->ComputeSolution(qsi, data);
+        for(int qsiPt = -1; qsiPt <= +1; qsiPt++)
+        {
+            TPZVec<REAL> qsi(1,0.), Xqsi(3,0.);
+            qsi[0] = qsiPt;
+            cel->Reference()->X(qsi,Xqsi);
+            
+            sp->ComputeShape(qsi, data);
+            sp->ComputeSolution(qsi, data);
 
-        REAL pos = Xqsi[0];
-        REAL press = data.sol[0][0];
-        pos_pressure[pos] = press;
+            REAL pos = Xqsi[0];
+            REAL press = data.sol[0][0];
+            pos_pressure[pos] = press;
+        }
     }
     
     globFractOutputData.InsertTposP(globFractInputData.actTime(), pos_pressure);
