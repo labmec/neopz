@@ -11,7 +11,7 @@
 
 int const globReservMatId   = 1; //elastic
 int const globPressureMatId = 2; //pressure
-int const globMultiFisicMatId = 1;//multiphisics
+int const globMultiFisicMatId = 1;//multiphisics (nao sei porque, mas se [globMultiFisicMatId != globReservMatId] dah errado!!!)
 
 int const globDirichletElastMatId = -1;
 int const globBlockedXElastMatId  = -3;

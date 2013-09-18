@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     REAL SigmaConf = 11.;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
-    REAL KIc = 1200.;
+    REAL KIc = 1.;//1200.;
     REAL Jradius = 0.5;
     
     int p = 2;

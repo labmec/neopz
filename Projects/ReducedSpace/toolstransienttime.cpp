@@ -62,6 +62,7 @@ ToolsTransient::ToolsTransient(int pOrder)
     {
         locSetPressureMatIds.insert(globPressureMatId + stripe);
     }
+    
     int dim = 2;
     fCouplingMaterial = new TPZNLFluidStructure2d(globMultiFisicMatId,dim);
     int planestrain = 0;
@@ -167,6 +168,7 @@ void ToolsTransient::Run()
             lastElastReferredCMesh = fmeshvec[0];
         
             REAL newLfrac = globFractInputData.Lf() + Lmax_edge;
+            
             globFractInputData.SetLf(newLfrac);
         
             this->InitializeUncoupledMeshesAttributes(Lmax_edge);
@@ -175,7 +177,6 @@ void ToolsTransient::Run()
             an = new TPZAnalysis(fmphysics);
             
             globFractOutputData.PlotElasticVTK(an, anCount);
-            PostprocessPressure();
             PostProcessAcumVolW();
             PostProcessVolLeakoff();
         }
@@ -469,7 +470,8 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(globReservMatId, globFractInputData.E(), globFractInputData.Poisson(), globFractInputData.Fx(), globFractInputData.Fy(), planestrain);
+	material = new TPZElasticityMaterial(globReservMatId, globFractInputData.E(), globFractInputData.Poisson(),
+                                         globFractInputData.Fx(), globFractInputData.Fy(), planestrain);
     
     TPZMaterial * mat(material);
     
@@ -552,6 +554,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
     int planestrain = 0;
     
     TPZElasticityMaterial *material;
+
 	material = new TPZElasticityMaterial(globReservMatId,
                                          globFractInputData.E(),
                                          globFractInputData.Poisson(),
@@ -988,6 +991,8 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
         fCouplingMaterial->UpdateLeakoff(fmeshvec[1]);
         globFractInputData.UpdateActTime();
+
+        PostprocessPressure();
         
         REAL KI = ComputeKIPlaneStrain();
         if(KI > globFractInputData.KIc())
@@ -1002,7 +1007,6 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
             MassMatrix(fmat);
             
             globFractOutputData.PlotElasticVTK(an);
-            PostprocessPressure();
             PostProcessAcumVolW();
             PostProcessVolLeakoff();
         }
@@ -1049,7 +1053,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     
     //////////// Computing pressure at middle point of J arc /////
     TPZVec<REAL> xx(3,0.), qsii(2,0.);
-    xx[0] = XcrackTip - globFractInputData.Jradius()/2.;
+    xx[0] = XcrackTip/2.;// - globFractInputData.Jradius()/2.;
     int initialEl = 0;
     TPZGeoEl * geoEl = fmeshvec[0]->Reference()->FindElement(xx, qsii, initialEl, 2);
     if(!geoEl)
@@ -1070,7 +1074,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     TPZVec<REAL> Solout(3,0.);
     int var = 10;//Stress Tensor
     elast2D->Solution(data, var, Solout);
-    REAL pressure = -Solout[1];
+    REAL pressure = Solout[1];
     /////////////////////////////////////////////////////////////////////
     
     Path2D * Jpath = new Path2D(fmeshvec[0], Origin, normalDirection, radius, pressure);
@@ -1085,7 +1089,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
         //Estado compressivo!!!
         computedJ[0] = 0.;
     }
-    KI = sqrt( (computedJ[0]*young)/(1. - poisson*poisson) );
+    KI = sqrt( (computedJ[0]*young) / (1. - poisson*poisson) );
     
     return KI;
 }
