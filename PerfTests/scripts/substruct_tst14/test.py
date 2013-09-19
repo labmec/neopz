@@ -76,7 +76,6 @@ def setup_cmd():
 	# Put the arguments together
     	arguments = ' -mc '+inputfn
 	arguments = arguments + ' -p 2' 
-	arguments = arguments + ' -st3'
 	#NUMA aware Dohrman Assembly List thread work objects re-allocation.
 	arguments = arguments + ' -naDALora'
 	#NUMA aware Dohrman Assembly List thread work objects re-allocation threshold.
@@ -172,8 +171,8 @@ def run_test(ntimes, nsub, thread):
 		p.wait()
 		if (p.returncode != 0) : 
 			return p.returncode, {}
-	results = sumarize_rdt_files(rundir)
-	#results = sumarize_rdt_results(rundir)
+	#results = sumarize_rdt_files(rundir)
+	results = sumarize_rdt_results(rundir)
 	return 0, results
 
 # Functions for stand alone tests
