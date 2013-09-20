@@ -120,7 +120,7 @@ int TPZPoroElasticMF2d::NStateVariables() {
 }
 
 
-void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef){
 	
     
 	int nref =  datavec.size();
@@ -147,16 +147,16 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	//current state (n+1)
 	if(gState == ECurrentState)
 	{
-		REAL fEover1MinNu2 = fE/(1-fnu*fnu);  ///4G(lamb+G)/(lamb+2G)
-		REAL fEover21PlusNu = 2.*fE/(2.*(1+fnu));/*fE/(2.*(1+fnu));*/ ///2G=2mi
+		REAL fEover1MinNu2 = fE/(1.-fnu*fnu);  ///4G(lamb+G)/(lamb+2G)
+		REAL fEover21PlusNu = fE/(2.*(1.+fnu));//2fE/(2.*(1+fnu)); ///2G=2mi
 		
 		/*
 		 * Plain strain materials values
 		 * 2G=2mi=nu2*F, lamb=fnu*F, lamb+2G=nu1*F
 		 */
-		REAL nu1 = 1 - fnu;
-		REAL nu2 = (1-2*fnu);//(1-2*fnu)/2;
-		REAL F = fE/((1+fnu)*(1-2*fnu));
+		REAL nu1 = 1.-fnu;
+		REAL nu2 = (1.-2.*fnu)/2.;//2(1-2*fnu);
+		REAL F = fE/((1.+fnu)*(1.-2.*fnu));
 		
 		//Calculate the matrix contribution for elastic problem. Matrix A
 		for(int in = 0; in < phru; in++ )
@@ -200,7 +200,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
         
         for(int iq=0; iq<phrq; iq++)
         {
-            ef(2*phru+iq, 0) += 0.;
+            ef(2*phru+iq, 0) += 0.;//falta colocar termo da gravidade (densidadefluido*phi.campoGravidade)
             
             int ivecind = datavec[1].fVecShapeIndex[iq].first;
             int ishapeind = datavec[1].fVecShapeIndex[iq].second;
@@ -315,12 +315,22 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	
 }
 
-void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     REAL v2x, v2y;
-    v2x = bc.Val2()(0,0);
-    v2y = bc.Val2()(1,0);
+    
+    if(bc.HasForcingFunction())
+    {
+		TPZManVector<STATE> res(3);
+		bc.ForcingFunction()->Execute(datavec[0].x,res);
+		v2x = res[0];
+        v2y = res[1];
+	}else
+    {
+        v2x = bc.Val2()(0,0);
+        v2y = bc.Val2()(1,0);
+    }
     for(int in = 0 ; in < phiu.Rows(); in++){
         ef(2*in,0) += gBigNumber*v2x*phiu(in,0)*weight; // x displacement forced v2 displacement
         ef(2*in+1,0) += gBigNumber*v2y*phiu(in,0)*weight; // y displacement forced v2 displacement
@@ -332,12 +342,24 @@ void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL
     }
 }
 
-void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
     int phrq = datavec[1].fVecShapeIndex.NElements();
-    REAL v2 = bc.Val2()(2,0);
+    REAL v2=0.;
+    //---
+    
+    if(bc.HasForcingFunction()){
+		TPZManVector<STATE> res(3);
+		bc.ForcingFunction()->Execute(datavec[1].x,res);
+		v2 = res[2];
+	}
+    else{
+        
+       v2 = bc.Val2()(2,0);
+    }
+    
     for(int iq=0; iq<phrq; iq++)
     {
         //the contribution of the Dirichlet boundary condition appears in the flow equation
@@ -345,7 +367,7 @@ void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REA
     }
 }
 
-void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
@@ -358,24 +380,34 @@ void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL w
     }
 }
 
-void TPZPoroElasticMF2d::ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
     int phrq = datavec[1].fVecShapeIndex.NElements();
-    REAL v2 = bc.Val2()(2,0);
+    
+    REAL v2;
+    if(bc.HasForcingFunction()){
+		TPZManVector<STATE> res(4);
+		bc.ForcingFunction()->Execute(datavec[1].x,res);
+		v2 = res[3];
+	}
+    else{
+        
+        v2 = bc.Val2()(2,0);
+    }
     
     for(int iq=0; iq<phrq; iq++)
     {
-        ef(2*phru+iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
+        ef(2*phru+iq,0)+= gBigNumber*fTimeStep*v2*phiQ(iq,0)*weight;
         for (int jq=0; jq<phrq; jq++) {
             
-            ek(2*phru+iq,2*phru+jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
+            ek(2*phru+iq,2*phru+jq)+= gBigNumber*fTimeStep*phiQ(iq,0)*phiQ(jq,0)*weight;
         }
     }
 }
 
-void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
@@ -392,7 +424,7 @@ void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 }
 
-void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
@@ -407,7 +439,7 @@ void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL we
     }
 }
 
-void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     REAL v2x = bc.Val2()(0,0);
@@ -419,12 +451,39 @@ void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec,
     }
 }
 
-void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichletFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    REAL v2y;
+    v2y = bc.Val2()(1,0);
+    for(int in = 0 ; in < phiu.Rows(); in++){
+        ef(2*in+1,0) += gBigNumber*v2y*phiu(in,0)*weight; // y displacement forced v2 displacement
+        
+        for(int jn = 0 ; jn < phiu.Rows(); jn++){
+            ek(2*in+1,2*jn+1) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
+        }
+    }
+}
+
+
+void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
     for(int in = 0 ; in <phru; in++){
         ef(2*in+1,0) += bc.Val2()(1,0)*phiu(in,0)*weight; // traction in y
+    }
+}
+
+
+void TPZPoroElasticMF2d::ApplyNeumannFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    int phru = phiu.Rows();
+    REAL v2x;
+    v2x = bc.Val2()(0,0);
+    for(int in = 0 ; in <phru; in++){
+        ef(2*in,0) += v2x*phiu(in,0)*weight;   // traction in x
     }
 }
 
@@ -441,8 +500,8 @@ void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, R
 //    }
 //}
 
-void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,
-                                      TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<> &ek,
+                                      TPZFMatrix<> &ef,TPZBndCond &bc)
 {
 	//The Last state (n) not include boundary conditions
 	if(gState == ELastState){
@@ -517,9 +576,17 @@ void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weig
             ApplyNeumann_QP(datavec, weight, ek, ef, bc);
             break;
             
-//        case 3: //Condition of source term in the pressure's equation to mixed problem
-//            ApplySourceTerm_P(datavec, weight, ek, ef, bc);
-//            break;
+        case 400: //Dirichlet free in y e Neumann free in x for elastic and Dirichlet condition for mixed problem
+            ApplyDirichletFreeY_U(datavec, weight, ek, ef, bc);
+            ApplyNeumannFreeX_U(datavec, weight, ef, bc);
+            ApplyDirichlet_QP(datavec, weight, ef, bc);
+            break;
+            
+        case 500: //Dirichlet free in x e Neumann free in y for elastic and Dirichlet condition for mixed problem
+            ApplyDirichletFreeX_U(datavec, weight, ek, ef, bc);
+            ApplyNeumannFreeY_U(datavec, weight, ef, bc);
+            ApplyDirichlet_QP(datavec, weight, ef, bc);
+            break;
 
             
     }
@@ -567,7 +634,6 @@ int TPZPoroElasticMF2d::VariableIndex(const std::string &name){
     if(!strcmp("ExactSigmaX",name.c_str()))  return 14;
     if(!strcmp("ExactSigmaY",name.c_str()))  return 15;
     if(!strcmp("ExactFluxo",name.c_str()))  return 16;
-    
     if(!strcmp("ExactDisplacement",name.c_str()))  return 19;
     
 	return TPZMaterial::VariableIndex(name);
@@ -598,17 +664,16 @@ int TPZPoroElasticMF2d::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
-	TPZVec<STATE> SolU, SolP;
-	TPZFMatrix<STATE> DSolU, DSolP;
+	TPZVec<REAL> SolU, SolP;
+	TPZFMatrix<> DSolU, DSolP;
 	TPZFMatrix<> axesU, axesP;
 	
-	TPZVec<REAL> ptx(3);
-    TPZVec<STATE> solExata(5);
-	TPZFMatrix<STATE> flux(2,1);
+	TPZVec<REAL> ptx(3), solExata(5);
+	TPZFMatrix<> flux(2,1);
 	
 	SolU=datavec[0].sol[0];
 	DSolU=datavec[0].dsol[0];
@@ -754,8 +819,8 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
     
     if (var == 10){
 		int id;
-		TPZFNMatrix<9,STATE> dsoldx;
-		TPZAxesTools<STATE>::Axes2XYZ(DSolP, dsoldx, axesP);
+		TPZFNMatrix<9,REAL> dsoldx;
+		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
 		for(id=0 ; id<fDim; id++) {
             if(fReturnSolutionDimension==true) Solout[id] = -1.*dsoldx(id,0)*fpref*(fkovervisc);
 			else Solout[id] = -1.*dsoldx(id,0);
@@ -789,6 +854,7 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
         Solout[1] = solExata[2];
 		return;
 	}//var19
+
     
     if(var == 14){
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
@@ -812,12 +878,12 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 
 
 void TPZPoroElasticMF2d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-                                             REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+                                             REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef){
 	DebugStop();
 }
 
 void TPZPoroElasticMF2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
-                                               REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+                                               REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 

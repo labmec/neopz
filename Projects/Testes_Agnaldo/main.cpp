@@ -51,24 +51,30 @@ REAL const Pi = 4.*atan(1.);
 REAL ftimeatual = 0.;
 REAL fdeltaT = 0.;
 REAL felarea = 0.;
-bool fdimensionless;
+REAL fbeta = 0.;
+bool fdimensionless = false;
 
 
-void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
-void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);//para calcular o erro
-void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv);//para calcular o erro
+void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);//para calcular o erro
+void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);//para calcular o erro
 
-void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
-void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
+void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
-void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
-void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
-void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv);
+void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);
+void BarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolUBarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv);
+void SolPBarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area);
 
-void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingSource(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingBCPressao(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
@@ -114,8 +120,7 @@ int main_Loula(int argc, char *argv[])
         REAL Lref = Ly;
         REAL Se_aux = alpha*alpha/(lambda+2.*mu);
         REAL kovervisc = perm/visc;
-        REAL Cf = 0.;
-        Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
+        REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
         REAL lambdaD = lambda*Se_aux;
         REAL muD = mu*Se_aux;
 
@@ -222,7 +227,7 @@ int main_Loula(int argc, char *argv[])
         TPZAnalysis an3(cmesh3);
         mydata->SolveSist(an3, cmesh3);
         int nrs = an3.Solution().Rows();
-        TPZVec<STATE> solini(nrs,pini);
+        TPZVec<REAL> solini(nrs,pini);
         //	cmesh3->Solution() = solucao1;
         //    cmesh3->LoadSolution(solucao1);
 
@@ -276,7 +281,7 @@ int main_Loula(int argc, char *argv[])
 
         
         TPZAnalysis an(mphysics);
-        TPZFMatrix<STATE> Initialsolution = an.Solution();
+        TPZFMatrix<REAL> Initialsolution = an.Solution();
         //Initialsolution.Print("solini");
         
         std::string outputfile;
@@ -288,18 +293,18 @@ int main_Loula(int argc, char *argv[])
 //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
         
         //Criando matriz de massa (matM)
-        TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
+        TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
         
         //Criando matriz de rigidez (matK) e vetor de carga
-        TPZFMatrix<STATE> matK;
-        TPZFMatrix<STATE> fvec;
+        TPZFMatrix<REAL> matK;
+        TPZFMatrix<REAL> fvec;
         mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
         
         int nrows;
         nrows = matM->Rows();
-        TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
-        TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
-        TPZFMatrix<STATE> Lastsolution = Initialsolution;
+        TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
+        TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
+        TPZFMatrix<REAL> Lastsolution = Initialsolution;
         
         REAL TimeValue = 0.0;
         int cent = 1;
@@ -362,7 +367,7 @@ int main_Loula(int argc, char *argv[])
     return 0;
 }
 
-void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
+void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
     
     bool sol_dimensionless=true;
     
@@ -422,7 +427,7 @@ void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 }
 
 
-void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv){
+void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
     
     bool sol_dimensionless=true;
     
@@ -468,7 +473,7 @@ void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE
 }
 
 
-void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
+void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
     
     bool sol_dimensionless=true;
     
@@ -534,8 +539,7 @@ int main_Terzaghi(int argc, char *argv[]){
     REAL Se = 1.e-1;
     
     REAL K = firstlame + (2./3.)*secondlame;
-    REAL Ku = 0.;
-    Ku = K + alpha*alpha/Se;
+    REAL Ku = K + alpha*alpha/Se;
     REAL sig0 = -1000.;
     REAL F  = abs(sig0);
     REAL pini = 0.;//(alpha*F)/(Se*(Ku+(4./3.)*secondlame));
@@ -565,8 +569,7 @@ int main_Terzaghi(int argc, char *argv[]){
         REAL pref = (alpha*F)/(Se*(lambdau + 2.*mu));
         REAL Lref = Ly;
         REAL kovervisc = perm/visc;
-        REAL Cf = 0.;
-        Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
+        REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
         
         //adimemsionalizando
         Eyoung = muD*(3.*lambdaD+2.*muD)/(lambdaD+muD);
@@ -649,7 +652,7 @@ int main_Terzaghi(int argc, char *argv[]){
             //	Set initial conditions for pressure
             TPZAnalysis an3(cmesh3);
             int nrs = an3.Solution().Rows();
-            TPZVec<STATE> solini(nrs,pini);
+            TPZVec<REAL> solini(nrs,pini);
 
             TPZCompMesh  * cmeshL2 = mydata->CMeshPressureL2(gmesh, pp, solini,triang);
             TPZAnalysis anL2(cmeshL2);
@@ -679,7 +682,7 @@ int main_Terzaghi(int argc, char *argv[]){
             
             //==== Imprimir erros ======
             TPZAnalysis an(mphysics);
-            TPZFMatrix<STATE> Initialsolution = an.Solution();
+            TPZFMatrix<REAL> Initialsolution = an.Solution();
 
             std::string outputfile;
             outputfile = "TransientSolution";
@@ -690,18 +693,18 @@ int main_Terzaghi(int argc, char *argv[]){
             //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
 
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
+            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
 
             //Criando matriz de rigidez (matK) e vetor de carga
-            TPZFMatrix<STATE> matK;
-            TPZFMatrix<STATE> fvec;
+            TPZFMatrix<REAL> matK;
+            TPZFMatrix<REAL> fvec;
             mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
 
             int nrows;
             nrows = matM->Rows();
-            TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
-            TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
-            TPZFMatrix<STATE> Lastsolution = Initialsolution;
+            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<REAL> Lastsolution = Initialsolution;
 
             REAL TimeValue = 0.0;
             int cent = 1;
@@ -761,7 +764,7 @@ int main_Terzaghi(int argc, char *argv[]){
     return 0;
 }
 
-void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
+void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
     
     //REAL x = ptx[0];
 	REAL y = 1.- ptx[1];
@@ -849,7 +852,7 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
     }
 }
 
-void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
+void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
 {
  
     bool dimensionless = true;
@@ -939,17 +942,17 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
 }
 
 //Problema Barry and Mercer
-int main(int argc, char *argv[]){
-    
-    #ifdef LOG4CXX
-        InitializePZLOG();
-    #endif
+int main_BarryMarcer(int argc, char *argv[]){
+
+//    #ifdef LOG4CXX
+//        InitializePZLOG();
+//    #endif
     
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     
-    bool triang=false;
-    bool dimensionless=true;
+    bool triang = false;
+    fdimensionless = true;
     
     REAL Eyoung = 1.e5;
     REAL poisson = 0.1;
@@ -970,36 +973,35 @@ int main(int argc, char *argv[]){
     REAL perm = 1.e-6;
     REAL visc = 1.e-4;
     
-    REAL timeT = 0.00153589;
+    //trabalho com o tempo adimensional
+    REAL timeT = 0.00153589;//0.00614356;
+    REAL lambda = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));//firstlame
+    REAL mu = 0.5*Eyoung/(1+poisson);//secondlame
+    REAL Se_aux = alpha*alpha/(lambda+2.*mu);
+    REAL kovervisc = perm/visc;
+    REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
+    REAL beta = Cf/(Ly*Ly);
+    fbeta = beta;
+    timeT = timeT*beta;
     
-    
-    //Incompressible fluid (Se=0)
-    if(dimensionless==true)
+    if(fdimensionless==true)
     {
-        REAL lambda = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));//firstlame
-        REAL mu = 0.5*Eyoung/(1+poisson);//secondlame
         REAL Lref = sqrt(Lx*Ly);
-        REAL Se_aux = alpha*alpha/(lambda+2.*mu);
-        REAL kovervisc = perm/visc;
-        REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
         REAL lambdaD = lambda*Se_aux;
         REAL muD = mu*Se_aux;
-        REAL beta = Cf/(Ly*Ly);
-        
         
         //adimemsionalizando
         Eyoung = muD*(3.*lambdaD+2.*muD)/(lambdaD+muD);
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = 0.;
         pini = 0.;
-        timeT = timeT*beta;
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
         visc = 1.;
         fx = 0.;
         fy = 0.;
-        Se = 0.;
+        Se = 0.;//Incompressible fluid (Se=0)
     }
     
     {//NAO APAGAR!!!
@@ -1042,27 +1044,27 @@ int main(int argc, char *argv[]){
         }
     }
     
-    //    {//NAO APAGAR!!!
-    //        char buf[] =
-    //        "4 4 "
-    //        "-50 Lin000022224 "
-    //        "-1 0 0 "
-    //        "1 0 0 "
-    //        "-0.33333 0 0  "
-    //        "+0.33333 0 0  "
-    //        "1 2 0 1  "
-    //        "1 2 0 2  "
-    //        "1 2 2 3  "
-    //        "1 2 3 1  ";
-    //        std::istringstream str(buf);
-    //        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
-    //        gRefDBase.InsertRefPattern(refp);
-    //        if(!refp)
-    //        {
-    //            DebugStop();
-    //        }
-    //    }
-    
+//    {//NAO APAGAR!!!
+//        char buf[] =
+//        "4 4 "
+//        "-50 Lin000022224 "
+//        "-1 0 0 "
+//        "1 0 0 "
+//        "-0.33333 0 0  "
+//        "+0.33333 0 0  "
+//        "1 2 0 1  "
+//        "1 2 0 2  "
+//        "1 2 2 3  "
+//        "1 2 3 1  ";
+//        std::istringstream str(buf);
+//        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
+//        gRefDBase.InsertRefPattern(refp);
+//        if(!refp)
+//        {
+//            DebugStop();
+//        }
+//    }
+
     
     DadosMalhas * mydata = new DadosMalhas();
     
@@ -1073,7 +1075,7 @@ int main(int argc, char *argv[]){
     REAL Area;
     
     ofstream saidaerro("Erro.txt");
-    for(int p = 1; p<2; p++)
+    for(int p = 2; p<3; p++)
     {
         int pu = p+1;
         int pq = p;
@@ -1085,17 +1087,17 @@ int main(int argc, char *argv[]){
         {
             
             saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
-            
-            TPZGeoMesh * gmesh = mydata->GMesh4(Lx,Ly);
+
+            TPZGeoMesh * gmesh = mydata->GMesh4(Lx,Ly,0,0);
             mydata->UniformRefine(gmesh, h);
-            RefinamentoPadrao3x3(gmesh,h);
+            RefinamentoPadrao3x3(gmesh,h+1);
             
             int newmatId = mydata->GetIdSourceTerm();//mat id of the source term
-            RefinamentoPadrao3x3(gmesh,h,pt, true, newmatId, Area);
+            RefinamentoPadrao3x3(gmesh,h+1,pt, true, newmatId, Area);
             felarea = Area;
             
-            //            std::ofstream malhaGeo("gmesh2D.txt");
-            //            gmesh->Print(malhaGeo);
+//            std::ofstream malhaGeo("gmesh2D.txt");
+//            gmesh->Print(malhaGeo);
             
             
             mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
@@ -1115,7 +1117,7 @@ int main(int argc, char *argv[]){
             TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang,true);
             ofstream arg3("cmesh3.txt");
             cmesh3->Print(arg3);
-            
+
             //malha multifisica
             TPZVec<TPZCompMesh *> meshvec(3);
             meshvec[0] = cmesh1;
@@ -1129,12 +1131,12 @@ int main(int argc, char *argv[]){
             ofstream arg8("mphysic.txt");
             mphysics->Print(arg8);
             
-            //            ofstream arg9("gmesh_final.txt");
-            //            gmesh->Print(arg9);
+//            ofstream arg9("gmesh_final.txt");
+//            gmesh->Print(arg9);
             
             
-            int NDeltaT = 1;
-            int intervsaidas = NDeltaT/1;
+            int NDeltaT = 100;
+            int intervsaidas = NDeltaT/10;
             REAL deltaT=timeT/NDeltaT; //second
             REAL maxTime = timeT;
             fdeltaT = deltaT;
@@ -1152,29 +1154,29 @@ int main(int argc, char *argv[]){
             mat22->SetTimeStep(deltaT);
             
             TPZAnalysis an(mphysics);
-            TPZFMatrix<STATE> Initialsolution = an.Solution();
+            TPZFMatrix<REAL> Initialsolution = an.Solution();
             
             std::string outputfile;
             outputfile = "TransientSolution";
             
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mphysics);
+            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mphysics);
             
             //Criando matriz de rigidez (matK) e vetor de carga
-            TPZFMatrix<STATE> matK;
-            TPZFMatrix<STATE> fvec;
+            TPZFMatrix<REAL> matK;
+            TPZFMatrix<REAL> fvec;
             mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec);
             
             int nrows;
             nrows = matM->Rows();
-            TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
-            TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
-            TPZFMatrix<STATE> Lastsolution = Initialsolution;
+            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<REAL> Lastsolution = Initialsolution;
             
             REAL TimeValue = 0.0;
             int cent = 1;
             TimeValue = cent*deltaT;
-            while (TimeValue <= maxTime)
+            while (cent<NDeltaT+1)//TimeValue < maxTime || TimeValue == maxTime)
             {
                 ftimeatual  = TimeValue;
                 // This time solution i for Transient Analytic Solution
@@ -1194,29 +1196,33 @@ int main(int argc, char *argv[]){
                     outputfiletemp << outputfile << ".vtk";
                     std::string plotfile = outputfiletemp.str();
                     mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-                    
-                    TPZVec<REAL> erros;
-                    
-                    saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
-                    TPZAnalysis an12(cmesh1);
-                    an12.SetExact(*SolucaoUBarryMercer);
-                    an12.PostProcessError(erros, saidaerro);
-                    
-                    
-                    saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
-                    TPZAnalysis an22(cmesh2);
-                    an22.SetExact(*SolucaoPQBarryMercer);
-                    an22.PostProcessError(erros, saidaerro);
-                    
-                    saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
-                    TPZAnalysis an32(cmesh3);
-                    an32.SetExact(*SolucaoPQBarryMercer);
-                    an32.PostProcessError(erros, saidaerro);
+//                    
+//                    TPZVec<REAL> erros;
+//            
+//                    saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
+//                    TPZAnalysis an12(cmesh1);
+//                    an12.SetExact(*SolucaoUBarryMercer);
+//                    an12.PostProcessError(erros, saidaerro);
+//                    
+//                    
+//                    saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
+//                    TPZAnalysis an22(cmesh2);
+//                    an22.SetExact(*SolucaoPQBarryMercer);
+//                    an22.PostProcessError(erros, saidaerro);
+//                    
+//                    saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
+//                    TPZAnalysis an32(cmesh3);
+//                    an32.SetExact(*SolucaoPQBarryMercer);
+//                    an32.PostProcessError(erros, saidaerro);
                 }
                 
                 cent++;
                 TimeValue = cent*deltaT;
-                
+//                if(cent==200 || TimeValue == maxTime){
+//                    TimeValue = cent*deltaT;
+//                    int res = cent%intervsaidas;
+//                }
+            
             }
             
             cmesh1->CleanUp();
@@ -1234,38 +1240,49 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingSource(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     
     REAL tp = ftimeatual;
     REAL deltaT = fdeltaT;
     REAL elarea = felarea;
     
-    REAL temp = (cos(tp) - cos(tp+deltaT))/elarea;
-    disp[0]= 2.*temp/deltaT;
+    //REAL temp =(cos(tp-deltaT) - cos(tp))/deltaT;
+//    disp[0]= 2.*temp/deltaT;
+    REAL temp = sin(tp);
+    
+    if(fdimensionless==true){
+        disp[0]= 2.*temp/elarea;
+    }
+    else disp[0]= 2.*fbeta*temp/elarea;
 }
 
-void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
-    
-    bool dimensionless = true;
-    
+void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+        
     REAL x = ptx[0];
 	REAL y = ptx[1];
-	
-    //dados adimensional
-    REAL Lx = 1.;
+    
+    //dados do problema
+	REAL Lx = 1.;
     REAL Ly = 1.;
     REAL x0 = 0.25;
-    REAL y0= 0.25;
-    REAL perm = 1.;
-    REAL visc = 1.;
-    REAL kovervisc =perm/visc;
+    REAL y0 = 0.25;
     REAL tp = ftimeatual;
     
+    REAL perm =0., visc=0., kovervisc=0.;
+    
+    //dados adimensional
+    if(fdimensionless == true)
+    {
+        perm = 1.;
+        visc = 1.;
+        kovervisc =perm/visc;
+    }
+   
+    
     //dados com dimensao
-    REAL beta = 0.;
     REAL Lref = 0.;
     REAL lamb=0., mu=0.;
-    if(dimensionless == false){
+    if(fdimensionless == false){
         
         REAL Eyoung = 1.e5;
         REAL poisson = 0.1;
@@ -1274,16 +1291,14 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
         perm =  1.e-6;
         visc =1.e-4;
         kovervisc =perm/visc;
-        Lx =1.;
-        Ly = 1.;
         Lref = sqrt(Lx*Ly);
-        beta = (lamb+2.*mu)*kovervisc/Lref;
-        tp = beta*tp;
+        //beta = (lamb+2.*mu)*kovervisc/Lref;
+        //tp = tp;
     }
 	
     int in, jq;
     REAL PI = atan(1.)*4.;
-    
+
     sol.Resize(5, 0.);
 	
     flux(0,0)=0.;
@@ -1293,14 +1308,14 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
 	REAL ptil = 0., util = 0., wtil =0., temp=0.;
     REAL sump=0., sumux = 0., sumuy = 0., sumVDx = 0., sumVDy=0.;
     
-    for(in=1; in<500; in++)
+    for(in=1; in<100; in++)
     {
         gamman = in*PI;
-        for(jq=1; jq<500; jq++)
+        for(jq=1; jq<100; jq++)
         {
             gammaq = jq*PI;
             gammanq = gamman*gamman + gammaq*gammaq;
-            temp = -2./(gammanq*gammanq+1);
+            temp = -2./(gammanq*gammanq+1.);
             
             ptil = temp*sin(gamman*x0)*sin(gammaq*y0)*(gammanq*sin(tp) - cos(tp) + exp(-gammanq*tp));
             util = gamman*ptil/gammanq;
@@ -1315,7 +1330,7 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
         }
     }
     
-    if(dimensionless == false){
+    if(fdimensionless == false){
         sol[0] = -(lamb+2.*mu)*sump;
         sol[1] = Lref*sumux;
         sol[2] = Lref*sumuy;
@@ -1331,29 +1346,34 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
     }
 }
 
-void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv){
-    
-    
-    bool dimensionless = true;
+void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
+  
     
     REAL x = ptx[0];
 	REAL y = ptx[1];
-	
-    //dados adimensional
-    REAL Lx = 1.;
+    
+    //dados do problema
+	REAL Lx = 1.;
     REAL Ly = 1.;
     REAL x0 = 0.25;
-    REAL y0= 0.25;
-    REAL perm = 1.;
-    REAL visc = 1.;
-    REAL kovervisc =perm/visc;
+    REAL y0 = 0.25;
     REAL tp = ftimeatual;
     
+    REAL perm =0., visc=0., kovervisc=0.;
+    
+    //dados adimensional
+    if(fdimensionless == true)
+    {
+        perm = 1.;
+        visc = 1.;
+        kovervisc =perm/visc;
+    }
+    
+    
     //dados com dimensao
-    REAL beta = 0.;
     REAL Lref = 0.;
     REAL lamb=0., mu=0.;
-    if(dimensionless == false){
+    if(fdimensionless == false){
         
         REAL Eyoung = 1.e5;
         REAL poisson = 0.1;
@@ -1362,11 +1382,9 @@ void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix
         perm =  1.e-6;
         visc =1.e-4;
         kovervisc =perm/visc;
-        Lx =1.;
-        Ly = 1.;
         Lref = sqrt(Lx*Ly);
-        beta = (lamb+2.*mu)*kovervisc/Lref;
-        tp = beta*tp;
+        //beta = (lamb+2.*mu)*kovervisc/Lref;
+        //tp = tp;
     }
 	
     int in, jq;
@@ -1402,7 +1420,7 @@ void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix
         }
     }
     
-    if(dimensionless == false){
+    if(fdimensionless == false){
         std::cout<<"nao foi calculdo\n";
         DebugStop();
     }
@@ -1417,28 +1435,33 @@ void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix
     
 }
 
-void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
-    
-    bool dimensionless = true;
-    
+void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+   
     REAL x = ptx[0];
 	REAL y = ptx[1];
-	
-    //dados adimensional
-    REAL Lx = 1.;
+    
+    //dados do problema
+	REAL Lx = 1.;
     REAL Ly = 1.;
     REAL x0 = 0.25;
-    REAL y0= 0.25;
-    REAL perm = 1.;
-    REAL visc = 1.;
-    REAL kovervisc =perm/visc;
+    REAL y0 = 0.25;
     REAL tp = ftimeatual;
     
+    REAL perm =0., visc=0., kovervisc=0.;
+    
+    //dados adimensional
+    if(fdimensionless == true)
+    {
+        perm = 1.;
+        visc = 1.;
+        kovervisc =perm/visc;
+    }
+    
+    
     //dados com dimensao
-    REAL beta = 0.;
     REAL Lref = 0.;
     REAL lamb=0., mu=0.;
-    if(dimensionless == false){
+    if(fdimensionless == false){
         
         REAL Eyoung = 1.e5;
         REAL poisson = 0.1;
@@ -1447,11 +1470,9 @@ void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
         perm =  1.e-6;
         visc =1.e-4;
         kovervisc =perm/visc;
-        Lx =1.;
-        Ly = 1.;
         Lref = sqrt(Lx*Ly);
-        beta = (lamb+2.*mu)*kovervisc/Lref;
-        tp = beta*tp;
+        //beta = (lamb+2.*mu)*kovervisc/Lref;
+        //tp = tp;
     }
 	
     int in, jq;
@@ -1485,7 +1506,7 @@ void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
         }
     }
     
-    if(dimensionless == false){
+    if(fdimensionless == false){
         sol[0] = -(lamb+2.*mu)*sump;
         flux(0,0) = kovervisc*(lamb+2.*mu)*sumVDx;//(multiplicado por -kovervisc, cancela com o outro sinal de menos)
         flux(1,0) = kovervisc*(lamb+2.*mu)*sumVDy;
@@ -1495,7 +1516,805 @@ void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
         flux(0,0) = sumVDx;//(multiplicado por -kovervisc, cancela com o outro sinal de menos)
         flux(1,0) = sumVDy;
     }
+
+}
+
+
+//void BarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+//    
+//    REAL x = ptx[0];
+//	REAL y = ptx[1];
+//    
+//    //dados do problema
+//	REAL Lx = 1.;
+//    REAL Ly = 1.;
+//    REAL eps = 0.0;
+//    REAL x0 = 0. + eps;
+//    REAL x1 = Lx - eps;
+//    REAL m = 1.5;
+//    REAL tp = ftimeatual;
+//    REAL Ft = sin(tp);
+//    
+//    REAL perm =0., visc=0., kovervisc=0.;
+//    
+//    //dados adimensional
+//    if(fdimensionless == true)
+//    {
+//        perm = 1.;
+//        visc = 1.;
+//        kovervisc =perm/visc;
+//    }
+//    
+//    
+//    //dados com dimensao
+//    REAL Lref = 0.;
+//    REAL lamb=0., mu=0.;
+//    if(fdimensionless == false){
+//        
+//        REAL Eyoung = 1.e5;
+//        REAL poisson = 0.5*(1.-1./m);
+//        lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+//        mu = 0.5*Eyoung/(1.+poisson);
+//        perm =  1.e-6;
+//        visc =1.e-4;
+//        kovervisc =perm/visc;
+//        Lref = sqrt(Lx*Ly);
+//        //beta = (lamb+2.*mu)*kovervisc/Lref;
+//        //tp = tp;
+//    }
+//	
+//    int in, jq;
+//    REAL PI = atan(1.)*4.;
+//    
+//    sol.Resize(5, 0.);
+//	
+//    flux(0,0)=0.;
+//    flux(1,0)=0.;
+//    
+//    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+//	REAL ptil = 0., util = 0., wtil =0.;
+//    REAL sump=0., sumux = 0., sumuy = 0., sumVDx = 0., sumVDy=0., temp=0.;
+//    
+//    for(in=1; in<=100; in++)
+//    {
+//        gamman = in*PI;
+//        temp = (eps*eps*eps)*(gamman*gamman*gamman*gamman);
+//        
+//        //Funcao Heaviside
+////        ptil = ((cos(gamman*x0)-cos(gamman*x1)))/gamman;
+//        
+//        //Funcao Heaviside suave
+////        if(x>=(x0 - eps) && x<=x0) ptil = (eps*gamman*(-(6.+ eps*eps*gamman*gamman)*cos(gamman*x0) - 6.*cos(gamman*(x0-eps))) + 12.*(sin(gamman*(eps - x0)) + sin(gamman*x0)))/temp;
+////        
+////        if(x>=x0 && x<=x1) ptil = ((cos(gamman*x0)-cos(gamman*x1)))/gamman;
+////        
+////        if(x>=x1 && x<=(x1+eps)) ptil = (eps*gamman*(6.+ eps*eps*gamman*gamman)*cos(gamman*x1) +
+////            6.*eps*gamman*cos(gamman*(eps+x1)) + 12.*sin(gamman*x1) - 12.*sin(gamman*(eps+x1)))/temp;
+////        
+//         if(fabs(y)==0)
+//         {
+//             
+//             //Funcao Heaviside suave
+////            if(x>=(x0 - eps) && x<x0) ptil = (eps*gamman*(-(6.+ eps*eps*gamman*gamman)*cos(gamman*x0) - 6.*cos(gamman*(x0-eps))) + 12.*(sin(gamman*(eps - x0)) + sin(gamman*x0)))/temp;
+////
+////            if(x>=x0 && x<=x1) ptil = ((cos(gamman*x0)-cos(gamman*x1)))/gamman;
+////
+////            if(x>x1 && x<=(x1+eps)) ptil = (eps*gamman*(6.+ eps*eps*gamman*gamman)*cos(gamman*x1) +
+////                6.*eps*gamman*cos(gamman*(eps+x1)) + 12.*sin(gamman*x1) - 12.*sin(gamman*(eps+x1)))/temp;
+////            
+////             ptil = ptil*Ft;
+//             
+//             ptil = ((cos(gamman*x0)-cos(gamman*x1))*Ft)/gamman;
+//             sump += ptil*sin(gamman*x);
+//             sumVDx += ptil*gamman*cos(gamman*x);//(multiplicado por -1, multipliquei depois da soma)
+//             sumVDy = 0.;//(multiplicado por -1, multipliquei depois da soma)
+//             
+//             for(jq=1; jq<=100; jq++)
+//             {
+//                 gammaq = jq*PI;
+//                 gammanq = gamman*gamman + gammaq*gammaq;
+//                 
+//                 util = (gamman*ptil)/gammanq;
+//                 wtil = (gamman*gamman*ptil)/(gammanq*gammaq);
+//                 
+//                 sumux += util*cos(gamman*x)*sin(gammaq*y);
+//                 sumuy += wtil*sin(gamman*x)*cos(gammaq*y);
+//             }
+//        
+//         }else
+//         {
+//            for(jq=1; jq<=100; jq++)
+//            {
+//                gammaq = jq*PI;
+//                gammanq = gamman*gamman + gammaq*gammaq;
+//                
+//                //Funcao Heaviside suave
+////                if(x>=(x0 - eps) && x<x0) ptil = (eps*gamman*(-(6.+ eps*eps*gamman*gamman)*cos(gamman*x0) - 6.*cos(gamman*(x0-eps))) + 12.*(sin(gamman*(eps - x0)) + sin(gamman*x0)))/temp;
+////                
+////                if(x>=x0 && x<=x1) ptil = ((cos(gamman*x0)-cos(gamman*x1)))/gamman;
+////                
+////                if(x>x1 && x<=(x1+eps)) ptil = (eps*gamman*(6.+ eps*eps*gamman*gamman)*cos(gamman*x1) +
+////                                                6.*eps*gamman*cos(gamman*(eps+x1)) + 12.*sin(gamman*x1) - 12.*sin(gamman*(eps+x1)))/temp;
+////                ptil = (gammaq*ptil*Ft)/gammanq;
+//                
+//                ptil = (gammaq*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gammanq);
+//                util = (gamman*ptil)/gammanq;
+//                wtil = (gamman*gamman*ptil)/(gammanq*gammaq);
+//                
+//                sump += ptil*sin(gamman*x)*sin(gammaq*y);
+//                sumux += util*cos(gamman*x)*sin(gammaq*y);
+//                sumuy += wtil*sin(gamman*x)*cos(gammaq*y);
+//                sumVDx += ptil*gamman*cos(gamman*x)*sin(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+//                sumVDy += ptil*gammaq*sin(gamman*x)*cos(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+//            }
+//         }
+//    }
+//    
+//    REAL termo1=0., termo2=0.;
+//    termo1 = (1.+m);
+//    termo2 = 4./(Lx*Ly);
+//    
+//    if(fabs(y)==0){
+//        sump = 2.*sump;
+//    }else{
+//        sump = termo2*sump;
+//    }
+//    sumux = -termo1*termo2*sumux;
+//    sumuy = termo1*termo2*sumuy;
+//    sumVDx = -termo2*sumVDx;
+//    sumVDy = -termo2*sumVDy;
+//    
+//    if(fdimensionless == false){
+//        sol[0] = (lamb+2.*mu)*sump;
+//        sol[1] = Lref*sumux;
+//        sol[2] = Lref*sumuy;
+//        flux(0,0) = kovervisc*(lamb+2.*mu)*sumVDx; 
+//        flux(1,0) = kovervisc*(lamb+2.*mu)*sumVDy; 
+//    }
+//    else{
+//        sol[0] = sump;
+//        sol[1] = sumux;
+//        sol[2] = sumuy;
+//        flux(0,0) = sumVDx;
+//        flux(1,0) = sumVDy;
+//    }
+//}
+
+
+void BarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
     
+    REAL x = ptx[0];
+	REAL y = ptx[1];
+    
+    //dados do problema
+	REAL Lx = 1.;
+    REAL Ly = 1.;
+    REAL eps = 0.0;
+    REAL x0 = 0. + eps;
+    REAL x1 = Lx - eps;
+    REAL m = 1.5;
+    REAL tp = ftimeatual;
+    REAL Ft = sin(tp);
+    
+    REAL perm =0., visc=0., kovervisc=0.;
+    
+    //dados adimensional
+    if(fdimensionless == true)
+    {
+        perm = 1.;
+        visc = 1.;
+        kovervisc =perm/visc;
+    }
+    
+    
+    //dados com dimensao
+    REAL Lref = 0.;
+    REAL lamb=0., mu=0.;
+    if(fdimensionless == false){
+        
+        REAL Eyoung = 1.e5;
+        REAL poisson = 0.5*(1.-1./m);
+        lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+        mu = 0.5*Eyoung/(1.+poisson);
+        perm =  1.e-6;
+        visc =1.e-4;
+        kovervisc =perm/visc;
+        Lref = sqrt(Lx*Ly);
+        //beta = (lamb+2.*mu)*kovervisc/Lref;
+        //tp = tp;
+    }
+	
+    int in, jq;
+    REAL PI = atan(1.)*4.;
+    
+    sol.Resize(5, 0.);
+	
+    flux(0,0)=0.;
+    flux(1,0)=0.;
+    
+    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+	REAL ptil1 = 0., ptil2 = 0.,util = 0.,wtil1 =0., wtil2 =0.;
+    REAL sump=0., sump1=0.,sump2=0.,sumux = 0., sumuy = 0., sumVDx = 0., sumVDy=0.;
+    
+    for(in=1; in<=300; in++)
+    {
+        gamman = in*PI;
+        wtil1 = (2.*(1.+m)*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gamman*gamman);
+        sumuy += wtil1*sin(gamman*x);
+        
+        if(fabs(y)==0)
+        {
+            ptil1 = ((cos(gamman*x0)-cos(gamman*x1))*Ft)/gamman;
+            sump1 += 2.*ptil1*sin(gamman*x);
+//            ForcingBCPressao(ptx,sol);
+//            sump1 = sol[0];
+            sumVDx += 2.*(cos(gamman*x0)-cos(gamman*x1))*Ft*cos(gamman*x);
+            sumVDy = 0.;
+        }
+        
+        for(jq=1; jq<=300; jq++)
+        {
+            gammaq = jq*PI;
+            gammanq = gamman*gamman + gammaq*gammaq;
+            
+            ptil2 = (4.*gammaq*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gammanq);
+            util = ((-1.-m)*gamman*ptil2)/gammanq;
+            wtil2 = ((1.+m)*gamman*gamman*ptil2)/(gammanq*gammaq);
+            
+            if(fabs(y)>0){
+                sump2 += ptil2*sin(gamman*x)*sin(gammaq*y);
+                sumVDx += ptil2*gamman*cos(gamman*x)*sin(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+                sumVDy += ptil2*gammaq*sin(gamman*x)*cos(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+            }
+            sumux += util*cos(gamman*x)*sin(gammaq*y);
+            sumuy += wtil2*sin(gamman*x)*cos(gammaq*y);
+        }
+    }
+    
+    REAL termo1=0.;
+    termo1 = 1./(Lx*Ly);
+    
+    if(fabs(y)==0){
+        sump = sump1;
+    }else sump = sump2;
+    
+    sumux = termo1*sumux;
+    sumuy = termo1*sumuy;
+    sumVDx = -termo1*sumVDx;
+    sumVDy = -termo1*sumVDy;
+    
+    if(fdimensionless == false){
+        sol[0] = (lamb+2.*mu)*sump;
+        sol[1] = Lref*sumux;
+        sol[2] = Lref*sumuy;
+        flux(0,0) = kovervisc*(lamb+2.*mu)*sumVDx;
+        flux(1,0) = kovervisc*(lamb+2.*mu)*sumVDy; 
+    }
+    else{
+        sol[0] = sump;
+        sol[1] = sumux;
+        sol[2] = sumuy;
+        flux(0,0) = sumVDx;
+        flux(1,0) = sumVDy;
+    }
+}
+
+
+void SolUBarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &deriv){
+    
+    
+    REAL x = ptx[0];
+	REAL y = ptx[1];
+    
+    //dados do problema
+	REAL Lx = 1.;
+    REAL Ly = 1.;
+    REAL eps = 0.0;
+    REAL x0 = 0. + eps;
+    REAL x1 = Lx - eps;
+    REAL m = 1.5;
+    REAL tp = ftimeatual;
+    REAL Ft = sin(tp);
+    
+    REAL perm =0., visc=0., kovervisc=0.;
+    
+    //dados adimensional
+    if(fdimensionless == true)
+    {
+        perm = 1.;
+        visc = 1.;
+        kovervisc =perm/visc;
+    }
+    
+    
+    //dados com dimensao
+    REAL Lref = 0.;
+    REAL lamb=0., mu=0.;
+    if(fdimensionless == false){
+        
+        REAL Eyoung = 1.e5;
+        REAL poisson = 0.5*(1.-1./m);
+        lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+        mu = 0.5*Eyoung/(1.+poisson);
+        perm =  1.e-6;
+        visc =1.e-4;
+        kovervisc =perm/visc;
+        Lref = sqrt(Lx*Ly);
+        //beta = (lamb+2.*mu)*kovervisc/Lref;
+        //tp = tp;
+    }
+	
+    int in, jq;
+    REAL PI = atan(1.)*4.;
+    
+    sol.Resize(2, 0.);
+    deriv.Redim(2, 2);
+	
+    
+    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+	REAL ptil = 0., util = 0., wtil1 =0., wtil2 =0.;
+    REAL sumux = 0., sumuy = 0.;
+    REAL sumDux = 0., sumDuy = 0.,sumDuxy = 0.,sumDuyx = 0.;
+    
+    for(in=1; in<=40; in++)
+    {
+        gamman = in*PI;
+        wtil1 = (2.*(1.+ m)*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gamman*gamman);
+        sumuy += wtil1*sin(gamman*x);
+        sumDuyx += gamman*wtil1*cos(gamman*x);
+            
+        for(jq=1; jq<=40; jq++)
+        {
+            gammaq = jq*PI;
+            gammanq = gamman*gamman + gammaq*gammaq;
+            
+            ptil = (4.*gammaq*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gammanq);
+            util = ((-1.-m)*gamman*ptil)/gammanq;
+            wtil2 = ((1.+m)*gamman*gamman*ptil)/(gammanq*gammaq);
+            
+            sumux += util*cos(gamman*x)*sin(gammaq*y);
+            sumuy += wtil2*sin(gamman*x)*cos(gammaq*y);
+            
+            sumDux += gamman*util*sin(gamman*x)*sin(gammaq*y);//multiplicar por -1
+            sumDuxy += gammaq*util*cos(gamman*x)*cos(gammaq*y);
+            sumDuy += gammaq*wtil2*sin(gamman*x)*sin(gammaq*y);//multiplicar por -1
+            sumDuyx += gamman*wtil2*cos(gamman*x)*cos(gammaq*y);
+        }
+    }
+    
+    REAL termo1=0.;
+    termo1 = 1./(Lx*Ly);
+    
+    sumux = termo1*sumux;
+    sumuy = termo1*sumuy;
+    
+    sumDux = -termo1*sumDux;
+    sumDuxy = termo1*sumDuxy;
+    sumDuy = -termo1*sumDuy;
+    sumDuyx = termo1*sumDuyx;
+    
+    if(fdimensionless == false){
+        sol[0] = Lref*sumux;
+        sol[1] = Lref*sumuy;
+        deriv(0,0) = Lref*sumDux;
+        deriv(0,1) = Lref*sumDuxy;
+        deriv(1,0) = Lref*sumDuyx;
+        deriv(1,1) = Lref*sumDuy;
+    }
+    else{
+        sol[0] = sumux;
+        sol[1] = sumuy;
+        deriv(0,0) = sumDux;
+        deriv(0,1) = sumDuxy;
+        deriv(1,0) = sumDuyx;
+        deriv(1,1) = sumDuy;
+    }
+}
+
+void SolPBarryMercerPressureSolution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+    
+    REAL x = ptx[0];
+	REAL y = ptx[1];
+    
+    //dados do problema
+	REAL Lx = 1.;
+    REAL Ly = 1.;
+    REAL eps = 0.0;
+    REAL x0 = 0. + eps;
+    REAL x1 = Lx - eps;
+    REAL m = 1.5;
+    REAL tp = ftimeatual;
+    REAL Ft = sin(tp);
+    
+    REAL perm =0., visc=0., kovervisc=0.;
+    
+    //dados adimensional
+    if(fdimensionless == true)
+    {
+        perm = 1.;
+        visc = 1.;
+        kovervisc =perm/visc;
+    }
+    
+    
+    //dados com dimensao
+    REAL Lref = 0.;
+    REAL lamb=0., mu=0.;
+    if(fdimensionless == false){
+        
+        REAL Eyoung = 1.e5;
+        REAL poisson = 0.5*(1.-1./m);
+        lamb = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));
+        mu = 0.5*Eyoung/(1.+poisson);
+        perm =  1.e-6;
+        visc =1.e-4;
+        kovervisc =perm/visc;
+        Lref = sqrt(Lx*Ly);
+        //beta = (lamb+2.*mu)*kovervisc/Lref;
+        //tp = tp;
+    }
+	
+    int in, jq;
+    REAL PI = atan(1.)*4.;
+    
+    sol.Resize(5, 0.);
+	
+    flux(0,0)=0.;
+    flux(1,0)=0.;
+    
+    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+    REAL ptil1=0., ptil2 = 0.;
+    REAL sump=0., sump1=0.,sump2=0.,sumVDx = 0., sumVDy=0.;
+    
+    for(in=1; in<=40; in++)
+    {
+        gamman = in*PI;
+        if(fabs(y)==0)
+        {
+            ptil1 = ((cos(gamman*x0)-cos(gamman*x1))*Ft)/gamman;
+            sump1 += 2.*ptil1*sin(gamman*x);
+//            ForcingBCPressao(ptx,sol);
+//            sump1 = sol[0];
+            sumVDx += 2.*(cos(gamman*x0)-cos(gamman*x1))*Ft*cos(gamman*x);
+            sumVDy = 0.;
+        }
+        
+        for(jq=1; jq<=40; jq++)
+        {
+            gammaq = jq*PI;
+            gammanq = gamman*gamman + gammaq*gammaq;
+            
+            ptil2 = 4.*(gammaq*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gammanq);
+                    
+            if(fabs(y)>0){
+                sump2 += ptil2*sin(gamman*x)*sin(gammaq*y);
+                sumVDx += ptil2*gamman*cos(gamman*x)*sin(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+                sumVDy += ptil2*gammaq*sin(gamman*x)*cos(gammaq*y);//(multiplicado por -1, multipliquei depois da soma)
+            }
+        }
+    }
+    
+    if(fabs(y)==0){
+        sump = sump1;
+    }else sump = sump2;
+    
+    sumVDx = -sumVDx;
+    sumVDy = -sumVDy;
+    
+    if(fdimensionless == false){
+        sol[0] = (lamb+2.*mu)*sump;
+        //flux(0,0) = kovervisc*(lamb+2.*mu)*sumVDx;
+        //flux(1,0) = kovervisc*(lamb+2.*mu)*sumVDy;
+    }
+    else{
+        sol[0] = sump;
+        //flux(0,0) = sumVDx;
+        //flux(1,0) = sumVDy;
+    }
+}
+
+
+REAL HeavisideFunction(REAL val){
+    
+    if(val>=0.) return 1.;
+    else return 0.;
+}
+
+void ForcingBCPressao(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+    
+    REAL tp = ftimeatual;
+    REAL x = pt[0];
+    
+    REAL BC=0.;
+    REAL eps = 0.0;
+    REAL x0 = 0. + eps;
+    REAL x1 = 1. - eps;
+    
+    BC = (HeavisideFunction(x-x0) - HeavisideFunction(x-x1));
+    
+    
+//    if(x>=(x0 - eps) && x<=x0) BC = ((eps + 2.*x0 - 2.*x)*(eps - x0 + x)*(eps - x0 + x))/(eps*eps*eps);
+//    if(x>=x0 && x<=x1) BC = 1.;
+//    if(x>=x1 && x<=(x1+eps)) BC = ((eps + x1 - x)*(eps + x1 - x)*(eps - 2.*x1 + 2.*x))/(eps*eps*eps);
+    
+    disp[0] = BC*sin(tp);
+}
+
+void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+    
+    REAL x = pt[0];
+    
+    //dados do problema
+	REAL Lx = 1.;
+
+    REAL eps = 0.0;
+    REAL x0 = 0. + eps;
+    REAL x1 = Lx - eps;
+    REAL m = 1.5;
+    REAL tp = ftimeatual;
+    REAL Ft = sin(tp);
+    
+    int in, jq;
+    REAL PI = atan(1.)*4.;
+    
+    disp.Resize(4,0.);
+	
+    
+    REAL gamman = 0., gammaq = 0., gammanq = 0.;
+	REAL ptil2 = 0., wtil1 =0., wtil2 =0.;
+    REAL sumuy = 0., sumvDy = 0., ptil1=0., sump1=0.;
+    
+    for(in=1; in<=300; in++)
+    {
+        gamman = in*PI;
+        wtil1 = ((cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gamman*gamman);
+        sumuy += 2.*wtil1*sin(gamman*x);
+        
+        ptil1 = ((cos(gamman*x0)-cos(gamman*x1))*Ft)/gamman;
+        sump1 += 2.*ptil1*sin(gamman*x);
+        
+        for(jq=1; jq<=300; jq++)
+        {
+            gammaq = jq*PI;
+            gammanq = gamman*gamman + gammaq*gammaq;
+            
+            
+            ptil2 = (gammaq*(cos(gamman*x0)-cos(gamman*x1))*Ft)/(gamman*gammanq);
+            wtil2 = (gamman*gamman*ptil2)/(gammanq*gammaq);
+            sumuy += 4.*wtil2*sin(gamman*x);
+            sumvDy += ptil2*gammaq*sin(gamman*x)*cos(gammaq);
+        }
+    }
+    
+    disp[0] = 0.;//ux
+    disp[1] = (1.+m)*sumuy;//uy
+    
+    REAL BC =(HeavisideFunction(x-x0) - HeavisideFunction(x-x1));
+    
+//    if(x>=(x0 - eps) && x<=x0) BC = ((eps + 2.*x0 - 2.*x)*(eps - x0 + x)*(eps - x0 + x))/(eps*eps*eps);
+//    if(x>=x0 && x<=x1) BC = 1.;
+//    if(x>=x1 && x<=(x1+eps)) BC = ((eps + x1 - x)*(eps + x1 - x)*(eps - 2.*x1 + 2.*x))/(eps*eps*eps);
+    
+    disp[2] = /*sump1;*/BC*sin(tp);//pressao
+    
+    //disp[3] = -4.*sumvDy;
+}
+
+//Problema Barry and Mercer: pressure solution
+int main(int argc, char *argv[]){
+    
+    //    #ifdef LOG4CXX
+    //        InitializePZLOG();
+    //    #endif
+    
+    
+    bool triang = false;
+    fdimensionless = true;
+    
+    ///-------------------
+    
+    //dados do problema
+	REAL Lx = 1.;
+    REAL Ly = 1.;
+
+    REAL m = 1.5;//relacao entre os parametros de Lame
+    REAL sig0 =0.;
+    REAL pini = 0.;
+    REAL alpha = 1.0;
+    REAL Se = 0.;
+    REAL Eyoung = 1.e5;
+    REAL poisson = 0.5*(1.-1./m);
+    REAL perm = 1.e-6;
+    REAL visc = 1.e-4;
+   
+    REAL rockrho = 0.;
+    REAL gravity = 0.;
+    REAL fx=0.0;
+    REAL fy = gravity*rockrho;
+    
+    //trabalho com o tempo adimensional
+    REAL timeT = /*0.00293215;*/0.00146608;
+    REAL lambda = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));//firstlame
+    REAL mu = 0.5*Eyoung/(1+poisson);//secondlame
+    REAL Se_aux = alpha*alpha/(lambda+2.*mu);
+    REAL kovervisc = perm/visc;
+    REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
+    REAL beta = Cf/(Ly*Ly);
+    timeT = timeT*beta;
+
+    
+    //dados adimensional
+    if(fdimensionless==true)
+    {
+        REAL Lref = sqrt(Lx*Ly);
+        REAL lambdaD = lambda*Se_aux;
+        REAL muD = mu*Se_aux;
+        
+        //adimemsionalizando
+        Eyoung = muD*(3.*lambdaD+2.*muD)/(lambdaD+muD);
+        poisson = 0.5*lambdaD/(lambdaD+muD);
+        sig0 = 0.;
+        pini = 0.;
+        Lx = Lx/Lref;
+        Ly = Ly/Lref;
+        perm = 1.;
+        visc = 1.;
+        fx = 0.;
+        fy = 0.;
+        Se = 0.;//Incompressible fluid (Se=0)
+    }
+    
+       
+    DadosMalhas * mydata = new DadosMalhas();
+    mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
+    
+    ofstream saidaerro("Erro.txt");
+    for(int p = 1; p<2; p++)
+    {
+        int pu = p;
+        int pq = pu;
+        int pp = p-1;
+        
+        if(triang==false){
+            pu = p+1;
+            pq = p;
+            pp = p;
+        }
+
+        int h;
+        
+        saidaerro<<"\n CALCULO DO ERRO, ELEM. TRIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
+        for (h = 4; h<6; h++)
+        {
+            
+            saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
+            
+            // geometric mesh (initial)
+            //TPZGeoMesh * gmesh = mydata->GMesh4(Lx, Ly,h,0);//GMesh(triang, Lx, Ly);
+            TPZGeoMesh * gmesh = mydata->GMesh(triang, Lx, Ly);
+            mydata->UniformRefine(gmesh, h);
+            //            std::ofstream malhaGeo("gmesh2D.txt")
+            //            gmesh->Print(malhaGeo);
+            
+            // First computational mesh
+            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true);
+            ofstream arg1("cmesh1.txt");
+            cmesh1->Print(arg1);
+            
+            // second computational mesh
+            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true);
+            ofstream arg2("cmesh2.txt");
+            cmesh2->Print(arg2);
+            
+            // Third computational mesh
+            TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang,true);
+            ofstream arg3("cmesh3.txt");
+            cmesh3->Print(arg3);
+            
+            //malha multifisica
+            TPZVec<TPZCompMesh *> meshvec(3);
+            meshvec[0] = cmesh1;
+            meshvec[1] = cmesh2;
+            meshvec[2] = cmesh3;
+            
+            TPZPoroElasticMF2d * mymaterial;
+            TPZAutoPointer<TPZFunction<STATE> > BCPress = new TPZDummyFunction<STATE>(ForcingBCPressao);
+            TPZAutoPointer<TPZFunction<STATE> > BCTerm = new TPZDummyFunction<STATE>(ForcingBCDeslocamento);
+            TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(BarryMercerPressureSolution);
+            
+            TPZCompMesh * mphysics = mydata->MalhaCompBarryMercerPressureSolution(gmesh,meshvec,mymaterial,BCTerm, solExata);
+           // ofstream arg8("mphysic.txt");
+            //mphysics->Print(arg8);
+            
+            //            ofstream arg9("gmesh_final.txt");
+            //            gmesh->Print(arg9);
+            
+            
+            int NDeltaT =10;
+            int intervsaidas = NDeltaT/1;
+            REAL deltaT=timeT/NDeltaT; //second
+            mymaterial->SetTimeStep(deltaT);
+            //REAL maxTime = timeT;
+            fdeltaT = deltaT;
+            
+            //mydata->SolveSistBarryMercert(deltaT, maxTime, meshvec, mphysics,1,ftimeatual);
+            
+            
+            ///======== Impimir Erros ========
+            TPZAnalysis an(mphysics);
+            TPZFMatrix<REAL> Initialsolution = an.Solution();
+            
+            std::string outputfile;
+            outputfile = "TransientSolution";
+            
+            //Criando matriz de massa (matM)
+            TPZAutoPointer <TPZMatrix<REAL> > matM = mydata->MassMatrix(mymaterial, mphysics);
+            
+            //Criando matriz de rigidez (matK) e vetor de carga
+            TPZFMatrix<REAL> matK;
+            TPZFMatrix<REAL> fvec;
+            //mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+            
+            int nrows;
+            nrows = matM->Rows();
+            TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
+            TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
+            TPZFMatrix<REAL> Lastsolution = Initialsolution;
+            
+            REAL TimeValue = 0.0;
+            int cent = 1;
+            TimeValue = cent*deltaT;
+            while (cent<NDeltaT+1)//TimeValue < maxTime || TimeValue == maxTime)
+            {
+                ftimeatual  = TimeValue;
+                // This time solution i for Transient Analytic Solution
+                matM->Multiply(Lastsolution,TotalRhstemp);
+                mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+                
+                TotalRhs = fvec + TotalRhstemp;
+                an.Rhs() = TotalRhs;
+                an.Solve();
+                Lastsolution = an.Solution();
+                
+                if(cent%intervsaidas==0)
+                {
+                    saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
+                    
+                    std::stringstream outputfiletemp;
+                    outputfiletemp << outputfile << ".vtk";
+                    std::string plotfile = outputfiletemp.str();
+                    mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+
+                    TPZVec<REAL> erros;
+
+                    saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
+                    TPZAnalysis an12(cmesh1);
+                    an12.SetExact(*SolUBarryMercerPressureSolution);
+                    an12.PostProcessError(erros, saidaerro);
+
+                    saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
+                    TPZAnalysis an32(cmesh3);
+                    an32.SetExact(*SolPBarryMercerPressureSolution);
+                    an32.PostProcessError(erros, saidaerro);
+                }
+                
+                cent++;
+                TimeValue = cent*deltaT;
+            }
+            
+            cmesh1->CleanUp();
+            cmesh2->CleanUp();
+            cmesh3->CleanUp();
+            //mphysics->CleanUp();
+            delete cmesh1;
+            delete cmesh2;
+            delete cmesh3;
+            //delete mphysics;
+            delete gmesh;
+        }
+    }
+    
+    return 0;
 }
 
 
@@ -1552,7 +2371,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     TPZGeoEl * gel = NULL;
     for(int r = 0; r < nref; r++)
     {
-        gel = gmesh->FindElement(pt, qsi, iniEl, 2);
+        gel = gmesh->FindElement(pt, qsi, iniEl,2);
         if(!gel) DebugStop();
         if(gel->Dimension()==2)
         {
@@ -1589,7 +2408,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     
     if(changeMatId==true)
     {
-        gel = gmesh->FindElement(pt, qsi, iniEl, 2);
+        gel = gmesh->FindElement(pt, qsi, iniEl,2);
         if(!gel) DebugStop();
         gel->SetMaterialId(newmatId);
         Area = gel->Volume();

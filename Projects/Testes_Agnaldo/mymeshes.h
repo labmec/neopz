@@ -61,7 +61,7 @@ public:
  
     TPZGeoMesh *GMesh2(REAL L, REAL w);
     TPZGeoMesh *GMesh3(REAL L, REAL w);
-    TPZGeoMesh *GMesh4(REAL L, REAL w);
+    TPZGeoMesh *GMesh4(REAL L, REAL w,int h, int nrefdir);
     
     void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
     
@@ -76,18 +76,20 @@ public:
     TPZCompMesh *MalhaCompTerzaghi(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial,TPZAutoPointer<TPZFunction<STATE> > solExata);
     
     TPZCompMesh *MalhaCompBarryMercer(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZAutoPointer<TPZFunction<STATE> > sourceterm, TPZAutoPointer<TPZFunction<STATE> > solExata);
+    
+    TPZCompMesh *MalhaCompBarryMercerPressureSolution(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElasticMF2d * &mymaterial, TPZAutoPointer<TPZFunction<STATE> > BCterm, TPZAutoPointer<TPZFunction<STATE> > solExata);
 
     
     void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 
 
-    TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZPoroElasticMF2d *mymateria, TPZCompMesh *mphysics);
+    TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZPoroElasticMF2d *mymateria, TPZCompMesh *mphysics);
     
-    TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZCompMesh *mphysics);
+    TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZCompMesh *mphysics);
 
-    void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec);
+    void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
     
-    void StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec);
+    void StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
 
     void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 
@@ -174,6 +176,9 @@ protected:
     int  fdirneum;
     int  fmixedneum;
     int  fmixeddirich;
+    
+    int fmixedFreeXYdirich;
+    int fmixedFreeYXdirich;
 };
 
 #endif /* defined(__PZ__mymeshes__) */
