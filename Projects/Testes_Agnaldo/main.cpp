@@ -2135,7 +2135,7 @@ int main(int argc, char *argv[]){
     REAL fy = gravity*rockrho;
     
     //trabalho com o tempo adimensional
-    REAL timeT = /*0.00293215;*/0.00146608;
+    REAL timeT = /*0.00293215;*/0.00146608/2;
     REAL lambda = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));//firstlame
     REAL mu = 0.5*Eyoung/(1+poisson);//secondlame
     REAL Se_aux = alpha*alpha/(lambda+2.*mu);
@@ -2186,7 +2186,7 @@ int main(int argc, char *argv[]){
         int h;
         
         saidaerro<<"\n CALCULO DO ERRO, ELEM. TRIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 4; h<5; h++)
+        for (h = 0; h< 6; h++)
         {
             saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
             
@@ -2231,8 +2231,8 @@ int main(int argc, char *argv[]){
             //            gmesh->Print(arg9);
             
             
-            int NDeltaT =10;
-            int intervsaidas = NDeltaT/10;
+            int NDeltaT =1000000;
+            int intervsaidas = NDeltaT/1;
             REAL deltaT=timeT/NDeltaT; //second
             mymaterial->SetTimeStep(deltaT);
             //REAL maxTime = timeT;
