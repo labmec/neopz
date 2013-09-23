@@ -1091,6 +1091,7 @@ TPZAutoPointer <TPZMatrix<REAL> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * m
     mymaterial->SetLastState();
     //TPZSkylineStructMatrix matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
+    matsp.SetNumThreads(30);
     
 	std::set< int > materialid;
 	int matid = mymaterial->MatId();
@@ -1118,6 +1119,7 @@ TPZAutoPointer <TPZMatrix<REAL> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics)
     
     //TPZSkylineStructMatrix matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
+    matsp.SetNumThreads(30);
 	std::set< int > materialid;
 	materialid.insert(fmatId);
     materialid.insert(fmatId+1);
@@ -1137,6 +1139,7 @@ void DadosMalhas::StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh
     mymaterial->SetCurrentState();
     //TPZFStructMatrix matsk(mphysics);
     TPZSkylineStructMatrix matsk(mphysics);
+    matsk.SetNumThreads(30);
 	an.SetStructuralMatrix(matsk);
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt);
@@ -1170,6 +1173,7 @@ void DadosMalhas::StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZ
     //TPZFStructMatrix matsk(mphysics);
     TPZSkylineStructMatrix matsk(mphysics);
 	an.SetStructuralMatrix(matsk);
+    matsk.SetNumThreads(30);
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt);
 	//step.SetDirect(ELU);

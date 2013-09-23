@@ -2100,6 +2100,8 @@ void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     //disp[3] = -4.*sumvDy;
 }
 
+#include "pzgradientreconstruction.h"
+
 //Problema Barry and Mercer: pressure solution
 int main(int argc, char *argv[]){
     
@@ -2108,7 +2110,7 @@ int main(int argc, char *argv[]){
     //    #endif
     
     
-    bool triang = false;
+    bool triang = true;
     fdimensionless = true;
     
     ///-------------------
@@ -2184,9 +2186,8 @@ int main(int argc, char *argv[]){
         int h;
         
         saidaerro<<"\n CALCULO DO ERRO, ELEM. TRIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 4; h<6; h++)
+        for (h = 4; h<5; h++)
         {
-            
             saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
             
             // geometric mesh (initial)
@@ -2231,7 +2232,7 @@ int main(int argc, char *argv[]){
             
             
             int NDeltaT =10;
-            int intervsaidas = NDeltaT/1;
+            int intervsaidas = NDeltaT/10;
             REAL deltaT=timeT/NDeltaT; //second
             mymaterial->SetTimeStep(deltaT);
             //REAL maxTime = timeT;
@@ -2276,6 +2277,7 @@ int main(int argc, char *argv[]){
                 an.Solve();
                 Lastsolution = an.Solution();
                 
+                
                 if(cent%intervsaidas==0)
                 {
                     saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
@@ -2284,7 +2286,7 @@ int main(int argc, char *argv[]){
                     outputfiletemp << outputfile << ".vtk";
                     std::string plotfile = outputfiletemp.str();
                     mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-
+                    
                     TPZVec<REAL> erros;
 
                     saidaerro<<" Erro da simulacao multifisica do deslocamento (u)" <<endl;
@@ -2311,8 +2313,30 @@ int main(int argc, char *argv[]){
             delete cmesh3;
             //delete mphysics;
             delete gmesh;
+            
+            
+//            TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(1);
+//            gradreconst->UseWeightCoefficients();
+//            //gradreconst->UseSlopeLimiter();
+//            cmesh3->LoadReferences();
+//            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+//            TPZFMatrix<REAL> datagradients;
+//            gradreconst->GetDataGradient(cmesh3, datagradients);
+//            
+//            TPZManVector<std::string,10> scalnames(1), vecnames(0);
+//            scalnames[0] = "Solution";
+//            std::string plotfile4("saidaSolP.vtk");
+//            const int dim = 2;
+//            int div = 0;
+//            TPZAnalysis ann(cmesh3);
+//            ann.DefineGraphMesh(dim,scalnames,vecnames,plotfile4);
+//            ann.PostProcess(div,dim);
+
+            
         }
     }
+    
+   
     
     return 0;
 }
