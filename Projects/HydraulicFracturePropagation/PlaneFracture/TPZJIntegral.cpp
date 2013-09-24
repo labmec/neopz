@@ -490,6 +490,48 @@ TPZVec<REAL> ArcPath3D::Func(REAL t)
 
 TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
+    TPZFMatrix<STATE> Sigma(3,3), strain(3,3), GradUtxy(3,3);
+    Sigma.Zero();
+    strain.Zero();
+    GradUtxy.Zero();
+    
+    ComputeElasticData(t, xt, GradUtxy, Sigma, strain);
+    
+    TPZFMatrix<STATE> GradUt_Sigma(3,3,0.);
+    GradUtxy.Multiply(Sigma, GradUt_Sigma);
+    
+    REAL W = 0.;
+    for(int r = 0; r < 3; r++)
+    {
+        for(int c = 0; c < 3; c++)
+        {
+            W += 0.5*Sigma(r,c)*strain(r,c);
+        }
+    }
+    
+    TPZFMatrix<STATE> W_I(3,3,0.);
+    for(int d = 0; d < 3; d++)
+    {
+        W_I(d,d) = W;
+    }
+    
+    TPZFMatrix<STATE> W_I_minus_GradUt_Sigma(3,3,0.);
+    W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
+    
+    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(3,0.);
+    for(int r = 0; r < 3; r++)
+    {
+        for(int c = 0; c < 3; c++)
+        {
+            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
+        }
+    }
+    
+    return W_I_minus_GradUt_Sigma__n;
+}
+
+void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZFMatrix<REAL> & Sigma, TPZFMatrix<REAL> & strain)
+{
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
@@ -536,11 +578,6 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<STATE> Sigma(3,3), strain(3,3), GradUtxy(3,3);
-    Sigma.Zero();
-    strain.Zero();
-    GradUtxy.Zero();
-
     GradUtxy = data.dsol[0];
     
     TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
@@ -555,38 +592,6 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     
     elast3D->ComputeStressTensor(Sigma, data);
     elast3D->ComputeStrainTensor(strain, GradUtxy);
-    
-    TPZFMatrix<STATE> GradUt_Sigma(3,3,0.);
-    GradUtxy.Multiply(Sigma, GradUt_Sigma);
-    
-    REAL W = 0.;
-    for(int r = 0; r < 3; r++)
-    {
-        for(int c = 0; c < 3; c++)
-        {
-            W += 0.5*Sigma(r,c)*strain(r,c);
-        }
-    }
-    
-    TPZFMatrix<STATE> W_I(3,3,0.);
-    for(int d = 0; d < 3; d++)
-    {
-        W_I(d,d) = W;
-    }
-    
-    TPZFMatrix<STATE> W_I_minus_GradUt_Sigma(3,3,0.);
-    W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
-    
-    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(3,0.);
-    for(int r = 0; r < 3; r++)
-    {
-        for(int c = 0; c < 3; c++)
-        {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
-        }
-    }
-    
-    return W_I_minus_GradUt_Sigma__n;
 }
 
 void ArcPath3D::SetRadius(REAL radius)
@@ -644,6 +649,48 @@ TPZVec<REAL> ArcPath2D::Func(REAL t)
 
 TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
+    TPZFMatrix<REAL> Sigma(2,2), strain(2,2), GradUtxy(2,2);
+    Sigma.Zero();
+    strain.Zero();
+    GradUtxy.Zero();
+    
+    ComputeElasticData(t, xt, GradUtxy, Sigma, strain);
+
+    TPZFMatrix<REAL> GradUt_Sigma(2,2,0.);
+    GradUtxy.Multiply(Sigma, GradUt_Sigma);
+    
+    REAL W = 0.;
+    for(int r = 0; r < 2; r++)
+    {
+        for(int c = 0; c < 2; c++)
+        {
+            W += 0.5*Sigma(r,c)*strain(r,c);
+        }
+    }
+    
+    TPZFMatrix<REAL> W_I(2,2,0.);
+    for(int d = 0; d < 2; d++)
+    {
+        W_I(d,d) = W;
+    }
+    
+    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(2,2,0.);
+    W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
+    
+    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(2,0.);
+    for(int r = 0; r < 2; r++)
+    {
+        for(int c = 0; c < 2; c++)
+        {
+            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
+        }
+    }
+    
+    return W_I_minus_GradUt_Sigma__n;
+}
+
+void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZFMatrix<REAL> & Sigma, TPZFMatrix<REAL> & strain)
+{
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
@@ -690,11 +737,6 @@ TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<REAL> Sigma(2,2), strain(2,2), GradUtxy(2,2);
-    Sigma.Zero();
-    strain.Zero();
-    GradUtxy.Zero();
-    
     TPZFMatrix<STATE> GradUtax(2,2);
     GradUtax = data.dsol[0];
     GradUtxy(0,0) = GradUtax(0,0)*data.axes(0,0) + GradUtax(1,0)*data.axes(1,0);
@@ -728,38 +770,6 @@ TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     strain(1,1) = Solout[1];
     strain(0,1) = Solout[2];
     strain(1,0) = Solout[2];
-    
-    TPZFMatrix<REAL> GradUt_Sigma(2,2,0.);
-    GradUtxy.Multiply(Sigma, GradUt_Sigma);
-    
-    REAL W = 0.;
-    for(int r = 0; r < 2; r++)
-    {
-        for(int c = 0; c < 2; c++)
-        {
-            W += 0.5*Sigma(r,c)*strain(r,c);
-        }
-    }
-    
-    TPZFMatrix<REAL> W_I(2,2,0.);
-    for(int d = 0; d < 2; d++)
-    {
-        W_I(d,d) = W;
-    }
-    
-    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(2,2,0.);
-    W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
-    
-    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(2,0.);
-    for(int r = 0; r < 2; r++)
-    {
-        for(int c = 0; c < 2; c++)
-        {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
-        }
-    }
-    
-    return W_I_minus_GradUt_Sigma__n;
 }
 
 
