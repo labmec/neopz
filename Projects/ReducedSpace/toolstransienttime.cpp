@@ -1026,8 +1026,6 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
 {
     REAL radius = globFractInputData.Jradius();
     
-    fmeshvec[0]->LoadReferences();
-    
     TPZVec<REAL> computedJ(2,0.);
     REAL KI = -1.;
     
@@ -1051,33 +1049,7 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     TPZVec<REAL> normalDirection(3,0.);
     normalDirection[2] = 1.;
     
-    //////////// Computing pressure at middle point of J arc /////
-    TPZVec<REAL> xx(3,0.), qsii(2,0.);
-    xx[0] = XcrackTip/2.;// - globFractInputData.Jradius()/2.;
-    int initialEl = 0;
-    TPZGeoEl * geoEl = fmeshvec[0]->Reference()->FindElement(xx, qsii, initialEl, 2);
-    if(!geoEl)
-    {
-        DebugStop();
-    }
-    TPZCompEl * compEl = geoEl->Reference();
-    if(!compEl)
-    {
-        DebugStop();
-    }
-    TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
-    TPZMaterialData data;
-    intpEl->InitMaterialData(data);
-    intpEl->ComputeShape(qsii, data);
-    intpEl->ComputeSolution(qsii, data);
-    TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
-    TPZVec<REAL> Solout(3,0.);
-    int var = 10;//Stress Tensor
-    elast2D->Solution(data, var, Solout);
-    REAL pressure = Solout[1];
-    /////////////////////////////////////////////////////////////////////
-    
-    Path2D * Jpath = new Path2D(fmeshvec[0], Origin, normalDirection, radius, pressure);
+    Path2D * Jpath = new Path2D(fmeshvec[0], fmeshvec[1], Origin, normalDirection, radius);
     JIntegral2D integralJ;
     integralJ.PushBackPath2D(Jpath);
     

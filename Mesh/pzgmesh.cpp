@@ -512,10 +512,34 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
 {
     FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
+ 
+    qsi.Resize(targetDim, 0.);
     
-    if(qsi.NElements() != gel->Dimension())
+    if(gel->Dimension() != targetDim)
     {
-        qsi.Resize(gel->Dimension(), 0.);
+        for(int s = 0; s < gel->NSides(); s++)
+        {
+            TPZGeoElSide gelSide(gel,s);
+            TPZGeoElSide neighSide(gelSide.Neighbour());
+            while(neighSide != gelSide)
+            {
+                if(neighSide.Element()->Dimension() == targetDim)
+                {
+                    gel = neighSide.Element();
+                    break;
+                }
+                neighSide = neighSide.Neighbour();
+            }
+        }
+    }
+    if(gel->Dimension() != targetDim)
+    {
+        return NULL;
+    }
+    else if(gel->ComputeXInverseAlternative(x, qsi) == true)
+    {
+        gel = FindSubElement(gel, x, qsi, InitialElIndex);
+        return gel;
     }
     
     TPZManVector<REAL,3> projection(gel->Dimension());
@@ -579,6 +603,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
                 mustStop = true;
             }
         }
+        
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
@@ -597,6 +622,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
+        
         count++;
         if(count > NElements())
         {
@@ -612,7 +638,26 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
         return NULL;//not found...
     }
     
-    if(gel->HasSubElement())
+    gel = FindSubElement(gel, x, qsi, InitialElIndex);
+    return gel;
+}
+
+TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex)
+{
+#ifdef DEBUG
+    if(gel->ComputeXInverseAlternative(x,qsi) == false)
+    {
+        //The given gel does NOT contains the given x!!!
+        DebugStop();
+    }
+#endif
+    
+    if(gel->HasSubElement() == false)
+    {
+        InitialElIndex = gel->Index();
+        return gel;
+    }
+    else
     {
         TPZVec<TPZGeoEl*> subElements(0);
         gel->GetHigherSubElements(subElements);
@@ -648,20 +693,14 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
                 dist[sqrt(distToProj)] = s;
             }
             int sonPosition = dist.begin()->second;//smaller distance to parametric domain
-
+            
             qsi = qsiSonVec[sonPosition];
             son = subElements[sonPosition];
             InitialElIndex = son->Index();
-
+            
             return son;
         }
     }
-    else
-    {
-        InitialElIndex = gel->Index();
-        return gel;
-    }
-    
     
     return NULL;
 }

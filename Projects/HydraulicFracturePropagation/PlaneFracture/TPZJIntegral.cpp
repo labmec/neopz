@@ -12,6 +12,7 @@
 
 #include "adapt.h"
 #include "TPZVTKGeoMesh.h"
+#include "pzintel.h"
 #include "TPZTimer.h"
 
 const REAL gIntegrPrecision = 1.e-5;
@@ -27,7 +28,8 @@ LinearPath3D::LinearPath3D()
 }
 
 
-LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
+LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+                           TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius)
 {    
     fFinalPoint = FinalPoint;
     fNormalDirection = normalDirection;
@@ -36,15 +38,16 @@ LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL
     fDETdxdt = fradius/2.;
     
     fcmeshElastic = cmeshElastic;
-    fcrackPressure = pressure;
-    //Se fcrackPressure acabar sendo positivo, teremos ponta da fratura fechando (imporei KI = 0.)!!!
+    fcmeshFluid = cmeshFluid;
+    //Se crackPressure acabar sendo positivo, teremos ponta da fratura fechando (imporei KI = 0.)!!!
     
     fInitialPoint.Resize(3, 0.);
     fInitialPoint[0] = (fFinalPoint[0] - fradius*sin((M_PI)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
     fInitialPoint[1] = fradius*cos((M_PI)/2.); 
     fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI)/2.));
     
-    f_t_elIdqsi.clear();
+    f_t_elIdqsi_Elastic.clear();
+    f_t_elIdqsi_Fluid.clear();
 }
 
 LinearPath3D::LinearPath3D(LinearPath3D * cp)
@@ -57,9 +60,10 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
     fDETdxdt = cp->fDETdxdt;
     
     fcmeshElastic = cp->fcmeshElastic;
-    fcrackPressure = cp->fcrackPressure;
+    fcmeshFluid = cp->fcmeshFluid;
     
-    f_t_elIdqsi.clear();
+    f_t_elIdqsi_Elastic.clear();
+    f_t_elIdqsi_Fluid.clear();
 }
 
 LinearPath3D::~LinearPath3D()
@@ -78,31 +82,12 @@ void LinearPath3D::X(REAL t, TPZVec<REAL> & xt)
     }
 }
 
-
-//void LinearPath3D::dXdt(REAL t, TPZVec<REAL> & dxdt)
-//{
-//    dxdt.Resize(3,0.);
-//
-//    TPZVec<REAL> xarc(3);
-//    t = 1;
-//    xarc[0] = (fOrigin[0] - fradius*sin(M_PI/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-//    xarc[1] = fradius*cos((M_PI*t)/2.);
-//    xarc[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI*t)/2.));
-//
-//    for(int c = 0; c < 3; c++)
-//    {
-//        dxdt[c] = (fOrigin[c] - xarc[c])/2.;
-//    }
-//}
-
-
 void LinearPath3D::normalVec(REAL t, TPZVec<REAL> & n)
 {
     n[0] =  0.;
     n[1] = -1.;
     n[2] =  0.;
 }
-
 
 REAL LinearPath3D::DETdxdt()
 {
@@ -143,16 +128,36 @@ TPZVec<REAL> LinearPath3D::Func(REAL t)
 
 TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
+    TPZFMatrix<STATE> GradUtxy(3,3);
+    TPZVec<REAL> Sigma_n(3,0.);
+    ComputeElasticData(t, xt, GradUtxy, Sigma_n);
+    
+    TPZVec<REAL> minusGradUt_Sigma__n(3,0.);
+    for(int r = 0; r < 3; r++)
+    {
+        for(int c = 0; c < 3; c++)
+        {
+            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
+        }
+    }
+    
+    return minusGradUt_Sigma__n;
+}
+
+void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZVec<REAL> & Sigma_n)
+{
+    fcmeshElastic->LoadReferences();
+    
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
-    if(it != f_t_elIdqsi.end())
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIdqsi_Elastic.end())
     {
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi.size() > 0)
+    else if(f_t_elIdqsi_Elastic.size() > 0)
     {
         it--;
         InitialElementId = it->second.first;
@@ -170,9 +175,7 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
         DebugStop();
     }
     
-    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
-    
-    TPZVec<REAL> minusGradUt_Sigma__n(3,0.);
+    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -191,24 +194,21 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<STATE> GradUtxy(3,3);
-    GradUtxy.Zero();
-    
     //remember: Dont need to multiply with axes once this
     //          last is IDENTITY in PZ (because is 3D element).
     GradUtxy = data.dsol[0];
+    Sigma_n[1] = ComputePressure(t, xt);
+}
+
+
+REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
+{
+    fcmeshFluid->LoadReferences();
     
-    TPZVec<REAL> Sigma_n(3,0.);
-    Sigma_n[1] = fcrackPressure * (-1.);
-    for(int r = 0; r < 3; r++)
-    {
-        for(int c = 0; c < 3; c++)
-        {
-            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
-        }
-    }
+    //Nao migrei ainda para o 3D!!!
+    DebugStop();
     
-    return minusGradUt_Sigma__n;
+    return -1.;
 }
 
 //-------------------------class LinearPath2D
@@ -218,8 +218,9 @@ LinearPath2D::LinearPath2D() : LinearPath3D()
     
 }
 
-LinearPath2D::LinearPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure) :
-              LinearPath3D(cmeshElastic,FinalPoint,normalDirection,radius,pressure)
+LinearPath2D::LinearPath2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+                           TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius) :
+              LinearPath3D(cmeshElastic,cmeshFluid,FinalPoint,normalDirection,radius)
 {
     
 }
@@ -256,16 +257,36 @@ TPZVec<REAL> LinearPath2D::Func(REAL t)
 
 TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
+    TPZFMatrix<REAL> GradUtxy(2,2);
+    TPZVec<REAL> Sigma_n(2,0.);
+    ComputeElasticData(t, xt, GradUtxy, Sigma_n);
+    
+    TPZVec<REAL> minusGradUt_Sigma__n(2,0.);
+    for(int r = 0; r < 2; r++)
+    {
+        for(int c = 0; c < 2; c++)
+        {
+            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
+        }
+    }
+    
+    return minusGradUt_Sigma__n;
+}
+
+void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZVec<REAL> & Sigma_n)
+{
+    fcmeshElastic->LoadReferences();
+    
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
-    if(it != f_t_elIdqsi.end())
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIdqsi_Elastic.end())
     {
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi.size() > 0)
+    else if(f_t_elIdqsi_Elastic.size() > 0)
     {
         it--;
         InitialElementId = it->second.first;
@@ -283,9 +304,7 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
         DebugStop();
     }
     
-    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
-    
-    TPZVec<REAL> minusGradUt_Sigma__n(2,0.);
+    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -304,9 +323,6 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<REAL> GradUtxy(2,2);
-    GradUtxy.Zero();
-
     TPZFMatrix<STATE> GradUtax(2,2);
     GradUtax = data.dsol[0];
     GradUtxy(0,0) = GradUtax(0,0)*data.axes(0,0) + GradUtax(1,0)*data.axes(1,0);
@@ -314,18 +330,62 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     GradUtxy(0,1) = GradUtax(0,1)*data.axes(0,0) + GradUtax(1,1)*data.axes(1,0);
     GradUtxy(1,1) = GradUtax(0,1)*data.axes(0,1) + GradUtax(1,1)*data.axes(1,1);
     
-    TPZVec<REAL> Sigma_n(2,0.);
+    Sigma_n[1] = ComputePressure(t, xt);
+}
 
-    Sigma_n[1] = fcrackPressure * (-1.);
-    for(int r = 0; r < 2; r++)
+
+REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
+{
+    fcmeshFluid->LoadReferences();
+    
+    TPZVec<REAL> qsi(0);
+    
+    int InitialElementId = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
+    if(it != f_t_elIdqsi_Fluid.end())
     {
-        for(int c = 0; c < 2; c++)
-        {
-            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
-        }
+        InitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else if(f_t_elIdqsi_Fluid.size() > 0)
+    {
+        it--;
+        InitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else
+    {
+        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+    }
+    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementId, 1);
+    
+    if(!geoEl)
+    {
+        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        DebugStop();
     }
     
-    return minusGradUt_Sigma__n;
+    f_t_elIdqsi_Fluid[t] = std::make_pair(geoEl->Id(), qsi);
+    
+    TPZCompEl * cel = geoEl->Reference();
+    if(!cel)
+    {
+        DebugStop();
+    }
+    TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*>(cel);
+    if(!sp)
+    {
+        DebugStop();
+    }
+    TPZMaterialData data;
+    sp->InitMaterialData(data);
+        
+    sp->ComputeShape(qsi, data);
+    sp->ComputeSolution(qsi, data);
+    
+    REAL press = data.sol[0][0];
+
+    return press;
 }
 
 
@@ -338,7 +398,7 @@ ArcPath3D::ArcPath3D()
 }
 
 
-ArcPath3D::ArcPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
+ArcPath3D::ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
     fOrigin = Origin;
     fNormalDirection = normalDirection;
@@ -348,7 +408,7 @@ ArcPath3D::ArcPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Ori
     
     fcmeshElastic = cmeshElastic;
     
-    f_t_elIdqsi.clear();
+    f_t_elIdqsi_Elastic.clear();
 }
 
 
@@ -362,7 +422,7 @@ ArcPath3D::ArcPath3D(ArcPath3D * cp)
     
     fcmeshElastic = cp->fcmeshElastic;
     
-    f_t_elIdqsi.clear();
+    f_t_elIdqsi_Elastic.clear();
 }
 
 
@@ -432,13 +492,13 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
-    if(it != f_t_elIdqsi.end())
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIdqsi_Elastic.end())
     {
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi.size() > 0)
+    else if(f_t_elIdqsi_Elastic.size() > 0)
     {
         it--;
         InitialElementId = it->second.first;
@@ -456,7 +516,7 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         DebugStop();
     }
     
-    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -528,13 +588,12 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     return W_I_minus_GradUt_Sigma__n;
 }
 
-
 void ArcPath3D::SetRadius(REAL radius)
 {
     fradius = radius;
     fDETdxdt = M_PI*radius/2.;
     
-    f_t_elIdqsi.clear();
+    f_t_elIdqsi_Elastic.clear();
 }
 
 
@@ -550,7 +609,7 @@ ArcPath2D::ArcPath2D() : ArcPath3D()
     
 }
 
-ArcPath2D::ArcPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
+ArcPath2D::ArcPath2D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
            ArcPath3D(cmeshElastic,Origin,normalDirection,radius)
 {
     
@@ -587,13 +646,13 @@ TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
-    if(it != f_t_elIdqsi.end())
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIdqsi_Elastic.end())
     {
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi.size() > 0)
+    else if(f_t_elIdqsi_Elastic.size() > 0)
     {
         it--;
         InitialElementId = it->second.first;
@@ -611,7 +670,7 @@ TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         DebugStop();
     }
     
-    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -757,7 +816,7 @@ AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2()
     DebugStop();//Nao eh para usar construtor vazio
 }
 
-AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
+AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
 ArcPath3D(cmeshElastic,Origin,normalDirection,radius)
 {
     
@@ -825,13 +884,13 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
-    if(it != f_t_elIdqsi.end())
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIdqsi_Elastic.end())
     {
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi.size() > 0)
+    else if(f_t_elIdqsi_Elastic.size() > 0)
     {
         it--;
         InitialElementId = it->second.first;
@@ -849,7 +908,7 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
         DebugStop();
     }
     
-    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -976,9 +1035,10 @@ Path3D::Path3D()
 }
 
 
-Path3D::Path3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
+Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+               TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
-    fLinearPath3D = new LinearPath3D(cmeshElastic,Origin,normalDirection,radius,pressure);
+    fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     fAreaPath3D = new AreaPath3D(fLinearPath3D);
     
@@ -1012,9 +1072,10 @@ Path2D::Path2D()
 }
 
 
-Path2D::Path2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
+Path2D::Path2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+               TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
-    fLinearPath2D = new LinearPath2D(cmeshElastic,Origin,normalDirection,radius,pressure);
+    fLinearPath2D = new LinearPath2D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     fArcPath2D = new ArcPath2D(cmeshElastic,Origin,normalDirection,radius);
     
 #ifdef DEBUG

@@ -162,6 +162,10 @@ public:
     /** by Caju 2012 */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex, int targetDim);
+    
+    /** by Caju 2013 */
+    /** @brief Returns the subelement that contains the given point x and it respective point in parametric domain qsi */
+    TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex);
 	
     /** by Philippe 2013 */
     /** @brief Returns the element that is close to the given point x */

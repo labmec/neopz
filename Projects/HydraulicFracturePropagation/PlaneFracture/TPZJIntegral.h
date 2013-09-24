@@ -30,12 +30,12 @@ class LinearPath3D
 public:
     
     LinearPath3D();//It is not to be used
-    LinearPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+                 TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
     LinearPath3D(LinearPath3D * cp);
     ~LinearPath3D();
     
     void X(REAL t, TPZVec<REAL> & xt);
-    //void dXdt(REAL t, TPZVec<REAL> & dxdt);
     void normalVec(REAL t, TPZVec<REAL> & n);
     
     REAL DETdxdt();
@@ -52,10 +52,8 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    void SetPressure(REAL p)
-    {
-        fcrackPressure = p;
-    }
+    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZVec<REAL> & Sigma_n);
+    virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
     
 protected:
     
@@ -77,14 +75,17 @@ protected:
     /** Determinant of dXdt(3x1) */
     REAL fDETdxdt;
     
-    /** CMesh that constains data */
-    TPZAutoPointer<TPZCompMesh> fcmeshElastic;
+    /** CMesh that constains elastic data */
+    TPZCompMesh * fcmeshElastic;
     
-    /** pressure applied inside fracture */
-    REAL fcrackPressure;
+    /** CMesh that constains fluid data */
+    TPZCompMesh * fcmeshFluid;
     
-    /** map that holds t and respective elId and qsi for ComputeXInverse optimization */
-    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
+    /** map that holds t and respective elId from ElasticMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi_Elastic;
+    
+    /** map that holds t and respective elId from FluidMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi_Fluid;
 };
 
 
@@ -93,13 +94,17 @@ class LinearPath2D : public LinearPath3D
 public:
     
     LinearPath2D();//It is not to be used
-    LinearPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    LinearPath2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+                 TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
     LinearPath2D(LinearPath2D * cp);
     ~LinearPath2D();
     
     virtual TPZVec<REAL> Func(REAL t);
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    
+    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZVec<REAL> & Sigma_n);
+    virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
 };
 
 
@@ -109,12 +114,11 @@ class ArcPath3D
 public:
     
     ArcPath3D();//It is not to be used
-    ArcPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ArcPath3D(ArcPath3D * cp);
     ~ArcPath3D();
     
     void X(REAL t, TPZVec<REAL> & xt);
-    //void dXdt(REAL t, TPZVec<REAL> & dxdt);
     void normalVec(REAL t, TPZVec<REAL> & n);
     
     REAL DETdxdt();
@@ -150,11 +154,11 @@ protected:
     /** Determinant of dXdt(3x1) */
     REAL fDETdxdt;
     
-    /** CMesh that constains data */
-    TPZAutoPointer<TPZCompMesh> fcmeshElastic;
+    /** CMesh that constains elastic data */
+    TPZCompMesh * fcmeshElastic;
     
-    /** map that holds t and respective elId and qsi for ComputeXInverse optimization */
-    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
+    /** map that holds t and respective elId from ElasticMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi_Elastic;
 };
 
 
@@ -163,7 +167,7 @@ class ArcPath2D : public ArcPath3D
 public:
     
     ArcPath2D();//It is not to be used
-    ArcPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath2D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ArcPath2D(ArcPath2D * cp);
     ~ArcPath2D();
     
@@ -207,7 +211,7 @@ protected:
         {
             public:
             ArcPath3D_2();
-            ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+            ArcPath3D_2(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
             ~ArcPath3D_2();
             
             virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
@@ -247,7 +251,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ~Path3D();
     
     LinearPath3D * GetLinearPath3D()
@@ -264,12 +268,6 @@ public:
     {
         return fAreaPath3D;
     }
-    
-    void SetPressure(REAL p)
-    {
-        fLinearPath3D->SetPressure(p);
-    }
-    
     
 protected:
     
@@ -290,7 +288,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    Path2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ~Path2D();
     
     LinearPath2D * GetLinearPath2D()
@@ -302,12 +300,6 @@ public:
     {
         return fArcPath2D;
     }
-    
-    void SetPressure(REAL p)
-    {
-        fLinearPath2D->SetPressure(p);
-    }
-    
     
 protected:
     
