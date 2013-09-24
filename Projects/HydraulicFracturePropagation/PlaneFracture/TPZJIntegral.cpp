@@ -377,6 +377,7 @@ REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
     {
         DebugStop();
     }
+
     TPZMaterialData data;
     sp->InitMaterialData(data);
         
@@ -384,7 +385,7 @@ REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
     sp->ComputeSolution(qsi, data);
     
     REAL press = data.sol[0][0];
-
+    
     return press;
 }
 

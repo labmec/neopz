@@ -517,6 +517,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     
     if(gel->Dimension() != targetDim)
     {
+        bool foundDim = false;
         for(int s = 0; s < gel->NSides(); s++)
         {
             TPZGeoElSide gelSide(gel,s);
@@ -526,9 +527,14 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
                 if(neighSide.Element()->Dimension() == targetDim)
                 {
                     gel = neighSide.Element();
+                    foundDim = true;
                     break;
                 }
                 neighSide = neighSide.Neighbour();
+            }
+            if(foundDim)
+            {
+                break;
             }
         }
     }
@@ -548,7 +554,6 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     bool projectOrthogonal = true;
     int bissectionCalled = 0;
     while(gel->ComputeXInverseAlternative(x, qsi) == false &&
-          gel->Dimension() != targetDim &&
           mustStop == false)
     {
         int side = -1;

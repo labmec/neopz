@@ -659,7 +659,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
 	error = Norm(DelX)/radius;
 	if(error <= Tol)
 	{
-		return true;
+		return ( this->IsInParametricDomain(qsi) );
 	}
 	
 	// Verify if the point is not a corner node
