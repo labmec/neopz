@@ -30,7 +30,7 @@ class LinearPath3D
 public:
     
     LinearPath3D();//It is not to be used
-    LinearPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    LinearPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
     LinearPath3D(LinearPath3D * cp);
     ~LinearPath3D();
     
@@ -78,7 +78,7 @@ protected:
     REAL fDETdxdt;
     
     /** CMesh that constains data */
-    TPZAutoPointer<TPZCompMesh> fcmesh;
+    TPZAutoPointer<TPZCompMesh> fcmeshElastic;
     
     /** pressure applied inside fracture */
     REAL fcrackPressure;
@@ -93,7 +93,7 @@ class LinearPath2D : public LinearPath3D
 public:
     
     LinearPath2D();//It is not to be used
-    LinearPath2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    LinearPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
     LinearPath2D(LinearPath2D * cp);
     ~LinearPath2D();
     
@@ -109,7 +109,7 @@ class ArcPath3D
 public:
     
     ArcPath3D();//It is not to be used
-    ArcPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ArcPath3D(ArcPath3D * cp);
     ~ArcPath3D();
     
@@ -151,7 +151,7 @@ protected:
     REAL fDETdxdt;
     
     /** CMesh that constains data */
-    TPZAutoPointer<TPZCompMesh> fcmesh;
+    TPZAutoPointer<TPZCompMesh> fcmeshElastic;
     
     /** map that holds t and respective elId and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
@@ -163,7 +163,7 @@ class ArcPath2D : public ArcPath3D
 public:
     
     ArcPath2D();//It is not to be used
-    ArcPath2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ArcPath2D(ArcPath2D * cp);
     ~ArcPath2D();
     
@@ -207,7 +207,7 @@ protected:
         {
             public:
             ArcPath3D_2();
-            ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+            ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
             ~ArcPath3D_2();
             
             virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
@@ -247,7 +247,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    Path3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
     ~Path3D();
     
     LinearPath3D * GetLinearPath3D()
@@ -290,7 +290,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    Path2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
     ~Path2D();
     
     LinearPath2D * GetLinearPath2D()

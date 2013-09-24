@@ -27,7 +27,7 @@ LinearPath3D::LinearPath3D()
 }
 
 
-LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
+LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
 {    
     fFinalPoint = FinalPoint;
     fNormalDirection = normalDirection;
@@ -35,7 +35,7 @@ LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Fina
     
     fDETdxdt = fradius/2.;
     
-    fcmesh = cmesh;
+    fcmeshElastic = cmeshElastic;
     fcrackPressure = pressure;
     //Se fcrackPressure acabar sendo positivo, teremos ponta da fratura fechando (imporei KI = 0.)!!!
     
@@ -56,7 +56,7 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
     
     fDETdxdt = cp->fDETdxdt;
     
-    fcmesh = cp->fcmesh;
+    fcmeshElastic = cp->fcmeshElastic;
     fcrackPressure = cp->fcrackPressure;
     
     f_t_elIdqsi.clear();
@@ -64,7 +64,7 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
 
 LinearPath3D::~LinearPath3D()
 {
-    fcmesh = NULL;
+    fcmeshElastic = NULL;
 }
 
 
@@ -160,9 +160,9 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
@@ -218,8 +218,8 @@ LinearPath2D::LinearPath2D() : LinearPath3D()
     
 }
 
-LinearPath2D::LinearPath2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure) :
-              LinearPath3D(cmesh,FinalPoint,normalDirection,radius,pressure)
+LinearPath2D::LinearPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure) :
+              LinearPath3D(cmeshElastic,FinalPoint,normalDirection,radius,pressure)
 {
     
 }
@@ -231,7 +231,7 @@ LinearPath2D::LinearPath2D(LinearPath2D * cp) : LinearPath3D(cp)
 
 LinearPath2D::~LinearPath2D()
 {
-    fcmesh = NULL;
+    fcmeshElastic = NULL;
 }
     
 TPZVec<REAL> LinearPath2D::Func(REAL t)
@@ -273,9 +273,9 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 2);
     
     if(!geoEl)
     {
@@ -338,7 +338,7 @@ ArcPath3D::ArcPath3D()
 }
 
 
-ArcPath3D::ArcPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
+ArcPath3D::ArcPath3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
     fOrigin = Origin;
     fNormalDirection = normalDirection;
@@ -346,7 +346,7 @@ ArcPath3D::ArcPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TP
     
     fDETdxdt = M_PI*fradius/2.;
     
-    fcmesh = cmesh;
+    fcmeshElastic = cmeshElastic;
     
     f_t_elIdqsi.clear();
 }
@@ -360,7 +360,7 @@ ArcPath3D::ArcPath3D(ArcPath3D * cp)
     
     fDETdxdt = cp->fDETdxdt;
     
-    fcmesh = cp->fcmesh;
+    fcmeshElastic = cp->fcmeshElastic;
     
     f_t_elIdqsi.clear();
 }
@@ -368,7 +368,7 @@ ArcPath3D::ArcPath3D(ArcPath3D * cp)
 
 ArcPath3D::~ArcPath3D()
 {
-    fcmesh = NULL;
+    fcmeshElastic = NULL;
 }
 
 
@@ -446,9 +446,9 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
@@ -550,8 +550,8 @@ ArcPath2D::ArcPath2D() : ArcPath3D()
     
 }
 
-ArcPath2D::ArcPath2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
-           ArcPath3D(cmesh,Origin,normalDirection,radius)
+ArcPath2D::ArcPath2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
+           ArcPath3D(cmeshElastic,Origin,normalDirection,radius)
 {
     
 }
@@ -563,7 +563,7 @@ ArcPath2D::ArcPath2D(ArcPath2D * cp) : ArcPath3D(cp)
 
 ArcPath2D::~ArcPath2D()
 {
-    fcmesh = NULL;
+    fcmeshElastic = NULL;
 }
 
 TPZVec<REAL> ArcPath2D::Func(REAL t)
@@ -601,9 +601,9 @@ TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 2);
     
     if(!geoEl)
     {
@@ -713,7 +713,7 @@ AreaPath3D::LinearPath3D_2::LinearPath3D_2()
 
 AreaPath3D::LinearPath3D_2::LinearPath3D_2(LinearPath3D * cp) : LinearPath3D(cp)
 {
-    fArcPath3D = new ArcPath3D_2(this->fcmesh, this->fFinalPoint, this->fNormalDirection, this->fradius);
+    fArcPath3D = new ArcPath3D_2(this->fcmeshElastic, this->fFinalPoint, this->fNormalDirection, this->fradius);
     
 #ifdef DEBUG
     if(!fArcPath3D)
@@ -725,7 +725,7 @@ AreaPath3D::LinearPath3D_2::LinearPath3D_2(LinearPath3D * cp) : LinearPath3D(cp)
 
 AreaPath3D::LinearPath3D_2::~LinearPath3D_2()
 {
-    fcmesh = NULL;
+    fcmeshElastic = NULL;
 }
 
 TPZVec<REAL> AreaPath3D::LinearPath3D_2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
@@ -757,15 +757,15 @@ AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2()
     DebugStop();//Nao eh para usar construtor vazio
 }
 
-AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
-ArcPath3D(cmesh,Origin,normalDirection,radius)
+AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
+ArcPath3D(cmeshElastic,Origin,normalDirection,radius)
 {
     
 }
 
 AreaPath3D::LinearPath3D_2::ArcPath3D_2::~ArcPath3D_2()
 {
-    fcmesh = NULL;
+    fcmeshElastic = NULL;
 }
 
 TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
@@ -839,9 +839,9 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
@@ -976,10 +976,10 @@ Path3D::Path3D()
 }
 
 
-Path3D::Path3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
+Path3D::Path3D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
 {
-    fLinearPath3D = new LinearPath3D(cmesh,Origin,normalDirection,radius,pressure);
-    fArcPath3D = new ArcPath3D(cmesh,Origin,normalDirection,radius);
+    fLinearPath3D = new LinearPath3D(cmeshElastic,Origin,normalDirection,radius,pressure);
+    fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     fAreaPath3D = new AreaPath3D(fLinearPath3D);
     
 #ifdef DEBUG
@@ -1012,10 +1012,10 @@ Path2D::Path2D()
 }
 
 
-Path2D::Path2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
+Path2D::Path2D(TPZAutoPointer<TPZCompMesh> cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
 {
-    fLinearPath2D = new LinearPath2D(cmesh,Origin,normalDirection,radius,pressure);
-    fArcPath2D = new ArcPath2D(cmesh,Origin,normalDirection,radius);
+    fLinearPath2D = new LinearPath2D(cmeshElastic,Origin,normalDirection,radius,pressure);
+    fArcPath2D = new ArcPath2D(cmeshElastic,Origin,normalDirection,radius);
     
 #ifdef DEBUG
     if(fabs(normalDirection[1]) > 1.E-8)
