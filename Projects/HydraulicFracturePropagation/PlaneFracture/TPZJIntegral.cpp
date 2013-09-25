@@ -885,13 +885,6 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::ComputeFiniteDifference(RE
 
 TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction)
 {
-//    double x = xt[0];
-//    double y = xt[1];
-//    double z = xt[2];
-//    TPZVec<REAL> answTeste(3,0.);
-//    answTeste[0] = -sin(2.*x*y*z);
-//    return answTeste; //Para Z = -5 e r = 0.6, a integral final (multiplicada por 2) = 0.0669331
-    
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;

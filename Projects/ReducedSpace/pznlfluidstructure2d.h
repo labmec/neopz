@@ -16,7 +16,6 @@
 #include "pzvec.h"
 #include "pzfmatrix.h"
 
-#include "pznlfluidstructureMaterials.h"
 #include "pznlfluidstructureData.h"
 
 #include <iostream>
