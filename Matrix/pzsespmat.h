@@ -32,13 +32,13 @@ class TPZSSpMatrix : public TPZMatrix<TVar>
 {
 public:
 	TPZSSpMatrix() : TPZMatrix<TVar>(0,0)  {}
-	TPZSSpMatrix(const int dim ) : TPZMatrix<TVar>(dim,dim), fMat(dim, dim) {}
+	TPZSSpMatrix(const long dim ) : TPZMatrix<TVar>(dim,dim), fMat(dim, dim) {}
 	TPZSSpMatrix(const TPZSSpMatrix<TVar> & );
 	
 	CLONEDEF(TPZSSpMatrix)
 	
-	inline int    PutVal(const int row,const int col,const TVar&  element );
-	inline const TVar & GetVal(const int row,const int col ) const;
+	inline int    PutVal(const long row,const long col,const TVar&  element );
+	inline const TVar & GetVal(const long row,const long col ) const;
 	
 	/// Operators with SYMMETRIC sparse matrices.
 	// @{
@@ -62,12 +62,12 @@ public:
 	// @}
 	
 	/// Resize the array but keeps its entirety.
-	int Resize(const int newDim ,const int )
+	int Resize(const long newDim ,const long )
     { this->fRow = this->fCol = newDim; return fMat.Resize( newDim, newDim ); }
 	
 	/// Resize the array and resets its entirety.
-	int Redim(const int newDim) { return Redim(newDim,newDim);}
-	int Redim(const int newDim ,const int )
+	int Redim(const long newDim) { return Redim(newDim,newDim);}
+	int Redim(const long newDim ,const long )
     { this->fRow = this->fCol = newDim; return fMat.Redim( newDim, newDim ); }
 	
 	// Zeroes all the elements
@@ -111,7 +111,7 @@ private:
 	 *  estar).
 	 */
 	TVar ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
-				 TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, int k );
+				 TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, long k );
 	
 	TPZSpMatrix<TVar> fMat;
 };
@@ -126,11 +126,11 @@ private:
 //
 template<class TVar>
 inline int
-TPZSSpMatrix<TVar>::PutVal(const int r,const int c,const TVar&  value )
+TPZSSpMatrix<TVar>::PutVal(const long r,const long c,const TVar&  value )
 {
 	// Inicializando row e col para trabalhar com a matriz
 	//  triangular inferior.
-	int row(r),col(c);
+	long row(r),col(c);
 	if ( row < col )
 		this->Swap( &row, &col );
 	
@@ -146,11 +146,11 @@ TPZSSpMatrix<TVar>::PutVal(const int r,const int c,const TVar&  value )
 //
 template<class TVar>
 inline const TVar &
-TPZSSpMatrix<TVar>::GetVal(const int r,const int c ) const
+TPZSSpMatrix<TVar>::GetVal(const long r,const long c ) const
 {
 	// inicializando row e col para trabalhar com a matriz
 	// triangular inferior.
-	int row(r),col(c);
+	long row(r),col(c);
 	if ( row < col )
 		this->Swap( &row, &col );
 	

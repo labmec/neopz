@@ -251,8 +251,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
-                MaxPOrder = 5;
-                NRefs = 8;
+                MaxPOrder = 3;
+                NRefs = 3;
             }
             else if(dim==2) {
                 MaxPOrder = 10;

@@ -62,7 +62,7 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat),
         
 		fElem = new TVar[this->fRow*this->fCol];
 		TVar * p = fElem;
-		int i,j;
+		long i,j;
 		for(j=0; j<this->fCol; j++) {
 			for(i=0; i<this->fRow; i++) {
 				*p++ = mat.GetVal(i,j);
@@ -78,7 +78,7 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat),
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
 : TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
-    int size = this->fRow * this->fCol;
+    long size = this->fRow * this->fCol;
     if(!size) return;
     fElem = new TVar[ size ] ;
 #ifdef DEBUG2
@@ -97,7 +97,7 @@ template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> const & A)
 : TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
     
-    int size = this->fRow * this->fCol;
+    long size = this->fRow * this->fCol;
     if(!size) return;
     fElem = new TVar[ size ] ;
     
@@ -105,14 +105,14 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> const & A)
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
     
-    typename std::map <std::pair<int, int>, TVar>::const_iterator it = A.MapBegin();
-    typename std::map <std::pair<int, int>, TVar>::const_iterator end = A.MapEnd();
+    typename std::map <std::pair<long, long>, TVar>::const_iterator it = A.MapBegin();
+    typename std::map <std::pair<long, long>, TVar>::const_iterator end = A.MapEnd();
     
     TVar * p = fElem;
     memset(p, 0, (size_t)size*sizeof(TVar));
     
     for (; it != end; it++) {
-        const std::pair<int, int>& key = it->first;
+        const std::pair<long, long>& key = it->first;
         PutVal(key.first, key.second, it->second);
     }
     
@@ -156,9 +156,9 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int> &destination) {
 		DebugStop();
 		return;
 	}
-	int ncol = this->Cols();
-	int nrow = rhs.Rows();
-	int i,j;
+	long ncol = this->Cols();
+	long nrow = rhs.Rows();
+	long i,j;
 	for(j=0; j<ncol; j++) {
 		for(i=0; i<nrow; i++) {
 			operator()(destination[i],j) += rhs(i,j);
@@ -173,9 +173,9 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec
 		DebugStop();
 		return;
 	}
-	int ncol = this->Cols();
-	int nrow = source.NElements();
-	int i,j;
+	long ncol = this->Cols();
+	long nrow = source.NElements();
+	long i,j;
 	for(j=0; j<ncol; j++) {
 		for(i=0; i<nrow; i++) {
 			operator()(destination[i],j) += rhs(source[i],j);
@@ -249,10 +249,10 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 #endif
     
     double scale = 1.;
-    for(int j = 0; j < this->Cols(); j++)
+    for(long j = 0; j < this->Cols(); j++)
     {
 		double norm = 0.;
-		for(int i = 0; i < this->Rows(); i++)
+		for(long i = 0; i < this->Rows(); i++)
         {
 			norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
 		}
@@ -265,14 +265,14 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 	
     this->operator *=( scale );
 	
-    int QTDcomp = this->Rows();
-    int QTDvec = this->Cols();
+    long QTDcomp = this->Rows();
+    long QTDvec = this->Cols();
     Orthog.Resize(QTDcomp,QTDvec);
     Orthog.Zero();
     /// Making a copy of *this (Ortog = *this)
-    for(int r = 0; r < QTDcomp; r++)
+    for(long r = 0; r < QTDcomp; r++)
     {
-        for(int c = 0; c < QTDvec; c++)
+        for(long c = 0; c < QTDvec; c++)
         {
             Orthog(r,c) = GetVal(r,c);
         }
@@ -280,10 +280,10 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 	
 #ifdef DEBUG
     int check = 0;
-    for(int c = 0; c < QTDvec; c++)
+    for(long c = 0; c < QTDvec; c++)
     {
         TVar summ = 0.;
-        for(int r = 0; r < QTDcomp; r++)
+        for(long r = 0; r < QTDcomp; r++)
         {
             summ += fabs(GetVal(r,c));
         }
@@ -298,13 +298,13 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 #endif
 	
     TVar dotUp, dotDown;
-    for(int c = 1; c < QTDvec; c++)
+    for(long c = 1; c < QTDvec; c++)
     {
-        for(int stop = 0; stop < c; stop++)
+        for(long stop = 0; stop < c; stop++)
         {
             dotUp = 0.;
             dotDown = 0.;
-            for(int r = 0; r < QTDcomp; r++)
+            for(long r = 0; r < QTDcomp; r++)
             {
                 dotUp += GetVal(r,c)*Orthog(r,stop);
                 dotDown += Orthog(r,stop)*Orthog(r,stop);
@@ -320,7 +320,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
                 }
 #endif
 				
-                for(int r = 0; r < QTDcomp; r++)
+                for(long r = 0; r < QTDcomp; r++)
                 {
                     Orthog(r,stop) = 0.;
                 }
@@ -336,23 +336,23 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 				}
 #endif
                 
-                for(int r = 0; r < QTDcomp; r++)
+                for(long r = 0; r < QTDcomp; r++)
                 {
                     Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown;
                 }
             }
         }
     }
-    for(int c = 0; c < QTDvec; c++)
+    for(long c = 0; c < QTDvec; c++)
     {
         dotUp = 0.;
-        for(int r = 0; r < QTDcomp; r++)
+        for(long r = 0; r < QTDcomp; r++)
         {
             dotUp += Orthog(r,c)*Orthog(r,c);
         }
         if(fabs(dotUp) > 1.e-8)
         {
-            for(int r = 0; r < QTDcomp; r++)
+            for(long r = 0; r < QTDcomp; r++)
             {
                 Orthog(r,c) = Orthog(r,c)/sqrt(dotUp);
             }
@@ -364,7 +364,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 			LOGPZ_ERROR(logger,sout.str())
 #endif
             
-            for(int r = 0; r < QTDcomp; r++)
+            for(long r = 0; r < QTDcomp; r++)
             {
                 Orthog(r,c) = 0.;
             }
@@ -400,7 +400,7 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
 {
 	TPZFNMatrix<100, TVar> copy(*this);
 	inverse.Redim(this->Rows(),this->Rows());
-	int r;
+	long r;
 	for(r=0; r<this->Rows(); r++) inverse(r,r) = 1.;
 	copy.Solve_LU(&inverse);
 	determinant = 1.;
@@ -415,12 +415,12 @@ void TPZFMatrix<TVar>::ConstMultiply(const TPZFMatrix<TVar> & x,TPZFMatrix<TVar>
 			Error( "Error in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied" );
 			std::cout << "\nError in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied\n";
 		}
-		const int BRows = this->Rows();
-		const int BCols = x.Cols();
-		const int KSize = this->Cols();
+		const long BRows = this->Rows();
+		const long BCols = x.Cols();
+		const long KSize = this->Cols();
 		TVar sum;
 		B.Resize(BRows, BCols);
-		int i, j, k;
+		long i, j, k;
 		for(i = 0; i < BRows; i++){
 			for(j = 0; j < BCols; j++){
 				sum = 0.;
@@ -436,12 +436,12 @@ void TPZFMatrix<TVar>::ConstMultiply(const TPZFMatrix<TVar> & x,TPZFMatrix<TVar>
 			Error( "Error in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied" );
 			std::cout << "\nError in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied\n";
 		}
-		const int BRows = this->Cols();
-		const int BCols = x.Cols();
-		const int KSize = this->Rows();
+		const long BRows = this->Cols();
+		const long BCols = x.Cols();
+		const long KSize = this->Rows();
 		TVar sum;
 		B.Resize(BRows, BCols);
-		int i, j, k;
+		long i, j, k;
 		for(i = 0; i < BRows; i++){
 			for(j = 0; j < BCols; j++){
 				sum = 0.;
@@ -455,7 +455,7 @@ void TPZFMatrix<TVar>::ConstMultiply(const TPZFMatrix<TVar> & x,TPZFMatrix<TVar>
 }//void
 
 template <class TVar>
-void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int rows, int cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 							   const TVar alpha,const TVar beta ,const int opt ,const int stride)
 {
 	if ((!opt && cols*stride != x.Rows()) || (opt && rows*stride != x.Rows())) {
@@ -477,7 +477,7 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int rows, int cols, const TPZFMa
 	}
 	unsigned numeq = opt ? cols : rows;
 	long xcols = x.Cols();
-	int ic, c;
+	long ic, c;
 	if(!(rows*cols)) return;
 	for (ic = 0; ic < xcols; ic++) {
 		TVar *zp = &z(0,ic), *zlast = zp+numeq*stride;
@@ -570,7 +570,7 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
 	long rows = this->Rows();
 	long cols = this->Cols();
 	long xcols = x.Cols();
-	int ic, c;
+	long ic, c;
     if (numeq)
     {
         for (ic = 0; ic < xcols; ic++) {
@@ -704,9 +704,9 @@ void TPZFMatrix<TVar>::TimesBetaPlusZ(const TVar beta,const TPZFMatrix<TVar> &z)
 /*** Operator = ***/
 template <class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZMatrix<TVar> &A ) {
-	int arows  = A.Rows();
-	int acols  = A.Cols();
-	int size = arows * acols;
+	long arows  = A.Rows();
+	long acols  = A.Cols();
+	long size = arows * acols;
 	if(fElem != fGiven) {
 		delete []fElem;
 		fElem = 0;
@@ -719,8 +719,8 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZMatrix<TVar> &A ) {
 		fElem = fGiven;
 	}
 	TVar * dst = fElem;
-	for ( int c = 0; c < this->fCol; c++ )
-		for ( int r = 0; r < this->fRow; r++ )
+	for ( long c = 0; c < this->fCol; c++ )
+		for ( long r = 0; r < this->fRow; r++ )
 			*dst++ = A.Get( r, c );
 	return( *this );
 }
@@ -799,7 +799,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator*=( const TVar value ) {
 /**************/
 /*** Resize ***/
 template <class TVar>
-int TPZFMatrix<TVar>::Resize(const int newRows,const int newCols) {
+int TPZFMatrix<TVar>::Resize(const long newRows,const long newCols) {
 	if ( newRows == this->Rows() && newCols == this->Cols() ) return( 1 );
 	long newsize = ((long)newRows)*newCols;
 	TVar * newElem;
@@ -846,7 +846,7 @@ int TPZFMatrix<TVar>::Resize(const int newRows,const int newCols) {
 }
 
 template <class TVar>
-int TPZFMatrix<TVar>::Remodel(const int newRows,const int newCols) {
+int TPZFMatrix<TVar>::Remodel(const long newRows,const long newCols) {
 	if(newRows*newCols != this->fRow*this->fCol) return -1;
 	this->fRow = newRows;
 	this->fCol = newCols;
@@ -860,8 +860,8 @@ void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T) const{
 	T->Resize( this->Cols(), this->Rows() );
 	//Transposta por filas
 	TVar * p = fElem;
-	for ( int c = 0; c < this->Cols(); c++ ) {
-		for ( int r = 0; r < this->Rows(); r++ ) {
+	for ( long c = 0; c < this->Cols(); c++ ) {
+		for ( long r = 0; r < this->Rows(); r++ ) {
 			T->PutVal( c, r, *p++ );
 			//            cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
 		}
@@ -885,10 +885,10 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 		return 0;
 	}
 	
-	int i,j,k;
+	long i,j,k;
 	TVar sum = 0.;
-	int nRows = this->Rows();
-	int nCols = this->Cols();
+	long nRows = this->Rows();
+	long nCols = this->Cols();
 	
 	index.Resize(nRows);
 	//inicializo o vetor de índices para o caso de pivotamento
@@ -909,7 +909,7 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 		//Print(cout);
 		TVar piv = this->Get(j,j);
 		//  cout << "Pivo 1 =" << piv << endl;
-		int row = j;
+		long row = j;
 		for (i=j+1;i<nRows;i++){
 			sum = 0.;
 			for (k=0;k<(j);k++){
@@ -970,8 +970,8 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 	TVar nn;
 	TVar * ptrpivot,*pik, *pij,*pkj;
 	
-	int i,j,k,rows=this->Rows(),cols=this->Cols();
-	int  min = ( cols < (rows) ) ? cols : rows;
+	long i,j,k,rows=this->Rows(),cols=this->Cols();
+	long  min = ( cols < (rows) ) ? cols : rows;
 	
 	ptrpivot=&fElem[0];
 	for (  k = 0; k < min ; k++ )
@@ -1014,20 +1014,20 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 }
 
 template <class TVar>
-int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int rows, TPZFMatrix<TVar> *B)
+int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B)
 {
-	int rowb = B->Rows();
-	int colb = B->Cols();
+	long rowb = B->Rows();
+	long colb = B->Cols();
 	if ( rowb != rows ) Error( "static::SubstitutionLU <incompatible dimensions>" );
-	int i,j;
+	long i,j;
 	for ( i = 0; i < rowb; i++ ) {
-		for ( int col = 0; col < colb; col++ )
+		for ( long col = 0; col < colb; col++ )
 			for (j = 0; j < i; j++ )
 				//B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 				PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, j) * GETVAL(B, rowb, j, col));
 	}
 	
-	for (int col=0; col<colb; col++){
+	for (long col=0; col<colb; col++){
 		for ( i = rowb-1; i >= 0; i-- ) {
 			for (j = i+1; j < rowb ; j++ )
 				//B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
@@ -1056,21 +1056,21 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	if(this->fDecomposed != ELU) {
 		Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
 	}
-	int rowb = B->Rows();
-	int colb = B->Cols();
-	int row = this->Rows();
+	long rowb = B->Rows();
+	long colb = B->Cols();
+	long row = this->Rows();
 	if ( rowb != this->Rows() ) Error( "SubstitutionLU <incompatible dimensions>" );
 	
 	
-	int i,j;
+	long i,j;
 	for ( i = 0; i < rowb; i++ ) {
-		for ( int col = 0; col < colb; col++ )
+		for ( long col = 0; col < colb; col++ )
 			for (j = 0; j < i; j++ )
 				//B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 				PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - GETVAL(this, row, i, j) * GETVAL(B, rowb, j, col));
 	}
 	
-	for (int col=0; col<colb; col++){
+	for (long col=0; col<colb; col++){
 		for ( i = rowb-1; i >= 0; i-- ) {
 			for (j = i+1; j < rowb ; j++ )
 				//B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
@@ -1093,19 +1093,19 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	if(this->fDecomposed != ELU) {
 		Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
 	}
-	int rowb = B->Rows();
-	int colb = B->Cols();
+	long rowb = B->Rows();
+	long colb = B->Cols();
 	if ( rowb != this->Rows() ) Error( "SubstitutionLU <incompatible dimensions>" );
 	
 	
-	int i,j;
+	long i,j;
 	for ( i = 0; i < rowb; i++ ) {
-		for ( int col = 0; col < colb; col++ )
+		for ( long col = 0; col < colb; col++ )
 			for (j = 0; j < i; j++ )
 				B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 	}
 	
-	for (int col=0; col<colb; col++){
+	for (long col=0; col<colb; col++){
 		for ( i = rowb-1; i >= 0; i-- ) {
 			for (j = i+1; j < rowb ; j++ )
 				B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
@@ -1125,7 +1125,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 }
 
 template<class TVar>
-int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<int> &index ) const{
+int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) const{
 	
 	if(!B){
 		PZError << __PRETTY_FUNCTION__ << "TPZFMatrix<>*B eh nulo" << endl;
@@ -1143,7 +1143,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<int> &index ) co
 		PZError << __PRETTY_FUNCTION__ << "\nfDecomposed != ELUPivot" << endl;
 	}
 	
-	int nRows = this->Rows();
+	long nRows = this->Rows();
 	
 	if (index.NElements() != nRows || b.Rows() != nRows)
 	{
@@ -1152,7 +1152,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<int> &index ) co
 		return 0;
 	}
 	
-	int i,j;
+	long i,j;
 	TVar sum = 0;
 	
 	TPZVec<TVar> v(nRows);
@@ -1184,7 +1184,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<int> &index ) co
 }
 
 template <class TVar>
-int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int rows, TPZFMatrix<TVar> *B, TPZVec<int> &index )
+int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B, TPZVec<long> &index )
 {
 	
 	if(!B){
@@ -1203,7 +1203,7 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int rows, TPZFMatrix<TVar> *
 		return 0;
 	}
 	
-	int i,j;
+	long i,j;
 	TVar sum = 0;
 	
 	TPZVec<TVar> v(rows);
@@ -1237,7 +1237,7 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int rows, TPZFMatrix<TVar> *
 /** @brief Implement dot product for matrices */
 template<class TVar>
 TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
-	int size = (A.Rows())*A.Cols();
+	long size = (A.Rows())*A.Cols();
 	TVar result = 0.;
 	if(!size) return result;
     // #ifdef USING_ATLAS
@@ -1276,6 +1276,9 @@ double Dot(const TPZFMatrix<double> &A, const TPZFMatrix<double> &B);
 
 template
 float Dot(const TPZFMatrix<float> &A, const TPZFMatrix<float> &B);
+
+template
+long Dot(const TPZFMatrix<long> &A, const TPZFMatrix<long> &B);
 
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
@@ -1333,8 +1336,8 @@ void TPZFMatrix<TFad<6,REAL> >::Write( TPZStream &buf, int withclassid ) const {
 template <class TVar>
 void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){
 	TPZMatrix<TVar>::Read(buf,context);
-	int row = this->fRow;
-	int col = this->fCol;
+	long row = this->fRow;
+	long col = this->fCol;
 	this->fRow = this->fCol = 0;
 	Resize(row,col);
 	buf.Read(fElem,this->fRow*this->fCol);
@@ -1367,10 +1370,10 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
 	if(!fmat) return false;
 	
 	bool matresult = TPZMatrix<TVar>::Compare(copy,false);
-	int nel = this->fRow*this->fCol;
+	long nel = this->fRow*this->fCol;
 	TVar diff=0.;
-	int numdif = 0;
-	int iel;
+	long numdif = 0;
+	long iel;
 	for(iel=0; iel<nel; iel++)
 	{
 		if(fElem[iel] != fmat->fElem[iel])
@@ -1407,10 +1410,10 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
 	if(!fmat) return false;
     
 	bool matresult = TPZMatrix<TVar>::Compare(copy,false);
-	int nel = this->fRow*this->fCol;
+	long nel = this->fRow*this->fCol;
 	TVar diff=0.;
-	int numdif = 0;
-	int iel;
+	long numdif = 0;
+	long iel;
 	for(iel=0; iel<nel; iel++)
 	{
 		if(fElem[iel] != fmat->fElem[iel])
@@ -1437,23 +1440,23 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
 
 #ifdef _AUTODIFF
 template <>
-void TPZFMatrix<TFad<6,REAL> >::PrintStatic(const TFad<6,REAL> *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form)
+void TPZFMatrix<TFad<6,REAL> >::PrintStatic(const TFad<6,REAL> *ptr, long rows, long cols, const char *name, std::ostream& out,const MatrixOutputFormat form)
 {
     DebugStop();
 }
 #endif
 
 template <class TVar>
-void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form){
+void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, long rows, long cols, const char *name, std::ostream& out,const MatrixOutputFormat form){
 	
 	if(form == EFormatted) {
 		out << "Writing matrix '";
 		if(name) out << name;
 		out << "' (" << rows << " x " << cols << "):\n";
 		
-		for ( int row = 0; row < rows; row++) {
+		for ( long row = 0; row < rows; row++) {
 			out << "\t";
-			for ( int col = 0; col < cols; col++ ) {
+			for ( long col = 0; col < cols; col++ ) {
 				out << SELECTEL(ptr,rows, row, col) << "  ";
 			}
 			out << "\n";
@@ -1461,8 +1464,8 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const ch
     	out << "\n";
 	} else if (form == EInputFormat) {
 		out << rows << " " << cols << endl;
-		for ( int row = 0; row < rows; row++) {
-			for ( int col = 0; col < cols; col++ ) {
+		for ( long row = 0; row < rows; row++) {
+			for ( long col = 0; col < cols; col++ ) {
 				TVar val = SELECTEL(ptr,rows,row, col);
 				if(val != (TVar)0.) out << row << ' ' << col << ' ' << val << std::endl;
 			}
@@ -1472,9 +1475,9 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const ch
 	{
 		char number[32];
 		out << name << "\n{ ";
-		for ( int row = 0; row < rows; row++) {
+		for ( long row = 0; row < rows; row++) {
 			out << "\n{ ";
-			for ( int col = 0; col < cols; col++ ) {
+			for ( long col = 0; col < cols; col++ ) {
 				TVar val = SELECTEL(ptr,rows,row, col);
 				sprintf(number, "%16.16lf", (double)fabs(val));
 				out << number;
@@ -1520,7 +1523,7 @@ int TPZFMatrix<long double>::ClassId() const
 
 
 template <class TVar>
-int TPZFMatrix<TVar>::SetSize(const int newRows,const int newCols) {
+int TPZFMatrix<TVar>::SetSize(const long newRows,const long newCols) {
 	long newsize = ((long)newRows)*newCols;
 	long oldsize = this->fRow*this->fCol;
 	if(newsize == oldsize) return 1;
@@ -1559,11 +1562,14 @@ template class TPZFMatrix< std::complex<float> >;
 template class TPZFMatrix< std::complex<double> >;
 template class TPZFMatrix< std::complex<long double> >;
 
-template class TPZFMatrix<float>;
-template class TPZFMatrix<double>;
+template class TPZFMatrix<long >;
+
+template class TPZFMatrix<float >;
+template class TPZFMatrix<double >;
 template class TPZFMatrix<long double>;
 
-template class TPZFMatrix<int>;
+template class TPZFMatrix<int >;
+
 #ifndef BORLAND
 template class TPZRestoreClass< TPZFMatrix<double> , TPZFMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass< TPZFMatrix<float> , TPZFMATRIX_FLOAT_ID>;

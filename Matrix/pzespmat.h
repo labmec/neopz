@@ -51,7 +51,7 @@ public:
 	struct TPZNode
 	{
 		REAL elem;
-		int    col;
+		long    col;
 	};
 	
 public:
@@ -63,7 +63,7 @@ public:
      * @param rows Number of rows
      * @param cols Number of columns
 	 */
-	TPZSpMatrix ( int rows, int cols );
+	TPZSpMatrix ( long rows, long cols );
 	/**
      * @brief Copy constructor
      * @param A Model object
@@ -75,12 +75,12 @@ public:
 	/** @brief Simple destructor */
 	~TPZSpMatrix();
 	
-	int    Put(const int row,const int col,const TVar & value );
-	const TVar &Get(const int row,const int col ) const;
+	int    Put(const long row,const long col,const TVar & value );
+	const TVar &Get(const long row,const long col ) const;
 	
 	// Nao verifica limites da matriz (e' mais rapido).
-	int    PutVal(const int row,const int col,const TVar & element );
-	const TVar &GetVal(const int row,const int col ) const;
+	int    PutVal(const long row,const long col,const TVar & element );
+	const TVar &GetVal(const long row,const long col ) const;
 	
 	/**
 	 * @name Operadores com matrizes ESPARSAS NAO simetricas.
@@ -126,20 +126,20 @@ public:
 	TPZSpMatrix &Reset();
 	
 	/// Redimension the matrix to newRows x newCols arrange.
-	int Resize(const int newRows,const int newCols );
+	int Resize(const long newRows,const long newCols );
 	/**
      * @brief Redimensions current matrix keeping its elements
      * @param newDim New matrix dimensio
 	 */
-	int Resize(const int newDim )   { return Resize( newDim, newDim ); }
+	int Resize(const long newDim )   { return Resize( newDim, newDim ); }
 	
 	/// Redimension the matrix to newRows x newCols arrange and zeroes its elements
-	int Redim(const int newRows,const int newCols );
+	int Redim(const long newRows,const long newCols );
 	/**
      * @brief Redimensions matrix deleting all its elements
      * @param newDim New matrix dimension
 	 */
-	int Redim(const int newDim )    { return Redim( newDim, newDim ); }
+	int Redim(const long newDim )    { return Redim( newDim, newDim ); }
 	
 	/// Zeroes all elements of the matrix
 	int Zero();
@@ -173,7 +173,7 @@ protected:
 	int fMult( TVar val );                // operator *
 	
 	/** Swap (troca) the values of the variables */
-	inline void Swap( int *a, int *b );
+	inline void Swap( long *a, long *b );
 	
 	int  Clear()               { delete [] fElem; return ( 1 );}
 	
@@ -185,7 +185,7 @@ protected:
 	 * @param k number of column limit
 	 */
 	REAL ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
-				 int k );
+				 long k );
 	
 	
 	TPZLink<TPZNode> *fElem;
@@ -199,9 +199,9 @@ protected:
 /*** Swap ***/
 template<class TVar>
 inline void
-TPZSpMatrix<TVar>::Swap( int *a, int *b )
+TPZSpMatrix<TVar>::Swap( long *a, long *b )
 {
-	int c = *a;
+	long c = *a;
 	*a = *b;
 	*b = c;
 }

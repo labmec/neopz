@@ -190,7 +190,7 @@ TPZBlockDiagonal<TVar>::~TPZBlockDiagonal ()
 /***********/
 /*** Put ***/
 template<class TVar>
-int TPZBlockDiagonal<TVar>::Put(const int row,const int col,const TVar& value )
+int TPZBlockDiagonal<TVar>::Put(const long row,const long col,const TVar& value )
 {
 	//  cout << "TPZBlockDiagonal.Put should not be called\n";
 	if ( (row >= Dim()) || (col >= Dim()) || row<0 || col<0)
@@ -207,16 +207,16 @@ int TPZBlockDiagonal<TVar>::Put(const int row,const int col,const TVar& value )
 /*** PutVal ***/
 template<class TVar>
 int
-TPZBlockDiagonal<TVar>::PutVal(const int row,const int col,const TVar& value )
+TPZBlockDiagonal<TVar>::PutVal(const long row,const long col,const TVar& value )
 {
-	int b = 0;
-	int nb = fBlockSize.NElements();
+	long b = 0;
+	long nb = fBlockSize.NElements();
 	if(nb==0) {
 		cout << "TPZBlockDiagonal::PutVal called with parameters out of range\n";
 		return -1;
 	}
-	int eq=0;
-	int bsize = fBlockSize[b];
+	long eq=0;
+	long bsize = fBlockSize[b];
 	while(eq+bsize <= row && b < nb) {
 		eq+=bsize;
 		b++;
@@ -245,7 +245,7 @@ TPZBlockDiagonal<TVar>::PutVal(const int row,const int col,const TVar& value )
 
 template<class TVar>
 const TVar&
-TPZBlockDiagonal<TVar>::Get(const int row,const int col ) const
+TPZBlockDiagonal<TVar>::Get(const long row,const long col ) const
 {
 	if ( (row >= Dim()) || (col >= Dim()) )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::Get <indices out of band matrix range>" );
@@ -255,17 +255,17 @@ TPZBlockDiagonal<TVar>::Get(const int row,const int col ) const
 
 template<class TVar>
 TVar &
-TPZBlockDiagonal<TVar>::operator()(const int row, const int col) {
+TPZBlockDiagonal<TVar>::operator()(const long row, const long col) {
 	
-	int b = 0;
-	int nb = fBlockSize.NElements();
+	long b = 0;
+	long nb = fBlockSize.NElements();
 	if(nb==0) {
 		cout << "TPZBlockDiagonal::operator() called with parameters out of range\n";
 		static TVar zero = 0.;
 		return zero;
 	}
-	int eq=0;
-	int bsize = fBlockSize[b];
+	long eq=0;
+	long bsize = fBlockSize[b];
 	while(eq+bsize <= row && b < nb) {
 		eq+=bsize;
 		b++;
@@ -287,15 +287,15 @@ TPZBlockDiagonal<TVar>::operator()(const int row, const int col) {
 /***********/
 /*** GetVal ***/
 template<class TVar>
-const TVar &TPZBlockDiagonal<TVar>::GetVal(const int row,const int col ) const
+const TVar &TPZBlockDiagonal<TVar>::GetVal(const long row,const long col ) const
 {	
-	int b = 0;
-	int nb = fBlockSize.NElements();
+	long b = 0;
+	long nb = fBlockSize.NElements();
 	if(nb==0) {
 		cout << "TPZBlockDiagonal::GetVal called with parameters out of range\n";
 	}
-	int eq=0;
-	int bsize = fBlockSize[b];
+	long eq=0;
+	long bsize = fBlockSize[b];
 	while(eq+bsize <= row && b < nb) {
 		eq+=bsize;
 		b++;

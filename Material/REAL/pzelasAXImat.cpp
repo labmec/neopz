@@ -162,7 +162,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	TPZFMatrix<REAL> &phi  = data.phi;
 	TPZFMatrix<REAL> &axes = data.axes;
 	
-	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+	long phc,phr,dphc,dphr,efr,efc,ekr,ekc;
 	phc = phi.Cols();
 	phr = phi.Rows();
 	dphc = dphi.Cols();
@@ -235,7 +235,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	//criado para resolver o problema de Girkmann	
 	fIntegral += R2PI*weight;
 	
-	for( int in = 0; in < phr; in++ )
+	for( long in = 0; in < phr; in++ )
 	{
 		
 		//dphi_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
@@ -247,7 +247,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 		ef(2*in, 0)   += weight * R2PI * (ff[0] * phi(in,0) + TensorThermico*(phi(in,0)/R + dphiRZi(0,0))); // direcao x
 		ef(2*in+1, 0) += weight * R2PI * (ff[1] * phi(in,0) + TensorThermico*dphiRZi(1,0)); // direcao y
 		
-		for( int jn = 0; jn < phr; jn++ )
+		for( long jn = 0; jn < phr; jn++ )
 		{
 			
 			//dphi_j/dr = dphi_j/axis0 <axes0,f_AxisR> + dphi_j/axis1 <axes1,f_AxisR>
@@ -297,7 +297,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 	
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 	
-	int phr = phi.Rows();
+	long phr = phi.Rows();
 	short in,jn;
 	REAL v2[2];
 	v2[0] = bc.Val2()(0,0);
@@ -446,9 +446,9 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	}
 #endif
 	
-	int nrowl = phiL.Rows();
-	int nrowr = phiR.Rows();
-	int il,jl,ir,jr;	
+	long nrowl = phiL.Rows();
+	long nrowr = phiR.Rows();
+	long il,jl,ir,jr;
 	
 	/** R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!*/
 	REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
@@ -487,7 +487,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
 	double mu =  fE/(2.*(1. + fnu));
 	
-    int numbersol = dataleft.dsol.size();
+    long numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -885,7 +885,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 		TPZMaterial::Solution(data,var,Solout);
 		return;
 	}
-    int numbersol = data.dsol.size();
+    long numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -1000,7 +1000,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	{
 		case 9: //Solout = 1stEigenvalue * {1stEigenvector}
 		{
-			int NumIt = 1000;
+			long NumIt = 1000;
 			REAL tol = 1.E-5;
 			TPZVec<REAL> EigValues(3,0.);
 			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
@@ -1026,7 +1026,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			
 		case 1: //Solout = 2ndEigenvalue * {2ndEigenvector}
 		{
-			int NumIt = 1000;
+			long NumIt = 1000;
 			REAL tol = 1.E-5;
 			TPZVec<REAL> EigValues(3,0.);
 			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
@@ -1052,7 +1052,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			
 		case 2: //Solout = 3rdEigenvalue * {3rdEigenvector}
 		{
-			int NumIt = 1000;
+			long NumIt = 1000;
 			REAL tol = 1.E-5;
 			TPZVec<REAL> EigValues(3,0.);
 			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);

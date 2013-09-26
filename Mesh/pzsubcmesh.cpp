@@ -1399,7 +1399,7 @@ void TPZSubCompMesh::LoadSolution() {
 }
 
 
-void TPZSubCompMesh::SkylineInternal(TPZVec<int> &skyline) {
+void TPZSubCompMesh::SkylineInternal(TPZVec<long> &skyline) {
 	TPZCompMesh::Skyline(skyline);
 	skyline.Resize(NumInternalEquations());
 }

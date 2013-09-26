@@ -42,9 +42,9 @@ public:
 	/** @brief Default constructor */
 	TPZSkylParMatrix();
 	/** @brief Constructor for given dimension */
-	TPZSkylParMatrix(const int dim);
+	TPZSkylParMatrix(const long dim);
 	/** @brief Constructor with number of threads */
-	TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads);
+	TPZSkylParMatrix(const long dim, const TPZVec<long> &skyline,int NumThreads);
 	/** @brief Copy constructor */
 	TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &A);
 	
@@ -66,7 +66,7 @@ public:
 	int Decompose_LDLt(std::list<int> &singular);
 	int Decompose_LDLt();
 	
-	void SetSkyline(const TPZVec<int> &skyline);
+	void SetSkyline(const TPZVec<long> &skyline);
 
 	/** @} */
 	
@@ -77,17 +77,17 @@ private:
 	static void *ParallelCholesky(void *t);
 	
 	/** @brief Determine which column can be decomposed with respect to which column */
-	void ColumnToWork(int &lcol, int &lprevcol);
+	void ColumnToWork(long &lcol, long &lprevcol);
 	/** @brief Determine which column has some equations to decompose */
-	void ColumnToWork(int &lcol);
-	void DecomposeColumnCholesky(int lcol, int lprevcol);
-	void DecomposeColumnLDLt(int lcol, int lprevcol);
-	void DecomposeColumnLDLt2(int lcol);
+	void ColumnToWork(long &lcol);
+	void DecomposeColumnCholesky(long lcol, long lprevcol);
+	void DecomposeColumnLDLt(long lcol, long lprevcol);
+	void DecomposeColumnLDLt2(long lcol);
 	void PrintState();
 	
 public:
 	TPZVec<int> fDec;  
-	TPZVec<int> fSkyline;
+	TPZVec<long> fSkyline;
 	
 private:
 	int fEqDec, fNthreads;

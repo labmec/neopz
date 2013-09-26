@@ -39,7 +39,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
 	
     LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble starting");
 	
-    int neq = fMesh->NEquations();
+    long neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
 		return new TPZFYsmpMatrix<STATE>(0,0);
@@ -60,7 +60,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
     return stiff;
 }
 TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
-    int neq = fEquationFilter.NActiveEquations();
+    long neq = fEquationFilter.NActiveEquations();
 	/*    if(fMesh->FatherMesh()) {
 	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
 	 neq = smesh->NumInternalEquations();
@@ -86,10 +86,10 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
      */
     metis.ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
     /**vector sizes*/
-    int i;
-    int nblock = nodegraphindex.NElements()-1;
-    int totalvar = 0;
-    int totaleq = 0;
+    long i;
+    long nblock = nodegraphindex.NElements()-1;
+    long totalvar = 0;
+    long totaleq = 0;
     for(i=0;i<nblock;i++){
 		int iblsize = fMesh->Block().Size(i);
 		int iblpos = fMesh->Block().Position(i);
@@ -120,8 +120,8 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 	
     nblock=fMesh->NIndependentConnects();
 	
-    int * Eq = new int[totaleq+1];
-    int * EqCol = new int[totalvar];
+    long * Eq = new long[totaleq+1];
+    long * EqCol = new long[totalvar];
     STATE * EqValue = new STATE [totalvar];
     for(i=0;i<nblock;i++){
 		int iblsize = fMesh->Block().Size(i);

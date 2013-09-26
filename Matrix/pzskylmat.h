@@ -90,21 +90,21 @@ public:
   /**
      @brief Constructs a dim x dim skyline matrix with zero elements. 
   */ 
-  TPZSkylMatrix(const int dim);
+  TPZSkylMatrix(const long dim);
 
   //TODO: Verify the descriptions...
   /**
      @brief Constructs a skyline matrix of dimension dim. The skyline array
      indicates the minimum row number which will be accessed by each equation.
   */
-  TPZSkylMatrix(const int dim ,const TPZVec<int> &skyline);
+  TPZSkylMatrix(const long dim ,const TPZVec<long> &skyline);
  
   TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  
     { Copy(A); }
 	
   CLONEDEF(TPZSkylMatrix)
 
-  virtual int MemoryFootprint() const {
+  virtual long MemoryFootprint() const {
     return (sizeof(TVar*)*fElem.size() + 
 	    sizeof(TVar)*fStorage.size());
   }	
@@ -114,12 +114,12 @@ public:
      skyline array indicates the minimum row number which will be accessed by
      each equation
   */
-  void SetSkyline(const TPZVec<int> &skyline);
+  void SetSkyline(const TPZVec<long> &skyline);
 	
   /**
      @brief Returns the height of the skyline for a given column.
   */
-  int SkyHeight(int col) const { return fElem[col+1]-fElem[col] - 1; }
+  long SkyHeight(long col) const { return fElem[col+1]-fElem[col] - 1; }
 	
   /**
      @brief Adds a skyline matrix B (with same structure of this).  
@@ -140,18 +140,18 @@ public:
      @brief Updates the value of element [row,col]. If element is not inside the
      skyline, it generates an Index out of range error. Otherwise, it returns 1.
   */
-  int PutVal(const int row,const int col,const TVar &element );
+  int PutVal(const long row,const long col,const TVar &element );
 
   /**
      @brief Returns the value of element [row,col]
   */
-  const TVar& GetVal(const int row,const int col ) const;
+  const TVar& GetVal(const long row,const long col ) const;
 	
-  TVar& operator()(const int row, const int col);
+  TVar& operator()(const long row, const long col);
 
-  virtual TVar& s(const int row, const int col) { return operator()(row, col); }
+  virtual TVar& s(const long row, const long col) { return operator()(row, col); }
 	
-  TVar &operator()(const int row) { return operator()(row, row); }
+  TVar &operator()(const long row) { return operator()(row, row); }
   
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 		       const TVar alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
@@ -173,14 +173,14 @@ public:
      @brief Resize the skyline matrix, but keep it's original elements. The
      second parameter is the size of the columns.
   */
-  int Resize(const int newDim ,const int );
+  int Resize(const long newDim ,const long );
   
   /**
      @brief Resize the skyline matrix and replace the values by zeros.  The
      second parameter is the size of the columns.
   */
-  int Redim(const int newDim ,const int );
-  int Redim(const int newDim) {return Redim(newDim,newDim);}
+  int Redim(const long newDim ,const long );
+  int Redim(const long newDim) {return Redim(newDim,newDim);}
 	
   /**
      @brief Replace the values by zeros.
@@ -191,12 +191,12 @@ public:
      @brief Methods to Solve Linear Equations Systems. 
   */
   // @{
-  virtual void SolveSOR(int &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
+  virtual void SolveSOR(long &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 			TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
 			const int FromCurrent = 0,const int direction = 1) ;
   
   int Decompose_Cholesky();  // Faz A = GGt.
-  int Decompose_Cholesky_blk(int blk_sz);
+  int Decompose_Cholesky_blk(long blk_sz);
 
   int Decompose_LDLt    ();  // Faz A = LDLt.
   int Decompose_LDLt2   ();  // Experimental
@@ -238,26 +238,26 @@ protected:
      @brief This method returns a pointer to the diagonal element of the matrix
      of the col column
   */
-  TVar* Diag(int col) { return fElem[col+1]-1;}
+  TVar* Diag(long col) { return fElem[col+1]-1;}
 	
-  void DecomposeColumn(int col, int prevcol);
-  void DecomposeColumn(int col, int prevcol, std::list<int> &singular);
-  void DecomposeColumn2(int col, int prevcol);
+  void DecomposeColumn(long col, long prevcol);
+  void DecomposeColumn(long col, long prevcol, std::list<int> &singular);
+  void DecomposeColumn2(long col, long prevcol);
 
 private:
 	
   int  Clear();
   void Copy (const TPZSkylMatrix<TVar> & );
-  int  Size(const int column) const {return fElem[column+1]-fElem[column];}
-  static long NumElements(const TPZVec<int> &skyline);
-  static void InitializeElem(const TPZVec<int> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
+  long  Size(const long column) const {return fElem[column+1]-fElem[column];}
+  static long NumElements(const TPZVec<long> &skyline);
+  static void InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
   
   /**
      @brief Computes the highest skyline of both objects
   */
   static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, 
 				const TPZSkylMatrix<TVar> &second, 
-				TPZVec<int> &res);
+				TPZVec<long> &res);
 	
 protected:
   /**
@@ -326,18 +326,18 @@ class TPZSkylMatrix : public TPZMatrix<TVar>
 {
 public:
 	TPZSkylMatrix() : TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
-	TPZSkylMatrix(const int dim);
+	TPZSkylMatrix(const long dim);
 	/**
      @brief Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
 	 */
-	TPZSkylMatrix(const int dim ,const TPZVec<int> &skyline);
+	TPZSkylMatrix(const long dim ,const TPZVec<long> &skyline);
 	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
 	
 	CLONEDEF(TPZSkylMatrix)
 
-	virtual int MemoryFootprint() const {
-	  return (sizeof(TVar*)*fElem.size() + 
+	virtual long MemoryFootprint() const {
+	  return (sizeof(TVar*)*fElem.size() +
 		  sizeof(TVar)*fStorage.size());
 	}	
 
@@ -345,12 +345,12 @@ public:
      @brief modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation
 	 */
-	void SetSkyline(const TPZVec<int> &skyline);
+	void SetSkyline(const TPZVec<long> &skyline);
 	
 	/**
      @brief return the height of the skyline for a given column
 	 */
-	int SkyHeight(int col) { return fElem[col+1]-fElem[col] - 1; }
+	long SkyHeight(long col) { return fElem[col+1]-fElem[col] - 1; }
 	
 	/** @brief Add a skyline matrix B with same structure of this
 	 *  It makes this += k * B
@@ -369,15 +369,15 @@ public:
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 
 	
-	int    PutVal(const int row,const int col,const TVar &element );
-	const TVar &GetVal(const int row,const int col ) const;
+	int    PutVal(const long row,const long col,const TVar &element );
+	const TVar &GetVal(const long row,const long col ) const;
 	
 	
-	TVar &operator()(const int row, const int col);
-	virtual TVar &s(const int row, const int col);
+	TVar &operator()(const long row, const long col);
+	virtual TVar &s(const long row, const long col);
 	
 	
-	TVar &operator()(const int row);
+	TVar &operator()(const long row);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
@@ -399,12 +399,12 @@ public:
 	
 	// Redimensiona a matriz, mas mantem seus elementos.
 	// o segundo parametro � o tamanho das colunas
-	int Resize(const int newDim ,const int );
+	int Resize(const long newDim ,const long );
 	
 	// Redimensiona a matriz e ZERA seus elementos.
 	// o segundo parametro � o tamanho das colunas
-	int Redim(const int newDim ,const int );
-	int Redim(const int newDim) {return Redim(newDim,newDim);}
+	int Redim(const long newDim ,const long );
+	int Redim(const long newDim) {return Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz
 	int Zero();
@@ -412,13 +412,13 @@ public:
 	
 	/*** @brief To Solve Linear Equations ***/
 	// @{
-	virtual void SolveSOR(int &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
+	virtual void SolveSOR(long &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	
 	
 	int Decompose_Cholesky();  // Faz A = GGt.
-	int Decompose_Cholesky_blk(int blk_sz);
+	int Decompose_Cholesky_blk(long blk_sz);
 
 	int Decompose_LDLt    ();  // Faz A = LDLt.
 	int Decompose_LDLt2   ();  // Experimental
@@ -459,12 +459,12 @@ protected:
 	/**
      @brief This method returns a pointer to the diagonal element of the matrix of the col column
 	 */
-	TVar *Diag(int col) { return fElem[col];}
+	TVar *Diag(long col) { return fElem[col];}
 	
-	void DecomposeColumn(int col, int prevcol);
-	void DecomposeColumn(int col, int prevcol, std::list<int> &singular);
+	void DecomposeColumn(long col, long prevcol);
+	void DecomposeColumn(long col, long prevcol, std::list<int> &singular);
 	
-	void DecomposeColumn2(int col, int prevcol);
+	void DecomposeColumn2(long col, long prevcol);
 private:
 	
 	// Aloca uma nova coluna. 'fDiag[col].pElem' deve ser NULL.
@@ -472,13 +472,13 @@ private:
 	//static int  Error(const char *msg1,const char* msg2="" );
 	int  Clear();
 	void Copy (const TPZSkylMatrix<TVar> & );
-	int Size(const int column) const {return fElem[column+1]-fElem[column];}
-	static long NumElements(const TPZVec<int> &skyline);
-	static void InitializeElem(const TPZVec<int> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
+	long Size(const long column) const {return fElem[column+1]-fElem[column];}
+	static long NumElements(const TPZVec<long> &skyline);
+	static void InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
 	/**
      @brief Computes the highest skyline of both objects
 	 */
-	static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, const TPZSkylMatrix<TVar> &second, TPZVec<int> &res);
+	static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, const TPZSkylMatrix<TVar> &second, TPZVec<long> &res);
 	
 protected:
 	/** @brief Storage to keep the first elements to each equation

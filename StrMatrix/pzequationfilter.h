@@ -10,7 +10,7 @@ class TPZEquationFilter
 {
 public:
 
-    TPZEquationFilter(int numeq) : fNumEq(numeq), fNumActive(numeq), fActiveEqs(), fDestIndices()
+    TPZEquationFilter(long numeq) : fNumEq(numeq), fNumActive(numeq), fActiveEqs(), fDestIndices()
     {
 
     }
@@ -36,7 +36,7 @@ public:
     }
 
     ///Define as equacoes ativas de [mineq, maxeq)
-    void SetMinMaxEq(int mineq, int maxeq)
+    void SetMinMaxEq(long mineq, long maxeq)
     {
       if (mineq < 0 || mineq > fNumEq ||
           maxeq < 0 || maxeq > fNumEq ||
@@ -44,9 +44,9 @@ public:
           DebugStop();
       }
 
-      const int n = maxeq-mineq;
+      const long n = maxeq-mineq;
       TPZVec<int> activeEquations(n);
-      for(int i = 0; i < n; i++){
+      for(long i = 0; i < n; i++){
         activeEquations[i] = i + mineq;
       }
       this->SetActiveEquations( activeEquations );
@@ -93,9 +93,9 @@ public:
             return;
         }
         else {
-            int count = 0;
-            int numeq = dest.size();
-            for (int i=0; i<numeq; i++) {
+            long count = 0;
+            long numeq = dest.size();
+            for (long i=0; i<numeq; i++) {
                 if (fDestIndices[dest[i]] != -1) {
                     orig[count] = orig[i];
                     dest[count] = fDestIndices[dest[i]];
@@ -116,9 +116,9 @@ public:
             return;
         }
         else{
-            int count = 0;
-            int numeq = dest.size();
-            for (int i=0; i<numeq; i++) {
+            long count = 0;
+            long numeq = dest.size();
+            for (long i=0; i<numeq; i++) {
                 if (fDestIndices[dest[i]] != -1) {
                     dest[count] = fDestIndices[dest[i]];
                     count++;
@@ -227,15 +227,15 @@ public:
         return numactive;
     }
     
-    void FilterSkyline(TPZVec<int> &skyline) const
+    void FilterSkyline(TPZVec<long> &skyline) const
     {
         if (!IsActive()) {
             return;
         }
 
-        for (int ieq = 0; ieq<fActiveEqs.size(); ieq++)
+        for (long ieq = 0; ieq<fActiveEqs.size(); ieq++)
         {
-            int skyl = skyline[fActiveEqs[ieq]];
+            long skyl = skyline[fActiveEqs[ieq]];
             while (fDestIndices[skyl] == -1 && skyl < fNumEq) {
                 skyl++;
             }

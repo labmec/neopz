@@ -19,11 +19,11 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal()
 {
 }
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows) : fBlock(blockgraph), fBlockIndex(blockgraphindex)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows) : fBlock(blockgraph), fBlockIndex(blockgraphindex)
 {
-	int numbl = blockgraphindex.NElements()-1;
+	long numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
-	int ibl;
+	long ibl;
 	for(ibl=0; ibl<numbl; ibl++)
 	{
 		this->fBlockSize[ibl] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
@@ -34,12 +34,12 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TP
 }
 
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int color, TPZVec<int> &colors)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows, int color, TPZVec<int> &colors)
 {
 	LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
-	int numbl = blockgraphindex.NElements()-1;
+	long numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
-	int ibl,iblcount,graphsize = 0;
+	long ibl,iblcount,graphsize = 0;
 	for(ibl=0, iblcount=0; ibl<numbl; ibl++)
 	{
 		if(colors[ibl]==color) 
@@ -81,63 +81,63 @@ TPZSparseBlockDiagonal<TVar>::~TPZSparseBlockDiagonal()
 }
 
 template<class TVar>
-const TVar& TPZSparseBlockDiagonal<TVar>::Get(const int row, const int col) const
+const TVar& TPZSparseBlockDiagonal<TVar>::Get(const long row, const long col) const
 {
-	int rblock,rblockindex,cblock,cblockindex;
+	long rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
 	if(rblock == -1) return this->gZero;
 	FindBlockIndex(col,cblock,cblockindex);
 	if(cblock != rblock) return this->gZero;
-	int pos = rblockindex + cblockindex*this->fBlockSize[rblock];
+	long pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	return this->fStorage[this->fBlockPos[rblock]+pos];
 }
 
 template<class TVar>
-const TVar& TPZSparseBlockDiagonal<TVar>::GetVal(const int row, const int col) const
+const TVar& TPZSparseBlockDiagonal<TVar>::GetVal(const long row, const long col) const
 {
-	int rblock,rblockindex,cblock,cblockindex;
+	long rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
 	if(rblock == -1) return this->gZero;
 	FindBlockIndex(col,cblock,cblockindex);
 	if(cblock != rblock) return this->gZero;
-	int pos = rblockindex + cblockindex*this->fBlockSize[rblock];
+	long pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	return this->fStorage[this->fBlockPos[rblock]+pos];
 }
 
 template <class TVar>
-int TPZSparseBlockDiagonal<TVar>::Put(const int row, const int col, const TVar& value)
+int TPZSparseBlockDiagonal<TVar>::Put(const long row, const long col, const TVar& value)
 {
-	int rblock,rblockindex,cblock,cblockindex;
+	long rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
 	if(rblock == -1) return -1;
 	FindBlockIndex(col,cblock,cblockindex);
 	if(cblock != rblock) return -1;
-	int pos = rblockindex + cblockindex*this->fBlockSize[rblock];
+	long pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	this->fStorage[this->fBlockPos[rblock]+pos] = value;
 	return 0;
 }
 
 template<class TVar>
-int TPZSparseBlockDiagonal<TVar>::PutVal(const int row, const int col, const TVar& value)
+int TPZSparseBlockDiagonal<TVar>::PutVal(const long row, const long col, const TVar& value)
 {
-	int rblock,rblockindex,cblock,cblockindex;
+	long rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
 	if(rblock == -1) return -1;
 	FindBlockIndex(col,cblock,cblockindex);
 	if(cblock != rblock) return -1;
-	int pos = rblockindex + cblockindex*this->fBlockSize[rblock];
+	long pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	this->fStorage[this->fBlockPos[rblock]+pos] = value;
 	return 0;
 }
 template<class TVar>
-TVar& TPZSparseBlockDiagonal<TVar>::operator ( )(const int row, const int col)
+TVar& TPZSparseBlockDiagonal<TVar>::operator ( )(const long row, const long col)
 {
-	int rblock,rblockindex,cblock,cblockindex;
+	long rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
 	if(rblock == -1) return this->gZero;
 	FindBlockIndex(col,cblock,cblockindex);
 	if(cblock != rblock) return this->gZero;
-	int pos = rblockindex + cblockindex*this->fBlockSize[rblock];
+	long pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	return this->fStorage[this->fBlockPos[rblock]+pos];
 }
 
@@ -154,14 +154,14 @@ int TPZSparseBlockDiagonal<TVar>::Substitution(TPZFMatrix<TVar>* B) const
 }
 
 template<class TVar>
-TVar& TPZSparseBlockDiagonal<TVar>::s(const int row, const int col)
+TVar& TPZSparseBlockDiagonal<TVar>::s(const long row, const long col)
 {
-	int rblock,rblockindex,cblock,cblockindex;
+	long rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
 	if(rblock == -1) return this->gZero;
 	FindBlockIndex(col,cblock,cblockindex);
 	if(cblock != rblock) return this->gZero;
-	int pos = rblockindex + cblockindex*this->fBlockSize[rblock];
+	long pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	return this->fStorage[this->fBlockPos[rblock]+pos];
 }
 
@@ -172,8 +172,8 @@ void TPZSparseBlockDiagonal<TVar>::Print(const char* message, std::ostream& out,
 	if(format == EFormatted)
 	{
 		out << "Equations for each block " << endl;
-		int nbl = fBlockIndex.NElements()-1;
-		int ibl;
+		long nbl = fBlockIndex.NElements()-1;
+		long ibl;
 		for(ibl = 0; ibl<nbl ; ibl++)
 		{
 			int first = fBlockIndex[ibl];
@@ -187,7 +187,7 @@ void TPZSparseBlockDiagonal<TVar>::Print(const char* message, std::ostream& out,
 }
 
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::AddBlock(int i, TPZFMatrix<TVar>& block)
+void TPZSparseBlockDiagonal<TVar>::AddBlock(long i, TPZFMatrix<TVar>& block)
 {
     TPZBlockDiagonal<TVar>::AddBlock(i, block);
 }
@@ -196,12 +196,12 @@ template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar>& matrix)
 {
 	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::BuildFromMatrix");
-	TPZManVector<int> indices;
+	TPZManVector<long> indices;
 	TPZFNMatrix<10000,TVar> submat(0,0);
-	int ibl,nbl = fBlockIndex.NElements()-1;
+	long ibl,nbl = fBlockIndex.NElements()-1;
 	for(ibl=0; ibl<nbl; ibl++)
 	{
-		int nel = this->fBlockSize[ibl];
+		long nel = this->fBlockSize[ibl];
 		indices.Resize(nel);
 		submat.Resize(nel,nel);
 		int iel,first = fBlockIndex[ibl];
@@ -212,7 +212,7 @@ void TPZSparseBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar>& matrix)
 }
 
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::GetBlock(int i, TPZFMatrix<TVar>& block)
+void TPZSparseBlockDiagonal<TVar>::GetBlock(long i, TPZFMatrix<TVar>& block)
 {
     TPZBlockDiagonal<TVar>::GetBlock(i, block);
 }
@@ -236,10 +236,10 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
  \fn TPZSparseBlockDiagonal::FindBlockIndex(int glob, int &block, int &blockind)
  */
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int glob, int &block, int &blockind) const
+void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(long glob, long &block, long &blockind) const
 {
-    int numbl = fBlockIndex.NElements()-2;
-    int ieq,ibl;
+    long numbl = fBlockIndex.NElements()-2;
+    long ieq,ibl;
     for(ibl = 0; ibl<numbl; ibl++)
     {
 		for(ieq = fBlockIndex[ibl];ieq<fBlockIndex[ibl+1];ieq++)
@@ -262,9 +262,9 @@ void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int glob, int &block, int &blo
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const
 {
-    int neq = fBlock.NElements();
-    int nc = in.Cols();
-    int ieq,ic;
+    long neq = fBlock.NElements();
+    long nc = in.Cols();
+    long ieq,ic;
     for(ic=0; ic<nc; ic++)
     {
 		for(ieq=0; ieq<neq; ieq++) out(fBlock[ieq]*stride,ic) += in.GetVal(ieq,ic);
@@ -277,9 +277,9 @@ void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatri
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const
 {
-    int neq = fBlock.NElements();
-    int nc = in.Cols();
-    int ieq,ic;
+    long neq = fBlock.NElements();
+    long nc = in.Cols();
+    long ieq,ic;
     for(ic=0; ic<nc; ic++)
     {
 		for(ieq=0; ieq<neq; ieq++) out(ieq,ic) = in.GetVal(fBlock[ieq]*stride,ic);
@@ -299,13 +299,13 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 		return;
 	}
 	this->fDecomposed = ENoDecompose;
-	int nblock = this->fBlockSize.NElements();
-	int b,bsize,pos;
-	TPZManVector<int,1000> indices;
+	long nblock = this->fBlockSize.NElements();
+	long b,bsize,pos;
+	TPZManVector<long,1000> indices;
 	for(b=0; b<nblock; b++) {
 		bsize = this->fBlockSize[b];
 		indices.Resize(bsize);
-		int r;
+		long r;
 		pos = this->fBlockPos[b];
 		for(r=0; r<bsize; r++) indices[r] = fBlock[fBlockIndex[b]+r]; 
 		TPZFMatrix<TVar> block(bsize,bsize,&this->fStorage[pos],bsize*bsize);

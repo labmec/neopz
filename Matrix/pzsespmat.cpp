@@ -189,7 +189,7 @@ TPZSSpMatrix<TVar>::Decompose_Cholesky()
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_end = &fMat.fElem[ this->Dim() ];
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k   = &fMat.fElem[ 0 ];
     
-    for ( int k = 0; k < this->Dim(); k++, row_k++ )
+    for ( long k = 0; k < this->Dim(); k++, row_k++ )
     {
         // Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
         //
@@ -270,7 +270,7 @@ TPZSSpMatrix<TVar>::Decompose_LDLt()
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k   = &fMat.fElem[ 0 ];
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_end = &fMat.fElem[ this->Dim() ];
     
-    for ( int k = 0; k < this->Dim(); k++, row_k++ )
+    for ( long k = 0; k < this->Dim(); k++, row_k++ )
     {
         // Faz aux(p) = A(p,p) * A(k,p), p = 1, ..., k-1.
         //
@@ -360,8 +360,8 @@ TPZSSpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
         return( 0 );
     
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k = &fMat.fElem[0];
-    for ( int k = 0; k < this->Dim(); k++, row_k++ )
-        for ( int j = 0; j < B->Cols(); j++ )
+    for ( long k = 0; k < this->Dim(); k++, row_k++ )
+        for ( long j = 0; j < B->Cols(); j++ )
         {
             // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
             //
@@ -400,8 +400,8 @@ TPZSSpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
         return( 0 );
     
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k = &fMat.fElem[0];
-    for ( int k = 0; k < this->Dim(); k++, row_k++ )
-        for ( int j = 0; j < B->Cols(); j++ )
+    for ( long k = 0; k < this->Dim(); k++, row_k++ )
+        for ( long j = 0; j < B->Cols(); j++ )
         {
             // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
             //
@@ -440,10 +440,10 @@ TPZSSpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
     
     TPZSpMatrix<REAL>::TPZNode node_kk;
     TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_k = &fMat.fElem[0];
-    for ( int k = 0; k < this->Dim(); k++, row_k++ )
+    for ( long k = 0; k < this->Dim(); k++, row_k++ )
     {
         row_k->GetLast( &node_kk );
-        for ( int j = 0; j < B->Cols(); j++ )
+        for ( long j = 0; j < B->Cols(); j++ )
             B->PutVal( k, j, B->GetVal( k, j ) / node_kk.elem );
     }
     return( 1 );
@@ -476,7 +476,7 @@ TPZSSpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 template<class TVar>
 TVar
 TPZSSpMatrix<TVar>::ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
-                      TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, int k )
+                      TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, long k )
 {
     TVar prod = 0.0;
     
@@ -485,8 +485,8 @@ TPZSSpMatrix<TVar>::ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
     row_i->Head();
     row_j->Head();
     
-    int again_i = row_i->Get( &node_i ) && (node_i.col < k);
-    int again_j = row_j->Get( &node_j ) && (node_j.col < k);
+    long again_i = row_i->Get( &node_i ) && (node_i.col < k);
+    long again_j = row_j->Get( &node_j ) && (node_j.col < k);
     
     while ( again_i && again_j )
     {

@@ -34,7 +34,7 @@ public:
      * @param dim Initial dimension of banded matrix
      * @param band_width Initial band width of banded matrix
 	 */
-	TPZFBMatrix (const int dim,const int band_width = 0 );
+	TPZFBMatrix (const long dim,const long band_width = 0 );
 	/** @brief Copy constructor */
 	TPZFBMatrix (const TPZFBMatrix<TVar> & );
 	
@@ -42,14 +42,14 @@ public:
 	/** @brief Simple destructor */
 	~TPZFBMatrix();
 
-	int    Put(const int row,const int col,const TVar& value );
-	const TVar &Get(const int row,const int col ) const;
+	int    Put(const long row,const long col,const TVar& value );
+	const TVar &Get(const long row,const long col ) const;
 	
-	TVar &operator()(const int row, const int col);
-	virtual TVar &s(const int row, const int col);
+	TVar &operator()(const long row, const long col);
+	virtual TVar &s(const long row, const long col);
 
-	inline int    PutVal(const int row,const int col,const TVar& value );
-	inline const TVar &GetVal(const int row,const int col ) const;
+	inline int    PutVal(const long row,const long col,const TVar& value );
+	inline const TVar &GetVal(const long row,const long col ) const;
 	
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha=1,const TVar beta = 0,const int opt = 0,const int stride = 1 ) const;
@@ -70,20 +70,20 @@ public:
 	
 	TPZFBMatrix operator-() const;
 	
-	int Dim() const     { return this->Rows(); }
+	long Dim() const     { return this->Rows(); }
 	/** @brief Returns band size */
-	int GetBand() const { return fBand; }
+	long GetBand() const { return fBand; }
 	/**
      * @brief Sets band size
      * @param newBand New band size
 	 */
-	int SetBand(const int newBand );
+	int SetBand(const long newBand );
 	
 	/// Redimension the matrix preserving its elements
-	int Resize(const int newRows,const int newCols );
+	int Resize(const long newRows,const long newCols );
 	
 	/// Redimension the matrix and make zero its elements
-	int Redim(const int newRows,const int newCols );
+	int Redim(const long newRows,const long newCols );
 	
 	// Zeroes the elements of the matrix
 	int Zero();
@@ -110,7 +110,7 @@ private:
 	
 //	TPZVec<TVar> fElem;
 	TVar *fElem;
-	int  fBand;
+	long  fBand;
 };
 
 
@@ -119,7 +119,7 @@ private:
 /*** PutVal ***/
 template<class TVar>
 inline int
-TPZFBMatrix<TVar>::PutVal(const int row,const int col,const TVar& value )
+TPZFBMatrix<TVar>::PutVal(const long row,const long col,const TVar& value )
 {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
 		fElem[((unsigned long) fBand * (2*row + 1)) + col ] = value;
@@ -132,7 +132,7 @@ TPZFBMatrix<TVar>::PutVal(const int row,const int col,const TVar& value )
 /*** GetVal ***/
 template<class TVar>
 inline const TVar &
-TPZFBMatrix<TVar>::GetVal(const int row,const int col ) const {
+TPZFBMatrix<TVar>::GetVal(const long row,const long col ) const {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
 		return( fElem[ ((unsigned long)fBand * (2*row + 1)) + col ] );
 	this->gZero = (TVar)0;
@@ -140,7 +140,7 @@ TPZFBMatrix<TVar>::GetVal(const int row,const int col ) const {
 }
 
 template<class TVar>
-inline TVar &TPZFBMatrix<TVar>::operator()(const int row, const int col){  
+inline TVar &TPZFBMatrix<TVar>::operator()(const long row, const long col){  
 	if( (col+fBand >= row) && (col <= (row+fBand)) )
 	{
 		return( fElem[ ((unsigned long)fBand * (2*row + 1)) + col ] );
@@ -150,7 +150,7 @@ inline TVar &TPZFBMatrix<TVar>::operator()(const int row, const int col){
 	return( this->gZero );
 }
 template<class TVar>
-inline TVar &TPZFBMatrix<TVar>::s(const int row, const int col) {
+inline TVar &TPZFBMatrix<TVar>::s(const long row, const long col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 	return operator()(row,col);
 }

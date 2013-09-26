@@ -64,7 +64,8 @@ void RunFast()
 TPZFYsmpMatrix<STATE> *ReadMatrix(const std::string &filename, TPZFMatrix<STATE> &rhs)
 {
   ifstream input(filename.c_str());
-  int neq,nelem, issymetric;
+    long neq,nelem;
+    int issymetric;
   input >> neq >> nelem >> issymetric;
   rhs.Redim(neq,1);
   TPZStack<int,10000> elgraph;
@@ -72,7 +73,7 @@ TPZFYsmpMatrix<STATE> *ReadMatrix(const std::string &filename, TPZFMatrix<STATE>
   elgraphindex[0] = 0;
   std::vector<int> numelcon(neq,0);
 // leitura do grafo dos elementos
-  int iel;
+  long iel;
   for(iel=0; iel<nelem; iel++)
   {
     int nnodes;
@@ -135,13 +136,13 @@ TPZFYsmpMatrix<STATE> *ReadMatrix(const std::string &filename, TPZFMatrix<STATE>
       nextassemble++;
     }
   }  
-  int *IA, *JA;
+  long *IA, *JA;
   STATE *A;
-  IA = new int[neq+1];
-  JA = new int[nodegraph.NElements()];
+  IA = new long[neq+1];
+  JA = new long[nodegraph.NElements()];
   A = new STATE[nodegraph.NElements()];
-  memcpy(IA,&nodegraphindex[0],(neq+1)*sizeof(int));
-  memcpy(JA,&nodegraph[0],nodegraph.NElements()*sizeof(int));
+  memcpy(IA,&nodegraphindex[0],(neq+1)*sizeof(long));
+  memcpy(JA,&nodegraph[0],nodegraph.NElements()*sizeof(long));
   memcpy(A,&avec[0],avec.NElements()*sizeof(REAL));
   
   TPZFYsmpMatrix<STATE> *result = new TPZFYsmpMatrix<STATE>(neq,neq);
@@ -152,7 +153,7 @@ TPZFYsmpMatrix<STATE> *ReadMatrix(const std::string &filename, TPZFMatrix<STATE>
 void TimeMultiply(TPZMatrix<STATE> *mat, TPZMultiTimer &timer)
 {
   TPZFMatrix<STATE> sol(mat->Rows(),1),rhs(mat->Rows(),1),y;
-  int ieq,neq = mat->Rows();
+  long ieq,neq = mat->Rows();
   for(ieq=0; ieq<neq; ieq++) sol(ieq,0) = rand()/2147483647.;
   
   int nummult = 500, imult;
@@ -220,7 +221,7 @@ void Compare(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second)
 {
   TPZFMatrix<STATE> sol(first->Rows(),1),rhs1(first->Rows(),1),rhs2(first->Rows(),1),y;
   TPZFMatrix<STATE> sol1(rhs1),sol2(rhs1);
-  int ieq,neq = first->Rows();
+  long ieq,neq = first->Rows();
   for(ieq=0; ieq<neq; ieq++) sol(ieq,0) = rand()/2147483647.;
   
   first->MultAdd(sol,y,rhs1,1.,0.);

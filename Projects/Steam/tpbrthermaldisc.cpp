@@ -16,7 +16,7 @@
 /// Compute the stiffness matrix
 void TPBRThermalDiscretization::ComputeStiffness()
 {
-	TPZManVector<int> skyline(fNElements+1,0);
+	TPZManVector<long> skyline(fNElements+1,0);
 	for (int i=1; i<=fNElements; i++) {
 		skyline[i] = i-1;
 	}

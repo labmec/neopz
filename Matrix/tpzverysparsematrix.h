@@ -30,11 +30,11 @@ public:
 	
 	TPZVerySparseMatrix();
 	
-	TPZVerySparseMatrix(int rows, int cols) :
+	TPZVerySparseMatrix(long rows, long cols) :
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
-	TPZVerySparseMatrix(int rows, int cols, TVar val) :
+	TPZVerySparseMatrix(long rows, long cols, TVar val) :
     TPZMatrix<TVar>(rows, cols)
 	{
 	}
@@ -52,17 +52,17 @@ public:
 	void Simetrize();
     
 	/** @brief Put values checking bounds */
-	virtual int PutVal(const int row, const int col, const TVar &val);
+	int PutVal(const long row, const long col, const TVar &val);
 	
 	/** @brief Get values checking bounds */
-	virtual const TVar &GetVal(const int row, const int col) const;
+	virtual const TVar &GetVal(const long row, const long col) const;
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
 	 * @param row Row number.
 	 * @param col Column number.
 	 */
-	virtual TVar &s(const int row, const int col)
+	virtual TVar &s(const long row, const long col)
 	{
 #ifdef DEBUG
 		if(row >= this->Rows() || row<0 || col >= this->Cols() || col<0)
@@ -73,7 +73,7 @@ public:
 			return this->gZero;
 		}
 #endif
-		return fExtraSparseData[std::pair<int, int>(row, col)];
+		return fExtraSparseData[std::pair<long, long>(row, col)];
 	}
 	
 	CLONEDEF(TPZVerySparseMatrix)
@@ -106,18 +106,18 @@ public:
 	virtual void Write(TPZStream &buf, int withclassid);
 	virtual void Read(TPZStream &buf, void *context);
 
-	typename std::map <std::pair<int, int>, TVar>::const_iterator MapBegin() const { return fExtraSparseData.begin(); }
-	typename std::map <std::pair<int, int>, TVar>::const_iterator MapEnd() const { return fExtraSparseData.end(); }
+	typename std::map <std::pair<long, long>, TVar>::const_iterator MapBegin() const { return fExtraSparseData.begin(); }
+	typename std::map <std::pair<long, long>, TVar>::const_iterator MapEnd() const { return fExtraSparseData.end(); }
 	
 private:
 	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */
-	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, TVar> & TheMap);
-	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, TVar> & TheMap);
+	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<long, long>, TVar> & TheMap);
+	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<long, long>, TVar> & TheMap);
 	
 protected:
     
     /** @brief Save elements different from zero, of Sparse matrix */
-	std::map<std::pair<int, int>, TVar> fExtraSparseData;
+	std::map<std::pair<long, long>, TVar> fExtraSparseData;
     
 };
 

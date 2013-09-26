@@ -67,9 +67,9 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
 	TPZfTime precondi; // init of timer
-	int rows = this->Rows();
-	int cols = this->Cols();
-	int c;
+	long rows = this->Rows();
+	long cols = this->Cols();
+	long c;
 	this->PrepareZ(y,z,beta,opt,stride);
 #ifdef LOG4CXX
 	{
@@ -136,10 +136,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	for(it= fGlobal.begin(); it != fGlobal.end(); it++,isub++)
 	{
 		TPZFNMatrix<100> v2Expand((*it)->fNEquations,1,0.), v3Expand((*it)->fNEquations,1,0.);
-		int neqs = (*it)->fGlobalEqs.NElements();
+		long neqs = (*it)->fGlobalEqs.NElements();
 		TPZFMatrix<TVar> v3_local(neqs,1,0.), v2_local(neqs,1,0.);
 		fAssemble->Extract(isub,v2,v2_local);
-		int i;
+		long i;
 		for (i=0;i<neqs;i++) 
 		{
 			std::pair<int,int> ind = (*it)->fGlobalEqs[i];
@@ -168,8 +168,8 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	// wait task para finalizacao da chamada
 	// esperar a versao correta do v1
 	/* Sum v1+v2+v3 with z */
-    int xcols = x.Cols();
-    for (int ic=0; ic<xcols; ic++) 
+    long xcols = x.Cols();
+    for (long ic=0; ic<xcols; ic++)
     {
         for (c=0; c<rows; c++) {
             z(c,ic) += v2(c,ic);
@@ -183,24 +183,24 @@ template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 {
 	//Compute the skyline of the coarse equations
-	TPZManVector<int> skyline(fNumCoarse);
-	int ic;
+	TPZManVector<long> skyline(fNumCoarse);
+	long ic;
 	for (ic=0; ic<fNumCoarse; ic++) {
 		skyline[ic] = ic;
 	}
-	int nsub = fAssemble->fCoarseEqs.NElements();
-	int isub;
+	long nsub = fAssemble->fCoarseEqs.NElements();
+	long isub;
 	for (isub=0; isub<nsub; isub++) {
-		int nc = fAssemble->fCoarseEqs[isub].NElements();
-		int ic;
-		int mineq = 0;
+		long nc = fAssemble->fCoarseEqs[isub].NElements();
+		long ic;
+		long mineq = 0;
         if(nc != 0) mineq = fAssemble->fCoarseEqs[isub][0];
 		for (ic=0; ic<nc; ic++) {
-			int eq = fAssemble->fCoarseEqs[isub][ic];
+			long eq = fAssemble->fCoarseEqs[isub][ic];
 			mineq = mineq > eq ? eq : mineq;
 		}
 		for (ic=0; ic<nc; ic++) {
-			int eq = fAssemble->fCoarseEqs[isub][ic];
+			long eq = fAssemble->fCoarseEqs[isub][ic];
 			if(skyline[eq] > mineq) skyline[eq] = mineq;
 		}
 	}
@@ -210,13 +210,13 @@ void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 	{
 		TPZFMatrix<TVar> coarse2(*coarse);
 		for (isub=0; isub<nsub; isub++) {
-			int nc = fAssemble->fCoarseEqs[isub].NElements();
-			int ic;
+			long nc = fAssemble->fCoarseEqs[isub].NElements();
+			long ic;
 			for (ic=0; ic<nc; ic++) {
-				int ieq = fAssemble->fCoarseEqs[isub][ic];
-				int jc;
+				long ieq = fAssemble->fCoarseEqs[isub][ic];
+				long jc;
 				for (jc=0; jc<nc; jc++) {
-					int jeq = fAssemble->fCoarseEqs[isub][jc];
+					long jeq = fAssemble->fCoarseEqs[isub][jc];
 					coarse2(ieq,jeq) = 1.;
 				}
 			}

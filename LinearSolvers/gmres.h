@@ -19,18 +19,18 @@ void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
  */
 template < class Matrix, class Vector >
 void 
-Update(Vector &x, int k, Matrix &h, Vector &s, Vector v[])
+Update(Vector &x, long k, Matrix &h, Vector &s, Vector v[])
 {
 	Vector y(s);
 	
 	// Backsolve:  
-	for (int i = k; i >= 0; i--) {
+	for (long i = k; i >= 0; i--) {
 		y(i) /= h(i,i);
-		for (int j = i - 1; j >= 0; j--)
+		for (long j = i - 1; j >= 0; j--)
 			y(j) -= h(j,i) * y(i);
 	}
 	
-	for (int j = 0; j <= k; j++)
+	for (long j = 0; j <= k; j++)
 		x.ZAXPY(y(j),v[j]);
 }
 
@@ -69,11 +69,11 @@ template < class Operator, class Vector, class Preconditioner,
 class Matrix, class Real >
 int 
 GMRES( Operator &A, Vector &x, const Vector &b,
-	  Preconditioner &M, Matrix &H, int &m, int &max_iter,
+	  Preconditioner &M, Matrix &H, int &m, long &max_iter,
 	  Real &tol, Vector *residual,const int FromCurrent)
 {
 	Real resid;
-	int i, j = 1, k;
+	long i, j = 1, k;
 	Vector s(m+1), cs(m+1), sn(m+1), w1,w;
 	
 	//  Real normb = norm(M.Solve(b));

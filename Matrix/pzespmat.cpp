@@ -26,7 +26,7 @@ using namespace std;
 /**************************/
 /*** Construtor (int) ***/
 template<class TVar>
-TPZSpMatrix<TVar>::TPZSpMatrix(const int rows,const int cols )
+TPZSpMatrix<TVar>::TPZSpMatrix(const long rows,const long cols )
 : TPZMatrix<TVar>( rows, cols )
 #ifdef WORKPOOL
 , fWp()
@@ -36,7 +36,7 @@ TPZSpMatrix<TVar>::TPZSpMatrix(const int rows,const int cols )
 	if ( fElem == NULL )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSpMatrix( dim ) <Error creating Matrix>" );
 #ifdef WORKPOOL
-	for(int i=0; i<rows; i++) fElem[i].SetWorkPool(&fWp);
+	for(long i=0; i<rows; i++) fElem[i].SetWorkPool(&fWp);
 #endif
 }
 
@@ -56,7 +56,7 @@ TPZSpMatrix<TVar>::~TPZSpMatrix ()
 
 template<class TVar>
 int
-TPZSpMatrix<TVar>::Put(const int row,const int col,const TVar& value )
+TPZSpMatrix<TVar>::Put(const long row,const long col,const TVar& value )
 {
 	if ( (row >= this->Rows()) || (col >= this->Cols()) || row <0 || col<0)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <indices out of band matrix range>" );
@@ -71,7 +71,7 @@ TPZSpMatrix<TVar>::Put(const int row,const int col,const TVar& value )
 
 template<class TVar>
 const TVar &
-TPZSpMatrix<TVar>::Get(const int row,const int col ) const
+TPZSpMatrix<TVar>::Get(const long row,const long col ) const
 {
 	if ( (row >= this->Rows()) || (col >= this->Cols()) || row<0 || col<0)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
@@ -90,7 +90,7 @@ TPZSpMatrix<TVar>::Get(const int row,const int col ) const
 //
 template<class TVar>
 int
-TPZSpMatrix<TVar>::PutVal(const int row,const int col,const TVar & value )
+TPZSpMatrix<TVar>::PutVal(const long row,const long col,const TVar & value )
 {
 	TPZLink<TPZNode> *pRow = &fElem[row];
 	TPZNode        node;
@@ -137,7 +137,7 @@ TPZSpMatrix<TVar>::PutVal(const int row,const int col,const TVar & value )
 //
 template<class TVar>
 const TVar &
-TPZSpMatrix<TVar>::GetVal(const int row,const int col ) const
+TPZSpMatrix<TVar>::GetVal(const long row,const long col ) const
 {
 	TPZLink<TPZNode> *pRow = &fElem[row];
 	TPZNode        node;
@@ -270,7 +270,7 @@ template<class TVar>
 TPZSpMatrix<TVar> &
 TPZSpMatrix<TVar>::Reset()
 {
-	for ( int i = 0; i < this->Rows(); i++ )
+	for ( long i = 0; i < this->Rows(); i++ )
 		fElem[i].Clear();
 	return( *this );
 }
@@ -283,7 +283,7 @@ TPZSpMatrix<TVar>::Reset()
 //
 template<class TVar>
 int
-TPZSpMatrix<TVar>::Resize(const int newRows,const int newCols )
+TPZSpMatrix<TVar>::Resize(const long newRows,const long newCols )
 {
 	if ( newRows == this->Rows() )
 		return( 1 );
@@ -292,8 +292,8 @@ TPZSpMatrix<TVar>::Resize(const int newRows,const int newCols )
 	TPZLink<TPZNode> *newDiag = new TPZLink<TPZNode>[ newRows ] ;
 	
 	// Copia os elementos para a nova matriz.
-	int min = MIN( newRows, this->Rows() );
-	for ( int i = 0; i < min; i++ )
+	long min = MIN( newRows, this->Rows() );
+	for ( long i = 0; i < min; i++ )
 		newDiag[i] = fElem[i];
 	
 	// Descarta a matriz antiga e valida a nova matriz.
@@ -311,7 +311,7 @@ TPZSpMatrix<TVar>::Resize(const int newRows,const int newCols )
 //
 template<class TVar>
 int
-TPZSpMatrix<TVar>::Redim(const int newRows,const int newCols )
+TPZSpMatrix<TVar>::Redim(const long newRows,const long newCols )
 {
 	this->fCol = newCols;
 	delete [] fElem;
@@ -350,13 +350,13 @@ TPZSpMatrix<TVar>::fAdd(const TPZSpMatrix<TVar> *const A )
 	TPZLink<TPZNode> *pm = &fElem[0];
 	TPZLink<TPZNode> *pa = &A->fElem[0];
 	
-	for ( int row = 0; row < this->Rows(); row++, pm++, pa++ )
+	for ( long row = 0; row < this->Rows(); row++, pm++, pa++ )
     {
 		// Soma uma linha.
 		pm->Head();
 		pa->Head();
-		int mOk = pm->Get( &mNode );
-		int aOk = pa->Get( &aNode );
+		long mOk = pm->Get( &mNode );
+		long aOk = pa->Get( &aNode );
 		
 		// Enquanto as duas linhas tiverem elementos...
 		while ( mOk && aOk )
@@ -423,13 +423,13 @@ TPZSpMatrix<TVar>::fSub(const TPZSpMatrix<TVar> *const A )
 	TPZLink<TPZNode> *pm = &fElem[0];
 	TPZLink<TPZNode> *pa = &A->fElem[0];
 	
-	for ( int row = 0; row < this->Rows(); row++, pm++, pa++ )
+	for ( long row = 0; row < this->Rows(); row++, pm++, pa++ )
     {
 		// Soma uma linha.
 		pm->Head();
 		pa->Head();
-		int mOk = pm->Get( &mNode );
-		int aOk = pa->Get( &aNode );
+		long mOk = pm->Get( &mNode );
+		long aOk = pa->Get( &aNode );
 		
 		// Enquanto as duas linhas tiverem elementos...
 		while ( mOk && aOk )
@@ -502,7 +502,7 @@ TPZSpMatrix<TVar>::fCopy(const TPZSpMatrix<TVar> *const A )
 	
 	TPZLink<TPZNode> *pm = &fElem[0];
 	TPZLink<TPZNode> *pa = &A->fElem[0];
-	for ( int i = 0; i < this->fRow; i++ )
+	for ( long i = 0; i < this->fRow; i++ )
 		*pm++ = *pa++;
 	
 	return( 1 );
@@ -517,7 +517,7 @@ TPZSpMatrix<TVar>::fMult(const TVar value )
 	TPZNode        node;
 	TPZLink<TPZNode> *pm = &fElem[0];
 	
-	for ( int row = 0; row < this->Rows(); row++, pm++ )
+	for ( long row = 0; row < this->Rows(); row++, pm++ )
     {
 		pm->Head();
 		while ( pm->Get( &node ) )
@@ -540,7 +540,7 @@ TPZSpMatrix<TVar>::fMult(const TVar value )
 template<class TVar>
 REAL
 TPZSpMatrix<TVar>::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
-					 int k )
+					 long k )
 {
 	TVar prod = 0.0;
 	
@@ -549,8 +549,8 @@ TPZSpMatrix<TVar>::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 	row_i->Head();
 	row_j->Head();
 	
-	int again_i = row_i->Get( &node_i ) && (node_i.col < k);
-	int again_j = row_j->Get( &node_j ) && (node_j.col < k);
+	long again_i = row_i->Get( &node_i ) && (node_i.col < k);
+	long again_j = row_j->Get( &node_j ) && (node_j.col < k);
 	
 	while ( again_i && again_j )
     {
@@ -599,9 +599,9 @@ void TPZSpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSpMatrix::MultAdd incompatible dimensions\n");
 	}
-	int rows = this->Rows();
-	int xcols = x.Cols();
-	int ic, r;
+	long rows = this->Rows();
+	long xcols = x.Cols();
+	long ic, r;
 	this->PrepareZ(y,z,beta,opt,stride);
 	TVar val;
 	for (ic = 0; ic < xcols; ic++) {
@@ -642,13 +642,13 @@ void TPZSpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 template<class TVar>
 int TPZSpMatrix<TVar>::Unpack( TReceiveStorage *buf ){
 	TMatrix::Unpack(buf);
-	int rows;
+	long rows;
 	buf->UpkInt(&rows);
 	Redim(rows);
-	int nelem;
-	int col;
+	long nelem;
+	long col;
 	TVar val;
-	for(int i=0;i<rows;i++) {
+	for(long i=0;i<rows;i++) {
 		buf->UpkInt(&nelem);
 		buf->UpkDouble(&val);
 		buf->UpkInt(&col);
@@ -670,11 +670,11 @@ int TPZSpMatrix<TVar>::Pack( TSendStorage *buf ) const {
 	TMatrix::Pack(buf);
 	TPZNode        node;
 	TPZLink<TPZNode> *pm = &fElem[0];
-	int rows = Rows();
+	long rows = Rows();
 	buf->PkInt(&rows);
-	for ( int row = 0; row < rows; row++, pm++ )
+	for ( long row = 0; row < rows; row++, pm++ )
     {
-		int numel = 0;
+		long numel = 0;
 		pm->Head();
 		while ( pm->Get( &node ) )
 		{

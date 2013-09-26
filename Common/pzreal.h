@@ -546,6 +546,9 @@ inline bool IsZero( std::complex<float> a ) {
 inline bool IsZero( int a ) {
 	return ( a==0 );
 }
+inline bool IsZero( long a ) {
+	return ( a==0L );
+}
 /// Returns the maximum value between a and b
 template <class T>
 inline const T& Max( const T &a, const T &b ) {

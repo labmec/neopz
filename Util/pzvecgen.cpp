@@ -14,6 +14,7 @@ template class TPZVec<long double>;
 template class TPZVec<long double * >;
 template class TPZVec<int>;
 template class TPZVec<long>;
+template class TPZVec<long *>;
 template class TPZVec<int *>;
 template class TPZVec<char *>;
 template class TPZVec<void *>;

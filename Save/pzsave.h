@@ -105,9 +105,10 @@ public:
 	template<class T>
 	static void WriteObjects(TPZStream &buf, const TPZVec<T> &vec)
 	{
-		int c,nc = vec.NElements();
+		long c,nc = vec.NElements();
 		buf.Write(&nc,1);
-		for(c=0; c<nc; c++) vec[c].Write(buf,0);
+		for(c=0; c<nc; c++)
+            vec[c].Write(buf,0);
 	}
 	
 	template<class T>
@@ -121,7 +122,7 @@ public:
 	template<class T, int EXP>
 	static void WriteObjects(TPZStream &buf, const TPZChunkVector<T,EXP> &vec)
 	{
-		int c,nc = vec.NElements();
+		long c,nc = vec.NElements();
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++) vec[c].Write(buf,0);
 	}
@@ -129,7 +130,7 @@ public:
 	template<class T, int EXP>
 	static void WriteObjects(TPZStream &buf, TPZAdmChunkVector<T,EXP> &vec)
 	{
-		int c,nc = vec.NElements();
+		long c,nc = vec.NElements();
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++) vec[c].Write(buf,0);
 		buf.Write(&vec.fCompactScheme,1);
@@ -167,7 +168,7 @@ public:
 	template<class T>
 	static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec)
 	{
-		int c,nc = vec.NElements(),one = -1;
+		long c,nc = vec.NElements(),one = -1;
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++)
 		{
@@ -235,7 +236,7 @@ public:
 	template<class T, int EXP>
 	static void WriteObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec)
 	{
-		int c,m1=-1,nc = vec.NElements();
+		long c,m1=-1,nc = vec.NElements();
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++)
 		{
@@ -248,7 +249,7 @@ public:
 	template<class T, int EXP>
 	static void WriteObjectPointers(TPZStream &buf, TPZAdmChunkVector<T *,EXP> &vec)
 	{
-		int c,m1=-1,nc = vec.NElements();
+		long c,m1=-1,nc = vec.NElements();
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++)
 		{
@@ -264,7 +265,7 @@ public:
 	template<class T>
 	static void ReadObjects(TPZStream &buf, TPZVec<T> &vec, void *context)
 	{
-		int c,nc;
+		long c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		for(c=0; c<nc; c++)
@@ -288,7 +289,14 @@ public:
 
 	static void ReadObjects(TPZStream &buf, TPZVec<int> &vec)
 	{
-		int nc;
+		long nc;
+		buf.Read(&nc,1);
+		vec.Resize(nc);
+		if(nc) buf.Read(&vec[0],nc);
+	}
+	static void ReadObjects(TPZStream &buf, TPZVec<long> &vec)
+	{
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -313,6 +321,13 @@ public:
 		vec.resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
 	}
+	static void ReadObjects(TPZStream &buf, std::vector<long> &vec)
+	{
+		long nc;
+		buf.Read(&nc,1);
+		vec.resize(nc);
+		if(nc) buf.Read(&vec[0],nc);
+	}
 	
 	static void ReadObjects(TPZStream &buf, std::vector<float> &vec)
 	{
@@ -324,7 +339,7 @@ public:
 	
 	static void ReadObjects(TPZStream &buf, TPZVec<float> &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -340,7 +355,7 @@ public:
 	
 	static void ReadObjects(TPZStream &buf, TPZVec<double> &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -356,7 +371,7 @@ public:
 	
 	static void ReadObjects(TPZStream &buf, TPZVec<long double> &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -372,7 +387,7 @@ public:
 	
 	static void ReadObjects(TPZStream &buf, TPZVec<std::complex<float> > &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -388,7 +403,7 @@ public:
 	
 	static void ReadObjects(TPZStream &buf, TPZVec<std::complex<double> > &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -404,7 +419,7 @@ public:
 	
 	static void ReadObjects(TPZStream &buf, TPZVec<std::complex<long double> > &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -413,7 +428,7 @@ public:
 	template<int N>
 	static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec)
 	{
-		int nc;
+		long nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
@@ -422,7 +437,7 @@ public:
 	template<class T, int EXP>
 	static void ReadObjects(TPZStream &buf, TPZChunkVector<T,EXP> &vec, void *context)
 	{
-		int c,nc;
+		long c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		for(c=0; c<nc; c++)
@@ -434,7 +449,7 @@ public:
 	template<class T, int EXP>
 	static void ReadObjects(TPZStream &buf, TPZAdmChunkVector<T,EXP> &vec, void *context)
 	{
-		int c,nc;
+		long c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		for(c=0; c<nc; c++) vec[c].Read(buf,context);
@@ -459,7 +474,7 @@ public:
 	template<class T>
 	static void ReadObjectPointers(TPZStream &buf, TPZVec<T *> &vec, void *context)
 	{
-		int c,nc;
+		long c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		for(c=0; c<nc; c++)
@@ -498,7 +513,7 @@ public:
 	template<class T, int EXP>
 	static void ReadObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec, void *context)
 	{
-		int c,nc;
+		long c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		for(c=0; c<nc; c++)
@@ -510,7 +525,7 @@ public:
 	template<class T, int EXP>
 	static void ReadObjectPointers(TPZStream &buf, TPZAdmChunkVector<T *,EXP> &vec, void *context)
 	{
-		int c,nc;
+		long c,nc;
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		for(c=0; c<nc; c++) 
@@ -526,7 +541,7 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, const TPZVec<float> &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -552,7 +567,7 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, const TPZVec<double> &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -566,7 +581,7 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, const TPZVec<std::complex<double> > &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -580,7 +595,7 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, const TPZVec<long double> &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -594,7 +609,7 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, const TPZVec<std::complex<long double> > &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -608,7 +623,7 @@ public:
 
 	static void WriteObjects(TPZStream &buf, const TPZVec<std::complex<float> > &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -623,7 +638,7 @@ public:
 #ifndef ELLIPS
 	static void WriteObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -638,7 +653,13 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, TPZVec<int> &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
+		buf.Write(&nel,1);
+		if(nel) buf.Write(&vec[0],vec.NElements());
+	}
+	static void WriteObjects(TPZStream &buf, TPZVec<long> &vec)
+	{
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
@@ -652,7 +673,7 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, TPZVec<char> &vec)
 	{
-		int nel = vec.NElements();
+		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}

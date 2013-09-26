@@ -27,7 +27,7 @@ class TPZSFMatrix : public TPZMatrix<TVar> {
 	
 public:
 	TPZSFMatrix () : TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
-	TPZSFMatrix (const int dim );
+	TPZSFMatrix (const long dim );
 	TPZSFMatrix (const TPZSFMatrix<TVar> & );
 	// Usa o maior bloco quadrado possivel, comecado em (0,0).
 	// E inicializa com a parte triangular inferior do bloco.
@@ -37,8 +37,8 @@ public:
 	
 	~TPZSFMatrix();
 	
-	int PutVal(const int row,const int col,const TVar &value );
-	const TVar &GetVal(const int row,const int col ) const;
+	int PutVal(const long row,const long col,const TVar &value );
+	const TVar &GetVal(const long row,const long col ) const;
 	
 	/**
 	 * @name Operators with Full simmetric matrices.
@@ -78,12 +78,12 @@ public:
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
 	
 	/** @brief Resize the array but keeps its entirety. */
-	int Resize(const int newDim, const int );
+	int Resize(const long newDim, const long );
 	
 	/** @brief Resize the array and resets ist entirety. */
-	int Redim(const int newRows ,const int);
+	int Redim(const long newRows ,const long);
 	
-	int Redim(const int newDim) {return Redim(newDim,newDim);}
+	int Redim(const long newDim) {return Redim(newDim,newDim);}
 	
 	/** @brief Resets all elements. */
 	int Zero();
@@ -119,7 +119,7 @@ public:
 	
 private:
 	
-	int Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
+	long Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
 	
 	int Clear();
 	
@@ -130,9 +130,9 @@ private:
 /*** PutVal ***/
 template<class TVar>
 inline int
-TPZSFMatrix<TVar> ::PutVal(const int row,const int col,const TVar &value )
+TPZSFMatrix<TVar> ::PutVal(const long row,const long col,const TVar &value )
 {
-	int locrow = row, loccol = col;
+	long locrow = row, loccol = col;
 	if ( locrow < loccol )
 		this->Swap( &locrow, &loccol );
 	
@@ -145,9 +145,9 @@ TPZSFMatrix<TVar> ::PutVal(const int row,const int col,const TVar &value )
 /*** GetVal ***/
 template<class TVar>
 inline const TVar &
-TPZSFMatrix<TVar> ::GetVal(const int row,const int col ) const
+TPZSFMatrix<TVar> ::GetVal(const long row,const long col ) const
 {
-	int locrow(row),loccol(col);
+	long locrow(row),loccol(col);
 	if ( locrow < loccol )
 		this->Swap( &locrow, &loccol );
 	

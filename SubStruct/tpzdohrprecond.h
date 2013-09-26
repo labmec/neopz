@@ -37,7 +37,7 @@ class TPZDohrPrecond : public TPZMatrix<TVar>
 	TPZStepSolver<TVar> * fCoarse; //K(c)
 
 	/** @brief Size of the coarse system */
-	int fNumCoarse; //n(c)
+	long fNumCoarse; //n(c)
 	
 	/** @brief Number of threads used during preconditioning */
 	int fNumThreads;

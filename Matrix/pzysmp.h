@@ -35,8 +35,8 @@ class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 	 */
 	struct TPZMThread {
 		const TPZFYsmpMatrix<TVar> *target;
-		int fFirsteq;
-		int fLasteq;
+		long fFirsteq;
+		long fLasteq;
 		const TPZFMatrix<TVar> *fX;
 		TPZFMatrix<TVar> *fZ;
 		TVar fAlpha;
@@ -49,7 +49,7 @@ private:
 	static void * ExecuteMT(void *entrydata);
 	
 public: 
-    TPZFYsmpMatrix(const int rows,const int cols );
+    TPZFYsmpMatrix(const long rows,const long cols );
 	
 	TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp);
 	
@@ -62,14 +62,14 @@ public:
 	virtual ~TPZFYsmpMatrix();	
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const int row,const int col ) const;
+	virtual const TVar &GetVal(const long row,const long col ) const;
 	
-	int NumTerms() 
+	long NumTerms()
 	{
 		return fIA[this->Rows()];
 	}
 	
-	int PutVal(const int row, const int col, const TVar &Value);
+	int PutVal(const long row, const long col, const TVar &Value);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const;
@@ -77,13 +77,13 @@ public:
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 );
 	
-	virtual int GetSub(const int sRow,const int sCol,const int rowSize,
-					   const int colSize, TPZFMatrix<TVar> & A ) const;
+	virtual int GetSub(const long sRow,const long sCol,const long rowSize,
+					   const long colSize, TPZFMatrix<TVar> & A ) const;
 	
-	void GetSub(const TPZVec<int> &indices,TPZFMatrix<TVar> &block) const;
+	void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar> &block) const;
 	
 	/** @brief Pass the data to the class. */
-	virtual void SetData( int *IA, int *JA, TVar *A );
+	virtual void SetData( long *IA, long *JA, TVar *A );
 	
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
@@ -106,10 +106,10 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveJacobi(int & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result,
+	virtual void SolveJacobi(long & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result,
 							 TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent = 0) ;
 	
-	void SolveSOR(int &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
+	void SolveSOR(long &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
 				  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
 				  const REAL overrelax, REAL &tol,
 				  const int FromCurrent = 0,const int direction = 1 ) ;    
@@ -166,11 +166,11 @@ private:
 	/*
 	 * @brief Perform row update of the sparse matrix
 	 */
-	void RowLUUpdate(int sourcerow, int destrow);
+	void RowLUUpdate(long sourcerow, long destrow);
 	
 protected:
-	int  *fIA;
-	int  *fJA;
+	long  *fIA;
+	long  *fJA;
 	TVar *fA;
 	
 	TVar *fDiag;
@@ -192,7 +192,7 @@ protected:
 
 
 template<class TVar>
-inline void TPZFYsmpMatrix<TVar>::SetData( int *IA, int *JA, TVar *A ) {
+inline void TPZFYsmpMatrix<TVar>::SetData( long *IA, long *JA, TVar *A ) {
 	// Pass the data to the class.
 	fIA = IA;
 	fJA = JA;

@@ -83,7 +83,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	}
 	
 	REAL tol = fTol;
-	int numiterations = fMaxIterations;
+	long numiterations = fMaxIterations;
 	switch(fSolver) {
 		case TPZStepSolver::ENoSolver:
 		default:

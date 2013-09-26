@@ -15,11 +15,15 @@
 
 #include "pzshapelinear.h"
 #include "pzshapequad.h"
+#include "pzgeoelbc.h"
 #include "pzshapetriang.h"
 #include "pzshapetetra.h"
 #include "pzshapepiram.h"
 #include "pzshapeprism.h"
 #include "pzshapecube.h"
+
+#include "pzvtkmesh.h"
+#include "pzanalysis.h"
 
 // integration rule
 #include <pzquad.h>
@@ -80,8 +84,95 @@ REAL prismdir[][3] =
   {0.,0.,-1.}
 };
 
+/** 
+ * Example of basis functions on non-conformal mesh
+ */
+
+int MaterialId = 3;
+int idbc0 = -3;
+
+void MakingQuadrilateral(TPZGeoMesh *gmesh,REAL radio);
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
+void ComputeShape(TPZInterpolatedElement* intel,TPZVec<REAL> &qsi, TPZFNMatrix<220> &phi,TPZFNMatrix<660> &dphi,TPZFNMatrix<9> &axes);
 
 int main() {
+    
+    /** To view a basis function on quadrilateral */
+    int dim = 2;
+    REAL radio = 2.;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    MakingQuadrilateral(gmesh,radio);
+    
+    // Refine some elements until two level
+    TPZVec<TPZGeoEl *> sub(4);
+    TPZVec<TPZGeoEl *> subsub(4);
+    gmesh->ElementVec()[1]->Divide(sub);
+    sub[1]->Divide(subsub);
+    
+    // Creating computational mesh (approximation space and materials)
+    int p = 2;
+    TPZCompEl::SetgOrder(p);
+    TPZCompMesh *compmesh;
+    compmesh = CreateMesh(gmesh,dim,0);
+    TPZAnalysis an(compmesh);
+    an.PostProcess(10,2);
+//    TPZMaterial *mater = compmesh->FindMaterial(MaterialId);
+    /** Variable names for post processing */
+//    TPZStack<std::string> scalnames, vecnames;
+//    scalnames.Push("POrder");
+  //  scalnames.Push("Solution");
+
+//    TPZVTKGraphMesh graphmesh( compmesh,2,mater,scalnames,vecnames);
+
+	TPZCompElDisc *intel = NULL;
+    int index = 0;
+    TPZVec<REAL> qsi(3,0.0);
+    TPZFMatrix<STATE> MeshSol = compmesh->Solution();
+    MeshSol.Zero();
+    TPZSolVec sol;
+    
+    for(long iel=0;iel<compmesh->NElements();iel++) {
+        intel = dynamic_cast<TPZCompElDisc* >(compmesh->ElementVec()[iel]);
+        if(!intel) continue;
+        int nshape = intel->NShapeF();
+        TPZFNMatrix<220> phi(nshape,1);
+        TPZFNMatrix<660> dphi(dim,nshape);
+        TPZFNMatrix<9> axes(3,3,0.);
+        if(index==iel) {
+            ComputeShape((TPZInterpolatedElement *)intel,qsi,phi,dphi,axes);
+            int numdof = intel->Material()->NStateVariables();
+            int ncon = intel->NConnects();
+            int numbersol = MeshSol.Cols();
+            sol.Resize(numbersol);
+            
+            for (int is=0 ; is<numbersol; is++) {
+                sol[is].Resize(numdof);
+                sol[is].Fill(0.);
+            }
+            
+            TPZBlock<STATE> &block = compmesh->Block();
+            int iv = 0;
+            for(int in=0; in<ncon; in++) {
+                TPZConnect *df = &(intel->Connect(in));
+                int dfseq = df->SequenceNumber();
+                int dfvar = block.Size(dfseq);
+//                int pos = block.Position(dfseq);
+                for(int jn=0; jn<dfvar; jn++) {
+                    for (int is=0; is<numbersol; is++) {
+                        sol[is][iv%numdof] += (STATE)phi(iv/numdof,0);
+                    }
+                    iv++;
+                }
+            }
+        }
+    }
+    for(int jn=0;jn<MeshSol.Rows();jn++)
+        for(int is=0;is<MeshSol.Cols();is++)
+            MeshSol.PutVal(jn,is,sol[is][jn]);
+    
+    return 0;
+     
+    /** Another shape functions */
 	int elem;
 	//int side, dim = 3; // se dim igual a 3 sera construida malha com elementos tridimensionais, se diferente elementos bidimensionais
 	int max_order, elem_type;
@@ -116,6 +207,82 @@ int main() {
 
 	saida.close();
 	return 0;
+}
+
+void ComputeShape(TPZInterpolatedElement* intel,TPZVec<REAL> &qsi, TPZFNMatrix<220> &phi,TPZFNMatrix<660> &dphi,TPZFNMatrix<9> &axes) {
+	int nshape = intel->NShapeF();
+	TPZGeoEl* ref = intel->Reference();
+	const int dim = ref->Dimension();
+	
+	TPZFNMatrix<660> dphix(dim,nshape);
+	TPZFNMatrix<9> jacobian(dim,dim);
+	TPZFNMatrix<9> jacinv(dim,dim);
+	REAL detjac;
+	
+	ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+	
+	intel->Shape(qsi,phi,dphi);
+}
+
+//**********   Creating computational mesh with materials    *************
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
+    
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
+	cmesh->SetAllCreateFunctionsDiscontinuous();
+	
+    // Creating Poisson material
+	TPZMaterial *mat = new TPZMatPoisson3d(MaterialId,dim);
+    cmesh->InsertMaterialObject(mat);
+	// Make compatible dimension of the model and the computational mesh
+	cmesh->SetDimModel(mat->Dimension());
+	
+	// Creating four boundary condition
+    TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZBndCond *bc = 0;
+    bc = mat->CreateBC(mat,idbc0,0,val1,val2);
+	if(bc) cmesh->InsertMaterialObject((TPZMaterial *)bc);
+    
+    cmesh->AutoBuild();
+	cmesh->ExpandSolution();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    return cmesh;
+}
+
+void MakingQuadrilateral(TPZGeoMesh *gmesh,REAL radio) {
+    REAL co[6][2] = {{1.,1.},{(1.+radio),1.},{(1.+2.*radio),1.},{1.,(1.+radio)},{(1.+radio),(1.+radio)},{(1.+2*radio),(1.+radio)}};
+    int indices[2][4] = {{0,1,3,4},{1,2,4,5}};
+    TPZGeoEl *elvec[2];
+    int nnode = 6;
+    int nod;
+    for(nod=0; nod<nnode; nod++) {
+        int nodind = gmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3,0.0);
+        coord[0] = co[nod][0];
+        coord[1] = co[nod][1];
+        gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    }
+    
+    int el;
+    int nelem = 2;
+    for(el=0; el<nelem; el++) {
+        TPZVec<int> nodind(4);
+        for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+        int index;
+        elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,MaterialId,index);
+    }
+    
+    gmesh->BuildConnectivity();
+    // bc -1 -> Dirichlet
+    TPZGeoElBC gbc1(elvec[0],4,idbc0);
+    TPZGeoElBC gbc3(elvec[0],6,idbc0);
+    TPZGeoElBC gbc4(elvec[0],7,idbc0);
+    TPZGeoElBC gbc5(elvec[1],4,idbc0);
+    TPZGeoElBC gbc6(elvec[1],5,idbc0);
+    TPZGeoElBC gbc7(elvec[1],6,idbc0);
+    gmesh->ResetConnectivities();
+    gmesh->BuildConnectivity();
 }
 
 TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {

@@ -28,7 +28,7 @@ protected:
     TPZVec<int> fEquationDestination;
     
     /** Returns the skyline matrix object */
-    virtual TPZMatrix<STATE> * ReallyCreate(int neq, const TPZVec<int> &skyline);
+    virtual TPZMatrix<STATE> * ReallyCreate(long neq, const TPZVec<long> &skyline);
     
 public:    
 	

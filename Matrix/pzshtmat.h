@@ -21,14 +21,14 @@ protected:
 	/** @brief Pointer to matrix */
 	TObj *fMem;
 	/** @brief Number of rows and columns */
-	int   fRows, fCols;
+	long   fRows, fCols;
 	
 public:
 	
 	/** @brief Constructor creating Null matrix */
 	TPZGenMatrix ();
 	/** @brief Constructor creating a rows x columns matrix */
-	TPZGenMatrix (const int rows ,const int columns);
+	TPZGenMatrix (const long rows ,const long columns);
 	
 	/**
 	 * @brief Constructor copy initializer
@@ -42,18 +42,18 @@ public:
 	
 	void Print (const char *mess,std::ostream & out = std::cout) const;
 	
-	int Rows() const {return fRows;}
+	long Rows() const {return fRows;}
 	
-	int Cols() const {return fCols;}
+	long Cols() const {return fCols;}
 	
-	void Resize(const int newrow,const int newcol);
+	void Resize(const long newrow,const long newcol);
 	
 	//DEFINE OPERATORS
 	
 	TPZGenMatrix<TObj>& operator=(const TPZGenMatrix<TObj> & rval);	//makes this.p = rval.p
 	
 	
-	TObj & operator()(const int row,const int column = 0) const; //get value, set value
+	TObj & operator()(const long row,const long column = 0) const; //get value, set value
 	
 };
 
@@ -65,7 +65,7 @@ class TPZGenAMatrix : public TPZGenMatrix<TObj> {
 	
 	TPZGenAMatrix () : TPZGenMatrix<TObj>() {}				//creates NULL matrix
 	
-	TPZGenAMatrix (const int rows ,const int columns) : TPZGenMatrix<TObj>(rows,columns) {}	//creates a rowsXcolumns matrix
+	TPZGenAMatrix (const long rows ,const long columns) : TPZGenMatrix<TObj>(rows,columns) {}	//creates a rowsXcolumns matrix
 	
 	TPZGenAMatrix operator+(const TPZGenAMatrix<TObj> & rval) const;
 	

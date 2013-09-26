@@ -386,7 +386,7 @@ public:
 	 * @brief This method computes the skyline of the system of equations
 	 * @param skyline vector where the skyline will be computed
 	 */
-	virtual void Skyline(TPZVec<int> &skyline);
+	virtual void Skyline(TPZVec<long> &skyline);
 	
 	/**
 	 * @brief Assemble the vector with errors estimators

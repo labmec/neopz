@@ -42,23 +42,23 @@ public:
 	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	
-	int    Put(const int row,const int col,const TVar& value );
-	const TVar &Get(const int row,const int col ) const;
+	int    Put(const long row,const long col,const TVar& value );
+	const TVar &Get(const long row,const long col ) const;
 	
-	TVar &operator()(const int row, const int col);
-	virtual TVar &s(const int row, const int col);
+	TVar &operator()(const long row, const long col);
+	virtual TVar &s(const long row, const long col);
 
 	/** @brief This method don't make verification if the element exist. It is fast than Put */
-	int    PutVal(const int row,const int col,const TVar& value );
+	int    PutVal(const long row,const long col,const TVar& value );
 	/** @brief This method don't make verification if the element exist. It is fast than Get */
-	const  TVar &GetVal(const int row,const int col ) const;
+	const  TVar &GetVal(const long row,const long col ) const;
 	
 	/** @brief Computes z = alpha * opt(this)*x + beta * y */
 	/** @note z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
 	
-	int Dim() const     { return this->Rows(); }
+	long Dim() const     { return this->Rows(); }
 	
 	/** @brief Zeroes all the elements of the matrix. */
 	int Zero();
@@ -141,7 +141,7 @@ protected:
 };
 
 template<class TVar>
-inline TVar &TPZBlockDiagonal<TVar>::s(const int row, const int col) {
+inline TVar &TPZBlockDiagonal<TVar>::s(const long row, const long col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 	return this->operator()(row,col);
 }

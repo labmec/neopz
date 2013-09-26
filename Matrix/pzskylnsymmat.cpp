@@ -60,7 +60,7 @@ using namespace std;
 /** * Construtor (int) ** */
 
 template <class TVar>
-TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const int row, const int col) : TPZMatrix<TVar>(row,col),
+TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long row, const long col) : TPZMatrix<TVar>(row,col),
 fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 {
 
@@ -73,7 +73,7 @@ fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 }
 
 template <class TVar>
-TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const int dim, const TPZVec<int> &skyline)
+TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long dim, const TPZVec<long> &skyline)
 		: TPZMatrix<TVar>(dim, dim), fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorageb(0)
 {
 
@@ -116,7 +116,7 @@ this->fStorage[i] += k * B.fStorage[i];
  */
 
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::SetSkyline(const TPZVec<int> &skyline)
+void TPZSkylNSymMatrix<TVar>::SetSkyline(const TPZVec<long> &skyline)
 {
   fElem.Fill(0);
   fElemb.Fill(0);
@@ -125,7 +125,7 @@ void TPZSkylNSymMatrix<TVar>::SetSkyline(const TPZVec<int> &skyline)
 }
 
 template <class TVar>
-long TPZSkylNSymMatrix<TVar>::NumElements(const TPZVec<int> &skyline)
+long TPZSkylNSymMatrix<TVar>::NumElements(const TPZVec<long> &skyline)
 {
   long dim = skyline.NElements();
   long i, nelem = 0;
@@ -135,7 +135,7 @@ long TPZSkylNSymMatrix<TVar>::NumElements(const TPZVec<int> &skyline)
 }
 
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline,
+void TPZSkylNSymMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline,
 	TPZManVector<TVar> &storage, TPZVec<TVar *> &point)
 {
 	long dim = skyline.NElements();
@@ -170,25 +170,25 @@ void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
     cout << "ComputeMaxSkyline : incompatible dimension";
     return;
   }
-  int i, dim = first.Rows();
+  long i, dim = first.Rows();
   res.Resize(dim + 1);
 
   for (i = 1; i < dim + 1; i++)
   {
 
-    int aux = (first.Size(i) > second.Size(i)) ? first.Size(i) : second.Size(i);
+    long aux = (first.Size(i) > second.Size(i)) ? first.Size(i) : second.Size(i);
     res[i] = i - aux - 1;
   }
 }
 
 template <class TVar>
-TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r, const int c)
+TVar & TPZSkylNSymMatrix<TVar>::operator()(const long r, const long c)
 {
-  int row(r), col(c);
+  long row(r), col(c);
   if (col >= row)
   {
     // Indice do vetor coluna.
-    int index = col - row;
+    long index = col - row;
     if (index >= Size(col))
     {
       // Error("TPZSkylMatrix::operator()","Index out of range");
@@ -200,7 +200,7 @@ TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r, const int c)
   else
   {
     // Indice do vetor coluna.
-    int index = row - col;
+    long index = row - col;
     if (index >= Size(row))
     {
       // Error("TPZSkylMatrix::operator()","Index out of range");
@@ -212,13 +212,13 @@ TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r, const int c)
 }
 
 template <class TVar>
-TVar &TPZSkylNSymMatrix<TVar>::s(const int row, const int col)
+TVar &TPZSkylNSymMatrix<TVar>::s(const long row, const long col)
 {
   return operator()(row, col);
 }
 
 template <class TVar>
-TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r)
+TVar & TPZSkylNSymMatrix<TVar>::operator()(const long r)
 {
   return operator()(r, r);
 }
@@ -226,14 +226,14 @@ TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r)
 /** *********** */
 /** * PutVal ** */
 template <class TVar>
-int TPZSkylNSymMatrix<TVar>::PutVal(const int r, const int c, const TVar & value)
+int TPZSkylNSymMatrix<TVar>::PutVal(const long r, const long c, const TVar & value)
 {
   // inicializando row e col para trabalhar com a triangular superior
-  int row(r), col(c);
+  long row(r), col(c);
   if (col >= row)
   {
     // Indice do vetor coluna.
-    int index = col - row;
+    long index = col - row;
     // Se precisar redimensionar o vetor.
     if (index >= Size(col) && !IsZero(value))
     {
@@ -250,7 +250,7 @@ int TPZSkylNSymMatrix<TVar>::PutVal(const int r, const int c, const TVar & value
   else if (col < row)
   {
     // Indice do vetor coluna.
-    int index = row - col;
+    long index = row - col;
     // Se precisar redimensionar o vetor.
     if (index >= Size(row) && !IsZero(value))
     {
@@ -289,14 +289,14 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " incompatible dimensions\n");
   }
   this->PrepareZ(y, z, beta, opt, stride);
-  int rows = this->Rows();
-  int xcols = x.Cols();
-  int ic, r;
+  long rows = this->Rows();
+  long xcols = x.Cols();
+  long ic, r;
   for (ic = 0; ic < xcols; ic++)
   {
     for (r = 0; r < rows; r++)
     {
-      int offset = Size(r);
+      long offset = Size(r);
       TVar val = 0.;
       const TVar *p = &x.g((r - offset + 1) * stride, ic);
       TVar *diag = fElemb[r] + offset - 1;
@@ -463,10 +463,10 @@ tol = res;
 /** * GetVal ** */
 
 template <class TVar>
-const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
+const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const long r, const long c)const
 {
   // inicializando row e col para trabalhar com a triangular superior
-  int row(r), col(c);
+  long row(r), col(c);
   if (col >= row)
   {
     if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
@@ -476,7 +476,7 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
       return this->gZero;
     }
     // Indice do vetor coluna.
-    int index = col - row;
+    long index = col - row;
     // TPZColuna *pCol = &fDiag[col];
 
     if (index < Size(col))
@@ -501,7 +501,7 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
       return this->gZero;
     }
     // Indice do vetor coluna.
-    int index = row - col;
+    long index = row - col;
     // TPZColuna *pCol = &fDiag[col];
 
     if (index < Size(row))
@@ -522,11 +522,11 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
 ///
 
 template <class TVar>
-const TVar & TPZSkylNSymMatrix<TVar>::GetValSup(const int r, const int c)const
+const TVar & TPZSkylNSymMatrix<TVar>::GetValSup(const long r, const long c)const
 {
 
-  int row(r), col(c);
-  int index = col - row;
+  long row(r), col(c);
+  long index = col - row;
 #ifdef DEBUG
 
   if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
@@ -543,11 +543,11 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetValSup(const int r, const int c)const
 }
 
 template <class TVar>
-const TVar & TPZSkylNSymMatrix<TVar>::GetValB(const int r, const int c)const
+const TVar & TPZSkylNSymMatrix<TVar>::GetValB(const long r, const long c)const
 {
 
-  int row(r), col(c);
-  int index = row - col;
+  long row(r), col(c);
+  long index = row - col;
 #ifdef DEBUG
 
   if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
@@ -840,12 +840,12 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
     "Decompose_LU <Matrix already Decomposed>");
 
   TVar pivot;
-  int dimension = this->Dim();
+  long dimension = this->Dim();
   /* if(Dim() > 100) {
   cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
   cout.flush();
   } */
-  for (int k = 0; k < dimension; k++)
+  for (long k = 0; k < dimension; k++)
   {
     /* if(!(k%100) && Dim() > 100) {
     cout <<  k << ' ';
@@ -886,8 +886,8 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
 
     // Loop para i = k+1 ... Dim().
     //
-    int i = k + 1;
-    for (int j = 2; i < dimension; j++, i++)
+    long i = k + 1;
+    for (long j = 2; i < dimension; j++, i++)
     {
       // Se tiverem elementos na linha 'i' cuja coluna e'
       // menor do que 'K'...
@@ -1000,13 +1000,13 @@ int TPZSkylNSymMatrix<TVar>::Subst_Backward(TPZFMatrix<TVar> *B)const
 
   // std::cout << "SubstBackward this " << (void *) this << " neq " << Dim() << " ncols " << B->Cols() << std::endl;
 
-  int Dimension = this->Dim();
+  long Dimension = this->Dim();
   if (!Dimension)
     return 1; // nothing to do
-  int j;
+  long j;
   for (j = 0; j < B->Cols(); j++)
   {
-    int k = Dimension - 1;
+    long k = Dimension - 1;
     while (k > 0 && (*B)(k, j) == TVar(0.))
     {
       k--;
@@ -1046,10 +1046,10 @@ int TPZSkylNSymMatrix<TVar>::Subst_LForward(TPZFMatrix<TVar> *B)const
   if ((B->Rows() != this->Dim()) || (this->fDecomposed != ELDLt && this->fDecomposed != ELU))
     return(0);
 
-  int dimension = this->Dim();
-  for (int k = 0; k < dimension; k++)
+  long dimension = this->Dim();
+  for (long k = 0; k < dimension; k++)
   {
-    for (int j = 0; j < B->Cols(); j++)
+    for (long j = 0; j < B->Cols(); j++)
     {
       // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
       //
@@ -1186,13 +1186,13 @@ int TPZSkylNSymMatrix<TVar>::Clear()
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::Copy(const TPZSkylNSymMatrix &A)
 {
-  int dimension = A.Dim();
+  long dimension = A.Dim();
   this->fRow = this->fCol = dimension;
   fElem.Resize(A.fElem.NElements());
   fElemb.Resize(A.fElemb.NElements());
   fStorage = A.fStorage;
   fStorageb = A.fStorageb;
-  int i;
+  long i;
   TVar *firstp = 0;
 
   if (fStorage.NElements())
@@ -1503,7 +1503,7 @@ void TPZSkylNSymMatrix<TVar>::Read(TPZStream &buf, void *context )
 	}
 	fElem.Resize(this->Rows()+1);
 	fElemb.Resize(this->Rows()+1);
-	for (int i=0; i<this->Rows()+1; i++) {
+	for (long i=0; i<this->Rows()+1; i++) {
 		fElem[i] = skyl[i] + ptr;
 		fElemb[i] = skyl2[i] + ptr2;
 	}
@@ -1521,7 +1521,7 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 		ptr = &fStorage[0];
 		ptr2 = &fStorageb[0];
 	}
-	for (int i=0; i<this->Rows()+1; i++) {
+	for (long i=0; i<this->Rows()+1; i++) {
 		skyl[i] = fElem[i] - ptr;
 		skyl2[i] = fElemb[i] - ptr2;
 	}
@@ -1553,13 +1553,13 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::AutoFill() {
     
     // initialize the skyline
-    TPZManVector<int> skyline(this->Rows());
-    for (int i=0; i<this->Rows(); i++) {
+    TPZManVector<long> skyline(this->Rows());
+    for (long i=0; i<this->Rows(); i++) {
         int randcol = rand()%(i+1);
         skyline[i] = randcol;
     }
     this->SetSkyline(skyline);
-	int i, j;
+	long i, j;
 	TVar val;
 	/** Fill data */
 	for(i=0;i<this->Rows();i++) {

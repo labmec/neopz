@@ -139,7 +139,7 @@ public:
 	 * @brief This method computes the skyline of the system of equations
 	 * @param skyline vector where the skyline will be computed
 	 */
-	virtual void SkylineInternal(TPZVec<int> &skyline);
+	virtual void SkylineInternal(TPZVec<long> &skyline);
 	
 	/// Puts the nodes which can be transferred in an ordered list
 	void PotentialInternal(std::list<int> &connectindices) const;

@@ -36,12 +36,12 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
  public:
   TPZSkylNSymMatrix() : TPZMatrix<TVar>(0,0),fElem(0), fElemb(0), fStorage(0), fStorageb(0) { }
     
-  TPZSkylNSymMatrix(const int nrow, const int ncol);
+  TPZSkylNSymMatrix(const long nrow, const long ncol);
   /**
      Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
   */
-  TPZSkylNSymMatrix(const int dim ,const TPZVec<int> &skyline);
+  TPZSkylNSymMatrix(const long dim ,const TPZVec<long> &skyline);
 	TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  
     { 
         Copy(A); 
@@ -52,12 +52,12 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
      modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation
   */
-  void SetSkyline(const TPZVec<int> &skyline);
+  void SetSkyline(const TPZVec<long> &skyline);
 
   /**
      return the height of the skyline for a given column
   */
-  int SkyHeight(int col) { return fElem[col+1]-fElem[col] - 1; }
+  int SkyHeight(long col) { return fElem[col+1]-fElem[col] - 1; }
 
   /** Add a skyline matrix B with same structure of this
    *  It makes this += k * B
@@ -69,23 +69,23 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   virtual ~TPZSkylNSymMatrix() { Clear(); }
 
-  int PutVal(const int row,const int col,const TVar &element );
+  int PutVal(const long row,const long col,const TVar &element );
 
-  const TVar &GetVal(const int row,const int col ) const;
+  const TVar &GetVal(const long row,const long col ) const;
 
 
   /// Pega o valor na diagonal ou parte de cima da diagonal
-  const TVar &GetValSup(const int row,const int col ) const;
+  const TVar &GetValSup(const long row,const long col ) const;
 
   /// Pega o valor abaixo da diagonal (below)
-  const TVar &GetValB(const int row,const int col ) const;
+  const TVar &GetValB(const long row,const long col ) const;
 
 
-  TVar &operator()(const int row, const int col);
-  virtual TVar &s(const int row, const int col);
+  TVar &operator()(const long row, const long col);
+  virtual TVar &s(const long row, const long col);
 
 
-  TVar &operator()(const int row);
+  TVar &operator()(const long row);
 
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 		       const TVar	alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
@@ -162,7 +162,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   /**
      This method returns a pointer to the diagonal element of the matrix of the col column
   */
-  TVar *Diag(int col) { return fElem[col];}
+  TVar *Diag(long col) { return fElem[col];}
 
   //void DecomposeColumn(int col, int prevcol);
 	//void DecomposeColumn(int col, int prevcol, std::list<int> &singular);
@@ -175,9 +175,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 //static int  Error(const char *msg1,const char* msg2="" );
   int  Clear();
   void Copy (const TPZSkylNSymMatrix & );
-  int Size(const int column) const {return fElem[column+1]-fElem[column];}
-  static long NumElements(const TPZVec<int> &skyline);
-  static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
+  int Size(const long column) const {return fElem[column+1]-fElem[column];}
+  static long NumElements(const TPZVec<long> &skyline);
+  static void InitializeElem(const TPZVec<long> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
   /**
      Computes the highest skyline of both objects
   */

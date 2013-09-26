@@ -18,25 +18,27 @@ class TPZSparseBlockDiagonal : public TPZBlockDiagonal<TVar>
 {
 public:
     TPZSparseBlockDiagonal();
-    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows);
+    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows);
     
-    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int color, TPZVec<int> &colors);
+    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows, int color, TPZVec<int> &colors);
 	
     ~TPZSparseBlockDiagonal();
 	
-    const TVar& Get(const int row, const int col) const;
-    const TVar& GetVal(const int row, const int col) const;
-    int Put(const int row, const int col, const TVar& value);
-    int PutVal(const int row, const int col, const TVar& value);
-    TVar& operator ( )(const int row, const int col);
+    const TVar& Get(const long row, const long col) const;
+    const TVar& GetVal(const long row, const long col) const;
+    int Put(const long row, const long col, const TVar& value);
+    int PutVal(const long row, const long col, const TVar& value);
+    TVar& operator ( )(const long row, const long col);
     virtual int Substitution(TPZFMatrix<TVar>* B) const;
-    virtual TVar& s(const int row, const int col);
+    
+    virtual TVar &s(const long row, const long col);
+    
     virtual void Print(const char* message, std::ostream& out, const MatrixOutputFormat=EFormatted) const;
-    void AddBlock(int i, TPZFMatrix<TVar>& block);
+    void AddBlock(long i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
-    void GetBlock(int i, TPZFMatrix<TVar>& block);
+    void GetBlock(long i, TPZFMatrix<TVar>& block);
     void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt, const int stride) const;
-    void FindBlockIndex(int glob, int &block, int &blockind) const;
+    void FindBlockIndex(long glob, long &block, long &blockind) const;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);

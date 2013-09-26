@@ -27,15 +27,15 @@ class TPZSBMatrix : public TPZMatrix<TVar>
 {
 public:
 	TPZSBMatrix() : TPZMatrix<TVar>(0,0) { fDiag = NULL; fBand = 0; }
-	TPZSBMatrix(const int dim,const int band );
+	TPZSBMatrix(const long dim,const long band );
 	TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZMatrix<TVar>(A)  { Copy(A); }
 	
 	CLONEDEF(TPZSBMatrix)
 	
 	~TPZSBMatrix() { Clear(); }
 	
-	int    PutVal(const int row,const int col,const TVar& element );
-	const TVar &GetVal(const int row,const int col ) const;
+	int    PutVal(const long row,const long col,const TVar& element );
+	const TVar &GetVal(const long row,const long col ) const;
 	
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** z and x cannot overlap in memory */
@@ -60,17 +60,17 @@ public:
 	TPZSBMatrix<TVar> operator-() const { return operator*(-1.0); }
 	
 	/// Redimension the matrix keeping original elements.
-	int Resize(const int newDim ,const int);
+	int Resize(const long newDim ,const long);
 	
 	/// Redimension the matrix and zeroes its elements
-	int Redim(const int newDim) {return Redim(newDim,newDim);}
-	int Redim(const int newRows ,const int newCols);
+	int Redim(const long newDim) {return Redim(newDim,newDim);}
+	int Redim(const long newRows ,const long newCols);
 	
 	/// Zeroes the elements of the matrix
 	int Zero();
 	
-	int GetBand() const { return fBand; }
-	int   SetBand(const int newBand );
+	long GetBand() const { return fBand; }
+	int   SetBand(const long newBand );
 	
 	
 	/// To solve linear systems
@@ -101,7 +101,7 @@ public:
 	
 private:
 	
-	int  Size() const    { return( this->Dim() * (fBand + 1) ); }
+	long  Size() const    { return( this->Dim() * (fBand + 1) ); }
 	int  PutZero();
 	//static int  Error(const char *msg1,const char* msg2="" ) ;
 	int  Clear();
@@ -109,7 +109,7 @@ private:
 	
 	
 	TVar *fDiag;
-	int  fBand;
+	long  fBand;
 };
 
 #endif

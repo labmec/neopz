@@ -40,8 +40,8 @@ TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
 }
 
 TPZMatrix<STATE> * TPZParSkylineStructMatrix::Create(){
-    int neq = fEquationFilter.NActiveEquations();
-    TPZVec<int> skyline;
+    long neq = fEquationFilter.NActiveEquations();
+    TPZVec<long> skyline;
     fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
     neq = skyline.size();

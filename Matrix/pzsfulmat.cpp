@@ -21,7 +21,7 @@ using namespace std;
 /*******************/
 /*** Constructor ***/
 template<class TVar>
-TPZSFMatrix<TVar> ::TPZSFMatrix(const int dim )
+TPZSFMatrix<TVar> ::TPZSFMatrix(const long dim )
 : TPZMatrix<TVar>( dim, dim )
 {
 	fElem = new( TVar[ Size() ] );
@@ -67,8 +67,8 @@ TPZSFMatrix<TVar> ::TPZSFMatrix(const  TPZMatrix<TVar>  &A )
 	
 	// Copia a matriz
 	TVar *dst = fElem;
-	for ( int r = 0; r < this->Dim(); r++ )
-		for ( int c = 0; c <= r; c++ )
+	for ( long r = 0; r < this->Dim(); r++ )
+		for ( long c = 0; c <= r; c++ )
 			*dst++ = A.GetVal( r, c );
 }
 
@@ -220,8 +220,8 @@ template<class TVar>
 TPZSFMatrix<TVar>  &
 TPZSFMatrix<TVar> ::operator=(const TPZMatrix<TVar>  &A )
 {
-	int newDim = Min( A.Rows(), A.Cols() );
-	int size   = newDim * (newDim + 1) / 2;
+	long newDim = Min( A.Rows(), A.Cols() );
+	long size   = newDim * (newDim + 1) / 2;
 	
 	if ( newDim != this->Dim() )
     {
@@ -232,8 +232,8 @@ TPZSFMatrix<TVar> ::operator=(const TPZMatrix<TVar>  &A )
 	
 	// Copia a matriz.
 	TVar *dst = fElem;
-	for ( int c = 0; c < newDim; c++ )
-		for ( int r = 0; r <= c; r++ )
+	for ( long c = 0; c < newDim; c++ )
+		for ( long r = 0; r <= c; r++ )
 			*dst++ = A.Get( r, c );
 	
 	this->fRow = this->fCol = newDim;
@@ -261,8 +261,8 @@ TPZSFMatrix<TVar> ::operator+(const TPZMatrix<TVar>  &A ) const
 	TPZSFMatrix<TVar>  res( this->Dim() );
 	TVar *pm = fElem;
 	TVar *pr = res.fElem;
-	for ( int c = 0; c < this->Dim(); c++ )
-		for ( int r = 0; r <= c; r++ )
+	for ( long c = 0; c < this->Dim(); c++ )
+		for ( long r = 0; r <= c; r++ )
 			*pr++ = (*pm++) + A.Get( r, c );
 	
 	return( *this );
@@ -283,8 +283,8 @@ TPZSFMatrix<TVar> ::operator-( const TPZMatrix<TVar>  &A ) const
 	TPZSFMatrix<TVar>  res( this->Dim() );
 	TVar *pm = fElem;
 	TVar *pr = res.fElem;
-	for ( int c = 0; c < this->Dim(); c++ )
-		for ( int r = 0; r <= c; r++ )
+	for ( long c = 0; c < this->Dim(); c++ )
+		for ( long r = 0; r <= c; r++ )
 			*pr++ = (*pm++) - A.Get( r, c );
 	
 	return( *this );
@@ -302,8 +302,8 @@ TPZSFMatrix<TVar> ::operator+=(const TPZMatrix<TVar>  &A )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Operator+= (TPZMatrix<>&) <different dimensions>" );
 	
 	TVar *pm = fElem;
-	for ( int c = 0; c < this->Dim(); c++ )
-		for ( int r = 0; r <= c; r++ )
+	for ( long c = 0; c < this->Dim(); c++ )
+		for ( long r = 0; r <= c; r++ )
 			*pm++ += A.Get( r, c );
 	
 	this->fDecomposed = 0;
@@ -323,8 +323,8 @@ TPZSFMatrix<TVar> ::operator-=(const TPZMatrix<TVar>  &A )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Operator-= (TPZMatrix<>&) <different dimensions>" );
 	
 	TVar *pm = fElem;
-	for ( int c = 0; c < this->Dim(); c++ )
-		for ( int r = 0; r <= c; r++ )
+	for ( long c = 0; c < this->Dim(); c++ )
+		for ( long r = 0; r <= c; r++ )
 			*pm++ -= A.Get( r, c );
 	
 	this->fDecomposed = 0;
@@ -431,18 +431,18 @@ TPZSFMatrix<TVar> ::operator*=( TVar value )
 /*** Resize ***/
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Resize( int newDim , int )
+TPZSFMatrix<TVar> ::Resize( long newDim , long )
 {
 	if ( newDim == this->Dim() )
 		return( 1 );
 	
-	int newSize = newDim * (newDim + 1) / 2;
-	int oldSize = Size();
+	long newSize = newDim * (newDim + 1) / 2;
+	long oldSize = Size();
 	TVar *newElem = new TVar[newSize] ;
 	if ( newElem == NULL )
 		return TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	
-	int minSize  = Min( newSize, oldSize );
+	long minSize  = Min( newSize, oldSize );
 	TVar *src = fElem;
 	TVar *dst = newElem;
 	TVar *end = &fElem[ minSize ];
@@ -471,7 +471,7 @@ TPZSFMatrix<TVar> ::Resize( int newDim , int )
 
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Redim( int newDim , int)
+TPZSFMatrix<TVar> ::Redim( long newDim , long)
 {
 	// Se for preciso, desaloca a matriz antiga e aloca uma
 	//  nova com o novo tamanho.
@@ -525,7 +525,7 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 {
 	if (  this->fDecomposed )  TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	TVar *ptr_k = fElem;
-	for ( int k = 0; k < this->Dim(); k++, ptr_k += k  )
+	for ( long k = 0; k < this->Dim(); k++, ptr_k += k  )
     {
 		// Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
 		//
@@ -545,7 +545,7 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 		//
 		TVar *ptr_i = ptr_k;
 		TVar *pi;
-		for ( int i = k+1; i <this->Dim(); i++ )
+		for ( long i = k+1; i <this->Dim(); i++ )
 		{
 			// Faz sum = SOMA( A(i,p) * A(k,p) ), p = 1, ..., k-1.
 			//
@@ -553,7 +553,7 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 			ptr_i += i;
 			pk    =  ptr_k;
 			pi    =  ptr_i;
-			for ( int p = 0; p < k; p++ )
+			for ( long p = 0; p < k; p++ )
 				sum += (*pk++) * (*pi++);
 			
 			// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -586,14 +586,14 @@ TPZSFMatrix<TVar> ::Decompose_LDLt()
      aux=new REAL [ Dim() - 1 ];
      REAL *ptr_k = fElem;
 	 
-     for ( int k = 0; k < Dim(); k++, ptr_k += k  )
+     for ( long k = 0; k < Dim(); k++, ptr_k += k  )
      {
      // Faz aux(p) = A(p,p) * A(k,p), p = 1, ..., k-1.
      //
      REAL *pk    = ptr_k;
      REAL *pDiag = fElem;
      REAL *pAux  = aux;
-     for ( int p = 0; p < k; p++, pDiag += p )
+     for ( long p = 0; p < k; p++, pDiag += p )
      *pAux++ = (*pDiag++) * (*pk++);
 	 
 	 // Faz sum = SOMA( A(k,p) * aux(p) ), p = 1, ..., k-1.
@@ -615,7 +615,7 @@ TPZSFMatrix<TVar> ::Decompose_LDLt()
 	 //
 	 REAL *ptr_i = ptr_k;
 	 REAL *pi;
-	 for ( int i = k+1; i < Dim(); i++ )
+	 for ( long i = k+1; i < Dim(); i++ )
 	 {
 	 // Faz sum = SOMA( A(i,p) * aux(p) ), p = 1, ..., k-1.
 	 //
@@ -637,7 +637,7 @@ TPZSFMatrix<TVar> ::Decompose_LDLt()
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Decompose_LDLt <Matrix already Decomposed with a different scheme>" );
 	else if ( this->fDecomposed ) return 0;
 	
-	int j,k,l;
+	long j,k,l;
 	//	REAL sum;
 	
 	
@@ -682,15 +682,15 @@ TPZSFMatrix<TVar> ::Subst_Forward( TPZFMatrix<TVar>  *B ) const
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_Forward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = fElem;
-	for ( int k = 0; k < this->Dim(); k++ )
+	for ( long k = 0; k < this->Dim(); k++ )
     {
-		for ( int j = 0; j < B->Cols(); j++ )
+		for ( long j = 0; j < B->Cols(); j++ )
 		{
 			// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1,.., k-1.
 			//
 			REAL *pk = ptr_k;
 			REAL sum = 0.0;
-			for ( int i = 0; i < k; i++ )
+			for ( long i = 0; i < k; i++ )
 				sum += (*pk++) * B->GetVal( i, j );
 			
 			// Faz B[k,j] = (B[k,j] - sum) / A[k,k].
@@ -718,14 +718,14 @@ TPZSFMatrix<TVar> ::Subst_Backward( TPZFMatrix<TVar>  *B ) const
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_Backward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = &fElem[ Size()-1 ];
-	for ( int k = this->Dim()-1; k >= 0; k--, ptr_k-- )
-		for ( int j = 0; j < B->Cols(); j++ )
+	for ( long k = this->Dim()-1; k >= 0; k--, ptr_k-- )
+		for ( long j = 0; j < B->Cols(); j++ )
 		{
 			// Faz sum = SOMA( A[k,i] * B[i,j] ); i = N, ..., k+1.
 			//
 			TVar sum = 0.0;
 			TVar *pk = ptr_k;
-			for ( int i = this->Dim()-1; i > k; i-- )
+			for ( long i = this->Dim()-1; i > k; i-- )
 			{
 				sum += *pk * B->GetVal( i, j );
 				pk -= i;
@@ -754,14 +754,14 @@ TPZSFMatrix<TVar> ::Subst_LForward( TPZFMatrix<TVar>  *B ) const
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LForward <the matrix result can not be simetric>" );
 	
 	REAL *ptr_k = fElem;
-	for ( int k = 0; k < this->Dim(); k++, ptr_k += k )
-		for ( int j = 0; j < B->Cols(); j++ )
+	for ( long k = 0; k < this->Dim(); k++, ptr_k += k )
+		for ( long j = 0; j < B->Cols(); j++ )
 		{
 			// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
 			//
 			TVar *pk = ptr_k;
 			TVar sum = 0.0;
-			for ( int i = 0; i < k; i++ )
+			for ( long i = 0; i < k; i++ )
 				sum += (*pk++) * B->GetVal( i, j );
 			
 			// Faz b[k] = (b[k] - sum).
@@ -788,14 +788,14 @@ TPZSFMatrix<TVar> ::Subst_LBackward( TPZFMatrix<TVar>  *B ) const
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LBackward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = &fElem[ Size()-1 ];
-	for ( int k = this->Dim()-1; k >= 0; k--, ptr_k-- )
-		for ( int j = 0; j < B->Cols(); j++ )
+	for ( long k = this->Dim()-1; k >= 0; k--, ptr_k-- )
+		for ( long j = 0; j < B->Cols(); j++ )
 		{
 			// Faz sum = SOMA( A[k,i] * B[i,j] ); i = N, ..., k+1.
 			//
 			TVar sum = 0.0;
 			TVar *pk = ptr_k;
-			for ( int i = this->Dim()-1; i > k; i-- )
+			for ( long i = this->Dim()-1; i > k; i-- )
 			{
 				sum += *pk * B->GetVal( i, j );
 				pk -= i;
@@ -822,9 +822,9 @@ TPZSFMatrix<TVar> ::Subst_Diag( TPZFMatrix<TVar>  *B ) const
 		return( 0 );
 	
 	TVar *pDiag = fElem;
-	for ( int k = 0; k < this->Dim(); k++ )
+	for ( long k = 0; k < this->Dim(); k++ )
     {
-		for ( int j = 0; j < B->Cols(); j++ )
+		for ( long j = 0; j < B->Cols(); j++ )
 			B->PutVal( k, j, B->GetVal( k, j ) / *pDiag );
 		pDiag += (k + 2);
     }

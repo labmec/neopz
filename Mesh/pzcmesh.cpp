@@ -630,18 +630,18 @@ int TPZCompMesh::BandWidth() {
 	return bw;
 }
 
-void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
+void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 	
 	TPZStack<int> connectlist;
 	// modified Philippe 24/7/97
 	// in order to take dependent nodes into account
 	
-	int neq = NEquations();
+	long neq = NEquations();
 	skyline.Resize(neq);
 	skyline.NElements();
 	//cout << "Element Equations";
 	//int eleq=0;
-	int i, n, l, nelem = NElements();
+	long i, n, l, nelem = NElements();
 	for(i=0; i<neq; i++) skyline[i] = i;
 	for(i=0; i<nelem; i++) {
 		TPZCompEl *el = fElementVec[i];
@@ -649,10 +649,10 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 		//      if(!el) continue;
 		connectlist.Resize(0);
 		el->BuildConnectList(connectlist);
-		int nnod = connectlist.NElements();
+		long nnod = connectlist.NElements();
 		if(!nnod) continue;
         // look for a connect with global equations associated to it
-		int ifirstnode = 0;
+		long ifirstnode = 0;
 		TPZConnect *np = &fConnectVec[connectlist[0]];
 		while(ifirstnode < nnod && (np->HasDependency() || np->IsCondensed()) ) {
 			ifirstnode++;
@@ -660,13 +660,13 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 		}
 		int ibl = np->SequenceNumber();
 		int loweq = fBlock.Position(ibl);
-		int higheq = loweq+fBlock.Size(ibl)-1;
+		long higheq = loweq+fBlock.Size(ibl)-1;
 		for(n=ifirstnode;n<nnod;n++) {
 			np = &fConnectVec[connectlist[n]];
 			if(np->HasDependency() || np->IsCondensed()) continue;
 			int ibl = np->SequenceNumber();
 			int leq = fBlock.Position(ibl);
-			int heq = leq+fBlock.Size(ibl)-1;
+			long heq = leq+fBlock.Size(ibl)-1;
 			//for(int _eq=leq; _eq<= heq; _eq++) {
 			//   if((eleq%20==0)) cout << endl;
 			//   cout << _eq << ' ';
@@ -681,7 +681,7 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 			if(np->HasDependency() || np->IsCondensed()) continue;
 			int ibl = np->SequenceNumber();
 			int leq = fBlock.Position(ibl);
-			int heq = leq+fBlock.Size(ibl);
+			long heq = leq+fBlock.Size(ibl);
 			for(l=leq;l<heq;l++) {
 				skyline[l] = skyline[l] < loweq ? skyline[l] : loweq;
 			}

@@ -218,7 +218,7 @@ TPZStructMatrix * TPBSpStructMatrix::Clone(){
     return new TPBSpStructMatrix(*this);
 }
 TPZMatrix<STATE> * TPBSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-    int neq = fMesh->NEquations();
+    long neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
 		return new TPZFYsmpMatrix<STATE>(0,0);
@@ -233,7 +233,7 @@ TPZMatrix<STATE> * TPBSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZA
 TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     //checked
     
-    int neq = fEquationFilter.NActiveEquations();
+    long neq = fEquationFilter.NActiveEquations();
     TPZFYsmpMatrix<STATE> * mat = new TPZFYsmpMatrix<STATE>(neq,neq);
 	
     /**Rearange elements order*/
@@ -259,14 +259,14 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
      */
     metis.ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
     /**vector sizes*/
-    int i;
-    int nblock = nodegraphindex.NElements()-1;
-    int totalvar = 0;
-    int totaleq = 0;
+    long i;
+    long nblock = nodegraphindex.NElements()-1;
+    long totalvar = 0;
+    long totaleq = 0;
     for(i=0;i<nblock;i++){
-		int iblsize = fMesh->Block().Size(i);
-		int iblpos = fMesh->Block().Position(i);
-        int numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+		long iblsize = fMesh->Block().Size(i);
+		long iblpos = fMesh->Block().Position(i);
+        long numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
         if (!numactive) {
             continue;
         }
@@ -274,16 +274,16 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
             DebugStop();
         }
 		totaleq += iblsize;
-		int icfirst = nodegraphindex[i];
-		int iclast = nodegraphindex[i+1];
-		int j;
+		long icfirst = nodegraphindex[i];
+		long iclast = nodegraphindex[i+1];
+		long j;
 		//longhin
 		totalvar+=iblsize*iblsize;
 		for(j=icfirst;j<iclast;j++) {
-			int col = nodegraph[j];
-			int colsize = fMesh->Block().Size(col);
-			int colpos = fMesh->Block().Position(col);
-            int numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
+			long col = nodegraph[j];
+			long colsize = fMesh->Block().Size(col);
+			long colpos = fMesh->Block().Position(col);
+            long numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
             if (!numactive) {
                 continue;
             }
@@ -291,31 +291,31 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
 		}
     }
 	
-    int ieq = 0;
-    int pos = 0;
+    long ieq = 0;
+    long pos = 0;
 	
     nblock=fMesh->NIndependentConnects();
 	
-    int * Eq = new int[totaleq+1];
-    int * EqCol = new int[totalvar/2];
+    long * Eq = new long[totaleq+1];
+    long * EqCol = new long[totalvar/2];
     STATE * EqValue = new STATE[totalvar/2];
     for(i=0;i<nblock;i++){
-		int iblsize = fMesh->Block().Size(i);
-		int iblpos = fMesh->Block().Position(i);
-        int numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+		long iblsize = fMesh->Block().Size(i);
+		long iblpos = fMesh->Block().Position(i);
+        long numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
         if (!numactive) {
             continue;
         }
-		int ibleq;
+		long ibleq;
 		for(ibleq=0; ibleq<iblsize; ibleq++) {
 			Eq[ieq] = pos;
 			if(ieq%2) {
 				ieq++;
 				continue;
 			}
-			int colsize = fMesh->Block().Size(i);
-			int colpos = fMesh->Block().Position(i);
-			int jbleq;
+			long colsize = fMesh->Block().Size(i);
+			long colpos = fMesh->Block().Position(i);
+			long jbleq;
 			for(jbleq=0; jbleq<colsize; jbleq++) {
 				/**It can also be implemented using half the size of both columns and data vectors*/
 				EqCol[pos] = -1;//colpos;
@@ -324,14 +324,14 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
 				pos++;
 			}
 			
-			int icfirst = nodegraphindex[i];
-			int iclast = nodegraphindex[i+1];
-			int j;
+			long icfirst = nodegraphindex[i];
+			long iclast = nodegraphindex[i+1];
+			long j;
 			for(j=icfirst;j<iclast;j++) {
-				int col = nodegraph[j];
+				long col = nodegraph[j];
 				colsize = fMesh->Block().Size(col);
 				colpos = fMesh->Block().Position(col);
-                int numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
+                long numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
                 if (!numactive) {
                     continue;
                 }

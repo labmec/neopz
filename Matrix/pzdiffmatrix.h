@@ -28,11 +28,11 @@ class TPZDiffMatrix
 {
 public:
     TPZDiffMatrix();
-    TPZDiffMatrix(const int rows, const int cols);
+    TPZDiffMatrix(const long rows, const long cols);
     ~TPZDiffMatrix();
 	
     /** @brief Resizes and zeroes the matrix. */
-    void Redim(const int rows, const int cols);
+    void Redim(const long rows, const long cols);
 	
     /** @brief Multiplies the matrix by a correspondent TPZVec vector. Dimensions are checked. */
     void Multiply(TPZVec<T> & In, TPZVec<T> & Out, const T & scale = T(1.));
@@ -58,11 +58,11 @@ public:
     void Add(TPZDiffMatrix<T> & matrix, const T & scale = T(1.));
 	
     /** @brief Matrix data access */
-    T & operator()(const int i, const int j = 0);
+    T & operator()(const long i, const long j = 0);
 	
-    void PutVal(const int row,const int col,const T & value );
+    void PutVal(const long row,const long col,const T & value );
 	
-	const T &GetVal(const int row,const int col ) const;
+	const T &GetVal(const long row,const long col ) const;
 	
     /** @brief Transposes the matrix onto the parameter object. */
 	/** Resizes it if necessary. */
@@ -83,7 +83,7 @@ public:
      * of the solutions with respect to the dim spatial dimensions.
 	 */
     void AddAlignDiv(TPZVec<T> & gradx,
-                     const int varOffset,const int dim,
+                     const long varOffset,const long dim,
 					 TPZVec<T> & Divergent);
 	
     /**
@@ -97,12 +97,12 @@ public:
      * with respect to the Ui coefficients.
      */
     void AddDiv(T & dPhi, TPZVec<T> & U,
-                const int dim, TPZVec<T> & Divergent,
+                const long dim, TPZVec<T> & Divergent,
 				TPZDiffMatrix<T> &  dDivergent);
 	
-    int Cols()const;
+    long Cols()const;
 	
-    int Rows()const;
+    long Rows()const;
 	
     EStatus Decompose_LU();
 	
@@ -112,9 +112,9 @@ public:
 	
 private:
 	
-    int index(const int i, const int j)const;
+    long index(const long i, const long j)const;
 	
-    int fRows, fCols;
+    long fRows, fCols;
 	
     T * fStore;
 	
@@ -126,7 +126,7 @@ private:
 template <class T>
 std::ostream & operator<<(std::ostream & out, TPZDiffMatrix<T> & A)
 {
-	int i, j;
+	long i, j;
 	out << "\nTPZDiffMatrix<> " << A.Rows() << " * " << A.Cols();
 	for(i=0;i<A.Rows();i++)
 	{
@@ -147,7 +147,7 @@ inline TPZDiffMatrix<T>::TPZDiffMatrix():fRows(0), fCols(0), fStore(NULL), fDeco
 }
 
 template <class T>
-inline TPZDiffMatrix<T>::TPZDiffMatrix(const int rows, const int cols):fRows(0), fCols(0), fStore(NULL), fDecomposed(ENoDecompose)
+inline TPZDiffMatrix<T>::TPZDiffMatrix(const long rows, const long cols):fRows(0), fCols(0), fStore(NULL), fDecomposed(ENoDecompose)
 {
 	Redim(rows, cols);
 }
@@ -160,7 +160,7 @@ inline TPZDiffMatrix<T>::~TPZDiffMatrix()
 
 
 template <class T>
-inline void TPZDiffMatrix<T>::Redim(const int rows, const int cols)
+inline void TPZDiffMatrix<T>::Redim(const long rows, const long cols)
 {
 	if(rows!=fRows || cols!=fCols){
 		if(fStore)delete[] fStore;
@@ -171,7 +171,7 @@ inline void TPZDiffMatrix<T>::Redim(const int rows, const int cols)
 		fStore = new T[fRows*fCols];
 	}
 	
-	int i=fRows*fCols -1;
+	long i=fRows*fCols -1;
 	for(;i>=0;i--)fStore[i]=T(0.);
 }
 
@@ -179,7 +179,7 @@ template <class T>
 inline  TPZDiffMatrix<T>& TPZDiffMatrix<T>::Transpose( TPZDiffMatrix<T> & matrix)
 {
 	matrix.Redim(fCols, fRows);
-	int i, j;
+	long i, j;
 	for(i=0;i<fRows;i++)
 		for(j=0;j<fCols;j++)
 			matrix(j,i)=operator()(i,j);
@@ -187,7 +187,7 @@ inline  TPZDiffMatrix<T>& TPZDiffMatrix<T>::Transpose( TPZDiffMatrix<T> & matrix
 }
 
 template <class T>
-inline  int TPZDiffMatrix<T>::index(const int i, const int j)const
+inline  long TPZDiffMatrix<T>::index(const long i, const long j)const
 {
 	if(i<0 || i>=fRows)PZError << "\nTPZDiffMatrix<T>::index error: row out of bounds\n";
 	if(j<0 || j>=fCols)PZError << "\nTPZDiffMatrix<T>::index error: col out of bounds\n";
@@ -195,20 +195,20 @@ inline  int TPZDiffMatrix<T>::index(const int i, const int j)const
 }
 
 template <class T>
-inline  T & TPZDiffMatrix<T>::operator()(const int i, const int j)
+inline  T & TPZDiffMatrix<T>::operator()(const long i, const long j)
 {
 	return fStore[index(i,j)];
 }
 
 template <class T>
-inline void TPZDiffMatrix<T>::PutVal(const int row,const int col,const T & value )
+inline void TPZDiffMatrix<T>::PutVal(const long row,const long col,const T & value )
 {
 	fStore[index(row,col)] = value;	
 }
 
 
 template <class T>
-inline const T & TPZDiffMatrix<T>::GetVal(const int row,const int col ) const
+inline const T & TPZDiffMatrix<T>::GetVal(const long row,const long col ) const
 {
 	return fStore[index(row,col)];
 }
@@ -219,7 +219,7 @@ inline void TPZDiffMatrix<T>::Multiply(TPZVec<T> & In, TPZVec<T> & Out, const T 
 {
 	if(In.NElements()!=fCols)PZError << "\nTPZDiffMatrix<T>::Multiply error: 'In' vector out of bounds\n";
 	if(Out.NElements()!=fRows)Out.Resize(fRows);
-	int i, j;
+	long i, j;
 	for(i=0;i<fRows;i++)
 	{
 		T buff=0.;
@@ -237,7 +237,7 @@ inline void TPZDiffMatrix<T>::Multiply(TPZDiffMatrix<T> & In, TPZDiffMatrix<T> &
 {
 	if(fCols!=In.fRows)PZError << "\nTPZDiffMatrix<T>::Multiply error: 'In' matrix out of bounds\n";
 	Out.Redim(fRows,In.fCols);
-	int i, j, k;
+	long i, j, k;
 	for(i=0;i<fRows;i++)
 	{
 		for(j=0;j<In.fCols;j++)
@@ -260,7 +260,7 @@ inline void TPZDiffMatrix<T>::MultiplyAdd(TPZDiffMatrix<T> & In, TPZDiffMatrix<T
 	if(fCols!=In.fRows)PZError << "\nTPZDiffMatrix<T>::MultiplyAdd error: 'In' matrix out of bounds\n";
 	if(Out.fCols!=fCols)PZError << "\nTPZDiffMatrix<T>::MultiplyAdd error: 'Out' matrix out of bounds\n";Out.Redim(fRows,In.fCols);
 	if(In.fRows!=Out.fRows)PZError << "\nTPZDiffMatrix<T>::MultiplyAdd error: 'Out' matrix out of bounds\n";Out.Redim(fRows,In.fCols);
-	int i, j, k;
+	long i, j, k;
 	for(i=0;i<fRows;i++)
 	{
 		for(j=0;j<In.fCols;j++)
@@ -281,7 +281,7 @@ inline void TPZDiffMatrix<T>::Add(TPZDiffMatrix<T> & matrix, const T & scale)
 {
 	if(fRows!=matrix.fRows)PZError << "\nTPZDiffMatrix<T>::Add error: row out of bounds\n";
 	if(fCols!=matrix.fCols)PZError << "\nTPZDiffMatrix<T>::add error: col out of bounds\n";
-	int i = fRows * fCols - 1;
+	long i = fRows * fCols - 1;
 	for(;i>=0;i--)fStore[i]+=matrix.fStore[i]*scale;
 }
 
@@ -289,20 +289,20 @@ template <class T>
 inline TPZDiffMatrix<T> & TPZDiffMatrix<T>::operator=(const TPZDiffMatrix<T> & source)
 {
 	Redim(source.fRows, source.fCols);
-	int i = fRows * fCols - 1;
+	long i = fRows * fCols - 1;
 	for(;i>=0;i--)fStore[i]=source.fStore[i];
 	fDecomposed = source.fDecomposed;
 	return *this;
 }
 
 template <class T>
-inline void TPZDiffMatrix<T>::AddAlignDiv(TPZVec<T> & gradx, const int varOffset,const int dim, TPZVec<T> & Divergent)
+inline void TPZDiffMatrix<T>::AddAlignDiv(TPZVec<T> & gradx, const long varOffset,const long dim, TPZVec<T> & Divergent)
 {
-	int nstate = dim+2;
+	long nstate = dim+2;
 	if(gradx.NElements()!=(nstate)*dim)PZError << "\nTPZDiffMatrix<T>::AddAlignDiv error: gradx vector of wrong size\n";
 	if(Divergent.NElements()!=nstate  )PZError << "\nTPZDiffMatrix<T>::AddAlignDiv error: Divergent vector of wrong size\n";
 	//Divergent.Resize(nstate);
-	int i, j;
+	long i, j;
 	for(i=0;i<nstate;i++)
 	{
 		for(j=0;j<nstate;j++)Divergent[i]+=operator()(i,j)*gradx[j*dim+varOffset];
@@ -310,13 +310,13 @@ inline void TPZDiffMatrix<T>::AddAlignDiv(TPZVec<T> & gradx, const int varOffset
 }
 
 template <class T>
-inline void TPZDiffMatrix<T>::AddDiv(T & dPhi, TPZVec<T> & U, const int dim, TPZVec<T> & Divergent, TPZDiffMatrix<T> &  dDivergent)
+inline void TPZDiffMatrix<T>::AddDiv(T & dPhi, TPZVec<T> & U, const long dim, TPZVec<T> & Divergent, TPZDiffMatrix<T> &  dDivergent)
 {
-	int nstate = dim+2;
+	long nstate = dim+2;
 	if( U.NElements()!=nstate)PZError << "\nTPZDiffMatrix<T>::AddDiv error: U vector of wrong size\n";
 	if(Divergent.NElements()!=nstate)PZError << "\nTPZDiffMatrix<T>::AddDiv error: Divergent vector of wrong size\n";
 	
-	int i, j;
+	long i, j;
 	for(i=0;i<nstate;i++)
 	{
 		for(j=0;j<nstate;j++)
@@ -328,14 +328,14 @@ inline void TPZDiffMatrix<T>::AddDiv(T & dPhi, TPZVec<T> & U, const int dim, TPZ
 }
 
 template <class T>
-inline int TPZDiffMatrix<T>::Cols()const
+inline long TPZDiffMatrix<T>::Cols()const
 {
 	return fCols;
 }
 
 
 template <class T>
-inline int TPZDiffMatrix<T>::Rows()const
+inline long TPZDiffMatrix<T>::Rows()const
 {
 	return fRows;
 }
@@ -350,14 +350,14 @@ inline EStatus TPZDiffMatrix<T>::Decompose_LU() {
 	}
 	
 	T nn, pivot;
-	int  min = ( Cols() < (Rows()) ) ? Cols() : Rows();
+	long  min = ( Cols() < (Rows()) ) ? Cols() : Rows();
 	
-	for ( int k = 0; k < min ; k++ ) {
+	for ( long k = 0; k < min ; k++ ) {
 		if (IsZero( pivot = GetVal(k, k))) return EZeroPivot;
-		for ( int i = k+1; i < Rows(); i++ ) {
+		for ( long i = k+1; i < Rows(); i++ ) {
 			nn = GetVal( i, k ) / pivot;
 			PutVal( i, k, nn );
-			for ( int j = k+1; j < Cols(); j++ ) PutVal(i,j,GetVal(i,j)-nn*GetVal(k,j));
+			for ( long j = k+1; j < Cols(); j++ ) PutVal(i,j,GetVal(i,j)-nn*GetVal(k,j));
 		}
 	}
 	fDecomposed=ELU;
@@ -367,21 +367,21 @@ inline EStatus TPZDiffMatrix<T>::Decompose_LU() {
 template <class T>
 inline EStatus TPZDiffMatrix<T>::Substitution( TPZDiffMatrix<T> *B ) const{
 	
-    int rowb = B->Rows();
-    int colb = B->Cols();
+    long rowb = B->Rows();
+    long colb = B->Cols();
     if ( rowb != Rows() )
 		return EIncompDim;
-	int i;
+	long i;
     for ( i = 0; i < rowb; i++ ) {
-        for ( int col = 0; col < colb; col++ ) {
-            for ( int j = 0; j < i; j++ ) {
+        for ( long col = 0; col < colb; col++ ) {
+            for ( long j = 0; j < i; j++ ) {
                 B->PutVal( i, col, B->GetVal(i, col)-GetVal(i, j) * B->GetVal(j, col) );
             }
         }
     }
-    for (int col=0; col<colb; col++) {
+    for (long col=0; col<colb; col++) {
         for ( i = rowb-1; i >= 0; i-- ) {
-            for ( int j = i+1; j < rowb ; j++ ) {
+            for ( long j = i+1; j < rowb ; j++ ) {
                 B->PutVal( i, col, B->GetVal(i, col) -
 						  GetVal(i, j) * B->GetVal(j, col) );
             }
