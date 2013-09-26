@@ -93,7 +93,7 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
 
     BoostGraph G(boost::edges_are_unsorted_multi_pass, edges.begin(), edges.end(), fNNodes);
   
-    const boost::property_map<BoostGraph, boost::vertex_index_t>::type
+    boost::property_map<BoostGraph, boost::vertex_index_t>::type boost_index_map;
     boost_index_map = get(boost::vertex_index, G);
 
     // Compute graph re-ordering
