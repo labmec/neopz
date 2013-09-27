@@ -179,7 +179,8 @@ if __name__ == "__main__":
 			for rdt_id,v in rdt_files.iteritems() : 
 				if summarize_results :
 					try: 
-						rdt_d=rdt.read(v[0])
+						fn=v[0]
+						rdt_d=rdt.read(fn)
 						elapsed_list=rdt.get_column_values(rdt_d,"ELAPSED")
 						try:
 							av=stats.average(elapsed_list)
