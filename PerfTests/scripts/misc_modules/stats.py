@@ -39,17 +39,17 @@ def average(vlist) :
 		return s/sz
 
 def variance(vlist) :
-	size=len(vlist)
-	if size == 1:
-		raise StatsError("Cannot calculate variance for a sample of size 1")
- 	try:
-		sum1=reduce(lambda x,y : float(x)+float(y), vlist, 0.0)
-		sum2=reduce(lambda x,y : float(x)+(float(y)*float(y)), vlist, 0.0)
-		v = (sum2-(pow(sum1,2)/float(size)))/float(size-1)
-	except ZeroDivisionError:
-		raise
-	if v < 0.0:
-		raise StatsError("Something went wrong while calculating the variance (result < 0.0)")
+        size=len(vlist)
+	if size == 1 or size == 0:
+                raise StatsError("Cannot calculate variance for a sample of size "+str(size))
+	sum1=reduce(lambda x,y : float(x)+float(y), vlist, 0.0)
+	sum2=reduce(lambda x,y : float(x)+(float(y)*float(y)), vlist, 0.0)
+	v = (sum2-(pow(sum1,2)/float(size)))/float(size-1)
+	if v < 0.0 :
+                if v > -1.e-15 :  # tolerate floating point rounding errors
+                        return 0.0
+                else :
+                        raise StatsError("Something went wrong while calculating the variance (result < 0.0)")
 	return v
 
 def stdev(vlist) :
