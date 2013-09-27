@@ -174,6 +174,10 @@ public:
   virtual void Write(const int *p, int size) {
     Writes<int>(p,size);
   }
+  /** @brief Writes size longs at pointer location p */
+  virtual void Write(const long *p, int size) {
+    Writes<long>(p,size);
+  }
   /** @brief Writes size integers at pointer location p */
   virtual void Write(const unsigned int *p, int size) {
     Writes<unsigned int>(p,size);
@@ -230,6 +234,10 @@ public:
 
   /** @brief Reads size integers from pointer location p */
   virtual void Read(int *p, int size) {
+    ReadError();
+  }
+  /** @brief Reads size longs from pointer location p */
+  virtual void Read(long *p, int size) {
     ReadError();
   }
   /** @brief Reads size integers from pointer location p */
