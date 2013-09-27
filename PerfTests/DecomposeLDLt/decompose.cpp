@@ -56,7 +56,7 @@ void help(const char* prg)
     << "[-tot_rdt rdt_file] [-op matrix_operation] [-h]" << endl << endl;
     cout << "matrix_operation:" << endl;
     cout << " 0: Decompose_LDLt()" << endl;
-    cout << " 1: Decompose_LDLt2()" << endl;
+    cout << " 1: Decompose_LDLt2() -- deprecated (not working)" << endl;
     cout << " 2: Decompose_Cholesky()" << endl;
     clarg::arguments_descriptions(cout, "  ", "\n");
 }
@@ -297,7 +297,9 @@ break
     
     switch (mop.get_value()) {
             CASE_OP(0,Decompose_LDLt());
-            CASE_OP(1,Decompose_LDLt2());
+            case 1:
+	      std::cerr << "ERROR: deprecated operation -- decompose LDLt2 is no longer implemented." << std::endl;
+	      break;
             CASE_OP(2,Decompose_Cholesky());
             CASE_OP(3,Decompose_Cholesky_blk(cholesky_blk.get_value()));
         default:

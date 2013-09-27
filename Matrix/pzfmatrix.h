@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains TPZMatrixclass which implements full matrix.
+ * @brief Contains TPZMatrixclass which implements full matrix (using column major representation).
  */
 
 #ifndef _TMATRIXHH_

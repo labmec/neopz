@@ -199,7 +199,6 @@ public:
   int Decompose_Cholesky_blk(long blk_sz);
 
   int Decompose_LDLt    ();  // Faz A = LDLt.
-  int Decompose_LDLt2   ();  // Experimental
   int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
   int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
   
@@ -421,7 +420,6 @@ public:
 	int Decompose_Cholesky_blk(long blk_sz);
 
 	int Decompose_LDLt    ();  // Faz A = LDLt.
-	int Decompose_LDLt2   ();  // Experimental
 	int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
 	int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
 	

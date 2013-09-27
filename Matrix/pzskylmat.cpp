@@ -192,7 +192,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
   }
 
   if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows()) {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrixs with incompatible dimensions>" );
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrix with incompatible dimensions>" );
   }
   
   if(z.Rows() != x.Rows() || z.Cols() != x.Cols()) 
@@ -204,10 +204,8 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
   }
 
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-
   this->PrepareZ(y,z,beta,opt,stride);
+
   long rows = this->Rows();
   long xcols = x.Cols();
   long ic, r;
@@ -216,19 +214,22 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
       long offset = Size(r);
       TVar val = 0.;
       const TVar *p = &x.g((r-offset+1)*stride,ic);
-      TVar *diag = fElem[r] + offset-1;
-      TVar *diaglast = fElem[r];
+      TVar *diag = fElem[r];
+      TVar *diaglast = fElem[r+1]-1;
       while( diag > diaglast ) {
-	val += *diag-- * *p;
+	val += *diag++ * *p;
 	p += stride;
       }
-      if( diag == diaglast ) val += *diag * *p;
+      if( diag == diaglast ) 
+	val += *diag * *p;
+
       z(r*stride,ic) += val*alpha;
+
       TVar *zp = &z((r-offset+1)*stride,ic);
       val = x.g(r*stride,ic);
-      diag = fElem[r] + offset-1;
+      diag = fElem[r];
       while( diag > diaglast ) {
-	*zp += alpha * *diag-- * val;
+	*zp += alpha * *diag++ * val;
 	zp += stride;
       }
     }
@@ -482,11 +483,7 @@ template<class TVar>
 void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &F,
 				   TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,const REAL overrelax,
 				   REAL &tol,const int FromCurrent,const int direction)  
-{
-
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-  
+{  
   if(residual == &F) {
     cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
     return;
@@ -518,14 +515,14 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 	  //TPZColuna *mydiag = &fDiag[i];
 	  long offset = Size(i);
 	  TVar val;
-	  TVar *diag;
-	  TVar *diaglast = fElem[i];
+	  TVar *diaglast = (fElem[i+1]-1);
 	  TVar *scratchp = &scratch(i-offset+1,ic);
 	  val = result(i,ic);
-	  diag = fElem[i] + offset-1;
-	  long lastid = diag-diaglast;
+	  TVar *p = fElem[i];
+	  long lastid = diaglast-p;
 	  long id;
-	  for(id=0; id<=lastid; id++) *(scratchp+id) -= *(diag-id) * val;
+	  for(id=0; id<=lastid; id++) 
+	    *scratchp++ -= *p++ * val;
 	  /* codeguard fix
 	     while( diag >= diaglast ) *scratchp++ -= *diag-- * val;
 	  */
@@ -538,9 +535,10 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 	  long offset = Size(i);
 	  TVar val = scratch(i,ic);
 	  TVar *p = &result(i-offset+1,ic);
-	  TVar *diag = fElem[i] + offset-1;
-	  TVar *diaglast = fElem[i];
-	  while( diag > diaglast ) val -= *diag-- * *p++;
+	  TVar *diag = fElem[i];
+	  TVar *diaglast = (fElem[i+1]-1);
+	  while( diag < diaglast ) 
+	    val -= *diag++ * *p++;
 	  res += abs(val*val);
 	  result(i,ic) += val*over/ (*diag);
 	}
@@ -555,9 +553,10 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 	  long offset = Size(i);
 	  TVar val = scratch(i,ic);
 	  TVar *p = &result(i-offset+1,ic);
-	  TVar *diag = fElem[i] + offset-1;
-	  TVar *diaglast = fElem[i];
-	  while( diag > diaglast ) val -= *diag-- * *p++;
+	  TVar *diag = fElem[i];
+	  TVar *diaglast = (fElem[i+1]-1);
+	  while( diag < diaglast ) 
+	    val -= *diag++ * *p++;
 	  //					res += val*val;
 	  scratch(i,ic) = val;
 	}
@@ -568,8 +567,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 	  //TPZColuna *mydiag = &fDiag[i];
 	  long offset = Size(i);
 	  //	TVar val = scratch(i,ic);
-	  TVar *diag;
-	  TVar *diaglast = fElem[i];
+	  TVar *diaglast = (fElem[i+1]-1);
 	  TVar *scratchp = &scratch(i-offset+1,ic);
 	  //val= result(i,ic);
 	  TVar val = scratch(i,ic);
@@ -578,8 +576,9 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 	  val = over * val / *diaglast;
 	  result(i,ic) += val;
 	  val = result(i,ic);
-	  diag = fElem[i] + offset-1;
-	  while( diag > diaglast ) *scratchp++ -= *diag-- * val;
+	  TVar *diag = fElem[i];
+	  while( diag < diaglast ) 
+	    *scratchp++ -= *diag++ * val;
 	}
       }
     }
@@ -914,9 +913,6 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
 template<class TVar>
 int TPZSkylMatrix<TVar>::Decompose_LDLt()
 {
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-	
   if( this->fDecomposed == ELDLt) 
     return 1;
   if (  this->fDecomposed )
@@ -931,7 +927,7 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
   long j,l,minj,minl,minrow,dimension = this->Dim();
   TPZVec<TVar> diag(dimension);
   for(j=0; j<dimension; j++)
-    diag[j] = *fElem[j];
+    diag[j] = *(fElem[j+1]-1);
   
   //std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
   
@@ -950,14 +946,12 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
       minrow = (minj<minl)? minl:minj;
       long k = minrow;
       //			DiagkPtr = fDiag+minrow;
-      elj = fElem[j]+j-minrow;
-      ell = fElem[l]+l-minrow;
+      elj = fElem[j]+minrow-minj; // fElem[j]+minrow-(j-Size(j)+1); // Pointer to A[minrow,j]
+      ell = fElem[l]+minrow-minl; // fElem[l]+minrow-(l-Size(l)+1); // Pointer to A[minrow,l]
       TVar *diagptr = &diag[k];
       sum = 0.;
       while(k < l) {
-	//		  sum += *elj-- * *ell-- * *(fElem[k++]);
-	//EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
-	sum += *elj-- * *ell-- * *diagptr++;
+	sum += *elj++ * *ell++ * *diagptr++;
 	k++;
       }
       *elj -= sum;
@@ -970,88 +964,6 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
 #endif
 	  
 	*diagptr = *elj;
-	cout << "TPZSkylMatrix pivot = " << *elj << endl;
-	cout << "TPZSkylMatrix::DecomposeLDLt zero pivot\n";
-	cout << "j = " << j << " l = " << l << endl;
-      }
-      else {
-	*diagptr = *elj;
-      }
-      l++;
-    }
-    j++;
-  }
-  this->fDecomposed  = ELDLt;
-  this->fDefPositive = 0;
-  //if(Dim() > 100) cout << endl;
-  return( 1 );
-}
-
-//EBORIN: Modified version for performance tests. Do not use it unless you know
-//what you are doing!
-template<class TVar>
-int TPZSkylMatrix<TVar>::Decompose_LDLt2()
-{
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-	
-  if( this->fDecomposed == ELDLt) 
-    return 1;
-  if (  this->fDecomposed )
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
-	
-#ifdef DUMP_BEFORE_DECOMPOSE
-  dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt2()");
-#endif
-  
-  // Third try
-  TVar *elj,*ell;
-  long j,l,minj,minl,minrow,dimension = this->Dim();
-  TPZVec<TVar> diag(dimension);
-  
-  // Diagonal array. We will keep the elements on the reverse order in
-  // order to help the compiler when vectorizing the kernel loop.
-  
-  for(j=0; j<dimension; j++)
-    diag[j] = *fElem[(dimension-j)-1];
-  
-  std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
-  
-  TVar sum;
-  j = 1;
-  while(j < dimension) {
-    /*    if(!(j%100) && Dim() > 100) {
-	  cout <<  j << ' ';
-	  cout.flush();
-	  }
-	  if(!(j%1000)) cout << endl;*/
-    minj = j-Size(j)+1;
-    l = minj;
-    while(l <= j) {
-      minl = l-Size(l)+1;
-      minrow = (minj<minl)? minl:minj;
-      long k = minrow;
-      //			DiagkPtr = fDiag+minrow;
-      elj = fElem[j]+j-minrow;
-      ell = fElem[l]+l-minrow;
-      TVar *diagptr = &diag[(dimension-k)-1];
-      sum = 0.;
-      while(k < l) {
-	//		  sum += *elj-- * *ell-- * *(fElem[k++]);
-	//EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
-	sum += *elj-- * *ell-- * *diagptr--;
-	k++;
-      }
-      *elj -= sum;
-      if(ell != elj) *elj /= *ell;
-      else if(IsZero(*elj)) {
-#ifdef LOG4CXX
-	std::stringstream sout;
-	sout << "col = " << j << " diagonal " << *elj;
-	LOGPZ_DEBUG(logger,sout.str())
-#endif
-	  
-        *diagptr = *elj;
 	cout << "TPZSkylMatrix pivot = " << *elj << endl;
 	cout << "TPZSkylMatrix::DecomposeLDLt zero pivot\n";
 	cout << "j = " << j << " l = " << l << endl;
@@ -1323,9 +1235,6 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 template<class TVar>
 void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol)
 {
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-
   TVar *ptrprev;     //Pointer to prev column
   TVar *ptrcol;      //Pointer to col column
   long skprev, skcol; //prev and col Skyline height respectively
@@ -1348,12 +1257,12 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol)
     cout.flush();
     return;
   }
-  TVar *run1 = ptrprev + (prevcol-minline);
-  TVar *run2 = ptrcol + (col-minline);
+  TVar *run1 = ptrprev - (prevcol-minline);
+  TVar *run2 = ptrcol - (col-minline);
   TVar sum = 0;
   
   while(run1 != ptrprev) 
-    sum += (*run1--)*(*run2--);
+    sum += (*run1++)*(*run2++);
   *run2-=sum;
   if(run1 != run2){
     *run2 /= *run1;
@@ -1384,9 +1293,6 @@ void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn(long col, long p
 template<class TVar>
 void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
 {
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-
   TVar *ptrprev;     //Pointer to prev column
   TVar *ptrcol;      //Pointer to col column
   long skprev, skcol; //prev and col Skyline height respectively
@@ -1409,12 +1315,12 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<int> 
     cout.flush();
     return;
   }
-  TVar *run1 = ptrprev + (prevcol-minline);
-  TVar *run2 = ptrcol + (col-minline);
+  TVar *run1 = ptrprev - (prevcol-minline);
+  TVar *run2 = ptrcol - (col-minline);
   TVar sum = 0;
   
   while(run1 != ptrprev) 
-    sum += (*run1--)*(*run2--);
+    sum += (*run1++)*(*run2++);
   *run2-=sum;
   if(run1 != run2){
     *run2 /= *run1;
@@ -1455,9 +1361,6 @@ void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn2(long col, long 
 template<class TVar>
 void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
 {
-  //EBORIN: TODO: This method was not converted yet...
-  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," This method was not converted yet!\n");
-	
   //Cholesky Decomposition
   TVar *ptrprev;     //Pointer to prev column
   TVar *ptrcol;      //Pointer to col column
@@ -1481,17 +1384,18 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
     cout.flush();
     return;
   }
-  TVar *run1 = ptrprev + 1;
-  TVar *run2 = ptrcol + (col-prevcol)+1;
-  TVar *lastptr = ptrprev + prevcol-minline+1;
+  //EBORIN: TODO: Improve this code (change run1 and run2 so that dot product increment both)
+  TVar *run1 = ptrprev - 1;
+  TVar *run2 = ptrcol - ((col-prevcol)+1);
+  TVar *lastptr = ptrprev - (prevcol-minline+1);
   TVar sum = 0;
-  TVar *modify = ptrcol+(col-prevcol);
+  TVar *modify = ptrcol-(col-prevcol);
 #ifndef BLAS
-  while(run1 != lastptr) 
-    sum += (*run1++)*(*run2++);
+  while(run1 > lastptr) 
+    sum += (*run1--)*(*run2--);
 #else
   long n=lastptr-run1;
-  sum = cblas_ddot(n,run1,1,run2,1);
+  sum = cblas_ddot(n,run1-(n-1),1,run2-(n-1),1);
 #endif
   *modify-=sum;
   if(col != prevcol){
@@ -2691,89 +2595,6 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 				//		  sum += *elj-- * *ell-- * *(fElem[k++]);
 			        //EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
 				sum += *elj-- * *ell-- * *diagptr++;
-				k++;
-			}
-			*elj -= sum;
-			if(ell != elj) *elj /= *ell;
-			else if(IsZero(*elj)) {
-#ifdef LOG4CXX
-				std::stringstream sout;
-				sout << "col = " << j << " diagonal " << *elj;
-				LOGPZ_DEBUG(logger,sout.str())
-#endif
-				
-				*diagptr = *elj;
-				cout << "TPZSkylMatrix pivot = " << *elj << endl;
-				cout << "TPZSkylMatrix::DecomposeLDLt zero pivot\n";
-				cout << "j = " << j << " l = " << l << endl;
-			}
-			else
-			{
-				*diagptr = *elj;
-			}
-			l++;
-		}
-		j++;
-	}
-	this->fDecomposed  = ELDLt;
-	this->fDefPositive = 0;
-	//if(Dim() > 100) cout << endl;
-	return( 1 );
-}
-
-//EBORIN: Modified version for performance tests. Do not use it unless you know
-//what you are doing!
-template<class TVar>
-int
-TPZSkylMatrix<TVar>::Decompose_LDLt2()
-{
-	
-	if( this->fDecomposed == ELDLt) return 1;
-	if (  this->fDecomposed )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
-	
-#ifdef DUMP_BEFORE_DECOMPOSE
-	dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt2()");
-#endif
-
-	// Third try
-	TVar *elj,*ell;
-	long j,l,minj,minl,minrow,dimension = this->Dim();
-	TPZVec<TVar> diag(dimension);
-	
-	// Diagonal array. We will keep the elements on the reverse order in
-	// order to help the compiler when vectorizing the kernel loop.
-
-	for(j=0; j<dimension; j++)
-	{
-	  diag[j] = *fElem[(dimension-j)-1];
-	}
-
-	std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
-
-	TVar sum;
-	j = 1;
-	while(j < dimension) {
-		/*    if(!(j%100) && Dim() > 100) {
-		 cout <<  j << ' ';
-		 cout.flush();
-		 }
-		 if(!(j%1000)) cout << endl;*/
-		minj = j-Size(j)+1;
-		l = minj;
-		while(l <= j) {
-			minl = l-Size(l)+1;
-			minrow = (minj<minl)? minl:minj;
-			long k = minrow;
-			//			DiagkPtr = fDiag+minrow;
-			elj = fElem[j]+j-minrow;
-			ell = fElem[l]+l-minrow;
-			TVar *diagptr = &diag[(dimension-k)-1];
-			sum = 0.;
-			while(k < l) {
-				//		  sum += *elj-- * *ell-- * *(fElem[k++]);
-			        //EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
-				sum += *elj-- * *ell-- * *diagptr--;
 				k++;
 			}
 			*elj -= sum;
