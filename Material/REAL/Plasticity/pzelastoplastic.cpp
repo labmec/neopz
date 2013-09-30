@@ -1081,7 +1081,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenValues(TPZFMatrix<REAL> & vectorTensor, T
     TPZFNMatrix<9> Tensor(3,3);
 	ev.Resize(3);
     this->vectorToTensor(vectorTensor, Tensor);
-    int numiterations = 1000;
+    long numiterations = 1000;
     
 #ifdef DEBUG   
 	bool result = Tensor.SolveEigenvaluesJacobi(numiterations, fTol, &ev);
@@ -1110,7 +1110,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenVectors(TPZFMatrix<REAL> &vectorTensor, T
     TPZManVector<REAL,3> Eigenvalues(3);
     TPZFNMatrix<9> Eigenvectors(3,3);
 	
-    int numiterations = 1000;
+    long numiterations = 1000;
 #ifdef DEBUG  
   bool result = Tensor.SolveEigensystemJacobi(numiterations, fTol, Eigenvalues, Eigenvectors);
   if (result == false){
