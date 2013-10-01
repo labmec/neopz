@@ -105,6 +105,10 @@ class RunStatsTable
       return write_to_file(table, filename.get_value());
     }
 
+    bool was_set() const {
+      return filename.was_set();
+    } 
+
  private:
 
     /** Reads the table contents from a file.

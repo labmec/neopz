@@ -62,13 +62,22 @@ import substruct_tst09.test
 import substruct_tst10.test
 import substruct_tst11.test
 import substruct_tst12.test
+
+import skyline_tst1.test
+import skyline_tst2.test
+import skyline_tst3.test
 # =========================
 
 # == Available test lists ==
 # See Usage for the description of the test lists
-short_tests = [("substruct_tst1",substruct_tst1.test), 
-	       ("substruct_tst2",substruct_tst2.test)]
 
+# Tests with execution time shorter than 1 minute
+short_tests = [("substruct_tst1",substruct_tst1.test), 
+	       ("substruct_tst2",substruct_tst2.test),
+	       ("skyline_tst1",skyline_tst1.test),
+	       ("skyline_tst2",skyline_tst2.test)]
+
+# Tests with execution time between 1 and 10 minutes
 medium_tests= [("substruct_tst3",substruct_tst3.test),
 	       ("substruct_tst4",substruct_tst4.test),
 	       ("substruct_tst06",substruct_tst06.test),
@@ -77,8 +86,10 @@ medium_tests= [("substruct_tst3",substruct_tst3.test),
 	       ("substruct_tst09",substruct_tst09.test),
 	       ("substruct_tst10",substruct_tst10.test),
 	       ("substruct_tst11",substruct_tst11.test),
-	       ("substruct_tst12",substruct_tst12.test)]
+	       ("substruct_tst12",substruct_tst12.test),
+	       ("skyline_tst3",skyline_tst3.test)]
 
+# Tests with execution time longer than 10 minutes
 long_tests = []
 
 regression_tests = short_tests + medium_tests + long_tests
