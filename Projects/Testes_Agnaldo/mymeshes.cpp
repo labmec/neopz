@@ -446,7 +446,7 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
 	int indices[1][4] = {{0,1,2,3}};
 	
 	int nnode = 4;
-    int nelem = 1;
+	const int nelem = 1;
 	TPZGeoEl *elvec[nelem];
 	int nod;
 	for ( nod=0; nod<nnode; nod++ )
@@ -492,7 +492,7 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
     int nrefUnif = nrefdir;
     for(int ref = 0; ref < nrefUnif; ref++)
     {
-        nelem = gmesh->NElements();
+        int nelem = gmesh->NElements();
         for(int el = 0; el < nelem; el++)
         {
             if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
