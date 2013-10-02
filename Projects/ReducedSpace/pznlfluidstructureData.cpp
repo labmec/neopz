@@ -8,6 +8,8 @@
 
 #include "pznlfluidstructureData.h"
 #include "pzreal.h"
+#include "pzcompel.h"
+#include "pzintel.h"
 
 InputDataStruct::InputDataStruct()
 {
@@ -54,6 +56,8 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
     fPressureMatIds_StripeId_ElastId.clear();
     
     fVisc = Visc;
+    
+    fLeakoffmap.clear();
     
     fSigN = SigN;
     
@@ -221,6 +225,11 @@ REAL InputDataStruct::Visc()
     return fVisc;
 }
 
+std::map<int,REAL> & InputDataStruct::GetLeakoffmap()
+{
+    return fLeakoffmap;
+}
+
 REAL InputDataStruct::SigN()
 {
     return fSigN;
@@ -303,6 +312,185 @@ void InputDataStruct::UpdateActTime()
 {
     factTime += factDeltaT;
     std::cout << "\n\n=============== ActTime = " << factTime << " ===============\n\n";
+}
+
+
+////////////////////////////////////////////////////////////////// Leakoff
+
+
+void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
+{
+    if(fLeakoffmap.size() == 0)
+    {//Se a fratura nao alcancou ainda a regiao elastica 2, este mapa estah vazio!!!
+        DebugStop();
+    }
+    std::map<int,REAL>::iterator it;
+    
+    int outVlCount = 0;
+    for(int i = 0;  i < cmesh->ElementVec().NElements(); i++)
+    {
+        ///////////////////////
+        TPZCompEl * cel = cmesh->ElementVec()[i];
+        
+#ifdef DEBUG
+        if(!cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+        if(gel->Dimension() != 1)
+        {
+            continue;
+        }
+        
+        TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*> (cel);
+        if(!sp)
+        {
+            continue;
+        }
+        
+        it = globFractInputData.GetLeakoffmap().find(gel->Id());
+        
+        if(it == globFractInputData.GetLeakoffmap().end())
+        {
+            continue;
+        }
+        
+        TPZVec<REAL> qsi(1,0.);
+        cel->Reference()->CenterPoint(cel->Reference()->NSides()-1, qsi);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        
+        sp->ComputeShape(qsi, data);
+        sp->ComputeSolution(qsi, data);
+        
+        REAL pfrac = data.sol[0][0];
+        ///////////////////////
+        
+        REAL deltaT = globFractInputData.actDeltaT();
+        
+        REAL VlAcum = it->second;
+        REAL tStar = FictitiousTime(VlAcum, pfrac);
+        REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
+        
+#ifdef NOleakoff
+        it->second = 0.;
+#else
+        it->second = Vlnext;
+#endif
+        
+        outVlCount++;
+    }
+    
+#ifdef DEBUG
+    if(outVlCount < globFractInputData.GetLeakoffmap().size())
+    {
+        DebugStop();
+    }
+#endif
+}
+
+REAL InputDataStruct::VlFtau(REAL pfrac, REAL tau)
+{
+    REAL Cl = globFractInputData.Cl();
+    REAL sigmaConf = globFractInputData.SigmaConf();
+    REAL Pe = globFractInputData.Pe();
+    REAL Pref = globFractInputData.Pref();
+    REAL vsp = globFractInputData.vsp();
+    
+    REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
+    REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
+    
+    return Vl;
+}
+
+REAL InputDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
+{
+    REAL Cl = globFractInputData.Cl();
+    REAL sigmaConf = globFractInputData.SigmaConf();
+    REAL Pest = globFractInputData.Pe();
+    REAL Pref = globFractInputData.Pref();
+    REAL vsp = globFractInputData.vsp();
+    
+    REAL tStar = 0.;
+    if(VlAcum > vsp)
+    {
+        REAL Pef = pfrac + sigmaConf;
+        REAL Clcorr = Cl * sqrt((Pef - Pest)/Pref);
+        tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
+    }
+    
+    return tStar;
+}
+
+REAL InputDataStruct::QlFVl(int gelId, REAL pfrac)
+{
+    std::map<int,REAL>::iterator it = globFractInputData.GetLeakoffmap().find(gelId);
+    if(it == globFractInputData.GetLeakoffmap().end())
+    {
+        globFractInputData.GetLeakoffmap()[gelId] = 0.;//Nao coloque vsp! Eh ZERO mesmo!
+        it = globFractInputData.GetLeakoffmap().find(gelId);
+    }
+    REAL VlAcum = it->second;
+    
+    REAL deltaT = globFractInputData.actDeltaT();
+    
+    REAL tStar = FictitiousTime(VlAcum, pfrac);
+    REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
+    REAL Ql = (Vlnext - VlAcum)/deltaT;
+    
+#ifdef NOleakoff
+    return 0.;
+#else
+    return Ql;
+#endif
+}
+
+REAL InputDataStruct::dQlFVl(int gelId, REAL pfrac)
+{
+    std::map<int,REAL>::iterator it = fLeakoffmap.find(gelId);
+    if(it == fLeakoffmap.end())
+    {
+        fLeakoffmap[gelId] = 0.;
+        it = fLeakoffmap.find(gelId);
+    }
+    REAL VlAcum = it->second;
+    
+    REAL deltaPfrac = fabs(pfrac/10000.);
+    if(deltaPfrac < 1.E-10)
+    {
+        deltaPfrac = 1.E-10;
+    }
+    else if(deltaPfrac > 1.E-3)
+    {
+        deltaPfrac = 1.E-3;
+    }
+    
+    REAL deltaT = globFractInputData.actDeltaT();
+    /////////////////////////////////////////////////Ql maior
+    REAL pfracUP = pfrac + deltaPfrac;
+    REAL tStar1 = FictitiousTime(VlAcum, pfracUP);
+    REAL Vlnext1 = VlFtau(pfracUP, tStar1 + deltaT);
+    REAL Ql1 = (Vlnext1 - VlAcum )/deltaT;
+    //...
+    
+    /////////////////////////////////////////////////Ql menor
+    REAL pfracDOWN = pfrac - deltaPfrac;
+    REAL tStar0 = FictitiousTime(VlAcum, pfracDOWN);
+    REAL Vlnext0 = VlFtau(pfracDOWN, tStar0 + deltaT);
+    REAL Ql0 = (Vlnext0 - VlAcum)/deltaT;
+    //...
+    
+    REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
+    
+#ifdef NOleakoff
+    return 0.;
+#else
+    return dQldpfrac;
+#endif
 }
 
 

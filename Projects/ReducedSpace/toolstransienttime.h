@@ -48,7 +48,7 @@ class ToolsTransient
     void TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompMesh * lastElastReferredCMesh);
     void TransferElasticSolution(TPZCompMesh * cmeshFrom);
     REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);//0 = meshvec[0] ; 1 = meshvec[1]
-    void TransferLeakoff(TPZCompMesh * oldMphysicsCMesh, std::map<int,REAL> & leakoffMap1, std::map<int,REAL> & leakoffMap2);
+    void TransferLeakoff(TPZCompMesh * oldMphysicsCMesh);
     
     //---------------------------------------------------------------
     
@@ -153,7 +153,6 @@ public:
     
     TPZCompMesh * fcmesh;
     int fIniElIndex;
-    std::map<int,REAL> fleakoffMap;
 };
 
 #endif

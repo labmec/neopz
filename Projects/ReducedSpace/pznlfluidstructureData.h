@@ -80,6 +80,7 @@ public:
     bool IsBC(int matId);
     
     REAL Visc();
+    std::map<int,REAL> & GetLeakoffmap();
     REAL SigN();
     REAL Qinj();
     REAL Ttot();
@@ -95,6 +96,13 @@ public:
     void SetMinDeltaT();
     void SetNextDeltaT();
     void UpdateActTime();
+    
+    //Leafoff methods
+    void UpdateLeakoff(TPZCompMesh * cmesh);
+    REAL VlFtau(REAL pfrac, REAL tau);
+    REAL FictitiousTime(REAL VlAcum, REAL pfrac);
+    REAL QlFVl(int gelId, REAL pfrac);
+    REAL dQlFVl(int gelId, REAL pfrac);
     
 private:
     
@@ -121,6 +129,9 @@ private:
     
     //Fluid property:
     REAL fVisc;//viscosidade do fluido de injecao
+    
+    //Leakoff data
+    std::map<int,REAL> fLeakoffmap;
     
     //BCs:
     REAL fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico

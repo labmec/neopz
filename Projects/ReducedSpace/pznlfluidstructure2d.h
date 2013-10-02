@@ -65,17 +65,6 @@ protected:
 	enum EState { ELastState = 0, ECurrentState = 1 };
 	static EState gState;
     
-    //////Leakoff
-    public:
-
-    REAL VlFtau(REAL pfrac, REAL tau);
-    REAL FictitiousTime(REAL VlAcum, REAL pfrac);
-    REAL QlFVl(int gelId, REAL pfrac);
-    REAL dQlFVl(int gelId, REAL pfrac);
-    void UpdateLeakoff(TPZCompMesh * cmesh);
-    
-    std::map<int,REAL> fGelId_vl;
-    
 public:
     
 	TPZNLFluidStructure2d();
@@ -196,15 +185,6 @@ public:
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
     
     void ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
-    
-    std::map<int,REAL> GetLeakoffData()
-    {
-        return fGelId_vl;
-    }
-    void SetLeakoffData(std::map<int,REAL> leakoffMap)
-    {
-        fGelId_vl = leakoffMap;
-    }
 };
 
 #endif /* defined(__PZ__pznlfluidstructure2d__) */

@@ -834,10 +834,7 @@ void ToolsTransient::TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompM
     TransferElasticSolution(lastElastReferredCMesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
 
-    std::map<int,REAL> leakoffMap1, leakoffMap2;
-    TransferLeakoff(lastMPhysicsCMesh, leakoffMap1, leakoffMap2);
-    fCouplingMaterial1->SetLeakoffData(leakoffMap1);
-    fCouplingMaterial2->SetLeakoffData(leakoffMap2);
+    TransferLeakoff(lastMPhysicsCMesh);
 }
 
 void ToolsTransient::TransferElasticSolution(TPZCompMesh * cmeshFrom)
@@ -942,9 +939,17 @@ REAL ToolsTransient::IntegrateSolution(TPZCompMesh * cmesh, int variable)
 }
 
 
-void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh,
-                                                   std::map<int,REAL> & leakoffMap1, std::map<int,REAL> & leakoffMap2)
+void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh)
 {
+//    {//cuco
+//        std::ofstream outAntes("LeakoffANTES.txt");
+//        std::map<int,REAL>::iterator it;
+//        for(it = globFractInputData.GetLeakoffmap().begin(); it != globFractInputData.GetLeakoffmap().end(); it++)
+//        {
+//            outAntes << it->second << "\n";
+//        }
+//    }
+    
     TPZCompMesh * cmeshTemp = new TPZCompMesh(fmeshvec[1]->Reference());
     cmeshTemp->SetAllCreateFunctionsDiscontinuous();
     cmeshTemp->AdjustBoundaryElements();
@@ -982,6 +987,7 @@ void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh,
     
     anTemp.LoadSolution();
     
+    std::map<int,REAL> newLeakoff;
     for(int cel = 0; cel < cmeshTemp->NElements(); cel++)
     {
         TPZCompEl * compEl = cmeshTemp->ElementVec()[cel];
@@ -1006,32 +1012,24 @@ void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh,
         {
             vl = 0.;
         }
-        if(geoEl->Neighbour(2).Element()->MaterialId() == globReservMatId1)
+        if(geoEl->Neighbour(2).Element()->MaterialId() == globReservMatId1 ||
+           geoEl->Neighbour(2).Element()->MaterialId() == globReservMatId2)
         {
-            leakoffMap1[gelId] = vl;
-        }
-        else if(geoEl->Neighbour(2).Element()->MaterialId() == globReservMatId2)
-        {
-            leakoffMap2[gelId] = vl;
+            newLeakoff[gelId] = vl;
         }
         else
         {
             DebugStop();
         }
     }
+    globFractInputData.GetLeakoffmap() = newLeakoff;
     
 //    {//cuco
 //        std::ofstream outDepois("LeakoffDEPOIS.txt");
 //        std::map<int,REAL>::iterator it;
-//        outDepois << "Map1:\n";
-//        for(it = leakoffMap1.begin(); it != leakoffMap1.end(); it++)
+//        for(it = globFractInputData.GetLeakoffmap().begin(); it != globFractInputData.GetLeakoffmap().end(); it++)
 //        {
-//            outDepois << it->first << " = " << it->second << "\n";
-//        }
-//        outDepois << "Map2:\n";
-//        for(it = leakoffMap2.begin(); it != leakoffMap2.end(); it++)
-//        {
-//            outDepois << it->first << " = " << it->second << "\n";
+//            outDepois << it->second << "\n";
 //        }
 //    }
 }
@@ -1110,8 +1108,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
         }
         
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
-        fCouplingMaterial1->UpdateLeakoff(fmeshvec[1]);
-        fCouplingMaterial2->UpdateLeakoff(fmeshvec[1]);
+        globFractInputData.UpdateLeakoff(fmeshvec[1]);
         globFractInputData.UpdateActTime();
 
         PostprocessPressure();
@@ -1179,16 +1176,19 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     REAL young = 0.;
     REAL poisson = 0.;
     
-    //if((XcrackTip - 1.E-3) < globFractInputData.Xinterface())
+    //<<< Isso nao tah legal qdo o arco da integral J pega os 2 materiais //<<< AQUICAJU
+    if((XcrackTip + 1.E-3) < globFractInputData.Xinterface())
     {
-        young = globFractInputData.E1();//<<< AQUICAJU
-        poisson = globFractInputData.Poisson1();//<<< AQUICAJU
+        young = globFractInputData.E1();
+        poisson = globFractInputData.Poisson1();
     }
-//    else
-//    {
-//        young = globFractInputData.E2();//<<< AQUICAJU
-//        poisson = globFractInputData.Poisson2();//<<< AQUICAJU
-//    }
+    else
+    {
+        young = globFractInputData.E2();
+        poisson = globFractInputData.Poisson2();
+    }
+    /////////////////////////////////////////////////////////////////////
+    
     if(computedJ[0] < 0.)
     {
         //Estado compressivo!!!
@@ -1483,58 +1483,6 @@ TLeakoffFunction<TVar>::TLeakoffFunction(TPZCompMesh * cmesh)
 {
     this->fIniElIndex = 0;
     this->fcmesh = cmesh;
-    
-    std::map<int,TPZMaterial*>::iterator it;
-    
-    it = cmesh->MaterialVec().find(globMultiFisicMatId1);
-    if(it != cmesh->MaterialVec().end())
-    {
-        TPZNLFluidStructure2d * fluidMat = dynamic_cast<TPZNLFluidStructure2d*>(it->second);
-        if(fluidMat)
-        {
-            this->fleakoffMap = fluidMat->GetLeakoffData();
-        }
-        else
-        {
-            DebugStop();
-        }
-    }
-    else
-    {
-        DebugStop();
-    }
-    
-    it = cmesh->MaterialVec().find(globMultiFisicMatId2);
-    if(it != cmesh->MaterialVec().end())
-    {
-        TPZNLFluidStructure2d * fluidMat = dynamic_cast<TPZNLFluidStructure2d*>(it->second);
-        if(fluidMat)
-        {
-            std::map<int,REAL>::iterator it2;
-            std::map<int,REAL> leakoff2 = fluidMat->GetLeakoffData();
-            for(it2 = leakoff2.begin(); it2 != leakoff2.end(); it2++)
-            {
-                this->fleakoffMap[it2->first] = it2->second;
-            }
-        }
-        else
-        {
-            DebugStop();
-        }
-    }
-    else
-    {
-        DebugStop();
-    }
-    
-//    {//cuco
-//        std::ofstream outAntes("LeakoffANTES.txt");
-//        std::map<int,REAL>::iterator it;
-//        for(it = fleakoffMap.begin(); it != fleakoffMap.end(); it++)
-//        {
-//            outAntes << it->first << " = " << it->second << "\n";
-//        }
-//    }
 }
 
 template<class TVar>
@@ -1542,7 +1490,6 @@ TLeakoffFunction<TVar>::~TLeakoffFunction()
 {
     fIniElIndex = 0;
     fcmesh = NULL;
-    fleakoffMap.clear();
 }
 
 template<class TVar>
@@ -1578,8 +1525,8 @@ void TLeakoffFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
     
     f.Resize(1);
     int elId = gel->Id();
-    std::map<int,REAL>::iterator it = fleakoffMap.find(elId);
-    if(it == fleakoffMap.end())
+    std::map<int,REAL>::iterator it = globFractInputData.GetLeakoffmap().find(elId);
+    if(it == globFractInputData.GetLeakoffmap().end())
     {
         f[0] = 0.;
     }
