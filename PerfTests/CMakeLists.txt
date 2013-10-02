@@ -38,7 +38,6 @@ if(BUILD_PERF_TESTS)
 
   # Old structure -- TODO: Move these to progs
   # Add perf test applications here
-  add_subdirectory(SkylineTest)
   add_subdirectory(SubStruct)
   add_subdirectory(DecomposeLDLt)
   add_subdirectory(NumaTests)
