@@ -23,11 +23,17 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 #endif
 
 
+//#define NOleakoff
+
+
 TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
 
 TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
     
     fmatId = 0;
+    fE = 0.;
+    fPoiss = 0.;
+    fVisc = 0.;
     fDim = 2;
     fPlaneStress = 1.;
     
@@ -36,9 +42,12 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
 	ff[1] = 0.;
 }
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim): TPZDiscontinuousGalerkin(matid){
+TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc): TPZDiscontinuousGalerkin(matid){
     
     fmatId = matid;
+    fE = young;
+    fPoiss = poiss;
+    fVisc = visc;
     fDim = dim;
     fPlaneStress = 1.;
     
@@ -58,11 +67,11 @@ int TPZNLFluidStructure2d::NStateVariables() {
 void TPZNLFluidStructure2d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
-	out << "\t E   = " << globFractInputData.E() << std::endl;
-	out << "\t nu   = " << globFractInputData.Poisson()   << std::endl;
+	out << "\t E   = " << fE << std::endl;
+	out << "\t nu   = " << fPoiss << std::endl;
 	out << "\t Forcing function F   = " << ff[0] << ' ' << ff[1]   << std::endl;
     out << "altura da fratura fHf "<< globFractInputData.Hf() << std::endl;
-	out << "Viscosidade do fluido fvisc "<< globFractInputData.Visc() << std::endl;
+	out << "Viscosidade do fluido fvisc "<< fVisc << std::endl;
     out << "Carter fCl " << globFractInputData.Cl() << std::endl;
     out << "Pressao estatica fPe " << globFractInputData.Pe() << std::endl;
     out << "Pressao de referencia (Carter) fPref " << globFractInputData.Pref() << std::endl;
@@ -118,8 +127,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	/*
 	 * Plain strain materials values
 	 */
-    REAL young = globFractInputData.E();
-    REAL poisson = globFractInputData.Poisson();
+    REAL young = this->fE;
+    REAL poisson = this->fPoiss;
 
     REAL fEover1MinNu2 = young/(1-poisson*poisson);  ///4G(lamb+G)/(lamb+2G)
     REAL fEover21PlusNu = 2.*young/(2.*(1.+poisson));/*fE/(2.*(1+fnu));*/ ///2G=2mi
@@ -241,7 +250,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     int phipCols = phi_p.Rows();
     int phiuCols = phi_u.Cols();
     
-    REAL visc = globFractInputData.Visc();
+    REAL visc = this->fVisc;
     REAL deltaT = globFractInputData.actDeltaT();
     
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
@@ -336,8 +345,8 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     
     if(gState == ELastState) return;
     REAL auxvar, G;
-    auxvar = 0.817*(1.-globFractInputData.Poisson())*globFractInputData.Hf();
-    G = globFractInputData.E()/(2.*(1. + globFractInputData.Poisson()));
+    auxvar = 0.817*(1.-fPoiss)*globFractInputData.Hf();
+    G = fE/(2.*(1. + fPoiss));
     REAL factor = 0.;//G/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -615,10 +624,10 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     axesU=datavec[0].axes;
     
     REAL young, poisson, sigmaConf, visc, Hf;
-    young = globFractInputData.E();
-    poisson = globFractInputData.Poisson();
+    young = fE;
+    poisson = fPoiss;
     sigmaConf = globFractInputData.SigmaConf();
-    visc = globFractInputData.Visc();
+    visc = fVisc;
     Hf = globFractInputData.Hf();
     
     if(var == 1)
@@ -788,7 +797,11 @@ REAL TPZNLFluidStructure2d::QlFVl(int gelId, REAL pfrac)
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
     REAL Ql = (Vlnext - VlAcum)/deltaT;
     
+#ifdef NOleakoff
+    return 0.;
+#else
     return Ql;
+#endif
 }
 
 REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
@@ -827,12 +840,20 @@ REAL TPZNLFluidStructure2d::dQlFVl(int gelId, REAL pfrac)
     //...
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
-
+    
+#ifdef NOleakoff
+    return 0.;
+#else
     return dQldpfrac;
+#endif
 }
 
 void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
 {
+    if(fGelId_vl.size() == 0)
+    {//Se a fratura nao alcancou ainda a regiao elastica 2, este mapa estah vazio!!!
+        return;
+    }
     std::map<int,REAL>::iterator it;
     
     int outVlCount = 0;
@@ -854,9 +875,16 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         {
             continue;
         }
-        
+
         TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*> (cel);
         if(!sp)
+        {
+            continue;
+        }
+        
+        it = fGelId_vl.find(gel->Id());
+        
+        if(it == fGelId_vl.end())
         {
             continue;
         }
@@ -872,20 +900,17 @@ void TPZNLFluidStructure2d::UpdateLeakoff(TPZCompMesh * cmesh)
         REAL pfrac = data.sol[0][0];
         ///////////////////////
         
-        it = fGelId_vl.find(gel->Id());
-        
-        if(it == fGelId_vl.end())
-        {
-            DebugStop();
-        }
-        
         REAL deltaT = globFractInputData.actDeltaT();
         
         REAL VlAcum = it->second;
         REAL tStar = FictitiousTime(VlAcum, pfrac);
         REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
         
+#ifdef NOleakoff
+        it->second = 0.;
+#else
         it->second = Vlnext;
+#endif
 
         outVlCount++;
     }

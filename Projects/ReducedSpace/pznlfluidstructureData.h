@@ -13,23 +13,26 @@
 
 ////////// Materials //////////////////////////////
 
-int const globReservMatId   = 1; //elastic
-int const globPressureMatId = 2; //pressure
-int const globMultiFisicMatId = 1;//multiphisics
+int const globReservMatId1   = 1; //elastic
+int const globReservMatId2   = 2; //elastic
+int const globPressureMatId = 3; //pressure
+int const globMultiFisicMatId1 = 1;//multiphisics
+int const globMultiFisicMatId2 = 2;//multiphisics
 
-int const globDirichletElastMatId = -1;
-int const globBlockedXElastMatId  = -3;
+int const globDirichletElastMatId1 = -1;
+int const globDirichletElastMatId2 = -2;
+int const globBlockedXElastMatId   = -3;
 
 int const globBCfluxIn  = -10; //bc pressure
-int const globBCfluxOut = -20; //bc pressure
+int const globCracktip = -20; //bc pressure
 
-int const dirichlet = 0;
-int const neumann   = 1;
-int const mixed     = 2;
+int const typeDirichlet = 0;
+int const typeNeumann   = 1;
+int const typeMixed     = 2;
 
-int const globDir_elast     = 11;
-int const globMix_elast     = 20;
-int const globNeum_pressure = 21;
+int const typeDir_elast     = 11;
+int const typeMix_elast     = 20;
+int const typeNeum_pressure = 21;
 
 ///////////////////////////////////////////////////
 
@@ -46,8 +49,8 @@ public:
     InputDataStruct();
     ~InputDataStruct();
     
-    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy,
-                 REAL preStressXX, REAL preStressXY, REAL preStressYY,
+    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
+                 REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                  int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
                  REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius);
     
@@ -57,14 +60,25 @@ public:
     REAL Ly();
     REAL Lf();
     REAL Hf();
-    REAL E();
-    REAL Poisson();
+    REAL Lmax_edge();
+    REAL E1();
+    REAL Poisson1();
+    REAL E2();
+    REAL Poisson2();
+    REAL Xinterface();
     REAL Fx();
     REAL Fy();
     REAL PreStressXX();
     REAL PreStressXY();
     REAL PreStressYY();
+    
     int NStripes();
+    std::map< int,std::pair<int,int> > & GetPressureMatIds_StripeId_ElastId();
+    int StripeId(int bcId);
+    int ElastId(int bcId);
+    void InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId);
+    bool IsBC(int matId);
+    
     REAL Visc();
     REAL SigN();
     REAL Qinj();
@@ -89,16 +103,21 @@ private:
     REAL fLy;//Dimensao em y do domínio da malha do MEF
     REAL fLf;//Comprimento de 1/2 asa da fratura
     REAL fHf;//Altura da fratura
+    REAL fLmax_edge;//Extensao maxima da aresta de 1 quadrilatero
     
     //Elastic properties:
-    REAL fE;//Modulo de elasticidade
-    REAL fPoisson;//Poisson
+    REAL fE1;//Modulo de elasticidade material 1
+    REAL fPoisson1;//Poisson material 1
+    REAL fE2;//Modulo de elasticidade material 2
+    REAL fPoisson2;//Poisson material 2
+    REAL fXinterface;//Posicao X da mudanca entre materiais 1 e 2
     REAL fFx;//Bodyforces in x
     REAL fFy;//Bodyforces in y
     REAL fPreStressXX;//pre-stress tensor XX component
     REAL fPreStressXY;//pre-stress tensor XY component
     REAL fPreStressYY;//pre-stress tensor YY component
     int fNStripes;//Amounth of pressure stripes for reduced space elastic references
+    std::map< int,std::pair<int,int> > fPressureMatIds_StripeId_ElastId;//Correspondence between MaterialIds of Pressures BCs and < Stripe Number , ElastMatId >
     
     //Fluid property:
     REAL fVisc;//viscosidade do fluido de injecao

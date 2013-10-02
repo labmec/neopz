@@ -11,7 +11,7 @@
 
 InputDataStruct::InputDataStruct()
 {
-    
+    fPressureMatIds_StripeId_ElastId.clear();
 }
 
 InputDataStruct::~InputDataStruct()
@@ -19,8 +19,8 @@ InputDataStruct::~InputDataStruct()
     
 }
 
-void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL Poisson, REAL Fx, REAL Fy,
-                              REAL preStressXX, REAL preStressXY, REAL preStressYY,
+void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
+                              REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                               int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
                               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius)
 {
@@ -28,15 +28,30 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL E, REAL P
     fLy = Ly;
     fLf = Lf;
     fHf = Hf;
+    fLmax_edge = Lmax_edge;
     
-    fE = E;
-    fPoisson = Poisson;
+    fE1 = E1;
+    fPoisson1 = Poisson1;
+    fE2 = E2;
+    fPoisson2 = Poisson2;
+    fXinterface = XinterfaceBetween1and2;
+    
+    REAL leftLimit = (Lmax_edge-1.E-10);
+    REAL rightLimit = (Lx - Lmax_edge)  -1.E-10;
+    if(XinterfaceBetween1and2 < leftLimit || XinterfaceBetween1and2 > rightLimit)
+    {
+        std::cout << "A interface deve estar entre Lmax_edge e (Lx - Lmax_edge)!!!\n\n";
+        DebugStop();
+    }
+    
     fFx = Fx;
     fFy = Fy;
     fPreStressXX = preStressXX;
     fPreStressXY = preStressXY;
     fPreStressYY = preStressYY;
     fNStripes = NStripes;
+
+    fPressureMatIds_StripeId_ElastId.clear();
     
     fVisc = Visc;
     
@@ -88,14 +103,34 @@ REAL InputDataStruct::Hf()
     return fHf;
 }
 
-REAL InputDataStruct::E()
+REAL InputDataStruct::Lmax_edge()
 {
-    return fE;
+    return fLmax_edge;
 }
 
-REAL InputDataStruct::Poisson()
+REAL InputDataStruct::E1()
 {
-    return fPoisson;
+    return fE1;
+}
+
+REAL InputDataStruct::Poisson1()
+{
+    return fPoisson1;
+}
+
+REAL InputDataStruct::E2()
+{
+    return fE2;
+}
+
+REAL InputDataStruct::Poisson2()
+{
+    return fPoisson2;
+}
+
+REAL InputDataStruct::Xinterface()
+{
+    return fXinterface;
 }
 
 REAL InputDataStruct::Fx()
@@ -126,6 +161,59 @@ REAL InputDataStruct::PreStressYY()
 int InputDataStruct::NStripes()
 {
     return fNStripes;
+}
+
+std::map< int,std::pair<int,int> > & InputDataStruct::GetPressureMatIds_StripeId_ElastId()
+{
+    return fPressureMatIds_StripeId_ElastId;
+}
+
+int InputDataStruct::StripeId(int bcId)
+{
+    std::map< int,std::pair<int,int> >::iterator it = fPressureMatIds_StripeId_ElastId.find(bcId);
+    if(it != fPressureMatIds_StripeId_ElastId.end())
+    {
+        return it->second.first;
+    }
+    else
+    {
+        DebugStop();
+    }
+    
+    return -7456;
+}
+
+int InputDataStruct::ElastId(int bcId)
+{
+    std::map< int,std::pair<int,int> >::iterator it = fPressureMatIds_StripeId_ElastId.find(bcId);
+    if(it != fPressureMatIds_StripeId_ElastId.end())
+    {
+        return it->second.second;
+    }
+    else
+    {
+        DebugStop();
+    }
+    
+    return -7456;
+}
+
+void InputDataStruct::InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId)
+{
+    fPressureMatIds_StripeId_ElastId[BCId] = std::make_pair(StripeId,ElastId);
+}
+
+bool InputDataStruct::IsBC(int matId)
+{
+    std::map< int,std::pair<int,int> >::iterator it = fPressureMatIds_StripeId_ElastId.find(matId);
+    if(it != fPressureMatIds_StripeId_ElastId.end())
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 REAL InputDataStruct::Visc()
@@ -196,11 +284,19 @@ REAL InputDataStruct::Jradius()
 void InputDataStruct::SetMinDeltaT()
 {
     factDeltaT = fminDeltaT;
+    if(factTime + factDeltaT > fTtot)
+    {
+        factDeltaT = fTtot - factTime;
+    }
 }
 
 void InputDataStruct::SetNextDeltaT()
 {
     factDeltaT = std::min(fmaxDeltaT,factDeltaT+fmaxDeltaT/fNDeltaTsteps);
+    if(factTime + factDeltaT > fTtot)
+    {
+        factDeltaT = fTtot - factTime;
+    }
 }
 
 void InputDataStruct::UpdateActTime()
@@ -426,26 +522,29 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
     outf << "maxp = Max[Transpose[Flatten[posvsPvsT, 1]][[2]]];\n";
     outf << "Manipulate[ListPlot[posvsPvsT[[t]], Joined -> True,PlotLabel ->\"Graphic A: Position x Pressure @ \" <> ToString[times[[t]]] <> \"s\",AxesLabel -> {\"position (m)\", \"pressure (Pa)\"}, Filling -> Axis,PlotRange -> {{0, LfracMax}, {0, maxp}}], {t, 1, ntimes, 1}]\n\n";
     
+    outf << "posvsMeanP = Table[{Max[posvsPvsT[[o]]], Mean[posvsPvsT[[o]]][[2]]}, {o, 2,Length[posvsPvsT]}];\n";
+    outf << "ListPlot[posvsMeanP, Joined -> True, PlotLabel -> \"Graphic B: Lfrac x Mean Pressure\",AxesLabel -> {\"Lfrac (m)\", \"Mean pressure (Pa)\"}, Filling ->Axis, AxesOrigin -> {Min[Transpose[posvsMeanP][[1]]],Min[Transpose[posvsMeanP][[2]]]}]\n\n";
+    
     outf << "maxleakoff = Max[Transpose[Flatten[posvsVolleakoffvsT, 1]][[2]]];\n";
-    outf << "Manipulate[ListPlot[posvsVolleakoffvsT[[t]], Joined -> True,PlotLabel ->\"Graphic B: Position x Leakoff penetration @ \" <> ToString[times[[t]]] <>\"s\", AxesLabel -> {\"position (m)\", \"leakoff penetration (m)\"},Filling -> Axis, PlotRange -> {{0, LfracMax}, {0, maxleakoff}}], {t, 1,ntimes, 1}]\n\n";
+    outf << "Manipulate[ListPlot[posvsVolleakoffvsT[[t]], Joined -> True,PlotLabel ->\"Graphic C: Position x Leakoff penetration @ \" <> ToString[times[[t]]] <>\"s\", AxesLabel -> {\"position (m)\", \"leakoff penetration (m)\"},Filling -> Axis, PlotRange -> {{0, LfracMax}, {0, maxleakoff}}], {t, 1,ntimes, 1}]\n\n";
     
     outf << "maxinj = Qinj1wing*times[[ntimes]];\n";
-    outf << "GrC = Plot[Qinj1wing*t, {t, 0, times[[ntimes]]},PlotLabel -> \"Graphic C: Time x Volume Injected\",AxesLabel -> {\"time (s)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    outf << "GrD = Plot[Qinj1wing*t, {t, 0, times[[ntimes]]},PlotLabel -> \"Graphic D: Time x Volume Injected\",AxesLabel -> {\"time (s)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
     
-    outf << "GrD = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic D: Time x Fracture Volume\",AxesLabel -> {\"time (s)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    outf << "GrE = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic E: Time x Fracture Volume\",AxesLabel -> {\"time (s)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
     
-    outf << "GrE = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic E: Time x Leakoff volume\",AxesLabel -> {\"time (s)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    outf << "GrF = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic F: Time x Leakoff volume\",AxesLabel -> {\"time (s)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
     
     outf << "WplusLeakoff = {};\n";
     outf << "For[tt = 1, tt <= ntimes,\n";
     outf << "AppendTo[WplusLeakoff, {times[[tt]], TvsVolW[[tt, 2]] + TvsVolLeakoff[[tt, 2]]}];\n";
     outf << "tt++;\n";
     outf << "];\n";
-    outf << "GrF = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic F: Grahics (D+E)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
-    outf << "Show[GrC, GrD, GrE, GrF]\n\n";
+    outf << "GrG = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic G: Grahics (E+F)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
+    outf << "Show[GrD, GrE, GrF, GrG, PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n";
     
     outf << "maxki = Max[Transpose[TvsKI][[2]]];\n";
-    outf << "ListPlot[TvsKI, Joined -> True, PlotLabel -> \"Graphic G: Time x KI\", AxesLabel -> {\"time (s)\", \"KI (Pa.m2)\"},Filling -> Axis,PlotRange -> {{0, times[[ntimes]]}, {0, maxki}}]\n";
+    outf << "ListPlot[TvsKI, Joined -> True, PlotLabel -> \"Graphic H: Time x KI\", AxesLabel -> {\"time (s)\", \"KI (Pa.m2)\"},Filling -> Axis,PlotRange -> {{0, times[[ntimes]]}, {0, maxki}}]\n";
 }
 
 InputDataStruct globFractInputData;

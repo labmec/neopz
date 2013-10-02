@@ -33,9 +33,9 @@ class ToolsTransient
     void Run();
     void RunPlasticity();
     
-    void InitializeUncoupledMeshesAttributes(REAL Lmax_edge);
-    TPZCompMesh * ElastCMeshReferenceProcessed(REAL Lmax_edge);
-    void Mesh2D(REAL lmax);
+    void InitializeUncoupledMeshesAttributes();
+    TPZCompMesh * ElastCMeshReferenceProcessed();
+    void Mesh2D();
     TPZCompMesh * CMeshElastic();
     void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
     void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
@@ -48,7 +48,7 @@ class ToolsTransient
     void TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompMesh * lastElastReferredCMesh);
     void TransferElasticSolution(TPZCompMesh * cmeshFrom);
     REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);//0 = meshvec[0] ; 1 = meshvec[1]
-    std::map<int,REAL> TransferLeakoff(TPZCompMesh * oldMphysicsCMesh);
+    void TransferLeakoff(TPZCompMesh * oldMphysicsCMesh, std::map<int,REAL> & leakoffMap1, std::map<int,REAL> & leakoffMap2);
     
     //---------------------------------------------------------------
     
@@ -74,7 +74,8 @@ class ToolsTransient
     int fpOrder;
     bool fMustStop;
     
-    TPZNLFluidStructure2d * fCouplingMaterial;
+    TPZNLFluidStructure2d * fCouplingMaterial1;
+    TPZNLFluidStructure2d * fCouplingMaterial2;
     TPZGeoMesh * fgmesh;
     
     /** fmeshvec[0] = Malha computacional elastica do tipo referred */

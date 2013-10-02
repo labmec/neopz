@@ -57,6 +57,9 @@ protected:
 	int fPlaneStress;
 	
 	REAL fmatId;
+    REAL fE;//young
+    REAL fPoiss;//poisson
+    REAL fVisc;//viscosity
     
     /** @brief State: one ou one+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
@@ -77,7 +80,7 @@ public:
     
 	TPZNLFluidStructure2d();
 	
-	TPZNLFluidStructure2d(int matid, int dim);
+	TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc);
 	
 	virtual ~TPZNLFluidStructure2d();
 	

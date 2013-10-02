@@ -234,10 +234,9 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         
         ///////////farField
         k.Zero();
-        f(1,0) = 1.;//sigmaTraction; AQUICAJU
+        f(1,0) = 1.;//sigmaTraction;
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(-304, young, poisson, force);
-        //TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, newmann, k, f);
-        TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f); //AQUICAJU
+        TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f);
         cmesh->InsertMaterialObject(newmannFarfield);
         
         ///////////insideFract
