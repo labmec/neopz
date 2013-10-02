@@ -1,9 +1,6 @@
 /**
  * @file
- * @brief Projeto elaborado para encontrar os errores seguintes:
- * - Cuando refina elementos tridimensionais existem fDepend dos connects que não foram previamente deletados
- * - Para uma ordem alta em 3D, no TPZAnalysis, posprocessing pega dimensão maior do Block Information
- * - No pzintel.h acontece o DebugStop no check que o Philippe introduziu para pegar problemas com a ordem de interpolação
+ * @brief Projeto elaborado para validar as definições feitas pelo Cedric para construir funções racionais para elementos piramidais.
  */
 
 #include "pzshapelinear.h"

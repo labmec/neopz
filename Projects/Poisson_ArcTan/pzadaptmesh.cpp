@@ -591,6 +591,7 @@ void TPZAdaptMesh::RemoveCloneBC(TPZCompMesh *mesh) {
     for(long iel=0L; iel<nelem; iel++) {
         TPZCompEl *cel = mesh->ElementVec()[iel];
         if(!cel) continue;
+		if(!cel->Material()) delete cel;
         int matid = cel->Material()->Id();
         if(matid == -1000) delete cel;
     }
