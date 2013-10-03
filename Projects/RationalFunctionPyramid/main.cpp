@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 #endif
     
     int gcaseinit = 1, gcaseend = 4;
-    int nsubdivisionsinit = 3, nsubdivisionsend = 35, nsubdivisionsinterval = 5;
+    int nsubdivisionsinit = 3, nsubdivisionsend = 6, nsubdivisionsinterval = 2;
     int porder = 3;
     switch(argc) {
         case 7:

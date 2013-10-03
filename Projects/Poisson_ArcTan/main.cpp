@@ -198,8 +198,8 @@ int main() {
 //    gRefDBase.InitializeRefPatterns();
 
     // Solving laplace problema on LShape domain in 2D.
- //   if(!SolveLaplaceProblemOnLShapeMesh())
-   //     return 2;
+    if(!SolveLaplaceProblemOnLShapeMesh())
+        return 2;
     
     // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnCubeMesh())

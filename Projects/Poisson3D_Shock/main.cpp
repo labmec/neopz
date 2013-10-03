@@ -38,15 +38,421 @@ using namespace std;
 using namespace pzshape;
 using namespace pzgeom;
 
+/** VARIABLES */
+/** Printing level */
+int gPrintLevel = 0;
+int printing = 1;
+
+int materialId = 1;
+int id_bc0 = -1;
+int id_bc1 = -2;
+int materialBC1 = 2;
+int anothertests = 0;
+
+char saida[512];
+
+ofstream out("OutPoissonArcTan.txt");             // To store output of the console
+ofstream outLaplace("OutLaplace.txt");
+
+int gDebug = 0;
+
+
+/** Rotation data to construct deformed meshes */
+bool rotating = false;
+TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
+/** angle ??? */
+REAL alfa = M_PI/6.;
+REAL transx = 3.;
+REAL transy = 0.;
+
+
+/** PROBLEM WITH HIGH GRADIENT ON CIRCUNFERENCE  ---  DATA */
+STATE ValueK = 100000;
+
+
+/** To identify localization of PZ resources */
+std::string Archivo = PZSOURCEDIR;
+
+
+/** Functions to construction of geometry of problems */
+TPZGeoMesh *CreateLShapeGeoMesh(MElementType typeel);
+TPZGeoMesh *CreateGeoMesh(MElementType typeel);
+TPZGeoMesh *CreateGeoMesh(std::string &nome);
+TPZGeoMesh *CreateGeoMeshWithClassesPre(MElementType typeel);
+// Crea malla computacional sem forcingfunction quando hasforcingfunction = 0, ou toma diferentes forcingfuncition para diferentes
+// valores de hasforcingfunction
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
+TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel);
+TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL);
+TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL);
+TPZGeoMesh *ConstructingPyramidsInCube(REAL InitialL);
+TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typeel);
+
+/** Fucntions to apply refinement. */
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,REAL &distance,bool &isdefined);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL &radius,int ntyperefs);
+
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
+
+void DeterminingPOrderOnLevelHRefinement(TPZCompMesh *cmesh,int p);
+
+// Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
+void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
+void PrintGeoMeshAsCompMeshInVTKWithElementIDAsData(TPZGeoMesh *gmesh,char *filename);
+void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename);
+/** Print the elements of the computational mesh with associated element data */
+void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData);
+
+
+/** Functions for Differential equation - Right terms, solutions and derivatives */
+void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
+
+void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
+
+
+/** Utilitaries */
+void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
+
+void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
+
+int DefineDimensionOverElementType(MElementType typeel);
+void GetFilenameFromGID(MElementType typeel, std::string &name);
+/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
+bool DefineModelDimension(TPZCompMesh *cmesh);
+
+// To save meshes in disk
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified=NULL,bool check=false);
+// Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
+//void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified=NULL,bool check=false);
+
+
+/** PROBLEMS */
+bool SolveSymmetricPoissonProblemOnCubeMesh();
+bool SolveLaplaceProblemOnLShapeMesh();
+
+// Generic data for problems to solve
+bool usethreads = false;
+int MaxPOrder = 8;
+
+TPZManVector<REAL,3> CCircle(3,0.5);
+REAL RCircle = 0.25;
+
+
+// MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
+/** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
+int main() {
+    
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
+	
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
+    //    gRefDBase.InitializeRefPatterns();
+    
+    // Solving laplace problema on LShape domain in 2D.
+    if(!SolveLaplaceProblemOnLShapeMesh())
+        return 2;
+    
+    // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
+    if(!SolveSymmetricPoissonProblemOnCubeMesh())
+        return 1;
+    
+    return 0;
+}
+
+
+bool SolveSymmetricPoissonProblemOnCubeMesh() {
+	// To compute processing times
+	time_t sttime;
+	time_t endtime;
+	int time_elapsed;
+	char time_formated[256];
+	memset(time_formated,0,256);
+	
+	// Output files
+    std::ofstream convergence("convergence.txt");
+	std::ofstream fileerrors("ErrorsHP_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+	// Initial message to print computed errors
+	fileerrors << "Approximation Error: " << std::endl;
+	
+	int nref = 1, NRefs = 12;
+    int ninitialrefs = 1;
+	int nthread = 2, NThreads = 4;
+    int dim;
+	
+    //Working on regular meshes
+    for(int regular=1; regular>0; regular--) {
+		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
+		MElementType typeel;
+        //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)ETetraedro;itypeel<(int)EPiramide;itypeel++)
+		{
+			typeel = (MElementType)itypeel;
+			fileerrors << "Type of element: " << typeel << endl;
+			TPZGeoMesh *gmesh;
+			if(!regular) {
+				std::string nombre;
+				GetFilenameFromGID(typeel,nombre);
+				// Generating geometric mesh
+				gmesh = CreateGeoMesh(nombre);
+			}
+			else {
+				gmesh = CreateGeoMesh(typeel);
+			}
+			dim = DefineDimensionOverElementType(typeel);
+			
+			// Defining initial refinements and total refinements depends on dimension of the model
+			if(dim==3) {
+                MaxPOrder = 3;
+                NRefs = 3;
+            }
+            else if(dim==2) {
+                MaxPOrder = 10;
+                NRefs = 15;
+            }
+            else {
+                NRefs = 25;
+            }
+			// Printing geometric mesh to validate
+			if(gDebug) {
+				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
+				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
+			}
+            UniformRefinement(ninitialrefs,gmesh,dim);
+            
+			// Creating computational mesh (approximation space and materials)
+			int p = 2, pinit;
+			pinit = p;
+			TPZCompEl::SetgOrder(p);
+			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25
+			gmesh->SetName("Malha Geometrica original");
+			cmesh->SetName("Malha Computacional Original");
+			if(gDebug) {
+				sprintf(saida,"gmesh_%02dD_H%dTR%dE%dIndex.vtk",dim,nref,regular,typeel);
+				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
+			}
+            
+			// Selecting orthogonal polynomial family to construct shape functions
+			if(anothertests)
+				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
+			
+			/** Variable names for post processing */
+			TPZStack<std::string> scalnames, vecnames;
+			scalnames.Push("POrder");
+			scalnames.Push("Solution");
+            
+			// Solving adaptive process
+			for(nref=0;nref<NRefs;nref++) {
+				out << "\nConstructing Poisson problem " << dim << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
+                std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
+				if(nref > 5) nthread = 2*NThreads;
+				else nthread = NThreads;
+				
+				// Initializing the generation mesh process
+				time(& sttime);
+				
+				// Introduzing exact solution depending on the case
+				TPZAnalysis an(cmesh);
+				an.SetExact(ExactSolCircle);
+				{
+					std::stringstream sout;
+					sout << "Poisson" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+					an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+				}
+				std::string MeshFileName;
+				{
+					std::stringstream sout;
+					sout << "meshAngle" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+					MeshFileName = sout.str();
+				}
+				
+				cmesh->SetName("Malha computacional adaptada");
+				// Printing geometric and computational mesh
+				if(gDebug) {
+					cmesh->Reference()->Print(std::cout);
+					cmesh->Print(std::cout);
+				}
+				
+				// Solve using symmetric matrix then using Cholesky (direct method)
+				TPZSkylineStructMatrix strskyl(cmesh);
+                if(usethreads) strskyl.SetNumThreads(nthread);
+				an.SetStructuralMatrix(strskyl);
+				
+				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
+				direct->SetDirect(ECholesky);
+				an.SetSolver(*direct);
+				delete direct;
+				direct = 0;
+				
+				an.Run();
+				
+				// Post processing
+				an.PostProcess(0,dim);
+				if(gDebug) {
+					std::ofstream out(MeshFileName.c_str());
+					cmesh->LoadReferences();
+					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
+				}
+                
+				// generation mesh process finished
+				time(&endtime);
+				time_elapsed = endtime - sttime;
+				formatTimeInSec(time_formated,256,time_elapsed);
+				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
+				
+				// Initializing the auto adaptive process
+				REAL valerror =0.;
+				REAL valtruerror=0.;
+				TPZVec<REAL> ervec,truervec,effect;
+				
+				
+				out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+                std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+				fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+                
+                if(NRefs > 1) {
+                    REAL MaxError = 0.;
+                    REAL FactorGamma = 0.5;
+                    an.ProcessError(ervec);
+                }
+                /*
+                 TPZAdaptMesh adapt(MaxPOrder);
+                 adapt.SetCompMesh(cmesh);
+				TPZCompMesh *adaptmesh = NULL;
+				if(NRefs>1) {
+					time(&sttime);
+					adaptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,ExactSolCircle,truervec,effect,fileerrors,0,typeel,printing);
+                    // Saving computational mesh before adaptive process
+                    if(!adaptmesh)
+                        return false;
+                    
+					time_t endtime;
+					time(&endtime);
+					int time_elapsed = endtime - sttime;
+					out << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
+					fileerrors << "\n\nExiting Auto Adaptive Methods....step " << nref << "time elapsed " << time_elapsed << "\n\n\n\n";
+					
+					int prt;
+					out << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+					fileerrors << "neq = " << cmesh->NEquations() << " error estimate = " << valerror << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+                    
+					convergence  << cmesh->NEquations() << "\t" << valerror << "\t" << valtruerror << "\t" << ( valtruerror / valerror ) <<  "\t" << sttime <<std::endl;
+					for (prt=0;prt<ervec.NElements();prt++) {
+						out <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << std::endl;
+					}
+				}
+                 */
+				
+				out.flush();
+                
+				cmesh->Reference()->ResetReference();
+				cmesh->LoadReferences();
+				adapt.DeleteElements(cmesh);
+				delete cmesh;
+				cmesh = 0;
+				if(NRefs>1) {
+					cmesh = adaptmesh;
+					cmesh->CleanUpUnconnectedNodes();
+				}
+			}
+			if(gmesh)
+				delete gmesh;
+		}
+	}
+	
+	fileerrors << std::endl << "Finished running.\n" << std::endl << std::endl;
+	fileerrors.close();
+    std::cout << std::endl << "Finished running.\n" << std::endl << std::endl;
+	out.close();
+    return true;
+}
+
+void ProcessError(TPZAnalysis *analysis,TPZVec<REAL> &ervec) {
+    int neq = fCompMesh->NEquations();
+    TPZVec<REAL> ux((int) neq);
+    TPZVec<REAL> sigx((int) neq);
+    TPZManVector<REAL,10> values(10,0.);
+    fCompMesh->LoadSolution(fSolution);
+    //	SetExact(&Exact);
+    TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
+    TPZManVector<REAL,10> errors(10);
+    errors.Fill(0.0);
+    int i, nel = elvec.NElements();
+    for(i=0;i<nel;i++) {
+        TPZCompEl *el = (TPZCompEl *) elvec[i];
+        if(el) {
+            errors.Fill(0.0);
+            el->EvaluateError(fExact, errors, 0);
+            int nerrors = errors.NElements();
+            values.Resize(nerrors, 0.);
+            for(int ier = 0; ier < nerrors; ier++)
+                values[ier] += errors[ier] * errors[ier];
+        }
+    }
+    
+    int nerrors = errors.NElements();
+	ervec.Resize(nerrors);
+	ervec.Fill(-10.0);
+    
+    if (nerrors < 3) {
+        PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
+        out<<endl<<"############"<<endl;
+        for(int ier = 0; ier < nerrors; ier++)
+            out << endl << "error " << ier << "  = " << sqrt(values[ier]);
+    }
+    else{
+        out << endl << "############" << endl;
+        out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
+        out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
+        out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
+        for(int ier = 3; ier < nerrors; ier++)
+            out << endl << "other norms = " << sqrt(values[ier]) << endl;
+    }
+	// Returns the square of the calculated errors.
+	for(i=0;i<nerrors;i++)
+		ervec[i] = sqrt(values[i]);
+    return;
+}
+/******   *****   ****   ******************** /////////////////////////////
+
+using namespace std;
+using namespace pzshape;
+using namespace pzgeom;
+
 /**
  * @addtogroup Tutorials
  * @{
- */
+ * /
+
+/** VARIABLES * /
+/** Printing level * /
+int gPrintLevel = 0;
+int printing = 1;
+
+int materialId = 1;
+int id_bc0 = -1;
+int id_bc1 = -2;
+int materialBC1 = 2;
+int anothertests = 0;
+
+char saida[512];
+
+ofstream out("OutPoissonArcTan.txt");             // To store output of the console
+ofstream outLaplace("OutLaplace.txt");
+
+int gDebug = 0;
 
 // Global variable
 int gLMax;
 int NUniformRefs = 2;
-bool anothertests = false;
 int nstate = 2;
 
 // Alfa -> Coefficient of the arctang argument
@@ -55,9 +461,6 @@ REAL ALFA = 50.;
 char saida[512];
 ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because it has many energy faults
 
-/** Printing level */
-int gPrintLevel = 0;
-bool gDebug = false;
 
 void ExactShock(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 
@@ -78,12 +481,12 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
 
 void formatTimeInSec(char *strtime,int timeinsec);
 
-/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
+/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension * /
 bool DefineModelDimension(TPZCompMesh *cmesh);
 
 REAL Radius[3][10] = {{0.3,0.25,0.2,0.15,0.075,0.025,0.008,0.004,0.002,0.001},{0.3,0.2,0.075,0.008,0.002,0.0005,0.0,0.0,0.0,0.0},{0.3,0.2,0.025,0.002,0.0005,0.0,0.0,0.0,0.0,0.0}};
 
-int main(int argc, char *argv[]) {
+int main_old(int argc, char *argv[]) {
 
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -92,6 +495,7 @@ int main(int argc, char *argv[]) {
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
     //	gRefDBase.InitializeRefPatterns();
+    
 	// To compute processing times
 	time_t sttime;
 	time_t endtime;
@@ -144,7 +548,7 @@ int main(int argc, char *argv[]) {
                     RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
                     
                     // Creating computational mesh
-                    /** Set polynomial order */
+                    /** Set polynomial order * /
                     int p = 5, pinit;
                     pinit = p;
                     TPZCompEl::SetgOrder(1);
@@ -221,7 +625,7 @@ int main(int argc, char *argv[]) {
                     filename += pp;
                     filename += ".vtk";
                     
-                    /** Variable names for post processing */
+                    /** Variable names for post processing * /
                     TPZStack<std::string> scalarnames, vecnames;
                     scalarnames.Push("Solution");
                     scalarnames.Push("POrder");
@@ -317,7 +721,7 @@ void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	bcsol[0] = (ALFA*(x[2]-C0[2]))/den;
 }
 
-/** NOTE: Forcing function in TPZMatPoisson3d is negative */
+/** NOTE: Forcing function in TPZMatPoisson3d is negative * /
 void FforcingShock(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) {
 	TPZVec<REAL> C0(3,-0.25);
 	
@@ -376,7 +780,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	cmesh->ExpandSolution();
 	return cmesh;
 }
-/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
+/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension * /
 bool DefineModelDimension(TPZCompMesh *cmesh) {
 	if(!cmesh || !cmesh->NElements()) return false;
 	TPZCompEl *cel;
@@ -683,7 +1087,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL,3> &point,REA
                 for(p=0;p<nsubs;p++)
                     subacum[nsubacum+p] = sub[p];
             }
-        }*/
+        }* /
 //        if(!gel->NSubElements()) {
             gel->CenterPoint(gel->NSides()-1,centerpsi);
             gel->X(centerpsi,center);
@@ -808,4 +1212,4 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 	gmesh->BuildConnectivity();
 }
 
-
+*/
