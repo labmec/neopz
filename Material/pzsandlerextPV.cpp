@@ -10,9 +10,19 @@
 
 
 
-TPZSandlerExtended::TPZSandlerExtended()
+TPZSandlerExtended::TPZSandlerExtended(TPZSandlerExtended & copy)
 {
-    
+    fA=copy.fA;
+    fB=copy.fB;
+    fC=copy.fC;
+    fD=copy.fD;
+    fK=copy.fK;
+    fG=copy.fG;
+    fW=copy.fW;
+    fR=copy.fR;
+    fPhi=copy.fPhi;
+    fN=copy.fN;
+    fPsi=copy.fPsi;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(REAL A, REAL B,REAL C, REAL D,REAL K,REAL G,REAL W,REAL R,REAL Phi,REAL N,REAL Psi):
@@ -54,7 +64,7 @@ void TPZSandlerExtended::Firstk(REAL &k)
     kn=0.;//chute inicial
     while (resnorm>1.e-12 && counter<30) {
         
-        f = (-1 + exp(fD*(kn - (fA - fC*exp(fB*kn))*fR)))*fW;
+        f=EpsEqk(kn);
         df =fD*exp(fD*(kn - (fA - fC*exp(fB*kn))*fR))*(1 + fB*fC*exp(fB*kn)*fR)*fW;
         kn1=kn-f/df;
         diff=kn1-kn;
@@ -441,10 +451,22 @@ TPZFMatrix<REAL> TPZSandlerExtended::D2DistFunc2(TPZTensor<REAL>::TPZDecomposed 
 
 
 
-void TPZSandlerExtended::YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield)
+void TPZSandlerExtended::YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev)
 {
 
-
+    REAL I1,J2,J3,beta,temp,gamma;
+    sigma.ComputeI1(I1);
+    sigma.ComputeJ2(J2);
+    sigma.ComputeJ3(J3);
+    if (J2<1.e-6) {
+        J2=1.e-6;
+    }
+    temp=J3/(sqrt(J2*J2*J2));
+    beta=(1/3)*acos((3*sqrt(3)/2)*temp);
+    gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
+    yield[0]=sqrt(J2)-(pow(((I1-kprev)/(fR*F(kprev,fPhi)))+(gamma*sqrt(J2)/F(kprev,fPhi)),2)-1);
+    yield[1]=sqrt(J2)-F(I1,fPhi);
+    
     
 }
 
@@ -531,21 +553,22 @@ void TPZSandlerExtended::ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     
 }
 
-void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj)
+void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj,REAL &kprev)
 {
     REAL kn,theta,beta,deltabeta,deltatheta;
     Firstk(kn);
     
     theta=0.;
     beta=0;
-    deltabeta=(2*M_PI)/200;
-    deltatheta=(M_PI/2)/200;
-    TPZManVector< std::pair<REAL,REAL>,200 > pairreal(200);
-    TPZManVector<REAL,200> dist(200,0.);
+    int nsearch=20;
+    deltabeta=(2*M_PI)/20;
+    deltatheta=(M_PI/2)/20;
+    TPZManVector< std::pair<REAL,REAL>,20 > pairreal(20);
+    TPZManVector<REAL,20> dist(20,0.);
     int count=0;
-    for(int i=0;i<200;i++)
+    for(int i=0;i<20;i++)
     {
-        dist[count]=sqrt(DistF2(sigmatrial, theta,beta,kn));
+        dist[count]=DistF2(sigmatrial, theta,beta,kn);
         pairreal[count]=std::make_pair(theta,beta);
         theta+=deltatheta;
         beta+=deltabeta;
@@ -553,10 +576,10 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     }
     REAL temp;
     pair<REAL,REAL> temp2;
-    for (int i=0; i<199;i++)
+    for (int i=0; i<19;i++)
     {
         
-        for (int j=0; j<199; j++)
+        for (int j=0; j<19; j++)
         {
             
             if(dist[j]>dist[j+1])
@@ -581,9 +604,6 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     resnorm=1;
     int counter=1;
     TPZFMatrix<REAL> xn1(3,1,0.),xn(3,1,0.),jac,invjac,sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
-//    xn(0,0)=M_PI/2;
-//    xn(1,0)=0;
-//    xn(2,0)=kn;
     xn(0,0)=thetaguess;
     xn(1,0)=betaguess;
     xn(2,0)=kn;
@@ -602,11 +622,120 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
         cout<< "\n xn1 = "<<xn1 <<endl;
         cout<< "\n deltak = "<<xn1[2]-kn <<endl;
     }
+    
+    REAL sin3beta,gamma,I1,sqrtj2,thetasol,betasol,ksol;
+    
+    thetasol=xn1[0];
+    betasol=xn1[1];
+    ksol=xn1[2];
+    sin3beta = sin(3*betasol);
+    gamma=0.5*(1 + (1 - sin3beta)/fPsi +  sin3beta);
+    I1 = ksol*fR*F(ksol,fPhi)*cos(thetasol);
+    sqrtj2 = (F(ksol,fPhi) -fN)*sin(thetasol)/gamma;
+    TPZVec<REAL> i1sqrtj2(2,0.);
+    i1sqrtj2[0]=I1;
+    i1sqrtj2[1]=sqrtj2;
+    TPZTensor<REAL> sigtrial,sigcor;
+    sigtrial.XX()=sigmatrial.fEigenvalues[0];
+    sigtrial.YY()=sigmatrial.fEigenvalues[1];
+    sigtrial.ZZ()=sigmatrial.fEigenvalues[2];
+    sigtrial.Adjust(i1sqrtj2,sigcor);
+    TPZTensor<REAL>::TPZDecomposed tempp(sigcor);
+    sigproj=tempp;
 }
 
-void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj)
+void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj,REAL &kprev)
 {
+    REAL kn,theta,beta,deltabeta,deltatheta;
+    Firstk(kn);
     
+    theta=0.;
+    beta=0;
+    int nsearch=20;
+    deltabeta=(2*M_PI)/20;
+    TPZManVector< std::pair<REAL,REAL>,20 > pairreal(20);
+    TPZManVector<REAL,20> dist(20,0.);
+    int count=0;
+    for(int i=0;i<20;i++)
+    {
+        dist[count]=DistF2(sigmatrial, theta,beta,kn);
+        pairreal[count]=std::make_pair(theta,beta);
+        theta=M_PI/2;
+        beta+=deltabeta;
+        count++;
+    }
+    REAL temp;
+    pair<REAL,REAL> temp2;
+    for (int i=0; i<19;i++)
+    {
+        
+        for (int j=0; j<19; j++)
+        {
+            
+            if(dist[j]>dist[j+1])
+            {
+                temp=dist[j];
+                temp2=pairreal[j];
+                
+                pairreal[j]=pairreal[j+1];
+                pairreal[j+1]=temp2;
+                
+                dist[j]=dist[j+1];
+                dist[j+1]=temp;
+                
+            }
+            
+        }
+        
+    }
+    REAL thetaguess,betaguess,resnorm;
+    thetaguess=pairreal[0].first;
+    betaguess=pairreal[0].second;
+    resnorm=1;
+    int counter=1;
+    TPZFMatrix<REAL> xn1(3,1,0.),xn(3,1,0.),jac,invjac,sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
+    xn(0,0)=M_PI/2;
+    xn(1,0)=betaguess;
+    xn(2,0)=kn;
+    while (resnorm > 10e-12 && counter < 30)
+    {
+        jac=D2DistFunc2(sigmatrial,xn[0],xn[1],xn[2]);
+        fxn=DDistFunc2(sigmatrial, xn[0],xn[1],xn[2],kn);
+        jac.Inverse(invjac);
+        invjac.Multiply(fxn,sol);
+        
+        xn1(0,0)=xn(0,0);
+        xn1(1,0)=xn(1,0)-sol(1,0);
+        xn1(2,0)=xn(2,0)-sol(2,0);
+        
+        diff=xn1-xn;
+        resnorm=Norm(diff);
+        xn=xn1;
+        counter++;
+        cout<< "\n resnorm = "<<resnorm <<endl;
+        cout<< "\n xn1 = "<<xn1 <<endl;
+        cout<< "\n deltak = "<<xn1[2]-kn <<endl;
+    }
+    
+    REAL sin3beta,gamma,I1,sqrtj2,thetasol,betasol,ksol;
+    
+    thetasol=xn1[0];
+    betasol=xn1[1];
+    ksol=xn1[2];
+    sin3beta = sin(3*betasol);
+    gamma=0.5*(1 + (1 - sin3beta)/fPsi +  sin3beta);
+    I1 = ksol*fR*F(ksol,fPhi)*cos(thetasol);
+    sqrtj2 = (F(ksol,fPhi) -fN)*sin(thetasol)/gamma;
+    TPZVec<REAL> i1sqrtj2(2,0.);
+    i1sqrtj2[0]=I1;
+    i1sqrtj2[1]=sqrtj2;
+    TPZTensor<REAL> sigtrial,sigcor;
+    sigtrial.XX()=sigmatrial.fEigenvalues[0];
+    sigtrial.YY()=sigmatrial.fEigenvalues[1];
+    sigtrial.ZZ()=sigmatrial.fEigenvalues[2];
+    sigtrial.Adjust(i1sqrtj2,sigcor);
+    TPZTensor<REAL>::TPZDecomposed tempp(sigcor);
+    sigproj=tempp;
 }
 
 /**

@@ -22,7 +22,7 @@ public:
     
     
     TPZSandlerExtended(REAL A, REAL B,REAL C, REAL D,REAL K,REAL G,REAL W,REAL R,REAL Phi,REAL N,REAL Psi);
-    TPZSandlerExtended();
+    TPZSandlerExtended(TPZSandlerExtended & copy);
     ~TPZSandlerExtended();
     
     REAL F(REAL x,REAL phi);
@@ -55,13 +55,13 @@ public:
     
     void F2(REAL theta,REAL beta,REAL k,TPZManVector<REAL> &sol);
     
-    void YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield);
+    void YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev);
     
     void ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj);
     
-    void ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj);
+    void ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj,REAL &kprev);
     
-    void ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj);
+    void ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj,REAL &kprev);
     
     /**
 	 * Imposes the specified strain tensor and returns the correspondent stress state.
