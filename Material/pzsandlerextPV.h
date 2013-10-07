@@ -22,7 +22,8 @@ public:
     
     
     TPZSandlerExtended(REAL A, REAL B,REAL C, REAL D,REAL K,REAL G,REAL W,REAL R,REAL Phi,REAL N,REAL Psi);
-    TPZSandlerExtended(TPZSandlerExtended & copy);
+    TPZSandlerExtended(const TPZSandlerExtended & copy);
+    TPZSandlerExtended();
     ~TPZSandlerExtended();
     
     REAL F(REAL x,REAL phi);

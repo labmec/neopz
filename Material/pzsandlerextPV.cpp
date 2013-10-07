@@ -8,9 +8,12 @@
 
 #include "pzsandlerextPV.h"
 
+TPZSandlerExtended::TPZSandlerExtended()
+{
+    
+}
 
-
-TPZSandlerExtended::TPZSandlerExtended(TPZSandlerExtended & copy)
+TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
 {
     fA=copy.fA;
     fB=copy.fB;
@@ -560,13 +563,13 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     
     theta=0.;
     beta=0;
-    int nsearch=20;
-    deltabeta=(2*M_PI)/20;
-    deltatheta=(M_PI/2)/20;
-    TPZManVector< std::pair<REAL,REAL>,20 > pairreal(20);
-    TPZManVector<REAL,20> dist(20,0.);
+    int nsearch=2000;
+    deltabeta=(2*M_PI)/2000;
+    deltatheta=(M_PI/2)/2000;
+    TPZManVector< std::pair<REAL,REAL>,2000 > pairreal(2000);
+    TPZManVector<REAL,2000> dist(2000,0.);
     int count=0;
-    for(int i=0;i<20;i++)
+    for(int i=0;i<2000;i++)
     {
         dist[count]=DistF2(sigmatrial, theta,beta,kn);
         pairreal[count]=std::make_pair(theta,beta);
@@ -576,10 +579,10 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     }
     REAL temp;
     pair<REAL,REAL> temp2;
-    for (int i=0; i<19;i++)
+    for (int i=0; i<1999;i++)
     {
         
-        for (int j=0; j<19; j++)
+        for (int j=0; j<1999; j++)
         {
             
             if(dist[j]>dist[j+1])
