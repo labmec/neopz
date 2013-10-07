@@ -60,6 +60,12 @@ public:
 	{
 		fTol = tol;
 	}
+    
+    /** @brief return the value of tolerance from the solver */
+    REAL GetTolerance() const
+    {
+        return fTol;
+    }
 	
     /** @brief reset the data structure of the solver object */
 	void ResetSolver();

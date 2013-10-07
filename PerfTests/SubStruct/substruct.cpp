@@ -119,6 +119,7 @@ clarg::argString mp("-mp", "starts execution from beginning - read a \"malha_pre
                     "../8andares02.txt");
 
 clarg::argInt plevel     ("-p", "plevel", 1);
+clarg::argInt num_it ("-num_it", "number limit of iterations to the CG solver", 500);
 clarg::argInt nt_sm("-nt_sm", "Dohr (l1): number of threads to process the submeshes", 0);
 clarg::argInt nt_d("-nt_d", "Dohr (l1): number of threads to decompose each submesh", 0);
 clarg::argInt nt_a("-nt_a", "Pair (l2): number of threads to assemble each submesh (multiply by nt_sm)", 0);
@@ -470,6 +471,10 @@ int main(int argc, char *argv[])
     /* Work between checkpoint 2 and checkpoint 3 */
     if (running)
     {
+        if (nt_multiply.was_set() && nt_multiply.get_value() != 1)
+        {
+            dohrstruct->SetNumThreads(nt_multiply.get_value());
+        }
         
         PERF_START(assemble_rst);
         TPZAutoPointer<TPZGuiInterface> gui;
@@ -569,11 +574,19 @@ int main(int argc, char *argv[])
          - until it converges (residual <= 1.e-8), or
          - until it reaches 500 itearations.
          */
-        cg.SetCG(500,pre,1.e-8,0);
+        cg.SetCG(num_it.get_value(),pre,1.e-8,0);
         
         PERF_START(solve_rst);
         cg.Solve(*rhs,diag);
         PERF_STOP(solve_rst);
+        
+        
+        /* checking if the solver converged */
+        if (cg.GetTolerance() > 1.e-8)
+        {
+            cerr << "ERROR: solver do not converged with the limit of iterations."  << endl;
+            exit(1);
+        }
         
         TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr =
         dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
@@ -1220,24 +1233,24 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 	
 	int isub;
 	TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
-	for (isub=0; isub<nsub; isub++) 
+	for (isub=0; isub<nsub; isub++)
 	{
 		int index;
 		std::cout << '^'; std::cout.flush();
 		submeshes[isub] = new TPZSubCompMesh(cmesh,index);
 		
-		if (index < subindex.NElements()) 
+		if (index < subindex.NElements())
 		{
 			subindex[index] = -1;
 		}
 	}
-	for (iel=0; iel<nelem; iel++) 
+	for (iel=0; iel<nelem; iel++)
 	{
 		int domindex = subindex[iel];
-		if (domindex >= 0) 
+		if (domindex >= 0)
 		{
 			TPZCompEl *cel = cmesh->ElementVec()[iel];
-			if (!cel) 
+			if (!cel)
 			{
 				continue;
 			}
@@ -1245,7 +1258,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 		}
 	}
 	cmesh->ComputeNodElCon();
-	for (isub=0; isub<nsub; isub++) 
+	for (isub=0; isub<nsub; isub++)
 	{
 		submeshes[isub]->MakeAllInternal();
 		std::cout << '*'; std::cout.flush();
