@@ -148,6 +148,36 @@ public:
             }
         }
         
+        void ComputeJ2(REAL & J2)
+        {
+            REAL sig1,sig2,sig3;
+            sig1 = this->fEigenvalues[0];
+            sig2 = this->fEigenvalues[1];
+            sig3 = this->fEigenvalues[2];
+            J2=(pow(sig1 + (-sig1 - sig2 - sig3)/3.,2) + pow(sig2 + (-sig1 - sig2 - sig3)/3.,2) + pow((-sig1 - sig2 - sig3)/3. + sig3,2))/2.;
+        }
+        
+        void ComputeJ3(REAL & J3)
+        {
+            REAL sig1,sig2,sig3,s1,s2,s3;
+            sig1 = this->fEigenvalues[0];
+            sig2 = this->fEigenvalues[1];
+            sig3 = this->fEigenvalues[2];
+            s1=sig1-(1/3)*(sig1+sig2+sig3);
+            s2=sig2-(1/3)*(sig1+sig2+sig3);
+            s3=sig3-(1/3)*(sig1+sig2+sig3);
+            J3=1/3*(s1*s1*s1+s2*s2*s2+s3*s3*s3);
+        }
+        
+        void ComputeI1(REAL &I1)
+        {
+            REAL sig1,sig2,sig3;
+            sig1 = this->fEigenvalues[0];
+            sig2 = this->fEigenvalues[1];
+            sig3 = this->fEigenvalues[2];
+            I1=sig1+sig2+sig3;
+        }
+        
         
     };
     /**
@@ -852,6 +882,8 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
     
     Q=(I1*I1-T(3.)*I2)/T(9.);
     T denom = sqrt(Q*Q*Q);
+    
+    
     
     REAL Rval = shapeFAD::val(R);
     REAL denomval = shapeFAD::val(denom);
