@@ -288,6 +288,10 @@ private:
     /// Recompute the plastic memory of the integration points of these elements
     void ApplyHistory(std::set<int> &elindices);
     
+    /** by Caju 2013 */
+    /// Returns a set of points that belongs to the isoline defined by the ginen J2 value
+    void GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
+    
     /// The object with the current configuration
     TConfig fCurrentConfig;
     

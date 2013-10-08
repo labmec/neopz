@@ -1609,7 +1609,7 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<int> &elindices)
     }
 }
 
-
+int passCount = 0;
 void TPZWellBoreAnalysis::PostProcess(int resolution)
 {
     std::string vtkFile = "pocoplastico.vtk";
@@ -1629,6 +1629,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     //    scalnames[2] = "VolElasticStrain";
     //    scalnames[3] = "VolPlasticStrain";
     //    scalnames[4] = "VolTotalStrain";
+#ifdef MustComeBack
     scalNames.Push("I1Stress");
     scalNames.Push("J2Stress");
     scalNames.Push("I1HorStress");
@@ -1641,6 +1642,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     vecNames.Push("NormalStrain");
     vecNames.Push("ShearStrain");
     vecNames.Push("DisplacementMem");
+#endif
     for (int i=0; i<scalNames.size(); i++) {
         PostProcVars.Push(scalNames[i]);
     }
@@ -1656,6 +1658,117 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     ppanalysis.PostProcess(resolution);// pOrder
     fPostProcessNumber++;
 
+    //AQUICAJU
+    REAL J2val = 0.0004;//<<< definido pelo programador
+    std::multimap<REAL,REAL> polygonalChain;
+
+    GetJ2Isoline(ppanalysis.Mesh(), J2val, polygonalChain);
+    
+    {//just4Debug
+        std::stringstream nm;
+        nm << "EllipDots" << passCount << ".nb";
+        std::ofstream outEllips(nm.str().c_str());
+        passCount++;
+        std::multimap<REAL,REAL>::iterator it;
+        outEllips << "ellipDots={";
+        for(it = polygonalChain.begin(); it != polygonalChain.end(); it++)
+        {
+            outEllips << "{" << it->first << " , " << it->second << "}";
+            if(it != polygonalChain.end())
+            {
+                outEllips << ",";
+            }
+        }
+        outEllips << "};\n";
+        outEllips << "aa=ListPlot[ellipDots,Joined->False,AspectRatio->Automatic];\n";
+        outEllips << "bb=Graphics[Circle[{0,0},4.25*0.0254]];\n";
+        outEllips << "Show[aa,bb]\n";
+    }
+}
+
+void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::multimap<REAL,REAL> & polygonalChain)
+{
+    REAL tol = 0.01*J2val;
+    
+    int nels = cmesh->NElements();
+    for(int el = 0; el < nels; el++)
+    {
+        TPZCompEl * cel = cmesh->ElementVec()[el];
+        if(!cel)
+        {
+            continue;
+        }
+        if(cel->Dimension() == 2)
+        {
+            int nnodes = cel->Reference()->NCornerNodes();
+            TPZVec<REAL> nodeSol(nnodes,0.);
+            TPZVec< TPZVec<REAL> > qsiNode(nnodes);
+            
+            TPZVec<STATE> sol(1);
+            int var = cel->Material()->VariableIndex("PlasticSqJ2");
+            
+            for(int n = 0; n < nnodes; n++)
+            {
+                qsiNode[n].Resize(2, 0.);
+                TPZVec<REAL> xNode(3,0.);
+                cel->Reference()->NodePtr(n)->GetCoordinates(xNode);
+                cel->Reference()->ComputeXInverse(xNode, qsiNode[n]);
+                cel->Solution(qsiNode[n], var, sol);
+                nodeSol[n] = sol[0];
+            }
+            for(int n = 0; n < nnodes; n++)
+            {
+                int pos0 = (n)%nnodes;
+                int pos1 = (n+1)%nnodes;
+                REAL minSol = std::min(nodeSol[pos0],nodeSol[pos1]);
+                REAL maxSol = std::max(nodeSol[pos0],nodeSol[pos1]);
+                
+                if(J2val - minSol > tol && maxSol - J2val > tol)
+                {//Bisseccao!!!
+                    TPZVec<REAL> qsiMin(2,0.), qsiMax(2,0.);
+                    if(fabs(minSol - nodeSol[pos0]) < tol)
+                    {
+                        qsiMin = qsiNode[pos0];
+                        qsiMax = qsiNode[pos1];
+                    }
+                    else
+                    {
+                        qsiMin = qsiNode[pos1];
+                        qsiMax = qsiNode[pos0];
+                    }
+                    TPZVec<REAL> qsiMiddle(2,0.);
+                    qsiMiddle[0] = (qsiMin[0] + qsiMax[0])/2.;
+                    qsiMiddle[1] = (qsiMin[1] + qsiMax[1])/2.;
+                    
+                    cel->Solution(qsiMiddle, var, sol);
+                    
+                    REAL difSol = fabs(sol[0] - J2val);
+                    
+                    while(difSol > tol)
+                    {
+                        if(sol[0] < J2val)
+                        {
+                            qsiMin = qsiMiddle;
+                        }
+                        else
+                        {
+                            qsiMax = qsiMiddle;
+                        }
+                        
+                        qsiMiddle[0] = (qsiMin[0] + qsiMax[0])/2.;
+                        qsiMiddle[1] = (qsiMin[1] + qsiMax[1])/2.;
+                        
+                        cel->Solution(qsiMiddle, var, sol);
+                        
+                        difSol = fabs(sol[0] - J2val);
+                    }
+                    TPZVec<REAL> searchedX(3,0.);
+                    cel->Reference()->X(qsiMiddle, searchedX);
+                    polygonalChain.insert( std::make_pair(searchedX[0],searchedX[1]) );
+                }
+            }
+        }
+    }
 }
 
 /// Modify the geometry of the domain simulating an elliptic breakout
