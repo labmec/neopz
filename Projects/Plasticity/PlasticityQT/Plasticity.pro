@@ -45,17 +45,14 @@ SOURCES += main.cpp\
     plot.cpp \
     simulation.cpp \
     initialpointdock.cpp \
-    canvaspicker.cpp \
-    globalconfig.cpp
+    canvaspicker.cpp
 
 HEADERS  += mainwindow.h \
     plot.h \
     simulation.h \
     initialpointdock.h \
     canvaspicker.h \
-    common.h \
-    globalconfig.h
+    common.h
 
 FORMS    += mainwindow.ui \
-    initialpointdock.ui \
-    globalconfig.ui
+    initialpointdock.ui

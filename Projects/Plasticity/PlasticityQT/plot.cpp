@@ -42,90 +42,94 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
 
     testType = testTypes(All);
 
-    //MENU
+    // BEGIN MENU
     QFont MenuBold;
     MenuBold.setBold(true);
 
+    // Sigma ax x Epsilon ax
+    QString Coords1 = QChar (0x03C3);
+    Coords1.append("ax x ");
+    Coords1.append(QChar (0x03B5));
+    Coords1.append("ax");
+    // Sigma rad x Epsilon rad
+    QString Coords2 = QChar (0x03C3);
+    Coords2.append("rad x ");
+    Coords2.append(QChar (0x03B5));
+    Coords2.append("rad");
+    // Sigma vol x Epsilon vol
+    QString Coords3 = QChar (0x03C3);
+    Coords3.append("vol x ");
+    Coords3.append(QChar (0x03B5));
+    Coords3.append("vol");
+    // Sigma ax x Epsilon ax Epsilon vol Epsilon rad
+    QString Coords4 = QChar (0x03C3);
+    Coords4.append("ax x ");
+    Coords4.append(QChar (0x03B5));
+    Coords4.append("ax ");
+    Coords4.append(QChar (0x03B5));
+    Coords4.append("vol ");
+    Coords4.append(QChar (0x03B5));
+    Coords4.append("rad");
+    // I1 x sqrt J2
+    QString Coords5 = "I1 x ";
+    Coords5.append(QChar (0x221A));
+    Coords5.append("J2");
+    // Epsilon v x sqrt J2Epsilon
+    QString Coords6 = QChar (0x03B5);
+    Coords6.append("v x ");
+    Coords6.append(QChar (0x221A));
+    Coords6.append("J2");
+    Coords6.append(QChar (0x03B5));
+
+    this->ActionList = new QHash <int, QAction*>;
+
     QMenu *mySubMenuAxis = new QMenu ("Set Axis");
     QActionGroup *groupSubmenuAxis = new QActionGroup (this);
-    QAction *aSetAxis1 = mySubMenuAxis->addAction("Tension x Deformation");
+    QAction *aSetAxis1 = mySubMenuAxis->addAction(Coords1);
     aSetAxis1->setCheckable(true);
     aSetAxis1->setChecked(true);
     aSetAxis1->setActionGroup(groupSubmenuAxis);
-    QAction *aSetAxis2 = mySubMenuAxis->addAction("I1 x sqrt(J2)");
+    ActionList->insert(0, aSetAxis1);
+    QAction *aSetAxis2 = mySubMenuAxis->addAction(Coords2);
     aSetAxis2->setCheckable(true);
     aSetAxis2->setActionGroup(groupSubmenuAxis);
-
-//    QMenu *mySubMenuX = new QMenu("Set X");
-//    QActionGroup* groupSubMenuX = new QActionGroup( this );
-//    QAction *aSetX1 = mySubMenuX->addAction("Time");
-//    aSetX1->setCheckable(true);
-//    aSetX1->setActionGroup(groupSubMenuX);
-//    QAction *aSetX2 = mySubMenuX->addAction("sigma Axial Total");
-//    aSetX2->setCheckable(true);
-//    aSetX2->setChecked(true);
-//    aSetX2->setActionGroup(groupSubMenuX);
-//    QAction *aSetX3 = mySubMenuX->addAction("sigma Axial Desv");
-//    aSetX3->setCheckable(true);
-//    aSetX3->setActionGroup(groupSubMenuX);
-//    QAction *aSetX4 = mySubMenuX->addAction("sigma Conf");
-//    aSetX4->setCheckable(true);
-//    aSetX4->setActionGroup(groupSubMenuX);
-//    QAction *aSetX5 = mySubMenuX->addAction("Def Axial");
-//    aSetX5->setCheckable(true);
-//    aSetX5->setActionGroup(groupSubMenuX);
-//    QAction *aSetX6 = mySubMenuX->addAction("Def Lateral");
-//    aSetX6->setCheckable(true);
-//    aSetX6->setActionGroup(groupSubMenuX);
-
-//    QMenu *mySubMenuY = new QMenu("Set Y");
-//    QActionGroup* groupSubMenuY = new QActionGroup( this );
-//    QAction *aSetY1 = mySubMenuY->addAction("Time");
-//    aSetY1->setCheckable(true);
-//    aSetY1->setActionGroup(groupSubMenuY);
-//    QAction *aSetY2 = mySubMenuY->addAction("sigma Axial Total");
-//    aSetY2->setCheckable(true);
-//    aSetY2->setActionGroup(groupSubMenuY);
-//    QAction *aSetY3 = mySubMenuY->addAction("sigma Axial Desv");
-//    aSetY3->setCheckable(true);
-//    aSetY3->setActionGroup(groupSubMenuY);
-//    QAction *aSetY4 = mySubMenuY->addAction("sigma Conf");
-//    aSetY4->setCheckable(true);
-//    aSetY4->setActionGroup(groupSubMenuY);
-//    QAction *aSetY5 = mySubMenuY->addAction("Def Axial");
-//    aSetY5->setCheckable(true);
-//    aSetY5->setChecked(true);
-//    aSetY5->setActionGroup(groupSubMenuY);
-//    QAction *aSetY6 = mySubMenuY->addAction("Def Lateral");
-//    aSetY6->setCheckable(true);
-//    aSetY6->setActionGroup(groupSubMenuY);
+    ActionList->insert(1, aSetAxis2);
+    QAction *aSetAxis3 = mySubMenuAxis->addAction(Coords3);
+    aSetAxis3->setCheckable(true);
+    aSetAxis3->setActionGroup(groupSubmenuAxis);
+    ActionList->insert(2, aSetAxis3);
+    QAction *aSetAxis4 = mySubMenuAxis->addAction(Coords4);
+    aSetAxis4->setCheckable(true);
+    aSetAxis4->setActionGroup(groupSubmenuAxis);
+    ActionList->insert(3, aSetAxis4);
+    QAction *aSetAxis5 = mySubMenuAxis->addAction(Coords5);
+    aSetAxis5->setCheckable(true);
+    aSetAxis5->setActionGroup(groupSubmenuAxis);
+    ActionList->insert(4, aSetAxis5);
+    QAction *aSetAxis6 = mySubMenuAxis->addAction(Coords6);
+    aSetAxis6->setCheckable(true);
+    aSetAxis6->setActionGroup(groupSubmenuAxis);
+    ActionList->insert(5, aSetAxis6);
 
     menuPlot = new QMenu ();
     menuPlot->setFont(MenuBold);
     menuPlot->addMenu(mySubMenuAxis);
-//    menuPlot->addMenu(mySubMenuY);
 
     connect (mySubMenuAxis, SIGNAL(triggered(QAction*)), this, SLOT(AxisChanged_slot (QAction*)));
-//    connect (mySubMenuY, SIGNAL(triggered(QAction*)), this, SLOT(YTypeChanged (QAction*)));
+    // END MENU
 
-//    connect (aSetX2, SIGNAL(triggered()), this, SLOT(X2Type()));
-
-
-    //END MENU
-
-
+    // Picker with coords and green indication
     canvas_picker = new CanvasPicker( this );
 
-    //VERIFICAR O PQ NAO FUNCIONA
-//    picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft,
-//                   QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,
-//                   this->canvas());
-//    picker->setStateMachine(new QwtPickerDragPointMachine());
-//    picker->setRubberBandPen(QColor(Qt::green));
-//    picker->setRubberBand(QwtPicker::CrossRubberBand);
-//    picker->setTrackerPen(QColor(Qt::blue));
+    picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft,
+                   QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,
+                   this->canvas());
+    picker->setStateMachine(new QwtPickerDragPointMachine());
+    picker->setRubberBandPen(QColor(Qt::green));
+    picker->setRubberBand(QwtPicker::CrossRubberBand);
+    picker->setTrackerPen(QColor(Qt::blue));
 
-
+    // Mid-Button panner
     panner = new QwtPlotPanner(this->canvas());
     panner->setMouseButton(Qt::MidButton);
 
@@ -162,7 +166,7 @@ void Plot::createCurve(int pos, QVector <double> *X, QVector <double> *Y, int ch
     // VERIFICANDO SE A CURVA JA EXISTE PARA NAO RECRIA-LA
     if (this->CurvesList->value(pos).curve_ptr) return;
 
-    QwtPlotCurve *d_curve;
+    QwtPlotCurve *d_curve, *d_curve2, *d_curve3;
     d_curve = new QwtPlotCurve();
     d_curve->setRenderHint( QwtPlotItem::RenderAntialiased );
     d_curve->setPen( QPen( Qt::red ) );
@@ -170,6 +174,24 @@ void Plot::createCurve(int pos, QVector <double> *X, QVector <double> *Y, int ch
     d_curve->setYAxis( QwtPlot::yLeft );
     d_curve->attach( this );
     d_curve->setSamples(*X, *Y);
+
+    d_curve2 = new QwtPlotCurve();
+    d_curve2->setRenderHint( QwtPlotItem::RenderAntialiased );
+    d_curve2->setPen( QPen( Qt::blue ) );
+    d_curve2->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    d_curve2->setYAxis( QwtPlot::yLeft );
+    d_curve2->attach( this );
+    //d_curve->setSamples(*X, *Y);
+    d_curve2->hide();
+
+    d_curve3 = new QwtPlotCurve();
+    d_curve3->setRenderHint( QwtPlotItem::RenderAntialiased );
+    d_curve3->setPen( QPen( Qt::green ) );
+    d_curve3->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    d_curve3->setYAxis( QwtPlot::yLeft );
+    d_curve3->attach( this );
+    //d_curve->setSamples(*X, *Y);
+    d_curve3->hide();
 
     this->zoomer->setZoomBase();
 
@@ -236,6 +258,8 @@ void Plot::createCurve(int pos, QVector <double> *X, QVector <double> *Y, int ch
     CURVE curva;
     curva.chk_status = checkStatus;
     curva.curve_ptr = d_curve;
+    curva.curve_ptr2 = d_curve2;
+    curva.curve_ptr3 = d_curve3;
     curva.Xbiggest = Xbiggest;
     curva.Xsmallest = Xsmallest;
     curva.Ybiggest = Ybiggest;
@@ -253,8 +277,16 @@ void Plot::createCurve(int pos, QVector <double> *X, QVector <double> *Y, int ch
     this->AdjustScale();
 
     //naming axis
-    this->setAxisTitle(QwtPlot::yLeft, "Tension");
-    this->setAxisTitle(QwtPlot::xBottom, "Deformation");
+    QString DefaultTitleY = QChar (0x03C3);
+    DefaultTitleY.append("ax (MPa)");
+    this->setAxisTitle(QwtPlot::yLeft, DefaultTitleY);
+    QString DefaultTitle1X = QChar (0x03B5);
+    DefaultTitle1X.append("ax (%)");
+    this->setAxisTitle(QwtPlot::xBottom, DefaultTitle1X);
+
+    //refreshing axis menu
+    QAction *Default_act = ActionList->value(0);
+    Default_act->setChecked(true);
 }
 
 // Get index of coords vector of a given curve
@@ -279,9 +311,15 @@ int Plot::getSymbIndex ( int indexCurves, pointType typept ) {
 //Remove curve
 void Plot::deleteCurve ( int pos ) {
     QwtPlotCurve *d_curve = this->CurvesList->value(pos).curve_ptr;
+    QwtPlotCurve *d_curve2 = this->CurvesList->value(pos).curve_ptr2;
+    QwtPlotCurve *d_curve3 = this->CurvesList->value(pos).curve_ptr3;
     if ( d_curve != NULL) {
         d_curve->detach();
         delete d_curve;
+        d_curve2->detach();
+        delete d_curve2;
+        d_curve3->detach();
+        delete d_curve3;
     }
     QwtPlotCurve *d_curve_symbol = this->CurvesList->value(pos).symb_curve_ptr;
     if ( d_curve_symbol != NULL ) {
@@ -439,6 +477,8 @@ void Plot::cutCurve(int indexCurves, int indexStartPoint, int indexEndPoint) {
 //slot
 void Plot::updateCurve(int indexCurves, int indexStartPoint, int indexEndPoint) {
     QwtPlotCurve *d_curve = this->CurvesList->value(indexCurves).curve_ptr;
+    QwtPlotCurve *d_curve2 = this->CurvesList->value(indexCurves).curve_ptr2;
+    QwtPlotCurve *d_curve3 = this->CurvesList->value(indexCurves).curve_ptr3;
 
     //Check if curve exists
     if (!d_curve) return;
@@ -446,6 +486,20 @@ void Plot::updateCurve(int indexCurves, int indexStartPoint, int indexEndPoint) 
     CURVE d_curve_tmp = this->CurvesList->take(indexCurves);
 
     d_curve->setSamples (*d_curve_tmp.X, *d_curve_tmp.Y);
+
+    if (d_curve_tmp.X2 != NULL)
+    {
+        d_curve2->setSamples (*d_curve_tmp.X2, *d_curve_tmp.Y2);
+        d_curve3->setSamples (*d_curve_tmp.X3, *d_curve_tmp.Y3);
+        d_curve2->show();
+        d_curve3->show();
+        qDebug() << "ENTROU NO IF!!!!!!!!!!!!!!!!!!!";
+    }
+    else
+    {
+        d_curve2->hide();
+        d_curve3->hide();
+    }
 
     // Reposiciona marcadores no inicio/fim da curva cortada
     // Parametros indexStartPoint e indexEndPoint estao com valores antigos.
@@ -553,20 +607,7 @@ void Plot::mouseReleaseEvent( QMouseEvent * event ) {
 
 void Plot::AxisChanged_slot (QAction *action) {
 
-  qDebug() << "Axis Changed !!! " << action->text()  ;
-
-//    if (action->text() == "Tension") {
-//        qDebug() << "usar coluna tensao";
-//    }
-
-    emit AxisChanged_signal(this, action->text());
+  qDebug() << "Axis Changed !!! " << action->text();
+  emit AxisChanged_signal(this, action->text());
 
 }
-
-//void Plot::YTypeChanged (QAction *action) {
-
-////    qDebug() << "Y TypeChanged " << action->text();
-
-//    emit YCoordsChanged(this, action->text());
-
-//}

@@ -3,7 +3,6 @@
 #include "initialpointdock.h"
 #include "ui_initialpointdock.h"
 #include "globalconfig.h"
-#include "ui_globalconfig.h"
 #include <iostream>
 #include <limits>
 using namespace std;
@@ -58,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initial Plot where graphs will be ploted
     currentPlot = ui->Plot_1;
     ui->Plot_1->setHighlighted(true);
+    ui->Plot_1->canvas()->setCursor(Qt::CrossCursor);
     // Test 2
     ui->Plot_2->setTitle("TEST 02");
     connect(ui->Plot_2->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
@@ -101,15 +101,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_listWidget_clicked(const QModelIndex &index)
 {
-    int pos = index.row();
-    int checkStatus = ui->listWidget->item(pos)->checkState();
+    int listIndex = index.row();
+    int indexCurve = ui->listWidget->item(listIndex)->data(5).toInt();
+    int checkStatus = ui->listWidget->item(listIndex)->checkState();
 
     if (checkStatus == 2) {
-        currentPlot->createCurve(pos, this->FilesList->value(pos).X, this->FilesList->value(pos).Y, checkStatus);
+        currentPlot->createCurve(indexCurve, this->FilesList->value(indexCurve).X, this->FilesList->value(indexCurve).Y, checkStatus);
     }
     else
     {
-        currentPlot->deleteCurve(pos);
+        currentPlot->deleteCurve(indexCurve);
     }
 }
 
@@ -134,12 +135,20 @@ void MainWindow::fullscreenOnPlot(Plot *plotTmp)
 void MainWindow::clickedOnPlot(Plot *plotTmp)
 {
     reloadCurvesList (plotTmp);
-    //set plotTmp to highlighted =)
+
+    //set plotTmp to highlighted
     ui->Plot_1->setHighlighted(false);
     ui->Plot_2->setHighlighted(false);
     ui->Plot_3->setHighlighted(false);
     ui->Plot_4->setHighlighted(false);
     plotTmp->setHighlighted(true);
+
+    //set plotTmp cursor to cross
+    ui->Plot_1->canvas()->setCursor(Qt::PointingHandCursor);
+    ui->Plot_2->canvas()->setCursor(Qt::PointingHandCursor);
+    ui->Plot_3->canvas()->setCursor(Qt::PointingHandCursor);
+    ui->Plot_4->canvas()->setCursor(Qt::PointingHandCursor);
+    plotTmp->canvas()->setCursor(Qt::CrossCursor);
 }
 
 void MainWindow::reloadCurvesList(Plot *plotTmp)
@@ -147,10 +156,11 @@ void MainWindow::reloadCurvesList(Plot *plotTmp)
     currentPlot = plotTmp;
 
     // repopulating listWidgetQwtPlot
-    for (int i=0; i < FilesList->size(); i++) {
-        QListWidgetItem *item;
-        item = ui->listWidget->item(i);
-        item->setCheckState(Qt::CheckState(plotTmp->CurvesList->value(i).chk_status));
+    int list_size = ui->listWidget->count();
+    for (int i=0; i < list_size; i++) {
+        QListWidgetItem *item = ui->listWidget->item(i);
+        int item_id = item->data(5).toInt();
+        item->setCheckState(Qt::CheckState(plotTmp->CurvesList->value(item_id).chk_status));
     }
 }
 
@@ -178,6 +188,7 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
     QMenu myMenu;
     QAction *aSaveAs = myMenu.addAction("Save curve as...");
     QAction *aSelectPoint = myMenu.addAction("Select initial point");
+    QAction *aDeleteFile = myMenu.addAction("Unload file");
     if (listItem->checkState() == 2)
         aSelectPoint->setEnabled(1);
     else
@@ -208,12 +219,10 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 
         QTextStream *out_curve = new QTextStream (&curve_file);
 
-        int indexCurve = ui->listWidget->indexAt(pos).row();
+        int indexCurve = ui->listWidget->item(ui->listWidget->indexAt(pos).row())->data(5).toInt();
         for (int i=0; i<this->FilesList->value(indexCurve).X->size(); i++) {
             *out_curve << this->FilesList->value(indexCurve).X->value(i) << " " << this->FilesList->value(indexCurve).Y->value(i) << endl;
         }
-
-
 
         //Atualizando entrada na tabela de arquivos / ListWidget
         TXT arquivo_1 = this->FilesList->take(indexCurve);
@@ -224,15 +233,13 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 
         listItem->setText(arquivo_1.name);
 
-
-
-
-
         curve_file.close();
     }
 
     if (aSelectPoint == selectedItem) {
-        int indexCurve = ui->listWidget->indexAt(pos).row();
+
+        int indexCurve = ui->listWidget->item(ui->listWidget->indexAt(pos).row())->data(5).toInt();
+
         // VERIFICAR COMO NAO CRIAR 2 DIALOGOS PARA MESMA CURVA
         initialpointdock *selectpointdock = new initialpointdock(this);
 
@@ -269,11 +276,27 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         selectpointdock->show();
 
     }
+
+    if (aDeleteFile == selectedItem) {
+
+        int indexCurve = ui->listWidget->indexAt(pos).row();
+        QListWidgetItem *tmp_item =  ui->listWidget->takeItem( indexCurve );
+
+        indexCurve = -1;
+        indexCurve = tmp_item->data(5).toInt();
+        qDebug() <<"INDEX CURVE!@%#$@!#$%$" <<indexCurve;
+        currentPlot->deleteCurve(indexCurve);
+        this->FilesList->remove(indexCurve);
+
+        delete tmp_item;
+
+    }
 }
 
 void MainWindow::on_actionZoom_toggled(bool on)
 {
     ui->Plot_1->panner->setEnabled(on);
+//    ui->Plot_1->canvas()->setCursor();
     ui->Plot_1->zoomer->setEnabled(on);
 
     ui->Plot_2->panner->setEnabled(on);
@@ -318,6 +341,8 @@ void MainWindow::on_actionOpenFile_triggered()
         QVector<double> *defAxial = new QVector<double>();
         QVector<double> *defLateral = new QVector<double>();
         QVector<double> *defVol = new QVector<double>();
+        QVector<double> *sigmaVol = new QVector<double>();
+        QVector<double> *sigmaLateral;// = new QVector<double>();
 
         int countLines = 0;
         double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
@@ -347,38 +372,50 @@ void MainWindow::on_actionOpenFile_triggered()
 
             if (typeTest == testTypes(UCS)) {
 //Tempo	SigAxialDesv	DefAxial	DefLateral	DefVolume
-                time->insert( countLines, QVariant(strings.value(0)).toDouble() );
-                sigmaAxialDesv->insert( countLines, QVariant(strings.value(1)).toDouble() );
-                defAxial->insert( countLines, QVariant(strings.value(3)).toDouble() );
-                defLateral->insert( countLines, QVariant(strings.value(5)).toDouble() );
-                defVol->insert( countLines, QVariant(strings.value(7)).toDouble() );
+
+                // Variaveis do arquivo txt
+                time->insert( countLines, strings.value(0).toDouble() );
+                sigmaAxialDesv->insert( countLines, strings.value(1).toDouble() );
+                defAxial->insert( countLines, strings.value(3).toDouble() );
+                defLateral->insert( countLines, strings.value(5).toDouble() );
+                defVol->insert( countLines, strings.value(7).toDouble() );
+
+                // Atribuicoes
+                sigmaAxialTotal->insert( countLines, 1.5*strings.value(1).toDouble());
+                sigmaLateral=sigmaAxialTotal;
+                sigmaVol=sigmaAxialTotal;
 
                 // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
-                valueY = QVariant(strings.value(1)).toDouble(); //sigmaAxialDesv
-                valueX = QVariant(strings.value(3)).toDouble(); //defAxial
+                valueY = strings.value(1).toDouble(); //sigmaAxialTotal
+                valueX = strings.value(3).toDouble();
 
-                // Coordenadas Default (TensaoxDeformacao)
+                // Coordenadas Default (Tensao axial x Deformacao axial)
                 Xvalues = defAxial;
-                Yvalues = sigmaAxialDesv;
+                Yvalues = sigmaAxialTotal;
             }
             else if (typeTest == testTypes(Triaxial))
             {
 //Tempo	**SigAxialTotal**	SigAxialDesv	**SigConf**	DefAxial	DefLateral	DefVolume
-                time->insert( countLines, QVariant(strings.value(0)).toDouble() );
-                sigmaAxialTotal->insert( countLines, QVariant(strings.value(1)).toDouble() ); // Triaxial ONLY
-                sigmaAxialDesv->insert( countLines, QVariant(strings.value(3)).toDouble() );
-                sigmaConf->insert( countLines, QVariant(strings.value(5)).toDouble() );       // Triaxial ONLY
-                defAxial->insert( countLines, QVariant(strings.value(7)).toDouble() );
-                defLateral->insert( countLines, QVariant(strings.value(9)).toDouble() );
-                defVol->insert( countLines, QVariant(strings.value(11)).toDouble() );
+                // Variaveis do arquivo txt
+                time->insert( countLines, strings.value(0).toDouble() );
+                sigmaAxialTotal->insert( countLines, strings.value(1).toDouble() ); // Triaxial ONLY
+                sigmaAxialDesv->insert( countLines, strings.value(3).toDouble() );
+                sigmaConf->insert( countLines, strings.value(5).toDouble() );       // Triaxial ONLY
+                defAxial->insert( countLines, strings.value(7).toDouble() );
+                defLateral->insert( countLines, strings.value(9).toDouble() );
+                defVol->insert( countLines, strings.value(11).toDouble() );
+
+                // Atribuicoes
+                sigmaVol->insert( countLines, (strings.value(1).toDouble()+(strings.value(5).toDouble())*2)); // Svol = Sax + 2* Sconf
+                sigmaLateral = sigmaConf;
 
                 // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
-                valueY = QVariant(strings.value(1)).toDouble(); //sigmaAxialTotal
-                valueX = QVariant(strings.value(7)).toDouble(); //defAxial
+                valueY = strings.value(1).toDouble(); //sigmaAxialTotal
+                valueX = strings.value(7).toDouble(); //defAxial
 
                 // Coordenadas Default (TensaoxDeformacao)
                 Xvalues = defAxial;
-                Yvalues = sigmaAxialDesv;
+                Yvalues = sigmaAxialTotal;
           }
 
             if (valueX < Xsmallest) Xsmallest = valueX;
@@ -404,7 +441,6 @@ void MainWindow::on_actionOpenFile_triggered()
         arquivoTXT.name = infofile.baseName()+"."+infofile.suffix();
         arquivoTXT.X = Xvalues;
         arquivoTXT.Y = Yvalues;
-
         arquivoTXT.time = time;
         arquivoTXT.sigmaAxialDesv = sigmaAxialDesv;
         arquivoTXT.sigmaAxialTotal = sigmaAxialTotal;
@@ -412,10 +448,17 @@ void MainWindow::on_actionOpenFile_triggered()
         arquivoTXT.defAxial = defAxial;
         arquivoTXT.defLateral = defLateral;
         arquivoTXT.defVol = defVol;
-
+        arquivoTXT.sigmaLateral = sigmaLateral;
+        arquivoTXT.sigmaVol = sigmaVol;
         arquivoTXT.testType = testTypes(typeTest);
 
-        int position = this->FilesList->size();
+
+        //int position = this->FilesList->size();
+        int position = 0;
+        if (this->FilesList->size() != 0) {
+            int last_key = this->FilesList->keys().last();
+            position = last_key+1;
+        }
         this->FilesList->insert(position, arquivoTXT);
         //Criando entrada na listWidget
         QListWidgetItem *item;
@@ -423,6 +466,7 @@ void MainWindow::on_actionOpenFile_triggered()
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(Qt::Unchecked);
         item->setText(this->FilesList->value(position).name);
+        item->setData(5,position); //item "ID"
         ui->listWidget->addItem(item);
 
     }
@@ -449,53 +493,208 @@ void MainWindow::ChangePlotAxis(Plot* plot_ptr,QString PlotAxis)
     // mudar os eixos de plotagem (colunas a serem lidas no arquivo)
     // mudar os nomes dos eixos
 
+    //OBS EIXOS: VER O OPENFILE EU ACHO, TA COLOCANDO TENSIOXDEFORMATION QUANDO ABRE UM ARQUIVO
+
     foreach (int i, plot_ptr->CurvesList->keys())
     {
-        if (PlotAxis == "Tension x Deformation") {
+        // Sigma ax x Epsilon ax
+        QString Coords1 = QChar (0x03C3);
+        Coords1.append("ax x ");
+        Coords1.append(QChar (0x03B5));
+        Coords1.append("ax");
+
+        if (PlotAxis == Coords1) {
 
             CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
 
-            d_curve_tmp.X = this->FilesList->value(i).defAxial;
-            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
+            // COLUNAS LIDAS NO ARQUIVO
+            d_curve_tmp.X = this->FilesList->value(i).defAxial; //OK!
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialTotal; //OK!
+
+            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
 
             //re-inserting new value
             plot_ptr->CurvesList->insert(i, d_curve_tmp);
 
             //naming axis
-            plot_ptr->setAxisTitle(QwtPlot::yLeft, "Tension");
-            plot_ptr->setAxisTitle(QwtPlot::xBottom, "Deformation");
+            QString Title1Y = QChar (0x03C3);
+            Title1Y.append("ax (MPa)");
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title1Y);
+            QString Title1X = QChar (0x03B5);
+            Title1X.append("ax (%)");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title1X);
 
             // update curve with new data
             this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
         }
 
-        else if (PlotAxis == "I1 x sqrt(J2)") {
+        // Sigma rad x Epsilon rad
+        QString Coords2 = QChar (0x03C3);
+        Coords2.append("rad x ");
+        Coords2.append(QChar (0x03B5));
+        Coords2.append("rad");
+
+        if (PlotAxis == Coords2) {
 
             CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
 
-            d_curve_tmp.Y = this->FilesList->value(i).defAxial;
-            d_curve_tmp.X = this->FilesList->value(i).sigmaAxialDesv;
+            // COLUNAS LIDAS NO ARQUIVO
+            d_curve_tmp.X = this->FilesList->value(i).defLateral; //OK!
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaLateral; //OK!
 
-            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE I1 E J2
+            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
+
+//            qDebug () << d_curve_tmp.X->toList();
 
             //re-inserting new value
             plot_ptr->CurvesList->insert(i, d_curve_tmp);
 
             //naming axis
-            plot_ptr->setAxisTitle(QwtPlot::yLeft, "I1");
-            plot_ptr->setAxisTitle(QwtPlot::xBottom, "sqrt(J2)");
+            QString Title2Y = QChar (0x03C3);
+            Title2Y.append("rad (MPa)");
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title2Y);
+            QString Title2X = QChar (0x03B5);
+            Title2X.append("rad (%)");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title2X);
+            // update curve with new data
+            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+        }
 
+        // Sigma vol x Epsilon vol
+        QString Coords3 = QChar (0x03C3);
+        Coords3.append("vol x ");
+        Coords3.append(QChar (0x03B5));
+        Coords3.append("vol");
+
+        if (PlotAxis == Coords3) {
+
+            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+
+            d_curve_tmp.X = this->FilesList->value(i).defVol; //OK!
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaVol; //OK!
+
+            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
+
+            //re-inserting new value
+            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+
+            //naming axis
+            QString Title3Y = QChar (0x03C3);
+            Title3Y.append("vol (MPa)");
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title3Y);
+            QString Title3X = QChar (0x03B5);
+            Title3X.append("vol (%)");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title3X);
+            // update curve with new data
+            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+        }
+
+        // Sigma ax x Epsilon ax Epsilon vol Epsilon rad
+        QString Coords4 = QChar (0x03C3);
+        Coords4.append("ax x ");
+        Coords4.append(QChar (0x03B5));
+        Coords4.append("ax ");
+        Coords4.append(QChar (0x03B5));
+        Coords4.append("vol ");
+        Coords4.append(QChar (0x03B5));
+        Coords4.append("rad");
+
+        if (PlotAxis == Coords4) {
+
+            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+
+            d_curve_tmp.X = this->FilesList->value(i).defAxial; //OK!
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialTotal; //OK!
+
+            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE SIGMA A E EPSILONS A,V,L
+
+            d_curve_tmp.X2 = this->FilesList->value(i).defLateral; //OK!
+            d_curve_tmp.Y2 = this->FilesList->value(i).sigmaAxialTotal; //OK!
+            d_curve_tmp.X3 = this->FilesList->value(i).defVol; //OK!
+            d_curve_tmp.Y3 = this->FilesList->value(i).sigmaAxialTotal; //OK!
+
+            //re-inserting new value
+            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+
+            //naming axis
+            QString Title4Y = QChar (0x03C3);
+            Title4Y.append("ax (MPa)");
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title4Y);
+            QString Title4X = QChar (0x03C3);
+            Title4X.append("ax x ");
+            Title4X.append(QChar (0x03B5));
+            Title4X.append("ax ");
+            Title4X.append(QChar (0x03B5));
+            Title4X.append("vol ");
+            Title4X.append(QChar (0x03B5));
+            Title4X.append("rad (%)");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title4X);
+            // update curve with new data
+            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+        }
+
+        // I1 x sqrt J2
+        QString Coords5 = "I1 x ";
+        Coords5.append(QChar (0x221A));
+        Coords5.append("J2");
+
+        if (PlotAxis == Coords5) {
+
+            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+
+            d_curve_tmp.X = this->FilesList->value(i).defAxial;
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
+            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE I1 E RAIZ DE J2
+
+            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
+
+            //re-inserting new value
+            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+
+            //naming axis
+            QString Title5Y = "I1";
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title5Y);
+            QString Title5X = QChar (0x221A);
+            Title5X.append("J2");
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title5X);
+            // update curve with new data
+            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+        }
+
+        // Epsilon v x sqrt J2Epsilon
+        QString Coords6 = QChar (0x03B5);
+        Coords6.append("v x ");
+        Coords6.append(QChar (0x221A));
+        Coords6.append("J2");
+        Coords6.append(QChar (0x03B5));
+
+        if (PlotAxis == Coords6) {
+
+            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+
+            d_curve_tmp.X = this->FilesList->value(i).defAxial;
+            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
+            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE EPSILON V E RAIZ DE J2 EPSILON
+
+            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
+
+            //re-inserting new value
+            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+
+            //naming axis
+            QString Title6Y = QChar (0x03B5);
+            Title6Y.append("v");
+            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title6Y);
+            QString Title6X = QChar (0x221A);
+            Title6X.append("J2");
+            Title6X.append(QChar (0x03B5));
+            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title6X);
             // update curve with new data
             this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
         }
     }
 
 }
-
-//void MainWindow::ChangeYCoords(Plot* plot_ptr,QString YCoords)
-//{
-//    qDebug() << "SLOT CHANGE Y!!!!!!!!!!!!!!!!!!" << plot_ptr << YCoords;
-//}
 
 void MainWindow::on_actionShow_Parameter_List_triggered()
 {
@@ -506,11 +705,4 @@ void MainWindow::on_actionRUN_triggered()
 {
     // EXECUTAR SIMULATION!!!!!!!!!!!!!!!!
     // Fazer o load dos valores dos contadores e rodar o simulation (mainGUI.cpp)
-}
-
-void MainWindow::on_actionGlobal_Config_triggered()
-{
-    GlobalConfig *globalconfigdock = new GlobalConfig(this);
-    globalconfigdock->setGeometry(300,250,globalconfigdock->width(),globalconfigdock->height());
-    globalconfigdock->show();
 }

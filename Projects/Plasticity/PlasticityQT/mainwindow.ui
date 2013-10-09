@@ -22,7 +22,11 @@
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="Plot" name="Plot_1"/>
+     <widget class="Plot" name="Plot_1">
+      <property name="cursor">
+       <cursorShape>ArrowCursor</cursorShape>
+      </property>
+     </widget>
     </item>
     <item row="0" column="1">
      <widget class="Plot" name="Plot_2"/>
@@ -57,7 +61,6 @@
    <addaction name="actionShow_Parameter_List"/>
    <addaction name="actionZoom"/>
    <addaction name="actionExportPlot"/>
-   <addaction name="actionRUN"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -69,8 +72,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>0</width>
-     <height>0</height>
+     <width>96</width>
+     <height>121</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -549,6 +552,32 @@
       <string>Sandler DiMaggio</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>340</y>
+       <width>151</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Show Simulation</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>310</y>
+       <width>98</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>RUN</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <action name="actionShowGraphList">
@@ -579,9 +608,12 @@
     <string>Show Parameter List</string>
    </property>
   </action>
-  <action name="actionRUN">
+  <action name="RUN">
    <property name="text">
     <string>RUN</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>

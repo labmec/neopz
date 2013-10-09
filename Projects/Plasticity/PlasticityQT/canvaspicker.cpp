@@ -67,10 +67,11 @@ bool CanvasPicker::eventFilter( QObject *object, QEvent *event )
         case QEvent::MouseButtonPress:
         {
             QMouseEvent *ev = ( QMouseEvent * ) event;
-            if(ev->button() == /*Qt::RightButton*/Qt::LeftButton) {
+            if(ev->button() == Qt::LeftButton) {
                 select( ev->pos() );
                 pressed_flag = 1;
             }
+
             return true;
         }
         case QEvent::MouseButtonRelease:
@@ -80,6 +81,10 @@ bool CanvasPicker::eventFilter( QObject *object, QEvent *event )
             QMouseEvent *ev = ( QMouseEvent * ) event;
             if(ev->button() == Qt::LeftButton) {
                 emit mouseLeftClicked(this->plot());
+            }
+
+            if(ev->button() == Qt::RightButton) {
+                this->plot()->AdjustScale();
             }
 
             return true;

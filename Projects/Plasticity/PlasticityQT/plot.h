@@ -14,9 +14,14 @@ class QwtPlotCanvas;
 class QwtPlotMarker;
 
 // This struct contains all QWT curves created for one Plot
-struct CURVE {int chk_status; QwtPlotCurve *curve_ptr;
+struct CURVE {int chk_status;
               double Xsmallest; double Xbiggest; double Ysmallest; double Ybiggest;
+              QwtPlotCurve *curve_ptr;
               QVector <double> *X; QVector <double> *Y;
+              QwtPlotCurve *curve_ptr2;
+              QVector <double> *X2; QVector <double> *Y2;
+              QwtPlotCurve *curve_ptr3;
+              QVector <double> *X3; QVector <double> *Y3;
               QwtPlotCurve *symb_curve_ptr;
               int startIndexCoord; int endIndexCoord;
               QwtPlotMarker *startM; QwtPlotMarker *endM;};
@@ -31,8 +36,7 @@ public:
         setTrackerMode(QwtPicker::AlwaysOff);
         setRubberBand(QwtPicker::NoRubberBand);
 
-        // RightButton: zoom out by 1
-        // Ctrl+RightButton: zoom out to full size
+        // RightButton: zoom out to full size
 
         setMousePattern(QwtEventPattern::MouseSelect2,
             Qt::RightButton, Qt::ControlModifier);
@@ -48,19 +52,19 @@ class Plot: public QwtPlot
 private slots:
 
 public:
-    enum pointType {
-            startPoint = 0,
-            endPoint = 1
-    };
+    enum pointType {startPoint = 0, endPoint = 1};
 
     Zoomer *zoomer;
+    QwtPlotPicker *picker;
     QwtPlotPanner *panner;
     QwtPlotGrid   *grid;
     CanvasPicker  *canvas_picker;
-//    QwtPlotPicker *picker;
+
     QHash <int, CURVE > *CurvesList;
     testTypes testType;
     QMenu *menuPlot;
+
+    QHash <int, QAction*> *ActionList;
 
     Plot( QWidget *parent = NULL );
     //Create curve
@@ -93,11 +97,9 @@ public Q_SLOTS:
     void mouseReleaseEvent( QMouseEvent * event );
 
     void AxisChanged_slot (QAction *action);
-//    void YTypeChanged (QAction *action);
 
 signals:
     void AxisChanged_signal (Plot* plot_ptr, QString XCoord);
-//    void YCoordsChanged (Plot* plot_ptr, QString YCoord);
 };
 
 #endif // PLOT_H
