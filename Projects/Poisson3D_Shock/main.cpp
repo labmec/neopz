@@ -103,7 +103,7 @@ REAL transy = 0.;
 
 /** PROBLEM WITH HIGH GRADIENT ON CIRCUNFERENCE  ---  DATA */
 STATE ValueK = 100000;
-
+REAL GlobalMaxError = 0.0;
 
 /** To identify localization of PZ resources */
 std::string Archivo = PZSOURCEDIR;
@@ -180,9 +180,9 @@ TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
 
-void ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
+REAL ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
-
+void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,REAL MaxError,TPZVec<REAL> &ervecbyel);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
@@ -219,7 +219,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 4;
-    int ninitialrefs = 1;
+    int ninitialrefs = 3;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -247,14 +247,14 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
                 MaxPOrder = 3;
-                NRefs = 3;
+                NRefs = 4;
             }
             else if(dim==2) {
                 MaxPOrder = 10;
-                NRefs = 15;
+                NRefs = 9;
             }
             else {
-                NRefs = 25;
+                NRefs = 16;
             }
 			// Printing geometric mesh to validate
 			if(gDebug) {
@@ -279,7 +279,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					sut << "Poisson" << dim << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
 					ann.DefineGraphMesh(dim,scalnames,vecnames,sut.str());
 				}
-				ann.PostProcess(2,dim);
+				ann.PostProcess(3,dim);
 				delete cmeshfirst;
 				delete gmeshfirst;
 			}
@@ -300,20 +300,22 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			// Selecting orthogonal polynomial family to construct shape functions
 			if(anothertests)
 				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-			            
-			// Solving adaptive process
+
 			for(nref=0;nref<NRefs;nref++) {
 				out << "\nConstructing Poisson problem " << dim << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
                 std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
-				if(nref > 5) nthread = 2*NThreads;
-				else nthread = NThreads;
+				if(usethreads) {
+					if(nref > 5) nthread = 2*NThreads;
+					else nthread = NThreads;
+				}
 				
 				// Initializing the generation mesh process
 				time(& sttime);
 				
-				// Introduzing exact solution depending on the case
+				// Solving adaptive process
 				TPZAnalysis an(cmesh);
 				an.SetExact(ExactSolutionSphere);
+				// Introduzing exact solution depending on the case
 				{
 					std::stringstream sout;
 					sout << "Poisson" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
@@ -334,6 +336,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
+			//	TPZSkylineStructMatrix strskyl(cmesh);
 				TPZSkylineStructMatrix strskyl(cmesh);
                 if(usethreads) strskyl.SetNumThreads(nthread);
 				an.SetStructuralMatrix(strskyl);
@@ -369,12 +372,23 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
                 std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 				fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
-                
-                if(NRefs > 1) {
-					TPZVec<REAL> ervecbyel;
+				// Printing degree of freedom (number of equations)
+				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
+				an.PostProcessError(ervec,out);
+				// Printing obtained errors
+				for(int rr=0;rr<ervec.NElements();rr++)
+					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
+				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << time_formated << std::endl;
+
+				if(NRefs > 1) {
+					if(nref < 3) GlobalMaxError = 0.;
+					TPZManVector<REAL> ervecbyel;
                     REAL MaxError = 0.;
+					REAL GlobalError = 0.;
                     REAL FactorGamma = 0.5;
-                    ProcessandoError(an,ervec,ervecbyel);
+                    MaxError = ProcessandoError(an,ervec,ervecbyel);
+					GlobalError = ervec[1];   // L2 error
+					ApplyingStrategyHPAdaptiveBasedOnErrors(an,GlobalError,MaxError,ervecbyel);
                 }
                 /*
                  TPZAdaptMesh adapt(MaxPOrder);
@@ -403,15 +417,15 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					}
 				}
                  */
-				
+				fileerrors.flush();
 				out.flush();
                 /*
 				cmesh->Reference()->ResetReference();
 				cmesh->LoadReferences();
 				adapt.DeleteElements(cmesh);
 				*/
-				delete cmesh;
-				cmesh = 0;
+			//	delete cmesh;
+			//	cmesh = 0;
 				/*
 				if(NRefs>1) {
 					cmesh = adaptmesh;
@@ -419,8 +433,12 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				*/
 			}
+			if(cmesh)
+				delete cmesh;
+			cmesh = NULL;
 			if(gmesh)
 				delete gmesh;
+			gmesh = NULL;
 		}
 	}
 	
@@ -431,19 +449,24 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     return true;
 }
 
-void ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
-    int neq = analysis.Mesh()->NEquations();
+/**
+ * Get Global L2 Error for solution and the L2 error for each element.
+ * Return the maxime L2 error by elements.
+ */
+REAL ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
+    long neq = analysis.Mesh()->NEquations();
     TPZVec<REAL> ux((int) neq);
     TPZVec<REAL> sigx((int) neq);
     TPZManVector<REAL,10> values(10,0.);
     analysis.Mesh()->LoadSolution(analysis.Solution());
-    //	SetExact(&Exact);
-    TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
+
+	TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
     TPZManVector<REAL,10> errors(10);
     errors.Fill(0.0);
-    int i, nel = elvec.NElements();
+    long i, nel = elvec.NElements();
 	ervecbyel.Resize(nel,0.0);
-    for(i=0;i<nel;i++) {
+	REAL maxError = 0.0;
+    for(i=0L;i<nel;i++) {
         TPZCompEl *el = (TPZCompEl *) elvec[i];
         if(el) {
             errors.Fill(0.0);
@@ -454,31 +477,69 @@ void ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &er
                 values[ier] += errors[ier] * errors[ier];
 			// L2 error for each element
 			ervecbyel[i] = sqrt(errors[1]*errors[1]);
+			if(ervecbyel[i] > maxError)
+				maxError = ervecbyel[i];
         }
     }
     
     int nerrors = errors.NElements();
 	ervec.Resize(nerrors);
-	ervec.Fill(-10.0);
+	ervec.Fill(-1.0);
     
-    if (nerrors < 3) {
-        PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
-        out<<endl<<"############"<<endl;
-        for(int ier = 0; ier < nerrors; ier++)
-            out << endl << "error " << ier << "  = " << sqrt(values[ier]);
-    }
-    else {
-        out << endl << "############" << endl;
-        out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
-        out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
-        out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
-        for(int ier = 3; ier < nerrors; ier++)
-            out << endl << "other norms = " << sqrt(values[ier]) << endl;
-    }
 	// Returns the square of the calculated errors.
 	for(i=0;i<nerrors;i++)
 		ervec[i] = sqrt(values[i]);
-    return;
+    return maxError;
+}
+/**
+ * Criteria: Given GlobalL2Error = GE and MaxError (ME) over all the elements
+ * If ElementError(EE) > 0.75*ME => twice h-refinement and p-2
+ * Else if EE > 0.5*ME  =>  h-refinement and p--
+ * Else if EE > 0.25*ME  =>  h-refinement
+ * in the other hand => p++
+ */
+void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,REAL MaxErrorLast,TPZVec<REAL> &ervecbyel) {
+	REAL MaxError = (GlobalMaxError > MaxErrorLast) ? GlobalMaxError : MaxErrorLast;
+	TPZCompMesh *cmesh = analysis.Mesh();
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	TPZVec<int> subels;
+	int j, k, pelement;
+	TPZVec<int> subsubels;
+	TPZInterpolatedElement *el;
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el) continue;
+		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		if(ervecbyel[i] > 0.75*MaxError) {
+			if(pelement > 1) pelement--;
+			// Dividing element one level
+			el->Divide(el->Index(),subels,0);
+			// Dividing sub elements one level more
+			for(j=0;j<subels.NElements();j++) {
+				cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
+				if(GlobalL2Error > MaxError)
+					for(k=0;k<subsubels.NElements();k++)
+						// Applying p-2 order for all subelements
+						((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
+			}
+		}
+		else if(ervecbyel[i] > 0.15*MaxError) {
+			if(pelement < MaxPOrder) pelement++;
+			// Dividing element one level
+			el->Divide(el->Index(),subels,0);
+			if(ervecbyel[i] > 0.5*MaxError) {
+				for(j=0;j<subels.NElements();j++)
+					// Applying p-2 order for all subelements
+					((TPZInterpolatedElement*)cmesh->ElementVec()[subels[j]])->PRefine(pelement);
+			}
+		}
+		else if(ervecbyel[i] > 0.05*MaxError) {
+			pelement--;
+			if(pelement > 0)
+				el->PRefine(pelement);
+		}
+	}
 }
 
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) {
