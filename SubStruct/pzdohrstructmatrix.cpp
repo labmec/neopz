@@ -112,10 +112,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		TPZBoostGraph boost(nel,nindep);
 		boost.setGType(TPZBoostGraph::KMC);
 		boost.SetElementGraph(elgraph, elgraphindex);
-		
 		boost.Resequence(perm, iperm);
-		//boost.CompressedResequence(perm, iperm);
-		
 #else
 		TPZSloan sloan(nel,nindep);
 		sloan.SetElementGraph(elgraph, elgraphindex);
@@ -143,8 +140,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		TPZBoostGraph boost(nel,nindep);
 		boost.setGType(TPZBoostGraph::KMC);
 		boost.SetElementGraph(elgraph, elgraphindex);
-		//boost.Resequence(perm, iperm);
-		boost.CompressedResequence(perm, iperm);
+		boost.Resequence(perm, iperm);
 #else
 		TPZSloan sloan(nel,nindep);
 		sloan.SetElementGraph(elgraph, elgraphindex);
@@ -598,7 +594,7 @@ void TPZDohrStructMatrix::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGu
     int rows = fMesh->NEquations();
     rhs.Redim(rows,1);
     TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = dynamic_cast<TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *>(fDohrPrecond.operator->());
-    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = precond->Global();//dohr->SubStructures();
+    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = precond->Global();
     
     int nsub = NSubMesh(fMesh);
     std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();

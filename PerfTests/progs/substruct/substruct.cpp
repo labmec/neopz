@@ -556,12 +556,15 @@ int main(int argc, char *argv[])
         rhs->Read(CheckPoint3, 0);
     }
     
+    int neq, iterations;
+    neq = iterations = 0;
+    
     if (running) {
         
         /* Work after checkpoint 3 */
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
         
-        int neq = dohr->Rows();
+        neq = dohr->Rows();
         TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
         VERBOSE(1, "Number of equations " << neq << endl);
@@ -580,7 +583,9 @@ int main(int argc, char *argv[])
         cg.Solve(*rhs,diag);
         PERF_STOP(solve_rst);
         
-
+        
+        iterations = cg.NumIterations();
+        
         /* checking if the solver converged */
         if (cg.GetTolerance() > 1.e-8)
         {
@@ -699,7 +704,20 @@ int main(int argc, char *argv[])
     }
     
     PERF_STOP(total_rst);
-    
+
+    cout << " -- Execution Data -- " << endl;
+    cout << "Input                              :   ";
+    if (mc.was_set())
+    {
+        cout << mc.get_value() << endl;
+    } else {
+        cout << mp.get_value() << endl;
+    }
+    cout << "Nsub                               :   " << nsub.get_value() << endl;
+    cout << "Equations (cmeshauto->NEquations)  :   " << cmeshauto->NEquations() << endl;
+    cout << "Corner Equations                   :   " << dohrstruct->NumberCornerEqs() << endl;
+    cout << "Equations (dohr->Rows)             :   " << neq << endl;
+    cout << "Iterations (CG)                    :   " << iterations << endl;
     
     if (gmesh != NULL) delete gmesh;
     
@@ -944,6 +962,7 @@ TPZGeoMesh *MalhaPredio()
 		}
 	}
 	
+    
 	ofstream arg("malhaPZ.txt");
 	gMesh->Print(arg);
 	ofstream predio("GeoPredio.vtk");

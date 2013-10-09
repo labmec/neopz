@@ -70,6 +70,12 @@ public:
 	{
 		return new TPZDohrStructMatrix(*this);
 	}
+    
+    /** @brief Return the number of cornereqs */
+    int NumberCornerEqs() const
+    {
+        return fCornerEqs.size();
+    }
 	
 	/** 
 	 * @brief Verifies if the subdomains are connected by sides of connectdimension and separate them if not
