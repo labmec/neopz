@@ -45,6 +45,8 @@
 
 #include <fstream>
 #include <string>
+#include "TPZfTime.h"
+
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
@@ -211,8 +213,11 @@ struct likwid_manager_t {
 
 #endif
 
+
 int main(int argc, char *argv[])
 {
+    
+    TPZfTime serial;
     
 #ifdef USING_LIKWID
     likwid_manager_t likwid_manager;
@@ -329,7 +334,7 @@ int main(int argc, char *argv[])
         }
 #endif
         
-        /* Dump checkpoint 1? */
+        /* Dump checkpoint 1 */
         if (dc1.was_set() && running)
         {
             VERBOSE(1, "Dumping checkpoint 1 into: " << dc1.get_value() << endl);
@@ -466,6 +471,8 @@ int main(int argc, char *argv[])
         SAVEABLE_SKIP_NOTE(CheckPoint2);
         dohrstruct->Read(CheckPoint2);
     }
+    
+    cout << "Serial Section: " << serial.ReturnTimeString() << endl;
     
     TPZAutoPointer<TPZMatrix<STATE> > precond = NULL;
     /* Work between checkpoint 2 and checkpoint 3 */
