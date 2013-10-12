@@ -33,7 +33,7 @@ public:
     REAL ResL(TPZTensor<REAL>::TPZDecomposed pt, REAL theta,REAL beta,REAL k,REAL kprev );
     REAL DistF1(TPZTensor<REAL>::TPZDecomposed pt,REAL xi,REAL beta);
     REAL DistF2(TPZTensor<REAL>::TPZDecomposed pt,REAL theta,REAL beta,REAL k);
-    void Firstk(REAL &k);
+    void Firstk(REAL &epsp,REAL &k);
     TPZFMatrix<REAL> DDistFunc1(TPZTensor<REAL>::TPZDecomposed pt,REAL xi,REAL beta);
     TPZFMatrix<REAL> DDistFunc2(TPZTensor<REAL>::TPZDecomposed pt,REAL theta,REAL beta,REAL k,REAL kprev);
     TPZFMatrix<REAL> D2DistFunc1(TPZTensor<REAL>::TPZDecomposed pt,REAL xi,REAL beta);
@@ -42,12 +42,12 @@ public:
     
     TPZManVector<REAL> FromHWCylToCart(TPZManVector<REAL> &HWCylCoords);
     //TPZManVector<REAL> FromHWCartToHWCyl(TPZManVector<REAL>&HWCartCoords);
-    //TPZManVector<REAL> FromPrincipalToHWCyl(TPZManVector<REAL> &PrincipalCoords);
+    TPZManVector<REAL> FromPrincipalToHWCyl(TPZTensor<REAL>::TPZDecomposed &PrincipalCoords);
     TPZManVector<REAL> FromPrincipalToHWCart(TPZTensor<REAL>::TPZDecomposed &PrincipalCoords);
     
     REAL D2DisFuncF2ThetaBeta();
     
-  
+    
     TPZManVector<REAL> F1Cyl(REAL xi,REAL beta);
     TPZManVector<REAL> F2Cyl(REAL theta,REAL beta,REAL k);
     TPZManVector<REAL> FromHWCylToPrincipal(TPZManVector<REAL> &HWCylCoords);
@@ -56,7 +56,7 @@ public:
     
     void F2(REAL theta,REAL beta,REAL k,TPZManVector<REAL> &sol);
     
-    void YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev);
+    void YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev,REAL &beta);
     
     void ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj);
     
@@ -70,13 +70,13 @@ public:
 	 * @param[in] epsTotal Imposed total strain tensor
 	 * @param[out] sigma Resultant stress
 	 */
-	virtual void ApplyStrainComputeSigma(TPZPlasticState<REAL> &plasticstate,const TPZElasticResponse &ER, TPZTensor<REAL> &sigma);
+	virtual void ApplyStrainComputeSigma(TPZPlasticState<REAL> &plasticstate, TPZTensor<REAL> &sigma);
     
     
 public:
     
     REAL fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fk0;
-
+    
     
 };
 

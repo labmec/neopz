@@ -76,7 +76,7 @@ public:
         static void TangentCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &tangent, int icase)
         {
             TPZTensor<STATE> obj;
-            for (int i=0; i<6; i++) 
+            for (int i=0; i<6; i++)
             {
                 obj[i] = state(i);
             }
@@ -114,7 +114,7 @@ public:
         static void ResidualCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &residual, int icase)
         {
             TPZTensor<STATE> obj;
-            for (int i=0; i<6; i++) 
+            for (int i=0; i<6; i++)
             {
                 obj[i] = state(i);
             }
@@ -159,14 +159,15 @@ public:
         
         void ComputeJ3(REAL & J3)
         {
-            REAL sig1,sig2,sig3,s1,s2,s3;
+            REAL sig1,sig2,sig3,s1,s2,s3,temp;
             sig1 = this->fEigenvalues[0];
             sig2 = this->fEigenvalues[1];
             sig3 = this->fEigenvalues[2];
-            s1=sig1-(1/3)*(sig1+sig2+sig3);
-            s2=sig2-(1/3)*(sig1+sig2+sig3);
-            s3=sig3-(1/3)*(sig1+sig2+sig3);
-            J3=1/3*(s1*s1*s1+s2*s2*s2+s3*s3*s3);
+            s1=sig1-(1./3.)*(sig1+sig2+sig3);
+            s2=sig2-(1./3.)*(sig1+sig2+sig3);
+            s3=sig3-(1./3.)*(sig1+sig2+sig3);
+            temp=(1./3.)*(s1*s1*s1+s2*s2*s2+s3*s3*s3);
+            J3=temp;
         }
         
         void ComputeI1(REAL &I1)
@@ -176,6 +177,30 @@ public:
             sig2 = this->fEigenvalues[1];
             sig3 = this->fEigenvalues[2];
             I1=sig1+sig2+sig3;
+        }
+        
+        void ApplyStrainComputeElasticStress(TPZTensor<REAL> &Stress,REAL &K , REAL & G)
+        {
+            REAL sig1,sig2,sig3,s1,s2,s3,sigv;
+            sig1 = this->fEigenvalues[0];
+            sig2 = this->fEigenvalues[1];
+            sig3 = this->fEigenvalues[2];
+            s1=sig1-(1./3.)*(sig1+sig2+sig3);
+            s2=sig2-(1./3.)*(sig1+sig2+sig3);
+            s3=sig3-(1./3.)*(sig1+sig2+sig3);
+            
+            TPZTensor<REAL> SigVol;
+            SigVol.XX()=K*(sig1+sig2+sig3);
+            SigVol.YY()=K*(sig1+sig2+sig3);
+            SigVol.ZZ()=K*(sig1+sig2+sig3);
+            
+            Stress.XX()=s1;
+            Stress.YY()=s2;
+            Stress.ZZ()=s3;
+            Stress*=(2*G);
+            Stress+=SigVol;
+            
+            
         }
         
         
@@ -260,7 +285,7 @@ public:
      * Method to print the tensor
      */
     void Print(std::ostream &out) const;
-
+    
 	/**
 	 Operator=
 	 */
@@ -290,6 +315,9 @@ public:
 	
 	//Specialization for TBASE = REAL
 	void Identity();
+    
+    
+    
 	
     /**
 	 Adiciona um tensor no tensor atual
@@ -413,7 +441,7 @@ public:
         T sqj2 = sqrt(J2);
         REAL sqj2val = shapeFAD::val(sqj2);
         T ratio;
-        if (fabs(sqj2val) > 1.e-6) 
+        if (fabs(sqj2val) > 1.e-6)
         {
             ratio = sigIJ[1]/sqj2;
         }
@@ -458,9 +486,6 @@ public:
 	 * Computes the eigenvectors and eigenvalues based on (page 742 Computational methods for computational plasticity/Souza Neto)
 	 */
     void EigenSystem(TPZDecomposed &eigensystem) const;
-	
-	
-	
 	
     /**
 	 Mnemonical access
@@ -683,8 +708,8 @@ T TPZTensor<T>::I1() const {
 template < class T >
 T TPZTensor<T>::I2() const {
     return -(fData[_XY_] * fData[_XY_] +
-            fData[_XZ_] * fData[_XZ_] +
-            fData[_YZ_] * fData[_YZ_])
+             fData[_XZ_] * fData[_XZ_] +
+             fData[_YZ_] * fData[_YZ_])
 	+ (fData[_XX_] * fData[_YY_] +
 	   fData[_YY_] * fData[_ZZ_] +
 	   fData[_XX_] * fData[_ZZ_] );
@@ -889,7 +914,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
     REAL denomval = shapeFAD::val(denom);
     TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
     TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
-
+    
     if (fabs(Rval) < 1.e-12 && fabs(denomval) < 1.e-12 && fabs(denomval) <= fabs(Rval)) {
         // three equal eigenvalues
         x1 = I1/3.;
@@ -1020,7 +1045,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
         x3 = x2;
         
         Eigenvectors[0]=sqrsigma;
-
+        
         Eigenvectors[1].Identity();
         Eigenvectors[1].Add(Eigenvectors[0],T(-1.));
         Eigenvectors[1].Scale(T(0.5));
@@ -1051,7 +1076,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
         Eigenvectors[0].Add(Eigenvectors[2],T(-1.));
         Eigenvectors[0].Scale(T(0.5));
         Eigenvectors[1] = Eigenvectors[0];
-
+        
     }
     else {
         
@@ -1067,7 +1092,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
     Eigenvalues[1]=x2;
     Eigenvalues[2]=x3;
     
-
+    
 }
 
 template <class T>
@@ -1088,7 +1113,7 @@ template <class T>
 void TPZTensor<T>::HaighWestergaard(T &LodeAngle, T &qsi, T &rho,
 									TPZTensor<T> & dLodeAngle, TPZTensor<T> & dQsi, TPZTensor<T> & dRho) const
 {
-//	T I1(this->I1()),
+    //	T I1(this->I1()),
     T J2(this->J2()), J3(this->J3());
 	T sqrtJ2 = sqrt(J2);
 	
@@ -1104,7 +1129,7 @@ void TPZTensor<T>::HaighWestergaard(T &LodeAngle, T &qsi, T &rho,
 	TPZTensor<T> TempTensor;
 	
 	LodeAngle = acos( J3/J2/sqrtJ2*T( sqrt(27.)/2.) ) / T(3.);
-//	T pi23 = T(2. * M_PI / 3.);
+    //	T pi23 = T(2. * M_PI / 3.);
 	
 	T temp = sqrt( T(3.) / ( J2*J2*J2 * T(4.) - J3*J3 * T(27.)) );
 	
@@ -1170,7 +1195,7 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const
     //    if(I3<T(1.e-6))I3=T(1.e-6);
     
     T R,THETA,Q,temp,temp2;
-//    T verif;
+    //    T verif;
     R = ( T(-2.)*(I1*I1*I1)+ T(9.)*I1*I2 - T(27.)* I3 )/54.;
     Q = ( (I1*I1) - (T(3.)*I2) )/T(9.);
     temp2 = (sqrt(Q*Q*Q));
@@ -1360,7 +1385,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	if(shapeFAD::val(lodetemp) <= -1.)
 	{
 		lodetemp *= T(0.999);	//	DebugStop();
-       // shapeFAD::val(lodetemp) *= T(0.999);	//	DebugStop();
+        // shapeFAD::val(lodetemp) *= T(0.999);	//	DebugStop();
         //lodetemp = T(-1.);
 		
 	}
@@ -1372,7 +1397,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	if(shapeFAD::val(lodetemp) >= 1.)
 	{
 		lodetemp *= T(0.999);
-       // shapeFAD::val(lodetemp)*= 0.999;
+        // shapeFAD::val(lodetemp)*= 0.999;
         // lodetemp = T(1.);
 		//DebugStop();
 	}
@@ -1395,7 +1420,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
     T oneoverden = T(1.)/denom;
     dJ2t.Multiply(oneoverden,1);
     dJ2t*=oneoverden;
-//    GradLode = dJ2t;
+    //    GradLode = dJ2t;
     
 	T acoslodetemp = acos(lodetemp);
 	Lode = acoslodetemp / T(3.);
@@ -1405,13 +1430,13 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 		Lode *= T(0.999);
 	}
 #ifdef MACOS
-//    feclearexcept(FE_ALL_EXCEPT);
-//	int res = fetestexcept(FE_ALL_EXCEPT);
-//	if(res)
-//	{
-//		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-//		DebugStop();
-//	}
+    //    feclearexcept(FE_ALL_EXCEPT);
+    //	int res = fetestexcept(FE_ALL_EXCEPT);
+    //	if(res)
+    //	{
+    //		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+    //		DebugStop();
+    //	}
     feclearexcept(FE_ALL_EXCEPT);
     
     if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT	)) {
@@ -1525,7 +1550,7 @@ template <class T>
 void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTensor<T> &dSigma2,TPZTensor<T> &dSigma3)const
 {
 	T I1(this->I1()), J2(this->J2());
-//	T J3(this->J3());
+    //	T J3(this->J3());
 	
 	if(fabs( shapeFAD::val(J2) ) < 1.e-6)J2 = 1.e-6;
     //	if(fabs( shapeFAD::val(J2) ) < 1.e-6)return;
