@@ -103,7 +103,7 @@ void TPZSkylParMatrix<TVar>::PrintState() {
 	for(i=0; i<neq; i++) cout << fDec[i] << ' ';
 	cout << endl;
 	cout << "Singular equations ";
-	std::list<int>::iterator it;
+	std::list<long>::iterator it;
 	for (it=fSingular.begin(); it!=fSingular.end(); it++) {
 		cout << *it << ' ';
 	}
@@ -360,7 +360,7 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt2(void *t) {
 }
 
 template<class TVar>
-int TPZSkylParMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
+int TPZSkylParMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 {
 	bool sing = this->fCorrectSingular;
 	this->fCorrectSingular = true;
@@ -414,7 +414,7 @@ int TPZSkylParMatrix<TVar>::Decompose_Cholesky()
 	{
 		std::stringstream sout;
 		sout << "Singular equations ";
-		std::list<int>::iterator it;
+		std::list<long>::iterator it;
 		for (it=fSingular.begin(); it!=fSingular.end(); it++) {
 			sout << *it << " ";
 		}
@@ -434,7 +434,7 @@ int TPZSkylParMatrix<TVar>::Decompose_Cholesky()
 }
 
 template<class TVar>
-int TPZSkylParMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
+int TPZSkylParMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 {
 	bool sing = this->fCorrectSingular;
 	this->fCorrectSingular = true;

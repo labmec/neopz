@@ -30,13 +30,13 @@ namespace pzgeom {
 			return false;
 		}
 		/** @brief Constructor for node indexes given */
-		TPZQuadraticTrig(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
+		TPZQuadraticTrig(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
 		}
 		/** @brief Default constructor */
 		TPZQuadraticTrig() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>() {
 		}
 		/** @brief Copy constructor for node map given */
-		TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
+		TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
 		TPZQuadraticTrig(const TPZQuadraticTrig &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
@@ -79,8 +79,8 @@ namespace pzgeom {
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
-										  int matid, int& index);
+										  TPZVec<long>& nodeindexes,
+										  int matid, long& index);
 
 	};
 

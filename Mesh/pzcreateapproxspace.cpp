@@ -37,12 +37,12 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcreateapproximationspace")
 
 using namespace pzshape;
 
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
 		TPZCompEl *result = new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
@@ -50,32 +50,32 @@ TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
     }
 	return NULL;
 }
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeCube>(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapePrism>(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapePiram>(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeTetra>(mesh,gel,index);
 	return NULL;
@@ -83,42 +83,42 @@ TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 
 
 // with mem
-TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapePoint> >(mesh,gel,index) ;
 	return NULL;
 }
-TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem < TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
 	return NULL;
 }
-TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
 	return NULL;
@@ -130,9 +130,9 @@ TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 /** Only element of material id in the set<int> will be created */
 void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs) const {
 	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh.Reference()->ElementVec();
-	int i, nelem = elvec.NElements();
-	int neltocreate = 0;
-	int index;
+	long i, nelem = elvec.NElements();
+	long neltocreate = 0;
+	long index;
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;
@@ -141,7 +141,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 		}
 	}
 	std::set<int> matnotfound;
-	int nbl = cmesh.Block().NBlocks();
+	long nbl = cmesh.Block().NBlocks();
     if(neltocreate > nbl) 
     {
         cmesh.Block().SetNBlocks(neltocreate);
@@ -198,7 +198,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh) const {
 }
 
 void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs){
-    for(int el = 0; el < cmesh.ElementVec().NElements(); el++)
+    for(long el = 0; el < cmesh.ElementVec().NElements(); el++)
 	{
 		TPZCompEl * compEl = cmesh.ElementVec()[el];
 		if(!compEl) continue;
@@ -218,7 +218,7 @@ void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh, const std
 }
 
 void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh){
-    for(int el = 0; el < cmesh.ElementVec().NElements(); el++)
+    for(long el = 0; el < cmesh.ElementVec().NElements(); el++)
 	{
 		TPZCompEl * compEl = cmesh.ElementVec()[el];
 		if(!compEl) continue;
@@ -417,7 +417,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
 /*
  * @brief Create a computational element using the function pointer for the topology
  */
-TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index) const
+TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, long &index) const
 {
     switch (gel->Type()) {
         case EPoint:
@@ -475,8 +475,8 @@ void TPZCreateApproximationSpace::SetCreateFunctions(TPZVec<TCreateFunction> &cr
  */
 void TPZCreateApproximationSpace::CondenseLocalEquations(TPZCompMesh &cmesh)
 {
-    int nel = cmesh.NElements();
-    int iel;
+    long nel = cmesh.NElements();
+    long iel;
     for (iel=0; iel<nel; iel++) {
         TPZCompEl *cel = cmesh.ElementVec()[iel];
         if(!cel) {
@@ -492,8 +492,8 @@ void TPZCreateApproximationSpace::CondenseLocalEquations(TPZCompMesh &cmesh)
  */
 void TPZCreateApproximationSpace::UndoCondenseLocalEquations(TPZCompMesh &cmesh)
 {
-    int nel = cmesh.NElements();
-    int iel;
+    long nel = cmesh.NElements();
+    long iel;
     for (iel=0; iel<nel; iel++) {
         TPZCompEl *cel = cmesh.ElementVec()[iel];
         TPZCondensedCompEl *condel = dynamic_cast<TPZCondensedCompEl *>(cel);
@@ -509,8 +509,8 @@ void TPZCreateApproximationSpace::UndoCondenseLocalEquations(TPZCompMesh &cmesh)
  */
 void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
 {
-    int numcell = cmesh.NElements();
-    int el;
+    long numcell = cmesh.NElements();
+    long el;
     for (el = 0; el<numcell ; el++) {
         TPZCompEl *cel = cmesh.ElementVec()[el];
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
@@ -539,7 +539,7 @@ void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
             if (nsconnects != 1) {
                 continue;
             }
-            int cindex = intel->SideConnectIndex(0, is);
+            long cindex = intel->SideConnectIndex(0, is);
             TPZConnect &c = intel->Connect(intel->SideConnectLocId(0,is));
             if (c.HasDependency()) {
                 continue;
@@ -547,7 +547,7 @@ void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
             int nshape = 1;
             int nstate = 1;
             int order = 0;
-            int cindex2 = cmesh.AllocateNewConnect(nshape, nstate, order);
+            long cindex2 = cmesh.AllocateNewConnect(nshape, nstate, order);
 //            TPZConnect &c2 = cmesh.ConnectVec()[cindex];
             TPZFNMatrix<2,STATE> depmat(2,1,1.);
             c.AddDependency(cindex, cindex2, depmat, 0, 0, 2, 1);
@@ -561,8 +561,8 @@ void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
  */
 void TPZCreateApproximationSpace::UndoMakeRaviartThomas(TPZCompMesh &cmesh)
 {
-    int numcell = cmesh.NElements();
-    int el;
+    long numcell = cmesh.NElements();
+    long el;
     for (el = 0; el<numcell ; el++) {
         TPZCompEl *cel = cmesh.ElementVec()[el];
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
@@ -597,8 +597,8 @@ void TPZCreateApproximationSpace::UndoMakeRaviartThomas(TPZCompMesh &cmesh)
 void TPZCreateApproximationSpace::CreateInterfaceElements(TPZCompMesh *mesh, bool betweencontinuous, bool multiphysics)
 {
     TPZChunkVector<TPZCompEl *> compelvec = mesh->ElementVec();
-    int nel = compelvec.NElements();
-    for (int el=0; el<nel; el++) {
+    long nel = compelvec.NElements();
+    for (long el=0; el<nel; el++) {
         TPZCompEl *cel = compelvec[el];
         if (!cel) {
             continue;

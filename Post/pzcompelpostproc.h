@@ -48,7 +48,7 @@ public:
 	
 	virtual ~TPZCompElPostProc();
 	
-	TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+	TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
 	
 	TPZCompElPostProc(TPZCompMesh &mesh, const TPZCompElPostProc<TCOMPEL> &copy);
 	
@@ -58,8 +58,8 @@ public:
 	 */
 	TPZCompElPostProc(TPZCompMesh &mesh,
 					  const TPZCompElPostProc<TCOMPEL> &copy,
-					  std::map<int,int> & gl2lcConMap,
-					  std::map<int,int> & gl2lcElMap);
+					  std::map<long,long> & gl2lcConMap,
+					  std::map<long,long> & gl2lcElMap);
 	
 	/** @brief Initializes the shape function type in order to allow non ill-conditioned L2 Transfer matrix */
 	void InitializeShapeFunctions();
@@ -73,7 +73,7 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> & gl2lcConMap,std::map<int,int>&gl2lcElMap) const;
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap) const;
 	
     /**
 	 * @brief Prints element data
@@ -170,7 +170,7 @@ inline TPZCompElPostProc<TCOMPEL>::~TPZCompElPostProc() {
 }
 
 template<class TCOMPEL>
-inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZReferredCompEl<TCOMPEL>(mesh, gel, index){
 	TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
 }
@@ -184,8 +184,8 @@ TPZReferredCompEl<TCOMPEL>(mesh, copy) {
 template<class TCOMPEL>
 inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh,
 													 const TPZCompElPostProc<TCOMPEL> &copy,
-													 std::map<int,int> & gl2lcConMap,
-													 std::map<int,int> & gl2lcElMap):
+													 std::map<long,long> & gl2lcConMap,
+													 std::map<long,long> & gl2lcElMap):
 TPZReferredCompEl<TCOMPEL>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
@@ -197,7 +197,7 @@ inline TPZCompEl * TPZCompElPostProc<TCOMPEL>::Clone(TPZCompMesh &mesh) const{
 }
 
 template <class TCOMPEL>
-inline TPZCompEl * TPZCompElPostProc<TCOMPEL>::ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> & gl2lcConMap,std::map<int,int>&gl2lcElMap)const{
+inline TPZCompEl * TPZCompElPostProc<TCOMPEL>::ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap)const{
     return new TPZCompElPostProc<TCOMPEL> (mesh, *this, gl2lcConMap, gl2lcElMap);
 }
 
@@ -255,7 +255,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	
 	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 	
-	int numeq = ef.fMat.Rows();
+	long numeq = ef.fMat.Rows();
 	TPZFMatrix<STATE> efTemp(numeq,1,0.);
 	
 	TPZMaterialData data, dataRef;
@@ -315,7 +315,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 			return;
 		}
 		data.sol[0].Resize(stackedVarSize,0.);
-		int index = 0;
+		long index = 0;
 		// stacking the solutions to post process.
 #ifdef LOG4CXX
         if(CompElPostProclogger->isDebugEnabled())
@@ -412,8 +412,8 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
 	}
 	REAL res = 0;
 	int dim = d1.x.NElements();
-	int nshape = d1.phi.Rows();
-	int nshape2 = d2.phi.Rows();
+	long nshape = d1.phi.Rows();
+	long nshape2 = d2.phi.Rows();
 	if(dim != d2.x.NElements() || nshape!= nshape2) 
 	{
 		DebugStop();

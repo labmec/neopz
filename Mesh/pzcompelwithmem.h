@@ -41,15 +41,15 @@ public:
 	
 	virtual ~TPZCompElWithMem();
 	
-	TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+	TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
 	
 	TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy);
 	
 	/** @brief used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
 	TPZCompElWithMem(TPZCompMesh &mesh,
 					 const TPZCompElWithMem<TBASE> &copy,
-					 std::map<int,int> & gl2lcConMap,
-					 std::map<int,int> & gl2lcElMap);
+					 std::map<long,long> & gl2lcConMap,
+					 std::map<long,long> & gl2lcElMap);
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
 		return new TPZCompElWithMem<TBASE> (mesh, *this);
@@ -66,14 +66,14 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> & gl2lcConMap,std::map<int,int>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> & gl2lcConMap,std::map<long,long>&gl2lcElMap) const
 	{
 		return new TPZCompElWithMem<TBASE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
 	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
     
-    int GetGlobalIntegrationPointIndex(TPZMaterialData &data);
+    long GetGlobalIntegrationPointIndex(TPZMaterialData &data);
 	
 protected:
 	
@@ -92,7 +92,7 @@ public:
      * Will return an empty vector if no memory is associated with the integration point
      * Is implemented in TPZCompElWithMem
      */
-    void GetMemoryIndices(TPZVec<int> &indices) const;
+    void GetMemoryIndices(TPZVec<long> &indices) const;
 
     /// Modify the maximum order an integration rule can integrate
 	void SetIntegrationRule(int ord);
@@ -128,7 +128,7 @@ public:
 	
 private:
 	
-	TPZStack<int,128> fIntPtIndices;
+	TPZStack<long,128> fIntPtIndices;
 	
 };
 
@@ -138,7 +138,7 @@ TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TBASE() {
 }
 
 template<class TBASE>
-TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TBASE(mesh, gel, index){
 	PrepareIntPtIndices();
 }
@@ -152,8 +152,8 @@ TBASE(mesh, copy) {
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh,
 										  const TPZCompElWithMem<TBASE> &copy,
-										  std::map<int,int> & gl2lcConMap,
-										  std::map<int,int> & gl2lcElMap) :
+										  std::map<long,long> & gl2lcConMap,
+										  std::map<long,long> & gl2lcElMap) :
 TBASE(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	CopyIntPtIndicesFrom(copy);
@@ -208,9 +208,9 @@ inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
 		return;
 	}
 	
-	int n = fIntPtIndices.NElements();
+	long n = fIntPtIndices.NElements();
 	
-	for(int i = 0; i < n; i++){
+	for(long i = 0; i < n; i++){
 		this->Material()->FreeMemItem(fIntPtIndices[i]);
 	}
 	
@@ -239,7 +239,7 @@ inline void TPZCompElWithMem<TBASE>::SetIntegrationRule(int ord)
  * Is implemented in TPZCompElWithMem
  */
 template<class TBASE>
-inline void TPZCompElWithMem<TBASE>::GetMemoryIndices(TPZVec<int> &indices) const
+inline void TPZCompElWithMem<TBASE>::GetMemoryIndices(TPZVec<long> &indices) const
 {
     indices = fIntPtIndices;
 }
@@ -255,7 +255,7 @@ void TPZCompElWithMem<TBASE>::CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE>
     	return;
   	}
 	
-	int i, n = copy.fIntPtIndices.NElements();
+	long i, n = copy.fIntPtIndices.NElements();
 	fIntPtIndices.Resize(n);
 	
 	for(i = 0; i < n; i++)
@@ -275,9 +275,9 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
 }
 
 template <class TBASE>
-inline int TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialData &data)
+inline long TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialData &data)
 {
-    int glIntegralPt = -1;
+    long glIntegralPt = -1;
     if (data.intLocPtIndex >= 0) {
         glIntegralPt = fIntPtIndices[ data.intLocPtIndex ]; // returning the
     }

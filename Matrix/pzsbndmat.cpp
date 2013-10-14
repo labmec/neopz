@@ -527,7 +527,7 @@ TPZSBMatrix<TVar>::SetBand(const long newBand )
 /*** Decompose Cholesky ***/
 template<class TVar>
 int
-TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
+TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 {
 	return Decompose_Cholesky();
 }
@@ -599,7 +599,7 @@ TPZSBMatrix<TVar>::Decompose_Cholesky()
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSBMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
+TPZSBMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 {
 	return Decompose_LDLt();
 }

@@ -30,7 +30,7 @@ namespace pzgeom
 		/** @brief It is not linear mapping */
 		bool IsLinearMapping() const { return false; }
 		/** @brief Copy constructor with map of nodes */
-		TPZArc3D(const TPZArc3D &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		TPZArc3D(const TPZArc3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
@@ -54,8 +54,8 @@ namespace pzgeom
 			this->fRadius   = cp.fRadius;
 		}
 		
-		TPZArc3D(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
-			int nnod = nodeindexes.NElements();
+		TPZArc3D(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
+			long nnod = nodeindexes.NElements();
 			if(nnod != 3)
 			{
 				std::cout << "Arc geometry created with " << nnod << " nodes, bailing out\n";
@@ -107,9 +107,9 @@ namespace pzgeom
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
+										  TPZVec<long>& nodeindexes,
 										  int matid,
-										  int& index);
+										  long& index);
 		void Print(std::ostream &out)
 		{
 			pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);

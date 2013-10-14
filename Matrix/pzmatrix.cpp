@@ -599,7 +599,7 @@ void TPZMatrix<TVar>::Transpose(TPZMatrix<TVar> *T) const {
 /*************/
 /*** Solve ***/
 template<class TVar>
-int TPZMatrix<TVar>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<int> &singular) {
+int TPZMatrix<TVar>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular) {
 	
 	switch ( dt ) {
 		case ELU:
@@ -972,7 +972,7 @@ void TPZMatrix< std::complex<long double> >::SolveIR(long &numiterations, TPZSol
 /*****************/
 /*** Decompose_LU ***/
 template <class TVar>
-int TPZMatrix<TVar>::Decompose_LU(std::list<int> &singular) {
+int TPZMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
 	return Decompose_LU();
 }
 template <class TVar>
@@ -1030,7 +1030,7 @@ int TPZMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
     return( 1 );
 }
 template <class TVar>
-int TPZMatrix<TVar>::Decompose_LDLt(std::list<int> &singular) {
+int TPZMatrix<TVar>::Decompose_LDLt(std::list<long> &singular) {
 	return Decompose_LDLt();
 }
 template <class TVar>
@@ -1067,7 +1067,7 @@ int TPZMatrix<TVar>::Decompose_LDLt() {
 	return( 1 );
 }
 template <class TVar>
-int TPZMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular) {
+int TPZMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
 	if (  fDecomposed && fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
 	if (  fDecomposed ) return ECholesky;
 	if ( Rows()!=Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );

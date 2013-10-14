@@ -18,9 +18,9 @@ class TPZSparseBlockDiagonal : public TPZBlockDiagonal<TVar>
 {
 public:
     TPZSparseBlockDiagonal();
-    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows);
+    TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows);
     
-    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows, int color, TPZVec<int> &colors);
+    TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows, int color, TPZVec<int> &colors);
 	
     ~TPZSparseBlockDiagonal();
 	
@@ -46,9 +46,9 @@ public:
     
 protected:
 	/** @brief Equation numbers for each block */
-    TPZVec<int> fBlock;
+    TPZVec<long> fBlock;
 	/** @brief Index to first element of each block */
-    TPZVec<int> fBlockIndex;
+    TPZVec<long> fBlockIndex;
 	
     void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const;
     void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const;

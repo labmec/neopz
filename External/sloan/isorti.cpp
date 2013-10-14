@@ -1,12 +1,12 @@
  /* Subroutine */ 
-int isorti_ (int *nl, int *list, int *, int *key)
+int isorti_ (long *nl, long *list, long *, long *key)
 //nl, list, nk, key
 {
-    static int i, j, k, l, m;
+    static long i, j, k, l, m;
     static double r, t;
-    static int ij, il[21], iu[21];
+    static long ij, il[21], iu[21];
     static double tt;
-    static int itt;
+    static long itt;
 
 /*                                  SPECIFICATIONS FOR ARGUMENTS */
 /*                                  SPECIFICATIONS FOR LOCAL VARIABLES */

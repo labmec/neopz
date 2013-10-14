@@ -21,7 +21,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivPressureBound"))
 
 
 template <class TSHAPE>
-TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
     
     
@@ -42,11 +42,11 @@ TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
     
     int nstate = 1;
     
-    int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,this->fPressureOrder);
+    long newnodeindex = mesh.AllocateNewConnect(nshape,nstate,this->fPressureOrder);
     TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
     newnod.SetLagrangeMultiplier(1);
     this->fConnectIndexes[this->NConnects()-1] = this->CreateMidSideConnect(2);
-    int seqnum = newnod.SequenceNumber();
+    long seqnum = newnod.SequenceNumber();
     newnod.SetLagrangeMultiplier(1);
     mesh.Block().Set(seqnum,nshape);
     mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()-1]].IncrementElConnected();
@@ -68,7 +68,7 @@ TPZCompElHDivBound2<TSHAPE>(mesh,copy)
 
 
 template<class TSHAPE>
-TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy, std::map<int,int> & gl2lcConMap, std::map<int,int> & gl2lcElMap) :
+TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, const TPZCompElHDivPressureBound<TSHAPE> &copy, std::map<long,long> & gl2lcConMap, std::map<long,long> & gl2lcElMap) :
 TPZCompElHDivBound2<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
     fPressureOrder = copy.fPressureOrder;
@@ -93,7 +93,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::SetPressureOrder(int order)
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressureBound<TSHAPE>::SetConnectIndex(int i, int connectindex)
+void TPZCompElHDivPressureBound<TSHAPE>::SetConnectIndex(int i, long connectindex)
 {
 	TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(i, connectindex);
 	
@@ -177,7 +177,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::SetSideOrder(int side, int order)
 	}
 	TPZConnect &c = this->Connect(connectaux);
     c.SetOrder(order);
-    int seqnum = c.SequenceNumber();
+    long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
@@ -220,15 +220,15 @@ void TPZCompElHDivPressureBound<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressureBound<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int> &shapeindex)
+void TPZCompElHDivPressureBound<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex)
 {
 
-    TPZManVector<int> firstshapeindex;
+    TPZManVector<long> firstshapeindex;
 	FirstShapeIndex(firstshapeindex);
 	int nshape = TPZIntelGen<TSHAPE>::NShapeF();
 	shapeindex.Resize(nshape);
-	int nsides = sides.NElements();
-	int is, count=0;
+	long nsides = sides.NElements();
+	long is, count=0;
 	for(is=0 ; is<nsides; is++)
 	{
 		int side = sides[is];
@@ -254,7 +254,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, T
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressureBound<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index)
+void TPZCompElHDivPressureBound<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index)
 {
     DebugStop();
     std::cout << "\nNao implementado";

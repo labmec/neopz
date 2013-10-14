@@ -148,7 +148,7 @@ namespace pzshape {
 	}
 	
 	
-	void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		bool linear = true;
 		int is,d;
@@ -171,7 +171,7 @@ namespace pzshape {
 			REAL outval;
 			ProjectPoint3dCubeToRib(rib,pt,outval);
 			TPZManVector<REAL,1> outvalvec(1,outval);
-			TPZVec<int> ids(2);
+			TPZVec<long> ids(2);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
 			id1 = SideNodes[rib][1];
@@ -210,7 +210,7 @@ namespace pzshape {
 			dphin.Zero();
 			int ordin =  (ord1 > ord2) ? ord1 : ord2;
 			ordin--;
-			TPZManVector<int> ids(4);
+			TPZManVector<long> ids(4);
 			//TPZVec<int> ids(4);
 			//	int id0,id1;
 			int i;
@@ -246,7 +246,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeCube::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeCube::SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(side<0 || side>26) PZError << "TPZCompElC3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==26) Shape(pt,id,order,phi,dphi);
 		else if(side<8) TPZShapePoint::Shape(pt,id,order,phi,dphi);
@@ -347,7 +347,7 @@ namespace pzshape {
 	
 #ifdef _AUTODIFF
 	
-	void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi)
+	void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<long> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi)
 	{
 		const int ndim = 3;
 		
@@ -368,7 +368,7 @@ namespace pzshape {
 		for (int rib = 0; rib < 12; rib++) {
 			FADREAL outval(ndim, 0.0);
 			ProjectPoint3dCubeToRib(rib,pt,outval);
-			TPZVec<int> ids(2);
+			TPZVec<long> ids(2);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
 			id1 = SideNodes[rib][1];
@@ -413,7 +413,7 @@ namespace pzshape {
 			//dphin.Zero();
 			int ordin =  (ord1 > ord2) ? ord1 : ord2;
 			ordin--;
-			TPZManVector<int> ids(4);
+			TPZManVector<long> ids(4);
 			//TPZVec<int> ids(4);
 			int id0,id1,i;
 			for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];

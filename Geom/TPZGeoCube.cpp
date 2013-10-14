@@ -156,10 +156,10 @@ namespace pzgeom {
 		}
 		
 		if(side<8) {
-			TPZManVector<int> nodeindexes(1);
+			TPZManVector<long> nodeindexes(1);
 			//    TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->NodeIndex(side);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//    gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
@@ -167,11 +167,11 @@ namespace pzgeom {
 		} 
 		else 
 			if(side > 7 && side < 20) {//side = 8 a 19 : arestas
-				TPZManVector<int> nodes(2);
+				TPZManVector<long> nodes(2);
 				nodes[0] = orig->SideNodeIndex(side,0);
 				nodes[1] = orig->SideNodeIndex(side,1);
 				//      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-				int index;
+				long index;
 				TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 				TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,0)));
 				TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,1)));
@@ -180,12 +180,12 @@ namespace pzgeom {
 			} 
 			else 
 				if(side > 19 && side < 26) {//side = 20 a 25 : faces
-					TPZManVector<int> nodes(4);
+					TPZManVector<long> nodes(4);
 					int in;
 					for (in=0;in<4;in++){
 						nodes[in] = orig->SideNodeIndex(side,in);
 					}
-					int index;
+					long index;
 					TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 					//		TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 					for (in=0;in<8;in++){
@@ -203,9 +203,9 @@ namespace pzgeom {
 	 * Creates a geometric element according to the type of the father element
 	 */
 	TPZGeoEl *TPZGeoCube::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										   TPZVec<int>& nodeindexes,
+										   TPZVec<long>& nodeindexes,
 										   int matid,
-										   int& index)
+										   long& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}

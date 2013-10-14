@@ -44,8 +44,8 @@ void TPZMultiphysicsElement::CreateInterfaces()
         if(!highlist.NElements()) {
             this->CreateInterface(side);//s�tem iguais ou grande => pode criar a interface
         } else {
-            int ns = highlist.NElements();
-            int is;
+            long ns = highlist.NElements();
+            long is;
             for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual
                 const int higheldim = highlist[is].Reference().Dimension();
                 if(higheldim != InterfaceDimension) continue;
@@ -64,7 +64,7 @@ void TPZMultiphysicsElement::CreateInterfaces()
                 if ( delSp->ExistsInterface(highlist[is].Side()) ) {
                     //          cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
                 }
-                else{
+                else {
                     delSp->CreateInterface(highlist[is].Side());
                 }
             }
@@ -87,11 +87,11 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 	TPZStack<TPZCompElSide> list;
 	list.Resize(0);
 	thisside.EqualLevelElementList(list,0,0);//retorna distinto ao atual ou nulo
-	int size = list.NElements();
+	long size = list.NElements();
 	//espera-se ter os elementos computacionais esquerdo e direito
 	//ja criados antes de criar o elemento interface
     // try to create an interface element between myself and an equal sized neighbour
-    for (int is=0; is<size; is++)
+    for (long is=0; is<size; is++)
     {
 		//Interface has the same material of the neighbour with lesser dimension.
 		//It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
@@ -172,7 +172,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 //            }
 //		}
 		
-		int index;
+		long index;
 		
 		
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
@@ -187,8 +187,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 			}
 #endif
 		}
-		
-		if(Dimension() > list[is].Reference().Dimension()){
+		if(Dimension() > list[is].Reference().Dimension()) {
 			//o de volume eh o direito caso um deles seja BC
 			//a normal aponta para fora do contorno
 			TPZCompElSide thiscompelside(this, thisside.Side());
@@ -259,7 +258,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		//int lowside = lower.Side();
 		//existem esquerdo e direito: this e lower
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-		int index;
+		long index;
 		
 		
 		if(Dimension() > lowcel->Dimension()){
@@ -337,7 +336,7 @@ void TPZMultiphysicsElement::RemoveInterfaces(){
 		//thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
 		RemoveInterface(is);// chame remove interface do elemento atual (para o side atual)
 		thisside.HigherLevelElementList(list,0,0);// procurar na lista de elementos menores (todos)
-		int size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
+		long size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
 		//tirando os elementos de interface da lista
 		for(i=0;i<size;i++){
 			if(list[i].Element()->Type() == EInterface) {
@@ -377,7 +376,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	list.Resize(0);
 	TPZCompElSide thisside(this,side);
 	thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
-	int size = list.NElements(),i=-1;
+	long size = list.NElements(), i=-1;
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
 #ifdef LOG4CXX
@@ -408,8 +407,8 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 
 void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
 {
-    int nmeshes = NMeshes();
-    for (int iel = 0; iel<nmeshes; iel++) {
+    long nmeshes = NMeshes();
+    for (long iel = 0; iel<nmeshes; iel++) {
         TPZCompEl *cel = Element(iel);
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         if (!intel) {

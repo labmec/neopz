@@ -40,11 +40,11 @@ public:
 	
 public: //members
 	
-	  int fIndex;
+	  long fIndex;
 	
 	  std::string fName;
 	
-	  int fNumEq;
+	  long fNumEq;
 };
 
 class  TPZPostProcMat : public TPZDiscontinuousGalerkin
@@ -60,7 +60,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
        *  contains the index of the material object within the
        *  vector
        */
-      TPZPostProcMat(int id);
+      TPZPostProcMat(long id);
 
       /**
 	   * @brief Creates a material object based on the referred object and
@@ -174,7 +174,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
     /**
      * @brief Return the name of the ith postproc variable
      */
-    void GetPostProcVarName(int index, std::string &varname)
+    void GetPostProcVarName(long index, std::string &varname)
     {
         varname = fVars[index].fName;
         

@@ -33,7 +33,7 @@ public:
 	/** @brief Number of connects for the element */
 	virtual int NConnects() = 0;
 	/** @brief Get the Id of the graphical element */
-	int Id() {return fId;}
+	long Id() {return fId;}
 	/** @brief Get the type of the graphical element */
 	virtual MElementType Type() = 0;
 	
@@ -43,16 +43,16 @@ public:
 	virtual int NNodes() = 0;
 	
 	/** @brief Return the graphical connect */
-	virtual TPZGraphNode *Connect(int con) = 0;
+	virtual TPZGraphNode *Connect(long con) = 0;
 	/** @brief Set graphical element id */
-	void SetId(int id) { fId = id;}
+	void SetId(long id) { fId = id;}
 	
 	/** @brief Number of points to graphical resolution */
 	virtual int NPoints(TPZGraphNode *n) = 0;
 	
 	virtual int NElements() = 0;
 	/** @brief Sets a ith graphical node */
-	virtual void SetNode(int i,TPZGraphNode *n);
+	virtual void SetNode(long i,TPZGraphNode *n);
 	
 	/** @brief Set dx style for connectivity information */
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle) = 0;
@@ -86,7 +86,7 @@ protected:
 	
 protected:
 	/** @brief Id of the graphical element */
-	int fId;
+	long fId;
 	
 	/** @brief This method maps the index of a point to parameter space as a function of the number of divisions */
 	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);

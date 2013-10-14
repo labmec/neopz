@@ -31,19 +31,19 @@ TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpo
 	fPreferredOrder = copy.fPreferredOrder;
 }
 
-TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<int,int> &gl2lcElMap)
+TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<long,long> &gl2lcElMap)
 : TPZCompEl(mesh, copy, gl2lcElMap)
 {
 	fPreferredOrder = copy.fPreferredOrder;
 }
 
-TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, int &index)
+TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, long &index)
 : TPZCompEl(mesh, copy, index)
 {
 	fPreferredOrder = copy.fPreferredOrder;
 }
 
-TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index)
+TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index)
 : TPZCompEl(mesh,gel,index)
 {
 	fPreferredOrder = mesh.GetDefaultOrder();
@@ -83,7 +83,7 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	this->Shape(intpoint,phi,dphi);
     
-		int nshape = phi.Rows();
+	int nshape = phi.Rows();
 	int ieq;
 	switch(dim){
 		case 0:
@@ -138,8 +138,8 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	data.jacinv.Redim(dim,dim);
 	data.x.Resize(3);
 	if (data.fNeedsSol){
-        int nsol = data.sol.size();
-        for (int is=0; is<nsol; is++) {
+        long nsol = data.sol.size();
+        for (long is=0; is<nsol; is++) {
             data.sol[is].Resize(nstate);
             data.dsol[is].Redim(dim,nstate);            
         }
@@ -214,14 +214,15 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 		return; // place a breakpoint here if this is an issue
 	}
 
-	thisGeoEl->     CenterPoint(thisFace,      thisCenter);
+	thisGeoEl->CenterPoint(thisFace, thisCenter);
 	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
     
 	
-	thisGeoEl->     X(thisCenter,     thisXVol);
+	thisGeoEl->X(thisCenter,thisXVol);
 	neighbourGeoEl->X(neighbourCenter,neighbourXVol);
 	
-	for(i = 0; i < 3; i++)vec[i] = -neighbourXVol[i] + thisXVol[i];// vector towards the center of the neighbour element
+	for(i = 0; i < 3; i++)
+		vec[i] = -neighbourXVol[i] + thisXVol[i];// vector towards the center of the neighbour element
 	
 	dim = thisGeoEl->Dimension();
 	
@@ -233,7 +234,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 			data.normal[2] = 0.;
 			break;
 		case(1):
-			for(i = 0 ; i < 3; i ++)axes1[i] = data.axes(0,i); // rib direction
+			for(i = 0 ; i < 3; i ++) axes1[i] = data.axes(0,i); // rib direction
 			this->VectorialProd(axes1, vec, axes2);
 			this->VectorialProd(axes2, axes1, data.normal, true);
 			break;
@@ -605,7 +606,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	int iv=0,in;
 	for(in=0; in<locnod; in++) {
 		df = &Connect(in);
-		int dfseq = df->SequenceNumber();
+		long dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
 			fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
@@ -639,8 +640,8 @@ void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous) {
 		if(!highlist.NElements()) {
 			this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
 		} else {
-			int ns = highlist.NElements();
-			int is;
+			long ns = highlist.NElements();
+			long is;
 			for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual
 				const int higheldim = highlist[is].Reference().Dimension();
 				if(higheldim != InterfaceDimension) continue;
@@ -652,14 +653,14 @@ void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous) {
 				
 				TPZCompElSide delside( del, highlist[is].Side() );
 				TPZInterpolationSpace * delSp = dynamic_cast<TPZInterpolationSpace*>(del);
-				if (!delSp){
+				if (!delSp) {
 					PZError << "\nERROR AT " << __PRETTY_FUNCTION__ <<  " - CASE NOT AVAILABLE\n";
 					return;
 				}
 				if ( delSp->ExistsInterface(delside.Reference()) ) {
 					//          cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
 				}
-				else{
+				else {
 					delSp->CreateInterface(highlist[is].Side(), BetweenContinuous);
 				}
 			}
@@ -681,7 +682,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 	TPZStack<TPZCompElSide> list;
 	list.Resize(0);
 	thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
-	const int size = list.NElements();
+	const long size = list.NElements();
     
     if (size > 1) {
         DebugStop();
@@ -691,7 +692,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 	if(size){
 		//Interface has the same material of the neighbour with lesser dimension.
 		//It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
-		int index;
+		long index;
 		
 		TPZCompEl *list0 = list[0].Element();
 		int list0side = list[0].Side();
@@ -726,7 +727,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
             }
             TPZCompElSide thiscompelside(this, thisside);
             TPZCompElSide neighcompelside(list0, neighside);
-            int index;
+            long index;
             newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
 
         } else 
@@ -825,7 +826,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 		}
         TPZInterfaceElement * newcreatedinterface = NULL;
 
-		int index;
+		long index;
 		
         if(Dimension() == lowcel->Dimension()){///faces internas
             
@@ -835,7 +836,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
             
             TPZCompElSide lowcelcompelside(lowcel, neighside);
             TPZCompElSide thiscompelside(this, thisside);
-            int index;
+            long index;
             newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
         }
         else{
@@ -944,7 +945,7 @@ void TPZInterpolationSpace::RemoveInterfaces(){
 		//thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
 		RemoveInterface(is);// chame remove interface do elemento atual (para o side atual)
 		thisside.HigherLevelElementList(list,0,0);// procurar na lista de elementos menores (todos)
-		int size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
+		long size = list.NElements(), i;            // 'isto pode incluir elementos interfaces'
 		//tirando os elementos de interface da lista
 		for(i=0;i<size;i++){
 			if(list[i].Element()->Type() == EInterface) {
@@ -960,7 +961,7 @@ void TPZInterpolationSpace::RemoveInterfaces(){
 			equal.Resize(0);// para cada elemento menor e' preciso verificar a dimensao,
 			list[i].EqualLevelElementList(equal,0,0);//montar a lista de elementos iguais (todos)
 			equal.Push(list[i]);//n� �incorporado no m�odo anterior
-			int neq = equal.NElements(),k=-1;
+			long neq = equal.NElements(),k=-1;
 			while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descont�uo cujo
 			if(!neq || k == neq){                               //lado faz parte da parti� do lado side do this
 				LOGPZ_FATAL(logger, " Inconsistency of data");
@@ -984,7 +985,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	list.Resize(0);
 	TPZCompElSide thisside(this,side);
 	thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
-	int size = list.NElements(),i=-1;
+	long size = list.NElements(),i=-1;
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
 #ifdef LOG4CXX_keep
@@ -1342,7 +1343,9 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 		LOGPZ_ERROR(logger,sout.str());
 		return;
 	}
-	TPZStack<int> connectlistcoarse,dependencyordercoarse, corblocksize;
+	TPZStack<long> connectlistcoarse;
+	TPZStack<int> corblocksize;
+	TPZStack<int> dependencyordercoarse;
 	connectlistcoarse.Resize(0);
 	dependencyordercoarse.Resize(0);
 	corblocksize.Resize(0);
@@ -1507,25 +1510,24 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	for(in=0; in<locnod; in++) {
 		//    int cind = connectlistcoarse[in];
 		if(Connect(in).HasDependency()) continue;
-		int locblocknumber = Connect(in).SequenceNumber();
+		long locblocknumber = Connect(in).SequenceNumber();
 		int locblocksize = locblock.Size(in);
-		int locblockpos = locblock.Position(in);
+		long locblockpos = locblock.Position(in);
 		TPZStack<int> locblockvec;
 		TPZStack<int> globblockvec;
-		int numnonzero = 0,jn;
+		long numnonzero = 0, jn;
 		//      if(transfer.HasRowDefinition(locblocknumber)) continue;
 		
 		for(jn = 0; jn<cornod; jn++) {
 			int corblocksize = corblock.Size(jn);
-			int corblockpos = corblock.Position(jn);
-			int cind = connectlistcoarse[jn];
+			long corblockpos = corblock.Position(jn);
+			long cind = connectlistcoarse[jn];
 			TPZConnect &con = coarsel.Mesh()->ConnectVec()[cind];
 			if(con.HasDependency()) continue;
-			int corblocknumber = con.SequenceNumber();
+			long corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
 			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
-			loccormat.GetSub(locblockpos,corblockpos,
-							 locblocksize,corblocksize,smalll);
+			loccormat.GetSub(locblockpos,corblockpos, locblocksize,corblocksize,smalll);
 			REAL tol = Norm(smalll);
 			if(tol >= 1.e-10) {
 				locblockvec.Push(jn);
@@ -1535,11 +1537,11 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 		}
 		if(transfer.HasRowDefinition(locblocknumber)) continue;
 		transfer.AddBlockNumbers(locblocknumber,globblockvec);
-		int jnn;
+		long jnn;
 		for(jnn = 0; jnn<numnonzero; jnn++) {
 			jn = locblockvec[jnn];
 			int corblocksize = corblock.Size(jn);
-			int corblockpos = corblock.Position(jn);
+			long corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
 			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,smalll);
@@ -1550,8 +1552,8 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 }
 
 
-void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix) {
-	int numblocks =  connectlist.NElements();
+void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<long> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix) {
+	long numblocks =  connectlist.NElements();
 	TPZCompMesh &mesh = *Mesh();
 	int nhandled=0;
 	int current_order = 0;
@@ -1559,7 +1561,7 @@ void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVe
 	while(nhandled < numblocks) {
 		if(dependencyorder[current_block] == current_order) {
 			nhandled++;
-			int cind = connectlist[current_block];
+			long cind = connectlist[current_block];
 			TPZConnect &con = mesh.ConnectVec()[cind];
 			con.ExpandShape(cind,connectlist,blocksizes,phi,dphix);
 		}

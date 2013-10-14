@@ -143,7 +143,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		
 		//cout << "Locking mutex_element_assemble" << endl;
 		//cout.flush();
-		int local_element = parfront->fCurrentElement;
+		long local_element = parfront->fCurrentElement;
 		if(local_element==parfront->fNElements) return 0;
 		/*          cout << "All element matrices assembled" << endl;
 		 return 0;
@@ -260,7 +260,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		 */
 		
 		//Lock a mutex and get an element number
-		int local_element = parfront->fCurrentAssembled;
+		long local_element = parfront->fCurrentAssembled;
 		parfront->fCurrentAssembled++;
 		
 		if(parfront->fElementOrder[local_element] < 0) continue;
@@ -285,8 +285,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		}
 		
 		//Searches for next element
-		int i=0;
-		int aux = -1;
+		long i=0;
+		long aux = -1;
 		TPZElementMatrix *ekaux = 0, *efaux = 0;
 		PZ_PTHREAD_MUTEX_LOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::GlobalAssemble()");
 #ifdef LOG4CXX
@@ -303,7 +303,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                     aux = parfront->felnum[i];
                     ekaux = parfront->fekstack[i];
                     efaux = parfront->fefstack[i];
-                    int itemp = parfront->felnum.Pop();
+                    long itemp = parfront->felnum.Pop();
                     ektemp = parfront->fekstack.Pop();
                     eftemp = parfront->fefstack.Pop();
                     if(parfront->felnum.NElements()<parfront->fMaxStackSize){
@@ -530,10 +530,10 @@ int TPZParFrontStructMatrix<front>::main() {
 	for(el=0; el<1; el++) {
 		
 		// initializar os indices dos n�
-		TPZVec<int> indices(4);
+		TPZVec<long> indices(4);
 		for(i=0; i<4; i++) indices[i] = i;
 		// O proprio construtor vai inserir o elemento na malha
-		int index;
+		long index;
 		/*gel = */gmesh.CreateGeoElement(EQuadrilateral,indices,1,index);
 	}
 	gmesh.BuildConnectivity ();
@@ -580,7 +580,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	//	TPZAnalysis an2(&cmesh,output);
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	int ic;
+	long ic;
 	//cout << "Nmero de Equa�es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
 	
@@ -590,11 +590,11 @@ int TPZParFrontStructMatrix<front>::main() {
 	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = cmesh.ConnectVec()[ic];
 		if(cn.HasDependency() || cn.IsCondensed()) continue;
-		int seqn = cn.SequenceNumber();
+		long seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
-		int firsteq = cmesh.Block().Position(seqn);
-		int lasteq = firsteq+cmesh.Block().Size(seqn);
-		int ind;
+		long firsteq = cmesh.Block().Position(seqn);
+		long lasteq = firsteq+cmesh.Block().Size(seqn);
+		long ind;
 		int temp = cmesh.ConnectVec()[ic].NElConnected();
 		for(ind=firsteq;ind<lasteq;ind++) {
 			numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
@@ -688,7 +688,7 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
 	
 	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-	int neq = this->fEquationFilter.NActiveEquations();
+	long neq = this->fEquationFilter.NActiveEquations();
 	
 	//  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
 	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>(neq);

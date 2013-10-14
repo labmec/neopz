@@ -36,7 +36,7 @@
 using namespace std;
 
 
-TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(int index){
+TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(long index){
 	
 	if( index < 0 || index >= fMeshes.NElements() )
 		PZError << "TPZNonLinMultGridAnalysis::IMesh mesh index out of range\n";
@@ -91,8 +91,9 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::PopMesh() {
 TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
 														int levelnumbertogroup){
 	
-	TPZVec<int> accumlist;
-	int numaggl,dim = finemesh->Dimension();
+	TPZVec<long> accumlist;
+	int dim = finemesh->Dimension();
+	long numaggl;
 	TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
 	TPZCompMesh *aggmesh;
 	aggmesh = TPZAgglomerateElement::CreateAgglomerateMesh(finemesh,accumlist,numaggl);
@@ -122,7 +123,7 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 		mat->Clone(finemesh->MaterialVec());
 	}
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = coarcmesh->ElementVec();
-	int el,nelem = elementvec.NElements();
+	long el,nelem = elementvec.NElements();
 	for(el=0; el<nelem; el++) {
 		TPZCompEl *cel = elementvec[el];
 		if(!cel) continue;
@@ -157,7 +158,8 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 			}
 			lev++;
 		}
-		int nsub = sub.NElements(),isub,index;
+		int nsub = sub.NElements(),isub;
+		long index;
 		//o construtor adequado ja deveria ter sido definido
 		for(isub=0; isub<nsub; isub++) {
 			disc = dynamic_cast<TPZCompElDisc *>(finemesh->CreateCompEl(sub[isub],index));
@@ -178,7 +180,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 	//apontando para o aglomerado
 	//isso forma uma parti�o da malha atual por elementos computacionais
 	
-	int nel = aggcmesh->NElements(),i;
+	long nel = aggcmesh->NElements(),i;
 	TPZCompMesh *finemesh;
 	//n� todo index �sub-elemento
 	for(i=0;i<nel;i++){
@@ -196,9 +198,9 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 		finemesh = agg->MotherMesh();
 		if(!finemesh) 
 			PZError << "TPZNonLinMultGridAnalysis::ResetReference null fine mesh\n";
-		TPZStack<int> vec;
+		TPZStack<long> vec;
 		agg->IndexesDiscSubEls(vec);
-		int i,size = vec.NElements();
+		long i,size = vec.NElements();
 		if(!size) PZError << "main::ResetReference error1\n";
 		TPZCompEl *sub0 = finemesh->ElementVec()[vec[0]],*sub;
 		for(i=1;i<size;i++){
@@ -222,7 +224,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 
 void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 	
-	int nel = aggcmesh->NElements(),i;
+	long nel = aggcmesh->NElements(),i;
 	//TPZCompMesh *finemesh;
 	//n� todo index �sub-elemento
 	for(i=0;i<nel;i++){
@@ -236,14 +238,14 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 		TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
 		if(!agg) 
 			PZError << "TPZNonLinMultGridAnalysis::SetReference not agglomerate element\n";
-		TPZStack<int> elvec;
+		TPZStack<long> elvec;
 		agg->IndexesDiscSubEls(elvec);
 		//os computacionais da malha fina apontam para os respectivos geometricos
 		//os geometricos deveram apontar para o agglomerado que o agrupa;
 		//si existe um geometrico tal que as referencias dos agrupados no aglomerado
 		//formam uma particao unitaria desse entao esse geometrico ja
 		//aponta para esse aglomerado
-		int indsize = elvec.NElements(),k;
+		long indsize = elvec.NElements(),k;
 		for(k=0;k<indsize;k++){
 			TPZCompEl *cel = agg->MotherMesh()->ElementVec()[elvec[k]];
 			if(!cel){
@@ -432,7 +434,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &
 	//c�culo de stiff * solution
 	TPZFMatrix<STATE> tsup(dim,1),diag(dim,1),tinf(dim,1);
 	
-	if( !strcmp(decompose.c_str() , "LDLt") ){
+	if( !strcmp(decompose.c_str() , "LDLt") ) {
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
 			STATE sum = 0.;
@@ -444,15 +446,15 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &
 		//diagonal
 		for(i=0;i<dim;i++) diag(i,0) = stiff->GetVal(i,i) * tsup(i,0);
 		//tri�gulo inferior
-		for(i=0;i<dim;i++){
+		for(i=0;i<dim;i++) {
 			STATE sum = 0.;
-			for(j=0;j<i;j++){
+			for(j=0;j<i;j++) {
 				sum += stiff->GetVal(i,j) * diag(j,0);
 			}
 			res(i,0) = sum + diag(i,0);
 		}
 		
-		if(0){
+		if(0) {
 			ofstream out("MATRIZES_DECOMPOSI�O.out");
 			sol.Print("\n* * * sol * * *\n",out);
 			tsup.Print("\n* * * tsup * * *\n",out);
@@ -648,8 +650,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	REAL normsolfine = 0.0,normsolcoar = 1.e10,erro;
 	REAL errsol = fabs(normsolcoar - normsolfine);
 	REAL gridtol = 0.01;
-	int coarneq = fMeshes[1]->NEquations();
-	int fineneq = fMeshes[2]->NEquations();
+	long coarneq = fMeshes[1]->NEquations();
+	long fineneq = fMeshes[2]->NEquations();
 	TPZFMatrix<STATE> finesol(fineneq,1,0.),fineres(fineneq,1),finesol0,projfinesol;
 	TPZFMatrix<STATE> coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
 	TPZFMatrix<STATE> finesolkeep,coarsesolkeep;

@@ -65,7 +65,7 @@ protected:
 public:
 	
 	/** @brief Extract connects from element el */
-	void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
+	void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<long> &connectindex);
 	
 	/** 
 	 * @brief Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
@@ -117,7 +117,7 @@ public:
 	enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc,EReferred};
 	
 	/** @brief Constuctor to continuous and/or discontinuous neighbours. */
-	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);
+	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index,TPZCompElSide & left, TPZCompElSide &right);
 	
 	/** @brief Simple copy constructor. */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
@@ -131,17 +131,17 @@ public:
 	 */
 	TPZInterfaceElement(TPZCompMesh &mesh,
 						const TPZInterfaceElement &copy,
-						std::map<int,int> &gl2lcConIdx,
-						std::map<int,int> &gl2lcElIdx);
+						std::map<long,long> &gl2lcConIdx,
+						std::map<long,long> &gl2lcElIdx);
 
 	/** @brief Copy constructor with specified index */
-	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
+	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, long &index);
 	
 	/** @brief Empty constructor. */
 	TPZInterfaceElement();
 	
 	/** @brief Default TPZCompEl constructor. SetLeftRightElements must be called before any computation. */
-	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
+	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index);
 	
 	/** @brief Destructor */
 	~TPZInterfaceElement();
@@ -158,13 +158,13 @@ public:
 	}
 	
 	/** @see class TPZCompEl */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> &gl2lcConMap, std::map<int,int> &gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<long,long> &gl2lcConMap, std::map<long,long> &gl2lcElMap) const
 	{
 		return new TPZInterfaceElement(mesh, *this, gl2lcConMap,gl2lcElMap);
 	}
 	
 	/** @brief Method used in TPZAgglomerateElement::CreateAgglomerateMesh */
-	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
+	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,long &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
 	
 	/** @brief Identifies the elements of left and right volume of the interface */
 	void VolumeEls(TPZCompEl &thirdel);
@@ -209,13 +209,13 @@ public:
 	int NLeftConnects() const;
 	
 	/** @brief Its return the connects of the left and right element associates */
-	int ConnectIndex(int i) const;
+	long ConnectIndex(int i) const;
 	
 	/** @brief This function should not be called */
-	void SetConnectIndex(int node, int index);
+	void SetConnectIndex(int node, long index);
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
 	/** @brief Returns the dimension from the element interface */
 	int Dimension() const {

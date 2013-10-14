@@ -903,7 +903,7 @@ void TPZFYsmpMatrix<TVar>::RowLUUpdate(long sourcerow, long destrow)
  * Decomposes the current matrix using LU decomposition.
  */
 template<class TVar>
-int TPZFYsmpMatrix<TVar>::Decompose_LU(std::list<int> &singular)
+int TPZFYsmpMatrix<TVar>::Decompose_LU(std::list<long> &singular)
 {
 	return Decompose_LU();
 }

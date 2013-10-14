@@ -41,32 +41,32 @@ protected:
 	
 	/** @brief Pointer to external location index of the connection. */ 
 	/** If the connection hasn't external location return the local id. */
-	TPZManVector<int> fConnectIndex;
+	TPZManVector<long> fConnectIndex;
 	
 	/** @brief Indexes of the external connections. */ 
 	/** If the connection isn't external id is -1! */
-	TPZManVector<int> fExternalLocIndex;
+	TPZManVector<long> fExternalLocIndex;
 	/** @brief Maps indicating the correspondence between the connect index of the father mesh and de local connect id */
-	std::map<int,int> fFatherToLocal;
+	std::map<long,long> fFatherToLocal;
     
     /// Number of rigid body modes expected by the internal matrix inversion
-    int fSingularConnect;
+    long fSingularConnect;
 	
 private:
 	/** @brief Transfers one element from a submesh to another mesh. */
-	int TransferElementTo(TPZCompMesh * mesh, int elindex);
+	long TransferElementTo(TPZCompMesh * mesh, long elindex);
 	/** @brief Transfers one element from a specified mesh to the current submesh. */
-	int TransferElementFrom(TPZCompMesh *mesh, int elindex);
+	long TransferElementFrom(TPZCompMesh *mesh, long elindex);
 	
 	/** @brief Marks the connect to be local */
-	void MakeInternalFast(int local);
+	void MakeInternalFast(long local);
 
 	/**
 	 * @brief Transfer the dependency list of a connect. This will
 	 * make the dependency disappear for the corresponding father mesh
 	 */
 	/** It is necessary that the number of elements connected to the connect be equal one */
-	void TransferDependencies(int local);
+	void TransferDependencies(long local);
 	
 public:
 	/**
@@ -74,7 +74,7 @@ public:
 	 * @param mesh reference mesh
 	 * @param index reference mesh element index to transfer to submesh
 	 */
-	TPZSubCompMesh(TPZCompMesh &mesh, int &index);
+	TPZSubCompMesh(TPZCompMesh &mesh, long &index);
 	/** @brief Default constructor */
 	TPZSubCompMesh();
 	/** @brief Destructor. */
@@ -91,8 +91,8 @@ public:
 	}
 	
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<int,int> & gl2lcConMap,
-									std::map<int,int> & gl2lcElMap) const
+									std::map<long,long> & gl2lcConMap,
+									std::map<long,long> & gl2lcElMap) const
 	{
 		std::cout << "TPZSubCompMesh::Clone should be implemented\n";
 		return 0;
@@ -130,10 +130,10 @@ public:
 	 * @param mesh  pointer to given mesh
 	 * @param elindex given mesh element index
 	 */
-	int IsAllowedElement(TPZCompMesh *mesh, int elindex);
+	int IsAllowedElement(TPZCompMesh *mesh, long elindex);
 	
 	/** @brief Computes the number of internal equations */
-	int NumInternalEquations();
+	long NumInternalEquations();
 	
 	/**
 	 * @brief This method computes the skyline of the system of equations
@@ -142,13 +142,13 @@ public:
 	virtual void SkylineInternal(TPZVec<long> &skyline);
 	
 	/// Puts the nodes which can be transferred in an ordered list
-	void PotentialInternal(std::list<int> &connectindices) const;
+	void PotentialInternal(std::list<long> &connectindices) const;
 
 	/**
 	 * @brief Changes an local internal connection to a external connection in the father mesh.
 	 * @param local makes the connect with index local an external node
 	 */
-	void MakeExternal(int local);
+	void MakeExternal(long local);
 	
 	/**
 	 * @name Mesh
@@ -157,7 +157,7 @@ public:
 	 */
 
 	/** @brief Transfer one element form a submesh to another mesh. */
-	virtual int TransferElement(TPZCompMesh *mesh, int elindex);
+	virtual long TransferElement(TPZCompMesh *mesh, long elindex);
 	
 	/**
 	 * @brief Makes all mesh connections internal mesh connections.
@@ -169,13 +169,13 @@ public:
 	 * @brief Returns the rootmesh who have the specified connection.
 	 * @param local connection local index
 	 */
-	virtual TPZCompMesh * RootMesh(int local);
+	virtual TPZCompMesh * RootMesh(long local);
 	
 	/**
 	 * @brief Makes a specified connection a internal mesh connection.
 	 * @param local connection local number to be processed
 	 */
-	virtual void MakeInternal(int local);
+	virtual void MakeInternal(long local);
 	
 	/**
 	 * @brief Puts an local connection in the supermesh - Supermesh is one
@@ -183,7 +183,7 @@ public:
 	 * @param local local index of the element to be trasnfered
 	 * @param super pointer to the destination mesh
 	 */
-	virtual int PutinSuperMesh(int local, TPZCompMesh *super);
+	virtual long PutinSuperMesh(long local, TPZCompMesh *super);
 	
 	/**
 	 * @brief Gets an external connection from the supermesh - Supermesh is one
@@ -191,7 +191,7 @@ public:
 	 * @param superind index of the element to be trasnfered
 	 * @param super pointer to the destination mesh
 	 */
-	virtual int GetFromSuperMesh(int superind, TPZCompMesh *super);
+	virtual long GetFromSuperMesh(long superind, TPZCompMesh *super);
 	
 	/**
 	 * @brief Gives the commom father mesh of the specified mesh and the current submesh.
@@ -229,10 +229,10 @@ public:
 	/** @brief Verifies if any element needs to be computed corresponding to the material ids */
 	bool NeedsComputing(const std::set<int> &matids);
 	/** @brief Virtual Method to allocate new connect */
-	virtual int AllocateNewConnect(int nshape, int nstate, int order);
+	virtual long AllocateNewConnect(int nshape, int nstate, int order);
 	
 	/** @brief Gives the id node  of one local node in containing mesh. */
-	int NodeIndex(int nolocal, TPZCompMesh *super);
+	long NodeIndex(long nolocal, TPZCompMesh *super);
 	
 	/** @brief Virtual Method! See declaration in TPZCompEl class. */ 
 	/** The use of this method in submesh class return -1 == Error! */
@@ -255,7 +255,7 @@ public:
 	 * @param inode node index to change
 	 * @param index new node index for connect
 	 */
-	virtual void SetConnectIndex(int inode, int index);
+	virtual void SetConnectIndex(int inode, long index);
 	
   	/** @brief Calculates the submesh stiffness matrix */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
@@ -269,13 +269,13 @@ public:
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
 
 	/** @brief Returns the connection index i. */
-	virtual int ConnectIndex(int i) const;
+	virtual long ConnectIndex(int i) const;
 	
 	/** @brief Returns the number of connections. */
 	virtual int NConnects() const;
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 
     /**
 	 * @brief Load the father mesh solution to all submesh connects -

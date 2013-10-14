@@ -119,19 +119,19 @@ namespace pzgeom {
 			return 0;
 		}
 		if(side<4) {
-			TPZManVector<int> nodeindexes(1);
+			TPZManVector<long> nodeindexes(1);
 			//		TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->NodeIndex(side);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		} else if (side > 3 && side < 10) {//side =4 a 9 : lados
-			TPZManVector<int> nodes(2);
+			TPZManVector<long> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 			//		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,0)));
@@ -139,12 +139,12 @@ namespace pzgeom {
 			TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		} else if (side > 9) {//side = 10 a 13 : faces
-			TPZManVector<int> nodes(3);
+			TPZManVector<long> nodes(3);
 			int in;
 			for (in=0;in<3;in++){
 				nodes[in] = orig->SideNodeIndex(side,in);
 			}
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
 			//		TPZGeoElT2d *gel = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 			for (in=0;in<6;in++){
@@ -284,9 +284,9 @@ namespace pzgeom {
 	
 	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoTetrahedra::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-												 TPZVec<int>& nodeindexes,
+												 TPZVec<long>& nodeindexes,
 												 int matid,
-												 int& index)
+												 long& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}

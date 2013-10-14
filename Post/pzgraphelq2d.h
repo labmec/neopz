@@ -27,13 +27,13 @@ public:
 	
 	virtual int NNodes();
 	
-	virtual TPZGraphNode *Connect(int i);
+	virtual TPZGraphNode *Connect(long i);
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
 	virtual int NElements();
 	
-	virtual void SetNode(int i,TPZGraphNode *n);
+	virtual void SetNode(long i,TPZGraphNode *n);
 	
 	virtual long EqNum(TPZVec<int> &co);
 	

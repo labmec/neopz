@@ -171,7 +171,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -196,7 +196,7 @@ namespace pzshape {
 			if (order[rib] <2 ) continue;
 			REAL outval;
 			ProjectPoint3dPiramToRib(rib,pt,outval);
-			TPZVec<int> ids(2);
+			TPZVec<long> ids(2);
 			TPZManVector<REAL,1> outvalvec(1,outval);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
@@ -236,7 +236,7 @@ namespace pzshape {
 			TPZFNMatrix<60> phin(ordin,1),dphin(3,ordin);//ponto na face
 			phin.Zero();
 			dphin.Zero();
-			TPZManVector<int> ids(4);
+			TPZManVector<long> ids(4);
 			//	int id0,id1,id2;
 			int i;
 			if(!face) for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
@@ -291,7 +291,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		if(side<0 || side>18) PZError << "TPZCompElPi3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==18) Shape(point,id,order,phi,dphi);

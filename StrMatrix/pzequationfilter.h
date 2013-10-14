@@ -45,7 +45,7 @@ public:
       }
 
       const long n = maxeq-mineq;
-      TPZVec<int> activeEquations(n);
+      TPZVec<long> activeEquations(n);
       for(long i = 0; i < n; i++){
         activeEquations[i] = i + mineq;
       }
@@ -54,22 +54,22 @@ public:
     }
 
     ///Define as equacoes ativas
-    void SetActiveEquations(TPZVec<int> &active)
+    void SetActiveEquations(TPZVec<long> &active)
     {
         if(fActiveEqs.NElements()) DebugStop();///oops, call reset first
 
         ///removendo duplicados e reordenando
-        std::set<int> activeset;
-        int neq = active.size();
+        std::set<long> activeset;
+        long neq = active.size();
         if (neq) {
             activeset.insert(&active[0], &active[neq-1]+1);
         }
 
         fDestIndices.Resize(fNumEq);
         fDestIndices.Fill(-1);
-        int count = 0;
+        long count = 0;
         fActiveEqs.Resize(activeset.size());
-        for (std::set<int>::iterator it=activeset.begin(); it != activeset.end(); it++) {
+        for (std::set<long>::iterator it=activeset.begin(); it != activeset.end(); it++) {
             fActiveEqs[count] = *it;
             fDestIndices[*it] = count++;
         }
@@ -129,13 +129,13 @@ public:
     }
 
     ///Retorna o numero de equacoes ativas do sistema
-    int NActiveEquations() const
+    long NActiveEquations() const
     {
         return fNumActive;
     }
 
     ///Retorna o numero de equacoes do sistema original
-    int NEqExpand() const
+    long NEqExpand() const
     {
         return fNumEq;
     }
@@ -160,7 +160,7 @@ public:
 	template<class TVar>
     void Scatter(const TPZFMatrix<TVar> &vsmall, TPZFMatrix<TVar> &vexpand) const
     {
-        int neqcondense = this->NActiveEquations();
+        long neqcondense = this->NActiveEquations();
         if(vsmall.Rows() != neqcondense || vexpand.Rows() != fNumEq)
         {
             DebugStop();
@@ -174,7 +174,7 @@ public:
 
 #ifdef DEBUG
         {
-            for(int i=0; i<neqcondense; i++)
+            for(long i=0; i<neqcondense; i++)
             {
                 if(fActiveEqs[i] >= fNumEq)
                 {
@@ -183,7 +183,7 @@ public:
             }
         }
 #endif
-        for(int i=0; i<neqcondense; i++) vexpand(fActiveEqs[i],0) = vsmall.GetVal(i,0);
+        for(long i=0; i<neqcondense; i++) vexpand(fActiveEqs[i],0) = vsmall.GetVal(i,0);
     }
 
     /**
@@ -192,7 +192,7 @@ public:
     template<class T>
     void Gather(const TPZFMatrix<T> &large, TPZFMatrix<T> &gathered) const
     {
-        int neqcondense = this->NActiveEquations();
+        long neqcondense = this->NActiveEquations();
         if(gathered.Rows() != neqcondense || large.Rows() != fNumEq)
         {
             DebugStop();
@@ -203,13 +203,13 @@ public:
             return;
         }
         gathered.Zero();
-        for(int i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
+        for(long i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
     }
 
     /**
      * @brief Returns the number of active equations between [minindex,maxindex]
      */
-    int NumActive(int minindex, int maxindex) const
+    long NumActive(long minindex, long maxindex) const
     {
         if (minindex < 0 || maxindex < 0 || minindex > fNumEq || maxindex > fNumEq ||
             maxindex < minindex) {
@@ -219,7 +219,7 @@ public:
             return maxindex-minindex;
         }
         int numactive = 0;
-        for (int i=minindex; i<maxindex; i++) {
+        for (long i=minindex; i<maxindex; i++) {
             if (fDestIndices[i] != -1) {
                 numactive++;
             }
@@ -255,16 +255,16 @@ public:
 private:
 
     /// Numero de equacoes do sistema original
-    int fNumEq;
+    long fNumEq;
     
     /// Numero de equacoes ativas
-    int fNumActive;
+    long fNumActive;
 
     /// Equacoes ativas
-    TPZVec<int> fActiveEqs;
+    TPZVec<long> fActiveEqs;
 
     /// Posicao das equacoes originais no sistema reduzido
-    TPZVec<int> fDestIndices;
+    TPZVec<long> fDestIndices;
     
 };
 

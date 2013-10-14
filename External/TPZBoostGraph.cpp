@@ -22,7 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.external.boostgraph"));
 using namespace boost;
 using namespace std;
 
-TPZBoostGraph::TPZBoostGraph(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),fGType(Sloan)//,fGType(KMCExpensive)
+TPZBoostGraph::TPZBoostGraph(long NElements, long NNodes) : TPZRenumbering(NElements,NNodes),fGType(Sloan)//,fGType(KMCExpensive)
 {
     m_Graph.clear();
 }
@@ -54,9 +54,9 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     typedef boost::compressed_sparse_row_graph<boost::directedS> BoostGraph;
     
     /* this code is a copy modified from the method ConvertGraph. Used here to create a Compressed Sparse Row Graph Boost */
-    int nod,el;
-    TPZVec<int> nodtoelgraphindex;
-    TPZVec<int> nodtoelgraph;
+    long nod,el;
+    TPZVec<long> nodtoelgraphindex;
+    TPZVec<long> nodtoelgraph;
 
     NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
 
@@ -71,19 +71,19 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
   
     for(nod=0; nod<fNNodes; nod++) 
     {
-        int firstel = nodtoelgraphindex[nod];
-        int lastel = nodtoelgraphindex[nod+1];
-        std::set<int> nodecon;
+        long firstel = nodtoelgraphindex[nod];
+        long lastel = nodtoelgraphindex[nod+1];
+        std::set<long> nodecon;
         for(el=firstel; el<lastel; el++) 
 	{
-            int gel = nodtoelgraph[el];
-            int firstelnode = fElementGraphIndex[gel];
-            int lastelnode = fElementGraphIndex[gel+1];
+            long gel = nodtoelgraph[el];
+            long firstelnode = fElementGraphIndex[gel];
+            long lastelnode = fElementGraphIndex[gel+1];
             nodecon.insert(&fElementGraph[firstelnode],&fElementGraph[(lastelnode-1)]+1);
         }
         nodecon.erase(nod);
 
-	std::set<int>::iterator it;
+	std::set<long>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++)
 	{
 	  edges.push_back(std::make_pair(nod, *it));
@@ -128,14 +128,14 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
     Graph G;
     size_type i;
     size_type elgraphsize = fElementGraphIndex.NElements()-1;
-    TPZManVector<int> nconnects(fNNodes,0);
+    TPZManVector<long> nconnects(fNNodes,0);
     
     for(i=0; i < elgraphsize; i++)
     {
-        int first, second;
+        long first, second;
         first = fElementGraphIndex[i];
         second = fElementGraphIndex[i+1];
-        int j,k;
+        long j,k;
         for(j=first; j< second; j++)
         {
             for(k=j+1; k<second; k++)
@@ -185,7 +185,7 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
      << std::endl;*/
     //   std::cout << "Number of Vertices " << num_vertices(G) << std::endl;
     //   std::cout << "Number of Edges " << num_edges(G) << std::endl;
-    int nVertices = num_vertices(G);
+    long nVertices = num_vertices(G);
     //  std::cout << "Number of Vertices " << nVertices << std::endl;
     TPZVec<Vertex> inv_perm(nVertices);
     TPZVec<size_type> l_perm(nVertices);

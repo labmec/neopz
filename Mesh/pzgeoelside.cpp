@@ -52,11 +52,11 @@ TPZGeoElSide TPZGeoElSide::Neighbour() const {
 	return fGeoEl ? fGeoEl->Neighbour(fSide) : TPZGeoElSide();
 }
 
-TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<int> &sideCornerNodes)
+TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<long> &sideCornerNodes)
 {
 	fGeoEl = 0; fSide = -1;
 	
-	std::set<int> nodes;
+	std::set<long> nodes;
 	for(int s = 0; s < gel->NSides(); s++)
 	{
 		nodes.clear();
@@ -368,7 +368,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	TPZStack<TPZGeoElSide> GeoElSideSet;
 	TPZStack<int> GeoElSet[27];
 	int in;
-	TPZManVector<int> nodeindexes(nsnodes);
+	TPZManVector<long> nodeindexes(nsnodes);
 	for(in=0; in<nsnodes; in++)
 	{
 		nodeindexes[in] = SideNodeIndex(in);
@@ -610,7 +610,7 @@ void TPZGeoElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec
 		if(onlyinterpolated) {
 			TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (cels.Element());
 			if(!cel) continue;
-			int conind = cel->ConnectIndex(cels.Side());
+			long conind = cel->ConnectIndex(cels.Side());
 			if(conind < 0) continue;
 		}
 		elsidevec.Push(cels);
@@ -618,7 +618,7 @@ void TPZGeoElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec
 	
 }
 
-int TPZGeoElSide::Id() {
+long TPZGeoElSide::Id() {
 	return fGeoEl->Id();
 }
 
@@ -661,8 +661,8 @@ void TPZGeoElSide::AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &son
     }
     TPZVec<TPZGeoEl*> lowerSubelements(0);
     this->Element()->GetHigherSubElements(lowerSubelements);
-    int nlowerSubelements = lowerSubelements.NElements();
-    for(int sub = 0; sub < nlowerSubelements; sub++)
+    long nlowerSubelements = lowerSubelements.NElements();
+    for(long sub = 0; sub < nlowerSubelements; sub++)
     {
         TPZGeoEl * subEl = lowerSubelements[sub];
         int nsides = subEl->NSides();
@@ -706,13 +706,13 @@ int TPZGeoElSide::NSideNodes() const {
 }
 
 /**returns the index of the nodenum node of side*/
-int TPZGeoElSide::SideNodeIndex(int nodenum) const {
+long TPZGeoElSide::SideNodeIndex(int nodenum) const {
     if(!fGeoEl) return -1;
     return ( fGeoEl->SideNodeIndex(fSide,nodenum) );
 }
 
 /**returns the index of the local nodenum  node of side*/
-int TPZGeoElSide::SideNodeLocIndex(int nodenum) const {
+long TPZGeoElSide::SideNodeLocIndex(int nodenum) const {
     if(!fGeoEl) return -1;
     return ( fGeoEl->SideNodeLocIndex(fSide,nodenum) );
 }
@@ -852,13 +852,13 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 	 os vetores trazem a partic� do lado comum a  
 	 dois vizinhos segundo os seus proprios padr�s de
 	 refinamento, a divis� �identica para este lado comum*/ //cout << "Sao iguais: acertar as vizinhancas!!!\n";
-	int size = sidevec.NElements();
-	int neighsize = neighvec.NElements();
+	long size = sidevec.NElements();
+	long neighsize = neighvec.NElements();
 	if(size!=neighsize || !size){
 		PZError << "TPZGeoElSide::BuildConnectivities wrong vectors: abort!!!\n";
 		DebugStop();
 	}
-	int iv,ivn,side,neighside,sidedim,neighsidedim;
+	long iv,ivn,side,neighside,sidedim,neighsidedim;
 	TPZGeoElSide subside,neighsubside;
 	for(iv=0;iv<size;iv++){
 		subside = sidevec[iv];

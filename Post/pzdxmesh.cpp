@@ -118,7 +118,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 	int it;
 	for(it=firsttype[dim1]; it<lasttype[dim1]; it++) {
 		MElementType type = eltypes[it];
-		int nel = NElements(type);
+		long nel = NElements(type);
 		if(nel) {
 			
 			fElConnectivityObject[type] = object;
@@ -144,7 +144,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 void TPZDXGraphMesh::DrawSolution(int step, REAL time) {
 	
 	TPZMaterial * matp = Material();
-	int i,nel;
+	long i,nel;
 	if(!matp) return;
 	int dim = matp->Dimension();
 	int dim1 = dim-1;
@@ -342,13 +342,13 @@ void TPZDXGraphMesh::Close() {
 void TPZDXGraphMesh::DrawSolution(char * var)
 {
 	TPZMaterial * matp = Material();
-    int i,varind;
+    long i,varind;
     varind = matp->VariableIndex(var);
     TPZVec<int> vec(1);
     (fOutFile) << "object " << fNextDataField << " class array type float rank 1 shape " <<
 	matp->NSolutionVariables(varind) << " items " << NPoints() << " data follows " << endl;
     vec[0] = varind;
-    int nel = fCompMesh->ConnectVec().NElements();
+    long nel = fCompMesh->ConnectVec().NElements();
     for(i=0;i<nel;i++) {
 		TPZGraphNode n = fNodeMap[i];
 		n.DrawSolution(vec,fStyle);

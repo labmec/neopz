@@ -94,9 +94,9 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 {
 	if(side==6)
 	{
-		TPZManVector<int> nodes(3); int i;
+		TPZManVector<long> nodes(3); int i;
 		for (i=0;i<3;i++) nodes[i] = orig->SideNodeIndex(side,i);
-		int index;
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(ETriangle,nodes,bc,index);
 		int iside;
 		for (iside = 0; iside <6; iside++)
@@ -109,9 +109,9 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	
 	else if(side>-1 && side<3)
 	{
-		TPZManVector<int> nodeindexes(1);
+		TPZManVector<long> nodeindexes(1);
 		nodeindexes[0] = orig->SideNodeIndex(side,0);
-		int index;
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -119,10 +119,10 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	
 	else if(side > 2 && side < 6)
 	{
-		TPZManVector<int> nodes(2);
+		TPZManVector<long> nodes(2);
 		nodes[0] = orig->SideNodeIndex(side,0);
 		nodes[1] = orig->SideNodeIndex(side,1);
-		int index;
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,1)));
@@ -139,9 +139,9 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
  * Creates a geometric element according to the type of the father element
  */
 TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											 TPZVec<int>& nodeindexes,
+											 TPZVec<long>& nodeindexes,
 											 int matid,
-											 int& index)
+											 long& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }

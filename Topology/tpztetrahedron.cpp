@@ -743,7 +743,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZTetrahedron::GetTransformId(TPZVec<int> &id)
+	int TPZTetrahedron::GetTransformId(TPZVec<long> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -755,7 +755,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZTetrahedron::GetTransformId(int side, TPZVec<int> &id)
+	int TPZTetrahedron::GetTransformId(int side, TPZVec<long> &id)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		return -1;
@@ -768,7 +768,7 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZTetrahedron::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	void TPZTetrahedron::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
 	{
 		LOGPZ_ERROR(logger,"Please implement me")
 		int nel = permgather.NElements();

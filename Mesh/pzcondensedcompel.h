@@ -22,7 +22,7 @@ class TPZCondensedCompEl : public TPZCompEl
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<int,27> fIndexes; 
+    TPZManVector<long,27> fIndexes; 
     
     void Resequence();
 
@@ -49,7 +49,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int index);
+	virtual void SetConnectIndex(int inode, long index);
     
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const 
@@ -61,13 +61,13 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int ConnectIndex(int i) const 
+	virtual long ConnectIndex(int i) const 
     {
         return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const 
@@ -99,8 +99,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<int,int> & gl2lcConMap,
-									std::map<int,int> & gl2lcElMap) const;
+									std::map<long,long> & gl2lcConMap,
+									std::map<long,long> & gl2lcElMap) const;
 
 private:
     /**

@@ -12,20 +12,20 @@ TPZGMSHReadMesh::TPZGMSHReadMesh(TPZGeoMesh *gmesh){
 	fGeoMesh = gmesh;
 }
 
-void TPZGMSHReadMesh::ReadMesh2D(const char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist){
+void TPZGMSHReadMesh::ReadMesh2D(const char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist) {
 	
 	//o GMSH pode não retornar os nós sequencialmente
 	//nesse casso deveram ser resequenciados
-	TPZStack<int> Indexes;
+	TPZStack<long> Indexes;
 	Resequence(Indexes,meshfile);
 	std::ifstream mesh(meshfile);
 	char title[256];
-	int nnodes,number;
+	long nnodes,number;
 	mesh >> title;//$NOD
 	mesh >> nnodes;
 	fGeoMesh->NodeVec().Resize(nnodes);   
 	TPZVec<REAL> coord(3);
-	int i;
+	long i;
 	for(i=0;i<nnodes;i++){
 		mesh >> number;
 		mesh >> coord[0] >> coord[1] >> coord[2];
@@ -33,11 +33,12 @@ void TPZGMSHReadMesh::ReadMesh2D(const char *meshfile,TPZStack<TPZGeoEl *> &elem
 	}
 	mesh >> title;//$ENDNOD
 	mesh >> title;//$ELM
-	int numelem;
+	long numelem;
 	mesh >> numelem;
-	TPZVec<int> nodes;
+	TPZVec<long> nodes;
 	nodes.Resize(4);
-	int index,numb,fgt1,nmat,fgt2,nvert,no1,no2,no3,no4;
+	long index;
+	long numb,fgt1,nmat,fgt2,nvert,no1,no2,no3,no4;
 	for(i=0;i<numelem;i++){
 		mesh >> numb >> fgt1 >> nmat >> fgt2 >> nvert;
 		mesh >> no1 >> no2;
@@ -70,12 +71,12 @@ void TPZGMSHReadMesh::ReadMesh2D2(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,
 	
 	std::ifstream mesh(meshfile);
 	char title[256];
-	int nnodes,number;
+	long nnodes,number;
 	mesh >> title;//$NOD
 	mesh >> nnodes;
 	fGeoMesh->NodeVec().Resize(nnodes);   
 	TPZVec<REAL> coord(3);
-	int i;
+	long i;
 	for(i=0;i<nnodes;i++){
 		mesh >> number;
 		mesh >> coord[0] >> coord[1] >> coord[2];
@@ -83,11 +84,12 @@ void TPZGMSHReadMesh::ReadMesh2D2(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,
 	}
 	mesh >> title;//$ENDNOD
 	mesh >> title;//$ELM
-	int numelem;
+	long numelem;
 	mesh >> numelem;
-	TPZVec<int> nodes;
+	TPZVec<long> nodes;
 	nodes.Resize(3);
-	int index,numb,fgt1,nmat,fgt2,nvert,no1,no2,no3,no4;
+	long index;
+	long numb,fgt1,nmat,fgt2,nvert,no1,no2,no3,no4;
 	for(i=0;i<numelem;i++){
 		mesh >> numb >> fgt1 >> nmat >> fgt2 >> nvert;
 		mesh >> no1;
@@ -121,16 +123,16 @@ void TPZGMSHReadMesh::ReadMesh3D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
 	
 	//o GMSH pode não retornar os nós sequencialmente
 	//nesse casso deveram ser resequenciados
-	TPZStack<int> Indexes;
+	TPZStack<long> Indexes;
 	Resequence(Indexes,meshfile);
 	std::ifstream mesh(meshfile);
 	char title[256];
-	int nnodes,number;
+	long nnodes,number;
 	mesh >> title;//$NOD
 	mesh >> nnodes;
 	fGeoMesh->NodeVec().Resize(nnodes);   
 	TPZVec<REAL> coord(3);
-	int i;
+	long i;
 	for(i=0;i<nnodes;i++){
 		mesh >> number;
 		mesh >> coord[0] >> coord[1] >> coord[2];
@@ -138,12 +140,13 @@ void TPZGMSHReadMesh::ReadMesh3D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
 	}
 	mesh >> title;//$ENDNOD
 	mesh >> title;//$ELM
-	int numelem;
+	long numelem;
 	mesh >> numelem;
-	TPZVec<int> nodes;
+	TPZVec<long> nodes;
 	nodes.Resize(3);
-	int index,numb,fgt1,nmat,fgt2,nvert;
-	TPZVec<int> nos(8);//máximo do cubo
+	long index;
+	long numb,fgt1,nmat,fgt2,nvert;
+	TPZVec<long> nos(8);//máximo do cubo
 	for(i=0;i<numelem;i++){
 		mesh >> numb >> fgt1 >> nmat >> fgt2 >> nvert;
 		for(i=0;i<nvert;i++) mesh >> nos[i];
@@ -173,14 +176,14 @@ void TPZGMSHReadMesh::ReadMesh3D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
 	mesh.close();
 }
 
-void TPZGMSHReadMesh::Resequence(TPZStack<int> &Indexes,const char *meshfile){
+void TPZGMSHReadMesh::Resequence(TPZStack<long> &Indexes,const char *meshfile){
 	
 	std::ifstream mesh(meshfile);
 	char title[256];
-	int nnod,pos;
+	long nnod,pos;
 	mesh >> title;//$NOD
 	mesh >> nnod;
-	int index = 0,i;
+	long index = 0,i;
 	REAL no1,no2,no3;
 	for(i=0;i<nnod;i++){
 		index++;

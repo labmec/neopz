@@ -28,7 +28,7 @@ class TPZReferredCompEl : public TCOMPEL {
 public:
 	
 	/** @brief Class constructor */
-	TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+	TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
 	
 	TPZReferredCompEl();
 	
@@ -36,8 +36,8 @@ public:
 	
 	TPZReferredCompEl(TPZCompMesh &mesh,
                       const TPZReferredCompEl<TCOMPEL> &copy,
-                      std::map<int,int> & gl2lcConMap,
-                      std::map<int,int> & gl2lcElMap);
+                      std::map<long,long> & gl2lcConMap,
+                      std::map<long,long> & gl2lcElMap);
 	
 	/** @brief Class destructor */
 	~TPZReferredCompEl();
@@ -106,23 +106,23 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
                                TPZFMatrix<STATE> &dsolto, const TPZFMatrix<REAL> &axesto);
 
 /** @brief Creates discontinuous referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates point referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates linear referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates quadrilateral referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates triangular referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates cube referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates prismal referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates pyramidal referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates tetrahedral referred computational element related with geometric element gel */
-TPZCompEl *CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 
 /** @brief Append u2 vector after u1 vector in u12 vector */
 template<class TVar>

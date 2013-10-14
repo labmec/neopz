@@ -62,7 +62,7 @@ public:
 	/** @brief Number of meshes */
 	int NMeshes() {return fMeshes.NElements();}
 	
-	TPZCompMesh *IMesh(int index);
+	TPZCompMesh *IMesh(long index);
 	
 	/**
 	 * @brief It creates a new established computational mesh in the refinement uniform 

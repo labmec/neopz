@@ -74,7 +74,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
 		out << " Solution ";
-		int ieq;
+		long ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
 			out << mesh.Block()(fSequenceNumber,0,ieq,0) << ' ';
@@ -86,7 +86,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 		out << "Dependency :\n";
 		TPZDepend *ptr = fDependList;
 		while(ptr) {
-			int depindex = ptr->fDepConnectIndex;
+			long depindex = ptr->fDepConnectIndex;
 			//TPZConnect &nod = mesh.ConnectVec()[depindex];
 			out << "Connect index = " << depindex << endl;
 			ptr->fDepMatrix.Print(" ",out);
@@ -104,7 +104,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
 		out << " Solution ";
-		int ieq;
+		long ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
 			out << mesh.Block()(fSequenceNumber,0,ieq,0) << ' ';
@@ -116,7 +116,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 		out << "Dependency :\n";
 		TPZDepend *ptr = fDependList;
 		while(ptr) {
-			int depindex = ptr->fDepConnectIndex;
+			long depindex = ptr->fDepConnectIndex;
 			//TPZConnect &nod = mesh.ConnectVec()[depindex];
 			out << "Connect index = " << depindex << endl;
 			ptr->fDepMatrix.Print(" ",out);
@@ -126,12 +126,12 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 	}
 }
 
-void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix<STATE> &depmat,int ipos,int jpos,int isize,int jsize){
+void TPZConnect::AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> &depmat,long ipos,long jpos,int isize,int jsize){
 	if(dependindex == myindex) return;
 	TPZDepend *connect =0;
 	if(dependindex == -1) {
 		cout << "Chabuuuuu\n";
-		int b;
+		long b;
 		cin >> b;
 	}
 	if(fDependList) connect = fDependList->HasDepend(dependindex);
@@ -149,7 +149,7 @@ void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix<STATE> &d
 			cout << "TPZConnect::Dependency inconsistent \t"
 			<< "temp(r,c): (" << temp.Rows() << " , " << temp.Cols() << " )\t fDepMatrix(r,c): ( "
 			<< connect->fDepMatrix.Rows() << " , " << connect->fDepMatrix.Cols() << " )\n";
-			int a;
+			long a;
 			cin >> a;
 			return;
 		}
@@ -171,20 +171,20 @@ void TPZConnect::RemoveDepend() {
 	}
 }
 
-void TPZConnect::RemoveDepend(int myindex, int dependindex) {
+void TPZConnect::RemoveDepend(long myindex, long dependindex) {
 	if(dependindex == myindex || !fDependList) return;
 	TPZDepend *dep = fDependList->HasDepend(dependindex);
 	if(dep) fDependList = fDependList->RemoveDepend(dep);
 }
 
-int TPZConnect::DependencyDepth(TPZCompMesh &mesh){
+long TPZConnect::DependencyDepth(TPZCompMesh &mesh){
 	if(!fDependList) return 0;
-	int maxdep = 0;
+	long maxdep = 0;
 	TPZDepend *ptr = fDependList;
 	while(ptr) {
 		int depindex = ptr->fDepConnectIndex;
 		TPZConnect &nod = mesh.ConnectVec()[depindex];
-		int depth = nod.DependencyDepth(mesh);
+		long depth = nod.DependencyDepth(mesh);
 		maxdep = depth > maxdep ? depth : maxdep;
 		ptr = ptr->fNext;
 	}
@@ -198,8 +198,8 @@ int TPZConnect::DependencyDepth(TPZCompMesh &mesh){
  this method will also call AddToList for all connects from which this connect depends
  firstfree points to the first unused element of connectlist
  it is assumed that firstfree <= nodelist.capacity()*/
-void TPZConnect::AddToList(int myindex, TPZCompMesh &mesh, TPZStack<int> &connectlist){
-	int in=0, cap = connectlist.NElements();
+void TPZConnect::AddToList(long myindex, TPZCompMesh &mesh, TPZStack<long> &connectlist){
+	long in=0, cap = connectlist.NElements();
 	while(in < cap && connectlist[in] != myindex) in++;
 	if(in == cap) connectlist.Push(myindex);
 	// this inserts the node in the list and increments the pointer firstfree
@@ -211,7 +211,7 @@ void TPZConnect::AddToList(int myindex, TPZCompMesh &mesh, TPZStack<int> &connec
 	}
 }
 
-void TPZConnect::AddToList(int myindex, TPZCompMesh &mesh, std::set<int> &connectlist){
+void TPZConnect::AddToList(long myindex, TPZCompMesh &mesh, std::set<long> &connectlist){
 	connectlist.insert(myindex);
 	// this inserts the node in the list and increments the pointer firstfree
 	TPZDepend *dp = fDependList;
@@ -222,8 +222,8 @@ void TPZConnect::AddToList(int myindex, TPZCompMesh &mesh, std::set<int> &connec
 	}
 }
 
-void TPZConnect::SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &ConnectList,TPZVec<int> &DependenceOrder) {
-	int in=0,cap = ConnectList.NElements();
+void TPZConnect::SetDependenceOrder(long myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<long> &ConnectList,TPZVec<int> &DependenceOrder) {
+	long in=0,cap = ConnectList.NElements();
 	// identify where the current node is in the list
 	while(in<cap && ConnectList[in] != myindex) in++;
 	if(in== cap) {
@@ -243,7 +243,7 @@ void TPZConnect::SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentO
 	}
 }
 
-TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix<STATE> &depmat,int ipos,int jpos, int isize, int jsize) :
+TPZConnect::TPZDepend::TPZDepend(long dependindex,TPZFMatrix<STATE> &depmat,long ipos,long jpos, int isize, int jsize) :
 fDepMatrix(isize,jsize) {
 	fDepConnectIndex = dependindex;
 	int i,j;
@@ -256,7 +256,7 @@ fDepMatrix(copy.fDepMatrix), fNext(0) {
 	if(copy.fNext) fNext = new TPZDepend(*copy.fNext);
 }
 
-TPZConnect::TPZDepend::TPZDepend(int connectindex) : fDepConnectIndex(connectindex),
+TPZConnect::TPZDepend::TPZDepend(long connectindex) : fDepConnectIndex(connectindex),
 fDepMatrix(),fNext(0)
 {
 }
@@ -265,7 +265,7 @@ TPZConnect::TPZDepend::~TPZDepend() {
 	if(fNext) delete fNext;
 }
 
-TPZConnect::TPZDepend *TPZConnect::TPZDepend::HasDepend(int depindex) {
+TPZConnect::TPZDepend *TPZConnect::TPZDepend::HasDepend(long depindex) {
 	TPZDepend *ptr = this;
 	while(ptr && ptr->fDepConnectIndex != depindex) ptr = ptr->fNext;
 	return ptr;
@@ -298,7 +298,7 @@ int TPZConnect::NDof(TPZCompMesh &mesh) {
 	return mesh.Block().Size(fSequenceNumber);
 }
 
-int TPZConnect::SequenceNumber() const {
+long TPZConnect::SequenceNumber() const {
 	return fSequenceNumber;
 }
 
@@ -307,8 +307,8 @@ int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
 	if(HasDependency()) {
 		TPZConnect::TPZDepend *first = FirstDepend();
 		while(first) {
-			int nr = first->fDepMatrix.Rows();
-			int nc = first->fDepMatrix.Cols();
+			long nr = first->fDepMatrix.Rows();
+			long nc = first->fDepMatrix.Cols();
 			if(nr != nshape) {
 				cout << "TPZConnect::CheckDependency inconsistent dependency nshape = " << nshape << " nrows " << nr << endl;
 				return -1;
@@ -329,12 +329,12 @@ int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
 	return 0;
 }
 
-void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
+void TPZConnect::ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
 	
     if(!fDependList) return;
-    int dim = dphi.Rows();
-    int locind = 0;
-    int ncon = connectlist.NElements();
+    long dim = dphi.Rows();
+    long locind = 0;
+    long ncon = connectlist.NElements();
     int eqloc = 0;
     while(locind < ncon && connectlist[locind] != cind) {
         eqloc += blocksize[locind];
@@ -346,8 +346,8 @@ void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &bl
     }
     TPZDepend *dep = fDependList;
     while(dep) {
-        int eqrem = 0;
-        int remind = 0;
+        long eqrem = 0;
+        long remind = 0;
         while(remind < ncon && connectlist[remind] != dep->fDepConnectIndex) {
             eqrem += blocksize[remind];
             remind++;
@@ -356,13 +356,13 @@ void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &bl
             cout << "TPZConnect::ExpandShape wrong data structure remind\n";
             return;
         }
-        int rows = dep->fDepMatrix.Rows();
-        int cols = dep->fDepMatrix.Cols();
+        long rows = dep->fDepMatrix.Rows();
+        long cols = dep->fDepMatrix.Cols();
         if(rows != blocksize[locind] || cols != blocksize[remind]) {
             cout << "TPZConnect::ExpandShape wrong data structure sizes\n";
             return;
         }
-        int r,c,d;
+        long r,c,d;
         for(r=0; r<rows; r++) {
             for(c=0; c<cols; c++) {
 #ifdef STATE_COMPLEX
@@ -415,7 +415,7 @@ void TPZConnect::TPZDepend::Write(TPZStream &buf)
 void TPZConnect::TPZDepend::Read(TPZStream &buf)
 {
 	fDepMatrix.Read(buf,0);
-	int nextindex;
+	long nextindex;
 	buf.Read(&nextindex,1);
 	if(nextindex >= 0)
 	{
@@ -453,7 +453,7 @@ void TPZConnect::Read(TPZStream &buf, void *context)
 	//	buf.Read(&fOrder,1);
     buf.Read(&fFlags,1);
     buf.Read(&fNShape);
-	int seq;
+	long seq;
 	buf.Read(&seq,1);
 	if(seq >= 0)
 	{
@@ -465,7 +465,7 @@ void TPZConnect::Read(TPZStream &buf, void *context)
 	}
 }
 
-void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
+void TPZConnect::CopyFrom(TPZConnect &orig,std::map<long,long> & gl2lcIdx)
 {
 	fSequenceNumber = orig.fSequenceNumber;
 	fNElConnected = orig.fNElConnected;
@@ -492,10 +492,10 @@ void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
 	}
 }
 
-void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx)
+void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<long,long>& gl2lcIdx)
 {
-	int loccondepIdx = -1;
-	int origdepconIdx = orig->fDepConnectIndex;
+	long loccondepIdx = -1;
+	long origdepconIdx = orig->fDepConnectIndex;
 	if (gl2lcIdx.find(origdepconIdx) != gl2lcIdx.end()) loccondepIdx = gl2lcIdx[origdepconIdx];
 	else
 	{
@@ -526,7 +526,7 @@ void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx
 	}
 }
 
-void TPZConnect::BuildConnectList(int index, std::set<int> &indepconnectlist, std::set<int> &depconnectlist, TPZCompMesh &mesh){
+void TPZConnect::BuildConnectList(long index, std::set<long> &indepconnectlist, std::set<long> &depconnectlist, TPZCompMesh &mesh){
 	if(fDependList)
 	{
 		depconnectlist.insert(index);
@@ -544,11 +544,11 @@ void TPZConnect::BuildConnectList(int index, std::set<int> &indepconnectlist, st
 	}
 }//void
 
-void TPZConnect::BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &ConnectIndex, TPZCompMesh &mesh){
+void TPZConnect::BuildConnectList(TPZStack<long> &connectlist, TPZVec<long> &ConnectIndex, TPZCompMesh &mesh){
 	TPZConnect *dfn;
-	int dfnindex;
-	int nconnects = ConnectIndex.NElements();
-	int in;
+	long dfnindex;
+	long nconnects = ConnectIndex.NElements();
+	long in;
 	for(in = 0; in < nconnects; in++){
 		dfnindex = ConnectIndex[in];
 		dfn = & (mesh.ConnectVec()[ dfnindex ]);
@@ -556,12 +556,12 @@ void TPZConnect::BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &Conne
 	}//for in
 }//void
 
-void TPZConnect::BuildConnectList(std::set<int> &connectlist, std::set<int> &additional, TPZCompMesh &mesh){
+void TPZConnect::BuildConnectList(std::set<long> &connectlist, std::set<long> &additional, TPZCompMesh &mesh){
 	TPZConnect *dfn;
 	int dfnindex;
 	TPZAdmChunkVector<TPZConnect> &connectvec = mesh.ConnectVec();
 	//	int nconnects = additional.size();
-	std::set<int>::iterator it;
+	std::set<long>::iterator it;
 	for(it = additional.begin() ; it != additional.end(); it++){
 		dfnindex = *it;
 		dfn = & connectvec[ dfnindex ];
@@ -569,25 +569,25 @@ void TPZConnect::BuildConnectList(std::set<int> &connectlist, std::set<int> &add
 	}//for in
 }//void
 
-void TPZConnect::BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh) {
+void TPZConnect::BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh) {
 	// nodelist (input) : vector which contains pointers to all nodes which
 	// are in the dependency chain of the nodes of the element
-	int totalnodes = connectlist.NElements();
+	long totalnodes = connectlist.NElements();
 	DependenceOrder.Resize(totalnodes);
 	DependenceOrder.Fill(0,0);
 	// initialize the vector which contains the
 	// dependency order to zero
 	int CurrentOrder = 0;
 	// order which is currently processed
-	int numnodes_processed = totalnodes;
+	long numnodes_processed = totalnodes;
 	// number of nodes processed during the current cycle
 	
 	while(numnodes_processed) {
 		
 		numnodes_processed = 0;
-		int i;
+		long i;
 		for(i=0; i<totalnodes; i++) {
-			int dfnindex = connectlist[i];
+			long dfnindex = connectlist[i];
 			TPZConnect &dfn = mesh.ConnectVec()[dfnindex];
 			if(dfn.HasDependency() && DependenceOrder[i] == CurrentOrder) {
 				dfn.SetDependenceOrder(dfnindex,mesh,CurrentOrder,connectlist,DependenceOrder);

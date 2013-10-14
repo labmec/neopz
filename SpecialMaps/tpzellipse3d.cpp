@@ -248,7 +248,7 @@ void TPZEllipse3D::GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes)
 {
 	for(int i = 0; i < NNodes; i++)
 	{
-		const int nodeindex = this->fNodeIndexes[i];
+		const long nodeindex = this->fNodeIndexes[i];
 		TPZGeoNode * np = &(mesh.NodeVec()[nodeindex]);
 		for(int j = 0; j < 3; j++)
 		{
@@ -261,7 +261,7 @@ void TPZEllipse3D::SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes)
 {
 	for(int i = 0; i < NNodes; i++)
 	{
-		const int nodeindex = this->fNodeIndexes[i];
+		const long nodeindex = this->fNodeIndexes[i];
 		TPZGeoNode * np = &(mesh.NodeVec()[nodeindex]);
 		for(int j = 0; j < 3; j++)
 		{
@@ -273,7 +273,7 @@ void TPZEllipse3D::SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes)
 #include <math.h>
 void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 {
-	const int nnodes = NNodes;   //NNodes = 2
+	const long nnodes = NNodes;   //NNodes = 2
 	TPZFNMatrix<3*nnodes> nodeCoord(3,nnodes);
 	this->GetNodesCoords(mesh,nodeCoord);
 	
@@ -346,8 +346,9 @@ TPZGeoEl *TPZEllipse3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
 	if(side==2)
 	{
-		TPZManVector<int> nodes(3);
-		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2); int index;
+		TPZManVector<long> nodes(3);
+		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2); 
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
@@ -357,8 +358,9 @@ TPZGeoEl *TPZEllipse3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	
 	else if(side==0 || side==1)
 	{
-		TPZManVector<int> nodeindexes(1);
-		nodeindexes[0] = orig->SideNodeIndex(side,0); int index;
+		TPZManVector<long> nodeindexes(1);
+		nodeindexes[0] = orig->SideNodeIndex(side,0); 
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -419,14 +421,14 @@ TPZFMatrix<REAL> TPZEllipse3D::DEllipseR2equationDang(double ang) const
 
 /** Creates a geometric element according to the type of the father element */
 TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										 TPZVec<int>& nodeindexes,
+										 TPZVec<long>& nodeindexes,
 										 int matid,
-										 int& index)
+										 long& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
-void TPZEllipse3D::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+void TPZEllipse3D::ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord)
 {
     if(node > this->NNodes)
     {

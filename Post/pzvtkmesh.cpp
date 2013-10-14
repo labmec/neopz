@@ -72,7 +72,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 		for(n=0; n<numscal; n++)
 		{
 			(fOutFile) << "SCALARS " << fScalarNames[n] << " float" << endl << "LOOKUP_TABLE default\n";
-			int nnod = fNodeMap.NElements(),i;
+			long nnod = fNodeMap.NElements(),i;
 			for(i=0;i<nnod;i++) {
 				TPZGraphNode *node = &fNodeMap[i];
 				if(node) node->DrawSolution(scalind[n], EVTKStyle);
@@ -91,7 +91,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 		for(n=0; n<numvec; n++)
 		{
 			(fOutFile) << "VECTORS " << fVecNames[n] << " float" << std::endl;
-			int nnod = fNodeMap.NElements(), i;
+			long nnod = fNodeMap.NElements(), i;
 			for(i=0;i<nnod;i++) {
 				TPZGraphNode *node = &fNodeMap[i];
 				if(node) node->DrawSolution(vecind[n], EVTKStyle);
@@ -110,8 +110,8 @@ void TPZVTKGraphMesh::SequenceNodes(){
 void TPZVTKGraphMesh::DrawNodes(){
 	
 	long nn = 0L;
-	int nnod = fNodeMap.NElements();
-	int i;
+	long nnod = fNodeMap.NElements();
+	long i;
 	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) nn += n->NPoints();
@@ -127,14 +127,14 @@ void TPZVTKGraphMesh::DrawNodes(){
 
 void TPZVTKGraphMesh::DrawConnectivity(MElementType type) {
 	
-	int nel = fElementList.NElements();
+	long nel = fElementList.NElements();
 	if(!nel) return;
 	TPZGraphEl *el = (TPZGraphEl *) fElementList[0];
 	(fOutFile) << std::endl;
 	(fOutFile) << "CELLS ";
-	int nelem = 0;
-	int nint = 0;
-	int i;
+	long nelem = 0;
+	long nint = 0;
+	long i;
 	for(i=0;i<nel;i++) {
 		el = (TPZGraphEl *) fElementList[i];
 		if(el)
@@ -154,7 +154,7 @@ void TPZVTKGraphMesh::DrawConnectivity(MElementType type) {
 		el = (TPZGraphEl *) fElementList[i];
 		if(el)
 		{
-			int j, nElPerEl = el->NElements();
+			long j, nElPerEl = el->NElements();
 			for(j = 0; j < nElPerEl; j++)(fOutFile) << el->ExportType(EVTKStyle) << std::endl;
 		}
  	}

@@ -36,7 +36,7 @@ void TPZCompMeshReferred::LoadReferred(TPZCompMesh *mesh)
 	TPZGeoMesh *gmesh = mesh->Reference();
 	gmesh->ResetReference();
 	mesh->LoadReferences();
-	int iel,nel = NElements();
+	long iel,nel = NElements();
 	for(iel=0; iel<nel; iel++)
 	{
 		TPZCompEl *cel = fElementVec[iel];
@@ -56,10 +56,10 @@ void TPZCompMeshReferred::ResetReferred()
 	fReferred = 0;
 }
 
-TPZCompEl *TPZCompMeshReferred::ReferredEl(int index)
+TPZCompEl *TPZCompMeshReferred::ReferredEl(long index)
 {
 	if(!fReferred) return 0;
-	int celindex = fReferredIndices[index];
+	long celindex = fReferredIndices[index];
 	if(celindex <0) return 0;
 	TPZCompEl *cel = fReferred->ElementVec()[celindex];
 	return cel;
@@ -70,10 +70,10 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 	TPZCompMesh * other = NULL;
 	if (me) other = me->ReferredMesh();
 	
-	const int nel2ref = WhichRefine.NElements();
+	const long nel2ref = WhichRefine.NElements();
 	TPZVec<TPZCompEl *> Other2Refine(nel2ref, NULL);
 	if (other){
-		for(int i = 0; i < nel2ref; i++){
+		for(long i = 0; i < nel2ref; i++){
 			TPZCompEl * cel = WhichRefine[i];
 			if (!cel) continue;
 			Other2Refine[i] = me->ReferredEl(cel->Index());
@@ -84,8 +84,8 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 	gmesh->ResetReference();
 	me->ResetReferred();
 	me->LoadReferences();
-	TPZVec<int> filhos;
-	for ( int iref = 0; iref < nel2ref; iref++ )
+	TPZVec<long> filhos;
+	for ( long iref = 0; iref < nel2ref; iref++ )
 	{
 		TPZCompEl * cel = WhichRefine[iref];
 		if (!cel) continue;

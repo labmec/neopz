@@ -69,16 +69,16 @@ protected:
 public:
 
 	
-static TPZCompEl * CreatePostProcDisc(  TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreatePostProcDisc(  TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
 	
-static TPZCompEl * CreatePointEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreateLinearEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreateQuadEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreateTriangleEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreateCubeEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreatePyramEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreateTetraEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
-static TPZCompEl * CreatePrismEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreatePointEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreateLinearEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreateQuadEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreateTriangleEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreateCubeEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreatePyramEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreateTetraEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
+static TPZCompEl * CreatePrismEl( TPZGeoEl *gel, TPZCompMesh &mesh, long &index);
 
 };
 

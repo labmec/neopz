@@ -50,9 +50,9 @@ protected:
  * @ingroup pre
  */
 struct TSide {
-	std::set<int> fNodes;
+	std::set<long> fNodes;
 	int fSide;
-	int operator<(const TSide &other) const{
+	bool operator<(const TSide &other) const{
 		return fNodes < other.fNodes;
 	}
 	TSide &operator=(const TSide &copy) {

@@ -23,7 +23,7 @@ using namespace std;
 
 
 template<class TSHAPE>
-TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -76,8 +76,8 @@ TPZIntelGen<TSHAPE>(mesh,copy)
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh,
 									 const TPZCompElHDiv<TSHAPE> &copy,
-									 std::map<int,int> & gl2lcConMap,
-									 std::map<int,int> & gl2lcElMap) :
+									 std::map<long,long> & gl2lcConMap,
+									 std::map<long,long> & gl2lcElMap) :
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -132,7 +132,7 @@ int TPZCompElHDiv<TSHAPE>::NConnects() const {
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
+void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
 #ifndef NODEBUG
 	if(i<0 || i>= this->NConnects()) {
 		std::cout << " TPZCompElHDiv<TSHAPE>::SetConnectIndex index " << i <<
@@ -340,7 +340,7 @@ int TPZCompElHDiv<TSHAPE>::PreferredSideOrder(int side) {
 }
 
 template<class TSHAPE>
-int TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
+long TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
 #ifndef NODEBUG
 	if(con<0 || con>= this->NConnects()) {
 		std::cout << "TPZCompElHDiv::ConnectIndex wrong parameter connect " << con <<
@@ -376,7 +376,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
 	}
 	TPZConnect &c = this->Connect(connectaux);
     c.SetOrder(order);
-    int seqnum = c.SequenceNumber();
+    long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
@@ -437,13 +437,12 @@ int TPZCompElHDiv<TSHAPE>::SideOrder(int side) const
 		maxorder = (ConnectOrder(conectaux) > maxorder) ? ConnectOrder(conectaux) : maxorder;
 	}
 	
-	return maxorder;
-	
+	return maxorder;	
 }
 
 /**return the first shape associate to each side*/
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
+void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 	
 		Index.Resize(TSHAPE::NSides+1);
 		Index[0]=0;
@@ -506,7 +505,7 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
 
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec, int pressureorder){
+void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder){
 //		{	
 //		#ifdef LOG4CXX
 //												std::stringstream sout;
@@ -516,24 +515,24 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 //		}
        
     // VectorSide indicates the side associated with each vector entry
-    TPZManVector<int,27> FirstIndex;
+    TPZManVector<long,27> FirstIndex;
     // the first index of the shape functions
     FirstShapeIndex(FirstIndex);
-    
-    int count=0;
+
+    long count=0;
     int nshapeflux= NFluxShapeF();
 		
     ShapeAndVec.Resize(nshapeflux);    
     if (TSHAPE::Type()==EQuadrilateral) {
         
-        TPZManVector<int,4> ids(4,0);
+        TPZManVector<long,4> ids(4,0);
         TPZGeoEl *gel = this->Reference();
         int id;
         for (id=0; id<4; id++) {
             ids[id] = gel->NodePtr(id)->Id();
         }
         
-        for(int jvec=0;jvec< VectorSide.NElements();jvec++)
+        for(long jvec=0;jvec< VectorSide.NElements();jvec++)
         {
             if (jvec==2||jvec==5||jvec==8||jvec==11)
             {
@@ -542,22 +541,21 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 int nshapecon=NConnectShapeF(nconside);
                 if (nshapecon > 2)
                 {
-                    int fshape1= FirstIndex[lside];
-                    int fshape2= fshape1+ nshapecon-2;
-										
+                    long fshape1= FirstIndex[lside];
+                    long fshape2= fshape1+ nshapecon-2;
 //#ifdef LOG4CXX
 //                    std::stringstream sout;
 //                    sout << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
 //                    LOGPZ_DEBUG(logger,sout.str())
 //#endif
-                    for (int ishape=fshape1; ishape<fshape2; ishape++)
+                    for (long ishape=fshape1; ishape<fshape2; ishape++)
                     {
 //#ifdef LOG4CXX
 //                        std::stringstream sout;
 //                        sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 //                        LOGPZ_DEBUG(logger,sout.str())
 //#endif
-                        ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                        ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
                     }
                 }
             }
@@ -603,8 +601,8 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                         DebugStop();
                         break;
                 }
-                int ish=0;
-                int fshape1 = FirstIndex[lside];
+                long ish=0;
+                long fshape1 = FirstIndex[lside];
 //#ifdef LOG4CXX
 //                {
 //                    std::stringstream sout;
@@ -626,7 +624,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                         {
                             if (!(ordereta == pressureorder+1 && orderksi == pressureorder))
                             {
-                                ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
+                                ShapeAndVec[count++]=std::pair<int,long>(jvec,fshape1+ish);
 												
 //#ifdef LOG4CXX
 //                                std::stringstream sout;
@@ -647,71 +645,66 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 //                                sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
 //                                LOGPZ_DEBUG(logger,sout.str())
 //#endif
-                                ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
+                                ShapeAndVec[count++]=std::pair<int,long>(jvec,fshape1+ish);
                             }
                         }
                     }
                 }
             }
-            else{
-                int lside=VectorSide[jvec];
-                int fshape1= FirstIndex[lside];
-                int fshape2= FirstIndex[lside+1];
-                
+            else {
+                int lside = VectorSide[jvec];
+                long fshape1 = FirstIndex[lside];
+                long fshape2 = FirstIndex[lside+1];
 //#ifdef LOG4CXX
 //                std::stringstream sout;
 //                sout << " lside "<< lside << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
 //                LOGPZ_DEBUG(logger,sout.str())
 //#endif
-                for (int ishape=fshape1; ishape<fshape2; ishape++){
+                for (long ishape=fshape1; ishape<fshape2; ishape++) {
 //#ifdef LOG4CXX
 //                    std::stringstream sout;
 //                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 //                    LOGPZ_DEBUG(logger,sout.str())
 //#endif
-                    ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
-                    
+                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
                 }
             }
         }
     }//end to EQuadrilateral 
-    
-    else{
-        int count=0;
-        for(int jvec=0;jvec< VectorSide.NElements();jvec++)
+    else {
+        long count=0;
+        for(long jvec=0;jvec< VectorSide.NElements();jvec++)
         {
             if (jvec==2||jvec==5||jvec==8)
             {
                 int lside=VectorSide[jvec];
-                int fshape1= FirstIndex[lside];
-                //int fshape2= FirstIndex[lside+1];
+                long fshape1= FirstIndex[lside];
                 int nconside=SideConnectLocId(0,lside);
                 int nshapecon=NConnectShapeF(nconside);
-                int fshape2= fshape1+nshapecon-2;
-                for (int ishape=fshape1; ishape<fshape2; ishape++)
+                long fshape2= fshape1+nshapecon-2;
+                for (long ishape=fshape1; ishape<fshape2; ishape++)
                 {
 //#ifdef LOG4CXX
 //                    std::stringstream sout;
 //                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 //                    LOGPZ_DEBUG(logger,sout.str())
 //#endif
-                    ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
                 }
             }
             else
             {
                 int lside=VectorSide[jvec];
-                int fshape1= FirstIndex[lside];
-                int fshape2= FirstIndex[lside+1];
-                for (int ishape=fshape1; ishape<fshape2; ishape++)
+                long fshape1= FirstIndex[lside];
+                long fshape2= FirstIndex[lside+1];
+                for (long ishape=fshape1; ishape<fshape2; ishape++)
                 {
 //#ifdef LOG4CXX
 //                   std::stringstream sout;
 //                   sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 //                    LOGPZ_DEBUG(logger,sout.str())
 //#endif
-
-                    ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
                 }
             }
         }
@@ -750,8 +743,8 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         // create a philoc and copy
         TPZFNMatrix<200,REAL> philoc(nsideshape,1),dphiloc(TSHAPE::SideDimension(side),nsideshape);
         TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,philoc,dphiloc);
-        int nsh = phi.Rows();
-        for (int ish = 0; ish < nsh; ish++) {
+        long nsh = phi.Rows();
+        for (long ish = 0; ish < nsh; ish++) {
             phi(ish,0) = philoc(ish,0);
             for (int d=0; d<TSHAPE::SideDimension(side); d++) {
                 dphi(d,ish) = dphiloc(d,ish);
@@ -845,12 +838,12 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     const int ncon = this->NConnects();
     
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
-    int numbersol = MeshSol.Cols();
+    long numbersol = MeshSol.Cols();
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
     
     int dimvec = data.fNormalVec.Rows();
-    for (int is=0; is<numbersol; is++) 
+    for (long is=0; is<numbersol; is++) 
     {
         data.sol[is].Resize(dim,numdof);//2 components to the flow
         data.sol[is].Fill(0);
@@ -863,9 +856,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     for(int in=0; in<ncon; in++) 
     {
 		TPZConnect *df = &this->Connect(in);
-		int dfseq = df->SequenceNumber();
+		long dfseq = df->SequenceNumber();
 		int dfvar = block.Size(dfseq);
-		int pos = block.Position(dfseq);
+		long pos = block.Position(dfseq);
 		
 		for(int jn=0; jn<dfvar; jn++)
         {
@@ -879,7 +872,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 //			TPZFNMatrix<3> axesvec(3,1);
 //			data.axes.Multiply(ivecDiv,axesvec);
 			
-            for (int is=0; is<numbersol; is++)
+            for (long is=0; is<numbersol; is++)
             {
                 cols=jv%numdof;
                 for (int ilinha=0; ilinha<dim; ilinha++) {
@@ -902,9 +895,9 @@ void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, T
 	
 	if(Is_u1PHI && Is_u2PHI)
 	{
-		int nu1 = u1.Rows(),nu2 = u2.Rows();
+		long nu1 = u1.Rows(),nu2 = u2.Rows();
 		u12.Redim(nu1+nu2,1);
-		int i;
+		long i;
 		for(i=0; i<nu1; i++) u12(i,0) = u1(i,0);
 		for(i=0; i<nu2; i++) u12(i+nu1,0) = u2(i,0);
 		
@@ -912,11 +905,11 @@ void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, T
 	}
 	else if(!Is_u1PHI || !Is_u2PHI) 
 	{
-		int ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
-		int ru12 = ru1 < ru2 ? ru2 : ru1;
-		int cu12 = cu1+cu2;
+		long ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
+		long ru12 = ru1 < ru2 ? ru2 : ru1;
+		long cu12 = cu1+cu2;
 		u12.Redim(ru12,cu12);
-		int i,j;
+		long i,j;
 		for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
 		for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);
 	}
@@ -931,7 +924,7 @@ void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, T
 template<class TSHAPE>
 
 void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-	TPZManVector<int,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+	TPZManVector<long,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
 		int i;
 		TPZGeoEl *ref = this->Reference();
@@ -955,11 +948,6 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
 				dphi.Resize(dimension, nshape);
 				TSHAPE::Shape(pt,id,ord,phi,dphi);
 
-		//const int nshapecont = TSHAPE::NShapeF(ord);
-
-//		phi.Resize(nshapecont, 1);
-//		dphi.Resize(dimension, nshapecont);
-//		TSHAPE::Shape(pt,id,ord,phi,dphi);
 }
 
 template<class TSHAPE>
@@ -1006,14 +994,14 @@ TPZTransform TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int> &shapeindex){
+void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex){
 	
-	TPZManVector<int> firstshapeindex;
+	TPZManVector<long> firstshapeindex;
 	FirstShapeIndex(firstshapeindex);
 	int nshape = TPZIntelGen<TSHAPE>::NShapeF();
 	shapeindex.Resize(nshape);
-	int nsides = sides.NElements();
-	int is, count=0;
+	long nsides = sides.NElements();
+	long is, count=0;
 	for(is=0 ; is<nsides; is++)
 	{
 		int side = sides[is];
@@ -1088,8 +1076,8 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 {
 	TPZInterpolatedElement::Write(buf,withclassid);
 	TPZManVector<int,3> order(3,0);
-	this-> fIntRule.GetOrder(order);
-	this->  WriteObjects(buf,order);
+	this->fIntRule.GetOrder(order);
+	this->WriteObjects(buf,order);
 	buf.Write(this->fConnectIndexes,TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
 	int classid = this->ClassId();
@@ -1161,7 +1149,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 		}
 		int nshape = hdivpressure-> NConnectShapeF(ncon-1);
 		con.SetNShape(nshape);
-		int seqnum = con.SequenceNumber();
+		long seqnum = con.SequenceNumber();
 		this->Mesh()->Block().Set(seqnum,nshape);
     }
 		
@@ -1241,8 +1229,6 @@ template<>
 void TPZCompElHDiv<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
 	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
 }
-
-
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
@@ -1331,36 +1317,36 @@ template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv<TPZShapePoint>(mesh,gel,index);
 }
 
 
-TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index);
 }
 

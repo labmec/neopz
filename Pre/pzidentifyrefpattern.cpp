@@ -52,7 +52,7 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *fa
 			//return a uniform refinement pattern
 			if (nelem == UniformSubElem(eltype)) {
 				rp = GetUniform(father);
-			}else{
+			} else {
 				//identify the side refinement pattern
 				int side = IdentifySide(father,subelem);
 				rp = GetSideRefPattern(father,side);
@@ -82,8 +82,8 @@ int TPZIdentifyRefPattern::IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> sub
 		TSide sidefat(gelside);
 		Father.insert(sidefat);
 	}
-	for (isub=0;isub<subelem.NElements();isub++){
-		for (iside=0;iside<subelem[isub]->NSides();iside++){
+	for (isub=0;isub<subelem.NElements();isub++) {
+		for (iside=0;iside<subelem[isub]->NSides();iside++) {
 			if (subelem[isub]->SideDimension(iside) != 1) continue;
 			TPZGeoElSide gelside (subelem[isub],iside);
 			TSide sideson(gelside);

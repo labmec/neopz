@@ -29,20 +29,20 @@ protected:
 	TPZCompElSide 	fRightElSide;
     
     /** @brief indexes of the connects */
-    TPZManVector<int,100> fConnectIndexes;
+    TPZManVector<long,100> fConnectIndexes;
 	
 public:
 	/** @brief Default constructor */
 	TPZMultiphysicsInterfaceElement();	
 	/** @brief Constructor */
-	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int &index, TPZCompElSide left, TPZCompElSide right);
+	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right);
     
     /** @brief create a copy of the given element */
     TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy);
     
     /** @brief create a copy of the given element using index mapping */
-    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<int,int> & gl2lcConMap,
-									std::map<int,int> & gl2lcElMap);
+    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
+									std::map<long,long> & gl2lcElMap);
 	
 	/** @brief Method for creating a copy of the element */
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const 
@@ -62,8 +62,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<int,int> & gl2lcConMap,
-									std::map<int,int> & gl2lcElMap) const 
+									std::map<long,long> & gl2lcConMap,
+									std::map<long,long> & gl2lcElMap) const 
     {
         return new TPZMultiphysicsInterfaceElement(mesh,*this,gl2lcConMap,gl2lcElMap);
     }
@@ -104,7 +104,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int index)
+	virtual void SetConnectIndex(int inode, long index)
     {
         PZError << __FUNCTION__ << " should never be called\n";
         DebugStop();
@@ -117,7 +117,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int ConnectIndex(int i) const;
+	virtual long ConnectIndex(int i) const;
 	
 
     /** @brief Dimension of the element */
@@ -199,7 +199,7 @@ public:
     }
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
     {
         TPZCompEl *left = fLeftElSide.Element();
         TPZCompEl *right = fRightElSide.Element();

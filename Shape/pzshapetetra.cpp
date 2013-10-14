@@ -137,7 +137,7 @@ namespace pzshape {
 	
 	
 	//ifstream inn("mats.dt");
-	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -162,7 +162,7 @@ namespace pzshape {
 		for (int rib = 0; rib < 6; rib++) {
 			REAL outval;
 			ProjectPoint3dTetraToRib(rib,pt,outval);
-			TPZVec<int> ids(2);
+			TPZVec<long> ids(2);
 			TPZManVector<REAL,1> outvalvec(1,outval);
 			int id0,id1;
 			id0 = SideNodes[rib][0];
@@ -201,7 +201,7 @@ namespace pzshape {
 			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);//ponto na face
 			phin.Zero();
 			dphin.Zero();
-			TPZManVector<int> ids(3);
+			TPZManVector<long> ids(3);
 			//	int id0,id1,id2;
 			int i;
 			for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
@@ -343,7 +343,7 @@ namespace pzshape {
 		return res;
 	}
 	
-	void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		if(side<0 || side>15) PZError << "TPZCompElT3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==14) Shape(point,id,order,phi,dphi);

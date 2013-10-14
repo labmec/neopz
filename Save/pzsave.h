@@ -140,10 +140,22 @@ public:
 	
 	static void WriteObjects(TPZStream &buf, const std::map<int,int> &vec)
 	{
-		int sz = vec.size();
+		long sz = vec.size();
 		TPZManVector<int> cp(sz*2);
-		int count = 0;
+		long count = 0;
         std::map<int,int>::const_iterator it;
+		for (it=vec.begin(); it!=vec.end(); it++) {
+			cp[count++] = it->first;
+			cp[count++] = it->second;
+		}
+		WriteObjects(buf, cp);
+	}
+	static void WriteObjects(TPZStream &buf, const std::map<long,long> &vec)
+	{
+		long sz = vec.size();
+		TPZManVector<long> cp(sz*2);
+		long count = 0;
+        std::map<long,long>::const_iterator it;
 		for (it=vec.begin(); it!=vec.end(); it++) {
 			cp[count++] = it->first;
 			cp[count++] = it->second;

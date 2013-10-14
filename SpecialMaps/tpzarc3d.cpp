@@ -101,19 +101,20 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, 
 {
 	/** vector (ini - middle) written in new R2 base */
 	TPZVec<REAL> Axe(3,0.), Temp(3,0.);
-	for(int i = 0; i < 3; i++) Axe[i] = coord(i,0) - coord(i,2);
-	for(int i = 0; i < 3; i++)
+	int i, j;
+	for(i = 0; i < 3; i++) Axe[i] = coord(i,0) - coord(i,2);
+	for(i = 0; i < 3; i++)
 	{
-		for(int j = 0; j < 3; j++) Temp[i] += fICnBase(i,j)*Axe[j];
+		for(j = 0; j < 3; j++) Temp[i] += fICnBase(i,j)*Axe[j];
 	}
 	xa = Temp[0]; ya = Temp[1];
 	Temp.Fill(0.);
 	
 	/** vector (final - middle) written in new R2 base */
-	for(int i = 0; i < 3; i++) Axe[i] = coord(i,1) - coord(i,2);
-	for(int i = 0; i < 3; i++)
+	for(i = 0; i < 3; i++) Axe[i] = coord(i,1) - coord(i,2);
+	for(i = 0; i < 3; i++)
 	{
-		for(int j = 0; j < 3; j++) Temp[i] += fICnBase(i,j)*Axe[j];
+		for(j = 0; j < 3; j++) Temp[i] += fICnBase(i,j)*Axe[j];
 	}
 	xb = Temp[0]; yb = Temp[1];
 	
@@ -247,8 +248,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
 	if(side==2)
 	{
-		TPZManVector<int> nodes(3);
-		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2); int index;
+		TPZManVector<long> nodes(3);
+		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2);
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
@@ -258,8 +260,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	
 	else if(side==0 || side==1)
 	{
-		TPZManVector<int> nodeindexes(1);
-		nodeindexes[0] = orig->SideNodeIndex(side,0); int index;
+		TPZManVector<long> nodeindexes(1);
+		nodeindexes[0] = orig->SideNodeIndex(side,0); 
+		long index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
@@ -275,9 +278,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
  */
 
 TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									 TPZVec<int>& nodeindexes,
+									 TPZVec<long>& nodeindexes,
 									 int matid,
-									 int& index)
+									 long& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }

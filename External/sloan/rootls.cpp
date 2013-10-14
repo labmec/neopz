@@ -1,13 +1,13 @@
- /* Subroutine */ int 
-rootls_ (int *, int *root, int *maxwid,
-         int *, int *adj, int *xadj, long *mask, int *ls,
-         int *xls, int *depth, int *width)
+ /* Subroutine */ 
+int rootls_ (long *, long *root, long *maxwid,
+         long *, long *adj, long *xadj, long *mask, long *ls,
+         long *xls, long *depth, long *width)
 //n, root, maxwid, e2, adj, xadj, mask, ls, xls, depth, width
 {
  /* System generated locals */
-    int     i__1, i__2;
+    long     i__1, i__2;
  /* Local variables */
-    static int node, i, j, lwdth, jstop, lstop, jstrt, lstrt, nc, nbr;
+    static long node, i, j, lwdth, jstop, lstop, jstrt, lstrt, nc, nbr;
 
 
 /*     PURPOSE: */

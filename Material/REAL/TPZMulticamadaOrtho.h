@@ -22,7 +22,7 @@ class TPZMaterial;
 /**
  * @ingroup material
  * @brief Gerencia um conjunto de placas
- * dispostas em forma multicamada (Jorge?)
+ * dispostas em forma multicamada
  */
 
 class TPZMulticamadaOrthotropic {
@@ -37,7 +37,7 @@ class TPZMulticamadaOrthotropic {
 	/** @brief Dimension of the shells (must to be constant for all shells) */
 	REAL fDx,fDy;
 	/** @brief Number of elementos at x and y axes : fNelx, fNely */
-	int fNelx, fNely;
+	long fNelx, fNely;
 	REAL fZMin, fZMax;
 
 	REAL fMX[3],fMY[3],fMXY[3],fQX[3],fQY[3],fNX[3],fNY[3],fNXY[3];
@@ -54,7 +54,7 @@ class TPZMulticamadaOrthotropic {
 	
 public:
 	/** @brief Construtor */
-	TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely, REAL Correct = 1.0);
+	TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, long nelx, long nely, REAL Correct = 1.0);
 	/** @brief Destrutor */
 	~TPZMulticamadaOrthotropic(){}
 	
@@ -83,7 +83,7 @@ public:
 	
 	void ComputeSolution(std::ostream &out = std::cout,int print = 0);
 	
-	void ComputeSolution(TPZMaterial *mat,std::ofstream &out,int numiter);
+	void ComputeSolution(TPZMaterial *mat,std::ofstream &out,long numiter);
 
 	/**
 	 * @name Set data methods

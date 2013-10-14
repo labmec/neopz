@@ -40,7 +40,7 @@ static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.div
 #include <sstream>
 using namespace std;
 
-TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
+TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, long &index) :
 TPZInterpolationSpace(mesh,reference,index) {
 }
 
@@ -50,7 +50,7 @@ TPZInterpolationSpace(mesh,copy) {
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh,
                                                const TPZInterpolatedElement &copy,
-                                               std::map<int,int> & gl2lcElMap) :
+                                               std::map<long,long> & gl2lcElMap) :
 TPZInterpolationSpace(mesh,copy,gl2lcElMap)
 {
 }
@@ -97,7 +97,7 @@ TPZConnect &TPZInterpolatedElement::MidSideConnect(int is)
 	return Connect(MidSideConnectLocId(is));
 }
 
-int TPZInterpolatedElement::SideConnectIndex(int connect, int side) const {
+long TPZInterpolatedElement::SideConnectIndex(int connect, int side) const {
 	return ConnectIndex(SideConnectLocId(connect,side));
 }
 
@@ -130,7 +130,7 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
 	TPZStack<TPZCompElSide> elvec;
 	thisside.EqualLevelElementList(elvec,1,0);
 	elvec.Push(thisside);
-	int cap,il;
+	long cap,il;
 	TPZInterpolatedElement *equal;
 	int equalside;
 	if(orderchanged == 1) {
@@ -232,7 +232,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 	{
 		if(elvecall[i].ConnectIndex() != -1) elvec.Push(elvecall[i]);
 	}
-	int cap,il;
+	long cap,il;
 	TPZInterpolatedElement *equal;
 	int equalside;
 	if(large.Exists()) {
@@ -376,7 +376,7 @@ void TPZInterpolatedElement::RecomputeRestraints(int side) {
 	//Adapt the restraints of all smaller elements connected to the current side
 	thisside.HigherLevelElementList(elvec,1,1);
 	//thisside.ExpandConnected(elvec,1);
-	int cap,il;
+	long cap,il;
 	cap = elvec.NElements();
 	TPZInterpolatedElement *smalll;
 	int smallside;
@@ -399,8 +399,8 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
 	int orside = SideOrder(side);
 	int neighbourside;
 	TPZInterpolatedElement *neighbour;
-	int il;
-	int cap = elvec.NElements();
+	long il;
+	long cap = elvec.NElements();
 	for(il=0; il<cap; il++) {
 		neighbour = dynamic_cast<TPZInterpolatedElement *> ( elvec[il].Element() );
 		if(!neighbour) continue;
@@ -440,7 +440,8 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 		LOGPZ_ERROR(logger,sout.str());
 		return;
 	}
-	TPZStack<int> connectlistcoarse,dependencyordercoarse, corblocksize;
+	TPZStack<long> connectlistcoarse;
+	TPZStack<int> dependencyordercoarse, corblocksize;
 	connectlistcoarse.Resize(0);
 	dependencyordercoarse.Resize(0);
 	corblocksize.Resize(0);
@@ -573,9 +574,9 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	for(in=0; in<locnod; in++) {
 		//    int cind = connectlistcoarse[in];
 		if(Connect(in).HasDependency()) continue;
-		int locblocknumber = Connect(in).SequenceNumber();
+		long locblocknumber = Connect(in).SequenceNumber();
 		int locblocksize = locblock.Size(in);
-		int locblockpos = locblock.Position(in);
+		long locblockpos = locblock.Position(in);
 		TPZStack<int> locblockvec;
 		TPZStack<int> globblockvec;
 		int numnonzero = 0,jn;
@@ -583,11 +584,11 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 		
 		for(jn = 0; jn<cornod; jn++) {
 			int corblocksize = corblock.Size(jn);
-			int corblockpos = corblock.Position(jn);
+			long corblockpos = corblock.Position(jn);
 			int cind = connectlistcoarse[jn];
 			TPZConnect &con = coarsel.Mesh()->ConnectVec()[cind];
 			if(con.HasDependency()) continue;
-			int corblocknumber = con.SequenceNumber();
+			long corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
 			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
@@ -605,7 +606,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 		for(jnn = 0; jnn<numnonzero; jnn++) {
 			jn = locblockvec[jnn];
 			int corblocksize = corblock.Size(jn);
-			int corblockpos = corblock.Position(jn);
+			long corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
 			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,smalll);
@@ -615,21 +616,21 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	intrule->SetOrder(prevorder);
 }
 
-int TPZInterpolatedElement::CreateMidSideConnect(int side) {
+long TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	TPZCompMesh *cmesh = Mesh();
 	TPZMaterial * mat = Material();
 	int nvar = 1;
 	if(mat) nvar = mat->NStateVariables();
-	int newnodeindex;
-	int il;
-	int nodloc = MidSideConnectLocId(side);
+	long newnodeindex;
+	long il;
+	long nodloc = MidSideConnectLocId(side);
 	
 	
 	TPZStack<TPZCompElSide> elvec;
 	TPZCompElSide thisside(this,side);
 	if(side < NCornerConnects()) {
 		thisside.EqualLevelElementList(elvec,1,0);
-		int nel = elvec.NElements();                // (1)
+		long nel = elvec.NElements();                // (1)
 		if(nel && elvec[nel-1].Reference().Dimension() == thisside.Reference().Dimension()){
 			newnodeindex =  elvec[nel-1].ConnectIndex();
 			SetConnectIndex(nodloc,newnodeindex);
@@ -645,7 +646,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 				newnod.Print(*cmesh);
                 DebugStop();
 			}
-			int seqnum = newnod.SequenceNumber();
+			long seqnum = newnod.SequenceNumber();
 			SetConnectIndex(nodloc,newnodeindex);   //Is true only to one-dimensional case
 			cmesh->Block().Set(seqnum,nvar*nshape);
 			// We created a new node, check whether the node needs to be constrained
@@ -667,13 +668,13 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	TPZInterpolatedElement *cel = 0;
 	int side_neig = 0;
 	thisside.EqualLevelElementList(elvec,1,1);
-	int nelem = elvec.NElements();
+	long nelem = elvec.NElements();
 	// find an element in the list which is interpolated
 	if(nelem) {
 		cel = dynamic_cast<TPZInterpolatedElement *> ( elvec[0].Element() );
 		side_neig = elvec[0].Side();
 	}
-	int newnodecreated = 0;
+	long newnodecreated = 0;
 	if(cel) {
 		newnodeindex = cel->ConnectIndex(cel->MidSideConnectLocId(side_neig));
 		SetConnectIndex(nodloc,newnodeindex);
@@ -682,7 +683,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
         int order = cmesh->GetDefaultOrder();
 		newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 		TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
-		int seqnum = newnod.SequenceNumber();
+		long seqnum = newnod.SequenceNumber();
 		SetConnectIndex(nodloc,newnodeindex);
         nshape = NConnectShapeF(nodloc);
         newnod.SetNShape(nshape);
@@ -705,7 +706,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 		thisside.HigherLevelElementList(elvec,1,1);
 		//    thisside.ExpandConnected(elvec,1);
 		//    thisside.RemoveDuplicates(elvec);
-		int cap = elvec.NElements();
+		long cap = elvec.NElements();
 		int dim;
 		for(dim=0; dim<3; dim++) {
 			for(il=0; il<cap; il++) {
@@ -754,7 +755,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 		thisside.HigherLevelElementList(elvec,1,1);
 		//    thisside.ExpandConnected(elvec,1);
 		//    thisside.RemoveDuplicates(elvec);
-		int cap = elvec.NElements();
+		long cap = elvec.NElements();
 		int sideorder = PreferredSideOrder(side);
 		SetSideOrder(side,sideorder);
 		// We check on all smaller elements connected to the current element
@@ -852,7 +853,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	TPZFMatrix<STATE> MSL(numshape,numshapel,0.);
 	TPZFNMatrix<1000,STATE> *M = new TPZFNMatrix<1000,STATE>(numshape,numshape,0.);
 	TPZVec<REAL> par(3),pointl(3),point(3);
-	int in,jn;
+	long in,jn;
 	REAL weight;
 	for(int it=0; it<numint; it++) {
 		intrule->Point(it,par,weight);
@@ -905,8 +906,8 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 			int jbl = MBlocklarge.Size(jn);
 			if(!jbl) continue;
 			int i,j;
-			int ipos = MBlocksmall.Position(in);
-			int jpos = MBlocklarge.Position(jn);
+			long ipos = MBlocksmall.Position(in);
+			long jpos = MBlocklarge.Position(jn);
 			for(i=0; i<ibl; i++) for(j=0; j<jbl; j++) blocknorm(in,jn) += fabs(MSL(ipos+i,jpos+j))*fabs(MSL(ipos+i,jpos+j));
 			blocknorm(in,jn) /= (ibl*jbl);
 			blocknorm(in,jn) = sqrt(blocknorm(in,jn));
@@ -916,21 +917,21 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	CheckConstraintConsistency(side);
 #endif
 	TPZConnect &inod = Connect(MidSideConnectLocId(side));
-	int inodindex = ConnectIndex(MidSideConnectLocId(side));
-	int ndepend = 0;
+	long inodindex = ConnectIndex(MidSideConnectLocId(side));
+	long ndepend = 0;
 	in = numsidenodes_small-1;
 	for(jn = 0; jn<numsidenodes_large; jn++) {
 		if(blocknorm(in,jn) < 1.e-8) continue;
-		int jnodindex = large->SideConnectIndex(jn,neighbourside);
+		long jnodindex = large->SideConnectIndex(jn,neighbourside);
 		inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
 						   MBlocksmall.Size(in),MBlocklarge.Size(jn));
 		ndepend++;
 	}
 	
-	if (! ndepend){
+	if (!ndepend){
 		//cout << "Caso esquisito!!! Chame o Boss que vc receberem premio\n";
 		for(jn = 0; jn<numsidenodes_large; jn++) {
-			int jnodindex = large->SideConnectIndex(jn,neighbourside);
+			long jnodindex = large->SideConnectIndex(jn,neighbourside);
 			inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
 							   MBlocksmall.Size(in),MBlocklarge.Size(jn));
 			ndepend++;
@@ -942,11 +943,11 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	// a matriz frestraint deveria ser igual a MSL
 	TPZCheckRestraint test(thisside,largecompside);
 	//test.Print(cout);
-	int imsl, jmsl;
-	int rmsl = MSL.Rows();
-	int cmsl = MSL.Cols();
-	int rtest = test.RestraintMatrix().Rows();
-	int ctest = test.RestraintMatrix().Cols();
+	long imsl, jmsl;
+	long rmsl = MSL.Rows();
+	long cmsl = MSL.Cols();
+	long rtest = test.RestraintMatrix().Rows();
+	long ctest = test.RestraintMatrix().Cols();
 	
 	if (rtest!=rmsl || ctest!=cmsl){
 		stringstream sout;
@@ -1309,7 +1310,7 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 }
 
 /**Implement the refinement of an interpolated element*/
-void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
+void TPZInterpolatedElement::Divide(long index,TPZVec<long> &sub,int interpolatesolution) {
 	
 	Mesh()->SetAllCreateFunctions(*this);
 	
@@ -1621,17 +1622,17 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 		weight *= fabs(detjac);
 		Shape(intpoint,phi,dphi);
 		
-		int l, iv=0;
+		long l, iv=0;
 		STATE coef;
         for (int ist=0; ist<numloadcases; ist++) 
         {
             for(in=0;in<numdof;in++) sol[in] = 0.;
             for(in=0; in<ncon; in++) {
                 df = &Connect(in);
-                int dfseq = df->SequenceNumber();
+                long dfseq = df->SequenceNumber();
                 int dfvar = block.Size(dfseq);
                 for(jn=0;jn<dfvar;jn++) {
-                    int pos = block.Position(dfseq);
+                    long pos = block.Position(dfseq);
                     coef = solution(pos+jn,ist);
                     sol[iv%numdof] += (STATE)phi(iv/numdof,0)*coef;
                     iv++;
@@ -1759,16 +1760,16 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 		this->ComputeShape(intpoint, x, jacobian, axes, detjac, jacinv, phi, dphix);
 		weight *= fabs(detjac);
 		
-		int iv=0,d;
+		long iv=0,d;
 		
 		sol.Fill(defaultFADFAD);
 		dsol.Fill(defaultFADFAD);
 		
 		for(int in=0; in<ncon; in++) {
 			TPZConnect *df = &Connect(in);
-			int dfseq = df->SequenceNumber();
+			long dfseq = df->SequenceNumber();
 			int dfvar = block.Size(dfseq);
-			int pos = block.Position(dfseq);
+			long pos = block.Position(dfseq);
 			for(int jn=0; jn<dfvar; jn++) {
 				/*FADFADREAL upos(numeq, iv, FADREAL(numeq, iv, MeshSol(pos+jn,0)));
 				 
@@ -1800,12 +1801,12 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 
 void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef)
 {
-	int efsz = ef.Rows();
-	int ekrows = ek.Rows();
-	int ekcols = ek.Cols();
+	long efsz = ef.Rows();
+	long ekrows = ek.Rows();
+	long ekcols = ek.Cols();
 	
-	int Ucols = U.size();
-	int Urows = U.val().size();
+	long Ucols = U.size();
+	long Urows = U.val().size();
 	
 	if(efsz != Urows){
 		LOGPZ_WARN(logger,"Energy Fad type and ef vectors are of different sizes");
@@ -1900,11 +1901,11 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL>
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
-    int numbersol = MeshSol.Cols();
+    long numbersol = MeshSol.Cols();
     sol.Resize(numbersol);
     dsol.Resize(numbersol);
 	
-    for (int is=0 ; is<numbersol; is++) {
+    for (long is=0 ; is<numbersol; is++) {
         sol[is].Resize(numdof);
         sol[is].Fill(0.);
         dsol[is].Redim(dim, numdof);
@@ -1913,12 +1914,12 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL>
     }
 	
     TPZBlock<STATE> &block = Mesh()->Block();
-    int iv = 0, d;
+    long iv = 0, d;
     for(int in=0; in<ncon; in++) {
 		TPZConnect *df = &this->Connect(in);
-		int dfseq = df->SequenceNumber();
+		long dfseq = df->SequenceNumber();
 		int dfvar = block.Size(dfseq);
-		int pos = block.Position(dfseq);
+		long pos = block.Position(dfseq);
 		for(int jn=0; jn<dfvar; jn++) {
             for (int is=0; is<numbersol; is++) {
                 sol[is][iv%numdof] += (STATE)phi(iv/numdof,0)*MeshSol(pos+jn,is);                
@@ -1945,7 +1946,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
 }//method
 
 /** @brief adds the connect indexes associated with base shape functions to the set */
-void TPZInterpolatedElement::BuildCornerConnectList(std::set<int> &connectindexes) const
+void TPZInterpolatedElement::BuildCornerConnectList(std::set<long> &connectindexes) const
 {
     int ncorner = NCornerConnects();
     for (int ic=0; ic<ncorner; ic++) {

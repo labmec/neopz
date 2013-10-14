@@ -33,14 +33,14 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh() {
 	// si os elementos sao triangulos os elementos 3D serao prismas retos
 	// si os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
-	int maxid = fFineGeoMesh->CreateUniqueNodeId();
-	int nelem = fFineGeoMesh->ElementVec().NElements(),i,j;
+	long maxid = fFineGeoMesh->CreateUniqueNodeId();
+	long nelem = fFineGeoMesh->ElementVec().NElements(),i,j;
 	TPZGeoNode gnode;
-	int nnodes = fFineGeoMesh->NodeVec().NElements();
+	long nnodes = fFineGeoMesh->NodeVec().NElements();
 	//o numero de nos sera duplicado
 	extendedmesh->NodeVec().Resize(2*nnodes);
 	TPZVec<REAL> coord(3);
-	int index;
+	long index;
 	//criacao dos nos da malha 3D
 	for(i=0;i<nnodes;i++){
 		gnode = fFineGeoMesh->NodeVec()[i];
@@ -53,7 +53,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh() {
 	}
 	//criacao de elementos da malha 3D
 	TPZGeoEl *gel;
-	TPZVec<int> incidel;
+	TPZVec<long> incidel;
 	for(i=0;i<nelem;i++){
 		gel = fFineGeoMesh->ElementVec()[i];
 		if(!gel) continue;
@@ -100,16 +100,16 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	// si os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
-	int maxid = fFineGeoMesh->CreateUniqueNodeId();
-	int nelem = fFineGeoMesh->ElementVec().NElements();
-	int i,j,k;
+	long maxid = fFineGeoMesh->CreateUniqueNodeId();
+	long nelem = fFineGeoMesh->ElementVec().NElements();
+	long i,j,k;
 	TPZGeoNode gnode;
-	int nnodes = fFineGeoMesh->NodeVec().NElements();
+	long nnodes = fFineGeoMesh->NodeVec().NElements();
 	
 	//o numero de nos sera duplicado
 	extendedmesh->NodeVec().Resize((naumentedlayers+1)*nnodes);
 	TPZVec<REAL> coord(3);
-	int index;
+	long index;
 	
 	//criacao dos nos da malha 3D
 	for(i=0;i<nnodes;i++) {
@@ -125,8 +125,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	}
 	//criacao de elementos da malha 3D
 	TPZGeoEl *gel;
-	TPZVec<int> incidelorig;
-	TPZVec<int> incidel;
+	TPZVec<long> incidelorig;
+	TPZVec<long> incidel;
 	int matind;
 	for(i=0;i<nelem;i++) {
 		gel = fFineGeoMesh->ElementVec()[i];

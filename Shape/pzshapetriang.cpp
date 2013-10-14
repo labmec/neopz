@@ -80,7 +80,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+	void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
 							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
@@ -102,7 +102,7 @@ namespace pzshape {
 			
 			ProjectPoint2dTriangToRib(rib,pt,out);
 			TPZManVector<REAL,1> outvec(1,out);
-			TPZVec<int> ids(2);
+			TPZVec<long> ids(2);
 			ids[0] = id[rib%3];
 			ids[1] = id[(rib+1)%3];
 			REAL store1[20],store2[40];
@@ -136,7 +136,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeTriang::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+	void TPZShapeTriang::SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
 								   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(side<0 || side>6) PZError << "TPZShapeTriang::SideShape. Bad paramenter side.\n";
 		else if(side==6) Shape(pt,id,order,phi,dphi);
@@ -195,7 +195,7 @@ namespace pzshape {
 		}
 	}
 	
-	int TPZShapeTriang::GetTransformId2dT(TPZVec<int> &id) {
+	int TPZShapeTriang::GetTransformId2dT(TPZVec<long> &id) {
 		
 		int id0,id1,minid;
 		id0 = (id[0] < id[1]) ? 0 : 1;

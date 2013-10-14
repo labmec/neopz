@@ -41,7 +41,7 @@ TPZElementGroup::TPZElementGroup(TPZCompMesh &mesh, const TPZElementGroup &copy)
 void TPZElementGroup::AddElement(TPZCompEl *cel)
 {
     fElGroup.Push(cel);
-    std::set<int> connects;
+    std::set<long> connects;
     int nc = fConnectIndexes.size();
     for (int ic=0; ic<nc; ic++) {
         connects.insert(fConnectIndexes[ic]);
@@ -53,12 +53,12 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
     nc = connects.size();
     if (nc != fConnectIndexes.size()) {
         fConnectIndexes.Resize(nc, 0);
-        std::set<int>::iterator it = connects.begin();
+        std::set<long>::iterator it = connects.begin();
         for (int ic = 0; it != connects.end(); it++,ic++) {
             fConnectIndexes[ic] = *it;
         }
     }
-    int elindex = cel->Index();
+    long elindex = cel->Index();
     Mesh()->ElementVec()[elindex] = 0;
 #ifdef LOG4CXX
     {
@@ -75,7 +75,7 @@ void TPZElementGroup::Unwrap()
 {
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
-        int elindex = fElGroup[el]->Index();
+        long elindex = fElGroup[el]->Index();
         Mesh()->ElementVec()[elindex] = fElGroup[el];
     }
     fElGroup.Resize(0);
@@ -88,7 +88,7 @@ void TPZElementGroup::Unwrap()
  * @param inode node to set index
  * @param index index to be seted
  */
-void TPZElementGroup::SetConnectIndex(int inode, int index)
+void TPZElementGroup::SetConnectIndex(int inode, long index)
 {
     LOGPZ_ERROR(logger,"SetConnectIndex should never be called")
     DebugStop();
@@ -106,10 +106,10 @@ void TPZElementGroup::SetConnectIndex(int inode, int index)
  * from the both meshes - original and patch
  */
 TPZCompEl *TPZElementGroup::ClonePatchEl(TPZCompMesh &mesh,
-                                std::map<int,int> & gl2lcConMap,
-                                std::map<int,int> & gl2lcElMap) const
+                                std::map<long,long> & gl2lcConMap,
+                                std::map<long,long> & gl2lcElMap) const
 {
-    int index;
+    long index;
     TPZElementGroup *result = new TPZElementGroup(mesh,index);
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
@@ -121,7 +121,7 @@ TPZCompEl *TPZElementGroup::ClonePatchEl(TPZCompMesh &mesh,
 
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) const {
     InitializeElementMatrix(ek);
-    int rows = ek.fMat.Rows();
+    long rows = ek.fMat.Rows();
     ek.fMat.Redim(rows, rows);
     ek.fType = TPZElementMatrix::EK;
     InitializeElementMatrix(ef);
@@ -156,15 +156,15 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
  */
 void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
-    std::map<int,int> locindex;
-    int ncon = fConnectIndexes.size();
-    for (int ic=0; ic<ncon ; ic++) {
+    std::map<long,long> locindex;
+    long ncon = fConnectIndexes.size();
+    for (long ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
     InitializeElementMatrix(ek, ef);
-    int nel = fElGroup.size();
+    long nel = fElGroup.size();
     TPZElementMatrix ekloc,efloc;
-    for (int el = 0; el<nel; el++) {
+    for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         cel->CalcStiff(ekloc, efloc);
         int nelcon = ekloc.NConnects();
@@ -196,15 +196,15 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
  */
 void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
 {
-    std::map<int,int> locindex;
-    int ncon = fConnectIndexes.size();
-    for (int ic=0; ic<ncon ; ic++) {
+    std::map<long,long> locindex;
+    long ncon = fConnectIndexes.size();
+    for (long ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
     InitializeElementMatrix(ef);
-    int nel = fElGroup.size();
+    long nel = fElGroup.size();
     TPZElementMatrix ekloc,efloc;
-    for (int el = 0; el<nel; el++) {
+    for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         cel->CalcStiff(ekloc, efloc);
         int nelcon = ekloc.NConnects();

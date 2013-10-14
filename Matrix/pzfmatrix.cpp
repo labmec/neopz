@@ -150,7 +150,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
 }
 
 template <class TVar>
-void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int> &destination) {
+void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &destination) {
 	if(rhs.Cols() != this->Cols()) {
 		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
 		DebugStop();
@@ -876,7 +876,7 @@ void TPZFMatrix<TVar>::Transpose() {
 }
 
 template <class TVar>
-int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
+int TPZFMatrix<TVar>::Decompose_LU(TPZVec<long> &index) {
 	
 	if (this->fDecomposed) return 0;
 	
@@ -958,7 +958,7 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 /*****************/
 /*** DecomposeLU ***/
 template <class TVar>
-int TPZFMatrix<TVar>::Decompose_LU(std::list<int> &singular) {
+int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
 	return Decompose_LU();
 }
 

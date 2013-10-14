@@ -128,16 +128,16 @@ public:
 	 */
 	void GetRefPatches(std::set<TPZGeoEl *> &grpatch);
 	/** @brief Gives the conects graphs */
-	void GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphinde,TPZStack<int> &elgraph, TPZVec<int> &elgraphindexx);
+	void GetNodeToElGraph(TPZVec<long> &nodtoelgraph, TPZVec<long> &nodtoelgraphinde,TPZStack<long> &elgraph, TPZVec<long> &elgraphindexx);
 	
     /** @brief Gives the element patch */
-	void GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex,int elind ,TPZStack<int> &patch);
+	void GetElementPatch(TPZVec<long> nodtoelgraph, TPZVec<long> nodtoelgraphindex, TPZStack<long> &elgraph, TPZVec<long> &elgraphindex,long elind ,TPZStack<long> &patch);
 	
 	/** @brief Set the mesh name */
 	void SetName(const std::string &nm);
 	
 	/** @brief Set de dimension of the domain of the problem*/
-	void SetDimModel(int dim){fDimModel = dim;}
+	void SetDimModel(int dim) { fDimModel = dim; }
 	
 	/** @brief Sets the geometric reference mesh */
 	void SetReference(TPZGeoMesh * gmesh);
@@ -161,13 +161,13 @@ public:
 	 */
 	
 	/** @brief Number of connects allocated including free nodes */
-	int NConnects() const {return fConnectVec.NElements();}
+	long NConnects() const {return fConnectVec.NElements();}
 	
 	/** @brief Number of independent connect objects */
-	int NIndependentConnects();
+	long NIndependentConnects();
 	
 	/** @brief Number of computational elements allocated */
-	int NElements() const {return fElementVec.NElements();}
+	long NElements() const {return fElementVec.NElements();}
 	
 	/** @brief Number of materials */
 	int NMaterials() const {return fMaterialVec.size();}
@@ -224,7 +224,7 @@ public:
 	 * @param nstate Number of variable state, depending of the material.
 	 * @param order Order of approximation
 	 */
-	virtual  int AllocateNewConnect(int nshape, int nstate, int order);
+	virtual  long AllocateNewConnect(int nshape, int nstate, int order);
 	
 	/**
 	 * @brief Insert a material object in the datastructure
@@ -247,7 +247,7 @@ public:
 	 */
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
-	void SetElementSolution(int i, TPZVec<REAL> &sol);
+	void SetElementSolution(long i, TPZVec<REAL> &sol);
 	
 	/** @} */
 	
@@ -294,10 +294,10 @@ public:
 	 * @param elgraph stack of elements to create the grapho????
 	 * @param elgraphindex graphos indexes vector
 	 */
-	void ComputeElGraph(TPZStack<int> &elgraph, TPZVec<int> &elgraphindex);
+	void ComputeElGraph(TPZStack<long> &elgraph, TPZVec<long> &elgraphindex);
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
     
 
 	/**
@@ -307,40 +307,40 @@ public:
 	 */
 	
 	/** @brief Get the father meshes stack */
-	virtual TPZCompMesh *FatherMesh() const {return NULL;}
+	virtual TPZCompMesh *FatherMesh() const { return NULL; }
 	
 	/**
 	 * @brief Makes a specified connection a internal mesh connection.
 	 * @param local connection local number to be processed
 	 */
-	virtual void MakeInternal(int local) {;}
+	virtual void MakeInternal(long local) {;}
 	
 	/** @brief Make all mesh connections internal mesh connections. Connects to an internal connection */
-	virtual void MakeAllInternal(){;}
+	virtual void MakeAllInternal() {;}
 	
 	/** @brief Returns the rootmesh who have the specified connection. */
-	virtual TPZCompMesh* RootMesh (int local) {return this;}
+	virtual TPZCompMesh* RootMesh (long local) { return this; }
 	
 	/**
 	 * @brief Transfer one element from a specified mesh to the current submesh.
 	 * @param mesh pointer to the mesh whose the element from
 	 * @param elindex element index to transfer
 	 */
-	virtual int TransferElementFrom(TPZCompMesh *mesh, int elindex) {return elindex;}
+	virtual long TransferElementFrom(TPZCompMesh *mesh, long elindex) { return elindex; }
 	
 	/**
 	 * @brief Transfer one element from a submesh to another mesh.
 	 * @param mesh mesh pointer who will receive the element
 	 * @param elindex element index to transfer
 	 */
-	virtual int TransferElementTo(TPZCompMesh *mesh, int elindex) {return elindex;}
+	virtual long TransferElementTo(TPZCompMesh *mesh, long elindex) { return elindex; }
 	
 	/**
 	 * @brief Transfer one element form a submesh to another mesh.
 	 * @param mesh mesh pointer who will receive the element
 	 * @param elindex element index to transfer
 	 */
-	virtual int TransferElement(TPZCompMesh *mesh, int elindex) {return elindex;}
+	virtual long TransferElement(TPZCompMesh *mesh, long elindex) { return elindex; }
 	
 	/**
 	 * @brief Put an local connection in the supermesh - Supermesh is one
@@ -348,7 +348,7 @@ public:
 	 * @param local local index of the element to be trasnfered
 	 * @param super pointer to the destination mesh
 	 */
-	virtual int PutinSuperMesh (int local, TPZCompMesh *super);
+	virtual long PutinSuperMesh (long local, TPZCompMesh *super);
 	
 	/**
 	 * @brief Get an external connection from the supermesh - Supermesh is one
@@ -356,7 +356,7 @@ public:
 	 * @param superind index of the element to be trasnfered
 	 * @param super pointer to the destination mesh
 	 */
-	virtual int GetFromSuperMesh (int superind, TPZCompMesh *super);
+	virtual long GetFromSuperMesh (long superind, TPZCompMesh *super);
 
 	/** @} */
 
@@ -377,7 +377,7 @@ public:
 	 */
 	
 	/** @brief This computes the number of equations associated with non-restrained nodes */
-	int NEquations();
+	long NEquations();
 	
 	/** @brief This method computes the bandwidth of the system of equations */
 	int BandWidth();
@@ -415,7 +415,7 @@ private:
 public:
 	
     /** @brief Create a computational element based on the geometric element */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, int &index)
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, long &index)
     {
         return fCreate.CreateCompEl(gel, *this, index);
     }
@@ -511,7 +511,7 @@ public:
 	 * @param subindex divided elements indexes vector
 	 * @param interpolate ????
 	 */
-	void Divide(int index,TPZVec<int> &subindex,int interpolate = 0);
+	void Divide(long index,TPZVec<long> &subindex,int interpolate = 0);
 	
 	/**
 	 * @brief Create a computational element father for the comp. elem. into elements
@@ -519,7 +519,7 @@ public:
 	 * @param index of new coarse element
 	 * @param CreateDiscontinuous indicates a TPZInterpolatedElement must be created. True indicates a TPZCompElDisc
 	 */
-	void Coarsen(TPZVec<int> &elements, int &index, bool CreateDiscontinuous = false);
+	void Coarsen(TPZVec<long> &elements, long &index, bool CreateDiscontinuous = false);
 	
 	/** @brief Deletes all interfaces and rebuild them all */
 	void RemakeAllInterfaceElements();
@@ -570,7 +570,7 @@ public:
 	 * @param disc_index Index of the discontinuous element to be converted
 	 * @param new_index Returns the index of the new continuous element created
 	 */
-	void Discontinuous2Continuous(int disc_index, int &new_index);
+	void Discontinuous2Continuous(long disc_index, long &new_index);
 	
 	/** @} */
 	
@@ -588,14 +588,14 @@ public:
 	REAL LesserEdgeOfMesh();
 	
 	/** @brief Creates a mesh inserting into accumlist the element list to more refined mesh */
-	TPZCompMesh *ComputeMesh(TPZVec<int> &accumlist,int numaggl);
+	TPZCompMesh *ComputeMesh(TPZVec<long> &accumlist,long numaggl);
 	
 	/**
 	 * @brief This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
 	 * @param resolution Number of rows and columns of the matrix
 	 * @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element 
 	 */
-	void ComputeFillIn(int resolution, TPZFMatrix<REAL> &fillin);
+	void ComputeFillIn(long resolution, TPZFMatrix<REAL> &fillin);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
@@ -607,14 +607,14 @@ public:
 
 };
 
-inline int TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
-	int connectindex = fConnectVec.AllocateNewElement();
+inline long TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
+	long connectindex = fConnectVec.AllocateNewElement();
     TPZConnect &c = fConnectVec[connectindex];
     c.SetNShape(nshape);
     c.SetNState(nstate);
     c.SetOrder(order);
     c.SetLagrangeMultiplier(0);
-	int blocknum = fBlock.NBlocks();
+	long blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
 	fBlock.Set(blocknum,nshape*nstate);
 	c.SetSequenceNumber(blocknum);

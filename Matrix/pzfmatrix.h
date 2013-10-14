@@ -123,7 +123,7 @@ public:
 	 * @param rhs Load vector
 	 * @param destination Destine index on current matrix
 	 */
-	void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int> &destination);
+	void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &destination);
 	/**
 	 * @brief Performs a right hand side assemblage
 	 * @param rhs Load vector
@@ -248,7 +248,7 @@ public:
 	/** @{ */
 	
 	/** @brief LU Decomposition. Stores L and U matrices at the storage of the same matrix */
-	virtual int Decompose_LU(std::list<int> &singular);
+	virtual int Decompose_LU(std::list<long> &singular);
 	virtual int Decompose_LU();
 	
 	static int Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B);
@@ -256,7 +256,7 @@ public:
 	virtual int Substitution( TPZFMatrix<TVar> *B ) const;
 	
 	/** @brief LU Decomposition using pivot */
-	virtual int Decompose_LU(TPZVec<int> &index);
+	virtual int Decompose_LU(TPZVec<long> &index);
 	
 	/** @brief LU substitution using pivot. */
 	virtual int Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) const;

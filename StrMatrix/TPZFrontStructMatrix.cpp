@@ -39,29 +39,30 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 
 template <class front>
 void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected){
-	int ic;
+	long ic;
 	
 	fMesh->ComputeNodElCon();
 	
 	for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = fMesh->ConnectVec()[ic];
 		if(cn.HasDependency() || cn.IsCondensed()) continue;
-		int seqn = cn.SequenceNumber();
+		long seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
-		int firsteq = fMesh->Block().Position(seqn);
-		int lasteq = firsteq+fMesh->Block().Size(seqn);
-        int numactive = fEquationFilter.NumActive(firsteq, lasteq);
+		long firsteq = fMesh->Block().Position(seqn);
+		long lasteq = firsteq+fMesh->Block().Size(seqn);
+        long numactive = fEquationFilter.NumActive(firsteq, lasteq);
 		if(!numactive) continue;
         if (numactive != lasteq-firsteq) {
             DebugStop();
         }
         TPZManVector<long> firstind(numactive),destindex(numactive);
-        for (int i = 0; i<numactive; i++) {
+        for (long i = 0; i<numactive; i++) {
             firstind[i] = i;
             destindex[i] = firsteq+i;
         }
         fEquationFilter.Filter(firstind, destindex);
-		for(int ind=0;ind<destindex.size();ind++) numelconnected[destindex[ind] ] = fMesh->ConnectVec()[ic].NElConnected();
+		for(long ind=0;ind<destindex.size();ind++) 
+			numelconnected[destindex[ind] ] = fMesh->ConnectVec()[ic].NElConnected();
 	}
 }
 
@@ -98,11 +99,11 @@ TPZStructMatrix * TPZFrontStructMatrix<front>::Clone(){
 template<class front>
 void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 {
-	int numelconnected = 0;
-	int nconnect = fMesh->ConnectVec().NElements();
-	int ic;
+	long numelconnected = 0;
+	long nconnect = fMesh->ConnectVec().NElements();
+	long ic;
 	//firstelconnect contains the first element index in the elconnect vector
-	TPZVec<int> firstelconnect(nconnect+1);
+	TPZVec<long> firstelconnect(nconnect+1);
 	firstelconnect[0] = 0;
 	for(ic=0; ic<nconnect; ic++) {
 		numelconnected += fMesh->ConnectVec()[ic].NElConnected();
@@ -120,18 +121,18 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 	//cout << "numelconnected " << numelconnected << endl;
 	//cout << "firstelconnect ";
 	//  for(ic=0; ic<nconnect; ic++) cout << firstelconnect[ic] << ' ';
-  	TPZVec<int> elconnect(numelconnected,-1);
-  	int el;
+  	TPZVec<long> elconnect(numelconnected,-1);
+  	long el;
   	TPZCompEl *cel;
   	for(el=0; el<fMesh->ElementVec().NElements(); el++) {
   		cel = fMesh->ElementVec()[el];
   		if(!cel) continue;
-  		TPZStack<int> connectlist;
+  		TPZStack<long> connectlist;
   		cel->BuildConnectList(connectlist);
-  		int nc = connectlist.NElements();
-  		int ic;
+  		long nc = connectlist.NElements();
+  		long ic;
   		for(ic=0; ic<nc; ic++) {
-  			int cindex = connectlist[ic];
+  			long cindex = connectlist[ic];
   			elconnect[firstelconnect[cindex]] = el;
   			firstelconnect[cindex]++;
   		}
@@ -150,7 +151,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   	}
 	//cout << "elconnect\n";
 	//  int no;
-	for(int no=0; no< fMesh->ConnectVec().NElements(); no++) {
+	for(long no=0; no< fMesh->ConnectVec().NElements(); no++) {
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -169,22 +170,22 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   	TPZVec<int> nodeorder(fMesh->ConnectVec().NElements(),-1);
   	firstelconnect[0] = 0;
   	for(ic=0; ic<nconnect; ic++) {
-  		int seqnum = fMesh->ConnectVec()[ic].SequenceNumber();
+  		long seqnum = fMesh->ConnectVec()[ic].SequenceNumber();
   		if(seqnum >= 0) nodeorder[seqnum] = ic;
   	}
 	//  cout << "nodeorder ";
 	/*for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
 	 cout << endl;
 	 cout.flush();*/
-  	int seq;
-  	int elsequence = 0;
-  	TPZVec<int> elorderinv(fMesh->ElementVec().NElements(),-1);
+  	long seq;
+  	long elsequence = 0;
+  	TPZVec<long> elorderinv(fMesh->ElementVec().NElements(),-1);
   	for(seq=0; seq<nconnect; seq++) {
   		ic = nodeorder[seq];
   		if(ic == -1) continue;
-  		int firstind = firstelconnect[ic];
-  		int lastind = firstelconnect[ic+1];
-  		int ind;
+  		long firstind = firstelconnect[ic];
+  		long lastind = firstelconnect[ic+1];
+  		long ind;
   		for(ind=firstind; ind<lastind; ind++) {
   			el = elconnect[ind];
 			if(el == -1) {
@@ -216,7 +217,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 template<class front>
 TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-    int neq = fEquationFilter.NActiveEquations();
+    long neq = fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(neq);//(fMesh->NEquations());
 	
@@ -257,8 +258,8 @@ TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE>
 template<class front>
 void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-	int iel;
-	int numel = 0, nelem = fMesh->NElements();
+	long iel;
+	long numel = 0, nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);
 	TPZManVector<long> destinationindex(0);
 	TPZManVector<long> sourceindex(0);
@@ -328,8 +329,8 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZF
 template<class front>
 void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-	int iel;
-	int numel = 0, nelem = fMesh->NElements();
+	long iel;
+	long numel = 0, nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);
 	
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
@@ -484,10 +485,10 @@ int TPZFrontStructMatrix<front>::main() {
 	for(el=0; el<1; el++) {
 		
 		// initializar os indices dos n�s
-		TPZVec<int> indices(4);
+		TPZVec<long> indices(4);
 		for(i=0; i<4; i++) indices[i] = i;
 		// O proprio construtor vai inserir o elemento na malha
-		int index;
+		long index;
 		/*gel = */gmesh.CreateGeoElement(EQuadrilateral, indices, 1, index);
 	}
 	gmesh.BuildConnectivity ();
@@ -535,7 +536,7 @@ int TPZFrontStructMatrix<front>::main() {
 	//	TPZAnalysis an2(&cmesh,output);
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	int ic;
+	long ic;
 	cout << "Numero de Equacoes -> " << cmesh.NEquations() << endl;
 	cout.flush();
 	
@@ -545,11 +546,11 @@ int TPZFrontStructMatrix<front>::main() {
 	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = cmesh.ConnectVec()[ic];
 		if(cn.HasDependency()) continue;
-		int seqn = cn.SequenceNumber();
+		long seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
-		int firsteq = cmesh.Block().Position(seqn);
-		int lasteq = firsteq+cmesh.Block().Size(seqn);
-		int ind;
+		long firsteq = cmesh.Block().Position(seqn);
+		long lasteq = firsteq+cmesh.Block().Size(seqn);
+		long ind;
 		int temp = cmesh.ConnectVec()[ic].NElConnected();
 		for(ind=firsteq;ind<lasteq;ind++) {
 			numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
@@ -634,32 +635,32 @@ int TPZFrontStructMatrix<front>::main() {
 template<class front>
 void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 {
-	int nconnect = this->fMesh->ConnectVec().NElements();
+	long nconnect = this->fMesh->ConnectVec().NElements();
 	TPZManVector<long> permute(nconnect);
 	fMesh->ComputeNodElCon();
-	int i;
+	long i;
 	for(i=0; i<nconnect; i++)
 	{
 		permute[i] = i;
 	}
 	TPZCompEl *cel;
-	int nelem = fElementOrder.NElements();
-	int el;
-	int connectcount = 0;
+	long nelem = fElementOrder.NElements();
+	long el;
+	long connectcount = 0;
 	for(i=0; i<nelem; i++)
 	{
 		el = fElementOrder[i];
         if(el<0) continue;
 		cel = fMesh->ElementVec()[el];
 		if(!cel) continue;
-		std::set<int> indepconnects, depconnects;
+		std::set<long> indepconnects, depconnects;
 		cel->BuildConnectList(indepconnects,depconnects);
-		std::set<int>::iterator it;
+		std::set<long>::iterator it;
 		for(it=indepconnects.begin(); it != indepconnects.end(); it++)
 		{
 			TPZConnect &nod = fMesh->ConnectVec()[*it];
 			int nelcon = nod.NElConnected()-1;
-			int seqnum = nod.SequenceNumber();
+			long seqnum = nod.SequenceNumber();
 			if(nelcon == 0) permute[seqnum]= connectcount++;
 			nod.DecrementElConnected();
 		}

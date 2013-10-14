@@ -445,7 +445,7 @@ TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh, bool withP) 
 		gel->Divide(sub);
 		int nsub = sub.NElements();
 		int isub;
-		int celindex;
+		long celindex;
 		for(isub=0; isub<nsub; isub++) {
 			TPZInterpolatedElement *csint;
 			csint = (TPZInterpolatedElement *) cmesh->CreateCompEl(sub[isub],celindex);

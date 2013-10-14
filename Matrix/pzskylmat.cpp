@@ -2154,21 +2154,21 @@ TPZSkylMatrix<TVar>::Redim( long newDim , long)
 
 template<>
 int
-TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky(std::list<int> &singular)
+TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky(std::list<long> &singular)
 {
     DebugStop();
     return -1;
 }
 template<>
 int
-TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky(std::list<int> &singular)
+TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky(std::list<long> &singular)
 {
     DebugStop();
     return -1;
 }
 template<>
 int
-TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int> &singular)
+TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<long> &singular)
 {
     DebugStop();
     return -1;
@@ -2177,7 +2177,7 @@ TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int> &si
 /*** Decompose Cholesky ***/
 template<class TVar>
 int
-TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
+TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 {
 	if(this->fDecomposed == ECholesky) return 1;
 	if (  this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
@@ -2491,7 +2491,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
+TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 {
 	if( this->fDecomposed == ELDLt) return 1;
 	if ( this->fDecomposed )
@@ -2952,23 +2952,23 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol){
 	
 }
 template<>
-void TPZSkylMatrix<std::complex<float> >::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<std::complex<float> >::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
     DebugStop();
 }
 template<>
-void TPZSkylMatrix<std::complex<double> >::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<std::complex<double> >::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
     DebugStop();
 }
 template<>
-void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
     DebugStop();
 }
 
 template<class TVar>
-void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<int> &singular){
+void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<long> &singular){
 	TVar *ptrprev;     //Pointer to prev column
 	TVar *ptrcol;      //Pointer to col column
 	long skprev, skcol; //prev and col Skyline height respectively

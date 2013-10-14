@@ -21,7 +21,7 @@ class TPZGeoMesh;
 /** Implements the generation of part of the grid
  * This class uses DEPRECATED objects, but can be easily updated
  */
-class TPZGenPartialGrid{
+class TPZGenPartialGrid {
 public:
 	/**
 	 @param x0 lower left coordinate
@@ -48,16 +48,16 @@ protected:
 	
 	void Coord(int i, TPZVec<REAL> &coord);
 	
-	int NodeIndex(int i, int j);
+	long NodeIndex(int i, int j);
 	
-	int ElementIndex(int i, int j);
+	long ElementIndex(int i, int j);
 	
-	void ElementConnectivity(int iel, TPZVec<int> &nodes);
+	void ElementConnectivity(long iel, TPZVec<long> &nodes);
 	
 	TPZVec<int> fNx;
 	TPZVec<int> fRangex,fRangey;
 	TPZVec<REAL> fX0,fX1,fDelx;
-	int fNumNodes;
+	long fNumNodes;
 	int fElementType;
 	
 };

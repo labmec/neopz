@@ -26,16 +26,14 @@
 #include <iostream>
 #include <fstream>
 
-TPZReadGIDGrid::TPZReadGIDGrid(){
-	
+TPZReadGIDGrid::TPZReadGIDGrid() {
 	MatNumber = 0;
 	BCNumber = 0;
 	fProblemDimension = 0;
 	fDimensionlessL = 1.0;
-	
 }//method
 
-TPZReadGIDGrid::~TPZReadGIDGrid(){
+TPZReadGIDGrid::~TPZReadGIDGrid() {
 	
 }//method
 
@@ -50,18 +48,17 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	
 	// Definitions
 	int nMats = 0;
-	int numnodes=0;
-	int numelements=0;
-	int elements3DT=0;
-	int elements3DH=0;	
-	int elements2DT=0;
-	int elements2DQ=0;	
-	int elements1D=0;
-	int elements0D=0;
-	
+	long numnodes=0;
+	long numelements=0;
+	long elements3DT=0;
+	long elements3DH=0;	
+	long elements2DT=0;
+	long elements2DQ=0;	
+	long elements1D=0;
+	long elements0D=0;
 	
 	//	Scanning for total Number of Nodes and differents Dimension Elements
-	int NumEntitiestoRead;
+	long NumEntitiestoRead;
 	TPZStack <std::string> SentinelString;
 	{
 		
@@ -118,7 +115,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 		// reading a general mesh information by filter
 		std::ifstream read (FileName.c_str());
 		std::string FlagString;
-		int cont = 0;
+		long cont = 0;
 
 		while(read)
 		{
@@ -165,7 +162,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 		}
 	}
 	
-	for (int i = 0 ; i < NumEntitiestoRead; i++ )
+	for (long i = 0 ; i < NumEntitiestoRead; i++ )
 	{
 		if(SentinelString[i] == "--- USED MATERIALS ---" || SentinelString[i] == "--- USED MATERIALS ---\r") 
 		{
@@ -226,35 +223,35 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	TPZGeoMesh * gmesh = new TPZGeoMesh;	
 	gmesh -> NodeVec().Resize(numnodes);
 	// needed for node insertion
-	const int Tnodes = numnodes;
+	const long Tnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Tnodes);
-	int nodeId;
+	long nodeId;
 	double nodecoordX , nodecoordY , nodecoordZ ;
-	int elementId = 0;
+	long elementId = 0;
 	int matElId = 0;
 	int Layerid = 0;
 	int ContMats = 0;
-	int ContNode = 0;
-	int ContPoint = 0;
-	int ContLine = 0;
-	int ContTrian = 0;
-	int ContQuad = 0;
-	int ContTet = 0;
-	int ContHex = 0;	
+	long ContNode = 0;
+	long ContPoint = 0;
+	long ContLine = 0;
+	long ContTrian = 0;
+	long ContQuad = 0;
+	long ContTet = 0;
+	long ContHex = 0;	
 	
-	TPZManVector <int> TopolPoint(1);	
-	TPZManVector <int> TopolLine(2);
-	TPZManVector <int> TopolTriangle(3);
-	TPZManVector <int> TopolQuad(4);
-	TPZManVector <int> TopolTet(4);
-	TPZManVector <int> TopolHex(8);	
+	TPZManVector <long> TopolPoint(1);	
+	TPZManVector <long> TopolLine(2);
+	TPZManVector <long> TopolTriangle(3);
+	TPZManVector <long> TopolQuad(4);
+	TPZManVector <long> TopolTet(4);
+	TPZManVector <long> TopolHex(8);	
 	
 	{
 		
 		// reading a general mesh information by filter
 		std::ifstream read (FileName.c_str());
 		std::string FlagString;
-		int cont = 0;
+		long cont = 0;
 		int dim = 0;
 		int flag = 0;
 		while(read)
@@ -293,7 +290,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 							{
 								MaterialDataV MatTemp;
 								read.getline(buf, 1024);
-								int spacecont = 0;
+								long spacecont = 0;
 								char *p=buf, *q;
 								while (p) 
 								{
@@ -389,7 +386,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								if (!dim)
 								{							
 									read.getline(buf, 1024);
-									int spacecont = 0;
+									long spacecont = 0;
 									char *p=buf, *q;
 									while (p) {
 										q = strchr(p,' ');

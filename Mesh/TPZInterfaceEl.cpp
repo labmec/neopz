@@ -29,9 +29,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
 	if(fLeftElSide.Element() && fRightElSide.Element()) this->DecreaseElConnected();
 	
 	TPZCompEl * cel = left.Element();
-	if(cel){
-		
-		
+	if(cel) {
 		TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
 		if (!intel && !disc){
@@ -42,13 +40,13 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
 		this->fLeftElSide.SetElement( left.Element() );
 		this->fLeftElSide.SetSide( left.Side() );
 	}
-	else{
+	else {
 		PZError << __PRETTY_FUNCTION__ << " - Left element is null.\n";
 		DebugStop();
 	}
 	
 	cel = right.Element();
-	if (cel){
+	if (cel) {
 		
 		TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
@@ -102,7 +100,7 @@ TPZInterfaceElement::~TPZInterfaceElement(){
 	}
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index,
                                          TPZCompElSide& left, TPZCompElSide& right)
 : TPZCompEl(mesh,geo,index){
 	
@@ -119,7 +117,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 	this->IncrementElConnected();
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index)
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index)
 : TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(){
 	geo->SetReference(this);
 	geo->IncrementNumInterfaces();
@@ -164,12 +162,12 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
-                                         std::map<int,int> &gl2lcConIdx,
-                                         std::map<int,int> &gl2lcElIdx) : TPZCompEl(mesh,copy)
+                                         std::map<long,long> &gl2lcConIdx,
+                                         std::map<long,long> &gl2lcElIdx) : TPZCompEl(mesh,copy)
 {
 	
-	int cplftIdx = copy.fLeftElSide.Element()->Index();
-	int cprgtIdx = copy.fRightElSide.Element()->Index();
+	long cplftIdx = copy.fLeftElSide.Element()->Index();
+	long cprgtIdx = copy.fRightElSide.Element()->Index();
 	if (gl2lcElIdx.find(cplftIdx) == gl2lcElIdx.end() || gl2lcElIdx.find(cprgtIdx) == gl2lcElIdx.end())
 	{
 		std::stringstream sout;
@@ -212,7 +210,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 
 
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index)
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,long &index)
 : TPZCompEl(mesh,copy,index) {
 	
 	//ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
@@ -254,7 +252,7 @@ fCenterNormal(3,0.)
 	//NOTHING TO BE DONE HERE
 }
 
-TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index, /*TPZCompElDisc **/TPZCompElSide &left, /*TPZCompElDisc **/TPZCompElSide &right) const {
+TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,long &index, /*TPZCompElDisc **/TPZCompElSide &left, /*TPZCompElDisc **/TPZCompElSide &right) const {
 	return  new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right);
 }
 
@@ -371,7 +369,7 @@ int TPZInterfaceElement::NRightConnects() const{
 	return RightEl->NConnects();
 }
 
-int TPZInterfaceElement::ConnectIndex(int i) const {
+long TPZInterfaceElement::ConnectIndex(int i) const {
 	
 	const int nleftcon = this->NLeftConnects();
 	const int nrightcon = this->NRightConnects();
@@ -417,7 +415,7 @@ void TPZInterfaceElement::Print(std::ostream &out) const {
 	out << "(" << fCenterNormal[0] << "," << fCenterNormal[1] << "," << fCenterNormal[2] << ")\n";
 }
 
-void TPZInterfaceElement::SetConnectIndex(int node, int index) {
+void TPZInterfaceElement::SetConnectIndex(int node, long index) {
 	cout << "TPZInterfaceElement::SetConnectIndex should never be called\n";
 	DebugStop();
 }
@@ -430,7 +428,7 @@ int TPZInterfaceElement::main(TPZCompMesh &cmesh){
 	// verifica-se para cada lado de dimens� InterfaceDimension do
 	// elemento que existe um elemento interface e que este �nico
 	
-	int iel,iside,nel = cmesh.NElements();
+	long iel,iside,nel = cmesh.NElements();
 	
 	int InterfaceDimension;
 	
@@ -471,9 +469,9 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
 		return 1;//sem problemas
 	}
 	comp.HigherLevelElementList(list,0,0);
-	int cap = list.NElements();
+	long cap = list.NElements();
 	
-	if(cap){
+	if(cap) {
 		//caso existem elementos pequenos n� deve existir
 		//interface associada ao lado atual, o lado atual
 		//deve apontar para elemento computacional nulo
@@ -515,7 +513,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
 
 int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 	
-	int iel,nel = cmesh.NElements();
+	long iel,nel = cmesh.NElements();
 	for(iel=0;iel<nel;iel++){
 		TPZCompEl *cel = cmesh.ElementVec()[iel];
 		if(!cel) continue;
@@ -714,8 +712,8 @@ TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
 void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
 {
 	TPZCompEl::Write(buf,withclassid);
-	int leftelindex = fLeftElSide.Element()->Index();
-	int rightelindex = fRightElSide.Element()->Index();
+	long leftelindex = fLeftElSide.Element()->Index();
+	long rightelindex = fRightElSide.Element()->Index();
 	if ( (this->Index() < leftelindex) || (this->Index() < rightelindex) ){
 		PZError << __PRETTY_FUNCTION__ << endl
 		<< "Indices of neighbours are less than interface index:" << endl
@@ -746,8 +744,8 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 		PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
 		DebugStop();
 	}
-	int leftelindex;
-	int rightelindex;
+	long leftelindex;
+	long rightelindex;
 	int leftside, rightside;
 	//  int matid;
 	buf.Read(&leftelindex,1);
@@ -792,11 +790,11 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	const unsigned int nstater = right->Material()->NStateVariables();
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
-	TPZManVector<int> ConnectIndexL, ConnectIndexR;
+	TPZManVector<long> ConnectIndexL, ConnectIndexR;
 	
 	this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
 	this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
-	const int ncon = ConnectL.NElements() + ConnectR.NElements();
+	const long ncon = ConnectL.NElements() + ConnectR.NElements();
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
@@ -805,9 +803,9 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fConnect.Resize(ncon);
 	
-	int ic = 0;
-	int n = ConnectL.NElements();
-	for(int i = 0; i < n; i++) {
+	long ic = 0;
+	long n = ConnectL.NElements();
+	for(long i = 0; i < n; i++) {
 		const unsigned int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
 #ifdef DEBUG
@@ -822,7 +820,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 		ic++;
 	}
 	n = ConnectR.NElements();
-	for(int i = 0; i < n; i++) {
+	for(long i = 0; i < n; i++) {
 		const unsigned int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
 #ifdef DEBUG
@@ -873,11 +871,11 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	const unsigned int nstater = right->Material()->NStateVariables();
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
-	TPZManVector<int> ConnectIndexL, ConnectIndexR;
+	TPZManVector<long> ConnectIndexL, ConnectIndexR;
 	
 	this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
 	this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
-	const int ncon = ConnectL.NElements() + ConnectR.NElements();
+	const long ncon = ConnectL.NElements() + ConnectR.NElements();
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
@@ -893,8 +891,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	TPZStack<STATE> solutionvec;
 #endif
 	
-	int ic = 0;
-	int n = ConnectL.NElements();
+	long ic = 0;
+	long n = ConnectL.NElements();
 	for(int i = 0; i < n; i++) {
 		const unsigned int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
@@ -911,9 +909,9 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		(ek.fConnect)[ic] = ConnectIndexL[i];
 #ifdef DEBUG
 		TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexL[i]];
-		int seqnum = con.SequenceNumber();
+		long seqnum = con.SequenceNumber();
 		int blsize = Mesh()->Block().Size(seqnum);
-		int pos = Mesh()->Block().Position(seqnum);
+		long pos = Mesh()->Block().Position(seqnum);
 		for (int ip=0; ip<blsize; ip++) 
 		{
 			solutionvec.Push(Mesh()->Solution()(pos+ip)*(STATE)1.e15);
@@ -922,7 +920,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		ic++;
 	}
 	n = ConnectR.NElements();
-	for(int i = 0; i < n; i++) {
+	for(long i = 0; i < n; i++) {
 		const unsigned int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
 #ifdef DEBUG
@@ -937,9 +935,9 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		(ek.fConnect)[ic] = ConnectIndexR[i];
 #ifdef DEBUG
 		TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexR[i]];
-		int seqnum = con.SequenceNumber();
+		long seqnum = con.SequenceNumber();
 		int blsize = Mesh()->Block().Size(seqnum);
-		int pos = Mesh()->Block().Position(seqnum);
+		long pos = Mesh()->Block().Position(seqnum);
 		for (int ip=0; ip<blsize; ip++) 
 		{
 			solutionvec.Push(Mesh()->Solution()(pos+ip)*(STATE)1.e15);
@@ -1025,11 +1023,11 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
-	TPZManVector<int> ConnectIndexL, ConnectIndexR;
+	TPZManVector<long> ConnectIndexL, ConnectIndexR;
 	
 	this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
 	this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
-	const int ncon = ConnectL.NElements() + ConnectR.NElements();
+	const long ncon = ConnectL.NElements() + ConnectR.NElements();
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
@@ -1041,9 +1039,9 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
 	
-	int ic = 0;
-	int n = ConnectL.NElements();
-	for(int i = 0; i < n; i++) {
+	long ic = 0;
+	long n = ConnectL.NElements();
+	for(long i = 0; i < n; i++) {
 		const int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
 		ek.fBlock.Set(ic,con_neq );
@@ -1053,7 +1051,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		ic++;
 	}
 	n = ConnectR.NElements();
-	for(int i = 0; i < n; i++) {
+	for(long i = 0; i < n; i++) {
 		const int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
 		ek.fBlock.Set(ic,con_neq );
@@ -1122,7 +1120,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	delete intrule;
 }
 
-void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex){
+void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<long> &connectindex){
 	
 	TPZCompEl * el = elside.Element();
 	
@@ -1132,8 +1130,8 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 		connects.Fill(NULL);
 		connectindex.Resize(ncon);
 		connectindex.Fill(-1);
-		int i, index;
-		for(i = 0; i < ncon; i++){
+		long index;
+		for(int i = 0; i < ncon; i++){
 			index = el->ConnectIndex(i);
 			connectindex[i] = index;
 			connects[i] = &(fMesh->ConnectVec()[ index ]);
@@ -1174,8 +1172,8 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	data.x.Resize(3);
 	REAL weight;
 	
-    int numbersol = jump.size();
-    for (int is=0; is<numbersol; is++) {
+    long numbersol = jump.size();
+    for (long is=0; is<numbersol; is++) {
         jump[is].Resize(njump);
         jump[is].Fill(0.);
     }
@@ -1202,19 +1200,19 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 			datar.dsol.Resize(0);
 		}
 		TPZSolVec localjump(numbersol);
-        for (int is=0; is<numbersol; is++) {
+        for (long is=0; is<numbersol; is++) {
             localjump[is].Resize(njump,0.);
         }
 		mat->InterfaceJump(data.x, datal.sol, datar.sol, localjump);
 		
-        for (int is=0; is<numbersol; is++) {
+        for (long is=0; is<numbersol; is++) {
             if(opt == 0){
-                for(int ier = 0; ier < njump; ier++){
+                for(long ier = 0; ier < njump; ier++){
                     jump[is][ier] += localjump[is][ier]*localjump[is][ier]*(STATE)weight;
                 }
             }
             if(opt == 1){
-                for(int ier = 0; ier < njump; ier++){
+                for(long ier = 0; ier < njump; ier++){
                     if( fabs(localjump[is][ier]) > fabs(jump[is][ier]) ){
                         jump[is][ier] = fabs( localjump[is][ier] );
                     }//if
@@ -1224,9 +1222,9 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	}//loop over integration points
 	
 	//Norma sobre o elemento
-    for (int is=0; is<numbersol; is++) {
+    for (long is=0; is<numbersol; is++) {
         if(opt == 0){
-            for(int ier = 0; ier < njump; ier++){
+            for(long ier = 0; ier < njump; ier++){
                 jump[is][ier] = sqrt(jump[is][ier]);
             }//for
         }//if
@@ -1585,7 +1583,7 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
 }//void
 
 /** @brief adds the connect indexes associated with base shape functions to the set */
-void TPZInterfaceElement::BuildCornerConnectList(std::set<int> &connectindexes) const
+void TPZInterfaceElement::BuildCornerConnectList(std::set<long> &connectindexes) const
 {
     TPZCompEl *left = LeftElement();
     TPZCompEl *right = RightElement();

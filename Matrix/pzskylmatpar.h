@@ -60,10 +60,10 @@ public:
 	 * @{
 	 */
 	
-	int Decompose_Cholesky(std::list<int> &singular);
+	int Decompose_Cholesky(std::list<long> &singular);
 	int Decompose_Cholesky();
 	
-	int Decompose_LDLt(std::list<int> &singular);
+	int Decompose_LDLt(std::list<long> &singular);
 	int Decompose_LDLt();
 	
 	void SetSkyline(const TPZVec<long> &skyline);
@@ -90,12 +90,12 @@ public:
 	TPZVec<long> fSkyline;
 	
 private:
-	int fEqDec, fNthreads;
+	long fEqDec, fNthreads;
 	int * fThreadUsed;
-	std::set<int> fColUsed;
+	std::set<long> fColUsed;
 	int fNumDecomposed;
 	bool fCorrectSingular;
-	std::list<int> fSingular;
+	std::list<long> fSingular;
 	
 #ifdef OOPARLIB
 	

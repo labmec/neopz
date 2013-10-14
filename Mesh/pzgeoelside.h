@@ -26,7 +26,7 @@ class TPZGeoElSide;
  */
 class TPZGeoElSideIndex{
 private:
-	int fGeoElIndex;
+	long fGeoElIndex;
 	int fSide;
 	
 public:
@@ -37,7 +37,7 @@ public:
 	/** @brief Constructor with geometric element referenced and corresponding side. */
 	TPZGeoElSideIndex(TPZGeoEl *gel,int side);
 	
-	TPZGeoElSideIndex(int gelindex,int side);
+	TPZGeoElSideIndex(long gelindex,int side);
 	
 	TPZGeoElSideIndex(const TPZGeoElSide &side);
 	
@@ -61,9 +61,9 @@ public:
 	
 	void SetElement(TPZGeoEl* geoel);
 	
-	int ElementIndex() const;
+	long ElementIndex() const;
 	
-	void SetElementIndex(int i);
+	void SetElementIndex(long i);
 	
 	void Read(TPZStream &buf);
 	void Write(TPZStream &buf);
@@ -124,7 +124,7 @@ public:
 	
 	/** @brief This constructor set an TPZGeoElSide based in the cornerNodes of an side of gel */
 	/** If the cornerNodes are not consistent, the TPZGeoElSide created is NULL */
-	TPZGeoElSide(TPZGeoEl *gel, std::set<int> &sideCornerNodes);
+	TPZGeoElSide(TPZGeoEl *gel, std::set<long> &sideCornerNodes);
 	
 	TPZGeoElSide(const TPZGeoElSideIndex &index, const TPZGeoMesh * mesh){
 		this->fSide = index.Side();
@@ -171,7 +171,7 @@ public:
 	/** @brief Returns the set of neighbours as computed by the intersection of neighbours along vertices */
 	void ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh);
 	
-	int Id();
+	long Id();
     
     /** @brief the dimension associated with the element/side */
 	int Dimension() const;
@@ -233,10 +233,10 @@ public:
 	int NSideNodes() const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
-	int SideNodeIndex(int nodenum) const;
+	long SideNodeIndex(int nodenum) const;
 	
 	/** @brief Returns the index of the local nodenum node of side*/
-	int SideNodeLocIndex(int nodenum) const;
+	long SideNodeLocIndex(int nodenum) const;
     
 	
 	/** @brief Returns 1 if neighbour is a neighbour of the element along side*/
@@ -294,7 +294,7 @@ inline TPZGeoElSideIndex::TPZGeoElSideIndex(){
     this->fGeoElIndex = -1;
 }
 
-inline TPZGeoElSideIndex::TPZGeoElSideIndex(int gelindex,int side){  
+inline TPZGeoElSideIndex::TPZGeoElSideIndex(long gelindex,int side){  
     this->fGeoElIndex = gelindex;
     this->fSide = side;
 }
@@ -331,11 +331,11 @@ inline TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
     return mesh->ElementVec()[this->fGeoElIndex];
 }
 
-inline int TPZGeoElSideIndex::ElementIndex() const{
+inline long TPZGeoElSideIndex::ElementIndex() const{
     return this->fGeoElIndex;
 }
 
-inline void TPZGeoElSideIndex::SetElementIndex(int i){
+inline void TPZGeoElSideIndex::SetElementIndex(long i){
     this->fGeoElIndex = i;
 }
 
@@ -349,7 +349,7 @@ inline void TPZGeoElSideIndex::Read(TPZStream &buf){
 
 inline void TPZGeoElSideIndex::Write(TPZStream &buf){
     int side = this->fSide;
-    int index = this->fGeoElIndex;
+    long index = this->fGeoElIndex;
     buf.Write(&side, 1);
     buf.Write(&index, 1);
 }

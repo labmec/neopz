@@ -151,7 +151,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
-		static int GetTransformId(TPZVec<int> &id);
+		static int GetTransformId(TPZVec<long> &id);
 		
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
@@ -160,7 +160,7 @@ namespace pztopology {
 		 * @param id Indexes of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
-		static int GetTransformId(int side, TPZVec<int> &id);
+		static int GetTransformId(int side, TPZVec<long> &id);
 		
 		/** @} */
 
@@ -186,7 +186,11 @@ namespace pztopology {
 		 * @param id Ids of the corner nodes of the elements
 		 * @param permgather Permutation vector in a gather order
 		 */
-		static void GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather);
+		static void GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+	{
+		permgather[0] = 0;
+		return;
+	}
 		
 		/** @brief Volume of the master element (measure of the element) */
 		static REAL RefElVolume() {

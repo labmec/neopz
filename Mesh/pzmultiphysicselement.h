@@ -26,7 +26,7 @@ public:
 	 * @param ref geometric element reference
 	 * @param index Index of the element created
 	 */
-	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) : TPZCompEl(mesh, ref, index)
+	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) : TPZCompEl(mesh, ref, index)
 	{
 	}
 	/** @brief Default destructor */
@@ -34,15 +34,15 @@ public:
 	{
 	}
 	
-	virtual void AddElement(TPZCompEl *cel, int mesh) = 0;
+	virtual void AddElement(TPZCompEl *cel, long mesh) = 0;
     
-    virtual TPZCompEl *Element(int elindex) = 0;
+    virtual TPZCompEl *Element(long elindex) = 0;
 	
-	virtual TPZCompEl *ReferredElement(int mesh) = 0;
+	virtual TPZCompEl *ReferredElement(long mesh) = 0;
     
-    virtual int NMeshes() = 0;
+    virtual long NMeshes() = 0;
 	
-	virtual void SetConnectIndexes(TPZVec<int> &indexes) = 0;
+	virtual void SetConnectIndexes(TPZVec<long> &indexes) = 0;
 	
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const = 0;
 	
@@ -69,14 +69,12 @@ public:
     virtual int IntegrationOrder() = 0;
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
     {
         std::cout << "To Be Implemented\n";
         DebugStop();
     }
-    
 
-	
 };
 
 #endif

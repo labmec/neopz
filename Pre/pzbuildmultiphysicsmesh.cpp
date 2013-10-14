@@ -32,13 +32,13 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 {
 	TPZGeoMesh *gmesh = MFMesh->Reference();
 	gmesh->ResetReference();
-	int nMFEl = MFMesh->NElements();
-	int nmesh = cmeshVec.size();
-	int imesh;
+	long nMFEl = MFMesh->NElements();
+	long nmesh = cmeshVec.size();
+	long imesh;
 	for(imesh = 0; imesh<nmesh; imesh++)
 	{
 		cmeshVec[imesh]->LoadReferences();
-		int iel;
+		long iel;
 		for(iel=0; iel<nMFEl; iel++)
 		{
             TPZCompEl * cel = MFMesh->ElementVec()[iel];
@@ -46,7 +46,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
             TPZMultiphysicsInterfaceElement * mfint = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
 			if(mfcel)
 			{
-                int found = 0;
+                long found = 0;
                 TPZGeoEl * gel = mfcel->Reference();
                 TPZStack<TPZCompElSide> celstack;
                 TPZGeoElSide gelside(gel,gel->NSides()-1);
@@ -58,7 +58,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
                 gelside.ConnectedCompElementList(celstack, 0, 0);
                 while (celstack.size())
                 {
-                    int ncel = celstack.size();
+                    long ncel = celstack.size();
                     // the last element on the stack
                     TPZGeoElSide gelside = celstack[ncel-1].Reference();
                     TPZStack<TPZCompElSide> celstack2;
@@ -70,7 +70,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
                     
                     while (celstack2.size()) 
                     {
-                        int ncel2 = celstack2.size();
+                        long ncel2 = celstack2.size();
                         TPZGeoElSide gelside2 = celstack2[ncel2-1].Reference();
                         // put all elements in the stack - if there is one element, stop the search
                         if(gelside2.Element()->Dimension()==gel->Dimension()) {
@@ -101,10 +101,10 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 
 void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 {
-	int nmeshes = cmeshVec.size();
-	TPZVec<int> FirstConnect(nmeshes,0);
-	int nconnects = 0;
-	int imesh;
+	long nmeshes = cmeshVec.size();
+	TPZVec<long> FirstConnect(nmeshes,0);
+	long nconnects = 0;
+	long imesh;
 	for (imesh=0; imesh<nmeshes; imesh++) 
 	{
 		FirstConnect[imesh] = nconnects;
@@ -112,12 +112,12 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 	}
 	MFMesh->ConnectVec().Resize(nconnects);
 	MFMesh->Block().SetNBlocks(nconnects);
-	int counter = 0;
-	int seqnum = 0;
+	long counter = 0;
+	long seqnum = 0;
 	for (imesh=0; imesh<nmeshes; imesh++) 
 	{
-		int ic;
-		int nc = cmeshVec[imesh]->ConnectVec().NElements();
+		long ic;
+		long nc = cmeshVec[imesh]->ConnectVec().NElements();
 		for (ic=0; ic<nc; ic++) 
 		{
 			TPZConnect &refcon =  cmeshVec[imesh]->ConnectVec()[ic];
@@ -149,8 +149,8 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 	}
 	MFMesh->Block().SetNBlocks(seqnum);
 	MFMesh->ExpandSolution();
-	int iel;
-	int nelem = MFMesh->NElements();
+	long iel;
+	long nelem = MFMesh->NElements();
 	for (iel = 0; iel < nelem; iel++) 
 	{
 		TPZMultiphysicsElement *cel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
@@ -161,15 +161,15 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 		if (!cel) {
 			DebugStop();
 		}
-		TPZStack<int> connectindexes;
-		int imesh;
+		TPZStack<long> connectindexes;
+		long imesh;
 		for (imesh=0; imesh < nmeshes; imesh++) {
 			TPZCompEl *celref = cel->ReferredElement(imesh);
             if (!celref) {
                 continue;
             }
-			int ncon = celref->NConnects();
-			int ic;
+			long ncon = celref->NConnects();
+			long ic;
 			for (ic=0; ic<ncon; ic++) {
 				connectindexes.Push(celref->ConnectIndex(ic)+FirstConnect[imesh]);
 			}
@@ -180,24 +180,24 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 
 void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
-    int imesh;
-    int nmeshes = cmeshVec.size();
-    TPZManVector<int> FirstConnectIndex(nmeshes+1,0);
+    long imesh;
+    long nmeshes = cmeshVec.size();
+    TPZManVector<long> FirstConnectIndex(nmeshes+1,0);
     for (imesh = 0; imesh < nmeshes; imesh++) {
 		FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
     TPZBlock<STATE> &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
-		int ncon = cmeshVec[imesh]->NConnects();
+		long ncon = cmeshVec[imesh]->NConnects();
 		TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
-		int ic;
+		long ic;
 		for (ic=0; ic<ncon; ic++) {
 			TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
-			int seqnum = con.SequenceNumber();
+			long seqnum = con.SequenceNumber();
 			if(seqnum<0) continue;       /// Whether connect was deleted by previous refined process
 			int blsize = block.Size(seqnum);
 			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
-			int seqnumMF = conMF.SequenceNumber();
+			long seqnumMF = conMF.SequenceNumber();
 			int idf;
 			for (idf=0; idf<blsize; idf++) {
 				blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
@@ -208,24 +208,24 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
 
 void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
-    int imesh;
-    int nmeshes = cmeshVec.size();
-    TPZManVector<int> FirstConnectIndex(nmeshes+1,0);
+    long imesh;
+    long nmeshes = cmeshVec.size();
+    TPZManVector<long> FirstConnectIndex(nmeshes+1,0);
     for (imesh = 0; imesh < nmeshes; imesh++) {
 		FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
     TPZBlock<STATE> &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
-		int ncon = cmeshVec[imesh]->NConnects();
+		long ncon = cmeshVec[imesh]->NConnects();
 		TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
-		int ic;
+		long ic;
 		for (ic=0; ic<ncon; ic++) {
 			TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
-			int seqnum = con.SequenceNumber();
+			long seqnum = con.SequenceNumber();
 			if(seqnum<0) continue;       /// Whether connect was deleted by previous refined process
 			int blsize = block.Size(seqnum);
 			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
-			int seqnumMF = conMF.SequenceNumber();
+			long seqnumMF = conMF.SequenceNumber();
 			int idf;
 			for (idf=0; idf<blsize; idf++) {
 				block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
@@ -258,10 +258,10 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
     
-    int nelem = cmesh->Reference()->NElements();
+    long nelem = cmesh->Reference()->NElements();
 
 	//2- Generate geometric elements (with dimension (meshdim-1)) between the previous elements.
-	for (int i=0; i<nelem; ++i) {
+	for (long i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
         // skip all elements which are not volumetric
 		if (!gel || gel->Dimension() != meshdim || !gel->Reference()) {
@@ -350,7 +350,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	
 	//4- Create the interface elements between the lagrange elements and other elements
 	nelem = elvec.NElements();
-	for (int i=0; i<nelem; ++i) {
+	for (long i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
 		if (!gel || gel->Dimension() != meshdim-1 || !gel->Reference()) {
             continue;
@@ -382,12 +382,12 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
         {
             celsides.Push(cels);
         }
-        int nelsides = celsides.NElements();
+        long nelsides = celsides.NElements();
         if(nelsides != 2) 
         {
             DebugStop();
         } 
-        for (int lp=0; lp<nelsides; ++lp) {
+        for (long lp=0; lp<nelsides; ++lp) {
             TPZCompElSide left = celsides[lp];
             TPZCompElSide right(gel->Reference(),is);
             
@@ -405,7 +405,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
             }
             
             TPZGeoEl *interfaceEl = gel->CreateBCGeoEl(is, interfacematid);
-            int index;
+            long index;
             new TPZInterfaceElement(*cmesh,interfaceEl,index,left,right);
             
         }
@@ -420,8 +420,8 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
     
     
     //Set the connect as a Lagrange multiplier  
-    int nel = cmesh->NElements();
-    for(int i=0; i<nel; i++){
+    long nel = cmesh->NElements();
+    for(long i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
         if(!cel) continue;
         
@@ -444,8 +444,8 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
 {
 
     TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-    int nel = elvec.NElements();
-    for(int el=0; el < nel; el++){
+    long nel = elvec.NElements();
+    for(long el=0; el < nel; el++){
         TPZCompEl * compEl = elvec[el];
         if(!compEl) continue;
         
@@ -455,18 +455,17 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
         }
     }
     
-	TPZVec<int > subindex(0);
+	TPZVec<long > subindex(0);
 	for (int iref = 0; iref < ndiv; iref++) {
 		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
-		int nel = elvec.NElements(); 
-		for(int el=0; el < nel; el++){
+		long nel = elvec.NElements(); 
+		for(long el=0; el < nel; el++){
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
 			int ind = compEl->Index();
             if(compEl->Dimension() >0/* cMesh->Dimension()*/){
                 compEl->Divide(ind, subindex, 0);
             }
-            
 		}
 	}
     
@@ -477,15 +476,15 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
     //When is using one mesh with L2 space for pressure  
     if(isLagrMult==true)
     {
-        int ncon = cMesh->NConnects();
-        for(int i=0; i<ncon; i++)
+        long ncon = cMesh->NConnects();
+        for(long i=0; i<ncon; i++)
         {
             TPZConnect &newnod = cMesh->ConnectVec()[i];
             newnod.SetLagrangeMultiplier(1);
         }
         
-        int nel = cMesh->NElements();
-        for(int i=0; i<nel; i++){
+        long nel = cMesh->NElements();
+        for(long i=0; i<nel; i++){
             TPZCompEl *cel = cMesh->ElementVec()[i];
             if(!cel) continue;
             TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
@@ -499,14 +498,14 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
     }
 }
 
-void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int indexEl, bool isLagrMult){
+void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, long indexEl, bool isLagrMult){
 	
-	TPZVec<int > subindex; 
-	int nel = cMesh->ElementVec().NElements(); 
-	for(int el=0; el < nel; el++){
+	TPZVec<long> subindex; 
+	long nel = cMesh->ElementVec().NElements(); 
+	for(long el=0; el < nel; el++){
 		TPZCompEl * compEl = cMesh->ElementVec()[el];
 		if(!compEl) continue;
-		int ind = compEl->Index();
+		long ind = compEl->Index();
 		if(ind==indexEl){
 			compEl->Divide(indexEl, subindex, 1);
 		}
@@ -519,15 +518,15 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int inde
     //When is using one mesh with L2 space for pressure
     if(isLagrMult==true)
     {
-        int ncon = cMesh->NConnects();
-        for(int i=0; i<ncon; i++)
+        long ncon = cMesh->NConnects();
+        for(long i=0; i<ncon; i++)
         {
             TPZConnect &newnod = cMesh->ConnectVec()[i];
             newnod.SetLagrangeMultiplier(1);
         }
         
-        int nel = cMesh->NElements();
-        for(int i=0; i<nel; i++){
+        long nel = cMesh->NElements();
+        for(long i=0; i<nel; i++){
             TPZCompEl *cel = cMesh->ElementVec()[i];
             if(!cel) continue;
             TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);

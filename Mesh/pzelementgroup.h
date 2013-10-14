@@ -20,14 +20,14 @@ class TPZElementGroup : public TPZCompEl
 {
 
     TPZStack<TPZCompEl *,5> fElGroup;
-    TPZManVector<int,27> fConnectIndexes;
+    TPZManVector<long,27> fConnectIndexes;
     
 
 public:
     
     TPZElementGroup();
     
-    TPZElementGroup(TPZCompMesh &mesh, int &index) : TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
+    TPZElementGroup(TPZCompMesh &mesh, long &index) : TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
     {
         
     }
@@ -80,7 +80,7 @@ public:
     }
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const 
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const 
     {
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
@@ -93,7 +93,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int ConnectIndex(int i) const 
+	virtual long ConnectIndex(int i) const 
     {
         return fConnectIndexes[i];
     }
@@ -109,7 +109,7 @@ public:
      * @param inode node to set index
      * @param index index to be seted
      */
-    virtual void SetConnectIndex(int inode, int index);
+    virtual void SetConnectIndex(int inode, long index);
 
 
     /** @brief Loads the solution within the internal data structure of the element */ 
@@ -137,8 +137,8 @@ public:
 	 * from the both meshes - original and patch
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<int,int> & gl2lcConMap,
-									std::map<int,int> & gl2lcElMap) const;
+									std::map<long,long> & gl2lcConMap,
+									std::map<long,long> & gl2lcElMap) const;
 
 public:
     

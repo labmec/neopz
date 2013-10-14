@@ -46,9 +46,9 @@ using namespace pzshape;
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
 #endif
 TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
-                                  TPZVec<int>& nodeindexes,
+                                  TPZVec<long>& nodeindexes,
                                   int matid,
-                                  int& index)
+                                  long& index)
 
 {
 	if(!&mesh) return 0;

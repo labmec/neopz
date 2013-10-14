@@ -21,7 +21,7 @@ class TPZStack;
 template <class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoElRefLess<TGeo> {
 	
-	int fSubEl[TRef::NSubEl];
+	long fSubEl[TRef::NSubEl];
 public:
 	typedef TGeo TGeoLoc;
 	
@@ -29,13 +29,13 @@ public:
 	/** @brief Default constructor */
 	TPZGeoElement();
 	/** @brief Constructor from node indexes and id given */
-	TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+	TPZGeoElement(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh);
 	/** @brief Constructor from node indexes */
-	TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+	TPZGeoElement(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh);
 	/** @brief Constructor with topology given */
 	TPZGeoElement(TGeo &geo, int matind, TPZGeoMesh &mesh);
 	/** @brief Constructor from node indexes and return the index of the new geometric element */
-	TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+	TPZGeoElement(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index);
 	
 	/** @brief Copy constructor */
 	TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGeoElement &cp);
@@ -49,8 +49,8 @@ public:
 	 */
 	TPZGeoElement ( TPZGeoMesh &DestMesh,
 				   const TPZGeoElement &cp,
-				   std::map<int,int> &gl2lcNdIdx,
-				   std::map<int,int> &gl2lcElIdx );
+				   std::map<long,long> &gl2lcNdIdx,
+				   std::map<long,long> &gl2lcElIdx );
 	/** @brief Default destructor */
 	virtual ~TPZGeoElement(){};
 	
@@ -66,8 +66,8 @@ public:
 	 * @see class TPZGeoEl
 	 */
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
-									std::map<int,int> &gl2lcNdIdx,
-									std::map<int,int> &gl2lcElIdx) const;
+									std::map<long,long> &gl2lcNdIdx,
+									std::map<long,long> &gl2lcElIdx) const;
 	
 	/** @brief Returns 1 if the element has subelements. */
 	int HasSubElement() const {return fSubEl[0]!=-1;}
@@ -79,7 +79,7 @@ public:
 	REAL RefElVolume();
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	void MidSideNodeIndex(int side,int &index) const;
+	void MidSideNodeIndex(int side,long &index) const;
 	
 	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
 	int NSubElements() const;

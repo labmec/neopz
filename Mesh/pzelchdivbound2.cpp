@@ -19,7 +19,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 		
 	//int i;
@@ -115,7 +115,7 @@ TPZIntelGen<TSHAPE>(mesh,copy)
 //	{
 //		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
 //	}
-    int index = copy.fneighbour.Element()->Index();
+    long index = copy.fneighbour.Element()->Index();
     TPZCompEl *cel = this->Mesh()->ElementVec()[index];
     if (!cel) {
         DebugStop();
@@ -127,8 +127,8 @@ TPZIntelGen<TSHAPE>(mesh,copy)
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
 												 const TPZCompElHDivBound2<TSHAPE> &copy,
-												 std::map<int,int> & gl2lcConMap,
-												 std::map<int,int> & gl2lcElMap) :
+												 std::map<long,long> & gl2lcConMap,
+												 std::map<long,long> & gl2lcElMap) :
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	
@@ -136,8 +136,8 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++)
 	{
-		int lcIdx = -1;
-		int glIdx = copy.fConnectIndexes[i];
+		long lcIdx = -1;
+		long glIdx = copy.fConnectIndexes[i];
 		if(glIdx == -1)
 		{
 			// nothing to clone
@@ -162,7 +162,7 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 	}
 	//   gl2lcElMap[copy.fIndex] = this->Index();
     
-    int neiIdx = copy.fneighbour.Element()->Index();
+    long neiIdx = copy.fneighbour.Element()->Index();
     if(gl2lcElMap.find(neiIdx)==gl2lcElMap.end())
     {
         DebugStop();
@@ -205,7 +205,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnects() const {
 }
 
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, int connectindex)
+void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, long connectindex)
 {
 	if(i)
 	{
@@ -314,7 +314,7 @@ void TPZCompElHDivBound2<TSHAPE>::SetSideOrder(int side, int order) {
 	}
 	TPZConnect &c = this->Connect(connectaux);
     c.SetOrder(order);
-    int seqnum = c.SequenceNumber();
+    long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
@@ -404,8 +404,8 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //#endif
 	
 	// relate the sides indicated in vecindex to the sides of the current element
-	int nvec = normalsides.NElements();
-	int ivec;
+	long nvec = normalsides.NElements();
+	long ivec;
 	for(ivec=0; ivec<nvec; ivec++)
 	{
 		TPZGeoElSide neigh(neighel,normalsides[ivec]);
@@ -438,14 +438,14 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 }
 
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int> &shapeindex) {
+void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex) {
 	
-	TPZManVector<int> firstshapeindex;
-	FirstShapeIndex(firstshapeindex);
+	TPZManVector<long> firstshapeindex;    // Para o que?
+	FirstShapeIndex(firstshapeindex);      // se foram calculados os indices mas não utilizados?
 	int nshape = TPZIntelGen<TSHAPE>::NShapeF();
 	shapeindex.Resize(nshape);
-	int nsides = sides.NElements();
-	int is, count=0;
+	long nsides = sides.NElements();
+	long is, count=0;
 	for(is=0 ; is<nsides; is++)
 	{
 		int side = sides[is];
@@ -472,7 +472,7 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<i
 
 /**return the first shape associate to each side*/
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
+void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 	
 	Index.Resize(TSHAPE::NSides+1);
 	Index[0]=0;
@@ -510,7 +510,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 	}
     TPZGeoEl *gel = this->Reference();
     int nc = gel->NCornerNodes();
-    TPZManVector<int,8> id(nc);
+    TPZManVector<long,8> id(nc);
     for (int ic=0; ic<nc; ic++) {
         id[ic] = gel->Node(ic).Id();
     }
@@ -555,7 +555,7 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 	neighel->SideShapeFunction(neigh.Side(), pt2, phi, dphi);
 	 */
 		//tentando reimplementar 
-		TPZManVector<int,TSHAPE::NSides-1> id(TSHAPE::NSides-1,0);
+		TPZManVector<long,TSHAPE::NSides-1> id(TSHAPE::NSides-1,0);
 		
 		TPZGeoEl *ref = this->Reference();
 		int nnodes= ref->NNodes();
@@ -669,10 +669,10 @@ int TPZCompElHDivBound2<TSHAPE>::SideOrder(int side) const
 
 /** Return a matrix with index shape and vector associate to element */
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec){
+void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec){
 	
 	// VectorSide indicates the side associated with each vector entry
-	TPZVec<int> FirstIndex;
+	TPZVec<long> FirstIndex;
 	// the first index of the shape functions
 	FirstShapeIndex(FirstIndex);
 #ifdef LOG4CXX
@@ -686,14 +686,14 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 	int tamanho= this->NShapeF();
 	
 	ShapeAndVec.Resize(tamanho);
-	int count=0;
+	long count=0;
 		//for(int jvec=0;jvec< VectorSide.NElements();jvec++)
-	for(int jvec=0;jvec< VectorSide.NElements();jvec++)//coloca-se -1 caso queira reduzir o espaco de fluxo
+	for(long jvec=0;jvec< VectorSide.NElements();jvec++)//coloca-se -1 caso queira reduzir o espaco de fluxo
 	{
 		int lside=VectorSide[jvec];
-		int fshape1= FirstIndex[lside];
-		int fshape2= FirstIndex[lside+1];
-		for (int ishape=fshape1; ishape<fshape2; ishape++)
+		long fshape1= FirstIndex[lside];
+		long fshape2= FirstIndex[lside+1];
+		for (long ishape=fshape1; ishape<fshape2; ishape++)
 		{
 			
 #ifdef LOG4CXX
@@ -703,7 +703,7 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 #endif
 			
 			
-			ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+			ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
 		}
 		
 	}

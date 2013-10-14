@@ -82,7 +82,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 		int ic;
 		gmesh->NodeVec().Resize(8);
 		TPZVec<REAL> noco(3);
-		TPZVec<int> nodeindices(8);
+		TPZVec<long> nodeindices(8);
 		for(ic=0; ic<8; ic++)
 		{
 			nodeindices[ic] = ic;
@@ -94,11 +94,11 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 			gmesh->NodeVec()[ic].Initialize(noco,*gmesh);
 		}
 		int matid = 1;
-		int index;
+		long index;
 		gmesh->CreateGeoElement(ECube,nodeindices,matid,index,0);
 	}
 	this->fCMesh = new TPZCompMesh(gmesh);
-	TPZVec<int> nodeindices(1,0);
+	TPZVec<long> nodeindices(1,0);
 	new TPZGeoElement<pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> (nodeindices,-1,*gmesh);
 	TPZVec<REAL> convdir(fDimension,1.);
 	TPZMatPoisson3d *matp;
@@ -212,7 +212,7 @@ void TPZGenSubStruct::SubStructure()
 					nelstack = 1;
 				}
 			}
-			int index;
+			long index;
 			TPZCompMesh *cmesh = fCMesh.operator->();
 			TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);
 			std::cout << '*';
@@ -304,7 +304,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 #define COMPLETE
 #ifdef COMPLETE
 	TPZNodesetCompute nodeset;
-	TPZStack<int> elementgraph,elementgraphindex;
+	TPZStack<long> elementgraph,elementgraphindex;
 	//    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 	int nindep = fCMesh->NIndependentConnects();
 	//  int neq = fCMesh->NEquations();
@@ -897,16 +897,16 @@ void TPZGenSubStruct::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZ
 /*!
  \fn TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
  */
-int TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
+long TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
 {
-	std::list<int> internal;
+	std::list<long> internal;
 	sub->PotentialInternal(internal);
-	std::list<int>::iterator it;
-	int result = 0;
+	std::list<long>::iterator it;
+	long result = 0;
 	for(it=internal.begin(); it != internal.end(); it++)
 	{
-		int seq = sub->ConnectVec()[*it].SequenceNumber();
-		int sz = sub->Block().Size(seq);
+		long seq = sub->ConnectVec()[*it].SequenceNumber();
+		long sz = sub->Block().Size(seq);
 		result += sz;
 	}
 	return result;
@@ -931,7 +931,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	// compute the stiffness matrix associated with the internal nodes
 	// fInternalEqs indicates the permutation of the global equations to the numbering of the internal equations
 	// this is meaningless if the internal nodes are invisible to the global structure
-    int ninternal = substruct->fInternalEqs.NElements();
+    long ninternal = substruct->fInternalEqs.NElements();
 	// THIS SHOULD HAPPEN IN THE REMOTE PROCESSOR
     skylstr.SetEquationRange(0,ninternal);
     TPZFMatrix<STATE> rhs;
@@ -979,7 +979,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	
 	// reorder the sequence numbering of the connects to reflect the original ordering
 	TPZVec<long> invpermuteconnectscatter(permuteconnectscatter.NElements());
-	int iel;
+	long iel;
 	for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 		invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
 	}
@@ -995,17 +995,17 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	matredptr->SimetrizeMatRed();
 	
 	substruct->fWeights.Resize(Stiffness->Rows());
-	int i;
+	long i;
 	for(i=0; i<substruct->fWeights.NElements(); i++)
 	{
 		substruct->fWeights[i] = Stiffness->GetVal(i,i);
 	}
 	// Desingularize the matrix without affecting the solution
-	int ncoarse = substruct->fCoarseNodes.NElements(), ic;
-	int neq = Stiffness->Rows();
+	long ncoarse = substruct->fCoarseNodes.NElements(), ic;
+	long neq = Stiffness->Rows();
 	for(ic=0; ic<ncoarse; ic++)
 	{
-		int coarse = substruct->fCoarseNodes[ic];
+		long coarse = substruct->fCoarseNodes[ic];
 		Stiffness->operator()(coarse,coarse) += 10.;
 		matredbig->operator()(neq+ic,coarse) = 1.;
 		matredbig->operator()(coarse,neq+ic) = 1.;
@@ -1028,11 +1028,11 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 }
 
 // return the number of submeshes
-int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
+long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 {
-	int nel = compmesh->NElements();
+	long nel = compmesh->NElements();
 	TPZCompEl *cel;
-	int iel, count = 0;
+	long iel, count = 0;
 	for(iel=0; iel<nel; iel++)
 	{
 		cel = compmesh->ElementVec()[iel];
@@ -1046,9 +1046,9 @@ int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 // return a pointer to the isub submesh
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 {
-	int nel = compmesh->NElements();
+	long nel = compmesh->NElements();
 	TPZCompEl *cel;
-	int iel, count = 0;
+	long iel, count = 0;
 	for(iel=0; iel<nel; iel++)
 	{
 		cel = compmesh->ElementVec()[iel];

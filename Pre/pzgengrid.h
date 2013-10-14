@@ -149,7 +149,7 @@ public:
 	 * @param jel jth division for y
 	 * @param layer number of layer for which the element belongs
 	 */
-    int ElemId(int iel,int jel, int layer);
+    long ElemId(long iel,long jel, int layer);
     
     /**
 	 * @brief Computes the euclidean distance between two points, or the measure of the interval between two points
@@ -193,7 +193,7 @@ protected:
 	 */
     virtual int GlobalI(int ix, int iy, int layer);
     
-	void ElementConnectivity(int iel, TPZVec<int> &nodes);
+	void ElementConnectivity(long iel, TPZVec<long> &nodes);
     
 	/**
 	 * @brief Creates the geometric nodes, it depends on fElementType, layer and fRotAngle
@@ -219,7 +219,7 @@ protected:
     /** @brief Geometric progression coeficients in the x and y direction */
 	TPZManVector<REAL> fGeometricProgression;
     /** @brief Number of nodes of the mesh */
-	int fNumNodes;
+	long fNumNodes;
     /** 
 	 * @brief Variable which indicates the type of element that should be generated
      * \li type = 0 -> quadrilateral

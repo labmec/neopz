@@ -33,13 +33,13 @@ namespace pzgeom {
 			return false;
 		}
 		/** @brief Constructor for node indexes given */
-		TPZQuadraticTetra(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
+		TPZQuadraticTetra(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
 		}
 		/** @brief Default constructor */
 		TPZQuadraticTetra() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
 		}
 		/** @brief Constructor for node map given */
-		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
+		TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
 		TPZQuadraticTetra(const TPZQuadraticTetra &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
@@ -87,9 +87,9 @@ namespace pzgeom {
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
+										  TPZVec<long>& nodeindexes,
 										  int matid,
-										  int& index);	
+										  long& index);	
 };
 
 };

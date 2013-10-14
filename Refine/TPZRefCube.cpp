@@ -327,7 +327,8 @@ namespace pzrefine {
 			for(i=0;i<NSubEl;i++) SubElVec[i] = geo->SubElement(i);
 			return;//If exist fSubEl return this sons
 		}
-		int j,sub,matid=geo->MaterialId(),index;
+		int j,sub,matid=geo->MaterialId();
+		long index;
 		int np[TPZShapeCube::NSides];//guarda conectividades dos 8 subelementos
 		
 		for(j=0;j<TPZShapeCube::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
@@ -337,9 +338,9 @@ namespace pzrefine {
 		}
 		// creating new subelements
 		for(i=0;i<TPZShapeCube::NCornerNodes;i++) {
-			TPZManVector<int>cornerindexes(TPZShapeCube::NCornerNodes);
+			TPZManVector<long>cornerindexes(TPZShapeCube::NCornerNodes);
 			for(int j=0;j<TPZShapeCube::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-			int index;
+			long index;
 			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(ECube,cornerindexes,matid,index);
 			geo->SetSubElement(i , subel);
 		}
@@ -359,7 +360,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 	}
 	
-	void TPZRefCube::NewMidSideNode(TPZGeoEl *gel,int side,int &index) {
+	void TPZRefCube::NewMidSideNode(TPZGeoEl *gel,int side,long &index) {
 		
 		MidSideNodeIndex(gel,side,index);
 		if(index < 0) {
@@ -388,7 +389,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefCube::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index) {
+	void TPZRefCube::MidSideNodeIndex(const TPZGeoEl *gel,int side,long &index) {
 		index = -1;
 		if(side<0 || side>TPZShapeCube::NSides-1) {
 			PZError << "TPZRefCube::MidSideNodeIndex. Bad parameter side = " << side << endl;

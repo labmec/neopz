@@ -57,10 +57,10 @@ int TPBSpStructMatrix::main() {
 	for(el=0; el<1; el++) {
 		
 		// initializar os indices dos n�
-		TPZVec<int> indices(4);
+		TPZVec<long> indices(4);
 		for(i=0; i<4; i++) indices[i] = i;
 		// O proprio construtor vai inserir o elemento na malha
-		int index;
+		long index;
 		gel = gmesh.CreateGeoElement(EQuadrilateral, indices,1,index);
 	}
 	gmesh.BuildConnectivity ();
@@ -110,7 +110,7 @@ int TPBSpStructMatrix::main() {
 	//	TPZAnalysis an2(&cmesh,output);
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	int ic;
+	long ic;
 	//cout << "Nmero de Equa�es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
 	
@@ -120,11 +120,11 @@ int TPBSpStructMatrix::main() {
 	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = cmesh.ConnectVec()[ic];
 		if(cn.HasDependency()) continue;
-		int seqn = cn.SequenceNumber();
+		long seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
-		int firsteq = cmesh.Block().Position(seqn);
-		int lasteq = firsteq+cmesh.Block().Size(seqn);
-		int ind;
+		long firsteq = cmesh.Block().Position(seqn);
+		long lasteq = firsteq+cmesh.Block().Size(seqn);
+		long ind;
 		int temp = cmesh.ConnectVec()[ic].NElConnected();
 		for(ind=firsteq;ind<lasteq;ind++) {
 	        numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
@@ -243,16 +243,16 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
     /**
      *Longhin implementation
 	 */
-    TPZStack<int> elgraph;
-    TPZVec<int> elgraphindex;
+    TPZStack<long> elgraph;
+    TPZVec<long> elgraphindex;
 	//    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
     TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
 	
-    TPZVec<int> nodegraph;
-    TPZVec<int> nodegraphindex;
+    TPZVec<long> nodegraph;
+    TPZVec<long> nodegraphindex;
     /**
      *converts an element graph structure into a node graph structure
      *those vectors have size ZERO !!!

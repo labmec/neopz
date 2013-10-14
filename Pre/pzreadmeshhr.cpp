@@ -58,24 +58,24 @@ void TPZReadMeshHR::removeComents (std::string &NumberOf)
 	}
 }
 
-void TPZReadMeshHR::ReadNodes (int NNos, TPZGeoMesh & GMesh)
+void TPZReadMeshHR::ReadNodes (long NNos, TPZGeoMesh & GMesh)
 {
-	int i,c;
-	int id;
+	long i, id;
+	int c;
 	TPZVec <REAL> coord(3,0.);
 	for (i=0;i<NNos;i++)
 	{
 		fInputFile >> id;
 		for (c=0;c<3;c++) fInputFile >> coord[c];
-		int index = GMesh.NodeVec().AllocateNewElement();
+		long index = GMesh.NodeVec().AllocateNewElement();
 		GMesh.NodeVec()[index] = TPZGeoNode(id,coord,GMesh);
 	}
 }
 
-void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
+void TPZReadMeshHR::ReadElements (long NElem, TPZGeoMesh & GMesh)
 {
-	int i,c;
-	int id,type,matid;
+	long i, c, id;
+	int type,matid;
 	for (i=0;i<NElem;i++)
 	{
 		fInputFile >> id >> type >> matid;
@@ -128,8 +128,8 @@ void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
 #endif
 				continue;
 		}
-		TPZVec<int> corneridx(nnos,-1);
-		int id, idx;
+		TPZVec<long> corneridx(nnos,-1);
+		long id, idx;
 		for (c=0;c<nnos;c++)
 		{
 			fInputFile >> id;
@@ -264,16 +264,16 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 	}
 }
 
-int TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int Id)
+long TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,long Id)
 {
 	TPZAdmChunkVector<TPZGeoNode> nodeVec = GMesh->NodeVec();
-	int vid,index,size = nodeVec.NElements();
+	long vid,index,size = nodeVec.NElements();
 	if (Id < size) index = Id;
 	else index = size - 1;
 	vid = nodeVec[index].Id();
 	if (vid == Id) return index;
 	
-	int i;
+	long i;
 	for (i=index-1;i>-1;i--)
 	{
 		vid = nodeVec[i].Id();
@@ -298,10 +298,10 @@ TPZGeoMesh * TPZReadMeshHR::readGeoMesh()
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
 	std::string numberOf;
 	removeComents (numberOf);
-	int nnos = atoi (numberOf.c_str());
+	long nnos = atoi (numberOf.c_str());
 	ReadNodes (nnos, *gmesh);
 	removeComents (numberOf);
-	int nelem = atoi (numberOf.c_str());
+	long nelem = atoi (numberOf.c_str());
 	ReadElements(nelem, *gmesh);
 	gmesh->BuildConnectivity();
 	return gmesh;

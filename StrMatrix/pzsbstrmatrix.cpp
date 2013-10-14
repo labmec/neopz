@@ -23,9 +23,9 @@ TPZMatrix<STATE> * TPZSBandStructMatrix::Create(){
     if (fEquationFilter.IsActive()) {
         DebugStop();
     }
-	int neq = fEquationFilter.NActiveEquations();
+	long neq = fEquationFilter.NActiveEquations();
 	
-	int band = fMesh->BandWidth();
+	long band = fMesh->BandWidth();
 	return new TPZSBMatrix<STATE>(neq,band);
 }
 

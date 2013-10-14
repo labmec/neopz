@@ -102,8 +102,8 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	TPZGeoMesh gtomerge(tomerge);
 	TPZGeoMesh *gridtomerge = & gtomerge;
 	
-	int i,j,k,nnodestomerge = gridtomerge->NNodes();
-	int nnodesinitial = gridinitial->NNodes();
+	long i,j,k,nnodestomerge = gridtomerge->NNodes();
+	long nnodesinitial = gridinitial->NNodes();
 //    int nneltomerge = gridtomerge->NElements();
 	TPZVec<REAL> coordinitial(3,0.);
 	TPZVec<REAL> coordtomerge(3,0.);
@@ -129,10 +129,10 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 		// elements in gridinitial the id as old node with the id of the new node. At last the id of the node duplicated is put as -1
 		if(j==nnodesinitial) {
 			// resizing the vector of the nodes
-			int index = gridinitial->NodeVec().AllocateNewElement();
+			long index = gridinitial->NodeVec().AllocateNewElement();
 			gridinitial->NodeVec()[index].Initialize(coordtomerge,gridinitial);
 			index = gridinitial->NodeVec()[index].Id();
-			int oldid = nodetomerge->Id();
+			long oldid = nodetomerge->Id();
 			for(k=0;k<gridtomerge->NElements();k++) {
 				gel = gridtomerge->ElementVec()[k];
 				if(!gel) continue;
@@ -148,7 +148,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	for(i=0;i<nnodestomerge;i++) {
 		nodetomerge = &(gridtomerge->NodeVec()[i]);
 		if(!nodetomerge || nodetomerge->Id()==-1) continue;
-		int idnew = nodetomerge->Id(), idold = (int)(nodetomerge->Coord(0));
+		long idnew = nodetomerge->Id(), idold = (long)(nodetomerge->Coord(0));
 		for(k=0;k<gridtomerge->NElements();k++) {
 			gel = gridtomerge->ElementVec()[k];
 			if(!gel) continue;
@@ -159,12 +159,12 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	}
 	
 	// creating new element into gridinitial corresponding for each element in gridtomerge
-    int nelmerge = gridtomerge->NElements();
+    long nelmerge = gridtomerge->NElements();
 	for(i=0; i< nelmerge; i++) {
 		gel = gridtomerge->ElementVec()[i];
 		if(!gel) continue;
-		TPZVec<int> nos;
-		int ngelnodes = gel->NNodes(), index;
+		TPZVec<long> nos;
+		long ngelnodes = gel->NNodes(), index;
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
@@ -188,8 +188,8 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge
 	TPZGeoMesh gtomerge(*tomerge);
 	TPZGeoMesh *gridtomerge = & gtomerge;
 	
-	int i,j,k,nnodestomerge = gridtomerge->NNodes();
-	int nnodesinitial = gridinitial->NNodes();
+	long i,j,k,nnodestomerge = gridtomerge->NNodes();
+	long nnodesinitial = gridinitial->NNodes();
 	//    int nneltomerge = gridtomerge->NElements();
 	TPZVec<REAL> coordinitial(3,0.);
 	TPZVec<REAL> coordtomerge(3,0.);
@@ -215,10 +215,10 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge
 		// elements in gridinitial the id as old node with the id of the new node. At last the id of the node duplicated is put as -1
 		if(j==nnodesinitial) {
 			// resizing the vector of the nodes
-			int index = gridinitial->NodeVec().AllocateNewElement();
+			long index = gridinitial->NodeVec().AllocateNewElement();
 			gridinitial->NodeVec()[index].Initialize(coordtomerge,*gridinitial);
 			index = gridinitial->NodeVec()[index].Id();
-			int oldid = nodetomerge->Id();
+			long oldid = nodetomerge->Id();
 			for(k=0;k<gridtomerge->NElements();k++) {
 				gel = gridtomerge->ElementVec()[k];
 				if(!gel) continue;
@@ -234,7 +234,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge
 	for(i=0;i<nnodestomerge;i++) {
 		nodetomerge = &(gridtomerge->NodeVec()[i]);
 		if(!nodetomerge || nodetomerge->Id()==-1) continue;
-		int idnew = nodetomerge->Id(), idold = (int)(nodetomerge->Coord(0));
+		long idnew = nodetomerge->Id(), idold = (long)(nodetomerge->Coord(0));
 		for(k=0;k<gridtomerge->NElements();k++) {
 			gel = gridtomerge->ElementVec()[k];
 			if(!gel) continue;
@@ -245,12 +245,12 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge
 	}
 	
 	// creating new element into gridinitial corresponding for each element in gridtomerge
-    int nelmerge = gridtomerge->NElements();
+    long nelmerge = gridtomerge->NElements();
 	for(i=0; i< nelmerge; i++) {
 		gel = gridtomerge->ElementVec()[i];
 		if(!gel) continue;
-		TPZVec<int> nos;
-		int ngelnodes = gel->NNodes(), index;
+		TPZVec<long> nos;
+		long ngelnodes = gel->NNodes(), index;
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
@@ -271,14 +271,14 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge,int ma
 	TPZGeoMesh gtomerge(*tomerge);
 	TPZGeoMesh *gridtomerge = &gtomerge;
 
-	int i,j,k,nnodestomerge = gridtomerge->NNodes();
-	int nnodesinitial = gridinitial->NNodes();
+	long i,j,k,nnodestomerge = gridtomerge->NNodes();
+	long nnodesinitial = gridinitial->NNodes();
 	//    int nneltomerge = gridtomerge->NElements();
 	TPZManVector<REAL> coordinitial(3,0.);
 	TPZManVector<REAL> coordtomerge(3,0.);
 	TPZGeoNode *nodetomerge;
 	TPZGeoEl *gel;
-	int newid = -1, oldid = -1;
+	long newid = -1, oldid = -1;
 	// Verifing each node in gridtomerge if exist into the gridinitial (as same coordinates). It is inefficient.
 	for(i=0;i<nnodestomerge;i++) {
 		nodetomerge = &(gridtomerge->NodeVec()[i]);
@@ -320,17 +320,17 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge,int ma
 	}
 	
 	// Must to check if geometric elements into gridtomerge are boundary elements and whether merged it is no boundary more
-    int nelmerge = gridtomerge->NElements();
+    long nelmerge = gridtomerge->NElements();
 	for(i=0; i< nelmerge; i++) {
 		TPZManVector<bool> founded(50);
 		gel = gridtomerge->ElementVec()[i];
 		if(!gel) continue;
-		TPZManVector<int> nos;
+		TPZManVector<long> nos;
 		int ngelnodes = gel->NNodes();
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
-		int ii, jj, kk;
+		long ii, jj, kk;
 		// Comparating with all elements into gridinitial
 		for(ii=0;ii<gridinitial->NElements();ii++) {
 			founded.Fill(false);
@@ -338,7 +338,7 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge,int ma
 			if(!gelinit) continue;
 			for(kk=0;kk<nos.NElements();kk++) {
 				for(jj=0;jj<gelinit->NNodes();jj++) {
-					int nodegelinit = gelinit->NodeIndex(jj);
+					long nodegelinit = gelinit->NodeIndex(jj);
 					if(nos[kk] == nodegelinit)
 						break;
 				}
@@ -366,8 +366,8 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge,int ma
 	for(i=0; i< nelmerge; i++) {
 		gel = gridtomerge->ElementVec()[i];
 		if(!gel) continue;
-		TPZVec<int> nos;
-		int ngelnodes = gel->NNodes(), index;
+		TPZVec<long> nos;
+		long ngelnodes = gel->NNodes(), index;
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
@@ -385,7 +385,7 @@ bool TPZGenGrid::GenerateNodes(TPZGeoMesh *grid) {
 	if(!grid) return false;
     // create the geometric nodes
 	TPZManVector<REAL> coor(3,0.);
-	int i;
+	long i;
 	// grid can not to contain other nodes and elements
 	if(grid->NNodes()) {
 #ifdef LOG4CXX
@@ -408,9 +408,9 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 	if(!grid) return false;
 	// create the geometric elements (retangular)    
 	int num_rectangles=fNx[0]*fNx[1]*fNumLayers;
-	TPZVec<int> nos(9);
+	TPZVec<long> nos(9);
 	if(fElementType == 0) nos.Resize(4);
-    int i, index;
+    long i, index;
 	
 	// grid can not to contain other elements
 	if(grid->NElements()) {
@@ -500,7 +500,7 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
     //   coor[2] = 0.;// 0.1*(coorold[0]-fX0[0])*(fX1[0]-coorold[0]);
 }
 
-void TPZGenGrid::ElementConnectivity(int i, TPZVec<int> &rectangle_nodes){
+void TPZGenGrid::ElementConnectivity(long i, TPZVec<long> &rectangle_nodes){
 	int xel = i%(fNx[0]);
 	int yel = (i/(fNx[0]))%(fNx[1]);
 	int layer = i/(fNx[0]*fNx[1]);
@@ -536,11 +536,11 @@ void TPZGenGrid::Print( char *name , ostream &out  )
 }
 
 void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
-	int ielfirst = 0;
-	int iellast = 0;
-	int ielinc;
+	long ielfirst = 0;
+	long iellast = 0;
+	long ielinc;
 	int layer;
-	int iel;
+	long iel;
 	TPZGeoEl *gel;
 	int elementside = side;
 	for(layer=0; layer<fNumLayers; layer++) {
@@ -597,8 +597,8 @@ void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, in
 	TPZStack<TPZGeoEl *> ElementVec;
 	TPZStack<int> Sides;
 	g->GetBoundaryElements(gn1->Id(),gn2->Id(),ElementVec, Sides);
-	int numel = ElementVec.NElements();
-	for(int el=0; el<numel; el++) {
+	long numel = ElementVec.NElements();
+	for(long el=0; el<numel; el++) {
 		TPZGeoEl *gel = (TPZGeoEl *) ElementVec[el];
 		if(gel) {
 			TPZGeoElBC(gel,Sides[el],bc);
@@ -624,7 +624,7 @@ int TPZGenGrid::GlobalI(int ix, int iy, int layer) {
 }
 
 
-int TPZGenGrid::ElemId(int iel,int jel, int layer){
+long TPZGenGrid::ElemId(long iel,long jel, int layer){
     return (fElementType == 0 || fElementType == 2)? ( iel*fNx[0]+jel+fNx[0]*fNx[1]*layer ):(iel*2*fNx[0]+jel+layer*2*fNx[0]*fNx[1]) ;
 }
 
@@ -766,8 +766,8 @@ void TPZGenGrid::SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 {
     // look for an element/corner node whose distance is close to start
     TPZGeoNode *gn1 = gr->FindNode(x);
-    int iel;
-    int nelem = gr->ElementVec().NElements();
+    long iel;
+    long nelem = gr->ElementVec().NElements();
     TPZGeoEl *gel;
     for (iel = 0; iel<nelem; iel++) {
         gel = gr->ElementVec()[iel];

@@ -39,9 +39,9 @@ using namespace pzshape;
 /** Creates a geometric element according to the type of the father element */
 template<class TBase>
 TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
-												  TPZVec<int>& nodeindexes,
+												  TPZVec<long>& nodeindexes,
 												  int matid,
-												  int& index)
+												  long& index)
 {
 	TPZGeoMesh &mesh = *(this->Mesh());
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
@@ -67,9 +67,9 @@ TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
 
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 MElementType type,
-								 TPZVec<int>& nodeindexes,
+								 TPZVec<long>& nodeindexes,
 								 int matid,
-								 int& index)
+								 long& index)
 {
 	{
 		if(!&mesh) return 0;

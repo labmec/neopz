@@ -140,7 +140,7 @@ public:
 	/**
 	 * @brief Decomposes the current matrix using LU decomposition.
 	 */
-	virtual int Decompose_LU(std::list<int> &singular);
+	virtual int Decompose_LU(std::list<long> &singular);
 	virtual int Decompose_LU();
 	
 	//@}

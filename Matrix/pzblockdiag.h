@@ -67,11 +67,11 @@ public:
 	 * @brief Return the choosen block size
 	 * @param blockid - block index
 	 */
-	int GetSizeofBlock(int blockid) {return fBlockSize[blockid];}
+	int GetSizeofBlock(long blockid) {return fBlockSize[blockid];}
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
 	virtual int Decompose_LU();
-	virtual int Decompose_LU(std::list<int> &singular);
+	virtual int Decompose_LU(std::list<long> &singular);
 	
 	/** @brief Makes the backward and forward substitutions whether the matrix was LU decomposed */
 	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
@@ -101,20 +101,20 @@ public:
      * @param i Adds in ith position
      * @param block Block to be added
 	 */
-	void AddBlock(int i, TPZFMatrix<TVar> &block);
+	void AddBlock(long i, TPZFMatrix<TVar> &block);
 	/**
      * @brief Sets a block in the current matrix
      * @param i Adds in ith position
      * @param block Block to be added
 	 */
-	void SetBlock(int i, TPZFMatrix<TVar> &block);
+	void SetBlock(long i, TPZFMatrix<TVar> &block);
 	
 	/**
      * @brief Gets a block from current matrix
      * @param i Returns teh ith block
      * @param block Contains returned block
 	 */
-	void GetBlock(int i, TPZFMatrix<TVar> &block);
+	void GetBlock(long i, TPZFMatrix<TVar> &block);
 	
 	/**
      @brief Builds a block from matrix
@@ -129,13 +129,13 @@ public:
 	 */
 	virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const;
 	
-	int NumberofBlocks() {return fBlockSize.NElements();}
+	long NumberofBlocks() {return fBlockSize.NElements();}
 	
 protected:
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;
 	/** @brief Stores blocks data */
-	TPZVec<int> fBlockPos;
+	TPZVec<long> fBlockPos;
 	/** @brief Stores block sizes data */
 	TPZVec<int> fBlockSize;
 };

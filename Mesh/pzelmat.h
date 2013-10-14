@@ -33,7 +33,7 @@ struct TPZElementMatrix {
 	TPZCompMesh * fMesh;
 	
 	/** @brief Vector of pointers to TPZConnect objects*/
-	TPZStack<int> fConnect;
+	TPZStack<long> fConnect;
 	/** @brief Pointer to a blocked matrix object*/
 	//TPZFNMatrix<1000> fMat;
 	TPZFNMatrix<1000, STATE> fMat;
@@ -41,7 +41,7 @@ struct TPZElementMatrix {
 	//TPZBlock<REAL> fBlock;
 	TPZBlock<STATE> fBlock;
 	/** @brief Vector of all nodes connected to the element*/
-	TPZStack<int> fConstrConnect;
+	TPZStack<long> fConstrConnect;
 	/** @brief Pointer to the constrained matrix object*/
 	//TPZFNMatrix<1000> fConstrMat;
 	TPZFNMatrix<1000, STATE> fConstrMat;
@@ -85,7 +85,7 @@ struct TPZElementMatrix {
 	}
 	
 	/** @brief Returns the pointer to the ith node of the element*/
-	int ConnectIndex(int i)const{
+	long ConnectIndex(int i)const{
 		return fConnect[i];
 	}
 	
@@ -98,7 +98,7 @@ struct TPZElementMatrix {
 	void ComputeDestinationIndices();
     
     /** @brief permute the order of the connects */
-    void PermuteGather(TPZVec<int> &permute);
+    void PermuteGather(TPZVec<long> &permute);
 	
 	
 	/** @brief Returns true if the element has at least one dependent node. Returns false otherwise */

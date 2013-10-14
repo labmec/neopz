@@ -33,7 +33,7 @@ class TPZGraphElT : public TPZGraphEl {
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
-	virtual TPZGraphNode *Connect(int i) {return fConnects[i];}
+	virtual TPZGraphNode *Connect(long i) {return fConnects[i];}
 	
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
 	
@@ -47,7 +47,7 @@ class TPZGraphElT : public TPZGraphEl {
 	
 	virtual void NextIJ(int no, TPZVec<int> &co, int incr);
 	
-	virtual void SetNode(int i,TPZGraphNode *gno) {
+	virtual void SetNode(long i,TPZGraphNode *gno) {
 		fConnects[i] = gno;
 	}
 	

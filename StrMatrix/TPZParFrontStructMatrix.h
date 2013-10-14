@@ -52,9 +52,7 @@ private:
 public:     
 	
 	/** @brief Sets number of threads to be used in frontal process */
-	void SetNumberOfThreads(
-							int nthreads //! Number of threads to be used
-							);
+	void SetNumberOfThreads(int nthreads);   //! Number of threads to be used
 	
 	/** @brief It clones a TPZStructMatrix */
 	/** Virtual function must return same type */
@@ -103,11 +101,11 @@ private:
 	 */  
 	int fNThreads;
 	/** @brief Current computed element*/
-	int fCurrentElement;
+	long fCurrentElement;
 	/** @brief Current assembled element in the global stiffness matrix*/
-	int fCurrentAssembled;
+	long fCurrentAssembled;
 	/** @brief Total number of elements*/
-	int fNElements;
+	long fNElements;
 	/** @brief Maximum stack size allowed. */
 	/** Whenever this value is reached a execution of element computing is suspended */
 	int fMaxStackSize;
@@ -121,7 +119,7 @@ private:
 	 * ElementAssemble pushes elements on the stack. \n
 	 * GlobalAssemble pops elements from the stack.
 	 */
-	TPZStack <int> felnum;
+	TPZStack <long> felnum;
 	TPZStack <TPZElementMatrix *> fekstack;
 	TPZStack <TPZElementMatrix *> fefstack;
 	

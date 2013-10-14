@@ -133,15 +133,15 @@ void TPZGradientReconstruction::InsertWeights(TPZVec<REAL> weights, TPZFMatrix<R
     if(DeltaH.Rows()!=weights.size()) DebugStop();
     if(DifSol.Rows()!=weights.size()) DebugStop();
     
-    int ncH = DeltaH.Cols();
-    int ncD = DifSol.Cols();
-    for (int i = 0; i<weights.size(); i++) {
+    long ncH = DeltaH.Cols();
+    long ncD = DifSol.Cols();
+    for (long i = 0; i<weights.size(); i++) {
         
-        for (int j = 0; j<ncH; j++){
+        for (long j = 0; j<ncH; j++){
             DeltaH(i,j) = weights[i]*DeltaH(i,j);
         }
         
-        for (int k = 0; k<ncD; k++){
+        for (long k = 0; k<ncD; k++){
             DifSol(i,k) = weights[i]*DifSol(i,k);
         }
     }
@@ -151,7 +151,7 @@ void TPZGradientReconstruction::InsertWeights(TPZVec<REAL> weights, TPZFMatrix<R
 void  TPZGradientReconstruction::CalcSlopeLimiter(TPZCompEl *cel, REAL solcel, TPZStack<TPZCompEl *> neighscell, TPZStack<REAL> solneighscell, REAL &alpha){
     
     
-    int nels = neighscell.size();
+    long nels = neighscell.size();
     if(nels<1) DebugStop();
     
     TPZCompEl *celneigh_max;
@@ -162,7 +162,7 @@ void  TPZGradientReconstruction::CalcSlopeLimiter(TPZCompEl *cel, REAL solcel, T
     solKmin = solneighscell[0];
     celneigh_max = neighscell[0];
     solKmax = solneighscell[0];
-    for(int i = 1; i<nels; i++)
+    for(long i = 1; i<nels; i++)
     {
         if(solKmin > solneighscell[i])
         {
@@ -208,7 +208,7 @@ void  TPZGradientReconstruction::CalcSlopeLimiter(TPZCompEl *cel, REAL solcel, T
     }
     
     alpha = alphavec[0];
-    for (int j=1; j<alphavec.size(); j++){
+    for (long j=1; j<alphavec.size(); j++){
         
         if(alpha > alphavec[j])
         {
@@ -327,7 +327,7 @@ void TPZGradientReconstruction::GradientReconstructionByLeastSquares(TPZCompEl *
     
     // Mounting deltaH matrix and difference of the solutions DifSol 
     int ineighs=-1;
-    int counter=0;
+    long counter=0;
     std::set<TPZCompEl *>::iterator it;
     for(it=neighscel.begin(); it!=neighscel.end(); ++it)
     {
@@ -389,14 +389,14 @@ void TPZGradientReconstruction::GetDataGradient(TPZCompMesh *cmesh,TPZFMatrix<RE
     
     // Resizing the array data reconstruction gradients.
     int dim  = cmesh->Dimension();
-    int nelem = cmesh->NElements();
+    long nelem = cmesh->NElements();
     datagradients.Redim(nelem,2*dim+2);
 	
     TPZManVector<REAL,3> center;
     TPZManVector<REAL> Grad(dim);
     
-	int i, k;
-	int counter = 0;
+	long i, k;
+	long counter = 0;
 	
 	
     TPZCompEl *cel;

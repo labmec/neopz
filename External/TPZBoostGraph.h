@@ -55,6 +55,7 @@ typedef std::pair<std::size_t, std::size_t> Pair;
  * Still bein evaluated
  */
 class TPZBoostGraph : public TPZRenumbering {
+    
 public:
 	
 	enum GraphType { KMC, KMCExpensive, Sloan };
@@ -64,12 +65,12 @@ public:
 	TPZBoostGraph(GraphType tp) : TPZRenumbering(), fGType(tp)
 	{
 	}
+    
 	/** @brief Simple constructor */
-	TPZBoostGraph(int NElements, int NNodes);
-	
-	
+	TPZBoostGraph(long NElements, long NNodes);
+
 	virtual ~TPZBoostGraph();
-	
+
 	void CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
 	
 	/**
@@ -101,7 +102,7 @@ private:
 	/** @brief Creating a property_map for the indices of a vertex */
 	boost::property_map<Graph, boost::vertex_index_t>::type m_Index_map;
 	// = get(vertex_index, G);  
-	TPZVec<int> m_Connects;
+	TPZVec<long> m_Connects;
 	
     GraphType fGType;
 };

@@ -42,9 +42,9 @@ namespace pzshape{
 		 * These values depend on the point, the order of interpolation and ids of the corner points \n
 		 * The shapefunction computation uses the shape functions of the linear element for its implementation
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+		static void Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
 						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
 							  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 		/**
@@ -146,7 +146,7 @@ namespace pzshape{
 		 * @param id indexes of the corner nodes
 		 * @return index of the transformation of the point
 		 */
-		static int GetTransformId2dQ(TPZVec<int> &id);
+		static int GetTransformId2dQ(TPZVec<long> &id);
 
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the rib into the two dimensional derivative

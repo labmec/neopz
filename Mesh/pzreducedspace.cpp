@@ -36,13 +36,13 @@ TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy)
 }
 
 /** @brief Puts a copy of the element in the patch mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy,gl2lcElMap)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<long,long> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy,gl2lcElMap)
 {
     
 }
 
 /** @brief Copy of the element in the new mesh whit alocated index */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int &index) : TPZInterpolationSpace(mesh,copy,index)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, long &index) : TPZInterpolationSpace(mesh,copy,index)
 {
     
 }
@@ -54,7 +54,7 @@ TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy,
  * @param index new elemen index
  */
 /** Inserts the element within the data structure of the mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) : TPZInterpolationSpace(mesh,gel,index)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) : TPZInterpolationSpace(mesh,gel,index)
 {
     
 }
@@ -144,12 +144,12 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
     TPZInterpolationSpace *intel = ReferredIntel();
     
     intel->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-    int nsol = data.sol.size();
+    long nsol = data.sol.size();
     int nstate = data.sol[0].size();
     int dim = data.axes.Rows();
     data.phi.Resize(nstate, nsol);
     data.dphix.Resize(nstate*dim, nsol);
-    for (int isol =0; isol<nsol; isol++) {
+    for (long isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
             data.phi(istate,isol) = data.sol[isol][istate];
             for (int id=0; id<dim; id++) {
@@ -350,11 +350,11 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
 #endif
     
     TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
-    int numbersol = MeshSol.Cols();
+    long numbersol = MeshSol.Cols();
     sol.Resize(numbersol);
     dsol.Resize(numbersol);
 	
-    for (int is=0 ; is<numbersol; is++) {
+    for (long is=0 ; is<numbersol; is++) {
         sol[is].Resize(numdof);
         sol[is].Fill(0.);
         dsol[is].Redim(dim, numdof);
@@ -363,11 +363,11 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     }
 	
     TPZBlock<STATE> &block = Mesh()->Block();
-    int d;
+    long d;
     TPZConnect *df = &this->Connect(0);
-    int dfseq = df->SequenceNumber();
+    long dfseq = df->SequenceNumber();
     int dfvar = block.Size(dfseq);
-    int pos = block.Position(dfseq);
+    long pos = block.Position(dfseq);
     for(int jn=0; jn<dfvar; jn++) {
 #ifdef DEBUG
         {
@@ -387,7 +387,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
             
         }
 #endif
-        for (int is=0; is<numbersol; is++) {
+        for (long is=0; is<numbersol; is++) {
             for(d=0; d<numdof; d++){
                 sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);
             }
@@ -398,7 +398,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     }
 }
 
-static TPZCompEl * CreateReducedElement(TPZGeoEl *gel,TPZCompMesh &mesh,int &index)
+static TPZCompEl * CreateReducedElement(TPZGeoEl *gel,TPZCompMesh &mesh,long &index)
 {
     return new TPZReducedSpace(mesh,gel,index);
 }
@@ -421,6 +421,6 @@ TPZCompEl* TPZReducedSpace::Clone(TPZCompMesh &mesh) const{
     return new TPZReducedSpace(mesh, *this);
 }
 
-TPZCompEl * TPZReducedSpace::ClonePatchEl (TPZCompMesh &mesh, std::map< int, int > &gl2lcConMap, std::map< int, int > &gl2lcElMap) const{
+TPZCompEl * TPZReducedSpace::ClonePatchEl (TPZCompMesh &mesh, std::map< long, long > &gl2lcConMap, std::map< long, long > &gl2lcElMap) const {
     return new TPZReducedSpace(mesh,*this,gl2lcElMap);
 }

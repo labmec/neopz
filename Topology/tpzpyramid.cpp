@@ -983,7 +983,7 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZPyramid::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	void TPZPyramid::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
 	{
 		std::cout << "Please implement me\n";
 		DebugStop();

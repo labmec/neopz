@@ -96,7 +96,7 @@ protected:
 public:
 	
 	/** @brief Determine that the assembly refers to a range of equations */
-	void SetEquationRange(int mineq, int maxeq)
+	void SetEquationRange(long mineq, long maxeq)
 	{
         fEquationFilter.Reset();
         fEquationFilter.SetMinMaxEq(mineq, maxeq);
@@ -115,7 +115,7 @@ public:
     }
     
     /// number of equations after applying the filter
-    int NReducedEquations() const
+    long NReducedEquations() const
     {
         return fEquationFilter.NActiveEquations();
     }
@@ -170,11 +170,11 @@ protected:
 		/// Elements which are being processed
 		std::set<int> fProcessed;
 		/// Current element
-		int fNextElement;
+		long fNextElement;
 		/// Look for an element index which needs to be computed and put it on the stack
-		int NextElement();
+		long NextElement();
 		/// Put the computed element matrices in the map
-		void ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
+		void ComputedElementMatrix(long iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
 		/// The function which will compute the matrices
 		static void *ThreadWork(void *threaddata);
 		/// The function which will compute the assembly

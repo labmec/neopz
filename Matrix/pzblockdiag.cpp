@@ -20,12 +20,12 @@ static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 using namespace std;
 
 template<class TVar>
-void TPZBlockDiagonal<TVar>::AddBlock(int i, TPZFMatrix<TVar> &block){
+void TPZBlockDiagonal<TVar>::AddBlock(long i, TPZFMatrix<TVar> &block){
 
-	int firstpos = fBlockPos[i];
-	int bsize = fBlockSize[i];
+	long firstpos = fBlockPos[i];
+	long bsize = fBlockSize[i];
 	
-	int r,c;
+	long r,c;
 	for(r=0; r<bsize; r++) {
 		for(c=0; c<bsize; c++) {
 			fStorage[firstpos+r+bsize*c] += block(r,c);
@@ -34,11 +34,11 @@ void TPZBlockDiagonal<TVar>::AddBlock(int i, TPZFMatrix<TVar> &block){
 }
 
 template<class TVar>
-void TPZBlockDiagonal<TVar>::SetBlock(int i, TPZFMatrix<TVar> &block){
-	int firstpos = fBlockPos[i];
-	int bsize = fBlockSize[i];
+void TPZBlockDiagonal<TVar>::SetBlock(long i, TPZFMatrix<TVar> &block){
+	long firstpos = fBlockPos[i];
+	long bsize = fBlockSize[i];
 	
-	int r,c;
+	long r,c;
 	for(r=0; r<bsize; r++) {
 		for(c=0; c<bsize; c++) {
 			fStorage[firstpos+r+bsize*c] = block(r,c);
@@ -47,11 +47,11 @@ void TPZBlockDiagonal<TVar>::SetBlock(int i, TPZFMatrix<TVar> &block){
 }
 
 template<class TVar>
-void TPZBlockDiagonal<TVar>::GetBlock(int i, TPZFMatrix<TVar> &block){
-    int firstpos = fBlockPos[i];
-    int bsize = fBlockSize[i];
+void TPZBlockDiagonal<TVar>::GetBlock(long i, TPZFMatrix<TVar> &block){
+    long firstpos = fBlockPos[i];
+    long bsize = fBlockSize[i];
     block.Redim(bsize,bsize);
-    int r,c;
+    long r,c;
     for(r=0; r<bsize; r++) {
         for(c=0; c<bsize; c++) {
             block(r,c) = fStorage[firstpos+r+bsize*c];
@@ -60,7 +60,7 @@ void TPZBlockDiagonal<TVar>::GetBlock(int i, TPZFMatrix<TVar> &block){
 }
 template<class TVar>
 void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
-	int nblock = blocksize.NElements();
+	long nblock = blocksize.NElements();
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
@@ -71,9 +71,9 @@ void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 #endif
 	fBlockSize = blocksize;
 	fBlockPos.Resize(nblock+1,0); 
-	int b;
-	int ndata = 0;
-	int neq = 0;
+	long b;
+	long ndata = 0;
+	long neq = 0;
 	int bsize;
 	for(b=0; b<nblock; b++) {
 		bsize = blocksize[b];
@@ -103,11 +103,11 @@ void TPZBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar> &mat) {
 		cout << "TPZBlockDiagonal::BuildFromMatrix wrong data structure\n";
 		return;
 	}
-	int nblock = fBlockSize.NElements();
-	int b,eq=0;
+	long nblock = fBlockSize.NElements();
+	long b,eq=0;
 	for(b=0; b<nblock; b++) {
 		int r,c,bsize = fBlockSize[b];
-		int pos = fBlockPos[b];
+		long pos = fBlockPos[b];
 		for(r=0; r<bsize; r++){
 			for(c=0; c<bsize; c++) {
 				fStorage[pos+r+c*bsize] = mat.GetVal(eq+r,eq+c);
@@ -141,11 +141,11 @@ template<class TVar>
 TPZBlockDiagonal<TVar>::TPZBlockDiagonal(const TPZVec<int> &blocksizes, const TPZFMatrix<TVar> &glob)
 : TPZMatrix<TVar>(), fBlockSize(blocksizes)
 {
-	int nblock = blocksizes.NElements();
+	long nblock = blocksizes.NElements();
 	fBlockPos.Resize(nblock+1,0);
-	int b;
-	int ndata = 0;
-	int neq = 0;
+	long b;
+	long ndata = 0;
+	long neq = 0;
 	int bsize;
 	for(b=0; b<nblock; b++) {
 		bsize = blocksizes[b];
@@ -156,8 +156,8 @@ TPZBlockDiagonal<TVar>::TPZBlockDiagonal(const TPZVec<int> &blocksizes, const TP
 	fStorage.Resize(ndata,0.);
 	this->fRow = neq;
 	this->fCol = neq;
-	int pos;
-	int eq = 0, r, c;
+	long pos;
+	long eq = 0, r, c;
 	for(b=0; b<nblock; b++) {
 		bsize = fBlockSize[b];
 		pos = fBlockPos[b];
@@ -206,8 +206,7 @@ int TPZBlockDiagonal<TVar>::Put(const long row,const long col,const TVar& value 
 /***********/
 /*** PutVal ***/
 template<class TVar>
-int
-TPZBlockDiagonal<TVar>::PutVal(const long row,const long col,const TVar& value )
+int TPZBlockDiagonal<TVar>::PutVal(const long row,const long col,const TVar& value )
 {
 	long b = 0;
 	long nb = fBlockSize.NElements();
@@ -334,15 +333,16 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 	}
 	
 	this->PrepareZ(y,z,beta,opt,stride);
-	int xcols = x.Cols();
-	int nb= fBlockSize.NElements();
-	int ic, b, bsize, eq=0, r, c;
+	long xcols = x.Cols();
+	long nb= fBlockSize.NElements();
+	long ic, b, eq=0;
+	int bsize, r, c;
 	if(opt == 0) {
 		for (ic = 0; ic < xcols; ic++) {
 			eq=0;
 			for(b=0; b<nb; b++) {
 				bsize = fBlockSize[b];
-				int pos = fBlockPos[b];
+				long pos = fBlockPos[b];
 				for(r=0; r<bsize; r++) {
 					for(c=0; c<bsize; c++) {
 						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c)*stride,ic);
@@ -357,7 +357,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 			eq=0;
 			for(b=0; b<nb; b++) {
 				bsize = fBlockSize[b];
-				int pos = fBlockPos[b];
+				long pos = fBlockPos[b];
 				for(r=0; r<bsize; r++) {
 					for(c=0; c<bsize; c++) {
 						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c)*stride,ic);
@@ -373,8 +373,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 /***************/
 /**** Zero ****/
 template<class TVar>
-int
-TPZBlockDiagonal<TVar>::Zero()
+int TPZBlockDiagonal<TVar>::Zero()
 {
 	
 	fStorage.Fill(0.,0);
@@ -388,13 +387,13 @@ TPZBlockDiagonal<TVar>::Zero()
 /********************/
 /*** Transpose () ***/
 template<class TVar>
-void
-TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
+void TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 {
 	T->Resize( Dim(), Dim() );
 	
-	int b, bsize, eq = 0, pos;
-	int nb = fBlockSize.NElements(), r, c;
+	long b, eq = 0, pos;
+	int bsize, r, c;
+	long nb = fBlockSize.NElements();
 	for ( b=0; b<nb; b++) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];
@@ -412,15 +411,13 @@ TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 /*** Decompose_LU ***/
 //fElem[ fBand * (2*row + 1) + col ]
 template<class TVar>
-int
-TPZBlockDiagonal<TVar>::Decompose_LU(std::list<int> &singular)
+int TPZBlockDiagonal<TVar>::Decompose_LU(std::list<long> &singular)
 {
 	return Decompose_LU();
 }
 
 template<class TVar>
-int
-TPZBlockDiagonal<TVar>::Decompose_LU()
+int TPZBlockDiagonal<TVar>::Decompose_LU()
 {
 	
 	LOGPZ_DEBUG(logger, "TPZBlockDiagonal::Decompose_LU");
@@ -431,7 +428,8 @@ TPZBlockDiagonal<TVar>::Decompose_LU()
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::Decompose_LU is already decomposed with other scheme");
 	}
 	
-	int b,nb,pos,bsize;
+	long b,nb,pos;
+	int bsize;
 	nb = fBlockSize.NElements();
 	for(b=0;b<nb; b++) {
 		pos = fBlockPos[b];
@@ -448,7 +446,7 @@ TPZBlockDiagonal<TVar>::Decompose_LU()
 #endif
 		
 		TPZFMatrix<TVar> temp(bsize,bsize,&fStorage[pos],bsize*bsize);
-		std::list<int> singular;
+		std::list<long> singular;
 		temp.Decompose_LU(singular);
 	}
 	this->fDecomposed = ELU;
@@ -463,9 +461,9 @@ TPZBlockDiagonal<TVar>::Substitution( TPZFMatrix<TVar> *B) const
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::Decompose_LU is decomposed with other scheme");
 	}
 	
-	int b,nb,pos,bsize,eq=0;
+	long b,nb,pos,bsize,eq=0;
 	nb = fBlockSize.NElements();
-	int c, nc = B->Cols();
+	long c, nc = B->Cols();
 	for(c=0; c<nc; c++) {
 		eq = 0;
 		for(b=0;b<nb; b++) {
@@ -485,8 +483,7 @@ TPZBlockDiagonal<TVar>::Substitution( TPZFMatrix<TVar> *B) const
 /*************/
 /*** Clear ***/
 template<class TVar>
-int
-TPZBlockDiagonal<TVar>::Clear()
+int TPZBlockDiagonal<TVar>::Clear()
 {
 	fStorage.Resize(0);
 	fBlockPos.Resize(0);
@@ -540,13 +537,13 @@ void TPZBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, const Mat
 	if(msg) out << msg;
 	out  << std::endl;
 	
-	int nblock = fBlockSize.NElements();
+	long nblock = fBlockSize.NElements();
 	out << "Number of blocks " << nblock << std::endl; 
-	int b,bsize,pos;
+	long b,bsize,pos;
 	for(b=0; b<nblock; b++) {
 		bsize = fBlockSize[b];
 		out << "block number " << b << " size : " << bsize << std::endl;
-		int r,c;
+		long r,c;
 		pos = fBlockPos[b];
 		for(c=0; c<bsize; c++) {
 			for(r=0; r<bsize ; r++) {
@@ -569,8 +566,8 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 		return;
 	}
 	this->fDecomposed = ENoDecompose;
-	int nblock = fBlockSize.NElements();
-	int b,bsize,pos,firsteq = 0;
+	long nblock = fBlockSize.NElements();
+	long b,bsize,pos,firsteq = 0;
 	for(b=0; b<nblock; b++) {
 		bsize = fBlockSize[b];
 		//    int r,c;
@@ -585,8 +582,8 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 template<class TVar>
 void TPZBlockDiagonal<TVar>::AutoFill() {
 
-	int b, bsize, eq = 0, pos;
-	int nb = fBlockSize.NElements(), r, c;
+	long b, bsize, eq = 0, pos;
+	long nb = fBlockSize.NElements(), r, c;
 	for ( b=0; b<nb; b++) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];

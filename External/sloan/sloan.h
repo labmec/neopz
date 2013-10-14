@@ -1,13 +1,17 @@
 #ifndef SLOAN__
 #define SLOAN__
 
-//int     gegra_ (int *, int *, int *, int *, int *, int *, int *, int *, int *);
-int     gegra_ (int *, int *, int *, long *, long *, long *, int *, int *, int *);
-int     label_ (int *, int *, int *, int *, long *, int *, int *, int *);
-int     iorele_ (int *, int *, int *, int *, int *, int *, int *, int *);
-int profi1_ (int *, long *, int *, int *, int *, int *, int *);
-int diamtr_ (int *, int *, int *, int *, long *, int *, int *, int *, int *, int *);
-int number_ (int *, int *, int *, int *, int *, int *, int *, long *, int *, int *);
-int i_dim(int value_1, int value_2);
+	int gegra_ (long *, long *, long *, long *, long *, long *, long *, long *, int *);
+	int label_ (long *, long *, long *, long *, long *, long *, long *, long *);
+	int iorele_ (long *, long *, long *, long *, long *, long *, long *, long *);
+	int profi1_ (long *, long *, long *, long *, long *, long *, long *);
+	int diamtr_ (long *, long *, long *, long *, long *, long *, long *, long *, long *, long *);
+	int number_ (long *, long *, long *, long *, long *, long *, long *, long *, long *, long *);
+	long i_dim(long value_1, long value_2);
+
+    int isorti_ (long *, long *, long *, long *);   // subrotine
+	int rootls_ (long *, long *, long *, long *, long *, long *, long *, long *, long *, long *, long *);   // subrotine
+
+    int vsrtp1_ (long *, long *, long *);
 
 #endif

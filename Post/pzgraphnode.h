@@ -32,8 +32,8 @@ public:
 	~TPZGraphNode(void);
 	
 	//int ElIndex();
-	int SequenceNumber() {return fSequenceNumber;}
-	void SetSequenceNumber(int seqnum) {fSequenceNumber = seqnum;}
+	long SequenceNumber() {return fSequenceNumber;}
+	void SetSequenceNumber(long seqnum) {fSequenceNumber = seqnum;}
 	void SetElement(TPZGraphEl *gel);
 	void SetConnect(TPZConnect *connect);
 	void SetGraphMesh(TPZGraphMesh *mesh);
@@ -60,7 +60,7 @@ protected:
 	long fPointNum;
 	
 private:
-	int fSequenceNumber;
+	long fSequenceNumber;
 };
 
 #endif

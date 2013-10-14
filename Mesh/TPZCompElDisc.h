@@ -73,7 +73,7 @@ public:
 protected:
 	
 	/** @brief It preserves index of connect associated to the element */
-	int fConnectIndex;
+	long fConnectIndex;
 	
 	/** @brief Normalizing constant for shape functions */
 	REAL fConstC;
@@ -93,7 +93,7 @@ protected:
 	 * @brief It creates new conect that it associates the degrees of freedom of the
 	 * element and returns its index
 	 */
-	virtual int CreateMidSideConnect();
+	virtual long CreateMidSideConnect();
 	
 public:
 	
@@ -106,7 +106,7 @@ public:
 	int GetMaterial( const TPZGeoElSide& gside );
 	
 	/** @brief Creates discontinuous computational element */
-	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
+	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, long &index);
 	
 	/**
 	 * @brief Sets the orthogonal function which will be used throughout the program.
@@ -130,9 +130,9 @@ public:
 	/** @brief Default constructor */
 	TPZCompElDisc();
 	/** @brief Constructor of the discontinuous element associated with geometric element */
-	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);//original
+	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,long &index);//original
 	/** @brief Constructor */
-	TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
+	TPZCompElDisc(TPZCompMesh &mesh,long &index);//construtor do aglomerado
 	/** @brief Copy constructor */
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
 
@@ -145,10 +145,10 @@ public:
 	 */
 	TPZCompElDisc(TPZCompMesh &mesh,
 				  const TPZCompElDisc &copy,
-				  std::map<int,int> &gl2lcConMap,
-				  std::map<int,int> &gl2lcElMap);
+				  std::map<long,long> &gl2lcConMap,
+				  std::map<long,long> &gl2lcElMap);
 	
-	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
+	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,long &index);
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
@@ -159,7 +159,7 @@ public:
 		return new TPZCompElDisc(mesh,*this);
 	}
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh,long &index) const {
 		return new TPZCompElDisc(mesh,*this,index);
 	}
 	
@@ -167,15 +167,15 @@ public:
 	 * @see class TPZCompEl
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<int,int> & gl2lcConMap,
-									std::map<int,int> & gl2lcElMap) const {
+									std::map<long,long> & gl2lcConMap,
+									std::map<long,long> & gl2lcElMap) const {
 		return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
 	}
 	/** @brief Default destructor */
 	~TPZCompElDisc();
 	
 	/** @brief Divide the computational element */
-	void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
+	void Divide(long index, TPZVec<long> &subindex, int interpolate = 0);
 	
 	/**
 	 * @brief Computes the shape function set at the point x. This method uses the order of interpolation
@@ -257,7 +257,7 @@ protected:
 	int NCornerConnects() const { return Reference()->NNodes();}
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
 	/** @brief Returns dimension from the element */
 	int Dimension() const { return Reference()->Dimension();}
@@ -266,8 +266,8 @@ protected:
 	virtual REAL NormalizeConst();
 	
 	/** @brief Returns the connect index from the element */
-	int ConnectIndex(int side = 0) const;
-	void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
+	long ConnectIndex(int side = 0) const;
+	void  SetConnectIndex(int /*inode*/, long index) {fConnectIndex = index;}
 	
 	/** @brief Returns the shapes number of the element */
 	virtual int NShapeF() const;
@@ -399,7 +399,7 @@ public:
 	
 };
 
-inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
+inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, long &index) {
 	if(!geo->Reference() && geo->NumInterfaces() == 0)
 		return new TPZCompElDisc(mesh,geo,index);
 	return NULL;

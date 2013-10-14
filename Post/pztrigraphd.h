@@ -30,7 +30,7 @@ class TPZGraphElTd : public TPZGraphEl {
 	
 	virtual int NNodes();
 	
-	virtual TPZGraphNode *Connect(int con){ return fConnect;}
+	virtual TPZGraphNode *Connect(long con){ return fConnect;}
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
@@ -46,7 +46,7 @@ class TPZGraphElTd : public TPZGraphEl {
 	
 	virtual void NextIJ(int no, TPZVec<int> &co, int incr);
 	
-	virtual void SetNode(int i,TPZGraphNode *gno) {
+	virtual void SetNode(long i,TPZGraphNode *gno) {
 		fConnect = gno;
 	}
 	

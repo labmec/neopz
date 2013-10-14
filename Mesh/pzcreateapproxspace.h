@@ -14,7 +14,7 @@ class TPZCompMesh;
 #include <set>
 #include "pzvec.h"
 
-typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
 /*
  * @brief Administer the creation of approximation spaces
  * @author Philippe Devloo
@@ -24,7 +24,7 @@ typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,int &index)
 class TPZCreateApproximationSpace
 {
     /** @brief Function pointer which determines what type of computational element will be created */
-    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,long &index);
     
     /// @brief boolean indicating if each element should be created disconnected from the others
     /**
@@ -82,7 +82,7 @@ public:
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
     
     /** @brief Create a computational element using the function pointer for the topology */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index) const;
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, long &index) const;
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */
@@ -130,20 +130,20 @@ public:
 };
 
 /** @brief Creates computational point element */
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational linear element */
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational quadrilateral element */
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational triangular element */
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational cube element */
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational prismal element */
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational pyramidal element */
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational tetrahedral element */
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 
 #endif

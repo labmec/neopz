@@ -22,13 +22,13 @@ public:
 	{
 	}
 	
-	TPZRenumbering(int NElements, int NNodes);
+	TPZRenumbering(long NElements, long NNodes);
 	
 	virtual ~TPZRenumbering()
 	{
 	}
 	
-	void SetElementsNodes(int NElements, int NNodes)
+	void SetElementsNodes(long NElements, long NNodes)
 	{
 		this->fNElements = NElements;
 		this->fNNodes = NNodes;
@@ -42,7 +42,7 @@ public:
 	 * of each element \n
 	 * The size of second vector is fNElements+1
 	 */
-	void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
+	void SetElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex);
 	
 	/** @brief Sets the number of equations associated with each node */
 	/** The derived class may or may not take this data into consideration */
@@ -70,47 +70,47 @@ public:
 	 * @brief Will convert an element graph defined by elgraph and elgraphindex
 	 * into a node graph defined by nodegraph and nodegraphindex
 	 */
-	void ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex);
+	void ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex);
 	
 	/** @brief Convert a traditional elgraph to an element to element graph */
-	void ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<int> &eltoelgraphindex);
+	void ConvertToElementoToElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<long> &eltoelgraphindex);
 
 	/** @brief Stores the graph of nodes to elements */
-	void NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodetoelgraph, TPZVec<int> &nodetoelgraphindex);
+	void NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodetoelgraph, TPZVec<long> &nodetoelgraphindex);
 	
 	/**
 	 * @brief Will assign a color to the nodes in the graph such that no two connected nodes have the same color
 	 * the return value indicates the number of colors in the graph
 	 */
-	int ColorNodes(TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
+	long ColorNodes(TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
 	
 	/** @brief Prints graph */
-	void Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
+	void Print(TPZVec<long> &grapho, TPZVec<long> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 	
 	/**
 	 * @brief Analyse the graph, find the corner nodes \n
 	 * Number of elements which should be considered for determining corner nodes
 	 */
-	void CornerEqs(int mincorners, int nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
+	void CornerEqs(unsigned int mincorners, long nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
 	
 protected:
 	/** @brief Number of elements in the graph */
-	int fNElements;
+	long fNElements;
 	
 	/** @brief Number of nodes in the graph */
-	int fNNodes;
+	long fNNodes;
 	/** @brief Number of equations associated with each node */
 	TPZVec<int> fNodeWeights;
 
 	/** @brief Node number of each element*/
-	TPZVec<int> fElementGraph;
+	TPZVec<long> fElementGraph;
 
 	/** @brief Indicates for each element the index of the first entry with
 	 * fElementGraph for that element
 	 */
 
     /** Size of the vector fNElements+1 */
-	TPZVec<int> fElementGraphIndex;
+	TPZVec<long> fElementGraphIndex;
 	
 };
 

@@ -23,7 +23,7 @@ using namespace std;
 
 // TESTADO
 template<class TSHAPE>
-TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		
 		if (TSHAPE::Type()==EQuadrilateral) {
@@ -48,11 +48,11 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		}
         int nstate = 1;
 		this->fConnectIndexes.Resize(NConnects());
-		int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,this->fPressureOrder);
+		long newnodeindex = mesh.AllocateNewConnect(nshape,nstate,this->fPressureOrder);
 		TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
         newnod.SetLagrangeMultiplier(1);
 		this->fConnectIndexes[this->NConnects()-1]=newnodeindex;
-		int seqnum = newnod.SequenceNumber();
+		long seqnum = newnod.SequenceNumber();
         newnod.SetLagrangeMultiplier(1);
         mesh.Block().Set(seqnum,nshape);
         mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()-1]].IncrementElConnected();
@@ -94,11 +94,9 @@ TPZCompElHDiv<TSHAPE>(mesh,copy)
 
 
 template<class TSHAPE>
-TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh,
-																										 const TPZCompElHDivPressure<TSHAPE> &copy,
-																										 std::map<int,int> & gl2lcConMap,
-																										 std::map<int,int> & gl2lcElMap) :
-TPZCompElHDiv<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
+TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, const TPZCompElHDivPressure<TSHAPE> &copy,
+													 std::map<long,long> & gl2lcConMap, std::map<long,long> & gl2lcElMap) :
+		TPZCompElHDiv<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 		
 		fPressureOrder = copy.fPressureOrder;
@@ -146,7 +144,7 @@ int TPZCompElHDivPressure<TSHAPE>::NConnects() const {
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, int connectindex){
+void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, long connectindex){
 #ifndef NODEBUG
 		if(i<0 || i>= this->NConnects()) {
 				std::cout << " TPZCompElHDivPressure<TSHAPE>::SetConnectIndex index " << i <<
@@ -202,7 +200,7 @@ void TPZCompElHDivPressure<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 }
 
 template<class TSHAPE>
-int TPZCompElHDivPressure<TSHAPE>::ConnectIndex(int con) const{
+long TPZCompElHDivPressure<TSHAPE>::ConnectIndex(int con) const{
 //#ifndef NODEBUG
 //		if(con<0 || con>= this->NConnects()) {
 //				std::cout << "TPZCompElHDivPressure::ConnectIndex wrong parameter connect " << con <<
@@ -347,12 +345,12 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
     
     TPZBlock<STATE> &block =this->Mesh()->Block();
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
-    int numbersol = MeshSol.Cols();
+    long numbersol = MeshSol.Cols();
     
     int nsol= this->Dimension()+2;
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
-    for (int is=0; is<numbersol; is++) {
+    for (long is=0; is<numbersol; is++) {
         data.sol[is].Resize(nsol,1);//2 componente para fluxo+ 1 para pressao +1 para div
         data.sol[is].Fill(0);
 				
@@ -361,9 +359,9 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
     int iv = 0,ishape=0,ivec=0,cols, jv=0;
     for(int in=0; in<ncon-1 ; in++) {//estou tirando o connect da pressao
 				TPZConnect *df = &this->Connect(in);
-				int dfseq = df->SequenceNumber();
+				long dfseq = df->SequenceNumber();
 				int dfvar = block.Size(dfseq);
-				int pos = block.Position(dfseq);
+				long pos = block.Position(dfseq);
 				
 				for(int jn=0; jn<dfvar; jn++) {
 						ivec=data.fVecShapeIndex[jv ].first;
@@ -384,7 +382,7 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
 								//	 sout << " vetor  " << ivec << " shape  " << ishape<<" coef "<< MeshSol(pos+jn,0)<<endl;
 								//	 LOGPZ_DEBUG(logger,sout.str())
 								//	 #endif
-								for (int is=0; is<numbersol; is++) {
+								for (long is=0; is<numbersol; is++) {
                     data.sol[is][ilinha] += data.fNormalVec(ilinha,ivec)* data.phi(ishape,0)*MeshSol(pos+jn,is);
                     data.sol[is][nsol-1] +=  axesvec(ilinha,0)*data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
                     
@@ -402,12 +400,12 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
     //colocando a solucao para o connect interno usando shape descontinua
     
     TPZConnect *df2 = &this->Connect(ncon-1);
-    int dfseq2 = df2->SequenceNumber();
-    int pos2 = block.Position(dfseq2);
+    long dfseq2 = df2->SequenceNumber();
+    long pos2 = block.Position(dfseq2);
     
-    for (int idesc=0; idesc<data.numberdualfunctions; idesc++) {
+    for (long idesc=0; idesc<data.numberdualfunctions; idesc++) {
 				int iphi= data.phi.Rows()-data.numberdualfunctions +idesc;
-        for (int is=0; is<numbersol; is++) {
+        for (long is=0; is<numbersol; is++) {
             data.sol[is][nsol-2]+= data.phi(iphi,0)*MeshSol(pos2+idesc,is);            
         }
 				
@@ -424,9 +422,9 @@ void TPZCompElHDivPressure<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL
 		
 		if(Is_u1PHI && Is_u2PHI)
 		{
-				int nu1 = u1.Rows(),nu2 = u2.Rows();
+				long nu1 = u1.Rows(),nu2 = u2.Rows();
 				u12.Redim(nu1+nu2,1);
-				int i;
+				long i;
 				for(i=0; i<nu1; i++) u12(i,0) = u1(i,0);
 				for(i=0; i<nu2; i++) u12(i+nu1,0) = u2(i,0);
 				
@@ -434,11 +432,11 @@ void TPZCompElHDivPressure<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL
 		}
 		else if(!Is_u1PHI || !Is_u2PHI) // Se u1 e u2 nÃ£o sÃ£o Phi's, implica em serem dPhi's
 		{
-				int ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
-				int ru12 = ru1 < ru2 ? ru2 : ru1;
-				int cu12 = cu1+cu2;
+				long ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
+				long ru12 = ru1 < ru2 ? ru2 : ru1;
+				long cu12 = cu1+cu2;
 				u12.Redim(ru12,cu12);
-				int i,j;
+				long i,j;
 				for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
 				for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);//---modifiquei--
 		}
@@ -742,36 +740,36 @@ template class TPZCompElHDivPressure<TPZShapePiram>;
 template class TPZCompElHDivPressure<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure<TPZShapePoint>(mesh,gel,index);
 }
 
 
-TPZCompEl * CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure< TPZShapeQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure< TPZShapeTriang >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure< TPZShapeCube >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure< TPZShapePrism>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure< TPZShapePiram >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		return new TPZCompElHDivPressure< TPZShapeTetra >(mesh,gel,index);
 }
 

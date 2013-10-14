@@ -183,7 +183,7 @@ void TPZStepSolver<TVar>::SetDirect (const DecomposeType decomp){
 	fDecompose = decomp;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent){
+void TPZStepSolver<TVar>::SetCG(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent){
 	ResetSolver();
 	fSolver = this->ECG;
 	fMaxIterations = numiterations;
@@ -195,7 +195,7 @@ void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<T
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent){
+void TPZStepSolver<TVar>::SetGMRES(const long numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent){
 	ResetSolver();
 	fSolver = this->EGMRES;
 	fNumVectors = numvectors;
@@ -208,7 +208,7 @@ void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const int FromCurrent){
+void TPZStepSolver<TVar>::SetBiCGStab(const long numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const long FromCurrent){
 	ResetSolver();
 	fSolver = this->EBICGSTAB;
 	fMaxIterations = numiterations;
@@ -220,7 +220,7 @@ void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSo
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetJacobi(const int numiterations, const REAL tol, const int FromCurrent) {
+void TPZStepSolver<TVar>::SetJacobi(const long numiterations, const REAL tol, const long FromCurrent) {
 	ResetSolver();
 	fSolver = this->EJacobi;
 	fMaxIterations = numiterations;
@@ -228,7 +228,7 @@ void TPZStepSolver<TVar>::SetJacobi(const int numiterations, const REAL tol, con
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent) {
+template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const long numiterations,const REAL overrelax,const REAL tol,const long FromCurrent) {
 	ResetSolver();
 	fSolver = this->ESSOR;
 	fOverRelax = overrelax;
@@ -238,7 +238,7 @@ template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,c
 	fFromCurrent = FromCurrent;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent){
+void TPZStepSolver<TVar>::SetSOR(const long numiterations,const REAL overrelax,const REAL tol,const long FromCurrent){
 	ResetSolver();
 	fSolver = this->ESOR;
 	fMaxIterations = numiterations;
@@ -287,9 +287,9 @@ void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fTol, 1);
 	buf.Write(&fOverRelax, 1);
 	buf.Write(&fFromCurrent, 1);
-	int size = fSingular.size();
+	long size = fSingular.size();
 	buf.Write(&size, 1);
-	std::list<int>::iterator it = fSingular.begin();
+	std::list<long>::iterator it = fSingular.begin();
 	for(;it != fSingular.end(); it++)
 	{
 		buf.Write(&*it, 1);
@@ -313,10 +313,10 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 	buf.Read(&fTol, 1);
 	buf.Read(&fOverRelax, 1);
 	buf.Read(&fFromCurrent, 1);
-	int size = 0;
+	long size = 0;
 	buf.Read(&size, 1);
 	fSingular.resize(size);
-	std::list<int>::iterator it = fSingular.begin();
+	std::list<long>::iterator it = fSingular.begin();
 	for(;it != fSingular.end(); it++)
 	{
 		buf.Read(&*it, 1);

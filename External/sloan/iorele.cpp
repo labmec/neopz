@@ -1,12 +1,13 @@
- /* Subroutine */ 
-int iorele_ (int *ior, int *nnn, int *npn, int *xnpn, int *key, int *, int *nel, int *)
+#include "sloan.h"
+
+/* Subroutine */ 
+int iorele_ (long *ior, long *nnn, long *npn, long *xnpn, long *key, long *, long *nel, long *)
  // ior,nnn,npn,xnpn,key,numno,nel,nop
 {
  /* System generated locals */
-    int     i__1, i__2;
+    long     i__1, i__2;
  /* Local variables */
-    static int mini, i, j, noeud;
-    extern /* Subroutine */ int vsrtp1_ (int *, int *, int *);
+    static long mini, i, j, noeud;
 
  /* Parameter adjustments */
     --npn;

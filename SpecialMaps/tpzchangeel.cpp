@@ -41,7 +41,7 @@ TPZChangeEl::~TPZChangeEl()
 //------------------------------------------------------------------------------------------------------------
 
 //#define verifyNeighbourhood
-TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
+TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, long ElemIndex)
 {
 	TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
     
@@ -89,12 +89,13 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
     
     TPZGeoEl * father = OldElem->Father();
     
-    int midN, nsides = OldElem->NSides();
+    long midN;
+	int nsides = OldElem->NSides();
     
     //backingup oldElem neighbourhood
     TPZVec<REAL> Coord(3);
     TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
-    TPZVec<int> NodesSequence(0);
+    TPZVec<long> NodesSequence(0);
     for(int s = 0; s < nsides; s++)
     {
         neighbourhood[s].resize(0);
@@ -102,13 +103,13 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         TPZGeoElSide neighS = mySide.Neighbour();
         if(mySide.Dimension() == 0)
         {
-            int oldSz = NodesSequence.NElements();
+            long oldSz = NodesSequence.NElements();
             NodesSequence.resize(oldSz+1);
             NodesSequence[oldSz] = OldElem->NodeIndex(s);
         }
         if(CreateMiddleNodeAtEdge(Mesh, ElemIndex, s, midN))
         {
-            int oldSz = NodesSequence.NElements();
+            long oldSz = NodesSequence.NElements();
             NodesSequence.resize(oldSz+1);
             NodesSequence[oldSz] = midN;
         }
@@ -120,8 +121,8 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
     }
     
     MElementType elType = OldElem->Type();
-    int oldId = OldElem->Id();
-    int oldMatId = OldElem->MaterialId();
+    long oldId = OldElem->Id();
+    long oldMatId = OldElem->MaterialId();
     
 	TPZGeoEl * NewElem = NULL;
     
@@ -183,7 +184,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         TPZGeoEl * tempEl = NewElem;
         TPZGeoElSide tempSide(NewElem,s);
         int byside = s;
-        for(unsigned int n = 0; n < neighbourhood[s].size(); n++)
+        for(unsigned long n = 0; n < neighbourhood[s].size(); n++)
         {
             TPZGeoElSide neighS = neighbourhood[s][n];
             tempEl->SetNeighbour(byside, neighS);
@@ -236,7 +237,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int targetSide)
+TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, int targetSide)
 {
     TPZGeoEl * gel = Mesh->ElementVec()[ElemIndex];
     
@@ -361,10 +362,10 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
         int edg = *it;
         TPZGeoElSide gelSide(gel,edg);
         
-        int initNode = gelSide.SideNodeLocIndex(0);
-        int finalNode = gelSide.SideNodeLocIndex(1); 
-        int meshInitNode = gelSide.SideNodeIndex(0);
-        int meshFinalNode = gelSide.SideNodeIndex(1);
+        long initNode = gelSide.SideNodeLocIndex(0);
+        long finalNode = gelSide.SideNodeLocIndex(1); 
+        long meshInitNode = gelSide.SideNodeIndex(0);
+        long meshFinalNode = gelSide.SideNodeIndex(1);
         /**
          * Embora o elemento quadratico possua mais nohs (NNodes), a topologia segue igual ao
          * elemento linear no qual o elemento quadratico foi baseado.
@@ -373,7 +374,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
          *
          * Com isso a numeracao dos nohs nos meios das arestas coincide com a numeracao dos lados unidimensionais do elemento.
          */
-        int meshMiddleNode = gel->NodeIndex(edg);
+        long meshMiddleNode = gel->NodeIndex(edg);
         //********************
                                             
         double coordNear, coordFar;
@@ -402,7 +403,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
+TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, long ElemIndex)
 {
 	TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
 	if(!OldElem)
@@ -411,8 +412,8 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
 		return NULL;
 	}
     MElementType oldType = OldElem->Type();
-    int oldId = OldElem->Id();
-    int oldMatId = OldElem->MaterialId();
+    long oldId = OldElem->Id();
+    long oldMatId = OldElem->MaterialId();
     int nsides = OldElem->NSides();
     
     TPZVec<TPZGeoElSide> oldNeigh(nsides);
@@ -423,7 +424,7 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
     }
 	
 	const int nnodes = OldElem->NCornerNodes();
-	TPZManVector<int> nodeindexes(nnodes);
+	TPZManVector<long> nodeindexes(nnodes);
 	for(int i = 0; i < nnodes; i++)
     {
         nodeindexes[i] = OldElem->NodeIndex(i);
@@ -445,7 +446,7 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &meshNode, double tol)
+bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, long &meshNode, double tol)
 {    
 	meshNode = -1;
 	bool IsNearSomeNode = false;
@@ -476,14 +477,14 @@ bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &meshNode, do
 //------------------------------------------------------------------------------------------------------------
 
 
-int TPZChangeEl::NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol)
+long TPZChangeEl::NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol)
 {
 	int meshNode = -1;
 	
 	TPZVec<REAL> nodeCoord(3);
-	int nnodes = gmesh->NNodes();
+	long nnodes = gmesh->NNodes();
 	
-	for(int n = 0; n < nnodes; n++)
+	for(long n = 0; n < nnodes; n++)
 	{
 		double dist = 0.;
 		gmesh->NodeVec()[n].GetCoordinates(nodeCoord);
@@ -512,7 +513,7 @@ int TPZChangeEl::NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol)
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int ElemIndex, int edge, int &middleNodeId)
+bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, long ElemIndex, int edge, long &middleNodeId)
 {
     TPZGeoEl * gel = Mesh->ElementVec()[ElemIndex];
     
@@ -526,7 +527,7 @@ bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int ElemIndex, int ed
     TPZVec<REAL> n0Coord(3), n1Coord(3), middleCoordLocal(1), middleCoord(3);
     middleCoordLocal[0] = 0.;//middle node in edge (1D master element) is on qsi=0
     
-    int nearestN;
+    long nearestN;
     myEdge.X(middleCoordLocal,middleCoord);
     if(NearestNode(gel, middleCoord, nearestN, 1.E-8))
     {
@@ -550,7 +551,7 @@ bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int ElemIndex, int ed
     midNode.SetCoord(middleCoord);
     
     /** Setting Midnodes Id's */
-    int NewNodeId = Mesh->NNodes();
+    long NewNodeId = Mesh->NNodes();
     Mesh->SetNodeIdUsed(NewNodeId);
     midNode.SetNodeId(NewNodeId);
     

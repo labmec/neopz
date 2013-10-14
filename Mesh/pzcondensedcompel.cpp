@@ -79,7 +79,7 @@ void TPZCondensedCompEl::Unwrap()
  * @param inode node to set index
  * @param index index to be seted
  */
-void TPZCondensedCompEl::SetConnectIndex(int inode, int index)
+void TPZCondensedCompEl::SetConnectIndex(int inode, long index)
 {
     LOGPZ_ERROR(logger,"SetConnectIndex should never be called")
     DebugStop();
@@ -97,8 +97,8 @@ void TPZCondensedCompEl::SetConnectIndex(int inode, int index)
  * from the both meshes - original and patch
  */
 TPZCompEl *TPZCondensedCompEl::ClonePatchEl(TPZCompMesh &mesh,
-                                std::map<int,int> & gl2lcConMap,
-                                std::map<int,int> & gl2lcElMap) const
+                                std::map<long,long> & gl2lcConMap,
+                                std::map<long,long> & gl2lcElMap) const
 {
     TPZCompEl *cel = fReferenceCompEl->ClonePatchEl(mesh,gl2lcConMap,gl2lcElMap);
     TPZCondensedCompEl *result = new TPZCondensedCompEl(cel);
@@ -214,15 +214,15 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     ek.PermuteGather(fIndexes);
     ef.PermuteGather(fIndexes);
     fCondensed.Zero();
-    int dim = ek.fMat.Rows();
-    for (int i=0; i<dim ; ++i) {
-        for (int j=0; j<dim ; ++j) {
+    long dim = ek.fMat.Rows();
+    for (long i=0; i<dim ; ++i) {
+        for (long j=0; j<dim ; ++j) {
             fCondensed(i,j) = ek.fMat(i,j);
         }
     }
 
     fCondensed.SetF(ef.fMat);
-    int dim1 = fCondensed.Dim1();
+    long dim1 = fCondensed.Dim1();
     TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
 #ifdef LOG4CXX
@@ -234,10 +234,10 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
 	fCondensed.K11Reduced(K11, F1);
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-    int dim0 = dim-K11.Rows();
-    for (int i=dim0; i<dim; i++) {
+    long dim0 = dim-K11.Rows();
+    for (long i=dim0; i<dim; i++) {
         ef.fMat(i,0) = F1.GetVal(i-dim0,0);
-        for (int j=dim0; j<dim; j++) {
+        for (long j=dim0; j<dim; j++) {
             ek.fMat(i,j) = K11.GetVal(i-dim0,j-dim0);
         }
     }
@@ -264,10 +264,10 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
     TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
 	fCondensed.F1Red(f1);
-    int dim1 = f1.Rows();
-    int dim = ef.fMat.Rows();
-    int dim0 = dim-dim1;
-    for (int i= dim0; i<dim; i++) {
+    long dim1 = f1.Rows();
+    long dim = ef.fMat.Rows();
+    long dim0 = dim-dim1;
+    for (long i= dim0; i<dim; i++) {
         ef.fMat(i,0) = f1.GetVal(i-dim0,0);
     }
 }
@@ -318,14 +318,14 @@ void TPZCondensedCompEl::LoadSolution()
     }
     //TPZBlock<REAL> &bl = Mesh()->Block();
 	TPZBlock<STATE> &bl = Mesh()->Block();
-    int count = 0;
+    long count = 0;
     //TPZFMatrix<REAL> u1(dim1,1,0.);
 	TPZFMatrix<STATE> u1(dim1,1,0.);
     //TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
 	TPZFMatrix<STATE> elsol(dim0+dim1,1,0.);
     for (ic=nc0; ic<nc ; ic++) {
         TPZConnect &c = Connect(ic);
-        int seqnum = c.SequenceNumber();
+        long seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
             u1(count++,0) = bl(seqnum,ibl,0,0);
@@ -335,7 +335,7 @@ void TPZCondensedCompEl::LoadSolution()
     count = 0;
     for (ic=0; ic<nc0 ; ic++) {
         TPZConnect &c = Connect(ic);
-        int seqnum = c.SequenceNumber();
+        long seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
             bl(seqnum,0,ibl,0) = elsol(count++,0);
@@ -344,15 +344,15 @@ void TPZCondensedCompEl::LoadSolution()
 }
 
 /** @brief adds the connect indexes associated with base shape functions to the set */
-void TPZCondensedCompEl::BuildCornerConnectList(std::set<int> &connectindexes) const
+void TPZCondensedCompEl::BuildCornerConnectList(std::set<long> &connectindexes) const
 {
     int nc = NConnects();
-    std::set<int> refconn;
+    std::set<long> refconn;
     fReferenceCompEl->BuildCornerConnectList(refconn);
     for (int ic=0; ic<nc ; ic++) {
         TPZConnect &c = Connect(ic);
         if (!c.IsCondensed() || !c.HasDependency()) {
-            int index = ConnectIndex(ic);
+            long index = ConnectIndex(ic);
             if (refconn.find(index) != refconn.end()) {
                 connectindexes.insert(index);
             }

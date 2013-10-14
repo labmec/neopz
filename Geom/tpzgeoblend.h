@@ -37,14 +37,14 @@ namespace pzgeom
 		}
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoBlend(TPZVec<int> &nodeindexes) : TGeo(nodeindexes) {
+		TPZGeoBlend(TPZVec<long> &nodeindexes) : TGeo(nodeindexes) {
 		}
 		/** @brief Empty constructor */
 		TPZGeoBlend() : TGeo() {
 		}
 		
 		/** @brief Constructor with node map */
-		TPZGeoBlend(const TPZGeoBlend &cp,std::map<int,int> & gl2lcNdMap) : TGeo(cp,gl2lcNdMap) {
+		TPZGeoBlend(const TPZGeoBlend &cp,std::map<long,long> & gl2lcNdMap) : TGeo(cp,gl2lcNdMap) {
 		}
 		/** @brief Copy constructor */
 		TPZGeoBlend(const TPZGeoBlend &cp) : TGeo(cp) {
@@ -119,7 +119,7 @@ namespace pzgeom
 		
 		TPZGeoEl *CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc);
 		
-		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
+		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<long>& nodeindexes, int matid, long& index);
 		
         
 		
@@ -128,9 +128,9 @@ namespace pzgeom
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
+										  TPZVec<long>& nodeindexes,
 										  int matid,
-										  int& index);
+										  long& index);
 		
 	protected:
 		

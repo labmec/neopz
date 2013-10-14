@@ -19,10 +19,10 @@ static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
 
 using namespace std;
 
-void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex){
+void TPZRenumbering::NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodtoelgraph, TPZVec<long> &nodtoelgraphindex) {
 	
-	TPZVec<int> nelcon(fNNodes+1,0);
-  	int nod,last = elgraphindex[fNElements];
+	TPZVec<long> nelcon(fNNodes+1,0);
+  	long nod,last = elgraphindex[fNElements];
   	for(nod = 0; nod<last; nod++) {
 		nelcon[elgraph[nod]]++;
   	}
@@ -35,14 +35,14 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphind
 	nodtoelgraph.Resize(nodtoelgraphindex[fNNodes]);
 	nodtoelgraph.Fill (-1);
 	
-    TPZVec<int> nodtoelgraphposition(nodtoelgraphindex);
+    TPZVec<long> nodtoelgraphposition(nodtoelgraphindex);
     
-	int el;
+	long el;
   	for(el=0; el<fNElements; el++) {
-		int firstnode = elgraphindex[el];
-		int lastnode = elgraphindex[el+1];
+		long firstnode = elgraphindex[el];
+		long lastnode = elgraphindex[el+1];
 		for(nod=firstnode;nod<lastnode;nod++) {
-			int gnod = elgraph[nod];
+			long gnod = elgraph[nod];
             nodtoelgraph[nodtoelgraphposition[gnod]] = el;
             nodtoelgraphposition[gnod]++;
 #ifdef DEBUG
@@ -56,72 +56,75 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphind
 }
 }
 
-void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex){
-	int nod,el;
-	TPZVec<int> nodtoelgraphindex;
-	TPZVec<int> nodtoelgraph;
+void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex) {
+	long nod,el;
+	TPZVec<long> nodtoelgraphindex;
+	TPZVec<long> nodtoelgraph;
 	
 	NodeToElGraph(elgraph,elgraphindex,nodtoelgraph,nodtoelgraphindex);
 	
 	nodegraphindex.Resize(fNNodes+1);
   	nodegraphindex.Fill(0);
 	
-	int nodegraphincrement = 10000;
+	long nodegraphincrement = 10000;
   	nodegraph.Resize(nodegraphincrement);
-  	int nextfreeindex = 0;
+  	long nextfreeindex = 0;
   	for(nod=0; nod<fNNodes; nod++) {
-		int firstel = nodtoelgraphindex[nod];
-		int lastel = nodtoelgraphindex[nod+1];
-		std::set<int> nodecon;
+		long firstel = nodtoelgraphindex[nod];
+		long lastel = nodtoelgraphindex[nod+1];
+		std::set<long> nodecon;
 		for(el=firstel; el<lastel; el++) {
-			int gel = nodtoelgraph[el];
-			int firstelnode = elgraphindex[gel];
-			int lastelnode = elgraphindex[gel+1];
+			long gel = nodtoelgraph[el];
+			long firstelnode = elgraphindex[gel];
+			long lastelnode = elgraphindex[gel+1];
             nodecon.insert(&elgraph[firstelnode],&elgraph[(lastelnode-1)]+1);
 		}
         nodecon.erase(nod);
-        while(nextfreeindex+(int)nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
-        std::set<int>::iterator it;
+        while(nextfreeindex+nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
+        std::set<long>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
 		nodegraphindex[nod+1] = nextfreeindex;
   	}
 }
 
-TPZRenumbering::TPZRenumbering(int NElements, int NNodes){
+TPZRenumbering::TPZRenumbering(long NElements, long NNodes){
 	fNElements = NElements;
 	fNNodes = NNodes;
 }
 
-int TPZRenumbering::ColorNodes(TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors) {
+long TPZRenumbering::ColorNodes(TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors) {
 	
 	TPZStack<int> usedcolors;
-	TPZStack<int> ncolorsbyfamily;
+	TPZStack<long> ncolorsbyfamily;
 	if(nodegraph.NElements()-1 != family.NElements()) {
 		cout << "TPZRenumbering::ColorNodes inconsistent input parameters\n";
 	}
-	int nnodes = nodegraphindex.NElements()-1;
+	long nnodes = nodegraphindex.NElements()-1;
 	colors.Resize(nnodes);
 	colors.Fill(-1);
 	int curfam = 0;
-	int nodeshandled = 0;
-	int ncolors = 0;
+	long nodeshandled = 0;
+	long ncolors = 0;
 	while(nodeshandled < nnodes) {
-		int nod;
+		long nod;
 		curfam = 0;
 		usedcolors.Resize(0);
 		for(nod = 0; nod < nnodes; nod++) {
-			int firstnod = nodegraphindex[nod];
-			int lastnod = nodegraphindex[nod+1];
+			long firstnod = nodegraphindex[nod];
+			long lastnod = nodegraphindex[nod+1];
 			usedcolors.Fill(-1);
-			int ind, nodcon;
+			long ind, nodcon;
 			for(ind= firstnod; ind<lastnod; ind++) {
 				nodcon = nodegraph[ind];
 				if(family[nodcon] != curfam) continue;
 				if(colors[nodcon] != -1) usedcolors[colors[nodcon]] = 1;
 			}
-			int ic;
-			for(ic=0; ic<usedcolors.NElements(); ic++) if(usedcolors[ic] != 1) break;
-			if(ic == usedcolors.NElements()) usedcolors.Push(1);
+			long ic;
+			for(ic=0; ic<usedcolors.NElements(); ic++) 
+				if(usedcolors[ic] != 1) 
+					break;
+			if(ic == usedcolors.NElements()) 
+				usedcolors.Push(1);
 			colors[nod] = ic;
 			nodeshandled++;
 		}
@@ -132,9 +135,9 @@ int TPZRenumbering::ColorNodes(TPZVec<int> &nodegraph, TPZVec<int> &nodegraphind
 	return ncolors;
 }
 
-void TPZRenumbering::Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name, std::ostream& out){
+void TPZRenumbering::Print(TPZVec<long> &grapho, TPZVec<long> &graphoindex, const char *name, std::ostream& out){
 	
-	int i,j;
+	long i,j;
 	out << "Grapho: " << name << endl;
 	for (i=0;i<graphoindex.NElements()-1;i++){
 		out << "Grapho item: " << i << "\t";
@@ -178,8 +181,8 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 	
 	TPZCompEl *cel;
 	multimap<REAL, TPZCompEl *> elmap;
-	int nelem = cmesh->ElementVec().NElements();
-	int iel;
+	long nelem = cmesh->ElementVec().NElements();
+	long iel;
 	for(iel=0; iel<nelem; iel++) {
 		cel = cmesh->ElementVec()[iel];
 		if(!cel) continue;
@@ -191,13 +194,13 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 	TPZVec<long> Permute(cmesh->NConnects(),-1);
 	multimap<REAL, TPZCompEl *>::iterator it;
 	it = elmap.begin();
-	int iseq=0;
+	long iseq=0;
 	while(it != elmap.end()) {
 		cel = it->second;
 		int nc = cel->NConnects();
 		int ic;
 		for(ic=0; ic<nc; ic++) {
-			int seqnum = cel->Connect(ic).SequenceNumber();
+			long seqnum = cel->Connect(ic).SequenceNumber();
 			if(Permute[seqnum] == -1) Permute[seqnum] = iseq++;
 		}
 		it++;
@@ -210,34 +213,35 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 /**
  * Convert a traditional elgraph to an element to element graph
  */
-void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex,
-													 TPZVec<int> &eltoelgraph, TPZVec<int> &eltoelweight, TPZVec<int> &eltoelgraphindex)
+void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex,
+													 TPZVec<long> &eltoelgraph, TPZVec<int> &eltoelweight, TPZVec<long> &eltoelgraphindex)
 {
-	TPZVec<int> nodegraph,nodegraphindex;
+	TPZVec<long> nodegraph;
+	TPZVec<long> nodegraphindex;
 	LOGPZ_DEBUG(logger,"before NodeToElGraph")
 	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
 	LOGPZ_DEBUG(logger,"after NodeToElGraph")
-	int nelements = elgraphindex.NElements()-1;
+	long nelements = elgraphindex.NElements()-1;
 	eltoelgraphindex.Resize(nelements+1);
 	eltoelgraphindex[0] = 0;
 	eltoelgraph.Resize(1000);
 	eltoelweight.Resize(1000);
-	int iel;
+	long iel;
 	for(iel=0; iel<nelements; iel++)
 	{
-		map<int,int> elset;
-		int firstnodeindex = elgraphindex[iel];
-		int lastnodeindex = elgraphindex[iel+1];
-		int nodeindex;
+		map<long,int> elset;
+		long firstnodeindex = elgraphindex[iel];
+		long lastnodeindex = elgraphindex[iel+1];
+		long nodeindex;
 		for(nodeindex = firstnodeindex; nodeindex< lastnodeindex; nodeindex++)
 		{
-			int node = elgraph[nodeindex];
-			int firstelindex = nodegraphindex[node];
-			int lastelindex = nodegraphindex[node+1];
-			int elindex;
+			long node = elgraph[nodeindex];
+			long firstelindex = nodegraphindex[node];
+			long lastelindex = nodegraphindex[node+1];
+			long elindex;
 			for(elindex = firstelindex; elindex < lastelindex; elindex++)
 			{
-				int element = nodegraph[elindex];
+				long element = nodegraph[elindex];
 				if(element != iel)
 				{
 					int nweight = 0;
@@ -246,14 +250,14 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVe
 				}
 			}
 		}
-		int eltoelsize = eltoelgraph.NElements();
-		if(eltoelgraphindex[iel]+(int)elset.size() >= eltoelsize)
+		long eltoelsize = eltoelgraph.NElements();
+		if(eltoelgraphindex[iel]+elset.size() >= eltoelsize)
 		{
 			eltoelgraph.Resize(eltoelsize+elset.size()+1000);
 			eltoelweight.Resize(eltoelgraph.NElements());
 		}
-		int count = eltoelgraphindex[iel];
-		map<int,int>::iterator it;
+		long count = eltoelgraphindex[iel];
+		map<long,int>::iterator it;
 		for(it=elset.begin(); it != elset.end(); it++,count++)
 		{
 			eltoelgraph[count] = it->first;
@@ -265,7 +269,7 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVe
 	eltoelweight.Resize(eltoelgraph.NElements());
 }
 
-void TPZRenumbering::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex){
+void TPZRenumbering::SetElementGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex){
 #ifdef SLOANDEBUG
 	Print(elgraph, elgraphindex, "original element graph", cout);
 #endif
@@ -282,54 +286,54 @@ void TPZRenumbering::ClearDataStructures(){
 /**
  * Analyse the graph, find the corner nodes
  */
-void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &eligible, std::set<int> &cornernodes)
+void TPZRenumbering::CornerEqs(unsigned int mincorners, long nelconsider, std::set<int> &eligible, std::set<int> &cornernodes)
 {
 	
-	TPZVec<int> nodtoelgraphindex;
-	TPZVec<int> nodtoelgraph;
-	int sub = 0;
+	TPZVec<long> nodtoelgraphindex;
+	TPZVec<long> nodtoelgraph;
+	long sub = 0;
 	
 	NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
 	
-	int nelem = fElementGraphIndex.NElements()-1;
+	long nelem = fElementGraphIndex.NElements()-1;
     if (nelconsider > nelem) {
         DebugStop();
     }
-	int element;
+	long element;
 	for (element=0; element < nelconsider; element++) 
 	{
-		int firstindex = fElementGraphIndex[element];
-		int lastindex = fElementGraphIndex[element+1];
+		long firstindex = fElementGraphIndex[element];
+		long lastindex = fElementGraphIndex[element+1];
 		if (firstindex == lastindex) {
 			continue;
 		}
-		TPZStack<int> corners;
-        std::set<int> elcornernodes;
+		TPZStack<long> corners;
+        std::set<long> elcornernodes;
 		// a vector of sets of element connections for each node
         // first key : number elements connected to the node
         // second key : pair of node and set of element indices
-		std::multimap<int,std::pair<int,std::set<int> > > connectivities;
-		typedef std::multimap<int,std::pair<int,std::set<int> > > map_type;
-		int ind;
-		int maxelcon = 0;
+		std::multimap<long,std::pair<long,std::set<long> > > connectivities;
+		typedef std::multimap<long,std::pair<long,std::set<long> > > map_type;
+		long ind;
+		long maxelcon = 0;
 		for (ind=firstindex; ind<lastindex; ind++) {
-			int node = fElementGraph[ind];
-			int firstelind = nodtoelgraphindex[node];
-			int lastelind = nodtoelgraphindex[node+1];
-			std::set<int> elcon;
+			long node = fElementGraph[ind];
+			long firstelind = nodtoelgraphindex[node];
+			long lastelind = nodtoelgraphindex[node+1];
+			std::set<long> elcon;
 			elcon.insert(&nodtoelgraph[firstelind],(&nodtoelgraph[lastelind-1])+1);
-			maxelcon = maxelcon < (int)elcon.size() ? elcon.size() : maxelcon;
-			connectivities.insert(map_type::value_type(elcon.size(), std::pair<int, std::set<int> >(node,elcon)));
+			maxelcon = maxelcon < elcon.size() ? elcon.size() : maxelcon;
+			connectivities.insert(map_type::value_type(elcon.size(), std::pair<long, std::set<long> >(node,elcon)));
 		}
 		
 		map_type::reverse_iterator it = connectivities.rbegin();		
 		// put all nodes with maximum connectivities on the stack
-		int maxconnect = it->first;
+		long maxconnect = it->first;
 		std::pair<map_type::const_iterator, map_type::const_iterator> p = connectivities.equal_range(it->first);
 		map_type::const_iterator ithead;
 		for (ithead = p.first; ithead != p.second; ithead++) 
 		{
-            int seqnum = ithead->second.first;
+            long seqnum = ithead->second.first;
             if (eligible.find(seqnum) != eligible.end()) {
                 corners.Push(seqnum);
                 cornernodes.insert(seqnum);
@@ -350,7 +354,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &e
 			map_type::reverse_iterator it = connectivities.rbegin();
 			while (it->first > itf->first && it!=connectivities.rend()) 
 			{
-				std::set<int>::iterator smallsetbeg, smallsetend, largesetbeg, largesetend;
+				std::set<long>::iterator smallsetbeg, smallsetend, largesetbeg, largesetend;
 				smallsetbeg = itf->second.second.begin();
 				smallsetend = itf->second.second.end();
 				largesetbeg = it->second.second.begin();
@@ -364,7 +368,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &e
 			// the set is not included in any
 			// we allready put the maxconnect nodes on the stack
 			if (it->first == itf->first && it->first != maxconnect) {
-                int seqnum = itf->second.first;
+                long seqnum = itf->second.first;
                 if (eligible.find(seqnum) != eligible.end()) 
                 {
                     corners.Push(seqnum);
@@ -380,18 +384,16 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &e
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-		if(mincorners < 0)
-			mincorners = 0;
-		if (elcornernodes.size() < (unsigned int)mincorners) {
+		if (elcornernodes.size() < mincorners) {
 			it = connectivities.rbegin();
-			int numelconnected = it->first-1;
-			int ncorners = corners.NElements();
+			long numelconnected = it->first-1;
+			long ncorners = corners.NElements();
 			while (numelconnected > 1 && ncorners < mincorners) {
 				std::pair<map_type::const_iterator, map_type::const_iterator> p = connectivities.equal_range(numelconnected);
 				map_type::const_iterator ithead;
 				for (ithead = p.first; ithead != p.second; ithead++) 
 				{
-                    int seqnum = ithead->second.first;
+                    long seqnum = ithead->second.first;
                     if (eligible.find(seqnum) != eligible.end()) 
                     {
                         corners.Push(seqnum);
@@ -403,7 +405,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &e
 				numelconnected--;
 			}
 		}
-		int ieq;
+		long ieq;
 		for (ieq=0; ieq<corners.NElements(); ieq++) {
 			if (cornernodes.find(corners[ieq]) == cornernodes.end()) {
 				DebugStop();

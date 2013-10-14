@@ -80,7 +80,7 @@ protected:
 	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
 	struct TTablePostProcess {
-		TPZVec<int> fGeoElId;
+		TPZVec<long> fGeoElId;
 		TPZVec<TPZCompEl *> fCompElPtr;
 		int fDimension;
 		TPZVec<REAL> fLocations;
@@ -186,14 +186,14 @@ protected:
 private:
 	
 	/** @brief Build a sequence solver based on the block graph and its colors */
-	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors);
+	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<long> &graph, TPZVec<long> &graphindex, long neq, int numcolors, TPZVec<int> &colors);
 
 public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames,//1o : TPZConnect* nod,
 				   char *plotfile, std::ostream &out=std::cout);
 	/** @brief Make assembling and clean the load and solution vectors */
-	void LoadShape(double dx,double dy, int numelem,TPZConnect* nod);
+	void LoadShape(double dx,double dy, long numelem,TPZConnect* nod);
 	
 	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
 	virtual void Run(std::ostream &out = std::cout);
@@ -217,7 +217,7 @@ public:
 	 */
 	
 	/** @brief Fill the computational element vector to post processing depending over geometric mesh defined */
-	virtual void DefineElementTable(int dimension, TPZVec<int> &GeoElIds, TPZVec<REAL> &points);
+	virtual void DefineElementTable(int dimension, TPZVec<long> &GeoElIds, TPZVec<REAL> &points);
 	/** @brief Sets the name of the output file into the data structure for post processing */
 	virtual void SetTablePostProcessFile(char *filename);
 	/** @brief Sets the names of the variables into the data structure for post processing */	
@@ -255,7 +255,7 @@ public:
 	/** @brief Get the solver matrix */
 	TPZMatrixSolver<STATE> & Solver();
 	/** @brief Run and print the solution step by step */
-	void AnimateRun(int num_iter, int steps,
+	void AnimateRun(long num_iter, int steps,
 					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
 	/** @brief Set solver matrix */
 	void SetSolver(TPZMatrixSolver<STATE> &solver);

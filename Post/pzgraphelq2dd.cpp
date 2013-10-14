@@ -14,7 +14,7 @@ TPZGraphElQ2dd::TPZGraphElQ2dd(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl
 {
 }
 
-TPZGraphNode *TPZGraphElQ2dd::Connect(int i) {
+TPZGraphNode *TPZGraphElQ2dd::Connect(long i) {
 	return fConnect;
 }
 
@@ -90,7 +90,7 @@ void TPZGraphElQ2dd::Connectivity(TPZDrawStyle st){
 	}
 }
 
-void TPZGraphElQ2dd::SetNode(int i,TPZGraphNode *gno) {
+void TPZGraphElQ2dd::SetNode(long i,TPZGraphNode *gno) {
 	fConnect = gno;
 }
 

@@ -152,7 +152,7 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		//	num = number of functions to compute
 #ifndef NODEBUG
 		if ( order[0] < 0 ) {
@@ -208,7 +208,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		switch(side) {
 			case 0:
 			case 1:
@@ -242,7 +242,7 @@ namespace pzshape {
 		for(i=0;i<num;i++) in(0,i) = -in(0,i);
 	}
 	
-	int TPZShapeLinear::GetTransformId1d(TPZVec<int> &id) {
+	int TPZShapeLinear::GetTransformId1d(TPZVec<long> &id) {
 		if (id[1] < id[0]) return 1;
 		else               return 0;
 	}

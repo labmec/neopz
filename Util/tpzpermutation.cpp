@@ -43,6 +43,11 @@ void TPZPermutation::Permute(const TPZVec<int> &in, TPZVec<int> &out) const
 	int i,n=fCounter.NElements();
 	for(i=0; i<n; i++) out[fOrder[i]] = in[i];
 }
+void TPZPermutation::Permute(const TPZVec<long> &in, TPZVec<long> &out) const
+{
+	int i,n=fCounter.NElements();
+	for(i=0; i<n; i++) out[fOrder[i]] = in[i];
+}
 
 void TPZPermutation::operator++()
 {

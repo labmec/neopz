@@ -39,7 +39,7 @@ TPZGeoElRefLess<TGeo>::~TPZGeoElRefLess(){
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
 TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 	
 	int i;
@@ -56,7 +56,7 @@ TPZGeoEl(matind,mesh), fGeo(geo) {
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh, long &index) :
 TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
 {
 	int i;
@@ -65,7 +65,7 @@ TPZGeoEl(matind,mesh,index) , fGeo(nodeindices)
 }
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
 TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
@@ -73,14 +73,14 @@ TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 }
 
 template<class TGeo>
-int
+long
 TPZGeoElRefLess<TGeo>::NodeIndex(int node) const {
 	if(node<0 || node>=fGeo.NNodes) return -1;
 	return fGeo.fNodeIndexes[node];
 }
 
 template<class TGeo>
-int
+long
 TPZGeoElRefLess<TGeo>::SideNodeIndex(int side,int node) const {
 	if(side<0 || side>(TGeo::NSides - 1) || node<0) {
 		PZError << "TPZGeoElRefLess::SideNodeIndex. Bad parameter side.\n";
@@ -152,7 +152,7 @@ TPZGeoElRefLess<TGeo>::NSideNodes(int side) const{
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::MidSideNodeIndex(int side,int &index) const{
+TPZGeoElRefLess<TGeo>::MidSideNodeIndex(int side,long &index) const{
 	//TRef::MidSideNodeIndex(this,side,index);
 	index = -1;
 	if(side<0 || side>NSides()-1) {
@@ -198,16 +198,16 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 
 template<class TGeo>
 TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
-												   TPZVec<int>& nodeindexes,
+												   TPZVec<long>& nodeindexes,
 												   int matid,
-												   int& index)
+												   long& index)
 {
 	return fGeo.CreateGeoElement(*Mesh(),type,nodeindexes,matid,index);
 }
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::SetNodeIndex(int i,int nodeindex){
+TPZGeoElRefLess<TGeo>::SetNodeIndex(int i,long nodeindex){
 	if(i<0 || i>(TGeo::NNodes - 1)){
 		std::cout << "TPZGeoElRefLess::SetNodeIndex index error i = " << i << std::endl;
 		return;
@@ -286,9 +286,9 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,T
     int ncorners = NNodes();
     TPZFNMatrix<54,REAL> cornerco(3,ncorners);
     fGeo.CornerCoordinates(*this,cornerco);
-    int spacedim = cornerco.Rows();
+    long spacedim = cornerco.Rows();
     
-    for (int j=0; j<spacedim; j++) {
+    for (long j=0; j<spacedim; j++) {
         minx[j] = cornerco(j,0);
         maxx[j] = cornerco(j,0);
     }
@@ -300,7 +300,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,T
     }
     REAL delx=0.;
     for (int i=0; i<ncorners; i++) {
-        for (int d=0; d<spacedim; d++) {
+        for (long d=0; d<spacedim; d++) {
             delx = delx < maxx[d]-minx[d] ? maxx[d]-minx[d] : delx;
         }
     }
@@ -416,8 +416,8 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLe
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess( TPZGeoMesh &DestMesh,
 									   const TPZGeoElRefLess &cp,
-									   std::map<int,int> & gl2lcNdMap,
-									   std::map<int,int> & gl2lcElMap ) :
+									   std::map<long,long> & gl2lcNdMap,
+									   std::map<long,long> & gl2lcElMap ) :
 TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 {
 	int i;
@@ -426,7 +426,7 @@ TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 	for(i = 0; i < n; i++)
 	{
 		TPZGeoElSide neigh (cp.fNeighbours[i],cp.Mesh());
-		int neighIdx = neigh.Element()->Index();
+		long neighIdx = neigh.Element()->Index();
 		int side = neigh.Side();
 		
 		while (gl2lcElMap.find(neighIdx)==gl2lcElMap.end())
@@ -455,8 +455,8 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVe
         std::cout << sout.str() << std::endl;
 	}
 	permutegather.Resize(3);
-	int id1 = NodePtr(SideNodeLocIndex(side,0))->Id();
-	int id2 = NodePtr(SideNodeLocIndex(side,1))->Id();
+	long id1 = NodePtr(SideNodeLocIndex(side,0))->Id();
+	long id2 = NodePtr(SideNodeLocIndex(side,1))->Id();
 	if(id1<id2)
 	{
 		permutegather[0] = 0;
@@ -487,8 +487,8 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, T
         std::cout << sout.str() << std::endl;
 	}
 	permutegather.Resize(3);
-	int id1 = NodePtr(SideNodeLocIndex(side,0))->Id();
-	int id2 = NodePtr(SideNodeLocIndex(side,1))->Id();
+	long id1 = NodePtr(SideNodeLocIndex(side,0))->Id();
+	long id2 = NodePtr(SideNodeLocIndex(side,1))->Id();
 	if(id1<id2)
 	{
 		permutegather[0] = 0;
@@ -518,7 +518,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
 	}
-	TPZManVector<int,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
+	TPZManVector<long,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
 	for(int i=0; i<TGeo::NCornerNodes; i++) id[i] = fGeo.fNodeIndexes[i];
 	TGeo::GetSideHDivPermutation(side, id, permutegather);
 }

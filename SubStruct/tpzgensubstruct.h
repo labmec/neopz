@@ -101,7 +101,7 @@ private:
     void IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 							  TPZVec<int> &coarseindex);
 	
-	static    int NInternalEq(TPZSubCompMesh *sub);
+	static    long NInternalEq(TPZSubCompMesh *sub);
 	
 };
 
@@ -112,7 +112,7 @@ void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstruct<STA
 void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct,  TPZDohrAssembly<STATE> &dohrassembly);
 
 /** @brief Return the number of submeshes */
-int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
+long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
 /** @brief Return a pointer to the isub submesh */
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);

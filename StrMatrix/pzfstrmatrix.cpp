@@ -20,7 +20,7 @@ using namespace std;
 
 TPZMatrix<STATE> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	TPZMatrix<STATE> *stiff = Create();
-	int neq = stiff->Rows();
+	long neq = stiff->Rows();
 	rhs.Redim(neq,1);
 	Assemble(*stiff,rhs,guiInterface);
 	
@@ -37,7 +37,7 @@ TPZMatrix<STATE> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAu
 }
 
 TPZMatrix<STATE> * TPZFStructMatrix::Create(){
-	int neq = fEquationFilter.NActiveEquations();
+	long neq = fEquationFilter.NActiveEquations();
     
 	return new TPZFMatrix<STATE>(neq,neq,0.);
 }

@@ -31,7 +31,7 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 6};
 		/** @brief Constructor with list of nodes */
-		TPZGeoPrism(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
+		TPZGeoPrism(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
 		{
 		}
 		
@@ -42,7 +42,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZGeoPrism(const TPZGeoPrism &cp,
-					std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
+					std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
 		{
 		}
 		
@@ -105,8 +105,8 @@ namespace pzgeom {
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
-										  int matid, int& index);
+										  TPZVec<long>& nodeindexes,
+										  int matid, long& index);
 	};
 	
 };

@@ -48,7 +48,7 @@ protected:
 	/** @brief Pointer to the mesh to which the element belongs*/
 	TPZGeoMesh *fMesh;
 	/** @brief Traditional element number*/
-	int		fId;
+	long		fId;
 	/** @brief Material index*/
 	int		fMatId;
 	/** @brief Reference to the element currently loaded. Pointer is given as this->Mesh()->Reference()->ElementVec()[fReference] */
@@ -56,9 +56,9 @@ protected:
 	
 	
 	/** @brief Index of the element from which the element is a subelement*/
-	int fFatherIndex;
+	long fFatherIndex;
 	/** @brief Index of the element in the element vector */
-	int fIndex;
+	long fIndex;
 	/** @brief 3x3 unit matrix to be copied to the axes if the geometric element does not have a particular orientation*/
 	static TPZFMatrix<REAL> gGlobalAxes;
 	/** @brief A counter to indicate how many interface elements are pointing to it */
@@ -116,7 +116,7 @@ public:
 	 * @param materialindex is the material index
 	 * @param mesh is a pointer to the mesh to which the element belongs
 	 */
-	TPZGeoEl(int id,int materialindex,TPZGeoMesh &mesh);
+	TPZGeoEl(long id,int materialindex,TPZGeoMesh &mesh);
 	/** 
 	 * @brief This constructor generates a unique Id
 	 * @param materialindex is the material index
@@ -130,7 +130,7 @@ public:
 	 * @param mesh is a pointer to the mesh to which the element belongs
 	 * @param index index of the new element in the element vector
 	 */
-	TPZGeoEl(int materialindex,TPZGeoMesh &mesh,int &index);
+	TPZGeoEl(int materialindex,TPZGeoMesh &mesh,long &index);
 	
 	/** @brief Copy constructor */
 	TPZGeoEl(const TPZGeoEl &el) ;
@@ -139,7 +139,7 @@ public:
 	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp);
 	
 	/** @brief Copy constructor to a patch mesh */
-	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> &org2clnMap);
+	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<long,long> &org2clnMap);
 	
 	TPZGeoEl() {
 		fId = -1;
@@ -171,8 +171,8 @@ public:
 	 * Therefore, a map between node indexes in both meshes are required
 	 */
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
-									std::map<int,int> &gl2lcNdIdx,
-									std::map<int,int> &gl2lcElIdx) const = 0;
+									std::map<long,long> &gl2lcNdIdx,
+									std::map<long,long> &gl2lcElIdx) const = 0;
 	
 	/** @brief Destructor*/
 	virtual ~TPZGeoEl();
@@ -189,7 +189,7 @@ public:
 	TPZGeoMesh *Mesh() const { return fMesh;}
 	
 	/** @brief Returns the Id of the element*/
-	int Id() const { return fId; }
+	long Id() const { return fId; }
 	
 	/** @brief Returns the number of nodes of the element*/
 	virtual int NNodes() const = 0;
@@ -207,7 +207,7 @@ public:
 	 * @brief Returns the index of the ith node the index is the location of the node
 	 * in the nodevector of the mesh
 	 */
-	virtual int NodeIndex(int i) const = 0;
+	virtual long NodeIndex(int i) const = 0;
 
 	/** @brief Returns the material index of the element*/
 	int MaterialId() const { return fMatId; }
@@ -254,17 +254,17 @@ public:
 	}
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	virtual void MidSideNodeIndex(int side,int &index) const = 0;
+	virtual void MidSideNodeIndex(int side,long &index) const = 0;
 	
 	/** @brief Returns the midside node indices along a side of the element */
 	/**
 	 * THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns \n
 	 * whereas the former is not
 	 */
-	virtual void MidSideNodeIndices(int side,TPZVec<int> &indices) const;
+	virtual void MidSideNodeIndices(int side,TPZVec<long> &indices) const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
-	virtual int SideNodeIndex(int side,int nodenum) const = 0;
+	virtual long SideNodeIndex(int side,int nodenum) const = 0;
 	
 	/** @brief Returns the local index of a node on a side*/
 	virtual int SideNodeLocIndex(int side, int nodenum) const = 0;
@@ -310,7 +310,7 @@ public:
 	}
     
 	
-	int FatherIndex() { return fFatherIndex; }
+	long FatherIndex() { return fFatherIndex; }
 	
 	/// Set connectivity information elements with blend geometric map
 	void BuildBlendConnectivity();
@@ -332,16 +332,16 @@ public:
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
-                                       TPZVec<int>& nodeindexes,
+                                       TPZVec<long>& nodeindexes,
                                        int matid,
-                                       int& index) = 0;
+                                       long& index) = 0;
 	
 	/** @brief Method which creates a geometric element on the side of an existing element */
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) = 0;
 	
 	/** @brief Returns the side number which is connected to the SideNodes
      returns -1 if no side is found*/
-	int WhichSide(TPZVec<int> &SideNodeIds);
+	int WhichSide(TPZVec<long> &SideNodeIds);
 	
 	/** @brief Returns 1 if gel is a neighbour of the element along side*/
 	int NeighbourExists(int side,const TPZGeoElSide &gel);
@@ -350,7 +350,7 @@ public:
 	void SetMaterialId(int id) { fMatId = id;}
 	
 	/** @brief Initializes the node i of the element*/
-	virtual void SetNodeIndex(int i,int nodeindex) = 0;
+	virtual void SetNodeIndex(int i,long nodeindex) = 0;
 	
 	/** @brief Flags the side as defined, this means no neighbouring element was found*/
 	virtual void SetSideDefined(int side) = 0;
@@ -408,12 +408,12 @@ public:
 	/** @brief Compute the projection of the point within the interior of the element to the side of the element */
 	TPZTransform Projection(int side);
 	
-	void SetIndex(int index)
+	void SetIndex(long index)
 	{
 		fIndex = index;
 	}
     
-    void SetId(int elId)
+    void SetId(long elId)
     {
         fId = elId;
     }
@@ -433,7 +433,7 @@ public:
 	}
 	
 	/** @brief Sets the father element index*/
-	virtual void SetFather(int fatherindex)
+	virtual void SetFather(long fatherindex)
 	{
 		fFatherIndex = fatherindex;
 	}
@@ -466,7 +466,7 @@ public:
 	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
 	/** @brief To test continuity */
-	int ElementExists(TPZGeoEl *elem,int id);
+	int ElementExists(TPZGeoEl *elem,long id);
 	
 	/**
 	 * @name reftopology
@@ -618,7 +618,7 @@ public:
 	virtual int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain) = 0;
 	
 	 /** @brief Returns the index of the element within the element vector of the mesh */
-    int Index() const
+    long Index() const
     {
         return fIndex;
     }

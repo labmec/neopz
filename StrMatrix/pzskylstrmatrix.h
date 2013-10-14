@@ -22,10 +22,10 @@ class TPZSkylineStructMatrix : public TPZStructMatrix {
 protected:
     
     /** @brief the equations which should actually be assembled */
-    TPZVec<int> fActiveEquations;
+    TPZVec<long> fActiveEquations;
     
     /** @brief Equation destination */
-    TPZVec<int> fEquationDestination;
+    TPZVec<long> fEquationDestination;
     
     /** Returns the skyline matrix object */
     virtual TPZMatrix<STATE> * ReallyCreate(long neq, const TPZVec<long> &skyline);

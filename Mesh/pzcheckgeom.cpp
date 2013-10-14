@@ -40,8 +40,8 @@ int TPZCheckGeom::CheckElement(TPZGeoEl *gel) {
 }
 
 int TPZCheckGeom::PerformCheck() {
-	int nel = fMesh->NElements();
-	int iel;
+	long nel = fMesh->NElements();
+	long iel;
 	int check = 0;
 	for(iel = 0; iel<nel; iel++) {
 		TPZGeoEl *gel = fMesh->ElementVec()[iel];
@@ -174,8 +174,8 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 			check=1;
 		}
 		REAL dif = 0;
-		int nx = x1.NElements();
-		int ix;
+		long nx = x1.NElements();
+		long ix;
 		for(ix=0; ix<nx; ix++) dif += (x1[ix]-x2[ix])*(x1[ix]-x2[ix]);
 		if(dif > 1.e-6) {
 			int son = subel->WhichSubel();
@@ -260,7 +260,7 @@ void TPZCheckGeom::CreateMesh() {
 	
 	if(fMesh) delete fMesh;
 	fMesh = new TPZGeoMesh();
-	int noind[12];
+	long noind[12];
 	int no;
 	for(no=0; no<12; no++) {
 		noind[no] = fMesh->NodeVec().AllocateNewElement();
@@ -271,7 +271,7 @@ void TPZCheckGeom::CreateMesh() {
 		fMesh->NodeVec()[noind[no]].Initialize(coord,*fMesh);
 	}
 	int matid = 1;
-	TPZVec<int> nodeindex;
+	TPZVec<long> nodeindex;
 	int nel;
 	for(nel=0; nel<7; nel++) {
 		int in;
@@ -279,7 +279,7 @@ void TPZCheckGeom::CreateMesh() {
 		for(in=0; in<numnos[nel]; in++) {
 			nodeindex[in] = nodind[nel][in];
 		}
-		int index;  
+		long index;  
 		switch(nel) {
 			case 0:
 				fMesh->CreateGeoElement(ECube, nodeindex, matid, index);

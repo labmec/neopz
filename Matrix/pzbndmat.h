@@ -89,7 +89,7 @@ public:
 	int Zero();
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
-	int       Decompose_LU(std::list<int> &singular);
+	int       Decompose_LU(std::list<long> &singular);
 	int       Decompose_LU();
 	
 #ifdef OOPARLIB

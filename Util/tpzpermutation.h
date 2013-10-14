@@ -27,6 +27,7 @@ public:
     
     /** @brief Applies the current permutation on the vector in and produces the vector out */
     void Permute(const TPZVec<int> &in, TPZVec<int> &out) const;
+    void Permute(const TPZVec<long> &in, TPZVec<long> &out) const;
 
     /** @brief Operator increment */
     void operator++();

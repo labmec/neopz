@@ -36,15 +36,15 @@ public:
 	TPZGeoElMapped() : TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+	TPZGeoElMapped(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
 	TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
+	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh) :
 	TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
-	TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index) :
+	TPZGeoElMapped(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index) :
 	TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
@@ -86,12 +86,12 @@ public:
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
-									   TPZVec<int>& nodeindexes,
+									   TPZVec<long>& nodeindexes,
 									   int matid,
-									   int& index);
+									   long& index);
 
 	/** @brief Sets the father element index*/
-	virtual void SetFather(int fatherindex)
+	virtual void SetFather(long fatherindex)
 	{
 		TBase::SetFather(fatherindex);
 		TPZGeoEl *father = TBase::Father();
@@ -427,13 +427,13 @@ private:
 	
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc){
 		int ns = this->NSideNodes(side);
-		TPZManVector<int> nodeindices(ns);
+		TPZManVector<long> nodeindices(ns);
 		int in;
 		for(in=0; in<ns; in++)
 		{
 			nodeindices[in] = this->SideNodeIndex(side,in);
 		}
-		int index;
+		long index;
 		
 		TPZGeoMesh *mesh = this->Mesh();
 		MElementType type = this->Type(side);
@@ -456,8 +456,8 @@ private:
  */
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 MElementType type,
-								 TPZVec<int>& nodeindexes,
+								 TPZVec<long>& nodeindexes,
 								 int matid,
-								 int& index);
+								 long& index);
 
 #endif

@@ -49,14 +49,14 @@ protected:
 	/** @brief Graphical node (connect) to discontinuous graphical element */
 	TPZGraphNode *fConnect;
 	
-	virtual void SetNode(int i,TPZGraphNode *gno) {
+	virtual void SetNode(long i,TPZGraphNode *gno) {
 		fConnect = gno;
 	}
 	
 	int NConnects() { return 1; }
 	MElementType Type() {return EOned;}
 	
-	TPZGraphNode *Connect(int i) {return fConnect;}
+	TPZGraphNode *Connect(long i) {return fConnect;}
 	
 };
 

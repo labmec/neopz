@@ -39,7 +39,7 @@ TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZMultiphysicsEleme
 }
 
 template <class TGeometry>
-TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) :TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) :TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
 }
 
 template<class TGeometry>
@@ -49,14 +49,14 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &trVec) const
 {
-	int nel;
+	long nel;
 	int side, dim;
 	nel=fElementVec.size();
 	trVec.Resize(nel);
 	TPZGeoEl *gelmf = Reference();
 	side = gelmf->NSides()-1;
 	TPZGeoEl  *geoel;
-	for (int i = 0; i<nel; i++) {
+	for (long i = 0; i<nel; i++) {
         if (!fElementVec[i]) {
             continue;
         }
@@ -68,22 +68,22 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &refIndexVec){
+void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<long> &refIndexVec){
 	
 	if(cmeshVec.NElements() == 0) return;
 	TPZCompMesh *cmesh = cmeshVec[0];
 	TPZGeoMesh *gmesh = cmesh->Reference();
 	gmesh->ResetReference();
-	int isub;
-	int ncm = cmeshVec.NElements();
+	long isub;
+	long ncm = cmeshVec.NElements();
 	for (isub=0; isub<ncm; isub++) {
 		cmeshVec[isub]->LoadReferences();
 	}
-	int ncel;
+	long ncel;
 	TPZStack<TPZCompElSide> sidevec;
-	for(int i = 0; i< ncm; i++){
+	for(long i = 0; i< ncm; i++){
 		ncel = cmeshVec[i]->NElements();
-		for (int j=0; j<ncel; j++) {
+		for (long j=0; j<ncel; j++) {
 			TPZCompEl * cel = cmeshVec[i]->ElementVec()[j];
 			if(cel){
 				TPZGeoEl *geoel = cel->Reference();
@@ -99,7 +99,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 				TPZGeoElSide *geoside = new TPZGeoElSide(geoel,ns-1);
 				sidevec.Resize(0);
 				geoside->HigherLevelCompElementList2(sidevec, 1,1);
-				int nel = sidevec.NElements();
+				long nel = sidevec.NElements();
 				if (nel==0){
 					//std::cout << "Incluindo elemento " << geoel->Index() << std::endl;
 					refIndexVec.insert(geoel->Index());
@@ -114,7 +114,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 		std::stringstream sout;
 		sout << "Number of elements : " << refIndexVec.size() << std::endl;
 		sout <<"Reference index of elements : "<< std::endl;
-		std::set<int>::iterator it;
+		std::set<long>::iterator it;
 		for (it=refIndexVec.begin() ; it != refIndexVec.end(); it++ )
 			sout << " " << *it;
 		sout << std::endl;
@@ -203,8 +203,8 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
         out << "\nReference Index = " << this->Reference()->Index() << std::endl;
     
     out << "\nComputational elements this multi-physics element: \n";
-    int nmesh  = fElementVec.size();
-    for(int iel = 0; iel< nmesh; iel++ ){
+    long nmesh  = fElementVec.size();
+    for(long iel = 0; iel< nmesh; iel++ ){
         
         out << "\nComputational element belonging to the mesh " << iel+1 <<":";
         TPZCompEl *cel = fElementVec[iel];
@@ -235,8 +235,8 @@ TPZCompEl * TPZMultiphysicsCompEl<TGeometry>::Clone(TPZCompMesh &mesh) const {
 
 template <class TGeometry>
 TPZCompEl* TPZMultiphysicsCompEl<TGeometry>::ClonePatchEl(TPZCompMesh &mesh,
-														  std::map<int,int> & gl2lcConMap,
-														  std::map<int,int> & gl2lcElMap) const {
+														  std::map<long,long> & gl2lcConMap,
+														  std::map<long,long> & gl2lcElMap) const {
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
     return 0;
@@ -248,7 +248,7 @@ int TPZMultiphysicsCompEl<TGeometry>::NConnects() const {
 }
 
 template <class TGeometry>
-int TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
+long TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
     return fConnectIndexes[i];
 }
 
@@ -273,7 +273,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & va
 		return;
 	}
 
-	int nref = fElementVec.size();
+	long nref = fElementVec.size();
 	TPZVec<TPZMaterialData> datavec;
 	datavec.resize(nref);	
 	
@@ -285,7 +285,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & va
 #endif
 	
 	TPZVec<int> nshape(nref);
-	for (int iref = 0; iref<nref; iref++) 
+	for (long iref = 0; iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if(!msp) continue;
@@ -341,14 +341,11 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	TPZVec<REAL> myqsi;
 	myqsi.resize(qsi.size());
 	
-	
-	
-	
-	int nref = fElementVec.size();
+	long nref = fElementVec.size();
 	TPZVec<TPZMaterialData> datavec;
 	datavec.resize(nref);
     
-	for (int iref = 0; iref<nref; iref++)
+	for (long iref = 0; iref<nref; iref++)
 	{		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if(!msp) continue;
@@ -396,7 +393,7 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMa
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, int index){
+void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, long index){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }
@@ -413,11 +410,11 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 		numeq += Connect(ic).NDof(*Mesh());
 	}
 	
-	int nref = this->fElementVec.size();
+	long nref = this->fElementVec.size();
 	int nstate = 0;
 	//nstate=1;
     int numloadcases = 1;
-	for (int iref=0; iref<nref; iref++) {
+	for (long iref=0; iref<nref; iref++) {
 		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if (! msp) {
@@ -461,7 +458,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec)
 {
-	int nref = this->fElementVec.size();
+	long nref = this->fElementVec.size();
 	
 #ifdef DEBUG
 	if (nref != dataVec.size()) {
@@ -471,7 +468,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 #endif
 	
 	TPZVec<int> nshape(nref);
-	for (int iref = 0; iref < nref; iref++)
+	for (long iref = 0; iref < nref; iref++)
 	{
         if(fElementVec[iref])
         {
@@ -504,7 +501,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
 	TPZManVector<TPZMaterialData,3> datavec;
-	const int nref = fElementVec.size(); 
+	const long nref = fElementVec.size(); 
 	datavec.resize(nref);
 	InitMaterialData(datavec);
 	
@@ -519,7 +516,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	TPZManVector<int> ordervec;
 	//ordervec.resize(nref);
-	for (int iref=0;  iref<nref; iref++) 
+	for (long iref=0;  iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         int svec;
@@ -553,8 +550,8 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
 
-        int ElemVecSize = fElementVec.size();
-		for (int iref = 0; iref < ElemVecSize; iref++)
+        long ElemVecSize = fElementVec.size();
+		for (long iref = 0; iref < ElemVecSize; iref++)
 		{
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
             if (!msp) {
@@ -579,10 +576,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 {
-	const int nref = fElementVec.size(); 
+	const long nref = fElementVec.size(); 
     TPZVec<int> ordervec;
 	ordervec.resize(nref);
-	for (int iref=0;  iref<nref; iref++) 
+	for (long iref=0;  iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
 		ordervec[iref] =  msp->MaxOrder();
@@ -674,34 +671,34 @@ template class TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid>;
 
 
-TPZCompEl * CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>(mesh, gel, index); 
 }
 
-TPZCompEl * CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle >(mesh,gel,index);
 }
 
-TPZCompEl * CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoCube >(mesh,gel,index);
 }
 
-TPZCompEl * CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism>(mesh,gel,index);
 }
 
-TPZCompEl * CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>(mesh,gel,index);
 }
 
-TPZCompEl * CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid >(mesh,gel,index);
 }

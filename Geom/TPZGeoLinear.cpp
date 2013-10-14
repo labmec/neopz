@@ -31,10 +31,10 @@ namespace pzgeom {
 	
 	TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
 		if(side==2) {
-			TPZManVector<int> nodes(2);
+			TPZManVector<long> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 			//      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
@@ -43,10 +43,10 @@ namespace pzgeom {
 			return gel;
 		}
 		else if(side==0 || side==1) {
-			TPZManVector<int> nodeindexes(1);
+			TPZManVector<long> nodeindexes(1);
 			//      TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//      gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
@@ -60,9 +60,9 @@ namespace pzgeom {
 	 * Creates a geometric element according to the type of the father element
 	 */
 	TPZGeoEl *TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											 TPZVec<int>& nodeindexes,
+											 TPZVec<long>& nodeindexes,
 											 int matid,
-											 int& index)
+											 long& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}

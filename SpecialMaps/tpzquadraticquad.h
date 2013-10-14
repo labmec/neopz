@@ -33,7 +33,7 @@ namespace pzgeom {
 			return false;
 		}
 		/** @brief Constructor from node indexes */
-		TPZQuadraticQuad(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+		TPZQuadraticQuad(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		/** @brief Default constructor */
@@ -41,7 +41,7 @@ namespace pzgeom {
 		{
 		}
 		/** @brief Constructor over node map */
-		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		/** @brief Copy constructor */
@@ -91,9 +91,9 @@ namespace pzgeom {
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
+										  TPZVec<long>& nodeindexes,
 										  int matid,
-										  int& index);
+										  long& index);
 };
 
 };

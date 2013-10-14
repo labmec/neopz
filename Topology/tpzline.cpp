@@ -313,7 +313,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZLine::GetTransformId(TPZVec<int> &id)
+	int TPZLine::GetTransformId(TPZVec<long> &id)
 	{
 		return id[0] < id[1] ? 0 : 1;
 	}
@@ -324,7 +324,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZLine::GetTransformId(int side, TPZVec<int> &id)
+	int TPZLine::GetTransformId(int side, TPZVec<long> &id)
 	{
 		switch (side) {
 			case 0:
@@ -347,7 +347,7 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZLine::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	void TPZLine::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
 	{
 		switch (side) {
 			case 0:

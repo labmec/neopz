@@ -32,7 +32,7 @@ public:
 	
 	virtual int NNodes();
 	
-	virtual TPZGraphNode *Connect(int i) {return fConnects[i];}
+	virtual TPZGraphNode *Connect(long i) {return fConnects[i];}
 	
 	virtual int NPoints(TPZGraphNode *n);
 	
@@ -54,7 +54,7 @@ protected:
 	/** @brief Graphical nodes vector (by connect of the computational element) */
 	TPZGraphNode *fConnects[3];
 	
-	virtual void SetNode(int i,TPZGraphNode *gno) {
+	virtual void SetNode(long i,TPZGraphNode *gno) {
 		fConnects[i] = gno;
 	}
 	

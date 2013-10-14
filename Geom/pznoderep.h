@@ -62,12 +62,12 @@ namespace pzgeom {
                
                 static const int NNodes=N;
                 /** @brief Node indexes of the element */
-                int fNodeIndexes[N];
+                long fNodeIndexes[N];
                 /** @brief Constructor with list of nodes */
-                TPZNodeRep(TPZVec<int> &nodeindexes)
+                TPZNodeRep(TPZVec<long> &nodeindexes)
                 {
                         int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
-                        memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(int));
+                        memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(long));
                         int i;
                         for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
                 }
@@ -75,18 +75,18 @@ namespace pzgeom {
                 /** @brief Empty constructor */
                 TPZNodeRep()
                 {
-                        int i;
+                        long i;
                         for(i=0; i<N; i++) fNodeIndexes[i]=-1;
                 }
                
                 /** @brief Constructor with node map */
                 TPZNodeRep(const TPZNodeRep &cp,
-                                   std::map<int,int> & gl2lcNdMap);
+                                   std::map<long,long> & gl2lcNdMap);
                
                 /** @brief Copy constructor */
                 TPZNodeRep(const TPZNodeRep<N,Topology> &cp)
                 {
-                        memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int));
+                        memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(long));
                 }
        
         void Read(TPZStream &buf, void *context)
@@ -99,9 +99,9 @@ namespace pzgeom {
             buf.Write(fNodeIndexes,NNodes);
                 }
        
-                void Initialize(TPZVec<int> &nodeindexes)
+                void Initialize(TPZVec<long> &nodeindexes)
                 {
-                        int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
+                        long nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
 #ifndef NODEBUG
                         if(nodeindexes.NElements() != N)
                         {
@@ -114,8 +114,8 @@ namespace pzgeom {
 #endif
                         }
 #endif
-                        memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(int));
-                        int i;
+                        memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(long));
+                        long i;
                         for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
                        
                 }

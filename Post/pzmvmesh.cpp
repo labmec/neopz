@@ -73,7 +73,7 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 	
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.DISPLACEMENT" << endl;
 	(fOutFile) << NPoints() << " 'Nodal Displ'" << endl;
-	int nnod = fNodeMap.NElements(),i;
+	long nnod = fNodeMap.NElements(),i;
 	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) n->DrawSolution(dispind, EMVStyle);
@@ -113,8 +113,8 @@ void TPZMVGraphMesh::SequenceNodes(){
 	TPZGraphMesh::SequenceNodes();
 	int dim;
 	for(dim=0; dim<3; dim++) {
-        int nnod = fNodeMap.NElements();
-        for(int i=0;i<nnod;i++) {
+        long nnod = fNodeMap.NElements();
+        for(long i=0;i<nnod;i++) {
 			TPZGraphNode *n = &fNodeMap[i];
 			if(n) n->SetPointNumber(n->FirstPoint()+1);// renumera de 1 para frente
         }                                             // o valor do id do n�
@@ -124,8 +124,8 @@ void TPZMVGraphMesh::SequenceNodes(){
 void TPZMVGraphMesh::DrawNodes(){
 	
 	long nn = 0L;
-	int nnod = fNodeMap.NElements();
-	int i;
+	long nnod = fNodeMap.NElements();
+	long i;
 	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) nn += n->NPoints();
@@ -143,7 +143,7 @@ void TPZMVGraphMesh::DrawNodes(){
 
 void TPZMVGraphMesh::DrawConnectivity(MElementType type) {
 	
-	int nel = fElementList.NElements();
+	long nel = fElementList.NElements();
 	if(!nel) return;
 	TPZGraphEl *el = (TPZGraphEl *) fElementList[0];
 	int numnodes = el->NConnects();
@@ -156,7 +156,7 @@ void TPZMVGraphMesh::DrawConnectivity(MElementType type) {
 		(fOutFile) << "%ELEMENT.T3\n";
 	}
 	(fOutFile) << ((imax*imax)*nel) << endl;
-	for(int i=0;i<nel;i++) {
+	for(long i=0;i<nel;i++) {
 		el = (TPZGraphEl *) fElementList[i];
 		if(el) el->Connectivity(EMVStyle);
  	}

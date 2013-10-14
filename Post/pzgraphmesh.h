@@ -42,8 +42,8 @@ public:
 	virtual ~TPZGraphMesh(void);
 	
 	/** @brief Find graphical node (connect) */
-	TPZGraphNode &FindNode(int side);
-	TPZGraphEl *FindElement(int sid);
+	TPZGraphNode &FindNode(long side);
+	TPZGraphEl *FindElement(long sid);
 	/** @brief Vector of the graphical elements */
 	TPZAdmChunkVector<TPZGraphEl *> &ElementList();
 	/** @brief Vector of the graphical nodes */

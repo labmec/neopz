@@ -34,7 +34,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl()
 {
 }
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int &index,
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index,
                                                                     TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index),fLeftElSide(leftside), fRightElSide(rightside)
 {
 	
@@ -55,7 +55,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
 void TPZMultiphysicsInterfaceElement::IncrementElConnected(){
 	const int ncon = this->NConnects();
 	for(int i = 0; i < ncon; i++){
-		int index = this->ConnectIndex(i);
+		long index = this->ConnectIndex(i);
 		fMesh->ConnectVec()[index].IncrementElConnected();
 	}
 }
@@ -70,8 +70,8 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
     }
     int leftside = left.Side();
     int rightside = right.Side();
-    int leftindex = left.Element()->Index();
-    int rightindex = right.Element()->Index();
+    long leftindex = left.Element()->Index();
+    long rightindex = right.Element()->Index();
     TPZCompEl *leftel = mesh.ElementVec()[leftindex];
     TPZCompEl *rightel = mesh.ElementVec()[rightindex];
     if (!leftel || !rightel) {
@@ -82,8 +82,8 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
 }
 
 /** @brief create a copy of the given element using index mapping */
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<int,int> & gl2lcConMap,
-                                std::map<int,int> & gl2lcElMap)
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
+                                std::map<long,long> & gl2lcElMap)
 {
     TPZCompElSide left = copy.Left();
     TPZCompElSide right = copy.Right();
@@ -92,8 +92,8 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
     }
     int leftside = left.Side();
     int rightside = right.Side();
-    int leftindex = left.Element()->Index();
-    int rightindex = right.Element()->Index();
+    long leftindex = left.Element()->Index();
+    long rightindex = right.Element()->Index();
     if (gl2lcElMap.find(leftindex) == gl2lcElMap.end() || gl2lcElMap.find(rightindex) == gl2lcElMap.end()) {
         DebugStop();
     }
@@ -118,8 +118,8 @@ void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZManVector<TPZCompE
     TPZGeoEl *gel = Reference();
     int side = gel->NSides()-1;
     TPZGeoElSide thisside(gel,side);
-    int numneigh = Neighbor.size();
-    for (int in=0; in<numneigh; in++) {
+    long numneigh = Neighbor.size();
+    for (long in=0; in<numneigh; in++) {
         TPZGeoElSide gelside = Neighbor[in].Reference();
         if(! thisside.NeighbourExists(gelside))
         {
@@ -159,7 +159,7 @@ int TPZMultiphysicsInterfaceElement::NConnects() const
  * @brief Returns the index of the ith connectivity of the element
  * @param i connectivity index who want knows
  */
-int TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
+long TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 {
 #ifdef DEBUG
     if (i < 0) {
@@ -265,7 +265,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
 	const int ncon = this->NConnects();
-	int numeq = 0;
+	long numeq = 0;
 	int ic;
 	
 	for(ic=0; ic<ncon; ic++)

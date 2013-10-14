@@ -19,7 +19,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal()
 {
 }
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows) : fBlock(blockgraph), fBlockIndex(blockgraphindex)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows) : fBlock(blockgraph), fBlockIndex(blockgraphindex)
 {
 	long numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
@@ -34,7 +34,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TP
 }
 
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,long rows, int color, TPZVec<int> &colors)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows, int color, TPZVec<int> &colors)
 {
 	LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
 	long numbl = blockgraphindex.NElements()-1;
@@ -55,12 +55,12 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TP
 	{
 		if(colors[ibl]==color) 
 		{
-			int first = blockgraphindex[ibl];
-			int last = blockgraphindex[ibl+1];
-			int firstcp = fBlockIndex[iblcount];
+			long first = blockgraphindex[ibl];
+			long last = blockgraphindex[ibl+1];
+			long firstcp = fBlockIndex[iblcount];
 			this->fBlockIndex[iblcount+1] = firstcp+this->fBlockSize[iblcount];
 			//      int lastcp = fBlockIndex[iblcount+1];
-			int ieq,ieqcp;
+			long ieq,ieqcp;
 			for(ieq=first,ieqcp=firstcp; ieq<last; ieq++,ieqcp++)
 			{
 				fBlock[ieqcp] = blockgraph[ieq];
@@ -176,10 +176,10 @@ void TPZSparseBlockDiagonal<TVar>::Print(const char* message, std::ostream& out,
 		long ibl;
 		for(ibl = 0; ibl<nbl ; ibl++)
 		{
-			int first = fBlockIndex[ibl];
-			int last = fBlockIndex[ibl+1];
+			long first = fBlockIndex[ibl];
+			long last = fBlockIndex[ibl+1];
 			out << "Block " << ibl << " : ";
-			int i;
+			long i;
 			for(i=first; i<last; i++) out << fBlock[i] << " ";
 			out << endl;
 		}
@@ -204,7 +204,7 @@ void TPZSparseBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar>& matrix)
 		long nel = this->fBlockSize[ibl];
 		indices.Resize(nel);
 		submat.Resize(nel,nel);
-		int iel,first = fBlockIndex[ibl];
+		long iel,first = fBlockIndex[ibl];
 		for(iel=0; iel<nel; iel++) indices[iel] = fBlock[first+iel];
 		matrix.GetSub(indices,submat);
 		this->SetBlock(ibl,submat);

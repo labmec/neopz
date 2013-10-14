@@ -22,14 +22,14 @@ using namespace std;
 TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
 fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
-void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int NIterations) {
+void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, long NIterations) {
 	fEtaAdmissible = EtaAdmissible;
 	fNIterations = NIterations;
 }
 /** @brief Output file with number of iteration made. */
 std::ofstream arq("Param.dat");
 void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEtaAdmissible) {
-	int iter = 0;//iteracao atual
+	long iter = 0;//iteracao atual
 	cout << "\n\nIteration  1\n";
 	out << "\n   Iteration  1\n";
 	Run(out);//solucao malha inicial
@@ -107,7 +107,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 	out.flush();	 
 }
 
-void TPZAnalysisError::PlotLocal(int iter, REAL CurrentEtaAdmissible, std::ostream &out) {
+void TPZAnalysisError::PlotLocal(long iter, REAL CurrentEtaAdmissible, std::ostream &out) {
 	EvaluateError(CurrentEtaAdmissible,out);
 	TPZManVector<std::string> solution(1);
 	solution[0] = "Solution";
@@ -151,7 +151,7 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 	TPZStack<TPZCompElSide> ElToRefine;
 	TPZStack<int> POrder;
 	TPZStack<TPZGeoElSide> subelements;
-	TPZStack<int> csubindex;
+	TPZStack<long> csubindex;
 	ElToRefine.Push(elside);
 	POrder.Push(Nc);
 	while(ElToRefine.NElements()) {
@@ -159,7 +159,7 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 		TPZCompElSide curelside = ElToRefine.Pop();
 		int curporder = POrder.Pop();
 		if(!curelside.Exists()) continue;
-		int cindex = curelside.Element()->Index();
+		long cindex = curelside.Element()->Index();
 		if(cindex < 0) continue;
 		
 		/** Cast the element to an interpolated element if possible*/
@@ -180,9 +180,9 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 		TPZGeoElSide gelside = curelside.Reference();
 		if(!gelside.Exists()) continue;
 		gelside.GetSubElements2(subelements);
-		int ns = subelements.NElements();
+		long ns = subelements.NElements();
 		curporder--;
-		int is;
+		long is;
 		for(is=0; is<ns; is++) {
 			TPZGeoElSide sub = subelements[is];
 			TPZCompElSide csub = sub.Reference();
@@ -197,9 +197,9 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 	/*
 	 REAL H1_error,L2_error,estimate;
 	 TPZBlock *flux=0;
-	 int nel = fElIndexes.NElements();
-	 for(int elloc=0;elloc<nel;elloc++) {
-	 int el = fElIndexes[elloc];
+	 long nel = fElIndexes.NElements();
+	 for(long elloc=0;elloc<nel;elloc++) {
+	 long el = fElIndexes[elloc];
 	 estimate = fElErrors[elloc];
 	 REAL csi = estimate / fAdmissibleError;
 	 REAL h = h_Parameter(intellist[el]);
@@ -211,12 +211,12 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 	 //obter um subelemento que contem o ponto singular e tem tamanho <= hn
 	 TPZAdmChunkVector<TPZCompEl *> sublist;
 	 while(hsub > hn) {
-	 TPZVec<int> indexsubs;
-	 int index = locel->Index();
+	 TPZVec<long> indexsubs;
+	 long index = locel->Index();
 	 locel->Divide(index,indexsubs,1);
-	 int nsub = indexsubs.NElements();
+	 long nsub = indexsubs.NElements();
 	 TPZAdmChunkVector<TPZCompEl *> listsub(0);
-	 for(int k=0;k<nsub;k++) {
+	 for(long k=0;k<nsub;k++) {
 	 index = listsub.AllocateNewElement();
 	 listsub[index] = Mesh()->ElementVec()[indexsubs[k]];
 	 }
@@ -286,9 +286,9 @@ void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 	TPZVec<TPZCompElSide> SingLocal(fSingular);
 	fSingular.Resize(0);
 	
-	int nel = fElIndexes.NElements();
-	for(int ielloc=0;ielloc<nel;ielloc++) {
-		int iel = fElIndexes[ielloc];
+	long nel = fElIndexes.NElements();
+	for(long ielloc=0;ielloc<nel;ielloc++) {
+		long iel = fElIndexes[ielloc];
 		// if the element has already been treated (e.g. singularity) skip the process
 		if(iel == -1) continue;
 		TPZInterpolatedElement *elem = (TPZInterpolatedElement *) listel[iel];
@@ -299,7 +299,7 @@ void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 		}
 		REAL csi = fElErrors[ielloc] / fAdmissibleError;
 		// Verificar se o element atual e um elemento singular
-		int ising, nsing = SingLocal.NElements();
+		long ising, nsing = SingLocal.NElements();
 		for(ising=0; ising<nsing; ising++) {
 			if(elem == SingLocal[ising].Element()) {
 				ZoomInSingularity(csi,SingLocal[ising]);
@@ -314,7 +314,7 @@ void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 		
 		// Newton's Method -> compute pNew    
 		REAL pFn = pFo, res = 10.0, phi, del, dph, tol = 0.001;
-		int MaxIter = 100; int iter=0;
+		long MaxIter = 100; long iter=0;
 		while (iter < MaxIter && res > tol) {
 			phi = pFo+log(csi)-pFo*log(pFn/pFo);
 			dph = pFn/(pFo+pFn);
@@ -360,8 +360,8 @@ void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 		TPZCompEl *locel = elem;
 		//Divide elements
 		if(factor == 0.5 ) {
-			TPZVec<int> indexsubs;
-			int index = locel->Index();
+			TPZVec<long> indexsubs;
+			long index = locel->Index();
 			elem->Divide(index,indexsubs,1);
 		} 
 	}
@@ -402,18 +402,18 @@ void TPZAnalysisError::MathematicaPlot() {
 	
 	TPZGeoMesh *gmesh = fCompMesh->Reference();
 	TPZAdmChunkVector<TPZGeoNode> &listnodes = gmesh->NodeVec();
-	int nnodes = gmesh->NNodes();
+	long nnodes = gmesh->NNodes();
 	TPZAdmChunkVector<TPZGeoNode> nodes(listnodes);
-	TPZVec<int> nodeindex(0);
-	int keepindex;
-	int in;
+	TPZVec<long> nodeindex(0);
+	long keepindex;
+	long in;
 	for(in=0;in<nnodes;in++) {
 		TPZGeoNode *nodei = &nodes[in];
 		REAL xi;
 		if(nodei) xi = nodei->Coord(0);
 		else continue;
 		keepindex = in;
-		for(int jn=in;jn<nnodes;jn++) {
+		for(long jn=in;jn<nnodes;jn++) {
 			TPZGeoNode *nodej = &nodes[jn];
 			REAL xj;
 			if(nodej) xj = nodej->Coord(0); else continue;
@@ -431,19 +431,19 @@ void TPZAnalysisError::MathematicaPlot() {
 	ofstream mesh("Malha.dat");
 	ofstream graph("Graphic.nb");
 	mesh << "\nDistribuicao de nos\n\n";
-	int i;
+	long i;
 	for(i=0;i<nnodes;i++) {
 		if(&nodes[i]) mesh << nodes[i].Coord(0) << endl;
 	}
 	//2a parte
-	TPZVec<int> locnodid(nnodes,0);
+	TPZVec<long> locnodid(nnodes,0);
 	TPZVec<TPZGeoEl *> gelptr(nnodes);
-	int nel = gmesh->NElements();//gmesh->ElementVec().NElements();
-	int count = 0;
+	long nel = gmesh->NElements();//gmesh->ElementVec().NElements();
+	long count = 0;
 	for(in=0;in<nnodes;in++) {
 		TPZGeoNode *nodei = &nodes[in];
 		if(!nodei) continue;
-		for(int iel=0;iel<nel;iel++) {
+		for(long iel=0;iel<nel;iel++) {
 			TPZGeoEl *gel = gmesh->ElementVec()[iel];
 			if(!gel || !gel->Reference() || gel->MaterialId() < 0) continue;
 			//int numnodes = gel->NNodes();
@@ -456,8 +456,8 @@ void TPZAnalysisError::MathematicaPlot() {
             }
 		}
 	}
-	TPZVec<int> connects(nnodes);
-	int iel;
+	TPZVec<long> connects(nnodes);
+	long iel;
 	for(iel=0;iel<nnodes;iel++) {
 		//if(!gelptr[iel] || !(gelptr[iel]->Reference())) continue;
 		connects[iel] = gelptr[iel]->Reference()->ConnectIndex(locnodid[iel]);
@@ -470,8 +470,8 @@ void TPZAnalysisError::MathematicaPlot() {
             mesh << "\nError in structure of dates\n";
             return;//exit(-1);
         }
-        int seqnum = df->SequenceNumber();
-        int pos = fCompMesh->Block().Position(seqnum);
+        long seqnum = df->SequenceNumber();
+        long pos = fCompMesh->Block().Position(seqnum);
         sol[i] = fCompMesh->Solution()(pos,0);
 	}
 	mesh << "\nSolucao nodal\n\n";
@@ -479,11 +479,11 @@ void TPZAnalysisError::MathematicaPlot() {
 		mesh << sol[i] << endl;
 	}
 	// expanding solution
-	int numsols = 5*(nnodes-1)+1;   // 5 values by element: 3 interpolated (interior) + 2 over corners
+	long numsols = 5*(nnodes-1)+1;   // 5 values by element: 3 interpolated (interior) + 2 over corners
 	TPZVec<STATE> expand_sol(numsols);
 	TPZVec<REAL> expand_nodes(numsols);
  	TPZVec<REAL> qsi(1);
-	int exp_iel = -1;
+	long exp_iel = -1;
 	for(iel=0;iel<nnodes-1;iel++) {
 		TPZManVector<STATE> locsol(1);
 		exp_iel++;
@@ -503,7 +503,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	expand_sol[numsols-1] = sol[nnodes-1];
 	// Mathematica output format
 	graph << "list = {" << endl;
-	for(int isol=0;isol<numsols;isol++) {
+	for(long isol=0;isol<numsols;isol++) {
 		if(isol > 0) graph << ",";
 		STATE expandsol = expand_sol[isol];
 		if(fabs(expandsol) < 1.e-10) expandsol = 0.;
@@ -523,13 +523,13 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &ou
 	errorSum.Fill(0.0);
 	
 	TPZBlock<REAL> *flux = 0;
-	int elcounter=0;
-	int numel = Mesh()->ElementVec().NElements();
+	long elcounter=0;
+	long numel = Mesh()->ElementVec().NElements();
 	fElErrors.Resize(numel);
 	fElIndexes.Resize(numel);
 	Mesh()->ElementSolution().Redim(numel,1);
 	// Sum of the errors over all computational elements
-	int el;
+	long el;
 	for(el=0;el< numel;el++) {
 		TPZCompEl *elptr = Mesh()->ElementVec()[el];
 		if(elptr && !(elptr->Material()->Id() < 0)) {
@@ -554,10 +554,10 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &ou
 }
 
 void TPZAnalysisError::ExpandConnected(TPZStack<TPZCompElSide> &singel){
-	int nelem = singel.NElements();
+	long nelem = singel.NElements();
 	TPZStack<TPZGeoElSide> gelstack;
 	TPZStack<TPZCompElSide> celstack;
-	int iel;
+	long iel;
 	for(iel=0; iel<nelem; iel++) {
 		TPZCompElSide celside = singel[iel];
 		TPZGeoElSide gelside;
@@ -573,8 +573,8 @@ void TPZAnalysisError::ExpandConnected(TPZStack<TPZCompElSide> &singel){
 			while(celstack.NElements()) {
 				TPZCompElSide celsideloc = celstack.Pop();
 				if(! celsideloc.Exists()) continue;
-				int nelsing = singel.NElements();
-				int smel;
+				long nelsing = singel.NElements();
+				long smel;
 				for(smel=0; smel<nelsing; smel++) if(singel[smel].Element() == celsideloc.Element()) break;
 				if(smel != nelsing) singel.Push(celsideloc);
 			}

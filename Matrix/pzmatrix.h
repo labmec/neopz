@@ -546,7 +546,7 @@ public:
 	 * @param dt Indicates type of decomposition
 	 * @param singular
 	 */
-	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt, std::list<int> &singular);
+	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt, std::list<long> &singular);
 	/**
 	 * @brief Solves the linear system using Direct methods
 	 * @param F The right hand side of the system and where the solution is stored.
@@ -555,7 +555,7 @@ public:
 	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt);
 	
     /** @brief decompose the system of equations acording to the decomposition scheme */
-    virtual int Decompose(const DecomposeType dt, std::list<int> &singular)
+    virtual int Decompose(const DecomposeType dt, std::list<long> &singular)
     {
         switch (dt) {
             case ELU:
@@ -581,7 +581,7 @@ public:
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_LU ( TPZFMatrix<TVar>* B, std::list<int> &singular );
+	int Solve_LU ( TPZFMatrix<TVar>* B, std::list<long> &singular );
 	/**
 	 * @brief Solves the linear system using LU method\n
 	 * @param B The right hand side of the system and where the solution is stored.
@@ -598,13 +598,13 @@ public:
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int> &singular );
+	int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<long> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_LDLt    ( TPZFMatrix<TVar>* B, std::list<int> &singular );
+	int Solve_LDLt    ( TPZFMatrix<TVar>* B, std::list<long> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
@@ -620,7 +620,7 @@ public:
 	 */
 	
 	/** @brief Decomposes the current matrix using LU decomposition. */
-	virtual int Decompose_LU(std::list<int> &singular);
+	virtual int Decompose_LU(std::list<long> &singular);
 	virtual int Decompose_LU();
 	
 	/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
@@ -629,14 +629,14 @@ public:
 	 * @brief Decomposes the current matrix using Cholesky method.
 	 * @param singular
 	 */
-	virtual int Decompose_Cholesky(std::list<int> &singular) ;
+	virtual int Decompose_Cholesky(std::list<long> &singular) ;
 	
 	/**
 	 * @brief Decomposes the current matrix using LDLt. \n
 	 * The current matrix has to be symmetric.
 	 * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
 	 */
-	virtual int Decompose_LDLt(std::list<int> &singular);
+	virtual int Decompose_LDLt(std::list<long> &singular);
 	/** @brief Decomposes the current matrix using LDLt. */
 	virtual int Decompose_LDLt();
 	
@@ -868,7 +868,7 @@ inline long TPZMatrix<TVar>::Dim() const{
 //***Solve LU ***/
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int> &singular) {
+inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<long> &singular) {
 	if ( IsSimetric() )
         Error( "LU decomposition is a not symetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
@@ -895,7 +895,7 @@ inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B )
 }
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int> &singular ) {
+inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<long> &singular ) {
 	return(
 		   ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
 		   );
@@ -916,7 +916,7 @@ inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B ) {
 
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int> &singular ) {
+inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<long> &singular ) {
 	
 	return(
 		   ( !Decompose_LDLt(singular) )? 0 :

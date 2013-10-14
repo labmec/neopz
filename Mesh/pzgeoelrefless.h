@@ -64,22 +64,22 @@ public:
 	 */
 	TPZGeoElRefLess(TPZGeoMesh &DestMesh,
 					const TPZGeoElRefLess &cp,
-					std::map<int,int> & gl2lcNdMap,
-					std::map<int,int> & gl2lcElMap);
+					std::map<long,long> & gl2lcNdMap,
+					std::map<long,long> & gl2lcElMap);
 	
-	TPZGeoEl *ClonePatchEl(TPZGeoMesh &destmesh,std::map<int,int> & gl2lcNdMap,
-						   std::map<int,int> & gl2lcElMap) const
+	TPZGeoEl *ClonePatchEl(TPZGeoMesh &destmesh,std::map<long,long> & gl2lcNdMap,
+						   std::map<long,long> & gl2lcElMap) const
 	{
 		return new TPZGeoElRefLess(destmesh,*this,gl2lcNdMap, gl2lcElMap);
 	}
 	
-	TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+	TPZGeoElRefLess(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh);
 	
 	TPZGeoElRefLess(TGeo &Geo, int matind,TPZGeoMesh &mesh);
 	
-	TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+	TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh);
     
-	TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+	TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZGeoMesh &mesh,long &index);
 	
 	virtual void Read(TPZStream &str, void *context);
 	
@@ -104,7 +104,7 @@ public:
 	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element */
 	virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 	
-	virtual  int NodeIndex(int node) const;
+	virtual  long NodeIndex(int node) const;
 	
 	//HDiv
 	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector);
@@ -134,7 +134,7 @@ public:
 		for (i = 0;i < NNodes();i++) out << NodePtr(i)->Id() << " ";
 	}
 	
-	virtual  int SideNodeIndex(int side,int node) const;
+	virtual  long SideNodeIndex(int side,int node) const;
 	
 	virtual  int SideNodeLocIndex(int side,int node) const;
 	
@@ -184,7 +184,7 @@ public:
 	virtual  int NSideNodes(int side) const;
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	virtual  void MidSideNodeIndex(int side,int &index) const;
+	virtual  void MidSideNodeIndex(int side,long &index) const;
 	
 	/** @brief Returns 1 if the side has not been defined by buildconnectivity */
 	/** After construction the side is undefined. The buildconnectivity method
@@ -205,12 +205,12 @@ public:
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
-									   TPZVec<int>& nodeindexes,
+									   TPZVec<long>& nodeindexes,
 									   int matid,
-									   int& index);
+									   long& index);
 	
 	/** @brief Initializes the node i of the element*/
-	virtual  void SetNodeIndex(int i,int nodeindex);
+	virtual  void SetNodeIndex(int i,long nodeindex);
 	
 	/**
 	 * @brief compute the transformation between the master element space of one side

@@ -40,9 +40,9 @@ namespace pzgeom {
 	
 	TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
 		if(side==0) {
-			TPZManVector<int> nodeindexes(1);
+			TPZManVector<long> nodeindexes(1);
 			nodeindexes[0] = orig->NodeIndex(0);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,0));
@@ -54,9 +54,9 @@ namespace pzgeom {
 	
 	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoPoint::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											TPZVec<int>& nodeindexes,
+											TPZVec<long>& nodeindexes,
 											int matid,
-											int& index)
+											long& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}

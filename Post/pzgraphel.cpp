@@ -19,7 +19,7 @@ TPZGraphEl::TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode **conne
 	TPZGraphNode *gno;
 	for(int j = 0; j < cel->Reference()->NSides(); j++) {
 		TPZConnect &cn = cel->Connect(j);
-		int newsize = cn.SequenceNumber()+1;
+		long newsize = cn.SequenceNumber()+1;
 		if( gmesh->NodeMap().NElements() < newsize ) {
             gmesh->NodeMap().Resize(newsize);
 		}
@@ -32,7 +32,7 @@ TPZGraphEl::TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode **conne
 		}
 		connectvec[j] = gno;
 	}
-	int index = gmesh->ElementList().AllocateNewElement();
+	long index = gmesh->ElementList().AllocateNewElement();
 	gmesh->ElementList()[index] = this;
 }
 
@@ -40,7 +40,7 @@ TPZGraphEl::TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode *&conne
 	fCompEl = cel;
 	fGraphMesh = gmesh;
 	fId = cel->Index();
-	int index = gmesh->NodeMap().AllocateNewElement();
+	long index = gmesh->NodeMap().AllocateNewElement();
 	TPZGraphNode *gno = &gmesh->NodeMap()[index];
 	gno->SetElement(this);
 	gno->SetSequenceNumber(index);
@@ -52,7 +52,7 @@ TPZGraphEl::TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode *&conne
    	gmesh->ElementList()[index] = this;
 }
 
-void TPZGraphEl::SetNode(int, TPZGraphNode *) {
+void TPZGraphEl::SetNode(long, TPZGraphNode *) {
 }
 
 TPZGraphEl::~TPZGraphEl(void)
@@ -61,7 +61,7 @@ TPZGraphEl::~TPZGraphEl(void)
 
 void TPZGraphEl::QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta)
 {
-	int ind,nel=i.NElements();
+	long ind,nel=i.NElements();
 	for(ind=0; ind<nel; ind++)
 	{
 		qsieta[ind] = (-1.0+(i[ind]*2.0/imax));
@@ -119,7 +119,7 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 	//	ComputeSequence(n, ibound, incr);
 	int res = fGraphMesh->Res();
 	int imax;
-	int numsol = solind.NElements();
+	long numsol = solind.NElements();
 	int numvar;
 	imax = 1 << res;
 	int np = NPoints(n);
@@ -131,7 +131,7 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 	{
 		QsiEta(co,imax,qsi);
 		if(st == EMVStyle || st == EV3DStyle) fGraphMesh->Out() << ip++ << " ";
-		for(int is=0; is<numsol; is++) 
+		for(long is=0; is<numsol; is++) 
 		{
 			fCompEl->Solution(qsi,solind[is],sol);
 			numvar = fCompEl->Material()->NSolutionVariables(solind[is]);

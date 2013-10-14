@@ -45,7 +45,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
 #endif
 
-void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
+void TPZCompEl::CalcBlockDiagonal(TPZStack<long> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
 	TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK),ef(this->Mesh(), TPZElementMatrix::EF);
 	int b;
 	CalcStiff(ek,ef);
@@ -62,7 +62,7 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<S
 		
 		for(b=0; b<numblock; b++) {
 			int blsize = blocksize[b];
-			int conind = ek.fConstrConnect[b];
+			long conind = ek.fConstrConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
 			//TPZFMatrix<REAL> ekbl(blsize,blsize);
@@ -91,7 +91,7 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<S
 			int blsize = blocksize[b];
 			//TPZFMatrix<REAL> ekbl(blsize,blsize);
 			TPZFMatrix<STATE> ekbl(blsize,blsize);
-			int conind = ek.fConnect[b];
+			long conind = ek.fConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
 			int r, c;
@@ -114,7 +114,7 @@ int TPZCompEl::gOrder = 2;
 TPZCompEl::TPZCompEl() : fMesh(0), fIndex(-1), fReferenceIndex(-1) {
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) {
 	fMesh = &mesh;
 	index = mesh.ElementVec().AllocateNewElement();
 	mesh.ElementVec()[index] = this;
@@ -124,13 +124,13 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
 	fMesh = &mesh;
-	int index = copy.fIndex;
+	long index = copy.fIndex;
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
 	fReferenceIndex = copy.fReferenceIndex;
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, long &index) {
 	fMesh = &mesh;
 	index = mesh.ElementVec().AllocateNewElement();
 	if(index >= 0) mesh.ElementVec()[index] = this;
@@ -138,7 +138,7 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
 	fReferenceIndex = copy.fReferenceIndex;
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int> &gl2lcElMap)
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap)
 {
 	fMesh = &mesh;
 	if (gl2lcElMap.find(copy.fIndex) == gl2lcElMap.end())
@@ -147,19 +147,19 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int>
 		sout << "ERROR in - " << __PRETTY_FUNCTION__
         << " original element index: " << copy.fIndex << " is not mapped!\n"
         << "Map content: ";
-		std::map<int,int>::iterator it;
+		std::map<long,long>::iterator it;
 		for (it=gl2lcElMap.begin();it!=gl2lcElMap.end();it++) sout << " ( " << it->first << " | " << it->second << " ) ;";
 		LOGPZ_ERROR (logger,sout.str().c_str());
 		DebugStop();
 	}
-	int index = gl2lcElMap[copy.fIndex];
+	long index = gl2lcElMap[copy.fIndex];
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
 	fReferenceIndex = copy.fReferenceIndex;
 }
 
 TPZCompEl::~TPZCompEl() {
-	int index = Index();
+	long index = Index();
     if (fMesh->ElementVec()[index] == this) {
         fMesh->ElementVec()[index] = 0;
         fMesh->ElementVec().SetFree(index);        
@@ -183,7 +183,7 @@ MElementType TPZCompEl::Type() {
 void TPZCompEl::LoadSolution() {
 	// an element without mesh is a free element
 	if(!Mesh() || !HasDependency()) return;
-	TPZStack<int> connectlist;
+	TPZStack<long> connectlist;
 	int totalconnects;
 	BuildConnectList(connectlist);
 	totalconnects = connectlist.NElements();
@@ -201,7 +201,7 @@ void TPZCompEl::LoadSolution() {
 	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
 	int maxdep = 0;
 	int in;
-	int iv,jv,idf;
+	long iv,jv,idf;
 	STATE coef;
 	for(in=0;in<totalconnects;in++)
 		maxdep = (maxdep < dependenceorder[in]) ? dependenceorder[in] : maxdep;
@@ -211,19 +211,19 @@ void TPZCompEl::LoadSolution() {
 			if(dependenceorder[in] != current_order) continue;
 			TPZConnect *dfn = &Mesh()->ConnectVec()[connectlist[in]];
 			if(!dfn->HasDependency()) continue;
-			int bl = dfn->SequenceNumber();
+			long bl = dfn->SequenceNumber();
 			int nvar = block.Size(bl);
 			int numstate = dfn->NState(); //numstate eh fornecida pelo connect 
 			//         int numshape = nvar/numstate;
 			TPZConnect::TPZDepend *dep = dfn->FirstDepend();
-			int blpos = block.Position(bl);
+			long blpos = block.Position(bl);
 			for(iv=0; iv<nvar; iv++) MeshSol(blpos+iv, 0) = 0.;
 			while(dep) {
-				int depconindex = dep->fDepConnectIndex;
+				long depconindex = dep->fDepConnectIndex;
 				TPZConnect &depcon = Mesh()->ConnectVec()[depconindex];
-				int depseq = depcon.SequenceNumber();
+				long depseq = depcon.SequenceNumber();
 				int numdepvar = block.Size(depseq);
-				int depseqpos = block.Position(depseq);
+				long depseqpos = block.Position(depseq);
 				for(iv=0; iv<nvar; iv+=numstate) {
 					for(jv=0; jv<numdepvar; jv+=numstate) {
 						coef = dep->fDepMatrix(iv/numstate,jv/numstate);
@@ -257,7 +257,7 @@ TPZCompMesh *TPZCompEl::Mesh() const {
 TPZConnect &TPZCompEl::Connect(int i) const{
 #ifndef NODEBUG
 	if(fMesh) {
-		int connectindex = ConnectIndex(i);
+		long connectindex = ConnectIndex(i);
 		if(connectindex >= 0) {
 			return fMesh->ConnectVec()[connectindex];
 		} else {
@@ -329,7 +329,7 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s)
 	TPZManVector<STATE> sol(numvar);
 	sol.Fill(0.);
 	Solution(point,varindex,sol);
-	for(int i=0; i<sol.NElements(); i++) {
+	for(long i=0; i<sol.NElements(); i++) {
 		s << sol[i] << '\t';
 	}
 }
@@ -364,7 +364,7 @@ void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
 	for(int i=0; i<numvar; i++) s << varname << '_' << i << '\t';
 }
 
-inline void TPZCompEl::Divide(int index, TPZVec<int> &subindex, int interpolate) {
+inline void TPZCompEl::Divide(long index, TPZVec<long> &subindex, int interpolate) {
 	subindex.Resize(0);
 	LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
@@ -387,24 +387,24 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
 	}
 }
 
-void TPZCompEl::BuildConnectList(std::set<int> &indepconnectlist,
-								 std::set<int> &depconnectlist) {
+void TPZCompEl::BuildConnectList(std::set<long> &indepconnectlist,
+								 std::set<long> &depconnectlist) {
 	const int ncon = this->NConnects();
 	for(int i = 0; i < ncon; i++) {
-		int conind = ConnectIndex(i);
+		long conind = ConnectIndex(i);
 		Connect(i).BuildConnectList(conind, indepconnectlist,depconnectlist,*Mesh());
 	}
 }
 
-void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
-	std::set<int> buf,buf2;
-	int ncon = connectlist.NElements();
-	for(int i = 0; i < ncon; i++) {
+void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
+	std::set<long> buf,buf2;
+	long ncon = connectlist.NElements();
+	for(long i = 0; i < ncon; i++) {
 		buf.insert(connectlist[i]);
 	}
 	BuildConnectList(buf2);
 	ncon = buf2.size();
-	std::set<int>::iterator it = buf2.begin();
+	std::set<long>::iterator it = buf2.begin();
 	for(it=buf2.begin() ; it != buf2.end(); it++) 
 	{
         if(buf.find(*it) == buf.end())
@@ -415,8 +415,8 @@ void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
 	}
 }
 
-void TPZCompEl::BuildConnectList(std::set<int> &connectlist) {
-	std::set<int> additional;
+void TPZCompEl::BuildConnectList(std::set<long> &connectlist) {
+	std::set<long> additional;
 	const int ncon = this->NConnects();
 	for(int i = 0; i < ncon; i++) {
 		additional.insert(this->ConnectIndex(i));
@@ -433,18 +433,17 @@ int TPZCompEl::HasDependency() {
 	return 0;
 }
 
-void TPZCompEl::SetIndex(int index) {
+void TPZCompEl::SetIndex(long index) {
 	fIndex = index;
 	return;
 }
 
-int TPZCompEl::NEquations(){
-	int i=0;
+int TPZCompEl::NEquations() {
 	int numeq=0;
-	for (;i<NConnects(); i++){
+	for (int i=0;i<NConnects(); i++){
 		TPZConnect &df = Connect(i);
 		if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
-		int seqnum = df.SequenceNumber();
+		long seqnum = df.SequenceNumber();
 		numeq += Mesh()->Block().Size(seqnum);
 	}
 	return numeq;
@@ -715,8 +714,8 @@ void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyi
 	TPZStack<TPZCompElSide> highdimsidevec;
 	TPZStack<int> smallsides;
 	TPZCompElSide compside,compsidenext;
-	int exnel = expandvec.NElements();
-	for (int i=0;i<exnel;i++) {
+	long exnel = expandvec.NElements();
+	for (long i=0;i<exnel;i++) {
 		TPZGeoElSide ref = expandvec[i].Reference();
 		smallsides.Resize(0);
 		ref.Element()->LowerDimensionSides(ref.Side(),smallsides);
@@ -728,7 +727,7 @@ void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyi
 				//         TPZGeoElSide geoside = compsidenext.Reference();//linha para teste
 				if (compsidenext.Reference().NeighbourExists(this->Reference())) {
 					TPZCompElSide lowid = LowerIdElementList(compside,onlyinterpolated);
-					int l=0;
+					long l=0;
 					while (l<expandvec.NElements() && lowid.Reference() != expandvec[l].Reference()) l++;
 					if(l == expandvec.NElements()) {
 						expandvec.Push(lowid);
@@ -766,8 +765,8 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
 }
 
 void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
-	int i,k;
-	int nelems = expandvec.NElements();
+	long i,k;
+	long nelems = expandvec.NElements();
 	TPZStack<TPZCompElSide> locexpand;
 	for(i=0;i<nelems;i++) locexpand.Push(expandvec[i]);
 	expandvec.Resize(0);
@@ -789,7 +788,7 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
 }
 
 /// Return the index of the middle side connect alon fSide
-int TPZCompElSide::ConnectIndex() const
+long TPZCompElSide::ConnectIndex() const
 {
     if(fEl)
     {
@@ -893,7 +892,7 @@ int TPZCompEl::PressureConnectIndex() const
     int index = -1;
     int count = 0;
     for (int ic=0; ic<ncon ; ic++) {
-        int locconnectindex = ConnectIndex(ic);
+        long locconnectindex = ConnectIndex(ic);
         TPZConnect &c = fMesh->ConnectVec()[locconnectindex];
         if (c.LagrangeMultiplier() && ! c.IsCondensed()) {
             index = ic;

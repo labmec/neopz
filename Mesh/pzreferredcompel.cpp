@@ -73,7 +73,7 @@ void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out) const{
 }//void
 
 template<class TCOMPEL>
-TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index):TCOMPEL(mesh, gel,index){
+TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index):TCOMPEL(mesh, gel,index){
 	
 }//method
 
@@ -90,8 +90,8 @@ TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, const TPZReferr
 template<class TCOMPEL>
 TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh,
 											  const TPZReferredCompEl<TCOMPEL> &copy,
-											  std::map<int,int> & gl2lcConMap,
-											  std::map<int,int> & gl2lcElMap):
+											  std::map<long,long> & gl2lcConMap,
+											  std::map<long,long> & gl2lcElMap):
 TCOMPEL(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	
@@ -116,8 +116,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 	TPZGradSolVec OtherDSol,OtherDSol2;
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-    int numbersol = sol.size();
-    for (int is=0; is<numbersol; is++) {
+    long numbersol = sol.size();
+    for (long is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
             AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
         }
@@ -144,8 +144,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 	TPZGradSolVec OtherDSol,OtherDSol2;
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-    int numbersol = sol.size();
-    for (int is=0; is<numbersol; is++) {
+    long numbersol = sol.size();
+    for (long is=0; is<numbersol; is++) {
         if(sol[is].NElements()){
             AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
         }
@@ -177,19 +177,19 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
 						   OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
 						   OtherRightSol, OtherDRightSol, OtherRightAxes);
 	
-	if (OtherLeftSol.NElements() || OtherRightSol.NElements()){//it means other has solution left/right
+	if (OtherLeftSol.NElements() || OtherRightSol.NElements()) {//it means other has solution left/right
 		if (normal.NElements() && OtherNormal.NElements()){ //then both element must have same normal
-			if ( !AreEqual(normal,OtherNormal) ){
+			if ( !AreEqual(normal,OtherNormal) ) {
 				PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
 			}
 		}
-		if (normal.NElements() == 0){//however, this may be a interpolationspace and other is an interface.
+		if (normal.NElements() == 0) {//however, this may be a interpolationspace and other is an interface.
 			normal = OtherNormal;//Then OtherNormal is the corret value
 		}//if (normal.NElements() == 0)
 	}//if other has solution
 	
-	int numbersol = ThisLeftSol.size();
-    for (int is=0; is<numbersol; is++) {
+	long numbersol = ThisLeftSol.size();
+    for (long is=0; is<numbersol; is++) {
         if(leftsol.NElements()){
             AdjustSolutionDerivatives(OtherDLeftSol[is],OtherLeftAxes,OtherDLeftSol2[is],leftaxes);
         }
@@ -249,10 +249,10 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
 	TPZFNMatrix<9> axesinner, axesfromlocal;
 	axesfrom.Transpose(&axesfromlocal);
 	axesto.ConstMultiply(axesfromlocal,axesinner);
-	int nderiv = dsolfrom.Rows();
-	int nstate = dsolfrom.Cols();
+	long nderiv = dsolfrom.Rows();
+	long nstate = dsolfrom.Cols();
 	dsolto.Resize(nderiv,nstate);
-	int id,jd,is;
+	long id,jd,is;
 	for(is=0; is<nstate; is++)
 	{
 		TPZManVector<STATE> dval(nderiv,0.);
@@ -273,9 +273,9 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
 template<class TVar>
 void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
 {
-	int nu1 = u1.NElements(),nu2 = u2.NElements();
+	long nu1 = u1.NElements(),nu2 = u2.NElements();
 	u12.Resize(nu1+nu2);
-	int i;
+	long i;
 	for(i=0; i<nu1; i++) u12[i] = u1[i];
 	for(i=0; i<nu2; i++) u12[i+nu1] = u2[i];
 }
@@ -283,19 +283,19 @@ void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
 template<class TVar>
 void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12)
 {
-	int ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
-	int ru12 = ru1 < ru2 ? ru2 : ru1;
-	int cu12 = cu1+cu2;
+	long ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
+	long ru12 = ru1 < ru2 ? ru2 : ru1;
+	long cu12 = cu1+cu2;
 	u12.Redim(ru12,cu12);
-	int i,j;
+	long i,j;
 	for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
 	for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);
 }
 
 bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol){
 	if (A.NElements() != B.NElements()) return false;
-	int i;
-	const int n = A.NElements();
+	long i;
+	const long n = A.NElements();
 	for(i = 0; i < n; i++){
 		if ( fabs(A[i] - B[i]) > tol ) return false;
 	}
@@ -316,39 +316,39 @@ template class TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >;
 
-TPZCompEl * CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
   	return new TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
 }
 
-TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZReferredCompEl< TPZCompElDisc >(mesh,gel,index);
 }
 

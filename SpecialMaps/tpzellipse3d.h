@@ -28,14 +28,14 @@ namespace pzgeom
 		enum {NNodes = 2};
 		/** @brief It is not linear mapping */
         
-        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+        virtual void ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord);
         
 		bool IsLinearMapping() const
 		{
 			return false;
 		}
 		/** @brief Constructor */
-		TPZEllipse3D(const TPZEllipse3D &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		TPZEllipse3D(const TPZEllipse3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 		}
 		/** @brief Default constructor */
 		TPZEllipse3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(){
@@ -51,7 +51,7 @@ namespace pzgeom
 		TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 		}
 		/** @brief Constructor with node indexes given */
-		TPZEllipse3D(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+		TPZEllipse3D(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
 		}
 		
 		/**
@@ -99,9 +99,9 @@ namespace pzgeom
 		
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
+										  TPZVec<long>& nodeindexes,
 										  int matid,
-										  int& index);
+										  long& index);
 		
 		void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);
 		void SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);

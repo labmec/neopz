@@ -60,7 +60,7 @@ static float stiff_sum = 0;
 #endif
 
 /** @brief Return the number of submeshes */
-static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
+static long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
 /** @brief return a pointer to the isub submesh */
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
@@ -102,7 +102,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	fMesh->InitializeBlock();
 	{
 		TPZVec<long> perm,iperm;
-		TPZStack<int> elgraph,elgraphindex;
+		TPZStack<long> elgraph,elgraphindex;
 		
 		
 		int nindep = fMesh->NIndependentConnects();
@@ -132,10 +132,10 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 			continue;
 		}
 		TPZVec<long> perm,iperm;
-		TPZStack<int> elgraph,elgraphindex;
-		int nindep = submesh->NIndependentConnects();
+		TPZStack<long> elgraph,elgraphindex;
+		long nindep = submesh->NIndependentConnects();
 		submesh->ComputeElGraph(elgraph,elgraphindex);
-		int nel = elgraphindex.NElements()-1;
+		long nel = elgraphindex.NElements()-1;
 #ifdef USING_BOOST
 		TPZBoostGraph boost(nel,nindep);
 		boost.setGType(TPZBoostGraph::KMC);
@@ -172,7 +172,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	
 	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(assembly);
 
-	int neq = fMesh->NEquations();
+	long neq = fMesh->NEquations();
 	dohr->Resize(neq,neq);
 	// fCornerEqs was initialized during the mesh generation process
 	dohr->SetNumCornerEqs(this->fCornerEqs.size());
@@ -188,7 +188,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		}
 		TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct = new TPZDohrSubstructCondense<STATE>();
 		submesh->ComputeNodElCon();
-		int neq = ((TPZCompMesh *)submesh)->NEquations();
+		long neq = ((TPZCompMesh *)submesh)->NEquations();
 		//    int neq = substruct->fStiffness->Rows();
 		
 		substruct->fNEquations = neq;
@@ -630,8 +630,8 @@ void TPZDohrStructMatrix::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGu
 void TPZDohrStructMatrix::IdentifyCornerNodes()
 {
     fCornerEqs.clear();
-    TPZStack<int> elementgraph,elementgraphindex;
-    TPZStack<int> expelementgraph,expelementgraphindex;
+    TPZStack<long> elementgraph,elementgraphindex;
+    TPZStack<long> expelementgraph,expelementgraphindex;
     std::set<int> subelindexes;
     int nelem = fMesh->NElements();
     int iel;
@@ -642,9 +642,10 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
         }
     }
     // Determine the eligible connect sequence numbers
-    std::set<int> cornerconnind,cornerconnseq;
+    std::set<long> cornerconnind;
+	std::set<int> cornerconnseq;
     fMesh->BuildCornerConnectList(cornerconnind);
-    std::set<int>::iterator it;
+    std::set<long>::iterator it;
     for (it=cornerconnind.begin(); it!=cornerconnind.end(); it++) {
         TPZConnect &c = fMesh->ConnectVec()[*it];
         int seqnum = c.SequenceNumber();
@@ -852,12 +853,12 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
     }
     TPZAutoPointer<TPZGeoMesh> pointgmesh = new TPZGeoMesh;
     pointgmesh->NodeVec() = fMesh->Reference()->NodeVec();
-    TPZManVector<int> nodeindices(1,0);
+    TPZManVector<long> nodeindices(1,0);
     int ngeo = geonodeindices.NElements();
     int igeo;
     for (igeo=0; igeo<ngeo; igeo++) {
         nodeindices[0] = geonodeindices[igeo];
-        int index;
+        long index;
         pointgmesh->CreateGeoElement(EPoint,nodeindices,1,index);
     }
     pointgmesh->BuildConnectivity();
@@ -903,23 +904,23 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 // get the global equation numbers of a substructure (and their inverse)
 void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv)
 {
-    int ncon = sub->ConnectVec().NElements();
+    long ncon = sub->ConnectVec().NElements();
     // ncon is the number of connects of the subcompmesh
     TPZCompMesh *super = fMesh.operator->();
-    int ic;
+    long ic;
 #ifdef LOG4CXX_STOP
     std::stringstream sout;
     sout << "total submesh connects/glob/loc ";
 #endif
     for(ic=0; ic<ncon; ic++)
     {
-        int glob = sub->NodeIndex(ic,super);
+        long glob = sub->NodeIndex(ic,super);
         // continue is the connect is internal
         if(glob == -1) continue;
-        int locseq = sub->ConnectVec()[ic].SequenceNumber();
-        int globseq = super->ConnectVec()[glob].SequenceNumber();
-        int locpos = sub->Block().Position(locseq);
-        int globpos = super->Block().Position(globseq);
+        long locseq = sub->ConnectVec()[ic].SequenceNumber();
+        long globseq = super->ConnectVec()[glob].SequenceNumber();
+        long locpos = sub->Block().Position(locseq);
+        long globpos = super->Block().Position(globseq);
         int locsize = sub->Block().Size(locseq);
         //    int globsize = super->Block().Size(globseq);
         int ieq;
@@ -938,11 +939,11 @@ void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,in
 }
 
 // return the number of submeshes
-int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
+long NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 {
-    int nel = compmesh->NElements();
+    long nel = compmesh->NElements();
     TPZCompEl *cel;
-    int iel, count = 0;
+    long iel, count = 0;
     for(iel=0; iel<nel; iel++)
     {
         cel = compmesh->ElementVec()[iel];
@@ -956,9 +957,9 @@ int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 // return a pointer to the isub submesh
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 {
-    int nel = compmesh->NElements();
+    long nel = compmesh->NElements();
     TPZCompEl *cel;
-    int iel, count = 0;
+    long iel, count = 0;
     for(iel=0; iel<nel; iel++)
     {
         cel = compmesh->ElementVec()[iel];
@@ -980,40 +981,40 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
     sub->ComputePermutationInternalFirst(scatterpermuteblock);
     TPZBlock<STATE> destblock = sub->Block();
     TPZBlock<STATE> &origblock = sub->Block();
-    int nblocks = origblock.NBlocks();
+    long nblocks = origblock.NBlocks();
     if(scatterpermuteblock.NElements() != origblock.NBlocks())
     {
         std::cout << __PRETTY_FUNCTION__ << " something seriously wrong!!!\n";
     }
-    int ib;
+    long ib;
     for(ib=0; ib<nblocks; ib++)
     {
         destblock.Set(scatterpermuteblock[ib],origblock.Size(ib));
     }
     destblock.Resequence();
     
-    int neq = ((TPZCompMesh *)sub)->NEquations();
+    long neq = ((TPZCompMesh *)sub)->NEquations();
     scatterpermute.Resize(neq);
     gatherpermute.Resize(neq);
     scatterpermute.Fill(-1);
     gatherpermute.Fill(-1);
-    int ncon = sub->ConnectVec().NElements();
+    long ncon = sub->ConnectVec().NElements();
 #ifdef LOG4CXX_STOP
     std::stringstream sout;
     sout << "internal submesh connects/glob/loc ";
 #endif
-    int ic;
+    long ic;
     for(ic=0; ic<ncon; ic++)
     {
         // skip dependent connects
         TPZConnect &con = sub->ConnectVec()[ic];
         if(con.HasDependency() || con.IsCondensed() ) continue;
-        int locseq = sub->ConnectVec()[ic].SequenceNumber();
+        long locseq = sub->ConnectVec()[ic].SequenceNumber();
         // skip unused connects
         if(locseq < 0) continue;
         int destseq = scatterpermuteblock[locseq];
-        int locpos = origblock.Position(locseq);
-        int destpos = destblock.Position(destseq);
+        long locpos = origblock.Position(locseq);
+        long destpos = destblock.Position(destseq);
         int size = origblock.Size(locseq);
         //    int globsize = super->Block().Size(globseq);
         int ieq;
@@ -1025,7 +1026,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
             scatterpermute[locpos+ieq] = destpos+ieq;
         }
     }
-    int ieq;
+    long ieq;
     for(ieq = 0; ieq < neq; ieq++)
     {
         gatherpermute[scatterpermute[ieq]] = ieq;
@@ -1065,8 +1066,8 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
     cornereqs.Resize(fCornerEqs.size());
     coarseindex.Resize(fCornerEqs.size());
     std::set<int>::iterator it;
-    int count = 0;
-    int localcount = 0;
+    long count = 0;
+    long localcount = 0;
     for(it = fCornerEqs.begin(); it!= fCornerEqs.end(); it++,count++)
     {
         if(globaltolocal.find(*it) != globaltolocal.end())
@@ -1085,12 +1086,12 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
 void TPZDohrStructMatrix::SubStructure(int nsub )
 {
     
-    int nel = fMesh->NElements();
+    long nel = fMesh->NElements();
     int meshdim = fMesh->Dimension();
-    int nnodes = fMesh->NIndependentConnects();
+    long nnodes = fMesh->NIndependentConnects();
     
     TPZMetis metis(nel,nnodes);
-    TPZStack<int> elgraph,elgraphindex;
+    TPZStack<long> elgraph,elgraphindex;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     metis.SetElementGraph(elgraph, elgraphindex);
     TPZManVector<int> domain_index(nel,-1);
@@ -1099,9 +1100,9 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 #ifdef DEBUG
     {
         TPZGeoMesh *gmesh = fMesh->Reference();
-        int nelgeo = gmesh->NElements();
+        long nelgeo = gmesh->NElements();
         TPZVec<int> domaincolor(nelgeo,-999);
-        int cel;
+        long cel;
         for (cel=0; cel<nel; cel++) {
             TPZCompEl *compel = fMesh->ElementVec()[cel];
             if(!compel) continue;
@@ -1133,8 +1134,8 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         sout << "Geometric mesh and domain indices\n";
         fMesh->Reference()->Print(sout);
         sout << "Domain indices : \n";
-        int nel = fMesh->NElements();
-        for (int el=0; el<nel; el++) {
+        long nel = fMesh->NElements();
+        for (long el=0; el<nel; el++) {
             sout << "el " << el << " domain " << domain_index[el] << std::endl;
         }
         LOGPZ_DEBUG(logger, sout.str())
@@ -1145,9 +1146,9 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 #ifdef DEBUG
     {
         TPZGeoMesh *gmesh = fMesh->Reference();
-        int nelgeo = gmesh->NElements();
+        long nelgeo = gmesh->NElements();
         TPZVec<int> domaincolor(nelgeo,-999);
-        int cel;
+        long cel;
         for (cel=0; cel<nel; cel++) {
             TPZCompEl *compel = fMesh->ElementVec()[cel];
             if(!compel) continue;
@@ -1164,14 +1165,14 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
     int isub;
     TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
     for (isub=0; isub<nsub; isub++) {
-        int index;
+        long index;
         std::cout << '^'; std::cout.flush();
         submeshes[isub] = new TPZSubCompMesh(fMesh,index);
         if (index < domain_index.NElements()) {
             domain_index[index] = -1;
         }
     }
-    int iel;
+    long iel;
     for (iel=0; iel<nel; iel++) {
         int domindex = domain_index[iel];
         if (domindex >= 0) {
@@ -1183,7 +1184,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         }
     }
     for (isub = 0; isub<nsub; isub++) {
-        int nel = submeshes[isub]->NElements();
+        long nel = submeshes[isub]->NElements();
         if (nel == 0) {
             delete submeshes[isub];
             submeshes[isub] = 0;
@@ -1246,8 +1247,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         {
             std::stringstream sout;
             sout << "SubMesh Index = " << submesh->Index() << " Before permutation sequence numbers ";
-            int i;
-            int ncon = submesh->ConnectVec().NElements();
+            long i;
+            long ncon = submesh->ConnectVec().NElements();
             for (i=0; i<ncon; i++) {
                 sout << i << '|' << submesh->ConnectVec()[i].SequenceNumber() << " ";
             }
@@ -1264,8 +1265,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         {
             std::stringstream sout;
             sout << "SubMesh Index = " << submesh->Index() << " After permutation sequence numbers ";
-            int i;
-            int ncon = submesh->ConnectVec().NElements();
+            long i;
+            long ncon = submesh->ConnectVec().NElements();
             for (i=0; i<ncon; i++) {
                 sout << i << '|' << submesh->ConnectVec()[i].SequenceNumber() << " ";
             }
@@ -1295,7 +1296,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         
         // reorder the sequence numbering of the connects to reflect the original ordering
         TPZVec<long> invpermuteconnectscatter(permuteconnectscatter.NElements());
-        int iel;
+        long iel;
         for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
             invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
         }
@@ -1336,14 +1337,14 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         matredptr->SimetrizeMatRed();
         
         substruct->fWeights.Resize(Stiffness->Rows());
-        int i;
+        long i;
         for(i=0; i<substruct->fWeights.NElements(); i++)
         {
             substruct->fWeights[i] = Stiffness->GetVal(i,i);
         }
         // Desingularize the matrix without affecting the solution
-        int ncoarse = substruct->fCoarseNodes.NElements(), ic;
-        int neq = Stiffness->Rows();
+        long ncoarse = substruct->fCoarseNodes.NElements(), ic;
+        long neq = Stiffness->Rows();
         for(ic=0; ic<ncoarse; ic++)
         {
             int coarse = substruct->fCoarseNodes[ic];
@@ -1584,9 +1585,9 @@ void *ThreadDohrmanAssemblyList<TVar>::ThreadWork(void *voidptr)
 void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 {
     // for each computational element
-    std::set<int> connectindexes;
-    int iel;
-    int nel = fMesh->NElements();
+    std::set<long> connectindexes;
+    long iel;
+    long nel = fMesh->NElements();
     for (iel=0; iel<nel; iel++) {
         // if it has a neighbour along its interior, skip
         TPZCompEl *cel = fMesh->ElementVec()[iel];
@@ -1623,8 +1624,8 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
             }
             compneigh.Resize(0);
             gelside.ConnectedCompElementList(compneigh, 0, 0);
-            int ncomp = compneigh.NElements();
-            int ic;
+            long ncomp = compneigh.NElements();
+            long ic;
             for (ic=0; ic<ncomp; ic++) {
                 TPZCompElSide celside = compneigh[ic];
                 TPZGeoElSide gelside = celside.Reference();
@@ -1637,15 +1638,15 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
                 int nsconnect = intel->NSideConnects(is);
                 int isc;
                 for (isc=0; isc<nsconnect; isc++) {
-                    int ind = intel->SideConnectIndex(isc,is);
+                    long ind = intel->SideConnectIndex(isc,is);
                     connectindexes.insert(ind);
                 }
             }
         }
     }
-    std::set<int>::iterator it;
+    std::set<long>::iterator it;
     fExternalConnectIndexes.Resize(connectindexes.size());
-    int i = 0;
+    long i = 0;
     for (it=connectindexes.begin(); it != connectindexes.end(); it++,i++) {
         fExternalConnectIndexes[i] = *it;
     }
@@ -1656,8 +1657,8 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension)
 {
     std::map<int,int> domain_index_count;
-    int iel;
-    int nel = fMesh->NElements();
+    long iel;
+    long nel = fMesh->NElements();
     for (iel=0; iel<nel; iel++) {
         TPZCompEl *cel = fMesh->ElementVec()[iel];
         if (!cel) {
@@ -1709,8 +1710,8 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
                 TPZGeoElSide gelside(gel,is);
                 TPZStack<TPZCompElSide> elsidevec;
                 gelside.ConnectedCompElementList(elsidevec, 0, 0);
-                int nneigh = elsidevec.NElements();
-                int neigh;
+                long nneigh = elsidevec.NElements();
+                long neigh;
                 for (neigh = 0; neigh <nneigh; neigh++) {
                     TPZCompElSide celside = elsidevec[neigh];
                     TPZCompEl *celloc = celside.Element();
@@ -1746,7 +1747,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
         std::stringstream sout;
         sout << "Number of elements per domain ";
         std::map<int,int>::iterator it;
-        int count = 0;
+        long count = 0;
         for (it=domain_index_count.begin(); it != domain_index_count.end(); it++) {
             if (! (count++ %40)) {
                 sout << std::endl;
@@ -1764,13 +1765,13 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension)
 {
     int meshdim = fMesh->Dimension();
-    int nel = fMesh->NElements();
-    int mincount = nel/nsub/20;
+    long nel = fMesh->NElements();
+    long mincount = nel/nsub/20;
     // contains for each subdomain the set of neighbouring domains
     TPZVec<std::set<int> > domain_neighbours(nsub);
     // contains for each domain the number of cells within that domain
     std::map<int,int> domain_index_count;
-    int iel;
+    long iel;
     for (iel=0; iel<nel; iel++) {
         TPZCompEl *cel = fMesh->ElementVec()[iel];
         if (!cel) {
@@ -1806,9 +1807,9 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
             TPZGeoElSide gelside(gel,is);
             TPZStack<TPZCompElSide> elsidevec;
             gelside.ConnectedCompElementList(elsidevec, 0, 0);
-            int nneigh = elsidevec.NElements();
-            int neigh;
-            int nneighvalid = 0;
+            long nneigh = elsidevec.NElements();
+            long neigh;
+            long nneighvalid = 0;
             for (neigh = 0; neigh <nneigh; neigh++) {
                 TPZCompElSide celside = elsidevec[neigh];
                 TPZCompEl *celloc = celside.Element();
@@ -1834,7 +1835,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        for (int i=0; i<domain_neighbours.size(); i++) {
+        for (long i=0; i<domain_neighbours.size(); i++) {
             std::set<int>::const_iterator it;
             sout << "Domain index " << i << " neighbours ";
             for (it=domain_neighbours[i].begin(); it != domain_neighbours[i].end(); it++) {
@@ -1854,7 +1855,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
     // compute a destination domain index for each domain (used for clustering domains)
     int isub;
     TPZManVector<int> domain_dest(nsub,-1);
-    int count = 0;
+    long count = 0;
     for (isub=0; isub < nsub; isub++)
     {
         // if the subdomain is neighbour to only one subdomain
@@ -1944,7 +1945,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
         std::stringstream sout;
         sout << "Number of elements per domain ";
         std::map<int,int>::iterator it;
-        int count = 0;
+        long count = 0;
         for (it=domain_index_count.begin(); it != domain_index_count.end(); it++) {
             if (! (count++ %40)) {
                 sout << std::endl;
@@ -1987,13 +1988,13 @@ void TPZDohrStructMatrix::Read(TPZStream &str)
 /** @brief Set the domain index of the lower dimension elements equal to the domain index of their neighbour */
 void TPZDohrStructMatrix::CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec<int> &domainindex)
 {
-    int nel = cmesh->NElements();
+    long nel = cmesh->NElements();
     TPZAdmChunkVector<TPZCompEl *> &elvec = cmesh->ElementVec();
     bool changed = true;
     while(changed)
     {
         changed = false;
-        for (int el=0; el<nel; el++) {
+        for (long el=0; el<nel; el++) {
             TPZCompEl *cel = elvec[el];
             if (! cel) {
                 continue;
@@ -2009,7 +2010,7 @@ void TPZDohrStructMatrix::CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec
                 if (! neighcel) {
                     continue;
                 }
-                int neighindex = neighcel->Index();
+                long neighindex = neighcel->Index();
                 if (domainindex[el] != domainindex[neighindex]) {
                     domainindex[el] = domainindex[neighindex];
                     changed = true;

@@ -205,9 +205,9 @@ void TPZQuadraticCube::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TP
  */
 
 TPZGeoEl *TPZQuadraticCube::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                             TPZVec<int>& nodeindexes,
+                                             TPZVec<long>& nodeindexes,
                                              int matid,
-                                             int& index)
+                                             long& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
@@ -215,13 +215,13 @@ TPZGeoEl *TPZQuadraticCube::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 TPZGeoEl *TPZQuadraticCube::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) 
 {
 	int ns = orig->NSideNodes(side);
-	TPZManVector<int> nodeindices(ns);
+	TPZManVector<long> nodeindices(ns);
 	int in;
 	for(in=0; in<ns; in++)
 	{
 		nodeindices[in] = orig->SideNodeIndex(side,in);
 	}
-	int index;
+	long index;
 	
 	TPZGeoMesh *mesh = orig->Mesh();
 	MElementType type = orig->Type(side);

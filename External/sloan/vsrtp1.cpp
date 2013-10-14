@@ -1,10 +1,10 @@
- /* Subroutine */ int 
-vsrtp1_ (int *a, int *ir, int *la)
+ /* Subroutine */
+int vsrtp1_ (long *a, long *ir, long *la)
 {
  /* System generated locals */
-    int     i__1;
+    long     i__1;
  /* Local variables */
-    static int i, j, k, l, m, r, t, ij, il[21], it, iu[21], tt, itt;
+    static long i, j, k, l, m, r, t, ij, il[21], it, iu[21], tt, itt;
 
 
 /*                                  SPECIFICATIONS FOR ARGUMENTS */

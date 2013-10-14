@@ -40,7 +40,7 @@ void TPZMetis::Print(std::ostream &out,char * title) {
 		}
 		out << endl;
 	}
-	TPZVec<int> nodegraph(0),nodegraphindex(0);
+	TPZVec<long> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
 	int numelnodegraph = nodegraphindex[fNNodes];
 	if (numelnodegraph == nodegraph.NElements() ) {
@@ -75,7 +75,7 @@ void TPZMetis::Print(std::ostream &out) {
 	 }
 	 out << endl;
 	 } */
-	TPZVec<int> nodegraph(0),nodegraphindex(0);
+	TPZVec<long> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
 	int numelnodegraph = nodegraphindex[fNNodes];
 	if (numelnodegraph == nodegraph.NElements() ) {
@@ -95,9 +95,9 @@ void TPZMetis::Print(std::ostream &out) {
 }
 
 void TPZMetis::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm) {
-	TPZVec<int> nodegraph(0),nodegraphindex(0);
+	TPZVec<long> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
-	int numelnodegraph = nodegraphindex[fNNodes];
+	long numelnodegraph = nodegraphindex[fNNodes];
 	if (numelnodegraph == nodegraph.NElements() )
 	{
 		nodegraph.Resize(numelnodegraph+1);
@@ -112,6 +112,16 @@ void TPZMetis::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm) {
 	}
 
 #ifdef USING_METIS
+	TPZVec<int> nodegraphInt(0),nodegraphindexInt(0);
+	int NNodes = (int) fNNodes;
+	long n, sz = nodegraph.NElements();
+	nodegraph.Resize(sz);
+	for(n=0;n<sz;n++)
+		nodegraphInt[n] = (int)nodegraph[n];
+	sz = nodegraphindex.NElements();
+	for(n=0;n<sz;n++)
+		nodegraphindexInt[n] = (int)nodegraphindex[n];
+
 	// Using external library METIS 5
 	int numflag = 0;
 	int options = 0;
@@ -130,13 +140,14 @@ void TPZMetis::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm) {
         inversepermint[i] = (int)inverseperm[i];
     
 //	METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,&perm[0],&inverseperm[0]);
-    METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,permint,inversepermint);
+    METIS_NodeND(&NNodes,&nodegraphindexInt[0],&nodegraphInt[1],&numflag,&options,permint,inversepermint);
+	fNNodes = (long)NNodes;
 #endif
 }
 
 void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 {
-	TPZManVector<int> Adjacency,AdjacencyIndex;
+	TPZManVector<long> Adjacency,AdjacencyIndex;
 	TPZManVector<int> AdjacencyWeight;
 	ConvertToElementoToElementGraph(fElementGraph,fElementGraphIndex,Adjacency,AdjacencyWeight,AdjacencyIndex);
 	
@@ -149,17 +160,23 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 #endif
 	
 #ifdef USING_METIS
-	int nVertices = AdjacencyIndex.NElements() -1;
-
+	TPZManVector<int> AdjacencyInt,AdjacencyIndexInt;
+	long n, nVertices = AdjacencyIndex.NElements() -1;
+	for(n=0;n<nVertices;n++)
+		AdjacencyIndexInt[n] = (int)AdjacencyIndex[n];
+	long sz = Adjacency.NElements();
+	for(n=0;n<sz;n++)
+		AdjacencyInt[n] = (int)Adjacency[n];
 	Domains.Resize(nVertices);
 	// Upon successful completion, nEdgesCutted stores the edge-cut or the total communication volume of the partitioning solution.
 	int nEdgesCutted = 0;
+	int nvertices = (int)nVertices;
 
 	TPZVec<int> Options(METIS_NOPTIONS);
 	METIS_SetDefaultOptions(&Options[0]);
 	
     int ncon = 2;
-	if(METIS_PartGraphRecursive(&nVertices, &ncon, &AdjacencyIndex[0], &Adjacency[0], NULL, NULL, NULL,   // &AdjacencyWeight[0],
+	if(METIS_PartGraphRecursive(&nvertices, &ncon, &AdjacencyIndexInt[0], &AdjacencyInt[0], NULL, NULL, NULL,   // &AdjacencyWeight[0],
 					&nParts, NULL, NULL, &Options[0], &nEdgesCutted, &Domains[0]) != METIS_OK)
 		DebugStop();
 #else

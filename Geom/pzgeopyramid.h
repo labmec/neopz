@@ -29,7 +29,7 @@ namespace pzgeom {
 		enum {NNodes = 5};
 		
 		/** @brief Constructor with list of nodes */
-		TPZGeoPyramid(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
+		TPZGeoPyramid(TPZVec<long> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
 		{
 		}
 		
@@ -40,7 +40,7 @@ namespace pzgeom {
 		
 		/** @brief Constructor with node map */
 		TPZGeoPyramid(const TPZGeoPyramid &cp,
-					  std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp,gl2lcNdMap)
+					  std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp,gl2lcNdMap)
 		{
 		}
 		
@@ -101,9 +101,9 @@ namespace pzgeom {
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int>& nodeindexes,
+										  TPZVec<long>& nodeindexes,
 										  int matid,
-										  int& index);
+										  long& index);
 	};
 	
 };

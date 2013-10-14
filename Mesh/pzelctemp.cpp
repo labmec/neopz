@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 #endif
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	int i;
 	fPreferredOrder = mesh.GetDefaultOrder();
@@ -43,7 +43,7 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index, int nocreate) :
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index, int nocreate) :
 TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 {
 	//int ic;
@@ -64,8 +64,8 @@ TPZInterpolatedElement(mesh,copy), fConnectIndexes(copy.fConnectIndexes),fIntRul
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 								 const TPZIntelGen<TSHAPE> &copy,
-								 std::map<int,int> & gl2lcConMap,
-								 std::map<int,int> & gl2lcElMap) :
+								 std::map<long,long> & gl2lcConMap,
+								 std::map<long,long> & gl2lcElMap) :
 TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1), fIntRule(copy.fIntRule)
 {
 	
@@ -73,8 +73,8 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1)
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++)
 	{
-		int lcIdx = -1;
-		int glIdx = copy.fConnectIndexes[i];
+		long lcIdx = -1;
+		long glIdx = copy.fConnectIndexes[i];
 		if (gl2lcConMap.find(glIdx) != gl2lcConMap.end()) lcIdx = gl2lcConMap[glIdx];
 		else
 		{
@@ -111,9 +111,9 @@ TPZIntelGen<TSHAPE>::~TPZIntelGen(){
 		}
 		Reference()->ResetReference();
 	}
-    TPZStack<int > connectlist;
+    TPZStack<long > connectlist;
     BuildConnectList(connectlist);
-    int nconnects = connectlist.size();
+    long nconnects = connectlist.size();
     for (int ic=0; ic<nconnects ; ic++) {
         fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
     }
@@ -125,7 +125,7 @@ MElementType TPZIntelGen<TSHAPE>::Type() {
 }
 
 template<class TSHAPE>
-void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int connectindex){
+void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, long connectindex){
 #ifndef NODEBUG
 	if(i<0 || i>= TSHAPE::NSides) {
 		std::cout << " TPZIntelGen<TSHAPE>::SetConnectIndex index " << i <<
@@ -190,7 +190,7 @@ int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
 }
 
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
+long TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 	
 #ifndef NODEBUG
 	if(con<0 || con>= NConnects()) {
@@ -232,7 +232,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 		if(fConnectIndexes[side] == -1) return;
 		TPZConnect &c = Connect(side);
 		c.SetOrder(order);
-		int seqnum = c.SequenceNumber();
+		long seqnum = c.SequenceNumber();
 		int nvar = 1;
 		TPZMaterial * mat = Material();
 		if(mat) nvar = mat->NStateVariables();
@@ -278,7 +278,8 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 	
 	int nc = TSHAPE::NContainedSides(side);
 	int nn = TSHAPE::NSideNodes(side);
-	TPZManVector<int,27> id(nn),order(nc-nn);
+	TPZManVector<long,27> id(nn);
+	TPZManVector<int,27> order(nc-nn);
 	int n,c;
 	TPZGeoEl *ref = Reference();
 	for (n=0;n<nn;n++){
@@ -294,7 +295,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-	TPZManVector<int,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+	TPZManVector<long,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
 	int i;
 	TPZGeoEl *ref = Reference();
@@ -309,7 +310,7 @@ void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 
 /** Returns the transformation which transform a point from the side to the interior of the element */
 template<class TSHAPE>
-TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side){
+TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
 	return TSHAPE::TransformSideToElement(side);
 }
 

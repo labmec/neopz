@@ -598,11 +598,11 @@ TPZGeoEl *TPZRefPattern::Element(int iel)
 
 int TPZRefPattern::IsNotEqual(TPZTransform &Told, TPZTransform &Tnew)
 {
-	int nrows = Told.Mult().Rows();
-	int naols = Told.Mult().Cols();
+	long nrows = Told.Mult().Rows();
+	long naols = Told.Mult().Cols();
 	if(Tnew.Mult().Rows()!=nrows || Tnew.Mult().Cols()!=naols) return 1;
 	if(Tnew.Sum().Rows()!=Told.Sum().Rows() || Tnew.Sum().Cols()!=Told.Sum().Cols()) return 1;
-	int c,r;
+	long c,r;
 	for(r=0;r<nrows;r++){
 		for(c=0;c<naols;c++){
 			if( fabs(Tnew.Mult()(r,c)-Told.Mult()(r,c)) > 1.e-12 ) return 1;
@@ -637,7 +637,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side, TPZTransfo
 	}
 }
 
-void TPZRefPattern::CreateNewNodes(TPZGeoEl * gel, TPZVec<int> &newnodeindexes)
+void TPZRefPattern::CreateNewNodes(TPZGeoEl * gel, TPZVec<long> &newnodeindexes)
 {
 	int side;
 	int nnodes = gel->NCornerNodes();
@@ -664,9 +664,10 @@ void TPZRefPattern::CreateNewNodes(TPZGeoEl * gel, TPZVec<int> &newnodeindexes)
 	}
 }
 
-void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &newnodeindexes)
+void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<long> &newnodeindexes)
 {
-	int i, j, k, index;
+	int i, j, k;
+	long index;
 	TPZGeoMesh *gmesh = gel->Mesh();
 	//SideNodes retorna um vetor com os indices dos nos internos da malha refpatern
 	//com ele eu sei quantos nos internos ou, na linguagem antiga , quantos MidSideNodes tem
@@ -674,7 +675,7 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &ne
 	SideNodes(side,sidenodes);
 	TPZGeoElSide gelside(gel,side);
 	TPZGeoElSide neighbour(gelside.Neighbour());
-	TPZManVector<int> sideindices(0);
+	TPZManVector<long> sideindices(0);
 	while(neighbour.Element() && neighbour != gelside)
 	{
 		if(neighbour.HasSubElement() && neighbour.Element()->NSideSubElements(neighbour.Side()) > 1)
@@ -748,7 +749,7 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &ne
 		if (newnodeindexes[index] == -1)
 		{
 			//Caso o no nao exista nos vizinhos sera necessario cria-lo...
-			int newindex = gmesh->NodeVec().AllocateNewElement();
+			long newindex = gmesh->NodeVec().AllocateNewElement();
 			gmesh->NodeVec()[newindex].Initialize(refnodecoord,*gmesh);
 			newnodeindexes[index] = newindex;
 		}
@@ -776,7 +777,7 @@ void TPZRefPattern::InsertPermuted()
 	std::list<TPZRefPatternPermute>::iterator it;
 	fPermutedRefPatterns.resize(permlist.size());
 	
-	int counter;
+	long counter;
 	for(it=permlist.begin(), counter=0; it != permlist.end(); it++,counter++)
 	{
 		TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
@@ -968,12 +969,12 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 		in >> ntype >> nummat;
 		MElementType etype = (MElementType) ntype;
 		naorners = MElementType_NNodes(etype);
-		TPZVec<int> nodes(naorners);
+		TPZVec<long> nodes(naorners);
 		for(incid = 0; incid < naorners; incid++)
 		{
 			in >> nodes[incid];
 		}
-		int index;
+		long index;
 		TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 0);
 		if(el == 0)
 		{
@@ -1049,12 +1050,12 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 		in >> ntype >> nummat;
 		MElementType etype = (MElementType) ntype;
 		naorners = MElementType_NNodes(etype);
-		TPZVec<int> nodes(naorners);
+		TPZVec<long> nodes(naorners);
 		for(incid = 0; incid < naorners; incid++)
 		{
 			in >> nodes[incid];
 		}
-		int index;
+		long index;
 		TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 0);
 		if(el == 0)
 		{
@@ -1134,14 +1135,14 @@ int TPZRefPattern::SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side)
 		return 0;
 	}
 	side -= Element(0)->NNodes();/**nao inclui cantos*/
-	int firstpos = fFatherSides.fInitSide[side];/**posicao inicial da particao do lado*/
-	int lastpos = fFatherSides.fInitSide[side+1];/**posicao final da particao do lado*/
-	int size = lastpos-firstpos;
+	long firstpos = fFatherSides.fInitSide[side];/**posicao inicial da particao do lado*/
+	long lastpos = fFatherSides.fInitSide[side+1];/**posicao final da particao do lado*/
+	long size = lastpos-firstpos;
 	gelvec.Resize(size);/**tamanho: numero de elementos da particao do lado*/
-	int pos;
+	long pos;
 	for(pos = firstpos;pos<lastpos;pos++)
 	{
-		int pos0 = pos - firstpos;
+		long pos0 = pos - firstpos;
 		gelvec[pos0] = TPZGeoElSide(fFatherSides.fPartitionSubSide[pos], &fRefPatternMesh);
 	}
 	
@@ -1439,14 +1440,14 @@ void TPZRefPattern::PrintVTK(std::ofstream &file, bool matColor)
 	TPZGeoMesh * Rgmesh = &(RefPatternMesh());
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	
-	int nNodes = Rgmesh->NNodes();
-	int nElements = Rgmesh->NElements();
+	long nNodes = Rgmesh->NNodes();
+	long nElements = Rgmesh->NElements();
 	
 	TPZVec < TPZVec <REAL> > NodeCoord(nNodes);
-	for(int i = 0; i < nNodes; i++) NodeCoord[i].Resize(3,0.);
+	for(long i = 0; i < nNodes; i++) NodeCoord[i].Resize(3,0.);
 	
 	//setting nodes coords
-	for(int n = 0; n < nNodes; n++)
+	for(long n = 0; n < nNodes; n++)
 	{
 		NodeCoord[n][0] = Rgmesh->NodeVec()[n].Coord(0);
 		NodeCoord[n][1] = Rgmesh->NodeVec()[n].Coord(1);
@@ -1456,17 +1457,17 @@ void TPZRefPattern::PrintVTK(std::ofstream &file, bool matColor)
 	//initializing gmesh->NodeVec()
 	gmesh->NodeVec().Resize(nNodes);
 	TPZVec <TPZGeoNode> Node(nNodes);
-	for(int n = 0; n < nNodes; n++)
+	for(long n = 0; n < nNodes; n++)
 	{
 		Node[n].SetNodeId(n);
 		Node[n].SetCoord(NodeCoord[n]);
 		gmesh->NodeVec()[n] = Node[n]; 
 	}
-	for(int el = 1; el < nElements; el++)
+	for(long el = 1; el < nElements; el++)
 	{
 		TPZGeoEl * Elem = Rgmesh->ElementVec()[el];
-		TPZVec<int> cornerindexes(Elem->NNodes());
-		int id = Elem->Id();
+		TPZVec<long> cornerindexes(Elem->NNodes());
+		long id = Elem->Id();
 		for(int n = 0; n < Elem->NNodes(); n++)
 		{
 			cornerindexes[n] = Elem->NodeIndex(n);
@@ -1504,7 +1505,7 @@ void TPZRefPattern::GeneratePermutations(TPZGeoEl *gel)
 	}
 	TPZGeoEl *gelp;
 	TPZIntPoints *integ = gel->CreateSideIntegrationRule(gel->NSides()-1,3);
-	TPZManVector<int,8> nodes(nnodes), nodesperm(nnodes);
+	TPZManVector<long,8> nodes(nnodes), nodesperm(nnodes);
 	for(in = 0; in < nnodes; in++)
 	{
 		nodes[in]=in;
@@ -1521,7 +1522,7 @@ void TPZRefPattern::GeneratePermutations(TPZGeoEl *gel)
 	while(!permute.IsFirst())
 	{
 		permute.Permute(nodes,nodesperm);
-		int index;
+		long index;
 		gelp = gmesh.CreateGeoElement(gel->Type(),nodesperm,matid,index,0);
 		int dim = gel->Dimension();
 		TPZManVector<REAL,3> point(dim,0.);
@@ -1605,15 +1606,15 @@ void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh)
 		SideRefPatternMesh.NodeVec()[nodedest].Initialize(fRefPatternMesh.NodeVec()[nodeorig], SideRefPatternMesh);
 		SideRefPatternMesh.NodeVec()[nodedest].SetNodeId(nodedest);
 	}
-	TPZStack<int> nodeindices;
+	TPZStack<long> nodeindices;
 	nodeindices.Resize(gel->NSideNodes(side));
-	int in;
+	long in;
 	for(in=0; in<nodeindices.NElements(); in++)
 	{
 		nodeindices[in] = allsidenodes[gel->SideNodeIndex(side,in)];
 	}
 	int matid = gel->MaterialId();
-	int index;
+	long index;
 	TPZGeoEl *father = SideRefPatternMesh.CreateGeoElement(gel->Type(side),nodeindices,matid,index,-1);
 	int sidedim = father->Dimension();
 	TPZStack<TPZGeoElSide> gelvec;

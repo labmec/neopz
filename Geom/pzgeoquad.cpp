@@ -60,7 +60,7 @@ namespace pzgeom {
 		}
 		fNormalVec.Resize(18, 3);
 		fVectorSide.Resize(18);
-		int count=0;
+		long count=0;
 		//primeira face
 		for(int j=0;j<3;j++)//v0
 		{
@@ -319,12 +319,12 @@ namespace pzgeom {
 	
 	TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side==8) {//8
-			TPZManVector<int> nodes(4);
+			TPZManVector<long> nodes(4);
 			int i;
 			for (i=0;i<4;i++) {
 				nodes[i] = orig->SideNodeIndex(side,i);
 			}
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 			//    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			int iside;
@@ -335,21 +335,21 @@ namespace pzgeom {
 			return gel;
 		}
 		else if(side>-1 && side<4) {//side = 0,1,2,3
-			TPZManVector<int> nodeindexes(1);
+			TPZManVector<long> nodeindexes(1);
 			//    TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		}
 		else if(side>3 && side<8) {
-			TPZManVector<int> nodes(2);
+			TPZManVector<long> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
 			//    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-			int index;
+			long index;
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,0)));
 			TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,1)));
@@ -362,9 +362,9 @@ namespace pzgeom {
 	
 	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										   TPZVec<int>& nodeindexes,
+										   TPZVec<long>& nodeindexes,
 										   int matid,
-										   int& index)
+										   long& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}

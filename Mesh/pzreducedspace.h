@@ -25,10 +25,10 @@ public:
 	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy);
 	
 	/** @brief Puts a copy of the element in the patch mesh */
-	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int,int> &gl2lcElMap);
+	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<long,long> &gl2lcElMap);
 	
 	/** @brief Copy of the element in the new mesh whit alocated index */
-	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int &index);
+	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, long &index);
 	
 	/**
 	 * @brief Create a computational element within mesh
@@ -37,7 +37,7 @@ public:
 	 * @param index new elemen index
 	 */
 	/** Inserts the element within the data structure of the mesh */
-	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
 	
     static void SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh);
 
@@ -126,7 +126,7 @@ public:
         DebugStop();
     }
     
-    virtual void SetConnectIndex(int inode, int index){
+    virtual void SetConnectIndex(int inode, long index) {
         DebugStop();
     }
     
@@ -144,18 +144,18 @@ public:
         return intel->GetIntegrationRule();
     }
     
-    virtual int Dimension() const{
+    virtual int Dimension() const {
         TPZInterpolationSpace *intel = ReferredIntel();
         return intel->Dimension();
     }
 	
-    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< int, int > &gl2lcConMap, std::map< int, int > &gl2lcElMap) const;
+    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< long, long > &gl2lcConMap, std::map< long, long > &gl2lcElMap) const;
     
-    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const{
+    virtual void BuildCornerConnectList(std::set<long> &connectindexes) const{
         
     }
     
-    virtual int ConnectIndex(int i) const{
+    virtual long ConnectIndex(int i) const {
         if (i != 0) {
             DebugStop();
         }

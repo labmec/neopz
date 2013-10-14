@@ -240,7 +240,7 @@ protected:
   TVar* Diag(long col) { return fElem[col+1]-1;}
 	
   void DecomposeColumn(long col, long prevcol);
-  void DecomposeColumn(long col, long prevcol, std::list<int> &singular);
+  void DecomposeColumn(long col, long prevcol, std::list<long> &singular);
   void DecomposeColumn2(long col, long prevcol);
 
 private:
@@ -420,8 +420,8 @@ public:
 	int Decompose_Cholesky_blk(long blk_sz);
 
 	int Decompose_LDLt    ();  // Faz A = LDLt.
-	int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
-	int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
+	int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
+	int Decompose_LDLt    (std::list<long> &singular);  // Faz A = LDLt.
 	
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
 	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
@@ -460,7 +460,7 @@ protected:
 	TVar *Diag(long col) { return fElem[col];}
 	
 	void DecomposeColumn(long col, long prevcol);
-	void DecomposeColumn(long col, long prevcol, std::list<int> &singular);
+	void DecomposeColumn(long col, long prevcol, std::list<long> &singular);
 	
 	void DecomposeColumn2(long col, long prevcol);
 private:

@@ -16,7 +16,7 @@
  * @since 10/31/2011
  */
 
-class TPZBuildMultiphysicsMesh{
+class TPZBuildMultiphysicsMesh {
 	
 	
 public:
@@ -73,7 +73,7 @@ public:
 	 * @param cMesh [in] : computational mesh
 	 * @param indexEl [in]: index of the element
 	 */
-	static void UniformRefineCompEl(TPZCompMesh  *cMesh, int indexEl, bool isLagrMult);
+	static void UniformRefineCompEl(TPZCompMesh  *cMesh, long indexEl, bool isLagrMult);
 		
 };
 

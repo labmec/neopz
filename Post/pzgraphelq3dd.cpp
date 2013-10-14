@@ -10,7 +10,7 @@ using namespace std;
 TPZGraphElQ3dd::TPZGraphElQ3dd(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl(cel,gmesh,fConnect){
 }
 
-TPZGraphNode *TPZGraphElQ3dd::Connect(int i) {
+TPZGraphNode *TPZGraphElQ3dd::Connect(long i) {
 	return fConnect;
 }
 
@@ -109,7 +109,7 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 	}
 }
 
-void TPZGraphElQ3dd::SetNode(int i,TPZGraphNode *gno) {
+void TPZGraphElQ3dd::SetNode(long i,TPZGraphNode *gno) {
 	fConnect = gno;
 }
 

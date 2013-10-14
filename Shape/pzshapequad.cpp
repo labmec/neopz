@@ -92,7 +92,7 @@ namespace pzshape {
 		dphi(1,8) *= 16.;
 	}
 	
-	void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+	void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
 							 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		int is,d;
@@ -111,7 +111,7 @@ namespace pzshape {
 		for (int rib = 0; rib < 4; rib++) {
 			
 			ProjectPoint2dQuadToRib(rib,pt,out);
-			TPZVec<int> ids(2);
+			TPZVec<long> ids(2);
 			TPZManVector<REAL,1> outvec(1,out);
 			ids[0] = id[rib%4];
 			ids[1] = id[(rib+1)%4];
@@ -143,7 +143,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeQuad::SideShape(int side,TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+	void TPZShapeQuad::SideShape(int side,TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,
 								 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		switch(side) {
 			case 0:
@@ -213,7 +213,7 @@ namespace pzshape {
 		out = gRibTrans2dQ1d[rib][0]*in[0]+gRibTrans2dQ1d[rib][1]*in[1];
 	}
 	
-	int TPZShapeQuad::GetTransformId2dQ(TPZVec<int> &id) {
+	int TPZShapeQuad::GetTransformId2dQ(TPZVec<long> &id) {
 		
 		int id0,id1,minid;
 		id0 = (id[0] < id[1]) ? 0 : 1;

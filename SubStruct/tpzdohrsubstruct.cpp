@@ -803,7 +803,7 @@ void TPZDohrSubstruct<TVar>::PrepareSystems() {
 	{
 		//    out << "NullPivots = {";
 		int count = 0;
-		std::list<int>::iterator it = fInvertedStiffness.Singular().begin();
+		std::list<long>::iterator it = fInvertedStiffness.Singular().begin();
 		for(;it != fInvertedStiffness.Singular().end(); it++,count++)
 		{
 			//      out << *it;

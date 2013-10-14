@@ -136,9 +136,9 @@ namespace pzgeom {
 			return result;
 		}
 		
-		int index;
+		long index;
 		if(side<6) {
-			TPZManVector<int> nodeindexes(1);
+			TPZManVector<long> nodeindexes(1);
 			TPZGeoEl *gel;
 			//		int nodestore [4];
 			nodeindexes[0] = orig->NodeIndex(side);
@@ -147,7 +147,7 @@ namespace pzgeom {
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			result = gel;
 		} else if (side > 5 && side < 15) {//side = 6 a 14 : arestas
-			TPZManVector<int> nodes(2);
+			TPZManVector<long> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);//(TPZCompElPr3d::SideNodes[s][0]);
 			nodes[1] = orig->SideNodeIndex(side,1);//NodeIndex(TPZCompElPr3d::SideNodes[s][1]);
 			//TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
@@ -160,7 +160,7 @@ namespace pzgeom {
 			result = gel;//->CreateCompEl(cmesh,index);
 		} 
 		else if (side > 14) {//side = 15 a 19 : faces
-			TPZManVector<int> nodes(4);//4o = -1 para face triangular
+			TPZManVector<long> nodes(4);//4o = -1 para face triangular
 			int iside;
 			for (iside=0;iside<4;iside++){
 				nodes[iside] = orig->SideNodeIndex(side,iside);
@@ -302,9 +302,9 @@ namespace pzgeom {
 	 * Creates a geometric element according to the type of the father element
 	 */
 	TPZGeoEl *TPZGeoPrism::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											TPZVec<int>& nodeindexes,
+											TPZVec<long>& nodeindexes,
 											int matid,
-											int& index)
+											long& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}

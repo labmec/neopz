@@ -41,7 +41,7 @@ private:
 	/** 
 	 * Indexes na malha fina dos sub-elementos computacionais aglomerados pelo atual
 	 */
-	TPZStack<int> fIndexes;
+	TPZStack<long> fIndexes;
 	
 	/**
 	 * @brief Mesh for the clusters which elements are part and from that the current mesh was obtained
@@ -67,7 +67,7 @@ private:
 public:
 	
 	/** @brief Constructor: If the element is possible to grouped returns a new index, else returns -1. */
-	TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
+	TPZAgglomerateElement(int nummat,long &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
 	
 	TPZAgglomerateElement();
 	
@@ -85,10 +85,10 @@ public:
 	/** @brief Returns the inner radius value. */ 
 	/** Inner radius is the sub-element's radius average weighted by their volumes. */
 	REAL InnerRadius(){
-		int nsubel = this->NIndexes();
+		long nsubel = this->NIndexes();
 		REAL value = 0.;
 		TPZCompElDisc * disc;
-		for (int i = 0; i < nsubel; i++){
+		for (long i = 0; i < nsubel; i++){
 			disc = dynamic_cast<TPZCompElDisc *>(this->SubElement(i) );
 #ifdef DEBUG
 			if (!disc) {
@@ -109,13 +109,13 @@ public:
 	int NInterfaces() {return fNFaces;}
 	
 	/** @brief Insert the subelement index. */
-	static void AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int destind);
+	static void AddSubElementIndex(TPZCompMesh *aggcmesh,long subel,long destind);
 	
 	/** @brief Destructor*/
 	~TPZAgglomerateElement(){};
 	
 	/** @brief Type of the element */  
-	MElementType Type(){return EAgglomerate;}
+	MElementType Type() {return EAgglomerate;}
 	
 	/** @brief Returns father mesh. */
 	TPZCompMesh *MotherMesh(){return fMotherMesh;}
@@ -148,7 +148,7 @@ public:
 	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
 	/** @brief Returns the number of clustered subelements. */
-	int NIndexes() const {return fIndexes.NElements();}
+	long NIndexes() const { return fIndexes.NElements(); }
 	
 	/** @brief Returns the geometric element to which this element references*/
 	TPZGeoEl *CalculateReference();
@@ -187,12 +187,12 @@ public:
 	virtual REAL LesserEdgeOfEl();
 	
 	/** @brief Returns the "sub" subelement. */
-	TPZCompEl *SubElement(int sub) const;
+	TPZCompEl *SubElement(long sub) const;
 	
 	REAL NormalizeConst();
 	
 	/** @brief It creates new conect that it associates the degrees of freedom of the element and returns its index */
-	virtual int CreateMidSideConnect();
+	virtual long CreateMidSideConnect();
 	
 	/** @brief It returns dimension from the elements */
 	int Dimension() const;
@@ -203,7 +203,7 @@ public:
 	/** @brief Returns a vector of all discontinuous elements in cluster. */
 	void ListOfDiscEl(TPZStack<TPZCompEl *> &elvec);
 	/** @brief Returns a vector of all indexes of the discontinuous elements in cluster. */	
-	void IndexesDiscSubEls(TPZStack<int> &elvec);
+	void IndexesDiscSubEls(TPZStack<long> &elvec);
 	
 	/** @brief Returns the number of sides. If all the volumes agglomerated have the same number, it returns this number, else it returns -1. */
 	int NSides();
@@ -211,16 +211,16 @@ public:
 	/** Creates graphical element to postprocessing */
 	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 		
-	static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int nivel,int &numaggl,int dim);
+	static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<long> &accumlist,int nivel,long &numaggl,int dim);
 	
 	//  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
 	
-	void Print(TPZStack<int> &listindex);
+	void Print(TPZStack<long> &listindex);
 	
 	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
 	
 	
-	static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
+	static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<long> &accumlist,long numaggl);
 	
 	static void ComputeNeighbours(TPZCompMesh *mesh, std::map<TPZCompElDisc *,std::set<TPZCompElDisc *> > &neighbours);
 	

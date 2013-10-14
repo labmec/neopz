@@ -562,8 +562,8 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
     if (directsolve)
     {
         directsolve->Decompose();
-        std::list<int> &singular = directsolve->Singular();
-        std::list<int>::iterator it;
+        std::list<long> &singular = directsolve->Singular();
+        std::list<long>::iterator it;
         int nsing = singular.size();
         if(nsing > fMaxRigidBodyModes-fNumberRigidBodyModes)
         {

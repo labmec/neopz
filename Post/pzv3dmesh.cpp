@@ -109,8 +109,8 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/){
 	}
 	if(numscal > 0) {
 		(fOutFile) << "nosc " << numscal << endl;
-		int nnod = fNodeMap.NElements();
-		for(int i=0;i<nnod;i++) {
+		long nnod = fNodeMap.NElements();
+		for(long i=0;i<nnod;i++) {
 			TPZGraphNode *np = &fNodeMap[i];
 			if(np) np->DrawSolution(scalind, fStyle);
 		}
@@ -143,8 +143,8 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/){
 	}
 	if(numvec > 0) {
 		(fOutFile) << "nvec\n";
-		int nnod = fNodeMap.NElements();
-		for(int i=0;i<nnod;i++) {
+		long nnod = fNodeMap.NElements();
+		for(long i=0;i<nnod;i++) {
 			TPZGraphNode *np = &fNodeMap[i];
 			if(np) np->DrawSolution(vecind, fStyle);
 		}
@@ -155,8 +155,8 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/){
 
 void TPZV3DGraphMesh::SequenceNodes(){
 	TPZGraphMesh::SequenceNodes();
-	int nnod = fNodeMap.NElements();
-	for(int i=0;i<nnod;i++) {
+	long nnod = fNodeMap.NElements();
+	for(long i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) n->SetPointNumber(n->FirstPoint()+1);
 	}

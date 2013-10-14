@@ -656,7 +656,7 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 //fElem[ fBand * (2*row + 1) + col ]
 template<class TVar>
 int
-TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
+TPZFBMatrix<TVar>::Decompose_LU(std::list<long> &singular)
 {
     if (  this->fDecomposed && this->fDecomposed == ELU) {
         return ELU;

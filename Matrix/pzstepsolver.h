@@ -29,23 +29,17 @@ public:
 	
 	virtual ~TPZStepSolver();
 	
-	void SetSOR(const int numiterations, const REAL overrelax, const REAL tol,
-				const int FromCurrent);
+	void SetSOR(const long numiterations, const REAL overrelax, const REAL tol, const long FromCurrent);
 	
-	void SetSSOR(const int numiterations, const REAL overrelax, const REAL tol,
-				 const int FromCurrent);
+	void SetSSOR(const long numiterations, const REAL overrelax, const REAL tol, const long FromCurrent);
 	
-	void
-	SetJacobi(const int numiterations, const REAL tol, const int FromCurrent);
+	void SetJacobi(const long numiterations, const REAL tol, const long FromCurrent);
 	
-	void SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre,
-			   const REAL tol, const int FromCurrent);
+	void SetCG(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent);
 	
-	void SetGMRES(const int numiterations, const int numvectors,
-				  const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent);
+	void SetGMRES(const long numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent);
 	
-	void SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar> &pre,
-					 const REAL tol, const int FromCurrent);
+	void SetBiCGStab(const long numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const long FromCurrent);
 	
 	void SetDirect(const DecomposeType decomp);
 	
@@ -76,7 +70,7 @@ public:
     }
 	
 	/** @brief returns the equations for which the equations had zero pivot */
-	std::list<int> &Singular()
+	std::list<long> &Singular()
 	{
 		return fSingular;
 	}
@@ -125,19 +119,19 @@ private:
 	DecomposeType fDecompose;
     
     /// Maximum number of iterations
-    int fMaxIterations;
+    long fMaxIterations;
     
     /// Number of iterations of last solve
-	int fNumIterations;
+	long fNumIterations;
 	int fNumVectors;
 	REAL fTol;
 	REAL fOverRelax;
 	
 	/** @brief Solver using preconditioner matrix */
 	TPZSolver<TVar> *fPrecond;
-	int fFromCurrent;
+	long fFromCurrent;
 	
-	std::list<int> fSingular;
+	std::list<long> fSingular;
 };
 
 #endif
