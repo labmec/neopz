@@ -54,7 +54,7 @@ rdtfiles_l=[clkfn]
 def setup_cmd():
 	# Check build directory
 	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 1)
+		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
 	rundir = os.path.join(builddir,'scripts','skyline_tst1')
 	if not os.path.isdir(rundir) :
@@ -136,7 +136,7 @@ def sumarize_rdt_files(rundir) :
 		results[rdt_id] = (rdt_fn, rdt_dsc)
 	return results
 
-description="skyline-decompose_cholesky -- cubo1.txt -- polinomial order 3"
+description="skyline-decompose_cholesky -- cube1.txt -- polinomial order 3"
 
 # Execute the test.
 def run_test(ntimes):

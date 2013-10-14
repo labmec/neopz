@@ -43,12 +43,15 @@ def error(message, status):
 	sys.stderr.write('ERROR (test.py): '+message+'\n')
         sys.exit(status)
 
+
 #  (rdt_id, rdt_opt, rdt_filename, rdt_description)
-#clkfn=("clk", "-clk_rdt", "clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
-ldltfn=("ldlt", "-ldlt_rdt", "skyline.porder_7.ldlt.rdt", "LDLt Decomposition: matrix->Decompose_LDLt(). Decompose matrix using LDLt Decomposition.")
+#clkfn=("clk", "-clk_rdt", "skyline.porder_3.clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
+#ldltfn=("ldlt", "-ldlt_rdt", "ldlt.rdt", "LDLt Decomposition: matrix->Decompose_LDLt(). Decompose matrix using LDLt Decomposition.")
 #multfn=("mult", "-mult_rdt", "mult.rdt", "MultAdd: matrix->MultAdd(...). Multiply matrix by another matrix.")
+sorfn=("sor", "-sor_rdt", "skyline.porder_7.sor.rdt", "SolveSOR: matrix->SolveSOR(...). Solve a linear system using successive over-relaxation method.")
 # List of rdt files produced by the test
-rdtfiles_l=[ldltfn]
+rdtfiles_l=[sorfn]
+
 
 # Setup the command line
 def setup_cmd():
@@ -56,7 +59,7 @@ def setup_cmd():
 	if not os.path.isdir(builddir) :
 		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','skyline_tst2')
+	rundir = os.path.join(builddir,'scripts','skyline_tst10')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -70,7 +73,7 @@ def setup_cmd():
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -porder 7'
+    	arguments = ' -porder 7'
 	for rdtarg in rdtfiles_l :
 		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
 	# TODO: Add arguments to enforce output checking!
@@ -78,12 +81,12 @@ def setup_cmd():
 
 # Limits for this test
 # TODO: change cpu limit acording to program execution time
-limits = { "cpu"   : (resource.RLIMIT_CPU,   1000, "Max CPU user time in seconds (not wall clock time)"), 
-#	   "nofile": (resource.RLIMIT_NOFILE,   7, "The maximum number of open file descriptors for the current process."),
-#	   "rss"   : (resource.RLIMIT_RSS,   1024, "The maximum resident set size that should be made available to the process"),
-#	   "fsize" : (resource.RLIMIT_FSIZE,    1, "Max size of a file which the process may create"),
-#	   "data"  : (resource.RLIMIT_DATA,  1024, "The maximum size (in bytes) of the process's heap"),
-#	   "nproc" : (resource.RLIMIT_NPROC,    0, "The maximum number of processes the current process may create")
+limits = { "cpu"   : (resource.RLIMIT_CPU, 3600, "Max CPU time in seconds"), 
+#	   "nofile": (resource.RLIMIT_NOFILE,     7, "The maximum number of open file descriptors for the current process."),
+#	   "rss"   : (resource.RLIMIT_RSS,     1024, "The maximum resident set size that should be made available to the process"),
+#	   "fsize" : (resource.RLIMIT_FSIZE,      1, "Max size of a file which the process may create"),
+#	   "data"  : (resource.RLIMIT_DATA,    1024, "The maximum size (in bytes) of the process's heap"),
+#	   "nproc" : (resource.RLIMIT_NPROC,      0, "The maximum number of processes the current process may create")
 	 }
 
 # Set the rlimits of the chidren process (see limits above)
@@ -124,6 +127,9 @@ def sumarize_rdt_results(rundir) :
 			av=0.0
 			ci=0.0
 		results[k]=(av,ci)
+	# erase time files
+	for arq in rdtfiles_l:
+		os.remove(arq[1])
 	return results
 
 # Sumarizes the RDT (Raw data table) files information
@@ -136,21 +142,23 @@ def sumarize_rdt_files(rundir) :
 		results[rdt_id] = (rdt_fn, rdt_dsc)
 	return results
 
-description="skyline-decompose_ldlt -- cube1.txt -- polinomial order 7"
+description="skyline-solveSOR -- cube1.txt -- polinomial order 7"
 
 # Execute the test.
-def run_test(ntimes):
+def run_test(ntimes, nsub, thread):
 	rundir,cmd=setup_cmd()
+	#print cmd
 	args = shlex.split(cmd)
-	sout = None
+	sout = subprocess.PIPE # redirect output (before: None)
+	#sout = None
 	serr = None
 	for i in range(ntimes) : 
 		p = subprocess.Popen(args, preexec_fn=setlimits, stdout=sout, stderr=serr, cwd=rundir)
 		p.wait()
 		if (p.returncode != 0) : 
 			return p.returncode, {}
-	results = sumarize_rdt_files(rundir)
-	#results = sumarize_rdt_results(rundir)
+	#results = sumarize_rdt_files(rundir)
+	results = sumarize_rdt_results(rundir)
 	return 0, results
 
 # Functions for stand alone tests
@@ -159,10 +167,14 @@ def usage():
 	print "\nARGUMENTS"
 	print "\t-r : Run the experiment."
 	print "\nDESCRIPTION"
-	print "\tExecute the skyline test tool collecting statistics for the following operations:"
-#	print "\t ", clkfn[0], ": decomposing a skyline matrix using Cholesky decomposition -- results at", clkfn[1]
-	print "\t ", ldltfn[0], ": decomposing a skyline matrix using LDLt decomposition -- results at", ldltfn[1]
-#	print "\t ", multfn[0], ": multipling two skyline matrices -- results at", multfn[1]
+	print "\tExecute the substruct tool collecting statistics for the following steps:"
+	print "\t ", assfn[0], ": assembling the system (serial) -- results at", assfn[1]
+	print "\t ", tpzdohrassfn[0], ": assembling (ass part) the system (serial) -- results at", tpzdohrassfn[1]
+	print "\t ", tpzdohrdecfn[0], ": assembling (dec part) the system (serial) -- results at", tpzdohrdecfn[1]
+	print "\t ", crefn[0], ": creating the sytem (serial) -- results at", crefn[1]
+	print "\t ", prefn[0], ": pre-processing (serial) -- results at", prefn[1]
+	print "\t ", solfn[0], ": solver (serial) -- results at", solfn[1]
+	print "\t ", totfn[0], ": total -- results at", totfn[1]
 	sys.exit(1)
 
 # Main - for stand alone tests only
@@ -180,13 +192,21 @@ if __name__ == "__main__":
 		elif f == '-n': ntimes=int(v)
 		elif f == '-h': usage()
 
+	subs = [ "4", "8", "12", "16", "20", "24", "28", "32", "36", "48", "64", "128"]
+	numthreads = [ "1" , "6", "12", "18", "24", "32", "48" , "64"]
 	# Run test
 	if run == 1: 
-		status,results = run_test(ntimes)
-		if status == 0: print "Execution [OK]"
-		else          : print "Execution [FAILED] (status = ", status, ")"
-		print "Results summary ----------------------------"
-		for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
-		print "--------------------------------------------"
+		for thr in numthreads:
+			print "# Results Summary"
+			print '{0:s}; {1:s}; '.format("nsub", "threads"),
+			for arq in rdtfiles_l:
+				print'{0:s}; {1:s};'.format(arq[0],"err_"+arq[0]),
+			for item in subs:
+				status,results = run_test(ntimes, item, thr)
+				#if status == 0: print "Execution [OK]"
+				if status != 0 : print "Execution [FAILED] (status = ", status, ")"
+				print '\n{0:s}; {1:s};'.format(item, thr ),
+				for k,v in results.iteritems() : print '{0:.2f}; {1:.2f};'.format(v[0], v[1]),
+			print "\n--------------------------------------------"
 	else:
- 		print "WARNING: No options provided. (use -h for help)"
+		print "WARNING: No options provided. (use -h for help)"

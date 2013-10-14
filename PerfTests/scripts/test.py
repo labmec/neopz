@@ -66,6 +66,9 @@ import substruct_tst12.test
 import skyline_tst1.test
 import skyline_tst2.test
 import skyline_tst3.test
+import skyline_tst10.test
+import skyline_tst11.test
+import skyline_tst12.test
 # =========================
 
 # == Available test lists ==
@@ -75,7 +78,8 @@ import skyline_tst3.test
 short_tests = [("substruct_tst1",substruct_tst1.test), 
 	       ("substruct_tst2",substruct_tst2.test),
 	       ("skyline_tst1",skyline_tst1.test),
-	       ("skyline_tst2",skyline_tst2.test)]
+	       ("skyline_tst2",skyline_tst2.test),
+	       ("skyline_tst10",skyline_tst10.test)]
 
 # Tests with execution time between 1 and 10 minutes
 medium_tests= [("substruct_tst3",substruct_tst3.test),
@@ -87,7 +91,9 @@ medium_tests= [("substruct_tst3",substruct_tst3.test),
 	       ("substruct_tst10",substruct_tst10.test),
 	       ("substruct_tst11",substruct_tst11.test),
 	       ("substruct_tst12",substruct_tst12.test),
-	       ("skyline_tst3",skyline_tst3.test)]
+	       ("skyline_tst3",skyline_tst3.test),
+	       ("skyline_tst11",skyline_tst11.test),
+	       ("skyline_tst12",skyline_tst12.test)]
 
 # Tests with execution time longer than 10 minutes
 long_tests = []

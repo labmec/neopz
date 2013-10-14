@@ -44,7 +44,7 @@ def error(message, status):
         sys.exit(status)
 
 #  (rdt_id, rdt_opt, rdt_filename, rdt_description)
-clkfn=("clk", "-clk_rdt", "skyline.porder_8.clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
+clkfn=("clk", "-clk_rdt", "skyline.porder_7.clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
 #ldltfn=("ldlt", "-ldlt_rdt", "ldlt.rdt", "LDLt Decomposition: matrix->Decompose_LDLt(). Decompose matrix using LDLt Decomposition.")
 #multfn=("mult", "-mult_rdt", "mult.rdt", "MultAdd: matrix->MultAdd(...). Multiply matrix by another matrix.")
 # List of rdt files produced by the test
@@ -54,7 +54,7 @@ rdtfiles_l=[clkfn]
 def setup_cmd():
 	# Check build directory
 	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 1)
+		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
 	rundir = os.path.join(builddir,'scripts','skyline_tst1')
 	if not os.path.isdir(rundir) :
@@ -70,7 +70,7 @@ def setup_cmd():
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -porder 8'
+        arguments = ' -porder 7'
 	for rdtarg in rdtfiles_l :
 		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
 	# TODO: Add arguments to enforce output checking!
@@ -136,7 +136,7 @@ def sumarize_rdt_files(rundir) :
 		results[rdt_id] = (rdt_fn, rdt_dsc)
 	return results
 
-description="skyline-decompose_cholesky -- cubo1.txt -- polinomial order 8"
+description="skyline-decompose_cholesky -- cube1.txt -- polinomial order 7"
 
 # Execute the test.
 def run_test(ntimes):
