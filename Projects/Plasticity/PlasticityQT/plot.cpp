@@ -271,6 +271,10 @@ void Plot::createCurve(int pos, QVector <double> *X, QVector <double> *Y, int ch
     curva.endM = b;
     curva.X = X;
     curva.Y = Y;
+    curva.X2 = NULL;
+    curva.X3 = NULL;
+    curva.Y2 = NULL;
+    curva.Y3 = NULL;
     this->CurvesList->insert(pos, curva);
 
     this->replot();

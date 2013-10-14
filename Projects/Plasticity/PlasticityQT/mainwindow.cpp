@@ -28,6 +28,8 @@ using namespace std;
 #include "simulation.h"
 #include "canvaspicker.h"
 
+#include "simulation.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -169,6 +171,48 @@ void MainWindow::on_actionShowGraphList_triggered()
     ui->dockWidget->show();
 }
 
+void MainWindow::cutCurve(int indexCurves, int indexStartPoint, int indexEndPoint) {
+    qDebug() << "CUTCurve MAIN idxcurve = " << indexCurves << " Start / end pts: " << indexStartPoint << " / " << indexEndPoint ;
+
+    int size_tmp =this->FilesList->value(indexCurves).time->size();
+    qDebug() << "Size = " << size_tmp;
+    this->FilesList->value(indexCurves).time->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+    this->FilesList->value(indexCurves).time->remove(0,indexStartPoint);
+
+    if (this->FilesList->value(indexCurves).defAxial->size() == size_tmp) {
+        this->FilesList->value(indexCurves).defAxial->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).defAxial->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).defLateral->size() == size_tmp) {
+        this->FilesList->value(indexCurves).defLateral->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).defLateral->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).defVol->size() == size_tmp) {
+        this->FilesList->value(indexCurves).defVol->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).defVol->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).sigmaAxialDesv->size() == size_tmp) {
+        this->FilesList->value(indexCurves).sigmaAxialDesv->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).sigmaAxialDesv->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).sigmaAxialTotal->size() == size_tmp) {
+        this->FilesList->value(indexCurves).sigmaAxialTotal->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).sigmaAxialTotal->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).sigmaConf->size() == size_tmp) {
+        this->FilesList->value(indexCurves).sigmaConf->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).sigmaConf->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).sigmaLateral->size() == size_tmp) {
+        this->FilesList->value(indexCurves).sigmaLateral->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).sigmaLateral->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).sigmaVol->size() == size_tmp) {
+        this->FilesList->value(indexCurves).sigmaVol->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).sigmaVol->remove(0,indexStartPoint);
+    }
+}
+
 void MainWindow::updateCurve(int indexCurves, int indexStartPoint, int indexEndPoint) {
     qDebug() << "UpdateCurve MAIN";
     ui->Plot_1->updateCurve( indexCurves, indexStartPoint, indexEndPoint );
@@ -251,6 +295,9 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         // connecting signal/slot to perform curve cut
         connect(selectpointdock, SIGNAL(cutCurve(int,int,int)),
                 currentPlot, SLOT(cutCurve(int,int,int)));
+        // this one is responsable for cutting all vectors of points (sigmas* and defs*) from the target curve
+        connect(selectpointdock, SIGNAL(cutCurve(int,int,int)),
+                this, SLOT(cutCurve(int,int,int)));
         // connecting signal/slot to perform curve redraw with new data
         connect(selectpointdock, SIGNAL(cutCurve(int,int,int)),
                 this, SLOT(updateCurve(int,int,int)));
@@ -381,7 +428,7 @@ void MainWindow::on_actionOpenFile_triggered()
                 defVol->insert( countLines, strings.value(7).toDouble() );
 
                 // Atribuicoes
-                sigmaAxialTotal->insert( countLines, 1.5*strings.value(1).toDouble());
+                sigmaAxialTotal->insert( countLines, 1.5 * strings.value(1).toDouble());
                 sigmaLateral=sigmaAxialTotal;
                 sigmaVol=sigmaAxialTotal;
 
@@ -406,7 +453,7 @@ void MainWindow::on_actionOpenFile_triggered()
                 defVol->insert( countLines, strings.value(11).toDouble() );
 
                 // Atribuicoes
-                sigmaVol->insert( countLines, (strings.value(1).toDouble()+(strings.value(5).toDouble())*2)); // Svol = Sax + 2* Sconf
+                sigmaVol->insert( countLines, (strings.value(1).toDouble()+(strings.value(5).toDouble()) * 2 )); // Svol = Sax + 2* Sconf
                 sigmaLateral = sigmaConf;
 
                 // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
@@ -701,8 +748,63 @@ void MainWindow::on_actionShow_Parameter_List_triggered()
     ui->dockWidget_2->show();
 }
 
-void MainWindow::on_actionRUN_triggered()
+void MainWindow::on_pushButton_clicked()
 {
     // EXECUTAR SIMULATION!!!!!!!!!!!!!!!!
-    // Fazer o load dos valores dos contadores e rodar o simulation (mainGUI.cpp)
+
+    TPZPlasticityTest simulacao;
+    // PERCORRER LISTA DE ARQUIVOS E RODAR PASSO ABAIXO P TODOS ELES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // ver se funciona apos cortar a curva
+    // CRIAR FLAG P/ SABERMOS QUAL EH SIMULADO E QUAL EH DADO REAL NA LISTA DE ARQUIVOS ??
+    simulacao.LoadInputStrainStress(this->FilesList->value(0).sigmaAxialTotal, this->FilesList->value(0).sigmaLateral, this->FilesList->value(0).defAxial, this->FilesList->value(0).defLateral);
+
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandler;
+    REAL inttol = 1.e-4;
+    sandler.SetIntegrTol(inttol);
+    simulacao.SetSandlerDimaggio(sandler);
+
+    simulacao.SetUpSimulation(ui->poisson_counter->value(), ui->young_counter->value(), ui->A_counter->value(),
+                              ui->B_counter->value(), ui->C_counter->value(), ui->R_counter->value(),
+                              ui->D_counter->value(), ui->W_counter->value());
+
+
+    simulacao.PerformSimulation();
+
+//    simulacao.PrintResults();
+
+    {
+    //Criando entrada na tabela de arquivos
+    TXT arquivoTXT;
+    arquivoTXT.name = "Simulacao Stress";
+    arquivoTXT.X = new QVector<double> (simulacao.get_Strain_X());
+    arquivoTXT.Y = new QVector<double> (simulacao.get_Stress_X());
+    arquivoTXT.sigmaAxialDesv = new QVector<double> (simulacao.get_Stress_X());
+    arquivoTXT.sigmaAxialTotal = new QVector<double> (simulacao.get_Stress_X());
+    arquivoTXT.sigmaConf = new QVector<double> (simulacao.get_Stress_X());
+    arquivoTXT.sigmaLateral = new QVector<double> (simulacao.get_Stress_X());
+    arquivoTXT.sigmaVol = new QVector<double> (simulacao.get_Stress_Y());
+
+    arquivoTXT.defAxial = new QVector<double> (simulacao.get_Strain_X());
+    arquivoTXT.defLateral = new QVector<double> (simulacao.get_Strain_X());
+    arquivoTXT.defVol = new QVector<double> (simulacao.get_Strain_Y());
+
+    //int position = this->FilesList->size();
+    int position = 0;
+    if (this->FilesList->size() != 0) {
+        int last_key = this->FilesList->keys().last();
+        position = last_key+1;
+    }
+    this->FilesList->insert(position, arquivoTXT);
+    //Criando entrada na listWidget
+    QListWidgetItem *item;
+    item = new QListWidgetItem();
+    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    item->setCheckState(Qt::Unchecked);
+    item->setText(this->FilesList->value(position).name);
+    item->setData(5,position); //item "ID"
+    ui->listWidget->addItem(item);
+    }
+
+    qDebug() << "END Simulation...";
+
 }

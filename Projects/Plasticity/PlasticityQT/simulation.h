@@ -2,6 +2,7 @@
 #define SIMULATION_H
 
 #include <QVector>
+#include <QDebug>
 
 #include "pzreal.h"
 #include "TPZSandlerDimaggio.h"
@@ -64,6 +65,10 @@ public:
     /// read the input strain and stress from the laboratory file
     void ReadInputStrainStress(const std::string &filename);
 
+    /// load the input strain and stress from GUI interface
+    void LoadInputStrainStress (QVector<double> *sigmaAxialTotal, QVector<double> *sigmaLateral,
+                                QVector<double> *defAxial, QVector<double> *defLateral) ;
+
     /// set the SandlerDimaggio object
     void SetSandlerDimaggio(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)
     {
@@ -73,7 +78,7 @@ public:
     /// compute the stress strain curve
     void PerformSimulation();
 
-    void SetUpSimulation ( REAL young, REAL poisson, REAL A, REAL B, REAL C, REAL D, REAL R, REAL W ) {
+    void SetUpSimulation ( REAL poisson, REAL young, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W ) {
         this->_young = young;
         this->_poisson = poisson;
         this->_A = A;
@@ -82,40 +87,41 @@ public:
         this->_D = D;
         this->_R = R;
         this->_W = W;
+
+//        qDebug() << "VALORES DA TELA 2.0!!!" <<poisson <<young <<A <<B <<C <<R <<D <<W;
+
+        this->fSandler.SetUp(_poisson, _young, _A, _B, _C, _R, _D, _W);
     }
 
-    void RunSimulation () {
-        // x y solution storage
-        x_UCS.clear();
-        y_UCS.clear();
-        x_Triaxial.clear();
-        y_Triaxial.clear();
-
-
-        //simulation code here ...
-
-
-
-
-
-
+    void PrintResults () {
+        std::cout << "Results: fStressRZSimulated= " << fStressRZSimulated << " fStrainRZSimulated= " << fStrainRZSimulated << std::endl;
     }
 
-    double * get_UCS_Xvalues() {
-        return x_UCS.data();
+    const QVector<double> get_Stress_X () {
+        for (int i=0; i<fStressRZSimulated.Rows(); i++) {
+            Stress_X.insert(i, fStressRZSimulated.GetVal(i,0) * -1 );
+        }
+        return Stress_X;
+    }
+    const QVector<double> get_Stress_Y () {
+        for (int i=0; i<fStressRZSimulated.Rows(); i++) {
+            Stress_Y.insert(i, fStressRZSimulated.GetVal(i,1) * -1 );
+        }
+        return Stress_Y;
+    }
+    const QVector<double> get_Strain_X () {
+        for (int i=0; i<fStrainRZSimulated.Rows(); i++) {
+            Strain_X.insert(i, fStrainRZSimulated.GetVal(i,0) * -100 );
+        }
+        return Strain_X;
+    }
+    const QVector<double> get_Strain_Y () {
+        for (int i=0; i<fStrainRZSimulated.Rows(); i++) {
+            Strain_Y.insert(i, fStrainRZSimulated.GetVal(i,1) * -100 );
+        }
+        return Strain_Y;
     }
 
-    double * get_UCS_Yvalues() {
-        return y_UCS.data();
-    }
-
-    double * get_Triaxial_Xvalues() {
-        return x_Triaxial.data();
-    }
-
-    double * get_Triaxial_Yvalues() {
-        return y_Triaxial.data();
-    }
 
 protected:
 
@@ -128,66 +134,11 @@ protected:
 
 private:
     int _plasticityTest, _nofsteps, _unloadstep;
-    REAL _young, _poisson, _E, _A, _B, _C, _D, _R, _W, _inttol, _epsx, _deltasigmaXX ;
+    REAL _young, _poisson, _A, _B, _C, _D, _R, _W, _inttol, _epsx, _deltasigmaXX ;
     double _percent;
-
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *sandler;
-
-    QVector<double> x_UCS, y_UCS, x_Triaxial, y_Triaxial;
+    QVector<double> Stress_X, Stress_Y, Strain_X, Strain_Y;
 
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//#include <TPZTensor.h>
-//#include <TPZSandlerDimaggio.h>
-//#include <TPZPlasticState.h>
-//#include "TPZPlasticityTest.h"
-
-//#include <QVector>
-
-//class Simulation
-//{
-//private:
-//    int _plasticityTest, _nofsteps, _unloadstep;
-//    REAL _poisson, _E, _A, _B, _C, _D, _R, _W, _inttol, _epsx, _deltasigmaXX ;
-//    double _percent;
-
-//    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *sandler;
-
-//    QVector<double> x, y;
-
-//public:
-//    Simulation();
-
-//    void setupTriaxial();
-//    void setupUCS();
-
-//    double * getXvalues();
-//    double * getYvalues();
-//    int getXsize();
-//};
 
 #endif // SIMULATION_H

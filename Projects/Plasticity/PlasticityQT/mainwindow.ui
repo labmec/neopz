@@ -184,15 +184,15 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_8">
+       <widget class="QwtCounter" name="young_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
         <property name="maxValue">
-         <double>1000.000000000000000</double>
+         <double>1000000000.000000000000000</double>
         </property>
         <property name="value">
-         <double>100.000000000000000</double>
+         <double>29269.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -248,15 +248,18 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_11">
+       <widget class="QwtCounter" name="poisson_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
         <property name="maxValue">
-         <double>1000.000000000000000</double>
+         <double>1.000000000000000</double>
+        </property>
+        <property name="stepButton2">
+         <number>10</number>
         </property>
         <property name="value">
-         <double>0.400000000000000</double>
+         <double>0.203000000000000</double>
         </property>
        </widget>
       </item>
@@ -293,15 +296,15 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_12">
+       <widget class="QwtCounter" name="B_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
         <property name="maxValue">
-         <double>100.000000000000000</double>
+         <double>1000.000000000000000</double>
         </property>
         <property name="value">
-         <double>0.670000000000000</double>
+         <double>0.003689000000000</double>
         </property>
        </widget>
       </item>
@@ -338,15 +341,15 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_13">
+       <widget class="QwtCounter" name="A_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
         <property name="maxValue">
-         <double>100.000000000000000</double>
+         <double>10000.000000000000000</double>
         </property>
         <property name="value">
-         <double>0.250000000000000</double>
+         <double>116.670000000000002</double>
         </property>
        </widget>
       </item>
@@ -383,15 +386,18 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_15">
+       <widget class="QwtCounter" name="C_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
         <property name="maxValue">
          <double>1000.000000000000000</double>
         </property>
+        <property name="stepButton3">
+         <number>1000</number>
+        </property>
         <property name="value">
-         <double>0.180000000000000</double>
+         <double>111.480000000000004</double>
         </property>
        </widget>
       </item>
@@ -428,7 +434,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_30">
+       <widget class="QwtCounter" name="D_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
@@ -436,7 +442,7 @@
          <double>1000.000000000000000</double>
         </property>
         <property name="value">
-         <double>0.335000000000000</double>
+         <double>0.018768000000000</double>
         </property>
        </widget>
       </item>
@@ -473,7 +479,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_31">
+       <widget class="QwtCounter" name="R_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
@@ -481,7 +487,7 @@
          <double>1000.000000000000000</double>
         </property>
         <property name="value">
-         <double>2.500000000000000</double>
+         <double>0.919690000000000</double>
         </property>
        </widget>
       </item>
@@ -518,7 +524,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QwtCounter" name="Counter_32">
+       <widget class="QwtCounter" name="W_counter">
         <property name="numButtons">
          <number>1</number>
         </property>
@@ -526,7 +532,7 @@
          <double>10000.000000000000000</double>
         </property>
         <property name="value">
-         <double>0.066000000000000</double>
+         <double>0.006605000000000</double>
         </property>
        </widget>
       </item>
@@ -606,14 +612,6 @@
   <action name="actionShow_Parameter_List">
    <property name="text">
     <string>Show Parameter List</string>
-   </property>
-  </action>
-  <action name="RUN">
-   <property name="text">
-    <string>RUN</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>

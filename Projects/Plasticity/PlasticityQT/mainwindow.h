@@ -46,12 +46,13 @@ private slots:
     void ShowListContextMenu(const QPoint& pos);
     void updateCurve(int indexCurves, int indexStartPoint, int indexEndPoint);
     void ChangePlotAxis(Plot *plot_ptr, QString PlotAxis);
+    void cutCurve(int indexCurves, int indexStartPoint, int indexEndPoint);
 
     void on_actionExportPlot_triggered();
 
     void on_actionShow_Parameter_List_triggered();
 
-    void on_actionRUN_triggered();
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
