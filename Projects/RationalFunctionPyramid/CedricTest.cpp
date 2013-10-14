@@ -190,12 +190,12 @@ static int tetraedra_2[6][4]=
 };
 
 
-void TCedricTest::GenerateNodes(TPZGeoMesh *gmesh, int nelem)
+void TCedricTest::GenerateNodes(TPZGeoMesh *gmesh, long nelem)
 {
     gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
-    for (int i=0; i<=nelem; i++) {
-        for (int j=0; j<=nelem; j++) {
-            for (int k=0; k<=nelem; k++) {
+    for (long i=0; i<=nelem; i++) {
+        for (long j=0; j<=nelem; j++) {
+            for (long k=0; k<=nelem; k++) {
                 TPZManVector<REAL,3> x(3);
                 x[0] = k*1./nelem;
                 x[1] = j*1./nelem;
@@ -206,15 +206,15 @@ void TCedricTest::GenerateNodes(TPZGeoMesh *gmesh, int nelem)
     }
 }
 
-TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem,int MaterialId)
+TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(long nelem,int MaterialId)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh, nelem);
     
-    for (int i=0; i<nelem; i++) {
-        for (int j=0; j<nelem; j++) {
-            for (int k=0; k<nelem; k++) {
-                TPZManVector<int,8> nodes(8,0);
+    for (long i=0; i<nelem; i++) {
+        for (long j=0; j<nelem; j++) {
+            for (long k=0; k<nelem; k++) {
+                TPZManVector<long,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -232,11 +232,11 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem,int MaterialId)
 #endif
                 for (int el=0; el<2; el++)
                 {
-                    TPZManVector<int,5> elnodes(5);
+                    TPZManVector<long,5> elnodes(5);
                     for (int il=0; il<5; il++) {
                         elnodes[il] = nodes[pyramid[el][il]];
                     }
-                    int index;
+                    long index;
                     gmesh->CreateGeoElement(EPiramide, elnodes, MaterialId, index);
                     elnodes.resize(4);
                     for (int il=0; il<4; il++) {
@@ -251,15 +251,15 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int nelem,int MaterialId)
     return gmesh;
 }
 
-TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem,int MaterialId)
+TPZGeoMesh *TCedricTest::TetrahedralMesh(long nelem,int MaterialId)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh,nelem);
     
-    for (int i=0; i<nelem; i++) {
-        for (int j=0; j<nelem; j++) {
-            for (int k=0; k<nelem; k++) {
-                TPZManVector<int,8> nodes(8,0);
+    for (long i=0; i<nelem; i++) {
+        for (long j=0; j<nelem; j++) {
+            for (long k=0; k<nelem; k++) {
+                TPZManVector<long,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -277,8 +277,8 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem,int MaterialId)
 #endif
                 for (int el=0; el<6; el++)
                 {
-                    TPZManVector<int,4> elnodes(4);
-                    int index;
+                    TPZManVector<long,4> elnodes(4);
+                    long index;
                     for (int il=0; il<4; il++) {
                         elnodes[il] = nodes[tetraedra_2[el][il]];
                     }
@@ -293,7 +293,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int nelem,int MaterialId)
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
 
-TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(int nelemdata,int MaterialId)
+TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(long nelemdata,int MaterialId)
 {
     // CONSIDERING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
     // And dividing into five tetrahedras
@@ -315,7 +315,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(int nelemdata,int Materi
     };
     int nod;
     for(nod=0; nod<nnode; nod++) {
-        int nodind = gmesh->NodeVec().AllocateNewElement();
+        long nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -323,7 +323,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(int nelemdata,int Materi
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    TPZVec<TPZVec<int> > indices(nelem);
+    TPZVec<TPZVec<long> > indices(nelem);
     int nnodebyelement = 4;
     int el;
     for(el=0;el<nelem;el++)
@@ -356,7 +356,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(int nelemdata,int Materi
     
     TPZGeoEl *elvec[nelem];
     for(el=0; el<nelem; el++) {
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ETetraedro,indices[el],MaterialId,index);
     }
     gmesh->BuildConnectivity();
@@ -366,15 +366,15 @@ TPZGeoMesh *TCedricTest::TetrahedralMeshUsingRefinement(int nelemdata,int Materi
     return gmesh;
 }
 
-TPZGeoMesh *TCedricTest::HexahedralMesh(int nelem,int MaterialId)
+TPZGeoMesh *TCedricTest::HexahedralMesh(long nelem,int MaterialId)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh, nelem);
     
-    for (int i=0; i<nelem; i++) {
-        for (int j=0; j<nelem; j++) {
-            for (int k=0; k<nelem; k++) {
-                TPZManVector<int,8> nodes(8,0);
+    for (long i=0; i<nelem; i++) {
+        for (long j=0; j<nelem; j++) {
+            for (long k=0; k<nelem; k++) {
+                TPZManVector<long,8> nodes(8,0);
                 nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
                 nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
@@ -390,7 +390,7 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(int nelem,int MaterialId)
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
-                int index;
+                long index;
                 gmesh->CreateGeoElement(ECube, nodes, MaterialId, index);
             }
         }
@@ -402,8 +402,8 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(int nelem,int MaterialId)
 /// verify if the faces without neighbour should be orthogonal to the main planes
 void TCedricTest::CheckConsistency(TPZGeoMesh *mesh)
 {
-    int nel = mesh->NElements();
-    for(int el=0; el<nel; el++) {
+    long nel = mesh->NElements();
+    for(long el=0; el<nel; el++) {
         TPZGeoEl *gel = mesh->ElementVec()[el];
         int nsides = gel->NSides();
         for(int is=0; is<nsides; is++) {
@@ -474,8 +474,8 @@ TPZCompMesh *TCedricTest::GenerateCompMesh(TPZGeoMesh *gmesh)
 int TCedricTest::AddBoundaryElements(TPZGeoMesh *gmesh)
 {
     int nelembc = 0;
-    int nelem = gmesh->NElements();
-    for (int el = 0; el<nelem; el++) {
+    long nelem = gmesh->NElements();
+    for (long el = 0; el<nelem; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];
         int ns = gel->NSides();
         for (int is=0; is<ns; is++) {

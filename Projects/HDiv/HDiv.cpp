@@ -345,7 +345,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 
 int SubStructure(TPZCompMesh *cmesh, int materialid)
 {
-	int index;
+	long index;
 	TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);//alocacao de memoria...o constructor do tpzsubcompmesh eh inicializado com o parametro index que sera o numero de elementos computacionais da malha
 	
 	int nelem = cmesh->NElements();
@@ -412,7 +412,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 	int nod;
 	TPZVec<REAL> coord(dim);
 	for(nod=0; nod<nnode; nod++) {
-		int nodind = gmesh->NodeVec().AllocateNewElement();
+		long nodind = gmesh->NodeVec().AllocateNewElement();
 		
 		for(int d = 0; d < dim; d++)
 		{
@@ -424,12 +424,12 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 
 	for ( int el=0; el<nelem; el++ )
 	{
-		TPZVec<int> nodind(4);
+		TPZVec<long> nodind(4);
 		nodind[0]=nodindAll[el][0];
 		nodind[1]=nodindAll[el][1];
 		nodind[2]=nodindAll[el][2];
 		nodind[3]=nodindAll[el][3];
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement (EQuadrilateral,nodind,1,index );
 	}
 	
@@ -453,8 +453,8 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 		//Refinamento uniforme
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for(int i = 0; i < n; i++){
+		long n = gmesh->NElements();
+		for(long i = 0; i < n; i++){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
 			if(!gel->HasSubElement())
 			{
@@ -489,7 +489,7 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	const int dim = 2;//AQUI
 	
 	REAL co[nnode][dim] = {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};
-	int indices[1][nnode]={{0,1,2,3}};//como serao enumerados os nos
+	long indices[1][nnode]={{0,1,2,3}};//como serao enumerados os nos
 	
 	
 	
@@ -502,7 +502,7 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	int nod;
 	TPZVec<REAL> coord(dim);
 	for(nod=0; nod<nnode; nod++) {
-		int nodind = gmesh->NodeVec().AllocateNewElement();
+		long nodind = gmesh->NodeVec().AllocateNewElement();
 		
 		for(int d = 0; d < dim; d++)
 		{
@@ -513,12 +513,12 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//Criacao de elementos
 	
 	
-	TPZVec<int> nodind(4);
+	TPZVec<long> nodind(4);
 	for(int i=0; i<4; i++){
 		nodind[i] = indices[0][i];
 	}
 	
-	int index;
+	long index;
 	TPZGeoEl *elvec = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index); //AQUI
 	
 	gmesh->BuildConnectivity();
@@ -537,8 +537,8 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	//	Refinamento uniforme
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for(int i = 0; i < n; i++){
+		long n = gmesh->NElements();
+		for(long i = 0; i < n; i++){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
 			if(!gel->HasSubElement())
 			{
@@ -591,7 +591,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	int nod;
 	TPZVec<REAL> coord(dim);
 	for(nod=0; nod<nnode; nod++) {
-		int nodind = gmesh->NodeVec().AllocateNewElement();
+		long nodind = gmesh->NodeVec().AllocateNewElement();
 		
 		for(int d = 0; d < dim; d++)
 		{
@@ -602,14 +602,14 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//Criacao de elementos
 	
 	
-	TPZVec<int> nodind1(3);
-	TPZVec<int> nodind2(3);
+	TPZVec<long> nodind1(3);
+	TPZVec<long> nodind2(3);
 	for(int i=0; i<3; i++){
 		nodind1[i] = indices[0][i];
 		nodind2[i] = indices[1][i];
 	}
 	
-	int index;
+	long index;
 	elvec[0] = gmesh->CreateGeoElement(ETriangle,nodind1,1,index); //AQUI
 	elvec[1] = gmesh->CreateGeoElement(ETriangle,nodind2,1,index); //AQUI
 	
@@ -654,8 +654,8 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	}*/
 	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for(int i = 0; i < n; i++){
+		long n = gmesh->NElements();
+		for(long i = 0; i < n; i++){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
 			if(!gel->HasSubElement())
 			{
@@ -688,13 +688,13 @@ void SaddlePermute(TPZCompMesh * cmesh){
 	}
 #endif
 	TPZVec<long> permute;
-	int numinternalconnects = cmesh->NIndependentConnects();
+	long numinternalconnects = cmesh->NIndependentConnects();
   	permute.Resize(numinternalconnects,0);
 
 	TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (cmesh);
 	if(submesh)
 	{
-		int nexternal = submesh->NConnects();
+		long nexternal = submesh->NConnects();
 		numinternalconnects -= nexternal;
 	}
 //	else {
@@ -702,23 +702,23 @@ void SaddlePermute(TPZCompMesh * cmesh){
 //	}
 
 	int jperm=0;
-	int nel=cmesh->ElementVec().NElements();
-	for (int jel=0; jel<nel; jel++) {
+	long nel=cmesh->ElementVec().NElements();
+	for (long jel=0; jel<nel; jel++) {
 		
-		for (int ip=0; ip<permute.NElements(); ip++) {
+		for (long ip=0; ip<permute.NElements(); ip++) {
 			permute[ip]=ip;
 		}
 		
 		TPZCompEl *elvec=cmesh->ElementVec()[jel];
 	//	int idtroca=0;
-		int eqmax=0;
+		long eqmax=0;
 		if(!elvec)continue;
-		int ncon=elvec->NConnects();
+		long ncon=elvec->NConnects();
 	//	if(ncon==1) continue;
-		int eqpress=elvec->Connect(ncon-1).SequenceNumber();
-		for (int icon=0; icon< ncon-1; icon++) {
+		long eqpress=elvec->Connect(ncon-1).SequenceNumber();
+		for (long icon=0; icon< ncon-1; icon++) {
 			TPZConnect &coel=elvec->Connect(icon);
-			int eqflux=coel.SequenceNumber();
+			long eqflux=coel.SequenceNumber();
 			if (eqflux >= numinternalconnects) {
 				continue;
 			}

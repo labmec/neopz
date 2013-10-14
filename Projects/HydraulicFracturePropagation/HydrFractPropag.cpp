@@ -955,8 +955,8 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     }
     
     TPZGeoEl * gel = NULL;
-    TPZVec<int> topol(4);
-    int indx = 0;
+    TPZVec<long> topol(4);
+    long indx = 0;
     for(int r = 0; r < nrows-1; r++)
     {
         for(int c = 0; c < ncols-1; c++)

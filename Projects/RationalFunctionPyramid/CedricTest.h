@@ -15,13 +15,13 @@ public:
     TCedricTest() {
     }
 
-    void GenerateNodes(TPZGeoMesh *gmesh, int nelem);
+    void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
 
     /** Constructing geometrical mesh depends on type of element wished. */
-    TPZGeoMesh *HexahedralMesh(int nelem,int MaterialId);
-    TPZGeoMesh *PyramidalAndTetrahedralMesh(int nelem,int MaterialId);
-    TPZGeoMesh *TetrahedralMesh(int nelem,int MaterialId);
-    TPZGeoMesh *TetrahedralMeshUsingRefinement(int nelem,int MaterialId);
+    TPZGeoMesh *HexahedralMesh(long nelem,int MaterialId);
+    TPZGeoMesh *PyramidalAndTetrahedralMesh(long nelem,int MaterialId);
+    TPZGeoMesh *TetrahedralMesh(long nelem,int MaterialId);
+    TPZGeoMesh *TetrahedralMeshUsingRefinement(long nelem,int MaterialId);
 
     int AddBoundaryElements(TPZGeoMesh *gmesh);
 

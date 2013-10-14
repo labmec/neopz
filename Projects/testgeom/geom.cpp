@@ -67,13 +67,14 @@ void LerMalhaGeom(const std::string &nome, TPZGeoMesh &grid) {
 	infile.getline(buf,255);
     
 	grid.NodeVec ().Resize(npoin+1);
-	TPZVec<int> nodeindices(4);
-	int mat, elid;
+	TPZVec<long> nodeindices(4);
+	int mat;
+	long elid;
 	for(i=0;i<nquad;i++) {
 		infile >> elid;
 		for(j=0; j<4;j++) infile >> nodeindices[j];
 		infile >> mat;
-        int index;
+        long index;
 		grid.CreateGeoElement(EQuadrilateral,nodeindices,mat,index,1);
 	}
 	infile.getline(buf,255);
@@ -89,7 +90,7 @@ void LerMalhaGeom(const std::string &nome, TPZGeoMesh &grid) {
 	infile.getline (buf,255);
 	infile.getline (buf,255);
     
-	TPZVec<int> sideid(2,0);
+	TPZVec<long> sideid(2,0);
 	for(i=0; i<nbouf; i++) {
 		infile >> sideid[0] >> sideid[1] >> elid >> dum >> mat;
 		TPZGeoEl *el = grid.ElementVec ()[elid-1];
@@ -156,11 +157,11 @@ void LargeMesh(int nrefloop)
 	// criar um elemento
     
 	// initializar os indices dos n�s
-	TPZVec<int> indices(8);
+	TPZVec<long> indices(8);
 	for(i=0; i<8; i++) indices[i] = i;
     
 	// O proprio construtor vai inserir o elemento na malha
-    int index;
+    long index;
 	malha.CreateGeoElement(ECube,indices,1,index,0);
     
     
