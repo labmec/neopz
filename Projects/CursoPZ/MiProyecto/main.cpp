@@ -174,7 +174,7 @@ TPZGeoMesh *ConstructingFicheraCorner() {
         {1.,1.,1.},
         {0.,1.,1.}
     };
-    int indices[1][8] = {{0,1,2,3,4,5,6,7}};
+    long indices[1][8] = {{0,1,2,3,4,5,6,7}};
     
     const int nelem = 1;
     int nnode = 8;
@@ -182,9 +182,9 @@ TPZGeoMesh *ConstructingFicheraCorner() {
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     
-    int nod;
+    long nod;
     for(nod=0; nod<nnode; nod++) {
-        int nodind = gmesh->NodeVec().AllocateNewElement();
+        long nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(3);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
@@ -192,11 +192,11 @@ TPZGeoMesh *ConstructingFicheraCorner() {
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    int el;
+    long el;
     for(el=0; el<nelem; el++) {
-        TPZManVector<int> nodind(8);
+        TPZManVector<long> nodind(8);
         for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
     }
     

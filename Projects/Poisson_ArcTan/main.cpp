@@ -616,9 +616,9 @@ TPZGeoMesh *CreateLShapeGeoMesh(MElementType typeel) {
             
             int el;
             for(el=0; el<nelem; el++) {
-                TPZVec<int> nodind(3);
+                TPZVec<long> nodind(3);
                 for(nod=0; nod<3; nod++) nodind[nod]=indices[el][nod];
-                int index;
+                long index;
                 elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
             }
             gmesh->BuildConnectivity();
@@ -655,9 +655,9 @@ TPZGeoMesh *CreateLShapeGeoMesh(MElementType typeel) {
             int el;
             int nelem = 3;
             for(el=0; el<nelem; el++) {
-                TPZVec<int> nodind(4);
+                TPZVec<long> nodind(4);
                 for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-                int index;
+                long index;
                 elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
             }
             
@@ -697,10 +697,10 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			gmesh->NodeVec().Resize(Qnodes);
 			TPZVec<TPZGeoNode> Node(Qnodes);
 			
-			TPZVec <int> TopolLine(2);
-			TPZVec <int> TopolPoint(1);
+			TPZVec <long> TopolLine(2);
+			TPZVec <long> TopolPoint(1);
 			
-			int id = 0;
+			long id = 0;
 			for (int j=0; j<2;j++) {
 				Node[id].SetNodeId(id);
 				if(!j) Node[id].SetCoord(point);//coord x
@@ -746,9 +746,9 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			}
 			
 			int el = 0;
-			TPZVec<int> nodind(nnode);
+			TPZVec<long> nodind(nnode);
 			for(nod=0; nod<nnode; nod++) nodind[nod]=nod;
-			int index;
+			long index;
 			elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,materialId,index);
 			
 			gmesh->BuildConnectivity();
@@ -775,7 +775,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			
 			int nod;
 			for(nod=0; nod<nnode; nod++) {
-				int nodind = gmesh->NodeVec().AllocateNewElement();
+				long nodind = gmesh->NodeVec().AllocateNewElement();
 				TPZVec<REAL> coord(3,0.0);
 				coord[0] = co[nod][0];
 				coord[1] = co[nod][1];
@@ -784,9 +784,9 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			
 			int el;
 			for(el=0; el<nelem; el++) {
-				TPZVec<int> nodind(3);
+				TPZVec<long> nodind(3);
 				for(nod=0; nod<3; nod++) nodind[nod]=indices[el][nod];
-				int index;
+				long index;
 				elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
 			}
 			
@@ -837,7 +837,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 		{InitialL,InitialL,InitialL},
 		{0.,InitialL,InitialL}
 	};
-	TPZVec<TPZVec<int> > indices(nelem);
+	TPZVec<TPZVec<long> > indices(nelem);
 	indices[0].Resize(nnode);
 	int nod;
 	for(nod=0;nod<nnode;nod++)
@@ -847,7 +847,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	TPZGeoMesh *gmesh = new TPZGeoMesh();
 
 	for(nod=0; nod<nnode; nod++) {
-		int nodind = gmesh->NodeVec().AllocateNewElement();
+		long nodind = gmesh->NodeVec().AllocateNewElement();
 		TPZVec<REAL> coord(3);
 		coord[0] = co[nod][0];
 		coord[1] = co[nod][1];
@@ -857,7 +857,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	
 	int el;
 	for(el=0; el<nelem; el++) {
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement(ECube,indices[el],1,index);
 	}
     gmesh->BuildConnectivity();
@@ -1124,7 +1124,7 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
 		gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
 	}
     
-	TPZVec<TPZVec<int> > indices(nelem);
+	TPZVec<TPZVec<long> > indices(nelem);
 	int nnodebyelement = 4;
 	int el;
 	for(el=0;el<nelem;el++)
@@ -1157,7 +1157,7 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
     
 	TPZGeoEl *elvec[nelem];
 	for(el=0; el<nelem; el++) {
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement(ETetraedro,indices[el],materialId,index);
 	}
     gmesh->BuildConnectivity();
@@ -1277,7 +1277,7 @@ TPZGeoMesh *ConstructingPyramidsInCube(REAL InitialL) {
 		gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
 	}
 
-	TPZVec<TPZVec<int> > indices(nelem);
+	TPZVec<TPZVec<long> > indices(nelem);
 	int nnodebyelement = 5;
 	int el;
 	for(el=0;el<nelem;el++)
@@ -1321,7 +1321,7 @@ TPZGeoMesh *ConstructingPyramidsInCube(REAL InitialL) {
 
 	TPZGeoEl *elvec[nelem];
 	for(el=0; el<nelem; el++) {
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement(EPiramide,indices[el],materialId,index);
 	}
     gmesh->BuildConnectivity();
@@ -1382,7 +1382,7 @@ TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL) {
 		gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
 	}
 
-	TPZVec<TPZVec<int> > indices(nelem);
+	TPZVec<TPZVec<long> > indices(nelem);
 	int nnodebyelement = 6;
 	int el;
 	for(el=0;el<nelem;el++)
@@ -1418,7 +1418,7 @@ TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL) {
 
 	TPZGeoEl *elvec[nelem];
 	for(el=0; el<nelem; el++) {
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement(EPrisma,indices[el],materialId,index);
 	}
     gmesh->BuildConnectivity();
@@ -1479,7 +1479,7 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 		{InitialL,InitialL,InitialL},
 		{0.,InitialL,InitialL}
 	};
-	TPZVec<TPZVec<int> > indices(nelem);
+	TPZVec<TPZVec<long> > indices(nelem);
 	indices[0].Resize(nnode);
 	int nod;
 	for(nod=0;nod<nnode;nod++)
@@ -1499,7 +1499,7 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 	
 	int el;
 	for(el=0; el<nelem; el++) {
-		int index;
+		long index;
 		elvec[el] = gmesh->CreateGeoElement(ECube,indices[el],1,index);
 	}
     gmesh->BuildConnectivity();
@@ -3797,10 +3797,10 @@ TPZGeoMesh *CreateGeoMeshWithClassesPre(MElementType typeel) {
 			gmesh->NodeVec().Resize(Qnodes);
 			TPZVec<TPZGeoNode> Node(Qnodes);
 			
-			TPZVec <int> TopolLine(2);
-			TPZVec <int> TopolPoint(1);
+			TPZVec <long> TopolLine(2);
+			TPZVec <long> TopolPoint(1);
 			
-			int id = 0;
+			long id = 0;
 			for (int j=0; j<2;j++) {
 				Node[id].SetNodeId(id);
 				if(!j) Node[id].SetCoord(point);//coord x

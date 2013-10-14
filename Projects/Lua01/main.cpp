@@ -151,7 +151,7 @@ int main(){
 
 TPZGeoMesh *GetMesh (int nx,int ny){
 	int i,j;
-	int id, index;
+	long id, index;
 	
 	//Let's try with an unitary domain
 	REAL lx = 1.;
@@ -181,7 +181,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 	}
 	
 	//Auxiliar vector to store a element connectivities
-	TPZVec <int> connect(4,0);
+	TPZVec <long> connect(4,0);
 	
 	//Element connectivities
 	for(i = 0; i < (nx - 1); i++){
@@ -197,13 +197,13 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 	//Generate neighborhod information
 	gmesh->BuildConnectivity();
 	
-	int el, numelements = gmesh->NElements();
+	long el, numelements = gmesh->NElements();
 	int  dirbottID = -1, dirtopID = -2;
-	TPZManVector <int> TopolPlate(4);
+	TPZManVector <long> TopolPlate(4);
 	
 	for (el=0; el<numelements; el++)
 	{
-		int totalnodes = gmesh->ElementVec()[el]->NNodes();
+		long totalnodes = gmesh->ElementVec()[el]->NNodes();
 		TPZGeoEl *plate = gmesh->ElementVec()[el];
 		for (int i=0; i<4; i++){
 			TopolPlate[i] = plate->NodeIndex(i); 
@@ -213,9 +213,9 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 		TPZManVector <TPZGeoNode> Nodefinder(totalnodes);
 		TPZManVector <REAL,3> nodecoord(3);
 		// na face x = 1
-		TPZVec<int> ncoordzbottVec(0); int sizeOfbottVec = 0;
-		TPZVec<int> ncoordztopVec(0); int sizeOftopVec = 0;		
-		for (int i = 0; i < totalnodes; i++) 
+		TPZVec<long> ncoordzbottVec(0); long sizeOfbottVec = 0;
+		TPZVec<long> ncoordztopVec(0); long sizeOftopVec = 0;		
+		for (long i = 0; i < totalnodes; i++) 
 		{
 			Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
 			Nodefinder[i].GetCoordinates(nodecoord);

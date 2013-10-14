@@ -32,7 +32,7 @@ int main() {
   TPZGeoMesh *gmesh = new TPZGeoMesh;
   REAL co[4][2] = {{-0.5,-0.2},{2.,-0.2},{2.,3.},{-0.5,3.}};
   for(int nod = 0; nod < 4; nod++){
-    int nodind = gmesh->NodeVec().AllocateNewElement();
+    long nodind = gmesh->NodeVec().AllocateNewElement();
     TPZManVector<REAL,2> coord(2);
     coord[0] = co[nod][0];
     coord[1] = co[nod][1];
@@ -44,9 +44,9 @@ int main() {
   int nnodes;
   if (opcao == 0) nnodes = 3;
   if (opcao == 1) nnodes = 4;
-  TPZVec<int> nodind(nnodes);
+  TPZVec<long> nodind(nnodes);
   for(int i = 0; i < nnodes; i++) nodind[i] = i;
-  int index;
+  long index;
   TPZGeoEl * geo;
   if (nnodes == 3) geo = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
   if (nnodes == 4) geo = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
@@ -90,8 +90,8 @@ int main() {
     cmesh->Solution().Zero();
 //    int pos = phi.Rows()-1;
     TPZConnect & np = cel->Connect(0);
-    int blocknumber = np.SequenceNumber();
-    int firsteq = cmesh->Block().Position(blocknumber);
+    long blocknumber = np.SequenceNumber();
+    long firsteq = cmesh->Block().Position(blocknumber);
     int ndf = cmesh->Block().Size(blocknumber);
     cmesh->Solution()(firsteq+ndf-1,0) = 1.0;
     
@@ -155,8 +155,8 @@ void LoadFunction(const TPZVec<REAL> &x, TPZVec<STATE> &f) {
 
 void UniformRefinement(const int dim, TPZGeoMesh &gmesh, bool AllMatId, const int WhichMatId){
   TPZManVector<TPZGeoEl*> filhos;
-  int n = gmesh.NElements();
-  for(int i = 0; i < n; i++){
+  long n = gmesh.NElements();
+  for(long i = 0; i < n; i++){
     TPZGeoEl * gel = gmesh.ElementVec()[i];
     if(!gel) continue;
     if(gel->Dimension() != dim) continue;
@@ -174,7 +174,7 @@ void UniformRefinement(const int dim, TPZGeoMesh &gmesh, bool AllMatId, const in
 
 void LocalRefinement(const int dim, const int matid, TPZGeoMesh &gmesh){
   TPZManVector<TPZGeoEl*> filhos;
-  int n = gmesh.NElements();
+  long n = gmesh.NElements();
   for(int i = 0; i < n; i++){
     TPZGeoEl * gel = gmesh.ElementVec()[i];
     if(!gel) continue;
@@ -196,8 +196,8 @@ void LocalRefinement(const int dim, const int matid, TPZGeoMesh &gmesh){
 }
 
 void PRefinement(TPZCompMesh &cmesh, const int InitialP){
-  int nel = cmesh.NElements();
-  for(int iel = 0; iel < nel; iel++){
+  long nel = cmesh.NElements();
+  for(long iel = 0; iel < nel; iel++){
     TPZCompEl * cel = cmesh.ElementVec()[iel];
     if(!cel) continue;
     TPZInterpolationSpace * sp = dynamic_cast<TPZInterpolationSpace*>(cel);
@@ -214,7 +214,7 @@ int main1(){
   InitializePZLOG("log4cxx.cfg");
   TPZShapeDisc::fOrthogonal = TPZShapeDisc::Legendre;
 
-  const int nnodes = 20;
+  const long nnodes = 20;
   const double scaleFuro = 1e-1;
   REAL co[nnodes][2] = {{2., 0.}, {1.618033988749895,1.1755705045849463}, {0.6180339887498949, 1.902113032590307}, 
    {-0.6180339887498949, 1.902113032590307}, {-1.618033988749895, 1.1755705045849463}, {-2., 0.},
@@ -226,10 +226,10 @@ int main1(){
     {-0.1*scaleFuro ,   0.*scaleFuro }, {-0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }, {-0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, 
     {0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, {0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }};
    
-  const int nelem = 10; 
-  int indices[nelem][4] = {{0,1,11,10},{1,2,12,11},{2,3,13,12},{3,4,14,13},{4,5,15,14},{5,6,16,15},{6,7,17,16},{7,8,18,17},{8,9,19,18},{9,0,10,19}};
+  const long nelem = 10; 
+  long indices[nelem][4] = {{0,1,11,10},{1,2,12,11},{2,3,13,12},{3,4,14,13},{4,5,15,14},{5,6,16,15},{6,7,17,16},{7,8,18,17},{8,9,19,18},{9,0,10,19}};
   const int nelbc = 20;
-  int contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
+  long contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
                             {13,14,-3},{14,15,-3},{15,16,-3},{16,17,-3},{17,18,-3},{18,19,-3},{19,10,-3}};
 
 /** teste - apenas 1 elemento **/
@@ -241,8 +241,8 @@ int main1(){
 
 
   TPZGeoMesh *gmesh = new TPZGeoMesh();
-  for(int nod=0; nod<nnodes; nod++) {
-    int nodind = gmesh->NodeVec().AllocateNewElement();
+  for(long nod=0; nod<nnodes; nod++) {
+    long nodind = gmesh->NodeVec().AllocateNewElement();
     TPZManVector<REAL,2> coord(2);
     coord[0] = co[nod][0];
     coord[1] = co[nod][1];
@@ -250,18 +250,18 @@ int main1(){
   }
 
   const int matid = 1;
-  for(int el=0; el<nelem; el++) {
-    TPZManVector<int,4> nodind(4);
+  for(long el=0; el<nelem; el++) {
+    TPZManVector<long,4> nodind(4);
     for(int nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-    int index;
+    long index;
     gmesh->CreateGeoElement(EQuadrilateral,nodind,matid,index);
   }
 
   for(int el=0; el<nelbc; el++) {
-    TPZManVector<int,2> nodind(2);
+    TPZManVector<long,2> nodind(2);
     for(int nod=0; nod<2; nod++) nodind[nod]=contorno[el][nod];
     int bcmatid = contorno[el][2];
-    int index;
+    long index;
     gmesh->CreateGeoElement(EOned,nodind,bcmatid,index);
   }
 
@@ -330,7 +330,7 @@ int main1(){
 
   if(!ApenasPolinomial){
     TPZAutoPointer<TPZFunction<STATE> > ExternalShapes = new TDiscoFunction<STATE>();
-    for(int iel = 0; iel < cmesh->NElements(); iel++){
+    for(long iel = 0; iel < cmesh->NElements(); iel++){
       TPZCompEl * cel = cmesh->ElementVec()[iel];
       if(!cel) continue;
       TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);

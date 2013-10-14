@@ -2389,7 +2389,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
     if(!refpOutroLugar) DebugStop();
     
-    int iniEl = 0;
+    long iniEl = 0;
     TPZVec<REAL> qsi(2,0.);
     
     TPZGeoEl * gel = NULL;

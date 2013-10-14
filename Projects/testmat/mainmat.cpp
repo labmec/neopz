@@ -18,7 +18,7 @@ int main() {
 	TPZVec<int> order(5,3);
 
 	// definir um vetor com o identificador de cada no de canto
-	TPZVec<int> id(4);
+	TPZVec<long> id(4);
 	int i;
 	for(i=0; i<4; i++) id[i] = i;
 

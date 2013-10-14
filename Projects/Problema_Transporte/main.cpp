@@ -137,11 +137,11 @@ TPZGeoMesh *MalhaGeom()
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolLine(2);
+	TPZVec <long> TopolQuad(4);
+	TPZVec <long> TopolLine(2);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx;
 	REAL dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
@@ -292,11 +292,11 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 
 void CreatInterface(TPZCompMesh *cmesh){
     
-    for(int el = 0; el < cmesh->ElementVec().NElements(); el++)
+    for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
     {
         TPZCompEl * compEl = cmesh->ElementVec()[el];
         if(!compEl) continue;
-        int index = compEl ->Index();
+        long index = compEl ->Index();
         if(compEl->Dimension() == cmesh->Dimension() || compEl->Dimension() == cmesh->Dimension()-1)
         {
             TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(cmesh->ElementVec()[index]);
@@ -382,7 +382,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     //#endif
     
     
-	int nrows;
+	long nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
 	TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);

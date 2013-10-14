@@ -109,12 +109,12 @@ TPZGeoMesh *GMesh(int triang_elements, int nh){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-    TPZVec <int> TopolTriang(3);
-	TPZVec <int> TopolLine(2);
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx, dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -214,8 +214,8 @@ TPZGeoMesh *GMesh(int triang_elements, int nh){
     
     for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for ( int i = 0; i < n; i++ ){
+		long n = gmesh->NElements();
+		for ( long i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gmesh->ElementVec() [i];
 			//if (gel->Dimension() == 2) gel->Divide (filhos);
             gel->Divide (filhos);
@@ -321,7 +321,7 @@ TPZCompMeshReferred *CMeshReferred(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pO
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     
-    int numsol = cmesh->Solution().Cols();
+    long numsol = cmesh->Solution().Cols();
     cmeshreferred->AllocateNewConnect(numsol, 1, 1);
     
 	TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmeshreferred);

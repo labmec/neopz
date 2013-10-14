@@ -210,7 +210,7 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
         std::stringstream commandline(commands[i]);
         commandline >> commandname;
         if(!commandname.compare("Divide")) {
-            TPZVec<int> subs;
+            TPZVec<long> subs;
             commandline >> index;
             commandline >> index;
             indexcel = gmesh->ElementVec()[index]->Reference()->Index();

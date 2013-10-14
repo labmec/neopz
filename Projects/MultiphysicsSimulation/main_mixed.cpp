@@ -208,12 +208,12 @@ TPZGeoMesh *GMesh(bool triang_elements){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-    TPZVec <int> TopolTriang(3);
-	TPZVec <int> TopolLine(2);
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx, dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{

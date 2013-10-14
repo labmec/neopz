@@ -93,13 +93,13 @@ int main() {
      nodeindexes[2] = 3;
      TPZGeoElT2d *elg3 = new TPZGeoElT2d(nodeindexes,2,*firstmesh);
      */
-    TPZVec<int> nodeindexes(4);
+    TPZVec<long> nodeindexes(4);
     nodeindexes[0] = 0;
     nodeindexes[1] = 1;
     nodeindexes[2] = 2;
     nodeindexes[3] = 3;
     //elementos geometricos
-    int index;
+    long index;
     firstmesh->CreateGeoElement(EQuadrilateral,nodeindexes,1,index,1);
     //TPZGeoEl *elg0 = new TPZGeoElQ2d(nodeindexes,1,*firstmesh);
     //   TPZGeoEl *elg1 = new TPZGeoElQ2d(nodeindexes,2,*firstmesh);

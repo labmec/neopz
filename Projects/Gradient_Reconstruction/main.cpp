@@ -40,6 +40,8 @@
 #include "TPZReadGIDGrid.h"
 #include "TPZExtendGridDimension.h"
 
+#include "specialFunctions.h"
+
 #include <iostream>
 #include <math.h>
 using namespace std;
@@ -733,10 +735,10 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			gmesh->NodeVec().Resize(Qnodes);
 			TPZVec<TPZGeoNode> Node(Qnodes);
 			
-			TPZVec <int> TopolLine(2);
-			TPZVec <int> TopolPoint(1);
+			TPZVec <long> TopolLine(2);
+			TPZVec <long> TopolPoint(1);
 			
-			int id = 0;
+			long id = 0;
 			for (int j=0; j<2;j++) {
 				Node[id].SetNodeId(id);
 				if(!j) Node[id].SetCoord(x0);//coord x
@@ -900,7 +902,7 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     
     // Montando la matriz de los deltas DeltaH y de las diferencias de las soluciones DifSol
     int ineighs=-1;
-    int counter=0;
+    long counter=0;
     std::set<TPZCompEl *>::iterator it;
     for(it=neighscel.begin(); it!=neighscel.end(); ++it)
     {
@@ -941,14 +943,14 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
     
     // Redimensionando a matriz dos dados da reconstruca de gradientes
     int dim  = cmesh->Dimension();
-    int nelem = cmesh->NElements();
+    long nelem = cmesh->NElements();
     datagradients.Redim(nelem,2*dim+2);
 	
     TPZManVector<REAL,3> center;
     TPZManVector<REAL> Grad(dim);
     
-	int i, k;
-	int counter = 0;
+	long i, k;
+	long counter = 0;
 	
 	
     TPZCompEl *cel;
@@ -991,7 +993,7 @@ void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elDat
 	
 	int dim = cmesh->Dimension();
 	TPZGeoMesh *gmesh = cmesh->Reference();
-	int nelements = elData.Rows();
+	long nelements = elData.Rows();
 	
 	std::stringstream connectivity, type, cellval1, cellval2, cellval3;
 	
@@ -1003,14 +1005,14 @@ void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elDat
 	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	file << "POINTS ";
 	
-	int t, c, el;
-	int actualNode = -1, size = 0, nVALIDelements = 0;
-	int counternodes = gmesh->NNodes();
+	long t, c, el;
+	long actualNode = -1, size = 0, nVALIDelements = 0;
+	long counternodes = gmesh->NNodes();
 	TPZGeoEl *gel;
 	TPZVec<REAL> centerpsi(3);
 	TPZManVector<REAL> center(3);
 	TPZManVector<REAL> gradient(3);
-	int counter = 0;
+	long counter = 0;
 	
 	for(el = 0; el < nelements; el++)
 	{
@@ -1107,8 +1109,8 @@ void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elDat
 }
 
 void PrintCompMeshVTKWithGradientAsData(TPZCompMesh *cmesh,char *filename,TPZFMatrix<REAL> &elData) {
-	int i, size = cmesh->NElements();
-	int counter = 0;
+	long i, size = cmesh->NElements();
+	long counter = 0;
 	for(i=0;i<size;i++) {
 		TPZCompEl *cel = cmesh->ElementVec()[i];
 		if(!cel || cel->Dimension()!=cmesh->Dimension())
@@ -1468,9 +1470,9 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-    TPZVec <int> TopolTriang(3);
-	TPZVec <int> TopolLine(2);
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
 	
 	//indice dos nos
     TPZFMatrix<REAL> mA(2,4,0.), mR(2,2), mRA(2,4);
@@ -1482,7 +1484,7 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
     mR = MatrixR(angle);
 	mR.Multiply(mA, mRA);
     
-    int id;
+    long id;
 	id = 0;
 	for (int j=0; j<4;j++) {
 		
@@ -1581,12 +1583,12 @@ TPZGeoMesh *GMesh2(){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolLine(2);
-    TPZVec <int> TopolPoint(1);
+	TPZVec <long> TopolQuad(4);
+	TPZVec <long> TopolLine(2);
+    TPZVec <long> TopolPoint(1);
 	
 	//indice dos nos
-    int id;
+    long id;
 	id = 0;
     REAL dx = .5;
 	for (int i=0; i<Qnodes/2;i++) {
@@ -1637,10 +1639,10 @@ TPZGeoMesh *GMesh2(){
 TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
 {
     /// criar materiais
-	int ngelem = gmesh->NElements();
+	long ngelem = gmesh->NElements();
 	TPZGeoEl *gel;
 	int dim = 0;
-	for(int j=0;j<ngelem;j++) {
+	for(long j=0;j<ngelem;j++) {
 		gel = gmesh->ElementVec()[j];
 		if(gel->MaterialId() > 0 && dim < gel->Dimension())
 			dim = gel->Dimension();
@@ -1815,28 +1817,6 @@ void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 }
 
-/**
- * Function erf (Error function) implemented in 
- * http://www.johndcook.com/cpp_erf.html
- */
-REAL erf(REAL arg) {
-	REAL a1 = 0.254829592;
-	REAL a2 = -0.284496736;
-	REAL a3 = 1.421413741;
-	REAL a4 = -1.453152027;
-	REAL a5 = 1.061405429;
-	REAL p = 0.3275911;
-	// Save the sign of arg
-	int sign = 1;
-	if(arg < 0) sign = -1;
-	arg = fabs(arg);
-
-	// A&S formula 7.1.26
-	REAL t = 1.0/(1.0 + p*arg);
-	REAL y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-arg*arg);
-
-	return sign*y;
-}
 void Forcingbc(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     double x = pt[0];

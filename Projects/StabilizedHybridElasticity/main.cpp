@@ -111,20 +111,20 @@ int main(int argc, char *argv[])
 
 TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 {
-    int Qnodes = 4;
+    long Qnodes = 4;
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	gmesh->SetMaxNodeId(Qnodes-1);
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolLine(2);
+	TPZVec <long> TopolQuad(4);
+	TPZVec <long> TopolLine(2);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx;
-	for(int xi = 0; xi < Qnodes/2; xi++)
+	for(long xi = 0; xi < Qnodes/2; xi++)
 	{
 		valx = xi*Lx;
 		Node[id].SetNodeId(id);
@@ -134,7 +134,7 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 		id++;
 	}
 	
-	for(int xi = 0; xi < Qnodes/2; xi++)
+	for(long xi = 0; xi < Qnodes/2; xi++)
 	{
 		valx = Lx - xi*Lx;
 		Node[id].SetNodeId(id);
@@ -190,8 +190,8 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
     //Refinamento uniforme
 	for( int ref = 0; ref < NRefUnif; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for ( int i = 0; i < n; i++ ){
+		long n = gmesh->NElements();
+		for ( long i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gmesh->ElementVec()[i];
             gel->Divide (filhos);
 		}//for i
