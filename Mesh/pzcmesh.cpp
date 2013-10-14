@@ -2050,7 +2050,7 @@ void TPZCompMesh::SaddlePermute()
         if (!cel) {
             continue;
         }
-        unsigned char minlagrange = 0, maxlagrange = 256;
+        unsigned char minlagrange = 255, maxlagrange = 0;
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
