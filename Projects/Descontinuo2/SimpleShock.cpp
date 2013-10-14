@@ -31,7 +31,7 @@ const int nEl = 1;
 
 // Creates a mesh for the simple shock problem
 
-void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
+void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 {
    REAL y1=0,
 	y2=.5;
@@ -56,7 +56,7 @@ void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 
 // quadrilateral data
 
-   TPZVec< int > nodes(4);
+   TPZVec< long > nodes(4);
 
    elms.Resize(nEl);
 
@@ -71,7 +71,7 @@ void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 }
 
 TPZGeoMesh * CreateSSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< int > > & elms,
+                           TPZVec< TPZVec< long > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -80,7 +80,7 @@ TPZGeoMesh * CreateSSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   int i;
+   long i;
    for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
@@ -136,7 +136,7 @@ TPZFlowCompMesh * SSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< int  > > elms;
+   TPZVec< TPZVec< long  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    SSMeshPoints(nodes, elms);
 

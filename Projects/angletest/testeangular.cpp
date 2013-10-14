@@ -242,7 +242,7 @@ void LerMalha(const char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
    TPZMaterialTest3D *mattest = new TPZMaterialTest3D(1);
    mattest->SetMaterial(xk);
    mat1d = mattest;
-   int nnode,nel,ncorners;
+   long nnode,nel,ncorners;
    TPZVec<REAL> coord(3);
    grid >> nnode >> nel;
    geomesh->NodeVec().Resize(nnode);
@@ -259,8 +259,8 @@ void LerMalha(const char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
       grid >> ntype;
       ncorners = ntype;
       if(ntype == 7) ncorners = 4;
-      TPZVec<int> nodes(ncorners);
-      int index;
+      TPZVec<long> nodes(ncorners);
+      long index;
       for(int incid=0;incid<ncorners;incid++) grid >> nodes[incid];
       geomesh->CreateGeoElement((MElementType) ntype,nodes,matindex,index,1);
    }
@@ -271,14 +271,14 @@ void LerMalha(const char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
 
 void Divide(TPZCompMesh *compmesh) {
 
-   TPZVec<int> csub;
+   TPZVec<long> csub;
    int n1=1;
    while(n1) {
 	   cout << "Id do elemento geometrico a dividir ? : ";
       cin >> n1;
       if(n1 < 0) break;
-      int nelc = compmesh->ElementVec().NElements();
-      int el;
+      long nelc = compmesh->ElementVec().NElements();
+      long el;
       TPZCompEl *cpel;
       for(el=0;el<nelc;el++) {
          cpel = compmesh->ElementVec()[el];
@@ -297,8 +297,8 @@ void AutomaticDivide(TPZCompMesh &cmesh,int actuallevel) {
    //cout << "\nNivel maximo a ser dividido : ";
    //cin >> maxlevel;
    maxlevel = actuallevel;
-   TPZVec<int> csub;
-   int el,elid=-1,numeldiv=0;
+   TPZVec<long> csub;
+   long el,elid=-1,numeldiv=0;
    TPZCompEl *cpel;
    TPZGeoEl *gel;
    TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh.ElementVec();

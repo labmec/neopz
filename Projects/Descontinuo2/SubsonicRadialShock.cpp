@@ -32,7 +32,7 @@ const int nn = 2;
 const int mm = 4;
 
 
-void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
+void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 {
    REAL ri = 1.8,
         ro = 5.,
@@ -60,7 +60,7 @@ void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 
    // definig elements
    // quadrilateral data
-   TPZVec< int > nodes(4);
+   TPZVec< long > nodes(4);
    elms.Resize(mm * nn);
 
    for(j = 0; j < mm; j++)
@@ -77,7 +77,7 @@ void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 }
 
 TPZGeoMesh * CreateSRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< int > > & elms,
+                           TPZVec< TPZVec< long > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -86,7 +86,8 @@ TPZGeoMesh * CreateSRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & node
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   int i;   for(i = 0; i < nodes.NElements(); i++)
+   long i;
+   for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
    }
@@ -143,7 +144,7 @@ TPZFlowCompMesh *
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< int  > > elms;
+   TPZVec< TPZVec< long  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    SRSPoints(nodes, elms);
 

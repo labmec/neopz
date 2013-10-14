@@ -30,7 +30,7 @@ using namespace std;
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
-void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
+void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms)
 {
    REAL p1=0.7,
         p2=0.902026,
@@ -120,7 +120,7 @@ void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 
 // quadrilateral data
 
-   TPZVec< int > nodes(4);
+   TPZVec< long > nodes(4);
 
    elms.Resize(9);
 
@@ -180,7 +180,7 @@ void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 }
 
 TPZGeoMesh * CreateRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< int > > & elms,
+                           TPZVec< TPZVec< long > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -189,7 +189,7 @@ TPZGeoMesh * CreateRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   int i;
+   long i;
    for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
@@ -244,7 +244,7 @@ TPZFlowCompMesh * RSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< int  > > elms;
+   TPZVec< TPZVec< long  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    RSMeshPoints(nodes, elms);
 

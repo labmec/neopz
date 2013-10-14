@@ -32,7 +32,7 @@ using namespace std;
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
-void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
+void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, int nSubdiv)
 {
 
    int index;
@@ -307,7 +307,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
    int nLayerEls = nLayerPts - 1;
    int nEls = nLayerEls * nElsPerSphereLayer;
 
-   TPZVec< int > nodes(8);
+   TPZVec< long > nodes(8);
    elms.Resize(nEls);
 
    for(i = 0; i < nLayerEls ; i++) // layer loop
@@ -367,7 +367,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
 }
 
 TPZGeoMesh * CreateSphereGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
-                           TPZVec< TPZVec< int > > & elms,
+                           TPZVec< TPZVec< long > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
@@ -376,7 +376,7 @@ TPZGeoMesh * CreateSphereGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   int i;
+   long i;
    for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
@@ -426,7 +426,7 @@ TPZFlowCompMesh *
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< int  > > elms;
+   TPZVec< TPZVec< long  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    SpherePoints(nodes, elms, nSubdiv);
 

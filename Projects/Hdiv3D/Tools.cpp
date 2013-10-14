@@ -424,14 +424,14 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 		//Criacao de elementos
 		
 		
-		TPZVec<int> nodind1(3);
-		TPZVec<int> nodind2(3);
+		TPZVec<long> nodind1(3);
+		TPZVec<long> nodind2(3);
 		for(int i=0; i<3; i++){
 				nodind1[i] = indices[0][i];
 				
 		}
 		
-		int index;
+		long index;
 		elvec[0] = gmesh->CreateGeoElement(ETetraedro,nodind1,1,index); //AQUI
 		
 		
@@ -452,8 +452,8 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 		//	Refinamento uniforme
 		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 				TPZVec<TPZGeoEl *> filhos;
-				int n = gmesh->NElements();
-				for(int i = 0; i < n; i++){
+				long n = gmesh->NElements();
+				for(long i = 0; i < n; i++){
 						TPZGeoEl * gel = gmesh->ElementVec()[i];
 						if(!gel->HasSubElement())
 						{
@@ -466,10 +466,10 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 				{
 						
 						TPZVec<TPZGeoEl *> filhos;
-						int n = gmesh->NElements();
+						long n = gmesh->NElements();
 						
 						
-						for(int i = 0; i < n; i++){	
+						for(long i = 0; i < n; i++){	
 								TPZGeoEl * gel = gmesh->ElementVec()[i];
 								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
 										
@@ -484,10 +484,10 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 				{
 						
 						TPZVec<TPZGeoEl *> filhos;
-						int n = gmesh->NElements();
+						long n = gmesh->NElements();
 						
 						
-						for(int i = 0; i < n; i++){	
+						for(long i = 0; i < n; i++){	
 								TPZGeoEl * gel = gmesh->ElementVec()[i];
 								if (gel->Dimension()!=1) {
 										continue;
@@ -518,7 +518,7 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 {
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
 		REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
-		int indices[1][4] = {{0,1,2,3}};
+		long indices[1][4] = {{0,1,2,3}};
 		
 		int nnode = 4;
 		const int nelem = 1;
@@ -526,7 +526,7 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 		int nod;
 		for ( nod=0; nod<nnode; nod++ )
 		{
-				int nodind = gmesh->NodeVec().AllocateNewElement();
+				long nodind = gmesh->NodeVec().AllocateNewElement();
 				TPZVec<REAL> coord ( 2 );
 				coord[0] = co[nod][0];
 				coord[1] = co[nod][1];
@@ -536,9 +536,9 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 		int el;
 		for ( el=0; el<nelem; el++ )
 		{
-				TPZVec<int> nodind ( 4 );
+				TPZVec<long> nodind ( 4 );
 				for ( nod=0; nod<4; nod++ ) nodind[nod]=indices[el][nod];
-				int index;
+				long index;
 				elvec[el] = gmesh->CreateGeoElement ( EQuadrilateral,nodind,1,index );
 		}
 		
@@ -553,8 +553,8 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 		for ( int ref = 0; ref < h; ref++ )
 		{// h indica o numero de refinamentos
 				TPZVec<TPZGeoEl *> filhos;
-				int n = gmesh->NElements();
-				for ( int i = 0; i < n; i++ )
+				long n = gmesh->NElements();
+				for ( long i = 0; i < n; i++ )
 				{
 						TPZGeoEl * gel = gmesh->ElementVec() [i];
 						//if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
@@ -570,10 +570,10 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 				{
 						
 						TPZVec<TPZGeoEl *> filhos;
-						int n = gmesh->NElements();
+						long n = gmesh->NElements();
 						
 						
-						for(int i = 0; i < n; i++){	
+						for(long i = 0; i < n; i++){	
 								TPZGeoEl * gel = gmesh->ElementVec()[i];
 								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
 										
@@ -588,10 +588,10 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 				{
 						
 						TPZVec<TPZGeoEl *> filhos;
-						int n = gmesh->NElements();
+						long n = gmesh->NElements();
 						
 						
-						for(int i = 0; i < n; i++){	
+						for(long i = 0; i < n; i++){	
 								TPZGeoEl * gel = gmesh->ElementVec()[i];
 								if (gel->Dimension()!=1) {
 										continue;
@@ -637,7 +637,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		int nod;
 		TPZVec<REAL> coord(dim);
 		for(nod=0; nod<nnode; nod++) {
-				int nodind = gmesh->NodeVec().AllocateNewElement();
+				long nodind = gmesh->NodeVec().AllocateNewElement();
 				
 				for(int d = 0; d < dim; d++)
 				{
@@ -647,9 +647,9 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		}
 		//Criacao de elementos
 		int matId=40;
-		int id=0;
-		TPZVec <int> TopolQuad(4);
-		TPZVec <int> TopolLine(2);
+		long id=0;
+		TPZVec <long> TopolQuad(4);
+		TPZVec <long> TopolLine(2);
 		//-----
 		
         TopolQuad[0] = 0;
@@ -758,8 +758,8 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		//Refinamento uniforme
 		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 				TPZVec<TPZGeoEl *> filhos;
-				int n = gmesh->NElements();
-				for(int i = 0; i < n; i++){
+				long n = gmesh->NElements();
+				for(long i = 0; i < n; i++){
 						TPZGeoEl * gel = gmesh->ElementVec()[i];
 						if(!gel->HasSubElement())
 						{
@@ -784,7 +784,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		
 }
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
-		const int nelem = malha->NElements();
+		const long nelem = malha->NElements();
 		
 		//TPZFMatrix<REAL> sol(4,1,0.);
 		TPZManVector<REAL,4> solP(1);
@@ -802,7 +802,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 		dsol[0].Redim(3,1);
 		
 		///Percorrer todos elementos 
-		for(int el=0; el < nelem; el++){
+		for(long el=0; el < nelem; el++){
 				TPZCompEl * Cel = malha->ElementVec()[el];
 				
 				if(!Cel) continue;
