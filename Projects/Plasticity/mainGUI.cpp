@@ -17,12 +17,16 @@ void TPZPlasticityTest::ApplyInitialStress()
     // load hydrostatic till I1 is in the middle of the ellips
     STATE I1 = fPoreStressRZ[0]*2.+fPoreStressRZ[1];
     STATE I1Initial = I1-fSandler.fYC.fA*fSandler.fYC.fR;
-    // should improve!!
+    
+cout << "----------------------------> " << I1Initial << " " << I1 << " " << fSandler.fYC.fA << " " << fSandler.fYC.fR << " " << fPoreStressRZ[0] << " " << fPoreStressRZ[1] << endl;
+    
+    // should improve!!defLateral->value(i)
     TPZTensor<STATE> hidro, epstotal;
     for (STATE i1 = I1Initial/10.; i1>=I1Initial; i1 += I1Initial/10.) {
         hidro.XX() = i1/3.;
         hidro.YY() = i1/3.;
         hidro.ZZ() = i1/3.;
+cout << "----------------------------> i1 " << i1  << " " << hidro.XX() << endl; 
         fSandler.ApplyLoad(hidro, epstotal);
     }
     
@@ -177,6 +181,9 @@ void TPZPlasticityTest::ReadInputStrainStress(const std::string &filename)
         fStressRZInput(numlines,0) = -sig_r;
         fStrainRZInput(numlines,1) = -eps_ax/100.;
         fStrainRZInput(numlines,0) = -eps_r/100.;
+	
+	cout << "i= " << numlines << " " <<  fStressRZInput(numlines,1) << " " <<  fStressRZInput(numlines,0)<< " " << fStrainRZInput(numlines,1)<< " "<< fStrainRZInput(numlines,0) << endl;
+	
         numlines++;
     }
     fStressRZInput.Resize(numlines, 2);
@@ -191,7 +198,7 @@ void MaterialPointTests();
  {
      InitializePZLOG();
      TPZPlasticityTest test;
-     std::string filename("../ensaio_all_columns.txt");
+     std::string filename("ensaio_all_columns.txt");
      test.ReadInputStrainStress(filename);
      
      TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandler;
@@ -200,19 +207,19 @@ void MaterialPointTests();
      
      
      //cin >> E;
-     E = 100; //ksi
+     E = 29269; //100; //ksi
      
      
      //  cin>> poisson;
-     poisson = 0.40;
+     poisson = 0.203; //0.40;
      
      
-     A = 0.25;
-     B = 0.67;
-     C = 0.18;
-     D = 0.67 / 2.; 
-     R = 2.5;
-     W = 0.066;
+     A = 116.67; //0.25;
+     B = 0.0036895; //0.67;
+     C = 111.48; //0.18;
+     D = 0.018768; //0.67 / 2.; 
+     R = 0.91969; //2.5;
+     W = 0.006605; //0.066;
      
      
      sandler.SetUp(poisson, E,A, B, C, R, D, W);
