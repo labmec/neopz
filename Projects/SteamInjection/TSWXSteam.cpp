@@ -419,11 +419,15 @@ double TSwxSteam::getRegionAuxiliar(int i, double tempo)
 	}
 
 	double var_adim = sqrt(delta * tau) / H_RhoCEstrela;
-	double func_adim;
+	double func_adim = 0.0;
 #ifdef USING_BOOST
 	func_adim = exp(var_adim * var_adim) * boost::math::erfc(var_adim) + ((2. / sqrt(M_PI)) * var_adim) - 1.;
 #else
+#ifndef WIN32
 	func_adim = exp(var_adim * var_adim) * erfc(var_adim) + ((2. / sqrt(M_PI)) * var_adim) - 1.;
+#else
+	std::cout << "It is necessary get a implementation of the erfc function." << std::endl;
+#endif
 #endif
 	
 	return((H_RhoCEstrela * func_adim) / (delta * difTemp));

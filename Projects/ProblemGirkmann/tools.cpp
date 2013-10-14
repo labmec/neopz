@@ -112,10 +112,10 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 	v(0,0) = 0.;
 	v(1,0) = 1.;
 	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolArc(3);
-	TPZVec <int> TopolLine(2);
-	TPZVec <int> TopolPoint(1);
+	TPZVec <long> TopolQuad(4);
+	TPZVec <long> TopolArc(3);
+	TPZVec <long> TopolLine(2);
+	TPZVec <long> TopolPoint(1);
 	
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
@@ -123,7 +123,7 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 	REAL Rm = fRc/sin(falpha);//23.3359;(raio da superficie media da casca esferica)
 	
 	//Indice dos nos
-	int id = 0;
+	long id = 0;
 	double val1, val2;
 	//int i;
 	for(int cn = 0; cn <= 2*ndiv; cn++)
@@ -292,8 +292,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatRefDir11;
 		for(int j = 0; j < ndirectdivR; j++)
 		{
-			int nel = gmesh->NElements();
-			for (int iref = 0; iref < nel; iref++)
+			long nel = gmesh->NElements();
+			for (long iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP11 = gmesh->ElementVec()[iref];
@@ -310,8 +310,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatRefDir12;
 		for(int j = 0; j < ndirectdivL; j++)
 		{
-			int nel = gmesh->NElements();
-			for (int iref = 0; iref < nel; iref++)
+			long nel = gmesh->NElements();
+			for (long iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP12 = gmesh->ElementVec()[iref];
@@ -328,8 +328,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatPointRefDir2;
 		for(int j = 0; j < ndirectdivp; j++)
 		{
-			int nel = gmesh->NElements();
-			for (int iref = 0; iref < nel; iref++)
+			long nel = gmesh->NElements();
+			for (long iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
@@ -342,8 +342,8 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		set<int> SETmatPointRefDir3;
 		for(int j = 0; j < ndirectdivp; j++)
 		{
-			int nel = gmesh->NElements();
-			for (int iref = 0; iref < nel; iref++)
+			long nel = gmesh->NElements();
+			for (long iref = 0; iref < nel; iref++)
 			{
 				TPZVec<TPZGeoEl*> filhos;
 				TPZGeoEl * gelP3 = gmesh->ElementVec()[iref];
@@ -363,8 +363,8 @@ void tools::RefinamentoUniforme(TPZGeoMesh & gMesh, int &nh)
 	for ( int ref = 0; ref < nh; ref++ )
 	{// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
-		int n = gMesh.NElements();
-		for ( int i = 0; i < n; i++ )
+		long n = gMesh.NElements();
+		for ( long i = 0; i < n; i++ )
 		{
 			TPZGeoEl * gel = gMesh.ElementVec() [i];
 			//int ind =  gel->MaterialId();
@@ -625,7 +625,7 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 	cmesh->LoadReferences(); 
 	
 	//AQUI: Criar elemento de interface
-	for(int el = 0; el < cmesh->ElementVec().NElements(); el++)
+	for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
 	{
 		TPZCompEl * compEl = cmesh->ElementVec()[el];
 		if(!compEl) continue;
@@ -636,11 +636,11 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 		}
 	}
 	
-	for(int el = 0; el < cmesh->ElementVec().NElements(); el++)
+	for(long el = 0; el < cmesh->ElementVec().NElements(); el++)
 	{
 		TPZCompEl * compEl = cmesh->ElementVec()[el];
 		if(!compEl) continue;
-		int index = compEl ->Index();
+		long index = compEl ->Index();
 		if((compEl) && (compEl->Dimension() == 2) && (compEl->Reference()->MaterialId() ==mat2Id))
 		{
 			//cout<<"----------------------------------"<<endl;
@@ -702,7 +702,7 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 			
 	an.SetSolver(step);
 	an.Run();
-	static int count = 0;
+	static long count = 0;
 	if (count%2) {
 		//testing code
 		TesteInterface(fCmesh, an.Solution());
@@ -770,8 +770,8 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 	outf<<endl;
 	outf << "\n=====================  DADOS DAS TENSOES ===============================\n";
 	
-	int el;
-	const int nelem = malha->NElements();
+	long el;
+	const long nelem = malha->NElements();
 	TPZVec<REAL> Resultados(9,0.);
 	
 	///Loop sobre elementos computacionais 
@@ -1045,8 +1045,8 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 ///----------------------------- PrintInterface()--------------------------------------------------
 void tools::PrintInterface(TPZCompMesh  *malha)
 {
-	int el;
-	const int nelem = malha->NElements();
+	long el;
+	const long nelem = malha->NElements();
 	
 	TPZInterfaceElement *face;
 	
@@ -1087,12 +1087,12 @@ void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<STATE> &solution)
 	//	std::cout << "residual norm " << resnorm << std::endl;
 	
 	REAL accvertical = 0.;
-	std::set<int> corner1;
+	std::set<long> corner1;
 	CornerConnects(cmesh,corner1,mat1Id);
-	std::set<int>::iterator it;
+	std::set<long>::iterator it;
 	for (it=corner1.begin(); it!=corner1.end(); it++) {
-		int seqnum = cmesh->ConnectVec()[*it].SequenceNumber();
-		int eqnum = cmesh->Block().Position(seqnum)+1;
+		long seqnum = cmesh->ConnectVec()[*it].SequenceNumber();
+		long eqnum = cmesh->Block().Position(seqnum)+1;
 		accvertical += residual(eqnum,0);
 	}
 	std::cout << "Accumulated vertical residual " << accvertical << std::endl;
@@ -1100,10 +1100,10 @@ void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<STATE> &solution)
 
 
 ///---------------------- CornerConnects()-----------------------------------------------
-void tools::CornerConnects(TPZCompMesh *cmesh, std::set<int> &indices, int matid)
+void tools::CornerConnects(TPZCompMesh *cmesh, std::set<long> &indices, int matid)
 {
-	int nel = cmesh->NElements();
-	int iel;
+	long nel = cmesh->NElements();
+	long iel;
 	for (iel=0; iel<nel; iel++) {
 		TPZCompEl *cel = cmesh->ElementVec()[iel];
 		if (!cel) {
@@ -1117,8 +1117,8 @@ void tools::CornerConnects(TPZCompMesh *cmesh, std::set<int> &indices, int matid
 		if (matidgel != matid) {
 			continue;
 		}
-		int ncorners = gel->NCornerNodes();
-		int ic;
+		long ncorners = gel->NCornerNodes();
+		long ic;
 		for (ic=0; ic<ncorners; ic++) {
 			indices.insert(cel->ConnectIndex(ic));
 		}

@@ -151,23 +151,23 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	const double d2 = ((fB-b) < (fH-fh)) ? (fB-b) : (fH-fh);
 	const double d = (d1 < d2) ? d1 : d2;
 	
-	const int h_ndiv = (int(fh/d+0.5) < fDivMAX) ? int(fh/d+0.5) : fDivMAX;
-	const int hH_ndiv = (int((fH-fh)/d+0.5) < fDivMAX) ? int((fH-fh)/d+0.5) :fDivMAX;
-	const int b_ndiv = (int(b/d+0.5) < fDivMAX) ? int(b/d+0.5) : fDivMAX;
-	const int bB_ndiv = (int((fB-b)/d+0.5) < fDivMAX) ? int((fB-b)/d+0.5) : fDivMAX;
+	const long h_ndiv = (int(fh/d+0.5) < fDivMAX) ? int(fh/d+0.5) : fDivMAX;
+	const long hH_ndiv = (int((fH-fh)/d+0.5) < fDivMAX) ? int((fH-fh)/d+0.5) :fDivMAX;
+	const long b_ndiv = (int(b/d+0.5) < fDivMAX) ? int(b/d+0.5) : fDivMAX;
+	const long bB_ndiv = (int((fB-b)/d+0.5) < fDivMAX) ? int((fB-b)/d+0.5) : fDivMAX;
 	
-	const int nrows = (h_ndiv + hH_ndiv + 1);
-	const int ncols = (b_ndiv + bB_ndiv + 1);
+	const long nrows = (h_ndiv + hH_ndiv + 1);
+	const long ncols = (b_ndiv + bB_ndiv + 1);
 	
-	const int Qnodes =  nrows*ncols;
+	const long Qnodes =  nrows*ncols;
 	TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
-	for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
+	for(long i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
 	
 	//setting nodes coordinates
-	int nodeId = 0;
-	for(int r = 0; r < nrows; r++)
+	long nodeId = 0;
+	for(long r = 0; r < nrows; r++)
 	{
-		for(int c = 0; c < ncols; c++)
+		for(long c = 0; c < ncols; c++)
 		{
 			if(c <= b_ndiv)
 			{
@@ -194,7 +194,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	//setting nodes objects in gmesh
 	fGmesh->NodeVec().Resize(Qnodes);
 	TPZVec <TPZGeoNode> Node(Qnodes);
-	for(int n = 0; n < Qnodes; n++)
+	for(long n = 0; n < Qnodes; n++)
 	{
 		Node[n].SetNodeId(n);
 		Node[n].SetCoord(NodeCoord[n]);
@@ -202,11 +202,11 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	
 	//Quadriláteros
-	int elId = 0;
-	TPZVec <int> Topol(4);
-	for(int r = 0; r < (nrows-1); r++)
+	long elId = 0;
+	TPZVec <long> Topol(4);
+	for(long r = 0; r < (nrows-1); r++)
 	{
-		for(int c = 0; c < (ncols-1); c++)
+		for(long c = 0; c < (ncols-1); c++)
 		{
 			Topol[0] = ncols*r+c; Topol[1] = ncols*r+c+1; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*(r+1)+c;
 			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,matElId,*fGmesh);
@@ -218,7 +218,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	Topol.Resize(2);
 	
 	//BCs - TOP and BOTTOM
-	for(int c = 0; c < (ncols-1); c++)
+	for(long c = 0; c < (ncols-1); c++)
 	{
 		Topol[0] = c;
 		Topol[1] = c+1;
@@ -232,7 +232,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	
 	//BCs - LEFT and RIGHT
-	for(int r = 0; r < (nrows-1); r++)
+	for(long r = 0; r < (nrows-1); r++)
 	{
 		if(r < h_ndiv)
 		{
@@ -261,7 +261,7 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	
 	//BCs - MIDDLE
-	for(int r = 0; r < (nrows-1); r++)
+	for(long r = 0; r < (nrows-1); r++)
 	{
 		if(r < h_ndiv)
 		{
@@ -284,8 +284,8 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	//Uniform Refinement
 	for(int h = 0; h < fUnifNDiv; h++)
 	{
-		int nel = fGmesh->NElements();
-		for ( int iref = 0; iref < nel; iref++ )
+		long nel = fGmesh->NElements();
+		for ( long iref = 0; iref < nel; iref++ )
 		{
 			TPZVec<TPZGeoEl*> filhos;
 			TPZGeoEl * gelP1 = fGmesh->ElementVec()[iref];
@@ -307,8 +307,8 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	if(d/fB > 0.20) fDirectNdiv *= 2;
 	for(int h = 0; h < fDirectNdiv; h++)
 	{
-		int nel = fGmesh->NElements();
-		for ( int iref = 0; iref < nel; iref++ )
+		long nel = fGmesh->NElements();
+		for ( long iref = 0; iref < nel; iref++ )
 		{
 			TPZVec<TPZGeoEl*> filhos;
 			TPZGeoEl * gelP1 = fGmesh->ElementVec()[iref];
@@ -318,8 +318,8 @@ void TSWXMaxSigmaTheta::CreateGeoMesh(double b)
 	}
 	for(int h = 0; h < fDirectNdiv; h++)
 	{
-		int nel = fGmesh->NElements();
-		for ( int iref = 0; iref < nel; iref++ )
+		long nel = fGmesh->NElements();
+		for ( long iref = 0; iref < nel; iref++ )
 		{
 			TPZVec<TPZGeoEl*> filhos;
 			TPZGeoEl * gelP1 = fGmesh->ElementVec()[iref];

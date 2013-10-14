@@ -150,7 +150,7 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL
     
     TPZVec<REAL> qsi(0);
     
-    int InitialElementId = 0;
+    long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
     if(it != f_t_elIdqsi_Elastic.end())
     {
@@ -279,7 +279,7 @@ void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL
     
     TPZVec<REAL> qsi(0);
     
-    int InitialElementId = 0;
+    long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
     if(it != f_t_elIdqsi_Elastic.end())
     {
@@ -340,7 +340,7 @@ REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
     
     TPZVec<REAL> qsi(0);
     
-    int InitialElementId = 0;
+    long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
     if(it != f_t_elIdqsi_Fluid.end())
     {
@@ -534,7 +534,7 @@ void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> &
 {
     TPZVec<REAL> qsi(0);
     
-    int InitialElementId = 0;
+    long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
     if(it != f_t_elIdqsi_Elastic.end())
     {
@@ -693,7 +693,7 @@ void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> &
 {
     TPZVec<REAL> qsi(0);
     
-    int InitialElementId = 0;
+    long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
     if(it != f_t_elIdqsi_Elastic.end())
     {
@@ -887,7 +887,7 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
 {
     TPZVec<REAL> qsi(0);
     
-    int InitialElementId = 0;
+    long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
     if(it != f_t_elIdqsi_Elastic.end())
     {

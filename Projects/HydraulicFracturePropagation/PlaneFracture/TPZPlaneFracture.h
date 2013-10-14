@@ -221,7 +221,7 @@ class TPZPlaneFracture
      *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      */
     void GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL xLength,
-                               TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
+                               TPZVec< TPZVec<REAL> > & NodeCoord, long & nrows, long & ncols,
                                REAL Y);
 
 	/*
@@ -243,7 +243,7 @@ class TPZPlaneFracture
 	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 */
 	void DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, TPZGeoMesh * fractMesh,
-							std::map< int, std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence);
+							std::map< long, std::set<REAL> > &elId_TrimCoords, std::list< std::pair<long,REAL> > &elIdSequence);
 
 	/**
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
@@ -261,8 +261,8 @@ class TPZPlaneFracture
 	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 * @param pushback [in] : set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
 	 */
-	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, std::map< int,
-									std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence, bool pushback,
+	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, std::map< long,
+									std::set<REAL> > &elId_TrimCoords, std::list< std::pair<long,REAL> > &elIdSequence, bool pushback,
                                     int planeAxe0, int planeAxe1, int planeNormal,
                                     bool closingFracture);
 
@@ -336,7 +336,7 @@ class TPZPlaneFracture
 	 * This points normally are inside elements domain.\n
 	 * The edges intersections of the original Poligonal Chain originate a new Poligonal Chain named poligonalChainUpdated 
 	 */
-	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<int,REAL> > &elIdSequence,
+	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<long,REAL> > &elIdSequence,
 							  TPZVec<std::pair<REAL,REAL> > &poligonalChainUpdated);
 	
 	/**
@@ -345,7 +345,7 @@ class TPZPlaneFracture
 	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh3D,
-                               std::list< std::pair<int,REAL> > &elIdSequence);
+                               std::list< std::pair<long,REAL> > &elIdSequence);
     
     /**
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
@@ -381,10 +381,10 @@ class TPZPlaneFracture
     TPZVec< std::map<REAL,REAL> > fposTVD_stress;
     
     /** @brief 1D elements Ids that compose crack boundary */
-    TPZVec<int> fcrackBoundaryElementsIds;
+    TPZVec<long> fcrackBoundaryElementsIds;
     
     /** @brief initial element index in point search (just for optimization) */
-    int fInitialElIndex;
+    long fInitialElIndex;
     
     /** @brief maximum element edge length */
     REAL fLmax;
