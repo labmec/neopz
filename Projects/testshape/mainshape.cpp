@@ -267,9 +267,9 @@ void MakingQuadrilateral(TPZGeoMesh *gmesh,REAL radio) {
     int el;
     int nelem = 2;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(4);
+        TPZVec<long> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,MaterialId,index);
     }
     
@@ -591,13 +591,13 @@ TPZAutoPointer<TPZCompMesh> CompMesh()
   int el;
   for(el = 0; el<7; el++)
   {
-    TPZManVector<int> cornernodes(nnodes[el]);
+    TPZManVector<long> cornernodes(nnodes[el]);
     int in;
     for(in=0; in<nnodes[el]; in++)
     {
       cornernodes[in] = elnodes[el][in];
     }
-    int index;
+    long index;
     gm->CreateGeoElement(types[el],cornernodes,el+1,index);
   }
   TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gm);

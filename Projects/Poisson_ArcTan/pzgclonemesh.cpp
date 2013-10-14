@@ -50,7 +50,7 @@ TPZGeoCloneMesh::TPZGeoCloneMesh() : TPZGeoMesh(), fMapNodes(),fMapElements() {
 
 void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
     
-    int i;
+    long i;
     if (!ref){
         cout << "TPZGeoCloneMesh::Error\n Reference element must not be null\n";
         DebugStop();
@@ -62,7 +62,7 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
     //  cout << "\n\n\nTeste\n\n\n";
     //  Print(cout);
     
-    int nel = patch.NElements();
+    long nel = patch.NElements();
     //  fReferenceElement.Resize(nel);
     for (i=0; i<nel; i++){
         if(patch[i]) {
@@ -143,7 +143,7 @@ void TPZGeoCloneMesh::AddElement(TPZGeoEl *eltoadd){
     CloneElement(eltoadd);
 }
 
-int TPZGeoCloneMesh::Index(TPZGeoEl *gel) {
+long TPZGeoCloneMesh::Index(TPZGeoEl *gel) {
     return gel->Index();
 /*    int nel = ElementVec().NElements();
     int iel = 0;
@@ -153,8 +153,8 @@ int TPZGeoCloneMesh::Index(TPZGeoEl *gel) {
  */
 }
 
-int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
-    int i,j;
+long  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
+    long i,j;
 //    int nnod = orgel->NNodes();
     //  cout << "Original element nodes = " << nnod << endl;
     if(HasElement(orgel)) return Index(fMapElements[orgel]);
@@ -162,7 +162,7 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
     
     // Create a cloned element
     TPZGeoEl *el = InitializeClone(orgel);
-    int elindex = Index(el);
+    long elindex = Index(el);
     
     //  cout << "\nClonned element\n";
     //  el->Print(cout);
@@ -210,7 +210,7 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
     return elindex;
 }
 
-int TPZGeoCloneMesh::HasNode(int nodeindex){
+int TPZGeoCloneMesh::HasNode(long nodeindex){
     return (fMapNodes.find(nodeindex) != fMapNodes.end());
 }
 
@@ -266,15 +266,15 @@ int TPZGeoCloneMesh:: IsNeighBCForPatchSon(TPZGeoEl *gel) const {
 
 
 
-int TPZGeoCloneMesh::CloneNode(int orgnodindex){
+long TPZGeoCloneMesh::CloneNode(long orgnodindex){
     if (fMapNodes.find(orgnodindex) != fMapNodes.end()) {
         DebugStop();
     }
     int i;
     TPZVec<REAL> coord(3,0.);
     for (i=0; i<3; i++) coord[i] = fGeoReference->NodeVec()[orgnodindex].Coord(i);
-    int nodind = NodeVec().AllocateNewElement();
-    int nodid =  fGeoReference->NodeVec()[orgnodindex].Id();
+    long nodind = NodeVec().AllocateNewElement();
+    long nodid =  fGeoReference->NodeVec()[orgnodindex].Id();
     NodeVec()[nodind].Initialize(nodid,coord,*this);
     //fill the map
     fMapNodes[orgnodindex] = nodind;
@@ -288,10 +288,10 @@ TPZGeoCloneMesh::~TPZGeoCloneMesh() {
 
 TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     
-    TPZManVector<int,27> clonindex(orgel->NNodes(),-1);
-    int nnod = orgel->NNodes();
-    for (int i=0; i<nnod; i++){
-        int nodindex = orgel->NodeIndex(i);	
+    TPZManVector<long,27> clonindex(orgel->NNodes(),-1);
+    long nnod = orgel->NNodes();
+    for (long i=0; i<nnod; i++){
+        long nodindex = orgel->NodeIndex(i);	
         if (!HasNode(nodindex)){
             //  cout << "Cloning node " << nodindex << "  resulting node ";
             clonindex[i] = CloneNode(nodindex);
@@ -304,7 +304,7 @@ TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     }
 
     // the nodeindexes of the new element are equal to the node indexes of the original mesh?
-    int index;
+    long index;
     TPZGeoEl *gel = CreateGeoElement((MElementType)orgel->Type(),clonindex,orgel->MaterialId(),index);
     gel->SetRefPattern(orgel->GetRefPattern());
     return gel;
@@ -383,8 +383,8 @@ TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *orgel){
     //   return 0;
 }
 
-TPZGeoEl* TPZGeoCloneMesh::ReferenceElement(int i) {
-    int nref = fReferenceElement.NElements();
+TPZGeoEl* TPZGeoCloneMesh::ReferenceElement(long i) {
+    long nref = fReferenceElement.NElements();
     if (i < 0 || i >= nref) return 0;
     else  return fReferenceElement[i];
 }
@@ -405,8 +405,8 @@ void TPZGeoCloneMesh::Print (ostream & out) {
         return;
     }
     out << "\n\tGeometric Node Information:\n\n";
-    int i;
-    int nnodes = NodeVec().NElements();
+    long i;
+    long nnodes = NodeVec().NElements();
     for(i=0; i<nnodes; i++) {
         NodeVec()[i].Print(out);
         out << "\n";
@@ -421,13 +421,13 @@ void TPZGeoCloneMesh::Print (ostream & out) {
     
     
     out << "\n\tGeometric Element Information:\n\n";
-    int nelem = ElementVec().NElements();
+    long nelem = ElementVec().NElements();
     for(i=0; i<nelem; i++) {
         out << "Cloned element\n";
         if(ElementVec()[i]) ElementVec()[i]->Print(out);
         out << "\n";
         out << "Reference Element:";
-        int refind = Index(ElementVec()[i]);
+        long refind = Index(ElementVec()[i]);
         if (refind < 0 || refind >= fReferenceElement.NElements()){continue;}
         if(fReferenceElement[refind]) out<< fReferenceElement[refind]->Id();//->Print(out);
         out <<"\n-----------------------------------------------------\n\n";
@@ -455,7 +455,7 @@ int TPZGeoCloneMesh::main(){
   	int i,j;
   	for(i=0; i<(numrel+1); i++) {
         for (j=0; j<(numcel+1); j++) {
-            int nodind = geomesh.NodeVec().AllocateNewElement();
+            long nodind = geomesh.NodeVec().AllocateNewElement();
             TPZVec<REAL> coord(2);
             coord[0] = j;//co[nod][0];
             coord[1] = i;//co[nod][1];
@@ -465,7 +465,7 @@ int TPZGeoCloneMesh::main(){
   	// criação dos elementos
   	int elc, elr;
   	TPZGeoEl *gel[numrel*numcel];
-  	TPZVec<int> indices(4);
+  	TPZVec<long> indices(4);
   	for(elr=0; elr<numrel; elr++) {  
         for(elc=0; elc<numcel; elc++) {
             indices[0] = (numrel+1)*elr+elc;
@@ -473,7 +473,7 @@ int TPZGeoCloneMesh::main(){
             indices[3] = indices[0]+numrel+1;
             indices[2] = indices[1]+numrel+1;
             // O proprio construtor vai inserir o elemento na malha
-			int index;
+			long index;
 			gel[elr*numrel+elc] = geomesh.CreateGeoElement(EQuadrilateral,indices,1,index);
             //gel[elr*numrel+elc] = new TPZGeoElQ2d(elr*numrel+elc,indices,1,geomesh);
         }
@@ -513,21 +513,21 @@ int TPZGeoCloneMesh::main(){
  	comp->GetRefPatches(patch);
 	
 	geomesh.ResetReference();
-	TPZStack <int> patchel;
+	TPZStack <long> patchel;
 	TPZStack <TPZGeoEl *> toclonegel;
-	TPZStack <int> patchindex;
-	TPZVec<int> n2elgraph;
-	TPZVec<int> n2elgraphid;
-	TPZStack<int> elgraph;
-	TPZVec<int> elgraphindex;
-	int k;
+	TPZStack <long> patchindex;
+	TPZVec<long> n2elgraph;
+	TPZVec<long> n2elgraphid;
+	TPZStack<long> elgraph;
+	TPZVec<long> elgraphindex;
+	long k;
 	TPZCompMesh *clonecmesh = new TPZCompMesh(&geomesh);
 	cout << "Check 1: number of reference elements for patch before createcompel: " << patch.size() << endl;
     std::set<TPZGeoEl *>::iterator it;
     for (it=patch.begin(); it!=patch.end(); it++)
     {
 		//patch[i]->Print(cout);
-        int index;
+        long index;
         TPZGeoEl *gel = *it;
         clonecmesh->CreateCompEl(gel, index);
         //		patch[i]->CreateCompEl(*clonecmesh,i);
@@ -536,7 +536,7 @@ int TPZGeoCloneMesh::main(){
 	clonecmesh->CleanUpUnconnectedNodes();
     //	clonecmesh->Print(cout);
 	clonecmesh->GetNodeToElGraph(n2elgraph,n2elgraphid,elgraph,elgraphindex);
-	int clnel = clonecmesh->NElements();
+	long clnel = clonecmesh->NElements();
     //	cout << "Number of elements in clonemessh: " << clnel << endl;
 	//o primeiro patch começa em zero
 	patchindex.Push(0);
@@ -554,7 +554,7 @@ int TPZGeoCloneMesh::main(){
 			TPZGeoEl *gel = clonecmesh->ElementVec()[patchel[j]]->Reference();
 			//gel->Print(cout);
 			//inserir todos os pais do elemento geométrico do patch
-			int count = 0;
+			long count = 0;
 			//cout << "Inserting father element:" << "\t"; 
 			while(gel){	
 				TPZGeoEl *father = gel->Father();
@@ -570,7 +570,7 @@ int TPZGeoCloneMesh::main(){
 			}
 			//cout << endl;
 		}
-		int sum = toclonegel.NElements()-1;
+		long sum = toclonegel.NElements()-1;
 		//cout << endl << sum << endl;
 		patchindex.Push(sum);
         
@@ -646,13 +646,13 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
 		
         fGeoReference = dynamic_cast<TPZGeoMesh *>(Restore(buf, 0));
         
-        ReadObjects<int>(buf,fMapNodes);
+        ReadObjects<long>(buf,fMapNodes);
         
-        std::map<int,int> MappingElements;
+        std::map<long,long> MappingElements;
         
         TPZGeoEl *gelorig, *gelcloned;
-        ReadObjects<int>(buf,MappingElements);
-        std::map<int,int>::iterator it = MappingElements.begin();
+        ReadObjects<long>(buf,MappingElements);
+        std::map<long,long>::iterator it = MappingElements.begin();
         while(it != MappingElements.end()) {
             gelorig = fGeoReference->ElementVec()[it->first];
             gelcloned = ElementVec()[it->second];
@@ -661,9 +661,9 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
         }
         
         // Writing index of the elements in fReferenceElement
-        TPZStack<int> RefElements;
+        TPZStack<long> RefElements;
         ReadObjects(buf,RefElements);
-        for(int ii=0;ii<RefElements.size();ii++) {
+        for(long ii=0;ii<RefElements.size();ii++) {
             fReferenceElement.push_back(fGeoReference->ElementVec()[RefElements[ii]]);
         }
 
@@ -676,7 +676,7 @@ void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
             itpatch++;
         }
         
-        int indexroot;
+        long indexroot;
         buf.Read(&indexroot);
         fGeoRoot = ElementVec()[indexroot];
 
@@ -703,9 +703,9 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         WriteObjects(buf,fMapNodes);
         
         // Maps elements with original elements
-        std::map<int,int> MappingElements;
+        std::map<long,long> MappingElements;
         TPZGeoEl *gel;
-        int indexorig, indexcloned;
+        long indexorig, indexcloned;
         std::map<TPZGeoEl* , TPZGeoEl* >::iterator it;
         for(it=fMapElements.begin();it!=fMapElements.end();it++) {
             gel = it->first;
@@ -717,9 +717,9 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         WriteObjects(buf,MappingElements);
         
         // Writing index of the elements in fReferenceElement
-        TPZStack<int> RefElements;
-        int sz = fReferenceElement.size();
-        for(int ii=0;ii<sz;ii++) {
+        TPZStack<long> RefElements;
+        long sz = fReferenceElement.size();
+        for(long ii=0;ii<sz;ii++) {
             RefElements.push_back(fReferenceElement[ii]->Index());
         }
         WriteObjects(buf,RefElements);
@@ -734,7 +734,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
         }
         WriteObjects(buf,PatchElements);
         
-        int rootindex = fGeoRoot->Index();
+        long rootindex = fGeoRoot->Index();
         buf.Write(&rootindex,1);
 	}
 	catch(const exception& e)

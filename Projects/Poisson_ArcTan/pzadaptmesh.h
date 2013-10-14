@@ -71,10 +71,10 @@ protected:
     void CreateClones();
     
     /** @brief Sorts the elements by the error vector vec, returning permutation vector */
-    void Sort(TPZVec<REAL> &vec, TPZVec<int> &perm);
+    void Sort(TPZVec<REAL> &vec, TPZVec<long> &perm);
     
     /** @brief Sort */
-    void HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm);
+    void HeapSort(TPZVec<REAL> &sol, TPZVec<long> &perm);
     
     /**
      * @brief Sorts the errvec returning the ordering indexes in perm param.
@@ -82,7 +82,7 @@ protected:
      * @param perm ordering indexes after sorting
      * @param errpercent is the percentual of the error that must be considered in returning minimum error
      */
-    REAL SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL errpercent);
+    REAL SortMinError (TPZVec<REAL> errvec, TPZVec<long> perm, REAL errpercent);
     
     /**
      * @brief Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
@@ -100,7 +100,7 @@ protected:
      * @param minerror minimum error to the clone be analysed
      * @param ervec vector containing the treu error
      */
-    int HasTrueError(int clindex, REAL &minerror, TPZVec<REAL> &ervec);
+    int HasTrueError(long clindex, REAL &minerror, TPZVec<REAL> &ervec);
 
 private:
 
@@ -116,7 +116,7 @@ private:
     TPZStack < TPZGeoEl * > fPatch;
     
     /** @brief Maps the start position of each patch into patches vector */
-    TPZStack < int > fPatchIndex;
+    TPZStack < long > fPatchIndex;
     
     /** @brief Element error vector */
     TPZStack < REAL > fElementError;

@@ -122,7 +122,7 @@ qn, ql, q,
 scale = 5.;
 
 int l, m, n, p, k;
-void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
+void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, int nSubdiv)
 {
 
     
@@ -423,7 +423,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
 
    // definig elements
    // quadrilateral data
-   TPZVec< int > nodes(4);
+   TPZVec< long > nodes(4);
    elms.Resize(m * n * 2 + p * l * 2 + (l+p) * (n-l) * 2);
 
    cout << "\nNumber of Elements: "<< elms.NElements() << endl;
@@ -701,7 +701,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
 }
 
 TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
-                               TPZVec< TPZVec< int > > & elms,
+                               TPZVec< TPZVec< long > > & elms,
                                MElementType ElType, int matId,
                                TPZVec<TPZGeoEl *> & gEls,
                                int nSubdiv)
@@ -710,7 +710,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< 
     
     gEls.Resize(elms.NElements());
     gmesh->NodeVec().Resize(nodes.NElements());
-    int i,j;
+    long i,j;
     
     for(i = 0; i < nodes.NElements(); i++)
     {
@@ -827,7 +827,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< 
         // conic exit mesh
         for(i = 0; i < n-l; i++)
         {
-            int index = 2*m*n + 2*l*p + l + p + 2*(l+p)*i;
+            long index = 2*m*n + 2*l*p + l + p + 2*(l+p)*i;
             gEls[index-1]->Divide(firstDiv);
             {
                 if(i == 0)
@@ -898,7 +898,7 @@ TPZFlowCompMesh *
 
 // Retrieving the point coordinates and element references
    TPZVec< TPZVec< REAL > > nodes;
-   TPZVec< TPZVec< int  > > elms;
+   TPZVec< TPZVec< long  > > elms;
    TPZVec< TPZGeoEl *> gElem;
    const int digits = 12;
    TPZManVector<REAL> x0(3,0.);

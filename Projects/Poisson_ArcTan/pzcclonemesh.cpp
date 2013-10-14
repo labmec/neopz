@@ -76,8 +76,8 @@ TPZCompCloneMesh::~TPZCompCloneMesh() {
 
 void TPZCompCloneMesh::AutoBuild() {
     TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
-    int i,j, nelem = elvec.NElements();
-    int index;
+    long i,j, nelem = elvec.NElements();
+    long index;
     TPZGeoCloneMesh *gclm =  dynamic_cast<TPZGeoCloneMesh *>(Reference());
     if (!gclm) {
         cout << "TPZCompCloneMesh::AutoBuild : clone mesh not initialised" <<endl;
@@ -126,10 +126,10 @@ void TPZCompCloneMesh::AutoBuild() {
                         clcel->Print();
                     }
 
-                    int ncon = clcel->NConnects();
+                    long ncon = clcel->NConnects();
                     for (j=0; j<ncon; j++) {
-                        int refcon = cel->ConnectIndex(j);
-                        int conid = clcel->ConnectIndex(j);
+                        long refcon = cel->ConnectIndex(j);
+                        long conid = clcel->ConnectIndex(j);
                         if (gDebug) {
                             cout << "Connects --- Reference :  " << refcon << "   Clone   " << conid << endl;
                         }
@@ -159,7 +159,7 @@ void TPZCompCloneMesh::AutoBuild() {
 							gel->Print(sout);
 							
 							std::set<TPZGeoEl *>::iterator it;
-							int i=0;
+							long i=0;
 							for(it = gclm->PatchElements().begin(); it != gclm->PatchElements().end(); it++)
 							{
 								sout << "output for patch element " << i << std::endl;
@@ -302,12 +302,12 @@ void TPZCompCloneMesh::AutoBuild() {
     //	Print(cout);
     
     //Copiar Solucao Bloco a Bloco
-    int nc = fCloneReference->NConnects();
+    long nc = fCloneReference->NConnects();
     for (i=0;i<nc;i++)
     {
         if(! HasConnect(i)) continue;
-        int clseqnum 	= ConnectVec()[fMapConnects[i]].SequenceNumber();
-        int orgseqnum 	= fCloneReference->ConnectVec()[i].SequenceNumber();
+        long clseqnum 	= ConnectVec()[fMapConnects[i]].SequenceNumber();
+        long orgseqnum 	= fCloneReference->ConnectVec()[i].SequenceNumber();
         int ndoforg 	= fCloneReference->ConnectVec()[i].NDof(*fCloneReference);
         int ndofclone 	= ConnectVec()[fMapConnects[i]].NDof(*this);
         if( ndoforg != ndofclone) 
@@ -397,7 +397,7 @@ void TPZCompCloneMesh::AutoBuild() {
  */
 
 void TPZCompCloneMesh::CreateCloneBC(){
-    int i,j;//elementos e lados de elementos
+    long i,j;//elementos e lados de elementos
     TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
     int dim = mat->Dimension();
@@ -414,7 +414,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
     fCloneReference->ComputeNodElCon();
     
     TPZStack<TPZGeoElSide> bcelsides;
-    int ncon = ConnectVec().NElements();
+    long ncon = ConnectVec().NElements();
     TPZVec<int> flagConn (ncon,0);
     
     /*   int aux = fOriginalConnects.NElements(); */
@@ -445,8 +445,8 @@ void TPZCompCloneMesh::CreateCloneBC(){
             TPZCompElSide side (el,j);
             TPZGeoElSide geoside = side.Reference();
             if(geoside.Dimension() != dim-1) continue;
-            int clconid = side.ConnectIndex();
-            int orgconid = fOriginalConnects[clconid];
+            long clconid = side.ConnectIndex();
+            long orgconid = fOriginalConnects[clconid];
             if (flagConn[clconid] == 1) continue;
             int orgelcon = fCloneReference->ConnectVec()[orgconid].NElConnected();
             int clelcon = ConnectVec()[clconid].NElConnected();
@@ -483,8 +483,8 @@ void TPZCompCloneMesh::CreateCloneBC(){
     }
     Reference()->ResetReference();
     this->LoadReferences();
-    int nbc = bcelsides.NElements();
-    int ibc;
+    long nbc = bcelsides.NElements();
+    long ibc;
     for(ibc = 0; ibc<nbc; ibc++) {
 #ifdef DEBUG
         TPZStack<TPZCompElSide> neighbours;
@@ -504,7 +504,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
         TPZStack<int> pordersbefore;
         TPZStack<int> connectindexes;
         for (int ic=0; ic<nsideconnects; ic++) {
-			int Index = intel->SideConnectIndex(ic, side);
+			long Index = intel->SideConnectIndex(ic, side);
 			if(Index == -1) continue;
             connectindexes.Push(Index);
             int orderbefore = (intel->SideConnect(ic, side))->Order();
@@ -545,7 +545,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
     //  AdjustBoundaryElements();
 }
 
-int TPZCompCloneMesh::HasConnect(int cnid){
+int TPZCompCloneMesh::HasConnect(long cnid){
     return (fMapConnects.find(cnid) != fMapConnects.end());
 }
 
@@ -567,9 +567,9 @@ TPZCompCloneMesh::TPZCompCloneMesh(const TPZCompCloneMesh &copy) {
 	fBlock.SetMatrix(&fSolution);
 	fSolutionBlock.SetMatrix(&fSolution);
 	copy.CopyMaterials(*this);
-	int nel = copy.fElementVec.NElements();
+	long nel = copy.fElementVec.NElements();
 	fElementVec.Resize(nel);
-	int iel;
+	long iel;
 	for(iel = 0; iel<nel; iel++) fElementVec[iel] = 0;
 	for(iel = 0; iel<nel; iel++) {
 		TPZCompEl *cel = copy.fElementVec[iel];
@@ -614,7 +614,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
         if(bcel) {
             if(!bcel->Material() || bcel->Material()->Id() == -1000) {
                 bcgelstack.Push(bcel->Reference());
-                int nsides = bcel->NConnects();
+                long nsides = bcel->NConnects();
                 int sideorder = bcel->SideOrder(nsides-1);
                 bcporderstack.Push(sideorder);
                 elementindex.Push(el);
@@ -672,7 +672,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
         TPZCompEl *cel = copyel[el];
         TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
         if(!cint) continue;
-        int ncon = cint->NConnects();
+        long ncon = cint->NConnects();
         int porder = cint->PreferredSideOrder(ncon-1);
         
         if (gDebug) {
@@ -680,7 +680,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
             cout << "NConnects() :  " << ncon << "   POrder : " << porder;
         }
         
-        TPZVec<int> subelindex;
+        TPZVec<long> subelindex;
         // The interpolated elements can not to have a order bigger than max order defined to p-adaptive process
         if(cint->GetPreferredOrder()>maxp)
             cint->PRefine(maxp);
@@ -721,8 +721,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
     int tempgorder = cmesh->GetDefaultOrder();
     
     // probably it would be better to create the boundary elements first
-    int nbc = bcgelstack.NElements();
-    int i;
+    long nbc = bcgelstack.NElements();
+    long i;
     for (i=0;i<nbc;i++){
         TPZGeoEl *bcgel =  bcgelstack[i];
         
@@ -736,7 +736,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh(int maxp,int print) {
             int maxp = TPZOneDRef::gMaxP;
             elord = elord > maxp ? maxp : elord;
             cmesh->SetDefaultOrder(elord);
-            int indexsub;
+            long indexsub;
             cmesh->CreateCompEl(bcsubgel[is],indexsub);
         }
     }
@@ -803,8 +803,8 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
     int dim = mat->Dimension();
     TPZCompEl *cel;
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fine->ElementVec();
-    int numel = elementvec.NElements();
-    int el;
+    long numel = elementvec.NElements();
+    long el;
     for(el=0; el<numel; el++) {
         cel = elementvec[el];
         if (!cel) continue;
@@ -813,7 +813,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         
         TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
         if (!cint) continue;
-        int ncon = cint->NConnects();
+        long ncon = cint->NConnects();
         TPZGeoElSide gelside(cint->Reference(),ncon-1);
         if(gelside.Dimension() != dim) continue;
         TPZGeoElSide gellarge(gelside);
@@ -828,12 +828,12 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         TPZTransform transform(gelside.Dimension(),gellarge.Dimension());
         gelside.SideTransform3(gellarge,transform);
         
-        int anelindex = cellarge->Index();
+        long anelindex = cellarge->Index();
         if (anelindex < 0 || anelindex >=  NElements()) {
             anelindex = cellarge->Reference()->Father()->Reference()->Index();
             out << "TPZCompCloneMesh::ERROR\nFine clone reference called!!\n";
         }
-        int index = GetOriginalElementIndex(anelindex);
+        long index = GetOriginalElementIndex(anelindex);
         REAL truerror = 0.;
         REAL erro =  ElementError(cint,cintlarge,transform,f,truerror);
         ervec[index] += erro;
@@ -855,7 +855,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
     }
 }
 
-int TPZCompCloneMesh::GetOriginalElementIndex(int elindex){
+long TPZCompCloneMesh::GetOriginalElementIndex(long elindex){
     TPZGeoCloneMesh* gclmesh = (TPZGeoCloneMesh *) fReference;
     TPZGeoEl *gel = fElementVec[elindex]->Reference();//gclmesh->ReferenceElement(elindex);
     if (!gel) return -1;
@@ -864,7 +864,7 @@ int TPZCompCloneMesh::GetOriginalElementIndex(int elindex){
     if (!gelref) return -1;
     TPZCompEl *cel = gelref->Reference();
     if (!cel) return -1;
-    int orgindex = cel->Index();
+    long orgindex = cel->Index();
     return orgindex;
 }
 
@@ -883,8 +883,8 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
                                     void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),REAL &truerror){
     // accumulates the transfer coefficients between the current element and the
     // coarse element into the transfer matrix, using the transformation t
-    int locnod = fine->NConnects();
-    int cornod = coarse->NConnects();
+    long locnod = fine->NConnects();
+    long cornod = coarse->NConnects();
     int locmatsize = fine->NShapeF();
     int cormatsize = coarse->NShapeF();
     REAL error = 0.;
@@ -1003,7 +1003,7 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
         //    }
         weight *= fabs(jacdetfine);
         locdphix.Zero();
-        int ieq,d;
+        long ieq,d;
         switch(dim) {
             case 0:
                 //dphix.Redim(1,1);
@@ -1064,9 +1064,9 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
         int in;
         for(in=0; in<locnod; in++) {
             TPZConnect *df = &fine->Connect(in);
-            int dfseq = df->SequenceNumber();
+            long dfseq = df->SequenceNumber();
             int dfvar = locblock.Size(dfseq);
-            int pos = locblock.Position(dfseq);
+            long pos = locblock.Position(dfseq);
             
             for(int jn=0; jn<dfvar; jn++) {
                 locsol[iv%numdof] += locphi(iv/numdof,0)*locsolmesh(pos+jn,0);
@@ -1080,9 +1080,9 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
         iv=0;
         for(in=0; in<cornod; in++) {
             TPZConnect *df = &coarse->Connect(in);
-            int dfseq = df->SequenceNumber();
+            long dfseq = df->SequenceNumber();
             int dfvar = corblock.Size(dfseq);
-            int pos = corblock.Position(dfseq);
+            long pos = corblock.Position(dfseq);
             for(int jn=0; jn<dfvar; jn++) {
                 corsol[iv%numdof] += corphi(iv/numdof,0)*corsolmesh(pos+jn,0);
                 for(d=0; d<dim; d++)
@@ -1107,7 +1107,7 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
 
 void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCompMesh *fine,
                                        TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder){
-    int i;
+    long i;
     TPZGeoCloneMesh *gclmesh = (TPZGeoCloneMesh *) Reference();
     
     gclmesh->ResetReference();
@@ -1135,11 +1135,11 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
         
         //if the element is a reference element ...
         if(!IsSonOfRootElement(gel)) continue;
-        int anelindex = cel->Index();
+        long anelindex = cel->Index();
         if(anelindex<0 || anelindex>=NElements()) {
             anelindex = cel->Reference()->Father()->Reference()->Index();
         }
-        int orgelindex = GetOriginalElementIndex(anelindex);
+        long orgelindex = GetOriginalElementIndex(anelindex);
         //    int orgelindex = orgel->Index();
         REAL curerror = ervec[orgelindex];
         if (curerror >= minerror){
@@ -1158,7 +1158,7 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
         }
         else {
             TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (fCloneReference->ElementVec()[orgelindex]);
-            int ncon = cint->NConnects();
+            long ncon = cint->NConnects();
             int po = cint->PreferredSideOrder(ncon-1);
             //    cout << "Elemento nao refinado " << endl;
             //
@@ -1178,7 +1178,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     //obtencao do elemento geometrico de cint
     TPZGeoEl *gel = cint->Reference();
     //numero de conects de cint
-    int ncon = cint->NConnects();
+    long ncon = cint->NConnects();
     //ordem do elemento
     int intorder = cint->SideOrder(ncon-1);
     gDeduce << "Internal order = " << intorder << endl;
@@ -1186,11 +1186,11 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     TPZGeoMesh *gmesh = gel->Mesh();
     //numero de nos
     int ncorners = gel->NCornerNodes();
-    TPZVec<int> cornerid(ncorners);
-    TPZVec<int> cornerindexes(ncorners);
+    TPZVec<long> cornerid(ncorners);
+    TPZVec<long> cornerindexes(ncorners);
     //ordem p para cada no
     TPZVec<int> localporders(ncorners);
-    int ids;
+    long ids;
     for(ids=0; ids<ncorners; ids++) {
         cornerid[ids] = gel->NodePtr(ids)->Id();
         cornerindexes[ids] = gel->NodeIndex(ids);
@@ -1289,7 +1289,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
             continue;
         }
         
-        TPZVec<int> index(3),id(3);
+        TPZVec<long> index(3),id(3);
         index[0] = gels1.SideNodeIndex(0);
         id[0] = gmesh->NodeVec()[index[0]].Id();
         index[1] = gels1.SideNodeIndex(1);
@@ -1328,7 +1328,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         int c,counter=0;
         for(c=0; c<5; c++) {
             int nd = connects[c]->NDof(*cmesh);
-            int seq = connects[c]->SequenceNumber();
+            long seq = connects[c]->SequenceNumber();
             int d;
             //obtem o bloco de cada connect e o coloca na matriz U
             for(d=0; d<nd; d++) U(counter++,0) = (*cmesh).Block()(seq,0,d,0);
@@ -1400,15 +1400,15 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
 }
 
 void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,
-                                        TPZVec<int> &cornerids,
+                                        TPZVec<long> &cornerids,
                                         TPZVec<int> &porders,
                                         int originalp) {
     
     // Eliminate the refinement pattern suggestion if
     // the error is smaller than 10% of the total error
-    int nref = refpat.NElements();
+    long nref = refpat.NElements();
     REAL totalerror = 0.;
-    int ir;
+    long ir;
     
     // c�lcula o erro total do elemento -
     // somat�rio dos erros nas arestas
@@ -1417,7 +1417,7 @@ void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,
     }
     
     //verifica o n�mero de n�s de canto
-    int ncorners = cornerids.NElements();
+    long ncorners = cornerids.NElements();
     
     //Print the incoming refpattern to the log file
     for(ir=0; ir<ncorners; ir++) gDeduce << cornerids[ir] << ' ';
@@ -1463,7 +1463,7 @@ void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,
     }
     
     
-    TPZVec<int> perm(refpat.NElements());
+    TPZVec<long> perm(refpat.NElements());
     TPZVec<REAL> error(refpat.NElements());
     totalerror = 0.;
     for(ir=0; ir<nref; ir++) {
@@ -1475,7 +1475,7 @@ void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,
     
     // h-refinement will be used
     // determine the order of interpolation of the sub elements
-    int ic;
+    long ic;
     gDeduce << "errors in their order ";
     for(ir=0; ir<nref; ir++) gDeduce << perm[ir] << ' ' << refpat[perm[ir]].fhError << ' ';
     gDeduce << endl;
@@ -1510,7 +1510,7 @@ void TPZCompCloneMesh::AdaptElements(TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &p
     //Idenifica o vetor de elementos computacionais de mesh
     //  TPZAdmChunkVector<TPZCompEl *> &elementvec = ElementVec();
     
-    int el,nelem = gelstack.NElements();
+    long el,nelem = gelstack.NElements();
     
     Reference()->ResetReference();
     LoadReferences();
@@ -1520,7 +1520,7 @@ void TPZCompCloneMesh::AdaptElements(TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &p
         //identifica os elementos geom�tricos passados em gelstack
         //    TPZGeoEl *gel = gelstack[el];
         TPZGeoEl *clgel = gelstack[el];
-        int clelindex = gclmesh->Index(clgel);
+        long clelindex = gclmesh->Index(clgel);
         TPZGeoEl *gel = gclmesh->ReferenceElement(clelindex);
         
         if(!gel) {
@@ -1545,14 +1545,14 @@ void TPZCompCloneMesh::AdaptElements(TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &p
     //  return cmesh;
 }
 
-void TPZCompCloneMesh::Sort(TPZVec<REAL> &vec, TPZVec<int> &perm) {
-    int i,j;
-    int imin = 0;
-    int imax = vec.NElements();
+void TPZCompCloneMesh::Sort(TPZVec<REAL> &vec, TPZVec<long> &perm) {
+    long i,j;
+    long imin = 0;
+    long imax = vec.NElements();
     for(i=imin; i<imax; i++) {
         for(j=i+1; j<imax; j++) {
             if(vec[perm[i]] < vec[perm[j]]) {
-                int kp = perm[i];
+                long kp = perm[i];
                 perm[i] = perm[j];
                 perm[j] = kp;
             }
@@ -1574,7 +1574,7 @@ void TPZCompCloneMesh::Print (ostream & out) const {
     out << "number of materials           = " << NMaterials() << endl;
     
     out << "\n\t Cloned Connect Information:\n\n";
-    int i, nelem = NConnects();
+    long i, nelem = NConnects();
     for(i=0; i<nelem; i++) {
         if(fConnectVec[i].SequenceNumber() == -1) {
             if(fConnectVec[i].HasDependency()) {
@@ -1588,7 +1588,7 @@ void TPZCompCloneMesh::Print (ostream & out) const {
         out << "Index " << i << ' ';
         fConnectVec[i].Print(*this,out);
         if((i+1)>fOriginalConnects.size()) break;
-        int orgcid = fOriginalConnects[i];
+        long orgcid = fOriginalConnects[i];
         out << "Original connection - " << "Index " << orgcid << " ";
         fCloneReference->ConnectVec()[orgcid].Print(*fCloneReference,out);
     }
@@ -1605,8 +1605,8 @@ void TPZCompCloneMesh::Print (ostream & out) const {
 }
 
 TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {
-    int index = el->Index();
-    int orgind = GetOriginalElementIndex(index);
+    long index = el->Index();
+    long orgind = GetOriginalElementIndex(index);
     return dynamic_cast<TPZInterpolatedElement *> (fCloneReference->ElementVec()[orgind]);
 }
 
@@ -1622,7 +1622,7 @@ void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid)
 	try
 	{
         if(fCloneReference) {
-            int classidref = fCloneReference->ClassId();
+            long classidref = fCloneReference->ClassId();
             buf.Write(&classidref);
             fCloneReference->Write(buf,withclassid);
         }

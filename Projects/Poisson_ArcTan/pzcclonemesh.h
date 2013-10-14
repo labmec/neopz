@@ -36,19 +36,19 @@ protected:
     TPZCompMesh * fCloneReference;
     
     /** Maps connect index from original mesh to cloned mesh */
-    std::map<int,int> fMapConnects;
+    std::map<long,long> fMapConnects;
     
     /** Maps connect index from cloned mesh to original mesh */
-    TPZStack <int> fOriginalConnects;
+    TPZStack <long> fOriginalConnects;
         
 public:
     struct TPZRefPattern {
-        int fId[3]; 	//Subelements connectivities ids
+        long fId[3]; 	//Subelements connectivities ids
         int fp[2];		//subelements p-order refinement
         int fh[2];		//subelements h-order refinement
         REAL fhError;	// Error if h refinement is applied
         REAL fError;    // Smallest error
-        TPZRefPattern(int id1,int id2,int id3,int p1,int p2,int h1,int h2,REAL herror,REAL error) {
+        TPZRefPattern(long id1,long id2,long id3,int p1,int p2,int h1,int h2,REAL herror,REAL error) {
             fId[0] = id1; fId[1] = id2; fId[2] = id3;
             fp[0] = p1; fp[1] = p2;
             fh[0] = h1; fh[1] = h2;
@@ -78,7 +78,7 @@ public:
     /**
      * @brief Given the index in the CompClone mesh return the comp element index in the reference mesh
      */
-    int GetOriginalElementIndex(int elindex);
+    long GetOriginalElementIndex(long elindex);
     
     /**
      * @brief Given the pointer to the element in the CompClone mesh return the pointer to the comp element in the reference mesh
@@ -136,7 +136,7 @@ public:
 protected:
     
     /** @brief Verifies if the connect cnid is already mapped */
-    int HasConnect(int cnid);
+    int HasConnect(long cnid);
     
     /** @brief Creates the Dirichlet Boundary Condition along the patch sides */
     void CreateCloneBC();
@@ -165,11 +165,11 @@ protected:
     
     
     void DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,
-                          TPZVec<int> &cornerids,
+                          TPZVec<long> &cornerids,
                           TPZVec<int> &porders,
                           int originalp);
     
-    void Sort(TPZVec<REAL> &vec, TPZVec<int> &perm);
+    void Sort(TPZVec<REAL> &vec, TPZVec<long> &perm);
     
     
 public:

@@ -30,7 +30,7 @@ protected:
   	TPZGeoMesh 	*fGeoReference;
 
 	/** Maps node id from cloned mesh to the mesh*/
-    std::map<int,int> fMapNodes;
+    std::map<long,long> fMapNodes;
 
 	/** 
      * Maps element pointers from the original (reference) mesh to the cloned mesh
@@ -93,7 +93,7 @@ public:
 	/**
 	 * Returns the reference element
 	 */
-	TPZGeoEl* ReferenceElement(int i);
+	TPZGeoEl* ReferenceElement(long i);
 
 	/**
 	 * Only for debug purposes
@@ -108,7 +108,7 @@ public:
 	/**
 	 * Return the index of an element
 	 */
-	int Index(TPZGeoEl *gel); 
+	long Index(TPZGeoEl *gel); 
 
 	/**
 	 * Return reference element index
@@ -149,7 +149,7 @@ protected:
      * this method update fMapNodes
 	 * @param nodindex node to be cloned
 	 **/
-	int CloneNode(int nodindex);
+	long CloneNode(long nodindex);
 
 	/** 
 	 * Creates an element clone and insert it into the mesh
@@ -158,14 +158,14 @@ protected:
 	 * return the index of the cloned element
 	 * @param orggel geometric element to be cloned
 	 **/
-	int CloneElement(TPZGeoEl *orggel);
+	long CloneElement(TPZGeoEl *orggel);
 
 	/**
 	 * Verifies if the specified nodeindex was cloned
      * this method uses the datastructure fMapNodes
 	 * @param nodeindex Node index in the original mesh
 	 */
-	int HasNode(int nodeindex);
+	int HasNode(long nodeindex);
 	/**
 	 * Verifies if a given element was cloned
      * this method uses the datastructure fMapElements

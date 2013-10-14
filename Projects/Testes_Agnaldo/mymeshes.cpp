@@ -114,13 +114,13 @@ TPZGeoMesh *DadosMalhas::GMesh(bool triang_elements, REAL L, REAL w){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-    TPZVec <int> TopolTriang(3);
-	TPZVec <int> TopolLine(2);
-    TPZVec <int> TopolPoint(1);
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
+    TPZVec <long> TopolPoint(1);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -233,11 +233,11 @@ TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolLine(2);
+	TPZVec <long> TopolQuad(4);
+	TPZVec <long> TopolLine(2);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx;
     REAL valy;
     
@@ -372,12 +372,12 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
     
     TPZGeoMesh *gmesh = new TPZGeoMesh();
 	REAL co[9][2] = {{0.,0.},{L/2,0.},{L,0.},{0.,w/2},{L/2,w/2},{L,w/2},{0.,w},{L/2,w},{L,w}};
-	int indices[1][9] = {{0,1,2,3,4,5,6,7,8}};
+	long indices[1][9] = {{0,1,2,3,4,5,6,7,8}};
 	
 	int nnode = 9;
 	const int nelem = 5;
 	TPZGeoEl *elvec[nelem];
-	int nod;
+	long nod;
 	for ( nod=0; nod<nnode; nod++ )
 	{
 		int nodind = gmesh->NodeVec().AllocateNewElement();
@@ -387,11 +387,11 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
 		gmesh->NodeVec() [nodind].Initialize ( nod,coord,*gmesh );
 	}
 
-    int el;
+    long el;
 	for ( el=0; el<nelem; el++ )
 	{
         if(el!=1 && el!=2){
-            TPZVec<int> nodind(4);
+            TPZVec<long> nodind(4);
             nodind[0] = el;
             nodind[1] = el + 1;
             nodind[2] = el + 4;
@@ -399,13 +399,13 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
             elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,fmatId,el);
         }
         else if (el==1){
-            TPZVec<int> nodind(3);
+            TPZVec<long> nodind(3);
             nodind[0] = 1;
             nodind[1] = 2;
             nodind[2] = 4;
             elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,fmatId,el);
         }else{
-            TPZVec<int> nodind(3);
+            TPZVec<long> nodind(3);
             nodind[0] = 5;
             nodind[1] = 2;
             nodind[2] = 4;
@@ -458,10 +458,10 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
 		gmesh->NodeVec() [nodind].Initialize ( nod,coord,*gmesh );
 	}
     
-    int el;
+    long el;
 	for ( el=0; el<nelem; el++ )
 	{
-        TPZVec<int> nodind(4);
+        TPZVec<long> nodind(4);
         nodind[0] = 0;
         nodind[1] = 1;
         nodind[2] = 2;
@@ -479,8 +479,8 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
     
     for(int D = 0; D < h; D++)
     {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
+        long nels = gmesh->NElements();
+        for(long elem = 0; elem < nels; elem++)
         {
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];
@@ -547,8 +547,8 @@ void DadosMalhas::UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
     for(int D = 0; D < nDiv; D++)
     {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
+        long nels = gmesh->NElements();
+        for(long elem = 0; elem < nels; elem++)
         {
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];
@@ -681,7 +681,7 @@ TPZCompMesh *DadosMalhas::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomater
     cmesh->InsertMaterialObject(BCond4);
     
     
-    if(twomaterial==true){
+    if(twomaterial==true) {
         
         //Inserir materiais
         std::set<int> MaterialIDs;
@@ -720,7 +720,7 @@ TPZCompMesh *DadosMalhas::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool tria
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     
-    if(twomaterial==true){
+    if(twomaterial==true) {
         TPZMatPoisson3d *material2 = new TPZMatPoisson3d(fmatId+1,dim);
         TPZMaterial * mat2(material2);
         cmesh->InsertMaterialObject(mat2);
