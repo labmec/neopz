@@ -37,6 +37,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
+#include "TPZFrontStructMatrix.h"
 
 #include "TPZParSkylineStructMatrix.h"
 #include "pzsbstrmatrix.h"
@@ -180,10 +181,13 @@ TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
 
-REAL ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
-void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL &GlobalL2Error,REAL MaxError,TPZVec<REAL> &ervecbyel);
-void ApplyingStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
+void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel);
+void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
+void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
+
+REAL GradientNorm(TPZInterpolatedElement *el);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
@@ -229,7 +233,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
         //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -252,7 +256,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 10;
-                NRefs = 5;
+                NRefs = 6;
             }
             else {
                 NRefs = 12;
@@ -287,7 +291,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
             
 			// Creating computational mesh (approximation space and materials)
-			int p = 2, pinit;
+			int p = 1, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25
@@ -337,9 +341,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
-			//	TPZSkylineStructMatrix strskyl(cmesh);
 				TPZSkylineStructMatrix strskyl(cmesh);
-                if(usethreads) strskyl.SetNumThreads(nthread);
+//				TPZBandStructMatrix strskyl(cmesh);
+              //  TPZFrontStructMatrix strskyl(cmesh);
+               // if(usethreads) strskyl.SetNumThreads(nthread);
 				an.SetStructuralMatrix(strskyl);
 				
 				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
@@ -383,11 +388,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					if(nref < 3) GlobalMaxError = 0.;
 					TPZManVector<REAL> ervecbyel;
                     REAL MaxError = 0.;
-					REAL GlobalError = 0.;
-                    MaxError = ProcessandoError(an,ervec,ervecbyel);
+                    MaxError = ProcessingError(an,ervec,ervecbyel);
 					//GlobalError = ervec[1];   // L2 error
-					//ApplyingStrategyHPAdaptiveBasedOnErrors(an,GlobalError,MaxError,ervecbyel);
-					ApplyingStrategyHPAdaptiveBasedOnGradient(an,GlobalError);
+					ApplyingStrategyHPAdaptiveBasedOnErrors(an,MaxError,ervecbyel);
+					//ApplyingUpStrategyHPAdaptiveBasedOnGradient(an,GlobalError);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -412,10 +416,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
  * Get Global L2 Error for solution and the L2 error for each element.
  * Return the maxime L2 error by elements.
  */
-REAL ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
     long neq = analysis.Mesh()->NEquations();
-    TPZVec<REAL> ux((int) neq);
-    TPZVec<REAL> sigx((int) neq);
+    TPZVec<REAL> ux(neq);
+    TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
     analysis.Mesh()->LoadSolution(analysis.Solution());
 
@@ -457,8 +461,8 @@ REAL ProcessandoError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &er
  * Else if EE > 0.25*ME  =>  h-refinement
  * in the other hand => p++
  */
-void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,REAL MaxErrorLast,TPZVec<REAL> &ervecbyel) {
-	REAL MaxError = (GlobalMaxError > MaxErrorLast) ? GlobalMaxError : MaxErrorLast;
+void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel) {
+
 	TPZCompMesh *cmesh = analysis.Mesh();
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
@@ -469,38 +473,55 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		if(ervecbyel[i] > 0.75*MaxError) {
-			if(pelement > 1) pelement--;
+		if(el->Reference()->Level() < 5 && ervecbyel[i] > 0.7*GlobalL2Error) {
+            REAL GradNorm = GradientNorm(el);
+            pelement = el->PreferredSideOrder(el->NConnects() - 1);
+            if(GradNorm > 1) {
+                // Dividing element one level
+                el->Divide(el->Index(),subels,0);
+                // Dividing sub elements one level more
+                for(j=0;j<subels.NElements();j++) {
+                    cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
+                    if(pelement < MaxPOrder-1)
+                        for(k=0;k<subsubels.NElements();k++)
+                            // Applying p-2 order for all subelements
+                            ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement+1);
+                }
+            }
+            else {
+                el->Divide(el->Index(),subels,0);
+            }
+		}
+		else if(ervecbyel[i] > 0.15*GlobalL2Error) {
+//			if(pelement < MaxPOrder) pelement++;
 			// Dividing element one level
 			el->Divide(el->Index(),subels,0);
-			// Dividing sub elements one level more
-			for(j=0;j<subels.NElements();j++) {
-				cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
-				if(GlobalL2Error > MaxError)
-					for(k=0;k<subsubels.NElements();k++)
-						// Applying p-2 order for all subelements
-						((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
-			}
 		}
-		else if(ervecbyel[i] > 0.15*MaxError) {
-			if(pelement < MaxPOrder) pelement++;
-			// Dividing element one level
-			el->Divide(el->Index(),subels,0);
-			if(ervecbyel[i] > 0.5*MaxError) {
-				for(j=0;j<subels.NElements();j++)
-					// Applying p-2 order for all subelements
-					((TPZInterpolatedElement*)cmesh->ElementVec()[subels[j]])->PRefine(pelement);
-			}
+		else if(ervecbyel[i] < 0.1*GlobalL2Error) {
+			pelement--;
+			if(pelement > 0)
+				el->PRefine(pelement);
 		}
-//		else if(ervecbyel[i] > 0.05*MaxError) {
-//			pelement--;
-//			if(pelement > 0)
-//				el->PRefine(pelement);
-//		}
 	}
 }
-void ApplyingStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
+REAL GradientNorm(TPZInterpolatedElement *el) {
+    TPZSolVec sol;
+    TPZGradSolVec dsol;
+	TPZVec<REAL> qsi(3,0.0);
+    int nshape = el->NShapeF();
+    int dim = el->Dimension();
+    REAL temp = 0.0;
+    TPZFMatrix<REAL> phi(nshape,1);
+    TPZFMatrix<REAL> dphi(dim,nshape);
+    TPZFMatrix<REAL> axes(dim,dim,0.0);
+    el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
+    el->Shape(qsi,phi,dphi);
+    el->ComputeSolution(qsi,phi,dphi,axes,sol,dsol);
+    for(int idsol=0;idsol<dim;idsol++)
+        temp += dsol[0](idsol,0)*dsol[0](idsol,0);
+    return (sqrt(temp)/el->VolumeOfEl());
+}
+void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
 	TPZVec<REAL> ervecbyel;
 	TPZCompMesh *cmesh = analysis.Mesh();
 	if(!cmesh) return;
@@ -514,6 +535,8 @@ void ApplyingStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &Globa
 	TPZVec<REAL> qsi(3,0.0);
 	REAL temp;
 	int dim = analysis.Mesh()->Dimension();
+
+    // Computing reference gradient (global)
 	for(long ii=0L;ii<nels;ii++) {
 		temp = 0.0;
 		TPZSolVec sol;
@@ -533,38 +556,115 @@ void ApplyingStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &Globa
 		ervecbyel[ii] = sqrt(temp);
 		GlobalNormGradient = (GlobalNormGradient > ervecbyel[ii]) ? GlobalNormGradient : ervecbyel[ii];
 	}
+    
+    // Applying hp refinement based on local gradient comparative with global gradient (in norm)
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el) continue;
+		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		if(el->Reference()->Level() < 4 && ervecbyel[i] > 0.6*GlobalNormGradient) {
+			// Dividing element one level
+			el->Divide(el->Index(),subels,0);
+			// Dividing sub elements one level more
+			for(j=0;j<subels.NElements();j++) {
+				if(cmesh->ElementVec()[subels[j]]->Reference()->Level() < 5) {
+                    cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
+//                    if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 3)
+                    for(k=0;k<subsubels.NElements();k++) {
+                        if(pelement < MaxPOrder-1) pelement++;
+						// Applying p-2 order for all subelements
+                        ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
+                    }
+                }
+			}
+		}
+		else if(ervecbyel[i] > 0.2*GlobalNormGradient) {
+			// Dividing element one level
+			el->Divide(el->Index(),subels,0);
+//			if(ervecbyel[i] > 0.4*GlobalNormGradient) {
+  //              if(pelement < MaxPOrder) pelement++;
+	//			for(j=0;j<subels.NElements();j++)
+					// Applying p-2 order for all subelements
+	//				((TPZInterpolatedElement*)cmesh->ElementVec()[subels[j]])->PRefine(pelement);
+	//		}
+		}
+//		else if(ervecbyel[i] < 0.1*GlobalNormGradient) {
+//			pelement--;
+//			if(pelement > 1)
+//				el->PRefine(pelement);
+//		}
+	}
+}
+void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
+	TPZVec<REAL> ervecbyel;
+	TPZCompMesh *cmesh = analysis.Mesh();
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	ervecbyel.Resize(nels,0.0);
+	TPZVec<long> subels;
+	TPZVec<long> subsubels;
+	int j, k, pelement;
+	TPZInterpolatedElement *el;
+	// Computing norm of gradient on center of each element
+	TPZVec<REAL> qsi(3,0.0);
+	REAL temp;
+	int dim = analysis.Mesh()->Dimension();
+    
+    // Computing reference gradient (global)
+	for(long ii=0L;ii<nels;ii++) {
+		temp = 0.0;
+		TPZSolVec sol;
+		TPZGradSolVec dsol;
+		int nshape;
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[ii]);
+		if(!el || el->Dimension() != dim) continue;
+		nshape = el->NShapeF();
+		TPZFMatrix<REAL> phi(nshape,1);
+		TPZFMatrix<REAL> dphi(dim,nshape);
+		TPZFMatrix<REAL> axes(dim,dim,0.0);
+		el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
+		el->Shape(qsi,phi,dphi);
+		el->ComputeSolution(qsi,phi,dphi,axes,sol,dsol);
+		for(int idsol=0;idsol<dim;idsol++)
+			temp += dsol[0](idsol,0)*dsol[0](idsol,0);
+		ervecbyel[ii] = sqrt(temp);
+		GlobalNormGradient = (GlobalNormGradient > ervecbyel[ii]) ? GlobalNormGradient : ervecbyel[ii];
+	}
+    
+    // Applying hp refinement based on local gradient comparative with global gradient (in norm)
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		if(ervecbyel[i] > 0.6*GlobalNormGradient) {
-			if(pelement > 1) pelement++;
 			// Dividing element one level
 			el->Divide(el->Index(),subels,0);
 			// Dividing sub elements one level more
 			for(j=0;j<subels.NElements();j++) {
-//				if(cmesh->ElementVec()[subels[0]]->Reference()->Level() < 5) {
+				if(cmesh->ElementVec()[subels[j]]->Reference()->Level() < 5) {
                     cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
-                    if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 3)
-                        for(k=0;k<subsubels.NElements();k++)
+                    //                    if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 3)
+                    for(k=0;k<subsubels.NElements();k++) {
+                        if(pelement > 1) pelement--;
 						// Applying p-2 order for all subelements
-                            ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
-  //              }
+                        ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
+                    }
+                }
 			}
 		}
-		else if(ervecbyel[i] > 0.1*GlobalNormGradient) {
-			if(pelement < MaxPOrder) pelement++;
+		else if(ervecbyel[i] > 0.2*GlobalNormGradient) {
 			// Dividing element one level
 			el->Divide(el->Index(),subels,0);
-			if(ervecbyel[i] > 0.4*GlobalNormGradient) {
+			if(ervecbyel[i] > 0.5*GlobalNormGradient) {
+                if(pelement < MaxPOrder) pelement++;
 				for(j=0;j<subels.NElements();j++)
 					// Applying p-2 order for all subelements
 					((TPZInterpolatedElement*)cmesh->ElementVec()[subels[j]])->PRefine(pelement);
 			}
 		}
 		else if(ervecbyel[i] < 0.1*GlobalNormGradient) {
-			pelement--;
-			if(pelement > 1)
+			pelement++;
+			if(pelement < MaxPOrder)
 				el->PRefine(pelement);
 		}
 	}
