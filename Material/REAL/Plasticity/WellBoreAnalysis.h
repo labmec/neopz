@@ -67,10 +67,10 @@ public:
         void RelaxWellSpring(REAL factor);
         
         /// Change the polynomial order of element using the plastic deformation as threshold
-        void PRefineElementsAbove(REAL sqj2, int porder, set<int> &elindices);
+        void PRefineElementsAbove(REAL sqj2, int porder, set<long> &elindices);
         
         /// Divide the element using the plastic deformation as threshold
-        void DivideElementsAbove(REAL sqj2, set<int> &elindices);
+        void DivideElementsAbove(REAL sqj2, set<long> &elindices);
         
         /// Initialize the plastic history of the integration points of the element
         void InitializeElement(TConfig &from, TPZCompEl *cel);
@@ -199,7 +199,7 @@ public:
     /// Set the polynomial order of the elements which exceed plastic deformation
     void PRefineElementAbove(REAL sqj2, int porder)
     {
-        std::set<int> elindices;
+        std::set<long> elindices;
         fCurrentConfig.PRefineElementsAbove(sqj2, porder,elindices);
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
@@ -209,11 +209,11 @@ public:
     void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis);
     
     /// change the material id of the geometric elements of the current configuration
-    void ChangeMaterialId(int idFrom, int idTo)
+    void ChangeMaterialId(long idFrom, long idTo)
     {
         TPZGeoMesh *gmesh = &fCurrentConfig.fGMesh;
-        int nel = gmesh->NElements();
-        for (int iel=0; iel<nel; iel++) {
+        long nel = gmesh->NElements();
+        for (long iel=0; iel<nel; iel++) {
             TPZGeoEl *gel = gmesh->ElementVec()[iel];
             if(!gel) continue;
             int matid = gel->MaterialId();
@@ -286,7 +286,7 @@ private:
     void ConfigureLinearMaterial(TPZElasticityMaterial &mat);
     
     /// Recompute the plastic memory of the integration points of these elements
-    void ApplyHistory(std::set<int> &elindices);
+    void ApplyHistory(std::set<long> &elindices);
     
     /** by Caju 2013 */
     /// Returns a set of points that belongs to the isoline defined by the ginen J2 value

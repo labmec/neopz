@@ -67,7 +67,7 @@ double get_time()
 TPZGeoMesh* GetMesh (int nx, int ny)
 {
 	int i,j;
-	int id, index;
+	long id, index;
 	
 	REAL lx = 1.;
 	REAL ly = 1.;
@@ -89,7 +89,7 @@ TPZGeoMesh* GetMesh (int nx, int ny)
 	
 	TPZGeoEl * elvec[(const int)((nx-1)*(ny-1))];
 	
-	TPZVec <int> connect(4,0);
+	TPZVec <long> connect(4,0);
 	
 	for(i = 0; i < (nx - 1); i++){
 		for(j = 0; j < (ny - 1); j++){

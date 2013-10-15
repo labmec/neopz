@@ -251,21 +251,21 @@ void ToolsTransient::Mesh2D()
     int ndivV = int(globFractInputData.Lx()/globFractInputData.Lmax_edge() + 0.5);
     int ndivH = int(globFractInputData.Ly()/globFractInputData.Lmax_edge() + 0.5);
     
-    int ncols = ndivV + 1;
-    int nrows = ndivH + 1;
-    int nnodes = nrows*ncols;
+    long ncols = ndivV + 1;
+    long nrows = ndivH + 1;
+    long nnodes = nrows*ncols;
     
     fgmesh->NodeVec().Resize(nnodes);
     
     REAL deltadivV = globFractInputData.Lx()/ndivV;
     REAL deltandivH = globFractInputData.Ly()/ndivH;
     
-    int nid = 0;
+    long nid = 0;
     REAL cracktipDist = globFractInputData.Lf();
     int colCracktip = -1;
-    for(int r = 0; r < nrows; r++)
+    for(long r = 0; r < nrows; r++)
     {
-        for(int c = 0; c < ncols; c++)
+        for(long c = 0; c < ncols; c++)
         {
             REAL x = c*deltadivV;
             REAL y = r*deltandivH;
@@ -290,11 +290,11 @@ void ToolsTransient::Mesh2D()
     }
     
     TPZGeoEl * gel = NULL;
-    TPZVec<int> topol(4);
-    int indx = 0;
-    for(int r = 0; r < nrows-1; r++)
+    TPZVec<long> topol(4);
+    long indx = 0;
+    for(long r = 0; r < nrows-1; r++)
     {
-        for(int c = 0; c < ncols-1; c++)
+        for(long c = 0; c < ncols-1; c++)
         {
             topol[0] = r*(ncols) + c;
             topol[1] = r*(ncols) + c + 1;
@@ -315,9 +315,9 @@ void ToolsTransient::Mesh2D()
     fgmesh->BuildConnectivity();
     
     REAL stripeWidth = globFractInputData.Lf() / globFractInputData.NStripes();
-    int nelem = fgmesh->NElements();
+    long nelem = fgmesh->NElements();
     int bcId = globPressureMatId;
-    for(int el = 0; el < nelem; el++)
+    for(long el = 0; el < nelem; el++)
     {
         TPZGeoEl * gel = fgmesh->ElementVec()[el];
         
@@ -389,7 +389,7 @@ void ToolsTransient::Mesh2D()
     }
     
     topol.Resize(1);
-    for(int p = 0; p < ncols; p++)
+    for(long p = 0; p < ncols; p++)
     {
         topol[0] = p;
         if(p == 0)
@@ -426,7 +426,7 @@ void ToolsTransient::Mesh2D()
     for(int ref = 0; ref < nrefUnif; ref++)
     {
         nelem = fgmesh->NElements();
-        for(int el = 0; el < nelem; el++)
+        for(long el = 0; el < nelem; el++)
         {
             if(fgmesh->ElementVec()[el]->Dimension() < 1) continue;
             if(fgmesh->ElementVec()[el]->HasSubElement()) continue;
@@ -437,7 +437,7 @@ void ToolsTransient::Mesh2D()
                 continue;
             }
             //else...
-            for(int s = 0; s < fgmesh->ElementVec()[el]->NSides(); s++)
+            for(long s = 0; s < fgmesh->ElementVec()[el]->NSides(); s++)
             {
                 TPZGeoElSide gelside(fgmesh->ElementVec()[el],s);
                 TPZGeoElSide neighside(gelside.Neighbour());
@@ -1305,7 +1305,7 @@ void ToolsTransient::PostProcessVolLeakoff()
 
 void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an)
 {    
-	int neq = fmphysics->NEquations();
+	long neq = fmphysics->NEquations();
     int nsteps = 7;
     
     TPZFMatrix<REAL> fxIni(neq,1);
@@ -1320,7 +1320,7 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an)
     
     TPZFMatrix<REAL> dFx(neq,1);
     
-    for(int i = 0; i < actQsi.Rows(); i++)
+    for(long i = 0; i < actQsi.Rows(); i++)
     {
         REAL val = (double)(rand())*(1.e-10);
         actQsi(i,0) = val;
@@ -1347,9 +1347,9 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an)
         
         ///Fx aproximado
         dFx.Zero();
-        for(int r = 0; r < neq; r++)
+        for(long r = 0; r < neq; r++)
         {
-            for(int c = 0; c < neq; c++)
+            for(long c = 0; c < neq; c++)
             {
                 dFx(r,0) +=  (-1.) * fLIni->GetVal(r,c) * (alpha * deltaQsi[c]); // (-1) porque fLini = -D[res,sol]
             }
@@ -1358,7 +1358,7 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an)
         //std::cout << "Aprox : " << fxAprox(3,0) << std::endl;
         
         ///Fx exato
-        for(int r = 0; r < neq; r++)
+        for(long r = 0; r < neq; r++)
         {
             actQsi(r,0) = qsiIni(r,0) + (alpha * deltaQsi[r]);
         }
@@ -1372,7 +1372,7 @@ void ToolsTransient::CheckConv(TPZFMatrix<REAL> actQsi , TPZAnalysis *an)
         
         ///Erro
         errorVec.Zero();
-        for(int r = 0; r < neq; r++)
+        for(long r = 0; r < neq; r++)
         {
             errorVec(r,0) = fxExato(r,0) - fxAprox(r,0);
         }

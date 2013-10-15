@@ -40,7 +40,6 @@
 #include "TPZReadGIDGrid.h"
 #include "TPZExtendGridDimension.h"
 
-#include "specialFunctions.h"
 
 #include <iostream>
 #include <math.h>
@@ -1823,6 +1822,7 @@ void Forcingbc(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #ifdef USING_BOOST
     disp[0]=0.05*sqrt(M_PI)*boost::math::erf(10.*(x-1.));
 #else
+//#include "specialFunctions.h"
     disp[0]=0.05*sqrt(M_PI)*erf(10.*(x-1.));
 #endif
 }

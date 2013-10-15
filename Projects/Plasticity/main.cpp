@@ -462,7 +462,7 @@ TPZGeoMesh * barmesh(int h)
     
     
     
-    TPZVec<int> barra(8),quad1(4),quad2(4);
+    TPZVec<long> barra(8),quad1(4),quad2(4);
     
     barra[0]=0;
     barra[1]=1;

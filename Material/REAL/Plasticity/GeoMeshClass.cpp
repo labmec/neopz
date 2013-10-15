@@ -99,8 +99,8 @@ using namespace pzgeom;
 TPZGeoMesh * GeoMeshClass::Talude()
 {
     
-	int numnodes;//=-1;
-	int numelements;//=-1;
+	long numnodes;//=-1;
+	long numelements;//=-1;
 	
 	string FileName;
 	FileName = "taludemeshgid.txt";
@@ -109,7 +109,7 @@ TPZGeoMesh * GeoMeshClass::Talude()
     // gRefDBase.InitializeRefPatterns();
     
     
-    int nodeId = 0, elementId = 0;
+    long nodeId = 0, elementId = 0;
     
     double nodecoordX , nodecoordY , nodecoordZ ;
     read >> numnodes;
@@ -121,7 +121,7 @@ TPZGeoMesh * GeoMeshClass::Talude()
     const int Qnodes = numnodes;
     TPZVec <TPZGeoNode> Node(Qnodes);
     
-    for(int in=0; in<numnodes; in++)
+    for(long in=0; in<numnodes; in++)
     {
         read >> nodeId;
         read >> nodecoordX;
@@ -140,13 +140,13 @@ TPZGeoMesh * GeoMeshClass::Talude()
     //ifstream read2 (FileName2.c_str());
     //read2 >> numelements;
     read>> numelements;
-    TPZVec <int> TopolTriangle(3);
-    TPZVec <int> TopolLine(2);
+    TPZVec <long> TopolTriangle(3);
+    TPZVec <long> TopolLine(2);
 	
-    for(int el=0; el<numelements; el++)
+    for(long el=0; el<numelements; el++)
     {
 
-        int topol1,topol2,topol3;
+        long topol1,topol2,topol3;
         read >> elementId;
         read >> topol1; //node 1
         read >> topol2; //node 2
@@ -194,8 +194,8 @@ TPZGeoMesh * GeoMeshClass::Talude()
 void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
 {
     
-	int numnodes;
-	int numelements;
+	long numnodes;
+	long numelements;
 	
 	string FileName;
 	FileName = "../wellcil.txt";
@@ -204,7 +204,7 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
     // gRefDBase.InitializeRefPatterns();
     
     
-    int nodeId = 0, elementId = 0;
+    long nodeId = 0, elementId = 0;
     
     double nodecoordX , nodecoordY , nodecoordZ ;
     read >> numnodes;
@@ -215,7 +215,7 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
     const int Qnodes = numnodes;
     TPZVec <TPZGeoNode> Node(Qnodes);
     
-    for(int in=0; in<numnodes; in++)
+    for(long in=0; in<numnodes; in++)
     {
         read >> nodeId;
         read >> nodecoordX;
@@ -230,12 +230,12 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
     }
     
     read>> numelements;
-    TPZVec <int> TopoQuad(4);
-    TPZVec <int> TopoTri(3);
-    TPZVec <int> TopolLine(2);
-    TPZVec <int> arc(3);
+    TPZVec <long> TopoQuad(4);
+    TPZVec <long> TopoTri(3);
+    TPZVec <long> TopolLine(2);
+    TPZVec <long> arc(3);
 	
-    for(int el=0; el<numelements; el++)
+    for(long el=0; el<numelements; el++)
     {
         
         int topol1,topol2,topol3,topol4;
@@ -271,7 +271,7 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
     TPZGeoElBC(gel,7,-5);
     */
     
-    for (int iel=0; iel<numelements; iel++) {
+    for (long iel=0; iel<numelements; iel++) {
         TPZGeoEl *gel = gMesh->ElementVec()[iel];
         if (!gel) {
             DebugStop();
@@ -287,8 +287,8 @@ void GeoMeshClass::WellBore2d(TPZGeoMesh *gMesh)
             if (neighbour != gelside) {
                 continue;
             }
-            int node1 = gelside.SideNodeIndex(0);
-            int node2 = gelside.SideNodeIndex(1);
+            long node1 = gelside.SideNodeIndex(0);
+            long node2 = gelside.SideNodeIndex(1);
             TPZManVector<REAL,3> co1(3),co2(3);
             gMesh->NodeVec()[node1].GetCoordinates(co1);
             gMesh->NodeVec()[node2].GetCoordinates(co2);

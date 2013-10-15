@@ -181,7 +181,7 @@ public:
         
         void ApplyStrainComputeElasticStress(TPZTensor<REAL> &Stress,REAL &K , REAL & G)
         {
-            REAL sig1,sig2,sig3,s1,s2,s3,sigv;
+            REAL sig1,sig2,sig3,s1,s2,s3;
             sig1 = this->fEigenvalues[0];
             sig2 = this->fEigenvalues[1];
             sig3 = this->fEigenvalues[2];

@@ -120,9 +120,10 @@ int main_Loula(int argc, char *argv[])
         REAL Lref = Ly;
         REAL Se_aux = alpha*alpha/(lambda+2.*mu);
         REAL kovervisc = perm/visc;
-        REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
+        REAL Cf;//fluid diffusivity coeffcient
         REAL lambdaD = lambda*Se_aux;
         REAL muD = mu*Se_aux;
+        Cf = kovervisc/Se_aux;
 
         //adimemsionalizando
         Eyoung = muD*(3.*lambdaD+2.*muD)/(lambdaD+muD);
@@ -569,7 +570,8 @@ int main_Terzaghi(int argc, char *argv[]){
         REAL pref = (alpha*F)/(Se*(lambdau + 2.*mu));
         REAL Lref = Ly;
         REAL kovervisc = perm/visc;
-        REAL Cf = kovervisc/Se_aux;//fluid diffusivity coeffcient
+        REAL Cf;//fluid diffusivity coeffcient
+        Cf = kovervisc/Se_aux;
         
         //adimemsionalizando
         Eyoung = muD*(3.*lambdaD+2.*muD)/(lambdaD+muD);

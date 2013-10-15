@@ -7,7 +7,7 @@
  *
  */
 
-#include "specialFunctions.h"
+//#include "specialFunctions.h"
 
 #include "AnalyticalFunctions.h"
 #ifdef USING_BOOST

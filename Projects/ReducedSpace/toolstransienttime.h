@@ -117,7 +117,7 @@ class TElastSolFunction : public TPZFunction<TVar>
     virtual int PolynomialOrder();
     
     TPZCompMesh * fcmesh;
-    int fIniElIndex;
+    long fIniElIndex;
     
 };
 
@@ -152,7 +152,7 @@ public:
     virtual int PolynomialOrder();
     
     TPZCompMesh * fcmesh;
-    int fIniElIndex;
+    long fIniElIndex;
 };
 
 #endif

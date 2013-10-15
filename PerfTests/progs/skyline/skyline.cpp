@@ -428,13 +428,13 @@ TPZGeoMesh *MalhaCubo()
 
         gMesh -> NodeVec().Resize(numnodes);
 
-        TPZManVector <int> TopolTetra(4);
+        TPZManVector <long> TopolTetra(4);
 
         const int Qnodes = numnodes;
         TPZVec <TPZGeoNode> Node(Qnodes);
 
         //setting nodes coords
-        int nodeId = 0, elementId = 0, matElId = 1;
+        long nodeId = 0, elementId = 0, matElId = 1;
 
         ifstream read;
         read.open(FileName.c_str());
@@ -487,7 +487,7 @@ TPZGeoMesh *MalhaCubo()
                         TopolTetra[2]--;
                         TopolTetra[3]--;
 
-                        int index = el;
+                        long index = el;
 
                         new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
                 }
@@ -502,7 +502,7 @@ TPZGeoMesh *MalhaCubo()
                         TPZGeoEl *tetra = gMesh->ElementVec()[el];
 
                         // na face x = 1
-                        TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
+                        TPZVec<long> ncoordzVec(0); long sizeOfVec = 0;
                         for (int i = 0; i < 4; i++)
                         {
                                 int pos = tetra->NodeIndex(i);
@@ -584,8 +584,8 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 {
         // look for an element/corner node whose distance is close to start
         TPZGeoNode *gn1 = gr->FindNode(x);
-        int iel;
-        int nelem = gr->ElementVec().NElements();
+        long iel;
+        long nelem = gr->ElementVec().NElements();
         TPZGeoEl *gel;
         for (iel = 0; iel<nelem; iel++) {
                 gel = gr->ElementVec()[iel];

@@ -639,14 +639,14 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
     intel2->InitMaterialData(data2);
     data2.fNeedsSol = false;
     data1.fNeedsSol = true;
-    int data2phir = data2.phi.Rows();
-    int data2phic = data2.phi.Cols();
-    int data2dphir = data2.dphix.Rows();
-    int data2dphic = data2.dphix.Cols();
-    int elementid = 0;
+    long data2phir = data2.phi.Rows();
+    long data2phic = data2.phi.Cols();
+    long data2dphir = data2.dphix.Rows();
+    long data2dphic = data2.dphix.Cols();
+    long elementid = 0;
     TPZManVector<REAL,3> qsi(2,0.);
 
-    for (int ip =0; ip<nint; ip++) {
+    for (long ip =0; ip<nint; ip++) {
         REAL weight;
         intpoints.Point(ip, point, weight);
         data2.intLocPtIndex = ip;
@@ -828,7 +828,7 @@ void TPZWellBoreAnalysis::TransferSolutionTo(TConfig &config)
     
     cmesh1.Solution() = fCurrentConfig.fAllSol;
     
-    int nel = cmesh2.NElements();
+    long nel = cmesh2.NElements();
 //    TPZGeoMesh *gmesh1 = cmesh1.Reference();
     TPZMaterial *mat1 = cmesh1.FindMaterial(1);
     if (!mat1) {
@@ -851,7 +851,7 @@ void TPZWellBoreAnalysis::TransferSolutionTo(TConfig &config)
 //    int elementid = 0;
     TPZManVector<REAL,3> qsi(3,0.);
     
-    for (int el =0; el<nel; el++) {
+    for (long el =0; el<nel; el++) {
         TPZCompEl *cel2 = cmesh2.ElementVec()[el];
         if (!cel2) {
             continue;
@@ -872,23 +872,23 @@ void TPZWellBoreAnalysis::TransferSolutionTo(TConfig &config)
 REAL TPZWellBoreAnalysis::TConfig::ComputeAreaAboveSqJ2(REAL sqj2)
 {
     REAL area = 0.;
-    int nelem = fCMesh.NElements();
+    long nelem = fCMesh.NElements();
     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCMesh.MaterialVec()[1]);
     if (!pMatWithMem2) {
     }
     else 
     {
-        for (int el = 0; el<nelem; el++) {
+        for (long el = 0; el<nelem; el++) {
             TPZCompEl *cel = fCMesh.ElementVec()[el];
             if (!cel) {
                 continue;
             }
             bool shouldanalyse = false;
-            TPZManVector<int> memindices;
+            TPZManVector<long> memindices;
             cel->GetMemoryIndices(memindices);
-            int numind = memindices.size();
-            REAL sqj2el = 0.;
-            for (int ind=0; ind<numind; ind++) 
+            long numind = memindices.size();
+  //          REAL sqj2el = 0.;
+            for (long ind=0; ind<numind; ind++) 
             {
                 int memoryindex = memindices[ind];
                 if (memoryindex < 0) {
@@ -936,22 +936,23 @@ REAL TPZWellBoreAnalysis::TConfig::ComputeAreaAboveSqJ2(REAL sqj2)
 REAL TPZWellBoreAnalysis::TConfig::OpeningAngle(REAL sqj2)
 {
     REAL angle = 0.;
-    int nelem = fCMesh.NElements();
+    long nelem = fCMesh.NElements();
     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCMesh.MaterialVec()[1]);
     if (!pMatWithMem2) {
     }
     else 
     {
-        for (int el = 0; el<nelem; el++) {
+        for (long el = 0; el<nelem; el++) {
             TPZCompEl *cel = fCMesh.ElementVec()[el];
             if (!cel) {
                 continue;
             }
             bool shouldanalyse = false;
-            TPZManVector<int> memindices;
+            TPZManVector<long> memindices;
             cel->GetMemoryIndices(memindices);
             int numind = memindices.size();
-            REAL sqj2el = 0.;
+            REAL sqj2el;
+            sqj2el = 0.;
             for (int ind=0; ind<numind; ind++) 
             {
                 int memoryindex = memindices[ind];
@@ -1003,13 +1004,13 @@ REAL TPZWellBoreAnalysis::TConfig::OpeningAngle(REAL sqj2)
 REAL TPZWellBoreAnalysis::TConfig::ComputeTotalArea()
 {
     REAL area = 0.;
-    int nelem = fCMesh.NElements();
+    long nelem = fCMesh.NElements();
     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCMesh.MaterialVec()[1]);
     if (!pMatWithMem2) {
     }
     else 
     {
-        for (int el = 0; el<nelem; el++) {
+        for (long el = 0; el<nelem; el++) {
             TPZCompEl *cel = fCMesh.ElementVec()[el];
             if (!cel) {
                 continue;
@@ -1043,7 +1044,7 @@ REAL TPZWellBoreAnalysis::TConfig::ComputeTotalArea()
 // Get the vector of element plastic deformations
 void TPZWellBoreAnalysis::TConfig::ComputeElementDeformation()
 {
-    int nelem = fCMesh.NElements();
+    long nelem = fCMesh.NElements();
     fPlasticDeformSqJ2.resize(nelem);
     fPlasticDeformSqJ2.Fill(0.);
     fCMesh.ElementSolution().Redim(nelem, 1);
@@ -1053,13 +1054,13 @@ void TPZWellBoreAnalysis::TConfig::ComputeElementDeformation()
     }
     else 
     {
-        for (int el = 0; el<nelem; el++) {
+        for (long el = 0; el<nelem; el++) {
             TPZCompEl *cel = fCMesh.ElementVec()[el];
             fPlasticDeformSqJ2[el] = 0.;
             if (!cel) {
                 continue;
             }
-            TPZManVector<int> memindices;
+            TPZManVector<long> memindices;
             cel->GetMemoryIndices(memindices);
             int numind = memindices.size();
             REAL sqj2el = 0.;
@@ -1093,7 +1094,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeElementDeformation()
 /// Verify the global equilibrium of the forces by boundary condition
 void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium(std::ostream &out)
 {
-    int neq = fCMesh.NEquations();
+    long neq = fCMesh.NEquations();
     
     TPZFMatrix<STATE> rhsDirichlet(neq,1,0.);
     this->ComputeRhsExceptMatid(-4, rhsDirichlet);
@@ -1196,8 +1197,8 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
         //        if (bc == -4) {
         //            rhs4 = rhs;
         //        }
-        std::set<int> xeqs,yeqs;
-        for (int el=0; el<fCMesh.NElements(); el++) {
+        std::set<long> xeqs,yeqs;
+        for (long el=0; el<fCMesh.NElements(); el++) {
             TPZCompEl *cel = fCMesh.ElementVec()[el];
             if (!cel || !cel->Reference()) {
                 continue;
@@ -1209,14 +1210,14 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
             int nc = cel->Reference()->NCornerNodes();
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                int seq = c.SequenceNumber();
-                int pos = fCMesh.Block().Position(seq);
+                long seq = c.SequenceNumber();
+                long pos = fCMesh.Block().Position(seq);
                 xeqs.insert(pos);
                 yeqs.insert(pos+1);
             }
         }
         ForceResultants[ib].Resize(2,0.);
-        std::set<int>::iterator it;
+        std::set<long>::iterator it;
         for(it = xeqs.begin(); it != xeqs.end(); it++)
         {
             ForceResultants[ib][0] += rhs(*it,0);
@@ -1241,17 +1242,17 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
         TPZFMatrix<STATE> rhs(neq,1,0.);
         str.Assemble(rhs, 0);
         // zerar os residuos referente a connects que nao sao de vertice
-        for (int el=0; el<fCMesh.NElements(); el++) {
+        for (long el=0; el<fCMesh.NElements(); el++) {
             TPZCompEl *cel = fCMesh.ElementVec()[el];
             if (!cel || !cel->Reference()) {
                 continue;
             }
             int ncorner = cel->Reference()->NCornerNodes();
-            int nc = cel->NConnects();
-            for (int ic=ncorner; ic<nc; ic++) {
+            long nc = cel->NConnects();
+            for (long ic=ncorner; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                int seq = c.SequenceNumber();
-                int pos = fCMesh.Block().Position(seq);
+                long seq = c.SequenceNumber();
+                long pos = fCMesh.Block().Position(seq);
                 int blsize = fCMesh.Block().Size(seq);
                 for (int ibl =0; ibl<blsize; ibl++) {
                     rhs(pos+ibl,0) = 0.;
@@ -1264,7 +1265,7 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
         rhs -= rhs5;
         normrhs = Norm(rhs);
         ForceResultants[ib].Resize(2, 0.);
-        for (int i=0; i<neq/2; i++) {
+        for (long i=0; i<neq/2; i++) {
             ForceResultants[ib][0] += rhs(2*i,0);
             ForceResultants[ib][1] += rhs(2*i+1,0);
         }
@@ -1288,7 +1289,7 @@ void TPZWellBoreAnalysis::TConfig::VerifyGlobalEquilibrium2(std::ostream &out)
 void TPZWellBoreAnalysis::TConfig::FilterRhs(TPZFMatrix<STATE> &rhs)
 {
     // zerar os residuos referente a connects que nao sao de vertice
-    for (int el=0; el<fCMesh.NElements(); el++) {
+    for (long el=0; el<fCMesh.NElements(); el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
         if (!cel || !cel->Reference()) {
             continue;
@@ -1301,8 +1302,8 @@ void TPZWellBoreAnalysis::TConfig::FilterRhs(TPZFMatrix<STATE> &rhs)
             {
                 continue;
             }
-            int seq = c.SequenceNumber();
-            int pos = fCMesh.Block().Position(seq);
+            long seq = c.SequenceNumber();
+            long pos = fCMesh.Block().Position(seq);
             int blsize = fCMesh.Block().Size(seq);
             for (int ibl =0; ibl<blsize; ibl++) {
                 rhs(pos+ibl,0) = 0.;
@@ -1350,8 +1351,8 @@ void TPZWellBoreAnalysis::TConfig::ComputeXYForce(TPZFMatrix<STATE> &rhs, TPZVec
 {
     force.Resize(2, 0.);
     force.Fill(0.);
-    int nel = rhs.Rows();
-    for (int i=0; i<nel; i++) {
+    long nel = rhs.Rows();
+    for (long i=0; i<nel; i++) {
         force[i%2] += rhs(i,0);
     }
 }
@@ -1361,9 +1362,9 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
 {
     fCMesh.Reference()->ResetReference();
     fCMesh.LoadReferences();
-    int ndel = 0;
-    int nelem = fCMesh.NElements();
-    for (int el=0; el<nelem; el++) {
+    long ndel = 0;
+    long nelem = fCMesh.NElements();
+    for (long el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
         if (!cel) {
             continue;
@@ -1382,7 +1383,7 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
                 TPZGeoElSide neighbour = gel->Neighbour(is);
                 TPZGeoEl *neighgel = neighbour.Element();
                 TPZCompEl *neighcel = neighgel->Reference();
-                int neighcelindex = 0;
+                long neighcelindex = 0;
                 if(neighcel) neighcelindex = neighcel->Index();
                 if (neighgel->Dimension() == 1 && neighcel) {
                     delete neighcel;
@@ -1402,7 +1403,7 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
         //gel->ResetReference();
     }
     // put boundary conditions on the sides which have no neighbours
-    for (int el=0; el<nelem; el++) {
+    for (long el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
         if (!cel) {
             continue;
@@ -1429,7 +1430,7 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
                     TPZGeoElBC gbc(gelside, -6);
                     TPZGeoEl *bc = gbc.CreatedElement();
                     // create the corresponding computational element
-                    int index;
+                    long index;
                     fCMesh.CreateCompEl(bc, index);
                 }
             }
@@ -1478,12 +1479,12 @@ void TPZWellBoreAnalysis::TConfig::RelaxWellSpring(REAL factor)
 
 
 /// Change the polynomial order of element using the plastic deformation as threshold
-void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, std::set<int> &elindices)
+void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, std::set<long> &elindices)
 {
     fGMesh.ResetReference();
     fCMesh.LoadReferences();
-    int nelem = fCMesh.NElements();
-    for (int el=0; el<nelem; el++) {
+    long nelem = fCMesh.NElements();
+    for (long el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
         if (!cel) {
             continue;
@@ -1500,8 +1501,8 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
         if (fCMesh.ElementSolution()(el,0) < sqj2) {
             continue;
         }
-        TPZStack<int> subels;
-        int index = cel->Index();
+        TPZStack<long> subels;
+        long index = cel->Index();
         elindices.insert(index);
         intel->SetPreferredOrder(porder);
     }
@@ -1518,12 +1519,12 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
 }
 
 /// Divide the element using the plastic deformation as threshold
-void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<int> &elindices)
+void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long> &elindices)
 {
     fGMesh.ResetReference();
     fCMesh.LoadReferences();
-    int nelem = fCMesh.NElements();
-    for (int el=0; el<nelem; el++) {
+    long nelem = fCMesh.NElements();
+    for (long el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
         if (!cel) {
             continue;
@@ -1540,8 +1541,8 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<int> 
             continue;
         }
         int porder = intel->GetPreferredOrder();
-        TPZStack<int> subels;
-        int index = cel->Index();
+        TPZStack<long> subels;
+        long index = cel->Index();
         intel->Divide(index, subels,0);
         for (int is=0; is<subels.size(); is++) {
             elindices.insert(subels[is]);
@@ -1570,7 +1571,7 @@ TPZGeoMesh * TPZWellBoreAnalysis::TConfig::GetGeoMesh() {
 }
 
 /// Reset the plastic memory of the integration points of these elements
-void TPZWellBoreAnalysis::ApplyHistory(std::set<int> &elindices)
+void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
 {
     std::list<TConfig>::iterator listit;
     for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
@@ -1582,28 +1583,28 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<int> &elindices)
     filename << "applyhistory_" << startfrom << ".txt";
     std::ofstream out(filename.str().c_str());
 
-    std::set<int>::iterator it;
+    std::set<long>::iterator it;
     for (it=elindices.begin(); it != elindices.end(); it++) {
-        int elindex = *it;
+        long elindex = *it;
         TPZCompEl *cel = fCurrentConfig.fCMesh.ElementVec()[elindex];
         TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (cel->Material());
         if (!pMatWithMem2) {
             DebugStop();
         }
         // Reset the memory of the integration points of the element
-        TPZManVector<int> pointindices;
+        TPZManVector<long> pointindices;
         cel->GetMemoryIndices(pointindices);
-        int npoints = pointindices.size();
-        for (int ip = 0; ip<npoints; ip++) {
-            int ind = pointindices[ip];
+        long npoints = pointindices.size();
+        for (long ip = 0; ip<npoints; ip++) {
+            long ind = pointindices[ip];
             pMatWithMem2->ResetMemItem(ind);
         }
         std::list<TConfig>::iterator listit;
         for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
             listit->ApplyDeformation(cel);
         }
-        for (int ip = 0; ip<npoints; ip++) {
-            int ind = pointindices[ip];
+        for (long ip = 0; ip<npoints; ip++) {
+            long ind = pointindices[ip];
             pMatWithMem2->MemItem(ind).Print(out);
         }
     }
@@ -1690,8 +1691,8 @@ void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::mul
 {
     REAL tol = 0.01*J2val;
     
-    int nels = cmesh->NElements();
-    for(int el = 0; el < nels; el++)
+    long nels = cmesh->NElements();
+    for(long el = 0; el < nels; el++)
     {
         TPZCompEl * cel = cmesh->ElementVec()[el];
         if(!cel)
@@ -1775,9 +1776,9 @@ void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::mul
 void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
 {
     fCurrentConfig.AddEllipticBreakout(MaiorAxis, MinorAxis);
-    std::set<int> elindices;
+    std::set<long> elindices;
     int nel = fCurrentConfig.fCMesh.NElements();
-    for (int el=0; el<nel; el++) {
+    for (long el=0; el<nel; el++) {
         TPZCompEl *cel = fCurrentConfig.fCMesh.ElementVec()[el];
         TPZGeoEl *gel = 0;
         if(cel) gel = cel->Reference();
@@ -1794,14 +1795,14 @@ void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
 /// Divide the element using the plastic deformation as threshold
 void TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
 {
-    std::set<int> elindices;
+    std::set<long> elindices;
     fCurrentConfig.DivideElementsAbove(sqj2,elindices);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) 
     {
         std::stringstream sout;
         sout << "Element indices that have been created ";
-        for (std::set<int>::iterator it = elindices.begin(); it!= elindices.end(); it++) {
+        for (std::set<long>::iterator it = elindices.begin(); it!= elindices.end(); it++) {
             sout << *it << " ";
         }
         LOGPZ_DEBUG(logger, sout.str())
@@ -1860,7 +1861,7 @@ void TPZWellBoreAnalysis::PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::strin
     for (listit = fSequence.begin(); listit != fSequence.end(); listit++) {
         TPZGeoMesh *gmesh1 = &(listit->fGMesh);
         TPZManVector<REAL,3> qsi(2,0.);
-        int elementid = 0;
+        long elementid = 0;
         TPZMaterialData data1;
         data1.x = x;
         data1.intLocPtIndex = 0;

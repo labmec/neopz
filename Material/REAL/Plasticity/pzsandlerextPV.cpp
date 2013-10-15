@@ -427,7 +427,7 @@ TPZFMatrix<REAL> TPZSandlerExtended::D2DistFunc2(TPZTensor<REAL>::TPZDecomposed 
     c9=sqrt2*sinbeta*costheta;
     gamma=0.5*(1 + (1 - sin3beta)/fPsi +  sin3beta);
     d2distf2dthetak=-(c3*(1 + c2*(-(expfBk*fB*fC) - fPhi))*(fA - expfBk*fC - fPhi*k))/(9.*fK) + (c3*(-(expfBk*fB*fC) - fPhi)*(c1 - (k + c2*(-(fC*expfBk) + fA - fPhi*k))/sqrt3))/(3.*sqrt3*fK) +
-    ((c4*c6*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/pow(gamma,2) + (c7*c9*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/pow(gamma,2) -
+    ((c4*c6*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/(gamma*gamma) + (c7*c9*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/(gamma*gamma) -
      (c4*(-(expfBk*fB*fC) - fPhi)*(c5 - (c6*(fA - expfBk*fC - fN - fPhi*k))/gamma))/gamma - (c7*(-(expfBk*fB*fC) - fPhi)*(c8 - (c9*(fA - expfBk*fC - fN - fPhi*k))/gamma))/gamma)/(2.*fG);
     
     
@@ -512,7 +512,7 @@ void TPZSandlerExtended::YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TP
 void TPZSandlerExtended::ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj)
 {
     REAL xi,beta=0.,resnorm,distxi,distnew;
-    int count=0;
+    long count=0;
     distxi=1.e8;
     for (REAL xiguess=0.; xiguess <= M_PI; xiguess += M_PI/20.) {
         distnew=DistF1(sigmatrial, xiguess,beta);
@@ -523,7 +523,7 @@ void TPZSandlerExtended::ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     }
     
     resnorm=1.;
-    int counter=1;
+    long counter=1;
     TPZFMatrix<REAL> xn1(2,1,0.),xn(2,1,0.),jac,invjac,sol(2,1,0.),fxn(2,1,0.),diff(2,1,0.);
     xn(0,0)=xi;
     xn(1,0)=beta;
@@ -566,7 +566,7 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     REAL theta,beta=0.,deltabeta,deltatheta,distnew;
     REAL resnorm,disttheta;
     disttheta=1.e8;
-    int count=0;
+    long count=0;
     for (REAL thetaguess=0; thetaguess <= M_PI; thetaguess += M_PI/20.) {
         for (REAL betaguess=0; betaguess <= 2*M_PI; betaguess += M_PI/20.) {
             distnew=DistF2(sigmatrial,thetaguess,betaguess,kprev);
@@ -579,7 +579,7 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     }
     
     resnorm=1;
-    int counter=1;
+    long counter=1;
     TPZFMatrix<REAL> xn1(3,1,0.),xn(3,1,0.),jac,invjac,sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
     xn(0,0)=theta;
     xn(1,0)=beta;
@@ -633,7 +633,7 @@ void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial,
     REAL theta,beta=0.,deltabeta,deltatheta,distnew;
     REAL resnorm,disttheta;
     disttheta=1.e8;
-    int count=0;
+    long count=0;
     
     for (REAL betaguess=0; betaguess <= 2*M_PI; betaguess += M_PI/20.) {
         distnew=DistF2(sigmatrial,M_PI/2,betaguess,kprev);
@@ -644,7 +644,7 @@ void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial,
         }
     }
     resnorm=1;
-    int counter=1;
+    long counter=1;
     TPZFMatrix<REAL> xn1(3,1,0.),xn(3,1,0.),jac,invjac,sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
     xn(0,0)=M_PI/2;
     xn(1,0)=beta;

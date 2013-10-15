@@ -252,7 +252,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 10;
-                NRefs = 6;
+                NRefs = 5;
             }
             else {
                 NRefs = 12;
@@ -537,20 +537,22 @@ void ApplyingStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &Globa
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		if(ervecbyel[i] > 0.7*GlobalNormGradient) {
+		if(ervecbyel[i] > 0.6*GlobalNormGradient) {
 			if(pelement > 1) pelement++;
 			// Dividing element one level
 			el->Divide(el->Index(),subels,0);
 			// Dividing sub elements one level more
 			for(j=0;j<subels.NElements();j++) {
-				cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
-				if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 5)
-					for(k=0;k<subsubels.NElements();k++)
+//				if(cmesh->ElementVec()[subels[0]]->Reference()->Level() < 5) {
+                    cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
+                    if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 3)
+                        for(k=0;k<subsubels.NElements();k++)
 						// Applying p-2 order for all subelements
-						((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
+                            ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
+  //              }
 			}
 		}
-		else if(ervecbyel[i] > 0.2*GlobalNormGradient) {
+		else if(ervecbyel[i] > 0.1*GlobalNormGradient) {
 			if(pelement < MaxPOrder) pelement++;
 			// Dividing element one level
 			el->Divide(el->Index(),subels,0);

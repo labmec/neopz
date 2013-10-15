@@ -121,7 +121,7 @@ height = 40.,
 qn, ql, q,
 scale = 5.;
 
-int l, m, n, p, k;
+long l, m, n, p, k;
 void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< long> > &elms, int nSubdiv)
 {
 

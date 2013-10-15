@@ -665,7 +665,7 @@ protected:
         restheta = FuncTheta2(ER, theta, epsp, delepsp, sigtrialIJ);
         resdelepsp = FuncEpsp(ER, theta, epsp, delepsp, sigtrialIJ);
         REAL error = sqrt(restheta*restheta+resdelepsp*resdelepsp);
-        int count = 0;
+        long count = 0;
         while((fabs(restheta) > 1.e-10 || fabs(resdelepsp) > 1.e-10) && count < 100)
         {
             REAL errprev = error;
@@ -688,7 +688,7 @@ protected:
                 LOGPZ_DEBUG(loggerSM, sout.str())
             }
 #endif
-            std::list<int> singular;
+            std::list<long> singular;
             tangent.SolveDirect(resmat, ELU, singular);
             REAL scale = 1.;
             if (epsp+delepsp-resmat(1,0) < -fW) {
@@ -779,7 +779,7 @@ protected:
         restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
         resdelepsp = FuncEpspUsingL(ER, theta, epspini, L, sigtrialIJ);
         REAL error = sqrt(restheta*restheta+resdelepsp*resdelepsp);
-        int count = 0;
+        long count = 0;
         while((fabs(restheta) > 1.e-13 || fabs(resdelepsp) > 1.e-13) && count < 100)
         {
             REAL errprev = error;
@@ -802,7 +802,7 @@ protected:
                 LOGPZ_DEBUG(loggerSM, sout.str())
             }
 #endif
-            std::list<int> singular;
+            std::list<long> singular;
             tangent.SolveDirect(resmat, ELU, singular);
             REAL thetaprev = theta;
             REAL Lprev = L;
@@ -887,7 +887,7 @@ protected:
         restheta = FuncTheta2L(ER, theta, L, sigtrialIJ);
         resdeltaL = FuncEpspL(ER, theta, L, deltaL, sigtrialIJ);
         REAL error = sqrt(restheta*restheta+resdeltaL*resdeltaL);
-        int count = 0;
+        long count = 0;
         REAL diagTheta = 1., diagL = 1.;
         REAL maxres = max(fabs(restheta/diagTheta),fabs(resdeltaL/diagL));
         REAL maxresprev = maxres+1.;
@@ -916,7 +916,7 @@ protected:
                 LOGPZ_DEBUG(loggerSM, sout.str())
             }
 #endif
-            std::list<int> singular;
+            std::list<long> singular;
             tangent.SolveDirect(resmat, ELU, singular);
             REAL thetaprev = theta;
             REAL deltaLprev = deltaL;
@@ -1837,7 +1837,7 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
     STATE residueL;
 #ifdef DEBUG_KEEP
     TPZFMatrix<STATE> table(2,200,0.);
-    int count = 0;
+    long count = 0;
     for (resultL = -1.; resultL< 10.; resultL += 0.1) {
         residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
         table(0,count) = resultL;

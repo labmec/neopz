@@ -592,7 +592,7 @@ TPZGeoMesh * BarMesh(int h)
     
     
     
-    TPZVec<int> barra(8),quad1(4),quad2(4);
+    TPZVec<long> barra(8),quad1(4),quad2(4);
     
     barra[0]=0;
     barra[1]=1;
@@ -1747,7 +1747,7 @@ int main ()
             TPZMaterialData data;
             intel->InitMaterialData(data);
             intel->ComputeRequiredData(data, ksi);
-            TPZManVector<int> memindices(intpoints.NPoints());
+            TPZManVector<long> memindices(intpoints.NPoints());
             intel->GetMemoryIndices(memindices);
             data.intGlobPtIndex = memindices[0];
             TPZMaterial *mat = intel->Material();

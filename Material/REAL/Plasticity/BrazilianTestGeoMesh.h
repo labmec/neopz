@@ -55,13 +55,13 @@ const REAL pi = 3.1415927;
 template <class T>
 inline void AddVec(T & target, const T & v1, const T & v2, const REAL multipl1 = 1., const REAL multipl2 = 1.)
 {
-    int size  = v1.NElements();
-	int size2 = v2.NElements();
+    long size  = v1.NElements();
+	long size2 = v2.NElements();
 	if(size2 < size) size = size2;
 	
 	target.Resize(size);
 	
-	for( int i = 0; i < size; i++)
+	for( long i = 0; i < size; i++)
 	{
 		target[i] = v1[i] * multipl1 +
         v2[i] * multipl2;
@@ -75,14 +75,14 @@ inline void SubtrVec(T & target, const T & v1, const T & v2)
 }
 
 inline TPZGeoMesh * CreateGMesh(TPZVec< TPZVec< REAL > > & pt,
-					     TPZVec< TPZVec< int > > & el,
+					     TPZVec< TPZVec< long > > & el,
 					     MElementType ElType,
 					     int matId)
 {
 
-	int npt = pt.NElements();
-	int nel = el.NElements();
-	int i;
+	long npt = pt.NElements();
+	long nel = el.NElements();
+	long i;
 	
 	TPZGeoMesh * pGMesh = new TPZGeoMesh;
 	
@@ -152,7 +152,7 @@ inline void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStre
 static void QuarterWellboreGeom(int ncirc,
 						 REAL ioratio,
 						 TPZVec< TPZVec<REAL> > &pt,
-						 TPZVec< TPZVec<int> > &el,
+						 TPZVec< TPZVec<long> > &el,
 						 TPZVec< MElementType > &elType,
 						 TPZVec< TPZString > &elName,
 						 int & nrad)
@@ -167,9 +167,9 @@ static void QuarterWellboreGeom(int ncirc,
 	nrad = static_cast<int>(( log(2.*((REAL) ncirc)*(ioratio - 1.)/pi)/log(q) -1. )*1.4 ); //1.6
 	
 	int nradpt = nrad + 1;
-	int nel3d = ncirc * nrad;
+	long nel3d = ncirc * nrad;
 	
-	int nel = 3*nel3d + 2*ncirc + 2*nrad;
+	long nel = 3*nel3d + 2*ncirc + 2*nrad;
 	
 	///nel = nel3d;////
 	
@@ -244,8 +244,8 @@ static void QuarterWellboreGeom(int ncirc,
 	{
 		for(j = 0; j < ncirc; j++)
 		{
-			int index = i * ncirc + j;
-			TPZVec< int > eli(8,0);
+			long index = i * ncirc + j;
+			TPZVec< long > eli(8,0);
 			eli[0] = ncircpt * i + j;
 			eli[1] = ncircpt * (i + 1) + j;
 			eli[2] = eli[1] + 1;
@@ -259,13 +259,13 @@ static void QuarterWellboreGeom(int ncirc,
 			elName[index] = "Interior";
 		}
 	}
-	int lastIndex = nel3d;
+	long lastIndex = nel3d;
 	
 	// Wellbore Faces
 	for(i = 0; i < ncirc; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
 		
 		eli[0] = el[i][0];
 		eli[1] = el[i][3];
@@ -281,9 +281,9 @@ static void QuarterWellboreGeom(int ncirc,
 	//creating the 2D border elements
 	for(i = 0; i < nel3d; i++)
 	{
-		TPZVec< int > elTop(4), elBot(4);
-		int indexBot = i + lastIndex;
-		int indexTop = i + lastIndex + nel3d;
+		TPZVec< long > elTop(4), elBot(4);
+		long indexBot = i + lastIndex;
+		long indexTop = i + lastIndex + nel3d;
 		
 		for(j = 0 ; j < 4; j++)
 		{
@@ -303,9 +303,9 @@ static void QuarterWellboreGeom(int ncirc,
 	// Lower Symmetry
 	for(i = 0; i < nrad; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = ncirc*i;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = ncirc*i;
 		
 		eli[0] = el[refIndex][0];
 		eli[1] = el[refIndex][1];
@@ -321,9 +321,9 @@ static void QuarterWellboreGeom(int ncirc,
 	// Left Symmetry
 	for(i = 0; i < nrad; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = ncirc*(i+1) - 1;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = ncirc*(i+1) - 1;
 		
 		eli[0] = el[refIndex][3];
 		eli[1] = el[refIndex][2];
@@ -339,9 +339,9 @@ static void QuarterWellboreGeom(int ncirc,
 	// Right Farfield
 	for(i = 0; i < ncirc / 2; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = (nrad-1)*ncirc + i;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = (nrad-1)*ncirc + i;
 		
 		eli[0] = el[refIndex][1];
 		eli[1] = el[refIndex][2];
@@ -357,9 +357,9 @@ static void QuarterWellboreGeom(int ncirc,
 	// Top Farfield
 	for(i = ncirc / 2; i < ncirc; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = (nrad-1)*ncirc + i;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = (nrad-1)*ncirc + i;
 		
 		eli[0] = el[refIndex][1];
 		eli[1] = el[refIndex][2];
@@ -390,12 +390,12 @@ static TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	
 	int matId = pMat->Id();
 	int nstate = pMat->NStateVariables();
-	int i;
+	long i;
 	int nrad;//int ncirc = 4, nrad;
 	//REAL ioratio = 10.;
 	
 	TPZVec< TPZVec< REAL > > pt;
-	TPZVec< TPZVec< int > > el;
+	TPZVec< TPZVec< long > > el;
 	TPZVec< MElementType > elType;
 	TPZVec< TPZString > elName;
 	TPZFMatrix<REAL> val1(nstate,nstate), val2(nstate,1);
@@ -404,14 +404,14 @@ static TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
     wellboreStressState(nstate, nstate, 0.);
     
 	QuarterWellboreGeom(ncirc, ioratio, pt, el, elType, elName, nrad);
-	int nel = el.NElements();
+	long nel = el.NElements();
 	TPZGeoMesh * pGMesh = new TPZGeoMesh;
     
     //TPZPoroElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pGMesh); // self explanatory
     
 	
 	// preparing nodes and elements
-	int npt = pt.NElements();
+	long npt = pt.NElements();
 	pGMesh->NodeVec().Resize(npt);
 	for(i = 0; i < npt; i++)
         pGMesh->NodeVec()[i].Initialize(pt[i], *pGMesh);
@@ -528,7 +528,7 @@ static TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 static void QuarterWellboreGeom2d(int ncirc,
 						 REAL ioratio,
 						 TPZVec< TPZVec<REAL> > &pt,
-						 TPZVec< TPZVec<int> > &el,
+						 TPZVec< TPZVec<long> > &el,
 						 TPZVec< MElementType > &elType,
 						 TPZVec< TPZString > &elName,
 						 int & nrad)
@@ -543,9 +543,9 @@ static void QuarterWellboreGeom2d(int ncirc,
 	nrad = static_cast<int>(( log(2.*((REAL) ncirc)*(ioratio - 1.)/pi)/log(q) -1. )*1.4 ); //1.6
 	
 	int nradpt = nrad + 1;
-	int nel3d = ncirc * nrad;
+	long nel3d = ncirc * nrad;
 	
-	int nel = 3*nel3d + 2*ncirc + 2*nrad;
+	long nel = 3*nel3d + 2*ncirc + 2*nrad;
 	
 	///nel = nel3d;////
 	
@@ -620,8 +620,8 @@ static void QuarterWellboreGeom2d(int ncirc,
 	{
 		for(j = 0; j < ncirc; j++)
 		{
-			int index = i * ncirc + j;
-			TPZVec< int > eli(8,0);
+			long index = i * ncirc + j;
+			TPZVec< long > eli(8,0);
 			eli[0] = ncircpt * i + j;
 			eli[1] = ncircpt * (i + 1) + j;
 			eli[2] = eli[1] + 1;
@@ -640,8 +640,8 @@ static void QuarterWellboreGeom2d(int ncirc,
 	// Wellbore Faces
 	for(i = 0; i < ncirc; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
 		
 		eli[0] = el[i][0];
 		eli[1] = el[i][3];
@@ -657,9 +657,9 @@ static void QuarterWellboreGeom2d(int ncirc,
 	//creating the 2D border elements
 	for(i = 0; i < nel3d; i++)
 	{
-		TPZVec< int > elTop(4), elBot(4);
-		int indexBot = i + lastIndex;
-		int indexTop = i + lastIndex + nel3d;
+		TPZVec< long > elTop(4), elBot(4);
+		long indexBot = i + lastIndex;
+		long indexTop = i + lastIndex + nel3d;
 		
 		for(j = 0 ; j < 4; j++)
 		{
@@ -679,9 +679,9 @@ static void QuarterWellboreGeom2d(int ncirc,
 	// Lower Symmetry
 	for(i = 0; i < nrad; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = ncirc*i;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = ncirc*i;
 		
 		eli[0] = el[refIndex][0];
 		eli[1] = el[refIndex][1];
@@ -697,9 +697,9 @@ static void QuarterWellboreGeom2d(int ncirc,
 	// Left Symmetry
 	for(i = 0; i < nrad; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = ncirc*(i+1) - 1;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = ncirc*(i+1) - 1;
 		
 		eli[0] = el[refIndex][3];
 		eli[1] = el[refIndex][2];
@@ -715,8 +715,8 @@ static void QuarterWellboreGeom2d(int ncirc,
 	// Right Farfield
 	for(i = 0; i < ncirc / 2; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
 		int refIndex = (nrad-1)*ncirc + i;
 		
 		eli[0] = el[refIndex][1];
@@ -733,9 +733,9 @@ static void QuarterWellboreGeom2d(int ncirc,
 	// Top Farfield
 	for(i = ncirc / 2; i < ncirc; i++)
 	{
-		TPZVec< int > eli(4);
-		int index = i + lastIndex;
-		int refIndex = (nrad-1)*ncirc + i;
+		TPZVec< long > eli(4);
+		long index = i + lastIndex;
+		long refIndex = (nrad-1)*ncirc + i;
 		
 		eli[0] = el[refIndex][1];
 		eli[1] = el[refIndex][2];
@@ -746,9 +746,6 @@ static void QuarterWellboreGeom2d(int ncirc,
 		elType[index] = EQuadrilateral;
 		elName[index] = "Top Farfield";
 	}
-	
-    
-    
 }
 
 
@@ -760,16 +757,15 @@ static TPZCompMesh * CreateQuarterWellboreMesh2d( int gOrder,
 										TPZFMatrix<REAL> & WellboreStressState,
 										int allNeumannBC = 0)
 {
-    
-	
+
 	int matId = pMat->Id();
 	int nstate = pMat->NStateVariables();
-	int i;
+	long i;
 	int nrad;//int ncirc = 4, nrad;
 	//REAL ioratio = 10.;
 	
 	TPZVec< TPZVec< REAL > > pt;
-	TPZVec< TPZVec< int > > el;
+	TPZVec< TPZVec< long > > el;
 	TPZVec< MElementType > elType;
 	TPZVec< TPZString > elName;
 	TPZFMatrix<REAL> val1(nstate,nstate), val2(nstate,1);
@@ -778,14 +774,14 @@ static TPZCompMesh * CreateQuarterWellboreMesh2d( int gOrder,
     wellboreStressState(nstate, nstate, 0.);
     
 	QuarterWellboreGeom(ncirc, ioratio, pt, el, elType, elName, nrad);
-	int nel = el.NElements();
+	long nel = el.NElements();
 	TPZGeoMesh * pGMesh = new TPZGeoMesh;
     
     //TPZPoroElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pGMesh); // self explanatory
     
 	
 	// preparing nodes and elements
-	int npt = pt.NElements();
+	long npt = pt.NElements();
 	pGMesh->NodeVec().Resize(npt);
 	for(i = 0; i < npt; i++)
         pGMesh->NodeVec()[i].Initialize(pt[i], *pGMesh);
