@@ -233,7 +233,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
         //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -473,7 +473,7 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
-		if(el->Reference()->Level() < 5 && ervecbyel[i] > 0.7*GlobalL2Error) {
+		if(el->Reference()->Level() < 7 && ervecbyel[i] > 0.6*GlobalL2Error) {
             REAL GradNorm = GradientNorm(el);
             pelement = el->PreferredSideOrder(el->NConnects() - 1);
             if(GradNorm > 1) {
