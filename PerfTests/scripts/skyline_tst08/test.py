@@ -44,11 +44,11 @@ def error(message, status):
         sys.exit(status)
 
 #  (rdt_id, rdt_opt, rdt_filename, rdt_description)
-clkfn=("clk", "-clk_rdt", "skyline.porder_3.clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
-#ldltfn=("ldlt", "-ldlt_rdt", "ldlt.rdt", "LDLt Decomposition: matrix->Decompose_LDLt(). Decompose matrix using LDLt Decomposition.")
+#clkfn=("clk", "-clk_rdt", "clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
+ldltfn=("ldlt", "-ldlt_rdt", "skyline.porder_7.ldlt.rdt", "LDLt Decomposition: matrix->Decompose_LDLt(). Decompose matrix using LDLt Decomposition.")
 #multfn=("mult", "-mult_rdt", "mult.rdt", "MultAdd: matrix->MultAdd(...). Multiply matrix by another matrix.")
 # List of rdt files produced by the test
-rdtfiles_l=[clkfn]
+rdtfiles_l=[ldltfn]
 
 # Setup the command line
 def setup_cmd():
@@ -56,7 +56,7 @@ def setup_cmd():
 	if not os.path.isdir(builddir) :
 		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','skyline_tst1')
+	rundir = os.path.join(builddir,'scripts','skyline_tst08')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -70,7 +70,7 @@ def setup_cmd():
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -porder 3'
+        arguments = ' -porder 7'
 	for rdtarg in rdtfiles_l :
 		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
 	# TODO: Add arguments to enforce output checking!
@@ -136,7 +136,7 @@ def sumarize_rdt_files(rundir) :
 		results[rdt_id] = (rdt_fn, rdt_dsc)
 	return results
 
-description="skyline-decompose_cholesky -- cube1.txt -- polinomial order 3"
+def short_description() : return "skyline-decompose_ldlt -- cube1.txt -- polinomial order 7"
 
 # Execute the test.
 def run_test(ntimes):
@@ -160,8 +160,8 @@ def usage():
 	print "\t-r : Run the experiment."
 	print "\nDESCRIPTION"
 	print "\tExecute the skyline test tool collecting statistics for the following operations:"
-	print "\t ", clkfn[0], ": decomposing a skyline matrix using Cholesky decomposition -- results at", clkfn[1]
-#	print "\t ", ldltfn[0], ": decomposing a skyline matrix using LDLt decomposition -- results at", ldltfn[1]
+#	print "\t ", clkfn[0], ": decomposing a skyline matrix using Cholesky decomposition -- results at", clkfn[1]
+	print "\t ", ldltfn[0], ": decomposing a skyline matrix using LDLt decomposition -- results at", ldltfn[1]
 #	print "\t ", multfn[0], ": multipling two skyline matrices -- results at", multfn[1]
 	sys.exit(1)
 

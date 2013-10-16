@@ -28,11 +28,14 @@ rdtfiles_l = [
 	("ass", "-ass_rdt", "ass.rdt", "Assemble: dohrstruct->Assemble(...). Assemble element matrices and decompose matrices."),
 	("cre", "-cre_rdt", "cre.rdt", "Create: dohrstruct->Create()"),
 	("pre", "-pre_rdt", "pre.rdt", "Preconditioner: dohrstruct->Preconditioner()"),
+	("sol", "-sol_rdt", "sol.rdt", "Solver: cg.Solve(...)"),
+	("tot", "-tot_rdt", "tot.rdt", "Total: all the steps"),
 	("dohrass", "-tpz_dohr_ass", "tpzdohrass.rdt", "Assemble element matrices"),
 	("dohrdec", "-tpz_dohr_dec", "tpzdohrdec.rdt", "Decompose matrices")
 ]
 
-def short_description() : return "substructure -- 8andares02.txt -- st3 - p2 - nsub 128 - 64 threads - realloc"
+# [Edson]: TODO: improve the description (why is it different from substruct_tst1? 
+def short_description() : return "substructure -- cubo986.msh -- serial -- "
 
 def long_description():
 	desc =  "Execute the substruct tool collecting statistics for the following steps:"
@@ -61,9 +64,9 @@ def error(message, status):
 def setup_cmd():
 	# Check build directory
 	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 1)
+		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst12')
+	rundir = os.path.join(builddir,'scripts','substruct_tst05')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -73,23 +76,11 @@ def setup_cmd():
 	if not os.path.isfile(executable) :
 		error(executable+' is an invalid executable file name.', 1)
 	# Check input file
-	inputfn = os.path.join(datadir,"substruct","inputs","8andares02.txt")
+	inputfn = os.path.join(datadir,"substruct","inputs","Cubo986.msh")
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -mp '+inputfn
-	arguments = arguments + ' -st3'
-	#NUMA aware Dohrman Assembly List thread work objects re-allocation.
-	arguments = arguments + ' -naDALora'
-	#NUMA aware Dohrman Assembly List thread work objects re-allocation threshold.
-	#arguments = arguments + ' -naDALorat 1835008' # 2/2MB(l2) + 6/8MB(l3)
-	#NUMA aware (node round-robin) Dohrman Assembly List thread work scheduling.
-	arguments = arguments + ' -naDALtws' 
-	arguments = arguments + ' -nsub 128'
-	arguments = arguments + ' -nt_a 64' 
-	arguments = arguments + ' -nt_d 64' 
-	arguments = arguments + ' -nt_m 64' 
-	arguments = arguments + ' -nt_sm 64' 
+    	arguments = ' -mc '+inputfn
 	arguments = arguments + ' -p 2' 
 	for rdtarg in rdtfiles_l :
 		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
@@ -97,13 +88,12 @@ def setup_cmd():
 	return rundir, executable+arguments
 
 # Limits for this test
-# 38400 = 64 (cores) * (60) * (10) = 10 minutes in 64 cores.
-limits = { "cpu"   : (resource.RLIMIT_CPU,  38400, "Max CPU user time in seconds (not wall clock time)"), 
-#	   "nofile": (resource.RLIMIT_NOFILE,   7, "The maximum number of open file descriptors for the current process."),
-#	   "rss"   : (resource.RLIMIT_RSS,   1024, "The maximum resident set size that should be made available to the process"),
-#	   "fsize" : (resource.RLIMIT_FSIZE,    1, "Max size of a file which the process may create"),
-#	   "data"  : (resource.RLIMIT_DATA,  1024, "The maximum size (in bytes) of the process's heap"),
-#	   "nproc" : (resource.RLIMIT_NPROC,    0, "The maximum number of processes the current process may create")
+limits = { "cpu"   : (resource.RLIMIT_CPU, 3600, "Max CPU time in seconds"), 
+#	   "nofile": (resource.RLIMIT_NOFILE,     7, "The maximum number of open file descriptors for the current process."),
+#	   "rss"   : (resource.RLIMIT_RSS,     1024, "The maximum resident set size that should be made available to the process"),
+#	   "fsize" : (resource.RLIMIT_FSIZE,      1, "Max size of a file which the process may create"),
+#	   "data"  : (resource.RLIMIT_DATA,    1024, "The maximum size (in bytes) of the process's heap"),
+#	   "nproc" : (resource.RLIMIT_NPROC,      0, "The maximum number of processes the current process may create")
 	 }
 
 # Set the rlimits of the chidren process (see limits above)
@@ -137,4 +127,3 @@ def run_test(ntimes):
 			return p.returncode, {}
 	results = sumarize_rdt_files(rundir)
 	return 0, results
-

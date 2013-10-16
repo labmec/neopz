@@ -60,7 +60,7 @@ def setup_cmd():
 	if not os.path.isdir(builddir) :
 		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst5')
+	rundir = os.path.join(builddir,'scripts','substruct_tst15')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
@@ -144,7 +144,7 @@ def sumarize_rdt_files(rundir) :
 	return results
 
 
-description="substructure -- 8andares02.txt -- 64 subs -- different number of threads "
+def short_description() : return "substructure -- 8andares02.txt -- 64 subs -- different number of threads "
 
 # Execute the test.
 def run_test(ntimes, nsub, thread):

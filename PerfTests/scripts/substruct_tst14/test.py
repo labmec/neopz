@@ -149,7 +149,7 @@ def sumarize_rdt_files(rundir) :
 		results[rdt_id] = (rdt_fn, rdt_dsc)
 	return results
 
-description="substructure -- cubo986.msh -- parallel --  different number of substructures and number of threads with Numa naDALora and naDALtws"
+def short_description() : return "substructure -- cubo986.msh -- parallel --  different number of substructures and number of threads with Numa naDALora and naDALtws"
 
 # Execute the test.
 def run_test(ntimes, nsub, thread):

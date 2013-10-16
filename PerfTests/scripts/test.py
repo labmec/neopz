@@ -35,26 +35,30 @@ except ImportError, e:
 	summarize_results=False
 
 # == Adding new tests ==
+#
 # In order to add new tests one must:
-# 1) import the test module (e.g.: import substruct_tst1.test). The module must contain:
-#  a) the string "description" providing a short description of the test.
-#     Notice that the test may generate multiple rdt files. Each rdt must be described by the 
-#  b) a function called "run_test(ntimes)" that runs the performance test "ntimes" times and returns
-#     (status, rdt_files). So that:
+# 1) import the test module (e.g.: import substruct_tst01.test). The module must
+#    contain:
+#  a) the functions short_description and long_description which return a string
+#     containing a short/long description of the test.
+#  b) a function called "run_test(ntimes)" that runs the performance test
+#     "ntimes" times and returns (status, rdt_files). So that:
 #     - status: the test status: 0 == OK, != 0 == ERROR
-#     - rdt_files: a dictionary mapping rdt_ids to pairs (rdt_filename, rdt_description).
+#     - rdt_files: a dictionary mapping rdt_ids to pairs (rdt_filename,
+#       rdt_description).
 #       * rdt_id is a unique string identifier for the rdt file.
 #       * rdt_filename is the full path to the rdt file
-#       * rdt_description is a short description of the what is being measured by the rdt file.
+#       * rdt_description is a short description of the what is being measured
+#         by the rdt file.
 #
 # 2) add the test module to one (or more) of the test lists.
 
 # == Import tests modules ==
-import substruct_tst1.test
-import substruct_tst2.test
-import substruct_tst3.test
-import substruct_tst4.test
-import substruct_tst5.test
+import substruct_tst01.test
+import substruct_tst02.test
+import substruct_tst03.test
+import substruct_tst04.test
+import substruct_tst05.test
 import substruct_tst06.test
 import substruct_tst07.test
 import substruct_tst08.test
@@ -62,10 +66,17 @@ import substruct_tst09.test
 import substruct_tst10.test
 import substruct_tst11.test
 import substruct_tst12.test
+import substruct_tst13.test
 
-import skyline_tst1.test
-import skyline_tst2.test
-import skyline_tst3.test
+import skyline_tst01.test
+import skyline_tst02.test
+import skyline_tst03.test
+#import skyline_tst04.test
+#import skyline_tst05.test
+#import skyline_tst06.test
+#import skyline_tst07.test
+#import skyline_tst08.test
+#import skyline_tst09.test
 import skyline_tst10.test
 import skyline_tst11.test
 import skyline_tst12.test
@@ -75,15 +86,27 @@ import skyline_tst12.test
 # See Usage for the description of the test lists
 
 # Tests with execution time shorter than 1 minute
-short_tests = [("substruct_tst1",substruct_tst1.test), 
-	       ("substruct_tst2",substruct_tst2.test),
-	       ("skyline_tst1",skyline_tst1.test),
-	       ("skyline_tst2",skyline_tst2.test),
+short_tests = [("substruct_tst01",substruct_tst01.test), 
+	       ("substruct_tst02",substruct_tst02.test),
+	       ("skyline_tst01",skyline_tst01.test),
+	       ("skyline_tst02",skyline_tst02.test),
 	       ("skyline_tst10",skyline_tst10.test)]
 
+# TODO: How about:
+# substruct_tst05
+# substruct_tst14
+# substruct_tst15
+# substruct_tst16
+# skyline_tst04
+# skyline_tst05
+# skyline_tst06
+# skyline_tst07
+# skyline_tst08
+# skyline_tst09
+
 # Tests with execution time between 1 and 10 minutes
-medium_tests= [("substruct_tst3",substruct_tst3.test),
-	       ("substruct_tst4",substruct_tst4.test),
+medium_tests= [("substruct_tst03",substruct_tst03.test),
+	       ("substruct_tst04",substruct_tst04.test),
 	       ("substruct_tst06",substruct_tst06.test),
 	       ("substruct_tst07",substruct_tst07.test),
 	       ("substruct_tst08",substruct_tst08.test),
@@ -91,7 +114,8 @@ medium_tests= [("substruct_tst3",substruct_tst3.test),
 	       ("substruct_tst10",substruct_tst10.test),
 	       ("substruct_tst11",substruct_tst11.test),
 	       ("substruct_tst12",substruct_tst12.test),
-	       ("skyline_tst3",skyline_tst3.test),
+	       ("substruct_tst13",substruct_tst13.test),
+	       ("skyline_tst03",skyline_tst03.test),
 	       ("skyline_tst11",skyline_tst11.test),
 	       ("skyline_tst12",skyline_tst12.test)]
 
@@ -99,6 +123,8 @@ medium_tests= [("substruct_tst3",substruct_tst3.test),
 long_tests = []
 
 regression_tests = short_tests + medium_tests + long_tests
+
+all_tests = short_tests + medium_tests + long_tests
 # =========================
 
 # Default value for ntimes
@@ -107,6 +133,12 @@ ntimes_dft = 3
 def error(message, status):
 	sys.stderr.write('ERROR: '+message+'\n')
 	if status != 0 : sys.exit(status)
+
+def get_test(v) : 
+	for t in all_tests : 
+		if t[0] == v : 
+			return t
+	error("Could not find test " + str(v))
 
 # Functions for stand alone tests
 def usage():
@@ -123,16 +155,16 @@ def usage():
 	print "\tExecutes a set of performance tests. The following tests are available:"
 	print "\tShort tests:"
 	for t in short_tests :
-		print "\t* ", t[0], ":", t[1].description
+		print "\t* ", t[0], ":", t[1].short_description()
 	print "\tMedium tests:"
 	for t in medium_tests :
-		print "\t* ", t[0], ":", t[1].description
+		print "\t* ", t[0], ":", t[1].short_description()
 	print "\tLong tests:"
 	for t in long_tests :
-		print "\t* ", t[0], ":", t[1].description
+		print "\t* ", t[0], ":", t[1].short_description()
 	print "\tRegression tests:"
 	for t in regression_tests :
-		print "\t* ", t[0], ":", t[1].description
+		print "\t* ", t[0], ":", t[1].short_description()
 	sys.exit(1)
 
 # Main - for stand alone tests only
@@ -153,7 +185,7 @@ if __name__ == "__main__":
 			for t in long_tests       : tests_to_run[t[0]] = t
 			for t in regression_tests : tests_to_run[t[0]] = t
 		elif f == '-n': ntimes=int(v)
-		elif f == '-t': test[v] = True
+		elif f == '-t': tests_to_run[v] = get_test(v)
 		elif f == '-s':
 			for t in short_tests      : tests_to_run[t[0]] = t
 		elif f == '-m':
@@ -173,22 +205,23 @@ if __name__ == "__main__":
 			test_name=t[0]
 			try:
 				status,rdt_files = obj.run_test(ntimes)
-				all_results[test_name]=(status,obj.description,rdt_files)
+				all_results[test_name]=(status,obj.short_description(),obj.long_description(),rdt_files)
 			except:
 				error('Could not run test '+test_name,0)
-				all_results[test_name]=(-1,obj.description,{})
+				all_results[test_name]=(-1,obj.short_description(),obj.long_description(),{})
 
 	# Move/Print results
 	for k, v in all_results.iteritems() :
 		status = v[0]
-		desc = v[1]
-		rdt_files = v[2]
+		s_desc = v[1]
+		l_desc = v[2]
+		rdt_files = v[3]
 		test_name = k
 		print '** ' + test_name + ' **'
-		print 'desc: ', desc
+		print 'desc: ', s_desc
 		# Print results
 		if status != 0: 
-			print "Status [FAILED]"
+			print "Status [FAILED] ("+str(status)+")"
 		else :
 			print "Status [OK]"
 			print "Results summary ----------------------------"
@@ -232,7 +265,7 @@ if __name__ == "__main__":
 			try:
 				f = open(result_info, 'w+')
 				f.write("test_name : "+test_name+"\n")
-				f.write("test_desc : "+desc+"\n")
+				f.write("test_desc : "+s_desc+"\n")
 				f.write("test_status : "+str(status)+"\n")
 				# Copy rdt files
 				for rdt_id,v in rdt_files.iteritems() : 

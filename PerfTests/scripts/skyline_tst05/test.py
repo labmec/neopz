@@ -44,50 +44,41 @@ def error(message, status):
         sys.exit(status)
 
 #  (rdt_id, rdt_opt, rdt_filename, rdt_description)
-assfn=("ass", "-ass_rdt", "ass.rdt", "Assemble: dohrstruct->Assemble(...). Assemble element matrices and decompose matrices.")
-crefn=("cre", "-cre_rdt", "cre.rdt", "Create: dohrstruct->Create()")
-prefn=("pre", "-pre_rdt", "pre.rdt", "Preconditioner: dohrstruct->Preconditioner()")
-solfn=("sol", "-sol_rdt", "sol.rdt", "Solver: cg.Solve(...)")
-totfn=("tot", "-tot_rdt", "tot.rdt", "Total: all the steps")
-tpzdohrassfn=("dohrass", "-tpz_dohr_ass", "tpzdohrass.rdt", "Assemble element matrices")
-tpzdohrdecfn=("dohrdec", "-tpz_dohr_dec", "tpzdohrdec.rdt", "Decompose matrices")
+#clkfn=("clk", "-clk_rdt", "clk.rdt", "Cholesky Decomposition: matrix->Decompose_Cholesky(). Decompose matrix using Cholesky Decomposition.")
+ldltfn=("ldlt", "-ldlt_rdt", "skyline.porder_6.ldlt.rdt", "LDLt Decomposition: matrix->Decompose_LDLt(). Decompose matrix using LDLt Decomposition.")
+#multfn=("mult", "-mult_rdt", "mult.rdt", "MultAdd: matrix->MultAdd(...). Multiply matrix by another matrix.")
 # List of rdt files produced by the test
-rdtfiles_l=[assfn, crefn, prefn, solfn, totfn, tpzdohrassfn, tpzdohrdecfn]
+rdtfiles_l=[ldltfn]
 
 # Setup the command line
 def setup_cmd():
 	# Check build directory
 	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 1)
+		error(builddir+' is an invalid build directory.', 5)
 	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst3')
+	rundir = os.path.join(builddir,'scripts','skyline_tst05')
 	if not os.path.isdir(rundir) :
 		error(rundir+' is an invalid run directory.', 1)
 	if not os.path.isdir(builddir) :
 		error(builddir+' is an invalid build directory.', 1)
 	# Check executable
-	executable=os.path.join(builddir,"progs","substruct", "substruct-perf")
+	executable=os.path.join(builddir,"progs","skyline", "skyline-perf")
 	if not os.path.isfile(executable) :
 		error(executable+' is an invalid executable file name.', 1)
 	# Check input file
-	inputfn = os.path.join(datadir,"substruct","inputs","8andares02.txt")
+	inputfn = os.path.join(datadir,"substruct","inputs","cube1.txt")
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-        arguments = ' -mp '+inputfn
-	arguments = arguments + ' -nsub 64'
-	arguments = arguments + ' -nt_a 1' 
-	arguments = arguments + ' -nt_d 1' 
-	arguments = arguments + ' -nt_m 1' 
-	arguments = arguments + ' -nt_sm 1' 
-	arguments = arguments + ' -p 1' 
+        arguments = ' -porder 6'
 	for rdtarg in rdtfiles_l :
 		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
 	# TODO: Add arguments to enforce output checking!
 	return rundir, executable+arguments
 
 # Limits for this test
-limits = { "cpu"   : (resource.RLIMIT_CPU,  38400, "Max CPU user time in seconds (not wall clock time)"), 
+# TODO: change cpu limit acording to program execution time
+limits = { "cpu"   : (resource.RLIMIT_CPU,   1000, "Max CPU user time in seconds (not wall clock time)"), 
 #	   "nofile": (resource.RLIMIT_NOFILE,   7, "The maximum number of open file descriptors for the current process."),
 #	   "rss"   : (resource.RLIMIT_RSS,   1024, "The maximum resident set size that should be made available to the process"),
 #	   "fsize" : (resource.RLIMIT_FSIZE,    1, "Max size of a file which the process may create"),
@@ -145,7 +136,7 @@ def sumarize_rdt_files(rundir) :
 		results[rdt_id] = (rdt_fn, rdt_dsc)
 	return results
 
-description="substructure -- 8andares02.txt -- serial"
+def short_description() : return "skyline-decompose_ldlt -- cube1.txt -- polinomial order 6"
 
 # Execute the test.
 def run_test(ntimes):
@@ -168,14 +159,10 @@ def usage():
 	print "\nARGUMENTS"
 	print "\t-r : Run the experiment."
 	print "\nDESCRIPTION"
-	print "\tExecute the substruct tool collecting statistics for the following steps:"
-	print "\t ", assfn[0], ": assembling the system (serial) -- results at", assfn[1]
-	print "\t ", tpzdohrassfn[0], ": assembling (ass part) the system (serial) -- results at", tpzdohrassfn[1]
-	print "\t ", tpzdohrdecfn[0], ": assembling (dec part) the system (serial) -- results at", tpzdohrdecfn[1]
-	print "\t ", crefn[0], ": creating the sytem (serial) -- results at", crefn[1]
-	print "\t ", prefn[0], ": pre-processing (serial) -- results at", prefn[1]
-	print "\t ", solfn[0], ": solver (serial) -- results at", solfn[1]
-	print "\t ", totfn[0], ": total -- results at", totfn[1]
+	print "\tExecute the skyline test tool collecting statistics for the following operations:"
+#	print "\t ", clkfn[0], ": decomposing a skyline matrix using Cholesky decomposition -- results at", clkfn[1]
+	print "\t ", ldltfn[0], ": decomposing a skyline matrix using LDLt decomposition -- results at", ldltfn[1]
+#	print "\t ", multfn[0], ": multipling two skyline matrices -- results at", multfn[1]
 	sys.exit(1)
 
 # Main - for stand alone tests only
@@ -202,4 +189,4 @@ if __name__ == "__main__":
 		for k,v in results.iteritems() : print '{0:10s} : {1:>16f} +- {2:<16f}'.format(k, v[0], v[1])
 		print "--------------------------------------------"
 	else:
-		print "WARNING: No options provided. (use -h for help)"
+ 		print "WARNING: No options provided. (use -h for help)"
