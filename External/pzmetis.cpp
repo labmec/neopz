@@ -167,10 +167,10 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	long sz = Adjacency.NElements();
 	for(n=0;n<sz;n++)
 		AdjacencyInt[n] = (int)Adjacency[n];
-	Domains.Resize(nVertices);
+	int nvertices = (int)nVertices;
+	Domains.Resize(nvertices);
 	// Upon successful completion, nEdgesCutted stores the edge-cut or the total communication volume of the partitioning solution.
 	int nEdgesCutted = 0;
-	int nvertices = (int)nVertices;
 
 	TPZVec<int> Options(METIS_NOPTIONS);
 	METIS_SetDefaultOptions(&Options[0]);
