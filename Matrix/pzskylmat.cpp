@@ -1566,7 +1566,7 @@ long TPZSkylMatrix<TVar>::NumElements(const TPZVec<long> &skyline) {
 }
 
 template<class TVar>
-void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &point) {
+void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &point) {   // JORGE 2013 OUTUBRO ???
 	long dim = skyline.NElements();
 	long nel = NumElements(skyline);
 	storage.Resize(nel);

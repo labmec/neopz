@@ -569,4 +569,13 @@ inline float
 pow(float __x, double __y)
 { return pow(__x, (float)(__y)); }
 
+
+// SPECIAL FUNCTIONS NON STANDARD IN WINDOWS SYSTEM
+
+/**
+ * Function erf (Error function) implemented in 
+ * http://www.johndcook.com/cpp_erf.html
+ */
+REAL erf(REAL arg);
+
 #endif
