@@ -473,9 +473,9 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
+		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		if(el->Reference()->Level() < 7 && ervecbyel[i] > 0.6*GlobalL2Error) {
             REAL GradNorm = GradientNorm(el);
-            pelement = el->PreferredSideOrder(el->NConnects() - 1);
             if(GradNorm > 1) {
                 // Dividing element one level
                 el->Divide(el->Index(),subels,0);
