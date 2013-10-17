@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     
     int p = 0;
     TPZGeoMesh *gmesh = MalhaGeom();
-    UniformRefine(gmesh, 1);
+    UniformRefine(gmesh, 6);
     ofstream arg1("gmesh.txt");
     gmesh->Print(arg1);
     
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     ofstream arg2("cmesh_inicial.txt");
     cmesh->Print(arg2);
     
-    //Set initial conditions for pressure
+    //Set initial conditions
     TPZAnalysis an(cmesh);
 	int nrs = an.Solution().Rows();
     TPZVec<STATE> solini(nrs,1.);
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
     
-    REAL deltaT=0.1; //second
+    REAL deltaT=0.001; //second
     material->SetTimeStep(deltaT);
     REAL maxTime = 1.;
     material->SetTimeValue(maxTime);
@@ -225,7 +225,7 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder,TPZMatConvectionProblem * 
     
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    REAL uD =2.;
+    REAL uD =1.;
     val2(0,0) = uD;
 	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
     val2(0,0) = 0.;
@@ -416,15 +416,15 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
         Lastsolution = an.Solution();
         
         ///Reconstruindo o gradiente
-        TPZFMatrix<REAL> datagradients;
-        gradreconst->GetDataGradient(cmesh, datagradients);
+        //TPZFMatrix<REAL> datagradients;
+        //gradreconst->GetDataGradient(cmesh, datagradients);
         
-        ///if(cent%1==0){
+        if(cent%10==1){
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();
             PosProcessSolution(cmesh,an,plotfile);
-        //}
+        }
 		
         cent++;
 		TimeValue = cent*deltaT;
@@ -469,11 +469,11 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymateri
 void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<STATE> &fvec){
     
 	mymaterial->SetCurrentState();
-    TPZFStructMatrix matsk(cmesh);
+    TPZSkylineStructMatrix matsk(cmesh);
     //TPZBandStructMatrix matsk(cmesh);
 	an.SetStructuralMatrix(matsk);
 	TPZStepSolver<STATE> step;
-	step.SetDirect(ELU);
+	step.SetDirect(ELDLt);
 	an.SetSolver(step);
 	an.Run();
 	
@@ -484,8 +484,8 @@ void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, 
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     //double y = pt[1];
-    if(x<0.5)disp[0] = 2.;
-    else disp[0] = 1.;
+    if(x<0)disp[0] = 1.;
+    if(x>0)disp[0] = 0.;
                   
 }
 
