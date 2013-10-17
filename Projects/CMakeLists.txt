@@ -29,6 +29,9 @@ ENABLE_TESTING()
 			#Example of the  multi-physics simulation with discontinuous Galerkin
  			add_subdirectory(PauloBosing)
 
+			#Example of the tracer flow problem in multiphysics simulation.
+  			add_subdirectory(TracadorPassivo)
+
 			#Example of the hybrid mesh
 			add_subdirectory(HybridMesh)
 			
