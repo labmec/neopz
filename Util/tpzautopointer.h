@@ -99,24 +99,28 @@ class TPZAutoPointer {
 	  }
 
 		/** @brief Increment the counter */
-		void Increment()
+		bool Increment()
 		{
-		  PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
-		  fCounter++;
-		  PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+			if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
+				return false;
+			fCounter++;
+			PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+			return true;
 		}
 		/** @brief Decrease the counter. If the counter is zero, delete myself */
-		void Decrease()
+		bool Decrease()
 		{
-			int should_delete = 0;
-		        PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+//			int should_delete = 0;
+		    if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
+				return false;
 			fCounter--;
-			if(fCounter <= 0) should_delete = 1;
-		        PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
-			if(should_delete) 
-			{
-				delete this;
-			}
+//			if(fCounter <= 0) should_delete = 1;
+		    PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+//			if(should_delete) 
+	//		{
+		//		delete this;
+			//}
+			return true;
 		}
 		
 	};
@@ -135,6 +139,8 @@ public:
 	~TPZAutoPointer()
 	{
 		fRef->Decrease();
+		if(fRef->fCounter<1)
+			delete fRef;
 	}
 	
 	/** @brief This method will create an object which will administer the area pointed to by obj */

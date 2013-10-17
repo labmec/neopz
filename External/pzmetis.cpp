@@ -161,14 +161,17 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	
 #ifdef USING_METIS
 	TPZManVector<int> AdjacencyInt,AdjacencyIndexInt;
-	long n, nVertices = AdjacencyIndex.NElements() -1;
+	long n, nVertices = AdjacencyIndex.NElements();
+	AdjacencyIndexInt.Resize(nVertices,0);
 	for(n=0;n<nVertices;n++)
 		AdjacencyIndexInt[n] = (int)AdjacencyIndex[n];
-	long sz = Adjacency.NElements();
-	for(n=0;n<sz;n++)
+	long nEdges = Adjacency.NElements();
+	AdjacencyInt.Resize(nEdges,0);
+	for(n=0;n<nEdges;n++)
 		AdjacencyInt[n] = (int)Adjacency[n];
-	int nvertices = (int)nVertices;
-	Domains.Resize(nvertices);
+	int nvertices = (int)nVertices-1;
+	int nedges = (int)nEdges;
+	Domains.Resize(nvertices,0);
 	// Upon successful completion, nEdgesCutted stores the edge-cut or the total communication volume of the partitioning solution.
 	int nEdgesCutted = 0;
 
