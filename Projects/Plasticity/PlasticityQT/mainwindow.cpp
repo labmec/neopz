@@ -211,6 +211,14 @@ void MainWindow::cutCurve(int indexCurves, int indexStartPoint, int indexEndPoin
         this->FilesList->value(indexCurves).sigmaVol->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
         this->FilesList->value(indexCurves).sigmaVol->remove(0,indexStartPoint);
     }
+    if (this->FilesList->value(indexCurves).I1->size() == size_tmp) {
+        this->FilesList->value(indexCurves).I1->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).I1->remove(0,indexStartPoint);
+    }
+    if (this->FilesList->value(indexCurves).SQRTJ2->size() == size_tmp) {
+        this->FilesList->value(indexCurves).SQRTJ2->remove(indexEndPoint+1,(size_tmp - 1) - indexEndPoint);
+        this->FilesList->value(indexCurves).SQRTJ2->remove(0,indexStartPoint);
+    }
 }
 
 void MainWindow::updateCurve(int indexCurves, int indexStartPoint, int indexEndPoint) {
@@ -390,6 +398,8 @@ void MainWindow::on_actionOpenFile_triggered()
         QVector<double> *defVol = new QVector<double>();
         QVector<double> *sigmaVol = new QVector<double>();
         QVector<double> *sigmaLateral;// = new QVector<double>();
+        QVector<double> *I1 = new QVector<double>();
+        QVector<double> *SQRTJ2 = new QVector<double>();
 
         int countLines = 0;
         double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
@@ -417,8 +427,10 @@ void MainWindow::on_actionOpenFile_triggered()
 
             if (strings.size() < 2) continue;
 
-            if (typeTest == testTypes(UCS)) {
-//Tempo	SigAxialDesv	DefAxial	DefLateral	DefVolume
+            if (typeTest == testTypes(UCS)) { // TESTE UCS !!!!!!!!!!!!!!!!!!
+
+                // Variaveis
+                // Tempo	SigAxialDesv	DefAxial	DefLateral	DefVolume
 
                 // Variaveis do arquivo txt
                 time->insert( countLines, strings.value(0).toDouble() );
@@ -431,6 +443,10 @@ void MainWindow::on_actionOpenFile_triggered()
                 sigmaAxialTotal->insert( countLines, 1.5 * strings.value(1).toDouble());
                 sigmaLateral=sigmaAxialTotal;
                 sigmaVol=sigmaAxialTotal;
+                I1 = sigmaAxialTotal;
+                SQRTJ2->insert( countLines, sqrt((1/3.)*((1.5*strings.value(1).toDouble())*(1.5*strings.value(1).toDouble())))); // J2 = 1/3*Sax^2
+
+                qDebug() << "SIGMA AXIAL = " <<sigmaAxialTotal->value(countLines) <<endl <<"I1 = " <<I1->value(countLines) <<endl <<"SQRTJ2 = " <<SQRTJ2->value(countLines) <<endl <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" <<endl;
 
                 // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
                 valueY = strings.value(1).toDouble(); //sigmaAxialTotal
@@ -440,9 +456,12 @@ void MainWindow::on_actionOpenFile_triggered()
                 Xvalues = defAxial;
                 Yvalues = sigmaAxialTotal;
             }
-            else if (typeTest == testTypes(Triaxial))
+            else if (typeTest == testTypes(Triaxial)) // TESTE TRIAXIAL !!!!!!!!!!!!!!!!!!!
             {
-//Tempo	**SigAxialTotal**	SigAxialDesv	**SigConf**	DefAxial	DefLateral	DefVolume
+
+                // Variaveis
+                // Tempo	**SigAxialTotal**	SigAxialDesv	**SigConf**	DefAxial	DefLateral	DefVolume
+
                 // Variaveis do arquivo txt
                 time->insert( countLines, strings.value(0).toDouble() );
                 sigmaAxialTotal->insert( countLines, strings.value(1).toDouble() ); // Triaxial ONLY
@@ -455,6 +474,10 @@ void MainWindow::on_actionOpenFile_triggered()
                 // Atribuicoes
                 sigmaVol->insert( countLines, (strings.value(1).toDouble()+(strings.value(5).toDouble()) * 2 )); // Svol = Sax + 2* Sconf
                 sigmaLateral = sigmaConf;
+                I1->insert( countLines, (strings.value(1).toDouble()+(2*strings.value(5).toDouble()))); // I1 = Sax + 2*Sconf
+                SQRTJ2->insert( countLines, sqrt((strings.value(3).toDouble())*(strings.value(3).toDouble())*(1/3.)) ); // J2 = 1/3*Sdesv^2
+
+                qDebug() << "SIGMA AXIAL = " <<sigmaAxialTotal->value(countLines) <<endl  << "SIGMA CONF = " <<sigmaConf->value(countLines) <<endl <<"I1 = " <<I1->value(countLines) <<endl <<"SQRTJ2 = " <<SQRTJ2->value(countLines) <<endl <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" <<endl;
 
                 // Variaveis utilizadas apenas para ajustar escala (logo abaixo)
                 valueY = strings.value(1).toDouble(); //sigmaAxialTotal
@@ -498,6 +521,8 @@ void MainWindow::on_actionOpenFile_triggered()
         arquivoTXT.sigmaLateral = sigmaLateral;
         arquivoTXT.sigmaVol = sigmaVol;
         arquivoTXT.testType = testTypes(typeTest);
+        arquivoTXT.I1 = I1;
+        arquivoTXT.SQRTJ2 = SQRTJ2;
 
 
         //int position = this->FilesList->size();
@@ -689,8 +714,8 @@ void MainWindow::ChangePlotAxis(Plot* plot_ptr,QString PlotAxis)
 
             CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
 
-            d_curve_tmp.X = this->FilesList->value(i).defAxial;
-            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
+            d_curve_tmp.X = this->FilesList->value(i).SQRTJ2;
+            d_curve_tmp.Y = this->FilesList->value(i).I1;
             // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE I1 E RAIZ DE J2
 
             d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
@@ -708,37 +733,37 @@ void MainWindow::ChangePlotAxis(Plot* plot_ptr,QString PlotAxis)
             this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
         }
 
-        // Epsilon v x sqrt J2Epsilon
-        QString Coords6 = QChar (0x03B5);
-        Coords6.append("v x ");
-        Coords6.append(QChar (0x221A));
-        Coords6.append("J2");
-        Coords6.append(QChar (0x03B5));
+//        // Epsilon v x sqrt J2Epsilon
+//        QString Coords6 = QChar (0x03B5);
+//        Coords6.append("v x ");
+//        Coords6.append(QChar (0x221A));
+//        Coords6.append("J2");
+//        Coords6.append(QChar (0x03B5));
 
-        if (PlotAxis == Coords6) {
+//        if (PlotAxis == Coords6) {
 
-            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
+//            CURVE d_curve_tmp = plot_ptr->CurvesList->take(i);
 
-            d_curve_tmp.X = this->FilesList->value(i).defAxial;
-            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
-            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE EPSILON V E RAIZ DE J2 EPSILON
+//            d_curve_tmp.X = this->FilesList->value(i).defAxial;
+//            d_curve_tmp.Y = this->FilesList->value(i).sigmaAxialDesv;
+//            // IMPLEMENTAR ACIMA, PRA PEGAR COMO X E Y OS VALORES DE EPSILON V E RAIZ DE J2 EPSILON
 
-            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
+//            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;
 
-            //re-inserting new value
-            plot_ptr->CurvesList->insert(i, d_curve_tmp);
+//            //re-inserting new value
+//            plot_ptr->CurvesList->insert(i, d_curve_tmp);
 
-            //naming axis
-            QString Title6Y = QChar (0x03B5);
-            Title6Y.append("v");
-            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title6Y);
-            QString Title6X = QChar (0x221A);
-            Title6X.append("J2");
-            Title6X.append(QChar (0x03B5));
-            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title6X);
-            // update curve with new data
-            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
-        }
+//            //naming axis
+//            QString Title6Y = QChar (0x03B5);
+//            Title6Y.append("v");
+//            plot_ptr->setAxisTitle(QwtPlot::yLeft, Title6Y);
+//            QString Title6X = QChar (0x221A);
+//            Title6X.append("J2");
+//            Title6X.append(QChar (0x03B5));
+//            plot_ptr->setAxisTitle(QwtPlot::xBottom, Title6X);
+//            // update curve with new data
+//            this->updateCurve(i, 0, d_curve_tmp.X->size()-1);
+//        }
     }
 
 }

@@ -16,7 +16,7 @@ class Plot;
 struct TXT {
             QString name; QVector<double> *X; QVector<double> *Y;
             QVector<double> *time; QVector<double> *sigmaAxialTotal; QVector<double> *sigmaAxialDesv; QVector<double> *sigmaConf;
-            QVector<double> *defAxial; QVector<double> *defLateral; QVector<double> *defVol; QVector<double> *I1; QVector<double> *RAIZDEJ2;
+            QVector<double> *defAxial; QVector<double> *defLateral; QVector<double> *defVol; QVector<double> *I1; QVector<double> *SQRTJ2;
             testTypes testType; QVector<double> *sigmaVol; QVector<double> *sigmaLateral;
            };
 

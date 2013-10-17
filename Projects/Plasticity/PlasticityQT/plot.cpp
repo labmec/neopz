@@ -75,11 +75,11 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     Coords5.append(QChar (0x221A));
     Coords5.append("J2");
     // Epsilon v x sqrt J2Epsilon
-    QString Coords6 = QChar (0x03B5);
-    Coords6.append("v x ");
-    Coords6.append(QChar (0x221A));
-    Coords6.append("J2");
-    Coords6.append(QChar (0x03B5));
+//    QString Coords6 = QChar (0x03B5);
+//    Coords6.append("v x ");
+//    Coords6.append(QChar (0x221A));
+//    Coords6.append("J2");
+//    Coords6.append(QChar (0x03B5));
 
     this->ActionList = new QHash <int, QAction*>;
 
@@ -106,10 +106,10 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     aSetAxis5->setCheckable(true);
     aSetAxis5->setActionGroup(groupSubmenuAxis);
     ActionList->insert(4, aSetAxis5);
-    QAction *aSetAxis6 = mySubMenuAxis->addAction(Coords6);
-    aSetAxis6->setCheckable(true);
-    aSetAxis6->setActionGroup(groupSubmenuAxis);
-    ActionList->insert(5, aSetAxis6);
+//    QAction *aSetAxis6 = mySubMenuAxis->addAction(Coords6);
+//    aSetAxis6->setCheckable(true);
+//    aSetAxis6->setActionGroup(groupSubmenuAxis);
+//    ActionList->insert(5, aSetAxis6);
 
     menuPlot = new QMenu ();
     menuPlot->setFont(MenuBold);
