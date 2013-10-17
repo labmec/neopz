@@ -110,36 +110,19 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
     if(gState == ECurrentState)
     {
         REAL fXfLoc = fXf;
-        if(fForcingFunction) {            
+        if(fForcingFunction) {
             TPZManVector<STATE> res(1);
             fForcingFunction->Execute(x,res);
             fXfLoc = res[0];
         }
         
-        TPZVec<STATE> ConvDirAx;
-        ConvDirAx.Resize(fDim, 0.);
-
-        int di,dj;
-        for(di=0; di<fDim; di++){
-            for(dj=0; dj<fDim; dj++){
-                 ConvDirAx[di] += axes(di,dj)*fConvDir[dj];
-            }
-        }
-                
-        //Equacao de Poisson
         for(int in = 0; in < phr; in++ ) {
             
-            int kd;
             ef(in, 0) += fTimeStep*weight*fXfLoc*phi(in,0);
             
             for(int jn = 0; jn < phr; jn++ )
             {
                 ek(in,jn) += weight*fRho*phi(in,0)*phi(jn,0);
-                
-                for(kd=0; kd<fDim; kd++)
-                {
-                    ek(in,jn) += weight*(-fTimeStep*ConvDirAx[kd]*dphi(kd,in)*phi(jn,0));
-                }
             }
         }
     }//end stiffness matrix
@@ -148,11 +131,27 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
     //Last state (n): mass matrix
 	if(gState == ELastState)
     {
+        TPZVec<STATE> ConvDirAx;
+        ConvDirAx.Resize(fDim, 0.);
+        
+        int di,dj;
+        for(di=0; di<fDim; di++){
+            for(dj=0; dj<fDim; dj++){
+                ConvDirAx[di] += axes(di,dj)*fConvDir[dj];
+            }
+        }
+        
+        int kd;
         for(int in = 0; in < phr; in++) {
             
             for(int jn = 0; jn < phr; jn++)
             {
                 ek(in,jn) += weight*fRho*phi(in,0)*phi(jn,0);
+                
+                for(kd=0; kd<fDim; kd++)
+                {
+                    ek(in,jn) += weight*(fTimeStep*ConvDirAx[kd]*dphi(kd,in)*phi(jn,0));
+                }
             }
         }
     }
@@ -160,8 +159,8 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
 }
 
 void TPZMatConvectionProblem::ContributeBC(TPZMaterialData &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
-                                              
-   
+    
+    
     std::cout<<" This class uses only discontinuous functions"<<std::endl;
 	DebugStop();
 }
@@ -169,10 +168,10 @@ void TPZMatConvectionProblem::ContributeBC(TPZMaterialData &datavec,REAL weight,
 
 void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    if(gState == ELastState){
+    if(gState == ECurrentState){
 		return;
 	}
-
+    
 	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
@@ -197,14 +196,14 @@ void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMate
         {
 			for(jl=0; jl<nrowl; jl++)
             {
-				ek(il,jl) += weight*fTimeStep*ConvNormal*phiL(il,0)*phiL(jl,0);
+				ek(il,jl) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiL(jl,0));
 			}
 		}
 		for(ir=0; ir<nrowr; ir++)
         {
 			for(jl=0; jl<nrowl; jl++)
             {
-				ek(ir+nrowl,jl) -= weight*fTimeStep*ConvNormal*phiR(ir,0)*phiL(jl,0);
+				ek(ir+nrowl,jl) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiL(jl,0));
 			}
 		}
 	} else{
@@ -212,18 +211,19 @@ void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMate
         {
 			for(jr=0; jr<nrowr; jr++)
             {
-				ek(ir+nrowl,jr+nrowl) -= weight*fTimeStep*ConvNormal*phiR(ir,0)*phiR(jr,0);
+				ek(ir+nrowl,jr+nrowl) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiR(jr,0));
 			}
 		}
 		for(il=0; il<nrowl; il++)
         {
 			for(jr=0; jr<nrowr; jr++)
             {
-				ek(il,jr+nrowl) += weight*fTimeStep*ConvNormal*phiL(il,0)*phiR(jr,0);
+				ek(il,jr+nrowl) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiR(jr,0));
 			}
 		}
 	}
 }
+
 
 void TPZMatConvectionProblem::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
