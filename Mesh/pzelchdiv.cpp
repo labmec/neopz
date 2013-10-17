@@ -784,8 +784,8 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &s
 {	
     TPZMaterialData data;
 	InitMaterialData(data);
-//	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
-	this->ComputeSolutionHDiv(data);
+	//this->ComputeSolutionHDiv(data);
+    this->ComputeSolutionHDiv(qsi,data);
 	this->Material()->Solution(data,var,sol);
 }
 
