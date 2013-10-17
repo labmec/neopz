@@ -224,7 +224,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	fileerrors << "Approximation Error: " << std::endl;
 	
 	int nref = 1, NRefs = 4;
-    int ninitialrefs = 3;
+    int ninitialrefs = 4;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
@@ -233,7 +233,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
         //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -251,14 +251,15 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			
 			// Defining initial refinements and total refinements depends on dimension of the model
 			if(dim==3) {
-                MaxPOrder = 3;
+                MaxPOrder = 5;
                 NRefs = 4;
             }
             else if(dim==2) {
                 MaxPOrder = 10;
-                NRefs = 6;
+                NRefs = 3;
             }
             else {
+				MaxPOrder = 20;
                 NRefs = 12;
             }
 			// Printing geometric mesh to validate
@@ -291,7 +292,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
             
 			// Creating computational mesh (approximation space and materials)
-			int p = 1, pinit;
+			int p = 6, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25

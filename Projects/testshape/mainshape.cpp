@@ -125,11 +125,11 @@ int main() {
 //    TPZVTKGraphMesh graphmesh( compmesh,2,mater,scalnames,vecnames);
 
 	TPZCompElDisc *intel = NULL;
-    int index = 0;
+    long index = 0;
     TPZVec<REAL> qsi(3,0.0);
     TPZFMatrix<STATE> MeshSol = compmesh->Solution();
     MeshSol.Zero();
-    TPZSolVec sol;
+    TPZVec<TPZVec<REAL> > sol;
     
     for(long iel=0;iel<compmesh->NElements();iel++) {
         intel = dynamic_cast<TPZCompElDisc* >(compmesh->ElementVec()[iel]);
@@ -141,39 +141,37 @@ int main() {
         if(index==iel) {
             ComputeShape((TPZInterpolatedElement *)intel,qsi,phi,dphi,axes);
             int numdof = intel->Material()->NStateVariables();
-            int ncon = intel->NConnects();
-            int numbersol = MeshSol.Cols();
+            long ncon = intel->NConnects();
+            long numbersol = MeshSol.Rows();
             sol.Resize(numbersol);
             
-            for (int is=0 ; is<numbersol; is++) {
+            for (long is=0 ; is<numbersol; is++) {
                 sol[is].Resize(numdof);
                 sol[is].Fill(0.);
             }
             
             TPZBlock<STATE> &block = compmesh->Block();
-            int iv = 0;
-            for(int in=0; in<ncon; in++) {
+            long iv = 0;
+            for(long in=0; in<ncon; in++) {
                 TPZConnect *df = &(intel->Connect(in));
-                int dfseq = df->SequenceNumber();
+                long dfseq = df->SequenceNumber();
                 int dfvar = block.Size(dfseq);
-//                int pos = block.Position(dfseq);
+//                long pos = block.Position(dfseq);
                 for(int jn=0; jn<dfvar; jn++) {
-                    for (int is=0; is<numbersol; is++) {
-                        sol[is][iv%numdof] += (STATE)phi(iv/numdof,0);
-                    }
+                    sol[iel][iv%numdof] += (STATE)phi(iv/numdof,0);
                     iv++;
                 }
             }
         }
     }
-    for(int jn=0;jn<MeshSol.Rows();jn++)
-        for(int is=0;is<MeshSol.Cols();is++)
-            MeshSol.PutVal(jn,is,sol[is][jn]);
+    for(long jn=0;jn<MeshSol.Rows();jn++)
+        for(long is=0;is<MeshSol.Cols();is++)
+            MeshSol.PutVal(jn,is,sol[jn][is]);
     
     return 0;
      
     /** Another shape functions */
-	int elem;
+	long elem;
 	//int side, dim = 3; // se dim igual a 3 sera construida malha com elementos tridimensionais, se diferente elementos bidimensionais
 	int max_order, elem_type;
 	TPZInterpolatedElement *el;
