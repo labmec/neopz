@@ -29,7 +29,7 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
 }
 
 TPZSandlerExtended::TPZSandlerExtended(REAL A, REAL B,REAL C, REAL D,REAL K,REAL G,REAL W,REAL R,REAL Phi,REAL N,REAL Psi):
-fA(A),fB(B),fC(C),fD(D),fW(W),fK(K),fG(G),fR(R),fPhi(Phi),fN(N),fPsi(Psi)
+fA(A),fB(B),fC(C),fD(D),fK(K),fG(G),fW(W),fR(R),fPhi(Phi),fN(N),fPsi(Psi)
 {
     
 }
@@ -131,8 +131,6 @@ TPZManVector<REAL> TPZSandlerExtended::FromPrincipalToHWCyl(TPZTensor<REAL>::TPZ
     temp(2,0)=PrincipalCoords.fEigenvalues[2];
     GetRotMatrix(Rot);
     Rot.Multiply(temp,cart);
-    cout << "\n temp = "<<temp<<endl;
-    cout << "\n cart = "<<cart<<endl;
     cylsol[0]=cart(0,0);
     cylsol[1]=sqrt(cart(1,0)*cart(1,0)+cart(2,0)*cart(2,0));
     //cylsol[2]=atan2(cart(1,0),cart(2,0));
@@ -241,7 +239,6 @@ TPZFMatrix<REAL> TPZSandlerExtended::DDistFunc1(TPZTensor<REAL>::TPZDecomposed p
 TPZFMatrix<REAL> TPZSandlerExtended::DDistFunc2(TPZTensor<REAL>::TPZDecomposed pt,REAL theta,REAL beta,REAL k,REAL kprev)
 {
     REAL sqrt2=sqrt(2);
-    REAL sqrt3=sqrt(3);
     REAL expfBk=exp(fB*k);
     REAL costheta, sintheta,c1,c2,c3,c4,c5,c6,c7,sig1,sig2,sig3,sinbeta,cosbeta,sin3beta,cos3beta;
     sinbeta=sin(beta);
@@ -292,7 +289,7 @@ TPZFMatrix<REAL> TPZSandlerExtended::D2DistFunc1(TPZTensor<REAL>::TPZDecomposed 
     REAL expsqrt3fBxi=exp(sqrt3*fB*xi);
     REAL d2distf1dxixi,d2distf1dxibeta;
     REAL d2distf1dbetaxi,d2distf1dbetabeta;
-    REAL sinbeta,cos3beta,cosbeta,cos2beta,cos7beta,cos6beta,sin5beta,sin7beta,cos4beta,sin2theta,sin3beta,sig1,sig2,sig3;
+    REAL sinbeta,cos3beta,cosbeta,cos2beta,cos7beta,cos6beta,sin5beta,sin7beta,cos4beta,sin3beta,sig1,sig2,sig3;
     cosbeta=cos(beta);
     sin3beta=sin(3*beta);
     sin5beta=sin(5*beta);
@@ -369,8 +366,8 @@ TPZFMatrix<REAL> TPZSandlerExtended::D2DistFunc2(TPZTensor<REAL>::TPZDecomposed 
     REAL sqrt2=sqrt(2);
     REAL d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
     REAL d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
-    REAL dresktheta,dreskbeta,dreskk;
-    REAL sinbeta,cos3beta,sintheta,costheta,cosbeta,cos2beta,cos7beta,cos6beta,sin5beta,sin7beta,cos4beta,sin2theta,sin3beta,cos2theta,c1,c2,c3,c4,c5,c6,c7,c8,c9,gamma,sig1,sig2,sig3;
+    REAL dresktheta,dreskk;
+    REAL sinbeta,cos3beta,sintheta,costheta,cosbeta,cos2beta,cos7beta,cos6beta,sin5beta,sin7beta,cos4beta,sin3beta,cos2theta,c1,c2,c3,c4,c5,c6,c7,c8,c9,gamma,sig1,sig2,sig3;
     cos2theta=cos(2*theta);
     sintheta=sin(theta);
     costheta=cos(theta);
@@ -484,11 +481,12 @@ TPZFMatrix<REAL> TPZSandlerExtended::D2DistFunc2(TPZTensor<REAL>::TPZDecomposed 
 
 
 
-void TPZSandlerExtended::YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev,REAL &beta)
+void TPZSandlerExtended::YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev)
 {
     
-    
-    REAL II1,JJ2,JJ3,ggamma;
+    REAL II1,JJ2,JJ3,ggamma,temp1,temp3,f2,sqrtj2,f1,beta;
+    TPZManVector<REAL> cylstress=FromPrincipalToHWCyl(sigma);
+    beta=cylstress[2];
     sigma.ComputeI1(II1);
     sigma.ComputeJ2(JJ2);
     sigma.ComputeJ3(JJ3);
@@ -496,29 +494,35 @@ void TPZSandlerExtended::YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TP
         JJ2=1.e-6;
     }
     ggamma = 0.5*(1. + (1. - sin(3.*beta))/fPsi + sin(3.*beta));
-    REAL temp1,temp2,temp3,temp4;
-    temp1=(II1-kprev)*(II1-kprev);
-    temp2=(fR*F(kprev,fPhi))*(fR*F(kprev,fPhi));
-    temp3=ggamma*sqrt(JJ2)*ggamma*sqrt(JJ2);
-    temp4=(F(kprev,fPhi))*(F(kprev,fPhi));
-    REAL f2=(temp1/temp2)+(temp3/temp4)-1;
-    cout << "\n  f2 "<<f2 << endl;
-    yield[0]=f2;
-    yield[1]=F(II1,fPhi);
+    sqrtj2=sqrt(JJ2);
+    temp1=(-II1+kprev)/(-fR*F(kprev,fPhi));
+    temp3=(ggamma*sqrtj2)/(F(kprev,fPhi));
     
+    f1=sqrtj2-F(II1,fPhi);
+    cout << "\n  f1 "<<f1 << endl;
+    f2=(pow(temp1,2)+pow(temp3,2))-1;
+    cout << "\n  f2 "<<f2 << endl;
+
+    yield[0]=f1;
+    yield[1]=f2;
     
 }
 
 void TPZSandlerExtended::ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj)
 {
-    REAL xi,beta=0.,resnorm,distxi,distnew;
-    long count=0;
+    REAL xi,resnorm,beta,distxi,distnew;
     distxi=1.e8;
-    for (REAL xiguess=0.; xiguess <= M_PI; xiguess += M_PI/20.) {
-        distnew=DistF1(sigmatrial, xiguess,beta);
-        if (fabs(distnew) < fabs(distxi)) {
-            xi = xiguess;
-            distxi = distnew;
+    for (REAL xiguess=-M_PI; xiguess <= M_PI; xiguess += M_PI/20.)
+    {
+        for(REAL betaguess=0;betaguess<=2*M_PI;betaguess+=M_PI/20.)
+        {
+            distnew=DistF1(sigmatrial, xiguess,betaguess);
+            if (fabs(distnew) < fabs(distxi))
+            {
+                xi = xiguess;
+                beta=betaguess;
+                distxi = distnew;
+            }
         }
     }
     
@@ -563,10 +567,9 @@ void TPZSandlerExtended::ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
 
 void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj,REAL &kprev)
 {
-    REAL theta,beta=0.,deltabeta,deltatheta,distnew;
+    REAL theta,beta=0.,distnew;
     REAL resnorm,disttheta;
     disttheta=1.e8;
-    long count=0;
     for (REAL thetaguess=0; thetaguess <= M_PI; thetaguess += M_PI/20.) {
         for (REAL betaguess=0; betaguess <= 2*M_PI; betaguess += M_PI/20.) {
             distnew=DistF2(sigmatrial,thetaguess,betaguess,kprev);
@@ -595,11 +598,10 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
         resnorm=Norm(diff);
         xn=xn1;
         counter++;
-        cout<< "\n resnorm = "<<resnorm <<endl;
-        cout<< "\n xn1 = "<<xn1 <<endl;
-        cout<< "\n deltak = "<<xn1[2]-kprev <<endl;
     }
-    
+    cout<< "\n resnorm = "<<resnorm <<endl;
+    cout<< "\n counter = "<<counter <<endl;
+    cout<< "\n k = "<<(xn1(2,0)-kprev) <<endl;
     REAL sin3beta,gamma,I1,sqrtj2,thetasol,betasol,ksol;
     
     thetasol=xn1[0];
@@ -608,7 +610,7 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     kprev=ksol;
     sin3beta = sin(3*betasol);
     gamma=0.5*(1 + (1 - sin3beta)/fPsi +  sin3beta);
-    I1 = ksol*fR*F(ksol,fPhi)*cos(thetasol);
+    I1 = ksol+fR*F(ksol,fPhi)*cos(thetasol);
     sqrtj2 = fabs((F(ksol,fPhi) -fN)*sin(thetasol)/gamma);
     TPZVec<REAL> i1sqrtj2(2,0.);
     i1sqrtj2[0]=I1;
@@ -619,21 +621,17 @@ void TPZSandlerExtended::ProjectF2(TPZTensor<REAL>::TPZDecomposed &sigmatrial, T
     sigtrial.ZZ()=sigmatrial.fEigenvalues[2];
     sigtrial.Adjust(i1sqrtj2,sigcor);
     TPZTensor<REAL>::TPZDecomposed tempp(sigcor);
-    
     sigproj=tempp;
     
-    
-    
-    
+
     
 }
 
 void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj,REAL &kprev)
 {
-    REAL theta,beta=0.,deltabeta,deltatheta,distnew;
+    REAL theta,beta=0.,distnew;
     REAL resnorm,disttheta;
     disttheta=1.e8;
-    long count=0;
     
     for (REAL betaguess=0; betaguess <= 2*M_PI; betaguess += M_PI/20.) {
         distnew=DistF2(sigmatrial,M_PI/2,betaguess,kprev);
@@ -664,11 +662,11 @@ void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial,
         resnorm=Norm(diff);
         xn=xn1;
         counter++;
-        cout<< "\n resnorm = "<<resnorm <<endl;
-        cout<< "\n xn1 = "<<xn1 <<endl;
-        cout<< "\n deltak = "<<xn1[2]-kprev <<endl;
+
     }
-    
+    cout<< "\n resnorm = "<<resnorm <<endl;
+    cout<< "\n counter = "<<xn1 <<endl;
+    cout<< "\n k = "<<xn1[2] <<endl;
     REAL sin3beta,gamma,I1,sqrtj2,thetasol,betasol,ksol;
     
     thetasol=xn1[0];
@@ -676,7 +674,7 @@ void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial,
     ksol=xn1[2];
     sin3beta = sin(3*betasol);
     gamma=0.5*(1 + (1 - sin3beta)/fPsi +  sin3beta);
-    I1 = ksol*fR*F(ksol,fPhi)*cos(thetasol);
+    I1 = ksol+fR*F(ksol,fPhi)*cos(thetasol);
     sqrtj2 = (F(ksol,fPhi) -fN)*sin(thetasol)/gamma;
     TPZVec<REAL> i1sqrtj2(2,0.);
     i1sqrtj2[0]=I1;
@@ -690,7 +688,6 @@ void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial,
     sigproj=tempp;
     
     
-    
 }
 
 /**
@@ -701,78 +698,102 @@ void TPZSandlerExtended::ProjectRing(TPZTensor<REAL>::TPZDecomposed &sigmatrial,
  */
 void TPZSandlerExtended::ApplyStrainComputeSigma(TPZPlasticState<REAL> &plasticstate, TPZTensor<REAL> &sigma)
 {
-    REAL k0,epspv=plasticstate.fEpsP.I1();
+    TPZTensor<REAL> stresstrialtensor;
+    TPZTensor<REAL>::TPZDecomposed epsdecomposed(plasticstate.EpsT());
+    epsdecomposed.ApplyStrainComputeElasticStress(stresstrialtensor, fK,fG);
+    TPZVec<REAL> yield(2);
+    TPZTensor<REAL>::TPZDecomposed sigtrialdecomposed(stresstrialtensor),sigmaprojdecomposed;
+    
+    
+    REAL I1,sqrtj2,kproj,k0,epspv=plasticstate.fEpsP.I1();
     Firstk(epspv,k0);
+    sigtrialdecomposed.ComputeI1(I1);
+    sigtrialdecomposed.ComputeJ2(sqrtj2);
+    sqrtj2=sqrt(sqrtj2);
     
-    TPZTensor<REAL>::TPZDecomposed sigtrial,sigmaproj;
-    TPZTensor<REAL> eps;
+    YieldFunction(sigtrialdecomposed,yield,k0);
     
-    ProjectF1(sigtrial,sigmaproj);
-    ProjectF2(sigtrial,sigmaproj,k0);
-    ProjectRing(sigtrial,sigmaproj,k0);
-    //
-    //    TPZManVector<REAL,2> yield(2,0.);
-    //    YieldFunction(sigtrial, yield, k0);
-    //    if (yield[0] <= 0. && yield[1] <= 0.) {
-    //        epspproj = epspv;
-    //        sigmaproj = sigtrial;
-    //        return;
-    //    }
-    //    TPZTensor<REAL> S;
-    //    sigtrial.S(S);
-    //    REAL J2 = S.J2();
-    //    REAL sqJ2 = sqrt(fabs(J2));
-    //    REAL I1 = sigtrial.I1();
-    //    if (yield[1] > 0.) {
-    //        // project the point on surface F2
-    //        TPZManVector<REAL,2> sigtrialIJ(2);
-    //        sigtrialIJ[0] = I1;
-    //        sigtrialIJ[1] = sqJ2;
-    //        REAL epspprev = epsp;
-    //        NewtonF3(ER, epsp, sigtrialIJ);
-    //        sigtrial.Adjust(sigtrialIJ, sigproj);
-    //        epspproj = epsp;
-    //        TPZManVector<TPZTensor<REAL>,2> Ndir(2);
-    //        this->N(sigproj, epspproj, Ndir, 1);
-    //        TPZTensor<REAL> sigPlast(sigtrial),epsPlast;
-    //        sigPlast.Add(sigproj, -1.);
-    //        ER.ComputeDeformation(sigPlast, epsPlast);
-    //        REAL scale = epsPlast.Norm()/Ndir[1].Norm();
-    //        for (int i=0; i<6; i++) {
-    //            REAL diff = fabs(scale*Ndir[1][i]-epsPlast[i]);
-    //            if (diff > 1.e-6) {
-    //                epsp = epspprev;
-    //                sigtrialIJ[0] = I1;
-    //                sigtrialIJ[1] = sqJ2;
-    //                
-    //                NewtonF3(ER, epsp, sigtrialIJ);
-    //                
-    //                //                DebugStop();
-    //            }
-    //        }
-    //        delgamma[0] = 0.;
-    //        delgamma[1] = scale;
-    //    }
-    //    Compute(sigproj, epspproj, yield, 0);
-    //#ifdef LOG4CXX
-    //    if(loggerSM->isDebugEnabled())
-    //    {
-    //        std::stringstream sout;
-    //        sout << "After projecting the point yield = " << yield;
-    //        sout << "\ndelgamma = " << delgamma;
-    //        LOGPZ_DEBUG(loggerSM, sout.str())
-    //    }
-    //#endif
-    //    if (yield[0] > 0.) {
-    //        ;
-    //        //        DebugStop();
-    //    }
-    //    if (yield[1] > 1.e-6) {
-    //        DebugStop();
-    //    }
-    //    // falta calcular delgamma
-    //
-    //    
+    
+    if (I1<k0)
+    {
+        if (yield[1]>0.)
+        {
+            ProjectF2(sigtrialdecomposed,sigmaprojdecomposed,k0);
+        }
+    }
+    else
+    {
+        if (yield[0]>0.)
+        {
+            ProjectF1(sigtrialdecomposed,sigmaprojdecomposed);
+            sigmaprojdecomposed.ComputeJ2(I1);
+            if (I1<k0)
+            {
+                ProjectRing(sigtrialdecomposed,sigmaprojdecomposed,k0);
+            }
+            
+        }
+        else if (yield[1]>0.)
+        {
+            ProjectF2(sigtrialdecomposed,sigmaprojdecomposed,k0);
+        }
+    }
     
 }
+
+/**
+ * Imposes the specified strain tensor and returns the correspondent stress state.
+ *
+ * @param[in] epsTotal Imposed total strain tensor
+ * @param[out] sigma Resultant stress
+ */
+void TPZSandlerExtended::ApplyStrainComputeSigma(TPZTensor<REAL> &eps, TPZTensor<REAL> &sigma,REAL &epspv)
+{
+    TPZTensor<REAL> stresstrialtensor;
+    TPZTensor<REAL>::TPZDecomposed epsdecomposed(eps);
+    epsdecomposed.ApplyStrainComputeElasticStress(stresstrialtensor, fK,fG);
+    TPZVec<REAL> yield(2);
+    TPZTensor<REAL>::TPZDecomposed sigtrialdecomposed(stresstrialtensor),sigmaprojdecomposed;
+    
+    
+    REAL I1,sqrtj2,k0=epspv;
+    //Firstk(epspv,k0);
+    sigtrialdecomposed.ComputeI1(I1);
+    sigtrialdecomposed.ComputeJ2(sqrtj2);
+    sqrtj2=sqrt(sqrtj2);
+    
+    YieldFunction(sigtrialdecomposed,yield,k0);
+    
+    
+    if (I1<k0)
+    {
+        if (yield[1]>0.)
+        {
+            ProjectF2(sigtrialdecomposed,sigmaprojdecomposed,k0);
+        }
+    }
+    else
+    {
+        if (yield[0]>0.)
+        {
+            ProjectF1(sigtrialdecomposed,sigmaprojdecomposed);
+            sigmaprojdecomposed.ComputeJ2(I1);
+            if (I1<k0)
+            {
+                ProjectRing(sigtrialdecomposed,sigmaprojdecomposed,k0);
+            }
+            
+        }
+        else if (yield[1]>0.)
+        {
+            ProjectF2(sigtrialdecomposed,sigmaprojdecomposed,k0);
+        }
+    }
+    sigma.XX()=sigmaprojdecomposed.fEigenvalues[0];
+    sigma.YY()=sigmaprojdecomposed.fEigenvalues[1];
+    sigma.ZZ()=sigmaprojdecomposed.fEigenvalues[2];
+    epspv=k0;
+}
+
+
 

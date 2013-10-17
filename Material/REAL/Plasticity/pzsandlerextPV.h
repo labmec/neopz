@@ -56,7 +56,7 @@ public:
     
     void F2(REAL theta,REAL beta,REAL k,TPZManVector<REAL> &sol);
     
-    void YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev,REAL &beta);
+    void YieldFunction(TPZTensor<REAL>::TPZDecomposed &sigma, TPZVec<REAL> &yield,REAL &kprev);
     
     void ProjectF1(TPZTensor<REAL>::TPZDecomposed &sigmatrial, TPZTensor<REAL>::TPZDecomposed &sigproj);
     
@@ -72,10 +72,13 @@ public:
 	 */
 	virtual void ApplyStrainComputeSigma(TPZPlasticState<REAL> &plasticstate, TPZTensor<REAL> &sigma);
     
+    void ApplyStrainComputeSigma(TPZTensor<REAL> &eps, TPZTensor<REAL> &sigma,REAL &epspv);
+    
     
 public:
     
     REAL fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fk0;
+    bool fIsonCap;
     
     
 };
