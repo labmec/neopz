@@ -20,17 +20,31 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 
 TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
 	fk = 1.;
+    fvisc = 1.;
 	ff = 0.;
 }
 
 TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
 	fk = 1.;
+    fvisc = 1.;
 	ff = 0.;
-  
 }
 
 TPZMixedPoisson::~TPZMixedPoisson() {
 }
+
+TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
+    fk = cp.fk;
+    fvisc = cp.fvisc;
+    ff = cp.ff;
+}
+
+TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
+    fk = copy.fk;
+    fvisc = copy.fvisc;
+    ff = copy.ff;
+    return *this;
+} 
 
 int TPZMixedPoisson::NStateVariables() {
 	return 1;
@@ -71,7 +85,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
 	
 	//Calculate the matrix contribution for flux. Matrix A
-    REAL ratiok = 1./fk;
+    REAL ratiok = fvisc/fk;
     for(int iq=0; iq<phrq; iq++)
     {
         ef(iq, 0) += 0.;

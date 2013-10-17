@@ -19,10 +19,10 @@
  * @author Agnaldo Farias
  * @since 5/28/2012
  * @brief Material to solve a mixed poisson problem 2d by multiphysics simulation
- * @brief Pressure(p): uses H1 space.  Velocity (Q): uses Hdiv space
+ * @brief Pressure(p): uses L2 space.  Velocity (Q): uses Hdiv space
  */
 /**
- * \f$ Q = -k*grad(p)  ==> Int{Q.q}dx - k*Int{p*div(q)}dx + k*Int{p*Dq.n}ds = 0  (Eq. 1)  \f$ 
+ * \f$ Q = -(k/visc)*grad(p)  ==> Int{Q.q}dx - (k/visc)*Int{p*div(q)}dx + (k/visc)*Int{pD(q.n)}ds = 0  (Eq. 1)  \f$ 
  *
  * \f$ div(Q) = f  ==> Int{div(Q)*v}dx = Int{f*v}dx (Eq. 2) \f$ 
  *
@@ -36,8 +36,11 @@ protected:
 	/** @brief Forcing function value */
 	REAL ff;
 	
-	/** @brief Coeficient which multiplies the gradient operator */
+	/** @brief Medium permeability. Coeficient which multiplies the gradient operator*/
 	REAL fk;
+    
+    /** @brief fluid viscosity*/
+	REAL fvisc;
     
     /** @brief Problem dimension */
 	int fDim;
@@ -49,18 +52,27 @@ public:
     
     virtual ~TPZMixedPoisson();
     
+    TPZMixedPoisson(const TPZMixedPoisson &cp);
+    
+    TPZMixedPoisson &operator=(const TPZMixedPoisson &copy);
+    
+    
     virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMixedPoisson"; }
     
     virtual int NStateVariables();
 	
-	void SetParameters(REAL dif) {
-		fk = dif;
+	void SetPermeability(REAL perm) {
+		fk = perm;
 	}
 	
-	void GetParameters(REAL &dif) {
-		dif = fk;
+    void SetViscosity(REAL visc) {
+		fvisc = visc;
+	}
+    
+	void GetPermeability(REAL &perm) {
+		perm = fk;
 	}
 	
 	void SetInternalFlux(REAL flux) {
