@@ -478,7 +478,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     REAL coefk=1.;
     mymaterial = new TPZMixedPoisson(MatId,dim);
-    mymaterial->SetParameters(coefk);
+    mymaterial->SetPermeability(coefk);
     
     
     TPZMaterial *mat(mymaterial);

@@ -8,24 +8,35 @@
 #include "pzcompel.h"
 #include "pzbndcond.h"
 #include "TPZInterfaceEl.h"
-#include "pzbuildmultiphysicsmesh.h"
-#include "pzinterpolationspace.h"
-#include "TPZCompElDisc.h"
-#include "pzpoisson3d.h"
-#include "pzconvectionproblem.h"
-#include "mixedpoisson.h"
 
+#include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoLinear.h"
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
+#include "pzgeoelside.h"
 
-#include "pzanalysis.h"
+#include "pzvec.h"
+#include "pzstack.h"
+#include "pzfmatrix.h"
+#include "pzfstrmatrix.h"
+#include "TPZParSkylineStructMatrix.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPBSpStructMatrix.h"
+#include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 
+#include "pzanalysis.h"
+
+#include "pzbuildmultiphysicsmesh.h"
+
+#include "TPZCompElDisc.h"
+#include "pzpoisson3d.h"
+//#include "pzconvectionproblem.h"
+#include "mixedpoisson.h"
 #include "pztracerflow.h"
+
+#include "pzanalysis.h"
 
 #include "TPZVTKGeoMesh.h"
 
@@ -103,7 +114,7 @@ int main(int argc, char *argv[])
     ofstream arg("gmesh1.txt");
     gmesh->Print(arg);
     
-    RefinamentoPadrao3x3(gmesh,1,pt, true, matId+1, Area);
+    //RefinamentoPadrao3x3(gmesh,1,pt, true, matId+1, Area);
     //UniformRefine(gmesh, 3);
     
     TPZCompMesh *cmesh1 = CMeshFlux(gmesh, pq,true);
@@ -192,16 +203,12 @@ int main(int argc, char *argv[])
 
 void SolExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
     
-    REAL x = ptx[0];
-	REAL y = ptx[1];
-    
-        
+   // REAL x = ptx[0];
+	//REAL y = ptx[1];
     
     sol.Resize(1, 0.);
-	
     flux(0,0)=0.;
     flux(1,0)=0.;
-    
 }
 
 
@@ -214,13 +221,13 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
-	TPZVec <int> TopolQuad(4);
-    TPZVec <int> TopolTriang(3);
-	TPZVec <int> TopolLine(2);
-    TPZVec <int> TopolPoint(1);
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
+    TPZVec <long> TopolPoint(1);
 	
 	//indice dos nos
-	int id = 0;
+	long id = 0;
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
@@ -250,7 +257,7 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
         TopolTriang[0] = 0;
         TopolTriang[1] = 1;
         TopolTriang[2] = 3;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,matId,*gmesh);
         id++;
         
         TopolTriang[0] = 2;
@@ -773,54 +780,52 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool 
     
     return mphysics;
 }
+//
+//TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,TPZTracerFlow * &material)
+//{
+//	/// criar materiais
+//	int dim = 2;
+//	
+//	material = new TPZMatConvectionProblem(matId,dim);
+//	TPZMaterial * mat(material);
+//	
+//	TPZVec<REAL> convdir(dim,0.);
+//    convdir[0]=1.;
+//	REAL flux = 0.;
+//    REAL rho = 1.;
+//	
+//	material->SetParameters(rho,convdir);
+//	material->SetInternalFlux(flux);
+//	material->NStateVariables();
+//	
+//	TPZCompEl::SetgOrder(pOrder);
+//	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+//	cmesh->SetDimModel(dim);
+//    
+//	cmesh->SetAllCreateFunctionsDiscontinuous();
+//	cmesh->InsertMaterialObject(mat);
+//    
+//	///Inserir condicao de contorno
+//	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+//    REAL uD =2.;
+//    val2(0,0) = uD;
+//	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
+//    val2(0,0) = 0.;
+//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,outflow, val1, val2);
+//    
+//    cmesh->InsertMaterialObject(BCond1);
+//    cmesh->InsertMaterialObject(BCond3);
+//    
+//	
+//	//Ajuste da estrutura de dados computacional
+//	cmesh->AutoBuild();
+//    
+//    //TPZCompElDisc::SetTotalOrderShape(cmesh);
+//	
+//	return cmesh;
+//}
 
-TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,TPZTracerFlow * &material)
-{
-	/// criar materiais
-	int dim = 2;
-	
-	material = new TPZMatConvectionProblem(matId,dim);
-	TPZMaterial * mat(material);
-	
-	TPZVec<REAL> convdir(dim,0.);
-    convdir[0]=1.;
-	REAL flux = 0.;
-    REAL rho = 1.;
-	
-	material->SetParameters(rho,convdir);
-	material->SetInternalFlux(flux);
-	material->NStateVariables();
-	
-	TPZCompEl::SetgOrder(pOrder);
-	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-	cmesh->SetDimModel(dim);
-    
-	cmesh->SetAllCreateFunctionsDiscontinuous();
-	cmesh->InsertMaterialObject(mat);
-    
-	///Inserir condicao de contorno
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    REAL uD =2.;
-    val2(0,0) = uD;
-	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
-    val2(0,0) = 0.;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,outflow, val1, val2);
-    
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond3);
-    
-	
-	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
-    
-    //TPZCompElDisc::SetTotalOrderShape(cmesh);
-	
-	return cmesh;
-}
 
-
-
-#include "pzbstrmatrix.h"
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
 	//TPZBandStructMatrix full(fCmesh);
@@ -995,7 +1000,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
     if(!refpOutroLugar) DebugStop();
     
-    int iniEl = 0;
+    long iniEl = 0;
     TPZVec<REAL> qsi(2,0.);
     
     TPZGeoEl * gel = NULL;
