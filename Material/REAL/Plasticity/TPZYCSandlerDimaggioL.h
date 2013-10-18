@@ -776,7 +776,7 @@ inline void TPZYCSandlerDimaggioL::InitialGuess(const TPZElasticResponse &ER, RE
                 // verificar pelo angulo
             REAL verify = FuncTheta2L(ER, theta, Lproj, sigtrialIJkeep);
             if (fabs(verify) > 1.e-9) {
-                std::cout << "Validity of functheta " << verify;
+                std::cout << "Validity of functheta " << verify << std::endl;
             }
         }
         Lproj = L;

@@ -1802,6 +1802,12 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
     
     REAL resultL = L;
     TPZManVector<STATE,2> sigProj(sigtrialIJ);
+    REAL F;
+    ComputeF(sigProj[0],F);
+    if(F > 0.)
+    {
+        resultL = sigProj[0];
+    }
     REAL ddist = DDistance(ER, resultL, sigProj);
     while(ddist < 0.)
     {
@@ -1816,7 +1822,7 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
         REAL d2dist = D2Distance(ER, resultL, sigProj);
         correct = ddist/d2dist;
         
-        resultL -= ddist/d2dist;
+        resultL -= correct;
         if (fabs(resultL) > 1.) {
             correct /= resultL;
         }
@@ -1826,7 +1832,6 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
         count++;
     }
     sigProj[0] = resultL;
-    REAL F;
     ComputeF(resultL, F);
     sigProj[1] = F;
     // compute the increase in epsp

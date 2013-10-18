@@ -30,6 +30,34 @@ public:
     TPZDiffMatrix();
     TPZDiffMatrix(const long rows, const long cols);
     ~TPZDiffMatrix();
+    
+    TPZDiffMatrix(const TPZDiffMatrix &copy) : fRows(copy.fRows), fCols(copy.fCols),fStore(0), fDecomposed(copy.fDecomposed)
+    {
+        if(fRows *fCols)
+        {
+            fStore = new T[fRows*fCols];
+            for (long i=0; i<fRows*fCols; i++) {
+                fStore[i] = copy.fStore[i];
+            }
+        }
+    }
+    
+//    TPZDiffMatrix &operator=(const TPZDiffMatrix &copy)
+//    {
+//        fRows = copy.fRows;
+//        fCols = copy.fCols;
+//        fDecomposed = copy.fDecomposed;
+//        if (fStore) {
+//            delete []fStore;
+//            fStore = 0;
+//        }
+//        if (fRows*fCols) {
+//            fStore = new T[fRows*fCols];
+//            for (int i=0; i<fRows*fCols; i++) {
+//                fStore[i] = copy.fStore[i];
+//            }            
+//        }
+//    }
 	
     /** @brief Resizes and zeroes the matrix. */
     void Redim(const long rows, const long cols);

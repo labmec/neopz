@@ -65,8 +65,13 @@ void TPZPlasticityTest::EvoluateToStep(TPZVec<STATE> &strainRZ, TPZVec<STATE> &s
         fSandler.fYC.fIsonCap = false;
         TPZFNMatrix<36,STATE> dep(6,6,0.);
         TPZTensor<STATE> stress;
-        fSandler.ApplyStrainComputeDep(strain, stress, dep);
-        
+        if(fRStressKnown || fZStressKnown)
+        {
+            fSandler.ApplyStrainComputeDep(strain, stress, dep);
+        }
+        else {
+            fSandler.ApplyStrainComputeSigma(strain, stress);
+        }
         residual = 0.;
         if (fRStressKnown) {
             residual += fabs(stress.XX()-stressgoal.XX());
@@ -141,7 +146,7 @@ void TPZPlasticityTest::PerformSimulation()
         stressRZ[0] = fStressRZInput(istep,0);
         strainRZ[1] = fStrainRZInput(istep,1);
         stressRZ[1] = fStressRZInput(istep,1);
-        if(istep == 2)
+        if(istep == 1494)
         {
             std::cout << __FUNCTION__ << std::endl;
         }
@@ -198,7 +203,7 @@ void MaterialPointTests();
  {
      InitializePZLOG();
      TPZPlasticityTest test;
-     std::string filename("ensaio_all_columns.txt");
+     std::string filename("../ensaio_all_columns.txt");
      test.ReadInputStrainStress(filename);
      
      TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandler;

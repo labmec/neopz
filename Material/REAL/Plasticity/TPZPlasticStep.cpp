@@ -696,13 +696,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
                                resnorm, tangent_FAD, // TPZFMatrix for T1=fad<real> type
                                fPlasticMem[i].fValidEqs,
                                1 /*precond*/, 1 /*resetInvalidEqs*/);
-                
+#ifdef LOG4CXX
+                TPZDiffMatrix< TFAD > tangentcopy(tangent_FAD);
+#endif
                 status = tangent_FAD.Decompose_LU();
                 if(status == EZeroPivot)
                 {
                     std::stringstream sout;
                     sout << "*** ComputeDep *** ### Decompose_LU error! - ZeroPivot ### No inversion will be performed";
 #ifdef LOG4CXX
+                    sout << "\nMatrix before decomposition\n";
+                    sout << tangentcopy;
                     LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -1361,7 +1365,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX
         {
             std::stringstream sout;
-            sout << "After Plastic residual\n" << epsRes_FAD << std::endl;
+            sout << "After Plastic residual\nepsRes_FAD = \n" << epsRes_FAD << std::endl;
             sout << "delGamma_FAD " << delGamma_FAD << std::endl;
             LOGPZ_DEBUG(logger, sout.str())
         }
@@ -1422,7 +1426,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             
             if(countNewton > 8)
             {
-                std::cout << "I should stop\n";
+                std::cout << "countNewton = " << countNewton << " resnorm " << resnorm << " tolerance " << fResTol << "\n";
             }
             // recompute the residual
             PlasticResidual<REAL, TFAD>(NN, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
@@ -1808,7 +1812,21 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
     //  cout << resnorm<<endl;
     // preconditioning the matrix/residual system
     if(precond)
-        for(i=/*7*/0; i<nVars; i++)
+    {
+        for(i=/*7*/0; i<7; i++)
+        {
+            REAL pivot = 0., elem;
+            j = i;
+            elem = shapeFAD::val(tangent(i,j) );
+            if(fabs(pivot) < fabs(elem))pivot = elem;
+            //pivot = fabs(shapeFAD::val(pivot) ) < fabs(shapeFAD::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
+
+            for(j=0; j<nVars; j++)
+                tangent(i,j) = tangent(i,j) / pivot;
+            ResVal(i,0) = ResVal(i,0) / pivot;
+        }
+        
+        for(; i<nVars; i++)
         {
             REAL pivot = 0., elem;
             for(j=0; j<nVars; j++)
@@ -1821,7 +1839,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
                 tangent(i,j) = tangent(i,j) / pivot;
             ResVal(i,0) = ResVal(i,0) / pivot;
         }
-    
+    }
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
@@ -1933,6 +1951,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
     {
         alphaRes_T2 -= delGamma_T2[i] * HMidPt_T2[i]; // 1 eq
     }
+//    STATE multval = shapeFAD::val(multiplier);
+//    multval = sqrt(fabs(multval));
+//    alphaRes_T2 /= (T2)multval;
     
     // compute the values of the yield functions
     fYC.Compute(sigmaNp1_T2, ANp1_T2,phiRes_T2, 1); // nyield eq
