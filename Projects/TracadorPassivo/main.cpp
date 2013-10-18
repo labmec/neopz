@@ -28,11 +28,14 @@
 
 #include "pzanalysis.h"
 
+#include "pzmultiphysicselement.h"
+#include "pzmultiphysicscompel.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 #include "pzbuildmultiphysicsmesh.h"
 
 #include "TPZCompElDisc.h"
 #include "pzpoisson3d.h"
-//#include "pzconvectionproblem.h"
+#include "pzconvectionproblem.h"
 #include "mixedpoisson.h"
 #include "pztracerflow.h"
 
@@ -47,16 +50,20 @@
 using namespace std;
 
 int matId =1;
-int inflow = 0;
-int outflow = 3;
+
+int dirichlet = 0;
+int neumann = 1;
+int inflow = 3;
+int outflow = 4;
+int neumanninflow = 5;
+int dirichletoutflow = 6;
 
 int bc0=-1;
 int bc1=-2;
 int bc2=-3;
 int bc3=-4;
 
-int const dirichlet =0;
-int const neumann = 1;
+
 
 
 TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly);
@@ -67,8 +74,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
 
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder,bool twomaterial);
+TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial);
 TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool twomaterial);
-TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,TPZTracerFlow * &material);
 
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
@@ -80,6 +87,7 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
 
 void SolExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 bool ftriang = false;
 
@@ -95,6 +103,7 @@ int main(int argc, char *argv[])
     
     int pq = 1;
     int pp;
+    int ps=0;
     if(ftriang==true){
         pp = pq-1;
     }else{
@@ -114,12 +123,12 @@ int main(int argc, char *argv[])
     ofstream arg("gmesh1.txt");
     gmesh->Print(arg);
     
-    //RefinamentoPadrao3x3(gmesh,1,pt, true, matId+1, Area);
+    RefinamentoPadrao3x3(gmesh,1,pt, true, matId+1, Area);
     //UniformRefine(gmesh, 3);
     
     TPZCompMesh *cmesh1 = CMeshFlux(gmesh, pq,true);
     TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp,true);
-    //TPZCompMesh *cmeshfluxcoarse = CMeshFlux(gmesh, pq,true);
+    TPZCompMesh *cmesh3 = CMeshSaturation(gmesh, ps,true);
     
     //---------------------------------------------------------------------
     // Cleaning reference of the geometric mesh to cmesh1
@@ -142,30 +151,28 @@ int main(int argc, char *argv[])
     cmesh2->Print(arg2);
     
     // Cleaning reference to cmesh3
-//    gmesh->ResetReference();
-//    cmeshfluxcoarse->LoadReferences();
-//    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmeshfluxcoarse,2,false);
-//    
-//    cmeshfluxcoarse->AdjustBoundaryElements();
-//    cmeshfluxcoarse->CleanUpUnconnectedNodes();
-    //        ofstream arg7("cmesh3_final.txt");
-    //        cmesh3->Print(arg7);
+    gmesh->ResetReference();
+    cmesh3->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,2,false);
+    cmesh3->AdjustBoundaryElements();
+    cmesh3->CleanUpUnconnectedNodes();
+    ofstream arg3("cmeshsaturation.txt");
+    cmesh3->Print(arg3);
 
     //-----------------------------------------------------------------------
-    
-    
     ofstream arg4("gmesh2.txt");
     gmesh->Print(arg4);
     
     
     //malha multifisica
-    TPZVec<TPZCompMesh *> meshvec(2);
+    TPZVec<TPZCompMesh *> meshvec(3);
     meshvec[0] = cmesh1;
     meshvec[1] = cmesh2;
+    meshvec[2] = cmesh3;
     
     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec,true);
-    ofstream arg3("cmeshmultiphysics.txt");
-    mphysics->Print(arg3);
+    ofstream arg5("cmeshmultiphysics.txt");
+    mphysics->Print(arg5);
     
     TPZAnalysis an(mphysics);
     SolveSyst(an, mphysics);
@@ -181,20 +188,7 @@ int main(int argc, char *argv[])
     anflux.Solution().Print("");
     string plotfile2("sol_flux.vtk");
     //cmesh1->LoadSolution(meshvec[0]->Solution());
-    PosProcessFlux(anflux, plotfile2);
-//    
-//    TPZVec<REAL> erros;
-//    ofstream saidaerro("Erro.txt");
-//    anflux.SetExact(*SolExata);
-//     anflux.PostProcessError(erros, saidaerro);
-//
-//    TPZTransfer<REAL> transfer;
-//    cmesh1->BuildTransferMatrix(*cmeshfluxcoarse,transfer);
-//    TPZFMatrix<STATE> coarsesol = cmeshfluxcoarse->Solution();
-//    TPZAnalysis anfluxcoarse(cmeshfluxcoarse);
-//    string plotfile3("sol_fluxcoarse.vtk");
-//    PosProcessFlux(anfluxcoarse, plotfile3);
-    
+    PosProcessFlux(anflux, plotfile2);    
     
     
 	return EXIT_SUCCESS;
@@ -643,7 +637,89 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool twomaterial)
 	return cmesh;
 }
 
+TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial)
+{
+	/// criar materiais
+	int dim = 2;
+	
+	TPZMatConvectionProblem *material = new TPZMatConvectionProblem(matId,dim);
+	TPZMaterial * mat(material);
+	
+	TPZVec<REAL> convdir(dim,0.);
+    convdir[0]=1.;
+	REAL flux = 0.;
+    REAL rho = 1.;
+	
+	material->SetParameters(rho,convdir);
+	material->SetInternalFlux(flux);
+	material->NStateVariables();
+	
+	TPZCompEl::SetgOrder(pOrder);
+	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDimModel(dim);
+	cmesh->InsertMaterialObject(mat);
+    
+    if(twomaterial==true){
+        TPZMatConvectionProblem *material2 = new TPZMatConvectionProblem(matId+1,dim);
+        TPZMaterial * mat2(material2);
+        material2->SetParameters(rho,convdir);
+        material2->SetInternalFlux(flux);
+        material2->NStateVariables();
+        cmesh->InsertMaterialObject(mat2);
+    }
+    
+	///Inserir condicao de contorno
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    REAL uD =2.;
+    val2(0,0) = uD;
+	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
+    val2(0,0) = 0.;
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,outflow, val1, val2);
+    
+    
+    cmesh->SetAllCreateFunctionsDiscontinuous();
+    
+    cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond3);
+    
+    
+    ///set order total da shape
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
+        }
+    }
+	
+    if(twomaterial==true){
+        
+        //Inserir materiais
+        std::set<int> MaterialIDs;
+        MaterialIDs.insert(matId);
+        MaterialIDs.insert(matId+1);
+        MaterialIDs.insert(bc0);
+        MaterialIDs.insert(bc1);
+        MaterialIDs.insert(bc2);
+        MaterialIDs.insert(bc3);
+        
+        cmesh->AutoBuild(MaterialIDs);
+        cmesh->AdjustBoundaryElements();
+        cmesh->CleanUpUnconnectedNodes();
+        
+        return cmesh;
+    }
 
+	//Ajuste da estrutura de dados computacional
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+	cmesh->AutoBuild();
+    
+	return cmesh;
+}
 
 TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     
@@ -707,25 +783,33 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool 
     
     REAL coefk = 9.869233e-08;//[mˆ2]==[100 mD], 1 mD = 9.869233e-13 mˆ2
     REAL coefvisc = 0.000894;//[Pa.s]==[0.894 cP],  1 cp = 10ˆ3 Pa.s
-    REAL vazao = -1.;//[m/s]
+    TPZVec<REAL> convdir(dim,0.);
+    convdir[0]=1.;
+    REAL poros = 1.;
     
-    TPZMixedPoisson *material1 = new TPZMixedPoisson(matId,dim);
+    REAL vazao = -1.;//[m/s]
+    REAL inflow = 1.;
+    
+    TPZTracerFlow *material1 = new TPZTracerFlow(matId,dim);
     
     material1->SetPermeability(coefk);
     material1->SetViscosity(coefvisc);
+    material1->SetPorosity(poros);
+    material1->SetConvectionDirection(convdir);
     
     TPZMaterial *mat1(material1);
     mphysics->InsertMaterialObject(mat1);
     
     //criar segundo material
     if(twomaterial==true){
-        TPZMixedPoisson *material2 = new TPZMixedPoisson(matId+1,dim);
+        TPZTracerFlow *material2 = new TPZTracerFlow(matId+1,dim);
         material2->SetPermeability(coefk/10.);
         material2->SetViscosity(coefvisc);
+        material2->SetPorosity(poros);
+        material2->SetConvectionDirection(convdir);
         TPZMaterial * mat2(material2);
         mphysics->InsertMaterialObject(mat2);
     }
-
     
     TPZMaterial * BCond0;
     TPZMaterial * BCond1;
@@ -734,11 +818,14 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool 
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     BCond0 = material1->CreateBC(mat1, bc0,neumann, val1, val2);
-    BCond1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
     BCond2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
     
+    BCond1 = material1->CreateBC(mat1, bc1,dirichletoutflow, val1, val2);
+    
+    
     val2(0,0)=vazao;
-    BCond3 = material1->CreateBC(mat1, bc3,neumann, val1, val2);
+    val2(1,0)=inflow;
+    BCond3 = material1->CreateBC(mat1, bc3,neumanninflow, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond0);
@@ -765,66 +852,37 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool 
          TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
          TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
          TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-         
-         return mphysics;
+     }else
+     {
+    
+        mphysics->AutoBuild();
+        mphysics->AdjustBoundaryElements();
+        mphysics->CleanUpUnconnectedNodes();
+        
+        // Creating multiphysic elements into mphysics computational mesh
+        TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
      }
     
-    mphysics->AutoBuild();
-	mphysics->AdjustBoundaryElements();
-	mphysics->CleanUpUnconnectedNodes();
-    
-    // Creating multiphysic elements into mphysics computational mesh
-	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
-	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
-	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-    
+    //criar elementos de interface
+    int nel = mphysics->ElementVec().NElements();
+    for(int el = 0; el < nel; el++)
+    {
+        TPZCompEl * compEl = mphysics->ElementVec()[el];
+        if(!compEl) continue;
+        int index = compEl ->Index();
+        if(compEl->Dimension() == mphysics->Dimension())
+        {
+            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(mphysics->ElementVec()[index]);
+            if(!InterpEl) continue;
+            InterpEl->CreateInterfaces();
+            
+        }
+    }
+
     return mphysics;
 }
-//
-//TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,TPZTracerFlow * &material)
-//{
-//	/// criar materiais
-//	int dim = 2;
-//	
-//	material = new TPZMatConvectionProblem(matId,dim);
-//	TPZMaterial * mat(material);
-//	
-//	TPZVec<REAL> convdir(dim,0.);
-//    convdir[0]=1.;
-//	REAL flux = 0.;
-//    REAL rho = 1.;
-//	
-//	material->SetParameters(rho,convdir);
-//	material->SetInternalFlux(flux);
-//	material->NStateVariables();
-//	
-//	TPZCompEl::SetgOrder(pOrder);
-//	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-//	cmesh->SetDimModel(dim);
-//    
-//	cmesh->SetAllCreateFunctionsDiscontinuous();
-//	cmesh->InsertMaterialObject(mat);
-//    
-//	///Inserir condicao de contorno
-//	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-//    REAL uD =2.;
-//    val2(0,0) = uD;
-//	TPZMaterial * BCond3 = material->CreateBC(mat, bc3,inflow, val1, val2);
-//    val2(0,0) = 0.;
-//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,outflow, val1, val2);
-//    
-//    cmesh->InsertMaterialObject(BCond1);
-//    cmesh->InsertMaterialObject(BCond3);
-//    
-//	
-//	//Ajuste da estrutura de dados computacional
-//	cmesh->AutoBuild();
-//    
-//    //TPZCompElDisc::SetTotalOrderShape(cmesh);
-//	
-//	return cmesh;
-//}
-
 
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
@@ -871,6 +929,14 @@ void PosProcessFlux(TPZAnalysis &an, std::string plotfile){
 	an.Print("nothing",out);
 }
 
+//Riemann problem
+void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+	double x = pt[0];
+    //double y = pt[1];
+    if(x<0)disp[0] = 1.;
+    if(x>0)disp[0] = 0.;
+    
+}
 
 void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref){
     

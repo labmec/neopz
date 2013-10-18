@@ -32,6 +32,9 @@ ENABLE_TESTING()
 			#Example of the tracer flow problem in multiphysics simulation.
   			add_subdirectory(TracadorPassivo)
 
+			#Project to test the method hdiv stabilized.
+			add_subdirectory(HDivEstabilizado)
+
 			#Example of the hybrid mesh
 			add_subdirectory(HybridMesh)
 			

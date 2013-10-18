@@ -310,6 +310,27 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 			}
             
             break;
+            
+        case 5 :        // Neumann(pressure)-Inflow(saturation)
+			//primeira equacao
+			for(int iq=0; iq<phrQ; iq++)
+            {
+                ef(iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
+                for (int jq=0; jq<phrQ; jq++) {
+                    
+                    ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
+                }
+            }
+			break;
+            
+        case 6 :		// Dirichlet(pressure)-Outflow(saturation)
+			//primeira equacao
+			for(int iq=0; iq<phrQ; iq++)
+            {
+                //the contribution of the Dirichlet boundary condition appears in the flow equation
+                ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
+            }
+            break;
 	}
 }
 
@@ -399,7 +420,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 	for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
     
 	switch(bc.Type()) {
-		case 0: // DIRICHLET or INFLOW
+		case 3: // Inflow or Dirichlet
 			
             //convection
 			if(ConvNormal > 0.)
@@ -414,7 +435,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
             else{
 				for(il=0; il<nrowl; il++)
                 {
-					ef(il+rQPleft,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(0,0)*phiL(il);
+					ef(il+rQPleft,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(1,0)*phiL(il);
 				}
 			}
 			
@@ -427,7 +448,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 			}
             break;
             
-		case 3: // outflow condition
+		case 4: // outflow condition
 			if(ConvNormal > 0.) {
 				for(il=0; il<nrowl; il++) {
 					for(jl=0; jl<nrowl; jl++) {
@@ -439,6 +460,40 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
 			}
 			break;
+            
+        case 5: // // Neumann(pressure)-Inflow(saturation)
+			
+            //convection
+			if(ConvNormal > 0.)
+            {
+				for(il=0; il<nrowl; il++){
+					for(jl=0; jl<nrowl; jl++)
+                    {
+						ek(il+rQPleft,jl+rQPleft) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+					}
+				}
+			}
+            else{
+				for(il=0; il<nrowl; il++)
+                {
+					ef(il+rQPleft,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(1,0)*phiL(il);
+				}
+			}
+			break;
+            
+        case 6: // Dirichlet(pressure)-Outflow(saturation)
+			if(ConvNormal > 0.) {
+				for(il=0; il<nrowl; il++) {
+					for(jl=0; jl<nrowl; jl++) {
+						ek(il+rQPleft,jl+rQPleft) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+					}
+				}
+			}
+			else {
+				if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
+			}
+			break;
+
 			
 		default:
 			PZError << __PRETTY_FUNCTION__ << " - Wrong boundary condition type\n";
@@ -491,3 +546,12 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
 		return;
 	}
 }
+
+void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+	DebugStop();
+}
+
+void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+	DebugStop();
+}
+
