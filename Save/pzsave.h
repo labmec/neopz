@@ -273,7 +273,40 @@ public:
 		WriteObjects(buf,vec.fFree);
 		WriteObjects(buf,vec.fNFree);
 	}
-	
+
+	/**
+	 * Write for chunk vectors with basic elements as float, double, long double, std::complex<...> .
+	 */
+	template<class T, int EXP>
+	static void WriteObjects(TPZStream &buf,const TPZAdmChunkVector<T,EXP> &vec,bool basic)
+	{
+		if(!basic) {
+			DebugStop();
+			return;
+		}
+		long c,nc = vec.NElements();
+		buf.Write(&nc,1);
+		for(c=0; c<nc; c++) buf.Write(&vec[c],1);
+		buf.Write(&vec.fCompactScheme,1);
+		WriteObjects(buf,vec.fFree,true);
+		WriteObjects(buf,vec.fNFree,true);
+	}
+	template<class T>
+	static void WriteObjects(TPZStream &buf, const TPZVec<T> &vec,bool basic)
+	{
+		if(!basic) {
+			DebugStop();
+			return;
+		}
+		long c,nc = vec.NElements();
+		buf.Write(&nc,1);
+		for(c=0; c<nc; c++)
+            buf.Write(&vec[c],1);
+	}
+
+	/**
+	 * @brief Methods to read objects or pointer for objects.
+	 */
 	template<class T>
 	static void ReadObjects(TPZStream &buf, TPZVec<T> &vec, void *context)
 	{
@@ -387,6 +420,18 @@ public:
 		buf.Read(&nc,1);
 		vec.Resize(nc);
 		if(nc) buf.Read(&vec[0],nc);
+	}
+
+	template<class T, int EXP>
+	static void ReadObjects(TPZStream &buf, TPZAdmChunkVector<T,EXP> &vec)
+	{
+		long c,nc;
+		buf.Read(&nc,1);
+		vec.Resize(nc);
+		for(c=0; c<nc; c++) buf.Read(&vec[c],1);
+		buf.Read(&vec.fCompactScheme,1);
+		ReadObjects(buf,vec.fFree);
+		ReadObjects(buf,vec.fNFree);
 	}
 
 	static void ReadObjects(TPZStream &buf, std::vector<std::complex<float> > &vec)

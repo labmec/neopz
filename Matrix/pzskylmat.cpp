@@ -1579,7 +1579,8 @@ void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline, TPZVec<TVa
 	} else {
 		point[0] = 0;
 	}
-	for(i=1; i<dim+1; i++) point[i] = point[i-1]+(i-1)-skyline[i-1]+1;
+	for(i=1; i<dim+1; i++)
+		point[i] = point[i-1]+(i-1)-skyline[i-1]+1;
 }
 
 /**

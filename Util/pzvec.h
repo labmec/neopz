@@ -338,11 +338,16 @@ void TPZVec<T>::Resize(const long newsize,const T& object) {
 	fNElements = newsize;//cedric 20/11/99 e 29/04/00
 }
 
+#include <limits>
+
 template< class T >
 void TPZVec<T>::Resize(const long newsize) {
 #ifndef NODEBUG
-	if(newsize<0) {
+	int sz = sizeof(T);
+	long nlongsize = 2147483647;
+	if(newsize<0 || (newsize+1) > (1./sz)*nlongsize) {
 		PZError << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
+		std::cout << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
 		PZError.flush();
 		DebugStop();
 		return;
