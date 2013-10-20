@@ -75,7 +75,7 @@ using namespace tbb;
 using namespace std;
 
 void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
-TPZGeoMesh *MalhaCubo();
+TPZGeoMesh *MalhaCubo(string FileName);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 
 void help(const char* prg)
@@ -96,6 +96,7 @@ int verbose = 0;
 #define VERBOSE(level,...) if (level <= verbose) cout << __VA_ARGS__
 
 clarg::argInt porder("-porder", "polinomial order", 1);
+clarg::argString input("-if", "input file", "cube1.txt");
 
 /** Uncoment for parsing matrix from input **/
 //clarg::argString ifn("-ifn", "input matrix file name (use -bi to read from binary files)", "matrix.txt");
@@ -114,9 +115,12 @@ clarg::argInt porder("-porder", "polinomial order", 1);
 
 
 /* Run statistics. */
-RunStatsTable clk_rst("-clk_rdt", "Cholesky decompose statistics raw data table");
-RunStatsTable ldlt_rst("-ldlt_rdt", "LDLt decompose statistics raw data table");
-RunStatsTable mult_rst("-mult_rdt", "MultAdd statistics raw data table");
+RunStatsTable clk_rst("-clk_rdt", "Decompose_Cholesky() statistics raw data table");
+RunStatsTable ldlt_rst("-ldlt_rdt", "Decompose_LDLt() statistics raw data table");
+RunStatsTable sfwd_rst("-sfwd_rdt", "Subst_Forward(...) statistics raw data table");
+RunStatsTable sbck_rst("-sbck_rdt", "Subst_Backward(...) statistics raw data table");
+RunStatsTable mult_rst("-mult_rdt", "MultAdd(...) statistics raw data table");
+RunStatsTable sor_rst("-sor_rdt", "SolveSOR(...) statistics raw data table");
 
 
 class FileStreamWrapper
@@ -190,9 +194,8 @@ int main(int argc, char *argv[])
 
         TPZAutoPointer<TPZCompMesh> cmesh;
 
-        gmesh = MalhaCubo();
+        gmesh = MalhaCubo(input.get_value());
         cmesh = new TPZCompMesh(gmesh);
-	cout << "numero de elementos = " << gmesh->NElements() << endl;	
         cmesh->SetDimModel(dim);
         InsertElasticityCubo(cmesh);
         cmesh->SetDefaultOrder(porder.get_value());
@@ -209,33 +212,59 @@ int main(int argc, char *argv[])
         an.SetSolver(step);
         an.Assemble();
         TPZAutoPointer<TPZMatrix<REAL> > skylmat1 = new TPZSkylMatrix<REAL>();
-        TPZFMatrix<REAL> result(neq,neq);
         skylmat1 = an.Solver().Matrix();
-        TPZAutoPointer<TPZMatrix<REAL> > skylmat2 = skylmat1->Clone();
-	cout << "numero de equacoes = " << neq << endl;	
-	cout << "Dim(skylmat1) = " << skylmat1->Dim() << endl;	
-	cout << "Dim(result) = " << result.Dim() << endl;	
-	 
-   
-	if (clk_rst.was_set()){                  
+	TPZAutoPointer<TPZMatrix<REAL> > skylmat2 = skylmat1->Clone();
+	TPZAutoPointer<TPZMatrix<REAL> > skylmat3 = skylmat1->Clone();
+	TPZAutoPointer<TPZMatrix<REAL> > skylmat4 = skylmat1->Clone();
+	TPZFMatrix<REAL> * f = new TPZFMatrix<REAL>(neq,1);   
+ 
+	if (clk_rst.was_set()) {
     		clk_rst.start();
     		skylmat1->Decompose_Cholesky();
     		clk_rst.stop();
 	}
 
-	if (ldlt_rst.was_set()){ 
+	if (ldlt_rst.was_set()) { 
     		ldlt_rst.start();
     		skylmat2->Decompose_LDLt();
     		ldlt_rst.stop();
 	}
 
-	if (mult_rst.was_set()){
+	if (sfwd_rst.was_set()) {
+		if (!clk_rst.was_set()) skylmat1->Decompose_Cholesky();
+    		sfwd_rst.start();
+    		skylmat1->Subst_Forward(f);
+    		sfwd_rst.stop();
+	}
+
+	if (sbck_rst.was_set()){
+		if (!clk_rst.was_set()) skylmat1->Decompose_Cholesky();
+    		sbck_rst.start();
+    		skylmat1->Subst_Backward(f);
+    		sbck_rst.stop();
+	}
+
+	if (sor_rst.was_set()) {
+        	TPZFMatrix<REAL> res(neq,1);
+        	TPZFMatrix<REAL> residual(neq,1);
+        	TPZFMatrix<REAL> scratch(neq,neq);
+		long niter = 10;
+		REAL overrelax = 1.1;
+		REAL tol = 10e-7;
+    		sor_rst.start();
+		skylmat4->SolveSOR(niter, *f, res, &residual, scratch, overrelax, tol);
+    		sor_rst.stop();
+	}
+
+	if (mult_rst.was_set()) {
+        	TPZFMatrix<REAL> result(neq,neq);
     		mult_rst.start();
-    		skylmat1->MultAdd(result, result, result, 1., 0);
+    		skylmat3->MultAdd(result, result, result, 1., 0);
     		mult_rst.stop();
 	}
 
 	return 0;
+
 }   
     /** Dump decomposed matrix */
 //    if (dump_dm.was_set()) {
@@ -394,14 +423,10 @@ void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 
 }
 
-TPZGeoMesh *MalhaCubo()
+TPZGeoMesh *MalhaCubo(string FileName)
 {
         int numnodes=-1;
         int numelements=-1;
-
-        string FileName, dirname = PZSOURCEDIR;
-        FileName = dirname + "/PerfTests/small_data/substruct/inputs/";
-        FileName += "cube1.txt";
 
         {
                 bool countnodes = false;
