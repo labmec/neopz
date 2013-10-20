@@ -125,24 +125,6 @@ public:
 };
 
 
-/**
- * Obs.:    Caso no futuro seja necessario retroceder, 
- *          os metodos PointElementOnFullMesh e PointElementOnPlaneMesh ainda
- *          aparecem NO PRIMEIRO commit deste arquivo na data de 24 de outubro de 2012.
- *          Agora eles foram suprimidos por serem substituidos pelo metodo
- *          TPZGeoMesh::FindElement(...).
- *          Se por um tempo suficiente os metodos desta classe permanecerem estaveis,
- *          pode deletar este comentario.
- */
-
-/**
- * Obs.:    Caso no futuro seja necessario retroceder,
- *          o atributo fcrackQpointsElementsIds, que servia para guardar os elementos que tornariam-se
- *          quarter points, ainda aparece no commit de 22 de novembro de 2012 (15:39h).
- *          Ao suprimir o atributo, houve mudanca no metodo TurnIntoQuarterPoint(...).
- *          Se por um tempo suficiente os metodos desta classe permanecerem estaveis,
- *          pode deletar este comentario.
- */
 
 
 class TPZPlaneFracture
@@ -184,13 +166,15 @@ class TPZPlaneFracture
                                  bool printVTKfile = false);
 		
     //---------------------------------------------------------------------
-	
-	//private:
+
+protected:
     
     TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                      int porder, REAL sigmaTraction, REAL pressureInsideCrack);
+                                              int porder, REAL sigmaTraction, REAL pressureInsideCrack);
     
-    TPZCompMeshReferred * GetReynoldsCompMesh(TPZCompMesh * cmeshElast, int porder, REAL flowRate);
+    TPZCompMeshReferred * GetFractureCompMeshReferred(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                                      int porder, REAL sigmaTraction, REAL pressureInsideCrack,
+                                                      TPZCompMesh * cmeshRef);
     
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements

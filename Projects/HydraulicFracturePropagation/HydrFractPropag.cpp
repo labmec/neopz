@@ -106,13 +106,13 @@ int mainCRAZY(int argc, char * const argv[])
     return 0;
 }
 
-int main/*Circles*/(int argc, char * const argv[])
+int mainCircles(int argc, char * const argv[])
 {
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();
     
-    #define writeAgain
+    //#define writeAgain
 #ifdef writeAgain
     gRefDBase.InitializeRefPatterns();
 #else
@@ -140,18 +140,18 @@ int main/*Circles*/(int argc, char * const argv[])
     REAL Rfin = 40;
     int nRadius = 15;
 
-    for(int r = 0; r < nRadius; r++)
-    {
-        std::stringstream nm;
-        nm << "circle" << r << ".vtk";
-        
-        TPZVec< std::pair<REAL,REAL> > fractureDots;
-        FillFractureDotsCircle(50., (Rfin-Rini)/(nRadius-1)*r+Rini, fractureDots);
-        TPZGeoMesh * gmesh = plfrac.GetFractureGeoMesh(fractureDots);
-        
-        std::ofstream outC(nm.str().c_str());
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outC, true);
-    }
+//    for(int r = 0; r < nRadius; r++)
+//    {
+//        std::stringstream nm;
+//        nm << "circle" << r << ".vtk";
+//        
+//        TPZVec< std::pair<REAL,REAL> > fractureDots;
+//        FillFractureDotsCircle(50., (Rfin-Rini)/(nRadius-1)*r+Rini, fractureDots);
+//        TPZGeoMesh * gmesh = plfrac.GetFractureGeoMesh(fractureDots);
+//        
+//        std::ofstream outC(nm.str().c_str());
+//        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outC, true);
+//    }
     
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
@@ -160,7 +160,7 @@ int main/*Circles*/(int argc, char * const argv[])
 }
 
 
-int main3D(int argc, char * const argv[])
+int main/*3D*/(int argc, char * const argv[])
 {    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -205,8 +205,8 @@ int main3D(int argc, char * const argv[])
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
     
-    std::ofstream outRefP("RefPatternsUsed.txt");
-    gRefDBase.WriteRefPatternDBase(outRefP);
+//    std::ofstream outRefP("RefPatternsUsed.txt");
+//    gRefDBase.WriteRefPatternDBase(outRefP);
     
     return 0;
 }

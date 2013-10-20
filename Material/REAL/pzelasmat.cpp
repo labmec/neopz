@@ -155,9 +155,9 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	/*
 	 * Plain strain materials values
 	 */
-	REAL nu1 = 1 - fnu;//(1-nu)
-	REAL nu2 = (1-2*fnu)/2;
-	REAL F = fE/((1+fnu)*(1-2*fnu));
+	REAL nu1 = 1. - fnu;//(1-nu)
+	REAL nu2 = (1.-2.*fnu)/2.;
+	REAL F = fE/((1.+fnu)*(1.-2.*fnu));
 	
 	for( int in = 0; in < phr; in++ ) {
 		du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
@@ -543,6 +543,8 @@ void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weig
 			}// este caso pode reproduzir o caso 0 quando o deslocamento
 	}      //  eh nulo introduzindo o BIGNUMBER pelos valores da condicao
 }
+
+
 /** Returns the variable index associated with the name. */
 int TPZElasticityMaterial::VariableIndex(const std::string &name){
     

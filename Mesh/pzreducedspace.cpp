@@ -424,3 +424,7 @@ TPZCompEl* TPZReducedSpace::Clone(TPZCompMesh &mesh) const{
 TPZCompEl * TPZReducedSpace::ClonePatchEl (TPZCompMesh &mesh, std::map< long, long > &gl2lcConMap, std::map< long, long > &gl2lcElMap) const {
     return new TPZReducedSpace(mesh,*this,gl2lcElMap);
 }
+
+void TPZReducedSpace::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+	DebugStop();//Nao implementado!!!
+}

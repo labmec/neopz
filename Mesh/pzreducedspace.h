@@ -167,6 +167,8 @@ public:
         DebugStop();
     }
     
+    void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
+    
 private:
 
     TPZInterpolationSpace *ReferredIntel() const;

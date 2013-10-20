@@ -490,11 +490,19 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
     //int planestress = 1;
     int planestrain = 0;
     
-    TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1, globFractInputData.E1(), globFractInputData.Poisson1(),
-                                         globFractInputData.Fx(), globFractInputData.Fy(), planestrain);
+    TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1,
+                                                                  globFractInputData.E1(),
+                                                                  globFractInputData.Poisson1(),
+                                                                  globFractInputData.Fx(),
+                                                                  globFractInputData.Fy(),
+                                                                  planestrain);
 
-    TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2, globFractInputData.E2(), globFractInputData.Poisson2(),
-                                                                  globFractInputData.Fx(), globFractInputData.Fy(), planestrain);
+    TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
+                                                                  globFractInputData.E2(),
+                                                                  globFractInputData.Poisson2(),
+                                                                  globFractInputData.Fx(),
+                                                                  globFractInputData.Fy(),
+                                                                  planestrain);
     TPZMaterial * mat1(material1);
     TPZMaterial * mat2(material2);
     

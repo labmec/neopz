@@ -91,6 +91,8 @@ class TPZElasticity3D : public TPZMaterial {
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
+    
+    virtual void ContributeVecShape(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
 	/** @brief Implements Dirichlet and Neumann boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
@@ -98,6 +100,10 @@ class TPZElasticity3D : public TPZMaterial {
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
+    
+    void ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
+                              TPZFMatrix<STATE> & ek, TPZFMatrix<STATE> & ef,TPZBndCond &bc);
+    
 	/** @brief Implements Dirichlet and Neumann boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
