@@ -180,7 +180,7 @@ int MaxPOrder = 8;
 TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
-int ninitialrefs = 3;
+int ninitialrefs = 2;
 
 
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
@@ -188,9 +188,12 @@ void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &lo
 void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel);
 void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
 void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel);
 
 REAL GradientNorm(TPZInterpolatedElement *el);
 REAL Laplacian(TPZInterpolatedElement *el);
+REAL GradientNormOnCorners(TPZInterpolatedElement *el);
+REAL LaplacianOnCorners(TPZInterpolatedElement *el);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
@@ -257,7 +260,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 10;
-                NRefs = 5;
+                NRefs = 6;
             }
             else {
 				MaxPOrder = 20;
@@ -293,7 +296,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
             
 			// Creating computational mesh (approximation space and materials)
-			int p = 2, pinit;
+			int p = 1, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25
@@ -398,7 +401,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 						out.flush();
 						break;
 					}
-					ApplyingStrategyHPAdaptiveBasedOnErrors(an,MaxError,ervecbyel);
+//					ApplyingStrategyHPAdaptiveBasedOnErrors(an,MaxError,ervecbyel);
+					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -553,6 +557,53 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 		*/
 	}
 }
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel) {
+
+	TPZCompMesh *cmesh = analysis.Mesh();
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	TPZVec<long> subels;
+	int j, k, pelement, dp = 2;
+	TPZVec<long> subsubels;
+	TPZInterpolatedElement *el;
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el) continue;
+		// If error is small and laplacian value is very little then the order will be minimized
+        REAL GradNorm = GradientNormOnCorners(el);
+        if(GradNorm > 3.) {
+			int level = el->Reference()->Level();
+            // Dividing element one level
+            el->Divide(el->Index(),subels,0);
+            // Dividing sub elements one level more
+			if(level < ninitialrefs+3) {
+	            for(j=0;j<subels.NElements();j++) {
+					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+					scel->Divide(subels[j],subsubels,0);
+				    for(k=0;k<subsubels.NElements();k++) {
+						scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
+						REAL LaplacianValue = LaplacianOnCorners(scel);
+						if(LaplacianValue > 0.05) {
+							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+						    // Applying p+1 order for all subelements
+					        if(pelement+dp < MaxPOrder-1)
+								scel->PRefine(pelement+dp);
+						}
+					}
+				}
+			}
+		}
+		if(GradNorm < 0.1) {
+			REAL LaplacianValue = LaplacianOnCorners(el);
+			if(LaplacianValue < 0.001) {
+				pelement = el->PreferredSideOrder(el->NConnects() - 1);
+				// Applying p+1 order for all subelements
+				if(pelement > 1)
+					el->PRefine(pelement-1);
+			}
+		}
+	}
+}
 /*
 REAL GradientNorm(TPZInterpolatedElement *el) {
     TPZSolVec sol;
@@ -601,6 +652,44 @@ REAL Laplacian(TPZInterpolatedElement *el) {
 	el->Reference()->X(qsi,point);
 	RightTermCircle(point,sol,dsol);
 	return fabs(sol[0]/ValueK);
+}
+REAL GradientNormOnCorners(TPZInterpolatedElement *el) {
+	int nstates = el->Material()->NStateVariables();
+    int dim = el->Dimension();
+    TPZVec<STATE> sol(nstates,(STATE)0.0);
+    TPZFMatrix<STATE> dsol(dim,nstates);
+	dsol.Zero();
+	TPZVec<REAL> qsi(3,0.0);
+	TPZManVector<REAL> point(3,0.0);
+	REAL MaxGrad = 0.0;
+	int ncorners = el->NCornerConnects();;
+	for(int i=0;i<ncorners;i++) {
+	    REAL temp = 0.0;
+		el->Reference()->CenterPoint(i, qsi);
+		el->Reference()->X(qsi,point);
+		ExactSolutionSphere(point,sol,dsol);
+		for(int idsol=0;idsol<dim;idsol++)
+			temp += dsol(idsol,0)*dsol(idsol,0);
+		MaxGrad = (MaxGrad > sqrt(temp)) ? MaxGrad : sqrt(temp);
+	}
+    return MaxGrad;
+}
+REAL LaplacianOnCorners(TPZInterpolatedElement *el) {
+	int nvar = el->Material()->NStateVariables();
+    int dim = el->Dimension();
+	TPZVec<REAL> sol(nvar,0.);
+    TPZFMatrix<REAL> dsol(nvar,dim,0.0);
+	TPZVec<REAL> qsi(3,0.0);
+	TPZVec<REAL> point(3,0.0);
+	REAL MaxLaplacian = 0.0;
+	int ncorners = el->NCornerConnects();;
+	for(int i=0;i<ncorners;i++) {
+	    el->Reference()->CenterPoint(i, qsi);
+		el->Reference()->X(qsi,point);
+		RightTermCircle(point,sol,dsol);
+		MaxLaplacian = (MaxLaplacian > fabs(sol[0])) ? MaxLaplacian : fabs(sol[0]);
+	}
+	return (MaxLaplacian/ValueK);
 }
 void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
 	TPZVec<REAL> ervecbyel;
