@@ -180,6 +180,8 @@ int MaxPOrder = 8;
 TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
 
+int ninitialrefs = 3;
+
 
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
@@ -208,8 +210,6 @@ int main() {
     
     return 0;
 }
-
-int ninitialrefs = 3;
 
 bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	// To compute processing times
@@ -386,13 +386,13 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << time_formated << std::endl;
 
-				if(NRefs > 1) {
+				if(NRefs > 1 && nref < NRefs) {
 					TPZManVector<REAL> ervecbyel;
                     REAL MaxError = 0.;
                     MaxError = ProcessingError(an,ervec,ervecbyel);
 					if(MaxError > ervec[1])
 						std::cout << "Local error is bigger than Global error, Ref " << nref << "." << std::endl;
-					if(ervec[1] < ZeroTolerance()) {
+					if(ervec[1] < 100*ZeroTolerance()) {
 						std::cout << "Tolerance reached but no maxime refinements, Ref " << nref << "." << std::endl;
 						fileerrors.flush();
 						out.flush();
@@ -477,35 +477,48 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 	int j, k, pelement, dp = 1;
 	TPZVec<long> subsubels;
 	TPZInterpolatedElement *el;
+	REAL errorcel = 0.0;
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el) continue;
-		if(ervecbyel[i] < ZeroTolerance()) continue;
-		if(ervecbyel[i] > 0.1*GlobalL2Error) {
+		errorcel = ervecbyel[i];
+		if(errorcel < 1000*ZeroTolerance()) continue;
+		// If error is small and laplacian value is very little then the order will be minimized
+		if(errorcel < 0.01*GlobalL2Error) {
+			REAL LaplacianValue = Laplacian(el);
+			if(LaplacianValue < 0.1) {
+				pelement = el->PreferredSideOrder(el->NConnects() - 1);
+				// Applying p+1 order for all subelements
+				if(pelement > 1)
+					el->PRefine(pelement-1);
+			}
+
+		}
+		else if(errorcel > 0.3*GlobalL2Error) {
             REAL GradNorm = GradientNorm(el);
-            if(GradNorm > 5) {
+            if(GradNorm > 3) {
 				int level = el->Reference()->Level();
                 // Dividing element one level
                 el->Divide(el->Index(),subels,0);
                 // Dividing sub elements one level more
-				if(level > ninitialrefs+1) {
-                for(j=0;j<subels.NElements();j++) {
-					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-                    scel->Divide(subels[j],subsubels,0);
-                    for(k=0;k<subsubels.NElements();k++) {
-						scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
-						REAL LaplacianValue = Laplacian(scel);
-						if(LaplacianValue > 0.25) {
-							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-		                    // Applying p+1 order for all subelements
-		                    if(pelement+dp < MaxPOrder-1)
-				                scel->PRefine(pelement+dp);
+				if(level < ninitialrefs+3) {
+	                for(j=0;j<subels.NElements();j++) {
+						TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+					    scel->Divide(subels[j],subsubels,0);
+				        for(k=0;k<subsubels.NElements();k++) {
+							scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
+							REAL LaplacianValue = Laplacian(scel);
+							if(LaplacianValue > 0.25) {
+								pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+						        // Applying p+1 order for all subelements
+					            if(pelement+dp < MaxPOrder-1)
+					                scel->PRefine(pelement+dp);
+							}
 						}
-					}
-                }
+	                }
 				}
             }
-            else if(GradNorm > 0.1) {
+            else {
                 el->Divide(el->Index(),subels,0);
                 // Dividing sub elements one level more
                 for(j=0;j<subels.NElements();j++) {
@@ -519,7 +532,7 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 					else if(IsZero(LaplacianValue)) {
 						pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
 	                    // Applying p-1 order for all subelements
-						if(pelement > 1) scel->PRefine(pelement--);
+						if(pelement > 1) scel->PRefine(pelement-1);
 					}
 				}
             }
@@ -560,21 +573,21 @@ REAL GradientNorm(TPZInterpolatedElement *el) {
 }
 */
 REAL GradientNorm(TPZInterpolatedElement *el) {
-    TPZSolVec sol;
-    TPZGradSolVec dsol;
-	TPZVec<REAL> qsi(3,0.0);
-    int nshape = el->NShapeF();
+	int nstates = el->Material()->NStateVariables();
     int dim = el->Dimension();
+    TPZVec<STATE> sol(nstates,(STATE)0.0);
+    TPZFMatrix<STATE> dsol(dim,nstates);
+	dsol.Zero();
+	TPZVec<REAL> qsi(3,0.0);
+	TPZManVector<REAL> point(3,0.0);
     REAL temp = 0.0;
-    TPZFMatrix<REAL> phi(nshape,1);
-    TPZFMatrix<REAL> dphi(dim,nshape);
-    TPZFMatrix<REAL> axes(dim,dim,0.0);
-    el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
-    el->Shape(qsi,phi,dphi);
-    el->ComputeSolution(qsi,phi,dphi,axes,sol,dsol);
+
+	el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
+	el->Reference()->X(qsi,point);
+	ExactSolutionSphere(point,sol,dsol);
     for(int idsol=0;idsol<dim;idsol++)
-        temp += dsol[0](idsol,0)*dsol[0](idsol,0);
-    return (sqrt(temp)/el->VolumeOfEl());
+        temp += dsol(idsol,0)*dsol(idsol,0);
+    return sqrt(temp);
 }
 REAL Laplacian(TPZInterpolatedElement *el) {
 	int nvar = el->Material()->NStateVariables();
@@ -587,7 +600,7 @@ REAL Laplacian(TPZInterpolatedElement *el) {
     el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
 	el->Reference()->X(qsi,point);
 	RightTermCircle(point,sol,dsol);
-	return fabs(sol[0]);
+	return fabs(sol[0]/ValueK);
 }
 void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
 	TPZVec<REAL> ervecbyel;
