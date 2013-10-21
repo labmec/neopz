@@ -73,7 +73,8 @@ def setup_cmd():
 	if not os.path.isfile(inputfn) :
 		error(inputfn+' is an invalid input file name.', 1)	
 	# Put the arguments together
-    	arguments = ' -porder 3'
+	arguments = ' -if ' + inputfn
+        arguments = arguments + ' -porder 3'
 	for rdtarg in rdtfiles_l :
 		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
 	# TODO: Add arguments to enforce output checking!
