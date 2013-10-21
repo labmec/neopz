@@ -12,12 +12,15 @@ class TPZPlasticityTest
     /// variable indicating if the maximum r stress is given
     bool fRStressKnown;
 
+    /// index of the initial pore closure stress
+    int fPoreClosureIndex;
+    
     /// stress at which pores are closed
     TPZManVector<STATE,2> fPoreStressRZ;
     
     /// simulated strain corresponding to porestress
     TPZManVector<STATE,2> fPoreStrainRZ;
-    
+       
     /// stress as read from the laboratory test
     TPZFMatrix<STATE> fStressRZInput;
     
@@ -53,11 +56,16 @@ public:
         fRStressKnown = rstressknown;
     }
     
-    /// set the stress at which pores are closed
-    void SetPoreClosingStress(TPZVec<STATE> &porestress)
+    void SetSimulationInitialStep(int istep)
     {
-        fPoreStressRZ = porestress;
+        if (istep <0 || istep >= fStressRZInput.Rows()) {
+            DebugStop();
+        }
+        fPoreClosureIndex = istep;
+        fPoreStressRZ[0] = fStressRZInput(istep,0);
+        fPoreStressRZ[1] = fStressRZInput(istep,1);
     }
+    
     
     /// read the input strain and stress from the laboratory file
     void ReadInputStrainStress(const std::string &filename);

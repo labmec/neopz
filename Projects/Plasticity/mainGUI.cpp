@@ -138,14 +138,19 @@ void TPZPlasticityTest::PerformSimulation()
 {
     ApplyInitialStress();
     int nloadsteps = fStressRZInput.Rows();
-    fStrainRZSimulated.Resize(nloadsteps, 2);
-    fStressRZSimulated.Resize(nloadsteps, 2);
-    for (int istep = 0; istep < nloadsteps; istep++) {
+    fStrainRZSimulated.Redim(nloadsteps, 2);
+    fStressRZSimulated.Redim(nloadsteps, 2);
+    for (int istep = fPoreClosureIndex; istep < nloadsteps; istep++) {
         TPZManVector<STATE,2> strainRZ(2),stressRZ(2);
         strainRZ[0] = fStrainRZInput(istep,0);
         stressRZ[0] = fStressRZInput(istep,0);
         strainRZ[1] = fStrainRZInput(istep,1);
         stressRZ[1] = fStressRZInput(istep,1);
+        
+        strainRZ[0] -= fStrainRZInput(fPoreClosureIndex,0);
+        strainRZ[1] -= fStrainRZInput(fPoreClosureIndex,1);
+        strainRZ[0] += this->fPoreStrainRZ[0];
+        strainRZ[1] += this->fPoreStrainRZ[1];
         if(istep == 1494)
         {
             std::cout << __FUNCTION__ << std::endl;
@@ -235,13 +240,15 @@ void MaterialPointTests();
      sandler.SetIntegrTol(inttol);
      
      test.SetSandlerDimaggio(sandler);
+     
+     test.SetSimulationInitialStep(1000);
 
      test.PerformSimulation();
      
      
- 	cout << "QT GUI" << endl;
-     MaterialPointTests();
-     cout << "\n End runing ! "<< endl;
+// 	cout << "QT GUI" << endl;
+//     MaterialPointTests();
+//     cout << "\n End runing ! "<< endl;
 
  return EXIT_SUCCESS;
  }
