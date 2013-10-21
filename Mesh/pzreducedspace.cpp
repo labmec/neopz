@@ -425,6 +425,57 @@ TPZCompEl * TPZReducedSpace::ClonePatchEl (TPZCompMesh &mesh, std::map< long, lo
     return new TPZReducedSpace(mesh,*this,gl2lcElMap);
 }
 
-void TPZReducedSpace::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-	DebugStop();//Nao implementado!!!
+#include "pzgraphel.h"
+#include "pzgraphelq2dd.h"
+#include "pzgraphelq3dd.h"
+#include "pzgraphel1d.h"
+#include "pzgraphel1dd.h"
+#include "pztrigraphd.h"
+#include "pztrigraph.h"
+#include "tpzgraphelt2dmapped.h"
+#include "tpzgraphelprismmapped.h"
+#include "tpzgraphelpyramidmapped.h"
+#include "tpzgraphelt3d.h"
+#include "pzgraphel.h"
+
+
+void TPZReducedSpace::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
+	TPZGeoEl *ref = Reference();
+	int mat = Material()->Id();
+	int nsides = ref->NSides();
+	
+	if(dimension == 2 && mat > 0){
+		if(nsides == 9){
+			new TPZGraphElQ2dd(this,&grmesh);
+			return;
+		}
+		if(nsides == 7){
+			new TPZGraphElT2dMapped(this,&grmesh);
+			return;
+		}
+	}//2d
+	
+	if(dimension == 3 && mat > 0){
+		if(nsides == 27){
+			new TPZGraphElQ3dd(this,&grmesh);
+			return;
+		}//cube
+		if(nsides == 21){
+			new TPZGraphElPrismMapped(this,&grmesh);
+			return;
+		}//prism
+		if(nsides == 15){
+			new TPZGraphElT3d(this,&grmesh);
+			return;
+		}//tetra
+		if(nsides == 19){
+			new TPZGraphElPyramidMapped(this,&grmesh);
+			return;
+		}//pyram
+	}//3d
+	
+	if(dimension == 1 && mat > 0){
+		new TPZGraphEl1dd(this,&grmesh);
+	}//1d
+    
 }
