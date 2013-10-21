@@ -675,23 +675,28 @@ TPZGeoMesh *MalhaCubo()
 
 //TESTE Step Solver
 /*
- TPZAutoPointer <TPZMatrix> matrixteste = new TPZFMatrix(2,2,0.);
- TPZFMatrix<REAL> b(2,1,0.);
- matrixteste->operator()(0,0) = 3.;
- matrixteste->operator()(0,1) = 2.;
- matrixteste->operator()(1,0) = 5.;
- matrixteste->operator()(1,1) = -2.;
- b(0,0) = 7.;
- b(1,0) = 1.;
+ TPZAutoPointer <TPZMatrix<REAL> > matrixteste = new TPZFMatrix<REAL>(2,2,0.);
+ TPZFMatrix<REAL> *bb = new TPZFMatrix<REAL>(2,1,0.);
+ matrixteste->operator()(0,0) = 2.;
+ matrixteste->operator()(0,1) = 1.;
+ matrixteste->operator()(1,0) = 1.;
+ matrixteste->operator()(1,1) = 5.;
+ bb->operator()(0,0) = 4.;
+ bb->operator()(1,0) = 11.;
  matrixteste->Print("matrixteste: ");
- b.Print("b:");
- TPZStepSolver solver;
- solver.SetMatrix(matrixteste);
- solver.SetDirect(ELU);
+ bb->Print("b:");
+ matrixteste->Decompose_Cholesky();
+ matrixteste->Subst_Forward(bb);
+ matrixteste->Subst_Backward(bb);
+ 
+ com step solver. Lembra de comentar essa parte e se quiser usar mudar as matrizes de autopointers
  TPZFMatrix<REAL> result(2,1,0.);
+ TPZStepSolver <REAL> solver;
+ solver.SetMatrix(matrixteste);
+ solver.SetDirect(ECholesky);
  result.Print("desloc:");
- solver.Solve(b, result);
- */
+ solver.Solve(bb, result);*/
+ 
 //TESTE Step Solver
 
 /// Generate a boundary geometric element at the indicated node
