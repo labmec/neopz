@@ -156,8 +156,10 @@ void TPZPlasticityTest::PerformSimulation()
             std::cout << __FUNCTION__ << std::endl;
         }
         EvoluateToStep(strainRZ, stressRZ);
-        fStrainRZSimulated(istep,0) = strainRZ[0];
-        fStrainRZSimulated(istep,1) = strainRZ[1];
+//        fStrainRZSimulated(istep,0) = strainRZ[0];
+//        fStrainRZSimulated(istep,1) = strainRZ[1];
+        fStrainRZSimulated(istep,0) = fStrainRZInput(istep,0);
+        fStrainRZSimulated(istep,1) = fStrainRZInput(istep,1);
         fStressRZSimulated(istep,0) = stressRZ[0];
         fStressRZSimulated(istep,1) = stressRZ[1];
         
