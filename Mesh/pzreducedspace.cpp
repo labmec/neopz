@@ -477,5 +477,4 @@ void TPZReducedSpace::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension
 	if(dimension == 1 && mat > 0){
 		new TPZGraphEl1dd(this,&grmesh);
 	}//1d
-    
 }

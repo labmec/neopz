@@ -197,7 +197,7 @@ int main/*3D*/(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
-    REAL pressureInsideCrack = 5.;
+    REAL pressureInsideCrack = 2.;//5.;
     REAL sigmaTraction = 0.;
     std::string vtkFile = "fracturePconstant.vtk";
     plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, sigmaTraction, vtkFile, true);

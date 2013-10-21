@@ -182,7 +182,6 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
     an.SetSolver(step);
     an.Run();
     
-    //--------------------------------------------------------------------------------------------
     if(printVTKfile)
     {
         std::ofstream out1("1out.txt");
@@ -205,21 +204,23 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
         }
         out1 << "};\n";
     }
-    //    if(printVTKfile)
-    //    {
-    //        TPZManVector<std::string,10> scalnames(0), vecnames(1);
-    //
-    ////        scalnames[0] = "EDisplacementX";
-    ////        scalnames[1] = "EDisplacementY";
-    ////        scalnames[2] = "SigmaX";
-    ////        scalnames[3] = "SigmaY";
-    //        vecnames[0] = "Displacement";
-    //
-    //        const int dim = 3;
-    //        int div =0;
-    //        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-    //        an.PostProcess(div);
-    //    }
+    
+    if(printVTKfile)
+    {
+        TPZManVector<std::string,10> scalnames(0), vecnames(1);
+    
+    //        scalnames[0] = "EDisplacementX";
+    //        scalnames[1] = "EDisplacementY";
+    //        scalnames[2] = "SigmaX";
+    //        scalnames[3] = "SigmaY";
+        vecnames[0] = "Displacement";
+
+        const int dim = 3;
+        int div =0;
+        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
+        an.PostProcess(div);
+    }
+    
     
     /////// Example of J-Integral
     
@@ -303,7 +304,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         
         ///////////farField
         k.Zero();
-        f(1,0) = 1.;//sigmaTraction;
+        f(1,0) = 1.;
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(-304, young, poisson, force);
         TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f);
         cmesh->InsertMaterialObject(newmannFarfield);
@@ -377,7 +378,7 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
         
         ///////////farField
         k.Zero();
-        f(1,0) = 1.;//sigmaTraction;
+        f(1,0) = 1.;
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(-304, young, poisson, force);
         TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f);
         cmesh->InsertMaterialObject(newmannFarfield);

@@ -236,20 +236,20 @@ void TPZElasticity3D::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZ
         dvxdz = dphi(2,in);
         
         //y
-		dvydx = dphi(0,in);
-		dvydy = dphi(1,in);
-		dvydz = dphi(2,in);
+		dvydx = dphi(3,in);
+		dvydy = dphi(4,in);
+		dvydz = dphi(5,in);
         
         //z
-        dvzdx = dphi(0,in);
-		dvzdy = dphi(1,in);
-		dvzdz = dphi(2,in);
+        dvzdx = dphi(6,in);
+		dvzdy = dphi(7,in);
+		dvzdz = dphi(8,in);
 		
         for (int col = 0; col < efc; col++)
         {
-            ef(in,col) += weight*(fForce[0]*phi(0, in) /*- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY*/
-                          + fForce[1] * phi(1, in)/*- dphiy_i(0,0)*fPreStressYY - dphiy_i(1,0)*fPreStressXY*/)
-                          + fForce[2] * phi(2, in);
+            ef(in,col) += weight*(  fForce[0] * phi(0, in) /*- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY*/
+                                  + fForce[1] * phi(1, in) /*- dphiy_i(0,0)*fPreStressYY - dphiy_i(1,0)*fPreStressXY*/
+                                  + fForce[2] * phi(2, in) );
         }
 		for( int jn = 0; jn < phc; jn++ )
         {
@@ -259,14 +259,14 @@ void TPZElasticity3D::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZ
             duxdz = dphi(2,jn);
             
             //y
-            duydx = dphi(0,jn);
-            duydy = dphi(1,jn);
-            duydz = dphi(2,jn);
+            duydx = dphi(3,jn);
+            duydy = dphi(4,jn);
+            duydz = dphi(5,jn);
             
             //z
-            duzdx = dphi(0,jn);
-            duzdy = dphi(1,jn);
-            duzdz = dphi(2,jn);
+            duzdx = dphi(6,jn);
+            duzdy = dphi(7,jn);
+            duzdz = dphi(8,jn);
             
             REAL eq1 =  duydy*dvxdx*lambda + duzdz*dvxdx*lambda + duxdy*dvydx*mu +
                         duydx*dvydx*mu + duxdz*dvzdx*mu + duzdx*dvzdx*mu +
@@ -304,11 +304,11 @@ void TPZElasticity3D::ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
                 for (int il = 0; il < fNumLoadCases; il++)
                 {
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-                    ef(in,il) += weight * BIGNUMBER * (v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) + v2(2,il)*phi(2,in));
+                    ef(in,il) += weight * BIGNUMBER * ( v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) + v2(2,il)*phi(2,in) );
                 }
 				for (jn = 0 ; jn < phc; jn++)
                 {
-                    ek(in,jn) += weight * BIGNUMBER * (phi(0,in)*phi(0,jn) + phi(1,in)*phi(1,jn) + phi(2,in)*phi(2,jn));
+                    ek(in,jn) += weight * BIGNUMBER * ( phi(0,in)*phi(0,jn) + phi(1,in)*phi(1,jn) + phi(2,in)*phi(2,jn) );
 				}
 			}
 			break;
@@ -320,7 +320,7 @@ void TPZElasticity3D::ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
                 for (int il = 0; il <fNumLoadCases; il++)
                 {
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-                    ef(in,il) += weight * (v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) + v2(2,il)*phi(2,in));
+                    ef(in,il) += weight * ( v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) + v2(2,il)*phi(2,in) );
                 }
             }
 			break;
@@ -332,7 +332,7 @@ void TPZElasticity3D::ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
                 for (int il = 0; il <fNumLoadCases; il++)
                 {
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-                    ef(in,il)+= weight * (v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) + v2(2,il)*phi(2,in));
+                    ef(in,il)+= weight * ( v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) + v2(2,il)*phi(2,in) );
                 }
 				
 				for (jn = 0; jn <phc; jn++)
@@ -363,8 +363,6 @@ void TPZElasticity3D::ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
         }
         case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
         {
-            DebugStop();
-            std::cout << "\n>>>>>>>>>>>>>>>>>>>>> Caso nao validado!!!\n";
             for(in = 0 ; in < phc; in++)
             {
                 for (int il = 0; il < fNumLoadCases; il++)
@@ -372,7 +370,7 @@ void TPZElasticity3D::ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
                     for (jn = 0 ; jn < phc; jn++)
                     {
-                        ek(in,jn) += weight * BIGNUMBER * (v2(0,il)*phi(0,in)*phi(0,jn) + v2(1,il)*phi(1,in)*phi(1,jn) + v2(2,il)*phi(2,in)*phi(2,jn));
+                        ek(in,jn) += weight * BIGNUMBER * ( v2(0,il)*phi(0,in)*phi(0,jn) + v2(1,il)*phi(1,in)*phi(1,jn) + v2(2,il)*phi(2,in)*phi(2,jn) );
                     }
                 }
             }
