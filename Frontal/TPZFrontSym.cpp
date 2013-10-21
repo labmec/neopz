@@ -30,7 +30,7 @@ DecomposeType TPZFrontSym<TVar>::GetDecomposeType() const
 }
 template<class TVar>
 void TPZFrontSym<TVar>::PrintGlobal(const char *name, std::ostream& out){
-	int i, j;
+	long i, j;
 	out << name << endl;
 	for(i=0;i<this->fLocal.NElements();i++){
 		if(this->fLocal[i]!=-1) out << i << " ";
@@ -50,7 +50,7 @@ template<class TVar>
 void TPZFrontSym<TVar>::Print(const char *name, std::ostream& out) const
 {
 	if(name) out << name << endl;
-	int i,j,loop_limit;
+	long i,j,loop_limit;
 	
 	
 	out <<  "Frontal Matrix Size          "<< this->fFront << endl;
@@ -96,7 +96,7 @@ void TPZFrontSym<TVar>::AllocData()
 	//this->fLocal.Fill(-1);
 }
 template<class TVar>
-void TPZFrontSym<TVar>::Reset(int GlobalSize)
+void TPZFrontSym<TVar>::Reset(long GlobalSize)
 {
 	this->fData.Resize(0);
 	this->fFree.Resize(0);
@@ -107,14 +107,14 @@ void TPZFrontSym<TVar>::Reset(int GlobalSize)
 	this->fMaxFront=0;
 }
 template<class TVar>
-int TPZFrontSym<TVar>::NFree()
+long TPZFrontSym<TVar>::NFree()
 {
 	return this->fFree.NElements();
 }
 
 template<class TVar>
-int TPZFrontSym<TVar>::Local(int global){
-	int index;
+int TPZFrontSym<TVar>::Local(long global){
+	long index;
 	if(this->fLocal[global]!=-1) return this->fLocal[global];
 	if(this->fFree.NElements()){
 		index=this->fFree.Pop();
@@ -133,13 +133,13 @@ int TPZFrontSym<TVar>::Local(int global){
 	return index;
 }
 template<class TVar>
-void TPZFrontSym<TVar>::FreeGlobal(int global)
+void TPZFrontSym<TVar>::FreeGlobal(long global)
 {
 	if(this->fLocal[global]==-1){
 		cout << "TPZFront FreeGlobal was called with wrong parameters !" << endl;
 		return;
 	}
-	int index;
+	long index;
 	index=this->fLocal[global];
 	this->fGlobal[index]=-1;
 	this->fLocal[global]=-1;
@@ -147,27 +147,27 @@ void TPZFrontSym<TVar>::FreeGlobal(int global)
 }
 
 template<>
-void TPZFrontSym<std::complex<float> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<float> > &eqnarray)
+void TPZFrontSym<std::complex<float> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<float> > &eqnarray)
 {
     DebugStop();
 }
 template<>
-void TPZFrontSym<std::complex<double> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<double> > &eqnarray)
+void TPZFrontSym<std::complex<double> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<double> > &eqnarray)
 {
     DebugStop();
 }
 template<>
-void TPZFrontSym<std::complex<long double> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
+void TPZFrontSym<std::complex<long double> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
 {
     DebugStop();
 }
 
 template<class TVar>
-void TPZFrontSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarray)
+void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray)
 {
 	//eqnarray.SetSymmetric();
     
-	int i, ilocal;
+	long i, ilocal;
 	ilocal = Local(ieq);
 	TPZVec<TVar> AuxVec(this->fFront);
 	
@@ -204,7 +204,7 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarra
 // #endif
 // #ifndef USING_BLAS
 // #ifndef USING_ATLAS
-	int j=0;
+	long j=0;
 	for(i=0;i<this->fFront;i++){
    		for(j=i;j<this->fFront;j++){
    			Element(i,j)=Element(i,j)-AuxVec[i]*AuxVec[j];
@@ -282,9 +282,9 @@ template<class TVar>
 void TPZFrontSym<TVar>::Compress(){
 	//	PrintGlobal("Before COmpress",output);
 	//	Print("Before Compress", cout);
-	TPZStack <int> from;
-	int nfound;
-	int i, j;
+	TPZStack <long> from;
+	long nfound;
+	long i, j;
 	for(i = 0; i < this->fFront; i++){
 		if(this->fGlobal[i] != -1) from.Push(i);
 	}
@@ -356,7 +356,7 @@ void TPZFrontSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArray<T
 	}
 }
 template<class TVar>
-TPZFrontSym<TVar>::TPZFrontSym(int GlobalSize) : TPZFront<TVar>(GlobalSize)
+TPZFrontSym<TVar>::TPZFrontSym(long GlobalSize) : TPZFront<TVar>(GlobalSize)
 {
 	fDecomposeType=ECholesky;
 }
@@ -470,18 +470,18 @@ std::string TPZFrontSym<TVar>::GetMatrixType(){
 template<class TVar>
 void TPZFrontSym<TVar>::ExtractFrontMatrix(TPZFMatrix<TVar> &front)
 {
-	int maxeq = this->fLocal.NElements();
-	int mineq = 0;
+	long maxeq = this->fLocal.NElements();
+	long mineq = 0;
 	for(mineq=0; mineq<maxeq; mineq++) if(this->fLocal[mineq] != -1) break;
-	int numeq = maxeq-mineq;
+	long numeq = maxeq-mineq;
 	front.Redim(numeq,numeq);
-	int ieq,jeq;
+	long ieq,jeq;
 	for(ieq=mineq;ieq<maxeq;ieq++) {
 		if(this->fLocal[ieq] == -1) continue;
-		int il = ieq-mineq;
+		long il = ieq-mineq;
 		for(jeq=ieq;jeq<maxeq;jeq++) {
 			if(this->fLocal[jeq] == -1) continue;
-			int jl = jeq-mineq;
+			long jl = jeq-mineq;
 			front(il,jl) = this->Element(this->fLocal[ieq],this->fLocal[jeq]);
 			front(jl,il) = front(il,jl);
 		}

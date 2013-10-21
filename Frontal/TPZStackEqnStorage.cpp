@@ -19,7 +19,7 @@ void TPZStackEqnStorage<TVar>::ReOpen(){}
 
 template<class TVar>
 void TPZStackEqnStorage<TVar>::Print(const char *name, std::ostream& out) const {
-    int i, loop_limit;
+    long i, loop_limit;
 	loop_limit=fEqnStack.NElements();
     out <<  "Number of entries on EqnStack  "<< fEqnStack.NElements() << endl;
     for(i=0;i<loop_limit;i++) fEqnStack[i].Print(name, out);
@@ -32,7 +32,7 @@ void TPZStackEqnStorage<TVar>::Reset()
 template<class TVar>
 void TPZStackEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
-	int i, stack_size;
+	long i, stack_size;
 	stack_size=fEqnStack.NElements();
 	for(i=stack_size-1;i>=0;i--){
 		fEqnStack[i].EqnBackward(f, dec);
@@ -42,7 +42,7 @@ void TPZStackEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) 
 template<class TVar>
 void TPZStackEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
-	int i, stack_size;
+	long i, stack_size;
 	stack_size=fEqnStack.NElements();
 	for(i=0;i<stack_size;i++){
 		fEqnStack[i].EqnForward(f, dec);

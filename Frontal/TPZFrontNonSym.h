@@ -60,7 +60,7 @@ public:
     /** @brief Simple constructor */
     TPZFrontNonSym();
     /** @brief Constructor with a initial size parameter */
-	TPZFrontNonSym(int GlobalSize);
+	TPZFrontNonSym(long GlobalSize);
 	
 	TPZFrontNonSym(const TPZFrontNonSym &cp);
     /**
@@ -91,7 +91,7 @@ public:
      * @brief Returns the ith,jth element of the matrix. \n
      * \f$ (sourceindex[i],sourceindex[j]) \f$
      */
-	TVar & Element(int i, int j) {
+	TVar & Element(long i, long j) {
 		return this->fData[this->fMaxFront*j + i];
 	}
     
@@ -99,7 +99,7 @@ public:
      * @brief Returns the ith,jth element of the matrix. \n
      * \f$ (sourceindex[i],sourceindex[j]) \f$
      */
-    const TVar & Element(int i, int j) const{
+    const TVar & Element(long i, long j) const{
         return this->fData[this->fMaxFront*j + i];
     }
     
@@ -128,28 +128,28 @@ private:
 	 * @param ieq Index of equation to be decomposed
 	 * @param eqnarray EqnArray to store resulting members
 	 */
-    void DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarray);
+    void DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray);
 	
     /**
      * @brief Sets the global equation as freed, allowing the space \n
      * used by this equation to be used by future assembly processes. 
 	 * @param global Global index to be freed.
      */
-    void FreeGlobal(int global);
+    void FreeGlobal(long global);
     /** 
 	 * @brief Returns a local index corresponding to a global equation number 
 	 * @param global Global index inquired
 	 */
-    int Local(int global);
+    int Local(long global);
 	
 public:
     /** @brief Returns the number of free equations */
-	virtual int NFree();
+	virtual long NFree();
     /** 
 	 * @brief Resets data structure 
 	 * @param GlobalSize Initial global size to be used in reseting
 	 */
-	void Reset(int GlobalSize=0);
+	void Reset(long GlobalSize=0);
     /** @brief Allocates data for Front */
 	void AllocData();
 	

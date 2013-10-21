@@ -53,7 +53,7 @@ public:
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-	TPZParFrontMatrix(int globalsize);
+	TPZParFrontMatrix(long globalsize);
 	
 	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZFrontMatrix<TVar, store,front>(cp), fFinish(0)
 	{

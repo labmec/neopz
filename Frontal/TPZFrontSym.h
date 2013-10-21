@@ -54,7 +54,7 @@ public:
     {
     }
     /** @brief Constructor with a initial size parameter */
-	TPZFrontSym(int GlobalSize);
+	TPZFrontSym(long GlobalSize);
 	
     /**
      * @brief Decompose these equations and put the result in eqnarray \n
@@ -82,18 +82,18 @@ public:
 	void Expand(int largefrontsize);
 	
     /** @brief Returns ith, jth element of matrix. \f$ (sourceindex[i],sourceindex[j]) \f$ */
-	TVar & Element(int i, int j){
+	TVar & Element(long i, long j){
 		if(i>j){
-			int i_temp=i;
+			long i_temp=i;
 			i=j;
 			j=i_temp;
 		}
 		return this->fData[(j*(j+1))/2+i];
 	}
     /** @brief Returns ith, jth element of matrix. \f$ (sourceindex[i],sourceindex[j]) \f$ */
-    const TVar & Element(int i, int j) const {
+    const TVar & Element(long i, long j) const {
         if(i>j){
-            int i_temp=i;
+            long i_temp=i;
             i=j;
             j=i_temp;
         }
@@ -115,7 +115,7 @@ private:
 	 * @param ieq Index of equation to be decomposed 
 	 * @param eqnarray EqnArray to store resulting members
 	 */
-    void DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarray);
+    void DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray);
 	
     /**
      * @brief Sets the global equation as freed, allowing the space 
@@ -123,14 +123,14 @@ private:
 	/** 
 	 * Used by this equation to be used by future assembly processes 
      */
-    void FreeGlobal(int global);
+    void FreeGlobal(long global);
     /** @brief return a local index corresponding to a global equation number */
-    int Local(int global);
+    int Local(long global);
 public:
     /** @brief Returns the number of free equations */
-	virtual int NFree();
+	virtual long NFree();
     /** @brief Resets data structure */
-	void Reset(int GlobalSize=0);
+	void Reset(long GlobalSize=0);
     /** @brief Allocates data for Front */
 	void AllocData();
 	

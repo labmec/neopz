@@ -36,7 +36,7 @@ public:
 	{
 	}
 	
-	TPZAbstractFrontMatrix(int ieq, int jeq) : TPZMatrix<TVar>(ieq,jeq)
+	TPZAbstractFrontMatrix(long ieq, long jeq) : TPZMatrix<TVar>(ieq,jeq)
 	{
 	}
 	
@@ -88,7 +88,7 @@ public:
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-	TPZFrontMatrix(int globalsize);
+	TPZFrontMatrix(long globalsize);
 	
 	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
 	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
@@ -162,9 +162,9 @@ public:
 	
 protected:
     /** @brief Indicates number of equations */
-	int fNumEq;
+	long fNumEq;
     /** @brief Indicates last decomposed equation */
-	int fLastDecomposed;
+	long fLastDecomposed;
 	
     /** \ link aggregationByValue */
 	//    TPZFront fFront;

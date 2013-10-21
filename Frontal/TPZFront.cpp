@@ -27,13 +27,13 @@ TPZFront<TVar>::TPZFront(){
 }
 
 template<class TVar>
-TPZFront<TVar>::TPZFront(int GlobalSize)
+TPZFront<TVar>::TPZFront(long GlobalSize)
 {
 	fExpandRatio = 200;
 	fFront = 0;
 	fMaxFront=0;
 	fLocal.Resize(GlobalSize);
-	int i;
+	long i;
 	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
 	fWork = 0;
 	fNextRigidBodyMode = GlobalSize;
@@ -121,13 +121,13 @@ void TPZFront<TVar>::Print(const char *name, std::ostream& out) const
 }
 
 template<class TVar>
-void TPZFront<TVar>::FreeGlobal(int global)
+void TPZFront<TVar>::FreeGlobal(long global)
 {
 	if(fLocal[global]==-1){
 		cout << "TPZFront FreeGlobal was called with wrong parameters !" << endl;
 		return;
 	}
-	int index;
+	long index;
 	index=fLocal[global];
 	fGlobal[index]=-1;
 	fLocal[global]=-1;
@@ -135,7 +135,7 @@ void TPZFront<TVar>::FreeGlobal(int global)
 }
 
 template<class TVar>
-int TPZFront<TVar>::Local(int global){
+int TPZFront<TVar>::Local(long global){
 	/*	int index;
 	 if(fLocal[global]!=-1) return fLocal[global];
 	 if(fFree.NElements()){
@@ -174,9 +174,9 @@ void TPZFront<TVar>::SymbolicAddKel(TPZVec < long > & destinationindex)
 }
 
 template<class TVar>
-void TPZFront<TVar>::SymbolicDecomposeEquations(int mineq, int maxeq)
+void TPZFront<TVar>::SymbolicDecomposeEquations(long mineq, long maxeq)
 {
-	int i;
+	long i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
 
@@ -277,7 +277,7 @@ void TPZFront<TVar>::main()
 }
 
 template<class TVar>
-void TPZFront<TVar>::Reset(int GlobalSize)
+void TPZFront<TVar>::Reset(long GlobalSize)
 {
 	fData.Resize(0);
 	fFree.Resize(0);
@@ -292,16 +292,16 @@ void TPZFront<TVar>::Reset(int GlobalSize)
 }
 
 template<class TVar>
-int TPZFront<TVar>::NElements(){
+long TPZFront<TVar>::NElements(){
 	return fLocal.NElements();
 }
 
 
 template<class TVar>
-int TPZFront<TVar>::NFree()
+long TPZFront<TVar>::NFree()
 {
-	int i;
-	int free_eq=0;
+	long i;
+	long free_eq=0;
 	for(i=0;i<fGlobal.NElements();i++)
 	{
 		if(fGlobal[i]==-1){

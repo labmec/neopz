@@ -56,7 +56,7 @@ fFinish(0)
 }
 
 template<class TVar, class store, class front>
-TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix(int globalsize) :
+TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix(long globalsize) :
 TPZFrontMatrix<TVar, store, front>(globalsize),
 fFinish(0)
 {
@@ -205,9 +205,9 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 #endif
 		
 		PZ_PTHREAD_MUTEX_UNLOCK(&parfront->fwritelock,"TPZParFrontMatrix<...>::WriteFile()");
-		int neqn = local.NElements();
+		long neqn = local.NElements();
 
-		int eq;
+		long eq;
 		for(eq=0; eq<neqn; eq++) {
 			parfront->fStorage.AddEqnArray(local[eq]);
 			delete local[eq];

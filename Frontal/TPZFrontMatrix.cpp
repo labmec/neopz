@@ -32,8 +32,8 @@ int TPZFrontMatrix<TVar, store, front>::Work(){
 template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<long> &destinationindex, long &lower_eq, long &upper_eq)
 {
-	int i;
-	int loop_limit, global;
+	long i;
+	long loop_limit, global;
 	loop_limit = destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
 		global = destinationindex[i];
@@ -159,7 +159,7 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVa
 }
 
 template<class TVar, class store, class front>
-TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(long globalsize) : TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 {
 	fFront.Reset(globalsize);
 	fStorage.Reset();
@@ -172,7 +172,7 @@ TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractF
 template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
 {
-	int i;
+	long i;
 	out << "Frontal Matrix associated"<< endl;
 	fFront.Print(name, out);
 	out << "Stored Equations" << endl;
