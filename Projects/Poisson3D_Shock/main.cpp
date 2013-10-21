@@ -496,7 +496,6 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 				if(pelement > 1)
 					el->PRefine(pelement-1);
 			}
-
 		}
 		else if(errorcel > 0.3*GlobalL2Error) {
             REAL GradNorm = GradientNorm(el);
@@ -576,14 +575,14 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
             // Dividing element one level
             el->Divide(el->Index(),subels,0);
             // Dividing sub elements one level more
-			if(level < ninitialrefs+3) {
+			if(level < ninitialrefs+4) {
 	            for(j=0;j<subels.NElements();j++) {
 					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
 					scel->Divide(subels[j],subsubels,0);
 				    for(k=0;k<subsubels.NElements();k++) {
 						scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
 						REAL LaplacianValue = LaplacianOnCorners(scel);
-						if(LaplacianValue > 0.05) {
+						if(LaplacianValue > 0.5) {
 							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
 						    // Applying p+1 order for all subelements
 					        if(pelement+dp < MaxPOrder-1)
@@ -593,9 +592,9 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 				}
 			}
 		}
-		if(GradNorm < 0.1) {
+		if(GradNorm < 0.2) {
 			REAL LaplacianValue = LaplacianOnCorners(el);
-			if(LaplacianValue < 0.001) {
+			if(LaplacianValue < 0.1) {
 				pelement = el->PreferredSideOrder(el->NConnects() - 1);
 				// Applying p+1 order for all subelements
 				if(pelement > 1)
