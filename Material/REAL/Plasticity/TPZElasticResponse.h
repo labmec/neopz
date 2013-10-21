@@ -28,6 +28,11 @@ public:
        fMu		= source.fMu;
 	   return *this;
    }
+	
+	REAL Lambda() const
+	{
+		return fLambda;
+	}
     
     REAL K() const
     {
