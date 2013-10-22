@@ -17,7 +17,6 @@ template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	int i;
-	fPreferredOrder = mesh.GetDefaultOrder();
 	for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
