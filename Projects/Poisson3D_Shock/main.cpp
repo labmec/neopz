@@ -103,7 +103,7 @@ REAL transy = 0.;
 
 
 /** PROBLEM WITH HIGH GRADIENT ON CIRCUNFERENCE  ---  DATA */
-STATE ValueK = 100000;
+STATE ValueK = 1000000;
 REAL GlobalMaxError = 0.0;
 
 /** To identify localization of PZ resources */
@@ -188,7 +188,7 @@ void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &lo
 void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel);
 void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
 void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel);
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,int ref);
 
 REAL GradientNorm(TPZInterpolatedElement *el);
 REAL Laplacian(TPZInterpolatedElement *el);
@@ -224,14 +224,20 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	
 	// Output files
     std::ofstream convergence("convergence.txt");
-	std::ofstream fileerrors("ErrorsHP_ArcTan.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
-	fileerrors << "Approximation Error: " << std::endl;
+	time(&sttime);
+	formatTimeInSec(time_formated,256,sttime);
+	fileerrors << "Approximation Error in " << time_formated << std::endl;
 	
 	int nref = 1, NRefs = 4;
 	int nthread = 2, NThreads = 4;
     int dim;
 	
+	// Initializing the auto adaptive process
+	TPZVec<REAL> ervec,ErrorVec;
+	TPZVec<long> NEquations;
+
     //Working on regular meshes
     for(int regular=1; regular>0; regular--) {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
@@ -259,13 +265,15 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                 NRefs = 4;
             }
             else if(dim==2) {
-                MaxPOrder = 10;
+                MaxPOrder = 8;
                 NRefs = 6;
             }
             else {
 				MaxPOrder = 20;
                 NRefs = 12;
             }
+			ErrorVec.Resize(NRefs,0.0);
+			NEquations.Resize(NRefs,0);
 			// Printing geometric mesh to validate
 			if(gDebug) {
 				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
@@ -323,7 +331,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				time(& sttime);
 				
 				// Solving adaptive process
-				TPZAnalysis an(cmesh);
+				TPZAnalysis an(cmesh,true);
 				an.SetExact(ExactSolutionSphere);
 				// Introduzing exact solution depending on the case
 				{
@@ -346,14 +354,16 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
-				TPZSkylineStructMatrix strskyl(cmesh);
-//				TPZBandStructMatrix strskyl(cmesh);
-              //  TPZFrontStructMatrix strskyl(cmesh);
-               // if(usethreads) strskyl.SetNumThreads(nthread);
-				an.SetStructuralMatrix(strskyl);
+//				TPZSBandStructMatrix strmat(cmesh);
+				TPZSkylineStructMatrix strmat(cmesh);
+//				TPZBandStructMatrix strmat(cmesh);
+			//	TPZFrontStructMatrix<TPZFrontNonSym<REAL> > strmat(cmesh);
+			//	strmat.SetQuiet(1);
+				an.SetStructuralMatrix(strmat);
 
 				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
+//				direct->SetDirect(ELU);
 				an.SetSolver(*direct);
 				delete direct;
 				direct = 0;
@@ -374,16 +384,14 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				formatTimeInSec(time_formated,256,time_elapsed);
 				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
-				// Initializing the auto adaptive process
-				TPZVec<REAL> ervec,truervec,effect;
-				
-				
 				out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
                 std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 				fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 				// Printing degree of freedom (number of equations)
 				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
 				an.PostProcessError(ervec,out);
+				ErrorVec[nref] = ervec[1];
+				NEquations[nref] = cmesh->NEquations();
 				// Printing obtained errors
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
@@ -395,17 +403,22 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                     MaxError = ProcessingError(an,ervec,ervecbyel);
 					if(MaxError > ervec[1])
 						std::cout << "Local error is bigger than Global error, Ref " << nref << "." << std::endl;
-					if(ervec[1] < 100*ZeroTolerance()) {
+					if(ervec[1] < 1000*ZeroTolerance()) {
 						std::cout << "Tolerance reached but no maxime refinements, Ref " << nref << "." << std::endl;
 						fileerrors.flush();
 						out.flush();
 						break;
 					}
 //					ApplyingStrategyHPAdaptiveBasedOnErrors(an,MaxError,ervecbyel);
-					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel);
+					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel,nref);
                 }
 				fileerrors.flush();
 				out.flush();
+				// Cleaning computational mesh and creating a new computational mesh
+//				if(cmesh) {
+//					delete cmesh;
+//					cmesh = CreateMesh(gmesh,dim,1);
+//				}
 			}
 			if(cmesh)
 				delete cmesh;
@@ -417,12 +430,97 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 	}
 	
 	fileerrors << std::endl << "Finished running.\n" << std::endl << std::endl;
+	// Writing a relation between number of degree of freedom and L2 error.
+	fileerrors << "NEquations = {";
+	for(nref=0;nref<NRefs-1;nref++) {
+		fileerrors << NEquations[nref] << ", ";
+	}
+	fileerrors << NEquations[nref] << "};" << std::endl << "L2Error = {";
+	for(nref=0;nref<NRefs-1;nref++) {
+		fileerrors << ErrorVec[nref] << ", ";
+	}
+	fileerrors << ErrorVec[nref] << "};" << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
+	fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
+	fileerrors << "ListPlot[Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}],Joined->True]" << std::endl;
 	fileerrors.close();
     std::cout << std::endl << "Finished running.\n" << std::endl << std::endl;
 	out.close();
     return true;
 }
 
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,int nref) {
+
+	TPZCompMesh *cmesh = analysis.Mesh();
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	TPZVec<long> subels;
+	int j, k, pelement, dp;
+	dp = 1;
+	TPZVec<long> subsubels;
+	TPZInterpolatedElement *el;
+
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el) continue;
+		// If error is small and laplacian value is very little then the order will be minimized
+        REAL GradNorm, LaplacianValue;
+//		if(nref < 5)
+		GradNorm = GradientNormOnCorners(el);
+//		else
+//			GradNorm = GradientNorm(el);
+        if(GradNorm > 2.) {
+			int level = el->Reference()->Level();
+            // Dividing element one level
+            el->Divide(el->Index(),subels,0);
+            // Dividing sub elements one level more
+			if(nref < 2) {
+	            for(j=0;j<subels.NElements();j++) {
+					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+					scel->Divide(subels[j],subsubels,0);
+				    for(k=0;k<subsubels.NElements();k++) {
+						scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
+						LaplacianValue = Laplacian(scel);
+						if(LaplacianValue > 2) {
+							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+						    // Applying p+1 order for all subelements
+					        if(pelement+1 < MaxPOrder-1)
+								scel->PRefine(pelement+1);
+						}
+					}
+				}
+			}
+			else {
+				for(j=0;j<subels.NElements();j++) {
+					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+					if(nref<5) {
+						LaplacianValue = Laplacian(scel);
+						if(LaplacianValue > 2.) {
+							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+							// Applying p+1 order for all subelements
+							if(pelement+dp < MaxPOrder-1)
+								scel->PRefine(pelement+dp);
+						}
+					}
+//					else {
+	//					pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+						// Applying p+1 order for all subelements
+	//					if(pelement > 1)
+	//						scel->PRefine(pelement-1);
+	//				}
+				}
+			}
+		}
+		if(GradNorm < 0.2) {
+			LaplacianValue = Laplacian(el);
+			if(LaplacianValue < 0.25 && nref > 2) {
+				pelement = el->PreferredSideOrder(el->NConnects() - 1);
+				// Applying p+1 order for all subelements
+				if(pelement > 1)
+					el->PRefine(pelement-1);
+			}
+		}
+	}
+}
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
  * Return the maxime L2 error by elements.
@@ -554,53 +652,6 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 			}
 		}
 		*/
-	}
-}
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel) {
-
-	TPZCompMesh *cmesh = analysis.Mesh();
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
-	int j, k, pelement, dp = 2;
-	TPZVec<long> subsubels;
-	TPZInterpolatedElement *el;
-	for(long i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el) continue;
-		// If error is small and laplacian value is very little then the order will be minimized
-        REAL GradNorm = GradientNormOnCorners(el);
-        if(GradNorm > 3.) {
-			int level = el->Reference()->Level();
-            // Dividing element one level
-            el->Divide(el->Index(),subels,0);
-            // Dividing sub elements one level more
-			if(level < ninitialrefs+4) {
-	            for(j=0;j<subels.NElements();j++) {
-					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-					scel->Divide(subels[j],subsubels,0);
-				    for(k=0;k<subsubels.NElements();k++) {
-						scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
-						REAL LaplacianValue = LaplacianOnCorners(scel);
-						if(LaplacianValue > 0.5) {
-							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-						    // Applying p+1 order for all subelements
-					        if(pelement+dp < MaxPOrder-1)
-								scel->PRefine(pelement+dp);
-						}
-					}
-				}
-			}
-		}
-		if(GradNorm < 0.2) {
-			REAL LaplacianValue = LaplacianOnCorners(el);
-			if(LaplacianValue < 0.1) {
-				pelement = el->PreferredSideOrder(el->NConnects() - 1);
-				// Applying p+1 order for all subelements
-				if(pelement > 1)
-					el->PRefine(pelement-1);
-			}
-		}
 	}
 }
 /*
