@@ -117,7 +117,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
                                                std::string vtkFile,
                                                bool printVTKfile)
 {
-    int porder = 2;
+    int porder = 1;
     
     //--------------------------------------------------------------------------------------------
     REAL pressureInsideCrackRef = 1.;//Pressao da malha computacional referenciada
@@ -139,6 +139,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
     
     anRef.SetStructuralMatrix(skylinRef);
     anRef.SetSolver(stepRef);
+    
     anRef.Run();
     
     if(printVTKfile)
@@ -163,7 +164,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
         }
         out0 << "};\n";
     }
-    
+
     //--------------------------------------------------------------------------------------------
     TPZCompMeshReferred * fractureCMesh = this->GetFractureCompMeshReferred(poligonalChain,porder,sigmaTraction, pressureInsideCrack, fractureCMeshRef);
     if(!fractureCMesh)
@@ -310,6 +311,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         cmesh->InsertMaterialObject(newmannFarfield);
         
         ///////////insideFract
+        f.Zero();
         f(1,0) = pressureInsideCrack;
         TPZMaterial * materialNewmannInsideFract = new TPZElasticity3D(-305, young, poisson, force);
         TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
@@ -318,6 +320,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
     
     cmesh->SetAllCreateFunctionsContinuous();
     
+    cmesh->SetDefaultOrder(porder);
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
@@ -384,6 +387,7 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
         cmesh->InsertMaterialObject(newmannFarfield);
         
         ///////////insideFract
+        f.Zero();
         f(1,0) = pressureInsideCrack;
         TPZMaterial * materialNewmannInsideFract = new TPZElasticity3D(-305, young, poisson, force);
         TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
@@ -395,6 +399,7 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
     
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh);
     
+    cmesh->SetDefaultOrder(porder);
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
