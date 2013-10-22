@@ -61,6 +61,8 @@ class TPZMatrix: public TPZSaveable
 
 {
 public:
+    
+    //typedef typename TVar;
 	/** @brief Simple constructor */
 	TPZMatrix() {
 		fDecomposed = 0;

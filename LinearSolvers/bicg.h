@@ -48,7 +48,7 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		M.Solve(r,z);
 		M.Solve(rtilde,ztilde);
 		rho_1(0) = Dot(z, rtilde);
-		if (rho_1(0) == 0) { 
+		if (rho_1(0) == 0.) { 
 			tol = Norm(r) / normb;
 			max_iter = i;
 			return 2;

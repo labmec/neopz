@@ -347,6 +347,18 @@ public:
 		if(nc) buf.Read(&vec[0],nc);
 	}
 	
+	static void ReadObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec)
+	{
+		long nc;
+		buf.Read(&nc,1);
+		vec.Resize(nc);
+        TPZVec<REAL> temp(nc);
+		if(nc) buf.Read(&temp[0],nc);
+        for (long ic=0; ic<nc; ic++) {
+            vec[ic] = temp[ic];
+        }
+	}
+	
 	template<class T>
 	static void ReadObjects(TPZStream &buf, std::vector<T> &vec, void *context)
 	{
@@ -627,6 +639,17 @@ public:
 		long nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
+	}
+	
+	static void WriteObjects(TPZStream &buf, const TPZVec<TPZFlopCounter> &vec)
+	{
+		long nel = vec.NElements();
+		buf.Write(&nel,1);
+        TPZVec<REAL> temp(nel);
+        for (int iel = 0; iel<nel; iel++) {
+            temp[iel] = vec[iel];
+        }
+		if(nel) buf.Write(&temp[0],vec.NElements());
 	}
 	
 	static void WriteObjects(TPZStream &buf, const std::vector<double> &vec)

@@ -395,6 +395,13 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 #endif
 }
 
+template <>
+void TPZFMatrix<TPZFlopCounter>::GramSchmidt(TPZFMatrix<TPZFlopCounter> &Orthog, TPZFMatrix<TPZFlopCounter> &TransfToOrthog)
+{
+    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
+    DebugStop();
+}
+
 template <class TVar>
 void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse)
 {
@@ -978,7 +985,7 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 	{
 		if ( IsZero( *ptrpivot ) ){
 			//Power plus...
-			if (fabs(*ptrpivot) > 0){
+			if (fabs(*ptrpivot) > 0.){
 				for (j=k+1;j<rows;j++){
 					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1.e-12){
 						Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
@@ -1283,6 +1290,9 @@ long Dot(const TPZFMatrix<long> &A, const TPZFMatrix<long> &B);
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 
+template
+TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
+
 /** @brief Increments value over all entries of the matrix A. */
 template <class TVar>
 TPZFMatrix<TVar> operator+(const TVar value, const TPZFMatrix<TVar> &A ) {
@@ -1569,6 +1579,7 @@ template class TPZFMatrix<double >;
 template class TPZFMatrix<long double>;
 
 template class TPZFMatrix<int >;
+template class TPZFMatrix<TPZFlopCounter>;
 
 #ifndef BORLAND
 template class TPZRestoreClass< TPZFMatrix<double> , TPZFMATRIX_DOUBLE_ID>;

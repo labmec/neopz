@@ -184,6 +184,37 @@ public:
 	{
 		fVal = val;
 	}
+    
+    inline REAL val() const
+    {
+        return  fVal;
+    }
+    
+    operator REAL() const{
+        return fVal;
+    }
+    
+    bool operator<=(const REAL &val) const
+    {
+        return fVal <= val;
+    }
+    
+    bool operator<(const REAL &val) const
+    {
+        return fVal < val;
+    }
+    bool operator>(const REAL &val) const
+    {
+        return fVal > val;
+    }
+    bool operator>=(const REAL &val) const
+    {
+        return fVal >= val;
+    }
+    bool operator==(const REAL &val) const
+    {
+        return fVal == val;
+    }
 	/** @brief Returns the product with the oth value and increments the counter of the products. */
 	inline TPZFlopCounter operator*(const TPZFlopCounter &oth) const
 	{
@@ -197,6 +228,23 @@ public:
 	{
 		TPZFlopCounter result;
 		result.fVal = fVal/oth.fVal;
+		gCount.fCount[EDiv]++;
+		return result;
+	}
+	
+	/** @brief Returns the product with the oth value and increments the counter of the products. */
+	inline TPZFlopCounter operator*(const double &oth) const
+	{
+		TPZFlopCounter result;
+		result.fVal = fVal*oth;
+		gCount.fCount[EProd]++;
+		return result;
+	}
+	/** @brief Returns the division between oth value and increments the counter of the divisions. */
+	inline TPZFlopCounter operator/(const double &oth) const
+	{
+		TPZFlopCounter result;
+		result.fVal = fVal/oth;
 		gCount.fCount[EDiv]++;
 		return result;
 	}

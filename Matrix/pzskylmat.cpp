@@ -3124,6 +3124,8 @@ template class TPZRestoreClass<TPZSkylMatrix<float>, TSKYLMATRIX_FLOAT_ID>;
     
 template class TPZSkylMatrix<long double>;
 template class TPZSkylMatrix<std::complex<long double> >;
+    
+    template class TPZSkylMatrix<TPZFlopCounter>;
 
 #endif // USING_NEW_SKYLMAT
 

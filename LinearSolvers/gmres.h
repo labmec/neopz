@@ -42,7 +42,7 @@ template < class Real >
 Real
 abs(Real x)
 {
-	return (x > 0 ? x : -x);
+	return (x > 0. ? x : -x);
 }
 
 /**
@@ -109,8 +109,16 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	Vector *v = new Vector[m+1];
 	
 	while (j <= max_iter) {
-		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
-		s = REAL(0.0);
+        long rows = v[0].Rows();
+        for (long i=0; i<rows; i++) {
+            v[0](i) = r(i) * (REAL(1.0/beta));
+        }
+        rows = s.Rows();
+        for (long i=0; i<rows; i++) {
+            s(i) = REAL(0.);
+        }
+//		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
+//		s = REAL(0.0);
 		s(0) = beta;
 		
 		for (i = 0; i < m && j <= max_iter; i++, j++) {

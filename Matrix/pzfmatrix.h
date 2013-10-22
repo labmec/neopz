@@ -503,7 +503,10 @@ inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
 	return sqrt(Dot(A,A).real());
 }
 
-
+inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
+{
+    return sqrt(Dot(A, A));
+}
 /**
  * @brief Non abstract class which implements full matrices with preallocated storage with (N+1) entries. \ref matrix "Matrix"
  * @ingroup matrix

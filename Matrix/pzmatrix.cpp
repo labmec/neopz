@@ -646,7 +646,7 @@ void TPZMatrix<TVar>::SolveJacobi(long &numiterations,const TPZFMatrix<TVar> &F,
 	res = Norm(scratch);
 	long r = Dim();
 	long c = F.Cols();
-	for(long it=0; it<numiterations && fabs(res) > tol; it++) {
+	for(long it=0; it<numiterations && (fabs(res)) > tol; it++) {
 		for(long ic=0; ic<c; ic++) {
 			for(long i=0; i<r; i++) {
 				result(i,ic) += (scratch)(i,ic)/GetVal(i,i);
@@ -691,7 +691,7 @@ void TPZMatrix<TVar>::SolveSOR(long & numiterations, const TPZFMatrix<TVar> &F,
 		iinc = -1;
 	}
 	TVar eqres;
-	for(it=0; it<numiterations && fabs(res) > fabs(tol); it++) {
+	for(it=0; it<numiterations && (REAL)(fabs(res)) > fabs(tol); it++) {
 		res = 0.;
 		for(long ic=0; ic<c; ic++) {
 			for(i=ifirst; i!=ilast; i+= iinc) {
@@ -1078,7 +1078,7 @@ int TPZMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
 		for(long k=0; k<i; k++) {             //elementos da diagonal
 			PutVal( i,i,GetVal(i,i)-GetVal(i,k)*GetVal(i,k) );
 		}
-		if(fabs(GetVal(i,i)) <= 1.e-12)
+		if((fabs(GetVal(i,i))) <= 1.e-12)
 		{
 			singular.push_back(i);
 			PutVal(i,i,1.);
@@ -1371,7 +1371,7 @@ int TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
 	
 	for( long i = 0; i < nrows; i++){
 		for(long j = 0; j <= i; j++){
-			if ( fabs( this->Get(i,j) - this->Get(j,i) ) > tol ) {
+			if ( (REAL)(fabs( this->Get(i,j) - this->Get(j,i) )) > tol ) {
 			  	#ifdef STATE_COMPLEX
 				cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << "/" <<
 				this->Get(i,j) << endl;
@@ -1486,7 +1486,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
         TPZFNMatrix<9,TVar> Matrix(*this);
 		
         TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
-        if(fabs(fabs(answ) - Eigenvalues[eigen]) > 1.E-5)
+        if((REAL)(fabs(fabs(answ) - Eigenvalues[eigen])) > 1.E-5)
         {
             for(long i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - (TVar)(0.01 * fabs(answ-Eigenvalues[eigen]))) );
         }
@@ -1529,7 +1529,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
         for(long i = 0; i < size; i++)
         {
 			TVar val = VecIni(i,0);
-			if(fabs(val) < 1.E-5) val = 0.;
+			if((REAL)(fabs(val)) < 1.E-5) val = 0.;
 			Eigenvectors(eigen,i) = val;
         }
 		
@@ -1620,7 +1620,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
 		
 		/** Check if max value off diagonal is lesser than required tolerance */
 		res = maxval;
-		if (fabs(res) < tol) break;
+		if ((REAL)(fabs(res)) < tol) break;
 		
 		/** Compute angle of rotation */
 		theta = 0.5 * atan((TVar)2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
@@ -1674,7 +1674,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
 	}//if (Sort)
 	
 	
-	if (fabs(res) < tol){
+	if ((REAL)(fabs(res)) < tol){
 		tol = fabs(res);
 		numiterations = iter;
 		return true;
@@ -1843,6 +1843,7 @@ template class TPZMatrix<double>;
 template class TPZMatrix<long>;
 template class TPZMatrix<int>;
 template class TPZMatrix<float>;
+template class TPZMatrix<TPZFlopCounter>;
 
 #ifdef _AUTODIFF
 template class TPZMatrix<TFad<6,REAL> >;
