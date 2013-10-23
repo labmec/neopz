@@ -943,7 +943,7 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
 
 
 		int nshape=0;
-		NShapeContinuous(ord, nshape );
+		this->NShapeContinuous(ord, nshape );
 		
 				phi.Resize(nshape, 1);
 				dphi.Resize(dimension, nshape);
