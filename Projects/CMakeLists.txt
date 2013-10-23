@@ -106,6 +106,11 @@ ENABLE_TESTING()
 				add_subdirectory(Plasticity)
 			endif()
 			##########################
+
+			# MHM project
+			add_subdirectory(MHM)
+
+
 			add_subdirectory(MultipleLoad)
 
 			# add_subdirectory(adaptivity_refactor)
