@@ -22,12 +22,16 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
 	fk = 1.;
     fvisc = 1.;
 	ff = 0.;
+    fIsStabilized = false;
+    fdelta2 =0.;
 }
 
 TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
 	fk = 1.;
     fvisc = 1.;
 	ff = 0.;
+    fIsStabilized = false;
+    fdelta2 =0.;
 }
 
 TPZMixedPoisson::~TPZMixedPoisson() {
@@ -37,12 +41,16 @@ TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
     fk = cp.fk;
     fvisc = cp.fvisc;
     ff = cp.ff;
+    fIsStabilized = cp.fIsStabilized;
+    fdelta2 = cp.fdelta2;
 }
 
 TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
     fk = copy.fk;
     fvisc = copy.fvisc;
     ff = copy.ff;
+    fIsStabilized = copy.fIsStabilized;
+    fdelta2 = copy.fdelta2;
     return *this;
 } 
 
@@ -82,16 +90,33 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     int phrq, phrp;
     phrp = phip.Rows();
     phrq = datavec[0].fVecShapeIndex.NElements();
-    
 	
 	//Calculate the matrix contribution for flux. Matrix A
     REAL ratiok = fvisc/fk;
     for(int iq=0; iq<phrq; iq++)
     {
         ef(iq, 0) += 0.;
-        
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        
+        //Inserindo termo de estabilizacao no termo de fonte
+        REAL divqi = 0.;
+        if(fIsStabilized==true)
+        {
+            //calculando div(qi)
+            TPZFNMatrix<3> ivec(3,1);
+            ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
+            ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+            ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+            TPZFNMatrix<3> axesvec(3,1);
+            datavec[0].axes.Multiply(ivec,axesvec);
+            for(int iloc=0; iloc<fDim; iloc++)
+            {
+                divqi += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
+            }
+            ef(iq, 0) += weight*(fdelta2*divqi*ff);
+        }
+        
         for (int jq=0; jq<phrq; jq++) 
         {
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
@@ -100,6 +125,26 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             datavec[0].fNormalVec(1,ivecind)*datavec[0].fNormalVec(1,jvecind)+
             datavec[0].fNormalVec(2,ivecind)*datavec[0].fNormalVec(2,jvecind);//dot product between u and v 
             ek(iq,jq) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+            
+            
+            //Inserindo termo de estabilizacao na matriz do fluxo
+            if(fIsStabilized==true)
+            {
+                //calculando div(qj)
+                REAL divqj = 0.;
+                TPZFNMatrix<3> jvec(3,1);
+                jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
+                jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
+                jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+                TPZFNMatrix<3> axesvec(3,1);
+                datavec[0].axes.Multiply(jvec,axesvec);
+                for(int jloc=0; jloc<fDim; jloc++)
+                {
+                    divqj += axesvec(jloc,0)*dphiQ(jloc,jshapeind);
+                }
+                ek(iq,jq) += weight*fdelta2*divqi*divqj;
+            }
+
         }
     }
     

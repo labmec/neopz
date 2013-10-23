@@ -45,6 +45,12 @@ protected:
     /** @brief Problem dimension */
 	int fDim;
     
+    /** @brief Choose Stabilized method */
+    bool fIsStabilized;
+    
+    /** @brief Coeficient of Stabilization*/
+    REAL fdelta2;
+    
 public:
     TPZMixedPoisson();
     
@@ -78,6 +84,14 @@ public:
 	void SetInternalFlux(REAL flux) {
 		ff = flux;
 	}
+    
+    void SetStabilizedMethod(){
+        fIsStabilized = true;
+    }
+    
+    void SetStabilizationCoeficient(REAL delta2){
+        fdelta2 = delta2;
+    }
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.

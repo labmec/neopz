@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 0; ndiv< 4; ndiv++)
+        for (ndiv = 3; ndiv< 4; ndiv++)
         {
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
@@ -444,8 +444,11 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     //incluindo os dados do problema
     REAL coefk = 1.;
     REAL coefvisc = 1.;
+    REAL delta2 = 1.;
     material->SetPermeability(coefk);
     material->SetViscosity(coefvisc);
+    material->SetStabilizedMethod();
+    material->SetStabilizationCoeficient(delta2);
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
