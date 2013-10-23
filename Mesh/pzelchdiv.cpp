@@ -154,6 +154,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
  template<class TSHAPE>
  int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
  {
+	
 		 if(connect >= this->NConnects())
 		 {
 				 PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: there is not this connect " <<  endl;
@@ -381,7 +382,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
     c.SetNState(nvar);
-    int nshape = NConnectShapeF(connectaux);
+    int nshape =this-> NConnectShapeF(connectaux);
     c.SetNShape(nshape);
 	this-> Mesh()->Block().Set(seqnum,nshape*nvar);
 }
@@ -482,14 +483,14 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
-    int nn=TPZCompElHDiv::NConnects();
+    int nn=this->NConnects();
     for(in=0;in<nn;in++){
 //#ifdef LOG4CXX
 //				std::stringstream sout;
 //				sout << "conect " << in<< " seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
 //				LOGPZ_DEBUG(logger,sout.str())
 //#endif
-        result += TPZCompElHDiv::NConnectShapeF(in);
+        result += this->NConnectShapeF(in);
     }
 		
 		
