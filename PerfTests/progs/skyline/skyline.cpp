@@ -89,6 +89,7 @@ void help(const char* prg)
 
 
 clarg::argBool h("-h", "help message", false);
+clarg::argBool print_flops("-pf", "print floating point operations", false);
 
 clarg::argInt verb_level("-v", "verbosity level", 0);
 int verbose = 0;
@@ -163,6 +164,9 @@ protected:
 
 #include <sched.h>     //sched_getcpu
 
+//template class TPZSkylMatrix<TPZFlopCounter>;
+//template class TPZMatrix<TPZFlopCounter>;
+//template class TPZAutoPointer<TPZMatrix<TPZFlopCounter> >;
 
 int main(int argc, char *argv[])
 {
@@ -217,17 +221,30 @@ int main(int argc, char *argv[])
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat3 = skylmat1->Clone();
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat4 = skylmat1->Clone();
 	TPZFMatrix<REAL> * f = new TPZFMatrix<REAL>(neq,1);   
+	TPZFMatrix<TPZFlopCounter> * f2 = new TPZFMatrix<TPZFlopCounter>(neq,1);
  
 	if (clk_rst.was_set()) {
     		clk_rst.start();
     		skylmat1->Decompose_Cholesky();
     		clk_rst.stop();
+		if (print_flops.was_set()) {
+		  TPZSkylMatrix<TPZFlopCounter> fp_counter(skylmat1);
+		  TPZCounter c = TPZFlopCounter::gCount;
+		  fp_counter.Decompose_Cholesky();
+		  c = c - TPZFlopCounter::gCount;
+		  c.Print();
+		}
 	}
 
 	if (ldlt_rst.was_set()) { 
     		ldlt_rst.start();
     		skylmat2->Decompose_LDLt();
     		ldlt_rst.stop();
+		if (print_flops.was_set()) {
+		  TPZSkylMatrix<TPZFlopCounter> fp_counter(skylmat2);
+		  fp_counter.Decompose_LDLt();
+		  TPZFlopCounter::gCount.Print();
+		}
 	}
 
 	if (sfwd_rst.was_set()) {
@@ -235,6 +252,13 @@ int main(int argc, char *argv[])
     		sfwd_rst.start();
     		skylmat1->Subst_Forward(f);
     		sfwd_rst.stop();
+		if (print_flops.was_set()) {
+		  TPZSkylMatrix<TPZFlopCounter> fp_counter(skylmat1);
+		  TPZCounter c = TPZFlopCounter::gCount;
+		  fp_counter.Subst_Forward(f2);
+		  c = c - TPZFlopCounter::gCount;
+		  c.Print();
+		}
 	}
 
 	if (sbck_rst.was_set()){
@@ -242,6 +266,13 @@ int main(int argc, char *argv[])
     		sbck_rst.start();
     		skylmat1->Subst_Backward(f);
     		sbck_rst.stop();
+		if (print_flops.was_set()) {
+		  TPZSkylMatrix<TPZFlopCounter> fp_counter(skylmat1);
+		  TPZCounter c = TPZFlopCounter::gCount;
+		  fp_counter.Subst_Backward(f2);
+		  c = c - TPZFlopCounter::gCount;
+		  c.Print();
+		}
 	}
 
 	if (sor_rst.was_set()) {
