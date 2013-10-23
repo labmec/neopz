@@ -63,6 +63,9 @@ const int TPZUncoupledMultiPhysicsID = 325;
 const int TPZELASTICITYHYBRIDMATERIALID = 326;
 
 
+/** @brief Id of mhm formulation of Darcy problems  material */
+const int TPZMATDARCYMHM = 327;
+
 /** @} */
 
 #endif //PZMATERIALIDH
