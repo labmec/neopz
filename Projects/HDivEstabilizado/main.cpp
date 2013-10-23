@@ -42,6 +42,8 @@
 
 #include "pzlog.h"
 
+#include "pzhdivfull.h"
+
 #include <iostream>
 #include <math.h>
 using namespace std;
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 3; ndiv< 4; ndiv++)
+        for (ndiv = 0; ndiv< 1; ndiv++)
         {
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
@@ -323,7 +325,10 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(mat);
-	cmesh->SetAllCreateFunctionsHDiv();
+	
+	//cmesh->SetAllCreateFunctionsHDiv();
+	cmesh-> SetAllCreateFunctionsHDivFull();
+	
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
@@ -461,7 +466,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     if(isStab==true){
         material->SetStabilizedMethod();
         material->SetStabilizationCoeficients(delta1,delta2);
-    }
+	}
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
