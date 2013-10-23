@@ -467,6 +467,13 @@ public:
     {
         fCreate.SetAllCreateFunctionsHDiv();
     }
+	
+	//space for full basis for quadrilateral element
+	void SetAllCreateFunctionsHDivFull()
+    {
+        fCreate.SetAllCreateFunctionsHDivFull();
+    }
+	
 
 #ifndef STATE_COMPLEX
     void SetAllCreateFunctionsHDivPressure()
