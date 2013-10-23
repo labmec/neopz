@@ -1063,7 +1063,49 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ek.fBlock.Resequence();
 	ef.fBlock.Resequence();
 	
-	//LOOKING FOR MAX INTERPOLATION ORDER
+    
+//MHM
+// criar um vetor normal a interface, necessario para o MHM
+////////////////////////////////////////////////////////////
+    
+	TPZGeoEl *refRight = right->Reference();//pq o elemento 1D, nessa malha, eh sempre o right
+    int ncorner = refRight->NCornerNodes();
+    TPZManVector<TPZManVector<REAL,2>,2> VecNodesCoord(ncorner,0.);
+    TPZManVector<REAL,2> VecSobreInterface(2,0.);
+    TPZManVector<REAL,2> Normal(2,0.);
+    for(int i = 0; i < ncorner; i++)
+    {
+        VecNodesCoord[i].Resize(2, 0.);
+    }
+    for(int icn=0; icn<ncorner; icn++)
+    {
+        TPZGeoNode geonode = refRight->Node(icn);
+        VecNodesCoord[icn][0] = geonode.Coord(0);
+        VecNodesCoord[icn][1] = geonode.Coord(1);
+    }
+    // este vetor esta sobre a interface. Eh a diferença dos dois extremos.
+    VecSobreInterface[0]=VecNodesCoord[0][0]-VecNodesCoord[1][0];
+    VecSobreInterface[1]=VecNodesCoord[0][1]-VecNodesCoord[1][1];
+    //normalizacao
+    REAL VecSize= sqrt(VecSobreInterface[0]*VecSobreInterface[0] + VecSobreInterface[1]*VecSobreInterface[1]);
+    VecSobreInterface[0]*= 1./VecSize;
+    VecSobreInterface[1]*= 1./VecSize;
+    
+    // existem duas possibilidades para este vetor: 1) esta no primeiro ou terceiro quadrante. 2) esta no segundo ou quarto quadrante.
+    // agora vamos transformá-lo em um vetor que esta no primeiro ou no segundo quadrante
+    if(VecSobreInterface[1]<0)// o vetor esta no terceiro ou quarto quadrante
+    {
+        VecSobreInterface[0]*=-1.;
+        VecSobreInterface[1]*=-1.;
+    }
+    // agora vamos rotacionar esse vetor 90 graus anti-horario, para obter o normal
+    Normal[0]=VecSobreInterface[1];
+    Normal[1]=-VecSobreInterface[0];
+
+    
+//MHM        //////////////////////////////////////////////////////////
+    
+    //LOOKING FOR MAX INTERPOLATION ORDER
 	int leftmaxp = left->MaxOrder();
 	int rightmaxp = right->MaxOrder();
 	
@@ -1084,6 +1126,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	TPZGeoEl *ref = Reference();
 	TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p) );
 
+    
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
@@ -1108,10 +1151,21 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 
+
 		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
 		this->ComputeRequiredData(data);
-		data.x = dataleft.x;
+ 
+        //MHM
+       	dataright.normal.Resize(3);
+        dataright.normal[0]=Normal[0];
+        dataright.normal[1]=Normal[1];
+        std::cout << std::endl << "normalinterface=" << std::endl<< "("<< Normal[0] <<", "<< Normal[1] <<" )"<< std::endl;
+        std::cout << std::endl << "normal=" << std::endl<< "("<< data.normal[0] <<", "<< data.normal[1] <<", "<< data.normal[2] <<")"<< std::endl;
+        //MHM
+        
+        
+        data.x = dataleft.x;
         
 		mat->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
 		
@@ -1576,7 +1630,8 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
 		data.HSize = faceSize;
 	}
 	
-	if(data.fNeedsNormal && !this->Reference()->IsLinearMapping()){
+	if(data.fNeedsNormal )//&& !this->Reference()->IsLinearMapping())
+    {
 		this->ComputeNormal(data.axes,data.normal);
 	}
 	

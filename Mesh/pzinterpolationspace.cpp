@@ -807,7 +807,18 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 		}
 		else { //one element is a boundary condition
 			if (thisdim < neighbourdim) matid = this->Material()->Id();
-			else matid = lower.Element()->Material()->Id();
+			else
+            {
+                TPZCompEl *cel = lower.Element();
+                if (!cel) {
+                    DebugStop();
+                }
+                TPZMaterial *mat = cel->Material();
+                if (!mat ) {
+                    DebugStop();
+                }
+                matid = lower.Element()->Material()->Id();
+            }
 		}
 		
 		
