@@ -1,16 +1,18 @@
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
-file (GLOB to_remove_from_sources main.cpp mainGUI.cpp poroelastoplastic.cpp)
+file (GLOB to_remove_from_sources main.cpp mainGUI.cpp poroelastoplastic.cpp mainPV.cpp)
 list (REMOVE_ITEM sources ${to_remove_from_sources})
 
 set(main1_SRCS main.cpp poroelastoplastic.cpp ${sources} ${headers})
 set(main2_SRCS mainGUI.cpp ${sources} ${headers})
+set(main3_SRCS mainPV.cpp ${sources} ${headers})
 
 #Plasticity works only with double type.
-if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-
-  if(USING_FAD AND BUILD_PLASTICITY_MATERIALS)
+if ( STATE_TYPE STREQUAL "double" AND
+     REAL_TYPE STREQUAL "double" AND 
+     USING_FAD AND 
+     BUILD_PLASTICITY_MATERIALS )
 
 	  add_executable(Plasticity ${main1_SRCS})
 	  target_link_libraries(Plasticity pz)
@@ -18,12 +20,13 @@ if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
 	  add_executable(PlasticityGUI ${main2_SRCS})
 	  target_link_libraries(PlasticityGUI pz)
 	  
+	  add_executable(PlasticityPV ${main3_SRCS})
+	  target_link_libraries(PlasticityPV pz)
+
 	  file(COPY SnubDodecahedron.txt DESTINATION .)
 	  file(COPY wellcil.txt DESTINATION .)
 	  file(COPY ensaio_UCS_all_columns.txt DESTINATION .)
 	  file(COPY ensaio_all_columns.txt DESTINATION .)
-
-  endif()
 
 endif()
 
