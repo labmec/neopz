@@ -78,9 +78,13 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-bool ftriang = false;
-
 REAL const Pi = 4.*atan(1.);
+
+bool ftriang = false;
+bool isStab = true;
+bool iscontinuou = true;
+REAL delta1 = 1.;
+REAL delta2 = 1.;
 
 #include "pztransfer.h"
 int main(int argc, char *argv[])
@@ -367,10 +371,6 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     
-    
-	cmesh->SetAllCreateFunctionsDiscontinuous();
-    
-    
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
@@ -378,46 +378,57 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
-	
-	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
     
-    int ncon = cmesh->NConnects();
-    for(int i=0; i<ncon; i++)
+    if(iscontinuou==false)
     {
-        TPZConnect &newnod = cmesh->ConnectVec()[i];
-        //newnod.SetPressure(true);
-        newnod.SetLagrangeMultiplier(1);
-    }
-    
-    int nel = cmesh->NElements();
-    for(int i=0; i<nel; i++){
-        TPZCompEl *cel = cmesh->ElementVec()[i];
-        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
-        celdisc->SetConstC(1.);
-        celdisc->SetCenterPoint(0, 0.);
-        celdisc->SetCenterPoint(1, 0.);
-        celdisc->SetCenterPoint(2, 0.);
-        celdisc->SetTrueUseQsiEta();
-        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        cmesh->SetAllCreateFunctionsDiscontinuous();
+
+        //Ajuste da estrutura de dados computacional
+        cmesh->AutoBuild();
+
+        int ncon = cmesh->NConnects();
+        for(int i=0; i<ncon; i++)
         {
-            if(ftriang==true) celdisc->SetTotalOrderShape();
-            else celdisc->SetTensorialShape();
+            TPZConnect &newnod = cmesh->ConnectVec()[i];
+            //newnod.SetPressure(true);
+            newnod.SetLagrangeMultiplier(1);
         }
-        
+
+        int nel = cmesh->NElements();
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = cmesh->ElementVec()[i];
+            TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+            celdisc->SetConstC(1.);
+            celdisc->SetCenterPoint(0, 0.);
+            celdisc->SetCenterPoint(1, 0.);
+            celdisc->SetCenterPoint(2, 0.);
+            celdisc->SetTrueUseQsiEta();
+            if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+            {
+                if(ftriang==true) celdisc->SetTotalOrderShape();
+                else celdisc->SetTensorialShape();
+            }
+            
+        }
+
+
+        #ifdef DEBUG
+        int ncel = cmesh->NElements();
+        for(int i =0; i<ncel; i++){
+            TPZCompEl * compEl = cmesh->ElementVec()[i];
+            if(!compEl) continue;
+            TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
+            if(facel)DebugStop();
+            
+        }
+        #endif
     }
-    
-    
-#ifdef DEBUG
-    int ncel = cmesh->NElements();
-    for(int i =0; i<ncel; i++){
-        TPZCompEl * compEl = cmesh->ElementVec()[i];
-        if(!compEl) continue;
-        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
-        if(facel)DebugStop();
+    else{
+        cmesh->SetAllCreateFunctionsContinuous();
         
+        //Ajuste da estrutura de dados computacional
+        cmesh->AutoBuild();
     }
-#endif
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -444,11 +455,13 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     //incluindo os dados do problema
     REAL coefk = 1.;
     REAL coefvisc = 1.;
-    REAL delta2 = 1.;
     material->SetPermeability(coefk);
     material->SetViscosity(coefvisc);
-    material->SetStabilizedMethod();
-    material->SetStabilizationCoeficient(delta2);
+    
+    if(isStab==true){
+        material->SetStabilizedMethod();
+        material->SetStabilizationCoeficients(delta1,delta2);
+    }
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;

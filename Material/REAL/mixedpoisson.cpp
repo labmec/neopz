@@ -23,7 +23,8 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
     fvisc = 1.;
 	ff = 0.;
     fIsStabilized = false;
-    fdelta2 =0.;
+    fdelta1 = 0.;
+    fdelta2 = 0.;
 }
 
 TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
@@ -31,7 +32,8 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
     fvisc = 1.;
 	ff = 0.;
     fIsStabilized = false;
-    fdelta2 =0.;
+    fdelta1 = 0.;
+    fdelta2 = 0.;
 }
 
 TPZMixedPoisson::~TPZMixedPoisson() {
@@ -42,6 +44,7 @@ TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
     fvisc = cp.fvisc;
     ff = cp.ff;
     fIsStabilized = cp.fIsStabilized;
+    fdelta1 = cp.fdelta1;
     fdelta2 = cp.fdelta2;
 }
 
@@ -50,6 +53,7 @@ TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
     fvisc = copy.fvisc;
     ff = copy.ff;
     fIsStabilized = copy.fIsStabilized;
+    fdelta1 = copy.fdelta1;
     fdelta2 = copy.fdelta2;
     return *this;
 } 
@@ -86,28 +90,29 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFMatrix<REAL>  &phiQ =  datavec[0].phi;
     TPZFMatrix<REAL>  &phip =  datavec[1].phi;
 	TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
+    TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
     
     int phrq, phrp;
     phrp = phip.Rows();
     phrq = datavec[0].fVecShapeIndex.NElements();
 	
 	//Calculate the matrix contribution for flux. Matrix A
-    REAL ratiok = fvisc/fk;
+    REAL InvK = fvisc/fk;
     for(int iq=0; iq<phrq; iq++)
     {
-        ef(iq, 0) += 0.;
+        //ef(iq, 0) += 0.;
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3> ivec(3,1);
+        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
+        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         
         //Inserindo termo de estabilizacao no termo de fonte
         REAL divqi = 0.;
         if(fIsStabilized==true)
         {
             //calculando div(qi)
-            TPZFNMatrix<3> ivec(3,1);
-            ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-            ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
             TPZFNMatrix<3> axesvec(3,1);
             datavec[0].axes.Multiply(ivec,axesvec);
             for(int iloc=0; iloc<fDim; iloc++)
@@ -117,27 +122,39 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             ef(iq, 0) += weight*(fdelta2*divqi*ff);
         }
         
-        for (int jq=0; jq<phrq; jq++) 
+        for (int jq=0; jq<phrq; jq++)
         {
+            TPZFNMatrix<3> jvec(3,1);
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
-            REAL prod = datavec[0].fNormalVec(0,ivecind)*datavec[0].fNormalVec(0,jvecind)+
-            datavec[0].fNormalVec(1,ivecind)*datavec[0].fNormalVec(1,jvecind)+
-            datavec[0].fNormalVec(2,ivecind)*datavec[0].fNormalVec(2,jvecind);//dot product between u and v 
-            ek(iq,jq) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+            jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
+            jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
+            jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+            
+            //dot product between u and v
+            REAL prod = ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
+//            REAL prod = datavec[0].fNormalVec(0,ivecind)*datavec[0].fNormalVec(0,jvecind)+
+//            datavec[0].fNormalVec(1,ivecind)*datavec[0].fNormalVec(1,jvecind)+
+//            datavec[0].fNormalVec(2,ivecind)*datavec[0].fNormalVec(2,jvecind);            
+            ek(iq,jq) += InvK*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
             
             
-            //Inserindo termo de estabilizacao na matriz do fluxo
+            //Inserindo termos de estabilizacao na matriz do fluxo
             if(fIsStabilized==true)
             {
-                //calculando div(qj)
+                //termos de delta1
+                ek(iq,jq) += (-1.)*weight*fdelta1*InvK*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+                
+                
+                //termos de delta2
                 REAL divqj = 0.;
-                TPZFNMatrix<3> jvec(3,1);
-                jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
-                jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-                jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+//                TPZFNMatrix<3> jvec(3,1);
+//                jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
+//                jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
+//                jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
                 TPZFNMatrix<3> axesvec(3,1);
                 datavec[0].axes.Multiply(jvec,axesvec);
+                //calculando div(qj)
                 for(int jloc=0; jloc<fDim; jloc++)
                 {
                     divqj += axesvec(jloc,0)*dphiQ(jloc,jshapeind);
@@ -175,11 +192,48 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             // Matrix B^T
             ek(phrq+jp,iq) += fact;
+            
+            
+            //Inserindo termo de estabilizacao: delta1
+            if(fIsStabilized==true)
+            {
+                REAL dotVGradP = 0.;
+                for(int k =0; k<fDim; k++)
+                {
+                    dotVGradP += ivec(k,0)*phiQ(ishapeind,0)*dphiP(k,jp);
+                }
+                
+                REAL integration = (-1.)*weight*fdelta1*dotVGradP;
+                
+                // Estabilizacao delta1 na Matrix B
+                ek(iq, phrq+jp) += integration;
+                
+                // Estabilizacao delta1 na Matrix BˆT
+                ek(phrq+jp,iq) += integration;
+            }
         }
     }
     
+    //termo fonte referente a equacao da pressao
     for(int ip=0; ip<phrp; ip++){
          ef(phrq+ip,0) += (-1.)*weight*ff*phip(ip,0);
+    }
+    
+    //Contribution for estabilization delta1 for gradPu*gradPv. Matrix D
+    if(fIsStabilized==true)
+    {
+        REAL mK = fk/fvisc;
+        for(int ip=0; ip<phrp; ip++)
+        {
+             for(int jp=0; jp<phrp; jp++)
+             {
+                 for(int k =0; k<fDim; k++)
+                 {
+                     ek(phrq+ip, phrq+jp) += (-1.)*weight*fdelta1*mK*dphiP(k,ip)*dphiP(k,jp);
+                 }
+                 
+             }
+        }
     }
 //
 //#ifdef LOG4CXX

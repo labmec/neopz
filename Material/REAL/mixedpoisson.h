@@ -49,6 +49,7 @@ protected:
     bool fIsStabilized;
     
     /** @brief Coeficient of Stabilization*/
+    REAL fdelta1;
     REAL fdelta2;
     
 public:
@@ -89,7 +90,8 @@ public:
         fIsStabilized = true;
     }
     
-    void SetStabilizationCoeficient(REAL delta2){
+    void SetStabilizationCoeficients(REAL delta1, REAL delta2){
+        fdelta1 = delta1;
         fdelta2 = delta2;
     }
     
