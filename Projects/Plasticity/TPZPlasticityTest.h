@@ -1,6 +1,5 @@
-
-#ifndef MAINGUIH
-#define MAINGUIH
+#ifndef TPZPLASTICITYTEST
+#define TPZPLASTICITYTEST
 
 #include "TPZSandlerDimaggio.h"
 
