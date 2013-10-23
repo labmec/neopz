@@ -56,6 +56,8 @@ public:
 	virtual void FirstShapeIndex(TPZVec<long> &Index);
 	virtual void NShapeContinuous(TPZVec<int> &order, int &nshape );
 	virtual void InitMaterialData(TPZMaterialData &data);
+	virtual int NFluxShapeF() const;
+	virtual void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 
     		

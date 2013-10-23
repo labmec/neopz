@@ -143,7 +143,7 @@ int TPZCompElHDivFull<TSHAPE>::NConnectShapeF(int connect)const
 				// funcoes para os lados menor que o proprio elemento
 				for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++)
 				{
-					NShapeFace += TSHAPE::NConnectShapeF(nside,order+1);
+					NShapeFace += TSHAPE::NConnectShapeF(nside,order);
 				}
 				return(NShapeFace);
 			}
@@ -364,19 +364,19 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
     
 }
 
-//template<class TSHAPE>
-//int TPZCompElHDivFull<TSHAPE>::NFluxShapeF() const{
-//    int in,result=0;
-//    int nn=TPZCompElHDiv::NConnects();
-//    for(in=0;in<nn;in++){
-//        result += NConnectShapeF(in);
-//    }
-//	
-//	
-//    return result;
-//	
-//	
-//}
+template<class TSHAPE>
+int TPZCompElHDivFull<TSHAPE>::NFluxShapeF() const{
+    int in,result=0;
+    int nn=this->NConnects();
+    for(in=0;in<nn;in++){
+        result += this-> NConnectShapeF(in);
+    }
+	
+	
+    return result;
+	
+	
+}
 
 
 template<class TSHAPE>
@@ -406,6 +406,35 @@ void TPZCompElHDivFull<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
     sout << "First  Index " << Index;
     LOGPZ_DEBUG(logger,sout.str())
 #endif
+}
+
+template<class TSHAPE>
+void TPZCompElHDivFull<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+	
+	TPZManVector<long,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
+	int i;
+	TPZGeoEl *ref = this->Reference();
+	for(i=0; i<TSHAPE::NCornerNodes; i++) {
+		id[i] = ref->NodePtr(i)->Id();
+	}
+	
+	int nconflux=this->NConnects();
+	for(i=0; i< nconflux; i++)
+	{
+		ord[i] = this->ConnectOrder(i);
+		
+	}
+	int dimension= TSHAPE::Dimension;
+	
+	
+	int nshape=0;
+	this->NShapeContinuous(ord, nshape );
+	
+	phi.Resize(nshape, 1);
+	dphi.Resize(dimension, nshape);
+	TSHAPE::Shape(pt,id,ord,phi,dphi);
+	
 }
 
 
