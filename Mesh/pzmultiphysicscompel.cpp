@@ -582,6 +582,7 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 	for (long iref=0;  iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        if(!msp) continue;
 		ordervec[iref] =  msp->MaxOrder();
 	}
 	TPZMaterial * material = Material();
