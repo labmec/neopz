@@ -323,6 +323,23 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
      */
 }
 
+#include "pzhdivfull.h"
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(){
+	
+    fp[EPoint] = CreateHDivFullPointEl;
+    fp[EOned] = CreateHDivFullLinearEl;
+    fp[ETriangle] = CreateHDivFullTriangleEl;
+    fp[EQuadrilateral] = CreateHDivFullQuadEl;
+    fp[ETetraedro] = CreateHDivFullTetraEl;
+    fp[EPiramide] = CreateHDivFullPyramEl;
+    fp[EPrisma] = CreateHDivFullPrismEl;
+    fp[ECube] = CreateHDivFullCubeEl;
+    
+}
+
+
+
 #ifndef STATE_COMPLEX
 #include "pzhdivpressure.h"
 
