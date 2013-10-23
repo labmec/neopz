@@ -116,11 +116,11 @@ int main(int argc, char *argv[])
 	int p;
     int h;
     
-    for(p = 1; p < 5; p++)
+    for(p = 1; p < 2; p++)
     {
         arg12<<"\n ================================="<<endl;
         arg12<<"PARA ORDEM p = " << p<<endl;
-        for(h = 0; h < 6;h++)
+        for(h = 1; h < 2;h++)
         {
             arg12<<"\nREFINAMENTO h  = " << h <<"\n\n";
         
@@ -172,15 +172,15 @@ int main(int argc, char *argv[])
             TPZMatUncoupledPoissonDisc * multiphysics_material;
             TPZCompMesh * mphysics = MalhaCompMultifisica(gmesh,meshvec,multiphysics_material);
             
-//            ofstream arg13("gmesh_multiphysics.txt");
-//            gmesh->Print(arg13);
+            ofstream arg13("gmesh_multiphysics.txt");
+            gmesh->Print(arg13);
                 
             // Resolvendo o sistema linear
             TPZAnalysis an(mphysics);
             ResolverSistema(an, mphysics,false);
             
-//            ofstream arg18("mphysics_cmesh.txt");
-//            mphysics->Print(arg18);
+            ofstream arg18("mphysics_cmesh.txt");
+            mphysics->Print(arg18);
 
             // Arquivo de saida para plotar a solução
 //            string plotfile3("Solution_mphysics.vtk");

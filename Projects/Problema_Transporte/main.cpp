@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     
     int p = 0;
     TPZGeoMesh *gmesh = MalhaGeom();
-    UniformRefine(gmesh, 6);
+    UniformRefine(gmesh, 1);
     ofstream arg1("gmesh.txt");
     gmesh->Print(arg1);
     
@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
     TPZAnalysis anL2(cmeshL2);
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
+   // an.LoadSolution(anL2.Solution());
+    //an.Solution().Print("sol_S0");
     
     REAL deltaT=0.001; //second
     material->SetTimeStep(deltaT);
