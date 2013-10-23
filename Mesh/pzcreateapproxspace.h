@@ -65,6 +65,9 @@ public:
 	void SetAllCreateFunctionsContinuousReferred();
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv();
+	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
+	void SetAllCreateFunctionsHDivFull();
+	
 #ifndef STATE_COMPLEX
     /** @brief Create an approximation space with HDivxL2 elements */
 	void SetAllCreateFunctionsHDivPressure();
