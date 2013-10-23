@@ -6,7 +6,7 @@ list (REMOVE_ITEM sources ${to_remove_from_sources})
 
 set(main1_SRCS main.cpp poroelastoplastic.cpp ${sources} ${headers})
 set(main2_SRCS mainGUI.cpp ${sources} ${headers})
-set(main3_SRCS mainPV.cpp ${sources} ${headers})
+set(main3_SRCS mainPV.cpp)
 
 #Plasticity works only with double type.
 if ( STATE_TYPE STREQUAL "double" AND
