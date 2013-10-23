@@ -44,6 +44,8 @@
 
 #include "TPZVTKGeoMesh.h"
 
+#include "pztransfer.h"
+
 #include "pzlog.h"
 
 #include <iostream>
@@ -101,7 +103,11 @@ void SolveSystemTransientTwoMat(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> m
 
 bool ftriang = false;
 
-#include "pztransfer.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logdata(Logger::getLogger("pz.material"));
+#endif
+
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -915,7 +921,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool 
         TPZCompEl * compEl = mphysics->ElementVec()[el];
         if(!compEl) continue;
         int index = compEl ->Index();
-        if(compEl->Dimension() == mphysics->Dimension())
+        if(compEl->Dimension() == mphysics->Dimension()|| compEl->Dimension() == mphysics->Dimension()-1)
         {
             TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(mphysics->ElementVec()[index]);
             if(!InterpEl) continue;
@@ -963,36 +969,36 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(material, mphysics);
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //            std::stringstream sout;
-    //        	matM->Print("matM = ", sout,EMathematicaInput);
-    //        	LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
+    #ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+        std::stringstream sout;
+        matM->Print("matM = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(logdata,sout.str())
+    }
+    #endif
     
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<REAL> matK;
 	TPZFMatrix<REAL> fvec;
     StiffMatrixLoadVec(material, mphysics, an, matK, fvec);
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //
-    //        std::stringstream sout;
-    //        matK.Print("matK = ", sout,EMathematicaInput);
-    //        fvec.Print("fvec = ", sout,EMathematicaInput);
-    //        //Print the temporal solution
-    //        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-    //        TPZFMatrix<REAL> Temp;
-    //        TPZFMatrix<REAL> Temp2;
-    //        matM->Multiply(Initialsolution,Temp);
-    //        Temp.Print("Temp matM = ", sout,EMathematicaInput);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
+    #ifdef LOG4CXX
+        if(logdata->isDebugEnabled())
+        {
+
+            std::stringstream sout;
+            matK.Print("matK = ", sout,EMathematicaInput);
+            fvec.Print("fvec = ", sout,EMathematicaInput);
+            //Print the temporal solution
+            Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+            TPZFMatrix<REAL> Temp;
+            TPZFMatrix<REAL> Temp2;
+            matM->Multiply(Initialsolution,Temp);
+            Temp.Print("Temp matM = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logdata,sout.str())
+        }
+    #endif
     
     
 	long nrows;
@@ -1010,16 +1016,16 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
 		material->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-        //#ifdef LOG4CXX
-        //        if(logdata->isDebugEnabled())
-        //        {
-        //            std::stringstream sout;
-        //            sout<< " tempo = " << cent;
-        //            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-        //            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);
-        //            LOGPZ_DEBUG(logdata,sout.str())
-        //        }
-        //#endif
+        #ifdef LOG4CXX
+                if(logdata->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout<< " tempo = " << cent;
+                    Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
+                    TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);
+                    LOGPZ_DEBUG(logdata,sout.str())
+                }
+        #endif
         
 		TotalRhs = fvec + TotalRhstemp;
 		an.Rhs() = TotalRhs;
@@ -1151,10 +1157,11 @@ void SolveSystemTransientTwoMat(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> m
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(1), vecnames(2);
+	TPZManVector<std::string,10> scalnames(3), vecnames(1);
 	vecnames[0]  = "Flux";
-    vecnames[1]  = "GradFluxX";
-    scalnames[0] = "Pressure";
+    scalnames[0] = "Saturation";
+    scalnames[1] = "SaturationFlux";
+    scalnames[2] = "Pressure";
     
 	const int dim = 2;
 	int div =0;
@@ -1191,7 +1198,7 @@ TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZTracerFlow * mymaterial, TPZComp
     mymaterial->SetLastState();
     //TPZSkylineStructMatrix matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
-    matsp.SetNumThreads(30);
+   // matsp.SetNumThreads(30);
     
 	std::set< int > materialid;
 	int matid = mymaterial->MatId();
@@ -1239,7 +1246,7 @@ void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAna
     mymaterial->SetCurrentState();
     //TPZFStructMatrix matsk(mphysics);
     TPZSkylineStructMatrix matsk(mphysics);
-    matsk.SetNumThreads(30);
+    //matsk.SetNumThreads(30);
 	an.SetStructuralMatrix(matsk);
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt);
