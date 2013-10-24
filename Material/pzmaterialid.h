@@ -62,6 +62,8 @@ const int TPZUncoupledMultiPhysicsID = 325;
 /** @brief Id of Elasticity material for hybrid formulation*/
 const int TPZELASTICITYHYBRIDMATERIALID = 326;
 
+/** @brief Id of Three-dimensional elasticity material */
+const int TPZELASTICITY3DNLINEARMATERIALID = 327;
 
 /** @brief Id of mhm formulation of Darcy problems  material */
 const int TPZMATDARCYMHM = 327;
