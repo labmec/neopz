@@ -879,7 +879,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
                     data.dsol[is](ilinha,0)+=(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
-                    //data.dsol[is](1,ilinha)+=(STATE)data.fNormalVec(1,ivec)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);
+                    data.dsol[is](ilinha,1)+=(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
                 }
             }
             jv++;

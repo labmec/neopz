@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     
     ofstream saidaerro("Erro.txt");
     
-    for(int p = 3; p<4; p++)
+    for(int p = 1; p<2; p++)
     {
         int pq = 1;//p;
         int pp;
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 3; ndiv<=3; ndiv++)
+        for (ndiv = 0; ndiv<=3; ndiv++)
         {
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
             saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
             TPZAnalysis an2(cmesh1);
             an2.SetExact(*SolExata);
-            an2.PostProcessError(erros, saidaerro);
+            an2.PostProcess(erros, saidaerro);
             
             saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
             TPZAnalysis an3(cmesh2);

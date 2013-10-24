@@ -366,7 +366,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==5){
-        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,0);
+        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
         return;
     }
 

@@ -503,7 +503,12 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
             
         case 14:
         {
-            Solout[0]=data.sol[0][data.sol[0].NElements()-1];
+			if (data.numberdualfunctions){
+				Solout[0]=data.sol[0][data.sol[0].NElements()-1];
+			}else{
+				Solout[0]=data.dsol[0](0,0)+data.dsol[0](1,1);
+			}
+				
         }
             break;
           
@@ -643,7 +648,7 @@ void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatr
 void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 	
 	TPZVec<STATE> sol(1),dsol(fDim),div(1);
-	Solution(data,11,sol);//pressao
+	if(data.numberdualfunctions) Solution(data,11,sol);//pressao
 	Solution(data,21,dsol);//fluxo
 	Solution(data,14,div);//divergente
 		
@@ -666,8 +671,10 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	
 
 	//values[0] : pressure error using L2 norm
-   REAL diffP = abs(u_exact[0]-sol[0]);
-	values[0]  = diffP*diffP;
+	if(data.numberdualfunctions){
+		REAL diffP = abs(u_exact[0]-sol[0]);
+		values[0]  = diffP*diffP;
+	}	
 	//values[1] : flux error using L2 norm
 	for(int id=0; id<fDim; id++) {
         REAL diffFlux = abs(dsol[id] - du_exact(id,0));
