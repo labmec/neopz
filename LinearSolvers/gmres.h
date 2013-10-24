@@ -42,7 +42,7 @@ template < class Real >
 Real
 abs(Real x)
 {
-	return (x > 0. ? x : -x);
+	return (x > ((Real)0.) ? x : -x);
 }
 
 /**
@@ -99,7 +99,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = Norm(r) / normb) <= tol) {
+	if ((resid = ((Real)Norm(r)) / normb) <= tol) {
 		tol = resid;
 		x+=r;
 		max_iter = 0;
@@ -111,7 +111,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	while (j <= max_iter) {
         long rows = v[0].Rows();
         for (long i=0; i<rows; i++) {
-            v[0](i) = r(i) * (REAL(1.0/beta));
+            v[0](i) = r(i) * ((Real)(1.0/beta));
         }
         rows = s.Rows();
         for (long i=0; i<rows; i++) {
@@ -130,7 +130,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 			}
 			H(i+1, i) = Norm(w);
 			v[i+1] = w;
-			v[i+1] *= REAL(1.0)/H(i+1,i);
+			v[i+1] *= (1.0)/H(i+1,i);
 			
 			for (k = 0; k < i; k++)
 				ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));
@@ -138,7 +138,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 			GeneratePlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
 			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
 			ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
-			resid = abs(s(i+1))/normb;
+			resid = ((Real)fabs(s(i+1)))/normb;
 			if (resid < tol) {
 				Update(x, i, H, s, v);
 				tol = resid;
@@ -174,16 +174,16 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 template<class Real>
 void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
 {
-	if (dy == 0.0) {
+	if (dy == ((Real)0.0)) {
 		cs = 1.0;
 		sn = 0.0;
 	} else if (abs(dy) > abs(dx)) {
 		Real temp = dx / dy;
-		sn = REAL(1.0) / sqrt( REAL(1.0) + temp*temp );
+		sn = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
 		cs = temp * sn;
 	} else {
 		Real temp = dy / dx;
-		cs = REAL(1.0) / sqrt( REAL(1.0) + temp*temp );
+		cs = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
 		sn = temp * cs;
 	}
 }

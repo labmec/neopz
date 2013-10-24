@@ -61,7 +61,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = Norm(r) / normb) <= tol) {
+	if ((resid = ((Real)Norm(r)) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -83,7 +83,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 #endif	 
 		
 		A.Multiply(p,q);
-		alpha = rho / Dot(p, q);
+		alpha = rho / ((REAL)Dot(p, q));
 		
 #ifdef TEST
 		qlist.push_back(q);
@@ -97,7 +97,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		REAL energy = Dot(x,Au)/2.-Dot(x,b);
 #endif
 		
-		if ((resid = Norm(r) / normb) <= tol) {
+		if ((resid = ((Real)Norm(r)) / normb) <= tol) {
 			tol = resid;
 			max_iter = i;
 			std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;

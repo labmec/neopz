@@ -48,7 +48,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = Norm(r) / normb) <= tol) {
+	if ((resid = ((Real)Norm(r)) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -56,8 +56,8 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 	
 	for (long i = 1; i <= max_iter; i++) {
 		rho_1(0) = Dot(rtilde, r);
-		if (rho_1(0) == 0.) {
-			tol = Norm(r) / normb;
+		if (rho_1(0) == ((Real)0.)) {
+			tol = ((Real)Norm(r)) / normb;
 			return 2;
 		}
 		if (i == 1)
@@ -71,7 +71,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 		A.Multiply(phat, v);
 		alpha(0) = rho_1(0) / Dot(rtilde, v);
 		s = r - alpha(0) * v;
-		if ((resid = Norm(s)/normb) < tol) {
+		if ((resid = ((Real)Norm(s))/normb) < tol) {
 			x += alpha(0) * phat;
 			tol = resid;
 			return 0;
@@ -83,13 +83,13 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 		r = s - omega(0) * t;
 		
 		rho_2(0) = rho_1(0);
-		if ((resid = Norm(r) / normb) < tol) {
+		if ((resid = ((Real)Norm(r)) / normb) < tol) {
 			tol = resid;
 			max_iter = i;
 			return 0;
 		}
-		if (omega(0) == 0.) {
-			tol = Norm(r) / normb;
+		if (omega(0) == ((Real)0.)) {
+			tol = ((Real)Norm(r)) / normb;
 			return 3;
 		}
 	}

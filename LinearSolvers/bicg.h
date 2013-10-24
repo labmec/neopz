@@ -38,7 +38,7 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = Norm(r) / normb) <= tol) {
+	if ((resid = ((Real)Norm(r)) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -48,8 +48,8 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		M.Solve(r,z);
 		M.Solve(rtilde,ztilde);
 		rho_1(0) = Dot(z, rtilde);
-		if (rho_1(0) == 0.) { 
-			tol = Norm(r) / normb;
+		if (rho_1(0) == ((Real)0.)) { 
+			tol = ((Real)Norm(r)) / normb;
 			max_iter = i;
 			return 2;
 		}
@@ -69,7 +69,7 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		rtilde -= alpha(0) * qtilde;
 		
 		rho_2(0) = rho_1(0);
-		if ((resid = Norm(r) / normb) < tol) {
+		if ((resid = ((Real)Norm(r)) / normb) < tol) {
 			tol = resid;
 			max_iter = i;
 			return 0;
