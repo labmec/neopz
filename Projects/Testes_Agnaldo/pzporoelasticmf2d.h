@@ -38,7 +38,7 @@
  *
  */
 
-class TPZPoroElasticMF2d : public TPZDiscontinuousGalerkin{
+class TPZPoroElasticMF2d : public TPZDiscontinuousGalerkin {
 	
 protected:
 	
@@ -264,38 +264,38 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
-	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /**
      * @brief Applies to Dirichlet boundary condition for the elasticity equation (mechanical problem)
      */
-    void ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /*
      * @brief Applies to Neumann boundary condition for elasticity equation (mechanical problem)
      */
-    void ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /*
      * @brief Applies to Mixed boundary condition for elasticity equation (mechanical problem)
      */
-    void ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /**
      *@brief Dirichlet with free boundary in the y-direction in the equation of elasticity.
      */
-    void ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
-    void ApplyDirichletFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyDirichletFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /**
      *@brief Neumann with free boundary in the y-direction in the equation of elasticity.
      */
-    void ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
-    void ApplyNeumannFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyNeumannFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
 
     
@@ -304,17 +304,17 @@ public:
      * @brief Applies to Dirichlet boundary condition for mixed problem (pressure and flux)
      * In the mixed formulation, the contribution of the Dirichlet boundary condition for the pressure appears in the flow equation and not in the equation of pressure
      */
-    void ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /*
      * @brief Applies to Neumann boundary condition for mixed problem (pressure and flux)
      */
-    void ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /*
      * @brief Applies to Mixed boundary condition for mixed problem (pressure and flux)
      */
-    void ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    void ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /*
      * @brief Applies to condition of source term in the pressure's equation to mixed problem (pressure and flux)
@@ -326,7 +326,7 @@ public:
 	virtual int NSolutionVariables(int var);
     
 	//public:
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
@@ -338,7 +338,7 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -351,7 +351,7 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
-                                       REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+                                       REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
 	/** @name Contribute methods
 	 * @{
@@ -365,7 +365,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef) {
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 		DebugStop();
 	}
     
@@ -378,7 +378,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
 		DebugStop();
 	}
 	

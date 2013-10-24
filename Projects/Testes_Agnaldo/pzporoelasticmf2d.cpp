@@ -120,7 +120,7 @@ int TPZPoroElasticMF2d::NStateVariables() {
 }
 
 
-void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef){
+void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
     
 	int nref =  datavec.size();
@@ -142,8 +142,8 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
     phrq = datavec[1].fVecShapeIndex.NElements();
     phrp = phip.Rows();
 	
-    TPZFMatrix<REAL> du(2,2);
-    TPZFMatrix<> &axes = datavec[0].axes;
+    TPZFMatrix<STATE> du(2,2);
+    TPZFMatrix<REAL> &axes = datavec[0].axes;
 	//current state (n+1)
 	if(gState == ECurrentState)
 	{
@@ -315,7 +315,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	
 }
 
-void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     REAL v2x, v2y;
@@ -342,7 +342,7 @@ void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL
     }
 }
 
-void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
@@ -367,7 +367,7 @@ void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REA
     }
 }
 
-void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
@@ -380,7 +380,7 @@ void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL w
     }
 }
 
-void TPZPoroElasticMF2d::ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
@@ -407,7 +407,7 @@ void TPZPoroElasticMF2d::ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL 
     }
 }
 
-void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
@@ -424,7 +424,7 @@ void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 }
 
-void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
@@ -439,7 +439,7 @@ void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL we
     }
 }
 
-void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     REAL v2x = bc.Val2()(0,0);
@@ -451,7 +451,7 @@ void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec,
     }
 }
 
-void TPZPoroElasticMF2d::ApplyDirichletFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyDirichletFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     REAL v2y;
@@ -466,7 +466,7 @@ void TPZPoroElasticMF2d::ApplyDirichletFreeX_U(TPZVec<TPZMaterialData> &datavec,
 }
 
 
-void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
@@ -476,7 +476,7 @@ void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, R
 }
 
 
-void TPZPoroElasticMF2d::ApplyNeumannFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ApplyNeumannFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
@@ -500,8 +500,8 @@ void TPZPoroElasticMF2d::ApplyNeumannFreeY_U(TPZVec<TPZMaterialData> &datavec, R
 //    }
 //}
 
-void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<> &ek,
-                                      TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,
+                                      TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 	//The Last state (n) not include boundary conditions
 	if(gState == ELastState){
@@ -664,16 +664,17 @@ int TPZPoroElasticMF2d::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
 	
-	TPZVec<REAL> SolU, SolP;
-	TPZFMatrix<> DSolU, DSolP;
-	TPZFMatrix<> axesU, axesP;
+	TPZVec<STATE> SolU, SolP;
+	TPZFMatrix<STATE> DSolU, DSolP;
+	TPZFMatrix<REAL> axesU, axesP;
 	
-	TPZVec<REAL> ptx(3), solExata(5);
-	TPZFMatrix<> flux(2,1);
+	TPZVec<REAL> ptx(3);
+	TPZVec<STATE> solExata(5);
+	TPZFMatrix<STATE> flux(2,1);
 	
 	SolU=datavec[0].sol[0];
 	DSolU=datavec[0].dsol[0];
@@ -819,8 +820,8 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
     
     if (var == 10){
 		int id;
-		TPZFNMatrix<9,REAL> dsoldx;
-		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
+		TPZFNMatrix<9,STATE> dsoldx;
+		TPZAxesTools<STATE>::Axes2XYZ(DSolP, dsoldx, axesP);
 		for(id=0 ; id<fDim; id++) {
             if(fReturnSolutionDimension==true) Solout[id] = -1.*dsoldx(id,0)*fpref*(fkovervisc);
 			else Solout[id] = -1.*dsoldx(id,0);
@@ -878,12 +879,12 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 
 
 void TPZPoroElasticMF2d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-                                             REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef){
+                                             REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	DebugStop();
 }
 
 void TPZPoroElasticMF2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
-                                               REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
+                                               REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 

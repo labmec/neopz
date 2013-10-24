@@ -231,7 +231,7 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
 //	material->SetForcingFunction ( LoadVector );
 	result->InsertMaterialObject ( mat );
 	
-	TPZFMatrix<REAL> val1 ( 1,1,0. ), val2 ( 1,1,0. );// 0 é Dirichlet, 1 é Neumann, 2 é Robin(implementada apenas no Contínuo)
+	TPZFMatrix<STATE> val1 ( 1,1,0. ), val2 ( 1,1,0. );// 0 é Dirichlet, 1 é Neumann, 2 é Robin(implementada apenas no Contínuo)
     
 	TPZMaterial *bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
 //	TPZMaterial *bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
@@ -392,7 +392,7 @@ void Solve ( TPZAnalysis &an )
 	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 	//TPZFStructMatrix mat( malha );// ok! matriz estrutural cheia
 	//TPZSpStructMatrix mat( malha );//matriz estrutural esparsa (???? NÃO FUNCIONOU !!!!!!!!!!)
-	TPZStepSolver<REAL> solv;
+	TPZStepSolver<STATE> solv;
 	solv.SetDirect (  ELU );//ECholesky);// ELU , ELDLt ,
     
 	

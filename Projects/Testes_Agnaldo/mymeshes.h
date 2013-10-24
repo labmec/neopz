@@ -83,13 +83,13 @@ public:
     void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 
 
-    TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZPoroElasticMF2d *mymateria, TPZCompMesh *mphysics);
+    TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZPoroElasticMF2d *mymateria, TPZCompMesh *mphysics);
     
-    TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZCompMesh *mphysics);
+    TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZCompMesh *mphysics);
 
-    void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
+    void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec);
     
-    void StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
+    void StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec);
 
     void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 
