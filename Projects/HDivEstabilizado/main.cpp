@@ -83,11 +83,11 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 REAL const Pi = 4.*atan(1.);
 
 bool ftriang = false;
-bool isStab = true;
-bool iscontinuou = true;
+bool isStab = false;
+bool iscontinuou = false;
 bool useh2 = true;
-REAL delta1 = 1.;
-REAL delta2 = 1.;
+REAL delta1 = 0.5;
+REAL delta2 = 0.5;
 
 #include "pztransfer.h"
 int main(int argc, char *argv[])
@@ -101,19 +101,19 @@ int main(int argc, char *argv[])
     
     ofstream saidaerro("Erro.txt");
     
-    for(int p = 1; p<2; p++)
+    for(int p = 3; p<4; p++)
     {
-        int pq = p;
+        int pq = 1;//p;
         int pp;
         if(ftriang==true){
-            pp = pq-1;
+            pp = pq;
         }else{
             pp = pq;
         }
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 0; ndiv< 1; ndiv++)
+        for (ndiv = 3; ndiv<=3; ndiv++)
         {
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
@@ -327,8 +327,8 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     
     cmesh->InsertMaterialObject(mat);
 	
-	//cmesh->SetAllCreateFunctionsHDiv();
-	cmesh-> SetAllCreateFunctionsHDivFull();
+	cmesh->SetAllCreateFunctionsHDiv();
+	//cmesh-> SetAllCreateFunctionsHDivFull();
 	
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
@@ -535,9 +535,12 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	TPZManVector<std::string,10> scalnames(2), vecnames(3);
 	vecnames[0]  = "Flux";
+    vecnames[1]  = "GradFluxX";
+    vecnames[2]  = "GradFluxY";
     scalnames[0] = "Pressure";
+    scalnames[1] = "DivFlux";
     
 	const int dim = 2;
 	int div =0;
@@ -551,13 +554,14 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
     solp.Resize(1, 0.);
-    flux.Resize(2, 1.);
+    flux.Resize(3, 1.);
     flux(0,0)=flux(1,0)=0.;
     double x = pt[0];
     double y = pt[1];
     solp[0] = sin(Pi*x)*sin(Pi*y);
     flux(0,0)=-Pi*cos(Pi*x)*sin(Pi*y);
     flux(1,0)=-Pi*cos(Pi*y)*sin(Pi*x);
+    flux(2,0)=2*Pi*cos(Pi*y)*sin(Pi*x);
 }
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){

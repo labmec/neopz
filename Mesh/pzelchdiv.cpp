@@ -866,12 +866,12 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 			ivec=data.fVecShapeIndex[jv].first;
 			ishape=data.fVecShapeIndex[jv].second;
 			
-//			TPZFNMatrix<3> ivecDiv(3,1);
-//			ivecDiv(0,0) = data.fNormalVec(0,ivec);
-//			ivecDiv(1,0) = data.fNormalVec(1,ivec);
-//			ivecDiv(2,0) = data.fNormalVec(2,ivec);
-//			TPZFNMatrix<3> axesvec(3,1);
-//			data.axes.Multiply(ivecDiv,axesvec);
+			TPZFNMatrix<3> ivecDiv(3,1);
+			ivecDiv(0,0) = data.fNormalVec(0,ivec);
+			ivecDiv(1,0) = data.fNormalVec(1,ivec);
+			ivecDiv(2,0) = data.fNormalVec(2,ivec);
+			TPZFNMatrix<3> axesvec(3,1);
+			data.axes.Multiply(ivecDiv,axesvec);
 			
             for (long is=0; is<numbersol; is++)
             {
