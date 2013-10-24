@@ -85,6 +85,7 @@ REAL const Pi = 4.*atan(1.);
 bool ftriang = false;
 bool isStab = true;
 bool iscontinuou = true;
+bool useh2 = true;
 REAL delta1 = 1.;
 REAL delta2 = 1.;
 
@@ -467,6 +468,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
         material->SetStabilizedMethod();
         material->SetStabilizationCoeficients(delta1,delta2);
 	}
+    if(isStab==true && useh2==true) material->SetHdois();
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;

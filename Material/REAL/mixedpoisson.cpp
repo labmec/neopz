@@ -25,6 +25,8 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
     fIsStabilized = false;
     fdelta1 = 0.;
     fdelta2 = 0.;
+    fUseHdois = false;
+    fh2 = 1.;
 }
 
 TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
@@ -34,6 +36,8 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
     fIsStabilized = false;
     fdelta1 = 0.;
     fdelta2 = 0.;
+    fUseHdois = false;
+    fh2 = 1.;
 }
 
 TPZMixedPoisson::~TPZMixedPoisson() {
@@ -46,6 +50,8 @@ TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp){
     fIsStabilized = cp.fIsStabilized;
     fdelta1 = cp.fdelta1;
     fdelta2 = cp.fdelta2;
+    fUseHdois = cp.fUseHdois;
+    fh2 = cp.fh2;
 }
 
 TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
@@ -55,6 +61,8 @@ TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
     fIsStabilized = copy.fIsStabilized;
     fdelta1 = copy.fdelta1;
     fdelta2 = copy.fdelta2;
+    fUseHdois = copy.fUseHdois;
+    fh2 = copy.fh2;
     return *this;
 } 
 
@@ -91,6 +99,11 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFMatrix<REAL>  &phip =  datavec[1].phi;
 	TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    
+    REAL &faceSize = datavec[0].HSize;
+    if(fUseHdois==true){
+        fh2 = faceSize*faceSize;
+    }else fh2 = 1.;
     
     int phrq, phrp;
     phrp = phip.Rows();
@@ -132,10 +145,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             
             //dot product between u and v
-            REAL prod = ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
-//            REAL prod = datavec[0].fNormalVec(0,ivecind)*datavec[0].fNormalVec(0,jvecind)+
-//            datavec[0].fNormalVec(1,ivecind)*datavec[0].fNormalVec(1,jvecind)+
-//            datavec[0].fNormalVec(2,ivecind)*datavec[0].fNormalVec(2,jvecind);            
+            REAL prod = ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);          
             ek(iq,jq) += InvK*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
             
             
@@ -143,15 +153,11 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             if(fIsStabilized==true)
             {
                 //termos de delta1
-                ek(iq,jq) += (-1.)*weight*fdelta1*InvK*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+                ek(iq,jq) += (-1.)*weight*fh2*fdelta1*InvK*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
                 
                 
                 //termos de delta2
                 REAL divqj = 0.;
-//                TPZFNMatrix<3> jvec(3,1);
-//                jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
-//                jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-//                jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
                 TPZFNMatrix<3> axesvec(3,1);
                 datavec[0].axes.Multiply(jvec,axesvec);
                 //calculando div(qj)
@@ -203,7 +209,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
                     dotVGradP += ivec(k,0)*phiQ(ishapeind,0)*dphiP(k,jp);
                 }
                 
-                REAL integration = (-1.)*weight*fdelta1*dotVGradP;
+                REAL integration = (-1.)*weight*fh2*fdelta1*dotVGradP;
                 
                 // Estabilizacao delta1 na Matrix B
                 ek(iq, phrq+jp) += integration;
@@ -229,7 +235,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
              {
                  for(int k =0; k<fDim; k++)
                  {
-                     ek(phrq+ip, phrq+jp) += (-1.)*weight*fdelta1*mK*dphiP(k,ip)*dphiP(k,jp);
+                     ek(phrq+ip, phrq+jp) += (-1.)*weight*fh2*fdelta1*mK*dphiP(k,ip)*dphiP(k,jp);
                  }
                  
              }

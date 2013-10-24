@@ -52,6 +52,10 @@ protected:
     REAL fdelta1;
     REAL fdelta2;
     
+    /** @brief Coeficient that multiplies the Stabilization term fdelta2*/
+    REAL fh2;
+    bool fUseHdois;
+    
 public:
     TPZMixedPoisson();
     
@@ -88,6 +92,10 @@ public:
     
     void SetStabilizedMethod(){
         fIsStabilized = true;
+    }
+    
+    void SetHdois(){
+        fUseHdois = true;
     }
     
     void SetStabilizationCoeficients(REAL delta1, REAL delta2){
