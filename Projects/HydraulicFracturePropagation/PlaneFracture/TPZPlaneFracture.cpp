@@ -54,7 +54,7 @@ TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletD
     
     std::map<REAL,REAL>::iterator itM;
     
-    espacamentoVerticalTVD.insert(0.);
+    espacamentoVerticalTVD.insert(((REAL)0.));
     espacamentoVerticalTVD.insert(lw);
     espacamentoVerticalTVD.insert(bulletDepthTVDIni);
     espacamentoVerticalTVD.insert(bulletDepthTVDFin);
@@ -152,7 +152,8 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
             TPZCompEl * cel = fractureCMeshRef->ElementVec()[el];
             if(cel->Reference()->MaterialId() == 10)
             {
-                TPZVec<REAL> centerQsi(3,0.), solTemp(3,0.);
+                TPZVec<REAL> centerQsi(3,0.);
+				TPZVec<STATE> solTemp(3,0.);
                 cel->Reference()->CenterPoint(cel->Reference()->NSides()-1, centerQsi);
                 
                 cel->Solution(centerQsi, 0, solTemp);
@@ -193,7 +194,8 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
             TPZCompEl * cel = fractureCMesh->ElementVec()[el];
             if(cel->Reference()->MaterialId() == 10)
             {
-                TPZVec<REAL> centerQsi(3,0.), solTemp(3,0.);
+                TPZVec<REAL> centerQsi(3,0.);
+				TPZVec<STATE> solTemp(3,0.);
                 cel->Reference()->CenterPoint(cel->Reference()->NSides()-1, centerQsi);
                 
                 cel->Solution(centerQsi, 0, solTemp);
@@ -737,7 +739,9 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &p
 			dx[c] = dx[c]/norm;
 		}
 		
-		reachNextPoint = gel->ComputeXInverse(xNext, qsi2D);
+		REAL Tol;
+		ZeroTolerance(Tol);
+		reachNextPoint = gel->ComputeXInverse(xNext, qsi2D,Tol);
         int axe0 = 0;//axe X
         int axe1 = 2;//axe Z
         int axeNormal = 1;//axe Y
@@ -746,7 +750,7 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &p
 			nextGel = CrossToNextNeighbour(gel, x, dx, alphaMin, elId_TrimCoords, elIdSequence, true, axe0, axe1, axeNormal, false);
 			
 			alphaMin = __smallNum;//qdo vai de vizinho a vizinho ateh chegar no proximo ponto, nao deve-se incluir os (alphaX=0)
-			if(nextGel->ComputeXInverse(xNext, qsi2D))
+			if(nextGel->ComputeXInverse(xNext, qsi2D,Tol))
 			{
 				reachNextPoint = true;
 			}
@@ -826,6 +830,8 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
 	TPZVec<REAL> qsi1Dvec(1), xCrackBoundary(3);
 	TPZVec<long> Topol(2);
 	TPZVec<int>  edgeVec;
+	REAL Tol;
+	ZeroTolerance(Tol);
 	
 	TPZGeoMesh * planeMesh = gel->Mesh();
 	
@@ -839,7 +845,7 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
 		if(haveIntersection == false)
 		{
             TPZManVector<REAL,3> qsi2D(2,0.);
-            if(gel->ComputeXInverse(x, qsi2D))
+            if(gel->ComputeXInverse(x, qsi2D,Tol))
             {
                 std::cout << "The point inside element does NOT intersect its edges! EdgeIntersection method face an exeption!" << std::endl;
                 std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;

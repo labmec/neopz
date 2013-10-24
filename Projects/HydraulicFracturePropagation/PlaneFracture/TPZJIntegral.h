@@ -52,7 +52,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZVec<REAL> & Sigma_n);
+    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
     
 protected:
@@ -103,7 +103,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZVec<REAL> & Sigma_n);
+    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
 };
 
@@ -135,7 +135,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZFMatrix<REAL> & Sigma, TPZFMatrix<REAL> & strain);
+    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
     
     void SetRadius(REAL radius);
     
@@ -177,7 +177,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<REAL> & GradUtxy, TPZFMatrix<REAL> & Sigma, TPZFMatrix<REAL> & strain);
+    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
 };
 
 
