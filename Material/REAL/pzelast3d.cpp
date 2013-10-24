@@ -14,7 +14,10 @@
 
 STATE TPZElasticity3D::gTolerance = 1.e-11;
 
-TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force) : TPZMaterial(nummat),C1(-999.),C2(-999.),C3(-999.){
+TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
+                                 STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
+                                            TPZMaterial(nummat), C1(-999.), C2(-999.), C3(-999.)
+{
 	this->fE = E;
 	this->fPoisson = poisson;
 #ifdef DEBUG
@@ -34,21 +37,32 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 	C2 = E * poisson / (-1. + poisson + 2.*poisson*poisson);
 	C3 = E * (poisson - 1.) / (-1. + poisson +2. * poisson * poisson);
 #endif
+    
+    fPreStress.Resize(3);
+    fPreStress[0] = preStressXX;
+    fPreStress[1] = preStressYY;
+    fPreStress[2] = preStressZZ;
 	
 }//method
 
-TPZElasticity3D::TPZElasticity3D(int nummat): TPZMaterial(nummat),fE(0.), fPoisson(0.),C1(-999.),C2(-999.),C3(-999.),fForce(3,0.),fPostProcessDirection(3,0.), fFy(0.)
+TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoisson(0.),
+                                               C1(-999.), C2(-999.), C3(-999.), fForce(3,0.),
+                                               fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.)
 {
     SetC();
 }
 
-TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.),C1(-999.),C2(-999.),C3(-999.),fForce(3,0.),fPostProcessDirection(3,0.), 
-fFy(0.){}
+TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999.), C2(-999.), C3(-999.),
+                                     fForce(3,0.), fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.)
+{
+}
 
 TPZElasticity3D::~TPZElasticity3D(){}
 
-TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),C1(-999.),C2(-999.),C3(-999.),fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
-fFy(cp.fFy)
+TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
+                                                              C1(-999.),C2(-999.),C3(-999.),fForce(cp.fForce),
+                                                              fPostProcessDirection(cp.fPostProcessDirection), fFy(cp.fFy),
+                                                              fPreStress(cp.fPreStress)
 {
     SetC();
 }
@@ -92,17 +106,21 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	const STATE C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
 	
 	int in;
-	for(in = 0; in < phr; in++) {
+	for(in = 0; in < phr; in++)
+    {
 		int kd;
-		for(kd = 0; kd < 3; kd++){
-			ef(in*3+kd, 0) += weight* fForce[kd] * phi(in,0);
+		for(kd = 0; kd < 3; kd++)
+        {
+			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) - fPreStress[kd] * dphi(kd,in) );
 		}//kd
 		STATE val;
-		for( int jn = 0; jn < phr; jn++ ) {
-			
+		for( int jn = 0; jn < phr; jn++ )
+        {
 			//Compute Deriv matrix
-			for(int ud = 0; ud < 3; ud++){
-				for(int vd = 0; vd < 3; vd++){
+			for(int ud = 0; ud < 3; ud++)
+            {
+				for(int vd = 0; vd < 3; vd++)
+                {
 					Deriv(vd,ud) = dphi(vd,in)*dphi(ud,jn);
 				}//ud
 			}//vd
@@ -142,16 +160,20 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 #else
 	STATE Deriv[3][3];
 	int in;
-	for(in = 0; in < phr; in++) {
+	for(in = 0; in < phr; in++)
+    {
 		int kd;
-		for(kd = 0; kd < 3; kd++){
-			ef(in*3+kd, 0) += weight* fForce[kd] * phi(in,0);
+		for(kd = 0; kd < 3; kd++)
+        {
+			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) /*- fPreStress[kd] * dphi(kd,in)*/ );
 		}//kd
-		for( int jn = 0; jn < phr; jn++ ) {
-			
+		for( int jn = 0; jn < phr; jn++ )
+        {
 			//Compute Deriv matrix
-			for(int ud = 0; ud < 3; ud++){
-				for(int vd = 0; vd < 3; vd++){
+			for(int ud = 0; ud < 3; ud++)
+            {
+				for(int vd = 0; vd < 3; vd++)
+                {
 					Deriv[vd][ud] = dphi(vd,in)*dphi(ud,jn);
 				}//ud
 			}//vd
@@ -195,15 +217,8 @@ void TPZElasticity3D::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZ
     TPZFMatrix<REAL> & dphi = data.dphix;
 	TPZFMatrix<REAL> & phi = data.phi;
 	
-	int phc, phr, dphc, dphr, efr, efc, ekr, ekc;
-	phc = phi.Cols();
-	phr = phi.Rows();
-	dphc = dphi.Cols();
-	dphr = dphi.Rows();
-	efr = ef.Rows();
-	efc = ef.Cols();
-	ekr = ek.Rows();
-	ekc = ek.Cols();
+	int phc = phi.Cols();
+	int efc = ef.Cols();
 	
 	if(fForcingFunction)
     {
@@ -247,9 +262,12 @@ void TPZElasticity3D::ContributeVecShape(TPZMaterialData &data, REAL weight, TPZ
 		
         for (int col = 0; col < efc; col++)
         {
-            ef(in,col) += weight*(  fForce[0] * phi(0, in) /*- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY*/
-                                  + fForce[1] * phi(1, in) /*- dphiy_i(0,0)*fPreStressYY - dphiy_i(1,0)*fPreStressXY*/
-                                  + fForce[2] * phi(2, in) );
+            ef(in,col) += weight*(  fForce[0] * phi(0, in)
+                                  + fForce[1] * phi(1, in)
+                                  + fForce[2] * phi(2, in)
+                                  - dvxdx * fPreStress[0]
+                                  - dvydy * fPreStress[1]
+                                  - dvzdz * fPreStress[2]);
         }
 		for( int jn = 0; jn < phc; jn++ )
         {
@@ -814,9 +832,9 @@ void TPZElasticity3D::ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<
 	const REAL E = this->fE;
 	const REAL ni = this->fPoisson;
 	Stress.Redim(6,1);
-	Stress(0,0) = E * ( DSol(0,0) * const1 - ( DSol(1,1) + DSol(2,2) ) * ni ) / const2;
-	Stress(1,0) = E * ( DSol(1,1) * const1 - ( DSol(0,0) + DSol(2,2) ) * ni ) / const2;
-	Stress(2,0) = E * ( DSol(2,2) * const1 - ( DSol(0,0) + DSol(1,1) ) * ni ) / const2;
+	Stress(0,0) = E * ( DSol(0,0) * const1 - ( DSol(1,1) + DSol(2,2) ) * ni ) / const2 + fPreStress[0];
+	Stress(1,0) = E * ( DSol(1,1) * const1 - ( DSol(0,0) + DSol(2,2) ) * ni ) / const2 + fPreStress[1];
+	Stress(2,0) = E * ( DSol(2,2) * const1 - ( DSol(0,0) + DSol(1,1) ) * ni ) / const2 + fPreStress[2];
 	
 	REAL const3 = 2. * ( 1. + ni );
 	Stress(3,0) = E * ( DSol(1,0) + DSol(0,1) ) / const3;
@@ -887,7 +905,6 @@ void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
   	
 	TPZMaterial::FillDataRequirements(data);
 	data.fNeedsSol = false;
-	
 }
 
 #ifndef BORLAND

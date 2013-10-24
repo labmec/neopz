@@ -21,9 +21,9 @@ class TPZElasticity3D : public TPZMaterial {
 	
 	public :
 	
-	enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
+	enum SOLUTIONVARS {ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
 		EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3,
-		EVonMisesStress, EStress, EStrain, EStrain1, EStress1, ENormalStress, ENormalStrain,EStressX, EStressY, EStressZ};
+		EVonMisesStress, EStress, EStrain, EStrain1, EStress1, ENormalStress, ENormalStrain, EStressX, EStressY, EStressZ};
 	
 	/** 
 	 * @brief Class constructor
@@ -32,14 +32,18 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @param poisson - poisson's ratio
 	 * @param force - external forces
 	 */
-	TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force);
+	TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
+                    STATE preStressXX = 0., STATE preStressYY = 0., STATE preStressZZ = 0.);
+    
 	/** 
 	 * @brief Constructor
 	 * @param nummat - material ID.
 	 */
 	TPZElasticity3D(int nummat);
+    
 	/** @brief Default constructor */
 	TPZElasticity3D();
+    
 	/** @brief Copy constructor */
 	TPZElasticity3D(const TPZElasticity3D &cp);
 	
@@ -85,6 +89,7 @@ class TPZElasticity3D : public TPZMaterial {
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
 							TPZFMatrix<STATE> &ef);
+    
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ef)
@@ -226,6 +231,8 @@ public:
 	
 	/** @brief Yeilding stress */
 	STATE fFy;
+    
+    TPZManVector<STATE> fPreStress;//just prestress XX, YY and ZZ
 	
 public:
 	virtual void ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<STATE> &DSol) const;

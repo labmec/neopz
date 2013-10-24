@@ -161,7 +161,6 @@ class TPZPlaneFracture
      */
     void RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                  REAL pressureInsideCrack,
-                                 REAL sigmaTraction,
                                  std::string vtkFile,
                                  bool printVTKfile = false);
 		
@@ -170,11 +169,18 @@ class TPZPlaneFracture
 protected:
     
     TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                              int porder, REAL sigmaTraction, REAL pressureInsideCrack);
+                                              int porder, REAL pressureInsideCrack);
+    
+    TPZCompMesh * GetFractureCompMeshNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                             int porder, REAL pressureInsideCrack);
     
     TPZCompMeshReferred * GetFractureCompMeshReferred(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                      int porder, REAL sigmaTraction, REAL pressureInsideCrack,
+                                                      int porder, REAL pressureInsideCrack,
                                                       TPZCompMesh * cmeshRef);
+    
+    TPZCompMeshReferred * GetFractureCompMeshReferredNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                                             int porder, REAL pressureInsideCrack,
+                                                             TPZCompMesh * cmeshRef);
     
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements

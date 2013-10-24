@@ -93,9 +93,8 @@ int mainCRAZY(int argc, char * const argv[])
     clockIni2.start();    
     
     REAL pressureInsideCrack = 5.;
-    REAL sigmaTraction = 0.;
     std::string vtkFile = "fracturePconstant.vtk";
-    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, sigmaTraction, vtkFile, true);
+    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, vtkFile, true);
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
@@ -198,9 +197,8 @@ int main/*3D*/(int argc, char * const argv[])
     clockIni2.start();    
     
     REAL pressureInsideCrack = 10.;
-    REAL sigmaTraction = 0.;
-    std::string vtkFile = "fracturePconstant.vtk";
-    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, sigmaTraction, vtkFile, true);
+    std::string vtkFile = "fracturePconstant0.vtk";
+    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, vtkFile, true);
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;

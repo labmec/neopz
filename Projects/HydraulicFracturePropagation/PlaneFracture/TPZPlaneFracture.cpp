@@ -20,6 +20,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzreducedspace.h"
+#include "TPZElast3Dnlinear.h"
 
 
 #include "adapt.h"
@@ -111,9 +112,9 @@ TPZPlaneFracture::~TPZPlaneFracture()
 //------------------------------------------------------------------------------------------------------------
 
 
+//#define elastLinear
 void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                REAL pressureInsideCrack,
-                                               REAL sigmaTraction,
                                                std::string vtkFile,
                                                bool printVTKfile)
 {
@@ -121,11 +122,12 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
     
     //--------------------------------------------------------------------------------------------
     REAL pressureInsideCrackRef = 1.;//Pressao da malha computacional referenciada
-    TPZCompMesh * fractureCMeshRef = this->GetFractureCompMesh(poligonalChain,porder,sigmaTraction, pressureInsideCrackRef);
-    if(!fractureCMeshRef)
-    {
-        DebugStop();
-    }
+    
+#ifdef elastLinear
+    TPZCompMesh * fractureCMeshRef = this->GetFractureCompMesh(poligonalChain, porder, pressureInsideCrackRef);
+#else
+    TPZCompMesh * fractureCMeshRef = this->GetFractureCompMeshNLinear(poligonalChain, porder, pressureInsideCrackRef);
+#endif
     
     int neq = fractureCMeshRef->NEquations();
     std::cout << "Numero de equacoes = " << neq << std::endl;
@@ -133,14 +135,27 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
     ////Analysis 1
     TPZAnalysis anRef(fractureCMeshRef);
     
-    TPZSkylineStructMatrix skylinRef(fractureCMeshRef); //caso simetrico
+    TPZSkylineStructMatrix skylinRef(fractureCMeshRef);
     TPZStepSolver<STATE> stepRef;
     stepRef.SetDirect(ECholesky);
     
     anRef.SetStructuralMatrix(skylinRef);
     anRef.SetSolver(stepRef);
     
+#ifdef elastLinear
     anRef.Run();
+#else
+    {
+        REAL chute = 10.;
+        for(int r = 0; r < anRef.Solution().Rows(); r++)
+            for(int c = 0; c < anRef.Solution().Cols(); c++)
+                anRef.Solution()(r,c) = chute;
+        anRef.Run();
+        for(int r = 0; r < anRef.Solution().Rows(); r++)
+            for(int c = 0; c < anRef.Solution().Cols(); c++)
+                anRef.Solution()(r,c) += chute;
+    }
+#endif
     
     if(printVTKfile)
     {
@@ -165,13 +180,31 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
         }
         out0 << "};\n";
     }
+    
+//    if(printVTKfile)
+//    {
+//        TPZManVector<std::string,10> scalnames(3), vecnames(1);
+//        
+//        //        scalnames[0] = "EDisplacementX";
+//        //        scalnames[1] = "EDisplacementY";
+//        scalnames[0] = "StressX";
+//        scalnames[1] = "StressY";
+//        scalnames[2] = "StressZ";
+//        
+//        vecnames[0] = "Displacement";
+//        
+//        const int dim = 3;
+//        int div = 0;
+//        anRef.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
+//        anRef.PostProcess(div);
+//    }
 
     //--------------------------------------------------------------------------------------------
-    TPZCompMeshReferred * fractureCMesh = this->GetFractureCompMeshReferred(poligonalChain,porder,sigmaTraction, pressureInsideCrack, fractureCMeshRef);
-    if(!fractureCMesh)
-    {
-        DebugStop();
-    }
+#ifdef elastLinear
+    TPZCompMeshReferred * fractureCMesh = this->GetFractureCompMeshReferred(poligonalChain,porder, pressureInsideCrack, fractureCMeshRef);
+#else
+    TPZCompMeshReferred * fractureCMesh = this->GetFractureCompMeshReferredNLinear(poligonalChain,porder, pressureInsideCrack, fractureCMeshRef);
+#endif
     
     ////Analysis 2
     TPZAnalysis an(fractureCMesh);
@@ -182,7 +215,21 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
     
     an.SetStructuralMatrix(skylin);
     an.SetSolver(step);
+    
+#ifdef elastLinear
     an.Run();
+#else
+    {
+        REAL chute = 10.;
+        for(int r = 0; r < an.Solution().Rows(); r++)
+            for(int c = 0; c < an.Solution().Cols(); c++)
+                an.Solution()(r,c) = chute;
+        an.Run();
+        for(int r = 0; r < an.Solution().Rows(); r++)
+            for(int c = 0; c < an.Solution().Cols(); c++)
+                an.Solution()(r,c) += chute;
+    }
+#endif
     
     if(printVTKfile)
     {
@@ -208,21 +255,24 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
         out1 << "};\n";
     }
     
-    if(printVTKfile)
-    {
-        TPZManVector<std::string,10> scalnames(0), vecnames(1);
-    
-    //        scalnames[0] = "EDisplacementX";
-    //        scalnames[1] = "EDisplacementY";
-    //        scalnames[2] = "SigmaX";
-    //        scalnames[3] = "SigmaY";
-        vecnames[0] = "Displacement";
-
-        const int dim = 3;
-        int div =0;
-        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-        an.PostProcess(div);
-    }
+//    if(printVTKfile)
+//    {
+//        TPZManVector<std::string,10> scalnames(3), vecnames(1);
+//    
+//    //        scalnames[0] = "EDisplacementX";
+//    //        scalnames[1] = "EDisplacementY";
+//        scalnames[0] = "StressX";
+//        scalnames[1] = "StressY";
+//        scalnames[2] = "StressZ";
+//        
+//        vecnames[0] = "Displacement";
+//
+//        std::string vtkFile1 = "fracturePconstant1.vtk";
+//        const int dim = 3;
+//        int div = 0;
+//        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile1);
+//        an.PostProcess(div);
+//    }
     
     
     /////// Example of J-Integral
@@ -257,7 +307,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
 
 
 TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                    int porder, REAL sigmaTraction, REAL pressureInsideCrack)
+                                                    int porder, REAL pressureInsideCrack)
 {
     ////GeoMesh
     TPZGeoMesh * gmesh = this->GetFractureGeoMesh(poligonalChain);
@@ -270,11 +320,14 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
     STATE young = 0.29E5;
     STATE poisson = 0.25;
     TPZVec<STATE> force(3,0.);
+    STATE prestressXX = 0.;
+    STATE prestressYY = 0.;
+    STATE prestressZZ = 0.;
     
-    TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
+    TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force, prestressXX, prestressYY, prestressZZ);
     cmesh->InsertMaterialObject(materialLin);
     
-    TPZMaterial * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
+    TPZMaterial * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force, prestressXX, prestressYY, prestressZZ);
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs
@@ -330,8 +383,86 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
     return cmesh;
 }
 
+TPZCompMesh * TPZPlaneFracture::GetFractureCompMeshNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                                           int porder, REAL pressureInsideCrack)
+{
+    ////GeoMesh
+    TPZGeoMesh * gmesh = this->GetFractureGeoMesh(poligonalChain);
+    
+    ////CompMesh
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    cmesh->SetDimModel(3);
+    
+    STATE young = 0.29E5;
+    STATE poisson = 0.25;
+    TPZVec<STATE> force(3,0.);
+    STATE prestressXX = 0.;
+    STATE prestressYY = 0.;
+    STATE prestressZZ = 0.;
+    
+    TPZMaterial * materialLin = new TPZElast3Dnlinear(__3DrockMat_linear, young, poisson, force, prestressXX, prestressYY, prestressZZ);
+    cmesh->InsertMaterialObject(materialLin);
+    
+    TPZMaterial * materialQpoint = new TPZElast3Dnlinear(__3DrockMat_quarterPoint, young, poisson, force, prestressXX, prestressYY, prestressZZ);
+    cmesh->InsertMaterialObject(materialQpoint);
+    
+    ////BCs
+    TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
+    int newmann = 1, dirichDir = 3;
+    //    int mixed = 2;
+    
+    {
+        f.Zero();
+        f(0,0) = 1.;
+        TPZMaterial * materialMixedLeft = new TPZElast3Dnlinear(-300, young, poisson, force);
+        TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,__2DleftMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedLeft);
+        
+        f.Zero();
+        f(1,0) = 1.;
+        TPZMaterial * materialMixedOutFracture = new TPZElast3Dnlinear(-301, young, poisson, force);
+        TPZBndCond * mixedOutFracture = new TPZBndCond(materialMixedOutFracture,__2DfractureMat_outside, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedOutFracture);
+        
+        f.Zero();
+        f(2,0) = 1.;
+        TPZMaterial * materialMixedTop = new TPZElast3Dnlinear(-302, young, poisson, force);
+        TPZBndCond * mixedTop = new TPZBndCond(materialMixedTop,__2DtopMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedTop);
+        //
+        TPZMaterial * materialMixedBottom = new TPZElast3Dnlinear(-303, young, poisson, force);
+        TPZBndCond * mixedBottom = new TPZBndCond(materialMixedBottom,__2DbottomMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedBottom);
+        
+        ///////////farField
+        k.Zero();
+        f(1,0) = 1.;
+        TPZMaterial * materialNewmannFarField = new TPZElast3Dnlinear(-304, young, poisson, force);
+        TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(newmannFarfield);
+        
+        ///////////insideFract
+        f.Zero();
+        f(1,0) = pressureInsideCrack;
+        TPZMaterial * materialNewmannInsideFract = new TPZElast3Dnlinear(-305, young, poisson, force);
+        TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
+        cmesh->InsertMaterialObject(newmannInsideFract);
+    }
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+    
+    cmesh->SetDefaultOrder(porder);
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+    
+    return cmesh;
+}
+
+
 TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                                    int porder, REAL sigmaTraction, REAL pressureInsideCrack,
+                                                                    int porder, REAL pressureInsideCrack,
                                                                     TPZCompMesh * cmeshRef)
 {
     ////GeoMesh
@@ -346,11 +477,14 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
     STATE young = 0.29E5;
     STATE poisson = 0.25;
     TPZVec<STATE> force(3,0.);
+    STATE prestressXX = 0.;
+    STATE prestressYY = 0.;
+    STATE prestressZZ = 0.;
     
-    TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
+    TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force, prestressXX, prestressYY, prestressZZ);
     cmesh->InsertMaterialObject(materialLin);
     
-    TPZMaterial * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
+    TPZMaterial * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force, prestressXX, prestressYY, prestressZZ);
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs
@@ -392,6 +526,90 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
         f.Zero();
         f(1,0) = pressureInsideCrack;
         TPZMaterial * materialNewmannInsideFract = new TPZElasticity3D(-305, young, poisson, force);
+        TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
+        cmesh->InsertMaterialObject(newmannInsideFract);
+    }
+    
+    int numsol = cmesh->Solution().Cols();
+    cmesh->AllocateNewConnect(numsol, 1, 1);
+    
+    TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh);
+    
+    cmesh->SetDefaultOrder(porder);
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+    cmesh->LoadReferred(cmeshRef);
+    
+    return cmesh;
+}
+
+
+TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferredNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                                                           int porder, REAL pressureInsideCrack,
+                                                                           TPZCompMesh * cmeshRef)
+{
+    ////GeoMesh
+    TPZGeoMesh * gmesh = cmeshRef->Reference();
+    gmesh->ResetReference();
+    
+    ////CompMeshReferred
+    TPZCompMeshReferred * cmesh = new TPZCompMeshReferred(gmesh);
+    
+    cmesh->SetDimModel(3);
+    
+    STATE young = 0.29E5;
+    STATE poisson = 0.25;
+    TPZVec<STATE> force(3,0.);
+    STATE prestressXX = 0.;
+    STATE prestressYY = 0.;
+    STATE prestressZZ = 0.;
+    
+    TPZMaterial * materialLin = new TPZElast3Dnlinear(__3DrockMat_linear, young, poisson, force, prestressXX, prestressYY, prestressZZ);
+    cmesh->InsertMaterialObject(materialLin);
+    
+    TPZMaterial * materialQpoint = new TPZElast3Dnlinear(__3DrockMat_quarterPoint, young, poisson, force, prestressXX, prestressYY, prestressZZ);
+    cmesh->InsertMaterialObject(materialQpoint);
+    
+    ////BCs
+    TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
+    int newmann = 1, dirichDir = 3;
+    //    int mixed = 2;
+    
+    {
+        f.Zero();
+        f(0,0) = 1.;
+        TPZMaterial * materialMixedLeft = new TPZElast3Dnlinear(-300, young, poisson, force);
+        TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,__2DleftMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedLeft);
+        
+        f.Zero();
+        f(1,0) = 1.;
+        TPZMaterial * materialMixedOutFracture = new TPZElast3Dnlinear(-301, young, poisson, force);
+        TPZBndCond * mixedOutFracture = new TPZBndCond(materialMixedOutFracture,__2DfractureMat_outside, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedOutFracture);
+        
+        f.Zero();
+        f(2,0) = 1.;
+        TPZMaterial * materialMixedTop = new TPZElast3Dnlinear(-302, young, poisson, force);
+        TPZBndCond * mixedTop = new TPZBndCond(materialMixedTop,__2DtopMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedTop);
+        //
+        TPZMaterial * materialMixedBottom = new TPZElast3Dnlinear(-303, young, poisson, force);
+        TPZBndCond * mixedBottom = new TPZBndCond(materialMixedBottom,__2DbottomMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedBottom);
+        
+        ///////////farField
+        k.Zero();
+        f(1,0) = 1.;
+        TPZMaterial * materialNewmannFarField = new TPZElast3Dnlinear(-304, young, poisson, force);
+        TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, dirichDir, k, f);
+        cmesh->InsertMaterialObject(newmannFarfield);
+        
+        ///////////insideFract
+        f.Zero();
+        f(1,0) = pressureInsideCrack;
+        TPZMaterial * materialNewmannInsideFract = new TPZElast3Dnlinear(-305, young, poisson, force);
         TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
         cmesh->InsertMaterialObject(newmannInsideFract);
     }
