@@ -1078,7 +1078,7 @@ int TPZMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
 		for(long k=0; k<i; k++) {             //elementos da diagonal
 			PutVal( i,i,GetVal(i,i)-GetVal(i,k)*GetVal(i,k) );
 		}
-		if((fabs(GetVal(i,i))) <= 1.e-12)
+		if((fabs(GetVal(i,i))) <= fabs((TVar)1.e-12))
 		{
 			singular.push_back(i);
 			PutVal(i,i,1.);
@@ -1659,7 +1659,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
 	if (Sort){
 		
 		multiset< REAL > myset;
-		for(i = 0; i < size; i++) myset.insert( this->operator ( )(i,i) );
+		for(i = 0; i < size; i++) myset.insert( ((REAL) this->operator ( )(i,i)) );
 		
 #ifdef DEBUG2
 		if ((long)myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;

@@ -947,7 +947,7 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<long> &index) {
 		}
 		//    cout << "Pivo = " << piv << endl;
 		for (i=j+1;i<nRows;i++){
-			if (fabs(piv) < 1e-12) {
+			if (fabs(piv) < fabs((TVar)1e-12)) {
 				cout << "Pivot < 1e-12. Probably matrix is singular." << endl;
 				DebugStop();
 			}
@@ -985,9 +985,9 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 	{
 		if ( IsZero( *ptrpivot ) ){
 			//Power plus...
-			if (fabs(*ptrpivot) > 0.){
+			if (fabs(*ptrpivot) > fabs((TVar)0.)) {
 				for (j=k+1;j<rows;j++){
-					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1.e-12){
+					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > fabs(((TVar)1.e-12))){
 						Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
 						cout << "DecomposeLU <matrix is singular> even after Power Plus...\n" ;
 					}
@@ -1040,8 +1040,8 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> 
 				//B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 				PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, j) * GETVAL(B, rowb, j, col));
 			if ( IsZero( SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/ ) ) {
-				if (fabs(SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/) > 0.){
-					if (fabs(GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > 1e-12){
+				if (fabs(SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/) > fabs((TVar)0)){
+					if (fabs(GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > fabs((TVar)1e-12)){
 						Error( "static::BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
 					}
 				}else  Error( "static::BackSub(SubstitutionLU) <Matrix is singular" );
@@ -1117,8 +1117,8 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 			for (j = i+1; j < rowb ; j++ )
 				B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 			if ( IsZero( GetVal(i, i) ) ) {
-				if (fabs(GetVal(i, i)) > 0.){
-					if (fabs(B->GetVal(i, col) - GetVal(i, i)) > 1e-12){
+				if (fabs(GetVal(i, i)) > fabs((TVar)0.)) {
+					if (fabs(B->GetVal(i, col) - GetVal(i, i)) > fabs((TVar)1e-12)){
 						Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
 					}
 				}else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );

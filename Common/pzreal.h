@@ -233,7 +233,7 @@ public:
 	}
 	
 	/** @brief Returns the product with the oth value and increments the counter of the products. */
-	inline TPZFlopCounter operator*(const double &oth) const
+	inline TPZFlopCounter operator*(const REAL &oth) const
 	{
 		TPZFlopCounter result;
 		result.fVal = fVal*oth;
@@ -534,6 +534,16 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 inline REAL ZeroTolerance() {
 	return 1.e-10;
 }
+inline void ZeroTolerance(double &Tol) {
+	Tol = 1.e-10;
+}
+inline void ZeroTolerance(long double &Tol) {
+	Tol = 1.e-12;
+}
+inline void ZeroTolerance(float &Tol) {
+	Tol = 1.e-7;
+}
+
 #ifdef _AUTODIFF
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 template<class T>

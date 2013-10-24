@@ -1569,6 +1569,9 @@ template<class TVar>
 void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &point) {   // JORGE 2013 OUTUBRO ???
 	long dim = skyline.NElements();
 	long nel = NumElements(skyline);
+#ifdef DEBUG
+	std::cout << "Skyline Matrix, Number of elements : " << nel << " in floating point " << nel*sizeof(TVar) << std::endl;
+#endif
 	storage.Resize(nel);
 	storage.Fill(0.);
 	long i;
@@ -2213,7 +2216,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		pivot = fElem[k][0] - sum;
-		if ( pivot < 1.e-9 ) {
+		if ( pivot < ((TVar)1.e-9) ) {
 			singular.push_back(k);
             std::cout << __FUNCTION__ << "Singular equation pivot " << pivot << " k " << k << std::endl;
 			pivot = 1.;
@@ -2250,7 +2253,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 		}
 	}
 	
-	if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < 1.e-15)
+	if(this->Rows() && fabs(GetVal(this->Rows()-1,this->Rows()-1)) < fabs((TVar)1.e-15))
 	{
 		singular.push_back(this->Rows()-1);
 		PutVal(this->Rows()-1,this->Rows()-1,1.);
@@ -2335,7 +2338,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		//
 		pivot = fElem[k][0] - sum;
         minpivot = minpivot < pivot ? minpivot : pivot;
-		if ( pivot < 0. || IsZero(pivot) ) {
+		if ( pivot < ((TVar)0.) || IsZero(pivot) ) {
 			cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << pivot << endl;
 			return( 0 );
 		}
@@ -2474,7 +2477,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
 	
 	minpivot = minpivot < pivot ? minpivot : pivot;
 
-	if ( pivot < 0. || IsZero(pivot) ) {
+	if ( pivot < ((TVar)0.) || IsZero(pivot) ) {
 	  cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << pivot << endl;
 	  return( 0 );
 	}
@@ -3002,7 +3005,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<long>
 		*run2 /= *run1;
 	}else{
 		TVar pivot = *run2;
-		if ( pivot < 1.e-10 ) {
+		if ( fabs(pivot) < fabs((TVar)1.e-10) ) {
 #ifdef LOG4CXX
 			std::stringstream sout;
 			sout << "equation " << col << " is singular pivot " << pivot;
@@ -3077,9 +3080,9 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol){
 	if(col != prevcol){
 		*modify /= *ptrprev;
 	}else{
-		if ( *modify < 1.e-25 ) {
+		if ( fabs(*modify) < fabs((TVar)1.e-25) ) {
 			cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << *modify << endl;
-			*modify = 1.e-10;
+			*modify = ((TVar)1.e-10);
 		}
 		*modify=sqrt(*modify);
 	}

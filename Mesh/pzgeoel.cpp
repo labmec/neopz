@@ -635,14 +635,14 @@ REAL TPZGeoEl::SmallerEdge()
     return norm;
 }
 
-bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
+bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 	REAL error = 10.;
 	int iter = 0;
-	const int nMaxIter = 50;//1000;
+	const int nMaxIter = 1000;
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
-	
+	ZeroTolerance();
 	// First verify if the entry qsi yields the right point
 	if(qsi.NElements()!= dim)
 	{
@@ -760,9 +760,11 @@ bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
 {
     int dim = this->Dimension();
     
+	REAL Tol;
+	ZeroTolerance(Tol);
     if(dim != 3)
     {
-        return ComputeXInverse(x, qsi);
+        return ComputeXInverse(x, qsi, Tol);
     }
     if(qsi.NElements() != dim)
     {
@@ -922,7 +924,9 @@ void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &qsiSon, TP
 	TPZTransform tr(dim);
 	tr = BuildTransform2(NSides()-1, father, tr);
 	tr.Apply(qsiSon, qsiAncestor);
-	father->ComputeXInverse(xson, qsiAncestor);
+	REAL Tol;
+	ZeroTolerance(Tol);
+	father->ComputeXInverse(xson, qsiAncestor,Tol);
 }
 
 TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){
@@ -983,6 +987,8 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 	TPZManVector<REAL,3> sidepoint(Dimension());//dimensao do dominio da transformacao X do filho
 	int j;//transf. para o lado do pai
 	TPZFNMatrix<9> A(dimsf,dimss,0.),sol(dimsf,1,0.);
+	REAL Tol;
+	ZeroTolerance(Tol);
 	for(int ifat=0;ifat<dimsf;ifat++){//numero de variaveis do pai
 		REAL DEdci = 0.;
 		for(j=0;j<(dimss+1);j++){
@@ -992,7 +998,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 				tsidetoson.Apply(intpoint,sidepoint);//lado do filho para o seu interior: mestre
 				X(sidepoint,x);//ponto do mestre do filho para o filho deformado, 3 coordenadas
 				TPZVec<REAL> csi(dimf,0.);/**o seguinte passo n�o � preciso dado que fat = elemento mestre*/
-				fat->ComputeXInverse(x,csi);//csi ponto no pai mestre
+				fat->ComputeXInverse(x,csi,Tol);//csi ponto no pai mestre
 				TPZVec<REAL> outcsi(dimsf,0.);
 				fatelside.Apply(csi,outcsi);
 				//        fat->ProjectPointElToSide(fatside,csi,outcsi);

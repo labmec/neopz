@@ -521,7 +521,7 @@ public:
 	 * @brief Computes the XInverse and returns true if ksi belongs to master element domain
      * @note ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
      */
-	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol = 1.e-12);
+	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol);
     
     /** by Caju 2012 */
     bool ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi);
