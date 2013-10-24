@@ -101,6 +101,8 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 	int dim = father->Dimension();
 	std::map<int,int> nodemap;
 	
+	REAL Tol;
+	ZeroTolerance(Tol);
 	int in;
 	for(in = 0; in < nnodes; in++)
 	{
@@ -113,8 +115,11 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 			coord[i] = fRefPatternMesh.NodeVec()[in].Coord(i);
 		}
 		
-		father->ComputeXInverse(coord,elparam);
+		father->ComputeXInverse(coord,elparam,Tol);
 		
+		REAL Tol;
+		ZeroTolerance(Tol);
+
 		TPZManVector<REAL> diff(nnodes,0.);
 		int jn;
 		for(jn = 0; jn < nnodes; jn++)
@@ -125,7 +130,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 				coordcompare[j] = compare->fRefPatternMesh.NodeVec()[jn].Coord(j);
 			}
 			
-			compfather->ComputeXInverse(coordcompare,compareparam);
+			compfather->ComputeXInverse(coordcompare,compareparam,Tol);
 			
 			for(j=0 ; j<dim; j++)
 			{
@@ -703,7 +708,9 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<long> &n
         
 		//coordenada no espaco do elemento mestre do elemento de
 		//referencia da malha refpattern
-		Element(0)->ComputeXInverse(refnodecoord,newnodecoord);
+		REAL Tol;
+		ZeroTolerance(Tol);
+		Element(0)->ComputeXInverse(refnodecoord,newnodecoord,Tol);
         
 		//coordenada espacial do no na malha real
 		gel->X(newnodecoord,refnodecoord);
@@ -1159,6 +1166,8 @@ void TPZRefPattern::SetRefPatternMeshToMasterDomain()
 	
 	int dim = gel->Dimension();
 	TPZVec<REAL> temp(3,0.);
+	REAL Tol;
+	ZeroTolerance(Tol);
 	
 	for(int n = 0; n < nnodes; n++)
 	{
@@ -1166,7 +1175,7 @@ void TPZRefPattern::SetRefPatternMeshToMasterDomain()
 		fRefPatternMesh.NodeVec()[n].GetCoordinates(nodecoords_inX);
 		
 		nodecoords_inQSI[n].Resize(dim,0.);
-		gel->ComputeXInverse(nodecoords_inX, nodecoords_inQSI[n]);	
+		gel->ComputeXInverse(nodecoords_inX, nodecoords_inQSI[n],Tol);	
 	}
 	
 	TPZVec<REAL> coordQSIprojected(dim,0.);
@@ -1202,6 +1211,8 @@ void TPZRefPattern::ComputeTransforms()
 	
 	/**preenchendo a estrutura TPZFatherSides*/
 	int initside=0,cont=0,side,fatside;
+	REAL Tol;
+	ZeroTolerance(Tol);
 	
 	TPZManVector<REAL,3> masscent(3,0.), xpoint(3,0.), fathparam(fath->Dimension(),0.);
 	
@@ -1222,7 +1233,7 @@ void TPZRefPattern::ComputeTransforms()
 			
 			son->CenterPoint(side,masscent);/**percorre todos os lados do elemento filho*/
 			son->X(masscent,xpoint);
-			fath->ComputeXInverse(xpoint,fathparam);
+			fath->ComputeXInverse(xpoint,fathparam,Tol);
 			
 			fatside = fath->WhichSide(fathparam);/**lado do pai contendo o lado do filho*/
 			fTransforms.fSideTransform[cont] = son->ComputeParamTrans(fath,fatside,side);
