@@ -265,7 +265,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                 NRefs = 4;
             }
             else if(dim==2) {
-                MaxPOrder = 8;
+                MaxPOrder = 7;
                 NRefs = 6;
             }
             else {
@@ -304,7 +304,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             UniformRefinement(ninitialrefs,gmesh,dim);
             
 			// Creating computational mesh (approximation space and materials)
-			int p = 1, pinit;
+			int p = 2, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25
@@ -480,7 +480,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 				    for(k=0;k<subsubels.NElements();k++) {
 						scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
 						LaplacianValue = Laplacian(scel);
-						if(LaplacianValue > 2) {
+						if(LaplacianValue > 2.) {
 							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
 						    // Applying p+1 order for all subelements
 					        if(pelement+1 < MaxPOrder-1)
@@ -492,7 +492,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 			else {
 				for(j=0;j<subels.NElements();j++) {
 					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-					if(nref<5) {
+					if(nref > 2) {
 						LaplacianValue = Laplacian(scel);
 						if(LaplacianValue > 2.) {
 							pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
@@ -510,9 +510,9 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 				}
 			}
 		}
-		if(GradNorm < 0.2) {
+		if(GradNorm < 0.1) {
 			LaplacianValue = Laplacian(el);
-			if(LaplacianValue < 0.25 && nref > 2) {
+			if(LaplacianValue < 0.3 && nref > 2) {
 				pelement = el->PreferredSideOrder(el->NConnects() - 1);
 				// Applying p+1 order for all subelements
 				if(pelement > 1)
@@ -693,8 +693,8 @@ REAL GradientNorm(TPZInterpolatedElement *el) {
 REAL Laplacian(TPZInterpolatedElement *el) {
 	int nvar = el->Material()->NStateVariables();
     int dim = el->Dimension();
-	TPZVec<REAL> sol(nvar,0.);
-    TPZFMatrix<REAL> dsol(nvar,dim,0.0);
+	TPZVec<STATE> sol(nvar,0.);
+    TPZFMatrix<STATE> dsol(nvar,dim,0.0);
 	TPZVec<REAL> qsi(3,0.0);
 	TPZVec<REAL> point(3,0.0);
     REAL temp = 0.0;
@@ -727,8 +727,8 @@ REAL GradientNormOnCorners(TPZInterpolatedElement *el) {
 REAL LaplacianOnCorners(TPZInterpolatedElement *el) {
 	int nvar = el->Material()->NStateVariables();
     int dim = el->Dimension();
-	TPZVec<REAL> sol(nvar,0.);
-    TPZFMatrix<REAL> dsol(nvar,dim,0.0);
+	TPZVec<STATE> sol(nvar,0.);
+    TPZFMatrix<STATE> dsol(nvar,dim,0.0);
 	TPZVec<REAL> qsi(3,0.0);
 	TPZVec<REAL> point(3,0.0);
 	REAL MaxLaplacian = 0.0;
