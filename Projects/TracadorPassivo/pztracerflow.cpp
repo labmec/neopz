@@ -13,6 +13,10 @@
 #include "pzlog.h"
 
 
+#ifdef LOG4CXX
+static LoggerPtr logdata(Logger::getLogger("pz.material.data"));
+#endif
+
 using namespace std;
 
 TPZTracerFlow::TPZTracerFlow():TPZDiscontinuousGalerkin(){
@@ -259,6 +263,17 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         }
     }//end stiffness matrix at ELastState
     
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//		std::stringstream sout;
+//		ek.Print("ek = ",sout,EMathematicaInput);
+//		ef.Print("ef = ",sout,EMathematicaInput);
+//		LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
+
+
 }
 
 void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
@@ -400,6 +415,17 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 			}
 		}
 	}
+    
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//		std::stringstream sout;
+//		ek.Print("ek = ",sout,EMathematicaInput);
+//		ef.Print("ef = ",sout,EMathematicaInput);
+//		LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
+
 }
 
 void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
@@ -513,8 +539,11 @@ int TPZTracerFlow::VariableIndex(const std::string &name)
 }
 
 int TPZTracerFlow::NSolutionVariables(int var){
-	if((var == 2) || (var == 3)) return 1;
-	if((var == 1) || (var == 4)) return fDim;
+    if(var == 1) return fDim;
+	if(var == 2) return 1;
+    if(var == 3) return 1;
+    if(var == 4) return fDim;
+	
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -541,7 +570,7 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
 	if(var == 4) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			Solout[id] =fConvDir[id]*datavec[2].sol[0][0];//function (state variable Q*S)
+			Solout[id] = fConvDir[id]*datavec[2].sol[0][0];//function (state variable Q*S)
 		}
 		return;
 	}
