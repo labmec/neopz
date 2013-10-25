@@ -9,9 +9,10 @@ initialpointdock::initialpointdock(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    coordStartIndex = -1;
-    coordEndIndex = -1;
+//    coordStartIndex = -1;
+//    coordEndIndex = -1;
     curveIndex = -1;
+    isCut = false;
 
     connect (ui->sliderStart, SIGNAL(valueChanged(int)),
              this, SLOT(sliderStartValueChanged(int)));
@@ -39,11 +40,11 @@ void initialpointdock::setSlidersMinimum (int value) {
     this->ui->sliderEnd->setMinimum(value);
 }
 
-void initialpointdock::setXdata (QVector <double> *Xvec) {
+void initialpointdock::setXdata (const QVector <double> &Xvec) {
     this->X = Xvec;
 }
 
-void initialpointdock::setYdata (QVector <double> *Yvec){
+void initialpointdock::setYdata (const QVector <double> &Yvec){
     this->Y = Yvec;
 }
 
@@ -65,15 +66,15 @@ void initialpointdock::setSymbPoint (int idx, int curveIndex, Plot::pointType ty
         if (typept == Plot::startPoint) {
             this->coordStartIndex = idx;
             this->ui->sliderStart->setValue(idx);
-            this->ui->labelStartX->setText( QVariant (this->X->value(idx)).toString() );
-            this->ui->labelStartY->setText( QVariant (this->Y->value(idx)).toString() );
+            this->ui->labelStartX->setText( QVariant (this->X.value(idx)).toString() );
+            this->ui->labelStartY->setText( QVariant (this->Y.value(idx)).toString() );
         }
         else
         {
             this->coordEndIndex = idx;
             this->ui->sliderEnd->setValue(idx);
-            this->ui->labelEndX->setText( QVariant (this->X->value(idx)).toString() );
-            this->ui->labelEndY->setText( QVariant (this->Y->value(idx)).toString() );
+            this->ui->labelEndX->setText( QVariant (this->X.value(idx)).toString() );
+            this->ui->labelEndY->setText( QVariant (this->Y.value(idx)).toString() );
         }
     }
 }
@@ -91,11 +92,16 @@ void initialpointdock::on_cutBtn_clicked()
     {
         emit hideSymbCurve (this->curveIndex);
         emit cutCurve(this->curveIndex, this->coordStartIndex, this->coordEndIndex);
+        isCut = true;
         this->close();
     }
 }
 
 void initialpointdock::closeEvent(QCloseEvent *event)
 {
+    if (!isCut) {
+        emit SymbPointChanged (0, this->curveIndex, Plot::startPoint);
+        emit SymbPointChanged (this->X.size()-1, this->curveIndex, Plot::endPoint);
+    }
     emit hideSymbCurve (this->curveIndex);
 }

@@ -18,17 +18,18 @@ public:
     void setIndexCurve (int idx);
     void setSlidersMaximum (int value);
     void setSlidersMinimum (int value);
-    void setXdata (QVector <double> *Xvec);
-    void setYdata (QVector <double> *Yvec);
+    void setXdata (const QVector <double> &Xvec);
+    void setYdata (const QVector <double> &Yvec);
     
 private:
     Ui::initialpointdock *ui;
     int coordStartIndex;
     int coordEndIndex;
     int curveIndex;
+    bool isCut;
 
-    QVector <double> *X;
-    QVector <double> *Y;
+    QVector <double> X;
+    QVector <double> Y;
 
 signals:
     void mouseDoubleClicked ( int );

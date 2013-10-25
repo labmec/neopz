@@ -5,7 +5,7 @@
 #include "TPZPlasticityTest.h"
 
 /// Default constructor
-TPZPlasticityTest::TPZPlasticityTest() : fZStressKnown(false), fRStressKnown(false), fPoreStressRZ(2,0.), fPoreStrainRZ(2,0.), fStressRZInput(0,2,0.),
+TPZPlasticityTest::TPZPlasticityTest() : fZStressKnown(false), fRStressKnown(false), /*fPoreStressRZ(2,0.),*/ fPoreStrainRZ(2,0.), fStressRZInput(0,2,0.),
                 fStrainRZInput(0,2,0.), fStressRZSimulated(0,2,0.), fStrainRZSimulated(0,2,0.)
 {
     fNumSteps = 0;
@@ -16,10 +16,10 @@ TPZPlasticityTest::TPZPlasticityTest() : fZStressKnown(false), fRStressKnown(fal
 void TPZPlasticityTest::ApplyInitialStress()
 {
     // load hydrostatic till I1 is in the middle of the ellips
-    STATE I1 = fPoreStressRZ[0]*2.+fPoreStressRZ[1];
+    STATE I1 = fStressRZInput(fPoreClosureIndex,0)*2. + fStressRZInput(fPoreClosureIndex,1); //fPoreStressRZ[0]*2.+fPoreStressRZ[1];
     STATE I1Initial = I1-fSandler.fYC.fA*fSandler.fYC.fR;
     
-cout << "----------------------------> " << I1Initial << " " << I1 << " " << fSandler.fYC.fA << " " << fSandler.fYC.fR << " " << fPoreStressRZ[0] << " " << fPoreStressRZ[1] << endl;
+//cout << "----------------------------> " << I1Initial << " " << I1 << " " << fSandler.fYC.fA << " " << fSandler.fYC.fR << " " << fStressRZInput(fPoreClosureIndex,0)/*fPoreStressRZ[0]*/ << " " << fStressRZInput(fPoreClosureIndex,0)/*fPoreStressRZ[1]*/ << endl;
     
     // should improve!!defLateral->value(i)
     TPZTensor<STATE> hidro, epstotal;
@@ -27,15 +27,15 @@ cout << "----------------------------> " << I1Initial << " " << I1 << " " << fSa
         hidro.XX() = i1/3.;
         hidro.YY() = i1/3.;
         hidro.ZZ() = i1/3.;
-cout << "----------------------------> i1 " << i1  << " " << hidro.XX() << endl; 
+//cout << "----------------------------> i1 " << i1  << " " << hidro.XX() << endl;
         fSandler.ApplyLoad(hidro, epstotal);
     }
     
     // load elastic to the initial stress
     TPZTensor<STATE> porestress;
-    porestress.XX() = fPoreStressRZ[0];
-    porestress.YY() = fPoreStressRZ[0];
-    porestress.ZZ() = fPoreStressRZ[1];
+    porestress.XX() = fStressRZInput(fPoreClosureIndex,0); //fPoreStressRZ[0];
+    porestress.YY() = fStressRZInput(fPoreClosureIndex,0); //fPoreStressRZ[0];
+    porestress.ZZ() = fStressRZInput(fPoreClosureIndex,1); //fPoreStressRZ[1];
     fSandler.ApplyLoad(porestress, epstotal);
     fPoreStrainRZ[0] = epstotal.XX();
     if (fabs(epstotal.XX()-epstotal.YY()) > 1.e-8) {
@@ -152,10 +152,7 @@ void TPZPlasticityTest::PerformSimulation()
         strainRZ[1] -= fStrainRZInput(fPoreClosureIndex,1);
         strainRZ[0] += this->fPoreStrainRZ[0];
         strainRZ[1] += this->fPoreStrainRZ[1];
-        if(istep == 1494)
-        {
-            std::cout << __FUNCTION__ << std::endl;
-        }
+
         EvoluateToStep(strainRZ, stressRZ);
 //        fStrainRZSimulated(istep,0) = strainRZ[0];
 //        fStrainRZSimulated(istep,1) = strainRZ[1];
@@ -195,12 +192,11 @@ void TPZPlasticityTest::ReadInputStrainStress(const std::string &filename)
         fStrainRZInput(numlines,1) = -eps_ax/100.;
         fStrainRZInput(numlines,0) = -eps_r/100.;
 	
-	cout << "i= " << numlines << " " <<  fStressRZInput(numlines,1) << " " <<  fStressRZInput(numlines,0)<< " " << fStrainRZInput(numlines,1)<< " "<< fStrainRZInput(numlines,0) << endl;
+//    cout << "i= " << numlines << " " <<  fStressRZInput(numlines,1) << " " <<  fStressRZInput(numlines,0)<< " " << fStrainRZInput(numlines,1)<< " "<< fStrainRZInput(numlines,0) << endl;
 	
         numlines++;
     }
     fStressRZInput.Resize(numlines, 2);
     fStrainRZInput.Resize(numlines, 2);
-    
 }
 

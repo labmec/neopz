@@ -27,7 +27,7 @@ void MaterialPointTests();
      poisson = 0.203; //0.40;
      
      
-     A = 116.67; //0.25;
+     A = 616.67; //0.25;
      B = 0.0036895; //0.67;
      C = 111.48; //0.18;
      D = 0.018768; //0.67 / 2.; 
@@ -44,7 +44,7 @@ void MaterialPointTests();
      
      test.SetSandlerDimaggio(sandler);
      
-     test.SetSimulationInitialStep(1000);
+     test.SetSimulationInitialStep(0);
 
      test.PerformSimulation();
      

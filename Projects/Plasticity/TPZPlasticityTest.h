@@ -5,6 +5,7 @@
 
 class TPZPlasticityTest
 {
+protected:
     /// variable indicating if the maximum z stress is given
     bool fZStressKnown;
     
@@ -14,12 +15,12 @@ class TPZPlasticityTest
     /// index of the initial pore closure stress
     int fPoreClosureIndex;
     
-    /// stress at which pores are closed
-    TPZManVector<STATE,2> fPoreStressRZ;
-    
+//    /// stress at which pores are closed
+//    TPZManVector<STATE,2> fPoreStressRZ;
+
     /// simulated strain corresponding to porestress
     TPZManVector<STATE,2> fPoreStrainRZ;
-       
+
     /// stress as read from the laboratory test
     TPZFMatrix<STATE> fStressRZInput;
     
@@ -61,8 +62,8 @@ public:
             DebugStop();
         }
         fPoreClosureIndex = istep;
-        fPoreStressRZ[0] = fStressRZInput(istep,0);
-        fPoreStressRZ[1] = fStressRZInput(istep,1);
+//        fPoreStressRZ[0] = fStressRZInput(istep,0);
+//        fPoreStressRZ[1] = fStressRZInput(istep,1);
     }
     
     

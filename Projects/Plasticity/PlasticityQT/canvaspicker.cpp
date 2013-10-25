@@ -119,9 +119,9 @@ void CanvasPicker::select( const QPoint &pos )
     int indexs = -1;
     int key = -1;
 
-    foreach (int it, this->plot()->CurvesList->keys()){
-        QwtPlotCurve *c=this->plot()->CurvesList->value(it).curve_ptr;
-        QwtPlotCurve *cs=this->plot()->CurvesList->value(it).symb_curve_ptr;
+    foreach (int it, this->plot()->CurvesList.keys()){
+        QwtPlotCurve *c=this->plot()->CurvesList.value(it).curve_ptr;
+        QwtPlotCurve *cs=this->plot()->CurvesList.value(it).symb_curve_ptr;
 
         // if curves dont exist: abort
         if ( !c || !cs )
@@ -167,7 +167,7 @@ void CanvasPicker::move( const QPoint &pos )
     double dist = 10e10;
     int index = -1;
 
-    QwtPlotCurve *c=this->plot()->CurvesList->value(d_selectedCurve).curve_ptr;
+    QwtPlotCurve *c=this->plot()->CurvesList.value(d_selectedCurve).curve_ptr;
 
     // if curve does not exist: abort
     if ( !c )
