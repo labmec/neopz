@@ -45,14 +45,17 @@ SOURCES += main.cpp\
     plot.cpp \
     simulation.cpp \
     initialpointdock.cpp \
-    canvaspicker.cpp
+    canvaspicker.cpp \
+    ../TPZPlasticityTest.cpp
+
 
 HEADERS  += mainwindow.h \
     plot.h \
     simulation.h \
     initialpointdock.h \
     canvaspicker.h \
-    common.h
+    common.h \
+../TPZPlasticityTest.h
 
 FORMS    += mainwindow.ui \
     initialpointdock.ui

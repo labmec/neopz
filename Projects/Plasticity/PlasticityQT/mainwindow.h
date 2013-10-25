@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <qwt_plot_zoomer.h>
 #include "common.h"
+#include <limits>
 
 #include "simulation.h"
 

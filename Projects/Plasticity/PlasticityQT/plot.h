@@ -81,6 +81,7 @@ public:
             if (X.value(i) > Xbiggest)  Xbiggest = X.value(i);
         }
     }
+
     void setY (QVector<double> &newY) {
         Y = newY;
         resetCurve();
@@ -108,10 +109,10 @@ private:
     QwtPlotCurve *curve_ptr;
     QwtPlotCurve *curve_ptr2;
     QwtPlotCurve *curve_ptr3;
-    QVector <double> X2;
-    QVector <double> Y2;
-    QVector <double> X3;
-    QVector <double> Y3;
+//    QVector <double> X2;
+//    QVector <double> Y2;
+//    QVector <double> X3;
+//    QVector <double> Y3;
     QwtPlotCurve *symb_curve_ptr;
     QwtPlotMarker *symb1;
     QwtPlotMarker *symb2;

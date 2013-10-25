@@ -608,8 +608,9 @@ void MainWindow::ChangePlotAxis(Plot* plot_ptr,QString PlotAxis)    //PEPINO
         if (PlotAxis == Coords2) {
 
             // COLUNAS LIDAS NO ARQUIVO
-            plot_ptr->CurvesList[i].X = this->FilesList[i].defLateral; //OK!
-            plot_ptr->CurvesList[i].Y = this->FilesList[i].sigmaConf; //OK!
+//            plot_ptr->CurvesList[i].X = this->FilesList[i].defLateral; //OK!
+//            plot_ptr->CurvesList[i].Y = this->FilesList[i].sigmaConf; //OK!
+            plot_ptr->CurvesList[i].setX(this->FilesList[i].defLateral);
 
 //            d_curve_tmp.X2 = d_curve_tmp.X3 = d_curve_tmp.Y2 = d_curve_tmp.Y3 = NULL;// POBREMA!!!!
 
