@@ -79,8 +79,8 @@ public:
 	// @{
 	int Decompose_Cholesky();  // Faz A = GGt.
 	int Decompose_LDLt    ();  // Faz A = LDLt.
-	int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
-	int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
+	int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
+	int Decompose_LDLt    (std::list<long> &singular);  // Faz A = LDLt.
 	
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
 	//int Subst_Backward ( TPZMatrix<>*b );

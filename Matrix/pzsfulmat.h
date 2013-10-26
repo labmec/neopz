@@ -95,8 +95,8 @@ public:
 	 */
 	virtual int Decompose_Cholesky();
 	virtual int Decompose_LDLt();
-	virtual int Decompose_Cholesky(std::list<int> &singular);
-	virtual int Decompose_LDLt(std::list<int> &singular);
+	virtual int Decompose_Cholesky(std::list<long> &singular);
+	virtual int Decompose_LDLt(std::list<long> &singular);
 	
 	virtual int Subst_Forward  ( TPZFMatrix<TVar>  *B ) const;
 	virtual int Subst_Backward ( TPZFMatrix<TVar>  *B ) const;

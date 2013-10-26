@@ -171,7 +171,7 @@ TPZSSpMatrix<TVar>::operator*=(const TVar value )
 /*** Decompose Cholesky ***/
 template<class TVar>
 int
-TPZSSpMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
+TPZSSpMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 {
     return Decompose_Cholesky();
 }
@@ -252,7 +252,7 @@ TPZSSpMatrix<TVar>::Decompose_Cholesky()
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSSpMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
+TPZSSpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 {
     return Decompose_LDLt();
 }

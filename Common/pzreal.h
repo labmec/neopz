@@ -535,13 +535,16 @@ inline REAL ZeroTolerance() {
 	return 1.e-10;
 }
 inline void ZeroTolerance(double &Tol) {
-	Tol = 1.e-10;
+	Tol = 1.e-9;
 }
 inline void ZeroTolerance(long double &Tol) {
 	Tol = 1.e-12;
 }
 inline void ZeroTolerance(float &Tol) {
 	Tol = 1.e-7;
+}
+inline void ZeroTolerance(TPZFlopCounter &Tol) {
+	Tol.fVal = 1.e-9;
 }
 
 #ifdef _AUTODIFF

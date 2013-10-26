@@ -514,7 +514,7 @@ TPZSFMatrix<TVar> ::Zero()
 /*** Decompose Cholesky ***/
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Decompose_Cholesky(std::list<int> &singular)
+TPZSFMatrix<TVar> ::Decompose_Cholesky(std::list<long> &singular)
 {
 	return Decompose_Cholesky();
 }
@@ -573,7 +573,7 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Decompose_LDLt(std::list<int> &singular)
+TPZSFMatrix<TVar> ::Decompose_LDLt(std::list<long> &singular)
 {
 	return Decompose_LDLt();
 }

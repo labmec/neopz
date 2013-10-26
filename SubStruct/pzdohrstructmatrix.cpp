@@ -1518,10 +1518,23 @@ ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList()
 }
 
 template<class TVar>
+ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList(ThreadDohrmanAssemblyList<TVar> &cpy) : fList(cpy.fList)
+{
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
+    PZ_PTHREAD_MUTEX_INIT(&fTestThreads,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
+}
+
+template<class TVar>
 ThreadDohrmanAssemblyList<TVar>::~ThreadDohrmanAssemblyList()
 {
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
-    PZ_PTHREAD_MUTEX_DESTROY(&fTestThreads,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
+	if(fAccessElement) {
+	    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
+		fAccessElement = 0;
+	}
+	if(fTestThreads) {
+	    PZ_PTHREAD_MUTEX_DESTROY(&fTestThreads,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
+		fTestThreads = 0;
+	}
 }
 
 template<class TVar>

@@ -1341,7 +1341,7 @@ else
 
 /*
 void TPZSkylMatrix::DecomposeColumn(int col, int prevcol,
-std::list<int> &singular)
+std::list<long> &singular)
 {
 REAL *ptrprev; // Pointer to prev column
 REAL *ptrcol; // Pointer to col column

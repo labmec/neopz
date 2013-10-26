@@ -433,12 +433,12 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 										read >> nodecoordZ;
 									}
 								}
-								
-								Node[nodeId-1].SetNodeId(nodeId);
+								long nodeid = gmesh->CreateUniqueNodeId();
+								Node[nodeId-1].SetNodeId(nodeid);
 								Node[nodeId-1].SetCoord(0,nodecoordX/fDimensionlessL);
 								Node[nodeId-1].SetCoord(1,nodecoordY/fDimensionlessL);
 								Node[nodeId-1].SetCoord(2,nodecoordZ/fDimensionlessL);
-								gmesh->NodeVec()[nodeId-1] = Node[nodeId-1];
+								gmesh->NodeVec()[nodeid] = Node[nodeId-1];
 								ContNode++;
 							}
 							if(ContNode == numnodes)

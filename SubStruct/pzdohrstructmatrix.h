@@ -197,6 +197,7 @@ template<class TVar>
 struct ThreadDohrmanAssemblyList {
 	
 	ThreadDohrmanAssemblyList();
+	ThreadDohrmanAssemblyList(ThreadDohrmanAssemblyList<TVar> &cpy);
 	
 	~ThreadDohrmanAssemblyList();
 	

@@ -344,13 +344,15 @@ template< class T >
 void TPZVec<T>::Resize(const long newsize) {
 #ifndef NODEBUG
 	int sz = sizeof(T);
-	long nlongsize = 2147483647;
+//	long nlongsize = 2147483647;
+	// Parece que o limite no windows é
+	long nlongsize = 1704792168;
 	if(newsize<0 || (newsize+1) > (1./sz)*nlongsize) {
 		PZError << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
 		std::cout << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
 		PZError.flush();
-		DebugStop();
-		return;
+//		DebugStop();
+//		return;
 	}
 #endif
 	

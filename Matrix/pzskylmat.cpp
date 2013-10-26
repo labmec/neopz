@@ -592,21 +592,21 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
 }
 
 template<>
-int TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky(std::list<int> &singular)
+int TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky(std::list<long> &singular)
 {
     DebugStop();
     return -1;
 }
 
 template<>
-int TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky(std::list<int> &singular)
+int TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky(std::list<long> &singular)
 {
     DebugStop();
     return -1;
 }
 
 template<>
-int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int> &singular)
+int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<long> &singular)
 {
     DebugStop();
     return -1;
@@ -619,7 +619,7 @@ int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int>
 /**************************/
 /*** Decompose Cholesky ***/
 template<class TVar>
-int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
+int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 {
   if(this->fDecomposed == ECholesky) 
     return 1;
@@ -845,13 +845,13 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
 
 template<class TVar>
 int
-TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
+TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 {
   if( this->fDecomposed == ELDLt) 
     return 1;
 
   if( this->fDecomposed ) {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
   }
   
 #ifdef DUMP_BEFORE_DECOMPOSE
@@ -916,7 +916,7 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
   if( this->fDecomposed == ELDLt) 
     return 1;
   if (  this->fDecomposed )
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
 
 #ifdef DUMP_BEFORE_DECOMPOSE
   dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt()");
@@ -987,7 +987,7 @@ template<class TVar>
 int TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
 {
   if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
   
 #ifdef DUMP_BEFORE_SUBST
 	dump_matrices(this, B, "TPZSkylMatrix::Subst_Forward(B)");
@@ -1273,25 +1273,25 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol)
 }
 
 template<>
-void TPZSkylMatrix<std::complex<float> >::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<std::complex<float> >::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
   DebugStop();
 }
 
 template<>
-void TPZSkylMatrix<std::complex<double> >::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<std::complex<double> >::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
   DebugStop();
 }
 
 template<>
-void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
   DebugStop();
 }
 
 template<class TVar>
-void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<int> &singular)
+void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<long> &singular)
 {
   TVar *ptrprev;     //Pointer to prev column
   TVar *ptrcol;      //Pointer to col column
@@ -2192,6 +2192,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 
 	singular.clear();
 	TVar pivot;
+	TVar Tol;
+	ZeroTolerance(Tol);
 	long dimension = this->Dim();
 	/*  if(Dim() > 100) {
 	 cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
@@ -2216,9 +2218,10 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		pivot = fElem[k][0] - sum;
-		if ( pivot < ((TVar)1.e-9) ) {
+//		if ( pivot < ((TVar)1.e-9) ) {
+		if(pivot < Tol) {
 			singular.push_back(k);
-            std::cout << __FUNCTION__ << "Singular equation pivot " << pivot << " k " << k << std::endl;
+            std::cout << __FUNCTION__ << " Singular equation pivot " << pivot << " k " << k << std::endl;
 			pivot = 1.;
 		}
 		// A matriz nao e' definida positiva.
