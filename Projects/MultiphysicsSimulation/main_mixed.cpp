@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
 //	InitializePZLOG("../logmixedproblem.cfg");
     InitializePZLOG();
 #endif
+	gRefDBase.InitializeAllUniformRefPatterns();
     
     TPZVec<REAL> erros;
     ofstream arg12("Erro.txt");

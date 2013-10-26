@@ -48,7 +48,8 @@ int main_pre() {
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
-
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
     // First rectangular mesh
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
 
@@ -114,6 +115,13 @@ int main_pre() {
 // Malla con GID
 int main() {
 
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
+	
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
+
 	DirectorioCorriente += "/Projects/CursoPZ/Class_4/";
 
 	// Ejemplo uni-dimensional para la generacion de una malla para un reservatorio 
@@ -144,7 +152,7 @@ int main() {
 	if(!meshgrid2D2->NElements())
 		return 1;
 	// Refinement until five levels
-	UniformRefine(meshgrid2D2,5);
+	UniformRefine(meshgrid2D2,2);
 	// Print into vtk format  - Visualization using Paraview
 	ofstream meshoutvtk2D2("MeshGIDToVTK2D2.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D2,meshoutvtk2D2,true);
@@ -172,6 +180,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
         {    
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];
+			if(!gel) continue;
             gel->Divide(filhos);
         }
     }

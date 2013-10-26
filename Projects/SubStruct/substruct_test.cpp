@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	int plevel = 1;
 	
 	TPZPairStructMatrix::gNumThreads = 0; //RAUL
-	int numthreads = 0; //RAUL
+	int numthreads = 2;
 	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{

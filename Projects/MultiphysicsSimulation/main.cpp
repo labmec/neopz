@@ -94,6 +94,7 @@ int main1(int argc, char *argv[])
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
 #endif
+	gRefDBase.InitializeAllUniformRefPatterns();
 	
 	int p =2;
 	//primeira malha

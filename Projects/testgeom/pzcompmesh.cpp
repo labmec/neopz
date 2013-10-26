@@ -48,6 +48,9 @@ int main() {
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
+
 	char expression[260];
     // First rectangular mesh
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;

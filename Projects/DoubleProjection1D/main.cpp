@@ -59,9 +59,13 @@ void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 
 int main(int argc, char *argv[])
 {	
+#ifdef LOG4CXX
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
-	
+#endif
+	gRefDBase.InitializeAllUniformRefPatterns();
+	gRefDBase.InitializeRefPatterns();
+
 	int p =2;
 	//primeira malha
 	

@@ -92,6 +92,7 @@ int main2(int argc, char *argv[])
 {
     // Ordem polinomial das funções de aproximação
 	int p = 2;
+	gRefDBase.InitializeAllUniformRefPatterns();
     
 	/*------------ Etapa 1 ------------*/
     

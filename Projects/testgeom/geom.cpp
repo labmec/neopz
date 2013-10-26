@@ -8,6 +8,8 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzlog.h"
 
+#include "TPZRefPatternDataBase.h"
+
 #include <fstream>
 
 using std::ifstream;
@@ -31,6 +33,8 @@ int main_back() {
 	InitializePZLOG();
 #endif
     
+	// Initializing uniform refinements for reference elements
+	gRefDBase.InitializeAllUniformRefPatterns();
     /// test the prismatic extension of the topology
     TestTopology();
     

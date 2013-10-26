@@ -65,6 +65,7 @@ int main3(int argc, char *argv[])
 {
     int p = 2;
 	//primeira malha
+	gRefDBase.InitializeAllUniformRefPatterns();
 	
 	// geometric mesh (initial)
 	TPZGeoMesh * gmesh = GMesh(-1,2);
