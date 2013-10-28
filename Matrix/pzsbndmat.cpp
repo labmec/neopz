@@ -77,7 +77,6 @@ const TVar
 		this->Swap( &row, &col );
 	
 	long index;
-	this->gZero=0.0;
 	if ( (index = col-row) > fBand )
 		return( this->gZero );        // O elemento esta fora da banda.
 	

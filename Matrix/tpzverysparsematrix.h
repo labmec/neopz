@@ -69,7 +69,6 @@ public:
 		{
 			this->Error("TPZFMatrix::operator() "," Index out of bounds");
 			DebugStop();
-			this->gZero = 0.;
 			return this->gZero;
 		}
 #endif

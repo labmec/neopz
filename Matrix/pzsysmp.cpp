@@ -59,7 +59,6 @@ const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int r,const int c ) const {
 	for(int ic=fIA[row]-1 ; ic < fIA[row+1]-1; ic++ ) {
 		if ( fJA[ic] == col ) return fA[ic];
 	}
-	this->gZero = 0.;
 	return this->gZero;
 }
 

@@ -983,11 +983,15 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 	ptrpivot=&fElem[0];
 	for (  k = 0; k < min ; k++ )
 	{
-		if ( IsZero( *ptrpivot ) ){
+		if ( IsZero( *ptrpivot ) ) {
 			//Power plus...
-			if (fabs(*ptrpivot) > fabs((TVar)0.)) {
-				for (j=k+1;j<rows;j++){
-					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > fabs(((TVar)1.e-12))){
+			if (fabs(*ptrpivot) > fabs(((TVar)0.))) {
+				for (j=k+1;j<rows;j++) {
+//#ifdef _AUTODIFF
+//					if ((*(ptrpivot + j - k) - *(ptrpivot)) > (1.e-12)) {
+//#else
+					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > ((long double)1.e-12)) {
+//#endif
 						Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
 						cout << "DecomposeLU <matrix is singular> even after Power Plus...\n" ;
 					}
@@ -1020,6 +1024,13 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 	return 1;
 }
 
+#ifdef _AUTODIFF
+template <class TVar>
+int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B) {
+	DebugStop();
+	return 1;
+}
+#else
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B)
 {
@@ -1040,8 +1051,8 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> 
 				//B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 				PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, j) * GETVAL(B, rowb, j, col));
 			if ( IsZero( SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/ ) ) {
-				if (fabs(SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/) > fabs((TVar)0)){
-					if (fabs(GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > fabs((TVar)1e-12)){
+				if (fabs(SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/) > fabs((TVar)0.)) {
+					if (fabs(GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > fabs(((TVar)1e-12))) {
 						Error( "static::BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
 					}
 				}else  Error( "static::BackSub(SubstitutionLU) <Matrix is singular" );
@@ -1052,10 +1063,17 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> 
 	}
 	return( 1 );
 }
+#endif
 
 /****************/
 /*** Substitution ***/
-
+#ifdef _AUTODIFF
+template <class TVar>
+int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
+	DebugStop();
+	return( 1 );
+}
+#else
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	
@@ -1118,7 +1136,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 				B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 			if ( IsZero( GetVal(i, i) ) ) {
 				if (fabs(GetVal(i, i)) > fabs((TVar)0.)) {
-					if (fabs(B->GetVal(i, col) - GetVal(i, i)) > fabs((TVar)1e-12)){
+					if (fabs(B->GetVal(i, col) - GetVal(i, i)) > fabs((TVar)1e-12)) {
 						Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
 					}
 				}else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );
@@ -1130,6 +1148,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	
 #endif
 }
+#endif
 
 template<class TVar>
 int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) const{

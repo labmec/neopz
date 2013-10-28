@@ -796,10 +796,17 @@ inline long TPZMatrix<TVar>::Cols() const {
 	return fCol;
 }
 
+#ifdef _AUTODIFF
 template<class TVar>
 inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
-	MultAdd( x, rhs, res, (TVar)-1.0, (TVar)1.0 );
+	DebugStop();
 }
+#else
+template<class TVar>
+inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
+	MultAdd( x, rhs, res, ((TVar)-1.0), ((TVar)1.0) );
+}
+#endif
 
 /***********/
 /*** Put ***/
@@ -829,7 +836,6 @@ inline const TVar &TPZMatrix<TVar>::Get(const long row, const long col ) const {
 #ifdef DEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
 		Error("TPZMatrix::Get", "Index out of range");
-		gZero = (TVar)(0);
 		return gZero;
 	}
 #endif
@@ -841,7 +847,6 @@ inline TVar &TPZMatrix<TVar>::operator()(const long row, const long col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 #ifndef NODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
-		gZero = (TVar)(0);
 		Error("TPZMatrix<TVar>::Operator()","Index out of range");
 		return gZero;
 	}

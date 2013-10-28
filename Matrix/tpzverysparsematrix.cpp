@@ -117,8 +117,7 @@ const TVar & TPZVerySparseMatrix<TVar>::GetVal(const long row, const long col) c
     if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
         cout<< "ERRO! em TPZVerySparseMatrix::GetVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
-        this->gZero = 0.;
-	return this->gZero;
+		return this->gZero;
     }
 	
     pair <long,long> position(row,col);
@@ -127,7 +126,6 @@ const TVar & TPZVerySparseMatrix<TVar>::GetVal(const long row, const long col) c
 	
     if (it == fExtraSparseData.end() )
     {
-        this->gZero = 0.;
         return this->gZero;
     }
     
