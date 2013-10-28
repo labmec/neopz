@@ -1127,7 +1127,10 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 	TPZGeoEl *father = refp->Element(0);//pai
 	int dimfatside,fatside,nsides;
 	int dimfat = father->Dimension();
-	
+	REAL Tol;
+	ZeroTolerance(Tol);
+	if(Tol < 1.e-10) Tol = 1.e-10;
+
 	TPZGeoEl *subel;
 	int nsubs = refp->NSubElements();
 	for(isub=0;isub<nsubs;isub++)
@@ -1169,7 +1172,7 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 				subel->X(point2,x1);
 				
 				//transformacao: espaco paramcorico do filho/lado  -> espaco paramcorico do pai/lado
-				father->ComputeXInverse(x1, pointparamfather, 1.e-10);
+				father->ComputeXInverse(x1, pointparamfather, Tol);
 				
 				//no elemento mestre do pai, father coo deformado
 				fatside = father->WhichSide(pointparamfather);

@@ -106,7 +106,10 @@ public:
 		int in, nnodes = Geo::NNodes;
 		TPZManVector<REAL,3> nodeX(3);
 		TPZManVector<REAL,3> ptancestor(Geo::Dimension), aux(Geo::Dimension);
-		
+		REAL Tol;
+		ZeroTolerance(Tol);
+		if(Tol < 1.e-10) Tol = 1.e-10;
+
 		//  Pira 18 maio 2009: nova implementação
 		for(in=0; in<nnodes; in++)
 		{
@@ -130,7 +133,7 @@ public:
 			tr.Apply(zero, aux);
 			//aux.Fill(0.);
 			ptancestor.Fill(0.);
-			father->ComputeXInverse(nodeX, aux,1e-10);
+			father->ComputeXInverse(nodeX, aux, Tol);
 			int pointside = father->WhichSide(aux);
 			TPZTransform project = father->Projection(pointside);
 			project.Apply(aux,ptancestor);

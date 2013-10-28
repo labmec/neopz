@@ -1527,14 +1527,8 @@ ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList(ThreadDohrmanAssembly
 template<class TVar>
 ThreadDohrmanAssemblyList<TVar>::~ThreadDohrmanAssemblyList()
 {
-	if(fAccessElement) {
-	    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
-		fAccessElement = 0;
-	}
-	if(fTestThreads) {
-	    PZ_PTHREAD_MUTEX_DESTROY(&fTestThreads,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
-		fTestThreads = 0;
-	}
+	PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
+	PZ_PTHREAD_MUTEX_DESTROY(&fTestThreads,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
 }
 
 template<class TVar>

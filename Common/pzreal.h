@@ -176,7 +176,7 @@ public:
 #endif
 	/** @brief Containts the counter vector by operation performed */
 	static TPZCounter gCount;
-	
+
 	inline TPZFlopCounter()
 	{
 	}
@@ -343,7 +343,9 @@ public:
 	/** @brief Returns the power and increments the counter of the power. */
 	friend TPZFlopCounter pow(const TPZFlopCounter &orig,const TPZFlopCounter &xp);
 	/** @brief Returns the absolute value and doesn't increments the counters. */
-	friend TPZFlopCounter fabs(const TPZFlopCounter &orig);
+	friend TPZFlopCounter fabsFlop(const TPZFlopCounter &orig);
+	/** @brief Returns the absolute value as REAL and doesn't increments the counters. */
+	friend REAL fabs(const TPZFlopCounter &orig);
 	/** @brief Returns the arc cosine in radians and increments the counter of the Arc Cosine. */
 	friend TPZFlopCounter acos(const TPZFlopCounter &orig);
 	/** @brief Returns the cosine in radians and increments the counter of the Cosine. */
@@ -377,11 +379,16 @@ inline TPZFlopCounter sqrt(const TPZFlopCounter &orig)
 }
 
 /** @brief Returns the absolute value and doesn't increments the counters. */
-inline TPZFlopCounter fabs(const TPZFlopCounter &orig)
+inline TPZFlopCounter fabsFlop(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
 	result.fVal = fabs(orig.fVal);
 	return result;
+}
+/** @brief Returns the absolute value as REAL and doesn't increments the counters. */
+inline REAL fabs(const TPZFlopCounter &orig)
+{
+	return fabs(orig.fVal);
 }
 
 /** @brief Returns the power and increments the counter of the power. */
