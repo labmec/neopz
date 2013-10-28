@@ -93,10 +93,10 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
 void SolExata(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZTracerFlow * mymaterial, TPZCompMesh* mphysics);
-TPZAutoPointer <TPZMatrix<REAL> > MassMatrixTwoMat(TPZCompMesh* mphysics);
-void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<REAL> &fvec);
-void StiffMatrixLoadVecTwoMat(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
+TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCompMesh* mphysics);
+TPZAutoPointer <TPZMatrix<STATE> > MassMatrixTwoMat(TPZCompMesh* mphysics);
+void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec);
+void StiffMatrixLoadVecTwoMat(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec);
 void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 void SolveSystemTransientTwoMat(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 
@@ -983,8 +983,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
     #endif
     
     //Criando matriz de rigidez (matK) e vetor de carga
-	TPZAutoPointer< TPZMatrix<REAL> > matK;
-	TPZFMatrix<REAL> fvec;
+	TPZAutoPointer< TPZMatrix<STATE> > matK;
+	TPZFMatrix<STATE> fvec;
     StiffMatrixLoadVec(material, mphysics, an, matK, fvec);
     
     #ifdef LOG4CXX
@@ -1246,7 +1246,7 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrixTwoMat(TPZCompMesh* mphysics){
 }
 
 
-void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<REAL> &fvec){
+void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec){
     
     mymaterial->SetCurrentState();
     //TPZFStructMatrix matsk(mphysics);

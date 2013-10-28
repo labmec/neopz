@@ -11,6 +11,7 @@
 #include "pzcompel.h"
 #include "pzintel.h"
 
+
 InputDataStruct::InputDataStruct()
 {
     fPressureMatIds_StripeId_ElastId.clear();
@@ -301,7 +302,7 @@ void InputDataStruct::SetMinDeltaT()
 
 void InputDataStruct::SetNextDeltaT()
 {
-    factDeltaT = std::min(fmaxDeltaT,factDeltaT+fmaxDeltaT/fNDeltaTsteps);
+    factDeltaT = min(fmaxDeltaT,(factDeltaT+fmaxDeltaT/fNDeltaTsteps));
     if(factTime + factDeltaT > fTtot)
     {
         factDeltaT = fTtot - factTime;

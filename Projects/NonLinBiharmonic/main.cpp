@@ -251,12 +251,14 @@ int main(){
 TPZCompElDisc * FindElement(TPZCompMesh *malhacomp, TPZVec<REAL> &pont,TPZVec<REAL> &pont_ksi){
  cout<<endl<<"   ---------  "<<pont_ksi<<endl;
  cout<<endl<<"   =========  "<<pont<<endl;
+ REAL Tol;
+ ZeroTolerance(Tol);
  for(int i = 0; i< malhacomp->ElementVec().NElements() ;i++) {
      TPZCompEl* mycompel = malhacomp->ElementVec()[i];//Divide(0,subelindex,0);
      if(!mycompel) continue;
      TPZGeoEl * mygeoele = mycompel->Reference();
      if((mygeoele->WhichSide(pont)!=-1)) { //
-         mygeoele->ComputeXInverse(pont,pont_ksi);
+         mygeoele->ComputeXInverse(pont,pont_ksi,Tol);
 	 cout<<endl<<"   ---------  "<<pont_ksi<<endl;
 	 cout<<endl<<"   =========  "<<pont<<endl;
 	 //cout<<"ACHEI"<<endl;

@@ -53,9 +53,12 @@ int main()
  const int numShape  = 1, ndof = 3;
  const int dim = 3;
 
- TPZFMatrix<REAL> phi(numShape,1), dphi(dim,numShape), dsol(dim, ndof, 0.);
- TPZFMatrix<REAL> ek(numShape * ndof, numShape * ndof, 0.), ef(numShape * ndof, 1, 0.),ekFAD(numShape * ndof, numShape * ndof, 0.), efFAD(numShape * ndof, 1, 0.);
- TPZVec<REAL> x(3,0.), sol(3,0.);
+ TPZFMatrix<REAL> phi(numShape,1), dphi(dim,numShape);
+ TPZFMatrix<STATE> dsol(dim, ndof, 0.);
+ TPZFMatrix<STATE> ek(numShape * ndof, numShape * ndof, 0.), ef(numShape * ndof, 1, 0.);
+ TPZFMatrix<REAL> efFAD(numShape * ndof, 1, 0.), ekFAD(numShape * ndof, numShape * ndof, 0.);
+ TPZVec<REAL> x(3,0.);
+ TPZVec<STATE> sol(3,0.);
  TPZFMatrix<REAL> axes(3,3,0.),jacinv(3,3,0.);
  REAL weight = 1.;
  int id, idf, ishape, i;
@@ -145,8 +148,12 @@ FADToMatrix(U, ekFAD, efFAD);
  ef.Print("Right hand side");
  ekFAD.Print("FAD Stiffness matrix");
  efFAD.Print("FAD Right hand side");
- ek -= ekFAD;
- ef -= efFAD;
+ // Whether using FAD, the ek and ef values are REAL
+ for(i=0;i<ek.Rows();i++) {
+	 ef(i,0) -= (STATE)efFAD(i,0);
+	 for(id=0;id<ek.Cols();id++)
+		ek(i,id) -= (STATE)ekFAD(i,id);
+ }
  ek.Print("Stiffness matrix");
  ef.Print("Right hand side");
  REAL dif = Norm(ek);

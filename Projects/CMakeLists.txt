@@ -15,8 +15,10 @@ ENABLE_TESTING()
 			#Using discontinuous approximation functions
 			add_subdirectory(descontinuo)
 
-                        #Testing gradient reconstruction
+                #Testing gradient reconstruction
 			add_subdirectory(Gradient_Reconstruction)
+                #Testing generating ellipse from a vector of points by least square method
+			add_subdirectory(EllipseGenerator)
 
 			# Tutorial about hp-adaptive techniques
 			add_subdirectory(Poisson_ArcTan)

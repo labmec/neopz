@@ -90,7 +90,7 @@ int main()
     REAL density = 1.;
 	REAL initialtemp = 100.;
 	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,density,initialtemp);
-	TPZFNMatrix<101> sol(nelements+1,1,initialtemp), nextsol(nelements+1,1,0.);
+	TPZFNMatrix<101,STATE> sol(nelements+1,1,initialtemp), nextsol(nelements+1,1,0.);
 	discrete.SetTimeStep(1.);
 	discrete.ComputeStiffness();
 	REAL flux1,flux2;
@@ -119,7 +119,7 @@ void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxf
     REAL density = 1.;
 	REAL initialtemp = 0.;
 	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,density,initialtemp);
-	TPZFNMatrix<11> sol(nelements+1,1,0.);
+	TPZFNMatrix<11,STATE> sol(nelements+1,1,0.);
     //sol(0,0) = tinlet;
 	discrete.SetTimeStep(delt);
 	discrete.ComputeStiffness();

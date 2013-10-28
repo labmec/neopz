@@ -74,7 +74,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix
 void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZCompMesh* cmesh, TPZGradientReconstruction *gradreconst);
 void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfile);
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymaterial, TPZCompMesh* cmesh);
-void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec);
+void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec);
 
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
@@ -362,7 +362,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 #endif
     
     //Criando matriz de rigidez (matK) e vetor de carga
-	TPZAutoPointer< TPZMatrix<REAL> > matK;
+	TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvec;
     StiffMatrixLoadVec(mymaterial, cmesh, an, matK, fvec);
     
@@ -375,8 +375,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
         fvec.Print("fvec = ", sout,EMathematicaInput);
         //Print the temporal solution
         Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-        TPZFMatrix<REAL> Temp;
-        TPZFMatrix<REAL> Temp2;
+        TPZFMatrix<STATE> Temp;
         matM->Multiply(Initialsolution,Temp);
         Temp.Print("Temp matM = ", sout,EMathematicaInput);
         LOGPZ_DEBUG(logdata,sout.str())
@@ -468,7 +467,7 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymateri
     return matK2;
 }
 
-void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec){
+void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec){
     
 	mymaterial->SetCurrentState();
     TPZSkylineStructMatrix matsk(cmesh);

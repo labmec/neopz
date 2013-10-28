@@ -50,7 +50,9 @@ int main(){
  TPZVec<REAL> gpt(3,0.);
  TPZVec<REAL> mpt(dim,0.);
  gpt[0] = 1.5; gpt[1] = 0.65; gpt[2] = 0.5;
- elvec[1]->ComputeXInverse (gpt, mpt);
+ REAL Tol;
+ ZeroTolerance(Tol);
+ elvec[1]->ComputeXInverse (gpt, mpt, Tol);
  
  TPZFMatrix<REAL> jac(dim,dim,0.);
  TPZFMatrix<REAL> axes(3,3,0.);
