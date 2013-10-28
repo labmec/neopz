@@ -30,14 +30,14 @@ class TPZSwelling : public TPZMaterial {
 	TPZFMatrix<STATE> fKperm;
 	/** @brief Compression modulus [N/mm^2] */
 	STATE fLambda;
+	/** @brief Osmotic coeficient (no dimension) */
+	STATE fGamma;
 	/** @brief Shear modulus [N/mm^2] */
 	STATE fShear;
 	/** @brief Biot coupling coeficient (no dimension) */
 	STATE fAlfa;
 	/** @brief Storage modulus [N/mm^2] */
 	STATE fM;
-	/** @brief Osmotic coeficient (no dimension) */
-	STATE fGamma;
 	/** @brief Diffusion coeficient for cations [mm^2/s] */
 	STATE fDPlus;
 	/** @brief Diffusion coeficient for anions [mm^2/s] */
@@ -61,6 +61,22 @@ class TPZSwelling : public TPZMaterial {
 	STATE fDelt;
 	/** @brief External concentration (used as reference value for pressure) [mmol/mm^3] */
 	static STATE gExtConc;
+
+#ifdef _AUTODIFF
+	/** @brief Faraday constant [C/mmol] */
+	static REAL gFaraday;
+	/** @brief Molar volume cation [mm^3/mmol] */
+	static REAL gVPlus;
+	/** @brief Molar volume anions [mm^3/mmol] */
+	static REAL gVMinus;
+	/** @brief gas constant [Nmm/(mmol K)] */
+	static REAL gRGas;
+	/** @brief Absolute temperature [K] */
+	static REAL gTemp;
+	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
+	static REAL gMuRef[3];
+
+#else 
 	/** @brief Faraday constant [C/mmol] */
 	static STATE gFaraday;
 	/** @brief Molar volume cation [mm^3/mmol] */
@@ -74,6 +90,8 @@ class TPZSwelling : public TPZMaterial {
 	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
 	static STATE gMuRef[3];
 	
+#endif
+
 	public :
 	
 	
@@ -254,7 +272,7 @@ public:
 	/** @brief Loads the state within the current object, to be used when computing the tangent matrix */
 	void LoadState(TPZFMatrix<STATE> &state);
 	/** @brief Computes the tangent matrix for a given loadcase */
-	void ComputeTangent(TPZFMatrix<STATE> &tangent,TPZVec<STATE> &coefs, int cases);
+	void ComputeTangent(TPZFMatrix<STATE> &tangent,TPZVec<REAL> &coefs, int cases);
 	/** @brief Computes the residual for the given state variable */
 	void Residual(TPZFMatrix<STATE> &res, int cases);
 	/** @brief Variables which holds the state variables used in the check convergence procedure */

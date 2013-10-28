@@ -1707,13 +1707,14 @@ void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::mul
             
             TPZVec<STATE> sol(1);
             int var = cel->Material()->VariableIndex("PlasticSqJ2");
-            
+            REAL Tol;
+			ZeroTolerance(Tol);
             for(int n = 0; n < nnodes; n++)
             {
                 qsiNode[n].Resize(2, 0.);
                 TPZVec<REAL> xNode(3,0.);
                 cel->Reference()->NodePtr(n)->GetCoordinates(xNode);
-                cel->Reference()->ComputeXInverse(xNode, qsiNode[n]);
+                cel->Reference()->ComputeXInverse(xNode, qsiNode[n],Tol);
                 cel->Solution(qsiNode[n], var, sol);
                 nodeSol[n] = sol[0];
             }

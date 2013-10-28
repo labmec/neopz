@@ -16,12 +16,21 @@ using namespace std;
 
 #include <cmath>
 
+#ifdef _AUTODIFF
+REAL TPZSwelling::gFaraday = 96.4853;
+REAL TPZSwelling::gVPlus = 2.3;
+REAL TPZSwelling::gVMinus = 15.17;
+REAL TPZSwelling::gRGas = 8.3145;
+REAL TPZSwelling::gTemp = 293.;
+REAL TPZSwelling::gMuRef[3] = {0.,0.,0.};
+#else
 STATE TPZSwelling::gFaraday = 96.4853;
 STATE TPZSwelling::gVPlus = 2.3;
 STATE TPZSwelling::gVMinus = 15.17;
 STATE TPZSwelling::gRGas = 8.3145;
 STATE TPZSwelling::gTemp = 293.;
 STATE TPZSwelling::gMuRef[3] = {0.,0.,0.};
+#endif
 
 TPZFMatrix<STATE> TPZSwelling::gState;
 TPZFMatrix<REAL> TPZSwelling::gphi(1,1,1.);
@@ -424,7 +433,7 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 }
 
 void TPZSwelling::ComputeW(FADFADREAL &W, TPZVec<STATE> &N) {
-	FADREAL defaultFAD(3,STATE(0.),STATE(0.));
+	FADREAL defaultFAD(3,REAL(0.),REAL(0.));
 	FADFADREAL defaultFADFAD(3,defaultFAD,defaultFAD);
 	W = defaultFADFAD;
 	FADFADREAL NFAD[3] = {defaultFADFAD,defaultFADFAD,defaultFADFAD};
@@ -490,7 +499,7 @@ void TPZSwelling::NResidual(TPZVec<STATE> &mu, STATE ksi, STATE pressure, TPZVec
 void TPZSwelling::NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
 	
 	// compute the values of N numerically and its derivatives by applying a single newton iteration using FAD variables
-	TPZManVector<STATE,3> muloc(3),Nloc(3);
+	TPZManVector<STATE,3> muloc(3), Nloc(3);
 	// create the residual vector and tangent matrix for solving for N
 	TPZVec<FADREAL> res(3);
 	TPZVec<TPZVec<FADREAL> > tangent(3,res);
@@ -512,7 +521,7 @@ void TPZSwelling::NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
 	
 	// initialize the N variable with the correct solution but with zero derivatives
 	for(ieq=0; ieq<3; ieq++) {
-		N[ieq] = FADREAL(sol[0].size(),Nloc[ieq],0.);
+		N[ieq] = FADREAL(sol[0].size(),((REAL)Nloc[ieq]),0.);
 	}
 	// perform a single Newton iteration
 	// build the tangent matrix and residual (including the derivatives)
@@ -554,23 +563,23 @@ int TPZSwelling::main() {
 	
 	// program created for testing purposes
 	int matindex = 1;
-	REAL lambda = 1;
-	REAL shear = 0.5;
-	REAL alfa = 1.;
-	REAL M = 0.2;
-	REAL Gamma = 0.9;
-	REAL Kperm = 1.e-4;
-	REAL DPlus = 5.e-4;
-	REAL DMinus = 5.e-4;
-	REAL rHinder = 0.4;
-	REAL Cfc = -2.e-4;
-	REAL Nf0 = 0.8;
+	STATE lambda = 1;
+	STATE shear = 0.5;
+	STATE alfa = 1.;
+	STATE M = 0.2;
+	STATE Gamma = 0.9;
+	STATE Kperm = 1.e-4;
+	STATE DPlus = 5.e-4;
+	STATE DMinus = 5.e-4;
+	STATE rHinder = 0.4;
+	STATE Cfc = -2.e-4;
+	STATE Nf0 = 0.8;
 	// initiele externe zoutconcentratie
-	REAL C0 = 0.15e-3;
-	REAL cplus0 = (-Cfc+sqrt(Cfc*Cfc+4.*C0*C0))/2.;
-	REAL cminus0 = (Cfc+sqrt(Cfc*Cfc+4.*C0*C0))/2.;
-	REAL NPlus0 = gVPlus*cplus0*Nf0;
-	REAL NMinus0 = gVMinus*cminus0*Nf0;
+	STATE C0 = 0.15e-3;
+	STATE cplus0 = (-Cfc+sqrt(Cfc*Cfc+4.*C0*C0))/2.;
+	STATE cminus0 = (Cfc+sqrt(Cfc*Cfc+4.*C0*C0))/2.;
+	STATE NPlus0 = gVPlus*cplus0*Nf0;
+	STATE NMinus0 = gVMinus*cminus0*Nf0;
 	
 	TPZSwelling test(matindex, lambda, shear, alfa, M, Gamma, Kperm, DPlus, DMinus,
 					 rHinder, Cfc, Nf0, NPlus0, NMinus0);
@@ -591,9 +600,9 @@ int TPZSwelling::main() {
 	TPZVec<FADREAL> RES(8,defaultFAD);
 	REAL values[8] = {1.,1.,1.,0.001,-0.7243,-9258.,-1401.,-15};
 	
-	TPZVec<REAL> mu(3),N(3,0.);
+	TPZVec<STATE> mu(3),N(3,0.);
 	for(ieq=0; ieq<3; ieq++) mu[ieq] = values[ieq+4];
-	REAL ksi,J = 1.0062,pres;
+	STATE ksi,J = 1.0062,pres;
 	test.ComputeInitialGuess(mu,J,pres,ksi,N);
 	values[3] = pres;
 	values[7] = ksi;
@@ -611,8 +620,8 @@ int TPZSwelling::main() {
 	
 	// procedure to check whether the stiffness matrix is tangent to the residual vector
 	
-	REAL rangeval[11] = {0.1,0.1,0.1,0.0001,0.01,1.,1.,0.1,0.,0.,0.};
-	TPZFMatrix<REAL> state(11,1),range(11,1,0.0);
+	STATE rangeval[11] = {0.1,0.1,0.1,0.0001,0.01,1.,1.,0.1,0.,0.,0.};
+	TPZFMatrix<STATE> state(11,1),range(11,1,0.0);
 	for(ieq=0; ieq<8; ieq++) {
 		state(ieq,0) = values[ieq];
 		range(ieq,0) = rangeval[ieq];
@@ -628,7 +637,7 @@ int TPZSwelling::main() {
 	// this procedure was built to check whether the stiffness matrix is symetric
 	
 	test.ContributeResidual(x,sol,dsol,phi,dphi,RES,weight);
-	TPZFMatrix<REAL> ek;
+	TPZFMatrix<STATE> ek;
 	ToMatrix(RES,ek);
 	ek.Print("stiffness matrix");
 	
@@ -637,7 +646,7 @@ int TPZSwelling::main() {
 	
 }
 
-void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<REAL> &ek) {
+void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<STATE> &ek) {
 	int nel = vec.NElements();
 	ek.Redim(nel,nel);
 	int ieq,jeq;
@@ -653,13 +662,13 @@ int TPZSwelling::NumCases() {
 	return 1;
 }
 
-void TPZSwelling::LoadState(TPZFMatrix<REAL> &state) {
+void TPZSwelling::LoadState(TPZFMatrix<STATE> &state) {
 	if(state.Rows() != 11) {
 		cout << "TPZSwelling LoadState wrong number of variables expect bad things\n";
 	}
 	gState = state;
 }
-void TPZSwelling::ComputeTangent(TPZFMatrix<REAL> &tangent,TPZVec<REAL> &coefs, int cases) {
+void TPZSwelling::ComputeTangent(TPZFMatrix<STATE> &tangent,TPZVec<REAL> &coefs, int cases) {
 	tangent.Redim(11,11);
 	int ieq,jeq,d;
 	FADREAL defaultFAD(8,REAL(0.),REAL(0.));
@@ -681,7 +690,7 @@ void TPZSwelling::ComputeTangent(TPZFMatrix<REAL> &tangent,TPZVec<REAL> &coefs, 
 			tangent(ieq,jeq) = RES[ieq].fastAccessDx(jeq);
 		}
 	}
-	TPZVec<REAL> N(3,0.);
+	TPZVec<STATE> N(3,0.);
 	for(ieq=0; ieq<3; ieq++) N[ieq] = gState(8+ieq,0);
 	FADREAL defwFAD(3,REAL(0.),REAL(0.));
 	FADFADREAL defwFADFAD(3,defwFAD,defwFAD);
@@ -693,7 +702,7 @@ void TPZSwelling::ComputeTangent(TPZFMatrix<REAL> &tangent,TPZVec<REAL> &coefs, 
 		}
 	}
 }
-void TPZSwelling::Residual(TPZFMatrix<REAL> &res, int cases) {
+void TPZSwelling::Residual(TPZFMatrix<STATE> &res, int cases) {
 	res.Redim(11,1);
 	int ieq,d;
 	FADREAL defaultFAD(8,REAL(0.),REAL(0.));
@@ -713,7 +722,7 @@ void TPZSwelling::Residual(TPZFMatrix<REAL> &res, int cases) {
 	for(ieq=0; ieq<8; ieq++) {
 		res(ieq,0) = RES[ieq].val();
 	}
-	TPZVec<REAL> N(3,0.);
+	TPZVec<STATE> N(3,0.);
 	for(ieq=0; ieq<3; ieq++) N[ieq] = gState(8+ieq,0);
 	FADREAL defwFAD(3,REAL(0.),REAL(0.));
 	FADFADREAL defwFADFAD(3,defwFAD,defwFAD);
@@ -787,7 +796,7 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
 	
 	FADREAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
 	N[0] = pow(fac2/(expc1+expc2),1./(fGamma-1));
-	FADREAL N0Gamma = pow(N[0],fGamma);
+	FADREAL N0Gamma = pow(N[0].val(),(REAL)fGamma);
 	
 	N[1] = N0Gamma*expc1*gVPlus;
 	N[2] = N0Gamma*expc2*gVMinus;
@@ -809,8 +818,8 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 	expc2 = exp((mu2+gFaraday*ksi/gVMinus - pres)*gVMinus/(gRGas*gTemp));
 	
 	REAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
-	N[0] = pow(fac2/(expc1+expc2),(float)1./(fGamma-1));
-	REAL N0Gamma = pow(N[0],fGamma);
+	N[0] = pow(fac2/(expc1+expc2),((REAL)(1./(fGamma-1))));
+	REAL N0Gamma = pow(N[0],((REAL)fGamma));
 	
 	N[1] = N0Gamma*expc1*gVPlus;
 	N[2] = N0Gamma*expc2*gVMinus;

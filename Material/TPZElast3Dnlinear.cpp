@@ -13,12 +13,12 @@ TPZElast3Dnlinear::TPZElast3Dnlinear() : TPZElasticity3D()
     
 }
 
-//TPZElast3Dnlinear::TPZElast3Dnlinear(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
-//                                     STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
-//TPZElasticity3D(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
-//{
-//    
-//}
+TPZElast3Dnlinear::TPZElast3Dnlinear(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
+                                     STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
+TPZElasticity3D(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
+{
+    
+}
 
 TPZElast3Dnlinear::~TPZElast3Dnlinear()
 {
