@@ -110,9 +110,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
     REAL Lx = 200.;
     REAL Ly = 200.;
