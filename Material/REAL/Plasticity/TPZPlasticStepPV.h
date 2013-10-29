@@ -35,7 +35,7 @@ class TPZPlasticBase
 public:
 	
   virtual	~TPZPlasticBase(){}; 
-	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
+	/*virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
 	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) = 0;
 	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
   virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
@@ -48,7 +48,7 @@ public:
 	virtual void Print(std::ostream & out)const = 0;
 	virtual void SetTensionSign(int sign) = 0;
 	virtual void Write(TPZStream &buf) const = 0;
-	virtual void Read(TPZStream &buf) = 0;
+	virtual void Read(TPZStream &buf) = 0;*/
 	
 };
 
@@ -113,7 +113,7 @@ public:
 	{
 		out << "\n" << this->Name();
 		out << "\n YC_t:";
-		fYC.Print(out);
+		//fYC.Print(out); FAZER O PRINT
 		out << "\n ER_t:";
 		fER.Print(out);
 		out << "\nTPZPlasticStepPV Internal members:";
@@ -150,7 +150,7 @@ public:
 	 *
 	 * @param s [in] sign (1 or -1)
 	 */
-	void SetTensionSign(int s);
+	//void SetTensionSign(int s);
 	
 	
 protected:
@@ -163,18 +163,18 @@ public:
 	 * @param[in] epsTotal strain tensor (total strain)
 	 * @param[out] phi vector of yield functions
 	 */
-	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+	//virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
 	
 		
 	/**
 	 * @brief Update the damage values
 	 * @param[in] state Plastic state proposed
 	 */
-	virtual void SetState(const TPZPlasticState<REAL> &state);
+	//virtual void SetState(const TPZPlasticState<REAL> &state);
 
 	
 	/** @brief Retrieve the plastic state variables */	
-	virtual const TPZPlasticState<REAL> GetState()const;
+	//virtual const TPZPlasticState<REAL> GetState()const;
 	
 	/** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
 	virtual int IntegrationSteps() const
@@ -189,7 +189,7 @@ protected:
 	 * @brief Updates the damage values - makes no interface sign checks
 	 * @param[in] state Plastic state proposed
 	 */
-	virtual void SetState_Internal(const TPZPlasticState<REAL> &state);
+	//virtual void SetState_Internal(const TPZPlasticState<REAL> &state);
 
 
 
@@ -201,9 +201,9 @@ public:
 		fResTol = tol;
 	}
 	
-	virtual void Write(TPZStream &buf) const;
+	//virtual void Write(TPZStream &buf) const;
 	
-	virtual void Read(TPZStream &buf);
+	//virtual void Read(TPZStream &buf);
 public:
 	
 	/** @brief Object which represents the yield criterium */

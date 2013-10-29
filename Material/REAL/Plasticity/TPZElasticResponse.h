@@ -85,7 +85,7 @@ public:
 	* @param[out] sigma tensor de tensao
 	*/
     template <class T>
-    void Compute(TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const
+    void Compute(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const
     {
     T trace = epsilon.I1();
     sigma.Identity();
