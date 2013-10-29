@@ -302,7 +302,7 @@ void InputDataStruct::SetMinDeltaT()
 
 void InputDataStruct::SetNextDeltaT()
 {
-    factDeltaT = min(fmaxDeltaT,(factDeltaT+fmaxDeltaT/fNDeltaTsteps));
+    factDeltaT = Min(fmaxDeltaT,(factDeltaT+fmaxDeltaT/fNDeltaTsteps));
     if(factTime + factDeltaT > fTtot)
     {
         factDeltaT = fTtot - factTime;
