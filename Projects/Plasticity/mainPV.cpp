@@ -168,49 +168,80 @@ int main()
     
     TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
     TPZPlasticState<REAL> plasticstate;
-    TPZTensor<REAL> epst;
+    TPZManVector<STATE,3> epst(3);
 //    epst.XX()=-0.001;
 //    epst.XY()=0.;
 //    epst.XZ()=0.;
 //    epst.YY()=-0.0056;
 //    epst.YZ()=0.;
 //    epst.ZZ()=-0.003;
-    epst.XX()=-0.001;
-    epst.XY()=0.;
-    epst.XZ()=0.;
-    epst.YY()=0.;
-    epst.YZ()=0.;
-    epst.ZZ()=0.;
+    epst[0]=-0.001;
+    epst[1]=0.;
+    epst[2]=0.;
     
-    plasticstate.fEpsT=epst;
 
     TPZTensor<REAL> stress;
    // materialmodel.ApplyStrainComputeSigma(plasticstate,stress);
     
     ofstream outfiletxty("FIGURA12amodeloDiogo.txt");
-    TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
+    TPZManVector<STATE,3> deltaeps(3),eps(3),sigma(3),deltasigma(3);
     
-    deltaeps.XY()=0.;
-    deltaeps.YZ()=0.;
-    deltaeps.XZ()=0.;
 
-    deltaeps.XX()= -0.002;
-    deltaeps.YY()=0;
-    deltaeps.ZZ()=0;
+    deltaeps[0]= -0.002;
+    deltaeps[1]=0;
+    deltaeps[2]=0;
     eps=deltaeps;
-    REAL kprev=0.,kn1=0.,epspv1=0.,sig1,eps1;
+    STATE kprev=0.,epspv1=0.,sig1,eps1;
     materialmodel.Firstk(epspv1,kprev);
-    TPZTensor<REAL> aa;
-    aa.XX()=0.12;    aa.XY()=0;    aa.XZ()=0;    aa.YY()=0.18;    aa.YZ()=0;    aa.ZZ()=0.05;
-    TPZTensor<REAL>::TPZDecomposed Tensor2(aa);
-    TPZVec<REAL> yield(2);
-    materialmodel.YieldFunction(Tensor2,yield,kprev);
+    TPZManVector<STATE,3> Tensor2(3);
+    Tensor2[0]=-0.12;
+    Tensor2[1]=-0.18;
+    Tensor2[2]=-0.25;
+    materialmodel.CheckCoordinateTransformation(Tensor2);
+    
+    TPZManVector<STATE,2> yield(2);
+    materialmodel.YieldFunction(Tensor2,kprev,yield);
     cout << "yield = "<<yield <<endl;
+    
+    // perform convergence verifications
+    STATE theta = M_PI/5.;
+    STATE xi = (Tensor2[0]+Tensor2[1]+Tensor2[2])/sqrt(3.);
+    STATE beta = M_PI/3.;
+    STATE k = -3.;
+    TPZManVector<STATE> xnorm,errnorm,converge;
+//    materialmodel.TaylorCheckDistF1(Tensor2, xi, beta, xnorm, errnorm);
+//    materialmodel.TaylorCheckDDistF1DSigtrial(Tensor2, xi, beta, xnorm, errnorm);
+//    materialmodel.TaylorCheckDistF2(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+//    materialmodel.TaylorCheckDDistF2(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+//    materialmodel.TaylorCheckDDistF2DSigtrial(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+//    materialmodel.TaylorCheckDF1Cart(xi, beta, xnorm, errnorm);
+//    materialmodel.TaylorCheckDF2Cart(theta, beta, k, xnorm, errnorm);
+//    materialmodel.TaylorCheckProjectSigma(Tensor2, kprev, xnorm, errnorm);
+//    materialmodel.TaylorCheckParamF1Sigtrial(Tensor2,kprev,xnorm,errnorm);
+//    materialmodel.TaylorCheckProjectF1(Tensor2, kprev, xnorm, errnorm);
+    materialmodel.TaylorCheckProjectF2(Tensor2, kprev, xnorm, errnorm);
+    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+    cout << "xnorm " << xnorm << endl;
+    cout << "errnorm " << errnorm << endl;
+    cout << "convergence rate " << converge << endl;
+    
     
     for(int i=0;i<30;i++)
     {
-        
-        materialmodel.ApplyStrainComputeSigma(eps, sigma,kprev);//UCS
+        STATE i1eps = 0;
+        for (int i = 0; i<3; i++) {
+            i1eps += eps[i];
+        }
+        for (int i = 0; i<3; i++) {
+            Tensor2[i] = eps[i]*2.*materialmodel.fG+i1eps*3.*materialmodel.fK;
+        }
+        materialmodel.YieldFunction(Tensor2, kprev, yield);
+        cout << "yield before projecting " << yield << std::endl;
+        STATE kproj;
+        materialmodel.ApplyStrainComputeSigma(eps, kprev, sigma, kproj);//UCS
+        materialmodel.YieldFunction(sigma, kproj, yield);
+        cout << "yield after projecting " << yield << std::endl;
+        kprev = kproj;
         if(i==10)
         {
             //deltaeps*=-1;
@@ -220,14 +251,16 @@ int main()
 //        REAL I1=sigma.I1();
 //        outfiletxty << -I1<< " " << sqrJ2 << "\n";
 //        
-        sig1 = sigma.XX();
-        eps1 =  eps.XX();
+        sig1 = sigma[0];
+        eps1 =  eps[0];
         outfiletxty << -eps1<< " " << -sig1 << "\n";
         cout <<"\n i = "<<eps1<<endl;
         cout <<"\n kprev = "<<sig1<<endl;
 //        materialmodel.Firstk(kprev,kn1);
 //        kprev=kn1;
-        eps+=deltaeps;
+        for (int i=0; i<3; i++) {
+            eps[i] += deltaeps[i];
+        }
     }
     
 
