@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Tutorial program showing a method to reconstruction gradient for a solution precomputed
+ * @brief Tutorial program showing a method to find a ellipse nearest for a set of points using least square method
  */
 
 #include <iostream>
@@ -54,7 +54,8 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &points);
 
 // Least Squares Method to compute a ellipse nearest for a points in vector
 // The ellipse is a conic with second order equation as
-// y^2 = A*x^2 + B*xy + C*x + D*y + E
+// y^2 = A*x^2 + B*xy + C*x + D*y + E  -> 2D case
+// z^2 = A*x^2 + B*xy + C*y^2 + D*yz + E*xz + F*x + G*y + H*z + I  -> 3D case
 // Then their axes could be rotated and translated
 bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &points);
 
@@ -220,7 +221,6 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
     A = DeltaHTranspose*DeltaH;
 	Coefficients = DeltaHTranspose*DifSol;
 	A.SolveDirect(Coefficients,ELU);
-	//Coefficients.Print(std::cout);
 }
 
 bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
