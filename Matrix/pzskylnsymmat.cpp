@@ -46,9 +46,6 @@ const int templatedepth = 10;
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
 
-#define Max( a, b )  ( (a) > (b) ? (a) : (b) )
-#define Min( a, b )  ( (a) < (b) ? (a) : (b) )
-
 using namespace std;
 
 /** **************** */

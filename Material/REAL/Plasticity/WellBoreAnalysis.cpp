@@ -1722,8 +1722,8 @@ void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::mul
             {
                 int pos0 = (n)%nnodes;
                 int pos1 = (n+1)%nnodes;
-                REAL minSol = std::min(nodeSol[pos0],nodeSol[pos1]);
-                REAL maxSol = std::max(nodeSol[pos0],nodeSol[pos1]);
+                REAL minSol = MIN(nodeSol[pos0],nodeSol[pos1]);
+                REAL maxSol = MAX(nodeSol[pos0],nodeSol[pos1]);
                 
                 if(J2val - minSol > tol && maxSol - J2val > tol)
                 {//Bisseccao!!!

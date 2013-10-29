@@ -17,10 +17,6 @@
 /** @brief To create clone matrix */
 #define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const { return new A(*this); }
 
-/** @brief Gets maxime value between a and b */
-#define MAX( a, b )   ( (a) > (b) ? (a) : (b) )
-/** @brief Gets minime value between a and b */
-#define MIN( a, b )   ( (a) < (b) ? (a) : (b) )
 template<class TVar>
 class TPZMatrix;
 

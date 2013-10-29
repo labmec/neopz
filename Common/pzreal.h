@@ -22,6 +22,11 @@
 #include <complex>
 #include <config.h>
 
+/** @brief Gets maxime value between a and b */
+#define MAX( a, b )   ( (a) > (b) ? (a) : (b) )
+/** @brief Gets minime value between a and b */
+#define MIN( a, b )   ( (a) < (b) ? (a) : (b) )
+
 #ifdef WIN32
 #define  __PRETTY_FUNCTION__ __FILE__
 #endif
