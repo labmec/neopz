@@ -56,7 +56,7 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &points);
 // The ellipse is a conic with second order equation as
 // y^2 = A*x^2 + B*xy + C*x + D*y + E
 // Then their axes could be rotated and translated
-bool AdjustingWithGeneral2DEllipse(int dim,TPZManVector<REAL> &points);
+bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &points);
 
 int main(int argc, char *argv[]) {
 
@@ -72,8 +72,13 @@ int main(int argc, char *argv[]) {
 		FillingPoints3D(Points);
 
 	// Finding a ellipse nearest for all points
-	AdjustingWithSimpleEllipse(dim,Points);
+	if(!AdjustingWithSimpleEllipse(dim,Points))
+		return 1;
 	
+	// Finding a ellipse nearest for all points
+	if(!AdjustingWithEllipse(dim,Points))
+		return 2;
+
 	return 0;
 }
 
@@ -143,7 +148,79 @@ bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatri
     A = DeltaHTranspose*DeltaH;
 	Coefficients = DeltaHTranspose*DifSol;
 	A.SolveDirect(Coefficients,ELU);
-	Coefficients.Print(std::cout);
+	//Coefficients.Print(std::cout);
+}
+
+bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients) {
+	if(dim < 2 || dim > 3) return false;
+	long npoints = points.NElements()/dim;
+	int nincog, i;
+	if(dim == 2) nincog = 5;
+	else if(dim == 3) nincog = 9;
+
+	if(npoints<nincog) return false;
+
+	// Dimensioning vector of coefficients
+	Coefficients.Redim(nincog,1);
+	Coefficients.Zero();
+
+	// Will be solved y^2 = p*x^2 + q*x + r*y + s
+	// Constructing matrix H and Transpose of H to compute by least squares method
+	TPZFMatrix<REAL> DeltaH;
+	TPZFMatrix<REAL> DeltaHTranspose;
+	TPZFMatrix<REAL> DifSol;
+	TPZFMatrix<REAL> A;
+
+	// Redimensioning
+	A.Redim(nincog,nincog);
+    DeltaH.Redim(npoints,nincog);
+    DeltaHTranspose.Redim(nincog,npoints);
+    DifSol.Redim(npoints,1);
+
+	if(dim == 2) {
+		// Filling y^2 into Coefficients
+		for(i=0;i<npoints;i++)
+			DifSol.PutVal(i,0,points[2*i+1]*points[2*i+1]);  // fill y*y
+
+		// Filling elements for H matrix
+		for(int i=0;i<npoints;i++) {
+			DeltaH.PutVal(i,0,points[2*i]*points[2*i]);      // fill x*x
+			DeltaH.PutVal(i,1,points[2*i]*points[2*i+1]);      // fill x*y
+			DeltaH.PutVal(i,2,points[2*i]);                  // fill x
+			DeltaH.PutVal(i,3,points[2*i+1]);                // fill y
+			DeltaH.PutVal(i,4,1.);                           // fill 1.
+		}
+	}
+	else if(dim == 3) {
+		// Filling y^2 into Coefficients
+		for(i=0;i<npoints;i++)
+			DifSol.PutVal(i,0,points[3*i+2]*points[3*i+2]);   // fill z*z
+
+		// Filling elements for H matrix
+		for(int i=0;i<npoints;i++) {
+			DeltaH.PutVal(i,0,points[3*i]*points[3*i]);       // fill x*x
+			DeltaH.PutVal(i,1,points[3*i]*points[3*i+1]);     // fill x*y
+			DeltaH.PutVal(i,2,points[3*i+1]*points[3*i+1]);   // fill y*y
+			DeltaH.PutVal(i,3,points[3*i+1]*points[3*i+2]);   // fill y*z
+			DeltaH.PutVal(i,4,points[3*i]*points[3*i+2]);     // fill x*z
+			DeltaH.PutVal(i,5,points[3*i]);                   // fill x
+			DeltaH.PutVal(i,6,points[3*i+1]);                 // fill y
+			DeltaH.PutVal(i,7,points[3*i+2]);                 // fill z
+			DeltaH.PutVal(i,8,1.);                            // fill 1.
+		}
+	}
+	else 
+		return false;
+
+	DeltaH.Print(std::cout);
+
+    // Solving by least squares using product of matrix: DeltaH_t * DifSol = DeltaH_t * DeltaH * Coeffs(u)
+    A.Zero();
+    DeltaH.Transpose(&DeltaHTranspose);
+    A = DeltaHTranspose*DeltaH;
+	Coefficients = DeltaHTranspose*DifSol;
+	A.SolveDirect(Coefficients,ELU);
+	//Coefficients.Print(std::cout);
 }
 
 bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
@@ -221,12 +298,40 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points) {
 	return true;
 }
 
-bool AdjustingWithGeneral2DEllipse(int dim,TPZManVector<REAL> &Points) {
+bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points) {
 
 	TPZFMatrix<REAL> Coeffs;
 	// Applying least squares for these five points
-	if(!LeastSquaresToGetSimpleEllipse(dim,Points,Coeffs))
+	if(!LeastSquaresToGetEllipse(dim,Points,Coeffs))
 		return false;
+
+	// Constructing a symmetric matrix
+	TPZFMatrix<REAL> A(dim,dim);
+	if(dim == 2) {
+		A(0,0) = Coeffs(0,0);
+		A(0,1) = A(1,0) = 0.5*Coeffs(1,0);
+		A(1,1) = 1.;
+	}
+	else {
+		A(0,0) = Coeffs(0,0);
+		A(0,1) = A(1,0) = 0.5*Coeffs(1,0);
+		A(1,1) = Coeffs(2,0);
+		A(2,2) = 1.;
+		A(0,2) = A(2,0) = 0.5*Coeffs(4,0);
+		A(1,2) = A(2,1) = 0.5*Coeffs(3,0);
+	}
+	// Computing eigenvalues and eigenvectors
+	TPZVec<REAL> Eigenvalues(dim);
+	Coeffs.Redim(dim,dim);
+	REAL Tol;
+	ZeroTolerance(Tol);
+	long niter = 1000;
+	A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs);
+	A.Print(std::cout);
+	Eigenvalues.Print(std::cout);
+	Coeffs.Print(std::cout);
+
+	// Normalizing autovector matrix
 	return true;
 }
 
