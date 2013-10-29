@@ -1027,6 +1027,7 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 #ifdef _AUTODIFF
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B) {
+    std::cout << __PRETTY_FUNCTION__ << " bailing out\n";
 	DebugStop();
 	return 1;
 }
@@ -1065,15 +1066,9 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> 
 }
 #endif
 
+#include "fadType.h"
 /****************/
 /*** Substitution ***/
-#ifdef _AUTODIFF
-template <class TVar>
-int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
-	DebugStop();
-	return( 1 );
-}
-#else
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	
@@ -1136,7 +1131,12 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 				B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
 			if ( IsZero( GetVal(i, i) ) ) {
 				if (fabs(GetVal(i, i)) > fabs((TVar)0.)) {
-					if (fabs(B->GetVal(i, col) - GetVal(i, i)) > fabs((TVar)1e-12)) {
+#ifdef _AUTODIFF
+                    double diff = shapeFAD::val(fabs(B->GetVal(i, col) - GetVal(i, i)));
+#else
+                    TVar diff = (fabs(B->GetVal(i, col) - GetVal(i, i)));
+#endif
+					if ((diff) < 1.e-12) {
 						Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
 					}
 				}else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );
@@ -1148,7 +1148,6 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	
 #endif
 }
-#endif
 
 template<class TVar>
 int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) const{
