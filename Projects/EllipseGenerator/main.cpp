@@ -320,18 +320,49 @@ bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points) {
 		A(0,2) = A(2,0) = 0.5*Coeffs(4,0);
 		A(1,2) = A(2,1) = 0.5*Coeffs(3,0);
 	}
+
+	// Store the coefficients of the variables in the homogenous equation
+	TPZFMatrix<REAL> B(dim,0);
+	int nr, nc;
+	REAL F = Coeffs.GetVal(3+(dim-2)*2,0);
+	for(nr=0;nr<dim;nr++)
+		B.PutVal(nr,0,Coeffs.GetVal(2*nr,0));
+
 	// Computing eigenvalues and eigenvectors
 	TPZVec<REAL> Eigenvalues(dim);
 	Coeffs.Redim(dim,dim);
-	REAL Tol;
+	REAL Tol, temp, norm;
 	ZeroTolerance(Tol);
 	long niter = 1000;
-	A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs);
+	if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
+		return false;                            // Could be some eigenvector a null vector
+	// Temporary info
 	A.Print(std::cout);
 	Eigenvalues.Print(std::cout);
 	Coeffs.Print(std::cout);
 
-	// Normalizing autovector matrix
+	// Verifying Eigenvalues must to be positives to be ellipse or ellipsoide
+	for(nr=0;nr<dim;nr++) {
+		if(Eigenvalues[nr] > 0.) continue;
+		return false;  // If some eigenvalue is zero it is parabole, if some of these are negative hyperbol
+	}
+	// Normalizing eigenvectors in matrix
+	for(nr=0;nr<dim;nr++) {
+		temp = 0.;
+		for(nc=0;nc<dim;nc++)
+			temp += Coeffs(nr,nc)*Coeffs(nr,nc);
+		norm = sqrt(temp);
+		for(nc=0;nc<dim;nc++)
+			Coeffs(nr,nc) *= (1./norm);
+	}
+	// The transpose of the ortogonal matrix is not necessary, it exists, is enough
+
+	TPZFMatrix<REAL> NewCoeffs(2*dim+1);
+	// Coefficients of the squares of the variables
+	for(nr=0;nr<dim;nr++)
+		NewCoeffs.PutVal(nr,0,Eigenvalues[nr]);
+
+
 	return true;
 }
 
