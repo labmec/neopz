@@ -59,6 +59,9 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &points);
 // Then their axes could be rotated and translated
 bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &points);
 
+// Diagonalize a quadratic form making avoid the quadratic term xy
+bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL> &NewCoeffs);
+
 int main(int argc, char *argv[]) {
 
 #ifdef LOG4CXX
@@ -87,8 +90,7 @@ bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatri
 	if(dim < 2 || dim > 3) return false;
 	long npoints = points.NElements()/dim;
 	int nincog, i;
-	if(dim == 2) nincog = 4;
-	else if(dim == 3) nincog = 6;
+	nincog = 2*dim;
 
 	if(npoints<nincog) return false;
 
@@ -108,7 +110,6 @@ bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatri
     DeltaH.Redim(npoints,nincog);
     DeltaHTranspose.Redim(nincog,npoints);
     DifSol.Redim(npoints,1);
-//	DifSol.Zero();
 
 	if(dim == 2) {
 		// Filling y^2 into Coefficients
@@ -141,23 +142,19 @@ bool LeastSquaresToGetSimpleEllipse(int dim,TPZManVector<REAL> &points,TPZFMatri
 	else 
 		return false;
 
-	DeltaH.Print(std::cout);
-
     // Solving by least squares using product of matrix: DeltaH_t * DifSol = DeltaH_t * DeltaH * Coeffs(u)
     A.Zero();
     DeltaH.Transpose(&DeltaHTranspose);
     A = DeltaHTranspose*DeltaH;
 	Coefficients = DeltaHTranspose*DifSol;
 	A.SolveDirect(Coefficients,ELU);
-	//Coefficients.Print(std::cout);
 }
 
 bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients) {
 	if(dim < 2 || dim > 3) return false;
 	long npoints = points.NElements()/dim;
 	int nincog, i;
-	if(dim == 2) nincog = 5;
-	else if(dim == 3) nincog = 9;
+	nincog = 2*dim+1+2*(dim-2);
 
 	if(npoints<nincog) return false;
 
@@ -186,8 +183,8 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
 		// Filling elements for H matrix
 		for(int i=0;i<npoints;i++) {
 			DeltaH.PutVal(i,0,points[2*i]*points[2*i]);      // fill x*x
-			DeltaH.PutVal(i,1,points[2*i]*points[2*i+1]);      // fill x*y
-			DeltaH.PutVal(i,2,points[2*i]);                  // fill x
+			DeltaH.PutVal(i,1,points[2*i]);                  // fill x
+			DeltaH.PutVal(i,2,points[2*i]*points[2*i+1]);    // fill x*y
 			DeltaH.PutVal(i,3,points[2*i+1]);                // fill y
 			DeltaH.PutVal(i,4,1.);                           // fill 1.
 		}
@@ -200,20 +197,18 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
 		// Filling elements for H matrix
 		for(int i=0;i<npoints;i++) {
 			DeltaH.PutVal(i,0,points[3*i]*points[3*i]);       // fill x*x
-			DeltaH.PutVal(i,1,points[3*i]*points[3*i+1]);     // fill x*y
+			DeltaH.PutVal(i,1,points[3*i]);                   // fill x
 			DeltaH.PutVal(i,2,points[3*i+1]*points[3*i+1]);   // fill y*y
-			DeltaH.PutVal(i,3,points[3*i+1]*points[3*i+2]);   // fill y*z
-			DeltaH.PutVal(i,4,points[3*i]*points[3*i+2]);     // fill x*z
-			DeltaH.PutVal(i,5,points[3*i]);                   // fill x
-			DeltaH.PutVal(i,6,points[3*i+1]);                 // fill y
-			DeltaH.PutVal(i,7,points[3*i+2]);                 // fill z
+			DeltaH.PutVal(i,3,points[3*i+1]);                 // fill y
+			DeltaH.PutVal(i,4,points[3*i]*points[3*i+1]);     // fill x*y
+			DeltaH.PutVal(i,5,points[3*i+2]);                 // fill z
+			DeltaH.PutVal(i,6,points[3*i+1]*points[3*i+2]);   // fill y*z
+			DeltaH.PutVal(i,7,points[3*i]*points[3*i+2]);     // fill x*z
 			DeltaH.PutVal(i,8,1.);                            // fill 1.
 		}
 	}
 	else 
 		return false;
-
-	DeltaH.Print(std::cout);
 
     // Solving by least squares using product of matrix: DeltaH_t * DifSol = DeltaH_t * DeltaH * Coeffs(u)
     A.Zero();
@@ -221,25 +216,40 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
     A = DeltaHTranspose*DeltaH;
 	Coefficients = DeltaHTranspose*DifSol;
 	A.SolveDirect(Coefficients,ELU);
+
+	// Verifying that the equation corresponding a ellipse
+	REAL temp;
+	if(dim==2) {
+		temp = Coefficients(1,0)*Coefficients(1,0)/Coefficients(0,0);
+		temp += (Coefficients(2,0)*Coefficients(2,0));
+		if(Coefficients(0,0) > 0 || (4*Coefficients(3,0)) < temp)
+			return false;
+	}
+	else {   // It is not complete
+		temp = Coefficients(1,0)*Coefficients(1,0)/Coefficients(0,0);
+		if(Coefficients(0,0) > 0)
+			return false;
+	}
 }
 
 bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
 	int dim = Center.NElements();
 	int ncoeffs = Coeffs.Rows();
-	REAL temp;
+	REAL temp, temp1;
 	if(ncoeffs != 2*dim || Coeffs.Cols()!=1)
 		return false;
 	if(dim ==2) {
 		Center[0] = -(Coeffs(1,0)/(2.*Coeffs(0,0)));
 		Center[1] = 0.5*Coeffs(2,0);
 		// Computing Ratios[1] in temp
-		temp = Coeffs(3,0)-(Center[0]*Center[0]*Coeffs(0,0))+(Center[1]*Center[1]);
-		// Computing Ratios[0] in Ratios[1]
-		Ratios[1] = -temp/Coeffs(0,0);
-		if(temp < 0. || Ratios[1] < 0.)
+		temp = Coeffs(1,0)*Coeffs(1,0)-Coeffs(0,0)*Coeffs(2,0)*Coeffs(2,0)-4*Coeffs(0,0)*Coeffs(3,0);
+		// Computing Ratios
+		temp1 = temp/(4*Coeffs(0,0)*Coeffs(0,0));
+		if(temp1 < 0. || IsZero(temp1))
 			return false;
-		Ratios[0] = sqrt(Ratios[1]);
-		Ratios[1] = sqrt(temp);
+		Ratios[0] = sqrt(temp1);
+		temp1 = (-temp)/(4*Coeffs(0,0));
+		Ratios[1] = sqrt(temp1);
 	}
 	else {
 		Center[0] = -(Coeffs(1,0)/(2.*Coeffs(0,0)));
@@ -265,6 +275,7 @@ void PrintingAsSimpleEquation(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Cente
 	if(dim == 2) {
 		std::cout << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y + " << Coeffs(3,0) << "\n";
 		std::cout << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1] << " = 1.\n" << std::endl;
+		std::cout << "\nCenter = ( " << Center[0] << " , " << Center[1] << " ).\n" << "Maior Axes = a = " << Ratios[0] << "\nMinor Axes = b = " << Ratios[1] << std::endl;
 	}
 	else {
 		std::cout << std::endl << "z*z = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y*y + " << Coeffs(3,0) << "y +";
@@ -281,7 +292,8 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points) {
 	TPZManVector<REAL> Ratios(dim,0.);
 
 	// Applying least squares for these five points
-	LeastSquaresToGetSimpleEllipse(dim,Points,Coeffs);
+	if(!LeastSquaresToGetSimpleEllipse(dim,Points,Coeffs))
+		return false;
 	std::cout << "\n\nSolution:";
 
 	// Making zero depending on Tolerance
@@ -301,32 +313,68 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points) {
 bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points) {
 
 	TPZFMatrix<REAL> Coeffs;
+	TPZManVector<REAL> Center(dim,0.);
+	TPZManVector<REAL> Ratios(dim,0.);
+	TPZManVector<REAL> VectorI(dim,0.);
+	TPZManVector<REAL> VectorJ(dim,0.);
+	TPZManVector<REAL> VectorK(dim,0.);
 	// Applying least squares for these five points
 	if(!LeastSquaresToGetEllipse(dim,Points,Coeffs))
 		return false;
 
+	// In case a12 = 0, then don't exist rotation then it is a ellipse with parallel axes to cartesian axes
+	if(dim==2 && IsZero(Coeffs(2,0))) {
+		TPZFMatrix<REAL> NewCoeffs(4,1,0.);
+		NewCoeffs.PutVal(0,0,Coeffs(0,0));
+		NewCoeffs.PutVal(1,0,Coeffs(1,0));
+		NewCoeffs.PutVal(2,0,Coeffs(3,0));
+		NewCoeffs.PutVal(3,0,Coeffs(4,0));
+		// Making zero depending on Tolerance
+		float Tol;
+		ZeroTolerance(Tol);
+		for(int i=0;i<Coeffs.Rows();i++)
+			if(fabs(Coeffs(i)) < 100*Tol)
+				Coeffs.PutVal(i,0,0.);
+
+		// Getting the values of the center and ratios for the ellipse from Coeffs values
+		if(!StandardFormatForSimpleEllipse(Coeffs,Center,Ratios))
+			return false;
+		PrintingAsSimpleEquation(Coeffs,Center,Ratios);
+		return true;
+	}
+
+	// Diagonalization of the quadratic form when Coeffs(2,0) is not null
+	TPZFMatrix<REAL> NewCoeffs(2*dim+1,1,0.);
+	DiagonalizingQuadraticForm(dim,Coeffs,NewCoeffs);
+
+
+
+	return true;
+}
+
+bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL> &NewCoeffs) {
 	// Constructing a symmetric matrix
 	TPZFMatrix<REAL> A(dim,dim);
 	if(dim == 2) {
 		A(0,0) = Coeffs(0,0);
-		A(0,1) = A(1,0) = 0.5*Coeffs(1,0);
-		A(1,1) = 1.;
+		A(0,1) = A(1,0) = 0.5*Coeffs(2,0);
+		A(1,1) = -1.;
 	}
 	else {
 		A(0,0) = Coeffs(0,0);
-		A(0,1) = A(1,0) = 0.5*Coeffs(1,0);
+		A(0,1) = A(1,0) = 0.5*Coeffs(4,0);
 		A(1,1) = Coeffs(2,0);
-		A(2,2) = 1.;
-		A(0,2) = A(2,0) = 0.5*Coeffs(4,0);
-		A(1,2) = A(2,1) = 0.5*Coeffs(3,0);
+		A(2,2) = -1.;
+		A(0,2) = A(2,0) = 0.5*Coeffs(7,0);
+		A(1,2) = A(2,1) = 0.5*Coeffs(6,0);
 	}
 
 	// Store the coefficients of the variables in the homogenous equation
 	TPZFMatrix<REAL> B(dim,0);
 	int nr, nc;
-	REAL F = Coeffs.GetVal(3+(dim-2)*2,0);
+	REAL F = Coeffs.GetVal(4+(dim-2)*4,0);
 	for(nr=0;nr<dim;nr++)
-		B.PutVal(nr,0,Coeffs.GetVal(2*nr,0));
+		B.PutVal(nr,0,Coeffs.GetVal(2*nr+1,0));
 
 	// Computing eigenvalues and eigenvectors
 	TPZVec<REAL> Eigenvalues(dim);
@@ -347,23 +395,19 @@ bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points) {
 		return false;  // If some eigenvalue is zero it is parabole, if some of these are negative hyperbol
 	}
 	// Normalizing eigenvectors in matrix
-	for(nr=0;nr<dim;nr++) {
+	for(nc=0;nc<dim;nc++) {
 		temp = 0.;
-		for(nc=0;nc<dim;nc++)
+		for(nr=0;nr<dim;nr++)
 			temp += Coeffs(nr,nc)*Coeffs(nr,nc);
 		norm = sqrt(temp);
-		for(nc=0;nc<dim;nc++)
+		for(nr=0;nr<dim;nr++)
 			Coeffs(nr,nc) *= (1./norm);
 	}
 	// The transpose of the ortogonal matrix is not necessary, it exists, is enough
 
-	TPZFMatrix<REAL> NewCoeffs(2*dim+1);
 	// Coefficients of the squares of the variables
 	for(nr=0;nr<dim;nr++)
 		NewCoeffs.PutVal(nr,0,Eigenvalues[nr]);
-
-
-	return true;
 }
 
 void FillingPoints2D(TPZManVector<REAL> &Points) {

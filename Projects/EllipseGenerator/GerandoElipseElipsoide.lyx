@@ -205,12 +205,15 @@ H^{t}Y=H^{t}HU
 
 \end_inset
 
- então resolvendo o sistema (se tiver solução) obtemos uma solução 
+ então resolvendo o sistema (se tiver solução) obtemos 
 \begin_inset Formula $U$
 \end_inset
 
 .
- A equação quadrática inicial com os valores dos coeficientes obtidos na
+\end_layout
+
+\begin_layout Standard
+A equação quadrática inicial com os valores dos coeficientes obtidos na
  variável 
 \begin_inset Formula $U$
 \end_inset
@@ -266,6 +269,33 @@ onde ,
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+Functions:
+\end_layout
+
+\begin_layout Enumerate
+Function that receives a set of points and returns the coefficients as equation
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:2"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Function that receives the coefficients as equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:2"
+
+\end_inset
+
+, then returns center, maior and minor axes of the ellipse.
 \end_layout
 
 \begin_layout Subsection
@@ -373,6 +403,340 @@ onde
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Part
+Determinar uma elipse arbitrária que melhor ajuste um conjunto de pontos
+\end_layout
+
+\begin_layout Section
+Equação quadrática geral - forma quadrática
+\end_layout
+
+\begin_layout Subsection
+Caso bi-dimensional
+\end_layout
+
+\begin_layout Standard
+Seja a equação quadrática em 
+\begin_inset Formula $\mathbb{R}^{2}$
+\end_inset
+
+,
+\begin_inset Formula 
+\begin{equation}
+a_{11}x^{2}+a_{12}xy+a_{22}y^{2}+b_{1}x+b_{2}y+c=0\label{eq:1-2}
+\end{equation}
+
+\end_inset
+
+vista como forma quadrática toma a forma
+\begin_inset Formula 
+\begin{equation}
+X^{t}AX+BX+c=0\label{eq:FormaQuadratica}
+\end{equation}
+
+\end_inset
+
+onde consideramos a matriz simétrica 
+\begin_inset Formula $A=\left[\begin{array}{cc}
+a_{11} & \frac{a_{12}}{2}\\
+\frac{a_{12}}{2} & a_{22}
+\end{array}\right]$
+\end_inset
+
+, a matriz linha 
+\begin_inset Formula $B=\left[\begin{array}{cc}
+b_{1} & b_{2}\end{array}\right]$
+\end_inset
+
+ e o vetor de variáveis 
+\begin_inset Formula $X=\left[\begin{array}{cc}
+x & y\end{array}\right]^{t}$
+\end_inset
+
+.
+ Diagonalizando a matriz 
+\begin_inset Formula $A$
+\end_inset
+
+ da equação (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:FormaQuadratica"
+
+\end_inset
+
+) podemos representá-la em um par de eixos rotacionados na forma da equação
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:1"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Para isto, determina-se os autovalores e autovetores normalizados da matriz
+ 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ Seja 
+\begin_inset Formula $\lambda_{1}$
+\end_inset
+
+ e 
+\begin_inset Formula $\lambda_{2}$
+\end_inset
+
+ os autovalores de 
+\begin_inset Formula $A$
+\end_inset
+
+, 
+\begin_inset Formula $v_{1}=\left[\begin{array}{cc}
+v_{11} & v_{12}\end{array}\right]^{t}$
+\end_inset
+
+ e 
+\begin_inset Formula $v_{2}=\left[\begin{array}{cc}
+v_{21} & v_{22}\end{array}\right]^{t}$
+\end_inset
+
+ os autovalores unitários de 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ Então 
+\begin_inset Formula $A=PDP^{t}$
+\end_inset
+
+, onde 
+\begin_inset Formula $D=\left[\begin{array}{cc}
+\lambda_{1} & 0\\
+0 & \lambda_{2}
+\end{array}\right]$
+\end_inset
+
+ e 
+\begin_inset Formula $P=\left[\begin{array}{cc}
+v_{1} & v_{2}\end{array}\right]$
+\end_inset
+
+, sendo 
+\begin_inset Formula $P$
+\end_inset
+
+ uma matriz ortogonal.
+ Assim:
+\begin_inset Formula 
+\[
+(P^{t}X)^{t}D(P^{t}X)+BX+c=0
+\]
+
+\end_inset
+
+então fazendo a mudança de variável 
+\begin_inset Formula $U=P^{t}X$
+\end_inset
+
+, com 
+\begin_inset Formula $U=\left[\begin{array}{cc}
+u & w\end{array}\right]$
+\end_inset
+
+ toma a forma 
+\begin_inset Formula 
+\[
+U^{t}DU+BPU+c=0.
+\]
+
+\end_inset
+
+Chegamos na equação equivalente a equação (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:1"
+
+\end_inset
+
+) 
+\begin_inset Formula 
+\begin{equation}
+\lambda_{1}u^{2}+\lambda_{2}w^{2}+d_{1}u+d_{2}w+c=0\label{eq:diagonalizada}
+\end{equation}
+
+\end_inset
+
+onde 
+\begin_inset Formula $d_{1}=B\cdot v_{1}=b_{1}v_{11}+b_{2}v_{12}$
+\end_inset
+
+ e 
+\begin_inset Formula $d_{2}=B\cdot v_{2}=b_{1}v_{21}+b_{2}v_{22}$
+\end_inset
+
+.
+ Se a expressão representa uma elipse, os autovalores são necessariamente
+ positivos, logo multiplicando a última equação vezes 
+\begin_inset Formula $\left(\frac{-1.}{\lambda_{2}}\right)$
+\end_inset
+
+, procedendo como na seção 1.1 a partir da equação (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:2"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Para realizar o processo de diagonalização precisamos determinar os coeficientes
+ das variáveis na equação (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:1-2"
+
+\end_inset
+
+).
+ Para isto, aplicamos o método dos mínimos quadrados assumindo que 
+\begin_inset Formula $a_{22}=-1$
+\end_inset
+
+, então
+\begin_inset Formula 
+\[
+y^{2}=a_{11}x^{2}+a_{12}xy+b_{1}x+b_{2}y+c.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Seja um conjunto de 
+\begin_inset Formula $n$
+\end_inset
+
+ pontos 
+\begin_inset Formula $P$
+\end_inset
+
+, com 
+\begin_inset Formula $n\geq5=2*dim+1$
+\end_inset
+
+, substituindo as coordenadas na equação teremos um sistema de equações
+ quadrado ou sobredimensionado:
+\begin_inset Formula 
+\[
+y_{i}^{2}=a_{11}x_{i}^{2}+b_{1}x_{i}+a_{12}x_{i}y_{i}+b_{2}y_{i}+c\qquad i=0,...,n-1.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+O sistema pode ser escrito como:
+\begin_inset Formula 
+\[
+Y=HU,
+\]
+
+\end_inset
+
+onde 
+\begin_inset Formula $Y_{n\times1}=\left[y_{i}^{2}\right]_{i=0,...,n-1}$
+\end_inset
+
+, 
+\begin_inset Formula $H_{n\times4}=\left[x_{i}^{2}\: x_{i}\: x_{i}y_{i}\: y_{i}\:1.\right]$
+\end_inset
+
+ e 
+\begin_inset Formula $U_{4\times1}=\left[a_{11}\: b_{1}\: a_{12}\: b_{2}\: c\right]^{t}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Aplicando o método dos mínimos quadrados multiplicamos o sistema pela transposta
+ de 
+\begin_inset Formula $H$
+\end_inset
+
+ obtendo um sistema quadrado 
+\begin_inset Formula $5\times5$
+\end_inset
+
+, da forma 
+\begin_inset Formula 
+\[
+H^{t}Y=H^{t}HU
+\]
+
+\end_inset
+
+ então resolvendo o sistema (se tiver solução) obtemos 
+\begin_inset Formula $U$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Functions:
+\end_layout
+
+\begin_layout Enumerate
+Function that receives a set of points and returns the coefficients as equation
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:1-2"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Function making diagonalization of matrix 
+\begin_inset Formula $A$
+\end_inset
+
+ and returns the coefficients as equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:diagonalizada"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Function that receives the coefficients as equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:diagonalizada"
+
+\end_inset
+
+, then returns center, maior and minor axes of the ellipse, and the unitary
+ vectors of the rotated axes of the ellipse.
 \end_layout
 
 \end_body
