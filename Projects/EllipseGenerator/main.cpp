@@ -50,17 +50,24 @@ void FillingPoints3D(TPZManVector<REAL> &Points);
 // Least Squares Method to compute a ellipse nearest for a points in vector
 // The obtained ellipse has the axes parallels to rectangular axes
 // Format (x-x0)^2/a^2 + (y-y0)^2/b^2 = 1.
-bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &points);
+bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &points,std::ostream &out=std::cout);
 
 // Least Squares Method to compute a ellipse nearest for a points in vector
 // The ellipse is a conic with second order equation as
 // y^2 = A*x^2 + B*xy + C*x + D*y + E  -> 2D case
 // z^2 = A*x^2 + B*xy + C*y^2 + D*yz + E*xz + F*x + G*y + H*z + I  -> 3D case
 // Then their axes could be rotated and translated
-bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &points);
+bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &points,std::ostream &out=std::cout);
 
 // Diagonalize a quadratic form making avoid the quadratic term xy
-bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL> &NewCoeffs);
+bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL> &NewCoeffs,std::ostream &out);
+
+// To print as zero all the values almost zero
+void AlmostZeroToZero(TPZFMatrix<REAL> &mat);
+void AlmostZeroToZero(TPZVec<REAL> &mat);
+
+REAL Tol = 1.e-4;
+std::ofstream out("EllipseInfo.txt");
 
 int main(int argc, char *argv[]) {
 
@@ -74,13 +81,15 @@ int main(int argc, char *argv[]) {
 		FillingPoints2D(Points);
 	else
 		FillingPoints3D(Points);
-
+	
+	out << "Adjusting with ELLIPSE (axes parallels with cartesian axes):\n\n";
 	// Finding a ellipse nearest for all points
-	if(!AdjustingWithSimpleEllipse(dim,Points))
+	if(!AdjustingWithSimpleEllipse(dim,Points,out))
 		return 1;
 	
+	out << "\n\nAdjusting with ELLIPSE (Could be had rotation):\n\n";
 	// Finding a ellipse nearest for all points
-	if(!AdjustingWithEllipse(dim,Points))
+	if(!AdjustingWithEllipse(dim,Points,out))
 		return 2;
 
 	return 0;
@@ -232,6 +241,24 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
 	}
 }
 
+// To print as zero all the values almost zero
+void AlmostZeroToZero(TPZFMatrix<REAL> &mat) {
+	int nr, nc;
+	for(nr=0;nr<mat.Rows();nr++) {
+		for(nc=0;nc<mat.Cols();nc++) {
+			if(fabs(mat.GetVal(nr,nc)) < Tol)
+				mat.PutVal(nr,nc,0.);
+		}
+	}
+}
+void AlmostZeroToZero(TPZVec<REAL> &mat) {
+	int nr;
+	for(nr=0;nr<mat.NElements();nr++) {
+		if(fabs(mat[nr]) < Tol)
+			mat[nr] = 0.;
+	}
+}
+
 bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
 	int dim = Center.NElements();
 	int ncoeffs = Coeffs.Rows();
@@ -270,22 +297,25 @@ bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> 
 	return true;
 }
 
-void PrintingAsSimpleEquation(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
+void PrintingAsSimpleEquation(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios,std::ostream &out) {
 	int dim = Center.NElements();
+	AlmostZeroToZero(Coeffs);
+	AlmostZeroToZero(Center);
+	AlmostZeroToZero(Ratios);
 	if(dim == 2) {
-		std::cout << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y + " << Coeffs(3,0) << "\n";
-		std::cout << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1] << " = 1.\n" << std::endl;
-		std::cout << "\nCenter = ( " << Center[0] << " , " << Center[1] << " ).\n" << "Maior Axes = a = " << Ratios[0] << "\nMinor Axes = b = " << Ratios[1] << std::endl;
+		out << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y + " << Coeffs(3,0) << "\n";
+		out << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1] << " = 1.\n" << std::endl;
+		out << "\nCenter = ( " << Center[0] << " , " << Center[1] << " ).\n" << "Maior Axes = a = " << Ratios[0] << "\nMinor Axes = b = " << Ratios[1] << std::endl;
 	}
 	else {
-		std::cout << std::endl << "z*z = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y*y + " << Coeffs(3,0) << "y +";
-		std::cout << Coeffs(4,0) << "z + " << Coeffs(5,0) << std::endl;
-		std::cout << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1];
-		std::cout << " + (z - " << Center[2] << ")^2/" << Ratios[2]*Ratios[2] << " = 1.\n" << std::endl;
+		out << std::endl << "z*z = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y*y + " << Coeffs(3,0) << "y +";
+		out << Coeffs(4,0) << "z + " << Coeffs(5,0) << std::endl;
+		out << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1];
+		out << " + (z - " << Center[2] << ")^2/" << Ratios[2]*Ratios[2] << " = 1.\n" << std::endl;
 	}
 }
 
-bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points) {
+bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points,std::ostream &out) {
 
 	TPZFMatrix<REAL> Coeffs;
 	TPZManVector<REAL> Center(dim,0.);
@@ -294,7 +324,7 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points) {
 	// Applying least squares for these five points
 	if(!LeastSquaresToGetSimpleEllipse(dim,Points,Coeffs))
 		return false;
-	std::cout << "\n\nSolution:";
+	out << "\n\Coefficients after least square for quadratic equation:";
 
 	// Making zero depending on Tolerance
 	float Tol;
@@ -306,11 +336,11 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points) {
 	// Getting the values of the center and ratios for the ellipse from Coeffs values
 	if(!StandardFormatForSimpleEllipse(Coeffs,Center,Ratios))
 		return false;
-	PrintingAsSimpleEquation(Coeffs,Center,Ratios);
+	PrintingAsSimpleEquation(Coeffs,Center,Ratios,out);
 	return true;
 }
 
-bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points) {
+bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points,std::ostream &out) {
 
 	TPZFMatrix<REAL> Coeffs;
 	TPZManVector<REAL> Center(dim,0.);
@@ -339,38 +369,66 @@ bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points) {
 		// Getting the values of the center and ratios for the ellipse from Coeffs values
 		if(!StandardFormatForSimpleEllipse(Coeffs,Center,Ratios))
 			return false;
-		PrintingAsSimpleEquation(Coeffs,Center,Ratios);
+		PrintingAsSimpleEquation(Coeffs,Center,Ratios,out);
 		return true;
 	}
 
 	// Diagonalization of the quadratic form when Coeffs(2,0) is not null
-	TPZFMatrix<REAL> NewCoeffs(2*dim+1,1,0.);
-	DiagonalizingQuadraticForm(dim,Coeffs,NewCoeffs);
+	TPZFMatrix<REAL> NewCoeffs;
+	DiagonalizingQuadraticForm(dim,Coeffs,NewCoeffs,out);
+	Coeffs.Redim(2*dim,1);
 
-
+	// The coefficients are multiplied by (-1/lambda2)
+	if(dim==2) {
+		Coeffs.PutVal(0,0,-(NewCoeffs(0,0)/NewCoeffs(2,0)));
+		Coeffs.PutVal(1,0,-(NewCoeffs(1,0)/NewCoeffs(2,0)));
+		Coeffs.PutVal(2,0,-(NewCoeffs(3,0)/NewCoeffs(2,0)));
+		Coeffs.PutVal(3,0,-(NewCoeffs(4,0)/NewCoeffs(2,0)));
+		// Getting the values of the center and ratios for the ellipse from Coeffs values
+		if(!StandardFormatForSimpleEllipse(Coeffs,Center,Ratios))
+			return false;
+		PrintingAsSimpleEquation(Coeffs,Center,Ratios,out);
+	}
 
 	return true;
 }
 
-bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL> &NewCoeffs) {
+void PrintAxes(TPZFMatrix<REAL> &P,std::ostream &out) {
+	out << "\nPrinting axes of the ellipse:\n";
+	AlmostZeroToZero(P);
+	for(int i=0;i<P.Cols();i++) {
+		out << "Vector " << i << " = ( ";
+		for(int j=0;j<P.Rows();j++) {
+			if(j) out << " , ";
+			out << P.GetVal(j,i);
+		}
+		out << " )\n";
+	}
+	out << std::endl;
+}
+
+bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL> &NewCoeffs,std::ostream &out) {
+	NewCoeffs.Redim(2*dim+1,1);
+	// Changing signal 
+	Coeffs *= (-1.);
 	// Constructing a symmetric matrix
 	TPZFMatrix<REAL> A(dim,dim);
 	if(dim == 2) {
 		A(0,0) = Coeffs(0,0);
 		A(0,1) = A(1,0) = 0.5*Coeffs(2,0);
-		A(1,1) = -1.;
+		A(1,1) = 1.;
 	}
 	else {
 		A(0,0) = Coeffs(0,0);
 		A(0,1) = A(1,0) = 0.5*Coeffs(4,0);
 		A(1,1) = Coeffs(2,0);
-		A(2,2) = -1.;
+		A(2,2) = 1.;
 		A(0,2) = A(2,0) = 0.5*Coeffs(7,0);
 		A(1,2) = A(2,1) = 0.5*Coeffs(6,0);
 	}
 
 	// Store the coefficients of the variables in the homogenous equation
-	TPZFMatrix<REAL> B(dim,0);
+	TPZFMatrix<REAL> B(dim,1);
 	int nr, nc;
 	REAL F = Coeffs.GetVal(4+(dim-2)*4,0);
 	for(nr=0;nr<dim;nr++)
@@ -382,12 +440,9 @@ bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL
 	REAL Tol, temp, norm;
 	ZeroTolerance(Tol);
 	long niter = 1000;
+
 	if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
 		return false;                            // Could be some eigenvector a null vector
-	// Temporary info
-	A.Print(std::cout);
-	Eigenvalues.Print(std::cout);
-	Coeffs.Print(std::cout);
 
 	// Verifying Eigenvalues must to be positives to be ellipse or ellipsoide
 	for(nr=0;nr<dim;nr++) {
@@ -405,9 +460,28 @@ bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL
 	}
 	// The transpose of the ortogonal matrix is not necessary, it exists, is enough
 
+	// Print the direction vectors for axes of the ellipse
+	PrintAxes(Coeffs,out);
+
 	// Coefficients of the squares of the variables
 	for(nr=0;nr<dim;nr++)
-		NewCoeffs.PutVal(nr,0,Eigenvalues[nr]);
+		NewCoeffs.PutVal(2*nr,0,Eigenvalues[nr]);
+
+	// Coefficients of the variables (linear terms)
+	if(dim==2) {
+		temp = B(0,0)*Coeffs(0,0) + B(1,0)*Coeffs(0,1);
+		NewCoeffs.PutVal(1,0,temp);
+		temp = B(0,0)*Coeffs(1,0) + B(1,0)*Coeffs(1,1);
+		NewCoeffs.PutVal(3,0,temp);
+		NewCoeffs.PutVal(4,0,F);
+	}
+	else if(dim==3) {
+		temp = B(0,0)*Coeffs(0,0) + B(1,0)*Coeffs(0,1) + B(2,0)*Coeffs(0,2);
+		NewCoeffs.PutVal(1,0,temp);
+		//It is not complete
+	}
+
+	return true;
 }
 
 void FillingPoints2D(TPZManVector<REAL> &Points) {
