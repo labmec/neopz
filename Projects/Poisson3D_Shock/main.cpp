@@ -183,12 +183,12 @@ REAL RCircle = 0.25;
 int ninitialrefs = 2;
 
 
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinError);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
 void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel);
 void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
 void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,REAL MaxError,int ref);
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,REAL MaxError,REAL MinError,int ref);
 
 REAL GradientNorm(TPZInterpolatedElement *el);
 REAL Laplacian(TPZInterpolatedElement *el);
@@ -404,7 +404,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				if(NRefs > 1 && nref < (NRefs-1)) {
 					TPZManVector<REAL> ervecbyel;
                     REAL MaxError = 0.;
-                    MaxError = ProcessingError(an,ervec,ervecbyel);
+					REAL MinError = 0.;
+                    MaxError = ProcessingError(an,ervec,ervecbyel,MinError);
 					if(MaxError > ervec[1])
 						std::cout << "Local error is bigger than Global error, Ref " << nref << "." << std::endl;
 					if(ervec[1] < 100*Tol) {
@@ -414,7 +415,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 						break;
 					}
 //					ApplyingStrategyHPAdaptiveBasedOnErrors(an,MaxError,ervecbyel);
-					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel,MaxError,nref);
+					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel,MaxError,MinError,nref);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -452,7 +453,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     return true;
 }
 
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,REAL MaxError,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,REAL MaxError,REAL MinError,int nref) {
 
 	TPZCompMesh *cmesh = analysis.Mesh();
 	if(!cmesh) return;
@@ -530,11 +531,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
  * Get Global L2 Error for solution and the L2 error for each element.
  * Return the maxime L2 error by elements.
  */
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinError) {
     long neq = analysis.Mesh()->NEquations();
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
+	MinError = 1000.;
     analysis.Mesh()->LoadSolution(analysis.Solution());
 
 	TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
@@ -556,6 +558,8 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 			ervecbyel[i] = sqrt(errors[1]*errors[1]);
 			if(ervecbyel[i] > maxError)
 				maxError = ervecbyel[i];
+			if(ervecbyel[i] < MinError)
+				MinError = ervecbyel[i];
         }
     }
     
