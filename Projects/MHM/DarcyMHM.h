@@ -34,13 +34,17 @@ class TPZMatDarcyMHM : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Coeficient which multiplies the Laplacian operator. */
 	STATE fK;
+    
+    /** @brief Flag indicating whether the interface contributes positively or negatively */
+    STATE fMultiplier;
+    
 			
 public:
 	
 	
 	TPZMatDarcyMHM(int nummat, int dim);
     
-    TPZMatDarcyMHM(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.)
+    TPZMatDarcyMHM(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(1.), fMultiplier(1.)
     {
     
     }
@@ -70,6 +74,18 @@ public:
     {
         data.SetAllRequirements(false);
     }
+    
+    /**
+	 * Here, in base class, all requirements are considered as necessary. \n
+	 * Each derived class may optimize performance by selecting only the necessary data.
+	 */
+	virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+    {
+        data.SetAllRequirements(false);
+        data.fNeedsNeighborCenter = true;
+        data.fNeedsNormal = true;
+    }
+
 	    
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
@@ -97,6 +113,11 @@ public:
         fDim = dim;
     }
 	
+    void SetMultiplier(STATE mult)
+    {
+        fMultiplier = mult;
+    }
+    
 	virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMatDarcyMHM"; }

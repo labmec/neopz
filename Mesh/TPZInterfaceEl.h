@@ -187,6 +187,12 @@ public:
 	
 	/** @brief Returns the normal of this interface which goes from left to right neighbors */
 	void CenterNormal(TPZVec<REAL> &CenterNormal) const;
+    
+    /** @brief Set the normal to the given vector */
+    void SetCenterNormal(const TPZVec<REAL> &CenterNormal)
+    {
+        fCenterNormal = CenterNormal;
+    }
 	
 	/** @brief Returns normal based on already computed axes matrix. */
 	/**

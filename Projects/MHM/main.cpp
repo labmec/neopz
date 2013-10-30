@@ -63,6 +63,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.poisson3d.data"));
 TPZGeoMesh * MalhaGeo ( const int h );
 TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder );
 void BuildByParts(TPZCompMesh & result);
+long FindMidNode(TPZCompMesh &cmesh);
 void Solve ( TPZAnalysis &an );
 
 int main()
@@ -84,9 +85,18 @@ int main()
     std::ofstream arc1 ( "cmesh.vtk" );
     TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), arc1, true);
     
-	TPZAnalysis an(cmesh);
-
+	TPZAnalysis an(cmesh,true);
+    
 	Solve( an );
+    {
+        std::ofstream arc ( "cmesh.txt" );
+        cmesh->Print ( arc );
+    }
+    
+    TPZStack<std::string> scalnames,vecnames;
+    scalnames.Push("state");
+    an.DefineGraphMesh(2, scalnames, vecnames, "MHM.vtk");
+    an.PostProcess(0, 2);
 
 //	PosProcess(an, AE, h, p);
 
@@ -199,10 +209,12 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
 //	TPZMatPoisson3d *material ;
 //	material = new TPZMatPoisson3d ( 1,2 );
 
-    TPZMatDarcyMHM *materialinterface ;
-	materialinterface = new TPZMatDarcyMHM( 10,2 );
-	TPZMaterial *matinterface ( materialinterface );
-  	result->InsertMaterialObject ( matinterface );
+    TPZMatDarcyMHM *materialinterface1 = new TPZMatDarcyMHM( 10,2 );
+  	result->InsertMaterialObject ( materialinterface1 );
+    TPZMatDarcyMHM *materialinterface2 = new TPZMatDarcyMHM( 11,2 );
+    materialinterface2->SetMultiplier(-1.);
+  	result->InsertMaterialObject ( materialinterface2 );
+    
 
     
     TPZMatDarcyMHM *material ;
@@ -233,7 +245,7 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
 	
 	TPZFMatrix<STATE> val1 ( 1,1,0. ), val2 ( 1,1,0. );// 0 é Dirichlet, 1 é Neumann, 2 é Robin(implementada apenas no Contínuo)
     
-	TPZMaterial *bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
+	TPZMaterial *bnd1 = material->CreateBC ( mat,-1,1, val1, val2 );
 //	TPZMaterial *bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
 //	TPZMaterial *bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );
 //	TPZMaterial *bnd4 = material->CreateBC ( mat,-4,0, val1, val2 );
@@ -242,7 +254,7 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
 //	TPZMaterial *bnd7 = material->CreateBC ( mat,-7,0, val1, val2 );
 //	TPZMaterial *bnd8 = material->CreateBC ( mat,-8,0, val1, val2 );
     
-   	TPZMaterial *bnd9 = material->CreateBC ( mat,2,0, val1, val2 );
+   	TPZMaterial *bnd9 = material->CreateBC ( mat,2,1, val1, val2 );
     
 //	bnd1->SetForcingFunction ( BC1 );
 //	bnd2->SetForcingFunction ( BC2 );
@@ -263,8 +275,6 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
 
 	result->SetName("CMesh1");
     
-    std::ofstream arc ( "cmesh.txt" );
-    result->Print ( arc );
 
 
 	return result;
@@ -284,13 +294,16 @@ void BuildByParts(TPZCompMesh & cmesh)
             for (int igel2=0; igel2<gmesh->NElements(); igel2++)
             {
                 TPZGeoEl *gel2=gmesh->ElementVec()[igel2];
-                if (!gel2|| gel2->LowestFather()!=gelroot||gel2==gelroot)
+                if (!gel2|| gel2->LowestFather()!=gelroot||gel2->HasSubElement())
                 {
                     continue;
                 }
                 long index;
                 cmesh.CreateCompEl(gel2, index);// cria os elementos 2D
             }
+            long midconnectindex = FindMidNode(cmesh);
+            TPZConnect &c = cmesh.ConnectVec()[midconnectindex];
+            c.SetLagrangeMultiplier(2);
             gmesh->ResetReference();
             gmesh->SetReference(&cmesh);
         }
@@ -300,6 +313,11 @@ void BuildByParts(TPZCompMesh & cmesh)
             long index3;
             cmesh.CreateCompEl(gelroot, index3);
             TPZCompEl *cel = cmesh.ElementVec()[index3];
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                c.SetLagrangeMultiplier(1);
+            }
             cel->Reference()->ResetReference();
         }
     }
@@ -356,24 +374,34 @@ void BuildByParts(TPZCompMesh & cmesh)
 			TPZGeoElSide gelside(gel,is);
             TPZGeoElSide gelneigh(gelside.Neighbour());
 //            gelneigh.Element()->Print(std::cout);
-            TPZStack<TPZGeoElSide> subgeoelements;
-            int matid=10;
+            int reorient = 0;
             while (gelneigh != gelside)
             {
+                TPZStack<TPZGeoElSide> subgeoelements;
                 gelneigh.GetSubElements2(subgeoelements);
+                if (subgeoelements.NElements() == 0 && gelneigh.Element()->MaterialId() == 1) {
+                    subgeoelements.Push(gelneigh);
+                }
                 for (int i = 0; i < subgeoelements.NElements(); i++)
                 {
+                    if (reorient > 1) {
+                        DebugStop();
+                    }
                     if (subgeoelements[i].Dimension() == gelside.Dimension())
                     {
                         TPZGeoElSide geosideneigh = subgeoelements[i];
 //                      geosideneigh.Element()->Print();
                         TPZCompElSide right=gelside.Reference();
                         TPZCompElSide left =geosideneigh.Reference();
+                        int matid = 10+reorient;
                         TPZGeoEl *interfaceEl = geosideneigh.Element()->CreateBCGeoEl(geosideneigh.Side(), matid);
                         long index;
-                        new TPZInterfaceElement(cmesh,interfaceEl,index,left,right);
+                        TPZInterfaceElement *newel = new TPZInterfaceElement(cmesh,interfaceEl,index,left,right);
                     }
                     
+                }
+                if (subgeoelements.NElements() != 0) {
+                    reorient++;
                 }
                 gelneigh = gelneigh.Neighbour();
             }
@@ -386,14 +414,15 @@ void Solve ( TPZAnalysis &an )
 {
 	TPZCompMesh *malha = an.Mesh();
     
-	TPZBandStructMatrix mat(malha);
-	//TPZSkylineStructMatrix mat(malha);// requer decomposição simétrica, não pode ser LU!
+	//TPZBandStructMatrix mat(malha);
+	TPZSkylineStructMatrix mat(malha);// requer decomposição simétrica, não pode ser LU!
 	//TPZBlockDiagonalStructMatrix mat(malha);//ok!
 	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 	//TPZFStructMatrix mat( malha );// ok! matriz estrutural cheia
 	//TPZSpStructMatrix mat( malha );//matriz estrutural esparsa (???? NÃO FUNCIONOU !!!!!!!!!!)
+    mat.SetNumThreads(0);
 	TPZStepSolver<STATE> solv;
-	solv.SetDirect (  ELU );//ECholesky);// ELU , ELDLt ,
+	solv.SetDirect (  ELDLt );//ECholesky);// ELU , ELDLt ,
     
 	
     //	cout << "ELDLt " << endl;
@@ -403,11 +432,41 @@ void Solve ( TPZAnalysis &an )
 	an.Solution().Redim ( 0,0 );
     std::cout << "Assemble " << std::endl;
 	an.Assemble();
-    //	std::ofstream fileout("rigidez.txt");
-    //	an.Solver().Matrix()->Print("Rigidez", fileout, EMathematicaInput);
-	
+    {
+        std::ofstream fileout("rigidez.nb");
+        an.Solver().Matrix()->Print("Rigidez = ", fileout, EMathematicaInput);
+        an.Rhs().Print("Rhs = ", fileout, EMathematicaInput);
+    }
 	an.Solve();
     std::cout << std::endl;
     std::cout << "No equacoes = " << malha->NEquations() << std::endl;
 }
 
+long FindMidNode(TPZCompMesh &cmesh)
+{
+    TPZGeoMesh *gmesh = cmesh.Reference();
+    int nel = gmesh->NElements();
+    TPZManVector<REAL,3> xmid(3);
+    int ncont = 0;
+    for (int el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->ElementVec()[el];
+        if(!gel->Reference()) continue;
+        int side = gel->NSides()-1;
+        TPZManVector<REAL,3> xi(gel->Dimension()),xco(3);
+        gel->CenterPoint(side, xi);
+        gel->X(xi, xco);
+        for(int i=0; i<3; i++) xmid[i] += xco[i];
+        ncont++;
+    }
+    if (ncont == 0) {
+        DebugStop();
+    }
+    for(int i=0; i<3; i++) xmid[i] /= ncont;
+    TPZManVector<REAL,2> xi(2);
+    long zero = 0;
+    TPZGeoEl *centerel = gmesh->FindElement(xmid, xi, zero , 2);
+    if (!centerel || ! centerel->Reference()) {
+        DebugStop();
+    }
+    return centerel->Reference()->ConnectIndex(0);
+}

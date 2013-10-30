@@ -963,6 +963,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "elemento de interface Indice deste Material--> " <<this->Material()->Id()<< std::endl;
@@ -1007,19 +1008,19 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	TPZMaterialData dataright;
 	TPZMaterialData dataleft;
     TPZMaterialData data;
+    
+    mat->FillDataRequirementsInterface(data);
 	
 	InitMaterialData(dataleft,left);
 	InitMaterialData(dataright,right);
     InitMaterialData(data);
 	
-	dataleft.fNeedsNormal=true;
-    data.fNeedsHSize=true;
 	
 	if( !dataleft.x||!dataright.x){
 		PZError << "\n Error at TPZInterfaceElement::CalcStiff null interface\n";
 		ek.Reset();
 		ef.Reset();
-		return;
+		DebugStop();
 	}
 	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
@@ -1064,46 +1065,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ef.fBlock.Resequence();
 	
     
-//MHM
-// criar um vetor normal a interface, necessario para o MHM
-////////////////////////////////////////////////////////////
-    
-	TPZGeoEl *refRight = right->Reference();//pq o elemento 1D, nessa malha, eh sempre o right
-    int ncorner = refRight->NCornerNodes();
-    TPZManVector<TPZManVector<REAL,2>,2> VecNodesCoord(ncorner,0.);
-    TPZManVector<REAL,2> VecSobreInterface(2,0.);
-    TPZManVector<REAL,2> Normal(2,0.);
-    for(int i = 0; i < ncorner; i++)
-    {
-        VecNodesCoord[i].Resize(2, 0.);
-    }
-    for(int icn=0; icn<ncorner; icn++)
-    {
-        TPZGeoNode geonode = refRight->Node(icn);
-        VecNodesCoord[icn][0] = geonode.Coord(0);
-        VecNodesCoord[icn][1] = geonode.Coord(1);
-    }
-    // este vetor esta sobre a interface. Eh a diferença dos dois extremos.
-    VecSobreInterface[0]=VecNodesCoord[0][0]-VecNodesCoord[1][0];
-    VecSobreInterface[1]=VecNodesCoord[0][1]-VecNodesCoord[1][1];
-    //normalizacao
-    REAL VecSize= sqrt(VecSobreInterface[0]*VecSobreInterface[0] + VecSobreInterface[1]*VecSobreInterface[1]);
-    VecSobreInterface[0]*= 1./VecSize;
-    VecSobreInterface[1]*= 1./VecSize;
-    
-    // existem duas possibilidades para este vetor: 1) esta no primeiro ou terceiro quadrante. 2) esta no segundo ou quarto quadrante.
-    // agora vamos transformá-lo em um vetor que esta no primeiro ou no segundo quadrante
-    if(VecSobreInterface[1]<0)// o vetor esta no terceiro ou quarto quadrante
-    {
-        VecSobreInterface[0]*=-1.;
-        VecSobreInterface[1]*=-1.;
-    }
-    // agora vamos rotacionar esse vetor 90 graus anti-horario, para obter o normal
-    Normal[0]=VecSobreInterface[1];
-    Normal[1]=-VecSobreInterface[0];
-
-    
-//MHM        //////////////////////////////////////////////////////////
     
     //LOOKING FOR MAX INTERPOLATION ORDER
 	int leftmaxp = left->MaxOrder();
@@ -1155,15 +1116,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
 		this->ComputeRequiredData(data);
- 
-        //MHM
-       	dataright.normal.Resize(3);
-        dataright.normal[0]=Normal[0];
-        dataright.normal[1]=Normal[1];
-        std::cout << std::endl << "normalinterface=" << std::endl<< "("<< Normal[0] <<", "<< Normal[1] <<" )"<< std::endl;
-        std::cout << std::endl << "normal=" << std::endl<< "("<< data.normal[0] <<", "<< data.normal[1] <<", "<< data.normal[2] <<")"<< std::endl;
-        //MHM
-        
         
         data.x = dataleft.x;
         
@@ -1550,37 +1502,20 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 		PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
 		DebugStop();
 	}
-	mat->FillDataRequirementsInterface(data);
     elem->InitMaterialData(data);
-//	int nshape = elem->NShapeF();
+	mat->FillDataRequirementsInterface(data);
+    if (data.fNeedsNeighborSol) {
+        data.fNeedsSol = true;
+    }
 //
-//	const int nstate = elem->Material()->NStateVariables();
-//	const int dim = elem->Dimension();
-//	data.phi.Redim(nshape,1);
-//	data.dphix.Redim(dim,nshape);
-//	data.axes.Redim(dim,3);
-//	data.jacobian.Redim(dim,dim);
-//	data.jacinv.Redim(dim,dim);
-//    data.x.Resize(3, 0.);
-//	data.p = elem->MaxOrder();
-//    int numbersol = Mesh()->Solution().Cols();
-//    data.sol.resize(numbersol);
-//    data.dsol.resize(numbersol);
-//	if (data.fNeedsNeighborSol){
-//        for (int is=0; is<numbersol; is++) {
-//            data.sol[is].Resize(nstate);
-//            data.dsol[is].Redim(dim,nstate);
-//        }
-//	}
-//	
 //	//this values needs to be computed only once
-//	if(data.fNeedsNeighborCenter){
-//		TPZManVector<REAL,3> qsi(3);
-//		data.XCenter.Resize(3);
-//		TPZGeoEl * gel = elem->Reference();
-//		gel->CenterPoint(gel->NSides()-1,qsi);
-//		gel->X(qsi,data.XCenter);
-//	}
+	if(data.fNeedsNeighborCenter){
+		TPZManVector<REAL,3> qsi(3);
+		data.XCenter.Resize(3);
+		TPZGeoEl * gel = elem->Reference();
+		gel->CenterPoint(gel->NSides()-1,qsi);
+		gel->X(qsi,data.XCenter);
+	}
 	
 }//void
 

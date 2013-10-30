@@ -22,11 +22,11 @@ static LoggerPtr logger(Logger::getLogger("pz.material.poisson3d"));
 
 using namespace std;
 
-TPZMatDarcyMHM::TPZMatDarcyMHM(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
+TPZMatDarcyMHM::TPZMatDarcyMHM(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fMultiplier(1.) {
 	fK = 1.;
 }
 
-TPZMatDarcyMHM::TPZMatDarcyMHM():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
+TPZMatDarcyMHM::TPZMatDarcyMHM():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fMultiplier(1.){
 	fK = 1.;
 }
 
@@ -39,6 +39,7 @@ TPZMatDarcyMHM & TPZMatDarcyMHM::operator=(const TPZMatDarcyMHM &copy){
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fK   = copy.fK;
+    fMultiplier = copy.fMultiplier;
 	return *this;
 }
 
@@ -60,7 +61,7 @@ void TPZMatDarcyMHM::Print(std::ostream &out) {
 
 void TPZMatDarcyMHM::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 	
-    return;
+    //return;
 	TPZFMatrix<REAL>  &phi = data.phi;
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZVec<REAL>  &x = data.x;
@@ -99,7 +100,7 @@ void TPZMatDarcyMHM::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STA
 void TPZMatDarcyMHM::ContributeBC(TPZMaterialData &data,REAL weight,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
-	return;
+	//return;
 	TPZFMatrix<REAL>  &phi = data.phi;
 	TPZFMatrix<REAL> &axes = data.axes;
 	int phr = phi.Rows();
@@ -492,102 +493,30 @@ void TPZMatDarcyMHM::ContributeInterface(TPZMaterialData &data, TPZMaterialData 
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-    TPZManVector<REAL,3> &normalleft = dataleft.normal;
-    TPZManVector<REAL,3> &normalright = dataright.normal;
 	
 	TPZFNMatrix<660> dphiL, dphiR;
 	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
 	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 	
-	int &LeftPOrder=dataleft.p;
-	int &RightPOrder=dataright.p;
-	
-	REAL &faceSize=data.HSize;
 	
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
-	int il,jl,ir,jr,id;
+	int il,jl,ir,jr;
     
-    REAL nnk=1.;
- 	for(int id=0; id<3; id++) nnk += normal[id] * normalright[id];
-	
-	//Convection term
-//	REAL ConvNormal = 0.;
-//	for(id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id] * normal[id];
-//	if(ConvNormal > 0.) {
-//		for(il=0; il<nrowl; il++) {
-//			for(jl=0; jl<nrowl; jl++) {
-//				ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl);
-//			}
-//		}
-//		for(ir=0; ir<nrowr; ir++) {
-//			for(jl=0; jl<nrowl; jl++) {
-//				ek(ir+nrowl,jl) -= weight * ConvNormal * phiR(ir) * phiL(jl);
-//			}
-//		}
-//	} else {
-//		for(ir=0; ir<nrowr; ir++) {
-//			for(jr=0; jr<nrowr; jr++) {
-//				ek(ir+nrowl,jr+nrowl) -= weight * ConvNormal * phiR(ir) * phiR(jr);
-//			}
-//		}
-//		for(il=0; il<nrowl; il++) {
-//			for(jr=0; jr<nrowr; jr++) {
-//				ek(il,jr+nrowl) += weight * ConvNormal * phiL(il) * phiR(jr);
-//			}
-//		}
-//	}
-	
-	
-	//diffusion term
-//	STATE leftK, rightK;
-//	leftK  = this->fK;
-//	rightK = this->fK;
-	
-//	// 1) phi_I_left, phi_J_left
-//	for(il=0; il<nrowl; il++) {
-//		REAL dphiLinormal = 0.;
-//		for(id=0; id<fDim; id++) {
-//			dphiLinormal += dphiL(id,il)*normal[id];
-//		}
-//		for(jl=0; jl<nrowl; jl++) {
-//			REAL dphiLjnormal = 0.;
-//			for(id=0; id<fDim; id++) {
-//				dphiLjnormal += dphiL(id,jl)*normal[id];
-//			}
-//			ek(il,jl) += (STATE)(weight * ( (-1)*(0.5)*dphiLinormal*phiL(jl,0)-(0.5)*dphiLjnormal*phiL(il,0))) * leftK;
-//		}
-//	}
-	
-//	// 2) phi_I_right, phi_J_right
-//	for(ir=0; ir<nrowr; ir++) {
-//		REAL dphiRinormal = 0.;
-//		for(id=0; id<fDim; id++) {
-//			dphiRinormal += dphiR(id,ir)*normal[id];
-//		}
-//		for(jr=0; jr<nrowr; jr++) {
-//			REAL dphiRjnormal = 0.;
-//			for(id=0; id<fDim; id++) {
-//				dphiRjnormal += dphiR(id,jr)*normal[id];
-//			}
-//			ek(ir+nrowl,jr+nrowl) += (STATE)(weight * ((-1) * ((-0.5) * dphiRinormal * phiR(jr) ) + (0.5) * dphiRjnormal * phiR(ir))) * rightK;
-//		}
-//	}
-//	
 	// 3) phi_I_left, phi_J_right
 	for(il=0; il<nrowl; il++) {
 		for(jr=0; jr<nrowr; jr++) {
-			ek(il,jr+nrowl) += weight * nnk * ((-1)*phiL(il) * phiR(jr));
+			ek(il,jr+nrowl) += weight * fMultiplier * (phiL(il) * phiR(jr));
 		}
 	}
 	
 //	// 4) phi_I_right, phi_J_left
-//	for(ir=0; ir<nrowr; ir++) {
-//		for(jl=0; jl<nrowl; jl++) {
-//			ek(ir+nrowl,jl) += weight * nn3 * ( phiR(ir) * phiL(jl));
-//		}
-//	}
+	for(ir=0; ir<nrowr; ir++) {
+		for(jl=0; jl<nrowl; jl++) {
+			ek(ir+nrowl,jl) += weight * fMultiplier * (phiR(ir) * phiL(jl));
+		}
+	}
 		
 	
 }
