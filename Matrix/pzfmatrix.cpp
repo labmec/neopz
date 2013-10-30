@@ -1066,7 +1066,9 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> 
 }
 #endif
 
+#ifdef _AUTODIFF
 #include "fadType.h"
+#endif
 /****************/
 /*** Substitution ***/
 template <class TVar>
@@ -1136,7 +1138,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 #else
                     TVar diff = (fabs(B->GetVal(i, col) - GetVal(i, i)));
 #endif
-					if ((diff) < 1.e-12) {
+					if (fabs(diff) < 1.e-12) {
 						Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
 					}
 				}else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );
