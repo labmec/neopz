@@ -75,25 +75,29 @@ int main(int argc, char *argv[]) {
     InitializePZLOG();
 #endif
 
-	int dim = 2;
+	int dim = 3;
 	TPZManVector<REAL> Points;
 	if(dim==2)
 		FillingPoints2D(Points);
 	else
 		FillingPoints3D(Points);
 	
-	out << "Adjusting with ELLIPSE (axes parallels with cartesian axes):\n\n";
+	if(dim == 2) out << "Adjusting with ELLIPSE (axes parallels with cartesian axes):\n\n";
+	else if(dim == 3) out << "Adjusting with ELLIPSOID (axes parallels with cartesian axes):\n\n";
 	// Finding a ellipse nearest for all points
-	if(!AdjustingWithSimpleEllipse(dim,Points,out))
-		return 1;
+	if(!AdjustingWithSimpleEllipse(dim,Points,out)) {
+		AdjustingWithEllipse(dim,Points,out);  // Whether don't exist ellipse with axes parallel to cartesian axes, the program compute arbitrary ellipse
+		return 1;    // Return 1 means the simple ellipse couldn't be finded.
+	}
 	
-	out << "\n\nAdjusting with ELLIPSE (Could be had rotation):\n\n";
+	if(dim == 2) out << "\n\nAdjusting with ELLIPSE (Could be had rotation):\n\n";
+	else if(dim == 3) out << "\n\nAdjusting with ELLIPSOID (Could be had rotation):\n\n";
 	// Finding a ellipse nearest for all points
-	if(!AdjustingWithEllipse(dim,Points,out))
-		return 2;
+	if(dim == 2 && !AdjustingWithEllipse(dim,Points,out))
+		return 2;   // Return 2 means any ellipse couldn't be finded.
 
 	out.close();
-	return 0;
+	return 0;   // Success
 }
 
 /** Find coefficients of the quadratic equation with best adjust to points given
@@ -280,13 +284,14 @@ void PrintingAsSimpleEquation(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Cente
 	if(dim == 2) {
 		out << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y + " << Coeffs(3,0) << "\n";
 		out << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1] << " = 1.\n" << std::endl;
-		out << "\nCenter = ( " << Center[0] << " , " << Center[1] << " ).\n" << "Maior Axes = a = " << Ratios[0] << "\nMinor Axes = b = " << Ratios[1] << std::endl;
+		out << "\nCenter = ( " << Center[0] << " , " << Center[1] << " ).\n" << "Axes =>   a = " << Ratios[0] << "\nand   b = " << Ratios[1] << std::endl;
 	}
 	else {
 		out << std::endl << "z*z = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y*y + " << Coeffs(3,0) << "y +";
 		out << Coeffs(4,0) << "z + " << Coeffs(5,0) << std::endl;
 		out << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1];
 		out << " + (z - " << Center[2] << ")^2/" << Ratios[2]*Ratios[2] << " = 1.\n" << std::endl;
+		out << "\nCenter = ( " << Center[0] << " , " << Center[1] << " , " << Center[2] << " ).\n" << "Axes => a = " << Ratios[0] << "\nand   b = " << Ratios[1] << "\nand   c = " << Ratios[2] << std::endl;
 	}
 }
 
@@ -482,7 +487,7 @@ bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL
 	if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
 		return false;                            // Could be some eigenvector a null vector
 
-	// Verifying Eigenvalues must to be positives to be ellipse or ellipsoide
+	// Verifying Eigenvalues must to be positives to be ellipse or ellipsoid
 	for(nr=0;nr<dim;nr++) {
 		if(Eigenvalues[nr] > 0.) continue;
 		return false;  // If some eigenvalue is zero it is parabole, if some of these are negative hyperbol
@@ -584,7 +589,7 @@ void FillingPoints2D(TPZManVector<REAL> &Points) {
 		Points[2*(npoints+1)+dim*i] = 2.;
 		Points[2*(npoints+1)+dim*i+1] = 1.+sqrt(18.);
 	}
-	else {
+	else if(0) {
 		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
 		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
 		// Center = (0,0) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
@@ -603,6 +608,62 @@ void FillingPoints2D(TPZManVector<REAL> &Points) {
 		Points[20] = -2.4; Points[21] = 0.775736;
 		Points[22] = -2.4; Points[23] = 1.62426;
 		Points[24] = -0.3; Points[25] = 2.25535;
+	}
+	else if(0) {
+		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
+		// Center = (0,0) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
+		// Nesse caso estamos fornecendo pontos sempre a um lado da elipse, para ver se dá a mesma, 
+		// pois nos comentarios do Philippe a fratura (borda) tinha só uma parte da elipse
+		Points.Resize(26);
+		Points[0] = 0.; Points[1] = 3./sqrt(2);
+		Points[2] = 0.1; Points[3] = 2.06955;
+		Points[4] = 1.; Points[5] = 0.5*(-1.+sqrt(15));
+		Points[6] = 1.1; Points[7] = 1.34539;
+		Points[8] = .45; Points[9] = 1.86022;
+		Points[10] = .5; Points[11] = 1.82666;
+		Points[12] = -.5; Points[13] = 2.32666;
+		Points[14] = -.45; Points[15] = 2.31022;
+		Points[16] = 1.8; Points[17] = 0.538749;
+		Points[18] = 2.; Points[19] = 0.5*(-2.+sqrt(6));
+		Points[20] = 0.3; Points[21] = 1.95535;
+		Points[22] = -2.4; Points[23] = 1.62426;
+		Points[24] = -0.3; Points[25] = 2.25535;
+	}
+	else if(0) {
+		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
+		// Center = (sqrt(2),sqrt(2)) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
+		// Nesse caso estamos fornecendo os mesmos pontos com a abscisa deslacada duas unidades
+		Points.Resize(26);
+		Points[0] = 2.; Points[1] = 3./sqrt(2);
+		Points[2] = 2.1; Points[3] = 2.06955;
+		Points[4] = 3.; Points[5] = 0.5*(-1.+sqrt(15));
+		Points[6] = 3.1; Points[7] = 1.34539;
+		Points[8] = 2.45; Points[9] = 1.86022;
+		Points[10] = 2.5; Points[11] = 1.82666;
+		Points[12] = 1.5; Points[13] = 2.32666;
+		Points[14] = 1.55; Points[15] = 2.31022;
+		Points[16] = 3.8; Points[17] = 0.538749;
+		Points[18] = 4.; Points[19] = 0.5*(-2.+sqrt(6));
+		Points[20] = 2.3; Points[21] = 1.95535;
+		Points[22] = -.4; Points[23] = 1.62426;
+		Points[24] = 1.7; Points[25] = 2.25535;
+	}
+	else {
+		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
+		// Center = (sqrt(2),sqrt(2)) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
+		// Nesse caso estamos fornecendo os mesmos pontos com a abscisa deslacada duas unidades
+		Points.Resize(16);
+		Points[0] = 2.; Points[1] = 3./sqrt(2);
+		Points[2] = 2.1; Points[3] = 2.06955;
+		Points[4] = 3.; Points[5] = 0.5*(-1.+sqrt(15));
+		Points[6] = 3.1; Points[7] = 1.34539;
+		Points[8] = 2.45; Points[9] = 1.86022;
+		Points[10] = 2.5; Points[11] = 1.82666;
+		Points[12] = 1.55; Points[13] = 2.31022;
+		Points[14] = 2.3; Points[15] = 1.95535;
 	}
 }
 /* Filling points 3D case */

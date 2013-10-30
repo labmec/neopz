@@ -229,7 +229,7 @@ a_{1}x^{2}+b_{1}x-y^{2}+b_{2}y=-c\label{eq:2}
 pode ser expressada complementando quadrados como 
 \begin_inset Formula 
 \[
--a_{1}(x-x_{0})^{2}+(y-y_{0})^{2}=c-\frac{1}{4}\left(\frac{b_{1}^{2}}{a_{1}}+b_{2}^{2}\right)
+-a_{1}(x-x_{0})^{2}+(y-y_{0})^{2}=c-\frac{1}{4}\left(\frac{b_{1}^{2}}{a_{1}}-b_{2}^{2}\right)
 \]
 
 \end_inset
@@ -248,7 +248,7 @@ onde
 \end_inset
 
  e 
-\begin_inset Formula $c>\frac{1}{4}\left(\frac{b_{1}^{2}}{a_{1}}+b_{2}^{2}\right)$
+\begin_inset Formula $c>\frac{1}{4}\left(\frac{b_{1}^{2}}{a_{1}}-b_{2}^{2}\right)$
 \end_inset
 
 .
