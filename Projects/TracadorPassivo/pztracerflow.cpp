@@ -141,18 +141,17 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 #endif
     
     // Setting the phis
-    TPZFMatrix<REAL>  &phiQ =  datavec[0].phi;
-    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
-    TPZFMatrix<REAL>  &phiP =  datavec[1].phi;
-    TPZFMatrix<REAL>  &phiS =  datavec[2].phi;
-    TPZFMatrix<REAL>  &dphiS =  datavec[2].dphix;
+    TPZFMatrix<REAL>  &phiQ =  datavec[1].phi;
+    TPZFMatrix<REAL> &dphiQ = datavec[1].dphix;
+    TPZFMatrix<REAL>  &phiP =  datavec[2].phi;
+    TPZFMatrix<REAL>  &phiS =  datavec[0].phi;
+    TPZFMatrix<REAL>  &dphiS =  datavec[0].dphix;
     
 	
-	TPZFMatrix<REAL> &axesS = datavec[2].axes;
+	TPZFMatrix<REAL> &axesS = datavec[0].axes;
 	int phrQ = phiQ.Rows();
     int phrP = phiP.Rows();
     int phrS = phiS.Rows();
-    int rQP = phrQ+phrP;
     
     //current state n+1: stiffness matrix
     if(gState == ECurrentState)
@@ -163,31 +162,31 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         {
             ef(iq, 0) += 0.;
             
-            int ivecind = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+            int ivecind = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeind = datavec[1].fVecShapeIndex[iq].second;
             for (int jq=0; jq<phrQ; jq++)
             {
-                int jvecind = datavec[0].fVecShapeIndex[jq].first;
-                int jshapeind = datavec[0].fVecShapeIndex[jq].second;
-                REAL prod = datavec[0].fNormalVec(0,ivecind)*datavec[0].fNormalVec(0,jvecind)+
-                datavec[0].fNormalVec(1,ivecind)*datavec[0].fNormalVec(1,jvecind)+
-                datavec[0].fNormalVec(2,ivecind)*datavec[0].fNormalVec(2,jvecind);//dot product between u and v
-                ek(iq,jq) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+                int jvecind = datavec[1].fVecShapeIndex[jq].first;
+                int jshapeind = datavec[1].fVecShapeIndex[jq].second;
+                REAL prod = datavec[1].fNormalVec(0,ivecind)*datavec[1].fNormalVec(0,jvecind)+
+                datavec[1].fNormalVec(1,ivecind)*datavec[1].fNormalVec(1,jvecind)+
+                datavec[1].fNormalVec(2,ivecind)*datavec[1].fNormalVec(2,jvecind);//dot product between u and v
+                ek(iq+phrS,jq+phrS) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
             }
         }
         
         // Coupling terms between flux and pressure. Matrix B
         for(int iq=0; iq<phrQ; iq++)
         {
-            int ivecind = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+            int ivecind = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeind = datavec[1].fVecShapeIndex[iq].second;
             
             TPZFNMatrix<3> ivec(3,1);
-            ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-            ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+            ivec(0,0) = datavec[1].fNormalVec(0,ivecind);
+            ivec(1,0) = datavec[1].fNormalVec(1,ivecind);
+            ivec(2,0) = datavec[1].fNormalVec(2,ivecind);
             TPZFNMatrix<3> axesvec(3,1);
-            datavec[0].axes.Multiply(ivec,axesvec);
+            datavec[1].axes.Multiply(ivec,axesvec);
             
             REAL divwq = 0.;
             for(int iloc=0; iloc<fDim; iloc++)
@@ -198,10 +197,10 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 
                 REAL fact = (-1.)*weight*phiP(jp,0)*divwq;
                 // Matrix B
-                ek(iq, phrQ+jp) += fact;
+                ek(iq+phrS, phrS+phrQ+jp) += fact;
                 
                 // Matrix B^T
-                ek(phrQ+jp,iq) += fact;
+                ek(phrS+phrQ+jp,iq+phrS) += fact;
             }
         }
         
@@ -209,27 +208,27 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         REAL fXfLocP = fxfPQ;
         if(fForcingFunction) {
             TPZManVector<STATE> res(1);
-            fForcingFunction->Execute(datavec[1].x,res);
+            fForcingFunction->Execute(datavec[2].x,res);
             fXfLocP = res[0];
         }
         for(int ip=0; ip<phrP; ip++){
-            ef(phrQ+ip,0) += (-1.)*weight*fXfLocP*phiP(ip,0);
+            ef(phrS+phrQ+ip,0) += (-1.)*weight*fXfLocP*phiP(ip,0);
         }
         
         //Calculate the matrix contribution for saturation.
         REAL fXfLocS = fxfS;
         if(fForcingFunction) {
             TPZManVector<STATE> res(1);
-            fForcingFunction->Execute(datavec[2].x,res);
+            fForcingFunction->Execute(datavec[0].x,res);
             fXfLocS = res[0];
         }
         for(int in = 0; in < phrS; in++ ) {
             
-            ef(in+rQP, 0) += fTimeStep*weight*fXfLocS*phiS(in,0);
+            ef(in, 0) += fTimeStep*weight*fXfLocS*phiS(in,0);
             
             for(int jn = 0; jn < phrS; jn++)
             {
-                ek(in+rQP,jn+rQP) += weight*fPoros*phiS(in,0)*phiS(jn,0);
+                ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
             }
         }
     }//end stiffness matrix at ECurrentState
@@ -253,11 +252,11 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
             for(int jn = 0; jn < phrS; jn++)
             {
-                ek(in+rQP,jn+rQP) += weight*fPoros*phiS(in,0)*phiS(jn,0);
+                ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
                 
                 for(kd=0; kd<fDim; kd++)
                 {
-                    ek(in+rQP,jn+rQP) += weight*(fTimeStep*ConvDirAx[kd]*dphiS(kd,in)*phiS(jn,0));
+                    ek(in,jn) += weight*(fTimeStep*ConvDirAx[kd]*dphiS(kd,in)*phiS(jn,0));
                 }
             }
         }
@@ -287,11 +286,12 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 	}
 #endif
 	
-	TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
-	int phrQ = datavec[0].fVecShapeIndex.NElements();
+	TPZFMatrix<REAL>  &phiQ = datavec[1].phi;
+	int phrQ = datavec[1].fVecShapeIndex.NElements();
+    int phrS = datavec[0].phi.Rows();
     
 	REAL v2;
-	v2 = bc.Val2()(0,0);
+	v2 = bc.Val2()(1,0);
 	
 	switch (bc.Type()) {
 		case 0 :		// Dirichlet condition
@@ -299,7 +299,7 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 			for(int iq=0; iq<phrQ; iq++)
             {
                 //the contribution of the Dirichlet boundary condition appears in the flow equation
-                ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
+                ef(iq+phrS,0) += (-1.)*v2*phiQ(iq,0)*weight;
             }
             break;
 			
@@ -307,10 +307,10 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 			//primeira equacao
 			for(int iq=0; iq<phrQ; iq++)
             {
-                ef(iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
+                ef(iq+phrS,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
                 for (int jq=0; jq<phrQ; jq++) {
                     
-                    ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
+                    ek(iq+phrS,jq+phrS)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
                 }
             }
 			break;
@@ -318,9 +318,9 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
         case 2 :			// mixed condition
             for(int iq = 0; iq < phrQ; iq++) {
                 
-				ef(iq,0) += v2*phiQ(iq,0)*weight;
+				ef(iq+phrS,0) += v2*phiQ(iq,0)*weight;
 				for (int jq = 0; jq < phrQ; jq++) {
-					ek(iq,jq) += weight*bc.Val1()(0,0)*phiQ(iq,0)*phiQ(jq,0);
+					ek(iq+phrS,jq+phrS) += weight*bc.Val1()(0,0)*phiQ(iq,0)*phiQ(jq,0);
 				}
 			}
             
@@ -330,10 +330,10 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 			//primeira equacao
 			for(int iq=0; iq<phrQ; iq++)
             {
-                ef(iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
+                ef(iq+phrS,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
                 for (int jq=0; jq<phrQ; jq++) {
                     
-                    ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
+                    ek(iq+phrS,jq+phrS)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
                 }
             }
 			break;
@@ -343,7 +343,7 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 			for(int iq=0; iq<phrQ; iq++)
             {
                 //the contribution of the Dirichlet boundary condition appears in the flow equation
-                ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
+                ef(iq+phrS,0) += (-1.)*v2*phiQ(iq,0)*weight;
             }
             break;
 	}
@@ -356,23 +356,23 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 		return;
 	}
 
-	TPZFMatrix<REAL> &dphiLdAxes = dataleft[2].dphix;
-	TPZFMatrix<REAL> &dphiRdAxes = dataright[2].dphix;
-	TPZFMatrix<REAL> &phiL = dataleft[2].phi;
-	TPZFMatrix<REAL> &phiR = dataright[2].phi;
+	TPZFMatrix<REAL> &dphiLdAxes = dataleft[0].dphix;
+	TPZFMatrix<REAL> &dphiRdAxes = dataright[0].dphix;
+	TPZFMatrix<REAL> &phiL = dataleft[0].phi;
+	TPZFMatrix<REAL> &phiR = dataright[0].phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	
 	TPZFNMatrix<660> dphiL, dphiR;
-	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft[2].axes);
-	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright[2].axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft[0].axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright[0].axes);
 	
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
-    int rQPleft = dataleft[0].phi.Rows() + dataleft[1].phi.Rows();
-    int rQPright = dataright[0].phi.Rows() + dataright[1].phi.Rows();
 	int il,jl,ir,jr,id;
 	
+    int first_right = nrowl + dataleft[1].fVecShapeIndex.NElements() + dataleft[2].phi.Rows();
+    
 	//Convection term
 	REAL ConvNormal = 0.;
 	for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
@@ -383,7 +383,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         {
 			for(jl=0; jl<nrowl; jl++)
             {
-				ek(il+rQPleft,jl+rQPleft) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiL(jl,0));
+				ek(il,jl) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiL(jl,0));
 			}
 		}
         
@@ -392,7 +392,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         {
 			for(jl=0; jl<nrowl; jl++)
             {
-				ek(ir+rQPright+nrowl,jl+rQPleft) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiL(jl,0));
+				ek(ir+first_right,jl) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiL(jl,0));
 			}
 		}
 	} else
@@ -402,7 +402,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         {
 			for(jr=0; jr<nrowr; jr++)
             {
-				ek(ir+rQPright+nrowl,jr+rQPright+nrowl) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiR(jr,0));
+				ek(ir+first_right,jr+first_right) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiR(jr,0));
 			}
 		}
         
@@ -411,7 +411,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         {
 			for(jr=0; jr<nrowr; jr++)
             {
-				ek(il+rQPleft,jr+rQPright+nrowl) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiR(jr,0));
+				ek(il,jr+first_right) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiR(jr,0));
 			}
 		}
 	}
@@ -435,12 +435,11 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 	}
     
     
-    TPZFMatrix<REAL> &phiL = dataleft[2].phi;
+    TPZFMatrix<REAL> &phiL = dataleft[0].phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();
-    int rQPleft = dataleft[0].phi.Rows() + dataleft[1].phi.Rows();
 	REAL ConvNormal = 0.;
     
 	for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
@@ -454,14 +453,14 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				for(il=0; il<nrowl; il++){
 					for(jl=0; jl<nrowl; jl++)
                     {
-						ek(il+rQPleft,jl+rQPleft) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+						ek(il,jl) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
 					}
 				}
 			}
             else{
 				for(il=0; il<nrowl; il++)
                 {
-					ef(il+rQPleft,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(1,0)*phiL(il);
+					ef(il,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(0,0)*phiL(il);
 				}
 			}
 			
@@ -470,7 +469,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 			
         case 1: // Neumann
 			for(il=0; il<nrowl; il++) {
-				ef(il+rQPleft,0) += 0.;//ainda nao temos condicao de Neumann
+				ef(il,0) += 0.;//ainda nao temos condicao de Neumann
 			}
             break;
             
@@ -478,7 +477,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 			if(ConvNormal > 0.) {
 				for(il=0; il<nrowl; il++) {
 					for(jl=0; jl<nrowl; jl++) {
-						ek(il+rQPleft,jl+rQPleft) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+						ek(il,jl) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
 					}
 				}
 			}
@@ -495,14 +494,14 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				for(il=0; il<nrowl; il++){
 					for(jl=0; jl<nrowl; jl++)
                     {
-						ek(il+rQPleft,jl+rQPleft) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+						ek(il,jl) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
 					}
 				}
 			}
             else{
 				for(il=0; il<nrowl; il++)
                 {
-					ef(il+rQPleft,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(1,0)*phiL(il);
+					ef(il,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(0,0)*phiL(il);
 				}
 			}
 			break;
@@ -511,7 +510,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 			if(ConvNormal > 0.) {
 				for(il=0; il<nrowl; il++) {
 					for(jl=0; jl<nrowl; jl++) {
-						ek(il+rQPleft,jl+rQPleft) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+						ek(il,jl) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
 					}
 				}
 			}
@@ -552,25 +551,25 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
 	Solout.Resize(this->NSolutionVariables(var));
     
     if(var == 1){ //function (state variable Q)
-		Solout[0] = datavec[0].sol[0][0];
-        Solout[1] = datavec[0].sol[0][1];
+		Solout[0] = datavec[1].sol[0][0];
+        Solout[1] = datavec[1].sol[0][1];
 		return;
 	}
     
     if(var == 2){
-		Solout[0] = datavec[1].sol[0][0];//function (state variable p)
+		Solout[0] = datavec[2].sol[0][0];//function (state variable p)
 		return;
 	}
     
 	if(var == 3){
-		Solout[0] = datavec[2].sol[0][0];//function (state variable S)
+		Solout[0] = datavec[0].sol[0][0];//function (state variable S)
 		return;
 	}
     
 	if(var == 4) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
-			Solout[id] = fConvDir[id]*datavec[2].sol[0][0];//function (state variable Q*S)
+			Solout[id] = fConvDir[id]*datavec[0].sol[0][0];//function (state variable Q*S)
 		}
 		return;
 	}

@@ -21,9 +21,9 @@
  *@brief q: flow, p: pressure and s: saturation
  */
 /*
- * \f$ q + (k/visc)*grad(p) = 0  (Eq. 1, elliptic system)  \f$
- * \f$ div(q) = 0  (Eq. 2, elliptic system) \f$
- * \f$ poros*ds/dt + div(q*s) = 0  (Eq. 3, transport problem)  \f$
+ * \f$ poros*ds/dt + div(q*s) = 0  (Eq. 1, transport problem)  \f$
+ * \f$ q + (k/visc)*grad(p) = 0  (Eq. 2, elliptic system)  \f$
+ * \f$ div(q) = 0  (Eq. 3, elliptic system) \f$
  *
  */
 

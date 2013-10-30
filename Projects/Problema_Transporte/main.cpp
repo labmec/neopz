@@ -64,7 +64,7 @@ const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
 
-TPZGeoMesh *MalhaGeom();
+TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly);
 TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder,TPZMatConvectionProblem * &material);
 TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
@@ -85,8 +85,8 @@ int main(int argc, char *argv[])
 #endif
     
     int p = 0;
-    TPZGeoMesh *gmesh = MalhaGeom();
-    UniformRefine(gmesh, 1);
+    TPZGeoMesh *gmesh = MalhaGeom(1.,1.);
+    UniformRefine(gmesh, 4);
     ofstream arg1("gmesh.txt");
     gmesh->Print(arg1);
     
@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
     //an.LoadSolution(anL2.Solution());
-    //an.Solution().Print("sol_S0");
+    an.Solution().Print("sol_S0");
     
-    REAL deltaT=0.1; //second
+    REAL deltaT=0.001; //second
     material->SetTimeStep(deltaT);
     REAL maxTime = 1.;
     material->SetTimeValue(maxTime);
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 }
 
 
-TPZGeoMesh *MalhaGeom()
+TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly)
 {
 	
 	int Qnodes = 4;
@@ -145,10 +145,9 @@ TPZGeoMesh *MalhaGeom()
 	//indice dos nos
 	long id = 0;
 	REAL valx;
-	REAL dx=1.;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
-		valx = xi*dx;
+		valx = xi*Lx;
 		Node[id].SetNodeId(id);
 		Node[id].SetCoord(0 ,valx );//coord X
 		Node[id].SetCoord(1 ,0. );//coord Y
@@ -158,10 +157,10 @@ TPZGeoMesh *MalhaGeom()
 	
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
-		valx = 1. - xi*dx;
+		valx = Lx - xi*Lx;
 		Node[id].SetNodeId(id);
 		Node[id].SetCoord(0 ,valx );//coord X
-		Node[id].SetCoord(1 ,1. );//coord Y
+		Node[id].SetCoord(1 ,Ly);//coord Y
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
@@ -420,7 +419,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
         //TPZFMatrix<REAL> datagradients;
         //gradreconst->GetDataGradient(cmesh, datagradients);
         
-        if(cent%1==0){
+        if(cent%10==0){
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();
@@ -452,8 +451,8 @@ void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfil
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymaterial, TPZCompMesh* cmesh){
     
     mymaterial->SetLastState();
-    //TPZSkylineStructMatrix matsp(mphysics);
-	TPZSpStructMatrix matsp(cmesh);
+    TPZSkylineStructMatrix matsp(cmesh);
+	//TPZSpStructMatrix matsp(cmesh);
     
 	std::set< int > materialid;
 	int matid = mymaterial->MatId();

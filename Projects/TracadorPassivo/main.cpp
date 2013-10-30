@@ -110,12 +110,12 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
-    REAL Lx = 200.;
-    REAL Ly = 200.;
+    REAL Lx = 1.;
+    REAL Ly = 1.;
     
     int pq = 1;
     int pp;
@@ -137,13 +137,13 @@ int main(int argc, char *argv[])
     TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
     
     //RefinamentoPadrao3x3(gmesh,1,pt, true, matId+1, Area);
-    UniformRefine(gmesh, 1);
+    UniformRefine(gmesh, 3);
     ofstream arg("gmesh1.txt");
     gmesh->Print(arg);
     
-    TPZCompMesh *cmesh1 = CMeshFlux(gmesh, pq,false);
-    TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp,false);
-    TPZCompMesh *cmesh3 = CMeshSaturation(gmesh, ps,false);
+    TPZCompMesh *cmesh1 = CMeshSaturation(gmesh, ps,false);
+    TPZCompMesh *cmesh2 = CMeshFlux(gmesh, pq,false);
+    TPZCompMesh *cmesh3 = CMeshPressure(gmesh, pp,false);
     
     //---------------------------------------------------------------------
     // Cleaning reference of the geometric mesh to cmesh1
@@ -152,35 +152,35 @@ int main(int argc, char *argv[])
     TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,3,false);
     cmesh1->AdjustBoundaryElements();
     cmesh1->CleanUpUnconnectedNodes();
-    ofstream arg1("cmeshflux.txt");
+    ofstream arg1("cmeshsaturation.txt");
     cmesh1->Print(arg1);
     
     
     // Cleaning reference to cmesh2
     gmesh->ResetReference();
     cmesh2->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3,true);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3,false);
     cmesh2->AdjustBoundaryElements();
     cmesh2->CleanUpUnconnectedNodes();
-    ofstream arg2("cmeshpressure.txt");
+    ofstream arg2("cmeshflux.txt");
     cmesh2->Print(arg2);
     
     // Cleaning reference to cmesh3
     gmesh->ResetReference();
     cmesh3->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,2,false);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,2,true);
     cmesh3->AdjustBoundaryElements();
     cmesh3->CleanUpUnconnectedNodes();
-    ofstream arg3("cmeshsaturation.txt");
+    ofstream arg3("cmeshpressure.txt");
     cmesh3->Print(arg3);
 */
-    ofstream arg1("cmeshflux.txt");
+    ofstream arg1("cmeshsaturation.txt");
     cmesh1->Print(arg1);
     
-    ofstream arg2("cmeshpressure.txt");
+    ofstream arg2("cmeshflux.txt");
     cmesh2->Print(arg2);
     
-    ofstream arg3("cmeshsaturation.txt");
+    ofstream arg3("cmeshpressure.txt");
     cmesh3->Print(arg3);
     
     ofstream arg4("gmesh2.txt");
@@ -188,9 +188,9 @@ int main(int argc, char *argv[])
 
     //-----------------------------------------------------------------------
     //Set initial conditions for saturation
-    TPZAnalysis an0(cmesh3);
+    TPZAnalysis an0(cmesh1);
     int nrs = an0.Solution().Rows();
-    TPZVec<STATE> solini(nrs,0);
+    TPZVec<STATE> solini(nrs,1);
     //cmesh3->Solution() = solini;
     //cmesh3->LoadSolution(solini);
     TPZCompMesh  * cmeshL2 = SetCondicaoInicial(gmesh, ps, solini);
@@ -199,9 +199,9 @@ int main(int argc, char *argv[])
     
     TPZAnalysis anL2(cmeshL2);
     SolveSyst(anL2, cmeshL2);
-    anL2.Solution().Print("sol");
+   // anL2.Solution().Print("sol");
     an0.LoadSolution(anL2.Solution());
-    an0.Solution().Print("sol_S0");
+   // an0.Solution().Print("sol_S0");
     //-----------------------------------------------------------------------
     
     //malha multifisica
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 //    //cmesh1->LoadSolution(meshvec[0]->Solution());
 //    PosProcessFlux(anflux, plotfile2);
     
-    REAL deltaT = 0.1; //second
+    REAL deltaT = 0.01; //second
     REAL maxTime = 1.;
     SolveSystemTransient(deltaT, maxTime, meshvec, mphysics);
     
@@ -873,8 +873,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool 
     BCond0 = material1->CreateBC(mat1, bc0,neumann, val1, val2);
     BCond1 = material1->CreateBC(mat1, bc1,dirichletoutflow, val1, val2);
     BCond2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
-    val2(0,0)=vazao;
-    val2(1,0)=inflow;
+    val2(0,0)=inflow;
+    val2(1,0)=vazao;
     BCond3 = material1->CreateBC(mat1, bc3,neumanninflow, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
@@ -1036,7 +1036,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
 		an.Solve();
 		Lastsolution = an.Solution();
 		
-        if(cent%1==0){
+        if(cent%10==0){
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();
@@ -1201,8 +1201,8 @@ void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCompMesh* mphysics){
     
     mymaterial->SetLastState();
-    //TPZSkylineStructMatrix matsp(mphysics);
-	TPZSpStructMatrix matsp(mphysics);
+    TPZSkylineStructMatrix matsp(mphysics);
+	//TPZSpStructMatrix matsp(mphysics);
     //matsp.SetNumThreads(30);
     
 	std::set< int > materialid;
