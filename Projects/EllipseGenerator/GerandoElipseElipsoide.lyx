@@ -1,0 +1,379 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language brazilian
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 3cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Aplicação do método dos mínimos quadrados para ajustar uma elipse a umconjunto
+ de pontos.
+\end_layout
+
+\begin_layout Author
+Prof.
+ Dr.
+ Jorge Lizardo Díaz Calle
+\end_layout
+
+\begin_layout Part
+Determinar uma elipse com eixos paralelos aos eixos cartesianos
+\end_layout
+
+\begin_layout Section
+Uma equação quadrática no formato de uma cônica elíptica
+\end_layout
+
+\begin_layout Subsection
+Caso bi-dimensional
+\end_layout
+
+\begin_layout Standard
+Seja a equação quadrática em 
+\begin_inset Formula $\mathbb{R}^{2}$
+\end_inset
+
+,
+\begin_inset Formula 
+\begin{equation}
+a_{1}x^{2}+a_{2}y^{2}+b_{1}x+b_{2}y+c=0\label{eq:1}
+\end{equation}
+
+\end_inset
+
+que representa uma elipse com eixos paralelos aos eixos coordenados, os
+ coeficientes 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+ e 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ não são identicamente nulos.
+ Assim consideramos, sem perda de generalidade, 
+\begin_inset Formula $a_{2}=-1.$
+\end_inset
+
+.
+ Assim a equação (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:1"
+
+\end_inset
+
+) pode ser escrita como (utilizando quatro coeficientes na equação quadrática):
+ 
+\begin_inset Formula 
+\[
+y^{2}=a_{1}x^{2}+b_{1}x+b_{2}y+c.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Seja um conjunto de 
+\begin_inset Formula $n$
+\end_inset
+
+ pontos 
+\begin_inset Formula $P$
+\end_inset
+
+, com 
+\begin_inset Formula $n\geq4=2*dim$
+\end_inset
+
+, 
+\begin_inset Formula $dim=dimension(\mathbb{R}^{2})$
+\end_inset
+
+, substituindo as coordenadas na equação teremos um sistema de equações
+ quadrado ou sobredimensionado:
+\begin_inset Formula 
+\[
+y_{i}^{2}=a_{1}x_{i}^{2}+b_{1}x_{i}+b_{2}y_{i}+c\qquad i=0,...,n-1.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+O sistema pode ser escrito como:
+\begin_inset Formula 
+\[
+Y=HU,
+\]
+
+\end_inset
+
+onde 
+\begin_inset Formula $Y_{n\times1}=\left[y_{i}^{2}\right]_{i=0,...,n-1}$
+\end_inset
+
+, 
+\begin_inset Formula $H_{n\times4}=\left[x_{i}^{2}\: x_{i}\: y_{i}\:1.\right]$
+\end_inset
+
+ e 
+\begin_inset Formula $U_{4\times1}=\left[a_{1}\: b_{1}\: b_{2}\: c\right]^{t}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Aplicando o método dos mínimos quadrados multiplicamos o sistema pela transposta
+ de 
+\begin_inset Formula $H$
+\end_inset
+
+ obtendo um sistema quadrado 
+\begin_inset Formula $4\times4$
+\end_inset
+
+, da forma 
+\begin_inset Formula 
+\[
+H^{t}Y=H^{t}HU
+\]
+
+\end_inset
+
+ então resolvendo o sistema (se tiver solução) obtemos uma solução 
+\begin_inset Formula $U$
+\end_inset
+
+.
+ A equação quadrática inicial com os valores dos coeficientes obtidos na
+ variável 
+\begin_inset Formula $U$
+\end_inset
+
+, é 
+\begin_inset Formula 
+\begin{equation}
+a_{1}x^{2}+b_{1}x-y^{2}+b_{2}y=-c\label{eq:2}
+\end{equation}
+
+\end_inset
+
+pode ser expressada complementando quadrados como 
+\begin_inset Formula 
+\[
+-a_{1}(x-x_{0})^{2}+(y-y_{0})^{2}=c-\frac{1}{4}\left(\frac{b_{1}^{2}}{a_{1}}+b_{2}^{2}\right)
+\]
+
+\end_inset
+
+onde 
+\begin_inset Formula $x_{0}=-\frac{b_{1}}{2a_{1}}$
+\end_inset
+
+ e 
+\begin_inset Formula $y_{0}=\frac{b_{2}}{2}$
+\end_inset
+
+.
+ Para ser uma elipse é necessário que 
+\begin_inset Formula $a_{1}<0$
+\end_inset
+
+ e 
+\begin_inset Formula $c>\frac{1}{4}\left(\frac{b_{1}^{2}}{a_{1}}+b_{2}^{2}\right)$
+\end_inset
+
+.
+ Agora dando a forma standard de uma elipse temos: 
+\begin_inset Formula 
+\[
+\frac{(x-x_{0})^{2}}{a^{2}}+\frac{(y-y_{0})^{2}}{b^{2}}=1,
+\]
+
+\end_inset
+
+onde , 
+\begin_inset Formula $a^{2}=\left(\frac{1}{4a_{1}^{2}}\right)\left(b_{1}^{2}-a_{1}b_{2}^{2}-4a_{1}c\right)$
+\end_inset
+
+ e 
+\begin_inset Formula $b^{2}=\left(\frac{-1.}{4a_{1}}\right)\left(b_{1}^{2}-a_{1}b_{2}^{2}-4a_{1}c\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Caso tri-dimensional
+\end_layout
+
+\begin_layout Standard
+Seja a equação quadrática em 
+\begin_inset Formula $\mathbb{R}^{3}$
+\end_inset
+
+,
+\begin_inset Formula 
+\begin{equation}
+a_{1}x^{2}+a_{2}y^{2}+a_{3}z^{2}+b_{1}x+b_{2}y+b_{3}z+c=0\label{eq:1-1}
+\end{equation}
+
+\end_inset
+
+que representa uma elipse com eixos paralelos aos eixos coordenados, os
+ coeficientes 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+, 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ e 
+\begin_inset Formula $a_{3}$
+\end_inset
+
+ não são identicamente nulos.
+ Assim consideramos, sem perda de generalidade, 
+\begin_inset Formula $a_{3}=-1.$
+\end_inset
+
+.
+ Assim a equação (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:1-1"
+
+\end_inset
+
+) pode ser escrita como 
+\begin_inset Formula 
+\[
+z^{2}=a_{1}x^{2}+a_{2}y^{2}+b_{1}x+b_{2}y+b_{3}z+c.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Seja um conjunto de 
+\begin_inset Formula $n$
+\end_inset
+
+ pontos 
+\begin_inset Formula $P$
+\end_inset
+
+, com 
+\begin_inset Formula $n\geq6=2*dim$
+\end_inset
+
+, 
+\begin_inset Formula $dim=dimension(\mathbb{R}^{3})$
+\end_inset
+
+, substituindo as coordenadas na equação teremos um sistema de equações
+ quadrado ou sobredimensionado:
+\begin_inset Formula 
+\[
+z_{i}^{2}=a_{1}x_{i}^{2}+a_{2}y_{i}^{2}+b_{1}x_{i}+b_{2}y_{i}+b_{3}z_{i}+c\qquad i=0,...,n-1.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+O sistema pode ser escrito como:
+\begin_inset Formula 
+\[
+Y=HU,
+\]
+
+\end_inset
+
+onde 
+\begin_inset Formula $Y_{n\times1}=\left[z_{i}^{2}\right]_{i=0,...,n-1}$
+\end_inset
+
+, 
+\begin_inset Formula $H_{n\times4}=\left[x_{i}^{2}\: x_{i}\: y_{i}^{2}\: y_{i}\: z_{i}\:1.\right]$
+\end_inset
+
+ e 
+\begin_inset Formula $U_{4\times1}=\left[a_{1}\: b_{1}\: a_{2}\: b_{2}\: b_{3}\: c\right]^{t}$
+\end_inset
+
+.
+\end_layout
+
+\end_body
+\end_document
