@@ -205,10 +205,14 @@ public:
         
         
     };
-    /**
+	/**
 	 Construtor vazio inicializando com zero
 	 */
-    TPZTensor() : fData(6, T(0.)){ }
+#ifdef _AUTODIFF
+    TPZTensor() : fData(6) { }    // When T is the Fad type, the elements of the fData are initialized with T zero. See tfad.h
+#else
+    TPZTensor() : fData(6, T(0.)) { }
+#endif
     
     /**
 	 Construtor vazio inicializando com Init
