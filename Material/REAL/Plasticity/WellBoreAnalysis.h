@@ -307,4 +307,7 @@ private:
     
 };
 
+// External variables
+extern int startfrom;
+
 #endif

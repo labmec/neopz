@@ -23,6 +23,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 #endif
 
+int startfrom = 0;
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
 {
@@ -1579,7 +1580,6 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
     }
     
     std::stringstream filename;
-    extern int startfrom;
     filename << "applyhistory_" << startfrom << ".txt";
     std::ofstream out(filename.str().c_str());
 
