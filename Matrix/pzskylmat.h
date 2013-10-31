@@ -450,6 +450,17 @@ public:
 	
 
 	virtual std::string ClassName() const   { return( "TPZSkylMatrix"); }
+
+
+	long Size(const long column) const 
+	{
+#ifdef DEBUG
+		if (column < 0 || column >= this->Rows()) {
+			DebugStop();
+		}
+#endif
+		return fElem[column+1]-fElem[column];
+	}
 	
 	
 protected:
@@ -470,7 +481,7 @@ private:
 	//static int  Error(const char *msg1,const char* msg2="" );
 	int  Clear();
 	void Copy (const TPZSkylMatrix<TVar> & );
-	long Size(const long column) const {return fElem[column+1]-fElem[column];}
+
 	static long NumElements(const TPZVec<long> &skyline);
 	static void InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
 	/**

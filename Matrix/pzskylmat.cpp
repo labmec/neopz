@@ -1551,6 +1551,11 @@ void TPZSkylMatrix<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 template<class TVar>
 void TPZSkylMatrix<TVar>::SetSkyline(const TPZVec<long> &skyline)
 {
+#ifdef DEBUG
+	for (long i = 0 ; i < this->Rows() ; i++){
+		if (skyline[i] < 0 || skyline[i] > i) DebugStop();
+	}
+#endif
 	fElem.Fill(0);
 	InitializeElem(skyline,fStorage,fElem);
 }
