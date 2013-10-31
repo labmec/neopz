@@ -209,24 +209,17 @@ int main()
 void TestePlasticStepPV()
 {
 	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
-	//TPZPlasticState<REAL> plasticstate;
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.25);
+	ER.SetUp(100., 0.25);
 	REAL Alpha = 0.;
 	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(Alpha);
 	stepPV.fYC = materialmodel;
 	stepPV.fER = ER;
 	
-	//    epst.XX()=-0.001;
-	//    epst.XY()=0.;
-	//    epst.XZ()=0.;
-	//    epst.YY()=-0.0056;
-	//    epst.YZ()=0.;
-	//    epst.ZZ()=-0.003;
-	REAL iniEpsAxi = -100000.;
+	REAL iniEpsAxi = -0.0001;
 	std::map<REAL,REAL> loadcicle;
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 1000; i++) {
 		epsT.XX() = iniEpsAxi*i;
 		stepPV.ApplyStrainComputeSigma(epsT,Sigma);
 		loadcicle[-epsT.XX()] = -Sigma.XX();
@@ -241,7 +234,7 @@ void TestePlasticStepPV()
 		out << ",{" << it->first << "," << it->second << "}";
 	}
 	out << "};" << endl;
-	out << "ListPlot[loadcicle]" << endl;
+	out << "ListPlot[loadcicle,Joined->True,PlotStyle->Thick]" << endl;
 }
 
 void TaylorCheck3() // Tomara que o ultimo!!
