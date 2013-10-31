@@ -269,7 +269,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 7;
-                NRefs = 6;
+                NRefs = 7;
             }
             else {
 				MaxPOrder = 20;
@@ -467,54 +467,52 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 	ZeroTolerance(Tol);
 	int level;
 
+	// To get information on approximate solution about gradient and curvature
+	REAL MaxLaplacian, MinLaplacian, MaxGrad, MinGrad;
+	MaxLaplacian = MaxGrad = 0.;
+	MinLaplacian = MinGrad = 100.;
+
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el) continue;
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		// If error is small and laplacian value is very little then the order will be minimized
         STATE GradNorm, LaplacianValue;
-//		if(nref < 5)
 		GradNorm = GradientNormOnCorners(el);
-		if(ervecbyel[i] < 100*Tol && nref > 3) 
+		LaplacianValue = LaplacianOnCorners(el);
+		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		// Storing information on max and min values of the gradient and curvature values
+		MaxLaplacian = (MaxLaplacian > LaplacianValue) ? MaxLaplacian : LaplacianValue;
+		MaxGrad = (MaxGrad > GradNorm) ? MaxGrad : GradNorm;
+		MinLaplacian = (MinLaplacian > LaplacianValue) ? LaplacianValue : MinLaplacian;
+		MinGrad = (MinGrad > GradNorm) ? GradNorm : MinGrad;
+
+		// If error on element is little then do nothing
+		if(ervecbyel[i] < 1.e5*Tol) 
 			continue;
-        if(GradNorm > 2.) {
-            // Dividing element one level
-            el->Divide(el->Index(),subels,0);
-            // Dividing sub elements one level more
-	        for(j=0;j<subels.NElements();j++) {
-				TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-				level = scel->Reference()->Level();
-				LaplacianValue = Laplacian(scel);
-				if(LaplacianValue > 1.) {
-					pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-					// Applying p+1 order for all subelements
-					if(pelement+1 < MaxPOrder)
-						scel->PRefine(pelement+1);
-				}
-				if(level < 7)
+		// If error on element is left to half of the max error, the element will be divided or p-incremented
+		if(ervecbyel[i] < 0.2*MaxError) {
+			if(GradNorm < 1. && pelement < MaxPOrder)
+				el->PRefine(pelement+1);
+			else
+				el->Divide(el->Index(),subels);
+		}
+//		else if(ervecbyel[i] < 0.25*MaxError) {
+		//}
+		else {
+			// Verifying if laplacian is high then increment the order
+			if(LaplacianValue > 2. && pelement < MaxPOrder)
+				el->PRefine(pelement+1);
+			// Dividing element one level
+			el->Divide(el->Index(),subels,0);
+			// Dividing sub elements one level more if high gradient was found. 
+			// For first analysis the Gradient more than a unit is considered high, because the elements could be large
+	        if(GradNorm > 10. || (nref<2 && GradNorm > 2.)) {
+				for(j=0;j<subels.NElements();j++) {
+					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
 					scel->Divide(subels[j],subsubels,0);
+				}
 			}
 		}
-		else {
-			if(ervecbyel[i] > 0.2*MaxError) {
-				LaplacianValue = Laplacian(el);
-				level = el->Reference()->Level();
-	            // Dividing element one level
-				if(level < 5) {
-//					pelement = el->PreferredSideOrder(el->NConnects() - 1);
-			        el->Divide(el->Index(),subels,0);
-					el = 0;
-//					if((LaplacianValue > 2.) && (pelement+dp < MaxPOrder-1)) {
-	//					for(j=0;j<subels.NElements();j++) {
-		//					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-			//				scel->PRefine(pelement+dp);
-				//		}
-					//}
-				}
-				if(el && LaplacianValue > 1.) {
-					pelement = el->PreferredSideOrder(el->NConnects() - 1);
-					el->PRefine(pelement+dp);
-				}
-			}
 /*			else if(GradNorm < 0.1) {
 				LaplacianValue = Laplacian(el);
 				if(LaplacianValue < 0.1) {
@@ -524,8 +522,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 						el->PRefine(pelement-1);
 				}
 			}*/
-		}
 	}
+	// Adjusting boundary elements
+	cmesh->AdjustBoundaryElements();
+	cmesh->InitializeBlock();
+	// Printing information stored
+	outLaplace << "\n\n" << nref << "Ref: MinError = " << MinError << "  MaxError = " << MaxError << std::endl;
+	outLaplace << "MaxGrad = " << MaxGrad << "  MinGrad = " << MinGrad << "  MaxLaplacian = " << MaxLaplacian << "  MinLaplacian = " << MinLaplacian << "\n\n";
 }
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
@@ -533,6 +536,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
  */
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinError) {
     long neq = analysis.Mesh()->NEquations();
+	int dim = analysis.Mesh()->Dimension();
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
@@ -547,6 +551,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 	REAL maxError = 0.0;
     for(i=0L;i<nel;i++) {
         TPZCompEl *el = (TPZCompEl *) elvec[i];
+		if(!el || el->Dimension() != dim) continue;
         if(el) {
             errors.Fill(0.0);
             el->EvaluateError(analysis.fExact, errors, 0);
