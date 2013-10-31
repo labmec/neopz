@@ -156,6 +156,10 @@ ENABLE_TESTING()
 			#Projeto Lua 2012
 			add_subdirectory(Lua01)
 
+			#teste nathan
+			add_subdirectory(ExemploSimples)
+			add_subdirectory(PlasticityPV)
+
 			#Projeto Denise
 			#add_subdirectory(HdivPressureTeste)
 			add_subdirectory(HpAdaptivity)
