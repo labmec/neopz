@@ -487,7 +487,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 		MinGrad = (MinGrad > GradNorm) ? GradNorm : MinGrad;
 
 		// If error on element is little then do nothing
-		if(ervecbyel[i] < 1.e5*Tol) 
+		if(ervecbyel[i] < 1.e2*Tol) 
 			continue;
 		// If error on element is left to half of the max error, the element will be divided or p-incremented
 		if(ervecbyel[i] < 0.2*MaxError) {
@@ -506,7 +506,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 			el->Divide(el->Index(),subels,0);
 			// Dividing sub elements one level more if high gradient was found. 
 			// For first analysis the Gradient more than a unit is considered high, because the elements could be large
-	        if(GradNorm > 10. || (nref<2 && GradNorm > 2.)) {
+	        if(GradNorm > 5. || (nref<2 && GradNorm > 1.)) {
 				for(j=0;j<subels.NElements();j++) {
 					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
 					scel->Divide(subels[j],subsubels,0);
