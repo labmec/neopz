@@ -78,6 +78,8 @@ void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
 TPZGeoMesh *MalhaCubo(string FileName);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 
+void CopyTo(TPZSkylMatrix <REAL> * skylmat, TPZSkylMatrix<TPZFlopCounter> &fp_counter);
+
 void help(const char* prg)
 {
 	cout << "Compute the Decompose_Cholesky, Decompose_LDLt, MultAdd methods for a matrix generated of a mesh" << endl;
@@ -217,21 +219,26 @@ int main(int argc, char *argv[])
         an.Assemble();
         TPZAutoPointer<TPZMatrix<REAL> > skylmat1 = new TPZSkylMatrix<REAL>();
         skylmat1 = an.Solver().Matrix();
+	TPZSkylMatrix<REAL> *orig = dynamic_cast<TPZSkylMatrix<REAL> *> (skylmat1.operator->());
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat2 = skylmat1->Clone();
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat3 = skylmat1->Clone();
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat4 = skylmat1->Clone();
-	TPZFMatrix<REAL> * f = new TPZFMatrix<REAL>(neq,1);   
-	TPZFMatrix<TPZFlopCounter> * f2 = new TPZFMatrix<TPZFlopCounter>(neq,1);
-	TPZSkylMatrix<TPZFlopCounter> fp_counter(skylmat1);
- 
+	TPZFMatrix<REAL> f(neq,1,M_PI);
+	TPZFMatrix<TPZFlopCounter > f2(neq,1,M_PI);
+	TPZSkylMatrix <TPZFlopCounter> fp1;
+	TPZSkylMatrix <TPZFlopCounter> fp2;
+	
+	CopyTo(orig,fp1);
+	CopyTo(orig,fp2);
+		
 	if (clk_rst.was_set()) {
     		clk_rst.start();
-    		skylmat1->Decompose_Cholesky();
+    		//skylmat1->Decompose_Cholesky();
     		clk_rst.stop();
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
-		  fp_counter.Decompose_Cholesky();
-		  c = c - TPZFlopCounter::gCount;
+		  fp1.Decompose_Cholesky();
+		  c = TPZFlopCounter::gCount - c;
 		  c.Print();
 		}
 	}
@@ -241,20 +248,21 @@ int main(int argc, char *argv[])
     		skylmat2->Decompose_LDLt();
     		ldlt_rst.stop();
 		if (print_flops.was_set()) {
-		  TPZSkylMatrix<TPZFlopCounter> fp_counter(skylmat2);
-		  fp_counter.Decompose_LDLt();
-		  TPZFlopCounter::gCount.Print();
+		  TPZCounter c = TPZFlopCounter::gCount;
+		  fp2.Decompose_LDLt();
+		  c = c - TPZFlopCounter::gCount;
+		  c.Print();
 		}
 	}
 
 	if (sfwd_rst.was_set()) {
 		if (!clk_rst.was_set()) skylmat1->Decompose_Cholesky();
     		sfwd_rst.start();
-    		skylmat1->Subst_Forward(f);
+    		skylmat1->Subst_Forward(&f);
     		sfwd_rst.stop();
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
-		  fp_counter.Subst_Forward(f2);
+		  fp1.Subst_Forward(&f2);
 		  c = c - TPZFlopCounter::gCount;
 		  c.Print();
 		}
@@ -263,11 +271,11 @@ int main(int argc, char *argv[])
 	if (sbck_rst.was_set()){
 		if (!clk_rst.was_set()) skylmat1->Decompose_Cholesky();
     		sbck_rst.start();
-    		skylmat1->Subst_Backward(f);
+    		skylmat1->Subst_Backward(&f);
     		sbck_rst.stop();
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
-		  fp_counter.Subst_Backward(f2);
+		  fp1.Subst_Backward(&f2);
 		  c = c - TPZFlopCounter::gCount;
 		  c.Print();
 		}
@@ -659,3 +667,18 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
         }
 }
      
+void CopyTo(TPZSkylMatrix <REAL> * skylmat1, TPZSkylMatrix<TPZFlopCounter> &fp_counter)
+{
+	fp_counter.Redim(skylmat1->Rows(),skylmat1->Cols());
+	TPZVec <long> skylvec(skylmat1->Rows());
+	for (long i = 0; i < skylmat1->Rows(); i++) {
+		skylvec[i] = i - skylmat1->Size(i) + 1 ;
+	}
+
+	fp_counter.SetSkyline(skylvec);
+	for (int i = 0; i < skylmat1->Rows(); i++) {
+		for (int j = 0 ; j < skylmat1->Cols(); j++) {
+			fp_counter.PutVal(i, j, skylmat1->GetVal(i,j));
+		}
+	}
+}
