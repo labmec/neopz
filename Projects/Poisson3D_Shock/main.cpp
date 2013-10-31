@@ -269,7 +269,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 7;
-                NRefs = 7;
+                NRefs = 5;
             }
             else {
 				MaxPOrder = 20;
@@ -491,8 +491,10 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 			continue;
 		// If error on element is left to half of the max error, the element will be divided or p-incremented
 		if(ervecbyel[i] < 0.2*MaxError) {
-			if(GradNorm < 1. && pelement < MaxPOrder)
+			// If element has high curvature it is more approppriated to increment order
+			if(LaplacianValue > 100.*MinLaplacian && pelement < MaxPOrder)
 				el->PRefine(pelement+1);
+			// else the element is divided
 			else
 				el->Divide(el->Index(),subels);
 		}
@@ -500,13 +502,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 		//}
 		else {
 			// Verifying if laplacian is high then increment the order
-			if(LaplacianValue > 2. && pelement < MaxPOrder)
+			if(LaplacianValue > 100*MinLaplacian && pelement < MaxPOrder)
 				el->PRefine(pelement+1);
 			// Dividing element one level
 			el->Divide(el->Index(),subels,0);
 			// Dividing sub elements one level more if high gradient was found. 
 			// For first analysis the Gradient more than a unit is considered high, because the elements could be large
-	        if(GradNorm > 5. || (nref<2 && GradNorm > 1.)) {
+	        if(GradNorm > .5*MaxGrad || (nref<2 && GradNorm > .1)) {
 				for(j=0;j<subels.NElements();j++) {
 					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
 					scel->Divide(subels[j],subsubels,0);
