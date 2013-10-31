@@ -371,7 +371,7 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points,std::ostream 
 	// Applying least squares for these five points
 	if(!LeastSquaresToGetSimpleEllipse(dim,Points,Coeffs))
 		return false;
-	out << "\n\Coefficients after least square for quadratic equation:";
+	out << "\n\nCoefficients after least square for quadratic equation:";
 
 	// Making zero depending on Tolerance
 	float Tol;
