@@ -483,14 +483,14 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
-    int nn=this->NConnects();
+    int nn=TPZCompElHDiv::NConnects();
     for(in=0;in<nn;in++){
 //#ifdef LOG4CXX
 //				std::stringstream sout;
 //				sout << "conect " << in<< " seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
 //				LOGPZ_DEBUG(logger,sout.str())
 //#endif
-        result += this->NConnectShapeF(in);
+        result += TPZCompElHDiv::NConnectShapeF(in);
     }
 		
 		
@@ -878,8 +878,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 cols=jv%numdof;
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    data.dsol[is](ilinha,0)+=(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
-                    data.dsol[is](ilinha,1)+=(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
+                    data.dsol[is](ilinha,0)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
+                    data.dsol[is](ilinha,1)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
                 }
             }
             jv++;
