@@ -1060,7 +1060,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<90,STATE> du_exact(dim,ndof);
+	TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
 	TPZManVector<REAL,10> intpoint(3), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
@@ -1082,23 +1082,19 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
         ref->X(intpoint, data.x);
 		if(fp) {
 			fp(data.x,u_exact,du_exact);
-			//		std::cout<<" funcao exata calculada no pto X " << data.x<< " valor "<< u_exact<<" dudx "<<du_exact <<std::endl;
-			
-			//tentando implementar um erro meu
+				
 			if(data.fVecShapeIndex.NElements())
 			{
 				this->ComputeSolution(intpoint, data);
-				//		std::cout<<"erro ANTES de Hdiv 1 "<<values<<std::endl;
-				material->ErrorsHdiv(data,u_exact,du_exact,values);
-				//		std::cout<<"erro depois de Hdiv 1 "<<values<<std::endl;
 				
+				material->ErrorsHdiv(data,u_exact,du_exact,values);
+								
 			}
 			else{
 				this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 				material->Errors(data.x,data.sol[0],data.dsol[0],data.axes,flux_el,u_exact,du_exact,values);
 			}
-			
-			//	std::cout<<"erro depois de Hdiv 2 "<<values<<std::endl;
+
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;
 		}
