@@ -82,12 +82,13 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const Pi = 4.*atan(1.);
 
-bool ftriang = false;
+bool ftriang = true;
 bool isStab = false;
 bool iscontinuou = false;
 bool useh2 = true;
 REAL delta1 = 0.5;
 REAL delta2 = 0.5;
+bool isFullHdiv=false;
 
 #include "pztransfer.h"
 int main(int argc, char *argv[])
@@ -103,17 +104,17 @@ int main(int argc, char *argv[])
     
     for(int p = 1; p<2; p++)
     {
-        int pq = 1;//p;
+        int pq = p;
         int pp;
         if(ftriang==true){
-            pp = pq;
+            pp = pq-1;
         }else{
             pp = pq;
         }
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 0; ndiv<=3; ndiv++)
+        for (ndiv = 0; ndiv< 5; ndiv++)
         {
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
@@ -327,8 +328,13 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     
     cmesh->InsertMaterialObject(mat);
 	
-	cmesh->SetAllCreateFunctionsHDiv();
-	//cmesh-> SetAllCreateFunctionsHDivFull();
+
+    if(isFullHdiv){
+        cmesh->SetAllCreateFunctionsHDivFull();
+    }
+    else{
+		cmesh->SetAllCreateFunctionsHDiv();
+    }
 	
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
@@ -555,13 +561,13 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     
     solp.Resize(1, 0.);
     flux.Resize(3, 1.);
-    flux(0,0)=flux(1,0)=0.;
+    flux(0,0)=flux(1,0)=flux(2,0)=0.;
     double x = pt[0];
     double y = pt[1];
     solp[0] = sin(Pi*x)*sin(Pi*y);
     flux(0,0)=-Pi*cos(Pi*x)*sin(Pi*y);
     flux(1,0)=-Pi*cos(Pi*y)*sin(Pi*x);
-    flux(2,0)=2*Pi*cos(Pi*y)*sin(Pi*x);
+    flux(2,0)=2*Pi*Pi*sin(Pi*y)*sin(Pi*x);
 }
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
