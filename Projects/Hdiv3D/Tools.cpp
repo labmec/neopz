@@ -391,64 +391,63 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 
 
 TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
-		
-		TPZGeoMesh *gmesh = new TPZGeoMesh();
-		
-		//Criar ns
-		const int nnode = 4;//AQUI
-		const int nelem = 1;
-		TPZGeoEl *elvec[nelem];	
-		const int dim = 3;//AQUI
-		
-		REAL co[nnode][dim] ={{0.,0.,0.},{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
-		int indices[3][nnode];//como serao enumerados os nos
-		
-		//el 1
-		indices[0][0] = 0;
-		indices[0][1] = 1;
-		indices[0][2] = 2;
-		indices[0][3] = 3;
-		
-		
-		int nod;
-		TPZVec<REAL> coord(dim);
-		for(nod=0; nod<nnode; nod++) {
-				int nodind = gmesh->NodeVec().AllocateNewElement();
-				
-				for(int d = 0; d < dim; d++)
-				{
-						coord[d] = co[nod][d];
-				}
-				gmesh->NodeVec()[nod].Initialize(nodind,coord,*gmesh);
-		}
-		//Criacao de elementos
-		
-		
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    //Criar ns
+    const int nnode = 4;//AQUI
+    const int nelem = 1;
+    TPZGeoEl *elvec[nelem];
+    const int dim = 3;//AQUI
+    
+    REAL co[nnode][dim] ={{0.,0.,0.},{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
+    int indices[3][nnode];//como serao enumerados os nos
+    
+    //el 1
+    indices[0][0] = 0;
+    indices[0][1] = 1;
+    indices[0][2] = 2;
+    indices[0][3] = 3;
+    
+    
+    int nod;
+    TPZVec<REAL> coord(dim);
+    for(nod=0; nod<nnode; nod++) {
+        int nodind = gmesh->NodeVec().AllocateNewElement();
+        
+        for(int d = 0; d < dim; d++)
+        {
+            coord[d] = co[nod][d];
+        }
+        gmesh->NodeVec()[nod].Initialize(nodind,coord,*gmesh);
+    }
+    //Criacao de elementos
+    
+    
 		TPZVec<long> nodind1(3);
 		TPZVec<long> nodind2(3);
 		for(int i=0; i<3; i++){
 				nodind1[i] = indices[0][i];
-				
-		}
-		
+        
+    }
+    
 		long index;
 		elvec[0] = gmesh->CreateGeoElement(ETetraedro,nodind1,1,index); //AQUI
-		
-		
-		
-		gmesh->BuildConnectivity();
-		
-		
-		//Cria as condicoes de contorno
-//		TPZGeoElBC gbc1(elvec[0],3,-1);// condicao de fronteira tipo -1: 
-//		TPZGeoElBC gbc2(elvec[0],5,-2);// condicao de fronteira tipo -2: 
-		
+    
+    
+    
+    gmesh->BuildConnectivity();
+    
+    
+    //Cria as condicoes de contorno
+    //		TPZGeoElBC gbc1(elvec[0],3,-1);// condicao de fronteira tipo -1:
+    //		TPZGeoElBC gbc2(elvec[0],5,-2);// condicao de fronteira tipo -2:
+    
 	
-		const std::string nameref;
-		
-		TPZAutoPointer<TPZRefPattern> ref;
-		
-		
+    const std::string nameref;
+    
+    TPZAutoPointer<TPZRefPattern> ref;
+    
+    
 		//	Refinamento uniforme
 		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 				TPZVec<TPZGeoEl *> filhos;
@@ -460,11 +459,11 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 								gel->Divide(filhos);
 						}		
 				}}
-		
-		if (hrefine) {
-				//refinamento diferencialvel
-				{
-						
+    
+    if (hrefine) {
+        //refinamento diferencialvel
+        {
+            
 						TPZVec<TPZGeoEl *> filhos;
 						long n = gmesh->NElements();
 						
@@ -478,15 +477,15 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 								}		
 						}
 				}
-				
-				//refinamento 1D--irei refinar tambem os elementos 1D
-				
-				{
-						
-						TPZVec<TPZGeoEl *> filhos;
+        
+        //refinamento 1D--irei refinar tambem os elementos 1D
+        
+        {
+            
+            TPZVec<TPZGeoEl *> filhos;
 						long n = gmesh->NElements();
-						
-						
+            
+            
 						for(long i = 0; i < n; i++){	
 								TPZGeoEl * gel = gmesh->ElementVec()[i];
 								if (gel->Dimension()!=1) {
@@ -497,22 +496,22 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
 								if (NeighEl->HasSubElement()) {
 										gel->Divide(filhos);
 								}
-								
-								
-								
-						}
-				}
-		}
-		
-		
+                
+                
+                
+            }
+        }
+    }
+    
+    
 #ifdef LOG4CXX
-		{
-				std::stringstream sout;
-				gmesh->Print(sout);
-				LOGPZ_DEBUG(logger, sout.str().c_str());
-		}
+    {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str().c_str());
+    }
 #endif 		 		 
-		return gmesh;
+    return gmesh;
 }
 TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 {
