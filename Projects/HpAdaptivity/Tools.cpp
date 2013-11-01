@@ -140,15 +140,21 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 		double y = pt[1];
 		//double fator=(-1)*(x*x+y*y);
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		//disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//2.*pow(MyPi,2.)*cos(MyPi*y)*sin(MyPi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //
-		disp[0]=(-1)*(-10*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) + 5*exp(10*pow(y,2))*(1 + exp(10*pow(x,2)))*(-1 + x)*pow(x,2)*(-5 + x*(9 + 20*(-1 + x)*x))*pow(-1 + y,2)*pow(y,2) - 
-		 2*pow(x,3)*(1 + 6*(-1 + y)*y) + pow(x,4)*(1 + 6*(-1 + y)*y) + pow(x,2)*(1 + 6*(-1 + y)*y*(1 + (-1 + y)*y)) + exp(5*pow(x,2))*(-(exp(5*pow(x,2))*	(pow(-1 + x,2)*pow(x,2) - 6*pow(-1 + x,2)*pow(x,2)*y + 
-		(1 + 2*(-1 + x)*x*(3 + 4*x*(-7 + x*(12 + 25*(-1 + x)*x))))*pow(y,2) - 2*(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,3) + 
-		(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,4))) +	2*exp(10*pow(y,2))*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) - 200*pow(x,5)*pow(-1 + y,2)*pow(y,2) + 100*pow(x,6)*pow(-1 + y,2)*pow(y,2) - 
-		2*pow(x,3)*(1 + (-1 + y)*y*(6 + 5*y*(-17 + 5*y*(5 + 8*(-1 + y)*y)))) + pow(x,4)*(1 + (-1 + y)*y*(6 + 5*y*(-39 + y*(47 + 40*(-1 + y)*y)))) + pow(x,2)*(1 + (-1 + y)*y*(6 + y*(-81 + y*(121 + 200*(-1 + y)*y)))))*
-	sinh(5*pow(x,2)))));																																																																	 
+		disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);		 
 		return;
 }
+void Forcing2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
+    double x = pt[0];
+    double y = pt[1];
+  	disp[0]=(-1)*(-10*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) + 5*exp(10*pow(y,2))*(1 + exp(10*pow(x,2)))*(-1 + x)*pow(x,2)*(-5 + x*(9 + 20*(-1 + x)*x))*pow(-1 + y,2)*pow(y,2) -
+     2*pow(x,3)*(1 + 6*(-1 + y)*y) + pow(x,4)*(1 + 6*(-1 + y)*y) + pow(x,2)*(1 + 6*(-1 + y)*y*(1 + (-1 + y)*y)) + exp(5*pow(x,2))*(-(exp(5*pow(x,2))*	(pow(-1 + x,2)*pow(x,2) - 6*pow(-1 + x,2)*pow(x,2)*y +
+     (1 + 2*(-1 + x)*x*(3 + 4*x*(-7 + x*(12 + 25*(-1 + x)*x))))*pow(y,2) - 2*(1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,3) +
+     (1 + 2*(-1 + x)*x*(3 + 5*x*(-5 + x*(9 + 20*(-1 + x)*x))))*pow(y,4))) +	2*exp(10*pow(y,2))*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) - 200*pow(x,5)*pow(-1 + y,2)*pow(y,2) + 100*pow(x,6)*pow(-1 + y,2)*pow(y,2) -
+     2*pow(x,3)*(1 + (-1 + y)*y*(6 + 5*y*(-17 + 5*y*(5 + 8*(-1 + y)*y)))) + pow(x,4)*(1 + (-1 + y)*y*(6 + 5*y*(-39 + y*(47 + 40*(-1 + y)*y)))) + pow(x,2)*(1 + (-1 + y)*y*(6 + y*(-81 + y*(121 + 200*(-1 + y)*y)))))*
+     sinh(5*pow(x,2)))));
+    return;
+}
+
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
@@ -217,7 +223,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata2);
+		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
 		mat->SetForcingFunctionExact(exata1);
 			
 		///Criar condicoes de contorno
