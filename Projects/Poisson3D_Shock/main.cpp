@@ -269,7 +269,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 7;
-                NRefs = 5;
+                NRefs = 3;
             }
             else {
 				MaxPOrder = 20;
