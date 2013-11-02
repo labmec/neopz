@@ -144,6 +144,8 @@ void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *f
 /** Print the elements of the computational mesh with associated element data */
 void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData);
 
+// Print information on gradient and laplacian values for a element
+void PrintInfoByElement(long index,TPZVec<REAL> &Center,int reftype,REAL GradNorm,REAL Laplacian,REAL error,std::ostream &out);
 
 /** Functions for Differential equation - Right terms, solutions and derivatives */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
@@ -193,7 +195,10 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 REAL GradientNorm(TPZInterpolatedElement *el);
 REAL Laplacian(TPZInterpolatedElement *el);
 REAL GradientNormOnCorners(TPZInterpolatedElement *el);
-REAL LaplacianOnCorners(TPZInterpolatedElement *el);
+REAL LaplacianNormOnCorners(TPZInterpolatedElement *el);
+
+REAL LaplacianNorm(TPZInterpolatedElement *el,int side);
+bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
@@ -246,7 +251,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
         //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)ETriangle;itypeel<(int)EQuadrilateral;itypeel++)
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -357,16 +362,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
-//				TPZSBandStructMatrix strmat(cmesh);
 				TPZSkylineStructMatrix strmat(cmesh);
-//				TPZBandStructMatrix strmat(cmesh);
-			//	TPZFrontStructMatrix<TPZFrontNonSym<REAL> > strmat(cmesh);
-			//	strmat.SetQuiet(1);
 				an.SetStructuralMatrix(strmat);
 
 				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 				direct->SetDirect(ECholesky);
-//				direct->SetDirect(ELU);
 				an.SetSolver(*direct);
 				delete direct;
 				direct = 0;
@@ -414,16 +414,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 						out.flush();
 						break;
 					}
-//					ApplyingStrategyHPAdaptiveBasedOnErrors(an,MaxError,ervecbyel);
 					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel,MaxError,MinError,nref);
                 }
 				fileerrors.flush();
 				out.flush();
-				// Cleaning computational mesh and creating a new computational mesh
-//				if(cmesh) {
-//					delete cmesh;
-//					cmesh = CreateMesh(gmesh,dim,1);
-//				}
 			}
 			if(cmesh)
 				delete cmesh;
@@ -465,53 +459,87 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 	TPZInterpolatedElement *el;
 	float Tol;
 	ZeroTolerance(Tol);
-	int level;
+	int NRefToPrint = 2;
+
+	// To see were the computation is doing
+	TPZVec<REAL> Center(3,0.0), qsi(3,0.0);
+	long index = -1;
+	int reftype = 0;
 
 	// To get information on approximate solution about gradient and curvature
 	REAL MaxLaplacian, MinLaplacian, MaxGrad, MinGrad;
 	MaxLaplacian = MaxGrad = 0.;
 	MinLaplacian = MinGrad = 100.;
+	REAL GradNorm, LaplacianValue;
 
+	// First we need to find the limits maxime and minime of the gradient and laplacian values
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		// If error is small and laplacian value is very little then the order will be minimized
-        STATE GradNorm, LaplacianValue;
-		GradNorm = GradientNormOnCorners(el);
-		LaplacianValue = LaplacianOnCorners(el);
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		
+		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
+			DebugStop();
 		// Storing information on max and min values of the gradient and curvature values
 		MaxLaplacian = (MaxLaplacian > LaplacianValue) ? MaxLaplacian : LaplacianValue;
 		MaxGrad = (MaxGrad > GradNorm) ? MaxGrad : GradNorm;
 		MinLaplacian = (MinLaplacian > LaplacianValue) ? LaplacianValue : MinLaplacian;
 		MinGrad = (MinGrad > GradNorm) ? GradNorm : MinGrad;
+	}
+	// Printing the maxime and minime values founded
+	if(nref < NRefToPrint)
+		out << "\n MAX: Grad = " << MaxGrad << " Laplacian = " << MaxLaplacian << " Error = " << MaxError << "\n MIN: Grad = " << MinGrad << " Laplacian = " << MinLaplacian << " Error = " << MinError << std::endl;
+
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+
+		// If error is small and laplacian value is very little then the order will be minimized
+//		GradNorm = GradientNormOnCorners(el);
+//		LaplacianValue = LaplacianNormOnCorners(el);
+		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
+			DebugStop();
+		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		index = el->Index();
+
+		// Identifying the center of the element and index only in the first iterations
+		if(nref < NRefToPrint) {
+			reftype = 0;
+			el->Reference()->CenterPoint(el->NConnects()-1,qsi);
+			el->Reference()->X(qsi,Center);
+		}
 
 		// If error on element is little then do nothing
-		if(ervecbyel[i] < 1.e2*Tol) 
-			continue;
-		// If error on element is left to half of the max error, the element will be divided or p-incremented
-		if(ervecbyel[i] < 0.2*MaxError) {
-			// If element has high curvature it is more approppriated to increment order
-			if(LaplacianValue > 100.*MinLaplacian && pelement < MaxPOrder)
-				el->PRefine(pelement+1);
-			// else the element is divided
-			else
-				el->Divide(el->Index(),subels);
-		}
-//		else if(ervecbyel[i] < 0.25*MaxError) {
-		//}
-		else {
-			// Verifying if laplacian is high then increment the order
-			if(LaplacianValue > 100*MinLaplacian && pelement < MaxPOrder)
-				el->PRefine(pelement+1);
-			// Dividing element one level
-			el->Divide(el->Index(),subels,0);
-			// Dividing sub elements one level more if high gradient was found. 
-			// For first analysis the Gradient more than a unit is considered high, because the elements could be large
-	        if(GradNorm > .5*MaxGrad || (nref<2 && GradNorm > .1)) {
-				for(j=0;j<subels.NElements();j++) {
-					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-					scel->Divide(subels[j],subsubels,0);
+		if(ervecbyel[i] > 1.e2*Tol) {
+			// If error on element is left to half of the max error, the element will be divided or p-incremented
+			if(ervecbyel[i] < 0.2*MaxError) {
+				// If element has high curvature it is more approppriated to increment order
+				if(LaplacianValue > 0.01*MaxLaplacian && pelement < MaxPOrder) {
+					reftype = 5;
+					el->PRefine(pelement+1);
+				}
+				// else the element is divided
+				else {
+					reftype = 6;
+					el->Divide(index,subels);
+				}
+			}
+			else {
+				reftype = 20;
+				// Verifying if laplacian is high then increment the order
+				if(LaplacianValue > 0.01*MaxLaplacian && pelement < MaxPOrder) {
+					reftype += 5;
+					el->PRefine(pelement+1);
+				}
+				// Dividing element one level
+				el->Divide(index,subels,0);
+				// Dividing sub elements one level more if high gradient was found. 
+				// For first analysis the Gradient more than a unit is considered high, because the elements could be large
+		        if(GradNorm > .5*MaxGrad || (nref<2 && GradNorm > .1)) {
+					reftype += 1;
+					for(j=0;j<subels.NElements();j++) {
+						TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+						scel->Divide(subels[j],subsubels,0);
+					}
 				}
 			}
 		}
@@ -524,6 +552,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 						el->PRefine(pelement-1);
 				}
 			}*/
+		if(nref < NRefToPrint)
+			PrintInfoByElement(index,Center,reftype,GradNorm,LaplacianValue,ervecbyel[i],out);
 	}
 	// Adjusting boundary elements
 	cmesh->AdjustBoundaryElements();
@@ -531,6 +561,15 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 	// Printing information stored
 	outLaplace << "\n\n" << nref << "Ref: MinError = " << MinError << "  MaxError = " << MaxError << std::endl;
 	outLaplace << "MaxGrad = " << MaxGrad << "  MinGrad = " << MinGrad << "  MaxLaplacian = " << MaxLaplacian << "  MinLaplacian = " << MinLaplacian << "\n\n";
+}
+
+void PrintInfoByElement(long index,TPZVec<REAL> &Center,int reftype,REAL GradNorm,REAL Laplacian,REAL error,std::ostream &out) {
+	out << "\nElement " << index << ": ( ";
+	for(int i=0;i<Center.NElements();i++) {
+		if(i) out << " ; ";
+		out << Center[i];
+	}
+	out << " ) HP " << reftype << "  Grad = " << GradNorm << "  Laplac = " << Laplacian << "  Erro = " << error << std::endl;
 }
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
@@ -689,6 +728,146 @@ REAL GradientNorm(TPZInterpolatedElement *el) {
     return (sqrt(temp)/el->VolumeOfEl());
 }
 */
+bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
+	Grad = 0.0;
+	Laplacian = 0.0;
+	if(!el) return false;
+	int nstates = el->Material()->NStateVariables();
+    int dim = el->Dimension(), i, idsol;
+    TPZVec<STATE> sol(nstates,(STATE)0.0);
+    TPZFMatrix<STATE> dsol(dim,nstates);
+	dsol.Zero();
+	TPZVec<REAL> qsi(3,0.0);
+	TPZManVector<REAL> x(3,0.0);
+
+	REAL GradTemp, LaplacianTemp;
+
+	// Variables by second derivatives
+	TPZVec<REAL> deriv2(3,0.0);
+	REAL F = 2*sqrt(ValueK);
+	REAL Coeff, B;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B = Coeff/M_PI;
+    REAL arc = F;
+    REAL Prod, temp, temp1, temp2, arc2Plus1;
+    REAL prody = 1.;
+    REAL prodz = 1.;
+    REAL prodx = 1.;
+
+	int ncorners = el->NCornerConnects();
+	// Computing on all corners of the element
+	for(i=0;i<ncorners;i++) {
+		// Computing gradient and gradient norm maxime
+	    GradTemp = 0.0;
+		LaplacianTemp = 0.0;
+		el->Reference()->CenterPoint(i, qsi);
+		el->Reference()->X(qsi,x);
+		ExactSolutionSphere(x,sol,dsol);
+		for(idsol=0;idsol<dim;idsol++)
+			GradTemp += dsol(idsol,0)*dsol(idsol,0);
+		Grad = (Grad > sqrt(GradTemp)) ? Grad : sqrt(GradTemp);
+
+		// Computing second partial derivatives as vector
+	    prodx = x[0]*(x[0]-1.);
+		if(dim == 1) {
+			arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
+			prody = prodz = 1.;
+		}
+		else if(dim == 2) {
+			arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
+			prody = x[1]*(x[1]-1.);
+			prodz = 1.;
+		}
+		else if(dim == 3) {
+			arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
+			prody = x[1]*(x[1]-1.);
+			prodz = x[2]*(x[2]-1.);
+		}
+		arc2Plus1 = 1.+arc*arc;
+		temp = 2.*M_PI + 4*atan(arc);
+		// computing second derivative on x
+		temp1 = F*prody + (2*x[0]-1.)*(x[0]-CCircle[0]);
+		temp2 = 8*F*prody*(x[0]-CCircle[0])*(2*x[0]-1.)*arc;
+		deriv2[0] = B*prody*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
+		if(dim == 2) {
+			// computing second derivative on y
+			temp1 = F*prodx + (2*x[1]-1.)*(x[1]-CCircle[1]);
+			temp2 = 8*F*prodx*(x[1]-CCircle[1])*(2*x[1]-1.)*arc;
+			deriv2[1] = B*prodx*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
+		}
+		else if(dim == 3) {
+			DebugStop();
+		}
+		// Computing (1/NormaGrad)*(D2x,D2y).(Dx,Dy)
+		if(!IsZero(GradTemp)) {
+			for(idsol=0;idsol<dim;idsol++)
+				LaplacianTemp += deriv2[idsol]*dsol(idsol,0);
+			REAL FabsLaplacian = fabs(LaplacianTemp);
+			LaplacianTemp = (FabsLaplacian/GradTemp);
+		}
+		Laplacian = (Laplacian > LaplacianTemp) ? Laplacian : LaplacianTemp;
+	}
+	return true;
+}
+REAL LaplacianNorm(TPZInterpolatedElement *el,int side) {
+	if(!el) return 0.;
+	TPZVec<REAL> x(3,0.0), qsi(3,0.);
+	int dim = el->Dimension();
+	el->Reference()->CenterPoint(side,qsi);
+	el->Reference()->X(qsi,x);
+
+	REAL F = 2*sqrt(ValueK);
+	REAL Coeff, B;
+	if(dim==1)
+		Coeff = -2.;
+	else if(dim==2)
+		Coeff = 8.;
+	else
+		Coeff = -32.;
+	B = Coeff/M_PI;
+    REAL arc = F;
+    REAL Prod, temp, temp1, temp2, arc2Plus1;
+	REAL deriv2x = 0., deriv2y = 0., deriv2z = 0.;
+    REAL prody = 1.;
+    REAL prodz = 1.;
+    REAL prodx = x[0]*(x[0]-1.);
+	if(dim == 1) {
+		arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
+	}
+	else if(dim == 2) {
+		arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
+		prody = x[1]*(x[1]-1.);
+	}
+	else if(dim == 3) {
+		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
+		prody = x[1]*(x[1]-1.);
+		prodz = x[2]*(x[2]-1.);
+	}
+	else {
+		DebugStop();
+	}
+	arc2Plus1 = 1.+arc*arc;
+	temp = 2.*M_PI + 4*atan(arc);
+	// computing second derivative on x
+    temp1 = F*prody + (2*x[0]-1.)*(x[0]-CCircle[0]);
+	temp2 = 8*F*prody*(x[0]-CCircle[0])*(2*x[0]-1.)*arc;
+	deriv2x = B*prody*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
+	if(dim == 2) {
+		// computing second derivative on y
+		temp1 = F*prodx + (2*x[1]-1.)*(x[1]-CCircle[1]);
+		temp2 = 8*F*prodx*(x[1]-CCircle[1])*(2*x[1]-1.)*arc;
+		deriv2y = B*prodx*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
+	}
+	else if(dim == 3) {
+	}
+    return  sqrt((deriv2x*deriv2x)+(deriv2y*deriv2y)+(deriv2z*deriv2z));
+}
+
 REAL GradientNorm(TPZInterpolatedElement *el) {
 	int nstates = el->Material()->NStateVariables();
     int dim = el->Dimension();
@@ -740,22 +919,15 @@ REAL GradientNormOnCorners(TPZInterpolatedElement *el) {
 	}
     return MaxGrad;
 }
-REAL LaplacianOnCorners(TPZInterpolatedElement *el) {
-	int nvar = el->Material()->NStateVariables();
-    int dim = el->Dimension();
-	TPZVec<STATE> sol(nvar,0.);
-    TPZFMatrix<STATE> dsol(nvar,dim,0.0);
-	TPZVec<REAL> qsi(3,0.0);
-	TPZVec<REAL> point(3,0.0);
+REAL LaplacianNormOnCorners(TPZInterpolatedElement *el) {
+	REAL Laplacian = 0.;
 	REAL MaxLaplacian = 0.0;
-	int ncorners = el->NCornerConnects();;
+	int ncorners = el->NCornerConnects();
 	for(int i=0;i<ncorners;i++) {
-	    el->Reference()->CenterPoint(i, qsi);
-		el->Reference()->X(qsi,point);
-		RightTermCircle(point,sol,dsol);
-		MaxLaplacian = (MaxLaplacian > fabs(sol[0])) ? MaxLaplacian : fabs(sol[0]);
+		Laplacian = LaplacianNorm(el,i);
+		MaxLaplacian = (MaxLaplacian > Laplacian) ? MaxLaplacian : Laplacian;
 	}
-	return (MaxLaplacian/ValueK);
+	return MaxLaplacian;
 }
 void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
 	TPZVec<REAL> ervecbyel;
@@ -1196,6 +1368,7 @@ void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<S
         dsol(2,0) = B*prodx*prody*(2*x[2]-1.)*(temp - ((2*F*prodz)/(1+arc*arc)));
     }
 }
+
 
 /** LAPLACE PROBLEM ON L-SHAPE DOMAIN (2D) */
 void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol) {
