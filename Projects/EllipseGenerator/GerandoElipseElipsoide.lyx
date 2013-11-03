@@ -100,6 +100,27 @@ a_{1}x^{2}+a_{2}y^{2}+b_{1}x+b_{2}y+c=0\label{eq:1}
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+porque nao considerou 
+\begin_inset Formula $a_{1}x^{2}+a_{2}y^{2}+b_{1}x+b_{2}y-1$
+\end_inset
+
+ como expressão a ser minimizada?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 que representa uma elipse com eixos paralelos aos eixos coordenados, os
  coeficientes 
 \begin_inset Formula $a_{1}$
