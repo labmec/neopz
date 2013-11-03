@@ -2228,6 +2228,38 @@ void TPZCompMesh::BuildCornerConnectList(std::set<long> &connectindexes) const
     }
 }
 
+TPZCompMesh * TPZCompMesh::CommonMesh(TPZCompMesh *mesh){
+	
+	TPZStack<TPZCompMesh *> s1, s2;
+	long pos1=0, pos2, comind;
+	TPZCompMesh *father = FatherMesh();
+	s1.Push(this);
+	while (father){
+		s1.Push((father));
+		pos1++;
+		father = s1[pos1]->FatherMesh();
+	}
+	pos2 = 0;
+	s2.Push(mesh);
+	father = mesh->FatherMesh();
+	while (father){
+		s2.Push(father);
+		pos2++;
+		father = s2[pos2]->FatherMesh();
+	}
+	if (s1[pos1] != s2[pos2]) return 0;
+	comind=0; //The first mesh is common for all submeshes
+	for (; pos1>=0 && pos2>=0; pos1--, pos2--) {
+		if((s1[pos1])!=(s2[pos2])) {
+			comind=pos1+1;
+			return (s1[comind]);
+		}
+	}
+	return (pos1 >=0 ) ? (s1[pos1+1]) : s2[pos2+1];
+}
+
+
+
 #ifndef BORLAND
 template class TPZRestoreClass<TPZCompMesh,TPZCOMPMESHID>;
 #endif

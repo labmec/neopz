@@ -18,6 +18,8 @@
 #include "pzreal.h"
 #include "pzanalysis.h"
 
+#include <list>
+
 class TPZSubMeshFrontalAnalysis;
 class TPZSubMeshAnalysis;
 class TPZAnalysis;
@@ -51,6 +53,9 @@ protected:
     
     /// Number of rigid body modes expected by the internal matrix inversion
     long fSingularConnect;
+    
+    /// List of connect/degree of freedom which are used as Lagrange multipliers
+    std::list<std::pair<long,int> > fLagrangeEquations;
 	
 private:
 	/** @brief Transfers one element from a submesh to another mesh. */
@@ -60,7 +65,7 @@ private:
 	
 	/** @brief Marks the connect to be local */
 	void MakeInternalFast(long local);
-
+    
 	/**
 	 * @brief Transfer the dependency list of a connect. This will
 	 * make the dependency disappear for the corresponding father mesh
@@ -231,9 +236,15 @@ public:
 	/** @brief Virtual Method to allocate new connect */
 	virtual long AllocateNewConnect(int nshape, int nstate, int order);
 	
+	/** @brief Virtual Method to allocate new connect */
+	virtual long AllocateNewConnect(const TPZConnect &connect);
+	
 	/** @brief Gives the id node  of one local node in containing mesh. */
 	long NodeIndex(long nolocal, TPZCompMesh *super);
-	
+    
+    /// return the index in the subcompmesh of a connect with index within the father
+    long InternalIndex(long IndexinFather);
+    	
 	/** @brief Virtual Method! See declaration in TPZCompEl class. */ 
 	/** The use of this method in submesh class return -1 == Error! */
 	virtual int Dimension() const;
@@ -332,10 +343,18 @@ public:
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
+    /// Method to verify that the datastructures are consistent
 	bool VerifyDatastructureConsistency();
     
+    /// Set the connect/degree of freedom as Lagrange variable
+    void AddLagrangeDOF(long connectindex, int idf)
+    {
+        fLagrangeEquations.push_back(std::pair<long,int>(connectindex,idf));
+        SetNumberRigidBodyModes(fLagrangeEquations.size());
+    }
+    
     /** @brief Set the number of rigid body modes associated with the internal degrees of freedom */
-    void SetNumberRigidBodyModes(int nrigid);
+    void SetNumberRigidBodyModes(int nrigid, unsigned char lagrange = 0);
     
     /** @brief Return the number of rigid body modes associated with the internal degrees of freedom */
     int NumberRigidBodyModes();

@@ -16,6 +16,7 @@
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
 #include "pzvec_extras.h"
+#include "pzsubcmesh.h"
 
 using namespace std;
 
@@ -382,11 +383,33 @@ long TPZInterfaceElement::ConnectIndex(int i) const {
 	}
 	
 	if(i < nleftcon){ //required connect is associated to left neighbour
-		return fLeftElSide.Element()->ConnectIndex(i);
+        TPZCompMesh *leftmesh = fLeftElSide.Element()->Mesh();
+        if (leftmesh == Mesh()) {
+            return fLeftElSide.Element()->ConnectIndex(i);
+        }
+        else
+        {
+            long leftindex = fLeftElSide.Element()->ConnectIndex(i);
+            TPZCompMesh *comm = Mesh()->CommonMesh(leftmesh);
+            long superind = leftmesh->PutinSuperMesh(leftindex, comm);
+            long hereindex = Mesh()->GetFromSuperMesh(superind, comm);
+            return hereindex;
+        }
 	}
 	
 	if(i < ncon){ //required connect is associated to right neighbour
-		return fRightElSide.Element()->ConnectIndex(i-nleftcon);
+        TPZCompMesh *rightmesh = fRightElSide.Element()->Mesh();
+        if (rightmesh == Mesh()) {
+            return fRightElSide.Element()->ConnectIndex(i-nleftcon);
+        }
+        else
+        {
+            long rightindex = fRightElSide.Element()->ConnectIndex(i-nleftcon);
+            TPZCompMesh *comm = Mesh()->CommonMesh(rightmesh);
+            long superind = rightmesh->PutinSuperMesh(rightindex, comm);
+            long hereindex = Mesh()->GetFromSuperMesh(superind, comm);
+            return hereindex;
+        }
 	}
 	return -1;
 }
@@ -1129,6 +1152,9 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<long> &connectindex){
 	
 	TPZCompEl * el = elside.Element();
+    TPZCompMesh *comm = Mesh()->CommonMesh(el->Mesh());
+    TPZCompMesh *elmesh = el->Mesh();
+    TPZCompMesh *thismesh = Mesh();
 	
 	if(el){
 		int ncon = el->NConnects();
@@ -1139,6 +1165,10 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 		long index;
 		for(int i = 0; i < ncon; i++){
 			index = el->ConnectIndex(i);
+            if (elmesh != thismesh) {
+                long superind = elmesh->PutinSuperMesh(index, comm);
+                index = thismesh->GetFromSuperMesh(superind, comm);
+            }
 			connectindex[i] = index;
 			connects[i] = &(fMesh->ConnectVec()[ index ]);
 		}//for

@@ -227,6 +227,12 @@ public:
 	virtual  long AllocateNewConnect(int nshape, int nstate, int order);
 	
 	/**
+	 * @brief Returns an index to a new connect
+	 * @param connect Connect from which attributes should be copied
+	 */
+	virtual  long AllocateNewConnect(const TPZConnect &connect);
+	
+	/**
 	 * @brief Insert a material object in the datastructure
 	 * @param mat pointer to the material
 	 */
@@ -357,6 +363,14 @@ public:
 	 * @param super pointer to the destination mesh
 	 */
 	virtual long GetFromSuperMesh (long superind, TPZCompMesh *super);
+    
+    /**
+	 * @brief Gives the commom father mesh of the specified mesh and the current submesh.
+	 * @param mesh pointer to other mesh whosw want to know the commom father mesh
+	 */
+	virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh);
+	
+
 
 	/** @} */
 
@@ -627,6 +641,26 @@ inline long TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
 	c.SetSequenceNumber(blocknum);
 	return connectindex;
 }
+
+/**
+ * @brief Returns an index to a new connect
+ * @param connect Connect from which attributes should be copied
+ */
+inline long TPZCompMesh::AllocateNewConnect(const TPZConnect &connect)
+{
+   	long connectindex = fConnectVec.AllocateNewElement();
+    TPZConnect &c = fConnectVec[connectindex];
+    c = connect;
+    c.RemoveDepend();
+    int nshape = c.NShape();
+    int nstate = c.NState();
+	long blocknum = fBlock.NBlocks();
+	fBlock.SetNBlocks(blocknum+1);
+	fBlock.Set(blocknum,nshape*nstate);
+	c.SetSequenceNumber(blocknum);
+	return connectindex;
+}
+
 
 inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
 	this->fReference = gmesh;

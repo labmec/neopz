@@ -341,6 +341,25 @@ long TPZSubCompMesh::AllocateNewConnect(int nshape, int nstate, int order){
 	return connectindex;
 }
 
+long TPZSubCompMesh::AllocateNewConnect(const TPZConnect &connect){
+	
+	long connectindex = TPZCompMesh::AllocateNewConnect(connect);
+	long seqnum = fConnectVec[connectindex].SequenceNumber();
+    int nshape = connect.NShape();
+    int nstate = connect.NState();
+    int blocksize = nshape*nstate;
+	fBlock.Set(seqnum,blocksize);
+	long i,oldsize = fExternalLocIndex.NElements();
+	
+	if(oldsize <= connectindex) {
+		fExternalLocIndex.Resize(connectindex+1);
+		for(i=oldsize; i<=connectindex;i++) fExternalLocIndex[i] = -1;
+	} else {
+		fExternalLocIndex[connectindex] = -1;
+	}
+	return connectindex;
+}
+
 
 void TPZSubCompMesh::MakeExternal(long local){
 	if(fExternalLocIndex[local] == -1) {
@@ -350,10 +369,7 @@ void TPZSubCompMesh::MakeExternal(long local){
 		fConnectIndex.Resize(lastext+1);
 		//Allocate the selected local node in father mesh
         TPZConnect &c = fConnectVec[local];
-        int nshape = c.NShape();
-        int nstate = c.NState();
-        int order  = c.Order();
-		extconnect = FatherMesh()->AllocateNewConnect(nshape,nstate,order);
+		extconnect = FatherMesh()->AllocateNewConnect(c);
 		
 		fConnectIndex[lastext] = extconnect;
 		fExternalLocIndex[local] = lastext;
@@ -396,7 +412,7 @@ long TPZSubCompMesh::GetFromSuperMesh(long superind, TPZCompMesh *super){
 	if(it == fFatherToLocal.end())
 	{
         TPZConnect &c = super->ConnectVec()[superind];
-		long gl = AllocateNewConnect(c.NShape(),c.NState(),c.Order());
+		long gl = AllocateNewConnect(c);
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
@@ -717,16 +733,40 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
 		DebugStop();
 		return -1;
 	}
-	int i,ncon = cel->NConnects();
-	for (i=0; i<ncon; i++){
-		long superind = cel->ConnectIndex(i);
-		long subindex = GetFromSuperMesh(superind,father);
-		TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *> (cel);
-		if(!interf)
-		{
-			cel->SetConnectIndex(i,subindex);
-		}
-	}
+    TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *> (cel);
+    if(!interf)
+    {
+        int ncon = cel->NConnects();
+        for (int i=0; i<ncon; i++){
+            long superind = cel->ConnectIndex(i);
+            long subindex = GetFromSuperMesh(superind,father);
+            cel->SetConnectIndex(i,subindex);
+        }
+    }
+    else
+    {
+        {
+            TPZCompEl *left = interf->LeftElement();
+            TPZCompMesh *comm = CommonMesh(left->Mesh());
+            int ncon = left->NConnects();
+            for (int ic=0; ic<ncon ; ic++) {
+                long superind = left->ConnectIndex(ic);
+                left->Mesh()->PutinSuperMesh(superind, comm);
+                long subindex = GetFromSuperMesh(superind, comm);
+            }
+        }
+        {
+            TPZCompEl *right = interf->RightElement();
+            TPZCompMesh *comm = CommonMesh(right->Mesh());
+            int ncon = right->NConnects();
+            for (int ic=0; ic<ncon ; ic++) {
+                long superind = right->ConnectIndex(ic);
+                right->Mesh()->PutinSuperMesh(superind, comm);
+                long subindex = GetFromSuperMesh(superind, comm);
+            }
+        }
+    }
+
     if(cel->Reference())
     {
         TPZMaterial * matfather;
@@ -1081,7 +1121,10 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 	
 	str->SetNumThreads(numThreads);
+    long numinternal = NumInternalEquations();
+    str->EquationFilter().SetMinMaxEq(0, numinternal);
     TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    str->EquationFilter().Reset();
     TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
 	
 	fAnalysis->SetStructuralMatrix(str);
@@ -1370,7 +1413,6 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 }
 
 void TPZSubCompMesh::LoadSolution() {
-// #warning ME TIRE DAQUI
 	
 	long i=0;
 	long seqnumext;
@@ -1671,7 +1713,7 @@ int TPZSubCompMesh::NumberRigidBodyModes()
 
 
 /// Set the number of rigid body modes associated with the internal degrees of freedom
-void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid)
+void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid, unsigned char lagrange)
 {
 	if (fSingularConnect == -1) {
         int nshape = nrigid;
@@ -1679,8 +1721,10 @@ void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid)
         int order = 1;
 		fSingularConnect = AllocateNewConnect(nshape,nstate,order);
 		fConnectVec[fSingularConnect].IncrementElConnected();
+        fConnectVec[fSingularConnect].SetLagrangeMultiplier(lagrange);
 		long extind = FatherMesh()->AllocateNewConnect(nshape,nstate,order);
 		FatherMesh()->ConnectVec()[extind].IncrementElConnected();
+		FatherMesh()->ConnectVec()[extind].SetLagrangeMultiplier(lagrange);
 		long next = fConnectIndex.NElements();
 		fConnectIndex.Resize(next+1);
 		fConnectIndex[next] = extind;
@@ -1690,6 +1734,7 @@ void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid)
 	}
 	else if(fSingularConnect != -1 && nrigid >0 ) {
 		long seqnum = fConnectVec[fSingularConnect].SequenceNumber();
+		fConnectVec[fSingularConnect].SetLagrangeMultiplier(lagrange);
 		fBlock.Set(seqnum,nrigid);
         ExpandSolution();
 		long extind = fExternalLocIndex[fSingularConnect];
@@ -1699,6 +1744,7 @@ void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid)
 		}
 		while (fathermesh && extind > 0) {
 			seqnum = fathermesh->ConnectVec()[extind].SequenceNumber();
+			fathermesh->ConnectVec()[extind].SetLagrangeMultiplier(lagrange);
 			fathermesh->Block().Set(seqnum, nrigid);
             fathermesh->ExpandSolution();
 			TPZSubCompMesh *subfather = dynamic_cast<TPZSubCompMesh *> (fathermesh);
@@ -1737,3 +1783,11 @@ void TPZSubCompMesh::BuildCornerConnectList(std::set<long> &connectindexes) cons
     }
 }
 
+/// return the index in the subcompmesh of a connect with index within the father
+long TPZSubCompMesh::InternalIndex(long IndexinFather)
+{
+    if (fFatherToLocal.find(IndexinFather) == fFatherToLocal.end()) {
+        DebugStop();
+    }
+    return fFatherToLocal[IndexinFather];
+}

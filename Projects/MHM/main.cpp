@@ -47,6 +47,7 @@
 #include <fstream>
 
 #include "TPZVTKGeoMesh.h"
+#include "TPZCompElLagrange.h"
 
 // Using Log4cXX as logging tool
 //
@@ -65,6 +66,7 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder );
 void BuildByParts(TPZCompMesh & result);
 long FindMidNode(TPZCompMesh &cmesh);
 void Solve ( TPZAnalysis &an );
+void Substructure(TPZCompMesh *cmesh);
 
 int main()
 {
@@ -77,6 +79,8 @@ int main()
 	TPZGeoMesh *gmesh = MalhaGeo(h);
     
     TPZCompMesh *cmesh =CreateCompMeshHybrid(*gmesh, 1);
+        
+    Substructure(cmesh);
     
     std::ofstream arcg2 ( "gmesh2.txt" );
     cmesh->Reference()->Print ( arcg2 );
@@ -87,6 +91,10 @@ int main()
     
 	TPZAnalysis an(cmesh,true);
     
+    {
+        std::ofstream arc ( "cmesh.txt" );
+        cmesh->Print ( arc );
+    }
 	Solve( an );
     {
         std::ofstream arc ( "cmesh.txt" );
@@ -294,16 +302,16 @@ void BuildByParts(TPZCompMesh & cmesh)
             for (int igel2=0; igel2<gmesh->NElements(); igel2++)
             {
                 TPZGeoEl *gel2=gmesh->ElementVec()[igel2];
-                if (!gel2|| gel2->LowestFather()!=gelroot||gel2->HasSubElement())
+                if (!gel2|| gel2->LowestFather()!=gelroot || gel2->HasSubElement())
                 {
                     continue;
                 }
                 long index;
                 cmesh.CreateCompEl(gel2, index);// cria os elementos 2D
             }
-            long midconnectindex = FindMidNode(cmesh);
-            TPZConnect &c = cmesh.ConnectVec()[midconnectindex];
-            c.SetLagrangeMultiplier(2);
+//            long midconnectindex = FindMidNode(cmesh);
+//            TPZConnect &c = cmesh.ConnectVec()[midconnectindex];
+//            c.SetLagrangeMultiplier(2);
             gmesh->ResetReference();
             gmesh->SetReference(&cmesh);
         }
@@ -469,4 +477,68 @@ long FindMidNode(TPZCompMesh &cmesh)
         DebugStop();
     }
     return centerel->Reference()->ConnectIndex(0);
+}
+#include "pzsubcmesh.h"
+
+void Substructure(TPZCompMesh *cmesh)
+{
+    cmesh->LoadReferences();
+    TPZGeoMesh *gmesh=cmesh->Reference();
+    for (int igel=0; igel<gmesh->NElements(); igel++)
+    {
+        TPZGeoEl *gelroot=gmesh->ElementVec()[igel];
+        if (gelroot && gelroot->MaterialId()== 1 && !gelroot->Father()) //se eh um macroelemento
+        {
+            long index;
+            TPZSubCompMesh *subcomp = new TPZSubCompMesh(*cmesh,index);
+            cmesh->LoadReferences();
+            // gelroot é um "macroelemento"
+            for (int igel2=0; igel2<gmesh->NElements(); igel2++)
+            {
+                TPZGeoEl *gel2=gmesh->ElementVec()[igel2];
+                if (!gel2|| gel2->LowestFather()!=gelroot || gel2->HasSubElement())
+                {
+                    continue;
+                }
+                TPZCompEl *cel2 = gel2->Reference();
+                if (!cel2) {
+                    DebugStop();
+                }
+                subcomp->TransferElement(cmesh, cel2->Index());
+                int ns = gel2->NSides();
+                int dim = gel2->Dimension();
+                for (int is = 0; is<ns; is++) {
+                    int sidedim = gel2->SideDimension(is);
+                    if (sidedim != dim-1) {
+                        continue;
+                    }
+                    TPZGeoElSide gelside(gel2,is);
+                    TPZGeoElSide neighbour = gelside.Neighbour();
+                    while (gelside != neighbour) {
+                        if (neighbour.Element()->MaterialId() == 10 || neighbour.Element()->MaterialId() == 11) {
+                            TPZCompEl *cel = neighbour.Element()->Reference();
+                            TPZInterfaceElement *intface = dynamic_cast<TPZInterfaceElement *>(cel);
+                            if(!intface) DebugStop();
+                            TPZCompEl *left = intface->LeftElement();
+                            if (left == cel2) {
+                                long index = cel->Index();
+                                subcomp->TransferElement(cmesh, index);
+                            }
+                        }
+                        neighbour = neighbour.Neighbour();
+                    }
+                }
+            }
+            cmesh->ComputeNodElCon();
+            subcomp->MakeAllInternal();
+            subcomp->ExpandSolution();
+            subcomp->SetNumberRigidBodyModes(1,2);
+            long cindex = FindMidNode(*subcomp);
+            long ncon = subcomp->ConnectVec().NElements()-1;
+            long lagrangeindex;
+            new TPZCompElLagrange(*subcomp, cindex, 0, ncon, 0, lagrangeindex);
+            subcomp->SetAnalysisSkyline(0, 0, 0);
+        }
+    }
+    cmesh->ComputeNodElCon();
 }
