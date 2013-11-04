@@ -26,8 +26,6 @@
 #include "pzelasmat.h"
 #include "TPZVTKGeoMesh.h"
 
-#include "TPZYCMohrCoulombPV.h"
-
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
@@ -91,62 +89,6 @@ int mainEla2D()
 
 int mainRascunho()
 {
-	// TESTE DO MOHRCOULOMBPV
-	
-	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV;
-	
-	TPZManVector<REAL, 3> sigtrialvec(3,0.), sigprojectvec(3,0.);
-	TPZYCMohrCoulombPV::TComputeSequence toto;
-	toto.fGamma.resize(1);
-	sigtrialvec[0] = 500.;
-	TPZManVector<TFad<3,REAL>,3 > sigtrialfad(3), sigprojfad(3);
-	for (int i = 0; i < 3; i++) 
-	{
-		sigtrialfad[i].val() = sigtrialvec[i];
-		sigtrialfad[i].fastAccessDx(i) = 1;
-	}
-	
-	//MohrCoulombPV->ReturnMapPlane<REAL>(sigtrialvec, sigprojectvec, toto);
-	
-	toto.fGamma[0] = 0.;
-	//MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto);
-	std::cout << "sigtrialfad:\n" << sigtrialfad << "\nsigprojfad:\n" << sigprojfad << std::endl;
-	
-	//REAL critplat = MohrCoulombPV->PhiPlane<REAL>(sigprojectvec);
-	//std::cout << "CritPlat = " << critplat << std::endl;
-	
-	//  critplat = MohrCoulombPV->PhiPlane<REAL>(sigmaproject);
-	//	std::cout << "CritPlat = " << critplat << std::endl;
-	
-	
-	// Testando Left Edge
-	toto.fGamma.Resize(2,0.);
-	toto.fGamma.Fill(0.);
-	std::cout << "toto.fGamma = " << toto.fGamma << std::endl;
-	sigtrialvec[0] = 500.;
-	sigtrialvec[1] = 0.;
-	sigtrialvec[2] = 0.;	
-	sigprojectvec.Fill(0.);
-	std::cout << "sigprojectvec = " << sigprojectvec << std::endl;
-	//MohrCoulombPV->ReturnMapLeftEdge(sigtrialvec, sigprojectvec, toto);
-	//MohrCoulombPV->ReturnMapRightEdge(sigtrialvec, sigprojectvec, toto);
-	
-	//	template<class T>
-	//	bool ReturnMapLeftEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected,
-	//												 TComputeSequence &memory)
-	
-	// Será que está na superfície?
-	//    T PhiPlane(typename TPZTensor<T>::TPZDecomposed &sigma) const
-	
-	
-	
-	//	template<class T>
-	//	bool ReturnMapPlane(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected, 
-	//											TComputeSequence &memory)
-	
-	
-	
-	// FIM TESTE DO MOHRCOULOMBPV
 	
 }
 
