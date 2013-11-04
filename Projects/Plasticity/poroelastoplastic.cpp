@@ -1462,7 +1462,7 @@ DECLARE_FPO_HANDLER_FUNC;
 
 #include "WellBoreAnalysis.h"
 
-int startfrom = 0;
+//int startfrom = 0;
 
 int main ()
 {
