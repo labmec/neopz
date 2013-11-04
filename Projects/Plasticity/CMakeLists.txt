@@ -23,6 +23,8 @@ if ( STATE_TYPE STREQUAL "double" AND
 	  add_executable(PlasticityPV ${main3_SRCS})
 	  target_link_libraries(PlasticityPV pz)
 
+          add_subdirectory(PlasticityQT_CLI)
+
 	  file(COPY SnubDodecahedron.txt DESTINATION .)
 	  file(COPY wellcil.txt DESTINATION .)
 	  file(COPY ensaio_UCS_all_columns.txt DESTINATION .)
