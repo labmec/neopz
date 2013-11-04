@@ -82,6 +82,15 @@ public:
     /// Compute the derivative of the stress (principal s;tresses) as a function of xi and beta
     void DF2Cart(STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &DF1) const;
     
+    
+    
+//    void ApplyStrainComputeElasticStress(TPZTensor<STATE> &stress,TPZTensor<STATE> &strain)const;
+    void ComputeI1(TPZVec<STATE> stress, STATE &I1)const;
+    void ComputeJ2(TPZVec<STATE> stress, STATE &J2)const;
+    void ApplyStrainComputeElasticStress(TPZVec<STATE> &strain,TPZVec<STATE> &stress)const;
+    void ApplyStressComputeElasticStrain(TPZVec<STATE> &stress,TPZVec<STATE> &strain)const;
+    
+    
     /// Compute the derivative of the residual with respect to sigtrial
     void GradF1SigmaTrial(const TPZVec<STATE> &sigtrial, STATE xi, STATE beta, TPZFMatrix<STATE> &deriv) const;
     
@@ -113,7 +122,8 @@ public:
 	 */
 //	virtual void ApplyStrainComputeSigma(TPZPlasticState<STATE> &plasticstate, TPZVec<STATE> &sigma);
     
-    void ApplyStrainComputeSigma(const TPZVec<STATE> &eps, STATE kprev, TPZVec<STATE> &sigma,STATE &kproj) const;
+//    void ApplyStrainComputeSigma(const TPZVec<STATE> &eps, STATE kprev, TPZVec<STATE> &sigma,STATE &kproj) const;
+    void ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STATE> &epsp,STATE & kprev,TPZVec<STATE> &epspnext,TPZVec<STATE> &stressnext,STATE & knext) const;
     
     void ProjectSigma(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj,STATE &kproj) const;
     

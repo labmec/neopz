@@ -52,6 +52,7 @@ STATE TPZSandlerExtended::X(STATE k) const
 STATE TPZSandlerExtended::EpsEqX(STATE X) const
 {
     return (fW*( exp(fD*X) - 1 ));
+//   return fW* exp(fD*X);
 }
 
 STATE TPZSandlerExtended::EpsEqk(STATE k) const
@@ -64,11 +65,12 @@ void TPZSandlerExtended::Firstk(STATE &epsp,STATE &k) const
     STATE f,df,kn1,kn,resnorm,diff;
     int counter =1;
     resnorm=1;
-    kn=0.;//chute inicial
+    kn=epsp;//chute inicial
     while (resnorm>1.e-12 && counter<30) {
         
         f=EpsEqk(kn)-epsp;
         df =fD*exp(fD*(kn - (fA - fC*exp(fB*kn))*fR))*(1 + fB*fC*exp(fB*kn)*fR)*fW;
+        //df=fD*exp(fD*(kn - fR*(fA - fC*exp(fB*kn) - kn*fPhi)))*fW*(1 - fR*(-(fB*fC*exp(fB*kn)) - fPhi));
         kn1=kn-f/df;
         diff=kn1-kn;
         resnorm=sqrt(diff*diff);
@@ -532,7 +534,6 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
                     2*c5*(-(expfBk*fB*fC) - fPhi)*(c7*(fA - expfBk*fC - fN - fPhi*k) + c8*(fA - expfBk*fC - fN - fPhi*k)))/(2.*fG);
     
     
-    
     dreskk=1. + costheta*(-(expfBk*fB*fC) - fPhi)*fR +
     3.*exp(fD*(-((fA - expfBk*fC)*fR) + k))*fD*fK*
     (1. + expfBk*fB*fC*fR)*fW;
@@ -570,14 +571,15 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     if (JJ2<1.e-6) {
         JJ2=1.e-6;
     }
-    ggamma = 0.5*(1. + (1. - sin(3.*beta))/fPsi + sin(3.*beta));
     sqrtj2=sqrt(JJ2);
+    ggamma = 0.5*(1. + (1. - sin(3.*beta))/fPsi + sin(3.*beta));
+    
     temp1=(-II1+kprev)/(-fR*F(kprev,fPhi));
     temp3=(ggamma*sqrtj2)/(F(kprev,fPhi));
     
     f1=sqrtj2-F(II1,fPhi);
     cout << "\n  f1 "<<f1 << endl;
-    f2=(pow(temp1,2)+pow(temp3,2))-1;
+    f2=temp1*temp1+temp3*temp3-1;
     cout << "\n  f2 "<<f2 << endl;
 
     yield[0]=f1;
@@ -657,7 +659,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
     
     resnorm=1;
-    long counter=1;
+    int counter=1;
     TPZFNMatrix<3,STATE> xn1(3,1,0.),xn(3,1,0.),sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
     xn(0,0)=theta;
     xn(1,0)=beta;
@@ -675,9 +677,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         xn=xn1;
         counter++;
     }
-    cout<< "\n resnorm = "<<resnorm <<endl;
-    cout<< "\n counter = "<<counter <<endl;
-    cout<< "\n k = "<<(xn1(2,0)-kprev) <<endl;
+//    cout<< "\n resnorm = "<<resnorm <<endl;
+//    cout<< "\n counter = "<<counter <<endl;
+//    cout<< "\n k = "<<(xn1(2,0)-kprev) <<endl;
     STATE thetasol,betasol,ksol;
     
     thetasol=xn1(0);
@@ -735,9 +737,9 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         counter++;
 
     }
-    cout<< "\n resnorm = "<<resnorm <<endl;
-    cout<< "\n counter = "<<xn1 <<endl;
-    cout<< "\n k = "<<xn1[2] <<endl;
+//    cout<< "\n resnorm = "<<resnorm <<endl;
+//    cout<< "\n counter = "<<xn1 <<endl;
+//    cout<< "\n k = "<<xn1[2] <<endl;
     STATE thetasol,betasol,ksol;
     
     thetasol=xn1[0];
@@ -752,22 +754,126 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
     
 }
 
+void TPZSandlerExtended::ComputeI1(TPZVec<STATE> stress, STATE &I1)const
+{
+    STATE sig1,sig2,sig3;
+    sig1 = stress[0];
+    sig2 = stress[1];
+    sig3 = stress[2];
+    I1=sig1+sig2+sig3;
+    
+}
+
+void TPZSandlerExtended::ComputeJ2(TPZVec<STATE> stress,STATE &J2)const
+{
+    STATE sig1,sig2,sig3;
+    sig1 = stress[0];
+    sig2 = stress[1];
+    sig3 = stress[2];
+    J2=(pow(sig1 + (-sig1 - sig2 - sig3)/3.,2) + pow(sig2 + (-sig1 - sig2 - sig3)/3.,2) + pow((-sig1 - sig2 - sig3)/3. + sig3,2))/2.;
+}
+
+
+void TPZSandlerExtended::ApplyStrainComputeElasticStress(TPZVec<STATE> &strain,TPZVec<STATE> &stress)const
+{
+    STATE sig1,sig2,sig3,s1,s2,s3;
+    sig1 = strain[0];
+    sig2 = strain[1];
+    sig3 = strain[2];
+    
+    s1=sig1-(1./3.)*(sig1+sig2+sig3);
+    s2=sig2-(1./3.)*(sig1+sig2+sig3);
+    s3=sig3-(1./3.)*(sig1+sig2+sig3);
+    
+    stress[0]=s1*(2*fG)+fK*(sig1+sig2+sig3);
+    stress[1]=s2*(2*fG)+fK*(sig1+sig2+sig3);
+    stress[2]=s3*(2*fG)+fK*(sig1+sig2+sig3);
+}
+
+void TPZSandlerExtended::ApplyStressComputeElasticStrain(TPZVec<STATE> &stress,TPZVec<STATE> &strain)const
+{
+    STATE sig1,sig2,sig3,s1,s2,s3;
+    sig1 = stress[0];
+    sig2 = stress[1];
+    sig3 = stress[2];
+    
+    s1=sig1-(1./3.)*(sig1+sig2+sig3);
+    s2=sig2-(1./3.)*(sig1+sig2+sig3);
+    s3=sig3-(1./3.)*(sig1+sig2+sig3);
+    
+    strain[0]=s1/(2.*fG)+(sig1+sig2+sig3)/(9.*fK);
+    strain[1]=s2/(2.*fG)+(sig1+sig2+sig3)/(9.*fK);
+    strain[2]=s3/(2.*fG)+(sig1+sig2+sig3)/(9.*fK);
+    
+}
+
 /**
  * Imposes the specified strain tensor and returns the correspondent stress state.
  *
  * @param[in] epsTotal Imposed total strain tensor
  * @param[out] sigma Resultant stress
  */
-void TPZSandlerExtended::ApplyStrainComputeSigma(const TPZVec<STATE> &eps, STATE kprev, TPZVec<STATE> &sigma,STATE &kproj) const
+void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STATE> &epsp,STATE & kprev,TPZVec<STATE> &epspnext,TPZVec<STATE> &stressnext,STATE & knext) const
 {
 
-    TPZManVector<STATE,3> sigtrial(3), sigproj(3), epsdev(3);
-    STATE i1eps = eps[0]+eps[1]+eps[2];
-    for (int i=0; i<3; i++) {
-        sigtrial[i] = 2.*fG*(eps[i]-i1eps/3.)+fK*i1eps;
+    STATE I1tr,I1proj;
+    
+    TPZManVector<STATE,3> stresstrial(3),yield(2),deltastress(3),delepsp(3),epsT(epst);
+    epsT[0]-=epsp[0];
+    epsT[1]-=epsp[1];
+    epsT[2]-=epsp[2];
+    ApplyStrainComputeElasticStress(stresstrial,epsT);
+    YieldFunction(stresstrial, kprev, yield);
+    ComputeI1(stresstrial,I1tr);
+    
+    
+    if ((yield[1]<=0 && I1tr<=kprev)||(yield[0]<=0 && I1tr>kprev))
+    {
+
+        epspnext=epsp;
+        knext=kprev;
+        stressnext=stresstrial;
+        cout<<"\n elastic "<<endl;
+        
+    }
+    else
+    {
+        cout<<"\n plastic "<<endl;
+        if (yield[1]>0 && I1tr<kprev)
+        {
+            cout<<"\n F2 "<<endl;
+            ProjectF2(stresstrial,kprev,stressnext,knext);
+        }
+        else
+        {
+            cout<<"\n F1 "<<endl;
+            ProjectF1(stresstrial,kprev,stressnext,knext);
+            ComputeI1(stressnext,I1proj);
+            if (I1proj<knext)
+            {
+                cout<<"\n Ring "<<endl;
+                ProjectRing(stresstrial,kprev,stressnext,knext);
+            }
+        }
+        
+        for (int i=0;i<3;i++)
+        {
+            deltastress[i]=stresstrial[i]-stressnext[i];
+        }
+        
+        ApplyStressComputeElasticStrain(deltastress,delepsp);
+        
+        for (int i=0;i<3;i++)
+        {
+            epspnext[i]=epsp[i]+delepsp[i];
+        }
+    
+
     }
     
-    ProjectSigma(sigtrial, kprev, sigma, kproj);
+    
+    
+
 }
 
 void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj) const
@@ -778,7 +884,6 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     I1 = sigtrial[0]+sigtrial[1]+sigtrial[2];
     
     YieldFunction(sigtrial,kprev,yield);
-    
     
     if (I1<kprev)
     {
