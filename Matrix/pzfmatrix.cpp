@@ -1134,7 +1134,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 			if ( IsZero( GetVal(i, i) ) ) {
 				if (fabs(GetVal(i, i)) > fabs((TVar)0.)) {
 #ifdef _AUTODIFF
-                    double diff = shapeFAD::val((B->GetVal(i, col) - GetVal(i, i)));
+                    double diff = fabs(shapeFAD::val((B->GetVal(i, col) - GetVal(i, i))));
 #else
                     TVar diff = (B->GetVal(i, col) - GetVal(i, i));
 #endif
