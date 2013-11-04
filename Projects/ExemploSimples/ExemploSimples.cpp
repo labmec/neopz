@@ -34,7 +34,7 @@ static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));
 #endif
 
-TPZGeoMesh *CreateGMesh(int nel, REAL elsize);
+TPZGeoMesh *CreateGMesh(long nel, REAL elsize);
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
 
 int mainEla2D();
@@ -156,7 +156,7 @@ int mainSimples(int argc, char *argv[])
 	// Gerar Problema Simples
 	
 	REAL dom = 1.;
-	int nel = 3, pOrder = 1;
+	long nel = 3, pOrder = 1;
 	REAL elsize = dom/nel;
 	TPZGeoMesh *gmesh = CreateGMesh(nel, elsize);
 	
@@ -188,16 +188,16 @@ int mainSimples(int argc, char *argv[])
 
 
 	 
-TPZGeoMesh *CreateGMesh(int nel, REAL elsize)
+TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
 {
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	
-	int nnodes = nel + 1;
+	long nnodes = nel + 1;
 	gmesh->NodeVec().Resize(nnodes);
-	int mat1d = 1, bc0 = -1, bc1 = -2;
+	long mat1d = 1, bc0 = -1, bc1 = -2;
 	
 	// Colocando nos na malha
-	for (int i = 0 ; i < nnodes; i++) 
+	for (long i = 0 ; i < nnodes; i++) 
 	{
 		const REAL pos = i * elsize;
 		TPZVec <REAL> coord(3,0.);
@@ -207,13 +207,13 @@ TPZGeoMesh *CreateGMesh(int nel, REAL elsize)
 	}
 	
 	// Criando Elementos
-	TPZVec <int> topol(2), TopolPoint(1);
-	int id = 0;
+	TPZVec <long> topol(2), TopolPoint(1);
+	long id = 0;
 	
-	for (int iel = 0; iel < nel; iel++) 
+	for (long iel = 0; iel < nel; iel++) 
 	{
-		const int ino1 = iel;
-		const int ino2 = iel + 1;
+		const long ino1 = iel;
+		const long ino2 = iel + 1;
 		topol[0] = ino1;
 		topol[1] = ino2;
 		
@@ -238,11 +238,11 @@ TPZGeoMesh *CreateGMesh(int nel, REAL elsize)
 TPZGeoMesh * GMesh2D()
 {
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	const int nnodes = 4;
+	const long nnodes = 4;
 	gmesh->NodeVec().Resize(nnodes);
-	const int matid = 1, bc0 = -1, bc1 = -2;
+	const long matid = 1, bc0 = -1, bc1 = -2;
 	
-	int ino = 0;
+	long ino = 0;
 	TPZManVector <REAL,3> coord(3,0.);
 	// no 0
 	coord[0] = 0.;
@@ -272,14 +272,14 @@ TPZGeoMesh * GMesh2D()
 	gmesh->NodeVec()[ino].SetNodeId(ino);
 	ino++;
 	
-	TPZManVector <int,4> TopolQuad(4);
-	TPZManVector <int,1> TopolPoint(1);
-	TPZManVector <int,2> TopolLine(2);
+	TPZManVector <long,4> TopolQuad(4);
+	TPZManVector <long,1> TopolPoint(1);
+	TPZManVector <long,2> TopolLine(2);
 	
-	int id = 0;
-	const int nel = 1;
+	long id = 0;
+	const long nel = 1;
 
-	for (int ip = 0; ip < 4; ip++) {
+	for (long ip = 0; ip < 4; ip++) {
 		TopolQuad[ip] = ip;
 	}
 	new TPZGeoElRefPattern < pzgeom::TPZGeoQuad > (id, TopolQuad, matid, *gmesh);
