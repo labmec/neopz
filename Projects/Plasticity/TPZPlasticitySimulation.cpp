@@ -2,10 +2,10 @@
 #include <cstdlib>
 
 
-#include "TPZPlasticityTest.h"
+#include "TPZPlasticitySimulation.h"
 
 /// Default constructor
-TPZPlasticityTest::TPZPlasticityTest() : fZStressKnown(false), fRStressKnown(false), /*fPoreStressRZ(2,0.),*/ fPoreStrainRZ(2,0.), fStressRZInput(0,2,0.),
+TPZPlasticitySimulation::TPZPlasticitySimulation() : fZStressKnown(false), fRStressKnown(false), /*fPoreStressRZ(2,0.),*/ fPoreStrainRZ(2,0.), fStressRZInput(0,2,0.),
                 fStrainRZInput(0,2,0.), fStressRZSimulated(0,2,0.), fStrainRZSimulated(0,2,0.)
 {
     fNumSteps = 0;
@@ -13,7 +13,7 @@ TPZPlasticityTest::TPZPlasticityTest() : fZStressKnown(false), fRStressKnown(fal
 }
 
 /// Get the stress to the pore stress
-void TPZPlasticityTest::ApplyInitialStress()
+void TPZPlasticitySimulation::ApplyInitialStress()
 {
     // load hydrostatic till I1 is in the middle of the ellips
     STATE I1 = fStressRZInput(fPoreClosureIndex,0)*2. + fStressRZInput(fPoreClosureIndex,1); //fPoreStressRZ[0]*2.+fPoreStressRZ[1];
@@ -46,7 +46,7 @@ void TPZPlasticityTest::ApplyInitialStress()
 }
 
 /// Evoluate the stress and strain to step ist
-void TPZPlasticityTest::EvoluateToStep(TPZVec<STATE> &strainRZ, TPZVec<STATE> &stressRZ)
+void TPZPlasticitySimulation::EvoluateToStep(TPZVec<STATE> &strainRZ, TPZVec<STATE> &stressRZ)
 {
     TPZTensor<STATE> strain,stressgoal;
     TPZPlasticState<STATE> locstate;
@@ -135,7 +135,7 @@ void TPZPlasticityTest::EvoluateToStep(TPZVec<STATE> &strainRZ, TPZVec<STATE> &s
 }
 
 /// compute the stress strain curve
-void TPZPlasticityTest::PerformSimulation()
+void TPZPlasticitySimulation::PerformSimulation()
 {
     ApplyInitialStress();
     int nloadsteps = fStressRZInput.Rows();
@@ -167,7 +167,7 @@ void TPZPlasticityTest::PerformSimulation()
 }
 
 /// read the input strain and stress from the laboratory file
-void TPZPlasticityTest::ReadInputStrainStress(const std::string &filename)
+void TPZPlasticitySimulation::ReadInputStrainStress(const std::string &filename)
 {
     std::ifstream input(filename.c_str());
     if (!input) {

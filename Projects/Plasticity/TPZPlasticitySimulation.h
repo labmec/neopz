@@ -1,9 +1,9 @@
-#ifndef TPZPLASTICITYTEST
-#define TPZPLASTICITYTEST
+#ifndef TPZPLASTICITYSIMULATION
+#define TPZPLASTICITYSIMULATION
 
 #include "TPZSandlerDimaggio.h"
 
-class TPZPlasticityTest
+class TPZPlasticitySimulation
 {
 protected:
     /// variable indicating if the maximum z stress is given
@@ -42,7 +42,7 @@ protected:
 public:
     
     /// Default constructor
-    TPZPlasticityTest();
+    TPZPlasticitySimulation();
     
     /// either the stress is determined or the deformation
     void SetZStressKnown(bool zstressknown)

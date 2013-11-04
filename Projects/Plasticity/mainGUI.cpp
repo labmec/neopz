@@ -2,7 +2,7 @@
 #include <cstdlib>
 
 
-#include "TPZPlasticityTest.h"
+#include "TPZPlasticitySimulation.h"
 
 using namespace std;
 void MaterialPointTests();
@@ -10,7 +10,7 @@ void MaterialPointTests();
  int main()
  {
      InitializePZLOG();
-     TPZPlasticityTest test;
+     TPZPlasticitySimulation test;
      std::string filename("../ensaio_all_columns.txt");
      test.ReadInputStrainStress(filename);
      
