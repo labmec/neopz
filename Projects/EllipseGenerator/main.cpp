@@ -38,6 +38,8 @@
 
 #include "TPZVTKGeoMesh.h"
 
+#include "TPZProjectEllipse.h"
+
 
 #include <iostream>
 #include <math.h>
@@ -45,12 +47,14 @@ using namespace std;
 
 // Functions to fill coordinates for several points to test the adjusting by ellipse
 void FillingPoints2D(TPZManVector<REAL> &Points);
+void FillingPoints2D(TPZFMatrix<REAL> &Points);
 void FillingPoints3D(TPZManVector<REAL> &Points);
 
 // Least Squares Method to compute a ellipse nearest for a points in vector
 // The obtained ellipse has the axes parallels to rectangular axes
 // Format (x-x0)^2/a^2 + (y-y0)^2/b^2 = 1.
 bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &points,std::ostream &out=std::cout);
+bool AdjustingWithVerySimpleEllipse(TPZManVector<REAL> &points);
 
 // Least Squares Method to compute a ellipse nearest for a points in vector
 // The ellipse is a conic with second order equation as
@@ -69,19 +73,37 @@ void AlmostZeroToZero(TPZVec<REAL> &mat);
 REAL Tol = 1.e-4;
 std::ofstream out("EllipseInfo.txt");
 
+void LeastSquaresToGetVerySimpleEllipse(TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients);
+
 int main(int argc, char *argv[]) {
 
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
 
-	int dim = 3;
+    TPZFMatrix<REAL> matpoints;
+    FillingPoints2D(matpoints);
+    TPZProjectEllipse ellips(TPZProjectEllipse::EVerySimple2D,matpoints);
+    TPZManVector<REAL,10> coefs;
+    ellips.Getcoefficients(coefs);
+    std::cout << "Coefficients " << coefs << std::endl;
+    TPZManVector<REAL,3> center(2),ratios(2);
+    ellips.StandardFormatForSimpleEllipse(center, ratios);
+    std::cout << "center " << center << " ratios " << ratios << std::endl;
+    ellips.PrintingAsSimpleEquation(center, ratios, std::cout);
+    
+	int dim = 2;
 	TPZManVector<REAL> Points;
 	if(dim==2)
 		FillingPoints2D(Points);
 	else
 		FillingPoints3D(Points);
+
+    if (dim == 2) {
+        AdjustingWithVerySimpleEllipse(Points);
+    }
 	
+
 	if(dim == 2) out << "Adjusting with ELLIPSE (axes parallels with cartesian axes):\n\n";
 	else if(dim == 3) out << "Adjusting with ELLIPSOID (axes parallels with cartesian axes):\n\n";
 	// Finding a ellipse nearest for all points
@@ -89,7 +111,7 @@ int main(int argc, char *argv[]) {
 		AdjustingWithEllipse(dim,Points,out);  // Whether don't exist ellipse with axes parallel to cartesian axes, the program compute arbitrary ellipse
 		return 1;    // Return 1 means the simple ellipse couldn't be finded.
 	}
-	
+    
 	if(dim == 2) out << "\n\nAdjusting with ELLIPSE (Could be had rotation):\n\n";
 	else if(dim == 3) out << "\n\nAdjusting with ELLIPSOID (Could be had rotation):\n\n";
 	// Finding a ellipse nearest for all points
@@ -257,6 +279,54 @@ bool LeastSquaresToGetEllipse(int dim,TPZManVector<REAL> &points,TPZFMatrix<REAL
 }
 
 
+void LeastSquaresToGetVerySimpleEllipse(TPZManVector<REAL> &points,TPZFMatrix<REAL> &Coefficients) {
+	long npoints = points.NElements()/2;
+	int nincog = 2, i;
+    
+	if(npoints<nincog) return false;
+    
+	// Dimensioning vector of coefficients
+	Coefficients.Redim(nincog,1);
+	Coefficients.Zero();
+    
+	// Will be solved y^2 = p*x^2 + q*x + r*y + s
+	// Constructing matrix H and Transpose of H to compute by least squares method
+	TPZFMatrix<REAL> DeltaH;
+	TPZFMatrix<REAL> DeltaHTranspose;
+	TPZFMatrix<REAL> DifSol;
+	TPZFMatrix<REAL> A;
+    
+	// Redimensioning
+	A.Redim(nincog,nincog);
+    DeltaH.Redim(npoints,nincog);
+    DeltaHTranspose.Redim(nincog,npoints);
+    DifSol.Redim(npoints,1);
+    //	DifSol.Zero();
+    
+    // Filling y^2 into Coefficients
+    for(i=0;i<npoints;i++)
+        DifSol.PutVal(i,0,points[2*i+1]*points[2*i+1]);  // fill y*y
+    
+    // Filling elements for H matrix
+    for(int i=0;i<npoints;i++) {
+        DeltaH.PutVal(i,0,points[2*i]*points[2*i]);      // fill x*x
+        DeltaH.PutVal(i,1,1.);                           // fill 1.
+    }
+    
+	DeltaH.Print(std::cout);
+    
+    // Solving by least squares using product of matrix: DeltaH_t * DifSol = DeltaH_t * DeltaH * Coeffs(u)
+    A.Zero();
+    DeltaH.Transpose(&DeltaHTranspose);
+    A = DeltaHTranspose*DeltaH;
+	Coefficients = DeltaHTranspose*DifSol;
+	A.SolveDirect(Coefficients,ELU);
+	Coefficients.Print(std::cout);
+}
+
+
+
+
 /*********** Utilities *************/
 
 // To print as zero all the values almost zero
@@ -318,13 +388,14 @@ void PrintAxes(TPZFMatrix<REAL> &P,std::ostream &out) {
  * z^2 = a x^2 + b x + c y^2 + d y + e xy + f z + g yz + h xz + i
  * compute the coordinates of the center and axes of the ellipse. Print in the standard equation.
  */
+
 bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
 	int dim = Center.NElements();
 	int ncoeffs = Coeffs.Rows();
 	REAL temp, temp1;
-	if(ncoeffs != 2*dim || Coeffs.Cols()!=1)
+	if( Coeffs.Cols()!=1)
 		return false;
-	if(dim ==2) {
+	if(ncoeffs ==4) {
 		Center[0] = -(Coeffs(1,0)/(2.*Coeffs(0,0)));
 		Center[1] = 0.5*Coeffs(2,0);
 		// Computing Ratios[1] in temp
@@ -337,7 +408,7 @@ bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> 
 		temp1 = (-temp)/(4*Coeffs(0,0));
 		Ratios[1] = sqrt(temp1);
 	}
-	else {
+	else if(ncoeffs == 6) {
 		Center[0] = -(Coeffs(1,0)/(2.*Coeffs(0,0)));
 		Center[1] = -(Coeffs(3,0)/(2.*Coeffs(2,0)));
 		Center[2] = 0.5*Coeffs(4,0);
@@ -353,7 +424,42 @@ bool StandardFormatForSimpleEllipse(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> 
 		if(temp < 0.) return false;
 		Ratios[0] = sqrt(temp);
 	}
+    else if(ncoeffs == 2)
+    {
+        Center[0] = 0.;
+		Center[1] = 0.;
+		// Computing Ratios[1] in temp
+		temp = Coeffs(1,0)-(Center[0]*Center[0]*Coeffs(0,0))+(Center[1]*Center[1]);
+		// Computing Ratios[0] in Ratios[1]
+		Ratios[1] = -temp/Coeffs(0,0);
+		if(temp < 0. || Ratios[1] < 0.)
+			return false;
+		Ratios[0] = sqrt(Ratios[1]);
+		Ratios[1] = sqrt(temp);
+    }
 	return true;
+}
+
+
+void PrintingAsSimpleEquation(TPZFMatrix<REAL> &Coeffs,TPZManVector<REAL> &Center,TPZManVector<REAL> &Ratios) {
+	int dim = Center.NElements();
+    if(Coeffs.Rows() == 2)
+    {
+		std::cout << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "\n";
+		std::cout << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1] << " = 1.\n" << std::endl;
+        
+    }
+	else if(Coeffs.Rows() == 4) {
+		std::cout << std::endl << "y*y = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y + " << Coeffs(3,0) << "\n";
+		std::cout << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1] << " = 1.\n" << std::endl;
+	}
+	else if(Coeffs.Rows() == 6)
+    {
+		std::cout << std::endl << "z*z = " << Coeffs(0,0) << "x*x + " << Coeffs(1,0) << "x + " << Coeffs(2,0) << "y*y + " << Coeffs(3,0) << "y +";
+		std::cout << Coeffs(4,0) << "z + " << Coeffs(5,0) << std::endl;
+		std::cout << "\nElipse: (x - " << Center[0] << ")^2/" << Ratios[0]*Ratios[0] << " + (y - " << Center[1] << ")^2/" << Ratios[1]*Ratios[1];
+		std::cout << " + (z - " << Center[2] << ")^2/" << Ratios[2]*Ratios[2] << " = 1.\n" << std::endl;
+	}
 }
 
 /**
@@ -387,6 +493,32 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points,std::ostream 
 	return true;
 }
 
+
+bool AdjustingWithVerySimpleEllipse(TPZManVector<REAL> &Points) {
+    
+	TPZFMatrix<REAL> Coeffs;
+    int dim = 2;
+	TPZManVector<REAL> Center(dim,0.);
+	TPZManVector<REAL> Ratios(dim,0.);
+    
+	// Applying least squares for these five points
+	LeastSquaresToGetVerySimpleEllipse(Points,Coeffs);
+	std::cout << "\n\nSolution:";
+    
+	// Making zero depending on Tolerance
+	float Tol;
+	ZeroTolerance(Tol);
+	for(int i=0;i<Coeffs.Rows();i++)
+		if(fabs(Coeffs(i)) < 100*Tol)
+			Coeffs.PutVal(i,0,0.);
+    
+	// Getting the values of the center and ratios for the ellipse from Coeffs values
+	if(!StandardFormatForSimpleEllipse(Coeffs,Center,Ratios))
+		return false;
+	PrintingAsSimpleEquation(Coeffs,Center,Ratios);
+	return true;
+}
+
 /**
  * Process to get the ellipse by least square method from a set of points.
  * First: Find coefficients of the quadratic form (with mixed terms) from a set of points using least square method.
@@ -395,6 +527,7 @@ bool AdjustingWithSimpleEllipse(int dim,TPZManVector<REAL> &Points,std::ostream 
  * Fourth: Print the result and standard form into saida.
  */
 bool AdjustingWithEllipse(int dim,TPZManVector<REAL> &Points,std::ostream &out) {
+
 
 	TPZFMatrix<REAL> Coeffs;
 	TPZManVector<REAL> Center(dim,0.);
@@ -528,6 +661,17 @@ bool DiagonalizingQuadraticForm(int dim,TPZFMatrix<REAL> &Coeffs,TPZFMatrix<REAL
 }
 
 /************ For tests *****************************/
+void FillingPoints2D(TPZFMatrix<REAL> &Points) {
+    TPZManVector<REAL> vecpoints;
+    FillingPoints2D(vecpoints);
+    int np = vecpoints.size()/2;
+    Points.Redim(np, 2);
+    for (int i=0; i<np; i++) {
+        Points(i,0) = vecpoints[2*i];
+        Points(i,1) = vecpoints[2*i+1];
+    }
+    
+}
 
 /* Filling points 2D case */
 void FillingPoints2D(TPZManVector<REAL> &Points) {
@@ -590,7 +734,7 @@ void FillingPoints2D(TPZManVector<REAL> &Points) {
 		Points[2*(npoints+1)+dim*i+1] = 1.+sqrt(18.);
 	}
 	else if(0) {
-		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// Para um elipse com forma quadrï¿½tica 2 x^2 + 2 xy + 2 y^2 = 9
 		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
 		// Center = (0,0) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
 		Points.Resize(26);
@@ -610,11 +754,11 @@ void FillingPoints2D(TPZManVector<REAL> &Points) {
 		Points[24] = -0.3; Points[25] = 2.25535;
 	}
 	else if(0) {
-		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// Para um elipse com forma quadrï¿½tica 2 x^2 + 2 xy + 2 y^2 = 9
 		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
 		// Center = (0,0) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
-		// Nesse caso estamos fornecendo pontos sempre a um lado da elipse, para ver se dá a mesma, 
-		// pois nos comentarios do Philippe a fratura (borda) tinha só uma parte da elipse
+		// Nesse caso estamos fornecendo pontos sempre a um lado da elipse, para ver se dï¿½ a mesma, 
+		// pois nos comentarios do Philippe a fratura (borda) tinha sï¿½ uma parte da elipse
 		Points.Resize(26);
 		Points[0] = 0.; Points[1] = 3./sqrt(2);
 		Points[2] = 0.1; Points[3] = 2.06955;
@@ -631,7 +775,7 @@ void FillingPoints2D(TPZManVector<REAL> &Points) {
 		Points[24] = -0.3; Points[25] = 2.25535;
 	}
 	else if(0) {
-		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// Para um elipse com forma quadrï¿½tica 2 x^2 + 2 xy + 2 y^2 = 9
 		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
 		// Center = (sqrt(2),sqrt(2)) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
 		// Nesse caso estamos fornecendo os mesmos pontos com a abscisa deslacada duas unidades
@@ -651,7 +795,7 @@ void FillingPoints2D(TPZManVector<REAL> &Points) {
 		Points[24] = 1.7; Points[25] = 2.25535;
 	}
 	else {
-		// Para um elipse com forma quadrática 2 x^2 + 2 xy + 2 y^2 = 9
+		// Para um elipse com forma quadrï¿½tica 2 x^2 + 2 xy + 2 y^2 = 9
 		// with axes v1=(1/sqrt(2),-1/sqrt(2)) and v2 = (1/sqrt(2),1/sqrt(2))
 		// Center = (sqrt(2),sqrt(2)) and a = sqrt(3)  and  b = 3.  Vide Kolman (alg linear) pag 480.
 		// Nesse caso estamos fornecendo os mesmos pontos com a abscisa deslacada duas unidades
