@@ -283,7 +283,7 @@ void LeastSquaresToGetVerySimpleEllipse(TPZManVector<REAL> &points,TPZFMatrix<RE
 	long npoints = points.NElements()/2;
 	int nincog = 2, i;
     
-	if(npoints<nincog) return false;
+	if(npoints<nincog) DebugStop(); //return false;
     
 	// Dimensioning vector of coefficients
 	Coefficients.Redim(nincog,1);

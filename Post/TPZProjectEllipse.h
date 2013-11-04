@@ -87,7 +87,7 @@ private:
     void AlmostZeroToZero(TPZFMatrix<REAL> &mat);
     void AlmostZeroToZero(TPZVec<REAL> &mat);
     
-    REAL Tol = 1.e-4;
+    //REAL Tol = 1.e-4;
     
     
     bool LeastSquaresToGetSimpleEllipse();
