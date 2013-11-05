@@ -79,6 +79,7 @@ TPZGeoMesh *MalhaCubo(string FileName);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 
 void CopyTo(TPZSkylMatrix <REAL> * skylmat, TPZSkylMatrix<TPZFlopCounter> &fp_counter);
+void PrintInfo (string funct, TPZCounter info); 
 
 void help(const char* prg)
 {
@@ -224,22 +225,27 @@ int main(int argc, char *argv[])
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat3 = skylmat1->Clone();
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat4 = skylmat1->Clone();
 	TPZFMatrix<REAL> f(neq,1,M_PI);
+	TPZFMatrix<REAL> f333(neq,1,M_PI);
 	TPZFMatrix<TPZFlopCounter > f2(neq,1,M_PI);
 	TPZSkylMatrix <TPZFlopCounter> fp1;
 	TPZSkylMatrix <TPZFlopCounter> fp2;
+	TPZSkylMatrix <TPZFlopCounter> fp3;
+	TPZSkylMatrix <TPZFlopCounter> fp4;
 	
 	CopyTo(orig,fp1);
 	CopyTo(orig,fp2);
+	CopyTo(orig,fp3);
+	CopyTo(orig,fp4);
 		
 	if (clk_rst.was_set()) {
     		clk_rst.start();
-    		//skylmat1->Decompose_Cholesky();
+    		skylmat1->Decompose_Cholesky();
     		clk_rst.stop();
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp1.Decompose_Cholesky();
 		  c = TPZFlopCounter::gCount - c;
-		  c.Print();
+		  PrintInfo("Decompose_Cholesky()", c);
 		}
 	}
 
@@ -250,8 +256,8 @@ int main(int argc, char *argv[])
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp2.Decompose_LDLt();
-		  c = c - TPZFlopCounter::gCount;
-		  c.Print();
+		  c = TPZFlopCounter::gCount - c;
+		  PrintInfo("Decompose_LDLt()", c);
 		}
 	}
 
@@ -263,8 +269,8 @@ int main(int argc, char *argv[])
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp1.Subst_Forward(&f2);
-		  c = c - TPZFlopCounter::gCount;
-		  c.Print();
+		  c = TPZFlopCounter::gCount - c;
+		  PrintInfo("Subst_Forward()", c);
 		}
 	}
 
@@ -276,8 +282,8 @@ int main(int argc, char *argv[])
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp1.Subst_Backward(&f2);
-		  c = c - TPZFlopCounter::gCount;
-		  c.Print();
+		  c = TPZFlopCounter::gCount - c;
+		  PrintInfo("Subst_Backward()", c);
 		}
 	}
 
@@ -291,6 +297,15 @@ int main(int argc, char *argv[])
     		sor_rst.start();
 		skylmat4->SolveSOR(niter, *f, res, &residual, scratch, overrelax, tol);
     		sor_rst.stop();
+		if (print_flops.was_set()) {
+		  TPZFMatrix<REAL> res2(neq,1);
+        	  TPZFMatrix<REAL> residual2(neq,1);
+        	  TPZFMatrix<REAL> scratch2(neq,neq);
+		  TPZCounter c = TPZFlopCounter::gCount;
+		  //fp3.SolveSOR(niter, *f3, res2, &residual2, scratch2, ovrrelax, tol);
+		  c = TPZFlopCounter::gCount - c;
+		  c.Print();
+		}
 	}
 
 	if (mult_rst.was_set()) {
@@ -298,99 +313,18 @@ int main(int argc, char *argv[])
     		mult_rst.start();
     		skylmat3->MultAdd(result, result, result, 1., 0);
     		mult_rst.stop();
+		if (print_flops.was_set()) {
+        	  TPZFMatrix<REAL> result2(neq,neq);
+		  TPZCounter c = TPZFlopCounter::gCount;
+		  //fp4.SolveSOR(result2, result2, result2, 1., 0);
+		  c = TPZFlopCounter::gCount - c;
+		  c.Print();
+		}
 	}
 
 	return 0;
 
 }   
-    /** Dump decomposed matrix */
-//    if (dump_dm.was_set()) {
-//        VERBOSE(1, "Dumping decomposed matrix into: " <<
-//                dump_dm.get_value() << endl);
-//        FileStreamWrapper dump_file(bd.get_value());
-//        dump_file.OpenWrite(dump_dm.get_value());
-//        matrix.Write(dump_file, 0);
-//    }
-    
-    /* Gen/Check MD5 signature */
-//    if (gen_dm_sig.was_set() || chk_dm_sig.was_set()) {
-//        TPZMD5Stream sig;
-//        matrix.Write(sig, 1);
-//        int ret;
-//        if (chk_dm_sig.was_set()) {
-//            if ((ret=sig.CheckMD5(chk_dm_sig.get_value()))) {
-//                cerr << "ERROR(ret=" << ret << ") : MD5 Signature for "
-//                << "decomposed matrixdoes not match." << endl;
-//                return 1;
-//            }
-//            else {
-//                cout << "Checking decomposed matrix MD5 signature: [OK]" << endl;
-//            }
-//        }
-//        if (gen_dm_sig.was_set()) {
-//            if ((ret=sig.WriteMD5(gen_dm_sig.get_value()))) {
-//                cerr << "ERROR (ret=" << ret << ") when writing the "
-//                << "decomposed matrix MD5 signature to file: "
-//                << gen_dm_sig.get_value() << endl;
-//                return 1;
-//            }
-//        }
-//    }
-    
-//    int ret=0; // Ok
-    
-    /** Check decomposed matrix */
-//    if (chk_dm_error.was_set()) {
-//        VERBOSE(1, "Checking decomposed matrix error: " <<
-//                chk_dm_error.get_value() << endl);
-//        FileStreamWrapper ref_file(br.get_value());
-//        ref_file.OpenRead(chk_dm_error.get_value());
-        /* Reference matrix. */
-//        TPZSkylMatrix<REAL> ref_matrix;
-//        ref_matrix.Read(ref_file,0);
-//        int max_j = matrix.Cols();
-//        if (max_j != ref_matrix.Cols()) {
-//            cerr << "Decomposed matrix has " << max_j
-//            << " cols while reference matrix has "
-//            << ref_matrix.Cols() << endl;
-//            return 1;
-//        }
-//        REAL error_tolerance = error_tol.get_value();
-//        REAL max_error = 0.0;
-//        for (int j=0; j<max_j; j++) {
-//            int col_height = matrix.SkyHeight(j);
-//            if (col_height != ref_matrix.SkyHeight(j)) {
-//                cerr << "Column " << j << " of decomposed matrix has " << col_height
-//                << " non zero rows while reference matrix has "
-//                << ref_matrix.SkyHeight(j) << endl;
-//                return 1;
-//            }
-//            int min_i = (j+1) - col_height;
-//            for (int i=min_i; i<=j; i++) {
-                
-//                REAL dm_ij = matrix.s(i,j);
-//                REAL rm_ij = ref_matrix.s(i,j);
-//                if (dm_ij != rm_ij) {
-//                    REAL diff = abs(dm_ij - rm_ij);
-//                    if (diff >= error_tolerance) {
-//                        VERBOSE(1, "diff(" << diff << ") tolerance (" << error_tolerance 
-//                                << "). dm[" << i << "][" << j << "] (" << dm_ij
-//                                << ") != rm[" << i << "][" << j << "] (" << rm_ij 
-//                                << ")." << endl);
-//                        ret = 1;
-//                        max_error = (max_error < diff)?diff:max_error;
-//                    }
-//                }
-//            }
-//        }
-//        if (ret != 0) {
-//            cerr << "Error ("<< max_error <<") > error tolerance ("
-//            << error_tolerance <<")" <<  endl;
-//        }
-//    }
-    
-//    return ret;
-//}
 
 void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 {
@@ -681,4 +615,12 @@ void CopyTo(TPZSkylMatrix <REAL> * skylmat1, TPZSkylMatrix<TPZFlopCounter> &fp_c
 			fp_counter.PutVal(i, j, skylmat1->GetVal(i,j));
 		}
 	}
+}
+
+void PrintInfo (string funct, TPZCounter info) 
+{
+	cout << "Printing flop count info of " << funct << endl;
+	info.Print();
+	cout << "****************************" << endl;
+	return;
 }
