@@ -400,7 +400,7 @@ void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
 
 int TPZGeoEl::WhichSubel(){
 	
-	if(!fFatherIndex == -1) {
+	if(fFatherIndex == -1) {
 		PZError << "TPZGeoEl::WhichSubel called with null element\n";
 		return -1;
 	}
