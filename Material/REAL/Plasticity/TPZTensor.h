@@ -209,7 +209,7 @@ public:
 	 Construtor vazio inicializando com zero
 	 */
 #ifdef _AUTODIFF
-    TPZTensor() : fData(6) { }    // When T is the Fad type, the elements of the fData are initialized with T zero. See tfad.h
+    TPZTensor() : fData(6, T(0.)) { }    // When T is the Fad type, the elements of the fData are initialized with T zero. See tfad.h
 #else
     TPZTensor() : fData(6, T(0.)) { }
 #endif
@@ -910,6 +910,9 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
     R=(T(-2.)*I1*I1*I1+T(9.)*I1*I2-T(27.)*I3)/T(54.);
     
     Q=(I1*I1-T(3.)*I2)/T(9.);
+		if (Q < T(0.) || Q < T(1.e-14)) {
+			Q = T(0.);
+		}
     T denom = sqrt(Q*Q*Q);
     
     
