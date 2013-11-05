@@ -30,6 +30,8 @@ TPZPostProcAnalysis();
 
 virtual ~TPZPostProcAnalysis();
 	
+    /// Set the computational mesh we are going to post process
+    void SetCompMesh(TPZCompMesh *pRef);
 /**
  *	Assemble() blank implementation in order to avoid its usage. In such an Analysis
  * class the Assemble() method is useless.
@@ -58,6 +60,16 @@ void SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames
 static void SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh);
 static void SetAllCreateFunctionsContinuous();
 		void AutoBuildDisc();
+    
+    /** @brief Returns the unique identifier for reading/writing objects to streams */
+	virtual int ClassId() const;
+	/** @brief Save the element data to a stream */
+	virtual void Write(TPZStream &buf, int withclassid);
+	
+	/** @brief Read the element data from a stream */
+	virtual void Read(TPZStream &buf, void *context);
+    
+
 protected:
 	
 	TPZCompMesh * fpMainMesh;
