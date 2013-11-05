@@ -1806,6 +1806,20 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
 	
 	ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        int nel = fElementVec.NElements();
+        for (int el=0; el<nel; el++) {
+            TPZCompEl *cel = fElementVec[el];
+            if (cel) {
+                cel->Print(sout);
+            }
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	fSolution.Read(buf,0);
 	fSolutionBlock.Read(buf,&fSolution);
 	fBlock.Read(buf,&fSolution);

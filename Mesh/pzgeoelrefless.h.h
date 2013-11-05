@@ -18,7 +18,7 @@ static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
 	int i;
-	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
 }
 
 template<class TGeo>
@@ -43,7 +43,7 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZG
 TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 	
 	int i;
-	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
 }
 
@@ -51,7 +51,7 @@ template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TGeo &geo,int matind,TPZGeoMesh &mesh) :
 TPZGeoEl(matind,mesh), fGeo(geo) {
 	int i;
-	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
 }
 
@@ -60,7 +60,7 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<long> &nodeindices,int matind,TPZG
 TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
 {
 	int i;
-	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
 }
 
@@ -68,7 +68,7 @@ template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(long id,TPZVec<long> &nodeindexes,int matind,TPZGeoMesh &mesh) :
 TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 	int i;
-	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSideIndex();
     fGeo.Initialize(this);
 }
 
@@ -387,9 +387,25 @@ template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
 	TPZGeoEl::Read(buf,context);
     fGeo.Read(buf,context);
+#ifdef DEBUG
+    long NNodes = Mesh()->NodeVec().NElements();
+    for (int i=0; i< TGeo::NNodes; i++) {
+        if (fGeo.fNodeIndexes[i]<0 || fGeo.fNodeIndexes[i] > NNodes) {
+            DebugStop();
+        }
+    }
+#endif
+    
 	int i, n = TGeo::NSides;
 	for(i = 0; i < n; i++){
 		this->fNeighbours[i].Read(buf);
+#ifdef DEBUG
+        int nel = Mesh()->NElements();
+        if (this->fNeighbours[i].ElementIndex() < 0 || this->fNeighbours[i].Side() < 0 || this->fNeighbours[i].Side() >=27
+            || this->fNeighbours[i].ElementIndex() >= nel) {
+            DebugStop();
+        }
+#endif
 	}
 }//Read
 

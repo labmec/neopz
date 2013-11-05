@@ -180,7 +180,8 @@ public:
 	template<class T>
 	static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec)
 	{
-		long c,nc = vec.NElements(),one = -1;
+		long c,nc = vec.NElements();
+        int one = -1;
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++)
 		{
@@ -248,7 +249,8 @@ public:
 	template<class T, int EXP>
 	static void WriteObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec)
 	{
-		long c,m1=-1,nc = vec.NElements();
+		long c,nc = vec.NElements();
+        int m1 = -1;
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++)
 		{
@@ -261,7 +263,8 @@ public:
 	template<class T, int EXP>
 	static void WriteObjectPointers(TPZStream &buf, TPZAdmChunkVector<T *,EXP> &vec)
 	{
-		long c,m1=-1,nc = vec.NElements();
+		long c,nc = vec.NElements();
+        int m1 = -1;
 		buf.Write(&nc,1);
 		for(c=0; c<nc; c++)
 		{

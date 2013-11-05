@@ -340,7 +340,8 @@ inline void TPZGeoElSideIndex::SetElementIndex(long i){
 }
 
 inline void TPZGeoElSideIndex::Read(TPZStream &buf){
-    int side, index;
+    int side;
+    long index;
     buf.Read(&side, 1);
     buf.Read(&index, 1);
     this->fSide = side;

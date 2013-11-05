@@ -403,7 +403,7 @@ void TPZConnect::TPZDepend::Write(TPZStream &buf)
 	}
 	else
 	{
-		int min1 = -1;
+		long min1 = -1;
 		buf.Write(&min1,1);
 	}
 }
@@ -440,7 +440,7 @@ void TPZConnect::Write(TPZStream &buf, int withclassid)
 		fDependList->Write(buf);
 	} else
 	{
-		int min1 = -1;
+		long min1 = -1;
 		buf.Write(&min1,1);
 	}
 }

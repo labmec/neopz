@@ -289,6 +289,8 @@ inline void TPZCompElWithMem<TBASE>::Write(TPZStream &buf, int withclassid)
 {
 	TBASE::Write(buf,withclassid);
 	TPZSaveable::WriteObjects(buf, fIntPtIndices);
+    int classid = ClassId();
+    buf.Write(&classid);
 }
 
 /** Read the element data from a stream */
@@ -297,6 +299,11 @@ inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 {
 	TBASE::Read(buf,context);
 	TPZSaveable::ReadObjects(buf, fIntPtIndices);
+    int classid;
+    buf.Read(&classid);
+    if (classid != ClassId()) {
+        DebugStop();
+    }
 }
 
 #include "pzshapepoint.h"

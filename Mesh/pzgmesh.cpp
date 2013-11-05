@@ -1198,7 +1198,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 		WriteObjectPointers(buf,fElementVec);
 		buf.Write(&fNodeMaxId,1);
 		buf.Write(&fElementMaxId,1);
-		int ninterfacemaps = fInterfaceMaterials.size();
+		long ninterfacemaps = fInterfaceMaterials.size();
 		buf.Write(&ninterfacemaps,1);
 		InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
 		for(; it != fInterfaceMaterials.end(); it++)
