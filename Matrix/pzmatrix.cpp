@@ -279,7 +279,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 		out << "-1 -1 0.\n";
 	} else if( form == EMathematicaInput)
 	{
-		char number[32];
+		char number[256];
 		out << name << "\n{ ";
 		for ( long row = 0; row < Rows(); row++) {
 			out << "\n{ ";
