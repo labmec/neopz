@@ -23,7 +23,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 #endif
 
-int startfrom = 0;
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
 {
@@ -369,6 +368,7 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fCMesh.Write(out, 0);
     fAllSol.Write(out, 0);
     TPZSaveable::WriteObjects(out,fPlasticDeformSqJ2);
+
     int verify = 83562;
     out.Write(&verify);
 }
@@ -390,6 +390,9 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     fCMesh.Read(input, &fGMesh);
     fAllSol.Read(input, 0);
     TPZSaveable::ReadObjects(input,fPlasticDeformSqJ2);
+    CreatePostProcessingMesh();
+
+    
     int verify = 0;
     input.Read(&verify);
     if (verify != 83562)
@@ -506,6 +509,8 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
         fCurrentConfig.ComputeElementDeformation();
         
+        fCurrentConfig.CreatePostProcessingMesh();
+        
         if (i==0) {
             PostProcess(0);// pOrder
         }
@@ -600,6 +605,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     analysis.AcceptSolution();
     
     fCurrentConfig.ComputeElementDeformation();
+    
+    fCurrentConfig.CreatePostProcessingMesh();
     
     PostProcess(1);// pOrder
     
@@ -1610,15 +1617,13 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
     }
 }
 
-int passCount = 0;
-void TPZWellBoreAnalysis::PostProcess(int resolution)
+void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 {
     std::string vtkFile = "pocoplastico.vtk";
-    TPZPostProcAnalysis ppanalysis(&fCurrentConfig.fCMesh);
-    ppanalysis.SetStep(fPostProcessNumber);
-    TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+    fPostprocess.SetCompMesh(&fCMesh);
+    TPZFStructMatrix structmatrix(fPostprocess.Mesh());
     structmatrix.SetNumThreads(8);
-    ppanalysis.SetStructuralMatrix(structmatrix);
+    fPostprocess.SetStructuralMatrix(structmatrix);
     
     TPZVec<int> PostProcMatIds(1,1);
     TPZStack<std::string> PostProcVars, scalNames, vecNames;
@@ -1650,20 +1655,27 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     for (int i=0; i<vecNames.size(); i++) {
         PostProcVars.Push(vecNames[i]);
     }
-    //    
-    ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
     //
-    ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
-    //	
-    ppanalysis.TransferSolution();
-    ppanalysis.PostProcess(resolution);// pOrder
+    fPostprocess.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+    //
+    fPostprocess.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+    //
+    fPostprocess.TransferSolution();
+    
+}
+
+int passCount = 0;
+void TPZWellBoreAnalysis::PostProcess(int resolution)
+{
+    fCurrentConfig.fPostprocess.SetStep(fPostProcessNumber);
+    fCurrentConfig.fPostprocess.PostProcess(resolution);
     fPostProcessNumber++;
 
     //AQUICAJU
     REAL J2val = 0.0004;//<<< definido pelo programador
     std::multimap<REAL,REAL> polygonalChain;
 
-    GetJ2Isoline(ppanalysis.Mesh(), J2val, polygonalChain);
+    GetJ2Isoline(J2val, polygonalChain);
     
     {//just4Debug
         std::stringstream nm;
@@ -1687,8 +1699,9 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     }
 }
 
-void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::multimap<REAL,REAL> & polygonalChain)
+void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain)
 {
+    TPZCompMesh *cmesh = fCurrentConfig.fPostprocess.Mesh();
     REAL tol = 0.01*J2val;
     
     long nels = cmesh->NElements();
@@ -1764,7 +1777,7 @@ void TPZWellBoreAnalysis::GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::mul
                         
                         difSol = fabs(sol[0] - J2val);
                     }
-                    TPZVec<REAL> searchedX(3,0.);
+                    TPZManVector<REAL,3> searchedX(3,0.);
                     cel->Reference()->X(qsiMiddle, searchedX);
                     polygonalChain.insert( std::make_pair(searchedX[0],searchedX[1]) );
                 }

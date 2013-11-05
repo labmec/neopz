@@ -64,6 +64,7 @@
 //#include "TPZSandlerDimaggio.h"
 #include "TPZVTKGeoMesh.h"
 #include "BrazilianTestGeoMesh.h"
+#include "TPZProjectEllipse.h"
 
 
 void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD);
@@ -1463,6 +1464,7 @@ DECLARE_FPO_HANDLER_FUNC;
 #include "WellBoreAnalysis.h"
 
 //int startfrom = 0;
+int startfrom = 3;
 
 int main ()
 {
@@ -1524,6 +1526,7 @@ int main ()
         well.GetCurrentConfig()->CreateMesh();
         int porder = 2;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
 //        well.LinearConfiguration(1);
         well.PostProcess(0);
         TPZBFileStream save;
@@ -1602,6 +1605,14 @@ int main ()
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.03409;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
         //vvalor de a e b para sqJ2 = 0.0007 p 19.5
+        std::multimap<REAL, REAL> polygonalChain;
+        well.GetJ2Isoline(0.0007, polygonalChain);
+        TPZProjectEllipse ellips(polygonalChain);
+        TPZManVector<REAL,2> center(2),ratios(2),coefs(2),verify(2);
+        ellips.Getcoefficients(coefs);
+        ellips.StandardFormatForSimpleEllipse(center, ratios);
+        verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
+        verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
         REAL a = well.GetCurrentConfig()->fInnerRadius*1.014;
         REAL b = well.GetCurrentConfig()->fInnerRadius*0.90;
         well.AddEllipticBreakout(a, b);

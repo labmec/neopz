@@ -13,6 +13,7 @@
 #include "TPZSandlerDimaggio.h"
 #include "TPZTensor.h"
 #include "pzgeoel.h"
+#include "pzpostprocanalysis.h"
 
 class TPZElasticityMaterial;
 
@@ -106,6 +107,8 @@ public:
         /// Initialize the Sandler DiMaggio object and create the computational mesh
         void CreateComputationalMesh(int porder);
         
+        /// Setup post processing mesh
+        void CreatePostProcessingMesh();
                 
         /// project the node on the boundary
         // returns true if the coordinate was changed
@@ -153,6 +156,9 @@ public:
         
         /// Vector containing maximum element plastic deformation
         TPZVec<REAL> fPlasticDeformSqJ2;
+        
+        /// The post processing mesh with the transferred solution
+        TPZPostProcAnalysis fPostprocess;
         
     };
 
@@ -288,10 +294,12 @@ private:
     /// Recompute the plastic memory of the integration points of these elements
     void ApplyHistory(std::set<long> &elindices);
     
+public:
     /** by Caju 2013 */
     /// Returns a set of points that belongs to the isoline defined by the ginen J2 value
-    void GetJ2Isoline(TPZCompMesh * cmesh, REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
+    void GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
     
+private:
     /// The object with the current configuration
     TConfig fCurrentConfig;
     

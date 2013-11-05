@@ -52,6 +52,21 @@ public:
         }
     }
     
+    TPZProjectEllipse(std::multimap<REAL, REAL> &Points)
+    {
+        fType = EVerySimple2D;
+        fcoefficients.resize(2);
+        fPoints.Resize(Points.size(), 2);
+        std::multimap<REAL, REAL>::iterator it;
+        int i=0;
+        for (it = Points.begin(); it != Points.end(); it++, i++) {
+            fPoints(i,0) = it->first;
+            fPoints(i,1) = it->second;
+        }
+        LeastSquaresToGetVerySimpleEllipse();
+    }
+
+    
     void Getcoefficients(TPZVec<REAL> &coef)
     {
         coef = fcoefficients;
