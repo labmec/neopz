@@ -25,6 +25,7 @@
 #include "pzstepsolver.h"
 #include "TPZElasticResponse.h"
 #include "tpzautopointer.h"
+#include "TPZTimer.h"
 
 #include "TPZYCMohrCoulombPV.h"
 #include "pzsandlerextPV.h"
@@ -62,171 +63,116 @@ TPZFMatrix<REAL> ProdT(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
 
 int main()
 {
+	/*
+	//TestePlasticStepPV();
 	
-	TestePlasticStepPV();
+	TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
+	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
 	
+	ofstream outfile("FIGURA_12x.nb");
+	outfile << "VecFig12={";
 	
-	//TaylorCheck3();
+	deleps[0]= -0.00135;
 	
-	// TESTE DO MOHRCOULOMBPV
-	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV;
+	for (int k=0; k<3;k++) {
+		deltaepsP[k]=0.;
+		epsT[0]=0.;
+		epsPnext[0]=0.;
+		epssol[0]=0.;
+	}
 	
-	// Gerando tensor elastico
-	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.2);
-	TPZTensor<REAL> epstotalT, sigtrialT, sigtrial;
-	epstotalT.XX() = -50 * 0.01;
-	epstotalT.YY() = -40 * 0.01;
-	ER.Compute(epstotalT, sigtrialT);
-	sigtrialT.Print(std::cout);
-	TPZTensor<REAL>::TPZDecomposed SigDec;
-
-	sigtrialT.EigenSystem(SigDec);
-	SigDec.Print(cout);	
+	STATE kproj,kprev,epv=0.;
+	TPZFMatrix<STATE> GradSigma;
 	
-	TPZManVector<REAL, 3> sigtrialvec(3,0.), sigprojectvec(3,0.);
-	TPZYCMohrCoulombPV::TComputeSequence toto;
-	toto.fGamma.resize(1);
-	
+	kproj=0.;
+	kprev=0.13;
+	materialmodel.Firstk(epv,kprev);
+	for(int i=0;i<65;i++)
+	{
+		for (int k=0; k<3;k++) {
+			epssol[k]=epsT[k]-epsPnext[k];
+		}
 		
-	sigtrialvec = SigDec.fEigenvalues;
-	TPZManVector<TPZTensor<REAL>, 3 > &Eigenvec = SigDec.fEigenvectors;
-	TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
-	
-	for (int i = 0; i < 3; i++) 
-	{
-		EigenvecMat[i] = Eigenvec[i];
-		EigenvecMat[i].Print("asd");
-		std::cout << Eigenvec[i][0] << std::endl;
-		std::cout << Eigenvec[i][1] << std::endl;
-		std::cout << Eigenvec[i][2] << std::endl;
-		std::cout << Eigenvec[i][3] << std::endl;
-		std::cout << Eigenvec[i][4] << std::endl;
-		std::cout << Eigenvec[i][5] << std::endl;
-	}
-	//sigtrialvec[0] = 500.;
-	
-	TPZManVector<TFad<3,REAL>,3 > sigtrialfad(3), sigprojfad(3);
-	for (int i = 0; i < 3; i++) 
-	{
-		sigtrialfad[i].val() = sigtrialvec[i];
-		sigtrialfad[i].fastAccessDx(i) = 1;
-	}
-	
-	
-	MohrCoulombPV->ReturnMapPlane<REAL>(sigtrialvec, sigprojectvec, toto, ER);
-	
-	toto.fGamma[0] = 0.;
-	MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto, ER);
-	std::cout << "sigtrialfad:\n" << sigtrialfad << "\nsigprojfad:\n" << sigprojfad << std::endl;
-	
-	//
-	
-	//TaylorCheck();
-	
-	TPZFNMatrix<9> FadProj(3,3,0.);
-	for (int i = 0; i < 3; i++) 
-	{
-		for (int j = 0; j < 3; j++) 
+		materialmodel.ApplyStrainComputeElasticStress(epssol, sigtrial);
+		materialmodel.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
+
+		outfile <<"{" << -epsT[0]<< "," << -sigproj[0] << "}";
+		if (i!=64) {
+			outfile << ",";
+		}
+		
+		if(i==50)
 		{
-			FadProj(i,j) = sigprojfad[i].dx(j);
+			deleps[0]*=-1;
+		}
+		
+		for (int k=0; k<3;k++) {
+			deltasigma[k]=sigtrial[k]-sigproj[k];
+		}
+		
+		materialmodel.ApplyStressComputeElasticStrain(deltasigma, deltaepsP);
+		
+		for (int k=0; k<3;k++) {
+			epsPnext[k]+=deltaepsP[k];
+			epsT[k]+=deleps[k];
+		}
+		kprev=kproj;
+		
+	}
+	outfile << "};\nListPlot[VecFig12,Joined->True]";
+	 */
+
+	long neq = 2000;
+	TPZFMatrix<REAL> A(neq,neq,0.), b(neq,1,1.);
+	for (long i = 0; i < neq; i++) {
+		for (long j = 0; j < neq; j++) {
+			A(i,j) == sin(i*j);
+			if (i==j) {
+				A(i,j) = 10.;
+			}
 		}
 	}
-	FadProj.Print("FadProj");
-	TPZFNMatrix<36> dSigDe(6,6,0.);
-	
-	//Montando a matriz tangente
-	int kival[] = {0,0,0,1,1,2};
-	int kjval[] = {0,1,2,1,2,2};
-	REAL G = ER.G();
-	REAL lambda = ER.Lambda();
-	
-	for (int k = 0; k < 6; k++) 
-	{
-		int ki, kj;
-		ki = kival[k];
-		kj = kjval[k];
-		for (int i = 0; i < 3; i++) 
-		{
-			for (int j = 0; j < 3; j++) 
-			{
-				for (int l = 0; l < 6; l++) 
-				{
-					REAL temp = 2 * G * EigenvecMat[j](j,kj) * EigenvecMat[j](j,ki);
-				
-					if (ki == kj) 
-					{
-						temp += lambda;
-					}
-					temp *= FadProj(i,j);
-					dSigDe(l,k) += temp * Eigenvec[i][l];
-				}///l
-			}///j
-		}///i		
-	}///k
-	
-	
-	
-	//REAL critplat = MohrCoulombPV->PhiPlane<REAL>(sigprojectvec);
-	//std::cout << "CritPlat = " << critplat << std::endl;
-	
-	//  critplat = MohrCoulombPV->PhiPlane<REAL>(sigmaproject);
-	//	std::cout << "CritPlat = " << critplat << std::endl;
-	
-	
-	// Testando Left Edge
-	/*
-	toto.fGamma.Resize(2,0.);
-	toto.fGamma.Fill(0.);
-	std::cout << "toto.fGamma = " << toto.fGamma << std::endl;
-	sigtrialvec[0] = 500.;
-	sigtrialvec[1] = 0.;
-	sigtrialvec[2] = 0.;	
-	sigprojectvec.Fill(0.);
-	std::cout << "sigprojectvec = " << sigprojectvec << std::endl;
-	MohrCoulombPV->ReturnMapLeftEdge(sigtrialvec, sigprojectvec, toto);
-	MohrCoulombPV->ReturnMapRightEdge(sigtrialvec, sigprojectvec, toto);
-	*/
-	//	template<class T>
-	//	bool ReturnMapLeftEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected,
-	//												 TComputeSequence &memory)
-	
-	// Será que está na superfície?
-	//    T PhiPlane(typename TPZTensor<T>::TPZDecomposed &sigma) const
-	
-	
-	
-	//	template<class T>
-	//	bool ReturnMapPlane(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected, 
-	//											TComputeSequence &memory)
-	
-	
-	
-	// FIM TESTE DO MOHRCOULOMBPV
-	
+	TPZTimer time;
+	time.start();
+	A.Solve_LU(&b);
+	time.stop();
+	std::cout << "tempo = " << time.seconds() << std::endl;
+
+	return 0;
 }
 
 void TestePlasticStepPV()
 {
-	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
+	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;
 	ER.SetUp(100., 0.25);
-	REAL Alpha = 0.;
-	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(Alpha);
+	STATE kproj,kprev,epv=0.;
+	kproj=0.;
+	kprev=0.13;
+	materialmodel.Firstk(epv,kprev);
+	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(kprev);
 	stepPV.fYC = materialmodel;
 	stepPV.fER = ER;
-	
-	REAL iniEpsAxi = -0.0001;
-	std::map<REAL,REAL> loadcicle;
-	for (int i = 0; i < 1000; i++) {
-		epsT.XX() = iniEpsAxi*i;
+
+	REAL deltaEps= -0.00135;
+	std::list<std::pair<REAL,REAL> > loadcicle;
+	for (int i = 0; i < 65; i++) {
+		if (i == 50) {
+			deltaEps *= -1.;
+		}
+		//epsT.YY() = iniEpsAxi*i;
+		//epsT.ZZ() = iniEpsAxi*i;
+		epsT.Print(std::cout);
 		stepPV.ApplyStrainComputeSigma(epsT,Sigma);
-		loadcicle[-epsT.XX()] = -Sigma.XX();
+		loadcicle.push_back(std::pair<REAL,REAL>(-epsT.XX(),-Sigma.XX()));
+		//loadcicle[-epsT.XX()] = -Sigma.XX();
+		epsT.XX() += deltaEps;
 	}
 	
 	ofstream out("LoadCicle.nb");
-	std::map<REAL,REAL>::iterator it = loadcicle.begin();
+	std::list<std::pair<REAL,REAL> >::iterator it = loadcicle.begin();
 	out << "loadcicle=" << "{";
 	out << "{" << it->first << "," << it->second << "}";
 	it++;
