@@ -13,6 +13,12 @@ void TPZCompMeshReferred::Print(std::ostream & out) const {
 	out << "ReferredMesh = " << this->ReferredMesh() << "\n";
 }//void
 
+TPZCompMeshReferred::TPZCompMeshReferred()
+: TPZCompMesh(0), fReferredIndices(0), fReferred(0)
+{
+}
+
+
 TPZCompMeshReferred::TPZCompMeshReferred(TPZGeoMesh *gmesh)
 : TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
 {
@@ -121,5 +127,5 @@ void TPZCompMeshReferred::Read(TPZStream &buf, void *context)
     TPZSaveable::ReadObjects(buf, this->fReferredIndices);
 }
 
-template class TPZRestoreClass<TPZCompMesh,TPZCOMPMESHID>;
+template class TPZRestoreClass<TPZCompMeshReferred,TPZCOMPMESHREFERREDID>;
 

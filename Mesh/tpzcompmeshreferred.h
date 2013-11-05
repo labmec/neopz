@@ -32,6 +32,8 @@ class TPZCompMeshReferred : public TPZCompMesh
 	TPZCompMesh *fReferred;
 	
 public:
+	TPZCompMeshReferred();
+	
     TPZCompMeshReferred(TPZGeoMesh *gmesh);
 	
     TPZCompMeshReferred(const TPZCompMeshReferred &compmesh);
