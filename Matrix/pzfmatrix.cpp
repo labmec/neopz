@@ -966,63 +966,47 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<long> &index) {
 /*** DecomposeLU ***/
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
-	return Decompose_LU();
+	//return Decompose_LU();
+	if (  this->fDecomposed && this->fDecomposed != ELU)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+	if (this->fDecomposed) return 1;
+	
+	const int  min = ( this->Cols() < (this->Rows()) ) ? this->Cols() : this->Rows();
+	const int nrows = this->Rows();
+	const int ncols = this->Cols();
+	
+	for ( int k = 0; k < min ; k++ ) {
+		TVar pivot = GetVal(k, k);
+		if (IsZero( pivot )){
+			singular.push_back(k);
+			PutVal(k,k,1.);
+			pivot = 1.;
+		}
+		for ( int i = k+1; i < nrows; i++ ) {
+			this->operator()(i,k) /= pivot;
+		}
+		for ( int j = k+1; j < ncols; j++ ){
+			int i = k+1;
+			TVar * elemPtr = &(this->operator()(i,j));
+			TVar * ikPtr = &(this->operator()(i,k));
+			const TVar kjVal = GetVal(k,j);
+			for ( ; i < nrows; i++, elemPtr++, ikPtr++ ) {
+				(*elemPtr) -= (*ikPtr)*kjVal;
+				//          this->operator()(i,j) -= GetVal( i, k )*GetVal(k,j);
+			}
+		}
+	}
+	this->fDecomposed=ELU;
+	return 1;
 }
+
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU() {
 	
-	if (  this->fDecomposed && this->fDecomposed != ELU)  Error( "Decompose_LU <TPZFMatrix<>already Decomposed with other scheme>" );
-	if (this->fDecomposed) return 1;
-	TVar nn;
-	TVar * ptrpivot,*pik, *pij,*pkj;
-	
-	long i,j,k,rows=this->Rows(),cols=this->Cols();
-	long  min = ( cols < (rows) ) ? cols : rows;
-	
-	ptrpivot=&fElem[0];
-	for (  k = 0; k < min ; k++ )
-	{
-		if ( IsZero( *ptrpivot ) ) {
-			//Power plus...
-			if (fabs(*ptrpivot) > fabs(((TVar)0.))) {
-				for (j=k+1;j<rows;j++) {
-//#ifdef _AUTODIFF
-//					if ((*(ptrpivot + j - k) - *(ptrpivot)) > (1.e-12)) {
-//#else
-					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > ((long double)1.e-12)) {
-//#endif
-						Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
-						cout << "DecomposeLU <matrix is singular> even after Power Plus...\n" ;
-					}
-				}
-			}
-			else
-            {
-				Error( "DecomposeLU <matrix is singular>" );
-				cout << "DecomposeLU <matrix is singular>\n";
-			}
-		}
-		pik=ptrpivot;
-		for ( i = k+1; i < rows; i++ )
-		{
-			pik+=1;
-			nn = (*pik)/(*ptrpivot);
-			(*pik)=nn;
-			pkj=&fElem[k*cols+k];
-			pij=&fElem[k*cols+i];
-			for ( j = k+1; j < this->Cols(); j++ )
-			{
-				pkj+=cols;pij+=cols;
-				(*pij)-=nn*(*pkj);
-			}
-		}
-		ptrpivot+=this->Rows()+1;
-	}
-	
-	this->fDecomposed=1;
-	return 1;
+	std::list<long> fake;
+	return this->Decompose_LU(fake); 
 }
+
 
 #ifdef _AUTODIFF
 template <class TVar>
@@ -1208,6 +1192,66 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) c
 	
 	for (i=0;i<nRows;i++) b(i) = v[i];
 	return 1;
+}
+
+//NAO TESTADO
+template <class TVar>
+int TPZFMatrix<TVar>::Decompose_Cholesky(){
+  std::list<long> fake;
+  int res = this->Decompose_Cholesky(fake);
+  if(fake.size()){
+    DebugStop();
+  }
+  return res;
+}
+
+//NAO TESTADO
+template <class TVar>
+int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
+	
+	if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+	if (  this->fDecomposed ) return ECholesky;
+	if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
+	//return 0;
+	
+	int dim=this->Dim();
+  const int nrows = this->Rows();
+	for (int i=0 ; i<dim; i++) {
+		
+    TVar * diagPtr = &(this->operator()(i,i));
+    for(int k=0; k<i; k++) {             //elementos da diagonal
+      (*diagPtr) -= this->operator()(i,k)*this->operator()(i,k);
+    }
+		
+    if(fabs(*diagPtr) < fabs((TVar)1e-12)) DebugStop();//diagonal negativa
+		
+		if( IsZero(*diagPtr) ){
+			singular.push_back(i);
+			(*diagPtr) = 1.;
+		}
+		
+ 		(*diagPtr) = sqrt(*diagPtr);
+		
+    for (int j=i+1;j<dim; j++) {           //elementos fora da diagonal
+      TVar sum = 0.;
+      { ///escopo
+        int k=0;
+        TVar * ikPtr = &(this->operator()(k,i));//&(this->operator()(i,k));///(k,i) = (i,k) pela simetria da matriz, mas o alinhamento acelera a execucao
+        TVar * kjPtr = &(this->operator()(k,j));
+        for(; k<i; k++, kjPtr++, ikPtr++) {
+          sum += (*ikPtr)*(*kjPtr);
+        }
+      }
+      TVar *ijPtr = &(this->operator()( i,j ));
+      (*ijPtr) -= sum;
+			
+      (*ijPtr) /= (*diagPtr);
+      this->operator()(j,i) = (*ijPtr);
+    }
+  }
+	
+	this->fDecomposed = ECholesky;
+	return ECholesky;
 }
 
 template <class TVar>

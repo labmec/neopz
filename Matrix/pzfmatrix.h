@@ -247,6 +247,10 @@ public:
 	/*** @name Solve some systems ***/
 	/** @{ */
 	
+	/** @brief Cholesky Decomposition Optmized. for walks in the direction of the vector that composes the matrix */
+	virtual int Decompose_Cholesky();
+	virtual int Decompose_Cholesky(std::list<long> &singular);
+	
 	/** @brief LU Decomposition. Stores L and U matrices at the storage of the same matrix */
 	virtual int Decompose_LU(std::list<long> &singular);
 	virtual int Decompose_LU();
