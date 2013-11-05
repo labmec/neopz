@@ -50,19 +50,19 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZAnalysis(), fpMa
 //
 //    fCompMesh = pcPostProcMesh;
     
-    
+    SetCompMesh(pRef);
 
-    TPZCompMesh* pcMainMesh = fpMainMesh;
-    
-    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
-
-   // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
-    
-    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
-    
-    fCompMesh = pcPostProcMesh;
-
-    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+//    TPZCompMesh* pcMainMesh = fpMainMesh;
+//    
+//    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
+//
+//   // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
+//    
+//    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+//    
+//    fCompMesh = pcPostProcMesh;
+//
+//    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
     
     
     
@@ -70,7 +70,34 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZAnalysis(), fpMa
 
 TPZPostProcAnalysis::~TPZPostProcAnalysis()
 {
+    if (fCompMesh) {
+        delete fCompMesh;
+    }
 }
+
+/// Set the computational mesh we are going to post process
+void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
+{
+    fpMainMesh = pRef;
+    
+    TPZCompMesh* pcMainMesh = fpMainMesh;
+    
+    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
+    
+    // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
+    
+    if (fCompMesh) {
+        delete fCompMesh;
+    }
+    
+    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+    
+    fCompMesh = pcPostProcMesh;
+    
+    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+    
+}
+
 
 void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames)
 {
@@ -427,3 +454,21 @@ TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &
 {
 	return new TPZCompElPostProc< TPZCompElDisc > (mesh,gel,index);
 }
+
+/** @brief Returns the unique identifier for reading/writing objects to streams */
+int TPZPostProcAnalysis::ClassId() const
+{
+    
+}
+/** @brief Save the element data to a stream */
+void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid)
+{
+    
+}
+
+/** @brief Read the element data from a stream */
+void TPZPostProcAnalysis::Read(TPZStream &buf, void *context)
+{
+    
+}
+
