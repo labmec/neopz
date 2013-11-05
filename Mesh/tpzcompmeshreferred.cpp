@@ -100,3 +100,26 @@ void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZC
 	
 }
 
+/** @brief Returns the unique identifier for reading/writing objects to streams */
+int TPZCompMeshReferred::ClassId() const
+{
+    return TPZCOMPMESHREFERREDID;
+}
+/** @brief Save the element data to a stream */
+void TPZCompMeshReferred::Write(TPZStream &buf, int withclassid)
+{
+    TPZCompMesh::Write(buf, withclassid);
+    TPZSaveable::WriteObjects(buf, this->fReferredIndices);
+}
+
+/** @brief Read the element data from a stream */
+void TPZCompMeshReferred::Read(TPZStream &buf, void *context)
+{
+    fReferred = (TPZCompMesh *) context;
+    context = fReferred->Reference();
+    TPZCompMesh::Read(buf, context);
+    TPZSaveable::ReadObjects(buf, this->fReferredIndices);
+}
+
+template class TPZRestoreClass<TPZCompMesh,TPZCOMPMESHID>;
+

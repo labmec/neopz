@@ -218,6 +218,7 @@ const int TPZCOMPELWITHMEMPRISMID = 417;
 /** @brief Id of computational memory pyramidal element (?) */
 const int TPZCOMPELWITHMEMPIRAMID = 418;
 
+const int TPZCOMPMESHREFERREDID = 419;
 /** @} */
 
 #endif
