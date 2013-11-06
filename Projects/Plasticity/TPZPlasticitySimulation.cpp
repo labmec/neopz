@@ -166,6 +166,17 @@ void TPZPlasticitySimulation::PerformSimulation()
     
 }
 
+/// read the input strain and stress from vectors
+void TPZPlasticitySimulation::ReadInputStrainStress(const TPZVec<REAL> sigax, const TPZVec<REAL> epsax, const TPZVec<REAL> sigr, const TPZVec<REAL> epsr)
+{
+    for (long i = 0; i<epsax.size(); i++) {
+        fStressRZInput(i,1) = sigax[i];
+        fStressRZInput(i,0) = sigr[i];
+        fStrainRZInput(i,1) = epsax[i];
+        fStrainRZInput(i,0) = epsr[i];
+    }
+}
+
 /// read the input strain and stress from the laboratory file
 void TPZPlasticitySimulation::ReadInputStrainStress(const std::string &filename)
 {

@@ -70,6 +70,9 @@ public:
     /// read the input strain and stress from the laboratory file
     void ReadInputStrainStress(const std::string &filename);
     
+    /// read the input strain and stress from vectors
+    void ReadInputStrainStress(const TPZVec<REAL> sigax, const TPZVec<REAL> epsax, const TPZVec<REAL> sigr, const TPZVec<REAL> epsr);
+    
     /// set the SandlerDimaggio object
     void SetSandlerDimaggio(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)
     {

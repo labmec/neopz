@@ -4,6 +4,9 @@
 #include "TPBrStrainStressDataBase.h"
 #include "TPBrSimulationData.h"
 
+#include "TPZSandlerDimaggio.h"
+
+
 #include <list>
 
 class TPBrLaboratoryData : public TPBrStrainStressDataBase
@@ -47,7 +50,7 @@ public:
     inline void Attribute_sim() {
 
     }
-    int RunSimulation ();
+    int RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
 
 protected:
     int fstart_idx;

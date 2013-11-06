@@ -11,8 +11,8 @@ class TPBrStrainStressDataBase
 
 public:
     
-    /// tipos de curvas permitidas - eh preciso completar
-    enum ECurveType {EEpsrSigr, EI1SqJ2};
+    /// tipos de curvas permitidas
+    enum ECurveType {EEpsrSigr, EI1SqJ2, EEpsaxSigax, EEpsvSigv, EEpsaxEpsrEpsvSigax};
     
     TPBrStrainStressDataBase();
     
@@ -52,14 +52,26 @@ public:
     /// gera os dados que serao mostrados na tela
     virtual void GeneratePlot(ECurveType curvetype, std::vector<REAL> &X, std::vector<REAL> &Y);
     
+    /// gera os dados que serao mostrados na tela
+    virtual void GeneratePlot(ECurveType curvetype, std::vector<REAL> &X, std::vector<REAL> &Y, std::vector<REAL> &X2, std::vector<REAL> &X3);
+    
     /// calcula os valores de X e Y correspondente a um indice
     void GetXY(int index, ECurveType curvetype, REAL &X, REAL &Y);
+    
+    /// calcula os valores de X, X2, X3 e Y correspondente a um indice
+    void GetXY(int index, ECurveType curvetype, REAL &X, REAL &Y, REAL &X2, REAL &X3);
     
     /// retorno o valor da primeira invariante para o index
     REAL I1(int index);
     
     /// retorno o valor de Sq(J2) para o index
     REAL SqJ2(int index);
+    
+    /// retorna o valor de Eps Volumetrico para o index
+    REAL Epsv(int index);
+
+    /// retorna o valor de Sig Volumetrico para o index
+    REAL Sigv(int index);
     
 public:
     

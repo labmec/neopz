@@ -1,5 +1,5 @@
 #include "TPBrLaboratoryData.h"
-#include "TPBrPlasticitySimulation.h"
+#include "../TPZPlasticitySimulation.h"
 
 TPBrLaboratoryData::TPBrLaboratoryData()
 {
@@ -7,13 +7,16 @@ TPBrLaboratoryData::TPBrLaboratoryData()
     fend_idx = -1;
 }
 
-int TPBrLaboratoryData::RunSimulation () {
+int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj) {
   
   // RUN SIMULATION AND RETURN ITS INDEX
   
-  TPBrPlasticitySimulation newSimulation;
+  TPZPlasticitySimulation newSimulation;
+  
+  newSimulation.ReadInputStrainStress(fSig_Ax, fEps_Ax, fSig_Lat, fEps_Lat);
   newSimulation.SetSimulationInitialStep(fstart_idx);
-  //newSimulation.SetSandlerDimaggio();
+  newSimulation.SetSandlerDimaggio(obj);
+  newSimulation.PerformSimulation();
   
   
   int pos = fSimulacoes.size()+1;
