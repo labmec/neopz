@@ -73,6 +73,16 @@ using namespace std;
 using namespace pzshape;
 using namespace pzgeom;
 
+
+STATE ValueK = 1000000;
+REAL GlobalMaxError = 0.0;
+STATE F = 2*sqrt(ValueK);
+// Circunference with high gradient - data
+TPZManVector<REAL,3> CCircle(3,0.5);
+REAL RCircle = 0.25;
+
+
+
 /** VARIABLES */
 /** Printing level */
 int gPrintLevel = 0;
@@ -101,20 +111,12 @@ REAL alfa = M_PI/6.;
 REAL transx = 3.;
 REAL transy = 0.;
 
-
-/** PROBLEM WITH HIGH GRADIENT ON CIRCUNFERENCE  ---  DATA */
-STATE ValueK = 1000000;
-REAL GlobalMaxError = 0.0;
-
 /** To identify localization of PZ resources */
 std::string Archivo = PZSOURCEDIR;
 
-
 /** Functions to construction of geometry of problems */
-TPZGeoMesh *CreateLShapeGeoMesh(MElementType typeel);
 TPZGeoMesh *CreateGeoMesh(MElementType typeel);
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
-TPZGeoMesh *CreateGeoMeshWithClassesPre(MElementType typeel);
 // Crea malla computacional sem forcingfunction quando hasforcingfunction = 0, ou toma diferentes forcingfuncition para diferentes
 // valores de hasforcingfunction
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
@@ -126,31 +128,16 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 
 /** Fucntions to apply refinement. */
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
-void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<TPZVec<REAL> > &points,REAL &distance,bool &isdefined);
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &points,REAL r,REAL &distance,bool &isdefined);
-void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
-void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL &radius,int ntyperefs);
-
-void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
-
-void DeterminingPOrderOnLevelHRefinement(TPZCompMesh *cmesh,int p);
 
 // Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
-void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
-void PrintGeoMeshAsCompMeshInVTKWithElementIDAsData(TPZGeoMesh *gmesh,char *filename);
 void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename);
-/** Print the elements of the computational mesh with associated element data */
-void PrintGeoMeshAsCompMeshInVTKWithElementData(TPZGeoMesh *gmesh,char *filename,TPZVec<REAL> &elData);
-
-// Print information on gradient and laplacian values for a element
-void PrintInfoByElement(long index,TPZVec<REAL> &Center,int reftype,REAL GradNorm,REAL Laplacian,REAL error,std::ostream &out);
 
 /** Functions for Differential equation - Right terms, solutions and derivatives */
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
-
+void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol);
 void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+
 void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
 
@@ -158,17 +145,8 @@ void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
 /** Utilitaries */
 void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
 
-void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
-
 int DefineDimensionOverElementType(MElementType typeel);
 void GetFilenameFromGID(MElementType typeel, std::string &name);
-/** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension */
-bool DefineModelDimension(TPZCompMesh *cmesh);
-
-// To save meshes in disk
-void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified=NULL,bool check=false);
-// Save information of the current mesh to compare with cloned mesh (geometric mesh plus computational mesh)
-//void SaveCompMesh(TPZCompCloneMesh *cmesh, int timessave,TPZCompCloneMesh *cmeshmodified=NULL,bool check=false);
 
 
 /** PROBLEMS */
@@ -179,25 +157,17 @@ bool SolveLaplaceProblemOnLShapeMesh();
 bool usethreads = false;
 int MaxPOrder = 8;
 
-TPZManVector<REAL,3> CCircle(3,0.5);
-REAL RCircle = 0.25;
-
-int ninitialrefs = 2;
+int ninitialrefs = 4;
 
 
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinError);
-void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
+void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
 void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel);
-void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
-void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient);
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,REAL MaxError,REAL MinError,int ref);
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int ref);
 
-REAL GradientNorm(TPZInterpolatedElement *el);
-REAL Laplacian(TPZInterpolatedElement *el);
-REAL GradientNormOnCorners(TPZInterpolatedElement *el);
-REAL LaplacianNormOnCorners(TPZInterpolatedElement *el);
+STATE GradientNorm(TPZInterpolatedElement *el);
+STATE Laplacian(TPZInterpolatedElement *el);
 
-REAL LaplacianNorm(TPZInterpolatedElement *el,int side);
 bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
@@ -274,7 +244,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
             }
             else if(dim==2) {
                 MaxPOrder = 7;
-                NRefs = 3;
+                NRefs = 6;
             }
             else {
 				MaxPOrder = 20;
@@ -403,18 +373,20 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				ZeroTolerance(Tol);
 				if(NRefs > 1 && nref < (NRefs-1)) {
 					TPZManVector<REAL> ervecbyel;
-                    REAL MaxError = 0.;
-					REAL MinError = 0.;
-                    MaxError = ProcessingError(an,ervec,ervecbyel,MinError);
-					if(MaxError > ervec[1])
-						std::cout << "Local error is bigger than Global error, Ref " << nref << "." << std::endl;
-					if(ervec[1] < 100*Tol) {
-						std::cout << "Tolerance reached but no maxime refinements, Ref " << nref << "." << std::endl;
+                    ProcessingError(an,ervec,ervecbyel);
+//					if(MaxError > ervec[1])
+//						std::cout << "Local error is bigger than Global error, Ref " << nref << "." << std::endl;
+					std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << std::endl;
+					if(ervec[1] < Tol) {
+						fileerrors << "Tolerance reached but no maxime refinements, Ref " << nref << "." << std::endl;
 						fileerrors.flush();
 						out.flush();
 						break;
 					}
-					ApplyingStrategyHPAdaptiveBasedOnExactSolution(an,ervecbyel,MaxError,MinError,nref);
+//		            UniformRefinement(1,gmesh,dim);
+					ApplyingStrategyHPAdaptiveBasedOnExactSolution(cmesh,ervecbyel,nref);
+//					delete cmesh;
+	//				cmesh = CreateMesh(gmesh,dim,1);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -447,9 +419,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     return true;
 }
 
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec<REAL> &ervecbyel,REAL MaxError,REAL MinError,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int nref) {
 
-	TPZCompMesh *cmesh = analysis.Mesh();
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
 	TPZVec<long> subels;
@@ -457,92 +428,66 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 	dp = 1;
 	TPZVec<long> subsubels;
 	TPZInterpolatedElement *el;
-	float Tol;
+	STATE Tol;
 	ZeroTolerance(Tol);
-	int NRefToPrint = 2;
 
-	// To see were the computation is doing
-	TPZVec<REAL> Center(3,0.0), qsi(3,0.0);
+	// To see where the computation is doing
 	long index = -1;
 	int reftype = 0;
-
-	// To get information on approximate solution about gradient and curvature
-	REAL MaxLaplacian, MinLaplacian, MaxGrad, MinGrad;
-	MaxLaplacian = MaxGrad = 0.;
-	MinLaplacian = MinGrad = 100.;
+	TPZVec<int> counterreftype(7,0);
 	REAL GradNorm, LaplacianValue;
 
-	// First we need to find the limits maxime and minime of the gradient and laplacian values
-	for(long i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		
-		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
-			DebugStop();
-		// Storing information on max and min values of the gradient and curvature values
-		MaxLaplacian = (MaxLaplacian > LaplacianValue) ? MaxLaplacian : LaplacianValue;
-		MaxGrad = (MaxGrad > GradNorm) ? MaxGrad : GradNorm;
-		MinLaplacian = (MinLaplacian > LaplacianValue) ? LaplacianValue : MinLaplacian;
-		MinGrad = (MinGrad > GradNorm) ? GradNorm : MinGrad;
-	}
-	// Printing the maxime and minime values founded
-	if(nref < NRefToPrint)
-		out << "\n MAX: Grad = " << MaxGrad << " Laplacian = " << MaxLaplacian << " Error = " << MaxError << "\n MIN: Grad = " << MinGrad << " Laplacian = " << MinLaplacian << " Error = " << MinError << std::endl;
-
+	// Applying hp refinement only for elements with dimension as model dimension
 	for(long i=0L;i<nels;i++) {
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 
 		// If error is small and laplacian value is very little then the order will be minimized
-//		GradNorm = GradientNormOnCorners(el);
-//		LaplacianValue = LaplacianNormOnCorners(el);
 		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
 			DebugStop();
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
 
-		// Identifying the center of the element and index only in the first iterations
-		if(nref < NRefToPrint) {
-			reftype = 0;
-			el->Reference()->CenterPoint(el->NConnects()-1,qsi);
-			el->Reference()->X(qsi,Center);
-		}
-
 		// If error on element is little then do nothing
-		if(ervecbyel[i] > 1.e2*Tol) {
+		if(ervecbyel[i] > Tol) {
+			reftype = 0;
 			// If error on element is left to half of the max error, the element will be divided or p-incremented
-			if(ervecbyel[i] < 0.2*MaxError) {
+			if(nref < 3) {
+			if(GradNorm > .2) {
 				// If element has high curvature it is more approppriated to increment order
-				if(LaplacianValue > 0.01*MaxLaplacian && pelement < MaxPOrder) {
-					reftype = 5;
-					el->PRefine(pelement+1);
-				}
+//				if(LaplacianValue > 10. && pelement < MaxPOrder) {
+//				if(LaplacianValue > 3. && pelement < MaxPOrder) {
+	//				reftype = 1;
+//					el->PRefine(pelement+1);
+		//		}
 				// else the element is divided
-				else {
-					reftype = 6;
+//				else {
+					reftype++;
 					el->Divide(index,subels);
 				}
 			}
 			else {
-				reftype = 20;
+//			else if(nref < 2) {
+			//	reftype = 3;
 				// Verifying if laplacian is high then increment the order
-				if(LaplacianValue > 0.01*MaxLaplacian && pelement < MaxPOrder) {
-					reftype += 5;
+	//			if(LaplacianValue > 1000. && pelement < MaxPOrder) {
+		//			reftype+=2;
 					el->PRefine(pelement+1);
-				}
+				//}
 				// Dividing element one level
-				el->Divide(index,subels,0);
+				//el->Divide(index,subels,0);
 				// Dividing sub elements one level more if high gradient was found. 
 				// For first analysis the Gradient more than a unit is considered high, because the elements could be large
-		        if(GradNorm > .5*MaxGrad || (nref<2 && GradNorm > .1)) {
-					reftype += 1;
-					for(j=0;j<subels.NElements();j++) {
-						TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-						scel->Divide(subels[j],subsubels,0);
-					}
-				}
+		  //      if(GradNorm > 3.) {   // || (nref<2 && GradNorm > .1)) {
+	//				reftype++;
+		//			for(j=0;j<subels.NElements();j++) {
+			//			TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+				//		scel->Divide(subels[j],subsubels,0);
+					//}
+//				}
 			}
 		}
+
 /*			else if(GradNorm < 0.1) {
 				LaplacianValue = Laplacian(el);
 				if(LaplacianValue < 0.1) {
@@ -552,36 +497,28 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZAnalysis &analysis,TPZVec
 						el->PRefine(pelement-1);
 				}
 			}*/
-		if(nref < NRefToPrint)
-			PrintInfoByElement(index,Center,reftype,GradNorm,LaplacianValue,ervecbyel[i],out);
+		counterreftype[reftype]++;
 	}
 	// Adjusting boundary elements
 	cmesh->AdjustBoundaryElements();
 	cmesh->InitializeBlock();
 	// Printing information stored
-	outLaplace << "\n\n" << nref << "Ref: MinError = " << MinError << "  MaxError = " << MaxError << std::endl;
-	outLaplace << "MaxGrad = " << MaxGrad << "  MinGrad = " << MinGrad << "  MaxLaplacian = " << MaxLaplacian << "  MinLaplacian = " << MinLaplacian << "\n\n";
+	out << "\nHP Refinement done:\n";
+	for(j=0;j<counterreftype.NElements();j++)
+		if(counterreftype[j])
+			out << "Refinement type " << j << " : " << counterreftype[j] << std::endl;
 }
 
-void PrintInfoByElement(long index,TPZVec<REAL> &Center,int reftype,REAL GradNorm,REAL Laplacian,REAL error,std::ostream &out) {
-	out << "\nElement " << index << ": ( ";
-	for(int i=0;i<Center.NElements();i++) {
-		if(i) out << " ; ";
-		out << Center[i];
-	}
-	out << " ) HP " << reftype << "  Grad = " << GradNorm << "  Laplac = " << Laplacian << "  Erro = " << error << std::endl;
-}
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
  * Return the maxime L2 error by elements.
  */
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinError) {
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
     long neq = analysis.Mesh()->NEquations();
 	int dim = analysis.Mesh()->Dimension();
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
-	MinError = 1000.;
     analysis.Mesh()->LoadSolution(analysis.Solution());
 
 	TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
@@ -604,8 +541,6 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 			ervecbyel[i] = sqrt(errors[1]*errors[1]);
 			if(ervecbyel[i] > maxError)
 				maxError = ervecbyel[i];
-			if(ervecbyel[i] < MinError)
-				MinError = ervecbyel[i];
         }
     }
     
@@ -651,7 +586,7 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 			}
 		}
 		else if(errorcel > 0.3*GlobalL2Error) {
-            REAL GradNorm = GradientNorm(el);
+            STATE GradNorm = GradientNorm(el);
             if(GradNorm > 3) {
 				int level = el->Reference()->Level();
                 // Dividing element one level
@@ -709,380 +644,13 @@ void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2
 		*/
 	}
 }
-/*
-REAL GradientNorm(TPZInterpolatedElement *el) {
-    TPZSolVec sol;
-    TPZGradSolVec dsol;
-	TPZVec<REAL> qsi(3,0.0);
-    int nshape = el->NShapeF();
-    int dim = el->Dimension();
-    REAL temp = 0.0;
-    TPZFMatrix<REAL> phi(nshape,1);
-    TPZFMatrix<REAL> dphi(dim,nshape);
-    TPZFMatrix<REAL> axes(dim,dim,0.0);
-    el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
-    el->Shape(qsi,phi,dphi);
-    el->ComputeSolution(qsi,phi,dphi,axes,sol,dsol);
-    for(int idsol=0;idsol<dim;idsol++)
-        temp += dsol[0](idsol,0)*dsol[0](idsol,0);
-    return (sqrt(temp)/el->VolumeOfEl());
-}
-*/
-bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
-	Grad = 0.0;
-	Laplacian = 0.0;
-	if(!el) return false;
-	int nstates = el->Material()->NStateVariables();
-    int dim = el->Dimension(), i, idsol;
-    TPZVec<STATE> sol(nstates,(STATE)0.0);
-    TPZFMatrix<STATE> dsol(dim,nstates);
-	dsol.Zero();
-	TPZVec<REAL> qsi(3,0.0);
-	TPZManVector<REAL> x(3,0.0);
 
-	REAL GradTemp, LaplacianTemp;
-
-	// Variables by second derivatives
-	TPZVec<REAL> deriv2(3,0.0);
-	REAL F = 2*sqrt(ValueK);
-	REAL Coeff, B;
-	if(dim==1)
-		Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B = Coeff/M_PI;
-    REAL arc = F;
-    REAL Prod, temp, temp1, temp2, arc2Plus1;
-    REAL prody = 1.;
-    REAL prodz = 1.;
-    REAL prodx = 1.;
-
-	int ncorners = el->NCornerConnects();
-	// Computing on all corners of the element
-	for(i=0;i<ncorners;i++) {
-		// Computing gradient and gradient norm maxime
-	    GradTemp = 0.0;
-		LaplacianTemp = 0.0;
-		el->Reference()->CenterPoint(i, qsi);
-		el->Reference()->X(qsi,x);
-		ExactSolutionSphere(x,sol,dsol);
-		for(idsol=0;idsol<dim;idsol++)
-			GradTemp += dsol(idsol,0)*dsol(idsol,0);
-		Grad = (Grad > sqrt(GradTemp)) ? Grad : sqrt(GradTemp);
-
-		// Computing second partial derivatives as vector
-	    prodx = x[0]*(x[0]-1.);
-		if(dim == 1) {
-			arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
-			prody = prodz = 1.;
-		}
-		else if(dim == 2) {
-			arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
-			prody = x[1]*(x[1]-1.);
-			prodz = 1.;
-		}
-		else if(dim == 3) {
-			arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
-			prody = x[1]*(x[1]-1.);
-			prodz = x[2]*(x[2]-1.);
-		}
-		arc2Plus1 = 1.+arc*arc;
-		temp = 2.*M_PI + 4*atan(arc);
-		// computing second derivative on x
-		temp1 = F*prody + (2*x[0]-1.)*(x[0]-CCircle[0]);
-		temp2 = 8*F*prody*(x[0]-CCircle[0])*(2*x[0]-1.)*arc;
-		deriv2[0] = B*prody*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
-		if(dim == 2) {
-			// computing second derivative on y
-			temp1 = F*prodx + (2*x[1]-1.)*(x[1]-CCircle[1]);
-			temp2 = 8*F*prodx*(x[1]-CCircle[1])*(2*x[1]-1.)*arc;
-			deriv2[1] = B*prodx*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
-		}
-		else if(dim == 3) {
-			DebugStop();
-		}
-		// Computing (1/NormaGrad)*(D2x,D2y).(Dx,Dy)
-		if(!IsZero(GradTemp)) {
-			for(idsol=0;idsol<dim;idsol++)
-				LaplacianTemp += deriv2[idsol]*dsol(idsol,0);
-			REAL FabsLaplacian = fabs(LaplacianTemp);
-			LaplacianTemp = (FabsLaplacian/GradTemp);
-		}
-		Laplacian = (Laplacian > LaplacianTemp) ? Laplacian : LaplacianTemp;
-	}
-	return true;
-}
-REAL LaplacianNorm(TPZInterpolatedElement *el,int side) {
-	if(!el) return 0.;
-	TPZVec<REAL> x(3,0.0), qsi(3,0.);
-	int dim = el->Dimension();
-	el->Reference()->CenterPoint(side,qsi);
-	el->Reference()->X(qsi,x);
-
-	REAL F = 2*sqrt(ValueK);
-	REAL Coeff, B;
-	if(dim==1)
-		Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B = Coeff/M_PI;
-    REAL arc = F;
-    REAL Prod, temp, temp1, temp2, arc2Plus1;
-	REAL deriv2x = 0., deriv2y = 0., deriv2z = 0.;
-    REAL prody = 1.;
-    REAL prodz = 1.;
-    REAL prodx = x[0]*(x[0]-1.);
-	if(dim == 1) {
-		arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
-	}
-	else if(dim == 2) {
-		arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
-		prody = x[1]*(x[1]-1.);
-	}
-	else if(dim == 3) {
-		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
-		prody = x[1]*(x[1]-1.);
-		prodz = x[2]*(x[2]-1.);
-	}
-	else {
-		DebugStop();
-	}
-	arc2Plus1 = 1.+arc*arc;
-	temp = 2.*M_PI + 4*atan(arc);
-	// computing second derivative on x
-    temp1 = F*prody + (2*x[0]-1.)*(x[0]-CCircle[0]);
-	temp2 = 8*F*prody*(x[0]-CCircle[0])*(2*x[0]-1.)*arc;
-	deriv2x = B*prody*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
-	if(dim == 2) {
-		// computing second derivative on y
-		temp1 = F*prodx + (2*x[1]-1.)*(x[1]-CCircle[1]);
-		temp2 = 8*F*prodx*(x[1]-CCircle[1])*(2*x[1]-1.)*arc;
-		deriv2y = B*prodx*(temp-((4*temp1)/arc2Plus1)-(temp2/(arc2Plus1*arc2Plus1)));
-	}
-	else if(dim == 3) {
-	}
-    return  sqrt((deriv2x*deriv2x)+(deriv2y*deriv2y)+(deriv2z*deriv2z));
-}
-
-REAL GradientNorm(TPZInterpolatedElement *el) {
-	int nstates = el->Material()->NStateVariables();
-    int dim = el->Dimension();
-    TPZVec<STATE> sol(nstates,(STATE)0.0);
-    TPZFMatrix<STATE> dsol(dim,nstates);
-	dsol.Zero();
-	TPZVec<REAL> qsi(3,0.0);
-	TPZManVector<REAL> point(3,0.0);
-    REAL temp = 0.0;
-
-	el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
-	el->Reference()->X(qsi,point);
-	ExactSolutionSphere(point,sol,dsol);
-    for(int idsol=0;idsol<dim;idsol++)
-        temp += dsol(idsol,0)*dsol(idsol,0);
-    return sqrt(temp);
-}
-REAL Laplacian(TPZInterpolatedElement *el) {
-	int nvar = el->Material()->NStateVariables();
-    int dim = el->Dimension();
-	TPZVec<STATE> sol(nvar,0.);
-    TPZFMatrix<STATE> dsol(nvar,dim,0.0);
-	TPZVec<REAL> qsi(3,0.0);
-	TPZVec<REAL> point(3,0.0);
-    REAL temp = 0.0;
-    el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
-	el->Reference()->X(qsi,point);
-	RightTermCircle(point,sol,dsol);
-	return fabs(sol[0]/ValueK);
-}
-REAL GradientNormOnCorners(TPZInterpolatedElement *el) {
-	int nstates = el->Material()->NStateVariables();
-    int dim = el->Dimension();
-    TPZVec<STATE> sol(nstates,(STATE)0.0);
-    TPZFMatrix<STATE> dsol(dim,nstates);
-	dsol.Zero();
-	TPZVec<REAL> qsi(3,0.0);
-	TPZManVector<REAL> point(3,0.0);
-	REAL MaxGrad = 0.0;
-	int ncorners = el->NCornerConnects();;
-	for(int i=0;i<ncorners;i++) {
-	    REAL temp = 0.0;
-		el->Reference()->CenterPoint(i, qsi);
-		el->Reference()->X(qsi,point);
-		ExactSolutionSphere(point,sol,dsol);
-		for(int idsol=0;idsol<dim;idsol++)
-			temp += dsol(idsol,0)*dsol(idsol,0);
-		MaxGrad = (MaxGrad > sqrt(temp)) ? MaxGrad : sqrt(temp);
-	}
-    return MaxGrad;
-}
-REAL LaplacianNormOnCorners(TPZInterpolatedElement *el) {
-	REAL Laplacian = 0.;
-	REAL MaxLaplacian = 0.0;
-	int ncorners = el->NCornerConnects();
-	for(int i=0;i<ncorners;i++) {
-		Laplacian = LaplacianNorm(el,i);
-		MaxLaplacian = (MaxLaplacian > Laplacian) ? MaxLaplacian : Laplacian;
-	}
-	return MaxLaplacian;
-}
-void ApplyingUpStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
-	TPZVec<REAL> ervecbyel;
-	TPZCompMesh *cmesh = analysis.Mesh();
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	ervecbyel.Resize(nels,0.0);
-	TPZVec<long> subels;
-	TPZVec<long> subsubels;
-	int j, k, pelement;
-	TPZInterpolatedElement *el;
-	// Computing norm of gradient on center of each element
-	TPZVec<REAL> qsi(3,0.0);
-	REAL temp;
-	int dim = analysis.Mesh()->Dimension();
-
-    // Computing reference gradient (global)
-	for(long ii=0L;ii<nels;ii++) {
-		temp = 0.0;
-		TPZSolVec sol;
-		TPZGradSolVec dsol;
-		int nshape;
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[ii]);
-		if(!el || el->Dimension() != dim) continue;
-		nshape = el->NShapeF();
-		TPZFMatrix<REAL> phi(nshape,1);
-		TPZFMatrix<REAL> dphi(dim,nshape);
-		TPZFMatrix<REAL> axes(dim,dim,0.0);
-		el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
-		el->Shape(qsi,phi,dphi);
-		el->ComputeSolution(qsi,phi,dphi,axes,sol,dsol);
-		for(int idsol=0;idsol<dim;idsol++)
-			temp += dsol[0](idsol,0)*dsol[0](idsol,0);
-		ervecbyel[ii] = sqrt(temp);
-		GlobalNormGradient = (GlobalNormGradient > ervecbyel[ii]) ? GlobalNormGradient : ervecbyel[ii];
-	}
-    
-    // Applying hp refinement based on local gradient comparative with global gradient (in norm)
-	for(long i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el) continue;
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		if(el->Reference()->Level() < 4 && ervecbyel[i] > 0.6*GlobalNormGradient) {
-			// Dividing element one level
-			el->Divide(el->Index(),subels,0);
-			// Dividing sub elements one level more
-			for(j=0;j<subels.NElements();j++) {
-				if(cmesh->ElementVec()[subels[j]]->Reference()->Level() < 5) {
-                    cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
-//                    if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 3)
-                    for(k=0;k<subsubels.NElements();k++) {
-                        if(pelement < MaxPOrder-1) pelement++;
-						// Applying p-2 order for all subelements
-                        ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
-                    }
-                }
-			}
-		}
-		else if(ervecbyel[i] > 0.2*GlobalNormGradient) {
-			// Dividing element one level
-			el->Divide(el->Index(),subels,0);
-//			if(ervecbyel[i] > 0.4*GlobalNormGradient) {
-  //              if(pelement < MaxPOrder) pelement++;
-	//			for(j=0;j<subels.NElements();j++)
-					// Applying p-2 order for all subelements
-	//				((TPZInterpolatedElement*)cmesh->ElementVec()[subels[j]])->PRefine(pelement);
-	//		}
-		}
-//		else if(ervecbyel[i] < 0.1*GlobalNormGradient) {
-//			pelement--;
-//			if(pelement > 1)
-//				el->PRefine(pelement);
-//		}
-	}
-}
-void ApplyingDownStrategyHPAdaptiveBasedOnGradient(TPZAnalysis &analysis,REAL &GlobalNormGradient) {
-	TPZVec<REAL> ervecbyel;
-	TPZCompMesh *cmesh = analysis.Mesh();
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	ervecbyel.Resize(nels,0.0);
-	TPZVec<long> subels;
-	TPZVec<long> subsubels;
-	int j, k, pelement;
-	TPZInterpolatedElement *el;
-	// Computing norm of gradient on center of each element
-	TPZVec<REAL> qsi(3,0.0);
-	REAL temp;
-	int dim = analysis.Mesh()->Dimension();
-    
-    // Computing reference gradient (global)
-	for(long ii=0L;ii<nels;ii++) {
-		temp = 0.0;
-		TPZSolVec sol;
-		TPZGradSolVec dsol;
-		int nshape;
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[ii]);
-		if(!el || el->Dimension() != dim) continue;
-		nshape = el->NShapeF();
-		TPZFMatrix<REAL> phi(nshape,1);
-		TPZFMatrix<REAL> dphi(dim,nshape);
-		TPZFMatrix<REAL> axes(dim,dim,0.0);
-		el->Reference()->CenterPoint(el->NConnects() - 1, qsi);
-		el->Shape(qsi,phi,dphi);
-		el->ComputeSolution(qsi,phi,dphi,axes,sol,dsol);
-		for(int idsol=0;idsol<dim;idsol++)
-			temp += dsol[0](idsol,0)*dsol[0](idsol,0);
-		ervecbyel[ii] = sqrt(temp);
-		GlobalNormGradient = (GlobalNormGradient > ervecbyel[ii]) ? GlobalNormGradient : ervecbyel[ii];
-	}
-    
-    // Applying hp refinement based on local gradient comparative with global gradient (in norm)
-	for(long i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el) continue;
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		if(ervecbyel[i] > 0.6*GlobalNormGradient) {
-			// Dividing element one level
-			el->Divide(el->Index(),subels,0);
-			// Dividing sub elements one level more
-			for(j=0;j<subels.NElements();j++) {
-				if(cmesh->ElementVec()[subels[j]]->Reference()->Level() < 5) {
-                    cmesh->ElementVec()[subels[j]]->Divide(subels[j],subsubels,0);
-                    //                    if(cmesh->ElementVec()[subsubels[0]]->Reference()->Level() < 3)
-                    for(k=0;k<subsubels.NElements();k++) {
-                        if(pelement > 1) pelement--;
-						// Applying p-2 order for all subelements
-                        ((TPZInterpolatedElement*)cmesh->ElementVec()[subsubels[k]])->PRefine(pelement);
-                    }
-                }
-			}
-		}
-		else if(ervecbyel[i] > 0.2*GlobalNormGradient) {
-			// Dividing element one level
-			el->Divide(el->Index(),subels,0);
-			if(ervecbyel[i] > 0.5*GlobalNormGradient) {
-                if(pelement < MaxPOrder) pelement++;
-				for(j=0;j<subels.NElements();j++)
-					// Applying p-2 order for all subelements
-					((TPZInterpolatedElement*)cmesh->ElementVec()[subels[j]])->PRefine(pelement);
-			}
-		}
-		else if(ervecbyel[i] < 0.1*GlobalNormGradient) {
-			pelement++;
-			if(pelement < MaxPOrder)
-				el->PRefine(pelement);
-		}
-	}
-}
-
-void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) {
+void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol)) {
 	TPZFMatrix<STATE> solution(cmesh->Solution());
 	solution.Zero();
 	TPZVec<STATE> sol(1);
 	TPZFMatrix<STATE> dsol(cmesh->Dimension(),1);
+	TPZVec<STATE> ddsol(9,0.0);
 	int nels = cmesh->NElements();
 	for(int i=0;i<nels;i++) {
 		TPZCompEl *el=cmesh->ElementVec()[i];
@@ -1095,7 +663,7 @@ void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &lo
 			TPZVec<REAL> coord(3,0.), coordinates(3,0.);
 			el->Reference()->CenterPoint(j,coord);
 			el->Reference()->X(coord,coordinates);
-			f(coordinates,sol,dsol);
+			f(coordinates,sol,dsol,ddsol);
 			cmesh->Solution()(pos,0) = sol[0];
 		}
 	}
@@ -1325,49 +893,6 @@ void GetFilenameFromGID(MElementType typeel, std::string &nombre) {
 	}
 }
 
-
-void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
-	int dim = dsol.Rows();
-	REAL F = 2*sqrt(ValueK);
-	REAL Coeff, B;
-	if(dim==1)
-		Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B = Coeff/M_PI;
-    REAL arc = F;
-    REAL Prod, temp;
-    REAL prody = 1.;
-    REAL prodz = 1.;
-    REAL prodx = x[0]*(x[0]-1.);
-	if(dim == 1) {
-		arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
-	}
-	else if(dim == 2) {
-		arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
-		prody = x[1]*(x[1]-1.);
-	}
-	else if(dim == 3) {
-		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
-		prody = x[1]*(x[1]-1.);
-		prodz = x[2]*(x[2]-1.);
-	}
-	else {
-		DebugStop();
-	}
-    Prod = prodx*prody*prodz;
-    temp = M_PI + 2.*atan(arc);
-    sol[0] = B*Prod*temp;
-    dsol(0,0) = B*prody*prodz*(2*x[0]-1.)*(temp - ((2*F*prodx)/(1+arc*arc)));
-    if(dim==2) {
-        dsol(1,0) = B*prodx*prodz*(2*x[1]-1.)*(temp - ((2*F*prody)/(1+arc*arc)));
-    }
-    else if(dim==3) {
-        dsol(2,0) = B*prodx*prody*(2*x[2]-1.)*(temp - ((2*F*prodz)/(1+arc*arc)));
-    }
-}
 
 
 /** LAPLACE PROBLEM ON L-SHAPE DOMAIN (2D) */
@@ -1705,114 +1230,6 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
             break;
     }
 	
-//	gmesh->BuildConnectivity();
-	
-/*	switch(typeel) {
-		case ECube:
-		{
-			// face 0 (20) bottom XY - face 1 (21) lateral left XZ - face 4 (24) lateral back YZ : Dirichlet
-			TPZGeoElBC gbc10(gmesh->ElementVec()[0],20,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[0],21,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[0],24,-1);
-			
-			// face 2 (22) Neumann - Partial derivative (du/dx) - lateral front
-			TPZGeoElBC gbc13(gmesh->ElementVec()[0],22,-1);
-			// face 3 (23) Neumann - Partial derivative (du/dy) - lateral right
-			TPZGeoElBC gbc14(gmesh->ElementVec()[0],23,-1);
-			// face 5 (25) Neumann - Partial derivative (du/dz) - top
-			TPZGeoElBC gbc15(gmesh->ElementVec()[0],25,-1);
-		}
-			break;
-		case EPrisma:
-		{
-			// First sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],15,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],16,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],18,-1);
-			TPZGeoElBC gbc13(gmesh->ElementVec()[1],19,-1);
-			// Second sub element - faces: 15 and 19
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],15,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],19,-1);
-			// Third sub element - faces: 15, 16, 17 and 19
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],17,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],18,-1);
-			TPZGeoElBC gbc33(gmesh->ElementVec()[3],19,-1);
-			// Fouthrd sub element - faces: 15, 17, 18 and 19
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],15,-1);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[4],17,-1);
-			TPZGeoElBC gbc42(gmesh->ElementVec()[4],18,-1);
-			TPZGeoElBC gbc43(gmesh->ElementVec()[4],19,-1);
-			gmesh->ElementVec()[1]->Divide(sub);
-			gmesh->ElementVec()[3]->Divide(sub);
-		}
-			break;
-		case EPiramide:
-		{
-			// First sub element - faces: 13, 14 and 17
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],13,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],14,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],17,-1);
-			// Second sub element - faces: 13 and 14
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],13,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],14,-1);
-			// Third sub element - faces: 13, 14 and 17
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],13,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],14,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],17,-1);
-			// Fouthrd sub element - faces: 13 and 14
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],13,-1);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[4],14,-1);
-		}
-			break;
-		case ETetraedro:
-		{
-			// First sub element - faces: 10, 11 and 13
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],10,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],11,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],13,-1);
-			// Second sub element - faces: 10, 11 and 13
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],10,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],11,-1);
-			TPZGeoElBC gbc22(gmesh->ElementVec()[2],13,-1);
-			// Third sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],16,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],18,-1);
-			TPZGeoElBC gbc33(gmesh->ElementVec()[3],19,-1);
-			// Fouthrd sub element - faces: 15, 18 and 19
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],15,-1);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[4],18,-1);
-			TPZGeoElBC gbc42(gmesh->ElementVec()[4],19,-1);
-			// Fifth sub element - faces: 13 and 15
-			TPZGeoElBC gbc50(gmesh->ElementVec()[5],14,-1);
-			TPZGeoElBC gbc51(gmesh->ElementVec()[5],16,-1);
-			gmesh->ElementVec()[3]->Divide(sub);
-			gmesh->ElementVec()[4]->Divide(sub);
-		}
-			break;
-		default:
-		{
-			// First sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],15,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],16,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],18,-1);
-			TPZGeoElBC gbc13(gmesh->ElementVec()[1],19,-1);
-			// Second sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],15,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],16,-1);
-			TPZGeoElBC gbc22(gmesh->ElementVec()[2],18,-1);
-			TPZGeoElBC gbc23(gmesh->ElementVec()[2],19,-1);
-			// Third sub element - faces: 15, 17 and 19
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],17,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],19,-1);
-			gmesh->ElementVec()[1]->Divide(sub);
-			gmesh->ElementVec()[2]->Divide(sub);
-			gmesh->ElementVec()[3]->Divide(sub);
-		}
-			break;
-	}*/
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
@@ -1918,56 +1335,6 @@ TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL) {
 	TPZGeoElBC gbc29(gmesh->ElementVec()[3],10,id_bc0);
 	TPZGeoElBC gbc30(gmesh->ElementVec()[3],11,id_bc0);
 	TPZGeoElBC gbc31(gmesh->ElementVec()[3],12,id_bc0);
-/*	std::string filename = REFPATTERNDIR;
-    filename += "/2D_Triang_Rib_3.rpt";
-    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-    TPZAutoPointer<TPZRefPattern> refpatFound = gRefDBase.FindRefPattern(refpat);
-    if(!refpatFound)
-        gRefDBase.InsertRefPattern(refpat);
-    else
-        refpatFound->SetName(refpat->Name());
-    refpat->InsertPermuted();
-
-    TPZGeoEl* gel = gbc20.CreatedElement();
-    TPZGeoElRefPattern <TPZGeoTriangle> *gelrp;
-    if(gel) {
-        gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-        gelrp->SetRefPattern(refpat);
-    }
-    gel = gbc21.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc22.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc23.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc24.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc25.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc26.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc27.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc28.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc29.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc30.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-    gel = gbc31.CreatedElement();
-    gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoTriangle> *> (gel);
-    gelrp->SetRefPattern(refpat);
-*/
 	return gmesh;
 }
 
@@ -2252,883 +1619,3 @@ TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 	
 	return meshgrid;
 }
-
-/** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
-void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce) {
-	int dim = dforce.Rows();
-	
-	REAL B = ValueK/M_PI;
-	REAL F = 2*sqrt(ValueK);
-	REAL Coeff;
-	if(dim==1)
-		 Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B *= (2.*Coeff);
-
-	REAL Prod, prodx, prody, prodz;
-    REAL Soma, arc, den;
-    prodx = x[0]*(x[0] - 1.);
-	if(dim==1) {
-		arc = F*(RCircle*RCircle - (x[0]-CCircle[0])*(x[0]-CCircle[0]));
-        prody = prodz = 1.;
-        Soma = 1.;
-	}
-	else if(dim == 2) {
-		arc = F*(RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1])));
-        prody = x[1]*(x[1] - 1.);
-        prodz = 1.;
-        Soma = prodx + prody;
-	}
-	else {
-		arc = F*(RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
-		prody = x[1]*(x[1] - 1.);
-		prodz = x[2]*(x[2] - 1.);
-        Soma = prodx*prody + prodx*prodz + prody*prodz;
-	}
-    Prod = prodx*prody*prodz;
-	den = 1. + arc*arc;
-	force[0] = Soma*(M_PI + 2.*atan(arc));
-	force[0] += (-2.)*(F/den)*(5*dim*Prod+Soma);
-	force[0] += (F*Prod*arc*(8.*arc-0.5*F)/(den*den));
-	force[0] *= B;
-}
-
-
-/******   *****   ****   ******************** /////////////////////////////
-
-using namespace std;
-using namespace pzshape;
-using namespace pzgeom;
-*/
-/**
- * @addtogroup Tutorials
- * @{
- */
-
-/** VARIABLES */
-/** Printing level */
-/*
-int gPrintLevel = 0;
-int printing = 1;
-
-int materialId = 1;
-int id_bc0 = -1;
-int id_bc1 = -2;
-int materialBC1 = 2;
-int anothertests = 0;
-
-char saida[512];
-
-ofstream out("OutPoissonArcTan.txt");             // To store output of the console
-ofstream outLaplace("OutLaplace.txt");
-
-int gDebug = 0;
-
-// Global variable
-int gLMax;
-int NUniformRefs = 2;
-int nstate = 2;
-
-// Alfa -> Coefficient of the arctang argument
-REAL ALFA = 50.;
-
-char saida[512];
-ofstream out("ConsolePoisson3D.txt");   // output file from console  -> Because it has many energy faults
-
-
-void ExactShock(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
-
-void BCDirichletShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol);
-void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol);
-void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol);
-void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol);
-void FforcingShock(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df);
-
-void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
-
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL,3> &points,REAL r,REAL &distance,int ntyperefs);
-void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs);
-
-TPZGeoMesh *ConstructingPositiveCube(REAL L,MElementType typeel);
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
-
-void formatTimeInSec(char *strtime,int timeinsec);
-
-/ ** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension * /
-bool DefineModelDimension(TPZCompMesh *cmesh);
-
-REAL Radius[3][10] = {{0.3,0.25,0.2,0.15,0.075,0.025,0.008,0.004,0.002,0.001},{0.3,0.2,0.075,0.008,0.002,0.0005,0.0,0.0,0.0,0.0},{0.3,0.2,0.025,0.002,0.0005,0.0,0.0,0.0,0.0,0.0}};
-
-int main_old(int argc, char *argv[]) {
-
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
-	
-	// Initializing a ref patterns
-	gRefDBase.InitializeAllUniformRefPatterns();
-    //	gRefDBase.InitializeRefPatterns();
-    
-	// To compute processing times
-	time_t sttime;
-	time_t endtime;
-	int time_elapsed;
-	char tempo[512];
-    
-	// To print computed errors
-    char errorname[512];
-    ofstream fileerrors;
-	TPZVec<REAL> ervec(100,0.0);
-	fileerrors << "Approximation Error - Shock problem: " << std::endl;
-	
-	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
-	REAL InitialL = 1.0;
-	int nref, NRefs = 3;
-    int NMaxTypeRefs = 4;
-	int nthread, NThreads = 2;
-    for(int dim=3;dim<4;dim++) {
-        sprintf(errorname,"ErrorsHP_%dD.txt",dim);
-        fileerrors.open(errorname);
-		MElementType typeel;
-        REAL radius = 0.0;
-		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++) {
-			typeel = (MElementType)itypeel;
-			for(int ntyperefs=1;ntyperefs<NMaxTypeRefs;ntyperefs++) {
-                if(ntyperefs==1)
-                    NRefs = 9;
-                else if(ntyperefs==2)
-                    NRefs = 4;
-                else
-                    NRefs = 3;
-				fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
-                fileerrors << "Type of element: " << typeel << endl;
-                // Constructing geometric mesh as hexahedra
-                cout << "\nConstructing Shock problem in cube [0,1]^" << dim << ". TypeRef: " << ntyperefs << " TypeElement: " << typeel << std::endl;
-                TPZGeoMesh *gmesh = ConstructingPositiveCube(InitialL,typeel);
-                UniformRefinement(1,gmesh,3);
-                for(nref=0;nref<NRefs;nref++) {
-                    radius = Radius[ntyperefs-1][nref];
-                    if(nref > 4) nthread = 2*NThreads;
-                    else nthread = NThreads;
-                    
-                    // Initializing the generation mesh process
-                    time(&sttime);
-                    cout << "Refinement: " << nref+1 << " Threads: " << nthread << std::endl << std::endl;
-                    // h_refinement
-                    // Refining near to the origin
-//                    if(!nref) RefiningNearCircunference(dim,gmesh,radius,1);
-//                    else
-                    RefiningNearCircunference(dim,gmesh,radius,ntyperefs);
-                    
-                    // Creating computational mesh
-                    / ** Set polynomial order * /
-                    int p = 5, pinit;
-                    pinit = p;
-                    TPZCompEl::SetgOrder(1);
-                    TPZCompMesh *cmesh = CreateMesh(gmesh,dim,1);
-                    cmesh->SetName("Computational mesh for Fichera problem");
-                    dim = cmesh->Dimension();
-                    
-                    // Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
-                    // A cada nivel disminue em uma unidade o p, mas não será menor de 1.
-                    int level = 0, highlevel = 0;
-                    int nelem = 0;
-                    while(nelem < cmesh->NElements()) {
-                        TPZCompEl *cel = cmesh->ElementVec()[nelem++];
-                        if(cel) {
-                            level = cel->Reference()->Level();
-                        }
-                        if(level > highlevel)
-                            highlevel = level;
-                    }
-                    // Identifying maxime interpolation order
-                    if(highlevel>p-1) pinit = p;
-                    else pinit = highlevel+1;
-                    // Put order 1 for more refined element and (highlevel - level)+1 for others, but order not is greater than initial p
-                    nelem = 0;
-                    while(highlevel && nelem < cmesh->NElements()) {
-                        TPZCompEl *cel = cmesh->ElementVec()[nelem++];
-                        if(!cel) continue;
-                        level = cel->Reference()->Level();
-                        p = (highlevel-level);
-                        if(!p || p<0) p = 1;     // Fazendo os dois maiores niveis de refinamento devem ter ordem 1
-                        if(p > pinit) p = pinit;
-                        ((TPZInterpolatedElement*)cel)->PRefine(p);
-                    }
-                    cmesh->ExpandSolution();
-                    cmesh->CleanUpUnconnectedNodes();
-                    
-                    // closed generation mesh process
-                    time (& endtime);
-                    time_elapsed = endtime - sttime;
-                    formatTimeInSec(tempo, time_elapsed);
-                    out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
-                    
-                    //--- END construction of the meshes
-                    
-                    // Solving linear equations
-                    // Initial steps
-                    out << "Solving HP-Adaptive Methods...\n";
-                    
-                    TPZAnalysis an (cmesh);
-                    
-                    // Solve using symmetric matrix then using Cholesky (direct method)
-                    TPZParSkylineStructMatrix strskyl(cmesh,nthread);
-                    an.SetStructuralMatrix(strskyl);
-                    
-                    TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
-                    direct->SetDirect(ECholesky);
-                    an.SetSolver(*direct);
-                    delete direct;
-                    direct = 0;
-                    
-                    // Initializing the solving process
-                    time (& sttime);
-                    an.Run();
-                    time(&endtime);
-                    time_elapsed = endtime - sttime;
-                    formatTimeInSec(tempo,time_elapsed);
-                    
-                    out << "\tRefinement: " << nref << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
-                    
-                    // Post processing
-                    char pp[64];
-                    std::string filename = "Poisson3DSol_";
-                    sprintf(pp,"TR%1dE%1dT%02dH%02dP%02d",ntyperefs,typeel,nthread,nref,pinit);
-                    filename += pp;
-                    filename += ".vtk";
-                    
-                    / ** Variable names for post processing * /
-                    TPZStack<std::string> scalarnames, vecnames;
-                    scalarnames.Push("Solution");
-                    scalarnames.Push("POrder");
-                    scalarnames.Push("KDuDx");
-                    scalarnames.Push("KDuDy");
-                    scalarnames.Push("KDuDz");
-                    scalarnames.Push("NormKDu");
-                    scalarnames.Push("Pressure");
-                    
-                    vecnames.Push("Derivative");
-                    vecnames.Push("Flux");
-                    vecnames.Push("MinusKGradU");
-                    // END Determining the name of the variables
-                    
-                    an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
-                    
-                    an.PostProcess(0,dim);
-                    ervec.Fill(0.0);
-                    
-                    // Computing error
-                    an.SetExact(ExactShock);
-                    fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
-                    an.PostProcessError(ervec,out);
-                    for(int rr=0;rr<ervec.NElements();rr++)
-                        fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
-                    fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
-                    
-                    delete cmesh;
-                }
-                delete gmesh;
-            }
-        }
-        fileerrors.close();
-    }
-	out.close();
-	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-//////////   SHOCK PROBLEM    ///////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-void ExactShock(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
-	TPZVec<REAL> C0(3,0.5);
-    REAL Radio = 0.25;
-	REAL Product = 8.;
-	REAL R0 = 0.;
-    int dim = dsol.Cols();
-    for(int i=0;i<dim;i++) {
-        Product *= x[i]*(x[i] - 1.);
-        R0 += (x[i]-C0[i])*(x[i]-C0[i]);
-    }
-	sol[0] = Product * (1. + (2./M_PI)*atan( 2*sqrt(ALFA) * ( Radio*Radio - R0 )));
-    
-	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
-	if(IsZero(den))
-		DebugStop();
-	dsol(0,0) = (ALFA*(x[0]-C0[0]))/den;
-	dsol(1,0) = (ALFA*(x[1]-C0[1]))/den;
-	dsol(2,0) = (ALFA*(x[2]-C0[2]))/den;
-}
-
-void BCDirichletShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
-	TPZVec<REAL> C0(3,-0.25);
-	
-	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-	bcsol[0] = atan(ALFA * ( R0 - sqrt(3.)) );
-}
-void BCNeumannLateralFrontShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
-	TPZVec<REAL> C0(3,-0.25);
-	
-	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
-	if(IsZero(den))
-		DebugStop();
-	bcsol[0] = (ALFA*(x[0]-C0[0]))/den;
-}
-void BCNeumannLateralRightShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
-	TPZVec<REAL> C0(3,-0.25);
-	
-	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
-	if(IsZero(den))
-		DebugStop();
-	bcsol[0] = (ALFA*(x[1]-C0[1]))/den;
-}
-void BCNeumannTopShock(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
-	TPZVec<REAL> C0(3,-0.25);
-	
-	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-	REAL den = R0 * (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
-	if(IsZero(den))
-		DebugStop();
-	bcsol[0] = (ALFA*(x[2]-C0[2]))/den;
-}
-
-/ ** NOTE: Forcing function in TPZMatPoisson3d is negative * /
-void FforcingShock(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) {
-	TPZVec<REAL> C0(3,-0.25);
-	
-	REAL R0 = sqrt ((x[0]-C0[0])*(x[0]-C0[0]) + (x[1]-C0[1])*(x[1]-C0[1]) + (x[2]-C0[2])*(x[2]-C0[2]));
-	REAL temp =  (1. + ALFA*ALFA*(R0-sqrt(3.))*(R0-sqrt(3.)));
-	REAL den = R0*temp*temp;
-	if(IsZero(den))
-		DebugStop();
-	f[0] = (2*ALFA*(1.+(3.*ALFA*ALFA)-(ALFA*ALFA*sqrt(3.)*R0)))/den;
-    df.Zero();
-}
-
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
-	
-	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
-	cmesh->SetAllCreateFunctionsContinuous();
-	
-	// Creating Poisson material
-	TPZMaterial *mat = new TPZMatPoisson3d(1,dim);
-	TPZVec<REAL> convd(3,0.);
-	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
-	if(hasforcingfunction) {
-		mat->SetForcingFunction(new TPZDummyFunction<STATE>(FforcingShock));
-	}
-	cmesh->InsertMaterialObject(mat);
-	// Make compatible dimension of the model and the computational mesh
-	cmesh->SetDimModel(mat->Dimension());
-	
-	// Boundary conditions
-	// Dirichlet on face into the coordinate planes XY YZ XZ
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCDirichletShock);
-	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
-	val1.PutVal(0,0,1.); val1.PutVal(1,1,1.); val1.PutVal(2,2,1.);
-	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
-	bnd->SetForcingFunction(FunctionBC);
-	cmesh->InsertMaterialObject(bnd);
-	// Neuman on face lateral front
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBCF = new TPZDummyFunction<STATE>(BCNeumannLateralFrontShock);
-	TPZMaterial *bndF = mat->CreateBC(mat,-2,1,val1,val2);
-	bndF->SetForcingFunction(FunctionBCF);
-	cmesh->InsertMaterialObject(bndF);
-	// Neuman on face lateral right
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBCR = new TPZDummyFunction<STATE>(BCNeumannLateralRightShock);
-	TPZMaterial *bndR = mat->CreateBC(mat,-3,1,val1,val2);
-	bndR->SetForcingFunction(FunctionBCR);
-	cmesh->InsertMaterialObject(bndR);
-	// Neuman on face top
-	TPZAutoPointer<TPZFunction<STATE> > FunctionBCT = new TPZDummyFunction<STATE>(BCNeumannTopShock);
-	TPZMaterial *bndT = mat->CreateBC(mat,-4,1,val1,val2);
-	bndT->SetForcingFunction(FunctionBCT);
-	cmesh->InsertMaterialObject(bndT);
-	
-	cmesh->AutoBuild();
-	cmesh->AdjustBoundaryElements();
-	cmesh->ExpandSolution();
-	return cmesh;
-}
-/ ** Detects the bigger dimension of the computational elements into cmesh to set the Model Dimension * /
-bool DefineModelDimension(TPZCompMesh *cmesh) {
-	if(!cmesh || !cmesh->NElements()) return false;
-	TPZCompEl *cel;
-	int dim = -1;
-	// Run over all computational elements and check its type to define the dimension of the model
-	for(int i=0;i<cmesh->NElements();i++) {
-		cel = cmesh->ElementVec()[i];
-		if(!cel) continue;
-		int type = cel->Type();
-		if(!type) dim = (dim > -1) ? dim : 0;
-		else if(type==1) dim = (dim > 0) ? dim : 1;
-		else if(type > 1 && type < 4)
-			dim = (dim > 1) ? dim : 2;
-		else if(type > 3 && type < 8)
-			dim = 3;
-		// If exist a three dimensional element, finish
-		if(dim == 3) break;
-	}
-	// Whether the dimension is invalid return false
-	if(dim == -1) return false;
-	// If dimension is valid set into the computational mesh
-	cmesh->SetDimModel(dim);
-	return true;
-}
-
-TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
-	// CREATING A CUBE WITH MASS CENTER (0.5*INITIALL, 0.5*INITIALL, 0.5*INITIALL) AND VOLUME = INITIALL*INITIALL*INITIALL
-    // Dependig on dimension of the typeel
-	const int nelem = 1;
-	const int nnode = 8;
-	REAL co[nnode][3] = {
-		{0.,0.,0.},
-		{InitialL,0.,0.},
-		{InitialL,InitialL,0.},
-		{0.,InitialL,0.},
-		{0.,0.,InitialL},
-		{InitialL,0.,InitialL},
-		{InitialL,InitialL,InitialL},
-		{0.,InitialL,InitialL}
-	};
-	TPZVec<TPZVec<int> > indices;
-    indices.Resize(nelem);
-    indices[0].Resize(nnode);
-    for(int i=0;i<nnode;i++) {
-        indices[0][i] = i;
-    }
-    switch(typeel) {
-        case EOned:
-		case ETriangle:
-		case EQuadrilateral:
-			return 0;
-        default:
-            break;
-    }
-    
-
-	TPZGeoEl *elvec[nelem];
-	TPZGeoMesh *gmesh = new TPZGeoMesh();
-
-	int nod;
-	for(nod=0; nod<nnode; nod++) {
-		int nodind = gmesh->NodeVec().AllocateNewElement();
-		TPZVec<REAL> coord(3);
-		coord[0] = co[nod][0];
-		coord[1] = co[nod][1];
-		coord[2] = co[nod][2];
-		gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
-	}
-	
-	int el;
-	for(el=0; el<nelem; el++) {
-		int index;
-		elvec[el] = gmesh->CreateGeoElement(typeel,indices[el],1,index);
-	}
-	TPZVec<TPZGeoEl *> sub;
-    switch (typeel) {
-        case EPrisma:   // hexahedron -> four prisms
-		{
-            // Dividing hexahedron in prisms
-            std::string filename = REFPATTERNDIR;
-            filename += "/3D_Hexa_directional_2faces.rpt";
-            
-            TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-            if(!gRefDBase.FindRefPattern(refpat))
-            {
-                gRefDBase.InsertRefPattern(refpat);
-            }
-            TPZGeoEl *gel = gmesh->ElementVec()[0];
-            TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
-            gelrp->SetRefPattern(refpat);
-            gel->Divide(sub);
-		}   
-            break;
-        case EPiramide:
-		{
-            // Dividing hexahedron in four pyramids
-            std::string filename = REFPATTERNDIR;
-            filename += "/3D_Hexa_Rib_Side_08.rpt";
-            
-            TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-            if(!gRefDBase.FindRefPattern(refpat))
-            {
-                gRefDBase.InsertRefPattern(refpat);
-            }
-            TPZGeoEl *gel = gmesh->ElementVec()[0];
-            TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
-            gelrp->SetRefPattern(refpat);
-            gel->Divide(sub);
-		}
-        case ETetraedro:
-		{
-            // Dividing hexahedron in two tetrahedras, two prisms and one pyramid
-            std::string filename = REFPATTERNDIR;
-            filename += "/3D_Hexa_Rib_Side_16_17_18.rpt";
-            
-            TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-            if(!gRefDBase.FindRefPattern(refpat))
-            {
-                gRefDBase.InsertRefPattern(refpat);
-            }
-            TPZGeoEl *gel = gmesh->ElementVec()[0];
-            TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
-            gelrp->SetRefPattern(refpat);
-            gel->Divide(sub);
-		}
-        case ECube:
-            break;
-        default:
-		{
-            // hexahedron -> three prisms
-            // Dividing hexahedron in prisms
-            std::string filename = REFPATTERNDIR;
-            filename += "/3D_Hexa_Rib_Side_16_18.rpt";
-            
-            TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-            if(!gRefDBase.FindRefPattern(refpat))
-            {
-                gRefDBase.InsertRefPattern(refpat);
-            }
-            TPZGeoEl *gel = gmesh->ElementVec()[0];
-            TPZGeoElRefPattern <TPZGeoCube> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZGeoCube> *> (gel);
-            gelrp->SetRefPattern(refpat);
-            gel->Divide(sub);
-		}
-            break;
-    }
-
-	gmesh->BuildConnectivity();
-	
-	switch(typeel) {
-		case ECube:
-		{
-			// face 0 (20) bottom XY - face 1 (21) lateral left XZ - face 4 (24) lateral back YZ : Dirichlet
-			TPZGeoElBC gbc10(gmesh->ElementVec()[0],20,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[0],21,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[0],24,-1);
-			
-			// face 2 (22) Neumann - Partial derivative (du/dx) - lateral front
-			TPZGeoElBC gbc13(gmesh->ElementVec()[0],22,-2);
-			// face 3 (23) Neumann - Partial derivative (du/dy) - lateral right
-			TPZGeoElBC gbc14(gmesh->ElementVec()[0],23,-3);
-			// face 5 (25) Neumann - Partial derivative (du/dz) - top
-			TPZGeoElBC gbc15(gmesh->ElementVec()[0],25,-4);
-		}
-			break;
-		case 1:
-		{
-			// First sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],15,-1);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],16,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],18,-1);
-			TPZGeoElBC gbc13(gmesh->ElementVec()[1],19,-3);
-			// Second sub element - faces: 15 and 19
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],15,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],19,-3);
-			// Third sub element - faces: 15, 16, 17 and 19
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],17,-2);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],18,-4);
-			TPZGeoElBC gbc33(gmesh->ElementVec()[3],19,-3);
-			// Fouthrd sub element - faces: 15, 17, 18 and 19
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],15,-1);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[4],17,-4);
-			TPZGeoElBC gbc42(gmesh->ElementVec()[4],18,-1);
-			TPZGeoElBC gbc43(gmesh->ElementVec()[4],19,-3);
-			gmesh->ElementVec()[1]->Divide(sub);
-			gmesh->ElementVec()[3]->Divide(sub);
-		}
-			break;
-		case 2:
-		{
-			// First sub element - faces: 13, 14 and 17
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],13,-2);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],14,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],17,-1);
-			// Second sub element - faces: 13 and 14
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],13,-3);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],14,-1);
-			// Third sub element - faces: 13, 14 and 17
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],13,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],14,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],17,-1);
-			// Fouthrd sub element - faces: 13 and 14
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],13,-4);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[4],14,-1);
-		}
-			break;
-		case 3:
-		{
-			// First sub element - faces: 10, 11 and 13
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],10,-4);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],11,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],13,-2);
-			// Second sub element - faces: 10, 11 and 13
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],10,-4);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],11,-2);
-			TPZGeoElBC gbc22(gmesh->ElementVec()[2],13,-3);
-			// Third sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-3);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],16,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],18,-4);
-			TPZGeoElBC gbc33(gmesh->ElementVec()[3],19,-1);
-			// Fouthrd sub element - faces: 15, 18 and 19
-			TPZGeoElBC gbc40(gmesh->ElementVec()[4],15,-1);
-			TPZGeoElBC gbc41(gmesh->ElementVec()[4],18,-1);
-			TPZGeoElBC gbc42(gmesh->ElementVec()[4],19,-3);
-			// Fifth sub element - faces: 13 and 15
-			TPZGeoElBC gbc50(gmesh->ElementVec()[5],14,-2);
-			TPZGeoElBC gbc51(gmesh->ElementVec()[5],16,-4);
-			gmesh->ElementVec()[3]->Divide(sub);
-			gmesh->ElementVec()[4]->Divide(sub);
-		}
-			break;
-		case 4:
-		{
-			// First sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc10(gmesh->ElementVec()[1],15,-3);
-			TPZGeoElBC gbc11(gmesh->ElementVec()[1],16,-1);
-			TPZGeoElBC gbc12(gmesh->ElementVec()[1],18,-4);
-			TPZGeoElBC gbc13(gmesh->ElementVec()[1],19,-1);
-			// Second sub element - faces: 15, 16, 18 and 19
-			TPZGeoElBC gbc20(gmesh->ElementVec()[2],15,-1);
-			TPZGeoElBC gbc21(gmesh->ElementVec()[2],16,-2);
-			TPZGeoElBC gbc22(gmesh->ElementVec()[2],18,-4);
-			TPZGeoElBC gbc23(gmesh->ElementVec()[2],19,-3);
-			// Third sub element - faces: 15, 17 and 19
-			TPZGeoElBC gbc30(gmesh->ElementVec()[3],15,-1);
-			TPZGeoElBC gbc31(gmesh->ElementVec()[3],17,-1);
-			TPZGeoElBC gbc32(gmesh->ElementVec()[3],19,-3);
-			gmesh->ElementVec()[1]->Divide(sub);
-			gmesh->ElementVec()[2]->Divide(sub);
-			gmesh->ElementVec()[3]->Divide(sub);
-		}
-			break;
-		default:
-			return 0;
-	}
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-	
-	return gmesh;
-}
-
-void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntyperefs) {
-	TPZManVector<REAL,3> point(3,-0.25);
-	REAL r = sqrt(3.0);
-
-    // To refine elements with center near to points than radius, some times as ntyperefs
-    RefineGeoElements(dim,gmesh,point,r,radius,ntyperefs);
-
-	// Constructing connectivities
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
-
-void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL,3> &point,REAL r,REAL &distance,int ntyperefs) {
-	TPZManVector<REAL,3> centerpsi(3), center(3);
-    int nsubs, nsubacum, p, k, q;
-    REAL centerdist;
-	// Refinamento de elementos selecionados
-	TPZGeoEl *gel;
-	TPZVec<TPZGeoEl *> sub;
-    TPZVec<TPZGeoEl *> subacum;
-	TPZVec<TPZGeoEl *> subsub;
-	
-	int nelem = 0;
-	int ngelem=gmesh->NElements();
-	
-	// na esquina inferior esquerda Nó = (0,-1,0)
-	while(nelem<ngelem) {
-        subacum.Resize(0);
-		gel = gmesh->ElementVec()[nelem++];
-		if(!gel || gel->Dimension()!=dim || gel->HasSubElement()) continue;
-        // element will be divided if any of their nodes is near to circunference
-/ *        for(int i=0;i<gel->NCornerNodes();i++) {
-            TPZGeoNode* node = gel->NodePtr(i);
-            node->GetCoordinates(center);
-            centerdist = TPZGeoEl::Distance(center,point);
-            if(fabs(r-centerdist) < distance && !gel->NSubElements()) {
-                gel->Divide(sub);
-                nsubs = gel->NSubElements();
-                nsubacum = subacum.NElements();
-                subacum.Resize(nsubacum+nsubs,NULL);
-                for(p=0;p<nsubs;p++)
-                    subacum[nsubacum+p] = sub[p];
-            }
-        }* /
-//        if(!gel->NSubElements()) {
-            gel->CenterPoint(gel->NSides()-1,centerpsi);
-            gel->X(centerpsi,center);
-            centerdist = TPZGeoEl::Distance(center,point);
-            if(fabs(r-centerdist) < distance && !gel->NSubElements()) {
-                gel->Divide(sub);
-                nsubs = gel->NSubElements();
-                nsubacum = subacum.NElements();
-                subacum.Resize(nsubacum+nsubs,NULL);
-                for(p=0;p<nsubs;p++)
-                    subacum[nsubacum+p] = sub[p];
-            }
-  //      }
-        int nsubacumtot = subacum.NElements();
-        if(ntyperefs>1) {
-            for(k=0;k<nsubacumtot;k++) {
-                if(!subacum[k]) continue;
-                subacum[k]->Divide(subsub);
-                if(ntyperefs>2) {
-                    TPZVec<TPZGeoEl *> subsubsub;
-                    for(q=0;q<subsub.NElements();q++)
-                        subsub[q]->Divide(subsubsub);
-                }
-            }
-        }
-	}
-}
-
-void formatTimeInSec(char *strtime,int timeinsec) {
-	if(!strtime) return;
-	memset(strtime,0,strlen(strtime));
-	//	strtime[0] = '\0';
-	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
-	while(1) {
-		if(timeinsec < 60) {
-			segundos = timeinsec;
-			break;
-		}
-		else {
-			timeinsec -= 60;
-			minutos++;
-			if(minutos > 59) {
-				minutos -= 60;
-				horas++;
-				if(horas > 23) {
-					horas -= 24;
-					dias++;
-					if(dias > 29) {
-						dias -= 30;
-						meses++;
-						if(meses > 11) {
-							meses -= 12;
-							anos++;
-						}
-					}
-				}
-			}
-		}
-	}
-	// Formating
-	if(anos)
-		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
-	else {
-		if(meses) 
-			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
-		else {
-			if(dias)
-				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
-			else
-				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
-		}
-	}
-}
-
-
-void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
-	int i, size = gmesh->NElements();
-	TPZChunkVector<int> DataElement;
-	DataElement.Resize(size);
-	// Making dimension of the elements as data element
-	for(i=0;i<size;i++) {
-		if(gmesh->ElementVec()[i])
-			DataElement[i] = (gmesh->ElementVec()[i])->Dimension();
-		else
-			DataElement[i] = -999;
-	}
-	// Printing geometric mesh to visualization in Paraview
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
-}
-
-void InitializeSolver(TPZAnalysis &an) {
-	TPZStepSolver<STATE> step;
-	TPZBandStructMatrix matrix(an.Mesh());
-	an.SetStructuralMatrix(matrix);
-	step.SetDirect(ELU);
-	an.SetSolver(step);
-}
-
-
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
-	TPZManVector<TPZGeoEl*> filhos;
-	for(int D=0; D<nDiv; D++)
-	{
-		int nels = gmesh->NElements();
-		for(int elem = 0; elem < nels; elem++)
-		{    
-			TPZGeoEl * gel = gmesh->ElementVec()[elem];
-			if(!gel || gel->HasSubElement())
-				continue;
-			if(dim > 0 && gel->Dimension() != dim) continue;
-			if(!allmaterial){
-				if(gel->MaterialId() == matidtodivided){
-					gel->Divide(filhos);
-				}
-			}
-			else{
-				gel->Divide(filhos);
-			}
-		}
-	}
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
-void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
-	int dim = dsol.Rows();
-	REAL F = 2*sqrt(ValueK);
-	REAL Coeff, B;
-	if(dim==1)
-		Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B = Coeff/M_PI;
-    REAL arc = F;
-    REAL Prod, temp;
-    REAL prody = 1.;
-    REAL prodz = 1.;
-    REAL prodx = x[0]*(x[0]-1.);
-	if(dim == 1) {
-		arc *= (RCircle*RCircle - (x[0] - CCircle[0])*(x[0] - CCircle[0]));
-	}
-	else if(dim == 2) {
-		arc *= (RCircle*RCircle - ((x[0] - CCircle[0])*(x[0] - CCircle[0]) + (x[1] - CCircle[1])*(x[1] - CCircle[1])));
-		prody = x[1]*(x[1]-1.);
-	}
-	else if(dim == 3) {
-		arc *= (RCircle*RCircle - ((x[0]-CCircle[0])*(x[0]-CCircle[0]) + (x[1]-CCircle[1])*(x[1]-CCircle[1]) + (x[2]-CCircle[2])*(x[2]-CCircle[2])));
-		prody = x[1]*(x[1]-1.);
-		prodz = x[2]*(x[2]-1.);
-	}
-	else {
-		DebugStop();
-	}
-    Prod = prodx*prody*prodz;
-    temp = M_PI + 2.*atan(arc);
-    sol[0] = B*Prod*temp;
-    dsol(0,0) = B*prody*prodz*(2*x[0]-1.)*(temp - ((2*F*prodx)/(1+arc*arc)));
-    if(dim==2) {
-        dsol(1,0) = B*prodx*prodz*(2*x[1]-1.)*(temp - ((2*F*prody)/(1+arc*arc)));
-    }
-    else if(dim==3) {
-        dsol(2,0) = B*prodx*prody*(2*x[2]-1.)*(temp - ((2*F*prodz)/(1+arc*arc)));
-    }
-}
-
-*/
