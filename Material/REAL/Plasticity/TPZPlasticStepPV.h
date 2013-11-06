@@ -17,6 +17,10 @@
 #include <set>
 #include <ostream>
 
+REAL NormVecOfMat(TPZFNMatrix <9> mat);
+REAL InnerVecOfMat(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
+TPZFMatrix<REAL> ProdT(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
+
 template <class TVar>
 class TPZFMatrix;
 

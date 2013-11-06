@@ -39,13 +39,13 @@ static LoggerPtr logger(Logger::getLogger("main"));
 
 REAL NormVec(TPZManVector<REAL,3> &vec1);
 
-REAL NormVecOfMat(TPZFNMatrix <9> mat);
+
 
 REAL mypow(REAL a, int n);
 
 void TesteFAD();
 
-REAL InnerVecOfMat(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
+
 
 void TaylorCheck();
 
@@ -59,12 +59,12 @@ TPZFNMatrix<9> FromEgToMat(TPZManVector<REAL,3> egva, TPZManVector<TPZTensor<REA
 
 TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
-TPZFMatrix<REAL> ProdT(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
+
 
 int main()
 {
-	/*
-	//TestePlasticStepPV();
+	
+	TestePlasticStepPV();
 	
 	TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
 	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
@@ -120,23 +120,23 @@ int main()
 		
 	}
 	outfile << "};\nListPlot[VecFig12,Joined->True]";
-	 */
-
-	long neq = 2000;
-	TPZFMatrix<REAL> A(neq,neq,0.), b(neq,1,1.);
-	for (long i = 0; i < neq; i++) {
-		for (long j = 0; j < neq; j++) {
-			A(i,j) == sin(i*j);
-			if (i==j) {
-				A(i,j) = 10.;
-			}
-		}
-	}
-	TPZTimer time;
-	time.start();
-	A.Solve_LU(&b);
-	time.stop();
-	std::cout << "tempo = " << time.seconds() << std::endl;
+	 
+//
+//	long neq = 2000;
+//	TPZFMatrix<REAL> A(neq,neq,0.), b(neq,1,1.);
+//	for (long i = 0; i < neq; i++) {
+//		for (long j = 0; j < neq; j++) {
+//			A(i,j) == sin(i*j);
+//			if (i==j) {
+//				A(i,j) = 10.;
+//			}
+//		}
+//	}
+//	TPZTimer time;
+//	time.start();
+//	A.Solve_LU(&b);
+//	time.stop();
+//	std::cout << "tempo = " << time.seconds() << std::endl;
 
 	return 0;
 }
@@ -700,16 +700,6 @@ REAL NormVec(TPZManVector<REAL,3> &vec)
 	return norm;
 }
 
-REAL NormVecOfMat(TPZFNMatrix <9> mat)
-{
-	REAL norm = 0.;
-	for (int i = 0; i < mat.Rows(); i++) {
-		norm += mat(i,0) * mat(i,0);
-	}
-	norm = sqrt(norm);
-	return norm;
-}
-
 REAL mypow(REAL a, int n)
 {
 	if (n == 0) return 1.;
@@ -788,22 +778,3 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
 	return voi;	
 }
 
-REAL InnerVecOfMat(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2)
-{
-	REAL dot = 0.;
-	for (int i = 0; i < m1.Rows(); i++) {
-		dot += m1(i,0) * m2(i,0);
-	}
-	return dot;
-}
-
-TPZFMatrix<REAL> ProdT(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2)
-{
-	TPZFMatrix<REAL> mat(3,3,0.);
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0 ; j < 3; j++) {
-			mat(i,j) = m1(i,0) * m2(j,0);
-		}
-	}
-	return mat;
-}
