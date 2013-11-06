@@ -89,7 +89,7 @@ int mainEla2D()
 
 int mainRascunho()
 {
-	
+	return 0;
 }
 
 int mainSimples(int argc, char *argv[])
@@ -126,6 +126,8 @@ int mainSimples(int argc, char *argv[])
 	
 	 
 	std::cout << "FINISHED!" << std::endl;
+	
+	return 0;
 }
 
 
