@@ -32,6 +32,11 @@ virtual ~TPZPostProcAnalysis();
 	
     /// Set the computational mesh we are going to post process
     void SetCompMesh(TPZCompMesh *pRef);
+    
+    TPZCompMesh *ReferenceCompMesh()
+    {
+        return fpMainMesh;
+    }
 /**
  *	Assemble() blank implementation in order to avoid its usage. In such an Analysis
  * class the Assemble() method is useless.

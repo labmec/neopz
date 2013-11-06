@@ -328,11 +328,7 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
 
 TPZWellBoreAnalysis::TConfig::~TConfig()
 {
-    if (fGMesh.NElements() > 87) 
-    {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
-        fGMesh.ElementVec()[87]->Print();
-    }
+    fPostprocess.SetCompMesh(0);
     fCMesh.CleanUp();
     fCMesh.SetReference(0);
 }
@@ -344,6 +340,7 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fConfinement = copy.fConfinement;
     fSD = copy.fSD;
     fFluidPressure = copy.fFluidPressure;
+    fPostprocess.SetCompMesh(0);
     fGMesh = copy.fGMesh;
     fCMesh = copy.fCMesh;
     fCMesh.SetReference(&fGMesh);
@@ -1668,6 +1665,9 @@ int passCount = 0;
 void TPZWellBoreAnalysis::PostProcess(int resolution)
 {
     fCurrentConfig.fPostprocess.SetStep(fPostProcessNumber);
+    if (fCurrentConfig.fPostprocess.ReferenceCompMesh() != &fCurrentConfig.fCMesh) {
+        fCurrentConfig.fPostprocess.SetCompMesh(&fCurrentConfig.fCMesh);
+    }
     fCurrentConfig.fPostprocess.PostProcess(resolution);
     fPostProcessNumber++;
 
@@ -1954,6 +1954,7 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
     }
     fSmaller.Resize(fSmaller.size()+1, MinorAxis);
     
+    fPostprocess.SetCompMesh(0);
     fCMesh.CleanUp();
     fGMesh.CleanUp();
     CreateMesh();

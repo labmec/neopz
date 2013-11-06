@@ -1464,7 +1464,7 @@ DECLARE_FPO_HANDLER_FUNC;
 #include "WellBoreAnalysis.h"
 
 //int startfrom = 0;
-int startfrom = 3;
+int startfrom = 4;
 
 int main ()
 {
@@ -1605,6 +1605,8 @@ int main ()
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.03409;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.829545;
         //vvalor de a e b para sqJ2 = 0.0007 p 19.5
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.014;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.90;
         std::multimap<REAL, REAL> polygonalChain;
         well.GetJ2Isoline(0.0007, polygonalChain);
         TPZProjectEllipse ellips(polygonalChain);
@@ -1613,8 +1615,8 @@ int main ()
         ellips.StandardFormatForSimpleEllipse(center, ratios);
         verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
         verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
-        REAL a = well.GetCurrentConfig()->fInnerRadius*1.014;
-        REAL b = well.GetCurrentConfig()->fInnerRadius*0.90;
+        REAL a = ratios[0];
+        REAL b = ratios[1];
         well.AddEllipticBreakout(a, b);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         //well.PostProcess(1);
@@ -1666,9 +1668,15 @@ int main ()
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.10227;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.596591;
         //vvalor de a e b para sqJ2 = 0.0007 Pef = 19.5
-        REAL a = well.GetCurrentConfig()->fInnerRadius*1.044;
-        REAL b = well.GetCurrentConfig()->fInnerRadius*0.66;
-        well.AddEllipticBreakout(a, b);
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.044;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.66;
+        std::multimap<REAL, REAL> polygonalChain;
+        well.GetJ2Isoline(0.0007, polygonalChain);
+        TPZProjectEllipse ellips(polygonalChain);
+        TPZManVector<REAL,2> center(2),ratios(2),coefs(2),verify(2);
+        ellips.Getcoefficients(coefs);
+        ellips.StandardFormatForSimpleEllipse(center, ratios);
+        well.AddEllipticBreakout(ratios[0], ratios[1]);
         well.PostProcess(1);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteSimulation();
@@ -1705,9 +1713,15 @@ int main ()
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.17045;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.465909;
         // valor de a e b para sqJ2 = 0.0007 P = 19.5
-        REAL a = well.GetCurrentConfig()->fInnerRadius*1.099;
-        REAL b = well.GetCurrentConfig()->fInnerRadius*0.419;
-        well.AddEllipticBreakout(a, b);
+//        REAL a = well.GetCurrentConfig()->fInnerRadius*1.099;
+//        REAL b = well.GetCurrentConfig()->fInnerRadius*0.419;
+        std::multimap<REAL, REAL> polygonalChain;
+        well.GetJ2Isoline(0.0007, polygonalChain);
+        TPZProjectEllipse ellips(polygonalChain);
+        TPZManVector<REAL,2> center(2),ratios(2),coefs(2),verify(2);
+        ellips.Getcoefficients(coefs);
+        ellips.StandardFormatForSimpleEllipse(center, ratios);
+        well.AddEllipticBreakout(ratios[0], ratios[1]);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.PostProcess(1);
         well.ExecuteSimulation();
@@ -1737,6 +1751,7 @@ int main ()
         well.Read(read);        
         
     }
+    return 0;
     if (startfrom <= 6)
     {
 //        well.VerifyGlobalEquilibrium();

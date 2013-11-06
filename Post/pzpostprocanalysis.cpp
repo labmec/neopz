@@ -78,7 +78,16 @@ TPZPostProcAnalysis::~TPZPostProcAnalysis()
 /// Set the computational mesh we are going to post process
 void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
 {
+    if (fCompMesh) {
+        delete fCompMesh;
+        fCompMesh = 0;
+    }
+
     fpMainMesh = pRef;
+    
+    if (!pRef) {
+        return;
+    }
     
     TPZCompMesh* pcMainMesh = fpMainMesh;
     
@@ -86,9 +95,6 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
     
     // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
     
-    if (fCompMesh) {
-        delete fCompMesh;
-    }
     
     TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
     
