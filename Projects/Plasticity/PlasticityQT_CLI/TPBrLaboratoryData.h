@@ -4,23 +4,45 @@
 #include "TPBrStrainStressDataBase.h"
 #include "TPBrSimulationData.h"
 
+#include <list>
+
 class TPBrLaboratoryData : public TPBrStrainStressDataBase
 {
 
 public:
     TPBrLaboratoryData();
     
+    TPBrLaboratoryData(const TPBrLaboratoryData &copy) : TPBrStrainStressDataBase(copy),
+        fstart_idx(copy.fstart_idx), fend_idx(copy.fend_idx), fSimulacoes(copy.fSimulacoes)
+    {
+        
+    }
+    
+    TPBrLaboratoryData &operator=(const TPBrLaboratoryData &copy)
+    {
+        TPBrStrainStressDataBase::operator=(copy);
+        fstart_idx = copy.fstart_idx;
+        fend_idx = copy.fend_idx;
+        fSimulacoes = copy.fSimulacoes;
+        return *this;
+    }
+    
+    virtual ~TPBrLaboratoryData()
+    {
+        
+    }
+    
     inline void Set_start_idx(int startidx) {
-        start_idx = startidx;
+        fstart_idx = startidx;
     }
     inline void Set_end_idx(int endidx) {
-        end_idx = endidx;
+        fend_idx = endidx;
     }
     inline int Get_start_idx() {
-        return start_idx;
+        return fstart_idx;
     }
     inline int Get_end_idx() {
-        return end_idx;
+        return fend_idx;
     }
     inline void Attribute_sim() {
 
@@ -28,11 +50,11 @@ public:
     int RunSimulation ();
 
 protected:
-    int start_idx;
-    int end_idx;
+    int fstart_idx;
+    int fend_idx;
     
     //contains all simulations related to 'this' lab file
-    TPZVec <TPBrSimulationData> Simulacoes;
+    std::list <TPBrSimulationData> fSimulacoes;
 
 };
 

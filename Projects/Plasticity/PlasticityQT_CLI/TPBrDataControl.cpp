@@ -19,26 +19,26 @@ int TPBrDataControl::OpenLabFile(const std::string &filename){
         if (!input) {
             break;
         }
-        if(numlines >= Med_txt.Eps_Ax.size())
+        if(numlines >= Med_txt.fEps_Ax.size())
         {
-            Med_txt.Eps_Ax.Resize(numlines+100);
-            Med_txt.Sig_Ax.Resize(numlines+100);
-            Med_txt.Eps_Lat.Resize(numlines+100);
-            Med_txt.Sig_Lat.Resize(numlines+100);
+            Med_txt.fEps_Ax.Resize(numlines+100);
+            Med_txt.fSig_Ax.Resize(numlines+100);
+            Med_txt.fEps_Lat.Resize(numlines+100);
+            Med_txt.fSig_Lat.Resize(numlines+100);
         }
-        Med_txt.Eps_Ax[numlines] = -eps_ax/100.;
-        Med_txt.Sig_Ax[numlines] = -sig_ax_t;
-        Med_txt.Eps_Lat[numlines] = -eps_r/100.;
-        Med_txt.Sig_Lat[numlines] = -sig_r;
+        Med_txt.fEps_Ax[numlines] = -eps_ax/100.;
+        Med_txt.fSig_Ax[numlines] = -sig_ax_t;
+        Med_txt.fEps_Lat[numlines] = -eps_r/100.;
+        Med_txt.fSig_Lat[numlines] = -sig_r;
 
 //    cout << "i= " << numlines << " " <<  fStressRZInput(numlines,1) << " " <<  fStressRZInput(numlines,0)<< " " << fStrainRZInput(numlines,1)<< " "<< fStrainRZInput(numlines,0) << endl;
 
         numlines++;
     }
-    Med_txt.Eps_Ax.Resize(numlines);
-    Med_txt.Sig_Ax.Resize(numlines);
-    Med_txt.Eps_Lat.Resize(numlines);
-    Med_txt.Sig_Lat.Resize(numlines);
+    Med_txt.fEps_Ax.Resize(numlines);
+    Med_txt.fSig_Ax.Resize(numlines);
+    Med_txt.fEps_Lat.Resize(numlines);
+    Med_txt.fSig_Lat.Resize(numlines);
 
     Med_txt.Set_start_idx(0);
     Med_txt.Set_end_idx(numlines);
