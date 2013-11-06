@@ -225,7 +225,6 @@ int main(int argc, char *argv[])
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat3 = skylmat1->Clone();
 	TPZAutoPointer<TPZMatrix<REAL> > skylmat4 = skylmat1->Clone();
 	TPZFMatrix<REAL> f(neq,1,M_PI);
-	TPZFMatrix<REAL> f333(neq,1,M_PI);
 	TPZFMatrix<TPZFlopCounter > f2(neq,1,M_PI);
 	TPZSkylMatrix <TPZFlopCounter> fp1;
 	TPZSkylMatrix <TPZFlopCounter> fp2;
@@ -270,7 +269,7 @@ int main(int argc, char *argv[])
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp1.Subst_Forward(&f2);
 		  c = TPZFlopCounter::gCount - c;
-		  PrintInfo("Subst_Forward()", c);
+		  PrintInfo("Subst_Forward(...)", c);
 		}
 	}
 
@@ -283,7 +282,7 @@ int main(int argc, char *argv[])
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp1.Subst_Backward(&f2);
 		  c = TPZFlopCounter::gCount - c;
-		  PrintInfo("Subst_Backward()", c);
+		  PrintInfo("Subst_Backward(...)", c);
 		}
 	}
 
@@ -295,16 +294,17 @@ int main(int argc, char *argv[])
 		REAL overrelax = 1.1;
 		REAL tol = 10e-7;
     		sor_rst.start();
-		skylmat4->SolveSOR(niter, *f, res, &residual, scratch, overrelax, tol);
+		//skylmat4->SolveSOR(niter, *f, res, &residual, scratch, overrelax, tol);
     		sor_rst.stop();
 		if (print_flops.was_set()) {
-		  TPZFMatrix<REAL> res2(neq,1);
-        	  TPZFMatrix<REAL> residual2(neq,1);
-        	  TPZFMatrix<REAL> scratch2(neq,neq);
+		  TPZFMatrix<TPZFlopCounter> f3(neq, 1);
+		  TPZFMatrix<TPZFlopCounter> res2(neq,1);
+        	  TPZFMatrix<TPZFlopCounter> residual2(neq,1);
+        	  TPZFMatrix<TPZFlopCounter> scratch2(neq,neq);
 		  TPZCounter c = TPZFlopCounter::gCount;
-		  //fp3.SolveSOR(niter, *f3, res2, &residual2, scratch2, ovrrelax, tol);
+		  fp3.SolveSOR(niter, f3, res2, &residual2, scratch2, overrelax, tol);
 		  c = TPZFlopCounter::gCount - c;
-		  c.Print();
+		  PrintInfo("SolveSOR(...)", c);
 		}
 	}
 
@@ -314,11 +314,11 @@ int main(int argc, char *argv[])
     		skylmat3->MultAdd(result, result, result, 1., 0);
     		mult_rst.stop();
 		if (print_flops.was_set()) {
-        	  TPZFMatrix<REAL> result2(neq,neq);
+        	  TPZFMatrix<TPZFlopCounter> result2(neq,neq);
 		  TPZCounter c = TPZFlopCounter::gCount;
-		  //fp4.SolveSOR(result2, result2, result2, 1., 0);
+		  fp4.MultAdd(result2, result2, result2, 1., 0);
 		  c = TPZFlopCounter::gCount - c;
-		  c.Print();
+		  PrintInfo("MultAdd(...)", c);
 		}
 	}
 
