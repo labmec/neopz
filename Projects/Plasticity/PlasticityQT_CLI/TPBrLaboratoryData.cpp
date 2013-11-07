@@ -1,5 +1,6 @@
 #include "TPBrLaboratoryData.h"
 #include "../TPZPlasticitySimulation.h"
+#include "TPBrDataControl.h"
 
 TPBrLaboratoryData::TPBrLaboratoryData()
 {
@@ -17,14 +18,58 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
   newSimulation.SetSimulationInitialStep(fstart_idx);
   newSimulation.SetSandlerDimaggio(obj);
   newSimulation.PerformSimulation();
+    TPZVec<REAL> sigax,sigr,epsax,epsr;
+    newSimulation.GetSimulatedStrainStress(sigax, epsax, sigr, epsr);
   
-  
-  int pos = fSimulacoes.size()+1;
-//  fSimulacoes.Resize(pos);
-  
-  pos = pos - 1;
-  //Simulacoes[pos] = newSimulation.GetSimulationData();
-  
+    
+    TPBrSimulationData result;
+    result.Set_medicao_idx(this->GlobalId());
+    result.Set_start_idx(fstart_idx);
+    result.Set_end_idx(fend_idx);
+    int resultindex = DADOS.GenerateNewIndex();
+    result.SetGlobalId(resultindex);
+    result.SetStrainStress(sigax, epsax, sigr, epsr);
+    fSimulacoes.push_back(result);
+    
   //return inserted position
-  return pos;
+  return resultindex;
 }
+
+/// read the input strain and stress from the laboratory file
+void TPBrLaboratoryData::ReadInputStrainStress(const std::string &filename)
+{
+    std::ifstream input(filename.c_str());
+    if (!input) {
+        DebugStop();
+    }
+    int numlines = 0;
+    char buf[1024];
+    input.getline(buf , 1024);
+    STATE x, sig_ax_t, tempo, sig_ax_dev, sig_r, eps_ax, eps_r, eps_v;
+    while (input) {
+        input >> x >> sig_ax_t >> tempo >> sig_ax_dev >> tempo >> sig_r >> tempo >> eps_ax >> tempo >> eps_r >> tempo >> eps_v;
+        if (!input) {
+            break;
+        }
+        if(numlines >= fSig_Ax.size())
+        {
+            fSig_Ax.Resize(numlines+100, 2);
+            fSig_Lat.Resize(numlines+100, 2);
+            fEps_Ax.Resize(numlines+100, 2);
+            fEps_Lat.Resize(numlines+100, 2);
+        }
+        fSig_Ax[numlines] = -sig_ax_t;
+        fSig_Lat[numlines] = -sig_r;
+        fEps_Ax[numlines] = -eps_ax/100.;
+        fEps_Lat[numlines] = -eps_r/100.;
+        
+        //    cout << "i= " << numlines << " " <<  fStressRZInput(numlines,1) << " " <<  fStressRZInput(numlines,0)<< " " << fStrainRZInput(numlines,1)<< " "<< fStrainRZInput(numlines,0) << endl;
+        
+        numlines++;
+    }
+    fSig_Ax.Resize(numlines);
+    fSig_Lat.Resize(numlines);
+    fEps_Lat.resize(numlines);
+    fEps_Ax.resize(numlines);
+}
+

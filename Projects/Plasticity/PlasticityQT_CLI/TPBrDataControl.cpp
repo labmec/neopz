@@ -1,6 +1,6 @@
 #include "TPBrDataControl.h"
 
-TPBrDataControl::TPBrDataControl()
+TPBrDataControl::TPBrDataControl() : fCounter(0)
 {
 }
 
@@ -42,15 +42,14 @@ int TPBrDataControl::OpenLabFile(const std::string &filename){
 
     Med_txt.Set_start_idx(0);
     Med_txt.Set_end_idx(numlines);
-
-    int pos = Medicoes.size()+1;
-    Medicoes.Resize(pos);
     
-    pos = pos - 1;
-    Medicoes[pos] = Med_txt;
+    int counter = GenerateNewIndex();
+    Med_txt.SetGlobalId(counter);
+
+    fMedicoes[counter] =  Med_txt;
     
     //return inserted position
-    return pos;
+    return counter;
 }
 
 TPBrDataControl DADOS;

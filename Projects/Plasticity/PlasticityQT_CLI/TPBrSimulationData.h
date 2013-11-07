@@ -14,7 +14,7 @@ public:
     virtual ~TPBrSimulationData();
     
     TPBrSimulationData(const TPBrSimulationData &copy) : TPBrStrainStressDataBase(copy), fstart_idx(copy.fstart_idx),
-        fend_idx(copy.fend_idx), fmed_idx(copy.fmed_idx), fSandler(copy.fSandler)
+        fend_idx(copy.fend_idx), fMedicao_idx(copy.fMedicao_idx), fSandler(copy.fSandler)
     {
         
     }
@@ -24,7 +24,7 @@ public:
         TPBrStrainStressDataBase::operator=(copy);
         fstart_idx = copy.fstart_idx;
         fend_idx = copy.fend_idx;
-        fmed_idx = copy.fmed_idx;
+        fMedicao_idx = copy.fMedicao_idx;
         fSandler = copy.fSandler;
         return *this;
     }
@@ -41,11 +41,11 @@ public:
     inline int Get_end_idx(){
         return fend_idx;
     }
-    inline void Set_med_idx(int medidx){
-        fmed_idx = medidx;
+    inline void Set_medicao_idx(int medidx){
+        fMedicao_idx = medidx;
     }
-    inline int Get_med_idx(){
-        return fmed_idx;
+    inline int Get_medicao_idx(){
+        return fMedicao_idx;
     }
     inline void SetUpSandlerDimaggio(REAL poisson, REAL E, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {
@@ -63,8 +63,8 @@ protected:
     int fstart_idx;
     /// ultimo indice da medicao
     int fend_idx;
-    /// ????
-    int fmed_idx;
+    /// Indice da medicao que deu origem a esta simulacao
+    int fMedicao_idx;
     /// modelo plastico que gerou esta simulacao
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSandler;
 

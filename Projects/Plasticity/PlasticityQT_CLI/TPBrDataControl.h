@@ -13,11 +13,15 @@ class TPBrDataControl
   
 private:
   
-    /// modelo plastico que gerou esta simulacao
+    /// modelo plastico que esta na interface grafica
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSandler;
+    
+    /// ultimo indice que foi utilizado
+    int fCounter;
 
 public:
     TPBrDataControl();
+    
     int OpenLabFile(const std::string &filename);
     
     inline void SetSandlerDimaggio(const TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &copy)
@@ -29,7 +33,13 @@ public:
       obj = fSandler;
     }
     
-    TPZVec <TPBrLaboratoryData> Medicoes;
+    int GenerateNewIndex()
+    {
+        fCounter++;
+        return fCounter-1;
+    }
+    
+    std::map<int, TPBrLaboratoryData> fMedicoes;
     
     
 };

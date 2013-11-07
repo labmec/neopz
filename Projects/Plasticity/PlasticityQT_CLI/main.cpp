@@ -25,9 +25,10 @@ int main(int argc, char *argv[])
       sandlerObj.SetUp(poisson, E, A, B, C, R, D, W);
 
       DADOS.SetSandlerDimaggio(sandlerObj);
-      
-      DADOS.Medicoes[med_idx].Set_start_idx(100);
-      DADOS.Medicoes[med_idx].RunSimulation(sandlerObj);
+    
+      DADOS.fMedicoes[med_idx].ReadInputStrainStress(FileName);
+      DADOS.fMedicoes[med_idx].Set_start_idx(100);
+      DADOS.fMedicoes[med_idx].RunSimulation(sandlerObj);
       
 //       std::cout << "Medicoes.NElements: " << DADOS.Medicoes.NElements() << std::endl;
 // 

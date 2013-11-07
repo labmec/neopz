@@ -167,8 +167,10 @@ void TPZPlasticitySimulation::PerformSimulation()
 }
 
 /// read the input strain and stress from vectors
-void TPZPlasticitySimulation::ReadInputStrainStress(const TPZVec<REAL> sigax, const TPZVec<REAL> epsax, const TPZVec<REAL> sigr, const TPZVec<REAL> epsr)
+void TPZPlasticitySimulation::ReadInputStrainStress(const TPZVec<REAL> &sigax, const TPZVec<REAL> &epsax, const TPZVec<REAL> &sigr, const TPZVec<REAL> &epsr)
 {
+    fStressRZInput.Resize(epsax.size(), 2);
+    fStrainRZInput.Resize(epsax.size(), 2);
     for (long i = 0; i<epsax.size(); i++) {
         fStressRZInput(i,1) = sigax[i];
         fStressRZInput(i,0) = sigr[i];
@@ -210,4 +212,21 @@ void TPZPlasticitySimulation::ReadInputStrainStress(const std::string &filename)
     fStressRZInput.Resize(numlines, 2);
     fStrainRZInput.Resize(numlines, 2);
 }
+
+/// get the simulated data
+void TPZPlasticitySimulation::GetSimulatedStrainStress(TPZVec<REAL> &sigax, TPZVec<REAL> &epsax, TPZVec<REAL> &sigr, TPZVec<REAL> &epsr)
+{
+    int nsimulated = fStressRZInput.Rows()-fPoreClosureIndex;
+    sigax.resize(nsimulated);
+    epsax.resize(nsimulated);
+    sigr.resize(nsimulated);
+    epsr.resize(nsimulated);
+    for (int i=0; i<nsimulated; i++) {
+        sigax[i] = fStressRZSimulated(i,1);
+        sigr[i] = fStressRZSimulated(i,0);
+        epsax[i] = fStrainRZSimulated(i,1);
+        epsr[i] = fStrainRZSimulated(i,0);
+    }
+}
+
 

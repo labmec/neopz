@@ -48,6 +48,16 @@ public:
     {
         return fGlobalId;
     }
+    
+    /// set the strain and stress vectors
+    void SetStrainStress(const TPZVec<REAL> &sigax, const TPZVec<REAL> &epsax, const TPZVec<REAL> &sigr, const TPZVec<REAL> &epsr)
+    {
+        fSig_Ax = sigax;
+        fEps_Ax = epsax;
+        fSig_Lat = sigr;
+        fEps_Lat = epsr;
+    }
+
 
     /// gera os dados que serao mostrados na tela
     virtual void GeneratePlot(ECurveType curvetype, std::vector<REAL> &X, std::vector<REAL> &Y);

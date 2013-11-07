@@ -47,9 +47,11 @@ public:
     inline int Get_end_idx() {
         return fend_idx;
     }
-    inline void Attribute_sim() {
+    
+    /// read the input strain and stress from the laboratory file
+    void ReadInputStrainStress(const std::string &filename);
+    
 
-    }
     int RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
 
 protected:

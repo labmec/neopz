@@ -71,7 +71,7 @@ public:
     void ReadInputStrainStress(const std::string &filename);
     
     /// read the input strain and stress from vectors
-    void ReadInputStrainStress(const TPZVec<REAL> sigax, const TPZVec<REAL> epsax, const TPZVec<REAL> sigr, const TPZVec<REAL> epsr);
+    void ReadInputStrainStress(const TPZVec<REAL> &sigax, const TPZVec<REAL> &epsax, const TPZVec<REAL> &sigr, const TPZVec<REAL> &epsr);
     
     /// set the SandlerDimaggio object
     void SetSandlerDimaggio(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)
@@ -81,6 +81,9 @@ public:
     
     /// compute the stress strain curve
     void PerformSimulation();
+    
+    /// get the simulated data
+    void GetSimulatedStrainStress(TPZVec<REAL> &sigax, TPZVec<REAL> &epsax, TPZVec<REAL> &sigr, TPZVec<REAL> &epsr);
     
 protected:
     
