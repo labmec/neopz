@@ -53,7 +53,11 @@ void TaylorCheck2();
 
 void TaylorCheck3(); // Tomara que o ultimo!!
 
-void TestePlasticStepPV();
+void CurvaFig12PlasticPV();
+
+void CurvaFig12Diogo();
+
+void DepPlasticPV();
 
 TPZFNMatrix<9> FromEgToMat(TPZManVector<REAL,3> egva, TPZManVector<TPZTensor<REAL>, 3 > &Eigenvec);
 
@@ -63,85 +67,44 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
 int main()
 {
+	DepPlasticPV();
 	
-	TestePlasticStepPV();
-	
-	TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
-	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
-	
-	ofstream outfile("FIGURA_12x.nb");
-	outfile << "VecFig12={";
-	
-	deleps[0]= -0.00135;
-	
-	for (int k=0; k<3;k++) {
-		deltaepsP[k]=0.;
-		epsT[0]=0.;
-		epsPnext[0]=0.;
-		epssol[0]=0.;
-	}
-	
-	STATE kproj,kprev,epv=0.;
-	TPZFMatrix<STATE> GradSigma;
-	
-	kproj=0.;
-	kprev=0.13;
-	materialmodel.Firstk(epv,kprev);
-	for(int i=0;i<65;i++)
-	{
-		for (int k=0; k<3;k++) {
-			epssol[k]=epsT[k]-epsPnext[k];
-		}
-		
-		materialmodel.ApplyStrainComputeElasticStress(epssol, sigtrial);
-		materialmodel.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
-
-		outfile <<"{" << -epsT[0]<< "," << -sigproj[0] << "}";
-		if (i!=64) {
-			outfile << ",";
-		}
-		
-		if(i==50)
-		{
-			deleps[0]*=-1;
-		}
-		
-		for (int k=0; k<3;k++) {
-			deltasigma[k]=sigtrial[k]-sigproj[k];
-		}
-		
-		materialmodel.ApplyStressComputeElasticStrain(deltasigma, deltaepsP);
-		
-		for (int k=0; k<3;k++) {
-			epsPnext[k]+=deltaepsP[k];
-			epsT[k]+=deleps[k];
-		}
-		kprev=kproj;
-		
-	}
-	outfile << "};\nListPlot[VecFig12,Joined->True]";
-	 
-//
-//	long neq = 2000;
-//	TPZFMatrix<REAL> A(neq,neq,0.), b(neq,1,1.);
-//	for (long i = 0; i < neq; i++) {
-//		for (long j = 0; j < neq; j++) {
-//			A(i,j) == sin(i*j);
-//			if (i==j) {
-//				A(i,j) = 10.;
-//			}
-//		}
-//	}
-//	TPZTimer time;
-//	time.start();
-//	A.Solve_LU(&b);
-//	time.stop();
-//	std::cout << "tempo = " << time.seconds() << std::endl;
-
 	return 0;
 }
 
-void TestePlasticStepPV()
+void DepPlasticPV()
+{
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
+	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
+	TPZTensor<REAL> epsT,Sigma;
+	TPZElasticResponse ER;
+	ER.SetUp(100., 0.25);
+	STATE kproj,kprev,epv=0.;
+	kproj=0.;
+	kprev=0.13;
+	materialmodel.Firstk(epv,kprev);
+	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(kprev);
+	stepPV.fYC = materialmodel;
+	stepPV.fER = ER;
+	
+	TPZTensor<REAL> eps, deps;
+	eps.XX() = -50. * 0.01;
+	eps.YY() = -40. * 0.01;
+	eps.ZZ() = 45 * 0.01;
+	eps.XY() = -23. * 0.001;
+	eps.XZ() = -24. * 0.001;
+	eps.YZ() = -65. * 0.001;
+	deps.XX() = 3.86274 * 0.001;
+	deps.YY() = 1.13727 * 0.001;
+	deps.ZZ() = 1. * 0.001;
+	deps.XY() = 0.62686 * 0.01;
+	deps.XZ() = 0.63686 * 0.0001;
+	deps.YZ() = 0.64686 * 0.0001;
+	stepPV.TaylorCheck(eps, deps,kprev); 
+	
+}
+
+void CurvaFig12PlasticPV()
 {
 	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
 	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
@@ -181,6 +144,64 @@ void TestePlasticStepPV()
 	}
 	out << "};" << endl;
 	out << "ListPlot[loadcicle,Joined->True,PlotStyle->Thick]" << endl;
+}
+
+void CurvaFig12Diogo()
+{
+	TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
+	TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
+	
+	ofstream outfile("FIGURA_12x.nb");
+	outfile << "VecFig12={";
+	
+	deleps[0]= -0.00135;
+	
+	for (int k=0; k<3;k++) {
+		deltaepsP[k]=0.;
+		epsT[0]=0.;
+		epsPnext[0]=0.;
+		epssol[0]=0.;
+	}
+	
+	STATE kproj,kprev,epv=0.;
+	TPZFMatrix<STATE> GradSigma;
+	
+	kproj=0.;
+	kprev=0.13;
+	materialmodel.Firstk(epv,kprev);
+	for(int i=0;i<65;i++)
+	{
+		for (int k=0; k<3;k++) {
+			epssol[k]=epsT[k]-epsPnext[k];
+		}
+		
+		materialmodel.ApplyStrainComputeElasticStress(epssol, sigtrial);
+		materialmodel.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
+		
+		outfile <<"{" << -epsT[0]<< "," << -sigproj[0] << "}";
+		if (i!=64) {
+			outfile << ",";
+		}
+		
+		if(i==50)
+		{
+			deleps[0]*=-1;
+		}
+		
+		for (int k=0; k<3;k++) {
+			deltasigma[k]=sigtrial[k]-sigproj[k];
+		}
+		
+		materialmodel.ApplyStressComputeElasticStrain(deltasigma, deltaepsP);
+		
+		for (int k=0; k<3;k++) {
+			epsPnext[k]+=deltaepsP[k];
+			epsT[k]+=deleps[k];
+		}
+		kprev=kproj;
+		
+	}
+	outfile << "};\nListPlot[VecFig12,Joined->True]";
 }
 
 void TaylorCheck3() // Tomara que o ultimo!!
@@ -766,15 +787,5 @@ TPZFNMatrix<9> FromEgToMat(TPZManVector<REAL,3> egva, TPZManVector<TPZTensor<REA
 	return mat;	
 }
 
-TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
-{
-	TPZFNMatrix <6> voi(6,1,0.);
-	int k = 0;
-	for (int i = 0; i < 3; i++) {
-		for (int j = i ; j < 3; j++) {
-			voi(k++,0) = mat(i,j);
-		}
-	}
-	return voi;	
-}
+
 

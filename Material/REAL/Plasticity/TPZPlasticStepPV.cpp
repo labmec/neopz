@@ -51,7 +51,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
-    TPZTensor<REAL>::TPZDecomposed DecompSig,DecompEps; // It may be SigTr or SigPr Decomposition, dependes on the part of this method
+	TPZTensor<REAL>::TPZDecomposed DecompSig,DecompEps; // It may be SigTr or SigPr Decomposition, dependes on the part of this method
 	TPZTensor<REAL> sigtr;
 	
 	//
@@ -62,13 +62,14 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	
 	// Compute and Decomposition of SigTrial
 	fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
-    epsTotal.EigenSystem(DecompEps);
+	epsTotal.EigenSystem(DecompEps);
 	sigtr.EigenSystem(DecompSig);
 	TPZManVector<REAL,3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3,0.);
-    // Pegando os autovetores
-    TPZManVector<TPZFMatrix<REAL>,3> epsegveFromProj(3);
-    TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
-    for (int i = 0; i < 3; i++)
+	
+	// Pegando os autovetores
+	TPZManVector<TPZFMatrix<REAL>,3> epsegveFromProj(3);
+	TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
+	for (int i = 0; i < 3; i++)
 	{
 		EigenvecMat[i] = DecompSig.fEigenvectors[i];
 		epsegveFromProj[i].Resize(3,1);
@@ -86,12 +87,12 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	
 	// ReturMap in the principal values
 	STATE nextalpha = -6378.;
-    TPZFNMatrix<9> GradSigma(3,3,0.);
+	TPZFNMatrix<9> GradSigma(3,3,0.);
 	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha,GradSigma);
 	fN.fAlpha = nextalpha;
-    
-    // Aqui calculo minha matriz tangente ------------------------------------
-    // Criando matriz tangente
+	
+	// Aqui calculo minha matriz tangente ------------------------------------
+	// Criando matriz tangente
 	TPZFNMatrix<36> dSigDe(6,6,0.);
 	
 	//Montando a matriz tangente
@@ -100,7 +101,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	REAL G = fER.G();
 	REAL lambda = fER.Lambda();
 	
-
+	
 	for (int k = 0; k < 6; k++)
 	{
 		int ki, kj;
@@ -121,24 +122,22 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 					else {
 						temp *= 2.;
 					}
-                    
+					
 					temp *= GradSigma(i,j);
 					dSigDe(l,k) += temp * DecompSig.fEigenvectors[i][l];
 				}///l
 			}///j
 		}///i		
 	}///k
-    
-
-
-    REAL deigensig = 0., deigeneps = 0.;
+	
+	REAL deigensig = 0., deigeneps = 0.;
 	
 	TPZFNMatrix<6,REAL> factorMat(3,3,0.);
-    TPZFNMatrix<9> depsMat(3,3,0.);
-    depsTensor = epsTotal;
-    depsTensor -= fN.fEpsT;
-    depsMat = depsTensor;
-    
+	TPZFNMatrix<9> depsMat(3,3,0.);
+	depsTensor = epsTotal;
+	depsTensor -= fN.fEpsT;
+	depsMat = depsTensor;
+	
 	for (int i = 0; i < 2; i++) {
 		for (int j = i+1; j<3 ; j++) {
 			deigeneps = DecompEps.fEigenvalues[i]  - DecompEps.fEigenvalues[j];
@@ -152,6 +151,28 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			factorMat += tempMat * factor;
 		}
 	}
+	TPZFNMatrix<6> factorV = FromMatToVoight(factorMat);
+	
+	
+	// Achando o primeiro termo nao nulo de dEps (Tenho medo disso estar feio e ter jeito melhor - Nathan)
+	long pos = -1;
+	REAL depspos = 0.;
+	for (int i = 0 ; i < 6 ; i++){
+		if(!IsZero(depsTensor[i])) {
+			pos = i;
+			depspos = depsTensor[i]; 
+			break;
+		}
+	}
+	
+	if (pos == -1) {
+		PZError << "dEps Totalmente Nulo!!" << std::endl;
+		DebugStop(); // acho que devo tratar isso diferente. Somente nao fazer nada na matriz. Lembrar de perguntar pro Phil
+	}
+	
+	for (int i = 0; i < 6; i++) {
+		dSigDe(i,pos) += factorV(i,0)/depspos;
+	}	
 	
 	// Reconstruction of sigmaprTensor
 	DecompSig.fEigenvalues = sigprvec; // CHANGING THE EIGENVALUES FOR THE ONES OF SIGMAPR
@@ -162,6 +183,96 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	epsPN = epsTotal;
 	epsPN -= epsElaNp1; // Transforma epsPN em epsPNp1
 	fN.fEpsP = epsPN;
+	Dep = dSigDe;
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTensor<REAL> &deps, REAL kprev)
+{
+	TPZTensor<REAL> eps1,eps2, SigmaTemp,Sigma1,Sigma2;
+	TPZFNMatrix <36> dSigDe1(6,6,0.),dSigDe2(6,6,0.);
+	TPZStack<REAL> coef;
+	
+	this->ApplyStrainComputeSigma(EpsIni,SigmaTemp);
+	fN.fEpsP.Scale(0.);
+	fN.fEpsT.Scale(0.);
+	fN.fAlpha = kprev;
+	
+	REAL scale = 0.01;
+	REAL alphatable[] = {0.1,0.2,0.3,0.4,0.5,0.6};
+	for (int i = 0; i < 6; i++) {
+		alphatable[i] *= scale;
+	}
+	for (int ia = 0 ; ia < 5; ia++) {
+		REAL alpha1 = alphatable[ia];
+		REAL alpha2 = alphatable[ia+1];
+		eps1.Scale(0.);
+		eps2.Scale(0.);
+		eps1 = EpsIni;
+		eps2 = EpsIni;
+		eps1.Add(deps, alpha1);
+		eps2.Add(deps, alpha2);
+		
+		fN.fEpsT = EpsIni;
+		this->ApplyStrainComputeDep(eps1,Sigma1,dSigDe1);
+		fN.fEpsP.Scale(0.);
+		fN.fEpsT.Scale(0.);
+		fN.fAlpha = kprev;
+		
+		fN.fEpsT = EpsIni;
+		this->ApplyStrainComputeDep(eps2,Sigma2,dSigDe2);
+		fN.fEpsP.Scale(0.);
+		fN.fEpsT.Scale(0.);
+		fN.fAlpha = kprev;
+		
+		TPZFNMatrix <6> deps1(6,1,0.),deps2(6,1,0.);
+		TPZFNMatrix <9> depsMat(3,3,0.);
+		depsMat = deps;
+		deps1 = FromMatToVoight(depsMat);
+		deps2 = FromMatToVoight(depsMat);
+		
+		TPZFNMatrix <6> tanmult1(6,1,0.), tanmult2(6,1,0.);
+		dSigDe1.Multiply(deps1, tanmult1);
+		dSigDe2.Multiply(deps2, tanmult2);
+		
+		for (int i = 0 ; i < 6; i++) {
+			tanmult1(i,0) *= alpha1;
+			tanmult2(i,0) *= alpha2;
+		}
+		
+		TPZFNMatrix <9> SigMatTemp33(3,3,0.);
+		TPZFNMatrix <6> sigprMat(6,1,0.),sigpr1Mat(6,1,0.),sigpr2Mat(6,1,0.);
+		SigMatTemp33 = SigmaTemp;
+		sigprMat = FromMatToVoight(SigMatTemp33);
+		SigMatTemp33 = Sigma1;
+		sigpr1Mat = FromMatToVoight(SigMatTemp33);
+		SigMatTemp33 = Sigma2;
+		sigpr2Mat = FromMatToVoight(SigMatTemp33);
+		
+		TPZFNMatrix<6> error1(6,1,0.), error2(6,1,0.);
+		for (int i = 0 ; i < 6; i++) {
+			error1(i,0) = sigpr1Mat(i,0) - sigprMat(i,0) - tanmult1(i,0);
+			error2(i,0) = sigpr2Mat(i,0) - sigprMat(i,0) - tanmult2(i,0);
+		}
+		
+		REAL n;
+		REAL norm1, norm2;
+		norm1 = NormVecOfMat(error1);
+		norm2 = NormVecOfMat(error2);
+		n = ( log(norm1) - log(norm2) ) / ( log(alpha1) - log(alpha2) );
+		coef.push_back(n);
+	}
+	std::cout << "coef = " << coef << std::endl;
+}
+
+template <class YC_t, class ER_t>
+REAL TPZPlasticStepPV<YC_t, ER_t>::ComputeNFromTaylorCheck(REAL alpha1, REAL alpha2, TPZFMatrix<REAL> &error1Mat, TPZFMatrix<REAL> &error2Mat)
+{
+	REAL norm1, norm2, n;
+	norm1 = NormVecOfMat(error1Mat);
+	norm2 = NormVecOfMat(error2Mat);
+	n = log(norm1/norm2) / log(alpha1/alpha2);
+	return n;
 }
 
 REAL NormVecOfMat(TPZFNMatrix <9> mat)
@@ -192,6 +303,18 @@ TPZFMatrix<REAL> ProdT(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2)
 		}
 	}
 	return mat;
+}
+
+TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
+{
+	TPZFNMatrix <6> voi(6,1,0.);
+	int k = 0;
+	for (int i = 0; i < 3; i++) {
+		for (int j = i ; j < 3; j++) {
+			voi(k++,0) = mat(i,j);
+		}
+	}
+	return voi;	
 }
 
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;

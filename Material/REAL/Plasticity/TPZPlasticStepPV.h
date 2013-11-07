@@ -17,9 +17,11 @@
 #include <set>
 #include <ostream>
 
+// Metodos para deixar o prog mais "encapsulado"
 REAL NormVecOfMat(TPZFNMatrix <9> mat);
 REAL InnerVecOfMat(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
 TPZFMatrix<REAL> ProdT(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2);
+TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
 template <class TVar>
 class TPZFMatrix;
@@ -147,7 +149,16 @@ public:
 	 */
 	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
 	
-
+	/**
+	 * Does the TaylorCheck of the tangent matrix
+	 *
+	 * @param[in] epsTotal Imposed total strain tensor
+	 * @param[out] sigma Resultant stress
+	 * @param[out] Dep Incremental constitutive relation
+	 */
+	void TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTensor<REAL> &deps, REAL kprev);
+	
+	REAL ComputeNFromTaylorCheck(REAL alpha1, REAL alpha2, TPZFMatrix<REAL> &error1Mat, TPZFMatrix<REAL> &error2Mat);
 	
 	/**
 	 * Defines whether the tension/extension sign is desired by the external user.
