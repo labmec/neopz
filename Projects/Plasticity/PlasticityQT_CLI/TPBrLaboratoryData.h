@@ -7,13 +7,16 @@
 #include "TPZSandlerDimaggio.h"
 
 
-#include <list>
-
 class TPBrLaboratoryData : public TPBrStrainStressDataBase
 {
+  
+private:
+    /// ultimo indice que foi utilizado
+    int fCounter;
 
 public:
-    TPBrLaboratoryData();
+    TPBrLaboratoryData();  
+    TPBrLaboratoryData(const std::string &filename);
     
     TPBrLaboratoryData(const TPBrLaboratoryData &copy) : TPBrStrainStressDataBase(copy),
         fstart_idx(copy.fstart_idx), fend_idx(copy.fend_idx), fSimulacoes(copy.fSimulacoes)
@@ -48,18 +51,34 @@ public:
         return fend_idx;
     }
     
+    int GenerateNewIndex()
+    {
+        fCounter++;
+        return fCounter-1;
+    }
+    
     /// read the input strain and stress from the laboratory file
     void ReadInputStrainStress(const std::string &filename);
     
 
     int RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
+    
+    void DeleteSimulation (int sim_idx) {
+      if (fSimulacoes.find(sim_idx) == fSimulacoes.end())
+	DebugStop();
+      fSimulacoes.erase(sim_idx);
+    }
+    
+    void DeleteAllSimulations () {
+      fSimulacoes.clear();
+    }
 
 protected:
     int fstart_idx;
     int fend_idx;
     
     //contains all simulations related to 'this' lab file
-    std::list <TPBrSimulationData> fSimulacoes;
+    std::map<int, TPBrSimulationData> fSimulacoes;
 
 };
 

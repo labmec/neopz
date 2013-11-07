@@ -18,11 +18,11 @@ private:
     
     /// ultimo indice que foi utilizado
     int fCounter;
+    
+    std::map<int, TPBrLaboratoryData> fMedicoes;
 
 public:
     TPBrDataControl();
-    
-    int OpenLabFile(const std::string &filename);
     
     inline void SetSandlerDimaggio(const TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &copy)
     {
@@ -39,8 +39,18 @@ public:
         return fCounter-1;
     }
     
-    std::map<int, TPBrLaboratoryData> fMedicoes;
+    void DeleteLabData (int med_idx) {
+      if (fMedicoes.find(med_idx) == fMedicoes.end())
+	DebugStop();
+      fMedicoes[med_idx].DeleteAllSimulations();
+      fMedicoes.erase(med_idx);
+    }
     
+    int InsertLaboratoryData (const TPBrLaboratoryData &labdataobj) {
+      int labdataidx = GenerateNewIndex();
+      fMedicoes[labdataidx] = labdataobj;
+      return labdataidx;
+    }
     
 };
 

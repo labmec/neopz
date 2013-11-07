@@ -8,9 +8,7 @@ int main(int argc, char *argv[])
       FileName = dirname + "/Projects/Plasticity/";
       FileName += "ensaio_all_columns.txt";
 
-      int med_idx = DADOS.OpenLabFile(FileName);
       REAL poisson, E, A, B, C, R, D, W;
-
       E = 29269;
       poisson = 0.203;
       A = 616.67;
@@ -21,19 +19,14 @@ int main(int argc, char *argv[])
       W = 0.006605;
       
       TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandlerObj;
-      
       sandlerObj.SetUp(poisson, E, A, B, C, R, D, W);
-
       DADOS.SetSandlerDimaggio(sandlerObj);
-    
-      DADOS.fMedicoes[med_idx].ReadInputStrainStress(FileName);
-      DADOS.fMedicoes[med_idx].Set_start_idx(100);
-      DADOS.fMedicoes[med_idx].RunSimulation(sandlerObj);
       
-//       std::cout << "Medicoes.NElements: " << DADOS.Medicoes.NElements() << std::endl;
-// 
-//       std::cout << DADOS.Medicoes[0].Get_start_idx()  << std::endl;
-
+      TPBrLaboratoryData newLabFile (FileName);
+      newLabFile.Set_start_idx(100);
+      int idx_sim = newLabFile.RunSimulation(sandlerObj);
+      int med_idx = DADOS.InsertLaboratoryData(newLabFile);
+      
       std::cout << "END" << std::endl;
 
 }
