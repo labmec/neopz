@@ -642,7 +642,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
-	ZeroTolerance();
+//	ZeroTolerance();
 	// First verify if the entry qsi yields the right point
 	if(qsi.NElements()!= dim)
 	{
