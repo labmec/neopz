@@ -129,12 +129,12 @@ void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<S
 	den = 1. + arc*arc;
 	
 	// Derivatives of the first order
-    dsol(0,0) = B*prody*prodz*((2*x[0]-1.)*temp - ((4*F*prodx*fabs(x[0]-CCircle[0]))/den));
+    dsol(0,0) = B*prody*prodz*((2*x[0]-1.)*temp - (4*F*(x[0]-CCircle[0])*(prodx/den)));
     if(dim==2) {
-        dsol(1,0) = B*prodx*prodz*((2*x[1]-1.)*temp - ((4*F*prody*fabs(x[1]-CCircle[1]))/den));
+        dsol(1,0) = B*prodx*prodz*((2*x[1]-1.)*temp - (4*F*(x[1]-CCircle[1])*(prody/den)));
     }
     else if(dim==3) {
-        dsol(2,0) = B*prodx*prody*((2*x[2]-1.)*temp - ((4*F*prodz*fabs(x[2]-CCircle[2]))/den));
+        dsol(2,0) = B*prodx*prody*((2*x[2]-1.)*temp - (4*F*(x[2]-CCircle[2])*(prodz/den)));
     }
 }
 
