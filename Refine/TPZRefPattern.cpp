@@ -117,8 +117,8 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 		
 		father->ComputeXInverse(coord,elparam,Tol);
 		
-		REAL Tol;
-		ZeroTolerance(Tol);
+//		REAL Tol;
+//		ZeroTolerance(Tol);
 
 		TPZManVector<REAL> diff(nnodes,0.);
 		int jn;
