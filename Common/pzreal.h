@@ -578,7 +578,7 @@ inline bool IsZero( long double a ) {
 //template<>
 inline bool IsZero( double a ) {
 #ifdef WIN32
-	return ( fabs( a ) < 1.e-9 );
+	return ( fabs( a ) < 1.e-10 );
 #else
 	return ( fabs( a ) < 1.e-12 );
 #endif
@@ -586,7 +586,7 @@ inline bool IsZero( double a ) {
 //template<>
 inline bool IsZero( float a ) {
 #ifdef WIN32
-	return ( fabs( a ) < 1.e-5 );
+	return ( fabs( a ) < 1.e-6 );
 #else
 	return ( fabs( a ) < 1.e-6 );
 #endif
