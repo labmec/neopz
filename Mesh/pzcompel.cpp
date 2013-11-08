@@ -819,7 +819,8 @@ long TPZCompElSide::ConnectIndex() const
 TPZMaterial * TPZCompEl::Material() const
 {
     TPZMaterial * result = 0;
-    if(fMesh && Reference()) result = fMesh->FindMaterial(Reference()->MaterialId());
+	TPZGeoEl *gel = Reference();
+    if(fMesh && gel) result = fMesh->FindMaterial(gel->MaterialId());
     return result;
 }
 
