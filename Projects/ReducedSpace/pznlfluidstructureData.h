@@ -21,7 +21,7 @@ int const globMultiFisicMatId2 = 2;//multiphisics
 
 int const globDirichletElastMatId1 = -1;
 int const globDirichletElastMatId2 = -2;
-int const globBlockedXElastMatId   = -3;
+int const globMixedElastMatId   = -3;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure

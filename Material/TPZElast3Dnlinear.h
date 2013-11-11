@@ -29,6 +29,7 @@ public:
 	 */
 	TPZElast3Dnlinear(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
                       STATE preStressXX = 0., STATE preStressYY = 0., STATE preStressZZ = 0.);
+    
     ~TPZElast3Dnlinear();
 
     virtual void Contribute(TPZMaterialData &data,

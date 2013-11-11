@@ -18,7 +18,7 @@
 #include "pzgeoel.h"
 
 
-#include "TPZPlaneFractureMaterials.h"
+#include "TPZPlaneFractureData.h"
 #include "tpzcompmeshreferred.h"
 
 
@@ -33,6 +33,53 @@ const int __EdgeStretchesQTD = 5; //will be used for refpatterns
 const int __TrimQTDmultiplier = 3; //will be used for searching direction between dots from poligonal chain
 
 
+struct TPZLayerProperties
+{
+public:
+    TPZLayerProperties()
+    {
+        fYoung = 0.;
+        fPoisson = 0.;
+        fSigmaMax = 0.;
+        fSigmaMin = 0.;
+        fTVDini = 0.;
+        fTVDfin = 0.;
+    }
+    TPZLayerProperties(REAL Young, REAL Poisson, REAL SigMax, REAL SigMin, REAL TVDi, REAL TVDf)
+    {
+        fYoung = Young;
+        fPoisson = Poisson;
+        fSigmaMax = SigMax;
+        fSigmaMin = SigMin;
+        fTVDini = TVDi;
+        fTVDfin = TVDf;
+    }
+    TPZLayerProperties(const TPZLayerProperties & cp)
+    {
+        fYoung = cp.fYoung;
+        fPoisson = cp.fPoisson;
+        fSigmaMax = cp.fSigmaMax;
+        fSigmaMin = cp.fSigmaMin;
+        fTVDini = cp.fTVDini;
+        fTVDfin = cp.fTVDfin;
+    }
+    ~TPZLayerProperties()
+    {
+        fYoung = 0.;
+        fPoisson = 0.;
+        fSigmaMax = 0.;
+        fSigmaMin = 0.;
+        fTVDini = 0.;
+        fTVDfin = 0.;
+    }
+    
+    REAL fYoung;
+    REAL fPoisson;
+    REAL fSigmaMax;
+    REAL fSigmaMin;
+    REAL fTVDini;
+    REAL fTVDfin;
+};
 
 /** 
  * @brief Plane of the fracture. 
@@ -101,10 +148,10 @@ public:
         }
     }
     
-    int Id()
+    int Index()
     {
-        int elId = fElem2D->Id();
-        return elId;
+        int elIndex = fElem2D->Index();
+        return elIndex;
     }
     
     bool IsOver()
@@ -135,19 +182,17 @@ class TPZPlaneFracture
 	
 	/**
 	 * @brief Constructor
-	 * @param lw [in] : (positive) well length (positive)
+	 * @param layerVec [in] : vector of layers
 	 * @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
 	 * @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
-	 * @param posTVD_stress [in] : stress profile described by stretches (TVD)
-     *              Obs.: Stress profile in each stretch is linear, defined by (initialTVD,initialStress)~(finalTVD,finalStress)
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                     TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength, REAL Lmax);
+    TPZPlaneFracture(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+                     REAL xLength, REAL yLength, REAL Lmax);
     
 	~TPZPlaneFracture();
     
@@ -200,10 +245,14 @@ protected:
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
      *  @param espacamento [in] : espacamento vertical que define interfaces entre camadas horizontais
+     *  @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
+	 *  @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
      *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      *  @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
      */
-    void GeneratePreservedMesh(std::list<REAL> & espacamento, REAL xLength, REAL yLength);
+    void GeneratePreservedMesh(std::list<REAL> & espacamento,
+                               REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+                               REAL xLength, REAL yLength);
 
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
@@ -229,11 +278,11 @@ protected:
 	 *		z coordinate of second point of crack boundary: poligonalChain[1].second
 	 *
 	 * @param fractMesh [in] : geomesh of considered elements
-	 * @param elId_TrimCoords [out] : map that contains 1D element Id and a set of it trim 1D coordinates
-	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
+	 * @param elIndex_TrimCoords [out] : map that contains 1D element Index and a set of it trim 1D coordinates
+	 * @param elIndexSequence [out] : the same of elIndex_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 */
 	void DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, TPZGeoMesh * fractMesh,
-							std::map< long, std::set<REAL> > &elId_TrimCoords, std::list< std::pair<long,REAL> > &elIdSequence);
+							std::map< long, std::set<REAL> > &elIndex_TrimCoords, std::list< std::pair<long,REAL> > &elIndexSequence);
 
 	/**
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
@@ -245,14 +294,14 @@ protected:
 	 * @param alphaMin [in] : if an start point (x) is in already in one edge of gel, it might be included or not in the intersections \n
 	 *				        so, using alphaMin=0, in this case the first intersection (the x itself) is included...
 	 *							   using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
-	 * @param elId_TrimCoords [out] : map that contains the trim coordinates of 1D element, indexed by its Id (once 1D element was inserted in gel->Mesh)\n
-	 *							    obs.: elId_TrimCoords was idealized to work in accumulative conception, i.e.,
+	 * @param elIndex_TrimCoords [out] : map that contains the trim coordinates of 1D element, indexed by its Id (once 1D element was inserted in gel->Mesh)\n
+	 *							    obs.: elIndex_TrimCoords was idealized to work in accumulative conception, i.e.,
 	 *								    each time this method is called, this map grows!
-	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
+	 * @param elIndexSequence [out] : the same of elIndex_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 * @param pushback [in] : set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
 	 */
 	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, std::map< long,
-									std::set<REAL> > &elId_TrimCoords, std::list< std::pair<long,REAL> > &elIdSequence, bool pushback,
+									std::set<REAL> > &elIndex_TrimCoords, std::list< std::pair<long,REAL> > &elIndexSequence, bool pushback,
                                     int planeAxe0, int planeAxe1, int planeNormal,
                                     bool closingFracture);
 
@@ -326,16 +375,16 @@ protected:
 	 * This points normally are inside elements domain.\n
 	 * The edges intersections of the original Poligonal Chain originate a new Poligonal Chain named poligonalChainUpdated 
 	 */
-	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<long,REAL> > &elIdSequence,
+	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<long,REAL> > &elIndexSequence,
 							  TPZVec<std::pair<REAL,REAL> > &poligonalChainUpdated);
 	
 	/**
 	 * @param gmesh2D geometric mesh bi-dimensional
 	 * @param gmesh3D geometric mesh three-dimensional
-	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
+	 * @param elIndexSequence - output data: list that contains 1D element index and it trim 1D coordinates in generation sequence order
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh3D,
-                               std::list< std::pair<long,REAL> > &elIdSequence);
+                               std::list< std::pair<long,REAL> > &elIndexSequence);
     
     /**
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
@@ -367,11 +416,10 @@ protected:
     /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
 	TPZGeoMesh * fPreservedMesh;
     
-    /** @brief Map that holds stress profile (TVD position,<stressUp,stressDown>) */
-    TPZVec< std::map<REAL,REAL> > fposTVD_stress;
+    TPZVec<TPZLayerProperties> fLayerVec;
     
-    /** @brief 1D elements Ids that compose crack boundary */
-    TPZVec<long> fcrackBoundaryElementsIds;
+    /** @brief 1D elements Indexes that compose crack boundary */
+    TPZVec<long> fcrackBoundaryElementsIndexes;
     
     /** @brief initial element index in point search (just for optimization) */
     long fInitialElIndex;

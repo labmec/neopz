@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
      */
     REAL QinjTot  = -0.5;
 
-    REAL Ttot = 40.; /** em segundos */
+    REAL Ttot = 20.; /** em segundos */
     REAL maxDeltaT = 4.; /** em segundos */
     int nTimes = 2; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
     

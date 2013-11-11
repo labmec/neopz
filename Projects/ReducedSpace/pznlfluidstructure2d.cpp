@@ -28,8 +28,8 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 
 TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
-    
+TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin()
+{
     fmatId = 0;
     fE = 0.;
     fPoiss = 0.;
@@ -42,8 +42,8 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin(){
 	ff[1] = 0.;
 }
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc): TPZDiscontinuousGalerkin(matid){
-    
+TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc): TPZDiscontinuousGalerkin(matid)
+{
     fmatId = matid;
     fE = young;
     fPoiss = poiss;
@@ -56,15 +56,19 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REA
 	ff[1] = 0.;
 }
 
-TPZNLFluidStructure2d::~TPZNLFluidStructure2d(){
+TPZNLFluidStructure2d::~TPZNLFluidStructure2d()
+{
 }
 
 
-int TPZNLFluidStructure2d::NStateVariables() {
+int TPZNLFluidStructure2d::NStateVariables()
+{
 	return 1;
 }
 
-void TPZNLFluidStructure2d::Print(std::ostream &out) {
+
+void TPZNLFluidStructure2d::Print(std::ostream &out)
+{
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	out << "\t E   = " << fE << std::endl;
@@ -98,8 +102,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	}
     
     TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
-    if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!=0){
-        
+    if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!=0)
+    {
         std::cout << " The space to elasticity problem must be reduced space.\n";
 		DebugStop();
     }
@@ -115,7 +119,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	int phcu = phi_u.Cols();
 	int efcu = ef.Cols();
 	
-	if(fForcingFunction) {// phi(in, 0) :  node in associated forcing function
+	if(fForcingFunction)
+    {// phi(in, 0) :  node in associated forcing function
 		TPZManVector<STATE> res(3);
 		fForcingFunction->Execute(datavec[0].x,res);
 		ff[0] = res[0];
@@ -151,18 +156,19 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             
             //termo prestress*gradu
             ef(in,col) += (-1.) * weight * ( dphix_i(0,0) * globFractInputData.PreStressXX() +
-                                     dphix_i(1,0) * globFractInputData.PreStressXY() +
-                                     dphiy_i(0,0) * globFractInputData.PreStressXY() +
-                                     dphiy_i(1,0) * globFractInputData.PreStressYY() );
+                                             dphix_i(1,0) * globFractInputData.PreStressXY() +
+                                             dphiy_i(0,0) * globFractInputData.PreStressXY() +
+                                             dphiy_i(1,0) * globFractInputData.PreStressYY() );
             
             //termos da matriz
-            dsolx_j(0,0) = dsol_u(0,0)*axes(0,0)+dsol_u(1,0)*axes(1,0);
-            dsolx_j(1,0) = dsol_u(0,0)*axes(0,1)+dsol_u(1,0)*axes(1,1);
-            dsoly_j(0,0) = dsol_u(0,1)*axes(0,0)+dsol_u(1,1)*axes(1,0);
-            dsoly_j(1,0) = dsol_u(0,1)*axes(0,1)+dsol_u(1,1)*axes(1,1);
+            dsolx_j(0,0) = dsol_u(0,0)*axes(0,0) + dsol_u(1,0)*axes(1,0);
+            dsolx_j(1,0) = dsol_u(0,0)*axes(0,1) + dsol_u(1,0)*axes(1,1);
+            dsoly_j(0,0) = dsol_u(0,1)*axes(0,0) + dsol_u(1,1)*axes(1,0);
+            dsoly_j(1,0) = dsol_u(0,1)*axes(0,1) + dsol_u(1,1)*axes(1,1);
             
 			
-			if (fPlaneStress != 1){/* Plain Strain State */
+			if (fPlaneStress != 1)
+            {/* Plain Strain State */
                 ef(in,col) += (-1.)*weight*(nu1*dphix_i(0,0)*dsolx_j(0,0) + nu2*dphix_i(1,0)*dsolx_j(1,0) +
                                      
                                      poisson*dphix_i(0,0)*dsoly_j(1,0) + nu2*dphix_i(1,0)*dsoly_j(0,0) +
@@ -171,7 +177,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
                                      
                                      nu1*dphiy_i(1,0)*dsoly_j(1,0) + nu2*dphiy_i(0,0)*dsoly_j(0,0))*F;
 			}
-			else{/* Plain stress state */
+			else
+            {/* Plain stress state */
                 ef(in,col) += (-1.)*weight*(fEover1MinNu2*dphix_i(0,0)*dsolx_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dsolx_j(1,0) +
                                      
                                      fEover1MinNu2*dphix_i(0,0)*dsoly_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dsoly_j(0,0) +
@@ -183,15 +190,16 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 		}//fim para o residuo
         
         //Matriz Tangente (Jacobiana)
-        for( int jn = 0; jn < phcu; jn++ ) {
-            
-            dphix_j(0,0) = dphi_u(0,jn)*axes(0,0)+dphi_u(1,jn)*axes(1,0);
-            dphix_j(1,0) = dphi_u(0,jn)*axes(0,1)+dphi_u(1,jn)*axes(1,1);
-            dphiy_j(0,0) = dphi_u(2,jn)*axes(0,0)+dphi_u(3,jn)*axes(1,0);
-            dphiy_j(1,0) = dphi_u(2,jn)*axes(0,1)+dphi_u(3,jn)*axes(1,1);
+        for( int jn = 0; jn < phcu; jn++ )
+        {
+            dphix_j(0,0) = dphi_u(0,jn)*axes(0,0) + dphi_u(1,jn)*axes(1,0);
+            dphix_j(1,0) = dphi_u(0,jn)*axes(0,1) + dphi_u(1,jn)*axes(1,1);
+            dphiy_j(0,0) = dphi_u(2,jn)*axes(0,0) + dphi_u(3,jn)*axes(1,0);
+            dphiy_j(1,0) = dphi_u(2,jn)*axes(0,1) + dphi_u(3,jn)*axes(1,1);
 			
 			
-			if (fPlaneStress != 1){/* Plain Strain State */
+			if (fPlaneStress != 1)
+            {/* Plain Strain State */
                 ek(in,jn) += weight*(nu1*dphix_i(0,0)*dphix_j(0,0) + nu2*dphix_i(1,0)*dphix_j(1,0) +
                                      
                                      poisson*dphix_i(0,0)*dphiy_j(1,0) + nu2*dphix_i(1,0)*dphiy_j(0,0) +
@@ -200,7 +208,8 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
                                      
                                      nu1*dphiy_i(1,0)*dphiy_j(1,0) + nu2*dphiy_i(0,0)*dphiy_j(0,0))*F;
 			}
-			else{/* Plain stress state */
+			else
+            {/* Plain stress state */
                 ek(in,jn) += weight*(fEover1MinNu2*dphix_i(0,0)*dphix_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dphix_j(1,0) +
                                      
                                      fEover1MinNu2*dphix_i(0,0)*dphiy_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dphiy_j(0,0) +
@@ -211,16 +220,6 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             }
 		}//fim para a tangente
 	}
-    
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		ek.Print("ek_reduced = ",sout,EMathematicaInput);
-//		ef.Print("ef_reduced = ",sout,EMathematicaInput);
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
     
     // Calculate the matrix contribution for pressure
     ContributePressure(datavec, weight, ek, ef);
@@ -280,7 +279,6 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
                 //termo D[ w/deltaT * Vp , w ]
                 ek(phiuCols+in, jn) += (+1.) * weight * ( 2./deltaT * phi_u(1,jn) ) * phi_p(in,0);
             }
-            
             for(int jn = 0; jn < phipCols; jn++)
             {
                 //termo D[ (wˆ3/(12*mi))*gradP * gradVp , p ]
@@ -301,21 +299,14 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
             ef(phiuCols+phip,0) += (+1.) * weight * w/deltaT * phi_p(phip,0);
         }
     }
-    
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		ek.Print("ek_reduced = ",sout,EMathematicaInput);
-//		ef.Print("ef_reduced = ",sout,EMathematicaInput);
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
 }
 
-void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
-    
-    //  if(gState == ELastState) return;
+void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    if(gState == ELastState)
+    {
+        return;//AQUICAJU aqui estava comentado!!!
+    }
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
     
@@ -323,30 +314,35 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 	const REAL big  = TPZMaterial::gBigNumber;
 	int phc = phi_u.Cols();
     
-    for(int in = 0 ; in < phc; in++) {
-        for (int il = 0; il <fNumLoadCases; il++)
+    for(int in = 0 ; in < phc; in++)
+    {
+        for(int il = 0; il < fNumLoadCases; il++)
         {
             //termo big*u*v do vetor de carga
             TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
-            ef(in,il) += big*(v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in))*weight;
+            ef(in,il) += big * ( v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in) ) * weight;
             
             //termo big*u*v da matriz
-            ef(in,il) += (-1.)*big*(phi_u(0,in)*sol_u[0] + phi_u(1,in)*sol_u[1])*weight;
+            ef(in,il) += (-1.)*big * ( phi_u(0,in)*sol_u[0] + phi_u(1,in)*sol_u[1] ) * weight;
         }
         
-        for (int jn = 0; jn < phc; jn++) {
-            
-            ek(in,jn) += big*(phi_u(0,in)*phi_u(0,jn) + phi_u(1,in)*phi_u(1,jn))*weight;
+        for (int jn = 0; jn < phc; jn++)
+        {
+            ek(in,jn) += big * ( phi_u(0,in)*phi_u(0,jn) + phi_u(1,in)*phi_u(1,jn) ) * weight;
         }
     }
 }
 
-void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc){
+void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    if(gState == ELastState)
+    {
+        return;
+    }
     
-    if(gState == ELastState) return;
-    REAL auxvar, G;
-    auxvar = 0.817*(1.-fPoiss)*globFractInputData.Hf();
-    G = fE/(2.*(1. + fPoiss));
+//    REAL auxvar, G;
+//    auxvar = 0.817*(1.-fPoiss)*globFractInputData.Hf();
+//    G = fE/(2.*(1. + fPoiss));
     REAL factor = 0.;//G/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -366,39 +362,31 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
         //--- residuo ----
         for (int il = 0; il <fNumLoadCases; il++)
         {
-            ef(in,il) += weight * factor * (phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1])
-                         - weight * (phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1]);
+            ef(in,il) += weight * factor * ( phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1] )
+                       - weight * ( phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1] );
         }
         
         //----- matriz tangente -----
         //termo k(phi_ix*phi_jun*nx + phi_iy*phi_jun*ny)
-        for (int jn = 0; jn <nc_u; jn++)
+        for (int jn = 0; jn < nc_u; jn++)
         {
             REAL phi_jun = phi_u(0,jn)*datavec[0].normal[0] + phi_u(1,jn)*datavec[0].normal[1];
             ek(in,jn) += (-1.)*weight*factor*(phi_u(0,in)*phi_jun*datavec[0].normal[0] + phi_u(1,in)*phi_jun*datavec[0].normal[1]);
         }
         
-        for (int jp = 0; jp <phrp; jp++)
+        for (int jp = 0; jp < phrp; jp++)
         {
             ek(in,jp+nc_u) += weight*(phi_u(0,in)*phi_p(jp,0)*datavec[0].normal[0] + phi_u(1,in)*phi_p(jp,0)*datavec[0].normal[1]);
         }
     }
-        
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		ek.Print("ek_reduced = ",sout,EMathematicaInput);
-//		ef.Print("ef_reduced = ",sout,EMathematicaInput);
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
-    
 }
 
-void TPZNLFluidStructure2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
-    
-    if(gState == ELastState) return;
+void TPZNLFluidStructure2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
+{
+    if(gState == ELastState)
+    {
+        return;
+    }
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
     
@@ -410,76 +398,43 @@ void TPZNLFluidStructure2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL 
         for (int il = 0; il <fNumLoadCases; il++)
         {
             TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
-            ef(in,il)+= weight*(v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in));
+            ef(in,il)+= weight * ( v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in) );
             
             //termo da matriz
-            ef(in,il) += (-1.)*(bc.Val1()(0,0)*phi_u(0,in)*sol_u[0]*weight
+            ef(in,il) += (-1.)*( bc.Val1()(0,0)*phi_u(0,in)*sol_u[0]*weight
             
-            + bc.Val1()(1,0)*phi_u(1,in)*sol_u[0]*weight
-            
-            + bc.Val1()(0,1)*phi_u(0,in)*sol_u[1]*weight
-            
-            + bc.Val1()(1,1)*phi_u(1,in)*sol_u[1]*weight);
+                               + bc.Val1()(1,0)*phi_u(1,in)*sol_u[0]*weight
+                                
+                               + bc.Val1()(0,1)*phi_u(0,in)*sol_u[1]*weight
+                                
+                               + bc.Val1()(1,1)*phi_u(1,in)*sol_u[1]*weight );
         }
         for (int jn = 0; jn <phc; jn++)
         {
             
             ek(in,jn) += bc.Val1()(0,0)*phi_u(0,in)*phi_u(0,jn)*weight
             
-            + bc.Val1()(1,0)*phi_u(1,in)*phi_u(0,jn)*weight
-            
-            + bc.Val1()(0,1)*phi_u(0,in)*phi_u(1,jn)*weight
-            
-            + bc.Val1()(1,1)*phi_u(1,in)*phi_u(1,jn)*weight;
+                       + bc.Val1()(1,0)*phi_u(1,in)*phi_u(0,jn)*weight
+                    
+                       + bc.Val1()(0,1)*phi_u(0,in)*phi_u(1,jn)*weight
+                    
+                       + bc.Val1()(1,1)*phi_u(1,in)*phi_u(1,jn)*weight;
         }
     }
 }
 
-void TPZNLFluidStructure2d::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
-    
-    if(gState == ELastState) return;
-    
-    TPZFMatrix<REAL> &phi_u = datavec[0].phi;
-	int c_u = phi_u.Cols();
-    
-    TPZFMatrix<REAL> &phi_p = datavec[1].phi;
-    TPZManVector<REAL,3> sol_p = datavec[1].sol[0];
-    int phrp = phi_p.Rows();
-    
-    for(int in = 0; in<phrp; in++)
+
+void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
+{
+    if(gState == ELastState)
     {
-        //termo do vetor de carga
-        ef(in+c_u,0)+=gBigNumber*bc.Val2()(2,0)*phi_p(in,0)*weight;
-        
-        //termo da matriz
-        ef(in+c_u,0)+=(-1.)*gBigNumber*sol_p[0]*phi_p(in,0)*weight;
-        
-        for(int jn = 0; jn<phrp; jn++)
-        {
-            ek(in+c_u,jn+c_u)+=gBigNumber*phi_p(in,0)*phi_p(jn,0)*weight;
-        }
+        return;
     }
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		phi_p.Print("phi = ",sout,EMathematicaInput);
-//        bc.Val2().Print("val2 = ",sout);
-//        sout << datavec[1].sol[0][0];
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
-}
-
-void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
-    
-    if(gState == ELastState) return;
-    
-    TPZFMatrix<REAL> &phi_u = datavec[0].phi;
+    TPZFMatrix<REAL> & phi_u = datavec[0].phi;
 	int c_u = phi_u.Cols();
     
-    TPZFMatrix<REAL> &phi_p = datavec[1].phi;
+    TPZFMatrix<REAL> & phi_p = datavec[1].phi;
     int  phrp = phi_p.Rows();
 
     REAL Qinj = bc.Val2()(2,0);
@@ -489,36 +444,11 @@ void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REA
     }
 }
 
-void TPZNLFluidStructure2d::ApplyMixed_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
-    
-    if(gState == ELastState) return;
-    
-    TPZFMatrix<REAL> &phi_u = datavec[0].phi;
-	int c_u = phi_u.Cols();
-    
-    TPZFMatrix<REAL> &phi_p = datavec[1].phi;
-    TPZManVector<REAL,3> sol_p = datavec[1].sol[0];
-    int phrp = phi_p.Rows();
-    
-    for(int in=0; in<phrp; in++)
-    {
-        //termo do vetor de carga
-        ef(in+c_u,0)+=bc.Val2()(2,0)*phi_p(in,0)*weight;
-        
-        //termo da matriz
-        ef(in+c_u,0) += (-1.)*bc.Val1()(2,0)*phi_p(in,0)*sol_p[0]*weight;
-        
-        for(int jn = 0; jn<phrp; jn++)
-        {
-            ek(in+c_u,jn+c_u) += bc.Val1()(2,0)*phi_p(in,0)*phi_p(jn,0)*weight;
-        }
-    }
-}
 
-void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
-    
+void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+{
     TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
-    if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!=0)
+    if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!= 0)
     {
         std::cout << " The space to elasticity problem must be reduced space.\n";
 		DebugStop();
@@ -526,71 +456,44 @@ void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 	
 	switch (bc.Type())
     {
-		case 0 :			// Dirichlet condition in  both elasticity and pressure equations
-			
-            ApplyDirichlet_U(datavec, weight, ek,ef,bc);
-            ApplyDirichlet_P(datavec, weight, ek,ef,bc);
-            break;
-			
-		case 1 :			// Neumann condition in  both elasticity and pressure equations
+		case 1:// Neumann condition in  both elasticity and pressure equations
+        {
             ApplyNeumann_U(datavec, weight,ek,ef,bc);
             ContributePressure(datavec, weight, ek, ef);
             break;
-			
-		case 2 :            // Mixed condition in  both elasticity and pressure equations
-            ApplyMixed_U(datavec, weight, ek,ef,bc);
-            ApplyMixed_P(datavec, weight, ek,ef,bc);
-            break;
-            
-        case 10:        // Neumann condition only on the elasticity equation
+		}
+        case 11:// Dirichlet condition only on the elasticity equation
         {
             // Calculate the matrix contribution for pressure
-            ApplyNeumann_U(datavec, weight,ek, ef,bc);
+            ApplyDirichlet_U(datavec, weight, ek,ef,bc);
             break;
         }
-        case 11:        // Dirichlet condition only on the elasticity equation
+        case 20:// Mixed condition only on the elasticity equation
         {
-            // Calculate the matrix contribution for pressure
-             ApplyDirichlet_U(datavec, weight, ek,ef,bc);
-            break;
-        }
-            
-        case 20:        // Mixed condition only on the elasticity equation
             ApplyMixed_U(datavec, weight, ek,ef,bc);
             break;
-            
-        case 21:        // Neumann condition only on the pressure equation pressure
+        }
+        case 21:// Neumann condition only on the pressure equation pressure
+        {
             ApplyNeumann_P(datavec, weight, ek,ef,bc);
             break;
-            
-        case 22:        // Dirichlet condition only on the pressure equation pressure
-            ApplyDirichlet_P(datavec, weight, ek,ef,bc);
-            break;
+        }
+        default:
+        {
+            DebugStop();
+        }
     }
-    
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		ek.Print("ek_reduced = ",sout,EMathematicaInput);
-//		ef.Print("ef_reduced = ",sout,EMathematicaInput);
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
-    
 }
 
 int TPZNLFluidStructure2d::VariableIndex(const std::string &name){
-    if(!strcmp("Pressure",name.c_str()))        return  1;
-    if(!strcmp("MinusKGradP",name.c_str()))     return  2;
-    if(!strcmp("DisplacementX",name.c_str()))  return 3;
-	if(!strcmp("DisplacementY",name.c_str()))  return 4;
-    if(!strcmp("SigmaX",name.c_str()))        return  5;
-	if(!strcmp("SigmaY",name.c_str()))        return  6;
-    
-    if(!strcmp("Displacement",name.c_str()))        return  7;
-    
-    if(!strcmp("W",name.c_str()))        return  8;
+    if(!strcmp("Pressure",name.c_str()))        return 1;
+    if(!strcmp("MinusKGradP",name.c_str()))     return 2;
+    if(!strcmp("DisplacementX",name.c_str()))   return 3;
+	if(!strcmp("DisplacementY",name.c_str()))   return 4;
+    if(!strcmp("SigmaX",name.c_str()))          return 5;
+	if(!strcmp("SigmaY",name.c_str()))          return 6;
+    if(!strcmp("Displacement",name.c_str()))    return 7;
+    if(!strcmp("W",name.c_str()))               return 8;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -604,6 +507,7 @@ int TPZNLFluidStructure2d::NSolutionVariables(int var){
     if(var == 6) return 1;
     if(var == 7) return fDim;
     if(var == 8) return 1;
+    
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -653,10 +557,10 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         {
             return;
         }
-        REAL G, un, factor;
-        G = young/(2.*(1.+poisson));
-        un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
-        factor = 0.;//(un*un*un)/(12.*visc);
+//        REAL G, un;
+//        G = young/(2.*(1.+poisson));
+//        un = 0.817*(1-poisson)*(SolP[0]-sigmaConf)*Hf/G;
+        REAL factor = 0.;//(un*un*un)/(12.*visc);
         
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;
@@ -735,7 +639,8 @@ void TPZNLFluidStructure2d::FillDataRequirements(TPZVec<TPZMaterialData > &datav
 	}
 }
 
-void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec){
+void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+{
     int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
 	{

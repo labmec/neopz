@@ -20,7 +20,6 @@ class TPZElastoPlasticAnalysis;
 
 class ToolsTransient
 {
-    
     public:
     
     ToolsTransient();
@@ -89,7 +88,6 @@ class ToolsTransient
 template<class TVar>
 class TElastSolFunction : public TPZFunction<TVar>
 {
-    
     public:
     
     /**
@@ -124,7 +122,6 @@ class TElastSolFunction : public TPZFunction<TVar>
 template<class TVar>
 class TLeakoffFunction : public TPZFunction<TVar>
 {
-    
 public:
     
     /**

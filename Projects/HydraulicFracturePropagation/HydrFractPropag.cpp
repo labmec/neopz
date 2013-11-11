@@ -34,7 +34,7 @@ void FillFractureDotsExampleCrazy(TPZVec< std::pair<REAL,REAL> > &fractureDots);
 void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REAL> > &fractureDots);
 
 TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax);
-TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL traction);
+TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack);
 
 //----------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,23 +68,30 @@ int mainCRAZY(int argc, char * const argv[])
     REAL lw = 202.;
     REAL bulletDepthTVDIni = 20.;
     REAL bulletDepthTVDFin = 80.;
-    TPZVec< std::map<REAL,REAL> > posTVD_stress(5);
+    TPZVec<TPZLayerProperties> layerVec(5);
     //stretch #0
-    posTVD_stress[0][0.]  = 2.;
-    posTVD_stress[0][11.]  = 3.;
-    //stretch #1
-    posTVD_stress[1][11.]  = 4.;
-    posTVD_stress[1][25.]  = 7.;
-    //stretch #2
-    posTVD_stress[2][25.]  = 3.;
-    posTVD_stress[2][37.]  = 6.;
-    //stretch #3
-    posTVD_stress[3][37.]  = 6.;
-    posTVD_stress[3][63.]  = 8.;
-    //stretch #4
-    posTVD_stress[4][63.] = 8.;
-    posTVD_stress[4][210.] = 10.;
-    TPZPlaneFracture plfrac(lw, bulletDepthTVDIni, bulletDepthTVDFin, posTVD_stress, lengthX, lengthY, Lmax);
+    
+    layerVec[0] = TPZLayerProperties(1.E5, 0.25, 1.E5, 1.E1, 0., 11.);
+    layerVec[1] = TPZLayerProperties(1.E5, 0.25, 1.E5, 1.E1, 0., 11.);
+    layerVec[2] = TPZLayerProperties(1.E5, 0.25, 1.E5, 1.E1, 0., 11.);
+    layerVec[3] = TPZLayerProperties(1.E5, 0.25, 1.E5, 1.E1, 0., 11.);
+    layerVec[4] = TPZLayerProperties(1.E5, 0.25, 1.E5, 1.E1, 0., 11.);
+    
+//    posTVD_stress[0][0.]  = 2.;
+//    posTVD_stress[0][11.]  = 3.;
+//    //stretch #1
+//    posTVD_stress[1][11.]  = 4.;
+//    posTVD_stress[1][25.]  = 7.;
+//    //stretch #2
+//    posTVD_stress[2][25.]  = 3.;
+//    posTVD_stress[2][37.]  = 6.;
+//    //stretch #3
+//    posTVD_stress[3][37.]  = 6.;
+//    posTVD_stress[3][63.]  = 8.;
+//    //stretch #4
+//    posTVD_stress[4][63.] = 8.;
+//    posTVD_stress[4][210.] = 10.;
+    TPZPlaneFracture plfrac(layerVec, bulletDepthTVDIni, bulletDepthTVDFin, lengthX, lengthY, Lmax);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots(0);
     FillFractureDotsExampleEllipse(fractureDots);
@@ -126,18 +133,16 @@ int mainCircles(int argc, char * const argv[])
     REAL lengthY = 1.;
     REAL Lmax = 1.;
     
-    REAL lw = 100.;
     REAL bulletDepthIni =  0.;
     REAL bulletDepthFin = 100.;
     
-    TPZVec< std::map<REAL,REAL> > pos_stress(1);
-    pos_stress[0][0.]    = 1.;
-    pos_stress[0][100.]  = 1.;
-    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY, Lmax);
+    TPZVec<TPZLayerProperties> layerVec(1);
+    layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.);
+    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax);
     
-    REAL Rini = 10.;
-    REAL Rfin = 40;
-    int nRadius = 15;
+//    REAL Rini = 10.;
+//    REAL Rfin = 40;
+//    int nRadius = 15;
 
 //    for(int r = 0; r < nRadius; r++)
 //    {
@@ -180,14 +185,12 @@ int main/*3D*/(int argc, char * const argv[])
     REAL lengthY = 50.;
     REAL Lmax = 10.;
     
-    REAL lw = 100.;
     REAL bulletDepthIni =  0.;
     REAL bulletDepthFin = 100.;
     
-    TPZVec< std::map<REAL,REAL> > pos_stress(1);
-    pos_stress[0][0.]    = 1.;
-    pos_stress[0][100.]  = 1.;
-    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY, Lmax);
+    TPZVec<TPZLayerProperties> layerVec(1);
+    layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.);
+    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots;
     FillFractureDotsExampleCrazy(fractureDots);
@@ -851,8 +854,7 @@ int main2D(int argc, char * const argv[])
     for(int ppp = 1; ppp <= 100; ppp++)
     {
         REAL pressure = 250.*ppp;
-        REAL traction = 0.;
-        TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure,traction);
+        TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure);
         
         ////Analysis
         TPZAnalysis an(cmesh);
@@ -964,7 +966,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
             topol[2] = r*(ncols) + c + 1 + ncols;
             topol[3] = r*(ncols) + c + ncols;
             
-            gel = gmesh->CreateGeoElement(EQuadrilateral, topol, __3DrockMat_linear, indx);
+            gel = gmesh->CreateGeoElement(EQuadrilateral, topol, globMaterialIdStruct.__3DrockMat_linear, indx);
             gel->SetId(indx);
             indx++;
         }
@@ -984,11 +986,11 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         {
             if(el < ndivfrac)
             {
-                gel->CreateBCGeoEl(4, __2DfractureMat_inside);
+                gel->CreateBCGeoEl(4, globMaterialIdStruct.__2DfractureMat_inside);
             }
             else
             {
-                gel->CreateBCGeoEl(4, __2DfractureMat_outside);
+                gel->CreateBCGeoEl(4, globMaterialIdStruct.__2DfractureMat_outside);
             }
         }
         
@@ -997,7 +999,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         TPZGeoElSide neighE(sideE.Neighbour());
         if(sideE == neighE)
         {
-            gel->CreateBCGeoEl(5, __2DrightMat);
+            gel->CreateBCGeoEl(5, globMaterialIdStruct.__2DrightMat);
         }
         
         //north BC
@@ -1005,7 +1007,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         TPZGeoElSide neighN(sideN.Neighbour());
         if(sideN == neighN)
         {
-            gel->CreateBCGeoEl(6, __2DfarfieldMat);
+            gel->CreateBCGeoEl(6, globMaterialIdStruct.__2DfarfieldMat);
         }
         
         //west BC
@@ -1013,13 +1015,13 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         TPZGeoElSide neighW(sideW.Neighbour());
         if(sideW == neighW)
         {
-            gel->CreateBCGeoEl(7, __2DleftMat);
+            gel->CreateBCGeoEl(7, globMaterialIdStruct.__2DleftMat);
         }
     }
     
     topol.Resize(1);
     topol[0] = ndivfrac;
-    gel = gmesh->CreateGeoElement(EPoint, topol, __1DcrackTipMat, indx);
+    gel = gmesh->CreateGeoElement(EPoint, topol, globMaterialIdStruct.__1DcrackTipMat, indx);
     
     gmesh->BuildConnectivity();
     
@@ -1050,7 +1052,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         {
             if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
             if(gmesh->ElementVec()[el]->HasSubElement()) continue;
-            if(gmesh->ElementVec()[el]->MaterialId() == __2DfractureMat_inside)
+            if(gmesh->ElementVec()[el]->MaterialId() == globMaterialIdStruct.__2DfractureMat_inside)
             {
                 TPZVec<TPZGeoEl*> sons;
                 gmesh->ElementVec()[el]->Divide(sons);
@@ -1063,7 +1065,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
                 bool refinedAlready = false;
                 while(neighside != gelside)
                 {
-                    if(neighside.Element()->MaterialId() == __2DfractureMat_inside)
+                    if(neighside.Element()->MaterialId() == globMaterialIdStruct.__2DfractureMat_inside)
                     {
                         TPZVec<TPZGeoEl*> sons;
                         gmesh->ElementVec()[el]->Divide(sons);
@@ -1104,7 +1106,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
 }
 
 
-TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL traction)
+TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack)
 {
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(2);
@@ -1115,10 +1117,10 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
     STATE poisson = 0.25;
     
     int planeStrain = 0;
-    //        int planeStress = 1;
+    //int planeStress = 1;
     int planeWhat = planeStrain;
     
-    TPZMaterial * materialLin = new TPZElasticityMaterial(__3DrockMat_linear, young, poisson, 0., 0., planeWhat);
+    TPZMaterial * materialLin = new TPZElasticityMaterial(globMaterialIdStruct.__3DrockMat_linear, young, poisson, 0., 0., planeWhat);
     cmesh->InsertMaterialObject(materialLin);
     
     ////BCs
@@ -1127,14 +1129,14 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
     
     {
         f(0,0) = 1.;
-        TPZBndCond * nullXleft = materialLin->CreateBC(materialLin, __2DleftMat, directionalNullDirich, k, f);
+        TPZBndCond * nullXleft = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DleftMat, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(nullXleft);
-        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, __2DrightMat, directionalNullDirich, k, f);
+        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DrightMat, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(nullXright);
         
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * nullYoutside = materialLin->CreateBC(materialLin, __2DfractureMat_outside, directionalNullDirich, k, f);
+        TPZBndCond * nullYoutside = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DfractureMat_outside, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(nullYoutside);
         
         k.Zero();
@@ -1142,11 +1144,11 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
 //        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, __2DfarfieldMat, newmann, k, f);
 //        cmesh->InsertMaterialObject(newmanFarfield);
         f(1,0) = 1.;
-        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, __2DfarfieldMat, directionalNullDirich, k, f);
+        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DfarfieldMat, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(newmanFarfield);
         
         f(1,0) = pressureInsideCrack;
-        TPZBndCond * newmanInside = materialLin->CreateBC(materialLin, __2DfractureMat_inside, newmann, k, f);
+        TPZBndCond * newmanInside = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DfractureMat_inside, newmann, k, f);
         cmesh->InsertMaterialObject(newmanInside);
     }
     

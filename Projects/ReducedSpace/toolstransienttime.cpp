@@ -211,7 +211,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
     for(int stripe = 0; stripe < NStripes; stripe++)
     {
         /** Resolvendo um problema modelo de elastica linear para utilizar a
-         solucao como espaco de aproximacao do problema nao linear (acoplado) */
+            solucao como espaco de aproximacao do problema nao linear (acoplado) */
         SetSigmaNStripeNum(cmesh_elast,stripe);
         
         bool mustOptimizeBandwidth = (stripe == 0);
@@ -225,19 +225,6 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
         {
             solutions(r,stripe) = cmesh_elast->Solution()(r,0);
         }
-        
-//        {
-//            std::string plotfile = "StripeSolution.vtk";
-//            
-//            TPZManVector<std::string,10> scalnames(1), vecnames(1);
-//            scalnames[0] = "SigmaY";
-//            vecnames[0]  = "Displacement";
-//            
-//            const int dim = 2;
-//            int div = 0;
-//            an->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-//            an->PostProcess(div);
-//        }
     }
     cmesh_elast->LoadSolution(solutions);
     
@@ -384,7 +371,7 @@ void ToolsTransient::Mesh2D()
         TPZGeoElSide neighW(sideW.Neighbour());
         if(sideW == neighW)
         {
-            gel->CreateBCGeoEl(7, globBlockedXElastMatId);
+            gel->CreateBCGeoEl(7, globMixedElastMatId);
         }
     }
     
@@ -543,7 +530,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
     TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
     
     val1(0,0) = big;
-    TPZMaterial * BCond31 = material1->CreateBC(mat1, globBlockedXElastMatId, typeMixed, val1, val2);
+    TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(BCond21);
@@ -655,7 +642,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
     TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
     
     val1(0,0) = big;
-    TPZMaterial * BCond31 = material1->CreateBC(mat1, globBlockedXElastMatId, typeMixed, val1, val2);
+    TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
     
     int numsol = cmeshref->Solution().Cols();
     cmeshreferred->AllocateNewConnect(numsol, 1, 1);
@@ -713,12 +700,7 @@ TPZCompMesh * ToolsTransient::CMeshPressure(){
             TPZMaterial * BCond1 = material->CreateBC(mat, globBCfluxIn, typeNeumann, val1, val2);
             cmesh->InsertMaterialObject(BCond1);
         }
-//        if(stripe == NStripes-1)
-//        {
-//            TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-//            TPZMaterial * BCond2 = material->CreateBC(mat, globBCfluxOut, typeDirichlet, val1, val2);
-//            cmesh->InsertMaterialObject(BCond2);
-//        }
+
         cmesh->InsertMaterialObject(mat);
     }
     cmesh->SetAllCreateFunctionsContinuous();
@@ -784,17 +766,12 @@ void ToolsTransient::InitializeMultphysicsMeshAttribute()
     TPZMaterial * BCond22 = fCouplingMaterial2->CreateBC(mat2, globDirichletElastMatId2, typeDir_elast, val1, val2);
     
     val1(0,0) = big;
-    TPZMaterial * BCond31 = fCouplingMaterial1->CreateBC(mat1, globBlockedXElastMatId, typeMix_elast, val1, val2);
+    TPZMaterial * BCond31 = fCouplingMaterial1->CreateBC(mat1, globMixedElastMatId, typeMix_elast, val1, val2);
     
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2,0) = globFractInputData.Qinj();
     TPZMaterial * BCond41 = fCouplingMaterial1->CreateBC(mat1, globBCfluxIn, typeNeum_pressure, val1, val2);
-    
-//    val2.Redim(3,1);
-//    val1.Redim(3,2);
-//    TPZMaterial * BCond51 = fCouplingMaterial1->CreateBC(mat1, globBCfluxOut, typeNeum_pressure, val1, val2);
-//    TPZMaterial * BCond52 = fCouplingMaterial2->CreateBC(mat2, globBCfluxOut, typeNeum_pressure, val1, val2);
     
     fmphysics->SetAllCreateFunctionsMultiphysicElem();
     fmphysics->InsertMaterialObject(BCond21);
@@ -1620,7 +1597,6 @@ TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(cmesh);
     
     
-    
     ///Inserir condicao de contorno
     REAL big = mat->gBigNumber;
     
@@ -1633,7 +1609,7 @@ TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
     TPZMaterial * BCond2 = PlasticSD->CreateBC(pMatWithMem, globDirichletElastMatId1, typeDirichlet, val1, val2);///NATHAN, agora temos 2 faixas de mat elastico!!!
     
     val1(0,0) = big;
-    TPZMaterial * BCond3 = PlasticSD->CreateBC(pMatWithMem, globBlockedXElastMatId, typeMixed, val1, val2);
+    TPZMaterial * BCond3 = PlasticSD->CreateBC(pMatWithMem, globMixedElastMatId, typeMixed, val1, val2);
     
     //cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond1);
