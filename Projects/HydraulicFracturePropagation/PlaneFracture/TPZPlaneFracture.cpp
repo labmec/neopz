@@ -1801,7 +1801,7 @@ void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
                     }
                     REAL Xc = neighCenterX[0];
                     REAL Zc = neighCenterX[2];
-                    int stripe = (int)(Xc/(fLfrac/fnstripes));
+                    int stripe = std::min( fnstripes-1 , (int)(Xc/(fLfrac/fnstripes)) );
                     int layer = GetLayer(Zc);
                     
                     neigh->SetMaterialId(globMaterialIdGen.InsideFractMatId(layer, stripe));
@@ -1873,18 +1873,12 @@ void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
                     else
                     {
                         TPZVec<REAL> neighCenterQSI(neighEl->Dimension()), neighCenterX(3);
-                        neighEl->CenterPoint(neighEl->NSides()-1, neighCenterQSI);
-                        neighEl->X(neighCenterQSI, neighCenterX);
-                        
-                        if(neighEl->LowestFather() != neighEl)
-                        {
-                            neighEl->LowestFather()->CenterPoint(neighEl->LowestFather()->NSides()-1, neighCenterQSI);
-                            neighEl->LowestFather()->X(neighCenterQSI, neighCenterX);
-                        }
+                        neighEl->LowestFather()->CenterPoint(neighEl->LowestFather()->NSides()-1, neighCenterQSI);
+                        neighEl->LowestFather()->X(neighCenterQSI, neighCenterX);
                         
                         REAL Xc = neighCenterX[0];
                         REAL Zc = neighCenterX[2];
-                        int stripe = (int)(Xc/(fLfrac/fnstripes));
+                        int stripe = std::min( fnstripes-1 , (int)(Xc/(fLfrac/fnstripes)) );
                         int layer = GetLayer(Zc);
                         
                         neighEl->SetMaterialId(globMaterialIdGen.InsideFractMatId(layer, stripe));
