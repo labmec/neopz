@@ -167,7 +167,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		}
 		else
 		{
-			material << gel->Id() << std::endl;
+			material << gel->Index() << std::endl;
 		}
 		
 		nVALIDelements++;
@@ -192,7 +192,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	}
 	else
 	{
-		file << "ElementId 1 " << nVALIDelements << " int" << std::endl;
+		file << "ElementIndex 1 " << nVALIDelements << " int" << std::endl;
 	}
 	file << material.str();
 	
