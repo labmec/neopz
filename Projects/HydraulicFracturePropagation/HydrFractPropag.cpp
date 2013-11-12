@@ -33,9 +33,6 @@ void FillFractureDotsExampleEllipse(TPZVec< std::pair<REAL,REAL> > &fractureDots
 void FillFractureDotsExampleCrazy(TPZVec< std::pair<REAL,REAL> > &fractureDots);
 void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REAL> > &fractureDots);
 
-TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax);
-TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack);
-
 //----------------------------------------------------------------------------------------------------------------------------------
 
 /** Exemplo da utilizacao da quadratura adaptativa (integral adaptativa) */
@@ -64,6 +61,7 @@ int mainCRAZY(int argc, char * const argv[])
     REAL lengthX = 5.;
     REAL lengthY = 7.;
     REAL Lmax = 10.;
+    int nstripes = 3;
     
     REAL lw = 202.;
     REAL bulletDepthTVDIni = 20.;
@@ -91,7 +89,7 @@ int mainCRAZY(int argc, char * const argv[])
 //    //stretch #4
 //    posTVD_stress[4][63.] = 8.;
 //    posTVD_stress[4][210.] = 10.;
-    TPZPlaneFracture plfrac(layerVec, bulletDepthTVDIni, bulletDepthTVDFin, lengthX, lengthY, Lmax);
+    TPZPlaneFracture plfrac(layerVec, bulletDepthTVDIni, bulletDepthTVDFin, lengthX, lengthY, Lmax, nstripes);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots(0);
     FillFractureDotsExampleEllipse(fractureDots);
@@ -135,10 +133,11 @@ int mainCircles(int argc, char * const argv[])
     
     REAL bulletDepthIni =  0.;
     REAL bulletDepthFin = 100.;
+    int nstripes = 3;
     
     TPZVec<TPZLayerProperties> layerVec(1);
     layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.);
-    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax);
+    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
     
 //    REAL Rini = 10.;
 //    REAL Rfin = 40;
@@ -187,10 +186,13 @@ int main/*3D*/(int argc, char * const argv[])
     
     REAL bulletDepthIni =  0.;
     REAL bulletDepthFin = 100.;
+    int nstripes = 5;
     
-    TPZVec<TPZLayerProperties> layerVec(1);
-    layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.);
-    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax);
+    TPZVec<TPZLayerProperties> layerVec(3);
+    layerVec[0] = TPZLayerProperties(1.E5,0.25,0.,0.,0.,33.333);
+    layerVec[1] = TPZLayerProperties(1.E5,0.25,0.,0.,33.333,66.666);
+    layerVec[2] = TPZLayerProperties(1.E5,0.25,0.,0.,66.666,100.0);
+    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots;
     FillFractureDotsExampleCrazy(fractureDots);
@@ -822,337 +824,4 @@ void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REA
         fractureDots[node] = std::make_pair(vx , vz);
     }
     std::cout.flush();
-}
-
-
-
-
-#define usingRefUnif
-//#define usingRefdir
-//#define usingQPoints
-
-//#define writeAgain
-
-int main2D(int argc, char * const argv[])
-{
-#ifdef usingRefdir
-    #ifdef writeAgain
-        gRefDBase.InitializeRefPatterns();
-    #else
-        std::ifstream inRefP("RefPatternsUsed.txt");
-        gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
-    #endif
-#endif
-    
-    REAL lf = 1.;
-    REAL ldom = 2.;
-    REAL hdom = 2.;
-    REAL lmax = 0.25;
-    TPZGeoMesh * gmesh = PlaneMesh(lf, ldom, hdom, lmax);
-    
-    std::ofstream pppt("ppt.txt");
-    for(int ppp = 1; ppp <= 100; ppp++)
-    {
-        REAL pressure = 250.*ppp;
-        TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure);
-        
-        ////Analysis
-        TPZAnalysis an(cmesh);
-        
-        TPZSkylineStructMatrix skylin(cmesh); //caso simetrico
-        TPZStepSolver<STATE> step;
-        step.SetDirect(ECholesky);
-        
-        an.SetStructuralMatrix(skylin);
-        an.SetSolver(step);
-        an.Run();
-        
-        ////Post Processing
-        TPZManVector<std::string,10> scalnames(0), vecnames(0);
-
-        vecnames.Resize(1);
-        vecnames[0] = "displacement";
-        
-        scalnames.Resize(3);
-        scalnames[0] = "SigmaX";
-        scalnames[1] = "SigmaY";
-        scalnames[2] = "TauXY";
-        
-        int div = 0;
-        std::stringstream postp;
-        postp << "Elastic2dP" << (int)(pressure) << ".vtk";
-        an.DefineGraphMesh(2,scalnames,vecnames,postp.str());
-        an.PostProcess(div,2);
-        
-        ////2D J-Integral
-//        TPZVec<REAL> Origin(3,0.);
-//        for(int el = 0; el < gmesh->NElements(); el++)
-//        {
-//            if(gmesh->ElementVec()[el]->MaterialId() == __1DcrackTipMat)
-//            {
-//                Origin[0] = gmesh->ElementVec()[el]->Node(0).Coord(0);
-//                break;
-//            }
-//        }
-//        
-//        TPZVec<REAL> normalDirection(3,0.);
-//        normalDirection[2] = 1.;
-//        REAL radius = 0.5;  //  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-//        Path2D * j2Dpath = new Path2D(cmesh, Origin, normalDirection, radius, pressure);
-//        
-//        JIntegral2D Jpath;
-//        Jpath.PushBackPath2D(j2Dpath);
-//        TPZVec<REAL> j2Dintegral = Jpath.IntegratePath2D(0);
-//        
-//        pppt << j2Dintegral[0] << "\n";
-    }
-    return 0;
-}
-
-
-
-TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
-{
-    TPZGeoMesh * gmesh = new TPZGeoMesh;
-    
-    int ndivfrac = int(lf/lmax + 0.5);
-    int ndivoutfrac = int((ldom - lf)/lmax + 0.5);
-    int ndivh = int(hdom/lmax + 0.5);
-    
-    int ncols = ndivfrac + ndivoutfrac + 1;
-    int nrows = ndivh + 1;
-    int nnodes = nrows*ncols;
-    
-    gmesh->NodeVec().Resize(nnodes);
-    
-    REAL deltadivfrac = lf/ndivfrac;
-    REAL deltadivoutfrac = (ldom-lf)/ndivoutfrac;
-    REAL deltandivh = hdom/ndivh;
-    
-    int nid = 0;
-    for(int r = 0; r < nrows; r++)
-    {
-        for(int c = 0; c < ncols; c++)
-        {
-            REAL x, y;
-            if(c <= ndivfrac)
-            {
-                x = c*deltadivfrac;
-            }
-            else
-            {
-                x = ndivfrac*deltadivfrac + (c-ndivfrac)*deltadivoutfrac;
-            }
-            y = r*deltandivh;
-            
-            TPZVec<REAL> coord(3,0.);
-            coord[0] = x;
-            coord[1] = y;
-            gmesh->NodeVec()[r*ncols + c].SetCoord(coord);
-            gmesh->NodeVec()[r*ncols + c].SetNodeId(nid);
-            nid++;
-        }
-    }
-    
-    TPZGeoEl * gel = NULL;
-    TPZVec<long> topol(4);
-    long indx = 0;
-    for(int r = 0; r < nrows-1; r++)
-    {
-        for(int c = 0; c < ncols-1; c++)
-        {
-            topol[0] = r*(ncols) + c;
-            topol[1] = r*(ncols) + c + 1;
-            topol[2] = r*(ncols) + c + 1 + ncols;
-            topol[3] = r*(ncols) + c + ncols;
-            
-            gel = gmesh->CreateGeoElement(EQuadrilateral, topol, globMaterialIdStruct.__3DrockMat_linear, indx);
-            gel->SetId(indx);
-            indx++;
-        }
-    }
-    
-    gmesh->BuildConnectivity();
-    
-    int nelem = gmesh->NElements();
-    for(int el = 0; el < nelem; el++)
-    {
-        TPZGeoEl * gel = gmesh->ElementVec()[el];
-        
-        //south BC
-        TPZGeoElSide sideS(gel,4);
-        TPZGeoElSide neighS(sideS.Neighbour());
-        if(sideS == neighS)
-        {
-            if(el < ndivfrac)
-            {
-                gel->CreateBCGeoEl(4, globMaterialIdStruct.__2DfractureMat_inside);
-            }
-            else
-            {
-                gel->CreateBCGeoEl(4, globMaterialIdStruct.__2DfractureMat_outside);
-            }
-        }
-        
-        //east BC
-        TPZGeoElSide sideE(gel,5);
-        TPZGeoElSide neighE(sideE.Neighbour());
-        if(sideE == neighE)
-        {
-            gel->CreateBCGeoEl(5, globMaterialIdStruct.__2DrightMat);
-        }
-        
-        //north BC
-        TPZGeoElSide sideN(gel,6);
-        TPZGeoElSide neighN(sideN.Neighbour());
-        if(sideN == neighN)
-        {
-            gel->CreateBCGeoEl(6, globMaterialIdStruct.__2DfarfieldMat);
-        }
-        
-        //west BC
-        TPZGeoElSide sideW(gel,7);
-        TPZGeoElSide neighW(sideW.Neighbour());
-        if(sideW == neighW)
-        {
-            gel->CreateBCGeoEl(7, globMaterialIdStruct.__2DleftMat);
-        }
-    }
-    
-    topol.Resize(1);
-    topol[0] = ndivfrac;
-    gel = gmesh->CreateGeoElement(EPoint, topol, globMaterialIdStruct.__1DcrackTipMat, indx);
-    
-    gmesh->BuildConnectivity();
-    
-#ifdef usingQPoints
-    TPZGeoElSide pt(gel,0);
-    TPZGeoElSide ptneigh(pt.Neighbour());
-    while(pt != ptneigh)
-    {
-        if(ptneigh.Element()->HasSubElement() == false)
-        {
-            int neighSide = ptneigh.Side();
-            TPZGeoEl * ptneighEl = TPZChangeEl::ChangeToQuarterPoint(gmesh, ptneigh.Element()->Id(), neighSide);
-            ptneigh = ptneighEl->Neighbour(neighSide);
-        }
-        else
-        {
-            ptneigh = ptneigh.Neighbour();
-        }
-    }
-#endif
-    
-#ifdef usingRefUnif
-    int nrefUnif = 3;
-    for(int ref = 0; ref < nrefUnif; ref++)
-    {
-        nelem = gmesh->NElements();
-        for(int el = 0; el < nelem; el++)
-        {
-            if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
-            if(gmesh->ElementVec()[el]->HasSubElement()) continue;
-            if(gmesh->ElementVec()[el]->MaterialId() == globMaterialIdStruct.__2DfractureMat_inside)
-            {
-                TPZVec<TPZGeoEl*> sons;
-                gmesh->ElementVec()[el]->Divide(sons);
-                continue;
-            }
-            for(int s = 0; s < gmesh->ElementVec()[el]->NSides(); s++)
-            {
-                TPZGeoElSide gelside(gmesh->ElementVec()[el],s);
-                TPZGeoElSide neighside(gelside.Neighbour());
-                bool refinedAlready = false;
-                while(neighside != gelside)
-                {
-                    if(neighside.Element()->MaterialId() == globMaterialIdStruct.__2DfractureMat_inside)
-                    {
-                        TPZVec<TPZGeoEl*> sons;
-                        gmesh->ElementVec()[el]->Divide(sons);
-                        refinedAlready = true;
-                        break;
-                    }
-                    neighside = neighside.Neighbour();
-                }
-                if(refinedAlready == true)
-                {
-                    break;
-                }
-            }
-        }
-    }
-#endif
-    
-#ifdef usingRefdir
-    std::set<int> matDir;
-    //matDir.insert(__2DfractureMat_inside);
-    matDir.insert(__1DcrackTipMat);
-    int nrefDir = 1;
-    for(int ref = 0; ref < nrefDir; ref++)
-    {
-        nelem = gmesh->NElements();
-        for(int el = 0; el < nelem; el++)
-        {
-            if(!gmesh->ElementVec()[el]) continue;
-            if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
-            if(gmesh->ElementVec()[el]->HasSubElement()) continue;
-            TPZRefPatternTools::RefineDirectional(gmesh->ElementVec()[el], matDir);
-        }
-    }
-#endif
-
-    
-    return gmesh;
-}
-
-
-TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack)
-{
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDimModel(2);
-    cmesh->SetDefaultOrder(2);
-    cmesh->SetAllCreateFunctionsContinuous();
-    
-    STATE young = 0.3e5;
-    STATE poisson = 0.25;
-    
-    int planeStrain = 0;
-    //int planeStress = 1;
-    int planeWhat = planeStrain;
-    
-    TPZMaterial * materialLin = new TPZElasticityMaterial(globMaterialIdStruct.__3DrockMat_linear, young, poisson, 0., 0., planeWhat);
-    cmesh->InsertMaterialObject(materialLin);
-    
-    ////BCs
-    TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int newmann = 1, directionalNullDirich = 3;
-    
-    {
-        f(0,0) = 1.;
-        TPZBndCond * nullXleft = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DleftMat, directionalNullDirich, k, f);
-        cmesh->InsertMaterialObject(nullXleft);
-        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DrightMat, directionalNullDirich, k, f);
-        cmesh->InsertMaterialObject(nullXright);
-        
-        f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * nullYoutside = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DfractureMat_outside, directionalNullDirich, k, f);
-        cmesh->InsertMaterialObject(nullYoutside);
-        
-        k.Zero();
-//        f(1,0) = traction;
-//        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, __2DfarfieldMat, newmann, k, f);
-//        cmesh->InsertMaterialObject(newmanFarfield);
-        f(1,0) = 1.;
-        TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DfarfieldMat, directionalNullDirich, k, f);
-        cmesh->InsertMaterialObject(newmanFarfield);
-        
-        f(1,0) = pressureInsideCrack;
-        TPZBndCond * newmanInside = materialLin->CreateBC(materialLin, globMaterialIdStruct.__2DfractureMat_inside, newmann, k, f);
-        cmesh->InsertMaterialObject(newmanInside);
-    }
-    
-    cmesh->AutoBuild();
-    
-    return cmesh;
 }

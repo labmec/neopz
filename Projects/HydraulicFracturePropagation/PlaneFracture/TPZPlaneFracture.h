@@ -188,11 +188,12 @@ class TPZPlaneFracture
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
+     * @param nstripes [in] : Amounth of stripes in Y direction for applied pressure for reduced space
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFracture(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                     REAL xLength, REAL yLength, REAL Lmax);
+                     REAL xLength, REAL yLength, REAL Lmax, int nstripes);
     
 	~TPZPlaneFracture();
     
@@ -410,6 +411,9 @@ protected:
 
     //** just for visualize given dots in vtk */
     static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
+    
+    //** Returns the layer index based on zMed (MD) */
+    int GetLayer(REAL zMed);
 	
     //-------------------------------------------------------------------------------
 	
@@ -426,6 +430,12 @@ protected:
     
     /** @brief maximum element edge length */
     REAL fLmax;
+    
+    /** @brief maximum X coordinate of poligonal chain (is the max Lfracture) */
+    REAL fLfrac;
+    
+    /** @brief Amounth of stripes of pressure */
+    int fnstripes;
 };
 
 #endif
