@@ -347,6 +347,10 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedLeft);
         
+        TPZMaterial * materialMixedRight = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
+        TPZBndCond * mixedRight = new TPZBndCond(materialMixedRight,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedRight);
+        
         f.Zero();
         f(1,0) = 1.;
         TPZMaterial * materialMixedOutFracture = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
@@ -358,12 +362,11 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         TPZMaterial * materialMixedTop = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
         TPZBndCond * mixedTop = new TPZBndCond(materialMixedTop,globMaterialIdGen.TopMatId(), dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedTop);
-        //
+        
         TPZMaterial * materialMixedBottom = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
         TPZBndCond * mixedBottom = new TPZBndCond(materialMixedBottom,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedBottom);
         
-        ///////////farField
         k.Zero();
         f(1,0) = 1.;
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
@@ -425,6 +428,10 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMeshNLinear(const TPZVec<std::pai
         TPZMaterial * materialMixedLeft = new TPZElast3Dnlinear(globMaterialIdGen.RockMatId(lay), young, poisson, force);
         TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedLeft);
+        
+        TPZMaterial * materialMixedRight = new TPZElast3Dnlinear(globMaterialIdGen.RockMatId(lay), young, poisson, force);
+        TPZBndCond * mixedRight = new TPZBndCond(materialMixedRight,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedRight);
         
         f.Zero();
         f(1,0) = 1.;
@@ -507,6 +514,10 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
         TPZMaterial * materialMixedLeft = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
         TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedLeft);
+
+        TPZMaterial * materialMixedRight = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force);
+        TPZBndCond * mixedRight = new TPZBndCond(materialMixedRight,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedRight);
         
         f.Zero();
         f(1,0) = 1.;
@@ -592,6 +603,10 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferredNLinear(const
         TPZMaterial * materialMixedLeft = new TPZElast3Dnlinear(globMaterialIdGen.RockMatId(lay), young, poisson, force);
         TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedLeft);
+
+        TPZMaterial * materialMixedRight = new TPZElast3Dnlinear(globMaterialIdGen.RockMatId(lay), young, poisson, force);
+        TPZBndCond * mixedRight = new TPZBndCond(materialMixedRight,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(mixedRight);
         
         f.Zero();
         f(1,0) = 1.;
