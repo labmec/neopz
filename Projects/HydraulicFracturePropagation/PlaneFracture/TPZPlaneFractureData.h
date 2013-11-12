@@ -41,6 +41,9 @@
 ///////////////////////////////////////////////////
 
 
+/**
+ * To understand what is implemented here, see table (MaterialIds Table.xls) on folder (/NeoPZ/Projects/HydraulicFracturePropagation/PlaneFracture)
+ */
 struct MaterialIdGen
 {
 public:

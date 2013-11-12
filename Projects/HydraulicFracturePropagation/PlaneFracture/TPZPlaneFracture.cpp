@@ -332,8 +332,8 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         STATE young = fLayerVec[lay].fYoung;
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
-        STATE prestressXX = fLayerVec[lay].fSigmaMax;
-        STATE prestressYY = fLayerVec[lay].fSigmaMin;
+        STATE prestressXX = 0.;
+        STATE prestressYY = 0.;
         STATE prestressZZ = 0.;
         
         ////Rock
@@ -414,8 +414,8 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMeshNLinear(const TPZVec<std::pai
         STATE young = fLayerVec[lay].fYoung;
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
-        STATE prestressXX = fLayerVec[lay].fSigmaMax;
-        STATE prestressYY = fLayerVec[lay].fSigmaMin;
+        STATE prestressXX = 0.;
+        STATE prestressYY = 0.;
         STATE prestressZZ = 0.;
 
         ////Rock

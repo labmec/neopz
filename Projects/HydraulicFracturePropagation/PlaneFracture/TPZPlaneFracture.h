@@ -412,7 +412,7 @@ protected:
     //** just for visualize given dots in vtk */
     static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
     
-    //** Returns the layer index based on zMed (MD) */
+    //** Returns the layer index based on zMed (will be used fabs(zMed), i.e., TVD) */
     int GetLayer(REAL zMed);
 	
     //-------------------------------------------------------------------------------
