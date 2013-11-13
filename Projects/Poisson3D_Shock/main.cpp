@@ -69,18 +69,21 @@
 #include <fstream>
 #include <cmath>
 
+
+#include "problem.h"
+
 using namespace std;
 using namespace pzshape;
 using namespace pzgeom;
 
 
-STATE ValueK = 1000000;
+STATE ValueK = 100000;
 REAL GlobalMaxError = 0.0;
-STATE F = 2*sqrt(ValueK);
+STATE F = sqrt(ValueK);
 // Circunference with high gradient - data
 TPZManVector<REAL,3> CCircle(3,0.5);
 REAL RCircle = 0.25;
-
+int ModelDimension = 3;
 
 
 /** VARIABLES */
@@ -92,7 +95,6 @@ int materialId = 1;
 int id_bc0 = -1;
 int id_bc1 = -2;
 int materialBC1 = 2;
-int anothertests = 0;
 
 char saida[512];
 
@@ -101,24 +103,15 @@ ofstream outLaplace("OutLaplace.txt");
 
 int gDebug = 0;
 
-
-/** Rotation data to construct deformed meshes */
-bool rotating = false;
-TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
-/** angle ??? */
-REAL alfa = M_PI/6.;
-REAL transx = 3.;
-REAL transy = 0.;
-
 /** To identify localization of PZ resources */
 std::string Archivo = PZSOURCEDIR;
 
 /** Functions to construction of geometry of problems */
-TPZGeoMesh *CreateGeoMesh(MElementType typeel);
-TPZGeoMesh *CreateGeoMesh(std::string &nome);
+TPZGeoMesh *CreateGeomMesh(MElementType typeel);
+TPZGeoMesh *CreateGeomMesh(std::string &nome);
 // Crea malla computacional sem forcingfunction quando hasforcingfunction = 0, ou toma diferentes forcingfuncition para diferentes
 // valores de hasforcingfunction
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
+TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction);
 TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel);
 TPZGeoMesh *ConstructingTetrahedraInCube(REAL InitialL);
 TPZGeoMesh *ConstructingPrismsInCube(REAL InitialL);
@@ -128,18 +121,9 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 /** Fucntions to apply refinement. */
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 
-// Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
+
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename);
-
-/** Functions for Differential equation - Right terms, solutions and derivatives */
-void RightTermCircle(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
-void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol);
-void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
-
-void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
-void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
-
 
 /** Utilitaries */
 void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
@@ -149,61 +133,23 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 
 
 /** PROBLEMS */
-bool SolveSymmetricPoissonProblemOnCubeMesh();
+bool SolveSymmetricPoissonProblemOnHexaMesh();
 bool SolveLaplaceProblemOnLShapeMesh();
 
 // Generic data for problems to solve
 bool usethreads = false;
 int MaxPOrder = 8;
-
+int NRefs = 6;
 int ninitialrefs = 3;
 
 
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
-void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel);
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int ref);
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int ref);
 
-STATE GradientNorm(TPZInterpolatedElement *el);
-STATE Laplacian(TPZInterpolatedElement *el);
-
-bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian);
 
 void AdjustingOrder(TPZCompMesh *cmesh);
 
-bool CheckFunctionAndDerivatives(std::ifstream &inpoint,std::ifstream &math) {
-	if(!inpoint.is_open() || !math.is_open())
-		return false;
-	int npoints, dim, nvalues, i, j;
-	TPZVec<REAL> point(3);
-	TPZVec<REAL> values(20,0.0);
-	inpoint >> dim >> npoints;
-	math >> nvalues;
-	// Variables to computing function and derivatives values
-	TPZVec<STATE> sol(1);
-	TPZFMatrix<STATE> dsol(dim,1);
-	TPZVec<STATE> deriv2;
-
-	// Reading points and mathematica values and comparing with implementation compute
-	for(i=0;i<npoints;i++) {
-		for(j=0;j<dim;j++)
-			inpoint >> point[j];
-		ExactSolutionSphere(point,sol,dsol,deriv2);
-		if(dim==2) {
-			deriv2[2] = deriv2[3];
-		}
-		for(j=0;j<nvalues;j++)
-			math >> values[j];
-		if(!IsZero((float)(values[0] - sol[0]))) return false;
-		for(j=0;j<dim;j++)
-			if(!IsZero((float)(values[j+1] - dsol(j,0))))
-				return false;
-		for(j=0;j<(nvalues-dim-1);j++)
-			if(!IsZero((float)(values[j+dim+1] - deriv2[j])))
-				return false;
-	}
-	return true;
-}
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
 int main() {
@@ -222,33 +168,33 @@ int main() {
 	// To check if derivatives and function was right inplemented 
 	std::ifstream inpoint("datapoint.dat");
 	std::ifstream math("mathvalues.dat");
-	if(!CheckFunctionAndDerivatives(inpoint,math))
-		return 3;
-    // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-    if(!SolveSymmetricPoissonProblemOnCubeMesh())
+
+	// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
+    if(!SolveSymmetricPoissonProblemOnHexaMesh())
         return 1;
     
     return 0;
 }
 
-bool SolveSymmetricPoissonProblemOnCubeMesh() {
+bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	// To compute processing times
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
 	char time_formated[256];
+	char * p = time_formated;
 	memset(time_formated,0,256);
 	
 	// Output files
 	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
-	formatTimeInSec(time_formated,256,sttime);
+//	formatTimeInSec(time_formated,256,sttime);
+	p = ctime(&sttime);
 	fileerrors << "Approximation Error in " << time_formated << std::endl;
 	
-	int nref = 1, NRefs = 4;
+	int nref = 1;
 	int nthread = 2, NThreads = 4;
-    int dim;
 	
     //Working on regular meshes
     for(int regular=1; regular>0; regular--) {
@@ -259,7 +205,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
         //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -268,31 +214,19 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				std::string nombre;
 				GetFilenameFromGID(typeel,nombre);
 				// Generating geometric mesh
-				gmesh = CreateGeoMesh(nombre);
+				gmesh = CreateGeomMesh(nombre);
 			}
 			else {
-				gmesh = CreateGeoMesh(typeel);
+				gmesh = CreateGeomMesh(typeel);
 			}
-			dim = DefineDimensionOverElementType(typeel);
+			ModelDimension = DefineDimensionOverElementType(typeel);
 			
-			// Defining initial refinements and total refinements depends on dimension of the model
-			if(dim==3) {
-                MaxPOrder = 5;
-                NRefs = 4;
-            }
-            else if(dim==2) {
-                MaxPOrder = 5;
-                NRefs = 8;
-            }
-            else {
-				MaxPOrder = 20;
-                NRefs = 12;
-            }
+			// To storing number of equations and errors obtained for all iterations
 			ErrorVec.Resize(NRefs,0.0);
 			NEquations.Resize(NRefs,0);
 			// Printing geometric mesh to validate
 			if(gDebug) {
-				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",dim,nref,regular,typeel);
+				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",ModelDimension,nref,regular,typeel);
 				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
 			}
 
@@ -302,22 +236,22 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			scalnames.Push("Solution");
 
 			if(printingsol) {
-				TPZGeoMesh *gmeshfirst = CreateGeoMesh(typeel);
-				UniformRefinement(8,gmesh,dim);
+				TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel);
+				UniformRefinement(8,gmesh,ModelDimension);
 				TPZCompEl::SetgOrder(1);
-				TPZCompMesh *cmeshfirst = CreateMesh(gmesh,dim,1);
+				TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,1);
 				TPZAnalysis ann(cmeshfirst,false);
-				LoadSolutionFirstOrder(cmeshfirst,ExactSolutionSphere);
+				LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
 				{
 					std::stringstream sut;
-					sut << "Poisson" << dim << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
-					ann.DefineGraphMesh(dim,scalnames,vecnames,sut.str());
+					sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
+					ann.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
 				}
-				ann.PostProcess(3,dim);
+				ann.PostProcess(2,ModelDimension);
 				delete cmeshfirst;
 				delete gmeshfirst;
 			}
-            UniformRefinement(ninitialrefs,gmesh,dim);
+            UniformRefinement(ninitialrefs,gmesh,ModelDimension);
             
 			// Creating computational mesh (approximation space and materials)
 			int p = 1, pinit;
@@ -326,17 +260,14 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 			TPZCompMesh *cmesh;
 			gmesh->SetName("Malha Geometrica original");
 			if(gDebug) {
-				sprintf(saida,"gmesh_%02dD_H%dTR%dE%dIndex.vtk",dim,nref,regular,typeel);
+				sprintf(saida,"gmesh_%02dD_H%dTR%dE%dIndex.vtk",ModelDimension,nref,regular,typeel);
 				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 			}
-            
-			// Selecting orthogonal polynomial family to construct shape functions
-			if(anothertests)
-				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
+			cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);               // Forcing function is out 2013_07_25
 
 			// loop solving iteratively
 			for(nref=0;nref<NRefs;nref++) {
-				out << "\nConstructing Poisson problem " << dim << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
+				out << "\nConstructing Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
                 std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
 				if(usethreads) {
 					if(nref > 5) nthread = 2*NThreads;
@@ -348,19 +279,17 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				
 				// Introduzing exact solution depending on the case
 				// Solving adaptive process
-				cmesh = CreateMesh(gmesh,dim,1);               // Forcing function is out 2013_07_25
-				AdjustingOrder(cmesh);
 				TPZAnalysis an(cmesh,true);
-				an.SetExact(ExactSolutionSphere);
+				an.SetExact(ExactSolutionArcTangent);
 				{
 					std::stringstream sout;
-					sout << "Poisson" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
-					an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+					sout << "Poisson" << ModelDimension << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+					an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
 				}
 				std::string MeshFileName;
 				{
 					std::stringstream sout;
-					sout << "meshAngle" << dim << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+					sout << "meshAngle" << ModelDimension << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
 					MeshFileName = sout.str();
 				}
 				
@@ -372,7 +301,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				}
 				
 				// Solve using symmetric matrix then using Cholesky (direct method)
-				TPZSkylineStructMatrix strmat(cmesh);
+				TPZParSkylineStructMatrix strmat(cmesh,2);
 				an.SetStructuralMatrix(strmat);
 
 				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
@@ -384,7 +313,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				an.Run();
 				
 				// Post processing
-				an.PostProcess(0,dim);
+				an.PostProcess(0,ModelDimension);
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
@@ -401,7 +330,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
                 std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 				fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 				// Printing degree of freedom (number of equations)
-				fileerrors << "Refinement: " << nref << "  Dimension: " << dim << "  NEquations: " << cmesh->NEquations();
+				fileerrors << "Refinement: " << nref << "  Dimension: " << ModelDimension << "  NEquations: " << cmesh->NEquations();
 				an.PostProcessError(ervec,out);
 				ErrorVec[nref] = ervec[1];
 				NEquations[nref] = cmesh->NEquations();
@@ -409,7 +338,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << time_formated << std::endl;
-				REAL Tol;
+				STATE Tol;
 				ZeroTolerance(Tol);
 				std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << std::endl << "Starting hp adaptive analysis: " << std::endl;
 				if(NRefs > 1 && nref < (NRefs-1)) {
@@ -420,11 +349,13 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 						out.flush();
 						break;
 					}
-					ApplyingStrategyHPAdaptiveBasedOnExactSolution(cmesh,ervecbyel,nref);
+					ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,nref);
 					std::cout << "\nNumber of equations to next resolution " << cmesh->NEquations() << std::endl;
                 }
 				fileerrors.flush();
 				out.flush();
+//				delete cmesh;
+//				cmesh = 0;
 			}
 			if(cmesh)
 				delete cmesh;
@@ -454,38 +385,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
     return true;
 }
 
-void AdjustingOrder(TPZCompMesh *cmesh) {
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	int j, k, pelement, dp;
-	TPZInterpolatedElement *el;
-	STATE Tol;
-	ZeroTolerance(Tol);
-
-	// To see where the computation is doing
-	long i;
-	REAL GradNorm, LaplacianValue;
-	int level, level0 = 100;
-	// Searching least level of computational elements
-	// Applying hp refinement only for elements with dimension as model dimension
-	for(i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		level = el->Reference()->Level();
-		level0 = (level > level0) ? level0 : level;
-		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
-			DebugStop();
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-
-		if(LaplacianValue > 20. && (pelement+level0) < MaxPOrder) {
-			el->PRefine(pelement+level0);
-		}
-	}
-	// Adjusting boundary elements
-	cmesh->AdjustBoundaryElements();
-}
-
-void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int nref) {
 
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
@@ -502,7 +402,11 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<RE
 	int reftype = 0;
 	TPZVec<int> counterreftype(7,0);
 	REAL GradNorm, LaplacianValue;
+	REAL MaxGrad, MaxLaplacian;
 	long i;
+	REAL factor = 0.125*nref;
+
+	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -514,16 +418,61 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<RE
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
 
-		if(GradNorm > 5. || (GradNorm > 1. && nref < 2)) {
-			counterreftype[1]++;
+		if((nref > 1 && GradNorm > factor*MaxGrad) || (nref<2 && GradNorm > 1.)) {
+			if(LaplacianValue > .5*factor*MaxLaplacian && pelement+1<MaxPOrder) {
+				el->PRefine(pelement+1);
+				counterreftype[1]++;
+			}
+			else if(LaplacianValue < 0.5 && pelement>1) {
+				counterreftype[0]++;
+//				el->PRefine(pelement-1);
+			}
 			el->Divide(index,subels);
+		}
+		else if(LaplacianValue > 0.5*factor*MaxLaplacian && pelement+1<MaxPOrder) {
+			el->PRefine(pelement+1);
+			counterreftype[2]++;
 		}
 	}
 	// Printing information stored
-	out << "\nHP Refinement done:  " << nels << std::endl;
+	out << "\nHP Refinement done, on  " << nels << " computational elements: " << std::endl;
 	for(j=0;j<counterreftype.NElements();j++)
 		if(counterreftype[j])
 			out << "Refinement type " << j << " : " << counterreftype[j] << std::endl;
+}
+
+void AdjustingOrder(TPZCompMesh *cmesh) {
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	int j, k, pelement, dp;
+	TPZInterpolatedElement *el;
+	STATE Tol;
+	ZeroTolerance(Tol);
+
+	// To see where the computation is doing
+	long i;
+	REAL GradNorm, LaplacianValue;
+	int level, level0 = 100;
+	// Searching highest level of computational elements
+	for(i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		level = el->Reference()->Level();
+		level0 = (level < level0) ? level : level0;
+	}
+	// Applying hp refinement only for elements with dimension as model dimension
+	for(i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		level = el->Reference()->Level();
+//		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		if(level-level0+1 < MaxPOrder)
+			el->PRefine(level-level0+1);
+		else
+			el->PRefine(MaxPOrder);
+	}
+	// Adjusting boundary elements
+	cmesh->AdjustBoundaryElements();
 }
 
 /**
@@ -532,7 +481,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSolution(TPZCompMesh *cmesh,TPZVec<RE
  */
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
     long neq = analysis.Mesh()->NEquations();
-	int dim = analysis.Mesh()->Dimension();
+	if(ModelDimension != analysis.Mesh()->Dimension())
+		DebugStop();
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
@@ -546,7 +496,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 	REAL maxError = 0.0;
     for(i=0L;i<nel;i++) {
         TPZCompEl *el = (TPZCompEl *) elvec[i];
-		if(!el || el->Dimension() != dim) continue;
+		if(!el || el->Dimension() != ModelDimension) continue;
         if(el) {
             errors.Fill(0.0);
             el->EvaluateError(analysis.fExact, errors, 0);
@@ -765,7 +715,7 @@ void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *f
 //************************************************************************
 //**********   Creating computational mesh with materials    *************
 //************************************************************************
-TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
+TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
@@ -778,7 +728,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
         {
             TPZVec<REAL> convd(3,0.);
             ((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
-			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermCircle));
+			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermArcTangent));
         }
 			break;
 		case 2:
@@ -947,7 +897,7 @@ void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol,TPZFMatrix<STATE>
     dsol.Zero();
 }
 //**** Creating Geometric Mesh as square */
-TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
+TPZGeoMesh *CreateGeomMesh(MElementType typeel) {
 	TPZManVector<REAL> point(3,0.), pointlast(3,0.);
 	TPZGeoMesh* gmesh;
 	switch (typeel) {
@@ -1626,7 +1576,7 @@ TPZGeoMesh *ConstructingSeveral3DElementsInCube(REAL InitialL,MElementType typee
 }
 
 //*******Shell to deforming************
-TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
+TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
 	
 	// Generacion de una malla utilizando o GID previamente 
 	TPZReadGIDGrid grid;

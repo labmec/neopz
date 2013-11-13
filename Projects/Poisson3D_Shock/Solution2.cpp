@@ -7,68 +7,80 @@
 
 #include "problem.h"
 
-/** PROBLEM WITH HIGH GRADIENT ON CIRCUNFERENCE  ---  DATA  The term Pi was putted as factor coefficient */
-/*
-REAL VarTimesVarMinusOne(int var,int dim,const TPZVec<REAL> &x) {
+
+
+REAL VarTimesOneMinusVar(int var,int dim,const TPZVec<REAL> &x) {
 	if(var < dim)
-		return (x[var]*(x[var] - 1.));
+		return (x[var]*(1. - x[var]));
 	return 1.;
 }
 
-void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol) {
-	int dim = dsol.Rows();
+// Computes ||x-x0||^2
+REAL SquareNorm(int dim,const TPZManVector<REAL> &x,TPZVec<REAL> &x0) {
+	REAL norm = 0.0;
+	int i;
+	for(i=0;i<dim;i++)
+		norm += (x[i] - x0[i])*(x[i] - x0[i]);
+	return norm;
+}
+REAL ArgumentArc(int dim,REAL Radius,const TPZVec<REAL> &x,TPZVec<REAL> &x0) {
+	return (F*(Radius*Radius - SquareNorm(dim,x,x0)));
+}
+REAL PolinomicValue(int var,int dim,const TPZVec<REAL> &x,TPZVec<REAL> &x0) {
+	if(var<dim)
+		return (5*x[var]*x[var]-4.*x[var]*x0[var]-3.*x[var]+2.*x0[var]);
+	return 1.;
+}
+void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol) {
 	dsol.Zero();
 	ddsol.Resize(9);
-	REAL Coeff, B;
-	if(dim==1)
-		Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B = Coeff;
+	REAL B = 5.;
+	if(ModelDimension==1)
+		B *= 0.25;
+	else if(ModelDimension==3)
+		B *= 4;
 	// Argument value (arc) to compute ArcTangent( arc )
-    REAL arc = ArgumentArc(dim,RCircle,x,CCircle);
+    REAL arc = ArgumentArc(ModelDimension,RCircle,x,CCircle);
     REAL Prod, temp, den;
-	REAL prodx = VarTimesVarMinusOne(0,dim,x);
-	REAL prody = VarTimesVarMinusOne(1,dim,x);
-	REAL prodz = VarTimesVarMinusOne(2,dim,x);
+	REAL prodx = VarTimesOneMinusVar(0,ModelDimension,x);
+	REAL prody = VarTimesOneMinusVar(1,ModelDimension,x);
+	REAL prodz = VarTimesOneMinusVar(2,ModelDimension,x);
 
     Prod = prodx*prody*prodz;
-    temp = 1. + (atan(arc)/(0.5*M_PI));
+    temp = 0.5*M_PI + atan(arc);
     sol[0] = B*Prod*temp;
 	den = 1. + arc*arc;
 	
 	// Derivatives of the first order
-    dsol(0,0) = B*prody*prodz*((2*x[0]-1.)*temp - (4*F*(x[0]-CCircle[0])*(prodx/den)));
-    if(dim==2) {
-        dsol(1,0) = B*prodx*prodz*((2*x[1]-1.)*temp - (4*F*(x[1]-CCircle[1])*(prody/den)));
+    dsol(0,0) = B*prody*prodz*((1.-2*x[0])*temp - (2*F*(x[0]-CCircle[0])*(prodx/den)));
+    if(ModelDimension==2) {
+        dsol(1,0) = B*prodx*prodz*((1.-2*x[1])*temp - (2*F*(x[1]-CCircle[1])*(prody/den)));
     }
-    else if(dim==3) {
-        dsol(2,0) = B*prodx*prody*((2*x[2]-1.)*temp - (4*F*(x[2]-CCircle[2])*(prodz/den)));
+    else if(ModelDimension==3) {
+        dsol(2,0) = B*prodx*prody*((1.-2*x[2])*temp - (2*F*(x[2]-CCircle[2])*(prodz/den)));
     }
 
 	//Derivatives of the second order
 	// ddsol = {d2u/dx2, d2u/dxdy, d2u/dxdz, d2u/dy2, d2u/dydx, d2u/dydz, d2u/dz2, d2u/dzdx, d2u/dzdy}
 	for(int i=0;i<9;i++)
 		ddsol[i] = 0.0;
-	REAL poli = PolinomicValue(0,dim,x,CCircle);
-	REAL sum2 = 4*F*(poli/den);
-	REAL sum3 = 16*F*F*prodx*(x[0]-CCircle[0])*(x[0]-CCircle[0])*(arc/(den*den));
-	ddsol[0] = B*prody*prodz*(2*temp-sum2-sum3);
-	if(dim > 1) {
-		poli = PolinomicValue(1,dim,x,CCircle);
-		sum2 = 4*F*(poli/(den));
-		sum3 = 16*F*F*prody*(x[1]-CCircle[1])*(x[1]-CCircle[1])*(arc/(den*den));
-		ddsol[3] = B*prodx*prodz*(2*temp-sum2-sum3);
-		poli = (2*x[0] - 1)*(2*x[1] - 1.)*temp;
-		sum2 = prodx*(2*x[1]-1)*(x[0]-CCircle[0])+prody*(2*x[0]-1)*(x[1]-CCircle[1]);
+	REAL poli = PolinomicValue(0,ModelDimension,x,CCircle);
+	REAL sum2 = F*(poli/den);
+	REAL sum3 = 4.*F*F*prodx*(x[0]-CCircle[0])*(x[0]-CCircle[0])*(arc/(den*den));
+	ddsol[0] = -2.*B*prody*prodz*(temp-sum2+sum3);
+	if(ModelDimension > 1) {
+		poli = PolinomicValue(1,ModelDimension,x,CCircle);
+		sum2 = F*(poli/(den));
+		sum3 = 4.*F*F*prody*(x[1]-CCircle[1])*(x[1]-CCircle[1])*(arc/(den*den));
+		ddsol[3] = -2.*B*prodx*prodz*(temp-sum2+sum3);
+		poli = (1.-2*x[0])*(1.-2*x[1])*temp;
+		sum2 = prodx*(1.-2*x[1])*(x[0]-CCircle[0])+prody*(1.-2*x[0])*(x[1]-CCircle[1]);
 		sum3 = prodx*prody*(x[0]-CCircle[0])*(x[1]-CCircle[1])*arc;
-		ddsol[4] = B*prodz*(poli-((4*F*sum2)/den)-((16*F*F*sum3)/(den*den)));
+		ddsol[4] = B*prodz*(poli-((2.*F*sum2)/den)-((8.*F*F*sum3)/(den*den)));
 		ddsol[1] = ddsol[4];
 	}
-	if(dim==3) {
-		poli = PolinomicValue(2,dim,x,CCircle);
+	if(ModelDimension==3) {  // Revisar
+		poli = PolinomicValue(2,ModelDimension,x,CCircle);
 		sum2 = 4*F*(poli/(den));
 		sum3 = 16*F*F*prodz*(x[2]-CCircle[2])*(x[2]-CCircle[2])*(arc/(den*den));
 		ddsol[6] = B*prodx*prody*(2*temp-sum2-sum3);
@@ -84,40 +96,36 @@ void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<S
 		ddsol[8] = ddsol[5];
 	}
 }
-void ExactSolutionSphere(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
-	int dim = dsol.Rows();
+void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
 	dsol.Zero();
-	REAL Coeff, B;
-	if(dim==1)
-		Coeff = -2.;
-	else if(dim==2)
-		Coeff = 8.;
-	else
-		Coeff = -32.;
-	B = Coeff/M_PI;
+	REAL B = 5.;
+	if(ModelDimension==1)
+		B *= 0.25;
+	else if(ModelDimension==3)
+		B *= 4;
 	// Argument value (arc) to compute ArcTangent( arc )
-    REAL arc = ArgumentArc(dim,RCircle,x,CCircle);
+    REAL arc = ArgumentArc(ModelDimension,RCircle,x,CCircle);
     REAL Prod, temp, den;
-	REAL prodx = VarTimesVarMinusOne(0,dim,x);
-	REAL prody = VarTimesVarMinusOne(1,dim,x);
-	REAL prodz = VarTimesVarMinusOne(2,dim,x);
+	REAL prodx = VarTimesOneMinusVar(0,ModelDimension,x);
+	REAL prody = VarTimesOneMinusVar(1,ModelDimension,x);
+	REAL prodz = VarTimesOneMinusVar(2,ModelDimension,x);
 
     Prod = prodx*prody*prodz;
-    temp = M_PI + 2.*atan2(arc,1);
+    temp = 0.5*M_PI + atan(arc);
     sol[0] = B*Prod*temp;
 	den = 1. + arc*arc;
 	
 	// Derivatives of the first order
-    dsol(0,0) = B*prody*prodz*((2*x[0]-1.)*temp - (4*F*(x[0]-CCircle[0])*(prodx/den)));
-    if(dim==2) {
-        dsol(1,0) = B*prodx*prodz*((2*x[1]-1.)*temp - (4*F*(x[1]-CCircle[1])*(prody/den)));
+    dsol(0,0) = B*prody*prodz*((1.-2*x[0])*temp - (2*F*(x[0]-CCircle[0])*(prodx/den)));
+    if(ModelDimension==2) {
+        dsol(1,0) = B*prodx*prodz*((1.-2*x[1])*temp - (2*F*(x[1]-CCircle[1])*(prody/den)));
     }
-    else if(dim==3) {
-        dsol(2,0) = B*prodx*prody*((2*x[2]-1.)*temp - (4*F*(x[2]-CCircle[2])*(prodz/den)));
+    else if(ModelDimension==3) {
+        dsol(2,0) = B*prodx*prody*((1.-2*x[2])*temp - (2*F*(x[2]-CCircle[2])*(prodz/den)));
     }
 }
 
-bool GradientAndLaplacianToSphereOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
+bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
 	Grad = 0.0;
 	Laplacian = 0.0;
 	if(!el) return false;
@@ -144,7 +152,7 @@ bool GradientAndLaplacianToSphereOnCorners(TPZInterpolatedElement *el,REAL &Grad
 		LaplacianTemp = 0.0;
 		el->Reference()->CenterPoint(i, qsi);
 		el->Reference()->X(qsi,x);
-		ExactSolutionSphere(x,sol,dsol,deriv2);
+		ExactSolutionArcTangent(x,sol,dsol,deriv2);
 		for(idsol=0;idsol<dim;idsol++) {
 			GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 			GradTemp += GradUSquare[idsol];
@@ -169,8 +177,67 @@ bool GradientAndLaplacianToSphereOnCorners(TPZInterpolatedElement *el,REAL &Grad
 	}
 	return true;
 }
+bool GradientAndLaplacian(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian) {
+	Grad = 0.0;
+	Laplacian = 0.0;
+	if(!el) return false;
+	int nstates = el->Material()->NStateVariables();
+    int dim = el->Dimension(), i, idsol;
+    TPZManVector<STATE,3> sol(nstates,(STATE)0.0);
+    TPZFMatrix<STATE> dsol(dim,nstates);
+	dsol.Zero();
+	TPZVec<REAL> qsi(3,0.0);
+	TPZManVector<REAL,3> x(3,0.0);
+	TPZManVector<STATE,9> deriv2(9,0.0);
 
-STATE GradientNormToSphere(TPZInterpolatedElement *el) {
+	TPZManVector<STATE,3> GradUSquare(3,0.0);
+
+	// Computing on the center of the element
+	// Computing gradient and gradient norm maxime
+	el->Reference()->CenterPoint(el->NConnects()-1, qsi);
+	el->Reference()->X(qsi,x);
+	ExactSolutionArcTangent(x,sol,dsol,deriv2);
+	for(idsol=0;idsol<dim;idsol++) {
+		GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
+		Grad += GradUSquare[idsol];
+	}
+	Grad = sqrt(Grad);
+
+	// Computing the curvature on the line with gradient vector as vector direction
+	if(dim==1)
+		Laplacian = fabs(deriv2[0]);
+	else if(dim==2) {
+		Laplacian = fabs(deriv2[0]*GradUSquare[0]+deriv2[3]*GradUSquare[1]+(dsol.GetVal(0,0)*dsol.GetVal(1,0)*(deriv2[1]+deriv2[4])));
+	}
+	else {
+		Laplacian = deriv2[0]*GradUSquare[0]+deriv2[3]*GradUSquare[1]+deriv2[6]*GradUSquare[2];
+		REAL Temp = Laplacian + dsol(0,0)*dsol(1,0)*(deriv2[1]+deriv2[4]);
+		Temp += dsol(0,0)*dsol(2,0)*(deriv2[2]+deriv2[7]);
+		Temp += dsol(1,0)*dsol(2,0)*(deriv2[5]+deriv2[8]);
+		Laplacian = fabs(Temp);
+	}
+	return true;
+}
+void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,REAL &MaxGrad,REAL &MaxLaplacian) {
+	MaxGrad = 0.0;
+	MaxLaplacian = 0.0;
+	REAL Grad, Laplacian;
+	long nels = cmesh->NElements();
+	TPZInterpolatedElement *el;
+
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		// If error is small and laplacian value is very little then the order will be minimized
+		if(!GradientAndLaplacian(el,Grad,Laplacian))
+			DebugStop();
+
+		MaxGrad = (Grad > MaxGrad) ? Grad : MaxGrad;
+		MaxLaplacian = (Laplacian > MaxLaplacian) ? Laplacian : MaxLaplacian;
+	}
+}
+
+STATE GradientNorm(TPZInterpolatedElement *el) {
 	STATE Grad = 0.0;
 	if(!el) return false;
 	int nstates = el->Material()->NStateVariables();
@@ -195,18 +262,17 @@ STATE GradientNormToSphere(TPZInterpolatedElement *el) {
 	    GradTemp = 0.0;
 		el->Reference()->CenterPoint(i, qsi);
 		el->Reference()->X(qsi,x);
-		ExactSolutionSphere(x,sol,dsol,deriv2);
+		ExactSolutionArcTangent(x,sol,dsol,deriv2);
 		for(idsol=0;idsol<dim;idsol++) {
 			GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 			GradTemp += GradUSquare[idsol];
 		}
 		GradTemp = sqrt(GradTemp);
 		Grad = (Grad > GradTemp) ? Grad : GradTemp;
-
 	}
 	return Grad;
 }
-STATE LaplacianToSphere(TPZInterpolatedElement *el) {
+STATE Laplacian(TPZInterpolatedElement *el) {
 	REAL Laplacian;
 	if(!el) return false;
 	int nstates = el->Material()->NStateVariables();
@@ -231,7 +297,7 @@ STATE LaplacianToSphere(TPZInterpolatedElement *el) {
 		LaplacianTemp = 0.0;
 		el->Reference()->CenterPoint(i, qsi);
 		el->Reference()->X(qsi,x);
-		ExactSolutionSphere(x,sol,dsol,deriv2);
+		ExactSolutionArcTangent(x,sol,dsol,deriv2);
 		for(idsol=0;idsol<dim;idsol++) {
 			GradUSquare[idsol] = dsol.GetVal(idsol,0)*dsol.GetVal(idsol,0);
 		}
@@ -254,54 +320,18 @@ STATE LaplacianToSphere(TPZInterpolatedElement *el) {
 	return Laplacian;
 }
 
-// We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method *
-void RightTermSphere(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce) {
-	int dim = dforce.Rows();
+/** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
+void RightTermArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce) {
     TPZManVector<STATE,3> sol(1,(STATE)0.0);
-    TPZFMatrix<STATE> dsol(dim,1);
+    TPZFMatrix<STATE> dsol(ModelDimension,1);
 	dsol.Zero();
 	TPZVec<REAL> qsi(3,0.0);
 	TPZManVector<STATE,9> deriv2(9,0.0);
 
 	// Computing gradient and gradient norm maxime
-	ExactSolutionSphere(x,sol,dsol,deriv2);
+	ExactSolutionArcTangent(x,sol,dsol,deriv2);
 	force[0] = 0.0;
-	for(int i=0;i<dim;i++)
+	for(int i=0;i<ModelDimension;i++)
 		force[0] += deriv2[3*i];
 	force[0] *= (ValueK);
 }
-
-bool CheckFunctionAndDerivatives(std::ifstream &inpoint,std::ifstream &math) {
-	if(!inpoint.is_open() || !math.is_open())
-		return false;
-	int npoints, dim, nvalues, i, j;
-	TPZVec<REAL> point(3);
-	TPZVec<REAL> values(20,0.0);
-	inpoint >> dim >> npoints;
-	math >> nvalues;
-	// Variables to computing function and derivatives values
-	TPZVec<STATE> sol(1);
-	TPZFMatrix<STATE> dsol(dim,1);
-	TPZVec<STATE> deriv2;
-
-	// Reading points and mathematica values and comparing with implementation compute
-	for(i=0;i<npoints;i++) {
-		for(j=0;j<dim;j++)
-			inpoint >> point[j];
-		ExactSolutionArcTangent(point,sol,dsol,deriv2);
-		if(dim==2) {
-			deriv2[2] = deriv2[3];
-		}
-		for(j=0;j<nvalues;j++)
-			math >> values[j];
-		if(!IsZero((float)(values[0] - sol[0]))) return false;
-		for(j=0;j<dim;j++)
-			if(!IsZero((float)(values[j+1] - dsol(j,0))))
-				return false;
-		for(j=0;j<(nvalues-dim-1);j++)
-			if(!IsZero((float)(values[j+dim+1] - deriv2[j])))
-				return false;
-	}
-	return true;
-}
-*/

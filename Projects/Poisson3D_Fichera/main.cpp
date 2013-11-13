@@ -61,7 +61,7 @@ void ExactRachowicz(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE>
 
 void ExactSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 void BCSolin(const TPZVec<REAL> &x, TPZVec<STATE> &sol);
-void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f);
+void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &dsol);
 
 //void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<STATE> &InitialSol, TPZCompMesh *cmesh);
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0;
-	int nref, NRefs = 7;
+	int nref, NRefs = 5;
 	int nthread, NThreads = 2;
 	int dim = 3;
 	// Problem
@@ -147,8 +147,11 @@ int main(int argc, char *argv[]) {
 				//			}
 				
 				// Creating computational mesh
+				// Selecting orthogonal polynomial family to construct shape functions
+				if(anothertests)
+					TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
 				/** Set polynomial order */
-				int p = 6, pinit;
+				int p = 2, pinit;
 				pinit = p;
 				TPZCompEl::SetgOrder(1);
 				TPZCompMesh *cmesh = CreateMesh(gmesh3D,dim,1,problem);
@@ -291,7 +294,7 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<STATE> &bcsol) {
 	bcsol[0] = sqrt(raiz);
 }
 
-void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f) {
+void FforcingSolin(const TPZVec<REAL> &x, TPZVec<STATE> &f,TPZFMatrix<STATE> &df) {
 	REAL quad_r = (x[0]*x[0]) + (x[1]*x[1]) + (x[2]*x[2]);
 	REAL raiz = sqrt( sqrt(quad_r * quad_r * quad_r) );
 	if(!IsZero(raiz)) {
