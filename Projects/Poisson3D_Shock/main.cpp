@@ -205,7 +205,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
         //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -404,9 +404,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i;
-	REAL factor = 0.125*nref;
+	REAL factor = 0.2*nref;
+//	if(nref>3)
+	//	factor = 0.9;
 
 	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
+	REAL MinGrad = 1.e+5, MinLap = 1.e+7;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -418,27 +421,41 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
 
+
+		// EXTRAS START
+		if(GradNorm > factor*MaxGrad) {
+			counterreftype[5]++;
+			MinGrad = (MinGrad < GradNorm) ? MinGrad : GradNorm;
+		}
+		if(LaplacianValue > .5*factor*MaxLaplacian) {
+			counterreftype[6]++;
+			MinLap = (MinLap < LaplacianValue) ? MinLap : LaplacianValue;
+		}
+		// EXTRAS END
+
+
 		if((nref > 1 && GradNorm > factor*MaxGrad) || (nref<2 && GradNorm > 1.)) {
 			if(LaplacianValue > .5*factor*MaxLaplacian && pelement+1<MaxPOrder) {
 				el->PRefine(pelement+1);
 				counterreftype[1]++;
 			}
-			else if(LaplacianValue < 0.5 && pelement>1) {
-				counterreftype[0]++;
-//				el->PRefine(pelement-1);
-			}
 			el->Divide(index,subels);
 		}
-		else if(LaplacianValue > 0.5*factor*MaxLaplacian && pelement+1<MaxPOrder) {
+		else if(LaplacianValue > .5*factor*MaxLaplacian && pelement+1<MaxPOrder) {
 			el->PRefine(pelement+1);
 			counterreftype[2]++;
+		}
+		else if(LaplacianValue < .1 && pelement-1 > 0) {
+			el->PRefine(pelement-1);
+			counterreftype[0]++;
 		}
 	}
 	// Printing information stored
 	out << "\nHP Refinement done, on  " << nels << " computational elements: " << std::endl;
 	for(j=0;j<counterreftype.NElements();j++)
 		if(counterreftype[j])
-			out << "Refinement type " << j << " : " << counterreftype[j] << std::endl;
+			out << "Refinement type " << j << " : " << counterreftype[j] << " 4x : " << 4*counterreftype[j] << std::endl;
+	out << "\n\nMinimu Grad: " << MinGrad << " MG " << factor*MaxGrad << " M " << MaxGrad << " - Min Laplacian: " << MinLap << " ML " << 0.5*factor*MaxLaplacian << " M " << MaxLaplacian << std::endl;
 }
 
 void AdjustingOrder(TPZCompMesh *cmesh) {
