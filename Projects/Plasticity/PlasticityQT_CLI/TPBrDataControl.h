@@ -89,26 +89,22 @@ public:
       return simid;
     }
 
-    int GetMedId (TPBrSimulationData &labdataobj) {
-      int MedId;
+    void GetMed (int medid, TPBrLaboratoryData &labdataobj) {
+      if (fMedicoes.find(medid) == fMedicoes.end()) //nao eh medicao
+	DebugStop();
       
-      for (int i=0; i<fMedicoes.size(); i++){
-	if (fMedicoes[i] == labdataobj)	
-	  MedId = i;
-      }
-      
-      return MedId;
+      labdataobj = fMedicoes[medid];
     }
     
-    int GetSimId (int medid, TPBrLaboratoryData fMedicoes, TPBrSimulationData &simdataobj) {
-      int SimId;
+    void GetSim (int simid, TPBrSimulationData &simdataobj) {
+      if (fMapSimMed.find(simid) == fMapSimMed.end()) //nao existe essa simulacao
+	DebugStop();
       
-      for (int i=0; i<fMedicoes[medid].fSimulacoes.size(); i++){
-	if (fMedicoes[medid].fSimulacoes[i] == simdataobj)	
-	  SimId = i;
-      }
+      int medid = fMapSimMed[simid];
       
-      return SimId;
+      std::cout << "MedGID: " << fMedicoes[medid].GlobalId();
+      std::cout << "SimGID: " << fMedicoes[medid].fSimulacoes[simid].GlobalId();
+      simdataobj = fMedicoes[medid].fSimulacoes[simid];
     }
 };
 

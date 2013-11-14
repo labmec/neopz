@@ -40,6 +40,18 @@ int main(int argc, char *argv[])
       //DADOS.DeleteLabData(0);
       //DADOS.DeleteLabData(0);
       
+      TPBrSimulationData retsim;
+      retsim.SetGlobalId(99);
+      DADOS.GetSim(3, retsim);
+      
+      std::cout << "GetSim " << retsim.GlobalId() << std::endl;
+      
+      TPBrLaboratoryData retmed;
+      DADOS.GetMed(2, retmed);
+      
+      std::cout << "GetMed " << retmed.GlobalId() << " size " << retmed.fSimulacoes.size() << std::endl;
+      
+      
       std::cout << "END" << std::endl;
 
 }
