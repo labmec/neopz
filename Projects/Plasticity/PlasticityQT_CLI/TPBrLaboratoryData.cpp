@@ -6,12 +6,19 @@ TPBrLaboratoryData::TPBrLaboratoryData()
 {
     fstart_idx = -1;
     fend_idx = -1;
-    fCounter = 0;
 }
 
 TPBrLaboratoryData::TPBrLaboratoryData(const std::string &filename)
 {
+    fstart_idx = -1;
+    fend_idx = -1;
     ReadInputStrainStress(filename);
+}
+
+int TPBrLaboratoryData::InsertSimulationData (const TPBrSimulationData &simdataobj) {
+      int simid = DADOS.GenerateNewIndex();
+      fSimulacoes[simid] = simdataobj;
+      return simid;
 }
 
 int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj) {
@@ -29,17 +36,15 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
   
     
     TPBrSimulationData result;
-    result.Set_medicao_idx(this->GlobalId());
+    int medid = GlobalId();
+    result.Set_medicao_idx(medid);
     result.Set_start_idx(fstart_idx);
     result.Set_end_idx(fend_idx);
-    int resultindex = GenerateNewIndex();
-						  int resultid = DADOS.GenerateNewIndex();
-						  result.SetGlobalId(resultid);
     result.SetStrainStress(sigax, epsax, sigr, epsr);
-    fSimulacoes[resultindex] = result;
+    int resultid = DADOS.InsertSimulationData(medid, result);
     
   //return inserted position
-  return resultindex;
+  return resultid;
 }
 
 /// read the input strain and stress from the laboratory file

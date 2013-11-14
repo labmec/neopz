@@ -9,12 +9,10 @@
 
 class TPBrLaboratoryData : public TPBrStrainStressDataBase
 {
-  
-private:
-    /// ultimo indice que foi utilizado
-    int fCounter;
-
 public:
+      //contains all simulations related to 'this' lab file
+    std::map<int, TPBrSimulationData> fSimulacoes;
+  
     TPBrLaboratoryData();  
     TPBrLaboratoryData(const std::string &filename);
     
@@ -51,35 +49,17 @@ public:
         return fend_idx;
     }
     
-    int GenerateNewIndex()
-    {
-        fCounter++;
-        return fCounter-1;
-    }
-    
     /// read the input strain and stress from the laboratory file
     void ReadInputStrainStress(const std::string &filename);
-    
 
     int RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
     
-    void DeleteSimulation (int sim_idx) {
-      if (fSimulacoes.find(sim_idx) == fSimulacoes.end())
-	DebugStop();
-      fSimulacoes.erase(sim_idx);
-    }
-    
-    void DeleteAllSimulations () {
-      fSimulacoes.clear();
-    }
+    int InsertSimulationData (const TPBrSimulationData &simdataobj);
 
 protected:
     int fstart_idx;
     int fend_idx;
     
-    //contains all simulations related to 'this' lab file
-    std::map<int, TPBrSimulationData> fSimulacoes;
-
 };
 
 #endif // TPBrLaboratoryData_H

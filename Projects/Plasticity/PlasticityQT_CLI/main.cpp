@@ -23,9 +23,22 @@ int main(int argc, char *argv[])
       DADOS.SetSandlerDimaggio(sandlerObj);
       
       TPBrLaboratoryData newLabFile (FileName);
-      newLabFile.Set_start_idx(100);
-      int idx_sim = newLabFile.RunSimulation(sandlerObj);
       int med_idx = DADOS.InsertLaboratoryData(newLabFile);
+      DADOS.fMedicoes[med_idx].Set_start_idx(100);
+      int idx_sim = DADOS.fMedicoes[med_idx].RunSimulation(sandlerObj);
+      
+      TPBrLaboratoryData newLabFile2 (FileName);
+      int med_idx2 = DADOS.InsertLaboratoryData(newLabFile2);
+      DADOS.fMedicoes[med_idx2].Set_start_idx(100);
+      int idx_sim2 = DADOS.fMedicoes[med_idx2].RunSimulation(sandlerObj);
+      int idx_sim3 = DADOS.fMedicoes[med_idx2].RunSimulation(sandlerObj);
+      
+      std::cout << "Simid1: " << idx_sim << " Simid2 " << idx_sim2 << " Simid3 " << idx_sim3  << " Medid1 " << med_idx << " Medid2 " << med_idx2 << std::endl;
+      
+      //DADOS.DeleteLabData(2);
+      //DADOS.DeleteSimulationData(1);
+      //DADOS.DeleteLabData(0);
+      //DADOS.DeleteLabData(0);
       
       std::cout << "END" << std::endl;
 
