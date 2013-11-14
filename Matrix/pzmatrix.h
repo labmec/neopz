@@ -29,10 +29,12 @@ class TPZSolver;
 template<class T>
 class TPZVec;
 
+#ifndef USING_MKL
 extern "C"{
 	/// Extern BLAS FUNCTION 
 	double ddot(int *N, double *X, int *INCX, double *Y, int *INCY);
 }
+#endif
 
 /** \addtogroup matrix
  * @{

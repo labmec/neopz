@@ -253,6 +253,25 @@ if(USING_PAPI)
         endif()
 endif(USING_PAPI)
 
+#enabling MKL library 
+option(USING_MKL "Whether the MKL library will be linked in" OFF)
+if(USING_MKL)
+        add_definitions(-DUSING_MKL)
+        find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include)
+        find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.a PATHS ${SEARCH_DIRS} /opt/intel/mkl/lib)
+        find_library(MKL_LIB_CORE NAMES libmkl_core.a PATHS ${SEARCH_DIRS} /opt/intel/mkl/lib)
+        find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.a PATHS ${SEARCH_DIRS} /opt/intel/mkl/lib)
+        if(MKL_INCLUDE-NOTFOUND)
+                set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
+        else()
+                include_directories(${MKL_INCLUDE})
+        endif()
+        if(MKL_LIB-NOTFOUND)
+                set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
+        endif()
+endif(USING_MKL)
+
+
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
