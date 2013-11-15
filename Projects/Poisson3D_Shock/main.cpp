@@ -139,13 +139,18 @@ bool SolveLaplaceProblemOnLShapeMesh();
 // Generic data for problems to solve
 bool usethreads = false;
 int MaxPOrder = 8;
-int NRefs = 6;
+int NRefs = 8;
 int ninitialrefs = 3;
 
-
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel);
+/**
+ * Get Global L2 Error for solution and the L2 error for each element.
+ * Return the maxime L2 error by elements. Also return in MinErrorByElement argument the minime L2 error for all elements of the mesh.
+ */
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinErrorByElement);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
-void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int ref);
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
+// Writing a relation between number of degree of freedom and L2 error.
+bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
 
 
 void AdjustingOrder(TPZCompMesh *cmesh);
@@ -201,11 +206,13 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		// Initializing the auto adaptive process
 		TPZVec<REAL> ervec, ErrorVec;
 		TPZVec<long> NEquations;
+		TPZManVector<REAL> ervecbyel;
 
 		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
-        //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+
+		/** Solving for each type of geometric elements */
+		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -220,6 +227,12 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				gmesh = CreateGeomMesh(typeel);
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
+			if(ModelDimension == 1)
+				NRefs = 12;
+			else if(ModelDimension == 2)
+				NRefs = 7;
+			else if(ModelDimension == 3)
+				NRefs = 4;
 			
 			// To storing number of equations and errors obtained for all iterations
 			ErrorVec.Resize(NRefs,0.0);
@@ -265,7 +278,6 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);               // Forcing function is out 2013_07_25
 
-			TPZManVector<REAL> ervecbyel;
 			// loop solving iteratively
 			for(nref=0;nref<NRefs;nref++) {
 				out << "\nConstructing Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
@@ -328,7 +340,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				formatTimeInSec(time_formated,256,time_elapsed);
 				out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
-				ProcessingError(an,ervec,ervecbyel);
+				REAL MinErrorByElement;
+				REAL MaxErrorByElement = ProcessingError(an,ervec,ervecbyel,MinErrorByElement);
 //				an.PostProcessError(ervec,out);
 				// Printing obtained errors
 				for(int rr=0;rr<ervec.NElements();rr++)
@@ -343,7 +356,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl;
 				if(NRefs > 1 && nref < (NRefs-1)) {
 					if(ervec[1] < Tol) {
-						fileerrors << "Tolerance reached but no maxime refinements, Ref " << nref << "." << std::endl;
+						fileerrors << "TOLERANCE REACHED - SUCCESFULL RUNNING IN STEP Refinement: " << nref << "." << std::endl;
 						fileerrors.flush();
 						out.flush();
 						break;
@@ -353,7 +366,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 					// Printing degree of freedom (number of equations)
 					fileerrors << "Refinement: " << nref << "  Dimension: " << ModelDimension << "  NEquations: " << cmesh->NEquations();
-					ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,nref);
+					ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,MaxErrorByElement,MinErrorByElement,nref);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -367,17 +380,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				delete gmesh;
 			gmesh = NULL;
 			// Writing a relation between number of degree of freedom and L2 error.
-			fileerrors << "NEquations = {";
-			for(nref=0;nref<NRefs-1;nref++) {
-				fileerrors << NEquations[nref] << ", ";
-			}
-			fileerrors << NEquations[nref] << "};" << std::endl << "L2Error = {";
-			for(nref=0;nref<NRefs-1;nref++) {
-				fileerrors << ErrorVec[nref] << ", ";
-			}
-			fileerrors << ErrorVec[nref] << "};" << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
-			fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
-			fileerrors << "ListPlot[Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}],Joined->True]" << std::endl;
+			if(!PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors))
+				std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
 		}
 	}
 	
@@ -388,7 +392,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
     return true;
 }
 
-void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
 
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
@@ -407,6 +411,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i;
+	REAL IncrementError = 0.8*(MaxErrorByElement-MinErrorByElement);
 	REAL factorGrad = 0.15*(nref+1);
 	REAL factorLap = 0.5+0.15*(nref+1);
 	if(factorGrad > 0.95)
@@ -423,7 +428,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
-		if(ervecbyel[index] < 10*Tol) {
+		// If the element is suficciently little do nothing
+		if(ervecbyel[index] < Tol) {
 			counterreftype[0]++;
 			continue;
 		}
@@ -444,7 +450,10 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		}
 		// EXTRAS END
 
-		if(ervecbyel[index] > 10000*Tol) {
+		// Determining a factor to make different strategies to generated least number of dofs.
+
+		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
+		if(nref < 1 || ervecbyel[index] > MinErrorByElement+IncrementError) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
 				flag = false;
@@ -496,6 +505,86 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	out << "\nRef(" << nref << ") Minimu Grad: " << MinGrad << " MG " << factorGrad*MaxGrad << "(" << factorGrad << ") M " << MaxGrad << " - Min Laplacian: " << MinLap << " ML " << factorLap*MaxLaplacian << "(" << factorLap << ") M " << MaxLaplacian << std::endl;
 }
 
+/**
+ * Get Global L2 Error for solution and the L2 error for each element.
+ * Return the maxime L2 error by elements. Also return in MinErrorByElement argument the minime L2 error for all elements of the mesh.
+ */
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinErrorByElement) {
+    long neq = analysis.Mesh()->NEquations();
+	if(ModelDimension != analysis.Mesh()->Dimension())
+		DebugStop();
+    TPZVec<REAL> ux(neq);
+    TPZVec<REAL> sigx(neq);
+    TPZManVector<REAL,10> values(10,0.);
+    analysis.Mesh()->LoadSolution(analysis.Solution());
+
+	TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
+    TPZManVector<REAL,10> errors(10);
+    errors.Fill(0.0);
+    long i, nel = elvec.NElements();
+	ervecbyel.Resize(nel,0.0);
+	REAL maxError = 0.0;
+	MinErrorByElement = 1.e+5;
+
+	/** Computing error for all elements with same dimension of the model */
+    for(i=0L;i<nel;i++) {
+        TPZCompEl *el = (TPZCompEl *) elvec[i];
+		if(!el || el->Dimension() != ModelDimension) continue;
+        if(el) {
+            errors.Fill(0.0);
+            el->EvaluateError(analysis.fExact, errors, 0);
+            int nerrors = errors.NElements();
+            values.Resize(nerrors, 0.);
+            for(int ier = 0; ier < nerrors; ier++)
+                values[ier] += errors[ier] * errors[ier];
+			// L2 error for each element
+			ervecbyel[i] = sqrt(errors[1]*errors[1]);
+			// The computed error by current element is compared with max and min values to return
+			if(ervecbyel[i] > maxError)
+				maxError = ervecbyel[i];
+			else if(ervecbyel[i] < MinErrorByElement)
+				MinErrorByElement = ervecbyel[i];
+        }
+    }
+    
+    int nerrors = errors.NElements();
+	ervec.Resize(nerrors);
+	ervec.Fill(-1.0);
+    
+	// Returns the square of the calculated errors.
+	for(i=0;i<nerrors;i++)
+		ervec[i] = sqrt(values[i]);
+    return maxError;
+}
+// Writing a relation between number of degree of freedom and L2 error.
+bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
+	int nref;
+	int NRefs = ErrorVec.NElements();
+	// setting format for ostream
+	fileerrors << setprecision(13);
+	fileerrors.setf(std::ios::fixed, std::ios::floatfield);
+	
+	if(NRefs != NEquations.NElements())
+		return false;
+	fileerrors << "\nNEquations = {";
+
+	// printing number of equations into a list
+	for(nref=0;nref<NRefs-1;nref++) {
+		fileerrors << NEquations[nref] << ", ";
+	}
+	fileerrors << NEquations[nref] << "};" << std::endl << "L2Error = {";
+	// printing error values into a list
+	for(nref=0;nref<NRefs-1;nref++) {
+		fileerrors << ErrorVec[nref] << ", ";
+	}
+	fileerrors << ErrorVec[nref] << "};";
+	// printing lines to create lists of logarithms
+	fileerrors << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
+	fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
+	// printing line to make a graphics log_nequations x log_errors
+	fileerrors << "ListPlot[Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}],Joined->True,PlotRange->All]" << std::endl;
+	return true;
+}
 void AdjustingOrder(TPZCompMesh *cmesh) {
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
@@ -530,51 +619,7 @@ void AdjustingOrder(TPZCompMesh *cmesh) {
 	cmesh->AdjustBoundaryElements();
 }
 
-/**
- * Get Global L2 Error for solution and the L2 error for each element.
- * Return the maxime L2 error by elements.
- */
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel) {
-    long neq = analysis.Mesh()->NEquations();
-	if(ModelDimension != analysis.Mesh()->Dimension())
-		DebugStop();
-    TPZVec<REAL> ux(neq);
-    TPZVec<REAL> sigx(neq);
-    TPZManVector<REAL,10> values(10,0.);
-    analysis.Mesh()->LoadSolution(analysis.Solution());
 
-	TPZAdmChunkVector<TPZCompEl *> elvec = analysis.Mesh()->ElementVec();
-    TPZManVector<REAL,10> errors(10);
-    errors.Fill(0.0);
-    long i, nel = elvec.NElements();
-	ervecbyel.Resize(nel,0.0);
-	REAL maxError = 0.0;
-    for(i=0L;i<nel;i++) {
-        TPZCompEl *el = (TPZCompEl *) elvec[i];
-		if(!el || el->Dimension() != ModelDimension) continue;
-        if(el) {
-            errors.Fill(0.0);
-            el->EvaluateError(analysis.fExact, errors, 0);
-            int nerrors = errors.NElements();
-            values.Resize(nerrors, 0.);
-            for(int ier = 0; ier < nerrors; ier++)
-                values[ier] += errors[ier] * errors[ier];
-			// L2 error for each element
-			ervecbyel[i] = sqrt(errors[1]*errors[1]);
-			if(ervecbyel[i] > maxError)
-				maxError = ervecbyel[i];
-        }
-    }
-    
-    int nerrors = errors.NElements();
-	ervec.Resize(nerrors);
-	ervec.Fill(-1.0);
-    
-	// Returns the square of the calculated errors.
-	for(i=0;i<nerrors;i++)
-		ervec[i] = sqrt(values[i]);
-    return maxError;
-}
 /**
  * Criteria: Given GlobalL2Error = GE and MaxError (ME) over all the elements
  * If ElementError(EE) > 0.75*ME => twice h-refinement and p-2
