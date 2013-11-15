@@ -1575,7 +1575,7 @@ void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline, TPZVec<TVa
 	long dim = skyline.NElements();
 	long nel = NumElements(skyline);
 #ifdef DEBUG
-	std::cout << "Skyline Matrix, Number of elements : " << nel << " in floating point " << nel*sizeof(TVar) << std::endl;
+//	std::cout << "Skyline Matrix, Number of elements : " << nel << " in floating point " << nel*sizeof(TVar) << std::endl;
 #endif
 	storage.Resize(nel);
 	storage.Fill(0.);

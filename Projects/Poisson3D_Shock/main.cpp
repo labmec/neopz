@@ -311,6 +311,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				delete direct;
 				direct = 0;
 				
+				out << "\tRefinement: " << nref << " Regular Mesh: " << regular << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
 				an.Run();
 				
 				// Post processing
@@ -325,25 +326,21 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				time(&endtime);
 				time_elapsed = endtime - sttime;
 				formatTimeInSec(time_formated,256,time_elapsed);
-				out << "\tRefinement: " << nref+1 << " Regular Mesh: " << regular << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
+				out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
-				out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
-                std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
-				fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
-				// Printing degree of freedom (number of equations)
-				fileerrors << "Refinement: " << nref << "  Dimension: " << ModelDimension << "  NEquations: " << cmesh->NEquations();
 				ProcessingError(an,ervec,ervecbyel);
 //				an.PostProcessError(ervec,out);
-				ErrorVec[nref] = ervec[1];
-				NEquations[nref] = cmesh->NEquations();
 				// Printing obtained errors
 				for(int rr=0;rr<ervec.NElements();rr++)
 					fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 				fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << time_formated << std::endl;
+				ErrorVec[nref] = ervec[1];
+				NEquations[nref] = cmesh->NEquations();
+
 				STATE Tol;
 				ZeroTolerance(Tol);
-				std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << std::endl << std::endl << "Starting hp adaptive analysis: " << std::endl;
-				out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << std::endl << std::endl;
+				std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl << "Starting hp adaptive analysis: " << std::endl;
+				out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl;
 				if(NRefs > 1 && nref < (NRefs-1)) {
 					if(ervec[1] < Tol) {
 						fileerrors << "Tolerance reached but no maxime refinements, Ref " << nref << "." << std::endl;
@@ -351,8 +348,12 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 						out.flush();
 						break;
 					}
+					out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+		            std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+					fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+					// Printing degree of freedom (number of equations)
+					fileerrors << "Refinement: " << nref << "  Dimension: " << ModelDimension << "  NEquations: " << cmesh->NEquations();
 					ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,nref);
-					std::cout << "\nNumber of equations to next resolution " << cmesh->NEquations() << std::endl;
                 }
 				fileerrors.flush();
 				out.flush();
@@ -402,12 +403,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	// To see where the computation is doing
 	long index = -1;
 	int reftype = 0;
-	TPZVec<int> counterreftype(7,0);
+	TPZVec<int> counterreftype(15,0);
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i;
 	REAL factorGrad = 0.15*(nref+1);
-	REAL factorLap = 0.2*(nref+1);
+	REAL factorLap = 0.5+0.15*(nref+1);
 	if(factorGrad > 0.95)
 		factorGrad = 0.98;
 	if(factorLap > 0.9)
@@ -434,34 +435,57 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 
 		// EXTRAS START
 		if(GradNorm > factorGrad*MaxGrad) {
+			counterreftype[1]++;
 			MinGrad = (MinGrad < GradNorm) ? MinGrad : GradNorm;
 		}
 		if(LaplacianValue > factorLap*MaxLaplacian) {
-			counterreftype[6]++;
+			counterreftype[2]++;
 			MinLap = (MinLap < LaplacianValue) ? MinLap : LaplacianValue;
 		}
 		// EXTRAS END
 
-
-		if((GradNorm > factorGrad*MaxGrad)) { // || (nref<1 && GradNorm > 1.)) {
-			if(LaplacianValue > factorLap*MaxLaplacian && pelement+1<MaxPOrder) {
-				el->PRefine(pelement+1);
-				counterreftype[1]++;
+		if(ervecbyel[index] > 10000*Tol) {
+			if((GradNorm > factorGrad*MaxGrad)) {
+				bool flag;
+				flag = false;
+				if(LaplacianValue > factorLap*MaxLaplacian && pelement+1<MaxPOrder) {
+					el->PRefine(pelement+1);
+					counterreftype[5]++;
+					flag = true;
+				}
+				counterreftype[6]++;
+				el->Divide(index,subels);
+				if(!flag) {
+					for(int ii=0;ii<subels.NElements();ii++) {
+						el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]]);
+						el->Divide(subels[ii],subsubels);
+						counterreftype[9]++;
+					}
+				}
 			}
-			counterreftype[2]++;
-			el->Divide(index,subels);
-		}
-		else if(LaplacianValue > 0.7*factorLap*MaxLaplacian && pelement+1<MaxPOrder) {
-			el->PRefine(pelement+1);
-			counterreftype[3]++;
-		}
-		else {
-//			if(LaplacianValue < 0.5 && pelement-1>0) {
-	//			counterreftype[5]++;
-		//		el->PRefine(pelement-1);
-			//}
-			el->Divide(index,subels);
-			counterreftype[4]++;
+			else if(LaplacianValue < 0.01 || pelement+1 < MaxPOrder) {
+				el->Divide(index,subels);
+				counterreftype[7]++;
+			}
+			else {
+				counterreftype[8]++;
+				el->PRefine(pelement+1);
+			}
+		} else {
+			if(GradNorm > factorGrad*MaxGrad) {
+				el->Divide(index,subels);
+				counterreftype[10]++;
+			}
+			else {
+				if(pelement+1 < MaxPOrder) {
+					el->PRefine(pelement+1);
+					counterreftype[11]++;
+				}
+				else {
+					el->Divide(index,subels);
+					counterreftype[12]++;
+				}
+			}
 		}
 	}
 	// Printing information stored
