@@ -164,10 +164,10 @@ int main() {
 #endif
 
 	// Initializing uniform refinements for reference elements
-	gRefDBase.InitializeUniformRefPattern(EOned);
-	gRefDBase.InitializeUniformRefPattern(ETriangle);
-	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-//	gRefDBase.InitializeAllUniformRefPatterns();
+//	gRefDBase.InitializeUniformRefPattern(EOned);
+//	gRefDBase.InitializeUniformRefPattern(ETriangle);
+//	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+	gRefDBase.InitializeAllUniformRefPatterns();
     //    gRefDBase.InitializeRefPatterns();
     
 	// To check if derivatives and function was right inplemented 
@@ -212,7 +212,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
