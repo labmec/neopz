@@ -53,10 +53,10 @@ void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatr
 	
 	// Derivatives of the first order
     dsol(0,0) = B*prody*prodz*((1.-2*x[0])*temp - (2*F*(x[0]-CCircle[0])*(prodx/den)));
-    if(ModelDimension==2) {
+    if(ModelDimension>1) {
         dsol(1,0) = B*prodx*prodz*((1.-2*x[1])*temp - (2*F*(x[1]-CCircle[1])*(prody/den)));
     }
-    else if(ModelDimension==3) {
+    else if(ModelDimension>2) {
         dsol(2,0) = B*prodx*prody*((1.-2*x[2])*temp - (2*F*(x[2]-CCircle[2])*(prodz/den)));
     }
 
@@ -81,19 +81,19 @@ void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatr
 	}
 	if(ModelDimension==3) {  // Revisar
 		poli = PolinomicValue(2,ModelDimension,x,CCircle);
-		sum2 = 4*F*(poli/(den));
-		sum3 = 16*F*F*prodz*(x[2]-CCircle[2])*(x[2]-CCircle[2])*(arc/(den*den));
-		ddsol[6] = B*prodx*prody*(2*temp-sum2-sum3);
-		poli = (2*x[0] - 1)*(2*x[2] - 1.)*temp;
-		sum2 = prodx*(2*x[2]-1)*(x[0]-CCircle[0])+prodz*(2*x[0]-1)*(x[2]-CCircle[2]);
+		sum2 = F*(poli/(den));
+		sum3 = 4.*F*F*prodz*(x[2]-CCircle[2])*(x[2]-CCircle[2])*(arc/(den*den));
+		ddsol[6] = -2.*B*prodx*prody*(temp-sum2+sum3);
+		poli = (1.-2*x[0])*(1.-2*x[2])*temp;
+		sum2 = prodx*(1.-2*x[2])*(x[0]-CCircle[0])+prodz*(1.-2*x[0])*(x[2]-CCircle[2]);
 		sum3 = prodx*prodz*(x[0]-CCircle[0])*(x[2]-CCircle[2])*arc;
-		ddsol[2] = B*prody*(poli-((4*F*sum2)/den)-((16*F*F*sum3)/(den*den)));
-		ddsol[7] = ddsol[2];
-		poli = (2*x[1] - 1)*(2*x[2] - 1.)*temp;
-		sum2 = prody*(2*x[2]-1)*(x[1]-CCircle[1])+prodz*(2*x[1]-1)*(x[2]-CCircle[2]);
+		ddsol[7] = B*prody*(poli-((2.*F*sum2)/den)-((8.*F*F*sum3)/(den*den)));
+		ddsol[2] = ddsol[7];
+		poli = (1.-2*x[1])*(1.-2*x[2])*temp;
+		sum2 = prody*(1.-2*x[2])*(x[1]-CCircle[1])+prodz*(1.-2*x[1])*(x[2]-CCircle[2]);
 		sum3 = prody*prodz*(x[1]-CCircle[1])*(x[2]-CCircle[2])*arc;
-		ddsol[5] = B*prodx*(poli-((4*F*sum2)/den)-((16*F*F*sum3)/(den*den)));
-		ddsol[8] = ddsol[5];
+		ddsol[8] = B*prodx*(poli-((2.*F*sum2)/den)-((8.*F*F*sum3)/(den*den)));
+		ddsol[5] = ddsol[8];
 	}
 }
 void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) {
@@ -117,10 +117,10 @@ void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatr
 	
 	// Derivatives of the first order
     dsol(0,0) = B*prody*prodz*((1.-2*x[0])*temp - (2*F*(x[0]-CCircle[0])*(prodx/den)));
-    if(ModelDimension==2) {
+    if(ModelDimension>1) {
         dsol(1,0) = B*prodx*prodz*((1.-2*x[1])*temp - (2*F*(x[1]-CCircle[1])*(prody/den)));
     }
-    else if(ModelDimension==3) {
+    else if(ModelDimension>2) {
         dsol(2,0) = B*prodx*prody*((1.-2*x[2])*temp - (2*F*(x[2]-CCircle[2])*(prodz/den)));
     }
 }
