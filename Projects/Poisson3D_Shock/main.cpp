@@ -212,7 +212,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(int itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -456,7 +456,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		if(nref < 1 || ervecbyel[index] > MinErrorByElement+IncrementError) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
-				flag = false;
+				flag = true;
 				if(LaplacianValue > factorLap*MaxLaplacian && pelement+1<MaxPOrder) {
 					el->PRefine(pelement+1);
 					counterreftype[5]++;
