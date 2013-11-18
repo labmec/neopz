@@ -353,9 +353,9 @@ void Input3DDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
             continue;
         }
         
-        it = globFractInputData.GetLeakoffmap().find(gel->Id());
+        it = globFractInput3DData.GetLeakoffmap().find(gel->Id());
         
-        if(it == globFractInputData.GetLeakoffmap().end())
+        if(it == globFractInput3DData.GetLeakoffmap().end())
         {
             continue;
         }
@@ -371,7 +371,7 @@ void Input3DDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
         REAL pfrac = data.sol[0][0];
         ///////////////////////
         
-        REAL deltaT = globFractInputData.actDeltaT();
+        REAL deltaT = globFractInput3DData.actDeltaT();
         
         REAL VlAcum = it->second;
         REAL tStar = FictitiousTime(VlAcum, pfrac);
@@ -387,7 +387,7 @@ void Input3DDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
     }
     
 #ifdef DEBUG
-    if(outVlCount < globFractInputData.GetLeakoffmap().size())
+    if(outVlCount < globFractInput3DData.GetLeakoffmap().size())
     {
         DebugStop();
     }
@@ -396,11 +396,11 @@ void Input3DDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
 
 REAL Input3DDataStruct::VlFtau(REAL pfrac, REAL tau)
 {
-    REAL Cl = globFractInputData.Cl();
-    REAL sigmaConf = globFractInputData.SigmaConf();
-    REAL Pe = globFractInputData.Pe();
-    REAL Pref = globFractInputData.Pref();
-    REAL vsp = globFractInputData.vsp();
+    REAL Cl = globFractInput3DData.Cl();
+    REAL sigmaConf = globFractInput3DData.SigmaConf();
+    REAL Pe = globFractInput3DData.Pe();
+    REAL Pref = globFractInput3DData.Pref();
+    REAL vsp = globFractInput3DData.vsp();
     
     REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
     REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
@@ -410,11 +410,11 @@ REAL Input3DDataStruct::VlFtau(REAL pfrac, REAL tau)
 
 REAL Input3DDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
 {
-    REAL Cl = globFractInputData.Cl();
-    REAL sigmaConf = globFractInputData.SigmaConf();
-    REAL Pest = globFractInputData.Pe();
-    REAL Pref = globFractInputData.Pref();
-    REAL vsp = globFractInputData.vsp();
+    REAL Cl = globFractInput3DData.Cl();
+    REAL sigmaConf = globFractInput3DData.SigmaConf();
+    REAL Pest = globFractInput3DData.Pe();
+    REAL Pref = globFractInput3DData.Pref();
+    REAL vsp = globFractInput3DData.vsp();
     
     REAL tStar = 0.;
     if(VlAcum > vsp)
@@ -429,15 +429,15 @@ REAL Input3DDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
 
 REAL Input3DDataStruct::QlFVl(int gelId, REAL pfrac)
 {
-    std::map<int,REAL>::iterator it = globFractInputData.GetLeakoffmap().find(gelId);
-    if(it == globFractInputData.GetLeakoffmap().end())
+    std::map<int,REAL>::iterator it = globFractInput3DData.GetLeakoffmap().find(gelId);
+    if(it == globFractInput3DData.GetLeakoffmap().end())
     {
-        globFractInputData.GetLeakoffmap()[gelId] = 0.;//Nao coloque vsp! Eh ZERO mesmo!
-        it = globFractInputData.GetLeakoffmap().find(gelId);
+        globFractInput3DData.GetLeakoffmap()[gelId] = 0.;//Nao coloque vsp! Eh ZERO mesmo!
+        it = globFractInput3DData.GetLeakoffmap().find(gelId);
     }
     REAL VlAcum = it->second;
     
-    REAL deltaT = globFractInputData.actDeltaT();
+    REAL deltaT = globFractInput3DData.actDeltaT();
     
     REAL tStar = FictitiousTime(VlAcum, pfrac);
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
@@ -470,7 +470,7 @@ REAL Input3DDataStruct::dQlFVl(int gelId, REAL pfrac)
         deltaPfrac = 1.E-3;
     }
     
-    REAL deltaT = globFractInputData.actDeltaT();
+    REAL deltaT = globFractInput3DData.actDeltaT();
     /////////////////////////////////////////////////Ql maior
     REAL pfracUP = pfrac + deltaPfrac;
     REAL tStar1 = FictitiousTime(VlAcum, pfracUP);
@@ -738,7 +738,7 @@ void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
 
 MaterialIdGen globMaterialIdGen;
 
-Input3DDataStruct globFractInputData;
+Input3DDataStruct globFractInput3DData;
 
-Output3DDataStruct globFractOutputData;
+Output3DDataStruct globFractOutput3DData;
 

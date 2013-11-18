@@ -74,12 +74,12 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     int phiuCols = phi_u.Cols();
     
     REAL visc = this->fVisc;
-    REAL deltaT = globFractInputData.actDeltaT();
+    REAL deltaT = globFractInput3DData.actDeltaT();
     
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
     {
-        REAL actQl = globFractInputData.QlFVl(datavec[1].gelElId, sol_p[0]);
-        REAL actdQldp = globFractInputData.dQlFVl(datavec[1].gelElId, sol_p[0]);
+        REAL actQl = globFractInput3DData.QlFVl(datavec[1].gelElId, sol_p[0]);
+        REAL actdQldp = globFractInput3DData.dQlFVl(datavec[1].gelElId, sol_p[0]);
         
         for(int in = 0; in < phipCols; in++)
         {

@@ -261,24 +261,24 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
         out1 << "};\n";
     }
     
-//    if(printVTKfile)
-//    {
-//        TPZManVector<std::string,10> scalnames(3), vecnames(1);
-//    
-//    //        scalnames[0] = "EDisplacementX";
-//    //        scalnames[1] = "EDisplacementY";
-//        scalnames[0] = "StressX";
-//        scalnames[1] = "StressY";
-//        scalnames[2] = "StressZ";
-//        
-//        vecnames[0] = "Displacement";
-//
-//        std::string vtkFile1 = "fracturePconstant1.vtk";
-//        const int dim = 3;
-//        int div = 0;
-//        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile1);
-//        an.PostProcess(div);
-//    }
+    if(printVTKfile)
+    {
+        TPZManVector<std::string,10> scalnames(3), vecnames(1);
+    
+    //        scalnames[0] = "EDisplacementX";
+    //        scalnames[1] = "EDisplacementY";
+        scalnames[0] = "StressX";
+        scalnames[1] = "StressY";
+        scalnames[2] = "StressZ";
+        
+        vecnames[0] = "Displacement";
+
+        std::string vtkFile1 = "fracturePconstant1.vtk";
+        const int dim = 3;
+        int div = 0;
+        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile1);
+        an.PostProcess(div);
+    }
     
     
     /////// Example of J-Integral

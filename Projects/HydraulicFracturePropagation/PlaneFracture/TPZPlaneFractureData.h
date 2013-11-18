@@ -376,8 +376,8 @@ public:
 
 extern MaterialIdGen globMaterialIdGen;
 
-extern Input3DDataStruct globFractInputData;
+extern Input3DDataStruct globFractInput3DData;
 
-extern Output3DDataStruct globFractOutputData;
+extern Output3DDataStruct globFractOutput3DData;
 
 #endif
