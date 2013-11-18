@@ -162,7 +162,13 @@ protected:
 	/** @brief Returns the pointer to the computational mesh */
 	TPZCompMesh *Mesh()const { return fCompMesh;}
 	/** @brief Returns a reference to the structural matrix */
-	TPZAutoPointer<TPZStructMatrix> StructMatrix() { return fStructMatrix;}
+	TPZAutoPointer<TPZStructMatrix> StructMatrix() {
+        if(!fStructMatrix)
+        {
+            DebugStop();
+        }
+        return fStructMatrix;
+    }
 	
 	/** @brief Define the type of preconditioner used */
 	/** This method will create the stiffness matrix but without assembling */
