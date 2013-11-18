@@ -83,10 +83,10 @@ void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> &
 #endif
         TPZFMatrix<STATE> rhsloc(neqcondense,rhs.Cols(),0.);
         if(this->fNumThreads){
-            this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+            this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
         }
         else{
-            this->Serial_Assemble(stiffness,rhs,guiInterface);
+            this->Serial_Assemble(stiffness,rhsloc,guiInterface);
         }
 
         fEquationFilter.Scatter(rhsloc, rhs);
@@ -427,7 +427,7 @@ TPZMatrix<STATE> * TPZStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAu
 	TPZMatrix<STATE> *stiff = Create();
     
 	long neq = stiff->Rows();
-	rhs.Redim(neq,1);
+	rhs.Redim(fEquationFilter.NEqExpand(),1);
     Assemble(*stiff,rhs,guiInterface);
 	
 #ifdef LOG4CXX2
