@@ -193,26 +193,11 @@ class TPZPlaneFractureMesh
      * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                     REAL xLength, REAL yLength, REAL Lmax, int nstripes);
+                         REAL xLength, REAL yLength, REAL Lmax, int nstripes);
     
 	~TPZPlaneFractureMesh();
-    
-    /**
-     * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
-     * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
-     * @param pressureInsideCrack [in] : uniform pressure inside crack
-     * @param sigmaTraction [in] : uniform traction on the farfield surface (farfield surface have normal {0,1,0})
-     * @param vtkFile [in] : VTK file name for post processing
-     * @param printVTKfile [in] : flag that will determine if vtkFile will be generated (true) or not (false)
-     */
-    void RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                 REAL pressureInsideCrack,
-                                 std::string vtkFile,
-                                 bool printVTKfile = false);
 		
     //---------------------------------------------------------------------
-
-protected:
     
     TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                               int porder, REAL pressureInsideCrack);
@@ -220,13 +205,13 @@ protected:
     TPZCompMesh * GetFractureCompMeshNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                              int porder, REAL pressureInsideCrack);
     
-    TPZCompMeshReferred * GetFractureCompMeshReferred(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                      int porder, REAL pressureInsideCrack,
+    TPZCompMeshReferred * GetFractureCompMeshReferred(int porder, REAL pressureInsideCrack,
                                                       TPZCompMesh * cmeshRef);
     
-    TPZCompMeshReferred * GetFractureCompMeshReferredNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                             int porder, REAL pressureInsideCrack,
+    TPZCompMeshReferred * GetFractureCompMeshReferredNLinear(int porder, REAL pressureInsideCrack,
                                                              TPZCompMesh * cmeshRef);
+    
+protected:
     
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
