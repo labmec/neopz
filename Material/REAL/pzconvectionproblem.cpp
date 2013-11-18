@@ -196,14 +196,14 @@ void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMate
         {
 			for(jl=0; jl<nrowl; jl++)
             {
-				ek(il,jl) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiL(jl,0));
+				ek(il,jl) += (-1.)*weight*(fTimeStep*ConvNormal*phiL(il,0)*phiL(jl,0));
 			}
 		}
 		for(ir=0; ir<nrowr; ir++)
         {
 			for(jl=0; jl<nrowl; jl++)
             {
-				ek(ir+nrowl,jl) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiL(jl,0));
+				ek(ir+nrowl,jl) -= (-1.)*weight*(fTimeStep*ConvNormal*phiR(ir,0)*phiL(jl,0));
 			}
 		}
 	} else{
@@ -211,14 +211,14 @@ void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMate
         {
 			for(jr=0; jr<nrowr; jr++)
             {
-				ek(ir+nrowl,jr+nrowl) -= weight*(-fTimeStep*ConvNormal*phiR(ir,0)*phiR(jr,0));
+				ek(ir+nrowl,jr+nrowl) -= (-1.)*weight*(fTimeStep*ConvNormal*phiR(ir,0)*phiR(jr,0));
 			}
 		}
 		for(il=0; il<nrowl; il++)
         {
 			for(jr=0; jr<nrowr; jr++)
             {
-				ek(il,jr+nrowl) += weight*(-fTimeStep*ConvNormal*phiL(il,0)*phiR(jr,0));
+				ek(il,jr+nrowl) += (-1.)*weight*(fTimeStep*ConvNormal*phiL(il,0)*phiR(jr,0));
 			}
 		}
 	}
