@@ -4,7 +4,7 @@
 #include "pzgeopoint.h"
 #include "TPZRefPatternDataBase.h"
 #include "tpzgeoelrefpattern.h"
-#include "TPZPlaneFracture.h"
+#include "TPZPlaneFractureMesh.h"
 
 //to delete
 #include "tpzchangeel.h"
@@ -89,7 +89,7 @@ int mainCRAZY(int argc, char * const argv[])
 //    //stretch #4
 //    posTVD_stress[4][63.] = 8.;
 //    posTVD_stress[4][210.] = 10.;
-    TPZPlaneFracture plfrac(layerVec, bulletDepthTVDIni, bulletDepthTVDFin, lengthX, lengthY, Lmax, nstripes);
+    TPZPlaneFractureMesh plfrac(layerVec, bulletDepthTVDIni, bulletDepthTVDFin, lengthX, lengthY, Lmax, nstripes);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots(0);
     FillFractureDotsExampleEllipse(fractureDots);
@@ -137,7 +137,7 @@ int mainCircles(int argc, char * const argv[])
     
     TPZVec<TPZLayerProperties> layerVec(1);
     layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.);
-    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
+    TPZPlaneFractureMesh plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
     
 //    REAL Rini = 10.;
 //    REAL Rfin = 40;
@@ -192,7 +192,7 @@ int main/*3D*/(int argc, char * const argv[])
     layerVec[0] = TPZLayerProperties(1.E5,0.25,0.,0.,0.,33.333);
     layerVec[1] = TPZLayerProperties(1.E5,0.25,0.,0.,33.333,66.666);
     layerVec[2] = TPZLayerProperties(1.E5,0.25,0.,0.,66.666,100.0);
-    TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
+    TPZPlaneFractureMesh plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots;
     FillFractureDotsExampleCrazy(fractureDots);

@@ -15,7 +15,6 @@
 #include "pzelast3d.h"
 #include "pzcompel.h"
 #include "pzinterpolationspace.h"
-#include "TPZPlaneFracture.h"
 
 
 /**

@@ -1,11 +1,11 @@
 /**
  * \file
- * @brief Contains implementations of the TPZPlaneFracture methods.
+ * @brief Contains implementations of the TPZPlaneFractureMesh methods.
  * @author Cesar Lucci
  * @since 09/08/2010
  */
 
-#include "TPZPlaneFracture.h"
+#include "TPZPlaneFractureMesh.h"
 
 #include "pzgeopoint.h"
 #include "TPZGeoLinear.h"
@@ -31,7 +31,7 @@ using namespace pztopology;
 
 
 /** PUBLIC METHODS */
-TPZPlaneFracture::TPZPlaneFracture()
+TPZPlaneFractureMesh::TPZPlaneFractureMesh()
 {
     std::cout << "Default constructor would not be used in this class!\n";
     DebugStop();
@@ -39,7 +39,7 @@ TPZPlaneFracture::TPZPlaneFracture()
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZPlaneFracture::TPZPlaneFracture(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+TPZPlaneFractureMesh::TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
                                    REAL xLength, REAL yLength, REAL Lmax, int nstripes)
 
 {
@@ -111,7 +111,7 @@ TPZPlaneFracture::TPZPlaneFracture(TPZVec<TPZLayerProperties> & layerVec, REAL b
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZPlaneFracture::~TPZPlaneFracture()
+TPZPlaneFractureMesh::~TPZPlaneFractureMesh()
 {
     delete fPreservedMesh;
 }
@@ -119,7 +119,7 @@ TPZPlaneFracture::~TPZPlaneFracture()
 
 
 #define elastLinear
-void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+void TPZPlaneFractureMesh::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                REAL pressureInsideCrack,
                                                std::string vtkFile,
                                                bool printVTKfile)
@@ -312,7 +312,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL>
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                     int porder, REAL pressureInsideCrack)
 {
     ////GeoMesh
@@ -397,7 +397,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
     return cmesh;
 }
 
-TPZCompMesh * TPZPlaneFracture::GetFractureCompMeshNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMeshNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                            int porder, REAL pressureInsideCrack)
 {
     ////GeoMesh
@@ -484,7 +484,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMeshNLinear(const TPZVec<std::pai
 }
 
 
-TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                                     int porder, REAL pressureInsideCrack,
                                                                     TPZCompMesh * cmeshRef)
 {
@@ -574,7 +574,7 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferred(const TPZVec
 }
 
 
-TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferredNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferredNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                                            int porder, REAL pressureInsideCrack,
                                                                            TPZCompMesh * cmeshRef)
 {
@@ -663,7 +663,7 @@ TPZCompMeshReferred * TPZPlaneFracture::GetFractureCompMeshReferredNLinear(const
 }
 
 
-TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain)
+TPZGeoMesh * TPZPlaneFractureMesh::GetFractureGeoMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain)
 {
     TPZGeoMesh * refinedMesh = new TPZGeoMesh(*fPreservedMesh);
     
@@ -757,7 +757,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<std::pair<REAL,RE
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::GeneratePreservedMesh(std::list<REAL> & espacamento,
+void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamento,
                                              REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
                                              REAL xLength, REAL yLength)
 {
@@ -909,7 +909,7 @@ void TPZPlaneFracture::GeneratePreservedMesh(std::list<REAL> & espacamento,
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL xLength,
+void TPZPlaneFractureMesh::GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL xLength,
                                              TPZVec< TPZVec<REAL> > & NodeCoord, long & nrows, long & ncols,
                                              REAL Y)
 {
@@ -949,7 +949,7 @@ void TPZPlaneFracture::GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, TPZGeoMesh * planeMesh,
+void TPZPlaneFractureMesh::DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, TPZGeoMesh * planeMesh,
                                           std::map< long, std::set<REAL> > &elIndex_TrimCoords,
                                           std::list< std::pair<long,REAL> > &elIndexSequence)
 {
@@ -1097,7 +1097,7 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &p
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin,
+TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin,
 												  std::map< long, std::set<REAL> > &elIndex_TrimCoords,
                                                   std::list< std::pair<long,REAL> > &elIndexSequence,
                                                   bool pushback, int planeAxe0, int planeAxe1, int planeNormal,
@@ -1264,7 +1264,7 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
 //------------------------------------------------------------------------------------------------------------
 
 
-bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
+bool TPZPlaneFractureMesh::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
                                         TPZVec< TPZVec<REAL> > &ExactIntersect, REAL alphaMin,
                                         int planeAxe0, int planeAxe1, int planeNormal)
 {
@@ -1372,7 +1372,7 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 //------------------------------------------------------------------------------------------------------------
 
 
-bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
+bool TPZPlaneFractureMesh::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
 										TPZVec< TPZVec<REAL> > &ExactIntersect,
                                         TPZVec< TPZVec<REAL> > &ModulatedIntersect, REAL alphaMin,
                                         int planeAxe0, int planeAxe1, int planeNormal)
@@ -1492,7 +1492,7 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 //------------------------------------------------------------------------------------------------------------
 
 
-REAL TPZPlaneFracture::ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx,
+REAL TPZPlaneFractureMesh::ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx,
                                         TPZVec<REAL> &node, TPZVec<REAL> &dnode,
                                         REAL norm, bool modulate, bool smooth,
                                         int planeAxe0, int planeAxe1, int planeNormal)
@@ -1533,7 +1533,7 @@ REAL TPZPlaneFracture::ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx,
 //------------------------------------------------------------------------------------------------------------
 
 
-REAL TPZPlaneFracture::ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx,
+REAL TPZPlaneFractureMesh::ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx,
                                      TPZVec<REAL> &node, TPZVec<REAL> &dnode,
                                      int planeAxe0, int planeAxe1, int planeNormal)
 {
@@ -1558,7 +1558,7 @@ REAL TPZPlaneFracture::ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx,
 //------------------------------------------------------------------------------------------------------------
 
 
-REAL TPZPlaneFracture::LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1)
+REAL TPZPlaneFractureMesh::LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1)
 {
 	REAL dL = 0., L = 0.;
 	for(int c = 0; c < 3; c++)
@@ -1585,7 +1585,7 @@ REAL TPZPlaneFracture::LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TP
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZAutoPointer<TPZRefPattern> TPZPlaneFracture::Generate1DRefPatt(std::set<REAL> &TrimCoord)
+TPZAutoPointer<TPZRefPattern> TPZPlaneFractureMesh::Generate1DRefPatt(std::set<REAL> &TrimCoord)
 {
 	if(TrimCoord.size() == 0)
 	{
@@ -1681,7 +1681,7 @@ TPZAutoPointer<TPZRefPattern> TPZPlaneFracture::Generate1DRefPatt(std::set<REAL>
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::UpdatePoligonalChain(TPZGeoMesh * gmesh,
+void TPZPlaneFractureMesh::UpdatePoligonalChain(TPZGeoMesh * gmesh,
                                             std::list< std::pair<long,REAL> > &elIndexSequence,
                                             TPZVec<std::pair<REAL,REAL> > &poligonalChainUpdated)
 {
@@ -1721,7 +1721,7 @@ void TPZPlaneFracture::UpdatePoligonalChain(TPZGeoMesh * gmesh,
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * refinedMesh,
+void TPZPlaneFractureMesh::GenerateCrackBoundary(TPZGeoMesh * refinedMesh,
                                              std::list< std::pair<long,REAL> > &elIndexSequence)
 {
     fcrackBoundaryElementsIndexes.Resize(0);
@@ -1762,7 +1762,7 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * refinedMesh,
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
+void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
 {
     int n1Dels = fcrackBoundaryElementsIndexes.NElements();
     std::map<int,TPZFracture2DEl> fracturedElems;
@@ -1922,7 +1922,7 @@ void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
+void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 {
 //    RefinementProceedings(refinedMesh);
 //    
@@ -1965,7 +1965,7 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * refinedMesh)
+void TPZPlaneFractureMesh::RefinementProceedings(TPZGeoMesh * refinedMesh)
 {
 //    REAL desiredSize = fLmax;
 //    int ndiv = log((fLmax/2.)/desiredSize)/log(2.);
@@ -2008,7 +2008,7 @@ void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * refinedMesh)
 //------------------------------------------------------------------------------------------------------------
 
 
-bool TPZPlaneFracture::IsBoundaryMaterial(TPZGeoEl * gel)
+bool TPZPlaneFractureMesh::IsBoundaryMaterial(TPZGeoEl * gel)
 {
     int materialId = gel->MaterialId();
  
@@ -2024,7 +2024,7 @@ bool TPZPlaneFracture::IsBoundaryMaterial(TPZGeoEl * gel)
 //------------------------------------------------------------------------------------------------------------
 
 
-int TPZPlaneFracture::GetLayer(REAL zMed)
+int TPZPlaneFractureMesh::GetLayer(REAL zMed)
 {
     for(int lay = 0; lay < fLayerVec.NElements(); lay++)
     {
@@ -2039,7 +2039,7 @@ int TPZPlaneFracture::GetLayer(REAL zMed)
 }
 
 //** just for visualize given dots in vtk */
-void TPZPlaneFracture::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots)
+void TPZPlaneFractureMesh::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots)
 {
     int nDots = fractureDots.size() / 2;
     long nnodesOriginal = gmesh->NNodes();

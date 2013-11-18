@@ -174,11 +174,11 @@ public:
 
 
 
-class TPZPlaneFracture
+class TPZPlaneFractureMesh
 {
 	public:
     
-    TPZPlaneFracture();
+    TPZPlaneFractureMesh();
 	
 	/**
 	 * @brief Constructor
@@ -192,10 +192,10 @@ class TPZPlaneFracture
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFracture(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+    TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
                      REAL xLength, REAL yLength, REAL Lmax, int nstripes);
     
-	~TPZPlaneFracture();
+	~TPZPlaneFractureMesh();
     
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
