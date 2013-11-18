@@ -213,6 +213,27 @@ class TPZPlaneFractureMesh
     
 protected:
     
+    /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
+     *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
+     *  @param espacamentoVerticalDEPTH [in] : espacamento vertical que define interfaces entre camadas horizontais
+     *  @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
+	 *  @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
+     *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
+     *  @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
+     */
+    void GeneratePreservedMesh(std::list<REAL> & espacamentoVerticalDEPTH,
+                               REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+                               REAL xLength, REAL yLength);
+
+    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
+     *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
+     *  @param espacamentoVerticalDEPTH [in] : espacamento vertical que define interfaces entre camadas horizontais
+     *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
+     */
+    void GenerateNodesAtPlaneY(std::list<REAL> & espacamentoVerticalDEPTH, REAL xLength,
+                               TPZVec< TPZVec<REAL> > & NodeCoord, long & nrows, long & ncols,
+                               REAL Y);
+
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
 	 * @param poligonalChain [in] : vector of boundary points coordinates
@@ -227,28 +248,7 @@ protected:
      *      etc...
 	 */
 	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain);
-
-    /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
-     *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
-     *  @param espacamento [in] : espacamento vertical que define interfaces entre camadas horizontais
-     *  @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
-	 *  @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
-     *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
-     *  @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
-     */
-    void GeneratePreservedMesh(std::list<REAL> & espacamento,
-                               REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                               REAL xLength, REAL yLength);
-
-    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
-     *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
-     *  @param espacamento [in] : espacamento vertical que define interfaces entre camadas horizontais
-     *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
-     */
-    void GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL xLength,
-                               TPZVec< TPZVec<REAL> > & NodeCoord, long & nrows, long & ncols,
-                               REAL Y);
-
+    
 	/*
 	 * @brief Computes the edges of elements of fractMesh that are intercepted by the crack tip defined by poligonalChain points (defined by a vector coordinates)
 	 * @param poligonalChain [in] : vector of boundary points coordinates

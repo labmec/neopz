@@ -27,14 +27,14 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
 
 TPZPlaneFractureKernel::~TPZPlaneFractureKernel()
 {
- 
+    delete fPlaneFractureMesh;
 }
 
 #define elastLinear
 void TPZPlaneFractureKernel::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                   REAL pressureInsideCrack,
-                                                   std::string vtkFile,
-                                                   bool printVTKfile)
+                                                     REAL pressureInsideCrack,
+                                                     std::string vtkFile,
+                                                     bool printVTKfile)
 {
     int porder = 1;
     
