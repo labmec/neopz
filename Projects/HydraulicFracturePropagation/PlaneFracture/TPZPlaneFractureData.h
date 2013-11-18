@@ -147,12 +147,12 @@ public:
 #include <map>
 #include <fstream>
 
-class InputDataStruct
+class Input3DDataStruct
 {
 public:
     
-    InputDataStruct();
-    ~InputDataStruct();
+    Input3DDataStruct();
+    ~Input3DDataStruct();
     
     void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                  REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
@@ -265,12 +265,12 @@ private:
 
 
 
-class OutputDataStruct
+class Output3DDataStruct
 {
 public:
     
-    OutputDataStruct();
-    ~OutputDataStruct();
+    Output3DDataStruct();
+    ~Output3DDataStruct();
     
     int NTimes();
     void InsertTposP(int time, std::map<REAL,REAL> & posPmap);
@@ -376,8 +376,8 @@ public:
 
 extern MaterialIdGen globMaterialIdGen;
 
-extern InputDataStruct globFractInputData;
+extern Input3DDataStruct globFractInputData;
 
-extern OutputDataStruct globFractOutputData;
+extern Output3DDataStruct globFractOutputData;
 
 #endif

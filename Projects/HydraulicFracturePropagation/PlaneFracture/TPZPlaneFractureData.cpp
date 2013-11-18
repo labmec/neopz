@@ -12,17 +12,17 @@
 #include "pzintel.h"
 
 
-InputDataStruct::InputDataStruct()
+Input3DDataStruct::Input3DDataStruct()
 {
     fPressureMatIds_StripeId_ElastId.clear();
 }
 
-InputDataStruct::~InputDataStruct()
+Input3DDataStruct::~Input3DDataStruct()
 {
     
 }
 
-void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
+void Input3DDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                               REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                               int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
                               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius)
@@ -83,97 +83,97 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
     fJradius = Jradius;
 }
 
-void InputDataStruct::SetLf(REAL Lf)
+void Input3DDataStruct::SetLf(REAL Lf)
 {
     fLf = Lf;
 }
 
-REAL InputDataStruct::Lx()
+REAL Input3DDataStruct::Lx()
 {
     return fLx;
 }
 
-REAL InputDataStruct::Ly()
+REAL Input3DDataStruct::Ly()
 {
     return fLy;
 }
 
-REAL InputDataStruct::Lf()
+REAL Input3DDataStruct::Lf()
 {
     return fLf;
 }
 
-REAL InputDataStruct::Hf()
+REAL Input3DDataStruct::Hf()
 {
     return fHf;
 }
 
-REAL InputDataStruct::Lmax_edge()
+REAL Input3DDataStruct::Lmax_edge()
 {
     return fLmax_edge;
 }
 
-REAL InputDataStruct::E1()
+REAL Input3DDataStruct::E1()
 {
     return fE1;
 }
 
-REAL InputDataStruct::Poisson1()
+REAL Input3DDataStruct::Poisson1()
 {
     return fPoisson1;
 }
 
-REAL InputDataStruct::E2()
+REAL Input3DDataStruct::E2()
 {
     return fE2;
 }
 
-REAL InputDataStruct::Poisson2()
+REAL Input3DDataStruct::Poisson2()
 {
     return fPoisson2;
 }
 
-REAL InputDataStruct::Xinterface()
+REAL Input3DDataStruct::Xinterface()
 {
     return fXinterface;
 }
 
-REAL InputDataStruct::Fx()
+REAL Input3DDataStruct::Fx()
 {
     return fFx;
 }
 
-REAL InputDataStruct::Fy()
+REAL Input3DDataStruct::Fy()
 {
     return fFy;
 }
 
-REAL InputDataStruct::PreStressXX()
+REAL Input3DDataStruct::PreStressXX()
 {
     return fPreStressXX;
 }
 
-REAL InputDataStruct::PreStressXY()
+REAL Input3DDataStruct::PreStressXY()
 {
     return fPreStressXY;
 }
 
-REAL InputDataStruct::PreStressYY()
+REAL Input3DDataStruct::PreStressYY()
 {
     return fPreStressYY;
 }
 
-int InputDataStruct::NStripes()
+int Input3DDataStruct::NStripes()
 {
     return fNStripes;
 }
 
-std::map< int,std::pair<int,int> > & InputDataStruct::GetPressureMatIds_StripeId_ElastId()
+std::map< int,std::pair<int,int> > & Input3DDataStruct::GetPressureMatIds_StripeId_ElastId()
 {
     return fPressureMatIds_StripeId_ElastId;
 }
 
-int InputDataStruct::StripeId(int bcId)
+int Input3DDataStruct::StripeId(int bcId)
 {
     std::map< int,std::pair<int,int> >::iterator it = fPressureMatIds_StripeId_ElastId.find(bcId);
     if(it != fPressureMatIds_StripeId_ElastId.end())
@@ -188,7 +188,7 @@ int InputDataStruct::StripeId(int bcId)
     return -7456;
 }
 
-int InputDataStruct::ElastId(int bcId)
+int Input3DDataStruct::ElastId(int bcId)
 {
     std::map< int,std::pair<int,int> >::iterator it = fPressureMatIds_StripeId_ElastId.find(bcId);
     if(it != fPressureMatIds_StripeId_ElastId.end())
@@ -203,12 +203,12 @@ int InputDataStruct::ElastId(int bcId)
     return -7456;
 }
 
-void InputDataStruct::InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId)
+void Input3DDataStruct::InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId)
 {
     fPressureMatIds_StripeId_ElastId[BCId] = std::make_pair(StripeId,ElastId);
 }
 
-bool InputDataStruct::IsBC(int matId)
+bool Input3DDataStruct::IsBC(int matId)
 {
     std::map< int,std::pair<int,int> >::iterator it = fPressureMatIds_StripeId_ElastId.find(matId);
     if(it != fPressureMatIds_StripeId_ElastId.end())
@@ -221,77 +221,77 @@ bool InputDataStruct::IsBC(int matId)
     }
 }
 
-REAL InputDataStruct::Visc()
+REAL Input3DDataStruct::Visc()
 {
     return fVisc;
 }
 
-std::map<int,REAL> & InputDataStruct::GetLeakoffmap()
+std::map<int,REAL> & Input3DDataStruct::GetLeakoffmap()
 {
     return fLeakoffmap;
 }
 
-REAL InputDataStruct::SigN()
+REAL Input3DDataStruct::SigN()
 {
     return fSigN;
 }
 
-REAL InputDataStruct::Qinj()
+REAL Input3DDataStruct::Qinj()
 {
     return fQinj;
 }
 
-REAL InputDataStruct::Ttot()
+REAL Input3DDataStruct::Ttot()
 {
     return fTtot;
 }
 
-REAL InputDataStruct::actTime()
+REAL Input3DDataStruct::actTime()
 {
     return factTime;
 }
 
-REAL InputDataStruct::actDeltaT()
+REAL Input3DDataStruct::actDeltaT()
 {
     return factDeltaT;
 }
 
-REAL InputDataStruct::Cl()
+REAL Input3DDataStruct::Cl()
 {
     return fCl;
 }
 
-REAL InputDataStruct::Pe()
+REAL Input3DDataStruct::Pe()
 {
     return fPe;
 }
 
-REAL InputDataStruct::SigmaConf()
+REAL Input3DDataStruct::SigmaConf()
 {
     return fSigmaConf;
 }
 
-REAL InputDataStruct::Pref()
+REAL Input3DDataStruct::Pref()
 {
     return fPref;
 }
 
-REAL InputDataStruct::vsp()
+REAL Input3DDataStruct::vsp()
 {
     return fvsp;
 }
 
-REAL InputDataStruct::KIc()
+REAL Input3DDataStruct::KIc()
 {
     return fKIc;
 }
 
-REAL InputDataStruct::Jradius()
+REAL Input3DDataStruct::Jradius()
 {
     return fJradius;
 }
 
-void InputDataStruct::SetMinDeltaT()
+void Input3DDataStruct::SetMinDeltaT()
 {
     factDeltaT = fminDeltaT;
     if(factTime + factDeltaT > fTtot)
@@ -300,7 +300,7 @@ void InputDataStruct::SetMinDeltaT()
     }
 }
 
-void InputDataStruct::SetNextDeltaT()
+void Input3DDataStruct::SetNextDeltaT()
 {
     factDeltaT = MIN(fmaxDeltaT,(factDeltaT+fmaxDeltaT/fNDeltaTsteps));
     if(factTime + factDeltaT > fTtot)
@@ -309,7 +309,7 @@ void InputDataStruct::SetNextDeltaT()
     }
 }
 
-void InputDataStruct::UpdateActTime()
+void Input3DDataStruct::UpdateActTime()
 {
     factTime += factDeltaT;
     std::cout << "\n\n=============== ActTime = " << factTime << " ===============\n\n";
@@ -319,7 +319,7 @@ void InputDataStruct::UpdateActTime()
 ////////////////////////////////////////////////////////////////// Leakoff
 
 
-void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
+void Input3DDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
 {
     if(fLeakoffmap.size() == 0)
     {//Se a fratura nao alcancou ainda a regiao elastica 2, este mapa estah vazio!!!
@@ -394,7 +394,7 @@ void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
 #endif
 }
 
-REAL InputDataStruct::VlFtau(REAL pfrac, REAL tau)
+REAL Input3DDataStruct::VlFtau(REAL pfrac, REAL tau)
 {
     REAL Cl = globFractInputData.Cl();
     REAL sigmaConf = globFractInputData.SigmaConf();
@@ -408,7 +408,7 @@ REAL InputDataStruct::VlFtau(REAL pfrac, REAL tau)
     return Vl;
 }
 
-REAL InputDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
+REAL Input3DDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
 {
     REAL Cl = globFractInputData.Cl();
     REAL sigmaConf = globFractInputData.SigmaConf();
@@ -427,7 +427,7 @@ REAL InputDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
     return tStar;
 }
 
-REAL InputDataStruct::QlFVl(int gelId, REAL pfrac)
+REAL Input3DDataStruct::QlFVl(int gelId, REAL pfrac)
 {
     std::map<int,REAL>::iterator it = globFractInputData.GetLeakoffmap().find(gelId);
     if(it == globFractInputData.GetLeakoffmap().end())
@@ -450,7 +450,7 @@ REAL InputDataStruct::QlFVl(int gelId, REAL pfrac)
 #endif
 }
 
-REAL InputDataStruct::dQlFVl(int gelId, REAL pfrac)
+REAL Input3DDataStruct::dQlFVl(int gelId, REAL pfrac)
 {
     std::map<int,REAL>::iterator it = fLeakoffmap.find(gelId);
     if(it == fLeakoffmap.end())
@@ -498,7 +498,7 @@ REAL InputDataStruct::dQlFVl(int gelId, REAL pfrac)
 
 //------------------------------------------------------------
 
-OutputDataStruct::OutputDataStruct()
+Output3DDataStruct::Output3DDataStruct()
 {
     fTposP.clear();
     fTposVolLeakoff.clear();
@@ -509,7 +509,7 @@ OutputDataStruct::OutputDataStruct()
     fLfracMax = 0.;
 }
 
-OutputDataStruct::~OutputDataStruct()
+Output3DDataStruct::~Output3DDataStruct()
 {
     fTposP.clear();
     fTposVolLeakoff.clear();
@@ -520,7 +520,7 @@ OutputDataStruct::~OutputDataStruct()
     fLfracMax = 0.;
 }
 
-int OutputDataStruct::NTimes()
+int Output3DDataStruct::NTimes()
 {
     int ntimes0 = fTposP.size();
     
@@ -539,7 +539,7 @@ int OutputDataStruct::NTimes()
     return ntimes0;
 }
 
-void OutputDataStruct::InsertTposP(int time, std::map<REAL,REAL> & posPmap)
+void Output3DDataStruct::InsertTposP(int time, std::map<REAL,REAL> & posPmap)
 {
     std::map<int,posP>::iterator it = fTposP.find(time);
     if(it == fTposP.end())
@@ -551,7 +551,7 @@ void OutputDataStruct::InsertTposP(int time, std::map<REAL,REAL> & posPmap)
     
 }
 
-void OutputDataStruct::InsertTposVolLeakoff(int time, REAL pos, REAL Ql)
+void Output3DDataStruct::InsertTposVolLeakoff(int time, REAL pos, REAL Ql)
 {
     std::map<int,posVolLeakoff>::iterator it = fTposVolLeakoff.find(time);
     if(it == fTposVolLeakoff.end())
@@ -566,28 +566,28 @@ void OutputDataStruct::InsertTposVolLeakoff(int time, REAL pos, REAL Ql)
     }
 }
 
-void OutputDataStruct::InsertTAcumVolW(int time, REAL vol)
+void Output3DDataStruct::InsertTAcumVolW(int time, REAL vol)
 {
     fTAcumVolW[time] = vol;
 }
 
-void OutputDataStruct::InsertTAcumVolLeakoff(int time, REAL vol)
+void Output3DDataStruct::InsertTAcumVolLeakoff(int time, REAL vol)
 {
     fTAcumVolLeakoff[time] = vol;
 }
 
-void OutputDataStruct::InsertTKI(int time, REAL KI)
+void Output3DDataStruct::InsertTKI(int time, REAL KI)
 {
     fTKI[time] = KI;
 }
 
-void OutputDataStruct::SetQinj1WingAndLfracmax(REAL Qinj1wing, REAL Lfracmax)
+void Output3DDataStruct::SetQinj1WingAndLfracmax(REAL Qinj1wing, REAL Lfracmax)
 {
     fQinj1wing = fabs(Qinj1wing);
     fLfracMax = Lfracmax;
 }
 
-void OutputDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
+void Output3DDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
 {
     std::string plotfile = "TransientSolution.vtk";
     if(anCount >= 0)
@@ -605,7 +605,7 @@ void OutputDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
 	an->PostProcess(div);
 }
 
-void OutputDataStruct::PrintMathematica(std::ofstream & outf)
+void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
 {
 #ifdef DEBUG
     if(fTposP.size() == 0 || fTposVolLeakoff.size() == 0 || fTAcumVolW.size() == 0 || fTAcumVolLeakoff.size() == 0 || fTKI.size() == 0)
@@ -738,7 +738,7 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
 
 MaterialIdGen globMaterialIdGen;
 
-InputDataStruct globFractInputData;
+Input3DDataStruct globFractInputData;
 
-OutputDataStruct globFractOutputData;
+Output3DDataStruct globFractOutputData;
 

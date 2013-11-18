@@ -588,11 +588,11 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
     int planestrain = 0;
     
     TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1,
-                                                                 globFractInputData.E1(),
-                                                                 globFractInputData.Poisson1(),
-                                                                 globFractInputData.Fx(),
-                                                                 globFractInputData.Fy(),
-                                                                 planestrain);
+                                                                  globFractInputData.E1(),
+                                                                  globFractInputData.Poisson1(),
+                                                                  globFractInputData.Fx(),
+                                                                  globFractInputData.Fy(),
+                                                                  planestrain);
 
     TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
                                                                   globFractInputData.E2(),
