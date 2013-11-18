@@ -71,7 +71,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void CreatInterface(TPZCompMesh *cmesh);
 
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix);
-void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZCompMesh* cmesh, TPZGradientReconstruction *gradreconst);
+void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZCompMesh* cmesh);
 void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfile);
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymaterial, TPZCompMesh* cmesh);
 void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     
     int p = 0;
     TPZGeoMesh *gmesh = MalhaGeom(1.,1.);
-    UniformRefine(gmesh, 4);
+    UniformRefine(gmesh, 3);
     ofstream arg1("gmesh.txt");
     gmesh->Print(arg1);
     
@@ -105,10 +105,9 @@ int main(int argc, char *argv[])
     TPZAnalysis anL2(cmeshL2);
     ResolverSistema(anL2, cmeshL2, true);
     an.LoadSolution(anL2.Solution());
-    //an.LoadSolution(anL2.Solution());
     an.Solution().Print("sol_S0");
     
-    REAL deltaT=0.001; //second
+    REAL deltaT=0.1; //second
     material->SetTimeStep(deltaT);
     REAL maxTime = 1.;
     material->SetTimeValue(maxTime);
@@ -120,10 +119,10 @@ int main(int argc, char *argv[])
     ofstream arg4("cmesh_final.txt");
     cmesh->Print(arg4);
     
-    TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(1);
-    gradreconst->UseWeightCoefficients();
-    gradreconst->UseSlopeLimiter();
-    SolveSistTransient(deltaT, material, cmesh, gradreconst);
+//    TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(1);
+//    gradreconst->UseWeightCoefficients();
+//    gradreconst->UseSlopeLimiter();
+    SolveSistTransient(deltaT, material, cmesh);
     
     
 }
@@ -333,7 +332,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix
 	an.Solution().Print("solution", file);
 }
 
-void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZCompMesh* cmesh, TPZGradientReconstruction *gradreconst){
+void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZCompMesh* cmesh){
 	
     
     TPZAnalysis an(cmesh);
@@ -415,16 +414,12 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 		an.Solve();
         Lastsolution = an.Solution();
         
-        ///Reconstruindo o gradiente
-        //TPZFMatrix<REAL> datagradients;
-        //gradreconst->GetDataGradient(cmesh, datagradients);
-        
-        if(cent%10==0){
+        //if(cent%10==0){
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();
             PosProcessSolution(cmesh,an,plotfile);
-        }
+        //}
 		
         cent++;
 		TimeValue = cent*deltaT;
@@ -448,10 +443,11 @@ void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfil
 	an.Print("nothing",out);
 }
 
+#include "TPZSkylineNSymStructMatrix.h"
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymaterial, TPZCompMesh* cmesh){
     
     mymaterial->SetLastState();
-    TPZSkylineStructMatrix matsp(cmesh);
+    TPZSkylineNSymStructMatrix matsp(cmesh);
 	//TPZSpStructMatrix matsp(cmesh);
     
 	std::set< int > materialid;
