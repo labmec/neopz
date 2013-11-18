@@ -10,12 +10,12 @@ class TPZEquationFilter
 {
 public:
 
-    TPZEquationFilter(long numeq) : fNumEq(numeq), fNumActive(numeq), fActiveEqs(), fDestIndices()
+    TPZEquationFilter(long numeq) : fNumEq(numeq), fActiveEqs(), fDestIndices()
     {
 
     }
 
-    TPZEquationFilter(const TPZEquationFilter&cp):fNumEq(cp.fNumEq),fNumActive(cp.fNumActive),
+    TPZEquationFilter(const TPZEquationFilter&cp):fNumEq(cp.fNumEq),
            fActiveEqs(cp.fActiveEqs),fDestIndices(cp.fDestIndices)
     {
       ///nothing here
@@ -29,7 +29,6 @@ public:
     TPZEquationFilter & operator=(const TPZEquationFilter&cp)
     {
         this->fNumEq = cp.fNumEq;
-        this->fNumActive = cp.fNumActive;
         this->fActiveEqs = cp.fActiveEqs;
         this->fDestIndices = cp.fDestIndices;
         return *this;
@@ -50,7 +49,6 @@ public:
         activeEquations[i] = i + mineq;
       }
       this->SetActiveEquations( activeEquations );
-        fNumActive = activeEquations.size();
     }
 
     ///Define as equacoes ativas
@@ -78,7 +76,6 @@ public:
     /// Reset method
     void Reset()
     {
-        fNumActive = fNumEq;
         fActiveEqs.Resize(0);
         fDestIndices.Resize(0);
     }
@@ -131,7 +128,13 @@ public:
     ///Retorna o numero de equacoes ativas do sistema
     long NActiveEquations() const
     {
-        return fNumActive;
+        if (IsActive()) {
+            return fActiveEqs.size();
+        }
+        else
+        {
+            return fNumEq;
+        }
     }
 
     ///Retorna o numero de equacoes do sistema original
@@ -145,7 +148,7 @@ public:
 	 */
     bool IsActive() const
     {
-        if (fNumActive == fNumEq) {
+        if (fActiveEqs.size() == fNumEq || fActiveEqs.size() == 0) {
             return false;
         }
         else {
@@ -257,9 +260,6 @@ private:
     /// Numero de equacoes do sistema original
     long fNumEq;
     
-    /// Numero de equacoes ativas
-    long fNumActive;
-
     /// Equacoes ativas
     TPZVec<long> fActiveEqs;
 
