@@ -153,7 +153,8 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
 	//}//fNeedsNeighborSol
 	data.intGlobPtIndex = -1;
-    this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    //this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    this->ComputeShape(qsi, data);
     
 #ifdef LOG4CXX_keep
     if(logger->isDebugEnabled())
@@ -165,7 +166,8 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 #endif
 	if (data.fNeedsSol){
 		if (data.phi.Rows()){//if shape functions are available
-			this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+			//this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+            this->ComputeSolution(qsi, data);
 		}
 		else{//if shape functions are not available
 			this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
