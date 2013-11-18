@@ -332,9 +332,12 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<std::pair<REAL,
         STATE young = fLayerVec[lay].fYoung;
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
-        STATE prestressXX = 0.;
-        STATE prestressYY = 0.;
+        STATE prestressXX = fLayerVec[lay].fSigmaMax;
+        STATE prestressYY = fLayerVec[lay].fSigmaMin;
         STATE prestressZZ = 0.;
+//        STATE prestressXX = 0.;
+//        STATE prestressYY = 0.;
+//        STATE prestressZZ = 0.;
         
         ////Rock
         TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force, prestressXX, prestressYY, prestressZZ);
@@ -414,9 +417,12 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMeshNLinear(const TPZVec<std::pai
         STATE young = fLayerVec[lay].fYoung;
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
-        STATE prestressXX = 0.;
-        STATE prestressYY = 0.;
+        STATE prestressXX = fLayerVec[lay].fSigmaMax;
+        STATE prestressYY = fLayerVec[lay].fSigmaMin;
         STATE prestressZZ = 0.;
+//        STATE prestressXX = 0.;
+//        STATE prestressYY = 0.;
+//        STATE prestressZZ = 0.;
 
         ////Rock
         TPZMaterial * materialLin = new TPZElast3Dnlinear(globMaterialIdGen.RockMatId(lay), young, poisson, force, prestressXX, prestressYY, prestressZZ);

@@ -189,9 +189,9 @@ int main/*3D*/(int argc, char * const argv[])
     int nstripes = 5;
     
     TPZVec<TPZLayerProperties> layerVec(3);
-    layerVec[0] = TPZLayerProperties(1.E5,0.25,10.,20.,0.,33.333);
-    layerVec[1] = TPZLayerProperties(1.E5,0.25,10.,20.,33.333,66.666);
-    layerVec[2] = TPZLayerProperties(1.E5,0.25,10.,20.,66.666,100.0);
+    layerVec[0] = TPZLayerProperties(1.E5,0.25,0.,0.,0.,33.333);
+    layerVec[1] = TPZLayerProperties(1.E5,0.25,0.,0.,33.333,66.666);
+    layerVec[2] = TPZLayerProperties(1.E5,0.25,0.,0.,66.666,100.0);
     TPZPlaneFracture plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots;
