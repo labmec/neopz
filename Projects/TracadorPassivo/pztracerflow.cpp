@@ -149,7 +149,7 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
 	
 	TPZFMatrix<REAL> &axesS = datavec[0].axes;
-	int phrQ = phiQ.Rows();
+	int phrQ = datavec[1].fVecShapeIndex.NElements();//phiQ.Rows();
     int phrP = phiP.Rows();
     int phrS = phiS.Rows();
     
@@ -160,7 +160,7 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         REAL ratiok = fVisc/fk;
         for(int iq=0; iq<phrQ; iq++)
         {
-            ef(iq, 0) += 0.;
+            ef(iq+phrS, 0) += 0.;
             
             int ivecind = datavec[1].fVecShapeIndex[iq].first;
             int ishapeind = datavec[1].fVecShapeIndex[iq].second;
@@ -215,28 +215,26 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             ef(phrS+phrQ+ip,0) += (-1.)*weight*fXfLocP*phiP(ip,0);
         }
         
-        //Calculate the matrix contribution for saturation.
-        REAL fXfLocS = fxfS;
-        if(fForcingFunction) {
-            TPZManVector<STATE> res(1);
-            fForcingFunction->Execute(datavec[0].x,res);
-            fXfLocS = res[0];
-        }
+        //Calculate the matrix contribution for saturation. Matrix D
         for(int in = 0; in < phrS; in++ ) {
             
-            ef(in, 0) += fTimeStep*weight*fXfLocS*phiS(in,0);
+            ef(in, 0) += fTimeStep*weight*fxfS*phiS(in,0);
             
             for(int jn = 0; jn < phrS; jn++)
             {
                 ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
             }
         }
+         
     }//end stiffness matrix at ECurrentState
 	
     
     //Last state (n): mass matrix
 	if(gState == ELastState)
     {
+        fConvDir[0] = datavec[1].sol[0][0];
+        fConvDir[1] = datavec[1].sol[0][1];
+        
         TPZVec<STATE> ConvDirAx;
         ConvDirAx.Resize(fDim, 0.);
         
@@ -346,6 +344,15 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
                 ef(iq+phrS,0) += (-1.)*v2*phiQ(iq,0)*weight;
             }
             break;
+            
+        case 7 :		// Dirichlet(pressure)-Inflow(saturation)
+			//primeira equacao
+			for(int iq=0; iq<phrQ; iq++)
+            {
+                //the contribution of the Dirichlet boundary condition appears in the flow equation
+                ef(iq+phrS,0) += (-1.)*v2*phiQ(iq,0)*weight;
+            }
+            break;
 	}
 }
 
@@ -374,6 +381,9 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     int first_right = nrowl + dataleft[1].fVecShapeIndex.NElements() + dataleft[2].phi.Rows();
     
 	//Convection term
+    fConvDir[0] = dataleft[1].sol[0][0];
+    fConvDir[1] = dataleft[1].sol[0][1];
+    
 	REAL ConvNormal = 0.;
 	for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
 	if(ConvNormal > 0.)
@@ -437,6 +447,9 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     
     TPZFMatrix<REAL> &phiL = dataleft[0].phi;
 	TPZManVector<REAL,3> &normal = data.normal;
+    
+    fConvDir[0] = dataleft[1].sol[0][0];
+    fConvDir[1] = dataleft[1].sol[0][1];
 	
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();
@@ -470,6 +483,12 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         case 1: // Neumann
 			for(il=0; il<nrowl; il++) {
 				ef(il,0) += 0.;//ainda nao temos condicao de Neumann
+			}
+            break;
+            
+        case 0: // Dirichlet
+			for(il=0; il<nrowl; il++) {
+				
 			}
             break;
             
@@ -516,6 +535,26 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 			}
 			else {
 				if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
+			}
+			break;
+            
+        case 7: // Dirichlet(pressure)-Inflow(saturation)
+			
+            //convection
+			if(ConvNormal > 0.)
+            {
+				for(il=0; il<nrowl; il++){
+					for(jl=0; jl<nrowl; jl++)
+                    {
+						ek(il,jl) += weight*fTimeStep*ConvNormal*phiL(il)*phiL(jl);
+					}
+				}
+			}
+            else{
+				for(il=0; il<nrowl; il++)
+                {
+					ef(il,0) -= weight*fTimeStep*ConvNormal*bc.Val2()(0,0)*phiL(il);
+				}
 			}
 			break;
 
@@ -569,6 +608,7 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
 	if(var == 4) {
 		int id;
 		for(id=0 ; id<fDim; id++) {
+            fConvDir[id] = datavec[1].sol[0][id];
 			Solout[id] = fConvDir[id]*datavec[0].sol[0][0];//function (state variable Q*S)
 		}
 		return;
@@ -582,4 +622,28 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZMaterialData &
 void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 	DebugStop();
 }
+
+void TPZTracerFlow::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+{
+	int nref = datavec.size();
+	for(int i = 0; i<nref; i++)
+	{
+		datavec[i].SetAllRequirements(false);
+        datavec[i].fNeedsSol = true;
+		datavec[i].fNeedsNeighborSol = false;
+		datavec[i].fNeedsNeighborCenter = false;
+		datavec[i].fNeedsNormal = true;
+	}
+}
+
+void TPZTracerFlow::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec){
+    int nref = datavec.size();
+	for(int i = 0; i<nref; i++)
+	{
+        datavec[i].fNeedsSol = true;
+		datavec[i].fNeedsNormal = false;
+	}
+}
+
+
 

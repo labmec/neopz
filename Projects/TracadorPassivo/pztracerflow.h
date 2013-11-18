@@ -238,6 +238,12 @@ public:
      * @param Solout [out] is the solution vector
      */
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    
+    
 };
 
 #endif /* defined(__PZ__pztracerflow__) */
