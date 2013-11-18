@@ -22,33 +22,35 @@
 //#define PROFILE_AP_MUTEXES
 
 #ifdef PROFILE_AP_MUTEXES
-  extern unsigned long long ap_mutex_accesses[];
+extern unsigned long long ap_mutex_accesses[];
 #endif
 
 #define AP_MUTEX_HASH_1         \
-  addr = (addr >> 32) ^ addr;   \
-  addr = (addr >> 16) ^ addr;   \
-  addr = (addr >> 8)  ^ addr;   \
-  addr = (addr >> 4)  ^ addr;   \
-  i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
+	addr = (addr >> 32) ^ addr;   \
+addr = (addr >> 16) ^ addr;   \
+addr = (addr >> 8)  ^ addr;   \
+addr = (addr >> 4)  ^ addr;   \
+i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
 
 #define AP_MUTEX_HASH_2         \
-  addr = (addr >> 8)  ^ addr;   \
-  addr = (addr >> 4)  ^ addr;   \
-  i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
+	addr = (addr >> 8)  ^ addr;   \
+addr = (addr >> 4)  ^ addr;   \
+i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
 
 extern pthread_mutex_t gAutoPointerMutexArray[];
 inline pthread_mutex_t* get_ap_mutex(void* obj)
 {
-  unsigned i;
-  unsigned long long addr = (unsigned long long) obj;
-  //  AP_MUTEX_HASH_1;
-  AP_MUTEX_HASH_2;
+	unsigned i;
+	unsigned long long addr = (unsigned long long) obj;
+	//  AP_MUTEX_HASH_1;
+	AP_MUTEX_HASH_2;
 #ifdef PROFILE_AP_MUTEXES
-  ap_mutex_accesses[i]++;
+	ap_mutex_accesses[i]++;
 #endif
-  return &(gAutoPointerMutexArray[i]);
+	return &(gAutoPointerMutexArray[i]);
 }
+
+#include <stdlib.h>
 
 /**
  * @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
@@ -56,99 +58,101 @@ inline pthread_mutex_t* get_ap_mutex(void* obj)
  */
 template<class T>
 class TPZAutoPointer {
-	
+
 	/** @brief Counter struct */
 	template<class T2>
-	struct TPZReference
-	{
-		/** @brief Pointer to T2 object */
-		T2 *fPointer;
-		int fCounter;
-		
-		TPZReference()
+		struct TPZReference
 		{
-			fPointer = 0;
-			fCounter = 1;
-		}
-		
-		TPZReference(T2 *pointer)
-		{
-			fPointer = pointer;
-			fCounter = 1;
-		}
-		
-		~TPZReference()
-		{
-			if(fPointer) delete fPointer;
-			fPointer = 0;
-		}
-		
-	  void ReallocForNuma(int node_id)
-	  {
-	    // -2: Do not realloc
-	    // -1: Realloc to the node that is currently running this thread.
-	    // node_id>=0 : Realloc to node_id 
+			/** @brief Pointer to T2 object */
+			T2 *fPointer;
+			int fCounter;
 
-	    if (node_id == -2) return;
+			TPZReference()
+			{
+				fPointer = 0;
+				fCounter = 1;
+			}
 
-	    //TODO: Currently relying on first-touch policy to implement case -1
+			TPZReference(T2 *pointer)
+			{
+				fPointer = pointer;
+				fCounter = 1;
+			}
 
-	    T2* old = fPointer;
-	    fPointer = (T2*) fPointer->Clone();
-	    delete old;
-	  }
+			~TPZReference()
+			{
+				if(fPointer) delete fPointer;
+				fPointer = 0;
+			}
 
-		/** @brief Increment the counter */
-		bool Increment()
-		{
-			if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
-				return false;
-			fCounter++;
-			PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
-			return true;
-		}
-		/** @brief Decrease the counter. If the counter is zero, delete myself */
-		bool Decrease()
-		{
-//			int should_delete = 0;
-		    if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
-				return false;
-			fCounter--;
-//			if(fCounter <= 0) should_delete = 1;
-		    PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
-//			if(should_delete) 
-	//		{
-		//		delete this;
-			//}
-			return true;
-		}
-		
-	};
-	
+			void ReallocForNuma(int node_id)
+			{
+				// -2: Do not realloc
+				// -1: Realloc to the node that is currently running this thread.
+				// node_id>=0 : Realloc to node_id 
+
+				if (node_id == -2) return;
+
+				//TODO: Currently relying on first-touch policy to implement case -1
+
+				T2* old = fPointer;
+				fPointer = (T2*) fPointer->Clone();
+				delete old;
+			}
+
+			/** @brief Increment the counter */
+			bool Increment()
+			{
+				if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
+					return false;
+				fCounter++;
+				PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+				return true;
+			}
+			/** @brief Decrease the counter. If the counter is zero, delete myself */
+			bool Decrease()
+			{
+				int should_delete = 0;
+				if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
+					return false;
+				fCounter--;
+				
+				if(fCounter <= 0) should_delete = 1;
+
+				PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+				if(should_delete) 
+				{
+					delete this;
+				}
+				return true;
+			}
+
+		};
+
 	/** @brief The object which contains the pointer and the reference count */
 	TPZReference<T> *fRef;
-	
-public:
+
+	public:
 	/** @brief Creates an reference counted null pointer */
 	TPZAutoPointer()
 	{
 		fRef = new TPZReference<T>();
 	}
-	
+
 	/** @brief The destructor will delete the administered pointer if its reference count is zero */
 	~TPZAutoPointer()
 	{
 		fRef->Decrease();
-		if(fRef->fCounter<1)
-			delete fRef;
+		//if(fRef->fCounter<1)
+		//	delete fRef;
 	}
-	
+
 	/** @brief This method will create an object which will administer the area pointed to by obj */
 	TPZAutoPointer(T *obj)
 	{
 		fRef = new TPZReference<T>(obj);
 	}
-	
+
 	/** @brief Share the pointer of the copy */
 	TPZAutoPointer(const TPZAutoPointer<T> &copy)
 	{
@@ -180,10 +184,10 @@ public:
 	{
 		return fRef->fPointer;
 	}
-	
+
 	void ReallocForNuma(int node)
 	{
-	  fRef->ReallocForNuma(node);
+		fRef->ReallocForNuma(node);
 	}
 
 	/** @brief Returns if pointer was attributed */
@@ -193,7 +197,7 @@ public:
 	operator bool() {
 		return fRef->fPointer != 0;
 	}
-	
+
 	/** @brief Returns the counter value */
 	int Count() const
 	{
@@ -203,7 +207,7 @@ public:
 	{
 		return fRef->fCounter;
 	}
-	
+
 };
 
 /** @} */
