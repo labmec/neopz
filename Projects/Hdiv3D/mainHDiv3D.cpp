@@ -73,19 +73,33 @@ int main()
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	for (int porder=2; porder<3; porder++) {
+	for (int porder=1; porder<2; porder++) {
 		
-        for(int h=1;h<2;h++){
+        for(int h=0;h<1;h++){
 			//1. Criacao da malha geom. e computacional
             bool hrefine=false;
-            bool prefine=true;
+           // bool prefine=false;
 			TPZGeoMesh *gmesh = MalhaGeoTetraedro(h,hrefine);
-            //gmesh->Print();
-            std::ofstream file("MalhaPAdaptativa.vtk");
+            gmesh->Print();
+            std::ofstream file("MalhaTetraedro.vtk");
             PrintGMeshVTK( gmesh, file);
             
-            TPZCompMesh *cmesh = NULL;
-            cmesh = CompMeshPAdap(*gmesh,porder,prefine);
+            ofstream arg("gmesh3D.txt");
+            gmesh->Print(arg);
+            
+         
+            TPZFMatrix<STATE> normal(3,1,0.);
+            for (int el=0; el< gmesh->NElements(); el++) {
+                TPZGeoEl *elgeo=gmesh->ElementVec()[el];
+                elgeo->ComputeNormals(normal);
+                
+                normal.Print(std::cout);
+            }
+            
+            
+            
+          //  TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
+            
 		}
         
 	}
