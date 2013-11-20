@@ -140,7 +140,8 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 		double y = pt[1];
 		//double fator=(-1)*(x*x+y*y);
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);		 
+		//disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
+    disp[0]=0.;
 		return;
 }
 void Forcing2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
@@ -180,32 +181,44 @@ void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &pressao, TPZFMatrix<STATE>
 										200*pow(x,5)*pow(-1 + y,2)*pow(y,2) + 100*pow(x,6)*pow(-1 + y,2)*pow(y,2) - 	2*pow(x,3)*(1 + (-1 + y)*y*(6 + 5*y*(-17 + 5*y*(5 + 8*(-1 + y)*y)))) + pow(x,4)*(1 + (-1 + y)*y*(6 + 5*y*(-39 + y*(47 + 40*(-1 + y)*y)))) + pow(x,2)*(1 + (-1 + y)*y*(6 + y*(-81 + y*(121 + 200*(-1 + y)*y)))))*
 										 sinh(5*pow(x,2)))));
 }
+void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux ) {
+    double x = pt[0];
+    double y = pt[1];
+    p[0]=5.+3.*x+2.*y+4.*x*y;
+    flux(0,0)=(-1.)*(3.*x+4.*y);
+    flux(1,0)=(-1.)*(2.*y+4.*x);
+    flux(2,0)=0;
 
+}
 void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-		double x=pt[0];
-		//double y=pt[1];
-		double fator=-x*x;//-4.-x*x;
-		f[0] = exp(fator)*x;//0.;//2*(1-x*x);// 
-		
+    double x=pt[0];
+    double y=pt[1];
+    //double y=pt[1];
+    //double fator=-x*x;//-4.-x*x;
+    //f[0] = (-1.)*(2.+4.*y);//exp(fator)*x;//0.;//2*(1-x*x);//
+    f[0]=3.-x;
+
 }
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-		//double x=pt[0];
-		double y=pt[0];
-		double fator=-4.-y*y;
-		f[0] = 2.*exp(fator);//2.*//MyPi*cos(MyPi*y);//0.;//2*(1-x*x);//
-		
+    //double x=pt[0];
+    double y=pt[0];
+    //double fator=-4.-y*y;
+    //f[0] = 3.+4.*y;//2.*exp(fator);//2.*//MyPi*cos(MyPi*y);//0.;//2*(1-x*x);//
+	f[0]=8.+6.*y;
 }
 void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-		double x=pt[0];
-		//double y=pt[1];
-		double fator=-4.-x*x;
-		f[0]=x*exp(fator);//0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
+    double x=pt[0];
+    //double y=pt[1];
+    //double fator=-4.-x*x;
+    //f[0]=2.+4.*x;//x*exp(fator);//0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//
+    f[0]=7.*x+7.;
 }
 void CC4(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 		//double x=pt[0];
-		//double y=pt[0];
+		double y=pt[0];
 		//double fator=-4.-y*y;
-		f[0]=0.;//-2.*exp(fator);//-MyPi*cos(MyPi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//
+   // f[0]=(-1.)*(3.+4.*y);//0.;//-2.*exp(fator);//-MyPi*cos(MyPi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;
+    f[0]=2.-2.*y;
 }
 
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
@@ -223,29 +236,28 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
+		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata3);
 		mat->SetForcingFunctionExact(exata1);
 			
 		///Criar condicoes de contorno
-		/*		
+			
 		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
 		TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
 		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
 		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
-		 */
+        
 		
 		TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-		TPZFMatrix<STATE> val11(1,1,0.), val22(1,1,0.);
 		TPZMaterial *bnd = automat->CreateBC (automat,-4,0,val1,val2);
 		TPZMaterial *bnd2 = automat->CreateBC (automat,-5,0,val1,val2);
 		TPZMaterial *bnd3 = automat->CreateBC (automat,-6,0,val1,val2);
 		TPZMaterial *bnd4 = automat->CreateBC (automat,-7,0,val1,val2);
-		/*
+		
 			bnd->SetForcingFunction(fCC1);
 			bnd2->SetForcingFunction(fCC2);
 			bnd3->SetForcingFunction(fCC3);
 			bnd4->SetForcingFunction(fCC4);
-		*/
+		
 	
 		///Inserir condicoes de contorno
 		comp->InsertMaterialObject(bnd);
@@ -355,7 +367,7 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 		
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
+		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata3);
 		mat->SetForcingFunctionExact(exata1);
 		///Inserir condicoes de contorno
 		
@@ -537,7 +549,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 {
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
-		REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
+		REAL co[4][2] = {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//{{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//
 		int indices[1][4] = {{0,1,2,3}};
 		
 		int nnode = 4;
