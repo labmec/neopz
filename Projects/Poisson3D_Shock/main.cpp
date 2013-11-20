@@ -90,6 +90,7 @@ int ModelDimension = 3;
 /** Printing level */
 int gPrintLevel = 0;
 int printingsol = 0;
+int printsave = 1;
 
 int materialId = 1;
 int id_bc0 = -1;
@@ -124,6 +125,9 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 
 void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename);
+
+// To save meshes in disk
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified=NULL,bool check=false);
 
 /** Utilitaries */
 void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec);
@@ -191,7 +195,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	memset(time_formated,0,256);
 	
 	// Output files
-	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
+	std::ofstream fileerrors("ErrorsHP_Poisson.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
 //	formatTimeInSec(time_formated,256,sttime);
@@ -213,6 +217,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 
 		/** Solving for each type of geometric elements */
 		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+//		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -227,12 +232,10 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				gmesh = CreateGeomMesh(typeel);
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
-			if(ModelDimension == 1)
-				NRefs = 12;
-			else if(ModelDimension == 2)
-				NRefs = 7;
+			if(ModelDimension < 3)
+				NRefs = 3;
 			else if(ModelDimension == 3)
-				NRefs = 4;
+				NRefs = 3;
 			
 			// To storing number of equations and errors obtained for all iterations
 			ErrorVec.Resize(NRefs,0.0);
@@ -278,8 +281,15 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);               // Forcing function is out 2013_07_25
 
+			int countermesh=0;
 			// loop solving iteratively
 			for(nref=0;nref<NRefs;nref++) {
+				if(printsave > 0) {
+#ifdef LOG4CXX
+					InitializePZLOG();
+#endif
+					SaveCompMesh(cmesh,countermesh++);
+				}
 				out << "\nConstructing Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
                 std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
 				if(usethreads) {
@@ -350,11 +360,11 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				ErrorVec[nref] = ervec[1];
 				NEquations[nref] = cmesh->NEquations();
 
-				STATE Tol;
-				ZeroTolerance(Tol);
-				std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl << "Starting hp adaptive analysis: " << std::endl;
-				out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl;
 				if(NRefs > 1 && nref < (NRefs-1)) {
+					STATE Tol;
+					ZeroTolerance(Tol);
+					std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl << "Starting hp adaptive analysis: " << std::endl;
+					out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << std::endl << std::endl;
 					if(ervec[1] < Tol) {
 						fileerrors << "TOLERANCE REACHED - SUCCESFULL RUNNING IN STEP Refinement: " << nref << "." << std::endl;
 						fileerrors.flush();
@@ -412,8 +422,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad, MaxLaplacian;
 	long i;
 	REAL IncrementError = 0.8*(MaxErrorByElement-MinErrorByElement);
-	REAL factorGrad = 0.15*(nref+1);
-	REAL factorLap = 0.5+0.15*(nref+1);
+	REAL factorGrad = 0.3+0.2*nref;
+	REAL factorLap = 0.6+0.1*nref;
 	if(factorGrad > 0.95)
 		factorGrad = 0.98;
 	if(factorLap > 0.9)
@@ -429,7 +439,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
 		// If the element is suficciently little do nothing
-		if(ervecbyel[index] < Tol) {
+		if(ervecbyel[index] < (Tol/10.)) {
 			counterreftype[0]++;
 			continue;
 		}
@@ -456,7 +466,10 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		if(nref < 1 || ervecbyel[index] > MinErrorByElement+IncrementError) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
-				flag = true;
+				if(nref < 2)
+					flag = false;
+				else 
+					flag = true;
 				if(LaplacianValue > factorLap*MaxLaplacian && pelement+1<MaxPOrder) {
 					el->PRefine(pelement+1);
 					counterreftype[5]++;
@@ -1685,4 +1698,49 @@ TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
 		return 0;
 	
 	return meshgrid;
+}
+
+// Save information of the current mesh in disk
+void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,bool check) {
+    if(!cmesh || timessave < 0) {
+        std::cout << "SaveCompMesh - Bad argument: " << (void *)cmesh << " " << timessave << std::endl;
+        return;
+    }
+#ifdef LOG4CXX
+    {
+        TPZFileStream fstrthis;
+        std::stringstream soutthis;
+        if(cmeshmodified) soutthis << (void*)cmeshmodified;
+        else soutthis << (void*)cmesh;
+        // Rename the computational mesh
+        cmesh->SetName(soutthis.str());
+        soutthis << "_" << timessave;
+        std::string filenamethis("LOG/");
+        filenamethis.append(soutthis.str());
+//        filenamethis.append(".txt");
+        fstrthis.OpenWrite(filenamethis);
+        
+        // Renaming the geometric mesh
+        std::stringstream gout;
+        gout << (void*)cmesh->Reference();
+        cmesh->Reference()->SetName(gout.str());
+        
+        // Save geometric mesh data
+        int classid = cmesh->Reference()->ClassId();
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        cmesh->Reference()->Write(fstrthis,0);
+        // Save computational mesh data
+        classid = cmesh->ClassId();
+        fstrthis.Write(&classid,1);   // this first data is necessary to use TPZSaveable::Restore
+        cmesh->Write(fstrthis,0);
+        // To check printing computational mesh data in file
+        if(check) {
+            std::string filename("Mesh_");
+            filename.append(soutthis.str());
+            filename.append(".txt");
+            std::ofstream arq(filename.c_str());
+            cmesh->Print(arq);
+        }
+    }
+#endif
 }
