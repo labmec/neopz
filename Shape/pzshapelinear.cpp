@@ -162,11 +162,11 @@ namespace pzshape {
 		}
 		if(phi.Rows() < order[0]+1) {
 			PZError << "TPZShapeLinear::shape --> Invalid dimension for argument phi " << endl;
-			phi.Resize(order[0], phi.Cols());
+			phi.Resize(order[0]+1, phi.Cols());
 		}
 		if(dphi.Cols() < order[0]+1) {
 			PZError << "TPZShapeLinear::shape --> Invalid dimension for argument dphi " << endl;
-			dphi.Resize(dphi.Rows(),order[0]);
+			dphi.Resize(dphi.Rows(),order[0]+1);
 		}
 #endif
 		

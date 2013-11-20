@@ -248,8 +248,11 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 	int numvec = data.fVecShapeIndex.NElements();
 	
 	TPZFMatrix<REAL>  &phi = data.phi;
-	STATE v2[1];
+	TPZManVector<STATE,1> v2(1);
 	v2[0] = bc.Val2()(0,0);
+    if (bc.HasForcingFunction()) {
+        bc.ForcingFunction()->Execute(data.x, v2);
+    }
 	
 	switch (bc.Type()) {
 		case 1 :			// Neumann condition
@@ -569,6 +572,10 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
             }
             break;
         default:
+            if (data.sol[0].size() == 4) {
+                data.sol[0][0] = data.sol[0][2];
+            }
+
             this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);
             break;
     }

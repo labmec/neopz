@@ -19,6 +19,7 @@
 #include "tpzintpoints.h"
 #include "pztrnsform.h"
 #include "pzintel.h"
+#include "pzfstrmatrix.h"
 #include "pzstepsolver.h"
 
 #include "pzanalysis.h"
@@ -39,9 +40,13 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
 
 #include <boost/test/unit_test.hpp>
 
-static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type);
+static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem = 3, int fluxorder = 4);
 int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
 int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
+void Force(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+{
+    force[0] = 5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
+}
 
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZInterpolatedElement *intel);
@@ -49,6 +54,59 @@ static void CheckDRham(TPZInterpolatedElement *intel);
 
 // Tests for the 'voidflux' class.
 BOOST_AUTO_TEST_SUITE(mesh_tests)
+
+
+/// Check that the Div of the vector functions can be represented
+BOOST_AUTO_TEST_CASE(bilinearsolution_check)
+{
+    InitializePZLOG();
+    int eltype = 0;
+    int nelx = 1;
+    int fluxorder = 1;
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(eltype,nelx,fluxorder);
+    TPZMaterial *mat = cmesh->FindMaterial(-1);
+    if(!mat) DebugStop();
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(Force);
+        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
+        mat->SetForcingFunction(autofunc);
+        
+        TPZAnalysis an(cmesh);
+        TPZFStructMatrix str(cmesh);
+        an.SetStructuralMatrix(str);
+        TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    an.SetSolver(step);
+    an.Run();
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        cmesh->Reference()->Print(sout);
+        cmesh->Print(sout);
+        an.Rhs().Print("Right Hand Side",sout);
+        an.Solution().Print("Solution",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+        ofstream test("onde_esta_este_arquivo.txt");
+    }
+#endif
+    TPZCompEl *cel = cmesh->ElementVec()[0];
+    TPZGeoEl *gel = cel->Reference();
+    int ns = gel->NSides();
+    TPZIntPoints *rule = gel->CreateSideIntegrationRule(ns-1, 3);
+    int np = rule->NPoints();
+    for(int ip=0; ip<np; ip++)
+    {
+        TPZManVector<REAL,3> xi(2), xco(3), sol(1), exactsol(1);
+        REAL weight;
+        rule->Point(ip, xi, weight);
+        gel->X(xi, xco);
+        cel->Solution(xi, 1, sol);
+        autofunc->Execute(xco, exactsol);
+        BOOST_CHECK(fabs(sol[0]-exactsol[0]) < 1.e-6);
+    }
+    
+}
+
 
 BOOST_AUTO_TEST_CASE(sideshape_continuity)
 {
@@ -98,7 +156,7 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
         perm++;
     }
 }
-
+                
 /// Check that the Div of the vector functions can be represented
 BOOST_AUTO_TEST_CASE(drham_check)
 
@@ -179,9 +237,9 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
+static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem, int fluxorder)
 {
-    TPZManVector<int,3> nx(2,3);
+    TPZManVector<int,3> nx(2,nelem);
     TPZManVector<REAL,3> x0(3,0.),x1(3,3.);
     x1[2] = 0.;
     TPZGenGrid grid(nx,x0,x1);
@@ -200,7 +258,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZMaterial *matbnd(bnd);
     cmesh->InsertMaterialObject(matbnd);
     cmesh->SetAllCreateFunctionsHDivPressure();
-    cmesh->SetDefaultOrder(4);
+    cmesh->SetDefaultOrder(fluxorder);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
 #ifdef LOG4CXX
