@@ -73,11 +73,11 @@ int main()
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	std::ofstream erro("Caulotaxa.txt");
+	std::ofstream erro("TaxaProbModelo.txt");
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");
 	TPZVec<REAL> calcErro;
-	for (int porder=1; porder<2; porder++) {
+	for (int porder=2; porder<3; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
 			for(int h=0;h<1;h++){
@@ -86,11 +86,12 @@ int main()
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;
 					bool prefine=false;
-					TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
+                TPZGeoMesh *gmesh = MalhaGeo(h, hrefine);
+                //MalhaGeoT(h, hrefine);
 					//gmesh->Print();
 
-			//TPZGeoMesh *gmesh =GeoMeshGrid(h);
-    std::ofstream file("MalhaPAdaptativa.vtk");
+			//TPZGeoMesh *gmesh =MalhaGeo2(h);
+    std::ofstream file("TestedeMalha.vtk");
 		PrintGMeshVTK( gmesh, file);
 
 			
@@ -144,6 +145,7 @@ int main()
 			 int div = 2;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
+             
 			 
 			 
 			
