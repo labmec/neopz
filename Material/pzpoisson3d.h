@@ -300,9 +300,9 @@ public:
 
 };
 
-//#ifndef BORLAND
-//template class TPZRestoreClass<TPZMatPoisson3d,TPZMATPOISSON3D>;
-//#endif
+#ifndef BORLAND
+template class TPZRestoreClass<TPZMatPoisson3d,TPZMATPOISSON3D>;
+#endif
 
 
 #endif
