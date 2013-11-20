@@ -66,9 +66,13 @@ int main() {
     std::string filename, cmeshname;
     std::cout << std::endl << "INPUT - Name of file to load mesh ";
     std::cin >> cmeshname;
-    filename = cmeshname + ".txt";
-    fstr.OpenRead(filename);
-    cmeshname.insert(11,1,0);
+	//char *q = strchr(((char *)cmeshname.c_str()),'.');
+//	if(!q)
+	//    filename = cmeshname + ".txt";
+    fstr.OpenRead(cmeshname);
+	char *q = strchr(((char *)cmeshname.c_str()),'_');
+	if(q)
+		*q = '\0';
 	
     // Files with information meshes
     std::ofstream outfirstmesh("InitialCMesh.txt");
@@ -200,7 +204,7 @@ int GetCommand(std::string &command,int nargs,TPZManVector<int,5> &argindex) {
 }*/
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
     int i;
-    long index, indexcel;
+    long index, indexcel, indexgel;
     std::string commandname;
     TPZGeoMesh *gmesh = NULL;
     gmesh = cmesh->Reference();
@@ -212,9 +216,15 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
         if(!commandname.compare("Divide")) {
             TPZVec<long> subs;
             commandline >> index;
-            commandline >> index;
-            indexcel = gmesh->ElementVec()[index]->Reference()->Index();
-            cmesh->Divide(indexcel, subs, 1);
+            commandline >> indexgel;
+			TPZCompEl *cel = gmesh->ElementVec()[indexgel]->Reference();
+			if(!cel) {
+				std::cout << "\nComputational element was not exist. Exiting! \n";
+			}
+            indexcel = cel->Index();
+			if(index != indexcel)
+				std::cout << "\nDifferent index obtained from geometric element.\n";
+            cmesh->Divide(index, subs, 1);
         }
 //    }
     // Making all refines
