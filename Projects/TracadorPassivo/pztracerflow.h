@@ -47,7 +47,7 @@ protected:
 	REAL fVisc;
     
     /** @brief convection term (direction velocity) */
-	TPZVec<REAL> fConvDir;
+	TPZManVector<REAL> fConvDir;
     
     /** @brief Problem dimension */
 	int fDim;
@@ -59,6 +59,8 @@ protected:
     REAL fTimeValue;
     
     int fmatId;
+    
+    bool fPressureEquationFilter;
     
 	/** @brief State: n ou n+1 */
 	enum EState {ELastState = 0, ECurrentState = 1};
@@ -114,6 +116,13 @@ public:
     
 	void SetCurrentState(){
         gState = ECurrentState;
+    }
+    
+    void SetPressureEqFilter(){
+        fPressureEquationFilter = true;
+    }
+    void SetFalsePressureEqFilter(){
+         fPressureEquationFilter = false;
     }
     
 	void SetTimeStep(REAL delt){

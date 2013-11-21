@@ -32,6 +32,7 @@ TPZTracerFlow::TPZTracerFlow():TPZDiscontinuousGalerkin(){
     fTimeStep = 0.;
     fTimeValue = 0.;
     fmatId = 0;
+    fPressureEquationFilter = false;
 }
 
 TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZDiscontinuousGalerkin(matid){
@@ -50,6 +51,7 @@ TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZDiscontinuousGalerkin(matid)
     fTimeStep = 0.;
     fTimeValue = 0.;
     fmatId = matid;
+    fPressureEquationFilter = false;
 }
 
 TPZTracerFlow::~TPZTracerFlow(){
@@ -73,6 +75,7 @@ TPZTracerFlow & TPZTracerFlow::operator=(const TPZTracerFlow &copy){
     fTimeStep = copy.fTimeStep ;
     fTimeValue = copy.fTimeValue;
     fmatId = copy.fmatId;
+    fPressureEquationFilter = copy.fPressureEquationFilter;
     
 	return *this;
 }
@@ -156,76 +159,81 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     //current state n+1: stiffness matrix
     if(gState == ECurrentState)
     {
-        //Calculate the matrix contribution for flux. Matrix A
-        REAL ratiok = fVisc/fk;
-        for(int iq=0; iq<phrQ; iq++)
+        if (fPressureEquationFilter == true)
         {
-            ef(iq+phrS, 0) += 0.;
-            
-            int ivecind = datavec[1].fVecShapeIndex[iq].first;
-            int ishapeind = datavec[1].fVecShapeIndex[iq].second;
-            for (int jq=0; jq<phrQ; jq++)
+            //Calculate the matrix contribution for flux. Matrix A
+            REAL ratiok = fVisc/fk;
+            for(int iq=0; iq<phrQ; iq++)
             {
-                int jvecind = datavec[1].fVecShapeIndex[jq].first;
-                int jshapeind = datavec[1].fVecShapeIndex[jq].second;
-                REAL prod = datavec[1].fNormalVec(0,ivecind)*datavec[1].fNormalVec(0,jvecind)+
-                datavec[1].fNormalVec(1,ivecind)*datavec[1].fNormalVec(1,jvecind)+
-                datavec[1].fNormalVec(2,ivecind)*datavec[1].fNormalVec(2,jvecind);//dot product between u and v
-                ek(iq+phrS,jq+phrS) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+                ef(iq+phrS, 0) += 0.;
+                
+                int ivecind = datavec[1].fVecShapeIndex[iq].first;
+                int ishapeind = datavec[1].fVecShapeIndex[iq].second;
+                for (int jq=0; jq<phrQ; jq++)
+                {
+                    int jvecind = datavec[1].fVecShapeIndex[jq].first;
+                    int jshapeind = datavec[1].fVecShapeIndex[jq].second;
+                    REAL prod = datavec[1].fNormalVec(0,ivecind)*datavec[1].fNormalVec(0,jvecind)+
+                    datavec[1].fNormalVec(1,ivecind)*datavec[1].fNormalVec(1,jvecind)+
+                    datavec[1].fNormalVec(2,ivecind)*datavec[1].fNormalVec(2,jvecind);//dot product between u and v
+                    ek(iq+phrS,jq+phrS) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+                }
+            }
+            
+            // Coupling terms between flux and pressure. Matrix B
+            for(int iq=0; iq<phrQ; iq++)
+            {
+                int ivecind = datavec[1].fVecShapeIndex[iq].first;
+                int ishapeind = datavec[1].fVecShapeIndex[iq].second;
+                
+                TPZFNMatrix<3> ivec(3,1);
+                ivec(0,0) = datavec[1].fNormalVec(0,ivecind);
+                ivec(1,0) = datavec[1].fNormalVec(1,ivecind);
+                ivec(2,0) = datavec[1].fNormalVec(2,ivecind);
+                TPZFNMatrix<3> axesvec(3,1);
+                datavec[1].axes.Multiply(ivec,axesvec);
+                
+                REAL divwq = 0.;
+                for(int iloc=0; iloc<fDim; iloc++)
+                {
+                    divwq += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
+                }
+                for (int jp=0; jp<phrP; jp++) {
+                    
+                    REAL fact = (-1.)*weight*phiP(jp,0)*divwq;
+                    // Matrix B
+                    ek(iq+phrS, phrS+phrQ+jp) += fact;
+                    
+                    // Matrix B^T
+                    ek(phrS+phrQ+jp,iq+phrS) += fact;
+                }
+            }
+            
+            //Right side of the pressure equation
+            REAL fXfLocP = fxfPQ;
+            if(fForcingFunction) {
+                TPZManVector<STATE> res(1);
+                fForcingFunction->Execute(datavec[2].x,res);
+                fXfLocP = res[0];
+            }
+            for(int ip=0; ip<phrP; ip++){
+                ef(phrS+phrQ+ip,0) += (-1.)*weight*fXfLocP*phiP(ip,0);
             }
         }
-        
-        // Coupling terms between flux and pressure. Matrix B
-        for(int iq=0; iq<phrQ; iq++)
+        else
         {
-            int ivecind = datavec[1].fVecShapeIndex[iq].first;
-            int ishapeind = datavec[1].fVecShapeIndex[iq].second;
-            
-            TPZFNMatrix<3> ivec(3,1);
-            ivec(0,0) = datavec[1].fNormalVec(0,ivecind);
-            ivec(1,0) = datavec[1].fNormalVec(1,ivecind);
-            ivec(2,0) = datavec[1].fNormalVec(2,ivecind);
-            TPZFNMatrix<3> axesvec(3,1);
-            datavec[1].axes.Multiply(ivec,axesvec);
-            
-            REAL divwq = 0.;
-            for(int iloc=0; iloc<fDim; iloc++)
-            {
-                divwq += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
-            }
-            for (int jp=0; jp<phrP; jp++) {
+            //Calculate the matrix contribution for saturation. Matrix D
+            for(int in = 0; in < phrS; in++ ) {
                 
-                REAL fact = (-1.)*weight*phiP(jp,0)*divwq;
-                // Matrix B
-                ek(iq+phrS, phrS+phrQ+jp) += fact;
+                ef(in, 0) += fTimeStep*weight*fxfS*phiS(in,0);
                 
-                // Matrix B^T
-                ek(phrS+phrQ+jp,iq+phrS) += fact;
+                for(int jn = 0; jn < phrS; jn++)
+                {
+                    ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
+                }
             }
         }
         
-        //Right side of the pressure equation
-        REAL fXfLocP = fxfPQ;
-        if(fForcingFunction) {
-            TPZManVector<STATE> res(1);
-            fForcingFunction->Execute(datavec[2].x,res);
-            fXfLocP = res[0];
-        }
-        for(int ip=0; ip<phrP; ip++){
-            ef(phrS+phrQ+ip,0) += (-1.)*weight*fXfLocP*phiP(ip,0);
-        }
-        
-        //Calculate the matrix contribution for saturation. Matrix D
-        for(int in = 0; in < phrS; in++ ) {
-            
-            ef(in, 0) += fTimeStep*weight*fxfS*phiS(in,0);
-            
-            for(int jn = 0; jn < phrS; jn++)
-            {
-                ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
-            }
-        }
-         
     }//end stiffness matrix at ECurrentState
 	
     
@@ -275,7 +283,10 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 
 void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-    
+    if (fPressureEquationFilter == false)
+    {
+        return;
+    }
 #ifdef DEBUG
     int nref =  datavec.size();
 	if (nref != 3 ) {
@@ -440,7 +451,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 
 void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-    if(gState == ELastState){
+    if(gState == ECurrentState){
 		return;
 	}
     
