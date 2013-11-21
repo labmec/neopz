@@ -389,7 +389,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	}
 	if(neighbour.Element()->Dimension() != TSHAPE::Dimension+1)
 	{
-		return;
+		DebugStop();
 	}
 	TPZGeoEl *neighel = neighbour.Element();
 	TPZManVector<int,9> normalsides;
@@ -514,7 +514,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     for (int ic=0; ic<nc; ic++) {
         id[ic] = gel->Node(ic).Id();
     }
-    TPZVec<int> ord;
+    TPZManVector<int,2> ord;
     this->GetInterpolationOrder(ord);
 
     TSHAPE::Shape(point,id,ord,phi,dphi);
@@ -533,6 +533,12 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
+    TPZManVector<int,2> ordl;
+    this->GetInterpolationOrder(ordl);
+    phi.Resize(ordl[0]+1, 1);
+    dphi.Resize(1, ordl[0]+1);
+    SideShapeFunction(2, pt, phi, dphi);
+    return;
 	/*
   TPZCompElSide thisside(this,TSHAPE::NSides-1);
 	TPZGeoElSide thisgeoside(thisside.Reference());
