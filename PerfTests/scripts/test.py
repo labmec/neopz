@@ -71,15 +71,11 @@ import substruct_tst13.test
 import skyline_tst01.test
 import skyline_tst02.test
 import skyline_tst03.test
-#import skyline_tst04.test
-#import skyline_tst05.test
-#import skyline_tst06.test
-#import skyline_tst07.test
-#import skyline_tst08.test
-#import skyline_tst09.test
-import skyline_tst10.test
-import skyline_tst11.test
-import skyline_tst12.test
+import skyline_tst04.test
+import skyline_tst05.test
+import skyline_tst06.test
+import skyline_tst07.test
+import skyline_tst08.test
 # =========================
 
 # == Available test lists ==
@@ -89,8 +85,9 @@ import skyline_tst12.test
 short_tests = [("substruct_tst01",substruct_tst01.test), 
 	       ("substruct_tst02",substruct_tst02.test),
 	       ("skyline_tst01",skyline_tst01.test),
-	       ("skyline_tst02",skyline_tst02.test),
-	       ("skyline_tst10",skyline_tst10.test)]
+	       ("skyline_tst04",skyline_tst04.test),
+	       ("skyline_tst05",skyline_tst05.test),
+	       ("skyline_tst07",skyline_tst07.test)]
 
 # TODO: How about:
 # substruct_tst05
@@ -115,12 +112,12 @@ medium_tests= [("substruct_tst03",substruct_tst03.test),
 	       ("substruct_tst11",substruct_tst11.test),
 	       ("substruct_tst12",substruct_tst12.test),
 	       ("substruct_tst13",substruct_tst13.test),
-	       ("skyline_tst03",skyline_tst03.test),
-	       ("skyline_tst11",skyline_tst11.test),
-	       ("skyline_tst12",skyline_tst12.test)]
+	       ("skyline_tst02",skyline_tst02.test)]
 
 # Tests with execution time longer than 10 minutes
-long_tests = []
+long_tests = [("skyline_tst03",skyline_tst03.test),
+	      ("skyline_tst06",skyline_tst06.test),
+	      ("skyline_tst08",skyline_tst08.test)]
 
 regression_tests = short_tests + medium_tests + long_tests
 
