@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     
     int p = 0;
     TPZGeoMesh *gmesh = MalhaGeom(1.,1.);
-    UniformRefine(gmesh, 3);
+    UniformRefine(gmesh, 1);
     ofstream arg1("gmesh.txt");
     gmesh->Print(arg1);
     
