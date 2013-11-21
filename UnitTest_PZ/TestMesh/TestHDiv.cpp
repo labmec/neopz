@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
         an.Rhs().Print("Right Hand Side",sout);
         an.Solution().Print("Solution",sout);
         LOGPZ_DEBUG(logger, sout.str())
-        ofstream test("onde_esta_este_arquivo.txt");
+        std::ofstream test("onde_esta_este_arquivo.txt");
     }
 #endif
     TPZCompEl *cel = cmesh->ElementVec()[0];
