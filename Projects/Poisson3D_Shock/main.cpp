@@ -142,7 +142,7 @@ bool SolveLaplaceProblemOnLShapeMesh();
 
 // Generic data for problems to solve
 bool usethreads = false;
-int MaxPOrder = 8;
+int MaxPOrder = 10;
 int NRefs = 8;
 int ninitialrefs = 3;
 
@@ -168,10 +168,10 @@ int main() {
 #endif
 
 	// Initializing uniform refinements for reference elements
-//	gRefDBase.InitializeUniformRefPattern(EOned);
+	gRefDBase.InitializeUniformRefPattern(EOned);
 //	gRefDBase.InitializeUniformRefPattern(ETriangle);
-//	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	gRefDBase.InitializeAllUniformRefPatterns();
+	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+//	gRefDBase.InitializeAllUniformRefPatterns();
     //    gRefDBase.InitializeRefPatterns();
     
 	// To check if derivatives and function was right inplemented 
@@ -216,8 +216,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-//		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+//		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -233,7 +233,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3)
-				NRefs = 3;
+				NRefs = 9;
 			else if(ModelDimension == 3)
 				NRefs = 3;
 			
@@ -421,13 +421,20 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i;
-	REAL IncrementError = 0.8*(MaxErrorByElement-MinErrorByElement);
-	REAL factorGrad = 0.3+0.2*nref;
-	REAL factorLap = 0.6+0.1*nref;
-	if(factorGrad > 0.95)
-		factorGrad = 0.98;
-	if(factorLap > 0.9)
-		factorLap = 0.95;
+	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
+//	REAL factorGrad = 0.3+0.2*nref;
+	REAL factorGrad;
+	REAL factorLap = 0.7;
+	if(nref<2)
+		factorGrad = 0.3;
+	else if(nref < 4)
+		factorGrad = 0.55;
+	else if(nref < 6)
+		factorGrad = 0.7;
+	else if(nref < 8)
+		factorGrad = 0.85;
+	else if(nref < 10)
+		factorGrad = 0.95;
 
 	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
 	REAL MinGrad = 1.e+5, MinLap = 1.e+7;
@@ -438,7 +445,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
-		// If the element is suficciently little do nothing
+		// If the element error is little enough do nothing
 		if(ervecbyel[index] < (Tol/10.)) {
 			counterreftype[0]++;
 			continue;
@@ -447,15 +454,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		// If error is small and laplacian value is very little then the order will be minimized
 		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
 			DebugStop();
-
-
 		// EXTRAS START
 		if(GradNorm > factorGrad*MaxGrad) {
-			counterreftype[1]++;
+			counterreftype[13]++;
 			MinGrad = (MinGrad < GradNorm) ? MinGrad : GradNorm;
 		}
 		if(LaplacianValue > factorLap*MaxLaplacian) {
-			counterreftype[2]++;
+			counterreftype[14]++;
 			MinLap = (MinLap < LaplacianValue) ? MinLap : LaplacianValue;
 		}
 		// EXTRAS END
@@ -463,50 +468,48 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		// Determining a factor to make different strategies to generated least number of dofs.
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(nref < 1 || ervecbyel[index] > MinErrorByElement+IncrementError) {
+		if(ervecbyel[index] > 0.75*MaxErrorByElement && IncrementError > 100*Tol) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
-				if(nref < 2)
-					flag = false;
-				else 
-					flag = true;
+				flag = false;
+				counterreftype[1]++;
 				if(LaplacianValue > factorLap*MaxLaplacian && pelement+1<MaxPOrder) {
 					el->PRefine(pelement+1);
-					counterreftype[5]++;
+					counterreftype[2]++;
 					flag = true;
 				}
-				counterreftype[6]++;
 				el->Divide(index,subels);
 				if(!flag) {
+					counterreftype[3]++;
 					for(int ii=0;ii<subels.NElements();ii++) {
 						el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]]);
 						el->Divide(subels[ii],subsubels);
-						counterreftype[9]++;
 					}
 				}
 			}
-			else if(LaplacianValue < 0.01 || pelement+1 < MaxPOrder) {
+			else {
 				el->Divide(index,subels);
+				counterreftype[4]++;
+			}
+		} 
+		else if(ervecbyel[index] > 0.2*MaxErrorByElement) {
+			if((GradNorm > factorGrad*MaxGrad)) {
+				counterreftype[5]++;
+				el->Divide(index,subels);
+			}
+			else {
+				el->PRefine(pelement+1);
+				counterreftype[6]++;
+			}
+		}
+		else {
+			if(pelement+1 < MaxPOrder) {
+				el->PRefine(pelement+1);
 				counterreftype[7]++;
 			}
 			else {
-				counterreftype[8]++;
-				el->PRefine(pelement+1);
-			}
-		} else {
-			if(GradNorm > factorGrad*MaxGrad) {
 				el->Divide(index,subels);
-				counterreftype[10]++;
-			}
-			else {
-				if(pelement+1 < MaxPOrder) {
-					el->PRefine(pelement+1);
-					counterreftype[11]++;
-				}
-				else {
-					el->Divide(index,subels);
-					counterreftype[12]++;
-				}
+				counterreftype[8]++;
 			}
 		}
 	}
@@ -594,8 +597,12 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	// printing lines to create lists of logarithms
 	fileerrors << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
 	fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
+	fileerrors << "Temp[i_, j_] := {{LogNEquations[[i]],LogL2Errors[[i]]},{LogNEquations[[Length[LogNEquations]]],LogL2Errors[[j]] + ((LogL2Errors[[i]]-LogL2Errors[[j]])/(LogNEquations[[i]]-LogNEquations[[j]]))*(LogNEquations[[Length[LogNEquations]]]-LogNEquations[[j]])}}" << std::endl;
 	// printing line to make a graphics log_nequations x log_errors
-	fileerrors << "ListPlot[Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}],Joined->True,PlotRange->All]" << std::endl;
+	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
+	for(nref=1;nref<NRefs-1;nref++)
+		fileerrors << ",Temp["<<nref<<","<<(nref+1)<<"]";
+	fileerrors << "},Joined->True,PlotRange->All]" << std::endl;
 	return true;
 }
 void AdjustingOrder(TPZCompMesh *cmesh) {
