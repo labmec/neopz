@@ -49,6 +49,7 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &command);
 
 int gDebug = 0;
 
+void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh);
 
 /** Ideia principal: Recuperar uma malha computacional do disco, realizar mudancas registradas em um arquivo (lendo apenas as linhas com o referencia ao nome da malha, e a malha final deve ser a mesma obtida no processo inicial.
  */
@@ -65,15 +66,22 @@ int main() {
     TPZFileStream fstr;
     std::string filename, cmeshname;
     std::cout << std::endl << "INPUT - Name of file to load mesh ";
-    std::cin >> cmeshname;
+    std::cin >> filename;
 	//char *q = strchr(((char *)cmeshname.c_str()),'.');
 //	if(!q)
 	//    filename = cmeshname + ".txt";
-    fstr.OpenRead(cmeshname);
-	char *q = strchr(((char *)cmeshname.c_str()),'_');
-	if(q)
-		*q = '\0';
-	
+	// Verifying if file exist and it is open
+	std::ifstream in(filename);
+	if(!in.is_open())
+		return 1;
+	in.close();
+
+    fstr.OpenRead(filename);
+	for(int i=0;i<filename.size();i++) {
+		char p = filename[i];
+		if(p=='_') break;
+		cmeshname += ((char)toupper(p));
+	}
     // Files with information meshes
     std::ofstream outfirstmesh("InitialCMesh.txt");
     std::ofstream outmesh("FinalCMesh.txt");
@@ -84,8 +92,9 @@ int main() {
 //    gmesh.Read(fstr,0);
     TPZCompMesh* cmesh;
     cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::Restore(fstr,gmesh));
+	MakeCompatibles(gmesh,cmesh);
 //    cmesh.Read(fstr,gmesh);
-    cmesh->AutoBuild();
+//    cmesh->AutoBuild();
     int dim = cmesh->Dimension();
     cmesh->Print(outfirstmesh);
     outfirstmesh.close();
@@ -186,6 +195,26 @@ void SaveCompMesh(TPZCompMesh *cmesh, int timessave,TPZCompMesh *cmeshmodified,b
 #endif
 }
 
+void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh) {
+	long ig, ngels = gmesh->NElements();
+	long ic, ncels = cmesh->NElements();
+	TPZGeoEl *gel;
+	TPZCompEl *cel;
+	for(ig=0;ig<ngels;ig++) {
+		gel = gmesh->ElementVec()[ig];
+		if(!gel) continue;
+		gel->ResetReference();
+	}
+	for(ic=0;ic<ncels;ic++) {
+		cel = cmesh->ElementVec()[ic];
+		if(!cel) continue;
+		long index = cel->GetRefElPatch()->Index();
+		gel = gmesh->ElementVec()[index];
+		if(!gel)
+			DebugStop();
+		gel->SetReference(cel);
+	}
+}
 /* read a log line to extract command after a identifier (pointer of computational object)
 int GetCommand(std::string &command,int nargs,TPZManVector<int,5> &argindex) {
     std::string commandknowed[32];
@@ -206,8 +235,12 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
     int i;
     long index, indexcel, indexgel;
     std::string commandname;
-    TPZGeoMesh *gmesh = NULL;
-    gmesh = cmesh->Reference();
+    TPZGeoMesh *gmesh = cmesh->Reference();
+	gmesh->ResetReference();
+	gmesh->SetReference(cmesh);
+	cmesh->SetReference(gmesh);
+	TPZGeoEl *gel;
+	TPZCompEl *cel;
 
     // Making all divide first
     for(i=0;i<commands.NElements();i++) {
@@ -217,7 +250,8 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
             TPZVec<long> subs;
             commandline >> index;
             commandline >> indexgel;
-			TPZCompEl *cel = gmesh->ElementVec()[indexgel]->Reference();
+			cel = cmesh->ElementVec()[index];
+			gel = gmesh->ElementVec()[indexgel];
 			if(!cel) {
 				std::cout << "\nComputational element was not exist. Exiting! \n";
 			}
@@ -225,6 +259,16 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
 			if(index != indexcel)
 				std::cout << "\nDifferent index obtained from geometric element.\n";
             cmesh->Divide(index, subs, 1);
+			// Verifying the indexes of new sub elements are the same as original mesh
+			for(int j=0;j<subs.NElements();j++) {
+				commandline >> indexgel;
+				index = cmesh->ElementVec()[subs[j]]->Reference()->Index();
+				if(indexgel != index) {
+					cel = gmesh->ElementVec()[indexgel]->Reference();
+					if(!cel) 
+						cel = cmesh->ElementVec()[subs[j]];
+				}
+			}
         }
 //    }
     // Making all refines
@@ -234,9 +278,19 @@ void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &commands) {
         else if(!commandname.compare("PRefine")) {
             int order;
             commandline >> index;
+			cel = cmesh->ElementVec()[index];
             commandline >> index;
             commandline >> order;
-            indexcel = gmesh->ElementVec()[index]->Reference()->Index();
+            gel = gmesh->ElementVec()[index];
+			if(!gel)
+				DebugStop();
+			if(!gel->Reference()) {
+				if(cel->Reference()->Index() == index)
+					gel->SetReference(cel);
+				else
+					DebugStop();
+			}
+			indexcel = cel->Index();
             TPZInterpolatedElement *cint = dynamic_cast <TPZInterpolatedElement *> (cmesh->ElementVec()[indexcel]);
             cint->PRefine(order);
         }
