@@ -71,7 +71,7 @@ int main() {
 //	if(!q)
 	//    filename = cmeshname + ".txt";
 	// Verifying if file exist and it is open
-	std::ifstream in(filename);
+	std::ifstream in(filename.c_str());
 	if(!in.is_open())
 		return 1;
 	in.close();
