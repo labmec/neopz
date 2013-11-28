@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
       retsim.SetGlobalId(99);
       DADOS.GetSim(3, retsim);
       
-      std::cout << "GetSim " << retsim.GlobalId() << std::endl;
+      std::cout << "---> GetSim " << retsim.GlobalId() << std::endl;
       
       TPBrLaboratoryData retmed;
       DADOS.GetMed(2, retmed);

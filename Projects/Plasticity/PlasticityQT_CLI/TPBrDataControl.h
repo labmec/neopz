@@ -102,8 +102,9 @@ public:
       
       int medid = fMapSimMed[simid];
       
-      std::cout << "MedGID: " << fMedicoes[medid].GlobalId();
-      std::cout << "SimGID: " << fMedicoes[medid].fSimulacoes[simid].GlobalId();
+      std::cout << "(GetSim method)MedGID: " << fMedicoes[medid].GlobalId() << std::endl;
+      std::cout << "(GetSim method)SimGID: " << fMedicoes[medid].fSimulacoes[simid].GlobalId() << std::endl;
+      std::cout << "(GetSim method)fMedicoes[medid]: " << fMedicoes[medid].fSimulacoes.size() << std::endl;
       simdataobj = fMedicoes[medid].fSimulacoes[simid];
     }
 };

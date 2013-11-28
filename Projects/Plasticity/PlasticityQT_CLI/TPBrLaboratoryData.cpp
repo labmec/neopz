@@ -18,6 +18,7 @@ TPBrLaboratoryData::TPBrLaboratoryData(const std::string &filename)
 int TPBrLaboratoryData::InsertSimulationData (const TPBrSimulationData &simdataobj) {
       int simid = DADOS.GenerateNewIndex();
       fSimulacoes[simid] = simdataobj;
+      fSimulacoes[simid].SetGlobalId(simid);
       return simid;
 }
 
