@@ -5,16 +5,16 @@
 #-------------------------------------------------
 
 #Begin FAD
-INCLUDEPATH += "/home/felps/FAD/"
-INCLUDEPATH += "/home/felps/FAD/Fad"
-INCLUDEPATH += "/home/felps/FAD/TinyFad"
-INCLUDEPATH += "/home/felps/FAD/TinyFadET"
+INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/"
+INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/Fad"
+INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/TinyFad"
+INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/TinyFadET"
 #End FAD
 
 #Begin PZ
-INCLUDEPATH += "/home/felps/neopz_lib/include"
-LIBS += -L"/home/felps/neopz_lib/" -lpz
-DEFINES += PZSOURCEDIR=\"/home/felps/neopz_code\" REFPATTERNDIR=\"/home/felps/neopz_code\"
+INCLUDEPATH += "/dados/GOOGLE_PZ/PZLIB/include"
+LIBS += -L"/dados/GOOGLE_PZ/PZLIB/" -lpz
+DEFINES += PZSOURCEDIR=\"/dados/GOOGLE_PZ/neopz_build_teste\" REFPATTERNDIR=\"/dados/GOOGLE_PZ/neopz_build_teste\"
 DEFINES += USING_BOOST _AUTODIFF LOG4CXX USING_METIS BUILD_UNITTESTING BUILD_TUTORIAL REALdouble STATEdouble
 #End PZ
 
@@ -43,19 +43,25 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     plot.cpp \
-    simulation.cpp \
     initialpointdock.cpp \
     canvaspicker.cpp \
-    ../TPZPlasticityTest.cpp
+    ../PlasticityQT_CLI/TPBrDataControl.cpp \
+    ../PlasticityQT_CLI/TPBrLaboratoryData.cpp \
+    ../PlasticityQT_CLI/TPBrSimulationData.cpp \
+    ../PlasticityQT_CLI/TPBrStrainStressDataBase.cpp \
+    ../TPZPlasticitySimulation.cpp
 
 
 HEADERS  += mainwindow.h \
     plot.h \
-    simulation.h \
     initialpointdock.h \
     canvaspicker.h \
     common.h \
-../TPZPlasticityTest.h
+    ../PlasticityQT_CLI/TPBrDataControl.h \
+    ../PlasticityQT_CLI/TPBrLaboratoryData.h \
+    ../PlasticityQT_CLI/TPBrSimulationData.h \
+    ../PlasticityQT_CLI/TPBrStrainStressDataBase.h \
+    ../TPZPlasticitySimulation.h
 
 FORMS    += mainwindow.ui \
     initialpointdock.ui
