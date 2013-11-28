@@ -99,7 +99,7 @@ int materialBC1 = 2;
 
 char saida[512];
 
-ofstream out("OutPoissonArcTan.txt");             // To store output of the console
+ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 ofstream outLaplace("OutLaplace.txt");
 
 int gDebug = 0;
@@ -168,10 +168,10 @@ int main() {
 #endif
 
 	// Initializing uniform refinements for reference elements
-	gRefDBase.InitializeUniformRefPattern(EOned);
+//	gRefDBase.InitializeUniformRefPattern(EOned);
 //	gRefDBase.InitializeUniformRefPattern(ETriangle);
-	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-//	gRefDBase.InitializeAllUniformRefPatterns();
+//	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+	gRefDBase.InitializeAllUniformRefPatterns();
     //    gRefDBase.InitializeRefPatterns();
     
 	// To check if derivatives and function was right inplemented 
@@ -195,7 +195,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	memset(time_formated,0,256);
 	
 	// Output files
-	std::ofstream fileerrors("ErrorsHP_Poisson.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
 //	formatTimeInSec(time_formated,256,sttime);
@@ -216,8 +216,9 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-//		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+//		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+//		for(int itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "Type of element: " << typeel << endl;
@@ -233,9 +234,9 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3)
-				NRefs = 9;
+				NRefs = 8;
 			else if(ModelDimension == 3)
-				NRefs = 3;
+				NRefs = 5;
 			
 			// To storing number of equations and errors obtained for all iterations
 			ErrorVec.Resize(NRefs,0.0);
