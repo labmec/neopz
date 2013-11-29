@@ -73,7 +73,7 @@ import skyline_tst02.test
 import skyline_tst03.test
 import skyline_tst04.test
 import skyline_tst05.test
-import skyline_tst06.test
+#import skyline_tst06.test
 import skyline_tst07.test
 import skyline_tst08.test
 # =========================
@@ -116,7 +116,7 @@ medium_tests= [("substruct_tst03",substruct_tst03.test),
 
 # Tests with execution time longer than 10 minutes
 long_tests = [("skyline_tst03",skyline_tst03.test),
-	      ("skyline_tst06",skyline_tst06.test),
+#	      ("skyline_tst06",skyline_tst06.test),
 	      ("skyline_tst08",skyline_tst08.test)]
 
 regression_tests = short_tests + medium_tests + long_tests
