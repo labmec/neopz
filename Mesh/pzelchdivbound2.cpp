@@ -372,6 +372,7 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
+    data.fShapeType = TPZMaterialData::EVecShape;
 	
 #ifdef LOG4CXX
 	{
@@ -380,7 +381,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #endif
 	
 	//data.fVecShapeIndex=true;
-	
+	/*
 	TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
 	TPZGeoElSide neighbour = gelside.Neighbour();
 	while(gelside != neighbour && neighbour.Element()->Dimension() != TSHAPE::Dimension+1)
@@ -434,7 +435,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	
+	*/
 }
 
 template<class TSHAPE>

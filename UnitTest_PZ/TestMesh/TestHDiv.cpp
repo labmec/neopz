@@ -43,9 +43,13 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
 static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem = 3, int fluxorder = 4);
 int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
 int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
-void Force(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void Force(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 {
     force[0] = 5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
+}
+static void ExactNormalFlux(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+{
+    force[0] = 2. + 4. * x[0];
 }
 
 /// verify if the divergence of each vector function is included in the pressure space
@@ -64,16 +68,25 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
     int nelx = 1;
     int fluxorder = 1;
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(eltype,nelx,fluxorder);
-    TPZMaterial *mat = cmesh->FindMaterial(-1);
-    if(!mat) DebugStop();
+    {
+        TPZMaterial *mat = cmesh->FindMaterial(-1);
+        if(!mat) DebugStop();
         TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(Force);
         TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
         mat->SetForcingFunction(autofunc);
-        
-        TPZAnalysis an(cmesh);
-        TPZFStructMatrix str(cmesh);
-        an.SetStructuralMatrix(str);
-        TPZStepSolver<STATE> step;
+    }
+    {
+        TPZMaterial *mat = cmesh->FindMaterial(-2);
+        if(!mat) DebugStop();
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFlux);
+        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
+        mat->SetForcingFunction(autofunc);
+    }
+    
+    TPZAnalysis an(cmesh);
+    TPZFStructMatrix str(cmesh);
+    an.SetStructuralMatrix(str);
+    TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an.SetSolver(step);
     an.Run();
@@ -101,7 +114,8 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
         rule->Point(ip, xi, weight);
         gel->X(xi, xco);
         cel->Solution(xi, 1, sol);
-        autofunc->Execute(xco, exactsol);
+        Force(xco,exactsol);
+//        autofunc->Execute(xco, exactsol);
         BOOST_CHECK(fabs(sol[0]-exactsol[0]) < 1.e-6);
     }
     
@@ -257,6 +271,8 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem, int fluxord
     TPZBndCond *bnd = matpois->CreateBC(pois, -1, 0, val1, val2);
     TPZMaterial *matbnd(bnd);
     cmesh->InsertMaterialObject(matbnd);
+    bnd = matpois->CreateBC(pois, -2, 1, val1, val2);
+    cmesh->InsertMaterialObject(bnd);
     cmesh->SetAllCreateFunctionsHDivPressure();
     cmesh->SetDefaultOrder(fluxorder);
     cmesh->SetDimModel(2);
@@ -339,7 +355,8 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     TPZGeoEl *gelB = gelsideB.Element();
     TPZTransform trB = gelB->SideToSideTransform(gelsideB.Side(), gelB->NSides()-1);
     
-    int dimension = gelA->Dimension();
+    int dimensionA = gelA->Dimension();
+    int dimensionB = gelB->Dimension();
     
     int nSideshapeA = interA->NSideShapeF(sideA);
     int nSideshapeB = interB->NSideShapeF(sideB);
@@ -372,7 +389,7 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         trA.Apply(pointA, pointElA);
         trB.Apply(pointB, pointElB);
         int nshapeA = 0, nshapeB = 0;
-        TPZFNMatrix<200> phiA(nshapeA,1),dphiA(dimension,nshapeA),phiB(nshapeB,1),dphiB(dimension,nshapeB);
+        TPZFNMatrix<200> phiA(nshapeA,1),dphiA(dimensionA,nshapeA),phiB(nshapeB,1),dphiB(dimensionB,nshapeB);
         interA->Shape(pointElA, phiA, dphiA);
         interB->Shape(pointElB, phiB, dphiB);
         nshapeA = phiA.Rows();
@@ -384,19 +401,30 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         int i,j;
         for(i=firstShapeA,j=firstShapeB; i<firstShapeA+nSideshapeA; i++,j++)
         {
-            int Avecind = dataA.fVecShapeIndex[i].first;
-            int Ashapeind = dataA.fVecShapeIndex[i].second;
-            int Bvecind = dataB.fVecShapeIndex[j].first;
-            int Bshapeind = dataB.fVecShapeIndex[j].second;
-            REAL vecnormalA = dataA.fNormalVec(0,Avecind)*normal[0]+dataA.fNormalVec(1,Avecind)*normal[1];
-            REAL vecnormalB = dataB.fNormalVec(0,Bvecind)*normal[0]+dataB.fNormalVec(1,Bvecind)*normal[1];
+            int Ashapeind = i;
+            int Bshapeind = j;
+            // if A or B are boundary elements, their shapefunctions come in the right order
+            if (dimensionA != sidedim) {
+                Ashapeind = dataA.fVecShapeIndex[i].second;
+            }
+            if (dimensionB != sidedim) {
+                Bshapeind = dataB.fVecShapeIndex[j].second;
+            }
+            if (dimensionA != sidedim && dimensionB != sidedim) {
+                // vefify that the normal component of the normal vector corresponds
+                int Avecind = dataA.fVecShapeIndex[i].first;
+                int Bvecind = dataB.fVecShapeIndex[j].first;
+                REAL vecnormalA = dataA.fNormalVec(0,Avecind)*normal[0]+dataA.fNormalVec(1,Avecind)*normal[1];
+                REAL vecnormalB = dataB.fNormalVec(0,Bvecind)*normal[0]+dataB.fNormalVec(1,Bvecind)*normal[1];
+                if(fabs(vecnormalA-vecnormalB) > 1.e-6)
+                {
+                    nwrong++;
+                    LOGPZ_ERROR(logger, "normal vectors aren't equal")
+                }
+
+            }
             shapesA[i-firstShapeA] = phiA(Ashapeind,0);
             shapesB[j-firstShapeB] = phiB(Bshapeind,0);
-            if(fabs(vecnormalA-vecnormalB) > 1.e-6)
-            {
-                nwrong++;
-                LOGPZ_ERROR(logger, "normal vectors aren't equal")
-            }
             REAL diff = phiA(Ashapeind,0)-phiB(Bshapeind,0);
             REAL decision = fabs(diff)-1.e-6;
             if(decision > 0.)

@@ -245,7 +245,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 
 void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
-	int numvec = data.fVecShapeIndex.NElements();
+	int numvec = data.phi.Rows();
 	
 	TPZFMatrix<REAL>  &phi = data.phi;
 	TPZManVector<STATE,1> v2(1);
@@ -301,7 +301,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
-	if(data.fVecShapeIndex.NElements())
+	if(data.fShapeType == TPZMaterialData::EVecandShape || data.fShapeType == TPZMaterialData::EVecShape)
 	{
 		
 		ContributeBCHDiv(data , weight , ek, ef, bc);
