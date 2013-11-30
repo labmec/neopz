@@ -63,7 +63,6 @@ public:
 		REAL fEpsPlasticBar;
 	};
 	
-	
 	/// structure which contains the decision tree of the return map
 	// we can only expect a consistent tangent matrix if the decision tree remains the same
 	struct TComputeSequence
@@ -99,31 +98,13 @@ protected:
 	/// information of the plastic state of the material point
 	TPZYCMohrCoulombPV::TPlasticState fState;
 	
-	
 public:
 	
 	TPZYCMohrCoulombPV() : fPhi(M_PI/9.),fPsi(M_PI/9.), coesion(9.35) //NATHAN: Depois terei que setar esse valores via construtor
 	{
 		
 	}
-	/*
-	 REAL Lambda()
-	 {
-	 return fPoisson*fYoung/(1.+fPoisson)*(1.-2.*fPoisson); // NATHAN: acho que isso está errado
-	 }
-	 REAL Mu()
-	 {
-	 return fYoung/(2.*(1.+fPoisson));
-	 }
-	 REAL G()
-	 {
-	 return fYoung/(2.*(1+fPoisson));
-	 }
-	 REAL K()
-	 {
-	 return fYoung/(3.*(1.-2.*fPoisson));
-	 }
-	 */
+
 	
 	void Print(std::ostream &out) const
 	{
@@ -209,7 +190,7 @@ public:
 			epsela[i] -= T(fState.fEpsPlastic[i]);
 		}
 		TPZVec<T> sigma;
-		sigma = SigmaElastPV(epsela,ER);
+		sigma = this->SigmaElastPV(epsela,ER);
 		
 		
 		//typename TPZTensor<T>::TPZDecomposed sigma_trial;
@@ -360,12 +341,12 @@ public:
 	 StressDeviatoric.Add(P,1);
 	 epselastic=StressDeviatoric;
 	 
-	 epsplastic-=epselastic;*/
+	 epsplastic-=epselastic;
 	
 	//Cálculo de e11ela, e22ela e e33ela
 	
 	
-	/*
+	
 	 
 	 TPZVec<REAL> epsplastic(3,0.), epselastic(3,0.);
 	 REAL cte1, cte2, den;
@@ -385,61 +366,54 @@ public:
 	 
 	 fState.fEpsPlastic = epsplastic;
 	 }
+	 */
 	 
-	 template<class T>
-	 TComputeSequence ComputeSigma(TPZVec<T> &epstotal, TPZVec<T> &sigma, bool commitdefor)
-	 {
+	template<class T>
+	TComputeSequence ComputeSigma(TPZVec<T> &epstotal, TPZVec<T> &sigma, bool commitdefor)
+	{
+		
+		TPZVec<T> sigma_trial = SigmaTrial(epstotal);
+		TComputeSequence memory;
+		T phi = PhiPlane<T>(sigma_trial);
+		if (shapeFAD::val(phi) <= 0.) {
+			memory.fWhichPlane = TComputeSequence::EElastic;
+			memory.fGamma.Resize(0);
+			sigma = sigma_trial;
+			//state.fEpsT = epstotal;
+			return memory;
+		}
+		TPZVec<T> sigma_projected;
+		memory.fGamma.Resize(1);
+		memory.fGamma[0] = 0.;
+		if (ReturnMapPlane<T>(sigma_trial, sigma_projected, memory)) {
+			sigma = sigma_projected;
+			memory.fWhichPlane = TComputeSequence::EMainPlane;
+		}
+		else {
+			memory.fGamma.Resize(2);
+			memory.fGamma[0] = 0.;
+			memory.fGamma[1] = 0.;
+			
+			const REAL sinpsi = sin(fPsi);
+			REAL val = (1-sinpsi)*shapeFAD::val(sigma_trial[0])-2.*shapeFAD::val(sigma_trial[2])+(1+sinpsi)*shapeFAD::val(sigma_trial[1]);
+			if (val > 0.) {
+				ReturnMapRightEdge<T>(sigma_trial, sigma_projected, memory);
+				memory.fWhichPlane = TComputeSequence::ERightEdge;
+			}
+			else {
+				ReturnMapLeftEdge<T>(sigma_trial, sigma_projected, memory);
+				memory.fWhichPlane = TComputeSequence::ELeftEdge;
+			}
+
+			sigma = sigma_projected;
+		}
+		if(commitdefor == true)
+		{
+			CommitDeformation(epstotal,memory);
+		}	
+		return memory;
+	}
 	 
-	 TPZVec<T> sigma_trial = SigmaTrial(epstotal);
-	 TComputeSequence memory;
-	 T phi = PhiPlane<T>(sigma_trial);
-	 if (shapeFAD::val(phi) <= 0.) {
-	 memory.fWhichPlane = TComputeSequence::EElastic;
-	 memory.fGamma.Resize(0);
-	 sigma = sigma_trial;
-	 //state.fEpsT = epstotal;
-	 return memory;
-	 }
-	 TPZVec<T> sigma_projected;
-	 memory.fGamma.Resize(1);
-	 memory.fGamma[0] = 0.;
-	 if (ReturnMapPlane<T>(sigma_trial, sigma_projected, memory)) {
-	 sigma = sigma_projected;
-	 memory.fWhichPlane = TComputeSequence::EMainPlane;
-	 }
-	 else {
-	 memory.fGamma.Resize(2);
-	 memory.fGamma[0] = 0.;
-	 memory.fGamma[1] = 0.;
-	 
-	 const REAL sinpsi = sin(fPsi);
-	 REAL val = (1-sinpsi)*shapeFAD::val(sigma_trial[0])-2.*shapeFAD::val(sigma_trial[2])+(1+sinpsi)*shapeFAD::val(sigma_trial[1]);
-	 if (val > 0.) {
-	 ReturnMapRightEdge<T>(sigma_trial, sigma_projected, memory);
-	 memory.fWhichPlane = TComputeSequence::ERightEdge;
-	 }
-	 else {
-	 ReturnMapLeftEdge<T>(sigma_trial, sigma_projected, memory);
-	 memory.fWhichPlane = TComputeSequence::ELeftEdge;
-	 }
-	 #ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 sout << "After the map to the edge, sigma_projected :\n";
-	 // Não está imprimindo nada
-	 LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
-	 }
-	 #endif
-	 sigma = sigma_projected;
-	 }
-	 if(commitdefor == true)
-	 {
-	 CommitDeformation(epstotal,memory);
-	 }	
-	 return memory;
-	 }
-	 
-	 */ 
 	
 	/// Calcula o valor da funcao criteiro de plastificacao
 	template<class T>
@@ -453,15 +427,15 @@ public:
 		return sigma[0]-sigma[2]+(sigma[0]+sigma[2])*sinphi-2.*sigmay*cosphi;
 	}
 	
-	
+	/**
+	 * @brief Implements the return map in the plane of the surface
+	 */
 	template<class T>
 	bool ReturnMapPlane(TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected, 
 											TComputeSequence &memory, TPZElasticResponse &ER)
 	{
 		sigma_projected = sigma_trial;
 		TPZManVector<T,3> eigenvalues = sigma_projected;
-		//		TPZManVector<T,3> eigenvalues2 = sigma_projected;
-		//        TPZManVector<TPZTensor<T>,3> &eigenvectors = sigma_projected.fEigenvectors;
 		const REAL sinphi = sin(fPhi);
 		const REAL sinpsi = sin(fPsi);
 		const REAL cosphi = cos(fPhi);
@@ -485,16 +459,9 @@ public:
 			if (shapeFAD::val(H) < 0.) {
 				DebugStop();
 			}
-			
-			//			eigenvalues2 = eigenvalues; Testes de validacao: phi == phi2
-			//			eigenvalues2[0] -= T(2.*G()*(1+sinpsi/3.)+2.*K()*sinpsi)*gamma;
-			//			eigenvalues2[1] += T((4.*G()/3. - K()*2.)*sinpsi)*gamma;
-			//			eigenvalues2[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma;
-			
+				
 			phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi - constA*gamma;
-			//			T phi2 = eigenvalues2[0]-eigenvalues2[2]+(eigenvalues2[0]+eigenvalues2[2])*sinphi-2.*sigmay*cosphi;
 			phival = shapeFAD::val(phi);
-			//			std::cout << "phi1 = " << phi << "\t phi2 = " << phi2 << std::endl;
 			
 		} while (abs(phival) > tolerance);
 		
@@ -514,6 +481,9 @@ public:
 		return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));
 	}
 	
+	/**
+	 * @brief Computes dsigmapr/dsigmatr for the ReturnMapPlane
+	 */
 	void ComputePlaneTangent(TPZElasticResponse &ER, TPZMatrix<REAL> &tang, REAL &epsbarp)
 	{
 		const REAL sinphi = sin(fPhi);
@@ -548,7 +518,9 @@ public:
 		tang(2,2) = 1.+c3*dGds3;
 	}
 	 
-	
+	/**
+	 * @brief Implements the return map in the left edge of the surface
+	 */
 	template<class T>
 	bool ReturnMapLeftEdge(TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
 												 TComputeSequence &memory, TPZElasticResponse &ER)
@@ -566,7 +538,11 @@ public:
 		gamma[0] = memory.fGamma[0];
 		gamma[1] = memory.fGamma[1];
 		TPZManVector<REAL,2> phival(2,0.);
-		TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
+		TPZManVector<TPZManVector<T,2>,2> d(2),dinverse(2);
+		for (int i = 0; i < 2; i++) {
+			d[i].Resize(2,0.);
+			dinverse[i].Resize(2,0.);
+		}
 		sigma_bar[0] = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*T(sinphi);
 		sigma_bar[1] = eigenvalues[1]-eigenvalues[2]+(eigenvalues[1]+eigenvalues[2])*T(sinphi);
 		T sigmay,H;
@@ -579,45 +555,48 @@ public:
 		T residual =1;
 		REAL tolerance = 1.e-8;
 		do {
-			d(0,0) = -ab[0]-T(4.*cosphi2)*H;
-			d(1,0) = -ab[1]-T(4.*cosphi2)*H;
-			d(0,1) = -ab[1]-T(4.*cosphi2)*H;
-			d(1,1) = -ab[0]-T(4.*cosphi2)*H;
-			T detd = d(0,0)*d(1,1)-d(0,1)*d(1,0);
-			dinverse(0,0) = d(1,1)/detd;
-			dinverse(1,0) = -d(1,0)/detd;
-			dinverse(0,1) = -d(0,1)/detd;
-			dinverse(1,1) = d(0,0)/detd;
-			gamma[0] -= (dinverse(0,0)*phi[0]+dinverse(0,1)*phi[1]);
-			gamma[1] -= (dinverse(1,0)*phi[0]+dinverse(1,1)*phi[1]);
-			//T epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi); diogo aqui
+			d[0][0] = -ab[0]-T(4.*cosphi2)*H;
+			d[1][0] = -ab[1]-T(4.*cosphi2)*H;
+			d[0][1] = -ab[1]-T(4.*cosphi2)*H;
+			d[1][1] = -ab[0]-T(4.*cosphi2)*H;
+			T detd = d[0][0]*d[1][1]-d[0][1]*d[1][0];
+			dinverse[0][0] = d[1][1]/detd;
+			dinverse[1][0] = -d[1][0]/detd;
+			dinverse[0][1]= -d[0][1]/detd;
+			dinverse[1][1] = d[0][0]/detd;
+			gamma[0] -= (dinverse[0][0]*phi[0]+dinverse[0][1]*phi[1]);
+			gamma[1] -= (dinverse[1][0]*phi[0]+dinverse[1][1]*phi[1]);
 			epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
 			PlasticityFunction(epsbar, sigmay, H);
 			phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
 			phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[1] - T(2.*cosphi)*sigmay;
 			phival[0] = shapeFAD::val(phi[0]);
 			phival[1] = shapeFAD::val(phi[1]);
-			residual=(fabs(phival[0])+fabs(phival[1]));//aqui diogo
+			residual=(fabs(phival[0])+fabs(phival[1]));
 			//} while (abs(phival[0]) > tolerance || abs(phival[1]) > tolerance);//aqui diogo
-		}while (residual>tolerance);//aqui diogo
-		//        eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.)+2.*K()*sinpsi)*gamma;
-		//        eigenvalues[1] += T((4.*G()/3. - K()*2.)*sinpsi)*gamma;
-		//        eigenvalues[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma;
+		}while (residual>tolerance);
 		
 		memory.fGamma[0] = shapeFAD::val(gamma[0]);
 		memory.fGamma[1] = shapeFAD::val(gamma[1]);
-		eigenvalues[0] -= T(2.*ER.G()*(1+sinpsi/3.)+2.*ER.K()*sinpsi)*gamma[0]+T((4.*ER.G()/3.-2.*ER.K())*sinpsi)*gamma[1];
+		eigenvalues[0] += - T(2.*ER.G()*(1+sinpsi/3.)+2.*ER.K()*sinpsi)*gamma[0]+T((4.*ER.G()/3.-2.*ER.K())*sinpsi)*gamma[1];
 		eigenvalues[1] += T((4.*ER.G()/3.- ER.K()*2.)*sinpsi)*gamma[0]-T(2.*ER.G()*(1.+sinpsi/3.)+2.*ER.K()*sinpsi)*gamma[1];
-		eigenvalues[2] -= T(2.*ER.G()*(1-sinpsi/3.)-2.*ER.K()*sinpsi)*(gamma[0]+gamma[1]);
+		eigenvalues[2] += T(2.*ER.G()*(1-sinpsi/3.)-2.*ER.K()*sinpsi)*(gamma[0]+gamma[1]);
 		sigma_projected = eigenvalues;
+		
+		TPZFNMatrix<9>tangAnal(3,3);
+		REAL epsbarREAL = shapeFAD::val(epsbar);
+		this->ComputeLeftEdgeTangent(ER,tangAnal,epsbarREAL);
+		tangAnal.Print("tangAnal");
 		
 		return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));
 	}
 	
+	/**
+	 * @brief Computes dsigmapr/dsigmatr for the ReturnMapLeftEdge
+	 */
 	void ComputeLeftEdgeTangent(TPZElasticResponse &ER, TPZMatrix<REAL> &tang, REAL &epsbarp)
 	{
-		//IMPLEMENTAR!!!!
-		/*const REAL sinphi = sin(fPhi);
+		const REAL sinphi = sin(fPhi);
 		const REAL sinpsi = sin(fPsi);
 		const REAL cosphi = cos(fPhi);
 		const REAL cosphi2 = cosphi*cosphi;
@@ -626,30 +605,41 @@ public:
 		const REAL c2 = (4.*G/3.-2.*K)*sinpsi;
 		const REAL c3 = 2.*G*(1.-1./3.*sinpsi) - 2.*K*sinpsi;
 		const REAL constA = 4.* G *(1.+ sinphi*sinpsi/3.) + 4.* K * sinphi*sinpsi;
+		const REAL constB = 2.*G*(1-sinphi-sinpsi-1./3.*sinphi*sinpsi) + 4.*K*sinphi*sinpsi;
 		REAL epsbar = epsbarp;
 		REAL c, H;
 		PlasticityFunction(epsbar, c, H);
-		const REAL denom = constA + 4 * cosphi2*H;
-		const REAL dGds1 = (1+sinphi)/denom; // Derivate of gamma with respect to Sigma1tr
-		const REAL dGds2 = 0.; // Only created to remember that PHIfunc doesnt depend in it
-		const REAL dGds3 = (-1+sinphi)/denom;
+		const REAL cos2H4 = 4.*cosphi2*H;
+		const REAL denom = (constA-constB)*(constA+constB+8.*cosphi2*H);
+		const REAL dGads1 = (cos2H4*(1.+sinphi)+constA*(1.+sinphi))/denom; // Derivative of DgammaA with respect to Sigma1tr
+		const REAL dGads2 = (-cos2H4*(1.+sinphi)-constB*(1.+sinphi))/denom; // Derivative of DgammaA with respect to Sigma2tr 
+		const REAL dGads3 = (constA*(-1.+sinphi)-constB*(-1.+sinphi))/denom; // Derivative of DgammaA with respect to Sigma3tr
+		const REAL dGbds1 = (-cos2H4*(1.+sinphi)-constB*(1.+sinphi))/denom; // Derivative of DgammaB with respect to Sigma1tr
+		const REAL dGbds2 = (cos2H4*(1.+sinphi)+constA*(1.+sinphi))/denom; // Derivative of DgammaA with respect to Sigma2tr 
+		const REAL dGbds3 = (constA*(-1.+sinphi)-constB*(-1.+sinphi))/denom; // Derivative of DgammaA with respect to Sigma3tr
+		
 		tang.Redim(3, 3);
 		
 		// First column
-		tang(0,0) = 1-c1*dGds1;
-		tang(1,0) = c2*dGds1;
-		tang(2,0) = c3*dGds1;
+		tang(0,0) = 1.-c1*dGads1+c2*dGbds1;
+		tang(1,0) = c2*dGads1-c1*dGbds1;
+		tang(2,0) = c3*(dGads1+dGbds1);
 		
 		// Second column
-		tang(1,1) = 1; // The others are 0
+		tang(0,1) = -c1*dGads2+c2*dGbds2;
+		tang(1,1) = 1.+c2*dGads2-c1*dGbds2;
+		tang(2,1) = c3*(dGads2+dGbds2);
 		
 		// Third column
-		tang(0,2) = -c1*dGds3;
-		tang(1,2) = c2*dGds3;
-		tang(2,2) = 1+c3*dGds3;*/
+		tang(0,2) = -c1*dGads3+c2*dGbds3;
+		tang(1,2) = c2*dGads3-c1*dGbds3;
+		tang(2,2) = 1.+c3*(dGads3+dGbds3);
 	}
 	
 	
+	/**
+	 * @brief Implements the return map in the right edge of the surface
+	 */
 	template<class T>
 	bool ReturnMapRightEdge(TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
 													TComputeSequence &memory, TPZElasticResponse &ER)
@@ -673,7 +663,6 @@ public:
 			d[i].Resize(2,0.);
 			dinverse[i].Resize(2,0.);
 		}
-		//TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
 		sigma_bar[0] = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*T(sinphi);
 		sigma_bar[1] = eigenvalues[0]-eigenvalues[1]+(eigenvalues[0]+eigenvalues[1])*T(sinphi);
 		T sigmay,H;
@@ -736,29 +725,11 @@ public:
 			residual=(fabs(phival[0])+fabs(phival[1]));//aqui diogo
 			cout << "\n residula = "<< residual << endl;
 			//} while (abs(phival[0]) > tolerance || abs(phival[1]) > tolerance);//aqui diogo
-		}while (residual>tolerance);//aqui diogo
-		
-		//        eigenvalues[0] -= T(2.*GV*(1+sinpsi/3.)+2.*KV*sinpsi)*gamma;
-		//        eigenvalues[1] += T((4.*GV/3. - KV*2.)*sinpsi)*gamma;
-		//        eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma;
-		// epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
-		
+		}while (residual>tolerance);
 		
 		memory.fGamma[0] = shapeFAD::val(gamma[0]);
 		memory.fGamma[1] = shapeFAD::val(gamma[1]);
-#ifdef LOG4CXX
-		{
-			/*std::stringstream sout;
-			sout << "gamma = " << gamma << std::endl;
-			sout << "phival = " << phival << std::endl;
-			sout << "ab = " << ab << std::endl;
-			sout << "sigma_bar = " << sigma_bar << std::endl;
-			d.Print("Jacobian",sout);
-			dinverse.Print("Inverse Jacobian",sout);
-			sout << "epsbar = " << epsbar << std::endl;
-			LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())*/
-		}
-#endif
+
 		eigenvalues[0] -= T(2.*GV*(1+sinpsi/3.)+2.*KV*sinpsi)*(gamma[0]+gamma[1]);
 		eigenvalues[1] += T((4.*GV/3.- KV*2.)*sinpsi)*gamma[0]+T(2.*GV*(1.-sinpsi/3.)-2.*KV*sinpsi)*gamma[1];
 		eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma[0]+T((4.*GV/3.-2.*KV)*sinpsi)*gamma[1];
@@ -770,9 +741,11 @@ public:
 		tangAnal.Print("tangAnal");
 		
 		return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));    
-	 
 	}
 	
+	/**
+	 * @brief Computes dsigmapr/dsigmatr for the ReturnMapRightEdge
+	 */
 	void ComputeRightEdgeTangent(TPZElasticResponse &ER, TPZMatrix<REAL> &tang, REAL &epsbarp)
 	{
 		
