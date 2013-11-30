@@ -83,13 +83,15 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 		for (int j = 0; j < 3; j++) {
 			epsegveFromProj[i](j,0) /= normvec;
 		}
+		epsegveFromProj[i].Print("eg");
 	}
 	
 	// ReturMap in the principal values
 	STATE nextalpha = -6378.;
 	TPZFNMatrix<9> GradSigma(3,3,0.);
-	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha,GradSigma);
+	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
 	fN.fAlpha = nextalpha;
+
 	
 	// Aqui calculo minha matriz tangente ------------------------------------
 	// Criando matriz tangente
@@ -138,6 +140,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	depsTensor -= fN.fEpsT;
 	depsMat = depsTensor;
 	
+	// Correcao do giro rigido
 	for (int i = 0; i < 2; i++) {
 		for (int j = i+1; j<3 ; j++) {
 			deigeneps = DecompEps.fEigenvalues[i]  - DecompEps.fEigenvalues[j];
@@ -145,10 +148,20 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			TPZFNMatrix<9,REAL> tempMat(3,1,0.);
 			depsMat.Multiply(epsegveFromProj[i], tempMat);
 			REAL deij = InnerVecOfMat(tempMat,epsegveFromProj[j]);
-			REAL factor = deigensig * deij / deigeneps;
+			REAL factor = 0.;
+			if (!IsZero(deigeneps)) {
+				factor = deigensig * deij / deigeneps;
+			}
+			else {
+				factor = fER.G() * ( GradSigma(i,i) - GradSigma(i,j) - GradSigma(j,i) + GradSigma(j,j) ) * deij;
+			}
+			std::cout << "factor = " << factor << std::endl;
+			std::cout << "G = " << fER.G() << std::endl;
+			GradSigma.Print("GradSigma");
 			tempMat.Redim(3, 3);
 			tempMat = ProdT(epsegveFromProj[i],epsegveFromProj[j]) + ProdT(epsegveFromProj[j],epsegveFromProj[i]);
 			factorMat += tempMat * factor;
+			factorMat.Print("factorMat");
 		}
 	}
 	TPZFNMatrix<6> factorV = FromMatToVoight(factorMat);
@@ -171,7 +184,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	}
 	
 	for (int i = 0; i < 6; i++) {
-		dSigDe(i,pos) += factorV(i,0)/depspos;
+		dSigDe(i,pos) += factorV(i,0)/depspos; //AQUI NATHAN
 	}	
 	
 	// Reconstruction of sigmaprTensor
