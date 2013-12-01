@@ -254,9 +254,14 @@ long TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
 
 template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
-	if(!fElementVec.size() || !fElementVec[0])
-		return -1;
-	return fElementVec[0]->Dimension();
+    for(int el = 0; el < fElementVec.NElements(); el++)
+    {
+        if(fElementVec[el])
+        {
+            return fElementVec[el]->Dimension();
+        }
+    }
+	return -1;
 }
 
 
@@ -407,7 +412,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	
 	for(ic=0; ic<ncon; ic++)
 	{
-		numeq += Connect(ic).NDof(*Mesh());
+        long neqThisConn = Connect(ic).NDof(*Mesh());
+		numeq += neqThisConn;
 	}
 	
 	long nref = this->fElementVec.size();

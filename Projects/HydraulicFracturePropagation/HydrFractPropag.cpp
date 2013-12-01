@@ -17,12 +17,6 @@ void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REA
 
 //----------------------------------------------------------------------------------------------------------------------------------
 
-/** Exemplo da utilizacao da quadratura adaptativa (integral adaptativa) */
-
-
-#include "adapt.h"
-
-
 int mainCircles(int argc, char * const argv[])
 {
     std::cout << "\e";
@@ -49,7 +43,12 @@ int mainCircles(int argc, char * const argv[])
     int nstripes = 3;
     
     TPZVec<TPZLayerProperties> layerVec(1);
-    layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.);
+    REAL KIc = 0.;
+    REAL Cl = 0.;
+    REAL Pe = 0.;
+    REAL SigConf = 0.;
+    REAL vsp = 0.;
+    layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.,KIc, Cl, Pe, SigConf, vsp);
     TPZPlaneFractureMesh plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
     
 //    REAL Rini = 10.;
@@ -76,7 +75,7 @@ int mainCircles(int argc, char * const argv[])
 }
 
 
-int main/*3D*/(int argc, char * const argv[])
+int main(int argc, char * const argv[])
 {    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -97,29 +96,29 @@ int main/*3D*/(int argc, char * const argv[])
     REAL lengthY = 50.;
     REAL Lmax = 10.;
     
-    REAL bulletDepthIni =  0.;
-    REAL bulletDepthFin = 100.;
-    int nstripes = 5;
+    REAL bulletTVDIni = 30.;
+    REAL bulletTVDFin = 70.;
+    int nstripes = 1;
     
     TPZVec<TPZLayerProperties> layerVec(3);
-    layerVec[0] = TPZLayerProperties(1.E5,0.25,0.,0.,0.,33.333);
-    layerVec[1] = TPZLayerProperties(1.E5,0.25,0.,0.,33.333,66.666);
-    layerVec[2] = TPZLayerProperties(1.E5,0.25,0.,0.,66.666,100.0);
-    TPZPlaneFractureKernel plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
+    REAL KIc = 0.;
+    REAL Cl = 0.;
+    REAL Pe = 0.;
+    REAL SigConf = 0.;
+    REAL vsp = 0.;
+    layerVec[0] = TPZLayerProperties(1.E5,0.25,0.,0.,0.,30., KIc, Cl, Pe, SigConf, vsp);
+    layerVec[1] = TPZLayerProperties(1.E5,0.25,0.,0.,30.,70., KIc, Cl, Pe, SigConf, vsp);
+    layerVec[2] = TPZLayerProperties(1.E5,0.25,0.,0.,70.,130., KIc, Cl, Pe, SigConf, vsp);
     
+    int porder = 1;
+    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes, porder);
+
     TPZVec< std::pair<REAL,REAL> > fractureDots;
-    FillFractureDotsExampleCrazy(fractureDots);
+    FillFractureDotsExampleEllipse(fractureDots);
+//    FillFractureDotsCircle(20., 10., fractureDots);
     
-    
-    TPZTimer clockIni2("PartyBegins2");
-    clockIni2.start();    
-    
-    REAL pressureInsideCrack = 10.;
     std::string vtkFile = "fracturePconstant0.vtk";
-    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, vtkFile, true);
-    
-    clockIni2.stop();
-    std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
+    plfrac->RunThisFractureGeometry(fractureDots, vtkFile, true);
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");
 //    gRefDBase.WriteRefPatternDBase(outRefP);
@@ -134,7 +133,7 @@ void FillFractureDotsExampleEllipse(TPZVec<std::pair<REAL,REAL> > &fractureDots)
     
     fractureDots.Resize(nnodes);
     int node;
-    REAL shiftZ = -100.;
+    REAL shiftZ = -110.;
     
     node = 0;
     

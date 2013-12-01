@@ -20,6 +20,7 @@
 
 #include "TPZPlaneFractureData.h"
 #include "tpzcompmeshreferred.h"
+#include "TPZPlaneFractCouplingMat.h"
 
 
 /// Real as tolerance 
@@ -44,8 +45,13 @@ public:
         fSigmaMin = 0.;
         fTVDini = 0.;
         fTVDfin = 0.;
+        fKIc = 0.;
+        fCl = 0.;
+        fPe = 0.;
+        fSigConf = 0.;
+        fvsp = 0.;
     }
-    TPZLayerProperties(REAL Young, REAL Poisson, REAL SigMax, REAL SigMin, REAL TVDi, REAL TVDf)
+    TPZLayerProperties(REAL Young, REAL Poisson, REAL SigMax, REAL SigMin, REAL TVDi, REAL TVDf, REAL KIc, REAL Cl, REAL Pe, REAL SigConf, REAL vsp)
     {
         fYoung = Young;
         fPoisson = Poisson;
@@ -53,6 +59,11 @@ public:
         fSigmaMin = SigMin;
         fTVDini = TVDi;
         fTVDfin = TVDf;
+        fKIc = KIc;
+        fCl = Cl;
+        fPe = Pe;
+        fSigConf = SigConf;
+        fvsp = vsp;
     }
     TPZLayerProperties(const TPZLayerProperties & cp)
     {
@@ -62,6 +73,11 @@ public:
         fSigmaMin = cp.fSigmaMin;
         fTVDini = cp.fTVDini;
         fTVDfin = cp.fTVDfin;
+        fKIc = cp.fKIc;
+        fCl = cp.fCl;
+        fPe = cp.fPe;
+        fSigConf = cp.fSigConf;
+        fvsp = cp.fvsp;
     }
     ~TPZLayerProperties()
     {
@@ -71,14 +87,31 @@ public:
         fSigmaMin = 0.;
         fTVDini = 0.;
         fTVDfin = 0.;
+        fKIc = 0.;
+        fCl = 0.;
+        fPe = 0.;
+        fSigConf = 0.;
+        fvsp = 0.;
     }
     
+    //Elastic 3D
     REAL fYoung;
     REAL fPoisson;
     REAL fSigmaMax;
     REAL fSigmaMin;
+    
+    //TVD limits
     REAL fTVDini;
     REAL fTVDfin;
+    
+    //SIF
+    REAL fKIc;
+    
+    //leafoff
+    REAL fCl;
+    REAL fPe;
+    REAL fSigConf;
+    REAL fvsp;
 };
 
 /** 
@@ -183,8 +216,8 @@ class TPZPlaneFractureMesh
 	/**
 	 * @brief Constructor
 	 * @param layerVec [in] : vector of layers
-	 * @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
-	 * @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
+	 * @param bulletTVDIni [in] : bullets perforation initial (TVD) depth
+	 * @param bulletTVDFin [in] : bullets perforation final (TVD) depth
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
@@ -192,37 +225,41 @@ class TPZPlaneFractureMesh
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+    TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                          REAL xLength, REAL yLength, REAL Lmax, int nstripes);
     
 	~TPZPlaneFractureMesh();
-		
-    //---------------------------------------------------------------------
     
-    TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                              int porder, REAL pressureInsideCrack);
+    void InitializeRefinedMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain);
     
-    TPZCompMesh * GetFractureCompMeshNLinear(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                             int porder, REAL pressureInsideCrack);
+    TPZCompMesh * GetFractureCompMesh(int porder);
     
-    TPZCompMeshReferred * GetFractureCompMeshReferred(int porder, REAL pressureInsideCrack,
-                                                      TPZCompMesh * cmeshRef);
+    TPZCompMeshReferred * GetFractureCompMeshReferred(TPZCompMesh * cmeshRef, int porder);
     
-    TPZCompMeshReferred * GetFractureCompMeshReferredNLinear(int porder, REAL pressureInsideCrack,
-                                                             TPZCompMesh * cmeshRef);
+    TPZCompMesh * GetPressureCompMesh(REAL Qinj, int porder);
+    
+    TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder);
+    
+    void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
+    
+    int NStripes();
+    
+    void SetActualState();
+    
+    void SetPastState();
     
 protected:
     
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
      *  @param espacamentoVerticalDEPTH [in] : espacamento vertical que define interfaces entre camadas horizontais
-     *  @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
-	 *  @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
+     *  @param bulletTVDIni [in] : bullets perforation initial (TVD) depth
+	 *  @param bulletTVDFin [in] : bullets perforation final (TVD) depth
      *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      *  @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
      */
     void GeneratePreservedMesh(std::list<REAL> & espacamentoVerticalDEPTH,
-                               REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+                               REAL bulletTVDIni, REAL bulletTVDFin,
                                REAL xLength, REAL yLength);
 
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
@@ -388,11 +425,6 @@ protected:
      * @brief Refinement proceedings to increase solution quality
      */
     void RefinementProceedings(TPZGeoMesh * refinedMesh);
-    
-    /**
-     * @brief Returns if a given element is from boundary of domain
-     */
-    static bool IsBoundaryMaterial(TPZGeoEl * gel);
 
     //** just for visualize given dots in vtk */
     static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
@@ -404,6 +436,9 @@ protected:
 	
     /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
 	TPZGeoMesh * fPreservedMesh;
+
+    /** @brief Refined 3D mesh (preserved mesh after refinement provided from poligonalChain configuration) */
+    TPZGeoMesh * fRefinedMesh;
     
     TPZVec<TPZLayerProperties> fLayerVec;
     
@@ -421,6 +456,8 @@ protected:
     
     /** @brief Amounth of stripes of pressure */
     int fnstripes;
+    
+    TPZVec<TPZPlaneFractCouplingMat *> fCouplingMatVec;
 };
 
 #endif

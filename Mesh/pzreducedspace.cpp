@@ -359,7 +359,6 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
         sol[is].Fill(0.);
         dsol[is].Redim(dim, numdof);
         dsol[is].Zero();
-        
     }
 	
     TPZBlock<STATE> &block = Mesh()->Block();

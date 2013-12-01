@@ -49,8 +49,23 @@ public:
     
     virtual int ClassId() const;
     
+    virtual void FillDataRequirements(TPZMaterialData &data);
+    
     /** @brief Creates a new material from the current object */
 	virtual TPZMaterial * NewMaterial() { return new TPZElast3Dnlinear(*this);}
+    
+protected:
+    
+    void ContributeVecShapeAux(TPZMaterialData &data,
+                               REAL weight,
+                               TPZFMatrix<STATE> &ek,
+                               TPZFMatrix<STATE> &ef);
+    
+    void ContributeVecShapeBCAux(TPZMaterialData &data,
+                                 REAL weight,
+                                 TPZFMatrix<STATE> &ek,
+                                 TPZFMatrix<STATE> &ef,
+                                 TPZBndCond &bc);
 };
 
 #endif /* defined(__PZ__TPZElast3Dnlinear__) */

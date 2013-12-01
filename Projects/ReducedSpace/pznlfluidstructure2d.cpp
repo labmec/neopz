@@ -169,23 +169,23 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 			
 			if (fPlaneStress != 1)
             {/* Plain Strain State */
-                ef(in,col) += (-1.)*weight*(nu1*dphix_i(0,0)*dsolx_j(0,0) + nu2*dphix_i(1,0)*dsolx_j(1,0) +
+                ef(in,col) += (-1.) * weight * (nu1*dphix_i(0,0)*dsolx_j(0,0) + nu2*dphix_i(1,0)*dsolx_j(1,0) +
                                      
-                                     poisson*dphix_i(0,0)*dsoly_j(1,0) + nu2*dphix_i(1,0)*dsoly_j(0,0) +
-                                     
-                                     poisson*dphiy_i(1,0)*dsolx_j(0,0) + nu2*dphiy_i(0,0)*dsolx_j(1,0) +
-                                     
-                                     nu1*dphiy_i(1,0)*dsoly_j(1,0) + nu2*dphiy_i(0,0)*dsoly_j(0,0))*F;
+                                                poisson*dphix_i(0,0)*dsoly_j(1,0) + nu2*dphix_i(1,0)*dsoly_j(0,0) +
+                                                 
+                                                poisson*dphiy_i(1,0)*dsolx_j(0,0) + nu2*dphiy_i(0,0)*dsolx_j(1,0) +
+                                                 
+                                                nu1*dphiy_i(1,0)*dsoly_j(1,0) + nu2*dphiy_i(0,0)*dsoly_j(0,0)) * F;
 			}
 			else
             {/* Plain stress state */
-                ef(in,col) += (-1.)*weight*(fEover1MinNu2*dphix_i(0,0)*dsolx_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dsolx_j(1,0) +
+                ef(in,col) += (-1.) * weight * (fEover1MinNu2*dphix_i(0,0)*dsolx_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dsolx_j(1,0) +
                                      
-                                     fEover1MinNu2*dphix_i(0,0)*dsoly_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dsoly_j(0,0) +
+                                                fEover1MinNu2*dphix_i(0,0)*dsoly_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dsoly_j(0,0) +
                                      
-                                     fEover1MinNu2*dphiy_i(1,0)*dsolx_j(0,0) + fEover21PlusNu*dphiy_i(0,0)*dsolx_j(1,0) +
-                                     
-                                     fEover1MinNu2*dphiy_i(1,0)*dsoly_j(1,0) + fEover21PlusNu*dphiy_i(0,0)*dsoly_j(0,0));
+                                                fEover1MinNu2*dphiy_i(1,0)*dsolx_j(0,0) + fEover21PlusNu*dphiy_i(0,0)*dsolx_j(1,0) +
+                                                 
+                                                fEover1MinNu2*dphiy_i(1,0)*dsoly_j(1,0) + fEover21PlusNu*dphiy_i(0,0)*dsoly_j(0,0));
             }
 		}//fim para o residuo
         
@@ -246,7 +246,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
         w += 2.*uy;
     }
     
-    int phipCols = phi_p.Rows();
+    int phipRows = phi_p.Rows();
     int phiuCols = phi_u.Cols();
     
     REAL visc = this->fVisc;
@@ -257,7 +257,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
         REAL actQl = globFractInputData.QlFVl(datavec[1].gelElId, sol_p[0]);
         REAL actdQldp = globFractInputData.dQlFVl(datavec[1].gelElId, sol_p[0]);
         
-        for(int in = 0; in < phipCols; in++)
+        for(int in = 0; in < phipRows; in++)
         {
             //----Residuo----
             //termo (wˆ3/(12*mi))*gradP * gradVp
@@ -279,7 +279,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
                 //termo D[ w/deltaT * Vp , w ]
                 ek(phiuCols+in, jn) += (+1.) * weight * ( 2./deltaT * phi_u(1,jn) ) * phi_p(in,0);
             }
-            for(int jn = 0; jn < phipCols; jn++)
+            for(int jn = 0; jn < phipRows; jn++)
             {
                 //termo D[ (wˆ3/(12*mi))*gradP * gradVp , p ]
                 ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (w*w*w/(12.*visc)) * dphi_p(0,in) * dphi_p(0,jn);
@@ -293,7 +293,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     //Last state (n): Matrix mass
 	if(gState == ELastState)
     {
-        for(int phip = 0; phip < phipCols; phip++)
+        for(int phip = 0; phip < phipRows; phip++)
         {            
             //termo w/deltaT * Vp
             ef(phiuCols+phip,0) += (+1.) * weight * w/deltaT * phi_p(phip,0);
@@ -437,7 +437,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REA
     TPZFMatrix<REAL> & phi_p = datavec[1].phi;
     int  phrp = phi_p.Rows();
 
-    REAL Qinj = bc.Val2()(2,0);
+    REAL Qinj = bc.Val2()(0,0);
     for(int in = 0; in < phrp; in++)
     {
         ef(in+c_u,0) += (-1.) * weight * Qinj * phi_p(in,0);
@@ -462,18 +462,18 @@ void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             ContributePressure(datavec, weight, ek, ef);
             break;
 		}
-        case 11:// Dirichlet condition only on the elasticity equation
+        case 2:// Dirichlet condition only on the elasticity equation
         {
             // Calculate the matrix contribution for pressure
             ApplyDirichlet_U(datavec, weight, ek,ef,bc);
             break;
         }
-        case 20:// Mixed condition only on the elasticity equation
+        case 3:// Mixed condition only on the elasticity equation
         {
             ApplyMixed_U(datavec, weight, ek,ef,bc);
             break;
         }
-        case 21:// Neumann condition only on the pressure equation pressure
+        case 4:// Neumann condition only on the pressure equation pressure
         {
             ApplyNeumann_P(datavec, weight, ek,ef,bc);
             break;

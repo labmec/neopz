@@ -62,7 +62,7 @@ class ToolsTransient
     
     REAL ComputeKIPlaneStrain();
     
-    void CheckConv(TPZFMatrix<REAL> InitialSolution, TPZAnalysis *an);
+    void CheckConv();
     
     void SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh);
     

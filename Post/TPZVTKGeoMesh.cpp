@@ -12,10 +12,12 @@
 /**
  * Generate an output of all geomesh to VTK
  */
-void TPZVTKGeoMesh::PrintCMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor)
+void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool matColor)
 {
+    cmesh->LoadReferences();
+    
 	file.clear();
-	long nelements = gmesh->NElements();
+	long nelements = cmesh->NElements();
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -30,8 +32,13 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	long actualNode = -1, size = 0, nVALIDelements = 0;
 	
 	for(long el = 0; el < nelements; el++)
-	{	
-        TPZGeoEl *gel = gmesh->ElementVec()[el];
+	{
+        TPZCompEl * cel = cmesh->ElementVec()[el];
+        if(!cel || !cel->Reference())
+        {
+            DebugStop();
+        }
+        TPZGeoEl * gel = cel->Reference();
         if(!gel) continue;
 		if(gel->Type() == EOned && !gel->IsLinearMapping())//Exclude Arc3D and Ellipse3D
 		{
@@ -52,7 +59,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		{
 			for(int c = 0; c < 3; c++)
 			{
-				double coord = gmesh->NodeVec()[gel->NodeIndex(t)].Coord(c);
+				double coord = cmesh->Reference()->NodeVec()[gel->NodeIndex(t)].Coord(c);
 				node << coord << " ";
 			}			
 			node << std::endl;

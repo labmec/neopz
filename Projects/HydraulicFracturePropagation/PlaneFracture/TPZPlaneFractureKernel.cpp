@@ -11,207 +11,379 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 #include "pzfstrmatrix.h"
+#include "TPZSpStructMatrix.h"
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
+#include "pzbuildmultiphysicsmesh.h"
+
+#include "TPZVTKGeoMesh.h"
 
 TPZPlaneFractureKernel::TPZPlaneFractureKernel()
 {
-    fPlaneFractureMesh = NULL;
+    this->fPlaneFractureMesh = NULL;
+    this->fmeshVec.Resize(2);
+    this->fmphysics = NULL;
+    fpOrder = 2;
 }
+//------------------------------------------------------------------------------------------------------------
 
-TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                                               REAL xLength, REAL yLength, REAL Lmax, int nstripes)
+TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
+                                               REAL xLength, REAL yLength, REAL Lmax, int nstripes, int pOrder)
 {
-    fPlaneFractureMesh = new TPZPlaneFractureMesh(layerVec, bulletDepthTVDIni, bulletDepthTVDFin, xLength, yLength, Lmax, nstripes);
+    this->fPlaneFractureMesh = new TPZPlaneFractureMesh(layerVec, bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax, nstripes);
+    this->fmeshVec.Resize(2);
+    this->fmphysics = NULL;
+    
+    fpOrder = pOrder;
 }
+//------------------------------------------------------------------------------------------------------------
 
 TPZPlaneFractureKernel::~TPZPlaneFractureKernel()
 {
-    delete fPlaneFractureMesh;
+//    delete this->fPlaneFractureMesh;
+//    
+//    for(int m = 0; m < this->fmeshVec.NElements(); m++)
+//    {
+//        delete this->fmeshVec[m];
+//    }
+//    this->fmeshVec.Resize(0);
+//    
+//    delete this->fmphysics;
 }
+//------------------------------------------------------------------------------------------------------------
 
-#define elastLinear
-void TPZPlaneFractureKernel::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                                     REAL pressureInsideCrack,
+bool TPZPlaneFractureKernel::RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                                      std::string vtkFile,
                                                      bool printVTKfile)
 {
-    int porder = 1;
+    REAL Qinj = -1.;//AQUICAJU
+    REAL visc = 0.001E-6;//AQUICAJU
+
+    //----------------------------------------------------------------------------------------
+    this->fPlaneFractureMesh->InitializeRefinedMesh(poligonalChain);
     
-    //--------------------------------------------------------------------------------------------
-    REAL pressureInsideCrackRef = 1.;//Pressao da malha computacional referenciada
+    //Malha computacional elastica processada por faixas (serah referencia da fmeshVec[0])
+    TPZCompMesh * fractureCMeshRef = this->fPlaneFractureMesh->GetFractureCompMesh(fpOrder);
+    ProcessElasticCMeshByStripes(fractureCMeshRef);
     
-#ifdef elastLinear
-    TPZCompMesh * fractureCMeshRef = fPlaneFractureMesh->GetFractureCompMesh(poligonalChain, porder, pressureInsideCrackRef);
-#else
-    TPZCompMesh * fractureCMeshRef = fPlaneFractureMesh->GetFractureCompMeshNLinear(poligonalChain, porder, pressureInsideCrackRef);
-#endif
+    //Malha computacional do tipo CMeshReferred
+    this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef, fpOrder);
     
-    int neq = fractureCMeshRef->NEquations();
-    std::cout << "Numero de equacoes = " << neq << std::endl;
+    //Malha computacional de pressao
+    this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(Qinj, fpOrder);
     
-    ////Analysis 1
-    TPZAnalysis anRef(fractureCMeshRef);
+    //Malha computacional de acoplamento (multifisica)
+    this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec, Qinj, visc, fpOrder);
     
-    TPZSkylineStructMatrix skylinRef(fractureCMeshRef);
-    TPZStepSolver<STATE> stepRef;
-    stepRef.SetDirect(ECholesky);
+    //----------------------------------------------------------------------------------------
+    TPZAnalysis * an = new TPZAnalysis(this->fmphysics);
     
-    anRef.SetStructuralMatrix(skylinRef);
-    anRef.SetSolver(stepRef);
-    
-#ifdef elastLinear
-    anRef.Run();
-#else
     {
-        REAL chute = 10.;
-        for(int r = 0; r < anRef.Solution().Rows(); r++)
-            for(int c = 0; c < anRef.Solution().Cols(); c++)
-                anRef.Solution()(r,c) = chute;
-        anRef.Run();
-        for(int r = 0; r < anRef.Solution().Rows(); r++)
-            for(int c = 0; c < anRef.Solution().Cols(); c++)
-                anRef.Solution()(r,c) += chute;
+        CheckConv();
     }
-#endif
     
-    if(printVTKfile)
+    int nrows = an->Solution().Rows();
+    TPZFMatrix<REAL> res_total(nrows,1,0.);
+
+    TPZFMatrix<REAL> SolIterK = this->fmphysics->Solution();
+    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    TPZFMatrix<REAL> fres(this->fmphysics->NEquations(),1);
+    TPZFMatrix<REAL> fmat(this->fmphysics->NEquations(),1);
+    fres.Zero();
+    fmat.Zero();
+
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
+
+    MassMatrix(fmat);
+
+    bool initialElasticKickIsNeeded = true;//AQUICAJU
+    if(initialElasticKickIsNeeded)
     {
-        std::ofstream out0("0out.txt");
-        out0 << "sol0={";
-        int nelem = fractureCMeshRef->NElements();
-        for(int el = 0; el < nelem; el++)
+        TPZFMatrix<REAL> chutenewton(this->fmeshVec[0]->Solution().Rows(), this->fmeshVec[0]->Solution().Cols(), 1.);
+        this->fmeshVec[0]->LoadSolution(chutenewton);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
+    }
+
+    bool propagate = false;
+    bool fMustStop = false;//AQUICAJU
+    while( fMustStop == false && propagate == false )
+    {
+        fres.Zero();
+        StiffMatrixLoadVec(an, matK, fres);
+
+        res_total = fres + fmat;
+        REAL res = Norm(res_total);
+        REAL tol = 1.e-8;
+        int maxit = 15;
+        int nit = 0;
+
+        while(res > tol && nit < maxit) //itercao de Newton
         {
-            TPZCompEl * cel = fractureCMeshRef->ElementVec()[el];
-            if(cel->Reference()->MaterialId() == 10)
-            {
-                TPZVec<REAL> centerQsi(3,0.);
-				TPZVec<STATE> solTemp(3,0.);
-                cel->Reference()->CenterPoint(cel->Reference()->NSides()-1, centerQsi);
-                
-                cel->Solution(centerQsi, 0, solTemp);
-                for(int s = 0; s < solTemp.NElements(); s++)
-                {
-                    out0 << solTemp[s] << ",";
-                }
-            }
+            an->Rhs() = res_total;
+            an->Solve();
+            an->LoadSolution(SolIterK + an->Solution());
+
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
+
+            SolIterK = an->Solution();
+
+            fres.Zero();
+            StiffMatrixLoadVec(an, matK, fres);
+            res_total = fres + fmat;
+
+            res = Norm(res_total);
+            std::cout << "||res|| = " << res << std::endl;
+            nit++;
         }
-        out0 << "};\n";
-    }
-    
-    if(printVTKfile)
-    {
-        TPZManVector<std::string,10> scalnames(3), vecnames(1);
-        
-        scalnames[0] = "StressX";
-        scalnames[1] = "StressY";
-        scalnames[2] = "StressZ";
-        
-        vecnames[0] = "Displacement";
-        
-        const int dim = 3;
-        int div = 0;
-        anRef.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-        anRef.PostProcess(div);
-    }
-    
-    //--------------------------------------------------------------------------------------------
-#ifdef elastLinear
-    TPZCompMeshReferred * fractureCMesh = fPlaneFractureMesh->GetFractureCompMeshReferred(porder, pressureInsideCrack, fractureCMeshRef);
-#else
-    TPZCompMeshReferred * fractureCMesh = fPlaneFractureMesh->GetFractureCompMeshReferredNLinear(porder, pressureInsideCrack, fractureCMeshRef);
-#endif
-    
-    ////Analysis 2
-    TPZAnalysis an(fractureCMesh);
-    
-    TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ECholesky);
-    
-    an.SetStructuralMatrix(skylin);
-    an.SetSolver(step);
-    
-#ifdef elastLinear
-    an.Run();
-#else
-    {
-        REAL chute = 10.;
-        for(int r = 0; r < an.Solution().Rows(); r++)
-            for(int c = 0; c < an.Solution().Cols(); c++)
-                an.Solution()(r,c) = chute;
-        an.Run();
-        for(int r = 0; r < an.Solution().Rows(); r++)
-            for(int c = 0; c < an.Solution().Cols(); c++)
-                an.Solution()(r,c) += chute;
-    }
-#endif
-    
-    if(printVTKfile)
-    {
-        std::ofstream out1("1out.txt");
-        out1 << "sol1={";
-        int nelem = fractureCMesh->NElements();
-        for(int el = 0; el < nelem; el++)
+
+        if(res >= tol)
         {
-            TPZCompEl * cel = fractureCMesh->ElementVec()[el];
-            if(cel->Reference()->MaterialId() == 10)
-            {
-                TPZVec<REAL> centerQsi(3,0.);
-				TPZVec<STATE> solTemp(3,0.);
-                cel->Reference()->CenterPoint(cel->Reference()->NSides()-1, centerQsi);
-                
-                cel->Solution(centerQsi, 0, solTemp);
-                for(int s = 0; s < solTemp.NElements(); s++)
-                {
-                    out1 << solTemp[s] << ",";
-                }
-            }
+            std::cout << "\nAtingido o numero maximo de iteracoes, nao convergindo portanto!!!\n";
+            std::cout << "||Res|| = " << res << std::endl;
+            DebugStop();
         }
-        out1 << "};\n";
+
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
+//        globFractInputData.UpdateLeakoff(fmeshVec[1]);
+//        globFractInputData.UpdateActTime();
+//
+//        PostprocessPressure();
+//
+//        REAL KI = ComputeKIPlaneStrain();
+//        if(KI > globFractInputData.KIc())
+//        {//propagou!!!
+//            globFractInputData.SetMinDeltaT();
+//            propagate = true;
+//        }
+//        else
+//        {//nao propagou!!!
+//            globFractInputData.SetNextDeltaT();
+//            fmat.Zero();
+//            MassMatrix(fmat);
+//
+//            globFractOutputData.PlotElasticVTK(an);
+//            PostProcessAcumVolW();
+//            PostProcessVolLeakoff();
+//        }
+//        globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
+//        REAL peteleco = 1.E-8;
+//        if( globFractInputData.actTime() > (globFractInputData.Ttot() - peteleco) )
+//        {
+//            fMustStop = true;
+//        }
+        
+        fMustStop = true;//AQUICAJU
     }
+
+    return propagate;
     
-    if(printVTKfile)
-    {
-        TPZManVector<std::string,10> scalnames(3), vecnames(1);
-        
-        scalnames[0] = "StressX";
-        scalnames[1] = "StressY";
-        scalnames[2] = "StressZ";
-        
-        vecnames[0] = "Displacement";
-        
-        std::string vtkFile1 = "fracturePconstant1.vtk";
-        const int dim = 3;
-        int div = 0;
-        an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile1);
-        an.PostProcess(div);
-    }
+//    {//Solve caso fosse nao linear!!!
+//        REAL chute = 10.;
+//        for(int r = 0; r < anRef.Solution().Rows(); r++)
+//            for(int c = 0; c < anRef.Solution().Cols(); c++)
+//                anRef.Solution()(r,c) = chute;
+//        anRef.Run();
+//        for(int r = 0; r < anRef.Solution().Rows(); r++)
+//            for(int c = 0; c < anRef.Solution().Cols(); c++)
+//                anRef.Solution()(r,c) += chute;
+//    }
     
-    
-    /////// Example of J-Integral
-    
-    //    TPZVec<REAL> originXYZ(3,0.), direction(3,0.);
-    //
-    //    int POSmiddle1D = int(REAL(fcrackBoundaryElementsIndexes.NElements())/2. + 0.5);
-    //    int middle1DId = fcrackBoundaryElementsIndexes[POSmiddle1D];
-    //
-    //    TPZVec<REAL> originQSI(1,0.);
-    //    TPZGeoEl * gel1D = fractureCMesh->Reference()->ElementVec()[middle1DId];
-    //    gel1D->X(originQSI, originXYZ);
-    //
-    //    direction[0] = 0.;
-    //    direction[1] = 0.;
-    //    direction[2] = 1.;
-    //
-    //    originXYZ[2] = -5.;
-    //
-    //    REAL radius = 0.6;
-    //    Path3D * Path3DMiddle = new Path3D(fractureCMesh, originXYZ, direction, radius, pressureInsideCrack);
-    //
-    //    JIntegral3D jInt;
-    //    jInt.PushBackPath3D(Path3DMiddle);
-    //    TPZVec<REAL> Jvector(3);
-    //
-    //    Jvector = jInt.IntegratePath3D(0);
 }
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
+{
+    TPZAnalysis * an = new TPZAnalysis;
+    
+    int NStripes = this->fPlaneFractureMesh->NStripes();
+    TPZFMatrix<STATE> solutions(cmesh->Solution().Rows(), NStripes);
+    
+    for(int stripe = 0; stripe < NStripes; stripe++)
+    {
+        // Resolvendo um problema modelo de elastica linear para utilizar a
+        // solucao como espaco de aproximacao do problema nao linear acoplado
+        this->fPlaneFractureMesh->SetSigmaNStripeNum(cmesh, stripe);
+        
+        bool mustOptimizeBandwidth = (stripe == 0);
+        an->SetCompMesh(cmesh, mustOptimizeBandwidth);
+        this->SolveInitialElasticity(*an, cmesh);
+        
+        for(int r = 0; r < cmesh->Solution().Rows(); r++)
+        {
+            solutions(r,stripe) = cmesh->Solution()(r,0);
+        }
+        
+        {
+            std::stringstream nm;
+            nm << "SolStripeLinear.vtk";
+
+            TPZManVector<std::string,10> scalnames(0), vecnames(1);
+            
+            vecnames[0] = "Displacement";
+            
+            const int dim = 3;
+            int div = 0;
+            an->SetStep(stripe);
+            an->DefineGraphMesh(dim,scalnames,vecnames,nm.str());
+            an->PostProcess(div);
+        }
+    }
+    cmesh->LoadSolution(solutions);
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh * cmesh)
+{
+	TPZSkylineStructMatrix full(cmesh); //caso simetrico
+	an.SetStructuralMatrix(full);
+	TPZStepSolver<REAL> step;
+	step.SetDirect(ELDLt); //caso simetrico
+	an.SetSolver(step);
+	an.Run();
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec)
+{
+	this->fPlaneFractureMesh->SetActualState();
+    
+    TPZFStructMatrix matsk(this->fmphysics);
+    
+	an->SetStructuralMatrix(matsk);
+	TPZStepSolver<REAL> step;
+    
+	step.SetDirect(ELU);
+	an->SetSolver(step);
+    
+    an->Assemble();
+	
+    matK1 = an->Solver().Matrix();
+    
+	fvec = an->Rhs();
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<REAL> & Un)
+{
+    this->fPlaneFractureMesh->SetPastState();
+    
+	TPZSpStructMatrix matsp(this->fmphysics);
+	TPZAutoPointer<TPZGuiInterface> guiInterface;
+    matsp.CreateAssemble(Un,guiInterface);
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::CheckConv()
+{
+    long neq = fmphysics->NEquations();
+    int nsteps = 10;
+    
+    TPZFMatrix<REAL> xIni(neq,1);
+    for(long i = 0; i < xIni.Rows(); i++)
+    {
+        REAL val = (double)(rand())*(1.e-10);
+        xIni(i,0) = val;
+    }
+    TPZAnalysis *an = new TPZAnalysis(fmphysics);
+    an->LoadSolution(xIni);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshVec, fmphysics);
+    
+    TPZFMatrix<REAL> actX = xIni;
+    
+    TPZAutoPointer< TPZMatrix<REAL> > fL_xIni;
+    TPZFMatrix<REAL> f_xIni(neq,1);
+    
+    StiffMatrixLoadVec(an, fL_xIni, f_xIni);
+    if(fL_xIni->Rows() != neq || fL_xIni->Cols() != neq || fL_xIni->IsDecomposed())
+    {
+        DebugStop();
+    }
+    
+    TPZFMatrix<REAL> fAprox_x(neq,1);
+    TPZFMatrix<REAL> fExato_x(neq,1);
+    
+    TPZFMatrix<REAL> errorVec(neq,1,0.);
+	TPZFMatrix<REAL> errorNorm(nsteps,1,0.);
+    
+    
+    TPZAutoPointer< TPZMatrix<REAL> > fLtemp;
+    TPZFMatrix<REAL> dFx(neq,1);
+    
+    TPZVec<REAL> deltaX(neq,0.001), alphas(nsteps);
+    double alpha;
+    
+    std::stringstream exatoSS, aproxSS;
+    exatoSS << "exato={";
+    aproxSS << "aprox={";
+    for(int i = 0; i < nsteps; i++)
+    {
+        alpha = (i+1)/10.;
+        alphas[i] = alpha;
+        
+        ///Fx aproximado
+        dFx.Zero();
+        for(long r = 0; r < neq; r++)
+        {
+            for(long c = 0; c < neq; c++)
+            {
+                dFx(r,0) +=  (-1.) * fL_xIni->GetVal(r,c) * (alpha * deltaX[c]); // (-1) porque fLini = -D[res,sol]
+            }
+        }
+        fAprox_x = f_xIni + dFx;
+        
+        int wantToSeeRow = 0;
+        {
+            REAL aproxSol = fAprox_x(wantToSeeRow,0);
+            aproxSS << aproxSol;
+            if(i < nsteps-1)
+            {
+                aproxSS << ",";
+            }
+        }
+        
+        ///Fx exato
+        for(long r = 0; r < neq; r++)
+        {
+            actX(r,0) = xIni(r,0) + (alpha * deltaX[r]);
+        }
+        an->LoadSolution(actX);
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshVec, fmphysics);
+        
+        fExato_x.Zero();
+        if(fLtemp) fLtemp->Zero();
+        StiffMatrixLoadVec(an, fLtemp, fExato_x);
+        
+        {
+            REAL exatoSol = fExato_x(wantToSeeRow,0);
+            exatoSS << exatoSol;
+            if(i < nsteps-1)
+            {
+                exatoSS << ",";
+            }
+        }
+        
+        ///Erro
+        errorVec.Zero();
+        for(long r = 0; r < neq; r++)
+        {
+            errorVec(r,0) = fExato_x(r,0) - fAprox_x(r,0);
+        }
+        
+        ///Norma do erro
+        double XDiffNorm = Norm(errorVec);
+        errorNorm(i,0) = XDiffNorm;
+    }
+    aproxSS << "};";
+    exatoSS << "};";
+    std::cout << aproxSS.str() << std::endl;
+    std::cout << exatoSS.str() << std::endl;
+    std::cout << "Show[ListPlot[aprox, Joined -> True, PlotStyle -> Red],ListPlot[exato, Joined -> True]]\n";
+    
+    std::cout << "Convergence Order:\n";
+    for(int j = 1; j < nsteps; j++)
+    {
+        std::cout << ( log(errorNorm(j,0)) - log(errorNorm(j-1,0)) )/( log(alphas[j]) - log(alphas[j-1]) ) << "\n";
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+

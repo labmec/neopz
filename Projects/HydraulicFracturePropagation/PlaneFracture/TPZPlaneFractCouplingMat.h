@@ -1,8 +1,8 @@
 //
-//  pznlfluidstructure2d.h
+//  TPZPlaneFractCouplingMat.h
 //  PZ
 //
-//  Created by Agnaldo Farias on 9/17/12.
+//  Created by Cesar Lucci on 11/01/13.
 //
 //
 
@@ -25,7 +25,7 @@
 class TPZPlaneFractCouplingMat : public TPZElast3Dnlinear
 {
 protected:
-    enum EState { ELastState = 0, ECurrentState = 1 };
+    enum EState { EPastState = 0, EActualState = 1 };
 	static EState gState;
     
 public:
@@ -73,11 +73,11 @@ public:
                                 TPZFMatrix<> &ef,
                                 TPZBndCond &bc);
     
-    virtual void ApplyMixed_U(TPZVec<TPZMaterialData> &datavec,
-                              STATE weight,
-                              TPZFMatrix<> &ek,
-                              TPZFMatrix<> &ef,
-                              TPZBndCond &bc);
+    virtual void ApplyBlockedDir_U(TPZVec<TPZMaterialData> &datavec,
+                                   STATE weight,
+                                   TPZFMatrix<> &ek,
+                                   TPZFMatrix<> &ef,
+                                   TPZBndCond &bc);
     
     virtual void ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
                                 STATE weight,
@@ -89,8 +89,12 @@ public:
     
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
     
+    void SetPastState(){ gState = EPastState; }
+	void SetActualState(){ gState = EActualState; }
+    
 private:
     
+    //Fluid
     STATE fVisc;
 };
 

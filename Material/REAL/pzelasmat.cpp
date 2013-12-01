@@ -274,7 +274,8 @@ void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight
 	REAL nu2 = (1-2*fnu)/2;
 	REAL F = fE/((1+fnu)*(1-2*fnu));
 
-	for( int in = 0; in < phc; in++ ) {
+	for( int in = 0; in < phc; in++ )
+    {
 		dphix_i(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
 		dphix_i(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);
 		dphiy_i(0,0) = dphi(2,in)*axes(0,0)+dphi(3,in)*axes(1,0);
@@ -282,7 +283,7 @@ void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight
 		
         for (int col = 0; col < efc; col++) 
         {
-            ef(in,col) += weight*(ff[0]*phi(0, in)- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY
+            ef(in,col) += weight*(   ff[0] * phi(0, in)- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY
                                    + ff[1] * phi(1, in)- dphiy_i(0,0)*fPreStressYY - dphiy_i(1,0)*fPreStressXY);
         }		
 		for( int jn = 0; jn < phc; jn++ ) {
@@ -354,12 +355,11 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 		case 0 :			// Dirichlet condition
 		{
 			for(in = 0 ; in < phr; in++) {
-				ef(2*in,0) += BIGNUMBER * v2[0] *   // x displacement
-				phi(in,0) * weight;        // forced v2 displacement
-				ef(2*in+1,0) += BIGNUMBER * v2[1] * // y displacement
-				phi(in,0) * weight;        // forced v2 displacement
-				for (jn = 0 ; jn < phi.Rows(); jn++) {
-					ek(2*in,2*jn) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+				ef(2*in,0)   += BIGNUMBER * v2[0] * phi(in,0) * weight;        // forced v2 displacement
+				ef(2*in+1,0) += BIGNUMBER * v2[1] * phi(in,0) * weight;        // forced v2 displacement
+				for (jn = 0 ; jn < phi.Rows(); jn++)
+                {
+					ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
 					ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
 				}
 			}
@@ -526,7 +526,7 @@ void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weig
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
                     TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-                     ef(in,il)+= weight*(v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in));
+                     ef(in,il) += weight * (v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in));
                 }
 				
 				for (jn = 0; jn <phc; jn++) {

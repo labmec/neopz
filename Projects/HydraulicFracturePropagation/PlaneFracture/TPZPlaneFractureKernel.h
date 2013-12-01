@@ -21,8 +21,8 @@ public:
     /**
 	 * @brief Constructor
 	 * @param layerVec [in] : vector of layers
-	 * @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
-	 * @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
+	 * @param bulletTVDIni [in] : bullets perforation initial (TVD) depth
+	 * @param bulletTVDFin [in] : bullets perforation final (TVD) depth
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
@@ -30,27 +30,42 @@ public:
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
-                           REAL xLength, REAL yLength, REAL Lmax, int nstripes);
+    TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
+                           REAL xLength, REAL yLength, REAL Lmax, int nstripes, int porder);
     
     ~TPZPlaneFractureKernel();
     
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
-     * @param pressureInsideCrack [in] : uniform pressure inside crack
      * @param sigmaTraction [in] : uniform traction on the farfield surface (farfield surface have normal {0,1,0})
      * @param vtkFile [in] : VTK file name for post processing
      * @param printVTKfile [in] : flag that will determine if vtkFile will be generated (true) or not (false)
      */
-    void RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                 REAL pressureInsideCrack,
+    bool RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                  std::string vtkFile,
                                  bool printVTKfile = false);
     
+    void ProcessElasticCMeshByStripes(TPZCompMesh * cmesh);
+    
+    void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *cmesh);
+    
+    void StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
+    
+    void MassMatrix(TPZFMatrix<REAL> & Un);
+    
+    
 protected:
     
+    void CheckConv();
+    
     TPZPlaneFractureMesh * fPlaneFractureMesh;
+    
+    TPZVec<TPZCompMesh *> fmeshVec;
+    
+    TPZCompMesh * fmphysics;
+    
+    int fpOrder;
 };
 
 #endif /* defined(__PZ__TPZPlaneFractureKernel__) */

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
     REAL Ttot = 20.; /** em segundos */
     REAL maxDeltaT = 4.; /** em segundos */
-    int nTimes = 2; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
+    int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
     
     REAL Cl = 0.005;
     REAL Pe = 10.;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     REAL KIc = 25.;
     REAL Jradius = 0.5;
     
-    int p = 2;
+    int p = 1;
     
     globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                                Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,

@@ -30,9 +30,9 @@ int const typeDirichlet = 0;
 int const typeNeumann   = 1;
 int const typeMixed     = 2;
 
-int const typeDir_elast     = 11;
-int const typeMix_elast     = 20;
-int const typeNeum_pressure = 21;
+int const typeDir_elast     = 2;
+int const typeMix_elast     = 3;
+int const typeNeum_pressure = 4;
 
 ///////////////////////////////////////////////////
 

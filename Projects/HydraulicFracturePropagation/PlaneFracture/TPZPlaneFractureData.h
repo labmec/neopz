@@ -129,9 +129,9 @@ public:
         return -7010;
     }
     
-    bool IsOutsideFractMat(int matId)
+    bool IsInsideFractMat(int matId)
     {
-        if(fabs(matId) >= 2010 && fabs(matId) <= 3000)
+        if(matId <= -1010 && matId >= -2009)
         {
             return true;
         }
@@ -140,6 +140,43 @@ public:
             return false;
         }
     }
+    
+    bool IsOutsideFractMat(int matId)
+    {
+        if(matId <= -2010 && matId >= -3000)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    bool IsBoundaryMaterial(int matId)
+    {
+        if(matId <= -3010 && matId >= -7010)
+        {//is 2D BC between: left, right, farfield, top or bottom
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    bool IsBulletMaterial(int matId)
+    {
+        if(matId <= -10 && matId >= -1000)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------
 };
 
 #include "pzanalysis.h"
@@ -147,120 +184,85 @@ public:
 #include <map>
 #include <fstream>
 
-class Input3DDataStruct
-{
-public:
-    
-    Input3DDataStruct();
-    ~Input3DDataStruct();
-    
-    void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
-                 REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
-                 int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-                 REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius);
-    
-    void SetLf(REAL Lf);
-    
-    REAL Lx();
-    REAL Ly();
-    REAL Lf();
-    REAL Hf();
-    REAL Lmax_edge();
-    REAL E1();
-    REAL Poisson1();
-    REAL E2();
-    REAL Poisson2();
-    REAL Xinterface();
-    REAL Fx();
-    REAL Fy();
-    REAL PreStressXX();
-    REAL PreStressXY();
-    REAL PreStressYY();
-    
-    int NStripes();
-    std::map< int,std::pair<int,int> > & GetPressureMatIds_StripeId_ElastId();
-    int StripeId(int bcId);
-    int ElastId(int bcId);
-    void InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId);
-    bool IsBC(int matId);
-    
-    REAL Visc();
-    std::map<int,REAL> & GetLeakoffmap();
-    REAL SigN();
-    REAL Qinj();
-    REAL Ttot();
-    REAL actTime();
-    REAL actDeltaT();
-    REAL Cl();
-    REAL Pe();
-    REAL SigmaConf();
-    REAL Pref();
-    REAL vsp();
-    REAL KIc();
-    REAL Jradius();
-    void SetMinDeltaT();
-    void SetNextDeltaT();
-    void UpdateActTime();
-    
-    //Leafoff methods
-    void UpdateLeakoff(TPZCompMesh * cmesh);
-    REAL VlFtau(REAL pfrac, REAL tau);
-    REAL FictitiousTime(REAL VlAcum, REAL pfrac);
-    REAL QlFVl(int gelId, REAL pfrac);
-    REAL dQlFVl(int gelId, REAL pfrac);
-    
-private:
-    
-    //Dimensions:
-    REAL fLx;//Dimensao em x do domínio da malha do MEF
-    REAL fLy;//Dimensao em y do domínio da malha do MEF
-    REAL fLf;//Comprimento de 1/2 asa da fratura
-    REAL fHf;//Altura da fratura
-    REAL fLmax_edge;//Extensao maxima da aresta de 1 quadrilatero
-    
-    //Elastic properties:
-    REAL fE1;//Modulo de elasticidade material 1
-    REAL fPoisson1;//Poisson material 1
-    REAL fE2;//Modulo de elasticidade material 2
-    REAL fPoisson2;//Poisson material 2
-    REAL fXinterface;//Posicao X da mudanca entre materiais 1 e 2
-    REAL fFx;//Bodyforces in x
-    REAL fFy;//Bodyforces in y
-    REAL fPreStressXX;//pre-stress tensor XX component
-    REAL fPreStressXY;//pre-stress tensor XY component
-    REAL fPreStressYY;//pre-stress tensor YY component
-    int fNStripes;//Amounth of pressure stripes for reduced space elastic references
-    std::map< int,std::pair<int,int> > fPressureMatIds_StripeId_ElastId;//Correspondence between MaterialIds of Pressures BCs and < Stripe Number , ElastMatId >
-    
-    //Fluid property:
-    REAL fVisc;//viscosidade do fluido de injecao
-    
-    //Leakoff data
-    std::map<int,REAL> fLeakoffmap;
-    
-    //BCs:
-    REAL fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
-    REAL fQinj;//vazao de 1 asa de fratura dividido pela altura da fratura
-    
-    //time:
-    REAL fTtot;//Tempo total da simulacao
-    REAL factTime;//tempo atual (em segundos)
-    REAL fmaxDeltaT;//delta T maximo
-    REAL fminDeltaT;//delta T minimo
-    REAL factDeltaT;//delta T atual
-    int fNDeltaTsteps;//quantidade de incrementos do deltaT para definir o deltaT minimo
-    
-    //Leakoff:
-    REAL fCl;//Carter
-    REAL fPe;//Pressao estatica
-    REAL fSigmaConf;//Tensao de confinamento
-    REAL fPref;//Pressao de referencia da medicao do Cl
-    REAL fvsp;//spurt loss
-    
-    //Propagation criterion
-    REAL fJradius;
-    REAL fKIc;
-};
+//class Input3DDataStruct
+//{
+//public:
+//    
+//    Input3DDataStruct();
+//    ~Input3DDataStruct();
+//    
+//    void SetData(int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
+//                 REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius);
+//    
+//    void SetLf(REAL Lf);
+//    
+//    int NStripes();
+//    std::map< int,std::pair<int,int> > & GetPressureMatIds_StripeId_ElastId();
+//    int StripeId(int bcId);
+//    int ElastId(int bcId);
+//    void InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId);
+//    bool IsBC(int matId);
+//    
+//    REAL Visc();
+//    std::map<int,REAL> & GetLeakoffmap();
+//    REAL SigN();
+//    REAL Qinj();
+//    REAL Ttot();
+//    REAL actTime();
+//    REAL actDeltaT();
+//    REAL Cl();
+//    REAL Pe();
+//    REAL SigmaConf();
+//    REAL Pref();
+//    REAL vsp();
+//    REAL KIc();
+//    REAL Jradius();
+//    void SetMinDeltaT();
+//    void SetNextDeltaT();
+//    void UpdateActTime();
+//    
+//    //Leafoff methods
+//    void UpdateLeakoff(TPZCompMesh * cmesh);
+//    REAL VlFtau(REAL pfrac, REAL tau);
+//    REAL FictitiousTime(REAL VlAcum, REAL pfrac);
+//    REAL QlFVl(int gelId, REAL pfrac);
+//    REAL dQlFVl(int gelId, REAL pfrac);
+//    
+//private:
+//    
+//
+//    int fNStripes;//Amounth of pressure stripes for reduced space elastic references
+//    std::map< int,std::pair<int,int> > fPressureMatIds_StripeId_ElastId;//Correspondence between MaterialIds of Pressures BCs and < Stripe Number , ElastMatId >
+//    
+//    //Fluid property:
+//    REAL fVisc;//viscosidade do fluido de injecao
+//    
+//    //Leakoff data
+//    std::map<int,REAL> fLeakoffmap;
+//    
+//    //BCs:
+//    REAL fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
+//    REAL fQinj;//vazao de 1 asa de fratura dividido pela altura da fratura
+//    
+//    //time:
+//    REAL fTtot;//Tempo total da simulacao
+//    REAL factTime;//tempo atual (em segundos)
+//    REAL fmaxDeltaT;//delta T maximo
+//    REAL fminDeltaT;//delta T minimo
+//    REAL factDeltaT;//delta T atual
+//    int fNDeltaTsteps;//quantidade de incrementos do deltaT para definir o deltaT minimo
+//    
+//    //Leakoff:
+//    REAL fCl;//Carter
+//    REAL fPe;//Pressao estatica
+//    REAL fSigmaConf;//Tensao de confinamento
+//    REAL fPref;//Pressao de referencia da medicao do Cl
+//    REAL fvsp;//spurt loss
+//    
+//    //Propagation criterion
+//    REAL fJradius;
+//    REAL fKIc;
+//};
 
 
 
@@ -376,7 +378,7 @@ public:
 
 extern MaterialIdGen globMaterialIdGen;
 
-extern Input3DDataStruct globFractInput3DData;
+//extern Input3DDataStruct globFractInput3DData;
 
 extern Output3DDataStruct globFractOutput3DData;
 
