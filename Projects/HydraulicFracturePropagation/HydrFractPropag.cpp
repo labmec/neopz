@@ -98,7 +98,7 @@ int main(int argc, char * const argv[])
     
     REAL bulletTVDIni = 30.;
     REAL bulletTVDFin = 70.;
-    int nstripes = 1;
+    int nstripes = 2;
     
     TPZVec<TPZLayerProperties> layerVec(3);
     REAL KIc = 0.;

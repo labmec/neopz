@@ -278,7 +278,7 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         }
     }
     
-    int numsol = cmesh->Solution().Cols();
+    int numsol = cmeshRef->Solution().Cols();
     cmesh->AllocateNewConnect(numsol, 1, 1);
     
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh);
