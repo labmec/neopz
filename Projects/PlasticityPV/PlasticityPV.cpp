@@ -39,13 +39,9 @@ static LoggerPtr logger(Logger::getLogger("main"));
 
 REAL NormVec(TPZManVector<REAL,3> &vec1);
 
-
-
 REAL mypow(REAL a, int n);
 
 void TesteFAD();
-
-
 
 void TaylorCheck();
 
@@ -67,28 +63,33 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
 int main()
 {
-//	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV;
-//	
-//	TPZManVector< TFad<3,REAL>, 3> sigtrialfad(3),sigprojfad(3);
-//	for (int i = 0 ; i < 3 ; i++){
-//		sigtrialfad[i].fastAccessDx(i) = 1;
-//	}
-//	sigtrialfad[0].val() = 1240.;
-//	sigtrialfad[1].val() = 1140.;
-//	sigtrialfad[2].val() = 1020.;
-//	
-//	TPZElasticResponse ER;
-//	ER.SetUp(1000, 0.25);
-//	TPZYCMohrCoulombPV::TComputeSequence toto;
-//	toto.fGamma.resize(2);
-//	toto.fGamma[0] = 0.;
-//	toto.fGamma[1] = 0.;
-//	
-//	MohrCoulombPV->ReturnMapLeftEdge<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto, ER);
-//	std::cout << "sigprojfad = " << sigprojfad << std::endl;
 	
-	DepPlasticPV();
+	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
+	TPZElasticResponse ER;
+	ER.SetUp(1000, 0.25);
 	
+	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
+	
+	TPZManVector< TFad<3,REAL>, 3> sigtrialfad(3),sigprojfad(3);
+	for (int i = 0 ; i < 3 ; i++){
+		sigtrialfad[i].fastAccessDx(i) = 1;
+	}
+	sigtrialfad[0].val() = 1240.;
+	sigtrialfad[1].val() = 1140.;
+	sigtrialfad[2].val() = 1020.;
+	
+	TPZYCMohrCoulombPV::TComputeSequence toto;
+	toto.fGamma.resize(2);
+	toto.fGamma[0] = 0.;
+	toto.fGamma[1] = 0.;
+	
+	REAL epsbarfake = 0.;
+	MohrCoulombPV->ReturnMapLeftEdge<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto, epsbarfake);
+	std::cout << "sigprojfad = " << sigprojfad << std::endl;
+	
+	TaylorCheck();
+	TaylorCheck2();
+	TaylorCheck3();	
 	return 0;
 }
 
@@ -226,9 +227,11 @@ void CurvaFig12Diogo()
 
 void TaylorCheck3() // Tomara que o ultimo!!
 {
-	TPZYCMohrCoulombPV *MCPV = new TPZYCMohrCoulombPV;
+	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
 	ER.SetUp(1000, 0.25);
+	TPZYCMohrCoulombPV *MCPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
+	
 	TPZTensor <REAL> eps, eps1, eps2, deps, sigtrtemp;
 	eps.XX() = -50. * 0.01;
 	eps.YY() = -40. * 0.01;
@@ -307,7 +310,8 @@ void TaylorCheck3() // Tomara que o ultimo!!
 	toto2.fGamma[0] = 0.;
 	toto2.fGamma[1] = 0.;
 	cout << "sigtr = " << sigtr << endl;
-	MCPV->ReturnMapRightEdge<TFad <3,REAL> >(sigtr,sigpr,toto2,ER);
+	REAL epsbarfake = 0.;
+	MCPV->ReturnMapPlane<TFad <3,REAL> >(sigtr,sigpr,toto2, epsbarfake);
 	cout << "sigpr = " << sigpr << endl;
 
 	//MCPV->ReturnMapPlane<TFad <3,REAL> >(sigtr,sigpr,toto,ER);
@@ -430,9 +434,9 @@ void TaylorCheck3() // Tomara que o ultimo!!
 		}		
 		
 		toto.fGamma[0] = 0.;
-		MCPV->ReturnMapPlane<REAL>(sigtr1,sigpr1,toto,ER);
+		MCPV->ReturnMapPlane<REAL>(sigtr1,sigpr1,toto,epsbarfake);
 		toto.fGamma[0] = 0.;
-		MCPV->ReturnMapPlane<REAL>(sigtr2,sigpr2,toto,ER);
+		MCPV->ReturnMapPlane<REAL>(sigtr2,sigpr2,toto,epsbarfake);
 		
 		TPZFNMatrix <6> deps1(6,1,0.),deps2(6,1,0.);
 		TPZFNMatrix <9> depsMat(3,3,0.);
@@ -496,9 +500,11 @@ void TaylorCheck3() // Tomara que o ultimo!!
 
 void TaylorCheck2()
 {
-	TPZYCMohrCoulombPV *MCPV = new TPZYCMohrCoulombPV;
+	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
 	ER.SetUp(1000, 0.25);
+	TPZYCMohrCoulombPV *MCPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
+	
 	TPZTensor <REAL> eps, eps1, eps2, deps, sigtrtemp;
 	eps.XX() = -50. * 0.01;
 	eps.YY() = -40. * 0.01;
@@ -530,7 +536,8 @@ void TaylorCheck2()
 	toto.fGamma.resize(1);
 	toto.fGamma[0] = 0.;
 	
-	MCPV->ReturnMapPlane<TFad <3,REAL> >(sigtr,sigpr,toto,ER);
+	REAL epsbarfake = 0.;
+	MCPV->ReturnMapPlane<TFad <3,REAL> >(sigtr,sigpr,toto, epsbarfake);
 	std::cout << "sigtr = " << sigtr << std::endl;
 	std::cout << "sigpr = " << sigpr << std::endl;
 	TPZManVector<REAL,3> sigprmanvec(3,0.);	
@@ -605,9 +612,9 @@ void TaylorCheck2()
 		}		
 		
 		toto.fGamma[0] = 0.;
-		MCPV->ReturnMapPlane<REAL>(sigtr1,sigpr1,toto,ER);
+		MCPV->ReturnMapPlane<REAL>(sigtr1,sigpr1,toto,epsbarfake);
 		toto.fGamma[0] = 0.;
-		MCPV->ReturnMapPlane<REAL>(sigtr2,sigpr2,toto,ER);
+		MCPV->ReturnMapPlane<REAL>(sigtr2,sigpr2,toto,epsbarfake);
 		
 		TPZFNMatrix <6> deps1(6,1,0.),deps2(6,1,0.);
 		TPZFNMatrix <9> depsMat(3,3,0.);
@@ -654,7 +661,10 @@ void TaylorCheck2()
 
 void TaylorCheck()
 {
-	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV;
+	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
+	TPZElasticResponse ER;
+	ER.SetUp(1000, 0.25);
+	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
 	
 	TPZManVector< TFad<3,REAL>, 3> sigtrialfad(3), sigtrialfad1(3),sigtrialfad2(3), sigprojfad(3), sigprojfad1(3), sigprojfad2(3);
 	for (int i = 0 ; i < 3 ; i++){
@@ -672,8 +682,6 @@ void TaylorCheck()
 	dsigtrial[2] = -12.;
 	REAL alphatable[] = {0.1,0.2,0.3,0.4,0.5,0.6};
 
-	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.2);
 	TPZYCMohrCoulombPV::TComputeSequence toto;
 	toto.fGamma.resize(1);
 	toto.fGamma[0] = 0.;
@@ -687,9 +695,10 @@ void TaylorCheck()
 			sigtrialfad2[i].val() = sigtrialfad[i].val() + alpha2*dsigtrial[i];
 		}
 		
-		MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto, ER);
-		MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad1, sigprojfad1, toto, ER);
-		MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad2, sigprojfad2, toto, ER);//
+		REAL epsbarfake = 0.;
+		MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto,epsbarfake);
+		MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad1, sigprojfad1, toto,epsbarfake);
+		MohrCoulombPV->ReturnMapPlane<TFad<3,REAL> >(sigtrialfad2, sigprojfad2, toto,epsbarfake);//
 //		std::cout << "sigtrialfad:\n" << sigtrialfad << "\nsigprojfad:\n" << sigprojfad << std::endl;
 //		std::cout << "sigtrialfad1:\n" << sigtrialfad1 << "\nsigprojfad1:\n" << sigprojfad1 << std::endl;
 //		std::cout << "sigtrialfad2:\n" << sigtrialfad2 << "\nsigprojfad2:\n" << sigprojfad2 << std::endl;

@@ -7,6 +7,7 @@
 #include "TPZElasticResponse.h"
 
 #include "pzsandlerextPV.h"
+#include "TPZYCMohrCoulombPV.h"
 #include "TPZElasticResponse.h"
 
 #include "pzlog.h"
@@ -331,6 +332,7 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
 }
 
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;
+template class TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>;
 
 
 
