@@ -342,7 +342,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
-					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
+					TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
 				}
                 
 				// generation mesh process finished

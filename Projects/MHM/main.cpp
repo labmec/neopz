@@ -87,7 +87,7 @@ int main()
 
     
     std::ofstream arc1 ( "cmesh.vtk" );
-    TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), arc1, true);
+    TPZVTKGeoMesh::PrintCMeshVTK(cmesh, arc1, true);
     
 	TPZAnalysis an(cmesh,true);
     

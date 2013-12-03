@@ -61,7 +61,7 @@ int main()
     TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
     
     std::ofstream gmeshfile("gmesh.vtk");
-    TPZVTKGeoMesh::PrintCMeshVTK(gmesh.operator->(), gmeshfile,true);
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), gmeshfile,true);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {

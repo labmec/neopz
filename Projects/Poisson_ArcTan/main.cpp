@@ -344,7 +344,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh() {
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
-					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
+					TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
 				}
                 
 				// generation mesh process finished
@@ -527,7 +527,7 @@ bool SolveLaplaceProblemOnLShapeMesh() {
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
-					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
+					TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
 				}
 				// generation mesh process finished
 				
@@ -2619,7 +2619,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 			{
 				std::ofstream out(MeshFileName.c_str());
 				comp->LoadReferences();
-				TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
+				TPZVTKGeoMesh::PrintGMeshVTK(comp->Reference(), out, false);
 			}
 		}
 	}
@@ -2908,7 +2908,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 		{
 			std::ofstream out(MeshFileName.c_str());
 			comp->LoadReferences();
-			TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
+			TPZVTKGeoMesh::PrintGMeshVTK(comp->Reference(), out, false);
 		}
 		
 		/*
@@ -4006,7 +4006,7 @@ int main_Failed() {
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
-					TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),out,false);
+					TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
 				}
 				
 				// closed generation mesh process
