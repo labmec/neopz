@@ -93,6 +93,15 @@ public:
 	 * @param K00 pointer to an upper left matrix
 	 */
 	void SetK00(TPZAutoPointer<TPZMatrix<TVar> > K00);
+    
+    /**
+     * @brief Sets K01 as computed
+     */
+    
+    void SetK01IsComputed (int n)
+    {
+        fK01IsComputed=n;
+    }
 	
 	TPZAutoPointer<TPZMatrix<TVar> > K00()
 	{

@@ -90,6 +90,10 @@ if (USING_PAPI)
   target_link_libraries(pz ${PAPI_LIB})
 endif()
 
+if (USING_MKL)
+  target_link_libraries(pz ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
+endif()
+
 install(TARGETS pz DESTINATION ${NEOPZ_LIB})
 
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.

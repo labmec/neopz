@@ -4,4 +4,5 @@
 add_subdirectory(substruct)
 add_subdirectory(skylmat)
 add_subdirectory(skyline)
+add_subdirectory(hybridmesh)
 
