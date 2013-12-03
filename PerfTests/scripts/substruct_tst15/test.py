@@ -56,33 +56,39 @@ rdtfiles_l=[assfn, crefn, prefn, solfn, totfn, tpzdohrassfn, tpzdohrdecfn]
 
 # Setup the command line
 def setup_cmd():
-	# Check build directory
-	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 5)
-	# Check run directory
-	rundir = os.path.join(builddir,'scripts','substruct_tst15')
-	if not os.path.isdir(rundir) :
-		error(rundir+' is an invalid run directory.', 1)
-	if not os.path.isdir(builddir) :
-		error(builddir+' is an invalid build directory.', 1)
-	# Check executable
-	executable=os.path.join(builddir,"progs","substruct", "substruct-perf")
-	if not os.path.isfile(executable) :
-		error(executable+' is an invalid executable file name.', 1)
-	# Check input file
-	inputfn = os.path.join(datadir,"substruct","inputs","8andares02.txt")
-	if not os.path.isfile(inputfn) :
-		error(inputfn+' is an invalid input file name.', 1)	
-	# Put the arguments together
-    	arguments = ' -mp '+inputfn
-	arguments = arguments + ' -p 2' 
-	for rdtarg in rdtfiles_l :
-		arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
-	# TODO: Add arguments to enforce output checking!
-	return rundir, executable+arguments
+    # Check build directory
+    if not os.path.isdir(builddir) :
+        error(builddir+' is an invalid build directory.', 5)
+    # Check run directory
+    rundir = os.path.join(builddir,'scripts','substruct_tst15')
+    if not os.path.isdir(rundir) :
+        error(rundir+' is an invalid run directory.', 1)
+    if not os.path.isdir(builddir) :
+        error(builddir+' is an invalid build directory.', 1)
+    # Check executable
+    executable=os.path.join(builddir,"progs","substruct", "substruct-perf")
+    if not os.path.isfile(executable) :
+        error(executable+' is an invalid executable file name.', 1)
+    # Check input file
+    inputfn = os.path.join(datadir,"substruct","inputs","8andares02.txt")
+    if not os.path.isfile(inputfn) :
+        error(inputfn+' is an invalid input file name.', 1)	
+    # Put the arguments together
+    arguments = ' -mp '+inputfn
+    arguments = arguments + ' -num_it 1000 '
+    arguments = arguments + ' -p 2' 
+    for rdtarg in rdtfiles_l :
+        arguments = arguments + ' ' + rdtarg[1] + ' ' + rdtarg[2]
+    # TODO: Add arguments to enforce output checking!
+    # arguments = arguments + ' -naDALora'
+    #NUMA aware Dohrman Assembly List thread work objects re-allocation threshold.
+    #arguments = arguments + ' -naDALorat 1835008' # 2/2MB(l2) + 6/8MB(l3)
+    #NUMA aware (node round-robin) Dohrman Assembly List thread work scheduling.
+    # arguments = arguments + ' -naDALtws'
+    return rundir, executable+arguments
 
 # Limits for this test
-limits = { "cpu"   : (resource.RLIMIT_CPU, 3600, "Max CPU time in seconds"), 
+limits = { "cpu"   : (resource.RLIMIT_CPU, 108000, "Max CPU time in seconds"), 
 #	   "nofile": (resource.RLIMIT_NOFILE,     7, "The maximum number of open file descriptors for the current process."),
 #	   "rss"   : (resource.RLIMIT_RSS,     1024, "The maximum resident set size that should be made available to the process"),
 #	   "fsize" : (resource.RLIMIT_FSIZE,      1, "Max size of a file which the process may create"),
@@ -200,22 +206,24 @@ if __name__ == "__main__":
 		if   f == '-r': run=1
 		elif f == '-n': ntimes=int(v)
 		elif f == '-h': usage()
-
-	subs = ["64"]
-	numthreads = [ "0", "6", "12", "18", "24"]
+	subs = [ "64" ]
+	numthreads = ["0", "8", "16", "32", "48", "64"]
+	print "# Results Summary"
+	first=1
 	# Run test
 	if run == 1: 
 		for thr in numthreads:
-			print "# Results Summary"
-			print '{0:s}; {1:s}; '.format("nsub", "threads"),
-			for arq in rdtfiles_l:
-				print'{0:s}; {1:s};'.format(arq[0],"err_"+arq[0]),
 			for item in subs:
 				status,results = run_test(ntimes, item, thr)
 				#if status == 0: print "Execution [OK]"
 				if status != 0 : print "Execution [FAILED] (status = ", status, ")"
+                # headers
+				if first == 1:
+					first = 2
+					print '{0:s}; {1:s}; '.format("nsub", "threads"),
+					for k,v in results.iteritems() : print'{0:s}; {1:s};'.format(k,"err_"+k),
+				# results
 				print '\n{0:s}; {1:s};'.format(item, thr ),
 				for k,v in results.iteritems() : print '{0:.2f}; {1:.2f};'.format(v[0], v[1]),
-			print "\n--------------------------------------------"
 	else:
 		print "WARNING: No options provided. (use -h for help)"
