@@ -5,16 +5,16 @@
 #-------------------------------------------------
 
 #Begin FAD
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/"
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/Fad"
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/TinyFad"
-INCLUDEPATH += "/dados/GOOGLE_PZ/externallibs/FAD/TinyFadET"
+INCLUDEPATH += "/home/felps/FAD/"
+INCLUDEPATH += "/home/felps/FAD/Fad"
+INCLUDEPATH += "/home/felps/FAD/TinyFad"
+INCLUDEPATH += "/home/felps/FAD/TinyFadET"
 #End FAD
 
 #Begin PZ
-INCLUDEPATH += "/dados/GOOGLE_PZ/PZLIB/include"
-LIBS += -L"/dados/GOOGLE_PZ/PZLIB/" -lpz
-DEFINES += PZSOURCEDIR=\"/dados/GOOGLE_PZ/neopz_build_teste\" REFPATTERNDIR=\"/dados/GOOGLE_PZ/neopz_build_teste\"
+INCLUDEPATH += "/home/felps/neopz_lib/include"
+LIBS += -L"/home/felps/neopz_lib/" -lpz
+DEFINES += PZSOURCEDIR=\"/home/felps/neopz_code\" REFPATTERNDIR=\"/home/felps/neopz_code\"
 DEFINES += USING_BOOST _AUTODIFF LOG4CXX USING_METIS BUILD_UNITTESTING BUILD_TUTORIAL REALdouble STATEdouble
 #End PZ
 

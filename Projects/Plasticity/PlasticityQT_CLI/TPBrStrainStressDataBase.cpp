@@ -1,7 +1,16 @@
 #include "TPBrStrainStressDataBase.h"
+#include "TPBrDataControl.h"
 
-TPBrStrainStressDataBase::TPBrStrainStressDataBase()
+TPBrStrainStressDataBase::TPBrStrainStressDataBase() : fGlobalId(-1)
 {
+}
+
+TPBrStrainStressDataBase::~TPBrStrainStressDataBase()
+{
+    if(fGlobalId != -1)
+    {
+        DADOS.DeleteGlobalId(fGlobalId);
+    }
 }
 
 /// gera os dados que serao mostrados na tela

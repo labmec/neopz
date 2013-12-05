@@ -5,6 +5,8 @@
 #include <qwt_plot_zoomer.h>
 #include "common.h"
 #include <limits>
+#include <qtreewidget.h>
+#include <QTreeWidgetItem>
 
 #include "../PlasticityQT_CLI/TPBrDataControl.h"
 
@@ -31,14 +33,14 @@ public:
 private slots:
     void ShowListContextMenu(const QPoint& pos);
     void on_actionOpenFile_triggered();
-
     void on_pushButton_clicked();
+    void clickedOnPlot(Plot *plotTmp);
+    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
 private:
     Ui::MainWindow *ui;
-
     Plot *currentPlot;
-
+    void reloadCurvesList(Plot *plotTmp);
 };
 
 #endif // MAINWINDOW_H

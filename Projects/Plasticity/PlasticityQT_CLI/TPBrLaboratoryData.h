@@ -9,9 +9,9 @@
 
 class TPBrLaboratoryData : public TPBrStrainStressDataBase
 {
+
+
 public:
-      //contains all simulations related to 'this' lab file
-    std::map<int, TPBrSimulationData> fSimulacoes;
   
     TPBrLaboratoryData();  
     TPBrLaboratoryData(const std::string &filename);
@@ -42,11 +42,59 @@ public:
     inline void Set_end_idx(int endidx) {
         fend_idx = endidx;
     }
-    inline int Get_start_idx() {
+
+    virtual int Get_start_idx() const {
         return fstart_idx;
     }
-    inline int Get_end_idx() {
+    virtual int Get_end_idx() const {
         return fend_idx;
+    }
+
+    inline int SizeSimData()
+    {
+        return fSimulacoes.size();
+    }
+
+    const TPBrSimulationData *GetSimulation(int globalid) const
+    {
+        std::map<int, TPBrSimulationData>::const_iterator it;
+        it = fSimulacoes.find(globalid);
+        if(it == fSimulacoes.end())
+        {
+            DebugStop();
+        }
+        else
+        {
+            return &(it->second);
+        }
+        return 0;
+    }
+
+    TPBrSimulationData *GetSimulation(int globalid)
+    {
+        std::map<int, TPBrSimulationData>::iterator it;
+        it = fSimulacoes.find(globalid);
+        if(it == fSimulacoes.end())
+        {
+            DebugStop();
+        }
+        else
+        {
+            return &(it->second);
+        }
+        return 0;
+    }
+
+
+    void DeleteSimulation(int globalid)
+    {
+        std::map<int, TPBrSimulationData>::iterator it;
+        it = fSimulacoes.find(globalid);
+        if(it == fSimulacoes.end())
+        {
+            DebugStop();
+        }
+        fSimulacoes.erase(globalid);
     }
     
     /// read the input strain and stress from the laboratory file
@@ -56,9 +104,25 @@ public:
     
     int InsertSimulationData (const TPBrSimulationData &simdataobj);
 
+    void Print() const
+    {
+        TPBrStrainStressDataBase::Print();
+        std::cout << "fstart_idx " << fstart_idx << std::endl;
+        std::cout << "fend_idx " << fend_idx << std::endl;
+        std::map<int, TPBrSimulationData>::const_iterator it;
+        for(it = fSimulacoes.begin(); it != fSimulacoes.end(); it++)
+        {
+            it->second.Print();
+        }
+    }
+
 protected:
     int fstart_idx;
     int fend_idx;
+
+    //contains all simulations related to 'this' lab file
+    std::map<int, TPBrSimulationData> fSimulacoes;
+
     
 };
 

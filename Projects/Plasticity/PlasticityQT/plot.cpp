@@ -74,14 +74,6 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     QString Coords5 = "I1 x ";
     Coords5.append(QChar (0x221A));
     Coords5.append("J2");
-    // Epsilon v x sqrt J2Epsilon
-//    QString Coords6 = QChar (0x03B5);
-//    Coords6.append("v x ");
-//    Coords6.append(QChar (0x221A));
-//    Coords6.append("J2");
-//    Coords6.append(QChar (0x03B5));
-
-    this->ActionList = new QHash <int, QAction*>;
 
     QMenu *mySubMenuAxis = new QMenu ("Set Axis");
     QActionGroup *groupSubmenuAxis = new QActionGroup (this);
@@ -89,27 +81,23 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     aSetAxis1->setCheckable(true);
     aSetAxis1->setChecked(true);
     aSetAxis1->setActionGroup(groupSubmenuAxis);
-    ActionList->insert(0, aSetAxis1);
+    aSetAxis1->setData(TPBrStrainStressDataBase::EEpsaxSigax);
     QAction *aSetAxis2 = mySubMenuAxis->addAction(Coords2);
     aSetAxis2->setCheckable(true);
     aSetAxis2->setActionGroup(groupSubmenuAxis);
-    ActionList->insert(1, aSetAxis2);
+    aSetAxis2->setData(TPBrStrainStressDataBase::EEpsrSigr);
     QAction *aSetAxis3 = mySubMenuAxis->addAction(Coords3);
     aSetAxis3->setCheckable(true);
     aSetAxis3->setActionGroup(groupSubmenuAxis);
-    ActionList->insert(2, aSetAxis3);
+    aSetAxis3->setData(TPBrStrainStressDataBase::EEpsvSigv);
     QAction *aSetAxis4 = mySubMenuAxis->addAction(Coords4);
     aSetAxis4->setCheckable(true);
     aSetAxis4->setActionGroup(groupSubmenuAxis);
-    ActionList->insert(3, aSetAxis4);
+    aSetAxis4->setData(TPBrStrainStressDataBase::EEpsaxEpsrEpsvSigax);
     QAction *aSetAxis5 = mySubMenuAxis->addAction(Coords5);
     aSetAxis5->setCheckable(true);
     aSetAxis5->setActionGroup(groupSubmenuAxis);
-    ActionList->insert(4, aSetAxis5);
-//    QAction *aSetAxis6 = mySubMenuAxis->addAction(Coords6);
-//    aSetAxis6->setCheckable(true);
-//    aSetAxis6->setActionGroup(groupSubmenuAxis);
-//    ActionList->insert(5, aSetAxis6);
+    aSetAxis5->setData(TPBrStrainStressDataBase::EI1SqJ2);
 
     menuPlot = new QMenu ();
     menuPlot->setFont(MenuBold);
@@ -145,6 +133,8 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
 
     this->setTitle("");
     this->setHighlighted(false);
+
+    this->curvetype = TPBrStrainStressDataBase::EEpsaxSigax;
 }
 
 void Plot::setHighlighted (bool status) {
@@ -162,40 +152,6 @@ bool Plot::isHighlighted () {
 }
 
 
-void Plot::AdjustScale ()
-{
-//    double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
-//           Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
-
-//    foreach (int i, this->CurvesList.keys()) {
-//        if (this->CurvesList.value(i).Xsmallest<Xsmallest)
-//            Xsmallest = this->CurvesList.value(i).Xsmallest;
-
-//        if (this->CurvesList.value(i).Xbiggest>Xbiggest)
-//            Xbiggest = this->CurvesList.value(i).Xbiggest;
-
-//        if (this->CurvesList.value(i).Ysmallest<Ysmallest)
-//            Ysmallest = this->CurvesList.value(i).Ysmallest;
-
-//        if (this->CurvesList.value(i).Ybiggest>Ybiggest)
-//            Ybiggest = this->CurvesList.value(i).Ybiggest;
-//    }
-
-//    if (this->CurvesList.size() == 0)
-//    {
-//        // axis scale (values)
-//        this->setAxisScale (QwtPlot::xBottom, 0, 10);
-//        this->setAxisScale (QwtPlot::yLeft, 0, 10);
-//    }
-//    else {
-//        this->setAxisScale (QwtPlot::xBottom, Xsmallest, Xbiggest);
-//        this->setAxisScale (QwtPlot::yLeft, Ysmallest, Ybiggest);
-//    }
-
-//    this->replot();
-}
-
-
 //Click event = MousePress->MouseRelease
 void Plot::mouseReleaseEvent( QMouseEvent * event ) {
     if(event->button() == Qt::RightButton) {
@@ -206,4 +162,77 @@ void Plot::mouseReleaseEvent( QMouseEvent * event ) {
 
 void Plot::AxisChanged_slot (QAction *action) {
 
+    this->curvetype = TPBrStrainStressDataBase::ECurveType (action->data().toInt());
+
+    // plotting new curve
+    foreach (int i, this->CurvesList.keys())
+    {
+        int chkStatus = this->CurvesList[i].chk_status;
+        deleteCurve(i);
+        createCurve(i, chkStatus);
+    }
+
+    // renaming axis
+    QString X_title;
+    QString Y_title;
+    switch (curvetype)
+    {
+        case TPBrStrainStressDataBase::EEpsaxSigax:
+        {
+            Y_title.append(QChar (0x03C3));
+            Y_title.append("ax (MPa)");
+            this->setAxisTitle(QwtPlot::yLeft, Y_title);
+            X_title.append(QChar (0x03B5));
+            X_title.append("ax (%)");
+            this->setAxisTitle(QwtPlot::xBottom, X_title);
+            break;
+        }
+
+        case TPBrStrainStressDataBase::EEpsrSigr:
+        {
+            Y_title.append(QChar (0x03C3));
+            Y_title.append("rad (MPa)");
+            this->setAxisTitle(QwtPlot::yLeft, Y_title);
+            X_title.append(QChar (0x03B5));
+            X_title.append("rad (%)");
+            this->setAxisTitle(QwtPlot::xBottom, X_title);
+            break;
+        }
+
+        case TPBrStrainStressDataBase::EEpsvSigv:
+        {
+            Y_title.append(QChar (0x03C3));
+            Y_title.append("vol (MPa)");
+            this->setAxisTitle(QwtPlot::yLeft, Y_title);
+            X_title.append(QChar (0x03B5));
+            X_title.append("vol (%)");
+            this->setAxisTitle(QwtPlot::xBottom, X_title);
+            break;
+        }
+
+        case TPBrStrainStressDataBase::EEpsaxEpsrEpsvSigax:
+        {
+            Y_title.append(QChar (0x03C3));
+            Y_title.append("ax (MPa)");
+            this->setAxisTitle(QwtPlot::yLeft, Y_title);
+            X_title.append(QChar (0x03B5));
+            X_title.append("ax ");
+            X_title.append(QChar (0x03B5));
+            X_title.append("vol ");
+            X_title.append(QChar (0x03B5));
+            X_title.append("rad (%)");
+            this->setAxisTitle(QwtPlot::xBottom, X_title);
+            break;
+        }
+
+        case TPBrStrainStressDataBase::EI1SqJ2:
+        {
+            Y_title.append("I1");
+            this->setAxisTitle(QwtPlot::yLeft, Y_title);
+            X_title.append(QChar (0x221A));
+            X_title.append("J2");
+            this->setAxisTitle(QwtPlot::xBottom, X_title);
+            break;
+        }
+    }
 }

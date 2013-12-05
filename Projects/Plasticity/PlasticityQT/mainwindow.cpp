@@ -244,7 +244,6 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
     }
 
     if (aDeleteFile == selectedItem) {
-
         int indexCurve = ui->treeWidget->indexAt(pos).row();
         QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
 
@@ -275,21 +274,30 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         sandlerObj.SetUp(poisson, E, A, B, C, R, D, W);
         DADOS.SetSandlerDimaggio(sandlerObj);
 
-        DADOS.fMedicoes[indexCurve].Set_start_idx(100);
-        int idx_sim = DADOS.fMedicoes[indexCurve].RunSimulation(sandlerObj);
+        TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
+        TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
+        if(!labdata) DebugStop();
+        labdata->Set_start_idx(100);
+        int idx_sim = labdata->RunSimulation(sandlerObj);
+        int idx_med = labdata->GlobalId();
+        if(idx_med != indexCurve) DebugStop();
 
-
-        int idx_med = DADOS.fMedicoes[indexCurve].GlobalId();
         qDebug() << "Med idx: " << idx_med << " Sim idx: " << idx_sim;
 
         //Criando entrada na treeWidget
         QTreeWidgetItem *item;
-        item = new QTreeWidgetItem();
+        item = new QTreeWidgetItem(tmp_item);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
-        item->setText(0, "fname");
-        item->setData(0, 5, idx_med); //item "ID"
+        int count = DADOS.SizeLabData();
+        qDebug() << "COUNTM = " <<count << "!!!!!!!!!!!";
+        int counts = labdata->SizeSimData();
+        qDebug() << "COUNTS = " <<counts << "!!!!!!!!!!!";
+//        item->setText(0, QString ("Sim").append( QVariant(count).toString()) );
+        item->setText(0, "Sim");
+        item->setData(0, 5, idx_sim); //item "ID"
         ui->treeWidget->addTopLevelItem(item);
+        ui->treeWidget->expandAll();
     }
 }
 
@@ -297,4 +305,53 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 void MainWindow::on_pushButton_clicked()
 {
 
+}
+
+void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+{
+    qDebug() << "CLICOU NO TREE WIDGET";
+    int indexCurve = item->data(column, 5).toInt();
+    qDebug() << "INDEX CURVE = "<<indexCurve;
+    int checkStatus = item->checkState(column);
+    qDebug() << "CHK STATUS = "<<checkStatus;
+
+    if (checkStatus == 2) {
+        currentPlot->createCurve(indexCurve, checkStatus);
+    }
+    else
+    {
+        currentPlot->deleteCurve(indexCurve);
+    }
+}
+
+void MainWindow::clickedOnPlot(Plot *plotTmp)
+{
+    reloadCurvesList (plotTmp);
+
+    //set plotTmp to highlighted
+    ui->Plot_1->setHighlighted(false);
+    ui->Plot_2->setHighlighted(false);
+    ui->Plot_3->setHighlighted(false);
+    ui->Plot_4->setHighlighted(false);
+    plotTmp->setHighlighted(true);
+
+    //set plotTmp cursor to cross
+    ui->Plot_1->canvas()->setCursor(Qt::PointingHandCursor);
+    ui->Plot_2->canvas()->setCursor(Qt::PointingHandCursor);
+    ui->Plot_3->canvas()->setCursor(Qt::PointingHandCursor);
+    ui->Plot_4->canvas()->setCursor(Qt::PointingHandCursor);
+    plotTmp->canvas()->setCursor(Qt::CrossCursor);
+}
+
+void MainWindow::reloadCurvesList(Plot *plotTmp)
+{
+    currentPlot = plotTmp;
+
+    // updating check-status
+    for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
+    {
+       QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i);
+       int item_id = item->data(0,5).toInt();
+       item->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_id).chk_status));
+    }
 }

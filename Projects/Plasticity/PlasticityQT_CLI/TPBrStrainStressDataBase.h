@@ -12,16 +12,13 @@ class TPBrStrainStressDataBase
 public:
     
     /// tipos de curvas permitidas
-    enum ECurveType {EEpsrSigr, EI1SqJ2, EEpsaxSigax, EEpsvSigv, EEpsaxEpsrEpsvSigax};
+    enum ECurveType {EEpsrSigr = 0, EI1SqJ2 = 1, EEpsaxSigax = 2, EEpsvSigv = 3, EEpsaxEpsrEpsvSigax = 4};
     
     TPBrStrainStressDataBase();
     
-    virtual ~TPBrStrainStressDataBase()
-    {
-        
-    }
-    
-    TPBrStrainStressDataBase(const TPBrStrainStressDataBase &copy) : fGlobalId(copy.fGlobalId),
+    virtual ~TPBrStrainStressDataBase();
+
+    TPBrStrainStressDataBase(const TPBrStrainStressDataBase &copy) : fGlobalId(-1),
         fSig_Ax(copy.fSig_Ax), fSig_Lat(copy.fSig_Lat), fEps_Ax(copy.fEps_Ax), fEps_Lat(copy.fEps_Lat)
     {
         
@@ -29,7 +26,7 @@ public:
     
     TPBrStrainStressDataBase &operator=(const TPBrStrainStressDataBase &copy)
     {
-        fGlobalId = copy.fGlobalId;
+        fGlobalId = -1;
         fSig_Ax = copy.fSig_Ax;
         fSig_Lat = copy.fSig_Lat;
         fEps_Ax = copy.fEps_Ax;
@@ -82,6 +79,20 @@ public:
 
     /// retorna o valor de Sig Volumetrico para o index
     REAL Sigv(int index);
+
+    virtual int Get_start_idx() const {
+        return 0;
+    }
+    virtual int Get_end_idx() const {
+        return fSig_Ax.size()-1;
+    }
+
+
+
+    virtual void Print() const
+    {
+        std::cout << "fGlobalId " << fGlobalId << std::endl;
+    }
     
 public:
     

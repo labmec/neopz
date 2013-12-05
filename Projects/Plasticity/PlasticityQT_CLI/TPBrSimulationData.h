@@ -57,6 +57,13 @@ public:
         fSandler = copy;
     }
 
+    inline void Print() const
+    {
+        TPBrStrainStressDataBase::Print();
+        std::cout << "fstart_idx " << fstart_idx << std::endl;
+        std::cout << "fMedicao_idx " << fMedicao_idx << std::endl;
+    }
+
 
 protected:
     /// primeiro indice da medicao
