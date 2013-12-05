@@ -1358,27 +1358,67 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 
 void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
 {
+    
+#ifdef LOG4CXX
+    {
+		std::stringstream sout;
+		sout<< "Metodo Compute normal \n";
+		
+		LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+
+    
 	int numbernormals = 0;
 	int dimension = Dimension();
 	int is;
 	int nsides = NSides();
 	for(is=0; is<nsides; is++)
 	{
+        TPZStack<int> lowdim;
 		if(SideDimension(is) == dimension-1)
 		{
-			TPZStack<int> lowdim;
+			//TPZStack<int> lowdim;
 			LowerDimensionSides(is,lowdim);
 			numbernormals += lowdim.NElements();
 		}
+        //incluindo internos
+        if(SideDimension(is) == dimension)
+		{
+
+			numbernormals += dimension;
+		}
+        
 	}
 	normals.Redim(3, numbernormals);
 	int counter = 0;
 	for(is=0; is<nsides; is++)
 	{
 		if(SideDimension(is) == dimension-1)
+            
 		{
+            
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout<< "Side "<<is<<std::endl;
+            
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+
+            
 			TPZStack<int> lowdim;
 			LowerDimensionSides(is,lowdim);
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout<< "LowerDimensionSides "<<lowdim<<std::endl;
+                
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            
 			lowdim.Push(is);
 			int nlowdim = lowdim.NElements();
 			int lowis;
@@ -1387,12 +1427,41 @@ void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
 				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
 				TPZGeoElSide LC(this,conj_side);
 				TPZGeoElSide LS(this,lowdim[lowis]);
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout<< "Side "<<is << " Conjugate Side "<< conj_side<< " Ls side "<< lowdim[lowis]<<std::endl;
+                    
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
+#endif
 				TPZManVector<REAL> normal(3,0.);
 				NormalVector(LC,LS,normal);
+                
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout<< "Vetores do NormalVector "<<normal<<std::endl;
+                    
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
+#endif
+                
 				int d;
 				for(d=0; d<3; d++) normals(d,counter) = normal[d];
 				counter++;
 			}
+            
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout<< "A partir daqui sera um processo de normalizacao dos vetores normals"<<std::endl;
+                normals.Print("vetor normals",sout);
+                
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            
 			TPZManVector<REAL> normal(3,0.);
 			int d;
 			for(d=0; d<3; d++) normal[d] = normals(d,counter-1);
@@ -1406,6 +1475,15 @@ void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
 			}
 		}
 	}
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout<< "Vetores Normais normalizados "<<normals<<std::endl;
+        
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
 }
 
 void TPZGeoEl::SetNeighbourForBlending(int side){
@@ -1478,18 +1556,42 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	// take the centerpoint of LC and the centerpoint of LS
 	TPZManVector<REAL,3> LCCenter(3,0.), LSCenter(3,0.);
 	TPZManVector<REAL,3> XLC(3,0.),XLS(3,0.);
-	LC.CenterPoint(LCCenter);
+	LC.CenterPoint(LCCenter);   
 	LC.X(LCCenter,XLC);
+    
 	LS.CenterPoint(LSCenter);
 	LS.X(LSCenter,XLS);
 	TPZManVector<REAL,3> dir(3,0.);
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout<< "Centro de LC "<<XLC<< " Centro de LS "<<XLS<<std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    
 	// The normal vector needs to be in the plane of LC and perpendicular to LS
 	// A starting vector is the direction of one center to the next
 	int i;
 	for(i=0; i<3; i++) dir[i] = XLS[i]-XLC[i];
+    
+    
+    
 	TPZFNMatrix<10> jacobian,axes,jacinv;
 	REAL detjac;
 	LS.Jacobian(LSCenter,jacobian,axes,detjac,jacinv);
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout<< "vetor axes "<<axes<<std::endl;
+         sout<< "vetor dir "<<dir<<std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
 	TPZFNMatrix<20> axtrans(axes.Cols(),axes.Rows()+1,0.);
 	int j;
 	for(i=0; i<3; i++) for(j=0; j<axes.Rows(); j++)
@@ -1501,24 +1603,72 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	{
 		axtrans(i,lastcol) = dir[i];
 	}
+    
+    
+#ifdef LOG4CXX
+    
+	{
+        std::stringstream sout;
+		sout << "axtrans = ";
+        axtrans.Print("axtrans matrix",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+    
+    
 	// Then orthogonalize the vectors of the LS side with this vector
 	TPZFNMatrix<20> transf, ortho;
 	axtrans.GramSchmidt(ortho,transf);
+    
+    
+#ifdef LOG4CXX
+    
+	{
+        std::stringstream sout;
+		sout << "Vetr Apos GramSchmidt = ";
+        ortho.Print("Orthog matrix",sout);
+		transf.Print("TransfToOrthog matrix",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+    
+    
 	normal.Resize(3);
 	for(i=0; i<3; i++)
 	{
 		normal[i] = ortho(i,lastcol);
 	}
+    
+    
 }
 
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 {
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout<< "Normalize..u.n=1 "<<std::endl;
+        sout<< "normlow "<<normlow<< " normal "<<normal<<std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    
 	REAL inner = 0.;
 	int i;
 	for(i=0; i<normlow.NElements(); i++)
 	{
 		inner += normlow[i]*normal[i];
 	}
+    
+    if(inner==0)
+	{
+		LOGPZ_ERROR(logger,"Inner product zero to normalize vector")
+		DebugStop();
+	}
+    
+    
+    
 	for(i=0; i<normlow.NElements(); i++)
 	{
         normlow[i] /= inner;
