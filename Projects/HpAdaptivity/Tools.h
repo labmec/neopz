@@ -63,6 +63,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 // definir a funcao exata
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
+void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
 
 //metodo para graficar a sol no mathematica
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol);
