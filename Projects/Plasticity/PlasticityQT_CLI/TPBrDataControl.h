@@ -6,7 +6,6 @@
 #include "TPBrLaboratoryData.h"
 #include "TPBrSimulationData.h"
 #include "pzvec.h"
-#include <QDebug>
 #include "TPZSandlerDimaggio.h"
 
 class TPBrDataControl
