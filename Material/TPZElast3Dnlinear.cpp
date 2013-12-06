@@ -109,7 +109,7 @@ void TPZElast3Dnlinear::ContributeVecShapeAux(TPZMaterialData &data,
     
 	TPZFMatrix<REAL> & phi = data.phi;
     TPZFMatrix<REAL> & dphi = data.dphix;
-    TPZFMatrix<REAL> & dsol = data.dsol[0];
+    TPZFMatrix<STATE> & dsol = data.dsol[0];
 	
 	int phc = phi.Cols();
 	int efc = ef.Cols();
@@ -240,7 +240,7 @@ void TPZElast3Dnlinear::ContributeVecShapeBCAux(TPZMaterialData &data,
     }
     
     TPZFMatrix<REAL> & phi = data.phi;
-    TPZManVector<REAL,3> sol = data.sol[0];
+    TPZManVector<STATE,3> sol = data.sol[0];
     
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     
