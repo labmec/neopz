@@ -182,7 +182,7 @@ bool GradientAndLaplacian(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian)
 	Laplacian = 0.0;
 	if(!el) return false;
 	int nstates = el->Material()->NStateVariables();
-    int dim = el->Dimension(), i, idsol;
+    int dim = el->Dimension(), idsol;
     TPZManVector<STATE,3> sol(nstates,(STATE)0.0);
     TPZFMatrix<STATE> dsol(dim,nstates);
 	dsol.Zero();
