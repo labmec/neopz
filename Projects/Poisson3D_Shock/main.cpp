@@ -142,7 +142,7 @@ bool SolveLaplaceProblemOnLShapeMesh();
 
 // Generic data for problems to solve
 bool usethreads = false;
-int MaxPOrder = 11;
+int MaxPOrder = 13;
 int NRefs = 8;
 int ninitialrefs = 3;
 int itypeel;
@@ -451,8 +451,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
         pelement++;
-        if(itypeel == 3 && pelement == 9)
-            pelement++;
+        if(itypeel == 3 && (pelement == 9 || pelement == 10))
+            pelement=11;
 		if(ervecbyel[index] > 0.8*MaxErrorByElement && IncrementError > 100*Tol) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
