@@ -152,6 +152,7 @@ int ninitialrefs = 3;
  */
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,REAL &MinErrorByElement);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
+void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 // Writing a relation between number of degree of freedom and L2 error.
 bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
@@ -217,7 +218,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 
 		/** Solving for each type of geometric elements */
 //		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(int itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 //		for(int itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
@@ -234,7 +235,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3)
-				NRefs = 12;
+				NRefs = 10;
 			else if(ModelDimension == 3)
 				NRefs = 5;
 			
@@ -271,7 +272,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
             UniformRefinement(ninitialrefs,gmesh,ModelDimension);
             
 			// Creating computational mesh (approximation space and materials)
-			int p = 2, pinit;
+			int p = 1, pinit;
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh;
@@ -376,7 +377,10 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 					// Printing degree of freedom (number of equations)
 					fileerrors << "Refinement: " << nref << "  Dimension: " << ModelDimension << "  NEquations: " << cmesh->NEquations();
-					ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,MaxErrorByElement,MinErrorByElement,nref);
+                    if(ModelDimension<3)
+                        ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,MaxErrorByElement,MinErrorByElement,nref);
+                    else
+                        ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,MaxErrorByElement,MinErrorByElement,nref);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -400,7 +404,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
     return true;
 }
 
-void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
 
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
@@ -419,12 +423,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad, MaxLaplacian;
 	long i;
 	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad;
+	REAL factorGrad= 0.3;
 	REAL factorLap = 0.7;
-	if(nref<2)
-		factorGrad = 0.3;
-	else
-		factorGrad = 0.7;
+	if(2<nref)
+		factorGrad += (nref-2)*0.1;
+    if(factorGrad>0.9)
+		factorGrad = 0.95;
 
 	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
 
@@ -435,7 +439,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
 		// If the element error is little enough do nothing
-		if(ervecbyel[index] < (Tol/10.)) {
+		if(ervecbyel[index] < (0.1*Tol)) {
 			counterreftype[0]++;
 			continue;
 		}
@@ -445,7 +449,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 			DebugStop();
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(ervecbyel[index] > 0.7*MaxErrorByElement && IncrementError > 100*Tol) {
+		if(ervecbyel[index] > 0.8*MaxErrorByElement && IncrementError > 100*Tol) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
 				flag = false;
@@ -474,20 +478,26 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 				counterreftype[5]++;
 				el->Divide(index,subels);
 			}
-			else {
+			else if(pelement+1<MaxPOrder) {
 				el->PRefine(pelement+1);
 				counterreftype[6]++;
 			}
+            else {
+                counterreftype[7]++;
+                el->Divide(index,subels);
+            }
 		}
 		else {
 			if(pelement+1 < MaxPOrder) {
 				el->PRefine(pelement+1);
-				counterreftype[7]++;
-			}
-			else {
-				el->Divide(index,subels);
 				counterreftype[8]++;
 			}
+			else if(nref<7) {
+				el->Divide(index,subels);
+				counterreftype[9]++;
+			}
+            else
+				counterreftype[10]++;
 		}
 	}
 	// Printing information stored
@@ -497,7 +507,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 			out << "Refinement type " << j << " : " << counterreftype[j] << " 4x : " << 4*counterreftype[j] << std::endl;
 	out << "\nRef(" << nref << ") Factor*MaxG " << factorGrad*MaxGrad << "(" << factorGrad << ") MaxG " << MaxGrad << " - Factor*MaxL " << factorLap*MaxLaplacian << "(" << factorLap << ") MaxL " << MaxLaplacian << std::endl;
 }
-void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolutionBestForTriangles(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
     
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
@@ -516,17 +526,11 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolutionBestForTriangles(TPZCom
 	REAL MaxGrad, MaxLaplacian;
 	long i;
 	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad;
-	REAL factorLap = 0.7;
-	if(nref<2)
-		factorGrad = 0.3;
-	else if(nref < 4)
-		factorGrad = 0.55;
-	else if(nref < 6)
-		factorGrad = 0.7;
-	else if(nref < 8)
-		factorGrad = 0.85;
-	else if(nref < 10)
+	REAL factorGrad= 0.25;
+	REAL factorLap = 0.75;
+	if(2<nref)
+		factorGrad += (nref-2)*0.1;
+    if(factorGrad>0.9)
 		factorGrad = 0.95;
     
 	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
@@ -538,7 +542,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolutionBestForTriangles(TPZCom
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
 		// If the element error is little enough do nothing
-		if(ervecbyel[index] < (Tol/10.)) {
+		if(ervecbyel[index] < (0.1*Tol)) {
 			counterreftype[0]++;
 			continue;
 		}
@@ -548,7 +552,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolutionBestForTriangles(TPZCom
 			DebugStop();
         
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(ervecbyel[index] > 0.75*MaxErrorByElement && IncrementError > 100*Tol) {
+		if(ervecbyel[index] > 0.7*MaxErrorByElement && IncrementError > 100*Tol) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
 				flag = false;
@@ -577,20 +581,26 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolutionBestForTriangles(TPZCom
 				counterreftype[5]++;
 				el->Divide(index,subels);
 			}
-			else {
+			else if(pelement+1<MaxPOrder) {
 				el->PRefine(pelement+1);
 				counterreftype[6]++;
 			}
+            else {
+                counterreftype[7]++;
+                el->Divide(index,subels);
+            }
 		}
 		else {
 			if(pelement+1 < MaxPOrder) {
 				el->PRefine(pelement+1);
-				counterreftype[7]++;
-			}
-			else {
-				el->Divide(index,subels);
 				counterreftype[8]++;
 			}
+			else if(nref<7) {
+				el->Divide(index,subels);
+				counterreftype[9]++;
+			}
+            else
+				counterreftype[10]++;
 		}
 	}
 	// Printing information stored
