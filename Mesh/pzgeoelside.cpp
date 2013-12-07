@@ -103,7 +103,7 @@ bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
 
 void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
-	TPZVec< REAL > locElement(fGeoEl->Dimension(), 0.);
+	TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
 	
 	TPZTransform ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
 	
@@ -345,7 +345,7 @@ void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center) const
     TPZManVector<REAL,3> gelcenter(fGeoEl->Dimension());
 	fGeoEl->CenterPoint(fSide,gelcenter);
     TPZTransform tr(Dimension(),fGeoEl->Dimension());
-    fGeoEl->SideToSideTransform(fGeoEl->NSides()-1,fSide);
+    tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1,fSide);
     tr.Apply(gelcenter, center);
 }
 

@@ -1380,13 +1380,7 @@ void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
 		{
 			//TPZStack<int> lowdim;
 			LowerDimensionSides(is,lowdim);
-			numbernormals += lowdim.NElements();
-		}
-        //incluindo internos
-        if(SideDimension(is) == dimension)
-		{
-
-			numbernormals += dimension;
+			numbernormals += lowdim.NElements()+1;
 		}
         
 	}
@@ -1410,6 +1404,7 @@ void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
             
 			TPZStack<int> lowdim;
 			LowerDimensionSides(is,lowdim);
+            lowdim.Push(is);
 #ifdef LOG4CXX
             {
                 std::stringstream sout;
@@ -1419,7 +1414,6 @@ void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
             }
 #endif
             
-			lowdim.Push(is);
 			int nlowdim = lowdim.NElements();
 			int lowis;
 			for(lowis=0; lowis < nlowdim; lowis++)
@@ -1461,14 +1455,12 @@ void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
                 LOGPZ_DEBUG(logger,sout.str())
             }
 #endif
-            
-			TPZManVector<REAL> normal(3,0.);
+			TPZManVector<REAL,3> normal(3,0.);
 			int d;
 			for(d=0; d<3; d++) normal[d] = normals(d,counter-1);
-			counter -= nlowdim;
-			for(lowis = counter; lowis < counter+nlowdim; lowis++)
+			for(lowis = counter-nlowdim; lowis < counter; lowis++)
 			{
-				TPZManVector<REAL> normlow(3,0.);
+				TPZManVector<REAL,3> normlow(3,0.);
 				for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
 				Normalize(normlow,normal);
 				for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
@@ -1556,7 +1548,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	// take the centerpoint of LC and the centerpoint of LS
 	TPZManVector<REAL,3> LCCenter(3,0.), LSCenter(3,0.);
 	TPZManVector<REAL,3> XLC(3,0.),XLS(3,0.);
-	LC.CenterPoint(LCCenter);   
+	LC.CenterPoint(LCCenter);
 	LC.X(LCCenter,XLC);
     
 	LS.CenterPoint(LSCenter);
@@ -1692,7 +1684,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &
 	}
 	else if(sidedimension == dimension)
 	{
-		numbernormals = nsides;
+		numbernormals = nsides*2;
 	}
 	else
 	{

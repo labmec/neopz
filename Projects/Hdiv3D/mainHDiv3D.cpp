@@ -89,11 +89,22 @@ int main()
             
          
             TPZFMatrix<STATE> normal(3,1,0.);
+            TPZManVector<int> vectorsds;
             for (int el=0; el< gmesh->NElements(); el++) {
                 TPZGeoEl *elgeo=gmesh->ElementVec()[el];
-                elgeo->ComputeNormals(normal);
+                int ns = elgeo->NSides();
+                for (int is=0; is<ns; is++) {
+                    int sidedimension = elgeo->SideDimension(is);
+                    if (sidedimension >= elgeo->Dimension()-1) {
+                        elgeo->ComputeNormals(is,normal,vectorsds);
+                        std::cout << "Normals associated with side " << is << std::endl;
+                        normal.Print(std::cout);
+                        std::cout << "Sides associated with each normal " << vectorsds << std::endl;
+
+                    }
+                }
                 
-                normal.Print(std::cout);
+                
             }
             
             
