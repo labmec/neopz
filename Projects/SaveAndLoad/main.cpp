@@ -27,6 +27,7 @@
 #include "pzstepsolver.h"
 
 #include "pzmaterial.h"
+#include "pzpoisson3d.h"
 #include "pzbndcond.h"
 
 #include "TPZReadGIDGrid.h"
@@ -46,36 +47,209 @@
 int ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands);
 void ApplyCommand(TPZCompMesh *cmesh,TPZVec<std::string> &command);
 
-
+/** Ideia principal: Recuperar uma malha computacional do disco, realizar mudancas registradas em um arquivo (lendo apenas as linhas com o referencia ao nome da malha, e a malha final deve ser a mesma obtida no processo inicial.
+ */
+bool TestingLoadingSavedMeshes();
 int gDebug = 0;
 
 void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh);
 
-/** Ideia principal: Recuperar uma malha computacional do disco, realizar mudancas registradas em um arquivo (lendo apenas as linhas com o referencia ao nome da malha, e a malha final deve ser a mesma obtida no processo inicial.
+
+
+
+/** Ideia principal: Create a computational meshes on the order on side is different on Max Order preferred on this side
  */
+bool TestingIncompatibilityOrderOnRestrainedSides();
+TPZGeoMesh *CreateQuadrilateralMesh();
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
+
+
+
 int main() {
 
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
     
+    if(TestingIncompatibilityOrderOnRestrainedSides())
+        return 10;
+    
+    if(!TestingLoadingSavedMeshes())
+        return 1;
+
+    std::cout << std::endl << "\tThe END." << std::endl;
+    return 0;
+}
+
+bool TestingIncompatibilityOrderOnRestrainedSides() {
+    
+	// Initializing uniform refinements for reference elements
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+
+    TPZGeoMesh *gmesh = CreateQuadrilateralMesh();
+    if(!gmesh) return false;
+  //  gmesh->Print();
+    
+    int p = 1;
+    TPZCompEl::SetgOrder(p);
+    TPZCompMesh *cmesh = CreateMesh(gmesh);
+    if(!cmesh) return false;
+ //   cmesh->Print();
+    
+    
+    // Making order 2 for botton element
+    std::cout << "\nPRefine with order 2 for element 0.\n";
+    ((TPZInterpolatedElement *)(cmesh->ElementVec()[1]))->PRefine(2);
+    
+    ((TPZInterpolatedElement *)(cmesh->ElementVec()[2]))->PRefine(1);
+    // Dividing top element
+    std::cout << "\nDividing element 2.\n";
+	TPZVec<long> subels;
+    cmesh->ElementVec()[2]->Divide(cmesh->ElementVec()[2]->Index(),subels);
+    
+    // Dividing a subelement on top of the right side
+    std::cout << "\nDividing sub elements.\n";
+    TPZVec<long> subsubels;
+    TPZVec<int> ord(9);
+    int i,j;
+    for(i=0;i<4;i++) {
+        std::cout << "Sub element " << i << " index " << subels[i] << " order ";
+        ((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[i]]))->GetInterpolationOrder(ord);
+        for(j=0;j<5;j++)
+            std::cout << ord[j] << "\t";
+        std::cout << "\n";
+        cmesh->ElementVec()[subels[i]]->Divide(subels[i],subsubels);   // Must to appear incompatibility with orders on some side 1D
+    }
+    
+    for(i=0;i<cmesh->NElements();i++) {
+        TPZInterpolatedElement *el = (TPZInterpolatedElement *)(cmesh->ElementVec()[i]);
+        if(!el) continue;
+        std::cout << "\nElement " << el->Index() << " order ";
+        el->GetInterpolationOrder(ord);
+        for(j=0;j<5;j++)
+            std::cout << ord[j] << "\t";
+        std::cout << "\n";
+    }
+    std::cout << "\n";
+    return true;
+}
+TPZGeoMesh *CreateQuadrilateralMesh() {
+    REAL co[6][3] = {
+        {0.,0.,0.},
+        {1.,0.,0.},
+        {1.,1.,0.},
+        {0.,1.,0.},
+        {-1.,1.,0.},
+        {-1.,0.,0.},
+    };
+    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
+    
+    const int nelem = 3;
+    int nnode = 6;
+    
+    TPZGeoEl *elvec[nelem];
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    long nod;
+    for(nod=0; nod<nnode; nod++) {
+        long nodind = gmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        coord[0] = co[nod][0];
+        coord[1] = co[nod][1];
+        coord[2] = co[nod][2];
+        gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    }
+    
+    long el;
+    for(el=0; el<nelem; el++) {
+        TPZManVector<long> nodind(4);
+        for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+        long index;
+        elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    return gmesh;
+
+}
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+	// Creating Poisson material
+    int dim = 2;
+    int MaterialId = 1;
+	TPZMaterial *mat = new TPZMatPoisson3d(MaterialId,dim);
+	TPZVec<REAL> convd(3,0.);
+	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
+	cmesh->InsertMaterialObject(mat);
+	// Make compatible dimension of the model and the computational mesh
+	cmesh->SetDimModel(mat->Dimension());
+	cmesh->SetAllCreateFunctionsContinuous();
+    
+	// Boundary conditions
+	// Dirichlet
+	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+	cmesh->InsertMaterialObject(bnd);
+	
+	cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->ExpandSolution();
+	cmesh->CleanUpUnconnectedNodes();
+	return cmesh;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bool TestingLoadingSavedMeshes() {
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
-   // gRefDBase.InitializeRefPatterns();
-
+    // gRefDBase.InitializeRefPatterns();
+    
     TPZFileStream fstr;
     std::string filename, cmeshname;
     std::cout << std::endl << "INPUT - Name of file to load mesh ";
     std::cin >> filename;
 	//char *q = strchr(((char *)cmeshname.c_str()),'.');
-//	if(!q)
+    //	if(!q)
 	//    filename = cmeshname + ".txt";
 	// Verifying if file exist and it is open
 	std::ifstream in(filename.c_str());
 	if(!in.is_open())
-		return 1;
+		return false;
 	in.close();
-
+    
     fstr.OpenRead(filename);
 	for(int i=0;i<filename.size();i++) {
 		char p = filename[i];
@@ -85,16 +259,16 @@ int main() {
     // Files with information meshes
     std::ofstream outfirstmesh("InitialCMesh.txt");
     std::ofstream outmesh("FinalCMesh.txt");
-
+    
     // Creating geometric mesh
 	TPZGeoMesh* gmesh;
     gmesh = dynamic_cast<TPZGeoMesh* >(TPZSaveable::Restore(fstr,0));
-//    gmesh.Read(fstr,0);
+    //    gmesh.Read(fstr,0);
     TPZCompMesh* cmesh;
     cmesh = dynamic_cast<TPZCompMesh *>(TPZSaveable::Restore(fstr,gmesh));
 	MakeCompatibles(gmesh,cmesh);
-//    cmesh.Read(fstr,gmesh);
-//    cmesh->AutoBuild();
+    //    cmesh.Read(fstr,gmesh);
+    //    cmesh->AutoBuild();
     int dim = cmesh->Dimension();
     cmesh->Print(outfirstmesh);
     outfirstmesh.close();
@@ -103,7 +277,7 @@ int main() {
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("POrder");
     scalnames.Push("Solution");
-
+    
     // Resolver
     // Solve using symmetric matrix then using Cholesky (direct method)
     TPZAnalysis an(cmesh);
@@ -112,18 +286,18 @@ int main() {
     {
         std::stringstream sout;
         sout << "LoadMesh_" << dim << "D.vtk";
-  //      an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+        //      an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
     }
-
+    
     // Post processing
     an.PostProcess(0,dim);
-
+    
     // Cleaning LOG directory
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
     
-
+    
     // Reading file "pzinterpolateddivide.txt"
     TPZStack<std::string> commands;
     std::ifstream log("pzinterpolatedrefine.txt");
@@ -132,7 +306,7 @@ int main() {
         cmesh->AutoBuild();
         cmesh->ExpandSolution();
     }
-
+    
     cmesh->Print(outmesh);
     outmesh.close();
     TPZAnalysis analysis(cmesh);
@@ -145,9 +319,7 @@ int main() {
     // Post processing
     analysis.PostProcess(0,dim);
 
-
-    std::cout << std::endl << "\tThe END." << std::endl;
-    return 0;
+    return true;
 }
 
 // Save information of the current mesh in disk
