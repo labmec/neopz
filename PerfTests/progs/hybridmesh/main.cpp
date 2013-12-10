@@ -140,21 +140,21 @@ int main(int argc, char *argv[])
     
     total_rdt.start();
 
-    if (cond_f.was_set()) {
+//    if (cond_f.was_set()) {
         // Perform static condensation
         cond_rdt.start();
         BuildElementGroups(cmesh, matInterno, interfacemat,lagrangemat);
         int neq = cmesh->NEquations();
     
-//        TPZFMatrix<STATE> stiff(neq,neq,0.),rhs(neq,1,0.);
-//        TPZSkylineStructMatrix fstr(cmesh);
-//        cond_ass_rdt.start();
-//        fstr.SetNumThreads(n_threads.get_value());
-//        fstr.Assemble(stiff, rhs, 0);
-//        cond_ass_rdt.stop();
-//        cond_rdt.stop();
-//        return 0;
-    }
+        TPZFMatrix<STATE> stiff(neq,neq,0.),rhs(neq,1,0.);
+        TPZSkylineStructMatrix fstr(cmesh);
+        cond_ass_rdt.start();
+        fstr.SetNumThreads(n_threads.get_value());
+        fstr.Assemble(stiff, rhs, 0);
+        cond_ass_rdt.stop();
+        cond_rdt.stop();
+        return 0;
+//    }
 
     TPZAnalysis an(cmesh);
     TPZStepSolver<STATE> step;

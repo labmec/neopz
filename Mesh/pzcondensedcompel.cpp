@@ -428,7 +428,7 @@ void TPZCondensedCompEl::LoadSolution()
         long seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
-            u1(count++,0) = bl(seqnum,ibl,0,0);
+            u1(count++,0) = bl(seqnum,0,ibl,0);
         }
     }
     fCondensed.UGlobal(u1, elsol);
