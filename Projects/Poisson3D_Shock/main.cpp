@@ -144,7 +144,7 @@ bool SolveLaplaceProblemOnLShapeMesh();
 bool usethreads = false;
 int MaxPOrder = 13;
 int NRefs = 8;
-int ninitialrefs = 3;
+int ninitialrefs = 2;
 int itypeel;
 
 /**
@@ -218,8 +218,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-//		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(int itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
+//		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 //		for(int itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
@@ -531,11 +531,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	long i;
 	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
 	REAL factorGrad= 0.25;
-	REAL factorLap = 0.75;
-	if(2<nref)
-		factorGrad += (nref-2)*0.1;
-    if(factorGrad>0.9)
-		factorGrad = 0.95;
+	REAL factorLap = 0.3;
+	if(nref>1) {
+		factorGrad += ((nref-2)*0.15);
+	    if(factorGrad>0.9)
+			factorGrad = 0.95;
+		factorLap = 0.7;
+	}
     
 	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
     
@@ -556,7 +558,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 			DebugStop();
         
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(ervecbyel[index] > 0.7*MaxErrorByElement && IncrementError > 100*Tol) {
+		if(ervecbyel[index] > 0.8*MaxErrorByElement && IncrementError > 100*Tol) {
 			if((GradNorm > factorGrad*MaxGrad)) {
 				bool flag;
 				flag = false;
