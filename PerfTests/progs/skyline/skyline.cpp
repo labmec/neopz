@@ -171,6 +171,10 @@ protected:
 //template class TPZMatrix<TPZFlopCounter>;
 //template class TPZAutoPointer<TPZMatrix<TPZFlopCounter> >;
 
+#ifdef USING_PAPI
+#include <papi.h>
+#endif
+
 int main(int argc, char *argv[])
 {
 	int dim = 3;
@@ -263,8 +267,25 @@ int main(int argc, char *argv[])
 	if (sfwd_rst.was_set()) {
 		if (!clk_rst.was_set()) skylmat1->Decompose_Cholesky();
     		sfwd_rst.start();
+#ifdef USING_PAPI
+    float rtime1, ptime1, mflops1;
+    long long flpops1;
+    PAPI_flops ( &rtime1, &ptime1, &flpops1, &mflops1 );
+#endif
     		skylmat1->Subst_Forward(&f);
+#ifdef USING_PAPI
+    float rtime2, ptime2, mflops2;
+    long long flpops2;
+    PAPI_flops ( &rtime2, &ptime2, &flpops2, &mflops2 );
+#endif
     		sfwd_rst.stop();
+#ifdef USING_PAPI
+		cout << "skylmat1->Subst_Forward(&f)" << endl;
+		cout << " rtime:  " << rtime2-rtime1 << endl;
+		cout << " ptime:  " << ptime2-ptime1 << endl;
+		cout << " flpops: " << flpops2-flpops1 << endl;
+		cout << " mflops: " << mflops2-mflops1 << endl;
+#endif
 		if (print_flops.was_set()) {
 		  TPZCounter c = TPZFlopCounter::gCount;
 		  fp1.Subst_Forward(&f2);

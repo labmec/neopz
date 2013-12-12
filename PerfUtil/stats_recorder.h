@@ -130,6 +130,87 @@ public:
     virtual void clearStats() = 0;
 };
 
+#ifdef USING_PAPI
+#include <papi.h>
+class PAPIRunStat : public RunStat
+{
+public:
+    
+    PAPIRunStat()
+    {
+        clearStats();
+    }
+    
+    /* Start recording the execution statistics. */
+    void start()
+    {
+      PAPI_flops ( &rtimeS, &ptimeS, &flpopsS, &mflopsS);
+    }
+    
+    /* Stop recording the execution statistics. */
+    void stop()
+    {
+      float rtimeP, ptimeP, mflopsP;
+      long long flpopsP;
+      PAPI_flops ( &rtimeP, &ptimeP, &flpopsP, &mflopsP);
+      rtimeACC += (rtimeP-rtimeS);
+      ptimeACC += (ptimeP-ptimeS);
+      flpopsACC += (flpopsP-flpopsS);
+    }
+    
+    /**
+     * Print the statistics.
+     * TODO: create a table, update it, and print the table.
+     */
+    void print(ostream& os) const
+    {
+      os << "HEADERS,PAPI_RTIME,PAPI_PTIME,PAPI_FLPOPS" << endl;
+      os << "VALUES," 
+	 << rtimeACC << ","  
+	 << ptimeACC << ","  
+	 << flpopsACC << ","  << endl;
+    }
+    
+    /**
+     * Append metrics to the statistics table.  The idea is to keep one
+     * table for each segment of code. New runs are appended to the
+     * table.
+     * Returns: the new_row number if Ok
+     *          the setCell error code (< 0) if Error.
+     */
+    int setCellValues(CSVStringTable& st, unsigned row) const
+    {
+        if (st.nRows() <= row) return -1;
+        int ret;
+	if ((ret = st.setCell(row,"PAPI_RTIME",rtimeACC,true)))
+	  return ret;
+	if ((ret = st.setCell(row,"PAPI_PTIME",ptimeACC,true)))
+	  return ret;
+	if ((ret = st.setCell(row,"PAPI_FLPOPS",flpopsACC,true)))
+	  return ret;
+
+        return 0; // Return ok
+    }
+    
+    void clearStats()
+    {
+      memset(&rtimeACC, 0, sizeof(rtimeACC));
+      memset(&ptimeACC, 0, sizeof(ptimeACC));
+      memset(&flpopsACC, 0, sizeof(flpopsACC));
+    }
+    
+protected:
+    
+    float rtimeS, ptimeS, mflopsS;
+    long long flpopsS;
+
+    float rtimeACC, ptimeACC;
+    long long flpopsACC;
+    
+};
+
+#endif
+
 #ifdef HAS_GETRUSAGE
 #include <sys/resource.h> // getrusage
 
@@ -553,6 +634,10 @@ public:
 #ifdef HAS_GETRUSAGE
             /* Add the resource usage statistics. */
             stat_items.push_back(new RUsageRunStat());
+#endif
+#ifdef USING_PAPI
+	    /* Add the PAPI counters statistics. */
+	    stat_items.push_back(new PAPIRunStat());
 #endif
             /* Add the elapsed time statistic. */
             stat_items.push_back(new ElapsedTimeRunStat());
