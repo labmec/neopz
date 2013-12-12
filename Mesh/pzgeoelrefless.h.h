@@ -535,7 +535,11 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 #endif
 	}
 	TPZManVector<long,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
-	for(int i=0; i<TGeo::NCornerNodes; i++) id[i] = fGeo.fNodeIndexes[i];
+	for(int i=0; i<TGeo::NCornerNodes; i++)
+    {
+        long nodeindex = fGeo.fNodeIndexes[i];
+        id[i] = Mesh()->NodeVec()[nodeindex].Id();
+    }
 	TGeo::GetSideHDivPermutation(side, id, permutegather);
 }
 

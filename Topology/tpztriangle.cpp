@@ -483,6 +483,47 @@ namespace pztopology {
 		LOGPZ_ERROR(logger,"Wrong side parameter")
 		return -1;
 	}
+    
+/**
+ * @brief return the vector which permutes the connects according to the transformation id
+ */
+void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
+{
+#ifdef DEBUG
+    if (permute.size() != 7) {
+        DebugStop();
+    }
+#endif
+    int dir = 1;
+    if (transformid%2 ==1) dir = -1;
+    int runsmall = transformid/2;
+    int runlarge = runsmall+3;
+    if (dir == -1) {
+        runlarge += dir;
+        if (runlarge < 3) {
+            runlarge += 3;
+        }
+    }
+    permute[6] = 6;
+    for (int is=0; is<3; is++) {
+        permute[is] = runsmall;
+        permute[is+3] = runlarge;
+        runsmall += dir;
+        runlarge += dir;
+        if (dir == 1 && runsmall > 2) {
+            runsmall -= 3;
+            runlarge -= 3;
+        }
+        else if(dir == -1 && runsmall < 0)
+        {
+            runsmall += 3;
+        }
+        if (dir == -1 && runlarge < 3) {
+            runlarge += 3;
+        }
+    }
+}
+    
 	
 	/**
 	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 

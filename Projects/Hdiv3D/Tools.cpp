@@ -294,6 +294,7 @@ TPZGeoMesh * MalhaGeoTetraedro(const int h,bool hrefine){//malha triangulo
     TPZVec<REAL> coord(dim);
     for(nod=0; nod<nnode; nod++) {
         int nodind = gmesh->NodeVec().AllocateNewElement();
+        nodind = nnode-(nodind+3)%nnode;
         
         for(int d = 0; d < dim; d++)
         {

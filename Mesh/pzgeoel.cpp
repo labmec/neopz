@@ -1730,7 +1730,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &
 			Normalize(normlow,normal);
 			for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
 		}
-		TPZManVector<int> sidepermutationgather(nlowdim);
+		TPZManVector<int,9> sidepermutationgather(nlowdim);
 		HDivPermutation(is,sidepermutationgather);
 		TPZFNMatrix<12> sidenormals(3,nlowdim);
 		TPZManVector<int> localvecsides(nlowdim);
