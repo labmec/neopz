@@ -42,6 +42,8 @@
 #include <stdio.h>
 #include <fstream>
 
+#include "pzcheckmesh.h"
+
 #include "pzlog.h"
 
 int ExtractingCommandRegistered(std::ifstream &file,std::string &cmeshname,TPZStack<std::string> &commands);
@@ -54,7 +56,7 @@ int gDebug = 0;
 
 void MakeCompatibles(TPZGeoMesh *gmesh,TPZCompMesh *cmesh);
 
-
+std::ofstream *out;
 
 
 /** Ideia principal: Create a computational meshes on the order on side is different on Max Order preferred on this side
@@ -83,70 +85,73 @@ int main() {
 
 bool TestingIncompatibilityOrderOnRestrainedSides() {
     
+    out = new (std::ofstream)("saida.txt");
 	// Initializing uniform refinements for reference elements
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 
     TPZGeoMesh *gmesh = CreateQuadrilateralMesh();
     if(!gmesh) return false;
-  //  gmesh->Print();
+    gmesh->Print();
     
     int p = 1;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CreateMesh(gmesh);
     if(!cmesh) return false;
- //   cmesh->Print();
-    
-    
-    // Making order 2 for botton element
-    std::cout << "\nPRefine with order 2 for element 0.\n";
-    ((TPZInterpolatedElement *)(cmesh->ElementVec()[1]))->PRefine(2);
-    
-    ((TPZInterpolatedElement *)(cmesh->ElementVec()[2]))->PRefine(1);
-    // Dividing top element
-    std::cout << "\nDividing element 2.\n";
+
+    // Dividing overlapped elements
+    std::cout << "\nDividing element 0 and 2. THESE ELEMENTS ARE OVERLAPPED!!\n";
 	TPZVec<long> subels;
+    cmesh->ElementVec()[0]->Divide(cmesh->ElementVec()[0]->Index(),subels);
+    gmesh->Print();
     cmesh->ElementVec()[2]->Divide(cmesh->ElementVec()[2]->Index(),subels);
+    gmesh->Print();
+    // Dividing upper left subelement of the element 2.
+    cmesh->ElementVec()[10]->Divide(cmesh->ElementVec()[10]->Index(),subels);
+    gmesh->Print();
+    cmesh->Print();
+
+    // Setting order p=2 for element 1
+    std::cout << "\nPRefine with order 2 for element 1.\n";
+    ((TPZInterpolatedElement *)(cmesh->ElementVec()[1]))->PRefine(2);
+    std::cout << "\nPRefine with order 2 for element 7.\n";
+    ((TPZInterpolatedElement *)(cmesh->ElementVec()[7]))->PRefine(2);
+    gmesh->Print();
+
+    // Dividing left sub elements of the element 10 (upper left sub element of the element 2)
+    cmesh->ElementVec()[11]->Divide(cmesh->ElementVec()[11]->Index(),subels);
+    cmesh->ElementVec()[14]->Divide(cmesh->ElementVec()[14]->Index(),subels);
+    gmesh->Print();
+
     
-    // Dividing a subelement on top of the right side
-    std::cout << "\nDividing sub elements.\n";
-    TPZVec<long> subsubels;
-    TPZVec<int> ord(9);
-    int i,j;
-    for(i=0;i<4;i++) {
-        std::cout << "Sub element " << i << " index " << subels[i] << " order ";
-        ((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[i]]))->GetInterpolationOrder(ord);
-        for(j=0;j<5;j++)
-            std::cout << ord[j] << "\t";
-        std::cout << "\n";
-        cmesh->ElementVec()[subels[i]]->Divide(subels[i],subsubels);   // Must to appear incompatibility with orders on some side 1D
-    }
+    std::stringstream sout("incompatible.txt");
+    TPZCheckMesh checker(cmesh,&sout);
     
-    for(i=0;i<cmesh->NElements();i++) {
-        TPZInterpolatedElement *el = (TPZInterpolatedElement *)(cmesh->ElementVec()[i]);
-        if(!el) continue;
-        std::cout << "\nElement " << el->Index() << " order ";
-        el->GetInterpolationOrder(ord);
-        for(j=0;j<5;j++)
-            std::cout << ord[j] << "\t";
-        std::cout << "\n";
-    }
+    // If no incompatilibities found return true (1).
+    if(!checker.VerifyAllConnects())
+        sout << " Exists connect with incompatibility.\n";
+    // If no order incompatibilities was found return -1.
+    if(checker.CheckConnectOrderConsistency()>-1)
+        sout << " Exists order inconsistency.\n";
+    
     std::cout << "\n";
     return true;
 }
 TPZGeoMesh *CreateQuadrilateralMesh() {
-    REAL co[6][3] = {
+    REAL co[8][3] = {
         {0.,0.,0.},
         {1.,0.,0.},
         {1.,1.,0.},
         {0.,1.,0.},
         {-1.,1.,0.},
         {-1.,0.,0.},
+        {2.,0.,0.},
+        {2,1,0}
     };
-    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
+    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,6,7,3}};
     
     const int nelem = 3;
-    int nnode = 6;
+    int nnode = 8;
     
     TPZGeoEl *elvec[nelem];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
