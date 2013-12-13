@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->Plot_4, SIGNAL(AxisChanged_signal (Plot*, QString)),
             this, SLOT(ChangePlotAxis (Plot*,QString)));
 
-//    on_actionZoom_toggled(false);
+    on_actionZoom_toggled(false);
 
     // TXT List Context menu
     ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -196,7 +196,6 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 //    }
 
     if (aResetPoint == selectedItem) {
-
 //        int indexCurve = ui->listWidget->item(ui->listWidget->indexAt(pos).row())->data(5).toInt();
 //        //resetFile sets 'initial point' = first point of the file (0)
 //        //and 'end point' = last point of the file (size - 1)
@@ -208,39 +207,33 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 
     if (aSelectPoint == selectedItem) {
 
-//        int indexCurve = ui->listWidget->item(ui->listWidget->indexAt(pos).row())->data(5).toInt();
+        int indexCurve = ui->treeWidget->indexAt(pos).row();
+        QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
+        indexCurve = tmp_item->data(0, 5).toInt();
 
-//        // VERIFICAR COMO NAO CRIAR 2 DIALOGOS PARA MESMA CURVA
-//        initialpointdock *selectpointdock = new initialpointdock(this);
+        // VERIFICAR COMO NAO CRIAR 2 DIALOGOS PARA MESMA CURVA
+        initialpointdock *selectpointdock = new initialpointdock(this);
 
-//        // connecting signals -> slots to show/hide symbols curve depending on dock visibility
-//        connect(selectpointdock, SIGNAL(showSymbCurve(int)),
-//                currentPlot, SLOT(showSymbCurve(int)));
-//        connect(selectpointdock, SIGNAL(hideSymbCurve(int)),
-//                currentPlot, SLOT(hideSymbCurve(int)));
-//        // connecting signal/slot to perform curve redraw with new data
-//        connect(selectpointdock, SIGNAL(cutCurve(int,int,int)),
-//                this, SLOT(updateCurve(int,int,int)));
-//        // connecting signals -> slots to sync information when points are changed
-//        connect(selectpointdock, SIGNAL(SymbPointChanged(int,int,Plot::pointType)),
-//                currentPlot->canvas_picker, SLOT(setSymbPoint(int,int,Plot::pointType)));
-//        connect(currentPlot->canvas_picker, SIGNAL(SymbPointChanged(int,int,Plot::pointType)),
-//                selectpointdock, SLOT(setSymbPoint(int,int,Plot::pointType)));
+        // connecting signals -> slots to show/hide symbols curve depending on dock visibility
+        connect(selectpointdock, SIGNAL(showSymbCurve(int)),
+                currentPlot, SLOT(showSymbCurve(int)));
+        connect(selectpointdock, SIGNAL(hideSymbCurve(int)),
+                currentPlot, SLOT(hideSymbCurve(int)));
+        // connecting signal/slot to perform curve redraw with new data
+        connect(selectpointdock, SIGNAL(cutCurve(int,int,int)),
+                this, SLOT(updateCurve(int,int,int)));
+        // connecting signals -> slots to sync information when points are changed
+        connect(selectpointdock, SIGNAL(SymbPointChanged(int,int,Plot::pointType)),
+                currentPlot->canvas_picker, SLOT(setSymbPoint(int,int,Plot::pointType)));
+        connect(currentPlot->canvas_picker, SIGNAL(SymbPointChanged(int,int,Plot::pointType)),
+                selectpointdock, SLOT(setSymbPoint(int,int,Plot::pointType)));
 
-//        selectpointdock->setIndexCurve(indexCurve);
-//        selectpointdock->setXdata(currentPlot->CurvesList[indexCurve].X);
-//        selectpointdock->setYdata(currentPlot->CurvesList[indexCurve].Y);
-//        int indexStartPoint = currentPlot->getSymbIndex(indexCurve, Plot::startPoint);
-//        int indexEndPoint   = currentPlot->getSymbIndex(indexCurve, Plot::endPoint);
-//        qDebug() << "aSelectPoint == selectedItem: [indexCurve] indexStartPoint / indexEndPoint" << "[" << indexCurve << "] " << indexStartPoint << " " << indexEndPoint ;
-//        selectpointdock->setSlidersMinimum(indexStartPoint);
-//        selectpointdock->setSlidersMaximum(indexEndPoint);
-//        selectpointdock->setSymbPoint(indexStartPoint, indexCurve, Plot::startPoint);
-//        selectpointdock->setSymbPoint(indexEndPoint, indexCurve, Plot::endPoint);
-//        selectpointdock->setWindowTitle(listItem->text());
-//        selectpointdock->setFloating(1);
-//        selectpointdock->setGeometry(300,250,selectpointdock->width(),selectpointdock->height());
-//        selectpointdock->show();
+        selectpointdock->setGlobal_ID(indexCurve);
+
+        selectpointdock->setWindowTitle(tmp_item->text(0));
+        selectpointdock->setFloating(1);
+        selectpointdock->setGeometry(300,250,selectpointdock->width(),selectpointdock->height());
+        selectpointdock->show();
     }
 
     if (aDeleteFile == selectedItem) {
@@ -262,16 +255,17 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         qDebug() <<"aRunSimulation (" << indexCurve << ")";
 
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandlerObj;
-        REAL poisson, E, A, B, C, R, D, W;
-        E = 29269;
-        poisson = 0.203;
-        A = 616.67;
-        B = 0.0036895;
-        C = 111.48;
-        D = 0.018768;
-        R = 0.91969;
-        W = 0.006605;
-        sandlerObj.SetUp(poisson, E, A, B, C, R, D, W);
+//        REAL poisson, E, A, B, C, R, D, W;
+//        E = 29269;
+//        poisson = 0.203;
+//        A = 616.67;
+//        B = 0.0036895;
+//        C = 111.48;
+//        D = 0.018768;
+//        R = 0.91969;
+//        W = 0.006605;
+        setParameters(sandlerObj);
+//        sandlerObj.SetUp(poisson, E, A, B, C, R, D, W);
         DADOS.SetSandlerDimaggio(sandlerObj);
 
         TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
@@ -301,19 +295,27 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
     }
 }
 
-
-void MainWindow::on_pushButton_clicked()
-{
-
-}
-
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
-    qDebug() << "CLICOU NO TREE WIDGET";
+    qDebug() << "CLICOU NO TREE WIDGET!!";
     int indexCurve = item->data(column, 5).toInt();
     qDebug() << "INDEX CURVE = "<<indexCurve;
     int checkStatus = item->checkState(column);
     qDebug() << "CHK STATUS = "<<checkStatus;
+
+    if (DADOS.isMed(indexCurve) == 0) // eh uma simulacao
+    {
+        TPBrSimulationData *simData = dynamic_cast<TPBrSimulationData*> (DADOS.getObj(indexCurve));
+        if(!simData)
+        {
+            DebugStop();
+        }
+        REAL poisson, E, A, B, C, R, D, W;
+        simData->fSandler.getParams(poisson, E, A, B, C, R, D, W);
+        qDebug () << "AAAAAAAHHHH: " << poisson << " " << E<< " " << A<< " " << B<< " " << C<< " " << R<< " " << D<< " " << W;
+        updateParameters(simData->getSandler());
+    }
+    //para medicao fazer oq?????????????????????
 
     if (checkStatus == 2) {
         currentPlot->createCurve(indexCurve, checkStatus);
@@ -343,6 +345,24 @@ void MainWindow::clickedOnPlot(Plot *plotTmp)
     plotTmp->canvas()->setCursor(Qt::CrossCursor);
 }
 
+void MainWindow::fullscreenOnPlot(Plot *plotTmp)
+{
+    if (ui->Plot_1->isHidden() || ui->Plot_2->isHidden() || ui->Plot_3->isHidden() || ui->Plot_4->isHidden()) {
+        ui->Plot_1->show();
+        ui->Plot_2->show();
+        ui->Plot_3->show();
+        ui->Plot_4->show();
+    }
+    else {
+        ui->Plot_1->hide();
+        ui->Plot_2->hide();
+        ui->Plot_3->hide();
+        ui->Plot_4->hide();
+
+        plotTmp->show();
+    }
+}
+
 void MainWindow::reloadCurvesList(Plot *plotTmp)
 {
     currentPlot = plotTmp;
@@ -353,5 +373,82 @@ void MainWindow::reloadCurvesList(Plot *plotTmp)
        QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i);
        int item_id = item->data(0,5).toInt();
        item->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_id).chk_status));
+       for( int j = 0; j < item->childCount(); j++ )
+       {
+           QTreeWidgetItem *item_child = item->child(j);
+           int item_child_id = item_child->data(0,5).toInt();
+           item_child->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_child_id).chk_status));
+        }
     }
+}
+
+void MainWindow::updateParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> obj)
+{
+    REAL poisson, E, A, B, C, R, D, W;
+    obj.getParams(poisson, E, A, B, C, R, D, W);
+    ui->A_counter->setValue(A);
+    ui->B_counter->setValue(B);
+    ui->C_counter->setValue(C);
+    ui->D_counter->setValue(D);
+    ui->R_counter->setValue(R);
+    ui->W_counter->setValue(W);
+    ui->poisson_counter->setValue(poisson);
+    ui->young_counter->setValue(E);
+}
+
+void MainWindow::setParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)
+{
+    REAL poisson, E, A, B, C, R, D, W;
+    A = ui->A_counter->value();
+    B = ui->B_counter->value();
+    C = ui->C_counter->value();
+    D = ui->D_counter->value();
+    R = ui->R_counter->value();
+    W = ui->W_counter->value();
+    poisson = ui->poisson_counter->value();
+    E = ui->young_counter->value();
+
+    obj.SetUp(poisson, E, A, B, C, R, D, W);
+}
+
+void MainWindow::on_checkBox_toggled(bool checked)
+{
+
+    if (checked)
+    {
+        REAL A, B, C;
+        A = ui->A_counter->value();
+        B = ui->B_counter->value();
+        C = ui->C_counter->value();
+
+        //qDebug() <<"------------------------->"<< A << B << C;
+
+        ui->Plot_1->Generate_Envelope(A, B, C);
+        ui->Plot_2->Generate_Envelope(A, B, C);
+        ui->Plot_3->Generate_Envelope(A, B, C);
+        ui->Plot_4->Generate_Envelope(A, B, C);
+    }
+
+    else
+    {
+        ui->Plot_1->hide_envelope();
+        ui->Plot_2->hide_envelope();
+        ui->Plot_3->hide_envelope();
+        ui->Plot_4->hide_envelope();
+    }
+}
+
+void MainWindow::on_actionZoom_toggled(bool on)
+{
+    ui->Plot_1->panner->setEnabled(on);
+    ui->Plot_1->zoomer->setEnabled(on);
+
+    ui->Plot_2->panner->setEnabled(on);
+    ui->Plot_2->zoomer->setEnabled(on);
+
+    ui->Plot_3->panner->setEnabled(on);
+    ui->Plot_3->zoomer->setEnabled(on);
+
+    ui->Plot_4->panner->setEnabled(on);
+    ui->Plot_4->zoomer->setEnabled(on);
 }

@@ -91,6 +91,19 @@ public:
         return 0;
     }
 
+    int isMed(int global_id) {
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) //eh medicao
+        {
+                    return 1;
+        }
+        if ( (fMapSimMed.find(global_id) != fMapSimMed.end()) ) //eh simulacao
+        {
+            return 0;
+        }
+        DebugStop();
+        return -1;
+    }
+
     void DeleteGlobalId(int globalid)
     {
         if(fMapSimMed.find(globalid) != fMapSimMed.end())
@@ -109,46 +122,6 @@ public:
             it->second.Print();
         }
     }
-
-    //    void GetMed (int medid, TPBrLaboratoryData &labdataobj) {
-    //      if (fMedicoes.find(medid) == fMedicoes.end()) //nao eh medicao
-    //            DebugStop();
-
-    //      labdataobj = fMedicoes[medid];
-    //    }
-
-    //    void GetSim (int simid, TPBrSimulationData &simdataobj) {
-    //      if (fMapSimMed.find(simid) == fMapSimMed.end()) //nao existe essa simulacao
-    //            DebugStop();
-
-    //      int medid = fMapSimMed[simid];
-
-    //      std::cout << "(GetSim method)MedGID: " << fMedicoes[medid].GlobalId() << std::endl;
-    //      std::cout << "(GetSim method)SimGID: " << fMedicoes[medid].fSimulacoes[simid].GlobalId() << std::endl;
-    //      std::cout << "(GetSim method)fMedicoes[medid]: " << fMedicoes[medid].fSimulacoes.size() << std::endl;
-    //      simdataobj = fMedicoes[medid].fSimulacoes[simid];
-    //    }
-
-    //    int isMed (int xid) {
-
-    //        std::map<int,TPBrLaboratoryData>::iterator it;
-
-    //        for(it = fMedicoes.begin(); it != fMedicoes.end(); ++it) {
-    //            if ((*it).first == xid)
-    //                return 1;
-    //        }
-
-    //        return 0;
-    //    }
-
-    //    int GetMedId (int simid){
-    //        if (fMapSimMed.find(simid) == fMapSimMed.end()) //nao existe essa simulacao
-    //            DebugStop();
-
-    //        int medid = fMapSimMed[simid];
-
-    //        return medid;
-    //    }
 };
 
 extern TPBrDataControl DADOS;

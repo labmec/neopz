@@ -3,6 +3,7 @@
 
 #include <QDockWidget>
 #include "plot.h" //for point type enum
+#include "../PlasticityQT_CLI/TPBrDataControl.h"
 
 namespace Ui {
 class initialpointdock;
@@ -15,11 +16,7 @@ class initialpointdock : public QDockWidget
 public:
     explicit initialpointdock(QWidget *parent = 0);
     ~initialpointdock();
-    void setIndexCurve (int idx);
-    void setSlidersMaximum (int value);
-    void setSlidersMinimum (int value);
-    void setXdata (const QVector <double> &Xvec);
-    void setYdata (const QVector <double> &Yvec);
+    void setGlobal_ID (int global_id);
     
 private:
     Ui::initialpointdock *ui;
@@ -27,9 +24,6 @@ private:
     int coordEndIndex;
     int curveIndex;
     bool isCut;
-
-    QVector <double> X;
-    QVector <double> Y;
 
 signals:
     void mouseDoubleClicked ( int );
@@ -41,7 +35,7 @@ signals:
 public Q_SLOTS:
     void sliderStartValueChanged ( int value );
     void sliderEndValueChanged ( int value );
-    void setSymbPoint (int coordIndex, int curveIndex, Plot::pointType typept );
+    void setSymbPoint (int coordIndex, int global_id, Plot::pointType typept );
 
 private slots:
     void on_cutBtn_clicked();

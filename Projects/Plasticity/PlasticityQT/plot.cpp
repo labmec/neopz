@@ -39,6 +39,17 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     zoomer->setTrackerMode(QwtPicker::ActiveOnly);
     zoomer->setTrackerPen(QColor(Qt::blue));
 
+    envelope_curve = new QwtPlotCurve();
+    envelope_curve->setRenderHint( QwtPlotItem::RenderAntialiased );
+    envelope_curve->setPen( QPen( Qt::black ) );
+    envelope_curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    envelope_curve->setYAxis( QwtPlot::yLeft );
+
+    Xenv_max=0;
+    Xenv_min=0;
+    Yenv_max=0;
+    Yenv_min=0;
+    Env_status = -1;
 
     //testType = testTypes(All);
 
@@ -70,10 +81,9 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     Coords4.append("vol ");
     Coords4.append(QChar (0x03B5));
     Coords4.append("rad");
-    // I1 x sqrt J2
-    QString Coords5 = "I1 x ";
-    Coords5.append(QChar (0x221A));
-    Coords5.append("J2");
+    // sqrt J2 x I1
+    QString Coords5 = QChar (0x221A);
+    Coords5.append("J2 x I1");
 
     QMenu *mySubMenuAxis = new QMenu ("Set Axis");
     QActionGroup *groupSubmenuAxis = new QActionGroup (this);
@@ -227,12 +237,361 @@ void Plot::AxisChanged_slot (QAction *action) {
 
         case TPBrStrainStressDataBase::EI1SqJ2:
         {
-            Y_title.append("I1");
+            Y_title.append(QChar (0x221A));
+            Y_title.append("J2");
             this->setAxisTitle(QwtPlot::yLeft, Y_title);
-            X_title.append(QChar (0x221A));
-            X_title.append("J2");
+            X_title.append("I1");
             this->setAxisTitle(QwtPlot::xBottom, X_title);
             break;
         }
     }
+}
+
+//slot
+void Plot::save_points(int global_id, int indexStartPoint, int indexEndPoint) {
+
+    QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
+
+    //Check if curve exists
+    if (!d_curve) return;
+
+    CURVE d_curve_tmp = this->CurvesList[global_id];
+
+    d_curve_tmp.initialPnt = indexStartPoint;
+    d_curve_tmp.endPnt = indexEndPoint;
+
+    this->setSymbIndex(d_curve_tmp.initialPnt,global_id,startPoint);
+    this->setSymbIndex(d_curve_tmp.endPnt,global_id,endPoint);
+
+    qDebug() << "New points (update): " << d_curve_tmp.initialPnt << " " << d_curve_tmp.endPnt;
+}
+
+//slot
+void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
+    QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
+
+    //Check if curve exists
+    if (!d_curve) return;
+
+    CURVE d_curve_tmp = this->CurvesList[global_id];
+
+    //updating symbol position
+    int sizes = 2;
+    double Xs[2], Ys[2];
+    Xs[0] = d_curve_tmp.symb_curve_ptr->sample(0).x();
+    Ys[0] = d_curve_tmp.symb_curve_ptr->sample(0).y();
+    Xs[1] = d_curve_tmp.symb_curve_ptr->sample(1).x();
+    Ys[1] = d_curve_tmp.symb_curve_ptr->sample(1).y();
+
+    d_curve_tmp.mark_ptr1->setXValue(Xs[0]);
+    d_curve_tmp.mark_ptr1->setYValue(Ys[0]);
+    d_curve_tmp.mark_ptr2->setXValue(Xs[1]);
+    d_curve_tmp.mark_ptr2->setYValue(Ys[1]);
+
+    if (typept == startPoint) {
+        //updating curve
+        Xs[0] = d_curve_tmp.curve_ptr->sample(indexCoords).x();
+        Ys[0] = d_curve_tmp.curve_ptr->sample(indexCoords).y();
+        d_curve_tmp.symb_curve_ptr->setSamples( Xs, Ys, sizes);
+        //updading markers (labels)
+        d_curve_tmp.mark_ptr1->setXValue(Xs[0]);
+        d_curve_tmp.mark_ptr1->setYValue(Ys[0]);
+        //updating indexCoords control
+        d_curve_tmp.initialPnt = indexCoords;
+    }
+    else {
+        //updating curve
+        Xs[1] = d_curve_tmp.curve_ptr->sample(indexCoords).x();
+        Ys[1] = d_curve_tmp.curve_ptr->sample(indexCoords).y();
+        d_curve_tmp.symb_curve_ptr->setSamples( Xs, Ys, sizes);
+        //updading markers (labels)
+        d_curve_tmp.mark_ptr2->setXValue(Xs[1]);
+        d_curve_tmp.mark_ptr2->setYValue(Ys[1]);
+        //updating indexCoords control
+        d_curve_tmp.endPnt = indexCoords;
+    }
+
+    //inserting new value
+    this->CurvesList.insert(global_id, d_curve_tmp);
+
+    qDebug() << "setSymbIndex: Pt idx: " << indexCoords << " type " << typept;
+
+    this->replot();
+    //this->AdjustScale();
+}
+
+// Get index of coords vector of a given curve
+int Plot::getSymbIndex ( int global_id, pointType typept ) {
+
+    QwtPlotCurve *d_curve_symbol = this->CurvesList[global_id].symb_curve_ptr;
+
+    //Check if curve exists
+    if (!d_curve_symbol) return -1;
+
+    int returnIdx = -1;
+
+    if (typept == startPoint)
+        returnIdx = this->CurvesList[global_id].initialPnt;
+    else
+        returnIdx = this->CurvesList[global_id].endPnt;
+
+    qDebug() << "getSymbIndex: Pt idx: " << returnIdx;
+
+    return returnIdx;
+}
+
+void Plot::createCurve (int global_id, int check_status){
+
+    // VERIFICANDO SE A CURVA JA EXISTE PARA NAO RECRIA-LA
+    if (this->CurvesList.contains(global_id)) return;
+
+    CURVE new_curve(global_id);
+
+    new_curve.curve_ptr = new QwtPlotCurve();
+    new_curve.curve_ptr->setRenderHint( QwtPlotItem::RenderAntialiased );
+    new_curve.curve_ptr->setPen( QPen( Qt::red ) );
+    new_curve.curve_ptr->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    new_curve.curve_ptr->setYAxis( QwtPlot::yLeft );
+    new_curve.curve_ptr->attach( this );
+    std::vector<REAL> X;
+    std::vector<REAL> Y;
+
+    TPBrStrainStressDataBase *labData = DADOS.getObj(global_id);
+    labData->GeneratePlot(curvetype, X, Y);
+
+    int start_idx = labData->Get_start_idx();
+    int end_idx = labData->Get_end_idx();
+
+    QVector <double> qVec_X = QVector <double>::fromStdVector(X);
+    QVector <double> qVec_Y = QVector <double>::fromStdVector(Y);
+    new_curve.curve_ptr->setSamples(qVec_X,qVec_Y);
+
+    new_curve.X1 = qVec_X;
+    new_curve.Y1 = qVec_Y;
+
+    new_curve.curve_ptr2 = new QwtPlotCurve();
+    new_curve.curve_ptr2->setRenderHint( QwtPlotItem::RenderAntialiased );
+    new_curve.curve_ptr2->setPen( QPen( Qt::blue ) );
+    new_curve.curve_ptr2->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    new_curve.curve_ptr2->setYAxis( QwtPlot::yLeft );
+    new_curve.curve_ptr2->attach( this );
+    new_curve.curve_ptr2->hide();
+
+    new_curve.curve_ptr3 = new QwtPlotCurve();
+    new_curve.curve_ptr3->setRenderHint( QwtPlotItem::RenderAntialiased );
+    new_curve.curve_ptr3->setPen( QPen( Qt::green ) );
+    new_curve.curve_ptr3->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    new_curve.curve_ptr3->setYAxis( QwtPlot::yLeft );
+    new_curve.curve_ptr3->attach( this );
+    new_curve.curve_ptr3->hide();
+
+    this->zoomer->setZoomBase();
+
+    double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
+           Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
+
+    for (int i = 0; i < X.size(); i++) {
+        // scale
+        if (X[i]<Xsmallest) Xsmallest = X[i];
+        if (X[i]>Xbiggest)  Xbiggest = X[i];
+        if (Y[i]<Ysmallest) Ysmallest = Y[i];
+        if (Y[i]>Ybiggest) Ybiggest = Y[i];
+    }
+
+    new_curve.Xbiggest = Xbiggest;
+    new_curve.Xsmallest = Xsmallest;
+    new_curve.Ybiggest = Ybiggest;
+    new_curve.Ysmallest = Ysmallest;
+
+    new_curve.symb_curve_ptr = new QwtPlotCurve();
+    new_curve.symb_curve_ptr->setRenderHint( QwtPlotItem::RenderAntialiased );
+    new_curve.symb_curve_ptr->setPen( QPen( Qt::blue ) );
+    new_curve.symb_curve_ptr->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    new_curve.symb_curve_ptr->setYAxis( QwtPlot::yLeft );
+    new_curve.symb_curve_ptr->setStyle(QwtPlotCurve::NoCurve);
+    new_curve.symb_curve_ptr->attach( this );
+
+    int sizes = 2;
+    double Xs[2], Ys[2];
+    Xs[0] = X[start_idx];
+    Ys[0] = Y[start_idx];
+    Xs[1] = X[end_idx];
+    Ys[1] = Y[end_idx];
+    qDebug() << "Size: " << X.size() << " start: " << X[start_idx] << " " << Y[start_idx] << endl;
+    qDebug() << "Size: " << X.size() << " end: " << X[end_idx] << " " << Y[end_idx] ;
+    new_curve.symb_curve_ptr->setSamples( Xs, Ys, sizes);
+    new_curve.symb_curve_ptr->hide();
+
+    // "Start" marker
+    new_curve.symb1 = new QwtSymbol();
+    new_curve.symb1->setBrush(QBrush(Qt::red, Qt::SolidPattern));
+    new_curve.symb1->setStyle(QwtSymbol::Ellipse);
+    new_curve.symb1->setSize(10);
+    new_curve.mark_ptr1 = new QwtPlotMarker();
+    new_curve.mark_ptr1->setSymbol(new_curve.symb1);
+    new_curve.mark_ptr1->setXValue(Xs[0]);
+    new_curve.mark_ptr1->setYValue(Ys[0]);
+    new_curve.mark_ptr1->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
+    new_curve.mark_ptr1->setLabel(QwtText("Start"));
+    new_curve.mark_ptr1->attach(this);
+    new_curve.mark_ptr1->hide();
+
+    // End marker
+    new_curve.symb2 = new QwtSymbol();
+    new_curve.symb2->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
+    new_curve.symb2->setStyle(QwtSymbol::Ellipse);
+    new_curve.symb2->setSize(10);
+    new_curve.mark_ptr2 = new QwtPlotMarker ();
+    new_curve.mark_ptr2->setSymbol(new_curve.symb2);
+    new_curve.mark_ptr2->setXValue(Ys[1]);
+    new_curve.mark_ptr2->setYValue(Ys[1]);
+    new_curve.mark_ptr2->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
+    new_curve.mark_ptr2->setLabel(QwtText("End"));
+    new_curve.mark_ptr2->attach(this);
+    new_curve.mark_ptr2->hide();
+
+    new_curve.initialPnt = start_idx;
+    new_curve.endPnt = end_idx;
+
+    new_curve.chk_status = check_status;
+
+    this->CurvesList.insert(global_id, new_curve);
+
+    this->replot();
+    this->AdjustScale();
+
+    //naming axis
+    if (curvetype == TPBrStrainStressDataBase::EEpsaxSigax){
+        QString DefaultTitleY = QChar (0x03C3);
+        DefaultTitleY.append("ax (MPa)");
+        this->setAxisTitle(QwtPlot::yLeft, DefaultTitleY);
+        QString DefaultTitle1X = QChar (0x03B5);
+        DefaultTitle1X.append("ax (%)");
+        this->setAxisTitle(QwtPlot::xBottom, DefaultTitle1X);
+    }
+}
+
+void Plot::deleteCurve (int global_id){
+
+    QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
+    QwtPlotCurve *d_curve2 = this->CurvesList[global_id].curve_ptr2;
+    QwtPlotCurve *d_curve3 = this->CurvesList[global_id].curve_ptr3;
+    if ( d_curve != NULL) {
+        d_curve->detach();
+        delete d_curve;
+        d_curve2->detach();
+        delete d_curve2;
+        d_curve3->detach();
+        delete d_curve3;
+    }
+    QwtPlotCurve *d_curve_symbol = this->CurvesList[global_id].symb_curve_ptr;
+    if ( d_curve_symbol != NULL ) {
+        //removing markers
+        QwtPlotMarker *d_plot_marker = NULL;
+        d_plot_marker = this->CurvesList[global_id].mark_ptr1;
+        d_plot_marker->detach();
+        delete d_plot_marker;
+        d_plot_marker = this->CurvesList[global_id].mark_ptr2;
+        d_plot_marker->detach();
+        delete d_plot_marker;
+        //removing curve
+        d_curve_symbol->detach();
+        delete d_curve_symbol;
+    }
+    this->CurvesList.remove(global_id);
+
+    this->replot();
+    this->AdjustScale();
+
+}
+
+void Plot::Generate_Envelope(double A, double B, double C){
+
+    std::vector<REAL> X;
+    std::vector<REAL> Y;
+
+    TPBrStrainStressDataBase *labdata = DADOS.getObj(0);
+    labdata->SetEnvelope(A, B, C);
+    labdata->GenerateEnvelope(X, Y);
+
+    QVector <double> qVec_X = QVector <double>::fromStdVector(X);
+    QVector <double> qVec_Y = QVector <double>::fromStdVector(Y);
+
+    envelope_curve->setSamples(qVec_X, qVec_Y);
+    envelope_curve->attach(this);
+    this->zoomer->setZoomBase();
+    this->replot();
+    double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
+           Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
+
+    for (int i = 0; i < X.size(); i++) {
+        // scale
+        if (X[i]<Xsmallest) Xsmallest = X[i];
+        if (X[i]>Xbiggest)  Xbiggest = X[i];
+        if (Y[i]<Ysmallest) Ysmallest = Y[i];
+        if (Y[i]>Ybiggest) Ybiggest = Y[i];
+    }
+
+    Xenv_max=Xbiggest;
+    Xenv_min=Xsmallest;
+    Yenv_max=Ybiggest;
+    Yenv_min=Ysmallest;
+
+    envelope_curve->show();
+    Env_status = 1;
+    this->replot();
+    this->AdjustScale();
+}
+
+void Plot::hide_envelope()
+{
+    envelope_curve->hide();
+    Env_status = 0;
+    this->replot();
+    this->AdjustScale();
+}
+
+void Plot::AdjustScale () {
+
+    double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
+           Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
+
+    foreach (int i, this->CurvesList.keys()) {
+
+        if (this->CurvesList[i].Xsmallest<Xsmallest)
+            Xsmallest = this->CurvesList.value(i).Xsmallest;
+
+        if (this->CurvesList[i].Xbiggest>Xbiggest)
+            Xbiggest = this->CurvesList[i].Xbiggest;
+
+        if (this->CurvesList[i].Ysmallest<Ysmallest)
+            Ysmallest = this->CurvesList[i].Ysmallest;
+
+        if (this->CurvesList[i].Ybiggest>Ybiggest)
+            Ybiggest = this->CurvesList[i].Ybiggest;
+    }
+
+    if (Env_status==1)
+    {
+        if (Xenv_min<Xsmallest)
+            Xsmallest = Xenv_min;
+        if (Xenv_max>Xbiggest)
+            Xbiggest = Xenv_max;
+        if (Yenv_min<Ysmallest)
+            Ysmallest = Yenv_min;
+        if (Yenv_max>Ybiggest)
+            Ybiggest = Yenv_max;
+    }
+
+    if ((this->CurvesList.size() == 0) && (Env_status != 1))
+    {
+        this->setAxisScale (QwtPlot::xBottom, 0, 10);
+        this->setAxisScale (QwtPlot::yLeft, 0, 10);
+    }
+    else {
+        this->setAxisScale (QwtPlot::xBottom, Xsmallest, Xbiggest);
+        this->setAxisScale (QwtPlot::yLeft, Ysmallest, Ybiggest);
+    }
+
+    this->replot();
 }

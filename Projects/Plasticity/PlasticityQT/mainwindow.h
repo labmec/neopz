@@ -33,9 +33,13 @@ public:
 private slots:
     void ShowListContextMenu(const QPoint& pos);
     void on_actionOpenFile_triggered();
-    void on_pushButton_clicked();
     void clickedOnPlot(Plot *plotTmp);
+    void fullscreenOnPlot(Plot *plotTmp);
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
+    void updateParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> obj);
+    void setParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
+    void on_checkBox_toggled(bool checked);
+    void on_actionZoom_toggled(bool on);
 
 private:
     Ui::MainWindow *ui;

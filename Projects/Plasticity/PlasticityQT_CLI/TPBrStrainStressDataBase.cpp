@@ -13,6 +13,32 @@ TPBrStrainStressDataBase::~TPBrStrainStressDataBase()
     }
 }
 
+// BEGIN ENVOLTORIA
+void TPBrStrainStressDataBase::GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y)
+{
+    X.resize(fEps_Ax.size());
+    Y.resize(fEps_Ax.size());
+    for (int i = 0; i<fEps_Ax.size(); i++) {
+        GetEnvelope(i, X[i], Y[i]);
+    }
+}
+
+void TPBrStrainStressDataBase::SetEnvelope(REAL A, REAL B, REAL C)
+{
+    fA = A;
+    fB = B;
+    fC = C;
+    qDebug() <<"------------------------->"<< A << B << C;
+}
+
+void TPBrStrainStressDataBase::GetEnvelope(int index, REAL &X, REAL &Y)
+{
+    X = I1(index);
+    Y = F1(index);
+}
+
+// END ENVOLTORIA
+
 /// gera os dados que serao mostrados na tela
 void TPBrStrainStressDataBase::GeneratePlot(ECurveType curvetype, std::vector<REAL> &X, std::vector<REAL> &Y)
 {
@@ -48,14 +74,14 @@ void TPBrStrainStressDataBase::GetXY(int index, ECurveType curvetype, REAL &X, R
             Y = SqJ2(index);
 	    break;
 	case EEpsaxSigax:
-	    X = this->fEps_Ax[index];
-	    Y = this->fSig_Ax[index];
+        X = this->fEps_Ax[index];
+        Y = this->fSig_Ax[index];
             break;	    
 	case EEpsvSigv:
 	    X = Epsv(index);
 	    Y = Sigv(index);
 	    break;
-        default:
+    default:
             DebugStop();
             break;
     }
@@ -71,7 +97,7 @@ void TPBrStrainStressDataBase::GetXY(int index, ECurveType curvetype, REAL &X, R
 	    X2 = this->fEps_Lat[index];
 	    X3 = Epsv(index);
 	    break;
-        default:
+    default:
             DebugStop();
             break;
     }
@@ -107,4 +133,11 @@ REAL TPBrStrainStressDataBase::Sigv(int index)
     return sigvol;
 }
 
+// retorna o valor da envoltoria para o index
+REAL TPBrStrainStressDataBase::F1(int index)
+{
+    REAL I1 = this->I1(index);
+    REAL F1 = fA - fC*exp(fB*I1);
+    return F1;
+}
 

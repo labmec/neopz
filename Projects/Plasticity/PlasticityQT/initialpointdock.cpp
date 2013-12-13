@@ -9,8 +9,6 @@ initialpointdock::initialpointdock(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    coordStartIndex = -1;
-//    coordEndIndex = -1;
     curveIndex = -1;
     isCut = false;
 
@@ -25,27 +23,19 @@ initialpointdock::~initialpointdock()
     delete ui;
 }
 
-void initialpointdock::setIndexCurve (int idx) {
-    this->curveIndex = idx;
+void initialpointdock::setGlobal_ID (int global_id) {
+    this->curveIndex = global_id;
+
+    TPBrLaboratoryData *symb_obj = dynamic_cast <TPBrLaboratoryData*> (DADOS.getObj(global_id));
+    this->ui->sliderStart->setMinimum(0);
+    this->ui->sliderStart->setMaximum(symb_obj->fSig_Ax.size()-1);
+    this->ui->sliderEnd->setMinimum(0);
+    this->ui->sliderEnd->setMaximum(symb_obj->fSig_Ax.size()-1);
+
+    setSymbPoint(symb_obj->Get_start_idx(), global_id, Plot::startPoint);
+    setSymbPoint(symb_obj->Get_end_idx(), global_id, Plot::endPoint);
+
     emit showSymbCurve (this->curveIndex);
-}
-
-void initialpointdock::setSlidersMaximum (int value) {
-    this->ui->sliderStart->setMaximum(value);
-    this->ui->sliderEnd->setMaximum(value);
-}
-
-void initialpointdock::setSlidersMinimum (int value) {
-    this->ui->sliderStart->setMinimum(value);
-    this->ui->sliderEnd->setMinimum(value);
-}
-
-void initialpointdock::setXdata (const QVector <double> &Xvec) {
-    this->X = Xvec;
-}
-
-void initialpointdock::setYdata (const QVector <double> &Yvec){
-    this->Y = Yvec;
 }
 
 //slot
@@ -61,20 +51,22 @@ void initialpointdock::sliderEndValueChanged ( int value ) {
 }
 
 //slot
-void initialpointdock::setSymbPoint (int idx, int curveIndex, Plot::pointType typept) {
+void initialpointdock::setSymbPoint (int idx, int global_id, Plot::pointType typept) {
     if (this->curveIndex == curveIndex) {
+
+//        TPBrLaboratoryData *symb_obj = dynamic_cast <TPBrLaboratoryData*> (DADOS.getObj(global_id));
         if (typept == Plot::startPoint) {
             this->coordStartIndex = idx;
             this->ui->sliderStart->setValue(idx);
-            this->ui->labelStartX->setText( QVariant (this->X.value(idx)).toString() );
-            this->ui->labelStartY->setText( QVariant (this->Y.value(idx)).toString() );
+//            this->ui->labelStartX->setText( QVariant (this->X.value(idx)).toString() );
+//            this->ui->labelStartY->setText( QVariant (this->Y.value(idx)).toString() );
         }
         else
         {
             this->coordEndIndex = idx;
             this->ui->sliderEnd->setValue(idx);
-            this->ui->labelEndX->setText( QVariant (this->X.value(idx)).toString() );
-            this->ui->labelEndY->setText( QVariant (this->Y.value(idx)).toString() );
+//            this->ui->labelEndX->setText( QVariant (this->X.value(idx)).toString() );
+//            this->ui->labelEndY->setText( QVariant (this->Y.value(idx)).toString() );
         }
     }
 }
@@ -99,9 +91,9 @@ void initialpointdock::on_cutBtn_clicked()
 
 void initialpointdock::closeEvent(QCloseEvent *event)
 {
-    if (!isCut) {
-        emit SymbPointChanged (0, this->curveIndex, Plot::startPoint);
-        emit SymbPointChanged (this->X.size()-1, this->curveIndex, Plot::endPoint);
-    }
+//    if (!isCut) {
+//        emit SymbPointChanged (0, this->curveIndex, Plot::startPoint);
+//        emit SymbPointChanged (this->X.size()-1, this->curveIndex, Plot::endPoint);
+//    }
     emit hideSymbCurve (this->curveIndex);
 }

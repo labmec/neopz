@@ -20,7 +20,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
      <widget class="Plot" name="Plot_1">
       <property name="cursor">
@@ -31,11 +31,11 @@
     <item row="0" column="1">
      <widget class="Plot" name="Plot_2"/>
     </item>
-    <item row="1" column="1">
-     <widget class="Plot" name="Plot_4"/>
-    </item>
     <item row="1" column="0">
      <widget class="Plot" name="Plot_3"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="Plot" name="Plot_4"/>
     </item>
    </layout>
   </widget>
@@ -57,8 +57,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpenFile"/>
-   <addaction name="actionShowGraphList"/>
-   <addaction name="actionShow_Parameter_List"/>
    <addaction name="actionZoom"/>
    <addaction name="actionExportPlot"/>
   </widget>
@@ -144,8 +142,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>193</width>
-     <height>41</height>
+     <width>244</width>
+     <height>578</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -161,444 +159,232 @@
       <verstretch>0</verstretch>
      </sizepolicy>
     </property>
-    <widget class="QWidget" name="layoutWidget_7">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_8">
-      <item>
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Young</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_7">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="young_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>1000000000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>29269.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QLabel" name="label_20">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>191</width>
-       <height>10</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>MATERIAL PARAMETERS</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_8">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_11">
-      <item>
-       <widget class="QLabel" name="label_11">
-        <property name="text">
-         <string>Poisson</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_8">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="poisson_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="stepButton2">
-         <number>10</number>
-        </property>
-        <property name="value">
-         <double>0.203000000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_9">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>150</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_12">
-      <item>
-       <widget class="QLabel" name="label_12">
-        <property name="text">
-         <string>B</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_10">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="B_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.003689000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_10">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_13">
-      <item>
-       <widget class="QLabel" name="label_13">
-        <property name="text">
-         <string>A</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_9">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="A_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>10000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>116.670000000000002</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_11">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>180</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_15">
-      <item>
-       <widget class="QLabel" name="label_15">
-        <property name="text">
-         <string>C</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_11">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="C_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="stepButton3">
-         <number>1000</number>
-        </property>
-        <property name="value">
-         <double>111.480000000000004</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_12">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>210</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_30">
-      <item>
-       <widget class="QLabel" name="label_21">
-        <property name="text">
-         <string>D</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_12">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="D_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.018768000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_13">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>240</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_31">
-      <item>
-       <widget class="QLabel" name="label_29">
-        <property name="text">
-         <string>R</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_13">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="R_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.919690000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutWidget_14">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>270</y>
-       <width>176</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_32">
-      <item>
-       <widget class="QLabel" name="label_31">
-        <property name="text">
-         <string>W</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_14">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QwtCounter" name="W_counter">
-        <property name="numButtons">
-         <number>1</number>
-        </property>
-        <property name="maxValue">
-         <double>10000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.006605000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QLabel" name="label_22">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>191</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>50</weight>
-       <italic>true</italic>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Sandler DiMaggio</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>340</y>
-       <width>151</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Show Simulation</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton">
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>310</y>
-       <width>98</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>RUN</string>
-     </property>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_22">
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <italic>true</italic>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Sandler DiMaggio</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" rowspan="2" colspan="2">
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>MATERIAL PARAMETERS</string>
+       </property>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="1">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Young</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QwtCounter" name="young_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>1000000000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>29269.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>Poisson</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QwtCounter" name="poisson_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="stepButton2">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <double>0.203000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>A</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QwtCounter" name="A_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>616.669999999999959</double>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>B</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0" colspan="2">
+         <widget class="QwtCounter" name="B_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.003689000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLabel" name="label_15">
+          <property name="text">
+           <string>C</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0" colspan="2">
+         <widget class="QwtCounter" name="C_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="stepButton3">
+           <number>1000</number>
+          </property>
+          <property name="value">
+           <double>111.480000000000004</double>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QLabel" name="label_21">
+          <property name="text">
+           <string>D</string>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0" colspan="2">
+         <widget class="QwtCounter" name="D_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.018768000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="1">
+         <widget class="QLabel" name="label_29">
+          <property name="text">
+           <string>R</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0" colspan="2">
+         <widget class="QwtCounter" name="R_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.919690000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="14" column="1">
+         <widget class="QLabel" name="label_31">
+          <property name="text">
+           <string>W</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="0" colspan="2">
+         <widget class="QwtCounter" name="W_counter">
+          <property name="numButtons">
+           <number>1</number>
+          </property>
+          <property name="maxValue">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.006605000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>66</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="3" column="1">
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QCheckBox" name="checkBox">
+       <property name="text">
+        <string>Show Failure Envelope</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
-  <action name="actionShowGraphList">
-   <property name="text">
-    <string>Show Graph List</string>
-   </property>
-  </action>
   <action name="actionZoom">
    <property name="checkable">
     <bool>true</bool>
@@ -615,11 +401,6 @@
   <action name="actionExportPlot">
    <property name="text">
     <string>exportPlot</string>
-   </property>
-  </action>
-  <action name="actionShow_Parameter_List">
-   <property name="text">
-    <string>Show Parameter List</string>
    </property>
   </action>
  </widget>

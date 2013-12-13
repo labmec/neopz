@@ -56,6 +56,9 @@ public:
     {
         fSandler = copy;
     }
+    inline TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> getSandler() {
+        return fSandler;
+    }
 
     inline void Print() const
     {
@@ -72,6 +75,8 @@ protected:
     int fend_idx;
     /// Indice da medicao que deu origem a esta simulacao
     int fMedicao_idx;
+
+public:
     /// modelo plastico que gerou esta simulacao
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSandler;
 

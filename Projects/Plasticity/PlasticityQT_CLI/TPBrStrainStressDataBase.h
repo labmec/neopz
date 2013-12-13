@@ -55,6 +55,11 @@ public:
         fEps_Lat = epsr;
     }
 
+    // gera a envoltoria
+    virtual void GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y);
+    void GetEnvelope(int index, REAL &X, REAL &Y);
+    void SetEnvelope(REAL A, REAL B, REAL C);
+
 
     /// gera os dados que serao mostrados na tela
     virtual void GeneratePlot(ECurveType curvetype, std::vector<REAL> &X, std::vector<REAL> &Y);
@@ -80,6 +85,9 @@ public:
     /// retorna o valor de Sig Volumetrico para o index
     REAL Sigv(int index);
 
+    // retorna o valor da envoltoria para o index
+    REAL F1(int index);
+
     virtual int Get_start_idx() const {
         return 0;
     }
@@ -101,6 +109,10 @@ public:
     TPZVec<REAL> fSig_Lat;
     TPZVec<REAL> fEps_Ax;
     TPZVec<REAL> fEps_Lat;
+    TPZVec<REAL> fF1;
+    REAL fA;
+    REAL fB;
+    REAL fC;
 
 };
 
