@@ -27,7 +27,6 @@ rdtfiles_l = [
         # short_name, option, filename, description
         ("ass", "-ass_rdt", "ass.rdt", "Assemble: dohrstruct->Assemble(...). Assemble element matrices and decompose matrices."),
         ("cre", "-cre_rdt", "cre.rdt", "Create: dohrstruct->Create()"),
-        ("pre", "-pre_rdt", "pre.rdt", "Preconditioner: dohrstruct->Preconditioner()"),
         ("sol", "-sol_rdt", "sol.rdt", "Solver: cg.Solve(...)"),
         ("tot", "-tot_rdt", "tot.rdt", "Total: all the steps"),
         ("dohrass", "-tpz_dohr_ass", "tpzdohrass.rdt", "Assemble element matrices"),

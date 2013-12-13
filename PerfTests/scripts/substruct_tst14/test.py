@@ -46,13 +46,12 @@ def error(message, status):
 #  (rdt_id, rdt_opt, rdt_filename, rdt_description)
 assfn=("ass", "-ass_rdt", "ass.rdt", "Assemble: dohrstruct->Assemble(...). Assemble element matrices and decompose matrices.")
 crefn=("cre", "-cre_rdt", "cre.rdt", "Create: dohrstruct->Create()")
-prefn=("pre", "-pre_rdt", "pre.rdt", "Preconditioner: dohrstruct->Preconditioner()")
 solfn=("sol", "-sol_rdt", "sol.rdt", "Solver: cg.Solve(...)")
 totfn=("tot", "-tot_rdt", "tot.rdt", "Total: all the steps")
 tpzdohrassfn=("dohrass", "-tpz_dohr_ass", "tpzdohrass.rdt", "Assemble element matrices")
 tpzdohrdecfn=("dohrdec", "-tpz_dohr_dec", "tpzdohrdec.rdt", "Decompose matrices")
 # List of rdt files produced by the test
-rdtfiles_l=[assfn, crefn, prefn, solfn, totfn, tpzdohrassfn, tpzdohrdecfn]
+rdtfiles_l=[assfn, crefn, solfn, totfn, tpzdohrassfn, tpzdohrdecfn]
 
 # Setup the command line
 def setup_cmd():
@@ -186,7 +185,6 @@ def usage():
 	print "\t ", tpzdohrassfn[0], ": assembling (ass part) the system (serial) -- results at", tpzdohrassfn[1]
 	print "\t ", tpzdohrdecfn[0], ": assembling (dec part) the system (serial) -- results at", tpzdohrdecfn[1]
 	print "\t ", crefn[0], ": creating the sytem (serial) -- results at", crefn[1]
-	print "\t ", prefn[0], ": pre-processing (serial) -- results at", prefn[1]
 	print "\t ", solfn[0], ": solver (serial) -- results at", solfn[1]
 	print "\t ", totfn[0], ": total -- results at", totfn[1]
 	sys.exit(1)
