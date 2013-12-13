@@ -153,6 +153,8 @@ def short_description() : return "substructure -- cubo986.msh -- parallel --  di
 # Execute the test.
 def run_test(ntimes, nsub, thread):
 	rundir,cmd=setup_cmd()
+        print short_description() 
+	print "CMD:",cmd
 	# substructures
 	cmd = cmd + " -nsub " + nsub
 	# threads

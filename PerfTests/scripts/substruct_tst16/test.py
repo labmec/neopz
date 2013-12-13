@@ -156,7 +156,8 @@ def short_description() : return "substructure -- 8andares02.txt -- 240 substruc
 # Execute the test.
 def run_test(ntimes):
 	rundir,cmd=setup_cmd()
-	print cmd
+        print short_description() 
+	print "CMD:",cmd
 	error('teste') 
 	args = shlex.split(cmd)
 	sout = None

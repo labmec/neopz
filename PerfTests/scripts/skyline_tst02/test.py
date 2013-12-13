@@ -114,6 +114,8 @@ def sumarize_rdt_files(rundir) :
 # Execute the test.
 def run_test(ntimes):
 	rundir,cmd=setup_cmd()
+        print short_description() 
+	print "CMD:",cmd
 	args = shlex.split(cmd)
 	sout = None
 	serr = None

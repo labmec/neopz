@@ -154,6 +154,8 @@ def short_description() : return "substructure -- 8andares02.txt -- 64 subs -- d
 # Execute the test.
 def run_test(ntimes, nsub, thread):
 	rundir,cmd=setup_cmd()
+        print short_description() 
+	print "CMD:",cmd
 	# substructures
 	cmd = cmd + " -nsub " + nsub
 	# threads
