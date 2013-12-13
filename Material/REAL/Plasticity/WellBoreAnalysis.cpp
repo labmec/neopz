@@ -23,6 +23,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 #endif
 
+int startfrom = 0;
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
 {

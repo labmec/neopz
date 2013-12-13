@@ -1,29 +1,9 @@
 #include "poroelastoplastic.h"
-//#include "pzskylstrmatrix.h"
-//#include "TPZReadGIDGrid.h"
 #include "pzelctemp.h" // TPZIntelGen<TSHAPE>
 #include "pzshapecube.h" // TPZShapeCube
-//#include "pzcompelwithmem.h"
-//#include "pzelastoplastic.h"
-//#include "pzporous.h"
 #include "TPZLadeKim.h"
-//#include "TPZSandlerDimaggio.h"
-//#include "TPZYCDruckerPrager.h"
-//#include "TPZThermoForceA.h"
-//#include "TPZElasticResponse.h"
-//#include "pzelastoplasticanalysis.h"
 #include "pzmat2dlin.h"
 #include "pzporoanalysis.h"
-//#include "TPZTensor.h"
-//#include "BrazilianTestGeoMesh.h"
-//#include "pzelast3d.h"
-//#include "pzcompelpostproc.h"
-//#include "pzpostprocmat.h"
-//#include "pzpostprocanalysis.h"
-//#include "pzblockdiag.h"
-//#include "TPZSpStructMatrix.h"
-//#include "pzbdstrmatrix.h"
-//#include "pzstepsolver.h"
 #include "pzbfilestream.h"
 #include <sstream>
 #ifdef HAVE_CONFIG_H
@@ -31,41 +11,12 @@
 #endif
 #include <iostream>
 #include <cstdlib>
-//#include "pzelastoplastic.h"
-//#include "pzporous.h"
-//#include "TPZThermoForceA.h"
-//#include "TPZElasticResponse.h"
-//#include "pzelastoplasticanalysis.h"
-//#include "pzanalysis.h"
-//#include "pzskylstrmatrix.h"
-//#include "TPZTensor.h"
-//#include "pzcompelpostproc.h"
-//#include "pzpostprocmat.h"
-//#include "pzpostprocanalysis.h"
-//#include "TPZYCVonMises.h"
-//#include "TPZVonMises.h"
-//#include "pzfstrmatrix.h"
-//#include "pzbndmat.h"
-//#include "pzgeoquad.h"
-//#include "TPZGeoCube.h"
-//#include "pzgeotetrahedra.h"
-//#include "pzgeopyramid.h"
-//#include "tpzgeoelrefpattern.h"
-//#include "pzbndcond.h"
-//#include "pzstepsolver.h"
-//#include "TPZTensor.h"
-//#include "TPZYCMohrCoulomb.h"
-//#include "TPZMohrCoulomb.h"
-//#include "TPZDruckerPrager.h"
 #include "pzelasmat.h"
-//#include "pzelastoplastic2D.h"
-//#include "tpzycvonmisescombtresca.h"
-//#include "TPZMohrCoulombNeto.h"
-//#include "TPZSandlerDimaggio.h"
 #include "TPZVTKGeoMesh.h"
 #include "BrazilianTestGeoMesh.h"
 #include "TPZProjectEllipse.h"
 
+#include "WellBoreAnalysis.h"
 
 void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD);
 
@@ -1461,13 +1412,11 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
 DECLARE_FPO_HANDLER_FUNC;
 #endif
 
-#include "WellBoreAnalysis.h"
-
-//int startfrom = 0;
-int startfrom = 4;
-
 int main ()
 {
+  
+//int startfrom = 0;
+startfrom = 4;
     
 #ifdef MACOS
     
