@@ -173,6 +173,10 @@ namespace pztopology {
 		 * @param permgather Permutation vector in a gather order
 		 */
 		static void GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather);
+		/**
+		* @brief return the vector which permutes the connects according to the transformation id
+		*/
+		void GetHDivGatherPermute(int transformid, TPZVec<int> &permute);
 		
 		/** @brief Volume of the master element (measure) */
 		static REAL RefElVolume() { return 0.5L; }
