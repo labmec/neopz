@@ -164,11 +164,12 @@ public:
      */
     void print(ostream& os) const
     {
-      os << "HEADERS,PAPI_RTIME,PAPI_PTIME,PAPI_FLPOPS" << endl;
+      os << "HEADERS,PAPI_RTIME,PAPI_PTIME,PAPI_FLPOPS,PAPI_MFLOPS" << endl;
       os << "VALUES," 
 	 << rtimeACC << ","  
 	 << ptimeACC << ","  
-	 << flpopsACC << ","  << endl;
+	 << flpopsACC << ","  
+	 << ((double) flpopsACC  / (double) ptimeACC)/1000000.0 << endl;
     }
     
     /**
@@ -188,6 +189,9 @@ public:
 	  return ret;
 	if ((ret = st.setCell(row,"PAPI_FLPOPS",flpopsACC,true)))
 	  return ret;
+	double av_mflops = ((double) flpopsACC / (double) ptimeACC) / 1000000.0;
+	if ((ret = st.setCell(row,"PAPI_AV_MFLOPS",av_mflops,true)))
+	  return ret;
 
         return 0; // Return ok
     }
@@ -206,6 +210,89 @@ protected:
 
     float rtimeACC, ptimeACC;
     long long flpopsACC;
+    
+};
+
+#endif
+
+#ifdef REALpzfpcounter
+#include "pzreal.h"
+class PZFPCountRunStat : public RunStat
+{
+public:
+    
+    PZFPCountRunStat()
+    {
+        clearStats();
+    }
+    
+    /* Start recording the execution statistics. */
+    void start()
+    {
+      start_counter.copy(TPZFlopCounter::gCount);
+    }
+    
+    /* Stop recording the execution statistics. */
+    void stop()
+    {
+      TPZCounter stop_counter;
+      stop_counter.copy(TPZFlopCounter::gCount);
+      stop_counter -= start_counter;
+      acc_counter += stop_counter;
+    }
+    
+    /**
+     * Print the statistics.
+     * TODO: create a table, update it, and print the table.
+     */
+    void print(ostream& os) const
+    {
+      stringstream headers;
+      stringstream values;
+
+      headers << "HEADERS";
+      for (int i=0; i<gNumOp; i++) {
+	headers << "," << "PZCOUNT_" << OpNames[i];
+      }
+      values << "VALUES";
+      for (int i=0; i<gNumOp; i++) {
+	values << "," << acc_counter[i];
+      }
+      os << headers << endl;
+      os << values << endl;
+    }
+    
+    /**
+     * Append metrics to the statistics table.  The idea is to keep one
+     * table for each segment of code. New runs are appended to the
+     * table.
+     * Returns: the new_row number if Ok
+     *          the setCell error code (< 0) if Error.
+     */
+    int setCellValues(CSVStringTable& st, unsigned row) const
+    {
+        if (st.nRows() <= row) return -1;
+        int ret;
+
+	for (int i=0; i<gNumOp; i++) {
+	  stringstream header;
+	  header << "PZCOUNT_" << OpNames[i];
+	  if ((ret = st.setCell(row,header,acc_counter[i],true)))
+	    return ret;
+	}
+
+        return 0; // Return ok
+    }
+    
+    void clearStats()
+    {
+      acc_counter.clear();
+    }
+    
+protected:
+    
+    TPZCounter start_counter;
+    TPZCounter acc_counter;
     
 };
 

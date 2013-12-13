@@ -41,8 +41,7 @@ include_directories(
 add_definitions(-DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
 #specify where the refinement patterns can be found (default behaviour when running the code)
 add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
-#To check REAL as TPZFlopCount  - Jorge
-#add_definitions(-Dcontar)
+
 
 #Defining variables
 #To cmake
@@ -314,7 +313,7 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
 
 #To select type of REAL
-set(REALTypesAre "Types are: double, float, long double")
+set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
 
 if (REAL_TYPE STREQUAL "double")
@@ -326,6 +325,9 @@ elseif (REAL_TYPE STREQUAL "float")
 elseif (REAL_TYPE STREQUAL "long double")
   add_definitions(-DREALlongdouble)
   set(REAL_TYPE_DEF "REALlongdouble")
+elseif (REAL_TYPE STREQUAL "pzfpcounter")
+  add_definitions(-DREALpzfpcounter)
+  set(REAL_TYPE_DEF "REALpzfpcounter")
 else()
   message (FATAL_ERROR "ERROR: Please specify a valid type for REAL. ${REALTypesAre}")
 endif()

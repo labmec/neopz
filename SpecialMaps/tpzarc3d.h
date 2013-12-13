@@ -160,7 +160,7 @@ namespace pzgeom
 		 
 		TPZFNMatrix<9> fICnBase, fIBaseCn;
 		TPZManVector< REAL,3 > fCenter3D, finitialVector;
-#ifdef contar
+#ifdef REALpzfpcounter
 		double fAngle, fRadius, fXcenter, fYcenter;
 #else
 		REAL fAngle, fRadius, fXcenter, fYcenter;

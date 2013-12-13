@@ -50,19 +50,47 @@ enum MOptype {ESum,EProd,EDiv,ESqrt,EPow,ECos,ESin,EAcos,EAsin,EAtan,EExp,ELog};
 /** @brief Number of type of the operations actually counted. */
 const int gNumOp = 12;
 
-
 /** @brief Implements a counter by operations. \ref common "Common" */
 struct TPZCounter {
 	/// Vector of counters by operation: sum, product, division, square root, power, \n
 	/// Cosine, Sine, Arc cosine, arc Sine, arc Tangent, Exponencial and logarithm.
-	int fCount[gNumOp];
+        unsigned long long fCount[gNumOp];
 	
+        /// Counter constructor.
+        TPZCounter() 
+        {
+	  clear();
+	}
+
 	inline TPZCounter operator-(const TPZCounter &other)
 	{
-		TPZCounter result;
-		int i;
-		for(i=0; i<gNumOp; i++) result.fCount[i] = fCount[i]-other.fCount[i];
-		return result;
+	  TPZCounter result;
+	  for(int i=0; i<gNumOp; i++) result.fCount[i] = fCount[i]-other.fCount[i];
+	  return result;
+	}
+
+	inline TPZCounter& operator+=(const TPZCounter &other)
+	{
+	  for(int i=0; i<gNumOp; i++) fCount[i] += other.fCount[i];
+	  return *this;
+	}
+
+	inline TPZCounter& operator-=(const TPZCounter &other)
+	{
+	  for(int i=0; i<gNumOp; i++) fCount[i] -= other.fCount[i];
+	  return *this;
+	}
+
+	inline TPZCounter& copy(const TPZCounter &other)
+	{
+	  for (int i=0; i<gNumOp; i++) fCount[i] = other.fCount[i];
+	  return *this;
+	}
+
+        inline TPZCounter& clear()
+	{
+	  for(int i=0; i<gNumOp; i++) fCount[i] = 0 ;
+	  return *this;
 	}
 	
 	void Print(std::ostream &out = std::cout) const;
@@ -74,11 +102,6 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 
 class TPZFlopCounter;
 
-#ifdef contar
-/** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
-typedef TPZFlopCounter REAL;
-#endif
-
 /** @brief This is the type of floating point number PZ will use. */
 #ifdef REALfloat
 typedef float REAL;
@@ -88,6 +111,9 @@ typedef double REAL; //This is the default configuration
 #endif
 #ifdef REALlongdouble
 typedef long double REAL;
+#endif
+#ifdef REALpzfpcounter
+typedef TPZFlopCounter REAL;
 #endif
 
 /** @brief This is the type of State PZ will use. */
@@ -165,7 +191,8 @@ fabs(std::complex <long double> __x)
 
 /**
  * By modifying the definition of the type of REAL, the number of floating point operations can be counted. \n
- * To modify you need to define "contar": \#define contar.
+ * To modify you need to define "REALpzfpcounter": \#define REALpzfpcounter
+.
  */
 /** @brief This class implements floating point number associated with a counter of the operations performed with it by type. \n
  * (arithmetic, trigonometric, exponencial and logarithmic operations performed with it). \ref common "Common"
@@ -174,7 +201,7 @@ fabs(std::complex <long double> __x)
 class TPZFlopCounter {
 public:
 	/** @brief Floating point value */
-#ifdef contar
+#ifdef REALpzfpcounter
 	double fVal;
 #else
 	REAL fVal;
