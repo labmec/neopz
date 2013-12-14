@@ -68,14 +68,18 @@ import substruct_tst11.test
 import substruct_tst12.test
 import substruct_tst13.test
 
-import skyline_tst01.test
-import skyline_tst02.test
-import skyline_tst03.test
-import skyline_tst04.test
-import skyline_tst05.test
-#import skyline_tst06.test
-import skyline_tst07.test
-import skyline_tst08.test
+import skyline_tst01.test  # s (p2) s Chlsk+sfwd+sbck
+import skyline_tst02.test  # m (p3) m Chlsk+sfwd+sbck???
+import skyline_tst03.test  # m (p4) m Chlsk+sfwd+sbck
+import skyline_tst04.test  # s (p2) s LDLt
+import skyline_tst05.test  # s (p3) s LDLt
+import skyline_tst06.test  # m (p4) m LDLt
+import skyline_tst07.test  # s (p2) s multadd
+import skyline_tst08.test  # m (p3) m multadd
+import skyline_tst09.test  #   (p7) l sor????
+import skyline_tst10.test  #   (p3) m sor????
+import skyline_tst11.test  #   (p6) l sor????
+import skyline_tst12.test  #   (p5) m Chlsk+sfwd+sbck???
 # =========================
 
 # == Available test lists ==
@@ -84,22 +88,21 @@ import skyline_tst08.test
 # Tests with execution time shorter than 1 minute
 short_tests = [("substruct_tst01",substruct_tst01.test), 
 	       ("substruct_tst02",substruct_tst02.test),
-	       ("skyline_tst01",skyline_tst01.test),
-	       ("skyline_tst04",skyline_tst04.test),
-	       ("skyline_tst05",skyline_tst05.test),
-	       ("skyline_tst07",skyline_tst07.test)]
+	       ("skyline_tst01",skyline_tst01.test),  # ~1s
+	       ("skyline_tst04",skyline_tst04.test),  # ~1s
+	       ("skyline_tst05",skyline_tst05.test),  # ~28s
+	       ("skyline_tst07",skyline_tst07.test)]  # ~10s
+
+other_tests = [("skyline_tst09",skyline_tst09.test),
+               ("skyline_tst10",skyline_tst10.test),
+               ("skyline_tst11",skyline_tst11.test),
+               ("skyline_tst12",skyline_tst12.test)]
 
 # TODO: How about:
 # substruct_tst05
 # substruct_tst14
 # substruct_tst15
 # substruct_tst16
-# skyline_tst04
-# skyline_tst05
-# skyline_tst06
-# skyline_tst07
-# skyline_tst08
-# skyline_tst09
 
 # Tests with execution time between 1 and 10 minutes
 medium_tests= [("substruct_tst03",substruct_tst03.test),
@@ -108,22 +111,25 @@ medium_tests= [("substruct_tst03",substruct_tst03.test),
 	       ("substruct_tst08",substruct_tst08.test),
 	       ("substruct_tst09",substruct_tst09.test),
 	       ("substruct_tst11",substruct_tst11.test),
-	       ("substruct_tst12",substruct_tst12.test),
 	       ("substruct_tst13",substruct_tst13.test),
-	       ("skyline_tst02",skyline_tst02.test)]
+	       ("skyline_tst02",skyline_tst02.test),  # ???
+	       ("skyline_tst03",skyline_tst03.test),  # ~190s
+	       ("skyline_tst06",skyline_tst06.test),  # ~312s
+	       ("skyline_tst08",skyline_tst08.test)]  # ~286s
 
 # Tests with execution time longer than 10 minutes
-long_tests = [("skyline_tst03",skyline_tst03.test),
+long_tests = [
 #	      ("skyline_tst06",skyline_tst06.test),
 	      ("substruct_tst06",substruct_tst06.test),
 	      ("substruct_tst10",substruct_tst10.test),
-	      ("skyline_tst08",skyline_tst08.test)]
+              ("skyline_tst09",skyline_tst09.test),
+              ("skyline_tst11",skyline_tst11.test)]
 
 regression_tests = short_tests + medium_tests
 
 full_regression_tests = short_tests + medium_tests + long_tests
 
-all_tests = short_tests + medium_tests + long_tests
+all_tests = short_tests + medium_tests + long_tests + other_tests
 # =========================
 
 # Default value for ntimes
