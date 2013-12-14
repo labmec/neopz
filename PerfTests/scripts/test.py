@@ -125,9 +125,9 @@ long_tests = [
               ("skyline_tst09",skyline_tst09.test),
               ("skyline_tst11",skyline_tst11.test)]
 
-regression_tests = short_tests + medium_tests
-
-full_regression_tests = short_tests + medium_tests + long_tests
+short_regression_tests = short_tests
+regression_tests       = short_tests + medium_tests
+full_regression_tests  = short_tests + medium_tests + long_tests
 
 all_tests = short_tests + medium_tests + long_tests + other_tests
 # =========================
@@ -155,7 +155,8 @@ def usage():
 	print "\t-m           : Run medium tests."
 	print "\t-l           : Run long tests."
 	print "\t-r res_dir   : Run daily regression tests and move results to \"res_dir\" directory."
-	print "\t-fr res_dir  : Run full regression tests and move results to \"res_dir\" directory."
+	print "\t-F res_dir   : Run full regression tests and move results to \"res_dir\" directory."
+	print "\t-S res_dir   : Run short regression tests and move results to \"res_dir\" directory."
 	print "\t-t test_name : Run test test_name."
 	print "\nDESCRIPTION"
 	print "\tExecutes a set of performance tests. The following tests are available:"
@@ -173,6 +174,9 @@ def usage():
 		print "\t* ", t[0], ":", t[1].short_description()
 	print "\tFull regression tests:"
 	for t in full_regression_tests :
+		print "\t* ", t[0], ":", t[1].short_description()
+	print "\tShort regression tests:"
+	for t in short_regression_tests :
 		print "\t* ", t[0], ":", t[1].short_description()
 	sys.exit(1)
 
@@ -194,6 +198,7 @@ if __name__ == "__main__":
 			for t in long_tests       : tests_to_run[t[0]] = t
 			for t in regression_tests : tests_to_run[t[0]] = t
 			for t in full_regression_tests : tests_to_run[t[0]] = t
+			for t in short_regression_tests : tests_to_run[t[0]] = t
 		elif f == '-n': ntimes=int(v)
 		elif f == '-t': tests_to_run[v] = get_test(v)
 		elif f == '-s':
@@ -205,8 +210,11 @@ if __name__ == "__main__":
 		elif f == '-r':
 			for t in regression_tests : tests_to_run[t[0]] = t
 			results_dir = v
-		elif f == '-fr':
+		elif f == '-F':
 			for t in full_regression_tests : tests_to_run[t[0]] = t
+			results_dir = v
+		elif f == '-S':
+			for t in short_regression_tests : tests_to_run[t[0]] = t
 			results_dir = v
 		elif f == '-h': usage()
 
