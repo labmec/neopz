@@ -188,7 +188,7 @@ if __name__ == "__main__":
 	tests_to_run = {}
 	# Process arguments
 	try :
-		opts, extra_args = getopt.getopt(sys.argv[1:], 't:n:hasmlr:')
+		opts, extra_args = getopt.getopt(sys.argv[1:], 't:n:hasmlr:SF')
 	except getopt.GetoptError, e:
 		error(str(e), 1)
 	for f, v in opts:
