@@ -104,11 +104,9 @@ short_tests = [("substruct_tst01",substruct_tst01.test),
 # Tests with execution time between 1 and 10 minutes
 medium_tests= [("substruct_tst03",substruct_tst03.test),
 	       ("substruct_tst04",substruct_tst04.test),
-	       ("substruct_tst06",substruct_tst06.test),
 	       ("substruct_tst07",substruct_tst07.test),
 	       ("substruct_tst08",substruct_tst08.test),
 	       ("substruct_tst09",substruct_tst09.test),
-	       ("substruct_tst10",substruct_tst10.test),
 	       ("substruct_tst11",substruct_tst11.test),
 	       ("substruct_tst12",substruct_tst12.test),
 	       ("substruct_tst13",substruct_tst13.test),
@@ -117,9 +115,13 @@ medium_tests= [("substruct_tst03",substruct_tst03.test),
 # Tests with execution time longer than 10 minutes
 long_tests = [("skyline_tst03",skyline_tst03.test),
 #	      ("skyline_tst06",skyline_tst06.test),
+	      ("substruct_tst06",substruct_tst06.test),
+	      ("substruct_tst10",substruct_tst10.test),
 	      ("skyline_tst08",skyline_tst08.test)]
 
-regression_tests = short_tests + medium_tests + long_tests
+regression_tests = short_tests + medium_tests
+
+full_regression_tests = short_tests + medium_tests + long_tests
 
 all_tests = short_tests + medium_tests + long_tests
 # =========================
@@ -146,7 +148,8 @@ def usage():
 	print "\t-s           : Run short tests."
 	print "\t-m           : Run medium tests."
 	print "\t-l           : Run long tests."
-	print "\t-r res_dir   : Run regression tests and move results to \"res_dir\" directory."
+	print "\t-r res_dir   : Run daily regression tests and move results to \"res_dir\" directory."
+	print "\t-fr res_dir  : Run full regression tests and move results to \"res_dir\" directory."
 	print "\t-t test_name : Run test test_name."
 	print "\nDESCRIPTION"
 	print "\tExecutes a set of performance tests. The following tests are available:"
@@ -161,6 +164,9 @@ def usage():
 		print "\t* ", t[0], ":", t[1].short_description()
 	print "\tRegression tests:"
 	for t in regression_tests :
+		print "\t* ", t[0], ":", t[1].short_description()
+	print "\tFull regression tests:"
+	for t in full_regression_tests :
 		print "\t* ", t[0], ":", t[1].short_description()
 	sys.exit(1)
 
@@ -181,6 +187,7 @@ if __name__ == "__main__":
 			for t in medium_tests     : tests_to_run[t[0]] = t
 			for t in long_tests       : tests_to_run[t[0]] = t
 			for t in regression_tests : tests_to_run[t[0]] = t
+			for t in full_regression_tests : tests_to_run[t[0]] = t
 		elif f == '-n': ntimes=int(v)
 		elif f == '-t': tests_to_run[v] = get_test(v)
 		elif f == '-s':
@@ -191,6 +198,9 @@ if __name__ == "__main__":
 			for t in long_tests       : tests_to_run[t[0]] = t
 		elif f == '-r':
 			for t in regression_tests : tests_to_run[t[0]] = t
+			results_dir = v
+		elif f == '-fr':
+			for t in full_regression_tests : tests_to_run[t[0]] = t
 			results_dir = v
 		elif f == '-h': usage()
 
