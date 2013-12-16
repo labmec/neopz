@@ -61,8 +61,9 @@ std::ofstream *out;
 
 /** Ideia principal: Create a computational meshes on the order on side is different on Max Order preferred on this side
  */
-bool TestingIncompatibilityOrderOnRestrainedSides();
+bool TestingOrderIncompatibilityOnRestrainedSides();
 TPZGeoMesh *CreateQuadrilateralMesh();
+TPZGeoMesh *CreateQuadrilateralMesh2();
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
 
 
@@ -73,7 +74,7 @@ int main() {
     InitializePZLOG();
 #endif
     
-    if(TestingIncompatibilityOrderOnRestrainedSides())
+    if(TestingOrderIncompatibilityOnRestrainedSides())
         return 10;
     
     if(!TestingLoadingSavedMeshes())
@@ -83,16 +84,18 @@ int main() {
     return 0;
 }
 
-bool TestingIncompatibilityOrderOnRestrainedSides() {
+bool TestingOrderIncompatibilityOnRestrainedSides() {
     
     out = new (std::ofstream)("saida.txt");
 	// Initializing uniform refinements for reference elements
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 
-    TPZGeoMesh *gmesh = CreateQuadrilateralMesh();
+    TPZGeoMesh *gmesh;
+    gmesh = CreateQuadrilateralMesh();
+//    gmesh = CreateQuadrilateralMesh2();
     if(!gmesh) return false;
-    gmesh->Print();
+//    gmesh->Print();
     
     int p = 1;
     TPZCompEl::SetgOrder(p);
@@ -103,25 +106,26 @@ bool TestingIncompatibilityOrderOnRestrainedSides() {
     std::cout << "\nDividing element 0 and 2. THESE ELEMENTS ARE OVERLAPPED!!\n";
 	TPZVec<long> subels;
     cmesh->ElementVec()[0]->Divide(cmesh->ElementVec()[0]->Index(),subels);
-    gmesh->Print();
+//    gmesh->Print();
     cmesh->ElementVec()[2]->Divide(cmesh->ElementVec()[2]->Index(),subels);
-    gmesh->Print();
+//    gmesh->Print();
     // Dividing upper left subelement of the element 2.
     cmesh->ElementVec()[10]->Divide(cmesh->ElementVec()[10]->Index(),subels);
-    gmesh->Print();
-    cmesh->Print();
+    cmesh->ExpandSolution();
+//    gmesh->Print();
+//    cmesh->Print();
 
     // Setting order p=2 for element 1
     std::cout << "\nPRefine with order 2 for element 1.\n";
     ((TPZInterpolatedElement *)(cmesh->ElementVec()[1]))->PRefine(2);
-    std::cout << "\nPRefine with order 2 for element 7.\n";
-    ((TPZInterpolatedElement *)(cmesh->ElementVec()[7]))->PRefine(2);
+    cmesh->ExpandSolution();
     gmesh->Print();
+    cmesh->Print();
 
     // Dividing left sub elements of the element 10 (upper left sub element of the element 2)
-    cmesh->ElementVec()[11]->Divide(cmesh->ElementVec()[11]->Index(),subels);
-    cmesh->ElementVec()[14]->Divide(cmesh->ElementVec()[14]->Index(),subels);
-    gmesh->Print();
+ //   cmesh->ElementVec()[11]->Divide(cmesh->ElementVec()[11]->Index(),subels);
+ //   cmesh->ElementVec()[14]->Divide(cmesh->ElementVec()[14]->Index(),subels);
+ //   gmesh->Print();
 
     
     std::stringstream sout("incompatible.txt");
@@ -138,6 +142,46 @@ bool TestingIncompatibilityOrderOnRestrainedSides() {
     return true;
 }
 TPZGeoMesh *CreateQuadrilateralMesh() {
+    REAL co[6][3] = {
+        {0.,0.,0.},
+        {1.,0.,0.},
+        {1.,1.,0.},
+        {0.,1.,0.},
+        {-1.,1.,0.},
+        {-1.,0.,0.},
+    };
+    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,1,2,3}};
+    
+    const int nelem = 3;
+    int nnode = 6;
+    
+    TPZGeoEl *elvec[nelem];
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    long nod;
+    for(nod=0; nod<nnode; nod++) {
+        long nodind = gmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        coord[0] = co[nod][0];
+        coord[1] = co[nod][1];
+        coord[2] = co[nod][2];
+        gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    }
+    
+    long el;
+    for(el=0; el<nelem; el++) {
+        TPZManVector<long> nodind(4);
+        for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+        long index;
+        elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    return gmesh;
+    
+}
+TPZGeoMesh *CreateQuadrilateralMesh2() {
     REAL co[8][3] = {
         {0.,0.,0.},
         {1.,0.,0.},
