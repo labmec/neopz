@@ -238,12 +238,12 @@ void comparingDep()
     Celast(4,4)=G;
     cout << "\n Elastic Contitutive Matrix  C  =  "<< Celast <<endl;
     TPZTensor<STATE> eps,sigma;
-    eps.XX()=-0.01;
-    eps.XY()=-0.01;
-    eps.XZ()=-0.01;
-    eps.YZ()=-0.01;
-    eps.YY()=-0.01;
-    eps.ZZ()=-0.01;
+    eps.XX()=-0.001;
+    eps.XY()=-0.001;
+    eps.XZ()=-0.001;
+    eps.YZ()=-0.001;
+    eps.YY()=-0.001;
+    eps.ZZ()=-0.001;
     
 
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
@@ -419,12 +419,15 @@ void TwoLoadings()
 int main()
 {
     InitializePZLOG();
+    {
+        std::ofstream out("cadeamerda.txt");
+    }
 
 //    UniaxialSandstone();
     //VolumetricTest();
    // TwoLoadings();
     //SurfacePlot();
-    //compareplasticsteps();
+    compareplasticsteps();
     comparingDep();
     
  /*   TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
