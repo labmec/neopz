@@ -63,6 +63,9 @@ void compareplasticsteps()
     STATE E=100,nu=0.25,A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,N=0.,phi=0,psi=1.0;
     STATE G=E/(2.*(1.+nu));
     STATE K=E/(3.*(1.-2*nu));
+    
+    
+    
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
     PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
     TPZSandlerExtended SDPV(A,B,C,D,K,G,W,R,N,phi,psi);
@@ -80,7 +83,7 @@ void compareplasticsteps()
     TPZFNMatrix<36> Dep(6,6,0.);
     STATE deltaeps = -0.005;
     
-    for(int i=0;i<19;i++)
+    for(int i=0;i<130;i++)
     {
 
         PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
@@ -92,12 +95,134 @@ void compareplasticsteps()
         {
             deltaeps=0.002;
         }
+        if(i==18)
+        {
+            deltaeps=-0.002;
+        }
+        if(i==45)
+        {
+            deltaeps=0.002;
+        }
+        if(i==64)
+        {
+            deltaeps=-0.001;
+        }
+        if (i==130)
+        {
+            deltaeps=0.001;
+        }
+
         epst.XX()+=deltaeps;
     
         
     }
     
 }
+
+
+void UniaxialSandstone()
+{
+    
+    
+    TPZSandlerExtended SDPV;
+    SDPV.ReservoirSandstone(SDPV);
+    STATE epsp=0.,k0;
+    SDPV.Firstk(epsp, k0);
+    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
+    PlasticStepPV.fYC = SDPV;
+    TPZElasticResponse ER;
+    STATE E= SDPV.fE,nu=SDPV.fnu;
+    ER.SetUp(E,nu);
+    PlasticStepPV.fER =ER;
+    
+    ofstream outfilePV("sandstone.txt");
+    TPZTensor<STATE> epst,sigma,deps;
+
+    STATE deltaeps = -0.15/80;
+    
+    for(int i=0;i<140;i++)
+    {
+        
+        PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
+        outfilePV << -epst.XX()<< " " << -sigma.XX() << "\n";
+        
+        if(i==70)
+        {
+            deltaeps=0.075/80;
+        }
+     /*  if(i==87)
+        {
+            deltaeps=-0.15/80;
+        }
+      */
+        if(i==118)
+        {
+            deltaeps=-0.15/80;
+        }
+        
+
+
+        epst.XX()+=deltaeps;
+        
+        
+    }
+    
+}
+
+
+void VolumetricTest()
+{
+    
+    
+    TPZSandlerExtended SDPV;
+    //SDPV.ReservoirSandstone(SDPV);
+    SDPV.MCormicRanchSand(SDPV);
+    STATE epsp=0.,k0;
+    SDPV.Firstk(epsp, k0);
+    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
+    PlasticStepPV.fYC = SDPV;
+    TPZElasticResponse ER;
+    STATE E= SDPV.fE,nu=SDPV.fnu;
+    ER.SetUp(E,nu);
+    PlasticStepPV.fER =ER;
+    
+    ofstream outfilePV("sandstonevol.txt");
+    TPZTensor<STATE> epst,sigma,deps;
+    
+    STATE deltaeps = -0.4/100;
+    
+    for(int i=0;i<140;i++)
+    {
+        
+        PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
+        outfilePV << -epst.I1()<< " " << -sigma.I1() << "\n";
+        
+         if(i==140)
+        {
+            deltaeps=0.4/100;
+        }
+        /* if(i==87)
+         {
+         deltaeps=-0.15/80;
+         }
+         
+        if(i==118)
+        {
+            deltaeps=-0.15/80;
+        }
+        
+        */
+        
+        epst.XX()+=deltaeps;
+        epst.YY()+=deltaeps;
+        epst.ZZ()+=deltaeps;
+        
+        
+    }
+    
+}
+
+
 
 void comparingDep()
 {
@@ -148,10 +273,149 @@ void comparingDep()
     
 }
 
+void SurfacePlot()
+{
+    TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3),yield(2);
+    STATE E=100,nu=0.25,A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,N=0.,phi=0,psi=1.0;
+    STATE G=E/(2.*(1.+nu));
+    STATE K=E/(3.*(1.-2*nu));
+    TPZSandlerExtended materialmodel(A, B,C, D,K,G,W,R, N,phi,psi);
+    
+    ofstream outfile("surfaceplot.txt");
+        ofstream outfile2("surfaceplot2.txt");
+    
+    deleps[0]= -0.005;
+    
+    for (int k=0; k<3;k++) {
+        deltaepsP[k]=0.;
+        epsT[0]=0.;
+        epsPnext[0]=0.;
+        epssol[0]=0.;
+    }
+    
+    STATE kproj,kprev,epv=0.,I1,J2;
+    TPZFMatrix<STATE> GradSigma;
+    STATE temp1,temp3;
+    
+    kproj=0.;
+    kprev=0.13304;
+    //materialmodel.Firstk(epv,kprev);
+    for(int i=0;i<19;i++)
+    {
+        
+        for (int k=0; k<3;k++) {
+            epssol[k]=epsT[k]-epsPnext[k];
+        }
+        
+        materialmodel.ApplyStrainComputeElasticStress(epssol, sigtrial);
+        //materialmodel.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
+        materialmodel.ProjectSigma(sigtrial,kprev,sigproj,kproj);
+        outfile << -epsT[0]<< " " << -sigproj[0] << "\n";
+        //materialmodel.YieldFunction(sigproj, kproj, yield);
+        materialmodel.ComputeI1(sigtrial,I1);
+        materialmodel.ComputeJ2(sigtrial,J2);
+        
+         temp1=(-I1+kprev)/(-R*(A-C*exp(B*I1)));
+         temp3=(sqrt(J2))/((A-C*exp(B*I1)));
+        
+        outfile << -I1<<  " " << (A-C*exp(B*I1)) << "\n";
+        outfile2<< -I1<<  " "  << temp1*temp1+temp3*temp3 << "\n";
+        
+        if(i==12)
+        {
+            deleps[0]=-0.002;
+            deleps[0]*=-1;
+        }
+        
+        
+        for (int k=0; k<3;k++) {
+            deltasigma[k]=sigtrial[k]-sigproj[k];
+        }
+        
+        materialmodel.ApplyStressComputeElasticStrain(deltasigma, deltaepsP);
+        
+        for (int k=0; k<3;k++) {
+            epsPnext[k]+=deltaepsP[k];
+            epsT[k]+=deleps[k];
+        }
+        kprev=kproj;
+        
+    }
+    
+
+    
+    
+    
+}
+
+
+void TwoLoadings()
+{
+    STATE E=100,nu=0.25,A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,N=0.,phi=0,psi=1.0;
+    STATE G=E/(2.*(1.+nu));
+    STATE K=E/(3.*(1.-2*nu));
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
+    PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
+    TPZSandlerExtended SDPV(A,B,C,D,K,G,W,R,N,phi,psi);
+    STATE epsp=0.,k0;
+    SDPV.Firstk(epsp, k0);
+    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
+    PlasticStepPV.fYC = SDPV;
+    TPZElasticResponse ER;
+    ER.SetUp(E, nu);
+    PlasticStepPV.fER =ER;
+    
+    ofstream outfilePV("comparingPVFossumTest.txt");
+    ofstream outfileErick("comparingErickFossumTest.txt");
+    
+    TPZTensor<STATE> epst,sigma,deps;
+    TPZFNMatrix<36> Dep(6,6,0.);
+    STATE deltaeps = -0.1/40.;
+    
+    for(int i=0;i<80;i++)
+    {
+        
+
+        
+       /* if(i==40)
+        {
+            deltaeps = 0.04/40.;
+        }
+        */
+        if(i<40)
+        {
+            PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
+            outfilePV << -epst.XX()<< " " << -sigma.XX() << "\n";
+            //PlasticStepErick.ApplyStrainComputeSigma(epst,sigma);
+            //outfileErick << -epst.XX()<< " " << -sigma.XX() << "\n";
+            epst.XX()+=deltaeps;
+        }
+        else
+        {
+            PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
+            outfileErick << -epst.XY()<< " " << -sigma.XY() << "\n";
+            outfilePV << -epst.XX()<< " " << -sigma.XX() << "\n";
+            //PlasticStepErick.ApplyStrainComputeSigma(epst,sigma);
+            //outfileErick << -epst.XY()<< " " << -sigma.XY() << "\n";
+            epst.XY()+=deltaeps;
+        }
+        
+        
+        
+    }
+    
+}
+
+
+
 int main()
 {
 
-    compareplasticsteps();
+//    UniaxialSandstone();
+    //VolumetricTest();
+   // TwoLoadings();
+    //SurfacePlot();
+    //compareplasticsteps();
     comparingDep();
     
  /*   TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
@@ -302,7 +566,7 @@ int main()
     
     
     
-    UnaxialLoadingSD();
+  //  UnaxialLoadingSD();
     
 /*    TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
     TPZPlasticState<REAL> plasticstate;

@@ -31,7 +31,7 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi):
 fA(A),fB(B),fC(C),fD(D),fK(K),fG(G),fW(W),fR(R),fPhi(Phi),fN(N),fPsi(Psi)
 {
-    
+
 }
 
 TPZSandlerExtended::~TPZSandlerExtended()
@@ -235,7 +235,7 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
     STATE dist = DistF2(sigproj, theta, beta, k);
     if (fabs(dist) > 1.e-8 || err > 1.e-8) {
-        DebugStop();
+        //DebugStop();
     }
 #endif
     
@@ -589,6 +589,7 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
+    ofstream convergenceF1("convergenceF1.txt");
     STATE xi,resnorm,beta,distxi,distnew;
     distxi=1.e8;
     for (STATE xiguess=-M_PI; xiguess <= M_PI; xiguess += M_PI/20.)
@@ -612,6 +613,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     xn(1,0)=beta;
     while (resnorm > 10e-12 && counter < 30)
     {
+        
         TPZFNMatrix<4,STATE> jac(2,2);
         D2DistFunc1(sigmatrial, xn[0],xn[1],jac);
         DDistFunc1(sigmatrial, xn[0],xn[1],fxn);
@@ -620,8 +622,10 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         xn1=xn-sol;
         diff=xn1-xn;
         resnorm=Norm(diff);
+        convergenceF1 << counter << " "<<resnorm <<endl;
         xn=xn1;
         counter++;
+
         
     }
     
@@ -629,7 +633,8 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     F1Cyl(xn[0], xn[1], sigprojcyl);
     FromHWCylToPrincipal(sigprojcyl, sigproj);
     
-    STATE kguess = sigproj[0]+sigproj[1]+sigproj[2];
+  
+   STATE kguess = sigproj[0]+sigproj[1]+sigproj[2];
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
     int count =0;
     while (fabs(resl) > 1.e-14 && count < 30) {
@@ -640,10 +645,12 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
     
     kproj = kguess;
+   
 }
 
 void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
+
     STATE theta,beta=0.,distnew;
     STATE resnorm,disttheta;
     disttheta=1.e8;
@@ -666,6 +673,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     xn(2,0)=kprev;
     while (resnorm > 10.e-12 && counter < 30)
     {
+
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
         DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxn);
@@ -674,8 +682,10 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         xn1=xn-sol;
         diff=xn1-xn;
         resnorm=Norm(diff);
+       // convergenceF2 << counter << " "<<resnorm <<endl;
         xn=xn1;
         counter++;
+        
     }
 //    cout<< "\n resnorm = "<<resnorm <<endl;
 //    cout<< "\n counter = "<<counter <<endl;
@@ -770,7 +780,9 @@ void TPZSandlerExtended::ComputeJ2(TPZVec<STATE> stress,STATE &J2)const
     sig1 = stress[0];
     sig2 = stress[1];
     sig3 = stress[2];
-    J2=(pow(sig1 + (-sig1 - sig2 - sig3)/3.,2) + pow(sig2 + (-sig1 - sig2 - sig3)/3.,2) + pow((-sig1 - sig2 - sig3)/3. + sig3,2))/2.;
+    J2=(2.*sig1*sig2 +pow(sig1 + (-sig1 - sig2 - sig3)/3.,2.) +
+     pow(sig2 + (-sig1 - sig2 - sig3)/3.,2.) + 2*sig1*sig3 + 2.*sig2*sig3 +
+        pow((-sig1 - sig2 - sig3)/3. + sig3,2.))/2.;
 }
 
 
@@ -1536,3 +1548,46 @@ void TPZSandlerExtended::TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STA
     }
     
 }
+
+void TPZSandlerExtended::MCormicRanchSand(TPZSandlerExtended &mat)//em ksi
+{
+    STATE E=100,nu=0.25,A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,N=0.,phi=0,psi=1.0;
+    STATE G=E/(2.*(1.+nu));
+    STATE K=E/(3.*(1.-2*nu));
+    mat.fA=A;
+    mat.fB=B;
+    mat.fC=C;
+    mat.fD=D;
+    mat.fK=K;
+    mat.fG=G;
+    mat.fW=W;
+    mat.fR=R;
+    mat.fPhi=phi;
+    mat.fN=N;
+    mat.fPsi=psi;
+     mat.fE=(9.*K*G)/(3.*K+G);
+    mat.fnu=((3.*K)-(2.*G))/(2*(3.*K+G));
+}
+
+void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
+{
+    STATE E=1305,nu=0.25,A=2.61,B=0.169,C=2.57,D=0.05069,R=1.5,W=0.0908,N=0.,phi=0,psi=1.0;
+    STATE G=E/(2.*(1.+nu));
+    STATE K=E/(3.*(1.-2*nu));
+    mat.fA=A;
+    mat.fB=B;
+    mat.fC=C;
+    mat.fD=D;
+    mat.fK=K;
+    mat.fG=G;
+    mat.fW=W;
+    mat.fR=R;
+    mat.fPhi=phi;
+    mat.fN=N;
+    mat.fPsi=psi;
+    mat.fE=(9*K*G)/(3*K+G);
+    mat.fnu=((3.*K)-(2.*G))/(2*(3.*K+G));
+    
+    
+}
+

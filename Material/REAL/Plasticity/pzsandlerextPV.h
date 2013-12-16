@@ -163,9 +163,14 @@ public:
     static void ConvergenceRate(TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm, TPZVec<STATE> &convergence);
     
     static void CheckCoordinateTransformation(TPZVec<STATE> &cart);
+    
+    
+    static void MCormicRanchSand(TPZSandlerExtended &mat);
+    static void ReservoirSandstone(TPZSandlerExtended &mat);
+    
 public:
     
-    STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi;//,fk0;
+    STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fE,fnu;//,fk0;
     bool fIsonCap;
     
     
