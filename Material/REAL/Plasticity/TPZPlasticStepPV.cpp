@@ -56,14 +56,14 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	TPZTensor<REAL> sigtr;
 	
 	//
-	TPZTensor<REAL> epsTr,epsPN,epsElaNp1,depsTensor;
+	TPZTensor<REAL> epsTr,epsPN,epsElaNp1;
 	epsPN = fN.fEpsP;
 	epsTr = epsTotal;
 	epsTr -= epsPN; // Porque soh tem implementado o operator -=
 	
 	// Compute and Decomposition of SigTrial
 	fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
-	epsTotal.EigenSystem(DecompEps);
+	epsTr.EigenSystem(DecompEps);
 	sigtr.EigenSystem(DecompSig);
 	TPZManVector<REAL,3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3,0.);
 	
@@ -74,9 +74,15 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	{
 		EigenvecMat[i] = DecompSig.fEigenvectors[i];
 		epsegveFromProj[i].Resize(3,1);
-		for (int j = 0; j < 3; j++) {
-			epsegveFromProj[i](j,0) = EigenvecMat[i](j,0);
+		for	(int k = 0 ; k < 3 ; k++){
+			bool IsnoZero = false;
+			for (int j = 0; j < 3; j++) {
+				epsegveFromProj[i](j,0) = EigenvecMat[i](j,k);
+				if (!IsZero(epsegveFromProj[i](j,0))) IsnoZero = true;
+			}	
+			if (IsnoZero) break;
 		}
+		
 	}
 	for (int i = 0; i < 3; i++) {
 		REAL normvec = 0.;
@@ -84,7 +90,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 		for (int j = 0; j < 3; j++) {
 			epsegveFromProj[i](j,0) /= normvec;
 		}
-		epsegveFromProj[i].Print("eg");
 	}
 	
 	// ReturMap in the principal values
@@ -103,11 +108,10 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	int kjval[] = {0,1,2,1,2,2};
 	REAL G = fER.G();
 	REAL lambda = fER.Lambda();
-	
-	
+	int ki, kj;
 	for (int k = 0; k < 6; k++)
 	{
-		int ki, kj;
+		
 		ki = kival[k];
 		kj = kjval[k];
 		for (int i = 0; i < 3; i++)
@@ -134,59 +138,40 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	}///k
 	
 	REAL deigensig = 0., deigeneps = 0.;
-	
-	TPZFNMatrix<6,REAL> factorMat(3,3,0.);
-	TPZFNMatrix<9> depsMat(3,3,0.);
-	depsTensor = epsTotal;
-	depsTensor -= fN.fEpsT;
-	depsMat = depsTensor;
-	
+	TPZFNMatrix<36> RotCorrection(6,6,0.);
 	// Correcao do giro rigido
 	for (int i = 0; i < 2; i++) {
 		for (int j = i+1; j<3 ; j++) {
 			deigeneps = DecompEps.fEigenvalues[i]  - DecompEps.fEigenvalues[j];
 			deigensig = sigprvec[i] - sigprvec[j];
-			TPZFNMatrix<9,REAL> tempMat(3,1,0.);
-			depsMat.Multiply(epsegveFromProj[i], tempMat);
-			REAL deij = InnerVecOfMat(tempMat,epsegveFromProj[j]);
+			TPZFNMatrix<9,REAL> tempMat(3,3,0.);
 			REAL factor = 0.;
 			if (!IsZero(deigeneps)) {
-				factor = deigensig * deij / deigeneps;
+				factor = deigensig / deigeneps;
 			}
 			else {
-				factor = fER.G() * ( GradSigma(i,i) - GradSigma(i,j) - GradSigma(j,i) + GradSigma(j,j) ) * deij;
+				factor = fER.G() * ( GradSigma(i,i) - GradSigma(i,j) - GradSigma(j,i) + GradSigma(j,j) );
 			}
-			std::cout << "factor = " << factor << std::endl;
-			std::cout << "G = " << fER.G() << std::endl;
-			GradSigma.Print("GradSigma");
-			tempMat.Redim(3, 3);
 			tempMat = ProdT(epsegveFromProj[i],epsegveFromProj[j]) + ProdT(epsegveFromProj[j],epsegveFromProj[i]);
-			factorMat += tempMat * factor;
-			factorMat.Print("factorMat");
+			for (int k = 0 ; k < 6 ; k++){
+				ki = kival[k];
+				kj = kjval[k];
+				TPZFNMatrix<9> ColCorr(3,3,0.),ColCorrV(6,1,0.);
+				if (ki == kj) {
+					REAL tempval = (epsegveFromProj[j](ki,0) * epsegveFromProj[i](kj,0) );
+					ColCorr = tempval * factor * tempMat;
+				}
+				else {
+					ColCorr = (epsegveFromProj[j](ki,0) * epsegveFromProj[i](kj,0) + epsegveFromProj[j](kj,0) * epsegveFromProj[i](ki,0) ) * factor * tempMat;
+				}
+				ColCorrV = FromMatToVoight(ColCorr);
+				for (int l = 0; l < 6; l++) {
+					RotCorrection(l,k) += ColCorrV(l,0);
+				}
+			}
 		}
 	}
-	TPZFNMatrix<6> factorV = FromMatToVoight(factorMat);
-	
-	
-	// Achando o primeiro termo nao nulo de dEps (Tenho medo disso estar feio e ter jeito melhor - Nathan)
-	long pos = -1;
-	REAL depspos = 0.;
-	for (int i = 0 ; i < 6 ; i++){
-		if(!IsZero(depsTensor[i])) {
-			pos = i;
-			depspos = depsTensor[i]; 
-			break;
-		}
-	}
-	
-	if (pos == -1) {
-		PZError << "dEps Totalmente Nulo!!" << std::endl;
-		DebugStop(); // acho que devo tratar isso diferente. Somente nao fazer nada na matriz. Lembrar de perguntar pro Phil
-	}
-	
-	for (int i = 0; i < 6; i++) {
-		dSigDe(i,pos) += factorV(i,0)/depspos; //AQUI NATHAN
-	}	
+	dSigDe += RotCorrection;
 	
 	// Reconstruction of sigmaprTensor
 	DecompSig.fEigenvalues = sigprvec; // CHANGING THE EIGENVALUES FOR THE ONES OF SIGMAPR
@@ -204,10 +189,10 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTensor<REAL> &deps, REAL kprev)
 {
 	TPZTensor<REAL> eps1,eps2, SigmaTemp,Sigma1,Sigma2;
-	TPZFNMatrix <36> dSigDe1(6,6,0.),dSigDe2(6,6,0.);
+	TPZFNMatrix <36> dSigDe(6,6,0.);
 	TPZStack<REAL> coef;
 	
-	this->ApplyStrainComputeSigma(EpsIni,SigmaTemp);
+	this->ApplyStrainComputeDep(EpsIni,SigmaTemp,dSigDe);
 	fN.fEpsP.Scale(0.);
 	fN.fEpsT.Scale(0.);
 	fN.fAlpha = kprev;
@@ -228,13 +213,13 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 		eps2.Add(deps, alpha2);
 		
 		fN.fEpsT = EpsIni;
-		this->ApplyStrainComputeDep(eps1,Sigma1,dSigDe1);
+		this->ApplyStrainComputeSigma(eps1,Sigma1);
 		fN.fEpsP.Scale(0.);
 		fN.fEpsT.Scale(0.);
 		fN.fAlpha = kprev;
 		
 		fN.fEpsT = EpsIni;
-		this->ApplyStrainComputeDep(eps2,Sigma2,dSigDe2);
+		this->ApplyStrainComputeSigma(eps2,Sigma2);
 		fN.fEpsP.Scale(0.);
 		fN.fEpsT.Scale(0.);
 		fN.fAlpha = kprev;
@@ -246,8 +231,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 		deps2 = FromMatToVoight(depsMat);
 		
 		TPZFNMatrix <6> tanmult1(6,1,0.), tanmult2(6,1,0.);
-		dSigDe1.Multiply(deps1, tanmult1);
-		dSigDe2.Multiply(deps2, tanmult2);
+		dSigDe.Multiply(deps1, tanmult1);
+		dSigDe.Multiply(deps2, tanmult2);
 		
 		for (int i = 0 ; i < 6; i++) {
 			tanmult1(i,0) *= alpha1;
@@ -336,3 +321,29 @@ template class TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>;
 
 
 
+/*
+ // Correcao do giro rigido
+ for (int i = 0; i < 2; i++) {
+ for (int j = i+1; j<3 ; j++) {
+ deigeneps = DecompEps.fEigenvalues[i]  - DecompEps.fEigenvalues[j];
+ deigensig = sigprvec[i] - sigprvec[j];
+ TPZFNMatrix<9,REAL> tempMat(3,1,0.);
+ depsMat.Multiply(epsegveFromProj[i], tempMat);
+ REAL deij = InnerVecOfMat(tempMat,epsegveFromProj[j]);
+ REAL factor = 0.;
+ if (!IsZero(deigeneps)) {
+ factor = deigensig * deij / deigeneps;
+ }
+ else {
+ factor = fER.G() * ( GradSigma(i,i) - GradSigma(i,j) - GradSigma(j,i) + GradSigma(j,j) ) * deij;
+ }
+ std::cout << "factor = " << factor << std::endl;
+ std::cout << "G = " << fER.G() << std::endl;
+ GradSigma.Print("GradSigma");
+ tempMat.Redim(3, 3);
+ tempMat = ProdT(epsegveFromProj[i],epsegveFromProj[j]) + ProdT(epsegveFromProj[j],epsegveFromProj[i]);
+ factorMat += tempMat * factor;
+ 
+ }
+ }
+*/

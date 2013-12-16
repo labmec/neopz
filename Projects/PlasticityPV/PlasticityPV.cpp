@@ -55,41 +55,43 @@ void CurvaFig12Diogo();
 
 void DepPlasticPV();
 
+void DepPlasticPVMC();
+
 TPZFNMatrix<9> FromEgToMat(TPZManVector<REAL,3> egva, TPZManVector<TPZTensor<REAL>, 3 > &Eigenvec);
 
 TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
-
-
 int main()
 {
-	
-	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
-	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.25);
-	
-	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
-	
-	TPZManVector< TFad<3,REAL>, 3> sigtrialfad(3),sigprojfad(3);
-	for (int i = 0 ; i < 3 ; i++){
-		sigtrialfad[i].fastAccessDx(i) = 1;
-	}
-	sigtrialfad[0].val() = 1240.;
-	sigtrialfad[1].val() = 1140.;
-	sigtrialfad[2].val() = 1020.;
-	
-	TPZYCMohrCoulombPV::TComputeSequence toto;
-	toto.fGamma.resize(2);
-	toto.fGamma[0] = 0.;
-	toto.fGamma[1] = 0.;
-	
-	REAL epsbarfake = 0.;
-	MohrCoulombPV->ReturnMapLeftEdge<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto, epsbarfake);
-	std::cout << "sigprojfad = " << sigprojfad << std::endl;
-	
-	TaylorCheck();
-	TaylorCheck2();
-	TaylorCheck3();	
+//	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
+//	TPZElasticResponse ER;
+//	ER.SetUp(1000, 0.25);
+//	
+//	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
+//	
+//	TPZManVector< TFad<3,REAL>, 3> sigtrialfad(3),sigprojfad(3);
+//	for (int i = 0 ; i < 3 ; i++){
+//		sigtrialfad[i].fastAccessDx(i) = 1;
+//	}
+//	sigtrialfad[0].val() = 151;
+//	sigtrialfad[1].val() = 160.;
+//	sigtrialfad[2].val() = 149.;
+//	
+//	TPZYCMohrCoulombPV::TComputeSequence toto;
+//	toto.fGamma.resize(2);
+//	toto.fGamma[0] = 0.;
+//	toto.fGamma[1] = 0.;
+//	
+//	REAL epsbarfake = 0.;
+//	MohrCoulombPV->ReturnMapApex<TFad<3,REAL> >(sigtrialfad, sigprojfad, toto, epsbarfake);
+//	TPZFNMatrix<9> tang;
+//	MohrCoulombPV->ComputeApexTangent(tang, epsbarfake);
+//	tang.Print("tang:");
+//	std::cout << "sigprojfad = " << sigprojfad << std::endl;
+	DepPlasticPVMC();
+//	TaylorCheck();
+//	TaylorCheck2();
+//	TaylorCheck3();	
 	return 0;
 }
 
@@ -110,7 +112,7 @@ void DepPlasticPV()
 	
 	TPZTensor<REAL> eps, deps;
 	eps.XX() = -50. * 0.01;
-//	eps.YY() = -40. * 0.01;
+	eps.YY() = -40. * 0.01;
 //	eps.ZZ() = 45 * 0.01;
 //	eps.XY() = -23. * 0.001;
 //	eps.XZ() = -24. * 0.001;
@@ -121,8 +123,50 @@ void DepPlasticPV()
 //	deps.XY() = 0.62686 * 0.01;
 //	deps.XZ() = 0.63686 * 0.0001;
 //	deps.YZ() = 0.64686 * 0.0001;
-	stepPV.TaylorCheck(eps, deps,kprev); 
+	stepPV.TaylorCheck(eps, deps,kprev); 	
+}
+
+void DepPlasticPVMC()
+{
+
+	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
+	TPZElasticResponse ER;
+	ER.SetUp(1000., 0.25);
+	TPZYCMohrCoulombPV materialmodel(Phi,Psi,c,ER);
+	TPZTensor<REAL> epsT,Sigma;
+
+	TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> stepPV(0.);
+	stepPV.fYC = materialmodel;
+	stepPV.fER = ER;
 	
+	TPZTensor<REAL> eps, deps;
+	eps.XX() = -50. * 0.01;
+	//eps.YY() = -40. * 0.01;
+	//	eps.ZZ() = 45 * 0.01;
+	//	eps.XY() = -23. * 0.001;
+	//	eps.XZ() = -24. * 0.001;
+	//	eps.YZ() = -65. * 0.001;
+	deps.XX() = 3.86274 * 0.001;
+	//	deps.YY() = 1.13727 * 0.001;
+	//	deps.ZZ() = 1. * 0.001;
+	//	deps.XY() = 0.62686 * 0.01;
+	//	deps.XZ() = 0.63686 * 0.0001;
+	//	deps.YZ() = 0.64686 * 0.0001;
+	REAL kprev = 0.;
+	stepPV.TaylorCheck(eps, deps,kprev); 	
+	
+	/*
+	TPZTensor<REAL> eps, sigma;
+	eps.XX() = -0.5;
+	eps.YY() = -0.6;
+	eps.ZZ() = -0.002;
+	//	eps.XY() = -23. * 0.001;
+	//	eps.XZ() = -24. * 0.001;
+	//	eps.YZ() = -65. * 0.001;
+	TPZFNMatrix<36> Dep(6,6,0.);
+	stepPV.ApplyStrainComputeDep(eps, sigma, Dep);
+	Dep.Print("Dep:");
+	*/
 }
 
 void CurvaFig12PlasticPV()
