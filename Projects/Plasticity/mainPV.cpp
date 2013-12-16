@@ -78,18 +78,18 @@ void compareplasticsteps()
     PlasticStepPV.fER =ER;
     
     ofstream outfilePV("comparingPV.txt");
-    ofstream outfileErick("comparingErick.txt");
-    TPZTensor<STATE> epst,sigma,deps;
+    ofstream outfileErick("comparingErickInitialGuess.txt");
+    TPZTensor<STATE> epst,sigma1,sigma2,deps;
     TPZFNMatrix<36> Dep(6,6,0.);
     STATE deltaeps = -0.005;
     
     for(int i=0;i<130;i++)
     {
 
-        PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
-        outfilePV << -epst.XX()<< " " << -sigma.XX() << "\n";
-        PlasticStepErick.ApplyStrainComputeSigma(epst,sigma);
-        outfileErick << -epst.XX()<< " " << -sigma.XX() << "\n";
+        PlasticStepPV.ApplyStrainComputeSigma(epst, sigma1);
+        outfilePV << -epst.XX()<< " " << -sigma1.XX() << "\n";
+        PlasticStepErick.ApplyStrainComputeSigma(epst,sigma2);
+        outfileErick << -epst.XX()<< " " << -sigma2.XX() << "\n";
         
         if(i==12)
         {
@@ -238,12 +238,12 @@ void comparingDep()
     Celast(4,4)=G;
     cout << "\n Elastic Contitutive Matrix  C  =  "<< Celast <<endl;
     TPZTensor<STATE> eps,sigma;
-    eps.XX()=-0.0001;
-    eps.XX()=-0.0002;
-    eps.XX()=-0.0001;
-    eps.XX()=0.0001;
-    eps.XX()=0.0002;
-    eps.XX()=-0.0003;
+    eps.XX()=-0.01;
+    eps.XY()=-0.01;
+    eps.XZ()=-0.01;
+    eps.YZ()=-0.01;
+    eps.YY()=-0.01;
+    eps.ZZ()=-0.01;
     
 
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
@@ -257,11 +257,16 @@ void comparingDep()
     ER.SetUp(E, nu);
     PlasticStepPV.fER =ER;
     
-//    TPZVec<STATE> yield(2);
-//    cout << "yield  to see if elastic or plastic "<<yield <<endl;
-    
-    
     cout << "\n C elastic" << Celast <<endl;
+#ifdef LOG4CXX
+{
+    std::stringstream outfile;
+    outfile<<"\n Comparing Dep Matrix "<<std::endl;
+    
+    LOGPZ_DEBUG(logger,outfile.str());
+    
+}
+#endif
     
     PlasticStepPV.ApplyStrainComputeDep(eps, sigma,Dep);
     cout << "\n Dep PV" << Dep <<endl;
@@ -377,10 +382,13 @@ void TwoLoadings()
         
 
         
-       /* if(i==40)
+       /*
+        
+        if(i==40)
         {
             deltaeps = 0.04/40.;
         }
+        
         */
         if(i<40)
         {
@@ -410,6 +418,7 @@ void TwoLoadings()
 
 int main()
 {
+    InitializePZLOG();
 
 //    UniaxialSandstone();
     //VolumetricTest();
