@@ -28,7 +28,6 @@ void TPBrStrainStressDataBase::SetEnvelope(REAL A, REAL B, REAL C)
     fA = A;
     fB = B;
     fC = C;
-    qDebug() <<"------------------------->"<< A << B << C;
 }
 
 void TPBrStrainStressDataBase::GetEnvelope(int index, REAL &X, REAL &Y)
