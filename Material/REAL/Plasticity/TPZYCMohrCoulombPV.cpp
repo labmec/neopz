@@ -83,9 +83,9 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
 		gamma += deriv_gamma;
 		epsbar = T(fEpsPlasticBar)+gamma*T(2.*cosphi); //errado esta inicializando toda vez. diogo aqui
 		PlasticityFunction(epsbar, sigmay, H);
-		if (shapeFAD::val(H) < 0.) {
-			DebugStop();
-		}
+//		if (shapeFAD::val(H) < 0.) {
+//			DebugStop();
+//		}
 		
 		phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi - constA*gamma;
 		phival = shapeFAD::val(phi);
@@ -318,9 +318,9 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
 		gamma[1] -= (dinverse[1][0]*phi[0]+dinverse[1][1]*phi[1]);
 		epsbar = T(fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
 		PlasticityFunction(epsbar, sigmay, H);
-		if (shapeFAD::val(H) < 0.) {
-			DebugStop();
-		}
+//		if (shapeFAD::val(H) < 0.) {
+//			DebugStop();
+//		}
 		iter++;
 		phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
 		phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[1] - T(2.*cosphi)*sigmay;
@@ -395,6 +395,70 @@ void TPZYCMohrCoulombPV::ComputeRightEdgeTangent(TPZMatrix<REAL> &tang, REAL &ep
 	tang(2,2) = 1.+c3*dGads3+c2*dGbds3;
 }	
 
+template<class T>
+bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &sigma_projected,
+									 TComputeSequence &memory, REAL &epsbarnew) const
+{
+	const REAL K = fER.K(), G = fER.G();
+	const REAL sinphi = sin(fPhi);
+	const REAL sinpsi = sin(fPsi);
+	const REAL cosphi = cos(fPhi);
+	const REAL cotphi = 1./tan(fPhi);
+	T ptrnp1 = 0.;
+	for (int i = 0; i < 3; i++) {
+		ptrnp1 += T(sigmatrial[i]);
+	}
+	ptrnp1 /= 3.;
+	T DEpsPV = 0.;
+	T epsbarnp1 = T(fEpsPlasticBar);
+	T c,H;
+	std::cout << "c = " << c << "\tH = " << H << "\tptrnp1 = " << ptrnp1 << std::endl;
+	PlasticityFunction(epsbarnp1, c, H);
+	T alpha = cos(fPhi)/sin(fPsi);
+	REAL tol = 1.e-8;
+	
+ 	T res = c*cotphi-ptrnp1;
+	T pnp1;
+	
+	for (int i = 0; i < 30; i++) {
+		const T d = H*T(cosphi*cotphi)/T(sinpsi) + T(K);
+		DEpsPV -= res/d;
+		
+		epsbarnp1 = T(fEpsPlasticBar)+T(alpha)*DEpsPV;
+		pnp1 = ptrnp1 - T(K) * DEpsPV;
+		PlasticityFunction(epsbarnp1, c, H);
+		res = c*cotphi - pnp1;
+		if (fabs(res) < tol) break;
+	}
+	epsbarnew = shapeFAD::val(epsbarnp1);
+	
+	for (int i = 0; i < 3; i++) {
+		sigma_projected[i] = pnp1;
+	}
+	return true; // If it is in this ReturnMap it surely is this type of ReturnMap (ProjectSigma manages this)
+}
+
+void TPZYCMohrCoulombPV::ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const
+{
+	REAL c,H;
+	const REAL cosphi = cos(fPhi);
+	const REAL sinpsi	= sin(fPsi);
+	const REAL cotphi = 1./tan(fPhi);
+	const REAL K = fER.K();
+	const REAL alpha = cosphi/sinpsi;
+	this->PlasticityFunction(epsbarp, c, H);
+	const REAL num = H*alpha*cotphi/K;
+	const REAL denom = 1. + num;
+	const REAL dpdptr = num/denom;
+	const REAL dsigdsigtr = dpdptr/3.; 
+	tang.Redim(3, 3);
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3 ; j++) {
+			tang(i,j) = dsigdsigtr;
+		}
+	}
+}
+
 void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma,STATE &eproj)
 {
 	this->SetEpsBar(eprev);
@@ -410,7 +474,7 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
 	TPZVec<REAL> sigma_projected;
 	memory.fGamma.Resize(1);
 	memory.fGamma[0] = 0.;
-	if (ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
+	if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
 		eproj = epsbartemp;
 		sigma = sigma_projected;
 		memory.fWhichPlane = TComputeSequence::EMainPlane;
@@ -424,16 +488,16 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
 		const REAL sinpsi = sin(fPsi);
 		REAL val = (1-sinpsi)*sigma_trial[0]-2.*sigma_trial[2]+(1+sinpsi)*sigma_trial[1];
 		if (val > 0.) {
-			IsEdge = ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
+			IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
 			memory.fWhichPlane = TComputeSequence::ERightEdge;
 		}
 		else {
-			IsEdge = ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
+			IsEdge = this->ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
 			memory.fWhichPlane = TComputeSequence::ELeftEdge;
 		}
 		if (!IsEdge) {
-			PZError << "The ReturnMap is on the Apex - NOT IMPLEMENT YET" << std::endl;
-			DebugStop();
+			this->ReturnMapApex(sigma_trial, sigma_projected, memory,epsbartemp);
+			memory.fWhichPlane = TComputeSequence::EApex;
 		}
 		
 		eproj = epsbartemp;
@@ -459,7 +523,7 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
 	TPZVec<REAL> sigma_projected;
 	memory.fGamma.Resize(1);
 	memory.fGamma[0] = 0.;
-	if (ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
+	if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
 		eproj = epsbartemp;
 		this->ComputePlaneTangent(GradSigma, epsbartemp);
 		sigma = sigma_projected;
@@ -474,22 +538,22 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
 		const REAL sinpsi = sin(fPsi);
 		REAL val = (1-sinpsi)*sigma_trial[0]-2.*sigma_trial[2]+(1+sinpsi)*sigma_trial[1];
 		if (val > 0.) {
-			IsEdge = ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
+			IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
 			memory.fWhichPlane = TComputeSequence::ERightEdge;
 			IsRight = true;
 		}
 		else {
-			IsEdge = ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
+			IsEdge = this->ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
 			memory.fWhichPlane = TComputeSequence::ELeftEdge;
 			IsRight = false;
 		}
 		if (!IsEdge) {
-			PZError << "The ReturnMap is on the Apex - NOT IMPLEMENT YET" << std::endl;
-			DebugStop();
-			return;
+			this->ReturnMapApex(sigma_trial, sigma_projected, memory,epsbartemp);
+			memory.fWhichPlane = TComputeSequence::EApex;
 		}
-		if (IsRight) this->ComputeRightEdgeTangent(GradSigma, epsbartemp);
-		else this->ComputeLeftEdgeTangent(GradSigma, epsbartemp);
+		if (IsEdge && IsRight) this->ComputeRightEdgeTangent(GradSigma, epsbartemp);
+		else if (IsEdge && !IsRight) this->ComputeLeftEdgeTangent(GradSigma, epsbartemp);
+		else this->ComputeApexTangent(GradSigma, epsbartemp);
 		
 		eproj = epsbartemp;
 		this->SetEpsBar(eproj);
@@ -520,3 +584,8 @@ template bool TPZYCMohrCoulombPV::ReturnMapRightEdge<REAL>(const TPZVec<REAL> &s
 																											 TComputeSequence &memory, REAL &epsbarnew) const;
 template bool TPZYCMohrCoulombPV::ReturnMapRightEdge<fadtype>(const TPZVec<fadtype> &sigma_trial, TPZVec<fadtype> &sigma_projected, 
 																													TComputeSequence &memory, REAL &epsbarnew) const;
+
+template bool TPZYCMohrCoulombPV::ReturnMapApex<REAL>(const TPZVec<REAL> &sigma_trial, TPZVec<REAL> &sigma_projected, 
+																													 TComputeSequence &memory, REAL &epsbarnew) const;
+template bool TPZYCMohrCoulombPV::ReturnMapApex<fadtype>(const TPZVec<fadtype> &sigma_trial, TPZVec<fadtype> &sigma_projected, 
+																															TComputeSequence &memory, REAL &epsbarnew) const;

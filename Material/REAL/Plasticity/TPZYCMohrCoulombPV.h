@@ -155,6 +155,18 @@ public:
 	void ComputeRightEdgeTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const;
 	
 	/**
+	 * @brief Implements the return map in the apex
+	 */
+	template<class T>
+	bool ReturnMapApex(const TPZVec<T> &sigma_trial, TPZVec<T> &sigma_projected,
+													TComputeSequence &memory, REAL &epsbarnew) const;
+	
+	/**
+	 * @brief Computes dsigmapr/dsigmatr for the ReturnMapApex
+	 */
+	void ComputeApexTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const;
+	
+	/**
 	 * @brief Choses the correct projection and returns projected sigma and new epspbar
 	 */
 	void ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE eprev, TPZVec<STATE> &sigma, STATE &eproj);
