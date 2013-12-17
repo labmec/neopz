@@ -558,9 +558,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradError, SolError;
 	long i;
 	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad= 0.6;
-	REAL factorErrorHigh = 0.6;
+	REAL factorGrad = 0.4 + nref*0.1;
+	REAL factorErrorHigh = 0.5 + nref*0.05;
 	REAL factorErrorLower = 0.1;
+	if(nref>3) {
+		factorErrorLower = 0.;
+	}
 	
 	REAL MaxGradErrorByElement = gradervecbyel[nels];
 	
@@ -613,11 +616,11 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		}
 		else {
 			counterreftype[20]++;
-//			if(pelement < MaxPOrder) {
-//				el->PRefine(pelement);
-//				pused = true;
-//				counterreftype[21]++;
-//			}
+			if(pelement < MaxPOrder) {
+				el->PRefine(pelement);
+				pused = true;
+				counterreftype[21]++;
+			}
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
