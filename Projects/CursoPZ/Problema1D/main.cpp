@@ -23,6 +23,7 @@
 #include "pzstepsolver.h"
 
 #include "pzmaterial.h"
+#include "pzpoisson3d.h"
 #include "pzbndcond.h"
 #include "MiViga1D.h"
 
@@ -36,12 +37,58 @@
 std::string Archivo = PZSOURCEDIR;
 
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
+TPZGeoMesh *CreateQuadrilateralMesh();
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
+TPZCompMesh *CreateMesh2D(TPZGeoMesh *gmesh);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients);
-// uni-dimensional problem for elasticity
+
 int main() {
+
+    TPZGeoMesh *gmesh = CreateQuadrilateralMesh();
+	int p = 2;
+    TPZCompEl::SetgOrder(p);
+    TPZCompMesh *cmesh = CreateMesh2D(gmesh);
+    
+    TPZAnalysis an(cmesh);
+    TPZSkylineStructMatrix strskyl(cmesh);
+    an.SetStructuralMatrix(strskyl);
+	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
+	direct->SetDirect(ECholesky);
+	an.SetSolver(*direct);
+	delete direct;
+	direct = 0;
+    an.Run();
+
+    int nrows = an.Solution().Rows();
+    int cols = an.Solution().Cols();
+    for(int i=0;i<nrows;i++)
+        for(int j=0;j<cols;j++) {
+            an.Solution().PutVal(i,j,0.);
+            cmesh->Solution().PutVal(i,j,0.);
+        }
+    cmesh->Solution().PutVal(4,0,1.);
+    an.Solution().PutVal(4,0,1.);
+
+    std::cout << std::endl << "Solution:" << std::endl;
+    for(int i=0;i<nrows;i++) {
+        for(int j=0;j<cols;j++)
+            std::cout << an.Solution()(i,j) << "\t";
+        std::cout << std::endl;
+    }
+	// Post processing
+    TPZStack<std::string> scalarnames, vecnames;
+    scalarnames.Push("Solution");
+    scalarnames.Push("POrder");
+	an.DefineGraphMesh(2,scalarnames,vecnames,"MiSolucion1D.vtk");
+    
+	an.PostProcess(8,2);
+    
+    return 0;
+}
+// uni-dimensional problem for elasticity
+int main1D() {
 
 //#ifdef LOG4CXX
 //    InitializePZLOG();
@@ -66,7 +113,7 @@ int main() {
 	TPZAnalysis an (cmesh);
 	TPZSkylineStructMatrix strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
-	// Solver (is your choose) 
+	// Solver (is your choose)
 	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 	direct->SetDirect(ECholesky);
 	an.SetSolver(*direct);
@@ -97,7 +144,76 @@ int main() {
 	an.DefineGraphMesh(1,scalarnames,vecnames,"MiSolucion1D.vtk");
 
 	an.PostProcess(2);
+    return 0;
 }
+
+TPZGeoMesh *CreateQuadrilateralMesh() {
+    REAL co[4][3] = {
+        {0.,0.,0.},
+        {1.,0.,0.},
+        {1.,1.,0.},
+        {0.,1.,0.},
+    };
+    long indices[1][4] = {{0,1,2,3}};
+    
+    const int nelem = 1;
+    int nnode = 4;
+    
+    TPZGeoEl *elvec[nelem];
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    long nod;
+    for(nod=0; nod<nnode; nod++) {
+        long nodind = gmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        coord[0] = co[nod][0];
+        coord[1] = co[nod][1];
+        coord[2] = co[nod][2];
+        gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    }
+    
+    long el;
+    for(el=0; el<nelem; el++) {
+        TPZManVector<long> nodind(4);
+        for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+        long index;
+        elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    return gmesh;
+}
+TPZCompMesh *CreateMesh2D(TPZGeoMesh *gmesh) {
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+	// Creating Poisson material
+    int dim = 2;
+    int MaterialId = 1;
+	TPZMaterial *mat = new TPZMatPoisson3d(MaterialId,dim);
+	TPZVec<REAL> convd(3,0.);
+	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
+	cmesh->InsertMaterialObject(mat);
+	// Make compatible dimension of the model and the computational mesh
+	cmesh->SetDimModel(mat->Dimension());
+	cmesh->SetAllCreateFunctionsContinuous();
+    
+	// Boundary conditions
+	// Dirichlet
+	TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+	cmesh->InsertMaterialObject(bnd);
+	
+	cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->ExpandSolution();
+	cmesh->CleanUpUnconnectedNodes();
+	return cmesh;
+}
+
 
 void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
     
@@ -176,6 +292,7 @@ TPZGeoMesh *CreateGeoMesh(std::string &archivo) {
 
 	return meshgrid;
 }
+
 //*************************************
 //*******L Shape Quadrilateral*********
 //*************************************
