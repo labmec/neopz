@@ -57,6 +57,19 @@ DECLARE_FPO_HANDLER_FUNC;
 void UnaxialLoadingSD();
 void ProportionalLoading();
 
+/*
+TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
+{
+	TPZFNMatrix <6> voi(6,1,0.);
+	int k = 0;
+	for (int i = 0; i < 3; i++) {
+		for (int j = i ; j < 3; j++) {
+			voi(k++,0) = mat(i,j);
+		}
+	}
+	return voi;	
+}
+*/
 
 void compareplasticsteps()
 {
@@ -222,7 +235,85 @@ void VolumetricTest()
     
 }
 
-
+void ErickTaylorCheck(TPZTensor<REAL> eps, TPZTensor<REAL> deps)
+{
+	STATE E=100,nu=0.25,A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,N=0.,phi=0,psi=1.0;
+	STATE G=E/(2.*(1.+nu));
+	STATE K=E/(3.*(1.-2*nu));
+	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
+  PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
+	TPZTensor<STATE> sigma,eps1,eps2, Sigma1,Sigma2;
+	TPZStack <REAL> coef;
+	
+	TPZFNMatrix<36> Dep(6,6,0.);
+	
+	TPZPlasticState<REAL> state;
+	state = PlasticStepErick.GetState();
+	PlasticStepErick.ApplyStrainComputeDep(eps,sigma,Dep);
+	sigma.Print(cout);
+	//Dep.Print("DepErick:");
+	PlasticStepErick.SetState(state);
+	
+	REAL scale = 0.01;
+	REAL alphatable[] = {0.1,0.2,0.3,0.4,0.5,0.6};
+	for (int i = 0; i < 6; i++) {
+		alphatable[i] *= scale;
+	}
+	for (int ia = 0 ; ia < 5; ia++) {
+		REAL alpha1 = alphatable[ia];
+		REAL alpha2 = alphatable[ia+1];
+		eps1.Scale(0.);
+		eps2.Scale(0.);
+		eps1 = eps;
+		eps2 = eps;
+		eps1.Add(deps, alpha1);
+		eps2.Add(deps, alpha2);
+				
+		PlasticStepErick.ApplyStrainComputeSigma(eps1,Sigma1);
+		PlasticStepErick.SetState(state);
+		
+		PlasticStepErick.ApplyStrainComputeSigma(eps2,Sigma2);
+		PlasticStepErick.SetState(state);
+		
+		TPZFNMatrix <9> depsMat(3,3,0.);
+		TPZFNMatrix <6> deps1(6,1,0.);
+		depsMat = deps;
+		deps1 = FromMatToVoight(depsMat);
+		
+		TPZFNMatrix <6> tanmult1(6,1,0.), tanmult2(6,1,0.);
+		Dep.Multiply(deps1, tanmult1);
+		Dep.Multiply(deps1, tanmult2);
+		
+		for (int i = 0 ; i < 6; i++) {
+			tanmult1(i,0) *= alpha1;
+			tanmult2(i,0) *= alpha2;
+		}
+		
+		TPZFNMatrix <9> SigMatTemp33(3,3,0.);
+		TPZFNMatrix <6> sigprMat(6,1,0.),sigpr1Mat(6,1,0.),sigpr2Mat(6,1,0.);
+		SigMatTemp33 = sigma;
+		sigprMat = FromMatToVoight(SigMatTemp33);
+		SigMatTemp33 = Sigma1;
+		sigpr1Mat = FromMatToVoight(SigMatTemp33);
+		SigMatTemp33 = Sigma2;
+		sigpr2Mat = FromMatToVoight(SigMatTemp33);
+		
+		TPZFNMatrix<6> error1(6,1,0.), error2(6,1,0.);
+		for (int i = 0 ; i < 6; i++) {
+			error1(i,0) = sigpr1Mat(i,0) - sigprMat(i,0) - tanmult1(i,0);
+			error2(i,0) = sigpr2Mat(i,0) - sigprMat(i,0) - tanmult2(i,0);
+		}
+		
+		REAL n;
+		REAL norm1, norm2;
+		norm1 = NormVecOfMat(error1);
+		norm2 = NormVecOfMat(error2);
+		n = ( log(norm1) - log(norm2) ) / ( log(alpha1) - log(alpha2) );
+		coef.push_back(n);
+		
+	}
+	std::cout << "coef = " << coef << std::endl;
+}
 
 void comparingDep()
 {
@@ -233,17 +324,18 @@ void comparingDep()
     Celast(0,0)=K+(4./3.)*G;Celast(0,3)=K-(2./3.)*G;Celast(0,5)=K-(2./3.)*G;
     Celast(3,0)=K-(2./3.)*G;Celast(3,3)=K+(4./3.)*G;Celast(3,5)=K-(2./3.)*G;
     Celast(5,0)=K-(2./3.)*G;Celast(5,3)=K-(2./3.)*G;Celast(5,5)=K+(4./3.)*G;
-    Celast(1,1)=G;
-    Celast(2,2)=G;
-    Celast(4,4)=G;
+    Celast(1,1)=2*G;
+    Celast(2,2)=2*G;
+    Celast(4,4)=2*G;
     cout << "\n Elastic Contitutive Matrix  C  =  "<< Celast <<endl;
-    TPZTensor<STATE> eps,sigma;
-    eps.XX()=-0.001;
-    eps.XY()=-0.001;
-    eps.XZ()=-0.001;
-    eps.YZ()=-0.001;
-    eps.YY()=-0.001;
-    eps.ZZ()=-0.001;
+    TPZTensor<STATE> eps, deps,sigma1,sigma2;
+    
+		eps.XX() = -0.0001;
+		eps.YY() = -0.0002;
+		eps.ZZ() = -0.0003;
+//    eps.XY() = -0.001;
+//    eps.XZ()=-0.001;
+//    eps.YZ()=-0.001;
     
 
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
@@ -255,7 +347,7 @@ void comparingDep()
     PlasticStepPV.fYC = SDPV;
     TPZElasticResponse ER;
     ER.SetUp(E, nu);
-    PlasticStepPV.fER =ER;
+    PlasticStepPV.fER = ER;
     
     cout << "\n C elastic" << Celast <<endl;
 #ifdef LOG4CXX
@@ -268,14 +360,33 @@ void comparingDep()
 }
 #endif
     
-    PlasticStepPV.ApplyStrainComputeDep(eps, sigma,Dep);
+    PlasticStepPV.ApplyStrainComputeDep(eps, sigma1,Dep);
     cout << "\n Dep PV" << Dep <<endl;
+		cout << "\nSigmaPV:" << endl;
+		sigma1.Print(cout);
 
-    PlasticStepErick.ApplyStrainComputeDep(eps,sigma,Dep);
-
+    PlasticStepErick.ApplyStrainComputeDep(eps,sigma2,Dep);
     cout << "\n Dep Erick" << Dep <<endl;
-    
-    
+		cout << "\nSigmaErick:" << endl;
+	
+		sigma2.Print(cout);
+		sigma1-=sigma2;
+		std::cout << "\nErro entre Sigmas:" << endl;
+		sigma1.Print(cout);
+	
+	/// TAYLOR CHECKS
+//		deps.XX() = -0.00001;
+//		deps.YY() = -0.00001;
+//		deps.ZZ() = -0.00001;
+		deps.XY() = -0.00001;
+		deps.XZ() = -0.00002;
+		deps.YZ() = -0.00003;
+	
+		// CheckConv PV
+		PlasticStepPV.TaylorCheck(eps, deps, k0);
+		
+		// CheckConv do Erick
+		ErickTaylorCheck(eps,deps);
 }
 
 void SurfacePlot()
@@ -865,13 +976,8 @@ int main()
         kprev=kproj;
         
     }
-    
    */
-
-    
-
-    
-    return 0;
+	return 0;
 }
 
 void UnaxialLoadingSD()
