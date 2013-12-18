@@ -45,7 +45,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 	epsPN = epsTotal;
 	epsPN -= epsElaNp1; // Transforma epsPN em epsPNp1
 	fN.fEpsP = epsPN; 
-	
 }
 
 // EM FASE DE DEBUG!!!!!!!
@@ -64,15 +63,17 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	// Compute and Decomposition of SigTrial
 	fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
 	epsTr.EigenSystem(DecompEps);
+
 	sigtr.EigenSystem(DecompSig);
 	TPZManVector<REAL,3> sigtrvec(DecompSig.fEigenvalues), sigprvec(3,0.);
 	
 	// Pegando os autovetores
-	TPZManVector<TPZFMatrix<REAL>,3> epsegveFromProj(3);
-	TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
+	TPZManVector<TPZFNMatrix<3>,3> epsegveFromProj(3);
+	TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);     
 	for (int i = 0; i < 3; i++)
 	{
 		EigenvecMat[i] = DecompSig.fEigenvectors[i];
+		EigenvecMat[i].Print("EigenvecMat");
 		epsegveFromProj[i].Resize(3,1);
 		for	(int k = 0 ; k < 3 ; k++){
 			bool IsnoZero = false;
@@ -98,7 +99,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
 	fN.fAlpha = nextalpha;
 
-	
 	// Aqui calculo minha matriz tangente ------------------------------------
 	// Criando matriz tangente
 	TPZFNMatrix<36> dSigDe(6,6,0.);
@@ -133,6 +133,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 					temp *= GradSigma(i,j);
 					dSigDe(l,k) += temp * DecompSig.fEigenvectors[i][l];
 				}///l
+				//dSigDe.Print("dSigdE");
 			}///j
 		}///i		
 	}///k
@@ -171,6 +172,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			}
 		}
 	}
+	RotCorrection.Print("RotCorr:");
 	dSigDe += RotCorrection;
 	
 	// Reconstruction of sigmaprTensor
@@ -192,6 +194,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 	TPZFNMatrix <36> dSigDe(6,6,0.);
 	TPZStack<REAL> coef;
 	
+	fN.fEpsP.Scale(0.);
+	fN.fEpsT.Scale(0.);
+	fN.fAlpha = kprev;
 	this->ApplyStrainComputeDep(EpsIni,SigmaTemp,dSigDe);
 	fN.fEpsP.Scale(0.);
 	fN.fEpsT.Scale(0.);
@@ -249,10 +254,17 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 		sigpr2Mat = FromMatToVoight(SigMatTemp33);
 		
 		TPZFNMatrix<6> error1(6,1,0.), error2(6,1,0.);
+		sigprMat.Print("sigprMat");
+		sigpr1Mat.Print("sigpr1Mat");
+		tanmult1.Print("tanmult1");
+		sigpr2Mat.Print("sigpr2Mat");
+		tanmult2.Print("tanmult2");
 		for (int i = 0 ; i < 6; i++) {
 			error1(i,0) = sigpr1Mat(i,0) - sigprMat(i,0) - tanmult1(i,0);
 			error2(i,0) = sigpr2Mat(i,0) - sigprMat(i,0) - tanmult2(i,0);
 		}
+		error1.Print("error1:");
+		error2.Print("error2:");
 		
 		REAL n;
 		REAL norm1, norm2;
