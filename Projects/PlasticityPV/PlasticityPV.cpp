@@ -88,7 +88,7 @@ int main()
 //	MohrCoulombPV->ComputeApexTangent(tang, epsbarfake);
 //	tang.Print("tang:");
 //	std::cout << "sigprojfad = " << sigprojfad << std::endl;
-	DepPlasticPVMC();
+	DepPlasticPV();
 //	TaylorCheck();
 //	TaylorCheck2();
 //	TaylorCheck3();	
@@ -110,20 +110,23 @@ void DepPlasticPV()
 	stepPV.fYC = materialmodel;
 	stepPV.fER = ER;
 	
-	TPZTensor<REAL> eps, deps;
-	eps.XX() = -50. * 0.01;
-	eps.YY() = -40. * 0.01;
-//	eps.ZZ() = 45 * 0.01;
-//	eps.XY() = -23. * 0.001;
+	TPZTensor<REAL> eps, deps, sigma;
+	eps.XX() = -0.001;
+	eps.YY() = -0.001;
+	eps.ZZ() = -0.001;
+//	eps.XY() = -23. * 0.00001;
 //	eps.XZ() = -24. * 0.001;
 //	eps.YZ() = -65. * 0.001;
-	deps.XX() = 3.86274 * 0.001;
-//	deps.YY() = 1.13727 * 0.001;
-//	deps.ZZ() = 1. * 0.001;
-//	deps.XY() = 0.62686 * 0.01;
-//	deps.XZ() = 0.63686 * 0.0001;
-//	deps.YZ() = 0.64686 * 0.0001;
-	stepPV.TaylorCheck(eps, deps,kprev); 	
+	deps.XX() = -0.00001;
+	deps.YY() = -0.00002;
+	deps.ZZ() = -0.00003;
+//	deps.XY() = 0.0001;
+//    deps.XZ() = 0.63 * 0.00002;
+//	deps.YZ() = 0.64686 * 0.00001;
+	TPZFNMatrix<36> Dep(6,6,0.);
+	stepPV.TaylorCheck(eps, deps, kprev);
+	//stepPV.ApplyStrainComputeDep(eps, sigma, Dep); 	
+	Dep.Print("Dep:");
 }
 
 void DepPlasticPVMC()
@@ -131,7 +134,7 @@ void DepPlasticPVMC()
 
 	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
-	ER.SetUp(1000., 0.25);
+	ER.SetUp(100., 0.25);
 	TPZYCMohrCoulombPV materialmodel(Phi,Psi,c,ER);
 	TPZTensor<REAL> epsT,Sigma;
 
@@ -140,33 +143,33 @@ void DepPlasticPVMC()
 	stepPV.fER = ER;
 	
 	TPZTensor<REAL> eps, deps;
-	eps.XX() = -50. * 0.01;
-	//eps.YY() = -40. * 0.01;
-	//	eps.ZZ() = 45 * 0.01;
-	//	eps.XY() = -23. * 0.001;
+	eps.XX() = -0.001;
+	eps.YY() = -0.8;
+	eps.ZZ() = -0.05;
+	eps.XY() = 0.01;
 	//	eps.XZ() = -24. * 0.001;
 	//	eps.YZ() = -65. * 0.001;
-	deps.XX() = 3.86274 * 0.001;
-	//	deps.YY() = 1.13727 * 0.001;
-	//	deps.ZZ() = 1. * 0.001;
-	//	deps.XY() = 0.62686 * 0.01;
-	//	deps.XZ() = 0.63686 * 0.0001;
+	deps.XX() = 0.0001;
+	deps.YY() = 0.0003;
+	deps.ZZ() = 0.0002;
+	//deps.XY() = -0.002;
+		deps.XZ() = 0.63686 * 0.0001;
 	//	deps.YZ() = 0.64686 * 0.0001;
 	REAL kprev = 0.;
 	stepPV.TaylorCheck(eps, deps,kprev); 	
 	
-	/*
-	TPZTensor<REAL> eps, sigma;
-	eps.XX() = -0.5;
-	eps.YY() = -0.6;
-	eps.ZZ() = -0.002;
-	//	eps.XY() = -23. * 0.001;
-	//	eps.XZ() = -24. * 0.001;
-	//	eps.YZ() = -65. * 0.001;
-	TPZFNMatrix<36> Dep(6,6,0.);
-	stepPV.ApplyStrainComputeDep(eps, sigma, Dep);
-	Dep.Print("Dep:");
-	*/
+
+//	TPZTensor<REAL> eps, sigma;
+//	eps.XX() = 1.e-7;
+//	eps.YY() = 1.e-7;
+//	eps.ZZ() = 1.e-7;
+//	//	eps.XY() = -23. * 0.001;
+//	//	eps.XZ() = -24. * 0.001;
+//	//	eps.YZ() = -65. * 0.001;
+//	TPZFNMatrix<36> Dep(6,6,0.);
+//	stepPV.ApplyStrainComputeDep(eps, sigma, Dep);
+//	Dep.Print("Dep:");
+
 }
 
 void CurvaFig12PlasticPV()
