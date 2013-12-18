@@ -30,8 +30,8 @@ TPZYCMohrCoulombPV & TPZYCMohrCoulombPV::operator=(const TPZYCMohrCoulombPV &cp)
 template <class T>
 void TPZYCMohrCoulombPV::PlasticityFunction(const T epsp, T &sigmay, T &H) const
 {
-	sigmay = 15.+2571.43*(-0.0035) + 12904.8*epsp*epsp; // c(epsp)
-	H = 12904.8*2.*epsp; // dc(epsp)/depsp
+	sigmay = 15.+2571.43*(-0.0035) + 12904.8*epsp; // c(epsp)
+	H = 12904.8; // dc(epsp)/depsp
 }
 
 template<class T>
@@ -520,7 +520,7 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
 		sigma = sigma_trial;
 		return;
 	}
-	TPZVec<REAL> sigma_projected;
+	TPZManVector<REAL,3> sigma_projected;
 	memory.fGamma.Resize(1);
 	memory.fGamma[0] = 0.;
 	if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
