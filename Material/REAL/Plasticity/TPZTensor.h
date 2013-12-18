@@ -927,10 +927,14 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
         x1 = I1/3.;
         x2 = x1;
         x3 = x1;
-        Eigenvectors[0].Identity();
-        Eigenvectors[0].Scale(T(1/3.));
-        Eigenvectors[1] = Eigenvectors[0];
-        Eigenvectors[2] = Eigenvectors[1];
+//        Eigenvectors[0].Identity();
+//        Eigenvectors[0].Scale(T(1/3.));
+//        Eigenvectors[1] = Eigenvectors[0];
+//        Eigenvectors[2] = Eigenvectors[1];
+				Eigenvectors[0].XX() = 1.;
+				Eigenvectors[1].YY() = 1.;
+				Eigenvectors[2].ZZ() = 1.;
+			
         Eigenvalues[0]=x1;
         Eigenvalues[1]=x2;
         Eigenvalues[2]=x3;
@@ -1081,7 +1085,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
         
         Eigenvectors[0].Identity();
         Eigenvectors[0].Add(Eigenvectors[2],T(-1.));
-        Eigenvectors[0].Scale(T(0.5));
+        Eigenvectors[0].Scale(T(0.5)); //AQUINATHAN
         Eigenvectors[1] = Eigenvectors[0];
         
     }
@@ -1090,10 +1094,18 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
         x1 = I1/T(3.);
         x2 = x1;
         x3 = x1;
-        Eigenvectors[0].Identity();
-        Eigenvectors[0].Scale(T(1/3.));
-        Eigenvectors[1] = Eigenvectors[1];
-        Eigenvectors[2] = Eigenvectors[2];
+    //    Eigenvectors[0].Identity();
+    //    Eigenvectors[0].Scale(T(1/3.));
+    //    Eigenvectors[1] = Eigenvectors[1];
+    //    Eigenvectors[2] = Eigenvectors[2];
+			
+			Eigenvectors[0].XX() = 1.;
+			Eigenvectors[1].YY() = 1.;
+			Eigenvectors[2].ZZ() = 1.;
+			
+			Eigenvalues[0]=x1;
+			Eigenvalues[1]=x2;
+			Eigenvalues[2]=x3;
     }
     Eigenvalues[0]=x1;
     Eigenvalues[1]=x2;
