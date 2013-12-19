@@ -32,15 +32,20 @@ public:
 
 
     /// The function which defines the plastic surface
-    STATE F(STATE x,STATE phi) const;
+    template<class T>
+    T F(T x,STATE phi) const;
     /// Auxiliary function for Associating the position of the cap with the damage variable
-    STATE X(STATE k) const;
+    template<class T>
+    T X(T k) const;
     /// compute the damage variable as a function of the X function
-    STATE EpsEqX(STATE X) const;
+    template<class T>
+    T EpsEqX(T X) const;
     /// Compute the damage variable as a function of the position of the cap k
-    STATE EpsEqk(STATE k) const;
+    template<class T>
+    T EpsEqk(T k) const;
     /// Compute the residual of the equation which defines the update of the damage variable
-    STATE ResLF2(const TPZVec<STATE> &pt, STATE theta,STATE beta,STATE k,STATE kprev ) const;
+    template<class T>
+    T ResLF2(const TPZVec<T> &pt, T theta,T beta,T k,STATE kprev ) const;
     /// Compute the residual of the equation which defines the update of the damage variable
     STATE ResLF1(const TPZVec<STATE> &sigtrial, TPZVec<STATE> &sigproj,STATE k,STATE kprev ) const;
     /// Compute the distance of sigtrial to the point on the yield surface
@@ -52,7 +57,8 @@ public:
     /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
     void DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &ddistf1) const;
     /// Compute the derivative of the distance function to the cap function and the result of ResL
-    void DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZFMatrix<STATE> &ddistf2) const;
+    template<class T>
+    void DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE kprev, TPZVec<T> &ddistf2) const;
     /// Compute the second derivative of the distance as a function of xi and beta
     void D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &d2distf1) const;
     /// Compute the second derivative of the distance as a function of theta, beta and k
@@ -154,6 +160,9 @@ public:
     void TaylorCheckParamF1Sigtrial(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
     
     void TaylorCheckProjectF1(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
+    
+    /// verify D(theta,beta,k)/D(sigtrial)
+    void TaylorCheckDtbkDsigtrial(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
     
     void TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const;
     

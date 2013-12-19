@@ -56,6 +56,7 @@ DECLARE_FPO_HANDLER_FUNC;
 
 void UnaxialLoadingSD();
 void ProportionalLoading();
+int VerifyTangentSandlerPV();
 
 /*
 TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
@@ -375,13 +376,25 @@ void comparingDep()
 		sigma1.Print(cout);
 	
 	/// TAYLOR CHECKS
-//		deps.XX() = -0.00001;
+		deps.XX() = -0.00001;
 //		deps.YY() = -0.00001;
 //		deps.ZZ() = -0.00001;
-		deps.XY() = -0.00001;
-		deps.XZ() = -0.00002;
-		deps.YZ() = -0.00003;
-	
+//		deps.XY() = -0.00001;
+//		deps.XZ() = -0.00002;
+//		deps.YZ() = -0.00003;
+//    void TPZSandlerExtended::TaylorCheckProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const
+    {
+        TPZManVector<STATE,3> sigtrial(3);
+        sigtrial[0] = -0.032;
+        sigtrial[1] = -0.04;
+        sigtrial[2] = -0.048;
+        
+        STATE kprev = k0;
+        TPZManVector<REAL,11> xnorm,errnorm;
+        SDPV.TaylorCheckProjectSigma(sigtrial, kprev, xnorm, errnorm);
+        std::cout << xnorm << std::endl;
+        std::cout << errnorm << std::endl;
+	}
 		// CheckConv PV
 		PlasticStepPV.TaylorCheck(eps, deps, k0);
 		
@@ -533,12 +546,12 @@ int main()
     {
         std::ofstream out("cadeamerda.txt");
     }
-
+    VerifyTangentSandlerPV();
 //    UniaxialSandstone();
     //VolumetricTest();
    // TwoLoadings();
     //SurfacePlot();
-    compareplasticsteps();
+//    compareplasticsteps();
     comparingDep();
     
  /*   TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
@@ -691,7 +704,12 @@ int main()
     
   //  UnaxialLoadingSD();
     
-/*    TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
+    return 0;
+}
+
+int VerifyTangentSandlerPV()
+    {
+    TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
     TPZPlasticState<REAL> plasticstate;
     TPZManVector<STATE,3> epst(3);
 //    epst.XX()=-0.001;
@@ -707,7 +725,6 @@ int main()
 
    // materialmodel.ApplyStrainComputeSigma(plasticstate,stress);
     
-    ofstream outfiletxty("FIGURA12amodeloDiogo.txt");
     TPZManVector<STATE,3> deltaeps(3),eps(3),sigma(3),deltasigma(3);
     
 
@@ -715,12 +732,12 @@ int main()
     deltaeps[1]=0;
     deltaeps[2]=0;
     eps=deltaeps;
-    STATE kprev=0.,epspv1=0.,sig1,eps1;
+    STATE kprev=0.,epspv1=0.;
     materialmodel.Firstk(epspv1,kprev);
     TPZManVector<STATE,3> Tensor2(3);
-    Tensor2[0]=-0.12;
-    Tensor2[1]=-0.18;
-    Tensor2[2]=-0.25;
+    Tensor2[0]=-0.032;
+    Tensor2[1]=-0.04;
+    Tensor2[2]=-0.048;
     materialmodel.CheckCoordinateTransformation(Tensor2);
     
     TPZManVector<STATE,2> yield(2);
@@ -747,20 +764,37 @@ int main()
     cout << "\n errnorm " << errnorm << endl;
     cout << "\n convergence rate " << converge << endl;
     
-    
-    materialmodel.TaylorCheckDistF2(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+    cout << "Teste de D(DistF2)/D(theta,beta,k)\n";
+        {
+            STATE kproj;
+            TPZManVector<STATE,3> sigproj(3);
+            materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
+            STATE theta,beta;
+            materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
+            materialmodel.TaylorCheckDistF2(Tensor2, theta, beta, kproj, kprev, xnorm, errnorm);
+        }
     materialmodel.ConvergenceRate(xnorm, errnorm, converge);
     cout << "\n xnorm " << xnorm << endl;
     cout << "\n errnorm " << errnorm << endl;
     cout << "\n convergence rate " << converge << endl;
     
+        cout << "Teste da derivada D(ResF2)/D(theta,beta,k)\n";
     materialmodel.TaylorCheckDDistF2(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
     materialmodel.ConvergenceRate(xnorm, errnorm, converge);
     cout << "\n xnorm " << xnorm << endl;
     cout << "\n errnorm " << errnorm << endl;
     cout << "\n convergence rate " << converge << endl;
     
-    materialmodel.TaylorCheckDDistF2DSigtrial(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+    cout << "Teste da derivada D(ResF2)/D(sigtrial)\n";
+    {
+        STATE kproj;
+        TPZManVector<STATE,3> sigproj(3);
+        materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
+        STATE theta,beta;
+        materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
+
+        materialmodel.TaylorCheckDDistF2DSigtrial(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+    }
     materialmodel.ConvergenceRate(xnorm, errnorm, converge);
     cout << "xnorm " << xnorm << endl;
     cout << "errnorm " << errnorm << endl;
@@ -771,13 +805,23 @@ int main()
     cout << "\n xnorm " << xnorm << endl;
     cout << "\n errnorm " << errnorm << endl;
     cout << "\n convergence rate " << converge << endl;
+        
     
-    materialmodel.TaylorCheckDF2Cart(theta, beta, k, xnorm, errnorm);
+        cout << "Teste de D(F2cart)/D(theta,beta,k)\n";
+        {
+            STATE kproj;
+            TPZManVector<STATE,3> sigproj(3);
+            materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
+            STATE theta,beta;
+            materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
+            materialmodel.TaylorCheckDF2Cart(theta, beta, kproj, xnorm, errnorm);
+        }
     materialmodel.ConvergenceRate(xnorm, errnorm, converge);
     cout << "\n xnorm " << xnorm << endl;
     cout << "\n errnorm " << errnorm << endl;
     cout << "\n convergence rate " << converge << endl;
     
+        std::cout << "Teste de D(sigproj)/D(sigtrial) geral\n";
     materialmodel.TaylorCheckProjectSigma(Tensor2, kprev, xnorm, errnorm);
     materialmodel.ConvergenceRate(xnorm, errnorm, converge);
     cout << "\n xnorm " << xnorm << endl;
@@ -798,187 +842,196 @@ int main()
     cout << "\n errnorm " << errnorm << endl;
     cout << "\n convergence rate " << converge << endl;
     
-    
-    materialmodel.TaylorCheckProjectF2(Tensor2, kprev, xnorm, errnorm);
+        std::cout << "Teste de D(sigproj)/D(sigtrial) para funcao F2\n";
+        materialmodel.TaylorCheckProjectF2(Tensor2, kprev, xnorm, errnorm);
+        materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+        cout << "\n xnorm " << xnorm << endl;
+        cout << "\n errnorm " << errnorm << endl;
+        cout << "\n convergence rate " << converge << endl;
+        
+        std::cout << "Teste de D(theta,beta,k)/D(sigtrial) para funcao F2\n";
+    materialmodel.TaylorCheckDtbkDsigtrial(Tensor2, kprev, xnorm, errnorm);
     materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-  */  
-/*
-    
-   // ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STATE> &epsp,STATE & kprev,TPZVec<STATE> &epspnext,TPZVec<STATE> &stressnext,STATE & knext) const
-    TPZManVector<STATE,3> epsPnext(3),stresnext(3),epsT(3),epsP(3),deleps(3),STRE(3),STRENEXT(3),epssol(3);
-    STATE knext,kpr;
-    
-    ofstream outfile("FIGURA_12.txt");
-    
-    
-    deleps[0]= -0.00135;
-    deleps[1]=0;
-    deleps[2]=0;
-    epsT[0]=-0.0000001;
-    epsT[1]=0.;
-    epsT[2]=0.;
-    
-    epsP[0]=0.;
-    epsP[1]=0.;
-    epsP[2]=0.;
-    
-    
-    //STATE epv=0.;
-    //materialmodel.Firstk(epv,kpr);
-    kpr=0.13;
-    
-    for(int i=0;i<60;i++)
-    {
-        materialmodel.ApplyStrainComputeSigma(epsT,epsP,kpr,epsPnext,stresnext,knext);
-        if(i==50)
-        {
-            deleps[0]*=-1;
-        }
+    cout << "xnorm " << xnorm << endl;
+    cout << "errnorm " << errnorm << endl;
+    cout << "convergence rate " << converge << endl;
         
-        sig1 = stresnext[0];
-        eps1 =  epsT[0];
-        outfile << -eps1<< " " << -sig1 << "\n";
-        
-        
-        epsT[0]+=deleps[0];
-        epsT[1]+=deleps[1];
-        epsT[2]+=deleps[2];
-        
-        epsP[0]=epsPnext[0];
-        epsP[1]=epsPnext[1];
-        epsP[2]=epsPnext[2];
-        
-        kpr=knext;
-    }
-    
-    ofstream outfile2("FIGURA_11a.txt");
-    ofstream outfile3("FF.txt");
-    
-    
-    deleps[0]= -0.00135;
-    deleps[1]=0;
-    deleps[2]=0;
-    epsT[0]=-0.0000001;
-    epsT[1]=0.;
-    epsT[2]=0.;
-    
-    epsP[0]=0.;
-    epsP[1]=0.;
-    epsP[2]=0.;
-    
-    STATE I1,sqrtj2,I1tr;
-    //materialmodel.Firstk(epv,kpr);
-    kpr=0.13;
-    
-    for(int i=0;i<60;i++)
-    {
-        materialmodel.ApplyStrainComputeSigma(epsT,epsP,kpr,epsPnext,stresnext,knext);
-        if(i==50)
-        {
-            deleps[0]*=-1;
-        }
-        
-        materialmodel.ComputeI1(stresnext,I1);
-        materialmodel.ComputeJ2(stresnext,sqrtj2);
-        sqrtj2=sqrt(sqrtj2);
-        outfile2 << -I1 << " " << sqrtj2 << "\n";
-      
-
-        materialmodel.ApplyStrainComputeElasticStress(STRE, epsT);
-        
-        materialmodel.ComputeI1(STRE,I1tr);
-        STATE F = materialmodel.F(I1tr,0);
-        outfile3 << -I1tr << " " << F << "\n";
-        
-        
-        epsT[0]+=deleps[0];
-        epsT[1]+=deleps[1];
-        epsT[2]+=deleps[2];
-        
-        epsP[0]=epsPnext[0];
-        epsP[1]=epsPnext[1];
-        epsP[2]=epsPnext[2];
-        
-        kpr=knext;
-    }
-    
-*/
-    
-
-  
-    //UnaxialLoadingSD();
-    //ProportionalLoading();
-
    
-
-/*
-    TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
-    
- //   TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi);
-    REAL E = 22547.,nu = 0.2524;
-    STATE K = E/(3.*(1.-2.*nu));
-    STATE G = E/(2.*(1.+nu));
-    TPZSandlerExtended materialmodel2(689.2, 3.94e-4,675.2,1.47e-3,K,G,0.08,28., 0,6.,1.);
-    
-    ofstream outfile2("fossum1.txt");
-    ofstream outfile3("fossumI1sqrtJ2.txt");
-    
-    deleps[0]= -0.04/40;
-    
-    for (int k=0; k<3;k++) {
-        deltaepsP[k]=0.;
-        epsT[0]=0.;
-        epsPnext[0]=0.;
-        epssol[0]=0.;
-    }
-    
-    STATE kproj,kprev,epv=0.,I1,sqrtJ2;
-    TPZFMatrix<STATE> GradSigma;
-    
-    kproj=0.;
-    kprev=-8.05;
-    //materialmozdel.Firstk(epv,kprev);
-    for(int i=0;i<=40;i++)
-    {
-        
-        for (int k=0; k<3;k++) {
-            epssol[k]=epsT[k]-epsPnext[k];
-        }
-        
-        materialmodel2.ApplyStrainComputeElasticStress(epssol, sigtrial);
-        materialmodel2.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
-        materialmodel2.ProjectSigma(sigtrial,kprev,sigproj,kproj);
-        outfile2 << -epsT[0]<< " " << -sigproj[0] << "\n";
-        materialmodel2.ComputeI1(sigproj,I1);
-        materialmodel2.ComputeJ2(sigproj,sqrtJ2);
-        sqrtJ2=sqrt(sqrtJ2);
-        outfile3 << I1<< " " << sqrtJ2 << "\n";
-        
-        if(i==40)
-        {
-            deleps[0]=0.04/40;
-            deleps[1]=0.04/40;
-        }
-        
-        for (int k=0; k<3;k++) {
-            deltasigma[k]=sigtrial[k]-sigproj[k];
-        }
-        
-        materialmodel2.ApplyStressComputeElasticStrain(deltasigma, deltaepsP);
-        
-        for (int k=0; k<3;k++) {
-            epsPnext[k]+=deltaepsP[k];
-            epsT[k]+=deleps[k];
-        }
-        kprev=kproj;
-        
-    }
-   */
 	return 0;
 }
+
+/*
+ 
+ // ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STATE> &epsp,STATE & kprev,TPZVec<STATE> &epspnext,TPZVec<STATE> &stressnext,STATE & knext) const
+ TPZManVector<STATE,3> epsPnext(3),stresnext(3),epsT(3),epsP(3),deleps(3),STRE(3),STRENEXT(3),epssol(3);
+ STATE knext,kpr;
+ 
+ ofstream outfile("FIGURA_12.txt");
+ 
+ 
+ deleps[0]= -0.00135;
+ deleps[1]=0;
+ deleps[2]=0;
+ epsT[0]=-0.0000001;
+ epsT[1]=0.;
+ epsT[2]=0.;
+ 
+ epsP[0]=0.;
+ epsP[1]=0.;
+ epsP[2]=0.;
+ 
+ 
+ //STATE epv=0.;
+ //materialmodel.Firstk(epv,kpr);
+ kpr=0.13;
+ 
+ for(int i=0;i<60;i++)
+ {
+ materialmodel.ApplyStrainComputeSigma(epsT,epsP,kpr,epsPnext,stresnext,knext);
+ if(i==50)
+ {
+ deleps[0]*=-1;
+ }
+ 
+ sig1 = stresnext[0];
+ eps1 =  epsT[0];
+ outfile << -eps1<< " " << -sig1 << "\n";
+ 
+ 
+ epsT[0]+=deleps[0];
+ epsT[1]+=deleps[1];
+ epsT[2]+=deleps[2];
+ 
+ epsP[0]=epsPnext[0];
+ epsP[1]=epsPnext[1];
+ epsP[2]=epsPnext[2];
+ 
+ kpr=knext;
+ }
+ 
+ ofstream outfile2("FIGURA_11a.txt");
+ ofstream outfile3("FF.txt");
+ 
+ 
+ deleps[0]= -0.00135;
+ deleps[1]=0;
+ deleps[2]=0;
+ epsT[0]=-0.0000001;
+ epsT[1]=0.;
+ epsT[2]=0.;
+ 
+ epsP[0]=0.;
+ epsP[1]=0.;
+ epsP[2]=0.;
+ 
+ STATE I1,sqrtj2,I1tr;
+ //materialmodel.Firstk(epv,kpr);
+ kpr=0.13;
+ 
+ for(int i=0;i<60;i++)
+ {
+ materialmodel.ApplyStrainComputeSigma(epsT,epsP,kpr,epsPnext,stresnext,knext);
+ if(i==50)
+ {
+ deleps[0]*=-1;
+ }
+ 
+ materialmodel.ComputeI1(stresnext,I1);
+ materialmodel.ComputeJ2(stresnext,sqrtj2);
+ sqrtj2=sqrt(sqrtj2);
+ outfile2 << -I1 << " " << sqrtj2 << "\n";
+ 
+ 
+ materialmodel.ApplyStrainComputeElasticStress(STRE, epsT);
+ 
+ materialmodel.ComputeI1(STRE,I1tr);
+ STATE F = materialmodel.F(I1tr,0);
+ outfile3 << -I1tr << " " << F << "\n";
+ 
+ 
+ epsT[0]+=deleps[0];
+ epsT[1]+=deleps[1];
+ epsT[2]+=deleps[2];
+ 
+ epsP[0]=epsPnext[0];
+ epsP[1]=epsPnext[1];
+ epsP[2]=epsPnext[2];
+ 
+ kpr=knext;
+ }
+ 
+ */
+
+
+
+//UnaxialLoadingSD();
+//ProportionalLoading();
+
+
+
+/*
+ TPZManVector<STATE,3> epsPnext(3),epsT(3),deleps(3),epssol(3),deltaepsP(3),sigproj(3),sigtrial(3),deltasigma(3);
+ 
+ //   TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi);
+ REAL E = 22547.,nu = 0.2524;
+ STATE K = E/(3.*(1.-2.*nu));
+ STATE G = E/(2.*(1.+nu));
+ TPZSandlerExtended materialmodel2(689.2, 3.94e-4,675.2,1.47e-3,K,G,0.08,28., 0,6.,1.);
+ 
+ ofstream outfile2("fossum1.txt");
+ ofstream outfile3("fossumI1sqrtJ2.txt");
+ 
+ deleps[0]= -0.04/40;
+ 
+ for (int k=0; k<3;k++) {
+ deltaepsP[k]=0.;
+ epsT[0]=0.;
+ epsPnext[0]=0.;
+ epssol[0]=0.;
+ }
+ 
+ STATE kproj,kprev,epv=0.,I1,sqrtJ2;
+ TPZFMatrix<STATE> GradSigma;
+ 
+ kproj=0.;
+ kprev=-8.05;
+ //materialmozdel.Firstk(epv,kprev);
+ for(int i=0;i<=40;i++)
+ {
+ 
+ for (int k=0; k<3;k++) {
+ epssol[k]=epsT[k]-epsPnext[k];
+ }
+ 
+ materialmodel2.ApplyStrainComputeElasticStress(epssol, sigtrial);
+ materialmodel2.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
+ materialmodel2.ProjectSigma(sigtrial,kprev,sigproj,kproj);
+ outfile2 << -epsT[0]<< " " << -sigproj[0] << "\n";
+ materialmodel2.ComputeI1(sigproj,I1);
+ materialmodel2.ComputeJ2(sigproj,sqrtJ2);
+ sqrtJ2=sqrt(sqrtJ2);
+ outfile3 << I1<< " " << sqrtJ2 << "\n";
+ 
+ if(i==40)
+ {
+ deleps[0]=0.04/40;
+ deleps[1]=0.04/40;
+ }
+ 
+ for (int k=0; k<3;k++) {
+ deltasigma[k]=sigtrial[k]-sigproj[k];
+ }
+ 
+ materialmodel2.ApplyStressComputeElasticStrain(deltasigma, deltaepsP);
+ 
+ for (int k=0; k<3;k++) {
+ epsPnext[k]+=deltaepsP[k];
+ epsT[k]+=deleps[k];
+ }
+ kprev=kproj;
+ 
+ }
+ */
 
 void UnaxialLoadingSD()
 {

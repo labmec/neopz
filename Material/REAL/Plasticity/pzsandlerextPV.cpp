@@ -39,23 +39,27 @@ TPZSandlerExtended::~TPZSandlerExtended()
     
 }
 
-STATE TPZSandlerExtended::F(STATE x,STATE phi) const
+template <class T>
+T TPZSandlerExtended::F(T x,STATE phi) const
 {
     return (fA - fC*exp(x *fB) -fPhi*x);
 }
 
-STATE TPZSandlerExtended::X(STATE k) const
+template<class T>
+T TPZSandlerExtended::X(T k) const
 {
     return (k - fR * F(k, fPhi));
 }
 
-STATE TPZSandlerExtended::EpsEqX(STATE X) const
+template<class T>
+T TPZSandlerExtended::EpsEqX(T X) const
 {
     return (fW*( exp(fD*X) - 1 ));
 //   return fW* exp(fD*X);
 }
 
-STATE TPZSandlerExtended::EpsEqk(STATE k) const
+template<class T>
+T TPZSandlerExtended::EpsEqk(T k) const
 {
     return EpsEqX(X(k));
 }
@@ -81,13 +85,13 @@ void TPZSandlerExtended::Firstk(STATE &epsp,STATE &k) const
     k=kn1;
 }
 
-
-STATE TPZSandlerExtended::ResLF2(const TPZVec<STATE> &pt, STATE theta,STATE beta,STATE k,STATE kprev ) const
+template<class T>
+T TPZSandlerExtended::ResLF2(const TPZVec<T> &pt, T theta,T beta,T k,STATE kprev ) const
 {
     
-    STATE I1tr=(pt[0])+(pt[1])+(pt[2]);
-    STATE I1 =fR*F(k,fPhi)* cos(theta) +k;
-    STATE delepsp = EpsEqk(k) - EpsEqk(kprev);
+    T I1tr=(pt[0])+(pt[1])+(pt[2]);
+    T I1 =fR*F(k,fPhi)* cos(theta) +k;
+    T delepsp = EpsEqk(k) - EpsEqk(kprev);
     return  (3.*fK*delepsp - (I1tr - I1));
 }
 
@@ -307,15 +311,16 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta,
     
 }
 
-void TPZSandlerExtended::DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZFMatrix<STATE> &ddistf2) const
+template<class T>
+void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE kprev, TPZVec<T> &ddistf2) const
 {
     STATE sqrt2=sqrt(2);
-    STATE expfBk=exp(fB*k);
-    STATE costheta, sintheta,c1,c2,c3,c4,c5,c6,c7,sig1,sig2,sig3,sinbeta,cosbeta,sin3beta,cos3beta;
+    T expfBk=exp(fB*k);
+    T costheta, sintheta,c1,c2,c3,c4,c5,c6,c7,sig1,sig2,sig3,sinbeta,cosbeta,sin3beta,cos3beta;
     sinbeta=sin(beta);
     cosbeta=cos(beta);
-    cos3beta=cos(3*beta);
-    sin3beta=sin(3*beta);
+    cos3beta=cos(3.*beta);
+    sin3beta=sin(3.*beta);
     sig1 = pt[0];
     sig2 = pt[1];
     sig3 = pt[2];
@@ -328,8 +333,8 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE be
     c4=2*sqrt2*(F(k,fPhi)-fN)*cos(beta)/c7;
     c5=(1./sqrt(2.))*(sig2-sig3);
     c6=2.*sqrt(2.)*(F(k,fPhi)-fN)*sin(beta)/c7;
-    STATE ddistf2dtheta=(2.*c2*(c1 - k/sqrt(3.) - c2*costheta)*sintheta)/(3.*fK) +
-    (-2*c4*costheta*(c3 - c4*sintheta) - 2.*c6*costheta*(c5 - c6*sintheta))/(2.*fG);
+    T ddistf2dtheta=(2.*c2*(c1 - k/sqrt(3.) - c2*costheta)*sintheta)/(3.*fK) +
+    (-2.*c4*costheta*(c3 - c4*sintheta) - 2.*c6*costheta*(c5 - c6*sintheta))/(2.*fG);
     
     
     c1=pow(sig1/sqrt(3.) + sig2/sqrt(3.) + sig3/sqrt(3.) - (k + fR*(fA - fC*expfBk - k*fPhi)*costheta)/sqrt(3.),2.)/(3.*fK);
@@ -338,15 +343,15 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE be
     c4=c5;
     c5=c3;
     c6=1./fPsi;
-    STATE ddistf2dbeta =(2*(c2 - (c3*cosbeta)/(1 + c6*(1 - sin3beta) +sin3beta))*
-                        ((c3*cosbeta*(3*cos3beta - 3*c6*cos3beta))/pow (1 + c6*(1 - sin3beta) + sin3beta,2) + (c3*sinbeta)/(1 + c6*(1 - sin3beta) + sin3beta)) +2*((c5*(3*cos3beta - 3*c6*cos3beta)*sinbeta)/pow (1 + c6*(1 - sin3beta) + sin3beta,2) - (c5*cosbeta)/(1 + c6*(1 - sin3beta) +sin3beta))*(c4 - (c5*sinbeta)/(1 + c6*(1 - sin3beta) +sin3beta)))/(2.*fG);
+    T ddistf2dbeta =(2.*(c2 - (c3*cosbeta)/(1. + c6*(1. - sin3beta) +sin3beta))*
+                        ((c3*cosbeta*(3.*cos3beta - 3.*c6*cos3beta))/pow (1. + c6*(1. - sin3beta) + sin3beta,2.) + (c3*sinbeta)/(1. + c6*(1. - sin3beta) + sin3beta)) +2.*((c5*(3.*cos3beta - 3.*c6*cos3beta)*sinbeta)/pow (1. + c6*(1. - sin3beta) + sin3beta,2.) - (c5*cosbeta)/(1. + c6*(1. - sin3beta) +sin3beta))*(c4 - (c5*sinbeta)/(1 + c6*(1. - sin3beta) +sin3beta)))/(2.*fG);
     
     
-    STATE resL = ResLF2(pt, theta, beta,k,kprev);
+    T resL = ResLF2(pt, theta, beta,k,kprev);
     
-    ddistf2(0,0)=ddistf2dtheta;
-    ddistf2(1,0)=ddistf2dbeta;
-    ddistf2(2,0)=resL;
+    ddistf2[0]=ddistf2dtheta;
+    ddistf2[1]=ddistf2dbeta;
+    ddistf2[2]=resL;
     
 }
 
@@ -578,9 +583,7 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     temp3=(ggamma*sqrtj2)/(F(kprev,fPhi));
     
     f1=sqrtj2-F(II1,fPhi);
-    cout << "\n  f1 "<<f1 << endl;
     f2=temp1*temp1+temp3*temp3-1;
-    cout << "\n  f2 "<<f2 << endl;
 
     yield[0]=f1;
     yield[1]=f2;
@@ -671,13 +674,14 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     xn(0,0)=theta;
     xn(1,0)=beta;
     xn(2,0)=kprev;
-    while (resnorm > 10.e-12 && counter < 30)
+    while (resnorm > 10.e-15 && counter < 30)
     {
 
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
-        DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxn);
-        sol = fxn;
+        TPZManVector<STATE> fxnvec(3);
+        DDistFunc2<STATE>(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+        for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
@@ -687,6 +691,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         counter++;
         
     }
+    if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
 //    cout<< "\n resnorm = "<<resnorm <<endl;
 //    cout<< "\n counter = "<<counter <<endl;
 //    cout<< "\n k = "<<(xn1(2,0)-kprev) <<endl;
@@ -727,7 +732,9 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
     {
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial,xn[0],xn[1],xn[2],jac);
-        DDistFunc2(sigmatrial, xn[0],xn[1],xn[2],kprev,fxn);
+        TPZManVector<STATE> fxnvec(3);
+        DDistFunc2<STATE>(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+        for(int k=0; k<3; k++) fxn(k,0) = fxnvec[k];
         for (int i=0; i<3; i++) {
             jac(i,0) = 0.;
             jac(0,i) = 0.;
@@ -981,7 +988,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             if (I1<kproj)
             {
                 ProjectRing(sigtrial,kprev,sigproj,kproj);
-                // PLEASE DEBUG ME!!!!!
+                
                 // we can compute the tangent matrix
                 TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
                 STATE theta,beta;
@@ -1175,7 +1182,10 @@ void TPZSandlerExtended::TaylorCheckDistF2(const TPZVec<STATE> &sigmatrial, STAT
     STATE deltak = 0.;
     STATE dist0 = DistF2(sigmatrial, theta, beta, k);
     TPZFNMatrix<4,STATE> jac(3,1);
-    DDistFunc2(sigmatrial, theta, beta, k, kprev, jac);
+    TPZManVector<STATE> fxnvec(3);
+    DDistFunc2<STATE>(sigmatrial, theta,beta,k,kprev,fxnvec);
+    for(int k=0; k<3; k++) jac(k,0) = fxnvec[k];
+//    DDistFunc2(sigmatrial, theta, beta, k, kprev, jac);
     xnorm.resize(10);
     errnorm.resize(10);
     for (int i=1; i<=10; i++) {
@@ -1201,7 +1211,10 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
     STATE deltak = 0.5;
     TPZFNMatrix<3,STATE> res0(3,1),resid(3,1),residguess(3,1),diff(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
-    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
+    TPZManVector<STATE> fxnvec(3);
+    DDistFunc2<STATE>(sigmatrial, theta,beta,k,kprev,fxnvec);
+    for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
+//    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     D2DistFunc2(sigmatrial, theta, beta, k, jac);
     xnorm.resize(10);
     errnorm.resize(10);
@@ -1215,7 +1228,10 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
         diff(0) = difftheta;
         diff(1) = diffbeta;
         diff(2) = diffk;
-        DDistFunc2(sigmatrial, thetanext, betanext, knext, kprev, resid);
+        TPZManVector<STATE> fxnvec(3);
+        DDistFunc2<STATE>(sigmatrial, thetanext,betanext,knext,kprev,fxnvec);
+        for(int k=0; k<3; k++) resid(k,0) = fxnvec[k];
+//        DDistFunc2(sigmatrial, thetanext, betanext, knext, kprev, resid);
         jac.Multiply(diff, residguess);
         residguess += res0;
         xnorm[i-1] = Norm(diff);
@@ -1223,6 +1239,8 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
     }
     
 }
+
+/// teste da derivada D(ResF2)/D(sigtrial)
 
 void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmatrial, STATE theta, STATE beta, STATE k, STATE kprev, TPZVec<STATE> &xnorm,
                                                      TPZVec<STATE> &errnorm) const
@@ -1233,7 +1251,10 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
     
     TPZFNMatrix<3,STATE> res0(3,1),resid(3,1),residguess(3,1),diff(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
-    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
+    TPZManVector<STATE> fxnvec(3);
+    DDistFunc2<STATE>(sigmatrial, theta,beta,k,kprev,fxnvec);
+    for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
+//    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     GradF2SigmaTrial(sigmatrial, theta, beta, k, kprev, jac);
     xnorm.resize(10);
     errnorm.resize(10);
@@ -1241,7 +1262,10 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
         for(int j=0; j<3; j++) diff(j) = deltasigma[j]*i/10.;
         TPZManVector<STATE,3> sigmanext(3);
         for(int j=0; j<3; j++) sigmanext[j] = sigmatrial[j]+diff(j);
-        DDistFunc2(sigmanext, theta, beta,k,kprev,resid);
+        TPZManVector<STATE> fxnvec(3);
+        DDistFunc2<STATE>(sigmanext, theta,beta,k,kprev,fxnvec);
+        for(int k=0; k<3; k++) resid(k,0) = fxnvec[k];
+//        DDistFunc2(sigmanext, theta, beta,k,kprev,resid);
         jac.Multiply(diff, residguess);
         residguess += res0;
         xnorm[i-1] = Norm(diff);
@@ -1394,9 +1418,13 @@ void TPZSandlerExtended::TaylorCheckDF2Cart(STATE theta, STATE beta, STATE k, TP
 
 void TPZSandlerExtended::TaylorCheckProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const
 {
-    TPZManVector<STATE,3> deltasigma(3,-0.01), sigproj(3);
-    deltasigma[1] *= 3.;
-    deltasigma[2] *= -2.;
+    TPZManVector<STATE,3> deltasigma(3,-0.000012), sigproj(3);
+    deltasigma[1] = -4.e-6;
+    deltasigma[2] = -4.e-6;
+//    TPZManVector<STATE,3> deltasigma(3,-0.01), sigproj(3);
+//    deltasigma[1] *= 3;
+//    deltasigma[2] *= -2;
+
     TPZFNMatrix<3,STATE> res0(3,1),diff(3,1),resid(3,1),residguess(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
     STATE kproj;
@@ -1507,9 +1535,12 @@ void TPZSandlerExtended::TaylorCheckProjectF1(const TPZVec<STATE> &sigtrial, STA
 
 void TPZSandlerExtended::TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const
 {
-    TPZManVector<STATE,3> deltasigma(3,-0.01), sigproj(3);
-    deltasigma[1] *= 3.;
-    deltasigma[2] *= -2.;
+//    TPZManVector<STATE,3> deltasigma(3,-0.01), sigproj(3);
+//    deltasigma[1] *= 3.;
+//    deltasigma[2] *= -2.;
+    TPZManVector<STATE,3> deltasigma(3,-0.000012), sigproj(3);
+    deltasigma[1] = -4.e-6;
+    deltasigma[2] = -4.e-6;
     TPZFNMatrix<3,STATE> res0(3,1),diff(3,1),resid(3,1),residguess(3,1);
     TPZFNMatrix<9,STATE> jac(3,3), jacF2(3,3), gradF2(3,3), DF2cart(3,3), GradSigma(3,3);
     STATE kproj;
@@ -1520,6 +1551,23 @@ void TPZSandlerExtended::TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STA
     res0(1) = sigproj[1];
     res0(2) = sigproj[2];
     D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
+    
+    TFad<3,STATE> thetafad(theta,0),betafad(beta,1),kprojfad(kproj,2);
+    TPZManVector<TFad<3,STATE>, 3> sigtrialfad(3), ddistf2(3);
+    for (int m=0; m<3; m++) {
+        sigtrialfad[m] = sigtrial[m];
+    }
+    DDistFunc2(sigtrialfad, thetafad, betafad, kprojfad, kprev, ddistf2);
+    
+    TPZFNMatrix<9,STATE> diffjac(3,3);
+    for (int m=0; m<3; m++) {
+        for (int n=0; n<3; n++) {
+            diffjac(m,n) = jacF2(m,n)-ddistf2[m].fastAccessDx(n);
+            jacF2(m,n) = ddistf2[m].fastAccessDx(n);
+        }
+    }
+
+    
     GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, gradF2);
     //gradF1.Transpose();
     jacF2.Solve_LU(&gradF2);
@@ -1546,6 +1594,98 @@ void TPZSandlerExtended::TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STA
         xnorm[i-1] = Norm(diff);
         errnorm[i-1] = Norm(resid-residguess);
     }
+    
+}
+
+void TPZSandlerExtended::TaylorCheckDtbkDsigtrial(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &xnorm, TPZVec<STATE> &errnorm) const
+{
+    //    TPZManVector<STATE,3> deltasigma(3,-0.01), sigproj(3);
+    //    deltasigma[1] *= 3.;
+    //    deltasigma[2] *= -2.;
+    TPZManVector<STATE,3> deltasigma(3,-0.000012), sigproj(3);
+    deltasigma[1] = -4.e-6;
+    deltasigma[2] = -4.e-6;
+    TPZFNMatrix<3,STATE> res0(3,1),diff(3,1),resid(3,1),residguess(3,1);
+    TPZFNMatrix<9,STATE> jac(3,3), jacF2(3,3), gradF2(3,3), GradTBK(3,3);
+    STATE kproj;
+    ProjectF2(sigtrial, kprev, sigproj, kproj);
+    STATE theta,beta;
+    SurfaceParamF2(sigproj, kproj, theta, beta);
+    res0(0) = theta;
+    res0(1) = beta;
+    res0(2) = kproj;
+    D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
+    TFad<3,STATE> thetafad(theta,0),betafad(beta,1),kprojfad(kproj,2);
+    TPZManVector<TFad<3,STATE>, 3> sigtrialfad(3), ddistf2(3);
+    for (int m=0; m<3; m++) {
+        sigtrialfad[m] = sigtrial[m];
+    }
+    DDistFunc2(sigtrialfad, thetafad, betafad, kprojfad, kprev, ddistf2);
+    
+    TPZFNMatrix<9,STATE> diffjac(3,3);
+    for (int m=0; m<3; m++) {
+        for (int n=0; n<3; n++) {
+            diffjac(m,n) = jacF2(m,n)-ddistf2[m].fastAccessDx(n);
+            jacF2(m,n) = ddistf2[m].fastAccessDx(n);
+        }
+    }
+    diffjac.Print("DiffMatrix");
+    
+    GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, gradF2);
+    //gradF1.Transpose();
+    TPZFMatrix<STATE> jacF2temp(jacF2),gradF2temp(gradF2);
+    jacF2temp.Solve_LU(&gradF2temp);
+    GradTBK = gradF2temp;
+    GradTBK *= -1.;
+    
+    jac = GradTBK;
+    
+        TPZFNMatrix<3,STATE> tbk(3,1,0.), rhs;
+        tbk(1,0) = 0.1;
+        rhs = tbk;
+        GradTBK.Solve_LU(&rhs);
+        for (int i=0; i<3; i++) {
+            deltasigma[i] = rhs(i,0);
+        }
+    
+    
+    xnorm.resize(10);
+    errnorm.resize(10);
+    TPZFNMatrix<30,STATE> erros(3,10);
+    for (int i=1; i<=10; i++) {
+        TPZManVector<STATE,3> diffsigma(3),nextsigma(3);
+        TPZFNMatrix<3,STATE> difftbk(3,1);
+        for (int j=0; j<3; j++) {
+            diffsigma[j] = deltasigma[j]*i/10.;
+            difftbk(j) = tbk[j]*i/10.;
+            nextsigma[j] = sigtrial[j]+diffsigma[j];
+            diff(j) = diffsigma[j];
+        }
+        jac.Multiply(diff, residguess);
+        residguess += res0;
+//        TPZFNMatrix<3,STATE> multsig(3,0),multbk(3,0);
+//        jacF2.Multiply(difftbk, multbk);
+//        gradF2.Multiply(diff, multsig);
+//        residguess = multbk;
+//        residguess = multsig;
+//        TPZFNMatrix<3,STATE> fxn(3,1);
+//        DDistFunc2(nextsigma, theta+difftbk[0],beta+difftbk[1],kproj+difftbk[2],kprev,fxn);
+//        TPZManVector<STATE> fxnvec(3);
+//        DDistFunc2<STATE>(sigtrial,theta+difftbk[0],beta+difftbk[1],kproj+difftbk[2],kprev,fxnvec);
+//        for(int k=0; k<3; k++) fxn(k,0) = fxnvec[k];
+//        DDistFunc2(sigtrial, theta+difftbk[0],beta+difftbk[1],kproj+difftbk[2],kprev,fxn);
+//        DDistFunc2(nextsigma, theta,beta,kproj,kprev,fxn);
+            ProjectF2(nextsigma, kprev, sigproj, kproj);
+            STATE theta,beta;
+            SurfaceParamF2(sigproj, kproj, theta, beta);
+        resid(0) = theta;
+        resid(1) = beta;
+        resid(2) = kproj;
+        xnorm[i-1] = Norm(diff);
+        errnorm[i-1] = Norm(resid-residguess);
+        for(int a=0; a<3; a++) erros(a,i-1) = fabs(resid[a]-residguess[a]);
+    }
+    erros.Print(cout);
     
 }
 
