@@ -12,6 +12,9 @@
 
 #include "pzlog.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.material.TPZPlasticStepPV"));
+#endif
 
 
 template <class YC_t, class ER_t>
@@ -35,7 +38,15 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 	STATE nextalpha = -6378.;
 	fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha);
 	fN.fAlpha = nextalpha;
-	
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Sig Trial " << sigtrvec << "\nSig Project " << sigprvec << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+
 	// Reconstruction of sigmaprTensor
 	DecompSig.fEigenvalues = sigprvec; // CHANGING THE EIGENVALUES FOR THE ONES OF SIGMAPR
 	sigma = TPZTensor<REAL>(DecompSig);
@@ -73,7 +84,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	for (int i = 0; i < 3; i++)
 	{
 		EigenvecMat[i] = DecompSig.fEigenvectors[i];
-		EigenvecMat[i].Print("EigenvecMat");
 		epsegveFromProj[i].Resize(3,1);
 		for	(int k = 0 ; k < 3 ; k++){
 			bool IsnoZero = false;
@@ -98,6 +108,16 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	TPZFNMatrix<9> GradSigma(3,3,0.);
 	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
 	fN.fAlpha = nextalpha;
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Sig Trial " << sigtrvec << "\nSig Project " << sigprvec << std::endl;
+        GradSigma.Print("GradSigma", sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+        std::cout << "Eu nao sou louco!!!\n";
+    }
+#endif
 
 	// Aqui calculo minha matriz tangente ------------------------------------
 	// Criando matriz tangente
@@ -198,6 +218,13 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 	fN.fEpsT.Scale(0.);
 	fN.fAlpha = kprev;
 	this->ApplyStrainComputeDep(EpsIni,SigmaTemp,dSigDe);
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "EpsIni " << EpsIni << "\nSigmaTemp " << SigmaTemp << "\ndSidDe " << dSigDe << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	fN.fEpsP.Scale(0.);
 	fN.fEpsT.Scale(0.);
 	fN.fAlpha = kprev;
@@ -207,8 +234,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 	for (int i = 0; i < 6; i++) {
 		alphatable[i] *= scale;
 	}
-	for (int ia = 0 ; ia < 5; ia++) {
-		REAL alpha1 = alphatable[ia];
+	for (int ia = 0 ; ia < 1; ia++) {
+		REAL alpha1 = alphatable[0];
 		REAL alpha2 = alphatable[ia+1];
 		eps1.Scale(0.);
 		eps2.Scale(0.);
@@ -254,18 +281,29 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 		sigpr2Mat = FromMatToVoight(SigMatTemp33);
 		
 		TPZFNMatrix<6> error1(6,1,0.), error2(6,1,0.);
-		sigprMat.Print("sigprMat");
-		sigpr1Mat.Print("sigpr1Mat");
-		tanmult1.Print("tanmult1");
-		sigpr2Mat.Print("sigpr2Mat");
-		tanmult2.Print("tanmult2");
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sigprMat.Print("sigprMat",sout);
+            sigpr1Mat.Print("sigpr1Mat",sout);
+            tanmult1.Print("tanmult1",sout);
+            sigpr2Mat.Print("sigpr2Mat",sout);
+            tanmult2.Print("tanmult2",sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		for (int i = 0 ; i < 6; i++) {
 			error1(i,0) = sigpr1Mat(i,0) - sigprMat(i,0) - tanmult1(i,0);
 			error2(i,0) = sigpr2Mat(i,0) - sigprMat(i,0) - tanmult2(i,0);
 		}
-		error1.Print("error1:");
-		error2.Print("error2:");
-		
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            error1.Print("error1:",sout);
+            error2.Print("error2:",sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		REAL n;
 		REAL norm1, norm2;
 		norm1 = NormVecOfMat(error1);
