@@ -3,7 +3,7 @@
 
 #include <QDockWidget>
 #include "plot.h" //for point type enum
-#include "../PlasticityQT_CLI/TPBrDataControl.h"
+#include "TPBrDataControl.h"
 
 namespace Ui {
 class initialpointdock;

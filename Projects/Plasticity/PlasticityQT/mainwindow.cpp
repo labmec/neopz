@@ -305,15 +305,15 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 
     if (DADOS.isMed(indexCurve) == 0) // eh uma simulacao
     {
-        TPBrSimulationData *simData = dynamic_cast<TPBrSimulationData*> (DADOS.getObj(indexCurve));
-        if(!simData)
-        {
-            DebugStop();
-        }
-        REAL poisson, E, A, B, C, R, D, W;
-        simData->fSandler.getParams(poisson, E, A, B, C, R, D, W);
-        qDebug () << "AAAAAAAHHHH: " << poisson << " " << E<< " " << A<< " " << B<< " " << C<< " " << R<< " " << D<< " " << W;
-        updateParameters(simData->getSandler());
+//         TPBrSimulationData *simData = dynamic_cast<TPBrSimulationData*> (DADOS.getObj(indexCurve));
+//         if(!simData)
+//         {
+//             DebugStop();
+//         }
+//         REAL poisson, E, A, B, C, R, D, W;
+//         simData->fSandler.getParams(poisson, E, A, B, C, R, D, W);
+//         qDebug () << "AAAAAAAHHHH: " << poisson << " " << E<< " " << A<< " " << B<< " " << C<< " " << R<< " " << D<< " " << W;
+//         updateParameters(simData->getSandler());
     }
     //para medicao fazer oq?????????????????????
 
@@ -384,16 +384,16 @@ void MainWindow::reloadCurvesList(Plot *plotTmp)
 
 void MainWindow::updateParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> obj)
 {
-    REAL poisson, E, A, B, C, R, D, W;
-    obj.getParams(poisson, E, A, B, C, R, D, W);
-    ui->A_counter->setValue(A);
-    ui->B_counter->setValue(B);
-    ui->C_counter->setValue(C);
-    ui->D_counter->setValue(D);
-    ui->R_counter->setValue(R);
-    ui->W_counter->setValue(W);
-    ui->poisson_counter->setValue(poisson);
-    ui->young_counter->setValue(E);
+//     REAL poisson, E, A, B, C, R, D, W;
+//     obj.getParams(poisson, E, A, B, C, R, D, W);
+//     ui->A_counter->setValue(A);
+//     ui->B_counter->setValue(B);
+//     ui->C_counter->setValue(C);
+//     ui->D_counter->setValue(D);
+//     ui->R_counter->setValue(R);
+//     ui->W_counter->setValue(W);
+//     ui->poisson_counter->setValue(poisson);
+//     ui->young_counter->setValue(E);
 }
 
 void MainWindow::setParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)

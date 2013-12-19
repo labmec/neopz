@@ -8,7 +8,7 @@
 #include <qtreewidget.h>
 #include <QTreeWidgetItem>
 
-#include "../PlasticityQT_CLI/TPBrDataControl.h"
+#include "TPBrDataControl.h"
 
 
 class QString;

@@ -15,9 +15,9 @@ class CanvasPicker;
 class QwtPlotCanvas;
 #include "qwt_symbol.h"
 #include "qwt_plot_marker.h"
-#include "../PlasticityQT_CLI/TPBrStrainStressDataBase.h"
-#include "../PlasticityQT_CLI/TPBrDataControl.h"
-#include "../PlasticityQT_CLI/TPBrLaboratoryData.h"
+#include "TPBrStrainStressDataBase.h"
+#include "TPBrDataControl.h"
+#include "TPBrLaboratoryData.h"
 
 class Zoomer: public QwtPlotZoomer
 {

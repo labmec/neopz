@@ -1,5 +1,5 @@
 #include "TPBrLaboratoryData.h"
-#include "../TPZPlasticitySimulation.h"
+#include "TPZPlasticitySimulation.h"
 #include "TPBrDataControl.h"
 
 TPBrLaboratoryData::TPBrLaboratoryData()
