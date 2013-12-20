@@ -538,7 +538,31 @@ void TwoLoadings()
     
 }
 
+void DistFunc2TangentTest()
+{
+    TPZSandlerExtended SDPV;
+    SDPV.MCormicRanchSand(SDPV);
+    TPZVec<STATE> pt(3);
+    STATE theta=M_PI/3.,beta=M_PI,k0,epsp0=0.,kprev=0.;
+    TPZFMatrix<STATE> d2distf2(3,3,0.),ddistf2(3,1,0.);
+    SDPV.Firstk(epsp0,k0);
+    pt[0]=0.0160555,pt[1]= -0.0560555,pt[2]= -0.06;
+    
+    SDPV.D2DistFunc2new(pt, theta,beta, k0, d2distf2);
+    cout <<"\n D2DistFunc2New "<<d2distf2<<endl;
+    
+    SDPV.D2DistFunc2(pt, theta,beta, k0, d2distf2);
+    cout <<"\n D2DistFunc2Old "<<d2distf2<<endl;
 
+    TPZManVector<STATE> ddistf2vec(3);
+    SDPV.DDistFunc2new(pt,theta,beta,k0,kprev,ddistf2vec);
+    cout <<"\n ddistf2New "<<ddistf2<<endl;
+    
+    
+    SDPV.DDistFunc2(pt, theta, beta, k0, kprev, ddistf2vec);
+    cout <<"\n ddistf2Old "<<ddistf2<<endl;
+    
+}
 
 int main()
 {
@@ -546,6 +570,7 @@ int main()
     {
         std::ofstream out("cadeamerda.txt");
     }
+    DistFunc2TangentTest();
     VerifyTangentSandlerPV();
 //    UniaxialSandstone();
     //VolumetricTest();

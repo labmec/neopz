@@ -56,13 +56,25 @@ public:
     void Firstk(STATE &epsp,STATE &k) const;
     /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
     void DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &ddistf1) const;
+    
+    
     /// Compute the derivative of the distance function to the cap function and the result of ResL
     template<class T>
     void DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE kprev, TPZVec<T> &ddistf2) const;
+    
+    void DDistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZManVector<STATE> &ddistf2) const;
+    
+    
+    
     /// Compute the second derivative of the distance as a function of xi and beta
     void D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &d2distf1) const;
     /// Compute the second derivative of the distance as a function of theta, beta and k
-    void D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &d2distf2) const;
+    template <class T>
+    void D2DistFunc2(const TPZVec<T> &pt,T theta,T beta,T k, TPZFMatrix<T> &d2distf2)const;
+    
+    void D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &d2distf2)const;
+    
+    
     /// Compute the derivative of the equation which determines the evolution of k
     // the derivative are given in terms of theta, beta and k
     void DResLF2(const TPZVec<STATE> &pt, STATE theta, STATE beta, STATE k, STATE kprev, TPZVec<STATE> &dresl) const;

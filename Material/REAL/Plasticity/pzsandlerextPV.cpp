@@ -26,12 +26,16 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
     fPhi=copy.fPhi;
     fN=copy.fN;
     fPsi=copy.fPsi;
+    fE=(9.*fK*fG)/(3.*fK+fG);
+    fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
+    
 }
 
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi):
 fA(A),fB(B),fC(C),fD(D),fK(K),fG(G),fW(W),fR(R),fPhi(Phi),fN(N),fPsi(Psi)
 {
-
+    fE=(9.*fK*fG)/(3.*fK+fG);
+    fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
 }
 
 TPZSandlerExtended::~TPZSandlerExtended()
@@ -311,6 +315,28 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta,
     
 }
 
+void TPZSandlerExtended::DDistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZManVector<STATE> &ddistf2) const
+{
+    STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
+    STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
+    STATE dresktheta,dreskk;
+    STATE fR2=fR*fR,Gamma=1 + (1 - sin(3.*beta))/fPsi + sin(3.*beta),stresbeta=sin(3*beta),LPrev=kprev,FFLPrev=F(LPrev,fPhi),
+    Gamma2=Gamma*Gamma,FFL=F(k,fPhi),FFL2=FFL*FFL,fN2=fN*fN,
+    sb=sin(beta),cb=cos(beta),sb2=sb*sb,cb2=cb*cb,ct=cos(theta),st=sin(theta),
+    ct2=ct*ct,st2=st*st,sig1=pt[0],sig2=pt[1],sig3=pt[2],sq2=sqrt(2.),sq3=sqrt(3.),
+    L=k,FN=fN,xi=1./sq3*(sig1+sig2+sig3),sig2tiu=(sqrt(2./3.)*sig1)-(sig2/sqrt(6.))-(sig3/sqrt(6.)),
+    DGamma=3*cos(3*beta) - (3*cos(3*beta))/fPsi,DGamma2=DGamma*DGamma,Gamma3=Gamma*Gamma*Gamma,Gamma4=Gamma2*Gamma2,expBC=exp(fB*L)*fB*fC + fPhi;
+
+    STATE ddistf2dtheta=(-2*ct*(FFL - fN)*(Gamma*(sq2*cb*sig2tiu + sb*(sig2 - sig3)) + 4*(cb2*(-FFL + FN) + (-FFL + fN)*sb2)*st))/(fG*Gamma2) - (2*FFL*fR*st*(ct*FFL*fR + L - sq3*xi))/(9.*fK);
+    STATE ddistf2dbeta =  (2*(FFL - fN)*st*(8*cb2*(-FFL + FN)*st*(3*cos(3*beta) - (3*cos(3*beta))/fPsi) + cb*Gamma*(Gamma*(-sig2 + sig3) + 4*(-fN + FN)*sb*st + 2*sq2*sig2tiu*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)) +sb*(sq2*Gamma2*sig2tiu + 2*(Gamma*(sig2 - sig3) + 4*(-FFL + fN)*sb*st)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi))))/(fG*Gamma3);
+    STATE resL =ct*FFL*fR + L - sig1 - sig2 - sig3 + 3*(exp(fD*(-(FFL*fR) + L)) - exp(fD*(-(FFLPrev*fR) + LPrev)))*fK*fW;
+    
+    ddistf2[0]=ddistf2dtheta;
+    ddistf2[1]=ddistf2dbeta;
+    ddistf2[2]=resL;
+    
+}
+
 template<class T>
 void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE kprev, TPZVec<T> &ddistf2) const
 {
@@ -435,7 +461,66 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta
     
 }
 
-void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2) const
+void TPZSandlerExtended::D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2) const
+{
+STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
+STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
+STATE dresktheta,dreskk;
+STATE fR2=fR*fR,Gamma=1 + (1 - sin(3.*beta))/fPsi + sin(3.*beta),stresbeta=sin(3*beta),
+Gamma2=Gamma*Gamma,FFL=F(k,fPhi),FFL2=FFL*FFL,fN2=fN*fN,
+sb=sin(beta),cb=cos(beta),sb2=sb*sb,cb2=cb*cb,ct=cos(theta),st=sin(theta),
+ct2=ct*ct,st2=st*st,sig1=pt[0],sig2=pt[1],sig3=pt[2],sq2=sqrt(2.),sq3=sqrt(3.),
+L=k,FN=fN,xi=1./sq3*(sig1+sig2+sig3),sig2tiu=(sqrt(2./3.)*sig1)-(sig2/sqrt(6.))-(sig3/sqrt(6.)),
+DGamma=3*cos(3*beta) - (3*cos(3*beta))/fPsi,DGamma2=DGamma*DGamma,Gamma3=Gamma*Gamma*Gamma,Gamma4=Gamma2*Gamma2,expBC=exp(fB*L)*fB*fC + fPhi;
+
+
+d2distf2dthetatheta=(2.*(-(ct2*(FFL2*fG*fR2*Gamma2 - 36.*FFL2*fK*sb2 + 72.*FFL*fK*fN*sb2 - 36.*fK*fN2*sb2)) + 9.*cb*fK*(FFL - fN)*Gamma*sig2tiu*sq2*st +
+                    st*(FFL2*(fG*fR2*Gamma2 - 36.*fK*sb2)*st - 9.*fK*fN*sb*(Gamma*(sig2 - sig3) + 4.*fN*sb*st) + 9.*FFL*fK*sb*(Gamma*(sig2 - sig3) +
+                    8.*fN*sb*st)) + 36.*cb2*fK*(FFL - fN)*(ct2*(FFL - fN) + (-FFL + FN)*st2) +
+                    ct*FFL*fG*fR*Gamma2*(-L + sq3*xi)))/(9.*fG*fK*Gamma2);
+    
+    
+d2distf2dthetabeta=(ct*(FFL - fN)*sq2*(cb*Gamma*(4*DGamma*sig2tiu + sq2*(Gamma*(-sig2 + sig3) + 4*(FFL - fN)*sb*st)) +
+                        2*(Gamma2*sb*sig2tiu + DGamma*sq2*(Gamma*sb*(sig2 - sig3) - 4*(FFL - fN)*(cb2 + 2*sb2)*st))
+                        -4*(FFL - FN)*(2*cb*DGamma + Gamma*sb)*sq2*cb*ct))/(fG*Gamma3);
+    
+    
+    d2distf2dthetak=(2*(ct*expBC*(2*FFL*fG*fR2*Gamma2*st + 9*fK*(Gamma*(sb*(sig2 - sig3) + cb*sig2tiu*sq2) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)) - fG*fR*Gamma2*st*(FFL - expBC*L + expBC*sq3*xi)))/(9.*fG*fK*Gamma2);
+    
+    
+    
+  d2distf2dbetatheta=  -((ct*(FFL - fN)*sq2*(8*cb2*DGamma*(2*FFL - fN - FN)*sq2*st - 2*sb*(Gamma2*sig2tiu + DGamma*sq2*(Gamma*(sig2 - sig3) + 8*(-FFL + fN)*sb*st)) +
+                      cb*Gamma*(-4*DGamma*sig2tiu + sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st))))/(fG*Gamma3));
+    
+    
+   d2distf2dbetabeta= ((FFL - fN)*sq2*st*(-8*DGamma*Gamma2*sb*sig2tiu*(-1 + stresbeta) - 2*cb*Gamma*(Gamma2*sig2tiu + 8*DGamma2*sig2tiu*(-1 + stresbeta) +
+                     2*(-(DGamma*sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st)*(-1 + stresbeta)) + Gamma*(-9 + 4*Gamma)*sig2tiu*stresbeta)) +
+                        sq2*(Gamma3*sb*(-sig2 + sig3) - 8*DGamma2*(Gamma*sb*(sig2 - sig3) + 2*(cb2*(-3*FFL + fN + 2*FN) + 3*(-FFL + fN)*sb2)*st)*(-1 + stresbeta) +
+                             2*(Gamma*sb*(9*Gamma*(sig2 - sig3 + 2*(FFL - fN)*sb*st) + 4*(Gamma2*(-sig2 + sig3) + 9*(-FFL + fN)*sb*st))*stresbeta -
+                                2*cb2*st*(fN*Gamma2*(-1 + stresbeta) - 9*FFL*(-2 + Gamma)*Gamma*stresbeta + FN*(Gamma2 + 2*Gamma*(-9 + 4*Gamma)*stresbeta))))))/(fG*Gamma4*(-1 + stresbeta));
+    
+    d2distf2dbetak=(-2*expBC*st*(Gamma2*sb*sig2tiu*sq2 + cb*Gamma*(Gamma*(-sig2 + sig3) + 2*DGamma*sig2tiu*sq2 + 4*(-fN + FN)*sb*st) + 2*DGamma*(Gamma*sb*(sig2 - sig3) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)))/
+    (fG*Gamma3);
+
+    
+    dresktheta= -(FFL*fR*st);
+
+    
+    dreskk=1 - ct*expBC*fR + 3*fD*exp(fD*(-(FFL*fR) + L))*fK*(1 + expBC*fR)*fW;
+
+    tangentf2(0,0)= d2distf2dthetatheta;
+    tangentf2(0,1)=d2distf2dthetabeta;
+    tangentf2(0,2)=d2distf2dthetak;
+    tangentf2(1,0)=d2distf2dbetatheta;
+    tangentf2(1,1)=d2distf2dbetabeta;
+    tangentf2(1,2)=d2distf2dbetak;
+    tangentf2(2,0)=dresktheta;
+    tangentf2(2,1)=0;
+    tangentf2(2,2)=dreskk;
+}
+
+template <class T>
+void TPZSandlerExtended::D2DistFunc2(const TPZVec<T> &pt,T theta,T beta,T k, TPZFMatrix<T> &tangentf2)const
 {
     STATE sqrt3=sqrt(3);
     STATE sqrt2=sqrt(2);
@@ -486,6 +571,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
                         (c2*(3*cos3beta - 3*c5*cos3beta)*sinbeta*(c6 - (c4*sinbeta)/(1 + c5*(1 - sin3beta) + sin3beta)))/pow(1 + c5*(1 - sin3beta) + sin3beta,2) -
                         (c2*cosbeta*((c4*(3*cos3beta - 3*c5*cos3beta)*cosbeta)/pow(1 + c5*(1 - sin3beta) + sin3beta,2) + (c4*sinbeta)/(1 + c5*(1 - sin3beta) + sin3beta)))/
                         (1 + c5*(1 - sin3beta) + sin3beta))/(2.*fG);
+
     
     
     c1=(sig1+sig2+sig3)/sqrt(3.);
@@ -501,7 +587,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
     d2distf2dthetak=-(c3*(1 + c2*(-(expfBk*fB*fC) - fPhi))*(fA - expfBk*fC - fPhi*k))/(9.*fK) + (c3*(-(expfBk*fB*fC) - fPhi)*(c1 - (k + c2*(-(fC*expfBk) + fA - fPhi*k))/sqrt3))/(3.*sqrt3*fK) +
     ((c4*c6*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/(gamma*gamma) + (c7*c9*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/(gamma*gamma) -
      (c4*(-(expfBk*fB*fC) - fPhi)*(c5 - (c6*(fA - expfBk*fC - fN - fPhi*k))/gamma))/gamma - (c7*(-(expfBk*fB*fC) - fPhi)*(c8 - (c9*(fA - expfBk*fC - fN - fPhi*k))/gamma))/gamma)/(2.*fG);
-    
+
     
     
     //////////////
@@ -514,6 +600,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
     c6=(2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expfBk*fC - fN - fPhi*k)*cosbeta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2);
     c7=(2*sqrt2*sinbeta*(fA - expfBk*fC - fN - fPhi*k))/(1 + (1 - sin3beta)/fPsi + sin3beta);
     d2distf2dbetatheta=(2*(c6*costheta + c7*costheta)*(c5 - c2*sintheta) - 2*c4*costheta*(c1*sintheta - c2*sintheta) + 2*(c1*costheta - c2*costheta)*(c3 - c4*sintheta) - 2*c2*costheta*(c6*sintheta + c7*sintheta))/(2.*fG);
+
     
     c1=pow(-((k + costheta*fR*(fA - expfBk*fC - fPhi*k))/sqrt3) + sig1/sqrt3 + sig2/sqrt3 + sig3/sqrt3,2)/(3.*fK);
     c2=sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
@@ -523,6 +610,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
     c6=1/fPsi;
     d2distf2dbetabeta=(2*pow(c5,2)*pow(cosbeta,2)*pow(1 + c6 + 2*(-1 + c6)*sin3beta - 6*(-1 + c6)*sinbeta,2) + 2*pow(c3*(-1 + c6)*(2*cos2beta + cos4beta) - c3*(1 + c6)*sinbeta,2) +2*c3*cosbeta*(-(c2*(1 + c6)) + c3*cosbeta + c2*(-1 + c6)*sin3beta)*(15 - 34*c6 + 15*pow(c6,2) - 6*pow(-1 + c6,2)*
                                                                                                                                                                                                                                                         cos2beta + 6*pow(-1 + c6,2)*cos4beta + 2*pow(-1 + c6,2)*cos6beta -13*(-1 + pow(c6,2))*sin3beta + 12*(-1 + pow(c6,2))*sinbeta) + c5*(-(c4*(1 + c6)) + c4*(-1 + c6)*sin3beta + c5*sinbeta)*((1 - pow(c6,2))*cos2beta + 13*(-1 + pow(c6,2))*cos4beta + 2*(pow(-1 + c6,2)*(-4*sin5beta + sin7beta) + 4*(3 + c6*(-7 + 3*c6))*sinbeta)))/(2.*fG*pow(1 + c6 - (-1 + c6)*sin3beta,4));
+
     
     
     c1=(2.*sqrt(2.)*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*sintheta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2);
@@ -542,10 +630,10 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
     dreskk=1. + costheta*(-(expfBk*fB*fC) - fPhi)*fR +
     3.*exp(fD*(-((fA - expfBk*fC)*fR) + k))*fD*fK*
     (1. + expfBk*fB*fC*fR)*fW;
-    
+
     
     dresktheta=-fR*(fA - fC * expfBk - k*fPhi)* sintheta;
-    
+
     tangentf2(0,0)= d2distf2dthetatheta;
     tangentf2(0,1)=d2distf2dthetabeta;
     tangentf2(0,2)=d2distf2dthetak;
@@ -680,7 +768,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2<STATE>(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+        DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
         for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
         jac.Solve_LU(&sol);
         xn1=xn-sol;
@@ -733,7 +821,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial,xn[0],xn[1],xn[2],jac);
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2<STATE>(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+        DDistFunc2new(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
         for(int k=0; k<3; k++) fxn(k,0) = fxnvec[k];
         for (int i=0; i<3; i++) {
             jac(i,0) = 0.;
@@ -1183,7 +1271,7 @@ void TPZSandlerExtended::TaylorCheckDistF2(const TPZVec<STATE> &sigmatrial, STAT
     STATE dist0 = DistF2(sigmatrial, theta, beta, k);
     TPZFNMatrix<4,STATE> jac(3,1);
     TPZManVector<STATE> fxnvec(3);
-    DDistFunc2<STATE>(sigmatrial, theta,beta,k,kprev,fxnvec);
+    DDistFunc2new(sigmatrial, theta,beta,k,kprev,fxnvec);
     for(int k=0; k<3; k++) jac(k,0) = fxnvec[k];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, jac);
     xnorm.resize(10);
@@ -1212,7 +1300,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
     TPZFNMatrix<3,STATE> res0(3,1),resid(3,1),residguess(3,1),diff(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
     TPZManVector<STATE> fxnvec(3);
-    DDistFunc2<STATE>(sigmatrial, theta,beta,k,kprev,fxnvec);
+    DDistFunc2new(sigmatrial, theta,beta,k,kprev,fxnvec);
     for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     D2DistFunc2(sigmatrial, theta, beta, k, jac);
@@ -1229,7 +1317,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
         diff(1) = diffbeta;
         diff(2) = diffk;
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2<STATE>(sigmatrial, thetanext,betanext,knext,kprev,fxnvec);
+        DDistFunc2new(sigmatrial, thetanext,betanext,knext,kprev,fxnvec);
         for(int k=0; k<3; k++) resid(k,0) = fxnvec[k];
 //        DDistFunc2(sigmatrial, thetanext, betanext, knext, kprev, resid);
         jac.Multiply(diff, residguess);
@@ -1252,7 +1340,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
     TPZFNMatrix<3,STATE> res0(3,1),resid(3,1),residguess(3,1),diff(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
     TPZManVector<STATE> fxnvec(3);
-    DDistFunc2<STATE>(sigmatrial, theta,beta,k,kprev,fxnvec);
+    DDistFunc2new(sigmatrial, theta,beta,k,kprev,fxnvec);
     for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     GradF2SigmaTrial(sigmatrial, theta, beta, k, kprev, jac);
@@ -1263,7 +1351,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
         TPZManVector<STATE,3> sigmanext(3);
         for(int j=0; j<3; j++) sigmanext[j] = sigmatrial[j]+diff(j);
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2<STATE>(sigmanext, theta,beta,k,kprev,fxnvec);
+        DDistFunc2new(sigmanext, theta,beta,k,kprev,fxnvec);
         for(int k=0; k<3; k++) resid(k,0) = fxnvec[k];
 //        DDistFunc2(sigmanext, theta, beta,k,kprev,resid);
         jac.Multiply(diff, residguess);
@@ -1705,8 +1793,9 @@ void TPZSandlerExtended::MCormicRanchSand(TPZSandlerExtended &mat)//em ksi
     mat.fPhi=phi;
     mat.fN=N;
     mat.fPsi=psi;
-     mat.fE=(9.*K*G)/(3.*K+G);
-    mat.fnu=((3.*K)-(2.*G))/(2*(3.*K+G));
+    mat.fE=E;
+    mat.fnu=nu;
+
 }
 
 void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
@@ -1725,8 +1814,8 @@ void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
     mat.fPhi=phi;
     mat.fN=N;
     mat.fPsi=psi;
-    mat.fE=(9*K*G)/(3*K+G);
-    mat.fnu=((3.*K)-(2.*G))/(2*(3.*K+G));
+    mat.fE=E;
+    mat.fnu=nu;
     
     
 }
