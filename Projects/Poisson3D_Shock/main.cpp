@@ -89,7 +89,7 @@ int ModelDimension = 3;
 /** VARIABLES */
 /** Printing level */
 int gPrintLevel = 0;
-int printingsol = 0;
+int printingsol = 1;
 int printsave = 1;
 
 int materialId = 1;
@@ -353,13 +353,13 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				out << "\tRefinement: " << nref << " Regular Mesh: " << regular << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
 				an.Run();
 				
-				/* Post processing
+				// Post processing
 				an.PostProcess(0,ModelDimension);
 				if(gDebug) {
 					std::ofstream out(MeshFileName.c_str());
 					cmesh->LoadReferences();
 					TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
-				}*/
+				}
                 
 				// generation mesh process finished
 				time(&endtime);
