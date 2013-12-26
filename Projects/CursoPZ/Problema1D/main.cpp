@@ -38,6 +38,7 @@ std::string Archivo = PZSOURCEDIR;
 
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
 TPZGeoMesh *CreateQuadrilateralMesh();
+TPZGeoMesh *CreateQuadrilateralMesh2();
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
 TPZCompMesh *CreateMesh2D(TPZGeoMesh *gmesh);
 
@@ -45,12 +46,30 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients);
 
 int main() {
+    int counter = 2;
 
-    TPZGeoMesh *gmesh = CreateQuadrilateralMesh();
+    TPZGeoMesh *gmesh;
+    if(counter==1)
+        gmesh = CreateQuadrilateralMesh();
+    else
+        gmesh = CreateQuadrilateralMesh2();
 	int p = 2;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CreateMesh2D(gmesh);
     
+	if(counter==2) {
+        TPZInterpolatedElement *el = (TPZInterpolatedElement*)(cmesh->ElementVec()[0]);
+        TPZVec<long> subels;
+        el->Divide(el->Index(),subels);
+        el = (TPZInterpolatedElement*)(cmesh->ElementVec()[subels[3]]);
+        el->Divide(el->Index(),subels);
+        cmesh->AutoBuild();
+        
+        cmesh->AdjustBoundaryElements();
+        cmesh->ExpandSolution();
+        cmesh->CleanUpUnconnectedNodes();
+    }
+
     TPZAnalysis an(cmesh);
     TPZSkylineStructMatrix strskyl(cmesh);
     an.SetStructuralMatrix(strskyl);
@@ -59,31 +78,46 @@ int main() {
 	an.SetSolver(*direct);
 	delete direct;
 	direct = 0;
-    an.Run();
+   // an.Run();
 
     int nrows = an.Solution().Rows();
     int cols = an.Solution().Cols();
-    for(int i=0;i<nrows;i++)
-        for(int j=0;j<cols;j++) {
-            an.Solution().PutVal(i,j,0.);
-            cmesh->Solution().PutVal(i,j,0.);
+    if(counter==1) {
+        for(int i=0;i<nrows;i++) {
+            for(int j=0;j<cols;j++) {
+                an.Solution().PutVal(i,j,0.);
+                cmesh->Solution().PutVal(i,j,0.);
+            }
         }
-    cmesh->Solution().PutVal(4,0,1.);
-    an.Solution().PutVal(4,0,1.);
-
-    std::cout << std::endl << "Solution:" << std::endl;
-    for(int i=0;i<nrows;i++) {
-        for(int j=0;j<cols;j++)
-            std::cout << an.Solution()(i,j) << "\t";
-        std::cout << std::endl;
+        cmesh->Solution().PutVal(5,0,.25);
+        an.Solution().PutVal(5,0,.25);
     }
 	// Post processing
     TPZStack<std::string> scalarnames, vecnames;
     scalarnames.Push("Solution");
     scalarnames.Push("POrder");
-	an.DefineGraphMesh(2,scalarnames,vecnames,"MiSolucion1D.vtk");
-    
-	an.PostProcess(8,2);
+    char namef[256];
+    if(counter==1) {
+        sprintf(namef,"Solution2D_%d.vtk",counter);
+        an.DefineGraphMesh(2,scalarnames,vecnames,namef);
+        
+        an.PostProcess(6,2);
+    }
+    if(counter==2) {
+        for(int k=0;k<nrows;k++) {
+            for(int i=0;i<nrows;i++) {
+                for(int j=0;j<cols;j++) {
+                    an.Solution().PutVal(i,j,0.);
+                    cmesh->Solution().PutVal(i,j,0.);
+                }
+            }
+            cmesh->Solution().PutVal(k,0,.25);
+            an.Solution().PutVal(k,0,.25);
+            sprintf(namef,"Solution2D_%d_%d.vtk",counter,k);
+            an.DefineGraphMesh(2,scalarnames,vecnames,namef);
+            an.PostProcess(6,2);
+        }
+    }
     
     return 0;
 }
@@ -107,7 +141,6 @@ int main1D() {
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CreateMesh(gmesh);
     cmesh->Print();
-	
 	// Solving linear equations
 	// Initial steps
 	TPZAnalysis an (cmesh);
@@ -152,7 +185,44 @@ TPZGeoMesh *CreateQuadrilateralMesh() {
         {0.,0.,0.},
         {1.,0.,0.},
         {1.,1.,0.},
-        {0.,1.,0.},
+        {0.,1.,0.}
+    };
+    long indices[1][4] = {{0,1,2,3}};
+    
+    const int nelem = 1;
+    int nnode = 4;
+    
+    TPZGeoEl *elvec[nelem];
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    long nod;
+    for(nod=0; nod<nnode; nod++) {
+        long nodind = gmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        coord[0] = co[nod][0];
+        coord[1] = co[nod][1];
+        coord[2] = co[nod][2];
+        gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    }
+    
+    long el;
+    for(el=0; el<nelem; el++) {
+        TPZManVector<long> nodind(4);
+        for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+        long index;
+        elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    return gmesh;
+}
+TPZGeoMesh *CreateQuadrilateralMesh2() {
+    REAL co[4][3] = {
+        {1.,0.,0.},
+        {2.,0.,0.},
+        {2.,1.,0.},
+        {1.,1.,0.}
     };
     long indices[1][4] = {{0,1,2,3}};
     
@@ -188,7 +258,7 @@ TPZCompMesh *CreateMesh2D(TPZGeoMesh *gmesh) {
 	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
 	cmesh->SetAllCreateFunctionsContinuous();
-	
+//    cmesh->SetAllCreateFunctionsDiscontinuous();
 	// Creating Poisson material
     int dim = 2;
     int MaterialId = 1;
@@ -198,7 +268,7 @@ TPZCompMesh *CreateMesh2D(TPZGeoMesh *gmesh) {
 	cmesh->InsertMaterialObject(mat);
 	// Make compatible dimension of the model and the computational mesh
 	cmesh->SetDimModel(mat->Dimension());
-	cmesh->SetAllCreateFunctionsContinuous();
+//	cmesh->SetAllCreateFunctionsContinuous();
     
 	// Boundary conditions
 	// Dirichlet
@@ -211,6 +281,7 @@ TPZCompMesh *CreateMesh2D(TPZGeoMesh *gmesh) {
     cmesh->AdjustBoundaryElements();
     cmesh->ExpandSolution();
 	cmesh->CleanUpUnconnectedNodes();
+    
 	return cmesh;
 }
 
