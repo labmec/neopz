@@ -182,8 +182,8 @@ int main() {
     //    gRefDBase.InitializeRefPatterns();
     
 	// To check if derivatives and function was right inplemented 
-	std::ifstream inpoint("datapoint.dat");
-	std::ifstream math("mathvalues.dat");
+//	std::ifstream inpoint("datapoint.dat");
+//	std::ifstream math("mathvalues.dat");
 
 	// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnHexaMesh())
@@ -224,7 +224,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
+		for(itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
@@ -243,12 +243,12 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3) {
 				ninitialrefs = 3;
-				NRefs = 15;
+				NRefs = 12;
 				if(itypeel==3) MaxPOrder = 9;
 				else MaxPOrder = 15;
 			}
 			else if(ModelDimension == 3) {
-				NRefs = 15;
+				NRefs = 12;
 				ninitialrefs = 3;
 				if(itypeel==4) MaxPOrder = 15;
 				else MaxPOrder = 9;
@@ -283,8 +283,11 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				ann.PostProcess(2,ModelDimension);
 				delete cmeshfirst;
 				delete gmeshfirst;
+				printingsol = false;
+				continue;
 			}
-            UniformRefinement(ninitialrefs,gmesh,ModelDimension);
+			else
+				UniformRefinement(ninitialrefs,gmesh,ModelDimension);
             
 			// Creating computational mesh (approximation space and materials)
 			int p = 1, pinit;
