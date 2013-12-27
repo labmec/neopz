@@ -124,7 +124,7 @@ private:
     REAL fPreStressXX;//pre-stress tensor XX component
     REAL fPreStressXY;//pre-stress tensor XY component
     REAL fPreStressYY;//pre-stress tensor YY component
-    int fNStripes;//Amounth of pressure stripes for reduced space elastic references
+    int fNStripes;//Amount of pressure stripes for reduced space elastic references
     std::map< int,std::pair<int,int> > fPressureMatIds_StripeId_ElastId;//Correspondence between MaterialIds of Pressures BCs and < Stripe Number , ElastMatId >
     
     //Fluid property:

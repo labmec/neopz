@@ -305,7 +305,7 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 {
     if(gState == ELastState)
     {
-        return;//AQUICAJU aqui estava comentado!!!
+        return;
     }
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;

@@ -93,7 +93,7 @@ public:
     /** @brief global point index */
     int intGlobPtIndex;
     
-    /** @brief amounth of points in the integrstion rule */
+    /** @brief amount of points in the integrstion rule */
     int NintPts;
 	
 	/** @brief Default constructor */

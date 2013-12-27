@@ -32,9 +32,13 @@ class TPZMat1dLin : public TPZMaterial{
     TPZMat1dLin(int num) : TPZMaterial(num) , fXk(), fXc(), fXb(), fXf() {
 	}
 	
-	virtual int NStateVariables() { return fXk.Rows(); }
+	virtual int NStateVariables() {
+        return fXk.Rows();
+    }
 	
-	int Dimension() { return 1;}
+	int Dimension() {
+        return 1;
+    }
 	
 	void Print(std::ostream & out);
 	

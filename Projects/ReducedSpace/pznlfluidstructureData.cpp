@@ -321,10 +321,13 @@ void InputDataStruct::UpdateActTime()
 
 void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
 {
+#ifdef DEBUG
     if(fLeakoffmap.size() == 0)
     {//Se a fratura nao alcancou ainda a regiao elastica 2, este mapa estah vazio!!!
         DebugStop();
     }
+#endif
+    
     std::map<int,REAL>::iterator it;
     
     int outVlCount = 0;
@@ -402,7 +405,14 @@ REAL InputDataStruct::VlFtau(REAL pfrac, REAL tau)
     REAL Pref = globFractInputData.Pref();
     REAL vsp = globFractInputData.vsp();
     
-    REAL Clcorr = Cl * sqrt((pfrac + sigmaConf - Pe)/Pref);
+    REAL Pef = pfrac + sigmaConf;
+    REAL Pcalc = (Pef - Pe)/Pref;
+    if(Pcalc < 0.)
+    {
+        Pcalc = 0.;
+    }
+    
+    REAL Clcorr = Cl * sqrt(Pcalc);
     REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
     
     return Vl;
@@ -412,7 +422,7 @@ REAL InputDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
 {
     REAL Cl = globFractInputData.Cl();
     REAL sigmaConf = globFractInputData.SigmaConf();
-    REAL Pest = globFractInputData.Pe();
+    REAL Pe = globFractInputData.Pe();
     REAL Pref = globFractInputData.Pref();
     REAL vsp = globFractInputData.vsp();
     
@@ -420,7 +430,12 @@ REAL InputDataStruct::FictitiousTime(REAL VlAcum, REAL pfrac)
     if(VlAcum > vsp)
     {
         REAL Pef = pfrac + sigmaConf;
-        REAL Clcorr = Cl * sqrt((Pef - Pest)/Pref);
+        REAL Pcalc = (Pef - Pe)/Pref;
+        if(Pcalc < 0.)
+        {
+            Pcalc = 0.;
+        }
+        REAL Clcorr = Cl * sqrt(Pcalc);
         tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
     }
     

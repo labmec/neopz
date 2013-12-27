@@ -11,16 +11,9 @@
 
 #include <iostream>
 
-//#include "pzmaterial.h"
-//#include "pzdiscgal.h"
-//#include "pzvec.h"
-//#include "pzfmatrix.h"
-
-
 
 #include <iostream>
 #include "TPZElast3Dnlinear.h"
-
 
 class TPZPlaneFractCouplingMat : public TPZElast3Dnlinear
 {
@@ -31,7 +24,12 @@ protected:
 public:
     TPZPlaneFractCouplingMat();
     TPZPlaneFractCouplingMat(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
-                             STATE preStressXX, STATE preStressYY, STATE preStressZZ, STATE visc);
+                             STATE preStressXX, STATE preStressYY, STATE preStressZZ,
+                             STATE visc,
+                             STATE Cl,
+                             STATE Pe,
+                             STATE gradPref,
+                             STATE vsp);
     
     ~TPZPlaneFractCouplingMat();
     
@@ -40,6 +38,9 @@ public:
     using TPZElast3Dnlinear::TPZMaterial::ContributeBC;
     using TPZElast3Dnlinear::TPZMaterial::Solution;
     using TPZElast3Dnlinear::FillDataRequirements;
+    
+    virtual int NSolutionVariables(int var);
+    virtual int VariableIndex(const std::string &name);
     
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec,
                             STATE weight,
@@ -92,10 +93,44 @@ public:
     void SetPastState(){ gState = EPastState; }
 	void SetActualState(){ gState = EActualState; }
     
+    void EnableLeakoff()
+    {
+        fLeakoffEnabled = true;
+    }
+    void DisableLeakoff()
+    {
+        fLeakoffEnabled = false;
+    }
+    
+    REAL Cl()
+    {
+        return fCl;
+    }
+    REAL Pe()
+    {
+        return fPe;
+    }
+    REAL gradPref()
+    {
+        return fgradPref;
+    }
+    REAL vsp()
+    {
+        return fvsp;
+    }
+
 private:
     
     //Fluid
     STATE fVisc;
+    
+    //Leakoff
+    bool fLeakoffEnabled;
+    REAL fCl;//Carter
+    REAL fPe;//Pressao estatica
+    REAL fgradPref;//Pressao de referencia da medicao do Cl
+    REAL fvsp;//spurt loss
 };
+
 
 #endif /* defined(__PZ__TPZPlaneFractCouplingMat__) */

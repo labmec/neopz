@@ -1672,13 +1672,15 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     fCurrentConfig.fPostprocess.PostProcess(resolution);
     fPostProcessNumber++;
 
-    //AQUICAJU
-    REAL J2val = 0.0004;//<<< definido pelo programador
+    //*** DANGER (definido pelo programador) ***
+    REAL J2val = 0.0004;
+    //******************************************
+    
     std::multimap<REAL,REAL> polygonalChain;
 
     GetJ2Isoline(J2val, polygonalChain);
     
-    {//just4Debug
+    {//just4Debug AQUICAJU
         std::stringstream nm;
         nm << "EllipDots" << passCount << ".nb";
         std::ofstream outEllips(nm.str().c_str());

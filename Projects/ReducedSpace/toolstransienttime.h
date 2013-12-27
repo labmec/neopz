@@ -40,7 +40,7 @@ class ToolsTransient
     void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
     TPZCompMeshReferred * CMeshReduced(TPZCompMesh * cmeshref);
     TPZCompMesh * CMeshPressure();
-    void InitializeMultphysicsMeshAttribute();
+    void CMeshMultiphysics();
     
     bool SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded);
     

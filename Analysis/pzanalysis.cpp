@@ -352,7 +352,6 @@ void TPZAnalysis::Solve() {
 void TPZAnalysis::LoadSolution() {	
 	if(fCompMesh) {
 		fCompMesh->LoadSolution(fSolution);
-        
 	}
 }
 

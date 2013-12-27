@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     
     REAL Cl = 0.005;
     REAL Pe = 10.;
-    REAL SigmaConf = 11.;
+    REAL SigmaConf = -preStressYY;
     REAL Pref = 60000.;
     REAL vsp = 0.001;
     REAL KIc = 25.;

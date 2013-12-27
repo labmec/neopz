@@ -1081,8 +1081,6 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 	ComputePartition();//efetua a particao do elemento pai de acordo com os lados dos sub-elementos
 	GenerateSideRefPatterns();
     
-    
-	
 	int nperm;
 	in >> nperm;
 	this->fPermutedRefPatterns.resize(nperm);

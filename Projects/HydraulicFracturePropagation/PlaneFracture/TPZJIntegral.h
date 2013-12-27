@@ -254,22 +254,26 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+           TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    
     ~Path3D();
     
-    LinearPath3D * GetLinearPath3D()
+    void ComputeJIntegral();
+    
+    REAL OriginZcoord()
     {
-        return fLinearPath3D;
+        return fOriginZcoord;
     }
     
-    ArcPath3D * GetArcPath3D()
+    TPZVec<REAL> & JDirection()
     {
-        return fArcPath3D;
+        return fJDirection;
     }
     
-    AreaPath3D * GetAreaPath3D()
+    REAL Jintegral()
     {
-        return fAreaPath3D;
+        return fJintegral;
     }
     
 protected:
@@ -277,6 +281,11 @@ protected:
     LinearPath3D * fLinearPath3D;
     ArcPath3D * fArcPath3D;
     AreaPath3D * fAreaPath3D;
+    
+    REAL fOriginZcoord;
+    
+    TPZVec<REAL> fJDirection;
+    REAL fJintegral;
 };
 
 
@@ -294,20 +303,18 @@ public:
     Path2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ~Path2D();
     
-    LinearPath2D * GetLinearPath2D()
-    {
-        return fLinearPath2D;
-    }
+    void ComputeJIntegral();
     
-    ArcPath2D * GetArcPath2D()
+    REAL Jintegral()
     {
-        return fArcPath2D;
+        return fJintegral;
     }
     
 protected:
     
     LinearPath2D * fLinearPath2D;
     ArcPath2D * fArcPath2D;
+    REAL fJintegral;
 };
 
 
@@ -319,11 +326,22 @@ public:
     JIntegral3D();
     ~JIntegral3D();
     
+    void Reset();
+    
+    int NPaths();
+    
     virtual void PushBackPath3D(Path3D *Path3DElem);
     
-    virtual TPZVec<REAL> IntegratePath3D(int p);
+    virtual void IntegratePath3D();
+    
+    Path3D * Path(int p)
+    {
+        return fPath3DVec[p];
+    }
     
 private:
+    
+    virtual void IntegratePath3D(int p);
     
     TPZVec<Path3D*> fPath3DVec;
 };
@@ -336,18 +354,18 @@ public:
     JIntegral2D();
     ~JIntegral2D();
     
-    virtual void PushBackPath2D(Path2D *Path2DElem);
+    virtual void SetPath2D(Path2D *Path2DElem);
     
-    virtual TPZVec<REAL> IntegratePath2D(int p);
+    virtual void IntegratePath2D();
     
-    Path2D * Path(int p)
+    Path2D * Path()
     {
-        return fPath2DVec[p];
+        return fPath2D;
     }
     
 private:
     
-    TPZVec<Path2D*> fPath2DVec;
+    Path2D * fPath2D;
 };
 
 

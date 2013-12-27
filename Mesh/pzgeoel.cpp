@@ -1117,7 +1117,6 @@ REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){
 }
 
 REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> &nodes){
-	
 	if(nodes.NElements() != 4){
 		PZError << "TPZGeoEl::AreaFromTheFaceQ argument error size: nodes\n";
 		nodes.Resize(0);

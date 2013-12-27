@@ -1,4 +1,4 @@
-//
+ //
 //  TPZJIntegral.cpp
 //  PZ
 //
@@ -15,7 +15,7 @@
 #include "pzintel.h"
 #include "TPZTimer.h"
 
-const REAL gIntegrPrecision = 1.e-5;
+const REAL gIntegrPrecision = 1.e-4;
 const REAL gScaleFactor = 1.e5;
 
 
@@ -148,7 +148,7 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 {
     fcmeshElastic->LoadReferences();
     
-    TPZVec<REAL> qsi(0);
+    TPZVec<REAL> qsi(3,0.);
     
     long InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
@@ -163,15 +163,18 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else
-    {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
-    }
+//    else
+//    {
+//        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+//    }
     TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
-        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
         DebugStop();
     }
     
@@ -205,10 +208,58 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 {
     fcmeshFluid->LoadReferences();
     
-    //Nao migrei ainda para o 3D!!!
-    DebugStop();
+    TPZVec<REAL> qsi(2,0.);
     
-    return -1.;
+    long InitialElementId = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
+    if(it != f_t_elIdqsi_Fluid.end())
+    {
+        InitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else if(f_t_elIdqsi_Fluid.size() > 0)
+    {
+        it--;
+        InitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+//    else
+//    {
+//        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+//    }
+    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+    
+    if(!geoEl)
+    {
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
+        DebugStop();
+    }
+    
+    f_t_elIdqsi_Fluid[t] = std::make_pair(geoEl->Id(), qsi);
+    
+    TPZCompEl * cel = geoEl->Reference();
+    if(!cel)
+    {
+        DebugStop();
+    }
+    TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
+    if(!sp)
+    {
+        DebugStop();
+    }
+    
+    TPZMaterialData data;
+    sp->InitMaterialData(data);
+    
+    sp->ComputeShape(qsi, data);
+    sp->ComputeSolution(qsi, data);
+    
+    REAL press = data.sol[0][0];
+    
+    return press;
 }
 
 //-------------------------class LinearPath2D
@@ -300,7 +351,10 @@ void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     if(!geoEl)
     {
-        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
         DebugStop();
     }
     
@@ -361,7 +415,10 @@ REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
     
     if(!geoEl)
     {
-        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
         DebugStop();
     }
     
@@ -555,7 +612,10 @@ void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     
     if(!geoEl)
     {
-        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
         DebugStop();
     }
     
@@ -714,7 +774,10 @@ void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     
     if(!geoEl)
     {
-        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
         DebugStop();
     }
     
@@ -908,7 +971,10 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
     
     if(!geoEl)
     {
-        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
         DebugStop();
     }
     
@@ -1036,6 +1102,11 @@ Path3D::Path3D()
     fLinearPath3D = NULL;
     fArcPath3D = NULL;
     fAreaPath3D = NULL;
+    
+    fOriginZcoord = 0.;
+    
+    fJDirection.Resize(3,0.);
+    fJintegral = 0.;
 }
 
 
@@ -1045,6 +1116,11 @@ Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     fAreaPath3D = new AreaPath3D(fLinearPath3D);
+    
+    fOriginZcoord = Origin[2];
+    
+    fJDirection.Resize(3,0.);
+    fJintegral = 0.;
     
 #ifdef DEBUG
     if(fabs(normalDirection[1]) > 1.E-8)
@@ -1066,6 +1142,74 @@ Path3D::~Path3D()
     fLinearPath3D = NULL;
     fArcPath3D = NULL;
     fAreaPath3D = NULL;
+    
+    fOriginZcoord = 0.;
+    
+    fJDirection.Resize(0);
+    fJintegral = 0.;
+}
+
+void Path3D::ComputeJIntegral()
+{
+    Adapt intRule(gIntegrPrecision);
+    
+    //------------------ LINE
+    TPZTimer linInt("LinearIntegration");
+    linInt.start();
+    
+    TPZVec<REAL> linJintegral(3,0.);
+    linJintegral = intRule.Vintegrate(*(fLinearPath3D),3,-1.,+1.);
+    
+    //Simetry in xz plane
+    linJintegral[0] = 2. * linJintegral[0] * fLinearPath3D->DETdxdt() / gScaleFactor;
+    linJintegral[1] = 0.;
+    linJintegral[2] = 2. * linJintegral[2] * fLinearPath3D->DETdxdt() / gScaleFactor;
+    
+    linInt.stop();
+    
+    //------------------ ARC
+    TPZTimer arcInt("ArcIntegration");
+    arcInt.start();
+    
+    TPZVec<REAL> arcJintegral(3,0.);
+    arcJintegral = intRule.Vintegrate(*(fArcPath3D),3,-1.,+1.);
+    
+    //Simetry in xz plane
+    arcJintegral[0] = 2. * arcJintegral[0] * fArcPath3D->DETdxdt() / gScaleFactor;
+    arcJintegral[1] = 0.;
+    arcJintegral[2] = 2. * arcJintegral[2] * fArcPath3D->DETdxdt() / gScaleFactor;
+    
+    arcInt.stop();
+    
+    //------------------ AREA
+    TPZTimer areaInt("AreaIntegration");
+    areaInt.start();
+    
+    TPZVec<REAL> areaJIntegral(3,0.);
+    intRule.SetPrecision(1.e-2);
+    //areaJIntegral = intRule.Vintegrate(*(fAreaPath3D),3,-1.,+1.);
+    std::cout << "\nAQUICAJU : nao estah integrando na area!!!\n";
+    
+    //Simetry in xz plane
+    areaJIntegral[0] = 2. * areaJIntegral[0] * fAreaPath3D->DETdxdt() / (gScaleFactor * gScaleFactor);
+    areaJIntegral[1] = 0.;
+    areaJIntegral[2] = 2. * areaJIntegral[2] * fAreaPath3D->DETdxdt() / (gScaleFactor * gScaleFactor);
+    
+    areaInt.stop();
+    
+    //------------------ COMBINING
+    REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
+    REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
+    REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
+    
+    fJintegral = sqrt(Jx*Jx + Jy*Jy + Jz*Jz);
+    
+    //Normalizing
+    fJDirection[0] = Jx/fJintegral;
+    fJDirection[1] = Jy/fJintegral;
+    fJDirection[2] = Jz/fJintegral;
+    
+    //std::cout << "J = { " << fJDirection[0] << " , " << fJDirection[1] << " , " << fJDirection[2] << " } --> " << "(" << fJintegral << ") : ";
 }
 
 
@@ -1073,6 +1217,7 @@ Path2D::Path2D()
 {
     fLinearPath2D = NULL;
     fArcPath2D = NULL;
+    fJintegral = 0.;
 }
 
 
@@ -1081,6 +1226,7 @@ Path2D::Path2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
 {
     fLinearPath2D = new LinearPath2D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     fArcPath2D = new ArcPath2D(cmeshElastic,Origin,normalDirection,radius);
+    fJintegral = 0.;
     
 #ifdef DEBUG
     if(fabs(normalDirection[1]) > 1.E-8)
@@ -1101,6 +1247,45 @@ Path2D::~Path2D()
 {
     fLinearPath2D = NULL;
     fArcPath2D = NULL;
+    fJintegral = 0.;
+}
+
+void Path2D::ComputeJIntegral()
+{
+    Adapt intRule(gIntegrPrecision);
+    
+    //------------------ LINE
+    TPZTimer linInt("LinearIntegration");
+    linInt.start();
+    
+    TPZVec<REAL> linJintegral(2,0.);
+    linJintegral = intRule.Vintegrate(*(fLinearPath2D),2,-1.,+1.);
+    
+    //Simetry in xz plane
+    linJintegral[0] = 2. * linJintegral[0] * fLinearPath2D->DETdxdt() / gScaleFactor;
+    linJintegral[1] = 0.;
+    
+    linInt.stop();
+    
+    //------------------ ARC
+    TPZTimer arcInt("ArcIntegration");
+    arcInt.start();
+    
+    TPZVec<REAL> arcJintegral(2,0.);
+    arcJintegral = intRule.Vintegrate(*(fArcPath2D),2,-1.,+1.);
+    
+    //Simetry in xz plane
+    arcJintegral[0] = 2. * arcJintegral[0] * fArcPath2D->DETdxdt() / gScaleFactor;
+    arcJintegral[1] = 0.;
+    
+    arcInt.stop();
+
+    //------------------ COMBINIG
+    fJintegral = linJintegral[0] + arcJintegral[0];
+    
+    //    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
+    //    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
+    //    std::cout << "J = " << answ[0] << "\n";
 }
 
 
@@ -1114,7 +1299,22 @@ JIntegral3D::JIntegral3D()
 
 JIntegral3D::~JIntegral3D()
 {
+    Reset();
+}
+
+void JIntegral3D::Reset()
+{
+    for(int j = 0; j < NPaths(); j++)
+    {
+        fPath3DVec[j] = NULL;
+        delete fPath3DVec[j];
+    }
     fPath3DVec.Resize(0);
+}
+
+int JIntegral3D::NPaths()
+{
+    return fPath3DVec.NElements();
 }
 
 void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
@@ -1124,158 +1324,39 @@ void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
     fPath3DVec[oldSize] = Path3DElem;
 }
 
-TPZVec<REAL> JIntegral3D::IntegratePath3D(int p)
+void JIntegral3D::IntegratePath3D()
 {
-    Path3D * jPath3DElem = fPath3DVec[p];
-    
-    
-    Adapt intRule(gIntegrPrecision);
-    
-    TPZTimer linInt("LinearIntegration"); linInt.start();
-    TPZVec<REAL> linJintegral(3,0.);
-    linJintegral = intRule.Vintegrate(*(jPath3DElem->GetLinearPath3D()),3,-1.,+1.);
-
-    //Simetry in xz plane
-    linJintegral[0] = 2. * linJintegral[0] * jPath3DElem->GetLinearPath3D()->DETdxdt() / gScaleFactor;
-    linJintegral[1] = 0.;
-    linJintegral[2] = 2. * linJintegral[2] * jPath3DElem->GetLinearPath3D()->DETdxdt() / gScaleFactor;
-
-    linInt.stop();
-    
-    //4debug Jlin_x
+    std::cout << "Computing J-integral...\n";
+    for(int p = 0; p < NPaths(); p++)
     {
-        #ifdef print_Jx_Linear
-        std::map<REAL,REAL>::iterator ii;
-        std::ofstream plotLinJx("PlotLinJx.txt");
-        plotLinJx.precision(10);
-        plotLinJx << "Jx = {";
-        for(ii = functionLinJx.begin(); ii != functionLinJx.end(); ii++)
-        {
-            plotLinJx << "{" << ii->first << "," << ii->second << "},";
-        }
-        plotLinJx << "};\n";
-        plotLinJx << "Jxplot = ListPlot[Jx,AxisOrigin->{0,0}]\n";
-        plotLinJx.close();
-        functionLinJx.clear();
-        #endif
+        IntegratePath3D(p);
+        std::cout << p+1 << " of " << NPaths() << " computed!\n";
     }
-    
-    TPZTimer arcInt("ArcIntegration"); arcInt.start();
-    TPZVec<REAL> arcJintegral(3,0.);
-    arcJintegral = intRule.Vintegrate(*(jPath3DElem->GetArcPath3D()),3,-1.,+1.);
-
-    //Simetry in xz plane
-    arcJintegral[0] = 2. * arcJintegral[0] * jPath3DElem->GetArcPath3D()->DETdxdt() / gScaleFactor;
-    arcJintegral[1] = 0.;
-    arcJintegral[2] = 2. * arcJintegral[2] * jPath3DElem->GetArcPath3D()->DETdxdt() / gScaleFactor;
-
-    arcInt.stop();
-    //
-    TPZTimer areaInt("AreaIntegration"); areaInt.start();
-    TPZVec<REAL> areaJIntegral(3,0.);
-    intRule.SetPrecision(1.e-3);
-    areaJIntegral = intRule.Vintegrate(*(jPath3DElem->GetAreaPath3D()),3,-1.,+1.);
-
-    //Simetry in xz plane
-    areaJIntegral[0] = 2. * areaJIntegral[0] * jPath3DElem->GetAreaPath3D()->DETdxdt() / (gScaleFactor * gScaleFactor);
-    areaJIntegral[1] = 0.;
-    areaJIntegral[2] = 2. * areaJIntegral[2] * jPath3DElem->GetAreaPath3D()->DETdxdt() / (gScaleFactor * gScaleFactor);
-
-    areaInt.stop();
-    
-    TPZVec<REAL> answ(3);
-    for(int i = 0; i < 3; i++)
-    {
-        answ[i] = linJintegral[i] + arcJintegral[i] + areaJIntegral[i];
-    }
-    
-//    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
-//    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
-//    std::cout << "DeltaT integracao area = " << areaInt.seconds() << " s" << std::endl;
-//    std::cout << "Jx AREA = " << areaJIntegral[0] << "\n";
-//    std::cout << "J = " << answ[0] << "\n";
-    
-    return answ;
 }
 
-/*
- Franc2D : somente pressão de 5 no interior da fratura resulta em J = 0.0027
- */
+void JIntegral3D::IntegratePath3D(int p)
+{
+    fPath3DVec[p]->ComputeJIntegral();
+}
 
 JIntegral2D::JIntegral2D()
 {
-    fPath2DVec.Resize(0);
+    fPath2D = NULL;
 }
 
 JIntegral2D::~JIntegral2D()
 {
-    fPath2DVec.Resize(0);
+    fPath2D = NULL;
 }
 
-void JIntegral2D::PushBackPath2D(Path2D * Path2DElem)
+void JIntegral2D::SetPath2D(Path2D * Path2DElem)
 {
-    int oldSize = fPath2DVec.NElements();
-    fPath2DVec.Resize(oldSize+1);
-    fPath2DVec[oldSize] = Path2DElem;
+    fPath2D = Path2DElem;
 }
 
-TPZVec<REAL> JIntegral2D::IntegratePath2D(int p)
+void JIntegral2D::IntegratePath2D()
 {
-    Path2D * jPath2DElem = fPath2DVec[p];
-    
-    
-    Adapt intRule(gIntegrPrecision);
-    
-    TPZTimer linInt("LinearIntegration"); linInt.start();
-    TPZVec<REAL> linJintegral(2,0.);
-    linJintegral = intRule.Vintegrate(*(jPath2DElem->GetLinearPath2D()),2,-1.,+1.);
-    
-    //Simetry in xz plane
-    linJintegral[0] = 2. * linJintegral[0] * jPath2DElem->GetLinearPath2D()->DETdxdt() / gScaleFactor;
-    linJintegral[1] = 0.;
-    
-    linInt.stop();
-    
-    //4debug Jlin_x
-    {
-#ifdef print_Jx_Linear
-        std::map<REAL,REAL>::iterator ii;
-        std::ofstream plotLinJx("PlotLinJx.txt");
-        plotLinJx.precision(10);
-        plotLinJx << "Jx = {";
-        for(ii = functionLinJx.begin(); ii != functionLinJx.end(); ii++)
-        {
-            plotLinJx << "{" << ii->first << "," << ii->second << "},";
-        }
-        plotLinJx << "};\n";
-        plotLinJx << "Jxplot = ListPlot[Jx,AxisOrigin->{0,0}]\n";
-        plotLinJx.close();
-        functionLinJx.clear();
-#endif
-    }
-    
-    TPZTimer arcInt("ArcIntegration"); arcInt.start();
-    TPZVec<REAL> arcJintegral(2,0.);
-    arcJintegral = intRule.Vintegrate(*(jPath2DElem->GetArcPath2D()),2,-1.,+1.);
-    
-    //Simetry in xz plane
-    arcJintegral[0] = 2. * arcJintegral[0] * jPath2DElem->GetArcPath2D()->DETdxdt() / gScaleFactor;
-    arcJintegral[1] = 0.;
-    
-    arcInt.stop();
-    //
-    
-    TPZVec<REAL> answ(2);
-    for(int i = 0; i < 2; i++)
-    {
-        answ[i] = linJintegral[i] + arcJintegral[i];
-    }
-    
-//    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
-//    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
-//    std::cout << "J = " << answ[0] << "\n";
-    
-    return answ;
+    fPath2D->ComputeJIntegral();
 }
 
 

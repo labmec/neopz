@@ -143,7 +143,7 @@ void ToolsTransient::Run()
     
     int anCount = 0;
     this->InitializeUncoupledMeshesAttributes();
-    this->InitializeMultphysicsMeshAttribute();
+    this->CMeshMultiphysics();
     TPZAnalysis * an = new TPZAnalysis(fmphysics);
     globFractOutputData.PlotElasticVTK(an, anCount);
     PostprocessPressure();
@@ -170,7 +170,7 @@ void ToolsTransient::Run()
             globFractInputData.SetLf(newLfrac);
         
             this->InitializeUncoupledMeshesAttributes();
-            this->InitializeMultphysicsMeshAttribute();
+            this->CMeshMultiphysics();
             this->TransferSolutions(lastMPhysicsCMesh, lastElastReferredCMesh);
             an = new TPZAnalysis(fmphysics);
             
@@ -580,7 +580,6 @@ void ToolsTransient::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe)
 }
 
 TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
-    
     /// criar materiais
 	int dim = 2;
     
@@ -723,7 +722,7 @@ void ToolsTransient::SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	an.Run();
 }
 
-void ToolsTransient::InitializeMultphysicsMeshAttribute()
+void ToolsTransient::CMeshMultiphysics()
 {    
     //Creating computational mesh for multiphysic elements
 	fgmesh->ResetReference();
@@ -1030,7 +1029,7 @@ void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 
 bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded)
 {
-    CheckConv();
+    //CheckConv();
     
 	int nrows = an->Solution().Rows();
 	TPZFMatrix<REAL> res_total(nrows,1,0.);
@@ -1129,7 +1128,6 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
 {
     REAL radius = globFractInputData.Jradius();
     
-    TPZVec<REAL> computedJ(2,0.);
     REAL KI = -1.;
     
     REAL XcrackTip = -1.;
@@ -1154,13 +1152,15 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     
     Path2D * Jpath = new Path2D(fmeshvec[0], fmeshvec[1], Origin, normalDirection, radius);
     JIntegral2D integralJ;
-    integralJ.PushBackPath2D(Jpath);
+    integralJ.SetPath2D(Jpath);
     
-    computedJ = integralJ.IntegratePath2D(0);
+    integralJ.IntegratePath2D();
+    REAL computedJ = integralJ.Path()->Jintegral();
+    
     REAL young = 0.;
     REAL poisson = 0.;
     
-    //<<< Isso nao tah legal qdo o arco da integral J pega os 2 materiais //<<< AQUICAJU
+    //<<< Isso nao tah legal qdo o arco da integral J pega os 2 materiais
     if((XcrackTip + 1.E-3) < globFractInputData.Xinterface())
     {
         young = globFractInputData.E1();
@@ -1173,12 +1173,12 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     }
     /////////////////////////////////////////////////////////////////////
     
-    if(computedJ[0] < 0.)
+    if(computedJ < 0.)
     {
         //Estado compressivo!!!
-        computedJ[0] = 0.;
+        computedJ = 0.;
     }
-    KI = sqrt( (computedJ[0]*young) / (1. - poisson*poisson) );
+    KI = sqrt( (computedJ*young) / (1. - poisson*poisson) );
     
     std::cout << "\n>>>>>>>>>>> KI = " << KI << "\n";
     
@@ -1255,7 +1255,7 @@ void ToolsTransient::PostProcessVolLeakoff()
         }
 #endif
         
-        TPZVec<REAL> qsi(2,0.), xLeft(3,0.), xMiddle(3,0.), xRight(3,0.), leakoff(1,0);
+        TPZVec<REAL> qsi(1,0.), xLeft(3,0.), xMiddle(3,0.), xRight(3,0.), leakoff(1,0);
         
         qsi[0] = -1.;
         fluidGel->X(qsi,xLeft);
@@ -1445,7 +1445,7 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
         DebugStop();
     }
     
-    TPZVec<REAL> Solout(3);
+    f.Resize(2);
     
     TPZReducedSpace * intpEl = dynamic_cast<TPZReducedSpace *>(gel->Reference());
     if(!intpEl)
@@ -1459,8 +1459,7 @@ void TElastSolFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f)
     intpEl->ComputeSolution(qsi2D, data);
     
     int var = 0;
-    elast->Solution(data, var, Solout);
-    f = Solout;
+    elast->Solution(data, var, f);
 }
 
 template<class TVar>

@@ -165,7 +165,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 		int kd;
 		for(kd = 0; kd < 3; kd++)
         {
-			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) /*- fPreStress[kd] * dphi(kd,in)*/ );
+			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) - fPreStress[kd] * dphi(kd,in) );
 		}//kd
 		for( int jn = 0; jn < phr; jn++ )
         {

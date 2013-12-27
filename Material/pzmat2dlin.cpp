@@ -162,12 +162,14 @@ int TPZMat2dLin::VariableIndex(const std::string &name) {
 	if(!strcmp(name.c_str(),"displacement")) return 1;
 	if(!strcmp(name.c_str(),"Solution")) return 1;
 	if(!strcmp("Derivate",name.c_str())) return 2;
+    if(!strcmp("Pressure",name.c_str())) return 3;
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMat2dLin::NSolutionVariables(int index) {
 	if(index == 1) return 3;
 	if(index == 2) return 2;
+    if(index == 3) return 1;
 	return TPZMaterial::NSolutionVariables(index);
 }
 
@@ -201,7 +203,15 @@ void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
 		Solout[1] = DSol(1,0).real();//derivate
 #endif
 		return;
+	} else if(var == 3) {
+		Solout.Resize(1,0.);
+#ifndef STATE_COMPLEX
+		Solout[0] = Sol[0];
+#else
+        Solout[0] = Sol[0].real();
+#endif
 	}
+    
 	else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 

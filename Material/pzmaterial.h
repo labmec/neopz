@@ -125,8 +125,6 @@ public:
         }
     }
 
-	
-    
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }
     

@@ -12,67 +12,7 @@ const int matPoint = -3;
 //** just for visualize given dots in vtk */
 
 void FillFractureDotsExampleEllipse(TPZVec< std::pair<REAL,REAL> > &fractureDots);
-void FillFractureDotsExampleCrazy(TPZVec< std::pair<REAL,REAL> > &fractureDots);
-void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REAL> > &fractureDots);
-
-//----------------------------------------------------------------------------------------------------------------------------------
-
-int mainCircles(int argc, char * const argv[])
-{
-    std::cout << "\e";
-    TPZTimer readRef("ReadingRefPatterns");
-    readRef.start();
-    
-    //#define writeAgain
-#ifdef writeAgain
-    gRefDBase.InitializeRefPatterns();
-#else
-    std::ifstream inRefP("RefPatternsUsed.txt");
-    gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
-#endif
-    
-    readRef.stop();
-    std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
-    
-    REAL lengthX = 50.;
-    REAL lengthY = 1.;
-    REAL Lmax = 1.;
-    
-    REAL bulletDepthIni =  0.;
-    REAL bulletDepthFin = 100.;
-    int nstripes = 3;
-    
-    TPZVec<TPZLayerProperties> layerVec(1);
-    REAL KIc = 0.;
-    REAL Cl = 0.;
-    REAL Pe = 0.;
-    REAL SigConf = 0.;
-    REAL vsp = 0.;
-    layerVec[0] = TPZLayerProperties(1.E5,0.25,1.E5,1.E1,0.,100.,KIc, Cl, Pe, SigConf, vsp);
-    TPZPlaneFractureMesh plfrac(layerVec, bulletDepthIni, bulletDepthFin, lengthX, lengthY, Lmax, nstripes);
-    
-//    REAL Rini = 10.;
-//    REAL Rfin = 40;
-//    int nRadius = 15;
-
-//    for(int r = 0; r < nRadius; r++)
-//    {
-//        std::stringstream nm;
-//        nm << "circle" << r << ".vtk";
-//        
-//        TPZVec< std::pair<REAL,REAL> > fractureDots;
-//        FillFractureDotsCircle(50., (Rfin-Rini)/(nRadius-1)*r+Rini, fractureDots);
-//        TPZGeoMesh * gmesh = plfrac.GetFractureGeoMesh(fractureDots);
-//        
-//        std::ofstream outC(nm.str().c_str());
-//        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outC, true);
-//    }
-    
-    std::ofstream outRefP("RefPatternsUsed.txt");
-    gRefDBase.WriteRefPatternDBase(outRefP);
-    
-    return 0;
-}
+//---------------------------------------------------------------------------------------------------------------------------------
 
 
 int main(int argc, char * const argv[])
@@ -92,33 +32,64 @@ int main(int argc, char * const argv[])
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
-    REAL lengthX = 250.;
-    REAL lengthY = 50.;
-    REAL Lmax = 10.;
+    //Transient data
+    REAL Ttot = 50.;//3600.; /** em segundos */
+    REAL maxDeltaT = 10.;//600.; /** em segundos */
+    int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
+    globTimeControl.SetTimeControl(Ttot, maxDeltaT, nTimes);
     
-    REAL bulletTVDIni = 30.;
-    REAL bulletTVDFin = 70.;
-    int nstripes = 2;
+    //Geometry data
+    REAL lengthX = 50.;
+    REAL lengthY = 8.;
+    REAL Lmax = 2.;
     
-    TPZVec<TPZLayerProperties> layerVec(3);
-    REAL KIc = 0.;
-    REAL Cl = 0.;
-    REAL Pe = 0.;
-    REAL SigConf = 0.;
-    REAL vsp = 0.;
-    layerVec[0] = TPZLayerProperties(1.E5,0.25,0.,0.,0.,30., KIc, Cl, Pe, SigConf, vsp);
-    layerVec[1] = TPZLayerProperties(1.E5,0.25,0.,0.,30.,70., KIc, Cl, Pe, SigConf, vsp);
-    layerVec[2] = TPZLayerProperties(1.E5,0.25,0.,0.,70.,130., KIc, Cl, Pe, SigConf, vsp);
-    
-    int porder = 1;
-    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes, porder);
+    REAL bulletTVDIni = 40.;
+    REAL bulletTVDFin = 60.;
+    int nstripes = 1;
 
-    TPZVec< std::pair<REAL,REAL> > fractureDots;
-    FillFractureDotsExampleEllipse(fractureDots);
-//    FillFractureDotsCircle(20., 10., fractureDots);
+    //Material data
+    TPZVec<TPZLayerProperties> layerVec(3);
     
-    std::string vtkFile = "fracturePconstant0.vtk";
-    plfrac->RunThisFractureGeometry(fractureDots, vtkFile, true);
+    REAL Young = 1.E5;
+    REAL Poisson = 0.25;
+    REAL SigMax  = 0.;      //<<<<<<<============= PRE-STRESS XX
+    REAL SigMin  = -100.;   //<<<<<<<============= PRE-STRESS YY
+    REAL SigConf = 0.;      //<<<<<<<============= PRE-STRESS ZZ
+    
+    REAL TVDi0 = 0.;
+    REAL TVDf0 = 30.;
+    REAL TVDi1 = TVDi0;
+    REAL TVDf1 = 70.;
+    REAL TVDi2 = TVDi1;
+    REAL TVDf2 = 100.;
+    
+    REAL KIc = 300.;
+    
+    REAL Cl = 1.E-4;
+    REAL Pe = 100.;//Sempre positivo
+    REAL gradPref = 100.;
+    REAL vsp = 1.E-8;
+    
+    layerVec[0] = TPZLayerProperties(Young, Poisson, SigMax, SigMin, SigConf, TVDi0, TVDf0, KIc, Cl, Pe, gradPref, vsp);
+    layerVec[1] = TPZLayerProperties(Young, Poisson, SigMax, SigMin, SigConf, TVDi1, TVDf1, KIc, Cl, Pe, gradPref, vsp);
+    layerVec[2] = TPZLayerProperties(Young, Poisson, SigMax, SigMin, SigConf, TVDi2, TVDf2, KIc, Cl, Pe, gradPref, vsp);
+
+    //Fluid injection data
+    REAL QinjWell = -2.;//m3/s
+    REAL visc = 0.001E-6;
+    
+    //J-Integral data
+    REAL Jradius = 2.0;
+
+    //Simulation p-order data
+    int porder = 1;
+    
+    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
+                                                                 QinjWell, visc,
+                                                                 Jradius,
+                                                                 porder);
+
+    plfrac->Run();
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");
 //    gRefDBase.WriteRefPatternDBase(outRefP);
@@ -409,7 +380,7 @@ void FillFractureDotsExampleEllipse(TPZVec<std::pair<REAL,REAL> > &fractureDots)
     
     node = 68;
     
-    fractureDots[node] = std::make_pair(55.,shiftZ - 7.);//+ 6.82703);
+    fractureDots[node] = std::make_pair(55.,shiftZ + 6.82703);
     
     node = 69;
     
@@ -429,7 +400,7 @@ void FillFractureDotsExampleEllipse(TPZVec<std::pair<REAL,REAL> > &fractureDots)
     
     node = 73;
     
-    fractureDots[node] = std::make_pair(29.,shiftZ - 6.);//5.53573);
+    fractureDots[node] = std::make_pair(29.,shiftZ + 5.53573);
     
     node = 74;
     
@@ -456,284 +427,3 @@ void FillFractureDotsExampleEllipse(TPZVec<std::pair<REAL,REAL> > &fractureDots)
     fractureDots[node] = std::make_pair(0.5,shiftZ + 5.);
 }
 
-
-void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
-{
-    int nnodes = 62;
-    
-    fractureDots.Resize(nnodes);
-    int node;
-    
-    REAL shiftZ = -100.;
-    
-    ///
-    node = 0;
-    REAL desloc = 0.;
-    
-    fractureDots[node] = std::make_pair(5.,shiftZ + 80.);
-    
-    node = 1;
-    
-    fractureDots[node] = std::make_pair(9.02368,shiftZ + 82.1856);
-    
-    node = 2;
-    
-    fractureDots[node] = std::make_pair(25.6151,shiftZ + 82.9122);
-    
-    node = 3;
-    
-    fractureDots[node] = std::make_pair(48.4505,shiftZ + 82.5833);
-    
-    node = 4;
-    
-    fractureDots[node] = std::make_pair(74.1186,shiftZ + 81.5259);
-    
-    node = 5;
-    
-    fractureDots[node] = std::make_pair(100. + desloc,shiftZ + 80.);//<----------------------
-    
-    node = 6;
-    
-    fractureDots[node] = std::make_pair(124.157,shiftZ + 78.2079);
-    
-    node = 7;
-    
-    fractureDots[node] = std::make_pair(145.23,shiftZ + 76.3027);
-    
-    node = 8;
-    
-    fractureDots[node] = std::make_pair(162.349,shiftZ + 74.3954);
-    
-    node = 9;
-    
-    fractureDots[node] = std::make_pair(175.043,shiftZ + 72.5625);
-    
-    node = 10;
-    
-    fractureDots[node] = std::make_pair(183.172,shiftZ + 70.8516);
-    
-    node = 11;
-    
-    fractureDots[node] = std::make_pair(186.85,shiftZ + 69.2873);
-    
-    node = 12;
-    
-    fractureDots[node] = std::make_pair(186.391,shiftZ + 67.8763);
-    
-    node = 13;
-    
-    fractureDots[node] = std::make_pair(182.253,shiftZ + 66.6118);
-    
-    node = 14;
-    
-    fractureDots[node] = std::make_pair(174.99,shiftZ + 65.4771);
-    
-    node = 15;
-    
-    fractureDots[node] = std::make_pair(165.212,shiftZ + 64.4495);
-    
-    node = 16;
-    
-    fractureDots[node] = std::make_pair(153.552,shiftZ + 63.5025);
-    
-    node = 17;
-    
-    fractureDots[node] = std::make_pair(140.633,shiftZ + 62.609);
-    
-    node = 18;
-    
-    fractureDots[node] = std::make_pair(127.05,shiftZ + 61.7426);
-    
-    node = 19;
-    
-    fractureDots[node] = std::make_pair(113.346,shiftZ + 60.8796);
-    
-    node = 20;
-    
-    fractureDots[node] = std::make_pair(100. + desloc,shiftZ + 60.);//<----------------------
-    
-    node = 21;
-    
-    fractureDots[node] = std::make_pair(87.418,shiftZ + 59.0884);
-    
-    node = 22;
-    
-    fractureDots[node] = std::make_pair(75.9253,shiftZ + 58.1348);
-    
-    node = 23;
-    
-    fractureDots[node] = std::make_pair(65.7644,shiftZ + 57.1342);
-    
-    node = 24;
-    
-    fractureDots[node] = std::make_pair(57.0956,shiftZ + 56.0873);
-    
-    node = 25;
-    
-    fractureDots[node] = std::make_pair(50.,shiftZ + 55.);
-    
-    node = 26;
-    
-    fractureDots[node] = std::make_pair(44.4857,shiftZ + 53.8827);
-    
-    node = 27;
-    
-    fractureDots[node] = std::make_pair(40.495,shiftZ + 52.75);
-    
-    node = 28;
-    
-    fractureDots[node] = std::make_pair(37.9143,shiftZ + 51.6198);
-    
-    node = 29;
-    
-    fractureDots[node] = std::make_pair(36.5847,shiftZ + 50.5124);
-    
-    node = 30;
-    
-    fractureDots[node] = std::make_pair(36.3137,shiftZ + 49.4496);
-    
-    node = 31;
-    
-    fractureDots[node] = std::make_pair(36.888,shiftZ + 48.4535);
-    
-    node = 32;
-    
-    fractureDots[node] = std::make_pair(38.0857,shiftZ + 47.5455);
-    
-    node = 33;
-    
-    fractureDots[node] = std::make_pair(39.6892,shiftZ + 46.7455);
-    
-    node = 34;
-    
-    fractureDots[node] = std::make_pair(41.4972,shiftZ + 46.0702);
-    
-    node = 35;
-    
-    fractureDots[node] = std::make_pair(43.3363,shiftZ + 45.5328);
-    
-    node = 36;
-    
-    fractureDots[node] = std::make_pair(45.0707,shiftZ + 45.1417);
-    
-    node = 37;
-    
-    fractureDots[node] = std::make_pair(46.6112,shiftZ + 44.8996);
-    
-    node = 38;
-    
-    fractureDots[node] = std::make_pair(47.9218,shiftZ + 44.8032);
-    
-    node = 39;
-    
-    fractureDots[node] = std::make_pair(49.0243,shiftZ + 44.8424);
-    
-    node = 40;
-    
-    fractureDots[node] = std::make_pair(50.,shiftZ + 45.);
-    
-    node = 41;
-    
-    fractureDots[node] = std::make_pair(50.9889,shiftZ + 45.2519);
-    
-    node = 42;
-    
-    fractureDots[node] = std::make_pair(52.1852,shiftZ + 45.5668);
-    
-    node = 43;
-    
-    fractureDots[node] = std::make_pair(53.8292,shiftZ + 45.9072);
-    
-    node = 44;
-    
-    fractureDots[node] = std::make_pair(56.1951,shiftZ + 46.2297);
-    
-    node = 45;
-    
-    fractureDots[node] = std::make_pair(59.5747,shiftZ + 46.4863);
-    
-    node = 46;
-    
-    fractureDots[node] = std::make_pair(64.2563,shiftZ + 46.626);
-    
-    node = 47;
-    
-    fractureDots[node] = std::make_pair(70.4977,shiftZ + 46.5964);
-    
-    node = 48;
-    
-    fractureDots[node] = std::make_pair(78.4951,shiftZ + 46.3461);
-    
-    node = 49;
-    
-    fractureDots[node] = std::make_pair(88.3449,shiftZ + 45.8275);
-    
-    node = 50;
-    
-    fractureDots[node] = std::make_pair(100.,shiftZ + 45.);
-    
-    node = 51;
-    
-    fractureDots[node] = std::make_pair(113.22,shiftZ + 43.8338);
-    
-    node = 52;
-    
-    fractureDots[node] = std::make_pair(127.511,shiftZ + 42.3139);
-    
-    node = 53;
-    
-    fractureDots[node] = std::make_pair(142.068,shiftZ + 40.4454);
-    
-    node = 54;
-    
-    fractureDots[node] = std::make_pair(155.692,shiftZ + 38.2585);
-    
-    node = 55;
-    
-    fractureDots[node] = std::make_pair(166.721,shiftZ + 35.8147);
-    
-    node = 56;
-    
-    fractureDots[node] = std::make_pair(172.932,shiftZ + 33.2139);
-    
-    node = 57;
-    
-    fractureDots[node] = std::make_pair(171.452,shiftZ + 30.601);
-    
-    node = 58;
-    
-    fractureDots[node] = std::make_pair(158.644,shiftZ + 28.175);
-    
-    node = 59;
-    
-    fractureDots[node] = std::make_pair(129.998,shiftZ + 26.1969);
-    
-    node = 60;
-    
-    fractureDots[node] = std::make_pair(80.,shiftZ + 25.);
-    
-    node = 61;
-    
-    fractureDots[node] = std::make_pair(22.,shiftZ + 25.);
-}
-
-
-
-void FillFractureDotsCircle(REAL center, REAL radius, TPZVec< std::pair<REAL,REAL> > &fractureDots)
-{
-    REAL Lmax = 2.;
-    int nsteps = M_PI * radius / Lmax;
-    if(nsteps < 10) nsteps = 10;
-    REAL ang = M_PI / nsteps;
-    
-    int nnodes = nsteps + 1;
-    fractureDots.Resize(nnodes);
-    
-    for(int node = 0; node < nnodes; node++)
-    {
-        REAL vx = 0.1 + radius*sin(node*ang);
-        REAL vz = radius*cos(node*ang) - center;
-        fractureDots[node] = std::make_pair(vx , vz);
-    }
-    std::cout.flush();
-}
