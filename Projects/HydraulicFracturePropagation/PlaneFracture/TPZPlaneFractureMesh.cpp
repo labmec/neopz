@@ -203,7 +203,6 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
 //    TurnIntoQuarterPoint(refinedMesh);
-    
 //    RefineDirectionalToCrackTip(1);
     
     {
@@ -816,7 +815,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-    RefineUniformAllFracturePlane(1);
+    //RefineUniformAllFracturePlane(1);//AQUICAJU ******************************************* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 }
 //------------------------------------------------------------------------------------------------------------
 

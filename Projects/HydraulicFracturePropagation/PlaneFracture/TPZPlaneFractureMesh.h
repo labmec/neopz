@@ -357,7 +357,7 @@ protected:
 	/**
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
 	 * @param gel [in] : initial geoel
-	 * @param x [input and output data]  
+	 * @param x [input and output data]
 	 *				x [as input] : start point of line \n
 	 *				x [as output] : end point of line in gel interface
 	 * @param dx [in] : direction of line from point x (input)

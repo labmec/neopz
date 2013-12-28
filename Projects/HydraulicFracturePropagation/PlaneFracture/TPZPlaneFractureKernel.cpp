@@ -100,7 +100,6 @@ void TPZPlaneFractureKernel::Run()
         this->ProcessElasticCMeshByStripes(fractureCMeshRef);
 
         //Malha computacional do tipo CMeshReferred
-        std::cout << "\n\n2\n\n";
         this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef, this->fpOrder);
 
         if(firstGeometry)
@@ -108,11 +107,9 @@ void TPZPlaneFractureKernel::Run()
             std::cout << "\n************** GERANDO MALHAS COMPUTACIONAIS\n";
             
             //Malha computacional de pressao
-            std::cout << "\n\n3\n\n";
             this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(this->fQinj1wing_Hbullet, this->fpOrder);
             
             //Malha computacional de acoplamento (multifisica)
-            std::cout << "\n\n4\n\n";
             this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec, this->fQinj1wing_Hbullet, this->fvisc, this->fpOrder);
         }
         else
@@ -132,11 +129,9 @@ void TPZPlaneFractureKernel::Run()
                 REAL QinjTemp = -(volAcum/globTimeControl.actDeltaT())/this->fHbullet;
                 
                 //Malha computacional de pressao
-                std::cout << "\n\n5\n\n";
                 this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(QinjTemp, this->fpOrder);
                 
                 //Malha computacional de acoplamento (multifisica)
-                std::cout << "\n\n6\n\n";
                 this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec, QinjTemp, this->fvisc, this->fpOrder);
                 
                 this->fPlaneFractureMesh->DisableLeakoff();
@@ -388,6 +383,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
 
 void TPZPlaneFractureKernel::InitializePath3DVector()
 {
+    this->fPath3D.Reset();
+    
     int nCrackTipElems = this->fPlaneFractureMesh->NCrackTipElements();
     
     for(int pos = 0; pos < nCrackTipElems; pos++)

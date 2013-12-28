@@ -33,8 +33,8 @@ int main(int argc, char * const argv[])
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
     //Transient data
-    REAL Ttot = 50.;//3600.; /** em segundos */
-    REAL maxDeltaT = 10.;//600.; /** em segundos */
+    REAL Ttot = 50.; /** em segundos */
+    REAL maxDeltaT = 10.; /** em segundos */
     int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
     globTimeControl.SetTimeControl(Ttot, maxDeltaT, nTimes);
     

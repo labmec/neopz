@@ -500,16 +500,6 @@ void ArcPath3D::X(REAL t, TPZVec<REAL> & xt)
 }
 
 
-//void ArcPath3D::dXdt(REAL t, TPZVec<REAL> & dxdt)
-//{
-//    dxdt.Resize(3,0.);
-//
-//    dxdt[0] = -(M_PI*fradius*cos((M_PI*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-//    dxdt[1] = -(M_PI*fradius*sin((M_PI*t)/2.))/2.;
-//    dxdt[2] = +(M_PI*fradius*cos((M_PI*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
-//}
-
-
 void ArcPath3D::normalVec(REAL t, TPZVec<REAL> & n)
 {
     TPZVec<REAL> xt(3);
@@ -1209,7 +1199,7 @@ void Path3D::ComputeJIntegral()
     fJDirection[1] = Jy/fJintegral;
     fJDirection[2] = Jz/fJintegral;
     
-    //std::cout << "J = { " << fJDirection[0] << " , " << fJDirection[1] << " , " << fJDirection[2] << " } --> " << "(" << fJintegral << ") : ";
+    std::cout << "J = { " << fJDirection[0] << " , " << fJDirection[1] << " , " << fJDirection[2] << " } --> " << "(" << fJintegral << ") : ";
 }
 
 
@@ -1304,11 +1294,6 @@ JIntegral3D::~JIntegral3D()
 
 void JIntegral3D::Reset()
 {
-    for(int j = 0; j < NPaths(); j++)
-    {
-        fPath3DVec[j] = NULL;
-        delete fPath3DVec[j];
-    }
     fPath3DVec.Resize(0);
 }
 
