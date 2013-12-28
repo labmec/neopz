@@ -46,7 +46,8 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients);
 
 int main() {
-    int counter = 2;
+    int counter = 1;
+	int resolution = 0;
 
     TPZGeoMesh *gmesh;
     if(counter==1)
@@ -80,17 +81,15 @@ int main() {
 	direct = 0;
    // an.Run();
 
-    int nrows = an.Solution().Rows();
-    int cols = an.Solution().Cols();
+    int nrows = cmesh->Solution().Rows();
+    int cols = cmesh->Solution().Cols();
     if(counter==1) {
         for(int i=0;i<nrows;i++) {
             for(int j=0;j<cols;j++) {
-                an.Solution().PutVal(i,j,0.);
                 cmesh->Solution().PutVal(i,j,0.);
             }
         }
         cmesh->Solution().PutVal(5,0,.25);
-        an.Solution().PutVal(5,0,.25);
     }
 	// Post processing
     TPZStack<std::string> scalarnames, vecnames;
@@ -101,22 +100,27 @@ int main() {
         sprintf(namef,"Solution2D_%d.vtk",counter);
         an.DefineGraphMesh(2,scalarnames,vecnames,namef);
         
-        an.PostProcess(6,2);
+        an.PostProcess(resolution,2);
     }
     if(counter==2) {
         for(int k=0;k<nrows;k++) {
             for(int i=0;i<nrows;i++) {
                 for(int j=0;j<cols;j++) {
-                    an.Solution().PutVal(i,j,0.);
                     cmesh->Solution().PutVal(i,j,0.);
                 }
             }
-            cmesh->Solution().PutVal(k,0,.25);
-            an.Solution().PutVal(k,0,.25);
+			if(k==33)
+				cmesh->Solution().PutVal(33,0,1.);
+			else if(k==17) {
+				cmesh->Solution().PutVal(17,0,1.);
+				cmesh->Solution().PutVal(37,0,0.5);
+			}
+			else
+	            cmesh->Solution().PutVal(k,0,.25);
             sprintf(namef,"Solution2D_%d_%d.vtk",counter,k);
             an.DefineGraphMesh(2,scalarnames,vecnames,namef);
-            an.PostProcess(6,2);
-        }
+            an.PostProcess(resolution,2);
+		}
     }
     
     return 0;
