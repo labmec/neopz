@@ -145,7 +145,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
 	{
 		TPZGeoEl * gel = fRefinedMesh->ElementVec()[el];//2D element in 2D mesh
         if(globMaterialIdGen.IsOutsideFractMat(gel->MaterialId()) == false ||
-           gel->HasSubElement())//AQUICAJU : adicionei esta verificacao
+           gel->HasSubElement())
         {
             continue;
         }
@@ -815,7 +815,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-    //RefineUniformAllFracturePlane(1);//AQUICAJU ******************************************* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    RefineUniformAllFracturePlane(1);
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1225,7 +1225,6 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
 	{
 		if(neighEdge.Element()->Dimension() == 2 &&
            globMaterialIdGen.IsOutsideFractMat(neighEdge.Element()->MaterialId()) &&
-           //neighEdge.Element()->Father() == NULL) //<<< AQUICAJU : acho que mudar aqui resolveria se malha estar refinada!
             neighEdge.Element()->HasSubElement() == false)//substitui por essa verificacao!!!
 		{
             neighFound = true;
@@ -1243,7 +1242,6 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
     }
     else if(gelEdge.Element()->Dimension() == 2 &&
             globMaterialIdGen.IsOutsideFractMat(gelEdge.Element()->MaterialId()) &&
-            //gelEdge.Element()->Father() == NULL)//<<< AQUICAJU : acho que mudar aqui resolveria se malha estar refinada!
             gelEdge.Element()->HasSubElement() == false)//substitui por essa verificacao!!!
     {
         //fechando fratura no inicio ou no final, portanto o
