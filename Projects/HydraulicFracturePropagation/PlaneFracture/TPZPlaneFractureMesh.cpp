@@ -666,6 +666,19 @@ REAL TPZPlaneFractureMesh::GetPreStressYYOfThisLayer(int lay)
 }
 //------------------------------------------------------------------------------------------------------------
 
+bool TPZPlaneFractureMesh::GeoElementIsOnPreservedMesh(TPZGeoEl * gel)
+{
+    if(gel->Index() >= this->fPreservedMesh->NElements())
+    {
+        return false;
+    }
+    TPZGeoEl * preservedGel = this->fPreservedMesh->ElementVec()[gel->Index()];
+    bool gelIsOnPreservedMesh = (preservedGel->Id() == gel->Id());
+    
+    return gelIsOnPreservedMesh;
+}
+//------------------------------------------------------------------------------------------------------------
+
 void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVerticalDEPTH,
                                                  REAL bulletTVDIni, REAL bulletTVDFin,
                                                  REAL xLength, REAL yLength)

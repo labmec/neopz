@@ -306,6 +306,8 @@ class TPZPlaneFractureMesh
     
     REAL GetPreStressYYOfThisLayer(int lay);
     
+    bool GeoElementIsOnPreservedMesh(TPZGeoEl * gel);
+    
 protected:
     
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
