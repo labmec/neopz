@@ -23,8 +23,13 @@
 #include "TPZVTKGeoMesh.h"
 
 #include "TPZVTKGeoMesh.h"
-//#include "TSWXGraphMesh.h"
-//#include "TSWXGraphElement.h"
+
+//#define usingSWXGraphs
+
+#ifdef usingSWXGraphs
+#include "TSWXGraphMesh.h"
+#include "TSWXGraphElement.h"
+#endif
 
 TPZPlaneFractureKernel::TPZPlaneFractureKernel()
 {
@@ -113,15 +118,10 @@ void TPZPlaneFractureKernel::Run()
             this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec, this->fQinj1wing_Hbullet, this->fvisc, this->fpOrder);
         }
         else
-        {   //Isso significa que devemos transferir o leakoff e o volume da fratura
+        {   //Isso significa que devemos transferir o volume da fratura e o leakoff da malha
             //anterior para essa nova geometria de fratura antes de prosseguir!
             
             std::cout << "\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
-            
-            /** Leakoff */
-            {
-                this->TransferLeakoff(lastPressureCMesh);
-            }
             
             /** Volume da fratura */
             {
@@ -170,6 +170,13 @@ void TPZPlaneFractureKernel::Run()
                     DebugStop();
                 }
 //#endif
+            }
+            
+            /** Leakoff */
+            {
+                this->TransferLeakoff(lastPressureCMesh);
+                std::cout << "\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Compare com anterior!\n";
+                PostProcessVolLeakoff(111);
             }
         }
         
@@ -345,8 +352,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
         globLeakoffStorage.UpdateLeakoff(fmphysics,globTimeControl.actDeltaT());
         globTimeControl.UpdateActTime();//atualizando esta rodada concluida para o tempo atual
         
-        PostProcessVolLeakoff(step);
         PostProcessAcumVolW();
+        PostProcessVolLeakoff(step);
         PostProcessElasticity(step);
         PostProcessPressure(step);
         step++;
@@ -696,32 +703,36 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff(int step)
 
 void TPZPlaneFractureKernel::PostProcessElasticity(int step)
 {
-//    TSWXGraphMesh grMesh;
-//    TSWXGraphElement grEl(0);
-//    TPZVec<std::string> nodalSol(1), cellSol(0);
-//    nodalSol[0] = "Displacement";
-//
-//    grEl.GenerateVTKData(fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
-//    
-//    std::stringstream nm;
-//    nm << "Elasticity" << step << ".vtk";
-//    std::ofstream file(nm.str().c_str());
-//    grMesh.ToParaview(file);
+#ifdef usingSWXGraphs
+    TSWXGraphMesh grMesh;
+    TSWXGraphElement grEl(0);
+    TPZVec<std::string> nodalSol(1), cellSol(0);
+    nodalSol[0] = "Displacement";
+
+    grEl.GenerateVTKData(fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
+    
+    std::stringstream nm;
+    nm << "Elasticity" << step << ".vtk";
+    std::ofstream file(nm.str().c_str());
+    grMesh.ToParaview(file);
+#endif
 }
 //------------------------------------------------------------------------------------------------------------
 
 void TPZPlaneFractureKernel::PostProcessPressure(int step)
 {
-//    TSWXGraphMesh grMesh;
-//    TSWXGraphElement grEl(0);
-//    TPZVec<std::string> nodalSol(1), cellSol(0);
-//    nodalSol[0] = "Pressure";
-//    grEl.GenerateVTKData(fmeshVec[1], 2, 0., nodalSol, cellSol, grMesh);
-//    
-//    std::stringstream nm;
-//    nm << "Pressure" << step << ".vtk";
-//    std::ofstream file(nm.str().c_str());
-//    grMesh.ToParaview(file);
+#ifdef usingSWXGraphs
+    TSWXGraphMesh grMesh;
+    TSWXGraphElement grEl(0);
+    TPZVec<std::string> nodalSol(1), cellSol(0);
+    nodalSol[0] = "Pressure";
+    grEl.GenerateVTKData(fmeshVec[1], 2, 0., nodalSol, cellSol, grMesh);
+    
+    std::stringstream nm;
+    nm << "Pressure" << step << ".vtk";
+    std::ofstream file(nm.str().c_str());
+    grMesh.ToParaview(file);
+#endif
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -849,15 +860,36 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
     }
     
     {
-        std::stringstream nm;
-        nm << "PoligonalChain" << countOutPolig << ".vtk";
-        std::ofstream outPolig(nm.str().c_str());
-        
-        outPolig << "int npts = " << newPoligonalChain.NElements() << ";\n";
-        outPolig << "fractureDots.Resize(npts);\n";
-        for(int p = 0; p < newPoligonalChain.NElements(); p++)
-        {
-            outPolig << "fractureDots[" << p << "] = std::make_pair(" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << ");\n";
+        {//C++ tool
+            std::stringstream nm;
+            nm << "PoligonalChain" << countOutPolig << ".vtk";
+            std::ofstream outPolig(nm.str().c_str());
+            
+            outPolig << "int npts = " << newPoligonalChain.NElements() << ";\n";
+            outPolig << "fractureDots.Resize(npts);\n";
+            for(int p = 0; p < newPoligonalChain.NElements(); p++)
+            {
+                outPolig << "fractureDots[" << p << "] = std::make_pair(" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << ");\n";
+            }
+        }
+        {//Mathematica tool
+            std::stringstream nmMath, nmAux;
+            nmAux << "pcm={";
+            nmMath << "PoligonalChainMath" << countOutPolig << ".vtk";
+            std::ofstream outPoligMath(nmMath.str().c_str());
+            
+            for(int p = 0; p < newPoligonalChain.NElements(); p++)
+            {
+                outPoligMath << "fractureDots" << p << " = {" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << "};\n";
+                nmAux << "fractureDots" << p;
+                if(p < newPoligonalChain.NElements()-1)
+                {
+                    nmAux << ",";
+                }
+            }
+            nmAux << "};\n";
+            nmAux << "ListPlot[pcm,Joined->True,AspectRatio->2]\n";
+            outPoligMath << nmAux.str();
         }
         countOutPolig++;
     }
@@ -898,7 +930,7 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
 #endif
         
         REAL Area = gel->SideArea(gel->NSides()-1);
-        it = globLeakoffStorage.GetLeakoffMap().find(cel->Reference()->Id());
+        it = globLeakoffStorage.GetLeakoffMap().find(gel->Id());
         
 #ifdef DEBUG
         if(it == globLeakoffStorage.GetLeakoffMap().end())
@@ -911,16 +943,31 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
         
         REAL volAcum = Area * penetration;
         
-        it = fatherGeoIndex_VolAcum.find(gel->LowestFather()->Index());
+        //Procurando pelo elemento ancestral que pertence aa malha preservada.
+        TPZGeoEl * preservedMeshGel = gel;
+        while(preservedMeshGel->Father())
+        {
+            if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel))
+            {
+                break;
+            }
+            preservedMeshGel = preservedMeshGel->Father();
+        }
+        if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel) == false)
+        {
+            DebugStop();
+        }
+        
+        it = fatherGeoIndex_VolAcum.find(preservedMeshGel->Index());
         if(it == fatherGeoIndex_VolAcum.end())
         {
-            fatherGeoIndex_VolAcum[gel->LowestFather()->Index()] = volAcum;
+            fatherGeoIndex_VolAcum[preservedMeshGel->Index()] = volAcum;
         }
         else
         {
             REAL volAcumOld = it->second;
             volAcum += volAcumOld;
-            fatherGeoIndex_VolAcum[gel->LowestFather()->Index()] = volAcum;
+            fatherGeoIndex_VolAcum[preservedMeshGel->Index()] = volAcum;
         }
     }
     
@@ -950,7 +997,22 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
         }
 #endif
         
-        it = fatherGeoIndex_VolAcum.find(gel->LowestFather()->Index());
+        //Procurando pelo elemento ancestral que pertence aa malha preservada.
+        TPZGeoEl * preservedMeshGel = gel;
+        while(preservedMeshGel->Father())
+        {
+            if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel))
+            {
+                break;
+            }
+            preservedMeshGel = preservedMeshGel->Father();
+        }
+        if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel) == false)
+        {
+            DebugStop();
+        }
+        
+        it = fatherGeoIndex_VolAcum.find(preservedMeshGel->Index());
         if(it == fatherGeoIndex_VolAcum.end())
         {//Primeira vez que elemento pai vira interior de fratura
             continue;
@@ -958,9 +1020,7 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
         
         REAL volAcum = it->second;
         
-        TPZGeoEl * father = gel->LowestFather();
-        
-        if(father == gel)
+        if(preservedMeshGel == gel)
         {//Pelo fato do pai nao estar refinado, todo o volume acumulado vai para ele mesmo.
             REAL Area = gel->SideArea(gel->NSides()-1);
             REAL penetration = volAcum/Area;
@@ -973,7 +1033,7 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
             REAL fractSonsArea = 0.;
             
             TPZVec<TPZGeoEl*> allSons(0);
-            father->GetHigherSubElements(allSons);
+            preservedMeshGel->GetHigherSubElements(allSons);
             for(int s = 0; s < allSons.NElements(); s++)
             {
                 TPZGeoEl * son = allSons[s];
