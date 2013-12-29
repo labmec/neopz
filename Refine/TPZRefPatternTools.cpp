@@ -23,7 +23,8 @@ TPZRefPatternTools::~TPZRefPatternTools()
 	
 }
 
-void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAutoPointer<TPZRefPattern> > &refs)
+void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel,
+                                                  std::list<TPZAutoPointer<TPZRefPattern> > &refs)
 {
 	if(!gel) return;
 	
@@ -92,7 +93,9 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAu
 	}
 }
 
-TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp)
+TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
+                                                                  std::map<int, std::pair<TPZGeoEl *,
+                                                                  std::map<int,int> > > &neighCorresp)
 {
 	neighCorresp.clear();
 	TPZAutoPointer<TPZRefPattern> modelPat;//NULL
@@ -173,7 +176,8 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 	return NULL;
 }
 
-TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoEl *gel, TPZVec<int> &sidestorefine)
+TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoEl *gel,
+                                                                         TPZVec<int> &sidestorefine)
 {
 	if(!gel)
 	{
@@ -247,7 +251,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 			std::cout << "Open file ModelRefPatternNOTFOUND.vtk in Paraview to see the neighbourhood\n";
             
             std::ofstream outNotFound("ModelRefPatternNOTFOUND.vtk");
-            TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(gel->Mesh(), gel->Id(), outNotFound);
+            TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(gel->Mesh(), gel->Index(), outNotFound);
 			
             DebugStop();
 		}
@@ -256,7 +260,10 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 	return pat;
 }
 
-TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRefPattern> modelPat, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp)
+TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel,
+                                                                    TPZAutoPointer<TPZRefPattern> modelPat,
+                                                                    std::map<int, std::pair<TPZGeoEl *,
+                                                                    std::map<int,int> > > &neighCorresp)
 {
 	TPZAutoPointer<TPZRefPattern> modelPat_copy = new TPZRefPattern(modelPat);
 	int nnodes = gel->NNodes();
@@ -327,7 +334,10 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * g
 	return modelPat_copy;
 }
 
-bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, TPZAutoPointer<TPZRefPattern> refB, TPZTransform &fromAtoB, std::map<int, int> &pairedNodes)
+bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA,
+                                           TPZAutoPointer<TPZRefPattern> refB,
+                                           TPZTransform &fromAtoB,
+                                           std::map<int, int> &pairedNodes)
 {	
 	pairedNodes.clear();
 	
@@ -531,7 +541,10 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 	return false;
 }
 
-void TPZRefPatternTools::PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes)
+void TPZRefPatternTools::PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh &meshA,
+                                                                  TPZGeoMesh &meshB,
+                                                                  TPZTransform &fromAtoB,
+                                                                  std::map<int, int> &pairedNodes)
 {
 	TPZVec<REAL> ANodeCoord(3,0.), BNodeCoord(3,0.);
 	
@@ -563,7 +576,10 @@ void TPZRefPatternTools::PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh mes
 	}
 }
 
-void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes)
+void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh &meshA,
+                                                            TPZGeoMesh &meshB,
+                                                            TPZTransform &fromAtoB,
+                                                            std::map<int, int> &pairedNodes)
 {
 	TPZVec<REAL> ANodeCoord(3,0.), BNodeCoord(3,0.);
 	
