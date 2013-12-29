@@ -1199,7 +1199,7 @@ void Path3D::ComputeJIntegral()
     fJDirection[1] = Jy/fJintegral;
     fJDirection[2] = Jz/fJintegral;
     
-    std::cout << "J = { " << fJDirection[0] << " , " << fJDirection[1] << " , " << fJDirection[2] << " } --> " << "(" << fJintegral << ") : ";
+    std::cout << "Jvec = { " << fJDirection[0] << " , " << fJDirection[1] << " , " << fJDirection[2] << " } : |Jvec| = " << fJintegral << " : ";
 }
 
 
