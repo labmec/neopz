@@ -89,7 +89,7 @@ int ModelDimension = 3;
 /** VARIABLES */
 /** Printing level */
 int gPrintLevel = 0;
-int printingsol = 0;
+int printingsol = 1;
 int printsave = 1;
 
 int materialId = 1;
@@ -148,7 +148,7 @@ int NRefs = 8;
 int ninitialrefs = 3;
 int itypeel;
 
-long MaxEquations = 1000000;
+long MaxEquations = 10000000;
 
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
@@ -224,7 +224,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
@@ -242,14 +242,12 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3) {
-				ninitialrefs = 3;
-				NRefs = 8;
+				NRefs = 12;
 				if(itypeel==3) MaxPOrder = 9;
 				else MaxPOrder = 15;
 			}
 			else if(ModelDimension == 3) {
-				NRefs = 8;
-				ninitialrefs = 3;
+				NRefs = 10;
 				if(itypeel==4) MaxPOrder = 15;
 				else MaxPOrder = 9;
 			}
@@ -280,7 +278,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
 					ann.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
 				}
-				ann.PostProcess(2,ModelDimension);
+				ann.PostProcess(3,ModelDimension);
 				delete cmeshfirst;
 				delete gmeshfirst;
 				printingsol = false;
@@ -455,8 +453,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
 	REAL factorGrad= 0.3;
 	REAL factorLap = 0.7;
-	REAL factorError = 0.4;
-	if(nref>1) factorError += (nref-2)*0.05;
+	REAL factorError = 0.2;
+	REAL factorErrorM = 0.8;
+	if(nref>1) {
+		factorError += (nref-2)*0.08;
+		factorErrorM += (nref-2)*0.02;
+	}
 	if(2<nref)
 		factorGrad += (nref-2)*0.1;
     if(factorGrad>0.9)
@@ -484,7 +486,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
         pelement++;
-		if(ervecbyel[index] > 0.8*MaxErrorByElement && IncrementError > 100*Tol) {
+		if(ervecbyel[index] > factorErrorM*MaxErrorByElement && IncrementError > 10*Tol) {
 			if(gradervecbyel[i] > factorGrad*MaxGrad) {
 				bool flag;
 				flag = false;
@@ -508,34 +510,37 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 				el->Divide(index,subels);
 				counterreftype[4]++;
 			}
+			counterreftype[7]++;
 		}
 		else if(ervecbyel[index] > factorError*MaxErrorByElement) {
+			counterreftype[10]++;
 			if((gradervecbyel[i] > factorGrad*MaxGrad)) {
-				counterreftype[5]++;
+				counterreftype[11]++;
 				el->Divide(index,subels);
 			}
 			else if(pelement<MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
-				counterreftype[6]++;
+				counterreftype[12]++;
 			}
             else {
-                counterreftype[7]++;
+                counterreftype[13]++;
                 el->Divide(index,subels);
             }
 		}
 		else {
+			counterreftype[20]++;
 			if(pelement < MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
-				counterreftype[8]++;
+				counterreftype[21]++;
 			}
 //			else if(nref<8) {
 	//			el->Divide(index,subels);
 		//		counterreftype[9]++;
 			//}
             else
-				counterreftype[10]++;
+				counterreftype[22]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
@@ -821,7 +826,7 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	fileerrors << "Temp[i_, j_] := {{LogNEquations[[i]],LogL2Errors[[i]]},{LogNEquations[[Length[LogNEquations]]],LogL2Errors[[j]] + ((LogL2Errors[[i]]-LogL2Errors[[j]])/(LogNEquations[[i]]-LogNEquations[[j]]))*(LogNEquations[[Length[LogNEquations]]]-LogNEquations[[j]])}}" << std::endl;
 	// printing line to make a graphics log_nequations x log_errors
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
-	for(nref=1;nref<NRefs-3;nref++)
+	for(nref=1;nref<NRefs-2;nref++)
 		fileerrors << ",Temp["<<nref<<","<<(nref+1)<<"]";
 	fileerrors << "},Joined->True,PlotRange->All]" << std::endl;
 	return true;
