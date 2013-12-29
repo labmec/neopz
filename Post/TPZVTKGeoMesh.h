@@ -55,12 +55,12 @@ public:
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh *gmesh, std::ofstream &file, int neighMaterial, bool matColor = false);
     
     /** @brief Print the elements that surround a givel geoel */
-    static void PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elId, std::ofstream &file);
+    static void PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elIndex, std::ofstream &file);
     
     /** @brief Print the given elements */
-    static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elId, std::ofstream &file);
+    static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elIndex, std::ofstream &file);
     
-    static void SetMaterial(TPZGeoEl * gel, int mat);
+    static void SetMaterialVTK(TPZGeoEl * gel, int mat);
 	
 	/** @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file */
 	static void PrintGMeshVTKmy_material(TPZGeoMesh *gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = false);

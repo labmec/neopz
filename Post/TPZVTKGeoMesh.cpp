@@ -885,7 +885,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 	file.close();
 }
 
-void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elId, std::ofstream &file)
+void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elIndex, std::ofstream &file)
 {	
     int elMat = 999;
     int surrMat = 555;
@@ -893,10 +893,10 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elId, st
     myMaterial.insert(elMat);
     myMaterial.insert(surrMat);
     
-    TPZGeoMesh * gmeshCP(gmesh);
+    TPZGeoMesh * gmeshCP = new TPZGeoMesh(*gmesh);
     
-    TPZGeoEl * gel = gmeshCP->ElementVec()[elId];
-    SetMaterial(gel, elMat);
+    TPZGeoEl * gel = gmeshCP->ElementVec()[elIndex];
+    SetMaterialVTK(gel, elMat);
     
     int nsides = gel->NSides();
     for(int s = 0; s < nsides; s++)
@@ -907,8 +907,10 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elId, st
         while(thisSide != neighSide)
         {
             TPZGeoEl * neighEl = neighSide.Element();
-            SetMaterial(neighEl, surrMat);
-            
+            if(thisSide.IsAncestor(neighSide) == false)
+            {
+                SetMaterialVTK(neighEl, surrMat);
+            }
             neighSide = neighSide.Neighbour();
         }
 		
@@ -916,7 +918,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, long elId, st
     PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, true);
 }
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elId, std::ofstream &file)
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elIndex, std::ofstream &file)
 {
     file.clear();
 	long nelements = gmesh->NElements();
@@ -935,7 +937,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elId, std
 	
 	for(long el = 0; el < nelements; el++)
 	{
-        if(elId.find(el) == elId.end())
+        if(elIndex.find(el) == elIndex.end())
         {
             continue;
         }
@@ -990,14 +992,14 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<long> & elId, std
 	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
 	file << "FIELD FieldData 1" << std::endl;
 
-    file << "elId 1 " << nVALIDelements << " int" << std::endl;
+    file << "elIndex 1 " << nVALIDelements << " int" << std::endl;
 
 	file << material.str();
 	
 	file.close();
 }
 
-void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
+void TPZVTKGeoMesh::SetMaterialVTK(TPZGeoEl * gel, int mat)
 {
     gel->SetMaterialId(mat);
     
@@ -1007,12 +1009,12 @@ void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
         TPZVec<REAL> NodeCoord(3);
         TPZVec<long> Topol(1);
         
-        long elId = 0;
+        long elIndex = 0;
         
         Topol[0] = gel->NodeIndex(nd);
         
         gel->Mesh()->NodeVec()[gel->NodeIndex(nd)].GetCoordinates(NodeCoord);
-        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol, mat,*(gel->Mesh()));
+        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elIndex,Topol, mat,*(gel->Mesh()));
     }
     
     if(gel->HasSubElement())
@@ -1021,7 +1023,7 @@ void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
         for(int s = 0; s < nSons; s++)
         {
             TPZGeoEl * son = gel->SubElement(s);
-            SetMaterial(son, mat);
+            SetMaterialVTK(son, mat);
         }
     }
 }
