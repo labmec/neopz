@@ -24,7 +24,7 @@
 
 #include "TPZVTKGeoMesh.h"
 
-#define usingSWXGraphs
+//#define usingSWXGraphs
 //
 #ifdef usingSWXGraphs
 #include "TSWXGraphMesh.h"
