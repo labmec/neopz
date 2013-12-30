@@ -25,7 +25,7 @@
 #include "TPZVTKGeoMesh.h"
 
 //#define usingSWXGraphs
-
+//
 #ifdef usingSWXGraphs
 #include "TSWXGraphMesh.h"
 #include "TSWXGraphElement.h"
@@ -175,8 +175,6 @@ void TPZPlaneFractureKernel::Run()
             /** Leakoff */
             {
                 this->TransferLeakoff(lastPressureCMesh);
-                std::cout << "\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Compare com anterior!\n";
-                PostProcessVolLeakoff(111);
             }
         }
         
