@@ -828,7 +828,10 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-    RefineUniformAllFracturePlane(1);
+    //RefineUniformAllFracturePlane(1);
+    
+//    std::ofstream outPreservedMesh("PreservedMesh.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -879,11 +882,6 @@ void TPZPlaneFractureMesh::RefineUniformAllFracturePlane(int ndiv)
                 }
             }
         }
-    }
-    
-    {
-//        std::ofstream outPreservedMesh("PreservedMesh.vtk");
-//        TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -1137,6 +1135,7 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
                 std::cout << "dx: " << dx[0] << " , " << dx[1] << " , " << dx[2] << std::endl;
                 std::cout << "alphaMin = " << alphaMin << std::endl << std::endl;
                 
+                //Pontos da corrente poligonal coincidem?
                 DebugStop();
             }
             else

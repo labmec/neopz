@@ -119,7 +119,14 @@ protected:
      * @param whoPropagate_KI [in] : map that holds the KI and KIc, indexed by poligonal chain index
      */
     void DefinePropagatedPoligonalChain(std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
-                                        TPZVec< std::pair< REAL,REAL > > &newPoligonalChain);
+                                        TPZVec< std::pair< REAL,REAL > > &poligonalChain);
+    
+    /**
+     * Remove zig-zag from given poligonal chain.
+     * Note: Zig-zag is when (v1.v2 < 0).
+     * If zig-zag was not removed, we will have trouble on PerfercMatchRefPattern on fracture geomesh generation.
+     */
+    void RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poligonalChain);
     
     /**
      *  After the fracture propagation, this method will transfer the leakoff from the old data structure (based on given cmesh)

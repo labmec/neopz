@@ -24,7 +24,7 @@
 
 #include "TPZVTKGeoMesh.h"
 
-//#define usingSWXGraphs
+#define usingSWXGraphs
 //
 #ifdef usingSWXGraphs
 #include "TSWXGraphMesh.h"
@@ -807,60 +807,54 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
 
 int countOutPolig = 1;
 void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
-                                                            TPZVec< std::pair<REAL,REAL> > &newPoligonalChain)
+                                                            TPZVec< std::pair<REAL,REAL> > &poligonalChain)
 {
+    TPZVec< std::pair<REAL,REAL> > newPoligonalChain(0);
+    
     //Codigo meia boca, soh pra validar, mas precisa fazer direiro
     std::map< int, std::pair<REAL,REAL> >::iterator it;
     
-    for(int p = 0; p < newPoligonalChain.NElements() - 1; p++)
+    for(int p = 0; p < poligonalChain.NElements() - 1; p++)
     {
         it = whoPropagate_KI.find(p);
         if(it == whoPropagate_KI.end())
-        {
-            continue;
+        {//Nao propagou, portanto serao mantidos os pontos ini e fin
+            int oldSize = newPoligonalChain.NElements();
+            newPoligonalChain.Resize(oldSize+2);
+
+            poligonalChain[p].first = MAX(0.05,poligonalChain[p].first);
+            poligonalChain[p+1].first = MAX(0.05,poligonalChain[p+1].first);
+            
+            newPoligonalChain[oldSize] = poligonalChain[p];
+            newPoligonalChain[oldSize+1] = poligonalChain[p+1];
         }
-        
-        REAL KI = it->second.first;
-        REAL KIc = it->second.second;
-        
-        REAL alpha = KI/KIc;//AQUICAJU : tosqueira!!!
-        
-        TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
-        
-        /** Soma vetorial eh acumulativa quando 1 noh da corrente poligonal eh compartilhado por 2 cracktips que propagaram :) */
-        //Node 0 of cracktip
-        REAL newX0 = newPoligonalChain[p].first + alpha*Jdirection[0];
-        REAL newZ0 = newPoligonalChain[p].second + alpha*Jdirection[2];
-        if(p == 0)
-        {
-            newX0 += alpha*Jdirection[0];
-            newZ0 += alpha*Jdirection[2];
+        else
+        {//Propagou, portanto serah definido novo ponto a partir de seu centro
+            REAL KI = it->second.first;
+            REAL KIc = it->second.second;
+            
+            REAL alpha = KI/KIc;//AQUICAJU : tosqueira!!!
+            
+            TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
+            TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
+            
+            REAL newX = MAX(0.05,originVec[0] + alpha*Jdirection[0]);
+            REAL newZ = originVec[2] + alpha*Jdirection[2];
+
+            int oldSize = newPoligonalChain.NElements();
+            newPoligonalChain.Resize(oldSize+1);
+            newPoligonalChain[oldSize] = std::make_pair(newX, newZ);
         }
-        if(newX0 < 0.1)
-        {
-            newX0 = 0.1;
-        }
-        newPoligonalChain[p] = std::make_pair(newX0,newZ0);
-        
-        //Node 1 of cracktip
-        REAL newX1 = newPoligonalChain[p+1].first + alpha*Jdirection[0];
-        REAL newZ1 = newPoligonalChain[p+1].second + alpha*Jdirection[2];
-        if(p == newPoligonalChain.NElements() - 2)
-        {
-            newX1 += alpha*Jdirection[0];
-            newZ1 += alpha*Jdirection[2];
-        }
-        if(newX1 < 0.1)
-        {
-            newX1 = 0.1;
-        }
-        newPoligonalChain[p+1] = std::make_pair(newX1,newZ1);
     }
+    
+    RemoveZigZag(newPoligonalChain);
+    
+    poligonalChain = newPoligonalChain;
     
     {
         {//C++ tool
             std::stringstream nm;
-            nm << "PoligonalChain" << countOutPolig << ".vtk";
+            nm << "PoligonalChain" << countOutPolig << ".txt";
             std::ofstream outPolig(nm.str().c_str());
             
             outPolig << "int npts = " << newPoligonalChain.NElements() << ";\n";
@@ -873,7 +867,7 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
         {//Mathematica tool
             std::stringstream nmMath, nmAux;
             nmAux << "pcm={";
-            nmMath << "PoligonalChainMath" << countOutPolig << ".vtk";
+            nmMath << "PoligonalChainMath" << countOutPolig << ".txt";
             std::ofstream outPoligMath(nmMath.str().c_str());
             
             for(int p = 0; p < newPoligonalChain.NElements(); p++)
@@ -891,6 +885,45 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
         }
         countOutPolig++;
     }
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poligonalChain)
+{
+    TPZVec< std::pair< REAL,REAL > > NOzigzagPoligonalChain(0);
+    
+    REAL v0x = 1.;
+    REAL v0z = 0.;
+    for(int p = 0; p < poligonalChain.NElements()-1; p++)
+    {
+        std::pair<REAL,REAL> p0 = poligonalChain[p];
+        std::pair<REAL,REAL> p1 = poligonalChain[p+1];
+        
+        REAL v1x = p1.first - p0.first;
+        REAL v1z = p1.second - p0.second;
+        
+        if(fabs(v1x) < 1.E-3 && fabs(v1z) < 1.E-3)
+        {
+            continue;
+        }
+        
+        REAL innerProd = v0x*v1x + v0z*v1z;
+        
+        if(innerProd > -1.E-5)
+        {
+            int oldSize = NOzigzagPoligonalChain.NElements();
+            NOzigzagPoligonalChain.Resize(oldSize+1);
+            NOzigzagPoligonalChain[oldSize] = poligonalChain[p];
+        }
+        
+        v0x = v1x;
+        v0z = v1z;
+    }
+    int oldSize = NOzigzagPoligonalChain.NElements();
+    NOzigzagPoligonalChain.Resize(oldSize+1);
+    NOzigzagPoligonalChain[oldSize] = poligonalChain[poligonalChain.NElements()-1];
+    
+    poligonalChain = NOzigzagPoligonalChain;
 }
 //------------------------------------------------------------------------------------------------------------
 

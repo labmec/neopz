@@ -122,6 +122,10 @@ public:
     
     REAL DETdxdt();
     
+    TPZVec<REAL> & Origin()
+    {
+        return fOrigin;
+    }
     REAL Radius();
     
     TPZVec<REAL> operator()(REAL t)
@@ -264,6 +268,11 @@ public:
     REAL OriginZcoord()
     {
         return fOriginZcoord;
+    }
+    
+    TPZVec<REAL> & Origin()
+    {
+        return fArcPath3D->Origin();
     }
     
     TPZVec<REAL> & JDirection()

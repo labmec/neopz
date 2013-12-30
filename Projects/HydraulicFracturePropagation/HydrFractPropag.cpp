@@ -70,9 +70,9 @@ int main(int argc, char * const argv[])
     REAL gradPref = 100.;
     REAL vsp = 1.E-8;
     
-    layerVec[0] = TPZLayerProperties(Young, Poisson, SigMax, SigMin, SigConf, TVDi0, TVDf0, KIc, Cl, Pe, gradPref, vsp);
+    layerVec[0] = TPZLayerProperties(3.*Young, Poisson, SigMax, 2.*SigMin, SigConf, TVDi0, TVDf0, 10.*KIc, Cl, Pe, gradPref, vsp);
     layerVec[1] = TPZLayerProperties(Young, Poisson, SigMax, SigMin, SigConf, TVDi1, TVDf1, KIc, Cl, Pe, gradPref, vsp);
-    layerVec[2] = TPZLayerProperties(Young, Poisson, SigMax, SigMin, SigConf, TVDi2, TVDf2, KIc, Cl, Pe, gradPref, vsp);
+    layerVec[2] = TPZLayerProperties(3.*Young, Poisson, SigMax, 2.*SigMin, SigConf, TVDi2, TVDf2, 10.*KIc, Cl, Pe, gradPref, vsp);
 
     //Fluid injection data
     REAL QinjWell = -2.;//m3/s
