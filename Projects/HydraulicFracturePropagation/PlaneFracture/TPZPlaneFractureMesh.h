@@ -28,7 +28,7 @@ const REAL __smallNum = 1.E-5;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
-const int __EdgeStretchesQTD = 4; //will be used for refpatterns
+const int __EdgeStretchesQTD = 10; //will be used for refpatterns
 
 /** @brief Multiplier of __EdgeStretchesQTD for fine edge intersection modulation */
 const int __TrimQTDmultiplier = 2; //will be used for searching direction between dots from poligonal chain

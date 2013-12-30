@@ -23,6 +23,7 @@
 
 using namespace pztopology;
 
+#define just1IntersectionByEdge
 
 TPZPlaneFractureMesh::TPZPlaneFractureMesh()
 {
@@ -828,7 +829,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-    //RefineUniformAllFracturePlane(1);
+    RefineUniformAllFracturePlane(1);
     
 //    std::ofstream outPreservedMesh("PreservedMesh.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
@@ -1178,12 +1179,24 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
                 
                 long neighEdgeIndex = neighEdge.Element()->Index();
 				it = auxElIndex_TrimCoords.find(neighEdgeIndex);
-                if(it == auxElIndex_TrimCoords.end())//Deve ser elemento 1D de materialId == globMaterialIdGen.__1DbulletMat
+                if(it == auxElIndex_TrimCoords.end())//Devia ser entao elemento 1D de materialId == globMaterialIdGen.__1DbulletMat
                 {
                     std::set<REAL> trim;
                     trim.insert(qsi1D);
                     auxElIndex_TrimCoords[neighEdgeIndex] = trim;
+                    
+#ifdef just1IntersectionByEdge
+                    if(pushback)
+                    {
+                        auxElIndexSequence.push_back(std::make_pair(neighEdgeIndex, qsi1D));
+                    }
+                    else // push_FRONT
+                    {
+                        auxElIndexSequence.push_front(std::make_pair(neighEdgeIndex, qsi1D));
+                    }
+#endif
                 }
+#ifndef just1IntersectionByEdge
                 else
                 {
                     it->second.insert(qsi1D);
@@ -1196,7 +1209,7 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
 				{
 					auxElIndexSequence.push_front(std::make_pair(neighEdgeIndex, qsi1D));
 				}
-                
+#endif
 				break;
 			}
 			neighEdge = neighEdge.Neighbour();
