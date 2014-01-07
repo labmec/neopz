@@ -2016,7 +2016,7 @@ void TPZPlaneFractureMesh::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL>
 		Node.SetCoord(NodeCoord);
 		gmesh->NodeVec()[n] = Node;
         
-        int matPoint = -100;
+        int matPoint = -10000;
         new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (Topol, matPoint,*gmesh);
 	}
 }
