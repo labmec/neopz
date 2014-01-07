@@ -461,66 +461,93 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta
     
 }
 
-void TPZSandlerExtended::D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2) const
+void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2) const
 {
-STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
-STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
-STATE dresktheta,dreskk;
-STATE fR2=fR*fR,Gamma=1 + (1 - sin(3.*beta))/fPsi + sin(3.*beta),stresbeta=sin(3*beta),
-Gamma2=Gamma*Gamma,FFL=F(k,fPhi),FFL2=FFL*FFL,fN2=fN*fN,
-sb=sin(beta),cb=cos(beta),sb2=sb*sb,cb2=cb*cb,ct=cos(theta),st=sin(theta),
-ct2=ct*ct,st2=st*st,sig1=pt[0],sig2=pt[1],sig3=pt[2],sq2=sqrt(2.),sq3=sqrt(3.),
-L=k,FN=fN,xi=1./sq3*(sig1+sig2+sig3),sig2tiu=(sqrt(2./3.)*sig1)-(sig2/sqrt(6.))-(sig3/sqrt(6.)),
-DGamma=3*cos(3*beta) - (3*cos(3*beta))/fPsi,DGamma2=DGamma*DGamma,Gamma3=Gamma*Gamma*Gamma,Gamma4=Gamma2*Gamma2,expBC=exp(fB*L)*fB*fC + fPhi;
+  STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
+  STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
+  STATE dresktheta,dreskk;
+  STATE fR2=fR*fR;
+  STATE Gamma=1 + (1 - sin(3.*beta))/fPsi + sin(3.*beta);
+  STATE stresbeta=sin(3*beta);
+  STATE Gamma2=Gamma*Gamma;
+  STATE DGamma=3*cos(3*beta) - (3*cos(3*beta))/fPsi;
+  STATE DGamma2=DGamma*DGamma,Gamma3=Gamma*Gamma*Gamma,Gamma4=Gamma2*Gamma2;
+  STATE FFL=F(k,fPhi);
+  STATE FFL2=FFL*FFL;
+  STATE fN2=fN*fN;
+  STATE sb=sin(beta),cb=cos(beta),sb2=sb*sb,cb2=cb*cb,ct=cos(theta),st=sin(theta),
+  ct2=ct*ct,st2=st*st;
+  STATE sig1=pt[0],sig2=pt[1],sig3=pt[2];
+  STATE sq2=sqrt(2.),sq3=sqrt(3.);
+  
+  STATE L=k;
+  STATE FN=fN;
+  STATE xi=1./sq3*(sig1+sig2+sig3);
+  STATE sig2tiu=(sqrt(2./3.)*sig1)-(sig2/sqrt(6.))-(sig3/sqrt(6.));
+  STATE expBC=exp(fB*L)*fB*fC + fPhi;
+  
+  
+  d2distf2dthetatheta=(2.*(-(ct2*(FFL2*fG*fR2*Gamma2 - 36.*FFL2*fK*sb2 + 72.*FFL*fK*fN*sb2 - 36.*fK*fN2*sb2)) + 9.*cb*fK*(FFL - fN)*Gamma*sig2tiu*sq2*st +
+  st*(FFL2*(fG*fR2*Gamma2 - 36.*fK*sb2)*st - 9.*fK*fN*sb*(Gamma*(sig2 - sig3) + 4.*fN*sb*st) + 9.*FFL*fK*sb*(Gamma*(sig2 - sig3) +
+  8.*fN*sb*st)) + 36.*cb2*fK*(FFL - fN)*(ct2*(FFL - fN) + (-FFL + FN)*st2) +
+  ct*FFL*fG*fR*Gamma2*(-L + sq3*xi)))/(9.*fG*fK*Gamma2);
+  
+/*  
+  d2distf2dthetabeta=(ct*(FFL - fN)*sq2*(cb*Gamma*(4*DGamma*sig2tiu + sq2*(Gamma*(-sig2 + sig3) + 4*(FFL - fN)*sb*st)) +
+  2*(Gamma2*sb*sig2tiu + DGamma*sq2*(Gamma*sb*(sig2 - sig3) - 4*(FFL - fN)*(cb2 + 2*sb2)*st))
+  -4*(FFL - FN)*(2*cb*DGamma + Gamma*sb)*sq2*cb*ct))/(fG*Gamma3);
+*/
 
-
-d2distf2dthetatheta=(2.*(-(ct2*(FFL2*fG*fR2*Gamma2 - 36.*FFL2*fK*sb2 + 72.*FFL*fK*fN*sb2 - 36.*fK*fN2*sb2)) + 9.*cb*fK*(FFL - fN)*Gamma*sig2tiu*sq2*st +
-                    st*(FFL2*(fG*fR2*Gamma2 - 36.*fK*sb2)*st - 9.*fK*fN*sb*(Gamma*(sig2 - sig3) + 4.*fN*sb*st) + 9.*FFL*fK*sb*(Gamma*(sig2 - sig3) +
-                    8.*fN*sb*st)) + 36.*cb2*fK*(FFL - fN)*(ct2*(FFL - fN) + (-FFL + FN)*st2) +
-                    ct*FFL*fG*fR*Gamma2*(-L + sq3*xi)))/(9.*fG*fK*Gamma2);
-    
-    
-d2distf2dthetabeta=(ct*(FFL - fN)*sq2*(cb*Gamma*(4*DGamma*sig2tiu + sq2*(Gamma*(-sig2 + sig3) + 4*(FFL - fN)*sb*st)) +
-                        2*(Gamma2*sb*sig2tiu + DGamma*sq2*(Gamma*sb*(sig2 - sig3) - 4*(FFL - fN)*(cb2 + 2*sb2)*st))
-                        -4*(FFL - FN)*(2*cb*DGamma + Gamma*sb)*sq2*cb*ct))/(fG*Gamma3);
-    
-    
-    d2distf2dthetak=(2*(ct*expBC*(2*FFL*fG*fR2*Gamma2*st + 9*fK*(Gamma*(sb*(sig2 - sig3) + cb*sig2tiu*sq2) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)) - fG*fR*Gamma2*st*(FFL - expBC*L + expBC*sq3*xi)))/(9.*fG*fK*Gamma2);
-    
-    
-    
+  d2distf2dthetabeta = (2*ct*(FFL - fN)*(8*DGamma*(-FFL + fN)*st + (cb*Gamma - 2*DGamma*sb)*(Gamma*(-sig2 + sig3) + 4*(FFL - fN)*sb*st) - 
+       (sq2*Gamma*(2*cb*DGamma + Gamma*sb)*(-((1 + fPsi)*sig2tiu) + 2*sq2*cb*(FFL - FN)*fPsi*st - (-1 + fPsi)*sig2tiu*stresbeta))/
+        (1 + fPsi + (-1 + fPsi)*stresbeta)))/(fG*Gamma3);
+  
+  d2distf2dthetak=(2*(ct*expBC*(2*FFL*fG*fR2*Gamma2*st + 9*fK*(Gamma*(sb*(sig2 - sig3) + cb*sig2tiu*sq2) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)) - fG*fR*Gamma2*st*(FFL - expBC*L + expBC*sq3*xi)))/(9.*fG*fK*Gamma2);
+  
+  
+  
   d2distf2dbetatheta=  -((ct*(FFL - fN)*sq2*(8*cb2*DGamma*(2*FFL - fN - FN)*sq2*st - 2*sb*(Gamma2*sig2tiu + DGamma*sq2*(Gamma*(sig2 - sig3) + 8*(-FFL + fN)*sb*st)) +
-                      cb*Gamma*(-4*DGamma*sig2tiu + sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st))))/(fG*Gamma3));
-    
-    
-   d2distf2dbetabeta= ((FFL - fN)*sq2*st*(-8*DGamma*Gamma2*sb*sig2tiu*(-1 + stresbeta) - 2*cb*Gamma*(Gamma2*sig2tiu + 8*DGamma2*sig2tiu*(-1 + stresbeta) +
-                     2*(-(DGamma*sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st)*(-1 + stresbeta)) + Gamma*(-9 + 4*Gamma)*sig2tiu*stresbeta)) +
-                        sq2*(Gamma3*sb*(-sig2 + sig3) - 8*DGamma2*(Gamma*sb*(sig2 - sig3) + 2*(cb2*(-3*FFL + fN + 2*FN) + 3*(-FFL + fN)*sb2)*st)*(-1 + stresbeta) +
-                             2*(Gamma*sb*(9*Gamma*(sig2 - sig3 + 2*(FFL - fN)*sb*st) + 4*(Gamma2*(-sig2 + sig3) + 9*(-FFL + fN)*sb*st))*stresbeta -
-                                2*cb2*st*(fN*Gamma2*(-1 + stresbeta) - 9*FFL*(-2 + Gamma)*Gamma*stresbeta + FN*(Gamma2 + 2*Gamma*(-9 + 4*Gamma)*stresbeta))))))/(fG*Gamma4*(-1 + stresbeta));
-    
-    d2distf2dbetak=(-2*expBC*st*(Gamma2*sb*sig2tiu*sq2 + cb*Gamma*(Gamma*(-sig2 + sig3) + 2*DGamma*sig2tiu*sq2 + 4*(-fN + FN)*sb*st) + 2*DGamma*(Gamma*sb*(sig2 - sig3) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)))/
-    (fG*Gamma3);
-
-    
-    dresktheta= -(FFL*fR*st);
-
-    
-    dreskk=1 - ct*expBC*fR + 3*fD*exp(fD*(-(FFL*fR) + L))*fK*(1 + expBC*fR)*fW;
-
-    tangentf2(0,0)= d2distf2dthetatheta;
-    tangentf2(0,1)=d2distf2dthetabeta;
-    tangentf2(0,2)=d2distf2dthetak;
-    tangentf2(1,0)=d2distf2dbetatheta;
-    tangentf2(1,1)=d2distf2dbetabeta;
-    tangentf2(1,2)=d2distf2dbetak;
-    tangentf2(2,0)=dresktheta;
-    tangentf2(2,1)=0;
-    tangentf2(2,2)=dreskk;
+  cb*Gamma*(-4*DGamma*sig2tiu + sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st))))/(fG*Gamma3));
+  
+  STATE one = (4*cb*DGamma*(FFL - fN)*sq2*st)/Gamma2 + (2*(FFL - fN)*sb*sq2*st)/Gamma;
+  STATE two = (2*cb*(FFL - fN)*sq2*st)/Gamma - (4*DGamma*(FFL - fN)*sb*sq2*st)/Gamma2;
+  d2distf2dbetabeta = (one*one + 
+     two*two - 
+     (2*(FFL - fN)*sq2*st*(2*cb*(-FFL + FN)*fPsi*sq2*st + sig2tiu*(1 + fPsi - stresbeta + fPsi*stresbeta))*
+        (4*DGamma*fPsi*Gamma*Gamma3*sb + cb*(8*DGamma2*fPsi*Gamma*Gamma2 - Gamma3*(fPsi*Gamma2 + 9*Gamma*stresbeta - 9*fPsi*Gamma*stresbeta))))/
+      (fPsi*Gamma*Gamma2*Gamma3*(1 + fPsi - stresbeta + fPsi*stresbeta)) + 
+     ((FFL - fN)*sq2*st*(Gamma*(sig2 - sig3)*sq2 + 4*(-FFL + fN)*sb*sq2*st)*
+        (4*cb*DGamma*fPsi*Gamma*Gamma3 + sb*(-8*DGamma2*fPsi*Gamma*Gamma2 + Gamma3*(fPsi*Gamma2 + 9*Gamma*stresbeta - 9*fPsi*Gamma*stresbeta))))/
+      (fPsi*Gamma2*Gamma2*Gamma3))/fG;
+/*      
+  d2distf2dbetabeta= ((FFL - fN)*sq2*st*(-8*DGamma*Gamma2*sb*sig2tiu*(-1 + stresbeta) - 2*cb*Gamma*(Gamma2*sig2tiu + 8*DGamma2*sig2tiu*(-1 + stresbeta) +
+  2*(-(DGamma*sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st)*(-1 + stresbeta)) + Gamma*(-9 + 4*Gamma)*sig2tiu*stresbeta)) +
+  sq2*(Gamma3*sb*(-sig2 + sig3) - 8*DGamma2*(Gamma*sb*(sig2 - sig3) + 2*(cb2*(-3*FFL + fN + 2*FN) + 3*(-FFL + fN)*sb2)*st)*(-1 + stresbeta) +
+  2*(Gamma*sb*(9*Gamma*(sig2 - sig3 + 2*(FFL - fN)*sb*st) + 4*(Gamma2*(-sig2 + sig3) + 9*(-FFL + fN)*sb*st))*stresbeta -
+  2*cb2*st*(fN*Gamma2*(-1 + stresbeta) - 9*FFL*(-2 + Gamma)*Gamma*stresbeta + FN*(Gamma2 + 2*Gamma*(-9 + 4*Gamma)*stresbeta))))))/(fG*Gamma4*(-1 + stresbeta));
+*/  
+  d2distf2dbetak=(-2*expBC*st*(Gamma2*sb*sig2tiu*sq2 + cb*Gamma*(Gamma*(-sig2 + sig3) + 2*DGamma*sig2tiu*sq2 + 4*(-fN + FN)*sb*st) + 2*DGamma*(Gamma*sb*(sig2 - sig3) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)))/
+  (fG*Gamma3);
+  
+  
+  dresktheta= -(FFL*fR*st);
+  
+  
+  dreskk=1 - ct*expBC*fR + 3*fD*exp(fD*(-(FFL*fR) + L))*fK*(1 + expBC*fR)*fW;
+  
+  tangentf2(0,0)= d2distf2dthetatheta;
+  tangentf2(0,1)=d2distf2dthetabeta;
+  tangentf2(0,2)=d2distf2dthetak;
+  tangentf2(1,0)=d2distf2dbetatheta;
+  tangentf2(1,1)=d2distf2dbetabeta;
+  tangentf2(1,2)=d2distf2dbetak;
+  tangentf2(2,0)=dresktheta;
+  tangentf2(2,1)=0;
+  tangentf2(2,2)=dreskk;
 }
 
-template <class T>
-void TPZSandlerExtended::D2DistFunc2(const TPZVec<T> &pt,T theta,T beta,T k, TPZFMatrix<T> &tangentf2)const
+
+void TPZSandlerExtended::D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2)const
 {
     STATE sqrt3=sqrt(3);
     STATE sqrt2=sqrt(2);
@@ -1455,8 +1482,8 @@ void TPZSandlerExtended::TaylorCheckDF1Cart(STATE xi, STATE beta,TPZVec<STATE> &
         STATE betanext = beta + diffbeta;
         F1Cyl(xinext, betanext, sigHWCyl);
         FromHWCylToPrincipal(sigHWCyl, sigCart);
-        for (int i=0; i<3; i++) {
-            resid(i) = sigCart[i];
+        for (int ii=0; ii<3; ii++) {
+            resid(ii) = sigCart[ii];
         }
         jac.Multiply(diff, residguess);
         residguess += res0;

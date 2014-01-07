@@ -112,14 +112,14 @@ void DepPlasticPV()
 	
 	TPZTensor<REAL> eps, deps, sigma;
 	eps.XX() = -0.001;
-	eps.YY() = -0.001;
-	eps.ZZ() = -0.001;
+	eps.YY() = -0.002;
+	eps.ZZ() = -0.003;
 //	eps.XY() = -23. * 0.00001;
 //	eps.XZ() = -24. * 0.001;
 //	eps.YZ() = -65. * 0.001;
 	deps.XX() = -0.00001;
-	deps.YY() = -0.00002;
-	deps.ZZ() = -0.00003;
+	deps.YY() = -0.0000;
+	deps.ZZ() = -0.0000;
 //	deps.XY() = 0.0001;
 //    deps.XZ() = 0.63 * 0.00002;
 //	deps.YZ() = 0.64686 * 0.00001;

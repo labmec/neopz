@@ -41,7 +41,7 @@ class TPZFMatrix;
  * @brief Classe que efetua avanco de um passo de plastificacao utilizando o metodo de Newton
  */
 template <class YC_t, class ER_t>
-class TPZPlasticStepPV
+class TPZPlasticStepPV 
 {
 public:
 	

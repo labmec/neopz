@@ -69,8 +69,8 @@ public:
     /// Compute the second derivative of the distance as a function of xi and beta
     void D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &d2distf1) const;
     /// Compute the second derivative of the distance as a function of theta, beta and k
-    template <class T>
-    void D2DistFunc2(const TPZVec<T> &pt,T theta,T beta,T k, TPZFMatrix<T> &d2distf2)const;
+    
+    void D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &d2distf2)const;
     
     void D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &d2distf2)const;
     
