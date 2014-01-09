@@ -103,6 +103,12 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec
     }
     
     GeneratePreservedMesh(espacamentoVerticalDEPTH, bulletTVDIni, bulletTVDFin, xLength, yLength);
+    
+    fmaxCompressiveStress = 0.;
+    for(int l = 0; l < layerVec.NElements(); l++)
+    {
+        fmaxCompressiveStress = MAX(fmaxCompressiveStress,-layerVec[l].fSigmaMin);
+    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -206,10 +212,10 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
 //    TurnIntoQuarterPoint(refinedMesh);
 //    RefineDirectionalToCrackTip(1);
     
-    {
+//    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
 //        TPZVTKGeoMesh::PrintGMeshVTK(fRefinedMesh, outRefinedMesh, true);
-    }
+//    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -243,9 +249,9 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
         
-        STATE prestressXX = 0.;
-        STATE prestressYY = 0.;
-        STATE prestressZZ = 0.;
+        STATE prestressXX = fLayerVec[lay].fSigmaMax;
+        STATE prestressYY = fLayerVec[lay].fSigmaMin;
+        STATE prestressZZ = fLayerVec[lay].fSigmaConf;
         
         ////Rock
         TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force,
@@ -562,7 +568,11 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
         for(int stripe = 0; stripe < fnstripes; stripe++)
         {
             int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
-
+            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
+            {//Fratura ainda nao entrou nesta camada!
+                continue;
+            }
+            
             TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
             if(!mat)
             {
@@ -575,7 +585,7 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
             }
             if(stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = 1.E-3 * fLayerVec[lay].fYoung;// <<<<<<====== HARDCODE
+                bcmat->Val2()(1,0) = 2.*fmaxCompressiveStress;
             }
             else
             {
@@ -680,6 +690,21 @@ bool TPZPlaneFractureMesh::GeoElementIsOnPreservedMesh(TPZGeoEl * gel)
 }
 //------------------------------------------------------------------------------------------------------------
 
+int TPZPlaneFractureMesh::GetLayer(REAL zMed)
+{
+    for(int lay = 0; lay < fLayerVec.NElements(); lay++)
+    {
+        if(fabs(zMed) > fLayerVec[lay].fTVDini && fabs(zMed) < fLayerVec[lay].fTVDfin)
+        {
+            return lay;
+        }
+    }
+    
+    DebugStop();//nao achou o layer
+    return -1;
+}
+//------------------------------------------------------------------------------------------------------------
+
 void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVerticalDEPTH,
                                                  REAL bulletTVDIni, REAL bulletTVDFin,
                                                  REAL xLength, REAL yLength)
@@ -734,6 +759,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
             REAL z0 = fPreservedMesh->NodeVec()[Topol4[0]].Coord(2);
             REAL z3 = fPreservedMesh->NodeVec()[Topol4[3]].Coord(2);
             REAL zMed = (z0 + z3)/2.;
+            
             int whatLayer = this->GetLayer(zMed);
             
 			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (Topol4,globMaterialIdGen.OutSideFractMatId(whatLayer),*fPreservedMesh);
@@ -772,6 +798,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
                 REAL z0 = fPreservedMesh->NodeVec()[Topol8[0]].Coord(2);
                 REAL z3 = fPreservedMesh->NodeVec()[Topol8[3]].Coord(2);
                 REAL zMed = (z0+z3)/2.;
+                
                 int whatLayer = this->GetLayer(zMed);
                 
                 new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (Topol8,globMaterialIdGen.RockMatId(whatLayer),*fPreservedMesh);
@@ -1841,6 +1868,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                     REAL Xc = neighCenterX[0];
                     REAL Zc = neighCenterX[2];
                     int stripe = std::min( fnstripes-1 , (int)(Xc/(fLfrac/fnstripes)) );
+                    
                     int layer = this->GetLayer(Zc);
                     
                     neigh->SetMaterialId(globMaterialIdGen.InsideFractMatId(layer, stripe));
@@ -1918,6 +1946,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                         REAL Xc = neighCenterX[0];
                         REAL Zc = neighCenterX[2];
                         int stripe = std::min( fnstripes-1 , (int)(Xc/(fLfrac/fnstripes)) );
+                        
                         int layer = this->GetLayer(Zc);
                         
                         neighEl->SetMaterialId(globMaterialIdGen.InsideFractMatId(layer, stripe));
@@ -1974,20 +2003,6 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
     }
 }
 //------------------------------------------------------------------------------------------------------------
-
-int TPZPlaneFractureMesh::GetLayer(REAL zMed)
-{
-    for(int lay = 0; lay < fLayerVec.NElements(); lay++)
-    {
-        if(fabs(zMed) > fLayerVec[lay].fTVDini && fabs(zMed) < fLayerVec[lay].fTVDfin)
-        {
-            return lay;
-        }
-    }
-    
-    DebugStop();//nao achou o layer
-    return -1;
-}
 
 //** just for visualize given dots in vtk */
 void TPZPlaneFractureMesh::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots)

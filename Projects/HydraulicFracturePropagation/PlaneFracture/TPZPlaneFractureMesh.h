@@ -52,6 +52,7 @@ public:
         fgradPref = 0.;
         fvsp = 0.;
     }
+    
     TPZLayerProperties(REAL Young, REAL Poisson, REAL SigMax, REAL SigMin, REAL SigConf, REAL TVDi, REAL TVDf,
                        REAL KIc, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
     {
@@ -310,6 +311,9 @@ class TPZPlaneFractureMesh
     
 protected:
     
+    //** Returns the layer index based on zMed (will be used fabs(zMed), i.e., TVD) */
+    int GetLayer(REAL zMed);
+    
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
      *  @param espacamentoVerticalDEPTH [in] : espacamento vertical que define interfaces entre camadas horizontais
@@ -472,9 +476,6 @@ protected:
 
     //** just for visualize given dots in vtk */
     static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
-    
-    //** Returns the layer index based on zMed (will be used fabs(zMed), i.e., TVD) */
-    int GetLayer(REAL zMed);
 	
     //-------------------------------------------------------------------------------
 	
@@ -501,6 +502,9 @@ protected:
     
     /** @brief Amount of stripes of pressure */
     int fnstripes;
+    
+    /** @brief Maximum compressive stress in fracture plane */
+    REAL fmaxCompressiveStress;
     
     /** @brief Vector of coupling material */
     TPZVec<TPZPlaneFractCouplingMat *> fCouplingMatVec;

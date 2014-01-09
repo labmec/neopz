@@ -58,7 +58,7 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     this->fQinj1wing_Hbullet = Qinj1wing_Hbullet;
     
     this->fCenterTVD = (bulletTVDIni + bulletTVDFin)/2.;
-    this->fPoligonalChainInitialRadius = 1.5 * (bulletTVDFin - fCenterTVD);
+    this->fPoligonalChainInitialRadius = 1.1 * (bulletTVDFin - fCenterTVD);
     
     this->fvisc = visc;
     
@@ -364,12 +364,14 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
         if(propagate)
         {//reducao do deltaT da proxima rodada para o valor minimo.
             globTimeControl.SetMinDeltaT();
+            std::cout << "\n\n************* PROPAGOU! *************\n\n";
         }
         else
         {//avancar no valor de deltaT para a proxima rodada.
             globTimeControl.SetNextDeltaT();
             fmat.Zero();
             MassMatrix(fmat);
+            std::cout << "\n\n************* NAO PROPAGOU! *************\n\n";
         }
     }
     
@@ -451,7 +453,7 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
         
 //        {
 //            std::stringstream nm;
-//            nm << "PreElastic.vtk";
+//            nm << "PreElastic" << stripe << ".vtk";
 //
 //            TPZManVector<std::string,10> scalnames(3), vecnames(1);
 //            
@@ -634,7 +636,7 @@ void TPZPlaneFractureKernel::PostProcessAcumVolW()
     globFractOutput3DData.InsertTAcumVolW(globTimeControl.actTime(), wAcum);
     
     std::cout.precision(10);
-    std::cout << "wAcum = " << wAcum << std::endl;
+    std::cout << "wAcum = " << wAcum << ";\n";
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -695,7 +697,8 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff(int step)
     globFractOutput3DData.InsertTAcumVolLeakoff(globTimeControl.actTime(), vlAcum);
     
     std::cout.precision(10);
-    std::cout << "vlAcum = " << vlAcum << std::endl;
+    std::cout << "vlAcum = " << vlAcum << ";\n";
+    std::cout << "wAcum+vlAcum\n";
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -772,7 +775,11 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
     
     std::map< int, std::pair<REAL,REAL> > whoPropagate_KI;
     
+    //Calculo das integrais-J
     fPath3D.IntegratePath3D();
+    
+    REAL maxKi = 0.;
+    //Calculo de KI
     for(int p = 0; p < fPath3D.NPaths(); p++)
     {
         REAL Jintegral = fPath3D.Path(p)->Jintegral();
@@ -787,14 +794,16 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
 
         REAL young = 0., poisson = 0.;
         fPlaneFractureMesh->GetYoung_and_PoissonFromLayerOfThisZcoord(originZcoord, young, poisson);
-        REAL cracktipKI = sqrt( (Jintegral*young) / (1. - poisson*poisson) ); // AQUICAJU : validar se eh assim para 3D!!!
+        REAL cracktipKI = sqrt( Jintegral*young );
+        maxKi = MAX(maxKi,cracktipKI);
+        
         if(cracktipKI >= layerKIc)
         {
             propagate = true;
             whoPropagate_KI[p] = std::make_pair(cracktipKI,layerKIc);
         }
     }
-    
+    std::cout << "maxKi = " << maxKi << "\n";
     //Definicao da newPoligonalChain (propagada)
     if(propagate)
     {
@@ -811,22 +820,20 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
 {
     TPZVec< std::pair<REAL,REAL> > newPoligonalChain(0);
     
-    //Codigo meia boca, soh pra validar, mas precisa fazer direiro
+    //Codigo meia boca, soh pra validar, mas precisa fazer direito
     std::map< int, std::pair<REAL,REAL> >::iterator it;
     
+    REAL newX = 0.;
+    REAL newZ = 0.;
     for(int p = 0; p < poligonalChain.NElements() - 1; p++)
     {
         it = whoPropagate_KI.find(p);
         if(it == whoPropagate_KI.end())
-        {//Nao propagou, portanto serao mantidos os pontos ini e fin
-            int oldSize = newPoligonalChain.NElements();
-            newPoligonalChain.Resize(oldSize+2);
-
-            poligonalChain[p].first = MAX(0.05,poligonalChain[p].first);
-            poligonalChain[p+1].first = MAX(0.05,poligonalChain[p+1].first);
+        {//Nao propagou, portanto serah mantido o ponto medio
+            TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
             
-            newPoligonalChain[oldSize] = poligonalChain[p];
-            newPoligonalChain[oldSize+1] = poligonalChain[p+1];
+            newX = originVec[0];
+            newZ = originVec[2];
         }
         else
         {//Propagou, portanto serah definido novo ponto a partir de seu centro
@@ -838,13 +845,13 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
             TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
             TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
             
-            REAL newX = MAX(0.05,originVec[0] + alpha*Jdirection[0]);
-            REAL newZ = originVec[2] + alpha*Jdirection[2];
-
-            int oldSize = newPoligonalChain.NElements();
-            newPoligonalChain.Resize(oldSize+1);
-            newPoligonalChain[oldSize] = std::make_pair(newX, newZ);
+            newX = originVec[0] + alpha*Jdirection[0];
+            newZ = originVec[2] + alpha*Jdirection[2];
         }
+        newX = MAX(0.05,newX);
+        int oldSize = newPoligonalChain.NElements();
+        newPoligonalChain.Resize(oldSize+1);
+        newPoligonalChain[oldSize] = std::make_pair(newX,newZ);
     }
     
     RemoveZigZag(newPoligonalChain);
@@ -913,7 +920,13 @@ void TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poli
         {
             int oldSize = NOzigzagPoligonalChain.NElements();
             NOzigzagPoligonalChain.Resize(oldSize+1);
-            NOzigzagPoligonalChain[oldSize] = poligonalChain[p];
+            NOzigzagPoligonalChain[oldSize] = p0;
+        }
+        else
+        {
+            int oldSize = NOzigzagPoligonalChain.NElements();
+            NOzigzagPoligonalChain.Resize(oldSize+1);
+            NOzigzagPoligonalChain[oldSize] = std::make_pair((p0.first + p1.first)/2.,(p0.second + p1.second)/2.);
         }
         
         v0x = v1x;
