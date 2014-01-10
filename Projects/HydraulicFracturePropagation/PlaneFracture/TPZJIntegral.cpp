@@ -1178,7 +1178,7 @@ void Path3D::ComputeJIntegral()
     TPZVec<REAL> areaJIntegral(3,0.);
     intRule.SetPrecision(1.e-2);
     //areaJIntegral = intRule.Vintegrate(*(fAreaPath3D),3,-1.,+1.);
-    std::cout << "\nAQUICAJU : nao estah integrando na area!!!\n";
+    //std::cout << "\nAQUICAJU : nao estah integrando na area!!!\n";
     
     //Simetry in xz plane
     areaJIntegral[0] = 2. * areaJIntegral[0] * fAreaPath3D->DETdxdt() / (gScaleFactor * gScaleFactor);
@@ -1198,8 +1198,6 @@ void Path3D::ComputeJIntegral()
     fJDirection[0] = Jx/fJintegral;
     fJDirection[1] = Jy/fJintegral;
     fJDirection[2] = Jz/fJintegral;
-    
-    std::cout << "Jvec = { " << fJDirection[0] << " , " << fJDirection[1] << " , " << fJDirection[2] << " } : |Jvec| = " << fJintegral << " : ";
 }
 
 
@@ -1311,17 +1309,21 @@ void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
 
 void JIntegral3D::IntegratePath3D()
 {
-    std::cout << "Computing J-integral...\n";
+    std::cout << "\n>>>>>>>>>>>>>>> Computing J-integral (Tot = " << NPaths() << ")\n\n";
     for(int p = 0; p < NPaths(); p++)
     {
         IntegratePath3D(p);
-        std::cout << p+1 << " of " << NPaths() << " computed!\n";
     }
 }
 
 void JIntegral3D::IntegratePath3D(int p)
 {
     fPath3DVec[p]->ComputeJIntegral();
+    std::cout << "Jvec" << p << " = { "
+              << fPath3DVec[p]->JDirection()[0] << " , "
+              << fPath3DVec[p]->JDirection()[1] << " , "
+              << fPath3DVec[p]->JDirection()[2] << " };\n"
+              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n\n";
 }
 
 JIntegral2D::JIntegral2D()

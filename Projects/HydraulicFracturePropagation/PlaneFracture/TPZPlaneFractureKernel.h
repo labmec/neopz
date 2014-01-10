@@ -31,6 +31,7 @@ public:
      * @param Qinj_well [in] : Well injection flow rate
      * @param visc [in] : Injected fluid viscosity
      * @param Jradius [in] : J-Integral radius
+     * @param maxPropagDistance [in] : maximum acepted displacement distance when fracture propagate
      * @param porder [in] : polinomial order of simulation
      *
      * TVD: True Vertical Depth (positive positions)
@@ -38,6 +39,7 @@ public:
     TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                            REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                            REAL Jradius,
+                           REAL maxPropagDistance,
                            int porder);
     
     ~TPZPlaneFractureKernel();
@@ -109,7 +111,11 @@ protected:
     void PostProcessPressure(int step);
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
-    REAL IntegrateW(TPZCompMesh * elasticCMesh);
+    REAL IntegrateW(TPZCompMesh * elasticCMesh);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
+    
+    REAL ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh);
+    
+    REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
     bool CheckPropagationCriteria(TPZVec<std::pair<REAL,REAL> > &newPoligonalChain);
@@ -118,7 +124,8 @@ protected:
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
      * @param whoPropagate_KI [in] : map that holds the KI and KIc, indexed by poligonal chain index
      */
-    void DefinePropagatedPoligonalChain(std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
+    void DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
+                                        std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
                                         TPZVec< std::pair< REAL,REAL > > &poligonalChain);
     
     /**
@@ -149,7 +156,27 @@ protected:
     REAL fvisc;
     int fpOrder;
     
+    REAL fmaxPropagDistance;
+    
     JIntegral3D fPath3D;
+};
+
+class BezierCurve
+{
+public:
+    BezierCurve();
+    BezierCurve(TPZVec< std::pair< REAL,REAL > > &poligonalChain);
+    ~BezierCurve();
+    
+    void F(REAL t, std::pair< REAL,REAL > & ft);
+    
+protected:
+    
+    REAL Bernstein(REAL t, REAL i);
+    REAL Coef(int num1, int num2, int num3);
+    
+    int forder;
+    TPZVec< std::pair< REAL,REAL > > fPoligonalChain;
 };
 
 

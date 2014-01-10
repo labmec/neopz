@@ -23,9 +23,6 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 #endif
 
 
-//#define NOleakoff
-
-
 TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
 
 TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin()

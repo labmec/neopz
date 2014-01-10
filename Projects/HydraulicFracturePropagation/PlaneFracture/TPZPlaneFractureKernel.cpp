@@ -40,6 +40,7 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel()
 TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                                                REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                                                REAL Jradius,
+                                               REAL maxPropagDistance,
                                                int pOrder)
 {
     this->fPlaneFractureMesh = new TPZPlaneFractureMesh(layerVec, bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax, nstripes);
@@ -63,6 +64,8 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     this->fvisc = visc;
     
     this->fJIntegralRadius = Jradius;
+    
+    this->fmaxPropagDistance = maxPropagDistance;
     
     this->fpOrder = pOrder;
     
@@ -309,7 +312,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
         res_total = fres + fmat;
 
         REAL res = Norm(res_total);
-        REAL tol = 1.e-5;
+        REAL tol = 1.e-3;
         int maxit = 15;
         int nit = 0;
 
@@ -346,9 +349,28 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
         {
             return;
         }
-
+        
         globLeakoffStorage.UpdateLeakoff(fmphysics,globTimeControl.actDeltaT());
         globTimeControl.UpdateActTime();//atualizando esta rodada concluida para o tempo atual
+        {
+            //O UpdateLeakoff atualiza o leakoff com base na pressao no centro do elemento (=volLeakoffComputed).
+            //Jah o kernel considera o leakoff com as pressoes calculadas em cada ponto da regra de integracao (=volLeakoffExpected).
+            //Por esta razao, alguma diferenca pode ocorrer, necessitando portanto corrigir o mapa de leakoff antes de prosseguir.
+            REAL volInjected = ComputeVolInjected();
+            REAL volW = IntegrateW(fmeshVec[0]);
+            
+            REAL volLeakoffExpected = volInjected - volW;
+            REAL volLeakoffComputed = ComputeVlAcumLeakoff(fmeshVec[1]);
+            if(fabs(volLeakoffComputed) > 1.E-10)
+            {
+                REAL alpha = volLeakoffExpected/volLeakoffComputed;
+                std::map<int,REAL>::iterator itLk;
+                for(itLk = globLeakoffStorage.GetLeakoffMap().begin(); itLk != globLeakoffStorage.GetLeakoffMap().end(); itLk++)
+                {
+                    itLk->second *= alpha;
+                }
+            }
+        }
         
         PostProcessAcumVolW();
         PostProcessVolLeakoff(step);
@@ -642,62 +664,13 @@ void TPZPlaneFractureKernel::PostProcessAcumVolW()
 
 void TPZPlaneFractureKernel::PostProcessVolLeakoff(int step)
 {
-    REAL vlAcum = 0.;
-    
-    int nelemCompMesh = fmeshVec[1]->NElements();
-    
-    TPZVec<REAL> penetrationValues(nelemCompMesh, 0.);
-    
-    for(int i = 0;  i < nelemCompMesh; i++)
-    {
-        TPZCompEl * cel = fmeshVec[1]->ElementVec()[i];
-        if(globMaterialIdGen.IsInsideFractMat(cel->Reference()->MaterialId()) == false)
-        {
-            continue;
-        }
-        
-#ifdef DEBUG
-        if(!cel || cel->Reference()->Dimension() != 2)
-        {
-            DebugStop();
-        }
-#endif
-
-        TPZGeoEl * gel = cel->Reference();
-        
-#ifdef DEBUG
-        if(!gel)
-        {
-            DebugStop();
-        }
-#endif
-        
-        REAL Area = gel->SideArea(gel->NSides()-1);
-
-        //comprimento de penetracao do fluido
-        REAL penetration = 0.;
-        std::map<int,REAL>::iterator it = globLeakoffStorage.GetLeakoffMap().find(gel->Id());
-        if(it != globLeakoffStorage.GetLeakoffMap().end())
-        {
-            penetration = it->second;
-        }
-        penetrationValues[i] = penetration;
-        
-        //volume acumulado
-        vlAcum += 2. * (Area * penetration);//Aqui jah eh considerada a simetria
-    }
-    
-    {
-        std::stringstream nm;
-        nm << "Leakoff" << step << ".vtk";
-        std::ofstream file(nm.str().c_str());
-        TPZVTKGeoMesh::PrintCMeshVTK(fmeshVec[1], file, penetrationValues);
-    }
+    REAL vlAcum = ComputeVlAcumLeakoff(fmeshVec[1]);
     
     globFractOutput3DData.InsertTAcumVolLeakoff(globTimeControl.actTime(), vlAcum);
     
     std::cout.precision(10);
     std::cout << "vlAcum = " << vlAcum << ";\n";
+    std::cout << "VlInjected = " << ComputeVolInjected() << ";\n";
     std::cout << "wAcum+vlAcum\n";
 }
 //------------------------------------------------------------------------------------------------------------
@@ -769,6 +742,68 @@ REAL TPZPlaneFractureKernel::IntegrateW(TPZCompMesh * elasticCMesh)
 }
 //------------------------------------------------------------------------------------------------------------
 
+REAL TPZPlaneFractureKernel::ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh)
+{
+    REAL vlAcum = 0.;
+    
+    int nelemCompMesh = fluidCMesh->NElements();
+    
+    TPZVec<REAL> penetrationValues(nelemCompMesh, 0.);
+    
+    for(int i = 0;  i < nelemCompMesh; i++)
+    {
+        TPZCompEl * cel = fluidCMesh->ElementVec()[i];
+        if(globMaterialIdGen.IsInsideFractMat(cel->Reference()->MaterialId()) == false)
+        {
+            continue;
+        }
+        
+#ifdef DEBUG
+        if(!cel || cel->Reference()->Dimension() != 2)
+        {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef DEBUG
+        if(!gel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        REAL Area = gel->SideArea(gel->NSides()-1);
+        
+        //comprimento de penetracao do fluido
+        REAL penetration = 0.;
+        std::map<int,REAL>::iterator it = globLeakoffStorage.GetLeakoffMap().find(gel->Id());
+        if(it != globLeakoffStorage.GetLeakoffMap().end())
+        {
+            penetration = it->second;
+        }
+        penetrationValues[i] = penetration;
+        
+        //volume acumulado
+        vlAcum += 2. * (Area * penetration);//Aqui jah eh considerada a simetria
+    }
+    
+    return vlAcum;
+}
+//------------------------------------------------------------------------------------------------------------
+
+REAL TPZPlaneFractureKernel::ComputeVolInjected()
+{
+    REAL actTime = globTimeControl.actTime();
+    REAL Qinj1wing = -(this->fQinj1wing_Hbullet * fHbullet);
+    
+    REAL volInjected = actTime * Qinj1wing;
+    
+    return volInjected;
+}
+//------------------------------------------------------------------------------------------------------------
+
 bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain)
 {
     bool propagate = false;
@@ -778,7 +813,7 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
     //Calculo das integrais-J
     fPath3D.IntegratePath3D();
     
-    REAL maxKi = 0.;
+    REAL maxKI = 0., respectiveKIc = 0.;
     //Calculo de KI
     for(int p = 0; p < fPath3D.NPaths(); p++)
     {
@@ -795,19 +830,24 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
         REAL young = 0., poisson = 0.;
         fPlaneFractureMesh->GetYoung_and_PoissonFromLayerOfThisZcoord(originZcoord, young, poisson);
         REAL cracktipKI = sqrt( Jintegral*young );
-        maxKi = MAX(maxKi,cracktipKI);
         
         if(cracktipKI >= layerKIc)
         {
             propagate = true;
             whoPropagate_KI[p] = std::make_pair(cracktipKI,layerKIc);
+            
+            if(cracktipKI > maxKI)
+            {
+                maxKI = cracktipKI;
+                respectiveKIc = layerKIc;
+            }
         }
     }
-    std::cout << "maxKi = " << maxKi << "\n";
+    
     //Definicao da newPoligonalChain (propagada)
     if(propagate)
     {
-        DefinePropagatedPoligonalChain(whoPropagate_KI, newPoligonalChain);
+        DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate_KI, newPoligonalChain);
     }
     
     return propagate;
@@ -815,12 +855,20 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
 //------------------------------------------------------------------------------------------------------------
 
 int countOutPolig = 1;
-void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
+void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
+                                                            std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
                                                             TPZVec< std::pair<REAL,REAL> > &poligonalChain)
 {
+    REAL displFactor = 1.;
+//    REAL maxDisplacement = maxKI/respectiveKIc;
+//    if(maxDisplacement > fmaxPropagDistance)
+//    {
+//        displFactor = fmaxPropagDistance/maxDisplacement;
+//    }
+    
+    
     TPZVec< std::pair<REAL,REAL> > newPoligonalChain(0);
     
-    //Codigo meia boca, soh pra validar, mas precisa fazer direito
     std::map< int, std::pair<REAL,REAL> >::iterator it;
     
     REAL newX = 0.;
@@ -840,13 +888,13 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
             REAL KI = it->second.first;
             REAL KIc = it->second.second;
             
-            REAL alpha = KI/KIc;//AQUICAJU : tosqueira!!!
+            REAL displacement = displFactor * KI/KIc;
             
             TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
             TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
             
-            newX = originVec[0] + alpha*Jdirection[0];
-            newZ = originVec[2] + alpha*Jdirection[2];
+            newX = originVec[0] + displacement * Jdirection[0];
+            newZ = originVec[2] + displacement * Jdirection[2];
         }
         newX = MAX(0.05,newX);
         int oldSize = newPoligonalChain.NElements();
@@ -855,6 +903,17 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
     }
     
     RemoveZigZag(newPoligonalChain);
+    RemoveZigZag(newPoligonalChain);
+    {
+        BezierCurve bz(newPoligonalChain);
+        for(int p = 0; p < newPoligonalChain.NElements(); p++)
+        {
+            std::pair<REAL,REAL> pt;
+            REAL t = p/(double(newPoligonalChain.NElements()-1));
+            bz.F(t, pt);
+            newPoligonalChain[p] = pt;
+        }
+    }
     
     poligonalChain = newPoligonalChain;
     
@@ -871,7 +930,7 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(std::map< int, std::
                 outPolig << "fractureDots[" << p << "] = std::make_pair(" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << ");\n";
             }
         }
-        {//Mathematica tool
+        {//Mathematica output
             std::stringstream nmMath, nmAux;
             nmAux << "pcm={";
             nmMath << "PoligonalChainMath" << countOutPolig << ".txt";
@@ -922,12 +981,12 @@ void TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poli
             NOzigzagPoligonalChain.Resize(oldSize+1);
             NOzigzagPoligonalChain[oldSize] = p0;
         }
-        else
-        {
-            int oldSize = NOzigzagPoligonalChain.NElements();
-            NOzigzagPoligonalChain.Resize(oldSize+1);
-            NOzigzagPoligonalChain[oldSize] = std::make_pair((p0.first + p1.first)/2.,(p0.second + p1.second)/2.);
-        }
+//        else
+//        {
+//            int oldSize = NOzigzagPoligonalChain.NElements();
+//            NOzigzagPoligonalChain.Resize(oldSize+1);
+//            NOzigzagPoligonalChain[oldSize] = std::make_pair((p0.first + p1.first)/2.,(p0.second + p1.second)/2.);
+//        }
         
         v0x = v1x;
         v0z = v1z;
@@ -942,6 +1001,10 @@ void TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poli
 
 void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
 {
+#ifdef DEBUG
+    REAL vlAcumBefore = ComputeVlAcumLeakoff(cmeshFrom);
+#endif
+    
     //Mapa que guardarah os volumes acumulados dos elementos de fratura da malha antiga que nao tem pais
     std::map<int,REAL> fatherGeoIndex_VolAcum, newLeakoffMap;
 
@@ -991,11 +1054,11 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
         TPZGeoEl * preservedMeshGel = gel;
         while(preservedMeshGel->Father())
         {
+            preservedMeshGel = preservedMeshGel->Father();
             if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel))
             {
                 break;
             }
-            preservedMeshGel = preservedMeshGel->Father();
         }
         if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel) == false)
         {
@@ -1045,11 +1108,11 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
         TPZGeoEl * preservedMeshGel = gel;
         while(preservedMeshGel->Father())
         {
+            preservedMeshGel = preservedMeshGel->Father();
             if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel))
             {
                 break;
             }
-            preservedMeshGel = preservedMeshGel->Father();
         }
         if(this->fPlaneFractureMesh->GeoElementIsOnPreservedMesh(preservedMeshGel) == false)
         {
@@ -1068,6 +1131,7 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
         {//Pelo fato do pai nao estar refinado, todo o volume acumulado vai para ele mesmo.
             REAL Area = gel->SideArea(gel->NSides()-1);
             REAL penetration = volAcum/Area;
+
             newLeakoffMap[gel->Id()] = penetration;
         }
         else
@@ -1081,7 +1145,7 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
             for(int s = 0; s < allSons.NElements(); s++)
             {
                 TPZGeoEl * son = allSons[s];
-                if(son->Reference() && globMaterialIdGen.IsInsideFractMat(son->MaterialId()))
+                if(globMaterialIdGen.IsInsideFractMat(son->MaterialId()))
                 {
                     fractSons.push_back(s);
                     fractSonsArea += son->SideArea(son->NSides()-1);
@@ -1091,10 +1155,101 @@ void TPZPlaneFractureKernel::TransferLeakoff(TPZCompMesh * cmeshFrom)
             for(int s = 0; s < fractSons.size(); s++)
             {
                 TPZGeoEl * fractSon = allSons[fractSons[s]];
+
+                if(newLeakoffMap.find(fractSon->Id()) != newLeakoffMap.end())
+                {
+                    std::cout << "\nSobrescrevendo mapa newLeakoffMap!\n";
+                    DebugStop();
+                }
+
                 newLeakoffMap[fractSon->Id()] = penetration;
             }
         }
+        fatherGeoIndex_VolAcum.erase(it);
     }
     
     globLeakoffStorage.SetLeakoffMap(newLeakoffMap);
+    
+#ifdef DEBUG
+    REAL vlAcumAfter = ComputeVlAcumLeakoff(fmeshVec[1]);
+    if(fabs(vlAcumBefore - vlAcumAfter) > 1.E-5)
+    {
+        std::cout << "\n\nA transferencia de leakoff nao manteve volume!!!\n\n";
+        std::cout << "vlAcumBefore = " << vlAcumBefore << "\n";
+        std::cout << "vlAcumAfter = " << vlAcumAfter << "\n";
+        DebugStop();
+    }
+#endif
+}
+
+
+//---------------------------------------------------------
+
+
+BezierCurve::BezierCurve()
+{
+    DebugStop();//Utilize o outro construtor
+}
+
+BezierCurve::BezierCurve(TPZVec< std::pair< REAL,REAL > > &poligonalChain)
+{
+    forder = poligonalChain.NElements()-1;
+    fPoligonalChain = poligonalChain;
+}
+
+BezierCurve::~BezierCurve()
+{
+    forder = 0;
+    fPoligonalChain.Resize(0);
+}
+
+void BezierCurve::F(REAL t, std::pair< REAL,REAL > & ft)
+{
+    if(t < 1.E-5)
+    {
+        ft = fPoligonalChain[0];
+        return;
+    }
+    else if(t > 0.99999)
+    {
+        ft = fPoligonalChain[forder];
+        return;
+    }
+    else
+    {
+        REAL x = 0., z = 0.;
+        for(int i = 0; i <= forder; i++)
+        {
+            REAL b = Bernstein(t,i);
+            
+            x += b * fPoligonalChain[i].first;
+            z += b * fPoligonalChain[i].second;
+        }
+        ft = std::make_pair(x,z);
+    }
+}
+
+REAL BezierCurve::Bernstein(REAL t, REAL i)
+{
+    REAL b = Coef(forder,i,forder-i) * pow(1.-t,forder-i) * pow(t,i);
+    return b;
+}
+
+REAL BezierCurve::Coef(int num1, int num2, int num3)
+{
+    REAL coefVal = 1.;
+    while(num1 > 1 || num2 > 1 || num3 > 1)
+    {
+        num1 = MAX(num1,1);
+        num2 = MAX(num2,1);
+        num3 = MAX(num3,1);
+        
+        coefVal *= (double(num1)/(double(num2)*double(num3)));
+        
+        num1--;
+        num2--;
+        num3--;
+    }
+    
+    return coefVal;
 }
