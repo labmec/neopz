@@ -17,6 +17,7 @@
 #include "pzgeoquad.h"
 
 //#define NOleakoff
+//#define pressureIndependent
 
 void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
 {
@@ -126,6 +127,10 @@ REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPre
     REAL gradP = pfrac - Pe;
     REAL gradPcalc = gradP/gradPref;
     
+#ifdef pressureIndependent
+    gradPcalc = 1.;
+#endif
+    
     if(gradP < 0.)
     {
         gradPcalc = 0.;
@@ -144,6 +149,10 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
     {
         REAL gradP = pfrac - Pe;
         REAL gradPcalc = gradP/gradPref;
+        
+#ifdef pressureIndependent
+        gradPcalc = 1.;
+#endif
         
         if(gradP < 0.)
         {

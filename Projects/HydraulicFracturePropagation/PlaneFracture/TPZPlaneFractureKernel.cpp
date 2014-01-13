@@ -40,7 +40,6 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel()
 TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                                                REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                                                REAL Jradius,
-                                               REAL maxPropagDistance,
                                                int pOrder)
 {
     this->fPlaneFractureMesh = new TPZPlaneFractureMesh(layerVec, bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax, nstripes);
@@ -64,8 +63,6 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     this->fvisc = visc;
     
     this->fJIntegralRadius = Jradius;
-    
-    this->fmaxPropagDistance = maxPropagDistance;
     
     this->fpOrder = pOrder;
     
@@ -247,20 +244,42 @@ void TPZPlaneFractureKernel::RestoreQinj1wing_Hbullet()
 
 void TPZPlaneFractureKernel::FillFractureDotsCircle(TPZVec< std::pair<REAL,REAL> > &fractureDots)
 {
-    REAL Lmax = 0.5;
-    int nsteps = M_PI * fPoligonalChainInitialRadius / Lmax;
-    if(nsteps < 10) nsteps = 10;
-    REAL ang = M_PI / nsteps;
+    int nptsUp = 10;
+    fractureDots.Resize(2*nptsUp-1);
     
-    int nnodes = nsteps + 1;
-    fractureDots.Resize(nnodes-2);
+    REAL alpha = 0.6;//sAx_x = alpha*sAx_y
+    REAL yc = -fCenterTVD;
+    REAL sAy = fPoligonalChainInitialRadius;
     
-    for(int node = 1; node < nnodes-1; node++)
+    int pos = 0;
+    for(int p = 1; p <= nptsUp; p++)
     {
-        REAL vx = 0.1 + fPoligonalChainInitialRadius*sin(node*ang);
-        REAL vz = fPoligonalChainInitialRadius*cos(node*ang) - fCenterTVD;
-        fractureDots[node-1] = std::make_pair(vx,vz);
+        REAL x  = p * alpha*sAy/nptsUp;
+        REAL fx = yc + sqrt(alpha*alpha*sAy*sAy - x*x)/alpha;
+        fractureDots[pos] = std::make_pair(x,fx);
+        pos++;
     }
+    for(int p = nptsUp-1; p > 0; p--)
+    {
+        REAL x  = p * alpha*sAy/nptsUp;
+        REAL fx = yc - sqrt(alpha*alpha*sAy*sAy - x*x)/alpha;
+        fractureDots[pos] = std::make_pair(x,fx);
+        pos++;
+    }
+//    REAL Lmax = 0.5;
+//    int nsteps = M_PI * fPoligonalChainInitialRadius / Lmax;
+//    if(nsteps < 10) nsteps = 10;
+//    REAL ang = M_PI / nsteps;
+//    
+//    int nnodes = nsteps + 1;
+//    fractureDots.Resize(nnodes-2);
+//    
+//    for(int node = 1; node < nnodes-1; node++)
+//    {
+//        REAL vx = 0.1 + fPoligonalChainInitialRadius*sin(node*ang);
+//        REAL vz = fPoligonalChainInitialRadius*cos(node*ang) - fCenterTVD;
+//        fractureDots[node-1] = std::make_pair(vx,vz);
+//    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -312,7 +331,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
         res_total = fres + fmat;
 
         REAL res = Norm(res_total);
-        REAL tol = 1.e-3;
+        REAL tol = 1.e-4;
         int maxit = 15;
         int nit = 0;
 
@@ -336,7 +355,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
             nit++;
         }
 
-        if(res >= tol)
+        if(res > 10.*tol)
         {
             std::cout << "\nAtingido o numero maximo de iteracoes, nao convergindo portanto!!!\n";
             std::cout << "||Res|| = " << res << std::endl;
@@ -358,6 +377,11 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL>
             //Por esta razao, alguma diferenca pode ocorrer, necessitando portanto corrigir o mapa de leakoff antes de prosseguir.
             REAL volInjected = ComputeVolInjected();
             REAL volW = IntegrateW(fmeshVec[0]);
+            if(volW < 0.)
+            {
+                std::cout << "\n\n\nO leakoff deve ter subtraido mais volume do que entrou\nocasionando a inversao da abertura da fratura!\n\n\n";
+                DebugStop();
+            }
             
             REAL volLeakoffExpected = volInjected - volW;
             REAL volLeakoffComputed = ComputeVlAcumLeakoff(fmeshVec[1]);
@@ -477,13 +501,10 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
 //            std::stringstream nm;
 //            nm << "PreElastic" << stripe << ".vtk";
 //
-//            TPZManVector<std::string,10> scalnames(3), vecnames(1);
+//            TPZManVector<std::string,10> scalnames(2), vecnames(0);
 //            
-//            scalnames[0] = "StressX";
-//            scalnames[1] = "StressY";
-//            scalnames[2] = "StressZ";
-//            
-//            vecnames[0] = "Displacement";
+//            scalnames[0] = "StressY";
+//            scalnames[1] = "DisplacementY";
 //            
 //            const int dim = 3;
 //            int div = 0;
@@ -491,6 +512,7 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
 //            an->DefineGraphMesh(dim,scalnames,vecnames,nm.str());
 //            an->PostProcess(div);
 //        }
+//        DebugStop();
     }
     cmesh->LoadSolution(solutions);
 }
@@ -668,6 +690,31 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff(int step)
     
     globFractOutput3DData.InsertTAcumVolLeakoff(globTimeControl.actTime(), vlAcum);
     
+    {
+        std::map<int,REAL>::iterator it;
+        TPZVec<REAL> penetrationValues(fmeshVec[1]->NElements(), 0.);
+        for(int el = 0; el < fmeshVec[1]->NElements(); el++)
+        {
+            TPZCompEl * cel = fmeshVec[1]->ElementVec()[el];
+            int matId = cel->Reference()->MaterialId();
+            if(globMaterialIdGen.IsInsideFractMat(matId))
+            {
+                it = globLeakoffStorage.GetLeakoffMap().find(cel->Reference()->Id());
+                if(it == globLeakoffStorage.GetLeakoffMap().end())
+                {
+                    DebugStop();
+                }
+                REAL penetration = it->second;
+                penetrationValues[el] = penetration;
+            }
+        }
+        
+        std::stringstream nm;
+        nm << "LeakoffPenetration" << step << ".vtk";
+        std::ofstream file(nm.str().c_str());
+        TPZVTKGeoMesh::PrintCMeshVTK(fmeshVec[1], file, penetrationValues);
+    }
+    
     std::cout.precision(10);
     std::cout << "vlAcum = " << vlAcum << ";\n";
     std::cout << "VlInjected = " << ComputeVolInjected() << ";\n";
@@ -681,7 +728,7 @@ void TPZPlaneFractureKernel::PostProcessElasticity(int step)
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
     TPZVec<std::string> nodalSol(1), cellSol(0);
-    nodalSol[0] = "Displacement";
+    nodalSol[0] = "DisplacementY";
 
     grEl.GenerateVTKData(fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
     
@@ -859,14 +906,6 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
                                                             std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
                                                             TPZVec< std::pair<REAL,REAL> > &poligonalChain)
 {
-    REAL displFactor = 1.;
-//    REAL maxDisplacement = maxKI/respectiveKIc;
-//    if(maxDisplacement > fmaxPropagDistance)
-//    {
-//        displFactor = fmaxPropagDistance/maxDisplacement;
-//    }
-    
-    
     TPZVec< std::pair<REAL,REAL> > newPoligonalChain(0);
     
     std::map< int, std::pair<REAL,REAL> >::iterator it;
@@ -888,8 +927,9 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
             REAL KI = it->second.first;
             REAL KIc = it->second.second;
             
-            REAL displacement = displFactor * KI/KIc;
-            
+            REAL displFactor = 0.028;
+            REAL displacement = displFactor * (KI/KIc);
+
             TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
             TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
             
@@ -918,18 +958,18 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
     poligonalChain = newPoligonalChain;
     
     {
-        {//C++ tool
-            std::stringstream nm;
-            nm << "PoligonalChain" << countOutPolig << ".txt";
-            std::ofstream outPolig(nm.str().c_str());
-            
-            outPolig << "int npts = " << newPoligonalChain.NElements() << ";\n";
-            outPolig << "fractureDots.Resize(npts);\n";
-            for(int p = 0; p < newPoligonalChain.NElements(); p++)
-            {
-                outPolig << "fractureDots[" << p << "] = std::make_pair(" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << ");\n";
-            }
-        }
+//        {//C++ tool
+//            std::stringstream nm;
+//            nm << "PoligonalChain" << countOutPolig << ".txt";
+//            std::ofstream outPolig(nm.str().c_str());
+//            
+//            outPolig << "int npts = " << newPoligonalChain.NElements() << ";\n";
+//            outPolig << "fractureDots.Resize(npts);\n";
+//            for(int p = 0; p < newPoligonalChain.NElements(); p++)
+//            {
+//                outPolig << "fractureDots[" << p << "] = std::make_pair(" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << ");\n";
+//            }
+//        }
         {//Mathematica output
             std::stringstream nmMath, nmAux;
             nmAux << "pcm={";

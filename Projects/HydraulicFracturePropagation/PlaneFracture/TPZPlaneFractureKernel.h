@@ -31,7 +31,6 @@ public:
      * @param Qinj_well [in] : Well injection flow rate
      * @param visc [in] : Injected fluid viscosity
      * @param Jradius [in] : J-Integral radius
-     * @param maxPropagDistance [in] : maximum acepted displacement distance when fracture propagate
      * @param porder [in] : polinomial order of simulation
      *
      * TVD: True Vertical Depth (positive positions)
@@ -39,7 +38,6 @@ public:
     TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                            REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                            REAL Jradius,
-                           REAL maxPropagDistance,
                            int porder);
     
     ~TPZPlaneFractureKernel();
@@ -155,8 +153,6 @@ protected:
     REAL fJIntegralRadius;
     REAL fvisc;
     int fpOrder;
-    
-    REAL fmaxPropagDistance;
     
     JIntegral3D fPath3D;
 };

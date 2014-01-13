@@ -585,7 +585,7 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
             }
             if(stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = 2.*fmaxCompressiveStress;
+                bcmat->Val2()(1,0) = -2.*fmaxCompressiveStress;
             }
             else
             {
@@ -856,7 +856,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-    RefineUniformAllFracturePlane(1);
+//    RefineUniformAllFracturePlane(1);//AQUICAJU <<<<<<<<<<<<<
     
 //    std::ofstream outPreservedMesh("PreservedMesh.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
