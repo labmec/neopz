@@ -64,7 +64,7 @@ public:
     void UpdateActTime()
     {
         factTime += factDeltaT;
-        std::cout << "\n\n=============== ActTime = " << factTime << " ===============\n\n";
+        std::cout << "\n\n=============== ActTime = " << factTime/60. << " min ===============\n\n";
     }
     
     REAL Ttot()

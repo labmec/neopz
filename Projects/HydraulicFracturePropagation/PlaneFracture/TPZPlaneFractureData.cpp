@@ -17,7 +17,7 @@
 #include "pzgeoquad.h"
 
 //#define NOleakoff
-//#define pressureIndependent
+#define pressureIndependent
 
 void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
 {

@@ -244,28 +244,38 @@ void TPZPlaneFractureKernel::RestoreQinj1wing_Hbullet()
 
 void TPZPlaneFractureKernel::FillFractureDotsCircle(TPZVec< std::pair<REAL,REAL> > &fractureDots)
 {
-    int nptsUp = 10;
+    /** England-Green */
+//    int nptsUp = 2;
+//    fractureDots.Resize(nptsUp);
+//    fractureDots[0] = std::make_pair(0.5,-2100.5);
+//    fractureDots[1] = std::make_pair(69.5,-2100.5);
+
+    /** Elipse */
+    int nptsUp = 20;
     fractureDots.Resize(2*nptsUp-1);
     
-    REAL alpha = 0.6;//sAx_x = alpha*sAx_y
+    REAL alpha = 0.3;//sAx_x = alpha*sAx_y
     REAL yc = -fCenterTVD;
     REAL sAy = fPoligonalChainInitialRadius;
     
     int pos = 0;
     for(int p = 1; p <= nptsUp; p++)
     {
-        REAL x  = p * alpha*sAy/nptsUp;
+        REAL x  = MIN(alpha*sAy - 0.001,p * alpha*sAy/nptsUp);
         REAL fx = yc + sqrt(alpha*alpha*sAy*sAy - x*x)/alpha;
         fractureDots[pos] = std::make_pair(x,fx);
         pos++;
     }
     for(int p = nptsUp-1; p > 0; p--)
     {
-        REAL x  = p * alpha*sAy/nptsUp;
+        REAL x  = MIN(alpha*sAy - 0.001,p * alpha*sAy/nptsUp);
         REAL fx = yc - sqrt(alpha*alpha*sAy*sAy - x*x)/alpha;
         fractureDots[pos] = std::make_pair(x,fx);
         pos++;
     }
+    
+    
+    /** CIRCULO */
 //    REAL Lmax = 0.5;
 //    int nsteps = M_PI * fPoligonalChainInitialRadius / Lmax;
 //    if(nsteps < 10) nsteps = 10;
@@ -280,6 +290,29 @@ void TPZPlaneFractureKernel::FillFractureDotsCircle(TPZVec< std::pair<REAL,REAL>
 //        REAL vz = fPoligonalChainInitialRadius*cos(node*ang) - fCenterTVD;
 //        fractureDots[node-1] = std::make_pair(vx,vz);
 //    }
+    
+    {//Mathematica output
+        std::stringstream nmMath, nmAux;
+        nmAux << "AllPolChains={};\n\n";
+        nmAux << "pcm={";
+        nmMath << "PoligonalChainMath0.txt";
+        std::ofstream outPoligMath(nmMath.str().c_str());
+        REAL feet = 3.280829131;
+        
+        for(int p = 0; p < fractureDots.NElements(); p++)
+        {
+            outPoligMath << "fractureDots" << p << " = {" << feet * fractureDots[p].first << "," << feet * fractureDots[p].second << "};\n";
+            nmAux << "fractureDots" << p;
+            if(p < fractureDots.NElements()-1)
+            {
+                nmAux << ",";
+            }
+        }
+        nmAux << "};\n";
+        nmAux << "gr0 = ListPlot[pcm,Joined->True,AspectRatio->2];\n";
+        nmAux << "AppendTo[AllPolChains,gr0];\n";
+        outPoligMath << nmAux.str();
+    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -501,10 +534,10 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
 //            std::stringstream nm;
 //            nm << "PreElastic" << stripe << ".vtk";
 //
-//            TPZManVector<std::string,10> scalnames(2), vecnames(0);
+//            TPZManVector<std::string,10> scalnames(1), vecnames(1);
 //            
 //            scalnames[0] = "StressY";
-//            scalnames[1] = "DisplacementY";
+//            vecnames[0] = "Displacement";
 //            
 //            const int dim = 3;
 //            int div = 0;
@@ -512,7 +545,6 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
 //            an->DefineGraphMesh(dim,scalnames,vecnames,nm.str());
 //            an->PostProcess(div);
 //        }
-//        DebugStop();
     }
     cmesh->LoadSolution(solutions);
 }
@@ -719,6 +751,7 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff(int step)
     std::cout << "vlAcum = " << vlAcum << ";\n";
     std::cout << "VlInjected = " << ComputeVolInjected() << ";\n";
     std::cout << "wAcum+vlAcum\n";
+    std::cout << "Eficiencia=wAcum/VlInjected\n";
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -727,8 +760,9 @@ void TPZPlaneFractureKernel::PostProcessElasticity(int step)
 #ifdef usingSWXGraphs
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
-    TPZVec<std::string> nodalSol(1), cellSol(0);
-    nodalSol[0] = "DisplacementY";
+    TPZVec<std::string> nodalSol(2), cellSol(0);
+    nodalSol[0] = "Displacement";
+    nodalSol[1] = "StressY";
 
     grEl.GenerateVTKData(fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
     
@@ -927,8 +961,9 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
             REAL KI = it->second.first;
             REAL KIc = it->second.second;
             
-            REAL displFactor = 0.028;
-            REAL displacement = displFactor * (KI/KIc);
+            REAL dLmax = 90.;
+            REAL alpha = 1.;
+            REAL displacement = dLmax * pow((KI - KIc)/(maxKI - KIc),alpha);
 
             TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
             TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
@@ -944,18 +979,26 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
     
     RemoveZigZag(newPoligonalChain);
     RemoveZigZag(newPoligonalChain);
+    
+    bool applyBezier = true;
+    if(applyBezier)
     {
         BezierCurve bz(newPoligonalChain);
-        for(int p = 0; p < newPoligonalChain.NElements(); p++)
+        
+        int npts = 100;
+        poligonalChain.Resize(npts);
+        for(int p = 0; p < npts; p++)
         {
             std::pair<REAL,REAL> pt;
-            REAL t = p/(double(newPoligonalChain.NElements()-1));
+            REAL t = p/(double(npts-1));
             bz.F(t, pt);
-            newPoligonalChain[p] = pt;
+            poligonalChain[p] = pt;
         }
     }
-    
-    poligonalChain = newPoligonalChain;
+    else
+    {
+        poligonalChain = newPoligonalChain;
+    }
     
     {
 //        {//C++ tool
@@ -975,10 +1018,11 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
             nmAux << "pcm={";
             nmMath << "PoligonalChainMath" << countOutPolig << ".txt";
             std::ofstream outPoligMath(nmMath.str().c_str());
+            REAL feet = 3.280829131;
             
             for(int p = 0; p < newPoligonalChain.NElements(); p++)
             {
-                outPoligMath << "fractureDots" << p << " = {" << newPoligonalChain[p].first << "," << newPoligonalChain[p].second << "};\n";
+                outPoligMath << "fractureDots" << p << " = {" << feet * newPoligonalChain[p].first << "," << feet * newPoligonalChain[p].second << "};\n";
                 nmAux << "fractureDots" << p;
                 if(p < newPoligonalChain.NElements()-1)
                 {
@@ -986,7 +1030,11 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
                 }
             }
             nmAux << "};\n";
-            nmAux << "ListPlot[pcm,Joined->True,AspectRatio->2]\n";
+            nmAux << "AppendTo[AllPolChains,gr" << countOutPolig << "];\n";
+            nmAux << "gr" << countOutPolig << " = ListPlot[pcm,Joined->True,AspectRatio->2];\n";
+            nmAux << "L" << countOutPolig << " = Max[pcm]\n";
+            nmAux << "H" << countOutPolig << " = (pcm[[1]] - pcm[[Length[pcm]]])[[2]]\n";
+            
             outPoligMath << nmAux.str();
         }
         countOutPolig++;

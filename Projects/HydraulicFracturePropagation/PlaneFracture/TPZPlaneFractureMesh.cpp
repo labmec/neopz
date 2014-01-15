@@ -209,7 +209,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-//    TurnIntoQuarterPoint(refinedMesh);
+//    TurnIntoQuarterPoint(fRefinedMesh);
 //    RefineDirectionalToCrackTip(1);
     
 //    {
@@ -585,7 +585,7 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
             }
             if(stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = -2.*fmaxCompressiveStress;
+                bcmat->Val2()(1,0) = 5.*fmaxCompressiveStress;
             }
             else
             {
@@ -856,7 +856,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-//    RefineUniformAllFracturePlane(1);//AQUICAJU <<<<<<<<<<<<<
+    RefineUniformAllFracturePlane(1);//AQUICAJU <<<<<<<<<<<<<
     
 //    std::ofstream outPreservedMesh("PreservedMesh.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
@@ -1096,6 +1096,12 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
 		alphaMin = __smallNum;
 	}
 	
+//    {///TESTE DO PHIL DE ENGLAND-GREEN (POLIGONAL CHAIN EH HORIZONTAL) AQUICAJU ************************************************************
+//        std::cout << "\n\n\n\n\nTESTE DO PHIL DE ENGLAND-GREEN (POLIGONAL CHAIN EH HORIZONTAL)\n\n\n\n\n";
+//        dx[0] = +1.;//direcao oposta ao eixo x do sistema de coordenadas
+//        dx[1] =  0.;//direcao oposta ao eixo x do sistema de coordenadas
+//        dx[2] =  0.;//direcao oposta ao eixo x do sistema de coordenadas
+//    }
 	p = npoints;//Fechando o final da fratura
 	thispoint = p-1;
     

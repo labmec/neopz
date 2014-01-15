@@ -99,11 +99,6 @@ REAL LinearPath3D::Radius()
     return fradius;
 }
 
-
-#ifdef print_Jx_Linear
-std::map<REAL,REAL> functionLinJx;
-#endif
-
 TPZVec<REAL> LinearPath3D::Func(REAL t)
 {
     TPZVec<REAL> xt(3), nt(3);
@@ -117,10 +112,6 @@ TPZVec<REAL> LinearPath3D::Func(REAL t)
     linContribution[0] = linContribution[0] * gScaleFactor;
     linContribution[1] = 0.;
     linContribution[2] = linContribution[2] * gScaleFactor;
-    
-    #ifdef print_Jx_Linear
-    functionLinJx[xt[0]] = linContribution[0];
-    #endif
     
     return linContribution;
 }
@@ -163,10 +154,7 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-//    else
-//    {
-//        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
-//    }
+
     TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
@@ -298,10 +286,6 @@ TPZVec<REAL> LinearPath2D::Func(REAL t)
     
     linContribution[0] = linContribution[0] * gScaleFactor;
     linContribution[1] = 0.;
-    
-#ifdef print_Jx_Linear
-    functionLinJx[xt[0]] = linContribution[0];
-#endif
     
     return linContribution;
 }
