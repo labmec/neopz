@@ -109,7 +109,8 @@ void MainWindow::on_actionOpenFile_triggered()
 
 
         TPBrLaboratoryData newLabFile (fileName.toStdString());
-        newLabFile.Set_start_idx(0);
+        int start_idx = newLabFile.Get_start_idx();
+        int end_idx = newLabFile.Get_end_idx();
         int med_idx = DADOS.InsertLaboratoryData(newLabFile);
 
 
@@ -125,6 +126,22 @@ void MainWindow::on_actionOpenFile_triggered()
         item->setText(0, fname);
         item->setData(0, 5, med_idx); //item "ID"
         ui->treeWidget->addTopLevelItem(item);
+
+        //Criando entrada na comboBox de Medicoes
+        ui->comboBoxMed->insertItem(ui->comboBoxMed->count() +1, fname, med_idx);
+
+        //Setando valores minimo, maximo, inicial e final dos sliders e edits
+        ui->start_idx_slider->setMaximum(end_idx);
+        ui->start_idx_value->setMaxValue(end_idx);
+        ui->end_idx_slider->setMaximum(end_idx);
+        ui->end_idx_value->setMaxValue(end_idx);
+
+        ui->start_idx_slider->setValue(start_idx);
+        ui->start_idx_value->setValue(start_idx);
+        ui->end_idx_slider->setValue(end_idx);
+        ui->end_idx_value->setValue(end_idx);
+
+
     }
 }
 
@@ -139,19 +156,7 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 
     QMenu myMenu;
     QAction *aSaveAs = myMenu.addAction("Save curve as...");
-    QAction *aSelectPoint = myMenu.addAction("Select initial point");
-    QAction *aResetPoint = myMenu.addAction("Reset initial point");
     QAction *aDeleteFile = myMenu.addAction("Unload file");
-    QAction *aRunSimulation = myMenu.addAction("Run Simulation");
-
-    if (treeItem->checkState(0) == 2) {
-        aSelectPoint->setEnabled(1);
-        aResetPoint->setEnabled(1);
-    }
-    else {
-        aSelectPoint->setDisabled(1);
-        aResetPoint->setDisabled(1);
-    }
 
     QAction* selectedItem = myMenu.exec(globalPos);
 
@@ -195,47 +200,6 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 //        curve_file.close();
 //    }
 
-    if (aResetPoint == selectedItem) {
-//        int indexCurve = ui->listWidget->item(ui->listWidget->indexAt(pos).row())->data(5).toInt();
-//        //resetFile sets 'initial point' = first point of the file (0)
-//        //and 'end point' = last point of the file (size - 1)
-//        FilesList[indexCurve].resetFile();
-//        int initialPnt = FilesList[indexCurve].getInitialPoint();
-//        int endPnt = FilesList[indexCurve].getEndPoint();
-//        updateCurve(indexCurve, initialPnt, endPnt);
-    }
-
-    if (aSelectPoint == selectedItem) {
-
-        int indexCurve = ui->treeWidget->indexAt(pos).row();
-        QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
-        indexCurve = tmp_item->data(0, 5).toInt();
-
-        // VERIFICAR COMO NAO CRIAR 2 DIALOGOS PARA MESMA CURVA
-        initialpointdock *selectpointdock = new initialpointdock(this);
-
-        // connecting signals -> slots to show/hide symbols curve depending on dock visibility
-        connect(selectpointdock, SIGNAL(showSymbCurve(int)),
-                currentPlot, SLOT(showSymbCurve(int)));
-        connect(selectpointdock, SIGNAL(hideSymbCurve(int)),
-                currentPlot, SLOT(hideSymbCurve(int)));
-        // connecting signal/slot to perform curve redraw with new data
-        connect(selectpointdock, SIGNAL(cutCurve(int,int,int)),
-                this, SLOT(updateCurve(int,int,int)));
-        // connecting signals -> slots to sync information when points are changed
-        connect(selectpointdock, SIGNAL(SymbPointChanged(int,int,Plot::pointType)),
-                currentPlot->canvas_picker, SLOT(setSymbPoint(int,int,Plot::pointType)));
-        connect(currentPlot->canvas_picker, SIGNAL(SymbPointChanged(int,int,Plot::pointType)),
-                selectpointdock, SLOT(setSymbPoint(int,int,Plot::pointType)));
-
-        selectpointdock->setGlobal_ID(indexCurve);
-
-        selectpointdock->setWindowTitle(tmp_item->text(0));
-        selectpointdock->setFloating(1);
-        selectpointdock->setGeometry(300,250,selectpointdock->width(),selectpointdock->height());
-        selectpointdock->show();
-    }
-
     if (aDeleteFile == selectedItem) {
         int indexCurve = ui->treeWidget->indexAt(pos).row();
         QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
@@ -243,55 +207,6 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         indexCurve = -1;
         indexCurve = tmp_item->data(0, 5).toInt();
         qDebug() <<"INDEX CURVE!@%#$@!#$%$" <<indexCurve;
-    }
-
-    if (aRunSimulation == selectedItem) {
-
-        int indexCurve = ui->treeWidget->indexAt(pos).row();
-        QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
-
-        indexCurve = -1;
-        indexCurve = tmp_item->data(0, 5).toInt();
-        qDebug() <<"aRunSimulation (" << indexCurve << ")";
-
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandlerObj;
-//        REAL poisson, E, A, B, C, R, D, W;
-//        E = 29269;
-//        poisson = 0.203;
-//        A = 616.67;
-//        B = 0.0036895;
-//        C = 111.48;
-//        D = 0.018768;
-//        R = 0.91969;
-//        W = 0.006605;
-        setParameters(sandlerObj);
-//        sandlerObj.SetUp(poisson, E, A, B, C, R, D, W);
-        DADOS.SetSandlerDimaggio(sandlerObj);
-
-        TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
-        TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
-        if(!labdata) DebugStop();
-        labdata->Set_start_idx(100);
-        int idx_sim = labdata->RunSimulation(sandlerObj);
-        int idx_med = labdata->GlobalId();
-        if(idx_med != indexCurve) DebugStop();
-
-        qDebug() << "Med idx: " << idx_med << " Sim idx: " << idx_sim;
-
-        //Criando entrada na treeWidget
-        QTreeWidgetItem *item;
-        item = new QTreeWidgetItem(tmp_item);
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Unchecked);
-        int count = DADOS.SizeLabData();
-        qDebug() << "COUNTM = " <<count << "!!!!!!!!!!!";
-        int counts = labdata->SizeSimData();
-        qDebug() << "COUNTS = " <<counts << "!!!!!!!!!!!";
-//        item->setText(0, QString ("Sim").append( QVariant(count).toString()) );
-        item->setText(0, "Sim");
-        item->setData(0, 5, idx_sim); //item "ID"
-        ui->treeWidget->addTopLevelItem(item);
-        ui->treeWidget->expandAll();
     }
 }
 
@@ -318,10 +233,12 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     //para medicao fazer oq?????????????????????
 
     if (checkStatus == 2) {
+        qDebug() << "Criando curva";
         currentPlot->createCurve(indexCurve, checkStatus);
     }
     else
     {
+        qDebug() << "Apagando curva";
         currentPlot->deleteCurve(indexCurve);
     }
 }
@@ -453,4 +370,70 @@ void MainWindow::on_actionZoom_toggled(bool on)
 
     ui->Plot_4->panner->setEnabled(on);
     ui->Plot_4->zoomer->setEnabled(on);
+}
+
+void MainWindow::on_start_idx_slider_valueChanged(int value)
+{
+    ui->start_idx_value->setValue(value);
+    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::startPoint);
+}
+
+void MainWindow::on_end_idx_slider_valueChanged(int value)
+{
+    ui->end_idx_value->setValue(value);
+    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::endPoint);
+}
+
+void MainWindow::on_start_idx_value_valueChanged(double value)
+{
+    ui->start_idx_slider->setValue(value);
+    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::startPoint);
+}
+
+void MainWindow::on_end_idx_value_valueChanged(double value)
+{
+    ui->end_idx_slider->setValue(value);
+    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::endPoint);
+}
+
+void MainWindow::on_runSimBtn_clicked(bool checked)
+{
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+
+    qDebug() <<"aRunSimulation (" << indexCurve << ")";
+
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandlerObj;
+    setParameters(sandlerObj);
+    DADOS.SetSandlerDimaggio(sandlerObj);
+
+    TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
+    TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
+    if(!labdata) DebugStop();
+
+    labdata->Set_start_idx(ui->start_idx_value->value());
+    labdata->Set_end_idx(ui->end_idx_value->value());
+
+    qDebug() << "VAI SIMULAR: Start idx: " << labdata->Get_start_idx() << " End idx: " << labdata->Get_end_idx();
+
+    int idx_sim = labdata->RunSimulation(sandlerObj);
+    int idx_med = labdata->GlobalId();
+    if(idx_med != indexCurve) DebugStop();
+
+    qDebug() << "SIMULADO: Med idx: " << idx_med << " Sim idx: " << idx_sim;
+
+    //Criando entrada na treeWidget
+    QTreeWidgetItem *item;
+    item = new QTreeWidgetItem();//(tmp_item);
+    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    item->setCheckState(0, Qt::Unchecked);
+    int count = DADOS.SizeLabData();
+    qDebug() << "COUNTM = " <<count << "!!!!!!!!!!!";
+    int counts = labdata->SizeSimData();
+    qDebug() << "COUNTS = " <<counts << "!!!!!!!!!!!";
+//        item->setText(0, QString ("Sim").append( QVariant(count).toString()) );
+    item->setText(0,ui->comboBoxSim->itemText(0));//(0, "Sim");
+    item->setData(0, 5, idx_sim); //item "ID"
+    ui->treeWidget->addTopLevelItem(item);
+    ui->treeWidget->expandAll();
+
 }

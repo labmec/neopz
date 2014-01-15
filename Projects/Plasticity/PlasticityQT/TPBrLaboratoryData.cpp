@@ -10,9 +10,10 @@ TPBrLaboratoryData::TPBrLaboratoryData()
 
 TPBrLaboratoryData::TPBrLaboratoryData(const std::string &filename)
 {
-    fstart_idx = -1;
-    fend_idx = -1;
     ReadInputStrainStress(filename);
+    //setting start and end idxs to first and end points
+    fstart_idx = 0;
+    fend_idx = this->fSig_Ax.size() - 1;
 }
 
 int TPBrLaboratoryData::InsertSimulationData (const TPBrSimulationData &simdataobj) {

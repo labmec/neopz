@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1149</width>
-    <height>628</height>
+    <height>731</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,8 +70,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>96</width>
-     <height>121</height>
+     <width>102</width>
+     <height>127</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -143,7 +143,13 @@
    <property name="minimumSize">
     <size>
      <width>244</width>
-     <height>578</height>
+     <height>625</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>524287</width>
+     <height>524287</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -159,8 +165,15 @@
       <verstretch>0</verstretch>
      </sizepolicy>
     </property>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QComboBox" name="comboBoxSim">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="label_22">
        <property name="font">
         <font>
@@ -174,208 +187,290 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0" rowspan="2" colspan="2">
+     <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
         <string>MATERIAL PARAMETERS</string>
        </property>
-       <layout class="QFormLayout" name="formLayout">
-        <item row="0" column="1">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Young</string>
-          </property>
-         </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Young</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="young_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>29269.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="1" column="0" colspan="2">
-         <widget class="QwtCounter" name="young_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>1000000000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>29269.000000000000000</double>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Poisson</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="poisson_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="stepButton2">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <double>0.203000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>Poisson</string>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>A</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="A_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>616.669999999999959</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="3" column="0" colspan="2">
-         <widget class="QwtCounter" name="poisson_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="stepButton2">
-           <number>10</number>
-          </property>
-          <property name="value">
-           <double>0.203000000000000</double>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>B</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="B_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.003689000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="4" column="1">
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>A</string>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>C</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="C_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="stepButton3">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <double>111.480000000000004</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="5" column="0" colspan="2">
-         <widget class="QwtCounter" name="A_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>10000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>616.669999999999959</double>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>D</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="D_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.018768000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="6" column="1">
-         <widget class="QLabel" name="label_12">
-          <property name="text">
-           <string>B</string>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_29">
+            <property name="text">
+             <string>R</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="R_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.919690000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="7" column="0" colspan="2">
-         <widget class="QwtCounter" name="B_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>1000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.003689000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLabel" name="label_15">
-          <property name="text">
-           <string>C</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0" colspan="2">
-         <widget class="QwtCounter" name="C_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>1000.000000000000000</double>
-          </property>
-          <property name="stepButton3">
-           <number>1000</number>
-          </property>
-          <property name="value">
-           <double>111.480000000000004</double>
-          </property>
-         </widget>
-        </item>
-        <item row="10" column="1">
-         <widget class="QLabel" name="label_21">
-          <property name="text">
-           <string>D</string>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="0" colspan="2">
-         <widget class="QwtCounter" name="D_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>1000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.018768000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="1">
-         <widget class="QLabel" name="label_29">
-          <property name="text">
-           <string>R</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0" colspan="2">
-         <widget class="QwtCounter" name="R_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>1000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.919690000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="14" column="1">
-         <widget class="QLabel" name="label_31">
-          <property name="text">
-           <string>W</string>
-          </property>
-         </widget>
-        </item>
-        <item row="15" column="0" colspan="2">
-         <widget class="QwtCounter" name="W_counter">
-          <property name="numButtons">
-           <number>1</number>
-          </property>
-          <property name="maxValue">
-           <double>10000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.006605000000000</double>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLabel" name="label_31">
+            <property name="text">
+             <string>W</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="W_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.006605000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
      </item>
-     <item row="2" column="1">
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>66</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QComboBox" name="comboBoxMed"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Start idx:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QwtCounter" name="start_idx_value">
+           <property name="numButtons">
+            <number>1</number>
+           </property>
+           <property name="basicstep" stdset="0">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="maxValue">
+            <double>99.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QSlider" name="start_idx_slider">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>End idx:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QwtCounter" name="end_idx_value">
+           <property name="numButtons">
+            <number>1</number>
+           </property>
+           <property name="basicstep" stdset="0">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="maxValue">
+            <double>99.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QSlider" name="end_idx_slider">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="runSimBtn">
+         <property name="text">
+          <string>Run Simulation</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
-     <item row="3" column="1">
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="4" column="0" colspan="2">
+     <item>
       <widget class="QCheckBox" name="checkBox">
        <property name="text">
         <string>Show Failure Envelope</string>
@@ -383,6 +478,10 @@
       </widget>
      </item>
     </layout>
+    <zorder>label_22</zorder>
+    <zorder>checkBox</zorder>
+    <zorder>groupBox</zorder>
+    <zorder>comboBoxSim</zorder>
    </widget>
   </widget>
   <action name="actionZoom">

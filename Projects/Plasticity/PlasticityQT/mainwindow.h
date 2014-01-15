@@ -41,6 +41,16 @@ private slots:
     void on_checkBox_toggled(bool checked);
     void on_actionZoom_toggled(bool on);
 
+    void on_start_idx_slider_valueChanged(int value);
+
+    void on_end_idx_slider_valueChanged(int value);
+
+    void on_start_idx_value_valueChanged(double value);
+
+    void on_end_idx_value_valueChanged(double value);
+
+    void on_runSimBtn_clicked(bool checked);
+
 private:
     Ui::MainWindow *ui;
     Plot *currentPlot;

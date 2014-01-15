@@ -131,8 +131,6 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     panner = new QwtPlotPanner(this->canvas());
     panner->setMouseButton(Qt::MidButton);
 
-//    CurvesList = new QHash <int, CURVE > ;
-
     // scale divisions (Majors/Minors) and Engines
     this->setAxisMaxMajor( QwtPlot::xBottom, 5 );
     this->setAxisMaxMinor( QwtPlot::xBottom, 10 );
@@ -145,6 +143,14 @@ Plot::Plot( QWidget *parent ): QwtPlot (parent) {
     this->setHighlighted(false);
 
     this->curvetype = TPBrStrainStressDataBase::EEpsaxSigax;
+    QString X_title;
+    QString Y_title;
+    Y_title.append(QChar (0x03C3));
+    Y_title.append("ax (MPa)");
+    this->setAxisTitle(QwtPlot::yLeft, Y_title);
+    X_title.append(QChar (0x03B5));
+    X_title.append("ax (%)");
+    this->setAxisTitle(QwtPlot::xBottom, X_title);
 }
 
 void Plot::setHighlighted (bool status) {
@@ -280,6 +286,10 @@ void Plot::save_points(int global_id, int indexStartPoint, int indexEndPoint) {
 
 //slot
 void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
+
+    //Verificando curva existe
+    if (!this->CurvesList.contains(global_id)) return;
+
     QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
 
     //Check if curve exists
@@ -329,7 +339,7 @@ void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
     qDebug() << "setSymbIndex: Pt idx: " << indexCoords << " type " << typept;
 
 //    this->replot();
-    //this->AdjustScale();
+    this->AdjustScale();
 }
 
 // Get index of coords vector of a given curve
@@ -373,6 +383,7 @@ void Plot::createCurve (int global_id, int check_status){
 
     int start_idx = labData->Get_start_idx();
     int end_idx = labData->Get_end_idx();
+    int isMed = DADOS.isMed(global_id);
 
     QVector <double> qVec_X = QVector <double>::fromStdVector(X);
     QVector <double> qVec_Y = QVector <double>::fromStdVector(Y);
@@ -429,8 +440,8 @@ void Plot::createCurve (int global_id, int check_status){
     Ys[0] = Y[start_idx];
     Xs[1] = X[end_idx];
     Ys[1] = Y[end_idx];
-    qDebug() << "Size: " << X.size() << " start: " << X[start_idx] << " " << Y[start_idx] << endl;
-    qDebug() << "Size: " << X.size() << " end: " << X[end_idx] << " " << Y[end_idx] ;
+    qDebug() << "Size: " << X.size() << " start: " << start_idx << " " << X[start_idx] << " " << Y[start_idx] << endl;
+    qDebug() << "Size: " << X.size() << " end: " << end_idx << " " << X[end_idx] << " " << Y[end_idx] ;
     new_curve.symb_curve_ptr->setSamples( Xs, Ys, sizes);
     new_curve.symb_curve_ptr->hide();
 
@@ -438,29 +449,29 @@ void Plot::createCurve (int global_id, int check_status){
     new_curve.symb1 = new QwtSymbol();
     new_curve.symb1->setBrush(QBrush(Qt::red, Qt::SolidPattern));
     new_curve.symb1->setStyle(QwtSymbol::Ellipse);
-    new_curve.symb1->setSize(10);
+    new_curve.symb1->setSize(5);//(10);
     new_curve.mark_ptr1 = new QwtPlotMarker();
     new_curve.mark_ptr1->setSymbol(new_curve.symb1);
     new_curve.mark_ptr1->setXValue(Xs[0]);
     new_curve.mark_ptr1->setYValue(Ys[0]);
     new_curve.mark_ptr1->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
-    new_curve.mark_ptr1->setLabel(QwtText("Start"));
+    //new_curve.mark_ptr1->setLabel(QwtText("Start"));
     new_curve.mark_ptr1->attach(this);
-    new_curve.mark_ptr1->hide();
+    if (!isMed) new_curve.mark_ptr1->hide();
 
     // End marker
     new_curve.symb2 = new QwtSymbol();
     new_curve.symb2->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
     new_curve.symb2->setStyle(QwtSymbol::Ellipse);
-    new_curve.symb2->setSize(10);
+    new_curve.symb2->setSize(5);//(10);
     new_curve.mark_ptr2 = new QwtPlotMarker ();
     new_curve.mark_ptr2->setSymbol(new_curve.symb2);
     new_curve.mark_ptr2->setXValue(Ys[1]);
     new_curve.mark_ptr2->setYValue(Ys[1]);
     new_curve.mark_ptr2->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
-    new_curve.mark_ptr2->setLabel(QwtText("End"));
+    //new_curve.mark_ptr2->setLabel(QwtText("End"));
     new_curve.mark_ptr2->attach(this);
-    new_curve.mark_ptr2->hide();
+    if (!isMed) new_curve.mark_ptr2->hide();
 
     new_curve.initialPnt = start_idx;
     new_curve.endPnt = end_idx;
@@ -468,9 +479,6 @@ void Plot::createCurve (int global_id, int check_status){
     new_curve.chk_status = check_status;
 
     this->CurvesList.insert(global_id, new_curve);
-
-    this->replot();
-    this->AdjustScale();
 
     //naming axis
     if (curvetype == TPBrStrainStressDataBase::EEpsaxSigax){
@@ -481,6 +489,9 @@ void Plot::createCurve (int global_id, int check_status){
         DefaultTitle1X.append("ax (%)");
         this->setAxisTitle(QwtPlot::xBottom, DefaultTitle1X);
     }
+
+    this->replot();
+    this->AdjustScale();
 }
 
 void Plot::deleteCurve (int global_id){

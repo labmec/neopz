@@ -50,9 +50,13 @@ public:
         return fend_idx;
     }
 
-    inline int SizeSimData()
+    inline int SizeSimData() const
     {
         return fSimulacoes.size();
+    }
+
+    inline int SizeMed() const {
+        return this->fSig_Ax.size();
     }
 
     const TPBrSimulationData *GetSimulation(int globalid) const
