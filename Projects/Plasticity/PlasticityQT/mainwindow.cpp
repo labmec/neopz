@@ -422,6 +422,8 @@ void MainWindow::on_checkBox_toggled(bool checked)
         C = ui->C_counter->value();
 
         //qDebug() <<"------------------------->"<< A << B << C;
+	
+	// a curva envelope deveria ser gerada cada vez que modifica os parametros A, B, C
 
         ui->Plot_1->Generate_Envelope(A, B, C);
         ui->Plot_2->Generate_Envelope(A, B, C);

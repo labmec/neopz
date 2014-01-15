@@ -174,6 +174,16 @@ void Plot::AxisChanged_slot (QAction *action) {
 
     this->curvetype = TPBrStrainStressDataBase::ECurveType (action->data().toInt());
 
+    if(this->curvetype == TPBrStrainStressDataBase::EI1SqJ2)
+    {
+      this->envelope_curve->show();
+      Env_status = 1;
+    }
+    else
+    {
+      this->envelope_curve->hide();
+      Env_status = 0;
+    }
     // plotting new curve
     foreach (int i, this->CurvesList.keys())
     {
@@ -245,6 +255,8 @@ void Plot::AxisChanged_slot (QAction *action) {
             break;
         }
     }
+    AdjustScale();
+
 }
 
 //slot
@@ -316,7 +328,7 @@ void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
 
     qDebug() << "setSymbIndex: Pt idx: " << indexCoords << " type " << typept;
 
-    this->replot();
+//    this->replot();
     //this->AdjustScale();
 }
 
@@ -537,9 +549,18 @@ void Plot::Generate_Envelope(double A, double B, double C){
     Yenv_max=Ybiggest;
     Yenv_min=Ysmallest;
 
-    envelope_curve->show();
-    Env_status = 1;
-    this->replot();
+    if(this->curvetype == TPBrStrainStressDataBase::EI1SqJ2)
+    {
+      this->envelope_curve->show();
+      Env_status = 1;
+    }
+    else
+    {
+      this->envelope_curve->hide();
+      Env_status = 0;
+
+    }
+    
     this->AdjustScale();
 }
 
@@ -547,7 +568,6 @@ void Plot::hide_envelope()
 {
     envelope_curve->hide();
     Env_status = 0;
-    this->replot();
     this->AdjustScale();
 }
 
