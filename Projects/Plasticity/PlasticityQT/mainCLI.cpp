@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
       TPBrLaboratoryData newLabFile (FileName);
       int med_idx = DADOS.InsertLaboratoryData(newLabFile);
       
-      DADOS.Set_Med_start_idx(med_idx, 440);//100);
+      DADOS.Set_Med_start_idx(med_idx, 600);//100);
       
       TPBrStrainStressDataBase *basedata = DADOS.getObj(med_idx);
       TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);

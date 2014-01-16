@@ -152,6 +152,8 @@ void TPZPlasticitySimulation::PerformSimulation()
         strainRZ[1] -= fStrainRZInput(fPoreClosureIndex,1);
         strainRZ[0] += this->fPoreStrainRZ[0];
         strainRZ[1] += this->fPoreStrainRZ[1];
+	
+	std::cout << "before executing istep " << istep << std::endl;
 
         EvoluateToStep(strainRZ, stressRZ);
 //        fStrainRZSimulated(istep,0) = strainRZ[0];
