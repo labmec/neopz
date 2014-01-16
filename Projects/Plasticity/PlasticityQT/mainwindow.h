@@ -40,6 +40,7 @@ private slots:
     void updateParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> obj);
     void setParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
     void setSymbAllPlots(int idx, int indexCurve, Plot::pointType ptnTyp);
+    void generateEnvelopeAllPlots();
     void on_checkBox_toggled(bool checked);
     void on_actionZoom_toggled(bool on);
 
@@ -54,6 +55,14 @@ private slots:
     void on_runSimBtn_clicked(bool checked);
 
     void on_comboBoxMed_currentIndexChanged(int index);
+
+    void on_A_counter_valueChanged(double value);
+
+    void on_B_counter_valueChanged(double value);
+
+    void on_C_counter_valueChanged(double value);
+
+    void on_comboBoxSim_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;

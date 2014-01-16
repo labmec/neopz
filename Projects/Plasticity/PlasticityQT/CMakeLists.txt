@@ -12,8 +12,8 @@ IF (APPLE)
 ENDIF()
 
 # UI Files
-QT4_WRAP_UI(UISrcs initialpointdock.ui mainwindow.ui globalconfig.ui)
-QT4_WRAP_CPP(MOCSrcs initialpointdock.h mainwindow.h globalconfig.h canvaspicker.h plot.h)
+QT4_WRAP_UI(UISrcs mainwindow.ui globalconfig.ui)
+QT4_WRAP_CPP(MOCSrcs mainwindow.h globalconfig.h canvaspicker.h plot.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 

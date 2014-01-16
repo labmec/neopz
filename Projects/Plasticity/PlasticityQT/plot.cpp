@@ -450,7 +450,7 @@ void Plot::createCurve (int global_id, int check_status){
     qDebug() << "Size: " << X.size() << " start: " << start_idx << " " << X[start_idx] << " " << Y[start_idx] << endl;
     qDebug() << "Size: " << X.size() << " end: " << end_idx << " " << X[end_idx] << " " << Y[end_idx] ;
     new_curve.symb_curve_ptr->setSamples( Xs, Ys, sizes);
-    new_curve.symb_curve_ptr->hide();
+    if (!isMed) new_curve.symb_curve_ptr->hide();
 
     // "Start" marker
     new_curve.symb1 = new QwtSymbol();

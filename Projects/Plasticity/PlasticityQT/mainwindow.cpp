@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "initialpointdock.h"
-#include "ui_initialpointdock.h"
 #include "globalconfig.h"
 #include <iostream>
 #include <limits>
@@ -43,8 +41,8 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_1->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-    connect(ui->Plot_1, SIGNAL(AxisChanged_signal (Plot*, QString)),
-            this, SLOT(ChangePlotAxis (Plot*,QString)));
+//    connect(ui->Plot_1, SIGNAL(AxisChanged_signal (Plot*, QString)),
+//            this, SLOT(ChangePlotAxis (Plot*,QString)));
     // Initial Plot where graphs will be ploted
     currentPlot = ui->Plot_1;
     ui->Plot_1->setHighlighted(true);
@@ -55,24 +53,24 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_2->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-    connect(ui->Plot_2, SIGNAL(AxisChanged_signal (Plot*, QString)),
-            this, SLOT(ChangePlotAxis(Plot*,QString)));
+//    connect(ui->Plot_2, SIGNAL(AxisChanged_signal (Plot*, QString)),
+//            this, SLOT(ChangePlotAxis(Plot*,QString)));
     // Test 3
     ui->Plot_3->setTitle("TEST 03");
     connect(ui->Plot_3->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_3->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-    connect(ui->Plot_3, SIGNAL(AxisChanged_signal (Plot*, QString)),
-            this, SLOT(ChangePlotAxis (Plot*,QString)));
+//    connect(ui->Plot_3, SIGNAL(AxisChanged_signal (Plot*, QString)),
+//            this, SLOT(ChangePlotAxis (Plot*,QString)));
     // Test 4
     ui->Plot_4->setTitle("TEST 04");
     connect(ui->Plot_4->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_4->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-    connect(ui->Plot_4, SIGNAL(AxisChanged_signal (Plot*, QString)),
-            this, SLOT(ChangePlotAxis (Plot*,QString)));
+//    connect(ui->Plot_4, SIGNAL(AxisChanged_signal (Plot*, QString)),
+//            this, SLOT(ChangePlotAxis (Plot*,QString)));
 
     on_actionZoom_toggled(false);
 
@@ -124,7 +122,7 @@ void MainWindow::on_actionOpenFile_triggered()
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
         item->setText(0, fname);
-        item->setData(0, 5, med_idx); //item "ID"
+        item->setData(0, Qt::UserRole, med_idx); //item "ID"
         ui->treeWidget->addTopLevelItem(item);
 
         //Criando entrada na comboBox de Medicoes
@@ -205,7 +203,7 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
         QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
 
         indexCurve = -1;
-        indexCurve = tmp_item->data(0, 5).toInt();
+        indexCurve = tmp_item->data(0, Qt::UserRole).toInt();
         qDebug() <<"INDEX CURVE!@%#$@!#$%$" <<indexCurve;
     }
 }
@@ -213,24 +211,10 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
     qDebug() << "CLICOU NO TREE WIDGET!!";
-    int indexCurve = item->data(column, 5).toInt();
+    int indexCurve = item->data(column, Qt::UserRole).toInt();
     qDebug() << "INDEX CURVE = "<<indexCurve;
     int checkStatus = item->checkState(column);
     qDebug() << "CHK STATUS = "<<checkStatus;
-
-    if (DADOS.isMed(indexCurve) == 0) // eh uma simulacao
-    {
-//         TPBrSimulationData *simData = dynamic_cast<TPBrSimulationData*> (DADOS.getObj(indexCurve));
-//         if(!simData)
-//         {
-//             DebugStop();
-//         }
-//         REAL poisson, E, A, B, C, R, D, W;
-//         simData->fSandler.getParams(poisson, E, A, B, C, R, D, W);
-//         qDebug () << "AAAAAAAHHHH: " << poisson << " " << E<< " " << A<< " " << B<< " " << C<< " " << R<< " " << D<< " " << W;
-//         updateParameters(simData->getSandler());
-    }
-    //para medicao fazer oq?????????????????????
 
     if (checkStatus == 2) {
         qDebug() << "Criando curva";
@@ -288,12 +272,12 @@ void MainWindow::reloadCurvesList(Plot *plotTmp)
     for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
     {
        QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i);
-       int item_id = item->data(0,5).toInt();
+       int item_id = item->data(0,Qt::UserRole).toInt();
        item->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_id).chk_status));
        for( int j = 0; j < item->childCount(); j++ )
        {
            QTreeWidgetItem *item_child = item->child(j);
-           int item_child_id = item_child->data(0,5).toInt();
+           int item_child_id = item_child->data(0,Qt::UserRole).toInt();
            item_child->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_child_id).chk_status));
         }
     }
@@ -330,24 +314,10 @@ void MainWindow::setParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj)
 
 void MainWindow::on_checkBox_toggled(bool checked)
 {
-
     if (checked)
     {
-        REAL A, B, C;
-        A = ui->A_counter->value();
-        B = ui->B_counter->value();
-        C = ui->C_counter->value();
-
-        //qDebug() <<"------------------------->"<< A << B << C;
-	
-	// a curva envelope deveria ser gerada cada vez que modifica os parametros A, B, C
-
-        ui->Plot_1->Generate_Envelope(A, B, C);
-        ui->Plot_2->Generate_Envelope(A, B, C);
-        ui->Plot_3->Generate_Envelope(A, B, C);
-        ui->Plot_4->Generate_Envelope(A, B, C);
+        generateEnvelopeAllPlots();
     }
-
     else
     {
         ui->Plot_1->hide_envelope();
@@ -417,46 +387,53 @@ void MainWindow::setSymbAllPlots(int idx, int indexCurve, Plot::pointType ptnTyp
 
 void MainWindow::on_runSimBtn_clicked(bool checked)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    try {
+        ui->statusBar->clearMessage();
 
-    qDebug() <<"aRunSimulation (" << indexCurve << ")";
+        int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
 
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandlerObj;
-    setParameters(sandlerObj);
-    DADOS.SetSandlerDimaggio(sandlerObj);
+        qDebug() <<"aRunSimulation (" << indexCurve << ")";
 
-    TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
-    TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
-    if(!labdata) DebugStop();
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> sandlerObj;
+        setParameters(sandlerObj);
+//        DADOS.SetSandlerDimaggio(sandlerObj);
 
-//    labdata->Set_start_idx(ui->start_idx_value->value());
-//    labdata->Set_end_idx(ui->end_idx_value->value());
-    DADOS.Set_Med_start_idx(indexCurve, ui->start_idx_value->value());
-    DADOS.Set_Med_end_idx(indexCurve, ui->end_idx_value->value());
+        TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
+        TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
+        if(!labdata) DebugStop();
 
-    qDebug() << "VAI SIMULAR: Start idx: " << labdata->Get_start_idx() << " End idx: " << labdata->Get_end_idx();
+        DADOS.Set_Med_start_idx(indexCurve, ui->start_idx_value->value());
+        DADOS.Set_Med_end_idx(indexCurve, ui->end_idx_value->value());
 
-    int idx_sim = labdata->RunSimulation(sandlerObj);
-    int idx_med = labdata->GlobalId();
-    if(idx_med != indexCurve) DebugStop();
+        qDebug() << "VAI SIMULAR: Start idx: " << /*labdata->Get_start_idx()*/ ui->start_idx_value->value() << " End idx: " << /*labdata->Get_end_idx()*/ ui->end_idx_value->value();
 
-    qDebug() << "SIMULADO: Med idx: " << idx_med << " Sim idx: " << idx_sim;
+        int idx_sim = labdata->RunSimulation(sandlerObj);
 
-    //Criando entrada na treeWidget
-    QTreeWidgetItem *item;
-    item = new QTreeWidgetItem();//(tmp_item);
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Unchecked);
-    int count = DADOS.SizeLabData();
-    qDebug() << "COUNTM = " <<count << "!!!!!!!!!!!";
-    int counts = labdata->SizeSimData();
-    qDebug() << "COUNTS = " <<counts << "!!!!!!!!!!!";
-//        item->setText(0, QString ("Sim").append( QVariant(count).toString()) );
-    item->setText(0,ui->comboBoxSim->itemText(0));//(0, "Sim");
-    item->setData(0, 5, idx_sim); //item "ID"
-    ui->treeWidget->addTopLevelItem(item);
-    ui->treeWidget->expandAll();
+        int idx_med = labdata->GlobalId();
+        if(idx_med != indexCurve) DebugStop();
 
+        qDebug() << "SIMULADO: Med idx: " << idx_med << " Sim idx: " << idx_sim;
+
+        //Criando entrada na treeWidget
+        QTreeWidgetItem *item;
+        item = new QTreeWidgetItem();//(tmp_item);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(0, Qt::Unchecked);
+        int count = DADOS.SizeLabData();
+//        qDebug() << "COUNTM = " <<count << "!!!!!!!!!!!";
+//        int counts = labdata->SizeSimData();
+//        qDebug() << "COUNTS = " <<counts << "!!!!!!!!!!!";
+        item->setText(0,ui->comboBoxSim->itemText(0));//(0, "Sim");
+        item->setData(0, Qt::UserRole, idx_sim); //item "ID"
+        ui->treeWidget->addTopLevelItem(item);
+        ui->treeWidget->expandAll();
+
+    }
+    catch (...)
+    {
+        qDebug() << "SIMULACAO QUEBROU!!!";
+        ui->statusBar->showMessage("SIMULACAO QUEBROU!!!");
+    }
 }
 
 void MainWindow::on_comboBoxMed_currentIndexChanged(int index)
@@ -476,4 +453,39 @@ void MainWindow::on_comboBoxMed_currentIndexChanged(int index)
     ui->start_idx_value->setValue(start_idx);
     ui->end_idx_slider->setValue(end_idx);
     ui->end_idx_value->setValue(end_idx);
+}
+
+void MainWindow::generateEnvelopeAllPlots() {
+    REAL A, B, C;
+    A = ui->A_counter->value();
+    B = ui->B_counter->value();
+    C = ui->C_counter->value();
+
+    ui->Plot_1->Generate_Envelope(A, B, C);
+    ui->Plot_2->Generate_Envelope(A, B, C);
+    ui->Plot_3->Generate_Envelope(A, B, C);
+    ui->Plot_4->Generate_Envelope(A, B, C);
+}
+
+void MainWindow::on_A_counter_valueChanged(double value)
+{
+    if (ui->checkBox->isChecked())
+        generateEnvelopeAllPlots();
+}
+
+void MainWindow::on_B_counter_valueChanged(double value)
+{
+    if (ui->checkBox->isChecked())
+        generateEnvelopeAllPlots();
+}
+
+void MainWindow::on_C_counter_valueChanged(double value)
+{
+    if (ui->checkBox->isChecked())
+        generateEnvelopeAllPlots();
+}
+
+void MainWindow::on_comboBoxSim_currentIndexChanged(int index)
+{
+
 }
