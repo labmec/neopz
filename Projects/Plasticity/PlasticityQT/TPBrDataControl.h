@@ -49,6 +49,10 @@ public:
     {
         return fMedicoes.size();
     }
+
+    int SizeMed (int global_id) {
+        return fMedicoes[global_id].SizeMed();
+    }
     
     void DeleteLabData (int medid) {
       if (fMedicoes.find(medid) == fMedicoes.end()) //nao eh medicao
@@ -102,6 +106,22 @@ public:
         }
         DebugStop();
         return -1;
+    }
+
+    void Set_Med_start_idx (int global_id, int new_idx) {
+        fMedicoes[global_id].Set_start_idx(new_idx);
+    }
+
+    void Set_Med_end_idx (int global_id, int new_idx) {
+        fMedicoes[global_id].Set_end_idx(new_idx);
+    }
+
+    int Get_Med_start_idx (int global_id){
+        return fMedicoes[global_id].Get_start_idx();
+    }
+
+    int Get_Med_end_idx (int global_id){
+        return fMedicoes[global_id].Get_end_idx();
     }
 
     void DeleteGlobalId(int globalid)

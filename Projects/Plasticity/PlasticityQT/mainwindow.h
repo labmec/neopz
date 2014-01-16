@@ -9,6 +9,7 @@
 #include <QTreeWidgetItem>
 
 #include "TPBrDataControl.h"
+#include "plot.h"
 
 
 class QString;
@@ -16,7 +17,7 @@ class QModelIndex;
 class QwtPicker;
 class QwtEventPattern;
 class QwtPlotCanvas;
-class Plot;
+//class Plot;
 
 namespace Ui {
 class MainWindow;
@@ -38,6 +39,7 @@ private slots:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
     void updateParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> obj);
     void setParameters(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &obj);
+    void setSymbAllPlots(int idx, int indexCurve, Plot::pointType ptnTyp);
     void on_checkBox_toggled(bool checked);
     void on_actionZoom_toggled(bool on);
 
@@ -50,6 +52,8 @@ private slots:
     void on_end_idx_value_valueChanged(double value);
 
     void on_runSimBtn_clicked(bool checked);
+
+    void on_comboBoxMed_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;

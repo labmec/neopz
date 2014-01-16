@@ -268,20 +268,22 @@ void Plot::AxisChanged_slot (QAction *action) {
 //slot
 void Plot::save_points(int global_id, int indexStartPoint, int indexEndPoint) {
 
-    QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
+//    QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
 
-    //Check if curve exists
-    if (!d_curve) return;
+//    //Check if curve exists
+//    if (!d_curve) return;
 
-    CURVE d_curve_tmp = this->CurvesList[global_id];
+//    CURVE d_curve_tmp = this->CurvesList[global_id];
 
-    d_curve_tmp.initialPnt = indexStartPoint;
-    d_curve_tmp.endPnt = indexEndPoint;
+//    d_curve_tmp.initialPnt = indexStartPoint;
+//    d_curve_tmp.endPnt = indexEndPoint;
 
-    this->setSymbIndex(d_curve_tmp.initialPnt,global_id,startPoint);
-    this->setSymbIndex(d_curve_tmp.endPnt,global_id,endPoint);
+//    this->setSymbIndex(d_curve_tmp.initialPnt,global_id,startPoint);
+//    this->setSymbIndex(d_curve_tmp.endPnt,global_id,endPoint);
 
-    qDebug() << "New points (update): " << d_curve_tmp.initialPnt << " " << d_curve_tmp.endPnt;
+//    qDebug() << "New points (update): " << d_curve_tmp.initialPnt << " " << d_curve_tmp.endPnt;
+
+    DebugStop();
 }
 
 //slot
@@ -345,21 +347,26 @@ void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
 // Get index of coords vector of a given curve
 int Plot::getSymbIndex ( int global_id, pointType typept ) {
 
-    QwtPlotCurve *d_curve_symbol = this->CurvesList[global_id].symb_curve_ptr;
+//    //Verificando curva existe
+//    if (!this->CurvesList.contains(global_id)) return  -1;
 
-    //Check if curve exists
-    if (!d_curve_symbol) return -1;
+//    QwtPlotCurve *d_curve_symbol = this->CurvesList[global_id].symb_curve_ptr;
 
-    int returnIdx = -1;
+//    //Check if curve exists
+//    if (!d_curve_symbol) return -1;
 
-    if (typept == startPoint)
-        returnIdx = this->CurvesList[global_id].initialPnt;
-    else
-        returnIdx = this->CurvesList[global_id].endPnt;
+//    int returnIdx = -1;
 
-    qDebug() << "getSymbIndex: Pt idx: " << returnIdx;
+//    if (typept == startPoint)
+//        returnIdx = this->CurvesList[global_id].initialPnt;
+//    else
+//        returnIdx = this->CurvesList[global_id].endPnt;
 
-    return returnIdx;
+//    qDebug() << "getSymbIndex: Pt idx: " << returnIdx;
+
+//    return returnIdx;
+
+    DebugStop();
 }
 
 void Plot::createCurve (int global_id, int check_status){
@@ -625,4 +632,23 @@ void Plot::AdjustScale () {
     }
 
     this->replot();
+}
+
+void Plot::toggleSymb (int global_id, bool showsymb) {
+
+    //Verificando curva existe
+    if (!this->CurvesList.contains(global_id)) return;
+
+    CURVE d_curve_tmp = this->CurvesList[global_id];
+
+    if (showsymb) {
+        d_curve_tmp.mark_ptr1->show();
+        d_curve_tmp.mark_ptr2->show();
+    }
+    else
+    {
+        d_curve_tmp.mark_ptr1->hide();
+        d_curve_tmp.mark_ptr2->hide();
+    }
+
 }

@@ -169,6 +169,8 @@ public:
 
     void hide_envelope();
 
+    void toggleSymb (int global_id, bool showsymb);
+
     void AdjustScale ();
 
 

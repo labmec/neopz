@@ -374,26 +374,45 @@ void MainWindow::on_actionZoom_toggled(bool on)
 
 void MainWindow::on_start_idx_slider_valueChanged(int value)
 {
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    DADOS.Set_Med_start_idx(indexCurve, value);
+
     ui->start_idx_value->setValue(value);
-    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::startPoint);
+    setSymbAllPlots(value, indexCurve, Plot::startPoint);
 }
 
 void MainWindow::on_end_idx_slider_valueChanged(int value)
 {
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    DADOS.Set_Med_end_idx(indexCurve, value);
+
     ui->end_idx_value->setValue(value);
-    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::endPoint);
+    setSymbAllPlots(value, indexCurve, Plot::endPoint);
 }
 
 void MainWindow::on_start_idx_value_valueChanged(double value)
 {
-    ui->start_idx_slider->setValue(value);
-    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::startPoint);
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    DADOS.Set_Med_start_idx(indexCurve, (int)value);
+
+    ui->start_idx_slider->setValue((int)value);
+    setSymbAllPlots((int)value, indexCurve, Plot::startPoint);
 }
 
 void MainWindow::on_end_idx_value_valueChanged(double value)
 {
-    ui->end_idx_slider->setValue(value);
-    ui->Plot_1->setSymbIndex((int)value,ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt(), Plot::endPoint);
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    DADOS.Set_Med_end_idx(indexCurve, (int)value);
+
+    ui->end_idx_slider->setValue((int)value);
+    setSymbAllPlots((int)value, indexCurve, Plot::endPoint);
+}
+
+void MainWindow::setSymbAllPlots(int idx, int indexCurve, Plot::pointType ptnTyp) {
+    ui->Plot_1->setSymbIndex(idx, indexCurve, ptnTyp);
+    ui->Plot_2->setSymbIndex(idx, indexCurve, ptnTyp);
+    ui->Plot_3->setSymbIndex(idx, indexCurve, ptnTyp);
+    ui->Plot_4->setSymbIndex(idx, indexCurve, ptnTyp);
 }
 
 void MainWindow::on_runSimBtn_clicked(bool checked)
@@ -410,8 +429,10 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
     TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
     if(!labdata) DebugStop();
 
-    labdata->Set_start_idx(ui->start_idx_value->value());
-    labdata->Set_end_idx(ui->end_idx_value->value());
+//    labdata->Set_start_idx(ui->start_idx_value->value());
+//    labdata->Set_end_idx(ui->end_idx_value->value());
+    DADOS.Set_Med_start_idx(indexCurve, ui->start_idx_value->value());
+    DADOS.Set_Med_end_idx(indexCurve, ui->end_idx_value->value());
 
     qDebug() << "VAI SIMULAR: Start idx: " << labdata->Get_start_idx() << " End idx: " << labdata->Get_end_idx();
 
@@ -436,4 +457,23 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
     ui->treeWidget->addTopLevelItem(item);
     ui->treeWidget->expandAll();
 
+}
+
+void MainWindow::on_comboBoxMed_currentIndexChanged(int index)
+{
+    int indexCurve = ui->comboBoxMed->itemData(index).toInt();
+    int idx_max = DADOS.SizeMed(indexCurve) -1;
+    int start_idx = DADOS.Get_Med_start_idx(indexCurve);
+    int end_idx = DADOS.Get_Med_end_idx(indexCurve);
+
+    //Setando valores minimo, maximo, inicial e final dos sliders e edits
+    ui->start_idx_slider->setMaximum(idx_max);
+    ui->end_idx_slider->setMaximum(idx_max);
+    ui->start_idx_value->setMaxValue(idx_max);
+    ui->end_idx_value->setMaxValue(idx_max);
+
+    ui->start_idx_slider->setValue(start_idx);
+    ui->start_idx_value->setValue(start_idx);
+    ui->end_idx_slider->setValue(end_idx);
+    ui->end_idx_value->setValue(end_idx);
 }
