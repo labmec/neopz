@@ -473,7 +473,7 @@ void Plot::createCurve (int global_id, int check_status){
     new_curve.symb2->setSize(5);//(10);
     new_curve.mark_ptr2 = new QwtPlotMarker ();
     new_curve.mark_ptr2->setSymbol(new_curve.symb2);
-    new_curve.mark_ptr2->setXValue(Ys[1]);
+    new_curve.mark_ptr2->setXValue(Xs[1]);
     new_curve.mark_ptr2->setYValue(Ys[1]);
     new_curve.mark_ptr2->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
     //new_curve.mark_ptr2->setLabel(QwtText("End"));
