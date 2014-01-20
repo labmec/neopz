@@ -533,8 +533,6 @@
       </widget>
      </item>
     </layout>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
     <zorder>label_22</zorder>
     <zorder>checkBox</zorder>
     <zorder>groupBox</zorder>

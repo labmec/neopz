@@ -65,6 +65,11 @@ public:
 //        fPoreStressRZ[0] = fStressRZInput(istep,0);
 //        fPoreStressRZ[1] = fStressRZInput(istep,1);
     }
+
+    void SetElasticTransition(int nstep) {
+        //////////////////////////////////////////
+        // CODIGO
+    }
     
     
     /// read the input strain and stress from the laboratory file

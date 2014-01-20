@@ -17,7 +17,7 @@ public:
     TPBrLaboratoryData(const std::string &filename);
     
     TPBrLaboratoryData(const TPBrLaboratoryData &copy) : TPBrStrainStressDataBase(copy),
-        fstart_idx(copy.fstart_idx), fend_idx(copy.fend_idx), fSimulacoes(copy.fSimulacoes)
+        fstart_idx(copy.fstart_idx), fend_idx(copy.fend_idx), fSimulacoes(copy.fSimulacoes), felastic_idx(copy.felastic_idx)
     {
         
     }
@@ -28,6 +28,7 @@ public:
         fstart_idx = copy.fstart_idx;
         fend_idx = copy.fend_idx;
         fSimulacoes = copy.fSimulacoes;
+        felastic_idx = copy.felastic_idx;
         return *this;
     }
     
@@ -42,12 +43,18 @@ public:
     inline void Set_end_idx(int endidx) {
         fend_idx = endidx;
     }
+    inline void Set_elastic_trans_idx (int elastic_idx) {
+        felastic_idx = elastic_idx;
+    }
 
     virtual int Get_start_idx() const {
         return fstart_idx;
     }
     virtual int Get_end_idx() const {
         return fend_idx;
+    }
+    virtual int Get_elastic_trans_idx () const {
+        return felastic_idx;
     }
 
     inline int SizeSimData() const
@@ -113,6 +120,7 @@ public:
         TPBrStrainStressDataBase::Print();
         std::cout << "fstart_idx " << fstart_idx << std::endl;
         std::cout << "fend_idx " << fend_idx << std::endl;
+        std::cout << "felastic_idx " << felastic_idx << std::endl;
         std::map<int, TPBrSimulationData>::const_iterator it;
         for(it = fSimulacoes.begin(); it != fSimulacoes.end(); it++)
         {
@@ -123,6 +131,7 @@ public:
 protected:
     int fstart_idx;
     int fend_idx;
+    int felastic_idx;
 
     //contains all simulations related to 'this' lab file
     std::map<int, TPBrSimulationData> fSimulacoes;

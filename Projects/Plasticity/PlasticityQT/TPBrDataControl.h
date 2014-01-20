@@ -117,7 +117,7 @@ public:
     }
 
     void Set_Med_elastic_trans_idx (int global_id, int new_idx) {
-
+        fMedicoes[global_id].Set_elastic_trans_idx(new_idx);
     }
 
     int Get_Med_start_idx (int global_id){
@@ -129,7 +129,7 @@ public:
     }
 
     int Get_Med_elastic_trans_idx (int global_id){
-
+        return fMedicoes[global_id].Get_elastic_trans_idx();
     }
 
     void DeleteGlobalId(int globalid)

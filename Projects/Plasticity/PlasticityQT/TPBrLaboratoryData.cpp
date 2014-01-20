@@ -10,6 +10,7 @@ TPBrLaboratoryData::TPBrLaboratoryData()
 {
     fstart_idx = -1;
     fend_idx = -1;
+    felastic_idx = -1;
 }
 
 TPBrLaboratoryData::TPBrLaboratoryData(const std::string &filename)
@@ -18,6 +19,7 @@ TPBrLaboratoryData::TPBrLaboratoryData(const std::string &filename)
     //setting start and end idxs to first and end points
     fstart_idx = 0;
     fend_idx = this->fSig_Ax.size() - 1;
+    felastic_idx = 0;
 }
 
 int TPBrLaboratoryData::InsertSimulationData (const TPBrSimulationData &simdataobj) {
@@ -35,6 +37,8 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
   
   newSimulation.ReadInputStrainStress(fSig_Ax, fEps_Ax, fSig_Lat, fEps_Lat);
   newSimulation.SetSimulationInitialStep(fstart_idx);
+  // TRANSICAO ELASTICA AQUIIIIIIIIIIIIIIIII!!
+  //newSimulation.SetElasticTransition(felastic_idx);
   newSimulation.SetSandlerDimaggio(obj);
   newSimulation.PerformSimulation();
     TPZVec<REAL> sigax,sigr,epsax,epsr;
@@ -55,6 +59,7 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
     result.Set_medicao_idx(medid);
     result.Set_start_idx(fstart_idx);
     result.Set_end_idx(fend_idx);
+    result.Set_elastic_trans_idx(felastic_idx);
     result.SetStrainStress(sigax, epsax, sigr, epsr);
     int resultid = DADOS.InsertSimulationData(medid, result);
     

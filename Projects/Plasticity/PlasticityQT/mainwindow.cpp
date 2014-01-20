@@ -420,8 +420,11 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
 
         DADOS.Set_Med_start_idx(indexCurve, ui->start_idx_value->value());
         DADOS.Set_Med_end_idx(indexCurve, ui->end_idx_value->value());
+        DADOS.Set_Med_elastic_trans_idx(indexCurve,ui->elastic_trans_idx_value->value());
 
-        qDebug() << "VAI SIMULAR: Start idx: " << /*labdata->Get_start_idx()*/ ui->start_idx_value->value() << " End idx: " << /*labdata->Get_end_idx()*/ ui->end_idx_value->value();
+        qDebug() << "VAI SIMULAR: Start idx: " << ui->start_idx_value->value()
+                 << " End idx: " << ui->end_idx_value->value()
+                 << " Elastic idx: " << ui->elastic_trans_idx_value->value();
 
         int idx_sim = labdata->RunSimulation(sandlerObj);
 

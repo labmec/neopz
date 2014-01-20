@@ -14,7 +14,7 @@ public:
     virtual ~TPBrSimulationData();
     
     TPBrSimulationData(const TPBrSimulationData &copy) : TPBrStrainStressDataBase(copy), fstart_idx(copy.fstart_idx),
-        fend_idx(copy.fend_idx), fMedicao_idx(copy.fMedicao_idx), fSandler(copy.fSandler)
+        fend_idx(copy.fend_idx), fMedicao_idx(copy.fMedicao_idx), fSandler(copy.fSandler), felastic_idx(copy.felastic_idx)
     {
         
     }
@@ -26,6 +26,7 @@ public:
         fend_idx = copy.fend_idx;
         fMedicao_idx = copy.fMedicao_idx;
         fSandler = copy.fSandler;
+        felastic_idx = copy.felastic_idx;
         return *this;
     }
 
@@ -35,11 +36,17 @@ public:
     inline void Set_end_idx(int endidx) {
         fend_idx = endidx;
     }
+    inline void Set_elastic_trans_idx(int endidx) {
+        felastic_idx = endidx;
+    }
     inline int Get_start_idx(){
         return fstart_idx;
     }
     inline int Get_end_idx(){
         return fend_idx;
+    }
+    inline int Get_elastic_trans_idx(){
+        return felastic_idx;
     }
     inline void Set_medicao_idx(int medidx){
         fMedicao_idx = medidx;
@@ -65,6 +72,7 @@ public:
         TPBrStrainStressDataBase::Print();
         std::cout << "fstart_idx " << fstart_idx << std::endl;
         std::cout << "fMedicao_idx " << fMedicao_idx << std::endl;
+        std::cout << "felastic_idx " << felastic_idx << std::endl;
     }
 
 
@@ -75,6 +83,8 @@ protected:
     int fend_idx;
     /// Indice da medicao que deu origem a esta simulacao
     int fMedicao_idx;
+    /// transicao elastica
+    int felastic_idx;
 
 public:
     /// modelo plastico que gerou esta simulacao
