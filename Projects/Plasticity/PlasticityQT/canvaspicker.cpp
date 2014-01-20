@@ -186,17 +186,17 @@ void CanvasPicker::move( const QPoint &pos )
         d_selectedPoint = index;
 //    }
 
-    this->plot()->setSymbIndex(d_selectedPoint, d_selectedCurve, Plot::pointType(d_selectedPointType));
-    emit SymbPointChanged (d_selectedPoint, d_selectedCurve, Plot::pointType(d_selectedPointType));
+//    this->plot()->setSymbIndex(d_selectedPoint, d_selectedCurve, Plot::pointType(d_selectedPointType));
+//    emit SymbPointChanged (d_selectedPoint, d_selectedCurve, Plot::pointType(d_selectedPointType));
 }
 
 //slot
 void CanvasPicker::setSymbPoint ( int coordIndex, int curveIndex, Plot::pointType typept ) {
-    this->d_selectedPoint = coordIndex;
-    this->d_selectedCurve = curveIndex;
-    this->d_selectedPointType = typept;
+//    this->d_selectedPoint = coordIndex;
+//    this->d_selectedCurve = curveIndex;
+//    this->d_selectedPointType = typept;
 
-    this->plot()->setSymbIndex(d_selectedPoint, d_selectedCurve, Plot::pointType(d_selectedPointType));
-    emit SymbPointChanged (d_selectedPoint, d_selectedCurve, typept);
+//    this->plot()->setSymbIndex(d_selectedPoint, d_selectedCurve, Plot::pointType(d_selectedPointType));
+//    emit SymbPointChanged (d_selectedPoint, d_selectedCurve, typept);
 }
 

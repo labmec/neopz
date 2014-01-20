@@ -55,10 +55,14 @@ public:
         fEps_Lat = epsr;
     }
 
-    // gera a envoltoria
+    /// gera os dados da envoltoria que sera mostrada na tela
     virtual void GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y);
 
-		void SetEnvelope(REAL A, REAL B, REAL C);
+    /// gera os dados da envoltoria que sera mostrada na tela
+    virtual void GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y, REAL I1min, REAL I1max);
+
+    /// seta os valores de A, B e C que serao usados no calculo da envoltoria
+    void SetEnvelope(REAL A, REAL B, REAL C);
 
 
     /// gera os dados que serao mostrados na tela

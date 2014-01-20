@@ -14,6 +14,17 @@ TPBrStrainStressDataBase::~TPBrStrainStressDataBase()
 }
 
 // BEGIN ENVOLTORIA
+void TPBrStrainStressDataBase::GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y, REAL I1min, REAL I1max)
+{
+    X.resize(200);
+    Y.resize(200);
+    for (int i = 0; i<X.size(); i++) {
+            REAL I1 = I1min + (i*1.)*(I1max-I1min)/199.;
+            X[i]= I1;
+            Y[i] = F1(I1);
+    }
+}
+
 void TPBrStrainStressDataBase::GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y)
 {
 	int n = fEps_Ax.size();
@@ -75,7 +86,7 @@ void TPBrStrainStressDataBase::GetXY(int index, ECurveType curvetype, REAL &X, R
             break;
         case EI1SqJ2:
             X = I1(index);
-            Y = SqJ2(X);
+            Y = SqJ2(index);
 	    break;
 	case EEpsaxSigax:
         X = this->fEps_Ax[index];

@@ -46,6 +46,7 @@ public:
         this->chk_status = -1;
         this->initialPnt = -1;
         this->endPnt = -1;
+        this->elastic_transPnt = -1;
         this->Xsmallest = 0;
         this->Xbiggest = 0;
         this->Ysmallest = 0;
@@ -56,6 +57,7 @@ public:
         symb_curve_ptr = NULL;
         mark_ptr1 = NULL;
         mark_ptr2 = NULL;
+        mark_ptr3 = NULL;
     }
 
     CURVE (int global_id) {
@@ -69,6 +71,7 @@ public:
         symb_curve_ptr = copy.symb_curve_ptr;
         mark_ptr1 = copy.mark_ptr1;
         mark_ptr2 = copy.mark_ptr2;
+        mark_ptr3 = copy.mark_ptr3;
         chk_status = copy.chk_status;
         Xsmallest = copy.Xsmallest;
         Xbiggest = copy.Xbiggest;
@@ -88,6 +91,7 @@ public:
         symb_curve_ptr = copy.symb_curve_ptr;
         mark_ptr1 = copy.mark_ptr1;
         mark_ptr2 = copy.mark_ptr2;
+        mark_ptr3 = copy.mark_ptr3;
         chk_status = copy.chk_status;
         Xsmallest = copy.Xsmallest;
         Xbiggest = copy.Xbiggest;
@@ -102,6 +106,7 @@ public:
 
     int initialPnt;
     int endPnt;
+    int elastic_transPnt;
     int global_id;
     double Xsmallest;
     double Xbiggest;
@@ -120,13 +125,16 @@ public:
     QwtPlotCurve *symb_curve_ptr;
     QwtPlotMarker *mark_ptr1;
     QwtPlotMarker *mark_ptr2;
+    QwtPlotMarker *mark_ptr3;
     QwtSymbol *symb1;
     QwtSymbol *symb2;
+    QwtSymbol *symb3;
 };
 
 enum pointType {
         startPoint = 0,
-        endPoint = 1
+        endPoint = 1,
+        elasticTransPoint = 2
 };
 
 class Plot: public QwtPlot
@@ -136,7 +144,11 @@ class Plot: public QwtPlot
 private slots:
 
 public:
-    enum pointType {startPoint = 0, endPoint = 1};
+    enum pointType {
+        startPoint = 0,
+        endPoint = 1,
+        elasticTransPoint = 2
+};
 
     Zoomer *zoomer;
     QwtPlotPicker *picker;

@@ -41,8 +41,6 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_1->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-//    connect(ui->Plot_1, SIGNAL(AxisChanged_signal (Plot*, QString)),
-//            this, SLOT(ChangePlotAxis (Plot*,QString)));
     // Initial Plot where graphs will be ploted
     currentPlot = ui->Plot_1;
     ui->Plot_1->setHighlighted(true);
@@ -53,24 +51,18 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_2->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-//    connect(ui->Plot_2, SIGNAL(AxisChanged_signal (Plot*, QString)),
-//            this, SLOT(ChangePlotAxis(Plot*,QString)));
     // Test 3
     ui->Plot_3->setTitle("TEST 03");
     connect(ui->Plot_3->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_3->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-//    connect(ui->Plot_3, SIGNAL(AxisChanged_signal (Plot*, QString)),
-//            this, SLOT(ChangePlotAxis (Plot*,QString)));
     // Test 4
     ui->Plot_4->setTitle("TEST 04");
     connect(ui->Plot_4->canvas_picker, SIGNAL(mouseLeftClicked(Plot *)),
             this, SLOT(clickedOnPlot(Plot *)));
     connect(ui->Plot_4->canvas_picker, SIGNAL(mouseDoubleClicked(Plot *)),
             this, SLOT(fullscreenOnPlot(Plot *)));
-//    connect(ui->Plot_4, SIGNAL(AxisChanged_signal (Plot*, QString)),
-//            this, SLOT(ChangePlotAxis (Plot*,QString)));
 
     on_actionZoom_toggled(false);
 
@@ -110,6 +102,7 @@ void MainWindow::on_actionOpenFile_triggered()
         int start_idx = newLabFile.Get_start_idx();
         int end_idx = newLabFile.Get_end_idx();
         int med_idx = DADOS.InsertLaboratoryData(newLabFile);
+        int elastic_idx = 0;                                        //VALOR TEMPORARIO
 
 
         //Criando entrada na tabela de arquivos
@@ -133,13 +126,15 @@ void MainWindow::on_actionOpenFile_triggered()
         ui->start_idx_value->setMaxValue(end_idx);
         ui->end_idx_slider->setMaximum(end_idx);
         ui->end_idx_value->setMaxValue(end_idx);
+        ui->elastic_trans_idx_slider->setMaximum(end_idx);
+        ui->elastic_trans_idx_value->setMaxValue(end_idx);
 
         ui->start_idx_slider->setValue(start_idx);
         ui->start_idx_value->setValue(start_idx);
         ui->end_idx_slider->setValue(end_idx);
         ui->end_idx_value->setValue(end_idx);
-
-
+        ui->elastic_trans_idx_slider->setValue(elastic_idx);
+        ui->elastic_trans_idx_value->setValue(elastic_idx);
     }
 }
 
@@ -199,12 +194,12 @@ void MainWindow::ShowListContextMenu(const QPoint& pos)
 //    }
 
     if (aDeleteFile == selectedItem) {
-        int indexCurve = ui->treeWidget->indexAt(pos).row();
-        QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
+//        int indexCurve = ui->treeWidget->indexAt(pos).row();
+//        QTreeWidgetItem *tmp_item =  ui->treeWidget->topLevelItem( indexCurve );
 
-        indexCurve = -1;
-        indexCurve = tmp_item->data(0, Qt::UserRole).toInt();
-        qDebug() <<"INDEX CURVE!@%#$@!#$%$" <<indexCurve;
+//        indexCurve = -1;
+//        indexCurve = tmp_item->data(0, Qt::UserRole).toInt();
+//        qDebug() <<"INDEX CURVE!@%#$@!#$%$" <<indexCurve;
     }
 }
 
@@ -219,6 +214,9 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     if (checkStatus == 2) {
         qDebug() << "Criando curva";
         currentPlot->createCurve(indexCurve, checkStatus);
+        //Recreate all envelopes in all plots, according to new curves
+        if (ui->checkBox->isChecked())
+            generateEnvelopeAllPlots();
     }
     else
     {
@@ -378,6 +376,24 @@ void MainWindow::on_end_idx_value_valueChanged(double value)
     setSymbAllPlots((int)value, indexCurve, Plot::endPoint);
 }
 
+void MainWindow::on_elastic_trans_idx_value_valueChanged(double value)
+{
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    DADOS.Set_Med_elastic_trans_idx(indexCurve, (int)value);
+
+    ui->elastic_trans_idx_slider->setValue((int)value);
+    setSymbAllPlots((int)value, indexCurve, Plot::elasticTransPoint);
+}
+
+void MainWindow::on_elastic_trans_idx_slider_valueChanged(int value)
+{
+    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+    DADOS.Set_Med_elastic_trans_idx(indexCurve, value);
+
+    ui->elastic_trans_idx_value->setValue(value);
+    setSymbAllPlots(value, indexCurve, Plot::elasticTransPoint);
+}
+
 void MainWindow::setSymbAllPlots(int idx, int indexCurve, Plot::pointType ptnTyp) {
     ui->Plot_1->setSymbIndex(idx, indexCurve, ptnTyp);
     ui->Plot_2->setSymbIndex(idx, indexCurve, ptnTyp);
@@ -414,19 +430,34 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
 
         qDebug() << "SIMULADO: Med idx: " << idx_med << " Sim idx: " << idx_sim;
 
-        //Criando entrada na treeWidget
+        ///////////////////Criando entrada na treeWidget
+        //Achando Medicao a qual essa simulacao pertence, para exibicao em forma de "tree"
+        QTreeWidgetItem *item_parent;
+        for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
+        {
+            QTreeWidgetItem *item_tmp = ui->treeWidget->topLevelItem(i);
+            int item_id = item_tmp->data(0,Qt::UserRole).toInt();
+            if (item_id == idx_med) {
+                item_parent = item_tmp;
+            }
+        }
         QTreeWidgetItem *item;
-        item = new QTreeWidgetItem();//(tmp_item);
+        item = new QTreeWidgetItem(item_parent);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Unchecked);
-        int count = DADOS.SizeLabData();
+//        int count = DADOS.SizeLabData();
 //        qDebug() << "COUNTM = " <<count << "!!!!!!!!!!!";
 //        int counts = labdata->SizeSimData();
 //        qDebug() << "COUNTS = " <<counts << "!!!!!!!!!!!";
-        item->setText(0,ui->comboBoxSim->itemText(0));//(0, "Sim");
+        item->setText(0,ui->comboBoxSim->itemText(ui->comboBoxSim->currentIndex()));
         item->setData(0, Qt::UserRole, idx_sim); //item "ID"
         ui->treeWidget->addTopLevelItem(item);
         ui->treeWidget->expandAll();
+
+        // lock parameters for this simulation
+        //update lock / unlock simulation status button, stored in combo's Data role = Qt::UserRole+1
+        ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), true, Qt::UserRole+1);
+        on_lockParamsBtn_toggled(true);
 
     }
     catch (...)
@@ -487,5 +518,72 @@ void MainWindow::on_C_counter_valueChanged(double value)
 
 void MainWindow::on_comboBoxSim_currentIndexChanged(int index)
 {
+    //update lock / unlock simulation status button, stored in combo's Data role = Qt::UserRole+1
+    ui->lockParamsBtn->setChecked(ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(),Qt::UserRole+1).toBool());
+    //ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), checked, Qt::UserRole+1);
+}
+
+void MainWindow::on_young_counter_valueChanged(double value)
+{
+    int id_sim = ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(), Qt::UserRole).toInt();
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "This will invalidate (delete) all instances of this simulation, proceed?", "Warning",
+                                  QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+      qDebug() << "Deletando as simulacoes plotadas de id=" << id_sim;
+
+
+//      // updating check-status
+//      for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
+//      {
+//         QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i);
+//         int item_id = item->data(0,Qt::UserRole).toInt();
+//         //item->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_id).chk_status));
+//         if (item_id == )
+//         for( int j = 0; j < item->childCount(); j++ )
+//         {
+//             QTreeWidgetItem *item_child = item->child(j);
+//             int item_child_id = item_child->data(0,Qt::UserRole).toInt();
+//             item_child->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_child_id).chk_status));
+//          }
+//      }
+
+
+    } else {
+      //ui->young_counter->setValue(ui->young_counter->prevValue());
+    }
 
 }
+
+void MainWindow::on_lockParamsBtn_toggled(bool checked)
+{
+    qDebug() << "locked: " << checked;
+
+//    if (checked) {
+//        ui->A_counter->setDisabled(true);
+//        ui->B_counter->setDisabled(true);
+//        ui->C_counter->setDisabled(true);
+//        ui->D_counter->setDisabled(true);
+//        ui->R_counter->setDisabled(true);
+//        ui->W_counter->setDisabled(true);
+//        ui->poisson_counter->setDisabled(true);
+//        ui->young_counter->setDisabled(true);
+//    }
+//    else {
+//        ui->A_counter->setEnabled(true);
+//        ui->B_counter->setEnabled(true);
+//        ui->C_counter->setEnabled(true);
+//        ui->D_counter->setEnabled(true);
+//        ui->R_counter->setEnabled(true);
+//        ui->W_counter->setEnabled(true);
+//        ui->poisson_counter->setEnabled(true);
+//        ui->young_counter->setEnabled(true);
+//    }
+
+    //lock / unlock simulation status, stored in Data role = Qt::UserRole+1
+    ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), checked, Qt::UserRole+1);
+
+}
+
+

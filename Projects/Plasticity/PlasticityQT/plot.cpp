@@ -300,19 +300,28 @@ void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
     CURVE d_curve_tmp = this->CurvesList[global_id];
 
     //updating symbol position
-    int sizes = 2;
-    double Xs[2], Ys[2];
+    int sizes = 3;
+    double Xs[3], Ys[3];
+
+    //start
     Xs[0] = d_curve_tmp.symb_curve_ptr->sample(0).x();
     Ys[0] = d_curve_tmp.symb_curve_ptr->sample(0).y();
+    //elastic trans
     Xs[1] = d_curve_tmp.symb_curve_ptr->sample(1).x();
     Ys[1] = d_curve_tmp.symb_curve_ptr->sample(1).y();
+    //end
+    Xs[2] = d_curve_tmp.symb_curve_ptr->sample(2).x();
+    Ys[2] = d_curve_tmp.symb_curve_ptr->sample(2).y();
 
     d_curve_tmp.mark_ptr1->setXValue(Xs[0]);
     d_curve_tmp.mark_ptr1->setYValue(Ys[0]);
-    d_curve_tmp.mark_ptr2->setXValue(Xs[1]);
-    d_curve_tmp.mark_ptr2->setYValue(Ys[1]);
+    d_curve_tmp.mark_ptr2->setXValue(Xs[2]);
+    d_curve_tmp.mark_ptr2->setYValue(Ys[2]);
+    d_curve_tmp.mark_ptr3->setXValue(Xs[1]);
+    d_curve_tmp.mark_ptr3->setYValue(Ys[1]);
 
-    if (typept == startPoint) {
+    switch (typept) {
+    case startPoint:
         //updating curve
         Xs[0] = d_curve_tmp.curve_ptr->sample(indexCoords).x();
         Ys[0] = d_curve_tmp.curve_ptr->sample(indexCoords).y();
@@ -322,17 +331,29 @@ void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
         d_curve_tmp.mark_ptr1->setYValue(Ys[0]);
         //updating indexCoords control
         d_curve_tmp.initialPnt = indexCoords;
-    }
-    else {
+        break;
+    case endPoint:
+        //updating curve
+        Xs[2] = d_curve_tmp.curve_ptr->sample(indexCoords).x();
+        Ys[2] = d_curve_tmp.curve_ptr->sample(indexCoords).y();
+        d_curve_tmp.symb_curve_ptr->setSamples( Xs, Ys, sizes);
+        //updading markers (labels)
+        d_curve_tmp.mark_ptr2->setXValue(Xs[2]);
+        d_curve_tmp.mark_ptr2->setYValue(Ys[2]);
+        //updating indexCoords control
+        d_curve_tmp.endPnt = indexCoords;
+        break;
+    case elasticTransPoint:
         //updating curve
         Xs[1] = d_curve_tmp.curve_ptr->sample(indexCoords).x();
         Ys[1] = d_curve_tmp.curve_ptr->sample(indexCoords).y();
         d_curve_tmp.symb_curve_ptr->setSamples( Xs, Ys, sizes);
         //updading markers (labels)
-        d_curve_tmp.mark_ptr2->setXValue(Xs[1]);
-        d_curve_tmp.mark_ptr2->setYValue(Ys[1]);
+        d_curve_tmp.mark_ptr3->setXValue(Xs[1]);
+        d_curve_tmp.mark_ptr3->setYValue(Ys[1]);
         //updating indexCoords control
-        d_curve_tmp.endPnt = indexCoords;
+        d_curve_tmp.elastic_transPnt = indexCoords;
+        break;
     }
 
     //inserting new value
@@ -392,6 +413,10 @@ void Plot::createCurve (int global_id, int check_status){
     int end_idx = labData->Get_end_idx();
     int isMed = DADOS.isMed(global_id);
 
+     //VALOR TEMPORARIO!!!
+     //VALOR TEMPORARIO!!!
+    int elastic_trans_idx = 0;                                      //VALOR TEMPORARIO!!!
+
     QVector <double> qVec_X = QVector <double>::fromStdVector(X);
     QVector <double> qVec_Y = QVector <double>::fromStdVector(Y);
     new_curve.curve_ptr->setSamples(qVec_X,qVec_Y);
@@ -441,14 +466,17 @@ void Plot::createCurve (int global_id, int check_status){
     new_curve.symb_curve_ptr->setStyle(QwtPlotCurve::NoCurve);
     new_curve.symb_curve_ptr->attach( this );
 
-    int sizes = 2;
-    double Xs[2], Ys[2];
+    int sizes = 3;
+    double Xs[3], Ys[3];
     Xs[0] = X[start_idx];
     Ys[0] = Y[start_idx];
-    Xs[1] = X[end_idx];
-    Ys[1] = Y[end_idx];
+    Xs[2] = X[end_idx];
+    Ys[2] = Y[end_idx];
+    Xs[1] = X[elastic_trans_idx];
+    Ys[1] = Y[elastic_trans_idx];
     qDebug() << "Size: " << X.size() << " start: " << start_idx << " " << X[start_idx] << " " << Y[start_idx] << endl;
     qDebug() << "Size: " << X.size() << " end: " << end_idx << " " << X[end_idx] << " " << Y[end_idx] ;
+    qDebug() << "Size: " << X.size() << " elastic trans: " << elastic_trans_idx << " " << X[elastic_trans_idx] << " " << Y[elastic_trans_idx] ;
     new_curve.symb_curve_ptr->setSamples( Xs, Ys, sizes);
     if (!isMed) new_curve.symb_curve_ptr->hide();
 
@@ -456,7 +484,7 @@ void Plot::createCurve (int global_id, int check_status){
     new_curve.symb1 = new QwtSymbol();
     new_curve.symb1->setBrush(QBrush(Qt::red, Qt::SolidPattern));
     new_curve.symb1->setStyle(QwtSymbol::Ellipse);
-    new_curve.symb1->setSize(5);//(10);
+    new_curve.symb1->setSize(7);//(10);
     new_curve.mark_ptr1 = new QwtPlotMarker();
     new_curve.mark_ptr1->setSymbol(new_curve.symb1);
     new_curve.mark_ptr1->setXValue(Xs[0]);
@@ -470,18 +498,34 @@ void Plot::createCurve (int global_id, int check_status){
     new_curve.symb2 = new QwtSymbol();
     new_curve.symb2->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
     new_curve.symb2->setStyle(QwtSymbol::Ellipse);
-    new_curve.symb2->setSize(5);//(10);
+    new_curve.symb2->setSize(7);//(10);
     new_curve.mark_ptr2 = new QwtPlotMarker ();
     new_curve.mark_ptr2->setSymbol(new_curve.symb2);
-    new_curve.mark_ptr2->setXValue(Xs[1]);
-    new_curve.mark_ptr2->setYValue(Ys[1]);
+    new_curve.mark_ptr2->setXValue(Xs[2]);
+    new_curve.mark_ptr2->setYValue(Ys[2]);
     new_curve.mark_ptr2->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
     //new_curve.mark_ptr2->setLabel(QwtText("End"));
     new_curve.mark_ptr2->attach(this);
     if (!isMed) new_curve.mark_ptr2->hide();
 
+    // ElasticTrans marker
+    new_curve.symb3 = new QwtSymbol();
+    new_curve.symb3->setBrush(QBrush(Qt::green, Qt::SolidPattern));
+    new_curve.symb3->setStyle(QwtSymbol::Ellipse);
+    new_curve.symb3->setSize(7);//(10);
+    new_curve.mark_ptr3 = new QwtPlotMarker ();
+    new_curve.mark_ptr3->setSymbol(new_curve.symb3);
+    new_curve.mark_ptr3->setXValue(Xs[1]);
+    new_curve.mark_ptr3->setYValue(Ys[1]);
+    new_curve.mark_ptr3->setLabelAlignment(Qt::Alignment(Qt::AlignLeft));
+    //new_curve.mark_ptr3->setLabel(QwtText("Elast"));
+    new_curve.mark_ptr3->attach(this);
+    if (!isMed) new_curve.mark_ptr3->hide();
+
+
     new_curve.initialPnt = start_idx;
     new_curve.endPnt = end_idx;
+    new_curve.elastic_transPnt = elastic_trans_idx;
 
     new_curve.chk_status = check_status;
 
@@ -524,6 +568,9 @@ void Plot::deleteCurve (int global_id){
         d_plot_marker = this->CurvesList[global_id].mark_ptr2;
         d_plot_marker->detach();
         delete d_plot_marker;
+        d_plot_marker = this->CurvesList[global_id].mark_ptr3;
+        d_plot_marker->detach();
+        delete d_plot_marker;
         //removing curve
         d_curve_symbol->detach();
         delete d_curve_symbol;
@@ -542,7 +589,19 @@ void Plot::Generate_Envelope(double A, double B, double C){
 
     TPBrStrainStressDataBase *labdata = DADOS.getObj(0);
     labdata->SetEnvelope(A, B, C);
-    labdata->GenerateEnvelope(X, Y);
+
+    double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min();
+
+    foreach (int i, this->CurvesList.keys()) {
+
+        if (this->CurvesList[i].Xsmallest<Xsmallest)
+            Xsmallest = this->CurvesList.value(i).Xsmallest;
+
+        if (this->CurvesList[i].Xbiggest>Xbiggest)
+            Xbiggest = this->CurvesList[i].Xbiggest;
+    }
+
+    labdata->GenerateEnvelope(X, Y, Xsmallest, Xbiggest);
 
     QVector <double> qVec_X = QVector <double>::fromStdVector(X);
     QVector <double> qVec_Y = QVector <double>::fromStdVector(Y);
@@ -550,9 +609,9 @@ void Plot::Generate_Envelope(double A, double B, double C){
     envelope_curve->setSamples(qVec_X, qVec_Y);
     envelope_curve->attach(this);
     this->zoomer->setZoomBase();
-    this->replot();
-    double Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min(),
-           Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
+    //this->replot();
+    Xsmallest=numeric_limits<double>::max(), Xbiggest=numeric_limits<double>::min();
+    double Ysmallest=numeric_limits<double>::max(), Ybiggest=numeric_limits<double>::min();
 
     for (int i = 0; i < X.size(); i++) {
         // scale

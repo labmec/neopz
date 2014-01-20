@@ -40,15 +40,15 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
     TPZVec<REAL> sigax,sigr,epsax,epsr;
     newSimulation.GetSimulatedStrainStress(sigax, epsax, sigr, epsr);
   
-#ifdef LOG4CXX
-		if(logger->isDebugEnabled())
-		{
-			std::stringstream sout;
-			sout << "epsax " << epsax << std::endl << "epsr " << epsr << std::endl << "sigax " << sigax << std::endl << "sigr " << sigr;
-			LOGPZ_DEBUG(logger,sout.str())
-		}
+//#ifdef LOG4CXX
+//		if(logger->isDebugEnabled())
+//		{
+//			std::stringstream sout;
+//			sout << "epsax " << epsax << std::endl << "epsr " << epsr << std::endl << "sigax " << sigax << std::endl << "sigr " << sigr;
+//			LOGPZ_DEBUG(logger,sout.str())
+//		}
 			
-#endif
+//#endif
     
     TPBrSimulationData result;
     int medid = GlobalId();

@@ -116,12 +116,20 @@ public:
         fMedicoes[global_id].Set_end_idx(new_idx);
     }
 
+    void Set_Med_elastic_trans_idx (int global_id, int new_idx) {
+
+    }
+
     int Get_Med_start_idx (int global_id){
         return fMedicoes[global_id].Get_start_idx();
     }
 
     int Get_Med_end_idx (int global_id){
         return fMedicoes[global_id].Get_end_idx();
+    }
+
+    int Get_Med_elastic_trans_idx (int global_id){
+
     }
 
     void DeleteGlobalId(int globalid)

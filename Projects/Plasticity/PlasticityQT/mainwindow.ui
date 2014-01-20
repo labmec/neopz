@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1149</width>
-    <height>731</height>
+    <height>763</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,10 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout_3">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="1">
+     <widget class="Plot" name="Plot_4"/>
+    </item>
     <item row="0" column="0">
      <widget class="Plot" name="Plot_1">
       <property name="cursor">
@@ -28,14 +31,11 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="Plot" name="Plot_2"/>
-    </item>
     <item row="1" column="0">
      <widget class="Plot" name="Plot_3"/>
     </item>
-    <item row="1" column="1">
-     <widget class="Plot" name="Plot_4"/>
+    <item row="0" column="1">
+     <widget class="Plot" name="Plot_2"/>
     </item>
    </layout>
   </widget>
@@ -142,8 +142,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>244</width>
-     <height>625</height>
+     <width>296</width>
+     <height>582</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -160,18 +160,38 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
       <horstretch>0</horstretch>
       <verstretch>0</verstretch>
      </sizepolicy>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QComboBox" name="comboBoxSim">
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_11">
+       <item>
+        <widget class="QComboBox" name="comboBoxSim">
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="lockParamsBtn">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QLabel" name="label_22">
@@ -192,8 +212,8 @@
        <property name="title">
         <string>MATERIAL PARAMETERS</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0" colspan="2">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLabel" name="label_8">
@@ -217,7 +237,7 @@
           </item>
          </layout>
         </item>
-        <item>
+        <item row="1" column="0" colspan="2">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="label_11">
@@ -244,7 +264,7 @@
           </item>
          </layout>
         </item>
-        <item>
+        <item row="2" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QLabel" name="label_13">
@@ -268,7 +288,31 @@
           </item>
          </layout>
         </item>
-        <item>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>D</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="D_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.018768000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QLabel" name="label_12">
@@ -292,7 +336,31 @@
           </item>
          </layout>
         </item>
-        <item>
+        <item row="3" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_29">
+            <property name="text">
+             <string>R</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QwtCounter" name="R_counter">
+            <property name="numButtons">
+             <number>1</number>
+            </property>
+            <property name="maxValue">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.919690000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="4" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QLabel" name="label_15">
@@ -319,55 +387,7 @@
           </item>
          </layout>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>D</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QwtCounter" name="D_counter">
-            <property name="numButtons">
-             <number>1</number>
-            </property>
-            <property name="maxValue">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.018768000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QLabel" name="label_29">
-            <property name="text">
-             <string>R</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QwtCounter" name="R_counter">
-            <property name="numButtons">
-             <number>1</number>
-            </property>
-            <property name="maxValue">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.919690000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
+        <item row="4" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
            <widget class="QLabel" name="label_31">
@@ -466,6 +486,37 @@
         </widget>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_12">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Elastic Trans:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QwtCounter" name="elastic_trans_idx_value">
+           <property name="numButtons">
+            <number>1</number>
+           </property>
+           <property name="basicstep" stdset="0">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="maxValue">
+            <double>99.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QSlider" name="elastic_trans_idx_slider">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="runSimBtn">
          <property name="text">
           <string>Run Simulation</string>
@@ -482,10 +533,11 @@
       </widget>
      </item>
     </layout>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
     <zorder>label_22</zorder>
     <zorder>checkBox</zorder>
     <zorder>groupBox</zorder>
-    <zorder>comboBoxSim</zorder>
    </widget>
   </widget>
   <action name="actionZoom">
