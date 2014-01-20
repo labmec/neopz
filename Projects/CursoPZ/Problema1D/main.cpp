@@ -46,8 +46,8 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients);
 
 int main() {
-    int counter = 1;
-	int resolution = 0;
+    int counter = 3;
+	int resolution = 8;
 
     TPZGeoMesh *gmesh;
     if(counter==1)
@@ -58,7 +58,7 @@ int main() {
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CreateMesh2D(gmesh);
     
-	if(counter==2) {
+	if(counter!=1) {
         TPZInterpolatedElement *el = (TPZInterpolatedElement*)(cmesh->ElementVec()[0]);
         TPZVec<long> subels;
         el->Divide(el->Index(),subels);
@@ -121,6 +121,30 @@ int main() {
             an.DefineGraphMesh(2,scalarnames,vecnames,namef);
             an.PostProcess(resolution,2);
 		}
+    }
+    if(counter==3) {
+        for(int i=0;i<nrows;i++) {
+            for(int j=0;j<cols;j++) {
+                cmesh->Solution().PutVal(i,j,0.);
+            }
+        }
+        for(int k=0;k<nrows;k++) {
+			if(k==2)
+                cmesh->Solution().PutVal(2,0,0.1875-0.125);
+            else if(k==33)
+				cmesh->Solution().PutVal(33,0,0.1875);
+			else if(k==17) {
+				cmesh->Solution().PutVal(17,0,0.25);
+				cmesh->Solution().PutVal(37,0,0.125);
+			}
+			else if(k==32)
+	            cmesh->Solution().PutVal(k,0,0.109375-0.09375);
+			else if(k==21)
+	            cmesh->Solution().PutVal(k,0,0.234375-(0.09375+0.125));
+		}
+        sprintf(namef,"Solution2D_%d.vtk",counter);
+        an.DefineGraphMesh(2,scalarnames,vecnames,namef);
+        an.PostProcess(resolution,2);
     }
     
     return 0;

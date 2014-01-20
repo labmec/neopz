@@ -77,7 +77,7 @@ using namespace pzshape;
 using namespace pzgeom;
 
 
-STATE ValueK = 10000;
+STATE ValueK = 100000;
 REAL GlobalMaxError = 0.0;
 STATE F = sqrt(ValueK);
 // Circunference with high gradient - data
@@ -89,7 +89,7 @@ int ModelDimension = 3;
 /** VARIABLES */
 /** Printing level */
 int gPrintLevel = 0;
-int printingsol = 1;
+int printingsol = 0;
 int printsave = 1;
 
 int materialId = 1;
@@ -148,7 +148,7 @@ int NRefs = 8;
 int ninitialrefs = 3;
 int itypeel;
 
-long MaxEquations = 10000000;
+long MaxEquations = 2000000;
 
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
@@ -224,7 +224,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)EOned;itypeel<(int)EPolygonal;itypeel++)
+		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 //		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
@@ -242,14 +242,16 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3) {
-				NRefs = 12;
-				if(itypeel==3) MaxPOrder = 9;
-				else MaxPOrder = 15;
+				NRefs = 10;
+                MaxPOrder = 9;
+//				if(itypeel==3) MaxPOrder = 9;
+//				else MaxPOrder = 15;
 			}
 			else if(ModelDimension == 3) {
 				NRefs = 10;
-				if(itypeel==4) MaxPOrder = 15;
-				else MaxPOrder = 9;
+//				if(itypeel==4) MaxPOrder = 15;
+//				else
+                MaxPOrder = 9;
 			}
 			
 			// To storing number of equations and errors obtained for all iterations
@@ -279,10 +281,15 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					ann.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
 				}
 				ann.PostProcess(3,ModelDimension);
+                long countels = 0;
+                for(int ii=0;ii<cmeshfirst->NElements();ii++) {
+                    if(!cmeshfirst->ElementVec()[ii] || cmeshfirst->ElementVec()[ii]->Dimension()!=ModelDimension) continue;
+                    countels++;
+                }
+                out << std::endl << "Number of elements 2D: " << countels << std::endl << std::endl ;
 				delete cmeshfirst;
 				delete gmeshfirst;
 				printingsol = false;
-				continue;
 			}
 			else
 				UniformRefinement(ninitialrefs,gmesh,ModelDimension);
@@ -450,14 +457,14 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i;
-	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
+//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
 	REAL factorGrad= 0.3;
-	REAL factorLap = 0.7;
+	REAL factorLap = 1.;
 	REAL factorError = 0.2;
 	REAL factorErrorM = 0.8;
 	if(nref>1) {
-		factorError += (nref-2)*0.08;
-		factorErrorM += (nref-2)*0.02;
+//		factorError += (nref-2)*0.08;
+		factorErrorM += (nref-2)*0.03;
 	}
 	if(2<nref)
 		factorGrad += (nref-2)*0.1;
@@ -486,29 +493,15 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
         pelement++;
-		if(ervecbyel[index] > factorErrorM*MaxErrorByElement && IncrementError > 10*Tol) {
+        if(LaplacianValue > factorLap && pelement<MaxPOrder) {
+            el->PRefine(pelement);
+            pused = true;
+            counterreftype[2]++;
+        }
+		if(ervecbyel[index] > factorErrorM*MaxErrorByElement) {
 			if(gradervecbyel[i] > factorGrad*MaxGrad) {
-				bool flag;
-				flag = false;
 				counterreftype[1]++;
-				if(LaplacianValue > factorLap*MaxLaplacian && pelement<MaxPOrder) {
-					el->PRefine(pelement);
-					pused = true;
-					counterreftype[2]++;
-					flag = true;
-				}
 				el->Divide(index,subels);
-				if(!flag) {
-					counterreftype[3]++;
-					for(int ii=0;ii<subels.NElements();ii++) {
-						el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]]);
-						el->Divide(subels[ii],subsubels);
-					}
-				}
-			}
-			else {
-				el->Divide(index,subels);
-				counterreftype[4]++;
 			}
 			counterreftype[7]++;
 		}
@@ -518,29 +511,29 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 				counterreftype[11]++;
 				el->Divide(index,subels);
 			}
-			else if(pelement<MaxPOrder) {
+			else if(!pused && pelement<MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
 				counterreftype[12]++;
 			}
-            else {
-                counterreftype[13]++;
-                el->Divide(index,subels);
-            }
+//            else {
+  //              counterreftype[13]++;
+    //            el->Divide(index,subels);
+      //      }
 		}
 		else {
 			counterreftype[20]++;
-			if(pelement < MaxPOrder) {
-				el->PRefine(pelement);
-				pused = true;
-				counterreftype[21]++;
-			}
+//			if(pelement < MaxPOrder) {
+//				el->PRefine(pelement);
+//				pused = true;
+//				counterreftype[21]++;
+//			}
 //			else if(nref<8) {
 	//			el->Divide(index,subels);
 		//		counterreftype[9]++;
 			//}
-            else
-				counterreftype[22]++;
+//            else
+//				counterreftype[22]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
