@@ -57,8 +57,8 @@ public:
 
     // gera a envoltoria
     virtual void GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y);
-    void GetEnvelope(int index, REAL &X, REAL &Y);
-    void SetEnvelope(REAL A, REAL B, REAL C);
+
+		void SetEnvelope(REAL A, REAL B, REAL C);
 
 
     /// gera os dados que serao mostrados na tela
@@ -86,7 +86,7 @@ public:
     REAL Sigv(int index);
 
     // retorna o valor da envoltoria para o index
-    REAL F1(int index);
+    REAL F1(REAL I1);
 
     virtual int Get_start_idx() const {
         return 0;

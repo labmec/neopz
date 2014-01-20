@@ -1,9 +1,11 @@
 #include "TPBrDataControl.h"
 #include <iostream>
 
+#include "pzlog.h"
+
 int main(int argc, char *argv[])
 {
-  
+  InitializePZLOG();
       string FileName, dirname = PZSOURCEDIR;
       FileName = dirname + "/Projects/Plasticity/";
       FileName += "ensaio_all_columns.txt";

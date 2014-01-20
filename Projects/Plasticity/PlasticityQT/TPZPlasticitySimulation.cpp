@@ -232,10 +232,10 @@ void TPZPlasticitySimulation::GetSimulatedStrainStress(TPZVec<REAL> &sigax, TPZV
     sigr.resize(nsimulated);
     epsr.resize(nsimulated);
     for (int i=0; i<nsimulated; i++) {
-        sigax[i] = fStressRZSimulated(i,1);
-        sigr[i] = fStressRZSimulated(i,0);
-        epsax[i] = fStrainRZSimulated(i,1);
-        epsr[i] = fStrainRZSimulated(i,0);
+        sigax[i] = fStressRZSimulated(i+fPoreClosureIndex,1);
+        sigr[i] = fStressRZSimulated(i+fPoreClosureIndex,0);
+        epsax[i] = fStrainRZSimulated(i+fPoreClosureIndex,1);
+        epsr[i] = fStrainRZSimulated(i+fPoreClosureIndex,0);
     }
 }
 

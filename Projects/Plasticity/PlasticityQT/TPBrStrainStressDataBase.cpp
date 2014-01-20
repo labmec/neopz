@@ -16,10 +16,21 @@ TPBrStrainStressDataBase::~TPBrStrainStressDataBase()
 // BEGIN ENVOLTORIA
 void TPBrStrainStressDataBase::GenerateEnvelope(std::vector<REAL> &X, std::vector<REAL> &Y)
 {
-    X.resize(fEps_Ax.size());
-    Y.resize(fEps_Ax.size());
-    for (int i = 0; i<fEps_Ax.size(); i++) {
-        GetEnvelope(i, X[i], Y[i]);
+	int n = fEps_Ax.size();
+	REAL I1min = I1(0);
+	REAL I1max = I1(0);
+	for(int i=0; i<n; i++)
+	{
+		REAL I1val = I1(i);
+		I1min = min(I1val,I1min);
+		I1max = max(I1val,I1max);
+	}
+    X.resize(200);
+    Y.resize(200);
+    for (int i = 0; i<X.size(); i++) {
+			REAL I1 = I1min + (i*1.)*(I1max-I1min)/199.;
+			X[i]= I1;
+			Y[i] = F1(I1);
     }
 }
 
@@ -28,12 +39,6 @@ void TPBrStrainStressDataBase::SetEnvelope(REAL A, REAL B, REAL C)
     fA = A;
     fB = B;
     fC = C;
-}
-
-void TPBrStrainStressDataBase::GetEnvelope(int index, REAL &X, REAL &Y)
-{
-    X = I1(index);
-    Y = F1(index);
 }
 
 // END ENVOLTORIA
@@ -70,7 +75,7 @@ void TPBrStrainStressDataBase::GetXY(int index, ECurveType curvetype, REAL &X, R
             break;
         case EI1SqJ2:
             X = I1(index);
-            Y = SqJ2(index);
+            Y = SqJ2(X);
 	    break;
 	case EEpsaxSigax:
         X = this->fEps_Ax[index];
@@ -112,8 +117,8 @@ REAL TPBrStrainStressDataBase::I1(int index)
 /// retorno o valor de Sq(J2) para o index
 REAL TPBrStrainStressDataBase::SqJ2(int index)
 {
-    REAL I1 = this->I1(index);
-    REAL sigdesv[3] ={fSig_Ax[index]-I1/3.,fSig_Lat[index]-I1/3.,fSig_Lat[index]-I1/3.};
+	  REAL I1val = I1(index);
+    REAL sigdesv[3] ={fSig_Ax[index]-I1val/3.,fSig_Lat[index]-I1val/3.,fSig_Lat[index]-I1val/3.};
     REAL J2 = (sigdesv[0]*sigdesv[0]+sigdesv[1]*sigdesv[1]+sigdesv[2]*sigdesv[2])/2.;
     return sqrt(J2);
 }
@@ -133,9 +138,8 @@ REAL TPBrStrainStressDataBase::Sigv(int index)
 }
 
 // retorna o valor da envoltoria para o index
-REAL TPBrStrainStressDataBase::F1(int index)
+REAL TPBrStrainStressDataBase::F1(REAL I1)
 {
-    REAL I1 = this->I1(index);
     REAL F1 = fA - fC*exp(fB*I1);
     return F1;
 }

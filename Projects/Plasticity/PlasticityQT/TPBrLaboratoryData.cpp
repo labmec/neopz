@@ -2,6 +2,10 @@
 #include "TPZPlasticitySimulation.h"
 #include "TPBrDataControl.h"
 
+#include "pzlog.h"
+
+static LoggerPtr logger(Logger::getLogger("QT.laboratorydata"));
+
 TPBrLaboratoryData::TPBrLaboratoryData()
 {
     fstart_idx = -1;
@@ -36,6 +40,15 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
     TPZVec<REAL> sigax,sigr,epsax,epsr;
     newSimulation.GetSimulatedStrainStress(sigax, epsax, sigr, epsr);
   
+#ifdef LOG4CXX
+		if(logger->isDebugEnabled())
+		{
+			std::stringstream sout;
+			sout << "epsax " << epsax << std::endl << "epsr " << epsr << std::endl << "sigax " << sigax << std::endl << "sigr " << sigr;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+			
+#endif
     
     TPBrSimulationData result;
     int medid = GlobalId();
