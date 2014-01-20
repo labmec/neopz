@@ -229,7 +229,7 @@ void I1vsSqrtJ2()
         outfilePV << sigma.I1()<< " " << sqrt(sigma.J2()) << "\n";
       
         
-        k0 = PlasticStepPV.fN.Alpha();
+       // k0 = PlasticStepPV.fN.Alpha();
         STATE i1=k0,X,tmp;
         sqrtj2=sqrt(sigma.J2());
         tmp=1.;
