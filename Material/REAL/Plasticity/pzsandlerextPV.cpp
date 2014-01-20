@@ -8,6 +8,10 @@
 
 #include "pzsandlerextPV.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
+#endif
+
 TPZSandlerExtended::TPZSandlerExtended()
 {
     
@@ -218,7 +222,8 @@ void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta,STATE k, TPZVec<STATE> &f
     STATE sqrt2=sqrt(2);
     STATE sqrt3=sqrt(3);
     STATE gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
-    STATE I1 = k + fR*F(k, fPhi)*cos(theta);
+    STATE var =fR*F(k, fPhi)*cos(theta);
+    STATE I1 = k + var;
     STATE sqrtj2 = (F(k, fPhi)- fN)*sin(theta)/gamma;
     STATE rho = sqrt2*sqrtj2;
     STATE xi=I1/sqrt3;
@@ -371,7 +376,16 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE
     c6=1./fPsi;
     T ddistf2dbeta =(2.*(c2 - (c3*cosbeta)/(1. + c6*(1. - sin3beta) +sin3beta))*
                         ((c3*cosbeta*(3.*cos3beta - 3.*c6*cos3beta))/pow (1. + c6*(1. - sin3beta) + sin3beta,2.) + (c3*sinbeta)/(1. + c6*(1. - sin3beta) + sin3beta)) +2.*((c5*(3.*cos3beta - 3.*c6*cos3beta)*sinbeta)/pow (1. + c6*(1. - sin3beta) + sin3beta,2.) - (c5*cosbeta)/(1. + c6*(1. - sin3beta) +sin3beta))*(c4 - (c5*sinbeta)/(1 + c6*(1. - sin3beta) +sin3beta)))/(2.*fG);
-    
+//    T s1,s2,s3;
+//    s1=sig1;
+//    s2=sig2;
+//    s3=sig3;
+//    ddistf2dbeta = (2*((2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
+//        (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*cos(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+//     (s2/sqrt(2) - s3/sqrt(2) - (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*sin(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))) +
+//     2*(sqrt(0.6666666666666666)*s1 - s2/sqrt(6) - s3/sqrt(6) - (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*cos(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
+//     ((2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
+//      (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*sin(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi +sin(3*beta))))/(2.*fG);
     
     T resL = ResLF2(pt, theta, beta,k,kprev);
     
@@ -707,7 +721,16 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
-    ofstream convergenceF1("convergenceF1.txt");
+//#ifdef LOG4CXX
+//    {
+//        std::stringstream outfile;
+//        outfile << "\n projection over F1 " <<endl;
+//        LOGPZ_DEBUG(logger,outfile.str());
+//        
+//    }
+//#endif
+    
+    //ofstream convergenceF1("convergenceF1.txt");
     STATE xi,resnorm,beta,distxi,distnew;
     distxi=1.e8;
     for (STATE xiguess=-M_PI; xiguess <= M_PI; xiguess += M_PI/20.)
@@ -740,7 +763,16 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         xn1=xn-sol;
         diff=xn1-xn;
         resnorm=Norm(diff);
-        convergenceF1 << counter << " "<<resnorm <<endl;
+        //convergenceF1 << counter << " "<<resnorm <<endl;
+        
+//#ifdef LOG4CXX
+//        {
+//            std::stringstream outfile;//("convergencF1.txt");
+//            outfile<< "\n" <<counter << " "<<resnorm <<endl;
+//            LOGPZ_DEBUG(logger,outfile.str());
+//            
+//        }
+//#endif
         xn=xn1;
         counter++;
 
@@ -752,8 +784,10 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     FromHWCylToPrincipal(sigprojcyl, sigproj);
     
   
-   STATE kguess = sigproj[0]+sigproj[1]+sigproj[2];
+    STATE kguess = sigproj[0]+sigproj[1]+sigproj[2];
+    //Firstk(kguess, kproj);
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
+    
     int count =0;
     while (fabs(resl) > 1.e-14 && count < 30) {
         STATE dresl = DResLF1(sigmatrial, sigproj, kguess, kprev);
@@ -768,6 +802,14 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
 void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
+//#ifdef LOG4CXX
+//    {
+//        std::stringstream outfile;
+//        outfile << "\n projection over F2 " <<endl;
+//        LOGPZ_DEBUG(logger,outfile.str());
+//        
+//    }
+//#endif
 
     STATE theta,beta=0.,distnew;
     STATE resnorm,disttheta;
@@ -796,12 +838,25 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
         TPZManVector<STATE> fxnvec(3);
         DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+//#ifdef LOG4CXX
+//        {
+//            std::stringstream outfile;//("convergencF1.txt");
+//            outfile<< "\n" <<counter << " "<<resnorm <<endl;
+//            jac.Print(outfile);
+//            outfile<< "\n xn " << " "<<fxnvec <<endl;
+//            //outfile<< "\n res " << " "<<fxnvec <<endl;
+//            
+//            
+//            LOGPZ_DEBUG(logger,outfile.str());
+//            
+//        }
+//#endif
         for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
         resnorm=Norm(diff);
-       // convergenceF2 << counter << " "<<resnorm <<endl;
+
         xn=xn1;
         counter++;
         
@@ -843,7 +898,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
     xn(0,0)=M_PI/2;
     xn(1,0)=beta;
     xn(2,0)=kprev;
-    while (resnorm > 10e-12 && counter < 30)
+    while (resnorm > 10e-15 && counter < 30)
     {
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial,xn[0],xn[1],xn[2],jac);
@@ -1847,3 +1902,56 @@ void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
     
 }
 
+void TPZSandlerExtended::SalemLimestone(TPZSandlerExtended &mat)// em MPa
+{
+    STATE E=22547.,nu=0.2524,A=689.2,
+    B=3.94e-4,C=675.2,D=1.47e-3,R=28,W=0.08,N=6.,phi=0,psi=1.0;
+    STATE G=E/(2.*(1.+nu));
+    STATE K=E/(3.*(1.-2*nu));
+    mat.fA=A;
+    mat.fB=B;
+    mat.fC=C;
+    mat.fD=D;
+    mat.fK=K;
+    mat.fG=G;
+    mat.fW=W;
+    mat.fR=R;
+    mat.fPhi=phi;
+    mat.fN=N;
+    mat.fPsi=psi;
+    mat.fE=E;
+    mat.fnu=nu;
+}
+
+void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
+{
+    
+    STATE E=29269,nu=0.203,A=116.67,
+    B=0.0036895,C=111.48,D=0.018768,R=0.91969,W=0.006605,N=0.,phi=0,psi=1.0;
+    STATE G=E/(2.*(1.+nu));
+    STATE K=E/(3.*(1.-2*nu));
+    mat.fA=A;
+    mat.fB=B;
+    mat.fC=C;
+    mat.fD=D;
+    mat.fK=K;
+    mat.fG=G;
+    mat.fW=W;
+    mat.fR=R;
+    mat.fPhi=phi;
+    mat.fN=N;
+    mat.fPsi=psi;
+    mat.fE=E;
+    mat.fnu=nu;
+}
+//REAL E = 29269,
+//poisson = 0.203;
+//
+//material.fER.SetUp(E, poisson);
+//
+//REAL A = 116.67,
+//B = 0.0036895,
+//C = 111.48,
+//D = 0.018768,
+//R = 0.91969,
+//W = 0.006605;
