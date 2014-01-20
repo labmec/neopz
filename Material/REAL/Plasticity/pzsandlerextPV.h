@@ -188,6 +188,8 @@ public:
     
     static void MCormicRanchSand(TPZSandlerExtended &mat);
     static void ReservoirSandstone(TPZSandlerExtended &mat);
+    static void SalemLimestone(TPZSandlerExtended &mat);
+    static void PreSMat(TPZSandlerExtended &mat);// em MPa
     
 public:
     
