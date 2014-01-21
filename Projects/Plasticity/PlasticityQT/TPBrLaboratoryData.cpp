@@ -4,7 +4,7 @@
 
 #include "pzlog.h"
 
-static LoggerPtr logger(Logger::getLogger("QT.laboratorydata"));
+//static LoggerPtr logger(Logger::getLogger("QT.laboratorydata"));
 
 TPBrLaboratoryData::TPBrLaboratoryData()
 {

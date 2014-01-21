@@ -363,9 +363,9 @@ void Plot::createCurve (int global_id, int check_status){
     TPBrStrainStressDataBase *labData = DADOS.getObj(global_id);
     labData->GeneratePlot(curvetype, X, Y);
 
-    int start_idx = DADOS.Get_Med_start_idx(global_id);
-    int end_idx = DADOS.Get_Med_end_idx(global_id);
-    int elastic_trans_idx = DADOS.Get_Med_elastic_trans_idx(global_id);
+    int start_idx = labData->Get_start_idx();
+    int end_idx = labData->Get_end_idx();
+    int elastic_trans_idx = labData->Get_elastic_trans_idx();
     int isMed = DADOS.isMed(global_id);
 
     QVector <double> qVec_X = QVector <double>::fromStdVector(X);

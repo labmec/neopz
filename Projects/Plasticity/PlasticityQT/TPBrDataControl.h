@@ -134,10 +134,18 @@ public:
 
     void DeleteGlobalId(int globalid)
     {
-        if(fMapSimMed.find(globalid) != fMapSimMed.end())
+        if(fMapSimMed.find(globalid) != fMapSimMed.end()) //eh simulacao
         {
-            fMapSimMed.erase(globalid);
+            fMedicoes[globalid].DeleteSimulation(globalid); //apaga a simulacao
+	    fMapSimMed.erase(globalid); //remove do mapeamento
+            return;
         }
+        if ( (fMedicoes.find(globalid) != fMedicoes.end()) ) //eh medicao
+        {
+                    fMedicoes.erase(globalid); //apaga a medicao (e suas simulacoes)
+                    return;
+        }
+        DebugStop();
     }
 
     void Print() {

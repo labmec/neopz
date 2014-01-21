@@ -456,6 +456,8 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
         item->setData(0, Qt::UserRole, idx_sim); //item "ID"
         ui->treeWidget->addTopLevelItem(item);
         ui->treeWidget->expandAll();
+        //update sim id in combobox sim
+        ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), idx_sim, Qt::UserRole);
 
         // lock parameters for this simulation
         //update lock / unlock simulation status button, stored in combo's Data role = Qt::UserRole+1
@@ -522,39 +524,10 @@ void MainWindow::on_comboBoxSim_currentIndexChanged(int index)
 {
     //update lock / unlock simulation status button, stored in combo's Data role = Qt::UserRole+1
     ui->lockParamsBtn->setChecked(ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(),Qt::UserRole+1).toBool());
-    //ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), checked, Qt::UserRole+1);
 }
 
 void MainWindow::on_young_counter_valueChanged(double value)
 {
-    int id_sim = ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(), Qt::UserRole).toInt();
-
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "This will invalidate (delete) all instances of this simulation, proceed?", "Warning",
-                                  QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-      qDebug() << "Deletando as simulacoes plotadas de id=" << id_sim;
-
-
-//      // updating check-status
-//      for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
-//      {
-//         QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i);
-//         int item_id = item->data(0,Qt::UserRole).toInt();
-//         //item->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_id).chk_status));
-//         if (item_id == )
-//         for( int j = 0; j < item->childCount(); j++ )
-//         {
-//             QTreeWidgetItem *item_child = item->child(j);
-//             int item_child_id = item_child->data(0,Qt::UserRole).toInt();
-//             item_child->setCheckState(0, Qt::CheckState(plotTmp->CurvesList.value(item_child_id).chk_status));
-//          }
-//      }
-
-
-    } else {
-      //ui->young_counter->setValue(ui->young_counter->prevValue());
-    }
 
 }
 
@@ -568,10 +541,30 @@ void MainWindow::on_lockParamsBtn_toggled(bool checked)
         qDebug() << "Trying to unlock...";
 
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Unlock it will invalidate (delete) all instances of this simulation, proceed?", "Warning",
+        reply = QMessageBox::question(this,
+                                      "Warning",
+                                      "Unlock it will invalidate (delete) all instances of this simulation, proceed?",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-          qDebug() << "Deletando as simulacoes plotadas de id=" << id_sim;
+          qDebug() << "Deletando as simulacoes plotadas de id = " << id_sim;
+          //Apaga dos plots
+          ui->Plot_1->deleteCurve(id_sim);
+          ui->Plot_2->deleteCurve(id_sim);
+          ui->Plot_3->deleteCurve(id_sim);
+          ui->Plot_4->deleteCurve(id_sim);
+          //Apaga da estrutura de controle de dados
+          DADOS.DeleteGlobalId(id_sim);
+          //Apaga do treewidget
+          //Achando a simulacao na tree
+//          for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
+//          {
+//              QTreeWidgetItem *item_child = ui->treeWidget->topLevelItem(i);
+//              for(int j = 0; j < item_child->childCount(); j++) {
+//                  QTreeWidgetItem *item_tmp = item_child->child(i);
+//                  //int item_id = item_tmp->data(0,Qt::UserRole).toInt();
+//                  item_child->removeChild(item_tmp);
+//              }
+//          }
         }
         else
         {
@@ -581,8 +574,13 @@ void MainWindow::on_lockParamsBtn_toggled(bool checked)
         }
 
     }
+    if (!locked and checked) {
+        //uncheck the button and does not check items
+        ui->lockParamsBtn->setChecked(false);
+        return;
+    }
 
-    qDebug() << "locked: " << checked;
+    qDebug() << "checked: " << checked << " locked: " << locked;
 
     ui->A_counter->setDisabled(checked);
     ui->B_counter->setDisabled(checked);
@@ -603,8 +601,6 @@ void MainWindow::on_lockParamsBtn_toggled(bool checked)
 
     //lock / unlock simulation status, stored in Data role = Qt::UserRole+1
     ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), checked, Qt::UserRole+1);
-
-
 }
 
 

@@ -93,12 +93,15 @@ public:
     REAL F1(REAL I1);
 
     virtual int Get_start_idx() const {
+        DebugStop();
         return 0;
     }
     virtual int Get_end_idx() const {
+        DebugStop();
         return fSig_Ax.size()-1;
     }
     virtual int Get_elastic_trans_idx() const {
+        DebugStop();
         return 0;
     }
 

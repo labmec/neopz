@@ -39,13 +39,13 @@ public:
     inline void Set_elastic_trans_idx(int endidx) {
         felastic_idx = endidx;
     }
-    inline int Get_start_idx(){
+    virtual int Get_start_idx() const{
         return fstart_idx;
     }
-    inline int Get_end_idx(){
+    virtual int Get_end_idx() const{
         return fend_idx;
     }
-    inline int Get_elastic_trans_idx(){
+    virtual int Get_elastic_trans_idx() const{
         return felastic_idx;
     }
     inline void Set_medicao_idx(int medidx){
