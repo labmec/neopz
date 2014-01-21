@@ -266,27 +266,6 @@ void Plot::AxisChanged_slot (QAction *action) {
 }
 
 //slot
-void Plot::save_points(int global_id, int indexStartPoint, int indexEndPoint) {
-
-//    QwtPlotCurve *d_curve = this->CurvesList[global_id].curve_ptr;
-
-//    //Check if curve exists
-//    if (!d_curve) return;
-
-//    CURVE d_curve_tmp = this->CurvesList[global_id];
-
-//    d_curve_tmp.initialPnt = indexStartPoint;
-//    d_curve_tmp.endPnt = indexEndPoint;
-
-//    this->setSymbIndex(d_curve_tmp.initialPnt,global_id,startPoint);
-//    this->setSymbIndex(d_curve_tmp.endPnt,global_id,endPoint);
-
-//    qDebug() << "New points (update): " << d_curve_tmp.initialPnt << " " << d_curve_tmp.endPnt;
-
-    DebugStop();
-}
-
-//slot
 void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
 
     //Verificando curva existe
@@ -365,31 +344,6 @@ void Plot::setSymbIndex ( int indexCoords, int global_id, pointType typept ) {
     this->AdjustScale();
 }
 
-// Get index of coords vector of a given curve
-int Plot::getSymbIndex ( int global_id, pointType typept ) {
-
-//    //Verificando curva existe
-//    if (!this->CurvesList.contains(global_id)) return  -1;
-
-//    QwtPlotCurve *d_curve_symbol = this->CurvesList[global_id].symb_curve_ptr;
-
-//    //Check if curve exists
-//    if (!d_curve_symbol) return -1;
-
-//    int returnIdx = -1;
-
-//    if (typept == startPoint)
-//        returnIdx = this->CurvesList[global_id].initialPnt;
-//    else
-//        returnIdx = this->CurvesList[global_id].endPnt;
-
-//    qDebug() << "getSymbIndex: Pt idx: " << returnIdx;
-
-//    return returnIdx;
-
-    DebugStop();
-}
-
 void Plot::createCurve (int global_id, int check_status){
 
     // VERIFICANDO SE A CURVA JA EXISTE PARA NAO RECRIA-LA
@@ -409,13 +363,10 @@ void Plot::createCurve (int global_id, int check_status){
     TPBrStrainStressDataBase *labData = DADOS.getObj(global_id);
     labData->GeneratePlot(curvetype, X, Y);
 
-    int start_idx = labData->Get_start_idx();
-    int end_idx = labData->Get_end_idx();
+    int start_idx = DADOS.Get_Med_start_idx(global_id);
+    int end_idx = DADOS.Get_Med_end_idx(global_id);
+    int elastic_trans_idx = DADOS.Get_Med_elastic_trans_idx(global_id);
     int isMed = DADOS.isMed(global_id);
-
-     //VALOR TEMPORARIO!!!
-     //VALOR TEMPORARIO!!!
-    int elastic_trans_idx = 0;                                      //VALOR TEMPORARIO!!!
 
     QVector <double> qVec_X = QVector <double>::fromStdVector(X);
     QVector <double> qVec_Y = QVector <double>::fromStdVector(Y);
@@ -474,9 +425,9 @@ void Plot::createCurve (int global_id, int check_status){
     Ys[2] = Y[end_idx];
     Xs[1] = X[elastic_trans_idx];
     Ys[1] = Y[elastic_trans_idx];
-    qDebug() << "Size: " << X.size() << " start: " << start_idx << " " << X[start_idx] << " " << Y[start_idx] << endl;
-    qDebug() << "Size: " << X.size() << " end: " << end_idx << " " << X[end_idx] << " " << Y[end_idx] ;
-    qDebug() << "Size: " << X.size() << " elastic trans: " << elastic_trans_idx << " " << X[elastic_trans_idx] << " " << Y[elastic_trans_idx] ;
+    qDebug() << "Size: " << X.size() << " start: " << start_idx << " " << X[start_idx] << " " << Y[start_idx];
+    qDebug() << "Size: " << X.size() << " end: " << end_idx << " " << X[end_idx] << " " << Y[end_idx];
+    qDebug() << "Size: " << X.size() << " elastic trans: " << elastic_trans_idx << " " << X[elastic_trans_idx] << " " << Y[elastic_trans_idx];
     new_curve.symb_curve_ptr->setSamples( Xs, Ys, sizes);
     if (!isMed) new_curve.symb_curve_ptr->hide();
 
@@ -541,7 +492,7 @@ void Plot::createCurve (int global_id, int check_status){
         this->setAxisTitle(QwtPlot::xBottom, DefaultTitle1X);
     }
 
-    this->replot();
+    //this->replot();
     this->AdjustScale();
 }
 
@@ -577,7 +528,7 @@ void Plot::deleteCurve (int global_id){
     }
     this->CurvesList.remove(global_id);
 
-    this->replot();
+    //this->replot();
     this->AdjustScale();
 
 }
@@ -695,19 +646,21 @@ void Plot::AdjustScale () {
 
 void Plot::toggleSymb (int global_id, bool showsymb) {
 
-    //Verificando curva existe
-    if (!this->CurvesList.contains(global_id)) return;
+//    //Verificando curva existe
+//    if (!this->CurvesList.contains(global_id)) return;
 
-    CURVE d_curve_tmp = this->CurvesList[global_id];
+//    CURVE d_curve_tmp = this->CurvesList[global_id];
 
-    if (showsymb) {
-        d_curve_tmp.mark_ptr1->show();
-        d_curve_tmp.mark_ptr2->show();
-    }
-    else
-    {
-        d_curve_tmp.mark_ptr1->hide();
-        d_curve_tmp.mark_ptr2->hide();
-    }
+//    if (showsymb) {
+//        d_curve_tmp.mark_ptr1->show();
+//        d_curve_tmp.mark_ptr2->show();
+//    }
+//    else
+//    {
+//        d_curve_tmp.mark_ptr1->hide();
+//        d_curve_tmp.mark_ptr2->hide();
+//    }
+
+    DebugStop();
 
 }

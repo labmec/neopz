@@ -133,8 +133,8 @@ public:
 
 enum pointType {
         startPoint = 0,
-        endPoint = 1,
-        elasticTransPoint = 2
+        endPoint = 2,
+        elasticTransPoint = 1
 };
 
 class Plot: public QwtPlot
@@ -146,8 +146,8 @@ private slots:
 public:
     enum pointType {
         startPoint = 0,
-        endPoint = 1,
-        elasticTransPoint = 2
+        endPoint = 2,
+        elasticTransPoint = 1
 };
 
     Zoomer *zoomer;
@@ -167,11 +167,8 @@ public:
     void setHighlighted (bool status);
     bool isHighlighted ();
 
-    void save_points(int global_id, int indexStartPoint, int indexEndPoint);
     // Move symbol to a given index of coords vector
     void setSymbIndex (int indexCoords, int global_id, pointType typept );
-    // Get index of coords vector of a given curve
-    int getSymbIndex (int global_id, pointType typept );
 
     void createCurve (int global_id, int check_status);
 

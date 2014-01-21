@@ -102,7 +102,7 @@ void MainWindow::on_actionOpenFile_triggered()
         int start_idx = newLabFile.Get_start_idx();
         int end_idx = newLabFile.Get_end_idx();
         int med_idx = DADOS.InsertLaboratoryData(newLabFile);
-        int elastic_idx = 0;                                        //VALOR TEMPORARIO
+        int elastic_idx = newLabFile.Get_elastic_trans_idx();
 
 
         //Criando entrada na tabela de arquivos
@@ -420,7 +420,7 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
 
         DADOS.Set_Med_start_idx(indexCurve, ui->start_idx_value->value());
         DADOS.Set_Med_end_idx(indexCurve, ui->end_idx_value->value());
-        DADOS.Set_Med_elastic_trans_idx(indexCurve,ui->elastic_trans_idx_value->value());
+        DADOS.Set_Med_elastic_trans_idx(indexCurve, ui->elastic_trans_idx_value->value());
 
         qDebug() << "VAI SIMULAR: Start idx: " << ui->start_idx_value->value()
                  << " End idx: " << ui->end_idx_value->value()
@@ -460,8 +460,7 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
         // lock parameters for this simulation
         //update lock / unlock simulation status button, stored in combo's Data role = Qt::UserRole+1
         ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), true, Qt::UserRole+1);
-        on_lockParamsBtn_toggled(true);
-
+        ui->lockParamsBtn->setChecked(true);
     }
     catch (...)
     {
@@ -561,31 +560,50 @@ void MainWindow::on_young_counter_valueChanged(double value)
 
 void MainWindow::on_lockParamsBtn_toggled(bool checked)
 {
+    //lock / unlock simulation status, stored in Data role = Qt::UserRole+1
+    bool locked = ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(), Qt::UserRole+1).toBool();
+    int id_sim = ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(), Qt::UserRole).toInt();
+
+    if (!checked and locked) {
+        qDebug() << "Trying to unlock...";
+
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Unlock it will invalidate (delete) all instances of this simulation, proceed?", "Warning",
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+          qDebug() << "Deletando as simulacoes plotadas de id=" << id_sim;
+        }
+        else
+        {
+            //recheck the button and does not uncheck items
+            ui->lockParamsBtn->setChecked(true);
+            return;
+        }
+
+    }
+
     qDebug() << "locked: " << checked;
 
-//    if (checked) {
-//        ui->A_counter->setDisabled(true);
-//        ui->B_counter->setDisabled(true);
-//        ui->C_counter->setDisabled(true);
-//        ui->D_counter->setDisabled(true);
-//        ui->R_counter->setDisabled(true);
-//        ui->W_counter->setDisabled(true);
-//        ui->poisson_counter->setDisabled(true);
-//        ui->young_counter->setDisabled(true);
-//    }
-//    else {
-//        ui->A_counter->setEnabled(true);
-//        ui->B_counter->setEnabled(true);
-//        ui->C_counter->setEnabled(true);
-//        ui->D_counter->setEnabled(true);
-//        ui->R_counter->setEnabled(true);
-//        ui->W_counter->setEnabled(true);
-//        ui->poisson_counter->setEnabled(true);
-//        ui->young_counter->setEnabled(true);
-//    }
+    ui->A_counter->setDisabled(checked);
+    ui->B_counter->setDisabled(checked);
+    ui->C_counter->setDisabled(checked);
+    ui->D_counter->setDisabled(checked);
+    ui->R_counter->setDisabled(checked);
+    ui->W_counter->setDisabled(checked);
+    ui->poisson_counter->setDisabled(checked);
+    ui->young_counter->setDisabled(checked);
+    ui->start_idx_slider->setDisabled(checked);
+    ui->start_idx_value->setDisabled(checked);
+    ui->end_idx_slider->setDisabled(checked);
+    ui->end_idx_value->setDisabled(checked);
+    ui->elastic_trans_idx_slider->setDisabled(checked);
+    ui->elastic_trans_idx_value->setDisabled(checked);
+    ui->comboBoxMed->setDisabled(checked);
+    ui->runSimBtn->setDisabled(checked);
 
     //lock / unlock simulation status, stored in Data role = Qt::UserRole+1
     ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), checked, Qt::UserRole+1);
+
 
 }
 

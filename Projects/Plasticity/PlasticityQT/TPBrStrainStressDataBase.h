@@ -98,7 +98,9 @@ public:
     virtual int Get_end_idx() const {
         return fSig_Ax.size()-1;
     }
-
+    virtual int Get_elastic_trans_idx() const {
+        return 0;
+    }
 
 
     virtual void Print() const
