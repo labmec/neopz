@@ -64,13 +64,14 @@ private slots:
 
     void on_comboBoxSim_currentIndexChanged(int index);
 
-    void on_young_counter_valueChanged(double value);
-
     void on_lockParamsBtn_toggled(bool checked);
 
     void on_elastic_trans_idx_value_valueChanged(double value);
 
     void on_elastic_trans_idx_slider_valueChanged(int value);
+
+    void on_identifyBtn_clicked(bool checked);
+
 
 private:
     Ui::MainWindow *ui;

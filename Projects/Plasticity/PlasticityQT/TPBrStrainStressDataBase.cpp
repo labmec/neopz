@@ -7,10 +7,7 @@ TPBrStrainStressDataBase::TPBrStrainStressDataBase() : fGlobalId(-1)
 
 TPBrStrainStressDataBase::~TPBrStrainStressDataBase()
 {
-    if(fGlobalId != -1)
-    {
-        DADOS.DeleteGlobalId(fGlobalId);
-    }
+
 }
 
 // BEGIN ENVOLTORIA

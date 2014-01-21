@@ -342,56 +342,74 @@ void MainWindow::on_actionZoom_toggled(bool on)
 
 void MainWindow::on_start_idx_slider_valueChanged(int value)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
-    DADOS.Set_Med_start_idx(indexCurve, value);
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+    if (testMed != QVariant::Invalid) {
+        int indexCurve = testMed.toInt();
+        DADOS.Set_Med_start_idx(indexCurve, value);
 
-    ui->start_idx_value->setValue(value);
-    setSymbAllPlots(value, indexCurve, Plot::startPoint);
+        ui->start_idx_value->setValue(value);
+        setSymbAllPlots(value, indexCurve, Plot::startPoint);
+    }
 }
 
 void MainWindow::on_end_idx_slider_valueChanged(int value)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
-    DADOS.Set_Med_end_idx(indexCurve, value);
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+    if (testMed != QVariant::Invalid) {
+        int indexCurve = testMed.toInt();
+        DADOS.Set_Med_end_idx(indexCurve, value);
 
-    ui->end_idx_value->setValue(value);
-    setSymbAllPlots(value, indexCurve, Plot::endPoint);
+        ui->end_idx_value->setValue(value);
+        setSymbAllPlots(value, indexCurve, Plot::endPoint);
+    }
 }
 
 void MainWindow::on_start_idx_value_valueChanged(double value)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
-    DADOS.Set_Med_start_idx(indexCurve, (int)value);
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+    if (testMed != QVariant::Invalid) {
+        int indexCurve = testMed.toInt();
+        DADOS.Set_Med_start_idx(indexCurve, (int)value);
 
-    ui->start_idx_slider->setValue((int)value);
-    setSymbAllPlots((int)value, indexCurve, Plot::startPoint);
+        ui->start_idx_slider->setValue((int)value);
+        setSymbAllPlots((int)value, indexCurve, Plot::startPoint);
+    }
 }
 
 void MainWindow::on_end_idx_value_valueChanged(double value)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
-    DADOS.Set_Med_end_idx(indexCurve, (int)value);
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+    if (testMed != QVariant::Invalid) {
+        int indexCurve = testMed.toInt();
+        DADOS.Set_Med_end_idx(indexCurve, (int)value);
 
-    ui->end_idx_slider->setValue((int)value);
-    setSymbAllPlots((int)value, indexCurve, Plot::endPoint);
+        ui->end_idx_slider->setValue((int)value);
+        setSymbAllPlots((int)value, indexCurve, Plot::endPoint);
+    }
 }
 
 void MainWindow::on_elastic_trans_idx_value_valueChanged(double value)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
-    DADOS.Set_Med_elastic_trans_idx(indexCurve, (int)value);
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+    if (testMed != QVariant::Invalid) {
+        int indexCurve = testMed.toInt();
+        DADOS.Set_Med_elastic_trans_idx(indexCurve, (int)value);
 
-    ui->elastic_trans_idx_slider->setValue((int)value);
-    setSymbAllPlots((int)value, indexCurve, Plot::elasticTransPoint);
+        ui->elastic_trans_idx_slider->setValue((int)value);
+        setSymbAllPlots((int)value, indexCurve, Plot::elasticTransPoint);
+    }
 }
 
 void MainWindow::on_elastic_trans_idx_slider_valueChanged(int value)
 {
-    int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
-    DADOS.Set_Med_elastic_trans_idx(indexCurve, value);
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+    if (testMed != QVariant::Invalid) {
+        int indexCurve = testMed.toInt();
+        DADOS.Set_Med_elastic_trans_idx(indexCurve, value);
 
-    ui->elastic_trans_idx_value->setValue(value);
-    setSymbAllPlots(value, indexCurve, Plot::elasticTransPoint);
+        ui->elastic_trans_idx_value->setValue(value);
+        setSymbAllPlots(value, indexCurve, Plot::elasticTransPoint);
+    }
 }
 
 void MainWindow::setSymbAllPlots(int idx, int indexCurve, Plot::pointType ptnTyp) {
@@ -406,7 +424,12 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
     try {
         ui->statusBar->clearMessage();
 
-        int indexCurve = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex()).toInt();
+        QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+        if (testMed == QVariant::Invalid) {
+            qDebug() << "PROBLEMA COM ID DA MEDICAO";
+            return;
+        }
+        int indexCurve = testMed.toInt();
 
         qDebug() <<"aRunSimulation (" << indexCurve << ")";
 
@@ -526,11 +549,6 @@ void MainWindow::on_comboBoxSim_currentIndexChanged(int index)
     ui->lockParamsBtn->setChecked(ui->comboBoxSim->itemData(ui->comboBoxSim->currentIndex(),Qt::UserRole+1).toBool());
 }
 
-void MainWindow::on_young_counter_valueChanged(double value)
-{
-
-}
-
 void MainWindow::on_lockParamsBtn_toggled(bool checked)
 {
     //lock / unlock simulation status, stored in Data role = Qt::UserRole+1
@@ -556,15 +574,15 @@ void MainWindow::on_lockParamsBtn_toggled(bool checked)
           DADOS.DeleteGlobalId(id_sim);
           //Apaga do treewidget
           //Achando a simulacao na tree
-//          for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
-//          {
-//              QTreeWidgetItem *item_child = ui->treeWidget->topLevelItem(i);
-//              for(int j = 0; j < item_child->childCount(); j++) {
-//                  QTreeWidgetItem *item_tmp = item_child->child(i);
-//                  //int item_id = item_tmp->data(0,Qt::UserRole).toInt();
-//                  item_child->removeChild(item_tmp);
-//              }
-//          }
+          for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
+          {
+              QTreeWidgetItem *item_child = ui->treeWidget->topLevelItem(i);
+              for(int j = 0; j < item_child->childCount(); j++) {
+                  QTreeWidgetItem *item_tmp = item_child->child(i);
+                  //int item_id = item_tmp->data(0,Qt::UserRole).toInt();
+                  item_child->removeChild(item_tmp);
+              }
+          }
         }
         else
         {
@@ -598,9 +616,32 @@ void MainWindow::on_lockParamsBtn_toggled(bool checked)
     ui->elastic_trans_idx_value->setDisabled(checked);
     ui->comboBoxMed->setDisabled(checked);
     ui->runSimBtn->setDisabled(checked);
+    ui->identifyBtn->setDisabled(checked);
 
     //lock / unlock simulation status, stored in Data role = Qt::UserRole+1
     ui->comboBoxSim->setItemData(ui->comboBoxSim->currentIndex(), checked, Qt::UserRole+1);
 }
 
 
+
+void MainWindow::on_identifyBtn_clicked(bool checked)
+{
+    QVariant testMed = ui->comboBoxMed->itemData(ui->comboBoxMed->currentIndex());
+
+    if (testMed != QVariant::Invalid) {
+
+        int indexCurve = testMed.toInt();
+
+        TPBrStrainStressDataBase *basedata = DADOS.getObj(indexCurve);
+        TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
+
+        REAL newYoung = ui->young_counter->value();
+        REAL newPoisson = ui->poisson_counter->value();
+
+        labdata->IdentifyElasticity(newYoung, newPoisson);
+
+        ui->young_counter->setValue(newYoung);
+        ui->poisson_counter->setValue(newPoisson);
+
+    }
+}

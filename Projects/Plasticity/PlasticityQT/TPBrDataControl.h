@@ -109,35 +109,59 @@ public:
     }
 
     void Set_Med_start_idx (int global_id, int new_idx) {
-        fMedicoes[global_id].Set_start_idx(new_idx);
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) { //existe medicao
+            fMedicoes[global_id].Set_start_idx(new_idx);
+        }
     }
 
     void Set_Med_end_idx (int global_id, int new_idx) {
-        fMedicoes[global_id].Set_end_idx(new_idx);
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) { //existe medicao
+            fMedicoes[global_id].Set_end_idx(new_idx);
+        }
     }
 
     void Set_Med_elastic_trans_idx (int global_id, int new_idx) {
-        fMedicoes[global_id].Set_elastic_trans_idx(new_idx);
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) { //existe medicao
+            fMedicoes[global_id].Set_elastic_trans_idx(new_idx);
+        }
     }
 
     int Get_Med_start_idx (int global_id){
-        return fMedicoes[global_id].Get_start_idx();
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) { //existe medicao
+            return fMedicoes[global_id].Get_start_idx();
+        }
+        return -1;
     }
 
     int Get_Med_end_idx (int global_id){
-        return fMedicoes[global_id].Get_end_idx();
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) { //existe medicao
+            return fMedicoes[global_id].Get_end_idx();
+        }
+        return -1;
     }
 
     int Get_Med_elastic_trans_idx (int global_id){
-        return fMedicoes[global_id].Get_elastic_trans_idx();
+        if ( (fMedicoes.find(global_id) != fMedicoes.end()) ) { //eh medicao
+            return fMedicoes[global_id].Get_elastic_trans_idx();
+        }
+        return -1;
     }
 
     void DeleteGlobalId(int globalid)
     {
         if(fMapSimMed.find(globalid) != fMapSimMed.end()) //eh simulacao
         {
-            fMedicoes[globalid].DeleteSimulation(globalid); //apaga a simulacao
-	    fMapSimMed.erase(globalid); //remove do mapeamento
+#ifdef DEBUG
+            if ( (fMedicoes.find(globalid) != fMedicoes.end()) )
+              DebugStop(); //NAO EXISTE!
+#endif
+            int med_id = fMapSimMed[globalid];
+#ifdef DEBUG    
+            if (fMedicoes.find(med_id) == fMedicoes.end())
+              DebugStop();
+#endif
+            fMedicoes[med_id].DeleteSimulation(globalid); //apaga a simulacao
+            fMapSimMed.erase(globalid); //remove do mapeamento
             return;
         }
         if ( (fMedicoes.find(globalid) != fMedicoes.end()) ) //eh medicao

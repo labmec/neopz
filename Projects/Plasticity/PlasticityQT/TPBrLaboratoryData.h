@@ -57,6 +57,21 @@ public:
         return felastic_idx;
     }
 
+    void IdentifyElasticity (REAL &Young, REAL &Poisson) {
+        //your code here
+        //will work already in GUI
+
+        REAL SigAx_start = this->fSig_Ax[fstart_idx];
+        REAL SigLat_start = this->fSig_Lat[fstart_idx];
+        REAL EpsAx_start = this->fEps_Ax[fstart_idx];
+        REAL EpsLat_start = this->fEps_Lat[fstart_idx];
+
+        REAL SigAx_elast = this->fSig_Ax[felastic_idx];
+        REAL SigLat_elast = this->fSig_Lat[felastic_idx];
+        REAL EpsAx_elast = this->fEps_Ax[felastic_idx];
+        REAL EpsLat_elast = this->fEps_Lat[felastic_idx];
+    }
+
     inline int SizeSimData() const
     {
         return fSimulacoes.size();
@@ -103,6 +118,7 @@ public:
         it = fSimulacoes.find(globalid);
         if(it == fSimulacoes.end())
         {
+	  this->Print();
             DebugStop();
         }
         fSimulacoes.erase(globalid);
