@@ -925,7 +925,7 @@ REAL ToolsTransient::IntegrateSolution(TPZCompMesh * cmesh, int variable)
 
 void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh)
 {
-//    {//cuco
+//    {
 //        std::ofstream outAntes("LeakoffANTES.txt");
 //        std::map<int,REAL>::iterator it;
 //        for(it = globFractInputData.GetLeakoffmap().begin(); it != globFractInputData.GetLeakoffmap().end(); it++)
@@ -1008,7 +1008,7 @@ void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh)
     }
     globFractInputData.GetLeakoffmap() = newLeakoff;
     
-//    {//cuco
+//    {
 //        std::ofstream outDepois("LeakoffDEPOIS.txt");
 //        std::map<int,REAL>::iterator it;
 //        for(it = globFractInputData.GetLeakoffmap().begin(); it != globFractInputData.GetLeakoffmap().end(); it++)

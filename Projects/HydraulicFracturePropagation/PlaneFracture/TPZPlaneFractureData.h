@@ -123,6 +123,9 @@ public:
     
     REAL dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp);
     
+    void Printleakoff(std::ofstream & outf);
+    
+protected:
     std::map<int,REAL> fGelId_Penetration;
 };
 
@@ -313,58 +316,22 @@ public:
     void SetQinj1wing(REAL Qinj1wing);
     
     int NTimes();
-    void InsertTAcumVolW(int time, REAL vol);
-    void InsertTAcumVolLeakoff(int time, REAL vol);
+    void InsertTAcumVolW(REAL time, REAL vol);
+    void InsertTAcumVolLeakoff(REAL time, REAL vol);
+    void InsertTL(REAL time, REAL L);
+    void InsertTHsup(REAL time, REAL Hsup);
+    void InsertTHinf(REAL time, REAL Hinf);
 
     void PrintMathematica(std::ofstream & outf);
-    
-    struct posVolLeakoff
-    {
-    public:
-        posVolLeakoff()
-        {
-            fposVolLeakoff.clear();
-        }
-        ~posVolLeakoff()
-        {
-            fposVolLeakoff.clear();
-        }
-        void InsertPoint(REAL pos, REAL Ql)
-        {
-            fposVolLeakoff[pos] = Ql;
-        }
-        void PrintMathematica(std::ofstream & outf)
-        {
-#ifdef DEBUG
-            if(fposVolLeakoff.size() == 0)
-            {
-                DebugStop();
-            }
-#endif
-            std::map<REAL,REAL>::iterator itposVolLeakoff;
-            std::map<REAL,REAL>::iterator itposVolLeakoffLast = fposVolLeakoff.end();
-            itposVolLeakoffLast--;
-            
-            outf << "{";
-            for(itposVolLeakoff = fposVolLeakoff.begin(); itposVolLeakoff != fposVolLeakoff.end(); itposVolLeakoff++)
-            {
-                outf << "{" << itposVolLeakoff->first << "," << itposVolLeakoff->second << "}";
-                if(itposVolLeakoff != itposVolLeakoffLast)
-                {
-                    outf << ",";
-                }
-            }
-            outf << "}";
-        }
         
-        std::map<REAL,REAL> fposVolLeakoff;
-    };
-    
     REAL fQinj1wing;
     
     //maps indexed by time
-    std::map<int,REAL> fTAcumVolW;
-    std::map<int,REAL> fTAcumVolLeakoff;
+    std::map<REAL,REAL> fTAcumVolW;
+    std::map<REAL,REAL> fTAcumVolLeakoff;
+    std::map<REAL,REAL> fTL;
+    std::map<REAL,REAL> fTHsup;
+    std::map<REAL,REAL> fTHinf;
 };
 
 extern TimeControl globTimeControl;

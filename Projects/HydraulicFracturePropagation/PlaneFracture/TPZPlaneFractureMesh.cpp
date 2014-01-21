@@ -107,7 +107,7 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec
     fmaxCompressiveStress = 0.;
     for(int l = 0; l < layerVec.NElements(); l++)
     {
-        fmaxCompressiveStress = MAX(fmaxCompressiveStress,-layerVec[l].fSigmaMin);
+        fmaxCompressiveStress = MIN(fmaxCompressiveStress,layerVec[l].fSigmaMin);
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -263,38 +263,38 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
-        TPZBndCond * mixedLeft = new TPZBndCond(materialLin,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedLeft);
+        TPZBndCond * dirichDirLeft = new TPZBndCond(materialLin,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirLeft);
 
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
-        TPZBndCond * mixedRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedRight);
+        TPZBndCond * dirichDirRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirRight);
 
         k.Zero();
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * mixedOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedOutFracture);
+        TPZBndCond * dirichDirOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirOutFracture);
         
         k.Zero();
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * newmannFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(newmannFarfield);
+        TPZBndCond * dirichDirFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirFarfield);
 
         k.Zero();
         f.Zero();
         f(2,0) = 1.;
-        TPZBndCond * mixedTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedTop);
+        TPZBndCond * dirichDirTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirTop);
 
         k.Zero();
         f.Zero();
         f(2,0) = 1.;
-        TPZBndCond * mixedBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedBottom);
+        TPZBndCond * dirichDirBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirBottom);
         
         ///////////insideFract
         k.Zero();
@@ -346,38 +346,38 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
-        TPZBndCond * mixedLeft = new TPZBndCond(materialLin,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedLeft);
+        TPZBndCond * dirichDirLeft = new TPZBndCond(materialLin,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirLeft);
         
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
-        TPZBndCond * mixedRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedRight);
+        TPZBndCond * dirichDirRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirRight);
         
         k.Zero();
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * mixedOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedOutFracture);
+        TPZBndCond * dirichDirOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirOutFracture);
         
         k.Zero();
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * newmannFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(newmannFarfield);
+        TPZBndCond * dirichDirFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirFarfield);
         
         k.Zero();
         f.Zero();
         f(2,0) = 1.;
-        TPZBndCond * mixedTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedTop);
+        TPZBndCond * dirichDirTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirTop);
         
         k.Zero();
         f.Zero();
         f(2,0) = 1.;
-        TPZBndCond * mixedBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedBottom);
+        TPZBndCond * dirichDirBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirBottom);
         
         ///////////insideFract
         k.Zero();
@@ -494,38 +494,38 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
-        TPZBndCond * mixedLeft = new TPZBndCond(couplingMat,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedLeft);
+        TPZBndCond * dirichDirLeft = new TPZBndCond(couplingMat,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirLeft);
         
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
-        TPZBndCond * mixedRight = new TPZBndCond(couplingMat,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedRight);
+        TPZBndCond * dirichDirRight = new TPZBndCond(couplingMat,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirRight);
         
         k.Zero();
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * mixedOutFracture = new TPZBndCond(couplingMat,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedOutFracture);
+        TPZBndCond * dirichDirOutFracture = new TPZBndCond(couplingMat,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirOutFracture);
         
         k.Zero();
         f.Zero();
         f(1,0) = 1.;
-        TPZBndCond * newmannFarfield = new TPZBndCond(couplingMat,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(newmannFarfield);
+        TPZBndCond * dirichDirFarfield = new TPZBndCond(couplingMat,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirFarfield);
         
         k.Zero();
         f.Zero();
         f(2,0) = 1.;
-        TPZBndCond * mixedTop = new TPZBndCond(couplingMat,globMaterialIdGen.TopMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedTop);
+        TPZBndCond * dirichDirTop = new TPZBndCond(couplingMat,globMaterialIdGen.TopMatId(), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirTop);
         
         k.Zero();
         f.Zero();
         f(2,0) = 1.;
-        TPZBndCond * mixedBottom = new TPZBndCond(couplingMat,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(mixedBottom);
+        TPZBndCond * dirichDirBottom = new TPZBndCond(couplingMat,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
+        cmesh->InsertMaterialObject(dirichDirBottom);
         
         ///////////insideFract
         k.Zero();
@@ -585,11 +585,11 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
             }
             if(stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = 5.*fmaxCompressiveStress;
+                bcmat->Val2()(1,0) = -1.5*fmaxCompressiveStress;
             }
             else
             {
-                bcmat->Val2()(1,0) = 0.;
+                bcmat->Val2()(1,0) = -1.1*fmaxCompressiveStress;
             }
         }
     }
@@ -856,7 +856,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-    RefineUniformAllFracturePlane(1);//AQUICAJU <<<<<<<<<<<<<
+//    RefineUniformAllFracturePlane(1);//AQUICAJU <<<<<<<<<<<<<
     
 //    std::ofstream outPreservedMesh("PreservedMesh.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
@@ -1096,12 +1096,14 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
 		alphaMin = __smallNum;
 	}
 	
-//    {///TESTE DO PHIL DE ENGLAND-GREEN (POLIGONAL CHAIN EH HORIZONTAL) AQUICAJU ************************************************************
+    //*********** TESTE ENGLAND-GREEN AQUICAJU
+//    {
 //        std::cout << "\n\n\n\n\nTESTE DO PHIL DE ENGLAND-GREEN (POLIGONAL CHAIN EH HORIZONTAL)\n\n\n\n\n";
 //        dx[0] = +1.;//direcao oposta ao eixo x do sistema de coordenadas
 //        dx[1] =  0.;//direcao oposta ao eixo x do sistema de coordenadas
 //        dx[2] =  0.;//direcao oposta ao eixo x do sistema de coordenadas
 //    }
+    
 	p = npoints;//Fechando o final da fratura
 	thispoint = p-1;
     

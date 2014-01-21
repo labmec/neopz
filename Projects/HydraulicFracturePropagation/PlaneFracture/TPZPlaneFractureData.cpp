@@ -43,14 +43,15 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
             continue;
         }
         std::map<int,REAL>::iterator it = fGelId_Penetration.find(cel->Reference()->Id());
-        
-#ifdef DEBUG
         if(it == fGelId_Penetration.end())
         {
+            std::cout << "\n\n\nElemento de Id = " << cel->Reference()->Id() << " e Index = " << cel->Reference()->Index() <<
+                         " nao encontrado no UpdateLeakoff\n";
+            std::cout << "Seria o TransferLeakoff anterior que nao o incluiu???\n";
+            std::cout << "Ver método " << __PRETTY_FUNCTION__ << "\n\n\n";
             DebugStop();
         }
-#endif
-        
+
         TPZInterpolatedElement * sp = NULL;
         if(cel->Reference()->Type() == ETriangle)
         {
@@ -124,16 +125,16 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
 
 REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+#ifdef pressureIndependent
+    REAL gradPcalc = 1.;
+#else
     REAL gradP = pfrac - Pe;
     REAL gradPcalc = gradP/gradPref;
-    
-#ifdef pressureIndependent
-    gradPcalc = 1.;
 #endif
     
-    if(gradP < 0.)
+    if(gradPcalc < 0.)
     {
-        gradPcalc = 0.;
+        return 0.;
     }
     
     REAL Clcorr = Cl * sqrt(gradPcalc);
@@ -147,16 +148,16 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
     REAL tStar = 0.;
     if(VlAcum > vsp)
     {
+#ifdef pressureIndependent
+        REAL gradPcalc = 1.;
+#else
         REAL gradP = pfrac - Pe;
         REAL gradPcalc = gradP/gradPref;
-        
-#ifdef pressureIndependent
-        gradPcalc = 1.;
 #endif
         
-        if(gradP < 0.)
+        if(gradPcalc < 0.)
         {
-            gradPcalc = 0.;
+            return 0.;
         }
         
         REAL Clcorr = Cl * sqrt(gradPcalc);
@@ -168,6 +169,10 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
 
 REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+#ifdef NOleakoff
+    return 0.;
+#endif
+    
     std::map<int,REAL>::iterator it = fGelId_Penetration.find(gelId);
     if(it == fGelId_Penetration.end())
     {
@@ -180,15 +185,19 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
     REAL Ql = (Vlnext - VlAcum)/deltaT;
     
-#ifdef NOleakoff
-    return 0.;
-#else
     return Ql;
-#endif
 }
 
 REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+#ifdef NOleakoff
+    return 0.;//There is no leakoff.
+#endif
+    
+#ifdef pressureIndependent
+    return 0.;//Once Q is not function of p, dQdp=0.
+#endif
+    
     std::map<int,REAL>::iterator it = fGelId_Penetration.find(gelId);
     if(it == fGelId_Penetration.end())
     {
@@ -221,13 +230,18 @@ REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
     
-#ifdef NOleakoff
-    return 0.;
-#else
     return dQldpfrac;
-#endif
 }
 
+void LeakoffStorage::Printleakoff(std::ofstream & outf)
+{
+    std::map<int,REAL>::iterator it;
+    
+    for(it = fGelId_Penetration.begin(); it != fGelId_Penetration.end(); it++)
+    {
+        outf << "Id = " << it->first << " : Penetration = " << it->second << "\n";
+    }
+}
 
 
 //------------------------------------------------------------
@@ -237,9 +251,15 @@ Output3DDataStruct::Output3DDataStruct()
     fQinj1wing = 0.;
     fTAcumVolW.clear();
     fTAcumVolLeakoff.clear();
+    fTL.clear();
+    fTHsup.clear();
+    fTHinf.clear();
     
     InsertTAcumVolW(0.,0.);
-    InsertTAcumVolLeakoff(0.,0.);
+    InsertTAcumVolLeakoff(0,0.);
+    InsertTL(0.,0.);
+    InsertTHsup(0.,0.);
+    InsertTHinf(0.,0.);
 }
 
 void Output3DDataStruct::SetQinj1wing(REAL Qinj1wing)
@@ -251,32 +271,40 @@ Output3DDataStruct::~Output3DDataStruct()
 {
     fTAcumVolW.clear();
     fTAcumVolLeakoff.clear();
+    fTL.clear();
+    fTHsup.clear();
+    fTHinf.clear();
 }
 
 int Output3DDataStruct::NTimes()
 {
     int ntimes0 = fTAcumVolW.size();
-    
-#ifdef DEBUG
-    int ntimes1 = fTAcumVolLeakoff.size();
-    if(ntimes0 != ntimes1)
-    {
-        //Todos tem que ter o mesmo tamanho!!!
-        DebugStop();
-    }
-#endif
-    
     return ntimes0;
 }
 
-void Output3DDataStruct::InsertTAcumVolW(int time, REAL vol)
+void Output3DDataStruct::InsertTAcumVolW(REAL time, REAL vol)
 {
     fTAcumVolW[time] = vol;
 }
 
-void Output3DDataStruct::InsertTAcumVolLeakoff(int time, REAL vol)
+void Output3DDataStruct::InsertTAcumVolLeakoff(REAL time, REAL vol)
 {
     fTAcumVolLeakoff[time] = vol;
+}
+
+void Output3DDataStruct::InsertTL(REAL time, REAL L)
+{
+    fTL[time] = L;
+}
+
+void Output3DDataStruct::InsertTHsup(REAL time, REAL Hsup)
+{
+    fTHsup[time] = Hsup;
+}
+
+void Output3DDataStruct::InsertTHinf(REAL time, REAL Hinf)
+{
+    fTHinf[time] = Hinf;
 }
 
 void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
@@ -288,14 +316,10 @@ void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
     }
 #endif
     
-    std::map<int,REAL>::iterator itTAcumVolW, itTAcumVolWLast = fTAcumVolW.end();
+    std::map<REAL,REAL>::iterator itTAcumVolW, itTAcumVolWLast = fTAcumVolW.end();
     itTAcumVolWLast--;
     
-    std::map<int,REAL>::iterator itTAcumVolLeakoff, itTAcumVolLeakoffLast = fTAcumVolLeakoff.end();
-    itTAcumVolLeakoffLast--;
-    
     outf << "(* Output Fracture Propagation 1D *)\n";
-    
     outf << "Caju2013;\n\n";
     outf << "ntimes=" << NTimes() << ";\n";
     outf << "times={";
@@ -321,6 +345,10 @@ void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
     }
     outf << "};\n\n";
     
+    
+    std::map<REAL,REAL>::iterator itTAcumVolLeakoff, itTAcumVolLeakoffLast = fTAcumVolLeakoff.end();
+    itTAcumVolLeakoffLast--;
+    
     outf << "(* time x Accumulated Leakoff Volume *)\n";
     outf << "TvsVolLeakoff={";
     for(itTAcumVolLeakoff = fTAcumVolLeakoff.begin(); itTAcumVolLeakoff != fTAcumVolLeakoff.end(); itTAcumVolLeakoff++)
@@ -333,7 +361,7 @@ void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
     }
     outf << "};\n\n";
     
-    outf << "(* Qinj 1 wing and Lfrac max *)\n";
+    outf << "(* Qinj 1 wing *)\n";
     outf << "Qinj1wing=" << fQinj1wing << ";\n";
     
     outf << "maxinj = Qinj1wing*times[[ntimes]];\n";
@@ -349,7 +377,62 @@ void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
     outf << "tt++;\n";
     outf << "];\n";
     outf << "GrG = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic G: Grahics (E+F)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
-    outf << "Show[GrD, GrE, GrF, GrG, PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n";
+    outf << "Show[GrD, GrE, GrF, GrG, PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n\n\n";
+    
+    //--------------------------
+    
+    std::map<REAL,REAL>::iterator itT, itTlast = fTL.end();
+    itTlast--;
+    
+    outf << "(* time x Max Lfrac *)\n";
+    outf << "TvsLfracmax={";
+    for(itT = fTL.begin(); itT != fTL.end(); itT++)
+    {
+        outf << "{" << itT->first << "," << itT->second << "}";
+        if(itT != itTlast)
+        {
+            outf << ",";
+        }
+    }
+    outf << "};\n\n";
+    
+    //--------------------------
+    
+    itTlast = fTHsup.end();
+    itTlast--;
+    
+    outf << "(* time x Hsup *)\n";
+    outf << "TvsHsup={";
+    for(itT = fTHsup.begin(); itT != fTHsup.end(); itT++)
+    {
+        outf << "{" << itT->first << "," << itT->second << "}";
+        if(itT != itTlast)
+        {
+            outf << ",";
+        }
+    }
+    outf << "};\n\n";
+    
+    //--------------------------
+    
+    itTlast = fTHinf.end();
+    itTlast--;
+    
+    outf << "(* time x Hinf *)\n";
+    outf << "TvsHinf={";
+    for(itT = fTHinf.begin(); itT != fTHinf.end(); itT++)
+    {
+        outf << "{" << itT->first << "," << itT->second << "}";
+        if(itT != itTlast)
+        {
+            outf << ",";
+        }
+    }
+    outf << "};\n\n";
+    
+    //--------------------------
+    
+    
 }
 
 TimeControl globTimeControl;

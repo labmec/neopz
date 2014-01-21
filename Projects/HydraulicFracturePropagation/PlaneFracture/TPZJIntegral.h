@@ -126,6 +126,10 @@ public:
     {
         return fOrigin;
     }
+    TPZVec<REAL> & NormalPlane()
+    {
+        return fNormalDirection;
+    }
     REAL Radius();
     
     TPZVec<REAL> operator()(REAL t)
@@ -278,6 +282,11 @@ public:
     TPZVec<REAL> & JDirection()
     {
         return fJDirection;
+    }
+    
+    TPZVec<REAL> & NormalPlane()
+    {
+        return fArcPath3D->NormalPlane();
     }
     
     REAL Jintegral()

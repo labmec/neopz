@@ -9,7 +9,7 @@ using namespace std;
 
 
 
-//#define PDoreTest1
+#define PDoreTest1
 int main(int argc, char * const argv[])
 {
     std::cout << "\e";
@@ -28,21 +28,21 @@ int main(int argc, char * const argv[])
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
 #ifdef PDoreTest1
-    
+
     //Transient data
-    REAL Ttot = 25.159243081728423 * 60.; /** em segundos */
-    REAL maxDeltaT = Ttot/30.; /** em segundos */
+    REAL Ttot = 25. * 60.; /** em segundos */
+    REAL maxDeltaT = 60.; /** em segundos */
     int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
     globTimeControl.SetTimeControl(Ttot, maxDeltaT, nTimes);
     
     //Geometry data
-    REAL lengthX = 70.;
-    REAL lengthY = 10.;
+    REAL lengthX = 100.;
+    REAL lengthY = 60.;
     REAL Lmax = 2.0;
     
     REAL bulletTVDIni = 2100.;
     REAL bulletTVDFin = 2120.;
-    int nstripes = 1;
+    int nstripes = 2;
     
     //Material data
     TPZVec<TPZLayerProperties> layerVec(3);
@@ -73,9 +73,9 @@ int main(int argc, char * const argv[])
     REAL TVDf2 = 2160.;
     
     //KIc
-    REAL KIc0 = 1.09884E6;
+    REAL KIc0 = 1.19884E6;//AQUICAJU
     REAL KIc1 = 1.09884E6;
-    REAL KIc2 = 1.09884E6;
+    REAL KIc2 = 1.29884E6;//AQUICAJU
     
     //Leakoff
     REAL Cl0 = 0.;
@@ -98,7 +98,7 @@ int main(int argc, char * const argv[])
     layerVec[2] = TPZLayerProperties(Young2, Poisson2, SigMax2, SigMin2, SigConf2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
     
     //Fluid injection data
-    REAL QinjWell = 2.*(-0.052995764976);//m3/s
+    REAL QinjWell = 1.*(-0.0533333333333);//m3/s (1.* pois os 80 bpm jah eh no poco e nao 1 wing)
     REAL visc = 200.02E-3;//N.s/m2
     
     //J-Integral data
@@ -109,7 +109,7 @@ int main(int argc, char * const argv[])
     //Transient data
     REAL Ttot = 200. * 60.; /** em segundos */
     REAL maxDeltaT = Ttot/8.; /** em segundos */
-    int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
+    int nTimes = 10; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
     globTimeControl.SetTimeControl(Ttot, maxDeltaT, nTimes);
     
     //Geometry data

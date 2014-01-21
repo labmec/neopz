@@ -46,7 +46,7 @@ public:
     
 protected:
     
-    void FillFractureDotsCircle(TPZVec< std::pair<REAL,REAL> > &fractureDots);
+    void FillInitialFractureDots(TPZVec< std::pair<REAL,REAL> > &fractureDots);
     
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
@@ -107,6 +107,9 @@ protected:
 
     /** Generate vtk for pressure post process */
     void PostProcessPressure(int step);
+    
+    /** Insert on globFractOutput3DData the actual Lfrac, Hsup and Hinf */
+    void PostProcessFractGeometry(TPZVec<std::pair<REAL,REAL> > & PoligonalChain);
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     REAL IntegrateW(TPZCompMesh * elasticCMesh);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
