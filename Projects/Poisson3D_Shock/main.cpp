@@ -224,7 +224,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
@@ -457,13 +457,11 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i;
-//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
 	REAL factorGrad= 0.3;
 	REAL factorLap = 1.;
 	REAL factorError = 0.2;
 	REAL factorErrorM = 0.8;
 	if(nref>1) {
-//		factorError += (nref-2)*0.08;
 		factorErrorM += (nref-2)*0.03;
 	}
 	if(2<nref)
@@ -481,11 +479,6 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
 		index = el->Index();
-		// If the element error is little enough do nothing
-		if(ervecbyel[i] < (0.1*Tol)) {
-			counterreftype[0]++;
-			continue;
-		}
 
 		// If error is small and laplacian value is very little then the order will be minimized
 		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
@@ -516,24 +509,9 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 				pused = true;
 				counterreftype[12]++;
 			}
-//            else {
-  //              counterreftype[13]++;
-    //            el->Divide(index,subels);
-      //      }
 		}
 		else {
 			counterreftype[20]++;
-//			if(pelement < MaxPOrder) {
-//				el->PRefine(pelement);
-//				pused = true;
-//				counterreftype[21]++;
-//			}
-//			else if(nref<8) {
-	//			el->Divide(index,subels);
-		//		counterreftype[9]++;
-			//}
-//            else
-//				counterreftype[22]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
