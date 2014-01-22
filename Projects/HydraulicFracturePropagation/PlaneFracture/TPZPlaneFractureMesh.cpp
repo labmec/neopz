@@ -672,6 +672,17 @@ bool TPZPlaneFractureMesh::GeoElementIsOnPreservedMesh(TPZGeoEl * gel)
 }
 //------------------------------------------------------------------------------------------------------------
 
+TPZGeoEl * TPZPlaneFractureMesh::Find2DElementNearCrackTip(int posCrackTip, TPZVec<REAL> & x)
+{
+    long crackElIndex = this->fcrackBoundaryElementsIndexes[posCrackTip];
+    
+    TPZVec<REAL> qsi(2,0.);
+    TPZGeoEl * gel = fRefinedMesh->FindElement(x, qsi, crackElIndex, 2);
+    
+    return gel;
+}
+//------------------------------------------------------------------------------------------------------------
+
 int TPZPlaneFractureMesh::GetLayer(REAL zMed)
 {
     for(int lay = 0; lay < fLayerVec.NElements(); lay++)

@@ -140,51 +140,10 @@ void TPZPlaneFractureKernel::Run()
         this->InitializePath3DVector();
 
         if(firstGeometry == false)
-        {   //Isso significa que devemos transferir o volume da fratura e o leakoff da malha
-            //anterior para essa nova geometria de fratura antes de prosseguir!
-            
-            std::cout << "\n\n\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
-
-            TPZFMatrix<REAL> wSol(this->fmeshVec[0]->Solution().Rows(), this->fmeshVec[0]->Solution().Cols(), 1.);
-            this->fmeshVec[0]->LoadSolution(wSol);
-            
-            REAL newVolAcum = this->IntegrateW(fmeshVec[0]);
-            REAL alpha = volAcum/newVolAcum;
-            
-            //Sintonia fina (corrigindo os volumes de antes e depois)
-            if(fabs(volAcum - newVolAcum) > 1.E-10)
-            {
-                TPZFMatrix<REAL> newSolution = fmeshVec[0]->Solution();
-                for(int r = 0; r < newSolution.Rows(); r++)
-                {
-                    for(int c = 0; c < newSolution.Cols(); c++)
-                    {
-                        newSolution(r,c) *= alpha;
-                    }
-                }
-                fmeshVec[0]->LoadSolution(newSolution);
-            }
-            
-            //Verificando se a correcao deu certo
-            newVolAcum = this->IntegrateW(fmeshVec[0]);
-            if(fabs(volAcum - newVolAcum) > 1.E-10)
-            {
-                std::cout << "\n\n\nW nao manteve volume na transferencia de solucao elastica!!!\n\n\n";
-                std::cout << "volAntes = " << volAcum << std::endl;
-                std::cout << "volDepois = " << newVolAcum << std::endl;
-                std::cout << "Dif = " << (newVolAcum - volAcum) << std::endl;
-                DebugStop();
-            }
-            else
-            {
-                TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
-            }
-            
-            /** Leakoff */
-            {
-                this->TransferLeakoff(lastPressureCMesh);
-            }
-        }//end of !firstGeometry
+        {
+            this->TransferElasticSolution(volAcum);
+            this->TransferLeakoff(lastPressureCMesh);
+        }
         
         //Resolvendo o problema acoplado marchando no tempo
         this->RunThisFractureGeometry(poligonalChain, firstGeometry, step);
@@ -943,16 +902,20 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(TPZVec< std::pair<REAL,REA
         REAL cracktipKI = sqrt( Jintegral*young );
         
         {
+            TPZVec<REAL> originVec = fPath3D.Path(p)->Origin();
             TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
-            TPZVec<REAL> JplaneNormal = fPath3D.Path(p)->NormalPlane();
-            
-            REAL crossY = Jdirection[0]*JplaneNormal[2] - Jdirection[2]*JplaneNormal[0];
-            if(crossY < 0.)//Jvec para dentro da fratura, i.e., fratura fechando nesta regiao.
+            TPZVec<REAL> ptTemp(3,0.), qsiTemp(2,0.);
+            ptTemp[0] = originVec[0] + 0.1 * Jdirection[0];
+            ptTemp[2] = originVec[2] + 0.1 * Jdirection[2];
+
+            TPZGeoEl * gel = fPlaneFractureMesh->Find2DElementNearCrackTip(p, ptTemp);
+            if( !gel || globMaterialIdGen.IsInsideFractMat(gel->MaterialId()) )
             {
+                //Nao sera propagado para pontos fora do dominio
+                //ou no interior da fratura (i.e., fechamento).
                 cracktipKI = 0.;
             }
         }
-        
         if(cracktipKI >= layerKIc)
         {
             propagate = true;
@@ -1073,12 +1036,6 @@ void TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poli
             NOzigzagPoligonalChain.Resize(oldSize+1);
             NOzigzagPoligonalChain[oldSize] = p0;
         }
-//        else
-//        {
-//            int oldSize = NOzigzagPoligonalChain.NElements();
-//            NOzigzagPoligonalChain.Resize(oldSize+1);
-//            NOzigzagPoligonalChain[oldSize] = std::make_pair((p0.first + p1.first)/2.,(p0.second + p1.second)/2.);
-//        }
         
         v0x = v1x;
         v0z = v1z;
@@ -1088,6 +1045,47 @@ void TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poli
     NOzigzagPoligonalChain[oldSize] = poligonalChain[poligonalChain.NElements()-1];
     
     poligonalChain = NOzigzagPoligonalChain;
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
+{
+    std::cout << "\n\n\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
+    
+    TPZFMatrix<REAL> wSol(this->fmeshVec[0]->Solution().Rows(), this->fmeshVec[0]->Solution().Cols(), 1.);
+    this->fmeshVec[0]->LoadSolution(wSol);
+    
+    REAL newVolAcum = this->IntegrateW(fmeshVec[0]);
+    REAL alpha = volAcum/newVolAcum;
+    
+    //Sintonia fina (corrigindo os volumes de antes e depois)
+    if(fabs(volAcum - newVolAcum) > 1.E-10)
+    {
+        TPZFMatrix<REAL> newSolution = fmeshVec[0]->Solution();
+        for(int r = 0; r < newSolution.Rows(); r++)
+        {
+            for(int c = 0; c < newSolution.Cols(); c++)
+            {
+                newSolution(r,c) *= alpha;
+            }
+        }
+        fmeshVec[0]->LoadSolution(newSolution);
+    }
+    
+    //Verificando se a correcao deu certo
+    newVolAcum = this->IntegrateW(fmeshVec[0]);
+    if(fabs(volAcum - newVolAcum) > 1.E-10)
+    {
+        std::cout << "\n\n\nW nao manteve volume na transferencia de solucao elastica!!!\n\n\n";
+        std::cout << "volAntes = " << volAcum << std::endl;
+        std::cout << "volDepois = " << newVolAcum << std::endl;
+        std::cout << "Dif = " << (newVolAcum - volAcum) << std::endl;
+        DebugStop();
+    }
+    else
+    {
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
+    }
 }
 //------------------------------------------------------------------------------------------------------------
 

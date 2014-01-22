@@ -139,6 +139,8 @@ protected:
      */
     void RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poligonalChain);
     
+    void TransferElasticSolution(REAL volAcum);
+    
     /**
      *  After the fracture propagation, this method will transfer the leakoff from the old data structure (based on given cmesh)
      *  to the new data structure (based on the new cmesh, keeped in fmeshVec atribute in position 0)

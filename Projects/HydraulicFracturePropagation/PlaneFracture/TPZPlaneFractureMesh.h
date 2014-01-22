@@ -305,6 +305,8 @@ class TPZPlaneFractureMesh
     
     bool GeoElementIsOnPreservedMesh(TPZGeoEl * gel);
     
+    TPZGeoEl * Find2DElementNearCrackTip(int posCrackTip, TPZVec<REAL> & x);
+    
 protected:
     
     //** Returns the layer index based on zMed (will be used fabs(zMed), i.e., TVD) */
