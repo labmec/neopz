@@ -4,7 +4,9 @@
 
 #include "pzlog.h"
 
-//static LoggerPtr logger(Logger::getLogger("QT.laboratorydata"));
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("QT.laboratorydata"));
+#endif
 
 TPBrLaboratoryData::TPBrLaboratoryData()
 {
@@ -38,12 +40,22 @@ int TPBrLaboratoryData::RunSimulation (TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> 
   newSimulation.ReadInputStrainStress(fSig_Ax, fEps_Ax, fSig_Lat, fEps_Lat);
   newSimulation.SetSimulationInitialStep(fstart_idx);
   // TRANSICAO ELASTICA AQUIIIIIIIIIIIIIIIII!!
-  //newSimulation.SetElasticTransition(felastic_idx);
   newSimulation.SetSandlerDimaggio(obj);
+  newSimulation.SetElasticTransition(felastic_idx);
   newSimulation.PerformSimulation();
     TPZVec<REAL> sigax,sigr,epsax,epsr;
     newSimulation.GetSimulatedStrainStress(sigax, epsax, sigr, epsr);
-  
+		
+		if(felastic_idx < fstart_idx)
+		{
+			std::cout << "The elastic index should always be larger than the pore closure index\n";
+		}
+		else
+		{
+			REAL errax = sigax[felastic_idx-fstart_idx]-fSig_Ax[felastic_idx-fstart_idx];
+			REAL errlat = sigr[felastic_idx-fstart_idx]-fSig_Lat[felastic_idx-fstart_idx];
+			std::cout << "errax " << errax << " errlat " << errlat << std::endl;
+		}  
 //#ifdef LOG4CXX
 //		if(logger->isDebugEnabled())
 //		{
@@ -104,4 +116,65 @@ void TPBrLaboratoryData::ReadInputStrainStress(const std::string &filename)
     fEps_Lat.resize(numlines);
     fEps_Ax.resize(numlines);
 }
+
+    void TPBrLaboratoryData::IdentifyElasticity (REAL &Young, REAL &Poisson) {
+        //your code here
+        //will work already in GUI
+
+        REAL SigAx_start = this->fSig_Ax[fstart_idx];
+        REAL SigLat_start = this->fSig_Lat[fstart_idx];
+        REAL EpsAx_start = this->fEps_Ax[fstart_idx];
+        REAL EpsLat_start = this->fEps_Lat[fstart_idx];
+
+        REAL SigAx_elast = this->fSig_Ax[felastic_idx];
+        REAL SigLat_elast = this->fSig_Lat[felastic_idx];
+        REAL EpsAx_elast = this->fEps_Ax[felastic_idx];
+        REAL EpsLat_elast = this->fEps_Lat[felastic_idx];
+				
+				REAL DSigR = SigLat_elast-SigLat_start;
+				REAL DEpsR = EpsLat_elast - EpsLat_start;
+				REAL DSigAx = SigAx_elast-SigAx_start;
+				REAL DEpsAx = EpsAx_elast-EpsAx_start;
+				
+				Young = ((DSigAx - DSigR)*(DSigAx + 2*DSigR))/(-2*DEpsR*DSigR + DEpsAx*(DSigAx + DSigR));
+				Poisson = (-(DEpsR*DSigAx) + DEpsAx*DSigR)/(-2*DEpsR*DSigR + DEpsAx*(DSigAx + DSigR));
+				
+//#ifdef DEBUG
+				{
+					
+					TPZElasticResponse ER;
+					ER.SetUp(Young,Poisson);
+					TPZTensor<STATE> eps_start,eps_elast,sig_start,sig_elast,del_eps, del_sig, del_sig_input;
+					eps_start.XX() = EpsLat_start;
+					eps_start.YY() = EpsLat_start;
+					eps_start.ZZ() = EpsAx_start;
+					eps_elast.XX() = EpsLat_elast;
+					eps_elast.YY() = EpsLat_elast;
+					eps_elast.ZZ() = EpsAx_elast;
+					sig_start.XX() = SigLat_start;
+					sig_start.YY() = SigLat_start;
+					sig_start.ZZ() = SigAx_start;
+					sig_elast.XX() = SigLat_elast;
+					sig_elast.YY() = SigLat_elast;
+					sig_elast.ZZ() = SigAx_elast;
+					del_eps = eps_elast;
+					del_eps -= eps_start;
+					del_sig_input = sig_elast;
+					del_sig_input -= sig_start;
+					REAL epsxx = del_sig_input.XX()/Young - del_sig_input.YY()*Poisson/Young - del_sig_input.ZZ()*Poisson/Young;
+					ER.Compute(del_eps,del_sig);
+					del_sig -= del_sig_input;
+#ifdef LOG4CXX
+					{
+						std::stringstream sout;
+						sout << "del_sig_input " << del_sig_input << std::endl;
+						sout << "error " << del_sig << std::endl;
+						LOGPZ_DEBUG(logger,sout.str())
+					}
+#endif
+					
+				}
+//#endif
+
+    }
 

@@ -29,8 +29,13 @@ int main(int argc, char *argv[])
       
       DADOS.Set_Med_start_idx(med_idx, 600);//100);
       
+      DADOS.Set_Med_elastic_trans_idx(med_idx, 750);
+			
+      
       TPBrStrainStressDataBase *basedata = DADOS.getObj(med_idx);
       TPBrLaboratoryData *labdata = dynamic_cast<TPBrLaboratoryData *>(basedata);
+			labdata->IdentifyElasticity(E,poisson);
+			sandlerObj.fER.SetUp(E,poisson);
       if(!labdata) DebugStop();
       
       std::cout << "VAI SIMULAR: Start idx: " << labdata->Get_start_idx() << " End idx: " << labdata->Get_end_idx() << std::endl;

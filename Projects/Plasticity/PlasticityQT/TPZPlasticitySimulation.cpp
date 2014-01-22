@@ -17,12 +17,25 @@ void TPZPlasticitySimulation::ApplyInitialStress()
 {
     // load hydrostatic till I1 is in the middle of the ellips
     STATE I1 = fStressRZInput(fPoreClosureIndex,0)*2. + fStressRZInput(fPoreClosureIndex,1); //fPoreStressRZ[0]*2.+fPoreStressRZ[1];
-    STATE I1Initial = I1-fSandler.fYC.fA*fSandler.fYC.fR;
+		TPZManVector<STATE,2> yield(2);
+		TPZTensor<STATE> hidro;
+		hidro.XX() = I1/3.;
+		hidro.YY() = I1/3.;
+		hidro.ZZ() = I1/3.;
+		TPZPlasticState<STATE> locstate;
+		locstate = fSandler.GetState();
+		STATE L = locstate.fAlpha;
+		fSandler.fYC.Compute<STATE>(hidro,L,yield,0);
+		STATE I1Initial = I1;
+		if(yield[1] > 0.)
+		{
+			I1Initial = I1-fSandler.fYC.fA*fSandler.fYC.fR;
+		}	
     
 //cout << "----------------------------> " << I1Initial << " " << I1 << " " << fSandler.fYC.fA << " " << fSandler.fYC.fR << " " << fStressRZInput(fPoreClosureIndex,0)/*fPoreStressRZ[0]*/ << " " << fStressRZInput(fPoreClosureIndex,0)/*fPoreStressRZ[1]*/ << endl;
     
     // should improve!!defLateral->value(i)
-    TPZTensor<STATE> hidro, epstotal;
+    TPZTensor<STATE> epstotal;
     for (STATE i1 = I1Initial/10.; i1>=I1Initial; i1 += I1Initial/10.) {
         hidro.XX() = i1/3.;
         hidro.YY() = i1/3.;
@@ -142,9 +155,13 @@ void TPZPlasticitySimulation::PerformSimulation()
     fStrainRZSimulated.Redim(nloadsteps, 2);
     fStressRZSimulated.Redim(nloadsteps, 2);
 		int istep;
+		TPZManVector<STATE,2> stresszero(2,0.);
+		stresszero[0] = fStressRZInput(fPoreClosureIndex,0);
+		stresszero[1] = fStressRZInput(fPoreClosureIndex,1);
+		
 		try{
 			for (istep = fPoreClosureIndex; istep < nloadsteps; istep++) {
-					TPZManVector<STATE,2> strainRZ(2),stressRZ(2);
+					TPZManVector<STATE,2> strainRZ(2),stressRZ(2), stressRZInput(2), diffstress(2);
 					strainRZ[0] = fStrainRZInput(istep,0);
 					stressRZ[0] = fStressRZInput(istep,0);
 					strainRZ[1] = fStrainRZInput(istep,1);
@@ -155,9 +172,26 @@ void TPZPlasticitySimulation::PerformSimulation()
 					strainRZ[0] += this->fPoreStrainRZ[0];
 					strainRZ[1] += this->fPoreStrainRZ[1];
 		
-		std::cout << "before executing istep " << istep << std::endl;
+					std::cout << "before executing istep " << istep << " alpha " << fSandler.GetState().fAlpha <<  std::endl;
 
+					TPZTensor<STATE> strainref, stressref;
+					strainref.XX() = fStrainRZInput(istep,0)-fStrainRZInput(fPoreClosureIndex,0);
+					strainref.YY() = fStrainRZInput(istep,0)-fStrainRZInput(fPoreClosureIndex,0);
+					strainref.ZZ() = fStrainRZInput(istep,1)-fStrainRZInput(fPoreClosureIndex,1);
+					fSandler.fER.Compute(strainref,stressref);
+					stressref.XX() += stresszero[0];
+					stressref.YY() += stresszero[0];
+					stressref.ZZ() += stresszero[1];
+					
+					stressRZInput[0] = fStressRZInput(istep,0);
+					stressRZInput[1] = fStressRZInput(istep,1);
+					
+					
 					EvoluateToStep(strainRZ, stressRZ);
+					diffstress[0] = stressref.XX()-stressRZ[0];
+					diffstress[1] = stressref.ZZ()-stressRZ[1];
+					
+					std::cout << "diffstress " << diffstress << std::endl;
 	//        fStrainRZSimulated(istep,0) = strainRZ[0];
 	//        fStrainRZSimulated(istep,1) = strainRZ[1];
 					fStrainRZSimulated(istep,0) = fStrainRZInput(istep,0);
@@ -240,3 +274,43 @@ void TPZPlasticitySimulation::GetSimulatedStrainStress(TPZVec<REAL> &sigax, TPZV
 }
 
 
+		
+/// Compute the position of the ellips which contains the point
+REAL TPZPlasticitySimulation::FindL(REAL I1, REAL sqrtJ2,REAL Lini)
+{
+	if(I1 > Lini) return Lini;
+	REAL Fval = 0.;
+	fSandler.fYC.ComputeF(Lini,Fval);
+	const REAL R = fSandler.fYC.fR;
+	REAL residual = (I1-Lini)*(I1-Lini)+sqrtJ2*sqrtJ2*R*R-Fval*Fval*R*R;
+	if(residual < 0.) return Lini;
+	fSandler.fYC.ComputeF(I1,Fval);
+	REAL L = I1+R*Fval;
+	if(L > Lini) L = Lini;
+	fSandler.fYC.ComputeF(L,Fval);
+	
+	residual = (I1-L)*(I1-L)+sqrtJ2*sqrtJ2*R*R-Fval*Fval*R*R;
+// 	while(residual > 0.)
+// 	{
+// 		L -= (L-I1)/10.;
+// 		fSandler.fYC.ComputeF<STATE>(L,Fval);
+// 		residual = (I1-L)*(I1-L)+sqrtJ2*sqrtJ2*R*R-Fval*Fval;
+// 	}
+	
+	while(fabs(residual) > 1.e-6)
+	{
+		REAL DF;
+		fSandler.fYC.ComputedF(L,DF);
+		REAL tangent = -2.*(I1-L)-2.*Fval*DF*R*R;
+		REAL Lnew = L - residual/tangent;
+		if(Lnew < I1)
+		{
+			
+		}
+		L = Lnew;
+		fSandler.fYC.ComputeF(L,Fval);
+		residual = (I1-L)*(I1-L)+sqrtJ2*sqrtJ2*R*R-Fval*Fval*R*R;
+	}
+	return L;
+		
+}

@@ -20,7 +20,7 @@ if ( STATE_TYPE STREQUAL "double" AND
 	  target_link_libraries(PlasticityPV pz)
 
 	#Note: you will need QT and QWT libraries to compile PlasticityQT
-          #add_subdirectory(PlasticityQT)
+          add_subdirectory(PlasticityQT)
 
 	  file(COPY SnubDodecahedron.txt DESTINATION .)
 	  file(COPY wellcil.txt DESTINATION .)
