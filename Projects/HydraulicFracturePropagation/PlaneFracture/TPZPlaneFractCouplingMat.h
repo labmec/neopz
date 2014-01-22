@@ -93,15 +93,6 @@ public:
     void SetPastState(){ gState = EPastState; }
 	void SetActualState(){ gState = EActualState; }
     
-    void EnableLeakoff()
-    {
-        fLeakoffEnabled = true;
-    }
-    void DisableLeakoff()
-    {
-        fLeakoffEnabled = false;
-    }
-    
     REAL Cl()
     {
         return fCl;
@@ -125,7 +116,6 @@ private:
     STATE fVisc;
     
     //Leakoff
-    bool fLeakoffEnabled;
     REAL fCl;//Carter
     REAL fPe;//Pressao estatica
     REAL fgradPref;//Pressao de referencia da medicao do Cl

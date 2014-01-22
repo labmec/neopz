@@ -620,24 +620,6 @@ void TPZPlaneFractureMesh::SetPastState()
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureMesh::EnableLeakoff()
-{
-    for(int coupmat = 0; coupmat < fCouplingMatVec.NElements(); coupmat++)
-    {
-        fCouplingMatVec[coupmat]->EnableLeakoff();
-    }
-}
-//------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureMesh::DisableLeakoff()
-{
-    for(int coupmat = 0; coupmat < fCouplingMatVec.NElements(); coupmat++)
-    {
-        fCouplingMatVec[coupmat]->DisableLeakoff();
-    }
-}
-//------------------------------------------------------------------------------------------------------------
-
 int TPZPlaneFractureMesh::NCrackTipElements()
 {
     return fcrackBoundaryElementsIndexes.NElements();

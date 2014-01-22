@@ -293,10 +293,6 @@ class TPZPlaneFractureMesh
     
     void SetPastState();
     
-    void EnableLeakoff();
-    
-    void DisableLeakoff();
-    
     int NCrackTipElements();
     
     TPZGeoEl * GetCrackTipGeoElement(int pos);

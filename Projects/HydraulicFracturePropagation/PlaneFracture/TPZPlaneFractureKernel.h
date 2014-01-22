@@ -32,13 +32,17 @@ public:
      * @param visc [in] : Injected fluid viscosity
      * @param Jradius [in] : J-Integral radius
      * @param porder [in] : polinomial order of simulation
+     * @param MaxDispl [in] : Maximum displacement when fracture propagate
+     * @param MinDispl [in] : Minimum displacement when fracture propagate
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                            REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                            REAL Jradius,
-                           int porder);
+                           int porder,
+                           REAL MaxDispl,
+                           REAL MinDispl);
     
     ~TPZPlaneFractureKernel();
     
@@ -52,14 +56,11 @@ protected:
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
      * @param initialElasticKickIsNeeded [in] : When is the first fracture geometry that is running, a initial solution is needed
-     * @param justNewFractGeometry [in] : Flag for transferring elastic solution (no leakoff and no propagation criterion)
+     * @param step [in] : time step
      */
     void RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL> > &poligonalChain,
                                  bool initialElasticKickIsNeeded,
-                                 bool justNewFractGeometry,
                                  int &step);
-    /** Restore Qinj to the simulation default (Qinj gived by user for this simulation) */
-    void RestoreQinj1wing_Hbullet();
     
     /**
      * @brief Method that will initializate the JPath3D vector structure, based on 1D cracktip elements (available on fPlaneFractureMesh atribute)
@@ -96,6 +97,8 @@ protected:
     /** During development, this is used to check the convergence order of the non linear system */
     void CheckConv();
     
+    void PostProcessAll(int & step, TPZVec<std::pair<REAL,REAL> > & PoligonalChain);
+    
     /** Compute the volume of the interior of the fracture (by w=2*uy integral) */
     void PostProcessAcumVolW();
 
@@ -109,7 +112,7 @@ protected:
     void PostProcessPressure(int step);
     
     /** Insert on globFractOutput3DData the actual Lfrac, Hsup and Hinf */
-    void PostProcessFractGeometry(TPZVec<std::pair<REAL,REAL> > & PoligonalChain);
+    void PostProcessFractGeometry(int step, TPZVec<std::pair<REAL,REAL> > & PoligonalChain);
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     REAL IntegrateW(TPZCompMesh * elasticCMesh);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
@@ -149,6 +152,7 @@ protected:
     
     TPZCompMesh * fmphysics;
     
+    REAL fLmax;
     REAL fHbullet;
     REAL fQinj1wing_Hbullet;
     REAL fCenterTVD;
@@ -156,6 +160,9 @@ protected:
     REAL fJIntegralRadius;
     REAL fvisc;
     int fpOrder;
+    
+    REAL fMaxDispl;
+    REAL fMinDispl;
     
     JIntegral3D fPath3D;
 };

@@ -16,7 +16,6 @@ TPZPlaneFractCouplingMat::EState TPZPlaneFractCouplingMat::gState = EActualState
 
 TPZPlaneFractCouplingMat::TPZPlaneFractCouplingMat() : TPZElast3Dnlinear()
 {
-    fLeakoffEnabled = true;
     fVisc = 0.;
     fCl = 0.;
     fPe = 0.;
@@ -34,7 +33,6 @@ TPZPlaneFractCouplingMat::TPZPlaneFractCouplingMat(int nummat, STATE E, STATE po
                                                    STATE vsp) :
                                                    TPZElast3Dnlinear(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
 {
-    fLeakoffEnabled = true;
     fVisc = visc;
     fCl = Cl;
     fPe = Pe;
@@ -128,14 +126,8 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     
 	if(gState == EActualState) //current state (n+1): Matrix stiffnes
     {
-        REAL actQl = 0.;
-        REAL actdQldp = 0.;
-
-        if(fLeakoffEnabled)
-        {
-            actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
-            actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
-        }
+        REAL actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
+        REAL actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
         
         for(int in = 0; in < phipRows; in++)
         {
