@@ -200,7 +200,7 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
 	sigma_projected = eigenvalues;
 	epsbarnew	= shapeFAD::val(epsbar);
 	
-	return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));
+	return (shapeFAD::val(eigenvalues[0])>=shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) >= shapeFAD::val(eigenvalues[2]));
 }
 
 /**
@@ -346,7 +346,7 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
 	sigma_projected = eigenvalues;
 	epsbarnew = shapeFAD::val(epsbar);
 	
-	return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));    
+	return (shapeFAD::val(eigenvalues[0])>=shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) >= shapeFAD::val(eigenvalues[2]));    
 }
 
 /**
@@ -486,7 +486,7 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
 		bool IsEdge = false;
 		
 		const REAL sinpsi = sin(fPsi);
-		REAL val = (1-sinpsi)*sigma_trial[0]-2.*sigma_trial[2]+(1+sinpsi)*sigma_trial[1];
+		REAL val = (1-sinpsi)*sigma_trial[0]-2.*sigma_trial[1]+(1+sinpsi)*sigma_trial[2];
 		if (val > 0.) {
 			IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
 			memory.fWhichPlane = TComputeSequence::ERightEdge;
@@ -536,7 +536,7 @@ void TPZYCMohrCoulombPV::ProjectSigmaDep(const TPZVec<STATE> &sigma_trial, STATE
 		bool IsEdge = false, IsRight = false;
 		
 		const REAL sinpsi = sin(fPsi);
-		REAL val = (1-sinpsi)*sigma_trial[0]-2.*sigma_trial[2]+(1+sinpsi)*sigma_trial[1];
+		REAL val = (1-sinpsi)*sigma_trial[0]-2.*sigma_trial[1]+(1+sinpsi)*sigma_trial[2];
 		if (val > 0.) {
 			IsEdge = this->ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, memory,epsbartemp);
 			memory.fWhichPlane = TComputeSequence::ERightEdge;
