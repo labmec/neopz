@@ -177,16 +177,10 @@ int main() {
 #endif
 
 	// Initializing uniform refinements for reference elements
-//	gRefDBase.InitializeUniformRefPattern(EOned);
 //	gRefDBase.InitializeUniformRefPattern(ETriangle);
-//	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	gRefDBase.InitializeAllUniformRefPatterns();
     //    gRefDBase.InitializeRefPatterns();
     
-	// To check if derivatives and function was right inplemented 
-//	std::ifstream inpoint("datapoint.dat");
-//	std::ifstream math("mathvalues.dat");
-
 	// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
     if(!SolveSymmetricPoissonProblemOnHexaMesh())
         return 1;
@@ -207,7 +201,6 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
-//	formatTimeInSec(time_formated,256,sttime);
 	p = ctime(&sttime);
 	fileerrors << "Approximation Error in " << time_formated << std::endl;
 	
@@ -226,9 +219,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-//		for(itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
-//		for(itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
+		for(itypeel=(int)ETriangle;itypeel<(int)EQuadrilateral;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
@@ -393,20 +384,11 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					STATE Tol;
 					ZeroTolerance(Tol);
 					std::cout << "Starting hp adaptive analysis: " << std::endl;
-					if(ervec[1] < Tol) {
-						fileerrors << "TOLERANCE REACHED - SUCCESFULL RUNNING IN STEP Refinement: " << nref << "." << std::endl;
-						fileerrors.flush();
-						out.flush();
-						break;
-					}
 					out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 		            std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 					fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 
-          //          if(ModelDimension<3)
-                        ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
-              //      else
-            //            ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
+					ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -447,14 +429,15 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	TPZVec<long> counterreftype(50,0);
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
-	long i;
-	REAL factorGrad= 0.1;
-	REAL factorLap = 1.;
-	REAL factorError = 0.3;
+	long i, ii;
+	REAL factorGrad= 0.5;
+	REAL factorError = 0.25;
 	REAL factorErrorM = 0.8;
+	REAL LaplacianLimit = 10.;
 
-	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
 	MaxGrad = gradervecbyel[nels];
+	if(MaxGrad > 10) MaxGrad = 10;
+	if(MaxErrorByElement > 0.001) MaxErrorByElement = 0.001;
 	bool hused = false;
 	// Determining which level is (alcanzado)
 	for(i=0L;i<nels;i++) {
@@ -476,10 +459,6 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		index = el->Index();
 		level = el->Reference()->Level();
 
-		// If error is small and laplacian value is very little then the order will be minimized
-		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
-			DebugStop();
-
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
         pelement++;
 		if(!hused) {
@@ -487,14 +466,26 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 				counterreftype[1]++;
 				el->Divide(index,subels);
 				level++;
+				if(ervecbyel[i] > factorErrorM*MaxErrorByElement && nref > 1) {
+					level++;
+					for(ii=0;ii<subels.NElements();ii++) {
+						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
+					}
+					counterreftype[2]++;
+				}
+				else
+					counterreftype[4]++;
 			}
 		}
 		else {
-			if((LaplacianValue > factorLap && pelement<MaxPOrder)  || ervecbyel[i] > factorError*MaxErrorByElement) {
+			LaplacianValue = Laplacian(el);
+			if((ervecbyel[i] > factorError*MaxErrorByElement || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
-				counterreftype[2]++;
+				counterreftype[10]++;
 			}
+			else
+				counterreftype[11]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
@@ -503,8 +494,6 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	}
 	cmesh->ExpandSolution();
 
-	std::cout << "\nMaxLaplacian " << MaxLaplacian << "\n";
-	
 	// Printing information stored
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
@@ -779,11 +768,11 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	// printing lines to create lists of logarithms
 	fileerrors << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
 	fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
-	fileerrors << "Temp[i_, j_] := {{LogNEquations[[i]],LogL2Errors[[i]]},{LogNEquations[[Length[LogNEquations]]],LogL2Errors[[j]] + ((LogL2Errors[[i]]-LogL2Errors[[j]])/(LogNEquations[[i]]-LogNEquations[[j]]))*(LogNEquations[[Length[LogNEquations]]]-LogNEquations[[j]])}}" << std::endl;
+//	fileerrors << "Temp[i_, j_] := {{LogNEquations[[i]],LogL2Errors[[i]]},{LogNEquations[[Length[LogNEquations]]],LogL2Errors[[j]] + ((LogL2Errors[[i]]-LogL2Errors[[j]])/(LogNEquations[[i]]-LogNEquations[[j]]))*(LogNEquations[[Length[LogNEquations]]]-LogNEquations[[j]])}}" << std::endl;
 	// printing line to make a graphics log_nequations x log_errors
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
-	for(nref=1;nref<NRefs-2;nref++)
-		fileerrors << ",Temp["<<nref<<","<<(nref+1)<<"]";
+//	for(nref=1;nref<NRefs-2;nref++)
+//		fileerrors << ",Temp["<<nref<<","<<(nref+1)<<"]";
 	fileerrors << "},Joined->True,PlotRange->All]" << std::endl;
 	return true;
 }
