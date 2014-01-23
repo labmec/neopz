@@ -67,11 +67,22 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder);
 void PosProcessHDiv(TPZAnalysis &an, std::string plotfile);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+
+//----- Boundary condition: Steklov
+void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
+
+void Compute_dudn(TPZCompMesh *cmesh);
+void Compute_dudnQuadrado(TPZCompMesh *cmesh);
+
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-const bool triang = true;
+const bool triang = false;
 const int teste = 3;
 int main(int argc, char *argv[])
 {
@@ -84,10 +95,10 @@ int main(int argc, char *argv[])
     
     TPZVec<REAL> erros;
     ofstream arg12("Erro.txt");
-    for (int p = 1; p< 5; p++)
+    for (int p = 1; p< 2; p++)
     {
         arg12<<"\n Ordem = " << p <<endl;
-        for(int h = 0; h < 6;h++)
+        for(int h = 0; h < 5;h++)
         {
             arg12<<" Refinamento h  = " << h <<endl;
             // int p = 5;
@@ -97,21 +108,21 @@ int main(int argc, char *argv[])
 	    TPZGeoMesh *gmesh = 0;
 	    if(teste == 1 || teste == 2)
 	    {
-		gmesh = GMesh(triang);
+            gmesh = GMesh(triang);
 	    }
 	    else if(teste == 3)
 	    {
-	      gmesh = GMesh2(triang);
+            gmesh = GMesh2(triang);
 	    }
             //UniformRefine(gmesh,h);
-            // ofstream arg1("gmesh_inicial.txt");
-            // gmesh->Print(arg1);
+             ofstream arg1("gmesh_inicial.txt");
+             gmesh->Print(arg1);
 
           
             // First computational mesh
             TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
-            //ofstream arg2("cmesh1_inicial.txt");
-            //cmesh1->Print(arg2);
+            ofstream arg2("cmesh1_inicial.txt");
+            cmesh1->Print(arg2);
 
 #ifdef LOG4CXX
 						if(logdata->isDebugEnabled())
@@ -120,7 +131,6 @@ int main(int argc, char *argv[])
 							sout << "Flux mesh\n";
 							cmesh1->Print(sout);
 							LOGPZ_DEBUG(logdata,sout.str())
-							
 						}
 #endif
 
@@ -130,8 +140,8 @@ int main(int argc, char *argv[])
                cmesh2 = CMeshPressure(gmesh, p-1);
             }
             else cmesh2 = CMeshPressure(gmesh, p);
-            // ofstream arg3("cmesh2_inicial.txt");
-            // cmesh2->Print(arg3);
+            ofstream arg3("cmesh2_inicial.txt");
+            cmesh2->Print(arg3);
 #ifdef LOG4CXX
 						if(logdata->isDebugEnabled())
 						{
@@ -139,7 +149,6 @@ int main(int argc, char *argv[])
 							sout << "Pressure mesh\n";
 							cmesh2->Print(sout);
 							LOGPZ_DEBUG(logdata,sout.str())
-							
 						}
 #endif
 
@@ -164,8 +173,8 @@ int main(int argc, char *argv[])
             meshvec[1] = cmesh2;
             TPZMixedPoisson * mymaterial;
             TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-//            ofstream arg6("mphysic.txt");
-//            mphysics->Print(arg6);
+            ofstream arg6("mphysic.txt");
+            mphysics->Print(arg6);
 #ifdef LOG4CXX
 						if(logdata->isDebugEnabled())
 						{
@@ -173,7 +182,6 @@ int main(int argc, char *argv[])
 							sout << "Multiphysics mesh\n";
 							mphysics->Print(sout);
 							LOGPZ_DEBUG(logdata,sout.str())
-							
 						}
 #endif
 
@@ -195,18 +203,32 @@ int main(int argc, char *argv[])
 //            ofstream arg9("mphysic_apos_Transferfrom.txt");
 //            mphysics->Print(arg9);
 
-            arg12<<" Erro da simulacao multifisica  para o flux" <<endl;
-
+            
+            arg12<<" \nErro da simulacao multifisica  para o flux" <<endl;
             TPZAnalysis an1(cmesh1);
-            if (teste==1) an1.SetExact(*SolExata1);
-            else an1.SetExact(*SolExata2);
+            if (teste==1){
+                an1.SetExact(*SolExata1);
+            }
+            else if(teste==2){
+                an1.SetExact(*SolExata2);
+            }
+            else{
+                an1.SetExact(*SolExataSteklov);
+            }
             an1.PostProcessError(erros, arg12);
-
+            
+            
             arg12<<" \nErro da simulacao multifisica  para a pressao" <<endl;
-             
             TPZAnalysis an2(cmesh2);
-            if (teste==1) an2.SetExact(*SolExata1);
-            else an2.SetExact(*SolExata2);
+            if (teste==1){
+                an2.SetExact(*SolExata1);
+            }
+            else if (teste==2){
+                an2.SetExact(*SolExata2);
+            }
+            else{
+                an2.SetExact(*SolExataSteklov);
+            }
             an2.PostProcessError(erros, arg12);
 
             string plotfile("Solution_mphysics.vtk");
@@ -369,15 +391,20 @@ TPZGeoMesh *GMesh2(bool triang_elements){
       gengrid.SetElementType(1);
     }
     gengrid.Read(gmesh);
-    gengrid.SetBC(gmesh,5,-2);
-    gengrid.SetBC(gmesh,6,-3);
-    gengrid.SetBC(gmesh,7,-4);
     TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
+    firstpoint[0] = 1.;
+    secondpoint[0] = 1.;
+    secondpoint[1] = 1.;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,bc1);
+    gengrid.SetBC(gmesh,6,bc2);
+    gengrid.SetBC(gmesh,7,bc3);
     firstpoint[0] = -1.;
-    gengrid.SetBC(gmesh,firstpoint,secondpoint,-5);
+    secondpoint[0] = 0.;
+    secondpoint[1] = 0.;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,bc4);
     firstpoint = secondpoint;
     secondpoint[0] = 1.;
-    gengrid.SetBC(gmesh,firstpoint,secondpoint,-1);
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,bc0);
 #ifdef LOG4CXX
     if(logdata->isDebugEnabled())
     {
@@ -557,7 +584,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     int MatId=1;
     int dim =2;
     
-    REAL coefk=1.;
+    REAL coefk=-1.;
     mymaterial = new TPZMixedPoisson(MatId,dim);
     mymaterial->SetPermeability(coefk);
     
@@ -566,11 +593,6 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mphysics->InsertMaterialObject(mat);
     
     
-    ///Inserir condicao de contorno
-    TPZAutoPointer<TPZFunction<STATE> > fCC0;
-    TPZAutoPointer<TPZFunction<STATE> > force1;
-    TPZAutoPointer<TPZFunction<STATE> > fCC23;
-    
     TPZMaterial * BCond0;
     TPZMaterial * BCond1;
     TPZMaterial * BCond2;
@@ -578,24 +600,19 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZMaterial * BCond4;
     
     TPZAutoPointer<TPZFunction<STATE> > solExata;
+    TPZAutoPointer<TPZFunction<STATE> > force;
+    
     if(teste==1){
         solExata = new TPZDummyFunction<STATE>(SolExata1);
         mymaterial->SetForcingFunctionExact(solExata);
-
-        force1 = new TPZDummyFunction<STATE>(Forcing1);
-        mymaterial->SetForcingFunction(force1);
+        
+        force = new TPZDummyFunction<STATE>(Forcing1);
+        mymaterial->SetForcingFunction(force);
+        
+        //Inserir condicoes de contorno
+        TPZAutoPointer<TPZFunction<STATE> > fCC0;
         fCC0 = new TPZDummyFunction<STATE>(ForcingBC1);
-    }
-    else{
-        solExata = new TPZDummyFunction<STATE>(SolExata2);
-        mymaterial->SetForcingFunctionExact(solExata);
-        REAL fxy=8.;
-        mymaterial->SetInternalFlux(fxy);
-        fCC23 = new TPZDummyFunction<STATE>(ForcingBC2);
-    }
-    
-    
-    if(teste==1){
+        
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
         BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
         BCond2 = mymaterial->CreateBC(mat, bc2,dirichlet, val1, val2);
@@ -607,11 +624,21 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         BCond4 = mymaterial->CreateBC(mat, bc4,dirichlet, val11, val21);
         
         //BCond0->SetForcingFunction(fCC0);
-    }else{
+       
+    }
+    else if(teste==2){
+        solExata = new TPZDummyFunction<STATE>(SolExata2);
+        mymaterial->SetForcingFunctionExact(solExata);
+        
+        TPZAutoPointer<TPZFunction<STATE> > fCC23;
+        REAL fxy=8.;
+        mymaterial->SetInternalFlux(fxy);
+        fCC23 = new TPZDummyFunction<STATE>(ForcingBC2);
+        
+        //Inserir condicoes de contorno
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,1.);
         BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
         BCond2 = mymaterial->CreateBC(mat, bc2,dirichlet, val1, val2);
-        
         
         TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = mymaterial->CreateBC(mat, bc1,neumann, val11, val21);
@@ -620,7 +647,35 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         
         //BCond1->SetForcingFunction(fCC23);
         //BCond3->SetForcingFunction(fCC23);
+        
     }
+    else{
+        solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
+        mymaterial->SetForcingFunctionExact(solExata);
+        
+        //Inserir condicoes de contorno
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+        BCond0 = mymaterial->CreateBC(mat, bc0, neumann, val1, val2);//bcmatNeumannZero
+        BCond1 = mymaterial->CreateBC(mat, bc1, neumann, val1, val2);
+        BCond2 = mymaterial->CreateBC(mat, bc2, neumann, val1, val2);
+        BCond3 = mymaterial->CreateBC(mat, bc3, neumann, val1, val2);
+        BCond4 = mymaterial->CreateBC(mat, bc4, dirichlet, val1, val2);//bcmaDirichletZero
+        
+        //Set force function
+        TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannDireito;
+        bcmatNeumannDireito = new TPZDummyFunction<STATE>(NeumannDireita);
+        BCond1->SetForcingFunction(bcmatNeumannDireito);
+        
+        TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
+        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+        BCond2->SetForcingFunction(bcmatNeumannAcima);
+        
+        TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannEsquerdo;
+        bcmatNeumannEsquerdo = new TPZDummyFunction<STATE>(NeumannEsquerda);
+        BCond3->SetForcingFunction(bcmatNeumannEsquerdo);
+        
+    }//teste 3
+    
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond0);
@@ -706,13 +761,16 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(1), vecnames(2);
+	TPZManVector<std::string,10> scalnames(2), vecnames(3);
 	vecnames[0]  = "Flux";
     vecnames[1]  = "GradFluxX";
     scalnames[0] = "Pressure";
+    
+    scalnames[1] = "ExactPressure";
+    vecnames[2] = "ExactFlux";
 			
 	const int dim = 2;
-	int div =0;
+	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -824,3 +882,60 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     
 	return cmesh;
 }
+
+
+void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    TPZFMatrix<STATE> du(2,1);
+    SolExataSteklov(loc,result,du);
+}
+
+void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    REAL normal[2] = {-1,0};
+    
+    TPZManVector<REAL> u(1);
+    TPZFNMatrix<10> du(2,1);
+    SolExataSteklov(loc,u,du);
+    
+    result.Resize(1);
+    result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
+}
+
+void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    REAL normal[2] = {+1,0};
+    
+    TPZManVector<REAL> u(1);
+    TPZFNMatrix<10> du(2,1);
+    SolExataSteklov(loc,u,du);
+    
+    result.Resize(1);
+    result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
+}
+
+void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    REAL normal[2] = {0,+1};
+    
+    TPZManVector<REAL> u(1);
+    TPZFNMatrix<10> du(2,1);
+    SolExataSteklov(loc,u,du);
+    
+    result.Resize(1);
+    result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
+}
+
+void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+    
+    const REAL n = 0;
+    
+    const REAL x = loc[0];
+    const REAL y = loc[1];
+    const REAL r = sqrt(x*x+y*y);
+    const REAL t = atan2(y,x);
+    const REAL sol = pow((REAL)2,0.25 + n/2.)*pow(r,0.5 + n)*cos((0.5 + n)*t);
+    u[0] = sol;
+    
+    du(0,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(x*cos((0.5 + n)*atan2(y,x)) + y*sin((0.5 + n)*atan2(y,x)));
+    du(1,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(y*cos((0.5 + n)*atan2(y,x)) - x*sin((0.5 + n)*atan2(y,x)));
+    
+}
+
+

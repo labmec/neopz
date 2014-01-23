@@ -263,18 +263,26 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
         std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
 		DebugStop();
 	}
-	if (bc.Type() > 1 ) {
+	if (bc.Type() > 2 ) {
         std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
 		DebugStop();
 	}
 #endif
 	
 	TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
-	int phrq = datavec[0].fVecShapeIndex.NElements();
+	int phrq = phiQ.Rows();
 
 	REAL v2;
-	v2 = bc.Val2()(0,0);
-	
+    if(bc.HasForcingFunction())
+    {
+		TPZManVector<STATE> res(3);
+		bc.ForcingFunction()->Execute(datavec[0].x,res);
+		v2 = res[0];
+	}else
+    {
+        v2 = bc.Val2()(0,0);
+    }
+
 	switch (bc.Type()) {
 		case 0 :		// Dirichlet condition
 			//primeira equacao
@@ -318,6 +326,9 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     if(!strcmp("GradFluxX",name.c_str()))   return  3;
     if(!strcmp("GradFluxY",name.c_str()))   return  4;
     if(!strcmp("DivFlux",name.c_str()))   return  5;
+    
+    if(!strcmp("ExactPressure",name.c_str()))  return 6;
+    if(!strcmp("ExactFlux",name.c_str()))  return 7;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -328,6 +339,8 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 1;
+    if(var == 6) return 1;
+    if(var == 7) return fDim;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -369,6 +382,24 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
         return;
     }
+    
+    TPZVec<REAL> ptx(3);
+	TPZVec<STATE> solExata(1);
+	TPZFMatrix<STATE> flux(2,1);
+    
+    //Exact soluion
+	if(var == 6){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[0];
+		return;
+	}//var6
+    
+    if(var == 7){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = flux(0,0);
+        Solout[1] = flux(1,0);
+		return;
+	}//var7
 
 }
 
