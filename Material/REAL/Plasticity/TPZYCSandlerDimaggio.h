@@ -252,6 +252,8 @@ protected:
    template <class T>
    void LInitialGuess(const T & X, T & L) const;
 	
+	 
+public:
    /**
     Evaluates the F(L) grouping
    */
@@ -263,7 +265,8 @@ protected:
    */
    template <class T>
    void ComputedF(const T & L, T & dF) const;
-    
+	 
+protected:    
     /**
      * Compute the second derivative of F
      */
