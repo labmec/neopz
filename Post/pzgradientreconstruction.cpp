@@ -520,9 +520,12 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
 
 
 #include <stdio.h>
-#include <cblas.h>
+#ifdef USING_LAPACK
 #include <clapack.h>
-//#include <clapackdorgqr.h>
+#endif
+#ifdef USING_BLAS
+#include <cblas.h>
+#endif
 
 void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
 {
@@ -618,8 +621,11 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
         }
     }
     
-    
+#ifdef USING_LAPACK
     dgeqrf_(&m, &n, A, &lda,tau,work,&lwork,&info);
+#else
+    DebugStop();
+#endif
    
     //matrix R: upper triangular
     matA.Redim(n, n);
@@ -636,7 +642,11 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     int kk=n;
     double *Q = new double[m*n];
     Q=A;
+#ifdef USING_LAPACK
     dorgqr_(&m, &n, &kk, Q, &lda,tau,work,&lwork,&info);
+#else
+    DebugStop();
+#endif
 
     TPZFMatrix<REAL> matQ;
     matQ.Redim(m, n);
