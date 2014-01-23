@@ -229,7 +229,7 @@ void I1vsSqrtJ2()
         outfilePV << sigma.I1()<< " " << sqrt(sigma.J2()) << "\n";
       
         
-       // k0 = PlasticStepPV.fN.Alpha();
+        //k0 = PlasticStepPV.fN.Alpha();
         STATE i1=k0,X,tmp;
         sqrtj2=sqrt(sigma.J2());
         tmp=1.;
@@ -359,7 +359,8 @@ void UniaxialLoadingApplyStrainComputeDep()
         }
         deps.XX()=deltaeps;
         epst.XX()+=deltaeps;
-        PlasticStepPV.TaylorCheck(epst, deps, k0);
+				TPZManVector<REAL,3> conv;
+        PlasticStepPV.TaylorCheck(epst, deps, k0, conv);
 		
 		// CheckConv do Erick
 		ErickTaylorCheck(epst,deps);
@@ -701,7 +702,8 @@ void comparingDep()
         std::cout << errnorm << std::endl;
 	}
 		// CheckConv PV
-		PlasticStepPV.TaylorCheck(eps, deps, k0);
+	TPZManVector<REAL,3> conv;
+		PlasticStepPV.TaylorCheck(eps, deps, k0,conv);
 		
 		// CheckConv do Erick
 		ErickTaylorCheck(eps,deps);
@@ -869,7 +871,7 @@ int main()
     //ReadData("ensaio_UCS_all_columns.txt");
     //ReadData("ensaio_all_columns.txt");
     //DistFunc2TangentTest();
-    //VerifyTangentSandlerPV();
+    VerifyTangentSandlerPV();
     //comparingDep();
     //I1vsSqrtJ2();
     //TwoLoadings();
@@ -913,155 +915,264 @@ int main()
 }
 
 int VerifyTangentSandlerPV()
-    {
-    TPZSandlerExtended materialmodel(0.25, 0.67,0.18, 0.67,66.67,40.,0.066,2.5, 0,0,1);
-    TPZPlasticState<REAL> plasticstate;
-    TPZManVector<STATE,3> epst(3);
-//    epst.XX()=-0.001;
-//    epst.XY()=0.;
-//    epst.XZ()=0.;
-//    epst.YY()=-0.0056;
-//    epst.YZ()=0.;
-//    epst.ZZ()=-0.003;
-    epst[0]=-0.001;
-    epst[1]=0.;
-    epst[2]=0.;
-    
-
-   // materialmodel.ApplyStrainComputeSigma(plasticstate,stress);
-    
-    TPZManVector<STATE,3> deltaeps(3),eps(3),sigma(3),deltasigma(3);
-    
-
-    deltaeps[0]= -0.00135;
-    deltaeps[1]=0;
-    deltaeps[2]=0;
-    eps=deltaeps;
-    STATE kprev=0.,epspv1=0.;
-    materialmodel.Firstk(epspv1,kprev);
-    TPZManVector<STATE,3> Tensor2(3);
-    Tensor2[0]=-0.032;
-    Tensor2[1]=-0.04;
-    Tensor2[2]=-0.048;
-    materialmodel.CheckCoordinateTransformation(Tensor2);
-    
-    TPZManVector<STATE,2> yield(2);
-    materialmodel.YieldFunction(Tensor2,kprev,yield);
-    cout << "yield = "<<yield <<endl;
-    
-    // perform convergence verifications
-    STATE theta = M_PI/5.;
-    STATE xi = (Tensor2[0]+Tensor2[1]+Tensor2[2])/sqrt(3.);
-    STATE beta = M_PI/3.;
-    STATE k = -0.3;
-    TPZManVector<STATE> xnorm,errnorm,converge;
-    
-    materialmodel.TaylorCheckDistF1(Tensor2, xi, beta, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-    
-    materialmodel.TaylorCheckDDistF1DSigtrial(Tensor2, xi, beta, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-    cout << "Teste de D(DistF2)/D(theta,beta,k)\n";
-        {
-            STATE kproj;
-            TPZManVector<STATE,3> sigproj(3);
-            materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
-            STATE theta,beta;
-            materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
-            materialmodel.TaylorCheckDistF2(Tensor2, theta, beta, kproj, kprev, xnorm, errnorm);
-        }
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-        cout << "Teste da derivada D(ResF2)/D(theta,beta,k)\n";
-    materialmodel.TaylorCheckDDistF2(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-    cout << "Teste da derivada D(ResF2)/D(sigtrial)\n";
-    {
-        STATE kproj;
-        TPZManVector<STATE,3> sigproj(3);
-        materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
-        STATE theta,beta;
-        materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
-
-        materialmodel.TaylorCheckDDistF2DSigtrial(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
-    }
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "xnorm " << xnorm << endl;
-    cout << "errnorm " << errnorm << endl;
-    cout << "convergence rate " << converge << endl;
-    
-    materialmodel.TaylorCheckDF1Cart(xi, beta, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-        
-    
-        cout << "Teste de D(F2cart)/D(theta,beta,k)\n";
-        {
-            STATE kproj;
-            TPZManVector<STATE,3> sigproj(3);
-            materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
-            STATE theta,beta;
-            materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
-            materialmodel.TaylorCheckDF2Cart(theta, beta, kproj, xnorm, errnorm);
-        }
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-        std::cout << "Teste de D(sigproj)/D(sigtrial) geral\n";
-    materialmodel.TaylorCheckProjectSigma(Tensor2, kprev, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-    
-    materialmodel.TaylorCheckParamF1Sigtrial(Tensor2,kprev,xnorm,errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-    
-    materialmodel.TaylorCheckProjectF1(Tensor2, kprev, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "\n xnorm " << xnorm << endl;
-    cout << "\n errnorm " << errnorm << endl;
-    cout << "\n convergence rate " << converge << endl;
-    
-        std::cout << "Teste de D(sigproj)/D(sigtrial) para funcao F2\n";
-        materialmodel.TaylorCheckProjectF2(Tensor2, kprev, xnorm, errnorm);
-        materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-        cout << "\n xnorm " << xnorm << endl;
-        cout << "\n errnorm " << errnorm << endl;
-        cout << "\n convergence rate " << converge << endl;
-        
-        std::cout << "Teste de D(theta,beta,k)/D(sigtrial) para funcao F2\n";
-    materialmodel.TaylorCheckDtbkDsigtrial(Tensor2, kprev, xnorm, errnorm);
-    materialmodel.ConvergenceRate(xnorm, errnorm, converge);
-    cout << "xnorm " << xnorm << endl;
-    cout << "errnorm " << errnorm << endl;
-    cout << "convergence rate " << converge << endl;
-        
-   
+{
+	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
+	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
+	TPZPlasticState<REAL> plasticstate;
+	
+	TPZElasticResponse ER;
+	STATE E= materialmodel.fE,nu=materialmodel.fnu;
+	ER.SetUp(E, nu);
+	TPZTensor <STATE> eps1, sigma1, deps1, dsig1;
+	sigma1.XX()=0.0128547;
+	sigma1.YY()=-0.0564273;
+	sigma1.ZZ()=-0.0564273;
+	ER.ComputeDeformation(sigma1, eps1);
+	deps1.YY() += eps1.YY()/200.;
+	ER.Compute(deps1, dsig1);
+	dsig1.Print(cout);
+	
+	STATE kprev=0.,epspv1=0.,knext=0.;
+	materialmodel.Firstk(epspv1,kprev);
+	
+	TPZManVector<STATE,3> Tensor2(3,0.),SigProj(3,0.);
+	Tensor2[0] = sigma1.XX();
+	Tensor2[1] = sigma1.YY();
+	Tensor2[2] = sigma1.ZZ();
+	//    Tensor2[0]=-0.032;
+	//    Tensor2[1]=-0.04;
+	//    Tensor2[2]=-0.048;
+	materialmodel.CheckCoordinateTransformation(Tensor2);
+	
+	//Yield antes do project
+	TPZManVector<STATE,2> yield(2);
+	materialmodel.YieldFunction(Tensor2,kprev,yield);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\n sigtrial = " << Tensor2 << endl;
+		str << "\n k = " << kprev << endl;
+		str << "\n yield = " << yield << endl; 
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	//Yield depois do project
+	materialmodel.ProjectSigma(Tensor2,kprev,SigProj,knext);
+	materialmodel.YieldFunction(SigProj,knext,yield);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\n sigproj = " << SigProj << endl;
+		str << "\n k = " << knext << endl;
+		str << "\n yield = " << yield << endl; 
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	//// perform convergence verifications ---------------------------------------------------
+	STATE theta = M_PI/5.;
+	STATE xi = (Tensor2[0]+Tensor2[1]+Tensor2[2])/sqrt(3.);
+	STATE beta = M_PI/3.;
+	STATE k = -0.3;
+	TPZManVector<STATE> xnorm,errnorm,converge;
+	
+	materialmodel.TaylorCheckDistF1(Tensor2, xi, beta, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck DistF1:" << endl;
+    str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;		
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	materialmodel.TaylorCheckDDistF1DSigtrial(Tensor2, xi, beta, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck DDistF1DSigtrial:" << endl;
+    str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//cout << "Teste de D(DistF2)/D(theta,beta,k)\n";
+	{
+		STATE kproj;
+		TPZManVector<STATE,3> sigproj(3);
+		materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
+		STATE theta,beta;
+		materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
+		materialmodel.TaylorCheckDistF2(Tensor2, theta, beta, kproj, kprev, xnorm, errnorm);
+	}
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(DistF2)/D(theta,beta,k)" << endl;
+    str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//cout << "Teste da derivada D(ResF2)/D(theta,beta,k)\n";
+	materialmodel.TaylorCheckDDistF2(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(ResF2)/D(theta,beta,k):" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//cout << "Teste da derivada D(ResF2)/D(sigtrial)\n";
+	{
+		STATE kproj;
+		TPZManVector<STATE,3> sigproj(3);
+		materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
+		STATE theta,beta;
+		materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
+		materialmodel.TaylorCheckDDistF2DSigtrial(Tensor2, theta, beta, k, kprev, xnorm, errnorm);
+	}
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(ResF2)/D(sigtrial):" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	materialmodel.TaylorCheckDF1Cart(xi, beta, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck DF1Cart:" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//cout << "Teste de D(F2cart)/D(theta,beta,k)\n";
+	{
+		STATE kproj;
+		TPZManVector<STATE,3> sigproj(3);
+		materialmodel.ProjectF2(Tensor2, kprev, sigproj, kproj);
+		STATE theta,beta;
+		materialmodel.SurfaceParamF2(sigproj, kproj, theta, beta);
+		materialmodel.TaylorCheckDF2Cart(theta, beta, kproj, xnorm, errnorm);
+	}
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(F2cart)/D(theta,beta,k):" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//std::cout << "Teste de D(sigproj)/D(sigtrial) geral\n";
+	materialmodel.TaylorCheckProjectSigma(Tensor2, kprev, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(sigproj)/D(sigtrial) geral:" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	materialmodel.TaylorCheckParamF1Sigtrial(Tensor2,kprev,xnorm,errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck ParamF1Sigtrial:" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	materialmodel.TaylorCheckProjectF1(Tensor2, kprev, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck ProjectF1:" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//std::cout << "Teste de D(sigproj)/D(sigtrial) para funcao F2\n";
+	materialmodel.TaylorCheckProjectF2(Tensor2, kprev, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(sigproj)/D(sigtrial) para funcao F2:" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
+	//std::cout << "Teste de D(theta,beta,k)/D(sigtrial) para funcao F2\n";
+	materialmodel.TaylorCheckDtbkDsigtrial(Tensor2, kprev, xnorm, errnorm);
+	materialmodel.ConvergenceRate(xnorm, errnorm, converge);
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\nTaylorCheck D(theta,beta,k)/D(sigtrial) para funcao F2:" << endl;
+		str << "\n xnorm " << xnorm << endl;
+    str << "\n errnorm " << errnorm << endl;
+    str << "\n convergence rate " << converge << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
 	return 0;
 }
 
@@ -1363,110 +1474,134 @@ void ProportionalLoading()
 
 void CheckDepConv()
 {
-    
-    
-    TPZSandlerExtended SDPV;
-    SDPV.MCormicRanchSand(SDPV);
-    STATE epsp=0.,k0;
-    SDPV.Firstk(epsp, k0);
-    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
-    PlasticStepPV.fYC = SDPV;
-    TPZElasticResponse ER;
-    STATE E= SDPV.fE,nu=SDPV.fnu;
-    
-    STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066;
-    
-    ER.SetUp(E,nu);
-    PlasticStepPV.fER =ER;
-    
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
-    PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
-    
-    TPZTensor<STATE> eps1,eps2,eps3,sigma1,sigma2,sigma3,deps,stresstrial,sigmasol1,sigmasol2;
-
-    TPZFNMatrix<36> DepPV(6,6,0.),DepER(6,6,0.);
-
-    
-//    {0.0128547, -0.0564273, -0.0564273} beta=0
-//    {-0.0333333, 0.00666667, -0.0733333}beta=pi/2
-    sigma1.XX()=0.0128547;
-    sigma1.YY()=-0.0564273;
-    sigma1.ZZ()=-0.0564273;
-    //sigma1.XX()=-0.0333333;
-    //sigma1.YY()=0.00666667;
-    //sigma1.ZZ()= -0.0733333;
-    
-    ER.ComputeDeformation(sigma1, eps1);
-    
-//    {0.121722, 0.0091389, 0.0091389}
-    sigma2.XX()=0.121722;
-    sigma2.YY()= 0.0091389;
-    sigma2.ZZ()= 0.0091389;
-    
-    ER.ComputeDeformation(sigma2, eps2);
- 
-//    {0.135295, 0.0573526, 0.0573526}
-    sigma3.XX()=0.135295;
-    sigma3.YY()=0.0573526;
-    sigma3.ZZ()=0.0573526;
-    
-    ER.ComputeDeformation(sigma3, eps3);
-    
-    TPZManVector<STATE> sigtr(3),sigproj(3);
-    sigtr[0]=sigma1.XX();
-    sigtr[1]=sigma1.YY();
-    sigtr[2]=sigma1.ZZ();
-    //STATE k1;
-    //SDPV.ProjectF2(sigtr, k0,sigproj, k1);
-    
-    PlasticStepErick.ApplyStrainComputeDep(eps1,sigmasol1,DepER);
-    cout << " \n sigmasol1 = "<<sigmasol1 << endl;
-        
-    PlasticStepPV.ApplyStrainComputeDep(eps1, sigmasol2,DepPV);
-    cout << " \n sigmasol2 "<<sigmasol2 << endl;
-    
+	TPZSandlerExtended SDPV;
+	SDPV.MCormicRanchSand(SDPV);
+	STATE epsp=0.,k0;
+	SDPV.Firstk(epsp, k0);
+	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
+	PlasticStepPV.fYC = SDPV;
+	TPZElasticResponse ER;
+	STATE E= SDPV.fE,nu=SDPV.fnu;
+	
+	STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066;
+	
+	ER.SetUp(E,nu);
+	PlasticStepPV.fER =ER;
+	
+	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
+	PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
+	
+	TPZTensor<STATE> eps1,eps2,eps3,sigma1,sigma2,sigma3,deps,stresstrial,sigmasol1,sigmasol2;
+	
+	TPZFNMatrix<36> DepPV(6,6,0.),DepER(6,6,0.);
+	
+	
+	//    {0.0128547, -0.0564273, -0.0564273} beta=0
+	//    {-0.0333333, 0.00666667, -0.0733333}beta=pi/2
+	sigma1.XX()= 0.0128547;
+	sigma1.XX()=-0.0564273;
+	sigma1.YY()=-0.0564273;
+	sigma1.ZZ()=-0.0564273;
+	//sigma1.XX()=-0.0333333;
+	//sigma1.YY()=0.00666667;
+	//sigma1.ZZ()= -0.0733333;
+	
+	ER.ComputeDeformation(sigma1, eps1);
+	
+	//    {0.121722, 0.0091389, 0.0091389}
+	sigma2.XX()= 0.121722;
+	sigma2.YY()= 0.0091389;
+	sigma2.ZZ()= 0.0091389;
+	
+	ER.ComputeDeformation(sigma2, eps2);
+	
+	//    {0.135295, 0.0573526, 0.0573526}
+	sigma3.XX()=0.135295;
+	sigma3.YY()=0.0573526;
+	sigma3.ZZ()=0.0573526;
+	
+	ER.ComputeDeformation(sigma3, eps3);
+	
+	TPZManVector<STATE> sigtr(3),sigproj(3);
+	sigtr[0]=sigma1.XX();
+	sigtr[1]=sigma1.YY();
+	sigtr[2]=sigma1.ZZ();
+	//STATE k1;
+	//SDPV.ProjectF2(sigtr, k0,sigproj, k1);
+	
+	PlasticStepErick.ApplyStrainComputeDep(eps1,sigmasol1,DepER);
+	cout << " \n sigmasol1 = "<< sigmasol1 << endl;
+	
+	PlasticStepPV.ApplyStrainComputeDep(eps1, sigmasol2,DepPV);
+	cout << " \n sigmasol2 "<< sigmasol2 << endl;
+	
 #ifdef LOG4CXX
-    {
-        std::stringstream outfile;
-        outfile<<"\n Comparing Dep Matrix "<<std::endl;
-        outfile<<"\n DepER "<< DepER << std::endl;
-        outfile<<"\n DepPV "<< DepPV << std::endl;
-        LOGPZ_DEBUG(logger,outfile.str());
-        
-    }
+	{
+		std::stringstream outfile;
+		outfile<<"\n Comparing Dep Matrix "<<std::endl;
+		outfile<<"\n DepER "<< DepER << std::endl;
+		outfile<<"\n DepPV "<< DepPV << std::endl;
+		LOGPZ_DEBUG(logger,outfile.str());
+		
+	}
 #endif
+	
+	
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\n-------------------------- BEGINING OF TAYLORCHECK TEST FOR DSIGDEPS USING PRINCIPAL VALUES --------------------------" << endl;
 
-    deps.XX()=eps1.XX();
-    deps*=1/20.;
+		TPZManVector<REAL,3> conv;
+		deps.XX()=eps1.XX();
+		deps*=1/10.;
+		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
+		str << "\nXX:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+				
+		deps.XX()=0.;
+		deps.YY()=eps1.YY();
+		deps*=1/10.;
+		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
+		str << "\nYY:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+		
+		deps.YY()=0.;
+		deps.ZZ()=eps1.ZZ();
+		deps*=1/10.;
+		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
+		str << "\nZZ:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+		
+		deps.ZZ()=0.;
+		deps.XY()=-0.00001;
+		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
+		str << "\nXY:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+		
+		deps.XY()=0.;
+		deps.XZ()=-0.00001;
+		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
+		str << "\nXZ:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
 
-    // CheckConv do Erick
-    //ErickTaylorCheck(eps1,deps);
-    
-    PlasticStepPV.TaylorCheck(eps1, deps, k0);
-    
-    
-    deps.XX()=0;
-    deps.YY()=eps1.YY();
-    deps*=1/20.;
-    
-    PlasticStepPV.TaylorCheck(eps1, deps, k0);
-    
-    deps.YY()=0;
-    deps.ZZ()=eps1.ZZ();
-    deps*=1/20.;
-    
-    PlasticStepPV.TaylorCheck(eps1, deps, k0);
-    
-    deps.ZZ()=0;
-    deps.XY()=-0.001;
-    
-    PlasticStepPV.TaylorCheck(eps1, deps, k0);
-    
-    deps.ZZ()=0;
-    deps.YZ()=-0.001;
-    
-    PlasticStepPV.TaylorCheck(eps1, deps, k0);
-    
+		deps.XZ()=0.;
+		deps.YZ()=-0.00001;
+		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
+		str << "\nYZ:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+		
+		str << "\n-------------------------- END OF TAYLORCHECK TEST FOR DSIGDEPS USING PRINCIPAL VALUES --------------------------" << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
 }
 
 
