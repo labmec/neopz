@@ -15,12 +15,14 @@
 TPZGradient::TPZGradient(): TPZFunction<STATE>(){
     
     fCenter.Resize(3,0.);
-    fGradient.Redim(3,1);
+    fGradient.Resize(3);
     fUc=0.;
+    falphaK = 1.;
 }
 
 TPZGradient::TPZGradient(const TPZGradient &cp): TPZFunction<STATE>(cp), fCenter(cp.fCenter), fGradient(cp.fGradient){
     
     fUc = cp.fUc;
+    falphaK = cp.falphaK;
 }
 

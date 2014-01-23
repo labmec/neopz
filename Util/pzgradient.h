@@ -13,10 +13,18 @@
 
 class TPZGradient : public TPZFunction<STATE>
 {
+    //center of the element K
     TPZManVector<REAL,3> fCenter;
-    TPZFNMatrix<3,STATE> fGradient;
+    
+    //gradient estimate on the element K
+    TPZManVector<STATE,3> fGradient;
+    
+    //cell averaged value
     STATE fUc;
     
+    //Slope limiter
+    STATE falphaK;
+        
 public:
     TPZGradient();
     
@@ -25,10 +33,11 @@ public:
     ~TPZGradient() {
     }
     
-    TPZGradient &operator=(const TPZGradient &copy) {
+    TPZGradient &operator=(const TPZGradient &copy){
         fCenter = copy.fCenter;
         fGradient = copy.fGradient;
         fUc = copy.fUc;
+        falphaK = copy.falphaK;
         return *this;
 	}
     
@@ -36,13 +45,15 @@ public:
      *@brief Enter the data of the reconstruction gradient
      *@param center value of the coordinate at the center of the element
      *@param grad gradient reconstructed
-     *@param u0 value of the approximate solution (by FEM) at the center point
+     *@param u0 value of the approximate solution (by FEM) at the center point (cell averaged)
+     *@param alphak: value of the slope limiter
      */
-    void SetData(TPZManVector<REAL,3> &center, TPZFMatrix<STATE> &grad, STATE u0){
+    void SetData(TPZManVector<REAL,3> &center, TPZManVector<STATE,3> &grad, STATE u0, STATE alphak){
      
         fCenter = center;
         fGradient = grad;
         fUc = u0;
+        falphaK = alphak;
     }
     
     /*
@@ -52,13 +63,12 @@ public:
      */
     virtual void Execute(const TPZVec<REAL> &pt, TPZVec<STATE> &f){
         
-        int nr = fGradient.Rows();
-        int nc = fGradient.Cols();
-        for(int j=0; j<nc; j++){
-            f[j] = fUc;
-            for(int i = 0; i<nr; i++){
-                f[j] += (STATE)(pt[i] - fCenter[i])*fGradient(i,j);
-            }
+        int nr = fGradient.size();
+        
+        f[0] = fUc;
+        for(int i = 0; i<nr; i++)
+        {
+            f[0] += (STATE)(pt[i] - fCenter[i])*falphaK*fGradient[i];
         }
     }
     
