@@ -507,7 +507,31 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, long ind
 		if(!compEl) continue;
 		long ind = compEl->Index();
 		if(ind==indexEl){
+            //-------------------------------------------
+            TPZStack<TPZCompElSide> neighequal;
+            for(int side = compEl->Reference()->NSides()-2; side > compEl->Reference()->NCornerNodes()-1; side--)
+            {
+                TPZVec<long> subindexneigh;
+                long indneigh;
+                neighequal.Resize(0);
+                TPZCompElSide celside(compEl,side);
+                celside.EqualLevelElementList(neighequal, 0, 0);
+                
+                int nneighs = neighequal.size();
+                if(nneighs != 0)
+                {
+                    for(int i =0; i<nneighs; i++)
+                    {
+                        TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(neighequal[i].Element());
+                        if(!InterpEl || InterpEl->Dimension() == compEl->Dimension()) continue;
+                        indneigh = InterpEl->Index();
+                        InterpEl->Divide(indneigh, subindexneigh, 1);
+                    }
+                }
+            }
+            //-------------------------------------------
 			compEl->Divide(indexEl, subindex, 1);
+            break;
 		}
 	}
     
