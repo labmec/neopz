@@ -244,7 +244,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			if(ModelDimension < 3) {
-				NRefs = 10;
+				NRefs = 12;
                 MaxPOrder = 9;
 //				if(itypeel==3) MaxPOrder = 9;
 //				else MaxPOrder = 15;
@@ -462,7 +462,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	long i;
 	REAL factorGrad= 0.1;
 	REAL factorLap = 1.;
-	REAL factorError = 0.2;
+	REAL factorError = 0.4;
 	REAL factorErrorM = 0.8;
 //	if(nref>1) {
 //		factorErrorM += (nref-2)*0.03;
