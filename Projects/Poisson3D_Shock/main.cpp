@@ -142,11 +142,11 @@ bool SolveLaplaceProblemOnLShapeMesh();
 
 // Generic data for problems to solve
 bool usethreads = false;
-int MaxPOrder = 15;
-int MaxHLevel = 7;
+int MaxPOrder = 9;
+int MaxHLevel = 6;
 int MaxHUsed = 1;
 int MaxPUsed = 0;
-int NRefs = 8;
+int NRefs = 11;
 int ninitialrefs = 3;
 int itypeel;
 
@@ -227,7 +227,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 
 		/** Solving for each type of geometric elements */
 //		for(itypeel=(int)ECube;itypeel<(int)EPolygonal;itypeel++)
-		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
+		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 //		for(itypeel=(int)EOned;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
@@ -243,18 +243,6 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				gmesh = CreateGeomMesh(typeel);
 			}
 			ModelDimension = DefineDimensionOverElementType(typeel);
-			if(ModelDimension < 3) {
-				NRefs = 12;
-                MaxPOrder = 9;
-//				if(itypeel==3) MaxPOrder = 9;
-//				else MaxPOrder = 15;
-			}
-			else if(ModelDimension == 3) {
-				NRefs = 10;
-//				if(itypeel==4) MaxPOrder = 15;
-//				else
-                MaxPOrder = 9;
-			}
 			
 			// To storing number of equations and errors obtained for all iterations
 			ErrorVec.Resize(NRefs,0.0);
@@ -462,15 +450,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	long i;
 	REAL factorGrad= 0.1;
 	REAL factorLap = 1.;
-	REAL factorError = 0.4;
+	REAL factorError = 0.3;
 	REAL factorErrorM = 0.8;
-//	if(nref>1) {
-//		factorErrorM += (nref-2)*0.03;
-//	}
-//	if(2<nref)
-//		factorGrad += (nref-2)*0.05;
-//    if(factorGrad>0.9)
-//		factorGrad = 0.95;
 
 	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
 	MaxGrad = gradervecbyel[nels];
