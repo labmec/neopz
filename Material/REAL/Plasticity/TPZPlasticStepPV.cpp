@@ -93,7 +93,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			}	
 			if (IsnoZero) break;
 		}
-		
 	}
 	for (int i = 0; i < 3; i++) {
 		REAL normvec = 0.;
@@ -102,11 +101,13 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			epsegveFromProj[i](j,0) /= normvec;
 		}
 	}
+
 	
 	// ReturMap in the principal values
 	STATE nextalpha = -6378.;
 	TPZFNMatrix<9> GradSigma(3,3,0.);
 	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
+	GradSigma.Print("Grad");
 	fN.fAlpha = nextalpha;
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -115,7 +116,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
         sout << "Sig Trial " << sigtrvec << "\nSig Project " << sigprvec << std::endl;
         GradSigma.Print("GradSigma", sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
-        std::cout << "Eu nao sou louco!!!\n";
     }
 #endif
 
@@ -153,7 +153,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 					temp *= GradSigma(i,j);
 					dSigDe(l,k) += temp * DecompSig.fEigenvectors[i][l];
 				}///l
-				//dSigDe.Print("dSigdE");
 			}///j
 		}///i		
 	}///k
@@ -192,10 +191,25 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			}
 		}
 	}
-	RotCorrection.Print("RotCorr:");
+
 	dSigDe += RotCorrection;
 	
+#ifdef LOG4CXX
+	{
+		if(logger->isDebugEnabled())
+    {
+			std::stringstream str;
+			str << "\n**********************MATRIZ TANGENTE**********************" << endl;
+			dSigDe.Print("Matriz Tangente:",str);
+			str << "\n**********************CORRECAO GIRO**********************" << endl;
+			RotCorrection.Print("GiroCorrection",str);
+			LOGPZ_DEBUG(logger,str.str())
+		}
+	}
+#endif
+	
 	// Reconstruction of sigmaprTensor
+
 	DecompSig.fEigenvalues = sigprvec; // CHANGING THE EIGENVALUES FOR THE ONES OF SIGMAPR
 	sigma = TPZTensor<REAL>(DecompSig);
 	
@@ -208,7 +222,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTensor<REAL> &deps, REAL kprev)
+void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTensor<REAL> &deps, REAL kprev, TPZVec<REAL> &conv)
 {
 	TPZTensor<REAL> eps1,eps2, SigmaTemp,Sigma1,Sigma2;
 	TPZFNMatrix <36> dSigDe(6,6,0.);
@@ -229,12 +243,12 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 	fN.fEpsT.Scale(0.);
 	fN.fAlpha = kprev;
 	
-	REAL scale = 0.01;
+	REAL scale = 1.;
 	REAL alphatable[] = {0.1,0.2,0.3,0.4,0.5,0.6};
 	for (int i = 0; i < 6; i++) {
 		alphatable[i] *= scale;
 	}
-	for (int ia = 0 ; ia < 1; ia++) {
+	for (int ia = 0 ; ia < 5; ia++) {
 		REAL alpha1 = alphatable[0];
 		REAL alpha2 = alphatable[ia+1];
 		eps1.Scale(0.);
@@ -311,6 +325,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 		n = ( log(norm1) - log(norm2) ) / ( log(alpha1) - log(alpha2) );
 		coef.push_back(n);
 	}
+	conv = coef;
 	std::cout << "coef = " << coef << std::endl;
 }
 
@@ -368,8 +383,6 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
 
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>;
-
-
 
 /*
  // Correcao do giro rigido
