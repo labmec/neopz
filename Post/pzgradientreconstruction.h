@@ -76,7 +76,7 @@ class TPZGradientReconstruction
         /**@brief Method to calculate the weights that we will use in distorted meshes
          *@param paramk [in]: parameter used in the harmonic mean, equal 1 or 2
          */
-        void ComputeWeights(int paramk);
+        void ComputeWeights(REAL paramk);
         
         /**@brief Method to choose the node of the cell closer of your center point
          *@param cel [in]: computational element of the cell

@@ -951,7 +951,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
     fSlopeLimiter = alphaK;
 }
 
-void TPZGradientReconstruction::TPZGradientData::ComputeWeights(int paramk)
+void TPZGradientReconstruction::TPZGradientData::ComputeWeights(REAL paramk)
 {
     
     if(paramk<1 || paramk>2) DebugStop();
