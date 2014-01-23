@@ -72,50 +72,51 @@ int bc3=-4;
 
 
 TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly);
+TPZGeoMesh *GMesh2(REAL Lx, REAL Ly,bool triang_elements);
 
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
+TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder);
 TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial);
-TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder,bool twomaterial);
-TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial);
-TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool twomaterial);
 
-TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini,bool twomaterial);
+TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh);
 
 
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
+
 void PosProcessFlux(TPZAnalysis &an, std::string plotfile);
 
-void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area);
-void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref);
-
-void SolExata(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
-void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
-
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCompMesh* mphysics);
-TPZAutoPointer <TPZMatrix<STATE> > MassMatrixTwoMat(TPZCompMesh* mphysics);
-void MassMatrix(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matM, TPZFMatrix<STATE> &fvecM);
 
 void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec);
 
-void StiffMatrixLoadVecTwoMat(TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec);
-void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
-void SolveSystemTransientTwoMat(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+void SolveSystemTransient(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,bool ishomog);
 
 void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an);
 
 void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an, bool currentstate);
 
+void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void Permeability(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 bool ftriang = false;
 
+bool fishomog = true;
+REAL  fLx = 400.;//m
+REAL  fLy = 100.;//m
+REAL fk1 =  9.86923e-13;//m2
+REAL fk2 = fk1;//9.86923e-16;//m2
+REAL fvazaoentrada = 60.;//m3/d
+REAL fporos = 0.2;
+
+REAL fLref = fLy;
+REAL fkref = fk1;//(fk1+fk2)/2.;
+REAL fpref = 1.e7;//1.96133e7;//pa
+REAL fvisref = 1.e-3;
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -127,37 +128,28 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
-    REAL Lx = 1.;
-    REAL Ly = 1.;
+    REAL Lx = fLx/fLref;
+    REAL Ly = fLy/fLref;
     
-    int pq = 1;
+    int pq = 2;
     int pp;
-    int ps=0;
+    int ps=2;
     if(ftriang==true){
         pp = pq-1;
     }else{
         pp = pq;
     }
 
-    bool twomat = false;
-    TPZVec<REAL> pt(3);
-    pt[0] = Lx/2.;
-    pt[1] = Ly/2.;
-
-    
-    gRefDBase.InitializeUniformRefPattern(EOned);
-    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-    
-    TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
-    REAL Area;
-    //RefinamentoPadrao3x3(gmesh,1,pt, true, matId+1, Area);
-    UniformRefine(gmesh,4);
+    int h = 1;
+    //TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
+    TPZGeoMesh *gmesh = GMesh2(Lx, Ly,ftriang);
+    UniformRefine(gmesh,h);
     ofstream arg("gmesh1.txt");
     gmesh->Print(arg);
     
-    TPZCompMesh *cmesh1 = CMeshSaturation(gmesh, ps,twomat);
-    TPZCompMesh *cmesh2 = CMeshFlux(gmesh, pq,twomat);
-    TPZCompMesh *cmesh3 = CMeshPressure(gmesh, pp,twomat);
+    TPZCompMesh *cmesh1 = CMeshSaturation(gmesh, ps);
+    TPZCompMesh *cmesh2 = CMeshFlux(gmesh, pq);
+    TPZCompMesh *cmesh3 = CMeshPressure(gmesh, pp);
     
     //---------------------------------------------------------------------
     // Cleaning reference of the geometric mesh to cmesh1
@@ -205,26 +197,14 @@ int main(int argc, char *argv[])
     TPZAnalysis an0(cmesh1);
     int nrs = an0.Solution().Rows();
     TPZVec<STATE> solini(nrs,1);
-    //cmesh3->Solution() = solini;
-    //cmesh3->LoadSolution(solini);
-    TPZCompMesh  * cmeshL2 = SetCondicaoInicial(gmesh, ps, solini,twomat);
+    TPZCompMesh  * cmeshL2 = SetCondicaoInicial(gmesh, ps, solini);
     ofstream arg6("cmeshL2.txt");
     cmeshL2->Print(arg6);
     
     TPZAnalysis anL2(cmeshL2);
     SolveSyst(anL2, cmeshL2);
-   // anL2.Solution().Print("sol");
     an0.LoadSolution(anL2.Solution());
-   // an0.Solution().Print("sol_S0");
     //-----------------------------------------------------------------------
-    
-    if (twomat==true)
-    {
-        gmesh->AddInterfaceMaterial(matId,matId+1, matId); //Adicionar um material de interface associados aos elementos mat2 e mat1 do material.
-        gmesh->AddInterfaceMaterial(matId+1,matId, matId);
-        //gmesh->BuildConnectivity();
-    }
-
     
     //malha multifisica
     TPZVec<TPZCompMesh *> meshvec(3);
@@ -232,50 +212,29 @@ int main(int argc, char *argv[])
     meshvec[1] = cmesh2;
     meshvec[2] = cmesh3;
     
-    TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec,false);
-    //TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
+    TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
     ofstream arg5("cmeshmultiphysics.txt");
     mphysics->Print(arg5);
     
     ofstream arg7("gmesh3.txt");
     gmesh->Print(arg7);
     
+    REAL VolPoros = fLx*fLy*1.*fporos;
+    REAL tempoDia = VolPoros/fvazaoentrada;
+    REAL tempoSeg = tempoDia*(24.*60.*60.);
     
-//    TPZAnalysis an(mphysics);
-//    SolveSyst(an, mphysics);
-//    
-//    string plotfile("Solution_mphysics.vtk");
-//    PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+    REAL num = fkref*fpref;
+    REAL denom = fvisref*fLref*fLref;
     
-    
-//    //cmesh1->LoadReferences();
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-//    TPZAnalysis anflux(cmesh1);
-//    cmesh1->Solution().Print("");
-//    anflux.Solution().Print("");
-//    string plotfile2("sol_flux.vtk");
-//    //cmesh1->LoadSolution(meshvec[0]->Solution());
-//    PosProcessFlux(anflux, plotfile2);
-    
-    REAL deltaT = 0.01; //second
-    REAL maxTime = 1.;
-    SolveSystemTransient(deltaT, maxTime, meshvec, mphysics);
-    //SolveSystemTransientTwoMat(deltaT, maxTime, meshvec, mphysics);
+    REAL tempoAdimens = (num/denom)*tempoSeg;
+    int temp = (int)tempoAdimens;
+    REAL tD = (1.*temp + 1.);
+
+    REAL deltaX = Ly/(pow(2.,h));
+    SolveSystemTransient(deltaX,tD,meshvec, mphysics,fishomog);
     
 	return EXIT_SUCCESS;
 }
-
-
-void SolExata(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
-    
-   // REAL x = ptx[0];
-	//REAL y = ptx[1];
-    
-    sol.Resize(1, 0.);
-    flux(0,0)=0.;
-    flux(1,0)=0.;
-}
-
 
 TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
     
@@ -393,6 +352,128 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
 	return gmesh;
 }
 
+TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
+    
+    int Qnodes = 10;
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+	
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
+	
+	//indice dos nos
+	long id = 0;
+	REAL valx;
+    int nelem = Qnodes/2 - 1;
+    REAL dx = Lx/nelem;
+    int hnodes = Qnodes/2;
+    
+	for(int xi = 0; xi < hnodes; xi++)
+	{
+		valx = xi*dx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx );//coord X
+		Node[id].SetCoord(1 ,0. );//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	for(int xi = 0; xi < hnodes; xi++)
+	{
+		valx = Lx - xi*dx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx );//coord X
+		Node[id].SetCoord(1 ,Ly);//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	//indice dos elementos
+	id = 0;
+    
+    //elementos internos
+    if(triang_elements==false)
+    {
+        for(int i = 0; i< nelem; i++)
+        {
+            TopolQuad[0] = i;
+            TopolQuad[1] = i+1;
+            TopolQuad[2] = (Qnodes-2) - i;
+            TopolQuad[3] = (Qnodes-1) - i;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+            id++;
+        }
+        
+    }
+    else
+    {
+        for(int i = 0; i< nelem; i++)
+        {
+            TopolTriang[0] = i;
+            TopolTriang[1] = i+1;
+            TopolTriang[2] = (Qnodes-1) - i;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
+            id++;
+        }
+        
+        for(int i = 0; i< nelem; i++)
+        {
+            TopolTriang[0] = hnodes + i;
+            TopolTriang[1] = hnodes + (i+1);
+            TopolTriang[2] = hnodes - (i+1);
+            new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
+            id++;
+        }
+        
+    }
+    
+    //elemsentos do contorno
+    for(int i = 0; i< nelem; i++)
+    {
+        TopolLine[0] = i;
+        TopolLine[1] = i+1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+        id++;
+    }
+    
+    TopolLine[0] = TopolLine[1];
+    TopolLine[1] = TopolLine[0]+1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+    id++;
+    
+    for(int i = 0; i< nelem; i++)
+    {
+        TopolLine[0] = hnodes + i;
+        TopolLine[1] = (hnodes+1) + i ;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+        id++;
+    }
+    
+    TopolLine[0] = TopolLine[1];
+    TopolLine[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    
+    
+	gmesh->BuildConnectivity();
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Geometrica Inicial\n ";
+    //        gmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+	return gmesh;
+}
+
+
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
     for(int D = 0; D < nDiv; D++)
@@ -408,7 +489,6 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
     //	gmesh->BuildConnectivity();
 }
 
-
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
@@ -417,65 +497,12 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	material = new TPZMatPoisson3d(matId,dim);
 	TPZMaterial * mat(material);
 	material->NStateVariables();
-    
-    //    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
-    //	material->SetForcingFunction(force1);
-	
-	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-	
-    
-    ///Inserir condicao de contorno
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    
-    cmesh->InsertMaterialObject(mat);
-	cmesh->SetAllCreateFunctionsHDiv();
-    cmesh->InsertMaterialObject(BCond0);
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-    
-	cmesh->SetDefaultOrder(pOrder);
-    cmesh->SetDimModel(dim);
-	
-	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
-    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
-    //        cmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
-	
-	return cmesh;
-}
-
-TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial)
-{
-    /// criar materiais
-	int dim = 2;
-	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim);
-	TPZMaterial * mat(material);
-	material->NStateVariables();
 	
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     cmesh->InsertMaterialObject(mat);
     
-    if(twomaterial==true){
-        TPZMatPoisson3d *material2 = new TPZMatPoisson3d(matId+1,dim);
-        TPZMaterial * mat2(material2);
-        cmesh->InsertMaterialObject(mat2);
-    }
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -489,25 +516,6 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial)
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond4);
-    
-    
-    if(twomaterial==true){
-        
-        //Inserir materiais
-        std::set<int> MaterialIDs;
-        MaterialIDs.insert(matId);
-        MaterialIDs.insert(matId+1);
-        MaterialIDs.insert(bc0);
-        MaterialIDs.insert(bc1);
-        MaterialIDs.insert(bc2);
-        MaterialIDs.insert(bc3);
-        
-        cmesh->AutoBuild(MaterialIDs);
-        cmesh->AdjustBoundaryElements();
-        cmesh->CleanUpUnconnectedNodes();
-        
-        return cmesh;
-    }
     
     //Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -526,104 +534,10 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 	material = new TPZMatPoisson3d(matId,dim);
 	material->NStateVariables();
     
-    //    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
-    //	material->SetForcingFunction(force1);
-	
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    
-    ///Inserir condicao de contorno
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    
-    
-	cmesh->SetAllCreateFunctionsDiscontinuous();
-    
-    
-    cmesh->InsertMaterialObject(BCond0);
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-    
-	cmesh->SetDefaultOrder(pOrder);
-    cmesh->SetDimModel(dim);
-	
-	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
-    
-    int ncon = cmesh->NConnects();
-    for(int i=0; i<ncon; i++)
-    {
-        TPZConnect &newnod = cmesh->ConnectVec()[i];
-        //newnod.SetPressure(true);
-        newnod.SetLagrangeMultiplier(1);
-    }
-    
-    int nel = cmesh->NElements();
-    for(int i=0; i<nel; i++){
-        TPZCompEl *cel = cmesh->ElementVec()[i];
-        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
-        celdisc->SetConstC(1.);
-        celdisc->SetCenterPoint(0, 0.);
-        celdisc->SetCenterPoint(1, 0.);
-        celdisc->SetCenterPoint(2, 0.);
-        celdisc->SetTrueUseQsiEta();
-        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
-        {
-            if(ftriang==true) celdisc->SetTotalOrderShape();
-            else celdisc->SetTensorialShape();
-        }
-        
-    }
-    
-    
-#ifdef DEBUG
-    int ncel = cmesh->NElements();
-    for(int i =0; i<ncel; i++){
-        TPZCompEl * compEl = cmesh->ElementVec()[i];
-        if(!compEl) continue;
-        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
-        if(facel)DebugStop();
-        
-    }
-#endif
-    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Computacional_2 pressure\n ";
-    //        cmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str());
-    //	}
-    //#endif
-	return cmesh;
-}
-
-
-TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool twomaterial)
-{
-    /// criar materiais
-	int dim = 2;
-	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim);
-	material->NStateVariables();
-    
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDimModel(dim);
-    TPZMaterial * mat(material);
-    cmesh->InsertMaterialObject(mat);
-    
-    if(twomaterial==true){
-        TPZMatPoisson3d *material2 = new TPZMatPoisson3d(matId+1,dim);
-        TPZMaterial * mat2(material2);
-        cmesh->InsertMaterialObject(mat2);
-    }
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -683,32 +597,13 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool twomaterial)
     }
 #endif
     
-    if(twomaterial==true){
-        
-        //Inserir materiais
-        std::set<int> MaterialIDs;
-        MaterialIDs.insert(matId);
-        MaterialIDs.insert(matId+1);
-        MaterialIDs.insert(bc0);
-        MaterialIDs.insert(bc1);
-        MaterialIDs.insert(bc2);
-        MaterialIDs.insert(bc3);
-        
-        cmesh->AutoBuild(MaterialIDs);
-        cmesh->AdjustBoundaryElements();
-        cmesh->CleanUpUnconnectedNodes();
-        
-        return cmesh;
-    }
-    
-    
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
     
 	return cmesh;
 }
 
-TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial)
+TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder)
 {
 	/// criar materiais
 	int dim = 2;
@@ -729,15 +624,6 @@ TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial)
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
 	cmesh->InsertMaterialObject(mat);
-    
-    if(twomaterial==true){
-        TPZMatConvectionProblem *material2 = new TPZMatConvectionProblem(matId+1,dim);
-        TPZMaterial * mat2(material2);
-        material2->SetParameters(rho,convdir);
-        material2->SetInternalFlux(flux);
-        material2->NStateVariables();
-        cmesh->InsertMaterialObject(mat2);
-    }
     
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -772,25 +658,7 @@ TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial)
         }
     }
 	
-    if(twomaterial==true){
-        
-        //Inserir materiais
-        std::set<int> MaterialIDs;
-        MaterialIDs.insert(matId);
-        MaterialIDs.insert(matId+1);
-        MaterialIDs.insert(bc0);
-        MaterialIDs.insert(bc1);
-        MaterialIDs.insert(bc2);
-        MaterialIDs.insert(bc3);
-        
-        cmesh->AutoBuild(MaterialIDs);
-        cmesh->AdjustBoundaryElements();
-        cmesh->CleanUpUnconnectedNodes();
-        
-        return cmesh;
-    }
-
-	//Ajuste da estrutura de dados computacional
+    //Ajuste da estrutura de dados computacional
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
 	cmesh->AutoBuild();
@@ -800,33 +668,35 @@ TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder,bool twomaterial)
 
 TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     
-    
     //Creating computational mesh for multiphysic elements
 	gmesh->ResetReference();
 	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
     
     int dim =2;
     
-    REAL coefk = 1.;//[mˆ2]==[100 mD], 1 mD = 9.869233e-13 mˆ2
-    REAL coefvisc = 1.;//[Pa.s]==[0.894 cP],  1 cp = 10ˆ3 Pa.s
-    TPZVec<REAL> convdir(dim,0.);
-    convdir[0] = 1.;
-    REAL poros = 1.;
+
+    REAL visc = 1.e-3;//pa.s
+    REAL viscD = visc/fvisref;
+    
+    REAL AreaPoro = fLy*1.*fporos;
+    REAL qinDia = fvazaoentrada/AreaPoro;//m/d
+    REAL qin = qinDia/86400.;//m/s
+    REAL num = fvisref*fLref;
+    REAL denom = fkref*fpref;
+    REAL qinD = (-1.)*(qin*num/denom);
     
     REAL inflow = 1.;
     
     TPZTracerFlow *material1 = new TPZTracerFlow(matId,dim);
     
-    material1->SetPermeability(coefk);
-    material1->SetViscosity(coefvisc);
-    material1->SetPorosity(poros);
-    material1->SetConvectionDirection(convdir);
+    material1->SetViscosity(viscD);
+    material1->SetPorosity(fporos);
     
-    //funcao do lado direito da equacao do problema
-    TPZAutoPointer<TPZFunction<STATE> > forcef;
-    forcef = new TPZDummyFunction<STATE>(Forcing);
-    material1->SetForcingFunction(forcef);
-     
+    //funcao que define a permeabilidade
+    TPZAutoPointer<TPZFunction<STATE> > forcefK;
+    forcefK = new TPZDummyFunction<STATE>(Permeability);
+    material1->SetForcingFunction(forcefK);
+    
     
     TPZMaterial *mat1(material1);
     mphysics->InsertMaterialObject(mat1);
@@ -838,18 +708,23 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     TPZMaterial * BCond3;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    BCond0 = material1->CreateBC(mat1, bc0,dirichlet, val1, val2);
+    BCond0 = material1->CreateBC(mat1, bc0,neumann, val1, val2);
+    
+    val2(1,0) = 0.;//0.01019716e-3;
     BCond1 = material1->CreateBC(mat1, bc1,dirichletoutflow, val1, val2);
-    BCond2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
-    val2(0,0)=inflow;
-    BCond3 = material1->CreateBC(mat1, bc3,dirichletinflow, val1, val2);
+    
+    val2(1,0) = 0.;
+    BCond2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
+    
+    val2(0,0)= inflow;
+    val2(1,0)= qinD;
+    BCond3 = material1->CreateBC(mat1, bc3,neumanninflow, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond0);
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
-    
 
     mphysics->AutoBuild();
     mphysics->AdjustBoundaryElements();
@@ -883,119 +758,6 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     return mphysics;
 }
 
-TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, bool twomaterial){
-    
-    //Creating computational mesh for multiphysic elements
-	gmesh->ResetReference();
-	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
-    
-    int dim =2;
-    
-    REAL coefk = 1.;//9.869233e-08;//[mˆ2]==[100 mD], 1 mD = 9.869233e-13 mˆ2
-    REAL coefvisc = 1.;//0.000894;//[Pa.s]==[0.894 cP],  1 cp = 10ˆ3 Pa.s
-    TPZVec<REAL> convdir(dim,0.);
-    convdir[0] = 1.;
-    REAL poros = 1.;
-    
-    REAL vazao = -1.;//[m/s]
-    REAL inflow = 1.;
-    
-    TPZTracerFlow *material1 = new TPZTracerFlow(matId,dim);
-    
-    material1->SetPermeability(coefk);
-    material1->SetViscosity(coefvisc);
-    material1->SetPorosity(poros);
-    material1->SetConvectionDirection(convdir);
-    
-    TPZMaterial *mat1(material1);
-    mphysics->InsertMaterialObject(mat1);
-    
-    //criar segundo material
-    if(twomaterial==true){
-        TPZTracerFlow *material2 = new TPZTracerFlow(matId+1,dim);
-        material2->SetPermeability(coefk/10.);
-        material2->SetViscosity(coefvisc);
-        material2->SetPorosity(poros);
-        material2->SetConvectionDirection(convdir);
-        TPZMaterial * mat2(material2);
-        mphysics->InsertMaterialObject(mat2);
-    }
-    
-    mphysics->SetDimModel(dim);
-    
-    TPZMaterial * BCond0;
-    TPZMaterial * BCond1;
-    TPZMaterial * BCond2;
-    TPZMaterial * BCond3;
-    
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    BCond0 = material1->CreateBC(mat1, bc0,neumann, val1, val2);
-    BCond1 = material1->CreateBC(mat1, bc1,dirichletoutflow, val1, val2);
-    BCond2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
-    val2(0,0)=inflow;
-    val2(1,0)=vazao;
-    BCond3 = material1->CreateBC(mat1, bc3,neumanninflow, val1, val2);
-    
-    mphysics->SetAllCreateFunctionsMultiphysicElem();
-    mphysics->InsertMaterialObject(BCond0);
-    mphysics->InsertMaterialObject(BCond1);
-    mphysics->InsertMaterialObject(BCond2);
-    mphysics->InsertMaterialObject(BCond3);
-    
-    
-    //Inserir materiais
-     if(twomaterial==true){
-        std::set<int> MaterialIDs;
-        MaterialIDs.insert(matId);
-        MaterialIDs.insert(matId+1);
-        MaterialIDs.insert(bc0);
-        MaterialIDs.insert(bc1);
-        MaterialIDs.insert(bc2);
-        MaterialIDs.insert(bc3);
-        
-        mphysics->AutoBuild(MaterialIDs);
-        mphysics->AdjustBoundaryElements();
-        mphysics->CleanUpUnconnectedNodes();
-         
-         // Creating multiphysic elements into mphysics computational mesh
-         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
-         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
-         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-     }else
-     {
-    
-        mphysics->AutoBuild();
-        mphysics->AdjustBoundaryElements();
-        mphysics->CleanUpUnconnectedNodes();
-        
-        // Creating multiphysic elements into mphysics computational mesh
-        TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
-        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-     }
-    
-    mphysics->Reference()->ResetReference();
-    mphysics->LoadReferences();
-    
-    //criar elementos de interface
-    int nel = mphysics->ElementVec().NElements();
-    for(int el = 0; el < nel; el++)
-    {
-        TPZCompEl * compEl = mphysics->ElementVec()[el];
-        if(!compEl) continue;
-        int index = compEl ->Index();
-        if(compEl->Dimension() == mphysics->Dimension())
-        {
-            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(mphysics->ElementVec()[index]);
-            if(!InterpEl) continue;
-            InterpEl->CreateInterfaces();
-            
-        }
-    }
-
-    return mphysics;
-}
-
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {
 	//TPZBandStructMatrix full(fCmesh);
@@ -1012,7 +774,7 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 
-void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics){
+void SolveSystemTransient(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics,bool ishomog){
     
     std::string outputfile;
 	outputfile = "TransientSolution";
@@ -1022,53 +784,95 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
     std::string plotfile = outputfiletemp.str();
     
     TPZMaterial *mat = mphysics->FindMaterial(matId);
-    TPZTracerFlow * material = dynamic_cast<TPZTracerFlow *>(mat);    
-    material->SetTimeStep(deltaT);
+    TPZTracerFlow * material = dynamic_cast<TPZTracerFlow *>(mat);
 
     //inserir solucao inicial
     TPZAnalysis an(mphysics);
 	TPZFMatrix<STATE> Initialsolution = an.Solution();
     
-    //Filtrar Equacaoes da pressao-flux
-    
+//------------- Filtrar Equacaoes da pressao-flux -----------
     FilterPressureFluxEquation(material, meshvec, mphysics, an);
     an.Solve();
-    
     TPZAutoPointer< TPZMatrix<REAL> > matKPressureFlux;
 	TPZFMatrix<STATE> fvecPressureFlux;
     matKPressureFlux = an.Solver().Matrix();
     fvecPressureFlux = an.Rhs();
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
-    {
-        std::stringstream sout;
-        matKPressureFlux->Print("matKPressureFlux = ", sout,EMathematicaInput);
-        fvecPressureFlux.Print("fvecPressureFlux = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logdata,sout.str())
-    }
-#endif
+//#ifdef LOG4CXX
+//    if(logdata->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        matKPressureFlux->Print("matKPressureFlux = ", sout,EMathematicaInput);
+//        fvecPressureFlux.Print("fvecPressureFlux = ", sout,EMathematicaInput);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//    }
+//#endif
 
     //posprocessar solucao
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-    
-    
-    //Criando matriz de massa (matM)
-    //TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(material, mphysics);
-	TPZAutoPointer< TPZMatrix<REAL> > matM;
-	TPZFMatrix<STATE> fvec;
-    MassMatrix(material, mphysics, an, matM, fvec);
-    
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
-    {
-        std::stringstream sout;
-        matM->Print("matM = ", sout,EMathematicaInput);
-        fvec.Print("fvec = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logdata,sout.str())
-    }
-#endif
+    TPZFMatrix<REAL> SolutionQ = meshvec[1]->Solution();
+    TPZFMatrix<REAL> SolutionP = meshvec[2]->Solution();
 
+//--------- Calculando DeltaT maximo para a cond. CFL ------
+    int nr = SolutionQ.Rows();
+    int nc = SolutionQ.Cols();
+    REAL maxsolq = 0.;
+    REAL temp = 0.;
+    for(int ir = 0; ir<nr; ir++)
+    {
+        for(int jc = 0; jc<nc; jc++)
+        {
+            temp = SolutionQ.GetVal(ir, jc);
+            if(fabs(temp) > maxsolq) maxsolq = fabs(temp);
+        }
+    }
+    int NDt = 10;
+    REAL deltaT = 0.;
+    REAL CFL = 0.;
+    int count = 1;
+    if(fishomog==true)
+    {
+        deltaT = maxTime/NDt;
+        CFL = maxsolq*(deltaT/deltaX);
+        while (CFL > 0.1)
+        {
+            NDt = 2*NDt;
+            deltaT = maxTime/NDt;
+            CFL = maxsolq*(deltaT/deltaX);
+            count++;
+        }
+    }
+    else
+    {
+        deltaT = deltaX/(2.*maxsolq);
+        CFL = 2.*maxsolq*(deltaT/deltaX);
+        while (CFL > 0.1)
+        {
+            NDt = 2*NDt;
+            deltaT = maxTime/NDt;;
+            CFL = 2.*maxsolq*(deltaT/deltaX);
+            count++;
+        }
+    }
+    int nfile = 0;
+    if(NDt<=100) nfile = 1;
+    else nfile = int (NDt/100);
+    std::cout<<"\nNumero de passos de tempo NDt = " << NDt << " e valor DeltaT = " << deltaT << "\n ";
     
+    material->SetTimeStep(deltaT);
+    
+//------------------- Criando matriz de massa (matM) ---------------------
+    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(material, mphysics);
+//#ifdef LOG4CXX
+//    if(logdata->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        matM->Print("matM = ", sout,EMathematicaInput);
+//        fvecM.Print("fvecM = ", sout,EMathematicaInput);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//    }
+//#endif
+
     //---- Filtrar Equacaoes da saturacao ----
     //Criando matriz de rigidez (matK) e vetor de carga
     TPZAutoPointer< TPZMatrix<REAL> > matK;
@@ -1076,18 +880,19 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
     FilterSaturationEquation(material, meshvec, mphysics, an, true);
     matK = an.Solver().Matrix();
     fvecK = an.Rhs();
-    //StiffMatrixLoadVec(material, mphysics, an, matK, fvec);
-    #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
-    {
-        std::stringstream sout;
-        matK->Print("matK = ", sout,EMathematicaInput);
-        fvec.Print("fvec = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logdata,sout.str())
-    }
-    #endif
+    
+//    #ifdef LOG4CXX
+//    if(logdata->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        matK->Print("matK = ", sout,EMathematicaInput);
+//        fvecK.Print("fvecK = ", sout,EMathematicaInput);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//    }
+//    #endif
     
     
+//-------- Resolver o sistema numerico no tempo ------------------------------
 	long nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
@@ -1096,6 +901,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
 	
 	REAL TimeValue = 0.0;
 	int cent = 1;
+    
 	TimeValue = cent*deltaT;
 	while (TimeValue <= maxTime)
 	{
@@ -1103,33 +909,39 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
 		material->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-        #ifdef LOG4CXX
-                if(logdata->isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout<< " tempo = " << cent;
-                Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-                TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);
-                LOGPZ_DEBUG(logdata,sout.str())
-            }
-        #endif
+//        #ifdef LOG4CXX
+//                if(logdata->isDebugEnabled())
+//            {
+//                std::stringstream sout;
+//                sout<< " tempo = " << cent;
+//                Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
+//                TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);
+//                LOGPZ_DEBUG(logdata,sout.str())
+//            }
+//        #endif
         
-		TotalRhs = fvec + TotalRhstemp;
+		TotalRhs = fvecK + TotalRhstemp;
 		an.Rhs() = TotalRhs;
 		an.Solve();
 		Lastsolution = an.Solution();
 		
-        //if(cent%10==0){
+        if(cent%nfile==0){
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();
+            
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+            meshvec[1]->LoadSolution(SolutionQ);
+            meshvec[2]->LoadSolution(SolutionP);
             PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-        //}
+        }
 		
         cent++;
 		TimeValue = cent*deltaT;
     }
 }
+
+#include "pzfstrmatrix.h"
 
 void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an)
 {
@@ -1154,10 +966,14 @@ void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *>
     mymaterial->SetCurrentState();
     mymaterial->SetPressureEqFilter();
     TPZSkylineStructMatrix matsk(mphysics);
+    matsk.SetNumThreads(4);
+    //TPZFStructMatrix matsk(mphysics);
+    //TPZBandStructMatrix matsk(mphysics);
     matsk.EquationFilter().SetActiveEquations(active);
 	an.SetStructuralMatrix(matsk);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt);
+    //step.SetDirect(ELU);
 	an.SetSolver(step);
     an.Assemble();
 }
@@ -1173,18 +989,26 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
         int pos = mphysics->Block().Position(seqnum);
         int blocksize = mphysics->Block().Size(seqnum);
         
+        //ativar equacao. Apenas a ultima, que corresponde a funcao de base constante
+//        int vs = active.size();
+//        active.Resize(vs+blocksize);
+//        for(int ieq = 0; ieq<blocksize; ieq++)
+//        {
+//            active[vs+ieq] = pos+ieq;
+//        }
+        
         int vs = active.size();
-        active.Resize(vs+blocksize);
-        for(int ieq = 0; ieq<blocksize; ieq++)
-        {
-            active[vs+ieq] = pos+ieq;
-        }
+        active.Resize(vs+1/*blocksize*/);
+        int ieq = blocksize-1;
+        active[vs] = pos+ieq;
+
     }
     if(currentstate==true)
     {
         mymaterial->SetCurrentState();
         mymaterial->SetFalsePressureEqFilter();
         TPZSkylineStructMatrix matsk(mphysics);
+        matsk.SetNumThreads(4);
         matsk.EquationFilter().SetActiveEquations(active);
         an.SetStructuralMatrix(matsk);
         TPZStepSolver<STATE> step;
@@ -1208,160 +1032,14 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
     }
 }
 
-void SolveSystemTransientTwoMat(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics){
-	
-    TPZMaterial *mat1 = mphysics->FindMaterial(matId);
-    TPZMaterial *mat2 = mphysics->FindMaterial(matId+1);
-    TPZTracerFlow * mat12 = dynamic_cast<TPZTracerFlow *>(mat1);
-    TPZTracerFlow * mat22 = dynamic_cast<TPZTracerFlow *>(mat2);
-    
-    mat12->SetTimeStep(deltaT);
-    mat22->SetTimeStep(deltaT);
-    
-    TPZAnalysis an(mphysics);
-	TPZFMatrix<STATE> Initialsolution = an.Solution();
-    
-    std::string outputfile;
-	outputfile = "TransientSolution";
-    
-    std::stringstream outputfiletemp;
-    outputfiletemp << outputfile << ".vtk";
-    std::string plotfile = outputfiletemp.str();
-    PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-    
-    //----------- EQUATION FILTER ------------------
-    int ncon_sat = meshvec[0]->NConnects();
-    int ncon = mphysics->NConnects();
-    TPZManVector<long> active(0);
-    for(int i = ncon_sat; i<ncon; i++)
-    {
-        TPZConnect &con = mphysics->ConnectVec()[i];
-        int seqnum = con.SequenceNumber();
-        int pos = mphysics->Block().Position(seqnum);
-        int blocksize = mphysics->Block().Size(seqnum);
-        
-        int vs = active.size();
-        active.Resize(vs+blocksize);
-        for(int ieq = 0; ieq<blocksize; ieq++){
-           
-            active[vs+ieq] = pos+ieq;
-        }
-    }
-    
-    TPZAutoPointer< TPZMatrix<REAL> > matK;
-	TPZFMatrix<STATE> fvec;
-    StiffMatrixLoadVecTwoMat(mphysics, an, matK, fvec);
-    an.StructMatrix()->EquationFilter().SetActiveEquations(active);
-    an.Solve();
-    PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-    
-    #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        matK->Print("matK = ", sout,EMathematicaInput);
-        fvec.Print("fvec = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
-    //--------------------------------------------
-    
-    //Criando matriz de massa (matM)
-    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrixTwoMat(mphysics);
-    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //            std::stringstream sout;
-    //        	matM->Print("matM = ", sout,EMathematicaInput);
-    //        	LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
-    
-    //Criando matriz de rigidez (matK) e vetor de carga
-//	TPZFMatrix<STATE> matK;
-//	TPZFMatrix<STATE> fvec;
-    StiffMatrixLoadVecTwoMat(mphysics, an, matK, fvec);
-    
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//
-//        std::stringstream sout;
-//        matK.Print("matK = ", sout,EMathematicaInput);
-//        fvec.Print("fvec = ", sout,EMathematicaInput);
-//        //Print the temporal solution
-//        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-//        TPZFMatrix<REAL> Temp;
-//        TPZFMatrix<REAL> Temp2;
-//        matM->Multiply(Initialsolution,Temp);
-//        Temp.Print("Temp matM = ", sout,EMathematicaInput);
-//        LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
-    
-    
-	int nrows;
-	nrows = matM->Rows();
-	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
-	TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
-	TPZFMatrix<STATE> Lastsolution = Initialsolution;
-	
-	REAL TimeValue = 0.0;
-	int cent = 1;
-	TimeValue = cent*deltaT;
-	while (TimeValue <= maxTime)
-	{
-		// This time solution i for Transient Analytic Solution
-		matM->Multiply(Lastsolution,TotalRhstemp);
-        StiffMatrixLoadVecTwoMat(mphysics, an, matK, fvec);
-        
-        //#ifdef LOG4CXX
-        //        if(logdata->isDebugEnabled())
-        //        {
-        //            std::stringstream sout;
-        //            sout<< " tempo = " << cent;
-        //            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-        //            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);
-        //            LOGPZ_DEBUG(logdata,sout.str())
-        //        }
-        //#endif
-        
-		TotalRhs = fvec + TotalRhstemp;
-		an.Rhs() = TotalRhs;
-		an.Solve();
-		Lastsolution = an.Solution();
-		
-        if(cent%1==0){
-            std::stringstream outputfiletemp;
-            outputfiletemp << outputfile << ".vtk";
-            std::string plotfile = outputfiletemp.str();
-            PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-        }
-		
-        cent++;
-		TimeValue = cent*deltaT;
-        
-        //        if(cent == 100){
-        //            deltaT = 1000*deltaT;
-        //            mat12->SetTimeStep(deltaT);
-        //            mat22->SetTimeStep(deltaT);
-        //mphysics->Solution().Zero();
-        //matM = MassMatrix(mphysics);
-        //StiffMatrixLoadVec(mphysics, an, matK, fvec);
-        
-        //}
-	}
-}
-
-
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(2), vecnames(2);
+    //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+	TPZManVector<std::string,10> scalnames(3), vecnames(2);
 	
     scalnames[0] = "Saturation";
     scalnames[1] = "Pressure";
+    scalnames[2] = "DivFlux";
     vecnames[0]  = "Flux";
     vecnames[1] = "SaturationFlux";
     
@@ -1392,35 +1070,44 @@ void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     //double y = pt[1];
     if(x<0)disp[0] = 1.;
     if(x>0)disp[0] = 0.;
-    
 }
 
-void MassMatrix(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matM, TPZFMatrix<STATE> &fvecM){
-    
-    mymaterial->SetLastState();
-    mymaterial->SetFalsePressureEqFilter();
-    TPZSkylineNSymStructMatrix matsk(mphysics);
-    an.SetStructuralMatrix(matsk);
-    
-    //matsk.SetNumThreads(30);
-	TPZStepSolver<STATE> step;
-	step.SetDirect(ELDLt);
-	//step.SetDirect(ELU);
-	an.SetSolver(step);
-	
-    an.Assemble();
-	
-	fvecM = an.Rhs();
-    matM = an.Solver().Matrix();
-}
 
+void Permeability(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
+{
+	double x = pt[0];
+    double y = pt[1];
+    
+    REAL k1D = fk1/fkref;
+    REAL k2D = fk2/fkref;
+    
+    REAL LyD = fLy/fLref;
+    REAL LxD = fLx/fLref;
+    
+    REAL dx = LxD/(8.);
+    REAL dy = LyD/(8.);
+    
+   
+    
+    //disp[0] = k1;
+    if((x>= dx && x<=2.*dx) && (y>= 4.*dy && y<=LyD))
+    {
+        disp[0] = k2D;
+    }
+    else if ((x>= 6.*dx && x<=7.*dx) && (y>= 0. && y<= 4.*dy))
+    {
+        disp[0] = k2D;
+    }
+    else disp[0] = k1D;
+}
 
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCompMesh* mphysics){
     
     mymaterial->SetLastState();
+    mymaterial->SetFalsePressureEqFilter();
     TPZSkylineNSymStructMatrix matsp(mphysics);
 	//TPZSpStructMatrix matsp(mphysics);
-    //matsp.SetNumThreads(30);
+    matsp.SetNumThreads(4);
     
 	std::set< int > materialid;
 	int matid = mymaterial->MatId();
@@ -1434,34 +1121,6 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCom
     
     return matK2;
 }
-
-TPZAutoPointer <TPZMatrix<STATE> > MassMatrixTwoMat(TPZCompMesh* mphysics){
-    
-    TPZMaterial * mat1 = mphysics->FindMaterial(matId);
-    TPZMaterial * mat2 = mphysics->FindMaterial(matId+1);
-    
-    TPZTracerFlow * mat12 = dynamic_cast<TPZTracerFlow *>(mat1);
-    TPZTracerFlow * mat22 = dynamic_cast<TPZTracerFlow *>(mat2);
-    
-    mat12->SetLastState();
-    mat22->SetLastState();
-    
-    TPZSkylineNSymStructMatrix matsp(mphysics);
-	//TPZSpStructMatrix matsp(mphysics);
-    matsp.SetNumThreads(30);
-	std::set< int > materialid;
-	materialid.insert(matId);
-    materialid.insert(matId+1);
-	matsp.SetMaterialIds (materialid);
-	TPZAutoPointer<TPZGuiInterface> guiInterface;
-	TPZFMatrix<STATE> Un;
-    //TPZMatrix<REAL> *matK2 = matsp.CreateAssemble(Un,guiInterface);
-    
-    TPZAutoPointer <TPZMatrix<STATE> > matK2 = matsp.CreateAssemble(Un,guiInterface);
-    
-    return matK2;
-}
-
 
 void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec){
     
@@ -1483,42 +1142,7 @@ void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAna
 
 }
 
-void StiffMatrixLoadVecTwoMat(TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec){
-    
-	TPZMaterial * mat1 = mphysics->FindMaterial(matId);
-    TPZMaterial * mat2 = mphysics->FindMaterial(matId+1);
-    
-    TPZTracerFlow * mat12 = dynamic_cast<TPZTracerFlow *>(mat1);
-    TPZTracerFlow * mat22 = dynamic_cast<TPZTracerFlow *>(mat2);
-    
-	mat12->SetCurrentState();
-    mat22->SetCurrentState();
-    
-    //TPZFStructMatrix matsk(mphysics);
-    TPZSkylineStructMatrix matsk(mphysics);
-	an.SetStructuralMatrix(matsk);
-    //matsk.SetNumThreads(30);
-	TPZStepSolver<STATE> step;
-	step.SetDirect(ELDLt);
-	//step.SetDirect(ELU);
-	an.SetSolver(step);
-	
-    //an.Run();
-    an.Assemble();
-	//matK1 = an.StructMatrix();
-	fvec = an.Rhs();
-    matK1 = an.Solver().Matrix();
-    
-    
-    //    TPZBandStructMatrix full(cmesh);
-    //    an.SetStructuralMatrix(full);
-    //    TPZStepSolver step;
-    //    step.SetDirect(ELU);
-    //    an.SetSolver(step);
-}
-
-
-TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini, bool twomaterial)
+TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 {
     /// criar materiais
 	int dim = 2;
@@ -1533,230 +1157,13 @@ TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &so
     TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial);
     material->SetForcingFunction(forcef);
     
-    if(twomaterial==true){
-        TPZL2Projection *material2 = new TPZL2Projection(matId+1,dim, 1, solini, pOrder);
-        TPZMaterial * mat2(material2);
-        material2->SetForcingFunction(forcef);
-        cmesh->InsertMaterialObject(mat2);
-    }
-
-    
 	cmesh->SetAllCreateFunctionsDiscontinuous();
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
-    if(twomaterial==true){
-        
-        //Inserir materiais
-        std::set<int> MaterialIDs;
-        MaterialIDs.insert(matId);
-        MaterialIDs.insert(matId+1);
-        
-        cmesh->AutoBuild(MaterialIDs);
-        
-        return cmesh;
-    }
-    
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
     
 	return cmesh;
-
-    
-	
-	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
-    //TPZCompElDisc::SetTotalOrderShape(cmesh);
-	return cmesh;
 }
-
-
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    REAL const Pi = 4.*atan(1.);
-	double x = pt[0];
-    double y = pt[1];
-    disp[0]= 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);
-}
-
-void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref){
-    
-    {//NAO APAGAR!!!
-        char buf[] =
-        "16 10 "
-        "-50 Qua000022224 "
-        "-1 -1 0 "
-        "1 -1 0 "
-        "1 1 0  "
-        "-1 1 0 "
-        "-0.33333 -1 0  "
-        "+0.33333 -1 0  "
-        "+1 -0.33333 0  "
-        "+1 +0.33333 0  "
-        "+0.33333 +1 0  "
-        "-0.33333 +1 0  "
-        "-1 +0.33333 0  "
-        "-1 -0.33333 0  "
-        "-0.33333 -0.33333 0    "
-        "+0.33333 -0.33333 0    "
-        "+0.33333 +0.33333 0    "
-        "-0.33333 +0.33333 0    "
-        "3 4 0  1  2  3 "
-        "3 4 0 4 12 11  "
-        "3 4 4 5 13 12  "
-        "3 4 5 1 6 13   "
-        "3 4 11 12 15 10    "
-        "3 4 12 13 14 15    "
-        "3 4 13 6 7 14  "
-        "3 4 10 15 9 3  "
-        "3 4 15 14 8 9  "
-        "3 4 14 7 2 8   ";
-        std::istringstream str(buf);
-        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
-        refp->GenerateSideRefPatterns();
-        gRefDBase.InsertRefPattern(refp);
-        if(!refp)
-        {
-            DebugStop();
-        }
-    }
-    
-    TPZAutoPointer<TPZRefPattern> refp2D = gRefDBase.FindRefPattern("Qua000022224");
-    //TPZAutoPointer<TPZRefPattern> refp1D = gRefDBase.FindRefPattern("Lin000022224");
-    
-    if(!refp2D) DebugStop();
-    
-    TPZGeoEl * gel = NULL;
-    for(int r = 0; r < nref; r++)
-    {
-        int nels = gmesh->NElements();
-        for(int iel = 0; iel < nels; iel++)
-        {
-            gel = gmesh->ElementVec()[iel];
-            if(!gel) DebugStop();
-            if(gel->Dimension()==2)
-            {
-                gel->SetRefPattern(refp2D);
-                TPZVec<TPZGeoEl*> sons;
-                gel->Divide(sons);
-            }
-            if(gel->Dimension()==1)
-            {
-                TPZAutoPointer<TPZRefPattern> refp1D = TPZRefPatternTools::PerfectMatchRefPattern(gel);
-                if(refp1D)
-                {
-                    gel->SetRefPattern(refp1D);
-                    TPZVec<TPZGeoEl*> sons;
-                    gel->Divide(sons);
-                }
-                else{
-                    DebugStop();//nao conseguiu refinar elementos 1D baseados no refp do pai
-                }
-            }
-            
-        }
-    }
-    
-    std::ofstream malhaOut("malhaOut.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
-}
-
-void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool changeMatId, int newmatId, REAL &Area){
-    
-    {//NAO APAGAR!!!
-        char buf[] =
-        "16 10 "
-        "-50 Qua000022224 "
-        "-1 -1 0 "
-        "1 -1 0 "
-        "1 1 0  "
-        "-1 1 0 "
-        "-0.33333 -1 0  "
-        "+0.33333 -1 0  "
-        "+1 -0.33333 0  "
-        "+1 +0.33333 0  "
-        "+0.33333 +1 0  "
-        "-0.33333 +1 0  "
-        "-1 +0.33333 0  "
-        "-1 -0.33333 0  "
-        "-0.33333 -0.33333 0    "
-        "+0.33333 -0.33333 0    "
-        "+0.33333 +0.33333 0    "
-        "-0.33333 +0.33333 0    "
-        "3 4 0  1  2  3 "
-        "3 4 0 4 12 11  "
-        "3 4 4 5 13 12  "
-        "3 4 5 1 6 13   "
-        "3 4 11 12 15 10    "
-        "3 4 12 13 14 15    "
-        "3 4 13 6 7 14  "
-        "3 4 10 15 9 3  "
-        "3 4 15 14 8 9  "
-        "3 4 14 7 2 8   ";
-        std::istringstream str(buf);
-        TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(str);
-        refp->GenerateSideRefPatterns();
-        gRefDBase.InsertRefPattern(refp);
-        if(!refp)
-        {
-            DebugStop();
-        }
-    }
-
-    
-    TPZAutoPointer<TPZRefPattern> refpOutroLugar = gRefDBase.FindRefPattern("Qua000022224");
-    if(!refpOutroLugar) DebugStop();
-    
-    long iniEl = 0;
-    TPZVec<REAL> qsi(2,0.);
-    
-    TPZGeoEl * gel = NULL;
-    for(int r = 0; r < nref; r++)
-    {
-        gel = gmesh->FindElement(pt, qsi, iniEl,2);
-        if(!gel) DebugStop();
-        if(gel->Dimension()==2)
-        {
-            gel->SetRefPattern(refpOutroLugar);
-            TPZVec<TPZGeoEl*> sons;
-            gel->Divide(sons);
-            for(int edg = gel->NNodes(); edg < gel->NSides(); edg++)
-            {
-                TPZGeoElSide gelS(gel,edg);
-                if(gelS.Dimension() > 1)
-                {
-                    break;
-                }
-                TPZGeoElSide neighS(gelS.Neighbour());
-                while(neighS != gelS)
-                {
-                    if(neighS.Element()->Dimension() == 1)
-                    {
-                        TPZAutoPointer<TPZRefPattern> refp = gel->GetRefPattern();
-                        TPZAutoPointer<TPZRefPattern> refp2 = refp->SideRefPattern(gelS.Side());
-                        if(refp2)
-                        {
-                            TPZGeoEl * gel1D = neighS.Element();
-                            gel1D->SetRefPattern(refp2);
-                            TPZVec<TPZGeoEl*> sons2;
-                            gel1D->Divide(sons2);
-                        }
-                    }
-                    neighS = neighS.Neighbour();
-                }
-            }
-        }
-    }
-    
-    if(changeMatId==true)
-    {
-        gel = gmesh->FindElement(pt, qsi, iniEl,2);
-        if(!gel) DebugStop();
-        gel->SetMaterialId(newmatId);
-        Area = gel->Volume();
-    }
-    
-    std::ofstream malhaOut("malhaOut2.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
-}
-
