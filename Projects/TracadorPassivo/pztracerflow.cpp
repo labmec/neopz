@@ -161,6 +161,12 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     {
         if (fPressureEquationFilter == true)
         {
+            if(fForcingFunction) {
+                TPZManVector<STATE> res(1);
+                fForcingFunction->Execute(datavec[1].x,res);
+                fk = res[0];
+            }
+            
             //Calculate the matrix contribution for flux. Matrix A
             REAL ratiok = fVisc/fk;
             for(int iq=0; iq<phrQ; iq++)
@@ -211,11 +217,11 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
             //Right side of the pressure equation
             REAL fXfLocP = fxfPQ;
-            if(fForcingFunction) {
-                TPZManVector<STATE> res(1);
-                fForcingFunction->Execute(datavec[2].x,res);
-                fXfLocP = res[0];
-            }
+//            if(fForcingFunction) {
+//                TPZManVector<STATE> res(1);
+//                fForcingFunction->Execute(datavec[2].x,res);
+//                fXfLocP = res[0];
+//            }
             for(int ip=0; ip<phrP; ip++){
                 ef(phrS+phrQ+ip,0) += (-1.)*weight*fXfLocP*phiP(ip,0);
             }
@@ -451,10 +457,15 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 
 void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-    if(gState == ECurrentState){
+    if(gState == ELastState){
 		return;
 	}
     
+    if (fPressureEquationFilter == true)
+    {
+        return;
+    }
+
     
     TPZFMatrix<REAL> &phiL = dataleft[0].phi;
 	TPZManVector<REAL,3> &normal = data.normal;
@@ -583,6 +594,7 @@ int TPZTracerFlow::VariableIndex(const std::string &name)
     if(!strcmp("Pressure",name.c_str()))            return  2;
 	if(!strcmp("Saturation",name.c_str()))          return  3;
 	if(!strcmp("SaturationFlux",name.c_str()))      return  4;
+    if(!strcmp("DivFlux",name.c_str()))      return  5;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -592,6 +604,7 @@ int TPZTracerFlow::NSolutionVariables(int var){
 	if(var == 2) return 1;
     if(var == 3) return 1;
     if(var == 4) return fDim;
+    if(var == 5) return 1;
 	
 	return TPZMaterial::NSolutionVariables(var);
 }
@@ -624,6 +637,12 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
 		}
 		return;
 	}
+    
+    if(var==5){
+        Solout[0]=datavec[1].dsol[0](0,0)+datavec[1].dsol[0](1,1);
+        return;
+    }
+
 }
 
 void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
