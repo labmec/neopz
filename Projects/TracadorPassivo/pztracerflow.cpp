@@ -302,7 +302,7 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
 #endif
 	
 	TPZFMatrix<REAL>  &phiQ = datavec[1].phi;
-	int phrQ = datavec[1].fVecShapeIndex.NElements();
+	int phrQ = phiQ.Rows();//datavec[1].fVecShapeIndex.NElements();
     int phrS = datavec[0].phi.Rows();
     
 	REAL v2;
