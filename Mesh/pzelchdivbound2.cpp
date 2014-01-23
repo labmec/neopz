@@ -372,7 +372,7 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
-    data.fShapeType = TPZMaterialData::EVecShape;
+    data.fShapeType = TPZMaterialData::EScalarShape;
 	
 #ifdef LOG4CXX
 	{
