@@ -25,7 +25,7 @@
 #include "pzstepsolver.h"
 #include "TPZElasticResponse.h"
 #include "tpzautopointer.h"
-#include "TPZTimer.h"
+#include "TPZTimer.h" 
 
 #include "TPZYCMohrCoulombPV.h"
 #include "pzsandlerextPV.h"
@@ -63,6 +63,7 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
 int main()
 {
+	InitializePZLOG();
 //	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 //	TPZElasticResponse ER;
 //	ER.SetUp(1000, 0.25);
@@ -88,7 +89,19 @@ int main()
 //	MohrCoulombPV->ComputeApexTangent(tang, epsbarfake);
 //	tang.Print("tang:");
 //	std::cout << "sigprojfad = " << sigprojfad << std::endl;
-	DepPlasticPV();
+	
+	TPZTensor<REAL> teste;
+	teste.XX() = 2.;
+	teste.YY() = 3.;
+	teste.ZZ() = 2.;
+	teste.YZ() = 0.;
+	
+	TPZTensor<REAL>::TPZDecomposed decomp;
+	teste.EigenSystem(decomp);
+	
+	
+	
+	DepPlasticPVMC();
 //	TaylorCheck();
 //	TaylorCheck2();
 //	TaylorCheck3();	
@@ -124,7 +137,8 @@ void DepPlasticPV()
 //    deps.XZ() = 0.63 * 0.00002;
 //	deps.YZ() = 0.64686 * 0.00001;
 	TPZFNMatrix<36> Dep(6,6,0.);
-	stepPV.TaylorCheck(eps, deps, kprev);
+	TPZManVector<REAL,5> conv;
+	stepPV.TaylorCheck(eps, deps, kprev,conv);
 	//stepPV.ApplyStrainComputeDep(eps, sigma, Dep); 	
 	Dep.Print("Dep:");
 }
@@ -143,20 +157,69 @@ void DepPlasticPVMC()
 	stepPV.fER = ER;
 	
 	TPZTensor<REAL> eps, deps;
-	eps.XX() = -0.001;
-	eps.YY() = -0.8;
-	eps.ZZ() = -0.05;
-	eps.XY() = 0.01;
-	//	eps.XZ() = -24. * 0.001;
-	//	eps.YZ() = -65. * 0.001;
-	deps.XX() = 0.0001;
-	deps.YY() = 0.0003;
-	deps.ZZ() = 0.0002;
-	//deps.XY() = -0.002;
-		deps.XZ() = 0.63686 * 0.0001;
-	//	deps.YZ() = 0.64686 * 0.0001;
 	REAL kprev = 0.;
-	stepPV.TaylorCheck(eps, deps,kprev); 	
+	eps.XX() = -0.01;
+	eps.YY() = -0.01;
+	eps.ZZ() = -0.8;
+	//eps.XY() = 0.01;
+	//eps.XZ() = -24. * 0.001;
+	//eps.YZ() = -65. * 0.001;
+#ifdef LOG4CXX
+	{
+		std::stringstream str;
+		str << "\n-------------------------- BEGINING OF TAYLORCHECK TEST USING PRINCIPAL VALUES --------------------------" << endl;
+		
+		TPZManVector<REAL,5> conv;
+		deps.XX() = eps.XX();
+		deps *= 1/20;
+		stepPV.TaylorCheck(eps, deps, kprev, conv);
+		str << "\nXX:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+		
+		deps.XX() = 0.;
+		deps.YY() = eps.YY();
+		deps *= 1/20.;
+		stepPV.TaylorCheck(eps, deps, kprev, conv);
+		str << "\nYY:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+
+		deps.YY() = 0.;
+		deps.ZZ() = eps.ZZ();
+		deps *= 1/20.;
+		stepPV.TaylorCheck(eps, deps, kprev, conv);
+		str << "\nZZ:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+
+		deps.ZZ() = 0.;
+		deps.XY() = -0.001;
+		stepPV.TaylorCheck(eps, deps, kprev, conv);
+		str << "\nXY:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+
+		deps.XY() = 0.;
+		deps.XZ() = -0.001;
+		stepPV.TaylorCheck(eps, deps, kprev, conv);
+		str << "\nXZ:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+
+		deps.XZ() = 0.;
+		deps.YZ() = -0.001;
+		stepPV.TaylorCheck(eps, deps, kprev, conv);
+		str << "\nYZ:" << endl;
+		deps.Print(str);
+		str << "conv = " << conv << endl;
+		
+		str << "\n-------------------------- END OF TAYLORCHECK TEST USING PRINCIPAL VALUES --------------------------" << endl;
+		LOGPZ_DEBUG(logger,str.str())
+	}
+#endif
+	
+	
 	
 
 //	TPZTensor<REAL> eps, sigma;
