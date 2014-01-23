@@ -295,7 +295,7 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     center.Resize(3, 0.);
     solalfa.Resize(nstates,0.0);
 	TPZManVector<REAL> centerpsi(3,0.0), centerbeta(3,0.0);
-    TPZManVector<STATE> solbeta(nstates,0.0);;
+    TPZManVector<STATE> solbeta(nstates,0.0);
 	
 	TPZFMatrix<STATE> A(dim,dim);  // Linear System matrix
 	grad.Redim(dim,1);
