@@ -27,6 +27,8 @@
 #include "pzstrmatrix.h"
 #include "pzstepsolver.h"
 
+#include "pzgengrid.h"
+
 #include "pzlog.h"
 
 #include <iostream>
@@ -38,6 +40,7 @@ int const bc0=-1;
 int const bc1=-2;
 int const bc2=-3;
 int const bc3=-4;
+int const bc4=-5;
 
 int const dirichlet =0;
 int const neumann = 1;
@@ -45,6 +48,8 @@ int const neumann = 1;
 REAL const Pi = 4.*atan(1.);
 
 TPZGeoMesh *GMesh(bool triang_elements);
+TPZGeoMesh *GMesh2(bool triang_elements);
+
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial);
@@ -67,7 +72,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
 const bool triang = true;
-const int teste = 1;
+const int teste = 3;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -75,7 +80,7 @@ int main(int argc, char *argv[])
 //	InitializePZLOG("../logmixedproblem.cfg");
     InitializePZLOG();
 #endif
-	gRefDBase.InitializeAllUniformRefPatterns();
+    gRefDBase.InitializeAllUniformRefPatterns();
     
     TPZVec<REAL> erros;
     ofstream arg12("Erro.txt");
@@ -89,7 +94,15 @@ int main(int argc, char *argv[])
             //primeira malha
 
             // geometric mesh (initial)
-            TPZGeoMesh * gmesh = GMesh(triang);
+	    TPZGeoMesh *gmesh = 0;
+	    if(teste == 1 || teste == 2)
+	    {
+		gmesh = GMesh(triang);
+	    }
+	    else if(teste == 3)
+	    {
+	      gmesh = GMesh2(triang);
+	    }
             //UniformRefine(gmesh,h);
             // ofstream arg1("gmesh_inicial.txt");
             // gmesh->Print(arg1);
@@ -100,6 +113,16 @@ int main(int argc, char *argv[])
             //ofstream arg2("cmesh1_inicial.txt");
             //cmesh1->Print(arg2);
 
+#ifdef LOG4CXX
+						if(logdata->isDebugEnabled())
+						{
+							std::stringstream sout;
+							sout << "Flux mesh\n";
+							cmesh1->Print(sout);
+							LOGPZ_DEBUG(logdata,sout.str())
+							
+						}
+#endif
 
             // Second computational mesh
             TPZCompMesh * cmesh2;
@@ -109,7 +132,16 @@ int main(int argc, char *argv[])
             else cmesh2 = CMeshPressure(gmesh, p);
             // ofstream arg3("cmesh2_inicial.txt");
             // cmesh2->Print(arg3);
-
+#ifdef LOG4CXX
+						if(logdata->isDebugEnabled())
+						{
+							std::stringstream sout;
+							sout << "Pressure mesh\n";
+							cmesh2->Print(sout);
+							LOGPZ_DEBUG(logdata,sout.str())
+							
+						}
+#endif
 
             // Cleaning reference of the geometric mesh to cmesh1
             gmesh->ResetReference();
@@ -134,6 +166,16 @@ int main(int argc, char *argv[])
             TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
 //            ofstream arg6("mphysic.txt");
 //            mphysics->Print(arg6);
+#ifdef LOG4CXX
+						if(logdata->isDebugEnabled())
+						{
+							std::stringstream sout;
+							sout << "Multiphysics mesh\n";
+							mphysics->Print(sout);
+							LOGPZ_DEBUG(logdata,sout.str())
+							
+						}
+#endif
 
 //            ofstream arg7("gmesh_Final.txt");
 //            gmesh->Print(arg7);
@@ -315,6 +357,40 @@ TPZGeoMesh *GMesh(bool triang_elements){
 	return gmesh;
 }
 
+TPZGeoMesh *GMesh2(bool triang_elements){
+    TPZManVector<int,2> nx(2,2);
+		nx[1] = 1;
+    TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
+    x0[0] = -1.;
+    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    if(triang_elements)
+    {
+      gengrid.SetElementType(1);
+    }
+    gengrid.Read(gmesh);
+    gengrid.SetBC(gmesh,5,-2);
+    gengrid.SetBC(gmesh,6,-3);
+    gengrid.SetBC(gmesh,7,-4);
+    TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
+    firstpoint[0] = -1.;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,-5);
+    firstpoint = secondpoint;
+    secondpoint[0] = 1.;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,-1);
+#ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+      std::stringstream sout;
+      gmesh->Print(sout);
+      LOGPZ_DEBUG(logdata,sout.str())
+    }
+#endif
+    
+    return gmesh;
+}
+
+
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
     for(int D = 0; D < nDiv; D++)
@@ -352,6 +428,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(mat);
 	cmesh->SetAllCreateFunctionsHDiv();
@@ -359,6 +436,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
@@ -401,7 +479,8 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    
+    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+   
     
 	cmesh->SetAllCreateFunctionsDiscontinuous();
     
@@ -410,6 +489,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
@@ -495,6 +575,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZMaterial * BCond1;
     TPZMaterial * BCond2;
     TPZMaterial * BCond3;
+    TPZMaterial * BCond4;
     
     TPZAutoPointer<TPZFunction<STATE> > solExata;
     if(teste==1){
@@ -523,6 +604,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = mymaterial->CreateBC(mat, bc1,dirichlet, val11, val21);
         BCond3 = mymaterial->CreateBC(mat, bc3,dirichlet, val11, val21);
+        BCond4 = mymaterial->CreateBC(mat, bc4,dirichlet, val11, val21);
         
         //BCond0->SetForcingFunction(fCC0);
     }else{
@@ -534,6 +616,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         TPZFMatrix<STATE> val11(2,2,0.), val21(2,1,0.);
         BCond1 = mymaterial->CreateBC(mat, bc1,neumann, val11, val21);
         BCond3 = mymaterial->CreateBC(mat, bc3,neumann, val11, val21);
+        BCond4 = mymaterial->CreateBC(mat, bc4,neumann, val11, val21);
         
         //BCond1->SetForcingFunction(fCC23);
         //BCond3->SetForcingFunction(fCC23);
@@ -544,6 +627,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
+    mphysics->InsertMaterialObject(BCond4);
     
     mphysics->AutoBuild();
 	mphysics->AdjustBoundaryElements();
