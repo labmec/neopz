@@ -146,8 +146,8 @@ int MaxPOrder = 9;
 int MaxHLevel = 7;
 int MaxHUsed = 1;
 int MaxPUsed = 0;
-int NRefs = 12;
-int ninitialrefs = 3;
+int NRefs = 7;
+int ninitialrefs = 2;
 int itypeel;
 
 long MaxEquations = 2000000;
@@ -167,6 +167,7 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquati
 void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out = std::cout);
 
 void AdjustingOrder(TPZCompMesh *cmesh);
+int MaxLevelReached(TPZCompMesh *cmesh);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
@@ -430,35 +431,20 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i, ii;
-	bool hused = false;
-	REAL factorGrad= 0.5;
-	REAL factorError = 0.3;
-	REAL factorErrorM = 0.8;
+	REAL factorGrad= 0.3;
+	REAL factorError = 0.4;
+	REAL factorErrorM = 0.7;
 	REAL LaplacianLimit = 3.;
-
 	MaxGrad = gradervecbyel[nels];
-	if(MaxGrad > 50) MaxGrad = 50;
-	if(MaxErrorByElement > 0.1) MaxErrorByElement = 0.1;
-	// Determining which level is (alcanzado)
-	for(i=0L;i<nels;i++) {
-		TPZCompEl *cel = cmesh->ElementVec()[i];
-		if(!cel || cel->Dimension()!=cmesh->Dimension()) continue;
-		if(cel->Reference()->Level() > MaxHLevel) {
-			hused = true;
-			break;
-		}
-	}
-
-	if(hused && factorError < factorErrorM)
-		factorError += 0.1;
-	if(!hused && nref>1 && factorGrad < 0.8)
-		factorGrad += 0.1;
-	cout << "\n\nfacGrad " << factorGrad << "   facErr " << factorError << "\n\n";
+	if(MaxGrad > 500.) MaxGrad = 500.;
+	int MaxLevel = MaxLevelReached(cmesh);
+	cout << "\n\n MaxGrad " << MaxGrad << "\n\n";
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
-		subels.Resize(0);
+		bool hused = false;
 		bool pused = false;
+		subels.Resize(0);
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
@@ -468,32 +454,38 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
         pelement++;
 		LaplacianValue = Laplacian(el);
-		if(!hused) {
-			if(gradervecbyel[i] > factorGrad*MaxGrad || ervecbyel[i] > factorErrorM*MaxErrorByElement) {
-				counterreftype[2]++;
+		if(MaxLevel < MaxHLevel) {
+			if((gradervecbyel[i] > factorGrad*MaxGrad || ervecbyel[i] > factorErrorM*MaxErrorByElement || gradervecbyel[i] > 5.) && level < MaxHLevel) {
+				counterreftype[10]++;
+				hused = true;
 				el->Divide(index,subels);
 				level++;
-//				if(gradervecbyel[i] > factorGrad*MaxGrad && level < MaxHLevel) {
-//					level++;
-//					for(ii=0;ii<subels.NElements();ii++) {
-//						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
-//					}
-//					counterreftype[3]++;
-//				}
+				if(((gradervecbyel[i] > 5. || gradervecbyel[i] > factorGrad*MaxGrad) && ervecbyel[i] > factorErrorM*MaxErrorByElement) && level < MaxHLevel) {
+					level++;
+					for(ii=0;ii<subels.NElements();ii++) {
+						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
+					}
+					counterreftype[12]++;
+				}
 			}
 		}
 		else {
 			if((ervecbyel[i] > factorError*MaxErrorByElement || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
-				counterreftype[10]++;
+				counterreftype[20]++;
 			}
-			else
-				counterreftype[11]++;
+			if(gradervecbyel[i] > factorGrad*MaxGrad && ervecbyel[i] > factorErrorM*MaxErrorByElement && level < MaxHLevel) {
+				counterreftype[22]++;
+				el->Divide(index,subels);
+				hused = true;
+				level++;
+			}
+			counterreftype[25]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
-		if(!hused)
+		if(hused)
 			MaxHUsed = (level > MaxHUsed) ? level : MaxHUsed;
 	}
 	cmesh->ExpandSolution();
@@ -501,6 +493,18 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	// Printing information stored
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
+}
+
+int MaxLevelReached(TPZCompMesh *cmesh) {
+	int levelreached = 0, level;
+	TPZCompEl *el = 0;
+	for(int i=0;i<cmesh->NElements();i++) {
+		el = cmesh->ElementVec()[i];
+		if(!el || el->Dimension() != cmesh->Dimension()) continue;
+		level = el->Reference()->Level();
+		levelreached = (level > levelreached) ? level : levelreached; 
+	}
+	return levelreached;
 }
 
 /*void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
