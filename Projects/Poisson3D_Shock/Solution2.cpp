@@ -273,7 +273,7 @@ STATE GradientNorm(TPZInterpolatedElement *el) {
 	return Grad;
 }
 STATE Laplacian(TPZInterpolatedElement *el) {
-	REAL Laplacian;
+	REAL Laplacian = 0.0;
 	if(!el) return false;
 	int nstates = el->Material()->NStateVariables();
     int dim = el->Dimension(), i, idsol;

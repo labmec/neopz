@@ -143,10 +143,10 @@ bool SolveLaplaceProblemOnLShapeMesh();
 // Generic data for problems to solve
 bool usethreads = false;
 int MaxPOrder = 9;
-int MaxHLevel = 6;
+int MaxHLevel = 7;
 int MaxHUsed = 1;
 int MaxPUsed = 0;
-int NRefs = 11;
+int NRefs = 12;
 int ninitialrefs = 3;
 int itypeel;
 
@@ -430,24 +430,30 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i, ii;
+	bool hused = false;
 	REAL factorGrad= 0.5;
-	REAL factorError = 0.25;
+	REAL factorError = 0.3;
 	REAL factorErrorM = 0.8;
-	REAL LaplacianLimit = 10.;
+	REAL LaplacianLimit = 3.;
 
 	MaxGrad = gradervecbyel[nels];
-	if(MaxGrad > 10) MaxGrad = 10;
-	if(MaxErrorByElement > 0.001) MaxErrorByElement = 0.001;
-	bool hused = false;
+	if(MaxGrad > 50) MaxGrad = 50;
+	if(MaxErrorByElement > 0.1) MaxErrorByElement = 0.1;
 	// Determining which level is (alcanzado)
 	for(i=0L;i<nels;i++) {
 		TPZCompEl *cel = cmesh->ElementVec()[i];
 		if(!cel || cel->Dimension()!=cmesh->Dimension()) continue;
-		if(cel->Reference()->Level() == MaxHLevel) {
+		if(cel->Reference()->Level() > MaxHLevel) {
 			hused = true;
 			break;
 		}
 	}
+
+	if(hused && factorError < factorErrorM)
+		factorError += 0.1;
+	if(!hused && nref>1 && factorGrad < 0.8)
+		factorGrad += 0.1;
+	cout << "\n\nfacGrad " << factorGrad << "   facErr " << factorError << "\n\n";
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -461,24 +467,22 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
         pelement++;
+		LaplacianValue = Laplacian(el);
 		if(!hused) {
 			if(gradervecbyel[i] > factorGrad*MaxGrad || ervecbyel[i] > factorErrorM*MaxErrorByElement) {
-				counterreftype[1]++;
+				counterreftype[2]++;
 				el->Divide(index,subels);
 				level++;
-				if(ervecbyel[i] > factorErrorM*MaxErrorByElement && nref > 1) {
-					level++;
-					for(ii=0;ii<subels.NElements();ii++) {
-						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
-					}
-					counterreftype[2]++;
-				}
-				else
-					counterreftype[4]++;
+//				if(gradervecbyel[i] > factorGrad*MaxGrad && level < MaxHLevel) {
+//					level++;
+//					for(ii=0;ii<subels.NElements();ii++) {
+//						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
+//					}
+//					counterreftype[3]++;
+//				}
 			}
 		}
 		else {
-			LaplacianValue = Laplacian(el);
 			if((ervecbyel[i] > factorError*MaxErrorByElement || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
