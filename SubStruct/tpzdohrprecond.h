@@ -94,6 +94,9 @@ public:
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta,const int opt,const int stride) const;
 	
+    /** Copy of the MultAdd using TBB */
+    virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const;
+    
 	/** @brief Specify the solution process for the coarse matrix */
 	void SetSolver(TPZSolver<TVar> &solver);
 	
@@ -210,10 +213,13 @@ struct TPZDohrPrecondV2SubDataList {
 	{
 	  PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrPrecondV2SubDataList::~TPZDohrPrecondV2SubDataList()");
 	}
-	/** @brief Mutex which will enable the access protection of the list */
+	
+    /** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
-	/** @brief The list of structures which need to be computed */
+	
+    /** @brief The list of structures which need to be computed */
 	std::list<TPZDohrPrecondV2SubData<TVar, TSubStruct> > fWork;
+    
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrPrecondV2SubData<TVar, TSubStruct> &data)
 	{

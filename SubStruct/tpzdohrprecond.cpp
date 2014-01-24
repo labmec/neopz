@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZDohrPrecond methods. 
+ * @brief Contains the implementation of the TPZDohrPrecond methods.
  * @author Philippe Devloo
  * @since 2006
  */
@@ -35,8 +35,8 @@ TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct>
 }
 
 template<class TVar, class TSubStruct>
-TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond(const TPZDohrPrecond<TVar, TSubStruct> &cp) : TPZMatrix<TVar>(cp), fGlobal(cp.fGlobal), fCoarse(0), 
-fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), fAssemble(cp.fAssemble) 
+TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond(const TPZDohrPrecond<TVar, TSubStruct> &cp) : TPZMatrix<TVar>(cp), fGlobal(cp.fGlobal), fCoarse(0),
+fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), fAssemble(cp.fAssemble)
 {
 	if (cp.fCoarse) {
 		fCoarse = (TPZStepSolver<TVar> *) cp.fCoarse->Clone();
@@ -52,15 +52,147 @@ TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond() : fCoarse(0), fNumCoarse(-1),
 template<class TVar, class TSubStruct>
 TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 {
-	if (fCoarse) 
+	if (fCoarse)
 	{
 		delete fCoarse;
 		fCoarse = 0;
 	}
 }
 
+/** Threading Building Blocks */
+
+#ifdef USING_TBB
+#include "tbb/parallel_for.h"
+#include "tbb/blocked_range.h"
+using namespace tbb;
+#endif
+
+#include "arglib.h"
+
+template<class TVar, class TSubStruct>
+class ParallelAssembleTask
+{
+private:
+    /** @brief Array of work items */
+    std::vector<TPZDohrPrecondV2SubData<TVar,TSubStruct> > mWorkItems;
+    
+    /** @brief The local contribution to the v2 vector */
+	TPZAutoPointer<TPZDohrAssembleList<TVar> > fAssemblyStructure;
+    
+public:
+    
+    /** @brief Constructor */
+    ParallelAssembleTask(TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblyStruct) : fAssemblyStructure(assemblyStruct) {}
+    
+    /** @brief Add a new work item to the array */
+    void addWorkItem(TPZDohrPrecondV2SubData<TVar, TSubStruct> data) {
+        mWorkItems.push_back(data);
+    }
+    
+#ifdef USING_TBB
+    /** @brief Computing operator for the parallel for. */
+    void operator()(const blocked_range<size_t>& range) const
+    {
+        for(size_t i=range.begin(); i!=range.end(); ++i )
+        {
+            TPZDohrPrecondV2SubData<TVar,TSubStruct> data  = mWorkItems[i];
+            data.fSubStructure->Contribute_v2_local(data.fInput_local,data.fv2_local->fAssembleData);
+            fAssemblyStructure->AddItem(data.fv2_local);
+        }
+    }
+    
+    /** Execute work items in parallel. */
+    void run_parallel_for()
+    {
+        /* TBB Parallel for. It will split the range
+         * into N sub-ranges and
+         * invoke the operator() for each sub-range.
+         */
+        parallel_for(blocked_range<size_t>(0, mWorkItems.size(), 1 /* Fined Grain */), *this);
+    }
+    
+#endif
+    
+    
+}; /* ParallelAssembleTask */
+
+template<class TVar, class TSubStruct>
+void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
+
+#ifdef USING_TBB
+    if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
+		this->Error( "Operator* <matrices with incompatible dimensions>" );
+	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
+	}
+
+	long rows = this->Rows();
+	long cols = this->Cols();
+	this->PrepareZ(y,z,beta,opt,stride);
+    
+    TPZFMatrix<TVar> v1(rows,x.Cols(),0.);
+	TPZFMatrix<TVar> v2(cols,x.Cols(),0.);
+
+    TPZVec<pthread_t> AllThreads(2);
+    TPZDohrPrecondThreadV1Data<TVar,TSubStruct> v1threaddata(this,x,v1);
+    
+    PZ_PTHREAD_CREATE(&AllThreads[0], 0,
+                      (TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1),
+                      &v1threaddata, __FUNCTION__);
+    
+    TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(fGlobal.size(),v2,this->fAssemble);
+    
+    ParallelAssembleTask<TVar, TSubStruct> tbb_work(assemblelist);
+    
+    typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator it;
+    
+    int isub=0;
+    /** Cria tarefa que execute a distribuicao de cada elemento do fGlobal */
+    for(it= fGlobal.begin(); it != fGlobal.end(); it++,isub++)
+    {
+        TPZFMatrix<TVar> *Residual_local = new TPZFMatrix<TVar>;
+        fAssemble->Extract(isub,x,*Residual_local);
+        TPZDohrPrecondV2SubData<TVar,TSubStruct> data(isub,*it,Residual_local);
+        tbb_work.addWorkItem(data);
+    }
+    
+
+    tbb_work.run_parallel_for();
+
+    
+    PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
+                      assemblelist.operator->(), __FUNCTION__);
+    
+    for (int i=0; i<2; i++) {
+        void *result;
+        PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
+    }
+    
+    v2 += v1;
+
+	/** Soma v1+v2+v3 com z */
+    long xcols = x.Cols();
+    for (long ic=0; ic<xcols; ic++)
+    {
+        for (long c=0; c<rows; c++) {
+            z(c,ic) += v2(c,ic);
+        }
+    }
+
+#endif
+}
+
+clarg::argBool mult_tbb("-mult_tbb", "TPZDohrPrecond MultAdd using TBB", false);
+
 template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
+    
+    
+    if (mult_tbb.get_value()) {
+        MultAddTBB(x, y, z, alpha, beta, opt, stride);
+        return;
+    }
+    
 	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
 		this->Error( "Operator* <matrices with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
@@ -86,14 +218,14 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		ComputeV1(x,v1);
 		ComputeV2(x,v2);
 	}
-	else 
+	else
 	{
 		TPZVec<pthread_t> AllThreads(fNumThreads+2);
 		TPZDohrPrecondThreadV1Data<TVar,TSubStruct> v1threaddata(this,x,v1);
 		
-		PZ_PTHREAD_CREATE(&AllThreads[0], 0, 
-				  (TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1), 
-				  &v1threaddata, __FUNCTION__);
+		PZ_PTHREAD_CREATE(&AllThreads[0], 0,
+                          (TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1),
+                          &v1threaddata, __FUNCTION__);
 		
 		TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(fGlobal.size(),v2,this->fAssemble);
 		
@@ -112,25 +244,25 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		
 		int i;
 		for (i=0; i<fNumThreads; i++) {
-		  PZ_PTHREAD_CREATE(&AllThreads[i+2], 0, 
-				    (TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork), 
-				    &v2work, __FUNCTION__);
+            PZ_PTHREAD_CREATE(&AllThreads[i+2], 0,
+                              (TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork),
+                              &v2work, __FUNCTION__);
 		}
 		//		v2work.ThreadWork(&v2work);
 		
-		PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble, 
-				  assemblelist.operator->(), __FUNCTION__);
+		PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
+                          assemblelist.operator->(), __FUNCTION__);
 		//		assemblelist->Assemble(assemblelist.operator->());
 		
 		for (i=0; i<fNumThreads+2; i++) {
-		  void *result;
-		  PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
+            void *result;
+            PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
 		}
 		//		ComputeV2(x,v2);
 	}
 	v2 += v1;
 	
-#ifndef MAKEINTERNAL	
+#ifndef MAKEINTERNAL
 	isub=0;
 	//Criar tarefa que execute a distribuicao de cada elemento do fGlobal
 	for(it= fGlobal.begin(); it != fGlobal.end(); it++,isub++)
@@ -140,14 +272,14 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		TPZFMatrix<TVar> v3_local(neqs,1,0.), v2_local(neqs,1,0.);
 		fAssemble->Extract(isub,v2,v2_local);
 		long i;
-		for (i=0;i<neqs;i++) 
+		for (i=0;i<neqs;i++)
 		{
 			std::pair<int,int> ind = (*it)->fGlobalEqs[i];
 			v2Expand(ind.first,0) += v2_local(i,0);
 		}
 		
 		(*it)->Contribute_v3_local(v2Expand,v3Expand);
-		for (i=0;i<neqs;i++) 
+		for (i=0;i<neqs;i++)
 		{
 			std::pair<int,int> ind = (*it)->fGlobalEqs[i];
 			v3_local(i,0) += v3Expand(ind.first,0);
@@ -163,7 +295,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		}
 #endif
 		fAssemble->Assemble(isub,v3_local,v2);
-	}		
+	}
 #endif
 	// wait task para finalizacao da chamada
 	// esperar a versao correta do v1
@@ -227,7 +359,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 #endif
 	typename std::list<TPZAutoPointer<TSubStruct> >::iterator it;
 	int count = 0;
-	for(it= fGlobal.begin(); it != fGlobal.end(); it++,count++) 
+	for(it= fGlobal.begin(); it != fGlobal.end(); it++,count++)
 	{
 		(*it)->Contribute_Kc(*coarse,fAssemble->fCoarseEqs[count]);
 	}
@@ -259,7 +391,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 #endif
 	/* Computing K(c)_inverted*r(c) and stores it in "product" */
 	fCoarse->SetDirect(ELDLt);
-	//Dado global 
+	//Dado global
 	TPZFMatrix<TVar> CoarseSolution(fNumCoarse,x.Cols());
 	fCoarse->Solve(CoarseResidual,CoarseSolution);
 #ifdef LOG4CXX
@@ -288,7 +420,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 		v1.Print("v1 vector",sout);
 		LOGPZ_DEBUG(loggerv1v2,sout.str())
 	}
-#endif	
+#endif
 }
 
 template<class TVar, class TSubStruct>
@@ -324,7 +456,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV2(const TPZFMatrix<TVar> &x, TPZF
 		LOGPZ_DEBUG(loggerv1v2,sout.str())
 	}
 #endif
-}		
+}
 
 template<class TVar, class TSubStruct>
 void *TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork(void *voidptr)
@@ -385,7 +517,7 @@ int TPZDohrPrecond<std::complex<double>,TPZDohrSubstructCondense<std::complex<do
 /**
  * @brief Unpacks the object structure from a stream of bytes
  * @param buf The buffer containing the object in a packed form
- * @param context 
+ * @param context
  */
 template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )

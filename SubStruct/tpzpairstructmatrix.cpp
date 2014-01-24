@@ -41,7 +41,7 @@ TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permute
 
 }
 
-#ifdef USING_TBB
+#ifdef USING_TBB1
 
 struct PipeItem_t
 {
@@ -286,7 +286,7 @@ public:
     work_items.push_back(el);
   }
 
-#ifdef USING_TBB
+#ifdef USING_TBB1
 
 protected:
 
@@ -420,7 +420,7 @@ clarg::argInt tbb_pair_pipe_tokens("-tbb_pair_ntokens", "# tokens during assembl
 void TPZPairStructMatrix::TBBAssemble(TPZMatrix<STATE> *first, 
                                       TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
-#ifndef USING_TBB
+#ifndef USING_TBB1
 
   cerr << "TPZPairStructMatrix::TBBAssemble() invoked, but TBB "
        << "was not linked. Executing SerialAssemble!" << endl;

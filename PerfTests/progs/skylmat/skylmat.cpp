@@ -18,6 +18,11 @@
 #include <fstream>
 #include <string>
 
+#ifdef USING_TBB
+#include "tbb/task_scheduler_init.h"
+using namespace tbb;
+#endif
+
 #include "pzskylmat.h"
 
 #include "arglib.h"

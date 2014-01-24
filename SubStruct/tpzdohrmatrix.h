@@ -26,7 +26,7 @@
  * @ingroup substructure matrix
  * @author Philippe Devloo
  */
-template <class TVar, class TSubStruct> 
+template <class TVar, class TSubStruct>
 class TPZDohrMatrix : public TPZMatrix<TVar>
 {
 public:
@@ -51,7 +51,7 @@ public:
         
     }
 	
-	TPZDohrMatrix(const TPZDohrMatrix &cp) : fGlobal(cp.fGlobal), fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), 
+	TPZDohrMatrix(const TPZDohrMatrix &cp) : fGlobal(cp.fGlobal), fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads),
 	fAssembly(cp.fAssembly)
 	{
 	}
@@ -102,7 +102,7 @@ public:
 		fNumCoarse = nc;
 	}
 	/** @brief Initialize the necessary datastructures */
-	void Initialize();   
+	void Initialize();
 	/** @brief It adds a substruct */
 	void AddSubstruct(TPZAutoPointer<TSubStruct> substruct)
 	{
@@ -136,7 +136,7 @@ public:
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
-	 * @param context 
+	 * @param context
 	 */
 	virtual void  Read(TPZStream &buf, void *context );
 	/**
@@ -154,7 +154,7 @@ public:
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub structure"
  */
-template <class TSubStruct> 
+template <class TSubStruct>
 struct TPZDohrThreadMultData
 {
 	/** @brief Default constructor */
@@ -176,7 +176,7 @@ struct TPZDohrThreadMultData
 		return *this;
 	}
 	int fisub;
-	TPZAutoPointer<TSubStruct> fSub;	
+	TPZAutoPointer<TSubStruct> fSub;
 	
 	bool IsValid()
 	{
@@ -188,7 +188,7 @@ struct TPZDohrThreadMultData
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub structure"
  */
-template <class TVar, class TSubStruct> 
+template <class TVar, class TSubStruct>
 struct TPZDohrThreadMultList
 {
 	/** @brief The vector with which we will multiply */
@@ -204,14 +204,14 @@ struct TPZDohrThreadMultList
 	/** @brief The local contribution to the v2 vector */
 	TPZAutoPointer<TPZDohrAssembleList<TVar> > fAssemblyStructure;
 	
-	TPZDohrThreadMultList(const TPZFMatrix<TVar> &x, TVar alpha, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemblestruct) : fInput(&x), fAlpha(alpha), 
+	TPZDohrThreadMultList(const TPZFMatrix<TVar> &x, TVar alpha, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemblestruct) : fInput(&x), fAlpha(alpha),
 	fAssembly(assembly), fAssemblyStructure(assemblestruct)
 	{
-	  PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrThreadMultList::TPZDohrThreadMultList(...)");
+        PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrThreadMultList::TPZDohrThreadMultList(...)");
 	}
 	~TPZDohrThreadMultList()
 	{
-	  PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrThreadMultList::TPZDohrThreadMultList()");
+        PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrThreadMultList::TPZDohrThreadMultList()");
 	}
 	
 	/** @brief The procedure which executes the lengthy process */
@@ -219,20 +219,20 @@ struct TPZDohrThreadMultList
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
 	{
-	        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
+        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 		fWork.push_back(data);
-	        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
+        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrThreadMultData<TSubStruct> PopItem()
 	{
 		TPZDohrThreadMultData<TSubStruct> result;
-	        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
+        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-	        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
+        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		return result;
 	}
 };
