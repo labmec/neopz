@@ -462,9 +462,12 @@ void MainWindow::on_runSimBtn_clicked(bool checked)
         for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
         {
             QTreeWidgetItem *item_tmp = ui->treeWidget->topLevelItem(i);
+            qDebug() << "ITEM_MASTER: " << item_tmp->text(0) << " id: " << item_tmp->data(0,Qt::UserRole).toInt();
             int item_id = item_tmp->data(0,Qt::UserRole).toInt();
             if (item_id == idx_med) {
                 item_parent = item_tmp;
+                qDebug() << "ITEM_PARENT: " << item_tmp->text(0) << " id: " << item_tmp->data(0,Qt::UserRole).toInt();
+                break;
             }
         }
         QTreeWidgetItem *item;
@@ -576,11 +579,14 @@ void MainWindow::on_lockParamsBtn_toggled(bool checked)
           //Achando a simulacao na tree
           for(int i = 0; i < ui->treeWidget->topLevelItemCount(); i++)
           {
-              QTreeWidgetItem *item_child = ui->treeWidget->topLevelItem(i);
-              for(int j = 0; j < item_child->childCount(); j++) {
-                  QTreeWidgetItem *item_tmp = item_child->child(i);
-                  //int item_id = item_tmp->data(0,Qt::UserRole).toInt();
-                  item_child->removeChild(item_tmp);
+              QTreeWidgetItem *item_parent = ui->treeWidget->topLevelItem(i);
+              qDebug() << "ITEMP: " << item_parent->text(0) << " id: " << item_parent->data(0,Qt::UserRole).toInt();
+              for(int j = 0; j < item_parent->childCount(); j++) {
+                  QTreeWidgetItem *item_tmp = item_parent->child(j);
+                  int item_id = item_tmp->data(0,Qt::UserRole).toInt();
+                  qDebug() << "ITEMC: " << item_tmp->text(0) << " id: " << item_id;
+                  if (item_id == id_sim)
+                    item_parent->removeChild(item_tmp);
               }
           }
         }
