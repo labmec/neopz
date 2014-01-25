@@ -143,10 +143,10 @@ bool SolveLaplaceProblemOnLShapeMesh();
 // Generic data for problems to solve
 bool usethreads = false;
 int MaxPOrder = 9;
-int MaxHLevel = 7;
-int MaxHUsed = 1;
+int MaxHLevel = 6;
+int MaxHUsed = 0;
 int MaxPUsed = 0;
-int NRefs = 7;
+int NRefs = 10;
 int ninitialrefs = 2;
 int itypeel;
 
@@ -431,14 +431,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i, ii;
-	REAL factorGrad= 0.3;
-	REAL factorError = 0.4;
-	REAL factorErrorM = 0.7;
-	REAL LaplacianLimit = 3.;
+	REAL factorGrad= 0.5;
+	REAL factorErrorM = 0.8;
+	REAL LaplacianLimit = 1.;
+	static REAL factorError = 0.2;
+	REAL GradErLimit = 8.;
 	MaxGrad = gradervecbyel[nels];
-	if(MaxGrad > 500.) MaxGrad = 500.;
 	int MaxLevel = MaxLevelReached(cmesh);
-	cout << "\n\n MaxGrad " << MaxGrad << "\n\n";
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -455,12 +454,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
         pelement++;
 		LaplacianValue = Laplacian(el);
 		if(MaxLevel < MaxHLevel) {
-			if((gradervecbyel[i] > factorGrad*MaxGrad || ervecbyel[i] > factorErrorM*MaxErrorByElement || gradervecbyel[i] > 5.) && level < MaxHLevel) {
+			if((gradervecbyel[i] > factorGrad*MaxGrad || ervecbyel[i] > factorErrorM*MaxErrorByElement || gradervecbyel[i] > GradErLimit) && level < MaxHLevel) {
 				counterreftype[10]++;
 				hused = true;
 				el->Divide(index,subels);
 				level++;
-				if(((gradervecbyel[i] > 5. || gradervecbyel[i] > factorGrad*MaxGrad) && ervecbyel[i] > factorErrorM*MaxErrorByElement) && level < MaxHLevel) {
+				if(nref < 2 && ((gradervecbyel[i] > 1. || gradervecbyel[i] > factorGrad*MaxGrad) && ervecbyel[i] > 0.45*MaxErrorByElement) && level < MaxHLevel) {
 					level++;
 					for(ii=0;ii<subels.NElements();ii++) {
 						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
@@ -470,18 +469,21 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 			}
 		}
 		else {
+			counterreftype[25]++;
 			if((ervecbyel[i] > factorError*MaxErrorByElement || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
 				el->PRefine(pelement);
 				pused = true;
 				counterreftype[20]++;
 			}
-			if(gradervecbyel[i] > factorGrad*MaxGrad && ervecbyel[i] > factorErrorM*MaxErrorByElement && level < MaxHLevel) {
+			/*else if(gradervecbyel[i] > factorErrorM*MaxGrad && level < MaxHLevel) {
 				counterreftype[22]++;
 				el->Divide(index,subels);
 				hused = true;
 				level++;
+			}*/
+			else {
+				counterreftype[0]++;
 			}
-			counterreftype[25]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
