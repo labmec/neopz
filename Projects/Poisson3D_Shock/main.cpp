@@ -220,7 +220,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
