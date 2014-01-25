@@ -609,9 +609,9 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     int n = matA.Cols();
     
     int lda = m; //the leading dimension of the matA
-    double tau[n];//The scalar factors of the elementary reflectors
+    double *tau = new double[n];//The scalar factors of the elementary reflectors
     int lwork = n;
-    double work[n];
+    double *work = new double[n];
     int info;
     
     double *A = new double[m*n];
