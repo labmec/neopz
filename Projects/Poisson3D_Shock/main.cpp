@@ -220,7 +220,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)ETriangle;itypeel<(int)EQuadrilateral;itypeel++)
+		for(itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
@@ -363,7 +363,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				gradervecbyel.Resize(0);
 				REAL MaxErrorByElement = ProcessingError(an,ervec,ervecbyel,gradervecbyel,MinErrorByElement);
 				// Printing obtained errors
-				if(ervec[1] > 1. || ervec[1] < 0.) {
+				if(ervec[1] > 10. || ervec[1] < 0.) {
 					std::cout << "L2 Error is BIG! By! \n\n";
 					break;
 				}
@@ -763,7 +763,7 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	// setting format for ostream
 	fileerrors << setprecision(13);
 	fileerrors.setf(std::ios::fixed, std::ios::floatfield);
-	fileerrors << "\nNEquations = {";
+	fileerrors << "\n\nNEquations = {";
 
 	// printing number of equations into a list
 	for(nref=0;nref<NRefs-1;nref++) {
@@ -783,7 +783,7 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
 //	for(nref=1;nref<NRefs-2;nref++)
 //		fileerrors << ",Temp["<<nref<<","<<(nref+1)<<"]";
-	fileerrors << "},Joined->True,PlotRange->All]" << std::endl;
+	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
 	return true;
 }
 void AdjustingOrder(TPZCompMesh *cmesh) {
