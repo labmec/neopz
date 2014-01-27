@@ -77,6 +77,8 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
 
 void Compute_dudn(TPZCompMesh *cmesh);
 void Compute_dudnQuadrado(TPZCompMesh *cmesh);
+TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi);
+void PrintToFile(std::ofstream &myfile, const std::string &title, std::map<REAL,REAL> &mymap);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
@@ -95,10 +97,10 @@ int main(int argc, char *argv[])
     
     TPZVec<REAL> erros;
     ofstream arg12("Erro.txt");
-    for (int p = 1; p< 2; p++)
+    for (int p = 2; p< 3; p++)
     {
         arg12<<"\n Ordem = " << p <<endl;
-        for(int h = 0; h < 5;h++)
+        for(int h = 4; h < 5;h++)
         {
             arg12<<" Refinamento h  = " << h <<endl;
             // int p = 5;
@@ -203,6 +205,8 @@ int main(int argc, char *argv[])
 //            ofstream arg9("mphysic_apos_Transferfrom.txt");
 //            mphysics->Print(arg9);
 
+            Compute_dudnQuadrado(meshvec[0]);
+            
             
             arg12<<" \nErro da simulacao multifisica  para o flux" <<endl;
             TPZAnalysis an1(cmesh1);
@@ -381,9 +385,9 @@ TPZGeoMesh *GMesh(bool triang_elements){
 
 TPZGeoMesh *GMesh2(bool triang_elements){
     TPZManVector<int,2> nx(2,2);
-		nx[1] = 1;
-    TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
-    x0[0] = -1.;
+		nx[1] =1;
+    TPZManVector<REAL,3> x0(3,0.),x1(3,0.5);
+    x0[0] = -0.5;
     TPZGenGrid gengrid(nx,x0,x1);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
@@ -392,18 +396,18 @@ TPZGeoMesh *GMesh2(bool triang_elements){
     }
     gengrid.Read(gmesh);
     TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
-    firstpoint[0] = 1.;
-    secondpoint[0] = 1.;
-    secondpoint[1] = 1.;
+    firstpoint[0] = 0.5;
+    secondpoint[0] = 0.5;
+    secondpoint[1] = 0.5;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc1);
     gengrid.SetBC(gmesh,6,bc2);
     gengrid.SetBC(gmesh,7,bc3);
-    firstpoint[0] = -1.;
+    firstpoint[0] = -0.5;
     secondpoint[0] = 0.;
     secondpoint[1] = 0.;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc4);
     firstpoint = secondpoint;
-    secondpoint[0] = 1.;
+    secondpoint[0] = 0.5;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc0);
 #ifdef LOG4CXX
     if(logdata->isDebugEnabled())
@@ -938,4 +942,126 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     
 }
 
+void Compute_dudnQuadrado(TPZCompMesh *cmesh){
+    std::map<REAL,REAL> dudn, dudnExato;
+    const int npts = 100;
+    const REAL rsize = 0.25;
+    const REAL delta = rsize/(npts-1);
+    std::map<REAL, std::pair<REAL,REAL> > sPath;
+    std::map<REAL, std::pair<REAL,REAL> > sNormal;
+    
+    REAL sval;
+    ///aresta y = 0 - tem tamanho 2*rsize por isso i < 2*npts
+    for(int i = 1; i < 2*npts-2; i++){
+        sval = delta/2.+i*delta;
+        REAL x = rsize - sval;
+        REAL y = 0;
+        std::pair<REAL,REAL> normal(0,-1);
+        sPath[sval] = std::make_pair(x,y);
+        sNormal[sval] = normal;
+    }
+    
+    ///aresta x = -rsize
+    for(int i = 1; i < npts-1; i++){
+        sval = 2*rsize +  i*delta;
+        REAL x = -rsize;
+        REAL y = 0 + i*delta;
+        std::pair<REAL,REAL> normal(-1,0);
+        sPath[sval] = std::make_pair(x,y);
+        sNormal[sval] = normal;
+    }
+    
+    ///aresta y = rsize - tem tamanho 2*rsize por isso i < 2*npts
+    for(int i = 1; i < 2*npts-2; i++){
+        sval = 3*rsize +  i*delta;
+        REAL x = -rsize+i*delta ;
+        REAL y = rsize;
+        std::pair<REAL,REAL> normal(0,1);
+        sPath[sval] = std::make_pair(x,y);
+        sNormal[sval] = normal;
+    }
+    
+    ///aresta x = +rsize
+    for(int i = 1; i < npts-1; i++){
+        sval = 5*rsize +  i*delta;
+        REAL x = +rsize;
+        REAL y = rsize - i*delta;
+        std::pair<REAL,REAL> normal(1,0);
+        sPath[sval] = std::make_pair(x,y);
+        sNormal[sval] = normal;
+    }
 
+    std::map<REAL, std::pair<REAL,REAL> >::iterator wS, wNormal;
+    int i;
+    for(i = 0, wS = sPath.begin(), wNormal = sNormal.begin(); wS != sPath.end(); wS++, wNormal++, i++){
+        const REAL s = wS->first;
+        const REAL x = wS->second.first;
+        const REAL y = wS->second.second;
+
+        TPZManVector<REAL> xVec(3), qsi(2), normal(2);
+        xVec[0] = x; xVec[1] = y; xVec[2] = 0.;
+        normal[0] = wNormal->second.first;
+        normal[1] = wNormal->second.second;
+        
+        TPZInterpolationSpace * sp = FindInterpolationSpace(xVec,cmesh,qsi);
+        TPZManVector<REAL,2> flux(2,0.);
+        TPZMaterialData data;
+        
+        sp->InitMaterialData(data);
+        sp->ComputeShape(qsi,data);
+        sp->ComputeSolution(qsi,data);
+        
+        flux[0]=data.sol[0][0];
+        flux[1]=data.sol[0][1];
+        
+    
+    
+        REAL dudnval = flux[0]*normal[0] + flux[1]*normal[1];
+        dudn[s] = dudnval;
+        
+        TPZManVector<REAL> uExato(1);
+        TPZFNMatrix<100> duExato(2,1);
+        SolExataSteklov(xVec, uExato, duExato);
+        
+        dudnExato[s] = duExato(0,0)*normal[0]+duExato(1,0)*normal[1];
+    }///for i
+    
+    std::ofstream myfile("/Users/agnaldofarias/Documents/Fluxo-Steklov/dudnQuadradoHdiv.nb");
+    PrintToFile(myfile, "dudnQuadradoHdiv", dudn);
+    myfile << "\n";
+    PrintToFile(myfile, "dudnQuadradoExatoHdiv", dudnExato);
+    myfile << "\n\n";
+    
+    myfile << "ListPlot[{dudnQuadradoExatoHdiv, dudnQuadradoHdiv},PlotStyle->{Red,Black},Frame->True]\n\n";
+    myfile << "R[v_] = Round[10*v]/10.;\n\n";
+    myfile <<"Integrate[Interpolation[dudnQuadradoHdiv, InterpolationOrder -> 1][s], {s, 0, R[dudnQuadradoHdiv[[-1, 1]]]/12}]\n\n";
+    myfile<<"Integrate[Interpolation[dudnQuadradoHdiv, InterpolationOrder -> 1][s], {s, 0,R[dudnQuadradoHdiv[[-1, 1]]]}]\n";
+}///void
+
+
+TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi){
+    const int nel = cmesh->NElements();
+    for(int iel = 0; iel < nel; iel++){
+        TPZInterpolationSpace * sp = dynamic_cast<TPZInterpolationSpace*>(cmesh->ElementVec()[iel]);
+        if(!sp) continue;
+        bool IsInDomain = sp->Reference()->ComputeXInverse(xVec, qsi, 1e-8);
+        if(IsInDomain) return sp;
+    }
+    
+    DebugStop();//nao achei ninguem
+    return NULL;
+    
+}
+
+void PrintToFile(std::ofstream &myfile, const std::string &title, std::map<REAL,REAL> &mymap){
+    myfile << title << " = {";
+    std::map<REAL,REAL>::const_iterator w;
+    int n = mymap.size();
+    int i;
+    for(i = 0, w = mymap.begin(); w != mymap.end(); w++, i++){
+        myfile << "{" << w->first << "," << w->second << "}";
+        if(i != n-1) myfile << ",";
+        else myfile << "};";
+        if(i%4 == 0) myfile << "\n";
+    }///for w
+}
