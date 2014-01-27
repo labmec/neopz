@@ -19,6 +19,11 @@
 
 #include "pz_pthread.h"
 
+#ifdef USING_TBB
+#include "tbb/partitioner.h"
+using namespace tbb;
+#endif
+
 /**
  * \addtogroup substructure
  * @{
@@ -44,6 +49,8 @@ class TPZDohrPrecond : public TPZMatrix<TVar>
 	
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssemble;
 	
+    affinity_partitioner ap;
+    
 public:
     /** @brief Constructor with matrix */
     TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly<TVar> > assemble);
@@ -92,10 +99,10 @@ public:
 	 * It computes \f$ z = beta * y + alpha * opt(this)*x\f$ but z and x can not overlap in memory.
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha,const TVar beta,const int opt,const int stride) const;
+						 const TVar alpha,const TVar beta,const int opt,const int stride);
 	
     /** Copy of the MultAdd using TBB */
-    virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const;
+    virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride);
     
 	/** @brief Specify the solution process for the coarse matrix */
 	void SetSolver(TPZSolver<TVar> &solver);

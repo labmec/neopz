@@ -102,13 +102,13 @@ public:
     }
     
     /** Execute work items in parallel. */
-    void run_parallel_for()
+    void run_parallel_for(affinity_partitioner &ap)
     {
         /* TBB Parallel for. It will split the range
          * into N sub-ranges and
          * invoke the operator() for each sub-range.
          */
-        parallel_for(blocked_range<size_t>(0, mWorkItems.size(), 1 /* Fined Grain */), *this);
+        parallel_for(blocked_range<size_t>(0, mWorkItems.size(), 1 /* Fined Grain */), *this, ap);
     }
     
 #endif
@@ -117,7 +117,7 @@ public:
 }; /* ParallelAssembleTask */
 
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
+void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) {
 
 #ifdef USING_TBB
     if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
@@ -157,7 +157,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
     }
     
 
-    tbb_work.run_parallel_for();
+    tbb_work.run_parallel_for(ap);
 
     
     PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
@@ -185,7 +185,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 clarg::argBool mult_tbb("-mult_tbb", "TPZDohrPrecond MultAdd using TBB", false);
 
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
+void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) {
     
     
     if (mult_tbb.get_value()) {
