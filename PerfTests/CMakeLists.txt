@@ -42,6 +42,7 @@ if(BUILD_PERF_TESTS)
   add_subdirectory(DecomposeLDLt)
   add_subdirectory(NumaTests)
   add_subdirectory(GFlopsTest)
+  add_subdirectory(TBBTests)
 
   # Add your run scripts into RunScripts/CMakeLists.txt
   add_subdirectory(RunScripts)

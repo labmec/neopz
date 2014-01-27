@@ -5,6 +5,7 @@
 #ifndef RUN_STATS_TABLE_H
 
 #include"stats_recorder.h"
+#include <fstream>
 
 #include"arglib.h"
 
