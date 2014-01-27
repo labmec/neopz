@@ -117,7 +117,7 @@ public:
 }; /* ParallelAssembleTask */
 
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) {
+void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
 
 #ifdef USING_TBB
     if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
@@ -157,7 +157,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
     }
     
 
-    tbb_work.run_parallel_for(ap);
+    //tbb_work.run_parallel_for(ap);
 
     
     PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
@@ -185,7 +185,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 clarg::argBool mult_tbb("-mult_tbb", "TPZDohrPrecond MultAdd using TBB", false);
 
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) {
+void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
     
     
     if (mult_tbb.get_value()) {
