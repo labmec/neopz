@@ -188,34 +188,92 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     //remember: Dont need to multiply with axes once this
     //          last is IDENTITY in PZ (because is 3D element).
     GradUtxy = data.dsol[0];
+    
     Sigma_n[1] = ComputePressure(t, xt);
 }
 
 
 REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 {
-    fcmeshFluid->LoadReferences();
+//    fcmeshFluid->LoadReferences();
+//    
+//    TPZVec<REAL> qsi(2,0.);
+//    
+//    long InitialElementId = 0;
+//    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
+//    if(it != f_t_elIdqsi_Fluid.end())
+//    {
+//        InitialElementId = it->second.first;
+//        qsi = it->second.second;
+//    }
+//    else if(f_t_elIdqsi_Fluid.size() > 0)
+//    {
+//        it--;
+//        InitialElementId = it->second.first;
+//        qsi = it->second.second;
+//    }
+////    else
+////    {
+////        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+////    }
+//    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+//    
+//    if(!geoEl)
+//    {
+//        std::cout.precision(15);
+//        std::cout << "\n\ngeoEl not found!\n";
+//        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+//        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
+//        DebugStop();
+//    }
+//    
+//    f_t_elIdqsi_Fluid[t] = std::make_pair(geoEl->Id(), qsi);
+//    
+//    TPZCompEl * cel = geoEl->Reference();
+//    if(!cel)
+//    {
+//        DebugStop();
+//    }
+//    TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
+//    if(!sp)
+//    {
+//        DebugStop();
+//    }
+//    
+//    TPZMaterialData data;
+//    sp->InitMaterialData(data);
+//    
+//    sp->ComputeShape(qsi, data);
+//    sp->ComputeSolution(qsi, data);
+//    
+//    REAL press = data.sol[0][0];
+//    
+//    return press;
+    //AQUICAJU
+    TPZFMatrix<STATE> GradUtxy(3,3,0.);
+    TPZFMatrix<STATE> Sigma(3,3,0.);
+    TPZFMatrix<STATE> strain(3,3,0.);
     
-    TPZVec<REAL> qsi(2,0.);
+    TPZVec<REAL> qsi(0);
     
     long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
-    if(it != f_t_elIdqsi_Fluid.end())
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIdqsi_Elastic.end())
     {
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Fluid.size() > 0)
+    else if(f_t_elIdqsi_Elastic.size() > 0)
     {
         it--;
         InitialElementId = it->second.first;
         qsi = it->second.second;
     }
-//    else
-//    {
-//        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
-//    }
-    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+    else
+    {
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+    }
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
@@ -226,28 +284,43 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
         DebugStop();
     }
     
-    f_t_elIdqsi_Fluid[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
     
-    TPZCompEl * cel = geoEl->Reference();
-    if(!cel)
+    TPZCompEl * compEl = geoEl->Reference();
+    
+#ifdef DEBUG
+    if(!compEl)
     {
+        std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-    TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
-    if(!sp)
-    {
-        DebugStop();
-    }
+#endif
     
+    TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
     TPZMaterialData data;
-    sp->InitMaterialData(data);
+    intpEl->InitMaterialData(data);
     
-    sp->ComputeShape(qsi, data);
-    sp->ComputeSolution(qsi, data);
+    intpEl->ComputeShape(qsi, data);
+    intpEl->ComputeSolution(qsi, data);
     
-    REAL press = data.sol[0][0];
+    GradUtxy = data.dsol[0];
     
-    return press;
+    TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
+    
+#ifdef DEBUG
+    if(!elast3D)
+    {
+        std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    elast3D->ComputeStressTensor(Sigma, data);
+    elast3D->ComputeStrainTensor(strain, GradUtxy);
+    
+    REAL pressure = -Sigma(1,1);
+    
+    return pressure;
 }
 
 //-------------------------class LinearPath2D

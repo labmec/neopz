@@ -23,6 +23,8 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
 {
     if(fGelId_Penetration.size() == 0)
     {
+        std::cout << "\n\n\nLeakoff map is empty!!!\n\n\n";
+        //Estah definido Noleakoff ? Se sim, aqui deve entao ser mudado para return (e nao DebugStop)
         DebugStop();
     }
     
@@ -169,10 +171,6 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
 
 REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-#ifdef NOleakoff
-    return 0.;
-#endif
-    
     std::map<int,REAL>::iterator it = fGelId_Penetration.find(gelId);
     if(it == fGelId_Penetration.end())
     {
@@ -185,19 +183,14 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
     REAL Ql = (Vlnext - VlAcum)/deltaT;
     
+#ifdef NOleakoff
+    return 0.;
+#endif
     return Ql;
 }
 
 REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-#ifdef NOleakoff
-    return 0.;//There is no leakoff.
-#endif
-    
-#ifdef pressureIndependent
-    return 0.;//Once Q is not function of p, dQdp=0.
-#endif
-    
     std::map<int,REAL>::iterator it = fGelId_Penetration.find(gelId);
     if(it == fGelId_Penetration.end())
     {
@@ -229,6 +222,14 @@ REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe
     /////////////////////////////////////////////////
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
+    
+#ifdef NOleakoff
+    return 0.;//There is no leakoff.
+#endif
+    
+#ifdef pressureIndependent
+    return 0.;//Once Q is not function of p, dQdp=0.
+#endif
     
     return dQldpfrac;
 }

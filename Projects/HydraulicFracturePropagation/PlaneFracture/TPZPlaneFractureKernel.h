@@ -50,17 +50,18 @@ public:
     
 protected:
     
-    void FillInitialFractureDots(TPZVec< std::pair<REAL,REAL> > &fractureDots);
+    void InitializePoligonalChain();
+    
+    void InitializeMeshes();
     
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
-     * @param initialElasticKickIsNeeded [in] : When is the first fracture geometry that is running, a initial solution is needed
      * @param step [in] : time step
      */
-    void RunThisFractureGeometry(TPZVec<std::pair<REAL,REAL> > &poligonalChain,
-                                 bool initialElasticKickIsNeeded,
-                                 int &step);
+    void RunThisFractureGeometry(REAL & volAcum, TPZCompMesh * &lastPressureCMesh);
+    
+    void CloseActualTimeStep();
     
     /**
      * @brief Method that will initializate the JPath3D vector structure, based on 1D cracktip elements (available on fPlaneFractureMesh atribute)
@@ -72,13 +73,6 @@ protected:
      * @param cmesh [in] : cmesh that the FEM will run
      */
     void ProcessElasticCMeshByStripes(TPZCompMesh * cmesh);
-    
-    /**
-     * @brief Method that will run a FEM simmulation of linear elasticity for the given cmesh
-     * @param an [in] : Given TPZAnalysis, initializated already
-     * @param cmesh [in] : cmesh that the FEM will run
-     */
-    void SolveElasticity(TPZAnalysis &an, TPZCompMesh *cmesh);
     
     /**
      * @brief Method that will compute the stiff matrix for actual time step
@@ -97,22 +91,26 @@ protected:
     /** During development, this is used to check the convergence order of the non linear system */
     void CheckConv();
     
-    void PostProcessAll(int & step, TPZVec<std::pair<REAL,REAL> > & PoligonalChain);
+    void UpdateLeakoff();
+    
+    void PostProcessAll();
+    
+    void PostProcessSolutions();
     
     /** Compute the volume of the interior of the fracture (by w=2*uy integral) */
     void PostProcessAcumVolW();
 
     /** Compute the volume of the leakoof */
-    void PostProcessVolLeakoff(int step);
+    void PostProcessVolLeakoff();
     
     /** Generate vtk for displacement post process */
-    void PostProcessElasticity(int step);
+    void PostProcessElasticity();
 
     /** Generate vtk for pressure post process */
-    void PostProcessPressure(int step);
+    void PostProcessPressure();
     
     /** Insert on globFractOutput3DData the actual Lfrac, Hsup and Hinf */
-    void PostProcessFractGeometry(int step, TPZVec<std::pair<REAL,REAL> > & PoligonalChain);
+    void PostProcessFractGeometry();
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     REAL IntegrateW(TPZCompMesh * elasticCMesh);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
@@ -122,22 +120,21 @@ protected:
     REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
-    bool CheckPropagationCriteria(TPZVec<std::pair<REAL,REAL> > &newPoligonalChain);
+    bool CheckPropagationCriteria();
     
     /** 
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
      * @param whoPropagate_KI [in] : map that holds the KI and KIc, indexed by poligonal chain index
      */
     void DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
-                                        std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI,
-                                        TPZVec< std::pair< REAL,REAL > > &poligonalChain);
+                                        std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI);
     
     /**
      * Remove zig-zag from given poligonal chain.
      * Note: Zig-zag is when (v1.v2 < 0).
      * If zig-zag was not removed, we will have trouble on PerfercMatchRefPattern on fracture geomesh generation.
      */
-    void RemoveZigZag(TPZVec< std::pair< REAL,REAL > > &poligonalChain);
+    bool RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain);
     
     void TransferElasticSolution(REAL volAcum);
     
@@ -145,12 +142,17 @@ protected:
      *  After the fracture propagation, this method will transfer the leakoff from the old data structure (based on given cmesh)
      *  to the new data structure (based on the new cmesh, keeped in fmeshVec atribute in position 0)
      */
-    void TransferLeakoff(TPZCompMesh * cmeshFrom);
+    void TransferLastLeakoff(TPZCompMesh * cmeshFrom);
     
     //Atributes:
+    
+    TPZVec< std::pair<REAL,REAL> > fpoligonalChain;
+    int fstep;
+    
     TPZPlaneFractureMesh * fPlaneFractureMesh;
     
     TPZVec<TPZCompMesh *> fmeshVec;
+    TPZVec<TPZCompMesh *> fmeshVecElastic;
     
     TPZCompMesh * fmphysics;
     
@@ -167,6 +169,9 @@ protected:
     REAL fMinDispl;
     
     JIntegral3D fPath3D;
+    
+    int actColor = 0;
+    std::string color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
 };
 
 class BezierCurve

@@ -307,6 +307,16 @@ class TPZPlaneFractureMesh
     
     TPZGeoEl * Find2DElementNearCrackTip(int posCrackTip, TPZVec<REAL> & x);
     
+    REAL Max_MinCompressiveStress()
+    {
+        return fmax_minCompressiveStress;
+    }
+    
+    REAL StressApplied()
+    {
+        return 1.E7;
+    }
+    
 protected:
     
     //** Returns the layer index based on zMed (will be used fabs(zMed), i.e., TVD) */
@@ -502,7 +512,7 @@ protected:
     int fnstripes;
     
     /** @brief Maximum compressive stress in fracture plane */
-    REAL fmaxCompressiveStress;
+    REAL fmax_minCompressiveStress;
     
     /** @brief Vector of coupling material */
     TPZVec<TPZPlaneFractCouplingMat *> fCouplingMatVec;

@@ -82,7 +82,6 @@ void TPZPlaneFractCouplingMat::Contribute(TPZVec<TPZMaterialData> &datavec,
     else
     {
         TPZElast3Dnlinear::Contribute(datavec[0], weight, ek, ef);
-        ContributePressure(datavec, weight, ek, ef);
     }
 }
 

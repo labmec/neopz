@@ -104,10 +104,10 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec
     
     GeneratePreservedMesh(espacamentoVerticalDEPTH, bulletTVDIni, bulletTVDFin, xLength, yLength);
     
-    fmaxCompressiveStress = 0.;
+    fmax_minCompressiveStress = 0.;
     for(int l = 0; l < layerVec.NElements(); l++)
     {
-        fmaxCompressiveStress = MIN(fmaxCompressiveStress,layerVec[l].fSigmaMin);
+        fmax_minCompressiveStress = MIN(fmax_minCompressiveStress,layerVec[l].fSigmaMin);
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -528,10 +528,11 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         cmesh->InsertMaterialObject(dirichDirBottom);
         
         ///////////insideFract
-        k.Zero();
-        f.Zero();
         for(int stripe = 0; stripe < fnstripes; stripe++)
         {
+            k.Zero();
+            f.Zero();
+            
             ///////////insideFract
             TPZBndCond * newmannInsideFract = new TPZBndCond(couplingMat,globMaterialIdGen.InsideFractMatId(lay, stripe), newmann, k, f);
             cmesh->InsertMaterialObject(newmannInsideFract);
@@ -563,6 +564,10 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 
 void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe)
 {
+    if(actStripe > 0)
+    {
+        std::cout << "";
+    }
     for(int lay = 0; lay < fLayerVec.NElements(); lay++)
     {
         for(int stripe = 0; stripe < fnstripes; stripe++)
@@ -585,11 +590,11 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
             }
             if(stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = -1.5*fmaxCompressiveStress;
+                bcmat->Val2()(1,0) = StressApplied();//<<< dp aplicado!!!
             }
             else
             {
-                bcmat->Val2()(1,0) = -1.1*fmaxCompressiveStress;
+                bcmat->Val2()(1,0) = 0.;
             }
         }
     }
