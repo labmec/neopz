@@ -111,7 +111,11 @@ public:
     {
         return (sizeof(TVar)*this->Rows()*this->Cols());
 	}
-	
+    
+    TVar *Adress()
+    {
+        return fElem;
+	}
 	int PutVal(const long row,const long col,const TVar & value );
 	const TVar &GetVal(const long row,const long col ) const;
 	

@@ -27,11 +27,21 @@ static LoggerPtr loggerv1v2(Logger::getLogger("substruct.v1v2"));
 
 using namespace std;
 
+#ifdef USING_HWLOC
+#include <hwloc.h>
+hwloc_topology_t topology;
+#endif
+
 template<class TVar, class TSubStruct>
 TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly<TVar> > assemble)
 : TPZMatrix<TVar>(origin), fGlobal(origin.SubStructures()), fCoarse(0), fNumCoarse(origin.NumCoarse()), fNumThreads(0), fAssemble(assemble)
 {
 	fNumThreads = origin.NumThreads();
+#ifdef USING_HWLOC
+   	hwloc_topology_init(&topology);
+	hwloc_topology_load(topology);
+#endif
+    
 }
 
 template<class TVar, class TSubStruct>
@@ -61,13 +71,35 @@ TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 
 /** Threading Building Blocks */
 
+
+
+
 #ifdef USING_TBB
 #include "tbb/parallel_for.h"
 #include "tbb/blocked_range.h"
+#include "tbb/partitioner.h"
 using namespace tbb;
 #endif
 
+
+
+void ReallocLocal(const void *adress, size_t size)
+{
+#ifdef USING_HWLOC
+    hwloc_bitmap_t set = hwloc_bitmap_alloc();
+    hwloc_get_cpubind(topology, set, HWLOC_CPUBIND_THREAD);
+    hwloc_get_last_cpu_location(topology, set, HWLOC_CPUBIND_THREAD);
+    hwloc_bitmap_singlify(set);
+    
+    hwloc_set_area_membind ( topology, adress, size, (hwloc_const_cpuset_t)set, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_MIGRATE );
+#endif
+}
+
 #include "arglib.h"
+
+#ifdef USING_TBB
+affinity_partitioner ap;
+#endif
 
 template<class TVar, class TSubStruct>
 class ParallelAssembleTask
@@ -93,10 +125,14 @@ public:
     /** @brief Computing operator for the parallel for. */
     void operator()(const blocked_range<size_t>& range) const
     {
+        
         for(size_t i=range.begin(); i!=range.end(); ++i )
         {
+            
             TPZDohrPrecondV2SubData<TVar,TSubStruct> data  = mWorkItems[i];
-            data.fSubStructure->Contribute_v2_local(data.fInput_local,data.fv2_local->fAssembleData);
+
+            ReallocLocal( data.fInput_local->Adress(), data.fInput_local->MemoryFootprint());
+            data.fSubStructure->Contribute_v2_local(data.fInput_local, data.fv2_local->fAssembleData);
             fAssemblyStructure->AddItem(data.fv2_local);
         }
     }
@@ -157,7 +193,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
     }
     
 
-    //tbb_work.run_parallel_for(ap);
+    tbb_work.run_parallel_for(ap);
 
     
     PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,

@@ -268,6 +268,20 @@ if(USING_PAPI)
         endif()
 endif(USING_PAPI)
 
+#enabling HWLOC library 
+option(USING_HWLOC "Whether the HWLOC library will be linked in" OFF)
+if(USING_HWLOC)
+        add_definitions(-DUSING_HWLOC)
+        find_path(HWLOC_INCLUDE NAMES hwloc.h PATHS ${SEARCH_DIRS})
+        find_library(HWLOC_LIB NAMES hwloc.a libhwloc.so libhwloc.dylib PATHS ${SEARCH_DIRS})
+        if(HWLOC_INCLUDE-NOTFOUND)
+                set (HWLOC_INCLUDE "" CACHE PATH "Directory where hwloc.h can be found")
+        endif()
+        if(HWLOC_LIB-NOTFOUND)
+                set (HWLOC_LIB "" CACHE PATH "Directory where the hwloc library can be found")
+        endif()
+endif(USING_HWLOC)
+
 #enabling MKL library 
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)

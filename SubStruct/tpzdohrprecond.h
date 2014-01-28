@@ -19,11 +19,6 @@
 
 #include "pz_pthread.h"
 
-#ifdef USING_TBB
-#include "tbb/partitioner.h"
-using namespace tbb;
-#endif
-
 /**
  * \addtogroup substructure
  * @{
@@ -49,7 +44,7 @@ class TPZDohrPrecond : public TPZMatrix<TVar>
 	
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssemble;
 	
-    //affinity_partitioner ap;
+    //
     
 public:
     /** @brief Constructor with matrix */
