@@ -263,7 +263,7 @@ public:
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
     Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-           TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+           TPZVec<REAL> &Origin, REAL &young, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius);
     
     ~Path3D();
     
@@ -277,6 +277,16 @@ public:
     TPZVec<REAL> & Origin()
     {
         return fArcPath3D->Origin();
+    }
+    
+    REAL KI()
+    {
+        return fKI;
+    }
+    
+    REAL KIc()
+    {
+        return fKIc;
     }
     
     TPZVec<REAL> & JDirection()
@@ -301,7 +311,10 @@ protected:
     AreaPath3D * fAreaPath3D;
     
     REAL fOriginZcoord;
+    REAL fYoung;
     
+    REAL fKI;
+    REAL fKIc;
     TPZVec<REAL> fJDirection;
     REAL fJintegral;
 };

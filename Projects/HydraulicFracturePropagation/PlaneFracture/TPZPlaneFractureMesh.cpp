@@ -210,24 +210,11 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
 //    TurnIntoQuarterPoint(fRefinedMesh);
-//    RefineDirectionalToCrackTip(1);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
 //        TPZVTKGeoMesh::PrintGMeshVTK(fRefinedMesh, outRefinedMesh, true);
 //    }
-}
-//------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureMesh::WriteRefinedGeoMesh()
-{
-    //TODO!!!
-}
-//------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureMesh::ReadRefinedGeomesh()
-{
-    //TODO!!!
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -640,27 +627,11 @@ TPZGeoEl * TPZPlaneFractureMesh::GetCrackTipGeoElement(int pos)
 }
 //------------------------------------------------------------------------------------------------------------
 
-REAL TPZPlaneFractureMesh::GetKIcFromLayerOfThisZcoord(REAL zCoord)
-{
-    int whatLayer = this->GetLayer(zCoord);
-    REAL KIc = fLayerVec[whatLayer].fKIc;
-    
-    return KIc;
-}
-//------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureMesh::GetYoung_and_PoissonFromLayerOfThisZcoord(REAL zCoord, REAL & young, REAL & poisson)
+void TPZPlaneFractureMesh::GetYoung_and_KIc_FromLayerOfThisZcoord(REAL zCoord, REAL & young, REAL &KIc)
 {
     int whatLayer = this->GetLayer(zCoord);
     young = fLayerVec[whatLayer].fYoung;
-    poisson = fLayerVec[whatLayer].fPoisson;
-}
-//------------------------------------------------------------------------------------------------------------
-
-REAL TPZPlaneFractureMesh::GetPreStressYYOfThisLayer(int lay)
-{
-    REAL preStressYY = fLayerVec[lay].fSigmaMin;
-    return preStressYY;
+    KIc = fLayerVec[whatLayer].fKIc;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -707,7 +678,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
                                                  REAL bulletTVDIni, REAL bulletTVDFin,
                                                  REAL xLength, REAL yLength)
 {
-    std::cout << "\n************** GERANDO MALHA GEOMETRICA DE REFERENCIA (PRESERVED)\n";
+    std::cout << "\n************** GERANDO MALHA GEOMETRICA DE REFERENCIA (PRESERVED)\n\n\n";
     
     REAL bulletDEPTHIni = -bulletTVDIni;
     REAL bulletDEPTHFin = -bulletTVDFin;
@@ -906,25 +877,6 @@ void TPZPlaneFractureMesh::RefineUniformAllFracturePlane(int ndiv)
                         }
                     }
                 }
-            }
-        }
-    }
-}
-//------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureMesh::RefineDirectionalToCrackTip(int ndiv)
-{
-    std::set<int> crackTipMat;
-    crackTipMat.insert(globMaterialIdGen.CrackTipMatId());
-    for(int div = 0; div < ndiv; div++)
-    {
-        int nelem = fRefinedMesh->NElements();
-        for(int el = 0; el < nelem; el++)
-        {
-            TPZGeoEl * gel = fRefinedMesh->ElementVec()[el];
-            if(gel->HasSubElement() == false)
-            {
-                TPZRefPatternTools::RefineDirectional(gel, crackTipMat);
             }
         }
     }

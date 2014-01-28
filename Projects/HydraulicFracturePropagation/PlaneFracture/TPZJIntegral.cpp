@@ -119,7 +119,7 @@ TPZVec<REAL> LinearPath3D::Func(REAL t)
 
 TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
-    TPZFMatrix<STATE> GradUtxy(3,3);
+    TPZFMatrix<STATE> GradUtxy(3,3,0.);
     TPZVec<STATE> Sigma_n(3,0.);
     ComputeElasticData(t, xt, GradUtxy, Sigma_n);
     
@@ -195,6 +195,8 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 
 REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 {
+    //AQUICAJU : vou pegar da elastica mesmo
+    
 //    fcmeshFluid->LoadReferences();
 //    
 //    TPZVec<REAL> qsi(2,0.);
@@ -249,7 +251,7 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 //    REAL press = data.sol[0][0];
 //    
 //    return press;
-    //AQUICAJU
+
     TPZFMatrix<STATE> GradUtxy(3,3,0.);
     TPZFMatrix<STATE> Sigma(3,3,0.);
     TPZFMatrix<STATE> strain(3,3,0.);
@@ -1151,6 +1153,9 @@ Path3D::Path3D()
     fAreaPath3D = NULL;
     
     fOriginZcoord = 0.;
+    fYoung = 0.;
+    fKI = 0.;
+    fKIc = 0.;
     
     fJDirection.Resize(3,0.);
     fJintegral = 0.;
@@ -1158,14 +1163,17 @@ Path3D::Path3D()
 
 
 Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-               TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
+               TPZVec<REAL> &Origin, REAL &young, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius)
 {
     fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     fAreaPath3D = new AreaPath3D(fLinearPath3D);
     
     fOriginZcoord = Origin[2];
+    fYoung = young;
     
+    fKI = 0.;
+    fKIc = KIc;
     fJDirection.Resize(3,0.);
     fJintegral = 0.;
     
@@ -1255,6 +1263,8 @@ void Path3D::ComputeJIntegral()
     fJDirection[0] = Jx/fJintegral;
     fJDirection[1] = Jy/fJintegral;
     fJDirection[2] = Jz/fJintegral;
+    
+    fKI = sqrt(fJintegral * fYoung);
 }
 
 
@@ -1366,7 +1376,7 @@ void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
 
 void JIntegral3D::IntegratePath3D()
 {
-    std::cout << "\n>>>>>>>>>>>>>>> Computing J-integral (Tot = " << NPaths() << ")\n\n";
+    std::cout << ">>>> Computing J-integral (Tot = " << NPaths() << ")\n";
     for(int p = 0; p < NPaths(); p++)
     {
         IntegratePath3D(p);
@@ -1376,11 +1386,13 @@ void JIntegral3D::IntegratePath3D()
 void JIntegral3D::IntegratePath3D(int p)
 {
     fPath3DVec[p]->ComputeJIntegral();
-    std::cout << "Jvec" << p << " = { "
-              << fPath3DVec[p]->JDirection()[0] << " , "
-              << fPath3DVec[p]->JDirection()[1] << " , "
-              << fPath3DVec[p]->JDirection()[2] << " };\n"
-              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n\n";
+    std::cout << p+1 << " of " << NPaths() << " ok!\n";
+    
+//    std::cout << "Jvec" << p << " = { "
+//              << fPath3DVec[p]->JDirection()[0] << " , "
+//              << fPath3DVec[p]->JDirection()[1] << " , "
+//              << fPath3DVec[p]->JDirection()[2] << " };\n"
+//              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n\n";
 }
 
 JIntegral2D::JIntegral2D()

@@ -59,7 +59,9 @@ protected:
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
      * @param step [in] : time step
      */
-    void RunThisFractureGeometry(REAL & volAcum, TPZCompMesh * &lastPressureCMesh);
+    void RunThisFractureGeometry(REAL & volAcum);
+    
+    void ApplyInitialKick();
     
     void CloseActualTimeStep();
     
@@ -120,9 +122,10 @@ protected:
     REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
-    bool CheckPropagationCriteria();
+    bool CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
+                                  std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI);
     
-    /** 
+    /**
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
      * @param whoPropagate_KI [in] : map that holds the KI and KIc, indexed by poligonal chain index
      */

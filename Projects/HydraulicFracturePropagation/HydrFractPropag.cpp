@@ -27,9 +27,7 @@ int main(int argc, char * const argv[])
 
     //Transient data
     REAL Ttot = 25. * 60.; /** em segundos */
-    REAL maxDeltaT = 60.; /** em segundos */
-    int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
-    globTimeControl.SetTimeControl(Ttot, maxDeltaT, nTimes);
+    globTimeControl.SetTimeControl(Ttot);
     
     //Geometry data
     REAL lengthX = 80.;
@@ -98,7 +96,7 @@ int main(int argc, char * const argv[])
     REAL visc = 200.02E-3;//N.s/m2
     
     //J-Integral data
-    REAL Jradius = 1.5;
+    REAL Jradius = 1.0;
 
     //Simulation p-order data
     int porder = 1;

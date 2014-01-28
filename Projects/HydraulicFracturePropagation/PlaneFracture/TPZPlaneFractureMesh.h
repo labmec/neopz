@@ -274,9 +274,6 @@ class TPZPlaneFractureMesh
 	 */
 	void InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL> > &poligonalChain);
     
-    void WriteRefinedGeoMesh();
-    void ReadRefinedGeomesh();
-    
     TPZCompMesh * GetFractureCompMesh(int porder);
     
     TPZCompMeshReferred * GetFractureCompMeshReferred(TPZCompMesh * cmeshRef, int porder);
@@ -297,11 +294,7 @@ class TPZPlaneFractureMesh
     
     TPZGeoEl * GetCrackTipGeoElement(int pos);
     
-    REAL GetKIcFromLayerOfThisZcoord(REAL zCoord);
-    
-    void GetYoung_and_PoissonFromLayerOfThisZcoord(REAL zCoord, REAL & young, REAL & poisson);
-    
-    REAL GetPreStressYYOfThisLayer(int lay);
+    void GetYoung_and_KIc_FromLayerOfThisZcoord(REAL zCoord, REAL & young, REAL &KIc);
     
     bool GeoElementIsOnPreservedMesh(TPZGeoEl * gel);
     
@@ -335,8 +328,6 @@ protected:
                                REAL xLength, REAL yLength);
     
     void RefineUniformAllFracturePlane(int ndiv);
-    
-    void RefineDirectionalToCrackTip(int ndiv);
 
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates

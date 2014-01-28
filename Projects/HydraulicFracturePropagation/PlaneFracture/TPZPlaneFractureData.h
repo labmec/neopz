@@ -29,9 +29,10 @@ public:
     {
         fTtot = 0.;
         factTime = 0.;
-        fmaxDeltaT = 0.;
-        fNDeltaTsteps = 0;
-        fminDeltaT = 0.;
+        
+        fDeltaT_left = 0.;
+        fDeltaT_right = 0.;
+        
         factDeltaT = 0.;
     }
     
@@ -40,25 +41,40 @@ public:
         
     }
     
-    void SetTimeControl(REAL Ttot, REAL maxDeltaT, int nTimes)
+    void SetTimeControl(REAL Ttot)
     {
         fTtot = Ttot;
-        factTime = fminDeltaT;
-        fmaxDeltaT = maxDeltaT;
-        fNDeltaTsteps = nTimes;
-        fminDeltaT = fmaxDeltaT/fNDeltaTsteps;
-        factDeltaT = fminDeltaT;
+        factTime = 0.;
+        
+        fDeltaT_left = 0.;
+        fDeltaT_right = 40.;
+        
+        ComputeActDeltaT();
     }
     
-    void SetMinDeltaT()
+    void TimeisOnLeft()
     {
-        factDeltaT = MIN(fminDeltaT,fTtot - factTime);
+        fDeltaT_left = factDeltaT;
     }
     
-    void SetNextDeltaT()
+    void TimeisOnRight()
     {
-        factDeltaT = MIN(fmaxDeltaT,(factDeltaT+fmaxDeltaT/fNDeltaTsteps));
-        factDeltaT = MIN(factDeltaT,fTtot - factTime);
+        fDeltaT_right = factDeltaT;
+    }
+    
+    void SetDeltaT(REAL deltaT)
+    {
+        factDeltaT = deltaT;
+    }
+    
+    void SetActTime(REAL actTime)
+    {
+        factTime = actTime;
+    }
+    
+    void ComputeActDeltaT()
+    {
+        factDeltaT = (fDeltaT_left + fDeltaT_right)/2.;
     }
     
     void UpdateActTime()
@@ -81,13 +97,44 @@ public:
         return factDeltaT;
     }
     
+    void RestartBissection()
+    {
+        fDeltaT_left = 0.;
+        fDeltaT_right *= 2.;
+    }
+    
+    bool ReachEndOftime()
+    {
+        return (factTime >= fTtot - 0.01);
+    }
+    
+    bool TimeLimitsIsCloseEnough()
+    {
+        if(fDeltaT_right < fDeltaT_left)
+        {
+            std::cout << "\n\n\nMetodo da bisseccao no tempo inverteu os limites!!!\n\n\n";
+            DebugStop();
+        }
+        return ((fDeltaT_right - fDeltaT_left) < 1.001);
+    }
+    
+    REAL LeftDeltaT()
+    {
+        return fDeltaT_left;
+    }
+ 
+    REAL RightDeltaT()
+    {
+        return fDeltaT_right;
+    }
+    
 private:
     REAL fTtot;//Tempo total da simulacao
     REAL factTime;//tempo atual (em segundos)
-    REAL fmaxDeltaT;//delta T maximo
-    REAL fminDeltaT;//delta T minimo
     REAL factDeltaT;//delta T atual
-    int fNDeltaTsteps;//quantidade de incrementos do deltaT para definir o deltaT minimo
+    
+    REAL fDeltaT_left;//deltaT cujo factTime+dt nao propagou a fratura (serah utilizado no metodo da bisseccao).
+    REAL fDeltaT_right;//deltaT cujo factTime+dt propagou a fratura (serah utilizado no metodo da bisseccao).
 };
 
 
@@ -111,6 +158,10 @@ public:
     {
         fGelId_Penetration = GelId_Penetration;
     }
+//    void ClearLeakoffMap()
+//    {//MustDelete!!!
+//        fGelId_Penetration.clear();
+//    }
     
     void UpdateLeakoff(TPZCompMesh * cmesh, int deltaT);
     
