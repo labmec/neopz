@@ -12,6 +12,7 @@
 #include "BrazilianTestGeoMesh.h"
 #include "pzsandlerextPV.h"
 #include "pzlog.h"
+#include "TPZTimer.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
@@ -59,6 +60,9 @@ void ProportionalLoading();
 int VerifyTangentSandlerPV();
 void ErickTaylorCheck(TPZTensor<REAL> eps, TPZTensor<REAL> deps);
 void CheckDepConv();
+void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV);
+void UniaxialLoadingErick(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick);
+void I1vsSqrtJ2();
 /*
 TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
 {
@@ -187,7 +191,7 @@ void UniaxialSandstone()
 
 void I1vsSqrtJ2()
 {
-    
+  
     
     TPZSandlerExtended SDPV;
     SDPV.MCormicRanchSand(SDPV);
@@ -242,7 +246,7 @@ void I1vsSqrtJ2()
         {
             for(int j =0;j<100;j++)
             {
-                X=SDPV.X(k0);
+                //X=SDPV.X(k0);
                 STATE val=(X-k0)*(X-k0)-(i1-k0)*(i1-k0);
                 if (val<0) {
                 val=0;
@@ -255,7 +259,7 @@ void I1vsSqrtJ2()
                 }
     
                 tmp=f2;
-                i1+=SDPV.X(k0)/60.;
+                //i1+=SDPV.X(k0)/60.;
             }
             myfile << "\n\n\n";
         }
@@ -263,7 +267,7 @@ void I1vsSqrtJ2()
         i1=-3;
         for(int i=0;i<30;i++)
         {
-            outfileFf << i1 << " "<< SDPV.F(i1,0) <<"\n";
+            //outfileFf << i1 << " "<< SDPV.F(i1,0) <<"\n";
             i1+=0.1205;
             
         }
@@ -286,7 +290,7 @@ void I1vsSqrtJ2()
 
         
     }
-    
+ 
 }
 
 
@@ -862,7 +866,7 @@ void DistFunc2TangentTest()
 
 int main()
 {
-    STATE val = atan2(3,1.);
+    //STATE val = atan2(3,1.);
     
 
     
@@ -871,7 +875,7 @@ int main()
     //ReadData("ensaio_UCS_all_columns.txt");
     //ReadData("ensaio_all_columns.txt");
     //DistFunc2TangentTest();
-    VerifyTangentSandlerPV();
+    //VerifyTangentSandlerPV();
     //comparingDep();
     //I1vsSqrtJ2();
     //TwoLoadings();
@@ -911,6 +915,42 @@ int main()
     //comparingDep();
     //UniaxialLoadingApplyStrainComputeDep();
     
+    TPZTimer time;
+    
+    TPZSandlerExtended SDPV;
+    SDPV.MCormicRanchSand(SDPV);
+    STATE epsp=0.,k0;
+    SDPV.Firstk(epsp, k0);
+    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
+    PlasticStepPV.fYC = SDPV;
+    TPZElasticResponse ER;
+    STATE E= SDPV.fE,nu=SDPV.fnu;
+    ER.SetUp(E,nu);
+    PlasticStepPV.fER =ER;
+    
+    time.start();
+    for(int i=1;i<1000;i++)
+    {
+        UniaxialLoadingPV(PlasticStepPV);
+    }
+    time.stop();
+    
+    cout << "\n tempo " <<time.seconds() << endl;
+    
+    time.reset();
+    
+    
+    STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
+    PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
+    
+    time.start();
+    for(int i=1;i<1000;i++)
+    {
+        UniaxialLoadingErick(PlasticStepErick);
+    }
+    time.stop();
+    cout << "\n tempo erick " <<time.seconds() << endl;
     return 0;
 }
 
@@ -1498,29 +1538,33 @@ void CheckDepConv()
 	
 	//    {0.0128547, -0.0564273, -0.0564273} beta=0
 	//    {-0.0333333, 0.00666667, -0.0733333}beta=pi/2
-	sigma1.XX()= 0.0128547;
-	sigma1.XX()=-0.0564273;
-	sigma1.YY()=-0.0564273;
-	sigma1.ZZ()=-0.0564273;
-	//sigma1.XX()=-0.0333333;
-	//sigma1.YY()=0.00666667;
-	//sigma1.ZZ()= -0.0733333;
+//    STATE alpha = 1.e-3;
+////	sigma1.XX()= 0.0128547;
+//	sigma1.XX()=-0.0564273;
+//	sigma1.YY()=-0.0564273;
+//	sigma1.ZZ()=-0.0564273;
+//    //sigma1.XX()=alpha*2;
+//	//sigma1.YY()=-alpha*1;
+//	//sigma1.ZZ()=-alpha*1;
+//	//sigma1.XX()=-0.0333333;
+//	//sigma1.YY()=0.00666667;
+//	//sigma1.ZZ()= -0.0733333;
+//	
+//	ER.ComputeDeformation(sigma1, eps1);
+	
+/*	//    {0.121722, 0.0091389, 0.0091389}
+	sigma1.XX()= 0.121722;
+	sigma1.YY()= 0.0091389;
+	sigma1.ZZ()= 0.0091389;
 	
 	ER.ComputeDeformation(sigma1, eps1);
 	
-	//    {0.121722, 0.0091389, 0.0091389}
-	sigma2.XX()= 0.121722;
-	sigma2.YY()= 0.0091389;
-	sigma2.ZZ()= 0.0091389;
-	
-	ER.ComputeDeformation(sigma2, eps2);
-	
 	//    {0.135295, 0.0573526, 0.0573526}
-	sigma3.XX()=0.135295;
-	sigma3.YY()=0.0573526;
-	sigma3.ZZ()=0.0573526;
+	sigma1.XX()=0.135295;
+	sigma1.YY()=0.0573526;
+	sigma1.ZZ()=0.0573526;
 	
-	ER.ComputeDeformation(sigma3, eps3);
+	ER.ComputeDeformation(sigma1, eps1);
 	
 	TPZManVector<STATE> sigtr(3),sigproj(3);
 	sigtr[0]=sigma1.XX();
@@ -1528,9 +1572,11 @@ void CheckDepConv()
 	sigtr[2]=sigma1.ZZ();
 	//STATE k1;
 	//SDPV.ProjectF2(sigtr, k0,sigproj, k1);
-	
-	PlasticStepErick.ApplyStrainComputeDep(eps1,sigmasol1,DepER);
-	cout << " \n sigmasol1 = "<< sigmasol1 << endl;
+
+ */
+ 
+	//PlasticStepErick.ApplyStrainComputeDep(eps1,sigmasol1,DepER);
+	//cout << " \n sigmasol1 = "<< sigmasol1 << endl;
 	
 	PlasticStepPV.ApplyStrainComputeDep(eps1, sigmasol2,DepPV);
 	cout << " \n sigmasol2 "<< sigmasol2 << endl;
@@ -1546,6 +1592,33 @@ void CheckDepConv()
 	}
 #endif
 	
+    
+    
+    //	sigma1.XX()= 0.0128547;
+	sigma1.XX()=-0.0564273;
+	sigma1.YY()=-0.0564273;
+	sigma1.ZZ()=-0.0564273;
+    //sigma1.XX()=alpha*2;
+	//sigma1.YY()=-alpha*1;
+	//sigma1.ZZ()=-alpha*1;
+	//sigma1.XX()=-0.0333333;
+	//sigma1.YY()=0.00666667;
+	//sigma1.ZZ()= -0.0733333;
+	
+	ER.ComputeDeformation(sigma1, eps1);
+    TPZTensor<STATE> dsig;
+    STATE alpha = 1.e-3;
+    dsig.XX()= alpha;
+    dsig.YY()=alpha;
+    dsig.ZZ()=alpha;
+
+    //dsig.XX()= 0;
+    //dsig.YY()=alpha;
+    //dsig.ZZ()=-alpha;
+    
+    ER.ComputeDeformation(dsig, deps);
+    
+    //sigma1+=dsig;
 	
 #ifdef LOG4CXX
 	{
@@ -1553,8 +1626,7 @@ void CheckDepConv()
 		str << "\n-------------------------- BEGINING OF TAYLORCHECK TEST FOR DSIGDEPS USING PRINCIPAL VALUES --------------------------" << endl;
 
 		TPZManVector<REAL,3> conv;
-		deps.XX()=eps1.XX();
-		deps*=1/10.;
+        //deps.XX()=1/10.;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nXX:" << endl;
 		deps.Print(str);
@@ -1602,6 +1674,35 @@ void CheckDepConv()
 	}
 #endif
 	
+}
+
+
+void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV)
+{
+    
+    
+
+    TPZTensor<STATE> epst,sigma1;
+    TPZFNMatrix<36> DepPV(6,6,0.);
+    STATE deltaeps = -0.005;
+    epst.XX()=deltaeps;
+   
+  PlasticStepPV.ApplyStrainComputeDep(epst, sigma1,DepPV);
+   // PlasticStepPV.ApplyStrainComputeSigma(epst,sigma1);
+}
+
+
+void UniaxialLoadingErick(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick)
+{
+
+    TPZTensor<STATE> epst,sigma1;
+    STATE deltaeps = -0.005;
+    epst.XX()=deltaeps;
+    TPZFNMatrix<36> DepER(6,6,0.);
+        
+  PlasticStepErick.ApplyStrainComputeDep(epst,sigma1,DepER);
+//    PlasticStepErick.ApplyStrainComputeSigma(epst,sigma1);
+    
 }
 
 

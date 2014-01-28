@@ -1724,7 +1724,7 @@ void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & po
             TPZVec<STATE> sol(1);
             int var = cel->Material()->VariableIndex("PlasticSqJ2");
             REAL Tol;
-			ZeroTolerance(Tol);
+			//ZeroTolerance(Tol);
             for(int n = 0; n < nnodes; n++)
             {
                 qsiNode[n].Resize(2, 0.);

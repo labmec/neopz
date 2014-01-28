@@ -237,6 +237,9 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
 {
     TPZManVector<STATE> sigHWCyl(3);
     FromPrincipalToHWCyl(sigproj, sigHWCyl);
+    STATE xi,rho;
+    xi=sigHWCyl[0];
+    rho=sigHWCyl[1];
     STATE I1 = sigHWCyl[0]*sqrt(3.);
     beta = sigHWCyl[2];
     STATE gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
@@ -244,11 +247,13 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     STATE sqrtj2 = sigHWCyl[1]/sqrt(2.);
     STATE sintheta = sqrtj2*gamma/(F(k,fPhi)-fN);
     theta = atan2(sintheta, costheta);
+    theta = acos(costheta);
+    //STATE theta2 = atan((rho*sin(beta))/xi);
 #ifdef DEBUG
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
     STATE dist = DistF2(sigproj, theta, beta, k);
     if (fabs(dist) > 1.e-8 || err > 1.e-8) {
-        //DebugStop();
+        DebugStop();
     }
 #endif
     
@@ -814,15 +819,16 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE theta,beta=0.,distnew;
     STATE resnorm,disttheta;
     disttheta=1.e8;
-    for (STATE thetaguess=0; thetaguess <= M_PI; thetaguess += M_PI/20.) {
-        for (STATE betaguess=0; betaguess <= 2*M_PI; betaguess += M_PI/20.) {
+    TPZManVector<STATE,3> vectempcyl(3);
+    FromPrincipalToHWCyl(sigmatrial, vectempcyl);
+    STATE betaguess=vectempcyl[2];
+    for (STATE thetaguess=M_PI/2.; thetaguess <= M_PI; thetaguess += M_PI/20.) {
             distnew=DistF2(sigmatrial,thetaguess,betaguess,kprev);
             if (fabs(distnew) < fabs(disttheta)) {
                 theta = thetaguess;
                 beta=betaguess;
                 disttheta = distnew;
             }
-        }
     }
     
     resnorm=1;
@@ -939,6 +945,75 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 
     kproj = ksol;
     
+}
+
+void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj) const
+{
+    //#ifdef LOG4CXX
+    //    {
+    //        std::stringstream outfile;
+    //        outfile << "\n projection over F2 " <<endl;
+    //        LOGPZ_DEBUG(logger,outfile.str());
+    //
+    //    }
+    //#endif
+    
+    STATE theta,beta=0.,distnew;
+    STATE resnorm,disttheta;
+    disttheta=1.e8;
+    STATE betaconst =0;
+    for (STATE thetaguess=0; thetaguess <= M_PI; thetaguess += M_PI/20.) {
+            distnew=DistF2(sigmatrial,thetaguess,betaconst,kprev);
+            if (fabs(distnew) < fabs(disttheta)) {
+                theta = thetaguess;
+                beta=betaconst;
+                disttheta = distnew;
+            }
+    }
+    
+    resnorm=1;
+    int counter=1;
+    TPZFNMatrix<3,STATE> xn1(3,1,0.),xn(3,1,0.),sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
+    xn(0,0)=theta;
+    xn(1,0)=beta;
+    xn(2,0)=kprev;
+    while (resnorm > 10.e-15 && counter < 30)
+    {
+        TPZFNMatrix<9,STATE> jac(3,3);
+        D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
+        TPZManVector<STATE> fxnvec(3);
+        DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+        for(int k=0; k<3; k++) fxn(k,0) = fxnvec[k];
+        for (int i=0; i<3; i++) {
+            jac(i,1) = 0.;
+            jac(1,i) = 0.;
+        }
+        jac(1,1) = 1.;
+        fxn(1,0) = 0.;
+        sol = fxn;
+        jac.Solve_LU(&sol);
+        
+        xn1(0,0)=xn(0,0)-sol(0,0);
+        xn1(1,0)=xn(1,0);
+        xn1(2,0)=xn(2,0)-sol(2,0);
+        
+        diff=xn1-xn;
+        resnorm=Norm(diff);
+        xn=xn1;
+        counter++;
+        
+    }
+    if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
+    STATE thetasol,betasol,ksol;
+    
+    thetasol=xn1(0);
+    betasol=xn1(1);
+    ksol=xn1(2);
+    kproj=ksol;
+    
+    TPZManVector<STATE,3> f2cyl(3);
+    F2Cyl(thetasol, betasol, ksol, f2cyl);
+    FromHWCylToPrincipal(f2cyl,sigproj);
 }
 
 void TPZSandlerExtended::ComputeI1(TPZVec<STATE> stress, STATE &I1)const
@@ -1079,6 +1154,14 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         if (yield[1]>0.)
         {
             ProjectF2(sigtrial,kprev,sigproj,kproj);
+#ifdef DEBUG
+            {
+                TPZManVector<STATE> cyltr(3), cylproj(3);
+                FromPrincipalToHWCyl(sigtrial, cyltr);
+                FromPrincipalToHWCyl(sigproj, cylproj);
+                std::cout << "cyltr " << cyltr << " cylpr " << cylproj << std::endl;
+            }
+#endif
         }
         else
         {
@@ -1120,11 +1203,16 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     I1 = sigtrial[0]+sigtrial[1]+sigtrial[2];
     
     YieldFunction(sigtrial,kprev,yield);
+    bool treeEigEqual = false;
+    STATE tol=1.e-8;
+    if (fabs(sigtrial[0]-sigtrial[1])<tol && fabs(sigtrial[1]-sigtrial[2])<tol) {
+        treeEigEqual=true;
+    }
     
     
     if (I1<kprev)
     {
-        if (yield[1]>0.)
+        if (yield[1]>0. && treeEigEqual==false)
         {
             ProjectF2(sigtrial,kprev,sigproj,kproj);
             // we can compute the tangent matrix
@@ -1137,6 +1225,35 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             DF2Cart(theta, beta, kproj, DF2cart);
             DF2cart.Multiply(dbetadsigtrial, GradSigma);
             GradSigma *= -1.;
+        }
+        else if (yield[1]>0. && treeEigEqual==true)
+        {
+            ProjectBetaConstF2(sigtrial,kprev,sigproj,kproj);
+            // we can compute the tangent matrix
+            TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
+            STATE theta,beta;
+            SurfaceParamF2(sigproj, kproj, theta, beta);
+            beta=0;
+//#ifdef DEBUG
+//            if(fabs(sigproj[1]) > tol)
+//            {
+//                DebugStop();
+//            }
+//#endif
+            GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, dbetadsigtrial);
+            for(int i=0; i<3; i++) dbetadsigtrial(1,i) = 0.;
+            D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
+            for (int i=0; i<3; i++) {
+                jacF2(i,1) = 0.;
+                jacF2(1,i) = 0.;
+            }
+            jacF2(1,1) = 1.;
+            jacF2.Solve_LU(&dbetadsigtrial);
+            DF2Cart(theta, beta, kproj, DF2cart);
+            for(int i=0; i<3; i++) DF2cart(i,1) = 0.;
+            DF2cart.Multiply(dbetadsigtrial, GradSigma);
+            GradSigma *= -1.;
+            
         }
         else
         {

@@ -12,8 +12,11 @@
 
 #include "pzlog.h"
 
+//#ifdef LOG4CXX
+//static LoggerPtr logger(Logger::getLogger("pz.material.TPZPlasticStepPV"));
+//#endif
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.TPZPlasticStepPV"));
+static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 #endif
 
 
@@ -107,7 +110,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	STATE nextalpha = -6378.;
 	TPZFNMatrix<9> GradSigma(3,3,0.);
 	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
-	GradSigma.Print("Grad");
+	//GradSigma.Print("Grad");
 	fN.fAlpha = nextalpha;
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())

@@ -30,13 +30,16 @@ public:
     virtual ~TPZSandlerExtended();
 
 
-
+private:
     /// The function which defines the plastic surface
     template<class T>
     T F(T x,STATE phi) const;
     /// Auxiliary function for Associating the position of the cap with the damage variable
     template<class T>
     T X(T k) const;
+public:
+    
+    
     /// compute the damage variable as a function of the X function
     template<class T>
     T EpsEqX(T X) const;
@@ -131,6 +134,8 @@ public:
     void ProjectF2(const TPZVec<STATE>  &sigmatrial, STATE kprev, TPZVec<STATE>  &sigproj, STATE &kproj) const;
     
     void ProjectRing(const TPZVec<STATE>  &sigmatrial, STATE kprev, TPZVec<STATE>  &sigproj,STATE &kproj) const;
+    
+    void ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj) const;
     
     /**
 	 * Imposes the specified strain tensor and returns the correspondent stress state.

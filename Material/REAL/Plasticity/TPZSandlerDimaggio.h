@@ -18,6 +18,7 @@
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
 #define SANDLERDIMAGGIOSTEP2 TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
 
+
 template<class SANDLERDIMAGGIOPARENT>
 class TPZSandlerDimaggio : public SANDLERDIMAGGIOPARENT  {
 
@@ -438,7 +439,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 	   }
        #endif
 		
-	   REAL E = 29269, 
+	   REAL E = 29269.,
 	   poisson = 0.203;
 
        material.fER.SetUp(E, poisson);

@@ -1158,9 +1158,9 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		
 		epsegveFromProj.GramSchmidt(Orthog, TransfToOrthog);
 		
-		std::cout << "Autovetores:" << std::endl;
-		epsegveFromProj.Print("Eigenvectors antigo");
-		Orthog.Print("Eigenvectors Ortogonalizado");
+		//std::cout << "Autovetores:" << std::endl;
+		//epsegveFromProj.Print("Eigenvectors antigo");
+		//Orthog.Print("Eigenvectors Ortogonalizado");
 		
 		int rightvec[3] = {posorig,1,2};
 		int i = -1;
@@ -1172,8 +1172,8 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 			Eigenvectors[i].YY() = Orthog(1,k)*Orthog(1,k);
 			Eigenvectors[i].YZ() = Orthog(1,k)*Orthog(2,k);
 			Eigenvectors[i].ZZ() = Orthog(2,k)*Orthog(2,k);
-			std::cout << "i = " << i << std::endl;
-			Eigenvectors[i].Print(std::cout);
+			//std::cout << "i = " << i << std::endl;
+			//Eigenvectors[i].Print(std::cout);
 		}
 		
 #ifdef DEBUG
@@ -1304,9 +1304,9 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		
 		epsegveFromProj.GramSchmidt(Orthog, TransfToOrthog);
 		
-		std::cout << "Autovetores:" << std::endl;
-		epsegveFromProj.Print("Eigenvectors antigo");
-		Orthog.Print("Eigenvectors Ortogonalizado");
+		//std::cout << "Autovetores:" << std::endl;
+		//epsegveFromProj.Print("Eigenvectors antigo");
+		//Orthog.Print("Eigenvectors Ortogonalizado");
 		
 		int rightvec[3] = {posorig,0,1};
 		int i = -1;
@@ -1318,8 +1318,8 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 			Eigenvectors[i].YY() = Orthog(1,k)*Orthog(1,k);
 			Eigenvectors[i].YZ() = Orthog(1,k)*Orthog(2,k);
 			Eigenvectors[i].ZZ() = Orthog(2,k)*Orthog(2,k);
-			std::cout << "i = " << i << std::endl;
-			Eigenvectors[i].Print(std::cout);
+			//std::cout << "i = " << i << std::endl;
+			//Eigenvectors[i].Print(std::cout);
 		}
 		
 #ifdef DEBUG

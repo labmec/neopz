@@ -117,6 +117,10 @@ public:
 	 * @param[out] sigma Resultant stress
 	 */	
 	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma);
+    
+    
+    
+    //virtual void ApplySigmaComputeStrain(const TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsTotal);
 	
 	/**
 	 * Imposes the specified strain tensor and returns the corresp. stress state and tangent
@@ -215,7 +219,7 @@ protected:
 	/** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
 	int fMaxNewton;	// COLOCAR = 30 (sugestao do erick!)
 	
-protected:
+public:
 	
 	/** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */	
 	TPZPlasticState<REAL> fN;

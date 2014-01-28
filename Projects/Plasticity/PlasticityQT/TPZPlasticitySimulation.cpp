@@ -130,7 +130,7 @@ void TPZPlasticitySimulation::EvoluateToStep(TPZVec<STATE> &strainRZ, TPZVec<STA
         strain.YY() = strain.XX();
         strain.ZZ() -= depsmallinv(1,0)*stressres[0]+depsmallinv(1,1)*stressres[1];
         
-        // maybe a line search is in order??
+        //maybe a line search is in order??
         
         
         
