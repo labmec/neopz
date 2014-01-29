@@ -55,13 +55,19 @@ protected:
     void InitializeMeshes();
     
     /**
+     * @brief Method that will run a FEM simmulation of linear elasticity in NULL newman condition (for reduced space)
+     * @param cmesh [in] : cmesh that the FEM will run
+     */
+    void ProcessLinearElasticCMesh(TPZCompMesh * cmesh);
+    
+    void ApplyInitialCondition();
+    
+    /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
      * @param step [in] : time step
      */
     void RunThisFractureGeometry(REAL & volAcum);
-    
-    void ApplyInitialKick();
     
     void CloseActualTimeStep();
     
@@ -69,12 +75,6 @@ protected:
      * @brief Method that will initializate the JPath3D vector structure, based on 1D cracktip elements (available on fPlaneFractureMesh atribute)
      */
     void InitializePath3DVector();
-    
-    /**
-     * @brief Method that will run a FEM simmulation of linear elasticity in many stripes of newman condition
-     * @param cmesh [in] : cmesh that the FEM will run
-     */
-    void ProcessElasticCMeshByStripes(TPZCompMesh * cmesh);
     
     /**
      * @brief Method that will compute the stiff matrix for actual time step

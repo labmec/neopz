@@ -282,7 +282,7 @@ class TPZPlaneFractureMesh
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder);
     
-    void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
+    //void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
     
     int NStripes();
     
