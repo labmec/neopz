@@ -62,7 +62,6 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     this->fPlaneFractureMesh = new TPZPlaneFractureMesh(layerVec, bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax, nstripes);
     
     this->fmeshVec.Resize(2);
-    this->fmeshVecElastic.Resize(2);
     
     this->fmphysics = NULL;
     
@@ -220,34 +219,23 @@ void TPZPlaneFractureKernel::InitializeMeshes()
     
     std::cout << "\n************** GERANDO MALHAS COMPUTACIONAIS\n";
     
-    //Malha computacional elastica processada por faixas (serah referencia da this->fmeshVec[0])
+    //Malha computacional elastica processada para newman 0 (serah referencia da this->fmeshVec[0])
     TPZCompMesh * fractureCMeshRef = this->fPlaneFractureMesh->GetFractureCompMesh(this->fpOrder);
-
     this->ProcessLinearElasticCMesh(fractureCMeshRef);
+    //
+    //Malha computacional do tipo CMeshReferred
+    this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef, this->fpOrder);
     
-    {
-        //Malha computacional do tipo CMeshReferred
-        this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef, this->fpOrder);
-        
-        //Malha computacional de pressao
-        this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(this->fQinj1wing_Hbullet, this->fpOrder);
-        
-        //Malha computacional de acoplamento (multifisica)
-        this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec,
-                                                                            this->fQinj1wing_Hbullet,
-                                                                            this->fvisc,
-                                                                            this->fpOrder);
-    }
-    {
-        this->fmeshVecElastic[0] = fractureCMeshRef;
-        this->fmeshVecElastic[1] = this->fmeshVec[1];
-        
-        this->fmeshVecElastic = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVecElastic,
-                                                                                  this->fQinj1wing_Hbullet,
-                                                                                  this->fvisc,
-                                                                                  this->fpOrder);
-    }
     
+    //Malha computacional de pressao
+    this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(this->fQinj1wing_Hbullet, this->fpOrder);
+    
+    
+    //Malha computacional de acoplamento (multifisica)
+    this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec,
+                                                                        this->fQinj1wing_Hbullet,
+                                                                        this->fvisc,
+                                                                        this->fpOrder);
     
     this->InitializePath3DVector();
 }
@@ -299,16 +287,22 @@ void TPZPlaneFractureKernel::ApplyInitialCondition()
 {
     //Chute inicial Elastica **************************
     //Obs.: Eh a que resulta em Integral(w)=0.
+    //
     this->fmeshVec[0]->Solution()(0,0) = 1.;
     this->fmeshVec[0]->Solution()(1,0) = 1.;
+    
+    
     
     //Chute inicial Pressao ***************************
     //Obs.: Eh sabido que para Integral(w)=0, eh necessario um newman igual aas tensoes de confinamento.
     //      Como sao varias camadas, no chute vai o maximo valor das minimas tensoes de confinamento, i.e.: MAX( |preStressYY| )
+    //
     int nr = this->fmeshVec[1]->Solution().Rows();
     TPZFMatrix<REAL> chutenewton(nr, 1, 0.); // <--- NStripes = 1
     for(int r = 0; r < nr; r++)
-    {//Para estado compressivo, fPlaneFractureMesh->Max_MinCompressiveStress() en negativo e portanto a condicao newman eh positiva!
+    {
+        //Para estado compressivo, fPlaneFractureMesh->Max_MinCompressiveStress()
+        //eh negativo e portanto a condicao newman eh positiva!
         chutenewton(r,0) = -fPlaneFractureMesh->Max_MinCompressiveStress();
     }
     this->fmeshVec[1]->LoadSolution(chutenewton);
@@ -514,20 +508,16 @@ void TPZPlaneFractureKernel::InitializePath3DVector()
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec, long &posBlock)
+void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis *an,
+                                                        TPZAutoPointer< TPZMatrix<REAL> > & matK, TPZFMatrix<REAL> & matRes,
+                                                        long &posBlock)
 {
 	this->fPlaneFractureMesh->SetActualState();
     
-    TPZFStructMatrix matsk(this->fmphysics);
+    TPZFStructMatrix structMat(this->fmphysics);
+	an->SetStructuralMatrix(structMat);
     
-	an->SetStructuralMatrix(matsk);
-    
-    //Filtrando equacoes
-    //    Posicao de Alpha0 na this->fmphysics->Solution = 3
-    //    Posicao de Alpha1 na this->fmphysics->Solution = 4
-    //    Isso aqui embaixo nao ta funcionando como esperado!!!
-    //    Sem isso abaixo o sistema numerico dá um jeito, mas com isso o Alpha1 nao dá perto da pressão!!!
-    //    Sem isso abaixo, com e sem leakoff está consistente (w>0), mas com isso sem ou com leakoff dá w<0
+    //Filtrando equacao de alpha0
     bool mustFilter = true;
     if(mustFilter)
     {
@@ -549,29 +539,27 @@ void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis *an, TPZAuto
         eqF.SetActiveEquations(actEquations);
         
         an->StructMatrix()->EquationFilter() = eqF;
-        this->fmphysics->Solution()(posBlock,0) = 1.;//<<< Nao Mexer!!! Eh o alpha para u(Newman0)
+        this->fmphysics->Solution()(posBlock,0) = 1.;//<<< Nao Mexer!!! Eh o alpha0
     }
     
 	TPZStepSolver<REAL> stepS;
-    
 	stepS.SetDirect(ELU);
 	an->SetSolver(stepS);
     
     an->Assemble();
     
-    matK1 = an->Solver().Matrix();
-    
-	fvec = an->Rhs();
+    matK = an->Solver().Matrix();
+	matRes = an->Rhs();
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<REAL> & Un)
+void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<REAL> & massMat)
 {
     this->fPlaneFractureMesh->SetPastState();
     
-	TPZSpStructMatrix matsp(this->fmphysics);
+	TPZSpStructMatrix structMat(this->fmphysics);
 	TPZAutoPointer<TPZGuiInterface> guiInterface;
-    matsp.CreateAssemble(Un,guiInterface);
+    structMat.CreateAssemble(massMat,guiInterface);
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1188,14 +1176,14 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
         DebugStop();
     }
     
-    //Volume para alpha0=1 e alpha1=1
+    //Volume para alpha0=1 e alpha1=0
     TPZFMatrix<REAL> wSol(rows, cols);
     wSol(0,0) = 1.;
     wSol(1,0) = 0.;
     this->fmeshVec[0]->LoadSolution(wSol);
     REAL volAlpha1_ini = this->IntegrateW(this->fmeshVec[0]);
     
-    //Volume para alpha0=1 e alpha1=0
+    //Volume para alpha0=1 e alpha1=1
     wSol(0,0) = 1.;
     wSol(1,0) = 1.;
     this->fmeshVec[0]->LoadSolution(wSol);

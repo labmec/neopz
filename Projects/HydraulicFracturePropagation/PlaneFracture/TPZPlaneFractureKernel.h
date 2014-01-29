@@ -79,16 +79,18 @@ protected:
     /**
      * @brief Method that will compute the stiff matrix for actual time step
      * @param an [in] : Given TPZAnalysis, initializated already
-     * @param matK1 [out] : stiff matrix
-     * @param fvec [out] : load vector
+     * @param matK [out] : stiff matrix
+     * @param matRes [out] : load vector (in matrix form)
      */
-    void AssembleStiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec, long &posBlock);
+    void AssembleStiffMatrixLoadVec(TPZAnalysis *an,
+                                    TPZAutoPointer< TPZMatrix<REAL> > & matK, TPZFMatrix<REAL> & matRes,
+                                    long &posBlock);
     
     /**
      * @brief Method that will compute the mass matrix for last time step
-     * @param Un [out] : Mass matrix
+     * @param massMat [out] : Mass matrix
      */
-    void MassMatrix(TPZFMatrix<REAL> & Un);
+    void MassMatrix(TPZFMatrix<REAL> & massMat);
     
     /** During development, this is used to check the convergence order of the non linear system */
     void CheckConv();
@@ -155,7 +157,6 @@ protected:
     TPZPlaneFractureMesh * fPlaneFractureMesh;
     
     TPZVec<TPZCompMesh *> fmeshVec;
-    TPZVec<TPZCompMesh *> fmeshVecElastic;
     
     TPZCompMesh * fmphysics;
     
