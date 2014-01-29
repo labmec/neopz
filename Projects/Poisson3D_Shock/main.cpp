@@ -433,57 +433,58 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	long i, ii;
 	REAL factorGrad= 0.6;
 	REAL factorErrorM = 0.8;
-	REAL LaplacianLimit = 5.;
-	static REAL factorError = 0.35;
-	REAL GradErLimit = 10.;
-	MaxGrad = gradervecbyel[nels];
-	int MaxLevel = MaxLevelReached(cmesh);
+	REAL LaplacianLimit = 10.;
+	REAL factorError = 0.3;
+	REAL GradErLimit = 8.;
+	REAL ErLimit = 0.05;
+	REAL BigError = ErLimit > factorErrorM*MaxErrorByElement ? factorErrorM*MaxErrorByElement : ErLimit;
+	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
+	MaxGrad = GradErLimit > factorGrad*gradervecbyel[nels] ? factorGrad*gradervecbyel[nels] : GradErLimit;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
-		bool hused = false;
-		bool pused = false;
+		bool hused = false, pused = false;
 		subels.Resize(0);
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
 		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+
+		// element data
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		pelement++;
 		index = el->Index();
 		level = el->Reference()->Level();
+		LaplacianValue = Laplacian(el);
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-        pelement++;
-		LaplacianValue = Laplacian(el);
-		if(ervecbyel[i] > factorErrorM*MaxErrorByElement) {
-			if(level < MaxHLevel && gradervecbyel[i] > GradErLimit) {
-				counterreftype[11]++;
-				hused = true;
-				el->Divide(index,subels);
+		if((ervecbyel[i] > BigError || gradervecbyel[i] > MaxGrad) && level < (MaxHLevel-1)) {
+			counterreftype[11]++;
+			hused = true;
+			el->Divide(index,subels);
+			level++;
+			if(nref < 1 && gradervecbyel[i] > MaxGrad) {
 				level++;
-				if(nref < 1 && gradervecbyel[i] > GradErLimit) {
-					level++;
-					for(ii=0;ii<subels.NElements();ii++) {
-						cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
-					}
-					counterreftype[13]++;
+				for(ii=0;ii<subels.NElements();ii++) {
+					cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
 				}
+				counterreftype[13]++;
 			}
-			else if(pelement < MaxPOrder) {
-				el->PRefine(pelement);
+			else if(LaplacianValue > LaplacianLimit && pelement < MaxPOrder) {
+				for(ii=0;ii<subels.NElements();ii++) {
+					((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
+				}
 				pused = true;
 				counterreftype[15]++;
 			}
 			else 
 				counterreftype[18]++;
 		}
-		else if(ervecbyel[i] > factorError*MaxErrorByElement || (LaplacianValue > LaplacianLimit && pelement < MaxPOrder-3)) {
+		else if((ervecbyel[i] > SmallError || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
 			counterreftype[30]++;
-			if(nref > 8 && factorError > 0.06)
-				factorError -= 0.05;
-			if(pelement < MaxPOrder) {
-				el->PRefine(pelement);
-				pused = true;
-				counterreftype[32]++;
-			}
+			el->PRefine(pelement);
+			pused = true;
+		}
+		else {
+			counterreftype[32]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
