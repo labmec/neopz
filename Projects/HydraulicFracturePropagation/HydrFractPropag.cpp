@@ -100,14 +100,14 @@ int main(int argc, char * const argv[])
 
     //Simulation p-order data
     int porder = 1;
-    REAL MaxDispl = 5.;
-    REAL MinDispl = 0.5;
+    REAL MaxDispl_ini = 5.;
+    REAL MaxDispl_fin = 0.5;
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
                                                                  QinjWell, visc,
                                                                  Jradius,
                                                                  porder,
-                                                                 MaxDispl,
-                                                                 MinDispl);
+                                                                 MaxDispl_ini,
+                                                                 MaxDispl_fin);
 
     plfrac->Run();
     

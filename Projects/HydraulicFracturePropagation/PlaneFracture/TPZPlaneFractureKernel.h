@@ -32,8 +32,8 @@ public:
      * @param visc [in] : Injected fluid viscosity
      * @param Jradius [in] : J-Integral radius
      * @param porder [in] : polinomial order of simulation
-     * @param MaxDispl [in] : Maximum displacement when fracture propagate
-     * @param MinDispl [in] : Minimum displacement when fracture propagate
+     * @param MaxDispl_ini [in] : Maximum displacement when fracture propagate in starting times
+     * @param MaxDispl_fin [in] : Maximum displacement when fracture propagate in ending times
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
@@ -41,8 +41,8 @@ public:
                            REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                            REAL Jradius,
                            int porder,
-                           REAL MaxDispl,
-                           REAL MinDispl);
+                           REAL MaxDispl_ini,
+                           REAL MaxDispl_fin);
     
     ~TPZPlaneFractureKernel();
     
@@ -164,13 +164,13 @@ protected:
     REAL fHbullet;
     REAL fQinj1wing_Hbullet;
     REAL fCenterTVD;
-    REAL fPoligonalChainInitialRadius;
+    REAL fPoligonalChainInitialHeigh;
     REAL fJIntegralRadius;
     REAL fvisc;
     int fpOrder;
     
-    REAL fMaxDispl;
-    REAL fMinDispl;
+    REAL fMaxDisplIni;
+    REAL fMaxDisplFin;
     
     JIntegral3D fPath3D;
     

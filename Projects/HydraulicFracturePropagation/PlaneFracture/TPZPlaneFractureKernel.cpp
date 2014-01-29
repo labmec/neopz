@@ -46,8 +46,8 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
                                                REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                                                REAL Jradius,
                                                int pOrder,
-                                               REAL MaxDispl,
-                                               REAL MinDispl)
+                                               REAL MaxDispl_ini,
+                                               REAL MaxDispl_fin)
 {
     if(nstripes != 1)
     {
@@ -78,7 +78,7 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     this->fQinj1wing_Hbullet = Qinj1wing_Hbullet;
     
     this->fCenterTVD = (bulletTVDIni + bulletTVDFin)/2.;
-    this->fPoligonalChainInitialRadius = 1.1 * (bulletTVDFin - fCenterTVD);
+    this->fPoligonalChainInitialHeigh = 1.1 * (bulletTVDFin - fCenterTVD);
     
     this->fvisc = visc;
     
@@ -86,8 +86,8 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     
     this->fpOrder = pOrder;
     
-    this->fMaxDispl = MaxDispl;
-    this->fMinDispl = MinDispl;
+    this->fMaxDisplIni = MaxDispl_ini;
+    this->fMaxDisplFin = MaxDispl_fin;
     
     this->fPath3D.Reset();
 }
@@ -195,7 +195,7 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     /** CIRCULO */
     /*
     REAL Lmax = 0.5;
-    int nsteps = M_PI * fPoligonalChainInitialRadius / Lmax;
+    int nsteps = M_PI * fPoligonalChainInitialHeigh / Lmax;
     if(nsteps < 10) nsteps = 10;
     REAL ang = M_PI / nsteps;
     
@@ -204,8 +204,8 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     
     for(int node = 1; node < nnodes-1; node++)
     {
-        REAL vx = 0.1 + fPoligonalChainInitialRadius*sin(node*ang);
-        REAL vz = fPoligonalChainInitialRadius*cos(node*ang) - fCenterTVD;
+        REAL vx = 0.1 + fPoligonalChainInitialHeigh*sin(node*ang);
+        REAL vz = fPoligonalChainInitialHeigh*cos(node*ang) - fCenterTVD;
         fpoligonalChain[node-1] = std::make_pair(vx,vz);
     }
      */
@@ -1057,7 +1057,7 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
             TPZVec<REAL> Jdirection = fPath3D.Path(p)->JDirection();
             
             //Variacao linear no decorrer do tempo de fMaxDispl para fMinDispl
-            REAL dLmax = this->fMaxDispl + (globTimeControl.actTime()*(this->fMinDispl - this->fMaxDispl))/globTimeControl.Ttot();
+            REAL dLmax = this->fMaxDisplIni + (globTimeControl.actTime()*(this->fMaxDisplFin - this->fMaxDisplIni))/globTimeControl.Ttot();
             REAL alpha = 1.;//alphaMin = [1.0~2.0]
             
             REAL displacement = dLmax * pow((KI - KIc)/(maxKI - KIc),alpha);
