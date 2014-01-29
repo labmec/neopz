@@ -65,22 +65,22 @@ namespace pztopology {
 		 */
 		static void HigherDimensionSides(int side, TPZStack<int> &high);
 		
-		/** @brief return the number of nodes (not connectivities) associated with a side */
+		/** @brief return the number of vertices (not connectivities) associated with a side */
 		static int NSideNodes(int side);
 		/** @brief returns the local node number of the node "node" along side "side" */
 		static int SideNodeLocId(int side, int node);
 
-		/** @brief Returns number of connects of the element (9) */
+		/** @brief Returns number of sides of the element (9) */
 		static int NumSides() {
 			return NSides;
 		}
-		/** @brief return the number of connects for a set dimension */
+		/** @brief return the number of sides of a given dimension */
 		static int NumSides(int dimension);
 
-		/** @brief return the number of nodes (not connectivities) associated with a side */
+		/** @brief return the number of sides contained in the closure of a side */
 		static int NContainedSides(int side);
 		
-		/** @brief returns the local connect number of the connect "c" along side "side" */
+		/** @brief returns the local side number of the side "c" contained in the closure of side "side" */
 		static int ContainedSideLocId(int side, int c);
 		
 		/** @} */
@@ -150,6 +150,11 @@ namespace pztopology {
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
 		static int GetTransformId(int side, TPZVec<long> &id);
+        
+        /**
+         * @brief return the vector which permutes the connects according to the transformation id
+         */
+        static void GetGatherPermute(int transformid, TPZVec<int> &permute);
 		
 		/** @} */
 		

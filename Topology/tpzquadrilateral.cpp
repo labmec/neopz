@@ -434,6 +434,39 @@ namespace pztopology {
 	{
 		return pzshape::TPZShapeQuad::GetTransformId2dQ(id);
 	}
+    
+    /**
+     * @brief return the vector which permutes the connects according to the transformation id
+     */
+    void TPZQuadrilateral::GetGatherPermute(int transformid, TPZVec<int> &permute)
+    {
+#ifdef DEBUG
+        if (permute.size() != 9) {
+            DebugStop();
+        }
+#endif
+        int dir = 1;
+        if (transformid%2 ==1) dir = -1;
+        int runsmall = transformid/4;
+        int runlarge = runsmall+4;
+        permute[8] = 8;
+        for (int is=0; is<4; is++) {
+            permute[is] = runsmall;
+            permute[is+4] = runlarge;
+            runsmall += dir;
+            runlarge += dir;
+            if (dir == 1 && runsmall > 3) {
+                runsmall -= 4;
+                runlarge -= 4;
+            }
+            else if(dir == -1 && runsmall < 0)
+            {
+                runsmall += 4;
+                runlarge += 4;
+            }
+        }
+    }
+
 	/**
 	 * Method which identifies the transformation of a side based on the IDs
 	 * of the corner nodes

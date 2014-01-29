@@ -10,6 +10,7 @@
 #include "pzreal.h"
 #include "pzquad.h"
 #include "pzeltype.h"
+#include "tpztriangle.h"
 
 #include "pzcreateapproxspace.h"
 #include "pzlog.h"
@@ -203,6 +204,7 @@ namespace pztopology {
 		if(side ==14 && node < 4) return node;
 		PZError << "TPZTetrahedron::SideNodeLocId inconsistent side or node " << side
 		<< ' ' << node << endl;
+        DebugStop();
 		return -1;
 		
 	}
@@ -770,11 +772,18 @@ namespace pztopology {
 	 */
 	void TPZTetrahedron::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
 	{
-		LOGPZ_ERROR(logger,"Please implement me")
-		int nel = permgather.NElements();
-		int iel;
-		for(iel=0; iel<nel; iel++)
-			permgather[iel]=iel;
-	}
+#ifdef DEBUG
+        if (SideDimension(side) != 2) {
+            DebugStop();
+        }
+#endif
+        permgather.Resize(7);
+        TPZManVector<long,7> locids(3);
+        for (int in=0; in<3; in++) {
+            locids[in] = id[SideNodeLocId(side, in)];
+        }
+        int transformid = pztopology::TPZTriangle::GetTransformId(locids);
+        pztopology::TPZTriangle::GetHDivGatherPermute(transformid,permgather);
+    }
 
 }
