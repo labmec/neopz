@@ -253,7 +253,7 @@ void TPZPlaneFractureKernel::InitializeMeshes()
 }
 //------------------------------------------------------------------------------------------------------------
 
-int cc = 0;
+
 void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
 {
     TPZAnalysis * an = new TPZAnalysis(this->fmphysics);
@@ -262,28 +262,20 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
     //CheckConv();
     /**********************/
     
+    int nEq = this->fmphysics->NEquations();
+    
     int nrows = an->Solution().Rows();
     TPZFMatrix<REAL> matRes_total(nrows,1,0.);
 
-    TPZFMatrix<REAL> SolIterK = this->fmphysics->Solution();
-    TPZAutoPointer< TPZMatrix<REAL> > matK;
-    TPZFMatrix<REAL> matRes_partial(this->fmphysics->NEquations(),1);
-    TPZFMatrix<REAL> matMass(this->fmphysics->NEquations(),1);
-    matRes_partial.Zero();
-    matMass.Zero();
-
-    if(this->fstep == 0)
-    {
-        SolIterK.Zero();
-    }
-    else
-    {
-        MassMatrix(matMass);
-    }
+    TPZFMatrix<REAL> Sol_0 = this->fmphysics->Solution();
     
-    //Solution Backup
-    TPZFMatrix<REAL> multiPhysicsK = SolIterK;
-    TPZFMatrix<REAL> multiPhysicsSol = this->fmphysics->Solution();
+    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    TPZFMatrix<REAL> matRes_partial(nEq,1,0.);
+    TPZFMatrix<REAL> matMass(nEq,1,0.);
+    
+    /// Backup
+    TPZFMatrix<REAL> backupSol_0 = Sol_0;
+    
     
     std::cout << "\n\n\n************** CALCULANDO SOLUCAO ACOPLADA (KERNEL)\n\n";
     
@@ -294,6 +286,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
     bool propagate = false;
     bool maxKIacceptable = false;
     
+    long posBlock = -1;
+    
     while (globTimeControl.TimeLimitsIsCloseEnough() == false && maxKIacceptable == false)
     {
         propagate = false;
@@ -302,6 +296,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         respectiveKIc = 0.;
         whoPropagate_KI.clear();
         
+        MassMatrix(matMass);
+        
         globTimeControl.ComputeActDeltaT();
         
         std::cout << "\n\ndtLeft = " << globTimeControl.LeftDeltaT() << "s " <<
@@ -309,7 +305,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                      " : dtRight = " << globTimeControl.RightDeltaT() << "s\n";
         
         matRes_partial.Zero();
-        StiffMatrixLoadVec(an, matK, matRes_partial);
+        AssembleStiffMatrixLoadVec(an, matK, matRes_partial, posBlock);
 
         matRes_total = matRes_partial + matMass;
 
@@ -323,14 +319,17 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         {
             an->Rhs() = matRes_total;
             an->Solve();
-            an->LoadSolution(SolIterK + an->Solution());
+            
+            TPZFMatrix<REAL> Sol_1_minun_Sol_0 = an->Solution();
+            TPZFMatrix<REAL> Sol_1 = Sol_1_minun_Sol_0 + Sol_0;
+            an->LoadSolution(Sol_1);
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
 
-            SolIterK = an->Solution();
+            Sol_0 = an->Solution();
 
             matRes_partial.Zero();
-            StiffMatrixLoadVec(an, matK, matRes_partial);
+            AssembleStiffMatrixLoadVec(an, matK, matRes_partial, posBlock);
             matRes_total = matRes_partial + matMass;
 
             normRes = Norm(matRes_total);
@@ -377,14 +376,10 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         
         if(globTimeControl.TimeLimitsIsCloseEnough() == false && maxKIacceptable == false)
         {
-            ////Restoring backup
-            SolIterK = multiPhysicsK;
-            this->fmphysics->LoadSolution(multiPhysicsSol);
+            ////Restoring backups for deltaT next try
+            Sol_0 = backupSol_0;
+            this->fmphysics->LoadSolution(backupSol_0);
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
-            if(this->fstep > 0)
-            {
-                this->MassMatrix(matMass);
-            }
         }
     }
 
@@ -402,32 +397,22 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
 
 void TPZPlaneFractureKernel::ApplyInitialKick()
 {
-    int nr = this->fmeshVec[0]->Solution().Rows();
-    int nc = this->fmeshVec[0]->Solution().Cols();
-    if(nc != 1)
-    {
-        //Nstripes soh pode ser 1!!!
-        std::cout << "\n\n\nnstripes != 1???\n\n\n";
-        DebugStop();
-    }
+    //Chute inicial Elastica **************************
+    //Obs.: Eh a que resulta em Integral(w)=0.
+    this->fmeshVec[0]->Solution()(0,0) = 1.;
+    this->fmeshVec[0]->Solution()(1,0) = 1.;
     
-    //Chute inicial Elastica
-    TPZFMatrix<REAL> chutenewton(nr, nc, 1.);
-    for(int r = 1; r < nr; r++)//A solucao para u(newman0) deve ser 1, por isso comeca na linha 1
-    {
-        chutenewton(r,0) = -fPlaneFractureMesh->Max_MinCompressiveStress();
-    }
-    this->fmeshVec[0]->LoadSolution(chutenewton);
-    
-    //Chute inicial Pressao
-    nr = this->fmeshVec[1]->Solution().Rows();
-    nc = 1;
-    chutenewton.Resize(nr, nc);
+    //Chute inicial Pressao ***************************
+    //Obs.: Eh sabido que para Integral(w)=0, eh necessario um newman igual aas tensoes de confinamento.
+    //      Como sao varias camadas, no chute vai o maximo valor das minimas tensoes de confinamento, i.e.: MAX( |preStressYY| )
+    int nr = this->fmeshVec[1]->Solution().Rows();
+    TPZFMatrix<REAL> chutenewton(nr, 1, 0.); // <--- NStripes = 1
     for(int r = 0; r < nr; r++)
-    {
+    {//Para estado compressivo, fPlaneFractureMesh->Max_MinCompressiveStress() en negativo e portanto a condicao newman eh positiva!
         chutenewton(r,0) = -fPlaneFractureMesh->Max_MinCompressiveStress();
     }
     this->fmeshVec[1]->LoadSolution(chutenewton);
+    
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
 }
@@ -496,13 +481,14 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
         int neq = cmesh->NEquations();
         std::cout << "\nNequacoes elastica 3D = " << neq << "\n";
     }
+    
     TPZAnalysis * an = new TPZAnalysis(cmesh);
     
     TPZSkylineStructMatrix full(cmesh); //caso simetrico
     an->SetStructuralMatrix(full);
+    
     TPZStepSolver<REAL> stepS;
-    //stepS.SetDirect(ELDLt); //Agnaldo
-    stepS.SetDirect(ECholesky); //Sugestao Pira
+    stepS.SetDirect(ECholesky);
     an->SetSolver(stepS);
     
     int NStripes = this->fPlaneFractureMesh->NStripes();
@@ -511,32 +497,25 @@ void TPZPlaneFractureKernel::ProcessElasticCMeshByStripes(TPZCompMesh * cmesh)
         std::cout << "\n\nPor enquanto soh 1 faixa!!!\n\n";
         DebugStop();
     }
-    TPZFMatrix<STATE> solution0(cmesh->Solution().Rows(), 1);
-    TPZFMatrix<STATE> solution1(cmesh->Solution().Rows(), 1);
+    TPZFMatrix<STATE> solutionNewman0(cmesh->Solution().Rows(), 1);
     TPZFMatrix<STATE> solutions(cmesh->Solution().Rows(), 2);
     
+    //Resolvendo Newman = 0
     an->Assemble();
     an->Solve();
-    solution0 = cmesh->Solution();
-    
-    int stripe = 0;//por enquanto soh 1 faixa
-    this->fPlaneFractureMesh->SetSigmaNStripeNum(cmesh, stripe);
-    
-    an->AssembleResidual();
-    an->Solve();
-    
-    solution1 = cmesh->Solution();
+    solutionNewman0 = cmesh->Solution();
 
-    for(int r = 0; r < solution0.Rows(); r++)
+    //Desta forma 1*solutions(0,0) + 1*solutions(0,1) eh recuperada a solucao EXATA u=0 !!!
+    for(int r = 0; r < solutionNewman0.Rows(); r++)
     {
-        solutions(r,0) = solution0(r,0);
-        solutions(r,1) = (solution1(r,0) - solution0(r,0));
+        solutions(r,0) =  solutionNewman0(r,0);
+        solutions(r,1) = -solutionNewman0(r,0);
     }
     cmesh->LoadSolution(solutions);
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec)
+void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec, long &posBlock)
 {
 	this->fPlaneFractureMesh->SetActualState();
     
@@ -544,40 +523,42 @@ void TPZPlaneFractureKernel::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer<
     
 	an->SetStructuralMatrix(matsk);
     
-	TPZStepSolver<REAL> stepS;
-    
-	stepS.SetDirect(ELU);
-	an->SetSolver(stepS);
-    
-    an->Assemble();
-	
     //Filtrando equacoes
     //    Posicao de Alpha0 na this->fmphysics->Solution = 3
     //    Posicao de Alpha1 na this->fmphysics->Solution = 4
     //    Isso aqui embaixo nao ta funcionando como esperado!!!
     //    Sem isso abaixo o sistema numerico dá um jeito, mas com isso o Alpha1 nao dá perto da pressão!!!
     //    Sem isso abaixo, com e sem leakoff está consistente (w>0), mas com isso sem ou com leakoff dá w<0
-//    {
-//        int neq = this->fmphysics->NEquations();
-//        long blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
-//        long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
-//    
-//        TPZVec<long> actEquations(neq-1);
-//        int p = 0;
-//        for(long eq = 0; eq < neq; eq++)
-//        {
-//            if(eq != posBlock)
-//            {
-//                actEquations[p] = eq;
-//                p++;
-//            }
-//        }
-//        TPZEquationFilter eqF(neq);
-//        eqF.SetActiveEquations(actEquations);
-//    
-//        an->StructMatrix()->EquationFilter() = eqF;
-//        this->fmphysics->Solution()(posBlock,0) = 1.;//<<< Nao Mexer!!! Eh o alpha para u(Newman0)
-//    }
+    bool mustFilter = true;
+    if(mustFilter)
+    {
+        int neq = this->fmphysics->NEquations();
+        long blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
+        posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
+        
+        TPZVec<long> actEquations(neq-1);
+        int p = 0;
+        for(long eq = 0; eq < neq; eq++)
+        {
+            if(eq != posBlock)
+            {
+                actEquations[p] = eq;
+                p++;
+            }
+        }
+        TPZEquationFilter eqF(neq);
+        eqF.SetActiveEquations(actEquations);
+        
+        an->StructMatrix()->EquationFilter() = eqF;
+        this->fmphysics->Solution()(posBlock,0) = 1.;//<<< Nao Mexer!!! Eh o alpha para u(Newman0)
+    }
+    
+	TPZStepSolver<REAL> stepS;
+    
+	stepS.SetDirect(ELU);
+	an->SetSolver(stepS);
+    
+    an->Assemble();
     
     matK1 = an->Solver().Matrix();
     
@@ -615,7 +596,8 @@ void TPZPlaneFractureKernel::CheckConv()
     TPZAutoPointer< TPZMatrix<REAL> > fL_xIni;
     TPZFMatrix<REAL> f_xIni(neq,1);
     
-    StiffMatrixLoadVec(an, fL_xIni, f_xIni);
+    long posBlock = -1;
+    AssembleStiffMatrixLoadVec(an, fL_xIni, f_xIni, posBlock);
     if(fL_xIni->Rows() != neq || fL_xIni->Cols() != neq || fL_xIni->IsDecomposed())
     {
         DebugStop();
@@ -674,7 +656,7 @@ void TPZPlaneFractureKernel::CheckConv()
         
         fExato_x.Zero();
         if(fLtemp) fLtemp->Zero();
-        StiffMatrixLoadVec(an, fLtemp, fExato_x);
+        AssembleStiffMatrixLoadVec(an, fLtemp, fExato_x, posBlock);
         
 //        {
 //            REAL exatoSol = fExato_x(wantToSeeRow,0);

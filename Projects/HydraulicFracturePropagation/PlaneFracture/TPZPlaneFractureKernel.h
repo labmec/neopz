@@ -82,7 +82,7 @@ protected:
      * @param matK1 [out] : stiff matrix
      * @param fvec [out] : load vector
      */
-    void StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
+    void AssembleStiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec, long &posBlock);
     
     /**
      * @brief Method that will compute the mass matrix for last time step
