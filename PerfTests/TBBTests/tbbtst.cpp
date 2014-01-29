@@ -6,6 +6,7 @@
 #include "arglib.h" /* Command Line Arguments */
 #include "run_stats_table.h"
 #include <vector>
+#include <cstdlib>
 
 using namespace std;
 

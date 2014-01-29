@@ -8,6 +8,7 @@
 #include<cctype>
 #include<istream>// istream
 #include<vector>  // vector
+#include <stdlib.h>
 
 using namespace std;
 
