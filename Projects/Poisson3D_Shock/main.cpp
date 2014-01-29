@@ -435,8 +435,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL factorErrorM = 0.8;
 	REAL LaplacianLimit = 10.;
 	REAL factorError = 0.3;
-	REAL GradErLimit = 8.;
-	REAL ErLimit = 0.05;
+	REAL GradErLimit = 2.;
+	REAL ErLimit = 0.01;
 	REAL BigError = ErLimit > factorErrorM*MaxErrorByElement ? factorErrorM*MaxErrorByElement : ErLimit;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
 	MaxGrad = GradErLimit > factorGrad*gradervecbyel[nels] ? factorGrad*gradervecbyel[nels] : GradErLimit;
@@ -456,12 +456,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		LaplacianValue = Laplacian(el);
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if((ervecbyel[i] > BigError || gradervecbyel[i] > MaxGrad) && level < (MaxHLevel-1)) {
+		if((ervecbyel[i] > BigError || gradervecbyel[i] > MaxGrad) && level < MaxHLevel) {
 			counterreftype[11]++;
 			hused = true;
 			el->Divide(index,subels);
 			level++;
-			if(nref < 1 && gradervecbyel[i] > MaxGrad) {
+			if(nref < 0 && gradervecbyel[i] > MaxGrad) {
 				level++;
 				for(ii=0;ii<subels.NElements();ii++) {
 					cmesh->ElementVec()[subels[ii]]->Divide(cmesh->ElementVec()[subels[ii]]->Index(),subsubels);
