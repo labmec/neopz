@@ -1,147 +1,110 @@
-/**
- * @author Gilvan S. Vieira
- */
+/*******************************************************************************
+ *   Copyright (C) 2014 by:                                                    *
+ *   Gilvan Vieira (gilvandsv@gmail.com)                                       *
+ *                                                                             *
+ *   This program is free software; you can redistribute it and/or modify      *
+ *   it under the terms of the GNU General Public License as published by      *
+ *   the Free Software Foundation; either version 2 of the License, or         *
+ *   (at your option) any later version.                                       *
+ *                                                                             *
+ *   This program is distributed in the hope that it will be useful,           *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ *   GNU General Public License for more details.                              *
+ *                                                                             *
+ *   You should have received a copy of the GNU General Public License         *
+ *   along with this program; if not, write to the                             *
+ *   Free Software Foundation, Inc.,                                           *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+ ******************************************************************************/
 
-#include <iostream> /* Standard IO */
-#include "arglib.h" /* Command Line Arguments */
-#include "run_stats_table.h"
+/**
+ * Standard Input/Output from C
+ */
+#include <cstdio>
+/**
+ * Functions to Read Data
+ */
+#include "input.h"
+/**
+ * Command Line Arguments - Borin
+ */
+#include "arglib.h"
+/**
+ * STL Vector
+ */
 #include <vector>
-#include <cstdlib>
-
-using namespace std;
-
-#include "pzfmatrix.h" /* PZ Matrix Class */
-
-#ifdef USING_TBB
-#include "tbb/task_scheduler_init.h"
-#include <tbb/tbb.h>
+/**
+ * Threading Building Blocks Headers
+ */
+#include <tbb/task_scheduler_init.h>
+#include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-#include "tbb/partitioner.h"
-
-using namespace tbb;
-#endif
 
 /**
- * @brief Command Line Arguments
+ * Commmand Line Options
  */
-clarg::argBool h("-h", "Help Message", false);
-clarg::argInt  dim("-d", "Dimension of the Matrices", 100);
-clarg::argInt  num("-n", "Number of Matrices", 64);
-clarg::argInt  repet("-r", "Times to Repeat Multiplication", 100);
-clarg::argBool utbb("-tbb", "Using TBB", false);
-clarg::argBool pcopy("-pcopy", "Using TBB Parallel Initialization", false);
+clarg::argInt       plevel("-p","Polinomial Order", 2);
+clarg::argInt       num_matrices("-nmat", "Number of Matrices", 64);
+clarg::argInt       num_threads("-nt", "Number of Threads", 0);
+clarg::argString    input_file("-mc", "Cubo Input File", "cube1.txt");
 
-void help(const char* prg)
-{
-    
-} /* help */
-
-TPZFMatrix<double> *randomMatrix()
-{
-    TPZFMatrix<double> *mMatrix = new TPZFMatrix<double>(dim.get_value(), dim.get_value());
-    srand(time(NULL));
-    for (int i=0; i<dim.get_value(); i++) {
-        for (int j=0; j<dim.get_value(); j++) {
-            (*mMatrix)(i,j) = rand() % 100;
-        }
-    }
-    return mMatrix;
-} /* randomMatrix */
-
-void serialCopy(TPZFMatrix<double> *orig, vector<TPZFMatrix<double>* > &store)
-{
-    for (int w=0; w<num.get_value(); w++) {
-        (*store[w]) = (*orig);
-    }
-} /* serialCopy */
-
-void serialMultiplication(vector<TPZFMatrix<double>* > &input, vector<TPZFMatrix<double>* > &store) {
-    for (int w=0; w<num.get_value(); w++) {
-        (*store[w]) = (*input[w]) * (*input[w]);
-    }
-} /* serialMultiplication */
-
-class Atribu {
+class tbb_work {
 public:
-    TPZFMatrix<double> *input;
-    vector<TPZFMatrix<double>* > *output;
-#ifdef USING_TBB
-    void operator()( const blocked_range<size_t>& r ) const {
-        for (long i=r.begin(); i!=r.end(); ++i ) {
-            (*(*output)[i]) = (*input);
-        }
-    }
-#endif
-};
-
-class Multi {
-public:
-    vector<TPZFMatrix<double>* > *input;
-    vector<TPZFMatrix<double>* > *output;
+    tbb_work(std::vector <TPZSkylMatrix<REAL>* > *m): matrices(m) {};
+    std::vector <TPZSkylMatrix<REAL>* > *matrices;
     
-#ifdef USING_TBB
-    void operator()( const blocked_range<size_t>& r ) const {
-        for (long i=r.begin(); i!=r.end(); ++i ) {
-            (*(*output)[i]) = (*(*input)[i]) * (*(*input)[i]);
-        }
+    void operator()(const tbb::blocked_range<int>& range) const {
+        for( int i=range.begin(); i!=range.end(); ++i )
+            (*matrices)[i]->Decompose_Cholesky();
     }
-#endif
 };
-
-RunStatsTable mult_rdt   ("-mult_rdt", "Multiplication statistics raw data table");
-
-int main(int argc, char **argv)
+int main (int argc, char **argv)
 {
-    /* parse the arguments */
-    if (clarg::parse_arguments(argc, argv)) {
-        cerr << "Error when parsing the arguments!" << endl;
+    /**
+     * Read and Parse the Command Line Arguments
+     */
+	if (clarg::parse_arguments(argc, argv)) {
+		cerr << "Error when parsing the arguments!" << endl;
         return 1;
     }
-    /* checking if the Help Message was request */
-    if (h.get_value() == true) {
-        help(argv[0]);
-        return 1;
-    }
-    
-    TPZFMatrix<double> *m = randomMatrix();
-    
-    vector<TPZFMatrix<double>* > matrices(num.get_value(), new TPZFMatrix<double>(dim.get_value(), dim.get_value()));
-    vector<TPZFMatrix<double>* > results(num.get_value(), new TPZFMatrix<double>(dim.get_value(), dim.get_value()));
-    
-#ifdef USING_TBB
-    affinity_partitioner ap;
-#endif
-    if (pcopy.get_value() == false) {
-        serialCopy(m, matrices);
+    /**
+     * Read and Create a Skyline Matrix
+     */
+    TPZAutoPointer<TPZMatrix<REAL> > ret = Input::CreateCuboSkyMatrix(input_file.get_value(),plevel.get_value());
+    /**
+     * Cast from AutoPointer to TPZSkylMatrix
+     */
+    TPZSkylMatrix<REAL> *orig = dynamic_cast<TPZSkylMatrix<REAL> *> (ret.operator->());
+    /**
+     * Printing the Memory Footprint of the Original Skyline Matrix
+     */
+    printf ("Memory Footprint SkylMatrix: %ld Kbytes\n.", (orig->MemoryFootprint()/1024));
+    /**
+     * Vector to Store Copies of the Original Matrix
+     */
+    std::vector <TPZSkylMatrix<REAL>* > matrices;
+    /**
+     * Choose Between Serial and Parallel Processing */
+    if (num_threads.get_value() == 0) {
+        /**
+         * Serial Copy
+         */
+        matrices.resize(num_matrices.get_value(), new TPZSkylMatrix<REAL>(*orig));
+        /**
+         * Serial Decomposition
+         */
+        for (int i=0; i<matrices.size(); i++) {
+            matrices[i]->Decompose_Cholesky();
+            printf("-");
+        }
     } else {
-        Atribu builder;
-        builder.input = m;
-        builder.output = &matrices;
         
-#ifdef USING_TBB
-        parallel_for(blocked_range<size_t>(0,num.get_value(), 1), builder, ap);
-#endif
+        tbb::task_scheduler_init init(num_threads.get_value());
+        
+        tbb_work work(&matrices);
+        
+        tbb::parallel_for(tbb::blocked_range<int>(0, num_matrices.get_value()), work);
     }
-    
-    mult_rdt.start();
-    if(utbb.get_value() == false) {
-        
-        for (int i=0; i<repet.get_value();i++)
-            serialMultiplication(matrices, results);
-        
-    } else {
-#ifdef USING_TBB
-        task_scheduler_init init;
-        
-        Multi op;
-        op.input = &matrices;
-        op.output = &results;
-        
-        for (int i=0; i<repet.get_value();i++)
-            parallel_for(blocked_range<size_t>(0,num.get_value(), 1), op, ap);
-#endif
-    }
-    
-    mult_rdt.stop();
     
 } /* main */
