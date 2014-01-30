@@ -57,10 +57,19 @@ public:
     tbb_work(std::vector <TPZSkylMatrix<REAL>* > *m): matrices(m) {};
     std::vector <TPZSkylMatrix<REAL>* > *matrices;
     
-    void operator()(const tbb::blocked_range<int>& range) const {
-        for( int i=range.begin(); i!=range.end(); ++i )
+    void serial() {
+        for (int i=0; i<matrices->size(); i++) {
             (*matrices)[i]->Decompose_Cholesky();
+            printf("-");
+        }
     }
+    void operator()(const tbb::blocked_range<int>& range) const {
+        for( int i=range.begin(); i!=range.end(); ++i ) {
+            (*matrices)[i]->Decompose_Cholesky();
+            printf("-");
+        }
+    }
+    
 };
 #endif
 int main (int argc, char **argv)
@@ -89,16 +98,21 @@ int main (int argc, char **argv)
      */
     std::vector <TPZSkylMatrix<REAL>* > matrices;
     /**
+     * Serial Copy
+     */
+    matrices.resize(num_matrices.get_value());
+    
+    for (int i=0; i<num_matrices.get_value(); i++)
+        matrices[i] = new TPZSkylMatrix<REAL>(*orig);
+    
+    /**
      * Choose Between Serial and Parallel Processing */
     if (num_threads.get_value() == 0) {
         /**
-         * Serial Copy
-         */
-        matrices.resize(num_matrices.get_value(), new TPZSkylMatrix<REAL>(*orig));
-        /**
          * Serial Decomposition
          */
-        for (int i=0; i<matrices.size(); i++) {
+        for (int i=0; i<num_matrices.get_value(); i++) {
+            //matrices[i]->SetIsDecomposed(0);
             matrices[i]->Decompose_Cholesky();
             printf("-");
         }
@@ -109,7 +123,8 @@ int main (int argc, char **argv)
         
         tbb_work work(&matrices);
         
-        tbb::parallel_for(tbb::blocked_range<int>(0, num_matrices.get_value()), work);
+        //work.serial();
+        tbb::parallel_for(tbb::blocked_range<int>(0, matrices.size()), work);
 #endif
     }
     
