@@ -274,6 +274,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     int stripe = 0;//por enquanto soh 1 faixa
     this->fPlaneFractureMesh->SetSigmaNStripeNum(cmesh, stripe);
     
+    an->Rhs().Zero();
     an->AssembleResidual();
     an->Solve();
     
