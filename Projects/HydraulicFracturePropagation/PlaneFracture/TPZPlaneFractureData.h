@@ -47,7 +47,7 @@ public:
         factTime = 0.;
         
         fDeltaT_left = 0.;
-        fDeltaT_right = 40.;
+        fDeltaT_right = 60.;
         
         ComputeActDeltaT();
     }
@@ -115,7 +115,7 @@ public:
             std::cout << "\n\n\nMetodo da bisseccao no tempo inverteu os limites!!!\n\n\n";
             DebugStop();
         }
-        return ((fDeltaT_right - fDeltaT_left) < 1.001);
+        return ((fDeltaT_right - fDeltaT_left) < 0.5);
     }
     
     REAL LeftDeltaT()

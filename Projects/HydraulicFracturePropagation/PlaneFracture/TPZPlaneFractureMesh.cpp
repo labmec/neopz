@@ -549,43 +549,43 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 }
 //------------------------------------------------------------------------------------------------------------
 
-//void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe)
-//{
-//    if(actStripe > 0)
-//    {
-//        std::cout << "";
-//    }
-//    for(int lay = 0; lay < fLayerVec.NElements(); lay++)
-//    {
-//        for(int stripe = 0; stripe < fnstripes; stripe++)
-//        {
-//            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
-//            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
-//            {//Fratura ainda nao entrou nesta camada!
-//                continue;
-//            }
-//            
-//            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
-//            if(!mat)
-//            {
-//                DebugStop();
-//            }
-//            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
-//            if(!bcmat)
-//            {
-//                DebugStop();
-//            }
-//            if(stripe == actStripe)
-//            {
-//                bcmat->Val2()(1,0) = StressApplied();//<<< dp aplicado!!!
-//            }
-//            else
-//            {
-//                bcmat->Val2()(1,0) = 0.;
-//            }
-//        }
-//    }
-//}
+void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe)
+{
+    if(actStripe > 0)
+    {
+        std::cout << "";
+    }
+    for(int lay = 0; lay < fLayerVec.NElements(); lay++)
+    {
+        for(int stripe = 0; stripe < fnstripes; stripe++)
+        {
+            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
+            {//Fratura ainda nao entrou nesta camada!
+                continue;
+            }
+            
+            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
+            if(!mat)
+            {
+                DebugStop();
+            }
+            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
+            if(!bcmat)
+            {
+                DebugStop();
+            }
+            if(stripe == actStripe)
+            {
+                bcmat->Val2()(1,0) = StressApplied();//<<< dp aplicado!!!
+            }
+            else
+            {
+                bcmat->Val2()(1,0) = 0.;
+            }
+        }
+    }
+}
 //------------------------------------------------------------------------------------------------------------
 
 int TPZPlaneFractureMesh::NStripes()

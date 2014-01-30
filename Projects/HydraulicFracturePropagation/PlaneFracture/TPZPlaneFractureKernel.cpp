@@ -165,7 +165,7 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     fpoligonalChain.Resize(0);
     
     REAL yc = -fCenterTVD;
-    REAL sAx = 11.5;//AQUICAJU
+    REAL sAx = 11.5;
     REAL sAy = sAx;
     
     for(int p = 1; p <= nptsUp; p++)
@@ -249,12 +249,10 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         int neq = cmesh->NEquations();
         std::cout << "\nNequacoes elastica 3D = " << neq << "\n";
     }
-    
     TPZAnalysis * an = new TPZAnalysis(cmesh);
     
     TPZSkylineStructMatrix full(cmesh); //caso simetrico
     an->SetStructuralMatrix(full);
-    
     TPZStepSolver<REAL> stepS;
     stepS.SetDirect(ECholesky);
     an->SetSolver(stepS);
@@ -265,19 +263,26 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         std::cout << "\n\nPor enquanto soh 1 faixa!!!\n\n";
         DebugStop();
     }
-    TPZFMatrix<STATE> solutionNewman0(cmesh->Solution().Rows(), 1);
+    TPZFMatrix<STATE> solution0(cmesh->Solution().Rows(), 1);
+    TPZFMatrix<STATE> solution1(cmesh->Solution().Rows(), 1);
     TPZFMatrix<STATE> solutions(cmesh->Solution().Rows(), 2);
     
-    //Resolvendo Newman = 0
     an->Assemble();
     an->Solve();
-    solutionNewman0 = cmesh->Solution();
+    solution0 = cmesh->Solution();
     
-    //Desta forma 1*solutions(0,0) + 1*solutions(0,1) eh recuperada a solucao EXATA u=0 !!!
-    for(int r = 0; r < solutionNewman0.Rows(); r++)
+    int stripe = 0;//por enquanto soh 1 faixa
+    this->fPlaneFractureMesh->SetSigmaNStripeNum(cmesh, stripe);
+    
+    an->AssembleResidual();
+    an->Solve();
+    
+    solution1 = cmesh->Solution();
+    
+    for(int r = 0; r < solution0.Rows(); r++)
     {
-        solutions(r,0) =  solutionNewman0(r,0);
-        solutions(r,1) = -solutionNewman0(r,0);
+        solutions(r,0) = solution0(r,0);
+        solutions(r,1) = (solution1(r,0) - solution0(r,0));
     }
     cmesh->LoadSolution(solutions);
 }
@@ -285,28 +290,21 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 
 void TPZPlaneFractureKernel::ApplyInitialCondition()
 {
-    //Chute inicial Elastica **************************
-    //Obs.: Eh a que resulta em Integral(w)=0.
-    //
-    this->fmeshVec[0]->Solution()(0,0) = 1.;
-    this->fmeshVec[0]->Solution()(1,0) = 1.;
+    //Chute inicial Elastica
+    TransferElasticSolution(0.);
     
-    
-    
-    //Chute inicial Pressao ***************************
-    //Obs.: Eh sabido que para Integral(w)=0, eh necessario um newman igual aas tensoes de confinamento.
-    //      Como sao varias camadas, no chute vai o maximo valor das minimas tensoes de confinamento, i.e.: MAX( |preStressYY| )
-    //
+    //Chute inicial Pressao
     int nr = this->fmeshVec[1]->Solution().Rows();
-    TPZFMatrix<REAL> chutenewton(nr, 1, 0.); // <--- NStripes = 1
+    int nc = 1;
+    TPZFMatrix<REAL> chutenewton(nr, nc);
     for(int r = 0; r < nr; r++)
     {
-        //Para estado compressivo, fPlaneFractureMesh->Max_MinCompressiveStress()
-        //eh negativo e portanto a condicao newman eh positiva!
-        chutenewton(r,0) = -fPlaneFractureMesh->Max_MinCompressiveStress();
+        for(int c = 0; c < nc; c++)
+        {
+            chutenewton(r,c) = -fPlaneFractureMesh->Max_MinCompressiveStress();
+        }
     }
     this->fmeshVec[1]->LoadSolution(chutenewton);
-    
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
 }
@@ -421,7 +419,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                     globTimeControl.TimeisOnRight();
                     std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n";
                     std::cout << "************* t está a Direita de KI=KIc *************\n";
-                    maxKIacceptable = (maxKI/respectiveKIc < 3.);
+                    REAL maxAlpha = 1.5;
+                    maxKIacceptable = (maxKI/respectiveKIc < maxAlpha);
                 }
                 else
                 {
@@ -799,9 +798,9 @@ void TPZPlaneFractureKernel::PostProcessElasticity()
 #ifdef usingSWXGraphs
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
-    TPZVec<std::string> nodalSol(1), cellSol(0);
+    TPZVec<std::string> nodalSol(2), cellSol(0);
     nodalSol[0] = "Displacement";
-    //nodalSol[1] = "StressY";
+    nodalSol[1] = "StressY";
 
     grEl.GenerateVTKData(this->fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
     
@@ -1012,7 +1011,8 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
                 cracktipKI = 0.;
             }
         }
-        if(cracktipKI >= cracktipKIc)
+        REAL minAlpha = 1.;
+        if(cracktipKI >= minAlpha*cracktipKIc)
         {
             propagate = true;
             whoPropagate_KI[p] = std::make_pair(cracktipKI,cracktipKIc);
