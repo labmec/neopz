@@ -117,7 +117,7 @@ protected:
     void PostProcessFractGeometry();
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
-    REAL IntegrateW(TPZCompMesh * elasticCMesh);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
+    REAL IntegrateW(bool & thereWasNegativeW);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
     
     REAL ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh);
     

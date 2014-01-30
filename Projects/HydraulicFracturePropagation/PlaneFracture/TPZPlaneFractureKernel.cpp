@@ -398,20 +398,33 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
             //Quando o actDeltaT leva a um instante em que Vleakoff = Vinj, nao converge, necessitando
             //trazer o limite esquerdo do deltaT da bisseccao para a direita
             globTimeControl.TimeisOnLeft();
+            globTimeControl.ShiftRightTime();
+            
             std::cout << "\nNao convergiu...\n";
             std::cout << "************* t está a Esquerda de KI=KIc *************\n";
         }
         else
         {
-            volAcum = this->IntegrateW(this->fmeshVec[0]);
-            if(volAcum < 1.E-3)
+            bool thereWasNegativeW = false;
+            volAcum = this->IntegrateW(thereWasNegativeW);
+            
+            if(thereWasNegativeW)
             {
                 globTimeControl.TimeisOnLeft();
+                globTimeControl.ShiftRightTime();
+                
                 std::cout << "\nvolW = " << volAcum << "\n";
                 std::cout << "************* t está a Esquerda de KI=KIc *************\n";
             }
             else
             {
+                {
+                    if(thereWasNegativeW)
+                    {
+                        std::cout << "\n\n\nNegativeW!!!\n\n\n";
+                        DebugStop();
+                    }
+                }
                 propagate = CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate_KI);
                 
                 if(propagate)
@@ -419,7 +432,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                     globTimeControl.TimeisOnRight();
                     std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n";
                     std::cout << "************* t está a Direita de KI=KIc *************\n";
-                    REAL maxAlpha = 1.5;
+                    REAL maxAlpha = 10.;//<<<<<<<<<<<<<<<<<<<<
                     maxKIacceptable = (maxKI/respectiveKIc < maxAlpha);
                 }
                 else
@@ -686,7 +699,9 @@ void TPZPlaneFractureKernel::UpdateLeakoff()
     //Jah o kernel considera o leakoff com as pressoes calculadas em cada ponto da regra de integracao (=volLeakoffExpected).
     //Por esta razao, alguma diferenca pode ocorrer, necessitando portanto corrigir o mapa de leakoff antes de prosseguir.
     REAL volInjected = ComputeVolInjected();
-    REAL volW = IntegrateW(this->fmeshVec[0]);
+    
+    bool thereWasNegativeW = false; // NotUsedHere
+    REAL volW = IntegrateW(thereWasNegativeW);
     
     REAL volLeakoffExpected = volInjected - volW;
     REAL volLeakoffComputed = ComputeVlAcumLeakoff(this->fmeshVec[1]);
@@ -746,7 +761,8 @@ void TPZPlaneFractureKernel::PostProcessSolutions()
 
 void TPZPlaneFractureKernel::PostProcessAcumVolW()
 {
-    REAL wAcum = IntegrateW(this->fmeshVec[0]);
+    bool thereWasNegativeW = false;//NotUsedHere
+    REAL wAcum = IntegrateW(thereWasNegativeW);
     globFractOutput3DData.InsertTAcumVolW(globTimeControl.actTime(), wAcum);
     
     std::cout.precision(10);
@@ -884,12 +900,14 @@ void TPZPlaneFractureKernel::PostProcessFractGeometry()
 }
 //------------------------------------------------------------------------------------------------------------
 
-REAL TPZPlaneFractureKernel::IntegrateW(TPZCompMesh * elasticCMesh)
+REAL TPZPlaneFractureKernel::IntegrateW(bool & thereWasNegativeW)
 {
+    thereWasNegativeW = false;
+    
     REAL integral = 0.;
-    for(int c = 0; c < elasticCMesh->NElements(); c++)
+    for(int c = 0; c < fmeshVec[0]->NElements(); c++)
     {
-        TPZCompEl * cel = elasticCMesh->ElementVec()[c];
+        TPZCompEl * cel = fmeshVec[0]->ElementVec()[c];
         if(!cel || globMaterialIdGen.IsInsideFractMat(cel->Reference()->MaterialId()) == false)
         {
             continue;
@@ -909,6 +927,10 @@ REAL TPZPlaneFractureKernel::IntegrateW(TPZCompMesh * elasticCMesh)
         }
 #endif
         
+        if(value[1] < 0.)
+        {
+            thereWasNegativeW = true;
+        }
         integral += value[1];//Integrando w (uy)
     }
     
@@ -1011,7 +1033,7 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
                 cracktipKI = 0.;
             }
         }
-        REAL minAlpha = 1.;
+        REAL minAlpha = 1.;//<<<<<<<<<<<<<<<<<<<<
         if(cracktipKI >= minAlpha*cracktipKIc)
         {
             propagate = true;
@@ -1176,25 +1198,27 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
         DebugStop();
     }
     
+    bool thereWasNegativeW = false;//NotUsedHere
+    
     //Volume para alpha0=1 e alpha1=0
     TPZFMatrix<REAL> wSol(rows, cols);
     wSol(0,0) = 1.;
     wSol(1,0) = 0.;
     this->fmeshVec[0]->LoadSolution(wSol);
-    REAL volAlpha1_ini = this->IntegrateW(this->fmeshVec[0]);
+    REAL volAlpha1_ini = this->IntegrateW(thereWasNegativeW);
     
     //Volume para alpha0=1 e alpha1=1
     wSol(0,0) = 1.;
     wSol(1,0) = 1.;
     this->fmeshVec[0]->LoadSolution(wSol);
-    REAL volAlpha1_fin = this->IntegrateW(this->fmeshVec[0]);
+    REAL volAlpha1_fin = this->IntegrateW(thereWasNegativeW);
     
     REAL alpha = (volAcum - volAlpha1_ini)/(volAlpha1_fin - volAlpha1_ini);
     wSol(1,0) = alpha;
     this->fmeshVec[0]->LoadSolution(wSol);
     
     //Verificando se a correcao deu certo
-    REAL newVolAcum = this->IntegrateW(this->fmeshVec[0]);
+    REAL newVolAcum = this->IntegrateW(thereWasNegativeW);
     if(fabs(volAcum - newVolAcum) > 1.E-10)
     {
         std::cout << "\n\n\nW nao manteve volume na transferencia de solucao elastica!!!\n";

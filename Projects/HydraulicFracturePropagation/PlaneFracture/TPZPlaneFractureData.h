@@ -62,6 +62,14 @@ public:
         fDeltaT_right = factDeltaT;
     }
     
+    void ShiftRightTime()
+    {
+        if((fDeltaT_right - fDeltaT_left) < 1.1)
+        {
+            fDeltaT_right += 2.;
+        }
+    }
+    
     void SetDeltaT(REAL deltaT)
     {
         factDeltaT = deltaT;
