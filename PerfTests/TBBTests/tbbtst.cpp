@@ -37,9 +37,11 @@
 /**
  * Threading Building Blocks Headers
  */
+#ifdef USING_TBB
 #include <tbb/task_scheduler_init.h>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#endif
 
 /**
  * Commmand Line Options
@@ -49,6 +51,7 @@ clarg::argInt       num_matrices("-nmat", "Number of Matrices", 64);
 clarg::argInt       num_threads("-nt", "Number of Threads", 0);
 clarg::argString    input_file("-mc", "Cubo Input File", "cube1.txt");
 
+#ifdef USING_TBB
 class tbb_work {
 public:
     tbb_work(std::vector <TPZSkylMatrix<REAL>* > *m): matrices(m) {};
@@ -59,6 +62,7 @@ public:
             (*matrices)[i]->Decompose_Cholesky();
     }
 };
+#endif
 int main (int argc, char **argv)
 {
     /**
@@ -100,11 +104,13 @@ int main (int argc, char **argv)
         }
     } else {
         
+#ifdef USING_TBB
         tbb::task_scheduler_init init(num_threads.get_value());
         
         tbb_work work(&matrices);
         
         tbb::parallel_for(tbb::blocked_range<int>(0, num_matrices.get_value()), work);
+#endif
     }
     
 } /* main */
