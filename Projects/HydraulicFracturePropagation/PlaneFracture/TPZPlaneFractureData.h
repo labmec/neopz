@@ -22,7 +22,7 @@
 
 
 
-struct TimeControl
+class TimeControl
 {
 public:
     TimeControl()
@@ -147,7 +147,7 @@ private:
 
 
 
-struct LeakoffStorage
+class LeakoffStorage
 {
 public:
     LeakoffStorage()
@@ -193,7 +193,7 @@ protected:
 /**
  * To understand what is implemented here, see table (MaterialIds Table.xls) on folder (/NeoPZ/Projects/HydraulicFracturePropagation/PlaneFracture)
  */
-struct MaterialIdGen
+class MaterialIdGen
 {
 public:
     
