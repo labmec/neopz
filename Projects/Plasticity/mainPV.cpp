@@ -928,29 +928,34 @@ int main()
     ER.SetUp(E,nu);
     PlasticStepPV.fER =ER;
     
-    time.start();
-    for(int i=1;i<1000;i++)
-    {
-        UniaxialLoadingPV(PlasticStepPV);
-    }
-    time.stop();
+//    time.start();
+//    for(int i=1;i<1000;i++)
+//    {
+//        UniaxialLoadingPV(PlasticStepPV);
+//    }
+//    time.stop();
+//    
+//    cout << "\n tempo " <<time.seconds() << endl;
+//    
+//    time.reset();
+//    
+//    
+//    STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066;
+//    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
+//    PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
+//    
+//    time.start();
+//    for(int i=1;i<1000;i++)
+//    {
+//        UniaxialLoadingErick(PlasticStepErick);
+//    }
+//    time.stop();
+//    cout << "\n tempo erick " <<time.seconds() << endl;
+//    
+//    
     
-    cout << "\n tempo " <<time.seconds() << endl;
+    UniaxialLoadingPV(PlasticStepPV);
     
-    time.reset();
-    
-    
-    STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066;
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
-    PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
-    
-    time.start();
-    for(int i=1;i<1000;i++)
-    {
-        UniaxialLoadingErick(PlasticStepErick);
-    }
-    time.stop();
-    cout << "\n tempo erick " <<time.seconds() << endl;
     return 0;
 }
 
@@ -1594,8 +1599,8 @@ void CheckDepConv()
 	
     
     
-    //	sigma1.XX()= 0.0128547;
-	sigma1.XX()=-0.0564273;
+    sigma1.XX()= 0.0128547;
+	//sigma1.XX()=-0.0564273;
 	sigma1.YY()=-0.0564273;
 	sigma1.ZZ()=-0.0564273;
     //sigma1.XX()=alpha*2;
@@ -1607,7 +1612,7 @@ void CheckDepConv()
 	
 	ER.ComputeDeformation(sigma1, eps1);
     TPZTensor<STATE> dsig;
-    STATE alpha = 1.e-3;
+    STATE alpha = 1.e-5;
     dsig.XX()= alpha;
     dsig.YY()=alpha;
     dsig.ZZ()=alpha;
@@ -1616,7 +1621,7 @@ void CheckDepConv()
     //dsig.YY()=alpha;
     //dsig.ZZ()=-alpha;
     
-    ER.ComputeDeformation(dsig, deps);
+    //ER.ComputeDeformation(dsig, deps);
     
     //sigma1+=dsig;
 	
@@ -1626,44 +1631,42 @@ void CheckDepConv()
 		str << "\n-------------------------- BEGINING OF TAYLORCHECK TEST FOR DSIGDEPS USING PRINCIPAL VALUES --------------------------" << endl;
 
 		TPZManVector<REAL,3> conv;
-        //deps.XX()=1/10.;
+        deps.XX()=-alpha;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nXX:" << endl;
 		deps.Print(str);
 		str << "conv = " << conv << endl;
 				
 		deps.XX()=0.;
-		deps.YY()=eps1.YY();
-		deps*=1/10.;
+		deps.YY()=-alpha;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nYY:" << endl;
 		deps.Print(str);
 		str << "conv = " << conv << endl;
 		
 		deps.YY()=0.;
-		deps.ZZ()=eps1.ZZ();
-		deps*=1/10.;
+		deps.ZZ()=-alpha;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nZZ:" << endl;
 		deps.Print(str);
 		str << "conv = " << conv << endl;
 		
 		deps.ZZ()=0.;
-		deps.XY()=-0.00001;
+		deps.XY()=-alpha;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nXY:" << endl;
 		deps.Print(str);
 		str << "conv = " << conv << endl;
 		
 		deps.XY()=0.;
-		deps.XZ()=-0.00001;
+		deps.XZ()=-alpha;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nXZ:" << endl;
 		deps.Print(str);
 		str << "conv = " << conv << endl;
 
 		deps.XZ()=0.;
-		deps.YZ()=-0.00001;
+		deps.YZ()=-alpha;
 		PlasticStepPV.TaylorCheck(eps1, deps, k0, conv);
 		str << "\nYZ:" << endl;
 		deps.Print(str);
@@ -1682,12 +1685,20 @@ void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> P
     
     
 
-    TPZTensor<STATE> epst,sigma1;
+    TPZTensor<STATE> epst,sigma1,sigload;
     TPZFNMatrix<36> DepPV(6,6,0.);
     STATE deltaeps = -0.005;
     epst.XX()=deltaeps;
-   
-  PlasticStepPV.ApplyStrainComputeDep(epst, sigma1,DepPV);
+    TPZElasticResponse ER;
+    ER.SetUp(100, 0.25);
+    ER.Compute(epst,sigload);
+    //PlasticStepPV.ApplyStrainComputeDep(epst, sigma1,DepPV);
+    //epst.XX()=0.;
+    //PlasticStepPV.SetTensionSign(1);
+    epst.XX()=0;
+    sigload*=1;
+    PlasticStepPV.ApplyLoad(sigload, epst);
+    epst*=PlasticStepPV.SignCorrection();
    // PlasticStepPV.ApplyStrainComputeSigma(epst,sigma1);
 }
 
@@ -1704,5 +1715,7 @@ void UniaxialLoadingErick(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepEr
 //    PlasticStepErick.ApplyStrainComputeSigma(epst,sigma1);
     
 }
+
+//template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;
 
 

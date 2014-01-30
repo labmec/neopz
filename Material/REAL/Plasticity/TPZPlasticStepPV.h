@@ -11,9 +11,9 @@
 #include "pzfmatrix.h"
 #include "TPZPlasticState.h"
 #include "TPZPlasticIntegrMem.h"
-
+#include "TPZPlasticStep.h"
 #include "pzlog.h"
-
+#include "pzstepsolver.h"
 #include <set>
 #include <ostream>
 
@@ -36,12 +36,11 @@ class TPZFMatrix;
  };
  */
 
-
 /**
  * @brief Classe que efetua avanco de um passo de plastificacao utilizando o metodo de Newton
  */
 template <class YC_t, class ER_t>
-class TPZPlasticStepPV 
+class TPZPlasticStepPV : public TPZPlasticBase
 {
 public:
 	
@@ -111,6 +110,13 @@ public:
 	typedef YC_t fNYields;
 	
 	/**
+	 * Imposes the specified strain tensor, evaluating the plastic integration if necessary.
+	 *
+	 * @param[in] epsTotal Imposed total strain tensor
+	 */
+    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal);
+    
+	/**
 	 * Imposes the specified strain tensor and returns the correspondent stress state.
 	 *
 	 * @param[in] epsTotal Imposed total strain tensor
@@ -131,6 +137,50 @@ public:
 	 * @param[out] Dep Incremental constitutive relation
 	 */
 	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
+    
+    /**
+	 * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
+	 * This method should be used only for test purposes because it isn't fully robust. Some
+	 * materials, specially those perfectly plastic and with softening, may fail when applying
+	 * the Newton Method on ProcessLoad.
+	 *
+	 * @param[in] sigma stress tensor
+	 * @param[out] epsTotal deformation tensor
+	 */
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal);
+    
+    virtual TPZPlasticState<REAL> GetState() const;
+    /**
+     * @brief Return the value of the yield functions for the given strain
+     * @param[in] epsTotal strain tensor (total strain)
+     * @param[out] phi vector of yield functions
+	 */
+	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
+
+    
+    
+    /**
+	 * @brief Update the damage values
+	 * @param[in] state Plastic state proposed
+	 */
+    virtual void SetState(const TPZPlasticState<REAL> &state);
+    
+    /** @brief Sets the tolerance allowed in the pde integration */
+    virtual void SetIntegrTol(REAL integrTol);
+    
+    virtual void SetTensionSign(int sign);
+    
+    
+    void CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy);
+    
+
+    void CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy);
+    
+    int SignCorrection() const;
+    
+    
+    virtual void Read(TPZStream &buf);
+    
 	
 	/**
 	 * Does the TaylorCheck of the tangent matrix
@@ -218,6 +268,13 @@ protected:
 	
 	/** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
 	int fMaxNewton;	// COLOCAR = 30 (sugestao do erick!)
+    
+    /** @brief The tension sign in the convention used in the implementation of the material */
+	int fMaterialTensionSign=-1;
+	
+	/** @brief The tension sign in the convention defined by the external user */
+	int fInterfaceTensionSign;
+	
 	
 public:
 	
@@ -233,6 +290,9 @@ public:
 
 	
 	//ofstream fOutfile(string &str);
+    
+    
+    
 	
 	
 };

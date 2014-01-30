@@ -235,7 +235,7 @@ static void calcVonMisesBar()
     SolverSetUp(EPAnalysis,compmesh1);
 	
 	TPZPostProcAnalysis PPAnalysis(compmesh1);
-	TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
+	TPZFStructMatrix structmatrix(PPAnalysis. Mesh());
 	PPAnalysis.SetStructuralMatrix(structmatrix);
     
     PPAnalysis.SetStructuralMatrix(structmatrix);

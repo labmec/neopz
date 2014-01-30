@@ -214,6 +214,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
 	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
+    //TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
     
     obj.fCurrentConfig.fConfinement.XX() = -44.3;// MPa
     obj.fCurrentConfig.fConfinement.YY() = -58.2;

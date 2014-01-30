@@ -16,9 +16,12 @@
 //static LoggerPtr logger(Logger::getLogger("pz.material.TPZPlasticStepPV"));
 //#endif
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
+static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic2"));
 #endif
 
+#ifdef LOG4CXX
+static LoggerPtr logger2(Logger::getLogger("plasticity.poroelastoplastic"));
+#endif
 
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
@@ -382,6 +385,154 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat)
 		}
 	}
 	return voi;	
+}
+
+
+
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTotal)
+{
+
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
+    
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
+{
+
+    
+    TPZFNMatrix<36> Dep(6,6,0.);
+    TPZFNMatrix <6> epsn1V(6,1,0.),epsnV(6,1,0.),signV(6,1,0.),res(6,1,0.),sigstar(6,1,0.),epsnVPrev(6,1,0.),sol(6,1,0.);
+    TPZTensor<STATE> epsnt,signt,epsn1t;
+    fER.ComputeDeformation(sigma,epsnt);
+    
+
+    
+    
+    TPZPlasticState<STATE> tempstate(fN);
+    ApplyStrainComputeDep(epsnt,signt,Dep);
+    CopyFromTensorToFNMatrix(epsnt,epsnV);
+    CopyFromTensorToFNMatrix(signt,signV);
+    CopyFromTensorToFNMatrix(sigma,sigstar);
+    
+    
+    
+    STATE normres=1.,tol=1.e-6,oldnormres;
+    STATE scale =1.;
+    int counter=0;
+    while (normres>tol &&counter<30)
+    {
+        
+        signV-=sigstar;
+        oldnormres=Norm(signV);
+        Dep.Solve_LU(&signV);
+        sol=signV;
+        epsnVPrev=epsnV;
+        do{
+
+            epsn1V=epsnVPrev-(scale*sol);
+
+            CopyFromFNMatrixToTensor(epsn1V, epsnt);
+            fN=tempstate;
+            ApplyStrainComputeDep(epsnt,signt,Dep);
+        
+            CopyFromTensorToFNMatrix(signt,signV);
+            
+            res=signV-sigstar;
+            normres = Norm(res);
+            scale*=0.5;
+        }while(normres>oldnormres);
+        tempstate=fN;
+        scale=1.;
+        epsnV=epsn1V;
+        
+        counter++;
+
+        
+    }
+    
+    
+    
+
+}
+
+template <class YC_t, class ER_t>
+TPZPlasticState<STATE>  TPZPlasticStepPV<YC_t, ER_t>::GetState() const
+{
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
+{
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
+}
+
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::SetState(const TPZPlasticState<REAL> &state)
+{
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::SetIntegrTol(REAL integrTol)
+{
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
+}
+
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::SetTensionSign(int s)
+{
+    fInterfaceTensionSign = (s >= 0) ? 1 : -1;
+   
+}
+
+
+template <class YC_t, class ER_t>
+int TPZPlasticStepPV<YC_t, ER_t>::SignCorrection() const
+{
+    return fMaterialTensionSign * fInterfaceTensionSign;
+}
+
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
+{
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy)
+{
+    FNM.Resize(6,1);
+    copy.XX()=FNM(0,0);
+    copy.XY()=FNM(1,0);
+    copy.XZ()=FNM(2,0);
+    copy.YY()=FNM(3,0);
+    copy.YZ()=FNM(4,0);
+    copy.ZZ()=FNM(5,0);
+}
+
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy)
+{
+    
+    copy(0,0)=tensor.XX();
+    copy(1,0)=tensor.XY();
+    copy(2,0)=tensor.XZ();
+    copy(3,0)=tensor.YY();
+    copy(4,0)=tensor.YZ();
+    copy(5,0)=tensor.ZZ();
 }
 
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;

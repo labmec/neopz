@@ -263,6 +263,19 @@ public:
 		result(2,2) = ZZ();
 		return result;
 	}
+    
+//    operator TPZFNMatrix<6>() const
+//	{
+//		TPZFNMatrix<6> result(6,1,0.);
+//		result(0,0) = XX();
+//		result(1,0) = XY();
+//		result(2,0) = XZ();
+//		result(3,0) = YY();
+//		result(4,0) = YZ();
+//		result(5,0) = ZZ();
+//		return result;
+//	}
+    
 	
 	TPZTensor(const TPZFMatrix<T> &input) : fData(6,0.)
 	{
@@ -496,6 +509,9 @@ public:
 	 * Computes the eigenvectors and eigenvalues based on Jacobi method
 	 */
 	void EigenSystemJacobi(TPZDecomposed &eigensystem) const;
+    
+   
+
 	
 	/**
 	 Mnemonical access

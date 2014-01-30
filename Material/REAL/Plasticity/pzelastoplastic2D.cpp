@@ -126,7 +126,6 @@ void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData &
 		Dep(2,2) = Dep3D(_XY_,_XY_);
 		
 	}
-
 	else//PlaneStress
 	{
 		DebugStop();

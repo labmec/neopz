@@ -210,7 +210,7 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
 #ifdef DEBUG
     STATE dist = DistF1(sigproj, xi, beta);
     if (fabs(dist) > 1.e-8) {
-        DebugStop();
+        //DebugStop();
     }
 #endif
 }
@@ -253,7 +253,7 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
     STATE dist = DistF2(sigproj, theta, beta, k);
     if (fabs(dist) > 1.e-8 || err > 1.e-8) {
-        DebugStop();
+        //DebugStop();
     }
 #endif
     
@@ -1159,7 +1159,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
                 TPZManVector<STATE> cyltr(3), cylproj(3);
                 FromPrincipalToHWCyl(sigtrial, cyltr);
                 FromPrincipalToHWCyl(sigproj, cylproj);
-                std::cout << "cyltr " << cyltr << " cylpr " << cylproj << std::endl;
+                //std::cout << "cyltr " << cyltr << " cylpr " << cylproj << std::endl;
             }
 #endif
         }
