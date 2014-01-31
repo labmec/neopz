@@ -1197,12 +1197,12 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) c
 //NAO TESTADO
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_Cholesky(){
-  std::list<long> fake;
-  int res = this->Decompose_Cholesky(fake);
-  if(fake.size()){
-    DebugStop();
-  }
-  return res;
+    std::list<long> fake;
+    int res = this->Decompose_Cholesky(fake);
+    if(fake.size()){
+        DebugStop();
+    }
+    return res;
 }
 
 //NAO TESTADO
@@ -1215,15 +1215,15 @@ int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
 	//return 0;
 	
 	int dim=this->Dim();
-  const int nrows = this->Rows();
+
 	for (int i=0 ; i<dim; i++) {
 		
-    TVar * diagPtr = &(this->operator()(i,i));
-    for(int k=0; k<i; k++) {             //elementos da diagonal
-      (*diagPtr) -= this->operator()(i,k)*this->operator()(i,k);
-    }
+        TVar * diagPtr = &(this->operator()(i,i));
+        for(int k=0; k<i; k++) {             //elementos da diagonal
+            (*diagPtr) -= this->operator()(i,k)*this->operator()(i,k);
+        }
 		
-    if(fabs(*diagPtr) < fabs((TVar)1e-12)) DebugStop();//diagonal negativa
+        if(fabs(*diagPtr) < fabs((TVar)1e-12)) DebugStop();//diagonal negativa
 		
 		if( IsZero(*diagPtr) ){
 			singular.push_back(i);
@@ -1232,24 +1232,25 @@ int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
 		
  		(*diagPtr) = sqrt(*diagPtr);
 		
-    for (int j=i+1;j<dim; j++) {           //elementos fora da diagonal
-      TVar sum = 0.;
-      { ///escopo
-        int k=0;
-        TVar * ikPtr = &(this->operator()(k,i));//&(this->operator()(i,k));///(k,i) = (i,k) pela simetria da matriz, mas o alinhamento acelera a execucao
-        TVar * kjPtr = &(this->operator()(k,j));
-        for(; k<i; k++, kjPtr++, ikPtr++) {
-          sum += (*ikPtr)*(*kjPtr);
-        }
-      }
-      TVar *ijPtr = &(this->operator()( i,j ));
-      (*ijPtr) -= sum;
+        for (int j=i+1;j<dim; j++) {           //elementos fora da diagonal
+            TVar sum = 0.;
+            { ///escopo
+                int k=0;
+                TVar * ikPtr = &(this->operator()(k,i));//&(this->operator()(i,k));///(k,i) = (i,k) pela simetria da matriz, mas o alinhamento acelera a execucao
+                TVar * kjPtr = &(this->operator()(k,j));
+                for(; k<i; k++, kjPtr++, ikPtr++) {
+                    sum += (*ikPtr)*(*kjPtr);
+                }
+            }
+            TVar *ijPtr = &(this->operator()( i,j ));
+            (*ijPtr) -= sum;
 			
-      (*ijPtr) /= (*diagPtr);
-      this->operator()(j,i) = (*ijPtr);
+            (*ijPtr) /= (*diagPtr);
+            this->operator()(j,i) = (*ijPtr);
+        }
     }
-  }
 	
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
 	this->fDecomposed = ECholesky;
 	return ECholesky;
 }

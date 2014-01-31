@@ -300,25 +300,6 @@ namespace Input {
             
         }
         
-        int iref, nref=1;
-        TPZVec <TPZGeoEl*> sons;
-        for (iref=0; iref<nref; iref++)
-        {
-            int nelements = gMesh->NElements();
-            for (int iel=0; iel<nelements; iel++)
-            {
-                TPZGeoEl * gel = gMesh->ElementVec()[iel];
-                if (!gel) DebugStop();
-                if(!gel->HasSubElement()) gel->Divide(sons);
-            }
-        }
-        
-        //    ofstream arg("malhaPZ1BC.txt");
-        //    gMesh->Print(arg);
-        //
-        //    std::ofstream out("Cube.vtk");
-        //    TPZVTKGeoMesh::PrintGMeshVTK(gMesh, out, true);
-        //
         return gMesh;
     }
     
