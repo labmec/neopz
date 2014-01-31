@@ -6,6 +6,8 @@
 //  Copyright (c) 2012 LabMec-Unicamp. All rights reserved.
 //
 
+
+
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -69,11 +71,11 @@ void PosProcessHDiv(TPZAnalysis &an, std::string plotfile);
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 
 //----- Boundary condition: Steklov
-void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
+static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 void Compute_dudn(TPZCompMesh *cmesh);
 void Compute_dudnQuadrado(TPZCompMesh *cmesh);
@@ -86,7 +88,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 
 const bool triang = false;
 const int teste = 3;
-int main(int argc, char *argv[])
+int mainAgnaldo(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 //	std::string logs("../logmixedproblem.cfg");
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
 	    TPZGeoMesh *gmesh = 0;
 	    if(teste == 1 || teste == 2)
 	    {
-            gmesh = GMesh(triang);
+				gmesh = GMesh(triang);
 	    }
 	    else if(teste == 3)
 	    {
@@ -139,7 +141,7 @@ int main(int argc, char *argv[])
             // Second computational mesh
             TPZCompMesh * cmesh2;
             if(triang==true){
-               cmesh2 = CMeshPressure(gmesh, p-1);
+               cmesh2 = CMeshPressure(gmesh, p-1);>>>>>>> .r5382
             }
             else cmesh2 = CMeshPressure(gmesh, p);
             ofstream arg3("cmesh2_inicial.txt");
@@ -184,7 +186,7 @@ int main(int argc, char *argv[])
 							sout << "Multiphysics mesh\n";
 							mphysics->Print(sout);
 							LOGPZ_DEBUG(logdata,sout.str())
-						}
+						}>>>>>>> .r5382
 #endif
 
 //            ofstream arg7("gmesh_Final.txt");
@@ -196,7 +198,7 @@ int main(int argc, char *argv[])
 //            mphysics->Print(arg10);
             
             SolveSyst(an, mphysics);
-            
+            >>>>>>> .r5382
 //            ofstream arg6("mphysic.txt");
 //            mphysics->Print(arg6);
             
@@ -227,7 +229,7 @@ int main(int argc, char *argv[])
             if (teste==1){
                 an2.SetExact(*SolExata1);
             }
-            else if (teste==2){
+            else if (teste==2){>>>>>>> .r5382
                 an2.SetExact(*SolExata2);
             }
             else{
@@ -241,7 +243,7 @@ int main(int argc, char *argv[])
 /*
             //solucao HDivPressure
             TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
-//            ofstream arg8("cmesh_HdivInicial.txt");
+//            ofstream arg8("cmesh_HdivInicial.txt");>>>>>>> .r5382
 //            cmesh3->Print(arg8);
 
 //            ofstream arg10("gmesh_final.txt");
@@ -253,7 +255,7 @@ int main(int argc, char *argv[])
             cmesh3->Print(arg8);
 
             //TPZVec<REAL> erros;
-            arg12<<" \nErro da HdivPressure  " <<endl;
+            arg12<<" \nErro da HdivPressure  " <<endl;>>>>>>> .r5382
             if (teste==1) an3.SetExact(*SolExata1);
             else an3.SetExact(*SolExata2);
             an3.PostProcess(erros, arg12);
@@ -888,12 +890,12 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
 }
 
 
-void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     TPZFMatrix<STATE> du(2,1);
     SolExataSteklov(loc,result,du);
 }
 
-void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
     TPZManVector<REAL> u(1);
@@ -904,7 +906,7 @@ void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
     TPZManVector<REAL> u(1);
@@ -915,7 +917,7 @@ void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
     TPZManVector<REAL> u(1);
@@ -926,7 +928,7 @@ void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     result[0] = du(0,0)*normal[0]+du(1,0)*normal[1];
 }
 
-void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
     const REAL n = 0;
     
@@ -990,6 +992,7 @@ void Compute_dudnQuadrado(TPZCompMesh *cmesh){
         sPath[sval] = std::make_pair(x,y);
         sNormal[sval] = normal;
     }
+
 
     std::map<REAL, std::pair<REAL,REAL> >::iterator wS, wNormal;
     int i;
@@ -1065,3 +1068,4 @@ void PrintToFile(std::ofstream &myfile, const std::string &title, std::map<REAL,
         if(i%4 == 0) myfile << "\n";
     }///for w
 }
+
