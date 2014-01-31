@@ -39,7 +39,6 @@ class TPZStream;
 class TPZCompElDisc;
 class TPZInterpolatedElement;
 template<class T> class TPZReferredCompEl;
-template<class T> class TPZIntelGen;
 
 /**
  * @brief Implements computational mesh. \ref CompMesh "Computational Mesh"

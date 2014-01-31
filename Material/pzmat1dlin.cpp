@@ -17,46 +17,50 @@ void TPZMat1dLin::Contribute(TPZMaterialData &data,
                              REAL weight,
                              TPZFMatrix<STATE> &ek, 
                              TPZFMatrix<STATE> &ef) {
-	TPZFMatrix<REAL> &dphi = data.dphix;
-	TPZFMatrix<REAL> &phi = data.phi;
-	TPZManVector<REAL,3> &x = data.x;
-	
-	// this method adds the contribution of the material to the stiffness
-	// matrix and right hand side
-	
-	// check on the validity of the arguments
-	
-	if(phi.Cols() != 1 || dphi.Rows() != 1 || phi.Rows() != dphi.Cols()){
-		PZError << "TPZMat1dLin.contr, inconsistent input data : phi.Cols() = "
-	    << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
-		" phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
-		dphi.Rows() << "\n";
-	}
-	
-	if(fForcingFunction) {
-		TPZManVector<STATE> xfloat(fXf.Rows());
-		fForcingFunction->Execute(x,xfloat);//fXf = xfloat
-		int i;
-		for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];
-	}
-	int r = fXk.Rows();
-	int c = fXk.Cols();
-	TPZFMatrix<STATE> submat(r,c);
-	for(int in=0 ; in < phi.Rows() ; ++in){
-		STATE tmpef = (phi(in,0)*weight);
-		TPZFMatrix<STATE> tmpTPZFMatrix1 = fXf*tmpef;
-		ef.AddSub(in*r,0,tmpTPZFMatrix1);
-		
-		for(int jn=0 ; jn<phi.Rows() ; ++jn){
-			STATE temp = (phi(in,0)*phi(jn,0)*weight);
-			submat =  fXb*temp;
-			STATE temp2 = (dphi(0,in)*dphi(0,jn)*weight);
-			submat += fXk*temp2;
-			STATE temp3 = (phi(in,0)*dphi(0,jn)*weight);
-			submat += fXc*temp3;
-			ek.AddSub(in*r,jn*c,submat);
-		}
-	}
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZFMatrix<REAL> &phi = data.phi;
+    TPZManVector<REAL,3> &x = data.x;
+
+    // this method adds the contribution of the material to the stiffness
+    // matrix and right hand side
+
+    // check on the validity of the arguments
+
+    if(phi.Cols() != 1 || dphi.Rows() != 1 || phi.Rows() != dphi.Cols())
+    {
+        PZError << "TPZMat1dLin.contr, inconsistent input data : phi.Cols() = "
+        << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
+        " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
+        dphi.Rows() << "\n";
+    }
+
+    if(fForcingFunction)
+    {
+        TPZManVector<STATE> xfloat(fXf.Rows());
+        fForcingFunction->Execute(x,xfloat);//fXf = xfloat
+        int i;
+        for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];
+    }
+    int r = fXk.Rows();
+    int c = fXk.Cols();
+    TPZFMatrix<STATE> submat(r,c);
+    for(int in=0 ; in < phi.Rows() ; ++in)
+    {
+        STATE tmpef = (phi(in,0)*weight);
+        TPZFMatrix<STATE> tmpTPZFMatrix1 = fXf*tmpef;
+        ef.AddSub(in*r,0,tmpTPZFMatrix1);
+        
+        for(int jn=0 ; jn<phi.Rows() ; ++jn)
+        {
+            STATE temp = (phi(in,0)*phi(jn,0)*weight);
+            submat =  fXb*temp;
+            STATE temp2 = (dphi(0,in)*dphi(0,jn)*weight);
+            submat += fXk*temp2;
+            STATE temp3 = (phi(in,0)*dphi(0,jn)*weight);
+            submat += fXc*temp3;
+            ek.AddSub(in*r,jn*c,submat);
+        }
+    }
 }
 
 void TPZMat1dLin::ContributeBC(TPZMaterialData &data,

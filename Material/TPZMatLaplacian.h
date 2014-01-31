@@ -12,10 +12,10 @@
 
 /**
  * @ingroup material
- * @brief DESCRIBE PLEASE
+ * @brief \f$ -fK Laplac(u) = fXf  \f$
  */
 /**
- * \f$ -fK Laplac(u) = - fXf  \f$
+ * \f$ -fK Laplac(u) = fXf  \f$
  */
 class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
 	
@@ -63,7 +63,7 @@ public:
 	TPZMatLaplacian(int nummat, int dim);
 
   TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.),
-     fC(0.), fSymmetry(0.), fPenaltyType(ENoPenalty)
+     fSymmetry(0.), fPenaltyType(ENoPenalty)
   {
 
   }
@@ -150,6 +150,7 @@ public:
 	 * @{
 	 */
 
+    virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);

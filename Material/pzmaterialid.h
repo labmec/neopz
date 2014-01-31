@@ -68,6 +68,9 @@ const int TPZMATDARCYMHM = 327;
 /** @brief Id of Three-dimensional elasticity material */
 const int TPZELASTICITY3DNLINEARMATERIALID = 328;
 
+/** @brief Id of a simple laplace equation */
+const int TPZMatLaplacianID = 329;
+
 /** @} */
 
 #endif //PZMATERIALIDH

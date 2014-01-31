@@ -98,81 +98,81 @@ void TPZMatPoisson3d::Print(std::ostream &out) {
 
 void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 	
-	if(data.numberdualfunctions)
-	{
-		ContributeHDiv(data , weight , ek, ef);
-		
-		return;
-	}
-	
-	TPZFMatrix<REAL>  &phi = data.phi;
-	TPZFMatrix<REAL> &dphi = data.dphix;
-	TPZVec<REAL>  &x = data.x;
-	TPZFMatrix<REAL> &axes = data.axes;
-	TPZFMatrix<REAL> &jacinv = data.jacinv;
-	int phr = phi.Rows();
-
-	STATE fXfLoc = fXf;
-	
-	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<STATE,1> res(1);
-		TPZFMatrix<STATE> dres(Dimension(),1);
-		fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
-		fXfLoc = res[0];
-	}
-	REAL delx = 0.;
-	STATE ConvDirAx[3] = {0.};
-	if(fC != 0.0) {
-		int di,dj;
-		delx = 0.;
-		for(di=0; di<fDim; di++) {
-			for(dj=0; dj<fDim; dj++) {
-				delx = (delx<fabs(jacinv(di,dj))) ? fabs(jacinv(di,dj)) : delx;
-			}
-		}
-		delx = 2./delx;
-		
-		
-		switch(fDim) {
-			case 1:
-				ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
-				break;
-			case 2:
-				ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
-				ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
-				break;
-			case 3:
-				ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
-				ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
-				ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
-				break;
-			default:
-				PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
-		}
-	}
-    
-	//Equacao de Poisson
-	for( int in = 0; in < phr; in++ ) {
-		int kd;
-		STATE dphiic = 0;
-		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*(STATE)dphi(kd,in);
-		ef(in, 0) += - (STATE)weight * fXfLoc * ( (STATE)phi(in,0) + (STATE)(0.5*delx*fC)*fSD*dphiic );
-		for( int jn = 0; jn < phr; jn++ ) {
-			for(kd=0; kd<fDim; kd++) {
-				ek(in,jn) += (STATE)weight * (
-									   +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) 
-									   - (STATE)(fC* dphi(kd,in) * phi(jn)) * ConvDirAx[kd]
-									   + (STATE)(0.5 * delx * fC * dphi(kd,jn)) * fSD * dphiic * ConvDirAx[kd]
-									   );
-			}
-		}
-	}
-    
-    if (this->IsSymetric()){    
-		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+    if(data.numberdualfunctions)
+    {
+        ContributeHDiv(data , weight , ek, ef);
+        
+        return;
     }
-	
-    
+
+    TPZFMatrix<REAL>  &phi = data.phi;
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZVec<REAL>  &x = data.x;
+    TPZFMatrix<REAL> &axes = data.axes;
+    TPZFMatrix<REAL> &jacinv = data.jacinv;
+    int phr = phi.Rows();
+
+    STATE fXfLoc = fXf;
+
+    if(fForcingFunction) {            // phi(in, 0) = phi_in
+        TPZManVector<STATE,1> res(1);
+        TPZFMatrix<STATE> dres(Dimension(),1);
+        fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        fXfLoc = res[0];
+    }
+    REAL delx = 0.;
+    STATE ConvDirAx[3] = {0.};
+    if(fC != 0.0) {
+        int di,dj;
+        delx = 0.;
+        for(di=0; di<fDim; di++) {
+            for(dj=0; dj<fDim; dj++) {
+                delx = (delx<fabs(jacinv(di,dj))) ? fabs(jacinv(di,dj)) : delx;
+            }
+        }
+        delx = 2./delx;
+        
+        
+        switch(fDim) {
+            case 1:
+                ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+                break;
+            case 2:
+                ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+                ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
+                break;
+            case 3:
+                ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+                ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
+                ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
+                break;
+            default:
+                PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+        }
+    }
+
+    //Equacao de Poisson
+    for( int in = 0; in < phr; in++ ) {
+        int kd;
+        STATE dphiic = 0;
+        for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*(STATE)dphi(kd,in);
+        ef(in, 0) += - (STATE)weight * fXfLoc * ( (STATE)phi(in,0) + (STATE)(0.5*delx*fC)*fSD*dphiic );
+        for( int jn = 0; jn < phr; jn++ ) {
+            for(kd=0; kd<fDim; kd++) {
+                ek(in,jn) += (STATE)weight * (
+                                       +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) 
+                                       - (STATE)(fC* dphi(kd,in) * phi(jn)) * ConvDirAx[kd]
+                                       + (STATE)(0.5 * delx * fC * dphi(kd,jn)) * fSD * dphiic * ConvDirAx[kd]
+                                       );
+            }
+        }
+    }
+
+    if (this->IsSymetric()){    
+        if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+    }
+
+
 }
 
 /// Compute the contribution at an integration point to the stiffness matrix of the HDiv formulation

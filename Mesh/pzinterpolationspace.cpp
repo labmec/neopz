@@ -148,42 +148,28 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 
 void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
-	//if (data.fNeedsNeighborSol){
-	//DebugStop();
-	//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
-	//}//fNeedsNeighborSol
-	data.intGlobPtIndex = -1;
-    //this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    data.intGlobPtIndex = -1;
     this->ComputeShape(qsi, data);
     
-#ifdef LOG4CXX_keep
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "Needs soluton " << data.fNeedsSol;
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-	if (data.fNeedsSol){
-		if (data.phi.Rows()){//if shape functions are available
-			//this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    if (data.fNeedsSol){
+        if (data.phi.Rows()){//if shape functions are available
             this->ComputeSolution(qsi, data);
-		}
-		else{//if shape functions are not available
-			this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-		}
-	}//fNeedsSol
+        }
+        else{//if shape functions are not available
+            this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+        }
+    }//fNeedsSol
 	
     data.x.Resize(3., 0.);
     Reference()->X(qsi, data.x);
-    
-	if (data.fNeedsHSize){
-		data.HSize = 2.*this->InnerRadius();
-	}//fNeedHSize
-	
-	if (data.fNeedsNormal){
-		this->ComputeNormal(data);
-	}//fNeedsNormal
+
+    if (data.fNeedsHSize){
+        data.HSize = 2.*this->InnerRadius();
+    }//fNeedHSize
+
+    if (data.fNeedsNormal){
+        this->ComputeNormal(data);
+    }//fNeedsNormal
 }//void
 
 
@@ -283,38 +269,38 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 }
 
 void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	
-	TPZMaterial * material = Material();
-	if(!material){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-		ek.Reset();
-		ef.Reset();
-		return;
-	}
+
+    TPZMaterial * material = Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        ek.Reset();
+        ef.Reset();
+        return;
+    }
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
-		LOGPZ_DEBUG(logger,sout.str());
-	}
+    {
+        std::stringstream sout;
+        sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
+        LOGPZ_DEBUG(logger,sout.str());
+    }
 #endif
-	this->InitializeElementMatrix(ek,ef);
-	
-	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
-	
-	
-	TPZMaterialData data;
-	//data.p = this->MaxOrder();
-	this->InitMaterialData(data);
+    this->InitializeElementMatrix(ek,ef);
+
+    if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+
+
+    TPZMaterialData data;
+    //data.p = this->MaxOrder();
+    this->InitMaterialData(data);
     data.p = this->MaxOrder();
-	
-	int dim = Dimension();
-	TPZManVector<REAL,3> intpoint(dim,0.);
-	REAL weight = 0.;
-	
-	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
+
+    int dim = Dimension();
+    TPZManVector<REAL,3> intpoint(dim,0.);
+    REAL weight = 0.;
+
+    TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
     int order = material->IntegrationRuleOrder(data.p);
     if(material->HasForcingFunction())
     {
@@ -322,29 +308,17 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     }
     TPZManVector<int,3> intorder(dim,order);
     intrule->SetOrder(intorder);
-	//    material->SetIntegrationRule(intrule, data.p, dim);
-	
-	int intrulepoints = intrule->NPoints();
-//#ifdef LOG4CXX
-//    if (logger->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		sout<< "---Ptos e Pesos ---"<<std::endl;
-		
-//		LOGPZ_DEBUG(logger,sout.str())
-//	}
-//#endif
-	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-		intrule->Point(int_ind,intpoint,weight);
-		//this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
-		//weight *= fabs(data.detjac);
-		data.intLocPtIndex = int_ind;
-		this->ComputeRequiredData(data, intpoint);
+
+    int intrulepoints = intrule->NPoints();
+    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+        intrule->Point(int_ind,intpoint,weight);
+        data.intLocPtIndex = int_ind;
+        this->ComputeRequiredData(data, intpoint);
         weight *= fabs(data.detjac);
 
-		material->Contribute(data, weight, ek.fMat, ef.fMat);
-	}//loop over integratin points
-	
+        material->Contribute(data, weight, ek.fMat, ef.fMat);
+    }//loop over integratin points
+
 }//CalcStiff
 
 void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){

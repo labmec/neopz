@@ -78,46 +78,47 @@ void TPZMatLaplacian::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
+void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+{
 	
-	if(data.numberdualfunctions)
-	{
-		ContributeHDiv(data , weight , ek, ef);
+    if(data.numberdualfunctions)
+    {
+        ContributeHDiv(data , weight , ek, ef);
 
-		return;
-	}
+        return;
+    }
 
-	TPZFMatrix<REAL>  &phi = data.phi;
-	TPZFMatrix<REAL> &dphi = data.dphix;
-	TPZVec<REAL>  &x = data.x;
-	TPZFMatrix<REAL> &axes = data.axes;
-	TPZFMatrix<REAL> &jacinv = data.jacinv;
-	int phr = phi.Rows();
+    TPZFMatrix<REAL>  &phi = data.phi;
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZVec<REAL>  &x = data.x;
+    TPZFMatrix<REAL> &axes = data.axes;
+    TPZFMatrix<REAL> &jacinv = data.jacinv;
+    int phr = phi.Rows();
 
-	STATE fXfLoc = fXf;
+    STATE fXfLoc = fXf;
 
-	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<STATE,1> res(1);
-		TPZFMatrix<STATE> dres(Dimension(),1);
-		fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
-		fXfLoc = res[0];
-	}
+    if(fForcingFunction) {            // phi(in, 0) = phi_in
+        TPZManVector<STATE,1> res(1);
+        TPZFMatrix<STATE> dres(Dimension(),1);
+        fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        fXfLoc = res[0];
+    }
 
-	//Equacao de Poisson
-	for( int in = 0; in < phr; in++ ) {
-		int kd;
-		ef(in, 0) += - (STATE)weight * fXfLoc * (STATE)phi(in,0);
-		for( int jn = 0; jn < phr; jn++ ) {
-			for(kd=0; kd<fDim; kd++) {
-				ek(in,jn) += (STATE)weight * (
-									   +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) );
-			}
-		}
-	}
+    //Equacao de Poisson
+    for( int in = 0; in < phr; in++ ) {
+        int kd;
+        ef(in, 0) +=  (STATE)weight * fXfLoc * (STATE)phi(in,0);
+        for( int jn = 0; jn < phr; jn++ ) {
+            for(kd=0; kd<fDim; kd++) {
+                ek(in,jn) += (STATE)weight * (
+                                       +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) );
+            }
+        }
+    }
 
-  if (this->IsSymetric()){
-		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
-  }
+    if (this->IsSymetric()){
+        if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+    }
 
 }
 
@@ -184,7 +185,7 @@ void TPZMatLaplacian::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	}
 	for(i=0; i<numdual; i++)
 	{
-		ef(numvec+i,0) += (STATE)((-1.)*weight*data.phi(numprimalshape+i,0))*fXfLoc;//calcula o termo da matriz f
+		ef(numvec+i,0) += (STATE)(weight*data.phi(numprimalshape+i,0))*fXfLoc;//calcula o termo da matriz f
 	}
     
 }
@@ -686,88 +687,6 @@ void TPZMatLaplacian::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCo
     }
 }//method
 
-#ifdef _AUTODIFF
-void TPZMatLaplacian::ContributeEnergy(TPZVec<REAL> &x,
-									   TPZVec<FADFADREAL> &sol,
-									   TPZVec<FADFADREAL> &dsol,
-									   FADFADREAL &U,
-									   REAL weight)
-{
-	int dim = dsol.NElements()/sol.NElements();
-	
-	//Equa�o de Poisson
-	if(sol.NElements() != 1) PZError << "";
-	REAL vartocast = 0.;
-#ifdef STATE_COMPLEX
-    vartocast = fXf.real();
-#else
-    vartocast = fXf;
-#endif
-	U+= sol[0] * FADREAL(weight * vartocast);
-
-#ifdef STATE_COMPLEX
-    vartocast = fK.real();
-#else
-    vartocast = fK;
-#endif
-	switch(dim)
-	{
-		case 1:
-			U+=vartocast*(dsol[0] * dsol[0])*FADREAL(weight/2.); // U=((du/dx)^2)/2
-			
-			break;
-		case 2:
-			U+=vartocast*(dsol[0] * dsol[0] +
-				   dsol[1] * dsol[1])*(weight/2.); // U=((du/dx)^2+(du/dy)^2)/2
-			/*Buff  = dsol[0] * dsol[0];
-             Buff += dsol[1] * dsol[1];
-			 U += Buff * FADREAL(weight/2.); // U=((du/dx)^2+(du/dy)^2)/2*/
-			break;
-		case 3:
-			U+=vartocast*(dsol[0] * dsol[0] + dsol[1] * dsol[1] +
-				   dsol[2] * dsol[2])*(weight/2.); // U=((du/dx)^2+(du/dy)^2+(du/dz)^2)/2*/
-			/*Buff  = dsol[0] * dsol[0];
-             Buff += dsol[1] * dsol[1];
-             Buff += dsol[2] * dsol[2];
-			 U += Buff * FADREAL(weight/2.); //  U=((du/dx)^2+(du/dy)^2+(du/dz)^2)/2*/
-			break;
-	}
-}
-
-void TPZMatLaplacian::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & sol, FADFADREAL &U, REAL weight, TPZBndCond &bc) {
-    REAL vartocast = 0.;
-#ifdef STATE_COMPLEX
-    vartocast = bc.Val2()(0,0).real();
-#else
-    vartocast = bc.Val2()(0,0);
-#endif
-	FADFADREAL solMinBC = sol[0] - FADREAL(vartocast);
-	
-	
-	switch (bc.Type()) {
-		case 0 :	// Dirichlet condition
-			// U += 1/2* Big * weight * Integral((u - u0)^2 dOmega)
-			U += (solMinBC * solMinBC) * FADREAL(weight * gBigNumber / 2.);
-			break;
-		case 1 :	// Neumann condition
-			// U -= weight * Integral([g].u dOmega)
-			U -= sol[0] * FADREAL(vartocast*weight);
-			break;
-		case 2 :	// condi�o mista
-#ifdef STATE_COMPLEX
-            vartocast = bc.Val1()(0,0).real();
-#else
-            vartocast = bc.Val1()(0,0);
-#endif
-			// U += 1/2 * weight * Integral(<(u-u0), [g].(u-u0)> dOmega)
-			U += ( solMinBC * /*scalar*/ FADREAL(vartocast) * /*matrix oprt*/ solMinBC ) * FADREAL(weight / 2.);
-			break;
-			
-	}
-}
-
-#endif
-
 
 void TPZMatLaplacian::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                           REAL weight,
@@ -1061,72 +980,9 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 
 }
 
-void TPZMatLaplacian::InterfaceErrors(TPZVec<REAL> &/*x*/,
-                                      TPZVec<STATE> &leftu, TPZFMatrix<STATE> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/
-									  TPZVec<STATE> &rightu, TPZFMatrix<STATE> &rightdudx, /* TPZFMatrix<REAL> &rightaxes,*/
-                                      TPZVec<STATE> &/*flux*/,
-									  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values,
-									  TPZVec<STATE> normal, STATE elsize) {
-	// #warning Metodo nao funcional
-	TPZManVector<STATE,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
-
-	TPZFMatrix<REAL> fake_axes(fDim,fDim,0.);
-
-	Solution(leftu,leftdudx,fake_axes,1,Lsol);
-	Solution(leftu,leftdudx,fake_axes,2,Ldsol);
-
-	Solution(rightu,rightdudx,fake_axes,1,Rsol);
-	Solution(rightu,rightdudx,fake_axes,2,Rdsol);
-
-#ifdef DEBUG
-	if ( (leftdudx.Rows() != rightdudx.Rows()) || (leftdudx.Rows() != du_exact.Rows()) ){
-		PZError << "TPZMatLaplacian::InterfaceErrors - Left and right matrices should have"
-	    << endl
-	    << "same sizes in internal boundaries."
-	    << endl;
-		exit (-1);
-	}
-#endif
-
-	STATE Ldsolnormal = 0., Rdsolnormal = 0., ExactDNormal = 0.;
-	for(int id = 0; id < fDim; id++) {
-		Ldsolnormal  += Ldsol[id] * normal[id];
-		Rdsolnormal  += Rdsol[id] * normal[id];
-		ExactDNormal += du_exact(id, 0) * normal[id];
-	}
-	
-	values.Resize(3);
-	STATE aux;
-	
-	//values[1] : eror em norma L2
-	
-	//Jump aprox. solution - jump of exact solution i.e. zero
-	aux = (Lsol - Rsol);
-	
-	//*= h ^ -gAlfa
-	aux *= pow(elsize, (STATE(-1.)) * gAlfa);
-    REAL auxnorm = abs(aux);
-	values[1] = auxnorm * auxnorm;
-
-	//values[2] : erro em semi norma H1
-	values[2] = 0.;
-	
-	for(int id=0; id<fDim; id++) {
-		//Normal gradient average <grad V> = 0.5 * (grad_left.n + grad_right.n)
-		aux = STATE(0.5) * (Ldsolnormal + Rdsolnormal);
-		//<grad V> - <grad exact> = <grad V> - grad exact
-		aux = aux - ExactDNormal;
-		//*= h ^ gAlfa
-		aux *= pow(elsize, gAlfa);
-        auxnorm = abs(aux);
-		values[2]  += auxnorm * auxnorm;
-	}
-	//values[0] : erro em norma H1 <=> norma Energia
-	values[0]  = values[1]+values[2];
-}
 
 REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
-	// residual = -fK Laplac(u) - (-fXf)
+	// residual = -fK Laplac(u) - (fXf)
 	STATE fXfLoc = fXf;
 	if(fForcingFunction) {
 		TPZManVector<STATE> res(1);
@@ -1142,7 +998,7 @@ REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 		laplacU = dsol(2,0);
 	}
 
-	REAL result = abs(-this->fK * laplacU - (-fXfLoc));
+	REAL result = abs(-this->fK * laplacU - (fXfLoc));
 	return (result*result);
 }
 
@@ -1153,7 +1009,6 @@ void TPZMatLaplacian::Write(TPZStream &buf, int withclassid){
 	buf.Write(&fK, 1);
 	buf.Write(&fSymmetry, 1);
 	buf.Write(&fPenaltyConstant,1);
-	buf.Write(&gAlfa, 1);
 }
 
 void TPZMatLaplacian::Read(TPZStream &buf, void *context){
@@ -1163,7 +1018,6 @@ void TPZMatLaplacian::Read(TPZStream &buf, void *context){
 	buf.Read(&fK, 1);
 	buf.Read(&fSymmetry, 1);
 	buf.Read(&fPenaltyConstant,1);
-	buf.Read(&gAlfa, 1);
 }
 
 #ifndef BORLAND

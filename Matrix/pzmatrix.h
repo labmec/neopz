@@ -245,7 +245,7 @@ public:
 	/** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
 	virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 	
-	void PrintMath(const char *name, std::ostream &out);
+	//void PrintMath(const char *name, std::ostream &out);
 	
 	/** @brief Returns number of rows */
 	long Rows() const;
@@ -799,6 +799,13 @@ template<class TVar>
 inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
 	DebugStop();
 }
+
+
+template<>
+inline void TPZMatrix<double>::Residual(const TPZFMatrix<double>& x,const TPZFMatrix<double>& rhs, TPZFMatrix<double>& res )  {
+	MultAdd( x, rhs, res, ((double)-1.0), ((double)1.0) );
+}
+
 #else
 template<class TVar>
 inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {

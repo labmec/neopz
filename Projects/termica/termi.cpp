@@ -16,6 +16,7 @@
 #include "pzelasmat.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
+#include "TPZMatLaplacian.h"
 #include "pzelast3d.h"
 #include "pzbndcond.h"
 
@@ -72,16 +73,17 @@ int main()
 {
 //    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
     TPZVec<int> nx(2,64);
-    TPZVec<REAL> x0(2,0.),x1(2,1.);
+    TPZVec<REAL> x0(3,0.),x1(3,1.);
+    x1[2] = 0.;
     TPZGenGrid grid(nx,x0,x1);
     TPZGeoMesh gmesh;
     grid.Read(&gmesh);
-    grid.SetBC(&gmesh,0,-1);
-    grid.SetBC(&gmesh,1,-1);
-    grid.SetBC(&gmesh,2,-1);
-    grid.SetBC(&gmesh,3,-1);
+    grid.SetBC(&gmesh,4,-1);
+    grid.SetBC(&gmesh,5,-1);
+    grid.SetBC(&gmesh,6,-1);
+    grid.SetBC(&gmesh,7,-1);
     TPZCompMesh cmesh(&gmesh);
-    TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
+    TPZMatLaplacian *poiss = new TPZMatLaplacian(1,2);
     TPZMaterial * autopoiss(poiss);
     TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
     cmesh.InsertMaterialObject(autopoiss);
