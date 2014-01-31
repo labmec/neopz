@@ -463,9 +463,9 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompMesh(TPZCompMesh *cMesh, int ndi
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
 			int ind = compEl->Index();
-            if(compEl->Dimension() >0/* cMesh->Dimension()*/){
+      if(compEl->Dimension() >0/* cMesh->Dimension()*/){
                 compEl->Divide(ind, subindex, 0);
-            }
+      }
 		}
 	}
     

@@ -461,10 +461,13 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
 		}
-		for(i=0;i<nerrors;i++)
+		
+		for(i=0;i<nerrors;i++) {
 			ervec[i] = sqrt(values[i]);
-		for(i=nerrors;i<2*nerrors;i++)
+		}
+		for(i=nerrors;i<2*nerrors;i++){
 			ervec[i] = sqrt(values2[i-nerrors]);
+		}
 	}
 	return;
 }

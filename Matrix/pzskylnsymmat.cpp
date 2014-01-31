@@ -873,7 +873,7 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
     if (fabs(pivot) < 1.e-25)
     {
       cout <<
-          "TPZSkyNSymlMatrix::DecomposeCholesky a matrix nao e positiva definida"
+          "TPZSkylNSymMatrix<TVar>::Decompose_LU a matrix nao e positiva definida"
           << pivot << endl;
       return(0);
     }

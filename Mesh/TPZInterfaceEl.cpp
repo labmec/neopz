@@ -1571,6 +1571,8 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 	if (data.fNeedsNeighborSol){
 		elem->ComputeSolution(IntPoint, data.phi, data.dphix, data.axes, data.sol, data.dsol );
 	}
+	
+	data.p = elem->MaxOrder();
 
 }
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)

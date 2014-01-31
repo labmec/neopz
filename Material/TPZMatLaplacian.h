@@ -189,7 +189,7 @@ protected:
 	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 
 
-	virtual int NEvalErrors() {return 6;}
+	virtual int NEvalErrors() {return 3;}
 
 	/**
 	 * @brief Compute square of residual of the differential equation at one integration point.

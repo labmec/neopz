@@ -422,12 +422,12 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
 		if(fElementType == 0) {
-            grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
+		  grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
 		} else if(fElementType == 1) {
-            grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
-			nos[1] = nos[2];
-			nos[2] = nos[3];
-			grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
+		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
+		  nos[1] = nos[2];
+		  nos[2] = nos[3];
+		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
 		} else if(fElementType == 2) {
             std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
             DebugStop();
@@ -575,7 +575,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
 			ielfirst *= 2;
 			iellast *= 2;
 			ielinc *= 2;
-			if(side > 1) {
+			if(side > 5) {
 				ielfirst += 1;
 				iellast += 1;
 				side -= 1;

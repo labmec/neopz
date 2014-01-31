@@ -286,6 +286,11 @@ public:
     {
 			fForcingFunction = fp;
     }
+    void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result) )
+		{
+				if(fp) fForcingFunction = new TPZDummyFunction<STATE>(fp);
+				else fForcingFunction = NULL;
+		}
 
 	/** @brief Returns a procedure as source function for the material */
 	TPZAutoPointer<TPZFunction<STATE> > &ForcingFunction() {

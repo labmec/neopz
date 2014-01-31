@@ -12,6 +12,7 @@
 #include "pzmaterialdata.h"
 #include <math.h>
 #include "pzlog.h"
+#include "pzaxestools.h"
 
 #include <cmath>
 
@@ -503,7 +504,6 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 #endif
 }
 
-#include "pzaxestools.h"
 void TPZMatLaplacian::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
 	
 #ifndef STATE_COMPLEX
@@ -634,43 +634,19 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	values.Resize(NEvalErrors());
-	TPZManVector<STATE> dudxEF(1,0.), dudyEF(1,0.),dudzEF(1,0.);
-	this->Solution(u,dudx,axes,VariableIndex("KDuDx"), dudxEF);
-    STATE fraq = dudxEF[0]/fK;
-    fraq = fraq - du_exact(0,0);
-    REAL diff = fabs(fraq);
-	values[3] = diff*diff;
-	if(fDim > 1) {
-		this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
-        fraq = dudyEF[0]/fK;
-        fraq = fraq - du_exact(1,0);
-		diff = fabs(fraq);
-		values[4] = diff*diff;
-		if(fDim > 2) {
-			this->Solution(u,dudx,axes, this->VariableIndex("KDuDz"), dudzEF);
-			fraq = dudzEF[0]/fK;
-            fraq = fraq - du_exact(2,0);
-            diff = fabs(fraq);
-			values[5] = diff*diff;
-		}
+	values.Resize(3);
+	///L2 norm
+	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0]);
+	
+	///semi norma de H1
+	values[2] = 0.;
+	for(int i = 0; i < this->fDim; i++){
+		values[2] += (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0));
 	}
 	
-	TPZManVector<STATE> sol(1),dsol(3,0.);
-	Solution(u,dudx,axes,1,sol);
-	Solution(u,dudx,axes,2,dsol);
-	int id;
-	//values[1] : eror em norma L2
-    diff = fabs(sol[0] - u_exact[0]);
-	values[1]  = diff*diff;
-	//values[2] : erro em semi norma H1
-	values[2] = 0.;
-	for(id=0; id<fDim; id++) {
-        diff = fabs(dsol[id] - du_exact(id,0));
-		values[2]  += abs(fK)*diff*diff;
-	}
-	//values[0] : erro em norma H1 <=> norma Energia
-	values[0]  = values[1]+values[2];
+	///H1 norm
+	values[0] = values[1]+values[2];
+	
 }
 
 void TPZMatLaplacian::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump){

@@ -270,7 +270,7 @@ protected:
 	int fMaxNewton;	// COLOCAR = 30 (sugestao do erick!)
     
     /** @brief The tension sign in the convention used in the implementation of the material */
-	int fMaterialTensionSign=-1;
+	int fMaterialTensionSign;
 	
 	/** @brief The tension sign in the convention defined by the external user */
 	int fInterfaceTensionSign;
