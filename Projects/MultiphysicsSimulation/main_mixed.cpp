@@ -86,7 +86,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 
 const bool triang = false;
 const int teste = 3;
-int main(int argc, char *argv[])
+int mainAgnaldo(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 //	std::string logs("../logmixedproblem.cfg");
