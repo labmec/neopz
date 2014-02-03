@@ -101,14 +101,14 @@ def setlimits():
     print "Setting resource limit in child"
     for k, v in limits.iteritems() :
         resource.setrlimit(v[0], (v[1],v[1]))
-def show_results(res_data):
+def show_results(res_data, ths):
     # read and show stats
     stat_res = read(res_data)
     elapsed_list = get_column_values(stat_res,  "ELAPSED")
     self_list = get_column_values(stat_res,     "SELF_RU_UTIME")
     lst = 0
     print '{0:7s} \t {1:7s} \t {2:7s} \t {3:7s} \t {4:7s}'.format('threads', 'elapsed', 'user', 'elapsed_error', 'user_error')
-    for t in threads:
+    for t in ths:
         print '{0:7s} \t {1:5.2f} \t {2:5.2f} \t '.format(t, average(elapsed_list[lst:lst+ntimes]), average(self_list[lst:lst+ntimes])),
         if ntimes > 1:
             print '{0:5.2f} \t {1:5.2f} '.format(stdev(elapsed_list[lst:lst+ntimes]), stdev(self_list[lst:lst+ntimes]))
@@ -137,7 +137,7 @@ def run_exp(nthreads, ntimes, res_data, t):
 if __name__ == "__main__":
     # init arguments
     ntimes = 1
-    threads = [ '0', '6', '12' ]
+    threads = [ '2', '4', '6', '8', '12' ]
     # process arguments
     try :
         opts, extra_args = getopt.getopt(sys.argv[1:], 't:n:')
@@ -147,14 +147,19 @@ if __name__ == "__main__":
         if f == '-n':
             # number of times to repeat the experiments
             ntimes=int(v)
-    # running experiments
-    for t in range(1,6):
+    # running serial
+    res = 'res_data_1.rdt'
+    run_exp('1', ntimes, res, '1')
+
+    # running experiments parallel
+    for t in range(2,6):
         res = 'res_data_' + str(t) + '.rdt'
         for i in threads:
              run_exp(i, ntimes, res, str(t))
-             
-    for t in range(1,6):
+    print '# Execution Type : 1 #'
+    show_results(res, ['0'])
+    for t in range(2,6):
         res = 'res_data_'+str(t)+'.rdt'
         print '# Execution Type : ' + str(t) + ' #'
-        show_results(res)
+        show_results(res, threads)
     

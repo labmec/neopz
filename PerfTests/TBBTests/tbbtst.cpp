@@ -57,7 +57,7 @@ hwloc_topology_t topology;
  */
 clarg::argInt       plevel("-p","Polinomial Order", 1);
 clarg::argInt       num_matrices("-nmat", "Number of Matrices", 64);
-clarg::argInt       num_threads("-nt", "Number of Threads", 0);
+clarg::argInt       num_threads("-nt", "Number of Threads", 1);
 clarg::argString    input_file("-mc", "Cubo Input File", "cube1.txt");
 /**
  * Types of Executions:
@@ -171,6 +171,7 @@ int main (int argc, char **argv)
     hwloc_topology_init(&topology);
 	hwloc_topology_load(topology);
 #endif
+    
     /**
      * Read and Parse the Command Line Arguments
      */
@@ -178,6 +179,11 @@ int main (int argc, char **argv)
         cerr << "Error when parsing the arguments!" << endl;
         return 1;
     }
+    
+#ifdef USING_TBB
+    tbb::task_scheduler_init init(num_threads.get_value());
+    printf ("-- Number of Threads: %d\n", num_threads.get_value());
+#endif
     /**
      * Read and Create a Skyline Matrix
      */
@@ -199,6 +205,7 @@ int main (int argc, char **argv)
      */
     matrices.resize(num_matrices.get_value(), 0);
     
+
     dec_rst.start();
     
     TBBWork *work = 0;
@@ -225,6 +232,7 @@ int main (int argc, char **argv)
         case 5:
             /* - Parallel with HWloc Realloc */
             work = new HWlocTBB(&matrices, orig);
+            break;
         default:
             printf("Option not available!\n");
             return 1;
