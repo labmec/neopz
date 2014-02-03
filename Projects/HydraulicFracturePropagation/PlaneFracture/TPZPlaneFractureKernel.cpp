@@ -238,6 +238,34 @@ void TPZPlaneFractureKernel::InitializeMeshes()
                                                                         this->fpOrder);
     
     this->InitializePath3DVector();
+    
+//    {//AQUICAJU
+//        std::cout << "\n\nFractureArea = " << Fracture1wing_Area() << "\n";
+//        bool thereIsNeg = true;
+//        REAL vol = 0.10;
+//        while(thereIsNeg)
+//        {
+//            TransferElasticSolution(vol);
+//            vol = IntegrateW(thereIsNeg);
+//            std::cout << "vol = " << vol << "\n";
+//            vol *= 1.005;
+//        }
+//        
+//        PostProcessSolutions();
+//        PostProcessElasticity();
+//        
+//        REAL maxKI = 0.;
+//        REAL respectiveKIc = 0.;
+//        std::map< int, std::pair<REAL,REAL> > whoPropagate_KI;
+//        
+//        CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate_KI);
+//        std::cout << "maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n\n";
+//        
+//        DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate_KI);
+//        PostProcessFractGeometry();
+//        
+//        DebugStop();
+//    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -806,7 +834,7 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff()
     std::cout << "leakAcum = " << leakAcum << ";\n";
     std::cout << "VlInjected = " << ComputeVolInjected() << ";\n";
     std::cout << "wAcum+leakAcum\n";
-    std::cout << "Eficiencia=wAcum/VlInjected\n";
+    std::cout << "Eficiencia = wAcum/VlInjected\n";
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -936,6 +964,41 @@ REAL TPZPlaneFractureKernel::IntegrateW(bool & thereWasNegativeW)
     }
     
     return 2.*integral;//Aqui jah eh considerada a simetria
+}
+//------------------------------------------------------------------------------------------------------------
+
+REAL TPZPlaneFractureKernel::Fracture1wing_Area()
+{
+    REAL Area = 0.;
+    int nelemCompMesh = fmeshVec[1]->NElements();
+    for(int i = 0;  i < nelemCompMesh; i++)
+    {
+        TPZCompEl * cel = fmeshVec[1]->ElementVec()[i];
+        if(globMaterialIdGen.IsInsideFractMat(cel->Reference()->MaterialId()) == false)
+        {
+            continue;
+        }
+        
+#ifdef DEBUG
+        if(!cel || cel->Reference()->Dimension() != 2)
+        {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef DEBUG
+        if(!gel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        Area += gel->SideArea(gel->NSides()-1);
+    }
+    
+    return Area;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1096,28 +1159,28 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
         }
     }
     
-    std::cout << "\n\n\nZigZag e Bezier desligados!!!\n";
-//    bool thereIsZigZag = true;
-//    while(thereIsZigZag)
-//    {
-//        thereIsZigZag = RemoveZigZag(newPoligonalChain);
-//    }
-//    bool applyBezier = true;
-//    if(applyBezier)
-//    {
-//        BezierCurve bz(newPoligonalChain);
-//        
-//        int npts = 100;
-//        fpoligonalChain.Resize(npts);
-//        for(int p = 0; p < npts; p++)
-//        {
-//            std::pair<REAL,REAL> pt;
-//            REAL t = p/(double(npts-1));
-//            bz.F(t, pt);
-//            fpoligonalChain[p] = pt;
-//        }
-//    }
-//    else
+//    std::cout << "\n\n\nZigZag e Bezier desligados!!!\n";
+    bool thereIsZigZag = true;
+    while(thereIsZigZag)
+    {
+        thereIsZigZag = RemoveZigZag(newPoligonalChain);
+    }
+    bool applyBezier = true;
+    if(applyBezier)
+    {
+        BezierCurve bz(newPoligonalChain);
+        
+        int npts = 50;
+        fpoligonalChain.Resize(npts);
+        for(int p = 0; p < npts; p++)
+        {
+            std::pair<REAL,REAL> pt;
+            REAL t = p/(double(npts-1));
+            bz.F(t, pt);
+            fpoligonalChain[p] = pt;
+        }
+    }
+    else
     {
         fpoligonalChain = newPoligonalChain;
     }

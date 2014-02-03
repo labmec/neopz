@@ -80,11 +80,11 @@ protected:
     /** CMesh that constains fluid data */
     TPZCompMesh * fcmeshFluid;
     
-    /** map that holds t and respective elId from ElasticMesh and qsi for ComputeXInverse optimization */
-    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi_Elastic;
+    /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
     
-    /** map that holds t and respective elId from FluidMesh and qsi for ComputeXInverse optimization */
-    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi_Fluid;
+    /** map that holds t and respective elIndex from FluidMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Fluid;
 };
 
 
@@ -166,8 +166,8 @@ protected:
     /** CMesh that constains elastic data */
     TPZCompMesh * fcmeshElastic;
     
-    /** map that holds t and respective elId from ElasticMesh and qsi for ComputeXInverse optimization */
-    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi_Elastic;
+    /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
 };
 
 

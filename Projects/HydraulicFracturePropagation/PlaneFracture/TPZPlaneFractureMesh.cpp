@@ -209,7 +209,9 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-//    TurnIntoQuarterPoint(fRefinedMesh);
+    RefineDirectionalToCrackTip(2);
+    
+//    TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim (com porder=2)
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -297,6 +299,92 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
+    
+    
+    //////................. Subindo pOrder na regiao da fratura
+    int greatherPOrder = porder + 1;
+    std::set<int> porder2Indexes;
+    for(int el = 0; el < cmesh->Reference()->NElements(); el++)
+    {
+        TPZGeoEl * elastGel = cmesh->Reference()->ElementVec()[el];
+        
+        if(globMaterialIdGen.IsInsideFractMat(elastGel->MaterialId()))
+        {
+            TPZGeoEl * lowestFather = elastGel->LowestFather();
+            porder2Indexes.insert(lowestFather->Index());
+            
+            for(int sd = 0; sd < lowestFather->NSides(); sd++)
+            {
+                TPZGeoElSide fractSide(lowestFather,sd);
+                TPZGeoElSide neighSide(fractSide.Neighbour());
+                
+                while(neighSide != fractSide)
+                {
+                    TPZGeoEl * lowestFather2 = neighSide.Element()->LowestFather();
+                    porder2Indexes.insert(lowestFather2->Index());
+                    
+                    neighSide = neighSide.Neighbour();
+                }
+            }
+        }
+    }
+    std::set<int> porder2IndexesTemp;
+    for(int el = 0; el < cmesh->Reference()->NElements(); el++)
+    {
+        if(porder2Indexes.find(el) == porder2Indexes.end())
+        {
+            continue;
+        }
+        
+        TPZGeoEl * elastGel = cmesh->Reference()->ElementVec()[el];
+        
+        for(int sd = 0; sd < elastGel->NSides(); sd++)
+        {
+            TPZGeoElSide fractSide(elastGel,sd);
+            TPZGeoElSide neighSide(fractSide.Neighbour());
+            
+            while(neighSide != fractSide)
+            {
+                TPZGeoEl * lowestFather = neighSide.Element()->LowestFather();
+                porder2IndexesTemp.insert(lowestFather->Index());
+                
+                neighSide = neighSide.Neighbour();
+            }
+        }
+    }
+    porder2Indexes.insert(porder2IndexesTemp.begin(),porder2IndexesTemp.end());
+    
+//    TPZVec<REAL> elData(cmesh->NElements(),porder);//VTK
+    std::set<int>::iterator it;
+    for(it = porder2Indexes.begin(); it != porder2Indexes.end(); it++)
+    {
+        TPZGeoEl * elastGel = cmesh->Reference()->ElementVec()[*it];
+        if(elastGel->HasSubElement() == false && elastGel->Reference())
+        {
+            TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(elastGel->Reference());
+            intel->PRefine(greatherPOrder);
+//            elData[elastGel->Reference()->Index()] = greatherPOrder;
+        }
+        else
+        {
+            TPZVec<TPZGeoEl *> sons(0);
+            elastGel->GetHigherSubElements(sons);
+            
+            for(int ss = 0; ss < sons.NElements(); ss++)
+            {
+                TPZGeoEl * sonGel = sons[ss];
+                if(sonGel->Reference())
+                {
+                    TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(sonGel->Reference());
+                    intel->PRefine(greatherPOrder);
+//                    elData[sonGel->Reference()->Index()] = greatherPOrder;
+                }
+            }
+        }
+    }
+//    std::ofstream outPOrder("CMeshPOrder.vtk");
+//    TPZVTKGeoMesh::PrintCMeshVTK(cmesh, outPOrder, elData);
+    //////////////////////////////////////////////////////////////////////////
 
     return cmesh;
 }
@@ -877,6 +965,25 @@ void TPZPlaneFractureMesh::RefineUniformAllFracturePlane(int ndiv)
                         }
                     }
                 }
+            }
+        }
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureMesh::RefineDirectionalToCrackTip(int ndiv)
+{
+    std::set<int> crackTipMat;
+    crackTipMat.insert(globMaterialIdGen.CrackTipMatId());
+    for(int div = 0; div < ndiv; div++)
+    {
+        int nelem = fRefinedMesh->NElements();
+        for(int el = 0; el < nelem; el++)
+        {
+            TPZGeoEl * gel = fRefinedMesh->ElementVec()[el];
+            if(gel->HasSubElement() == false)
+            {
+                TPZRefPatternTools::RefineDirectional(gel, crackTipMat);
             }
         }
     }
@@ -1928,6 +2035,9 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
 
 void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 {
+    std::ofstream outQpoints("CMeshQuarterPoints.vtk");
+    TPZVec<REAL> elData(refinedMesh->NElements(),1.);
+    
     for(int i = 0; i < fcrackBoundaryElementsIndexes.NElements(); i++)
     {
         TPZGeoEl * gel1D = refinedMesh->ElementVec()[fcrackBoundaryElementsIndexes[i]];
@@ -1950,6 +2060,9 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
                 {
                     int neighSide = neigh.Side();
                     TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(refinedMesh, neigh.Element()->Index(), neighSide);
+                    
+                    elData[neighEl->Index()] = 2.;
+                    
                     neigh = neighEl->Neighbour(neighSide);
                 }
                 else
@@ -1959,6 +2072,8 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
             }
         }
     }
+    
+    TPZVTKGeoMesh::PrintGMeshVTK(refinedMesh, outQpoints, elData);
 }
 //------------------------------------------------------------------------------------------------------------
 

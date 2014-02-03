@@ -166,10 +166,6 @@ public:
     {
         fGelId_Penetration = GelId_Penetration;
     }
-//    void ClearLeakoffMap()
-//    {//MustDelete!!!
-//        fGelId_Penetration.clear();
-//    }
     
     void UpdateLeakoff(TPZCompMesh * cmesh, int deltaT);
     

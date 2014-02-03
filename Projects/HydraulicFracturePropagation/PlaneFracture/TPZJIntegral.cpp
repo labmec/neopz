@@ -46,8 +46,8 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     fInitialPoint[1] = fradius*cos((M_PI)/2.); 
     fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI)/2.));
     
-    f_t_elIdqsi_Elastic.clear();
-    f_t_elIdqsi_Fluid.clear();
+    f_t_elIndexqsi_Elastic.clear();
+    f_t_elIndexqsi_Fluid.clear();
 }
 
 LinearPath3D::LinearPath3D(LinearPath3D * cp)
@@ -62,15 +62,14 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
     fcmeshElastic = cp->fcmeshElastic;
     fcmeshFluid = cp->fcmeshFluid;
     
-    f_t_elIdqsi_Elastic.clear();
-    f_t_elIdqsi_Fluid.clear();
+    f_t_elIndexqsi_Elastic.clear();
+    f_t_elIndexqsi_Fluid.clear();
 }
 
 LinearPath3D::~LinearPath3D()
 {
     fcmeshElastic = NULL;
 }
-
 
 void LinearPath3D::X(REAL t, TPZVec<REAL> & xt)
 {
@@ -141,32 +140,37 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     TPZVec<REAL> qsi(3,0.);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIdqsi_Elastic.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIndexqsi_Elastic.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Elastic.size() > 0)
+    else if(f_t_elIndexqsi_Elastic.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
 
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {
-        std::cout.precision(15);
-        std::cout << "\n\ngeoEl not found!\n";
-        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
-        DebugStop();
+        geoEl = fcmeshElastic->Reference()->ElementVec()[it->second.first];
+        qsi = it->second.second;
+        
+//        std::cout.precision(15);
+//        std::cout << "\n\ngeoEl not found!\n";
+//        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+//        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
+//        DebugStop();
     }
-    
-    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
+    else
+    {
+        f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
+    }
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -201,24 +205,24 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 //    
 //    TPZVec<REAL> qsi(2,0.);
 //    
-//    long InitialElementId = 0;
-//    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
-//    if(it != f_t_elIdqsi_Fluid.end())
+//    long InitialElementIndex = 0;
+//    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Fluid.lower_bound(t);
+//    if(it != f_t_elIndexqsi_Fluid.end())
 //    {
-//        InitialElementId = it->second.first;
+//        InitialElementIndex = it->second.first;
 //        qsi = it->second.second;
 //    }
-//    else if(f_t_elIdqsi_Fluid.size() > 0)
+//    else if(f_t_elIndexqsi_Fluid.size() > 0)
 //    {
 //        it--;
-//        InitialElementId = it->second.first;
+//        InitialElementIndex = it->second.first;
 //        qsi = it->second.second;
 //    }
 ////    else
 ////    {
-////        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+////        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
 ////    }
-//    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+//    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
 //    
 //    if(!geoEl)
 //    {
@@ -229,7 +233,7 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 //        DebugStop();
 //    }
 //    
-//    f_t_elIdqsi_Fluid[t] = std::make_pair(geoEl->Id(), qsi);
+//    f_t_elIndexqsi_Fluid[t] = std::make_pair(geoEl->Index(), qsi);
 //    
 //    TPZCompEl * cel = geoEl->Reference();
 //    if(!cel)
@@ -258,24 +262,24 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
     
     TPZVec<REAL> qsi(0);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIdqsi_Elastic.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIndexqsi_Elastic.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Elastic.size() > 0)
+    else if(f_t_elIndexqsi_Elastic.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {
@@ -286,7 +290,7 @@ REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
         DebugStop();
     }
     
-    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -389,24 +393,24 @@ void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     TPZVec<REAL> qsi(0);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIdqsi_Elastic.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIndexqsi_Elastic.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Elastic.size() > 0)
+    else if(f_t_elIndexqsi_Elastic.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
     
     if(!geoEl)
     {
@@ -417,7 +421,7 @@ void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         DebugStop();
     }
     
-    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -453,24 +457,24 @@ REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
     
     TPZVec<REAL> qsi(0);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Fluid.lower_bound(t);
-    if(it != f_t_elIdqsi_Fluid.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Fluid.lower_bound(t);
+    if(it != f_t_elIndexqsi_Fluid.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Fluid.size() > 0)
+    else if(f_t_elIndexqsi_Fluid.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementId, 1);
+    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 1);
     
     if(!geoEl)
     {
@@ -481,7 +485,7 @@ REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
         DebugStop();
     }
     
-    f_t_elIdqsi_Fluid[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIndexqsi_Fluid[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * cel = geoEl->Reference();
     if(!cel)
@@ -525,7 +529,7 @@ ArcPath3D::ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<RE
     
     fcmeshElastic = cmeshElastic;
     
-    f_t_elIdqsi_Elastic.clear();
+    f_t_elIndexqsi_Elastic.clear();
 }
 
 
@@ -539,7 +543,7 @@ ArcPath3D::ArcPath3D(ArcPath3D * cp)
     
     fcmeshElastic = cp->fcmeshElastic;
     
-    f_t_elIdqsi_Elastic.clear();
+    f_t_elIndexqsi_Elastic.clear();
 }
 
 
@@ -640,24 +644,24 @@ void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
 {
     TPZVec<REAL> qsi(0);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIdqsi_Elastic.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIndexqsi_Elastic.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Elastic.size() > 0)
+    else if(f_t_elIndexqsi_Elastic.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {
@@ -668,7 +672,7 @@ void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
         DebugStop();
     }
     
-    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -708,7 +712,7 @@ void ArcPath3D::SetRadius(REAL radius)
     fradius = radius;
     fDETdxdt = M_PI*radius/2.;
     
-    f_t_elIdqsi_Elastic.clear();
+    f_t_elIndexqsi_Elastic.clear();
 }
 
 
@@ -802,24 +806,24 @@ void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
 {
     TPZVec<REAL> qsi(0);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIdqsi_Elastic.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIndexqsi_Elastic.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Elastic.size() > 0)
+    else if(f_t_elIndexqsi_Elastic.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 2);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
     
     if(!geoEl)
     {
@@ -830,7 +834,7 @@ void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
         DebugStop();
     }
     
-    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -999,24 +1003,24 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
 {
     TPZVec<REAL> qsi(0);
     
-    long InitialElementId = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIdqsi_Elastic.end())
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
+    if(it != f_t_elIndexqsi_Elastic.end())
     {
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
-    else if(f_t_elIdqsi_Elastic.size() > 0)
+    else if(f_t_elIndexqsi_Elastic.size() > 0)
     {
         it--;
-        InitialElementId = it->second.first;
+        InitialElementIndex = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementId, 3);
+    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {
@@ -1027,7 +1031,7 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
         DebugStop();
     }
     
-    f_t_elIdqsi_Elastic[t] = std::make_pair(geoEl->Id(), qsi);
+    f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     

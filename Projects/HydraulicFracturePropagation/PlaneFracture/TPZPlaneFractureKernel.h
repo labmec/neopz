@@ -117,7 +117,11 @@ protected:
     void PostProcessFractGeometry();
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
-    REAL IntegrateW(bool & thereWasNegativeW);//<<<<<< precisa passar elasticCMesh??? Nao podia ser sempre fmeshVec[0]????
+    REAL IntegrateW(bool & thereWasNegativeW);
+    
+    /** 1 face from 1 wing fracture area */
+    //Be aware that this area is of all fracture, not just permeable portion!!!
+    REAL Fracture1wing_Area();
     
     REAL ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh);
     

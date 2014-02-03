@@ -328,6 +328,8 @@ protected:
                                REAL xLength, REAL yLength);
     
     void RefineUniformAllFracturePlane(int ndiv);
+    
+    void RefineDirectionalToCrackTip(int ndiv);
 
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
