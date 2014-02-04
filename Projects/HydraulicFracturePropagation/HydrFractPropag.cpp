@@ -40,23 +40,23 @@ int main(int argc, char * const argv[])
     
     //Material data
     TPZVec<TPZLayerProperties> layerVec(3);
-  
-    REAL Young0 = 4.2747495136E10;
+    
+    REAL Young0 = 4.2747495136E10 * globStressScale;
     REAL Poisson0 = 0.25;
     REAL SigMax0  = 0.;      //<<<<<<<============= PRE-STRESS XX
-    REAL SigMin0  = -35627279.293;   //<<<<<<<============= PRE-STRESS YY
+    REAL SigMin0  = -3.5627279293E7 * globStressScale;   //<<<<<<<============= PRE-STRESS YY
     REAL SigConf0 = 0.;      //<<<<<<<============= PRE-STRESS ZZ
     
-    REAL Young1 = 4.1368543680E10;
+    REAL Young1 = 4.1368543680E10 * globStressScale;
     REAL Poisson1 = 0.15;
     REAL SigMax1  = 0.;      //<<<<<<<============= PRE-STRESS XX
-    REAL SigMin1  = -34528254.983;   //<<<<<<<============= PRE-STRESS YY
+    REAL SigMin1  = -3.4528254983E7 * globStressScale;   //<<<<<<<============= PRE-STRESS YY
     REAL SigConf1 = 0.;      //<<<<<<<============= PRE-STRESS ZZ
     
-    REAL Young2 = 4.2747495136E10;
+    REAL Young2 = 4.2747495136E10 * globStressScale;
     REAL Poisson2 = 0.25;
     REAL SigMax2  = 0.;      //<<<<<<<============= PRE-STRESS XX
-    REAL SigMin2  = -37324079.06;   //<<<<<<<============= PRE-STRESS YY
+    REAL SigMin2  = -3.732407906E7 * globStressScale;   //<<<<<<<============= PRE-STRESS YY
     REAL SigConf2 = 0.;      //<<<<<<<============= PRE-STRESS ZZ
     
     REAL TVDi0 = 2070.;
@@ -67,25 +67,27 @@ int main(int argc, char * const argv[])
     REAL TVDf2 = 2160.;
     
     //KIc
-    REAL KIc0 = 1.19884E6;//AQUICAJU
-    REAL KIc1 = 1.09884E6;
-    REAL KIc2 = 1.29884E6;//AQUICAJU
+    REAL KIc0 = 1.09884E6 * globStressScale;
+    REAL KIc1 = 1.09884E6 * globStressScale;
+    REAL KIc2 = 1.09884E6 * globStressScale;
     
     //Leakoff
     REAL Cl0 = 0.;
-    REAL Pe0 = 0.;//Sempre positivo
+    REAL Pe0 = 0.;//Nunca negativo
     REAL gradPref0 = 1.;
     REAL vsp0 = 0.;
     
     REAL Cl1 = 0.00019674755398733676;
-    REAL Pe1 = 0.;//Sempre positivo
+    REAL Pe1 = 0.;//Nunca negativo
     REAL gradPref1 = 1.;
     REAL vsp1 = 0.;
     
     REAL Cl2 = 0.;
-    REAL Pe2 = 0.;//Sempre positivo
+    REAL Pe2 = 0.;//Nunca negativo
     REAL gradPref2 = 1.;
     REAL vsp2 = 0.;
+    
+    globLeakoffStorage.SetPressureIndependent();
     
     layerVec[0] = TPZLayerProperties(Young0, Poisson0, SigMax0, SigMin0, SigConf0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0);
     layerVec[1] = TPZLayerProperties(Young1, Poisson1, SigMax1, SigMin1, SigConf1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1);
@@ -93,7 +95,7 @@ int main(int argc, char * const argv[])
     
     //Fluid injection data
     REAL QinjWell = 1.*(-0.0533333333333);//m3/s (1.* pois os 80 bpm jah eh no poco e nao 1 wing)
-    REAL visc = 200.02E-3;//N.s/m2
+    REAL visc = 200.02E-3 * globStressScale;
     
     //J-Integral data
     REAL Jradius = 1.5;

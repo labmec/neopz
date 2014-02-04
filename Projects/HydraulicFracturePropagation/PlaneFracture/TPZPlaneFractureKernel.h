@@ -69,7 +69,10 @@ protected:
      */
     void RunThisFractureGeometry(REAL & volAcum);
     
-    void CloseActualTimeStep();
+    void PredictActDeltaT(REAL fractVolum);
+    void CloseActualTimeStepPressureIndependent();
+    
+    void CloseActualTimeStepPressureDependent();
     
     /**
      * @brief Method that will initializate the JPath3D vector structure, based on 1D cracktip elements (available on fPlaneFractureMesh atribute)
@@ -97,7 +100,8 @@ protected:
     
     void UpdateLeakoff();
     
-    void PostProcessAll();
+    void PostProcessAllPressureIndependent();
+    void PostProcessAllPressureDependent();
     
     void PostProcessSolutions();
     

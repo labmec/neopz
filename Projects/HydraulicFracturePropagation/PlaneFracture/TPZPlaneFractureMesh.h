@@ -276,6 +276,8 @@ class TPZPlaneFractureMesh
     
     TPZCompMesh * GetFractureCompMesh(int porder);
     
+    void IncreasePOrderOnFracture(TPZCompMesh * cmesh, int oldPorder);
+    
     TPZCompMeshReferred * GetFractureCompMeshReferred(TPZCompMesh * cmeshRef, int porder);
     
     TPZCompMesh * GetPressureCompMesh(REAL Qinj, int porder);
@@ -307,7 +309,7 @@ class TPZPlaneFractureMesh
     
     REAL StressApplied()
     {
-        return 1.E7;
+        return (1.E7 * globStressScale);
     }
     
 protected:

@@ -17,17 +17,18 @@
 #include "pzgeoquad.h"
 
 //#define NOleakoff
-#define pressureIndependent
 
-void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
+void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
 {
-    if(fGelId_Penetration.size() == 0)
+    if(this->fPressureIndependent == false)
     {
-        std::cout << "\n\n\nLeakoff map is empty!!!\n\n\n";
-        //Estah definido Noleakoff ? Se sim, aqui deve entao ser mudado para return (e nao DebugStop)
-        DebugStop();
+        if(fGelId_Penetration.size() == 0)
+        {
+            std::cout << "\n\n\nLeakoff map is empty!!!\n\n\n";
+            //Estah definido Noleakoff ? Se sim, aqui deve entao ser mudado para return (e nao DebugStop)
+            DebugStop();
+        }
     }
-    
     int outVlCount = 0;
     for(int i = 0;  i < cmesh->ElementVec().NElements(); i++)
     {
@@ -47,11 +48,19 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
         std::map<int,REAL>::iterator it = fGelId_Penetration.find(cel->Reference()->Id());
         if(it == fGelId_Penetration.end())
         {
-            std::cout << "\n\n\nElemento de Id = " << cel->Reference()->Id() << " e Index = " << cel->Reference()->Index() <<
-                         " nao encontrado no UpdateLeakoff\n";
-            std::cout << "Seria o TransferLeakoff anterior que nao o incluiu???\n";
-            std::cout << "Ver método " << __PRETTY_FUNCTION__ << "\n\n\n";
-            DebugStop();
+            if(this->fPressureIndependent == false)
+            {
+                std::cout << "\n\n\nElemento de Id = " << cel->Reference()->Id() << " e Index = " << cel->Reference()->Index() <<
+                             " nao encontrado no UpdateLeakoff\n";
+                std::cout << "Seria o TransferLeakoff anterior que nao o incluiu???\n";
+                std::cout << "Ver método " << __PRETTY_FUNCTION__ << "\n\n\n";
+                DebugStop();
+            }
+            else
+            {
+                fGelId_Penetration[cel->Reference()->Id()] = 0.;
+                it = fGelId_Penetration.find(cel->Reference()->Id());
+            }
         }
 
         TPZInterpolatedElement * sp = NULL;
@@ -127,12 +136,12 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, int deltaT)
 
 REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-#ifdef pressureIndependent
     REAL gradPcalc = 1.;
-#else
-    REAL gradP = pfrac - Pe;
-    REAL gradPcalc = gradP/gradPref;
-#endif
+    if(fPressureIndependent == false)
+    {
+        REAL gradP = pfrac - Pe;
+        gradPcalc = gradP/gradPref;
+    }
     
     if(gradPcalc < 0.)
     {
@@ -150,12 +159,13 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
     REAL tStar = 0.;
     if(VlAcum > vsp)
     {
-#ifdef pressureIndependent
         REAL gradPcalc = 1.;
-#else
-        REAL gradP = pfrac - Pe;
-        REAL gradPcalc = gradP/gradPref;
-#endif
+
+        if(fPressureIndependent == false)
+        {
+            REAL gradP = pfrac - Pe;
+            gradPcalc = gradP/gradPref;
+        }
         
         if(gradPcalc < 0.)
         {
@@ -177,15 +187,17 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
         fGelId_Penetration[gelId] = 0.;//Nao coloque vsp! Eh ZERO mesmo!
         it = fGelId_Penetration.find(gelId);
     }
+    
+#ifdef NOleakoff
+    return 0.;
+#endif
+    
     REAL VlAcum = it->second;
     
     REAL tStar = FictitiousTime(VlAcum, pfrac, Cl, Pe, gradPref, vsp);
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
     REAL Ql = (Vlnext - VlAcum)/deltaT;
     
-#ifdef NOleakoff
-    return 0.;
-#endif
     return Ql;
 }
 
@@ -197,6 +209,16 @@ REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe
         fGelId_Penetration[gelId] = 0.;
         it = fGelId_Penetration.find(gelId);
     }
+    
+#ifdef NOleakoff
+    return 0.;//There is no leakoff.
+#endif
+    
+    if(fPressureIndependent)
+    {
+        return 0.;//Once Q is not function of p, dQdp=0.
+    }
+    
     REAL VlAcum = it->second;
     
     REAL deltaPfrac = fabs(pfrac/10000.);
@@ -222,14 +244,6 @@ REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe
     /////////////////////////////////////////////////
     
     REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
-    
-#ifdef NOleakoff
-    return 0.;//There is no leakoff.
-#endif
-    
-#ifdef pressureIndependent
-    return 0.;//Once Q is not function of p, dQdp=0.
-#endif
     
     return dQldpfrac;
 }

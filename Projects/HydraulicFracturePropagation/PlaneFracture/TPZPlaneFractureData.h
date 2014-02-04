@@ -22,6 +22,9 @@
 
 
 
+const REAL globStressScale = 1.E-7;
+
+
 class TimeControl
 {
 public:
@@ -47,7 +50,7 @@ public:
         factTime = 0.;
         
         fDeltaT_left = 0.;
-        fDeltaT_right = 60.;
+        fDeltaT_right = 50.;
         
         ComputeActDeltaT();
     }
@@ -153,21 +156,39 @@ public:
     LeakoffStorage()
     {
         this->fGelId_Penetration.clear();
+        this->fPressureIndependent = true;
     }
     ~LeakoffStorage()
     {
         fGelId_Penetration.clear();
     }
+    
+    void SetPressureIndependent()
+    {
+        this->fPressureIndependent = true;
+    }
+    
+    void SetPressureDependent()
+    {
+        this->fPressureIndependent = false;
+    }
+    
+    bool IsPressureIndependent()
+    {
+        return this->fPressureIndependent;
+    }
+    
     std::map<int,REAL> & GetLeakoffMap()
     {
         return fGelId_Penetration;
     }
+    
     void SetLeakoffMap(std::map<int,REAL> & GelId_Penetration)
     {
         fGelId_Penetration = GelId_Penetration;
     }
     
-    void UpdateLeakoff(TPZCompMesh * cmesh, int deltaT);
+    void UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT);
     
     REAL VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp);
     
@@ -181,6 +202,8 @@ public:
     
 protected:
     std::map<int,REAL> fGelId_Penetration;
+    
+    bool fPressureIndependent;
 };
 
 

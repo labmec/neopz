@@ -120,7 +120,7 @@ void TPZPlaneFractureKernel::Run()
     
     InitializePoligonalChain();
     
-    REAL volAcum = 0.;
+    REAL fractVolum = 0.05;
     TPZCompMesh * lastPressureCMesh = NULL;
     
     while(globTimeControl.ReachEndOftime() == false)
@@ -129,18 +129,60 @@ void TPZPlaneFractureKernel::Run()
         std::cout << "STEP " << this->fstep << "\n";
         this->InitializeMeshes();
 
-        if(this->fstep == 0)
+        if(globLeakoffStorage.IsPressureIndependent())
         {
-            ApplyInitialCondition();
+            REAL maxKI = 0.;
+            REAL respectiveKIc = 0.;
+            std::map< int, std::pair<REAL,REAL> > whoPropagate_KI;
+
+            bool propagate = false;
+            bool thereIsNeg = true;
+            while(propagate == false)
+            {
+                thereIsNeg = true;
+                while(thereIsNeg)
+                {
+                    TransferElasticSolution(fractVolum);
+                    fractVolum = IntegrateW(thereIsNeg);
+                    fractVolum *= 1.01;
+                }
+                maxKI = 0.;
+                respectiveKIc = 0.;
+                whoPropagate_KI.clear();
+
+                propagate = CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate_KI);
+                std::cout << "maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n\n";
+            }
+            
+            fractVolum = IntegrateW(thereIsNeg);
+            
+            if(this->fstep > 0)
+            {
+                this->TransferLastLeakoff(lastPressureCMesh);
+            }
+            
+            PredictActDeltaT(fractVolum);
+            CloseActualTimeStepPressureIndependent();
+            
+            DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate_KI);
+
+            this->fstep++;
         }
         else
         {
-            this->TransferElasticSolution(volAcum);
-            this->TransferLastLeakoff(lastPressureCMesh);
+            if(this->fstep == 0)
+            {
+                ApplyInitialCondition();
+            }
+            else
+            {
+                this->TransferElasticSolution(fractVolum);
+                this->TransferLastLeakoff(lastPressureCMesh);
+            }
+            
+            //Resolvendo o problema acoplado da nova geometria
+            this->RunThisFractureGeometry(fractVolum);
         }
-        
-        //Resolvendo o problema acoplado da nova geometria
-        this->RunThisFractureGeometry(volAcum);
         
         lastPressureCMesh = this->fmeshVec[1];
     }//end of while(reachEndOfTime == false)
@@ -238,34 +280,6 @@ void TPZPlaneFractureKernel::InitializeMeshes()
                                                                         this->fpOrder);
     
     this->InitializePath3DVector();
-    
-//    {//AQUICAJU
-//        std::cout << "\n\nFractureArea = " << Fracture1wing_Area() << "\n";
-//        bool thereIsNeg = true;
-//        REAL vol = 0.10;
-//        while(thereIsNeg)
-//        {
-//            TransferElasticSolution(vol);
-//            vol = IntegrateW(thereIsNeg);
-//            std::cout << "vol = " << vol << "\n";
-//            vol *= 1.005;
-//        }
-//        
-//        PostProcessSolutions();
-//        PostProcessElasticity();
-//        
-//        REAL maxKI = 0.;
-//        REAL respectiveKIc = 0.;
-//        std::map< int, std::pair<REAL,REAL> > whoPropagate_KI;
-//        
-//        CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate_KI);
-//        std::cout << "maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n\n";
-//        
-//        DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate_KI);
-//        PostProcessFractGeometry();
-//        
-//        DebugStop();
-//    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -442,18 +456,11 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                 globTimeControl.TimeisOnLeft();
                 globTimeControl.ShiftRightTime();
                 
-                std::cout << "\nvolW = " << volAcum << "\n";
+                std::cout << "\nNegative W\n";
                 std::cout << "************* t está a Esquerda de KI=KIc *************\n";
             }
             else
             {
-                {
-                    if(thereWasNegativeW)
-                    {
-                        std::cout << "\n\n\nNegativeW!!!\n\n\n";
-                        DebugStop();
-                    }
-                }
                 propagate = CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate_KI);
                 
                 if(propagate)
@@ -467,7 +474,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                 else
                 {
                     globTimeControl.TimeisOnLeft();
-                    std::cout << "(w > 0) e (KI < KIc)\n";
+                    std::cout << "KI < KIc\n";
                     std::cout << "************* t está a Esquerda de KI=KIc *************\n";
                 }
             }
@@ -487,18 +494,54 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         std::cout << "\n\n\nConvergiu deltaT sem propagar???\n\n\n";
         DebugStop();
     }
+    
+    CloseActualTimeStepPressureDependent();
+    
     DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate_KI);
-
-    CloseActualTimeStep();
+    
     this->fstep++;
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::CloseActualTimeStep()
+void TPZPlaneFractureKernel::PredictActDeltaT(REAL fractVolum)
+{
+    REAL actTime = globTimeControl.actTime();
+    REAL Qinj1wing = -(this->fQinj1wing_Hbullet * fHbullet);
+    
+    REAL actDeltaT = 0.7*globTimeControl.actDeltaT();
+    REAL volumeBalance = 0.;
+    
+    std::map<int,REAL> leakoffmap = globLeakoffStorage.GetLeakoffMap();
+    while(volumeBalance < fractVolum)
+    {
+        globTimeControl.SetDeltaT(actDeltaT);
+        globLeakoffStorage.UpdateLeakoff(this->fmphysics,actDeltaT);
+        REAL volLeakoff = ComputeVlAcumLeakoff(this->fmeshVec[1]);
+        
+        REAL volInjected = (actTime + actDeltaT) * Qinj1wing;
+        
+        volumeBalance = volInjected - volLeakoff;
+        
+        globLeakoffStorage.SetLeakoffMap(leakoffmap);
+        actDeltaT *= 1.05;
+    }
+    globLeakoffStorage.UpdateLeakoff(this->fmphysics,globTimeControl.actDeltaT());
+    TransferElasticSolution(volumeBalance);
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::CloseActualTimeStepPressureIndependent()
+{
+    globTimeControl.UpdateActTime();//atualizando esta rodada concluida para o tempo atual
+    PostProcessAllPressureIndependent();
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::CloseActualTimeStepPressureDependent()
 {
     globTimeControl.UpdateActTime();//atualizando esta rodada concluida para o tempo atual
     UpdateLeakoff();
-    PostProcessAll();
+    PostProcessAllPressureDependent();
     globTimeControl.RestartBissection();
 }
 //------------------------------------------------------------------------------------------------------------
@@ -756,7 +799,20 @@ void TPZPlaneFractureKernel::UpdateLeakoff()
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::PostProcessAll()
+void TPZPlaneFractureKernel::PostProcessAllPressureIndependent()
+{
+    std::cout << "\n\n*********** POS-PROCESSAMENTO ***********\n";
+    
+    PostProcessSolutions();
+    PostProcessAcumVolW();
+    PostProcessVolLeakoff();
+    PostProcessElasticity();
+    PostProcessFractGeometry();
+    std::cout << "Tempo atual desta geometria = " << globTimeControl.actTime()/60. << " minuto(s)\n\n";
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::PostProcessAllPressureDependent()
 {
     std::cout << "\n\n*********** POS-PROCESSAMENTO ***********\n";
     
@@ -897,7 +953,7 @@ void TPZPlaneFractureKernel::PostProcessFractGeometry()
     {//Mathematica output
         std::stringstream nmMath, nmAux;
         nmAux << "pcm={";
-        nmMath << "PoligonalChainMath_Step" << this->fstep  << ".txt";
+        nmMath << "PoligonalChainMath_Step" << this->fstep << ".txt";
         std::ofstream outPoligMath(nmMath.str().c_str());
         
         for(int p = 0; p < fpoligonalChain.NElements(); p++)
@@ -933,7 +989,7 @@ REAL TPZPlaneFractureKernel::IntegrateW(bool & thereWasNegativeW)
 {
     thereWasNegativeW = false;
     
-    REAL integral = 0.;
+    REAL integralW = 0.;
     for(int c = 0; c < fmeshVec[0]->NElements(); c++)
     {
         TPZCompEl * cel = fmeshVec[0]->ElementVec()[c];
@@ -960,10 +1016,10 @@ REAL TPZPlaneFractureKernel::IntegrateW(bool & thereWasNegativeW)
         {
             thereWasNegativeW = true;
         }
-        integral += value[1];//Integrando w (uy)
+        integralW += 2.*value[1];//Integrando w = (2*uy)
     }
     
-    return 2.*integral;//Aqui jah eh considerada a simetria
+    return integralW;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1097,8 +1153,7 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
                 cracktipKI = 0.;
             }
         }
-        REAL minAlpha = 1.;//<<<<<<<<<<<<<<<<<<<<
-        if(cracktipKI >= minAlpha*cracktipKIc)
+        if(cracktipKI >= cracktipKIc)
         {
             propagate = true;
             whoPropagate_KI[p] = std::make_pair(cracktipKI,cracktipKIc);
@@ -1159,7 +1214,6 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
         }
     }
     
-//    std::cout << "\n\n\nZigZag e Bezier desligados!!!\n";
     bool thereIsZigZag = true;
     while(thereIsZigZag)
     {
@@ -1251,7 +1305,10 @@ bool TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPol
 
 void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
 {
-    std::cout << "\n\n\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
+    if(globLeakoffStorage.IsPressureIndependent() == false)
+    {
+        std::cout << "\n\n\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
+    }
     
     int rows = this->fmeshVec[0]->Solution().Rows();
     int cols = this->fmeshVec[0]->Solution().Cols();
@@ -1293,7 +1350,10 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
     }
     else
     {
-        std::cout << "\n\n\nTransferência OK!!!\n";
+        if(globLeakoffStorage.IsPressureIndependent() == false)
+        {
+            std::cout << "\n\n\nTransferência OK!!!\n";
+        }
         TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
     }
 }
@@ -1525,7 +1585,7 @@ void BezierCurve::F(REAL t, std::pair< REAL,REAL > & ft)
             x += b * fPoligonalChain[i].first;
             z += b * fPoligonalChain[i].second;
         }
-        REAL alpha = 1.1;
+        REAL alpha = 1.;
         ft = std::make_pair(alpha * x,z);
     }
 }

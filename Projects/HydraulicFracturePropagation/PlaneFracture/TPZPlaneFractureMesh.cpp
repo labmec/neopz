@@ -211,7 +211,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     
     RefineDirectionalToCrackTip(2);
     
-//    TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim (com porder=2)
+//    TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim no Paraview (com porder=2)
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -300,9 +300,15 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
     
-    
-    //////................. Subindo pOrder na regiao da fratura
-    int greatherPOrder = porder + 1;
+    this->IncreasePOrderOnFracture(cmesh,porder);
+
+    return cmesh;
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureMesh::IncreasePOrderOnFracture(TPZCompMesh * cmesh, int oldPorder)
+{
+    //Capturando os elementos envolvidos diretamente
     std::set<int> porder2Indexes;
     for(int el = 0; el < cmesh->Reference()->NElements(); el++)
     {
@@ -328,6 +334,8 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
             }
         }
     }
+    
+    //Capturando os elementos envolvidos indiretamente
     std::set<int> porder2IndexesTemp;
     for(int el = 0; el < cmesh->Reference()->NElements(); el++)
     {
@@ -354,7 +362,12 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
     }
     porder2Indexes.insert(porder2IndexesTemp.begin(),porder2IndexesTemp.end());
     
-//    TPZVec<REAL> elData(cmesh->NElements(),porder);//VTK
+    
+    
+    //Subindo pOrder na regiao da fratura
+    int greatherPOrder = oldPorder + 1;
+    
+    //    TPZVec<REAL> elData(cmesh->NElements(),porder);//VTK
     std::set<int>::iterator it;
     for(it = porder2Indexes.begin(); it != porder2Indexes.end(); it++)
     {
@@ -363,7 +376,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
         {
             TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(elastGel->Reference());
             intel->PRefine(greatherPOrder);
-//            elData[elastGel->Reference()->Index()] = greatherPOrder;
+            //            elData[elastGel->Reference()->Index()] = greatherPOrder;
         }
         else
         {
@@ -377,18 +390,14 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
                 {
                     TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(sonGel->Reference());
                     intel->PRefine(greatherPOrder);
-//                    elData[sonGel->Reference()->Index()] = greatherPOrder;
+                    //                    elData[sonGel->Reference()->Index()] = greatherPOrder;
                 }
             }
         }
     }
-//    std::ofstream outPOrder("CMeshPOrder.vtk");
-//    TPZVTKGeoMesh::PrintCMeshVTK(cmesh, outPOrder, elData);
-    //////////////////////////////////////////////////////////////////////////
-
-    return cmesh;
+    //    std::ofstream outPOrder("CMeshPOrder.vtk");
+    //    TPZVTKGeoMesh::PrintCMeshVTK(cmesh, outPOrder, elData);
 }
-//------------------------------------------------------------------------------------------------------------
 
 TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompMesh * cmeshRef, int porder)
 {
@@ -632,6 +641,8 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 	TPZBuildMultiphysicsMesh::AddElements(meshvec,cmesh);
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,cmesh);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec,cmesh);
+    
+//    this->IncreasePOrderOnFracture(cmesh, porder);
     
     return cmesh;
 }
