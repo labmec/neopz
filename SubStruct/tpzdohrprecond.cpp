@@ -20,6 +20,8 @@
 
 #include "pz_pthread.h"
 
+#include "arglib.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrprecond"));
 static LoggerPtr loggerv1v2(Logger::getLogger("substruct.v1v2"));
@@ -61,9 +63,6 @@ TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 
 /** Threading Building Blocks */
 
-
-
-
 #ifdef USING_TBB
 #include "tbb/parallel_for.h"
 #include "tbb/blocked_range.h"
@@ -71,9 +70,7 @@ TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 using namespace tbb;
 #endif
 
-
-
-#include "arglib.h"
+clarg::argBool mult_tbb("-mult_tbb", "TPZDohrPrecond MultAdd using TBB", false);
 
 #ifdef USING_TBB
 affinity_partitioner ap;
@@ -108,7 +105,7 @@ public:
         {
             
             TPZDohrPrecondV2SubData<TVar,TSubStruct> data  = mWorkItems[i];
-
+            data.fInput_local.ReallocForNuma(0);
             data.fSubStructure->Contribute_v2_local(data.fInput_local, data.fv2_local->fAssembleData);
             fAssemblyStructure->AddItem(data.fv2_local);
         }
@@ -121,7 +118,7 @@ public:
          * into N sub-ranges and
          * invoke the operator() for each sub-range.
          */
-        parallel_for(blocked_range<size_t>(0, mWorkItems.size(), 1 /* Fined Grain */), *this, ap);
+        parallel_for(blocked_range<size_t>(0, mWorkItems.size()), *this, ap);
     }
     
 #endif
@@ -173,7 +170,6 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 
     tbb_work.run_parallel_for(ap);
 
-    
     PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
                       assemblelist.operator->(), __FUNCTION__);
     
@@ -195,8 +191,6 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 
 #endif
 }
-
-clarg::argBool mult_tbb("-mult_tbb", "TPZDohrPrecond MultAdd using TBB", false);
 
 template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {

@@ -231,7 +231,9 @@ int main (int argc, char **argv)
             break;
         case 5:
             /* - Parallel with HWloc Realloc */
+#ifdef USING_HWLOC
             work = new HWlocTBB(&matrices, orig);
+#endif
             break;
         default:
             printf("Option not available!\n");
