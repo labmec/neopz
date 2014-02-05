@@ -87,8 +87,6 @@ int main(int argc, char * const argv[])
     REAL gradPref2 = 1.;
     REAL vsp2 = 0.;
     
-    globLeakoffStorage.SetPressureIndependent();
-    
     layerVec[0] = TPZLayerProperties(Young0, Poisson0, SigMax0, SigMin0, SigConf0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0);
     layerVec[1] = TPZLayerProperties(Young1, Poisson1, SigMax1, SigMin1, SigConf1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1);
     layerVec[2] = TPZLayerProperties(Young2, Poisson2, SigMax2, SigMin2, SigConf2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
@@ -104,12 +102,17 @@ int main(int argc, char * const argv[])
     int porder = 1;
     REAL MaxDispl_ini = 5.;
     REAL MaxDispl_fin = 0.5;
+    
+    bool pressureIndependent = true;
+    bool uncoupled = false;//true;
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
                                                                  QinjWell, visc,
                                                                  Jradius,
                                                                  porder,
                                                                  MaxDispl_ini,
-                                                                 MaxDispl_fin);
+                                                                 MaxDispl_fin,
+                                                                 pressureIndependent,
+                                                                 uncoupled);
 
     plfrac->Run();
     

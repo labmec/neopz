@@ -47,7 +47,9 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
                                                REAL Jradius,
                                                int pOrder,
                                                REAL MaxDispl_ini,
-                                               REAL MaxDispl_fin)
+                                               REAL MaxDispl_fin,
+                                               bool pressureIndependent,
+                                               bool uncoupled)
 {
     if(nstripes != 1)
     {
@@ -90,6 +92,21 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     this->fMaxDisplFin = MaxDispl_fin;
     
     this->fPath3D.Reset();
+    
+    if(pressureIndependent)
+    {
+        globLeakoffStorage.SetPressureIndependent();
+    }
+    else
+    {
+        globLeakoffStorage.SetPressureDependent();
+    }
+    if(uncoupled && nstripes != 1)
+    {
+        std::cout << "\n\nIn uncoupled kernel, nstripes must be 1!!!\n\n\n";
+        DebugStop();
+    }
+    this->fUncoupled = uncoupled;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -129,7 +146,7 @@ void TPZPlaneFractureKernel::Run()
         std::cout << "STEP " << this->fstep << "\n";
         this->InitializeMeshes();
 
-        if(globLeakoffStorage.IsPressureIndependent())
+        if(this->fUncoupled)
         {
             REAL maxKI = 0.;
             REAL respectiveKIc = 0.;
@@ -283,6 +300,7 @@ void TPZPlaneFractureKernel::InitializeMeshes()
 }
 //------------------------------------------------------------------------------------------------------------
 
+#include "TPZTimer.h"
 void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 {
     std::cout << "\n************** CALCULANDO SOLUCOES ELASTICAS DE REFERENCIA\n";
@@ -294,6 +312,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     TPZAnalysis * an = new TPZAnalysis(cmesh);
     
     TPZSkylineStructMatrix full(cmesh); //caso simetrico
+    //full.SetNumThreads(4);
     an->SetStructuralMatrix(full);
     TPZStepSolver<REAL> stepS;
     stepS.SetDirect(ECholesky);
@@ -309,8 +328,20 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     TPZFMatrix<STATE> solution1(cmesh->Solution().Rows(), 1);
     TPZFMatrix<STATE> solutions(cmesh->Solution().Rows(), 2);
     
+    TPZTimer ta, ts;
+    ta.start();
+    
     an->Assemble();
+    
+    ta.stop();
+    ts.start();
+    
     an->Solve();
+    
+    ts.stop();
+    
+    std::cout << "\nAssemble = " << ta.seconds() << " s\n";
+    std::cout << "Solve = " << ts.seconds() << " s\n\n";
     solution0 = cmesh->Solution();
     
     int stripe = 0;//por enquanto soh 1 faixa
@@ -440,8 +471,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         {
             //Quando o actDeltaT leva a um instante em que Vleakoff = Vinj, nao converge, necessitando
             //trazer o limite esquerdo do deltaT da bisseccao para a direita
-            globTimeControl.TimeisOnLeft();
-            globTimeControl.ShiftRightTime();
+            globTimeControl.TimeisOnLeft(true);
             
             std::cout << "\nNao convergiu...\n";
             std::cout << "************* t está a Esquerda de KI=KIc *************\n";
@@ -453,8 +483,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
             
             if(thereWasNegativeW)
             {
-                globTimeControl.TimeisOnLeft();
-                globTimeControl.ShiftRightTime();
+                globTimeControl.TimeisOnLeft(true);
                 
                 std::cout << "\nNegative W\n";
                 std::cout << "************* t está a Esquerda de KI=KIc *************\n";
@@ -473,7 +502,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                 }
                 else
                 {
-                    globTimeControl.TimeisOnLeft();
+                    globTimeControl.TimeisOnLeft(false);
                     std::cout << "KI < KIc\n";
                     std::cout << "************* t está a Esquerda de KI=KIc *************\n";
                 }
@@ -1305,7 +1334,7 @@ bool TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPol
 
 void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
 {
-    if(globLeakoffStorage.IsPressureIndependent() == false)
+    if(this->fUncoupled == false)
     {
         std::cout << "\n\n\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
     }
@@ -1350,7 +1379,7 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
     }
     else
     {
-        if(globLeakoffStorage.IsPressureIndependent() == false)
+        if(this->fUncoupled == false)
         {
             std::cout << "\n\n\nTransferência OK!!!\n";
         }

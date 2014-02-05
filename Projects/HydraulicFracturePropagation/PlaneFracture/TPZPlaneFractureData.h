@@ -37,6 +37,8 @@ public:
         fDeltaT_right = 0.;
         
         factDeltaT = 0.;
+        
+        fwasNegativeW = false;
     }
     
     ~TimeControl()
@@ -49,28 +51,26 @@ public:
         fTtot = Ttot;
         factTime = 0.;
         
-        fDeltaT_left = 0.;
-        fDeltaT_right = 50.;
+        fDeltaT_left = 5.;
+        fDeltaT_right = MAX( 20.*fDeltaT_left , Ttot/10. );
+        
+        fwasNegativeW = true;
         
         ComputeActDeltaT();
     }
     
-    void TimeisOnLeft()
+    void TimeisOnLeft(bool wasNegativeW)
     {
+        fwasNegativeW = wasNegativeW;
+        
         fDeltaT_left = factDeltaT;
     }
     
     void TimeisOnRight()
     {
+        fwasNegativeW = false;
+        
         fDeltaT_right = factDeltaT;
-    }
-    
-    void ShiftRightTime()
-    {
-        if((fDeltaT_right - fDeltaT_left) < 1.1)
-        {
-            fDeltaT_right += 2.;
-        }
     }
     
     void SetDeltaT(REAL deltaT)
@@ -78,14 +78,16 @@ public:
         factDeltaT = deltaT;
     }
     
-    void SetActTime(REAL actTime)
-    {
-        factTime = actTime;
-    }
-    
     void ComputeActDeltaT()
     {
-        factDeltaT = (fDeltaT_left + fDeltaT_right)/2.;
+        if(fwasNegativeW)
+        {
+            factDeltaT = 0.60 * fDeltaT_left + 0.40 * fDeltaT_right;
+        }
+        else
+        {
+            factDeltaT = 0.50 * fDeltaT_left + 0.50 * fDeltaT_right;
+        }
     }
     
     void UpdateActTime()
@@ -110,7 +112,8 @@ public:
     
     void RestartBissection()
     {
-        fDeltaT_left = 0.;
+        factDeltaT = factDeltaT/2.;
+        fDeltaT_left = factDeltaT;
         fDeltaT_right *= 2.;
     }
     
@@ -146,6 +149,8 @@ private:
     
     REAL fDeltaT_left;//deltaT cujo factTime+dt nao propagou a fratura (serah utilizado no metodo da bisseccao).
     REAL fDeltaT_right;//deltaT cujo factTime+dt propagou a fratura (serah utilizado no metodo da bisseccao).
+    
+    bool fwasNegativeW;
 };
 
 

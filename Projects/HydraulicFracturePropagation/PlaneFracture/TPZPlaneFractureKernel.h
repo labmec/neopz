@@ -34,6 +34,8 @@ public:
      * @param porder [in] : polinomial order of simulation
      * @param MaxDispl_ini [in] : Maximum displacement when fracture propagate in starting times
      * @param MaxDispl_fin [in] : Maximum displacement when fracture propagate in ending times
+     * @param pressureIndependent [in] : Flag that mean if leakoff is pressure independent
+     * @param uncoupled [in] : Flag that means if the kernel will solve fracture propagation just using elasticity and leakoff (nstripes must be 1)
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
@@ -42,7 +44,9 @@ public:
                            REAL Jradius,
                            int porder,
                            REAL MaxDispl_ini,
-                           REAL MaxDispl_fin);
+                           REAL MaxDispl_fin,
+                           bool pressureIndependent,
+                           bool uncoupled);
     
     ~TPZPlaneFractureKernel();
     
@@ -181,6 +185,8 @@ protected:
     REAL fMaxDisplFin;
     
     JIntegral3D fPath3D;
+    
+    bool fUncoupled;
     
     int actColor = 0;
     std::string color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
