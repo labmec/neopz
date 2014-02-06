@@ -36,28 +36,31 @@ int main(int argc, char * const argv[])
     
     REAL bulletTVDIni = 2100.;
     REAL bulletTVDFin = 2120.;
-    int nstripes = 1;//AQUICAJU
+    int nstripes = 2;//AQUICAJU
     
     //Material data
     TPZVec<TPZLayerProperties> layerVec(3);
     
     REAL Young0 = 4.2747495136E10 * globStressScale;
     REAL Poisson0 = 0.25;
-    REAL SigMax0  = 0.;      //<<<<<<<============= PRE-STRESS XX
-    REAL SigMin0  = -3.5627279293E7 * globStressScale;   //<<<<<<<============= PRE-STRESS YY
-    REAL SigConf0 = 0.;      //<<<<<<<============= PRE-STRESS ZZ
+    //
+    REAL SigMax0  = 0.;                                 //<-- PRE-STRESS XX
+    REAL SigMin0  = -3.5627279293E7 * globStressScale;  //<-- PRE-STRESS YY
+    REAL SigConf0 = 0.;                                 //<-- PRE-STRESS ZZ
     
     REAL Young1 = 4.1368543680E10 * globStressScale;
     REAL Poisson1 = 0.15;
-    REAL SigMax1  = 0.;      //<<<<<<<============= PRE-STRESS XX
-    REAL SigMin1  = -3.4528254983E7 * globStressScale;   //<<<<<<<============= PRE-STRESS YY
-    REAL SigConf1 = 0.;      //<<<<<<<============= PRE-STRESS ZZ
+    //
+    REAL SigMax1  = 0.;                                 //<-- PRE-STRESS XX
+    REAL SigMin1  = -3.4528254983E7 * globStressScale;  //<-- PRE-STRESS YY
+    REAL SigConf1 = 0.;                                 //<-- PRE-STRESS ZZ
     
     REAL Young2 = 4.2747495136E10 * globStressScale;
     REAL Poisson2 = 0.25;
-    REAL SigMax2  = 0.;      //<<<<<<<============= PRE-STRESS XX
-    REAL SigMin2  = -3.732407906E7 * globStressScale;   //<<<<<<<============= PRE-STRESS YY
-    REAL SigConf2 = 0.;      //<<<<<<<============= PRE-STRESS ZZ
+    //
+    REAL SigMax2  = 0.;                                 //<-- PRE-STRESS XX
+    REAL SigMin2  = -3.732407906E7 * globStressScale;   //<-- PRE-STRESS YY
+    REAL SigConf2 = 0.;                                 //<-- PRE-STRESS ZZ
     
     REAL TVDi0 = 2070.;
     REAL TVDf0 = 2100.;
@@ -103,16 +106,16 @@ int main(int argc, char * const argv[])
     REAL MaxDispl_ini = 5.;
     REAL MaxDispl_fin = 0.5;
     
-    bool pressureIndependent = true;
-    bool uncoupled = false;//true;
+    bool pressureINdependent = true;
+    bool UNcoupled = false;
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
                                                                  QinjWell, visc,
                                                                  Jradius,
                                                                  porder,
                                                                  MaxDispl_ini,
                                                                  MaxDispl_fin,
-                                                                 pressureIndependent,
-                                                                 uncoupled);
+                                                                 pressureINdependent,
+                                                                 UNcoupled);
 
     plfrac->Run();
     

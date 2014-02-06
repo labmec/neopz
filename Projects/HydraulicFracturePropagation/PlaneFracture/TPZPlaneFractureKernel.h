@@ -64,8 +64,6 @@ protected:
      */
     void ProcessLinearElasticCMesh(TPZCompMesh * cmesh);
     
-    void ApplyInitialCondition();
-    
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
@@ -73,10 +71,11 @@ protected:
      */
     void RunThisFractureGeometry(REAL & volAcum);
     
+    REAL PredictFractVolume_WithNonNegativeUy();
     void PredictActDeltaT(REAL fractVolum);
-    void CloseActualTimeStepPressureIndependent();
     
-    void CloseActualTimeStepPressureDependent();
+    void CloseActualTimeStepUncoupled();
+    void CloseActualTimeStepCoupled();
     
     /**
      * @brief Method that will initializate the JPath3D vector structure, based on 1D cracktip elements (available on fPlaneFractureMesh atribute)
@@ -125,14 +124,18 @@ protected:
     void PostProcessFractGeometry();
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
-    REAL IntegrateW(bool & thereWasNegativeW);
+    // = 2. * Integral(uy_insideFracture)
+    REAL IntegrateW();
+    REAL IntegrateW(bool & thereWasNegativeW, REAL &negVol);
     
     /** 1 face from 1 wing fracture area */
     //Be aware that this area is of all fracture, not just permeable portion!!!
     REAL Fracture1wing_Area();
     
+    // VlAcumLeakoff = Summ( elementArea * (2. * elementLeakoffPenetration) )
     REAL ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh);
     
+    //Qinj * actTime
     REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
@@ -160,6 +163,8 @@ protected:
      *  to the new data structure (based on the new cmesh, keeped in fmeshVec atribute in position 0)
      */
     void TransferLastLeakoff(TPZCompMesh * cmeshFrom);
+    
+    void PutConstantPressureOnFluidSolution();
     
     //Atributes:
     

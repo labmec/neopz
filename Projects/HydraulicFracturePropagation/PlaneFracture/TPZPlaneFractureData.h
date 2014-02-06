@@ -129,7 +129,16 @@ public:
             std::cout << "\n\n\nMetodo da bisseccao no tempo inverteu os limites!!!\n\n\n";
             DebugStop();
         }
-        return ((fDeltaT_right - fDeltaT_left) < 0.5);
+        
+        bool isCloseEnough = (fDeltaT_right - fDeltaT_left) < 0.5;
+        if(fwasNegativeW && isCloseEnough)
+        {
+            //O metodo de newton deve ter levado sempre para o limite da direita por estar
+            //com w negativo, necessitando de mais range entre os limites de deltaT.
+            fDeltaT_right += 10.;
+            isCloseEnough = false;
+        }
+        return isCloseEnough;
     }
     
     REAL LeftDeltaT()
