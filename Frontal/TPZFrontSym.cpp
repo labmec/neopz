@@ -149,24 +149,24 @@ void TPZFrontSym<TVar>::FreeGlobal(long global)
 template<>
 void TPZFrontSym<std::complex<float> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<float> > &eqnarray)
 {
-    DebugStop();
+	DebugStop();
 }
 template<>
 void TPZFrontSym<std::complex<double> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<double> > &eqnarray)
 {
-    DebugStop();
+	DebugStop();
 }
 template<>
 void TPZFrontSym<std::complex<long double> >::DecomposeOneEquation(long ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
 {
-    DebugStop();
+	DebugStop();
 }
 
 template<class TVar>
 void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarray)
 {
 	//eqnarray.SetSymmetric();
-    
+	
 	long i, ilocal;
 	ilocal = Local(ieq);
 	TPZVec<TVar> AuxVec(this->fFront);
@@ -179,42 +179,51 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 	}
 	TVar diag = sqrt(AuxVec[ilocal]);
 	for(i=0;i<this->fFront;i++) AuxVec[i]/=diag;
-    
+	
 	eqnarray.BeginEquation(ieq);       
 	eqnarray.AddTerm(ieq, diag);
 	
 	//Blas utilizatioin  
-// #ifdef USING_BLAS     
-// 	CBLAS_ORDER order = CblasColMajor;
-// 	CBLAS_UPLO up_lo = CblasUpper;
-// 	int sz = fFront;
-// 	long incx = 1;
-// 	double db = -1.;//AuxVec[ilocal];
-// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
-// 	
-// #endif
-// #ifdef USING_ATLAS
-// 	CBLAS_ORDER order = CblasColMajor;
-// 	CBLAS_UPLO up_lo = CblasUpper;
-// 	int sz = fFront;
-// 	long incx = 1;
-// 	double db = -1.;//AuxVec[ilocal];
-// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
-// 	//cout << "Using ATLAS" << endl;
-// #endif
-// #ifndef USING_BLAS
-// #ifndef USING_ATLAS
+	// #ifdef USING_BLAS     
+	// 	CBLAS_ORDER order = CblasColMajor;
+	// 	CBLAS_UPLO up_lo = CblasUpper;
+	// 	int sz = fFront;
+	// 	long incx = 1;
+	// 	double db = -1.;//AuxVec[ilocal];
+	// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
+	// 	
+	// #endif
+	// #ifdef USING_ATLAS
+	// 	CBLAS_ORDER order = CblasColMajor;
+	// 	CBLAS_UPLO up_lo = CblasUpper;
+	// 	int sz = fFront;
+	// 	long incx = 1;
+	// 	double db = -1.;//AuxVec[ilocal];
+	// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
+	// 	//cout << "Using ATLAS" << endl;
+	// #endif
+	// #ifndef USING_BLAS
+	// #ifndef USING_ATLAS
+
+//	long j=0; METODOLOGIA ANTIGA QUE PERCORRE A MATRIZ MAIS LENTAMENTE
+//	for(i=0;i<this->fFront;i++){
+//		for(j=i;j<this->fFront;j++){
+//			Element(i,j)-=AuxVec[i]*AuxVec[j];
+//		}
+//	}
+	
 	long j=0;
-	for(i=0;i<this->fFront;i++){
-   		for(j=i;j<this->fFront;j++){
-   			Element(i,j)=Element(i,j)-AuxVec[i]*AuxVec[j];
-   		}
-   	}
-// #endif
-// #endif
+	for(j=0;j<this->fFront;j++){
+		for(i=0;i<=j;i++){
+			Element(i,j)-=AuxVec[i]*AuxVec[j];
+		}
+	}
+	
+		// #endif
+	// #endif
 	
 	
-    for(i=0;i<this->fFront;i++) {
+	for(i=0;i<this->fFront;i++) {
 		if(i!=ilocal && this->fGlobal[i]!= -1 && AuxVec[i] != 0.) eqnarray.AddTerm(this->fGlobal[i],AuxVec[i]);
 	}
 	eqnarray.EndEquation();
@@ -222,8 +231,8 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 	for(i=0;i<ilocal;i++)Element(i,ilocal)=0.;
 	for(i=ilocal;i<this->fFront;i++) Element(ilocal,i)=0.;
 	
-    FreeGlobal(ieq);
-    fDecomposeType=ECholesky;
+	FreeGlobal(ieq);
+	fDecomposeType=ECholesky;
 	//	PrintGlobal("After", output);
 }
 template<class TVar>

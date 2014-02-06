@@ -277,11 +277,17 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 // #endif
 // #ifndef	USING_ATLAS
 // #ifndef USING_BLAS
-	long j;
-	for(i=0;i<this->fFront;i++){
-		for(j=0;j<this->fFront;j++) Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
-	}
 	
+//	long j; METODOLOGIA ANTIGA QUE PERCORRE A MATRIZ DE UM JEITO MAIS LENTO
+//	for(i=0;i<this->fFront;i++){
+//		for(j=0;j<this->fFront;j++) Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
+//	}
+	
+	long j;
+	for(j=0;j<this->fFront;j++){
+		for(i=0;i<this->fFront;i++) 
+			Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
+	}
 	/*     Print("After correct elimination",cout);
 	 */
 // #endif
