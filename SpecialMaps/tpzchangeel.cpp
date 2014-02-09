@@ -30,6 +30,7 @@ using namespace std;
 using namespace pzgeom;
 using namespace pztopology;
 
+
 TPZChangeEl::TPZChangeEl()
 {
 }
@@ -356,6 +357,8 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, in
         }
     }
     
+    const REAL dist = 0.25;
+    
     std::set<int>::iterator it;
     for(it = NOTtargetSideEdges_set.begin(); it != NOTtargetSideEdges_set.end(); it++)
     {
@@ -385,7 +388,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, in
             {
                 coordNear = Mesh->NodeVec()[meshInitNode].Coord(c);
                 coordFar = Mesh->NodeVec()[meshFinalNode].Coord(c);
-                Mesh->NodeVec()[meshMiddleNode].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
+                Mesh->NodeVec()[meshMiddleNode].SetCoord(c, (1. - dist)*coordNear + (dist)*coordFar);
             }
         }
         else if(targetSideNodes_set.find(finalNode) != targetSideNodes_set.end())//drag middle node to node 1 of this edge
@@ -394,7 +397,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, in
             {
                 coordNear = Mesh->NodeVec()[meshFinalNode].Coord(c);
                 coordFar = Mesh->NodeVec()[meshInitNode].Coord(c);
-                Mesh->NodeVec()[meshMiddleNode].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
+                Mesh->NodeVec()[meshMiddleNode].SetCoord(c, (1. - dist)*coordNear + (dist)*coordFar);
             }
         }
     }				

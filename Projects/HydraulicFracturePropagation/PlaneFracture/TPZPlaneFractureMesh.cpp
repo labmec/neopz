@@ -209,9 +209,8 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    RefineDirectionalToCrackTip(2);
-    
 //    TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim no Paraview (com porder=2)
+    RefineDirectionalToCrackTip(2);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -2072,12 +2071,16 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
                     int neighSide = neigh.Side();
                     TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(refinedMesh, neigh.Element()->Index(), neighSide);
                     
-                    elData[neighEl->Index()] = 2.;
+                    elData[neighEl->Index()] = 2.;//4 VTK
                     
                     neigh = neighEl->Neighbour(neighSide);
                 }
                 else
                 {
+                    if(neigh.Element()->HasSubElement())
+                    {
+                        elData[neigh.Element()->Index()] = -1.;
+                    }
                     neigh = neigh.Neighbour();
                 }
             }

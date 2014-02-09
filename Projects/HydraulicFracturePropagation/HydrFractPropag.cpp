@@ -36,7 +36,7 @@ int main(int argc, char * const argv[])
     
     REAL bulletTVDIni = 2100.;
     REAL bulletTVDFin = 2120.;
-    int nstripes = 2;//AQUICAJU
+    int nstripes = 2;
     
     //Material data
     TPZVec<TPZLayerProperties> layerVec(3);

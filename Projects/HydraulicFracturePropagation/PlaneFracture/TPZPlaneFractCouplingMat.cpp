@@ -278,8 +278,10 @@ void TPZPlaneFractCouplingMat::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec,
         bc.Val2().Zero();
         bc.Val2()(1,0) = sol_p[0];
         
+        //Elastica
         TPZElast3Dnlinear::ContributeBC(datavec[0], weight, ek, ef, bc);
         
+        //Pressao
         TPZFMatrix<REAL> &phi_u = datavec[0].phi;
         TPZFMatrix<REAL> &phi_p = datavec[1].phi;
         for (int in = 0; in < phi_u.Cols(); in++)

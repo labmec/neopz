@@ -15,6 +15,7 @@
 #include "pzstepsolver.h"
 #include "pzreducedspace.h"
 #include "pzskylstrmatrix.h"
+#include "TPZParFrontStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbuildmultiphysicsmesh.h"
 
@@ -298,12 +299,8 @@ void TPZPlaneFractureKernel::InitializeMeshes()
         {
             this->fmeshVec[0]->Solution()(r,0) = -(this->fPlaneFractureMesh->Max_MinCompressiveStress());
         }
-        for(int r = 0; r < this->fmeshVec[1]->Solution().Rows(); r++)
-        {
-            this->fmeshVec[1]->Solution()(r,0) = -(this->fPlaneFractureMesh->Max_MinCompressiveStress());
-        }
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
     }
+    PutConstantPressureOnFluidSolution();
     
     this->InitializePath3DVector();
 }
@@ -319,13 +316,24 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         std::cout << "\nNequacoes elastica 3D = " << neq << "\n";
     }
     TPZAnalysis * an = new TPZAnalysis(cmesh);
+
+    {
+        TPZSkylineStructMatrix skyl(cmesh); //caso simetrico
+        an->SetStructuralMatrix(skyl);
+        TPZStepSolver<REAL> stepS;
+        stepS.SetDirect(ECholesky);
+        an->SetSolver(stepS);
+    }
     
-    TPZSkylineStructMatrix full(cmesh); //caso simetrico
-    //full.SetNumThreads(4);
-    an->SetStructuralMatrix(full);
-    TPZStepSolver<REAL> stepS;
-    stepS.SetDirect(ECholesky);
-    an->SetSolver(stepS);
+//    {
+//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > skyl(cmesh);
+//        skyl.SetQuiet(true);
+//        skyl.SetNumberOfThreads(4);
+//        an->SetStructuralMatrix(skyl);
+//        TPZStepSolver<REAL> stepS;
+//        stepS.SetDirect(ECholesky);
+//        an->SetSolver(stepS);
+//    }
     
     int NStripes = this->fPlaneFractureMesh->NStripes();
 
@@ -462,7 +470,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         {
             //Quando o actDeltaT leva a um instante em que Vleakoff = Vinj, nao converge, necessitando
             //trazer o limite esquerdo do deltaT da bisseccao para a direita
-            globTimeControl.TimeisOnLeft(true);
+            globTimeControl.TimeisOnLeft();
             
             std::cout << "\nNao convergiu...\n";
             std::cout << "************* t está a Esquerda de KI=KIc *************\n";
@@ -475,7 +483,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
             
             if(thereWasNegativeW)
             {
-                globTimeControl.TimeisOnLeft(true);
+                globTimeControl.TimeisOnLeft();
                 
                 std::cout << "\nNegative W\n";
                 std::cout << "************* t está a Esquerda de KI=KIc *************\n";
@@ -494,7 +502,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
                 }
                 else
                 {
-                    globTimeControl.TimeisOnLeft(false);
+                    globTimeControl.TimeisOnLeft();
                     std::cout << "KI < KIc\n";
                     std::cout << "************* t está a Esquerda de KI=KIc *************\n";
                 }

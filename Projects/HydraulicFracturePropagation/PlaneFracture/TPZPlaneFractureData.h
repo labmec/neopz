@@ -38,7 +38,8 @@ public:
         
         factDeltaT = 0.;
         
-        fwasNegativeW = false;
+        fwasLeftLastTime = true;
+        freachTime_right = false;
     }
     
     ~TimeControl()
@@ -52,23 +53,37 @@ public:
         factTime = 0.;
         
         fDeltaT_left = 5.;
-        fDeltaT_right = MAX( 20.*fDeltaT_left , Ttot/10. );
+        fDeltaT_right = Ttot + 10.;
         
-        fwasNegativeW = true;
+        fwasLeftLastTime = true;
+        freachTime_right = false;
         
         ComputeActDeltaT();
     }
     
-    void TimeisOnLeft(bool wasNegativeW)
+    void TimeisOnLeft()
     {
-        fwasNegativeW = wasNegativeW;
+        fwasLeftLastTime = true;
         
-        fDeltaT_left = factDeltaT;
+        if(freachTime_right == false)
+        {
+            fDeltaT_left *= 2.;
+        }
+        else
+        {
+            fDeltaT_left = factDeltaT;
+        }
     }
     
     void TimeisOnRight()
     {
-        fwasNegativeW = false;
+        fwasLeftLastTime = false;
+        
+        if(freachTime_right == false)
+        {//1st time reach time on right from KI=KIc
+            fDeltaT_left = fDeltaT_left/2.;
+            freachTime_right = true;
+        }
         
         fDeltaT_right = factDeltaT;
     }
@@ -80,13 +95,13 @@ public:
     
     void ComputeActDeltaT()
     {
-        if(fwasNegativeW)
+        if(freachTime_right == false)
         {
-            factDeltaT = 0.60 * fDeltaT_left + 0.40 * fDeltaT_right;
+            factDeltaT = fDeltaT_left;
         }
         else
         {
-            factDeltaT = 0.50 * fDeltaT_left + 0.50 * fDeltaT_right;
+            factDeltaT = (fDeltaT_left + fDeltaT_right)/2.;
         }
     }
     
@@ -112,9 +127,10 @@ public:
     
     void RestartBissection()
     {
-        factDeltaT = factDeltaT/2.;
+        freachTime_right = false;
+        factDeltaT = MAX(5.,factDeltaT/4.);
         fDeltaT_left = factDeltaT;
-        fDeltaT_right *= 2.;
+        fDeltaT_right = fTtot + 10.;
     }
     
     bool ReachEndOftime()
@@ -130,14 +146,14 @@ public:
             DebugStop();
         }
         
-        bool isCloseEnough = (fDeltaT_right - fDeltaT_left) < 0.5;
-        if(fwasNegativeW && isCloseEnough)
+        bool isCloseEnough = (fDeltaT_right - fDeltaT_left) < 1.;
+        
+        if(isCloseEnough && fwasLeftLastTime)
         {
-            //O metodo de newton deve ter levado sempre para o limite da direita por estar
-            //com w negativo, necessitando de mais range entre os limites de deltaT.
-            fDeltaT_right += 10.;
+            fDeltaT_left = fDeltaT_right;
             isCloseEnough = false;
         }
+        
         return isCloseEnough;
     }
     
@@ -159,7 +175,8 @@ private:
     REAL fDeltaT_left;//deltaT cujo factTime+dt nao propagou a fratura (serah utilizado no metodo da bisseccao).
     REAL fDeltaT_right;//deltaT cujo factTime+dt propagou a fratura (serah utilizado no metodo da bisseccao).
     
-    bool fwasNegativeW;
+    bool fwasLeftLastTime;
+    bool freachTime_right;
 };
 
 
