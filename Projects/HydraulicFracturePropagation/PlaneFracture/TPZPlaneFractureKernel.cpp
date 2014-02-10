@@ -195,6 +195,9 @@ void TPZPlaneFractureKernel::Run()
             {
                 this->TransferElasticSolution(fractVolum);
                 this->TransferLastLeakoff(lastPressureCMesh);
+                PostProcessElasticity();
+                PostProcessSolutions();
+                DebugStop();
             }
             
             //Resolvendo o problema acoplado da nova geometria
@@ -294,14 +297,11 @@ void TPZPlaneFractureKernel::InitializeMeshes()
                                                                         this->fvisc,
                                                                         this->fpOrder);
     
-    if(this->fstep == 0)
+    //Chute inicial
+    this->fmeshVec[0]->Solution()(0,0) = 1.;
+    for(int r = 1; r < this->fmeshVec[0]->Solution().Rows(); r++)
     {
-        //Chute inicial da primeira interacao
-        this->fmeshVec[0]->Solution()(0,0) = 1.;
-        for(int r = 1; r < this->fmeshVec[0]->Solution().Rows(); r++)
-        {
-            this->fmeshVec[0]->Solution()(r,0) = -(this->fPlaneFractureMesh->Max_MinCompressiveStress());
-        }
+        this->fmeshVec[0]->Solution()(r,0) = -(this->fPlaneFractureMesh->Max_MinCompressiveStress());
     }
     PutConstantPressureOnFluidSolution();
     
@@ -384,7 +384,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
+void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTransferingElasticSolution)
 {
     TPZAnalysis * an = new TPZAnalysis(this->fmphysics);
     
@@ -424,12 +424,15 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         whoPropagate_KI.clear();
         propagate = false;
         
-        globTimeControl.ComputeActDeltaT();
-        
-        //Calculo da matriz de massa para o deltaT atual
-        if(this->fstep > 0)
+        if(justTransferingElasticSolution == false)
         {
-            this->MassMatrix(matMass);
+            globTimeControl.ComputeActDeltaT();
+            
+            //Calculo da matriz de massa para o deltaT atual
+            if(this->fstep > 0)
+            {
+                this->MassMatrix(matMass);
+            }
         }
         
         std::cout << "\n\ndtLeft = " << globTimeControl.LeftDeltaT() << "s " <<
@@ -471,6 +474,12 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
 
         if(normRes > tol)
         {
+            if(justTransferingElasticSolution)
+            {
+                std::cout << "\nNao convergiu na transferencia de solucao elastica...\n";
+                DebugStop();
+            }
+            
             //Quando o actDeltaT leva a um instante em que Vleakoff = Vinj, nao converge, necessitando
             //trazer o limite esquerdo do deltaT da bisseccao para a direita
             globTimeControl.TimeisOnLeft();
@@ -480,6 +489,11 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum)
         }
         else
         {
+            if(justTransferingElasticSolution)
+            {
+                return;
+            }
+            
             bool thereWasNegativeW = false;
             REAL negVol = 0.;
             volAcum = this->IntegrateW(thereWasNegativeW, negVol);
@@ -1020,9 +1034,9 @@ void TPZPlaneFractureKernel::PostProcessElasticity()
 #ifdef usingSWXGraphs
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
-    TPZVec<std::string> nodalSol(2), cellSol(0);
+    TPZVec<std::string> nodalSol(1), cellSol(0);
     nodalSol[0] = "Displacement";
-    nodalSol[1] = "StressY";
+    //nodalSol[1] = "StressY";
 
     grEl.GenerateVTKData(this->fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
     
@@ -1465,41 +1479,75 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
         std::cout << "\n\n\n************** TRANSFERINDO VOLUME PARA NOVA MALHA ELASTICA (PROPAGADA)\n";
     }
     
-    int rows = this->fmeshVec[0]->Solution().Rows();
-    int cols = this->fmeshVec[0]->Solution().Cols();
-    if(cols != 1)
+    if(this->fPlaneFractureMesh->NStripes() == 1)
     {
-        std::cout << "\n\n\nSoh era pra ter 1 coluna\n";
-        std::cout << "Ver " << __PRETTY_FUNCTION__ << ".\n";
-        DebugStop();
+        int rows = this->fmeshVec[0]->Solution().Rows();
+        int cols = this->fmeshVec[0]->Solution().Cols();
+        if(cols != 1)
+        {
+            std::cout << "\n\n\nSoh era pra ter 1 coluna\n";
+            std::cout << "Ver " << __PRETTY_FUNCTION__ << ".\n";
+            DebugStop();
+        }
+        
+        //Volume para alpha0 = 1 e alphas1 = 0
+        TPZFMatrix<REAL> wSol(rows, cols);
+        wSol.Zero();
+        wSol(0,0) = 1.;
+        this->fmeshVec[0]->LoadSolution(wSol);
+        REAL volAlpha1_ini = this->IntegrateW();
+        
+        //Volume para alpha0 = 1 e alphas1 != 0
+        for(int r = 1; r < rows; r++)
+        {
+            wSol(r,0) = 1.;
+        }
+        this->fmeshVec[0]->LoadSolution(wSol);
+        REAL volAlpha1_fin = this->IntegrateW();
+        
+        //Calculando alpha para as stripes
+        REAL alpha = (volAcum - volAlpha1_ini)/(volAlpha1_fin - volAlpha1_ini);
+        for(int r = 1; r < rows; r++)
+        {
+            wSol(r,0) *= alpha;
+        }
+        this->fmeshVec[0]->LoadSolution(wSol);
     }
-    
-    //Volume para alpha0 = 1 e alphas1 = 0
-    TPZFMatrix<REAL> wSol(rows, cols);
-    wSol.Zero();
-    wSol(0,0) = 1.;
-    this->fmeshVec[0]->LoadSolution(wSol);
-    REAL volAlpha1_ini = this->IntegrateW();
-    
-    //Volume para alpha0 = 1 e alphas1 != 0
-    for(int r = 1; r < rows; r++)
+    else
     {
-        wSol(r,0) = 1.;
+        REAL dtOrig = globTimeControl.actDeltaT();
+     
+        //DeltaT que, sem leakoff, deixa a fratura atual com o mesmo volume
+        REAL dtEquiv = -volAcum/(this->fQinj1wing_Hbullet*this->fHbullet);
+        globTimeControl.SetDeltaT(dtEquiv);
+        
+        globLeakoffStorage.DisableLeakoff();
+        this->RunThisFractureGeometry(volAcum, true);
+        globLeakoffStorage.RestoreDefaultLeakoff();
+        
+        globTimeControl.SetDeltaT(dtOrig);
+        
+//        REAL newVolAcum = this->IntegrateW();
+//        REAL alpha = volAcum/newVolAcum;
+//        
+//        //Sintonia fina (corrigindo eveltuais discrepancias entre volume antes e depois)
+//        if(fabs(volAcum - newVolAcum) > 1.E-10)
+//        {
+//            TPZFMatrix<REAL> newSolution = fmeshVec[0]->Solution();
+//            for(int r = 0; r < newSolution.Rows(); r++)
+//            {
+//                for(int c = 0; c < newSolution.Cols(); c++)
+//                {
+//                    newSolution(r,c) *= alpha;
+//                }
+//            }
+//            fmeshVec[0]->LoadSolution(newSolution);
+//        }
     }
-    this->fmeshVec[0]->LoadSolution(wSol);
-    REAL volAlpha1_fin = this->IntegrateW();
-    
-    //Calculando alpha para as stripes
-    REAL alpha = (volAcum - volAlpha1_ini)/(volAlpha1_fin - volAlpha1_ini);
-    for(int r = 1; r < rows; r++)
-    {
-        wSol(r,0) *= alpha;
-    }
-    this->fmeshVec[0]->LoadSolution(wSol);
     
     //Verificando se a correcao deu certo
     REAL newVolAcum = this->IntegrateW();
-    if(fabs(volAcum - newVolAcum) > 1.E-10)
+    if(fabs(volAcum - newVolAcum) > 1.E-5)
     {
         std::cout << "\n\n\nW nao manteve volume na transferencia de solucao elastica!!!\n";
         std::cout << "volAntes = " << volAcum << std::endl;

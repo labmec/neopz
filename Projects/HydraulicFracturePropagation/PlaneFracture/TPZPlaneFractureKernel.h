@@ -66,10 +66,10 @@ protected:
     
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
-     * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
-     * @param step [in] : time step
+     * @param volAcum [in] : Poligonal chain that represents the crack boundary
+     * @param justTransferingElasticSolution [in] : time step
      */
-    void RunThisFractureGeometry(REAL & volAcum);
+    void RunThisFractureGeometry(REAL & volAcum, bool justTransferingElasticSolution = false);
     
     REAL PredictFractVolume_WithNonNegativeUy();
     void PredictActDeltaT(REAL fractVolum);

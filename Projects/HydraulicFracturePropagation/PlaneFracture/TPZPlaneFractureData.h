@@ -188,6 +188,9 @@ public:
     {
         this->fGelId_Penetration.clear();
         this->fPressureIndependent = true;
+        
+        this->fDefaultLeakoffEnabled = true;
+        this->fLeakoffEnabled = this->fDefaultLeakoffEnabled;
     }
     ~LeakoffStorage()
     {
@@ -231,10 +234,28 @@ public:
     
     void Printleakoff(std::ofstream & outf);
     
+    void SetDefaultLeakoffEnabled(bool isEnabled)
+    {
+        this->fDefaultLeakoffEnabled = isEnabled;
+    }
+    
+    void DisableLeakoff()
+    {
+        fLeakoffEnabled = false;
+    }
+    
+    void RestoreDefaultLeakoff()
+    {
+        fLeakoffEnabled = fDefaultLeakoffEnabled;
+    }
+    
 protected:
     std::map<int,REAL> fGelId_Penetration;
     
     bool fPressureIndependent;
+    
+    bool fLeakoffEnabled;
+    bool fDefaultLeakoffEnabled;
 };
 
 

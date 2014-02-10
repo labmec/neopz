@@ -16,7 +16,6 @@
 #include "pzgeotriangle.h"
 #include "pzgeoquad.h"
 
-//#define NOleakoff
 
 void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
 {
@@ -117,11 +116,14 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         REAL tStar = FictitiousTime(VlAcum, pfrac, Cl, Pe, gradPref, vsp);
         REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
         
-#ifdef NOleakoff
-        it->second = 0.;
-#else
-        it->second = Vlnext;
-#endif
+        if(fLeakoffEnabled)
+        {
+            it->second = Vlnext;
+        }
+        else
+        {
+            it->second = 0.;
+        }
         
         outVlCount++;
     }
@@ -188,15 +190,16 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
         it = fGelId_Penetration.find(gelId);
     }
     
-#ifdef NOleakoff
-    return 0.;
-#endif
+    REAL Ql = 0.;
     
-    REAL VlAcum = it->second;
-    
-    REAL tStar = FictitiousTime(VlAcum, pfrac, Cl, Pe, gradPref, vsp);
-    REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
-    REAL Ql = (Vlnext - VlAcum)/deltaT;
+    if(fLeakoffEnabled)
+    {
+        REAL VlAcum = it->second;
+        
+        REAL tStar = FictitiousTime(VlAcum, pfrac, Cl, Pe, gradPref, vsp);
+        REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
+        Ql = (Vlnext - VlAcum)/deltaT;
+    }
     
     return Ql;
 }
@@ -210,9 +213,10 @@ REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe
         it = fGelId_Penetration.find(gelId);
     }
     
-#ifdef NOleakoff
-    return 0.;//There is no leakoff.
-#endif
+    if(fLeakoffEnabled == false)
+    {
+        return 0.;//There is no leakoff.
+    }
     
     if(fPressureIndependent)
     {
