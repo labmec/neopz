@@ -649,10 +649,6 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 
 void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe)
 {
-    if(actStripe > 0)
-    {
-        std::cout << "";
-    }
     for(int lay = 0; lay < fLayerVec.NElements(); lay++)
     {
         for(int stripe = 0; stripe < fnstripes; stripe++)
