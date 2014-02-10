@@ -38,33 +38,32 @@ include_directories(
 
 ## inserting main definitions
 #specifying the path to neopz source code
-add_definitions(-DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
+set(PZSOURCEDIR ${PROJECT_SOURCE_DIR})
+add_definitions(-DPZSOURCEDIR=\"${PZSOURCEDIR}\")
 #specify where the refinement patterns can be found (default behaviour when running the code)
-add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
+set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
+add_definitions(-DREFPATTERNDIR=\"${REFPATTERNDIR}\")
 
 
 #Defining variables
 #To cmake
-	string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DDEBUG" val)
-	if(${val} LESS 0)
-		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
-	endif()
-	string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
-	if(${val} LESS 0)
-		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
-	endif()
-	# Edson: adding -DNDEBUG -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL.
-	# Philippe, why do we need ZERO_INTERNAL_RESIDU and MAKEINTERNAL?
- 	#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
-#To search files or libraries
-	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
+string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DDEBUG" val)
+if(${val} LESS 0)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+endif()
+string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
+if(${val} LESS 0)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
+endif()
 
+# Location to search files or libraries
+set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
+
+# INSTALL part
 #To install neopz/include
-#	set(NEOPZ_INCLUDE ${PROJECT_SOURCE_DIR}/../externallibs/neopz/include)
-	set(NEOPZ_INCLUDE pzlib/include)
+set(NEOPZ_INCLUDE pzlib/include)
 #To install neopz library
-#	set(NEOPZ_LIB ${PROJECT_SOURCE_DIR}/../externallibs/neopz/lib)
-	set(NEOPZ_LIB pzlib/lib)
+set(NEOPZ_LIB pzlib/lib)
 
 #ENABLING EXTERNAL LIBRARIES
 
@@ -107,7 +106,9 @@ endif(USING_BOOST)
 #enabling FAD library
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 if(USING_FAD)
-	add_definitions(-D_AUTODIFF)
+	#Adding a variable to hold this definition
+	set(_AUTODIFF _AUTODIFF)
+	add_definitions(-D${_AUTODIFF})
 	find_path(FAD_INCLUDE fad.h PATHS ${SEARCH_DIRS} ./../FAD ./FAD ./externallibs/FAD ./../externallibs/FAD)
 	if(FAD_INCLUDE-NOTFOUND)
 		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
@@ -119,7 +120,9 @@ endif(USING_FAD)
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
-	add_definitions(-DLOG4CXX)
+	#Adding a variable to hold this definition
+	set(LOG4CXX LOG4CXX)
+	add_definitions(-D${LOG4CXX})
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../log4cxx ${PROJECT_SOURCE_DIR}/../log4cxx_src/include ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src/include)
 	find_library(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib/${CMAKE_CONFIGURATION_TYPE})
 	if(LOG4CXX_INCLUDE-NOTFOUND)
@@ -361,7 +364,7 @@ elseif (REAL_TYPE STREQUAL "pzfpcounter")
 else()
   message (FATAL_ERROR "ERROR: Please specify a valid type for REAL. ${REALTypesAre}")
 endif()
-message ("Using REAL type = ${REAL_TYPE}")
+message (STATUS "Using REAL type = ${REAL_TYPE}")
 
 #To select type of STATE
 set(STATETypesAre "Types are: double, float, long double, complex<float>, complex<double>, complex<long double>")
@@ -394,11 +397,13 @@ elseif (STATE_TYPE STREQUAL "complex<long double>")
 else()
   message (FATAL_ERROR "ERROR: Please specify a valid type for STATE. ${STATETypesAre}")
 endif()
-message ("Using STATE type = ${STATE_TYPE}")
+message (STATUS "Using STATE type = ${STATE_TYPE}")
 
-#Writing type definitions on config.h
+# Some definitions for windows
 if(WIN32)
-	set(VC "#define VC")
+	#add a define saying it is a VC compiler
+	set(VC "#Will add a define VC on config.h")
+	add_definitions(-DVC)
 	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
 	#disabling VC warnings
@@ -410,18 +415,17 @@ if(WIN32)
 	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
 endif()
-set(CONFIG_H "${CMAKE_BINARY_DIR}/Common/config.h")
-set(FILE_DEFINITIONS "${CONFIG_H}")
-FILE(WRITE ${FILE_DEFINITIONS}
-"#ifndef ${REAL_TYPE_DEF}\n#define ${REAL_TYPE_DEF}\n#endif\n"
-"#ifndef ${STATE_TYPE_DEF}\n#define ${STATE_TYPE_DEF}\n#endif\n"
-"${VC}\n"
-)
-#Specify where the config.h is located and add it to install list
-include_directories("${CMAKE_BINARY_DIR}/Common")
-install(FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
 
-set(pz_configh ${CONFIG_H})# PARENT_SCOPE)
+# Begin of config.h part
+# This file contains all definitions used to compile the library pz
+# this will be saved at include diretory in the install target
+set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/config.h")
+configure_file ("${PROJECT_SOURCE_DIR}/Common/config.h.in" ${CONFIG_H})
+# add it to include search path
+include_directories("${PROJECT_BINARY_DIR}/Common")
+# add the .h file in the install target
+install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
+# End of config.h part
 
 #increment all the directories where the sources files is
 if(NOT BUILD_COMPLEX_PROJECTS)
@@ -486,28 +490,4 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #To force XCode to use standard library c++ = libstdc++ (Required after upgrading to XCode 5)
 SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
-#################################################################3
 
-#Creating log file to cmake process  -- it's temporary, only to check variable contents
-#set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt" CACHE STRING "Log file to control CMake process" ) 
-
-#If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
-#foreach(arq ${makefiles}) 
-#	string(FIND ${arq} "Project" val)
-#	if(${val} LESS 0)
-#		string(FIND ${arq} "UnitTest" val)
-#		if(${val} GREATER -1)
-#			list(APPEND makefilesunittest ${arq})
-#		else()
-#			string(FIND ${arq} "lib" val)
-#			if(val LESS 0)
-#				string(FIND ${arq} "neopz/CMakeList" val)
-#				if(val LESS 0)
-#					list(APPEND makefilespz ${arq})
-#				endif()
-#			endif()
-#		endif()
-#	else()
-#		list(APPEND makefilesproject ${arq})
-#	endif()
-#endforeach()

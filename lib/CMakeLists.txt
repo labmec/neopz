@@ -49,7 +49,6 @@ set(pzsources
 	${pzsubstruct_STAT_SRCS}
         ${pztopology_STAT_SRCS} 
 	${pzutil_STAT_SRCS} 
-	${pz_configh}
 	)
 
 #creating target pz library and installing it
