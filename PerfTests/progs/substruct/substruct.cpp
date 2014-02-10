@@ -561,10 +561,6 @@ int main(int argc, char *argv[])
     
 
 
-	std::cout << "pause "<< std::endl;
-	int asd;
-	cin >> asd;
-
     if (running) {
         
         /* Work after checkpoint 3 */
