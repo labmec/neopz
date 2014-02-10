@@ -193,8 +193,8 @@ protected:
     
     bool fUncoupled;
     
-    int actColor = 0;
-    std::string color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
+    int actColor;
+    static const std::string color[];
 };
 
 class BezierCurve

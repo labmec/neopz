@@ -36,8 +36,11 @@
 //Utilize 1. para output (Mathematica) em metros e 3.280829131 para output (Mathematica) em foot
 const REAL feet = 1.;//3.280829131;
 
+//Inicializando vetor de cores
+const std::string TPZPlaneFractureKernel::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
 
-TPZPlaneFractureKernel::TPZPlaneFractureKernel()
+
+TPZPlaneFractureKernel::TPZPlaneFractureKernel() : actColor(0)
 {
     DebugStop();//Use constructor below;
 }
@@ -50,7 +53,7 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
                                                REAL MaxDispl_ini,
                                                REAL MaxDispl_fin,
                                                bool pressureIndependent,
-                                               bool uncoupled)
+                                               bool uncoupled) : actColor(0)
 {
     if(nstripes < 1)
     {
