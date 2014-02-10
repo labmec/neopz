@@ -19,7 +19,7 @@ typename TPZDohrSubstructCondense<TVar>::EWeightType TPZDohrSubstructCondense<TV
 
 
 template<class TVar>
-TPZDohrSubstructCondense<TVar>::TPZDohrSubstructCondense() : fNEquations(-1), fNumInternalEquations(-1), fNumExternalEquations(-1)
+TPZDohrSubstructCondense<TVar>::TPZDohrSubstructCondense() : fNEquations(-1), fNumInternalEquations(-1), fNumExternalEquations(-1), wasRealloc(false)
 {
 	//Inicializacao
 }

@@ -106,6 +106,7 @@ public:
             
             TPZDohrPrecondV2SubData<TVar,TSubStruct> data  = mWorkItems[i];
             data.fInput_local.ReallocForNuma(0);
+			data.fSubStructure->ReallocMatRed();
             data.fSubStructure->Contribute_v2_local(data.fInput_local, data.fv2_local->fAssembleData);
             fAssemblyStructure->AddItem(data.fv2_local);
         }

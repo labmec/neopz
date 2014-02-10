@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file
  * @brief Contains implementations of the TPZMatLaplacian methods.
  */

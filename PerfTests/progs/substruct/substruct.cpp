@@ -559,6 +559,12 @@ int main(int argc, char *argv[])
     int neq, iterations;
     neq = iterations = 0;
     
+
+
+	std::cout << "pause "<< std::endl;
+	int asd;
+	cin >> asd;
+
     if (running) {
         
         /* Work after checkpoint 3 */

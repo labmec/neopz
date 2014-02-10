@@ -36,6 +36,9 @@ public:
     
     static EWeightType fWeightType;
 	
+	/** @TODO Remove this - For PerfTests Only */
+	void ReallocMatRed() {};
+
     /**
      * @brief ContributeResidual
      * @param u is the global solution
