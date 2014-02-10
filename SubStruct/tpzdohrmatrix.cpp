@@ -29,10 +29,137 @@ TPZDohrMatrix<TVar,TSubStruct>::~TPZDohrMatrix()
 {
 }
 
+/** Threading Building Blocks */
+
+#ifdef USING_TBB
+#include "tbb/parallel_for.h"
+#include "tbb/blocked_range.h"
+#include "tbb/partitioner.h"
+using namespace tbb;
+#endif
+
+#include "arglib.h"
+
+clarg::argBool mult_tbb2("-mult_tbb_dohr", "TPZDohrPrecond MultAdd using TBB", false);
+
+#ifdef USING_TBB
+affinity_partitioner ap2;
+#endif
+
+template<class TVar, class TSubStruct>
+class ParallelAssembleTaskMatrix
+{
+private:
+    /** @brief Array of work items */
+    std::vector<TPZDohrThreadMultData<TSubStruct> > mWorkItems;
+    
+    /** @brief The vector with which we will multiply */
+	const TPZFMatrix<TVar> *fInput;
+	/** @brief Scalar multiplication factor */
+	TVar fAlpha;
+	/** @brief Mutex which will enable the access protection of the list */
+	pthread_mutex_t fAccessLock;
+	/** @brief The data structure which defines the assemble destinations */
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
+	/** @brief The list of data objects which need to treated by the threads */
+	std::list<TPZDohrThreadMultData<TSubStruct> > fWork;
+	/** @brief The local contribution to the v2 vector */
+	TPZAutoPointer<TPZDohrAssembleList<TVar> > fAssemblyStructure;
+	
+	
+    
+public:
+    
+    /** @brief Constructor */
+    ParallelAssembleTaskMatrix(const TPZFMatrix<TVar> &x, TVar alpha, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemblestruct) : fInput(&x), fAlpha(alpha), fAssembly(assembly), fAssemblyStructure(assemblestruct) {};
+    
+    /** @brief Add a new work item to the array */
+    void addWorkItem(TPZDohrThreadMultData<TSubStruct> data) {
+        mWorkItems.push_back(data);
+    }
+    
+#ifdef USING_TBB
+    /** @brief Computing operator for the parallel for. */
+    void operator()(const blocked_range<size_t>& range) const
+    {
+        
+        for(size_t i=range.begin(); i!=range.end(); ++i )
+        {
+            TPZDohrThreadMultData<TSubStruct> runner = mWorkItems[i];
+            TPZFMatrix<TVar> xlocal;
+            fAssembly->Extract(runner.fisub,*(fInput),xlocal);
+            TPZAutoPointer<TPZDohrAssembleItem<TVar> > assembleItem = new TPZDohrAssembleItem<TVar>(runner.fisub,xlocal.Rows(),xlocal.Cols());
+            runner.fSub->ContributeKULocal(fAlpha,xlocal,assembleItem->fAssembleData);
+            fAssemblyStructure->AddItem(assembleItem);
+        }
+    }
+    
+    /** Execute work items in parallel. */
+    void run_parallel_for(affinity_partitioner &ap)
+    {
+        /* TBB Parallel for. It will split the range
+         * into N sub-ranges and
+         * invoke the operator() for each sub-range.
+         */
+        parallel_for(blocked_range<size_t>(0, mWorkItems.size()), *this, ap);
+    }
+#endif
+    
+    
+}; /* ParallelAssembleTask */
+
+template<class TVar, class TSubStruct>
+void TPZDohrMatrix<TVar,TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+                                                const TVar alpha,const TVar beta,const int opt,const int stride) const
+{
+
+#ifdef USING_TBB
+    std::cout << "Mult TBB DorhMatrix" << std::endl;
+    
+	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
+		this->Error( "Operator* <matrixs with incompatible dimensions>" );
+	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
+	}
+	this->PrepareZ(y,z,beta,opt,stride);
+	
+    
+    unsigned int nglob = fGlobal.size();
+    TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(nglob,z,this->fAssembly);
+    
+    ParallelAssembleTaskMatrix<TVar,TSubStruct> multwork(x,alpha,fAssembly,assemblelist);
+    typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator iter;
+    int isub=0;
+    for (iter=fGlobal.begin(); iter!=fGlobal.end(); iter++,isub++) {
+        TPZDohrThreadMultData<TSubStruct> data(isub,*iter);
+        
+        multwork.addWorkItem(data);
+    }
+    TPZVec<pthread_t> AllThreads(1);
+    
+    multwork.run_parallel_for(ap2);
+    
+    PZ_PTHREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList<TVar>::Assemble, 
+                      assemblelist.operator->(), __FUNCTION__);
+    
+    void *result;
+    PZ_PTHREAD_JOIN(AllThreads[0], &result, __FUNCTION__);
+#endif    
+    
+}
+
+
 template<class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 											 const TVar alpha,const TVar beta,const int opt,const int stride) const
 {
+    
+    
+    if (mult_tbb2.get_value() == true) {
+        MultAddTBB(x, y, z, alpha, beta, opt, stride);
+        return;
+    }
+        
 	TPZfTime mult;
 	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
 		this->Error( "Operator* <matrixs with incompatible dimensions>" );
@@ -78,16 +205,16 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 		TPZVec<pthread_t> AllThreads(fNumThreads+1);
 		int i;
 		for (i=0; i<fNumThreads; i++) {
-		  PZ_PTHREAD_CREATE(&AllThreads[i+1], 0, (TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork), 
-				    &multwork, __FUNCTION__);
+            PZ_PTHREAD_CREATE(&AllThreads[i+1], 0, (TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork), 
+                              &multwork, __FUNCTION__);
 		}
         //sleep(1);
 		PZ_PTHREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList<TVar>::Assemble, 
-				  assemblelist.operator->(), __FUNCTION__);
+                          assemblelist.operator->(), __FUNCTION__);
 		
 		for (i=0; i<fNumThreads+1; i++) {
-		  void *result;
-		  PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
+            void *result;
+            PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
 		}
 	}
 	tempo.fMultiply.Push(mult.ReturnTimeDouble());
@@ -218,26 +345,26 @@ int TPZDohrMatrix<std::complex<double>, TPZDohrSubstruct<std::complex<double> > 
 template <class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
 {
-  SAVEABLE_SKIP_NOTE(buf);
+    SAVEABLE_SKIP_NOTE(buf);
     TPZMatrix<TVar>::Read(buf, context);
     fAssembly = new TPZDohrAssembly<TVar>;
-  SAVEABLE_SKIP_NOTE(buf);
+    SAVEABLE_SKIP_NOTE(buf);
     fAssembly->Read(buf);
-  SAVEABLE_SKIP_NOTE(buf);
+    SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&fNumCoarse);
-  SAVEABLE_SKIP_NOTE(buf);
+    SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&fNumThreads);
     int sz;
-  SAVEABLE_SKIP_NOTE(buf);
+    SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&sz);
     for (int i=0; i<sz; i++) {
         TPZAutoPointer<TSubStruct > sub = new TSubStruct;
-	SAVEABLE_SKIP_NOTE(buf);
+        SAVEABLE_SKIP_NOTE(buf);
         sub->Read(buf,0);
         fGlobal.push_back(sub);
     }
     int classid;
-  SAVEABLE_SKIP_NOTE(buf);
+    SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&classid );
     if (classid != ClassId()) {
         DebugStop();
@@ -251,25 +378,25 @@ void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
 template <class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
 {
-  SAVEABLE_STR_NOTE(buf,"TPZMatrix<TVar>::Write ()");
+    SAVEABLE_STR_NOTE(buf,"TPZMatrix<TVar>::Write ()");
     TPZMatrix<TVar>::Write(buf, withclassid);
-  SAVEABLE_STR_NOTE(buf,"fAssembly->Write");
+    SAVEABLE_STR_NOTE(buf,"fAssembly->Write");
     fAssembly->Write(buf);
-   SAVEABLE_STR_NOTE(buf,"fNumCoarse");
+    SAVEABLE_STR_NOTE(buf,"fNumCoarse");
     buf.Write(&fNumCoarse);
-   SAVEABLE_STR_NOTE(buf,"fNumThreads");
+    SAVEABLE_STR_NOTE(buf,"fNumThreads");
     buf.Write(&fNumThreads);
     typename SubsList::iterator it;
     int size = fGlobal.size();
-   SAVEABLE_STR_NOTE(buf,"fGlobal.size()");
+    SAVEABLE_STR_NOTE(buf,"fGlobal.size()");
     buf.Write(&size);
     for (it=fGlobal.begin(); it != fGlobal.end(); it++) {
-      SAVEABLE_STR_NOTE(buf,"fGlobal[...]");
+        SAVEABLE_STR_NOTE(buf,"fGlobal[...]");
         (*it)->Write(buf,0);
     }
     size = 0;
     int classid = ClassId();
-   SAVEABLE_STR_NOTE(buf,"ClassId");
+    SAVEABLE_STR_NOTE(buf,"ClassId");
     buf.Write(&classid );
 }
 
