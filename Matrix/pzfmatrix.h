@@ -154,6 +154,7 @@ public:
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+    
 	
 	static void MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 );
@@ -353,7 +354,8 @@ template<class TVar>
 inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*( TPZFMatrix<TVar> A ) const {
 	if ( this->Cols() != A.Rows() )
 		Error( "Operator* <matrixs with incompatible dimensions>" );
-        TPZFMatrix<TVar> res;
+    
+    TPZFMatrix<TVar> res;
 	res.Redim( this->Rows(), A.Cols() );
 	MultAdd(A,A,res,1.,0.,0);
 	return( res );

@@ -29,6 +29,14 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
+#ifdef USING_BLAS
+/** blas math library */
+#include "cblas.h"
+#include <stdlib.h>
+
+#endif
+
+
 //#define IsZero( a )  ( fabs(a) < 1.e-20)
 
 // #ifdef USING_ATLAS
@@ -417,6 +425,7 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
 
 template <class TVar>
 void TPZFMatrix<TVar>::ConstMultiply(const TPZFMatrix<TVar> & x,TPZFMatrix<TVar> & B,const int opt) const{
+    
 	if (!opt){
 		if (this->Cols() != x.Rows()){
 			Error( "Error in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied" );
@@ -465,6 +474,8 @@ template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 							   const TVar alpha,const TVar beta ,const int opt ,const int stride)
 {
+    
+    
 	if ((!opt && cols*stride != x.Rows()) || (opt && rows*stride != x.Rows())) {
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
 		return;
@@ -539,6 +550,40 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 	}
 }
 
+#ifdef USING_BLAS
+template<> 
+void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<double> &y, TPZFMatrix<double> &z,
+                                 const double alpha,const double beta,const int opt,const int stride) const {
+    
+    int brows = this->Rows();
+	int bcols = this->Cols();
+    int bxrows = x.Rows();
+	int bxcols = x.Cols();
+    
+    z = y;
+    
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                brows, bxcols, bcols, alpha, fElem, brows, x.fElem, bxrows, beta, z.fElem, brows);
+    
+}
+
+template<> 
+void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<float> &y, TPZFMatrix<float> &z,
+                                 const float alpha,const float beta,const int opt,const int stride) const {
+    
+    int brows = this->Rows();
+	int bcols = this->Cols();
+    int bxrows = x.Rows();
+	int bxcols = x.Cols();
+    
+    z = y;
+    
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                brows, bxcols, bcols, alpha, fElem, brows, x.fElem, bxrows, beta, z.fElem, brows);
+    
+}
+#endif
+
 /**
  * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
  * @param x Is x on the above operation
@@ -552,6 +597,8 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 							   const TVar alpha,const TVar beta,const int opt,const int stride) const {
+    
+    
 	if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
 		return;
@@ -1215,7 +1262,7 @@ int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
 	//return 0;
 	
 	int dim=this->Dim();
-
+    
 	for (int i=0 ; i<dim; i++) {
 		
         TVar * diagPtr = &(this->operator()(i,i));
