@@ -197,6 +197,7 @@ void TPZPlaneFractureKernel::Run()
                 this->TransferLastLeakoff(lastPressureCMesh);
                 PostProcessElasticity();
                 PostProcessSolutions();
+                PostProcessPressure();
                 DebugStop();
             }
             
@@ -394,8 +395,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
     
     int nEq = this->fmphysics->NEquations();
     
-    int nrows = an->Solution().Rows();
-    TPZFMatrix<REAL> matRes_total(nrows,1,0.);
+    TPZFMatrix<REAL> matRes_total(nEq,1,0.);
 
     TPZFMatrix<REAL> Sol_0 = this->fmphysics->Solution();
     
@@ -455,13 +455,13 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
             an->Rhs() = matRes_total;
             an->Solve();
             
-            TPZFMatrix<REAL> Sol_1_minun_Sol_0 = an->Solution();
-            TPZFMatrix<REAL> Sol_1 = Sol_1_minun_Sol_0 + Sol_0;
+            TPZFMatrix<REAL> Sol_1_minus_Sol_0 = an->Solution();
+            TPZFMatrix<REAL> Sol_1 = Sol_1_minus_Sol_0 + Sol_0;
             an->LoadSolution(Sol_1);
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
 
-            Sol_0 = an->Solution();
+            Sol_0 = Sol_1;
 
             matRes_partial.Zero();
             this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, posBlock);
@@ -782,6 +782,10 @@ void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<REAL> & massMat)
 
 void TPZPlaneFractureKernel::CheckConv()
 {
+    std::cout << "\n\n\nInside CheckConv\n\n\n";
+    
+    globTimeControl.ComputeActDeltaT();
+    
     long neq = this->fmphysics->NEquations();
     int nsteps = 10;
     
@@ -802,10 +806,6 @@ void TPZPlaneFractureKernel::CheckConv()
     
     long posBlock = -1;
     AssembleStiffMatrixLoadVec(an, fL_xIni, f_xIni, posBlock);
-    if(fL_xIni->Rows() != neq || fL_xIni->Cols() != neq || fL_xIni->IsDecomposed())
-    {
-        DebugStop();
-    }
     
     TPZFMatrix<REAL> fAprox_x(neq,1);
     TPZFMatrix<REAL> fExato_x(neq,1);
@@ -893,6 +893,8 @@ void TPZPlaneFractureKernel::CheckConv()
     {
         std::cout << ( log(errorNorm(j,0)) - log(errorNorm(j-1,0)) )/( log(alphas[j]) - log(alphas[j-1]) ) << "\n";
     }
+    std::cout << "\n\n\nEnding CheckConv\n\n\n";
+    DebugStop();
 }
 //------------------------------------------------------------------------------------------------------------
 
