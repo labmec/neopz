@@ -296,11 +296,12 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
     
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->AutoBuild();
+    
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
-    
-    this->IncreasePOrderOnFracture(cmesh,porder);
 
+    this->IncreasePOrderOnFracture(cmesh,porder);
+    
     return cmesh;
 }
 //------------------------------------------------------------------------------------------------------------
@@ -477,6 +478,7 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
     
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh);
     cmesh->AutoBuild();
+    
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
     cmesh->LoadReferred(cmeshRef);
@@ -633,6 +635,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
     
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     cmesh->AutoBuild();
+    
 	cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
     
@@ -640,8 +643,6 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 	TPZBuildMultiphysicsMesh::AddElements(meshvec,cmesh);
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,cmesh);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec,cmesh);
-    
-//    this->IncreasePOrderOnFracture(cmesh, porder);
     
     return cmesh;
 }
