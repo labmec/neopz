@@ -308,6 +308,8 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
 
 void TPZPlaneFractureMesh::IncreasePOrderOnFracture(TPZCompMesh * cmesh, int oldPorder)
 {
+    cmesh->LoadReferences();
+    
     //Capturando os elementos envolvidos diretamente
     std::set<int> porder2Indexes;
     for(int el = 0; el < cmesh->Reference()->NElements(); el++)
@@ -376,7 +378,7 @@ void TPZPlaneFractureMesh::IncreasePOrderOnFracture(TPZCompMesh * cmesh, int old
         {
             TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(elastGel->Reference());
             intel->PRefine(greatherPOrder);
-            //            elData[elastGel->Reference()->Index()] = greatherPOrder;
+            //            elData[elastGel->Reference()->Index()] = greatherPOrder;//VTK
         }
         else
         {
@@ -390,7 +392,7 @@ void TPZPlaneFractureMesh::IncreasePOrderOnFracture(TPZCompMesh * cmesh, int old
                 {
                     TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(sonGel->Reference());
                     intel->PRefine(greatherPOrder);
-                    //                    elData[sonGel->Reference()->Index()] = greatherPOrder;
+                    //                    elData[sonGel->Reference()->Index()] = greatherPOrder;//VTK
                 }
             }
         }
@@ -417,9 +419,9 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
         
-        STATE prestressXX = fLayerVec[lay].fSigmaMax;
-        STATE prestressYY = fLayerVec[lay].fSigmaMin;
-        STATE prestressZZ = fLayerVec[lay].fSigmaConf;
+        STATE prestressXX = 0.;
+        STATE prestressYY = 0.;
+        STATE prestressZZ = 0.;
         
         ////Rock
         TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force,
@@ -483,6 +485,8 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
 	cmesh->CleanUpUnconnectedNodes();
     cmesh->LoadReferred(cmeshRef);
     
+    //this->IncreasePOrderOnFracture(cmesh,porder);//???
+    
     return cmesh;
 }
 //------------------------------------------------------------------------------------------------------------
@@ -494,7 +498,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
     TPZCompMesh * cmesh = new TPZCompMesh(fRefinedMesh);
     
     cmesh->SetDimModel(2);
-    cmesh->SetDefaultOrder(porder);
+    cmesh->SetDefaultOrder(porder);//???
     
     TPZFMatrix<REAL> xk(1,1,1.);
     TPZFMatrix<REAL> xc(1,1,0.);
@@ -638,6 +642,8 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
     
 	cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
+    
+    //this->IncreasePOrderOnFracture(cmesh,porder);//???
     
     // Creating multiphysic elements into mphysics computational mesh
 	TPZBuildMultiphysicsMesh::AddElements(meshvec,cmesh);
