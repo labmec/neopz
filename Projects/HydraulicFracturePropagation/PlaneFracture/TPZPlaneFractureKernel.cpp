@@ -195,10 +195,6 @@ void TPZPlaneFractureKernel::Run()
             {
                 this->TransferElasticSolution(fractVolum);
                 this->TransferLastLeakoff(lastPressureCMesh);
-                PostProcessElasticity();
-                PostProcessSolutions();
-                PostProcessPressure();
-                DebugStop();
             }
             
             //Resolvendo o problema acoplado da nova geometria
@@ -919,10 +915,6 @@ void TPZPlaneFractureKernel::UpdateLeakoff()
         std::cout << "volInjected = " << volInjected << "\n";
         std::cout << "volW = " << volW << "\n";
         std::cout << "Expected = volInjected - volW = " << volLeakoffExpected << "\n\n\n";
-        {
-            PostProcessSolutions();
-            PostProcessElasticity();
-        }
         DebugStop();
     }
     if(fabs(volLeakoffComputed) > 1.E-10)
@@ -1036,9 +1028,9 @@ void TPZPlaneFractureKernel::PostProcessElasticity()
 #ifdef usingSWXGraphs
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
-    TPZVec<std::string> nodalSol(1), cellSol(0);
+    TPZVec<std::string> nodalSol(2), cellSol(0);
     nodalSol[0] = "Displacement";
-    //nodalSol[1] = "StressY";
+    nodalSol[1] = "StressY";
 
     grEl.GenerateVTKData(this->fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
     
@@ -1519,7 +1511,7 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
     {
         REAL dtOrig = globTimeControl.actDeltaT();
      
-        //DeltaT que, sem leakoff, deixa a fratura atual com o mesmo volume
+        //DeltaT que, sem leakoff, deixa a fratura atual com o mesmo volume fornecido como parametro
         REAL dtEquiv = -volAcum/(this->fQinj1wing_Hbullet*this->fHbullet);
         globTimeControl.SetDeltaT(dtEquiv);
         
