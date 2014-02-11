@@ -246,8 +246,15 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
         //gradient reconstruction
         GradientReconstructionByLeastSquares(cel, center, solalfa, Grad,var);
         
+	TPZManVector<STATE,3> gradient;
+	
+	gradient.Resize(Grad.Rows());
+	for (int i = 0; i < Grad.Rows(); i++) {
+	  gradient[i] = Grad(i);
+	}
+	
         //set data of the gradient reconstructed
-        pGrad->SetData(center, Grad, solalfa[0]);
+	pGrad->SetData(center, gradient, (STATE)1., solalfa[0]);
         
         //change material id current to material id of the L2ProjectionMaterial
         ChangeMaterialIdIntoCompElement(cel, matid, matid_l2proj);
