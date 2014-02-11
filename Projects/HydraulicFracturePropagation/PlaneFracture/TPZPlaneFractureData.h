@@ -237,6 +237,7 @@ public:
     void SetDefaultLeakoffEnabled(bool isEnabled)
     {
         this->fDefaultLeakoffEnabled = isEnabled;
+        this->fLeakoffEnabled = isEnabled;
     }
     
     void DisableLeakoff()
