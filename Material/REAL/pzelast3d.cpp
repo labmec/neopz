@@ -59,6 +59,20 @@ TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999
 
 TPZElasticity3D::~TPZElasticity3D(){}
 
+void TPZElasticity3D::SetPreStress(REAL preXX, REAL preYY, REAL preZZ)
+{
+    fPreStress[0] = preXX;
+    fPreStress[1] = preYY;
+    fPreStress[2] = preZZ;
+}
+
+void TPZElasticity3D::GetPreStress(REAL & preXX, REAL & preYY, REAL & preZZ)
+{
+    preXX = fPreStress[0];
+    preYY = fPreStress[1];
+    preZZ = fPreStress[2];
+}
+
 TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
                                                               C1(-999.),C2(-999.),C3(-999.),fForce(cp.fForce),
                                                               fPostProcessDirection(cp.fPostProcessDirection), fFy(cp.fFy),

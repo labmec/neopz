@@ -36,6 +36,9 @@
 //Utilize 1. para output (Mathematica) em metros e 3.280829131 para output (Mathematica) em foot
 const REAL feet = 1.;//3.280829131;
 
+const REAL minAlpha = 15.;
+const REAL maxAlpha = 20.;
+
 //Inicializando vetor de cores
 const std::string TPZPlaneFractureKernel::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
 
@@ -510,7 +513,6 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
                     globTimeControl.TimeisOnRight();
                     std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n";
                     std::cout << "************* t está a Direita de KI=KIc *************\n";
-                    REAL maxAlpha = 10.;//<<<<<<<<<<<<<<<<<<<<
                     maxKIacceptable = (maxKI/respectiveKIc < maxAlpha);
                 }
                 else
@@ -1026,18 +1028,24 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff()
 void TPZPlaneFractureKernel::PostProcessElasticity()
 {
 #ifdef usingSWXGraphs
+    
+    this->PutPreStressOnElastReduced();
+    
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
-    TPZVec<std::string> nodalSol(2), cellSol(0);
+    TPZVec<std::string> nodalSol(1), cellSol(0);
     nodalSol[0] = "Displacement";
-    nodalSol[1] = "StressY";
-
+    //nodalSol[1] = "StressY";
+    
     grEl.GenerateVTKData(this->fmeshVec[0], 3, 0., nodalSol, cellSol, grMesh);
     
     std::stringstream nm;
     nm << "Elasticity_Step" << this->fstep << ".vtk";
     std::ofstream file(nm.str().c_str());
     grMesh.ToParaview(file);
+    
+    this->ClearPreStressOnElastReduced();
+    
 #endif
 }
 //------------------------------------------------------------------------------------------------------------
@@ -1286,6 +1294,8 @@ REAL TPZPlaneFractureKernel::ComputeVolInjected()
 bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
                                                       std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI)
 {
+    this->PutPreStressOnElastReduced();
+    
     bool propagate = false;
     
     maxKI = 0.;
@@ -1316,7 +1326,9 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
                 cracktipKI = 0.;
             }
         }
-        if(cracktipKI >= cracktipKIc)
+        
+        
+        if(cracktipKI >= minAlpha * cracktipKIc)
         {
             propagate = true;
             whoPropagate_KI[p] = std::make_pair(cracktipKI,cracktipKIc);
@@ -1328,6 +1340,8 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
             }
         }
     }
+    
+    this->ClearPreStressOnElastReduced();
     
     return propagate;
 }
@@ -1752,6 +1766,46 @@ void TPZPlaneFractureKernel::PutConstantPressureOnFluidSolution()
     }
     TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
 }
+
+void TPZPlaneFractureKernel::PutPreStressOnElastReduced()
+{
+    std::map<int,TPZMaterial*>::iterator it1, it2;
+    
+    for(it1 = this->fmeshVec[0]->MaterialVec().begin(); it1 != this->fmeshVec[0]->MaterialVec().end(); it1++)
+    {
+        it2 = this->fmphysics->MaterialVec().find(it1->first);
+        if(it2 != this->fmphysics->MaterialVec().end())
+        {
+            TPZElasticity3D * mat3Dlin = dynamic_cast< TPZElasticity3D * > (it1->second);
+            TPZElast3Dnlinear * mat3Dnlin = dynamic_cast< TPZElast3Dnlinear * > (it2->second);
+            
+            if(mat3Dlin && mat3Dnlin)
+            {
+                REAL preXX, preYY, preZZ;
+                mat3Dnlin->GetPreStress(preXX, preYY, preZZ);
+                mat3Dlin->SetPreStress(preXX, preYY, preZZ);
+            }
+        }
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::ClearPreStressOnElastReduced()
+{
+    std::map<int,TPZMaterial*>::iterator it;
+    
+    for(it = this->fmeshVec[0]->MaterialVec().begin(); it != this->fmeshVec[0]->MaterialVec().end(); it++)
+    {
+        TPZElasticity3D * mat3Dlin = dynamic_cast< TPZElasticity3D * > (it->second);
+        
+        if(mat3Dlin)
+        {
+            REAL preXX = 0., preYY = 0., preZZ = 0.;
+            mat3Dlin->SetPreStress(preXX, preYY, preZZ);
+        }
+    }
+}
+//------------------------------------------------------------------------------------------------------------
 
 
 //---------------------------------------------------------
