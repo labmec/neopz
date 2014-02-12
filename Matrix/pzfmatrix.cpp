@@ -32,8 +32,12 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #ifdef USING_BLAS
 /** blas math library */
 #include "cblas.h"
-#include <stdlib.h>
+#define BLAS_MULT
+#endif
 
+#ifdef USING_MKL
+#include <mkl.h>
+#define BLAS_MULT
 #endif
 
 
@@ -550,7 +554,7 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 	}
 }
 
-#ifdef USING_BLAS
+#ifdef BLAS_MULT
 template<> 
 void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<double> &y, TPZFMatrix<double> &z,
                                  const double alpha,const double beta,const int opt,const int stride) const {

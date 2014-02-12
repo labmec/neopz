@@ -18,7 +18,7 @@
 
 #ifdef USING_MKL
 #include <mkl.h>
-#include <omp.h>
+//#include <omp.h>
 #define USING_DGER
 #endif
 

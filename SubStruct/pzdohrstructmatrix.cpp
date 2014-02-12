@@ -46,8 +46,8 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 #include "run_stats_table.h"
 
 #ifdef USING_TBB
-#include "tbb/parallel_for.h"
-#include "tbb/blocked_range.h"
+#include "parallel_for.h"
+#include "blocked_range.h"
 using namespace tbb;
 #endif
 

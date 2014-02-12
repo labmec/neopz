@@ -32,9 +32,9 @@ TPZDohrMatrix<TVar,TSubStruct>::~TPZDohrMatrix()
 /** Threading Building Blocks */
 
 #ifdef USING_TBB
-#include "tbb/parallel_for.h"
-#include "tbb/blocked_range.h"
-#include "tbb/partitioner.h"
+#include "parallel_for.h"
+#include "blocked_range.h"
+#include "partitioner.h"
 using namespace tbb;
 #endif
 
@@ -114,7 +114,6 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const 
 {
 
 #ifdef USING_TBB
-    std::cout << "Mult TBB DorhMatrix" << std::endl;
     
 	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
 		this->Error( "Operator* <matrixs with incompatible dimensions>" );

@@ -19,8 +19,7 @@ using namespace std;
 #include "pz_pthread.h"
 
 #ifdef USING_TBB
-#include "tbb/tbb.h" 
-
+#include "tbb.h"
 using namespace tbb;
 #endif
 

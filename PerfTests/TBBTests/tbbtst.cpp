@@ -17,17 +17,19 @@ double mysecond()
 } /* mysecond */
 
 int main()
-{    
+{
+#ifdef USING_BLAS
     setenv("VECLIB_MAXIMUM_THREADS", "1", true);
-
-    int n = 1500;
+#endif
+    
+    int n = 1300;
     TPZFMatrix<double> A(n, n, 0.0);
     TPZFMatrix<double> B(n, n, 0.0);
     
-    /** putting values diferent from zero in the matrices */
+    /** putting non-zeros values in the matrices */
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
-            A(i, j) = ( i * n + j ) + 1;
+            A(i, j) = ( i * n + j ) + 1.0;
             if (i == j) B(i, j) = 1.0; //( i * n + j ) * 0.2;
         }
     }
