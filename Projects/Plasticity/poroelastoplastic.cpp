@@ -242,6 +242,207 @@ void wellboreanalyis()
 
 }
 
+void wellboreanalyis2()
+{
+    
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    GeoMeshClass::WellBore2d(gmesh);
+    ofstream arg("wellgeomeshlog.txt");
+    gmesh->Print(arg);
+    
+    TPZCompEl::SetgOrder(1);
+	TPZCompMesh *compmesh1 = new TPZCompMesh(gmesh);
+    
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> SD;
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>::UncDeepSandTest(SD);
+    SD.SetResidualTolerance(1.e-10);
+    SD.fIntegrTol = 1.;
+    
+	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+    
+	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> > PlasticSD(1,1);
+    
+    TPZTensor<STATE> Confinement;
+    Confinement.XX() = -44.3;
+    Confinement.YY() = -58.2;
+    Confinement.ZZ() = -53.8;
+    
+    TPZTensor<REAL> initstress,finalstress;
+    REAL hydro = Confinement.I1();
+    hydro -= SD.fYC.fA*SD.fYC.fR;
+    hydro /= 3.;
+    finalstress.XX() = hydro;
+    finalstress.YY() = hydro;
+    finalstress.ZZ() = hydro;
+    
+    PrepareInitialMat(SD, initstress, finalstress, 10);
+    initstress = finalstress;
+    finalstress = Confinement;
+    PrepareInitialMat(SD, initstress, finalstress, 10);
+    
+    TPZMaterial *plastic(&PlasticSD);
+    
+    PlasticSD.SetPlasticity(SD);
+    compmesh1->InsertMaterialObject(plastic);
+    
+    CmeshWell(compmesh1,plastic,Confinement,hydro);
+    
+    
+    
+    
+    TPZElastoPlasticAnalysis analysis(compmesh1,cout);
+    
+    // Eh preciso colocar depois da criacao do objeto analysis porque o sequence number muda na construcao do analyse
+    TPZCompMesh locmesh(*compmesh1);
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        compmesh1->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    
+    
+    SolverSetUp2(analysis,compmesh1);
+    
+    
+    
+    
+    
+    int BCId=-2;
+    TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
+    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    int steps = 5;
+    
+    TPZFNMatrix<9,STATE> mattemp(3,3,0.), matinit(3,3,0.),matfinal(3,3,0.), matincrement(3,3,0.);
+    matinit = pBC->Val1();
+    matfinal(0,0) = -29.3;
+    matfinal(1,1) = -29.3;
+    
+    matincrement = matfinal-matinit;
+    matincrement *= (1./steps);
+    mattemp = matinit;
+    
+    std::string vtkFile = "pocoplastico.vtk";
+    TPZPostProcAnalysis ppanalysis(analysis.Mesh());
+    TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+    structmatrix.SetNumThreads(8);
+    ppanalysis.SetStructuralMatrix(structmatrix);
+    
+    TPZVec<int> PostProcMatIds(1,1);
+    TPZStack<std::string> PostProcVars, scalNames, vecNames;
+    SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
+    //
+    ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+    //
+    ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+    //
+    
+    matincrement.Print("Incremento de tensao",std::cout);
+    
+    int neq = analysis.Mesh()->Solution().Rows();
+    TPZFMatrix<STATE> allsol(neq,steps+1,0.);
+    
+    
+    for(int i=0;i<=steps;i++)
+    {
+        pBC->Val1()=mattemp;
+        bool linesearch = false;
+        bool checkconv = false;
+        analysis.IterativeProcess(cout, 1.e-8, 30, linesearch, checkconv);
+        
+        //analysis.Solution().Print();
+        //analysis.AcceptSolution();
+        //analysis.TransferSolution(ppanalysis);
+        
+        
+        
+        ////Post Processing
+        TPZVec<std::string> vecnames,scalnames;
+        scalnames.Resize(0);
+        vecnames.Resize(1);
+        vecnames[0]="Displacement";
+        // vecnames[1]="NormalStrain";
+        
+        TPZFMatrix<STATE> &sol = analysis.Mesh()->Solution();
+        for (int ieq=0; ieq<neq; ieq++) {
+            allsol(ieq,i) = sol(ieq,0);
+        }
+        
+        analysis.AcceptSolution();
+        
+        
+        analysis.TransferSolution(ppanalysis);
+        ppanalysis.PostProcess(0);// pOrder
+        
+        
+        mattemp += matincrement;
+        
+    }
+    
+    locmesh.Solution() = allsol;
+    
+    
+    TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (locmesh.MaterialVec()[1]);
+    if (pMatWithMem2) {
+        pMatWithMem2->SetUpdateMem(true);
+    }
+    TPZFMatrix<STATE> locrhs(neq,steps,0.);
+    TPZSkylineStructMatrix skylstr(&locmesh);
+    TPZMatrix<STATE> *matrix = skylstr.TPZStructMatrix::CreateAssemble(locrhs, 0);
+    delete matrix;
+    locmesh.Solution() = analysis.CumulativeSolution();
+    pMatWithMem2->SetUpdateMem(false);
+    
+    /*
+     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem1 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (analysis.Mesh()->MaterialVec()[1]);
+     int elnum = 89;
+     TPZCompEl *cel1 = analysis.Mesh()->ElementVec()[elnum];
+     TPZCompEl *cel2 = locmesh.ElementVec()[elnum];
+     TPZInterpolationSpace *intel1 = dynamic_cast<TPZInterpolationSpace *>(cel1);
+     TPZInterpolationSpace *intel2 = dynamic_cast<TPZInterpolationSpace *>(cel2);
+     TPZMaterialData data1,data2;
+     data1.intPtIndex = 0;
+     data2.intPtIndex = 0;
+     TPZManVector<REAL,3> qsi(2,0.);
+     REAL weight;
+     intel1->GetIntegrationRule().Point(0, qsi, weight);
+     intel1->InitMaterialData(data1);
+     intel2->InitMaterialData(data2);
+     intel1->ComputeRequiredData(data1, qsi);
+     intel2->ComputeRequiredData(data2, qsi);
+     TPZManVector<STATE,4> solout2(1),solout1(1);
+     int var = pMatWithMem2->VariableIndex("PlasticSqJ2");
+     pMatWithMem2->Solution(data2, var, solout2);
+     pMatWithMem1->Solution(data1, var, solout1);
+     */
+    {
+        std::string vtkFile = "pocoplastico_copy.vtk";
+        
+        TPZPostProcAnalysis ppanalysis(&locmesh);
+        TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+        structmatrix.SetNumThreads(8);
+        ppanalysis.SetStructuralMatrix(structmatrix);
+        
+        TPZVec<int> PostProcMatIds(1,1);
+        TPZStack<std::string> PostProcVars, scalNames, vecNames;
+        SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
+        //
+        ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+        //
+        analysis.TransferSolution(ppanalysis);
+        //
+        ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+        //		
+        ppanalysis.PostProcess(0/*pOrder*/);
+    }
+    
+    
+}
+
+
+
 void wellelastic()
 {
     REAL E=29269.,nu=0.203;

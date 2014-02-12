@@ -181,6 +181,8 @@ public:
     
     virtual void Read(TPZStream &buf);
     
+    virtual void Write(TPZStream &buf);
+    
 	
 	/**
 	 * Does the TaylorCheck of the tangent matrix
@@ -273,7 +275,7 @@ protected:
 	int fMaterialTensionSign;
 	
 	/** @brief The tension sign in the convention defined by the external user */
-	int fInterfaceTensionSign;
+	int fInterfaceTensionSign=-1;
 	
 	
 public:

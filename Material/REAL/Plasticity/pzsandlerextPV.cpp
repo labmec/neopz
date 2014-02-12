@@ -32,7 +32,9 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
     fPsi=copy.fPsi;
     fE=(9.*fK*fG)/(3.*fK+fG);
     fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
-    
+    TPZElasticResponse ER;
+    ER.SetUp(fE, fnu);
+    fElasticResponse =ER;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi):
@@ -40,6 +42,9 @@ fA(A),fB(B),fC(C),fD(D),fK(K),fG(G),fW(W),fR(R),fPhi(Phi),fN(N),fPsi(Psi)
 {
     fE=(9.*fK*fG)/(3.*fK+fG);
     fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
+    TPZElasticResponse ER;
+    ER.SetUp(fE, fnu);
+    fElasticResponse =ER;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended()
@@ -57,6 +62,21 @@ template<class T>
 T TPZSandlerExtended::X(T k) const
 {
     return (k - fR * F(k, fPhi));
+}
+
+STATE TPZSandlerExtended::GetX(STATE k)
+{
+    return X(k);
+}
+
+TPZElasticResponse TPZSandlerExtended::GetElasticResponse()
+{
+    return fElasticResponse;
+}
+
+STATE TPZSandlerExtended::GetR()
+{
+    return fR;
 }
 
 template<class T>
@@ -299,398 +319,155 @@ STATE TPZSandlerExtended::DistF2(const TPZVec<STATE> &pt,STATE theta,STATE beta,
 
 void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &ddistf1) const
 {
-    STATE sig1,sig2,sig3,sinbeta,cosbeta,sin3beta,cos3beta;
-    sinbeta=sin(beta);
-    cosbeta=cos(beta);
-    cos3beta=cos(3*beta);
-    sin3beta=sin(3*beta);
-    sig1 = pt[0];
-    sig2 = pt[1];
-    sig3 = pt[2];
-    STATE ddistf1dxi = (-2*(sig1/sqrt (3) + sig2/sqrt (3) + sig3/sqrt (3) - xi))/(3.*fK) +((-4*sqrt (2)*(-(sqrt (3)*fB*fC*exp (sqrt (3)*fB*xi)) -
-                                                                                                        sqrt (3)*fPhi)*cosbeta*(sqrt (0.6666666666666666)*sig1 - sig2/sqrt (6) -sig3/sqrt (6) -(2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -
-                                                                                                                                                                                                            sqrt (3)*xi*fPhi)*cosbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta) -
-                                                                                          (4*sqrt (2)*(-(sqrt (3)*fB*fC*exp (sqrt (3)*fB*xi)) -sqrt (3)*fPhi)*sinbeta*(sig2/sqrt (2) - sig3/sqrt (2) -(2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -sqrt (3)*xi*fPhi)*sinbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta))/(2.*fG);
+    STATE sig1,sig2,sig3,DFf,Gamma,Ff,I1,sb,cb,DGamma,Gamma2,Gamma3,Sqrt2,Sqrt3;
+    TPZVec<STATE> ptcart(3);
+    sb=sin(beta);
+    cb=cos(beta);
+    STATE sin3b=sin(3*beta);
+    STATE cos3b=cos(3*beta);
+    FromPrincipalToHWCart(pt,ptcart);
+    sig1 = ptcart[0];
+    sig2 = ptcart[1];
+    sig3 = ptcart[2];
+    I1=xi*sqrt(3);
+    Ff=F(I1,fPhi);
+    Gamma =(1 + sin3b+(1 - sin3b)/fPsi )/2.;
+    DFf=-(exp(fB*I1)*fB*fC) - fPhi;
+    DGamma=(3*cos3b - (3*cos3b)/fPsi)/2.;
+    Gamma2=Gamma*Gamma;
+    Gamma3=Gamma*Gamma2;
+    Sqrt2=sqrt(2);
+    Sqrt3=sqrt(3);
     
-    STATE ddistf1dbeta=(2*((2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -sqrt (3)*xi*fPhi)*(3*cos3beta - (3*cos3beta)/fPsi)*
-                           sinbeta)/pow (1 + (1 - sin3beta)/fPsi + sin3beta,2) - (2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -
-                                                                                              sqrt (3)*xi*fPhi)*cosbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta))*(sig2/sqrt (2) -sig3/sqrt (2) - (2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -
-                                                                                                                                                                                                           sqrt (3)*xi*fPhi)*sinbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta)) +
-                       2*(sqrt (0.6666666666666666)*sig1 - sig2/sqrt (6) -sig3/sqrt (6) - (2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -
-                                                                                                       sqrt (3)*xi*fPhi)*cosbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta))*((2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -
-                                                                                                                                                                                     sqrt (3)*xi*fPhi)*cosbeta*(3*cos3beta - (3*cos3beta)/fPsi))/pow (1 + (1 - sin3beta)/fPsi + sin3beta,2) +
-                                                                                                                                                                        (2*sqrt (2)*(fA - fC*exp (sqrt (3)*fB*xi) - fN -sqrt (3)*xi*fPhi)*sinbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta)))/(2.*fG);
-    ddistf1(0,0)=ddistf1dxi;
+    
+    STATE ddist1di1 =(18*DFf*Ff*fK - 2*fG*Gamma2*(-I1 + Sqrt3*sig1) - 9*Sqrt2*DFf*fK*Gamma*(cb*sig2 + sb*sig3))/(9.*fG*fK*Gamma2);
+    STATE ddistf1dbeta=(Ff*(-2.*DGamma*Ff + Sqrt2*Gamma*((cb*DGamma + Gamma*sb)*sig2 + (-(cb*Gamma) + DGamma*sb)*sig3)))/(fG*Gamma3);
+    
+    ddistf1.Resize(2,1);
+    ddistf1(0,0)=ddist1di1;
     ddistf1(1,0)=ddistf1dbeta;
-    
-}
-
-void TPZSandlerExtended::DDistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZManVector<STATE> &ddistf2) const
-{
-    STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
-    STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
-    STATE dresktheta,dreskk;
-    STATE fR2=fR*fR,Gamma=1 + (1 - sin(3.*beta))/fPsi + sin(3.*beta),stresbeta=sin(3*beta),LPrev=kprev,FFLPrev=F(LPrev,fPhi),
-    Gamma2=Gamma*Gamma,FFL=F(k,fPhi),FFL2=FFL*FFL,fN2=fN*fN,
-    sb=sin(beta),cb=cos(beta),sb2=sb*sb,cb2=cb*cb,ct=cos(theta),st=sin(theta),
-    ct2=ct*ct,st2=st*st,sig1=pt[0],sig2=pt[1],sig3=pt[2],sq2=sqrt(2.),sq3=sqrt(3.),
-    L=k,FN=fN,xi=1./sq3*(sig1+sig2+sig3),sig2tiu=(sqrt(2./3.)*sig1)-(sig2/sqrt(6.))-(sig3/sqrt(6.)),
-    DGamma=3*cos(3*beta) - (3*cos(3*beta))/fPsi,DGamma2=DGamma*DGamma,Gamma3=Gamma*Gamma*Gamma,Gamma4=Gamma2*Gamma2,expBC=exp(fB*L)*fB*fC + fPhi;
-
-    STATE ddistf2dtheta=(-2*ct*(FFL - fN)*(Gamma*(sq2*cb*sig2tiu + sb*(sig2 - sig3)) + 4*(cb2*(-FFL + FN) + (-FFL + fN)*sb2)*st))/(fG*Gamma2) - (2*FFL*fR*st*(ct*FFL*fR + L - sq3*xi))/(9.*fK);
-    STATE ddistf2dbeta =  (2*(FFL - fN)*st*(8*cb2*(-FFL + FN)*st*(3*cos(3*beta) - (3*cos(3*beta))/fPsi) + cb*Gamma*(Gamma*(-sig2 + sig3) + 4*(-fN + FN)*sb*st + 2*sq2*sig2tiu*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)) +sb*(sq2*Gamma2*sig2tiu + 2*(Gamma*(sig2 - sig3) + 4*(-FFL + fN)*sb*st)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi))))/(fG*Gamma3);
-    STATE resL =ct*FFL*fR + L - sig1 - sig2 - sig3 + 3*(exp(fD*(-(FFL*fR) + L)) - exp(fD*(-(FFLPrev*fR) + LPrev)))*fK*fW;
-    
-    ddistf2[0]=ddistf2dtheta;
-    ddistf2[1]=ddistf2dbeta;
-    ddistf2[2]=resL;
-    
-}
-
-template<class T>
-void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE kprev, TPZVec<T> &ddistf2) const
-{
-    STATE sqrt2=sqrt(2);
-    T expfBk=exp(fB*k);
-    T costheta, sintheta,c1,c2,c3,c4,c5,c6,c7,sig1,sig2,sig3,sinbeta,cosbeta,sin3beta,cos3beta;
-    sinbeta=sin(beta);
-    cosbeta=cos(beta);
-    cos3beta=cos(3.*beta);
-    sin3beta=sin(3.*beta);
-    sig1 = pt[0];
-    sig2 = pt[1];
-    sig3 = pt[2];
-    c7=1. + (1. - sin3beta)/fPsi +sin3beta;
-    costheta=cos(theta);
-    sintheta =sin(theta);
-    c1=(sig1+sig2+sig3)/sqrt(3.);
-    c2=fR*F(k,fPhi)/sqrt(3.);
-    c3= sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c4=2*sqrt2*(F(k,fPhi)-fN)*cos(beta)/c7;
-    c5=(1./sqrt(2.))*(sig2-sig3);
-    c6=2.*sqrt(2.)*(F(k,fPhi)-fN)*sin(beta)/c7;
-    T ddistf2dtheta=(2.*c2*(c1 - k/sqrt(3.) - c2*costheta)*sintheta)/(3.*fK) +
-    (-2.*c4*costheta*(c3 - c4*sintheta) - 2.*c6*costheta*(c5 - c6*sintheta))/(2.*fG);
-    
-    
-    c1=pow(sig1/sqrt(3.) + sig2/sqrt(3.) + sig3/sqrt(3.) - (k + fR*(fA - fC*expfBk - k*fPhi)*costheta)/sqrt(3.),2.)/(3.*fK);
-    c2=c3;
-    c3=2.*sqrt(2.)*(F(k,fPhi)- fN)*sintheta;
-    c4=c5;
-    c5=c3;
-    c6=1./fPsi;
-    T ddistf2dbeta =(2.*(c2 - (c3*cosbeta)/(1. + c6*(1. - sin3beta) +sin3beta))*
-                        ((c3*cosbeta*(3.*cos3beta - 3.*c6*cos3beta))/pow (1. + c6*(1. - sin3beta) + sin3beta,2.) + (c3*sinbeta)/(1. + c6*(1. - sin3beta) + sin3beta)) +2.*((c5*(3.*cos3beta - 3.*c6*cos3beta)*sinbeta)/pow (1. + c6*(1. - sin3beta) + sin3beta,2.) - (c5*cosbeta)/(1. + c6*(1. - sin3beta) +sin3beta))*(c4 - (c5*sinbeta)/(1 + c6*(1. - sin3beta) +sin3beta)))/(2.*fG);
-//    T s1,s2,s3;
-//    s1=sig1;
-//    s2=sig2;
-//    s3=sig3;
-//    ddistf2dbeta = (2*((2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(beta)*sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) -
-//        (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*cos(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
-//     (s2/sqrt(2) - s3/sqrt(2) - (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*sin(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta))) +
-//     2*(sqrt(0.6666666666666666)*s1 - s2/sqrt(6) - s3/sqrt(6) - (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*cos(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi + sin(3*beta)))*
-//     ((2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*cos(beta)*(3*cos(3*beta) - (3*cos(3*beta))/fPsi)*sin(theta))/pow(1 + (1 - sin(3*beta))/fPsi + sin(3*beta),2) +
-//      (2*sqrt(2)*(fA - fC*exp(fB*k) - fN - k*fPhi)*sin(beta)*sin(theta))/(1 + (1 - sin(3*beta))/fPsi +sin(3*beta))))/(2.*fG);
-    
-    T resL = ResLF2(pt, theta, beta,k,kprev);
-    
-    ddistf2[0]=ddistf2dtheta;
-    ddistf2[1]=ddistf2dbeta;
-    ddistf2[2]=resL;
     
 }
 
 void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &tangentf1) const
 {
-    
-    STATE sqrt2=sqrt(2);
-    STATE sqrt3=sqrt(3);
-    STATE expsqrt3fBxi=exp(sqrt3*fB*xi);
-    STATE d2distf1dxixi,d2distf1dxibeta;
-    STATE d2distf1dbetaxi,d2distf1dbetabeta;
-    STATE sinbeta,cos3beta,cosbeta,cos2beta,cos7beta,cos6beta,sin5beta,sin7beta,cos4beta,sin3beta,sig1,sig2,sig3;
-    cosbeta=cos(beta);
-    sin3beta=sin(3*beta);
-    sin5beta=sin(5*beta);
-    sinbeta=sin(beta);
-    cos2beta=cos(2*beta);
-    cos3beta=cos(3*beta);
-    cos7beta=cos(7*beta);
-    cos4beta=cos(4*beta);
-    cos6beta=cos(6*beta);
-    cos4beta=cos(4*beta);
-    sin7beta=sin(7*beta);
-    sig1 = pt[0];
-    sig2 = pt[1];
-    sig3 = pt[2];
-    d2distf1dxixi=2./(3.*fK) + ((16*pow(cosbeta,2)*pow(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi,2))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) +
-                                (16*pow(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi,2)*pow(sinbeta,2))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) +
-                                (12*sqrt2*cosbeta*expsqrt3fBxi*pow(fB,2)*fC*(sqrt(0.6666666666666666)*sig1 - sig2/sqrt(6) - sig3/sqrt(6) -
-                                                                             (2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                                (12*sqrt2*expsqrt3fBxi*pow(fB,2)*fC*sinbeta*(sig2/sqrt2 - sig3/sqrt2 - (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta))/(2.*fG);
-    
-    d2distf1dxibeta=((4*sqrt2*cosbeta*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*(3*cos3beta - (3*cos3beta)/fPsi)*
-                      (sqrt(0.6666666666666666)*sig1 - sig2/sqrt(6) - sig3/sqrt(6) - (2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/
-                     pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) + (4*sqrt2*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*sinbeta*
-                                                                  (sqrt(0.6666666666666666)*sig1 - sig2/sqrt(6) - sig3/sqrt(6) - (2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/
-                     (1 + (1 - sin3beta)/fPsi + sin3beta) - (4*sqrt2*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*sinbeta*
-                                                             ((-2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                                                              (2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2)))/(1 + (1 - sin3beta)/fPsi + sin3beta) -
-                     (4*sqrt2*cosbeta*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*(sig2/sqrt2 - sig3/sqrt2 -
-                                                                                  (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                     (4*sqrt2*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*
-                      (sig2/sqrt2 - sig3/sqrt2 - (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) -
-                     (4*sqrt2*cosbeta*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*((2*sqrt2*cosbeta*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/
-                                                                                  pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) + (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta))/
-    (2.*fG);
-    
-    d2distf1dbetaxi=(2*((2*sqrt2*cosbeta*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*(3*cos3beta - (3*cos3beta)/fPsi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) +
-                        (2*sqrt2*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*sinbeta)/(1 + (1 - sin3beta)/fPsi + sin3beta))*
-                     (sqrt(0.6666666666666666)*sig1 - sig2/sqrt(6) - sig3/sqrt(6) - (2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)) -
-                     (4*sqrt2*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*sinbeta*((-2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                                                                                  (2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2)))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                     2*((-2*sqrt2*cosbeta*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                        (2*sqrt2*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2))*
-                     (sig2/sqrt2 - sig3/sqrt2 - (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)) -
-                     (4*sqrt2*cosbeta*(-(sqrt3*expsqrt3fBxi*fB*fC) - sqrt3*fPhi)*((2*sqrt2*cosbeta*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/
-                                                                                  pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) + (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta)))/(1 + (1 - sin3beta)/fPsi + sin3beta))/
-    (2.*fG);
+    STATE sig1,sig2,sig3,DFf,Gamma,Ff,I1,sb,cb,D2Ff,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,D2Gamma2,Sqrt3;
+    TPZVec<STATE> ptcart(3);
+    sb=sin(beta);
+    cb=cos(beta);
+    STATE sin3b=sin(3*beta);
+    STATE cos3b=cos(3*beta);
+    FromPrincipalToHWCart(pt,ptcart);
+    sig1 = ptcart[0];
+    sig2 = ptcart[1];
+    sig3 = ptcart[2];
+    I1=xi*sqrt(3);
+    Ff=F(I1,fPhi);
+    Gamma =(1. + sin3b+(1. - sin3b)/fPsi )/2.;
+    DFf=-(exp(fB*I1)*fB*fC) - fPhi;
+    D2Ff=-(exp(fB*I1)*pow(fB,2.)*fC);
+    DGamma=(3.*cos3b - (3.*cos3b)/fPsi)/2.;
+    D2Gamma=(-9.*sin(3.*beta) + (9.*sin(3.*beta))/fPsi)/2.;
+    Gamma2=Gamma*Gamma;
+    Gamma3=Gamma*Gamma2;
+    D2Gamma2=D2Gamma*D2Gamma;
+    Sqrt2=sqrt(2);
+    Sqrt3=sqrt(3);
+    tangentf1.Resize(2,2);
     
     
-    d2distf1dbetabeta=(2*(sqrt(0.6666666666666666)*sig1 - sig2/sqrt(6) - sig3/sqrt(6) - (2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta))*
-                       ((-4*sqrt2*cosbeta*pow(3*cos3beta - (3*cos3beta)/fPsi,2)*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,3) +
-                        (2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                        (2*sqrt2*cosbeta*(-9*sin3beta + (9*sin3beta)/fPsi)*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) -
-                        (4*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2)) +
-                       2*pow((-2*sqrt2*cosbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                             (2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2),2) +
-                       2*pow((2*sqrt2*cosbeta*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) +
-                             (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta),2) +
-                       2*(sig2/sqrt2 - sig3/sqrt2 - (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta))*
-                       ((4*sqrt2*cosbeta*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2) -
-                        (4*sqrt2*pow(3*cos3beta - (3*cos3beta)/fPsi,2)*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,3) +
-                        (2*sqrt2*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/(1 + (1 - sin3beta)/fPsi + sin3beta) +
-                        (2*sqrt2*(-9*sin3beta + (9*sin3beta)/fPsi)*sinbeta*(fA - expsqrt3fBxi*fC - fN - sqrt3*fPhi*xi))/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2)))/(2.*fG);
+    tangentf1(0,0) =(2./(9.*fK) + ((4*(cb*cb)*(DFf*DFf))/Gamma2 + (4*(DFf*DFf)*(sb*sb))/Gamma2 -
+                                   (2*Sqrt2*cb*D2Ff*(-((Sqrt2*cb*Ff)/Gamma) + sig2))/Gamma - (2*Sqrt2*D2Ff*sb*(-((Sqrt2*Ff*sb)/Gamma) + sig3))/Gamma)/(2.*fG))*3.;
     
-    TPZFMatrix<STATE> JAC(2,2,0);
-    tangentf1(0,0)=d2distf1dxixi;
-    tangentf1(0,1)=d2distf1dxibeta;
-    tangentf1(1,0)=d2distf1dbetaxi;
-    tangentf1(1,1)=d2distf1dbetabeta;
+    tangentf1(0,1) =(DFf*(-4*DGamma*Ff + Sqrt2*Gamma*(cb*DGamma + Gamma*sb)*sig2 -Sqrt2*Gamma*(cb*Gamma - DGamma*sb)*sig3))/(fG*Gamma3)*Sqrt3;
+    
+    tangentf1(1,1)= (Ff*(2*Ff*(3*D2Gamma2 - D2Gamma*Gamma) +Sqrt2*Gamma*(-2*cb*D2Gamma2 + cb*Gamma2 + Gamma*(cb*D2Gamma - 2*DGamma*sb))*sig2 +
+                         Sqrt2*(2*cb*DGamma*Gamma - 2*D2Gamma2*sb + D2Gamma*Gamma*sb +Gamma2*sb)*sig3*Gamma))/(fG*Gamma2*Gamma2);
+    
+    tangentf1(1,0)=tangentf1(0,1);
+    
     
 }
 
-void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2) const
+template<class T>
+void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kprev, TPZManVector<T> &ddistf2) const
 {
-  STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
-  STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
-  STATE dresktheta,dreskk;
-  STATE fR2=fR*fR;
-  STATE Gamma=1 + (1 - sin(3.*beta))/fPsi + sin(3.*beta);
-  STATE stresbeta=sin(3*beta);
-  STATE Gamma2=Gamma*Gamma;
-  STATE DGamma=3*cos(3*beta) - (3*cos(3*beta))/fPsi;
-  STATE DGamma2=DGamma*DGamma,Gamma3=Gamma*Gamma*Gamma,Gamma4=Gamma2*Gamma2;
-  STATE FFL=F(k,fPhi);
-  STATE FFL2=FFL*FFL;
-  STATE fN2=fN*fN;
-  STATE sb=sin(beta),cb=cos(beta),sb2=sb*sb,cb2=cb*cb,ct=cos(theta),st=sin(theta),
-  ct2=ct*ct,st2=st*st;
-  STATE sig1=pt[0],sig2=pt[1],sig3=pt[2];
-  STATE sq2=sqrt(2.),sq3=sqrt(3.);
-  
-  STATE L=k;
-  STATE FN=fN;
-  STATE xi=1./sq3*(sig1+sig2+sig3);
-  STATE sig2tiu=(sqrt(2./3.)*sig1)-(sig2/sqrt(6.))-(sig3/sqrt(6.));
-  STATE expBC=exp(fB*L)*fB*fC + fPhi;
-  
-  
-  d2distf2dthetatheta=(2.*(-(ct2*(FFL2*fG*fR2*Gamma2 - 36.*FFL2*fK*sb2 + 72.*FFL*fK*fN*sb2 - 36.*fK*fN2*sb2)) + 9.*cb*fK*(FFL - fN)*Gamma*sig2tiu*sq2*st +
-  st*(FFL2*(fG*fR2*Gamma2 - 36.*fK*sb2)*st - 9.*fK*fN*sb*(Gamma*(sig2 - sig3) + 4.*fN*sb*st) + 9.*FFL*fK*sb*(Gamma*(sig2 - sig3) +
-  8.*fN*sb*st)) + 36.*cb2*fK*(FFL - fN)*(ct2*(FFL - fN) + (-FFL + FN)*st2) +
-  ct*FFL*fG*fR*Gamma2*(-L + sq3*xi)))/(9.*fG*fK*Gamma2);
-  
-/*  
-  d2distf2dthetabeta=(ct*(FFL - fN)*sq2*(cb*Gamma*(4*DGamma*sig2tiu + sq2*(Gamma*(-sig2 + sig3) + 4*(FFL - fN)*sb*st)) +
-  2*(Gamma2*sb*sig2tiu + DGamma*sq2*(Gamma*sb*(sig2 - sig3) - 4*(FFL - fN)*(cb2 + 2*sb2)*st))
-  -4*(FFL - FN)*(2*cb*DGamma + Gamma*sb)*sq2*cb*ct))/(fG*Gamma3);
-*/
-
-  d2distf2dthetabeta = (2*ct*(FFL - fN)*(8*DGamma*(-FFL + fN)*st + (cb*Gamma - 2*DGamma*sb)*(Gamma*(-sig2 + sig3) + 4*(FFL - fN)*sb*st) - 
-       (sq2*Gamma*(2*cb*DGamma + Gamma*sb)*(-((1 + fPsi)*sig2tiu) + 2*sq2*cb*(FFL - FN)*fPsi*st - (-1 + fPsi)*sig2tiu*stresbeta))/
-        (1 + fPsi + (-1 + fPsi)*stresbeta)))/(fG*Gamma3);
-  
-  d2distf2dthetak=(2*(ct*expBC*(2*FFL*fG*fR2*Gamma2*st + 9*fK*(Gamma*(sb*(sig2 - sig3) + cb*sig2tiu*sq2) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)) - fG*fR*Gamma2*st*(FFL - expBC*L + expBC*sq3*xi)))/(9.*fG*fK*Gamma2);
-  
-  
-  
-  d2distf2dbetatheta=  -((ct*(FFL - fN)*sq2*(8*cb2*DGamma*(2*FFL - fN - FN)*sq2*st - 2*sb*(Gamma2*sig2tiu + DGamma*sq2*(Gamma*(sig2 - sig3) + 8*(-FFL + fN)*sb*st)) +
-  cb*Gamma*(-4*DGamma*sig2tiu + sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st))))/(fG*Gamma3));
-  
-  STATE one = (4*cb*DGamma*(FFL - fN)*sq2*st)/Gamma2 + (2*(FFL - fN)*sb*sq2*st)/Gamma;
-  STATE two = (2*cb*(FFL - fN)*sq2*st)/Gamma - (4*DGamma*(FFL - fN)*sb*sq2*st)/Gamma2;
-  d2distf2dbetabeta = (one*one + 
-     two*two - 
-     (2*(FFL - fN)*sq2*st*(2*cb*(-FFL + FN)*fPsi*sq2*st + sig2tiu*(1 + fPsi - stresbeta + fPsi*stresbeta))*
-        (4*DGamma*fPsi*Gamma*Gamma3*sb + cb*(8*DGamma2*fPsi*Gamma*Gamma2 - Gamma3*(fPsi*Gamma2 + 9*Gamma*stresbeta - 9*fPsi*Gamma*stresbeta))))/
-      (fPsi*Gamma*Gamma2*Gamma3*(1 + fPsi - stresbeta + fPsi*stresbeta)) + 
-     ((FFL - fN)*sq2*st*(Gamma*(sig2 - sig3)*sq2 + 4*(-FFL + fN)*sb*sq2*st)*
-        (4*cb*DGamma*fPsi*Gamma*Gamma3 + sb*(-8*DGamma2*fPsi*Gamma*Gamma2 + Gamma3*(fPsi*Gamma2 + 9*Gamma*stresbeta - 9*fPsi*Gamma*stresbeta))))/
-      (fPsi*Gamma2*Gamma2*Gamma3))/fG;
-/*      
-  d2distf2dbetabeta= ((FFL - fN)*sq2*st*(-8*DGamma*Gamma2*sb*sig2tiu*(-1 + stresbeta) - 2*cb*Gamma*(Gamma2*sig2tiu + 8*DGamma2*sig2tiu*(-1 + stresbeta) +
-  2*(-(DGamma*sq2*(Gamma*(sig2 - sig3) + 4*(fN - FN)*sb*st)*(-1 + stresbeta)) + Gamma*(-9 + 4*Gamma)*sig2tiu*stresbeta)) +
-  sq2*(Gamma3*sb*(-sig2 + sig3) - 8*DGamma2*(Gamma*sb*(sig2 - sig3) + 2*(cb2*(-3*FFL + fN + 2*FN) + 3*(-FFL + fN)*sb2)*st)*(-1 + stresbeta) +
-  2*(Gamma*sb*(9*Gamma*(sig2 - sig3 + 2*(FFL - fN)*sb*st) + 4*(Gamma2*(-sig2 + sig3) + 9*(-FFL + fN)*sb*st))*stresbeta -
-  2*cb2*st*(fN*Gamma2*(-1 + stresbeta) - 9*FFL*(-2 + Gamma)*Gamma*stresbeta + FN*(Gamma2 + 2*Gamma*(-9 + 4*Gamma)*stresbeta))))))/(fG*Gamma4*(-1 + stresbeta));
-*/  
-  d2distf2dbetak=(-2*expBC*st*(Gamma2*sb*sig2tiu*sq2 + cb*Gamma*(Gamma*(-sig2 + sig3) + 2*DGamma*sig2tiu*sq2 + 4*(-fN + FN)*sb*st) + 2*DGamma*(Gamma*sb*(sig2 - sig3) + 4*(cb2*(-2*FFL + fN + FN) + 2*(-FFL + fN)*sb2)*st)))/
-  (fG*Gamma3);
-  
-  
-  dresktheta= -(FFL*fR*st);
-  
-  
-  dreskk=1 - ct*expBC*fR + 3*fD*exp(fD*(-(FFL*fR) + L))*fK*(1 + expBC*fR)*fW;
-  
-  tangentf2(0,0)= d2distf2dthetatheta;
-  tangentf2(0,1)=d2distf2dthetabeta;
-  tangentf2(0,2)=d2distf2dthetak;
-  tangentf2(1,0)=d2distf2dbetatheta;
-  tangentf2(1,1)=d2distf2dbetabeta;
-  tangentf2(1,2)=d2distf2dbetak;
-  tangentf2(2,0)=dresktheta;
-  tangentf2(2,1)=0;
-  tangentf2(2,2)=dreskk;
+    T sig1,sig2,sig3,Gamma,sb,cb,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,D2Gamma2,Sqrt3,FfAlpha,c2t,st,ct,DFAlpha,expBC,s2t;
+    TPZVec<T> ptcart(3);
+    sb=sin(beta);
+    cb=cos(beta);
+    st=sin(theta);
+    ct=cos(theta);
+    c2t=cos(2*theta);
+    s2t=sin(2*theta);
+    T sin3b=sin(3*beta);
+    T cos3b=cos(3*beta);
+    FromPrincipalToHWCart(pt,ptcart);
+    sig1 = ptcart[0];
+    sig2 = ptcart[1];
+    sig3 = ptcart[2];
+    FfAlpha=F(k,fPhi);
+    DFAlpha=-(exp(fB*k)*fB*fC) - fPhi;
+    Gamma =(1. + sin3b+(1. - sin3b)/fPsi )/2.;
+    DGamma=(3.*cos3b - (3.*cos3b)/fPsi)/2.;
+    D2Gamma=(-9.*sin(3.*beta) + (9.*sin(3.*beta))/fPsi)/2.;
+    Gamma2=Gamma*Gamma;
+    Gamma3=Gamma*Gamma2;
+    D2Gamma2=D2Gamma*D2Gamma;
+    Sqrt2=sqrt(2);
+    Sqrt3=sqrt(3);
+    expBC=exp(fB*k)*fB*fC + fPhi;
+    ddistf2.Resize(3, 1);
+    ddistf2[0]=(FfAlpha*(Gamma*(-9*ct*fK*(cb*sig2 + sb*sig3)*Sqrt2 + 2*fG*fR*Gamma*(-k + Sqrt3*sig1)*st) +FfAlpha*(9*fK - fG*fR*fR*Gamma2)*s2t))/(9.*fG*fK*Gamma2);
+    ddistf2[1]=(FfAlpha*st*(-(Gamma2*(-(sb*sig2) + cb*sig3)*Sqrt2) + DGamma*Gamma*(cb*sig2 + sb*sig3)*Sqrt2 - 2*DGamma*FfAlpha*st))/(fG*Gamma3);
+    ddistf2[2]=ResLF2(pt, theta, beta,k,kprev);
 }
 
-
-void TPZSandlerExtended::D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2)const
+void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2)const
 {
-    STATE sqrt3=sqrt(3);
-    STATE sqrt2=sqrt(2);
-    STATE d2distf2dthetatheta,d2distf2dthetabeta,d2distf2dthetak;
-    STATE d2distf2dbetatheta,d2distf2dbetabeta,d2distf2dbetak;
-    STATE dresktheta,dreskk;
-    STATE sinbeta,cos3beta,sintheta,costheta,cosbeta,cos2beta,cos7beta,cos6beta,sin5beta,sin7beta,cos4beta,sin3beta,cos2theta,c1,c2,c3,c4,c5,c6,c7,c8,c9,gamma,sig1,sig2,sig3;
-    cos2theta=cos(2*theta);
-    sintheta=sin(theta);
-    costheta=cos(theta);
-    cosbeta=cos(beta);
-    sin3beta=sin(3*beta);
-    sin5beta=sin(5*beta);
-    sinbeta=sin(beta);
-    cos2beta=cos(2*beta);
-    cos3beta=cos(3*beta);
-    cos7beta=cos(7*beta);
-    cos4beta=cos(4*beta);
-    cos6beta=cos(6*beta);
-    cos4beta=cos(4*beta);
-    sin7beta=sin(7*beta);
-    sig1 = pt[0];
-    sig2 = pt[1];
-    sig3 = pt[2];
-    STATE expfBk=exp(fB*k);
+    STATE sig1,sig2,sig3,Gamma,sb,cb,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,D2Gamma2,Sqrt3,FfAlpha,c2t,st,ct,DFAlpha,expBC;
+    TPZVec<STATE> ptcart(3);
+    sb=sin(beta);
+    cb=cos(beta);
+    st=sin(theta);
+    ct=cos(theta);
+    c2t=cos(2*theta);
+    STATE sin3b=sin(3*beta);
+    STATE cos3b=cos(3*beta);
+    FromPrincipalToHWCart(pt,ptcart);
+    sig1 = ptcart[0];
+    sig2 = ptcart[1];
+    sig3 = ptcart[2];
+    FfAlpha=F(k,fPhi);
+    DFAlpha=-(exp(fB*k)*fB*fC) - fPhi;
+    Gamma =(1. + sin3b+(1. - sin3b)/fPsi )/2.;
+    DGamma=(3.*cos3b - (3.*cos3b)/fPsi)/2.;
+    D2Gamma=(-9.*sin(3.*beta) + (9.*sin(3.*beta))/fPsi)/2.;
+    Gamma2=Gamma*Gamma;
+    Gamma3=Gamma*Gamma2;
+    D2Gamma2=D2Gamma*D2Gamma;
+    Sqrt2=sqrt(2);
+    Sqrt3=sqrt(3);
+    expBC=exp(fB*k)*fB*fC + fPhi;
+    tangentf2.Resize(3, 3);
     
+    tangentf2(0,0)=(2*c2t*FfAlpha*FfAlpha*(9*fK - fG*fR*fR*Gamma2))/(9.*fG*fK*Gamma2) +
+    (FfAlpha*(2*ct*fG*fR*Gamma*(-k + Sqrt3*sig1) +9*fK*(cb*sig2 + sb*sig3)*Sqrt2*st))/(9.*fG*fK*Gamma);
     
-    c1=(sig1+sig2+sig3)/sqrt(3.);
-    c2=(fR*(fA - fC*expfBk - k*fPhi))/sqrt3;
-    c3= sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c4=(2*sqrt2*(fA - fC*expfBk - fN - k*fPhi)*cosbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta);
-    c5=(1./sqrt(2.))*(sig2-sig3);
-    c6=(2*sqrt2*(fA - fC*expfBk - fN - k*fPhi)*sinbeta)/(1 + (1 - sin3beta)/fPsi +sin3beta);
-    d2distf2dthetatheta=(2*c2*fG*(3*c1 - sqrt3*k)*costheta + (-6*pow(c2,2)*fG + 9*(pow(c4,2) + pow(c6,2))*fK)*cos2theta + 9*(c3*c4 + c5*c6)*fK*sintheta)/(9.*fG*fK);
+    tangentf2(0,1)=(ct*FfAlpha*(-(Gamma2*(-(sb*sig2) + cb*sig3)*Sqrt2) + DGamma*Gamma*(cb*sig2 + sb*sig3)*Sqrt2 - 4*DGamma*FfAlpha*st))/(fG*Gamma3);
+    tangentf2(0,2)=(-2*FfAlpha*(-18*ct*DFAlpha*fK + fG*fR*(1 + 2*ct*DFAlpha*fR)*Gamma2)*st)/
+    (9.*fG*fK*Gamma2) + (DFAlpha*(-9*ct*fK*(cb*sig2 + sb*sig3)*Sqrt2 + 2*fG*fR*Gamma*(-k + Sqrt3*sig1)*st))/(9.*fG*fK*Gamma);
     
-    
-    
-    c1=(2*fR*(fA - expfBk*fC - fPhi*k)*(-((k + costheta*fR*(fA - expfBk*fC - fPhi*k))/sqrt3) + sig1/sqrt3 + sig2/sqrt3 + sig3/sqrt3)*sintheta)/(3.*sqrt3*fK);
-    c2=4*sqrt2*costheta*(fA - expfBk*fC - fN - fPhi*k);
-    c3= sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c4=2*sqrt2*(fA - expfBk*fC - fN - fPhi*k)*sintheta;
-    c5=1/fPsi;
-    c6=(1./sqrt(2.))*(sig2-sig3);
-    d2distf2dthetabeta=((c2*(3*cos3beta - 3*c5*cos3beta)*cosbeta*(c3 - (c4*cosbeta)/(1 + c5*(1 - sin3beta) + sin3beta)))/pow(1 + c5*(1 - sin3beta) + sin3beta,2) +
-                        (c2*(c3 - (c4*cosbeta)/(1 + c5*(1 - sin3beta) + sin3beta))*sinbeta)/(1 + c5*(1 - sin3beta) + sin3beta) -
-                        (c2*sinbeta*(-((c4*cosbeta)/(1 + c5*(1 - sin3beta) + sin3beta)) + (c4*(3*cos3beta - 3*c5*cos3beta)*sinbeta)/pow(1 + c5*(1 - sin3beta) + sin3beta,2)))/
-                        (1 + c5*(1 - sin3beta) + sin3beta) - (c2*cosbeta*(c6 - (c4*sinbeta)/(1 + c5*(1 - sin3beta) + sin3beta)))/(1 + c5*(1 - sin3beta) + sin3beta) +
-                        (c2*(3*cos3beta - 3*c5*cos3beta)*sinbeta*(c6 - (c4*sinbeta)/(1 + c5*(1 - sin3beta) + sin3beta)))/pow(1 + c5*(1 - sin3beta) + sin3beta,2) -
-                        (c2*cosbeta*((c4*(3*cos3beta - 3*c5*cos3beta)*cosbeta)/pow(1 + c5*(1 - sin3beta) + sin3beta,2) + (c4*sinbeta)/(1 + c5*(1 - sin3beta) + sin3beta)))/
-                        (1 + c5*(1 - sin3beta) + sin3beta))/(2.*fG);
-
-    
-    
-    c1=(sig1+sig2+sig3)/sqrt(3.);
-    c2=fR*costheta;
-    c3=2*fR*sintheta;
-    c4=2*sqrt2*cosbeta*costheta;
-    c5=sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c6=sqrt2*cosbeta*sintheta;
-    c7=2*sqrt2*costheta*sinbeta;
-    c8=(1./sqrt(2.))*(sig2-sig3);
-    c9=sqrt2*sinbeta*costheta;
-    gamma=0.5*(1 + (1 - sin3beta)/fPsi +  sin3beta);
-    d2distf2dthetak=-(c3*(1 + c2*(-(expfBk*fB*fC) - fPhi))*(fA - expfBk*fC - fPhi*k))/(9.*fK) + (c3*(-(expfBk*fB*fC) - fPhi)*(c1 - (k + c2*(-(fC*expfBk) + fA - fPhi*k))/sqrt3))/(3.*sqrt3*fK) +
-    ((c4*c6*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/(gamma*gamma) + (c7*c9*(-(expfBk*fB*fC) - fPhi)*(fA - expfBk*fC - fN - fPhi*k))/(gamma*gamma) -
-     (c4*(-(expfBk*fB*fC) - fPhi)*(c5 - (c6*(fA - expfBk*fC - fN - fPhi*k))/gamma))/gamma - (c7*(-(expfBk*fB*fC) - fPhi)*(c8 - (c9*(fA - expfBk*fC - fN - fPhi*k))/gamma))/gamma)/(2.*fG);
-
-    
-    
-    //////////////
-    
-    c1=(2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expfBk*fC - fN - fPhi*k)*sinbeta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2);
-    c2=(2*sqrt2*cosbeta*(fA - expfBk*fC - fN - fPhi*k))/(1 + (1 - sin3beta)/fPsi + sin3beta);
-    c3=(1./sqrt(2.))*(sig2-sig3);
-    c4=(2*sqrt2*(fA - expfBk*fC - fN - fPhi*k)*sinbeta)/(1 + (1 - sin3beta)/fPsi + sin3beta);
-    c5=sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c6=(2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*(fA - expfBk*fC - fN - fPhi*k)*cosbeta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2);
-    c7=(2*sqrt2*sinbeta*(fA - expfBk*fC - fN - fPhi*k))/(1 + (1 - sin3beta)/fPsi + sin3beta);
-    d2distf2dbetatheta=(2*(c6*costheta + c7*costheta)*(c5 - c2*sintheta) - 2*c4*costheta*(c1*sintheta - c2*sintheta) + 2*(c1*costheta - c2*costheta)*(c3 - c4*sintheta) - 2*c2*costheta*(c6*sintheta + c7*sintheta))/(2.*fG);
-
-    
-    c1=pow(-((k + costheta*fR*(fA - expfBk*fC - fPhi*k))/sqrt3) + sig1/sqrt3 + sig2/sqrt3 + sig3/sqrt3,2)/(3.*fK);
-    c2=sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c3=2*sqrt2*sintheta*(fA - expfBk*fC - fN - k*fPhi);
-    c4=(1./sqrt(2.))*(sig2-sig3);
-    c5=2*sqrt2*(fA -expfBk*fC - fN - fPhi*k)*sintheta;
-    c6=1/fPsi;
-    d2distf2dbetabeta=(2*pow(c5,2)*pow(cosbeta,2)*pow(1 + c6 + 2*(-1 + c6)*sin3beta - 6*(-1 + c6)*sinbeta,2) + 2*pow(c3*(-1 + c6)*(2*cos2beta + cos4beta) - c3*(1 + c6)*sinbeta,2) +2*c3*cosbeta*(-(c2*(1 + c6)) + c3*cosbeta + c2*(-1 + c6)*sin3beta)*(15 - 34*c6 + 15*pow(c6,2) - 6*pow(-1 + c6,2)*
-                                                                                                                                                                                                                                                        cos2beta + 6*pow(-1 + c6,2)*cos4beta + 2*pow(-1 + c6,2)*cos6beta -13*(-1 + pow(c6,2))*sin3beta + 12*(-1 + pow(c6,2))*sinbeta) + c5*(-(c4*(1 + c6)) + c4*(-1 + c6)*sin3beta + c5*sinbeta)*((1 - pow(c6,2))*cos2beta + 13*(-1 + pow(c6,2))*cos4beta + 2*(pow(-1 + c6,2)*(-4*sin5beta + sin7beta) + 4*(3 + c6*(-7 + 3*c6))*sinbeta)))/(2.*fG*pow(1 + c6 - (-1 + c6)*sin3beta,4));
-
-    
-    
-    c1=(2.*sqrt(2.)*(3*cos3beta - (3*cos3beta)/fPsi)*sinbeta*sintheta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2);
-    c2=(2*sqrt2*cosbeta*sintheta)/(1 + (1 - sin3beta)/fPsi + sin3beta);
-    c3=(2*sqrt2*sinbeta*sintheta)/(1 + (1 - sin3beta)/fPsi + sin3beta);
-    c4=(1./sqrt(2.))*(sig2-sig3);
-    c5=c2;
-    c6=sqrt(2./3.)*sig1 - sig2/sqrt(6.) -sig3/sqrt(6.);
-    c7=(2*sqrt2*(3*cos3beta - (3*cos3beta)/fPsi)*cosbeta*sintheta)/pow(1 + (1 - sin3beta)/fPsi + sin3beta,2);
-    c8=c3;
-    d2distf2dbetak=(-2*c3*(-(expfBk*fB*fC) - fPhi)*(c1*(fA - expfBk*fC - fN - fPhi*k) - c2*(fA - expfBk*fC - fN - fPhi*k)) +
-                    2*(c1*(-(expfBk*fB*fC) - fPhi) - c2*(-(expfBk*fB*fC) - fPhi))*(c4 - c3*(fA - expfBk*fC - fN - fPhi*k)) +
-                    2*(c7*(-(expfBk*fB*fC) - fPhi) + c8*(-(expfBk*fB*fC) - fPhi))*(c6 - c5*(fA - expfBk*fC - fN - fPhi*k)) -
-                    2*c5*(-(expfBk*fB*fC) - fPhi)*(c7*(fA - expfBk*fC - fN - fPhi*k) + c8*(fA - expfBk*fC - fN - fPhi*k)))/(2.*fG);
-    
-    
-    dreskk=1. + costheta*(-(expfBk*fB*fC) - fPhi)*fR +
-    3.*exp(fD*(-((fA - expfBk*fC)*fR) + k))*fD*fK*
-    (1. + expfBk*fB*fC*fR)*fW;
-
-    
-    dresktheta=-fR*(fA - fC * expfBk - k*fPhi)* sintheta;
-
-    tangentf2(0,0)= d2distf2dthetatheta;
-    tangentf2(0,1)=d2distf2dthetabeta;
-    tangentf2(0,2)=d2distf2dthetak;
-    tangentf2(1,0)=d2distf2dbetatheta;
-    tangentf2(1,1)=d2distf2dbetabeta;
-    tangentf2(1,2)=d2distf2dbetak;
-    tangentf2(2,0)=dresktheta;
+    tangentf2(1,0)=tangentf2(0,1);
+    tangentf2(1,1)=(FfAlpha*st*(Gamma3*(cb*sig2 + sb*sig3)*Sqrt2 +
+                                Gamma2*(2*DGamma*(-(sb*sig2) + cb*sig3) + D2Gamma*(cb*sig2 + sb*sig3))*Sqrt2 + 6*DGamma*DGamma*FfAlpha*st -
+                                2*Gamma*(DGamma*DGamma*(cb*sig2 + sb*sig3)*Sqrt2 + D2Gamma*FfAlpha*st)))/(fG*Gamma2*Gamma2);
+    tangentf2(1,2)=-((DFAlpha*Sqrt2*st*(Gamma2*(-(sb*sig2) + cb*sig3) - DGamma*Gamma*(cb*sig2 + sb*sig3) + 2*DGamma*FfAlpha*Sqrt2*st))/
+                     (fG*Gamma3));
+    tangentf2(2,0)=-(FfAlpha*fR*st);
     tangentf2(2,1)=0;
-    tangentf2(2,2)=dreskk;
+    tangentf2(2,2)=1 - ct*expBC*fR + 3*fD*exp(fD*(-(FfAlpha*fR) + k))*fK*(1 + expBC*fR)*fW;
 }
-
 
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const
@@ -722,6 +499,17 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     yield[0]=f1;
     yield[1]=f2;
     
+}
+
+void TPZSandlerExtended::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const
+{
+
+    TPZTensor<REAL>::TPZDecomposed DecompSig;
+    TPZTensor<STATE> sig;
+    TPZElasticResponse ER;
+    ER.Compute(eps,sig);
+    sig.EigenSystem(DecompSig);
+    YieldFunction(DecompSig.fEigenvalues,alpha, phi);
 }
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
@@ -858,10 +646,12 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 //        }
 //#endif
         for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
+        resnorm=Norm(sol);
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
-        resnorm=Norm(diff);
+        //resnorm=Norm(diff);
+        
 
         xn=xn1;
         counter++;
@@ -909,7 +699,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial,xn[0],xn[1],xn[2],jac);
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2new(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
+        DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
         for(int k=0; k<3; k++) fxn(k,0) = fxnvec[k];
         for (int i=0; i<3; i++) {
             jac(i,0) = 0.;
@@ -1470,7 +1260,7 @@ void TPZSandlerExtended::TaylorCheckDistF2(const TPZVec<STATE> &sigmatrial, STAT
     STATE dist0 = DistF2(sigmatrial, theta, beta, k);
     TPZFNMatrix<4,STATE> jac(3,1);
     TPZManVector<STATE> fxnvec(3);
-    DDistFunc2new(sigmatrial, theta,beta,k,kprev,fxnvec);
+    DDistFunc2(sigmatrial, theta,beta,k,kprev,fxnvec);
     for(int k=0; k<3; k++) jac(k,0) = fxnvec[k];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, jac);
     xnorm.resize(10);
@@ -1499,7 +1289,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
     TPZFNMatrix<3,STATE> res0(3,1),resid(3,1),residguess(3,1),diff(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
     TPZManVector<STATE> fxnvec(3);
-    DDistFunc2new(sigmatrial, theta,beta,k,kprev,fxnvec);
+    DDistFunc2(sigmatrial, theta,beta,k,kprev,fxnvec);
     for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     D2DistFunc2(sigmatrial, theta, beta, k, jac);
@@ -1516,7 +1306,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
         diff(1) = diffbeta;
         diff(2) = diffk;
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2new(sigmatrial, thetanext,betanext,knext,kprev,fxnvec);
+        DDistFunc2(sigmatrial, thetanext,betanext,knext,kprev,fxnvec);
         for(int k=0; k<3; k++) resid(k,0) = fxnvec[k];
 //        DDistFunc2(sigmatrial, thetanext, betanext, knext, kprev, resid);
         jac.Multiply(diff, residguess);
@@ -1539,7 +1329,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
     TPZFNMatrix<3,STATE> res0(3,1),resid(3,1),residguess(3,1),diff(3,1);
     TPZFNMatrix<9,STATE> jac(3,3);
     TPZManVector<STATE> fxnvec(3);
-    DDistFunc2new(sigmatrial, theta,beta,k,kprev,fxnvec);
+    DDistFunc2(sigmatrial, theta,beta,k,kprev,fxnvec);
     for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     GradF2SigmaTrial(sigmatrial, theta, beta, k, kprev, jac);
@@ -1550,7 +1340,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
         TPZManVector<STATE,3> sigmanext(3);
         for(int j=0; j<3; j++) sigmanext[j] = sigmatrial[j]+diff(j);
         TPZManVector<STATE> fxnvec(3);
-        DDistFunc2new(sigmanext, theta,beta,k,kprev,fxnvec);
+        DDistFunc2(sigmanext, theta,beta,k,kprev,fxnvec);
         for(int k=0; k<3; k++) resid(k,0) = fxnvec[k];
 //        DDistFunc2(sigmanext, theta, beta,k,kprev,resid);
         jac.Multiply(diff, residguess);
@@ -1844,7 +1634,7 @@ void TPZSandlerExtended::TaylorCheckProjectF2(const TPZVec<STATE> &sigtrial, STA
     for (int m=0; m<3; m++) {
         sigtrialfad[m] = sigtrial[m];
     }
-    DDistFunc2(sigtrialfad, thetafad, betafad, kprojfad, kprev, ddistf2);
+    //DDistFunc2(sigtrialfad, thetafad, betafad, kprojfad, kprev, ddistf2);
     
     TPZFNMatrix<9,STATE> diffjac(3,3);
     for (int m=0; m<3; m++) {
@@ -1907,7 +1697,7 @@ void TPZSandlerExtended::TaylorCheckDtbkDsigtrial(const TPZVec<STATE> &sigtrial,
     for (int m=0; m<3; m++) {
         sigtrialfad[m] = sigtrial[m];
     }
-    DDistFunc2(sigtrialfad, thetafad, betafad, kprojfad, kprev, ddistf2);
+    //DDistFunc2(sigtrialfad, thetafad, betafad, kprojfad, kprev, ddistf2);
     
     TPZFNMatrix<9,STATE> diffjac(3,3);
     for (int m=0; m<3; m++) {
@@ -1994,7 +1784,10 @@ void TPZSandlerExtended::MCormicRanchSand(TPZSandlerExtended &mat)//em ksi
     mat.fPsi=psi;
     mat.fE=E;
     mat.fnu=nu;
-
+    TPZElasticResponse ER;
+    ER.SetUp(E, nu);
+    mat.fElasticResponse =ER;
+    
 }
 
 void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
@@ -2015,6 +1808,9 @@ void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
     mat.fPsi=psi;
     mat.fE=E;
     mat.fnu=nu;
+    TPZElasticResponse ER;
+    ER.SetUp(E, nu);
+    mat.fElasticResponse =ER;
     
     
 }
@@ -2038,6 +1834,9 @@ void TPZSandlerExtended::SalemLimestone(TPZSandlerExtended &mat)// em MPa
     mat.fPsi=psi;
     mat.fE=E;
     mat.fnu=nu;
+    TPZElasticResponse ER;
+    ER.SetUp(E, nu);
+    mat.fElasticResponse =ER;
 }
 
 void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
@@ -2060,6 +1859,9 @@ void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
     mat.fPsi=psi;
     mat.fE=E;
     mat.fnu=nu;
+    TPZElasticResponse ER;
+    ER.SetUp(E, nu);
+    mat.fElasticResponse =ER;
 }
 //REAL E = 29269,
 //poisson = 0.203;

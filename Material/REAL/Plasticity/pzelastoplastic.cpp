@@ -239,7 +239,7 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlastic<T,TMEM>::EAlpha)                     return 1;  
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps)              return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2)              return 1;
-    if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha 
+   // if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha
     if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
     if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)          return 3; 
     if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;
@@ -449,12 +449,12 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps){
 		Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps;
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
-	else
-	if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
-        
-        TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
-        plasticloc.Phi(EpsT,Solout);
-	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
+//	else
+//	if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
+//        
+//        TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+//        plasticloc.Phi(EpsT,Solout);
+//	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
@@ -1244,6 +1244,8 @@ void TPZMatElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int type,
 #include "TPZVonMises.h"
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
+#include "pzsandlerextPV.h"
+#include "TPZPlasticStepPV.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
@@ -1274,4 +1276,7 @@ template class TPZMatElastoPlastic<TPZLadeKim, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
+
+template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
+
 

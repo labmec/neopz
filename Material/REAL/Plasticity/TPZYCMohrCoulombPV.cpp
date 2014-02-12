@@ -27,6 +27,11 @@ TPZYCMohrCoulombPV & TPZYCMohrCoulombPV::operator=(const TPZYCMohrCoulombPV &cp)
 	return *this;
 }
 
+void TPZYCMohrCoulombPV::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const
+{
+    
+}
+
 template <class T>
 void TPZYCMohrCoulombPV::PlasticityFunction(const T epsp, T &sigmay, T &H) const
 {

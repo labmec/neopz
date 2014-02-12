@@ -29,6 +29,16 @@ public:
 	/// Desctructor
     virtual ~TPZSandlerExtended();
 
+    STATE GetX(STATE k);
+    
+    /// Compute k as a function of epsp using Newton iterations
+    void Firstk(STATE &epsp,STATE &k) const;
+    
+    TPZElasticResponse GetElasticResponse();
+    
+    STATE GetR();
+    
+    void YieldFunction(const TPZVec<STATE>  &sigma, STATE kprev, TPZVec<STATE> &yield) const;
 
 private:
     /// The function which defines the plastic surface
@@ -37,9 +47,7 @@ private:
     /// Auxiliary function for Associating the position of the cap with the damage variable
     template<class T>
     T X(T k) const;
-public:
-    
-    
+
     /// compute the damage variable as a function of the X function
     template<class T>
     T EpsEqX(T X) const;
@@ -55,27 +63,26 @@ public:
     STATE DistF1(const TPZVec<STATE> &pt,STATE xi,STATE beta) const;
     /// Compute the distance of sigtrial to the point on the cap
     STATE DistF2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k) const;
-    /// Compute k as a function of epsp using Newton iterations
-    void Firstk(STATE &epsp,STATE &k) const;
+    
     /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
     void DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &ddistf1) const;
+    
+    /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
+    
     
     
     /// Compute the derivative of the distance function to the cap function and the result of ResL
     template<class T>
-    void DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,STATE kprev, TPZVec<T> &ddistf2) const;
-    
-    void DDistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZManVector<STATE> &ddistf2) const;
-    
-    
+//    void DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZVec<STATE> &ddistf2) const;
+    void DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kprev, TPZManVector<T> &ddistf2) const;
+
     
     /// Compute the second derivative of the distance as a function of xi and beta
     void D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &d2distf1) const;
+    
     /// Compute the second derivative of the distance as a function of theta, beta and k
     
     void D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &d2distf2)const;
-    
-    void D2DistFunc2new(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &d2distf2)const;
     
     
     /// Compute the derivative of the equation which determines the evolution of k
@@ -102,15 +109,7 @@ public:
     
     /// Compute the derivative of the stress (principal s;tresses) as a function of xi and beta
     void DF2Cart(STATE theta, STATE beta, STATE k, TPZFMatrix<STATE> &DF1) const;
-    
-    
-    
-//    void ApplyStrainComputeElasticStress(TPZTensor<STATE> &stress,TPZTensor<STATE> &strain)const;
-    void ComputeI1(TPZVec<STATE> stress, STATE &I1)const;
-    void ComputeJ2(TPZVec<STATE> stress, STATE &J2)const;
-    void ApplyStrainComputeElasticStress(TPZVec<STATE> &strain,TPZVec<STATE> &stress)const;
-    void ApplyStressComputeElasticStrain(TPZVec<STATE> &stress,TPZVec<STATE> &strain)const;
-    
+
     
     /// Compute the derivative of the residual with respect to sigtrial
     void GradF1SigmaTrial(const TPZVec<STATE> &sigtrial, STATE xi, STATE beta, TPZFMatrix<STATE> &deriv) const;
@@ -123,11 +122,15 @@ public:
     
     void F2Cyl(STATE theta,STATE beta,STATE k, TPZVec<STATE> &f2cyl) const;
     
+public:
+    
+    void Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const;
+    
     void SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE &beta) const;
     
     void SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &theta, STATE &beta) const;
     
-    void YieldFunction(const TPZVec<STATE>  &sigma, STATE kprev, TPZVec<STATE> &yield) const;
+
     
     void ProjectF1(const TPZVec<STATE>  &sigmatrial, STATE kprev, TPZVec<STATE>  &sigproj, STATE &kproj) const;
     
@@ -148,6 +151,13 @@ public:
 //    void ApplyStrainComputeSigma(const TPZVec<STATE> &eps, STATE kprev, TPZVec<STATE> &sigma,STATE &kproj) const;
     void ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STATE> &epsp,STATE & kprev,TPZVec<STATE> &epspnext,TPZVec<STATE> &stressnext,STATE & knext) const;
     
+
+    
+    void ComputeI1(TPZVec<STATE> stress, STATE &I1)const;
+    void ComputeJ2(TPZVec<STATE> stress, STATE &J2)const;
+    void ApplyStrainComputeElasticStress(TPZVec<STATE> &strain,TPZVec<STATE> &stress)const;
+    void ApplyStressComputeElasticStrain(TPZVec<STATE> &stress,TPZVec<STATE> &strain)const;
+    
     void ProjectSigma(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj,STATE &kproj) const;
     
     void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj,STATE &kproj, TPZFMatrix<STATE> &GradSigma) const;
@@ -155,6 +165,7 @@ public:
     /**
      * Set of methods to verify if the tangent matrices are computed correctly
      */
+    
     void TaylorCheckDistF1(const TPZVec<STATE> &sigmatrial, STATE xi, STATE beta, TPZVec<STATE> &xnorm,
                            TPZVec<STATE> &errnorm) const;
     void TaylorCheckDDistF1(const TPZVec<STATE> &sigmatrial, STATE xi, STATE beta, TPZVec<STATE> &xnorm,
@@ -190,16 +201,17 @@ public:
     
     static void CheckCoordinateTransformation(TPZVec<STATE> &cart);
     
+public:
     
     static void MCormicRanchSand(TPZSandlerExtended &mat);
     static void ReservoirSandstone(TPZSandlerExtended &mat);
     static void SalemLimestone(TPZSandlerExtended &mat);
     static void PreSMat(TPZSandlerExtended &mat);// em MPa
     
-public:
-    
+private:
     STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fE,fnu;//,fk0;
     bool fIsonCap;
+    TPZElasticResponse    fElasticResponse;
     
     
 };

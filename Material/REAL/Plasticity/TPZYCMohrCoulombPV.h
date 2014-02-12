@@ -175,6 +175,9 @@ public:
 	 * @brief Choses the correct projection and returns projected sigma, new epspbar and tangent matrix
 	 */
 	void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<STATE> &tang);
+    
+    void Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const;
+
 	
 };
 
