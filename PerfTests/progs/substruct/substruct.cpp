@@ -211,6 +211,8 @@ struct likwid_manager_t {
 
 #endif
 
+
+
 int main(int argc, char *argv[])
 {
     
@@ -225,7 +227,13 @@ int main(int argc, char *argv[])
     task_scheduler_init init;
 #endif
     
+#ifdef USING_BLAS
+    setenv("VECLIB_MAXIMUM_THREADS", "1", true);
+#endif
+    
     int main_ret = EXIT_SUCCESS;
+    
+    InitializePZLOG();
     
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {

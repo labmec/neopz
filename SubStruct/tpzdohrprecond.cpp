@@ -390,6 +390,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 		//		(*it)->LoadWeightedResidual(xloc);
 		(*it)->Contribute_rc_local(xloc,CoarseResidual_local);
 		fAssemble->AssembleCoarse(isub,CoarseResidual_local,CoarseResidual);
+        
+        // debug
+        CoarseResidual_local.Print(std::cout);
+        
 	}
 #ifdef LOG4CXX
 	{

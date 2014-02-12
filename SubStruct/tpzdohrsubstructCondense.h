@@ -175,7 +175,9 @@ class TPZDohrSubstructCondense
 			if(!wasRealloc) {
 				std::cout << "TPZDohrSubstructCondense::ReallocMatRed\n";
 				fMatRed.ReallocForNuma(0);
+                fMatRed->ReallocSolver();
 				fMatRedComplete.ReallocForNuma(0);
+                
 				wasRealloc = true;
 			}
 		}

@@ -552,39 +552,98 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 			}
 		}
 	}
+    
+    
+
+    
+    
 }
+
+using namespace std;
 
 #ifdef BLAS_MULT
 template<> 
 void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<double> &y, TPZFMatrix<double> &z,
-                                 const double alpha,const double beta,const int opt,const int stride) const {
+                                const double alpha,const double beta,const int opt,const int stride) const {
     
-    int brows = this->Rows();
-	int bcols = this->Cols();
-    int bxrows = x.Rows();
-	int bxcols = x.Cols();
+    if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
+		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+		return;
+	}
     
-    z = y;
+    if(beta != (double)0. && ((!opt && this->Rows()*stride != y.Rows()) || (opt && this->Cols()*stride != y.Rows()) || y.Cols() != x.Cols())) {
+		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+		return;
+	}
+    if(!opt) {
+		if(z.Cols() != x.Cols() || z.Rows() != this->Rows()*stride) {
+			z.Redim(this->Rows()*stride,x.Cols());
+		}
+	} else {
+        //cout << "tem que transpor!" << endl;
+        //exit(171);
+        
+		if(z.Cols() != x.Cols() || z.Rows() != this->Cols()*stride) {
+			z.Redim(this->Cols()*stride,x.Cols());
+		}
+	}
+	if(this->Cols() == 0)
+	{
+		z.Zero();
+	}
     
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                brows, bxcols, bcols, alpha, fElem, brows, x.fElem, bxrows, beta, z.fElem, brows);
+    if(beta != (double)0.)
+        z = y;
     
+    if (stride != 1){
+        //cout << "e esse stride!" << endl;
+    }
+    
+    if(!opt) {
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                    this->Rows(), x.Cols(), this->Cols(), alpha, fElem, this->Cols(), x.fElem, x.Cols(), beta, z.fElem, z.Cols());
+    } else {
+        cblas_dgemm(CblasRowMajor, CblasTrans, CblasTrans, 
+                   this->Rows(), x.Cols(), this->Cols(), alpha, fElem, this->Rows(), x.fElem, x.Cols(), beta, z.fElem, z.Cols());
+    }    
 }
 
 template<> 
 void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<float> &y, TPZFMatrix<float> &z,
                                  const float alpha,const float beta,const int opt,const int stride) const {
+    if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
+		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+		return;
+	}
     
-    int brows = this->Rows();
-	int bcols = this->Cols();
-    int bxrows = x.Rows();
-	int bxcols = x.Cols();
+    if(beta != (float)0. && ((!opt && this->Rows()*stride != y.Rows()) || (opt && this->Cols()*stride != y.Rows()) || y.Cols() != x.Cols())) {
+		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+		return;
+	}
+    if(!opt) {
+		if(z.Cols() != x.Cols() || z.Rows() != this->Rows()*stride) {
+			z.Redim(this->Rows()*stride,x.Cols());
+		}
+	} else {
+		if(z.Cols() != x.Cols() || z.Rows() != this->Cols()*stride) {
+			z.Redim(this->Cols()*stride,x.Cols());
+		}
+	}
+	if(this->Cols() == 0)
+	{
+		z.Zero();
+	}
     
-    z = y;
+    if(beta != (float)0.)
+        z = y;
     
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                brows, bxcols, bcols, alpha, fElem, brows, x.fElem, bxrows, beta, z.fElem, brows);
-    
+    if(!opt) {
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                this->Rows(), x.Cols(), this->Cols(), alpha, fElem, this->Cols(), x.fElem, x.Cols(), beta, z.fElem, z.Cols());
+    } else {
+        cblas_sgemm(CblasRowMajor, CblasTrans, CblasTrans, 
+                   this->Rows(), x.Cols(), this->Cols(), alpha, fElem, this->Rows(), x.fElem, x.Cols(), beta, z.fElem, z.Cols());
+    }
 }
 #endif
 
@@ -602,6 +661,8 @@ template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 							   const TVar alpha,const TVar beta,const int opt,const int stride) const {
     
+    cout << "# beta : " << beta << endl;
+
     
 	if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
@@ -683,6 +744,7 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
 			}
 		}
 	}
+    
 }
 
 /********************************/

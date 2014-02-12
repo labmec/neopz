@@ -77,6 +77,9 @@ public:
 		fIsReduced = 1;
 	}
 	
+    void ReallocSolver() {
+        fSolver->ReallocMatrix();
+    }
 	/**
 	 * @brief Put and Get values without bounds checking
 	 * these methods are faster than "Put" e "Get" if DEBUG is defined

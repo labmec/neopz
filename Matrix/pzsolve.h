@@ -130,6 +130,10 @@ public:
 		return fContainer;
 	}
 	
+    void ReallocMatrix() {
+        fContainer.ReallocForNuma(0);
+    }
+    
 	/**
 	 * @brief Shares the current matrix with another object of same type
 	 * @param other Object that will share current matrix
