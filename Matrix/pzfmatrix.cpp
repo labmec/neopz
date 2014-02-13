@@ -661,9 +661,6 @@ template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 							   const TVar alpha,const TVar beta,const int opt,const int stride) const {
     
-    cout << "# beta : " << beta << endl;
-
-    
 	if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
 		return;

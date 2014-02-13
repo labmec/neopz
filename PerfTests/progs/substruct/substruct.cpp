@@ -233,8 +233,6 @@ int main(int argc, char *argv[])
     
     int main_ret = EXIT_SUCCESS;
     
-    InitializePZLOG();
-    
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
         cerr << "Error when parsing the arguments!" << endl;
