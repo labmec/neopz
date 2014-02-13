@@ -142,8 +142,8 @@ bool SolveLaplaceProblemOnLShapeMesh();
 
 // Generic data for problems to solve
 bool usethreads = false;
-int MaxPOrder = 9;
-int MaxHLevel = 6;
+int MaxPOrder = 15;
+int MaxHLevel = 5;
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 int NRefs = 10;
@@ -179,8 +179,10 @@ int main() {
 #endif
 
 	// Initializing uniform refinements for reference elements
-//	gRefDBase.InitializeUniformRefPattern(ETriangle);
-	gRefDBase.InitializeAllUniformRefPatterns();
+	gRefDBase.InitializeUniformRefPattern(EOned);
+	gRefDBase.InitializeUniformRefPattern(ETriangle);
+	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+//	gRefDBase.InitializeAllUniformRefPatterns();
     //    gRefDBase.InitializeRefPatterns();
     
 	// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
@@ -221,12 +223,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		MElementType typeel;
 
 		/** Solving for each type of geometric elements */
-		for(itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
+		for(itypeel=(int)ETriangle;itypeel<(int)ETetraedro;itypeel++)
 		{
-			if(itypeel == 2 || itypeel == 4)
-				ninitialrefs = 2;
-			else
-				ninitialrefs = 3;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -394,8 +392,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		            std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 					fileerrors << "\n\nEntering Adaptive Methods... step " << nref << "\n";
 				//	if(typeel == 2 || typeel == 4)
-				//		ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
-				//	else
+					//	ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
+			//		else
 						ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
                 }
 				fileerrors.flush();
@@ -430,18 +428,17 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	TPZInterpolatedElement *el;
 	STATE Tol;
 	ZeroTolerance(Tol);
-
 	// To see where the computation is doing
 	long index = -1;
 	TPZVec<long> counterreftype(50,0);
 	REAL GradNorm, LaplacianValue;
 	REAL MaxGrad, MaxLaplacian;
 	long i, ii;
-	REAL factorGrad= 0.6;
-	REAL factorErrorM = 0.7;
+	REAL factorGrad= 0.5;
+	REAL factorErrorM = 0.8;
 	REAL LaplacianLimit = 5.;
 	REAL factorError = 0.3;
-	REAL GradErLimit = 1.;
+	REAL GradErLimit = 10;
 	REAL ErLimit = 0.01;
 	REAL BigError = ErLimit > factorErrorM*MaxErrorByElement ? factorErrorM*MaxErrorByElement : ErLimit;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
@@ -462,24 +459,43 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		LaplacianValue = Laplacian(el);
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if((ervecbyel[i] > BigError || gradervecbyel[i] > MaxGrad) && level < MaxHLevel) {
+		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
 			counterreftype[11]++;
 			hused = true;
 			el->Divide(index,subels);
+			el = 0;
 			level++;
-			if((nref < 3) && LaplacianValue > LaplacianLimit && pelement < MaxPOrder) {
+//			if((nref < 3) && LaplacianValue > LaplacianLimit && pelement < MaxPOrder) {
+//				for(ii=0;ii<subels.NElements();ii++) {
+//					((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
+//				}
+//				pused = true;
+//				[15]++;
+//			}
+//			else 
+//				counterreftype[18]++;
+		}
+		if(ervecbyel[i] > BigError && (pelement+1) < MaxPOrder) {
+			counterreftype[20]++;
+			pelement++;
+			if(el)
+				el->PRefine(pelement);
+			else {
 				for(ii=0;ii<subels.NElements();ii++) {
 					((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
 				}
-				pused = true;
-				counterreftype[15]++;
 			}
-			else 
-				counterreftype[18]++;
+			pused = true;
 		}
 		else if((ervecbyel[i] > SmallError || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
 			counterreftype[30]++;
-			el->PRefine(pelement);
+			if(el)
+				el->PRefine(pelement);
+			else {
+				for(ii=0;ii<subels.NElements();ii++) {
+					((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
+				}
+			}
 			pused = true;
 		}
 		else {
