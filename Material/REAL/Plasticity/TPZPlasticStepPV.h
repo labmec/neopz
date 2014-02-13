@@ -50,7 +50,7 @@ public:
 	 * @param[in] alpha damage variable
 	 */
 	
-  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30)
+  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fInterfaceTensionSign(-1)
 	{ 
 		fN.fAlpha = alpha; 
 	}
@@ -275,7 +275,7 @@ protected:
 	int fMaterialTensionSign;
 	
 	/** @brief The tension sign in the convention defined by the external user */
-	int fInterfaceTensionSign=-1;
+	int fInterfaceTensionSign;
 	
 	
 public:
