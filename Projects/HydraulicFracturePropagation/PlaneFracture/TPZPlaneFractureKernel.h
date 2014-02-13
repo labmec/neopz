@@ -166,9 +166,6 @@ protected:
     
     void PutConstantPressureOnFluidSolution();
     
-    void PutPreStressOnElastReduced();
-    void ClearPreStressOnElastReduced();
-    
     //Atributes:
     
     TPZVec< std::pair<REAL,REAL> > fpoligonalChain;

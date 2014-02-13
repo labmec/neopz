@@ -419,9 +419,9 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         STATE poisson = fLayerVec[lay].fPoisson;
         TPZVec<STATE> force(3,0.);
         
-        STATE prestressXX = 0.;
-        STATE prestressYY = 0.;
-        STATE prestressZZ = 0.;
+        STATE prestressXX = fLayerVec[lay].fSigmaMax;
+        STATE prestressYY = fLayerVec[lay].fSigmaMin;
+        STATE prestressZZ = fLayerVec[lay].fSigmaConf;
         
         ////Rock
         TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force,
@@ -754,6 +754,10 @@ TPZGeoEl * TPZPlaneFractureMesh::Find2DElementNearCrackTip(int posCrackTip, TPZV
     long crackElIndex = this->fcrackBoundaryElementsIndexes[posCrackTip];
     
     TPZVec<REAL> qsi(2,0.);
+    if(x[0] < 0.001)
+    {
+        x[0] = 0.001;
+    }
     TPZGeoEl * gel = fRefinedMesh->FindElement(x, qsi, crackElIndex, 2);
     
     return gel;

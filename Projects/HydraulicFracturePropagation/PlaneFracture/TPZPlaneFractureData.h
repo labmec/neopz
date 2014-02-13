@@ -52,7 +52,7 @@ public:
         fTtot = Ttot;
         factTime = 0.;
         
-        fDeltaT_left = 5.;
+        fDeltaT_left = 20.;
         fDeltaT_right = Ttot + 10.;
         
         fwasLeftLastTime = true;
@@ -67,7 +67,7 @@ public:
         
         if(freachTime_right == false)
         {
-            fDeltaT_left *= 2.;
+            fDeltaT_left += 10.;
         }
         else
         {
@@ -81,7 +81,7 @@ public:
         
         if(freachTime_right == false)
         {//1st time reach time on right from KI=KIc
-            fDeltaT_left = fDeltaT_left/2.;
+            fDeltaT_left -= 10.;
             freachTime_right = true;
         }
         
@@ -128,7 +128,7 @@ public:
     void RestartBissection()
     {
         freachTime_right = false;
-        factDeltaT = MAX(5.,factDeltaT/4.);
+        factDeltaT = MAX(20.,factDeltaT/4.);
         fDeltaT_left = factDeltaT;
         fDeltaT_right = fTtot + 10.;
     }

@@ -36,8 +36,8 @@
 //Utilize 1. para output (Mathematica) em metros e 3.280829131 para output (Mathematica) em foot
 const REAL feet = 1.;//3.280829131;
 
-const REAL minAlpha = 15.;
-const REAL maxAlpha = 20.;
+const REAL minAlpha = 1.;
+const REAL maxAlpha = 5.;
 
 //Inicializando vetor de cores
 const std::string TPZPlaneFractureKernel::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
@@ -1029,8 +1029,6 @@ void TPZPlaneFractureKernel::PostProcessElasticity()
 {
 #ifdef usingSWXGraphs
     
-    this->PutPreStressOnElastReduced();
-    
     TSWXGraphMesh grMesh;
     TSWXGraphElement grEl(0);
     TPZVec<std::string> nodalSol(1), cellSol(0);
@@ -1043,8 +1041,6 @@ void TPZPlaneFractureKernel::PostProcessElasticity()
     nm << "Elasticity_Step" << this->fstep << ".vtk";
     std::ofstream file(nm.str().c_str());
     grMesh.ToParaview(file);
-    
-    this->ClearPreStressOnElastReduced();
     
 #endif
 }
@@ -1294,8 +1290,6 @@ REAL TPZPlaneFractureKernel::ComputeVolInjected()
 bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
                                                       std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI)
 {
-    this->PutPreStressOnElastReduced();
-    
     bool propagate = false;
     
     maxKI = 0.;
@@ -1327,10 +1321,12 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
             }
         }
         
-        
-        if(cracktipKI >= minAlpha * cracktipKIc)
+        if(cracktipKI >= cracktipKIc)
         {
-            propagate = true;
+            if(cracktipKI >= minAlpha * cracktipKIc)
+            {//Entra na lista dos propagados, mas soh returna true se for maior que minAlpha*cracktipKIc. (apenas um ajuste manual)
+                propagate = true;
+            }
             whoPropagate_KI[p] = std::make_pair(cracktipKI,cracktipKIc);
             
             if(cracktipKI > maxKI)
@@ -1340,8 +1336,6 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
             }
         }
     }
-    
-    this->ClearPreStressOnElastReduced();
     
     return propagate;
 }
@@ -1456,7 +1450,7 @@ bool TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPol
         
         REAL innerProd = v0x*v1x + v0z*v1z;
         
-        if(innerProd > -1.E-5)
+        if(innerProd > 1.E-5)
         {
             int oldSize = NOzigzagPoligonalChain.NElements();
             NOzigzagPoligonalChain.Resize(oldSize+1);
@@ -1524,43 +1518,62 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
     else
     {
         REAL dtOrig = globTimeControl.actDeltaT();
-     
-        //DeltaT que, sem leakoff, deixa a fratura atual com o mesmo volume fornecido como parametro
-        REAL dtEquiv = -volAcum/(this->fQinj1wing_Hbullet*this->fHbullet);
-        globTimeControl.SetDeltaT(dtEquiv);
-        
+
+        {
+            REAL Qequiv = -volAcum/60./fHbullet;
+            std::map<int,TPZMaterial*>::iterator it;
+            for(it = this->fmphysics->MaterialVec().begin(); it != this->fmphysics->MaterialVec().end(); it++)
+            {
+                if(globMaterialIdGen.IsBulletMaterial(it->first))
+                {
+                    TPZBndCond * bnd = dynamic_cast<TPZBndCond*>(it->second);
+                    if(bnd)
+                    {
+                        bnd->Val2()(0,0) = Qequiv;
+                    }
+                }
+            }
+            globTimeControl.SetDeltaT(60.);
+        }
         globLeakoffStorage.DisableLeakoff();
         this->RunThisFractureGeometry(volAcum, true);
         globLeakoffStorage.RestoreDefaultLeakoff();
+        {
+            std::map<int,TPZMaterial*>::iterator it;
+            for(it = this->fmphysics->MaterialVec().begin(); it != this->fmphysics->MaterialVec().end(); it++)
+            {
+                if(globMaterialIdGen.IsBulletMaterial(it->first))
+                {
+                    TPZBndCond * bnd = dynamic_cast<TPZBndCond*>(it->second);
+                    if(bnd)
+                    {
+                        bnd->Val2()(0,0) = this->fQinj1wing_Hbullet;
+                    }
+                }
+            }
+        }
         
         globTimeControl.SetDeltaT(dtOrig);
-        
-//        REAL newVolAcum = this->IntegrateW();
-//        REAL alpha = volAcum/newVolAcum;
-//        
-//        //Sintonia fina (corrigindo eveltuais discrepancias entre volume antes e depois)
-//        if(fabs(volAcum - newVolAcum) > 1.E-10)
-//        {
-//            TPZFMatrix<REAL> newSolution = fmeshVec[0]->Solution();
-//            for(int r = 0; r < newSolution.Rows(); r++)
-//            {
-//                for(int c = 0; c < newSolution.Cols(); c++)
-//                {
-//                    newSolution(r,c) *= alpha;
-//                }
-//            }
-//            fmeshVec[0]->LoadSolution(newSolution);
-//        }
     }
     
-    //Verificando se a correcao deu certo
-    REAL newVolAcum = this->IntegrateW();
-    if(fabs(volAcum - newVolAcum) > 1.E-5)
+    //Verificacoes importantes!!!
+    bool thereIsNegW = false;
+    REAL negVol = 0.;
+    REAL newVol = this->IntegrateW(thereIsNegW,negVol);
+    if(thereIsNegW)
+    {
+        std::cout << "\n\nTransferencia de volumes resultou em w<0\n";
+        std::cout << "volnegativo = " << negVol << "\nFoi gerado um vtk com a resposta elastica obtida.\n\n\n";
+        PostProcessElasticity();
+        
+        DebugStop();
+    }
+    else if(fabs(volAcum - newVol) > 1.E-5)
     {
         std::cout << "\n\n\nW nao manteve volume na transferencia de solucao elastica!!!\n";
         std::cout << "volAntes = " << volAcum << std::endl;
-        std::cout << "volDepois = " << newVolAcum << std::endl;
-        std::cout << "(newVolAcum - volAcum) = " << (newVolAcum - volAcum) << "\n\n\n";
+        std::cout << "volDepois = " << newVol << std::endl;
+        std::cout << "(newVol - volAcum) = " << (newVol - volAcum) << "\n\n\n";
         DebugStop();
     }
     else
@@ -1766,48 +1779,7 @@ void TPZPlaneFractureKernel::PutConstantPressureOnFluidSolution()
     }
     TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
 }
-
-void TPZPlaneFractureKernel::PutPreStressOnElastReduced()
-{
-    std::map<int,TPZMaterial*>::iterator it1, it2;
-    
-    for(it1 = this->fmeshVec[0]->MaterialVec().begin(); it1 != this->fmeshVec[0]->MaterialVec().end(); it1++)
-    {
-        it2 = this->fmphysics->MaterialVec().find(it1->first);
-        if(it2 != this->fmphysics->MaterialVec().end())
-        {
-            TPZElasticity3D * mat3Dlin = dynamic_cast< TPZElasticity3D * > (it1->second);
-            TPZElast3Dnlinear * mat3Dnlin = dynamic_cast< TPZElast3Dnlinear * > (it2->second);
-            
-            if(mat3Dlin && mat3Dnlin)
-            {
-                REAL preXX, preYY, preZZ;
-                mat3Dnlin->GetPreStress(preXX, preYY, preZZ);
-                mat3Dlin->SetPreStress(preXX, preYY, preZZ);
-            }
-        }
-    }
-}
 //------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureKernel::ClearPreStressOnElastReduced()
-{
-    std::map<int,TPZMaterial*>::iterator it;
-    
-    for(it = this->fmeshVec[0]->MaterialVec().begin(); it != this->fmeshVec[0]->MaterialVec().end(); it++)
-    {
-        TPZElasticity3D * mat3Dlin = dynamic_cast< TPZElasticity3D * > (it->second);
-        
-        if(mat3Dlin)
-        {
-            REAL preXX = 0., preYY = 0., preZZ = 0.;
-            mat3Dlin->SetPreStress(preXX, preYY, preZZ);
-        }
-    }
-}
-//------------------------------------------------------------------------------------------------------------
-
-
 //---------------------------------------------------------
 
 
