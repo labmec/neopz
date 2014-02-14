@@ -29,7 +29,7 @@ class LinearPath3D
 public:
     
     LinearPath3D();//It is not to be used
-    LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+    LinearPath3D(TPZCompMesh * cmeshElastic,
                  TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
     LinearPath3D(LinearPath3D * cp);
     ~LinearPath3D();
@@ -52,7 +52,8 @@ public:
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
     virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
-    virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
+    
+    virtual void SetPressure(REAL pressure);
     
 protected:
     
@@ -77,14 +78,10 @@ protected:
     /** CMesh that constains elastic data */
     TPZCompMesh * fcmeshElastic;
     
-    /** CMesh that constains fluid data */
-    TPZCompMesh * fcmeshFluid;
-    
     /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
     
-    /** map that holds t and respective elIndex from FluidMesh and qsi for ComputeXInverse optimization */
-    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Fluid;
+    REAL fPressure;
 };
 
 
@@ -93,7 +90,7 @@ class LinearPath2D : public LinearPath3D
 public:
     
     LinearPath2D();//It is not to be used
-    LinearPath2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+    LinearPath2D(TPZCompMesh * cmeshElastic,
                  TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
     LinearPath2D(LinearPath2D * cp);
     ~LinearPath2D();
@@ -124,11 +121,11 @@ public:
     
     TPZVec<REAL> & Origin()
     {
-        return fOrigin;
+        return this->fOrigin;
     }
     TPZVec<REAL> & NormalPlane()
     {
-        return fNormalDirection;
+        return this->fNormalDirection;
     }
     REAL Radius();
     
@@ -262,46 +259,53 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+    Path3D(TPZCompMesh * cmeshElastic,
            TPZVec<REAL> &Origin, REAL &young, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius);
     
     ~Path3D();
+    
+    void SetPressure(REAL pressure);
     
     void ComputeJIntegral();
     
     REAL OriginZcoord()
     {
-        return fOriginZcoord;
+        return this->fOriginZcoord;
     }
     
     TPZVec<REAL> & Origin()
     {
-        return fArcPath3D->Origin();
+        return this->fArcPath3D->Origin();
+    }
+    
+    void SetKI(REAL KI)
+    {
+        this->fKI = KI;
     }
     
     REAL KI()
     {
-        return fKI;
+        return this->fKI;
     }
     
     REAL KIc()
     {
-        return fKIc;
+        return this->fKIc;
     }
     
     TPZVec<REAL> & JDirection()
     {
-        return fJDirection;
+        return this->fJDirection;
     }
     
     TPZVec<REAL> & NormalPlane()
     {
-        return fArcPath3D->NormalPlane();
+        return this->fArcPath3D->NormalPlane();
     }
     
     REAL Jintegral()
     {
-        return fJintegral;
+        return this->fJintegral;
     }
     
 protected:
@@ -331,14 +335,14 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    Path2D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ~Path2D();
     
     void ComputeJIntegral();
     
     REAL Jintegral()
     {
-        return fJintegral;
+        return this->fJintegral;
     }
     
 protected:
@@ -359,6 +363,8 @@ public:
     
     void Reset();
     
+    void SetPressure(REAL pressure);
+    
     int NPaths();
     
     virtual void PushBackPath3D(Path3D *Path3DElem);
@@ -367,7 +373,7 @@ public:
     
     Path3D * Path(int p)
     {
-        return fPath3DVec[p];
+        return this->fPath3DVec[p];
     }
     
 private:
@@ -375,6 +381,8 @@ private:
     virtual void IntegratePath3D(int p);
     
     TPZVec<Path3D*> fPath3DVec;
+    
+    bool fPressureAlreadySet;
 };
 
 
@@ -391,7 +399,7 @@ public:
     
     Path2D * Path()
     {
-        return fPath2D;
+        return this->fPath2D;
     }
     
 private:

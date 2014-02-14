@@ -209,7 +209,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-//    TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim no Paraview (com porder=2)
+    //TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim no Paraview (com porder=2)
     RefineDirectionalToCrackTip(2);
     
 //    {
@@ -289,8 +289,12 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
         f.Zero();
         for(int stripe = 0; stripe < fnstripes; stripe++)
         {
-            TPZBndCond * newmannInsideFract = new TPZBndCond(materialLin,globMaterialIdGen.InsideFractMatId(lay, stripe), newmann, k, f);
-            cmesh->InsertMaterialObject(newmannInsideFract);
+            int fractMatId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(fInsideFractureMatId.find(fractMatId) != fInsideFractureMatId.end())
+            {
+                TPZBndCond * newmannInsideFract = new TPZBndCond(materialLin,fractMatId, newmann, k, f);
+                cmesh->InsertMaterialObject(newmannInsideFract);
+            }
         }
     }
     
@@ -470,8 +474,12 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         f.Zero();
         for(int stripe = 0; stripe < fnstripes; stripe++)
         {
-            TPZBndCond * newmannInsideFract = new TPZBndCond(materialLin,globMaterialIdGen.InsideFractMatId(lay, stripe), newmann, k, f);
-            cmesh->InsertMaterialObject(newmannInsideFract);
+            int fractMatId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(fInsideFractureMatId.find(fractMatId) != fInsideFractureMatId.end())
+            {
+                TPZBndCond * newmannInsideFract = new TPZBndCond(materialLin,fractMatId, newmann, k, f);
+                cmesh->InsertMaterialObject(newmannInsideFract);
+            }
         }
     }
     
@@ -511,17 +519,21 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
         for(int stripe = 0; stripe < fnstripes; stripe++)
         {
             ///////////insideFract
-            TPZMat2dLin * mat = new TPZMat2dLin(globMaterialIdGen.InsideFractMatId(lay, stripe));
-            mat->SetMaterial(xk,xc,xf);
-            cmesh->InsertMaterialObject(mat);
-            
-            ///////////bullet
-            if(stripe == 0)
+            int fractMatId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(fInsideFractureMatId.find(fractMatId) != fInsideFractureMatId.end())
             {
-                TPZFMatrix<REAL> k(2,2,0.), f(2,1,0.);
-                f(0,0) = Qinj;
-                TPZBndCond * fluxInBC = new TPZBndCond(mat, globMaterialIdGen.BulletMatId(lay), newmann, k, f);
-                cmesh->InsertMaterialObject(fluxInBC);
+                TPZMat2dLin * mat = new TPZMat2dLin(fractMatId);
+                mat->SetMaterial(xk,xc,xf);
+                cmesh->InsertMaterialObject(mat);
+                
+                ///////////bullet
+                if(stripe == 0)
+                {
+                    TPZFMatrix<REAL> k(2,2,0.), f(2,1,0.);
+                    f(0,0) = Qinj;
+                    TPZBndCond * fluxInBC = new TPZBndCond(mat, globMaterialIdGen.BulletMatId(lay), newmann, k, f);
+                    cmesh->InsertMaterialObject(fluxInBC);
+                }
             }
         }
     }
@@ -623,16 +635,20 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
             f.Zero();
             
             ///////////insideFract
-            TPZBndCond * newmannInsideFract = new TPZBndCond(couplingMat,globMaterialIdGen.InsideFractMatId(lay, stripe), newmann, k, f);
-            cmesh->InsertMaterialObject(newmannInsideFract);
-            
-            ///////////bullet
-            if(stripe == 0)
+            int fractMatId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(fInsideFractureMatId.find(fractMatId) != fInsideFractureMatId.end())
             {
-                TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
-                f(0,0) = Qinj;
-                TPZBndCond * fluxInBC = new TPZBndCond(couplingMat, globMaterialIdGen.BulletMatId(lay), newmannFluxIn, k, f);
-                cmesh->InsertMaterialObject(fluxInBC);
+                TPZBndCond * newmannInsideFract = new TPZBndCond(couplingMat,fractMatId, newmann, k, f);
+                cmesh->InsertMaterialObject(newmannInsideFract);
+                
+                ///////////bullet
+                if(stripe == 0)
+                {
+                    TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
+                    f(0,0) = Qinj;
+                    TPZBndCond * fluxInBC = new TPZBndCond(couplingMat, globMaterialIdGen.BulletMatId(lay), newmannFluxIn, k, f);
+                    cmesh->InsertMaterialObject(fluxInBC);
+                }
             }
         }
     }
@@ -678,7 +694,7 @@ void TPZPlaneFractureMesh::SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStr
             }
             if(stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = StressApplied();//<<< dp aplicado!!!
+                bcmat->Val2()(1,0) = TPZPlaneFractureMesh::StressApplied();//<<< dp aplicado!!!
             }
             else
             {
@@ -930,7 +946,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     fPreservedMesh->SetMaxElementId(fPreservedMesh->NElements()-1);
     fPreservedMesh->SetMaxNodeId(fPreservedMesh->NNodes()-1);
     
-//    RefineUniformAllFracturePlane(1);//AQUICAJU <<<<<<<<<<<<<
+//    RefineUniformAllFracturePlane(1);
     
 //    std::ofstream outPreservedMesh("PreservedMesh.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
@@ -1891,6 +1907,8 @@ void TPZPlaneFractureMesh::GenerateCrackBoundary(TPZGeoMesh * refinedMesh,
 
 void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
 {
+    fInsideFractureMatId.clear();
+    
     int n1Dels = fcrackBoundaryElementsIndexes.NElements();
     std::map<int,TPZFracture2DEl> fracturedElems;
     
@@ -1953,7 +1971,9 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                     
                     int layer = this->GetLayer(Zc);
                     
-                    neigh->SetMaterialId(globMaterialIdGen.InsideFractMatId(layer, stripe));
+                    int fractMatId = globMaterialIdGen.InsideFractMatId(layer, stripe);
+                    neigh->SetMaterialId(fractMatId);
+                    fInsideFractureMatId.insert(fractMatId);
                     
                     std::map<int,TPZFracture2DEl>::iterator edgIt_temp = fracturedElems.find(neigh->Index());
                     if(edgIt_temp != fracturedElems.end())
@@ -2031,7 +2051,9 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                         
                         int layer = this->GetLayer(Zc);
                         
-                        neighEl->SetMaterialId(globMaterialIdGen.InsideFractMatId(layer, stripe));
+                        int fractMatId = globMaterialIdGen.InsideFractMatId(layer, stripe);
+                        neighEl->SetMaterialId(fractMatId);
+                        fInsideFractureMatId.insert(fractMatId);
                         
                         TPZFracture2DEl fractEl(neighEl);
                         fractEl.RemoveThisEdge(sideNeighbyside);

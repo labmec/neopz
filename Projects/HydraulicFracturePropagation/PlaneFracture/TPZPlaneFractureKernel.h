@@ -140,14 +140,14 @@ protected:
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
     bool CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
-                                  std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI);
+                                  std::set<int> &whoPropagate_KI);
     
     /**
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
-     * @param whoPropagate_KI [in] : map that holds the KI and KIc, indexed by poligonal chain index
+     * @param whoPropagate_KI [in] : map that holds propagated crackTip indexes
      */
     void DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
-                                        std::map< int, std::pair<REAL,REAL> > &whoPropagate_KI);
+                                        std::set<int> &whoPropagate_KI);
     
     /**
      * Remove zig-zag from given poligonal chain.
@@ -165,6 +165,8 @@ protected:
     void TransferLastLeakoff(TPZCompMesh * cmeshFrom);
     
     void PutConstantPressureOnFluidSolution();
+    
+    REAL MeanPressure();
     
     //Atributes:
     

@@ -52,7 +52,7 @@ public:
         fTtot = Ttot;
         factTime = 0.;
         
-        fDeltaT_left = 20.;
+        fDeltaT_left = 40.;
         fDeltaT_right = Ttot + 10.;
         
         fwasLeftLastTime = true;
@@ -82,6 +82,7 @@ public:
         if(freachTime_right == false)
         {//1st time reach time on right from KI=KIc
             fDeltaT_left -= 10.;
+            fDeltaT_left = MAX(1.,fDeltaT_left);
             freachTime_right = true;
         }
         
@@ -360,6 +361,20 @@ public:
         {
             return false;
         }
+    }
+    
+    int WhatStripe(int matId)
+    {
+        if(IsInsideFractMat(matId) == false)
+        {
+            std::cout << "\n\nGiven materialId does NOT belong to InsideFracture!!!\n\n";
+            DebugStop();
+        }
+        
+        int val = matId/10.;
+        int lastDigit = matId - val*10;
+        
+        return fabs(lastDigit);//Last digit corresponds to the stripe
     }
     
     bool IsOutsideFractMat(int matId)

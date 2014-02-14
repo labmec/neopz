@@ -34,10 +34,6 @@ int main(int argc, char * const argv[])
     REAL lengthY = 60.;
     REAL Lmax = 2.0;
     
-    REAL bulletTVDIni = 2100.;
-    REAL bulletTVDFin = 2120.;
-    int nstripes = 4;
-    
     //Material data
     TPZVec<TPZLayerProperties> layerVec(3);
     
@@ -69,6 +65,9 @@ int main(int argc, char * const argv[])
     REAL TVDi2 = TVDi1;
     REAL TVDf2 = 2160.;
     
+    REAL bulletTVDIni = 2100.;
+    REAL bulletTVDFin = 2120.;
+    
     //KIc
     REAL KIc0 = 1.09884E6 * globStressScale;
     REAL KIc1 = 1.09884E6 * globStressScale;
@@ -99,12 +98,15 @@ int main(int argc, char * const argv[])
     REAL visc = 200.02E-3 * globStressScale;
     
     //J-Integral data
-    REAL Jradius = 1.5;
+    REAL Jradius = 1.0;
 
     //Simulation p-order data
     int porder = 1;
     REAL MaxDispl_ini = 5.;
-    REAL MaxDispl_fin = 0.5;
+    REAL MaxDispl_fin = 2.;
+    
+    //NStripes
+    int nstripes = 4;
     
     bool pressureINdependent = true;
     bool UNcoupled = false;

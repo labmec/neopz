@@ -33,7 +33,6 @@ const int __EdgeStretchesQTD = 10; //will be used for refpatterns
 /** @brief Multiplier of __EdgeStretchesQTD for fine edge intersection modulation */
 const int __TrimQTDmultiplier = 2; //will be used for searching direction between dots from poligonal chain
 
-
 struct TPZLayerProperties
 {
 public:
@@ -307,9 +306,9 @@ class TPZPlaneFractureMesh
         return fmax_minCompressiveStress;
     }
     
-    REAL StressApplied()
+    static REAL StressApplied()
     {
-        return (1.E7 * globStressScale);
+        return 1.E7 * globStressScale;
     }
     
 protected:
@@ -511,6 +510,8 @@ protected:
     
     /** @brief Vector of coupling material */
     TPZVec<TPZPlaneFractCouplingMat *> fCouplingMatVec;
+    
+    std::set<int> fInsideFractureMatId;
 };
 
 #endif

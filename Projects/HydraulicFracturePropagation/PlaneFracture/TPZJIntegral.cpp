@@ -13,10 +13,9 @@
 #include "adapt.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzintel.h"
-#include "TPZTimer.h"
+#include "TPZPlaneFractureMesh.h"
 
 const REAL gIntegrPrecision = 1.e-4;
-const REAL gScaleFactor = 1.e5;
 
 
 //--------------------------------------------------------class LinearPath3D
@@ -28,7 +27,7 @@ LinearPath3D::LinearPath3D()
 }
 
 
-LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic,
                            TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius)
 {    
     fFinalPoint = FinalPoint;
@@ -38,7 +37,6 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     fDETdxdt = fradius/2.;
     
     fcmeshElastic = cmeshElastic;
-    fcmeshFluid = cmeshFluid;
     //Se crackPressure acabar sendo positivo, teremos ponta da fratura fechando (imporei KI = 0.)!!!
     
     fInitialPoint.Resize(3, 0.);
@@ -47,7 +45,8 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI)/2.));
     
     f_t_elIndexqsi_Elastic.clear();
-    f_t_elIndexqsi_Fluid.clear();
+    
+    fPressure = 0.;
 }
 
 LinearPath3D::LinearPath3D(LinearPath3D * cp)
@@ -60,10 +59,10 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
     fDETdxdt = cp->fDETdxdt;
     
     fcmeshElastic = cp->fcmeshElastic;
-    fcmeshFluid = cp->fcmeshFluid;
     
     f_t_elIndexqsi_Elastic.clear();
-    f_t_elIndexqsi_Fluid.clear();
+    
+    fPressure = cp->fPressure;
 }
 
 LinearPath3D::~LinearPath3D()
@@ -90,12 +89,12 @@ void LinearPath3D::normalVec(REAL t, TPZVec<REAL> & n)
 
 REAL LinearPath3D::DETdxdt()
 {
-    return fDETdxdt;
+    return this->fDETdxdt;
 }
 
 REAL LinearPath3D::Radius()
 {
-    return fradius;
+    return this->fradius;
 }
 
 TPZVec<REAL> LinearPath3D::Func(REAL t)
@@ -108,9 +107,9 @@ TPZVec<REAL> LinearPath3D::Func(REAL t)
     TPZVec<REAL> linContribution(3,0.);
     linContribution = Function(t, xt, nt);
     
-    linContribution[0] = linContribution[0] * gScaleFactor;
+    linContribution[0] = linContribution[0];
     linContribution[1] = 0.;
-    linContribution[2] = linContribution[2] * gScaleFactor;
+    linContribution[2] = linContribution[2];
     
     return linContribution;
 }
@@ -193,140 +192,12 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     //          last is IDENTITY in PZ (because is 3D element).
     GradUtxy = data.dsol[0];
     
-    Sigma_n[1] = ComputePressure(t, xt);
+    Sigma_n[1] = this->fPressure;
 }
 
-
-REAL LinearPath3D::ComputePressure(REAL t, TPZVec<REAL> & xt)
+void LinearPath3D::SetPressure(REAL pressure)
 {
-    //AQUICAJU : vou pegar da elastica mesmo
-    
-//    fcmeshFluid->LoadReferences();
-//    
-//    TPZVec<REAL> qsi(2,0.);
-//    
-//    long InitialElementIndex = 0;
-//    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Fluid.lower_bound(t);
-//    if(it != f_t_elIndexqsi_Fluid.end())
-//    {
-//        InitialElementIndex = it->second.first;
-//        qsi = it->second.second;
-//    }
-//    else if(f_t_elIndexqsi_Fluid.size() > 0)
-//    {
-//        it--;
-//        InitialElementIndex = it->second.first;
-//        qsi = it->second.second;
-//    }
-////    else
-////    {
-////        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
-////    }
-//    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
-//    
-//    if(!geoEl)
-//    {
-//        std::cout.precision(15);
-//        std::cout << "\n\ngeoEl not found!\n";
-//        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
-//        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
-//        DebugStop();
-//    }
-//    
-//    f_t_elIndexqsi_Fluid[t] = std::make_pair(geoEl->Index(), qsi);
-//    
-//    TPZCompEl * cel = geoEl->Reference();
-//    if(!cel)
-//    {
-//        DebugStop();
-//    }
-//    TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
-//    if(!sp)
-//    {
-//        DebugStop();
-//    }
-//    
-//    TPZMaterialData data;
-//    sp->InitMaterialData(data);
-//    
-//    sp->ComputeShape(qsi, data);
-//    sp->ComputeSolution(qsi, data);
-//    
-//    REAL press = data.sol[0][0];
-//    
-//    return press;
-
-    TPZFMatrix<STATE> GradUtxy(3,3,0.);
-    TPZFMatrix<STATE> Sigma(3,3,0.);
-    TPZFMatrix<STATE> strain(3,3,0.);
-    
-    TPZVec<REAL> qsi(0);
-    
-    long InitialElementIndex = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Elastic.lower_bound(t);
-    if(it != f_t_elIndexqsi_Elastic.end())
-    {
-        InitialElementIndex = it->second.first;
-        qsi = it->second.second;
-    }
-    else if(f_t_elIndexqsi_Elastic.size() > 0)
-    {
-        it--;
-        InitialElementIndex = it->second.first;
-        qsi = it->second.second;
-    }
-    else
-    {
-        qsi.Resize(fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
-    }
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
-    
-    if(!geoEl)
-    {
-        std::cout.precision(15);
-        std::cout << "\n\ngeoEl not found!\n";
-        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
-        DebugStop();
-    }
-    
-    f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
-    
-    TPZCompEl * compEl = geoEl->Reference();
-    
-#ifdef DEBUG
-    if(!compEl)
-    {
-        std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-#endif
-    
-    TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
-    TPZMaterialData data;
-    intpEl->InitMaterialData(data);
-    
-    intpEl->ComputeShape(qsi, data);
-    intpEl->ComputeSolution(qsi, data);
-    
-    GradUtxy = data.dsol[0];
-    
-    TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
-    
-#ifdef DEBUG
-    if(!elast3D)
-    {
-        std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-#endif
-    
-    elast3D->ComputeStressTensor(Sigma, data);
-    elast3D->ComputeStrainTensor(strain, GradUtxy);
-    
-    REAL pressure = -Sigma(1,1);
-    
-    return pressure;
+    this->fPressure = pressure;
 }
 
 //-------------------------class LinearPath2D
@@ -336,9 +207,9 @@ LinearPath2D::LinearPath2D() : LinearPath3D()
     
 }
 
-LinearPath2D::LinearPath2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+LinearPath2D::LinearPath2D(TPZCompMesh * cmeshElastic,
                            TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius) :
-              LinearPath3D(cmeshElastic,cmeshFluid,FinalPoint,normalDirection,radius)
+              LinearPath3D(cmeshElastic,FinalPoint,normalDirection,radius)
 {
     
 }
@@ -363,7 +234,7 @@ TPZVec<REAL> LinearPath2D::Func(REAL t)
     TPZVec<REAL> linContribution(2,0.);
     linContribution = Function(t, xt, nt);
     
-    linContribution[0] = linContribution[0] * gScaleFactor;
+    linContribution[0] = linContribution[0];
     linContribution[1] = 0.;
     
     return linContribution;
@@ -453,58 +324,7 @@ void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 
 REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 {
-    fcmeshFluid->LoadReferences();
-    
-    TPZVec<REAL> qsi(0);
-    
-    long InitialElementIndex = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIndexqsi_Fluid.lower_bound(t);
-    if(it != f_t_elIndexqsi_Fluid.end())
-    {
-        InitialElementIndex = it->second.first;
-        qsi = it->second.second;
-    }
-    else if(f_t_elIndexqsi_Fluid.size() > 0)
-    {
-        it--;
-        InitialElementIndex = it->second.first;
-        qsi = it->second.second;
-    }
-    else
-    {
-        qsi.Resize(fcmeshFluid->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
-    }
-    TPZGeoEl * geoEl = fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 1);
-    
-    if(!geoEl)
-    {
-        std::cout.precision(15);
-        std::cout << "\n\ngeoEl not found!\n";
-        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
-        DebugStop();
-    }
-    
-    f_t_elIndexqsi_Fluid[t] = std::make_pair(geoEl->Index(), qsi);
-    
-    TPZCompEl * cel = geoEl->Reference();
-    if(!cel)
-    {
-        DebugStop();
-    }
-    TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*>(cel);
-    if(!sp)
-    {
-        DebugStop();
-    }
-
-    TPZMaterialData data;
-    sp->InitMaterialData(data);
-        
-    sp->ComputeShape(qsi, data);
-    sp->ComputeSolution(qsi, data);
-    
-    REAL press = data.sol[0][0];
+    REAL press = this->fcmeshElastic->Solution()(1,0);
     
     return press;
 }
@@ -576,7 +396,7 @@ void ArcPath3D::normalVec(REAL t, TPZVec<REAL> & n)
 
 REAL ArcPath3D::DETdxdt()
 {
-    return fDETdxdt;
+    return this->fDETdxdt;
 }
 
 
@@ -590,9 +410,9 @@ TPZVec<REAL> ArcPath3D::Func(REAL t)
     TPZVec<REAL> arcContribution(3,0.);
     arcContribution = Function(t, xt, nt);
     
-    arcContribution[0] = arcContribution[0] * gScaleFactor;
+    arcContribution[0] = arcContribution[0];
     arcContribution[1] = 0.;
-    arcContribution[2] = arcContribution[2] * gScaleFactor;
+    arcContribution[2] = arcContribution[2];
     
     return arcContribution;
 }
@@ -600,6 +420,8 @@ TPZVec<REAL> ArcPath3D::Func(REAL t)
 
 TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
+    fcmeshElastic->LoadReferences();
+    
     TPZFMatrix<STATE> Sigma(3,3), strain(3,3), GradUtxy(3,3);
     Sigma.Zero();
     strain.Zero();
@@ -718,7 +540,7 @@ void ArcPath3D::SetRadius(REAL radius)
 
 REAL ArcPath3D::Radius()
 {
-    return fradius;
+    return this->fradius;
 }
 
 //-------------------------class ArcPath2D
@@ -754,7 +576,7 @@ TPZVec<REAL> ArcPath2D::Func(REAL t)
     TPZVec<REAL> arcContribution(2,0.);
     arcContribution = Function(t, xt, nt);
     
-    arcContribution[0] = arcContribution[0] * gScaleFactor;
+    arcContribution[0] = arcContribution[0];
     arcContribution[1] = 0.;
     
     return arcContribution;
@@ -1134,7 +956,7 @@ AreaPath3D::~AreaPath3D()
 
 REAL AreaPath3D::DETdxdt()
 {
-    return fDETdxdt;
+    return this->fDETdxdt;
 }
 
 
@@ -1166,10 +988,10 @@ Path3D::Path3D()
 }
 
 
-Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+Path3D::Path3D(TPZCompMesh * cmeshElastic,
                TPZVec<REAL> &Origin, REAL &young, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius)
 {
-    fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
+    fLinearPath3D = new LinearPath3D(cmeshElastic,Origin,normalDirection,radius);
     fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     fAreaPath3D = new AreaPath3D(fLinearPath3D);
     
@@ -1208,53 +1030,43 @@ Path3D::~Path3D()
     fJintegral = 0.;
 }
 
+void Path3D::SetPressure(REAL pressure)
+{
+    this->fLinearPath3D->SetPressure(pressure);
+}
+
 void Path3D::ComputeJIntegral()
 {
     Adapt intRule(gIntegrPrecision);
     
     //------------------ LINE
-    TPZTimer linInt("LinearIntegration");
-    linInt.start();
-    
     TPZVec<REAL> linJintegral(3,0.);
     linJintegral = intRule.Vintegrate(*(fLinearPath3D),3,-1.,+1.);
     
     //Simetry in xz plane
-    linJintegral[0] = 2. * linJintegral[0] * fLinearPath3D->DETdxdt() / gScaleFactor;
+    linJintegral[0] = 2. * linJintegral[0] * fLinearPath3D->DETdxdt();
     linJintegral[1] = 0.;
-    linJintegral[2] = 2. * linJintegral[2] * fLinearPath3D->DETdxdt() / gScaleFactor;
-    
-    linInt.stop();
+    linJintegral[2] = 2. * linJintegral[2] * fLinearPath3D->DETdxdt();
     
     //------------------ ARC
-    TPZTimer arcInt("ArcIntegration");
-    arcInt.start();
-    
     TPZVec<REAL> arcJintegral(3,0.);
     arcJintegral = intRule.Vintegrate(*(fArcPath3D),3,-1.,+1.);
     
     //Simetry in xz plane
-    arcJintegral[0] = 2. * arcJintegral[0] * fArcPath3D->DETdxdt() / gScaleFactor;
+    arcJintegral[0] = 2. * arcJintegral[0] * fArcPath3D->DETdxdt();
     arcJintegral[1] = 0.;
-    arcJintegral[2] = 2. * arcJintegral[2] * fArcPath3D->DETdxdt() / gScaleFactor;
-    
-    arcInt.stop();
+    arcJintegral[2] = 2. * arcJintegral[2] * fArcPath3D->DETdxdt();
     
     //------------------ AREA
-    TPZTimer areaInt("AreaIntegration");
-    areaInt.start();
-    
     TPZVec<REAL> areaJIntegral(3,0.);
     intRule.SetPrecision(1.e-2);
-    //areaJIntegral = intRule.Vintegrate(*(fAreaPath3D),3,-1.,+1.);
+    //areaJIntegral = intRule.Vintegrate(*(fAreaPath3D),3,-1.,+0.9);
     //std::cout << "\nAQUICAJU : nao estah integrando na area!!!\n";
     
     //Simetry in xz plane
-    areaJIntegral[0] = 2. * areaJIntegral[0] * fAreaPath3D->DETdxdt() / (gScaleFactor * gScaleFactor);
+    areaJIntegral[0] = 2. * areaJIntegral[0] * fAreaPath3D->DETdxdt();
     areaJIntegral[1] = 0.;
-    areaJIntegral[2] = 2. * areaJIntegral[2] * fAreaPath3D->DETdxdt() / (gScaleFactor * gScaleFactor);
-    
-    areaInt.stop();
+    areaJIntegral[2] = 2. * areaJIntegral[2] * fAreaPath3D->DETdxdt();
     
     //------------------ COMBINING
     REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
@@ -1280,10 +1092,10 @@ Path2D::Path2D()
 }
 
 
-Path2D::Path2D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
+Path2D::Path2D(TPZCompMesh * cmeshElastic,
                TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
-    fLinearPath2D = new LinearPath2D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
+    fLinearPath2D = new LinearPath2D(cmeshElastic,Origin,normalDirection,radius);
     fArcPath2D = new ArcPath2D(cmeshElastic,Origin,normalDirection,radius);
     fJintegral = 0.;
     
@@ -1314,30 +1126,20 @@ void Path2D::ComputeJIntegral()
     Adapt intRule(gIntegrPrecision);
     
     //------------------ LINE
-    TPZTimer linInt("LinearIntegration");
-    linInt.start();
-    
     TPZVec<REAL> linJintegral(2,0.);
     linJintegral = intRule.Vintegrate(*(fLinearPath2D),2,-1.,+1.);
     
     //Simetry in xz plane
-    linJintegral[0] = 2. * linJintegral[0] * fLinearPath2D->DETdxdt() / gScaleFactor;
+    linJintegral[0] = 2. * linJintegral[0] * fLinearPath2D->DETdxdt();
     linJintegral[1] = 0.;
     
-    linInt.stop();
-    
     //------------------ ARC
-    TPZTimer arcInt("ArcIntegration");
-    arcInt.start();
-    
     TPZVec<REAL> arcJintegral(2,0.);
     arcJintegral = intRule.Vintegrate(*(fArcPath2D),2,-1.,+1.);
     
     //Simetry in xz plane
-    arcJintegral[0] = 2. * arcJintegral[0] * fArcPath2D->DETdxdt() / gScaleFactor;
+    arcJintegral[0] = 2. * arcJintegral[0] * fArcPath2D->DETdxdt();
     arcJintegral[1] = 0.;
-    
-    arcInt.stop();
 
     //------------------ COMBINIG
     fJintegral = linJintegral[0] + arcJintegral[0];
@@ -1354,6 +1156,7 @@ void Path2D::ComputeJIntegral()
 JIntegral3D::JIntegral3D()
 {
     fPath3DVec.Resize(0);
+    this->fPressureAlreadySet = false;
 }
 
 JIntegral3D::~JIntegral3D()
@@ -1364,11 +1167,21 @@ JIntegral3D::~JIntegral3D()
 void JIntegral3D::Reset()
 {
     fPath3DVec.Resize(0);
+    this->fPressureAlreadySet = false;
+}
+
+void JIntegral3D::SetPressure(REAL pressure)
+{
+    for(int p = 0; p < this->NPaths(); p++)
+    {
+        this->fPath3DVec[p]->SetPressure(pressure);
+    }
+    this->fPressureAlreadySet = true;
 }
 
 int JIntegral3D::NPaths()
 {
-    return fPath3DVec.NElements();
+    return this->fPath3DVec.NElements();
 }
 
 void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
@@ -1381,6 +1194,13 @@ void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
 void JIntegral3D::IntegratePath3D()
 {
     std::cout << ">>>> Computing J-integral (Tot = " << NPaths() << ")\n";
+    
+    if(this->fPressureAlreadySet == false)
+    {
+        std::cout << "\nIntegratePath3D() called without pressure seted!!!\n\n\n";
+        DebugStop();
+    }
+    
     for(int p = 0; p < NPaths(); p++)
     {
         IntegratePath3D(p);
@@ -1394,9 +1214,10 @@ void JIntegral3D::IntegratePath3D(int p)
     
 //    std::cout << "Jvec" << p << " = { "
 //              << fPath3DVec[p]->JDirection()[0] << " , "
-//              << fPath3DVec[p]->JDirection()[1] << " , "
 //              << fPath3DVec[p]->JDirection()[2] << " };\n"
-//              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n\n";
+//              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n"
+//              << "KI = " << fPath3DVec[p]->KI() << "\n"
+//              << "KI/KIc = " << fPath3DVec[p]->KI()/fPath3DVec[p]->KIc() << "\n\n\n";
 }
 
 JIntegral2D::JIntegral2D()
