@@ -75,10 +75,12 @@ void TPZLinearConvecDiff::Contribute(TPZMaterialData &data,REAL weight,TPZFMatri
     ef(in, 0) += weight * FVal * ( phi(in,0) + this->fSD*(0.5*h/normaConveccao)*gradVBeta );
     for( int jn = 0; jn < nshape; jn++ ) {
       ek(in,jn) += weight * (
-      +fK * ( dphi(0,in) * dphi(0,jn) + dphi(1,in) * dphi(1,jn) )
-      - ( (dphi(0,in) * phi(jn)) * fConvDir[0] + (dphi(1,in) * phi(jn)) * fConvDir[1] )
-      + this->fSD*(0.5*h/normaConveccao)*(dphi(0,jn)*dphi(0,in) + dphi(1,jn)*dphi(1,in) )
-      );
+        +fK * ( dphi(0,in) * dphi(0,jn) + dphi(1,in) * dphi(1,jn) )
+        - ( (dphi(0,in) * phi(jn)) * fConvDir[0] + (dphi(1,in) * phi(jn)) * fConvDir[1] )
+        + this->fSD*(0.5*h/normaConveccao)*( 
+                                             (fConvDir[0]*dphi(0,jn))*(fConvDir[0]*dphi(0,in)) +
+                                             (fConvDir[1]*dphi(1,jn))*(fConvDir[1]*dphi(1,in))   )
+        );
     }
   }
 }///void
