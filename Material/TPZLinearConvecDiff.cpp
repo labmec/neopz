@@ -1,10 +1,11 @@
 
 
 #include "TPZLinearConvecDiff.h"
-
+#include "pzaxestools.h"
+#include "pzbndcond.h"
 
 TPZLinearConvecDiff::TPZLinearConvecDiff(int nummat, REAL k, const TPZVec<REAL> &conv, REAL f, REAL SD)
-                         :TPZMaterial(numat){
+                         :TPZMaterial(nummat){
   fK = k;
   fConvDir[0] = conv[0];
   fConvDir[1] = conv[1];
@@ -23,13 +24,13 @@ TPZLinearConvecDiff::TPZLinearConvecDiff(): TPZMaterial(), fXf(0.), fK(0.), fSD(
   fConvDir[1] = 0.;
 }
 
-TPZLinearConvecDiff::TPZLinearConvecDiff(const TPZMatPoisson3d &c)
+TPZLinearConvecDiff::TPZLinearConvecDiff(const TPZLinearConvecDiff &c)
                   :TPZMaterial(c){
   fK = c.fK;
   fConvDir[0] = c.fConvDir[0];
   fConvDir[1] = c.fConvDir[1];
-  fXf = f;
-  fSD = SD;
+  fXf = c.fXf;
+  fSD = c.fSD;
 }
 
 TPZLinearConvecDiff::~TPZLinearConvecDiff(){
@@ -51,8 +52,8 @@ void TPZLinearConvecDiff::Contribute(TPZMaterialData &data,REAL weight,TPZFMatri
 
   TPZFMatrix<REAL>  &phi = data.phi;
   TPZFMatrix<REAL> &dphidaxes = data.dphix;
-  TPZFNMatrix<REAL,200> dphi(dphidaxes.Rows(),dphidaxes.Cols(),0.);
-  TPZAxesTools<STATE>::Axes2XYZ(dphidaxes, dphi, axes);
+  TPZFNMatrix<200,REAL> dphi(dphidaxes.Rows(),dphidaxes.Cols(),0.);
+  TPZAxesTools<STATE>::Axes2XYZ(dphidaxes, dphi, data.axes);
 
   TPZVec<REAL>  &x = data.x;
   TPZFMatrix<REAL> &axes = data.axes;
@@ -72,7 +73,7 @@ void TPZLinearConvecDiff::Contribute(TPZMaterialData &data,REAL weight,TPZFMatri
   for( int in = 0; in < nshape; in++ ) {
     const REAL gradVBeta = this->fConvDir[0] * dphi(0,in) + this->fConvDir[1] * dphi(1,in);
     ef(in, 0) += weight * FVal * ( phi(in,0) + this->fSD*(0.5*h/normaConveccao)*gradVBeta );
-    for( int jn = 0; jn < phr; jn++ ) {
+    for( int jn = 0; jn < nshape; jn++ ) {
       ek(in,jn) += weight * (
       +fK * ( dphi(0,in) * dphi(0,jn) + dphi(1,in) * dphi(1,jn) )
       - ( (dphi(0,in) * phi(jn)) * fConvDir[0] + (dphi(1,in) * phi(jn)) * fConvDir[1] )
@@ -97,15 +98,15 @@ void TPZLinearConvecDiff::ContributeBC(TPZMaterialData &data,REAL weight,
 
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
-			for(in = 0 ; in < nshape; in++) {
+			for(int in = 0 ; in < nshape; in++) {
 				ef(in,0) += weight * gBigNumber* phi(in,0) * v2;
-				for (jn = 0 ; jn < nshape; jn++) {
+				for (int jn = 0 ; jn < nshape; jn++) {
 					ek(in,jn) += weight * gBigNumber * phi(in,0) * phi(jn,0);
 				}
 			}
 			break;
 		case 1 :			// Neumann condition
-			for(in = 0 ; in < nshape; in++) {
+			for(int in = 0 ; in < nshape; in++) {
 				ef(in,0) += weight * v2 * phi(in,0);
 			}
 			break;
@@ -172,7 +173,7 @@ void TPZLinearConvecDiff::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0]);
 	///semi norma de H1
 	values[2] = 0.;
-	for(int i = 0; i < this->fDim; i++){
+	for(int i = 0; i < 2; i++){
 		values[2] += (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0));
 	}
 	///H1 norm

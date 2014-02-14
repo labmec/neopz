@@ -4,6 +4,7 @@
 #define TPZLinearConvecDiffH
 #include <iostream>
 #include "pzfmatrix.h"
+#include "pzmaterial.h"
 
 
 /**
@@ -31,37 +32,15 @@ class TPZLinearConvecDiff : public TPZMaterial {
 
 public:
 
-	TPZLinearConvecDiff(int nummat, REAL k, const TPZVec<REAL> &conv, REAL f, REAL SD):TPZMaterial(numat){
-    fK = k;
-    fConvDir[0] = conv[0];
-    fConvDir[1] = conv[1];
-    fXf = f;
-    fSD = SD;
-  }
+	TPZLinearConvecDiff(int nummat, REAL k, const TPZVec<REAL> &conv, REAL f, REAL SD);
 
-  TPZLinearConvecDiff(int matid) : TPZMaterial(matid), fXf(0.), fK(0.), fSD(0.)
-  {
-    fConvDir[0] = 0.;
-    fConvDir[1] = 0.;
-  }
+  TPZLinearConvecDiff(int matid);
 
-	TPZLinearConvecDiff(): TPZMaterial(), fXf(0.), fK(0.), fSD(0.)
-  {
-    fConvDir[0] = 0.;
-    fConvDir[1] = 0.;
-  }
+	TPZLinearConvecDiff();
+	
+	TPZLinearConvecDiff(const TPZLinearConvecDiff &c);
 
-	TPZLinearConvecDiff(const TPZMatPoisson3d &c):TPZMaterial(c){
-    fK = c.fK;
-    fConvDir[0] = c.fConvDir[0];
-    fConvDir[1] = c.fConvDir[1];
-    fXf = f;
-    fSD = SD;
-  }
-
-	virtual ~TPZLinearConvecDiff(){
-
-  }
+	virtual ~TPZLinearConvecDiff();
 
 	virtual TPZMaterial * NewMaterial(){
 		return new TPZLinearConvecDiff(*this);
