@@ -49,9 +49,6 @@ class TPZElasticity3D : public TPZMaterial {
 	
 	/** @brief Default destructor */
 	virtual ~TPZElasticity3D();
-    
-    virtual void SetPreStress(REAL preXX, REAL preYY, REAL preZZ);
-    virtual void GetPreStress(REAL & preXX, REAL & preYY, REAL & preZZ);
 	
 	/** @brief Returns model dimension */
 	int Dimension() { return 3;}
