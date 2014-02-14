@@ -489,11 +489,11 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh);
     cmesh->AutoBuild();
     
+//    this->IncreasePOrderOnFracture(cmesh,porder);//???
+    
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
     cmesh->LoadReferred(cmeshRef);
-    
-    //this->IncreasePOrderOnFracture(cmesh,porder);//???
     
     return cmesh;
 }
@@ -506,7 +506,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
     TPZCompMesh * cmesh = new TPZCompMesh(fRefinedMesh);
     
     cmesh->SetDimModel(2);
-    cmesh->SetDefaultOrder(porder);//???
+    cmesh->SetDefaultOrder(porder+1);
     
     TPZFMatrix<REAL> xk(1,1,1.);
     TPZFMatrix<REAL> xc(1,1,0.);
@@ -658,8 +658,6 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
     
 	cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
-    
-    //this->IncreasePOrderOnFracture(cmesh,porder);//???
     
     // Creating multiphysic elements into mphysics computational mesh
 	TPZBuildMultiphysicsMesh::AddElements(meshvec,cmesh);

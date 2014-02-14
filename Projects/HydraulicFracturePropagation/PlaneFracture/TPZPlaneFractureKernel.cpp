@@ -29,8 +29,8 @@
 //Utilize 1. para output (Mathematica) em metros e 3.280829131 para output (Mathematica) em foot
 const REAL feet = 1.;//3.280829131;
 
-const REAL minAlpha = 1.;
-const REAL maxAlpha = 2.;
+const REAL minAlpha = 1.;//KI multiplier to answer that propagate {if(computedKI > minAlpha*KIc then propagate = true}
+const REAL maxAlpha = 2.;//KI/KIc multiplier to consider timeStep ending {if(KI/KIc < maxAlpha then maxKIacceptable = true}
 
 //Inicializando vetor de cores
 const std::string TPZPlaneFractureKernel::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
@@ -477,7 +477,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
             globTimeControl.TimeisOnLeft();
             
             std::cout << "\nNao convergiu...\n";
-            std::cout << "************* t está a Esquerda de KI=KIc *************\n";
+            std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
         }
         else
         {
@@ -495,7 +495,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
                 globTimeControl.TimeisOnLeft();
                 
                 std::cout << "\nNegative W\n";
-                std::cout << "************* t está a Esquerda de KI=KIc *************\n";
+                std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
             }
             else
             {
@@ -512,7 +512,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
                 {
                     globTimeControl.TimeisOnLeft();
                     std::cout << "KI < KIc\n";
-                    std::cout << "************* t está a Esquerda de KI=KIc *************\n";
+                    std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
                 }
             }
         }
