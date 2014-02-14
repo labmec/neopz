@@ -1164,7 +1164,7 @@ REAL TPZPlaneFractureKernel::IntegrateW(bool & thereWasNegativeW, REAL &negVol)
         }
 #endif
         
-        if(value[1] < 1.e-3)
+        if(value[1] < 0.)
         {
             negVol += 2.*value[1];
             thereWasNegativeW = true;
@@ -1554,7 +1554,7 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
         bool thereIsNegW = false;
         REAL negVol = 0.;
         newVol = this->IntegrateW(thereIsNegW,negVol);
-        if(thereIsNegW)
+        if(thereIsNegW && negVol < -1.E-3)
         {
             std::cout << "\n\nTransferencia de volumes resultou em w<0\n";
             std::cout << "volnegativo = " << negVol << "\nFoi gerado um vtk com a resposta elastica obtida.\n\n\n";
