@@ -514,7 +514,7 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
         for(int ier = 3; ier < nerrors; ier++)
             out << endl << "other norms = " << sqrt(values[ier]) << endl;
     }
-	// Returns the square of the calculated errors.
+	// Returns the calculated errors.
 	for(i=0;i<nerrors;i++)
 		ervec[i] = sqrt(values[i]);
     return;

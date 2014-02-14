@@ -81,33 +81,31 @@ static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 
 
 
-int main(int argc, char *argv[])
+int mainEx1(int argc, char *argv[])
 {
 	///malha geometrica
   TPZGeoMesh * gmesh = new TPZGeoMesh();
+  
+	
+
+
+  ///Criando nós
   const int nnodes = 6;
   double coord[nnodes][2] = {{-0.5,0},{0,0},{0.,0.5},{-0.5,0.5},{0.5,0},{0.5,0.5}};
+  for(int i = 0; i < nnodes; i++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,3> nodeCoord(3);
+    nodeCoord[0] = coord[i][0];
+    nodeCoord[1] = coord[i][1];
+    nodeCoord[2] = 0.;
+    gmesh->NodeVec()[nodind].Initialize(i,nodeCoord,*gmesh);
+  }
 
-	const int nel = 2;
+  ///Criando elementos
+  const int nel = 2;
   int els[nel][4] = {{0,1,2,3},{1,4,5,2}};
-
-  const int nelbc = 6;
-  int bcels[nelbc][3] = {{0,1,-3},{1,4,-2},{4,5,-4},{5,2,-6},{2,3,-6},{3,0,-5}};
-
-
-	///Criando nós
-	for(int i = 0; i < nnodes; i++) {
-		int nodind = gmesh->NodeVec().AllocateNewElement();
-		TPZManVector<REAL,3> nodeCoord(3);
-		nodeCoord[0] = coord[i][0];
-		nodeCoord[1] = coord[i][1];
-		nodeCoord[2] = 0.;
-		gmesh->NodeVec()[nodind].Initialize(i,nodeCoord,*gmesh);
-	}
-
-	///Criando elementos
   for(int iel = 0; iel < nel; iel++){
-  	TPZManVector<long,4> nodind(4);
+    TPZManVector<long,4> nodind(4);
     long index;
     nodind[0] = els[iel][0];
     nodind[1] = els[iel][1];
@@ -117,6 +115,8 @@ int main(int argc, char *argv[])
   }
 
   ///Criando elementos de contorno
+  const int nelbc = 6;
+  int bcels[nelbc][3] = {{0,1,-3},{1,4,-2},{4,5,-4},{5,2,-6},{2,3,-6},{3,0,-5}};
   for(int iel = 0; iel < nelbc; iel++){
   	TPZManVector<long,4> nodind(2);
     long index;
@@ -129,6 +129,11 @@ int main(int argc, char *argv[])
   ///Construindo conectividade da malha
 	gmesh->BuildConnectivity();
 
+	{
+		std::ofstream myfile("geoMinima.txt");
+		gmesh->Print(myfile);
+	}	
+	
 			///Refinamento uniforme da malha
 	
 	///Inicializando padrões de refinamento uniforme
@@ -147,6 +152,11 @@ int main(int argc, char *argv[])
     }///iel
   }///i
 
+  {
+		std::ofstream myfile("geoRefinado.txt");
+		gmesh->Print(myfile);
+	}
+  
   ///Malha computacional
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	
@@ -164,38 +174,40 @@ int main(int argc, char *argv[])
 		mat->SetNoPenalty();
 		mat->SetNonSymmetric();
 	}
+  cmesh->InsertMaterialObject(mat);
 	
   ///Condições de contorno
 	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 	TPZBndCond * BCondDirichletNulo = mat->CreateBC(mat, -3, 0, val1, val2);//0 = Dirichlet
+  cmesh->InsertMaterialObject(BCondDirichletNulo);
+
   TPZBndCond * BCondNeumannZero = mat->CreateBC(mat,-2, 1, val1, val2);//1 = Neumann
+  cmesh->InsertMaterialObject(BCondNeumannZero);
 	
   TPZMaterial * BCondNeumannEsq = mat->CreateBC(mat, -5, 1, val1, val2);//1 = Neumann
 	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda);
+  cmesh->InsertMaterialObject(BCondNeumannEsq);
 	
   TPZMaterial * BCondNeumannDir = mat->CreateBC(mat, -4, 1, val1, val2);//1 = Neumann
 	BCondNeumannDir->SetForcingFunction(NeumannDireita);
+  cmesh->InsertMaterialObject(BCondNeumannDir);
 	
   TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
 	BCondNeumannAcima->SetForcingFunction(NeumannAcima);		
-	
-  cmesh->InsertMaterialObject(mat);
-  cmesh->InsertMaterialObject(BCondDirichletNulo);
-  cmesh->InsertMaterialObject(BCondNeumannZero);
-  cmesh->InsertMaterialObject(BCondNeumannEsq);
-  cmesh->InsertMaterialObject(BCondNeumannDir);
   cmesh->InsertMaterialObject(BCondNeumannAcima);
     
-	const int pOrder = 3;
+	const int pOrder = 2;
 	cmesh->SetDefaultOrder(pOrder);
   cmesh->SetDimModel(dim);//dim = 2
-	
 	
 	if(DGFEM){
 		///Criando malha de Galerkin descontínuo
 		cmesh->SetAllCreateFunctionsDiscontinuous();
 	}
-	///else, cria malha H1
+	else{
+    ///cria malha H1
+    cmesh->SetAllCreateFunctionsContinuous();
+  }
 	
 	///Criando elementos computacionais
 	cmesh->AutoBuild();
@@ -203,6 +215,16 @@ int main(int argc, char *argv[])
 	if(DGFEM){
 		///Cria elementos de interface
 	  TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
+	}
+	
+	{
+		std::ofstream myfile("geoPosAutoBuild.txt");
+		gmesh->Print(myfile);
+	}
+	
+	{
+		std::ofstream myfile("cmesh.txt");
+		cmesh->Print(myfile);
 	}
 
 	///Analysis : construção do problema algébrico e inversão do sistema
@@ -240,6 +262,9 @@ int main(int argc, char *argv[])
   int resolution = 0;
 	an.PostProcess(resolution);
 
+	delete cmesh;
+	delete gmesh;
+	
   return 0;
 }
 
