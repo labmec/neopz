@@ -209,7 +209,6 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    TurnIntoQuarterPoint();
     RefineDirectionalToCrackTip(2);
     
 //    {
@@ -2069,91 +2068,6 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
     }
 }
 //------------------------------------------------------------------------------------------------------------
-
-void TPZPlaneFractureMesh::TurnIntoQuarterPoint()
-{
-//    std::ofstream outQpoints("CMeshQuarterPoints.vtk");
-//    TPZVec<REAL> elData(this->fRefinedMesh->NElements(),1.);
-    
-    for(int i = 0; i < fcrackBoundaryElementsIndexes.NElements(); i++)
-    {
-        TPZGeoEl * gel1D = this->fRefinedMesh->ElementVec()[fcrackBoundaryElementsIndexes[i]];
-        
-#ifdef DEBUG
-        if(gel1D->Dimension() != 1)
-        {
-            DebugStop();
-        }
-#endif
-        
-        for(int s = 0; s < 2; s++)
-        {
-            TPZGeoElSide edge(gel1D,s);
-            TPZGeoElSide neigh(edge.Neighbour());
-            
-            while(edge != neigh)
-            {
-                if(neigh.Element()->HasSubElement() == false && neigh.Element()->IsLinearMapping())
-                {
-                    int neighSide = neigh.Side();
-                    TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(this->fRefinedMesh, neigh.Element()->Index(), neighSide);
-                    
-//                    elData[neighEl->Index()] = 2.;//4 VTK
-                    
-                    neigh = neighEl->Neighbour(neighSide);
-                }
-                else
-                {
-                    if(neigh.Element()->HasSubElement())
-                    {
-//                        elData[neigh.Element()->Index()] = -1.;//4 VTK
-                    }
-                    neigh = neigh.Neighbour();
-                }
-            }
-        }
-    }
-    
-    fRefinedMesh->ResetConnectivities();
-    fRefinedMesh->BuildConnectivity();
-    
-    //TPZVTKGeoMesh::PrintGMeshVTK(refinedMesh, outQpoints, elData);
-}
-//------------------------------------------------------------------------------------------------------------
-
-//** just for visualize given dots in vtk */
-void TPZPlaneFractureMesh::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots)
-{
-    int nDots = fractureDots.size() / 2;
-    long nnodesOriginal = gmesh->NNodes();
-	long Qnodes = nnodesOriginal + nDots;
-    
-	//initializing gmesh->NodeVec()
-	gmesh->NodeVec().Resize(Qnodes);
-	TPZGeoNode Node;
-    TPZVec<REAL> NodeCoord(3);
-    TPZVec<long> Topol(1);
-    
-	for(long n = nnodesOriginal; n < Qnodes; n++)
-	{
-        Topol[0] = n;
-        
-        long actDot = n - nnodesOriginal;
-        
-        NodeCoord[0] = fractureDots[2*actDot];
-        NodeCoord[1] = 0.;
-        NodeCoord[2] = fractureDots[2*actDot + 1];
-        
-		Node.SetNodeId(n);
-		Node.SetCoord(NodeCoord);
-		gmesh->NodeVec()[n] = Node;
-        
-        int matPoint = -10000;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (Topol, matPoint,*gmesh);
-	}
-}
-//------------------------------------------------------------------------------------------------------------
-
 
 
 

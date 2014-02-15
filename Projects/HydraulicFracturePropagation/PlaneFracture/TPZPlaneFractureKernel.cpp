@@ -29,9 +29,6 @@
 //Utilize 1. para output (Mathematica) em metros e 3.280829131 para output (Mathematica) em foot
 const REAL feet = 1.;//3.280829131;
 
-const REAL minAlpha = 1.;//KI multiplier to answer that propagate {if(computedKI > minAlpha*KIc then propagate = true}
-const REAL maxAlpha = 2.;//KI/KIc multiplier to consider timeStep ending {if(KI/KIc < maxAlpha then maxKIacceptable = true}
-
 //Inicializando vetor de cores
 const std::string TPZPlaneFractureKernel::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
 
@@ -409,11 +406,10 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
     std::set<int> whoPropagate;
     
     bool propagate = false;
-    bool maxKIacceptable = false;
     
     long posBlock = -1;
     
-    while (globTimeControl.TimeLimitsIsCloseEnough() == false && maxKIacceptable == false)
+    while (globTimeControl.TimeLimitsIsCloseEnough() == false)
     {
         maxKI = 0.;
         respectiveKIc = 0.;
@@ -510,7 +506,6 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
                     globTimeControl.TimeisOnRight();
                     std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n";
                     std::cout << "************* t está a Direita de KI=KIc *************\n";
-                    maxKIacceptable = (maxKI/respectiveKIc < maxAlpha);
                 }
                 else
                 {
@@ -521,7 +516,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
             }
         }
         
-        if(globTimeControl.TimeLimitsIsCloseEnough() == false && maxKIacceptable == false)
+        if(globTimeControl.TimeLimitsIsCloseEnough() == false)
         {
             ////Restoring backups for deltaT next try
             Sol_0 = backupSol_0;
@@ -1319,10 +1314,7 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
         
         if(cracktipKI >= cracktipKIc)
         {
-            if(cracktipKI >= minAlpha * cracktipKIc)
-            {//Entra na lista dos propagados, mas soh returna true se for maior que minAlpha*cracktipKIc. (apenas um ajuste manual)
-                propagate = true;
-            }
+            propagate = true;
             whoPropagate.insert(p);
             
             if(cracktipKI > maxKI)

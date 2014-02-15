@@ -468,16 +468,6 @@ protected:
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
      */
     void SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh);
-
-    /**
-     * @brief Once the fcrackQpointsElementsIds atribute is filled (by HuntElementsSurroundingCrackTip method),\n
-     *          the respective elements must be turned into quarterpoints,\n
-     *          ruled by involved sides (that could be more than one by element)
-     */
-    void TurnIntoQuarterPoint();
-
-    //** just for visualize given dots in vtk */
-    static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
 	
     //-------------------------------------------------------------------------------
 	
