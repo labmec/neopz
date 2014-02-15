@@ -106,6 +106,10 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
         globLeakoffStorage.SetPressureDependent();
     }
     this->fUncoupled = uncoupled;
+    
+    this->fResTop = -layerVec[0].fTVDini;
+    this->fResBottom = -layerVec[layerVec.NElements()-1].fTVDfin;
+    this->fResRight = xLength;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -200,7 +204,7 @@ void TPZPlaneFractureKernel::Run()
         lastPressureCMesh = this->fmeshVec[1];
     }//end of while(reachEndOfTime == false)
     
-    std::ofstream outMath("ProstProcess.txt");
+    std::ofstream outMath("GlobalProstProcess.txt");
     globFractOutput3DData.PrintMathematica(outMath);
 }
 //------------------------------------------------------------------------------------------------------------
@@ -468,7 +472,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
         {
             if(justTransferingElasticSolution)
             {
-                std::cout << "\nNao convergiu na transferencia de solucao elastica...\n";
+                std::cout << "\nNão convergiu na transferencia de solucao elastica...\n";
                 DebugStop();
             }
             
@@ -476,7 +480,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
             //trazer o limite esquerdo do deltaT da bisseccao para a direita
             globTimeControl.TimeisOnLeft();
             
-            std::cout << "\nNao convergiu...\n";
+            std::cout << "\nNao convergiu (provavelmente w muito pequeno resultando em grande gradiente de pressão)...\n";
             std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
         }
         else
@@ -1400,6 +1404,41 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
     else
     {
         this->fpoligonalChain = newPoligonalChain;
+    }
+    
+    for(int p = 0; p < this->fpoligonalChain.NElements(); p++)
+    {
+        REAL x = this->fpoligonalChain[p].first;
+        REAL z = this->fpoligonalChain[p].second;
+        
+        REAL tol = 1.E-3;
+        if(z > this->fResTop - tol)
+        {
+            std::cout << "\n\nPoligonal chain reach the top limit of available domain!\n";
+            std::cout << "Simulation should stop!\n\n";
+            
+            std::ofstream outMath("GlobalProstProcess.txt");
+            globFractOutput3DData.PrintMathematica(outMath);
+            DebugStop();
+        }
+        if(z < this->fResBottom + tol)
+        {
+            std::cout << "\n\nPoligonal chain reach the bottom limit of available domain!\n";
+            std::cout << "Simulation should stop!\n\n";
+            
+            std::ofstream outMath("GlobalProstProcess.txt");
+            globFractOutput3DData.PrintMathematica(outMath);
+            DebugStop();
+        }
+        if(x > this->fResRight - tol)
+        {
+            std::cout << "\n\nPoligonal chain reach the right limit of available domain!\n";
+            std::cout << "Simulation should stop!\n\n";
+            
+            std::ofstream outMath("GlobalProstProcess.txt");
+            globFractOutput3DData.PrintMathematica(outMath);
+            DebugStop();
+        }
     }
     
 //    {//C++ tool : AQUICAJU

@@ -474,7 +474,7 @@ protected:
      *          the respective elements must be turned into quarterpoints,\n
      *          ruled by involved sides (that could be more than one by element)
      */
-    void TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh);
+    void TurnIntoQuarterPoint();
 
     //** just for visualize given dots in vtk */
     static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);

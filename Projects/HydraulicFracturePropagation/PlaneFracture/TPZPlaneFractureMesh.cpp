@@ -209,7 +209,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    //TurnIntoQuarterPoint(fRefinedMesh);//<<< nao sei porque, mas a solucao elastica fica ruim no Paraview (com porder=2)
+    TurnIntoQuarterPoint();
     RefineDirectionalToCrackTip(2);
     
 //    {
@@ -412,7 +412,7 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
     TPZCompMeshReferred * cmesh = new TPZCompMeshReferred(fRefinedMesh);
     
     cmesh->SetDimModel(3);
-    cmesh->SetDefaultOrder(porder);
+    cmesh->SetDefaultOrder(porder+1);
     
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
     int newmann = 1, dirichDir = 3;
@@ -554,7 +554,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
     TPZCompMesh * cmesh = new TPZCompMesh(fRefinedMesh);
     
     cmesh->SetDimModel(3);
-    cmesh->SetDefaultOrder(porder);
+    cmesh->SetDefaultOrder(porder+1);
 
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
     
@@ -2070,14 +2070,14 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
+void TPZPlaneFractureMesh::TurnIntoQuarterPoint()
 {
-    std::ofstream outQpoints("CMeshQuarterPoints.vtk");
-    TPZVec<REAL> elData(refinedMesh->NElements(),1.);
+//    std::ofstream outQpoints("CMeshQuarterPoints.vtk");
+//    TPZVec<REAL> elData(this->fRefinedMesh->NElements(),1.);
     
     for(int i = 0; i < fcrackBoundaryElementsIndexes.NElements(); i++)
     {
-        TPZGeoEl * gel1D = refinedMesh->ElementVec()[fcrackBoundaryElementsIndexes[i]];
+        TPZGeoEl * gel1D = this->fRefinedMesh->ElementVec()[fcrackBoundaryElementsIndexes[i]];
         
 #ifdef DEBUG
         if(gel1D->Dimension() != 1)
@@ -2096,9 +2096,9 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
                 if(neigh.Element()->HasSubElement() == false && neigh.Element()->IsLinearMapping())
                 {
                     int neighSide = neigh.Side();
-                    TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(refinedMesh, neigh.Element()->Index(), neighSide);
+                    TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(this->fRefinedMesh, neigh.Element()->Index(), neighSide);
                     
-                    elData[neighEl->Index()] = 2.;//4 VTK
+//                    elData[neighEl->Index()] = 2.;//4 VTK
                     
                     neigh = neighEl->Neighbour(neighSide);
                 }
@@ -2106,7 +2106,7 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
                 {
                     if(neigh.Element()->HasSubElement())
                     {
-                        elData[neigh.Element()->Index()] = -1.;
+//                        elData[neigh.Element()->Index()] = -1.;//4 VTK
                     }
                     neigh = neigh.Neighbour();
                 }
@@ -2114,7 +2114,10 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
         }
     }
     
-    TPZVTKGeoMesh::PrintGMeshVTK(refinedMesh, outQpoints, elData);
+    fRefinedMesh->ResetConnectivities();
+    fRefinedMesh->BuildConnectivity();
+    
+    //TPZVTKGeoMesh::PrintGMeshVTK(refinedMesh, outQpoints, elData);
 }
 //------------------------------------------------------------------------------------------------------------
 

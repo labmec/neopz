@@ -188,6 +188,8 @@ protected:
     REAL fvisc;
     int fpOrder;
     
+    REAL fResTop, fResBottom, fResRight;//Limits of reservoir domain in z and x
+    
     REAL fMaxDisplIni;
     REAL fMaxDisplFin;
     
