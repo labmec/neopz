@@ -43,8 +43,7 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
                                                REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                                                REAL Jradius,
                                                int pOrder,
-                                               REAL MaxDispl_ini,
-                                               REAL MaxDispl_fin,
+                                               REAL MaxDispl,
                                                bool pressureIndependent,
                                                bool uncoupled) : actColor(0)
 {
@@ -89,8 +88,7 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & laye
     
     this->fpOrder = pOrder;
     
-    this->fMaxDisplIni = MaxDispl_ini;
-    this->fMaxDisplFin = MaxDispl_fin;
+    this->fMaxDispl = MaxDispl;
     
     this->fPath3D.Reset();
     
@@ -1357,10 +1355,9 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
             TPZVec<REAL> Jdirection = this->fPath3D.Path(p)->JDirection();
             
             //Variacao linear no decorrer do tempo de fMaxDispl para fMinDispl
-            REAL dLmax = this->fMaxDisplIni + (globTimeControl.actTime()*(this->fMaxDisplFin - this->fMaxDisplIni))/globTimeControl.Ttot();
             REAL alpha = 1.;//alphaMin = [1.0~2.0]
             
-            REAL displacement = dLmax * pow((KI - KIc)/(maxKI - KIc),alpha);
+            REAL displacement = this->fMaxDispl * pow((KI - KIc)/(maxKI - KIc),alpha);
             
             newX = originVec[0] + displacement * Jdirection[0];
             newZ = originVec[2] + displacement * Jdirection[2];

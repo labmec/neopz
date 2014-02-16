@@ -32,8 +32,7 @@ public:
      * @param visc [in] : Injected fluid viscosity
      * @param Jradius [in] : J-Integral radius
      * @param porder [in] : polinomial order of simulation
-     * @param MaxDispl_ini [in] : Maximum displacement when fracture propagate in starting times
-     * @param MaxDispl_fin [in] : Maximum displacement when fracture propagate in ending times
+     * @param MaxDispl [in] : Maximum displacement when fracture propagate
      * @param pressureIndependent [in] : Flag that mean if leakoff is pressure independent
      * @param uncoupled [in] : Flag that means if the kernel will solve fracture propagation just using elasticity and leakoff (nstripes must be 1)
      *
@@ -43,8 +42,7 @@ public:
                            REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                            REAL Jradius,
                            int porder,
-                           REAL MaxDispl_ini,
-                           REAL MaxDispl_fin,
+                           REAL MaxDispl,
                            bool pressureIndependent,
                            bool uncoupled);
     
@@ -190,8 +188,7 @@ protected:
     
     REAL fResTop, fResBottom, fResRight;//Limits of reservoir domain in z and x
     
-    REAL fMaxDisplIni;
-    REAL fMaxDisplFin;
+    REAL fMaxDispl;
     
     JIntegral3D fPath3D;
     

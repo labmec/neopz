@@ -22,7 +22,7 @@
 
 
 
-const REAL globStressScale = 1.E-7;
+const REAL globStressScale = 1.E-12;
 
 
 class TimeControl
