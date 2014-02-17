@@ -67,6 +67,10 @@ using namespace tbb;
 //   export DYLD_FALLBACK_LIBRARY_PATH=/Users/borin/Desktop/neopz/tbb40_297oss/lib/
 #endif
 
+#ifdef USING_MKL
+#include "mkl_service.h"
+#endif
+
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
@@ -229,6 +233,10 @@ int main(int argc, char *argv[])
     
 #ifdef USING_BLAS
     setenv("VECLIB_MAXIMUM_THREADS", "1", true);
+#endif
+
+#ifdef USING_MKL
+	mkl_set_num_threads(1);
 #endif
     
     int main_ret = EXIT_SUCCESS;
