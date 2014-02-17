@@ -8,6 +8,7 @@
 
 #include "pzreal.h"
 #include "pzerror.h"
+#include "pznuma.h"
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
@@ -62,6 +63,18 @@ public:
 	
 	/** @brief destructor, will delete the storage allocated */
 	virtual ~TPZVec();
+
+	void MigratePages() {
+	  migrate_to_local((char*) fStore, fNElements * sizeof(T));
+	}
+	void ReallocForNuma() {
+	  if (fNElements == 0 || fStore == NULL)
+	    return;
+	  T* newStore = new T[fNElements];
+	  memcpy(newStore,fStore,fNElements*sizeof(T));
+	  delete [] fStore;
+	  fStore = newStore;
+	}
 	
 	/**
 	 * @brief will copy the vector into the current vector.

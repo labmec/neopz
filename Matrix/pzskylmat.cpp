@@ -2,6 +2,8 @@
 //#define DUMP_BEFORE_DECOMPOSE
 //#define DUMP_BEFORE_SUBST
 
+#include "pzbfilestream.h"
+#include "arglib.h"
 
 #ifdef USING_NEW_SKYLMAT
 
@@ -2292,25 +2294,32 @@ int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky()
     return -1;
 }
 
+clarg::argBool clk_mig("-skl_chk_pm", "Migrate Skyline pages before Cholesky Decomposition");
+clarg::argBool clk_rea("-skl_chk_rea", "Reallocate Skyline data before Cholesky Decomposition");
 
 template<class TVar>
 int
 TPZSkylMatrix<TVar>::Decompose_Cholesky()
 {
-	if(this->fDecomposed == ECholesky) return 1;
-	if (this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+  if(this->fDecomposed == ECholesky) return 1;
+  if (this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	
 #ifdef DUMP_BEFORE_DECOMPOSE
-	dump_matrix(this, "TPZSkylMatrix::Decompose_Cholesky()");
+  dump_matrix(this, "TPZSkylMatrix::Decompose_Cholesky()");
 #endif
 
-	TVar pivot;
-    TVar minpivot = 10000.;
-	long dimension = this->Dim();
-	/*  if(Dim() > 100) {
-	 cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
-	 cout.flush();
-	 }*/
+  TVar pivot;
+  TVar minpivot = 10000.;
+  long dimension = this->Dim();
+  /*  if(Dim() > 100) {
+      cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
+      cout.flush();
+      }*/
+
+  if (clk_mig.was_set())
+    MigratePages();
+  if (clk_rea.was_set())
+    ReallocForNuma();
 
 	//	#define DECOMPOSE_CHOLESKY_OPT2 // EBORIN: Optimization 2 -- See bellow
 #ifdef DECOMPOSE_CHOLESKY_OPT2
@@ -3144,13 +3153,12 @@ template class TPZSkylMatrix<TPZFlopCounter>;
 
 #if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)
 
-#include "pzbfilestream.h"
-#include "arglib.h"
 pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
 unsigned matrix_unique_id = 0;
 clarg::argString dm_prefix("-dm_prefix", 
 			   "Filename prefix for matrices dumped before decompose/subst", 
 			   "matrix_");
+
 template<class TVar>
 void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
 {
