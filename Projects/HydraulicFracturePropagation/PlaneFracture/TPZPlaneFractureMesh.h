@@ -295,7 +295,7 @@ class TPZPlaneFractureMesh
     
     TPZGeoEl * GetCrackTipGeoElement(int pos);
     
-    void GetYoung_and_KIc_FromLayerOfThisZcoord(REAL zCoord, REAL & young, REAL &KIc);
+    void GetKIc_FromLayerOfThisZcoord(REAL zCoord, REAL &KIc);
     
     bool GeoElementIsOnPreservedMesh(TPZGeoEl * gel);
     

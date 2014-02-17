@@ -102,13 +102,13 @@ int main(int argc, char * const argv[])
 
     //Simulation p-order data
     int porder = 1;
-    REAL MaxDispl = 5.;
+    REAL MaxDispl = 4.;
     
     //NStripes
     int nstripes = 1;
     
     bool pressureINdependent = true;
-    bool UNcoupled = true;
+    bool UNcoupled = false;
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
                                                                  QinjWell, visc,
                                                                  Jradius,

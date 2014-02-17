@@ -701,11 +701,10 @@ void TPZPlaneFractureKernel::InitializePath3DVector()
         
         REAL zCoord = center[2];
         
-        REAL Young = 0.;
         REAL KIc = 0.;
-        this->fPlaneFractureMesh->GetYoung_and_KIc_FromLayerOfThisZcoord(zCoord, Young, KIc);
+        this->fPlaneFractureMesh->GetKIc_FromLayerOfThisZcoord(zCoord, KIc);
         
-        this->fPath3D.PushBackPath3D( new Path3D(this->fmeshVec[0], center, Young, KIc, normal, this->fJIntegralRadius) );
+        this->fPath3D.PushBackPath3D( new Path3D(this->fmeshVec[0], center, KIc, normal, this->fJIntegralRadius) );
     }
 }
 //------------------------------------------------------------------------------------------------------------

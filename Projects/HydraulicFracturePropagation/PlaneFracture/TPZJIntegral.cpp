@@ -119,21 +119,21 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
 {
     TPZFMatrix<STATE> GradUtxy(3,3,0.);
     TPZVec<STATE> Sigma_n(3,0.);
-    ComputeElasticData(t, xt, GradUtxy, Sigma_n);
+    REAL young = ComputeElasticData(t, xt, GradUtxy, Sigma_n);
     
     TPZVec<REAL> minusGradUt_Sigma__n(3,0.);
     for(int r = 0; r < 3; r++)
     {
         for(int c = 0; c < 3; c++)
         {
-            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
+            minusGradUt_Sigma__n[r] += -young*(GradUtxy(r,c)*Sigma_n[c]);
         }
     }
     
     return minusGradUt_Sigma__n;
 }
 
-void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n)
+REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n)
 {
     fcmeshElastic->LoadReferences();
     
@@ -193,6 +193,11 @@ void LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     GradUtxy = data.dsol[0];
     
     Sigma_n[1] = this->fPressure;
+    
+    TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());
+    REAL young = mat3d->GetE();
+    
+    return young;
 }
 
 void LinearPath3D::SetPressure(REAL pressure)
@@ -258,7 +263,7 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     return minusGradUt_Sigma__n;
 }
 
-void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n)
+REAL LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n)
 {
     fcmeshElastic->LoadReferences();
     
@@ -319,6 +324,8 @@ void LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     GradUtxy(1,1) = GradUtax(0,1)*data.axes(0,1) + GradUtax(1,1)*data.axes(1,1);
     
     Sigma_n[1] = ComputePressure(t, xt);
+    
+    return 0.;
 }
 
 
@@ -427,7 +434,7 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     strain.Zero();
     GradUtxy.Zero();
     
-    ComputeElasticData(t, xt, GradUtxy, Sigma, strain);
+    REAL young = ComputeElasticData(t, xt, GradUtxy, Sigma, strain);
     
     TPZFMatrix<STATE> GradUt_Sigma(3,3,0.);
     GradUtxy.Multiply(Sigma, GradUt_Sigma);
@@ -455,14 +462,14 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     {
         for(int c = 0; c < 3; c++)
         {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
+            W_I_minus_GradUt_Sigma__n[r] += young * (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
         }
     }
     
     return W_I_minus_GradUt_Sigma__n;
 }
 
-void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain)
+REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain)
 {
     TPZVec<REAL> qsi(0);
     
@@ -527,6 +534,10 @@ void ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     
     elast3D->ComputeStressTensor(Sigma, data);
     elast3D->ComputeStrainTensor(strain, GradUtxy);
+    
+    REAL young = elast3D->GetE();
+    
+    return young;
 }
 
 void ArcPath3D::SetRadius(REAL radius)
@@ -624,7 +635,7 @@ TPZVec<REAL> ArcPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     return W_I_minus_GradUt_Sigma__n;
 }
 
-void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain)
+REAL ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain)
 {
     TPZVec<REAL> qsi(0);
     
@@ -708,6 +719,8 @@ void ArcPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     strain(1,1) = Solout[1];
     strain(0,1) = Solout[2];
     strain(1,0) = Solout[2];
+    
+    return 0.;
 }
 
 
@@ -979,7 +992,6 @@ Path3D::Path3D()
     fAreaPath3D = NULL;
     
     fOriginZcoord = 0.;
-    fYoung = 0.;
     fKI = 0.;
     fKIc = 0.;
     
@@ -989,14 +1001,13 @@ Path3D::Path3D()
 
 
 Path3D::Path3D(TPZCompMesh * cmeshElastic,
-               TPZVec<REAL> &Origin, REAL &young, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius)
+               TPZVec<REAL> &Origin, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius)
 {
     fLinearPath3D = new LinearPath3D(cmeshElastic,Origin,normalDirection,radius);
     fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     fAreaPath3D = new AreaPath3D(fLinearPath3D);
     
     fOriginZcoord = Origin[2];
-    fYoung = young;
     
     fKI = 0.;
     fKIc = KIc;
@@ -1080,7 +1091,7 @@ void Path3D::ComputeJIntegral()
     fJDirection[1] = Jy/fJintegral;
     fJDirection[2] = Jz/fJintegral;
     
-    fKI = sqrt(fJintegral * fYoung);
+    fKI = sqrt(fJintegral);//<< in fact, fJintegral is (young * J-integral)
 }
 
 
@@ -1142,7 +1153,7 @@ void Path2D::ComputeJIntegral()
     arcJintegral[1] = 0.;
 
     //------------------ COMBINIG
-    fJintegral = linJintegral[0] + arcJintegral[0];
+    fJintegral = linJintegral[0] + arcJintegral[0];//<< in fact, fJintegral is (young * J-integral)
     
     //    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
     //    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;

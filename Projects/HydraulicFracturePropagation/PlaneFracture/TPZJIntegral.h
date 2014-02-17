@@ -51,7 +51,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
+    virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     
     virtual void SetPressure(REAL pressure);
     
@@ -99,7 +99,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
+    virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
 };
 
@@ -139,7 +139,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
+    virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
     
     void SetRadius(REAL radius);
     
@@ -181,7 +181,7 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    virtual void ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
+    virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
 };
 
 
@@ -260,7 +260,7 @@ public:
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
     Path3D(TPZCompMesh * cmeshElastic,
-           TPZVec<REAL> &Origin, REAL &young, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius);
+           TPZVec<REAL> &Origin, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius);
     
     ~Path3D();
     
@@ -315,7 +315,6 @@ protected:
     AreaPath3D * fAreaPath3D;
     
     REAL fOriginZcoord;
-    REAL fYoung;
     
     REAL fKI;
     REAL fKIc;

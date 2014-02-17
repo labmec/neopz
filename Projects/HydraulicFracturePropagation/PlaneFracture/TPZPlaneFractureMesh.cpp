@@ -741,10 +741,9 @@ TPZGeoEl * TPZPlaneFractureMesh::GetCrackTipGeoElement(int pos)
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureMesh::GetYoung_and_KIc_FromLayerOfThisZcoord(REAL zCoord, REAL & young, REAL &KIc)
+void TPZPlaneFractureMesh::GetKIc_FromLayerOfThisZcoord(REAL zCoord, REAL &KIc)
 {
     int whatLayer = this->GetLayer(zCoord);
-    young = fLayerVec[whatLayer].fYoung;
     KIc = fLayerVec[whatLayer].fKIc;
 }
 //------------------------------------------------------------------------------------------------------------

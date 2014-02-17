@@ -190,12 +190,12 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 		}
 		
 		count++;
-		if(!(count%20))
+		if(!(count%1000))
 		{
 			std::cout << '*';
 			std::cout.flush();
 		}
-		if(!(count%500))
+		if(!(count%20000))
 		{
 			std::cout << "\n";
 		}
