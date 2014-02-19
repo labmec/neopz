@@ -30,12 +30,13 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 #ifdef USING_BLAS
-/** blas math library */
+/** CBlas Math Library */
 #include "cblas.h"
 #define BLAS_MULT
 #endif
 
 #ifdef USING_MKL
+/** Intel Math Kernel Library */
 #include <mkl.h>
 #define BLAS_MULT
 #endif
@@ -198,39 +199,39 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec
 /*** Operator+( TPZFMatrix>& ) ***/
 
 template <class TVar>
-	TPZFMatrix<TVar> TPZFMatrix<TVar>::operator+(const TPZFMatrix<TVar> &A ) const {
-		if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
-			Error( "Operator+ <matrixs with different dimensions>" );
+TPZFMatrix<TVar> TPZFMatrix<TVar>::operator+(const TPZFMatrix<TVar> &A ) const {
+	if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
+		Error( "Operator+ <matrixs with different dimensions>" );
 
-		TPZFMatrix<TVar> res;
-		res.Redim( this->Rows(), this->Cols() );
-		long size = ((long)this->Rows()) * this->Cols();
-		TVar * pm = fElem, *plast = fElem+size;
-		TVar * pa = A.fElem;
-		TVar * pr = res.fElem;
+	TPZFMatrix<TVar> res;
+	res.Redim( this->Rows(), this->Cols() );
+	long size = ((long)this->Rows()) * this->Cols();
+	TVar * pm = fElem, *plast = fElem+size;
+	TVar * pa = A.fElem;
+	TVar * pr = res.fElem;
 
-		while(pm < plast) *pr++ = (*pm++) + (*pa++);
+	while(pm < plast) *pr++ = (*pm++) + (*pa++);
 
-		return( res );
-	}
+	return( res );
+}
 
 /*******************************/
 /*** Operator-( TPZFMatrix<>& ) ***/
 template <class TVar>
-	TPZFMatrix<TVar> TPZFMatrix<TVar>::operator-(const TPZFMatrix<TVar> &A ) const {
-		if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
-			Error( "Operator- <matrixs with different dimensions>" );
+TPZFMatrix<TVar> TPZFMatrix<TVar>::operator-(const TPZFMatrix<TVar> &A ) const {
+	if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
+		Error( "Operator- <matrixs with different dimensions>" );
 
-		TPZFMatrix<TVar> res;
-		res.Redim( this->Rows(), this->Cols() );
-		long size = ((long)this->Rows()) * this->Cols();
-		TVar * pm = fElem;
-		TVar * pa = A.fElem;
-		TVar * pr = res.fElem, *prlast =pr+size;
+	TPZFMatrix<TVar> res;
+	res.Redim( this->Rows(), this->Cols() );
+	long size = ((long)this->Rows()) * this->Cols();
+	TVar * pm = fElem;
+	TVar * pa = A.fElem;
+	TVar * pr = res.fElem, *prlast =pr+size;
 
-		while(pr < prlast) *pr++ = (*pm++) - (*pa++);
-		return( res );
-	}
+	while(pr < prlast) *pr++ = (*pm++) - (*pa++);
+	return( res );
+}
 
 	template<>
 void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &TransfToOrthog)
@@ -559,8 +560,6 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 
 }
 
-using namespace std;
-
 #ifdef BLAS_MULT
 template<> 
 void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<double> &y, TPZFMatrix<double> &z,
@@ -583,83 +582,65 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
 			z.Redim(this->Cols()*stride,x.Cols());
 		}
 	}
-	if(this->Cols() == 0)
-	{
+	if(this->Cols() == 0) {
 		z.Zero();
 	}
-
-	if (this->Cols() != 0 && !opt && stride == 1) {// && beta == (double)0.) {
-		if (beta != (double)0.)
-			z = y;
-		//std::cout << "*";
-		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, x.Cols(), this->Rows(), x.Rows(), alpha, x.fElem, x.Rows(), fElem, this->Rows(), beta, z.fElem, z.Rows());
+	if(stride != 1) {
+		Error( "TPZFMatrix::MultAdd with BLAS do not support operations with stride>" );
 		return;
+	}
+	if (beta != (double)0.) {
+	   	z = y;
+	}
+	if (!opt) { 
+		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, x.Cols(), this->Rows(), x.Rows(),
+		                    alpha, x.fElem, x.Rows(), fElem, this->Rows(), beta, z.fElem, z.Rows());
 	} else {
-		//std::cout << ".";
+		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, this->Cols(), x.Cols(), this->Rows(),
+				                    alpha, fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Cols());
 	}
 
-	unsigned numeq = opt ? this->Cols() : this->Rows();
-	long rows = this->Rows();
-	long cols = this->Cols();
-	long xcols = x.Cols();
-	long ic, c;
-	if (numeq)
-	{
-		for (ic = 0; ic < xcols; ic++) {
-			double *zp = &z(0,ic), *zlast = zp+numeq*stride;
-			if(beta != (double)0.) {
-				const double *yp = &y.g(0,ic);
-				if(beta != (double)1. || (&z != &y && stride != 1)) {
-					while(zp < zlast) {
-						*zp = beta * (*yp);
-						zp += stride;
-						yp += stride;
-					}
-				} else if(&z != &y) {
-					memcpy(zp,yp,numeq*sizeof(double));
-				}
-			} else {
-				while(zp != zlast) {
-					*zp = 0.;
-					zp += stride;
-				}
-			}
+} 
+template<> 
+void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<float> &y, TPZFMatrix<float> &z,
+		const float alpha,const float beta,const int opt,const int stride) const {
+
+	if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
+		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+		return;
+	}
+	if(beta != (float)0. && ((!opt && this->Rows()*stride != y.Rows()) || (opt && this->Cols()*stride != y.Rows()) || y.Cols() != x.Cols())) {
+		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+		return;
+	}
+	if(!opt) {
+		if(z.Cols() != x.Cols() || z.Rows() != this->Rows()*stride) {
+			z.Redim(this->Rows()*stride,x.Cols());
+		}
+	} else {
+		if(z.Cols() != x.Cols() || z.Rows() != this->Cols()*stride) {
+			z.Redim(this->Cols()*stride,x.Cols());
 		}
 	}
-
-	if(!(rows*cols)) return;
-
-	for (ic = 0; ic < xcols; ic++) {
-		if(!opt) {
-			for ( c = 0; c<cols; c++) {
-				double * zp = &z(0,ic), *zlast = zp+rows*stride;
-				double * fp = fElem +rows*c;
-				const double * xp = &x.g(c*stride,ic);
-				while(zp < zlast) {
-					*zp += alpha* *fp++ * *xp;
-					zp += stride;
-				}
-			}
-		} else {
-			double * fp = fElem,  *zp = &z(0,ic);
-			for (c = 0; c<cols; c++) {
-				double val = 0.;
-				// bug correction philippe 5/2/97
-				//					 REAL * xp = &x(0,ic), xlast = xp + numeq*stride;
-				const double *xp = &x.g(0,ic);
-				const double *xlast = xp + rows*stride;
-				while(xp < xlast) {
-					val += *fp++ * *xp;
-					xp += stride;
-				}
-				*zp += alpha *val;
-				zp += stride;
-			}
-		}
+	if(this->Cols() == 0) {
+		z.Zero();
+	}
+	if(stride != 1) {
+		Error( "TPZFMatrix::MultAdd with BLAS do not support operations with stride>" );
+		return;
+	}
+	if (beta != (float)0.) {
+	   	z = y;
+	}
+	if (!opt) { 
+		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, x.Cols(), this->Rows(), x.Rows(),
+		                    alpha, x.fElem, x.Rows(), fElem, this->Rows(), beta, z.fElem, z.Rows());
+	} else {
+		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, this->Cols(), x.Cols(), this->Rows(),
+				                    alpha, fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Cols());
 	}
 
-	}
-
+}
 #endif
 
 	/**

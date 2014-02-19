@@ -38,13 +38,11 @@ int main()
     
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
-            if (i == j) B(i, j) = 1.0; //( i * n + j ) * 0.2;
+             B(i, j) = ( i * n + j ) * .1; //( i * n + j ) * 0.2;
         }
     }
     
     
-    cout << " ---- " << endl;
-
     double begin = mysecond();
     TPZFMatrix<double> C = A * B;
     double end = mysecond();
@@ -53,16 +51,6 @@ int main()
     A.Print(std::cout);
     B.Print(std::cout);
     C.Print(std::cout);
-    
-    for (int i=0; i<m; i++) {
-        for (int j=0; j<n; j++) {
-            if ( C(i,j) != A(i, j) ) {
-                std::cout <<  C(i,j) << "\t" << A(i, j) << std::endl;
-                std::cout << "wrong!" << std::endl;
-                exit(1);
-            }
-        }
-    }
     
     printf("Multiply Time: %.3lf\n", end-begin);
     
