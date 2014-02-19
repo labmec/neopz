@@ -9,6 +9,7 @@
 #include "pzmatrix.h"
 #include "pzstack.h"
 #include "pzvec.h"
+#include "TPZThreadTools.h"
 
 template<class TVar>
 class TPZEqnArray;
@@ -27,7 +28,7 @@ class TPZFront {
 public:
 	
     /** @brief Static main used for testing */	
-	static void main();
+	//static void main();
 	
 	long NElements();
     /** @brief Simple destructor */
@@ -90,7 +91,19 @@ public:
 		std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
 		DebugStop();
 	}
-    /** @brief Returns the number of free equations */
+	
+	/** @brief Return the number of equations in the condensed front matrix
+	 * It would be equal to FrontSize if the front is compressed.
+	 */
+	int NonNullFrontSize() const{
+		int maxeq = fLocal.NElements();
+		int mineq = 0;
+		for(mineq=0; mineq<maxeq; mineq++) if(fLocal[mineq] != -1) break;
+		int numeq = maxeq-mineq;
+		return numeq;
+	}	
+	
+	/** @brief Returns the number of free equations */
 	virtual long NFree();
     /** Resets data structure */
 	void Reset(long GlobalSize=0);
@@ -140,6 +153,136 @@ protected:
     
     /** @brief Expansion Ratio of frontal matrix */
     int fExpandRatio;
+	
+public:
+	
+	///struct para paralelizar a decomposicao da matriz
+	struct STensorProductMTData{
+		
+		typedef std::pair<int,STensorProductMTData * > STensorProductThreadData;
+		
+	public:
+		
+		///dados para sincronizar o thread principal
+		pz_semaphore_t fWorkDoneSem;
+		int fWorkDoneCount;
+		pz_critical_section_t fWorkDoneCS;
+		
+		///semaforos para sincronizar os threads de calculo
+		TPZVec<pz_semaphore_t> fWorkSem;
+		
+		///array de threads
+		TPZVec< pz_thread_t > fThreads;
+		
+		///vetores de operacao
+		TPZVec<TVar> * fAuxVecCol, * fAuxVecRow;
+		
+		///num threads
+		int NThreads(){ return fThreads.NElements(); };
+		
+		///matriz TPZFront
+		TPZFront<TVar> * fMat;
+		
+		bool fRunning;
+		
+		///construtor padrao
+		STensorProductMTData(int nthreads, TPZFront<TVar> * frontMat){
+			if(!frontMat) DebugStop();
+			this->fMat = frontMat;
+			this->fRunning = true;
+			
+			fWorkSem.Resize(nthreads);
+			for(int i = 0; i < nthreads; i++){
+				tht::InitializeSemaphore(fWorkSem[i]);
+			}
+			
+			fThreads.Resize(nthreads);
+			for(int i = 0; i < nthreads; i++){
+				STensorProductThreadData * threadData = new STensorProductThreadData;
+				threadData->first = i;
+				threadData->second = this;
+				tht::CreateThread( fThreads[i], & Execute, threadData);
+			}
+			
+			tht::InitializeSemaphore(fWorkDoneSem);
+			tht::InitializeCriticalSection(fWorkDoneCS);
+			
+		}///construtor
+		
+		///destrutor
+		~STensorProductMTData(){
+			
+			///finalizando a execucao dos threads
+			this->fRunning = false;
+			const int nthreads = fWorkSem.NElements();
+			for(int i = 0; i < nthreads; i++){
+				tht::SemaphorePost(fWorkSem[i]);
+			}
+			for(int i = 0; i < nthreads; i++){
+				tht::ThreadWaitFor(fThreads[i]);
+			}
+			
+			///desalocando objetos, exceto threads que, ao menos no embarcadero, morrem sozinhos
+			for(int i = 0; i < fWorkSem.NElements(); i++){
+				tht::DeleteSemaphore( fWorkSem[i] );
+			}
+			tht::DeleteSemaphore( fWorkDoneSem );
+			tht::DeleteCriticalSection(fWorkDoneCS);
+			
+		}///destrutor
+		
+		static void *Execute(void *data){
+			STensorProductThreadData * mypair = static_cast< STensorProductThreadData * >(data);
+			if(!mypair) DebugStop();
+			TPZFront<TVar> * mat = mypair->second->fMat;
+			if(!mat) DebugStop();
+			mat->TensorProductIJ(mypair->first,mypair->second);
+			return NULL;
+		}
+		
+		void WorkDone(){
+			tht::EnterCriticalSection(fWorkDoneCS);
+			fWorkDoneCount++;
+			if(fWorkDoneCount == NThreads()){
+				tht::SemaphorePost(fWorkDoneSem);
+			}
+			tht::LeaveCriticalSection(fWorkDoneCS);
+		}
+		
+		void Run(TPZVec<TVar> &AuxVecCol, TPZVec<TVar> &AuxVecRow){
+			this->fAuxVecCol = &AuxVecCol;
+			this->fAuxVecRow = &AuxVecRow;
+			this->fWorkDoneCount = 0;
+			for(int i = 0; i < NThreads(); i++){
+				tht::SemaphorePost(fWorkSem[i]);
+			}
+			tht::SemaphoreWait( fWorkDoneSem );
+		}
+		
+	};
+	
+protected:
+	
+	STensorProductMTData *fProductMTData;
+	
+public:
+	
+	void ProductTensorMTInitData(int nthreads){
+		fProductMTData = new STensorProductMTData(nthreads, this);
+	}///void
+	
+	void ProductTensorMTFinish(){
+		delete this->fProductMTData;
+	}///void
+	
+	void ProductTensorMT(TPZVec<TVar> &AuxVecCol, TPZVec<TVar> &AuxVecRow){
+		this->fProductMTData->Run(AuxVecCol,AuxVecRow);
+	}///void
+	
+public:
+	
+	///Faz o tensor product de fato
+	virtual void TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data);
 };
 
 #endif //TPZFRONT_H

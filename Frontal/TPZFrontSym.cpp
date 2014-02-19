@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include "tpzeqnarray.h"
+#include "TPZThreadTools.h"
 
 using namespace std;
 
@@ -213,15 +214,19 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 //	}
 	
 	long j=0;
-	for(j=0;j<this->fFront;j++){
-		for(i=0;i<=j;i++){
-			Element(i,j)-=AuxVec[i]*AuxVec[j];
-		}
+	if(this->fProductMTData){
+		this->ProductTensorMT( AuxVec, AuxVec );
 	}
-	
+	else {
+		for(j=0;j<this->fFront;j++){
+			for(i=0;i<=j;i++){
+				Element(i,j)-=AuxVec[i]*AuxVec[j];
+			}
+		}		
+	}
+
 		// #endif
 	// #endif
-	
 	
 	for(i=0;i<this->fFront;i++) {
 		if(i!=ilocal && this->fGlobal[i]!= -1 && AuxVec[i] != 0.) eqnarray.AddTerm(this->fGlobal[i],AuxVec[i]);
@@ -235,6 +240,36 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 	fDecomposeType=ECholesky;
 	//	PrintGlobal("After", output);
 }
+
+
+template <class TVar>
+void TPZFrontSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data){
+  if(!data) DebugStop();
+#ifdef DEBUG
+  TPZFrontSym<TVar> * matrix = dynamic_cast<TPZFrontSym<TVar> * > (data->fMat);
+  if(matrix != this) DebugStop();
+#endif
+  while(data->fRunning){
+    tht::SemaphoreWait(data->fWorkSem[ ithread ]);
+    if(!data->fRunning) break;
+    const int n = data->fAuxVecCol->NElements();
+    const int Nthreads = data->NThreads();
+		
+    for(int j = 0+ithread; j < n; j += Nthreads){
+      int i = 0;
+      const TVar RowVal = data->fAuxVecRow->operator[](j);
+      TVar * ColValPtr = &(data->fAuxVecCol->operator[](i));
+      TVar * elemPtr = &this->Element4JGreatEqualI(i,j);
+      for( ; i <= j; i++, ColValPtr++, elemPtr++ ){
+        (*elemPtr) -= (*ColValPtr) * RowVal;
+      }///i
+    }///j
+		
+    data->WorkDone();
+  }///while
+}///void
+
+
 template<class TVar>
 void TPZFrontSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex)
 {

@@ -24,6 +24,7 @@ TPZFront<TVar>::TPZFront(){
 	fMaxFront=0;
 	fWork = 0;
 	fNextRigidBodyMode = 0;
+	fProductMTData = NULL;
 }
 
 template<class TVar>
@@ -37,6 +38,7 @@ TPZFront<TVar>::TPZFront(long GlobalSize)
 	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
 	fWork = 0;
 	fNextRigidBodyMode = GlobalSize;
+	fProductMTData = NULL;
 }
 
 template<class TVar>
@@ -46,8 +48,16 @@ fData(cp.fData)
 {
 	fNextRigidBodyMode = cp.fNextRigidBodyMode;
 	fExpandRatio = cp.fExpandRatio;
+	if (cp.fProductMTData) {
+		const int nthreads = cp.fProductMTData->NThreads();
+		this->fProductMTData = new STensorProductMTData(nthreads,this);
+	}
+	else {
+		this->fProductMTData = NULL;
+	}
 }
 
+	
 template<class TVar>
 TPZFront<TVar>::~TPZFront(){
 }
@@ -183,13 +193,13 @@ void TPZFront<TVar>::SymbolicDecomposeEquations(long mineq, long maxeq)
 
 
 /** Implements tests for TPZFront */
+/*
 template<class TVar>
 void TPZFront<TVar>::main()
 {
 	int i, j;
-	/**
-	 Populates data structure
-	 */
+	
+	 //Populates data structure
 	int matsize=6;
 	TPZFMatrix<TVar> TestMatrix(matsize,matsize);
 	for(i=0;i<matsize;i++) {
@@ -229,17 +239,17 @@ void TPZFront<TVar>::main()
 	//	TestFront.AddKel(TestMatrix, DestIndex);
 	TPZEqnArray<TVar> Result;
 	
-	/*TestFront.DecomposeEquations(0,0,Result);
-	 
-	 TestFront.Print(OutFile, output);
-	 
-	 ofstream outeqn("TestEQNArray.txt",ios::app);
-	 Result.Print("TestEQNArray.txt",outeqn);
-	 
-	 TestFront.Compress();
-	 
-	 TestFront.Print(OutFile, output);
-	 */
+//	TestFront.DecomposeEquations(0,0,Result);
+//	 
+//	 TestFront.Print(OutFile, output);
+//	 
+//	 ofstream outeqn("TestEQNArray.txt",ios::app);
+//	 Result.Print("TestEQNArray.txt",outeqn);
+//	 
+//	 TestFront.Compress();
+//	 
+//	 TestFront.Print(OutFile, output);
+//	 
 	//	TestFront.DecomposeEquations(0,matsize-1,Result);
 	ofstream outeqn("TestEQNArray.txt",ios::app);
 	
@@ -272,9 +282,8 @@ void TPZFront<TVar>::main()
 	
 	Load_2.Print("Eqn");
 	
-	
-	
 }
+*/
 
 template<class TVar>
 void TPZFront<TVar>::Reset(long GlobalSize)
@@ -309,6 +318,13 @@ long TPZFront<TVar>::NFree()
 		}
 	}
 	return free_eq;
+}
+
+template<class TVar>
+void TPZFront<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data)
+{
+	PZError << "This Method Should only be called in the lower classes" << std::endl;
+	DebugStop();
 }
 
 template class TPZFront<float>;

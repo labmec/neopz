@@ -170,6 +170,11 @@ private:
 	
     /** @link dependency */
     /*#  TPZFileEqnStorage lnkTPZFileEqnStorage; */
+	
+public:
+	
+	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
+	
 };
 
 #endif //TPZFRONTNONSYM_H

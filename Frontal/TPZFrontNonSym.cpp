@@ -284,9 +284,14 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 //	}
 	
 	long j;
-	for(j=0;j<this->fFront;j++){
-		for(i=0;i<this->fFront;i++) 
-			Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
+	if(this->fProductMTData){
+		this->ProductTensorMT( AuxVecCol, AuxVecRow );
+	}
+	else{
+		for(j=0;j<this->fFront;j++){
+			for(i=0;i<this->fFront;i++) 
+				Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
+		}	
 	}
 	/*     Print("After correct elimination",cout);
 	 */
@@ -322,6 +327,28 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
     fDecomposeType=ELU;
 	//	PrintGlobal("After", output);
 }
+
+template <class TVar>
+void TPZFrontNonSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data){
+  if(!data) DebugStop();
+  while(data->fRunning){
+    tht::SemaphoreWait(data->fWorkSem[ ithread ]);
+    if(!data->fRunning) break;
+    const int n = data->fAuxVecCol->NElements();
+    const int Nthreads = data->NThreads();
+		
+    for(int j = 0 + ithread; j < n; j += Nthreads){
+      const TVar RowVal = data->fAuxVecRow->operator[](j);
+      int i = 0;
+      TVar * ElemPtr = &(this->Element(i,j));
+      TVar * ColValPtr = &(data->fAuxVecCol->operator[](i));
+      for(; i < n; i++, ColValPtr++, ElemPtr++){
+        (*ElemPtr) -=  (*ColValPtr) * RowVal;
+      }///i
+    }///j
+    data->WorkDone();
+  }///while
+}///void
 
 template<class TVar>
 void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex)

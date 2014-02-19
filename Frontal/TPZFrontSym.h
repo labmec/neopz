@@ -109,8 +109,18 @@ public:
 	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
 	
 private:    
+
+	TVar & Element4JGreatEqualI(long i, long j){
+#ifdef DEBUG
+    if(i>j){
+      DebugStop();
+    }
+#endif
+	  return this->fData[(j*(j+1))/2+i];
+  }
 	
-    /** 
+	
+	/** 
 	 * @brief Decomposes ieq equation and add the result to EqnArray 
 	 * @param ieq Index of equation to be decomposed 
 	 * @param eqnarray EqnArray to store resulting members
@@ -140,6 +150,9 @@ public:
 	
 	/** @brief Returns decomposition type*/
 	DecomposeType GetDecomposeType() const;
+	
+	/** @brief Does the tensor product betweem two vectors in the positions dependent of ithread*/
+	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
 	
 private:
 	
