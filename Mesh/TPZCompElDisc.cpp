@@ -108,7 +108,7 @@ TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fEx
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 	this->fIntRule = this->CreateIntegrationRule();
-    fUseQsiEta = false;
+    SetTrueUseQsiEta();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,long &index) :
@@ -116,7 +116,7 @@ TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCente
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
-    fUseQsiEta = false;
+    this->SetTrueUseQsiEta();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
@@ -181,17 +181,13 @@ TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCen
 	ref->SetReference(this);
 	CreateMidSideConnect();
 	this->SetDegree( fMesh->GetDefaultOrder() );
-	ref->CenterPoint(ref->NSides()-1,fCenterPoint);
-	TPZVec<REAL> csi(fCenterPoint);
-	ref->X(csi,fCenterPoint);
-	fConstC = NormalizeConst();
 	
     //criando os elementos interface
     //Now, the interface is created by calling the CreateIntefaces method in class TPZApproxSpace.
 	//CreateInterfaces();
 	
 	this->fIntRule = this->CreateIntegrationRule();
-    fUseQsiEta = false;
+    SetTrueUseQsiEta();
 	
 }
 
@@ -230,41 +226,37 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	
     if(fUseQsiEta==true){
-        this->Shape(intpoint,intpoint,phi,dphix);
+        TPZFNMatrix<660,REAL> dphidxi;
+        this->Shape(intpoint,phi,dphidxi);
+        this->Convert2Axes(dphidxi,jacinv,dphix);
+        ref->X(intpoint, X);
     }else{
         ref->X(intpoint, X);
-        this->Shape(intpoint,X,phi,dphix);
+        this->ShapeX(X,phi,dphix);
+        //axes is identity in discontinuous elements
+        axes.Resize(dphix.Rows(), 3);
+        axes.Zero();
+        for(int i = 0; i < axes.Rows(); i++) axes(i,i) = 1.;
     }
 	
-	//axes is identity in discontinuous elements
-	axes.Resize(dphix.Rows(), dphix.Rows());
-	axes.Identity();
 }
 
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data){
-    
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.dphix);
 }
-                                                               
+
 
 void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-	TPZManVector<REAL,4> x(3);
-	this->Reference()->X(qsi,x);
-	this->Shape(qsi,x,phi,dphi);
+    if(fUseQsiEta==true){
+        this->ShapeX(qsi,phi,dphi);
+    }else{
+
+        TPZManVector<REAL,4> x(3);
+        this->Reference()->X(qsi,x);
+        this->ShapeX(x,phi,dphi);
+    }
 }
 
-void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-	
-	const int Degree = this->Degree();
-	if(Degree < 0){
-		phi.Redim(0,0);
-		dphi.Redim(0,0);
-		return;
-	}
-	
-	this->ShapeX(X, phi, dphi);
-	
-}
 
 void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
 	const int Degree = this->Degree();
@@ -774,11 +766,11 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer<STAT
 		intrule->Point(int_ind,int_point,weight);
 		ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
 		ref->X(int_point, x);
-		Shape(int_point,x,locphi,locdphi);
+		Shape(int_point,locphi,locdphi);
 		weight *= jac_det;
 		corphi.Zero();
 		cordphi.Zero();
-		coarsel.Shape(int_point,x,corphi,cordphi);
+		coarsel.Shape(int_point,corphi,cordphi);
 		
 		for(lin=0; lin<locnshape; lin++) {
 			for(ljn=0; ljn<locnshape; ljn++) {

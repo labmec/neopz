@@ -420,6 +420,7 @@ void TPZInterfaceElement::Print(std::ostream &out) const {
 	out << "\nInterface element : \n";
 	if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent\n";
 	else{
+		out << "\tLeft CompEl Index: " << LeftElement()->Index() << endl;
 		out << "\tLeft Geometric Index: " << LeftElement()->Reference()->Index() << endl;
 		out << "\tLeft Geometric Id: " << LeftElement()->Reference()->Id() << endl;
 		out << "\tElement Dimension " << LeftElement()->Reference()->Dimension() << endl;
@@ -427,6 +428,7 @@ void TPZInterfaceElement::Print(std::ostream &out) const {
 	
 	if(!RightElement() || !RightElement()->Reference()) out << "\tNULL RightElement - this is inconsistent";
 	else{
+		out << "\tRight CompEl Index: " << RightElement()->Index() << endl;
 		out << "\tRight Geometric Index: " << RightElement()->Reference()->Index() << endl;
 		out << "\tRight Geometric Id: " << RightElement()->Reference()->Id() << endl;
 		out << "\tElement Dimension " << RightElement()->Reference()->Dimension() << endl;
@@ -1140,7 +1142,12 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
 		this->ComputeRequiredData(data);
         
+        // dataleft.x nao esta preenchido!!
         data.x = dataleft.x;
+        data.p = dataright.p;
+        if (dataleft.p > data.p) {
+            data.p = dataleft.p;
+        }
         
 		mat->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
 		

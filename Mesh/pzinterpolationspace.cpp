@@ -83,31 +83,8 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	this->Shape(intpoint,phi,dphi);
     
-	int nshape = phi.Rows();
-	int ieq;
-	switch(dim){
-		case 0:
-			break;
-		case 1:
-			dphix = dphi;
-			dphix *= (1./detjac);
-			break;
-		case 2:
-			for(ieq = 0; ieq < nshape; ieq++) {
-				dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-				dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-			}
-			break;
-		case 3:
-			for(ieq = 0; ieq < nshape; ieq++) {
-				dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-				dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-				dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-			}
-			break;
-		default:
-			PZError << "Error at " << __PRETTY_FUNCTION__ << " please implement the " << dim << "d Jacobian and inverse\n";
-	} //switch
+    Convert2Axes(dphi, jacinv, dphix);
+    
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
@@ -1562,3 +1539,37 @@ void TPZInterpolationSpace::Read(TPZStream &buf, void *context)
 	TPZCompEl::Read(buf,context);
 	buf.Read(&fPreferredOrder,1);
 }
+
+/// convert a shapefunction derivative in xi-eta to a function derivative in x,y,z
+void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphidxi, const TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &dphidaxes)
+{
+	int nshape = dphidxi.Cols();
+    int dim = dphidxi.Rows();
+    dphidaxes.Resize(dim,nshape);
+	int ieq;
+	switch(dim){
+		case 0:
+			break;
+		case 1:
+			dphidaxes = dphidxi;
+			dphidaxes *= jacinv.GetVal(0,0);
+			break;
+		case 2:
+			for(ieq = 0; ieq < nshape; ieq++) {
+				dphidaxes(0,ieq) = jacinv.GetVal(0,0)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,0)*dphidxi.GetVal(1,ieq);
+				dphidaxes(1,ieq) = jacinv.GetVal(0,1)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,1)*dphidxi.GetVal(1,ieq);
+			}
+			break;
+		case 3:
+			for(ieq = 0; ieq < nshape; ieq++) {
+				dphidaxes(0,ieq) = jacinv.GetVal(0,0)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,0)*dphidxi.GetVal(1,ieq) + jacinv.GetVal(2,0)*dphidxi.GetVal(2,ieq);
+				dphidaxes(1,ieq) = jacinv.GetVal(0,1)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,1)*dphidxi.GetVal(1,ieq) + jacinv.GetVal(2,1)*dphidxi.GetVal(2,ieq);
+				dphidaxes(2,ieq) = jacinv.GetVal(0,2)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,2)*dphidxi.GetVal(1,ieq) + jacinv.GetVal(2,2)*dphidxi.GetVal(2,ieq);
+			}
+			break;
+		default:
+			PZError << "Error at " << __PRETTY_FUNCTION__ << " please implement the " << dim << "d Jacobian and inverse\n";
+	} //switch
+    
+}
+

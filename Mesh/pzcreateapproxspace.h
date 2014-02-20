@@ -130,6 +130,9 @@ public:
     {
         fCreateHybridMesh = create;
     }
+    
+    /// this method will substitute all interface elements with materialid within the set by three elements : one H1 element and two interface elements
+    static void Hybridize(TPZCompMesh &cmesh,const std::set<int> &matids);
 };
 
 /** @brief Creates computational point element */

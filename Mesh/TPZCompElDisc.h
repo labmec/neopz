@@ -184,19 +184,11 @@ public:
 	 * @param phi vector of values of shapefunctions, dimension (numshape,1)
 	 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
 	 */
-	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi);
 	
-	/** 
-	 * @brief Compute shape functions.
-	 * @param[in] qsi point in master element coordinates
-	 * @param[in] X coordinates of the point
-	 * @param[out] phi vector of values of shapefunctions,
-	 * @param[out] dphi matrix of derivatives of shapefunctions,
-	 */
-	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
 protected:
-	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
+	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphidaxes);
     
     public:
     
@@ -230,8 +222,19 @@ protected:
     
     void SetTrueUseQsiEta(){
         fUseQsiEta = true;
+        int ns = Reference()->NSides();
+        this->Reference()->CenterPoint(ns-1, fCenterPoint);
+        fConstC = 1.;
     }
-	
+
+    void SetFalseUseQsiEta(){
+        fUseQsiEta = false;
+        Reference()->CenterPoint(Reference()->NSides()-1,fCenterPoint);
+        TPZVec<REAL> csi(fCenterPoint);
+        Reference()->X(csi,fCenterPoint);
+        fConstC = NormalizeConst();
+    }
+
 	/** @brief Returns the center point */
 	void InternalPoint(TPZVec<REAL> &point);
 	
@@ -396,6 +399,7 @@ public:
 	
 	/** @brief Evaluates the square residual for every element in mesh. */
 	static void EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose = false);
+    
 	
 };
 

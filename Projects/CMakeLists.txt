@@ -173,6 +173,8 @@ ENABLE_TESTING()
 			add_subdirectory(Testes_Agnaldo)
 			add_subdirectory(ReducedSpace)
 			add_subdirectory(StabilizedHybridElasticity)
+			
+			add_subdirectory(Bima1)
 			#
 			#
 			

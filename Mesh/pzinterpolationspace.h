@@ -98,13 +98,13 @@ public:
 	 * @brief Computes the shape function set at the point x. 
 	 * @param qsi point in master element coordinates
 	 * @param phi vector of values of shapefunctions, dimension (numshape,1)
-	 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
+	 * @param dphi matrix of derivatives of shapefunctions in master element coordinates, dimension (dim,numshape)
 	 */
 	/**
 	 * This method uses the order of interpolation
 	 * of the element along the sides to compute the number of shapefunctions
 	 */
-	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) = 0;
+	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) = 0;
     
     
     
@@ -117,9 +117,11 @@ public:
     
 	/** @brief Compute shape functions based on master element in the classical FEM manner. */
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
-							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
-    
-    
+							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphidaxes);
+
+    /// convert a shapefunction derivative in xi-eta to a function derivative in axes
+    static void Convert2Axes(const TPZFMatrix<REAL> &dphidxi, const TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &dphidaxes);
+
 	
 	/** @brief Compute the values of the shape function along the side*/
 	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)

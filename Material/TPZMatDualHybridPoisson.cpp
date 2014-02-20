@@ -1,9 +1,11 @@
 
 #include "TPZMatDualHybridPoisson.h"
+#include "pzbndcond.h"
+#include "pzaxestools.h"
 
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero)
- :TPZDiscontinuousGalerkin(matid),fXf(f), fBetaZero(betaZero){
+ :TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
 
 }
 
@@ -13,12 +15,12 @@ TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int matid) : TPZDiscontinuousGa
 
 }
 
-TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(): TPZDiscontinuosGalerkin(){
+TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(): TPZDiscontinuousGalerkin(){
 
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(const TPZMatDualHybridPoisson &copy)
- : TPZDiscontinuosGalerkin(copy){
+ : TPZDiscontinuousGalerkin(copy){
  fXf = copy.fXf;
  fBetaZero = copy.fBetaZero;
 }
@@ -31,7 +33,7 @@ void TPZMatDualHybridPoisson::Print(std::ostream & out){
   out << "\n" << this->Name() << "\n";
   out << "fXf = " << fXf << "\n";
   out << "fBetaZero = " << fBetaZero << "\n";
-  TPZDiscontinuosGalerkin::Print(out);
+  TPZDiscontinuousGalerkin::Print(out);
 }
 
 void TPZMatDualHybridPoisson::Contribute(TPZMaterialData &data,
@@ -41,15 +43,14 @@ void TPZMatDualHybridPoisson::Contribute(TPZMaterialData &data,
   TPZFMatrix<REAL>  &phi = data.phi;
   TPZFMatrix<REAL> &dphi = data.dphix;
   TPZVec<REAL>  &x = data.x;
-  TPZFMatrix<REAL> &axes = data.axes;
-  TPZFMatrix<REAL> &jacinv = data.jacinv;
   const int nshape = phi.Rows();
+    const REAL beta =data.p*data.p*fBetaZero/data.HSize;
 
   if(dphi.Rows() == 1){///estou no elemento 1D do multiplicador de Lagrange
 
-    for( int in = 0; in < nshape; in++ ) {
-      for( int jn = 0; jn < nshape; jn++ ) {
-        ek(i,j) += weight * (this->fBetaZero/data.HSize) * phi(i,0) * phi(j,0);
+    for( int i = 0; i < nshape; i++ ) {
+      for( int j = 0; j < nshape; j++ ) {
+        ek(i,j) += weight * (beta) * phi(i,0) * phi(j,0);
       }
     }
     return;
@@ -99,7 +100,7 @@ void TPZMatDualHybridPoisson::ContributeBC(TPZMaterialData &data,
 
 	if(bc.Type() == 0){ // Dirichlet condition
     for(int i = 0; i < nshape; i++){
-      ef(i,0) += weight * gBigNumber * phi(in,0) * valBC;
+      ef(i,0) += weight * gBigNumber * phi(i,0) * valBC;
       for (int j = 0; j < nshape; j++){
         ek(i,j) += weight * gBigNumber * phi(i,0) * phi(j,0);
       }
@@ -118,18 +119,23 @@ void TPZMatDualHybridPoisson::ContributeInterface(TPZMaterialData &data,
                                                   REAL weight,
                                                   TPZFMatrix<STATE> &ek,
                                                   TPZFMatrix<STATE> &ef){
-	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
-	TPZFMatrix<REAL> &dphiR = dataright.dphix;
+	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
+	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	const REAL faceSize = data.HSize;
-  const REAL beta = this->fBetaZero/faceSize;
+  const REAL beta = data.p*data.p*this->fBetaZero/faceSize;
 
 	const int nshapeL = phiL.Rows();
 	const int nshapeR = phiR.Rows();
+    
+    
+	TPZFNMatrix<660> dphiL, dphiR;
+	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 
-  if(dphiR.Rows() > 1) DebugStop(); //o multiplicador de Lagrange foi assumido como direito
+  if(dphiRdAxes.Rows() != 1 || dphiLdAxes.Rows() != 2) DebugStop(); //o multiplicador de Lagrange foi assumido como direito
   ///u, v : left
   ///lambda, mu : right
 
@@ -184,8 +190,8 @@ void TPZMatDualHybridPoisson::ContributeBCInterface(TPZMaterialData &data,
                                                     TPZFMatrix<STATE> &ek,
                                                     TPZFMatrix<STATE> &ef,
                                                     TPZBndCond &bc){
-  PZError << "TPZMatDualHybridPoisson::ContributeBCInterface should never be called in this formulation\n";
-  DebugStop();
+  //PZError << "TPZMatDualHybridPoisson::ContributeBCInterface should never be called in this formulation\n";
+  //DebugStop();
 }
 
 int TPZMatDualHybridPoisson::VariableIndex(const std::string &name){
@@ -202,22 +208,27 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
 	Solout.Resize( this->NSolutionVariables( var ) );
 
 	if(var == 1){
-		Solout[0] = Sol[0];//solution - escalar
+		Solout[0] = data.sol[0][0];//solution - escalar
 		return;
 	}
 
   TPZMaterial::Solution(data,var,Solout);
 }
 
-void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
       TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
       TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 	values.Resize(3);
+    values.Fill(0.);
+    if (dudx.Rows() == 1) {
+        // this is a lagrange multiplier element
+        return;
+    }
 	///L2 norm
 	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0]);
 	///semi norma de H1
 	values[2] = 0.;
-	for(int i = 0; i < this->fDim; i++){
+	for(int i = 0; i < 2; i++){
 		values[2] += (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0));
 	}
 	///H1 norm

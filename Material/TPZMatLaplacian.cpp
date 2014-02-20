@@ -668,205 +668,205 @@ void TPZMatLaplacian::ContributeInterface(TPZMaterialData &data, TPZMaterialData
                                           REAL weight,
                                           TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 
-	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
-	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
-	TPZFMatrix<REAL> &phiL = dataleft.phi;
-	TPZFMatrix<REAL> &phiR = dataright.phi;
-	TPZManVector<REAL,3> &normal = data.normal;
+    TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
+    TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
+    TPZFMatrix<REAL> &phiL = dataleft.phi;
+    TPZFMatrix<REAL> &phiR = dataright.phi;
+    TPZManVector<REAL,3> &normal = data.normal;
 
-	TPZFNMatrix<660> dphiL, dphiR;
-	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
-	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
+    TPZFNMatrix<660> dphiL, dphiR;
+    TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
+    TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 
-	int &LeftPOrder=dataleft.p;
-	int &RightPOrder=dataright.p;
+    int &LeftPOrder=dataleft.p;
+    int &RightPOrder=dataright.p;
 
-	REAL &faceSize=data.HSize;
-
-
-	int nrowl = phiL.Rows();
-	int nrowr = phiR.Rows();
-	int il,jl,ir,jr,id;
-
-	//diffusion term
-	STATE leftK, rightK;
-	leftK  = this->fK;
-	rightK = this->fK;
-
-	// 1) phi_I_left, phi_J_left
-	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
-		for(id=0; id<fDim; id++) {
-			dphiLinormal += dphiL(id,il)*normal[id];
-		}
-		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
-			for(id=0; id<fDim; id++) {
-				dphiLjnormal += dphiL(id,jl)*normal[id];
-			}
-			ek(il,jl) += (STATE)(weight * ( this->fSymmetry * (0.5)*dphiLinormal*phiL(jl,0)-(0.5)*dphiLjnormal*phiL(il,0))) * leftK;
-		}
-	}
-
-	// 2) phi_I_right, phi_J_right
-	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
-		for(id=0; id<fDim; id++) {
-			dphiRinormal += dphiR(id,ir)*normal[id];
-		}
-		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
-			for(id=0; id<fDim; id++) {
-				dphiRjnormal += dphiR(id,jr)*normal[id];
-			}
-			ek(ir+nrowl,jr+nrowl) += (STATE)(weight * (this->fSymmetry * ((-0.5) * dphiRinormal * phiR(jr) ) + (0.5) * dphiRjnormal * phiR(ir))) * rightK;
-		}
-	}
-
-	// 3) phi_I_left, phi_J_right
-	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
-		for(id=0; id<fDim; id++) {
-			dphiLinormal += dphiL(id,il)*normal[id];
-		}
-		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
-			for(id=0; id<fDim; id++) {
-				dphiRjnormal += dphiR(id,jr)*normal[id];
-			}
-			ek(il,jr+nrowl) += (STATE)weight * ((STATE)fSymmetry * ((STATE)((-0.5) * dphiLinormal * phiR(jr)) * leftK ) - (STATE)((0.5) * dphiRjnormal * phiL(il))* rightK );
-		}
-	}
-
-	// 4) phi_I_right, phi_J_left
-	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
-		for(id=0; id<fDim; id++) {
-			dphiRinormal += dphiR(id,ir)*normal[id];
-		}
-		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
-			for(id=0; id<fDim; id++) {
-				dphiLjnormal += dphiL(id,jl)*normal[id];
-			}
-			ek(ir+nrowl,jl) += (STATE)weight * (
-										 (STATE)(fSymmetry * (0.5) * dphiRinormal * phiL(jl)) * rightK + (STATE)((0.5) * dphiLjnormal * phiR(ir)) * leftK
-										 );
-		}
-	}
-
-	if (this->IsSymetric()){
-		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
-	}
-
-	if (this->fPenaltyConstant == 0.) return;
-
-	leftK  = this->fK;
-	rightK = this->fK;
+    REAL &faceSize=data.HSize;
 
 
+    int nrowl = phiL.Rows();
+    int nrowr = phiR.Rows();
+    int il,jl,ir,jr,id;
 
-	//penalty = <A p^2>/h
-	REAL penalty = fPenaltyConstant * (0.5 * (abs(leftK)*LeftPOrder*LeftPOrder + abs(rightK)*RightPOrder*RightPOrder)) / faceSize;
+    //diffusion term
+    STATE leftK, rightK;
+    leftK  = this->fK;
+    rightK = this->fK;
 
-	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
+    // 1) phi_I_left, phi_J_left
+    for(il=0; il<nrowl; il++) {
+        REAL dphiLinormal = 0.;
+        for(id=0; id<fDim; id++) {
+            dphiLinormal += dphiL(id,il)*normal[id];
+        }
+        for(jl=0; jl<nrowl; jl++) {
+            REAL dphiLjnormal = 0.;
+            for(id=0; id<fDim; id++) {
+                dphiLjnormal += dphiL(id,jl)*normal[id];
+            }
+            ek(il,jl) += (STATE)(weight * ( this->fSymmetry * (0.5)*dphiLinormal*phiL(jl,0)-(0.5)*dphiLjnormal*phiL(il,0))) * leftK;
+        }
+    }
 
-		// 1) left i / left j
-		for(il=0; il<nrowl; il++) {
-			for(jl=0; jl<nrowl; jl++) {
-				ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
-			}
-		}
+    // 2) phi_I_right, phi_J_right
+    for(ir=0; ir<nrowr; ir++) {
+        REAL dphiRinormal = 0.;
+        for(id=0; id<fDim; id++) {
+            dphiRinormal += dphiR(id,ir)*normal[id];
+        }
+        for(jr=0; jr<nrowr; jr++) {
+            REAL dphiRjnormal = 0.;
+            for(id=0; id<fDim; id++) {
+                dphiRjnormal += dphiR(id,jr)*normal[id];
+            }
+            ek(ir+nrowl,jr+nrowl) += (STATE)(weight * (this->fSymmetry * ((-0.5) * dphiRinormal * phiR(jr) ) + (0.5) * dphiRjnormal * phiR(ir))) * rightK;
+        }
+    }
 
-		// 2) right i / right j
-		for(ir=0; ir<nrowr; ir++) {
-			for(jr=0; jr<nrowr; jr++) {
-				ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
-			}
-		}
+    // 3) phi_I_left, phi_J_right
+    for(il=0; il<nrowl; il++) {
+        REAL dphiLinormal = 0.;
+        for(id=0; id<fDim; id++) {
+            dphiLinormal += dphiL(id,il)*normal[id];
+        }
+        for(jr=0; jr<nrowr; jr++) {
+            REAL dphiRjnormal = 0.;
+            for(id=0; id<fDim; id++) {
+                dphiRjnormal += dphiR(id,jr)*normal[id];
+            }
+            ek(il,jr+nrowl) += (STATE)weight * ((STATE)fSymmetry * ((STATE)((-0.5) * dphiLinormal * phiR(jr)) * leftK ) - (STATE)((0.5) * dphiRjnormal * phiL(il))* rightK );
+        }
+    }
 
-		// 3) left i / right j
-		for(il=0; il<nrowl; il++) {
-			for(jr=0; jr<nrowr; jr++) {
-				ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
-			}
-		}
+    // 4) phi_I_right, phi_J_left
+    for(ir=0; ir<nrowr; ir++) {
+        REAL dphiRinormal = 0.;
+        for(id=0; id<fDim; id++) {
+            dphiRinormal += dphiR(id,ir)*normal[id];
+        }
+        for(jl=0; jl<nrowl; jl++) {
+            REAL dphiLjnormal = 0.;
+            for(id=0; id<fDim; id++) {
+                dphiLjnormal += dphiL(id,jl)*normal[id];
+            }
+            ek(ir+nrowl,jl) += (STATE)weight * (
+                                         (STATE)(fSymmetry * (0.5) * dphiRinormal * phiL(jl)) * rightK + (STATE)((0.5) * dphiLjnormal * phiR(ir)) * leftK
+                                         );
+        }
+    }
 
-		// 4) right i / left j
-		for(ir=0; ir<nrowr; ir++) {
-			for(jl=0; jl<nrowl; jl++) {
-				ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
-			}
-		}
+    if (this->IsSymetric()){
+        if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+    }
 
-	}
+    if (this->fPenaltyConstant == 0.) return;
 
-	if (this->fPenaltyType == EFluxPenalty || this->fPenaltyType == EBoth){
+    leftK  = this->fK;
+    rightK = this->fK;
 
-		REAL NormalFlux_i = 0.;
-		REAL NormalFlux_j = 0.;
 
-		// 1) left i / left j
-		for(il=0; il<nrowl; il++) {
-			NormalFlux_i = 0.;
-			for(id=0; id<fDim; id++) {
-				NormalFlux_i += dphiL(id,il)*normal[id];
-			}
-			for(jl=0; jl<nrowl; jl++) {
-				NormalFlux_j = 0.;
-				for(id=0; id<fDim; id++) {
-					NormalFlux_j += dphiL(id,jl)*normal[id];
-				}
-				ek(il,jl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
-			}
-		}
 
-		// 2) right i / right j
-		for(ir=0; ir<nrowr; ir++) {
-			NormalFlux_i = 0.;
-			for(id=0; id<fDim; id++) {
-				NormalFlux_i += dphiR(id,ir)*normal[id];
-			}
-			for(jr=0; jr<nrowr; jr++) {
-				NormalFlux_j = 0.;
-				for(id=0; id<fDim; id++) {
-					NormalFlux_j += dphiR(id,jr)*normal[id];
-				}
-				ek(ir+nrowl,jr+nrowl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
-			}
-		}
+    //penalty = <A p^2>/h
+    REAL penalty = fPenaltyConstant * (0.5 * (abs(leftK)*LeftPOrder*LeftPOrder + abs(rightK)*RightPOrder*RightPOrder)) / faceSize;
 
-		// 3) left i / right j
-		for(il=0; il<nrowl; il++) {
-			NormalFlux_i = 0.;
-			for(id=0; id<fDim; id++) {
-				NormalFlux_i += dphiL(id,il)*normal[id];
-			}
-			for(jr=0; jr<nrowr; jr++) {
-				NormalFlux_j = 0.;
-				for(id=0; id<fDim; id++) {
-					NormalFlux_j += dphiR(id,jr)*normal[id];
-				}
-				ek(il,jr+nrowl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
-			}
-		}
+    if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
 
-		// 4) right i / left j
-		for(ir=0; ir<nrowr; ir++) {
-			NormalFlux_i = 0.;
-			for(id=0; id<fDim; id++) {
-				NormalFlux_i += dphiR(id,ir)*normal[id];
-			}
-			for(jl=0; jl<nrowl; jl++) {
-				NormalFlux_j = 0.;
-				for(id=0; id<fDim; id++) {
-					NormalFlux_j += dphiL(id,jl)*normal[id];
-				}
-				ek(ir+nrowl,jl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
-			}
-		}
+        // 1) left i / left j
+        for(il=0; il<nrowl; il++) {
+            for(jl=0; jl<nrowl; jl++) {
+                ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+            }
+        }
 
-	}
+        // 2) right i / right j
+        for(ir=0; ir<nrowr; ir++) {
+            for(jr=0; jr<nrowr; jr++) {
+                ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
+            }
+        }
+
+        // 3) left i / right j
+        for(il=0; il<nrowl; il++) {
+            for(jr=0; jr<nrowr; jr++) {
+                ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
+            }
+        }
+
+        // 4) right i / left j
+        for(ir=0; ir<nrowr; ir++) {
+            for(jl=0; jl<nrowl; jl++) {
+                ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
+            }
+        }
+
+    }
+
+    if (this->fPenaltyType == EFluxPenalty || this->fPenaltyType == EBoth){
+
+        REAL NormalFlux_i = 0.;
+        REAL NormalFlux_j = 0.;
+
+        // 1) left i / left j
+        for(il=0; il<nrowl; il++) {
+            NormalFlux_i = 0.;
+            for(id=0; id<fDim; id++) {
+                NormalFlux_i += dphiL(id,il)*normal[id];
+            }
+            for(jl=0; jl<nrowl; jl++) {
+                NormalFlux_j = 0.;
+                for(id=0; id<fDim; id++) {
+                    NormalFlux_j += dphiL(id,jl)*normal[id];
+                }
+                ek(il,jl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
+            }
+        }
+
+        // 2) right i / right j
+        for(ir=0; ir<nrowr; ir++) {
+            NormalFlux_i = 0.;
+            for(id=0; id<fDim; id++) {
+                NormalFlux_i += dphiR(id,ir)*normal[id];
+            }
+            for(jr=0; jr<nrowr; jr++) {
+                NormalFlux_j = 0.;
+                for(id=0; id<fDim; id++) {
+                    NormalFlux_j += dphiR(id,jr)*normal[id];
+                }
+                ek(ir+nrowl,jr+nrowl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
+            }
+        }
+
+        // 3) left i / right j
+        for(il=0; il<nrowl; il++) {
+            NormalFlux_i = 0.;
+            for(id=0; id<fDim; id++) {
+                NormalFlux_i += dphiL(id,il)*normal[id];
+            }
+            for(jr=0; jr<nrowr; jr++) {
+                NormalFlux_j = 0.;
+                for(id=0; id<fDim; id++) {
+                    NormalFlux_j += dphiR(id,jr)*normal[id];
+                }
+                ek(il,jr+nrowl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
+            }
+        }
+
+        // 4) right i / left j
+        for(ir=0; ir<nrowr; ir++) {
+            NormalFlux_i = 0.;
+            for(id=0; id<fDim; id++) {
+                NormalFlux_i += dphiR(id,ir)*normal[id];
+            }
+            for(jl=0; jl<nrowl; jl++) {
+                NormalFlux_j = 0.;
+                for(id=0; id<fDim; id++) {
+                    NormalFlux_j += dphiL(id,jl)*normal[id];
+                }
+                ek(ir+nrowl,jl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
+            }
+        }
+
+    }
 
 }
 

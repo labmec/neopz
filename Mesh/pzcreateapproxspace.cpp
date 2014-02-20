@@ -28,6 +28,8 @@
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"
 
+#include "TPZInterfaceEl.h"
+
 #include "pzcompelwithmem.h"
 
 #ifdef LOG4CXX
@@ -636,4 +638,47 @@ void TPZCreateApproximationSpace::CreateInterfaceElements(TPZCompMesh *mesh, boo
         }
         
     }
+}
+
+/// this method will substitute all interface elements with materialid within the set by three elements : one H1 element and two interface elements
+void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<int> &matids)
+{
+    cmesh.ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh.Reference()->ResetReference();
+    int nel = cmesh.NElements();
+    for (int el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh.ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZInterfaceElement *face = dynamic_cast<TPZInterfaceElement *>(cel);
+        if (!face) {
+            continue;
+        }
+        int matid = face->Material()->Id();
+        if (matids.find(matid) == matids.end()) {
+            continue;
+        }
+        TPZCompElSide left, right;
+        left = face->LeftElementSide();
+        right = face->RightElementSide();
+        int leftmatid = left.Element()->Material()->Id();
+        int rightmatid = right.Element()->Material()->Id();
+        TPZGeoEl *gelface = face->Reference();
+        gelface = gelface->CreateBCGeoEl(gelface->NSides()-1, matid);
+        delete face;
+        long index;
+        cmesh.ApproxSpace().CreateCompEl(gelface, cmesh, index);
+        TPZCompEl *newcel = cmesh.ElementVec()[index];
+        gelface->ResetReference();
+        TPZCompElSide center(newcel,gelface->NSides()-1);
+        
+        TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
+        TPZGeoEl *rightgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, rightmatid);
+        
+        TPZInterfaceElement *faceleft = new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
+        TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
+        
+    }
+    cmesh.ExpandSolution();
 }

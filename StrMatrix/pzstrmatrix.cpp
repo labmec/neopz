@@ -274,6 +274,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
                     TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
                     gel->CenterPoint(gel->NSides()-1, center);
                     gel->X(center, xcenter);
+                    sout << "Stiffness for computational element index " << el->Index() << std::endl;
                     sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
                 }
                 else {
