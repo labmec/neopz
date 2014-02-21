@@ -3,6 +3,7 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 
+int TPZMatDualHybridPoisson::mydim = 2;
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero)
  :TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
@@ -40,19 +41,15 @@ void TPZMatDualHybridPoisson::Contribute(TPZMaterialData &data,
                                          REAL weight,
                                          TPZFMatrix<STATE> &ek,
                                          TPZFMatrix<STATE> &ef){
+
   TPZFMatrix<REAL>  &phi = data.phi;
   TPZFMatrix<REAL> &dphi = data.dphix;
   TPZVec<REAL>  &x = data.x;
   const int nshape = phi.Rows();
-    const REAL beta =data.p*data.p*fBetaZero/data.HSize;
+    const REAL beta = this->Beta(data.p,data.HSize);
 
   if(dphi.Rows() == 1){///estou no elemento 1D do multiplicador de Lagrange
 
-    for( int i = 0; i < nshape; i++ ) {
-      for( int j = 0; j < nshape; j++ ) {
-        ek(i,j) += weight * (beta) * phi(i,0) * phi(j,0);
-      }
-    }
     return;
 
   }///1D
@@ -66,7 +63,7 @@ void TPZMatDualHybridPoisson::Contribute(TPZMaterialData &data,
       Fval = res[0];
     }
 
-    //Equacao de Poisson
+    ///Equacao de Poisson
     for( int in = 0; in < nshape; in++ ) {
       ef(in, 0) +=  weight * Fval * phi(in,0);
       for( int jn = 0; jn < nshape; jn++ ) {
@@ -119,21 +116,23 @@ void TPZMatDualHybridPoisson::ContributeInterface(TPZMaterialData &data,
                                                   REAL weight,
                                                   TPZFMatrix<STATE> &ek,
                                                   TPZFMatrix<STATE> &ef){
-	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
+
+ 	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	const REAL faceSize = data.HSize;
-  const REAL beta = data.p*data.p*this->fBetaZero/faceSize;
+  const REAL beta = this->Beta(data.p,faceSize);
 
 	const int nshapeL = phiL.Rows();
 	const int nshapeR = phiR.Rows();
     
-    
 	TPZFNMatrix<660> dphiL, dphiR;
 	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
 	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
+	
+	const REAL theta = +1;///para nao simetrico, colocar theta = -1
 
   if(dphiRdAxes.Rows() != 1 || dphiLdAxes.Rows() != 2) DebugStop(); //o multiplicador de Lagrange foi assumido como direito
   ///u, v : left
@@ -149,14 +148,14 @@ void TPZMatDualHybridPoisson::ContributeInterface(TPZMaterialData &data,
   ///-gradV.n u
   for(int il = 0; il < nshapeL; il++){
     for(int jl = 0; jl < nshapeL; jl++){
-      ek(il,jl) += weight * (-1.)* (dphiL(0,il)*normal[0]+dphiL(1,il)*normal[1]) * phiL(jl,0);
+      ek(il,jl) += weight * theta * (-1.)* (dphiL(0,il)*normal[0]+dphiL(1,il)*normal[1]) * phiL(jl,0);
     }
   }
 
   ///+gradV.n lambda
   for(int il = 0; il < nshapeL; il++){
     for(int jr = 0; jr < nshapeR; jr++){
-      ek(il,nshapeL+jr) += weight * (+1.)* (dphiL(0,il)*normal[0]+dphiL(1,il)*normal[1]) * phiR(jr,0);
+      ek(il,nshapeL+jr) += weight * theta * (+1.)* (dphiL(0,il)*normal[0]+dphiL(1,il)*normal[1]) * phiR(jr,0);
     }
   }
 
@@ -182,7 +181,15 @@ void TPZMatDualHybridPoisson::ContributeInterface(TPZMaterialData &data,
     }
   }
 
-}//void
+  /// beta mu lambda
+   for( int i = 0; i < nshapeR; i++ ) {
+      for( int j = 0; j < nshapeR; j++ ) {
+        ek(i+nshapeL,j+nshapeL) += weight * (beta) * phiR(i,0) * phiR(j,0);
+      }
+    }
+
+
+}///void
 
 void TPZMatDualHybridPoisson::ContributeBCInterface(TPZMaterialData &data,
                                                     TPZMaterialData &dataleft,
