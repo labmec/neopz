@@ -19,6 +19,7 @@
 /**
  * \f$ -Laplac(u) = fXf  \f$
  */
+
 class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
 
 	protected :
@@ -29,6 +30,8 @@ class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
   STATE fBetaZero;
 
 public:
+	
+	static int mydim;
 
 	TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero);
 
@@ -39,12 +42,16 @@ public:
 	TPZMatDualHybridPoisson(const TPZMatDualHybridPoisson &copy);
 
 	virtual ~TPZMatDualHybridPoisson();
+	
+	REAL Beta(int p, REAL size) const{
+	  return p*p*this->fBetaZero/size;
+	}
 
 	virtual TPZMaterial * NewMaterial(){
 		return new TPZMatDualHybridPoisson(*this);
 	}
 
-	int Dimension() { return 2;}
+	int Dimension() { return mydim;}
 
 	int NStateVariables(){
     return 1;
