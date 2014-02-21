@@ -212,7 +212,10 @@ void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<T
 		SimetrizeMatRed();
 		fSolver->Solve(fK01,fK01);
         TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *>(fSolver.operator->());
-        std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;
+        if (step->Singular().size())
+        {
+            std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;
+        }
 		fK01IsComputed = 1;
 	}
 	fK10.MultAdd(fK01,fK11,(K11),-1.,1.);

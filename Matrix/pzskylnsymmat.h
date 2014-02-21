@@ -89,6 +89,11 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 		       const TVar	alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
+    
+    
+    /** @brief Updates the values of the matrix based on the values of the matrix */
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
+
   // Operadores com matrizes SKY LINE.
   //TPZSkylNSymMatrix &operator= (const TPZSkylNSymMatrix &A );
   //TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
@@ -183,6 +188,12 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   */
   static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int> &res);
 	
+	/** @brief Zeroes the matrix */
+	virtual int Zero(){
+		fStorage.Fill(0.);
+        fStorageb.Fill(0.);
+		return 1;
+    }
 
 
 protected:

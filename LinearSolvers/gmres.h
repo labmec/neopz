@@ -109,12 +109,13 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	Vector *v = new Vector[m+1];
 	
 	while (j <= max_iter) {
-        long rows = v[0].Rows();
+        long rows = r.Rows();
+        v[0].Resize(rows,1);
         for (long i=0; i<rows; i++) {
             v[0](i) = r(i) * ((Real)(1.0/beta));
         }
-        rows = s.Rows();
-        for (long i=0; i<rows; i++) {
+        long srows = s.Rows();
+        for (long i=0; i<srows; i++) {
             s(i) = REAL(0.);
         }
 //		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta

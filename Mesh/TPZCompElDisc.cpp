@@ -112,7 +112,7 @@ TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fEx
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,long &index) :
-TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3)
+TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
@@ -175,7 +175,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,long &index) :
-TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3)
+TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);
@@ -349,9 +349,21 @@ void TPZCompElDisc::Print(std::ostream &out) const{
 	<< "\tConnect index : " << fConnectIndex << endl
 	<< "\tNormalizing constant : " << fConstC << endl
 	<< "\tCenter point of the element : ";
-	int size = fCenterPoint.NElements(),i;
-	for(i=0;i<size-1;i++) out << fCenterPoint[i] << " , ";
-	out << fCenterPoint[i] << endl;
+    if(fUseQsiEta == false)
+    {
+        int size = fCenterPoint.NElements(),i;
+        for(i=0;i<size-1;i++) out << fCenterPoint[i] << " , ";
+        out << fCenterPoint[i] << endl;
+    }
+    else
+    {
+        TPZGeoEl *Ref = Reference();
+        if (Ref) {
+            TPZManVector<REAL,3> xcenter(3),loccenter(fCenterPoint);
+            Ref->X(loccenter, xcenter);
+            out << xcenter << std::endl;
+        }
+    }
 	out << "\tDimension : " << this->Dimension() << endl;
 }
 

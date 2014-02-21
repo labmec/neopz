@@ -176,6 +176,24 @@ public:
 	 * @param ef element load vector(s)
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
+    
+    void EvaluateError(void (* fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                                  TPZVec<REAL> &errors,TPZBlock<REAL> * flux) {
+        fReferenceCompEl->EvaluateError(fp, errors, flux);
+    }
+    
+    /**
+	 * @brief Creates corresponding graphical element(s) if the dimension matches
+	 * graphical elements are used to generate output files
+	 * @param graphmesh graphical mesh where the element will be created
+	 * @param dimension target dimension of the graphical element
+	 */
+	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension)
+    {
+        fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
+    }
+
+
 
 };
 

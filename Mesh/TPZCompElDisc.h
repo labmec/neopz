@@ -223,6 +223,7 @@ protected:
     void SetTrueUseQsiEta(){
         fUseQsiEta = true;
         int ns = Reference()->NSides();
+        fCenterPoint.Fill(0.);
         this->Reference()->CenterPoint(ns-1, fCenterPoint);
         fConstC = 1.;
     }

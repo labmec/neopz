@@ -172,6 +172,15 @@ public:
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 	
+    /**
+	 * @brief Performs an error estimate on the elemen
+	 * @param fp function pointer which computes the exact solution
+	 * @param errors [out] the L2 norm of the error of the solution
+	 * @param flux [in] value of the interpolated flux values
+	 */
+	virtual void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
+
 	
 	/**
 	 * @brief Computes the element right hand side

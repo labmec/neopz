@@ -167,6 +167,14 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         cel->CalcStiff(ekloc, efloc);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            ekloc.fMat.Print("Matriz elementar",sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+        
+#endif
         int nelcon = ekloc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = ekloc.fBlock.Size(ic);
@@ -219,3 +227,27 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
     }
 }
 
+/**
+ * @brief Performs an error estimate on the elemen
+ * @param fp function pointer which computes the exact solution
+ * @param errors [out] the L2 norm of the error of the solution
+ * @param flux [in] value of the interpolated flux values
+ */
+void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                           TPZVec<REAL> &errors,TPZBlock<REAL> *flux)
+{
+    int nerr = errors.size();
+    errors.Fill(0.);
+    int nel = fElGroup.size();
+    for (int el=0; el<nel; el++) {
+        TPZManVector<REAL,10> errloc(nerr,0.);
+        fElGroup[el]->EvaluateError(fp, errloc, flux);
+        if (errloc.size()> nerr) {
+            nerr = errloc.size();
+            errors.Resize(nerr, 0.);
+        }
+        for (int i=0; i<errloc.size(); i++) {
+            errors[i] += errloc[i];
+        }
+    }
+}

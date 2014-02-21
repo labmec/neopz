@@ -42,13 +42,17 @@
 #include "pzhdivpressure.h"
 #include "TPZSkylineNSymStructMatrix.h"
 
+#include "TPZInterfaceEl.h"
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
+
 #include "TPZRefPattern.h"
 
 #include "TPZMatDualHybridPoisson.h"
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("Steklov.main"));
+static LoggerPtr logger(Logger::getLogger("Bima.main"));
 
 #endif
 static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
@@ -78,6 +82,8 @@ static void Dirichlet2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 }
 
 TPZGeoMesh * MalhaGeo(const int h);
+void GroupElements(TPZCompMesh *cmesh);
+
 /** Resolver o problema do tipo
  * -Laplac(u) = 0
  * du/dn = lambda u em todo contorno
@@ -104,13 +110,15 @@ int main()
 	
 	for (int porder= 1; porder<4; porder++) {
 		
-		for(int h=0;h<4;h++){
+		for(int h=1;h<5;h++){
 			
 			
 			TPZGeoMesh *gmesh = MalhaGeo(h);//malha geometrica
 			
 			
 			TPZCompMesh *cmesh = CreateHybridCompMesh(*gmesh,porder);//malha computacional
+            
+            GroupElements(cmesh);
 			
 			
 			
@@ -120,26 +128,39 @@ int main()
             
             TPZSkylineNSymStructMatrix str(cmesh);
             
-            analysis.SetStructuralMatrix(str);
             
-            TPZStepSolver<STATE> step;
-            step.SetDirect(ELU);
-            analysis.SetSolver(step);
+            
+            TPZAutoPointer<TPZMatrix<STATE> > mat = str.Create();
+            str.EquationFilter().Reset();
+            TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
+            
+            analysis.SetStructuralMatrix(str);
+            TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+            TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+            step->SetReferenceMatrix(mat2);
+            step->SetDirect(ELU);
+            gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+            TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+            TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+            analysis.SetSolver(autogmres);
+
             
             analysis.Run();
             TPZVec<std::string> scalnames(1),vecnames(0);
             scalnames[0] = "Solution";
             analysis.DefineGraphMesh(2,scalnames,vecnames,"bima.vtk");
             
-            analysis.PostProcess(3);
+            analysis.PostProcess(0);
             
             analysis.SetExact(SolExataSteklov);
             TPZVec<REAL> erros(3);
             analysis.PostProcessError(erros);
+            myerrorfile << "neq = " << cmesh->NEquations() << "\n";
             myerrorfile << "h = "<< h << " p = " << porder << "\n";
             myerrorfile << "H1 = " << erros[0];
             myerrorfile << " L2 = " << erros[1];
             myerrorfile << " semi H1 = " << erros[2] << std::endl;
+            
             
 				
             cmesh->SetName("Malha depois de Analysis-----");
@@ -164,12 +185,13 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	TPZCompEl::SetgOrder(porder);
 	TPZCompMesh *comp = new TPZCompMesh(&gmesh);
 	
-//    comp->ApproxSpace().CreateDisconnectedElements();
-    comp->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    comp->ApproxSpace().CreateDisconnectedElements(true);
+    comp->ApproxSpace().SetAllCreateFunctionsContinuous();
 	
 	
 	// Criar e inserir os materiais na malha
-	TPZMatDualHybridPoisson *mat = new TPZMatDualHybridPoisson(1,0.,0.01);
+    REAL beta = 6;
+	TPZMatDualHybridPoisson *mat = new TPZMatDualHybridPoisson(1,0.,beta);
 	TPZMaterial * automat(mat);
 	comp->InsertMaterialObject(automat);
 	
@@ -219,10 +241,26 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	comp->InsertMaterialObject(bnd);
 	
 	// Ajuste da estrutura de dados computacional
-	comp->AutoBuild();
+    comp->ApproxSpace().CreateDisconnectedElements(true);
+    comp->ApproxSpace().SetAllCreateFunctionsContinuous();
+
+    std::set<int> matids;
+    matids.insert(1);
+	comp->AutoBuild(matids);
+    
+    comp->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    matids.clear();
+    for (int i=2; i<=6; i++) {
+        matids.insert(-i);
+    }
+    
+	comp->AutoBuild(matids);
+    
 	comp->AdjustBoundaryElements();//ajusta as condicoes de contorno
 	comp->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
-    comp->ApproxSpace().CreateInterfaceElements(comp);
+    
+    comp->LoadReferences();
+    comp->ApproxSpace().CreateInterfaceElements(comp,true);
 	
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -234,7 +272,6 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 #endif
 	
 
-    std::set<int> matids;
     matids.insert(1);
     for (int i=2; i<=6; i++) {
         matids.insert(-i);
@@ -358,4 +395,84 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
 	}
 #endif 		 		 
 	return gmesh;
-} 
+}
+
+void GroupElements(TPZCompMesh *cmesh)
+{
+    cmesh->LoadReferences();
+    int nel = cmesh->NElements();
+    std::set<TPZCompEl *> celset;
+    for (int el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        int dim = gel->Dimension();
+        if (dim ==2) {
+            celset.insert(cel);
+        }
+    }
+    std::set<int> elgroupindices;
+
+    for (std::set<TPZCompEl *>::iterator it = celset.begin(); it != celset.end(); it++) {
+        
+        std::list<TPZCompEl *> group;
+        group.push_back(*it);
+        TPZCompEl *cel = *it;
+        TPZGeoEl *gel = cel->Reference();
+        int nsides = gel->NSides();
+        for (int is = 0; is<nsides; is++) {
+            if (gel->SideDimension(is) != 1) {
+                continue;
+            }
+            TPZStack<TPZCompElSide> connected;
+            TPZCompElSide celside(cel,is);
+            celside.EqualLevelElementList(connected, false, false);
+            int neq = connected.NElements();
+            for (int eq=0; eq<neq; eq++) {
+                TPZCompElSide eqside = connected[eq];
+                TPZCompEl *celeq = eqside.Element();
+                TPZInterfaceElement *intface = dynamic_cast<TPZInterfaceElement *>(celeq);
+                if (!intface) {
+                    continue;
+                }
+                TPZCompEl *left = intface->LeftElement();
+                if (left == cel) {
+                    //put in the group
+                    group.push_back(intface);
+                }
+            }
+        }
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
+                (*it)->Print(sout);
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        long index;
+        TPZElementGroup *celgroup = new TPZElementGroup(*cmesh,index);
+        elgroupindices.insert(index);
+        for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
+            celgroup->AddElement(*it);
+        }
+    }
+    cmesh->ComputeNodElCon();
+    
+    for (std::set<int>::iterator it = elgroupindices.begin(); it!=elgroupindices.end(); it++) {
+        TPZCompEl *cel = cmesh->ElementVec()[*it];
+        TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel);
+    }
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}

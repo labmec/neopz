@@ -323,6 +323,24 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
   }
 }
 
+/** @brief Updates the values of the matrix based on the values of the matrix */
+template <class TVar>
+void TPZSkylNSymMatrix<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
+
+{
+    TPZMatrix<TVar> *matrix = mat.operator->();
+    TPZSkylNSymMatrix<TVar> *skylmat = dynamic_cast<TPZSkylNSymMatrix<TVar> *>(matrix);
+    if (!skylmat) {
+        DebugStop();
+    }
+    if (fStorage.NElements() != skylmat->fStorage.NElements() || fStorageb.NElements() != skylmat->fStorageb.NElements()) {
+        DebugStop();
+    }
+    memcpy(&fStorage[0], &(skylmat->fStorage[0]) , fStorage.NElements()*sizeof(TVar));
+    memcpy(&fStorageb[0], &(skylmat->fStorageb[0]) , fStorageb.NElements()*sizeof(TVar));
+    this->fDecomposed = skylmat->fDecomposed;
+    this->fDefPositive = skylmat->fDefPositive;
+}
 
 /*
 void TPZSkylMatrix::SolveSOR(int & numiterations, const TPZFMatrix &F,

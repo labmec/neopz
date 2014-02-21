@@ -27,6 +27,8 @@
 #include "pztransfer.h"
 #include "pzmultiphysicscompel.h"
 #include "TPZRefPattern.h"
+#include "pzcondensedcompel.h"
+#include "pzelementgroup.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
@@ -132,12 +134,30 @@ void TPZCompMesh::CleanUp() {
 #endif
 	long i, nelem = this->NElements();
 	
-	//deleting interfaces
+	//unwrapping condensed compel
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZCondensedCompEl * cond = dynamic_cast<TPZCondensedCompEl*>(el);
+		if(cond){
+			cond->Unwrap();
+		}
+	}
+	
+	//unwrapping element groups
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
+		if(group){
+            group->Unwrap();
+		}
+	}
+	
+	//deleting interface elements
 	for(i=0; i<nelem; i++){
 		TPZCompEl *el = fElementVec[i];
 		TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
 		if(face){
-			delete el;
+            delete el;
 		}
 	}
 	

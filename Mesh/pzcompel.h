@@ -653,7 +653,7 @@ public:
 };
 
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
-	std::cout << "TPZCompEl::CreateGrafEl called\n";
+	std::cout << "TPZCompEl::CreateGraphicalElement called\n";
 	this->Print(std::cout);
 }
 
