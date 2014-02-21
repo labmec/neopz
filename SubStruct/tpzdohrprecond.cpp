@@ -22,6 +22,9 @@
 
 #include "arglib.h"
 
+#include "tpzparallelenviroment.h"
+
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrprecond"));
 static LoggerPtr loggerv1v2(Logger::getLogger("substruct.v1v2"));
@@ -68,12 +71,6 @@ TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 #include "blocked_range.h"
 #include "partitioner.h"
 using namespace tbb;
-#endif
-
-clarg::argBool mult_tbb("-mult_tbb", "TPZDohrPrecond MultAdd using TBB", false);
-
-#ifdef USING_TBB
-affinity_partitioner ap;
 #endif
 
 template<class TVar, class TSubStruct>
@@ -169,7 +166,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
     }
     
 
-    tbb_work.run_parallel_for(ap);
+    tbb_work.run_parallel_for(pzenviroment.fSubstructurePartitioner);
 
     PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
                       assemblelist.operator->(), __FUNCTION__);
@@ -196,11 +193,10 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
     
-    
-    if (mult_tbb.get_value()) {
-        MultAddTBB(x, y, z, alpha, beta, opt, stride);
-        return;
-    }
+#ifdef USING_TBB
+	MultAddTBB(x, y, z, alpha, beta, opt, stride);
+	return;
+#endif
     
 	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
 		this->Error( "Operator* <matrices with incompatible dimensions>" );

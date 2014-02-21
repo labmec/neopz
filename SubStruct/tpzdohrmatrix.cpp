@@ -13,6 +13,8 @@
 
 #include "pz_pthread.h"
 
+#include "tpzparallelenviroment.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
 #endif
@@ -39,12 +41,6 @@ using namespace tbb;
 #endif
 
 #include "arglib.h"
-
-clarg::argBool mult_tbb2("-mult_tbb_dohr", "TPZDohrPrecond MultAdd using TBB", false);
-
-#ifdef USING_TBB
-affinity_partitioner ap2;
-#endif
 
 template<class TVar, class TSubStruct>
 class ParallelAssembleTaskMatrix
@@ -136,7 +132,7 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const 
     }
     TPZVec<pthread_t> AllThreads(1);
     
-    multwork.run_parallel_for(ap2);
+    multwork.run_parallel_for(pzenviroment.fSubstructurePartitioner);
     
     PZ_PTHREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList<TVar>::Assemble, 
                       assemblelist.operator->(), __FUNCTION__);
@@ -153,11 +149,10 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 											 const TVar alpha,const TVar beta,const int opt,const int stride) const
 {
     
-    
-    if (mult_tbb2.get_value() == true) {
+#ifdef USING_TBB 
         MultAddTBB(x, y, z, alpha, beta, opt, stride);
         return;
-    }
+#endif
         
 	TPZfTime mult;
 	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
