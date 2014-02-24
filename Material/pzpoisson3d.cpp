@@ -654,6 +654,7 @@ void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatr
 }
 void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 	
+    values.Fill(0.0);
 	TPZVec<STATE> sol(1),dsol(fDim),div(1);
 	if(data.numberdualfunctions) Solution(data,11,sol);//pressao
 	Solution(data,21,dsol);//fluxo
