@@ -1,57 +1,110 @@
-/** standard C I/O functions */
-#include <cstdio>
+#include <iostream>         // input and output
+#include <vector>           // standard vector container
 
-/** pz full matrix class */
-#include "pzfmatrix.h"
+#include "pzskylmat.h"      // skyline matrix
+#include "input.h"          // CreateCuboSkyMatrix
+#include "arglib.h"         // arguments lib
 
-#include <stdlib.h>
-
-#include <sys/time.h>
-/** util function - return wall clock time in seconds */
-double mysecond()
-{
-    struct timeval tp;
-    struct timezone tzp;
-    gettimeofday(&tp,&tzp);
-    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
-} /* mysecond */
+#ifdef USING_TBB
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <tbb/task_scheduler_init.h>
+#endif
 
 using namespace std;
 
-int main()
+clarg::argString    filename("-f", "Cube input file name.", "cube1.txt");
+clarg::argInt       plevel("-p", "Level of order.", 2);
+clarg::argInt       nmatrices("-n", "Number of matrices.", 64);
+clarg::argInt       nloop("-l", "Number of loop iterations of the Subst_Backward/Subst_Forward", 1);
+clarg::argBool      usetbb("-tbb", "Use of parallel tbb version", false);
+
+#ifdef USING_TBB
+class tbb_cholesky {
+public:
+    
+    vector<TPZSkylMatrix<REAL>* > *fTasks;
+    
+    void operator()(const tbb::blocked_range<size_t>& range) const {
+        for(size_t i=range.begin(); i!=range.end(); ++i ) {
+            (*fTasks)[i]->Decompose_Cholesky();
+        }
+    } // operator()
+};
+
+class tbb_substitution {
+public:
+    
+    vector<TPZSkylMatrix<REAL>* > *fTasks;
+    
+    void operator()(const tbb::blocked_range<size_t>& range) const {
+        for(size_t i=range.begin(); i!=range.end(); ++i ) {
+            TPZFMatrix<REAL> f((*fTasks)[i]->Dim(),1,M_PI);
+            
+            (*fTasks)[i]->Subst_Backward(&f);
+            (*fTasks)[i]->Subst_Forward(&f);
+        }
+    } // operator()
+};
+#endif
+
+int main(int argc, char **argv)
 {
-#ifdef USING_BLAS
-    setenv("VECLIB_MAXIMUM_THREADS", "1", true);
+    // parse the arguments
+    if (clarg::parse_arguments(argc, argv)) {
+        cerr << "Error when parsing the arguments!" << endl;
+        return 1;
+    }
+    
+#ifdef USING_TBB
+    tbb::task_scheduler_init init;
 #endif
     
-    int n = 9;
-    int m = 1;
-    TPZFMatrix<double> A(m, n, 0.0);
-    TPZFMatrix<double> B(n, n, 0.0);
+    // generate original SkyMatrix
+    TPZAutoPointer<TPZMatrix<REAL> > orig = Input::CreateCuboSkyMatrix(filename.get_value(), plevel.get_value());
+    TPZSkylMatrix<REAL> *sky = dynamic_cast<TPZSkylMatrix<REAL> *> (orig.operator->());
     
-    /** putting non-zeros values in the matrices */
-    for (int i=0; i<m; i++) {
-        for (int j=0; j<n; j++) {
-            A(i, j) = ( i * n + j ) + 1.0;
-        }
+    vector<TPZSkylMatrix<REAL>* > fTasks(nmatrices.get_value());
+    
+    // serial copy
+    for (int i=0; i<nmatrices.get_value(); i++) {
+        fTasks[i] = new TPZSkylMatrix<REAL>(*sky);
     }
     
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<n; j++) {
-             B(i, j) = ( i * n + j ) * .1; //( i * n + j ) * 0.2;
+    if (!usetbb.get_value()) {
+        // serial decompose cholesky
+        cout << "----> Decompose_Cholesky" << endl;
+        for (int i=0; i<nmatrices.get_value(); i++) {
+            fTasks[i]->Decompose_Cholesky();
         }
+        // serial Subst_Backward/Subst_Forward
+        cout << "----> Subst_Backward/Subst_Forward" << endl;
+        for (int k=0; k<nloop.get_value();k++) {
+            for (int i=0; i<nmatrices.get_value(); i++) {
+                TPZFMatrix<REAL> f(fTasks[i]->Dim(),1,M_PI);
+                fTasks[i]->Subst_Backward(&f);
+                fTasks[i]->Subst_Forward(&f);
+            }
+        }
+    } else {
+#ifdef USING_TBB
+        
+        tbb_cholesky disp;
+        disp.fTasks = &fTasks;
+        
+        tbb::affinity_partitioner ap;
+        cout << "----> Decompose_Cholesky" << endl;
+        parallel_for(tbb::blocked_range<size_t>(0, nmatrices.get_value()), disp, ap);
+        
+        tbb_substitution dispb;
+        dispb.fTasks = &fTasks;
+        cout << "----> Subst_Backward/Subst_Forward" << endl;
+        for (int k=0; k<nloop.get_value();k++) {
+            parallel_for(tbb::blocked_range<size_t>(0, nmatrices.get_value()), dispb, ap);
+        }
+#else
+        cout << "Compiled without TBB support." << endl;
+#endif
     }
     
-    
-    double begin = mysecond();
-    TPZFMatrix<double> C = A * B;
-    double end = mysecond();
-    
-
-    A.Print(std::cout);
-    B.Print(std::cout);
-    C.Print(std::cout);
-    
-    printf("Multiply Time: %.3lf\n", end-begin);
-    
-} /* main */
+} // main
