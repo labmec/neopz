@@ -31,11 +31,10 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "TPZTensor.h"
-//#include "BrazilianTestGeoMesh.h"
 #include "pzpostprocmat.h"
 #include "pzpostprocanalysis.h"
-//Plasticidade
 #include "pzelastoplastic2D.h"
+//Plasticidade
 
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -1152,7 +1151,6 @@ REAL ToolsTransient::ComputeKIPlaneStrain()
     normalDirection[2] = 1.;
     
     Path2D * Jpath = new Path2D(fmeshvec[0], Origin, normalDirection, radius);
-    DebugStop();
     JIntegral2D integralJ;
     integralJ.SetPath2D(Jpath);
     
