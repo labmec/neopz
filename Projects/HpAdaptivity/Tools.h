@@ -58,12 +58,19 @@ TPZGeoMesh * MalhaGeo2(const int h);
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine);
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined);
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+void NoUniformRefine(TPZGeoMesh* gmesh, int nDiv);
 // funcao de forcing funciton
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 // definir a funcao exata
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
 void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
+void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux);
 
 //metodo para graficar a sol no mathematica
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol);
