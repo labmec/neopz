@@ -135,13 +135,14 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 		file.close();
 }
 const REAL MyPi=4.*atan(1.);
+const REAL epsilon=10^3;
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
-		//double x = pt[0];
-		//double y = pt[1];
+		REAL x = pt[0];
+		REAL y = pt[1];
 		//double fator=(-1)*(x*x+y*y);
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		//disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
-    disp[0]=0.;
+		disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
+   // disp[0]=0.;
 		return;
 }
 void Forcing2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
@@ -166,12 +167,14 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux 
 		flux(1,0)= (-1.)*MyPi*cos(MyPi*y)*sin(MyPi*x);//2.*x*y*exp(fator);// dy
 		flux(2,0)= 2*MyPi*MyPi*sin(MyPi*x)*sin(MyPi*y);//(-4.)*x*exp(fator)*(-2.+x*x+y*y);//coloco o divergetne aq para testar
 		
+   
+
 		
 }
-void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &pressao, TPZFMatrix<STATE> &flux ) {
+void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux ) {
 		double x=pt[0];
 		double y=pt[1];
-		pressao[0]=5*(-1 + exp(10*pow(x,2)))*(-1 + exp(10*pow(y,2)))*pow(1 - x,2)*pow(x,2)*pow(1 - y,2)*pow(y,2);
+		p[0]=5*(-1 + exp(10*pow(x,2)))*(-1 + exp(10*pow(y,2)))*pow(1 - x,2)*pow(x,2)*pow(1 - y,2)*pow(y,2);
 		flux(0,0)= -10*(-1 + exp(10*pow(y,2)))*(-1 + x)*x*(1 - 2*x + exp(10*pow(x,2))*(-1 + 2*x*(1 + 5*(-1 + x)*x)))*pow(-1 + y,2)*pow(y,2);
 		flux(1,0)=-10*(-1 + exp(10*pow(x,2)))*pow(-1 + x,2)*pow(x,2)*(-1 + y)*y*(1 - 2*y + exp(10*pow(y,2))*(-1 + 2*y*(1 + 5*(-1 + y)*y)));
 		flux(2,0)=(-1)*(-10*(pow(-1 + y,2)*pow(y,2) - 6*x*pow(-1 + y,2)*pow(y,2) + 5*exp(10*pow(y,2))*(1 + exp(10*pow(x,2)))*(-1 + x)*pow(x,2)*(-5 + x*(9 + 20*(-1 + x)*x))*pow(-1 + y,2)*pow(y,2) - 
@@ -198,6 +201,66 @@ void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
    // f[0]=3.-x;
 
 }
+
+void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux){
+    REAL x = pt[0];
+    REAL y = pt[1];   
+    
+    REAL F = 2*sqrt(epsilon);
+    REAL arc = F*((0.25*0.25) - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
+    REAL prodx = x*(x-1.);
+    REAL prody = y*(y-1.);
+    REAL prod = prodx*prody;
+    p[0] = (8*prod*(1+(2./MyPi)*(atan(arc))));//solucao p
+    //gradiente
+    
+    REAL temp = prody*(2*x-1.)*(MyPi + 2*atan(arc));
+    REAL frac = 2*prod*F*(1.-2*x);
+    frac = frac/(1+arc*arc);
+    //componente x
+    flux(0,0) = (8./MyPi)*(temp + frac);
+    //componente y
+    temp = prodx*(2*y-1.)*(MyPi + 2*atan(arc));
+    frac = 2*prod*F*(1.-2*y);
+    frac = frac/(1+arc*arc);
+    
+    flux(1,0) = (8./ MyPi)*(temp + frac);
+    
+    //divergente
+    REAL B = (16.*epsilon)/MyPi;
+	REAL G = -0.4375;
+	
+	REAL sum = prodx + prody;
+	
+	REAL temp2 = F*(G-sum);
+	REAL arctan = atan(temp2);
+	REAL den = (1+temp2*temp2)*(1+temp2*temp2);
+	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
+    
+    flux(2,0)= (-1.)*B*(sum*(MyPi+2*arctan)+(num/den));
+    
+
+}
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL B = (16.*epsilon)/MyPi;
+	REAL G = -0.4375;
+    REAL F = 2*sqrt(epsilon);
+    REAL prodx = x*(x-1.);
+    REAL prody = y*(y-1.);
+    REAL prod = prodx*prody;
+	
+	REAL sum = prodx + prody;
+    REAL temp2 = F*(G-sum);
+	REAL arctan = atan(temp2);
+    REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
+	REAL den = (1+temp2*temp2)*(1+temp2*temp2);
+
+disp[0]=B*(sum*(MyPi+2*arctan)+(num/den));
+
+}
+
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     double x=pt[0];
     double y=pt[1];
@@ -235,7 +298,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata3);
+		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
 		mat->SetForcingFunctionExact(exata1);
 			
 		///Criar condicoes de contorno
@@ -269,7 +332,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
 
 		comp->SetAllCreateFunctionsHDivPressure();
-		//comp->SetAllCreateFunctionsContinuous();		
+		//comp->SetAllCreateFunctionsContinuous();
 			
 		
   	//AutoBuild()
@@ -430,7 +493,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		TPZGeoEl *elvec[nelem];	
 		const int dim = 2;//AQUI
 		
-		REAL co[nnode][dim] ={{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//{{0.,0.},{1.,0.},{1.,1.},{0.,1.}};// {{0.,0.},{2.,0},{2.,2.},{0.,2.}};//{{-2.,-2},{2.,-2},{2.,2.},{-2.,2.}};//
+		REAL co[nnode][dim] ={{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};// {{0.,0.},{2.,0},{2.,2.},{0.,2.}};//{{-2.,-2},{2.,-2},{2.,2.},{-2.,2.}};//
 		long indices[2][nnode];//como serao enumerados os nos
 		
 		//el 1
@@ -552,7 +615,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 {
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
-		REAL co[4][2] = {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//{{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//
+		REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
 		int indices[1][4] = {{0,1,2,3}};
 		
 		int nnode = 4;
@@ -584,64 +647,13 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 		TPZGeoElBC gbc3 ( elvec[0],6,-3 );// condicao de fronteira tipo -3: (x,y=1)
 		TPZGeoElBC gbc4 ( elvec[0],7,-4 );// condicao de fronteira tipo -4: (x=0,y)
 		
-		///Refinamento uniforme
-		for ( int ref = 0; ref < h; ref++ )
-		{// h indica o numero de refinamentos
-				TPZVec<TPZGeoEl *> filhos;
-				long n = gmesh->NElements();
-				for ( long i = 0; i < n; i++ )
-				{
-						TPZGeoEl * gel = gmesh->ElementVec() [i];
-						//if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
-						if(!gel->HasSubElement())
-						{
-								gel->Divide(filhos);
-						}	
-				}//for i
-		}//ref
-		//refinamento nao uniforme
+        //refinamento nao uniforme
 		if (hrefine) {
-				//refinamento diferencialvel
-				{
-						
-						TPZVec<TPZGeoEl *> filhos;
-						long n = gmesh->NElements();
-						
-						
-						for(long i = 0; i < n; i++){	
-								TPZGeoEl * gel = gmesh->ElementVec()[i];
-								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
-										
-								{
-										gel->Divide(filhos);
-								}		
-						}
-				}
-				
-				//refinamento 1D--irei refinar tambem os elementos 1D
-				
-				{
-						
-						TPZVec<TPZGeoEl *> filhos;
-						long n = gmesh->NElements();
-						
-						
-						for(long i = 0; i < n; i++){	
-								TPZGeoEl * gel = gmesh->ElementVec()[i];
-								if (gel->Dimension()!=1) {
-										continue;
-								}
-								TPZGeoElSide Elside=gel->Neighbour(2);
-								TPZGeoEl *NeighEl=Elside.Element();
-								if (NeighEl->HasSubElement()) {
-										gel->Divide(filhos);
-								}
-								
-								
-								
-						}
-				}
-		}
+            NoUniformRefine(gmesh, h);
+        }
+    
+    else UniformRefine(gmesh, h);
+        
 				
 #ifdef LOG4CXX
 		{
@@ -998,5 +1010,139 @@ TPZGeoMesh * GeoMeshGrid( int h){
 		return gmesh;
 }
 
+void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined) {
+	TPZManVector<REAL> centerpsi(3), center(3);
+	// Refinamento de elementos selecionados
+	TPZGeoEl *gel;
+	TPZVec<TPZGeoEl *> sub;
+	
+	int nelem = 0;
+	int ngelem=gmesh->NElements();
+	// na esquina inferior esquerda Nó = (0,-1,0)
+	while(nelem<ngelem) {
+		gel = gmesh->ElementVec()[nelem++];
+		if(gel->Dimension()!=dim || gel->HasSubElement()) continue;
+		gel->CenterPoint(gel->NSides()-1,centerpsi);
+		gel->X(centerpsi,center);
+		if(!isdefined) {
+			TPZVec<REAL> FirstNode(3,0.);
+			gel->CenterPoint(0,centerpsi);
+			gel->X(centerpsi,FirstNode);
+			REAL distancia = TPZGeoEl::Distance(center,FirstNode);
+			if(distancia > distance) distance = distancia;
+			isdefined = true;
+		}
+		REAL centerdist = TPZGeoEl::Distance(center,point);
+		if(fabs(r-centerdist) < distance) {
+			gel->Divide(sub);
+		}
+	}
+}
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
+	Points.Resize(npoints);
+	TPZManVector<REAL> point(3,0.);
+	REAL angle = (2*M_PI)/npoints;
+	for(int i=0;i<npoints;i++) {
+		point[0] = center[0]+radius*cos(i*angle);
+		point[1] = center[1]+radius*sin(i*angle);
+		Points[i] = point;
+	}
+}
 
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+			if(!gel) continue;
+            gel->Divide(filhos);
+        }
+    }
+}
+
+void NoUniformRefine(TPZGeoMesh* gmesh, int nDiv)
+{
+   
+        //refinamento diferencialvel
+        
+            
+            TPZVec<TPZGeoEl *> filhos;
+            long n = gmesh->NElements();
+            
+            
+            for(long i = 0; i < n; i++){
+                TPZGeoEl * gel = gmesh->ElementVec()[i];
+                if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+                    
+                {
+                    gel->Divide(filhos);
+                }
+            }
+        
+        //refinamento 1D--irei refinar tambem os elementos 1D
+        
+            
+            for(long i = 0; i < n; i++){
+                TPZGeoEl * gel = gmesh->ElementVec()[i];
+                if (gel->Dimension()!=1) {
+                    continue;
+                }
+                TPZGeoElSide Elside=gel->Neighbour(2);
+                TPZGeoEl *NeighEl=Elside.Element();
+                if (NeighEl->HasSubElement()) {
+                    gel->Divide(filhos);
+                }
+                
+                
+                
+            }
+        
+    
+}
+
+void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
+    
+	int i;
+	bool isdefined = false;
+	
+	// Refinando no local desejado
+	int npoints = 1000;
+	TPZVec<REAL> point(3);
+	point[0] = point[1] = 0.5; point[2] = 0.0;
+	REAL r = 0.25;
+	TPZVec<TPZManVector<REAL> > Points(npoints);
+	GetPointsOnCircunference(npoints,point,r,Points);
+	
+	if(ntyperefs==2) {
+		REAL radius = 0.19;
+		for(i=0;i<nref;i+=2) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			if(nref < 5) radius *= 0.35;
+			else if(nref < 7) radius *= 0.2;
+			else radius *= 0.1;
+		}
+		if(i==nref) {
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+		}
+	}
+	else {
+		REAL radius = 0.2;
+		for(i=0;i<nref+1;i++) {
+			// To refine elements with center near to points than radius
+			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
+			if(nref < 5) radius *= 0.6;
+			else if(nref < 7) radius *= 0.3;
+			else radius *= 0.15;
+		}
+	}
+	// Constructing connectivities
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
 
