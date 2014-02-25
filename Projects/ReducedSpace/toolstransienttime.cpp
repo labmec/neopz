@@ -88,12 +88,12 @@ void ToolsTransient::RunPlasticity()
     TPZElastoPlasticAnalysis an(cmesh,std::cout);
     
     this->SolveInitialElastoPlasticity(an, cmesh);
-    
+   /* 
     std::cout << "<<<<<<<<<<<<<<<<<<<<<<< 0\n";
     std::stringstream notUsedHere("none.txt");
     REAL KI = ComputeKIPlaneStrain();
     std::cout << "KI = " << KI << " >>>>>>>>>>>>>>>>>>>\n\n\n";
-    
+    */
     std::string vtkFile = "pocoplastico.vtk";
     TPZPostProcAnalysis ppanalysis(cmesh);
     ppanalysis.SetStep(0);
