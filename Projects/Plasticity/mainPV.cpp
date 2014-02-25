@@ -55,11 +55,14 @@ DECLARE_FPO_HANDLER_FUNC;
 #include "TPZYCSandlerDimaggio.h"
 #include "TPZSandlerDimaggio.h"
 
+#include "TPZYCMohrCoulombPV.h"
+
 void UnaxialLoadingSD();
 void ProportionalLoading();
 int VerifyTangentSandlerPV();
 void ErickTaylorCheck(TPZTensor<REAL> eps, TPZTensor<REAL> deps);
 void CheckDepConv();
+void UniaxialLoadingPV(TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> PlasticStepPV);
 void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV);
 void UniaxialLoadingErick(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick);
 void I1vsSqrtJ2();
@@ -826,9 +829,9 @@ void TwoLoadings()
     }
     
 }
-//
-//void DistFunc2TangentTest()
-//{
+
+void DistFunc2TangentTest()
+{
 //    TPZSandlerExtended SDPV;
 //    SDPV.MCormicRanchSand(SDPV);
 //    TPZVec<STATE> pt(3);
@@ -837,21 +840,21 @@ void TwoLoadings()
 //    SDPV.Firstk(epsp0,k0);
 //    pt[0]=0.0160555,pt[1]= -0.0560555,pt[2]= -0.06;
 //    
-//   // SDPV.D2DistFunc2new(pt, theta,beta, k0, d2distf2);
-//    //cout <<"\n D2DistFunc2New "<<d2distf2<<endl;
+//    SDPV.D2DistFunc2new(pt, theta,beta, k0, d2distf2);
+//    cout <<"\n D2DistFunc2New "<<d2distf2<<endl;
 //    
 //    SDPV.D2DistFunc2(pt, theta,beta, k0, d2distf2);
 //    cout <<"\n D2DistFunc2Old "<<d2distf2<<endl;
 //
 //    TPZManVector<STATE> ddistf2vec(3);
-//   // SDPV.DDistFunc2new(pt,theta,beta,k0,kprev,ddistf2vec);
-//   // cout <<"\n ddistf2New "<<ddistf2vec<<endl;
+//    SDPV.DDistFunc2new(pt,theta,beta,k0,kprev,ddistf2vec);
+//    cout <<"\n ddistf2New "<<ddistf2vec<<endl;
 //    
 //    
 //    SDPV.DDistFunc2(pt, theta, beta, k0, kprev, ddistf2vec);
 //    cout <<"\n ddistf2Old "<<ddistf2vec<<endl;
 //    
-//}
+}
 
 
 int main()
@@ -861,10 +864,10 @@ int main()
 
     
     InitializePZLOG();
-    I1vsSqrtJ2();
-    //CheckDepConv();
+    CheckDepConv();
     //ReadData("ensaio_UCS_all_columns.txt");
-    ReadData("ensaio_all_columns.txt");
+    //ReadData("ensaio_all_columns.txt");
+    //DistFunc2TangentTest();
     //VerifyTangentSandlerPV();
     //comparingDep();
     //I1vsSqrtJ2();
@@ -911,62 +914,38 @@ int main()
     SDPV.MCormicRanchSand(SDPV);
     STATE epsp=0.,k0;
     SDPV.Firstk(epsp, k0);
-    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
-    PlasticStepPV.fYC = SDPV;
-    PlasticStepPV.fER =SDPV.GetElasticResponse();
+		TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
+		PlasticStepPV.fYC = SDPV;
+		PlasticStepPV.fER = SDPV.GetElasticResponse();
     
-//    TPZVec<STATE> pt(3);
-//    TPZManVector<STATE> df2(3);
-//    STATE xi,beta,theta=M_PI/3.,k;
-//    TPZFMatrix<STATE> ddist,ddist2;
-//    xi=0.06;
-//    beta=0.;
-//    pt[0]=-0.09;
-//    pt[1]=-0.08;
-//    pt[2]=-0.05;
-//    //SDPV.DDistFunc2new(pt, theta, beta,k,k0,df2);
-//    //cout << " \n dist new "<<df2 <<endl;
-//    SDPV.DDistFunc2(pt, theta, beta,k,k0,df2);
-//    cout << " \n dist "<<df2 <<endl;
-//    
-//    //SDPV.D2DistFunc2new(pt, theta, beta,k0,ddist2);
-//    //cout << " \n ddist2 new "<<ddist2 <<endl;
-//    SDPV.D2DistFunc2(pt, theta, beta,k0,ddist2);
-//    cout << " \n ddist2 "<<ddist2 <<endl;
-    
-    time.start();
-    for(int i=1;i<2;i++)
-    {
-        UniaxialLoadingPV(PlasticStepPV);
-    }
-    time.stop();
+//	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
+//	TPZElasticResponse ER;
+//	STATE E = 100.,nu=0.25;
+//	ER.SetUp(100., 0.25);
+//	TPZYCMohrCoulombPV materialmodel(Phi,Psi,c,ER);
+//	TPZTensor<REAL> epsT,Sigma;
 
-    cout << "\n tempo " <<time.seconds() << endl;
-    cout << "\n PlasticStepPV.fN " << PlasticStepPV.GetState() << endl;
-    
-    time.reset();
-    
-
-//     STATE E=100,nu=0.25,A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,N=0.,phi=0,psi=1.0;
-    STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,nu=0.25,E=100;
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
-    PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
-
-    
-    time.start();
-    for(int i=1;i<2;i++)
-    {
-        UniaxialLoadingErick(PlasticStepErick);
-    }
-    time.stop();
-    cout << "\n tempo erick " <<time.seconds() << endl;
-    cout << "\n PlasticStepErick.fN " << PlasticStepErick.GetState() << endl;
-    
-//
-//
-//    //UniaxialLoadingPV(PlasticStepPV);
-//    //UniaxialLoadingErick(PlasticStepErick);
-    return 0;
+//	TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> PlasticStepPV(0.);
+//	PlasticStepPV.fYC = materialmodel;
+//	PlasticStepPV.fER = ER;
+	
+	STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066, nu = PlasticStepPV.fER.Poisson(), E = PlasticStepPV.fER.E();
+	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
+	PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
+	
+	//    time.start();
+	//    for(int i=1;i<1000;i++)
+	//    {
+	//        UniaxialLoadingErick(PlasticStepErick);
+	//    }
+	//    time.stop();
+	//    cout << "\n tempo erick " <<time.seconds() << endl;
+	//    
+	//    
+	
+	UniaxialLoadingPV(PlasticStepPV);
+	//UniaxialLoadingErick(PlasticStepErick);
+	return 0;
 }
 
 int VerifyTangentSandlerPV()
@@ -1533,13 +1512,10 @@ void CheckDepConv()
 	SDPV.Firstk(epsp, k0);
 	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV(k0);
 	PlasticStepPV.fYC = SDPV;
-	TPZElasticResponse ER;
-	STATE E= 100,nu=0.25;
 	
-	STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066;
-	
-	ER.SetUp(E,nu);
-	PlasticStepPV.fER =ER;
+	PlasticStepPV.fER = SDPV.GetElasticResponse();
+	TPZElasticResponse ER = PlasticStepPV.fER; 
+	STATE A=0.25,B=0.67,C=0.18,D=0.67,R=2.5,W=0.066,E=PlasticStepPV.fER.E(),nu=PlasticStepPV.fER.Poisson();
 	
 	TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick;
 	PlasticStepErick.SetUp(nu, E, A, B, C, R,D,W);
@@ -1687,15 +1663,34 @@ void CheckDepConv()
 	
 }
 
+void UniaxialLoadingPV(TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> PlasticStepPV)
+{
+	TPZTensor<STATE> epst,sigma1,sigload;
+	TPZFNMatrix<36> DepPV(6,6,0.);
+	STATE deltaeps = -0.05;
+	epst.XX()=deltaeps;
+	TPZElasticResponse ER;
+	ER.SetUp(100, 0.25);
+	ER.Compute(epst,sigload);
+	//PlasticStepPV.ApplyStrainComputeDep(epst, sigma1,DepPV);
+	//epst.XX()=0.;
+	//PlasticStepPV.SetTensionSign(1);
+	epst.XX()=0;
+	sigload*=1;
+	PlasticStepPV.ApplyLoad(sigload, epst);
+	epst*=PlasticStepPV.SignCorrection();
+	// PlasticStepPV.ApplyStrainComputeSigma(epst,sigma1);
+}
+
 
 void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> PlasticStepPV)
 {
     
     
 
-    TPZTensor<STATE> epst,sigma1,sigload,epssol;
+    TPZTensor<STATE> epst,sigma1,sigload;
     TPZFNMatrix<36> DepPV(6,6,0.);
-    STATE deltaeps = -0.05;
+    STATE deltaeps = -0.005;
     epst.XX()=deltaeps;
     TPZElasticResponse ER;
     ER.SetUp(100, 0.25);
@@ -1703,34 +1698,29 @@ void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> P
     //PlasticStepPV.ApplyStrainComputeDep(epst, sigma1,DepPV);
     //epst.XX()=0.;
     //PlasticStepPV.SetTensionSign(1);
-   // epst.XX()=0;
-   // sigload*=1;
-    TPZPlasticState<STATE> state;
-    epst.XX()=1.e-6;
-    epst.YY()=1.e-6;
-    state.fEpsT=epst;
-    PlasticStepPV.SetState(state);
-    PlasticStepPV.ApplyLoad(sigload, epssol);
-  //  epst*=PlasticStepPV.SignCorrection();
+    epst.XX()=0;
+    sigload*=1;
+    PlasticStepPV.ApplyLoad(sigload, epst);
+    epst*=PlasticStepPV.SignCorrection();
    // PlasticStepPV.ApplyStrainComputeSigma(epst,sigma1);
 }
 
 
 void UniaxialLoadingErick(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepErick)
 {
-
-    TPZTensor<STATE> epst,sigma1;
-    TPZFNMatrix<36> DepER(6,6,0.);
-    STATE deltaeps = -0.005;
-    epst.XX()=deltaeps;
-    TPZElasticResponse ER;
-    ER.SetUp(100, 0.25);
-    ER.Compute(epst,sigma1);
-    
+	
+	TPZTensor<STATE> epst,sigma1;
+	TPZFNMatrix<36> DepER(6,6,0.);
+	STATE deltaeps = -0.01;
+	epst.XX()=deltaeps;
+	TPZElasticResponse ER;
+	ER.SetUp(100, 0.25);
+	ER.Compute(epst,sigma1);
+	
   //PlasticStepErick.ApplyStrainComputeDep(epst,sigma1,DepER);
   PlasticStepErick.ApplyLoad(sigma1,epst);
-//    PlasticStepErick.ApplyStrainComputeSigma(epst,sigma1);
-    
+	//    PlasticStepErick.ApplyStrainComputeSigma(epst,sigma1);
+	
 }
 
 //template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;

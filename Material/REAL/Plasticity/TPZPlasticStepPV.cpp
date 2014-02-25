@@ -42,9 +42,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 	
 	// ReturMap in the principal values
 	STATE nextalpha = -6378.;
-//	fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha);
-    TPZFNMatrix<9> GradSigma(3,3,0.);
-    fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
+	fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha);
 	fN.fAlpha = nextalpha;
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -72,8 +70,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 {
 	TPZTensor<REAL>::TPZDecomposed DecompSig,DecompEps; // It may be SigTr or SigPr Decomposition, dependes on the part of this method
 	TPZTensor<REAL> sigtr;
-
-    
+	
 	//
 	TPZTensor<REAL> epsTr,epsPN,epsElaNp1;
 	epsPN = fN.fEpsP;
@@ -110,6 +107,20 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			epsegveFromProj[i](j,0) /= normvec;
 		}
 	}
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "\nEigenvectors:\n " << std::endl;
+		for (int i = 0 ; i < 3; i++) {
+			sout << "i = " << i << std::endl;
+			epsegveFromProj[i].Print("epsegveFromProj",sout);
+			EigenvecMat[i].Print("EigenvecMat",sout);
+			sout << std::endl;
+		}
+		LOGPZ_DEBUG(logger, sout.str())
+	}
+#endif
 
 	
 	// ReturMap in the principal values
@@ -403,136 +414,75 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &eps)
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
 {
 
     
-//    TPZFNMatrix<36> Dep(6,6,0.);
-//    TPZFNMatrix <6> signcalc2(6,1,0.),epsguess(6,1,0.),epsprev(6,1,0.),res(6,1,0.),deltaeps(6,1,0.),sigimposed(6,1,0.);
-//    TPZTensor<STATE> epsnt,signcalc,epsn1t;
-//    //fER.ComputeDeformation(sigma,epsnt);
-//    epsnt=fN.EpsT();
-//   // epsnt.XX()=-0.007;
-//    TPZPlasticState<STATE> tempstate(fN);
-//     ApplyStrainComputeDep(epsnt,signcalc,Dep);
-//    //fN=tempstate;
-//    CopyFromTensorToFNMatrix(epsnt,epsguess);
-//    CopyFromTensorToFNMatrix(signcalc,signcalc2);
-//    CopyFromTensorToFNMatrix(sigma,sigimposed);
-//    STATE resnormprev,scale;
-//    
-//    
-//    
-//
-//    for(int i=0;i<6;i++)res(i)=signcalc2[i]-sigimposed[i];
-//    //res*=-1;
-//    
-//    STATE normres=1.,tol=1.e-6;
-//    int counter=0;
-//    while (normres>tol &&counter<30)
-//    {
-//        scale=1.;
-//        for(int i=0;i<6;i++)resnormprev+=res[i]*res[i];
-//        resnormprev=sqrt(resnormprev);
-//        for(int i=0;i<6;i++)deltaeps(i)=res[i];
-//        Dep.Print("Dep");
-//        deltaeps.Print("deltaSig");
-//        Dep.Solve_LU(&deltaeps);
-//        deltaeps.Print("deltaeps");
-//        for(int i=0;i<6;i++)epsprev(i)=epsguess[i];
-////        int counter2 =0;
-//        do{
-//            for(int i=0;i<6;i++)epsguess(i)=epsprev[i]-(deltaeps[i]*scale);
-//            CopyFromFNMatrixToTensor(epsguess, epsnt);
-//            fN=tempstate;
-//            ApplyStrainComputeSigma(epsnt,signcalc);
-//            Dep.Print("Dep");
-//            CopyFromTensorToFNMatrix(signcalc,signcalc2);
-//            for(int i=0;i<6;i++)res(i)=sigimposed[i]+signcalc2[i];
-//            //res*=-1;
-//            for(int i=0;i<6;i++)normres+=res[i]*res[i];
-//            normres = sqrt(normres);
-//            scale*=0.5;
-////            counter2++;
-////            if (counter2%30==0) {
-////                scale=1;
-////            }
-//            
-//        }while (normres>=resnormprev);
-//        
-//        counter++;
-//
-//        
-//    }
+    TPZFNMatrix<36> Dep(6,6,0.);
+    TPZFNMatrix <6> epsn1V(6,1,0.),epsnV(6,1,0.),signV(6,1,0.),res(6,1,0.),sigstar(6,1,0.),epsnVPrev(6,1,0.),sol(6,1,0.);
+    TPZTensor<STATE> epsnt,signt,epsn1t;
+		epsnt.XX() = -1.e-5; // Para nao comecar com 3 autovalores iguais
+		epsnt.YY() = -1.e-6; // Para nao comecar com 3 autovalores iguais
+	
+    //fER.ComputeDeformation(sigma,epsnt);
     
 
-  //  SetTensionSign(1);
-    TPZTensor<REAL> sigma_Internal(sigma);
- //   sigma_Internal *= SignCorrection();
     
-    const int nVars = 6;
-    REAL resnorm;
-    int i, k = 0;
-    TPZFNMatrix<nVars*nVars> Dep_mat(nVars,nVars);
-    TPZFNMatrix<nVars>  residual_mat(nVars,1),
-    sigma_mat(nVars, 1),
-    sol_mat(nVars, 1);
     
     TPZPlasticState<STATE> tempstate(fN);
+    ApplyStrainComputeDep(epsnt,signt,Dep);
+    CopyFromTensorToFNMatrix(epsnt,epsnV);
+    CopyFromTensorToFNMatrix(signt,signV);
+    CopyFromTensorToFNMatrix(sigma,sigstar);
     
-    TPZTensor<REAL> epsTotal(fN.fEpsT), EEpsilon;
-     
-//    ProcessStrain(epsTotal, EAuto);
-//    ComputeDep(EEpsilon, Dep_mat);
-    ApplyStrainComputeDep(epsTotal, EEpsilon,Dep_mat);
-
-    resnorm = 0.;
-    for(i = 0; i < nVars; i++)residual_mat(i,0) = (fabs(EEpsilon.fData[i]) - fabs(sigma_Internal.fData[i]));
-    for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
-    resnorm = sqrt(resnorm);
-    STATE restol = 1.e-6;
-    REAL resnormprev=0.;
-    while(fabs((fabs(resnorm)-fabs(resnormprev))) > restol && k < 30)
+    
+    
+    STATE normres=1.,tol=1.e-6,oldnormres;
+    STATE scale =1.;
+    int counter=0;
+    while (normres>tol &&counter<30)
     {
-        k++;
         
-        TPZFNMatrix<nVars*nVars> *matc = new TPZFNMatrix<nVars*nVars>(nVars,nVars);
-        *matc = Dep_mat;
+        signV-=sigstar;
+        oldnormres=Norm(signV);
+#ifdef LOG4CXX
+			std::stringstream str;
+			str << "\n\nf(eps) = " << signV << std::endl;
+			str << "\n\n-----------------------------Norma do Residuo " << oldnormres << "\tIteracao = " << counter << std::endl;
+			str << "Dep = " << Dep << std::endl;
+			LOGPZ_DEBUG(logger,str.str())
+#endif
+        Dep.Solve_LU(&signV);
+        sol=signV;
+        epsnVPrev=epsnV;
+			
+        do{
 
+            epsn1V=epsnVPrev-(scale*sol);
+
+            CopyFromFNMatrixToTensor(epsn1V, epsnt);
+            fN=tempstate;
+            ApplyStrainComputeDep(epsnt,signt,Dep);
         
-        TPZStepSolver<REAL> st(matc);
-        st.SetDirect(ELU);
-
-        st.Solve(residual_mat,sol_mat,0);
-
-        TPZTensor<REAL> epsTotalPrev(epsTotal);
-        REAL scalefactor = 1.;
-         resnormprev= resnorm;
-        fN=tempstate;
-        do {
-            for(i = 0; i < nVars; i ++)epsTotal.fData[i] =(fabs(epsTotalPrev.fData[i]) - fabs(scalefactor*sol_mat(i,0)));
-
-
-//            ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
-//            ComputeDep(EEpsilon, Dep_mat);
-              fN=tempstate;
-              ApplyStrainComputeDep(epsTotal, EEpsilon,Dep_mat);
-              
-            resnorm = 0.;
-            for(i = 0; i < nVars; i++)residual_mat(i,0) = (fabs(EEpsilon.fData[i]) - fabs(sigma_Internal.fData[i]));
-            for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
-            resnorm = sqrt(resnorm);
+            CopyFromTensorToFNMatrix(signt,signV);
             
-            scalefactor *= 0.5;
-            
-        } while (resnorm >= resnormprev);
-
-        //fN=tempstate;
+            res=signV-sigstar;
+            normres = Norm(res);
+#ifdef LOG4CXX
+					std::stringstream str;
+					str << "\n\nNorma do Residuo usando SCALE: " << scale << "\nNorma: " << normres << std::endl;
+					str << "epsn1V = " << epsn1V << "epsnt = " << epsnt << "\nDepNovo = " << Dep << "\nsignt = " << signt << std::endl;
+					fN.Print(str);
+					LOGPZ_DEBUG(logger,str.str())
+#endif
+            scale*=0.5;
+        }while(normres>oldnormres);
+        //tempstate=fN;
+        scale=1.;
+        epsnV=epsn1V;
+        
+        counter++;
     }
-    
-    eps=fN.EpsT();
-
-
 }
 
 template <class YC_t, class ER_t>
@@ -558,8 +508,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetState(const TPZPlasticState<REAL> &state)
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::SetIntegrTol(REAL integrTol)
 {
-    //std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    //DebugStop();
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
 }
 
 
@@ -581,8 +531,8 @@ int TPZPlasticStepPV<YC_t, ER_t>::SignCorrection() const
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
 {
-    //std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    //DebugStop();
+    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
+    DebugStop();
 }
 
 template <class YC_t, class ER_t>
