@@ -43,6 +43,12 @@ public:
     {
         return fMu;
     }
+    
+    REAL E() const
+    {
+        REAL E = fMu*(3.*fLambda+2.*fMu)/(fLambda+fMu);
+        return E;
+    }
 	
     void Write(TPZStream &buf) const
     {
