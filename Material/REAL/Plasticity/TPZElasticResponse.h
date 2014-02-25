@@ -49,6 +49,12 @@ public:
         REAL E = fMu*(3.*fLambda+2.*fMu)/(fLambda+fMu);
         return E;
     }
+    
+    REAL Poisson() const
+    {
+        REAL poisson = fLambda/(2.*(fLambda+fMu));
+        return poisson;
+    }
 	
     void Write(TPZStream &buf) const
     {
