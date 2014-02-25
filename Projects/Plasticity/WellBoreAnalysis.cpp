@@ -9,6 +9,7 @@
 #include "GeoMeshClass.h"
 #include "pzelastoplasticanalysis.h"
 #include "pzelastoplastic2D.h"
+
 #include "BrazilianTestGeoMesh.h"
 #include "tpzchangeel.h"
 //#include "poroelastoplastic.h"
@@ -18,6 +19,7 @@
 #include <iostream>
 
 #include "pzlog.h"
+
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
@@ -1650,6 +1652,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     vecNames.Push("ShearStrain");
     vecNames.Push("DisplacementMem");
 #endif
+    vecNames.Push("DisplacementMem");
     for (int i=0; i<scalNames.size(); i++) {
         PostProcVars.Push(scalNames[i]);
     }
@@ -2317,6 +2320,9 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
     STATE detjac;
     
     int nel = fCMesh.NElements();
+    fCMesh.Reference()->ResetReference();
+    fPostprocess.Mesh()->LoadReferences();
+    
     for (int el=0; el<nel; el++)
     {
         
@@ -2336,6 +2342,24 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
             continue;
         }
         
+        TPZGeoElSide gelside(gel,2);
+        TPZStack<TPZCompElSide> stackcompelside;
+ //       gelside.EqualLevelCompElementList(<#TPZStack<TPZCompElSide> &elsidevec#>, <#int onlyinterpolated#>, <#int removeduplicates#>)
+        gelside.EqualLevelCompElementList(stackcompelside, 0, 0);
+        if(stackcompelside.size()!=1)
+        {
+            DebugStop();
+        }
+        
+        TPZTransform t1(1);
+        TPZCompElSide compneigh = stackcompelside[0];
+        TPZGeoElSide neighbour = stackcompelside[0].Reference();
+        gelside.SideTransform3(neighbour,t1);
+        int sidefrom,sideto = neighbour.Element()->NSides()-1;
+        sidefrom=neighbour.Side();
+        TPZTransform t2 = neighbour.Element()->SideToSideTransform(sidefrom, sideto);
+        
+        
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         const TPZIntPoints &rule = intel->GetIntegrationRule();
         REAL weight;
@@ -2343,7 +2367,13 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
         
         for(int i=0;i<npoints;i++)
         {
-            intel->Solution(ksi, 0, sol);
+            rule.Point(i, ksi, weight);
+            
+            TPZManVector<REAL,3> ksi1(1,0.), ksi2(2,0.);
+            t1.Apply(ksi, ksi1);
+            t2.Apply(ksi1, ksi2);
+            compneigh.Element()->Solution(ksi2, 30, sol);
+            
             gel->X(ksi, xvec);
             intel->GetIntegrationRule().Point(0, ksi, weight);
             radius=sqrt(xvec[0]*xvec[0]+xvec[1]*xvec[1]);
@@ -2355,6 +2385,7 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
         }
         
     }
-    
+    cout << "\n WORK "<< work << endl;
     return work;
+    
 }
