@@ -334,18 +334,15 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta,
     Gamma =(1 + sin3b+(1 - sin3b)/fPsi )/2.;
     DFf=-(exp(fB*I1)*fB*fC) - fPhi;
     DGamma=(3*cos3b - (3*cos3b)/fPsi)/2.;
+    DGamma=(3*cos3b - (3*cos3b)/fPsi)/2.;
     Gamma2=Gamma*Gamma;
     Gamma3=Gamma*Gamma2;
     Sqrt2=sqrt(2);
     Sqrt3=sqrt(3);
     
-    
-    STATE ddist1di1 =(18*DFf*Ff*fK - 2*fG*Gamma2*(-I1 + Sqrt3*sig1) - 9*Sqrt2*DFf*fK*Gamma*(cb*sig2 + sb*sig3))/(9.*fG*fK*Gamma2);
-    STATE ddistf1dbeta=(Ff*(-2.*DGamma*Ff + Sqrt2*Gamma*((cb*DGamma + Gamma*sb)*sig2 + (-(cb*Gamma) + DGamma*sb)*sig3)))/(fG*Gamma3);
-    
     ddistf1.Resize(2,1);
-    ddistf1(0,0)=ddist1di1;
-    ddistf1(1,0)=ddistf1dbeta;
+    ddistf1(0,0)=(6*Sqrt3*DFf*Ff*fK - 3*Sqrt3*Sqrt2*DFf*fK*Gamma*(cb*sig2 + sb*sig3) +2*fG*Gamma2*(-sig1 + xi))/(3.*fG*fK*Gamma2);
+    ddistf1(1,0)=-((Ff*Sqrt2*(Gamma2*(-(sb*sig2) + cb*sig3) - DGamma*Gamma*(cb*sig2 + sb*sig3) + DGamma*Ff*Sqrt2))/(fG*Gamma3));
     
 }
 
@@ -373,19 +370,22 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta
     D2Gamma2=D2Gamma*D2Gamma;
     Sqrt2=sqrt(2);
     Sqrt3=sqrt(3);
+    
     tangentf1.Resize(2,2);
     
     
-    tangentf1(0,0) =(2./(9.*fK) + ((4*(cb*cb)*(DFf*DFf))/Gamma2 + (4*(DFf*DFf)*(sb*sb))/Gamma2 -
-                                   (2*Sqrt2*cb*D2Ff*(-((Sqrt2*cb*Ff)/Gamma) + sig2))/Gamma - (2*Sqrt2*D2Ff*sb*(-((Sqrt2*Ff*sb)/Gamma) + sig3))/Gamma)/(2.*fG))*3.;
+    tangentf1(0,0) =(18*(DFf*DFf + D2Ff*Ff)*fK + 2*fG*Gamma2 -
+                     9*D2Ff*fK*Gamma*(cb*sig2 + sb*sig3)*Sqrt2)/(3.*fG*fK*Gamma2);
     
-    tangentf1(0,1) =(DFf*(-4*DGamma*Ff + Sqrt2*Gamma*(cb*DGamma + Gamma*sb)*sig2 -Sqrt2*Gamma*(cb*Gamma - DGamma*sb)*sig3))/(fG*Gamma3)*Sqrt3;
+    tangentf1(0,1) =-((Sqrt3*Sqrt2*DFf*(Gamma2*(-(sb*sig2) + cb*sig3) - DGamma*Gamma*(cb*sig2 + sb*sig3) +
+                                    2*DGamma*Ff*Sqrt2))/(fG*Gamma3));
     
-    tangentf1(1,1)= (Ff*(2*Ff*(3*D2Gamma2 - D2Gamma*Gamma) +Sqrt2*Gamma*(-2*cb*D2Gamma2 + cb*Gamma2 + Gamma*(cb*D2Gamma - 2*DGamma*sb))*sig2 +
-                         Sqrt2*(2*cb*DGamma*Gamma - 2*D2Gamma2*sb + D2Gamma*Gamma*sb +Gamma2*sb)*sig3*Gamma))/(fG*Gamma2*Gamma2);
+    tangentf1(1,1)=-((Ff*(-6*DGamma*DGamma*Ff - Gamma3*(cb*sig2 + sb*sig3)*Sqrt2 -
+                          Gamma2*(2*DGamma*(-(sb*sig2) + cb*sig3) + D2Gamma*(cb*sig2 + sb*sig3))*
+                          Sqrt2 + 2*Gamma*(D2Gamma*Ff +DGamma*DGamma*(cb*sig2 + sb*sig3)*Sqrt2)))/
+                     (fG*Gamma2*Gamma2));
     
     tangentf1(1,0)=tangentf1(0,1);
-    
     
 }
 
@@ -514,14 +514,14 @@ void TPZSandlerExtended::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
-//#ifdef LOG4CXX
-//    {
-//        std::stringstream outfile;
-//        outfile << "\n projection over F1 " <<endl;
-//        LOGPZ_DEBUG(logger,outfile.str());
-//        
-//    }
-//#endif
+#ifdef LOG4CXX
+    {
+        std::stringstream outfile;
+        outfile << "\n projection over F1 " <<endl;
+        LOGPZ_DEBUG(logger,outfile.str());
+        
+    }
+#endif
     
     //ofstream convergenceF1("convergenceF1.txt");
     STATE xi,resnorm,beta,distxi,distnew;
@@ -552,20 +552,24 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         D2DistFunc1(sigmatrial, xn[0],xn[1],jac);
         DDistFunc1(sigmatrial, xn[0],xn[1],fxn);
         sol = fxn;
+        resnorm=Norm(sol);
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
-        resnorm=Norm(diff);
+        //resnorm=Norm(diff);
         //convergenceF1 << counter << " "<<resnorm <<endl;
         
-//#ifdef LOG4CXX
-//        {
-//            std::stringstream outfile;//("convergencF1.txt");
-//            outfile<< "\n" <<counter << " "<<resnorm <<endl;
-//            LOGPZ_DEBUG(logger,outfile.str());
-//            
-//        }
-//#endif
+#ifdef LOG4CXX
+        {
+            std::stringstream outfile;//("convergencF1.txt");
+            outfile<< "\n" <<counter << " "<<resnorm <<endl;
+            //jac.Print(outfile);
+            //outfile<< "\n xn " << " "<<fxnvec <<endl;
+            //outfile<< "\n res " << " "<<fxnvec <<endl;
+            LOGPZ_DEBUG(logger,outfile.str());
+            
+        }
+#endif
         xn=xn1;
         counter++;
 
@@ -595,14 +599,14 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
 void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
-//#ifdef LOG4CXX
-//    {
-//        std::stringstream outfile;
-//        outfile << "\n projection over F2 " <<endl;
-//        LOGPZ_DEBUG(logger,outfile.str());
-//        
-//    }
-//#endif
+#ifdef LOG4CXX
+    {
+        std::stringstream outfile;
+        outfile << "\n projection over F2 " <<endl;
+        LOGPZ_DEBUG(logger,outfile.str());
+        
+    }
+#endif
 
     STATE theta,beta=0.,distnew;
     STATE resnorm,disttheta;
@@ -632,21 +636,20 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
         TPZManVector<STATE> fxnvec(3);
         DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
-//#ifdef LOG4CXX
-//        {
-//            std::stringstream outfile;//("convergencF1.txt");
-//            outfile<< "\n" <<counter << " "<<resnorm <<endl;
-//            jac.Print(outfile);
-//            outfile<< "\n xn " << " "<<fxnvec <<endl;
-//            //outfile<< "\n res " << " "<<fxnvec <<endl;
-//            
-//            
-//            LOGPZ_DEBUG(logger,outfile.str());
-//            
-//        }
-//#endif
+
         for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
         resnorm=Norm(sol);
+#ifdef LOG4CXX
+        {
+            std::stringstream outfile;//("convergencF1.txt");
+            outfile<< "\n" <<counter << " "<<resnorm <<endl;
+            //jac.Print(outfile);
+            //outfile<< "\n xn " << " "<<fxnvec <<endl;
+            //outfile<< "\n res " << " "<<fxnvec <<endl;
+            LOGPZ_DEBUG(logger,outfile.str());
+            
+        }
+#endif
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;

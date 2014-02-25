@@ -109,7 +109,10 @@ public:
         
         /// Setup post processing mesh
         void CreatePostProcessingMesh();
-                
+        
+
+         STATE ComputeFarFieldWork();
+        
         /// project the node on the boundary
         // returns true if the coordinate was changed
         bool ProjectNode(TPZVec<REAL> &co);
@@ -282,6 +285,8 @@ static void StandardConfiguration(TPZWellBoreAnalysis &obj);
     {
         fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
     }
+
+    
     
 private:
     

@@ -221,7 +221,7 @@ void I1vsSqrtJ2()
         
         
         PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
-        outfilePV << sigma.I1()<< " " << sqrt(sigma.J2()) << "\n";
+        outfilePV << -sigma.I1()<< " " << sqrt(sigma.J2()) << "\n";
         outfilePVtrial << -epst.XX() << " " << -sigma.XX() <<"\n";
       
         
@@ -247,7 +247,7 @@ void I1vsSqrtJ2()
 
                 if(tmp!=0)
                 {
-                    myfile << i1 << " " <<f2 << "\n";
+                    myfile << -i1 << " " <<f2 << "\n";
                 }
     
                 tmp=f2;
@@ -259,7 +259,7 @@ void I1vsSqrtJ2()
         i1=-3;
         for(int i=0;i<30;i++)
         {
-            //outfileFf << i1 << " "<< SDPV.F(i1,0) <<"\n";
+            outfileFf << -i1 << " "<< SDPV.F(i1,0) <<"\n";
             i1+=0.1205;
             
         }
@@ -386,6 +386,7 @@ void ReadData(const std::string &filename)
     ofstream TempoVsSigLat("LABDATA_TempoVsSigLat.txt");
     ofstream I1vsSqtJ2("LABDATA_I1vsSqtJ2.txt");
      ofstream EpsLatVsSigLat("LABDATA_EpsLatVsSigLat.txt");
+    ofstream I1vsEPV("LABDATA_I1vsEPV.txt");
     int numlines = 0;
     char buf[1024];
     input.getline(buf , 1024);
@@ -401,15 +402,16 @@ void ReadData(const std::string &filename)
         
         //LabUCS << Def_Axial/10. << " " << Sig_Axial_Desv <<"\n";
         //LabRR << eps_r << " " << sig_r << "\n";
-        LabVol << /*(Def_Axial+2*Def_Lateral)*/Def_Volume/100. << " " << (Sig_Axial+2*Sig_Conf) << "\n";
-        LabUCS << /*(Def_Axial+2*Def_Lateral)*/Def_Axial/100. << " " << Sig_Axial << "\n";
-        TempoVsEpsV << Tempo<< " " << Def_Volume << "\n";
+        LabVol << /*(Def_Axial+2*Def_Lateral)*/(Def_Axial+2*Def_Lateral) << " " << (Sig_Axial+2*Sig_Conf) << "\n";
+        LabUCS << /*(Def_Axial+2*Def_Lateral)*/Def_Axial << " " << Sig_Axial << "\n";
+        TempoVsEpsV << Tempo<< " " << (Def_Axial+2*Def_Lateral) << "\n";
         TempoVsEpsAxi << Tempo << " " << Def_Axial  << "\n";
         TempoVsEpsLat << Tempo << " " << Def_Lateral << "\n";
         TempoVsSigV << Tempo << " " << (Sig_Axial+2*Sig_Conf)  << "\n";
         TempoVsSigAxi << Tempo << " " << Sig_Axial << "\n";
         TempoVsSigLat << Tempo << " " << Sig_Conf << "\n";
         EpsLatVsSigLat << Def_Lateral << " " << Sig_Conf << "\n";
+        
         TPZTensor<STATE> stress;
         stress.XX()=Sig_Axial;
         stress.YY()=Sig_Conf;
@@ -417,6 +419,7 @@ void ReadData(const std::string &filename)
         stress.XY()=Sig_Axial_Desv;
         I1vsSqtJ2 << stress.I1() << " " << sqrt(stress.J2()) << "\n";
         cout << stress.I1() << " " << sqrt(stress.J2()) << "\n";
+         I1vsEPV << stress.I1() <<" "<<(Def_Axial+2*Def_Lateral)/100.<<"\n";
 //       /* X.push_back(x);
 //        sigx.push_back(sig_ax_t);
 //        time.push_back(tempo);
@@ -460,29 +463,29 @@ void ReadData(const std::string &filename)
 //    sigma.ZZ()=-40.;
 //    PlasticStepErick.ApplyLoad(sigma, epst);
 //     PlasticStepErick.Print(cout);
-    for(int i=0;i<160;i++)
-    {
-        
-        
-        PlasticStepErick.ApplyLoad(sigma, epst);
-        //PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
-        outfilePV << -sigma.I1()<< " " << sqrt(sigma.J2()) << "\n";
-        myfile << -epst.XX()<< " " <<-sigma.XX() << "\n";
-        
-        if(i>40)
-        {
-            sigma.XX()+=-1.;
-        }
-        else
-        {
-            sigma.XX()+=-1.;
-            sigma.YY()+=-1.;
-            sigma.ZZ()+=-1.;
-        }
-        
-        //sigma.XX()+=-1.;
-    }
-    
+//    for(int i=0;i<160;i++)
+//    {
+//        
+//        
+//        PlasticStepErick.ApplyLoad(sigma, epst);
+//        //PlasticStepPV.ApplyStrainComputeSigma(epst, sigma);
+//        outfilePV << -sigma.I1()<< " " << sqrt(sigma.J2()) << "\n";
+//        myfile << -epst.XX()<< " " <<-sigma.XX() << "\n";
+//        
+//        if(i>40)
+//        {
+//            sigma.XX()+=-1.;
+//        }
+//        else
+//        {
+//            sigma.XX()+=-1.;
+//            sigma.YY()+=-1.;
+//            sigma.ZZ()+=-1.;
+//        }
+//        
+//        //sigma.XX()+=-1.;
+//    }
+//    
     
     
 }
@@ -858,10 +861,10 @@ int main()
 
     
     InitializePZLOG();
-    //I1vsSqrtJ2();
+    I1vsSqrtJ2();
     //CheckDepConv();
     //ReadData("ensaio_UCS_all_columns.txt");
-    //ReadData("ensaio_all_columns.txt");
+    ReadData("ensaio_all_columns.txt");
     //VerifyTangentSandlerPV();
     //comparingDep();
     //I1vsSqrtJ2();
@@ -937,8 +940,9 @@ int main()
         UniaxialLoadingPV(PlasticStepPV);
     }
     time.stop();
-    
+
     cout << "\n tempo " <<time.seconds() << endl;
+    cout << "\n PlasticStepPV.fN " << PlasticStepPV.GetState() << endl;
     
     time.reset();
     
@@ -956,11 +960,12 @@ int main()
     }
     time.stop();
     cout << "\n tempo erick " <<time.seconds() << endl;
+    cout << "\n PlasticStepErick.fN " << PlasticStepErick.GetState() << endl;
     
 //
-    
-    //UniaxialLoadingPV(PlasticStepPV);
-    //UniaxialLoadingErick(PlasticStepErick);
+//
+//    //UniaxialLoadingPV(PlasticStepPV);
+//    //UniaxialLoadingErick(PlasticStepErick);
     return 0;
 }
 
@@ -1690,7 +1695,7 @@ void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> P
 
     TPZTensor<STATE> epst,sigma1,sigload,epssol;
     TPZFNMatrix<36> DepPV(6,6,0.);
-    STATE deltaeps = -0.005;
+    STATE deltaeps = -0.05;
     epst.XX()=deltaeps;
     TPZElasticResponse ER;
     ER.SetUp(100, 0.25);
@@ -1700,6 +1705,11 @@ void UniaxialLoadingPV(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> P
     //PlasticStepPV.SetTensionSign(1);
    // epst.XX()=0;
    // sigload*=1;
+    TPZPlasticState<STATE> state;
+    epst.XX()=1.e-6;
+    epst.YY()=1.e-6;
+    state.fEpsT=epst;
+    PlasticStepPV.SetState(state);
     PlasticStepPV.ApplyLoad(sigload, epssol);
   //  epst*=PlasticStepPV.SignCorrection();
    // PlasticStepPV.ApplyStrainComputeSigma(epst,sigma1);
@@ -1717,8 +1727,8 @@ void UniaxialLoadingErick(TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> PlasticStepEr
     ER.SetUp(100, 0.25);
     ER.Compute(epst,sigma1);
     
-  PlasticStepErick.ApplyStrainComputeDep(epst,sigma1,DepER);
- // PlasticStepErick.ApplyLoad(sigma1,epst);
+  //PlasticStepErick.ApplyStrainComputeDep(epst,sigma1,DepER);
+  PlasticStepErick.ApplyLoad(sigma1,epst);
 //    PlasticStepErick.ApplyStrainComputeSigma(epst,sigma1);
     
 }

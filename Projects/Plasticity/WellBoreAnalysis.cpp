@@ -2277,4 +2277,52 @@ void TPZWellBoreAnalysis::ComputeLinearMatrix()
     delete elasmat;
 }
 
-
+STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
+{
+    STATE work=0.,nx=0.,ny=0.,radius=0.;
+    TPZManVector<REAL,3> ksi(3,0.),sol(3,0.),xvec(3,0.);
+    TPZFMatrix<STATE> jac,jacinv,axes,invjac;
+    STATE detjac;
+    
+    int nel = fCMesh.NElements();
+    for (int el=0; el<nel; el++)
+    {
+        
+        TPZCompEl * cel = fCMesh.ElementVec()[el];
+        if(!cel)
+        {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if(!gel)
+        {
+            DebugStop();
+        }
+        int matid = gel->MaterialId();
+        if(matid!=-3)
+        {
+            continue;
+        }
+        
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        const TPZIntPoints &rule = intel->GetIntegrationRule();
+        REAL weight;
+        int npoints = rule.NPoints();
+        
+        for(int i=0;i<npoints;i++)
+        {
+            intel->Solution(ksi, 0, sol);
+            gel->X(ksi, xvec);
+            intel->GetIntegrationRule().Point(0, ksi, weight);
+            radius=sqrt(xvec[0]*xvec[0]+xvec[1]*xvec[1]);
+            nx=xvec[0]/radius;
+            ny=xvec[1]/radius;
+            gel->Jacobian(xvec,jac,axes,detjac,invjac);
+            work +=(fConfinement.XX()*nx*sol[0]+fConfinement.YY()*ny*sol[1])*weight*fabs(detjac);
+            
+        }
+        
+    }
+    
+    return work;
+}

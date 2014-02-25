@@ -1616,8 +1616,8 @@ DECLARE_FPO_HANDLER_FUNC;
 int main ()
 {
   
-//int startfrom = 0;
-startfrom = 4;
+int startfrom = 0;
+//startfrom = 4;
     
 #ifdef MACOS
     
@@ -1677,6 +1677,7 @@ startfrom = 4;
         int porder = 2;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
+        REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
 //        well.LinearConfiguration(1);
         well.PostProcess(0);
         TPZBFileStream save;
@@ -1701,6 +1702,7 @@ startfrom = 4;
         int nsteps = 3;
         int numnewton = 80;
         well.ExecuteInitialSimulation(nsteps, numnewton);
+        REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         TPZBFileStream save;
         save.OpenWrite("Wellbore1.bin");
         well.Write(save);

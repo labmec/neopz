@@ -40,10 +40,13 @@ public:
     
     void YieldFunction(const TPZVec<STATE>  &sigma, STATE kprev, TPZVec<STATE> &yield) const;
 
-private:
-    /// The function which defines the plastic surface
+    
     template<class T>
     T F(T x,STATE phi) const;
+private:
+    /// The function which defines the plastic surface
+  
+    
     /// Auxiliary function for Associating the position of the cap with the damage variable
     template<class T>
     T X(T k) const;
@@ -103,6 +106,7 @@ private:
 
     /// Transform from HW Cylindrical coordinates to eigenvalues
     static void FromHWCylToPrincipal(const TPZVec<STATE> &HWCylCoords, TPZVec<STATE> &PrincipalCoords);
+    
     
     /// Compute the derivative of the stress (principal s;tresses) as a function of xi and beta
     void DF1Cart(STATE xi, STATE beta, TPZFMatrix<STATE> &DF1) const;
