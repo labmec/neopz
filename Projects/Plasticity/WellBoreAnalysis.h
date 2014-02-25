@@ -117,6 +117,10 @@ public:
         // returns true if the coordinate was changed
         bool ProjectNode(TPZVec<REAL> &co);
         
+        /// return the largest y-coordinate belonging to the last ellips
+        // this value will be used to identify the meaningful points to match the next ellips
+        REAL MaxYfromLastBreakout();
+        
         /// Return gmesh
         TPZGeoMesh * GetGeoMesh();
 

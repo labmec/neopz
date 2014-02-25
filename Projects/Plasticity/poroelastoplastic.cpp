@@ -1759,11 +1759,18 @@ int startfrom = 0;
         //vvalor de a e b para sqJ2 = 0.0007 p 19.5
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.014;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.90;
-        std::multimap<REAL, REAL> polygonalChain;
-        well.GetJ2Isoline(0.0007, polygonalChain);
+        
+        
+        std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+        well.GetJ2Isoline(0.0007, polygonalChainbase);
+        REAL maxy = well.GetCurrentConfig()->MaxYfromLastBreakout();
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+            if (it->second < maxy) {
+                polygonalChain.insert(std::make_pair(it->first,it->second));
+            }
+        }
         TPZProjectEllipse ellips(polygonalChain);
-        TPZManVector<REAL,2> center(2),ratios(2),coefs(2),verify(2);
-        ellips.Getcoefficients(coefs);
+        TPZManVector<REAL,2> center(2),ratios(2),verify(2);
         ellips.StandardFormatForSimpleEllipse(center, ratios);
         verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
         verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
@@ -1822,12 +1829,53 @@ int startfrom = 0;
         //vvalor de a e b para sqJ2 = 0.0007 Pef = 19.5
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.044;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.66;
-        std::multimap<REAL, REAL> polygonalChain;
-        well.GetJ2Isoline(0.0007, polygonalChain);
+        std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+        well.GetJ2Isoline(0.0007, polygonalChainbase);
+        REAL innerradius = well.GetCurrentConfig()->fInnerRadius;
+        REAL maxy = well.GetCurrentConfig()->MaxYfromLastBreakout();
+        int numgood = 0;
+        int numbad = 0;
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+            TPZManVector<REAL,2> co(2);
+            co[0] = 0.;
+            co[1] = it->second;
+            well.GetCurrentConfig()->ProjectNode(co);
+            std::cout << "distance " << (it->first-co[0])/innerradius << endl;
+            if (it->second < maxy && it->first-co[0] > 0.01*innerradius) {
+                polygonalChain.insert(std::make_pair(it->first,it->second));
+                numgood++;
+            }
+            else{
+                numbad++;
+            }
+        }
+        TPZFMatrix<REAL> polybase(polygonalChainbase.size(),2);
+        cout << "base chain\n";
+        int i=0;
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++,i++) {
+            std::cout << it->first << " " << it->second << endl;
+            polybase(i,0) = it->first;
+            polybase(i,1) = it->second;
+        }
+        polybase.Print("Polybase = " , cout , EMathematicaInput);
+        TPZFMatrix<REAL> poly(polygonalChain.size(),2);
+        cout << "filtered chain\n";
+        
+        i=0;
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChain.begin(); it != polygonalChain.end(); it++,i++) {
+            std::cout << it->first << " " << it->second << endl;
+            poly(i,0) = it->first;
+            poly(i,1) = it->second;
+        }
+        poly.Print("Poly = " , cout , EMathematicaInput);
         TPZProjectEllipse ellips(polygonalChain);
-        TPZManVector<REAL,2> center(2),ratios(2),coefs(2),verify(2);
-        ellips.Getcoefficients(coefs);
+        TPZManVector<REAL,2> center(2),ratios(2),verify(2);
         ellips.StandardFormatForSimpleEllipse(center, ratios);
+        cout << "chain fitting\n";
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChain.begin(); it != polygonalChain.end(); it++) {
+            REAL xellips = ratios[0]*sqrt(1-it->second*it->second/ratios[1]/ratios[1]);
+            std::cout << it->first << " " << xellips << " error " <<  (it->first-xellips)/innerradius << endl;
+        }
         well.AddEllipticBreakout(ratios[0], ratios[1]);
         well.PostProcess(1);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
@@ -1867,11 +1915,23 @@ int startfrom = 0;
         // valor de a e b para sqJ2 = 0.0007 P = 19.5
 //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.099;
 //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.419;
-        std::multimap<REAL, REAL> polygonalChain;
-        well.GetJ2Isoline(0.0007, polygonalChain);
+        std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+        well.GetJ2Isoline(0.0007, polygonalChainbase);
+        REAL maxy = well.GetCurrentConfig()->MaxYfromLastBreakout();
+        
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+            TPZManVector<REAL,2> co(2);
+            co[0] = 0.;
+            co[1] = it->second;
+            well.GetCurrentConfig()->ProjectNode(co);
+            std::cout << "distance " << (it->first-co[0])/innerradius << endl;
+
+            if (it->second < maxy && it->first-co[0] > 0.01*innerradius) {
+                polygonalChain.insert(std::make_pair(it->first,it->second));
+            }
+        }
         TPZProjectEllipse ellips(polygonalChain);
-        TPZManVector<REAL,2> center(2),ratios(2),coefs(2),verify(2);
-        ellips.Getcoefficients(coefs);
+        TPZManVector<REAL,2> center(2),ratios(2),verify(2);
         ellips.StandardFormatForSimpleEllipse(center, ratios);
         well.AddEllipticBreakout(ratios[0], ratios[1]);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();

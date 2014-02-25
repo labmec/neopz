@@ -23,7 +23,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 #endif
 
-int startfrom = 0;
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
 {
@@ -414,10 +413,13 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     analysis.AddNoPenetration(-4, 1);
     analysis.IdentifyEquationsToZero();
     
+    
 	TPZStepSolver<REAL> step;
     step.SetDirect(ELDLt);
 	analysis.SetSolver(step);
     
+//    analysis.Assemble();
+
     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCurrentConfig.fCMesh.MaterialVec()[1]);
     if (!pMatWithMem) {
         DebugStop();
@@ -2181,6 +2183,36 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
     }
     return wasadjusted;
 }
+
+/// return the largest y-coordinate belonging to the last ellips
+// this value will be used to identify the meaningful points to match the next ellips
+REAL TPZWellBoreAnalysis::TConfig::MaxYfromLastBreakout()
+{
+    if(fGreater.size() == 0) return this->fInnerRadius;
+    // we will use regula falsi
+    int numell = fGreater.size();
+    REAL lasta = fGreater[numell-1];
+    REAL lastb = fSmaller[numell-1];
+    REAL y = 0.;
+    REAL dely = lastb/5;
+    TPZManVector<REAL,2> co(2);
+    while (fabs(dely) > lastb/1000.) {
+        co[1] = y;
+        co[0] = sqrt(fInnerRadius*fInnerRadius-y*y);
+        REAL lastx = lasta*sqrt(1.-co[1]*co[1]/(lastb*lastb));
+        ProjectNode(co);
+        if (co[0] == lastx) {
+            y += dely;
+        }
+        else
+        {
+            y -= dely;
+            dely /= 10.;
+        }
+    }
+    return y;
+}
+
 
 
 /// Initialize the Sandler DiMaggio object and create the computational mesh
