@@ -61,7 +61,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     
     bool useweight;
     REAL paramK;
-    GetInfoDistortedMesh(useweight, paramK);
+    GetDataDistortedMesh(useweight, paramK);
     
     //criar ponteiro para TPZFunction
     TPZGradient *pGrad = new TPZGradient;
@@ -140,6 +140,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     step.SetMatrix(stiffmatrix);
     TPZFMatrix<STATE> result;
     step.Solve(rhs, result);
+    cmesh->Solution().Zero();
     cmesh->LoadSolution(result);
     
 //    stiffmatrix->Print("MatKRG = ");
@@ -185,6 +186,9 @@ TPZGradientReconstruction::TPZGradientData::TPZGradientData()
     fCelAndNeighbors.resize(0);
     fCenterPointInterface.resize(0);
     
+    this->fForcingFunctionExact = NULL;
+    this->fUseForcinfFuncion = false;
+    
     fWeightsGrad.resize(0);
     fGradient.resize(0);
     fdim=0;
@@ -198,6 +202,45 @@ TPZGradientReconstruction::TPZGradientData::~TPZGradientData()
 {
     
 }
+
+
+TPZGradientReconstruction::TPZGradientData::TPZGradientData(const TPZGradientData &cp)
+{
+    fdim = cp.fdim;
+    fCelAndNeighbors = cp.fCelAndNeighbors;
+    fWeightsGrad = cp.fWeightsGrad;
+    fUseWeight = cp.fUseWeight;
+    fparamK = cp.fparamK;
+    
+    fSolCellAndNeighbors = cp.fSolCellAndNeighbors;
+    fCenterPointCellAndNeighbors = cp.fCenterPointCellAndNeighbors;
+    fCenterPointInterface = cp.fCenterPointInterface;
+    fGradient = cp.fGradient;
+    fSlopeLimiter = cp.fSlopeLimiter;
+    
+    fForcingFunctionExact = cp.fForcingFunctionExact;
+    fUseForcinfFuncion = cp.fUseForcinfFuncion;
+}
+
+TPZGradientReconstruction::TPZGradientData & TPZGradientReconstruction::TPZGradientData::operator=(const TPZGradientData &copy)
+{
+    fdim = copy.fdim;
+    fCelAndNeighbors = copy.fCelAndNeighbors;
+    fWeightsGrad = copy.fWeightsGrad;
+    fUseWeight = copy.fUseWeight;
+    fparamK = copy.fparamK;
+    
+    fSolCellAndNeighbors = copy.fSolCellAndNeighbors;
+    fCenterPointCellAndNeighbors = copy.fCenterPointCellAndNeighbors;
+    fCenterPointInterface = copy.fCenterPointInterface;
+    fGradient = copy.fGradient;
+    fSlopeLimiter = copy.fSlopeLimiter;
+    
+    fForcingFunctionExact = copy.fForcingFunctionExact;
+    fUseForcinfFuncion = copy.fUseForcinfFuncion;
+    return *this;
+}
+
 
 void TPZGradientReconstruction::TPZGradientData::SetCel(TPZCompEl * cel, bool useweight, REAL paramK)
 {
@@ -308,37 +351,6 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
 
 }
 
-TPZGradientReconstruction::TPZGradientData::TPZGradientData(const TPZGradientData &cp)
-{
-    fdim = cp.fdim;
-    fCelAndNeighbors = cp.fCelAndNeighbors;
-    fWeightsGrad = cp.fWeightsGrad;
-    fUseWeight = cp.fUseWeight;
-    fparamK = cp.fparamK;
-    
-    fSolCellAndNeighbors = cp.fSolCellAndNeighbors;
-    fCenterPointCellAndNeighbors = cp.fCenterPointCellAndNeighbors;
-    fCenterPointInterface = cp.fCenterPointInterface;
-    fGradient = cp.fGradient;
-    fSlopeLimiter = cp.fSlopeLimiter;
-}
-
-TPZGradientReconstruction::TPZGradientData & TPZGradientReconstruction::TPZGradientData::operator=(const TPZGradientData &copy)
-{
-    fdim = copy.fdim;
-    fCelAndNeighbors = copy.fCelAndNeighbors;
-    fWeightsGrad = copy.fWeightsGrad;
-    fUseWeight = copy.fUseWeight;
-    fparamK = copy.fparamK;
-
-    fSolCellAndNeighbors = copy.fSolCellAndNeighbors;
-    fCenterPointCellAndNeighbors = copy.fCenterPointCellAndNeighbors;
-    fCenterPointInterface = copy.fCenterPointInterface;
-    fGradient = copy.fGradient;
-    fSlopeLimiter = copy.fSlopeLimiter;
-    return *this;
-}
-
 
 void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(TPZCompEl *cel, TPZManVector<REAL,3> &xcenter, STATE &solcel)
 {
@@ -357,15 +369,22 @@ void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(T
     TPZManVector<REAL> point(3,0.);
     TPZManVector<REAL> xpoint(3,0.);
 	REAL weight;
+    REAL Area = cel->Reference()->RefElVolume();
     
     for(it=0;it<npoints;it++)
     {
 		pointIntRule->Point(it,point,weight);
-		weight /= cel->Reference()->RefElVolume();
+		//weight /= cel->Reference()->RefElVolume();
 		cel->Reference()->X(point,xpoint);
         
         TPZVec<STATE> sol;
-        cel->Solution(xpoint, 1, sol);
+        if (this->HasForcingFunctionExact()){
+            sol.Resize(1, 0.);
+            this->fForcingFunctionExact->Execute(xpoint, sol);
+        }
+        else{
+            cel->Solution(xpoint, 1, sol);
+        }
         if(sol.size()!=1) {
             PZError << "TPZGradientReconstruction::TPZDataGradient: The number of solutions variable can not be other than 1.\n";
             DebugStop();
@@ -377,7 +396,7 @@ void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(T
 #endif
     }
     
-    solcel = integral;
+    solcel = integral/Area;
 }
 
 void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *cel)
@@ -691,6 +710,7 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     */
 }
 
+//Finite volume methods:foundation and analysis (chapter 3.3),Timothy Barth and Mario Ohlberge-2004
 void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter()
 {
     if(fGradient.size()==0 || fSolCellAndNeighbors.size()==0 || fCenterPointInterface.size()==0){
@@ -742,32 +762,19 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter()
         if(IsZero(solKside - solKmax) || IsZero(solKside - solKmin)) {
             temp = 1.;
         }
-        else if((solKside - solKmax) > 1.e-10)
+        else if((solKside - solKmax) > 1.e-12)
         {
             temp = (solKmax - solcel)/(solKside-solcel);
             if(temp>1.) temp = 1.;
-            if(temp<0.) temp = 0.;
+            if(temp<0.) temp = fabs(temp);
         }
-        else if((solKside - solKmin) < 1.e-10)
+        else if((solKside - solKmin) < 1.e-12)
         {
             temp = (solKmin - solcel)/(solKside-solcel);
             if(temp>1.) temp = 1.;
-            if(temp<0.) temp = 0.;
+            if(temp<0.) temp = fabs(temp);
         }
         else temp = 1.;
-
-        
-//        if((solKside - solKmax) > 1.e-10)
-//        {
-//            temp = (solKmax - solcel)/(solKside-solcel);
-//        }
-//        else if((solKside - solKmin) < -1.e-10)
-//        {
-//            temp = (solKmin - solcel)/(solKside-solcel);
-//        }
-//        else{
-//            temp = 1.;
-//        }
         
         if(temp < 0. || temp > 1.) DebugStop();
         alphavec.Push(temp);
@@ -841,13 +848,12 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter2()
         {
             temp = (solKmax - solcel)/(solKside-solcel);
             if(temp>1.) temp = 1.;
-            if(temp<0.) temp = 0.;
         }
         else if(solKside - solcel < 1.e-12)
         {
             temp = (solKmin-solcel)/(solKside-solcel);
             if(temp>1.) temp = 1.;
-            if(temp<0.) temp = 0.;
+            if(temp<0.) temp = fabs(temp);
         }
         else temp =1.;
         
@@ -867,7 +873,8 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter2()
     fSlopeLimiter = alphaK;
 }
 
-//paper Darwish_Moukalled_2003: TVD schemes for unstructured grids
+//Venkatakrishnan V (1993). On the accuracy of limiters and convergence to steady state solutions
+//Christopher Michalak, Carl Ollivier-Gooch (2009)-Accuracy preserving limiter for the high-order accurate solution of the Euler equations
 void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
 {
     if(fGradient.size()==0 || fSolCellAndNeighbors.size()==0 || fCenterPointInterface.size()==0){
@@ -903,18 +910,15 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
     // ----------- Calculating slope limiter --------------
     int ninterf = fCenterPointInterface.size();
     STATE solKside;
-    STATE gradIntdifX;
     STATE temp;
     TPZStack<STATE> alphavec;
     STATE solcel = fSolCellAndNeighbors[0];
     
     for (i = 0; i<ninterf; i++)
     {
-        gradIntdifX=0.;
         solKside = solcel;
         for(j=0; j<fdim; j++)
         {
-            gradIntdifX += (STATE)(fCenterPointInterface[i][j] - fCenterPointCellAndNeighbors[0][j])*fGradient[j];
             solKside += (STATE)(fCenterPointInterface[i][j] - fCenterPointCellAndNeighbors[0][j])*fGradient[j];
         }
         
@@ -922,20 +926,20 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
         if(IsZero(solKside - solcel)) {
             temp = 1.;
         }
-        else if((solKside - solcel) > 1.e-10)
+        else if((solKside - solcel) > 1.e-12)
         {
-            temp = (solKmax - solcel)/gradIntdifX;
-            if(temp>1.) temp = 1.;
-            if(temp<0.) temp = 0.;
+            temp = (solKmax - solcel)/(solKside-solcel);
+            temp = (temp*temp + 2.*temp)/(temp*temp + temp + 2.);
+
         }
-        else if(solKside - solcel < 1.e-10)
+        else if(solKside - solcel < 1.e-12)
         {
-            temp = (solKmin-solcel)/gradIntdifX;
-            if(temp>1.) temp = 1.;
-            if(temp<0.) temp = 0.;
+            temp = (solKmin-solcel)/(solKside-solcel);
+            temp = (temp*temp + 2.*temp)/(temp*temp + temp + 2.);
         }
+        else temp =1.;
         
-        if(temp < 0. || temp > 1.) DebugStop();
+        if(temp < 0.) DebugStop();
         alphavec.Push(temp);
     }
     

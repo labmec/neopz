@@ -14,7 +14,8 @@
 #include "pzcompel.h"
 #include "pzvec.h"
 #include "pzcmesh.h"
-
+#include "tpzautopointer.h"
+#include "pzfunction.h"
 
 class TPZGradientReconstruction
 {
@@ -65,12 +66,15 @@ class TPZGradientReconstruction
         void QRFactorization(TPZFMatrix<REAL> &matA,TPZFMatrix<REAL> &vecb);
         
         /**
-         *@brief Method to calculate the slope limiter (alphaK)
+         *@brief Methods to calculate the slope limiter (alphaK)
          */
+        //para problema linear
         void ComputeSlopeLimiter();
         
+        //para problema linear
         void ComputeSlopeLimiter2();
         
+        //Para problema nao-linear
         void ComputeSlopeLimiter3();
         
         /**@brief Method to calculate the weights that we will use in distorted meshes
@@ -101,6 +105,35 @@ class TPZGradientReconstruction
             cellAverage = fSolCellAndNeighbors[0];
             slopeLimiter = fSlopeLimiter;
         }
+        
+        /** @brief Pointer to exact solution function, needed to calculate exact error */
+        TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
+        
+        /**
+         * @brief Sets a procedure as exact solution for the problem
+         * @param fp pointer of exact solution function
+         */
+        void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+        {
+            fForcingFunctionExact = fp;
+        }
+        
+        bool fUseForcinfFuncion;
+        
+        void EnableForcinFucnction(){
+            fUseForcinfFuncion=true;
+        }
+        void DisableForcinFucnction(){
+            fUseForcinfFuncion=false;
+        }
+        int HasForcingFunctionExact() {
+            if(fUseForcinfFuncion){
+                return (fForcingFunctionExact != 0);
+            }
+            else
+                return (fForcingFunctionExact == 0);
+        }
+        
       
         
     protected:
@@ -166,7 +199,7 @@ public:
     //assemble pos l2 projection
     void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs);
     
-    void GetInfoDistortedMesh(bool &useweight, REAL &paramK){
+    void GetDataDistortedMesh(bool &useweight, REAL &paramK){
         useweight = fDistortedMesh;
         paramK = fparam;
     }
