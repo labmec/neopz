@@ -227,6 +227,7 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	
     if(fUseQsiEta==true){
         TPZFNMatrix<660,REAL> dphidxi;
+        dphidxi.Resize(dphix.Rows(), dphix.Cols());
         this->Shape(intpoint,phi,dphidxi);
         this->Convert2Axes(dphidxi,jacinv,dphix);
         ref->X(intpoint, X);
