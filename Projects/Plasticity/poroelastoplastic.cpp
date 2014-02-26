@@ -1613,12 +1613,11 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
 DECLARE_FPO_HANDLER_FUNC;
 #endif
 
+int startfrom = 0;
+
 int main ()
 {
   
-int startfrom = 0;
-//startfrom = 4;
-    
 #ifdef MACOS
     
     ENABLE_FPO_EXCEPTIONS;
