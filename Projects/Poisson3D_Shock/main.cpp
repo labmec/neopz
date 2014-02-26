@@ -211,8 +211,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
     //Working on regular meshes
     for(int regular=1; regular>0; regular--) {
 		// Initializing the auto adaptive process
-		TPZVec<REAL> ervec, ErrorVec;
-		TPZVec<long> NEquations;
+		TPZVec<REAL> ervec, ErrorVec(100,0.0);
+		TPZVec<long> NEquations(100,0L);
 		TPZVec<REAL> ervecbyel;
 		TPZVec<REAL> gradervecbyel;
 
@@ -296,15 +296,15 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case EPrisma:
 			case EPiramide:
 				MaxPOrder = 21;
-				NRefs = 20;
+				NRefs = 15;
 				break;
 			case ETetraedro:
 				MaxPOrder = 14;
 				NRefs = 13;
 				break;
 			default:
-				MaxPOrder = 21;
-				NRefs = 20;
+				MaxPOrder = 35;
+				NRefs = 15;
 				break;
 			}
 
