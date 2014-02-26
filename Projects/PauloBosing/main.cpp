@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 //            gmesh->Print(arg1);
             
             //---- Criando a primeira malha computacional -----
-            TPZCompMesh * cmesh1= MalhaCompUm(gmesh, p,false);
+            TPZCompMesh * cmesh1= MalhaCompUm(gmesh, p,disc_functions);
 
             //----- Criando a segunda malha computacional ------
             TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p,disc_functions);
@@ -183,9 +183,9 @@ int main(int argc, char *argv[])
             mphysics->Print(arg18);
 
             // Arquivo de saida para plotar a solução
-//            string plotfile3("Solution_mphysics.vtk");
-//            SaidaSolucaoMultifisica(meshvec, mphysics, an, plotfile3);
-//            
+            string plotfile3("Solution_mphysics.vtk");
+            SaidaSolucaoMultifisica(meshvec, mphysics, an, plotfile3);
+            
             
             //Saida dos erros
             
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
             arg12 << " Erro da simulacao multifisica para EDP 1 (solU)" << std::endl;
 
             TPZAnalysis analysis1(cmesh1);
-            analysis1.SetExact(*SolExataP);
+            analysis1.SetExact(*SolExataU);
             analysis1.PostProcessError(erros, arg12);
 
             arg12<<" \nErro da simulacao multifisica para EDP 2 (solP)" <<endl;
@@ -550,9 +550,9 @@ TPZCompMesh *MalhaCompMultifisica(TPZGeoMesh * gmesh,TPZVec<TPZCompMesh *> meshv
     mphysics->SetDimModel(dim);
     mymaterial = new TPZMatUncoupledPoissonDisc(matId, mphysics->Dimension());
 	
-    mymaterial->SetParameters(-1., -1.);
-    //mymaterial->SetInternalFlux(8.,0.);
-    mymaterial->SetInternalFlux(0.,0.);
+    mymaterial->SetParameters(1., 1.);
+    mymaterial->SetInternalFlux(-8.,0.);
+    //mymaterial->SetInternalFlux(0.,0.);
     
     mymaterial->SetNonSymmetricOne();
     mymaterial->SetNonSymmetricTwo();
@@ -571,15 +571,15 @@ TPZCompMesh *MalhaCompMultifisica(TPZGeoMesh * gmesh,TPZVec<TPZCompMesh *> meshv
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
-//	TPZMaterial * BCond0 = mymaterial->CreateBC(mat, bc0,neumann_dirichlet, val1, val2);
-//    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc2,neumann_dirichlet, val1, val2);
-//    TPZMaterial * BCond1 = mymaterial->CreateBC(mat, bc1,dirichlet, val1, val2);
-//    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bc3,dirichlet, val1, val2);
-    
-    TPZMaterial * BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc2,dirichlet, val1, val2);
+	TPZMaterial * BCond0 = mymaterial->CreateBC(mat, bc0,neumann_dirichlet, val1, val2);
+    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc2,neumann_dirichlet, val1, val2);
     TPZMaterial * BCond1 = mymaterial->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bc3,dirichlet, val1, val2);
+    
+//    TPZMaterial * BCond0 = mymaterial->CreateBC(mat, bc0,dirichlet, val1, val2);
+//    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc2,dirichlet, val1, val2);
+//    TPZMaterial * BCond1 = mymaterial->CreateBC(mat, bc1,dirichlet, val1, val2);
+//    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bc3,dirichlet, val1, val2);
     
     
 	mphysics->InsertMaterialObject(BCond0);

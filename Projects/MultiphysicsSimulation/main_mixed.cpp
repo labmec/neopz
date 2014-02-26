@@ -97,34 +97,35 @@ int mainAgnaldo(int argc, char *argv[])
     
     TPZVec<REAL> erros;
     ofstream arg12("Erro.txt");
-    for (int p = 2; p< 3; p++)
+    arg12<<"\n\nERRO PARA MALHA COM TRIANGULO  = " << triang;
+    for (int p = 1; p< 4; p++)
     {
-        arg12<<"\n Ordem = " << p <<endl;
-        for(int h = 4; h < 5;h++)
+        arg12<<"\n\n----------- ORDEM p = " << p <<" -----------";
+        for(int h = 1; h < 6;h++)
         {
-            arg12<<" Refinamento h  = " << h <<endl;
+            arg12<<"\nRefinamento ndiv  = " << h;
             // int p = 5;
             //primeira malha
 
             // geometric mesh (initial)
-	    TPZGeoMesh *gmesh = 0;
-	    if(teste == 1 || teste == 2)
-	    {
-            gmesh = GMesh(triang);
-	    }
-	    else if(teste == 3)
-	    {
-            gmesh = GMesh2(triang);
-	    }
+            TPZGeoMesh *gmesh = 0;
+            if(teste == 1 || teste == 2)
+            {
+                gmesh = GMesh(triang);
+            }
+            else if(teste == 3)
+            {
+                gmesh = GMesh2(triang);
+            }
             //UniformRefine(gmesh,h);
-             ofstream arg1("gmesh_inicial.txt");
-             gmesh->Print(arg1);
+           // ofstream arg1("gmesh_inicial.txt");
+            //gmesh->Print(arg1);
 
           
             // First computational mesh
             TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
-            ofstream arg2("cmesh1_inicial.txt");
-            cmesh1->Print(arg2);
+            //ofstream arg2("cmesh1_inicial.txt");
+            //cmesh1->Print(arg2);
 
 #ifdef LOG4CXX
 						if(logdata->isDebugEnabled())
@@ -142,8 +143,8 @@ int mainAgnaldo(int argc, char *argv[])
                cmesh2 = CMeshPressure(gmesh, p-1);
             }
             else cmesh2 = CMeshPressure(gmesh, p);
-            ofstream arg3("cmesh2_inicial.txt");
-            cmesh2->Print(arg3);
+            //ofstream arg3("cmesh2_inicial.txt");
+            //cmesh2->Print(arg3);
 #ifdef LOG4CXX
 						if(logdata->isDebugEnabled())
 						{
@@ -166,8 +167,8 @@ int mainAgnaldo(int argc, char *argv[])
             gmesh->ResetReference();
             cmesh2->LoadReferences();
             TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,true);
-            //ofstream arg5("cmesh2_final.txt");
-            //cmesh2->Print(arg5);
+           // ofstream arg5("cmesh2_final.txt");
+           // cmesh2->Print(arg5);
 
             //malha multifisica
             TPZVec<TPZCompMesh *> meshvec(2);
@@ -175,8 +176,8 @@ int mainAgnaldo(int argc, char *argv[])
             meshvec[1] = cmesh2;
             TPZMixedPoisson * mymaterial;
             TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-            ofstream arg6("mphysic.txt");
-            mphysics->Print(arg6);
+            //ofstream arg6("mphysic.txt");
+            //mphysics->Print(arg6);
 #ifdef LOG4CXX
 						if(logdata->isDebugEnabled())
 						{
@@ -187,6 +188,8 @@ int mainAgnaldo(int argc, char *argv[])
 						}
 #endif
 
+            int NEq = mphysics->NEquations();
+            
 //            ofstream arg7("gmesh_Final.txt");
 //            gmesh->Print(arg7);
 
@@ -205,10 +208,12 @@ int mainAgnaldo(int argc, char *argv[])
 //            ofstream arg9("mphysic_apos_Transferfrom.txt");
 //            mphysics->Print(arg9);
 
-            Compute_dudnQuadrado(meshvec[0]);
+            //Compute_dudnQuadrado(meshvec[0]);
             
             
-            arg12<<" \nErro da simulacao multifisica  para o flux" <<endl;
+            arg12<<"\nNumero de Equacoes = " << NEq;
+            
+            arg12<<"\n\nErro da simulacao multifisica  para o flux";
             TPZAnalysis an1(cmesh1);
             if (teste==1){
                 an1.SetExact(*SolExata1);
@@ -222,7 +227,7 @@ int mainAgnaldo(int argc, char *argv[])
             an1.PostProcessError(erros, arg12);
             
             
-            arg12<<" \nErro da simulacao multifisica  para a pressao" <<endl;
+            arg12<<"\n\nErro da simulacao multifisica  para a pressao";
             TPZAnalysis an2(cmesh2);
             if (teste==1){
                 an2.SetExact(*SolExata1);
@@ -235,8 +240,8 @@ int mainAgnaldo(int argc, char *argv[])
             }
             an2.PostProcessError(erros, arg12);
 
-            string plotfile("Solution_mphysics.vtk");
-            PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+            //string plotfile("Solution_mphysics.vtk");
+            //PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
 
 /*
             //solucao HDivPressure
@@ -262,7 +267,13 @@ int mainAgnaldo(int argc, char *argv[])
             string plotile2("Solution_HDiv.vtk");
             PosProcessHDiv(an3, plotile2);
  */
-
+            cmesh1->CleanUp();
+            cmesh2->CleanUp();
+            //mphysics->CleanUp();
+            delete cmesh1;
+            delete cmesh2;
+            //delete mphysics;
+            delete gmesh;
         }
     }
     return 0;
@@ -588,7 +599,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     int MatId=1;
     int dim =2;
     
-    REAL coefk=-1.;
+    REAL coefk=1.;
     mymaterial = new TPZMixedPoisson(MatId,dim);
     mymaterial->SetPermeability(coefk);
     
@@ -765,13 +776,13 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(2), vecnames(3);
+	TPZManVector<std::string,10> scalnames(2), vecnames(2);
 	vecnames[0]  = "Flux";
-    vecnames[1]  = "GradFluxX";
+    //vecnames[1]  = "GradFluxX";
     scalnames[0] = "Pressure";
     
     scalnames[1] = "ExactPressure";
-    vecnames[2] = "ExactFlux";
+    vecnames[1] = "ExactFlux";
 			
 	const int dim = 2;
 	int div = 0;
@@ -928,17 +939,27 @@ void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 
 void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
-    const REAL n = 0;
+    u.Resize(1, 0.);
+    du.Resize(2, 1);
+    du(0,0)=0.;
+    du(1,0)=0.;
     
-    const REAL x = loc[0];
-    const REAL y = loc[1];
+    const REAL n = 0;
+    REAL x = loc[0];
+    REAL y = loc[1];
     const REAL r = sqrt(x*x+y*y);
     const REAL t = atan2(y,x);
     const REAL sol = pow((REAL)2,0.25 + n/2.)*pow(r,0.5 + n)*cos((0.5 + n)*t);
     u[0] = sol;
     
-    du(0,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(x*cos((0.5 + n)*atan2(y,x)) + y*sin((0.5 + n)*atan2(y,x)));
-    du(1,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(y*cos((0.5 + n)*atan2(y,x)) - x*sin((0.5 + n)*atan2(y,x)));
+//    if(IsZero(y) && IsZero(y)){
+//        y=y+1.e-3;
+//        //x=x+1.e-2;
+//    }
+    
+    //flux = -k*grad(u), k=1 nesse problema
+    du(0,0) = -pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(x*cos((0.5 + n)*atan2(y,x)) + y*sin((0.5 + n)*atan2(y,x)));
+    du(1,0) = -pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(y*cos((0.5 + n)*atan2(y,x)) - x*sin((0.5 + n)*atan2(y,x)));
     
 }
 

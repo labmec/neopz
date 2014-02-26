@@ -105,7 +105,7 @@ void Permeability(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 bool ftriang = false;
 
-bool fishomog = true;
+bool fishomogmedium = true;
 REAL  fLx = 400.;//m
 REAL  fLy = 100.;//m
 REAL fk1 =  9.86923e-13;//m2
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
     REAL tD = (1.*temp + 1.);
 
     REAL deltaX = Ly/(pow(2.,h));
-    SolveSystemTransient(deltaX,tD,meshvec, mphysics,fishomog);
+    SolveSystemTransient(deltaX,tD,meshvec, mphysics,fishomogmedium);
     
 	return EXIT_SUCCESS;
 }
@@ -830,7 +830,7 @@ void SolveSystemTransient(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> meshvec
     REAL deltaT = 0.;
     REAL CFL = 0.;
     int count = 1;
-    if(fishomog==true)
+    if(fishomogmedium==true)
     {
         deltaT = maxTime/NDt;
         CFL = maxsolq*(deltaT/deltaX);
