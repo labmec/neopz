@@ -427,7 +427,7 @@ TPZMatrix<STATE> * TPZStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAu
 {
 	TPZMatrix<STATE> *stiff = Create();
     
-	long neq = stiff->Rows();
+	//long neq = stiff->Rows();
 	rhs.Redim(fEquationFilter.NEqExpand(),1);
     Assemble(*stiff,rhs,guiInterface);
 	
