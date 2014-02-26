@@ -221,6 +221,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 
 		/** Solving for each type of geometric elements */
 		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
+//		for(itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
@@ -238,7 +239,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			
 			// To storing number of equations and errors obtained for all iterations
 			ErrorVec.Resize(NRefs,0.0);
-			NEquations.Resize(NRefs,0);
+			NEquations.Resize(NRefs,0L);
 			// Printing geometric mesh to validate
 			if(gDebug) {
 				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",ModelDimension,nref,regular,typeel);
@@ -288,6 +289,24 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 			}
 			cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);     // Forcing function is out 2013_07_25
+
+			// Adjusting parameters
+			switch(typeel) {
+			case ETriangle:
+			case EPrisma:
+			case EPiramide:
+				MaxPOrder = 21;
+				NRefs = 20;
+				break;
+			case ETetraedro:
+				MaxPOrder = 14;
+				NRefs = 13;
+				break;
+			default:
+				MaxPOrder = 21;
+				NRefs = 20;
+				break;
+			}
 
 			int countermesh=0;
 			// loop solving iteratively
@@ -390,6 +409,9 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
                 }
 				fileerrors.flush();
 				out.flush();
+				// Sometimes Writing a relation between number of degree of freedom and L2 error.
+				if(nref > 10 && nref%5)
+					PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors);
 			}
 			if(cmesh)
 				delete cmesh;
@@ -415,25 +437,23 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	TPZVec<long> subels;
 	int pelement;
 	int level;
-	TPZVec<long> subsubels;
 	TPZInterpolatedElement *el;
 	// To see where the computation is doing
 	long index = -1;
 	TPZVec<long> counterreftype(50,0);
-	REAL GradNorm, LaplacianValue;
-	REAL MaxGrad, MaxLaplacian;
+	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL LaplacianLimit = 5.;
 	REAL factorError = 0.5;
-	if(nref > 2) {
+	if(nref > 3) {
 		factorError -= (nref-3)*0.075;
 	}
-	if(factorError < 0.2) factorError = 0.2;
-	REAL GradErLimit = 7.;
+	if(factorError < 0.3) factorError = 0.3;
+	REAL GradErLimit = 7.5;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
-	MaxGrad = GradErLimit > factorGrad*gradervecbyel[nels] ? factorGrad*gradervecbyel[nels] : GradErLimit;
+	MaxGrad = gradervecbyel[nels];
+	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -447,7 +467,6 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 		pelement++;
 		index = el->Index();
 		level = el->Reference()->Level();
-		LaplacianValue = Laplacian(el);
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
 		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
@@ -479,6 +498,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	cmesh->ExpandSolution();
 
 	// Printing information stored
+	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
 }
 void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
@@ -488,27 +508,23 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	TPZVec<long> subels;
 	int pelement;
 	int level;
-	TPZVec<long> subsubels;
 	TPZInterpolatedElement *el;
-	STATE Tol;
-	ZeroTolerance(Tol);
 	// To see where the computation is doing
 	long index = -1;
 	TPZVec<long> counterreftype(50,0);
-	REAL GradNorm, LaplacianValue;
-	REAL MaxGrad, MaxLaplacian;
+	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL LaplacianLimit = 5.;
 	REAL factorError = 0.5;
 	if(nref > 3) {
 		factorError -= (nref-3)*0.075;
 	}
-	if(factorError < 0.1) factorError = 0.1;
-	REAL GradErLimit = 7.;
+	if(factorError < 0.2) factorError = 0.2;
+	REAL GradErLimit = 10.;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
-	MaxGrad = GradErLimit > factorGrad*gradervecbyel[nels] ? factorGrad*gradervecbyel[nels] : GradErLimit;
+	MaxGrad = gradervecbyel[nels];
+	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -522,7 +538,6 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		pelement++;
 		index = el->Index();
 		level = el->Reference()->Level();
-		LaplacianValue = Laplacian(el);
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
 		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
@@ -554,7 +569,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	cmesh->ExpandSolution();
 
 	// Printing information stored
-//	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
+	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
 }
 void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
@@ -865,7 +880,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 	// The last position will be store the maxime value of the gradient errors
 	gradervecbyel.Resize(nel+1,0.0);
 	REAL maxError = 0.0;
-	MinErrorByElement = 1.e+5;
+	MinErrorByElement = 1000.0;
 
 	/** Computing error for all elements with same dimension of the model */
     for(i=0L;i<nel;i++) {
@@ -884,10 +899,10 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 			if(gradervecbyel[i] > gradervecbyel[nel])
 				gradervecbyel[nel] = gradervecbyel[i];
 			// The computed error by current element is compared with max and min values to return
-			if(ervecbyel[i] > maxError)
-				maxError = ervecbyel[i];
-			else if(ervecbyel[i] < MinErrorByElement)
-				MinErrorByElement = ervecbyel[i];
+			if(gradervecbyel[i] > maxError)
+				maxError = gradervecbyel[i];
+			else if(gradervecbyel[i] < MinErrorByElement)
+				MinErrorByElement = gradervecbyel[i];
         }
     }
     

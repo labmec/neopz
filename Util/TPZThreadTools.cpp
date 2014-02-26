@@ -150,6 +150,7 @@ namespace tht
 		s = new TSemaphore(NULL, 0, max, name, false);
 		return 0;
 #endif
+		return 0;
 	}
 
 	void DeleteSemaphore(pz_semaphore_t & s)
