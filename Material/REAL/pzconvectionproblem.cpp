@@ -295,12 +295,13 @@ int TPZMatConvectionProblem::VariableIndex(const std::string &name){
     if(!strcmp("ConvDirGradU",name.c_str()))        return  2;
 	if(!strcmp("Derivative",name.c_str()))        return  3;
 	if(!strcmp("Flux",name.c_str()))        return  4;
+    if(!strcmp("ExactSolution",name.c_str()))        return  5;
 	
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMatConvectionProblem::NSolutionVariables(int var){
-	if((var == 1) || (var == 2)) return 1;
+	if((var == 1) || (var == 2)|| (var == 5)) return 1;
 	if((var == 3) || (var == 4)) return fDim;
 	return TPZMaterial::NSolutionVariables(var);
 }
@@ -312,6 +313,8 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<ST
 	TPZVec<STATE> Sol_u;
     TPZFMatrix<STATE> DSol_u;
     TPZFMatrix<REAL> axes_u;
+    TPZVec<STATE> ExactSol(1);
+    TPZFMatrix<STATE> deriv(3,1);
     
 	Sol_u=data.sol[0];
     DSol_u = data.dsol[0];
@@ -340,7 +343,7 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<ST
 			Solout[id] = dsoldx(id,0);//derivate of u
 		}
 		return;
-	}//var == 2
+	}//var == 3
 	
 	if(var == 4) {
 		int id;
@@ -348,5 +351,40 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<ST
 			Solout[id] =fConvDir[id]*Sol_u[0];
 		}
 		return;
-	}//var == 3
+	}//var == 4
+    
+    if(var == 5){
+        
+        fForcingFunctionExact->Execute(data.x, ExactSol, deriv);
+		Solout[0] = ExactSol[0];
+		return;
+	}
 }
+
+void TPZMatConvectionProblem::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+                            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                            TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+    
+    int dim = Dimension();
+    int nstate = NStateVariables();
+
+    TPZMaterialData data;
+	data.axes.Redim(dim,3);
+	data.x.Resize(3);
+    data.sol[0].Resize(nstate);
+    data.dsol[0].Redim(dim,nstate);
+
+    data.x = x;
+    data.sol[0] = u;
+    data.dsol[0] = dudx;
+    data.axes = axes;
+
+	TPZManVector<STATE> sol;
+	Solution(data,1,sol);
+
+   //values[1] : eror em norma L2
+    REAL diff;
+    diff = fabs(sol[0] - u_exact[0]);
+	values[1]  = diff*diff;
+}
+
