@@ -121,6 +121,8 @@ public:
         // this value will be used to identify the meaningful points to match the next ellips
         REAL MaxYfromLastBreakout();
         
+        void Print(ostream &out);
+        
         /// Return gmesh
         TPZGeoMesh * GetGeoMesh();
 
@@ -214,6 +216,8 @@ public:
     {
         std::set<long> elindices;
         fCurrentConfig.PRefineElementsAbove(sqj2, porder,elindices);
+        
+        std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
     }
@@ -290,7 +294,7 @@ static void StandardConfiguration(TPZWellBoreAnalysis &obj);
         fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
     }
 
-    
+    void Print(std::ostream &out);
     
 private:
     

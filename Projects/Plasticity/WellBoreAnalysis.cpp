@@ -1828,6 +1828,7 @@ void TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
         for (std::set<long>::iterator it = elindices.begin(); it!= elindices.end(); it++) {
             sout << *it << " ";
         }
+        std::cout << sout.str() << std::endl;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -2388,4 +2389,44 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
     cout << "\n WORK "<< work << endl;
     return work;
     
+}
+
+void TPZWellBoreAnalysis::Print(std::ostream &out)
+{
+    out << "Number of configurations " << fSequence.size() << std::endl;
+    out << "fCurrentConfig \n";
+    fCurrentConfig.Print(out);
+    out << "Other configurations \n";
+    std::list<TPZWellBoreAnalysis::TConfig>::iterator it;
+    for (it= fSequence.begin(); it != fSequence.end(); it++) {
+        (*it).Print(out);
+    }
+    if (fLinearMatrix) {
+        fLinearMatrix->Print("Linear Matrix",out);
+    }
+    else
+    {
+        out << "No linear matrix ";
+    }
+}
+
+void TPZWellBoreAnalysis::TConfig::Print(ostream &out)
+{
+    out << "fInnerRadius " << fInnerRadius << endl;
+    out << "fOuterRadius " << fOuterRadius << endl;
+    out << "fNx " << fNx << endl;
+    out << "fDelx " << fDelx << endl;
+    out << "fGreater " << fGreater << endl;
+    out << "fSmaller " << fSmaller << endl;
+    out << "fConfinement " << fConfinement << endl;
+    out << "fSD ";
+    fSD.Print(out);
+    out << "fFluidPressure " << fFluidPressure << endl;
+    out << "fGMesh ";
+    fGMesh.Print(out);
+    out << "fCMesh ";
+    fCMesh.Print(out);
+    fAllSol.Print("fAllSol = ",out);
+    out << "fPlasticDeform " << fPlasticDeformSqJ2 << endl;
+    fPostprocess.Print("fPostProcess", out);
 }
