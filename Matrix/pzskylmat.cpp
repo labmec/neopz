@@ -2909,7 +2909,7 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
 {
 	TPZMatrix<TVar>::Write(buf,withclassid);
     TPZSaveable::WriteObjects(buf, fStorage);
-    TPZVec<int> skyl(this->Rows()+1,0);
+    TPZVec<long> skyl(this->Rows()+1,0);
     TVar *ptr = 0;
     if (this->Rows()) {
         ptr = &fStorage[0];
@@ -2925,7 +2925,7 @@ void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
 	TPZMatrix<TVar>::Write(buf,withclassid);
     TPZSaveable::WriteObjects(buf, fStorage);
-    TPZVec<int> skyl(this->Rows()+1,0);
+    TPZVec<long> skyl(this->Rows()+1,0);
     TVar *ptr = 0;
     if (this->Rows()) {
         ptr = &fStorage[0];
