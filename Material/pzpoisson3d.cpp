@@ -351,7 +351,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 			if (fDim == 1) PZError << __PRETTY_FUNCTION__ << " - ERROR! The normal vector is not available for 1D TPZInterpolatedElement\n";
 			if (fDim == 2){
 				normal[0] = axes(0,1);
-				normal[1] = axes(1,1);
+				//normal[1] = axes(1,1);
 			}
 			if (fDim == 3){
 				normal[0] = axes(0,2);
@@ -686,9 +686,8 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	//values[1] : flux error using L2 norm
 	for(int id=0; id<fDim; id++) {
         REAL diffFlux = abs(dsol[id] - du_exact(id,0));
-		values[1]  += abs(fK)*diffFlux*diffFlux;
+		values[1]  += diffFlux*diffFlux;
 	}
-    
     if(du_exact.Rows()>fDim){
         //values[2] : divergence using L2 norm
         REAL diffDiv = abs(div[0] - du_exact(2,0));
@@ -715,6 +714,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	values.Resize(NEvalErrors());
+    values.Fill(0.0);
 	TPZManVector<STATE> dudxEF(1,0.), dudyEF(1,0.),dudzEF(1,0.);
 	this->Solution(u,dudx,axes,VariableIndex("KDuDx"), dudxEF);
     STATE fraq = dudxEF[0]/fK;
@@ -901,7 +901,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 		}
 	}
 	
-	
+	if(IsZero(fK)) return;
 	//diffusion term
 	STATE leftK, rightK;
 	leftK  = this->fK;
