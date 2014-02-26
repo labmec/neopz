@@ -9,7 +9,7 @@
 #define TPZPARALLELENVIROMENT_H
 
 #ifdef USING_TBB
-#include "partitioner.h"
+#include <tbb/partitioner.h>
 #endif
 
 class TPZParallelEnviroment 

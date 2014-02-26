@@ -76,6 +76,11 @@ public:
     {
         return fCornerEqs.size();
     }
+    
+    // FOR DEBUG PURPOSES
+    TPZAutoPointer<TPZDohrAssembly<STATE> > Assembly() {
+        return fDohrAssembly;
+    }
 	
 	/** 
 	 * @brief Verifies if the subdomains are connected by sides of connectdimension and separate them if not

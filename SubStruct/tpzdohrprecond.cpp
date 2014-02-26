@@ -67,10 +67,9 @@ TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 /** Threading Building Blocks */
 
 #ifdef USING_TBB
-#include "parallel_for.h"
-#include "blocked_range.h"
-#include "partitioner.h"
-using namespace tbb;
+#include <tbb/blocked_range.h>
+#include <tbb/partitioner.h>
+#include <tbb/parallel_for.h>
 #endif
 
 template<class TVar, class TSubStruct>
@@ -95,7 +94,7 @@ public:
     
 #ifdef USING_TBB
     /** @brief Computing operator for the parallel for. */
-    void operator()(const blocked_range<size_t>& range) const
+    void operator()(const tbb::blocked_range<size_t>& range) const
     {
         
         for(size_t i=range.begin(); i!=range.end(); ++i )
@@ -110,13 +109,13 @@ public:
     }
     
     /** Execute work items in parallel. */
-    void run_parallel_for(affinity_partitioner &ap)
+    void run_parallel_for(tbb::affinity_partitioner &ap)
     {
         /* TBB Parallel for. It will split the range
          * into N sub-ranges and
          * invoke the operator() for each sub-range.
          */
-        parallel_for(blocked_range<size_t>(0, mWorkItems.size()), *this, ap);
+        parallel_for(tbb::blocked_range<size_t>(0, mWorkItems.size()), *this, ap);
     }
     
 #endif

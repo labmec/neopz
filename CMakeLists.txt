@@ -167,7 +167,7 @@ if(USING_TBB)
 	add_definitions(-DUSING_TBB)
 	find_path(TBB_INCLUDE tbb.h PATHS ${SEARCH_DIRS}
 	/opt/intel/tbb/include/tbb /usr/include/tbb)
-	find_library(TBB_LIB NAMES libtbb.dylib libtbb.so PATHS ${SEARCH_DIRS})
+	find_library(TBB_LIB NAMES libtbb.dylib libtbb.so PATHS ${SEARCH_DIRS}  /opt/intel/tbb/lib )
 	if(TBB_INCLUDE-NOTFOUND)
 		set (TBB_INCLUDE "" CACHE PATH "Directory where tbb header files can be found")
 	else()

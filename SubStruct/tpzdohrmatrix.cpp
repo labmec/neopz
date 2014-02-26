@@ -34,9 +34,9 @@ TPZDohrMatrix<TVar,TSubStruct>::~TPZDohrMatrix()
 /** Threading Building Blocks */
 
 #ifdef USING_TBB
-#include "parallel_for.h"
-#include "blocked_range.h"
-#include "partitioner.h"
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <tbb/partitioner.h>
 using namespace tbb;
 #endif
 
