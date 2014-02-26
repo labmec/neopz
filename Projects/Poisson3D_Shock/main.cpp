@@ -146,7 +146,7 @@ int MaxPOrder = 13;
 int MaxHLevel = 6;
 int MaxHUsed = 0;
 int MaxPUsed = 0;
-int NRefs = 10;
+int NRefs = 100;
 int ninitialrefs = 2;
 int itypeel;
 
