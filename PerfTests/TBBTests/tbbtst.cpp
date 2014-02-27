@@ -41,6 +41,12 @@ clarg::argInt       plevel("-p", "plevel", 1);
 clarg::argInt       nsub("-nsub", "number of substructs", 32);
 clarg::argInt       nloop("-l", "Number of loop iterations of the Subst_Backward/Subst_Forward", 1);
 clarg::argBool      usetbb("-tbb", "Use of parallel tbb version", false);
+clarg::argBool      aff_tbb("-aff", "Use of affinity partitioner", false);
+clarg::argBool      help("-h", "Show usage message.", false);
+
+RunStatsTable dec_rst   ("-dec", "Decompose statistics raw data table");
+RunStatsTable sub_rst   ("-sub", "Substitution Forward/Backward statistics raw data table");
+
 
 vector<TPZSkylMatrix<STATE>* > *get_sky_matrices();
 
@@ -72,15 +78,32 @@ public:
 };
 #endif
 
+void usage(char *prog)
+{
+    printf("\nUsage: %s\n", prog);
+    printf("Arguments: \n");
+    printf("\t -f \t filename \n");
+    printf("\t -p \t plevel \n");
+    printf("\t -nsub \t number of substructures \n");
+    printf("\t -l \t number of Forward/Backward repetitions \n");
+    printf("\t -tbb \t use parallel version using tbb \n");
+    printf("\t -aff \t use affinity partitioner \n");
+    printf("\t -h \t help\n");
+}
 
 int main(int argc, char **argv)
 {
     // parse the arguments
     if (clarg::parse_arguments(argc, argv)) {
         cerr << "Error when parsing the arguments!" << endl;
+        usage(argv[0]);
         return 1;
     }
     
+    if (help.get_value()) {
+        usage(argv[0]);
+        return 1;
+    }
     vector<TPZSkylMatrix<STATE>* > * fTasks = get_sky_matrices();
     
 #ifdef USING_TBB
@@ -111,13 +134,19 @@ int main(int argc, char **argv)
         
         tbb::affinity_partitioner ap;
         cout << "----> Decompose_Cholesky" << endl;
-        parallel_for(tbb::blocked_range<size_t>(0, nmatrices), disp, ap);
+        if (aff_tbb.get_value())
+            parallel_for(tbb::blocked_range<size_t>(0, nmatrices), disp, ap);
+        else
+            parallel_for(tbb::blocked_range<size_t>(0, nmatrices), disp);
         
         tbb_substitution dispb;
         dispb.fTasks = fTasks;
         cout << "----> Subst_Backward/Subst_Forward" << endl;
         for (int k=0; k<nloop.get_value();k++) {
-            parallel_for(tbb::blocked_range<size_t>(0, nmatrices), dispb, ap);
+            if (aff_tbb.get_value())
+                parallel_for(tbb::blocked_range<size_t>(0, nmatrices), dispb, ap);
+            else
+                parallel_for(tbb::blocked_range<size_t>(0, nmatrices), dispb);
         }
 #else
         cout << "Compiled without TBB support." << endl;
