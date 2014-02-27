@@ -36,7 +36,7 @@
 /**
  * Command Line Arguments
  */
-clarg::argString    predio_file("-f", "Mesh file for predio.", "8andares02.txt");
+clarg::argString    predio_file("-f", "Mesh file.", "8andares02.txt");
 clarg::argInt       plevel("-p", "plevel", 1);
 clarg::argInt       nsub("-nsub", "number of substructs", 32);
 clarg::argInt       nloop("-l", "Number of loop iterations of the Subst_Backward/Subst_Forward", 1);
@@ -82,13 +82,8 @@ void usage(char *prog)
 {
     printf("\nUsage: %s\n", prog);
     printf("Arguments: \n");
-    printf("\t -f \t filename \n");
-    printf("\t -p \t plevel \n");
-    printf("\t -nsub \t number of substructures \n");
-    printf("\t -l \t number of Forward/Backward repetitions \n");
-    printf("\t -tbb \t use parallel version using tbb \n");
-    printf("\t -aff \t use affinity partitioner \n");
-    printf("\t -h \t help\n");
+    
+    clarg::arguments_descriptions(cout, "   ", "\n");    
 }
 
 int main(int argc, char **argv)
@@ -100,10 +95,11 @@ int main(int argc, char **argv)
         return 1;
     }
     
-    if (help.get_value()) {
+    if (!predio_file.was_set() || help.get_value()) {
         usage(argv[0]);
         return 1;
     }
+    
     vector<TPZSkylMatrix<STATE>* > * fTasks = get_sky_matrices();
     
 #ifdef USING_TBB
@@ -113,12 +109,15 @@ int main(int argc, char **argv)
     int nmatrices = fTasks->size();
     if (!usetbb.get_value()) {
         // serial decompose cholesky
+        dec_rst.start();
         cout << "----> Decompose_Cholesky" << endl;
         for (int i=0; i<nmatrices; i++) {
             (*fTasks)[i]->Decompose_Cholesky();
         }
+        dec_rst.stop();
         // serial Subst_Backward/Subst_Forward
         cout << "----> Subst_Backward/Subst_Forward" << endl;
+        sub_rst.start();
         for (int k=0; k<nloop.get_value();k++) {
             for (int i=0; i<nmatrices; i++) {
                 TPZFMatrix<REAL> f((*fTasks)[i]->Dim(),1,M_PI);
@@ -126,6 +125,7 @@ int main(int argc, char **argv)
                 (*fTasks)[i]->Subst_Backward(&f);
             }
         }
+        sub_rst.stop();
     } else {
 #ifdef USING_TBB
         
@@ -134,20 +134,23 @@ int main(int argc, char **argv)
         
         tbb::affinity_partitioner ap;
         cout << "----> Decompose_Cholesky" << endl;
+        dec_rst.start();
         if (aff_tbb.get_value())
             parallel_for(tbb::blocked_range<size_t>(0, nmatrices), disp, ap);
         else
             parallel_for(tbb::blocked_range<size_t>(0, nmatrices), disp);
-        
+        dec_rst.stop();
         tbb_substitution dispb;
         dispb.fTasks = fTasks;
         cout << "----> Subst_Backward/Subst_Forward" << endl;
+        sub_rst.start();
         for (int k=0; k<nloop.get_value();k++) {
             if (aff_tbb.get_value())
                 parallel_for(tbb::blocked_range<size_t>(0, nmatrices), dispb, ap);
             else
                 parallel_for(tbb::blocked_range<size_t>(0, nmatrices), dispb);
         }
+        sub_rst.stop();
 #else
         cout << "Compiled without TBB support." << endl;
 #endif
