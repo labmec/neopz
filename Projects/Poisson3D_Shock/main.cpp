@@ -142,7 +142,7 @@ bool SolveLaplaceProblemOnLShapeMesh();
 
 // Generic data for problems to solve
 bool usethreads = false;
-int MaxPOrder = 13;
+int MaxPOrder = 21;
 int MaxHLevel = 6;
 int MaxHUsed = 0;
 int MaxPUsed = 0;
@@ -293,15 +293,15 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case EPrisma:
 			case EPiramide:
 				MaxPOrder = 21;
-				NRefs = 15;
+				NRefs = 20;
 				break;
 			case ETetraedro:
 				MaxPOrder = 14;
 				NRefs = 13;
 				break;
 			default:
-				MaxPOrder = 25;
-				NRefs = 15;
+				MaxPOrder = 36;
+				NRefs = 25;
 				break;
 			}
 			// To storing number of equations and errors obtained for all iterations
@@ -444,12 +444,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL factorError = 0.5;
+	REAL factorError = 0.45;
 	if(nref > 3) {
 		factorError -= (nref-3)*0.05;
 	}
-	if(factorError < 0.2) factorError = 0.2;
-	REAL GradErLimit = 7.5;
+	if(factorError < 0.3) factorError = 0.3;
+	REAL GradErLimit = 9.;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
 	MaxGrad = gradervecbyel[nels];
@@ -515,12 +515,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL factorError = 0.5;
+	REAL factorError = 0.4;
 	if(nref > 3) {
 		factorError -= (nref-3)*0.05;
 	}
-	if(factorError < 0.1) factorError = 0.1;
-	REAL GradErLimit = 7.5;
+	if(factorError < 0.25) factorError = 0.25;
+	REAL GradErLimit = 9.;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
 	MaxGrad = gradervecbyel[nels];
