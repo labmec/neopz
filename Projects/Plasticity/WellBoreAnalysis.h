@@ -216,7 +216,7 @@ public:
     {
         std::set<long> elindices;
         fCurrentConfig.PRefineElementsAbove(sqj2, porder,elindices);
-        
+
         std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
@@ -311,6 +311,10 @@ public:
     /** by Caju 2013 */
     /// Returns a set of points that belongs to the isoline defined by the ginen J2 value
     void GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
+
+    int GetPostProcessNumber () {
+        return fPostProcessNumber;
+    }
     
 private:
     /// The object with the current configuration
