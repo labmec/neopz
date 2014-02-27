@@ -5,6 +5,8 @@
 #include "pzbfilestream.h"
 #include "arglib.h"
 
+#define USIN_NEW_SKYLMAT
+
 #ifdef USING_NEW_SKYLMAT
 
 /**
@@ -982,6 +984,62 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
   //if(Dim() > 100) cout << endl;
   return( 1 );
 }
+
+#ifdef USING_MKL
+/** Intel Math Kernel Library */
+#include <mkl.h> 
+
+/*********************/
+/*** Subst Forward ***/
+//
+//  Faz Ax = b, onde A e' triangular superior.
+//	Utilizando MKL
+template<>
+int
+TPZSkylMatrix<double>::Subst_Forward( TPZFMatrix<double> *B ) const
+{
+	if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
+	
+	int n = this->Dim();
+	TPZVec<int> pntr(n+1);
+
+	for (int i=0; i<n+1; i++)
+		pntr[i] = fElem[i] - &fStorage[0] + 1;
+
+	char desc[4] = { 'T', 'L', 'N', 'F' };
+	char trans = 'N';
+	double alfa = 1.0;
+
+	mkl_dskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,0), &(*B)(0,0));
+
+	return 1;
+}
+ 
+/*** Subst Backward ***/
+//  Perform Ax = b, where A is triangular inferior.
+//  Utilizando MKL
+template<>
+int TPZSkylMatrix<double>::Subst_Backward( TPZFMatrix<double> *B ) const
+{
+  if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
+	
+	int n = this->Dim();
+	TPZVec<int> pntr(n+1);
+
+	for (int i=0; i<n+1; i++)
+		pntr[i] = fElem[i] - &fStorage[0] + 1;
+
+	char desc[4] = { 'T', 'L', 'N', 'F' };
+	char trans = 'T';
+	double alfa = 1.0;
+
+	mkl_dskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,0), &(*B)(0,0));
+
+	return 1;
+}
+#endif
 
 /*** Subst Forward ***/
 //  Perform Ax = b, where A is triangular inferior.
