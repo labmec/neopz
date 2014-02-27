@@ -292,12 +292,12 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case ETriangle:
 			case EPrisma:
 			case EPiramide:
-				MaxPOrder = 21;
-				NRefs = 20;
+				MaxPOrder = 13;
+				NRefs = 15;
 				break;
 			case ETetraedro:
-				MaxPOrder = 14;
-				NRefs = 13;
+				MaxPOrder = 8;
+				NRefs = 10;
 				break;
 			default:
 				MaxPOrder = 36;
