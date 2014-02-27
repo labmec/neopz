@@ -125,9 +125,14 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     
 	if(gState == EActualState) //current state (n+1): Matrix stiffnes
     {
-        REAL actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
-        REAL actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
+        REAL actQl = 0.;
+        REAL actdQldp = 0.;
         
+        if(w > 0.)
+        {
+            actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
+            actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
+        }
         for(int in = 0; in < phipRows; in++)
         {
             //----Residuo----

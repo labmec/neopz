@@ -52,7 +52,7 @@ public:
         fTtot = Ttot;
         factTime = 0.;
         
-        fDeltaT_left = 40.;
+        fDeltaT_left = 10.;
         fDeltaT_right = Ttot + 10.;
         
         fwasLeftLastTime = true;
@@ -367,7 +367,7 @@ public:
     {
         if(IsInsideFractMat(matId) == false)
         {
-            std::cout << "\n\nGiven materialId does NOT belong to InsideFracture!!!\n\n";
+            std::cout << "\n\nGiven materialId (" << matId << ") does NOT belong to InsideFracture!!!\n\n";
             DebugStop();
         }
         

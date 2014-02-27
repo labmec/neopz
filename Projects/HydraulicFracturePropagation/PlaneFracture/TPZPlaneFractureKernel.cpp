@@ -148,6 +148,8 @@ void TPZPlaneFractureKernel::Run()
         {
             REAL maxKI = 0.;
             REAL respectiveKIc = 0.;
+            REAL maxKI_KIc = 0.;
+            
             std::set<int> whoPropagate;
 
             bool propagate = false;
@@ -159,8 +161,10 @@ void TPZPlaneFractureKernel::Run()
                 respectiveKIc = 0.;
                 whoPropagate.clear();
 
-                propagate = this->CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate);
-                std::cout << "maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n\n";
+                //propagate = this->CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate);
+                propagate = this->CheckPropagationCriteria2(maxKI_KIc, whoPropagate);
+                //std::cout << "maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n\n";
+                std::cout << "maxKI/respectiveKIc = " << maxKI_KIc << "\n\n";
                 
                 if(propagate == false)
                 {
@@ -180,7 +184,8 @@ void TPZPlaneFractureKernel::Run()
             
             {
                 this->CloseActualTimeStepUncoupled();
-                this->DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate);
+                //this->DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate);
+                this->DefinePropagatedPoligonalChain2(maxKI_KIc, whoPropagate);
                 this->fstep++;
             }
         }
@@ -312,23 +317,11 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     }
     TPZAnalysis * an = new TPZAnalysis(cmesh);
 
-    {
-        TPZSkylineStructMatrix skyl(cmesh); //caso simetrico
-        an->SetStructuralMatrix(skyl);
-        TPZStepSolver<REAL> stepS;
-        stepS.SetDirect(ECholesky);
-        an->SetSolver(stepS);
-    }
-    
-//    {
-//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > skyl(cmesh);
-//        skyl.SetQuiet(true);
-//        skyl.SetNumberOfThreads(4);
-//        an->SetStructuralMatrix(skyl);
-//        TPZStepSolver<REAL> stepS;
-//        stepS.SetDirect(ECholesky);
-//        an->SetSolver(stepS);
-//    }
+    TPZSkylineStructMatrix skyl(cmesh); //caso simetrico
+    an->SetStructuralMatrix(skyl);
+    TPZStepSolver<REAL> stepS;
+    stepS.SetDirect(ECholesky);
+    an->SetSolver(stepS);
     
     int NStripes = this->fPlaneFractureMesh->NStripes();
 
@@ -401,6 +394,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
     
     REAL maxKI = 0.;
     REAL respectiveKIc = 0.;
+    REAL maxKI_KIc = 0;
+    
     std::set<int> whoPropagate;
     
     bool propagate = false;
@@ -494,15 +489,18 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
                 
                 std::cout << "\nNegative W\n";
                 std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
+                PostProcessSolutions();
             }
             else
             {
-                propagate = this->CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate);
+                //propagate = this->CheckPropagationCriteria(maxKI, respectiveKIc, whoPropagate);
+                propagate = this->CheckPropagationCriteria2(maxKI_KIc, whoPropagate);
                 
                 if(propagate)
                 {
                     globTimeControl.TimeisOnRight();
-                    std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n";
+                    //std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI/respectiveKIc << "\n";
+                    std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI_KIc << "\n";
                     std::cout << "************* t está a Direita de KI=KIc *************\n";
                 }
                 else
@@ -531,7 +529,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
     
     this->CloseActualTimeStepCoupled();
     
-    this->DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate);
+    //this->DefinePropagatedPoligonalChain(maxKI, respectiveKIc, whoPropagate);
+    this->DefinePropagatedPoligonalChain2(maxKI_KIc, whoPropagate);
     
     this->fstep++;
 }
@@ -1269,6 +1268,7 @@ REAL TPZPlaneFractureKernel::ComputeVolInjected()
 }
 //------------------------------------------------------------------------------------------------------------
 
+/*
 bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
                                                       std::set<int> &whoPropagate)
 {
@@ -1325,7 +1325,63 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL &maxKI, REAL &respect
     return propagate;
 }
 //------------------------------------------------------------------------------------------------------------
+*/
 
+bool TPZPlaneFractureKernel::CheckPropagationCriteria2(REAL & maxKI_KIc, std::set<int> & whoPropagate)
+{
+    REAL meanPressureVal = this->MeanPressure();
+    this->fPath3D.SetPressure(meanPressureVal);
+    
+    std::cout << "\nMeanPressure = " << meanPressureVal << "\n\n";
+    
+    bool propagate = false;
+    
+    maxKI_KIc = 0.;
+    whoPropagate.clear();
+    
+    //Calculo das integrais-J
+    this->fPath3D.IntegratePath3D();
+    
+    //Calculo de KI
+    for(int p = 0; p < fPath3D.NPaths(); p++)
+    {
+        REAL cracktipKI = fPath3D.Path(p)->KI();
+        REAL cracktipKIc = fPath3D.Path(p)->KIc();
+        
+        {
+            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
+            TPZVec<REAL> Jdirection = this->fPath3D.Path(p)->JDirection();
+            TPZVec<REAL> ptTemp(3,0.), qsiTemp(2,0.);
+            ptTemp[0] = originVec[0] + 0.1 * Jdirection[0];
+            ptTemp[2] = originVec[2] + 0.1 * Jdirection[2];
+            
+            TPZGeoEl * gel = fPlaneFractureMesh->Find2DElementNearCrackTip(p, ptTemp);
+            if( !gel || globMaterialIdGen.IsInsideFractMat(gel->MaterialId()) )
+            {
+                //Nao serah propagado para pontos fora do dominio
+                //ou no interior da fratura (i.e., fechamento).
+                fPath3D.Path(p)->SetKI(0.);
+                cracktipKI = 0.;
+            }
+        }
+        
+        if(cracktipKI >= cracktipKIc)
+        {
+            propagate = true;
+            whoPropagate.insert(p);
+            
+            if(cracktipKI/cracktipKIc > maxKI_KIc)
+            {
+                maxKI_KIc = cracktipKI/cracktipKIc;
+            }
+        }
+    }
+    
+    return propagate;
+}
+//------------------------------------------------------------------------------------------------------------
+
+/*
 void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
                                                             std::set<int> &whoPropagate)
 {
@@ -1443,6 +1499,126 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL maxKI, REAL res
 //        outPolig << "return;\n";
 //        outPolig.close();
 //    }
+}
+//------------------------------------------------------------------------------------------------------------
+*/
+
+void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain2(REAL & maxKI_KIc, std::set<int> & whoPropagate)
+{
+    TPZVec< std::pair<REAL,REAL> > newPoligonalChain(0);
+    
+    std::set<int>::iterator it;
+    
+    REAL newX = 0.;
+    REAL newZ = 0.;
+    for(int p = 0; p < this->fPath3D.NPaths(); p++)
+    {
+        it = whoPropagate.find(p);
+        if(it == whoPropagate.end())
+        {//Nao propagou, portanto serah mantido o ponto medio
+            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
+            
+            newX = originVec[0];
+            newZ = originVec[2];
+        }
+        else
+        {//Propagou, portanto serah definido novo ponto a partir de seu centro
+            REAL KI = this->fPath3D.Path(p)->KI();
+            REAL KIc = this->fPath3D.Path(p)->KIc();
+            
+            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
+            TPZVec<REAL> Jdirection = this->fPath3D.Path(p)->JDirection();
+            
+            //Variacao linear no decorrer do tempo de fMaxDispl para fMinDispl
+            REAL alpha = 1.;//alphaMin = [1.0~2.0]
+            
+            REAL displacement = this->fMaxDispl * pow((KI/KIc)/(maxKI_KIc),alpha);
+            
+            newX = originVec[0] + displacement * Jdirection[0];
+            newZ = originVec[2] + displacement * Jdirection[2];
+        }
+        if(newX > fLmax/2.)
+        {
+            int oldSize = newPoligonalChain.NElements();
+            newPoligonalChain.Resize(oldSize+1);
+            newPoligonalChain[oldSize] = std::make_pair(newX,newZ);
+        }
+    }
+    
+    bool thereIsZigZag = true;
+    while(thereIsZigZag)
+    {
+        thereIsZigZag = this->RemoveZigZag(newPoligonalChain);
+    }
+    bool applyBezier = true;
+    if(applyBezier)
+    {
+        BezierCurve bz(newPoligonalChain);
+        
+        int npts = 50;
+        this->fpoligonalChain.Resize(npts);
+        for(int p = 0; p < npts; p++)
+        {
+            std::pair<REAL,REAL> pt;
+            REAL t = p/(double(npts-1));
+            bz.F(t, pt);
+            this->fpoligonalChain[p] = pt;
+        }
+    }
+    else
+    {
+        this->fpoligonalChain = newPoligonalChain;
+    }
+    
+    for(int p = 0; p < this->fpoligonalChain.NElements(); p++)
+    {
+        REAL x = this->fpoligonalChain[p].first;
+        REAL z = this->fpoligonalChain[p].second;
+        
+        REAL tol = 1.E-3;
+        if(z > this->fResTop - tol)
+        {
+            std::cout << "\n\nPoligonal chain reach the top limit of available domain!\n";
+            std::cout << "Simulation should stop!\n\n";
+            
+            std::ofstream outMath("GlobalProstProcess.txt");
+            globFractOutput3DData.PrintMathematica(outMath);
+            DebugStop();
+        }
+        if(z < this->fResBottom + tol)
+        {
+            std::cout << "\n\nPoligonal chain reach the bottom limit of available domain!\n";
+            std::cout << "Simulation should stop!\n\n";
+            
+            std::ofstream outMath("GlobalProstProcess.txt");
+            globFractOutput3DData.PrintMathematica(outMath);
+            DebugStop();
+        }
+        if(x > this->fResRight - tol)
+        {
+            std::cout << "\n\nPoligonal chain reach the right limit of available domain!\n";
+            std::cout << "Simulation should stop!\n\n";
+            
+            std::ofstream outMath("GlobalProstProcess.txt");
+            globFractOutput3DData.PrintMathematica(outMath);
+            DebugStop();
+        }
+    }
+    
+    //    {//C++ tool : AQUICAJU
+    //        std::stringstream nm;
+    //        nm << "PoligonalChain_Cpp_Step" << this->fstep  << ".txt";
+    //        std::ofstream outPolig(nm.str().c_str());
+    //
+    //        outPolig << "int npts = " << this->fpoligonalChain.NElements() << ";\n";
+    //        outPolig << "fpoligonalChain.Resize(npts);\n";
+    //        for(int p = 0; p < fpoligonalChain.NElements(); p++)
+    //        {
+    //            outPolig << "fpoligonalChain[" << p << "] = std::make_pair(" << this->fpoligonalChain[p].first << "," << this->fpoligonalChain[p].second << ");\n";
+    //        }
+    //        outPolig << "return;\n";
+    //        outPolig.close();
+    //    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1579,9 +1755,13 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
         
         //Verificacao importante!!!
         bool thereIsNegW = false;
+        REAL fracArea = this->Fracture1wing_Area();
+        
         REAL negVol = 0.;
         newVol = this->IntegrateW(thereIsNegW,negVol);
-        if(thereIsNegW && negVol < -1.E-3)
+        
+        REAL meanWneg = fabs(negVol/fracArea);
+        if(thereIsNegW && meanWneg > 1.E-4)
         {
             std::cout << "\n\nTransferencia de volumes resultou em w<0\n";
             std::cout << "volnegativo = " << negVol << "\nFoi gerado um vtk com a resposta elastica obtida.\n\n\n";
@@ -1605,7 +1785,7 @@ void TPZPlaneFractureKernel::TransferElasticSolution(REAL volAcum)
         {
             std::cout << "\n\n\nTransferência OK!!!\n";
         }
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
+        PutConstantPressureOnFluidSolution();
     }
 }
 //------------------------------------------------------------------------------------------------------------

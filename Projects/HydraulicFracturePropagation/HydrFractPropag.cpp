@@ -105,7 +105,7 @@ int main(int argc, char * const argv[])
     REAL MaxDispl = 4.;
     
     //NStripes
-    int nstripes = 1;
+    int nstripes = 2;
     
     bool pressureINdependent = true;
     bool UNcoupled = false;

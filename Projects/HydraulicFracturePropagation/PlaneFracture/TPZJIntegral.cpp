@@ -153,7 +153,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         qsi = it->second.second;
     }
 
-    TPZGeoEl * geoEl = fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
+    TPZGeoEl * geoEl = this->fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {
@@ -1223,12 +1223,12 @@ void JIntegral3D::IntegratePath3D(int p)
     fPath3DVec[p]->ComputeJIntegral();
     std::cout << p+1 << " of " << NPaths() << " ok!\n";
     
-//    std::cout << "Jvec" << p << " = { "
-//              << fPath3DVec[p]->JDirection()[0] << " , "
-//              << fPath3DVec[p]->JDirection()[2] << " };\n"
-//              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n"
-//              << "KI = " << fPath3DVec[p]->KI() << "\n"
-//              << "KI/KIc = " << fPath3DVec[p]->KI()/fPath3DVec[p]->KIc() << "\n\n\n";
+    std::cout << "Jvec" << p << " = { "
+              << fPath3DVec[p]->JDirection()[0] << " , "
+              << fPath3DVec[p]->JDirection()[2] << " };\n"
+              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n"
+              << "KI = " << fPath3DVec[p]->KI() << "\n"
+              << "KI/KIc = " << fPath3DVec[p]->KI()/fPath3DVec[p]->KIc() << "\n\n\n";
 }
 
 JIntegral2D::JIntegral2D()

@@ -137,15 +137,19 @@ protected:
     REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
-    bool CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
-                                  std::set<int> &whoPropagate_KI);
+//    bool CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
+//                                  std::set<int> &whoPropagate_KI);
+    
+    bool CheckPropagationCriteria2(REAL & maxKI_KIc, std::set<int> & whoPropagate);
     
     /**
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
      * @param whoPropagate_KI [in] : map that holds propagated crackTip indexes
      */
-    void DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
-                                        std::set<int> &whoPropagate_KI);
+//    void DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
+//                                        std::set<int> &whoPropagate_KI);
+    
+    void DefinePropagatedPoligonalChain2(REAL & maxKI_KIc, std::set<int> & whoPropagate);
     
     /**
      * Remove zig-zag from given poligonal chain.
