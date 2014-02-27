@@ -839,7 +839,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     int sideorder = SideOrder(side);
     if(sideorder != maxord && thisgeoside.Dimension() && largeside.Dimension())
     {
-    //    DebugStop();
+        DebugStop();
     }
 	TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side,maxord*2);
 	if(!intrule) {
