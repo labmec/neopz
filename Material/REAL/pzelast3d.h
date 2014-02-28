@@ -209,6 +209,11 @@ public:
         STATE mu = fE/(2.*(1.+fPoisson));
         return mu;
     }
+    
+    STATE GetPrestress(int index)
+    {
+        return this->fPreStress[index];
+    }
 	
 	protected :
 	
