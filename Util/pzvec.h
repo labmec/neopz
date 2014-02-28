@@ -14,6 +14,7 @@
 #include <cstdlib>
 
 #include <stdlib.h>
+#include <string.h>
 
 /// Overloading the operator <<
 inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &element)
