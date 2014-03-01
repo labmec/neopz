@@ -60,6 +60,9 @@ public:
         
         /// Compute the area of the domain
         REAL ComputeTotalArea();
+
+        /// Compute the removed area of the domain
+        REAL RemovedArea();
         
         /// Delete the elements with sqj2 above the given value;
         void DeleteElementsAbove(REAL sqj2);
@@ -154,7 +157,7 @@ public:
         /// Fluid pressure
         REAL fFluidPressure;
         
-        /// Geometric mesh
+        /// Geometric mesh3
         TPZGeoMesh fGMesh;
         
         /// Computational mesh
@@ -168,6 +171,9 @@ public:
         
         /// The post processing mesh with the transferred solution
         TPZPostProcAnalysis fPostprocess;
+
+        ///
+        std::string fHistoryLog;
         
     };
 

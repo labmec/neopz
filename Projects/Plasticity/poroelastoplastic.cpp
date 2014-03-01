@@ -1645,7 +1645,7 @@ int main ()
     //REAL innerradius = 4.25*0.0254;
     //REAL outerradius = 1.;
     REAL innerradius = 4.25*0.0254;
-    REAL outerradius = innerradius*2;
+    REAL outerradius = 3;
     REAL computedquarter = 7.05761678496926;
     REAL sqj2_refine = 0.0007;
     std::cout << std::setprecision(15);

@@ -195,9 +195,9 @@ void TPZWellBoreAnalysis::Read(TPZStream &input)
 void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 {
     TPZGeoMesh *gmesh = &obj.fCurrentConfig.fGMesh;
-    GeoMeshClass::WellBore2d(&obj.fCurrentConfig.fGMesh);
-    obj.fCurrentConfig.fInnerRadius = 0.1;
-    obj.fCurrentConfig.fOuterRadius = 1.;
+//    GeoMeshClass::WellBore2d(&obj.fCurrentConfig.fGMesh);
+    obj.fCurrentConfig.fInnerRadius = 4.25*0.0254;//0.1;
+    obj.fCurrentConfig.fOuterRadius = 3.;//1.;
     ofstream arg("wellgeomeshlog.txt");
     obj.fCurrentConfig.fGMesh.Print(arg);
     
@@ -207,20 +207,34 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     TPZCompMesh *compmesh1 = &obj.fCurrentConfig.fCMesh;
     
 //    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
+//    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = obj.fCurrentConfig.fSD;
     SD.SetResidualTolerance(1.e-10);
     SD.fIntegrTol = 10.;
-    
+
+
+
+    REAL poisson = 0.203;
+    REAL elast = 29269.;
+    REAL A = 152.54;
+    REAL B = 0.0015489;
+    REAL C = 146.29;
+    REAL R = 0.91969;
+    REAL D = 0.018768;
+    REAL W = 0.006605;
+    SD.SetUp(poisson, elast, A, B, C, R, D, W);
+
+
+
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
 	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
     //TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
     
-    obj.fCurrentConfig.fConfinement.XX() = -44.3;// MPa
-    obj.fCurrentConfig.fConfinement.YY() = -58.2;
-    obj.fCurrentConfig.fConfinement.ZZ() = -53.8;
-    obj.fCurrentConfig.fFluidPressure = 29.3;
+    obj.fCurrentConfig.fConfinement.XX() = -45.9;//-44.3;// MPa
+    obj.fCurrentConfig.fConfinement.YY() = -62.1;//-58.2;
+    obj.fCurrentConfig.fConfinement.ZZ() = -48.2;//-53.8;
+    obj.fCurrentConfig.fFluidPressure = 19.5;//29.3;
     
     
     TPZTensor<REAL> initstress,finalstress;
@@ -315,14 +329,14 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(), fSD(), fFluidPressure(0.),
-                    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2()
+                    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog()
 {
 }
 
 TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.fInnerRadius), fOuterRadius(conf.fOuterRadius),fNx(conf.fNx),fDelx(conf.fDelx),
     fGreater(conf.fGreater),fSmaller(conf.fSmaller),
         fConfinement(conf.fConfinement), fSD(conf.fSD), fFluidPressure(conf.fFluidPressure),
-        fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2)
+        fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog)
 {
     fGMesh.ResetReference();
     fCMesh.SetReference(&fGMesh);
@@ -349,6 +363,7 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fCMesh.SetReference(&fGMesh);
     fAllSol = copy.fAllSol;
     fPlasticDeformSqJ2 = copy.fPlasticDeformSqJ2;
+    fHistoryLog = copy.fHistoryLog;
     return *this;
 }
 
@@ -368,6 +383,7 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fCMesh.Write(out, 0);
     fAllSol.Write(out, 0);
     TPZSaveable::WriteObjects(out,fPlasticDeformSqJ2);
+    out.Write(&fHistoryLog);
 
     int verify = 83562;
     out.Write(&verify);
@@ -390,6 +406,7 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     fCMesh.Read(input, &fGMesh);
     fAllSol.Read(input, 0);
     TPZSaveable::ReadObjects(input,fPlasticDeformSqJ2);
+    input.Read(&fHistoryLog);
     CreatePostProcessingMesh();
 
     
@@ -1009,7 +1026,11 @@ REAL TPZWellBoreAnalysis::TConfig::OpeningAngle(REAL sqj2)
     return angle;
 }
 
-
+/// Compute the removed area of the domain
+REAL TPZWellBoreAnalysis::TConfig::RemovedArea()
+{
+    return -ComputeTotalArea()+M_PI*(fOuterRadius*fOuterRadius-fInnerRadius*fInnerRadius)/4.;
+}
 
 /// Compute the area of the domain
 REAL TPZWellBoreAnalysis::TConfig::ComputeTotalArea()
@@ -1625,7 +1646,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     std::string vtkFile = "pocoplastico.vtk";
     fPostprocess.SetCompMesh(&fCMesh);
     TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-    structmatrix.SetNumThreads(8);
+    structmatrix.SetNumThreads(0);
     fPostprocess.SetStructuralMatrix(structmatrix);
     
     TPZVec<int> PostProcMatIds(1,1);
@@ -1985,6 +2006,8 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
 
 void TPZWellBoreAnalysis::TConfig::CreateMesh()
 {
+    if ((fGMesh.NElements() != 0) || (fGMesh.NNodes() != 0)) DebugStop();
+
     TPZManVector<REAL,3> x0(3,fInnerRadius),x1(3,fOuterRadius);
     x0[1] = 0;
     x1[1] = M_PI_2;
@@ -2222,6 +2245,8 @@ REAL TPZWellBoreAnalysis::TConfig::MaxYfromLastBreakout()
 /// Initialize the Sandler DiMaggio object and create the computational mesh
 void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 {
+    if ((fCMesh.NElements() != 0) || (fCMesh.NConnects() != 0)) DebugStop();
+
     fCMesh.SetReference(&fGMesh);
     int defaultporder = porder;
     fCMesh.SetDefaultOrder(defaultporder);
