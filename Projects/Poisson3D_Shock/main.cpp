@@ -104,8 +104,6 @@ ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of
 
 int gDebug = 0;
 
-/** To identify localization of PZ resources */
-std::string Archivo = PZSOURCEDIR;
 
 /** Functions to construction of geometry of problems */
 TPZGeoMesh *CreateGeomMesh(MElementType typeel);
@@ -195,14 +193,14 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	time_t endtime;
 	int time_elapsed;
 	char time_formated[256];
-	char * p = time_formated;
+	char * ptime = time_formated;
 	memset(time_formated,0,256);
 	
 	// Output files
 	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
-	p = ctime(&sttime);
+	ptime = ctime(&sttime);
 	fileerrors << "Approximation Error in " << time_formated << std::endl;
 	
 	int nref = 1;
@@ -292,11 +290,11 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case ETriangle:
 			case EPrisma:
 			case EPiramide:
-				MaxPOrder = 13;
+				MaxPOrder = 20;
 				NRefs = 17;
 				break;
 			case ETetraedro:
-				MaxPOrder = 8;
+				MaxPOrder = 14;
 				NRefs = 17;
 				break;
 			default:
