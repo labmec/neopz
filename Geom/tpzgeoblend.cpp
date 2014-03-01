@@ -20,7 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
 {
-	if(!fNeighbours[side-TGeo::NNodes].ElementIndex() != -1)
+	if(!(fNeighbours[side-TGeo::NNodes].ElementIndex() != -1))
 	{
 		fNeighbours[side-TGeo::NNodes] = neigh;
 		fTrans[side - TGeo::NNodes] = trans;

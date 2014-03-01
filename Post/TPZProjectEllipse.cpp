@@ -272,7 +272,7 @@ void TPZProjectEllipse::PrintAxes(TPZFMatrix<REAL> &P,std::ostream &out) {
  */
 
 bool TPZProjectEllipse::StandardFormatForSimpleEllipse(TPZVec<REAL> &Center,TPZVec<REAL> &Ratios) {
-	int dim = Center.NElements();
+    //	int dim = Center.NElements();
 	int ncoeffs = fcoefficients.size();
 	REAL temp, temp1;
 	if(ncoeffs ==4) {
@@ -450,81 +450,81 @@ bool TPZProjectEllipse::AdjustingWithEllipse() {
  * that is, apply rotation on the axes.
  */
 /*
-bool TPZProjectEllipse::DiagonalizingQuadraticForm(TPZVec<REAL> &NewCoeffs,std::ostream &out) {
-    int dim = fPoints.Cols();
-	NewCoeffs.resize(2*dim+1);
-	// Changing signal
-	fcoefficients *= (-1.);
-	// Constructing a symmetric matrix
-	TPZFMatrix<REAL> A(dim,dim);
-	if(dim == 2) {
-		A(0,0) = Coeffs(0,0);
-		A(0,1) = A(1,0) = 0.5*Coeffs(2,0);
-		A(1,1) = 1.;
-	}
-	else {
-		A(0,0) = Coeffs(0,0);
-		A(0,1) = A(1,0) = 0.5*Coeffs(4,0);
-		A(1,1) = Coeffs(2,0);
-		A(2,2) = 1.;
-		A(0,2) = A(2,0) = 0.5*Coeffs(7,0);
-		A(1,2) = A(2,1) = 0.5*Coeffs(6,0);
-	}
-    
-	// Store the coefficients of the variables in the homogenous equation
-	TPZFMatrix<REAL> B(dim,1);
-	int nr, nc;
-	REAL F = Coeffs.GetVal(4+(dim-2)*4,0);
-	for(nr=0;nr<dim;nr++)
-		B.PutVal(nr,0,Coeffs.GetVal(2*nr+1,0));
-    
-	// Computing eigenvalues and eigenvectors
-	TPZVec<REAL> Eigenvalues(dim);
-	Coeffs.Redim(dim,dim);
-	REAL Tol, temp, norm;
-	ZeroTolerance(Tol);
-	long niter = 1000;
-    
-	if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
-		return false;                            // Could be some eigenvector a null vector
-    
-	// Verifying Eigenvalues must to be positives to be ellipse or ellipsoid
-	for(nr=0;nr<dim;nr++) {
-		if(Eigenvalues[nr] > 0.) continue;
-		return false;  // If some eigenvalue is zero it is parabole, if some of these are negative hyperbol
-	}
-	// Normalizing eigenvectors in matrix
-	for(nc=0;nc<dim;nc++) {
-		temp = 0.;
-		for(nr=0;nr<dim;nr++)
-			temp += Coeffs(nr,nc)*Coeffs(nr,nc);
-		norm = sqrt(temp);
-		for(nr=0;nr<dim;nr++)
-			Coeffs(nr,nc) *= (1./norm);
-	}
-	// The transpose of the ortogonal matrix is not necessary, it exists, is enough
-    
-	// Print the direction vectors for axes of the ellipse
-	PrintAxes(Coeffs,out);
-    
-	// Coefficients of the squares of the variables
-	for(nr=0;nr<dim;nr++)
-		NewCoeffs.PutVal(2*nr,0,Eigenvalues[nr]);
-    
-	// Coefficients of the variables (linear terms)
-	if(dim==2) {
-		temp = B(0,0)*Coeffs(0,0) + B(1,0)*Coeffs(0,1);
-		NewCoeffs.PutVal(1,0,temp);
-		temp = B(0,0)*Coeffs(1,0) + B(1,0)*Coeffs(1,1);
-		NewCoeffs.PutVal(3,0,temp);
-		NewCoeffs.PutVal(4,0,F);
-	}
-	else if(dim==3) {
-		temp = B(0,0)*Coeffs(0,0) + B(1,0)*Coeffs(0,1) + B(2,0)*Coeffs(0,2);
-		NewCoeffs.PutVal(1,0,temp);
-		//It is not complete
-	}
-    
-	return true;
-}
+ bool TPZProjectEllipse::DiagonalizingQuadraticForm(TPZVec<REAL> &NewCoeffs,std::ostream &out) {
+ int dim = fPoints.Cols();
+ NewCoeffs.resize(2*dim+1);
+ // Changing signal
+ fcoefficients *= (-1.);
+ // Constructing a symmetric matrix
+ TPZFMatrix<REAL> A(dim,dim);
+ if(dim == 2) {
+ A(0,0) = Coeffs(0,0);
+ A(0,1) = A(1,0) = 0.5*Coeffs(2,0);
+ A(1,1) = 1.;
+ }
+ else {
+ A(0,0) = Coeffs(0,0);
+ A(0,1) = A(1,0) = 0.5*Coeffs(4,0);
+ A(1,1) = Coeffs(2,0);
+ A(2,2) = 1.;
+ A(0,2) = A(2,0) = 0.5*Coeffs(7,0);
+ A(1,2) = A(2,1) = 0.5*Coeffs(6,0);
+ }
+ 
+ // Store the coefficients of the variables in the homogenous equation
+ TPZFMatrix<REAL> B(dim,1);
+ int nr, nc;
+ REAL F = Coeffs.GetVal(4+(dim-2)*4,0);
+ for(nr=0;nr<dim;nr++)
+ B.PutVal(nr,0,Coeffs.GetVal(2*nr+1,0));
+ 
+ // Computing eigenvalues and eigenvectors
+ TPZVec<REAL> Eigenvalues(dim);
+ Coeffs.Redim(dim,dim);
+ REAL Tol, temp, norm;
+ ZeroTolerance(Tol);
+ long niter = 1000;
+ 
+ if(!A.SolveEigensystemJacobi(niter,Tol,Eigenvalues,Coeffs))
+ return false;                            // Could be some eigenvector a null vector
+ 
+ // Verifying Eigenvalues must to be positives to be ellipse or ellipsoid
+ for(nr=0;nr<dim;nr++) {
+ if(Eigenvalues[nr] > 0.) continue;
+ return false;  // If some eigenvalue is zero it is parabole, if some of these are negative hyperbol
+ }
+ // Normalizing eigenvectors in matrix
+ for(nc=0;nc<dim;nc++) {
+ temp = 0.;
+ for(nr=0;nr<dim;nr++)
+ temp += Coeffs(nr,nc)*Coeffs(nr,nc);
+ norm = sqrt(temp);
+ for(nr=0;nr<dim;nr++)
+ Coeffs(nr,nc) *= (1./norm);
+ }
+ // The transpose of the ortogonal matrix is not necessary, it exists, is enough
+ 
+ // Print the direction vectors for axes of the ellipse
+ PrintAxes(Coeffs,out);
+ 
+ // Coefficients of the squares of the variables
+ for(nr=0;nr<dim;nr++)
+ NewCoeffs.PutVal(2*nr,0,Eigenvalues[nr]);
+ 
+ // Coefficients of the variables (linear terms)
+ if(dim==2) {
+ temp = B(0,0)*Coeffs(0,0) + B(1,0)*Coeffs(0,1);
+ NewCoeffs.PutVal(1,0,temp);
+ temp = B(0,0)*Coeffs(1,0) + B(1,0)*Coeffs(1,1);
+ NewCoeffs.PutVal(3,0,temp);
+ NewCoeffs.PutVal(4,0,F);
+ }
+ else if(dim==3) {
+ temp = B(0,0)*Coeffs(0,0) + B(1,0)*Coeffs(0,1) + B(2,0)*Coeffs(0,2);
+ NewCoeffs.PutVal(1,0,temp);
+ //It is not complete
+ }
+ 
+ return true;
+ }
  */

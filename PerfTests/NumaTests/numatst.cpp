@@ -280,9 +280,9 @@ break
     
     switch (mop.get_value()) {
             CASE_OP(0,Decompose_LDLt());
-            case 1:
-	      std::cerr << "ERROR: deprecated operation -- decompose LDLt2 is no longer implemented." << std::endl;
-	      break;
+        case 1:
+            std::cerr << "ERROR: deprecated operation -- decompose LDLt2 is no longer implemented." << std::endl;
+            break;
             CASE_OP(2,Decompose_Cholesky());
             CASE_OP(3,Decompose_Cholesky_blk(cholesky_blk.get_value()));
         default:

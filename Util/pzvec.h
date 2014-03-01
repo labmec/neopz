@@ -64,17 +64,17 @@ public:
 	
 	/** @brief destructor, will delete the storage allocated */
 	virtual ~TPZVec();
-
+    
 	void MigratePages() {
-	  migrate_to_local((char*) fStore, fNElements * sizeof(T));
+        migrate_to_local((char*) fStore, fNElements * sizeof(T));
 	}
 	void ReallocForNuma() {
-	  if (fNElements == 0 || fStore == NULL)
-	    return;
-	  T* newStore = new T[fNElements];
-	  memcpy(newStore,fStore,fNElements*sizeof(T));
-	  delete [] fStore;
-	  fStore = newStore;
+        if (fNElements == 0 || fStore == NULL)
+            return;
+        T* newStore = new T[fNElements];
+        memcpy((void*)newStore,fStore,fNElements*sizeof(T));
+        delete [] fStore;
+        fStore = newStore;
 	}
 	
 	/**
@@ -357,7 +357,7 @@ void TPZVec<T>::Resize(const long newsize,const T& object) {
 template< class T >
 void TPZVec<T>::Resize(const long newsize) {
 #ifndef NODEBUG
-//	long nlongsize = 2147483647;
+    //	long nlongsize = 2147483647;
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
 		PZError.flush();
@@ -370,8 +370,8 @@ void TPZVec<T>::Resize(const long newsize) {
 		PZError << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
 		std::cout << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
 		PZError.flush();
-//		DebugStop();
-//		return;
+        //		DebugStop();
+        //		return;
 	}
 #endif
 #endif
@@ -461,7 +461,7 @@ std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 
 inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<double,double> >& v )
 {
-
+    
 	Out << "{";
     
 	long size = v.NElements();

@@ -56,8 +56,8 @@ void TPZLinearConvecDiff::Contribute(TPZMaterialData &data,REAL weight,TPZFMatri
   TPZAxesTools<STATE>::Axes2XYZ(dphidaxes, dphi, data.axes);
 
   TPZVec<REAL>  &x = data.x;
-  TPZFMatrix<REAL> &axes = data.axes;
-  TPZFMatrix<REAL> &jacinv = data.jacinv;
+//  TPZFMatrix<REAL> &axes = data.axes;
+//  TPZFMatrix<REAL> &jacinv = data.jacinv;
   const int nshape = phi.Rows();
 
   STATE FVal = this->fXf;

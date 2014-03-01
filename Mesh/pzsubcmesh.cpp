@@ -429,7 +429,7 @@ long TPZSubCompMesh::GetFromSuperMesh(long superind, TPZCompMesh *super){
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-
+        
 		return j;
 	}
 }
@@ -752,7 +752,7 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
             for (int ic=0; ic<ncon ; ic++) {
                 long superind = left->ConnectIndex(ic);
                 left->Mesh()->PutinSuperMesh(superind, comm);
-                long subindex = GetFromSuperMesh(superind, comm);
+                //                long subindex = GetFromSuperMesh(superind, comm);
             }
         }
         {
@@ -762,11 +762,11 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
             for (int ic=0; ic<ncon ; ic++) {
                 long superind = right->ConnectIndex(ic);
                 right->Mesh()->PutinSuperMesh(superind, comm);
-                long subindex = GetFromSuperMesh(superind, comm);
+                //                long subindex = GetFromSuperMesh(superind, comm);
             }
         }
     }
-
+    
     if(cel->Reference())
     {
         TPZMaterial * matfather;
@@ -798,15 +798,15 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
     }
 	cel->SetMesh(this);
     /*
-	if(cel->Reference())
-	{
-		TPZMaterial * mat = cel->Material();
-		if(!mat)
-		{
-            father->CopyMaterials(*this);
-		}
-	}
-	*/
+     if(cel->Reference())
+     {
+     TPZMaterial * mat = cel->Material();
+     if(!mat)
+     {
+     father->CopyMaterials(*this);
+     }
+     }
+     */
 	//	int blocksize=mesh->ConnectVec()[elindex].NDof((TPZCompMesh *)mesh);
 	long newelind = fElementVec.AllocateNewElement();
 	fElementVec[newelind] = cel;
@@ -1114,8 +1114,8 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	else{
 		str = new TPZSkylineStructMatrix(this);
 	}
-		
-		SaddlePermute();
+    
+    SaddlePermute();
 	PermuteExternalConnects();
     
 	

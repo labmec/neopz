@@ -224,7 +224,7 @@ void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh){
 	{
 		TPZCompEl * compEl = cmesh.ElementVec()[el];
 		if(!compEl) continue;
-					
+        
         TPZInterpolationSpace * interpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
         if(!interpEl) continue;
         interpEl->CreateInterfaces();
@@ -250,14 +250,14 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
     fp[ECube] = TPZCompElDisc::CreateDisc;
     
     /*
-	pzgeom::TPZGeoPoint::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoLinear::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoQuad::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoTriangle::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoPrism::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoTetrahedra::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoPyramid::fp = TPZCompElDisc::CreateDisc;
-	pzgeom::TPZGeoCube::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoPoint::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoLinear::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoQuad::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoTriangle::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoPrism::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoTetrahedra::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoPyramid::fp = TPZCompElDisc::CreateDisc;
+     pzgeom::TPZGeoCube::fp = TPZCompElDisc::CreateDisc;
      */
 }
 
@@ -273,15 +273,15 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
     fp[ECube] = CreateCubeEl;
     
     /*
-	pzgeom::TPZGeoPoint::fp =  CreatePointEl;
-	pzgeom::TPZGeoLinear::fp =  CreateLinearEl;
-	pzgeom::TPZGeoQuad::fp = CreateQuadEl;
-	pzgeom::TPZGeoTriangle::fp =  CreateTriangleEl;
-	pzgeom::TPZGeoPrism::fp = CreatePrismEl;
-	pzgeom::TPZGeoTetrahedra::fp = CreateTetraEl;
-	pzgeom::TPZGeoPyramid::fp = CreatePyramEl;
-	pzgeom::TPZGeoCube::fp = CreateCubeEl;
-	*/
+     pzgeom::TPZGeoPoint::fp =  CreatePointEl;
+     pzgeom::TPZGeoLinear::fp =  CreateLinearEl;
+     pzgeom::TPZGeoQuad::fp = CreateQuadEl;
+     pzgeom::TPZGeoTriangle::fp =  CreateTriangleEl;
+     pzgeom::TPZGeoPrism::fp = CreatePrismEl;
+     pzgeom::TPZGeoTetrahedra::fp = CreateTetraEl;
+     pzgeom::TPZGeoPyramid::fp = CreatePyramEl;
+     pzgeom::TPZGeoCube::fp = CreateCubeEl;
+     */
 	
 }
 
@@ -296,7 +296,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
     fp[EPiramide] = CreatePyramElWithMem;
     fp[EPrisma] = CreatePrismElWithMem;
     fp[ECube] = CreateCubeElWithMem;
-
+    
 }
 
 
@@ -314,14 +314,14 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
     fp[ECube] = CreateHDivCubeEl;
     
     /*
-    pzgeom::TPZGeoPoint::fp =  CreateHDivPointEl;
-	pzgeom::TPZGeoLinear::fp =  CreateHDivLinearEl;
-	pzgeom::TPZGeoQuad::fp = CreateHDivQuadEl;
-	pzgeom::TPZGeoTriangle::fp =  CreateHDivTriangleEl;
-	pzgeom::TPZGeoPrism::fp = CreateHDivPrismEl;
-	pzgeom::TPZGeoTetrahedra::fp = CreateHDivTetraEl;
-	pzgeom::TPZGeoPyramid::fp = CreateHDivPyramEl;
-	pzgeom::TPZGeoCube::fp = CreateHDivCubeEl;
+     pzgeom::TPZGeoPoint::fp =  CreateHDivPointEl;
+     pzgeom::TPZGeoLinear::fp =  CreateHDivLinearEl;
+     pzgeom::TPZGeoQuad::fp = CreateHDivQuadEl;
+     pzgeom::TPZGeoTriangle::fp =  CreateHDivTriangleEl;
+     pzgeom::TPZGeoPrism::fp = CreateHDivPrismEl;
+     pzgeom::TPZGeoTetrahedra::fp = CreateHDivTetraEl;
+     pzgeom::TPZGeoPyramid::fp = CreateHDivPyramEl;
+     pzgeom::TPZGeoCube::fp = CreateHDivCubeEl;
      */
 }
 
@@ -346,7 +346,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(){
 #include "pzhdivpressure.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(){
-		
+    
     fp[EPoint] = CreateHDivPressurePointEl;
     fp[EOned] = CreateHDivPressureLinearEl;
     fp[ETriangle] = CreateHDivPressureTriangleEl;
@@ -356,7 +356,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(){
     fp[EPrisma] = CreateHDivPressurePrismEl;
     fp[ECube] = CreateHDivPressureCubeEl;
     
- }
+}
 #endif
 
 
@@ -374,14 +374,14 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuousReferred(){
     fp[ECube] = CreateReferredDisc;
     
     /*
-	pzgeom::TPZGeoPoint::fp =  CreateReferredDisc;
-	pzgeom::TPZGeoLinear::fp =  CreateReferredDisc;
-	pzgeom::TPZGeoQuad::fp = CreateReferredDisc;
-	pzgeom::TPZGeoTriangle::fp =  CreateReferredDisc;
-	pzgeom::TPZGeoPrism::fp = CreateReferredDisc;
-	pzgeom::TPZGeoTetrahedra::fp = CreateReferredDisc;
-	pzgeom::TPZGeoPyramid::fp = CreateReferredDisc;
-	pzgeom::TPZGeoCube::fp = CreateReferredDisc;
+     pzgeom::TPZGeoPoint::fp =  CreateReferredDisc;
+     pzgeom::TPZGeoLinear::fp =  CreateReferredDisc;
+     pzgeom::TPZGeoQuad::fp = CreateReferredDisc;
+     pzgeom::TPZGeoTriangle::fp =  CreateReferredDisc;
+     pzgeom::TPZGeoPrism::fp = CreateReferredDisc;
+     pzgeom::TPZGeoTetrahedra::fp = CreateReferredDisc;
+     pzgeom::TPZGeoPyramid::fp = CreateReferredDisc;
+     pzgeom::TPZGeoCube::fp = CreateReferredDisc;
      */
 }
 
@@ -397,14 +397,14 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousReferred(){
     fp[ECube] = CreateReferredCubeEl;
     
     /*
-	pzgeom::TPZGeoPoint::fp =  CreateReferredPointEl;
-	pzgeom::TPZGeoLinear::fp =  CreateReferredLinearEl;
-	pzgeom::TPZGeoQuad::fp = CreateReferredQuadEl;
-	pzgeom::TPZGeoTriangle::fp =  CreateReferredTriangleEl;
-	pzgeom::TPZGeoPrism::fp = CreateReferredPrismEl;
-	pzgeom::TPZGeoTetrahedra::fp = CreateReferredTetraEl;
-	pzgeom::TPZGeoPyramid::fp = CreateReferredPyramEl;
-	pzgeom::TPZGeoCube::fp = CreateReferredCubeEl;
+     pzgeom::TPZGeoPoint::fp =  CreateReferredPointEl;
+     pzgeom::TPZGeoLinear::fp =  CreateReferredLinearEl;
+     pzgeom::TPZGeoQuad::fp = CreateReferredQuadEl;
+     pzgeom::TPZGeoTriangle::fp =  CreateReferredTriangleEl;
+     pzgeom::TPZGeoPrism::fp = CreateReferredPrismEl;
+     pzgeom::TPZGeoTetrahedra::fp = CreateReferredTetraEl;
+     pzgeom::TPZGeoPyramid::fp = CreateReferredPyramEl;
+     pzgeom::TPZGeoCube::fp = CreateReferredCubeEl;
      */
 	
 }
@@ -422,14 +422,14 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
     fp[ECube] = CreateMultiphysicsCubeEl;
     
     /*
-	pzgeom::TPZGeoPoint::fp =  CreateMultiphysicsPointEl;
-	pzgeom::TPZGeoLinear::fp =  CreateMultiphysicsLinearEl;
-	pzgeom::TPZGeoTriangle::fp =  CreateMultiphysicsTriangleEl;
-	pzgeom::TPZGeoQuad::fp = CreateMultiphysicsQuadEl;
-	pzgeom::TPZGeoCube::fp = CreateMultiphysicsCubeEl;
-	pzgeom::TPZGeoPrism::fp = CreateMultiphysicsPrismEl;
-	pzgeom::TPZGeoTetrahedra::fp = CreateMultiphysicsTetraEl;
-	pzgeom::TPZGeoPyramid::fp = CreateMultiphysicsPyramEl;
+     pzgeom::TPZGeoPoint::fp =  CreateMultiphysicsPointEl;
+     pzgeom::TPZGeoLinear::fp =  CreateMultiphysicsLinearEl;
+     pzgeom::TPZGeoTriangle::fp =  CreateMultiphysicsTriangleEl;
+     pzgeom::TPZGeoQuad::fp = CreateMultiphysicsQuadEl;
+     pzgeom::TPZGeoCube::fp = CreateMultiphysicsCubeEl;
+     pzgeom::TPZGeoPrism::fp = CreateMultiphysicsPrismEl;
+     pzgeom::TPZGeoTetrahedra::fp = CreateMultiphysicsTetraEl;
+     pzgeom::TPZGeoPyramid::fp = CreateMultiphysicsPyramEl;
      */
 }
 
@@ -503,7 +503,7 @@ void TPZCreateApproximationSpace::CondenseLocalEquations(TPZCompMesh &cmesh)
         }
         new TPZCondensedCompEl(cel);
     }
-
+    
 }
 
 /**
@@ -567,7 +567,7 @@ void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
             int nstate = 1;
             int order = 0;
             long cindex2 = cmesh.AllocateNewConnect(nshape, nstate, order);
-//            TPZConnect &c2 = cmesh.ConnectVec()[cindex];
+            //            TPZConnect &c2 = cmesh.ConnectVec()[cindex];
             TPZFNMatrix<2,STATE> depmat(2,1,1.);
             c.AddDependency(cindex, cindex2, depmat, 0, 0, 2, 1);
         }
@@ -601,7 +601,7 @@ void TPZCreateApproximationSpace::UndoMakeRaviartThomas(TPZCompMesh &cmesh)
             if (nsconnects != 1) {
                 continue;
             }
-//            int cindex = intel->SideConnectIndex(0, is);
+            //            int cindex = intel->SideConnectIndex(0, is);
             TPZConnect &c = intel->Connect(intel->SideConnectLocId(0,is));
             if (c.HasDependency()) {
                 c.RemoveDepend();
@@ -662,8 +662,8 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         TPZCompElSide left, right;
         left = face->LeftElementSide();
         right = face->RightElementSide();
-        int leftmatid = left.Element()->Material()->Id();
-        int rightmatid = right.Element()->Material()->Id();
+        //        int leftmatid = left.Element()->Material()->Id();
+        //        int rightmatid = right.Element()->Material()->Id();
         TPZGeoEl *gelface = face->Reference();
         gelface = gelface->CreateBCGeoEl(gelface->NSides()-1, matid);
         delete face;
@@ -672,12 +672,12 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         TPZCompEl *newcel = cmesh.ElementVec()[index];
         gelface->ResetReference();
         TPZCompElSide center(newcel,gelface->NSides()-1);
+        //        
+        //        TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
+        //        TPZGeoEl *rightgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, rightmatid);
         
-        TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
-        TPZGeoEl *rightgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, rightmatid);
-        
-        TPZInterfaceElement *faceleft = new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
-        TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
+        //        TPZInterfaceElement *faceleft = new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
+        //        TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
         
     }
     cmesh.ExpandSolution();

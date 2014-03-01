@@ -78,7 +78,7 @@ int number_ (long *, long *nc, long *snode, long *lstnum, long *, long *adj, lon
     for (i = 1; i <= i__1; ++i)
     {
         node = q[i];
-        p[node] = s[node] - (xadj[node + 1] - xadj[node] + 1 << 1);
+        p[node] = s[node] - ((xadj[node + 1] - xadj[node] + 1) << 1);
         s[node] = -2;
 /* L10: */
     }

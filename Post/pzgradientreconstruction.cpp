@@ -46,7 +46,7 @@ TPZGradientReconstruction::TPZGradientReconstruction(const TPZGradientReconstruc
 }
 
 TPZGradientReconstruction &TPZGradientReconstruction::operator=(const TPZGradientReconstruction &copy){
-   
+    
     fGradData = copy.fGradData;
     fDistortedMesh = copy.fDistortedMesh;
     fparam = copy.fparam;
@@ -55,7 +55,7 @@ TPZGradientReconstruction &TPZGradientReconstruction::operator=(const TPZGradien
 
 void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *cmesh, int matidl2proj)
 {
-   // Redimensionando a matriz dos dados da reconstruca de gradientes
+    // Redimensionando a matriz dos dados da reconstruca de gradientes
     int dim  = cmesh->Dimension();
     int nelem = cmesh->NElements();
     
@@ -85,7 +85,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     
     TPZSkylineStructMatrix stmatrix(cmesh);
     TPZMatrix<STATE> *stiffmatrix = stmatrix.Create();
-
+    
     int matid;
     for(int i=0; i<nelem; i++)
     {
@@ -113,22 +113,22 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
         //change material id current to material id of the L2Projection
         matid = cel->Material()->Id();
         ChangeMaterialIdIntoCompElement(cel, matid, matidl2proj);
-
+        
         //set forcing function of l2 projection material
         TPZMaterial *mat = cel->Material();
         mat->SetForcingFunction(fp);
-
+        
         //load the matrix ek and vector ef of the element
         cel->CalcStiff(ek,ef);
-
-//        ek.fMat.Print("ek = ");
-//        ef.fMat.Print("ef = ");
+        
+        //        ek.fMat.Print("ek = ");
+        //        ef.fMat.Print("ef = ");
         
         //assemble pos l2 projection
         AssembleGlobalMatrix(cel, ek, ef, *stiffmatrix, rhs);
         
-//        stiffmatrix->Print("Matriz de Rigidez: ");
-//        rhs.Print("Right Handside: ");
+        //        stiffmatrix->Print("Matriz de Rigidez: ");
+        //        rhs.Print("Right Handside: ");
         
         //Return for original material and current solution of the mesh
         ChangeMaterialIdIntoCompElement(cel, matidl2proj, matid);
@@ -143,9 +143,9 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     cmesh->Solution().Zero();
     cmesh->LoadSolution(result);
     
-//    stiffmatrix->Print("MatKRG = ");
-//    rhs.Print("FComRG = ");
-//    result.Print("SolComRG = ");
+    //    stiffmatrix->Print("MatKRG = ");
+    //    rhs.Print("FComRG = ");
+    //    result.Print("SolComRG = ");
 }
 
 void TPZGradientReconstruction::ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid) {
@@ -254,7 +254,7 @@ void TPZGradientReconstruction::TPZGradientData::SetCel(TPZCompEl * cel, bool us
     fCenterPointCellAndNeighbors.resize(0);
     fCelAndNeighbors.resize(0);
     fCenterPointInterface.resize(0);
-
+    
     fdim = cel->Dimension();
     fUseWeight = useweight;
     fparamK = paramK;
@@ -316,7 +316,7 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
     sprintf(string, "\t%f", fSlopeLimiter);
     out << string<<"\n";
     
-
+    
     for (i=1; i<fSolCellAndNeighbors.size(); i++)
     {
         sprintf(string, "%s", name6);
@@ -348,20 +348,20 @@ void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const
         }
         out <<")\n";
     }
-
+    
 }
 
 
 void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(TPZCompEl *cel, TPZManVector<REAL,3> &xcenter, STATE &solcel)
 {
-// ---------- calculating center point -----------
+    // ---------- calculating center point -----------
     TPZGeoEl* gel = cel->Reference();
     TPZManVector<REAL> centerpsi(3,0.0);
     gel->CenterPoint(gel->NSides()-1,centerpsi);
     xcenter.Fill(0.);
     gel->X(centerpsi,xcenter);
     
-//-------- calculating cell averaged ------------
+    //-------- calculating cell averaged ------------
     int intOrder = cel->GetgOrder();
     TPZIntPoints *pointIntRule = ((TPZInterpolatedElement*)cel)->Reference()->CreateSideIntegrationRule((cel->Reference()->NSides())-1,intOrder);
     int it, npoints = pointIntRule->NPoints();
@@ -411,19 +411,19 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
     TPZManVector<REAL,3> xcenter(3);
     STATE cellaveraged;
     
-//------ Solution and center point of the cel -----------------
+    //------ Solution and center point of the cel -----------------
     GetCenterPointAndCellAveraged(cel,xcenter,cellaveraged);
     fCenterPointCellAndNeighbors.Push(xcenter);
     fSolCellAndNeighbors.Push(cellaveraged);
     
     
-//-------- Solution and center point of the neighbors, and center point of the interfaces ---------
+    //-------- Solution and center point of the neighbors, and center point of the interfaces ---------
     TPZStack<TPZCompElSide> neighequal,neighsmaller;
     TPZCompElSide neighbigger;
     int nneighs=0;
     TPZManVector<REAL,3> point(3,0.);
     TPZManVector<REAL,3> xpoint(3,0.);
-
+    
     int oldneighs=0;
     int newneighs=0;
     
@@ -514,7 +514,7 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
                     fCenterPointInterface.Push(xpoint);
                     continue;
                 }
-
+                
                 oldneighs = interfaces.size();
                 interfaces.insert(neighsmaller[i].Element());
                 newneighs = interfaces.size();
@@ -552,7 +552,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
     {
         DebugStop();
     }
-
+    
     int i, j;
 	fGradient.Resize(3, 0.);
 	
@@ -575,14 +575,14 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
         }
         DifSol(i,0) = fSolCellAndNeighbors[0] - fSolCellAndNeighbors[i+1];
     }
-
+    
     //insert weight
     if(fUseWeight==true)
     {
         ComputeWeights(fparamK);
         InsertWeights(DeltaXcenter, DifSol);
     }
-
+    
     TPZFMatrix<REAL> grad;
     grad.Redim(fdim, 1);
     
@@ -617,21 +617,21 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
 
 void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL> &matA,TPZFMatrix<REAL> &vecb)
 {
-//-------- Compute a QR factorization of a real	M-by-N matrix A = QR ---------
+    //-------- Compute a QR factorization of a real	M-by-N matrix A = QR ---------
     //On exit, the elements on and above the diagonal of the array
     //contain the min(M,N)-by-N upper trapezoidal matrix R (R is
     //upper triangular if m >= n); the elements below the diagonal,
     //with the array TAU, represent the orthogonal matrix Q as a
     //product of min(m,n) elementary reflectors
-
+    
     int m = matA.Rows();
     int n = matA.Cols();
     
-    int lda = m; //the leading dimension of the matA
-    double *tau = new double[n];//The scalar factors of the elementary reflectors
-    int lwork = n;
-    double *work = new double[n];
-    int info;
+    //    int lda = m; //the leading dimension of the matA
+    //    double *tau = new double[n];//The scalar factors of the elementary reflectors
+    //    int lwork = n;
+    //    double *work = new double[n];
+    //    int info;
     
     double *A = new double[m*n];
     for(int j = 0; j<n; j++){
@@ -645,7 +645,7 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
 #else
     DebugStop();
 #endif
-   
+    
     //matrix R: upper triangular
     matA.Redim(n, n);
     for(int j = 0; j<n; j++)
@@ -658,7 +658,7 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     //matA.Print("\n\n \tmtR = ");
     
     //metodo que retorna a matrix Q
-    int kk=n;
+    //    int kk=n;
     double *Q = new double[m*n];
     Q=A;
 #ifdef USING_LAPACK
@@ -666,7 +666,7 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
 #else
     DebugStop();
 #endif
-
+    
     TPZFMatrix<REAL> matQ;
     matQ.Redim(m, n);
     for(int j = 0; j<n; j++){
@@ -683,31 +683,31 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     vecb.Redim(res.Rows(), res.Cols());
     vecb = res;
     
-//------- Product of the transpose of matrix Q by b: Qˆt*vecb -------
+    //------- Product of the transpose of matrix Q by b: Qˆt*vecb -------
     /*
-    char side = 'L';
-    char Trans = 'T';
-    int nb = vecb.Cols();
-    int k = n;
-    
-    int ldc = m;
-    double work2[nb];
-    int lwork2 =nb;
-    
-    double *b = new double[m];
-    for (int i = 0; i<m; i++) {
-        b[i]=vecb(i,0);
-    }
-    
-    //o metodo nao explicita a matriz Q. Retorna Qˆt*b diretamente;
-    dormqr_(&side, &Trans, &m, &nb, &k, A, &lda, tau, b, &ldc, work2, &lwork2, &info);
-    
-    vecb.Redim(n, 1);
-    for(int j = 0; j<n; j++){
-        vecb(j,0)=b[j];
-    }
-    vecb.Print("\n\n \tmQˆt*b = ");
-    */
+     char side = 'L';
+     char Trans = 'T';
+     int nb = vecb.Cols();
+     int k = n;
+     
+     int ldc = m;
+     double work2[nb];
+     int lwork2 =nb;
+     
+     double *b = new double[m];
+     for (int i = 0; i<m; i++) {
+     b[i]=vecb(i,0);
+     }
+     
+     //o metodo nao explicita a matriz Q. Retorna Qˆt*b diretamente;
+     dormqr_(&side, &Trans, &m, &nb, &k, A, &lda, tau, b, &ldc, work2, &lwork2, &info);
+     
+     vecb.Redim(n, 1);
+     for(int j = 0; j<n; j++){
+     vecb(j,0)=b[j];
+     }
+     vecb.Print("\n\n \tmQˆt*b = ");
+     */
 }
 
 //Finite volume methods:foundation and analysis (chapter 3.3),Timothy Barth and Mario Ohlberge-2004
@@ -930,7 +930,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter3()
         {
             temp = (solKmax - solcel)/(solKside-solcel);
             temp = (temp*temp + 2.*temp)/(temp*temp + temp + 2.);
-
+            
         }
         else if(solKside - solcel < 1.e-12)
         {

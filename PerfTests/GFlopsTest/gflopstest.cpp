@@ -76,13 +76,13 @@ void process_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nt
 	unsigned chunk_sz = sz/nthreads;
 	unsigned start = 0;
 	
-#define MIN(a,b) (a)<(b)?(a):(b)
+#define MIN_T(a,b) (a)<(b)?(a):(b)
 	
 	for (unsigned i=0; i<nthreads; i++, start+=chunk_sz) {
 		thread_args[i].ara = &(ara[start]);
 		thread_args[i].arb = &(arb[start]);
 		thread_args[i].arc = &(arc[start]);
-		thread_args[i].sz  = MIN(chunk_sz,sz-start);
+		thread_args[i].sz  = MIN_T(chunk_sz,sz-start);
 	}
 	
 	/* Spaw threads */
@@ -128,11 +128,9 @@ void thread_map1(T* array, T (*map1)(T), unsigned sz, unsigned nthreads)
 	unsigned chunk_sz = sz/nthreads;
 	unsigned start = 0;
 	
-#define MIN(a,b) (a)<(b)?(a):(b)
-	
 	for (unsigned i=0; i<nthreads; i++, start+=chunk_sz) {
 		thread_args[i].array = &(array[start]);
-		thread_args[i].sub_sz = MIN(chunk_sz,sz-start);
+		thread_args[i].sub_sz = MIN_T(chunk_sz,sz-start);
 		thread_args[i].map_func = map1;
 	}
 	
