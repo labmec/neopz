@@ -604,7 +604,7 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
 template<> 
 void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<float> &y, TPZFMatrix<float> &z,
                                 const float alpha,const float beta,const int opt,const int stride) const {
-        
+    
 	if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows())) {
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
 		return;
@@ -706,8 +706,6 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
             }
         }
     }
-    
-        int a =0;
     
     if(!(rows*cols)) return;
     

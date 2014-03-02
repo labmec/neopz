@@ -1003,15 +1003,16 @@ TPZSkylMatrix<double>::Subst_Forward( TPZFMatrix<double> *B ) const
 	
 	int n = this->Dim();
 	TPZVec<int> pntr(n+1);
-
+    
 	for (int i=0; i<n+1; i++)
 		pntr[i] = fElem[i] - &fStorage[0] + 1;
-
+    
 	char desc[4] = { 'T', 'L', 'N', 'F' };
 	char trans = 'N';
 	double alfa = 1.0;
-
-	mkl_dskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,0), &(*B)(0,0));
+    
+	for(int j=0; j<B->Cols(); j++) 
+		mkl_dskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,j), &(*B)(0,j));
 
 	return 1;
 }
@@ -1027,16 +1028,64 @@ int TPZSkylMatrix<double>::Subst_Backward( TPZFMatrix<double> *B ) const
 	
 	int n = this->Dim();
 	TPZVec<int> pntr(n+1);
-
+    
 	for (int i=0; i<n+1; i++)
 		pntr[i] = fElem[i] - &fStorage[0] + 1;
-
+    
 	char desc[4] = { 'T', 'L', 'N', 'F' };
 	char trans = 'T';
 	double alfa = 1.0;
+    
+	for(int j=0; j<B->Cols(); j++) 
+		mkl_dskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,j), &(*B)(0,j));
 
-	mkl_dskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,0), &(*B)(0,0));
+	return 1;
+}
+template<>
+int
+TPZSkylMatrix<float>::Subst_Forward( TPZFMatrix<float> *B ) const
+{
+	if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
+	
+	int n = this->Dim();
+	TPZVec<int> pntr(n+1);
+    
+	for (int i=0; i<n+1; i++)
+		pntr[i] = fElem[i] - &fStorage[0] + 1;
+    
+	char desc[4] = { 'T', 'L', 'N', 'F' };
+	char trans = 'N';
+	float alfa = 1.0;
+    
+	for(int j=0; j<B->Cols(); j++) 
+		mkl_sskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,j), &(*B)(0,j));
+    
+	return 1;
+}
 
+/*** Subst Backward ***/
+//  Perform Ax = b, where A is triangular inferior.
+//  Utilizando MKL
+template<>
+int TPZSkylMatrix<float>::Subst_Backward( TPZFMatrix<float> *B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
+	
+	int n = this->Dim();
+	TPZVec<int> pntr(n+1);
+    
+	for (int i=0; i<n+1; i++)
+		pntr[i] = fElem[i] - &fStorage[0] + 1;
+    
+	char desc[4] = { 'T', 'L', 'N', 'F' };
+	char trans = 'T';
+	float alfa = 1.0;
+    
+	for(int j=0; j<B->Cols(); j++) 
+		mkl_sskysv(&trans, &n, &alfa, desc, &fStorage[0], &pntr[0], &(*B)(0,j), &(*B)(0,j));
+    
 	return 1;
 }
 #endif

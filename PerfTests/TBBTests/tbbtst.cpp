@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <algorithm>
 /**
  * PZ Includes
  */
@@ -86,6 +86,8 @@ void usage(char *prog)
     clarg::arguments_descriptions(cout, "   ", "\n");    
 }
 
+bool wayToSort(TPZSkylMatrix<REAL>* i, TPZSkylMatrix<REAL>* j) { return i->MemoryFootprint() > j->MemoryFootprint(); }
+
 int main(int argc, char **argv)
 {
     // parse the arguments
@@ -102,11 +104,28 @@ int main(int argc, char **argv)
     
     vector<TPZSkylMatrix<STATE>* > * fTasks = get_sky_matrices();
     
+    std::sort(fTasks->begin(), fTasks->end(), wayToSort);
+    for(int i=0; i<fTasks->size(); i++)
+    {    
+        cout << (*fTasks)[i]->MemoryFootprint() << endl;// = new TPZSkylMatrix<REAL>(*orig);
+    }
+    
+    
+    //   TPZSkylMatrix<REAL> *orig = (*fTasks)[0];
+    //   fTasks->clear();
+    //   fTasks->resize(nsub.get_value());
+    //   for(int i=0; i<fTasks->size(); i++)
+    /*   {    
+     (*fTasks)[i] = new TPZSkylMatrix<REAL>(*orig);
+     }
+     
+     cout << "The copied matrix has Memory Foot Print of : " << (orig->MemoryFootprint()/(1024*1024)) << " MBs" << endl;
+     */
 #ifdef USING_TBB
     tbb::task_scheduler_init init;
 #endif
     
-    int nmatrices = fTasks->size();
+    int nmatrices = 128; //nsub.get_value();//fTasks->size();
     if (!usetbb.get_value()) {
         // serial decompose cholesky
         dec_rst.start();
