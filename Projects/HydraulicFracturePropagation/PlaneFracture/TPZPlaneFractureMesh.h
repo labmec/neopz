@@ -33,137 +33,28 @@ const int __EdgeStretchesQTD = 10; //will be used for refpatterns
 /** @brief Multiplier of __EdgeStretchesQTD for fine edge intersection modulation */
 const int __TrimQTDmultiplier = 2; //will be used for searching direction between dots from poligonal chain
 
-struct TPZLayerProperties
-{
-public:
-    TPZLayerProperties()
-    {
-        fYoung = 0.;
-        fPoisson = 0.;
-        fSigmaMax = 0.;
-        fSigmaMin = 0.;
-        fSigmaConf = 0.;
-        fTVDini = 0.;
-        fTVDfin = 0.;
-        fKIc = 0.;
-        fCl = 0.;
-        fPe = 0.;
-        fgradPref = 0.;
-        fvsp = 0.;
-    }
-    
-    TPZLayerProperties(REAL Young, REAL Poisson, REAL SigMax, REAL SigMin, REAL SigConf, REAL TVDi, REAL TVDf,
-                       REAL KIc, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
-    {
-#ifdef DEBUG
-        REAL tol = 1.E-9;
-        if(SigMax > 0. + tol || SigMin > 0. + tol || SigConf > 0. + tol)
-        {
-            std::cout << "\n\nPre-stress must be null or compressive!\n";
-            std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
-            DebugStop();
-        }
-        if(Pe < 0. - tol)
-        {
-            std::cout << "\n\nStatic pressure (Pe) must be null or positive!\n";
-            std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
-            DebugStop();
-        }
-        if(gradPref < 0. + tol)
-        {
-            std::cout << "\n\nReference pressure (gradPref) must be positive!\n";
-            std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
-            DebugStop();
-        }
-#endif
-        
-        fYoung = Young;
-        fPoisson = Poisson;
-        fSigmaMax = SigMax;
-        fSigmaMin = SigMin;
-        fSigmaConf = SigConf;
-        fTVDini = TVDi;
-        fTVDfin = TVDf;
-        fKIc = KIc;
-        fCl = Cl;
-        fPe = Pe;
-        fgradPref = gradPref;
-        fvsp = vsp;
-    }
-    TPZLayerProperties(const TPZLayerProperties & cp)
-    {
-        fYoung = cp.fYoung;
-        fPoisson = cp.fPoisson;
-        fSigmaMax = cp.fSigmaMax;
-        fSigmaMin = cp.fSigmaMin;
-        fSigmaConf = cp.fSigmaConf;
-        fTVDini = cp.fTVDini;
-        fTVDfin = cp.fTVDfin;
-        fKIc = cp.fKIc;
-        fCl = cp.fCl;
-        fPe = cp.fPe;
-        fgradPref = 0.;
-        fvsp = cp.fvsp;
-    }
-    ~TPZLayerProperties()
-    {
-        fYoung = 0.;
-        fPoisson = 0.;
-        fSigmaMax = 0.;
-        fSigmaMin = 0.;
-        fSigmaConf = 0.;
-        fTVDini = 0.;
-        fTVDfin = 0.;
-        fKIc = 0.;
-        fCl = 0.;
-        fPe = 0.;
-        fgradPref = 0.;
-        fvsp = 0.;
-    }
-    
-    //Elastic 3D
-    REAL fYoung;
-    REAL fPoisson;
-    REAL fSigmaMax;
-    REAL fSigmaMin;
-    REAL fSigmaConf;
-    
-    //TVD limits
-    REAL fTVDini;
-    REAL fTVDfin;
-    
-    //SIF
-    REAL fKIc;
-    
-    //leafoff
-    REAL fCl;
-    REAL fPe;
-    REAL fgradPref;
-    REAL fvsp;
-};
-
 /** 
  * @brief Plane of the fracture. 
  * @author Cesar Lucci (Caju)
  * @since 09/08/2010
  */
 
-struct TPZFracture2DEl
+struct locFracture2DEl
 {
 public:
     
-    TPZFracture2DEl()
+    locFracture2DEl()
     {
         fEdge.clear();
         fElem2D = NULL;
     }
     
-    TPZFracture2DEl(TPZGeoEl * gel)
+    locFracture2DEl(TPZGeoEl * gel)
     {
         #ifdef DEBUG
         if(gel->HasSubElement())
         {
-            std::cout << "The special kind of element TPZFracture2DEl cant be already refined!\n";
+            std::cout << "The special kind of element locFracture2DEl cant be already refined!\n";
             std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
@@ -187,14 +78,14 @@ public:
         #ifdef DEBUG
         else
         {
-            std::cout << "The special kind of element TPZFracture2DEl can be just 2D!\n";
+            std::cout << "The special kind of element locFracture2DEl can be just 2D!\n";
             std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
         #endif
     }
     
-    ~TPZFracture2DEl()
+    ~locFracture2DEl()
     {
         fEdge.clear();
         fElem2D = NULL;
@@ -253,7 +144,7 @@ class TPZPlaneFractureMesh
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFractureMesh(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
+    TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
                          REAL xLength, REAL yLength, REAL Lmax, int nstripes);
     
 	~TPZPlaneFractureMesh();
@@ -283,9 +174,17 @@ class TPZPlaneFractureMesh
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder);
     
-    void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
+    bool SetNewmanByLayer(TPZCompMesh * cmeshref,
+                          int actLayer,
+                          int actStripe);
+    
+    bool SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
+                                     REAL prestressApplied,
+                                     int actStripe);
     
     int NStripes();
+    
+    int NInsideFractLayers();
     
     void SetActualState();
     
@@ -301,20 +200,7 @@ class TPZPlaneFractureMesh
     
     TPZGeoEl * Find2DElementNearCrackTip(int posCrackTip, TPZVec<REAL> & x);
     
-    REAL Max_MinCompressiveStress()
-    {
-        return fmax_minCompressiveStress;
-    }
-    
-    static REAL StressApplied()
-    {
-        return 1.E7 * globStressScale;
-    }
-    
 protected:
-    
-    //** Returns the layer index based on zMed (will be used fabs(zMed), i.e., TVD) */
-    int GetLayer(REAL zMed);
     
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
@@ -468,6 +354,8 @@ protected:
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
      */
     void SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh);
+    
+    void InitializeGlobLayerStruct_PrestressYYandLayers();
 	
     //-------------------------------------------------------------------------------
 	
@@ -476,9 +364,6 @@ protected:
 
     /** @brief Refined 3D mesh (preserved mesh after refinement provided from poligonalChain configuration) */
     TPZGeoMesh * fRefinedMesh;
-    
-    /** @brief Vector of layers struct */
-    TPZVec<TPZLayerProperties> fLayerVec;
     
     /** @brief 1D elements Indexes that compose crack boundary */
     TPZVec<long> fcrackBoundaryElementsIndexes;
@@ -494,9 +379,6 @@ protected:
     
     /** @brief Amount of stripes of pressure */
     int fnstripes;
-    
-    /** @brief Maximum compressive stress in fracture plane */
-    REAL fmax_minCompressiveStress;
     
     /** @brief Vector of coupling material */
     TPZVec<TPZPlaneFractCouplingMat *> fCouplingMatVec;

@@ -45,8 +45,6 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic,
     fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI)/2.));
     
     f_t_elIndexqsi_Elastic.clear();
-    
-    fPressure = 0.;
 }
 
 LinearPath3D::LinearPath3D(LinearPath3D * cp)
@@ -61,8 +59,6 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
     fcmeshElastic = cp->fcmeshElastic;
     
     f_t_elIndexqsi_Elastic.clear();
-    
-    fPressure = cp->fPressure;
 }
 
 LinearPath3D::~LinearPath3D()
@@ -192,17 +188,43 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     //          last is IDENTITY in PZ (because is 3D element).
     GradUtxy = data.dsol[0];
     
-    Sigma_n[1] = this->fPressure;
+    {
+        TPZGeoEl * geoEl2D = this->fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
+        int insideMatId = geoEl2D->MaterialId();
+        
+        if(globMaterialIdGen.IsInsideFractMat(insideMatId) == false)
+        {
+            bool found = false;
+            for(int s = geoEl2D->NNodes(); s < geoEl2D->NSides(); s++)
+            {
+                if(found)
+                {
+                    break;
+                }
+                
+                TPZGeoElSide elSide(geoEl2D,s);
+                TPZGeoElSide neighSide(elSide.Neighbour());
+                while(neighSide != elSide)
+                {
+                    if(globMaterialIdGen.IsInsideFractMat(neighSide.Element()->MaterialId()))
+                    {
+                        found = true;
+                        insideMatId = neighSide.Element()->MaterialId();
+                        break;
+                    }
+                    neighSide = neighSide.Neighbour();
+                }
+            }
+        }
+        int layer = globMaterialIdGen.WhatLayerFromInsideFracture(insideMatId);
+        int stripe = globMaterialIdGen.WhatStripe(insideMatId);
+        Sigma_n[1] = globLayerStruct.GetStressAppliedJustForJIntegral(layer,stripe);
+    }
     
     TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());
     REAL young = mat3d->GetE();
     
     return young;
-}
-
-void LinearPath3D::SetPressure(REAL pressure)
-{
-    this->fPressure = pressure;
 }
 
 //-------------------------class LinearPath2D
@@ -1041,11 +1063,6 @@ Path3D::~Path3D()
     fJintegral = 0.;
 }
 
-void Path3D::SetPressure(REAL pressure)
-{
-    this->fLinearPath3D->SetPressure(pressure);
-}
-
 void Path3D::ComputeJIntegral()
 {
     Adapt intRule(gIntegrPrecision);
@@ -1167,7 +1184,6 @@ void Path2D::ComputeJIntegral()
 JIntegral3D::JIntegral3D()
 {
     fPath3DVec.Resize(0);
-    this->fPressureAlreadySet = false;
 }
 
 JIntegral3D::~JIntegral3D()
@@ -1178,16 +1194,6 @@ JIntegral3D::~JIntegral3D()
 void JIntegral3D::Reset()
 {
     fPath3DVec.Resize(0);
-    this->fPressureAlreadySet = false;
-}
-
-void JIntegral3D::SetPressure(REAL pressure)
-{
-    for(int p = 0; p < this->NPaths(); p++)
-    {
-        this->fPath3DVec[p]->SetPressure(pressure);
-    }
-    this->fPressureAlreadySet = true;
 }
 
 int JIntegral3D::NPaths()
@@ -1204,13 +1210,7 @@ void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
 
 void JIntegral3D::IntegratePath3D()
 {
-    std::cout << ">>>> Computing J-integral (Tot = " << NPaths() << ")\n";
-    
-    if(this->fPressureAlreadySet == false)
-    {
-        std::cout << "\nIntegratePath3D() called without pressure seted!!!\n\n\n";
-        DebugStop();
-    }
+    std::cout << "\n>>>> Computing J-integral (Tot = " << NPaths() << ")\n";
     
     for(int p = 0; p < NPaths(); p++)
     {
@@ -1228,7 +1228,7 @@ void JIntegral3D::IntegratePath3D(int p)
               << fPath3DVec[p]->JDirection()[2] << " };\n"
               << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n"
               << "KI = " << fPath3DVec[p]->KI() << "\n"
-              << "KI/KIc = " << fPath3DVec[p]->KI()/fPath3DVec[p]->KIc() << "\n\n\n";
+              << "KI/KIc = " << fPath3DVec[p]->KI()/fPath3DVec[p]->KIc() << "\n\n";
 }
 
 JIntegral2D::JIntegral2D()

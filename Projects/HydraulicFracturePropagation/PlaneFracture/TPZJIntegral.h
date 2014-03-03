@@ -53,8 +53,6 @@ public:
     
     virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     
-    virtual void SetPressure(REAL pressure);
-    
 protected:
     
     /** Initial point of Line */
@@ -80,8 +78,6 @@ protected:
     
     /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
-    
-    REAL fPressure;
 };
 
 
@@ -264,8 +260,6 @@ public:
     
     ~Path3D();
     
-    void SetPressure(REAL pressure);
-    
     void ComputeJIntegral();
     
     REAL OriginZcoord()
@@ -362,8 +356,6 @@ public:
     
     void Reset();
     
-    void SetPressure(REAL pressure);
-    
     int NPaths();
     
     virtual void PushBackPath3D(Path3D *Path3DElem);
@@ -380,8 +372,6 @@ private:
     virtual void IntegratePath3D(int p);
     
     TPZVec<Path3D*> fPath3DVec;
-    
-    bool fPressureAlreadySet;
 };
 
 

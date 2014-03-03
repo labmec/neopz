@@ -35,7 +35,7 @@ int main(int argc, char * const argv[])
     REAL Lmax = 2.0;
     
     //Material data
-    TPZVec<TPZLayerProperties> layerVec(3);
+    TPZVec<LayerProperties> layerVec(3);
     
     REAL Young0 = 4.2747495136E10 * globStressScale;
     REAL Poisson0 = 0.25;
@@ -89,9 +89,9 @@ int main(int argc, char * const argv[])
     REAL gradPref2 = 1.;
     REAL vsp2 = 0.;
     
-    layerVec[0] = TPZLayerProperties(Young0, Poisson0, SigMax0, SigMin0, SigConf0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0);
-    layerVec[1] = TPZLayerProperties(Young1, Poisson1, SigMax1, SigMin1, SigConf1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1);
-    layerVec[2] = TPZLayerProperties(Young2, Poisson2, SigMax2, SigMin2, SigConf2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
+    layerVec[0] = LayerProperties(Young0, Poisson0, SigMax0, SigMin0, SigConf0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0);
+    layerVec[1] = LayerProperties(Young1, Poisson1, SigMax1, SigMin1, SigConf1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1);
+    layerVec[2] = LayerProperties(Young2, Poisson2, SigMax2, SigMin2, SigConf2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
     
     //Fluid injection data
     REAL QinjWell = 1.*(-0.0533333333333);//m3/s (1.* pois os 80 bpm jah eh no poco e nao 1 wing)
@@ -105,7 +105,12 @@ int main(int argc, char * const argv[])
     REAL MaxDispl = 4.;
     
     //NStripes
-    int nstripes = 2;
+    int nstripes = 1;
+    
+    //Always good to remember:
+    //  - A malha de espacos reduzidos estah com Prestress = 0 pois a integral-J nao incluirah a translacao do prestress
+    //  - Da mesma forma, o metodo LayerStruct::GetStressAppliedJustForJIntegral subtrai 1 da solucao (removendo 1x o prestress aplicado)
+    //  - Na definicao da geometria propagada, todos os pontos estao sendo movidos (inclusive os que KI < KIc) para evirar descontinuidade
     
     bool pressureINdependent = true;
     bool UNcoupled = false;
@@ -114,10 +119,16 @@ int main(int argc, char * const argv[])
                                                                  Jradius,
                                                                  porder,
                                                                  MaxDispl,
-                                                                 pressureINdependent,
-                                                                 UNcoupled);
+                                                                 pressureINdependent);
 
-    plfrac->Run();
+    if(UNcoupled)
+    {
+        plfrac->RunUncoupled();
+    }
+    else
+    {
+        plfrac->RunCoupled();
+    }
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");
 //    gRefDBase.WriteRefPatternDBase(outRefP);

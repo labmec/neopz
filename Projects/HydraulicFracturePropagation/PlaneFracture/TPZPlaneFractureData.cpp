@@ -462,3 +462,4 @@ MaterialIdGen globMaterialIdGen;
 
 Output3DDataStruct globFractOutput3DData;
 
+LayerStruct globLayerStruct;

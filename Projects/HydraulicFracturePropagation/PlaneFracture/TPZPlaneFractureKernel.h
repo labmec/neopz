@@ -13,6 +13,7 @@
 
 #include "TPZPlaneFractureMesh.h"
 #include "TPZJIntegral.h"
+#include "pzanalysis.h"
 
 class TPZPlaneFractureKernel
 {
@@ -34,21 +35,20 @@ public:
      * @param porder [in] : polinomial order of simulation
      * @param MaxDispl [in] : Maximum displacement when fracture propagate
      * @param pressureIndependent [in] : Flag that mean if leakoff is pressure independent
-     * @param uncoupled [in] : Flag that means if the kernel will solve fracture propagation just using elasticity and leakoff (nstripes must be 1)
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
-    TPZPlaneFractureKernel(TPZVec<TPZLayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
+    TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                            REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
                            REAL Jradius,
                            int porder,
                            REAL MaxDispl,
-                           bool pressureIndependent,
-                           bool uncoupled);
+                           bool pressureIndependent);
     
     ~TPZPlaneFractureKernel();
     
-    void Run();
+    void RunCoupled();
+    void RunUncoupled();
     
 protected:
     
@@ -69,7 +69,6 @@ protected:
      */
     void RunThisFractureGeometry(REAL & volAcum, bool justTransferingElasticSolution = false);
     
-    REAL PredictFractVolume_WithNonNegativeUy();
     void PredictActDeltaT(REAL fractVolum);
     
     void CloseActualTimeStepUncoupled();
@@ -86,9 +85,11 @@ protected:
      * @param matK [out] : stiff matrix
      * @param matRes [out] : load vector (in matrix form)
      */
-    void AssembleStiffMatrixLoadVec(TPZAnalysis *an,
-                                    TPZAutoPointer< TPZMatrix<REAL> > & matK, TPZFMatrix<REAL> & matRes,
-                                    long &posBlock);
+    void AssembleStiffMatrixLoadVec(TPZAnalysis * an,
+                                    TPZAutoPointer< TPZMatrix<REAL> > & matK,
+                                    TPZFMatrix<REAL> & matRes);
+    
+    void ApplyEquationFilter(TPZAnalysis * an);
     
     /**
      * @brief Method that will compute the mass matrix for last time step
@@ -101,8 +102,8 @@ protected:
     
     void UpdateLeakoff();
     
-    void PostProcessAllPressureIndependent();
-    void PostProcessAllPressureDependent();
+    void PostProcessAll_Uncoupled();
+    void PostProcessAll_Coupled();
     
     void PostProcessSolutions();
     
@@ -123,8 +124,7 @@ protected:
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     // = 2. * Integral(uy_insideFracture)
-    REAL IntegrateW();
-    REAL IntegrateW(bool & thereWasNegativeW, REAL &negVol);
+    REAL IntegrateW(bool & thereIsNegW);
     
     /** 1 face from 1 wing fracture area */
     //Be aware that this area is of all fracture, not just permeable portion!!!
@@ -137,19 +137,13 @@ protected:
     REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
-//    bool CheckPropagationCriteria(REAL &maxKI, REAL &respectiveKIc,
-//                                  std::set<int> &whoPropagate_KI);
-    
-    bool CheckPropagationCriteria2(REAL & maxKI_KIc, std::set<int> & whoPropagate);
+    bool CheckPropagationCriteria(REAL & maxKI_KIc, std::set<int> & whoPropagate, TPZFMatrix<REAL> & ElastReducedSolution);
     
     /**
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
      * @param whoPropagate_KI [in] : map that holds propagated crackTip indexes
      */
-//    void DefinePropagatedPoligonalChain(REAL maxKI, REAL respectiveKIc,
-//                                        std::set<int> &whoPropagate_KI);
-    
-    void DefinePropagatedPoligonalChain2(REAL & maxKI_KIc, std::set<int> & whoPropagate);
+    void DefinePropagatedPoligonalChain(REAL & maxKI_KIc, std::set<int> & whoPropagate);
     
     /**
      * Remove zig-zag from given poligonal chain.
@@ -195,8 +189,6 @@ protected:
     REAL fMaxDispl;
     
     JIntegral3D fPath3D;
-    
-    bool fUncoupled;
     
     int actColor;
     static const std::string color[];
