@@ -206,6 +206,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
 //        TPZVTKGeoMesh::PrintGMeshVTK(fRefinedMesh, outRefinedMesh, true);
+//        DebugStop();
 //    }
 }
 //------------------------------------------------------------------------------------------------------------

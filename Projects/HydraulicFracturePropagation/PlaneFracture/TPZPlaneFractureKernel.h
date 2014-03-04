@@ -152,6 +152,8 @@ protected:
      */
     bool RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain);
     
+    void RemoveLayerInvasion(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain);
+    
     void TransferElasticSolution(REAL volAcum);
     
     /**
@@ -210,6 +212,8 @@ protected:
     
     int forder;
     TPZVec< std::pair< REAL,REAL > > fPoligonalChain;
+    
+    REAL falphaL;
 };
 
 

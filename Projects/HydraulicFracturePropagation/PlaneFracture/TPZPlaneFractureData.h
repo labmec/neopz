@@ -586,7 +586,6 @@ public:
     
     void ResetData()
     {
-        this->fnActLayersSet = 1;
         this->f_NactLay_Lay_Stripe_solutionRow.clear();
         this->fElastReducedSolution.Resize(0,0);
         this->fStressApplied.Resize(1);
@@ -639,6 +638,11 @@ public:
                 this->f_NactLay_Lay_Stripe_solutionRow[nActLay][layer][stripe] = row;
             }
         }
+    }
+    
+    void SetNActLayers(int nactL)
+    {
+        this->fnActLayersSet = nactL;
     }
     
     void BuildActiveEquationsMap()
@@ -735,11 +739,6 @@ public:
         this->fElastReducedSolution = solution;
     }
     
-    void SetNActLayersSet(int nActLayersSet)
-    {
-        this->fnActLayersSet = nActLayersSet;
-    }
-    
     void InsertPrestressYYandLayer(REAL prestressYY, int lay)
     {
         std::map<REAL,std::set<int> >::iterator it = this->fPrestressYY_layIndex.find(-prestressYY);
@@ -801,21 +800,29 @@ public:
     
     REAL GetStressAppliedJustForJIntegral(int layer, int stripe)
     {
-        int solutionRow = this->GetSolutionRow(layer,stripe);
+        std::map<REAL,std::set<int> >::iterator itLowestSigYY = this->fPrestressYY_layIndex.begin();
+        std::set<int>::iterator itAnyLayer = itLowestSigYY->second.begin();
+        int weakerLayer = *itAnyLayer;
+        int weakerLayerSolutionRow = this->GetSolutionRow(weakerLayer,stripe);
         
-        //O (-1) eh porque a integral-J nao inclui a translacao do pre-stress
+        if(f_NactLay_solutionRowsTurnedOn.find(this->fnActLayersSet)->second.find(weakerLayerSolutionRow) ==
+           f_NactLay_solutionRowsTurnedOn.find(this->fnActLayersSet)->second.end())
+        {
+            std::cout << "\nnActLayersSet = " << this->fnActLayersSet << "\n";
+            std::cout << "weakerLayer = " << weakerLayer << "\n";
+            std::cout << "weakerLayerSolutionRow = " << weakerLayerSolutionRow << "\n";
+            std::cout << "\n\nCamada mais fraca nao estah com equacao ligada!!!\n\n\n";
+            DebugStop();
+        }
+        
+        REAL sol = this->fElastReducedSolution(weakerLayerSolutionRow,0);
+        REAL stressApplied = this->fStressApplied[weakerLayerSolutionRow];
+        
+        //Eh porque a integral-J nao inclui a translacao do pre-stress
         //(ver TPZPlaneFractureMesh::GetFractureCompMeshReferred)
-        REAL sol = this->fElastReducedSolution(solutionRow,0) - 1.;
-        REAL stressApplied = this->fStressApplied[solutionRow];
-        
-        REAL cellStressApllied = sol*stressApplied;
+        REAL cellStressApllied = sol*stressApplied - fabs(this->fLayerVec[layer].fSigmaMin);
         
         return cellStressApllied;
-    }
-    
-    void SetNActLayers(int nactL)
-    {
-        this->fnActLayersSet = nactL;
     }
     
     int GetNActLayers()
@@ -896,10 +903,9 @@ public:
         return -1;
     }
     
-    void Print_NactLay_Lay_Stripe_solutionRow()
+    void PrintMe()
     {
-        std::cout << "\nNactLay\tLay\tStripe\trow\n";
-        
+        std::cout << "\nEquations structure:\nNactLay\tLay\tStripe\trow\n";
         std::map< int,std::map< int,std::map<int,int> > >::iterator itNactLay;
         std::map< int,std::map<int,int> >::iterator itLay;
         std::map<int,int>::iterator itStripe;
@@ -931,6 +937,29 @@ public:
                 }
             }
             std::cout << "-------------------------------\n";
+        }
+        
+        std::cout << "\nStress applied in each equation:\n\n";
+        for(int i = 0; i < this->fStressApplied.NElements(); i++)
+        {
+            std::cout << "Eq. row " << i << " | stressApplied = " << this->fStressApplied[i] << "\n";
+        }
+        
+        std::cout << "\nPrestressYY_layIndex\n\n";
+        std::map<REAL,std::set<int> >::iterator itPre;
+        for(itPre = this->fPrestressYY_layIndex.begin();
+            itPre != this->fPrestressYY_layIndex.end();
+            itPre++)
+        {
+            std::cout << itPre->first << ": ";
+            std::set<int>::iterator itPreLayer;
+            for(itPreLayer = itPre->second.begin();
+                itPreLayer != itPre->second.end();
+                itPreLayer++)
+            {
+                std::cout << *itPreLayer << "\t";
+            }
+            std::cout << "\n";
         }
     }
     

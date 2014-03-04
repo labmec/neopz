@@ -216,6 +216,11 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
                 }
             }
         }
+        if(globMaterialIdGen.IsInsideFractMat(insideMatId) == false)
+        {
+            std::cout << "\n\nNao achou vizinho dentro da fratura!!!";
+            DebugStop();
+        }
         int layer = globMaterialIdGen.WhatLayerFromInsideFracture(insideMatId);
         int stripe = globMaterialIdGen.WhatStripe(insideMatId);
         Sigma_n[1] = globLayerStruct.GetStressAppliedJustForJIntegral(layer,stripe);

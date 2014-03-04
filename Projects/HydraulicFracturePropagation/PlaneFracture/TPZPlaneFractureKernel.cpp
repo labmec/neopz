@@ -231,11 +231,12 @@ void TPZPlaneFractureKernel::RunUncoupled()
 void TPZPlaneFractureKernel::InitializePoligonalChain()
 {
     //*********** TESTE ENGLAND-GREEN AQUICAJU
+    
     /*
-    int nptsUp = 2;
-    fpoligonalChain.Resize(nptsUp);
-    fpoligonalChain[0] = std::make_pair(0.5,-2110.);
-    fpoligonalChain[1] = std::make_pair(69.5,-2110.);
+     int nptsUp = 2;
+     fpoligonalChain.Resize(nptsUp);
+     fpoligonalChain[0] = std::make_pair(0.5,-2110.);
+     fpoligonalChain[1] = std::make_pair(69.5,-2110.);
      */
     
     /** Elipse */
@@ -325,7 +326,7 @@ void TPZPlaneFractureKernel::InitializeMeshes()
         REAL mult = 1.;
         if(actEq.find(r) != actEq.end())
         {
-            mult = 1.1;//Eu verifiquei que a convergencia eh melhor por cima!
+            mult = 1.1;//Eu verifiquei que a convergencia eh melhor por cima! Por isso nao eh 1.0.
         }
         this->fmeshVec[0]->Solution()(r,0) = mult*globLayerStruct.GetEquationAlpha(r);// = (mult * 0. || mult * 1.)
     }
@@ -664,6 +665,11 @@ void TPZPlaneFractureKernel::PredictActDeltaT(REAL fractVolum)
         }
 #endif
         dtNext = (dt1*Res0 - dt0*Res1)/(Res0 - Res1);
+    }
+    
+    if(globTimeControl.actDeltaT() < 1.)
+    {
+        globTimeControl.SetDeltaT(1.);
     }
     
 //    if(shouldUpdateVolumeBalance)
@@ -1396,6 +1402,8 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
     {
         thereIsZigZag = this->RemoveZigZag(newPoligonalChain);
     }
+    RemoveLayerInvasion(newPoligonalChain);
+    
     bool applyBezier = true;
     if(applyBezier)
     {
@@ -1512,6 +1520,26 @@ bool TPZPlaneFractureKernel::RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPol
     newPoligonalChain = NOzigzagPoligonalChain;
     
     return thereWasZigZag;
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureKernel::RemoveLayerInvasion(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain)
+{
+    int sz = newPoligonalChain.NElements();
+    
+    REAL maxZ = newPoligonalChain[0].second;
+    REAL minZ = newPoligonalChain[sz-1].second;
+    for(int p = 1; p < sz-1; p++)
+    {
+        if(newPoligonalChain[p].second > maxZ)
+        {
+            newPoligonalChain[p].second = maxZ;
+        }
+        if(newPoligonalChain[p].second < minZ)
+        {
+            newPoligonalChain[p].second = minZ;
+        }
+    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1826,6 +1854,11 @@ REAL TPZPlaneFractureKernel::MeanPressure()
         int matId = cel->Reference()->MaterialId();
         if(globMaterialIdGen.IsInsideFractMat(matId))
         {
+            if(globMaterialIdGen.IsInsideFractMat(matId) == false)
+            {
+                std::cout << "\n\nMaterial fora da fratura no Meanpressure???\n\n";
+                DebugStop();
+            }
             int lay = globMaterialIdGen.WhatLayerFromInsideFracture(matId);
             int stripe = globMaterialIdGen.WhatStripe(matId);
             REAL elArea = cel->Reference()->SideArea(cel->Reference()->NSides()-1);
@@ -1898,8 +1931,28 @@ BezierCurve::BezierCurve()
 
 BezierCurve::BezierCurve(TPZVec< std::pair< REAL,REAL > > &poligonalChain)
 {
+    this->falphaL = 1.;
+    
     this->forder = poligonalChain.NElements()-1;
     this->fPoligonalChain = poligonalChain;
+    REAL maxL = 0.;
+    
+    for(int i = 0; i < poligonalChain.NElements(); i++)
+    {
+        maxL = MAX(maxL,poligonalChain[i].first);
+    }
+    
+    REAL funcMaxL = 0.;
+    int npts = 100;
+    std::pair< REAL,REAL > pt;
+    for(int i = 0; i < npts; i++)
+    {
+        REAL t = i/(double(npts-1));
+        this->F(t,pt);
+        funcMaxL = MAX(funcMaxL,pt.first);
+    }
+    
+    this->falphaL = maxL / funcMaxL;
 }
 
 BezierCurve::~BezierCurve()
@@ -1930,8 +1983,7 @@ void BezierCurve::F(REAL t, std::pair< REAL,REAL > & ft)
             x += b * this->fPoligonalChain[i].first;
             z += b * this->fPoligonalChain[i].second;
         }
-        REAL alpha = 1.;
-        ft = std::make_pair(alpha * x,z);
+        ft = std::make_pair(this->falphaL * x,z);
     }
 }
 
