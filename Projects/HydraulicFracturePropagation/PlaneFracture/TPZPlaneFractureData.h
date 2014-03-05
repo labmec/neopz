@@ -645,8 +645,25 @@ public:
         this->fActPressureIndex = actPressureIndex;
     }
     
+    void SetElastSolutionMatrix(TPZFMatrix<REAL> & solution)
+    {
+        if(solution.Rows() != this->fStressApplied.NElements())
+        {
+            std::cout << "\n\nSolucao (NRows = "
+            << solution.Rows() << ") nao apresenta mesma quantidade de linhas que o vetor fStressApplied (NRows = "
+            << this->fStressApplied.NElements() << "))\n";
+            
+            std::cout << "See " << __PRETTY_FUNCTION__ << ".\n\n\n";
+            
+            DebugStop();
+        }
+        this->fElastReducedSolution = solution;
+    }
+    
     void BuildActiveEquationsMap()
     {
+        //vetor que guarda quantas vezes cada equacao (que eh associado aa linha) aparece.
+        //Para npress > 1, os que aparecem mais de 1 vez sao as ativas.
         TPZVec<int> solutionRows(this->fmaxrow+1,0);
         
         std::map< int,std::map< int,std::map<int,int> > >::iterator itNpress;
@@ -676,9 +693,11 @@ public:
                     int row = itStripe->second;
                     
                     if(npress == 1)
-                    {//Incluido equacao(oes) da(s) camada(s) de menor tensao de confinamento
+                    {
+                        //Incluido equacao(oes) da(s) camada(s) de menor tensao de confinamento
                         if(itminPrestress->second.find(layer) != itminPrestress->second.end())
-                        {//layer possui prestressYY menor do que os demais
+                        {
+                            //layer possui prestressYY menor do que os demais
                             if(this->f_Npress_solutionRowsTurnedOn.find(npress) == this->f_Npress_solutionRowsTurnedOn.end())
                             {
                                 std::set<int> activeEq;
@@ -722,21 +741,6 @@ public:
         int oldSize = this->fStressApplied.NElements();
         this->fStressApplied.Resize(oldSize+1);
         this->fStressApplied[oldSize] = stressAppl;
-    }
-    
-    void SetElastSolutionMatrix(TPZFMatrix<REAL> & solution)
-    {
-        if(solution.Rows() != this->fStressApplied.NElements())
-        {
-            std::cout << "\n\nSolucao (NRows = "
-                      << solution.Rows() << ") nao apresenta mesma quantidade de linhas que o vetor fStressApplied (NRows = "
-                      << this->fStressApplied.NElements() << "))\n";
-            
-            std::cout << "See " << __PRETTY_FUNCTION__ << ".\n\n\n";
-            
-            DebugStop();
-        }
-        this->fElastReducedSolution = solution;
     }
     
     void InsertPrestressYYandLayer(REAL prestressYY, int lay)
