@@ -108,9 +108,9 @@ int main(int argc, char * const argv[])
     int nstripes = 1;
     
     //Always good to remember:
-    //  - A malha de espacos reduzidos estah com Prestress = 0 pois a integral-J nao incluirah a translacao do prestress
-    //  - Da mesma forma, o metodo LayerStruct::GetStressAppliedJustForJIntegral subtrai 1 da solucao (removendo 1x o prestress aplicado)
-    //  - Na definicao da geometria propagada, todos os pontos estao sendo movidos (inclusive os que KI < KIc) para evirar descontinuidade
+    //  - A malha de espacos reduzidos estah com Prestress = 0 pois a integral-J nao incluirah a translacao do prestress.
+    //  - Da mesma forma, o metodo LayerStruct::GetStressAppliedJustForJIntegral subtrai o prestress aplicado.
+    //  - Na definicao da geometria propagada, todos os pontos estao sendo movidos (inclusive os que KI < KIc) para evirar descontinuidade.
     
     bool pressureINdependent = true;
     bool UNcoupled = false;

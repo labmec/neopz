@@ -750,6 +750,8 @@ public:
     
     REAL GetStressAppliedJustForJIntegral(int layer, int stripe)
     {
+        //A linha da solucao mais fraca garante que pegarei a equacao que abrange
+        //ela mesma e, quando houver, as demais camadas (havera qdo nas demais ocorrer sigYY < appliedP).
         std::map<REAL,std::set<int> >::iterator itLowestSigYY = this->fPrestressYY_layIndex.begin();
         std::set<int>::iterator itAnyLayer = itLowestSigYY->second.begin();
         int weakerLayer = *itAnyLayer;
@@ -771,7 +773,8 @@ public:
         
         //Eh porque a integral-J nao inclui a translacao do pre-stress
         //(ver TPZPlaneFractureMesh::GetFractureCompMeshReferred)
-        REAL cellStressApllied = sol*stressApplied - fabs(this->fLayerVec[layer].fSigmaMin);
+        REAL preStressShift = -this->fLayerVec[layer].fSigmaMin;
+        REAL cellStressApllied = sol*stressApplied - preStressShift;
         
         return cellStressApllied;
     }
