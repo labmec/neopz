@@ -400,7 +400,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
                     solutions(r,oldSize) = (solutionStripe(r,0) - solution0(r,0));
                 }
                 
-                globLayerStruct.SetSolutionRowUsingSingleActLayer(lay,stripe,oldSize);
+                globLayerStruct.SetSolutionRowUsingIsolatedPressure(lay,stripe,oldSize);
             }
         }
     }
@@ -426,7 +426,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
                     solutions(r,oldSize) = (solutionStripe(r,0) - solution0(r,0));
                 }
                 
-                globLayerStruct.SetSolutionRowUsingActLayersByStressApplied(prestressYY,stripe,oldSize);
+                globLayerStruct.SetSolutionRowUsingStressApplied(prestressYY,stripe,oldSize);
             }
         }
     }

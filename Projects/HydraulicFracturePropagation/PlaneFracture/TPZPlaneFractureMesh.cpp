@@ -668,7 +668,7 @@ bool TPZPlaneFractureMesh::SetNewmanByLayer(TPZCompMesh * cmeshref,
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
-        for(int stripe = 0; stripe < fnstripes; stripe++)
+        for(int stripe = 0; stripe < this->fnstripes; stripe++)
         {
             int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
             if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
@@ -690,8 +690,7 @@ bool TPZPlaneFractureMesh::SetNewmanByLayer(TPZCompMesh * cmeshref,
             {
                 REAL sigYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
                 if(fabs(sigYY) < 1.E-6)
-                {//isso eh necessario quando quiser simular com PrestressYY = 0
-//                    sigYY = 1.E7 * globStressScale;
+                {
                     std::cout << "\n\nEncontrada camada com preStressYY = 0.\n\n";
                     DebugStop();
                 }
@@ -717,7 +716,7 @@ bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
 {
     bool fracInlayer = false;
     
-    int nactLay = globLayerStruct.GetNActLayersForThisPressure(prestressApplied);
+    int nPress = globLayerStruct.GetNPressuresUnderThisPressure(prestressApplied);
     int qttPass = 0;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
@@ -725,7 +724,7 @@ bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
         REAL layerPrestressYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
         REAL prestressTol = 1. * globStressScale;
         
-        for(int stripe = 0; stripe < fnstripes; stripe++)
+        for(int stripe = 0; stripe < this->fnstripes; stripe++)
         {
             int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
             if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
@@ -746,8 +745,7 @@ bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
             if(layerPrestressYY < (prestressApplied + prestressTol) && stripe == actStripe)
             {
                 if(fabs(prestressApplied) < 1.E-6)
-                {//isso eh necessario quando quiser simular com PrestressYY = 0
-//                    prestressApplied = 1.E7 * globStressScale;
+                {
                     std::cout << "\n\nEncontrada camada com preStressYY = 0.\n\n";
                     DebugStop();
                 }
@@ -762,7 +760,7 @@ bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
         }
     }
     
-    if(qttPass != nactLay)
+    if(qttPass != nPress)
     {
         fracInlayer = false;
     }

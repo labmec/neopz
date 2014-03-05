@@ -561,12 +561,12 @@ class LayerStruct
 public:
     LayerStruct()
     {
-        this->fnActLayersSet = 1;
-        this->f_NactLay_Lay_Stripe_solutionRow.clear();
+        this->fActPressureIndex = 1;
+        this->f_Npress_Lay_Stripe_solutionRow.clear();
         this->fStressApplied.Resize(1);
         this->fStressApplied.Fill(0.);
         this->fPrestressYY_layIndex.clear();
-        this->f_NactLay_solutionRowsTurnedOn.clear();
+        this->f_Npress_solutionRowsTurnedOn.clear();
         this->fmaxrow = 0;
         //
         this->fLayerVec.Resize(0);
@@ -574,11 +574,11 @@ public:
     
     ~LayerStruct()
     {
-        this->fnActLayersSet = 0;
-        this->f_NactLay_Lay_Stripe_solutionRow.clear();
+        this->fActPressureIndex = 0;
+        this->f_Npress_Lay_Stripe_solutionRow.clear();
         this->fStressApplied.Resize(0);
         this->fPrestressYY_layIndex.clear();
-        this->f_NactLay_solutionRowsTurnedOn.clear();
+        this->f_Npress_solutionRowsTurnedOn.clear();
         this->fmaxrow = 0;
         //
         this->fLayerVec.Resize(0);
@@ -586,12 +586,12 @@ public:
     
     void ResetData()
     {
-        this->f_NactLay_Lay_Stripe_solutionRow.clear();
+        this->f_Npress_Lay_Stripe_solutionRow.clear();
         this->fElastReducedSolution.Resize(0,0);
         this->fStressApplied.Resize(1);
         this->fStressApplied.Fill(0.);
         this->fPrestressYY_layIndex.clear();
-        this->f_NactLay_solutionRowsTurnedOn.clear();
+        this->f_Npress_solutionRowsTurnedOn.clear();
         this->fmaxrow = 0;
     }
     
@@ -600,26 +600,26 @@ public:
         this->fLayerVec = LayerVec;
     }
     
-    void SetSolutionRowUsingSingleActLayer(int layer, int stripe, int row)
+    void SetSolutionRowUsingIsolatedPressure(int layer, int stripe, int row)
     {
-        int nActLay = 1;
-        this->f_NactLay_Lay_Stripe_solutionRow[nActLay][layer][stripe] = row;
+        int nPress = 1;
+        this->f_Npress_Lay_Stripe_solutionRow[nPress][layer][stripe] = row;
         
         //Estes dados serao sobrescritos somente pelas camadas agrupadas por
-        //niveis de pressao no metodo SetSolutionRowUsingActLayersByStressApplied(...),
+        //niveis de pressao no metodo SetSolutionRowUsingIsolatedStressApplied(...),
         //restando as que nao fazem parte dos agrupamentos.
-        for(; nActLay < this->GetNPrestressYYonFracture(); nActLay++)
+        for(; nPress < this->GetNPrestressYYonFracture(); nPress++)
         {
-            this->f_NactLay_Lay_Stripe_solutionRow[nActLay+1][layer][stripe] = row;
+            this->f_Npress_Lay_Stripe_solutionRow[nPress+1][layer][stripe] = row;
         }
     }
     
-    void SetSolutionRowUsingActLayersByStressApplied(REAL prestressYYapplied, int stripe, int row)
+    void SetSolutionRowUsingStressApplied(REAL prestressYYapplied, int stripe, int row)
     {
         this->fmaxrow = MAX(this->fmaxrow,row);
         
         std::map<REAL,std::set<int> >::iterator itappliedprestress, itactprestress;
-        int nActLay = this->GetNActLayersForThisPressure(prestressYYapplied);
+        int nPress = this->GetNPressuresUnderThisPressure(prestressYYapplied);
         
         for(itactprestress  = this->fPrestressYY_layIndex.begin();
             itactprestress != this->fPrestressYY_layIndex.end();
@@ -635,36 +635,36 @@ public:
             for(itWhatLay = itactprestress->second.begin(); itWhatLay != itactprestress->second.end(); itWhatLay++)
             {
                 int layer = *(itWhatLay);
-                this->f_NactLay_Lay_Stripe_solutionRow[nActLay][layer][stripe] = row;
+                this->f_Npress_Lay_Stripe_solutionRow[nPress][layer][stripe] = row;
             }
         }
     }
     
-    void SetNActLayers(int nactL)
+    void SetActPressureIndex(int actPressureIndex)
     {
-        this->fnActLayersSet = nactL;
+        this->fActPressureIndex = actPressureIndex;
     }
     
     void BuildActiveEquationsMap()
     {
         TPZVec<int> solutionRows(this->fmaxrow+1,0);
         
-        std::map< int,std::map< int,std::map<int,int> > >::iterator itNactLay;
+        std::map< int,std::map< int,std::map<int,int> > >::iterator itNpress;
         std::map< int,std::map<int,int> >::iterator itLay;
         std::map<int,int>::iterator itStripe;
         
         std::map<REAL,std::set<int> >::iterator itminPrestress = fPrestressYY_layIndex.begin();
         
-        for(itNactLay = this->f_NactLay_Lay_Stripe_solutionRow.begin();
-            itNactLay != this->f_NactLay_Lay_Stripe_solutionRow.end();
-            itNactLay++)
+        for(itNpress = this->f_Npress_Lay_Stripe_solutionRow.begin();
+            itNpress != this->f_Npress_Lay_Stripe_solutionRow.end();
+            itNpress++)
         {
             solutionRows.Fill(0);
             
-            int nActLay = itNactLay->first;
+            int npress = itNpress->first;
             
-            for(itLay = itNactLay->second.begin();
-                itLay != itNactLay->second.end();
+            for(itLay = itNpress->second.begin();
+                itLay != itNpress->second.end();
                 itLay++)
             {
                 int layer = itLay->first;
@@ -675,19 +675,19 @@ public:
                 {
                     int row = itStripe->second;
                     
-                    if(nActLay == 1)
+                    if(npress == 1)
                     {//Incluido equacao(oes) da(s) camada(s) de menor tensao de confinamento
                         if(itminPrestress->second.find(layer) != itminPrestress->second.end())
                         {//layer possui prestressYY menor do que os demais
-                            if(this->f_NactLay_solutionRowsTurnedOn.find(nActLay) == this->f_NactLay_solutionRowsTurnedOn.end())
+                            if(this->f_Npress_solutionRowsTurnedOn.find(npress) == this->f_Npress_solutionRowsTurnedOn.end())
                             {
                                 std::set<int> activeEq;
                                 activeEq.insert(row);
-                                this->f_NactLay_solutionRowsTurnedOn[nActLay] = activeEq;
+                                this->f_Npress_solutionRowsTurnedOn[npress] = activeEq;
                             }
                             else
                             {
-                                this->f_NactLay_solutionRowsTurnedOn.find(nActLay)->second.insert(row);
+                                this->f_Npress_solutionRowsTurnedOn.find(npress)->second.insert(row);
                             }
                         }
                     }
@@ -702,15 +702,15 @@ public:
             {
                 if(solutionRows[r] > 1)
                 {
-                    if(this->f_NactLay_solutionRowsTurnedOn.find(nActLay) == this->f_NactLay_solutionRowsTurnedOn.end())
+                    if(this->f_Npress_solutionRowsTurnedOn.find(npress) == this->f_Npress_solutionRowsTurnedOn.end())
                     {
                         std::set<int> activeEq;
                         activeEq.insert(r);
-                        this->f_NactLay_solutionRowsTurnedOn[nActLay] = activeEq;
+                        this->f_Npress_solutionRowsTurnedOn[npress] = activeEq;
                     }
                     else
                     {
-                        this->f_NactLay_solutionRowsTurnedOn.find(nActLay)->second.insert(r);
+                        this->f_Npress_solutionRowsTurnedOn.find(npress)->second.insert(r);
                     }
                 }
             }
@@ -759,11 +759,11 @@ public:
     {
         int row = -1;
         
-        std::map< int,std::map< int,std::map<int,int> > >::iterator itNActLay = this->f_NactLay_Lay_Stripe_solutionRow.find(this->fnActLayersSet);
-        if(itNActLay != this->f_NactLay_Lay_Stripe_solutionRow.end())
+        std::map< int,std::map< int,std::map<int,int> > >::iterator itNpress = this->f_Npress_Lay_Stripe_solutionRow.find(this->fActPressureIndex);
+        if(itNpress != this->f_Npress_Lay_Stripe_solutionRow.end())
         {
-            std::map< int,std::map<int,int> >::iterator itLay = itNActLay->second.find(layer);
-            if(itLay != itNActLay->second.end())
+            std::map< int,std::map<int,int> >::iterator itLay = itNpress->second.find(layer);
+            if(itLay != itNpress->second.end())
             {
                 std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
                 if(itStripe != itLay->second.end())
@@ -805,10 +805,10 @@ public:
         int weakerLayer = *itAnyLayer;
         int weakerLayerSolutionRow = this->GetSolutionRow(weakerLayer,stripe);
         
-        if(f_NactLay_solutionRowsTurnedOn.find(this->fnActLayersSet)->second.find(weakerLayerSolutionRow) ==
-           f_NactLay_solutionRowsTurnedOn.find(this->fnActLayersSet)->second.end())
+        if(f_Npress_solutionRowsTurnedOn.find(this->fActPressureIndex)->second.find(weakerLayerSolutionRow) ==
+           f_Npress_solutionRowsTurnedOn.find(this->fActPressureIndex)->second.end())
         {
-            std::cout << "\nnActLayersSet = " << this->fnActLayersSet << "\n";
+            std::cout << "\nActPressureIndex = " << this->fActPressureIndex << "\n";
             std::cout << "weakerLayer = " << weakerLayer << "\n";
             std::cout << "weakerLayerSolutionRow = " << weakerLayerSolutionRow << "\n";
             std::cout << "\n\nCamada mais fraca nao estah com equacao ligada!!!\n\n\n";
@@ -825,23 +825,18 @@ public:
         return cellStressApllied;
     }
     
-    int GetNActLayers()
-    {
-        return this->fnActLayersSet;
-    }
-    
-    int GetNActLayersForThisPressure(REAL pressure)
+    int GetNPressuresUnderThisPressure(REAL pressure)
     {
         REAL tol = 1.*globStressScale;
         std::map<REAL,std::set<int> >::iterator itappliedprestress = this->fPrestressYY_layIndex.lower_bound(pressure - tol);
-        int nActLay = std::distance(this->fPrestressYY_layIndex.begin(),itappliedprestress) + 1;
+        int npress = std::distance(this->fPrestressYY_layIndex.begin(),itappliedprestress) + 1;
         
-        return nActLay;
+        return npress;
     }
     
     void GetActiveEquations(std::set<int> & actEq)
     {
-        actEq = this->f_NactLay_solutionRowsTurnedOn.find(this->fnActLayersSet)->second;
+        actEq = this->f_Npress_solutionRowsTurnedOn.find(this->fActPressureIndex)->second;
     }
     
     //retorna 1 para equacoes pertinentes aa faixa de pressao, e 0 para as equacoes que nao devem existir nesta simulacao.
@@ -853,10 +848,10 @@ public:
             return 1.;
         }
         
-        std::map< int,std::map< int,std::map<int,int> > >::iterator itNactLay = f_NactLay_Lay_Stripe_solutionRow.find(this->fnActLayersSet);
+        std::map< int,std::map< int,std::map<int,int> > >::iterator itNpress = f_Npress_Lay_Stripe_solutionRow.find(this->fActPressureIndex);
         std::map< int,std::map<int,int> >::iterator itLayer;
-        for(itLayer = itNactLay->second.begin();
-            itLayer != itNactLay->second.end();
+        for(itLayer = itNpress->second.begin();
+            itLayer != itNpress->second.end();
             itLayer++)
         {
             std::map<int,int>::iterator itStripe;
@@ -905,27 +900,27 @@ public:
     
     void PrintMe()
     {
-        std::cout << "\nEquations structure:\nNactLay\tLay\tStripe\trow\n";
-        std::map< int,std::map< int,std::map<int,int> > >::iterator itNactLay;
+        std::cout << "\nEquations structure:\nNpress\tLay\tStripe\trow\n";
+        std::map< int,std::map< int,std::map<int,int> > >::iterator itNpress;
         std::map< int,std::map<int,int> >::iterator itLay;
         std::map<int,int>::iterator itStripe;
         
-        for(itNactLay = this->f_NactLay_Lay_Stripe_solutionRow.begin(); itNactLay != this->f_NactLay_Lay_Stripe_solutionRow.end(); itNactLay++)
+        for(itNpress = this->f_Npress_Lay_Stripe_solutionRow.begin(); itNpress != this->f_Npress_Lay_Stripe_solutionRow.end(); itNpress++)
         {
-            for(itLay = itNactLay->second.begin(); itLay != itNactLay->second.end(); itLay++)
+            for(itLay = itNpress->second.begin(); itLay != itNpress->second.end(); itLay++)
             {
                 for(itStripe = itLay->second.begin(); itStripe != itLay->second.end(); itStripe++)
                 {
                     bool eqActive = false;
-                    if(this->f_NactLay_solutionRowsTurnedOn.find(itNactLay->first) != this->f_NactLay_solutionRowsTurnedOn.end())
+                    if(this->f_Npress_solutionRowsTurnedOn.find(itNpress->first) != this->f_Npress_solutionRowsTurnedOn.end())
                     {
-                        if(this->f_NactLay_solutionRowsTurnedOn.find(itNactLay->first)->second.find(itStripe->second) !=
-                           this->f_NactLay_solutionRowsTurnedOn.find(itNactLay->first)->second.end())
+                        if(this->f_Npress_solutionRowsTurnedOn.find(itNpress->first)->second.find(itStripe->second) !=
+                           this->f_Npress_solutionRowsTurnedOn.find(itNpress->first)->second.end())
                         {
                             eqActive = true;
                         }
                     }
-                    std::cout << itNactLay->first << "\t" << itLay->first << "\t" << itStripe->first << "\t" << itStripe->second << "\t";
+                    std::cout << itNpress->first << "\t" << itLay->first << "\t" << itStripe->first << "\t" << itStripe->second << "\t";
                     if(eqActive)
                     {
                         std::cout << "on\n";
@@ -965,18 +960,18 @@ public:
     
 protected:
     
-    /** Guarda a linha da solucao da elastica de espacos reduzidos, baseado na quantidade de camadas envolvidas, a camada e faixa */
-    std::map< int,std::map< int,std::map<int,int> > > f_NactLay_Lay_Stripe_solutionRow;
+    /** Guarda a linha da solucao da elastica de espacos reduzidos, baseado na quantidade de pressoes envolvidas, a camada e faixa */
+    std::map< int,std::map< int,std::map<int,int> > > f_Npress_Lay_Stripe_solutionRow;
     
     /**
      * Para uma quantidade de camadas envolvidas em uma certa pressao, deve-se ligar as equacoes pertinentes.
      * Desta forma, este mapa guarda as linhas das respectivas equacoes a serem ligadas, em funcao da quantidade de camadas envolvidas
      */
-    std::map< int,std::set<int> > f_NactLay_solutionRowsTurnedOn;
+    std::map< int,std::set<int> > f_Npress_solutionRowsTurnedOn;
     int fmaxrow;
     
     /** Representa a quantidade de grupos de layers ativos para aproximacao da solucao */
-    int fnActLayersSet;
+    int fActPressureIndex;
     
     /** Matriz_vetor solucao da elastica de espacos reduzidos */
     TPZFMatrix<REAL> fElastReducedSolution;

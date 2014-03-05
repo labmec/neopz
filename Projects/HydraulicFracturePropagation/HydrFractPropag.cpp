@@ -41,7 +41,7 @@ int main(int argc, char * const argv[])
     REAL Poisson0 = 0.25;
     //
     REAL SigMax0  = 0.;                                 //<-- PRE-STRESS XX
-    REAL SigMin0  = -3.732407906E7 * globStressScale;//-3.5627279293E7 * globStressScale;  //<-- PRE-STRESS YY
+    REAL SigMin0  = -3.5627279293E7 * globStressScale;  //<-- PRE-STRESS YY
     REAL SigConf0 = 0.;                                 //<-- PRE-STRESS ZZ
     
     REAL Young1 = 4.1368543680E10 * globStressScale;
