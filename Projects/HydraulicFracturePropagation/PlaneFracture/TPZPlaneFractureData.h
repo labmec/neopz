@@ -563,11 +563,8 @@ public:
     {
         this->fActPressureIndex = 1;
         this->f_Npress_Lay_Stripe_solutionRow.clear();
-        this->fStressApplied.Resize(1);
-        this->fStressApplied.Fill(0.);
         this->fPrestressYY_layIndex.clear();
         this->f_Npress_solutionRowsTurnedOn.clear();
-        this->fmaxrow = 0;
         //
         this->fLayerVec.Resize(0);
     }
@@ -576,10 +573,8 @@ public:
     {
         this->fActPressureIndex = 0;
         this->f_Npress_Lay_Stripe_solutionRow.clear();
-        this->fStressApplied.Resize(0);
         this->fPrestressYY_layIndex.clear();
         this->f_Npress_solutionRowsTurnedOn.clear();
-        this->fmaxrow = 0;
         //
         this->fLayerVec.Resize(0);
     }
@@ -588,11 +583,8 @@ public:
     {
         this->f_Npress_Lay_Stripe_solutionRow.clear();
         this->fElastReducedSolution.Resize(0,0);
-        this->fStressApplied.Resize(1);
-        this->fStressApplied.Fill(0.);
         this->fPrestressYY_layIndex.clear();
         this->f_Npress_solutionRowsTurnedOn.clear();
-        this->fmaxrow = 0;
     }
     
     void SetLayerVec(TPZVec<LayerProperties> & LayerVec)
@@ -600,24 +592,32 @@ public:
         this->fLayerVec = LayerVec;
     }
     
-    void SetSolutionRowUsingIsolatedPressure(int layer, int stripe, int row)
+    void SetSolutionRow4PressureLessOrEqualThan(REAL prestressYYapplied, int stripe, int row)
     {
-        int nPress = 1;
-        this->f_Npress_Lay_Stripe_solutionRow[nPress][layer][stripe] = row;
+        std::map<REAL,std::set<int> >::iterator itappliedprestress, itactprestress;
+        int nPress = this->GetNPressuresUnderThisPressure(prestressYYapplied);
         
-        //Estes dados serao sobrescritos somente pelas camadas agrupadas por
-        //niveis de pressao no metodo SetSolutionRowUsingIsolatedStressApplied(...),
-        //restando as que nao fazem parte dos agrupamentos.
-        for(; nPress < this->GetNPrestressYYonFracture(); nPress++)
+        for(itactprestress  = this->fPrestressYY_layIndex.begin();
+            itactprestress != this->fPrestressYY_layIndex.end();
+            itactprestress++)
         {
-            this->f_Npress_Lay_Stripe_solutionRow[nPress+1][layer][stripe] = row;
+            REAL tol = 1.*globStressScale;
+            if(itactprestress->first < (prestressYYapplied + tol))
+            {
+                std::set<int>::iterator itWhatLay;
+                for(itWhatLay = itactprestress->second.begin();
+                    itWhatLay != itactprestress->second.end();
+                    itWhatLay++)
+                {
+                    int layer = *(itWhatLay);
+                    this->f_Npress_Lay_Stripe_solutionRow[nPress][layer][stripe] = row;
+                }
+            }
         }
     }
     
-    void SetSolutionRowUsingStressApplied(REAL prestressYYapplied, int stripe, int row)
+    void SetSolutionRow4PressureGreaterThan(REAL prestressYYapplied, int stripe, int row)
     {
-        this->fmaxrow = MAX(this->fmaxrow,row);
-        
         std::map<REAL,std::set<int> >::iterator itappliedprestress, itactprestress;
         int nPress = this->GetNPressuresUnderThisPressure(prestressYYapplied);
         
@@ -628,14 +628,14 @@ public:
             REAL tol = 1.*globStressScale;
             if(itactprestress->first > (prestressYYapplied + tol))
             {
-                break;
-            }
-            
-            std::set<int>::iterator itWhatLay;
-            for(itWhatLay = itactprestress->second.begin(); itWhatLay != itactprestress->second.end(); itWhatLay++)
-            {
-                int layer = *(itWhatLay);
-                this->f_Npress_Lay_Stripe_solutionRow[nPress][layer][stripe] = row;
+                std::set<int>::iterator itWhatLay;
+                for(itWhatLay = itactprestress->second.begin();
+                    itWhatLay != itactprestress->second.end();
+                    itWhatLay++)
+                {
+                    int layer = *(itWhatLay);
+                    this->f_Npress_Lay_Stripe_solutionRow[nPress][layer][stripe] = row;
+                }
             }
         }
     }
@@ -647,100 +647,7 @@ public:
     
     void SetElastSolutionMatrix(TPZFMatrix<REAL> & solution)
     {
-        if(solution.Rows() != this->fStressApplied.NElements())
-        {
-            std::cout << "\n\nSolucao (NRows = "
-            << solution.Rows() << ") nao apresenta mesma quantidade de linhas que o vetor fStressApplied (NRows = "
-            << this->fStressApplied.NElements() << "))\n";
-            
-            std::cout << "See " << __PRETTY_FUNCTION__ << ".\n\n\n";
-            
-            DebugStop();
-        }
         this->fElastReducedSolution = solution;
-    }
-    
-    void BuildActiveEquationsMap()
-    {
-        //vetor que guarda quantas vezes cada equacao (que eh associado aa linha) aparece.
-        //Para npress > 1, os que aparecem mais de 1 vez sao as ativas.
-        TPZVec<int> solutionRows(this->fmaxrow+1,0);
-        
-        std::map< int,std::map< int,std::map<int,int> > >::iterator itNpress;
-        std::map< int,std::map<int,int> >::iterator itLay;
-        std::map<int,int>::iterator itStripe;
-        
-        std::map<REAL,std::set<int> >::iterator itminPrestress = fPrestressYY_layIndex.begin();
-        
-        for(itNpress = this->f_Npress_Lay_Stripe_solutionRow.begin();
-            itNpress != this->f_Npress_Lay_Stripe_solutionRow.end();
-            itNpress++)
-        {
-            solutionRows.Fill(0);
-            
-            int npress = itNpress->first;
-            
-            for(itLay = itNpress->second.begin();
-                itLay != itNpress->second.end();
-                itLay++)
-            {
-                int layer = itLay->first;
-                
-                for(itStripe = itLay->second.begin();
-                    itStripe != itLay->second.end();
-                    itStripe++)
-                {
-                    int row = itStripe->second;
-                    
-                    if(npress == 1)
-                    {
-                        //Incluido equacao(oes) da(s) camada(s) de menor tensao de confinamento
-                        if(itminPrestress->second.find(layer) != itminPrestress->second.end())
-                        {
-                            //layer possui prestressYY menor do que os demais
-                            if(this->f_Npress_solutionRowsTurnedOn.find(npress) == this->f_Npress_solutionRowsTurnedOn.end())
-                            {
-                                std::set<int> activeEq;
-                                activeEq.insert(row);
-                                this->f_Npress_solutionRowsTurnedOn[npress] = activeEq;
-                            }
-                            else
-                            {
-                                this->f_Npress_solutionRowsTurnedOn.find(npress)->second.insert(row);
-                            }
-                        }
-                    }
-                    else
-                    {//Incluindo equacaooes das camadas agrupadas, que sao as que aparecem repetidas (utilizando estrutura auxiliar)
-                        solutionRows[row] += 1;
-                    }
-                }
-            }
-            
-            for(int r = 0; r < solutionRows.NElements(); r++)
-            {
-                if(solutionRows[r] > 1)
-                {
-                    if(this->f_Npress_solutionRowsTurnedOn.find(npress) == this->f_Npress_solutionRowsTurnedOn.end())
-                    {
-                        std::set<int> activeEq;
-                        activeEq.insert(r);
-                        this->f_Npress_solutionRowsTurnedOn[npress] = activeEq;
-                    }
-                    else
-                    {
-                        this->f_Npress_solutionRowsTurnedOn.find(npress)->second.insert(r);
-                    }
-                }
-            }
-        }
-    }
-    
-    void PushSressApplied(REAL stressAppl)
-    {
-        int oldSize = this->fStressApplied.NElements();
-        this->fStressApplied.Resize(oldSize+1);
-        this->fStressApplied[oldSize] = stressAppl;
     }
     
     void InsertPrestressYYandLayer(REAL prestressYY, int lay)
@@ -757,6 +664,37 @@ public:
         {
             it->second.insert(lay);
         }
+    }
+    
+    void InsertActiveEquation(int pressIndex, int row)
+    {
+        if(this->f_Npress_solutionRowsTurnedOn.find(pressIndex) == this->f_Npress_solutionRowsTurnedOn.end())
+        {
+            std::set<int> activeEq;
+            activeEq.insert(row);
+            this->f_Npress_solutionRowsTurnedOn[pressIndex] = activeEq;
+        }
+        else
+        {
+            this->f_Npress_solutionRowsTurnedOn.find(pressIndex)->second.insert(row);
+        }
+    }
+    
+    bool ThisRowIsTurnedOn(int row)
+    {
+        bool isOn = false;
+        
+        std::map< int,std::set<int> >::iterator itPressIndex = this->f_Npress_solutionRowsTurnedOn.find(this->fActPressureIndex);
+        if(itPressIndex != this->f_Npress_solutionRowsTurnedOn.end())
+        {
+            std::set<int>::iterator itRow = itPressIndex->second.find(row);
+            if(itRow != itPressIndex->second.end())
+            {
+                isOn = true;
+            }
+        }
+        
+        return isOn;
     }
     
     int GetSolutionRow(int layer, int stripe)
@@ -776,6 +714,14 @@ public:
                 }
             }
         }
+        
+        if(row < 0)
+        {
+            std::cout << "\n\nCamada " << layer << " nao apresenta stripe " << stripe << "\n";
+            std::cout << "Veja " << __PRETTY_FUNCTION__ << "\n\n\n";
+            DebugStop();
+        }
+
         return row;
     }
     
@@ -784,14 +730,14 @@ public:
         return this->fPrestressYY_layIndex.size();
     }
     
-    REAL GetSequencedPrestressYY(int index)
+    REAL GetSequencedPrestressYY(int pressindex)
     {
         int count = 0;
         std::map<REAL,std::set<int> >::iterator it;
         
         for(it = this->fPrestressYY_layIndex.begin(); it != this->fPrestressYY_layIndex.end(); it++)
         {
-            if(count == index)
+            if(count == pressindex)
             {
                 return it->first;
             }
@@ -820,7 +766,8 @@ public:
         }
         
         REAL sol = this->fElastReducedSolution(weakerLayerSolutionRow,0);
-        REAL stressApplied = this->fStressApplied[weakerLayerSolutionRow];
+        int sequencedPrestressIndex = this->fActPressureIndex-1;//aqui as pressoes comecam na posicao 0.
+        REAL stressApplied = this->GetSequencedPrestressYY(sequencedPrestressIndex);
         
         //Eh porque a integral-J nao inclui a translacao do pre-stress
         //(ver TPZPlaneFractureMesh::GetFractureCompMeshReferred)
@@ -865,7 +812,16 @@ public:
             {
                 if(itStripe->second == row)
                 {
-                    return 1.;
+                    if(this->ThisRowIsTurnedOn(row))
+                    {
+                        //Eu verifiquei que a convergencia eh melhor por cima! Por isso nao eh 1.0
+                        return 1.1;
+                    }
+                    else
+                    {
+                        //Equacao presente porem travada pelo equation filter
+                        return 1.;
+                    }
                 }
             }
         }
@@ -938,12 +894,6 @@ public:
             std::cout << "-------------------------------\n";
         }
         
-        std::cout << "\nStress applied in each equation:\n\n";
-        for(int i = 0; i < this->fStressApplied.NElements(); i++)
-        {
-            std::cout << "Eq. row " << i << " | stressApplied = " << this->fStressApplied[i] << "\n";
-        }
-        
         std::cout << "\nPrestressYY_layIndex\n\n";
         std::map<REAL,std::set<int> >::iterator itPre;
         for(itPre = this->fPrestressYY_layIndex.begin();
@@ -972,16 +922,12 @@ protected:
      * Desta forma, este mapa guarda as linhas das respectivas equacoes a serem ligadas, em funcao da quantidade de camadas envolvidas
      */
     std::map< int,std::set<int> > f_Npress_solutionRowsTurnedOn;
-    int fmaxrow;
     
     /** Representa a quantidade de grupos de layers ativos para aproximacao da solucao */
     int fActPressureIndex;
     
     /** Matriz_vetor solucao da elastica de espacos reduzidos */
     TPZFMatrix<REAL> fElastReducedSolution;
-    
-    /** Pressao aplicada para obtencao de cada linha do fElastReducedSolution */
-    TPZVec<REAL> fStressApplied;
     
     /** Vetor de camadas. Posicao 0: camada mais acima. Ultima posicao: camada mais abaixo */
     TPZVec<LayerProperties> fLayerVec;

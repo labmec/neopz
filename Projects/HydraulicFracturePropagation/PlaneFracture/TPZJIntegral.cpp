@@ -1094,7 +1094,7 @@ void Path3D::ComputeJIntegral()
     TPZVec<REAL> areaJIntegral(3,0.);
     intRule.SetPrecision(1.e-2);
     //areaJIntegral = intRule.Vintegrate(*(fAreaPath3D),3,-1.,+0.9);
-    //std::cout << "\nAQUICAJU : nao estah integrando na area!!!\n";
+    //std::cout << "Nao estah integrando na area!!!\n";
     
     //Simetry in xz plane
     areaJIntegral[0] = 2. * areaJIntegral[0] * fAreaPath3D->DETdxdt();

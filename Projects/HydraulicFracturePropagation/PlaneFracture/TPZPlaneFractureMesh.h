@@ -174,13 +174,13 @@ class TPZPlaneFractureMesh
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder);
     
-    bool SetNewmanByLayer(TPZCompMesh * cmeshref,
-                          int actLayer,
-                          int actStripe);
-    
-    bool SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
-                                     REAL prestressApplied,
-                                     int actStripe);
+    bool SetNewmanForPressureLessOrEqualThan(REAL pressApplied,
+                                             TPZCompMesh * cmeshref,
+                                             int actStripe);
+
+    bool SetNewmanForPressureGreaterThan(REAL pressApplied,
+                                         TPZCompMesh * cmeshref,
+                                          int actStripe);
     
     int NStripes();
     

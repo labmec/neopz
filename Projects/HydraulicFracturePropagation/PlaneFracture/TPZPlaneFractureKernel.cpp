@@ -230,7 +230,7 @@ void TPZPlaneFractureKernel::RunUncoupled()
 
 void TPZPlaneFractureKernel::InitializePoligonalChain()
 {
-    //*********** TESTE ENGLAND-GREEN AQUICAJU
+    //*********** TESTE ENGLAND-GREEN
     
     /*
      int nptsUp = 2;
@@ -323,12 +323,7 @@ void TPZPlaneFractureKernel::InitializeMeshes()
     this->fmeshVec[0]->Solution()(0,0) = 1.;
     for(int r = 1; r < this->fmeshVec[0]->Solution().Rows(); r++)
     {
-        REAL mult = 1.;
-        if(actEq.find(r) != actEq.end())
-        {
-            mult = 1.1;//Eu verifiquei que a convergencia eh melhor por cima! Por isso nao eh 1.0.
-        }
-        this->fmeshVec[0]->Solution()(r,0) = mult*globLayerStruct.GetEquationAlpha(r);// = (mult * 0. || mult * 1.)
+        this->fmeshVec[0]->Solution()(r,0) = globLayerStruct.GetEquationAlpha(r);
     }
     PutConstantPressureOnFluidSolution();
     
@@ -380,38 +375,16 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         solutions(r,0) = solution0(r,0);
     }
     
-    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
-    {
-        for(int stripe = 0; stripe < NStripes; stripe++)
-        {
-            bool fractInLayer = this->fPlaneFractureMesh->SetNewmanByLayer(cmesh, lay, stripe);
-            if(fractInLayer)
-            {
-                an->Rhs().Zero();
-                an->AssembleResidual();
-                an->Solve();
-                
-                solutionStripe = cmesh->Solution();
-                
-                int oldSize = solutions.Cols();
-                solutions.Resize(solutions.Rows(), oldSize+1);
-                for(int r = 0; r < solution0.Rows(); r++)
-                {
-                    solutions(r,oldSize) = (solutionStripe(r,0) - solution0(r,0));
-                }
-                
-                globLayerStruct.SetSolutionRowUsingIsolatedPressure(lay,stripe,oldSize);
-            }
-        }
-    }
-    
-    for(int prestressYYindex = 1; prestressYYindex < globLayerStruct.GetNPrestressYYonFracture(); prestressYYindex++)
+    bool newmanApplied = false;
+    for(int prestressYYindex = 0; prestressYYindex < globLayerStruct.GetNPrestressYYonFracture(); prestressYYindex++)
     {
         for(int stripe = 0; stripe < NStripes; stripe++)
         {
             REAL prestressYY = globLayerStruct.GetSequencedPrestressYY(prestressYYindex);
-            bool fractInLayer = this->fPlaneFractureMesh->SetNewmanByPressureInterval(cmesh, prestressYY, stripe);
-            if(fractInLayer)
+            
+            //Aplicando newman nas camadas de pressao menor ou igual que a fornecida (estas solucoes serao ligadas)
+            newmanApplied = this->fPlaneFractureMesh->SetNewmanForPressureLessOrEqualThan(prestressYY, cmesh, stripe);
+            if(newmanApplied)
             {
                 an->Rhs().Zero();
                 an->AssembleResidual();
@@ -426,12 +399,33 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
                     solutions(r,oldSize) = (solutionStripe(r,0) - solution0(r,0));
                 }
                 
-                globLayerStruct.SetSolutionRowUsingStressApplied(prestressYY,stripe,oldSize);
+                globLayerStruct.SetSolutionRow4PressureLessOrEqualThan(prestressYY,stripe,oldSize);
+                int npress = prestressYYindex+1;
+                globLayerStruct.InsertActiveEquation(npress, oldSize);
+            }
+            
+            //Aplicando newman nas camadas de pressao maior que a fornecida (estas solucoes serao travadas pelo equation filter)
+            newmanApplied = this->fPlaneFractureMesh->SetNewmanForPressureGreaterThan(prestressYY, cmesh, stripe);
+            if(newmanApplied)
+            {
+                an->Rhs().Zero();
+                an->AssembleResidual();
+                an->Solve();
+                
+                solutionStripe = cmesh->Solution();
+                
+                int oldSize = solutions.Cols();
+                solutions.Resize(solutions.Rows(), oldSize+1);
+                for(int r = 0; r < solution0.Rows(); r++)
+                {
+                    solutions(r,oldSize) = (solutionStripe(r,0) - solution0(r,0));
+                }
+                
+                globLayerStruct.SetSolutionRow4PressureGreaterThan(prestressYY,stripe,oldSize);
             }
         }
     }
     
-    globLayerStruct.BuildActiveEquationsMap();
     cmesh->LoadSolution(solutions);
 }
 //------------------------------------------------------------------------------------------------------------
@@ -772,7 +766,7 @@ void TPZPlaneFractureKernel::ApplyEquationFilter(TPZAnalysis * an)
     long blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
     long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
     eqOut.insert(posBlock);
-    
+
     std::set<int> eqOn;
     globLayerStruct.GetActiveEquations(eqOn);
     for(int r = 1; r < this->fmeshVec[0]->Solution().Rows(); r++)
@@ -1459,7 +1453,7 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
         }
     }
     
-    //    {//C++ tool : AQUICAJU
+    //    {//C++ tool
     //        std::stringstream nm;
     //        nm << "PoligonalChain_Cpp_Step" << this->fstep  << ".txt";
     //        std::ofstream outPolig(nm.str().c_str());

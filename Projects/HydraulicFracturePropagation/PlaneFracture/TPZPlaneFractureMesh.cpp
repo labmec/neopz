@@ -660,64 +660,17 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZPlaneFractureMesh::SetNewmanByLayer(TPZCompMesh * cmeshref,
-                                            int actLayer,
-                                            int actStripe)
+bool TPZPlaneFractureMesh::SetNewmanForPressureLessOrEqualThan(REAL pressApplied,
+                                                               TPZCompMesh * cmeshref,
+                                                               int actStripe)
 {
-    bool fracInlayer = false;
-    
-    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
+    if(fabs(pressApplied) < 1.E-6)
     {
-        for(int stripe = 0; stripe < this->fnstripes; stripe++)
-        {
-            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
-            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
-            {//Fratura ainda nao entrou nesta camada!
-                continue;
-            }
-            
-            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
-            if(!mat)
-            {
-                DebugStop();
-            }
-            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
-            if(!bcmat)
-            {
-                DebugStop();
-            }
-            if(lay == actLayer && stripe == actStripe)
-            {
-                REAL sigYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
-                if(fabs(sigYY) < 1.E-6)
-                {
-                    std::cout << "\n\nEncontrada camada com preStressYY = 0.\n\n";
-                    DebugStop();
-                }
-                bcmat->Val2()(1,0) = sigYY;
-                fracInlayer = true;
-                
-                globLayerStruct.PushSressApplied(sigYY);
-            }
-            else
-            {
-                bcmat->Val2()(1,0) = 0.;
-            }
-        }
+        std::cout << "\n\nNao contempla camada com preStressYY = 0.\n\n";
+        DebugStop();
     }
     
-    return fracInlayer;
-}
-//------------------------------------------------------------------------------------------------------------
-
-bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
-                                                       REAL prestressApplied,
-                                                       int actStripe)
-{
-    bool fracInlayer = false;
-    
-    int nPress = globLayerStruct.GetNPressuresUnderThisPressure(prestressApplied);
-    int qttPass = 0;
+    bool newmannApplied = false;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
@@ -742,16 +695,10 @@ bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
             {
                 DebugStop();
             }
-            if(layerPrestressYY < (prestressApplied + prestressTol) && stripe == actStripe)
+            if(stripe == actStripe && layerPrestressYY < (pressApplied + prestressTol))
             {
-                if(fabs(prestressApplied) < 1.E-6)
-                {
-                    std::cout << "\n\nEncontrada camada com preStressYY = 0.\n\n";
-                    DebugStop();
-                }
-                bcmat->Val2()(1,0) = prestressApplied;
-                fracInlayer = true;
-                qttPass++;
+                bcmat->Val2()(1,0) = pressApplied;
+                newmannApplied = true;
             }
             else
             {
@@ -760,16 +707,58 @@ bool TPZPlaneFractureMesh::SetNewmanByPressureInterval(TPZCompMesh * cmeshref,
         }
     }
     
-    if(qttPass != nPress)
+    return newmannApplied;
+}
+//------------------------------------------------------------------------------------------------------------
+
+bool TPZPlaneFractureMesh::SetNewmanForPressureGreaterThan(REAL pressApplied,
+                                                           TPZCompMesh * cmeshref,
+                                                           int actStripe)
+{
+    if(fabs(pressApplied) < 1.E-6)
     {
-        fracInlayer = false;
-    }
-    else
-    {
-        globLayerStruct.PushSressApplied(prestressApplied);
+        std::cout << "\n\nNao contempla camada com preStressYY = 0.\n\n";
+        DebugStop();
     }
     
-    return fracInlayer;
+    bool newmannApplied = false;
+    
+    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
+    {
+        REAL layerPrestressYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
+        REAL prestressTol = 1. * globStressScale;
+        
+        for(int stripe = 0; stripe < this->fnstripes; stripe++)
+        {
+            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
+            {//Fratura ainda nao entrou nesta camada!
+                continue;
+            }
+            
+            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
+            if(!mat)
+            {
+                DebugStop();
+            }
+            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
+            if(!bcmat)
+            {
+                DebugStop();
+            }
+            if(stripe == actStripe && layerPrestressYY > (pressApplied + prestressTol))
+            {
+                bcmat->Val2()(1,0) = layerPrestressYY;
+                newmannApplied = true;
+            }
+            else
+            {
+                bcmat->Val2()(1,0) = 0.;
+            }
+        }
+    }
+    
+    return newmannApplied;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1243,7 +1232,7 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
 		alphaMin = __smallNum;
 	}
 	
-    //*********** TESTE ENGLAND-GREEN AQUICAJU
+    //*********** TESTE ENGLAND-GREEN
 //    {
 //        std::cout << "\n\n\n\n\nTESTE DO PHIL DE ENGLAND-GREEN (POLIGONAL CHAIN EH HORIZONTAL)\n\n\n\n\n";
 //        dx[0] = +1.;//direcao oposta ao eixo x do sistema de coordenadas
