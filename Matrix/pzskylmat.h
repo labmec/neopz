@@ -266,7 +266,21 @@ private:
   static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, 
 				const TPZSkylMatrix<TVar> &second, 
 				TPZVec<long> &res);
-	
+
+  void MigratePages() {
+	fElem.MigratePages();
+	fStorage.MigratePages();
+  }
+
+  void ReallocForNuma() {
+	fElem.ReallocForNuma();
+	TVar* old_start = &fStorage[0];
+	fStorage.ReallocForNuma();
+	TVar* new_start = &fStorage[0];
+	for (int i=0; i<fElem.size(); i++) {
+	    fElem[i] = new_start + (fElem[i]-old_start);
+	}
+   }	
 protected:
   /**
      @brief Storage to keep the first elements to each equation. 

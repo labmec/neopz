@@ -733,6 +733,9 @@ int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky()
     return -1;
 }
 
+clarg::argBool clk_mig("-skl_chk_pm", "Migrate Skyline pages before Cholesky Decomposition");
+clarg::argBool clk_rea("-skl_chk_rea", "Reallocate Skyline data before Cholesky Decomposition");
+
 template<class TVar>
 int TPZSkylMatrix<TVar>::Decompose_Cholesky()
 {
@@ -745,6 +748,11 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
 #ifdef DUMP_BEFORE_DECOMPOSE
   dump_matrix(this, "TPZSkylMatrix::Decompose_Cholesky()");
 #endif
+
+  if (clk_mig.was_set())
+    MigratePages();
+  if (clk_rea.was_set())
+    ReallocForNuma();
   
   TVar pivot;
   TVar minpivot = 10000.;
