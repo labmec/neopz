@@ -1837,7 +1837,7 @@ void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
 
 
 /// Divide the element using the plastic deformation as threshold
-void TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
+unsigned int TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
 {
     std::set<long> elindices;
     fCurrentConfig.DivideElementsAbove(sqj2,elindices);
@@ -1873,9 +1873,10 @@ void TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
     // subject the integration points with the deformation history
     ApplyHistory(elindices);
     fCurrentConfig.ComputeElementDeformation();
+		return elindices.size();
 }
 
-/// GetPostProcessedValues
+/// GetPostProcessedValues at a given coordinate x
 void TPZWellBoreAnalysis::PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::string> &variables, TPZFMatrix<STATE> &values)
 {
     TPZMatWithMem<TPZElastoPlasticMem> *pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *> (fCurrentConfig.fCMesh.MaterialVec()[1]);

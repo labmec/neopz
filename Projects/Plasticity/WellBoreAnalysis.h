@@ -218,7 +218,7 @@ public:
     }
     
     /// Set the polynomial order of the elements which exceed plastic deformation
-    void PRefineElementAbove(REAL sqj2, int porder)
+    unsigned int PRefineElementAbove(REAL sqj2, int porder)
     {
         std::set<long> elindices;
         fCurrentConfig.PRefineElementsAbove(sqj2, porder,elindices);
@@ -226,6 +226,7 @@ public:
         std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
+				return elindices.size();
     }
     
     /// Modify the geometry of the domain simulating an elliptic breakout
@@ -247,7 +248,7 @@ public:
     }
     
     /// Divide the element using the plastic deformation as threshold
-    void DivideElementsAbove(REAL sqj2);
+    unsigned int DivideElementsAbove(REAL sqj2);
     
     /// Post process the results of the current configuration
     void PostProcess(int resolution);
