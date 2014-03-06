@@ -219,8 +219,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 
 		/** Solving for each type of geometric elements */
 		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
-//		for(itypeel=(int)EQuadrilateral;itypeel<(int)ETetraedro;itypeel++)
 		{
+			if(itypeel > 3) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -245,6 +245,9 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			TPZStack<std::string> scalnames, vecnames;
 			scalnames.Push("POrder");
 			scalnames.Push("Solution");
+
+			fileerrors.flush();
+			out.flush();
 
 			if(printingsol) {
 				TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel);
@@ -303,8 +306,10 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				break;
 			}
 			// To storing number of equations and errors obtained for all iterations
-			ErrorVec.Resize(NRefs,0.0);
-			NEquations.Resize(NRefs,0L);
+			ErrorVec.Resize(NRefs);
+			ErrorVec.Fill(0.0L);
+			NEquations.Resize(NRefs);
+			NEquations.Fill(0L);
 
 			int countermesh=0;
 			// loop solving iteratively
@@ -442,11 +447,11 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL factorError = 0.45;
+	REAL factorError = 0.4;
 	if(nref > 3) {
 		factorError -= (nref-3)*0.05;
 	}
-	if(factorError < 0.3) factorError = 0.3;
+	if(factorError < 0.2) factorError = 0.2;
 	REAL GradErLimit = 9.;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
@@ -517,7 +522,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	if(nref > 3) {
 		factorError -= (nref-3)*0.05;
 	}
-	if(factorError < 0.25) factorError = 0.25;
+	if(factorError < 0.2) factorError = 0.2;
 	REAL GradErLimit = 9.;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
