@@ -220,7 +220,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		/** Solving for each type of geometric elements */
 		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 		{
-			if(itypeel > 3) continue;
+			if(itypeel == 1) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -302,7 +302,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				break;
 			default:
 				MaxPOrder = 36;
-				NRefs = 25;
+				NRefs = 20;
 				break;
 			}
 			// To storing number of equations and errors obtained for all iterations
@@ -320,8 +320,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 #endif
 					SaveCompMesh(cmesh,countermesh++);
 				}
-				out << "\nConstructing Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
-                std::cout << "\nConstructing Poisson problem. Type element: " << typeel << std::endl;
+				out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
+                std::cout << "\nSolving Poisson problem. Type element: " << typeel << std::endl;
 				if(usethreads) {
 					if(nref > 5) nthread = 2*NThreads;
 					else nthread = NThreads;
@@ -403,8 +403,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					STATE Tol;
 					ZeroTolerance(Tol);
 					std::cout << "Starting hp adaptive analysis: " << std::endl;
-					out << "\n\nEntering Adaptive Methods... step " << nref << "\n";
-		            std::cout << "\n\nEntering Adaptive Methods... step " << nref << "\n";
+					out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
+		            std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 					if(ModelDimension ==3)
 						ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
 					else
@@ -413,7 +413,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				fileerrors.flush();
 				out.flush();
 				// Sometimes Writing a relation between number of degree of freedom and L2 error.
-				if(nref > 5 && !(nref%4))
+				if(!(nref%4))
 					PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors);
 			}
 			if(cmesh)
@@ -447,13 +447,9 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL factorError = 0.4;
-	if(nref > 3) {
-		factorError -= (nref-3)*0.05;
-	}
-	if(factorError < 0.2) factorError = 0.2;
-	REAL GradErLimit = 9.;
-	REAL ErLimit = 0.01;
+	REAL factorError = 0.3;
+	REAL GradErLimit = 50.;
+	REAL ErLimit = 0.05;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
 	MaxGrad = gradervecbyel[nels];
 	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
@@ -518,11 +514,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad= 0.6;
-	REAL factorError = 0.4;
-	if(nref > 3) {
-		factorError -= (nref-3)*0.05;
-	}
-	if(factorError < 0.2) factorError = 0.2;
+	REAL factorError = 0.3;
 	REAL GradErLimit = 9.;
 	REAL ErLimit = 0.01;
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
