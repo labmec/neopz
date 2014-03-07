@@ -593,11 +593,11 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
 	   	z = y;
 	}
 	if (!opt) { 
-		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, x.Cols(), this->Rows(), x.Rows(),
-                    alpha, x.fElem, x.Rows(), fElem, this->Rows(), beta, z.fElem, z.Rows());
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
+                alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
 	} else {
-		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, this->Cols(), x.Cols(), this->Rows(),
-                    alpha, fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Cols());
+        cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
+                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
 	}
     
 } 
@@ -633,11 +633,11 @@ void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<floa
 	   	z = y;
 	}
 	if (!opt) { 
-		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, x.Cols(), this->Rows(), x.Rows(),
-                    alpha, x.fElem, x.Rows(), fElem, this->Rows(), beta, z.fElem, z.Rows());
+        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
+                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
 	} else {
-		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, this->Cols(), x.Cols(), this->Rows(),
-                    alpha, fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Cols());
+        cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
+                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
 	}
     
 }
