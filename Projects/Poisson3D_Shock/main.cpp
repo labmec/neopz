@@ -220,7 +220,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		/** Solving for each type of geometric elements */
 		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 		{
-			if(itypeel == 1) continue;
+			if(itypeel != 3) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -293,8 +293,8 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case ETriangle:
 			case EPrisma:
 			case EPiramide:
-				MaxPOrder = 20;
-				NRefs = 17;
+				MaxPOrder = 13;
+				NRefs = 19;
 				break;
 			case ETetraedro:
 				MaxPOrder = 14;
@@ -505,6 +505,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
 	TPZVec<long> subels;
+	TPZVec<long> subsubels;
 	int pelement;
 	int level;
 	TPZInterpolatedElement *el;
@@ -515,8 +516,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	long i, ii;
 	REAL factorGrad= 0.6;
 	REAL factorError = 0.3;
+	if(nref > 15 && itypeel ==2) factorError = 0.2;
 	REAL GradErLimit = 9.;
 	REAL ErLimit = 0.01;
+	if(itypeel==3) {
+		GradErLimit = 12;
+		ErLimit *= 2;
+	}
 	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
 	MaxGrad = gradervecbyel[nels];
 	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
@@ -537,10 +543,20 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
 		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel && nref < 8) {
 			counterreftype[10]++;
-			hused = true;
 			el->Divide(index,subels);
 			el = 0;
-			level++;
+			for(ii=0;ii<subels.NElements();ii++) {
+				if(subels[ii] && !nref) {
+					hused = true;
+					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
+					subels[ii] = 0L;
+				}
+			}
+			if(hused) level += 2;
+			else {
+				level++;
+				hused = true;
+			}
 		}
 		if(ervecbyel[i] > SmallError && pelement < MaxPOrder) {
 			counterreftype[20]++;
@@ -548,7 +564,8 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 				el->PRefine(pelement);
 			else {
 				for(ii=0;ii<subels.NElements();ii++) {
-					((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
+					if(subels[ii])
+						((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
 				}
 			}
 			pused = true;
@@ -567,8 +584,9 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
 }
-void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
 
+void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
+/*
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
 	TPZVec<long> subels;
@@ -649,6 +667,7 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TP
 	// Printing information stored
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
+	*/
 }
 
 int MaxLevelReached(TPZCompMesh *cmesh) {
