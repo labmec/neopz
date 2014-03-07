@@ -20,7 +20,7 @@ class TPZIntRuleT3D {
     friend class TPZIntRuleList;
     
 	/** @brief Number of integration points for this object */
-    short	   fNumInt;
+    int	   fNumInt;
 	/** @brief Location of the integration point Ksi */
     TPZVec<long double>	fLocationKsi;
 	/** @brief Location of the integration point Eta */

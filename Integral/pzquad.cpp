@@ -162,8 +162,8 @@ void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 void TPZIntQuad::GetOrder(TPZVec<int> &ord) const {
-	ord[0] = (short) fOrdKsi;
-	ord[1] = (short) fOrdEta;
+	ord[0] = fOrdKsi;
+	ord[1] = fOrdEta;
 }
 
 //**************************************
@@ -207,7 +207,7 @@ void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 void TPZIntTriang::GetOrder(TPZVec<int> &ord) const {
-	ord[0] = (short) fOrdKsi;
+	ord[0] = fOrdKsi;
 	ord[1] = ord[0];
 }
 
@@ -258,9 +258,9 @@ void TPZIntCube3D::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 void TPZIntCube3D::GetOrder(TPZVec<int> &ord) const {
-	ord[0] = (short) fOrdKsi;
-	ord[1] = (short) fOrdEta;
-	ord[2] = (short) fOrdZeta;
+	ord[0] = fOrdKsi;
+	ord[1] = fOrdEta;
+	ord[2] = fOrdZeta;
 }
 
 //##############################################################################
@@ -302,7 +302,7 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 void TPZIntTetra3D::GetOrder(TPZVec<int> &ord) const {
-	ord[0] = (short) fOrdKsi;
+	ord[0] = fOrdKsi;
 	ord[1] = ord[0];
 	ord[2] = ord[0];
 }
@@ -346,7 +346,7 @@ void TPZIntPyram3D::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 void TPZIntPyram3D::GetOrder(TPZVec<int> &ord) const {
-	ord[0] = (short) fOrdKsi;
+	ord[0] = fOrdKsi;
 	ord[1] = ord[0];
 	ord[2] = ord[0];
 }

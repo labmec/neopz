@@ -20,7 +20,7 @@ class TPZIntRuleT {
 	friend class TPZIntRuleList;
 	
 	/** @brief Number of integration points for this object */
-    short	   fNumInt;
+    int	   fNumInt;
 	/** @brief Location of the integration point Ksi */
     TPZVec<long double>	fLocationKsi;
 	/** @brief Location of the integration point Eta */
@@ -53,7 +53,7 @@ public:
     enum {NRULESTRIANGLE_ORDER = 21};
 
 	/** @brief Returns number of integration points */
-    short NInt() const { return fNumInt;}
+    int NInt() const { return fNumInt;}
 
 	/** @brief Returns location of the ith point */
     void Loc(int i, TPZVec<REAL> &pos) const;
