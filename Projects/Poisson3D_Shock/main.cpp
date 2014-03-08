@@ -182,12 +182,12 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	itypeel = 4;
+	itypeel = 7;
 	int count = 0;
 	do {
-		if(argc > 2)
+		if(argc > 1)
 			itypeel = atoi(argv[count+1]);
-		if(itypeel > 7)
+		if(itypeel > 7 || itypeel < 2)
 			itypeel = 7;
 		count++;
 		// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
@@ -407,7 +407,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				fileerrors.flush();
 				out.flush();
 				// Sometimes Writing a relation between number of degree of freedom and L2 error.
-				if(!(nref%4))
+				if(nref && !(nref%4))
 					PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors);
 			}
 			if(cmesh)
@@ -430,8 +430,6 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref) {
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
-	/* Printing maximum and minimun values of the errors */
-	out << "\nErro ->   Min " << MinErrorByElement << "    Max " << MaxErrorByElement << std::endl << "Grad ->   Min " << MinGrad << "   Max " << gradervecbyel[nels] << "\t";
 
 	TPZVec<long> subels;
 	TPZVec<long> subsubels;
@@ -447,15 +445,17 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL factorError = 0.3;
 	REAL GradErLimit = 9.;
 	REAL ErrLimit = 0.02;
-	if(itypeel > 3) {
-		GradErLimit = 50;
-	}
-	else if(itypeel == 3)
+	if(itypeel != 2) {
 		GradErLimit = 18.;
+	}
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	if(SmallError > ErrLimit) SmallError = ErrLimit;
 	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	if(MaxGrad > GradErLimit) MaxGrad = GradErLimit;
+
+	/* Printing maximum and minimun values of the errors */
+	out << "\nErro ->   Min " << MinErrorByElement << "    Max " << MaxErrorByElement << std::endl << "Grad ->   Min " << MinGrad << "   Max " << gradervecbyel[nels] << "\t";
+	out << "\nMaxGrad " << MaxGrad << "     SError " << SmallError;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
