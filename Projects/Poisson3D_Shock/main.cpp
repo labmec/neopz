@@ -220,7 +220,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		/** Solving for each type of geometric elements */
 		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 		{
-			if(itypeel != 3) continue;
+			if(itypeel != 2 && itypeel != 3) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -293,16 +293,16 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case ETriangle:
 			case EPrisma:
 			case EPiramide:
-				MaxPOrder = 13;
-				NRefs = 19;
+				MaxPOrder = 14;
+				NRefs = 5;
 				break;
 			case ETetraedro:
 				MaxPOrder = 14;
-				NRefs = 17;
+				NRefs = 5;
 				break;
 			default:
 				MaxPOrder = 36;
-				NRefs = 20;
+				NRefs = 5;
 				break;
 			}
 			// To storing number of equations and errors obtained for all iterations
@@ -516,14 +516,11 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	long i, ii;
 	REAL factorGrad= 0.6;
 	REAL factorError = 0.3;
-	if(nref > 15 && itypeel ==2) factorError = 0.2;
+	if(nref > 7) factorError = 0.4;
 	REAL GradErLimit = 9.;
-	REAL ErLimit = 0.01;
-	if(itypeel==3) {
-		GradErLimit = 12;
-		ErLimit *= 2;
-	}
-	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
+//	REAL ErLimit = ;
+//	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
+	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	MaxGrad = gradervecbyel[nels];
 	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
 
@@ -545,18 +542,18 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 			counterreftype[10]++;
 			el->Divide(index,subels);
 			el = 0;
-			for(ii=0;ii<subels.NElements();ii++) {
-				if(subels[ii] && !nref) {
-					hused = true;
-					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
-					subels[ii] = 0L;
-				}
-			}
-			if(hused) level += 2;
-			else {
+//			for(ii=0;ii<subels.NElements();ii++) {
+	//			if(subels[ii] && level==MaxHLevel-1) {
+//					hused = true;
+//					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
+//					subels[ii] = 0L;
+//				}
+//			}
+//			if(hused) level += 2;
+//			else {
 				level++;
 				hused = true;
-			}
+//			}
 		}
 		if(ervecbyel[i] > SmallError && pelement < MaxPOrder) {
 			counterreftype[20]++;
