@@ -154,12 +154,13 @@ long MaxEquations = 1300000;
  * Get Global L2 Error for solution and the L2 error for each element.
  * Return the maxime L2 error by elements. Also return in MinErrorByElement argument the minime L2 error for all elements of the mesh.
  */
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement);
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement,REAL &);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
-void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
-void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
-void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
+void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref);
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref);
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
+
+void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 // Writing a relation between number of degree of freedom and L2 error.
 bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
 
@@ -220,7 +221,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 		/** Solving for each type of geometric elements */
 		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
 		{
-			if(itypeel != 2 && itypeel != 3) continue;
+			if(itypeel!=2 && itypeel!=3 && itypeel!=4 && itypeel != 7) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
@@ -294,15 +295,15 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case EPrisma:
 			case EPiramide:
 				MaxPOrder = 14;
-				NRefs = 5;
+				NRefs = 15;
 				break;
 			case ETetraedro:
 				MaxPOrder = 14;
-				NRefs = 5;
+				NRefs = 7;
 				break;
 			default:
 				MaxPOrder = 36;
-				NRefs = 5;
+				NRefs = 7;
 				break;
 			}
 			// To storing number of equations and errors obtained for all iterations
@@ -380,10 +381,10 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				formatTimeInSec(time_formated,256,time_elapsed);
 				out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
-				REAL MinErrorByElement;
+				REAL MinErrorByElement, MinGradErrorByElement;
 				ervecbyel.Resize(0);
 				gradervecbyel.Resize(0);
-				REAL MaxErrorByElement = ProcessingError(an,ervec,ervecbyel,gradervecbyel,MinErrorByElement);
+				REAL MaxErrorByElement = ProcessingError(an,ervec,ervecbyel,gradervecbyel,MinErrorByElement,MinGradErrorByElement);
 				// Printing obtained errors
 				if(ervec[1] > 10. || ervec[1] < 0.) {
 					std::cout << "L2 Error is BIG! By! \n\n";
@@ -405,10 +406,10 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 					std::cout << "Starting hp adaptive analysis: " << std::endl;
 					out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 		            std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-					if(ModelDimension ==3)
-						ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
-					else
-						ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,nref);
+//					if(ModelDimension ==3)
+	//					ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref);
+		//			else
+						ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref);
                 }
 				fileerrors.flush();
 				out.flush();
@@ -434,7 +435,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	out.close();
     return true;
 }
-void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
+void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref) {
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
 	TPZVec<long> subels;
@@ -500,10 +501,12 @@ void ApplyingStrategyHPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZ
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
 }
-void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
-
+void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref) {
 	if(!cmesh) return;
 	long nels = cmesh->NElements();
+	/* Printing maximum and minimun values of the errors */
+	out << "\nErro ->   Min " << MinErrorByElement << "    Max " << MaxErrorByElement << std::endl << "Grad ->   Min " << MinGrad << "   Max " << gradervecbyel[nels] << "\t";
+
 	TPZVec<long> subels;
 	TPZVec<long> subsubels;
 	int pelement;
@@ -516,13 +519,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	long i, ii;
 	REAL factorGrad= 0.6;
 	REAL factorError = 0.3;
-	if(nref > 7) factorError = 0.4;
 	REAL GradErLimit = 9.;
-//	REAL ErLimit = ;
-//	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
-	MaxGrad = gradervecbyel[nels];
-	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
+	if(SmallError > 0.05) SmallError = 0.05;
+//	MaxGrad = gradervecbyel[nels];
+//	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
+	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
+	if(MaxGrad > GradErLimit) MaxGrad = GradErLimit;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -779,11 +782,15 @@ int MaxLevelReached(TPZCompMesh *cmesh) {
 }
 */
 void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out) {
+	long Total = 0L;
 	out << "\nHP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
 	out << "NRef = " << nref << std::endl;
 	for(int j=0;j<counter.NElements();j++)
-		if(counter[j])
+		if(counter[j]) {
 			out << "Refinement type " << j << " : " << counter[j] << std::endl;
+			Total += counter[j];
+		}
+	out << "Processed elements " << Total;
 }
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
     
@@ -874,7 +881,7 @@ void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZV
  * Return the maxime L2 error by elements. Also return in MinErrorByElement argument the minime L2 error for all elements of the mesh.
  */
 
-REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement) {
+REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement,REAL &MinGradErrorByElement) {
     long neq = analysis.Mesh()->NEquations();
 	if(ModelDimension != analysis.Mesh()->Dimension())
 		DebugStop();
@@ -892,6 +899,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 	gradervecbyel.Resize(nel+1,0.0);
 	REAL maxError = 0.0;
 	MinErrorByElement = 1000.0;
+	MinGradErrorByElement = 10000.0;
 
 	/** Computing error for all elements with same dimension of the model */
     for(i=0L;i<nel;i++) {
@@ -909,6 +917,8 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 			gradervecbyel[i] = sqrt(errors[2]*errors[2]);
 			if(gradervecbyel[i] > gradervecbyel[nel])
 				gradervecbyel[nel] = gradervecbyel[i];
+			if(gradervecbyel[i] < MinGradErrorByElement)
+				MinGradErrorByElement = gradervecbyel[i];
 			// The computed error by current element is compared with max and min values to return
 			if(ervecbyel[i] > maxError)
 				maxError = ervecbyel[i];
@@ -929,7 +939,7 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 // Writing a relation between number of degree of freedom and L2 error.
 bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
 	int nref;
-	int NRefs = ErrorVec.NElements();
+	long NRefs = ErrorVec.NElements();
 	// setting format for ostream
 	fileerrors << setprecision(13);
 	fileerrors.setf(std::ios::fixed, std::ios::floatfield);
@@ -1571,7 +1581,7 @@ TPZGeoMesh *ConstructingPositiveCube(REAL InitialL,MElementType typeel) {
 	TPZGeoElBC gbc25(gmesh->ElementVec()[0],25,id_bc0);
 
 	TPZVec<TPZGeoEl *> sub;
-	std::string filename = REFPATTERNDIR;
+	std::string filename = "D:\\";
     switch (typeel) {
         case ENoType:
         {
