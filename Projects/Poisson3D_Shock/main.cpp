@@ -234,7 +234,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			
 			// Printing geometric mesh to validate
 			if(gDebug) {
-				sprintf(saida,"gmesh_%02dD_H%dTR%dE%d.vtk",ModelDimension,nref,regular,typeel);
+				sprintf(saida,"gmesh_%02dD_H%dE%d.vtk",ModelDimension,nref,typeel);
 				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
 			}
 
@@ -280,7 +280,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			TPZCompMesh *cmesh;
 			gmesh->SetName("Malha Geometrica original");
 			if(gDebug) {
-				sprintf(saida,"gmesh_%02dD_H%dTR%dE%dIndex.vtk",ModelDimension,nref,regular,typeel);
+				sprintf(saida,"gmesh_%02dD_H%dE%dIndex.vtk",ModelDimension,nref,typeel);
 				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 			}
 			cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);     // Forcing function is out 2013_07_25
@@ -317,7 +317,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 #endif
 					SaveCompMesh(cmesh,countermesh++);
 				}
-				out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " Regular: " << regular << " TypeElement: " << typeel << endl;
+				out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " TypeElement: " << typeel << endl;
                 std::cout << "\nSolving Poisson problem. Type element: " << typeel << std::endl;
 				if(usethreads) {
 					if(nref > 5) nthread = 2*NThreads;
@@ -333,13 +333,13 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				an.SetExact(ExactSolutionArcTangent);
 				{
 					std::stringstream sout;
-					sout << "Poisson" << ModelDimension << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+					sout << "Poisson" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
 					an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
 				}
 				std::string MeshFileName;
 				{
 					std::stringstream sout;
-					sout << "meshAngle" << ModelDimension << "D_MESH" << regular << "E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+					sout << "meshAngle" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
 					MeshFileName = sout.str();
 				}
 				
@@ -360,7 +360,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 				delete direct;
 				direct = 0;
 				
-				out << "\tRefinement: " << nref << " Regular Mesh: " << regular << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
+				out << "\tRefinement: " << nref << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
 				an.Run();
 				
 				// Post processing
