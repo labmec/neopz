@@ -171,19 +171,28 @@ int MaxLevelReached(TPZCompMesh *cmesh);
 
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
 /** Laplace equation on square 1D 2D 3D - Volker John article 2000 */
-int main() {
+int main(int argc,char *argv[]) {
     
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
-
+	
 	// Initializing uniform refinements for reference elements
 	gRefDBase.InitializeAllUniformRefPatterns();
-    //    gRefDBase.InitializeRefPatterns();
-    
-	// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-    if(!SolveSymmetricPoissonProblemOnHexaMesh())
-        return 1;
+//    gRefDBase.InitializeRefPatterns();
+
+	// Getting input data
+	itypeel = 2;
+	for (int i=0;i<argc;i++) {
+		if(argc > i)
+			itypeel = atoi(argv[i+1]);
+		if(itypeel > 7)
+			itypeel = 7;
+
+		// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
+	    if(!SolveSymmetricPoissonProblemOnHexaMesh())
+		    return 1;
+	}
     
     return 0;
 }
@@ -207,33 +216,20 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	int nref = 1;
 	int nthread = 2, NThreads = 4;
 	
-    //Working on regular meshes
-    for(int regular=1; regular>0; regular--) {
 		// Initializing the auto adaptive process
 		TPZVec<REAL> ervec, ErrorVec(100,0.0);
 		TPZVec<long> NEquations(100,0L);
 		TPZVec<REAL> ervecbyel;
 		TPZVec<REAL> gradervecbyel;
 
-		fileerrors << "Type of mesh: " << regular << " Level. " << endl;
 		MElementType typeel;
 
-		/** Solving for each type of geometric elements */
-		for(itypeel=(int)ETriangle;itypeel<(int)EPolygonal;itypeel++)
+		/** Solving for type of geometric elements */
 		{
-			if(itypeel!=2 && itypeel!=3 && itypeel!=4 && itypeel != 7) continue;
 			typeel = (MElementType)itypeel;
 			fileerrors << "\nType of element: " << typeel << endl;
 			TPZGeoMesh *gmesh;
-			if(!regular) {
-				std::string nombre;
-				GetFilenameFromGID(typeel,nombre);
-				// Generating geometric mesh
-				gmesh = CreateGeomMesh(nombre);
-			}
-			else {
-				gmesh = CreateGeomMesh(typeel);
-			}
+			gmesh = CreateGeomMesh(typeel);
 			ModelDimension = DefineDimensionOverElementType(typeel);
 			
 			// Printing geometric mesh to validate
@@ -295,7 +291,7 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			case EPrisma:
 			case EPiramide:
 				MaxPOrder = 14;
-				NRefs = 15;
+				NRefs = 7;
 				break;
 			case ETetraedro:
 				MaxPOrder = 14;
@@ -426,8 +422,6 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 			// Writing a relation between number of degree of freedom and L2 error.
 			if(!PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors))
 				std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
-		}
-	}
 	
 	fileerrors << std::endl << "Finished running.\n" << std::endl << std::endl;
 	fileerrors.close();
@@ -520,8 +514,13 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	REAL factorGrad= 0.6;
 	REAL factorError = 0.3;
 	REAL GradErLimit = 9.;
+	REAL ErrLimit = 0.02;
+	if(itypeel > 3) {
+		GradErLimit = 15;
+		ErrLimit = 0.05;
+	}
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
-	if(SmallError > 0.05) SmallError = 0.05;
+	if(SmallError > ErrLimit) SmallError = ErrLimit;
 //	MaxGrad = gradervecbyel[nels];
 //	MaxGrad = GradErLimit > factorGrad*MaxGrad ? factorGrad*MaxGrad : GradErLimit;
 	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
