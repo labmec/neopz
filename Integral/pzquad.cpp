@@ -25,11 +25,9 @@ using namespace std;
 /** It is necessary because now can to be computed rule with integration points up to one thousand. */
 int TPZIntPoints::GetMaxOrder() const {
 #ifdef VC
-	return max(TPZIntRuleT::NRULESTRIANGLE_ORDER, \
-			   max(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
+	return max(TPZIntRuleT::NRULESTRIANGLE_ORDER, max(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
 #else
-	return fmaxl(TPZIntRuleT::NRULESTRIANGLE_ORDER, \
-			fmaxl(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
+	return fmaxl(TPZIntRuleT::NRULESTRIANGLE_ORDER, fmaxl(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
 #endif
 }
 

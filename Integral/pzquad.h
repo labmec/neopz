@@ -238,15 +238,6 @@ public:
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetRealMaxOrder() const;
 	
-	/** A ordem máxima é muito maior que 36. Seu valor está em GetRealMaxOrder.
-	 * Entretanto, é preciso dar algum valor aqui para sobrescrever o da classe
-	 * mãe que retorna o max order do tetraedro, da pirâmide ou do triângulo,
-	 * que tradicionalmente tem regras menores que linha, quadrilátero e hexaedro
-	 */ 
-	virtual int GetMaxOrder() const{
-		return 36;
-	}
-	
 	virtual int Dimension() const
 	{
 		return Dim;

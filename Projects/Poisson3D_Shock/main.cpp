@@ -182,7 +182,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	itypeel = 7;
+	itypeel = 4;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -216,215 +216,215 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	
 	int nref = 1;
 	int nthread = 2, NThreads = 4;
-	
-		// Initializing the auto adaptive process
-		TPZVec<REAL> ervec, ErrorVec(100,0.0);
-		TPZVec<long> NEquations(100,0L);
-		TPZVec<REAL> ervecbyel;
-		TPZVec<REAL> gradervecbyel;
 
-		MElementType typeel;
+	// Initializing the auto adaptive process
+	TPZVec<REAL> ervec, ErrorVec(100,0.0);
+	TPZVec<long> NEquations(100,0L);
+	TPZVec<REAL> ervecbyel;
+	TPZVec<REAL> gradervecbyel;
 
-		/** Solving for type of geometric elements */
-			typeel = (MElementType)itypeel;
-			fileerrors << "\nType of element: " << typeel << endl;
-			TPZGeoMesh *gmesh;
-			gmesh = CreateGeomMesh(typeel);
-			ModelDimension = DefineDimensionOverElementType(typeel);
+	MElementType typeel;
+
+	/** Solving for type of geometric elements */
+	typeel = (MElementType)itypeel;
+	fileerrors << "\nType of element: " << typeel << endl;
+	TPZGeoMesh *gmesh;
+	gmesh = CreateGeomMesh(typeel);
+	ModelDimension = DefineDimensionOverElementType(typeel);
 			
-			// Printing geometric mesh to validate
-			if(gDebug) {
-				sprintf(saida,"gmesh_%02dD_H%dE%d.vtk",ModelDimension,nref,typeel);
-				PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
-			}
+	// Printing geometric mesh to validate
+	if(gDebug) {
+		sprintf(saida,"gmesh_%02dD_H%dE%d.vtk",ModelDimension,nref,typeel);
+		PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
+	}
 
-			/** Variable names for post processing */
-			TPZStack<std::string> scalnames, vecnames;
-			scalnames.Push("POrder");
-			scalnames.Push("Solution");
+	/** Variable names for post processing */
+	TPZStack<std::string> scalnames, vecnames;
+	scalnames.Push("POrder");
+	scalnames.Push("Solution");
 
-			fileerrors.flush();
-			out.flush();
+	fileerrors.flush();
+	out.flush();
 
-			if(printingsol) {
-				TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel);
-				UniformRefinement(8,gmesh,ModelDimension);
-				TPZCompEl::SetgOrder(1);
-				TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,1);
-				TPZAnalysis ann(cmeshfirst,false);
-				LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
-				{
-					std::stringstream sut;
-					sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
-					ann.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
-				}
-				ann.PostProcess(3,ModelDimension);
-                long countels = 0;
-                for(int ii=0;ii<cmeshfirst->NElements();ii++) {
-                    if(!cmeshfirst->ElementVec()[ii] || cmeshfirst->ElementVec()[ii]->Dimension()!=ModelDimension) continue;
-                    countels++;
-                }
-                out << std::endl << "Number of elements 2D: " << countels << std::endl << std::endl ;
-				delete cmeshfirst;
-				delete gmeshfirst;
-				printingsol = false;
-			}
-			else
-				UniformRefinement(ninitialrefs,gmesh,ModelDimension);
+	if(printingsol) {
+		TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel);
+		UniformRefinement(8,gmesh,ModelDimension);
+		TPZCompEl::SetgOrder(1);
+		TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,1);
+		TPZAnalysis ann(cmeshfirst,false);
+		LoadSolutionFirstOrder(cmeshfirst,ExactSolutionArcTangent);
+		{
+			std::stringstream sut;
+			sut << "Poisson" << ModelDimension << "D_MESHINIT_E" << typeel << "H" << std::setprecision(2) << nref << ".vtk";
+			ann.DefineGraphMesh(ModelDimension,scalnames,vecnames,sut.str());
+		}
+		ann.PostProcess(3,ModelDimension);
+		long countels = 0;
+		for(int ii=0;ii<cmeshfirst->NElements();ii++) {
+			if(!cmeshfirst->ElementVec()[ii] || cmeshfirst->ElementVec()[ii]->Dimension()!=ModelDimension) continue;
+			countels++;
+		}
+		out << std::endl << "Number of elements 2D: " << countels << std::endl << std::endl ;
+		delete cmeshfirst;
+		delete gmeshfirst;
+		printingsol = false;
+	}
+	else
+		UniformRefinement(ninitialrefs,gmesh,ModelDimension);
             
-			// Creating computational mesh (approximation space and materials)
-			int p = 1, pinit;
-			MaxPUsed = pinit = p;
-			MaxHUsed = 1;
-			TPZCompEl::SetgOrder(p);
-			TPZCompMesh *cmesh;
-			gmesh->SetName("Malha Geometrica original");
-			if(gDebug) {
-				sprintf(saida,"gmesh_%02dD_H%dE%dIndex.vtk",ModelDimension,nref,typeel);
-				PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
-			}
-			cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);     // Forcing function is out 2013_07_25
+	// Creating computational mesh (approximation space and materials)
+	int p = 1, pinit;
+	MaxPUsed = pinit = p;
+	MaxHUsed = 1;
+	TPZCompEl::SetgOrder(p);
+	TPZCompMesh *cmesh;
+	gmesh->SetName("Malha Geometrica original");
+	if(gDebug) {
+		sprintf(saida,"gmesh_%02dD_H%dE%dIndex.vtk",ModelDimension,nref,typeel);
+		PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
+	}
+	cmesh = CreateComputationalMesh(gmesh,ModelDimension,1);     // Forcing function is out 2013_07_25
 
-			// Adjusting parameters
-			switch(typeel) {
-			case ETriangle:
-			case EPrisma:
-			case EPiramide:
-				MaxPOrder = 14;
-				NRefs = 4;
-				break;
-			case ETetraedro:
-				MaxPOrder = 14;
-				NRefs = 4;
-				break;
-			default:
-				MaxPOrder = 36;
-				NRefs = 4;
-				break;
-			}
-			// To storing number of equations and errors obtained for all iterations
-			ErrorVec.Resize(NRefs);
-			ErrorVec.Fill(0.0L);
-			NEquations.Resize(NRefs);
-			NEquations.Fill(0L);
+	// Adjusting parameters
+	switch(typeel) {
+	case ETriangle:
+	case EPrisma:
+	case EPiramide:
+		MaxPOrder = 13;
+		NRefs = 20;
+		break;
+	case ETetraedro:
+		MaxPOrder = 14;
+		NRefs = 20;
+		break;
+	default:
+		MaxPOrder = 21;
+		NRefs = 20;
+		break;
+	}
+	// To storing number of equations and errors obtained for all iterations
+	ErrorVec.Resize(NRefs);
+	ErrorVec.Fill(0.0L);
+	NEquations.Resize(NRefs);
+	NEquations.Fill(0L);
 
-			int countermesh=0;
-			// loop solving iteratively
-			for(nref=0;nref<NRefs;nref++) {
-				if(printsave > 0) {
+	int countermesh=0;
+	// loop solving iteratively
+	for(nref=0;nref<NRefs;nref++) {
+		if(printsave > 0) {
 #ifdef LOG4CXX
-					InitializePZLOG();
+			InitializePZLOG();
 #endif
-					SaveCompMesh(cmesh,countermesh++);
-				}
-				out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " TypeElement: " << typeel << endl;
-                std::cout << "\nSolving Poisson problem. Type element: " << typeel << std::endl;
-				if(usethreads) {
-					if(nref > 5) nthread = 2*NThreads;
-					else nthread = NThreads;
-				}
+			SaveCompMesh(cmesh,countermesh++);
+		}
+		out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " TypeElement: " << typeel << endl;
+		std::cout << "\nSolving Poisson problem. Type element: " << typeel << std::endl;
+		if(usethreads) {
+			if(nref > 5) nthread = 2*NThreads;
+			else nthread = NThreads;
+		}
 				
-				// Initializing the generation mesh process
-				time(& sttime);
+		// Initializing the generation mesh process
+		time(& sttime);
 				
-				// Introduzing exact solution depending on the case
-				// Solving adaptive process
-				TPZAnalysis an(cmesh,true);
-				an.SetExact(ExactSolutionArcTangent);
-				{
-					std::stringstream sout;
-					sout << "Poisson" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
-					an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
-				}
-				std::string MeshFileName;
-				{
-					std::stringstream sout;
-					sout << "meshAngle" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
-					MeshFileName = sout.str();
-				}
+		// Introduzing exact solution depending on the case
+		// Solving adaptive process
+		TPZAnalysis an(cmesh,true);
+		an.SetExact(ExactSolutionArcTangent);
+		{
+			std::stringstream sout;
+			sout << "Poisson" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+			an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
+		}
+		std::string MeshFileName;
+		{
+			std::stringstream sout;
+			sout << "meshAngle" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+			MeshFileName = sout.str();
+		}
 				
-				cmesh->SetName("Malha computacional adaptada");
-				// Printing geometric and computational mesh
-				if(gDebug) {
-					cmesh->Reference()->Print(std::cout);
-					cmesh->Print(std::cout);
-				}
+		cmesh->SetName("Malha computacional adaptada");
+		// Printing geometric and computational mesh
+		if(gDebug) {
+			cmesh->Reference()->Print(std::cout);
+			cmesh->Print(std::cout);
+		}
 				
-				// Solve using symmetric matrix then using Cholesky (direct method)
-				TPZParSkylineStructMatrix strmat(cmesh,2);
-				an.SetStructuralMatrix(strmat);
-
-				TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
-				direct->SetDirect(ECholesky);
-				an.SetSolver(*direct);
-				delete direct;
-				direct = 0;
+		// Solve using symmetric matrix then using Cholesky (direct method)
+		TPZParSkylineStructMatrix strmat(cmesh,2);
+		an.SetStructuralMatrix(strmat);
+		
+		TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
+		direct->SetDirect(ECholesky);
+		an.SetSolver(*direct);
+		delete direct;
+		direct = 0;
 				
-				out << "\tRefinement: " << nref << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
-				an.Run();
+		out << "\tRefinement: " << nref << " TypeElement: " << typeel << "NEquations " << cmesh->NEquations() << "\n";
+		an.Run();
 				
-				// Post processing
-				an.PostProcess(0,ModelDimension);
-				if(gDebug) {
-					std::ofstream out(MeshFileName.c_str());
-					cmesh->LoadReferences();
-					TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
-				}
+		// Post processing
+		an.PostProcess(0,ModelDimension);
+		if(gDebug) {
+			std::ofstream out(MeshFileName.c_str());
+			cmesh->LoadReferences();
+			TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),out,false);
+		}
                 
-				// generation mesh process finished
-				time(&endtime);
-				time_elapsed = endtime - sttime;
-				formatTimeInSec(time_formated,256,time_elapsed);
-				out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
+		// generation mesh process finished
+		time(&endtime);
+		time_elapsed = endtime - sttime;
+		formatTimeInSec(time_formated,256,time_elapsed);
+		out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
-				REAL MinErrorByElement, MinGradErrorByElement;
-				ervecbyel.Resize(0);
-				gradervecbyel.Resize(0);
-				REAL MaxErrorByElement = ProcessingError(an,ervec,ervecbyel,gradervecbyel,MinErrorByElement,MinGradErrorByElement);
-				// Printing obtained errors
-				if(ervec[1] > 10. || ervec[1] < 0.) {
-					std::cout << "L2 Error is BIG! By! \n\n";
-					break;
-				}
-				ErrorVec[nref] = ervec[1];
-				NEquations[nref] = cmesh->NEquations();
+		REAL MinErrorByElement, MinGradErrorByElement;
+		ervecbyel.Resize(0);
+		gradervecbyel.Resize(0);
+		REAL MaxErrorByElement = ProcessingError(an,ervec,ervecbyel,gradervecbyel,MinErrorByElement,MinGradErrorByElement);
+		// Printing obtained errors
+		if(ervec[1] > 10. || ervec[1] < 0.) {
+			std::cout << "L2 Error is BIG! By! \n\n";
+			break;
+		}
+		ErrorVec[nref] = ervec[1];
+		NEquations[nref] = cmesh->NEquations();
 
-				std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << " PUsed " << MaxPUsed << " HMax " << MaxHUsed << std::endl << std::endl;
-				out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << " PUsed " << MaxPUsed << " HMax " << MaxHUsed << std::endl << std::endl;
-				if(cmesh->NEquations() > MaxEquations) {
-					NRefs = nref+1;							// final iteration
-					ErrorVec.Resize(NRefs);
-					NEquations.Resize(NRefs);
-				}
-				if(NRefs > 1 && nref < (NRefs-1)) {
-					STATE Tol;
-					ZeroTolerance(Tol);
-					std::cout << "Starting hp adaptive analysis: " << std::endl;
-					out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-		            std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-					ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref);
-                }
-				fileerrors.flush();
-				out.flush();
-				// Sometimes Writing a relation between number of degree of freedom and L2 error.
-				if(nref && !(nref%4))
-					PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors);
-			}
-			if(cmesh)
-				delete cmesh;
-			cmesh = NULL;
-			if(gmesh)
-				delete gmesh;
-			gmesh = NULL;
-			// Writing a relation between number of degree of freedom and L2 error.
-			if(!PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors))
-				std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
+		std::cout << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << " PUsed " << MaxPUsed << " HMax " << MaxHUsed << std::endl << std::endl;
+		out << "\n NRef " << nref << "\tL2 Error " << ervec[1] << "  NEquations: " << NEquations[nref] << " PUsed " << MaxPUsed << " HMax " << MaxHUsed << std::endl << std::endl;
+		if(cmesh->NEquations() > MaxEquations) {
+			NRefs = nref+1;							// final iteration
+			ErrorVec.Resize(NRefs);
+			NEquations.Resize(NRefs);
+		}
+		if(NRefs > 1 && nref < (NRefs-1)) {
+			STATE Tol;
+			ZeroTolerance(Tol);
+			std::cout << "Starting hp adaptive analysis: " << std::endl;
+			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
+			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
+			ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref);
+		}
+		fileerrors.flush();
+		out.flush();
+		// Sometimes Writing a relation between number of degree of freedom and L2 error.
+		if(nref && !(nref%4))
+			PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors);
+	}
+	if(cmesh)
+		delete cmesh;
+	cmesh = NULL;
+	if(gmesh)
+		delete gmesh;
+	gmesh = NULL;
+	// Writing a relation between number of degree of freedom and L2 error.
+	if(!PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors))
+		std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
 	
 	fileerrors << std::endl << "Finished running.\n" << std::endl << std::endl;
 	fileerrors.close();
-    std::cout << std::endl << "\tFinished running.\n" << std::endl << std::endl;
+	std::cout << std::endl << "\tFinished running.\n" << std::endl << std::endl;
 	out.close();
-    return true;
+	return true;
 }
 
 void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref) {
