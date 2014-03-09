@@ -182,7 +182,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	itypeel = 4;
+	itypeel = 7;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -193,7 +193,7 @@ int main(int argc,char *argv[]) {
 		// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
 	    if(!SolveSymmetricPoissonProblemOnHexaMesh())
 		    return 1;
-	}while(count == argc);
+	}while(count == argc && argc != 1);
     
     return 0;
 }
@@ -291,15 +291,15 @@ bool SolveSymmetricPoissonProblemOnHexaMesh() {
 	case EPrisma:
 	case EPiramide:
 		MaxPOrder = 13;
-		NRefs = 20;
+		NRefs = 4;
 		break;
 	case ETetraedro:
 		MaxPOrder = 14;
-		NRefs = 20;
+		NRefs = 4;
 		break;
 	default:
 		MaxPOrder = 21;
-		NRefs = 20;
+		NRefs = 4;
 		break;
 	}
 	// To storing number of equations and errors obtained for all iterations
@@ -441,15 +441,21 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 	TPZVec<long> counterreftype(50,0);
 	REAL MaxGrad;
 	long i, ii;
-	REAL factorGrad= 0.6;
+	REAL factorGrad = 0.6;
 	REAL factorError = 0.3;
 	REAL GradErLimit = 9.;
-	REAL ErrLimit = 0.02;
-	if(itypeel != 2) {
-		GradErLimit = 18.;
+	
+	if(itypeel == 3 || itypeel == 7) {
+		if(!nref) GradErLimit = 18.;
+		else GradErLimit = 9.;
+		//if(itypeel == 7) factorError = 0.4;
+	}
+	if(3 < itypeel && itypeel < 7) {
+		if(!nref) GradErLimit = 57.;
+		else GradErLimit = 25.;
+		factorError = 0.5;
 	}
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
-	if(SmallError > ErrLimit) SmallError = ErrLimit;
 	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	if(MaxGrad > GradErLimit) MaxGrad = GradErLimit;
 
