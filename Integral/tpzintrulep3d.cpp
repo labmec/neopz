@@ -14,13 +14,13 @@
 
 using namespace std;
 
-TPZIntRuleP3D::TPZIntRuleP3D(int order) {
+TPZIntRuleP3D::TPZIntRuleP3D(int &order) {
 	if(order < 0)
 		order = 1;
-	if (order > NRULESPYRAMID_ORDER){
-		PZError << "TPZGaussRule creation precision = " << order << " not available\n";
-		order = NRULESPYRAMID_ORDER;
-	}
+//	if (order > NRULESPYRAMID_ORDER){
+//		PZError << "TPZGaussRule creation precision = " << order << " not available\n";
+//		order = NRULESPYRAMID_ORDER;
+//	}
 	// Computing integration points and weights to cubature rule for pyramid
 	ComputingCubatureRuleForPyramid(order);
 }

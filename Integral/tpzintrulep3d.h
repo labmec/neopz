@@ -34,14 +34,14 @@ class TPZIntRuleP3D {
 	 * @brief Constructor of cubature rule for pyramid 
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
-	TPZIntRuleP3D(int order = 2);
+	TPZIntRuleP3D(int &order);
 	/** @brief Default destructor. */
 	~TPZIntRuleP3D();
 	
 
 public:
 	
-    enum {NRULESPYRAMID_ORDER = 21};
+    enum {NRULESPYRAMID_ORDER = 37};
 	
 	/** @brief Returns number of integration points */
     int NInt() const{ return fNumInt; }

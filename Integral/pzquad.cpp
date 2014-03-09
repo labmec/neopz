@@ -351,8 +351,11 @@ void TPZIntPyram3D::GetOrder(TPZVec<int> &ord) const {
 
 //##############################################################################
 TPZIntPrism3D::TPZIntPrism3D(int OrdK,int OrdL) : fIntRule1D(OrdK), fIntTriang(OrdL) {
-	fOrdKsi = OrdK;
-	fOrdKti = OrdL;
+    TPZManVector<int,2> ord1d(1),ordt(2);
+    fIntRule1D.GetOrder(ord1d);
+    fIntTriang.GetOrder(ordt);
+	fOrdKsi = ord1d[0];
+	fOrdKti = ordt[0];
 }
 
 TPZIntPrism3D::~TPZIntPrism3D() {

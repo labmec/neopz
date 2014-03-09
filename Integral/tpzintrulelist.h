@@ -54,17 +54,17 @@ class TPZIntRuleList {
 	 * @brief Returns a pointer to an integration rule for a triangle 
 	 * @param order Degree of the polinomial for which the integration is exact. 
 	 */
-	TPZIntRuleT *GetRuleT(int order);
+	TPZIntRuleT *GetRuleT(int &order);
 	/** 
 	 * @brief Returns a pointer to an integration rule for a tetrahedra 
 	 * @param order Degree of the polinomial for which the integration is exact. 
 	 */
-	TPZIntRuleT3D *GetRuleT3D(int order);
+	TPZIntRuleT3D *GetRuleT3D(int &order);
 	/** 
 	 * @brief Returns a pointer to an integration rule for a  pyramid
 	 * @param order Degree of the polinomial for which the integration is exact. 
 	 */
-	TPZIntRuleP3D *GetRuleP3D(int order);
+	TPZIntRuleP3D *GetRuleP3D(int &order);
 };
 
 /** 

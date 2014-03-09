@@ -81,7 +81,7 @@ TPZGaussRule* TPZIntRuleList::GetRule(int order,int type) {
 }
 
 //**************************************
-TPZIntRuleT* TPZIntRuleList::GetRuleT(int order) {
+TPZIntRuleT* TPZIntRuleList::GetRuleT(int &order) {
 	if(order < 0) order = 1;
 	if(order > TPZIntRuleT::NRULESTRIANGLE_ORDER) {
 		order = TPZIntRuleT::NRULESTRIANGLE_ORDER;
@@ -95,7 +95,7 @@ TPZIntRuleT* TPZIntRuleList::GetRuleT(int order) {
 }
 
 //**************************************
-TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int order) {
+TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int &order) {
 	if(order < 0) order = 1;
 	if(order > TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER) {
 		order = TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
@@ -109,11 +109,11 @@ TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int order) {
 }
 
 //**************************************
-TPZIntRuleP3D* TPZIntRuleList::GetRuleP3D(int order) {
+TPZIntRuleP3D* TPZIntRuleList::GetRuleP3D(int &order) {
 	if(order < 0) order = 1;
-	if(order > TPZIntRuleP3D::NRULESPYRAMID_ORDER) {
-		order = TPZIntRuleP3D::NRULESPYRAMID_ORDER;
-	}
+//	if(order > TPZIntRuleP3D::NRULESPYRAMID_ORDER) {
+//		order = TPZIntRuleP3D::NRULESPYRAMID_ORDER;
+//	}
 
 	if(fintlistP3D.NElements()<order+1)
 		fintlistP3D.Resize(order+1,NULL);
