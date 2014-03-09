@@ -182,7 +182,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	itypeel = 7;
+	itypeel = 4;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -451,9 +451,9 @@ void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZ
 		//if(itypeel == 7) factorError = 0.4;
 	}
 	if(3 < itypeel && itypeel < 7) {
-		if(!nref) GradErLimit = 57.;
-		else GradErLimit = 25.;
-		factorError = 0.5;
+		if(!nref) GradErLimit = 25.;
+		else GradErLimit = 9.;
+//		factorError = 0.5;
 	}
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
