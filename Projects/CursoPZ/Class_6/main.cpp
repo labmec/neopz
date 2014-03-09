@@ -92,26 +92,26 @@ int main() {
 TPZGeoMesh *CreateGeoMesh() {
 
     REAL co[8][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.}};
-    int indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7}};
+    long indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7}};
     TPZGeoEl *elvec[3];
     TPZGeoMesh *gmesh = new TPZGeoMesh();
-    int nnode = 8;
-    int nod;
+    long nnode = 8;
+    long nod;
     for(nod=0; nod<nnode; nod++) {
-        int nodind = gmesh->NodeVec().AllocateNewElement();
+        long nodind = gmesh->NodeVec().AllocateNewElement();
         TPZVec<REAL> coord(2);
         coord[0] = co[nod][0];
         coord[1] = co[nod][1];
         gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
     }
     
-    int el;
-    int nelem = 3;
+    long el;
+    long nelem = 3;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(4);
+        TPZVec<long> nodind(4);
         for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
         //    elvec[el] = new TPZGeoElQ2d(el,nodind,1);
-        int index;
+        long index;
         elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
     }
     

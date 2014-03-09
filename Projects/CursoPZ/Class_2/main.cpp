@@ -13,15 +13,15 @@
 using namespace std;
 
 int main() {
-  int neq=1000;
-  int banda=50;
-  int i;
+  long neq=1000;
+  long banda=50;
+  long i;
  
   TPZFMatrix<REAL>  *cheia = new TPZFMatrix<REAL>(neq,neq, 0.);
   cheia->AutoFill();
 //  FillMatrix(*cheia,neq,banda);
 
-  TPZVec <int> skyvec(neq,0);
+  TPZVec <long> skyvec(neq,0);
   for (i=0;i<neq;i++){
     skyvec[i] = i-banda;
     if(skyvec[i] < 0) skyvec[i] = 0;
@@ -46,8 +46,8 @@ int main() {
 
   TPZStepSolver<REAL> step(cheia);
   TPZStepSolver<REAL> precond(step);
-  int numiterpre =2;
-  int numiter = 5;
+  long numiterpre =2;
+  long numiter = 5;
   double overrelax = 1.1;
   double tol = 1e-8;
   precond.SetSSOR(numiterpre,overrelax,tol,0);

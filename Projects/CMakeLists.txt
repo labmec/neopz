@@ -55,7 +55,7 @@ ENABLE_TESTING()
 			#Using visual matrix of the DX
 			add_subdirectory(visualmatrix)
 			
-			#source_group(CursoPZ FILES ${pzcurso})
+			source_group(CursoPZ FILES ${pzcurso})
 			#source_group(Shape FILES ${pztutorshape})
 			#source_group(Geometry FILES ${pztutorgeom})
 			#source_group(Matrix FILES ${pztutormat})

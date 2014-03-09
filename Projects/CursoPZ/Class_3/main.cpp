@@ -18,12 +18,12 @@ int main(){
   REAL coordinates [6][3] = {	{0.,0.,0.},{1.,0.,1.},{2.,0.,0.},
                                 {0.,1.,0.},{1.,1.,1.},{2.,1.,0.}};
                    //0 , 1  , 2 , 3 ,  4 , 5
- int nodeids [6] = {100,1100,200,300,1200,400};
- int elconnect[2][4] = {{0,1,4,3},{4,1,2,5}};
- int elid [2] = {10,20};
- int i,j;
+ long nodeids [6] = {100,1100,200,300,1200,400};
+ long elconnect[2][4] = {{0,1,4,3},{4,1,2,5}};
+ long elid [2] = {10,20};
+ long i,j;
  TPZGeoMesh *gmesh = new TPZGeoMesh;
- int index = 0;
+ long index = 0;
  TPZVec<REAL> coord(3,0.);
  //Creates the nodes like specified
  for (i=0;i<6;i++){
@@ -33,7 +33,7 @@ int main(){
  }
 
  TPZGeoEl *elvec[2];
- TPZVec<int> connect(4,0);
+ TPZVec<long> connect(4,0);
  //Creates the elements like specified
  for (i=0;i<2;i++){
    for (j=0;j<4;j++){

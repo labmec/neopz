@@ -55,7 +55,7 @@ int main() {
 	//TPZMaterial* mat(mat2d);
 	cmesh->InsertMaterialObject (mat2d);
 	cmesh->AutoBuild();
-	TPZVec<int> subelindex(4,0);
+	TPZVec<long> subelindex(4,0);
 	cmesh->ElementVec()[0]->Divide(0,subelindex,0);
 
     cmesh->AutoBuild();
@@ -91,8 +91,8 @@ int main() {
 }
 
 TPZGeoMesh *GetMesh (int nx,int ny){
-	int i,j;
-	int id, index;
+	long i,j;
+	long id, index;
 	
 	//Let's try with an unitary domain
 	REAL lx = 1.;
@@ -122,7 +122,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 	}
 
 	//Auxiliar vector to store a element connectivities
-	TPZVec <int> connect(4,0);
+	TPZVec <long> connect(4,0);
 	
 	//Element connectivities
 	for(i = 0; i < (nx - 1); i++){

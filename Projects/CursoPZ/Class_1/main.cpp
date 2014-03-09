@@ -18,7 +18,10 @@ REAL Funcao1D (TPZVec<REAL> &pt,int degree);
 REAL Funcao2D (TPZVec<REAL> &pt,int degree);
 REAL Funcao3D (TPZVec<REAL> &pt,int degree);
 
+void PrintMaxOrder();
+
 int main() {
+    PrintMaxOrder();
 	// variables
 	TPZVec<REAL> point(3,0.);
 	REAL weight = 0.;
@@ -33,7 +36,7 @@ int main() {
 
 	// degree d -> The function is f(x) = x^d - 2x^(d-1)
 	int degree = 2;   // f(x) = x^2 - 2x
-	int it, it2, npoints;
+	int it, npoints;
 
 	//=====1D Rule===Computing $f \int_{-1} f(x) $f==================================
 	while(degree < 26) {
@@ -346,3 +349,40 @@ REAL Alfa(int i, int j, int k, int p){
 	return alfa;
 }
 
+void PrintMaxOrder()
+{
+    long p = 500;
+    TPZInt1d ordem1d (p);
+    TPZVec<int> order(1);
+    ordem1d.GetOrder(order);
+    std::cout << "Numero de pontos 1D " << ordem1d.NPoints() << " Ordem obtida " << order << " Max Order " << ordem1d.GetMaxOrder() << std::endl;
+    
+    order.resize(2);
+	TPZIntTriang ordem2dt (p);
+    ordem2dt.GetOrder(order);
+    std::cout << "Numero de pontos Triangle " << ordem2dt.NPoints() << " Ordem obtida " << order << " Max Order " << ordem2dt.GetMaxOrder() << std::endl;
+    
+	TPZIntQuad ordem2dq (p,p);
+    ordem2dq.GetOrder(order);
+    std::cout << "Numero de pontos Quadrilateral " << ordem2dq.NPoints() << " Ordem obtida " << order << " Max Order " << ordem2dq.GetMaxOrder() << std::endl;
+
+	order.resize(3);
+    
+    TPZIntTetra3D ordem3dt (p);
+    ordem3dt.GetOrder(order);
+    std::cout << "Numero de pontos Tetraedron " << ordem3dt.NPoints() << " Ordem obtida " << order << " Max Order " << ordem3dt.GetMaxOrder() << std::endl;
+
+	TPZIntPyram3D ordem3dpy (p);
+    ordem3dpy.GetOrder(order);
+    std::cout << "Numero de pontos Pyramid " << ordem3dpy.NPoints() << " Ordem obtida " << order << " Max Order " << ordem3dpy.GetMaxOrder() << std::endl;
+    
+    
+	TPZIntPrism3D ordem3dpr (p,p);
+    ordem3dpr.GetOrder(order);
+    std::cout << "Numero de pontos Prism " << ordem3dpr.NPoints() << " Ordem obtida " << order << " Max Order " << ordem3dpr.GetMaxOrder() << std::endl;
+    
+	TPZIntCube3D ordem3dc (p,p,p);
+    ordem3dc.GetOrder(order);
+    std::cout << "Numero de pontos Hexahedron " << ordem3dc.NPoints() << " Ordem obtida " << order << " Max Order " << ordem3dc.GetMaxOrder() << std::endl;
+    
+}
