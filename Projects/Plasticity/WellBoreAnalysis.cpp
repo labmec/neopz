@@ -628,7 +628,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     
     fCurrentConfig.CreatePostProcessingMesh();
     
-    PostProcess(1);// pOrder
+    PostProcess(1);// resolution
     
     fCurrentConfig.VerifyGlobalEquilibrium();
 
@@ -1703,6 +1703,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     REAL J2val = 0.0004;
     //******************************************
     
+#ifdef TESTPOLYCHAIN
     std::multimap<REAL,REAL> polygonalChain;
 
     GetJ2Isoline(J2val, polygonalChain);
@@ -1727,6 +1728,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
         outEllips << "bb=Graphics[Circle[{0,0},4.25*0.0254]];\n";
         outEllips << "Show[aa,bb]\n";
     }
+#endif
 }
 
 void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain)
