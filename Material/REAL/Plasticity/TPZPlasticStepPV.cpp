@@ -70,7 +70,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 {
 	TPZTensor<REAL>::TPZDecomposed DecompSig,DecompEps; // It may be SigTr or SigPr Decomposition, dependes on the part of this method
 	TPZTensor<REAL> sigtr;
-	
+    
+    
 	//
 	TPZTensor<REAL> epsTr,epsPN,epsElaNp1;
 	epsPN = fN.fEpsP;
@@ -129,6 +130,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
 	//GradSigma.Print("Grad");
 	fN.fAlpha = nextalpha;
+    
+    
+    
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -196,7 +200,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 			for (int k = 0 ; k < 6 ; k++){
 				ki = kival[k];
 				kj = kjval[k];
-				TPZFNMatrix<9> ColCorr(3,3,0.),ColCorrV(6,1,0.);
+				TPZFNMatrix<9> ColCorr(3,3,0.);
+                TPZFNMatrix<6> ColCorrV(6,1,0.);
 				if (ki == kj) {
 					REAL tempval = (epsegveFromProj[j](ki,0) * epsegveFromProj[i](kj,0) );
 					ColCorr = tempval * factor * tempMat;
@@ -414,75 +419,137 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
+void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
 {
+  /*
+    TPZPlasticState<STATE> prevstate=GetState();
+    TPZTensor<STATE> q0,q1,p0,p1,p,temp;
+    p0=prevstate.fEpsT;
+    fER.ComputeDeformation(GivenStress,p1);
+    ApplyStrainComputeSigma(p1, q1);
+    fN=prevstate;
+    p0=p1;
+    p0*=-1;
+    ApplyStrainComputeSigma(p0, q0);
+    fN=prevstate;
+    int i=2;
+    STATE diff=1.,tol=1.e-5,tempreal;
+    q1-=GivenStress;
+    while (i<=30) {
 
-    
-    TPZFNMatrix<36> Dep(6,6,0.);
-    TPZFNMatrix <6> epsn1V(6,1,0.),epsnV(6,1,0.),signV(6,1,0.),res(6,1,0.),sigstar(6,1,0.),epsnVPrev(6,1,0.),sol(6,1,0.);
-    TPZTensor<STATE> epsnt,signt,epsn1t;
-		epsnt.XX() = -1.e-5; // Para nao comecar com 3 autovalores iguais
-		epsnt.YY() = -1.e-6; // Para nao comecar com 3 autovalores iguais
-	
-    //fER.ComputeDeformation(sigma,epsnt);
-    
-
-    
-    
-    TPZPlasticState<STATE> tempstate(fN);
-    ApplyStrainComputeDep(epsnt,signt,Dep);
-    CopyFromTensorToFNMatrix(epsnt,epsnV);
-    CopyFromTensorToFNMatrix(signt,signV);
-    CopyFromTensorToFNMatrix(sigma,sigstar);
-    
-    
-    
-    STATE normres=1.,tol=1.e-6,oldnormres;
-    STATE scale =1.;
-    int counter=0;
-    while (normres>tol &&counter<30)
-    {
-        
-        signV-=sigstar;
-        oldnormres=Norm(signV);
-#ifdef LOG4CXX
-			std::stringstream str;
-			str << "\n\nf(eps) = " << signV << std::endl;
-			str << "\n\n-----------------------------Norma do Residuo " << oldnormres << "\tIteracao = " << counter << std::endl;
-			str << "Dep = " << Dep << std::endl;
-			LOGPZ_DEBUG(logger,str.str())
-#endif
-        Dep.Solve_LU(&signV);
-        sol=signV;
-        epsnVPrev=epsnV;
-			
-        do{
-
-            epsn1V=epsnVPrev-(scale*sol);
-
-            CopyFromFNMatrixToTensor(epsn1V, epsnt);
-            fN=tempstate;
-            ApplyStrainComputeDep(epsnt,signt,Dep);
-        
-            CopyFromTensorToFNMatrix(signt,signV);
+        for(int j=0;j<6;j++)
+        {
+            STATE denom =(q1.fData[j]-q0.fData[j]);
+            STATE num=(p1.fData[j]-p0.fData[j]);
+            if (fabs(denom)<1.e-12 && fabs(num)<1.e-12)
+            {
+                tempreal=1;
+            }
+            else
+            {
+               tempreal=num/denom;  
+            }
             
-            res=signV-sigstar;
-            normres = Norm(res);
-#ifdef LOG4CXX
-					std::stringstream str;
-					str << "\n\nNorma do Residuo usando SCALE: " << scale << "\nNorma: " << normres << std::endl;
-					str << "epsn1V = " << epsn1V << "epsnt = " << epsnt << "\nDepNovo = " << Dep << "\nsignt = " << signt << std::endl;
-					fN.Print(str);
-					LOGPZ_DEBUG(logger,str.str())
-#endif
-            scale*=0.5;
-        }while(normres>oldnormres);
-        //tempstate=fN;
-        scale=1.;
-        epsnV=epsn1V;
+            p.fData[j]=p1.fData[j]-(q1.fData[j]*tempreal);
+   
+        }
         
-        counter++;
+        for (int j=0;j<6;j++)diff+=p.fData[j]-p1.fData[j];
+        diff/=6.;
+        cout << "\n diff "<<diff <<endl;
+        if (fabs(diff)<tol) {
+           break;
+        }
+        i++;
+        p0=p1;
+        q0=q1;
+        p1=p;
+        ApplyStrainComputeSigma(p, q1);
+        q1-=GivenStress;
+        fN=prevstate;
     }
+
+    ApplyStrainComputeSigma(p, q1);
+    epsTotal=p;
+    
+    */
+    
+    TPZPlasticState<STATE> prevstate=GetState();
+    epsTotal=prevstate.fEpsP;
+    TPZTensor<STATE> GuessStress,Diff,Diff2,deps;
+    TPZFMatrix<STATE> Dep(6,6);
+    TPZFMatrix<STATE> GuessStressFN(6,1),DiffFN(6,1);
+    
+    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+    Diff=GivenStress;
+    Diff-=GuessStress;
+    
+    STATE norm = Norm(Diff),normprev;
+    STATE tol = 1.e-7;
+    int counter = 0;
+    TPZVec<STATE> conv;
+    
+    
+    while (norm>tol && counter<30)
+    {
+        //Dep.SetIsDecomposed(false);
+        CopyFromTensorToFMatrix(Diff,DiffFN);
+        Dep.Solve_LU(&DiffFN);
+        CopyFromFMatrixToTensor(DiffFN,Diff);
+        TPZTensor<STATE> epsprev(epsTotal);
+        normprev=norm;
+        STATE scale=1.;
+        int counter2=0;
+        do{
+            for(int i=0;i<6;i++)epsTotal.fData[i]=epsprev.fData[i]+scale*Diff.fData[i];
+            
+            ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
+            fN=prevstate;
+            Diff2=GivenStress;
+            Diff2-=GuessStress;
+            norm=Norm(Diff2);
+            scale*=0.5;
+            counter2++;
+        }while (norm>=normprev && counter2<30);
+        Diff=Diff2;
+        counter++;
+        
+    }
+    ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
+ 
+ /*
+    TPZPlasticState<STATE> prevstate=GetState();
+    epsTotal=prevstate.fEpsT;
+    TPZTensor<STATE> GuessStress,Diff,deps;
+    TPZFMatrix<STATE> Dep(6,6);
+    TPZFMatrix<STATE> epsPrev(epsTotal),GuessStressFN(6,1),DiffFN(6,1);
+    
+    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+    Diff=GivenStress;
+    Diff-=GuessStress;
+    
+    STATE norm = Norm(Diff);
+    STATE tol = 1.e-7;
+    int counter = 0;
+    TPZVec<STATE> conv;
+
+    while (norm>tol && counter<30)
+    {
+        CopyFromTensorToFMatrix(Diff,DiffFN);
+        Dep.Solve_LU(&DiffFN);
+        CopyFromFMatrixToTensor(DiffFN,Diff);
+        epsTotal += Diff;
+        //SetState(prevstate);
+        ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
+        fN=prevstate;
+        Diff=GivenStress;
+        Diff-=GuessStress;
+        norm=Norm(Diff);
+        counter++;
+
+    }
+    ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
+  */
 }
 
 template <class YC_t, class ER_t>
@@ -509,7 +576,7 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::SetIntegrTol(REAL integrTol)
 {
     std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    DebugStop();
+    //DebugStop();
 }
 
 
@@ -532,7 +599,7 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
 {
     std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    DebugStop();
+    //DebugStop();
 }
 
 template <class YC_t, class ER_t>
@@ -543,7 +610,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf)
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy)
+void TPZPlasticStepPV<YC_t, ER_t>::CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM,TPZTensor<STATE> &copy)
 {
     FNM.Resize(6,1);
     copy.XX()=FNM(0,0);
@@ -555,7 +622,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,T
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy)
+void TPZPlasticStepPV<YC_t, ER_t>::CopyFromTensorToFMatrix(TPZTensor<STATE> tensor,TPZFMatrix<STATE> &copy)
 {
     
     copy(0,0)=tensor.XX();

@@ -26,6 +26,27 @@ public:
     TPZSandlerExtended(const TPZSandlerExtended & copy);
 	/// Empty constructor
     TPZSandlerExtended();
+    
+    TPZSandlerExtended & operator=(const TPZSandlerExtended & source)
+	{
+        fA=source.fA;
+        fB=source.fB;
+        fC=source.fC;
+        fD=source.fD;
+        fK=source.fK;
+        fG=source.fG;
+        fW=source.fW;
+        fR=source.fR;
+        fPhi=source.fPhi;
+        fN=source.fN;
+        fPsi=source.fPsi;
+        fE=source.fE;
+        fnu=source.fnu;
+        fElasticResponse =source.fElasticResponse;
+    
+		return *this;
+	}
+    
 	/// Desctructor
     virtual ~TPZSandlerExtended();
 
@@ -206,13 +227,13 @@ public:
     static void CheckCoordinateTransformation(TPZVec<STATE> &cart);
     
 public:
-    
+    void SetUp(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi);
     static void MCormicRanchSand(TPZSandlerExtended &mat);
     static void ReservoirSandstone(TPZSandlerExtended &mat);
     static void SalemLimestone(TPZSandlerExtended &mat);
     static void PreSMat(TPZSandlerExtended &mat);// em MPa
     
-private:
+
     STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fE,fnu;//,fk0;
     bool fIsonCap;
     TPZElasticResponse    fElasticResponse;

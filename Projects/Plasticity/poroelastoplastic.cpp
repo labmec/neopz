@@ -18,6 +18,8 @@
 
 #include "WellBoreAnalysis.h"
 
+#define PV
+
 void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1> *pSD);
 
 void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh);
@@ -1640,7 +1642,7 @@ int main ()
      
      */
 //    TPZWellBoreAnalysis::CheckDeformation();
-//    int startfrom = 3;
+
     TPZWellBoreAnalysis well;
     //REAL innerradius = 4.25*0.0254;
     //REAL outerradius = 1.;
@@ -1656,7 +1658,7 @@ int main ()
         confinement[0] = -45.9;
         confinement[1] = -62.1;
         confinement[2] = -48.2;
-//        well.SetConfinementStresses(confinement, 28.9);
+        well.SetConfinementStresses(confinement, 28.9);
 //
         REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9 
         well.SetConfinementStresses(confinement, effectivePressure);
@@ -1679,12 +1681,13 @@ int main ()
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
-//        well.LinearConfiguration(1);
+        //well.LinearConfiguration(1);
         well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Wellbore0.bin");
         well.Write(save);
-    }    
+    }
+    
 //    if (startfrom == 0) 
 //    {
 //        TPZWellBoreAnalysis::StandardConfiguration(well);
@@ -1692,6 +1695,7 @@ int main ()
 //        save.OpenWrite("Wellbore0.bin");
 //        well.Write(save);
 //    }
+    
     if (startfrom ==1)
     {
         TPZBFileStream read;
@@ -1700,6 +1704,7 @@ int main ()
     }
     if (startfrom <= 1)
     {
+        
         int nsteps = 3;
         int numnewton = 80;
         well.ExecuteInitialSimulation(nsteps, numnewton);
@@ -1707,8 +1712,7 @@ int main ()
         TPZBFileStream save;
         save.OpenWrite("Wellbore1.bin");
         well.Write(save);
-
-    
+        
     }
 
     if (startfrom == 2)

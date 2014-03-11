@@ -191,7 +191,6 @@ void TPZWellBoreAnalysis::Read(TPZStream &input)
     
 }
 
-
 void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 {
     TPZGeoMesh *gmesh = &obj.fCurrentConfig.fGMesh;
@@ -205,15 +204,14 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     int defaultporder = 2;
     obj.fCurrentConfig.fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &obj.fCurrentConfig.fCMesh;
+    TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
-//    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
-//    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = obj.fCurrentConfig.fSD;
-    SD.SetResidualTolerance(1.e-10);
-    SD.fIntegrTol = 10.;
+#ifdef PV
 
-
-
+    int materialid=1;
+    bool planestrain=true;
+    //obj.fCurrentConfig.fSDPV.fYC.PreSMat(obj.fCurrentConfig.fSDPV.fYC);
+    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =obj.fCurrentConfig.fSDPV;
     REAL poisson = 0.203;
     REAL elast = 29269.;
     REAL A = 152.54;
@@ -222,14 +220,34 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     REAL R = 0.91969;
     REAL D = 0.018768;
     REAL W = 0.006605;
-    SD.SetUp(poisson, elast, A, B, C, R, D, W);
+    REAL G=elast/(2.*(1.+poisson));
+    REAL K=elast/(3.*(1.-2*poisson));
+    REAL phi=0,psi=1.,N=0.;
+    SD.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
+    SD.fER.SetUp(elast,poisson);
+    TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
 
-
-
-	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+#else
     
+    //TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
+    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = obj.fCurrentConfig.fSD;
+    SD.SetResidualTolerance(1.e-10);
+    SD.fIntegrTol = 10.;
+
+   REAL poisson = 0.203;
+   REAL elast = 29269.;
+   REAL A = 152.54;
+   REAL B = 0.0015489;
+   REAL C = 146.29;
+   REAL R = 0.91969;
+   REAL D = 0.018768;
+   REAL W = 0.006605;
+   SD.SetUp(poisson, elast, A, B, C, R, D, W);
+
 	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
-    //TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
+    
+#endif
+
     
     obj.fCurrentConfig.fConfinement.XX() = -45.9;//-44.3;// MPa
     obj.fCurrentConfig.fConfinement.YY() = -62.1;//-58.2;
@@ -258,9 +276,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     
     CmeshWell(compmesh1,plastic,obj.fCurrentConfig.fConfinement,obj.fCurrentConfig.fFluidPressure);
     compmesh1->AutoBuild();
-
 }
-
 void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 {
     
@@ -280,10 +296,17 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
     out << "tension = Table[0,{" << nangles << "}];" << std::endl;
     
     for (int i=0; i<nangles; i++) {
+        
+#ifdef PV
+        TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > SD;
+        SD.fYC.PreSMat(SD.fYC);
+#else
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> SD;
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(SD);
         SD.SetResidualTolerance(1.e-10);
         SD.fIntegrTol = 1.;
+#endif
+
 
         const int nincrements = 100;
         TPZManVector<std::pair<STATE, STATE>,100 > epst(nincrements),sigvec(nincrements);
@@ -496,11 +519,19 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         analysis.Solver().SetMatrix(fLinearMatrix);
         
         std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
-
-        bool linesearch = true;
-//        bool checkconv = true;
-//        analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
+#ifdef PV
+    
+        bool linesearch = true,checkconv=false;
+        int numNewton =30;
+        //analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
         analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, numnewton, linesearch);
+#else
+        bool linesearch = true;
+        analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, numnewton, linesearch);
+#endif
+        
+        
+
         
         //analysis.Solution().Print();
         //analysis.AcceptSolution();
@@ -609,7 +640,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
 //    bool checkconv = false;
 //    analysis.IterativeProcess(cout, 1.e-8, NumIter, linesearch, checkconv);
     analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, NumIter, linesearch);
-        
+    
+    
         //analysis.Solution().Print();
         //analysis.AcceptSolution();
         //analysis.TransferSolution(ppanalysis);
@@ -784,8 +816,15 @@ void TPZWellBoreAnalysis::TConfig::VerifyPlasticTangent(TPZCompEl *cel)
     }
     TPZCompMesh *cmesh2 = cel2->Mesh();
     
-    TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *pMatWithMem2 = 
+    
+#ifdef PV
+    TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *pMatWithMem2 =
+    dynamic_cast<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *>(cmesh2->MaterialVec()[1]);
+#else
+    TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *pMatWithMem2 =
     dynamic_cast<TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *>(cmesh2->MaterialVec()[1]);
+#endif
+
     
     if (intel2->Material() != pMatWithMem2) {
         DebugStop();
@@ -1643,7 +1682,13 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
 
 void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 {
-    std::string vtkFile = "pocoplastico.vtk";
+#ifdef PV
+    //std::string vtkFile = "pocoplasticoPV.vtk";
+    std::string vtkFile = "pocoplasticoPV2.vtk";
+#else
+    std::string vtkFile = "pocoplasticoErick.vtk";
+#endif
+    
     fPostprocess.SetCompMesh(&fCMesh);
     TPZFStructMatrix structmatrix(fPostprocess.Mesh());
     structmatrix.SetNumThreads(0);
@@ -1992,6 +2037,7 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
     fCMesh.CleanUp();
     fGMesh.CleanUp();
     CreateMesh();
+
     CreateComputationalMesh(2);
     int BCId=-2;
     TPZMaterial * mat = fCMesh.FindMaterial(BCId);
@@ -2255,15 +2301,49 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &fCMesh;
     
-    //    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
+#ifdef PV
+    
+    int materialid=1;
+    bool planestrain=true;
+    TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =fSDPV;
+    TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
+    
+    TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+    TPZTensor<REAL> initstress,finalstress;
+    REAL hydro = fConfinement.I1();
+    hydro -= SD.fYC.fA*SD.fYC.fR;
+    hydro /= 3.;
+    finalstress.XX() = hydro;
+    finalstress.YY() = hydro;
+    finalstress.ZZ() = hydro;
+    
+    PrepareInitialMat(SD, initstress, finalstress, 10);
+    initstress = finalstress;
+    finalstress = fConfinement;
+    PrepareInitialMat(SD, initstress, finalstress, 10);
+    SD.ResetPlasticMem();
+    
+    TPZMaterial *plastic(PlasticSD);
+    
+    PlasticSD->SetPlasticity(SD);
+    compmesh1->InsertMaterialObject(plastic);
+    
+    CmeshWell(compmesh1, plastic, fConfinement, fFluidPressure);
+    compmesh1->AutoBuild();
+#else
+    //    //TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
     TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = fSD;
+    
     SD.SetResidualTolerance(1.e-10);
     SD.fIntegrTol = 10.;
-    
-	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     int materialid = 1;
     bool planestrain = true;
-	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(materialid,planestrain);
+    TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(materialid,planestrain);
+    
+    TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+    
+    
+    
     
     TPZTensor<REAL> initstress,finalstress;
     REAL hydro = fConfinement.I1();
@@ -2286,6 +2366,10 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     
     CmeshWell(compmesh1, plastic, fConfinement, fFluidPressure);
     compmesh1->AutoBuild();
+    
+#endif
+    
+    
     
 }
 

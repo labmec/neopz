@@ -998,12 +998,12 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
 	int intPt = data.intGlobPtIndex;//, plasticSteps;
-    if(intPt >= TPZMatWithMem<TMEM>::fMemory.NElements())
-    {
-        std::cout << "The Elastoplastic material does not have a properly initialized memory\n";
-        std::cout << "The type of element should be MatWithMem (see TPZCreateApproximationSpace\n";
-        DebugStop();
-    }
+//    if(intPt >= TPZMatWithMem<TMEM>::fMemory.NElements())
+//    {
+//        std::cout << "The Elastoplastic material does not have a properly initialized memory\n";
+//        std::cout << "The type of element should be MatWithMem (see TPZCreateApproximationSpace\n";
+//        DebugStop();
+//    }
     
     //TMEM = Tipo de Material ex : elastoplastico, plastico, etc.
     //cout << "\n Memoria " << endl;

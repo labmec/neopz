@@ -171,10 +171,12 @@ public:
     virtual void SetTensionSign(int sign);
     
     
-    void CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy);
+    //void CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy);
+    void CopyFromTensorToFMatrix(TPZTensor<STATE> tensor,TPZFMatrix<STATE> &copy);
     
 
-    void CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy);
+    //void CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy);
+    void CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM,TPZTensor<STATE> &copy);
     
     int SignCorrection() const;
     
@@ -192,6 +194,7 @@ public:
 	 * @param[out] Dep Incremental constitutive relation
 	 */
 	void TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTensor<REAL> &deps, REAL kprev, TPZVec<REAL> &conv);
+
 	
 	REAL ComputeNFromTaylorCheck(REAL alpha1, REAL alpha2, TPZFMatrix<REAL> &error1Mat, TPZFMatrix<REAL> &error2Mat);
 	
@@ -250,6 +253,11 @@ public:
 	{
 		fResTol = tol;
 	}
+    
+    void ResetPlasticMem()
+    {
+        fPlasticMem.Resize(0);
+    }
 	
 	//virtual void Write(TPZStream &buf) const;
 	
@@ -262,7 +270,7 @@ public:
 	/** @brief Object representing the elastic response */
 	ER_t fER;
 	
-	
+	REAL fIntegrTol;
 protected:
 	
 	/** @brief Residual tolerance accepted in the plastic loop processes */
@@ -276,6 +284,15 @@ protected:
 	
 	/** @brief The tension sign in the convention defined by the external user */
 	int fInterfaceTensionSign;
+    
+    TPZStack< TPZPlasticIntegrMem<REAL, 2> > fPlasticMem;
+    
+    /**
+	 * @brief Stores the plastic evolution in the last evaluated PlasticIntegration call,
+	 * It includes the N-1 data, the elastic step until yield when it exists,
+	 * the plastic substeppings and the N step.
+	 */
+	//TPZStack< TPZPlasticIntegrMem<REAL, YC_t::NYield> > fPlasticMem;
 	
 	
 public:

@@ -9,11 +9,15 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
+#define PV
+
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
 #include "TPZTensor.h"
 #include "pzgeoel.h"
 #include "pzpostprocanalysis.h"
+#include "pzsandlerextPV.h"
+#include "TPZPlasticStepPV.h"
 
 class TPZElasticityMaterial;
 
@@ -154,6 +158,10 @@ public:
         
         /// Parameters of the Sandler DiMaggio plasticity
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
+        
+        // Sandler Dimaggio PV
+        TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
+        
         /// Fluid pressure
         REAL fFluidPressure;
         
@@ -172,8 +180,8 @@ public:
         /// The post processing mesh with the transferred solution
         TPZPostProcAnalysis fPostprocess;
 
-        ///
         std::string fHistoryLog;
+
         
     };
 
@@ -269,7 +277,7 @@ public:
     }
 
     /// Initialize the object with standard parameters
-static void StandardConfiguration(TPZWellBoreAnalysis &obj);
+    static void StandardConfiguration(TPZWellBoreAnalysis &obj);
     
     /// Configure the wellbore analysis to perform a linear analysis
     void LinearConfiguration(int porder);
@@ -296,9 +304,17 @@ static void StandardConfiguration(TPZWellBoreAnalysis &obj);
         fCurrentConfig.fFluidPressure = wellpressure;
     }
     
-    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
+   void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {
         fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
+        
+        STATE G=Elast/(2.*(1.+poisson));
+        STATE K=Elast/(3.*(1.-2*poisson));
+        STATE phi=0,psi=1.,N=0.;
+        fCurrentConfig.fSDPV.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
+        fCurrentConfig.fSDPV.fER.SetUp(Elast,poisson);
+
+
     }
 
     void Print(std::ostream &out);

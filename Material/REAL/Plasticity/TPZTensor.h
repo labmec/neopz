@@ -988,7 +988,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 	TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
 	TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
 	
-	if (fabs(Rval) < 1.e-12 && fabs(denomval) < 1.e-12 && fabs(denomval) <= fabs(Rval)) {
+	if (fabs(Rval) < 1.e-5 && fabs(denomval) < 1.e-5 && fabs(denomval) <= fabs(Rval)) {
 		// three equal eigenvalues
 		x1 = I1/3.;
 		x2 = x1;

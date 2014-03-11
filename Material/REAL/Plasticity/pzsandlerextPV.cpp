@@ -69,6 +69,27 @@ STATE TPZSandlerExtended::GetX(STATE k)
     return X(k);
 }
 
+void TPZSandlerExtended::SetUp(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi)
+{
+    fA=A;
+    fB=B;
+    fC=C;
+    fD=D;
+    fK=K;
+    fG=G;
+    fW=W;
+    fR=R;
+    fPhi=Phi;
+    fN=N;
+    fPsi=Psi;
+    fE=(9.*fK*fG)/(3.*fK+fG);
+    fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
+    TPZElasticResponse ER;
+    ER.SetUp(fE, fnu);
+    fElasticResponse =ER;
+    
+}
+
 TPZElasticResponse TPZSandlerExtended::GetElasticResponse()
 {
     return fElasticResponse;
@@ -82,8 +103,8 @@ STATE TPZSandlerExtended::GetR()
 template<class T>
 T TPZSandlerExtended::EpsEqX(T X) const
 {
-    return (fW*( exp(fD*X) - 1 ));
-//   return fW* exp(fD*X);
+//    return (fW*( exp(fD*X) - 1 ));
+   return fW* exp(fD*X);
 }
 
 template<class T>
@@ -267,7 +288,7 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     STATE sqrtj2 = sigHWCyl[1]/sqrt(2.);
     STATE sintheta = sqrtj2*gamma/(F(k,fPhi)-fN);
     theta = atan2(sintheta, costheta);
-    theta = acos(costheta);
+    //theta = acos(costheta);
     //STATE theta2 = atan((rho*sin(beta))/xi);
 #ifdef DEBUG
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
@@ -514,19 +535,20 @@ void TPZSandlerExtended::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
-#ifdef LOG4CXX
-    {
-        std::stringstream outfile;
-        outfile << "\n projection over F1 " <<endl;
-        LOGPZ_DEBUG(logger,outfile.str());
+//#ifdef LOG4CXX
+//    {
+        //std::stringstream outfile;
+        //outfile << "\n projection over F1 " <<endl;
+        //LOGPZ_DEBUG(logger,outfile.str());
         
-    }
-#endif
+ //   }
+//#endif
     
     //ofstream convergenceF1("convergenceF1.txt");
     STATE xi,resnorm,beta,distxi,distnew;
     distxi=1.e8;
-    for (STATE xiguess=-M_PI; xiguess <= M_PI; xiguess += M_PI/20.)
+    STATE guessxi=fA;
+    for (STATE xiguess=-2*guessxi; xiguess <= 2*guessxi; xiguess += 2*guessxi/20.)
     {
         for(STATE betaguess=0;betaguess<=2*M_PI;betaguess+=M_PI/20.)
         {
@@ -559,17 +581,17 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         //resnorm=Norm(diff);
         //convergenceF1 << counter << " "<<resnorm <<endl;
         
-#ifdef LOG4CXX
-        {
-            std::stringstream outfile;//("convergencF1.txt");
-            outfile<< "\n" <<counter << " "<<resnorm <<endl;
+//#ifdef LOG4CXX
+//        {
+           // std::stringstream outfile;//("convergencF1.txt");
+            //outfile<< "\n" <<counter << " "<<resnorm <<endl;
             //jac.Print(outfile);
             //outfile<< "\n xn " << " "<<fxnvec <<endl;
             //outfile<< "\n res " << " "<<fxnvec <<endl;
-            LOGPZ_DEBUG(logger,outfile.str());
+            //LOGPZ_DEBUG(logger,outfile.str());
             
-        }
-#endif
+//        }
+//#endif
         xn=xn1;
         counter++;
 
@@ -581,17 +603,57 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     FromHWCylToPrincipal(sigprojcyl, sigproj);
     
   
-    STATE kguess = sigproj[0]+sigproj[1]+sigproj[2];
+    STATE kguess = kprev;
     //Firstk(kguess, kproj);
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
-    
     int count =0;
+    while (resl < 0.)
+    {
+        kguess += 1.;
+        resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
+    }
+/*    if (resl < 0.)
+    {
+        STATE deltakguess = 10.;
+        while(resl<0. && deltakguess > 1.e-3)
+        {
+            kguess+=deltakguess;
+            resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
+            if (resl<0. && deltakguess > 1.e-3) {
+                kguess -= deltakguess;
+                deltakguess /= 10.;
+                resl = ResLF1(sigmatrial, sigproj, kguess, kprev);            
+            }
+        }
+    }
+ */
     while (fabs(resl) > 1.e-14 && count < 30) {
         STATE dresl = DResLF1(sigmatrial, sigproj, kguess, kprev);
         kguess -= resl/dresl;
         resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
         count++;
     }
+    
+//    
+//    resultL = L;
+//    DEpspDL(resultL, depspdl );
+//    residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+//    while (residueL < 0.) {
+//        resultL += 1.;
+//        DEpspDL(resultL, depspdl );
+//        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+//    }
+//    while(fabs(residueL) > 1.e-10)
+//    {
+//        STATE d2epspdl2;
+//        D2EpspDL2(resultL, d2epspdl2);
+//        STATE dres = 3.*K*depspdl+3.*K*(resultL-L)*d2epspdl2;
+//        resultL -= residueL/dres;
+//        DEpspDL(resultL, depspdl );
+//        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
+//    }
+//    sigtrialIJ = sigProj;
+//    L = resultL;
     
     kproj = kguess;
    
@@ -601,9 +663,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 {
 #ifdef LOG4CXX
     {
-        std::stringstream outfile;
-        outfile << "\n projection over F2 " <<endl;
-        LOGPZ_DEBUG(logger,outfile.str());
+        //std::stringstream outfile;
+        //outfile << "\n projection over F2 " <<endl;
+        //LOGPZ_DEBUG(logger,outfile.str());
         
     }
 #endif
@@ -639,17 +701,17 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
         for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
         resnorm=Norm(sol);
-#ifdef LOG4CXX
-        {
-            std::stringstream outfile;//("convergencF1.txt");
-            outfile<< "\n" <<counter << " "<<resnorm <<endl;
+//#ifdef LOG4CXX
+//        {
+            //std::stringstream outfile;//("convergencF1.txt");
+            //outfile<< "\n" <<counter << " "<<resnorm <<endl;
             //jac.Print(outfile);
             //outfile<< "\n xn " << " "<<fxnvec <<endl;
             //outfile<< "\n res " << " "<<fxnvec <<endl;
-            LOGPZ_DEBUG(logger,outfile.str());
+            //LOGPZ_DEBUG(logger,outfile.str());
             
-        }
-#endif
+//        }
+//#endif
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
@@ -660,7 +722,9 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         counter++;
         
     }
-    if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
+    
+    
+//if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
 //    cout<< "\n resnorm = "<<resnorm <<endl;
 //    cout<< "\n counter = "<<counter <<endl;
 //    cout<< "\n k = "<<(xn1(2,0)-kprev) <<endl;
@@ -796,7 +860,7 @@ void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STA
         counter++;
         
     }
-    if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
+    //if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
     STATE thetasol,betasol,ksol;
     
     thetasol=xn1(0);
@@ -890,25 +954,25 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STAT
         epspnext=epsp;
         knext=kprev;
         stressnext=stresstrial;
-        cout<<"\n elastic "<<endl;
+        //cout<<"\n elastic "<<endl;
         
     }
     else
     {
-        cout<<"\n plastic "<<endl;
+        //cout<<"\n plastic "<<endl;
         if (yield[1]>0 && I1tr<kprev)
         {
-            cout<<"\n F2 "<<endl;
+            //cout<<"\n F2 "<<endl;
             ProjectF2(stresstrial,kprev,stressnext,knext);
         }
         else
         {
-            cout<<"\n F1 "<<endl;
+            //cout<<"\n F1 "<<endl;
             ProjectF1(stresstrial,kprev,stressnext,knext);
             ComputeI1(stressnext,I1proj);
             if (I1proj<knext)
             {
-                cout<<"\n Ring "<<endl;
+                //cout<<"\n Ring "<<endl;
                 ProjectRing(stresstrial,kprev,stressnext,knext);
             }
         }
@@ -1866,6 +1930,8 @@ void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
     ER.SetUp(E, nu);
     mat.fElasticResponse =ER;
 }
+
+
 //REAL E = 29269,
 //poisson = 0.203;
 //
