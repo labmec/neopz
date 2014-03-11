@@ -9,7 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-#define PV
+//#define PV
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
@@ -159,9 +159,10 @@ public:
         /// Parameters of the Sandler DiMaggio plasticity
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
         
+#ifdef PV
         // Sandler Dimaggio PV
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
-        
+#endif
         /// Fluid pressure
         REAL fFluidPressure;
         
@@ -307,12 +308,14 @@ public:
    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {
         fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
-        
+
+#ifdef PV
         STATE G=Elast/(2.*(1.+poisson));
         STATE K=Elast/(3.*(1.-2*poisson));
         STATE phi=0,psi=1.,N=0.;
         fCurrentConfig.fSDPV.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
         fCurrentConfig.fSDPV.fER.SetUp(Elast,poisson);
+#endif
 
 
     }
