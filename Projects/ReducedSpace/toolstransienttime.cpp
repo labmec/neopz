@@ -18,7 +18,7 @@
 #include "pzstepsolver.h"
 #include "TPZSpStructMatrix.h"
 #include "pzfstrmatrix.h"
-#include "../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.h"
+#include "TPZJIntegral2D.h"
 #include "pzreducedspace.h"
 #include "pzbndcond.h"
 #include "pzl2projection.h"
