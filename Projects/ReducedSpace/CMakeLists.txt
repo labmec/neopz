@@ -1,5 +1,5 @@
-file(GLOB headers *.h ../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.h)
-file(GLOB sources *.cpp ../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.cpp)
+file(GLOB headers *.h ../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.h ../HydraulicFracturePropagation/PlaneFracture/TPZPlaneFractureData.h)
+file(GLOB sources *.cpp ../HydraulicFracturePropagation/PlaneFracture/TPZJIntegral.cpp ../HydraulicFracturePropagation/PlaneFracture/TPZPlaneFractureData.cpp)
 
 set(main_SRCS ${sources} ${headers})
 
