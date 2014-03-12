@@ -201,7 +201,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    RefineDirectionalToCrackTip(2);
+    RefineDirectionalToCrackTip(1);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -229,13 +229,11 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
         STATE poisson = globLayerStruct.GetLayer(lay).fPoisson;
         TPZVec<STATE> force(3,0.);
         
-        STATE prestressXX = globLayerStruct.GetLayer(lay).fSigmaMax;
-        STATE prestressYY = globLayerStruct.GetLayer(lay).fSigmaMin;
-        STATE prestressZZ = globLayerStruct.GetLayer(lay).fSigmaConf;
+        STATE prestressYY = globLayerStruct.GetLayer(lay).fSigYY;
         
         ////Rock
         TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force,
-                                                        prestressXX, prestressYY, prestressZZ);
+                                                        0., prestressYY, 0.);
         
         cmesh->InsertMaterialObject(materialLin);
         
@@ -557,9 +555,8 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         STATE young = globLayerStruct.GetLayer(lay).fYoung;
         STATE poisson = globLayerStruct.GetLayer(lay).fPoisson;
         TPZVec<STATE> force(3,0.);
-        STATE prestressXX = globLayerStruct.GetLayer(lay).fSigmaMax;
-        STATE prestressYY = globLayerStruct.GetLayer(lay).fSigmaMin;
-        STATE prestressZZ = globLayerStruct.GetLayer(lay).fSigmaConf;
+        
+        STATE prestressYY = globLayerStruct.GetLayer(lay).fSigYY;
         
         REAL Cl = globLayerStruct.GetLayer(lay).fCl;
         REAL Pe = globLayerStruct.GetLayer(lay).fPe;
@@ -568,7 +565,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         
         ////Rock
         TPZPlaneFractCouplingMat * couplingMat = new TPZPlaneFractCouplingMat(globMaterialIdGen.RockMatId(lay), young, poisson, force,
-                                                                              prestressXX, prestressYY, prestressZZ,
+                                                                              0., prestressYY, 0.,
                                                                               visc,
                                                                               Cl,
                                                                               Pe,
@@ -623,20 +620,20 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         ///////////insideFract
         for(int stripe = 0; stripe < fnstripes; stripe++)
         {
-            k.Zero();
-            f.Zero();
-            
             ///////////insideFract
             int fractMatId = globMaterialIdGen.InsideFractMatId(lay, stripe);
             if(fInsideFractureMatId.find(fractMatId) != fInsideFractureMatId.end())
             {
+                k.Zero();
+                f.Zero();
                 TPZBndCond * newmannInsideFract = new TPZBndCond(couplingMat,fractMatId, newmann, k, f);
                 cmesh->InsertMaterialObject(newmannInsideFract);
                 
                 ///////////bullet
                 if(stripe == 0)
                 {
-                    TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
+                    k.Zero();
+                    f.Zero();
                     f(0,0) = Qinj;
                     TPZBndCond * fluxInBC = new TPZBndCond(couplingMat, globMaterialIdGen.BulletMatId(lay), newmannFluxIn, k, f);
                     cmesh->InsertMaterialObject(fluxInBC);
@@ -660,23 +657,10 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZPlaneFractureMesh::SetNewmanForPressureLessOrEqualThan(REAL pressApplied,
-                                                               TPZCompMesh * cmeshref,
-                                                               int actStripe)
+void TPZPlaneFractureMesh::SetNewmanOnFracture(TPZCompMesh * cmeshref)
 {
-    if(fabs(pressApplied) < 1.E-6)
-    {
-        std::cout << "\n\nNao contempla camada com preStressYY = 0.\n\n";
-        DebugStop();
-    }
-    
-    bool newmannApplied = false;
-    
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
-        REAL layerPrestressYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
-        REAL prestressTol = 1. * globStressScale;
-        
         for(int stripe = 0; stripe < this->fnstripes; stripe++)
         {
             int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
@@ -695,39 +679,20 @@ bool TPZPlaneFractureMesh::SetNewmanForPressureLessOrEqualThan(REAL pressApplied
             {
                 DebugStop();
             }
-            if(stripe == actStripe && layerPrestressYY < (pressApplied + prestressTol))
-            {
-                bcmat->Val2()(1,0) = pressApplied;
-                newmannApplied = true;
-            }
-            else
-            {
-                bcmat->Val2()(1,0) = 0.;
-            }
+            bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnEntireFracture();
         }
     }
-    
-    return newmannApplied;
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZPlaneFractureMesh::SetNewmanForPressureGreaterThan(REAL pressApplied,
-                                                           TPZCompMesh * cmeshref,
-                                                           int actStripe)
+bool TPZPlaneFractureMesh::SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref,
+                                                         int actLayer,
+                                                         int actStripe)
 {
-    if(fabs(pressApplied) < 1.E-6)
-    {
-        std::cout << "\n\nNao contempla camada com preStressYY = 0.\n\n";
-        DebugStop();
-    }
-    
-    bool newmannApplied = false;
+    bool newmanWasApplied = false;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
-        REAL layerPrestressYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
-        REAL prestressTol = 1. * globStressScale;
-        
         for(int stripe = 0; stripe < this->fnstripes; stripe++)
         {
             int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
@@ -746,10 +711,10 @@ bool TPZPlaneFractureMesh::SetNewmanForPressureGreaterThan(REAL pressApplied,
             {
                 DebugStop();
             }
-            if(stripe == actStripe && layerPrestressYY > (pressApplied + prestressTol))
+            if(lay == actLayer && stripe == actStripe)
             {
-                bcmat->Val2()(1,0) = layerPrestressYY;
-                newmannApplied = true;
+                newmanWasApplied = true;
+                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnEntireFracture();
             }
             else
             {
@@ -758,19 +723,66 @@ bool TPZPlaneFractureMesh::SetNewmanForPressureGreaterThan(REAL pressApplied,
         }
     }
     
-    return newmannApplied;
+    return newmanWasApplied;
 }
+//------------------------------------------------------------------------------------------------------------
+
+////------------------------------------------------------------------------------------------------------------
+//
+//bool TPZPlaneFractureMesh::SetNewmanForPressureGreaterThan(REAL pressApplied,
+//                                                           TPZCompMesh * cmeshref,
+//                                                           int actStripe)
+//{
+//    if(fabs(pressApplied) < 1.E-6)
+//    {
+//        std::cout << "\n\nNao contempla camada com preStressYY = 0.\n\n";
+//        DebugStop();
+//    }
+//    
+//    bool newmannApplied = false;
+//    
+//    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
+//    {
+//        REAL layerPrestressYY = -globLayerStruct.GetLayer(lay).fSigmaMin;
+//        REAL prestressTol = 1. * globStressScale;
+//        
+//        for(int stripe = 0; stripe < this->fnstripes; stripe++)
+//        {
+//            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+//            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
+//            {//Fratura ainda nao entrou nesta camada!
+//                continue;
+//            }
+//            
+//            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
+//            if(!mat)
+//            {
+//                DebugStop();
+//            }
+//            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
+//            if(!bcmat)
+//            {
+//                DebugStop();
+//            }
+//            if(stripe == actStripe && layerPrestressYY > (pressApplied + prestressTol))
+//            {
+//                bcmat->Val2()(1,0) = layerPrestressYY;
+//                newmannApplied = true;
+//            }
+//            else
+//            {
+//                bcmat->Val2()(1,0) = 0.;
+//            }
+//        }
+//    }
+//    
+//    return newmannApplied;
+//}
 //------------------------------------------------------------------------------------------------------------
 
 int TPZPlaneFractureMesh::NStripes()
 {
     return fnstripes;
-}
-//------------------------------------------------------------------------------------------------------------
-
-int TPZPlaneFractureMesh::NInsideFractLayers()
-{
-    return fInsideFractureMatId.size();
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -831,10 +843,6 @@ TPZGeoEl * TPZPlaneFractureMesh::Find2DElementNearCrackTip(int posCrackTip, TPZV
     long crackElIndex = this->fcrackBoundaryElementsIndexes[posCrackTip];
     
     TPZVec<REAL> qsi(2,0.);
-    if(x[0] < 0.001)
-    {
-        x[0] = 0.001;
-    }
     TPZGeoEl * gel = fRefinedMesh->FindElement(x, qsi, crackElIndex, 2);
     
     return gel;
@@ -1166,7 +1174,7 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
         xNext[0] = poligonalChain[nextpoint].first;
         xNext[2] = poligonalChain[nextpoint].second;
         
-        fLfrac = std::max(fLfrac,xNext[0]);
+        this->fLfrac = std::max(fLfrac,xNext[0]);
         
 		REAL norm = 0.;
 		for(int c = 0; c < 3; c++)
@@ -1955,6 +1963,8 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
 {
     fInsideFractureMatId.clear();
     
+//    this->fnstripes = this->fLfrac / this->fLmax;
+    
     int n1Dels = fcrackBoundaryElementsIndexes.NElements();
     std::map<int,locFracture2DEl> fracturedElems;
     
@@ -2115,34 +2125,9 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
         finishedFracturedElems.insert(actEl.Index());
         fracturedElems.erase(edgIt);
     }
-    
-    this->InitializeGlobLayerStruct_PrestressYYandLayers();
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureMesh::InitializeGlobLayerStruct_PrestressYYandLayers()
-{
-    std::map<int,REAL> lay_prestress;
-    
-    std::set<int>::iterator itInsideFractMatId;
-    
-    for(itInsideFractMatId = this->fInsideFractureMatId.begin(); itInsideFractMatId != this->fInsideFractureMatId.end(); itInsideFractMatId++)
-    {
-        int matId = *itInsideFractMatId;
-        int whatLay = globMaterialIdGen.WhatLayerFromInsideFracture(matId);
-        
-        REAL prestressYY = globLayerStruct.GetLayer(whatLay).fSigmaMin;
-        
-        lay_prestress[whatLay] = prestressYY;
-    }
-    
-    std::map<int,REAL>::iterator itLay;
-    for(itLay = lay_prestress.begin(); itLay != lay_prestress.end(); itLay++)
-    {
-        globLayerStruct.InsertPrestressYYandLayer(itLay->second, itLay->first);
-    }
-}
-//------------------------------------------------------------------------------------------------------------
 
 
 

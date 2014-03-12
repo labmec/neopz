@@ -273,6 +273,7 @@ Output3DDataStruct::Output3DDataStruct()
     fTL.clear();
     fTHsup.clear();
     fTHinf.clear();
+    fFractContour.clear();
     
     InsertTAcumVolW(0.,0.);
     InsertTAcumVolLeakoff(0,0.);

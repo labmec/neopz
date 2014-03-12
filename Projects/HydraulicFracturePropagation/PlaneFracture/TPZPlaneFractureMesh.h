@@ -174,17 +174,11 @@ class TPZPlaneFractureMesh
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder);
     
-    bool SetNewmanForPressureLessOrEqualThan(REAL pressApplied,
-                                             TPZCompMesh * cmeshref,
-                                             int actStripe);
-
-    bool SetNewmanForPressureGreaterThan(REAL pressApplied,
-                                         TPZCompMesh * cmeshref,
-                                          int actStripe);
-    
+    void SetNewmanOnFracture(TPZCompMesh * cmeshref);
+    bool SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref,
+                                       int actLayer,
+                                       int actStripe);
     int NStripes();
-    
-    int NInsideFractLayers();
     
     void SetActualState();
     
@@ -354,8 +348,6 @@ protected:
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
      */
     void SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh);
-    
-    void InitializeGlobLayerStruct_PrestressYYandLayers();
 	
     //-------------------------------------------------------------------------------
 	

@@ -47,8 +47,8 @@ public:
     
     ~TPZPlaneFractureKernel();
     
+    void Run(bool coupled);
     void RunCoupled();
-    void RunUncoupled();
     
 protected:
     
@@ -62,12 +62,18 @@ protected:
      */
     void ProcessLinearElasticCMesh(TPZCompMesh * cmesh);
     
+    /** Calcula a pressao aplicada que resulta na propagacao com MAX(KI/KIc) = 1. */
+    void ComputeStressAppliedThatpropagatesWhithKI1(REAL & maxKI_KIc, std::set<int> & whoPropagate);
+    
+    /** Calculaa tensao de contato (quando houver) */
+    void ComputeContactStress();
+    
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param volAcum [in] : Poligonal chain that represents the crack boundary
      * @param justTransferingElasticSolution [in] : time step
      */
-    void RunThisFractureGeometry(REAL & volAcum, bool justTransferingElasticSolution = false);
+    void RunThisFractureGeometry(bool justTransferingElasticSolution);
     
     void PredictActDeltaT(REAL fractVolum);
     
@@ -124,7 +130,7 @@ protected:
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     // = 2. * Integral(uy_insideFracture)
-    REAL IntegrateW(bool & thereIsNegW);
+    REAL IntegrateW(bool & thereIsNegW, REAL & negVol);
     
     /** 1 face from 1 wing fracture area */
     //Be aware that this area is of all fracture, not just permeable portion!!!
@@ -137,7 +143,8 @@ protected:
     REAL ComputeVolInjected();
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
-    bool CheckPropagationCriteria(REAL & maxKI_KIc, std::set<int> & whoPropagate, TPZFMatrix<REAL> & ElastReducedSolution);
+    bool CheckPropagationCriteria(REAL & maxKI_KIc, std::set<int> & whoPropagate,
+                                  int & maxKI_KIcPosition, TPZFMatrix<REAL> & ElastReducedSolution);
     
     /**
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
@@ -164,8 +171,6 @@ protected:
     
     void PutConstantPressureOnFluidSolution();
     
-    REAL MeanPressure();
-    
     //Atributes:
     
     TPZVec< std::pair<REAL,REAL> > fpoligonalChain;
@@ -181,7 +186,6 @@ protected:
     REAL fHbullet;
     REAL fQinj1wing_Hbullet;
     REAL fCenterTVD;
-    REAL fPoligonalChainInitialHeigh;
     REAL fJIntegralRadius;
     REAL fvisc;
     int fpOrder;

@@ -53,6 +53,11 @@ public:
     
     virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     
+    TPZCompMesh * CMeshElastic()
+    {
+        return this->fcmeshElastic;
+    }
+    
 protected:
     
     /** Initial point of Line */
@@ -79,26 +84,6 @@ protected:
     /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
 };
-
-
-class LinearPath2D : public LinearPath3D
-{
-public:
-    
-    LinearPath2D();//It is not to be used
-    LinearPath2D(TPZCompMesh * cmeshElastic,
-                 TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
-    LinearPath2D(LinearPath2D * cp);
-    ~LinearPath2D();
-    
-    virtual TPZVec<REAL> Func(REAL t);
-    
-    virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
-    
-    virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
-    virtual REAL ComputePressure(REAL t, TPZVec<REAL> & xt);
-};
-
 
 
 class ArcPath3D
@@ -164,24 +149,6 @@ protected:
 };
 
 
-class ArcPath2D : public ArcPath3D
-{
-public:
-    
-    ArcPath2D();//It is not to be used
-    ArcPath2D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
-    ArcPath2D(ArcPath2D * cp);
-    ~ArcPath2D();
-    
-    virtual TPZVec<REAL> Func(REAL t);
-    
-    virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
-    
-    virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
-};
-
-
-
 class AreaPath3D
 {
 public:
@@ -235,7 +202,6 @@ protected:
 };
 
 
-
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
  *          THE CLASS Path3D CONSIDERS THAT THE NORMAL DIRECTION IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE) AND
@@ -256,7 +222,8 @@ public:
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
     Path3D(TPZCompMesh * cmeshElastic,
-           TPZVec<REAL> &Origin, REAL &KIc, TPZVec<REAL> &normalDirection, REAL radius);
+           TPZVec<REAL> &Origin, REAL &KIc, int &myLayer, int &myStripe,
+           TPZVec<REAL> &normalDirection, REAL radius);
     
     ~Path3D();
     
@@ -287,6 +254,16 @@ public:
         return this->fKIc;
     }
     
+    int MyLayer()
+    {
+        return this->fmyLayer;
+    }
+    
+    int MyStripe()
+    {
+        return this->fmyStripe;
+    }
+    
     TPZVec<REAL> & JDirection()
     {
         return this->fJDirection;
@@ -312,39 +289,11 @@ protected:
     
     REAL fKI;
     REAL fKIc;
+    int fmyLayer;
+    int fmyStripe;
     TPZVec<REAL> fJDirection;
     REAL fJintegral;
 };
-
-
-class Path2D
-{
-public:
-    
-    Path2D();
-    
-    /**
-     * Given unidimensional element reffers to the cracktip element that will be used
-     * to compute J-integral around it.
-     * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
-     */
-    Path2D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
-    ~Path2D();
-    
-    void ComputeJIntegral();
-    
-    REAL Jintegral()
-    {
-        return this->fJintegral;
-    }
-    
-protected:
-    
-    LinearPath2D * fLinearPath2D;
-    ArcPath2D * fArcPath2D;
-    REAL fJintegral;
-};
-
 
 
 class JIntegral3D
@@ -367,35 +316,12 @@ public:
         return this->fPath3DVec[p];
     }
     
-private:
-    
     virtual void IntegratePath3D(int p);
+    
+private:
     
     TPZVec<Path3D*> fPath3DVec;
 };
-
-
-class JIntegral2D
-{
-public:
-    
-    JIntegral2D();
-    ~JIntegral2D();
-    
-    virtual void SetPath2D(Path2D *Path2DElem);
-    
-    virtual void IntegratePath2D();
-    
-    Path2D * Path()
-    {
-        return this->fPath2D;
-    }
-    
-private:
-    
-    Path2D * fPath2D;
-};
-
 
 
 #endif
