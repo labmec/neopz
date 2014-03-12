@@ -283,23 +283,25 @@ void TPZPlaneFractCouplingMat::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec,
         bc.Val2().Zero();
         bc.Val2()(1,0) = sol_p[0];
         
+        /**
+         * D(u,alphaElast) calculo da matriz tangente.
+         */
         //Elastica
         TPZElast3Dnlinear::ContributeBC(datavec[0], weight, ek, ef, bc);
         
-        /** AQUICAJU
-         * Na abordagem em que a desacoplada vem primeiro, a elastica jah convergiu, nao necessitando
-         * portanto incluir D(u,alphaPressure) no calculo da matriz tangente.
+        /**
+         * D(u,alphaPressure) calculo da matriz tangente.
          */
         //Pressao
-//        TPZFMatrix<REAL> &phi_u = datavec[0].phi;
-//        TPZFMatrix<REAL> &phi_p = datavec[1].phi;
-//        for (int in = 0; in < phi_u.Cols(); in++)
-//        {
-//            for(int jp = 0; jp < phi_p.Rows(); jp++)
-//            {
-//                ek(in,phi_u.Cols()+jp) -= weight * ( phi_u(1,in)*phi_p(jp,0) );
-//            }
-//        }
+        TPZFMatrix<REAL> &phi_u = datavec[0].phi;
+        TPZFMatrix<REAL> &phi_p = datavec[1].phi;
+        for (int in = 0; in < phi_u.Cols(); in++)
+        {
+            for(int jp = 0; jp < phi_p.Rows(); jp++)
+            {
+                ek(in,phi_u.Cols()+jp) -= weight * ( phi_u(1,in)*phi_p(jp,0) );
+            }
+        }
     }
 }
 

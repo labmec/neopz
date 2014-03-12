@@ -31,7 +31,14 @@ public:
     {
         fTtot = 0.;
         factTime = 0.;
+        
+        fDeltaT_left = 0.;
+        fDeltaT_right = 0.;
+        
         factDeltaT = 0.;
+        
+        fwasLeftLastTime = true;
+        freachTime_right = false;
     }
     
     ~TimeControl()
@@ -43,11 +50,60 @@ public:
     {
         fTtot = Ttot;
         factTime = 0.;
+        
+        fDeltaT_left = 10.;
+        fDeltaT_right = Ttot + 10.;
+        
+        fwasLeftLastTime = true;
+        freachTime_right = false;
+        
+        ComputeActDeltaT();
+    }
+    
+    void TimeisOnLeft()
+    {
+        fwasLeftLastTime = true;
+        
+        if(freachTime_right == false)
+        {
+            fDeltaT_left += 5.;
+        }
+        else
+        {
+            fDeltaT_left = factDeltaT;
+        }
+    }
+    
+    void TimeisOnRight()
+    {
+        fwasLeftLastTime = false;
+        
+        if(freachTime_right == false)
+        {//1st time reach time on right from KI=KIc
+            fDeltaT_left -= 5.;
+            fDeltaT_left = MAX(1.,fDeltaT_left);
+            freachTime_right = true;
+        }
+        
+        fDeltaT_right = factDeltaT;
     }
     
     void SetDeltaT(REAL deltaT)
     {
         factDeltaT = deltaT;
+        fDeltaT_left = deltaT;
+    }
+    
+    void ComputeActDeltaT()
+    {
+        if(freachTime_right == false)
+        {
+            factDeltaT = fDeltaT_left;
+        }
+        else
+        {
+            factDeltaT = (fDeltaT_left + fDeltaT_right)/2.;
+        }
     }
     
     void UpdateActTime()
@@ -70,15 +126,58 @@ public:
         return factDeltaT;
     }
     
+    void RestartBissection()
+    {
+        freachTime_right = false;
+        factDeltaT = 10.;
+        fDeltaT_left = factDeltaT;
+        fDeltaT_right = fTtot + 10.;
+    }
+    
     bool ReachEndOftime()
     {
         return (factTime >= fTtot - 0.01);
+    }
+    
+    bool TimeLimitsIsCloseEnough()
+    {
+        if(fDeltaT_right < fDeltaT_left)
+        {
+            std::cout << "\n\n\nMetodo da bisseccao no tempo inverteu os limites!!!\n\n\n";
+            DebugStop();
+        }
+        
+        bool isCloseEnough = (fDeltaT_right - fDeltaT_left) < 0.1;
+        
+        if(isCloseEnough && fwasLeftLastTime)
+        {
+            fDeltaT_left = fDeltaT_right;
+            isCloseEnough = false;
+        }
+        
+        return isCloseEnough;
+    }
+    
+    REAL LeftDeltaT()
+    {
+        return fDeltaT_left;
+    }
+    
+    REAL RightDeltaT()
+    {
+        return fDeltaT_right;
     }
     
 private:
     REAL fTtot;//Tempo total da simulacao
     REAL factTime;//tempo atual (em segundos)
     REAL factDeltaT;//delta T atual
+    
+    REAL fDeltaT_left;//deltaT cujo factTime+dt nao propagou a fratura (serah utilizado no metodo da bisseccao).
+    REAL fDeltaT_right;//deltaT cujo factTime+dt propagou a fratura (serah utilizado no metodo da bisseccao).
+    
+    bool fwasLeftLastTime;
+    bool freachTime_right;
 };
 
 

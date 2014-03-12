@@ -778,7 +778,7 @@ void Path3D::ComputeJIntegral()
     this->fKI = 0.;
     this->fJDirection.Fill(0.);
     
-    //AQUICAJU : se quiser controlar a propagacao onde appliedStress < SigYY
+    //Nao serah computado KI quando appliedStress < SigYY
     {
         int pathLayer = MyLayer();
         REAL stressApplied = this->fLinearPath3D->CMeshElastic()->Solution()(1,0);

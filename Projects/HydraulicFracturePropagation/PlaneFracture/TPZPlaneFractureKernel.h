@@ -47,7 +47,7 @@ public:
     
     ~TPZPlaneFractureKernel();
     
-    void Run(bool coupled);
+    void RunUncoupled();
     void RunCoupled();
     
 protected:
@@ -73,7 +73,7 @@ protected:
      * @param volAcum [in] : Poligonal chain that represents the crack boundary
      * @param justTransferingElasticSolution [in] : time step
      */
-    void RunThisFractureGeometry(bool justTransferingElasticSolution);
+    void RunThisFractureGeometry(REAL & volAcum, bool justTransferingElasticSolution);
     
     void PredictActDeltaT(REAL fractVolum);
     
@@ -94,6 +94,10 @@ protected:
     void AssembleStiffMatrixLoadVec(TPZAnalysis * an,
                                     TPZAutoPointer< TPZMatrix<REAL> > & matK,
                                     TPZFMatrix<REAL> & matRes);
+    
+    void ApplyInitialCondition();
+    
+    void PutConstantPressureOnFluidSolution();
     
     void ApplyEquationFilter(TPZAnalysis * an);
     
@@ -168,8 +172,6 @@ protected:
      *  to the new data structure (based on the new cmesh, keeped in fmeshVec atribute in position 0)
      */
     void TransferLastLeakoff(TPZCompMesh * cmeshFrom);
-    
-    void PutConstantPressureOnFluidSolution();
     
     //Atributes:
     

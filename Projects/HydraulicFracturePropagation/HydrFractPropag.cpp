@@ -98,12 +98,8 @@ int main(int argc, char * const argv[])
     //NStripes
     int nstripes = 1;
     
-    //Always good to remember:
-    //  - A malha de espacos reduzidos estah com Prestress = 0 pois a integral-J nao incluirah a translacao do prestress.
-    //  - Da mesma forma, o metodo LayerStruct::GetStressAppliedJustForJIntegral subtrai o prestress aplicado.
-    //  - Na definicao da geometria propagada, todos os pontos estao sendo movidos (inclusive os que KI < KIc) para evirar descontinuidade.
     
-    bool pressureINdependent = true;
+    bool pressureINdependent = true;//If true, Carter Leakoff Coefficient is pressure independent
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
                                                                  QinjWell, visc,
                                                                  Jradius,
@@ -111,7 +107,14 @@ int main(int argc, char * const argv[])
                                                                  MaxDispl,
                                                                  pressureINdependent);
     bool coupled = false;
-    plfrac->Run(coupled);
+    if(coupled)
+    {
+        plfrac->RunCoupled();
+    }
+    else
+    {
+        plfrac->RunUncoupled();
+    }
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");
 //    gRefDBase.WriteRefPatternDBase(outRefP);
