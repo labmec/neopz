@@ -158,6 +158,7 @@ ENABLE_TESTING()
 
 			#teste nathan
 			add_subdirectory(ExemploSimples)
+			add_subdirectory(ExemploMapeamentoGeometrico)
 			add_subdirectory(PlasticityPV)
 
 			#Projeto Denise
