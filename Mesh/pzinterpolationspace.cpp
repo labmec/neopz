@@ -281,7 +281,10 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     int order = material->IntegrationRuleOrder(data.p);
     if(material->HasForcingFunction())
     {
-        order = intrule->GetMaxOrder();
+        int maxorder = intrule->GetMaxOrder();
+        if (maxorder > order) {
+            order = maxorder;
+        }
     }
     TPZManVector<int,3> intorder(dim,order);
     intrule->SetOrder(intorder);
