@@ -104,11 +104,11 @@ int main(int argc, char **argv)
     
     vector<TPZSkylMatrix<STATE>* > * fTasks = get_sky_matrices();
     
-    std::sort(fTasks->begin(), fTasks->end(), wayToSort);
-    for(int i=0; i<fTasks->size(); i++)
-    {    
-        cout << (*fTasks)[i]->MemoryFootprint() << endl;// = new TPZSkylMatrix<REAL>(*orig);
-    }
+//    std::sort(fTasks->begin(), fTasks->end(), wayToSort);
+//    for(int i=0; i<fTasks->size(); i++)
+//    {    
+//        cout << (*fTasks)[i]->MemoryFootprint() << endl;// = new TPZSkylMatrix<REAL>(*orig);
+//    }
     
     
     //   TPZSkylMatrix<REAL> *orig = (*fTasks)[0];
@@ -125,17 +125,17 @@ int main(int argc, char **argv)
     tbb::task_scheduler_init init;
 #endif
     
-    int nmatrices = 128; //nsub.get_value();//fTasks->size();
+    int nmatrices = fTasks->size(); //128; //nsub.get_value();//
     if (!usetbb.get_value()) {
         // serial decompose cholesky
         dec_rst.start();
-        cout << "----> Decompose_Cholesky" << endl;
+        cout << "TPZSkylMatrix::Decompose_Cholesky()" << endl;
         for (int i=0; i<nmatrices; i++) {
             (*fTasks)[i]->Decompose_Cholesky();
         }
         dec_rst.stop();
         // serial Subst_Backward/Subst_Forward
-        cout << "----> Subst_Backward/Subst_Forward" << endl;
+        cout << "TPZSkylMatrix::Subst_Backward/Subst_Forward()" << endl;
         sub_rst.start();
         for (int k=0; k<nloop.get_value();k++) {
             for (int i=0; i<nmatrices; i++) {
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
         disp.fTasks = fTasks;
         
         tbb::affinity_partitioner ap;
-        cout << "----> Decompose_Cholesky" << endl;
+         cout << "TPZSkylMatrix::Decompose_Cholesky()" << endl;
         dec_rst.start();
         if (aff_tbb.get_value())
             parallel_for(tbb::blocked_range<size_t>(0, nmatrices), disp, ap);
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
         dec_rst.stop();
         tbb_substitution dispb;
         dispb.fTasks = fTasks;
-        cout << "----> Subst_Backward/Subst_Forward" << endl;
+        cout << "TPZSkylMatrix::Subst_Backward/Subst_Forward()" << endl;
         sub_rst.start();
         for (int k=0; k<nloop.get_value();k++) {
             if (aff_tbb.get_value())
@@ -422,7 +422,7 @@ vector<TPZSkylMatrix<STATE>* > * only_assemble(TPZDohrStructMatrix* dohrstruct,
     par_assemble_task_t<STATE> parallel_tasks(dohrstruct->Assembly(), fMesh);
     
     /* Initialize work items. */
-    std::cout << "TPZDohrStructMatrix::Assemble() : " << nsub << " submeshes" << std::endl;
+    std::cout << "TPZDohrStructMatrix::Assemble()" << std::endl;
     for (unsigned isub=0; isub<nsub ; isub++) {
         TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
         if(!submesh) continue;
@@ -474,10 +474,10 @@ vector<TPZSkylMatrix<STATE>* > *get_sky_matrices() {
     TPZDohrStructMatrix* dohrstruct = new TPZDohrStructMatrix(cmeshauto);
     dohrstruct->IdentifyExternalConnectIndexes();
     
-    cout << "\nTPZDohrStructMatrix::SubStructure()" << endl;
+    cout << "TPZDohrStructMatrix::SubStructure()" << endl;
     dohrstruct->SubStructure(nsub.get_value());
     
-    cout << "\nTPZDohrStructMatrix::Create()" << endl;
+    cout << "TPZDohrStructMatrix::Create()" << endl;
     TPZMatrix<STATE> *matptr = dohrstruct->Create();
     TPZFMatrix<STATE> *rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
     

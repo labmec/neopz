@@ -126,7 +126,9 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	for(isub=0; isub<nsub; isub++)
 	{
 		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+#ifdef DEBUG
 		std::cout << '.'; std::cout.flush();
+#endif
 		if(!submesh) 
 		{
 			continue;
@@ -158,18 +160,19 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	}		
 	
 	tempo.ft1comput = timeforcopute.ReturnTimeDouble(); //end of time for compute
+#ifdef DEBUG
 	std::cout << tempo.ft1comput << std::endl;
-	
-	std::cout << "Identifying corner nodes\n";
+	std::cout << "Identifying corner nodes\n";#endif
 	TPZfTime timefornodes; // init of timer
-	
+#endif
 	
 	IdentifyCornerNodes();
     
-	
+#ifdef DEBUG
 	tempo.ft4identcorner = timefornodes.ReturnTimeDouble();
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
-	
+#endif
+    
 	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(assembly);
 
 	long neq = fMesh->NEquations();
@@ -804,8 +807,9 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
             
         }
     }
-    std::cout << "Number cornereqs " << fCornerEqs.size() << std::endl;
 #ifdef DEBUG
+    std::cout << "Number cornereqs " << fCornerEqs.size() << std::endl;
+
     cornerseqnums = othercornereqs;
     std::set<int> connectindices;
     TPZStack<int> geonodeindices;
@@ -1168,7 +1172,9 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
     TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
     for (isub=0; isub<nsub; isub++) {
         long index;
+#ifdef DEBUG
         std::cout << '^'; std::cout.flush();
+#endif
         submeshes[isub] = new TPZSubCompMesh(fMesh,index);
         if (index < domain_index.NElements()) {
             domain_index[index] = -1;
@@ -1198,7 +1204,9 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         {
             submeshes[isub]->MakeAllInternal();
             submeshes[isub]->PermuteExternalConnects();
+#ifdef DEBUG
             std::cout << '*'; std::cout.flush();
+#endif
         }
     }
     

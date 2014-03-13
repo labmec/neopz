@@ -72,7 +72,7 @@ public:
         if (fNElements == 0 || fStore == NULL)
             return;
         T* newStore = new T[fNElements];
-        memcpy((void*)newStore,fStore,fNElements*sizeof(T));
+        memcpy((void*)newStore,(void*)fStore,fNElements*sizeof(T));
         delete [] fStore;
         fStore = newStore;
 	}

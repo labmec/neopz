@@ -823,7 +823,9 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
     this->fDecomposed  = ECholesky;
     this->fDefPositive = 1;
+#ifdef DEBUG
     std::cout << __PRETTY_FUNCTION__ << " minpivot " << minpivot << std::endl;
+#endif
     return( 1 );
 }
 
@@ -2526,7 +2528,9 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
     this->fDecomposed  = ECholesky;
     this->fDefPositive = 1;
-    std::cout << __PRETTY_FUNCTION__ << " minpivot " << minpivot << std::endl;
+#ifdef DEBUG
+        std::cout << __PRETTY_FUNCTION__ << " minpivot " << minpivot << std::endl;
+#endif
     return( 1 );
 }
 
