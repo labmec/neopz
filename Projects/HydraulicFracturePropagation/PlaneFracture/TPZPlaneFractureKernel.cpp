@@ -484,18 +484,23 @@ void TPZPlaneFractureKernel::ComputeStressAppliedThatpropagatesWhithKI1(REAL & m
 
 void TPZPlaneFractureKernel::ComputeContactStress()
 {
-    REAL stressApplied = this->fmeshVec[0]->Solution()(1,0);
-    
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
         for(int stripe = 0; stripe < this->fPlaneFractureMesh->NStripes(); stripe++)
         {
             int solutionRow = globLayerStruct.GetContactSolutionRow(lay, stripe);
-            if(solutionRow >= 2)
+            if(solutionRow == -1)
             {
-                REAL preStress = -(globLayerStruct.GetLayer(lay).fSigYY);
-                this->fmeshVec[0]->Solution()(solutionRow,0) = MAX(0.,preStress - stressApplied);
+                continue;//Nao tem fratura nesta combinacao de layer e stripe.
             }
+            else if(solutionRow <= this->fPlaneFractureMesh->NStripes())
+            {
+                std::cout << "\n\n\nContactSolutionRow trying to take StressAppliedSolutionRon\n\n\n";
+                DebugStop();
+            }
+            REAL stressApplied = this->fmeshVec[0]->Solution()(globLayerStruct.GetStressAppliedSolutionRow(stripe),0);
+            REAL preStress = -(globLayerStruct.GetLayer(lay).fSigYY);
+            this->fmeshVec[0]->Solution()(solutionRow,0) = MAX(0.,preStress - stressApplied);
         }
     }
 }
@@ -511,6 +516,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
     
     int nEq = this->fmphysics->NEquations();
     
+    TPZFMatrix<REAL> matRes_contact(this->fmeshVec[0]->Solution().Rows(),1);
     TPZFMatrix<REAL> matRes_total(nEq,1,0.);
     
     TPZFMatrix<REAL> Sol_0 = this->fmphysics->Solution();
@@ -559,9 +565,14 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
         REAL normRes = Norm(matRes_total);
         REAL tol = 1.e-3;
         int maxit = 10;
+        if(justTransferingElasticSolution)
+        {
+            maxit = 20;
+        }
         int nit = 0;
         
         // Metodo de Newton
+        TPZFMatrix<REAL> lastContactSolution = this->fmeshVec[0]->Solution();
         while(normRes > tol && nit < maxit)
         {
             an->Rhs() = matRes_total;
@@ -569,19 +580,30 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
             
             TPZFMatrix<REAL> Sol_1_minus_Sol_0 = an->Solution();
             TPZFMatrix<REAL> Sol_1 = Sol_1_minus_Sol_0 + Sol_0;
+            
             an->LoadSolution(Sol_1);
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
+
+            ///Atualizando contato
+            this->ComputeContactStress();
+            TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
+            an->LoadSolution(this->fmphysics->Solution());
             
-            Sol_0 = Sol_1;
+            TPZFMatrix<REAL> solContactAfter = this->fmeshVec[0]->Solution();
+            matRes_contact = this->fmeshVec[0]->Solution() - lastContactSolution;
+            lastContactSolution = this->fmeshVec[0]->Solution();
+            ////////////////////////////////
             
             matRes_partial.Zero();
             this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial);
             matRes_total = matRes_partial + matMass;
             
-            normRes = Norm(matRes_total);
+            normRes = Norm(matRes_contact) + Norm(matRes_total);
             std::cout << "||res|| = " << normRes << std::endl;
             nit++;
+            
+            Sol_0 = this->fmphysics->Solution();
         }
         
         if(normRes > tol)

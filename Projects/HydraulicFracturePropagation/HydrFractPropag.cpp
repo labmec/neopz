@@ -93,10 +93,10 @@ int main(int argc, char * const argv[])
 
     //Simulation p-order data
     int porder = 1;
-    REAL MaxDispl = 4.;
+    REAL MaxDispl = 2.;
     
-    bool just1Stripe = true;//<<<<<<<<<<<<<<<<
-    bool coupled = true;//<<<<<<<<<<<<<<<<
+    bool just1Stripe = false;//<<<<<<<<<<<<<<<<
+    bool coupled = true;    //<<<<<<<<<<<<<<<<
     
     bool pressureINdependent = true;//If true, Carter Leakoff Coefficient is pressure independent
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, just1Stripe,

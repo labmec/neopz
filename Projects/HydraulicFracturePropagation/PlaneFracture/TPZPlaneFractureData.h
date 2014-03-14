@@ -601,7 +601,7 @@ public:
         this->fElastReducedSolution = solution;
     }
     
-    REAL GetStressAppliedForJIntegral(int layer, int stripe)
+    REAL GetEffectiveStressApplied(int layer, int stripe)
     {
         int pressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
         
