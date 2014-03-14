@@ -28,7 +28,7 @@ public:
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
-     * @param nstripes [in] : Amount of stripes in Y direction for applied pressure for reduced space
+     * @param just1Stripe [in] : Requirement of just 1 stripe in Y direction for applied pressure for reduced space
      * @param Qinj_well [in] : Well injection flow rate
      * @param visc [in] : Injected fluid viscosity
      * @param Jradius [in] : J-Integral radius
@@ -39,7 +39,7 @@ public:
      * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
-                           REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
+                           REAL xLength, REAL yLength, REAL Lmax, bool just1Stripe, REAL Qinj_well, REAL visc,
                            REAL Jradius,
                            int porder,
                            REAL MaxDispl,

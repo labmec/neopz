@@ -40,26 +40,19 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel() : actColor(0)
 //------------------------------------------------------------------------------------------------------------
 
 TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
-                                               REAL xLength, REAL yLength, REAL Lmax, int nstripes, REAL Qinj_well, REAL visc,
+                                               REAL xLength, REAL yLength, REAL Lmax, bool just1Stripe, REAL Qinj_well, REAL visc,
                                                REAL Jradius,
                                                int pOrder,
                                                REAL MaxDispl,
                                                bool pressureIndependent) : actColor(0)
 {
-    if(nstripes < 1)
-    {
-        std::cout << "\nnstripes > 0 is needed\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << ".\n";
-        DebugStop();
-    }
-    
     this->fpoligonalChain.Resize(0);
     this->fstep = 0;
     
     this->fLmax = Lmax;
     
     globLayerStruct.SetLayerVec(layerVec);
-    this->fPlaneFractureMesh = new TPZPlaneFractureMesh(bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax, nstripes);
+    this->fPlaneFractureMesh = new TPZPlaneFractureMesh(bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax, just1Stripe);
     
     this->fmeshVec.Resize(2);
     this->fmeshVec[0] = NULL;
@@ -122,6 +115,12 @@ TPZPlaneFractureKernel::~TPZPlaneFractureKernel()
 
 void TPZPlaneFractureKernel::RunUncoupled()
 {
+    if(this->fPlaneFractureMesh->Just1Stripe() == false)
+    {
+        std::cout << "\n\n\nMétodo desacoplado só funciona para apenas 1 faixa (just1Stripe = true)\n\n\n";
+        DebugStop();
+    }
+    
     this->InitializePoligonalChain();
     TPZCompMesh * lastPressureCMesh = NULL;
     
@@ -313,8 +312,6 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     TPZStepSolver<REAL> stepS;
     stepS.SetDirect(ECholesky);
     an->SetSolver(stepS);
-    
-    int NStripes = this->fPlaneFractureMesh->NStripes();
 
     TPZFMatrix<STATE> solution0(cmesh->Solution().Rows(), 1);
     TPZFMatrix<STATE> solution1(cmesh->Solution().Rows(), 1);
@@ -322,7 +319,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     
     TPZFMatrix<STATE> solutions(cmesh->Solution().Rows(), 1);
     
-    ////////////////// Newman 0 em toda a fratura
+    ////////////////// Newman=0 em toda a fratura
     TPZTimer ts;
     an->Assemble();
     ts.start();
@@ -336,22 +333,29 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         solutions(r,0) = solution0(r,0);
     }
     
-    int oldSize = solutions.Cols();
     
-    ////////////////// Newman 1.E7 * globStressScale em toda a fratura
-    this->fPlaneFractureMesh->SetNewmanOnFracture(cmesh);
-    an->Rhs().Zero();
-    an->AssembleResidual();
-    an->Solve();
-    solution1 = cmesh->Solution();
+    int NStripes = this->fPlaneFractureMesh->NStripes();
     
-    solutions.Resize(solutions.Rows(), oldSize+1);
-    for(int r = 0; r < solution0.Rows(); r++)
+    ////////////////// Pressao de fluido
+    ////////////////// Newman=1.E7 * globStressScale em cada faixa da fratura
+    for(int stripe = 0; stripe < NStripes; stripe++)
     {
-        solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
+        this->fPlaneFractureMesh->SetNewmanOnThisStripe(cmesh,stripe);
+        an->Rhs().Zero();
+        an->AssembleResidual();
+        an->Solve();
+        solution1 = cmesh->Solution();
+        
+        int oldSize = solutions.Cols();
+        solutions.Resize(solutions.Rows(), oldSize+1);
+        for(int r = 0; r < solution0.Rows(); r++)
+        {
+            solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
+        }
     }
     
-    ///////////////// Newman 1.E7 * globStressScale em partes (cada subdominio formado por layer e stripe) (serao utilizados como contato)
+    ///////////////// Contato
+    ///////////////// Newman=1.E7 * globStressScale em partes (cada subdominio formado por layer e stripe)
     bool newmanApplied = false;
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
@@ -366,7 +370,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
                 
                 solutionLayStripe = cmesh->Solution();
                 
-                oldSize = solutions.Cols();
+                int oldSize = solutions.Cols();
                 solutions.Resize(solutions.Rows(), oldSize+1);
                 for(int r = 0; r < solution0.Rows(); r++)
                 {
@@ -414,7 +418,7 @@ void TPZPlaneFractureKernel::ComputeStressAppliedThatpropagatesWhithKI1(REAL & m
         }
         
         this->fmeshVec[0]->Solution()(0,0) = 1.;
-        this->fmeshVec[0]->Solution()(1,0) = stressApplied;
+        this->fmeshVec[0]->Solution()(1,0) = stressApplied;//Metodo desacoplado soh funciona para nstripes=1, portanto estah hardcode.
         this->ComputeContactStress();
         
         if( ( (maxKI_KIc > 0.85) && (maxKI_KIc < 1.5) ) == false )
@@ -848,13 +852,11 @@ void TPZPlaneFractureKernel::ApplyInitialCondition()
 {
     this->fmeshVec[0]->Solution().Zero();
     this->fmeshVec[0]->Solution()(0,0) = 1.;
-    
-    int firstStripeRow = 1;
-    int lastStripeRow = this->fPlaneFractureMesh->NStripes();
-    for(int r = firstStripeRow; r <= lastStripeRow; r++)
+    for(int stripe = 0; stripe < this->fPlaneFractureMesh->NStripes(); stripe++)
     {
-        this->fmeshVec[0]->Solution()(r,0) = globLayerStruct.GetHigherPreStress();
+        this->fmeshVec[0]->Solution()(globLayerStruct.GetStressAppliedSolutionRow(stripe),0) = globLayerStruct.GetHigherPreStress();
     }
+
     this->PutConstantPressureOnFluidSolution();
 }
 //------------------------------------------------------------------------------------------------------------

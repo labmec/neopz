@@ -603,7 +603,8 @@ public:
     
     REAL GetStressAppliedForJIntegral(int layer, int stripe)
     {
-        int pressAppliedRow = 1;
+        int pressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
+        
         //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
         REAL pressApplied = this->fElastReducedSolution(pressAppliedRow,0);
         
@@ -656,6 +657,11 @@ public:
         }
         DebugStop();//nao achou o layer
         return -1;
+    }
+    
+    int GetStressAppliedSolutionRow(int stripe)
+    {
+        return stripe+1;
     }
     
     int GetContactSolutionRow(int layer, int stripe)
