@@ -1968,7 +1968,7 @@ int main ()
         well.Read(read);        
         
     }
-    return 0;
+    //return 0;
     if (startfrom <= 6)
     {
 //        well.VerifyGlobalEquilibrium();
