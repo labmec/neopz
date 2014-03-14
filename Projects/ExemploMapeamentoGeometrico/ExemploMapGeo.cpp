@@ -89,7 +89,6 @@ int main(int argc, char *argv[])
     topology[2] = 5;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
     topology[3] = 2;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
     
-    TPZGeoElRefPattern< pzgeom::TPZGeoQuad > * quadrilatero2 =
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (topology,materialId,*geomesh);
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
