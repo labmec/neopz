@@ -22,6 +22,11 @@ if(BUILD_TUTORIAL)
 	#Example : Elasticity Material 2D
 	add_subdirectory(Problema1D)
 
+	#Example : 
+	add_subdirectory(ExemploSimples)
+	#Example : Geometric Mapping
+	add_subdirectory(ExemploMapeamentoGeometrico)
+
 	set(pzcurso ${pzcurso} ${pzclass1} ${pzclass2} ${pzclass3} ${pzclass4} ${pzclass5} ${pzclass6} PARENT_SCOPE )
 
 endif()

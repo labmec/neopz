@@ -157,8 +157,6 @@ ENABLE_TESTING()
 			add_subdirectory(Lua01)
 
 			#teste nathan
-			add_subdirectory(ExemploSimples)
-			add_subdirectory(ExemploMapeamentoGeometrico)
 			add_subdirectory(PlasticityPV)
 
 			#Projeto Denise
