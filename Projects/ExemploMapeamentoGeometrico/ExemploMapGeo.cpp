@@ -15,11 +15,11 @@ int main(int argc, char *argv[])
     ///INSTANCIACAO DA MALHA GEOMETRICA
 	TPZGeoMesh * geomesh = new TPZGeoMesh;
     
-    int nnodes = 4;//quantidade de nos da malha geometrica
+    int nnodes = 6;//quantidade de nos da malha geometrica
     geomesh->NodeVec().Resize(nnodes);
     
     ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
-    TPZGeoNode node0, node1, node2, node3;
+    TPZGeoNode node0, node1, node2, node3, node4, node5;
     
     TPZVec<REAL> coord(3,0.);
     
@@ -55,6 +55,21 @@ int main(int argc, char *argv[])
     node3.SetCoord(coord);
     geomesh->NodeVec()[3] = node3;
     
+    //no 4
+    coord[0] = 9.;
+    coord[1] = 3.;
+    coord[2] = 6.;
+    node4.SetNodeId(4);
+    node4.SetCoord(coord);
+    geomesh->NodeVec()[4] = node4;
+    
+    //no 5
+    coord[0] = 8.5;
+    coord[1] = 7.;
+    coord[2] = 6.;
+    node5.SetNodeId(5);
+    node5.SetCoord(coord);
+    geomesh->NodeVec()[5] = node5;
     
     //INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
     TPZVec<long> topology(4);//Quadrilatero ira utilizar 4 nos
@@ -67,6 +82,15 @@ int main(int argc, char *argv[])
     
     TPZGeoElRefPattern< pzgeom::TPZGeoQuad > * quadrilatero =
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (topology,materialId,*geomesh);
+    
+    
+    topology[0] = 1;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
+    topology[1] = 4;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
+    topology[2] = 5;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
+    topology[3] = 2;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
+    
+    TPZGeoElRefPattern< pzgeom::TPZGeoQuad > * quadrilatero2 =
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (topology,materialId,*geomesh);
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
     geomesh->BuildConnectivity();
