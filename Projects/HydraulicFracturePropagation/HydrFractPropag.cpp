@@ -95,18 +95,16 @@ int main(int argc, char * const argv[])
     int porder = 1;
     REAL MaxDispl = 4.;
     
-    //NStripes
-    int nstripes = 1;
-    
+    bool just1Stripe = true;//<<<<<<<<<<<<<<<<
+    bool coupled = true;//<<<<<<<<<<<<<<<<
     
     bool pressureINdependent = true;//If true, Carter Leakoff Coefficient is pressure independent
-    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, nstripes,
+    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, just1Stripe,
                                                                  QinjWell, visc,
                                                                  Jradius,
                                                                  porder,
                                                                  MaxDispl,
                                                                  pressureINdependent);
-    bool coupled = false;
     if(coupled)
     {
         plfrac->RunCoupled();
