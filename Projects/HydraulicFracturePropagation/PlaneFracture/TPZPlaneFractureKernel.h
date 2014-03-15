@@ -110,7 +110,7 @@ protected:
     /** During development, this is used to check the convergence order of the non linear system */
     void CheckConv();
     
-    void UpdateLeakoff();
+    void UpdateLeakoffKernel();
     
     void PostProcessAll_Uncoupled();
     void PostProcessAll_Coupled();

@@ -17,7 +17,7 @@
 #include "pzgeoquad.h"
 
 
-void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
+void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cmesh, REAL deltaT)
 {
     if(this->fPressureIndependent == false)
     {
@@ -90,7 +90,11 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         
         int layer = globMaterialIdGen.WhatLayerFromInsideFracture(cel->Reference()->MaterialId());
         int stripe = globMaterialIdGen.WhatStripe(cel->Reference()->MaterialId());
-        REAL pfrac = globLayerStruct.GetEffectiveStressApplied(layer, stripe);
+        REAL pfrac = 0.;
+        if(this->fPressureIndependent == false)
+        {//Is pressureDependent!!!
+            globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
+        }
         //REAL pfrac = data.sol[0][0];//AQUICAJU : pegarei pressao de fluido ou tensao aplicada na faixa???
         
         TPZBndCond * matbnd = dynamic_cast<TPZBndCond*> (cel->Material());

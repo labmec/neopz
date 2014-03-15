@@ -223,7 +223,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         }
         int layer = globMaterialIdGen.WhatLayerFromInsideFracture(insideMatId);
         int stripe = globMaterialIdGen.WhatStripe(insideMatId);
-        Sigma_n[1] = globLayerStruct.GetEffectiveStressApplied(layer,stripe);
+        Sigma_n[1] = globLayerStruct.GetEffectiveStressApplied(this->fcmeshElastic->Solution(), layer,stripe);
     }
     
     TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());

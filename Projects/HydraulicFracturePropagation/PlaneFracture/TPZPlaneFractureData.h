@@ -223,7 +223,7 @@ public:
         fGelId_Penetration = GelId_Penetration;
     }
     
-    void UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT);
+    void UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cmesh, REAL deltaT);
     
     REAL VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp);
     
@@ -543,7 +543,6 @@ public:
     {
         this->fLayerVec.Resize(0);
         this->fLayer_Stripe_SolutionRow.clear();
-        this->fElastReducedSolution.Resize(0,0);
         this->fminPrestress = +1.E15;
         this->fmaxPrestress = -1.E15;
     }
@@ -553,14 +552,13 @@ public:
         this->fLayerVec.Resize(0);
     }
     
-    const REAL StressAppliedOnEntireFracture()
+    const REAL StressAppliedOnFractureStripe()
     {
-        return 1.E7 * globStressScale;//DO NOT TOUCH!!!
+        return 1.;//DO NOT TOUCH!!!
     }
     
     void ResetData()
     {
-        this->fElastReducedSolution.Resize(0,0);
         this->fLayer_Stripe_SolutionRow.clear();
     }
     
@@ -596,21 +594,16 @@ public:
         }
     }
     
-    void SetElastSolutionMatrix(TPZFMatrix<REAL> & solution)
-    {
-        this->fElastReducedSolution = solution;
-    }
-    
-    REAL GetEffectiveStressApplied(int layer, int stripe)
+    REAL GetEffectiveStressApplied(TPZFMatrix<REAL> & ElastReducedSolution, int layer, int stripe)
     {
         int pressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
         
         //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-        REAL pressApplied = this->fElastReducedSolution(pressAppliedRow,0);
+        REAL pressApplied = ElastReducedSolution(pressAppliedRow,0);
         
         int contactRow = this->GetContactSolutionRow(layer,stripe);
         //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-        REAL contactStress = this->fElastReducedSolution(contactRow,0);
+        REAL contactStress = ElastReducedSolution(contactRow,0);
         //Onde nao ha contato, contactStress=0.
         
         REAL preStress = -this->fLayerVec[layer].fSigYY;
@@ -693,9 +686,6 @@ protected:
     
     /** Mapa que guarda a linha da solucao do contato baseado no layer e na stripe */
     std::map< int, std::map<int,int> > fLayer_Stripe_SolutionRow;
-    
-    /** Matriz_vetor solucao da elastica de espacos reduzidos */
-    TPZFMatrix<REAL> fElastReducedSolution;
     
     REAL fminPrestress;
     REAL fmaxPrestress;

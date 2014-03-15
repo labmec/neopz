@@ -435,7 +435,6 @@ void TPZPlaneFractureKernel::ComputeStressAppliedThatpropagatesWhithKI1(REAL & m
         {
             std::cout << "Turbo.................................\n";
             std::cout.flush();
-            globLayerStruct.SetElastSolutionMatrix(this->fmeshVec[0]->Solution());
             this->fPath3D.IntegratePath3D(maxKI_KIcPosition);
             
             maxKI_KIc = this->fPath3D.Path(maxKI_KIcPosition)->KI()/this->fPath3D.Path(maxKI_KIcPosition)->KIc();
@@ -689,6 +688,13 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry(REAL & volAcum, bool justTr
 
 void TPZPlaneFractureKernel::PredictActDeltaT(REAL fractVolum)
 {
+    if(globLeakoffStorage.IsPressureIndependent() == false)
+    {
+        ///Na modalidade pressureDEPENDENT, nao da para prever o deltaT em que (volInjected > volLeakoff) sem a pressao correta.
+        globTimeControl.SetDeltaT(1.);
+        return;
+    }
+    
     std::map<int,REAL> leakoffmap = globLeakoffStorage.GetLeakoffMap();
     
     REAL actTime = globTimeControl.actTime();
@@ -702,12 +708,12 @@ void TPZPlaneFractureKernel::PredictActDeltaT(REAL fractVolum)
     REAL volInj1 = Qinj1wing * (actTime + dt1);
     
     globTimeControl.SetDeltaT(dt0);
-    globLeakoffStorage.UpdateLeakoff(this->fmphysics,dt0);
+    globLeakoffStorage.UpdateLeakoff(this->fmeshVec[0]->Solution(), this->fmphysics,dt0);
     REAL volLeak0 = this->ComputeVlAcumLeakoff(this->fmeshVec[1]);
     globLeakoffStorage.SetLeakoffMap(leakoffmap);
     
     globTimeControl.SetDeltaT(dt1);
-    globLeakoffStorage.UpdateLeakoff(this->fmphysics,dt1);
+    globLeakoffStorage.UpdateLeakoff(this->fmeshVec[0]->Solution(), this->fmphysics,dt1);
     REAL volLeak1 = this->ComputeVlAcumLeakoff(this->fmeshVec[1]);
     globLeakoffStorage.SetLeakoffMap(leakoffmap);
     
@@ -733,12 +739,12 @@ void TPZPlaneFractureKernel::PredictActDeltaT(REAL fractVolum)
         volInj1 = Qinj1wing * (actTime + dt1);
         
         globTimeControl.SetDeltaT(dt0);
-        globLeakoffStorage.UpdateLeakoff(this->fmphysics,dt0);
+        globLeakoffStorage.UpdateLeakoff(this->fmeshVec[0]->Solution(), this->fmphysics,dt0);
         volLeak0 = this->ComputeVlAcumLeakoff(this->fmeshVec[1]);
         globLeakoffStorage.SetLeakoffMap(leakoffmap);
         
         globTimeControl.SetDeltaT(dt1);
-        globLeakoffStorage.UpdateLeakoff(this->fmphysics,dt1);
+        globLeakoffStorage.UpdateLeakoff(this->fmeshVec[0]->Solution(), this->fmphysics,dt1);
         volLeak1 = this->ComputeVlAcumLeakoff(this->fmeshVec[1]);
         globLeakoffStorage.SetLeakoffMap(leakoffmap);
         
@@ -766,7 +772,7 @@ void TPZPlaneFractureKernel::PredictActDeltaT(REAL fractVolum)
 void TPZPlaneFractureKernel::CloseActualTimeStepUncoupled()
 {
     globTimeControl.UpdateActTime();//atualizando esta rodada concluida para o tempo atual
-    this->UpdateLeakoff();
+    this->UpdateLeakoffKernel();
     this->PostProcessAll_Uncoupled();
 }
 //------------------------------------------------------------------------------------------------------------
@@ -774,7 +780,7 @@ void TPZPlaneFractureKernel::CloseActualTimeStepUncoupled()
 void TPZPlaneFractureKernel::CloseActualTimeStepCoupled()
 {
     globTimeControl.UpdateActTime();//atualizando esta rodada concluida para o tempo atual
-    this->UpdateLeakoff();
+    this->UpdateLeakoffKernel();
     this->PostProcessAll_Coupled();
 }
 //------------------------------------------------------------------------------------------------------------
@@ -1058,9 +1064,9 @@ void TPZPlaneFractureKernel::CheckConv()
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::UpdateLeakoff()
+void TPZPlaneFractureKernel::UpdateLeakoffKernel()
 {
-    globLeakoffStorage.UpdateLeakoff(this->fmphysics,globTimeControl.actDeltaT());
+    globLeakoffStorage.UpdateLeakoff(this->fmeshVec[0]->Solution(), this->fmphysics,globTimeControl.actDeltaT());
 
     
     //O UpdateLeakoff atualiza o leakoff com base na pressao no centro do elemento (=volLeakoffComputed).
@@ -1441,8 +1447,6 @@ REAL TPZPlaneFractureKernel::ComputeVolInjected()
 bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL & maxKI_KIc, std::set<int> & whoPropagate,
                                                       int & maxKI_KIcPosition, TPZFMatrix<REAL> & ElastReducedSolution)
 {
-    globLayerStruct.SetElastSolutionMatrix(ElastReducedSolution);
-    
     bool propagate = false;
     
     maxKI_KIc = 0.;

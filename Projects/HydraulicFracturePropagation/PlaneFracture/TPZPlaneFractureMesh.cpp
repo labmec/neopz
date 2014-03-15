@@ -684,7 +684,7 @@ void TPZPlaneFractureMesh::SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int act
             if(stripe == actStripe)
             {
                 newmanWasApplied = true;
-                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnEntireFracture();
+                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnFractureStripe();
             }
             else
             {
@@ -730,7 +730,7 @@ bool TPZPlaneFractureMesh::SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref,
             if(lay == actLayer && stripe == actStripe)
             {
                 newmanWasApplied = true;
-                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnEntireFracture();
+                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnFractureStripe();
             }
             else
             {
