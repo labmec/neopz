@@ -85,7 +85,7 @@ long MaxEquations = 1300000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
-int MaxPOrder = 21;     // Maximum order for p refinement allowed
+int MaxPOrder = 13;     // Maximum order for p refinement allowed
 int MaxHLevel = 6;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
@@ -139,10 +139,8 @@ bool SolveLaplaceProblemOnLShapeMesh();
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement,REAL &);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
 void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel);
-void ApplyingStrategyHPAdaptiveBasedOnErrorOfGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel);
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 
-void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 // Writing a relation between number of degree of freedom and L2 error.
 bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrrVec,TPZVec<long> &NEquations,std::ostream &fileerrors);
 
@@ -164,7 +162,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	int itypeel = 4;
+	int itypeel = 6;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -249,7 +247,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 
 	if(printingsol) {
 		TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
-		UniformRefinement(8,gmesh,ModelDimension);
+		UniformRefinement(7,gmesh,ModelDimension);
 		TPZCompEl::SetgOrder(1);
 		TPZCompMesh *cmeshfirst = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);
 		TPZAnalysis ann(cmeshfirst,false);
@@ -289,17 +287,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	// Adjusting parameters
 	switch(typeel) {
 	case ETriangle:
-	case EPrisma:
-	case EPiramide:
-		MaxPOrder = 13;
+	case EQuadrilateral:
 		NRefs = 20;
 		break;
-	case ETetraedro:
-		MaxPOrder = 14;
-		NRefs = 10;
-		break;
 	default:
-		MaxPOrder = 21;
 		NRefs = 10;
 		break;
 	}
@@ -319,7 +310,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 			SaveCompMesh(cmesh,countermesh++);
 		}
 		out << "\nSolving Poisson problem " << ModelDimension << "D. Refinement: " << nref << " Threads: " << nthread << " TypeElement: " << typeel << endl;
-		std::cout << "\nSolving Poisson problem. Type element: " << typeel << std::endl;
+		std::cout << "\nSolving Poisson problem. Type of element: " << typeel << std::endl;
 		if(usethreads) {
 			if(nref > 5) nthread = 2*NThreads;
 			else nthread = NThreads;
@@ -365,7 +356,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		an.Run();
 				
 		// Post processing
-		an.PostProcess(2,ModelDimension);
+		an.PostProcess(0,ModelDimension);
 		if(gDebug) {
 			std::ofstream out(MeshFileName.c_str());
 			cmesh->LoadReferences();
@@ -418,9 +409,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	if(!PrintResultsInMathematicaFormat(ErrorVec,NEquations,fileerrors))
 		std::cout << "\nThe errors and nequations values in Mathematica format was not done.\n";
 	
-	fileerrors << std::endl << "Finished running.\n" << std::endl << std::endl;
+	fileerrors << std::endl << "Finished running for element " << itypeel << std::endl << std::endl;
 	fileerrors.close();
-	std::cout << std::endl << "\tFinished running.\n" << std::endl << std::endl;
+	std::cout << std::endl << "\tFinished running for element " << itypeel << std::endl << std::endl;
 	out.close();
 	return true;
 }
@@ -441,9 +432,15 @@ void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad = 0.6;
-	REAL factorError = 0.3;
-	REAL GradErLimit = 9.;
-	if(dim == 3 && !nref) GradErLimit *= 2;
+	REAL factorError = 1./3.;
+	REAL GradErLimit = 30.;
+	if(itypeel==5 || itypeel==6)
+		GradErLimit = 10.*itypeel;
+	if(dim==2) GradErLimit = 9.;
+	if(dim==3 && nref) {
+		if(nref==1) GradErLimit *= .5;
+		else GradErLimit = 12.;
+	}
 	
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
@@ -501,183 +498,7 @@ void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
 }
 
-void ApplyingStrategyHPAdaptiveBasedOnErrorOfGradient(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel) {
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	int dim = cmesh->Dimension();
 
-	TPZVec<long> subels;
-	TPZVec<long> subsubels;
-	int pelement;
-	int level;
-	TPZInterpolatedElement *el;
-	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(50,0);
-	REAL MaxGrad;
-	long i, ii;
-	REAL factorGrad = 0.6;
-	REAL factorError = 0.3;
-	REAL GradErLimit = 9.;
-	if(dim == 3 && !nref) GradErLimit *= 2;
-	
-	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
-	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
-	if(MaxGrad > GradErLimit) MaxGrad = GradErLimit;
-
-	/* Printing maximum and minimun values of the errors */
-	out << "\nErro ->   Min " << MinErrorByElement << "    Max " << MaxErrorByElement << std::endl << "Grad ->   Min " << MinGrad << "   Max " << gradervecbyel[nels] << "\t";
-	out << "\nMaxGrad " << MaxGrad << "     SError " << SmallError;
-
-	// Applying hp refinement only for elements with dimension as model dimension
-	for(i=0L;i<nels;i++) {
-		bool hused = false, pused = false;
-		subels.Resize(0);
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-
-		// element data
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		pelement++;
-		index = el->Index();
-		level = el->Reference()->Level();
-
-		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel && nref < 8) {
-			counterreftype[10]++;
-			el->Divide(index,subels);
-			el = 0;
-			level++;
-			hused = true;
-		}
-		if(nref && ervecbyel[i] > SmallError && pelement < MaxPOrder) {
-			counterreftype[20]++;
-			if(el)
-				el->PRefine(pelement);
-			else {
-				for(ii=0;ii<subels.NElements();ii++) {
-					if(subels[ii])
-						((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
-				}
-			}
-			pused = true;
-		}
-		else {
-			counterreftype[32]++;
-		}
-		if(pused)
-			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
-		if(hused)
-			MaxHUsed = (level > MaxHUsed) ? level : MaxHUsed;
-	}
-
-	/* Applying MaxPUsed order for the most refined elements
-	if(nref > 1) {
-		for(i=0L;i<nels;i++) {
-			el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-			if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-			// element data
-			pelement = el->PreferredSideOrder(el->NConnects() - 1);
-			index = el->Index();
-			level = el->Reference()->Level();
-			if(level == MaxHUsed && pelement != MaxPUsed)
-				el->PRefine(MaxPUsed);
-			else if(MaxPUsed-2 > pelement && level == MaxHUsed-1)
-				el->PRefine(MaxPUsed-1);
-		}
-	}*/
-
-	cmesh->ExpandSolution();
-
-	// Printing information stored
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
-}
-
-void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolutionT(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
-/*
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
-	int pelement, dp;
-	int level;
-	dp = 1;
-	TPZVec<long> subsubels;
-	TPZInterpolatedElement *el;
-	STATE Tol;
-	ZeroTolerance(Tol);
-
-	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(50,0);
-	REAL GradNorm, LaplacianValue;
-	REAL MaxGrad, MaxLaplacian;
-	long i, ii;
-	REAL factorGrad= 0.6;
-	REAL factorErrorM = 0.8;
-	REAL LaplacianLimit = 10.;
-	REAL factorError = 0.3;
-	REAL GradErLimit = 3.;
-	REAL ErLimit = 0.01;
-	REAL BigError = ErLimit > factorErrorM*MaxErrorByElement ? factorErrorM*MaxErrorByElement : ErLimit;
-	REAL SmallError = ErLimit > factorError*MaxErrorByElement ? factorError*MaxErrorByElement : ErLimit;
-	MaxGrad = GradErLimit > factorGrad*gradervecbyel[nels] ? factorGrad*gradervecbyel[nels] : GradErLimit;
-
-	if(nref>6) {
-		factorError = 0.2;
-		LaplacianLimit = 5.;
-	}
-
-	// Applying hp refinement only for elements with dimension as model dimension
-	for(i=0L;i<nels;i++) {
-		bool hused = false, pused = false;
-		subels.Resize(0);
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-
-		// element data
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		pelement++;
-		index = el->Index();
-		level = el->Reference()->Level();
-		LaplacianValue = Laplacian(el);
-
-		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if((ervecbyel[i] > BigError || gradervecbyel[i] > MaxGrad) && level < MaxHLevel) {
-			counterreftype[11]++;
-			hused = true;
-			el->Divide(index,subels);
-			level++;
-			if((nref < 3) && LaplacianValue > LaplacianLimit && pelement < MaxPOrder) {
-				for(ii=0;ii<subels.NElements();ii++) {
-					((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
-				}
-				pused = true;
-				counterreftype[15]++;
-			}
-			else 
-				counterreftype[18]++;
-		}
-		else if((ervecbyel[i] > SmallError || LaplacianValue > LaplacianLimit) && pelement < MaxPOrder) {
-			counterreftype[30]++;
-			el->PRefine(pelement);
-			pused = true;
-		}
-		else {
-			counterreftype[32]++;
-		}
-		if(pused)
-			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
-		if(hused)
-			MaxHUsed = (level > MaxHUsed) ? level : MaxHUsed;
-	}
-	cmesh->ExpandSolution();
-
-	// Printing information stored
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
-	*/
-}
 
 int MaxLevelReached(TPZCompMesh *cmesh) {
 	int levelreached = 0, level;
@@ -691,105 +512,6 @@ int MaxLevelReached(TPZCompMesh *cmesh) {
 	return levelreached;
 }
 
-/*void ApplyingStrategyHPAdaptiveBasedOnExactCircleSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
-
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
-	int j, pelement, dp;
-	dp = 1;
-	TPZVec<long> subsubels;
-	TPZInterpolatedElement *el;
-	STATE Tol;
-	ZeroTolerance(Tol);
-
-	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(50,0);
-	REAL GradNorm, LaplacianValue;
-	REAL MaxGrad, MaxLaplacian, MaxGradErVecByEl = gradervecbyel[nels];
-	long i;
-//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad = 0.7;
-	REAL factorErrorLower = 0.25;
-	if(nref==1) {
-		factorErrorLower = 0.2;
-	}
-	if(nref>2) {
-		factorGrad = 0.7-(nref-2)*0.1;
-		factorErrorLower = 0.1;
-	}
-	if(factorGrad < 0.3)
-		factorGrad = 0.3;
-//	REAL factorLap = 1. + nref;
-	REAL factorErrorHigh = 0.75 + nref*0.02;
-
-	ComputingMaxGradientAndLaplacian(cmesh,MaxGrad,MaxLaplacian);
-
-	// Applying hp refinement only for elements with dimension as model dimension
-	for(i=0L;i<nels;i++) {
-		bool pused = false;
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		index = el->Index();
-		// If the element error is little enough do nothing
-		if(ervecbyel[i] < (0.1*Tol)) {
-			counterreftype[0]++;
-			continue;
-		}
-
-		// If error is small and laplacian value is very little then the order will be minimized
-		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
-			DebugStop();
-
-		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-        pelement++;
-
-		if(ervecbyel[i] > factorErrorHigh*MaxErrorByElement) {
-			bool flag = false;
-			if(LaplacianValue > 1. && pelement < MaxPOrder) {
-				el->PRefine(pelement);
-				pused = true;
-				flag = true;
-				counterreftype[12]++;
-			}
-			counterreftype[10]++;
-			el->Divide(index,subels);
-			if(GradNorm > factorGrad*MaxGrad || gradervecbyel[i] > factorGrad*MaxGradErVecByEl) {
-				counterreftype[11]++;
-				for(int ii=0;ii<subels.NElements();ii++) {
-					el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]]);
-					el->Divide(subels[ii],subsubels);
-				}
-			}
-		}
-		else if(ervecbyel[i] > factorErrorLower*MaxErrorByElement) {
-			if(LaplacianValue > 1. && pelement < MaxPOrder) {
-				el->PRefine(pelement);
-				pused = true;
-				counterreftype[22]++;
-			}
-			else if(gradervecbyel[i] > factorGrad*MaxGradErVecByEl) {
-				counterreftype[20]++;
-				el->Divide(index,subels);
-			}
-		}
-		else
-			counterreftype[30]++;
-
-		if(pused)
-			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
-	}
-	cmesh->ExpandSolution();
-
-	std::cout << "\nMaxLaplacian " << MaxLaplacian << "\n";
-	
-	// Printing information stored
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
-}
-*/
 void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out) {
 	long Total = 0L;
 	out << "\nHP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
@@ -801,90 +523,6 @@ void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &coun
 		}
 	out << "Processed elements " << Total;
 }
-void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
-    
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
-	int pelement, dp;
-	dp = 1;
-	TPZVec<long> subsubels;
-	TPZInterpolatedElement *el;
-	STATE Tol;
-	ZeroTolerance(Tol);
-    
-	// To see where the computation is doing
-	long index = -1;
-	TPZVec<long> counterreftype(30,0);
-	REAL GradError, SolError;
-	long i;
-	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
-	REAL factorGrad = 0.5;
-	REAL factorErrorLower = 0.1;
-	REAL LaplacianValue, GradNorm;
-	
-	//	if(2<nref)
-	//	factorGrad += 0.1;
-	
-	REAL MaxGradErrorByElement = gradervecbyel[nels];
-	std::cout << "\nErroMax " << MaxErrorByElement << "   GradError " << MaxGradErrorByElement << "\n";
-	
-	// Applying hp refinement only for elements with dimension as model dimension
-	for(i=0L;i<nels;i++) {
-		bool pused = false;
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		index = el->Index();
-		if(index != i)
-			DebugStop();
-		// If the element error is little enough do nothing
-		if(ervecbyel[index] < (0.1*Tol)) {
-			counterreftype[0]++;
-			continue;
-		}
-		
-		// If error is small and laplacian value is very little then the order will be minimized
-		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
-			DebugStop();
-		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-        pelement++;
-		GradError = gradervecbyel[i];
-		SolError = ervecbyel[i];
-		if(SolError > factorErrorLower*MaxErrorByElement) {
-			if(pelement<MaxPOrder) {
-				el->PRefine(pelement);
-				pused = true;
-				counterreftype[1]++;
-			}
-		}
-		if(pused)
-			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
-	}
-	cmesh->ExpandSolution();
-	// Printing information stored
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
-	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
-}
-
-
-/****
-
- REAL MinGrad = 1.e+5, MinLap = 1.e+7;
- // EXTRAS START
- if(GradNorm > factorGrad*MaxGrad) {
- counterreftype[13]++;
- MinGrad = (MinGrad < GradNorm) ? MinGrad : GradNorm;
- }
- if(LaplacianValue > factorLap*MaxLaplacian) {
- counterreftype[14]++;
- MinLap = (MinLap < LaplacianValue) ? MinLap : LaplacianValue;
- }
- // EXTRAS END
- 
- // Determining a factor to make different strategies to generated least number of dofs.
-
- ****/
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
  * Return the maxime L2 error by elements. Also return in MinErrorByElement argument the minime L2 error for all elements of the mesh.
@@ -967,425 +605,14 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	// printing lines to create lists of logarithms
 	fileerrors << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
 	fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
-//	fileerrors << "Temp[i_, j_] := {{LogNEquations[[i]],LogL2Errors[[i]]},{LogNEquations[[Length[LogNEquations]]],LogL2Errors[[j]] + ((LogL2Errors[[i]]-LogL2Errors[[j]])/(LogNEquations[[i]]-LogNEquations[[j]]))*(LogNEquations[[Length[LogNEquations]]]-LogNEquations[[j]])}}" << std::endl;
-	// printing line to make a graphics log_nequations x log_errors
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
-//	for(nref=1;nref<NRefs-2;nref++)
-//		fileerrors << ",Temp["<<nref<<","<<(nref+1)<<"]";
 	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
 	return true;
 }
-void AdjustingOrder(TPZCompMesh *cmesh) {
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZInterpolatedElement *el;
-	STATE Tol;
-	ZeroTolerance(Tol);
 
-	// To see where the computation is doing
-	long i;
-	int level, level0 = 100;
-	// Searching highest level of computational elements
-	for(i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		level = el->Reference()->Level();
-		level0 = (level < level0) ? level : level0;
-	}
-	// Applying hp refinement only for elements with dimension as model dimension
-	for(i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
-		level = el->Reference()->Level();
-//		pelement = el->PreferredSideOrder(el->NConnects() - 1);
-		if(level-level0+1 < MaxPOrder)
-			el->PRefine(level-level0+1);
-		else
-			el->PRefine(MaxPOrder);
-	}
-	// Adjusting boundary elements
-	cmesh->AdjustBoundaryElements();
-}
-
-
-/**
- * Criteria: Given GlobalL2Error = GE and MaxError (ME) over all the elements
- * If ElementError(EE) > 0.75*ME => twice h-refinement and p-2
- * Else if EE > 0.5*ME  =>  h-refinement and p--
- * Else if EE > 0.25*ME  =>  h-refinement
- * in the other hand => p++
- */
-void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel) {
-
-	int ninitialrefs = 2;
-	TPZCompMesh *cmesh = analysis.Mesh();
-	if(!cmesh) return;
-	long nels = cmesh->NElements();
-	TPZVec<long> subels;
-	int j, k, pelement, dp = 1;
-	TPZVec<long> subsubels;
-	TPZInterpolatedElement *el;
-	REAL errorcel = 0.0;
-	for(long i=0L;i<nels;i++) {
-		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el) continue;
-		errorcel = ervecbyel[i];
-		if(errorcel < 1000*ZeroTolerance()) continue;
-		// If error is small and laplacian value is very little then the order will be minimized
-		if(errorcel < 0.01*GlobalL2Error) {
-			REAL LaplacianValue = Laplacian(el);
-			if(LaplacianValue < 0.1) {
-				pelement = el->PreferredSideOrder(el->NConnects() - 1);
-				// Applying p+1 order for all subelements
-				if(pelement > 1)
-					el->PRefine(pelement-1);
-			}
-		}
-		else if(errorcel > 0.3*GlobalL2Error) {
-            STATE GradNorm = GradientNorm(el);
-            if(GradNorm > 3) {
-				int level = el->Reference()->Level();
-                // Dividing element one level
-                el->Divide(el->Index(),subels,0);
-                // Dividing sub elements one level more
-				if(level < ninitialrefs+3) {
-	                for(j=0;j<subels.NElements();j++) {
-						TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-					    scel->Divide(subels[j],subsubels,0);
-				        for(k=0;k<subsubels.NElements();k++) {
-							scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
-							REAL LaplacianValue = Laplacian(scel);
-							if(LaplacianValue > 0.25) {
-								pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-						        // Applying p+1 order for all subelements
-					            if(pelement+dp < MaxPOrder-1)
-					                scel->PRefine(pelement+dp);
-							}
-						}
-	                }
-				}
-            }
-            else {
-                el->Divide(el->Index(),subels,0);
-                // Dividing sub elements one level more
-                for(j=0;j<subels.NElements();j++) {
-					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-					REAL LaplacianValue = Laplacian(scel);
-					if(LaplacianValue > 0.25) {
-						pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-	                    // Applying p+1 order for all subelements
-						scel->PRefine(pelement+1);
-					}
-					else if(IsZero(LaplacianValue)) {
-						pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-	                    // Applying p-1 order for all subelements
-						if(pelement > 1) scel->PRefine(pelement-1);
-					}
-				}
-            }
-		}
-/*		else {
-			el->Divide(el->Index(),subels,0);
-            // Dividing sub elements one level more
-            for(j=0;j<subels.NElements();j++) {
-				TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
-				REAL LaplacianValue = Laplacian(scel);
-				if(LaplacianValue > 0.25) {
-					pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
-	                // Applying p+1 order for all subelements
-					scel->PRefine(pelement+1);
-				}
-			}
-		}
-		*/
-	}
-}
-
-void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol)) {
-	TPZFMatrix<STATE> solution(cmesh->Solution());
-	solution.Zero();
-	TPZVec<STATE> sol(1);
-	TPZFMatrix<STATE> dsol(cmesh->Dimension(),1);
-	TPZVec<STATE> ddsol(9,0.0);
-	int nels = cmesh->NElements();
-	for(int i=0;i<nels;i++) {
-		TPZCompEl *el=cmesh->ElementVec()[i];
-		if(!el) continue;
-		int nconn = el->Reference()->NCornerNodes();
-		for(int j=0;j<nconn;j++) {
-			TPZConnect &df = el->Connect(j);
-			int seqnum = df.SequenceNumber();
-			int pos = cmesh->Block().Position(seqnum);
-			TPZVec<REAL> coord(3,0.), coordinates(3,0.);
-			el->Reference()->CenterPoint(j,coord);
-			el->Reference()->X(coord,coordinates);
-			f(coordinates,sol,dsol,ddsol);
-			cmesh->Solution()(pos,0) = sol[0];
-		}
-	}
-}
-
-void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec) {
-	if(!strtime) return;
-	memset(strtime,0,strlen(strtime));
-
-	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
-	while(1) {
-		if(timeinsec < 60) {
-			segundos = timeinsec;
-			break;
-		}
-		else {
-			timeinsec -= 60;
-			minutos++;
-			if(minutos > 59) {
-				minutos -= 60;
-				horas++;
-				if(horas > 23) {
-					horas -= 24;
-					dias++;
-					if(dias > 29) {
-						dias -= 30;
-						meses++;
-						if(meses > 11) {
-							meses -= 12;
-							anos++;
-						}
-					}
-				}
-			}
-		}
-	}
-	// Formating
-	if(anos)
-#ifdef WIN32
-		sprintf_s(strtime,lenstrtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
-#else
-		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
-#endif
-	else {
-		if(meses) 
-#ifdef WIN32
-			sprintf_s(strtime,lenstrtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
-#else
-			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
-#endif
-		else {
-			if(dias)
-#ifdef WIN32
-				sprintf_s(strtime,lenstrtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
-#else
-				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
-#endif
-			else
-#ifdef WIN32
-				sprintf_s(strtime,lenstrtime,"%02d:%02d:%02d",horas,minutos,segundos);
-#else
-				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
-#endif
-		}
-	}
-}
-void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename) {
-	int i, size = gmesh->NElements();
-	TPZChunkVector<int> DataElement;
-	DataElement.Resize(size);
-	// Making dimension of the elements as data element
-	for(i=0;i<size;i++) {
-		TPZGeoEl *gel = gmesh->ElementVec()[i];
-		if(gel && gel->Reference())
-			DataElement[i] = gel->Id();
-		else
-			DataElement[i] = -999;
-	}
-	// Printing geometric mesh to visualization in Paraview
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
-}
-//************************************************************************
-//**********   Creating computational mesh with materials    *************
-//************************************************************************
-TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1,int id_bc2) {
-    
-    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
-	cmesh->SetAllCreateFunctionsContinuous();
-	
-    // Creating Poisson material
-	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
-	switch(hasforcingfunction) {
-		case 1:
-        {
-            TPZVec<REAL> convd(3,0.);
-            ((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
-			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermArcTangent));
-        }
-			break;
-		case 2:
-			break;
-		default:
-			break;
-	}
-    cmesh->InsertMaterialObject(mat);
-	// Make compatible dimension of the model and the computational mesh
-	cmesh->SetDimModel(mat->Dimension());
-	
-	// Creating four boundary condition
-    TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
-    for(int i=0;i<dim;i++)
-        val1.PutVal(i,i,1.);
-	TPZMaterial *bc = 0, *bc1 = 0;
-    switch(hasforcingfunction) {
-        case 0:
-        case 1:
-            // Condicion de Dirichlet fijando la posicion de la placa
-            bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
-            break;
-        case 2:
-            // Condicion de Dirichlet fijando la posicion de la placa
-            bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
-            bc1 = mat->CreateBC(mat,id_bc1,0,val1,val2);
-            bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplaceBC));
-            break;
-        default:
-            break;
-    }
-
-	if(bc) cmesh->InsertMaterialObject(bc);
-	if(bc1) cmesh->InsertMaterialObject(bc1);
-
-    cmesh->AutoBuild();
-	cmesh->ExpandSolution();
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
-    return cmesh;
-}
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
-	TPZManVector<TPZGeoEl*> filhos;
-    for(int D=0; D<nDiv; D++)
-    {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
-        {    
-            TPZGeoEl * gel = gmesh->ElementVec()[elem];
-			if(!gel || gel->HasSubElement())
-				continue;
-			if(dim > 0 && gel->Dimension() != dim) continue;
-			if(!allmaterial){
-				if(gel->MaterialId() == matidtodivided) {
-					gel->Divide(filhos);
-				}
-			}
-			else{
-				gel->Divide(filhos);
-			}
-        }
-    }
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-}
-// Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
-void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
-	int i, size = gmesh->NElements();
-	TPZChunkVector<int> DataElement;
-	DataElement.Resize(size);
-	// Making dimension of the elements as data element
-	for(i=0;i<size;i++) {
-		if(gmesh->ElementVec()[i])
-			DataElement[i] = (gmesh->ElementVec()[i])->Dimension();
-		else
-			DataElement[i] = -999;
-	}
-	// Printing geometric mesh to visualization in Paraview
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
-}
-int DefineDimensionOverElementType(MElementType typeel) {
-	int dim = 0;
-	switch(typeel) {
-		case EOned:
-			dim = 1;
-			break;
-		case EQuadrilateral:
-		case ETriangle:
-			dim = 2;
-			break;
-		case ETetraedro:
-		case EPrisma:
-		case EPiramide:
-		case ECube:
-			dim = 3;
-			break;
-		default:
-			break;
-	}
-	return dim;
-}
-
-void GetFilenameFromGID(MElementType typeel, std::string &nombre) {
-	switch (typeel) {
-		case EOned:
-			nombre = "LinhaReta.dump";
-			break;
-		case EQuadrilateral:
-			nombre = "RegionQuadrada.dump";
-			break;
-		case ETriangle:
-			nombre = "RegionQuadradaT.dump";
-			break;
-		case ETetraedro:
-			nombre = "RegionCuboEnTetrahedros.dump";
-			break;
-		case EPrisma:
-			nombre = "RegionCuboEnPrismas.dump";
-			break;
-		case EPiramide:
-			nombre = "RegionCuboEnPiramides.dump";
-			break;
-		case ECube:
-			nombre = "RegionCuboEnHexahedros.dump";
-			break;
-		default:
-			DebugStop();
-			break;
-	}
-}
-
-
-
-/** LAPLACE PROBLEM ON L-SHAPE DOMAIN (2D) */
-void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol) {
-	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
-    REAL angle = atan2(x[1],x[0]);;
-    /*    if(IsZero(x[0])) {
-     if(x[1]>0)
-     angle = 0.5*M_PI;
-     else {
-     sol[0] = 0.;
-     return;
-     }
-     }
-     else
-     angle = atan(x[1]/x[0]);
-     if(angle < -0.5*M_PI || angle > M_PI)
-     DebugStop();*/
-    sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
-}
-void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol) {
-	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
-    REAL angle = 0;
-    if(IsZero(x[0])) {
-        if(x[1]>0)
-            angle = 0.5*M_PI;
-        else {
-            sol[0] = 0.;
-            return;
-        }
-    }
-    else
-        angle = atan(x[1]/x[0]);
-    sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
-    dsol.Zero();
-}
-//**** Creating Geometric Mesh as square */
+/*************************************************/
+/**** Creating Geometric Mesh in cube or square **/
+/*************************************************/
 TPZGeoMesh *CreateGeomMesh(MElementType typeel,int materialId,int id_bc0,int id_bc1,int id_bc2) {
 	TPZManVector<REAL> point(3,0.), pointlast(3,0.);
 	TPZGeoMesh* gmesh;
@@ -2074,6 +1301,488 @@ TPZGeoMesh *CreateGeomMesh(std::string &archivo) {
 		return 0;
 	
 	return meshgrid;
+}
+
+//************************************************************************
+//**********   Creating computational mesh with materials    *************
+//************************************************************************
+TPZCompMesh *CreateComputationalMesh(TPZGeoMesh *gmesh,int dim,int materialId,int hasforcingfunction,int id_bc0,int id_bc1,int id_bc2) {
+    
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+    // Creating Poisson material
+	TPZMaterial *mat = new TPZMatPoisson3d(materialId,dim);
+	switch(hasforcingfunction) {
+		case 1:
+        {
+            TPZVec<REAL> convd(3,0.);
+            ((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
+			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermArcTangent));
+        }
+			break;
+		case 2:
+			break;
+		default:
+			break;
+	}
+    cmesh->InsertMaterialObject(mat);
+	// Make compatible dimension of the model and the computational mesh
+	cmesh->SetDimModel(mat->Dimension());
+	
+	// Creating four boundary condition
+    TPZFMatrix<STATE> val1(dim,dim,0.),val2(dim,1,0.);
+    for(int i=0;i<dim;i++)
+        val1.PutVal(i,i,1.);
+	TPZMaterial *bc = 0, *bc1 = 0;
+    switch(hasforcingfunction) {
+        case 0:
+        case 1:
+            // Condicion de Dirichlet fijando la posicion de la placa
+            bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
+            break;
+        case 2:
+            // Condicion de Dirichlet fijando la posicion de la placa
+            bc = mat->CreateBC(mat,id_bc0,0,val1,val2);
+            bc1 = mat->CreateBC(mat,id_bc1,0,val1,val2);
+            bc1->SetForcingFunction(new TPZDummyFunction<STATE>(ExactSolLaplaceBC));
+            break;
+        default:
+            break;
+    }
+
+	if(bc) cmesh->InsertMaterialObject(bc);
+	if(bc1) cmesh->InsertMaterialObject(bc1);
+
+    cmesh->AutoBuild();
+	cmesh->ExpandSolution();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    return cmesh;
+}
+void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
+	TPZManVector<TPZGeoEl*> filhos;
+    for(int D=0; D<nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {    
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+			if(!gel || gel->HasSubElement())
+				continue;
+			if(dim > 0 && gel->Dimension() != dim) continue;
+			if(!allmaterial){
+				if(gel->MaterialId() == matidtodivided) {
+					gel->Divide(filhos);
+				}
+			}
+			else{
+				gel->Divide(filhos);
+			}
+        }
+    }
+	gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+}
+
+
+
+
+
+/** Auxiliar functions  */
+
+void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int nref) {
+    
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	TPZVec<long> subels;
+	int pelement, dp;
+	dp = 1;
+	TPZVec<long> subsubels;
+	TPZInterpolatedElement *el;
+	STATE Tol;
+	ZeroTolerance(Tol);
+    
+	// To see where the computation is doing
+	long index = -1;
+	TPZVec<long> counterreftype(30,0);
+	REAL GradError, SolError;
+	long i;
+	//	REAL IncrementError = MaxErrorByElement-MinErrorByElement;
+	REAL factorGrad = 0.5;
+	REAL factorErrorLower = 0.1;
+	REAL LaplacianValue, GradNorm;
+	
+	REAL MaxGradErrorByElement = gradervecbyel[nels];
+	std::cout << "\nErroMax " << MaxErrorByElement << "   GradError " << MaxGradErrorByElement << "\n";
+	
+	// Applying hp refinement only for elements with dimension as model dimension
+	for(i=0L;i<nels;i++) {
+		bool pused = false;
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		index = el->Index();
+		if(index != i)
+			DebugStop();
+		// If the element error is little enough do nothing
+		if(ervecbyel[index] < (0.1*Tol)) {
+			counterreftype[0]++;
+			continue;
+		}
+		
+		// If error is small and laplacian value is very little then the order will be minimized
+		if(!GradientAndLaplacianOnCorners(el,GradNorm,LaplacianValue))
+			DebugStop();
+		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
+        pelement++;
+		GradError = gradervecbyel[i];
+		SolError = ervecbyel[i];
+		if(SolError > factorErrorLower*MaxErrorByElement) {
+			if(pelement<MaxPOrder) {
+				el->PRefine(pelement);
+				pused = true;
+				counterreftype[1]++;
+			}
+		}
+		if(pused)
+			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
+	}
+	cmesh->ExpandSolution();
+	// Printing information stored
+	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
+	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
+}
+
+
+void AdjustingOrder(TPZCompMesh *cmesh) {
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	TPZInterpolatedElement *el;
+	STATE Tol;
+	ZeroTolerance(Tol);
+
+	// To see where the computation is doing
+	long i;
+	int level, level0 = 100;
+	// Searching highest level of computational elements
+	for(i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		level = el->Reference()->Level();
+		level0 = (level < level0) ? level : level0;
+	}
+	// Applying hp refinement only for elements with dimension as model dimension
+	for(i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		level = el->Reference()->Level();
+//		pelement = el->PreferredSideOrder(el->NConnects() - 1);
+		if(level-level0+1 < MaxPOrder)
+			el->PRefine(level-level0+1);
+		else
+			el->PRefine(MaxPOrder);
+	}
+	// Adjusting boundary elements
+	cmesh->AdjustBoundaryElements();
+}
+
+
+/**
+ * Criteria: Given GlobalL2Error = GE and MaxError (ME) over all the elements
+ * If ElementError(EE) > 0.75*ME => twice h-refinement and p-2
+ * Else if EE > 0.5*ME  =>  h-refinement and p--
+ * Else if EE > 0.25*ME  =>  h-refinement
+ * in the other hand => p++
+ */
+void ApplyingStrategyHPAdaptiveBasedOnErrors(TPZAnalysis &analysis,REAL GlobalL2Error,TPZVec<REAL> &ervecbyel) {
+
+	int ninitialrefs = 2;
+	TPZCompMesh *cmesh = analysis.Mesh();
+	if(!cmesh) return;
+	long nels = cmesh->NElements();
+	TPZVec<long> subels;
+	int j, k, pelement, dp = 1;
+	TPZVec<long> subsubels;
+	TPZInterpolatedElement *el;
+	REAL errorcel = 0.0;
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el) continue;
+		errorcel = ervecbyel[i];
+		if(errorcel < 1000*ZeroTolerance()) continue;
+		// If error is small and laplacian value is very little then the order will be minimized
+		if(errorcel < 0.01*GlobalL2Error) {
+			REAL LaplacianValue = Laplacian(el);
+			if(LaplacianValue < 0.1) {
+				pelement = el->PreferredSideOrder(el->NConnects() - 1);
+				// Applying p+1 order for all subelements
+				if(pelement > 1)
+					el->PRefine(pelement-1);
+			}
+		}
+		else if(errorcel > 0.3*GlobalL2Error) {
+            STATE GradNorm = GradientNorm(el);
+            if(GradNorm > 3) {
+				int level = el->Reference()->Level();
+                // Dividing element one level
+                el->Divide(el->Index(),subels,0);
+                // Dividing sub elements one level more
+				if(level < ninitialrefs+3) {
+	                for(j=0;j<subels.NElements();j++) {
+						TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+					    scel->Divide(subels[j],subsubels,0);
+				        for(k=0;k<subsubels.NElements();k++) {
+							scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subsubels[k]]);
+							REAL LaplacianValue = Laplacian(scel);
+							if(LaplacianValue > 0.25) {
+								pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+						        // Applying p+1 order for all subelements
+					            if(pelement+dp < MaxPOrder-1)
+					                scel->PRefine(pelement+dp);
+							}
+						}
+	                }
+				}
+            }
+            else {
+                el->Divide(el->Index(),subels,0);
+                // Dividing sub elements one level more
+                for(j=0;j<subels.NElements();j++) {
+					TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+					REAL LaplacianValue = Laplacian(scel);
+					if(LaplacianValue > 0.25) {
+						pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+	                    // Applying p+1 order for all subelements
+						scel->PRefine(pelement+1);
+					}
+					else if(IsZero(LaplacianValue)) {
+						pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+	                    // Applying p-1 order for all subelements
+						if(pelement > 1) scel->PRefine(pelement-1);
+					}
+				}
+            }
+		}
+/*		else {
+			el->Divide(el->Index(),subels,0);
+            // Dividing sub elements one level more
+            for(j=0;j<subels.NElements();j++) {
+				TPZInterpolatedElement* scel = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[j]]);
+				REAL LaplacianValue = Laplacian(scel);
+				if(LaplacianValue > 0.25) {
+					pelement = scel->PreferredSideOrder(scel->NConnects() - 1);
+	                // Applying p+1 order for all subelements
+					scel->PRefine(pelement+1);
+				}
+			}
+		}
+		*/
+	}
+}
+
+void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol)) {
+	TPZFMatrix<STATE> solution(cmesh->Solution());
+	solution.Zero();
+	TPZVec<STATE> sol(1);
+	TPZFMatrix<STATE> dsol(cmesh->Dimension(),1);
+	TPZVec<STATE> ddsol(9,0.0);
+	int nels = cmesh->NElements();
+	for(int i=0;i<nels;i++) {
+		TPZCompEl *el=cmesh->ElementVec()[i];
+		if(!el) continue;
+		int nconn = el->Reference()->NCornerNodes();
+		for(int j=0;j<nconn;j++) {
+			TPZConnect &df = el->Connect(j);
+			int seqnum = df.SequenceNumber();
+			int pos = cmesh->Block().Position(seqnum);
+			TPZVec<REAL> coord(3,0.), coordinates(3,0.);
+			el->Reference()->CenterPoint(j,coord);
+			el->Reference()->X(coord,coordinates);
+			f(coordinates,sol,dsol,ddsol);
+			cmesh->Solution()(pos,0) = sol[0];
+		}
+	}
+}
+
+void formatTimeInSec(char *strtime,int lenstrtime,int timeinsec) {
+	if(!strtime) return;
+	memset(strtime,0,strlen(strtime));
+
+	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
+	while(1) {
+		if(timeinsec < 60) {
+			segundos = timeinsec;
+			break;
+		}
+		else {
+			timeinsec -= 60;
+			minutos++;
+			if(minutos > 59) {
+				minutos -= 60;
+				horas++;
+				if(horas > 23) {
+					horas -= 24;
+					dias++;
+					if(dias > 29) {
+						dias -= 30;
+						meses++;
+						if(meses > 11) {
+							meses -= 12;
+							anos++;
+						}
+					}
+				}
+			}
+		}
+	}
+	// Formating
+	if(anos)
+#ifdef WIN32
+		sprintf_s(strtime,lenstrtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+#else
+		sprintf(strtime,"%d a, %d m, %d d, %02d:%02d:%02d",anos,meses,dias,horas,minutos,segundos);
+#endif
+	else {
+		if(meses) 
+#ifdef WIN32
+			sprintf_s(strtime,lenstrtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+#else
+			sprintf(strtime,"%d m, %d d, %02d:%02d:%02d",meses,dias,horas,minutos,segundos);
+#endif
+		else {
+			if(dias)
+#ifdef WIN32
+				sprintf_s(strtime,lenstrtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+#else
+				sprintf(strtime,"%d d, %02d:%02d:%02d",dias,horas,minutos,segundos);
+#endif
+			else
+#ifdef WIN32
+				sprintf_s(strtime,lenstrtime,"%02d:%02d:%02d",horas,minutos,segundos);
+#else
+				sprintf(strtime,"%02d:%02d:%02d",horas,minutos,segundos);
+#endif
+		}
+	}
+}
+void PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[i];
+		if(gel && gel->Reference())
+			DataElement[i] = gel->Id();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+// Printing in VTK format the geometric mesh but taking geometric elements as reference or computational elements as reference
+void PrintGeoMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
+	int i, size = gmesh->NElements();
+	TPZChunkVector<int> DataElement;
+	DataElement.Resize(size);
+	// Making dimension of the elements as data element
+	for(i=0;i<size;i++) {
+		if(gmesh->ElementVec()[i])
+			DataElement[i] = (gmesh->ElementVec()[i])->Dimension();
+		else
+			DataElement[i] = -999;
+	}
+	// Printing geometric mesh to visualization in Paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
+}
+int DefineDimensionOverElementType(MElementType typeel) {
+	int dim = 0;
+	switch(typeel) {
+		case EOned:
+			dim = 1;
+			break;
+		case EQuadrilateral:
+		case ETriangle:
+			dim = 2;
+			break;
+		case ETetraedro:
+		case EPrisma:
+		case EPiramide:
+		case ECube:
+			dim = 3;
+			break;
+		default:
+			break;
+	}
+	return dim;
+}
+
+void GetFilenameFromGID(MElementType typeel, std::string &nombre) {
+	switch (typeel) {
+		case EOned:
+			nombre = "LinhaReta.dump";
+			break;
+		case EQuadrilateral:
+			nombre = "RegionQuadrada.dump";
+			break;
+		case ETriangle:
+			nombre = "RegionQuadradaT.dump";
+			break;
+		case ETetraedro:
+			nombre = "RegionCuboEnTetrahedros.dump";
+			break;
+		case EPrisma:
+			nombre = "RegionCuboEnPrismas.dump";
+			break;
+		case EPiramide:
+			nombre = "RegionCuboEnPiramides.dump";
+			break;
+		case ECube:
+			nombre = "RegionCuboEnHexahedros.dump";
+			break;
+		default:
+			DebugStop();
+			break;
+	}
+}
+
+
+
+/** LAPLACE PROBLEM ON L-SHAPE DOMAIN (2D) */
+void ExactSolLaplaceBC(const TPZVec<REAL> &x, TPZVec<STATE> &sol) {
+	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
+    REAL angle = atan2(x[1],x[0]);;
+    /*    if(IsZero(x[0])) {
+     if(x[1]>0)
+     angle = 0.5*M_PI;
+     else {
+     sol[0] = 0.;
+     return;
+     }
+     }
+     else
+     angle = atan(x[1]/x[0]);
+     if(angle < -0.5*M_PI || angle > M_PI)
+     DebugStop();*/
+    sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
+}
+void ExactSolLaplace(const TPZVec<REAL> &x, TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol) {
+	REAL radius = sqrt(x[0]*x[0] + x[1]*x[1]);
+    REAL angle = 0;
+    if(IsZero(x[0])) {
+        if(x[1]>0)
+            angle = 0.5*M_PI;
+        else {
+            sol[0] = 0.;
+            return;
+        }
+    }
+    else
+        angle = atan(x[1]/x[0]);
+    sol[0] = 0.5*pow(radius,(REAL(1./3.)))*(sqrt(3.)*sin(angle/3.)+cos(angle/3.));
+    dsol.Zero();
 }
 
 // Save information of the current mesh in disk
