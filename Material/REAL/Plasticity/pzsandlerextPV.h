@@ -64,6 +64,9 @@ public:
     
     template<class T>
     T F(T x,STATE phi) const;
+    
+    STATE GetF(STATE x,STATE phi);
+    
 private:
     /// The function which defines the plastic surface
   

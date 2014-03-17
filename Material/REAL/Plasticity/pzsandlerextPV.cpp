@@ -58,6 +58,11 @@ T TPZSandlerExtended::F(T x,STATE phi) const
     return (fA - fC*exp(x *fB) -fPhi*x);
 }
 
+STATE TPZSandlerExtended::GetF(STATE x,STATE phi)
+{
+    return F(x, phi);
+}
+
 template<class T>
 T TPZSandlerExtended::X(T k) const
 {
@@ -1328,7 +1333,7 @@ void TPZSandlerExtended::TaylorCheckDistF2(const TPZVec<STATE> &sigmatrial, STAT
     TPZFNMatrix<4,STATE> jac(3,1);
     TPZManVector<STATE> fxnvec(3);
     DDistFunc2(sigmatrial, theta,beta,k,kprev,fxnvec);
-    for(int k=0; k<3; k++) jac(k,0) = fxnvec[k];
+    for(int kk=0; kk<3; kk++) jac(kk,0) = fxnvec[kk];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, jac);
     xnorm.resize(10);
     errnorm.resize(10);
@@ -1357,7 +1362,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2(const TPZVec<STATE> &sigmatrial, STA
     TPZFNMatrix<9,STATE> jac(3,3);
     TPZManVector<STATE> fxnvec(3);
     DDistFunc2(sigmatrial, theta,beta,k,kprev,fxnvec);
-    for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
+    for(int kk=0; kk<3; kk++) res0(kk,0) = fxnvec[kk];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     D2DistFunc2(sigmatrial, theta, beta, k, jac);
     xnorm.resize(10);
@@ -1397,7 +1402,7 @@ void TPZSandlerExtended::TaylorCheckDDistF2DSigtrial(const TPZVec<STATE> &sigmat
     TPZFNMatrix<9,STATE> jac(3,3);
     TPZManVector<STATE> fxnvec(3);
     DDistFunc2(sigmatrial, theta,beta,k,kprev,fxnvec);
-    for(int k=0; k<3; k++) res0(k,0) = fxnvec[k];
+    for(int kk=0; kk<3; kk++) res0(kk,0) = fxnvec[kk];
 //    DDistFunc2(sigmatrial, theta, beta, k, kprev, res0);
     GradF2SigmaTrial(sigmatrial, theta, beta, k, kprev, jac);
     xnorm.resize(10);
@@ -1549,8 +1554,8 @@ void TPZSandlerExtended::TaylorCheckDF2Cart(STATE theta, STATE beta, STATE k, TP
         diff(2) = diffk;
         F2Cyl(thetanext, betanext, knext, sigHWCyl);
         FromHWCylToPrincipal(sigHWCyl, sigCart);
-        for (int i=0; i<3; i++) {
-            resid(i) = sigCart[i];
+        for (int ii=0; ii<3; ii++) {
+            resid(ii) = sigCart[ii];
         }
         jac.Multiply(diff, residguess);
         residguess += res0;

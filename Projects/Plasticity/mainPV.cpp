@@ -260,9 +260,9 @@ void I1vsSqrtJ2()
         }
         
         i1=-3;
-        for(int i=0;i<30;i++)
+        for(int ii=0;ii<30;ii++)
         {
-            outfileFf << -i1 << " "<< SDPV.F(i1,0) <<"\n";
+            outfileFf << -i1 << " "<< SDPV.GetF(i1,0) <<"\n";
             i1+=0.1205;
             
         }
