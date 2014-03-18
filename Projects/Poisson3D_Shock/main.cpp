@@ -86,7 +86,7 @@ long MaxEquations = 1300000;
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
 int MaxPOrder = 13;     // Maximum order for p refinement allowed
-int MaxHLevel = 6;      // Maximum level for h refinement allowed
+int MaxHLevel = 8;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 // Poisson problem
@@ -138,7 +138,7 @@ bool SolveLaplaceProblemOnLShapeMesh();
  */
 REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL &MinErrorByElement,REAL &);
 void LoadSolutionFirstOrder(TPZCompMesh *cmesh, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv,TPZVec<STATE> &ddsol));
-void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel);
+bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int ref,int itypeel,REAL &factorError);
 void ApplyingStrategyPAdaptiveBasedOnExactSphereSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,int ref);
 
 // Writing a relation between number of degree of freedom and L2 error.
@@ -288,7 +288,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	switch(typeel) {
 	case ETriangle:
 	case EQuadrilateral:
-		NRefs = 20;
+		NRefs = 25;
 		break;
 	default:
 		NRefs = 10;
@@ -387,11 +387,20 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 			NRefs = nref+1;							// final iteration
 			ErrorVec.Resize(NRefs);
 			NEquations.Resize(NRefs);
+			continue;
 		}
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-			ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref,itypeel);
+			REAL factorError = 1./3.;
+			while(!ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref,itypeel,factorError)) {
+				factorError -= 0.1;
+				out << "\nFactorError " << factorError << std::endl;
+				if(factorError < 0.0) {
+					nref = NRefs;
+					break;
+				}
+			}
 		}
 		fileerrors.flush();
 		out.flush();
@@ -416,8 +425,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	return true;
 }
 
-void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel) {
-	if(!cmesh) return;
+bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<REAL> &ervecbyel,TPZVec<REAL> &gradervecbyel,REAL MaxErrorByElement,REAL &MinErrorByElement,REAL &MinGrad,int nref,int itypeel,REAL &factorError) {
+	if(!cmesh) return false;
+	bool result = true;
 	long nels = cmesh->NElements();
 	int dim = cmesh->Dimension();
 
@@ -432,14 +442,10 @@ void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad = 0.6;
-	REAL factorError = 1./3.;
 	REAL GradErLimit = 30.;
-	if(itypeel==5 || itypeel==6)
-		GradErLimit = 10.*itypeel;
 	if(dim==2) GradErLimit = 9.;
 	if(dim==3 && nref) {
-		if(nref==1) GradErLimit *= .5;
-		else GradErLimit = 12.;
+		GradErLimit = 12.;
 	}
 	
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
@@ -492,10 +498,14 @@ void ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 			MaxHUsed = (level > MaxHUsed) ? level : MaxHUsed;
 	}
 	cmesh->ExpandSolution();
+	if(!counterreftype[10] && !counterreftype[20]) {
+		result = false;
+	}
 
 	// Printing information stored
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
+	return result;
 }
 
 
