@@ -95,7 +95,7 @@ void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cm
         {//Is pressureDependent!!!
             globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
         }
-        //REAL pfrac = data.sol[0][0];//AQUICAJU : pegarei pressao de fluido ou tensao aplicada na faixa???
+        //REAL pfrac = data.sol[0][0];//nao serah utiliado pressao de fluido. Serah tensao aplicada na faixa.
         
         TPZBndCond * matbnd = dynamic_cast<TPZBndCond*> (cel->Material());
 
