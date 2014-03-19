@@ -22,7 +22,7 @@ static LoggerPtr loggerMohrCoulombPV(Logger::getLogger("pz.plasticity.mohrcoulom
 #endif
 
 class TPZYCMohrCoulombPV
-{
+{  
 private:
 	REAL fPhi;
 	REAL fPsi;
@@ -33,6 +33,8 @@ protected:
 	REAL fEpsPlasticBar;
 	
 public:
+    enum {NYield=3};
+    
 	/// structure which contains the decision tree of the return map
 	// we can only expect a consistent tangent matrix if the decision tree remains the same
 	struct TComputeSequence

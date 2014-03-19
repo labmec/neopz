@@ -352,7 +352,10 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(), fSD(), fFluidPressure(0.),
-                    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog()
+    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog()
+#ifdef PV
+  , fSDPV()
+#endif
 {
 }
 

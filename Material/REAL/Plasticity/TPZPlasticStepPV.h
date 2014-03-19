@@ -285,14 +285,12 @@ protected:
 	/** @brief The tension sign in the convention defined by the external user */
 	int fInterfaceTensionSign;
     
-    TPZStack< TPZPlasticIntegrMem<REAL, 2> > fPlasticMem;
-    
     /**
 	 * @brief Stores the plastic evolution in the last evaluated PlasticIntegration call,
 	 * It includes the N-1 data, the elastic step until yield when it exists,
 	 * the plastic substeppings and the N step.
 	 */
-	//TPZStack< TPZPlasticIntegrMem<REAL, YC_t::NYield> > fPlasticMem;
+	TPZStack< TPZPlasticIntegrMem<REAL, YC_t::NYield> > fPlasticMem;
 	
 	
 public:
