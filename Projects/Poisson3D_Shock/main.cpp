@@ -445,10 +445,9 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	REAL MaxGrad;
 	long i, ii;
 	REAL factorGrad = 0.6;
-	REAL GradErLimit = 30.;
-	if(dim==2) GradErLimit = 9.;
+	REAL GradErLimit = 9.*(dim-1);
 	if(dim==3 && nref) {
-		GradErLimit = 12.;
+		GradErLimit = 9.;
 	}
 	
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
@@ -480,7 +479,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 			level++;
 			hused = true;
 		}
-		if(nref && ervecbyel[i] > SmallError && pelement < MaxPOrder) {
+		if(ervecbyel[i] > SmallError && pelement < MaxPOrder) {
 			counterreftype[20]++;
 			if(el)
 				el->PRefine(pelement);
