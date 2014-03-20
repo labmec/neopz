@@ -86,7 +86,7 @@ long MaxEquations = 1300000;
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
 int MaxPOrder = 13;     // Maximum order for p refinement allowed
-int MaxHLevel = 8;      // Maximum level for h refinement allowed
+int MaxHLevel = 6;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 // Poisson problem
@@ -290,6 +290,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	case EQuadrilateral:
 		NRefs = 25;
 		break;
+	case ETetraedro:
+		NRefs = 15;
+		break;
 	default:
 		NRefs = 10;
 		break;
@@ -454,7 +457,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 
 	/* Printing maximum and minimun values of the errors */
 	out << "\nErro ->   Min " << MinErrorByElement << "    Max " << MaxErrorByElement << std::endl << "Grad ->   Min " << MinGrad << "   Max " << gradervecbyel[nels] << "\t";
-	out << "\nMaxGrad " << MaxGrad << "     SError " << SmallError;
+	out << "\nMaxGrad " << MaxGrad << " Factor " << factorGrad << "     SError " << SmallError << " Factor " << factorError;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {

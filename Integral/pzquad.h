@@ -237,6 +237,9 @@ public:
 	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetRealMaxOrder() const;
+	virtual int GetMaxOrder() const{
+		return 20;    // With this order the number of integration points are 8000
+	}
 	
 	virtual int Dimension() const
 	{
