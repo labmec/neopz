@@ -19,7 +19,7 @@ class TPZSandlerExtended
 {
 public:
     
-  enum  {NYield = 2};
+    enum{NYield = 2};
     
     /// Constructor, with all parameters which define the Sandler DiMaggio model
     TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi);

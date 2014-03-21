@@ -1616,6 +1616,8 @@ DECLARE_FPO_HANDLER_FUNC;
 #endif
 
 int startfrom = 0;
+#include "TPZTimer.h"
+
 
 int main ()
 {
@@ -1627,6 +1629,8 @@ int main ()
     
 #endif
     
+    TPZTimer time1,time2;
+    time1.start();
     InitializePZLOG();
     gRefDBase.InitializeAllUniformRefPatterns();
 	
@@ -1643,11 +1647,12 @@ int main ()
      */
 //    TPZWellBoreAnalysis::CheckDeformation();
 
+    time2.start();
     TPZWellBoreAnalysis well;
-    //REAL innerradius = 4.25*0.0254;
-    //REAL outerradius = 1.;
     REAL innerradius = 4.25*0.0254;
-    REAL outerradius = 3;
+    REAL outerradius = 3.;
+    //REAL innerradius = 4.25*0.0254;
+    //REAL outerradius = innerradius*10.;
     REAL computedquarter = 7.05761678496926;
     REAL sqj2_refine = 0.0007;
     std::cout << std::setprecision(15);
@@ -1687,6 +1692,10 @@ int main ()
         save.OpenWrite("Wellbore0.bin");
         well.Write(save);
     }
+    time2.stop();
+    std::cout << "\n tempo 0 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
     
 //    if (startfrom == 0) 
 //    {
@@ -1708,6 +1717,7 @@ int main ()
         int nsteps = 3;
         int numnewton = 80;
         well.ExecuteInitialSimulation(nsteps, numnewton);
+        well.ExecuteSimulation(5,15.);
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         TPZBFileStream save;
         save.OpenWrite("Wellbore1.bin");
@@ -1715,6 +1725,11 @@ int main ()
         
     }
 
+    time2.stop();
+    std::cout << "\n tempo 1 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
+    return 0;
     if (startfrom == 2)
     {
         TPZBFileStream read;
@@ -1748,6 +1763,10 @@ int main ()
         save.OpenWrite("Wellbore2.bin");
         well.Write(save);
     }
+    time2.stop();
+    std::cout << "\n tempo 2 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
     if (startfrom == 3) {
         TPZBFileStream read;
         read.OpenRead("Wellbore2.bin");
@@ -1817,6 +1836,10 @@ int main ()
         }
         
     }
+    time2.stop();
+    std::cout << "\n tempo 3 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
     if (startfrom == 4)
     {
         TPZBFileStream read;
@@ -1904,6 +1927,10 @@ int main ()
         save.OpenWrite("Wellbore4.bin");
         well.Write(save);
     }
+    time2.stop();
+    std::cout << "\n tempo 4 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
     if (startfrom == 5) {
         TPZBFileStream read;
         read.OpenRead("Wellbore4.bin");
@@ -1961,6 +1988,10 @@ int main ()
         save.OpenWrite("Wellbore5.bin");
         well.Write(save);
     }
+    time2.stop();
+    std::cout << "\n tempo 5 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
     if (startfrom == 6)
     {
         TPZBFileStream read;
@@ -1968,7 +1999,9 @@ int main ()
         well.Read(read);        
         
     }
-    //return 0;
+    time1.stop();
+    cout << "tempo de simulação em segundos = "<<time1.seconds() <<endl;
+    return 0;
     if (startfrom <= 6)
     {
 //        well.VerifyGlobalEquilibrium();
@@ -2018,12 +2051,18 @@ int main ()
         well.Write(save);
 
     }
+    time2.stop();
+    std::cout << "\n tempo 6 = "<< time2.seconds()<< std::endl;
+    time2.reset();
+    time2.start();
     if (startfrom == 7)
     {
         TPZBFileStream read;
         read.OpenRead("Wellbore7.bin");
         well.Read(read);
     }
+    time1.stop();
+    cout << "tempo de simulação em segundos = "<<time1.seconds() <<endl;
     return 0;
     
     

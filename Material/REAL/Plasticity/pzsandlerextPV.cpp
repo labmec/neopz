@@ -609,7 +609,6 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     
   
     STATE kguess = kprev;
-    //Firstk(kguess, kproj);
     STATE resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
     int count =0;
     while (resl < 0.)
@@ -617,10 +616,12 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         kguess += 1.;
         resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
     }
-/*    if (resl < 0.)
+
+   /*
+    if (resl < 0.)
     {
         STATE deltakguess = 10.;
-        while(resl<0. && deltakguess > 1.e-3)
+        while(resl<0.)
         {
             kguess+=deltakguess;
             resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
@@ -631,7 +632,8 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
             }
         }
     }
- */
+    */
+ 
     while (fabs(resl) > 1.e-14 && count < 30) {
         STATE dresl = DResLF1(sigmatrial, sigproj, kguess, kprev);
         kguess -= resl/dresl;
@@ -639,26 +641,6 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         count++;
     }
     
-//    
-//    resultL = L;
-//    DEpspDL(resultL, depspdl );
-//    residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
-//    while (residueL < 0.) {
-//        resultL += 1.;
-//        DEpspDL(resultL, depspdl );
-//        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
-//    }
-//    while(fabs(residueL) > 1.e-10)
-//    {
-//        STATE d2epspdl2;
-//        D2EpspDL2(resultL, d2epspdl2);
-//        STATE dres = 3.*K*depspdl+3.*K*(resultL-L)*d2epspdl2;
-//        resultL -= residueL/dres;
-//        DEpspDL(resultL, depspdl );
-//        residueL = 3.*K*depspdl*(resultL-L)-(sigtrialIJ[0]-sigProj[0]);
-//    }
-//    sigtrialIJ = sigProj;
-//    L = resultL;
     
     kproj = kguess;
    

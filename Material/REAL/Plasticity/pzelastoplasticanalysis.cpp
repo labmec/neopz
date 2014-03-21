@@ -80,112 +80,8 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         std::cout << "Scale factor " << scalefactor << " resnorm " << RhsNormResult << std::endl;
         scalefactor *= 0.5;
         iter++;
-    } while (RhsNormResult > RhsNormPrev && iter < niter);
+    } while (RhsNormResult > RhsNormPrev && iter < 30 && RhsNormResult<1.e-8);
     scalefactor *= 2.;
-    /*
-	REAL error = 2.*tol+1.;
-	REAL A, B, L, M;
-	TPZFMatrix<REAL> ak, bk, lambdak, muk, Interval;
-	REAL NormResLambda, NormResMu;
-	//ak = Wn + 0.1 * DeltaW
-	ak = DeltaW;
-	A = 0.1;
-	ak *= A;
-	ak += Wn;
-	//bk = Wn + 2. DeltaW
-	bk = DeltaW;
-	B = 2.;
-	bk *= B;
-	bk += Wn;
-	//Interval = (bk-ak)
-	Interval = bk; Interval -= ak;
-	int iter = 0;
-	int KeptVal = -1; //0 means I have residual(labmda); 1 means I have residual(mu); -1 means I have nothing
-	while(error > tol && iter < niter){
-		iter++;
-		
-		if (KeptVal != 0){
-			L = 0.382*(B-A)+A;
-			//lambdak = ak + 0.382*(bk-ak)
-			lambdak = Interval; lambdak *= 0.382; lambdak += ak;
-			//computing residual
-			this->LoadSolution(lambdak);
-		//	LOGPZ_DEBUG(logger,"After LoadSolution")
-			//		LogWellSolution(*this->Mesh(), 6);
-			this->AssembleResidual();
-		//	LOGPZ_DEBUG(logger,"After AssembleResidual")
-			//		LogWellSolution(*this->Mesh(), 6);
-			NormResLambda = Norm(fRhs);
-		}
-		
-		if (KeptVal != 1){
-			//muk = ak + 0.618*(bk-ak)
-			M = 0.618*(B-A)+A;
-			muk = Interval; muk *= 0.618; muk += ak;
-			this->LoadSolution(muk);
-			this->AssembleResidual();
-			NormResMu = Norm(fRhs);
-		}
-		
-		if (NormResLambda > NormResMu){
-			A = L;
-			L = M;
-			ak = lambdak;
-			lambdak = muk;
-			NormResLambda = NormResMu;
-			KeptVal = 0;
-		}
-		else{
-			B = M;
-			M = L;
-			bk = muk;
-			muk = lambdak;
-			NormResMu = NormResLambda;
-			KeptVal = 1;
-		}
-		//error = Norm(bk-ak)
-		Interval = bk; Interval -= ak; error = Norm(Interval);
-		
-		//alpha shall be alpha <= 1
-		if(A > 1. && B > 1.) break;
-		
-	}//while
-	
-	REAL ALPHA = 0.5*(A + B);
-	NextW = ak;
-	NextW += bk;
-	NextW *= 0.5;
-	
-	
-#ifdef DEBUGLINESEARCH
-	//debug: valor do alpha
-	TPZFMatrix alpha;
-	alpha = NextW;
-	alpha -= Wn;
-	REAL sum = 0.;
-	int ncontrib = 0;
-	for(int i = 0; i < alpha.Rows(); i++){
-		if (DeltaW(i,0)){
-			alpha(i,0) = alpha(i,0)/DeltaW(i,0);
-			sum += alpha(i,0);
-			ncontrib++;
-		}
-	}
-	//REAL MeanAlpha = sum/ncontrib;
-	alphafile << MeanAlpha << "\t" << "ALPHA = " << ALPHA << "\n";
-	alphafile.flush();
-#endif
-	
-	if(ALPHA > 1.){ //alpha shall be alpha <= 1
-		NextW = Wn;
-		NextW += DeltaW;
-#ifdef DEBUGLINESEARCH
-		alphafile << "ALPHA LIMIT APPLIED. Alpha = 1.\n";
-#endif
-		return 1.;
-	}
-	
-     */
 	return scalefactor;
 	
 }//void
@@ -202,7 +98,9 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 	TPZFMatrix<REAL> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
     
-    std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
+    if (linearmatrix) {
+        std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
+    }
     
 #ifdef LOG4CXX_keep
     {
@@ -220,7 +118,9 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		
 		fSolution.Redim(0,0);
         REAL RhsNormResult = 0.;
-        std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
+        if (linearmatrix) {
+            std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
+        }
 		LocalSolve();
 		if (linesearch){
 			TPZFMatrix<REAL> nextSol;

@@ -421,58 +421,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
 {
-  /*
-    TPZPlasticState<STATE> prevstate=GetState();
-    TPZTensor<STATE> q0,q1,p0,p1,p,temp;
-    p0=prevstate.fEpsT;
-    fER.ComputeDeformation(GivenStress,p1);
-    ApplyStrainComputeSigma(p1, q1);
-    fN=prevstate;
-    p0=p1;
-    p0*=-1;
-    ApplyStrainComputeSigma(p0, q0);
-    fN=prevstate;
-    int i=2;
-    STATE diff=1.,tol=1.e-5,tempreal;
-    q1-=GivenStress;
-    while (i<=30) {
-
-        for(int j=0;j<6;j++)
-        {
-            STATE denom =(q1.fData[j]-q0.fData[j]);
-            STATE num=(p1.fData[j]-p0.fData[j]);
-            if (fabs(denom)<1.e-12 && fabs(num)<1.e-12)
-            {
-                tempreal=1;
-            }
-            else
-            {
-               tempreal=num/denom;  
-            }
-            
-            p.fData[j]=p1.fData[j]-(q1.fData[j]*tempreal);
-   
-        }
-        
-        for (int j=0;j<6;j++)diff+=p.fData[j]-p1.fData[j];
-        diff/=6.;
-        cout << "\n diff "<<diff <<endl;
-        if (fabs(diff)<tol) {
-           break;
-        }
-        i++;
-        p0=p1;
-        q0=q1;
-        p1=p;
-        ApplyStrainComputeSigma(p, q1);
-        q1-=GivenStress;
-        fN=prevstate;
-    }
-
-    ApplyStrainComputeSigma(p, q1);
-    epsTotal=p;
-    
-    */
     
     TPZPlasticState<STATE> prevstate=GetState();
     epsTotal=prevstate.fEpsP;
@@ -492,7 +440,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     
     while (norm>tol && counter<30)
     {
-        //Dep.SetIsDecomposed(false);
         CopyFromTensorToFMatrix(Diff,DiffFN);
         Dep.Solve_LU(&DiffFN);
         CopyFromFMatrixToTensor(DiffFN,Diff);
@@ -517,39 +464,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     }
     ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
  
- /*
-    TPZPlasticState<STATE> prevstate=GetState();
-    epsTotal=prevstate.fEpsT;
-    TPZTensor<STATE> GuessStress,Diff,deps;
-    TPZFMatrix<STATE> Dep(6,6);
-    TPZFMatrix<STATE> epsPrev(epsTotal),GuessStressFN(6,1),DiffFN(6,1);
-    
-    ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
-    Diff=GivenStress;
-    Diff-=GuessStress;
-    
-    STATE norm = Norm(Diff);
-    STATE tol = 1.e-7;
-    int counter = 0;
-    TPZVec<STATE> conv;
-
-    while (norm>tol && counter<30)
-    {
-        CopyFromTensorToFMatrix(Diff,DiffFN);
-        Dep.Solve_LU(&DiffFN);
-        CopyFromFMatrixToTensor(DiffFN,Diff);
-        epsTotal += Diff;
-        //SetState(prevstate);
-        ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
-        fN=prevstate;
-        Diff=GivenStress;
-        Diff-=GuessStress;
-        norm=Norm(Diff);
-        counter++;
-
-    }
-    ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
-  */
 }
 
 template <class YC_t, class ER_t>

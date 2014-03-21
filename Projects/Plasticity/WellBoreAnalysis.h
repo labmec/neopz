@@ -9,7 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-//#define PV
+#define PV
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
@@ -205,6 +205,9 @@ public:
     
     /// Computes an equilibrium state corresponding to the current boundary conditions
     void ExecuteSimulation();
+    
+    /// Computes the given pressure in the specified steps
+    void ExecuteSimulation(int steps,REAL pwb);
     
     /// verify the integrity of the elasto plastic material that is being used
     static void CheckDeformation(std::string filename = "deform.nb");
