@@ -106,6 +106,8 @@ ENABLE_TESTING()
 				add_subdirectory(RefThread)
 				#projeto Diogo 08-FEB-2012
 				add_subdirectory(Plasticity)
+				# Projeto Caju: precisamos consertar para rodar no windows! problema com SWX components
+				add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
 
@@ -137,7 +139,6 @@ ENABLE_TESTING()
 			Add_subdirectory(Conductivity)
 			add_subdirectory(ConsLaw)
 			add_subdirectory(Descontinuo2)
-			add_subdirectory(HydraulicFracturePropagation)
 
 			add_subdirectory(SteamInjection)
 			
