@@ -10,6 +10,7 @@
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
+#include "tpzgeomid.h"
 
 #include "pzlog.h"
 
@@ -215,15 +216,11 @@ TPZGeoEl *TPZQuadraticQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 
 ///CreateGeoElement -> TPZQuadraticQuad
 
-#define TPZGEOELEMENTQUADRATICQUADID 352
 template<>
 int TPZGeoElRefPattern<TPZQuadraticQuad>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICQUADID;
 }
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
-#endif
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
 
 template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
 template class TPZGeoElRefLess<TPZQuadraticQuad>;

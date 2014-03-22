@@ -316,7 +316,6 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 //    }
 //}
 
-#ifndef BORLAND
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
-#endif

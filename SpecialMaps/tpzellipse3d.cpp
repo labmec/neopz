@@ -418,6 +418,7 @@ TPZFMatrix<REAL> TPZEllipse3D::DEllipseR2equationDang(double ang) const
 
 
 #include "tpzgeoelmapped.h"
+#include "tpzgeomid.h"
 
 /** Creates a geometric element according to the type of the father element */
 TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
@@ -454,8 +455,6 @@ void TPZEllipse3D::ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord)
     }
 }
 
-/// Id for three dimensional ellipse element
-#define TPZGEOELEMENTELLIPSE3DID 301
 
 template<>
 int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const
@@ -464,11 +463,6 @@ int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const
 }
 
 
-#ifndef BORLAND
-template class 
-TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>, TPZGEOELEMENTELLIPSE3DID>;
-#endif
-
-
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>, TPZGEOELEMENTELLIPSE3DID>;
 template class TPZGeoElRefLess<TPZEllipse3D>;
 template class pzgeom::TPZNodeRep<2,TPZEllipse3D>;

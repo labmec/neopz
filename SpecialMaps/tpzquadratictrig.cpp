@@ -22,6 +22,8 @@
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
+#include "tpzgeomid.h"
+
 using namespace std;
 using namespace pzshape;
 using namespace pzgeom;
@@ -200,15 +202,12 @@ TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 
 ///CreateGeoElement -> TPZQuadraticTrig
 
-#define TPZGEOELEMENTQUADRATICTRIANGLEID 318
 template<>
 int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICTRIANGLEID;
 }
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
-#endif
+
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
 
 template class TPZGeoElRefLess<TPZQuadraticTrig>;
 template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;

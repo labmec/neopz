@@ -10,6 +10,7 @@
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 #include "pzshapepiram.h"
+#include "tpzgeomid.h"
 
 #include "pzlog.h"
 
@@ -329,15 +330,10 @@ TPZGeoEl *TPZQuadraticPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 
 ///CreateGeoElement -> TPZQuadraticPrism
 
-#define TPZGEOELEMENTQUADRATICPRISM 3535 //verify the validity and range validity of this ID.
-template<>
-int TPZGeoElRefPattern<TPZQuadraticPrism>::ClassId() const {
+template<> int TPZGeoElRefPattern<TPZQuadraticPrism>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICPRISM;
 }
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPrism>, TPZGEOELEMENTQUADRATICPRISM>;
-#endif
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPrism>, TPZGEOELEMENTQUADRATICPRISM>;
 
 
 template class pzgeom::TPZNodeRep<15,TPZQuadraticPrism>;

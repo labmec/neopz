@@ -10,6 +10,7 @@
 #include "pznoderep.h"
 #include "tpzline.h"
 #include "tpzgeoelrefpattern.h"
+#include "tpzgeomid.h"
 
 #include <iostream>
 
@@ -175,7 +176,6 @@ namespace pzgeom
  * @ingroup geometry
  * @brief Id for three dimensional arc element
  */
-#define TPZGEOELEMENTARC3DID 350
 
 template<>
 inline int TPZGeoElRefPattern<pzgeom::TPZArc3D>::ClassId() const {

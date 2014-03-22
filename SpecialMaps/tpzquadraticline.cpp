@@ -11,6 +11,8 @@
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
+#include "tpzgeomid.h"
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -151,16 +153,10 @@ TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 
 ///CreateGeoElement -> TPZQuadraticLine
 
-#define TPZGEOELEMENTQUADRATICLINEID 3111
 template<>
 int TPZGeoElRefPattern<TPZQuadraticLine>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICLINEID;
 }
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
-#endif
-
-
+template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
 template class pzgeom::TPZNodeRep<3,TPZQuadraticLine>;
 template class TPZGeoElRefLess<TPZQuadraticLine>;

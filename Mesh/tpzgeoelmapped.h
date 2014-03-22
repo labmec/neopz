@@ -11,7 +11,7 @@
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
 #include "pzaxestools.h"
-class TPZGeoMesh;
+#include "pzgmesh.h"
 
 #include "pzlog.h"
 #include <sstream>

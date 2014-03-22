@@ -8,6 +8,8 @@
 
 #include "pzlog.h"
 
+#include "tpzgeomid.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadratictetra"));
 #endif
@@ -281,15 +283,12 @@ TPZGeoEl *TPZQuadraticTetra::CreateGeoElement(TPZGeoMesh &mesh, MElementType typ
 
 ///CreateGeoElement -> TPZQuadraticTetra
 
-#define TPZGEOELEMENTQUADRATICTETRAID 312
 template<>
 int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICTETRAID;
 }
 
-#ifndef BORLAND
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
-#endif
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
 template class TPZGeoElRefLess<TPZQuadraticTetra>;
