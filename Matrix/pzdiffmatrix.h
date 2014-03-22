@@ -217,8 +217,18 @@ inline  TPZDiffMatrix<T>& TPZDiffMatrix<T>::Transpose( TPZDiffMatrix<T> & matrix
 template <class T>
 inline  long TPZDiffMatrix<T>::index(const long i, const long j)const
 {
-	if(i<0 || i>=fRows)PZError << "\nTPZDiffMatrix<T>::index error: row out of bounds\n";
-	if(j<0 || j>=fCols)PZError << "\nTPZDiffMatrix<T>::index error: col out of bounds\n";
+#ifdef DEBUG
+	if(i<0 || i>=fRows)
+    {
+        PZError << "\nTPZDiffMatrix<T>::index error: row out of bounds\n";
+        DebugStop();
+    }
+	if(j<0 || j>=fCols)
+    {
+        PZError << "\nTPZDiffMatrix<T>::index error: col out of bounds\n";
+        DebugStop();
+    }
+#endif
 	return i*fCols+j;
 }
 
