@@ -359,6 +359,7 @@ protected:
 	 * @param[out] Dep Incremental constitutive relation
 	 */
     virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep);
+    virtual void ComputeDep2(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep);
 	
 	/**
 	 *  @brief Evaluates the sigma stress tensor and the thermoForceA for use in several
@@ -545,6 +546,7 @@ protected:
 						REAL & resnorm, // REAL 
 						T_MATRIX & tangent, // TPZFMatrix<REAL> for T1=fad<real> type
                         TPZVec<int> & validEqs,
+                        TPZVec<REAL> &pivots,
 						const int precond = 1,
 						const int resetInvalidEqs = 1);
 	
