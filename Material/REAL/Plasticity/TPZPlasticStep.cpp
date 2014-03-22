@@ -41,6 +41,8 @@ static LoggerPtr plasticIntegrLogger(Logger::getLogger("plasticity.plasticIntegr
 static LoggerPtr logger(Logger::getLogger("pz.PLASTIC_STEP.main"));
 static LoggerPtr loggerx(Logger::getLogger("pz.PLASTIC_STEP.main"));
 static LoggerPtr loggerPlasticResidual(Logger::getLogger("PLASTIC_RESIDUAL"));
+static LoggerPtr loggerDEP1(Logger::getLogger("pz.PLASTIC_STEP.DEP1"));
+static LoggerPtr loggerDEP2(Logger::getLogger("pz.PLASTIC_STEP.DEP2"));
 #endif
 
 template <class YC_t, class TF_t, class ER_t>
@@ -544,22 +546,33 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
 #endif
     
     ComputeDep(sigma, Dep);
-    
-#ifdef LOG4CXX_PLASTICITY
+    TPZTensor<STATE> sigma2;
+    TPZFNMatrix<36,STATE> Dep2(6,6);
+    ComputeDep2(sigma2, Dep2);
+#ifdef LOG4CXX
     {
-        std::stringstream sout1, sout2;
-        sout1 << "<<< ApplyStrainComputeDep *** Exiting Method.";
-        sout2 << "\nImposed epsTotal << " << epsTotal
-        << "\nResulted in Sigma = " << sigma << "\n and Dep = \n" << Dep;
-        LOGPZ_DEBUG(logger,sout1.str().c_str());
-        LOGPZ_DEBUG(logger,sout2.str().c_str());
+        std::stringstream sout1;
+        sout1 << "Imposed epsTotal << " << epsTotal
+        << "\nResulted in Sigma = " << sigma << "\nDep = \n" << Dep << std::endl;
+        
+        LOGPZ_DEBUG(loggerDEP1,sout1.str());
+    }
+#endif
+#ifdef LOG4CXX
+    {
+        std::stringstream sout1;
+        sout1 << "Imposed epsTotal << " << epsTotal
+        << "\nResulted in Sigma = " << sigma2 << "\nDep = \n" << Dep2 << std::endl;
+        
+        LOGPZ_DEBUG(loggerDEP2,sout1.str());
     }
 #endif
     
 }
 
+/*
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
 {
     
     const int nyield = YC_t::NYield;
@@ -638,6 +651,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
         fPlasticMem[1].fPlasticState.CopyTo(Nk_FADFAD);
         for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
         
+        TPZManVector<STATE,10> pivots(nVarsResidual,0.);
+        
         REAL disturbFactor = sqrt(fResTol); // imposing an initial guess very close to the real
         // solution in order to ensure residual drop and convergence.
         // This is very important to accumulate good FAD derivatives
@@ -686,16 +701,18 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
                                                     normEpsPErr);
                 
                 
-                /*PlasticResidualRK<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD,
-                 delGamma_FADFAD, epsRes_FADFAD,
-                 normEpsPErr);
-                 */
+//                PlasticResidualRK<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD,
+//                 delGamma_FADFAD, epsRes_FADFAD,
+//                 normEpsPErr);
+                
                 tangent_FAD.Reset(); // resets the LU Decomposition flag
                 
+                int precond = 1;
+                int resetInvalidEqs = 1;
                 ExtractTangent(epsRes_FADFAD, residual_FAD,
                                resnorm, tangent_FAD, // TPZFMatrix for T1=fad<real> type
-                               fPlasticMem[i].fValidEqs,
-                               1 /*precond*/, 1 /*resetInvalidEqs*/);
+                               fPlasticMem[i].fValidEqs, pivots,
+                               precond, resetInvalidEqs);
 #ifdef LOG4CXX
                 TPZDiffMatrix< TFAD > tangentcopy(tangent_FAD);
 #endif
@@ -731,13 +748,13 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
                     cout << endl << sout.str().c_str();
                 }
                 
-                /*
-                 REAL lambda = UpdatePlasticVars(Nk_FADFAD, Nkp1_FADFAD,
-                 delGamma_FADFAD, epsRes_FADFAD,
-                 Sol_FAD, fPlasticMem[i].fValidEqs,
-                 0); //Do not update variables internally
-                 
-                 */
+                
+//                 REAL lambda = UpdatePlasticVars(Nk_FADFAD, Nkp1_FADFAD,
+//                 delGamma_FADFAD, epsRes_FADFAD,
+//                 Sol_FAD, fPlasticMem[i].fValidEqs,
+//                 0); //Do not update variables internally
+                
+                
                 REAL lambda = 1.; // forcing unity because the guess is very close to the solution
                 
                 
@@ -778,7 +795,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
                     if(fPlasticMem[i].fValidEqs[j] == 0)epsRes[j + 7] = 0.;
                 resnorm = 0.;
                 for(j=0; j < nVarsResidual; j++)
-                    resnorm += pow(/*epsRes_FADFAD[j].val().val()*/epsRes[j] , 2.);
+                    resnorm += pow(epsRes[j] , 2.);
                 resnorm = sqrt(resnorm);
                 
                 NewtonCounter++;
@@ -862,7 +879,238 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
     sigma_FAD.CopyTo(sigma);
     
 }
+ */
 
+template <class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
+{
+    
+    const int nyield = YC_t::NYield;
+    const int nVarsResidual = 7+nyield;
+    const int nVarsTensor = 6;
+    
+    int j;
+    
+    typedef TFad<nVarsTensor, REAL> TFAD;
+    typedef TFad<nVarsResidual, REAL> TFAD_RES;
+    
+    REAL normResidual, normResidual2, resnorm;
+    
+    EStatus status;
+    
+    TPZPlasticState<TFAD_RES> Nk_FADRES, Nkp1_FADRES;
+    
+    TPZPlasticState<REAL > Nk, Nkp1;
+    
+    TPZManVector<TFAD_RES, nyield>  delGamma_FADRES(nyield);
+    TPZManVector<REAL, nyield>      delGamma(nyield);
+
+    TPZManVector<TFAD, nyield>      delGamma_FAD(nyield);
+
+    TPZManVector<TFAD_RES, nVarsResidual> Residual_FADRES(nVarsResidual);
+    TPZManVector<TFAD, nVarsResidual> Residual_FAD(nVarsResidual);
+    TPZManVector<REAL, nVarsResidual> epsRes(nVarsResidual);
+    TPZDiffMatrix< REAL > tangent(nVarsResidual,nVarsResidual), residual_RES(nVarsResidual,1), Sol_RES(nVarsResidual,1);
+    TPZDiffMatrix<STATE> tangentFAD(nVarsResidual,6), residualFAD_STATE(nVarsResidual,1);
+    
+    TPZPlasticState<TFAD> Nk_FAD, Nkp1_FAD;
+    TPZTensor<TFAD> sigma_FAD;
+    TFAD A_FAD;
+    
+    TPZTensor<REAL> diffPlasticStrain;
+    
+    int n = fPlasticMem.NElements();
+    
+    if(n < 2)
+    {
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << ">>> ComputeDep2 *** Insufficient Plastic Mem Entries: " << n << ".";
+            LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
+        }
+#endif
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << ">>> ComputeDep2 *** Insufficient Plastic Mem Entries: " << n << ".";
+            LOGPZ_ERROR(logger,sout.str().c_str());
+        }
+#endif
+        return;
+    }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << ">>> ComputeDep2 *** Plastic Mem Entries: " << n << ".";
+        if( n == 2 ) sout << "\nTwo entries indicate pure elastic step";
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    if(n==2)
+    {// pure elastic step - no plastic loop necessary
+        fPlasticMem[1].fPlasticState.CopyTo(Nkp1_FAD);
+        for(int i = 0; i < nVarsTensor; i++)Nkp1_FAD.fEpsT.fData[i].fastAccessDx(i) = 1.;
+        
+    }else
+    {// plastification occurs
+        
+        // plastic Loop analogue with derivative evaluation
+        
+        // Initializing last available elastic step
+        fPlasticMem[1].fPlasticState.CopyTo(Nk_FADRES);
+        fPlasticMem[1].fPlasticState.CopyTo(Nkp1_FAD);
+    //        for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
+        
+        // solution in order to ensure residual drop and convergence.
+        // This is very important to accumulate good FAD derivatives
+        TPZManVector<STATE,10> pivots(nVarsResidual,0.);
+        
+        
+        for(int plasticstep = 2; plasticstep < n; plasticstep++)
+        {
+            InitializePlasticFAD(fPlasticMem[plasticstep].fPlasticState,
+                                 fPlasticMem[plasticstep].fDelGamma,
+                                 Nkp1_FADRES,
+                                 delGamma_FADRES,
+                                 nVarsResidual);
+            fYC.SetForceYield(fPlasticMem[plasticstep].fForceYield); // imposing the same assumptions made in the plasticLoop
+            Nk_FAD = Nkp1_FAD;
+            fPlasticMem[plasticstep].fPlasticState.CopyTo(Nkp1_FAD);
+            for (int j=0; j<6; j++) {
+                Nkp1_FAD.fEpsT[j].fastAccessDx(j) = fPlasticMem[plasticstep].fK;
+            }
+            for(int i=0; i<YC_t::NYield; i++)
+            {
+                delGamma_FAD[i] = fPlasticMem[plasticstep].fDelGamma[i];
+            }
+            
+            
+
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep2 *** Before Matrix Invertion: Plastic step number " << plasticstep-1 << " of " << n-1
+                << "\n*Nk_FADFAD = " << setw(10) << Nk_FADRES
+                << "\n*Nkp1_FADFAD = " << setw(10) << Nkp1_FADRES
+                << "\n*delGamma_FADFAD = " << setw(10) << delGamma_FADRES
+                << "\nNk_FAD= " << Nk_FAD
+                << "\nNkp1_FAD = " << Nkp1_FAD
+                << "\ndelGamma_FAD = " << delGamma_FAD;
+                
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            
+            PlasticResidual<TFAD_RES, TFAD_RES>(Nk_FADRES, Nkp1_FADRES,
+                                                delGamma_FADRES, Residual_FADRES,
+                                                normResidual);
+            PlasticResidual<TFAD,TFAD>(Nk_FAD, Nkp1_FAD, delGamma_FAD, Residual_FAD, normResidual2);
+            
+            
+            tangent.Reset(); // resets the LU Decomposition flag
+            
+            int precond = 0;
+            int precondtangent = 1;
+            int resetInvalidEqs = 1;
+            ExtractTangent(Residual_FADRES, residual_RES,
+                           resnorm, tangent, // TPZFMatrix for T1=fad<real> type
+                           fPlasticMem[plasticstep].fValidEqs, pivots,
+                           precondtangent , resetInvalidEqs);
+            
+            ExtractTangent(Residual_FAD, residualFAD_STATE, resnorm, tangentFAD, fPlasticMem[plasticstep].fValidEqs,pivots,precond, resetInvalidEqs);
+            
+            for (int i=0; i<tangentFAD.Rows(); i++) {
+                for (int j=0; j<tangentFAD.Cols(); j++) {
+                    tangentFAD(i,j) /= pivots[i];
+                }
+            }
+#ifdef LOG4CXX
+            TPZDiffMatrix< REAL > tangentcopy(tangent);
+#endif
+            status = tangent.Decompose_LU();
+            if(status == EZeroPivot)
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep2 *** ### Decompose_LU error! - ZeroPivot ### No inversion will be performed";
+#ifdef LOG4CXX
+                sout << "\nMatrix before decomposition\n";
+                sout << tangentcopy;
+                LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
+#endif
+#ifdef LOG4CXX_PLASTICITY
+                LOGPZ_ERROR(logger,sout.str().c_str());
+#endif
+                cout << endl << sout.str().c_str();
+            }
+            
+            Sol_RES = tangentFAD;
+            status = tangent.Substitution(&Sol_RES);
+            if(status != EOk)
+            {
+                std::stringstream sout;
+                if(status == EIncompDim)sout << "*** ComputeDep2 *** ### LU Substitution error! - IncompatibleDimensions ### No inversion will be performed";
+                if(status == EZeroPivot)sout << "*** ComputeDep2 *** ### LU Substitution error! - ZeroPivot ### No inversion will be performed";
+#ifdef LOG4CXX
+                LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
+#endif
+#ifdef LOG4CXX
+                LOGPZ_ERROR(logger,sout.str());
+#endif
+                cout << endl << sout.str().c_str();
+            }
+            
+            
+                
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep2 *** Plastic step number " << plasticstep-1 << " of " << n-1
+                << "\nSol_FAD = " << setw(10) << Sol_RES
+                << "\nResidual_FADRES = " << setw(10) << Residual_FADRES
+                << "\ntangentFAD = " << tangentFAD;
+                
+                LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
+#endif
+            
+            for(j=0; j<nVarsTensor; j++) for(int k=0; k<6; k++) Nkp1_FAD.fEpsP.fData[j].fastAccessDx(k) = -Sol_RES(j,k);
+            for(int k=0; k<6; k++) Nkp1_FAD.fAlpha.fastAccessDx(k) = -Sol_RES(j,k);
+            j++;
+            for(int k=0; k<6; k++) for(j=0; j<YC_t::NYield; j++) delGamma_FAD[j].fastAccessDx(k) = -Sol_RES(j+7,k);
+            
+            
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep2 *** substep " << plasticstep-1 << " of " << n-2
+                << " solved with residual = " << resnorm;
+            }
+#endif
+            
+        }
+    } // end of condition on number of plastic steps
+    
+    //at this point, all the residual variables should contain their real derivatives to detaEpsT
+    // in the case the loading is either elastic or elastoplastic.
+    ComputePlasticVars(Nkp1_FAD, sigma_FAD, A_FAD);
+    
+    for(int i = 0; i < nVarsTensor; i++) for(j = 0; j < nVarsTensor; j++)Dep(i,j) = sigma_FAD.fData[i].dx(j);
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "*** ComputeDep2 *** \nsigma_FAD= \n" << sigma_FAD
+        << "\nDep =\n" << Dep;
+        LOGPZ_DEBUG(logger,sout.str());
+    }
+#endif
+    
+    sigma_FAD.CopyTo(sigma);
+    
+}
 
 //template <class YC_t, class TF_t, class ER_t>
 //REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
@@ -1331,6 +1579,8 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     TPZFNMatrix<nVars*nVars> tangent(nVars,nVars,0.); // Jacobian matrix
     REAL                     resnorm = 0.;
     
+    TPZManVector<STATE,nVars> pivots(nVars);
+    
     
     int countReset = 0;
     for (int i=0; i<validEqs.size(); i++) {
@@ -1386,7 +1636,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         
         //      REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
         
-        ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1/*precond*/, 1/*ResetUnvalidEqs*/);
+        ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs,pivots, 1/*precond*/, 1/*ResetUnvalidEqs*/);
 #ifdef LOG4CXX
         {
             std::stringstream sout;
@@ -1440,7 +1690,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             }
 #endif
             // extract the values of the residual vector
-            ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1, 1);
+            ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, pivots, 1, 1);
             
 #ifdef LOG4CXX_PLASTICITY
             {
@@ -1764,17 +2014,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
                                                       REAL & resnorm, // REAL
                                                       T_MATRIX & tangent, // TPZFMatrix for T1=fad<real> type
                                                       TPZVec<int> & validEqs,
+                                                      TPZVec<REAL> &pivots,
                                                       const int precond,
                                                       const int resetInvalidEqs)
 {
     const int nyield = YC_t::NYield;
     const int nVars = 7+YC_t::NYield;
     int i,j;
+    int ncols = epsRes_FAD[0].size();
     
     // extract the partial derivatives to form the tangent matrix
     for(i=0; i<nVars; i++)
     {
-        for(j=0; j<nVars; j++)
+        for(j=0; j<ncols; j++)
             tangent(i,j) = epsRes_FAD[i].dx(j);
         ResVal(i,0) = epsRes_FAD[i].val();
     }
@@ -1790,16 +2042,24 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
     
     // reseting the equations related to the invalid yield surfaces
     if(resetInvalidEqs)
+    {
         for(i=0; i<nyield; i++)
         {
             if(validEqs[i] == 0)
             {
-                for(j=0; j<nVars; j++)
+                for(j=0; j<ncols; j++)
+                {
                     tangent(i+7,j) = 0.;
-                tangent(i+7,i+7) = 1.;
+                }
+                if (i+7 < ncols) {
+                    tangent(i+7,i+7) = 1.;
+                }
+                
                 ResVal(i+7,0) = 0.;
             }
         }
+    }
+    
     // updating residual norm
     // before preconditioning such that it keeps its physical meaning
     //cout << "ResVal"<<endl;
@@ -1808,17 +2068,22 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
     for(i = 0; i < nVars; i++)
         resnorm += pow(shapeFAD::val( ResVal(i,0) ) , 2.);
     resnorm = sqrt(resnorm);
+    
+    if (precond && nVars != ncols) {
+        DebugStop();
+    }
     //cout << "resnorm"<<endl;
     //  cout << resnorm<<endl;
     // preconditioning the matrix/residual system
     if(precond)
     {
-        for(i=/*7*/0; i<7; i++)
+        for(i=0; i<7; i++)
         {
             REAL pivot = 0., elem;
             j = i;
             elem = shapeFAD::val(tangent(i,j) );
             if(fabs(pivot) < fabs(elem))pivot = elem;
+            pivots[i] = pivot;
             //pivot = fabs(shapeFAD::val(pivot) ) < fabs(shapeFAD::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
 
             for(j=0; j<nVars; j++)
@@ -1835,6 +2100,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
                 if(fabs(pivot) < fabs(elem))pivot = elem;
                 //pivot = fabs(shapeFAD::val(pivot) ) < fabs(shapeFAD::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
             }
+            pivots[i] = pivot;
             for(j=0; j<nVars; j++)
                 tangent(i,j) = tangent(i,j) / pivot;
             ResVal(i,0) = ResVal(i,0) / pivot;
