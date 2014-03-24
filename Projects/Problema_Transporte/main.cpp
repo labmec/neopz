@@ -100,6 +100,7 @@ void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, 
 
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
+//Ativar apenas a ultima equacao, que corresponde a funcao de base constante
 void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate);
 
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
