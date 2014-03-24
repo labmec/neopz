@@ -206,7 +206,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
     long nmesh  = fElementVec.size();
     for(long iel = 0; iel< nmesh; iel++ ){
         
-        out << "\nComputational element belonging to the mesh " << iel+1 <<":";
+        out << "\nComputational element belonging to the mesh " << iel+1 <<":\n";
         TPZCompEl *cel = fElementVec[iel];
         if(!cel){
             out << "\n There is not element to computational mesh " << iel+1 <<"\n";
