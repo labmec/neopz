@@ -51,32 +51,32 @@ int main(int argc, char * const argv[])
     
     REAL TVDi0 = 2070.;
     REAL TVDf0 = 2100.;
-    REAL TVDi1 = TVDi0;
+    REAL TVDi1 = TVDf0;
     REAL TVDf1 = 2120.;
-    REAL TVDi2 = TVDi1;
+    REAL TVDi2 = TVDf1;
     REAL TVDf2 = 2160.;
     
     REAL bulletTVDIni = 2100.;
     REAL bulletTVDFin = 2120.;
     
     //KIc
-    REAL KIc0 = 1.09884E6 * globStressScale;
-    REAL KIc1 = 1.09884E6 * globStressScale;
-    REAL KIc2 = 1.09884E6 * globStressScale;
+    REAL KIc0 = 10.*1.09884E6 * globStressScale;//AQUICAJU
+    REAL KIc1 = 10.*1.09884E6 * globStressScale;
+    REAL KIc2 = 10.*1.09884E6 * globStressScale;
     
     //Leakoff
     REAL Cl0 = 0.;
-    REAL Pe0 = 0.;//Nunca negativo
+    REAL Pe0 = 0.;
     REAL gradPref0 = 1.;
     REAL vsp0 = 0.;
     
     REAL Cl1 = 0.00019674755398733676;
-    REAL Pe1 = 0.;//Nunca negativo
-    REAL gradPref1 = 1.;
+    REAL Pe1 = 3.4528254983E7 * globStressScale;
+    REAL gradPref1 = 3.4528254983E7 * globStressScale;
     REAL vsp1 = 0.;
     
     REAL Cl2 = 0.;
-    REAL Pe2 = 0.;//Nunca negativo
+    REAL Pe2 = 0.;
     REAL gradPref2 = 1.;
     REAL vsp2 = 0.;
     
@@ -93,11 +93,10 @@ int main(int argc, char * const argv[])
 
     //Simulation p-order data
     int porder = 1;
-    REAL MaxDispl = 2.;
+    REAL MaxDispl = 2.0;
     
-    bool just1Stripe = false;//<<<<<<<<<<<<<<<<
-    bool coupled = true;    //<<<<<<<<<<<<<<<<
-    
+    bool just1Stripe = false;
+    bool coupled = true;
     bool pressureINdependent = true;//If true, Carter Leakoff Coefficient is pressure independent
     TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, just1Stripe,
                                                                  QinjWell, visc,
@@ -105,6 +104,7 @@ int main(int argc, char * const argv[])
                                                                  porder,
                                                                  MaxDispl,
                                                                  pressureINdependent);
+    globLeakoffStorage.DisableLeakoff();
     if(coupled)
     {
         plfrac->RunCoupled();

@@ -140,12 +140,11 @@ class TPZPlaneFractureMesh
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
-     * @param just1Stripe [in] : Requirement of just 1 stripe in Y direction for applied pressure for reduced space
      *
      * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
-                         REAL xLength, REAL yLength, REAL Lmax, bool just1Stripe);
+                         REAL xLength, REAL yLength, REAL Lmax);
     
 	~TPZPlaneFractureMesh();
     
@@ -174,11 +173,9 @@ class TPZPlaneFractureMesh
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder);
     
+    void SetNewmanOnEntireFracture(TPZCompMesh * cmeshref);
     void SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int actStripe);
-    bool SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref,
-                                       int actLayer,
-                                       int actStripe);
-    bool Just1Stripe();
+    
     int NStripes();
     
     void SetActualState();
@@ -369,9 +366,6 @@ protected:
     
     /** @brief maximum X coordinate of poligonal chain (is the max Lfracture) */
     REAL fLfrac;
-    
-    /** @brief Requirement of just 1 stripe of pressure */
-    bool fjust1Stripe;
     
     /** @brief Amount of stripes of pressure */
     int fnstripes;

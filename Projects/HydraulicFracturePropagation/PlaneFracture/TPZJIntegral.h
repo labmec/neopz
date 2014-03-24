@@ -285,6 +285,7 @@ protected:
     ArcPath3D * fArcPath3D;
     AreaPath3D * fAreaPath3D;
     
+    TPZVec<REAL> fNormalDirection;
     REAL fOriginZcoord;
     
     REAL fKI;

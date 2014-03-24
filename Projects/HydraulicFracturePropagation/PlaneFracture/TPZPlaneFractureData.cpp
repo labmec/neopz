@@ -19,6 +19,11 @@
 
 void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cmesh, REAL deltaT)
 {
+    if(this->fDefaultLeakoffEnabled == false)
+    {
+        return;
+    }
+    
     if(this->fPressureIndependent == false)
     {
         if(fGelId_Penetration.size() == 0)
@@ -88,14 +93,11 @@ void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cm
         sp->ComputeShape(qsi, data);
         sp->ComputeSolution(qsi, data);
         
-        int layer = globMaterialIdGen.WhatLayerFromInsideFracture(cel->Reference()->MaterialId());
-        int stripe = globMaterialIdGen.WhatStripe(cel->Reference()->MaterialId());
-        REAL pfrac = 0.;
-        if(this->fPressureIndependent == false)
-        {//Is pressureDependent!!!
-            globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
-        }
-        //REAL pfrac = data.sol[0][0];//nao serah utiliado pressao de fluido. Serah tensao aplicada na faixa.
+//AQUICAJU
+//        int layer = globMaterialIdGen.WhatLayerFromInsideFracture(cel->Reference()->MaterialId());
+//        int stripe = globMaterialIdGen.WhatStripe(cel->Reference()->MaterialId());
+//        REAL pfrac = globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
+        REAL pfrac = data.sol[0][0];
         
         TPZBndCond * matbnd = dynamic_cast<TPZBndCond*> (cel->Material());
 
@@ -146,16 +148,16 @@ void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cm
 
 REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+    if(pfrac <= Pe)
+    {
+        return 0.;
+    }
+    
     REAL gradPcalc = 1.;
     if(fPressureIndependent == false)
     {
         REAL gradP = pfrac - Pe;
         gradPcalc = gradP/gradPref;
-    }
-    
-    if(gradPcalc < 0.)
-    {
-        return 0.;
     }
     
     REAL Clcorr = Cl * sqrt(gradPcalc);
@@ -166,6 +168,11 @@ REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPre
 
 REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+    if(pfrac <= Pe)
+    {
+        return 0.;
+    }
+    
     REAL tStar = 0.;
     if(VlAcum > vsp)
     {
@@ -175,11 +182,6 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
         {
             REAL gradP = pfrac - Pe;
             gradPcalc = gradP/gradPref;
-        }
-        
-        if(gradPcalc < 0.)
-        {
-            return 0.;
         }
         
         REAL Clcorr = Cl * sqrt(gradPcalc);
@@ -200,7 +202,7 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
     
     REAL Ql = 0.;
     
-    if(fLeakoffEnabled)
+    if(fLeakoffEnabled && pfrac >= Pe)
     {
         REAL VlAcum = it->second;
         

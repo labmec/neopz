@@ -717,6 +717,7 @@ Path3D::Path3D()
     this->fArcPath3D = NULL;
     this->fAreaPath3D = NULL;
     
+    this->fNormalDirection.Resize(0,0.);
     this->fOriginZcoord = 0.;
     this->fKI = 0.;
     this->fKIc = 0.;
@@ -736,6 +737,7 @@ Path3D::Path3D(TPZCompMesh * cmeshElastic,
     this->fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     this->fAreaPath3D = new AreaPath3D(this->fLinearPath3D);
     
+    this->fNormalDirection = normalDirection;
     this->fOriginZcoord = Origin[2];
     
     this->fKI = 0.;
@@ -778,17 +780,17 @@ void Path3D::ComputeJIntegral()
     this->fKI = 0.;
     this->fJDirection.Fill(0.);
     
-    //Nao serah computado KI quando appliedStress < SigYY
-    {
-        int pathLayer = MyLayer();
-        REAL stressApplied = this->fLinearPath3D->CMeshElastic()->Solution()(1,0);
-        REAL layerSigYY = -globLayerStruct.GetLayer(pathLayer).fSigYY;
-        if(stressApplied < layerSigYY)
-        {
-            //Neste caso nao deve-se calcular KI.
-            return;
-        }
-    }
+    //Nao serah computado KI quando appliedStress < SigYY //AQUICAJUX
+//    {
+//        int pathLayer = MyLayer();
+//        REAL stressApplied = this->fLinearPath3D->CMeshElastic()->Solution()(1,0);
+//        REAL layerSigYY = -globLayerStruct.GetLayer(pathLayer).fSigYY;
+//        if(stressApplied < layerSigYY)
+//        {
+//            //Neste caso nao deve-se calcular KI.
+//            return;
+//        }
+//    }
     
     Adapt intRule(gIntegrPrecision);
     
@@ -821,7 +823,33 @@ void Path3D::ComputeJIntegral()
     areaJIntegral[1] = 0.;
     areaJIntegral[2] = 2. * areaJIntegral[2] * this->fAreaPath3D->DETdxdt();
     
-    //------------------ COMBINING
+    /*
+    //------------------ COMBINING : Projetando Jvector para a normal externa da frente da fratura
+    REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
+    REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
+    REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
+    
+    {//AQUICAJUX : projetando na normal
+        REAL ex = this->fNormalDirection[0];
+        REAL ez = this->fNormalDirection[2];
+        ex = ex/sqrt(ex*ex + ez*ez);
+        ez = ez/sqrt(ex*ex + ez*ez);
+        
+        REAL Jx2 = Jx - ex*(ex*Jx + ez*Jz);
+        REAL Jy2 = Jy;
+        REAL Jz2 = Jz - ez*(ex*Jx + ez*Jz);
+        
+        REAL Jnorm = sqrt(Jx2*Jx2 + Jy2*Jy2 + Jz2*Jz2);
+        this->fJDirection[0] = Jx2/Jnorm;
+        this->fJDirection[1] = Jy2/Jnorm;
+        this->fJDirection[2] = Jz2/Jnorm;
+        this->fJintegral = Jnorm;
+    }
+    
+    this->fKI = sqrt(this->fJintegral);//<< in fact, this->fJintegral is (young * J-integral)
+     */
+    
+    //------------------ COMBINING : Jvector na forma original (sem projetar na normal)
     REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
     REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
     REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];

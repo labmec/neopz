@@ -22,7 +22,11 @@
 
 
 
+
 const REAL globStressScale = 1.E-7;//DO NOT TOUCH!!!
+
+
+
 
 class TimeControl
 {
@@ -66,7 +70,7 @@ public:
         
         if(freachTime_right == false)
         {
-            fDeltaT_left += 5.;
+            fDeltaT_left += 10.;
         }
         else
         {
@@ -80,8 +84,8 @@ public:
         
         if(freachTime_right == false)
         {//1st time reach time on right from KI=KIc
-            fDeltaT_left -= 5.;
-            fDeltaT_left = MAX(1.,fDeltaT_left);
+            fDeltaT_left -= 10.;
+            fDeltaT_left = MAX(0.,fDeltaT_left);
             freachTime_right = true;
         }
         
@@ -211,6 +215,11 @@ public:
     bool IsPressureIndependent()
     {
         return this->fPressureIndependent;
+    }
+    
+    bool DefaultLeakoffEnabled()
+    {
+        return this->fDefaultLeakoffEnabled;
     }
     
     std::map<int,REAL> & GetLeakoffMap()
@@ -542,7 +551,7 @@ public:
     LayerStruct()
     {
         this->fLayerVec.Resize(0);
-        this->fLayer_Stripe_SolutionRow.clear();
+        //this->fLayer_Stripe_SolutionRow.clear();
         this->fminPrestress = +1.E15;
         this->fmaxPrestress = -1.E15;
     }
@@ -559,7 +568,18 @@ public:
     
     void ResetData()
     {
-        this->fLayer_Stripe_SolutionRow.clear();
+        //this->fLayer_Stripe_SolutionRow.clear();
+    }
+    
+    void SetStaticPressureAsPrestress()
+    {
+        //Quando leakoff eh PressureIndependent, preciso do Pe para realizar a seguinte avaliacao para QlFVl:
+        //if(pfrac <= Pe) return 0.;
+        for(int lay = 0; lay < this->fLayerVec.NElements(); lay++)
+        {
+            REAL prestress = -this->fLayerVec[lay].fSigYY;
+            this->fLayerVec[lay].fPe = prestress;
+        }
     }
     
     void SetLayerVec(TPZVec<LayerProperties> & LayerVec)
@@ -572,45 +592,21 @@ public:
         }
     }
     
-    void SetLayerStripe_ContactSolutionRow(int layer, int stripe, int row)
-    {
-        std::map< int, std::map<int,int> >::iterator itLay = this->fLayer_Stripe_SolutionRow.find(layer);
-        if(itLay == this->fLayer_Stripe_SolutionRow.end())
-        {
-            this->fLayer_Stripe_SolutionRow[layer][stripe] = row;
-        }
-        else
-        {
-            std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
-            if(itStripe == itLay->second.end())
-            {
-                (itLay->second)[stripe] = row;
-            }
-            else
-            {
-                std::cout << "\n\n\nIncluindo 2 vezes a mesma layer e stripe???\n\n\n";
-                DebugStop();
-            }
-        }
-    }
-    
     REAL GetEffectiveStressApplied(TPZFMatrix<REAL> & ElastReducedSolution, int layer, int stripe)
     {
-        int pressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
-        
         //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-        REAL pressApplied = ElastReducedSolution(pressAppliedRow,0);
+        REAL pressAppliedEntireFract = ElastReducedSolution(1,0);
         
-        int contactRow = this->GetContactSolutionRow(layer,stripe);
-        //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-        REAL contactStress = ElastReducedSolution(contactRow,0);
-        //Onde nao ha contato, contactStress=0.
+        int stripePressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
+        REAL pressAppliedStripe = ElastReducedSolution(stripePressAppliedRow,0);
+        
+        REAL pressApplied = pressAppliedEntireFract + pressAppliedStripe;
         
         REAL preStress = -this->fLayerVec[layer].fSigYY;
+
+        REAL cellStressApllied = pressApplied - preStress;
         
-        REAL cellStressApllied = pressApplied + contactStress - preStress;
-        
-        return MAX(0.,cellStressApllied);
+        return cellStressApllied;
     }
     
     REAL GetLowerPreStress()
@@ -639,7 +635,7 @@ public:
         return this->fLayerVec[whatLayer];
     }
     
-    int WhatLayer(int zCoord)
+    int WhatLayer(REAL zCoord)
     {
         for(int lay = 0; lay < this->fLayerVec.NElements(); lay++)
         {
@@ -654,38 +650,13 @@ public:
     
     int GetStressAppliedSolutionRow(int stripe)
     {
-        return stripe+1;
-    }
-    
-    int GetContactSolutionRow(int layer, int stripe)
-    {
-        int contactSolutionRow = -1;
-        
-        std::map< int, std::map<int,int> >::iterator itLay = this->fLayer_Stripe_SolutionRow.find(layer);
-        if(itLay == this->fLayer_Stripe_SolutionRow.end())
-        {
-            std::cout << "\n\n\nLayer nao encontrado no metodo " << __PRETTY_FUNCTION__ << ".\n";
-            DebugStop();
-        }
-        else
-        {
-            std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
-            if(itStripe != itLay->second.end())
-            {
-                contactSolutionRow = itStripe->second;
-            }
-        }
-        
-        return contactSolutionRow;
+        return stripe+2;
     }
     
 protected:
 
     /** Vetor de camadas. Posicao 0: camada mais acima. Ultima posicao: camada mais abaixo */
     TPZVec<LayerProperties> fLayerVec;
-    
-    /** Mapa que guarda a linha da solucao do contato baseado no layer e na stripe */
-    std::map< int, std::map<int,int> > fLayer_Stripe_SolutionRow;
     
     REAL fminPrestress;
     REAL fmaxPrestress;

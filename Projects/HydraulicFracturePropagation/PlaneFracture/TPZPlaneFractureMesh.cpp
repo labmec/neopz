@@ -34,21 +34,19 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh()
 
 
 TPZPlaneFractureMesh::TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
-                                           REAL xLength, REAL yLength, REAL Lmax, bool just1Stripe)
+                                           REAL xLength, REAL yLength, REAL Lmax)
 {
-    fInitialElIndex = 0;
+    this->fInitialElIndex = 0;
     
-    fPreservedMesh = new TPZGeoMesh;
-    fRefinedMesh = NULL;
+    this->fPreservedMesh = new TPZGeoMesh;
+    this->fRefinedMesh = NULL;
     
-    fLmax = Lmax;
-    fLfrac = 0.;
+    this->fLmax = Lmax;
+    this->fLfrac = 0.;
     
-    fjust1Stripe = just1Stripe;
+    this->fnstripes = 0;//Serah inicializada corretamente no metodo this->SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
     
-    fnstripes = 0;//Serah inicializada corretamente no metodo this->SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
-    
-    fCouplingMatVec.Resize(0);
+    this->fCouplingMatVec.Resize(0);
     
     std::set<REAL> espacamentoVerticalTVD;
     
@@ -103,7 +101,7 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
         espacamentoVerticalDEPTH.push_back(-posDepth);
     }
     
-    GeneratePreservedMesh(espacamentoVerticalDEPTH, bulletTVDIni, bulletTVDFin, xLength, yLength);
+    this->GeneratePreservedMesh(espacamentoVerticalDEPTH, bulletTVDIni, bulletTVDFin, xLength, yLength);
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -204,7 +202,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    RefineDirectionalToCrackTip(1);
+//    RefineDirectionalToCrackTip(1);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -416,13 +414,10 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         STATE poisson = globLayerStruct.GetLayer(lay).fPoisson;
         TPZVec<STATE> force(3,0.);
         
-        STATE prestressXX = 0.;//A integral-J nao inclui a translacao do pre-stress (ver LayerStruct::GetStressAppliedJustForJIntegral)
         STATE prestressYY = 0.;//A integral-J nao inclui a translacao do pre-stress (ver LayerStruct::GetStressAppliedJustForJIntegral)
-        STATE prestressZZ = 0.;//A integral-J nao inclui a translacao do pre-stress (ver LayerStruct::GetStressAppliedJustForJIntegral)
         
         ////Rock
-        TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force,
-                                                        prestressXX, prestressYY, prestressZZ);
+        TPZMaterial * materialLin = new TPZElasticity3D(globMaterialIdGen.RockMatId(lay), young, poisson, force, 0., prestressYY, 0.);
         cmesh->InsertMaterialObject(materialLin);
         
         ////BCs
@@ -658,6 +653,43 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 }
 //------------------------------------------------------------------------------------------------------------
 
+void TPZPlaneFractureMesh::SetNewmanOnEntireFracture(TPZCompMesh * cmeshref)
+{
+    bool newmanWasApplied = false;
+    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
+    {
+        for(int stripe = 0; stripe < this->fnstripes; stripe++)
+        {
+            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
+            {//Fratura ainda nao entrou nesta camada!
+                continue;
+            }
+            
+            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
+            if(!mat)
+            {
+                DebugStop();
+            }
+            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
+            if(!bcmat)
+            {
+                DebugStop();
+            }
+
+            newmanWasApplied = true;
+            bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnFractureStripe();
+        }
+    }
+    
+    if(newmanWasApplied == false)
+    {
+        std::cout << "\n\n\nNewman was not applied on entire fracture\n";
+        DebugStop();
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+
 void TPZPlaneFractureMesh::SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int actStripe)
 {
     bool newmanWasApplied = false;
@@ -698,54 +730,6 @@ void TPZPlaneFractureMesh::SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int act
         std::cout << "\n\n\nNewman was not applied on stripe " << actStripe << "\n";
         DebugStop();
     }
-}
-//------------------------------------------------------------------------------------------------------------
-
-bool TPZPlaneFractureMesh::SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref,
-                                                         int actLayer,
-                                                         int actStripe)
-{
-    bool newmanWasApplied = false;
-    
-    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
-    {
-        for(int stripe = 0; stripe < this->fnstripes; stripe++)
-        {
-            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
-            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
-            {//Fratura ainda nao entrou nesta camada!
-                continue;
-            }
-            
-            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
-            if(!mat)
-            {
-                DebugStop();
-            }
-            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
-            if(!bcmat)
-            {
-                DebugStop();
-            }
-            if(lay == actLayer && stripe == actStripe)
-            {
-                newmanWasApplied = true;
-                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnFractureStripe();
-            }
-            else
-            {
-                bcmat->Val2()(1,0) = 0.;
-            }
-        }
-    }
-    
-    return newmanWasApplied;
-}
-//------------------------------------------------------------------------------------------------------------
-
-bool TPZPlaneFractureMesh::Just1Stripe()
-{
-    return this->fjust1Stripe;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1991,11 +1975,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                     REAL Xc = neighCenterX[0];
                     REAL Zc = neighCenterX[2];
                     
-                    int stripe = 0;
-                    if(this->fjust1Stripe == false)
-                    {
-                        stripe = (int)(Xc/this->fLmax);
-                    }
+                    int stripe = (int)(Xc/(2.*this->fLmax));
                     int layer = globLayerStruct.WhatLayer(Zc);
                     this->fnstripes = MAX(this->fnstripes,stripe+1);
                     
@@ -2076,11 +2056,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                         REAL Xc = neighCenterX[0];
                         REAL Zc = neighCenterX[2];
                         
-                        int stripe = 0;
-                        if(this->fjust1Stripe == false)
-                        {
-                            stripe = (int)(Xc/this->fLmax);
-                        }
+                        int stripe = (int)(Xc/(2.*this->fLmax));
                         int layer = globLayerStruct.WhatLayer(Zc);
                         this->fnstripes = MAX(this->fnstripes,stripe+1);
                         
@@ -2101,12 +2077,6 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
         
         finishedFracturedElems.insert(actEl.Index());
         fracturedElems.erase(edgIt);
-    }
-    
-    if(this->fjust1Stripe == true && this->fnstripes != 1)
-    {
-        std::cout << "\n\n\nthis->fjust1Stripe = true but this->fnstripes != 1\n\n\n";
-        DebugStop();
     }
 }
 //------------------------------------------------------------------------------------------------------------

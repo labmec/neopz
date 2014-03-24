@@ -15,6 +15,8 @@
 #include "TPZJIntegral.h"
 #include "pzanalysis.h"
 
+enum EWhoBlock {ENoBlock, EentireFracure, Estripes};
+
 class TPZPlaneFractureKernel
 {
 public:
@@ -65,9 +67,6 @@ protected:
     /** Calcula a pressao aplicada que resulta na propagacao com MAX(KI/KIc) = 1. */
     void ComputeStressAppliedThatpropagatesWhithKI1(REAL & maxKI_KIc, std::set<int> & whoPropagate);
     
-    /** Calculaa tensao de contato (quando houver) */
-    void ComputeContactStress();
-    
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param volAcum [in] : Poligonal chain that represents the crack boundary
@@ -93,13 +92,14 @@ protected:
      */
     void AssembleStiffMatrixLoadVec(TPZAnalysis * an,
                                     TPZAutoPointer< TPZMatrix<REAL> > & matK,
-                                    TPZFMatrix<REAL> & matRes);
+                                    TPZFMatrix<REAL> & matRes,
+                                    EWhoBlock whoBlock);
     
-    void ApplyInitialCondition();
+    void ApplyInitialCondition(REAL val);
     
-    void PutConstantPressureOnFluidSolution();
+    void PutConstantPressureOnFluidSolution(REAL val);
     
-    void ApplyEquationFilter(TPZAnalysis * an);
+    void ApplyEquationFilter(TPZAnalysis * an, EWhoBlock whoBlock);
     
     /**
      * @brief Method that will compute the mass matrix for last time step
@@ -115,22 +115,22 @@ protected:
     void PostProcessAll_Uncoupled();
     void PostProcessAll_Coupled();
     
-    void PostProcessSolutions();
+    void PostProcessSolutions(int num = -1);
     
     /** Compute the volume of the interior of the fracture (by w=2*uy integral) */
     void PostProcessAcumVolW();
 
     /** Compute the volume of the leakoof */
-    void PostProcessVolLeakoff();
+    void PostProcessVolLeakoff(int num = -1);
     
     /** Generate vtk for displacement post process */
-    void PostProcessElasticity();
+    void PostProcessElasticity(int num = -1);
 
     /** Generate vtk for pressure post process */
-    void PostProcessPressure();
+    void PostProcessPressure(int num = -1);
     
     /** Insert on globFractOutput3DData the actual Lfrac, Hsup and Hinf */
-    void PostProcessFractGeometry();
+    void PostProcessFractGeometry(int num = -1);
     
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     // = 2. * Integral(uy_insideFracture)
@@ -197,6 +197,8 @@ protected:
     REAL fMaxDispl;
     
     JIntegral3D fPath3D;
+    
+    bool fjust1Stripe;
     
     int actColor;
     static const std::string color[];

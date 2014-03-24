@@ -109,6 +109,14 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     REAL w = 0.;
     {
         int nsolu = datavec[0].sol.NElements();
+//#ifdef DEBUG //AQUICAJU
+        if(nsolu != 1)
+        {
+            std::cout << "\n\n\nMore than 1 Nsolutions???\n";
+            std::cout << "See " << __PRETTY_FUNCTION__ << ".\n\n\n";
+            DebugStop();
+        }
+//#endif
         for(int s = 0; s < nsolu; s++)
         {
             TPZManVector<REAL,3> sol_u = datavec[0].sol[s];
@@ -130,8 +138,14 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
         
         if(w > 0.)
         {
-            actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
-            actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, sol_p[0], deltaT, fCl, fPe, fgradPref, fvsp);
+//AQUICAJU
+//            int layer = globMaterialIdGen.WhatLayerFromInsideFracture(this->Id());
+//            int stripe = globMaterialIdGen.WhatStripe(this->Id());
+//            REAL pfrac = globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
+            REAL pfrac = sol_p[0];
+            
+            actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, pfrac, deltaT, fCl, fPe, fgradPref, fvsp);
+            actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, pfrac, deltaT, fCl, fPe, fgradPref, fvsp);
         }
         for(int in = 0; in < phipRows; in++)
         {
