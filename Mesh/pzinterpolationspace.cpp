@@ -326,7 +326,10 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
     int order = material->IntegrationRuleOrder(data.p);
     if(material->HasForcingFunction())
     {
-        order = intrule->GetMaxOrder();
+        int maxorder = intrule->GetMaxOrder();
+        if (maxorder > order) {
+            order = maxorder;
+        }
     }
     TPZManVector<int,3> intorder(dim,order);
     intrule->SetOrder(intorder);
