@@ -9,6 +9,7 @@
 #include "pzgradientreconstruction.h"
 #include "pzgradient.h"
 #include "tpzintpoints.h"
+#include "pzmultiphysicselement.h"
 #include "pzmaterial.h"
 #include "pzskylstrmatrix.h"
 #include "pzintel.h"
@@ -55,6 +56,10 @@ TPZGradientReconstruction &TPZGradientReconstruction::operator=(const TPZGradien
 
 void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *cmesh, int matidl2proj)
 {
+    if (cmesh->Reference()->Reference() != cmesh) {
+        DebugStop();
+    }
+    
     // Redimensionando a matriz dos dados da reconstruca de gradientes
     int dim  = cmesh->Dimension();
     int nelem = cmesh->NElements();
@@ -369,12 +374,12 @@ void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(T
     TPZManVector<REAL> point(3,0.);
     TPZManVector<REAL> xpoint(3,0.);
 	REAL weight;
-    REAL Area = cel->Reference()->RefElVolume();
+    REAL Area = gel->RefElVolume();
     
     for(it=0;it<npoints;it++)
     {
 		pointIntRule->Point(it,point,weight);
-		//weight /= cel->Reference()->RefElVolume();
+		weight /= Area;
 		cel->Reference()->X(point,xpoint);
         
         TPZVec<STATE> sol;
@@ -396,7 +401,7 @@ void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(T
 #endif
     }
     
-    solcel = integral/Area;
+    solcel = integral;
 }
 
 void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *cel)
@@ -462,7 +467,7 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
                 if(neighequal[i].Side() <neighequal[i].Reference().Element()->NCornerNodes()) continue;
                 
                 //verificando se eh elemento de contorno
-                if(InterpEl->Dimension() == fdim-1)
+                if(neighequal[i].Element()->Dimension() == fdim-1)
                 {
                     TPZGeoElSide gelside = celside.Reference();
                     gelside.CenterPoint(point);
@@ -506,7 +511,7 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
                 if(neighsmaller[i].Side() <neighsmaller[i].Reference().Element()->NCornerNodes()) continue;
                 
                 //verificando se eh elemento de contorno
-                if(InterpEl->Dimension() == fdim-1)
+                if(neighequal[i].Element()->Dimension() == fdim-1)
                 {
                     TPZGeoElSide gelside = neighsmaller[i].Reference();
                     gelside.CenterPoint(point);
@@ -790,6 +795,10 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter()
         }
     }
     fSlopeLimiter = alphaK;
+    
+    if(alphaK<0. || alphaK>1.) {
+        DebugStop();
+    }
 }
 
 //Paper: Development of a cell centred upwind finite volume algorithm for a new conservation law formulation in structural dynamics
@@ -871,6 +880,10 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter2()
         }
     }
     fSlopeLimiter = alphaK;
+    
+    if(alphaK<0. || alphaK>1.) {
+        DebugStop();
+    }
 }
 
 //Venkatakrishnan V (1993). On the accuracy of limiters and convergence to steady state solutions

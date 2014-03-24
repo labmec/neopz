@@ -130,8 +130,10 @@ class TPZGradientReconstruction
             if(fUseForcinfFuncion){
                 return (fForcingFunctionExact != 0);
             }
-            else
-                return (fForcingFunctionExact == 0);
+            else{
+                fForcingFunctionExact = 0;
+                return 0;
+            }
         }
         
       
