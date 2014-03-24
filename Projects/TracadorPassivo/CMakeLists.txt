@@ -5,5 +5,5 @@ file(GLOB source *.cpp)
 
 add_executable(TracadorPassivo ${source} ${header})
 
-target_link_libraries(TracadorPassivo pz)
+target_link_libraries(TracadorPassivo pz ${CBLAS_LIB} ${LAPACK_LIB})
 
