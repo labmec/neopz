@@ -628,15 +628,17 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     //upper triangular if m >= n); the elements below the diagonal,
     //with the array TAU, represent the orthogonal matrix Q as a
     //product of min(m,n) elementary reflectors
+
+#ifdef USING_LAPACK
     
     int m = matA.Rows();
     int n = matA.Cols();
     
-    //    int lda = m; //the leading dimension of the matA
-    //    double *tau = new double[n];//The scalar factors of the elementary reflectors
-    //    int lwork = n;
-    //    double *work = new double[n];
-    //    int info;
+    int lda = m; //the leading dimension of the matA
+    double *tau = new double[n];//The scalar factors of the elementary reflectors
+    int lwork = n;
+    double *work = new double[n];
+    int info;
     
     double *A = new double[m*n];
     for(int j = 0; j<n; j++){
@@ -645,11 +647,7 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
         }
     }
     
-#ifdef USING_LAPACK
     dgeqrf_(&m, &n, A, &lda,tau,work,&lwork,&info);
-#else
-    DebugStop();
-#endif
     
     //matrix R: upper triangular
     matA.Redim(n, n);
@@ -663,14 +661,11 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     //matA.Print("\n\n \tmtR = ");
     
     //metodo que retorna a matrix Q
-    //    int kk=n;
+    int kk=n;
     double *Q = new double[m*n];
     Q=A;
-#ifdef USING_LAPACK
+
     dorgqr_(&m, &n, &kk, Q, &lda,tau,work,&lwork,&info);
-#else
-    DebugStop();
-#endif
     
     TPZFMatrix<REAL> matQ;
     matQ.Redim(m, n);
@@ -687,6 +682,10 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     matQt.Multiply(vecb, res);
     vecb.Redim(res.Rows(), res.Cols());
     vecb = res;
+    
+#else
+    DebugStop();
+#endif
     
     //------- Product of the transpose of matrix Q by b: Qˆt*vecb -------
     /*
