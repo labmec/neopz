@@ -65,8 +65,23 @@ TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis()
 }
 
 REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter){
-    
+
     TPZFMatrix<REAL> Interval = DeltaW;
+
+#ifdef DEBUG
+    {
+        LoadSolution(Wn);
+        AssembleResidual();
+        AdjustResidual(fRhs);
+        STATE normprev = Norm(fRhs);
+        if (fabs(normprev - RhsNormPrev) > 1.e-6) {
+            std::stringstream sout;
+            sout << "Norm of Wn " << Norm(Wn) << std::endl;
+            sout << "Input previous norm " << RhsNormPrev << " Computed Norm " << normprev;
+            LOGPZ_ERROR(EPAnalysisLogger, sout.str())
+        }
+    }
+#endif
     REAL scalefactor = 1.;
     int iter = 0;
     do {
@@ -92,8 +107,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 	int iter = 0;
 	REAL error = 1.e10;
 	int numeq = fCompMesh->NEquations();
-	//Mesh()->Solution().Zero();
-	//fSolution->Zero();
+	Mesh()->Solution().Zero();
+	fSolution.Zero();
 	
 	TPZFMatrix<REAL> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
@@ -102,10 +117,11 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
         std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
     }
     
-#ifdef LOG4CXX_keep
+#ifdef LOG4CXX
+    if(EPAnalysisLogger->isDebugEnabled())
     {
         std::stringstream sout;
-        fSolution.Print("Solution for checkconv",sout);
+        sout << "Solution norm of fSolution " << Norm(fSolution);
         LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
     }
 #endif
@@ -113,20 +129,51 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
     TPZAnalysis::AssembleResidual();
     AdjustResidual(fRhs);
     REAL RhsNormPrev = Norm(fRhs);
+    
+    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 	
 	while(error > tol && iter < numiter) {
 		
-		fSolution.Redim(0,0);
+		//fSolution.Redim(0,0);
         REAL RhsNormResult = 0.;
         if (linearmatrix) {
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
         }
 		LocalSolve();
+        TPZFMatrix<STATE> solkeep(fSolution);
+        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		if (linesearch){
-			TPZFMatrix<REAL> nextSol;
-			const int niter = 10;
-			this->LineSearch(prevsol, fSolution, nextSol, RhsNormPrev, RhsNormResult, niter);
-			fSolution = nextSol;
+            {
+                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+                TPZFMatrix<STATE> nextsol(prevsol);
+                nextsol += solkeep;
+                LoadSolution(nextsol);
+                AssembleResidual();
+                AdjustResidual(fRhs);
+                RhsNormResult = Norm(fRhs);
+                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+                std::cout << "RhsNormResult " << RhsNormResult << std::endl;
+            }
+            if (RhsNormResult > tol && RhsNormResult > RhsNormPrev) {
+                fSolution = prevsol;
+                TPZFMatrix<REAL> nextSol;
+                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+#ifdef LOG4CXX
+                if (EPAnalysisLogger->isDebugEnabled()) {
+                    std::stringstream sout;
+                    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+                    LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
+                }
+#endif
+                const int niter = 10;
+                this->LineSearch(prevsol, solkeep, nextSol, RhsNormPrev, RhsNormResult, niter);
+                fSolution = nextSol;
+            }
+            else
+            {
+//                fSolution = solkeep;
+//                fSolution += prevsol;
+            }
 		}
 		else{
 			fSolution += prevsol;
@@ -137,9 +184,22 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		}
 		
 		prevsol -= fSolution;
+        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		REAL normDeltaSol = Norm(prevsol);
 		prevsol = fSolution;
+        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		REAL norm = RhsNormResult;
+        
+#ifdef DEBUG
+        {
+            LoadSolution(fSolution);
+            AssembleResidual();
+            AdjustResidual(fRhs);
+            REAL rhsnorm = Norm(fRhs);
+            std::cout << "Norm rhs reported " << RhsNormResult << " now computed " << rhsnorm << std::endl;
+        }
+#endif
+        
         RhsNormPrev = RhsNormResult;
 		//       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
         std::cout << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << RhsNormResult << endl;
@@ -332,7 +392,7 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
 //	cout << "\nLocalSolve: fSolution=\n";
 //	for(i = 0; i < 4; i++)cout << "\t" << fSolution(i);
 
-#ifdef LOG4CXX
+#ifdef LOG4CXX_K
     {
         std::stringstream sout;
         fRhs.Print("Right hand side",sout);
@@ -340,7 +400,7 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
     }
 #endif
     TPZAnalysis::Solve();
-#ifdef LOG4CXX
+#ifdef LOG4CXX_K
     {
         std::stringstream sout;
         fSolution.Print("Solution",sout);

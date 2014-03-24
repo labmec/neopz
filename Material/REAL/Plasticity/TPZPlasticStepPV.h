@@ -50,7 +50,7 @@ public:
 	 * @param[in] alpha damage variable
 	 */
 	
-  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fInterfaceTensionSign(-1)
+  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fInterfaceTensionSign(-1), fN()
 	{ 
 		fN.fAlpha = alpha; 
 	}

@@ -44,7 +44,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 	STATE nextalpha = -6378.;
 	fYC.ProjectSigma(sigtrvec, fN.fAlpha, sigprvec, nextalpha);
 	fN.fAlpha = nextalpha;
-#ifdef LOG4CXX
+#ifdef LOG4CXX_KEEP
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
@@ -92,14 +92,21 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 	{
 		EigenvecMat[i] = DecompSig.fEigenvectors[i];
 		epsegveFromProj[i].Resize(3,1);
+        STATE maxvecnorm = 0;
+        int maxvecindex = 0;
 		for	(int k = 0 ; k < 3 ; k++){
-			bool IsnoZero = false;
-			for (int j = 0; j < 3; j++) {
-				epsegveFromProj[i](j,0) = EigenvecMat[i](j,k);
-				if (!IsZero(epsegveFromProj[i](j,0))) IsnoZero = true;
-			}	
-			if (IsnoZero) break;
+            STATE vecnorm=0.;
+            for (int j=0; j<3; j++) {
+                vecnorm += EigenvecMat[i](j,k)*EigenvecMat[i](j,k);
+            }
+            if (vecnorm> maxvecnorm) {
+                maxvecindex = k;
+                maxvecnorm = vecnorm;
+            }
 		}
+        for (int j=0; j<3; j++) {
+            epsegveFromProj[i](j,0) = EigenvecMat[i](j,maxvecindex);
+        }
 	}
 	for (int i = 0; i < 3; i++) {
 		REAL normvec = 0.;
@@ -425,10 +432,17 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     TPZPlasticState<STATE> prevstate=GetState();
     epsTotal=prevstate.fEpsP;
     TPZTensor<STATE> GuessStress,Diff,Diff2,deps;
-    TPZFMatrix<STATE> Dep(6,6);
-    TPZFMatrix<STATE> GuessStressFN(6,1),DiffFN(6,1);
+    TPZFNMatrix<36,STATE> Dep(6,6);
+    TPZFNMatrix<6,STATE> GuessStressFN(6,1),DiffFN(6,1);
     
     ApplyStrainComputeDep(epsTotal, GuessStress, Dep);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        Dep.Print("Dep = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     Diff=GivenStress;
     Diff-=GuessStress;
     
@@ -441,7 +455,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
     while (norm>tol && counter<30)
     {
         CopyFromTensorToFMatrix(Diff,DiffFN);
-        Dep.Solve_LU(&DiffFN);
+        std::list<long> singular;
+        Dep.Solve_LU(&DiffFN,singular);
         CopyFromFMatrixToTensor(DiffFN,Diff);
         TPZTensor<STATE> epsprev(epsTotal);
         normprev=norm;
@@ -451,11 +466,21 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
             for(int i=0;i<6;i++)epsTotal.fData[i]=epsprev.fData[i]+scale*Diff.fData[i];
             
             ApplyStrainComputeDep(epsTotal, GuessStress,Dep);
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                Dep.Print("Dep = ",sout,EMathematicaInput);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            
             fN=prevstate;
             Diff2=GivenStress;
             Diff2-=GuessStress;
+            CopyFromTensorToFMatrix(Diff2, DiffFN);
+            Dep.Solve_LU(&DiffFN, singular);
             norm=Norm(Diff2);
-            scale*=0.5;
+            //scale*=0.5;
             counter2++;
         }while (norm>=normprev && counter2<30);
         Diff=Diff2;

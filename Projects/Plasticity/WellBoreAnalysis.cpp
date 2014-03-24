@@ -1877,7 +1877,7 @@ void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & po
             
             TPZVec<STATE> sol(1);
             int var = cel->Material()->VariableIndex("PlasticSqJ2");
-            REAL Tol;
+            REAL Tol = 1.e-6;
 			//ZeroTolerance(Tol);
             for(int n = 0; n < nnodes; n++)
             {
@@ -2389,7 +2389,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
     
     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
-    TPZTensor<REAL> initstress,finalstress;
+    TPZTensor<REAL> initstress(0.),finalstress(0.);
     REAL hydro = fConfinement.I1();
     hydro -= SD.fYC.fA*SD.fYC.fR;
     hydro /= 3.;

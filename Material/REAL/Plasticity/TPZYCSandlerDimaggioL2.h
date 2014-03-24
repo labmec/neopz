@@ -746,7 +746,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
             for (int i=0; i<6; i++) {
                 REAL diff = fabs(scale*Ndir[surfaceprojected][i]-epsPlast[i]);
                 if (diff > 8.e-5) { //Nathan Trocou!!!!
-                    DebugStop();
+                    std::cout << "Projection has a large error diff = " << diff << " scale = " << scale << std::endl;
                 }
             }
             delgamma[0] = 0.;

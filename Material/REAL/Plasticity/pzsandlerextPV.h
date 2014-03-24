@@ -64,9 +64,9 @@ public:
 
     
     template<class T>
-    T F(T x,STATE phi) const;
+    T F(T x) const;
     
-    STATE GetF(STATE x,STATE phi);
+    STATE GetF(STATE x) const;
     
 private:
     /// The function which defines the plastic surface
@@ -84,13 +84,21 @@ private:
     T EpsEqk(T k) const;
     /// Compute the residual of the equation which defines the update of the damage variable
     template<class T>
-    T ResLF2(const TPZVec<T> &pt, T theta,T beta,T k,STATE kprev ) const;
+    T ResLF2(const TPZVec<T> &pt, T theta,T beta,T k,STATE kprev ) const;    
+    /// Compute the residual of the equation which defines the update of the damage variable
+    template<class T>
+    T ResLF2IJ(const TPZVec<T> &sigtrIJ, T theta,T k,STATE kprev ) const;
+
     /// Compute the residual of the equation which defines the update of the damage variable
     STATE ResLF1(const TPZVec<STATE> &sigtrial, TPZVec<STATE> &sigproj,STATE k,STATE kprev ) const;
     /// Compute the distance of sigtrial to the point on the yield surface
     STATE DistF1(const TPZVec<STATE> &pt,STATE xi,STATE beta) const;
     /// Compute the distance of sigtrial to the point on the cap
     STATE DistF2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k) const;
+    
+    /// Compute the distance considering the sigtrial is given as a funcion of I1, sqJ2
+    STATE DistF2IJ(const TPZVec<STATE> &sigtrialIJ,STATE theta,STATE k) const;
+
     
     /// Compute the derivative of the distance function to the yield surface as a function of xi and beta
     void DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &ddistf1) const;
@@ -102,7 +110,10 @@ private:
     /// Compute the derivative of the distance function to the cap function and the result of ResL
     template<class T>
 //    void DDistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k,STATE kprev, TPZVec<STATE> &ddistf2) const;
-    void DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kprev, TPZManVector<T> &ddistf2) const;
+    void DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kprev, TPZVec<T> &ddistf2) const;
+    /// Compute the value of the equation which determines the orthogonality of the projection
+    template<class T>
+    void DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE Lprev, TPZVec<T> &ddistf2) const;
 
     
     /// Compute the second derivative of the distance as a function of xi and beta
@@ -132,6 +143,8 @@ private:
     /// Transform from HW Cylindrical coordinates to eigenvalues
     static void FromHWCylToPrincipal(const TPZVec<STATE> &HWCylCoords, TPZVec<STATE> &PrincipalCoords);
     
+    template<class T>
+    void FromThetaKToSigIJ(const T &theta, const T &K, TPZVec<T> &sigIJ) const;
     
     /// Compute the derivative of the stress (principal s;tresses) as a function of xi and beta
     void DF1Cart(STATE xi, STATE beta, TPZFMatrix<STATE> &DF1) const;

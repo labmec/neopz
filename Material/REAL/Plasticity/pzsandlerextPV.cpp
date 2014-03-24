@@ -38,7 +38,7 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
 }
 
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi):
-fA(A),fB(B),fC(C),fD(D),fK(K),fG(G),fW(W),fR(R),fPhi(Phi),fN(N),fPsi(Psi)
+fA(A),fB(B),fC(C),fD(D),fK(K),fW(W),fR(R),fG(G),fPhi(Phi),fN(N),fPsi(Psi)
 {
     fE=(9.*fK*fG)/(3.*fK+fG);
     fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
@@ -53,20 +53,20 @@ TPZSandlerExtended::~TPZSandlerExtended()
 }
 
 template <class T>
-T TPZSandlerExtended::F(T x,STATE phi) const
+T TPZSandlerExtended::F(T x) const
 {
     return (fA - fC*exp(x *fB) -fPhi*x);
 }
 
-STATE TPZSandlerExtended::GetF(STATE x,STATE phi)
+STATE TPZSandlerExtended::GetF(STATE x) const
 {
-    return F(x, phi);
+    return F(x);
 }
 
 template<class T>
 T TPZSandlerExtended::X(T k) const
 {
-    return (k - fR * F(k, fPhi));
+    return (k - fR * F(k));
 }
 
 STATE TPZSandlerExtended::GetX(STATE k)
@@ -139,12 +139,23 @@ void TPZSandlerExtended::Firstk(STATE &epsp,STATE &k) const
     k=kn1;
 }
 
+
 template<class T>
 T TPZSandlerExtended::ResLF2(const TPZVec<T> &pt, T theta,T beta,T k,STATE kprev ) const
 {
     
     T I1tr=(pt[0])+(pt[1])+(pt[2]);
-    T I1 =fR*F(k,fPhi)* cos(theta) +k;
+    T I1 =fR*F(k)* cos(theta) +k;
+    T delepsp = EpsEqk(k) - EpsEqk(kprev);
+    return  (3.*fK*delepsp - (I1tr - I1));
+}
+
+template<class T>
+T TPZSandlerExtended::ResLF2IJ(const TPZVec<T> &sigtrialIJ, T theta,T k, STATE kprev ) const
+{
+    
+    T I1tr=sigtrialIJ[0];
+    T I1 =fR*F(k)* cos(theta) +k;
     T delepsp = EpsEqk(k) - EpsEqk(kprev);
     return  (3.*fK*delepsp - (I1tr - I1));
 }
@@ -239,7 +250,7 @@ void TPZSandlerExtended::F1Cyl(STATE xi, STATE beta, TPZVec<STATE> &f1cyl) const
     STATE sqrt3=sqrt(3);
     STATE gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
     STATE I1 = xi*sqrt3;
-    STATE sqrtj2 = ( F(I1, fPhi) - fN )/gamma;
+    STATE sqrtj2 = ( F(I1) - fN )/gamma;
     STATE rho = sqrt2*sqrtj2;
     f1cyl[0]=xi,
     f1cyl[1]=rho;
@@ -268,9 +279,10 @@ void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta,STATE k, TPZVec<STATE> &f
     STATE sqrt2=sqrt(2);
     STATE sqrt3=sqrt(3);
     STATE gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
-    STATE var =fR*F(k, fPhi)*cos(theta);
+    STATE Fk = F(k);
+    STATE var =fR*Fk*cos(theta);
     STATE I1 = k + var;
-    STATE sqrtj2 = (F(k, fPhi)- fN)*sin(theta)/gamma;
+    STATE sqrtj2 = (Fk- fN)*sin(theta)/gamma;
     STATE rho = sqrt2*sqrtj2;
     STATE xi=I1/sqrt3;
     f2cyl[0]=xi,
@@ -288,10 +300,11 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     rho=sigHWCyl[1];
     STATE I1 = sigHWCyl[0]*sqrt(3.);
     beta = sigHWCyl[2];
+    STATE Fk = F(k);
     STATE gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
-    STATE costheta = (I1-k)/(fR*F(k,fPhi));
+    STATE costheta = (I1-k)/(fR*Fk);
     STATE sqrtj2 = sigHWCyl[1]/sqrt(2.);
-    STATE sintheta = sqrtj2*gamma/(F(k,fPhi)-fN);
+    STATE sintheta = sqrtj2*gamma/(Fk-fN);
     theta = atan2(sintheta, costheta);
     //theta = acos(costheta);
     //STATE theta2 = atan((rho*sin(beta))/xi);
@@ -342,6 +355,51 @@ STATE TPZSandlerExtended::DistF2(const TPZVec<STATE> &pt,STATE theta,STATE beta,
     +(1./(2.*fG))*((carttrial[1]-cart[1])*(carttrial[1]-cart[1])+(carttrial[2]-cart[2])*(carttrial[2]-cart[2]));
 }
 
+STATE TPZSandlerExtended::DistF2IJ(const TPZVec<STATE> &sigtrialIJ,STATE theta,STATE k) const
+{
+    STATE I1 = sigtrialIJ[0];
+    STATE sqJ2 = sigtrialIJ[1];
+    STATE Fk;
+    Fk=F(k);
+    STATE y = (sqJ2-Fk*sin(theta));
+    STATE x = 1./(3*fK)*(I1-(k+Fk*fR*cos(theta)));
+    STATE res = x*x/(9.*fK)+y*y/(fG);
+    return res;
+    
+}
+
+template<class T>
+void TPZSandlerExtended::FromThetaKToSigIJ(const T &theta, const T &K, TPZVec<T> &sigIJ) const
+{
+    T Fk = F(K);
+    sigIJ[0] = K+Fk*fR*cos(theta);
+    sigIJ[1] = Fk*sin(theta);
+}
+
+/**
+ * compute the value of the equation which determines the orthogonality of the projection
+ */
+template<class T>
+void TPZSandlerExtended::DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE LPrev, TPZVec<T> &ddistf2) const
+{
+    T I1 = sigtrialIJ[0];
+    T sqJ2 = sigtrialIJ[1];
+    T Fk;
+    Fk = F(L);
+    T y = (sqJ2-Fk*sin(theta));
+    T x = (I1-(L+Fk*fR*cos(theta)));
+    ddistf2[0] = T(2.)*x*Fk*fR*sin(theta)/T(9.*fK)-T(2.)*y*Fk*cos(theta);
+    ddistf2[1] = ResLF2IJ(sigtrialIJ, theta,L ,LPrev);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "x = " << x << " y = " << y << " theta = " << theta << " res = " << ddistf2[0];
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}
+
 
 void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &ddistf1) const
 {
@@ -356,7 +414,7 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta,
     sig2 = ptcart[1];
     sig3 = ptcart[2];
     I1=xi*sqrt(3);
-    Ff=F(I1,fPhi);
+    Ff=F(I1);
     Gamma =(1 + sin3b+(1 - sin3b)/fPsi )/2.;
     DFf=-(exp(fB*I1)*fB*fC) - fPhi;
     DGamma=(3*cos3b - (3*cos3b)/fPsi)/2.;
@@ -385,7 +443,7 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta
     sig2 = ptcart[1];
     sig3 = ptcart[2];
     I1=xi*sqrt(3);
-    Ff=F(I1,fPhi);
+    Ff=F(I1);
     Gamma =(1. + sin3b+(1. - sin3b)/fPsi )/2.;
     DFf=-(exp(fB*I1)*fB*fC) - fPhi;
     D2Ff=-(exp(fB*I1)*pow(fB,2.)*fC);
@@ -415,8 +473,9 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta
     
 }
 
+// derivative of the distance function with respect to theta beta k (=L) respectively
 template<class T>
-void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kprev, TPZManVector<T> &ddistf2) const
+void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kprev, TPZVec<T> &ddistf2) const
 {
     T sig1,sig2,sig3,Gamma,sb,cb,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,D2Gamma2,Sqrt3,FfAlpha,c2t,st,ct,DFAlpha,expBC,s2t;
     TPZVec<T> ptcart(3);
@@ -432,7 +491,7 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kpr
     sig1 = ptcart[0];
     sig2 = ptcart[1];
     sig3 = ptcart[2];
-    FfAlpha=F(k,fPhi);
+    FfAlpha=F(k);
     DFAlpha=-(exp(fB*k)*fB*fC) - fPhi;
     Gamma =(1. + sin3b+(1. - sin3b)/fPsi )/2.;
     DGamma=(3.*cos3b - (3.*cos3b)/fPsi)/2.;
@@ -464,7 +523,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
     sig1 = ptcart[0];
     sig2 = ptcart[1];
     sig3 = ptcart[2];
-    FfAlpha=F(k,fPhi);
+    FfAlpha=F(k);
     DFAlpha=-(exp(fB*k)*fB*fC) - fPhi;
     Gamma =(1. + sin3b+(1. - sin3b)/fPsi )/2.;
     DGamma=(3.*cos3b - (3.*cos3b)/fPsi)/2.;
@@ -516,10 +575,10 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     sqrtj2=sqrt(JJ2);
     ggamma = 0.5*(1. + (1. - sin(3.*beta))/fPsi + sin(3.*beta));
     
-    temp1=(-II1+kprev)/(-fR*F(kprev,fPhi));
-    temp3=(ggamma*sqrtj2)/(F(kprev,fPhi));
+    temp1=(-II1+kprev)/(-fR*F(kprev));
+    temp3=(ggamma*sqrtj2)/(F(kprev));
     
-    f1=sqrtj2-F(II1,fPhi);
+    f1=sqrtj2-F(II1);
     f2=temp1*temp1+temp3*temp3-1;
 
     yield[0]=f1;
@@ -1058,6 +1117,14 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     {
         if (yield[1]>0. && treeEigEqual==false)
         {
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Projecting on F2, distinct eigenvalues " << sigtrial;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             ProjectF2(sigtrial,kprev,sigproj,kproj);
             // we can compute the tangent matrix
             TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
@@ -1072,32 +1139,120 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
         }
         else if (yield[1]>0. && treeEigEqual==true)
         {
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Projecting on F2, equal eigenvalues " << sigtrial;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             ProjectBetaConstF2(sigtrial,kprev,sigproj,kproj);
             // we can compute the tangent matrix
             TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
             STATE theta,beta;
+            // compute theta beta as a function of sigproj, kproj
             SurfaceParamF2(sigproj, kproj, theta, beta);
+            // theta should be Pi
+            // for hydrostatic stress beta doesn't mean anything
             beta=0;
-//#ifdef DEBUG
-//            if(fabs(sigproj[1]) > tol)
-//            {
-//                DebugStop();
-//            }
-//#endif
-            GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, dbetadsigtrial);
-            for(int i=0; i<3; i++) dbetadsigtrial(1,i) = 0.;
-            D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
-            for (int i=0; i<3; i++) {
-                jacF2(i,1) = 0.;
-                jacF2(1,i) = 0.;
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Surface parameters for sigproj = " << sigproj << " kproj " << kproj << " theta " << theta;
+                LOGPZ_DEBUG(logger, sout.str())
             }
-            jacF2(1,1) = 1.;
-            jacF2.Solve_LU(&dbetadsigtrial);
-            DF2Cart(theta, beta, kproj, DF2cart);
-            for(int i=0; i<3; i++) DF2cart(i,1) = 0.;
-            DF2cart.Multiply(dbetadsigtrial, GradSigma);
-            GradSigma *= -1.;
-            
+#endif
+            TPZManVector<STATE,2> sigtrialIJ(2,0.), sigprojIJ(2), ddistf2(2);
+            sigtrialIJ[0] = sigtrial[0]+sigtrial[1]+sigtrial[2];
+            DDistF2IJ(sigtrialIJ, theta, kproj, kprev, ddistf2 );
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Derivative of the distance function (should be zero) = " << ddistf2;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            TPZFNMatrix<4,STATE> JacThetaK(2,2), JacSigtrIJ(2,2), JacSigprojThetaK(2,2);
+            {
+                TPZManVector<TFad<2,STATE>,2> sigtrialIJFAD(2), ddistf2fad(2);
+                TFad<2,STATE> thetafad(theta,0),kprojfad(kproj,1),kprevfad(kprev);
+                sigtrialIJFAD[0].val() = sigtrialIJ[0];
+                sigtrialIJFAD[1].val() = sigtrialIJ[1];
+                DDistF2IJ(sigtrialIJFAD, thetafad, kprojfad, kprev, ddistf2fad);
+                JacThetaK(0,0) = ddistf2fad[0].d(0);
+                JacThetaK(0,1) = ddistf2fad[0].d(1);
+                JacThetaK(1,0) = ddistf2fad[1].d(0);
+                JacThetaK(1,1) = ddistf2fad[1].d(1);
+            }
+            {
+                TPZManVector<TFad<2,STATE>,2> sigtrialIJFAD(2), ddistf2fad(2);
+                TFad<2,STATE> thetafad(theta),kprojfad(kproj),kprevfad(kprev);
+                sigtrialIJFAD[0].val() = sigtrialIJ[0];
+                sigtrialIJFAD[0].fastAccessDx(0) = 1.;
+                sigtrialIJFAD[1].val() = sigtrialIJ[1];
+                sigtrialIJFAD[1].fastAccessDx(1) = 1.;
+                DDistF2IJ(sigtrialIJFAD, thetafad, kprojfad, kprev, ddistf2fad);
+                JacSigtrIJ(0,0) = ddistf2fad[0].d(0);
+                JacSigtrIJ(0,1) = ddistf2fad[0].d(1);
+                JacSigtrIJ(1,0) = ddistf2fad[1].d(0);
+                JacSigtrIJ(1,1) = ddistf2fad[1].d(1);
+            }
+            FromThetaKToSigIJ(theta, kproj, sigprojIJ);
+            {
+                TPZManVector<TFad<2,STATE>,2> sigprojIJFAD(2);
+                TFad<2,STATE> thetafad(theta,0),kprojfad(kproj,1);
+                FromThetaKToSigIJ(thetafad, kprojfad, sigprojIJFAD);
+                JacSigprojThetaK(0,0) = sigprojIJFAD[0].d(0);
+                JacSigprojThetaK(0,1) = sigprojIJFAD[0].d(1);
+                JacSigprojThetaK(1,0) = sigprojIJFAD[1].d(0);
+                JacSigprojThetaK(1,1) = sigprojIJFAD[1].d(1);
+            }
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Derivative of the distanceIJ " << ddistf2 << std::endl;
+                JacThetaK.Print("Derivative of distanceIJ with respect to theta, K",sout);
+                JacSigtrIJ.Print("Derivative of distanceIJ with respect to sigtialIJ",sout);
+                sout << "SigmaProjected IJ " << sigprojIJ << std::endl;
+                JacSigprojThetaK.Print("Derivative of sigproj with respect to theta K",sout);
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            std::list<long> singular;
+            JacThetaK.Solve_LU(&JacSigtrIJ, singular);
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Negative of derivative of Theta,K with respect to sigtrIJ" << std::endl;
+                JacSigtrIJ.Print("Derivative = ",sout);
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            TPZFNMatrix<4,STATE> dsigprojdsigtr(2,2);
+            JacSigprojThetaK.Multiply(JacSigtrIJ, dsigprojdsigtr);
+            dsigprojdsigtr *= -1.;
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                dsigprojdsigtr.Print("Derivative of SigprojIJ with respect to SigtrialIJ",sout);
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            for (int i=0; i<3; i++) {
+                for (int j=0; j<3; j++) {
+                    GradSigma(i,j) = dsigprojdsigtr(0,0)/3.;
+                    if (i==j) {
+                        GradSigma(i,j) += dsigprojdsigtr(1,1)*2./3.;
+                    }
+                    else
+                    {
+                        GradSigma(i,j) -= dsigprojdsigtr(1,1)/3.;
+                    }
+                }
+            }
         }
         else
         {
@@ -1110,6 +1265,13 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     {
         if (yield[0]>0.)
         {
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Projecting on F1";
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             ProjectF1(sigtrial,kprev,sigproj,kproj);
             
             I1 = 0.;
@@ -1161,6 +1323,13 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
         }
         else
         {
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "Elastic Behaviour";
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             // elastic behaviour
             sigproj = sigtrial;
             kproj=kprev;

@@ -546,6 +546,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
 #endif
     
     ComputeDep(sigma, Dep);
+    /*
     TPZTensor<STATE> sigma2;
     TPZFNMatrix<36,STATE> Dep2(6,6);
     ComputeDep2(sigma2, Dep2);
@@ -567,7 +568,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
         LOGPZ_DEBUG(loggerDEP2,sout1.str());
     }
 #endif
-    
+    */
 }
 
 /*

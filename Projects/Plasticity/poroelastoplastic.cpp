@@ -1682,7 +1682,7 @@ int main ()
         numdiv[1] = 40;
         well.SetMeshTopology(delx, numdiv);
         well.GetCurrentConfig()->CreateMesh();
-        int porder = 2;
+        int porder = 3;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
@@ -1716,6 +1716,11 @@ int main ()
         
         int nsteps = 3;
         int numnewton = 80;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        
+        //well.Print(std::cout);
+
+
         well.ExecuteInitialSimulation(nsteps, numnewton);
         well.ExecuteSimulation(5,15.);
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
@@ -1739,7 +1744,7 @@ int main ()
     if (startfrom <= 2) {
         
         
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+//        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         //        well.PostProcess(1);
 //        int nsteps = 3;
 //        int numnewton = 80;

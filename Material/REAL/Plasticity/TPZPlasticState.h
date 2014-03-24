@@ -34,7 +34,7 @@ public:
 	/**
 	 * Constructor enabling predefinition of Alpha
 	 */
-	TPZPlasticState(const T & alpha):fEpsT(), fEpsP(), fAlpha(alpha){ }
+	TPZPlasticState(const T & alpha):fEpsT(T(0.)), fEpsP(T(0.)), fAlpha(alpha){ }
 	
 	/**
 	 * Copy constructor
