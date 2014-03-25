@@ -244,6 +244,20 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	fileerrors.flush();
 	out.flush();
 
+	// Adjusting parameters
+	switch(typeel) {
+	case EQuadrilateral:
+//		ninitialrefs = 3;
+	case ETriangle:
+	case ETetraedro:
+		NRefs = 15;
+		break;
+	default:
+		NRefs = 12;
+		break;
+	}
+
+	// Initial uniform refinement or printing solution on mesh with 7-h refinements
 	if(printingsol) {
 		TPZGeoMesh *gmeshfirst = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
 		UniformRefinement(7,gmesh,ModelDimension);
@@ -283,19 +297,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	}
 	cmesh = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);     // Forcing function is out 2013_07_25
 
-	// Adjusting parameters
-	switch(typeel) {
-	case ETriangle:
-	case EQuadrilateral:
-		NRefs = 20;
-		break;
-	case ETetraedro:
-		NRefs = 15;
-		break;
-	default:
-		NRefs = 10;
-		break;
-	}
 	// To storing number of equations and errors obtained for all iterations
 	ErrorVec.Resize(NRefs);
 	ErrorVec.Fill(0.0L);
@@ -394,7 +395,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-			REAL factorError = 0.3;
+			REAL factorError = 1./3.;
 			while(!ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref,itypeel,factorError)) {
 				factorError -= 0.075;
 				out << "\nFactorError " << factorError << std::endl;
@@ -443,12 +444,9 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	TPZVec<long> counterreftype(50,0);
 	REAL MaxGrad;
 	long i, ii;
-	REAL factorBigError = 0.7;
+	REAL factorBigError = 0.8;
 	REAL factorGrad = 0.6;
-	REAL GradErLimit = 9.*(dim-1);
-	if(dim==3 && nref) {
-		GradErLimit = 9.;
-	}
+	REAL GradErLimit = 10.*(dim-1);
 	
 	REAL BigError = factorBigError*MaxErrorByElement+(1.-factorBigError)*MinErrorByElement;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
@@ -473,13 +471,18 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 		level = el->Reference()->Level();
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
+		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel && nref < 7) {
 			counterreftype[10]++;
+			if(nref && pelement < MaxPOrder && ervecbyel[i] > SmallError) {
+				counterreftype[11]++;
+				el->PRefine(pelement);
+				pused = true;
+			}
 			el->Divide(index,subels);
 			level++;
 			hused = true;
-			if(nref && ervecbyel[i] > BigError && level < MaxHLevel && nref < 6) {
-				counterreftype[11]++;
+			if(nref && ervecbyel[i] > BigError && level < MaxHLevel) {
+				counterreftype[12]++;
 				for(ii=0;ii<subels.NElements();ii++) {
 					if(subels[ii]) {
 						cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
@@ -488,16 +491,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 				}
 				level++;
 			}
-			else if(pelement < MaxPOrder) {
-				counterreftype[10]++;
-				for(ii=0;ii<subels.NElements();ii++) {
-					if(subels[ii])
-						((TPZInterpolatedElement *)(cmesh->ElementVec()[subels[ii]]))->PRefine(pelement);
-				}
-				pused = true;
-			}
 		}
-		else if(ervecbyel[i] > SmallError && pelement < MaxPOrder) {
+		else if(ervecbyel[i] > SmallError && pelement < MaxPOrder && nref) {
 			counterreftype[20]++;
 			if(el)
 				el->PRefine(pelement);
