@@ -362,7 +362,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		
 		efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
 		
-	    TPZFMatrix<STATE> rhsCopy(rhsTemp), result;
+	    TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
 		//	int status = ekTemp.Solve_Cholesky(&(rhsTemp));
 	    int status = ekTemp.Solve_LU(&(rhsTemp));
 		
@@ -374,10 +374,12 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	  		return;
 		}
  		
-	    if(invRes > 1.e-8)PZError << "Error at " << __PRETTY_FUNCTION__ 
+	    if(invRes > 1.e-8)
+		{
+			PZError << "Error at " << __PRETTY_FUNCTION__ 
 			<< " Transference linear system solved with residual norm = " 
 			<< invRes << " at " << i_st << " export variable\n";
-		
+		}
 	    for(int i_sh = 0; i_sh < nshape; i_sh++)
 		  	ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh); 
 	}

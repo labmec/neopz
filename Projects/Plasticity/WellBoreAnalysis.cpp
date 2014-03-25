@@ -492,12 +492,13 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
         }
         bool linesearch = true,checkconv=false;
+		REAL tol = 1.e-6;
 #ifdef PV
         //analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
-        analysis.IterativeProcess(cout, fLinearMatrix, 1.e-8, numnewton, linesearch);
+        analysis.IterativeProcess(cout, fLinearMatrix,tol, numnewton, linesearch);
 #else
         //analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
-        analysis.IterativeProcess(cout, fLinearMatrix, 1.e-8, numnewton, linesearch);
+        analysis.IterativeProcess(cout, fLinearMatrix, tol, numnewton, linesearch);
 #endif
         
         

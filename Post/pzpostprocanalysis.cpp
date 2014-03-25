@@ -11,6 +11,7 @@
 #include "pzstring.h"
 //#include "pzelastoplasticanalysis.h"
 #include "pzcreateapproxspace.h"
+#include "pzmeshid.h"
 
 #include <map>
 #include <set>
@@ -471,12 +472,12 @@ int TPZPostProcAnalysis::ClassId() const
 /** @brief Save the element data to a stream */
 void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid)
 {
-    
+    DebugStop();
 }
 
 /** @brief Read the element data from a stream */
 void TPZPostProcAnalysis::Read(TPZStream &buf, void *context)
 {
-    
+    DebugStop();
 }
 

@@ -608,8 +608,10 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
  //   }
 //#endif
     
-    //ofstream convergenceF1("convergenceF1.txt");
-    STATE xi,resnorm,beta,distxi,distnew;
+#ifdef DEBUG
+//    std::ofstream convergenceF1("convergenceF1.txt");
+#endif
+    STATE xi = fA,resnorm,beta = 0.,distxi,distnew;
     distxi=1.e8;
     STATE guessxi=fA;
     for (STATE xiguess=-2*guessxi; xiguess <= 2*guessxi; xiguess += 2*guessxi/20.)
@@ -628,22 +630,24 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     
     resnorm=1.;
     long counter=1;
-    TPZFMatrix<STATE> xn1(2,1,0.),xn(2,1,0.),jac,invjac,sol(2,1,0.),fxn(2,1,0.),diff(2,1,0.);
+    TPZFNMatrix<4,STATE> xn1(2,1,0.),xn(2,1,0.),jac,invjac,sol(2,1,0.),fxn(2,1,0.),diff(2,1,0.);
     xn(0,0)=xi;
     xn(1,0)=beta;
     while (resnorm > 10e-12 && counter < 30)
     {
         
         TPZFNMatrix<4,STATE> jac(2,2);
-        D2DistFunc1(sigmatrial, xn[0],xn[1],jac);
-        DDistFunc1(sigmatrial, xn[0],xn[1],fxn);
+        D2DistFunc1(sigmatrial, xn(0),xn(1),jac);
+        DDistFunc1(sigmatrial, xn(0),xn(1),fxn);
         sol = fxn;
         resnorm=Norm(sol);
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
-        //resnorm=Norm(diff);
-        //convergenceF1 << counter << " "<<resnorm <<endl;
+        resnorm=Norm(diff);
+#ifdef DEBUG
+//        convergenceF1 << counter << " "<<resnorm <<endl;
+#endif
         
 //#ifdef LOG4CXX
 //        {
