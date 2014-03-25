@@ -446,7 +446,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	long i, ii;
 	REAL factorBigError = 0.8;
 	REAL factorGrad = 0.6;
-	REAL GradErLimit = 10.*(dim-1);
+	REAL GradErLimit = 9.;
 	
 	REAL BigError = factorBigError*MaxErrorByElement+(1.-factorBigError)*MinErrorByElement;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
@@ -622,8 +622,8 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	}
 	fileerrors << ErrorVec[nref] << "};";
 	// printing lines to create lists of logarithms
-	fileerrors << std::endl << "LogNEquations = Table[Log[NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
-	fileerrors << "LogL2Errors = Table[Log[L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
+	fileerrors << std::endl << "LogNEquations = Table[Log[10,NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
+	fileerrors << "LogL2Errors = Table[Log[10,L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
 	fileerrors << "ListPlot[{Table[{LogNEquations[[i]],LogL2Errors[[i]]},{i,1,Length[LogNEquations]}]";
 	fileerrors << "},Joined->True,PlotRange->All]\n" << std::endl;
 	return true;
