@@ -89,7 +89,7 @@ int main(int argc, char * const argv[])
     REAL visc = 200.02E-3 * globStressScale;
     
     //J-Integral data
-    REAL Jradius = 1.0;
+    REAL Jradius = 0.5;
 
     //Simulation p-order data
     int porder = 1;
@@ -102,6 +102,8 @@ int main(int argc, char * const argv[])
                                                                  porder,
                                                                  MaxDispl,
                                                                  pressureINdependent);
+    
+//    globLeakoffStorage.DisableLeakoff();
     plfrac->Run();
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");

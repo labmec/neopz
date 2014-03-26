@@ -118,7 +118,6 @@ void TPZPlaneFractureKernel::Run()
 {
     this->InitializePoligonalChain();
     
-    REAL fractVolum = 0.;
     TPZCompMesh * lastElasticCMesh = NULL;
     TPZCompMesh * lastPressureCMesh = NULL;
     
@@ -154,7 +153,7 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     fpoligonalChain.Resize(0);
     
     REAL yc = -fCenterTVD;
-    REAL sAx = 3.5 * this->fLmax;
+    REAL sAx = 1.05 * this->fHbullet/2.;
     REAL sAy = 1.05 * this->fHbullet/2.;
     
     REAL shiftX = 0.;
@@ -291,6 +290,41 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 
 void TPZPlaneFractureKernel::RunThisFractureGeometry()
 {
+//    {/** Desacoplado meia boca : só para ver KI=KIc */
+//        this->fmeshVec[0]->Solution()(1,0) = globLayerStruct.GetLowerPreStress();
+//        
+//        bool thereIs = true;
+//        REAL negV = 0.;
+//        while(thereIs == true)
+//        {
+//            this->IntegrateW(thereIs, negV);
+//            this->fmeshVec[0]->Solution()(1,0) += 0.01;
+//        }
+//        
+//        REAL maxKI_KIc = 0.;
+//        std::set<int> who;
+//        int maxKI_KIcPos = 0;
+//        bool prop = false;
+//
+//        while(prop == false)
+//        {
+//            prop = this->CheckPropagationCriteria(maxKI_KIc, who, maxKI_KIcPos);
+//            if(prop == false) this->fmeshVec[0]->Solution()(1,0) += 0.01;
+//        }
+//        
+//        REAL vol = this->IntegrateW(thereIs, negV);
+//        REAL Qinj = -this->fQinj1wing_Hbullet*this->fHbullet;
+//        REAL Ttot = vol/Qinj;
+//        REAL deltaT = Ttot - globTimeControl.actTime();
+//        globTimeControl.SetDeltaT(deltaT);
+//        
+//        this->CloseActualTimeStep();
+//        this->DefinePropagatedPoligonalChain(maxKI_KIc, who);
+//        this->fstep++;
+//        
+//        return;
+//    }
+
     TPZAnalysis * an = new TPZAnalysis(this->fmphysics);
     
     /** Convergence test */
@@ -334,8 +368,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         this->MassMatrix(matMass);
         
         REAL normRes = 1.;
-        REAL tolRes = 1.e-4;
-        int maxit = 10;
+        REAL tolRes = 1.e-3;
+        int maxit = 20;
         int nit = 0;
         
         ///Metodo de Newton para EntireFracture
@@ -365,14 +399,15 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             std::cout << "normRes = " << normRes << std::endl;
             nit++;
         }
-        if(normRes <= tolRes)
+        bool just1Stripe = true;
+        if(just1Stripe == false && normRes <= tolRes)
         {
             ///Metodo de Newton para Stripes
             std::cout << "\n-> Stripes\n";
             
             this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, EentireFracure);
             matRes_total = matRes_partial + matMass;
-
+            
             normRes = 1.;
             nit = 0;
             while(normRes > tolRes && nit < maxit)
@@ -866,11 +901,9 @@ void TPZPlaneFractureKernel::PostProcessSolutions(int num)
     
     solutFile.precision(8);
     solutFile << "\nMeshvec[0]:\n";
-    solutFile << "Entire fracture : " << this->fmeshVec[0]->Solution()(1,0) << "\n";
     for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
     {
-        solutFile << "Stripe" << (r-2) << " : " << this->fmeshVec[0]->Solution()(r,0) <<
-                     " | (TOTAL = " << this->fmeshVec[0]->Solution()(1,0) + this->fmeshVec[0]->Solution()(r,0) << ")\n";
+        solutFile << "Stripe" << (r-2) << " : " << this->fmeshVec[0]->Solution()(1,0) + this->fmeshVec[0]->Solution()(r,0) << "\n";
     }
     solutFile << "\nMeshvec[1]:\n";
     for(int r = 0; r < this->fmeshVec[1]->Solution().Rows(); r++)
@@ -1046,7 +1079,8 @@ void TPZPlaneFractureKernel::PostProcessFractGeometry(int num)
         
         outF << globFractOutput3DData.fFractContour.str();
         
-        outF << "\nShow[AllPolChains]\n";
+        outF << "grRange=Max[Max[Transpose[Lgr][[2]]],Max[Transpose[Hsupgr][[2]]],Max[Transpose[Hinfgr][[2]]]]+1;\n";
+        outF << "Show[AllPolChains,PlotRange->{{0,2*grRange},{-grRange,grRange}}]\n";
         outF << "l={ListPlot[Lgr,AxesOrigin->{0,0},Filling->Axis,AxesLabel->{\"Time (min)\", \"L (green), Hsup (blue), Hinf (red) (m)\"}],";
         outF << "ListPlot[Lgr,Joined->True,AxesOrigin->{0,0},PlotStyle->Green]};\n";
         outF << "hs={ListPlot[Hsupgr,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hsupgr,Joined->True]};\n";

@@ -133,7 +133,7 @@ public:
     void RestartBissection()
     {
         freachTime_right = false;
-        factDeltaT = 10.;
+        factDeltaT = MAX( 0.01 , factDeltaT-5. );
         fDeltaT_left = factDeltaT;
         fDeltaT_right = fTtot + 10.;
     }

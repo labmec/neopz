@@ -229,11 +229,11 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         
         int layer = globMaterialIdGen.WhatLayer(insideMatId);
 
-/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido */
+/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido : PIOR */
 //        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
 //        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
 
-/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media */
+/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media : MELHOR */
         int stripe = globMaterialIdGen.WhatStripe(insideMatId);
         Sigma_n[1] = globElastReducedSolution.GetNetPressure(layer, stripe);
     }
@@ -878,7 +878,7 @@ void Path3D::ComputeJIntegral()
     REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
     REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
     
-    {//AQUICAJUX : projetando na normal
+    {//AQUICAJU : projetando na normal
         REAL ex = this->fNormalDirection[0];
         REAL ez = this->fNormalDirection[2];
         ex = ex/sqrt(ex*ex + ez*ez);

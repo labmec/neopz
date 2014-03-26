@@ -1921,6 +1921,16 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
     int n1Dels = this->fcrackBoundaryElementsIndexes.NElements();
     std::map<int,locFracture2DEl> fracturedElems;
     
+    int maxNStripes = 9;//limitacao do globMaterialIdGen
+    int mult = 2;
+    int predictedNStripes = this->fLfrac / (mult * this->fLmax) + 1;
+    while(predictedNStripes > maxNStripes)
+    {
+        mult++;
+        predictedNStripes = this->fLfrac / (mult * this->fLmax) + 1;
+    }
+    
+    
     //Capturando subelementos que encostam no contorno da fratura
     for(int el = 0; el < n1Dels; el++)
     {
@@ -1977,7 +1987,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                     REAL Xc = neighCenterX[0];
                     REAL Zc = neighCenterX[2];
                     
-                    int stripe = (int)(Xc/(2.*this->fLmax));
+                    int stripe = (int)(Xc/(mult*this->fLmax));
                     int layer = globLayerStruct.WhatLayer(Zc);
                     this->fnstripes = MAX(this->fnstripes,stripe+1);
                     
@@ -2058,7 +2068,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                         REAL Xc = neighCenterX[0];
                         REAL Zc = neighCenterX[2];
                         
-                        int stripe = (int)(Xc/(2.*this->fLmax));
+                        int stripe = (int)(Xc/(mult*this->fLmax));
                         int layer = globLayerStruct.WhatLayer(Zc);
                         this->fnstripes = MAX(this->fnstripes,stripe+1);
                         
