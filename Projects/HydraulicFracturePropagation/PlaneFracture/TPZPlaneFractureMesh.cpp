@@ -533,7 +533,8 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, REAL Qinj, REAL visc, int porder)
+TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, TPZCompMesh * lastElastCMesh,
+                                                            REAL Qinj, REAL visc, int porder)
 {
     fRefinedMesh->ResetReference();
     
@@ -567,6 +568,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
                                                                               Pe,
                                                                               gradPref,
                                                                               vsp);
+        couplingMat->SetLastElastCMesh(lastElastCMesh);
         
         //Inserindo no vetor de materiais de acoplamento
         int oldSz = fCouplingMatVec.NElements();

@@ -14,6 +14,74 @@
 
 #include <iostream>
 #include "TPZElast3Dnlinear.h"
+#include "pzfunction.h"
+#include "pzgmesh.h"
+
+class TPZLastElastFunction
+{
+public:
+	
+	/** @brief Class constructor */
+	TPZLastElastFunction()
+    {
+        this->flastElastCMesh = NULL;
+        this->finiElIndex = 0;
+    }
+    
+    void SetLastElastCMesh(TPZCompMesh * LastElastCMesh)
+    {
+        this->flastElastCMesh = LastElastCMesh;
+    }
+	
+	/** @brief Class destructor */
+	~TPZLastElastFunction()
+    {
+        
+    }
+    
+	/**
+	 * @brief Performs function computation
+	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+	 * @param f function values
+	 * @param df function derivatives
+	 */
+	virtual void Execute(TPZVec<REAL> &x, REAL &uy)
+    {
+        if(!this->flastElastCMesh)
+        {
+            uy = 0.;
+            return;
+        }
+        
+        this->flastElastCMesh->LoadReferences();
+        
+        TPZGeoMesh * gmesh = this->flastElastCMesh->Reference();
+        TPZVec<REAL> qsi(3,0.);
+        TPZGeoEl * gel = gmesh->FindElement(x, qsi, this->finiElIndex, 3);
+        
+        if(!gel)
+        {
+            std::cout << "\n\n\ngeoEl not found on " << __PRETTY_FUNCTION__ << "\n\n\n";
+            DebugStop();
+        }
+        if(!gel->Reference())
+        {
+            std::cout << "\n\n\nNULL geoEl->Reference() not found on " << __PRETTY_FUNCTION__ << "\n\n\n";
+            DebugStop();
+        }
+        
+        TPZVec<REAL> sol(3,0.);
+        gel->Reference()->Solution(qsi,0,sol);
+        uy = MAX(0.,sol[1]);
+    }
+    
+    TPZCompMesh * flastElastCMesh;
+    long finiElIndex;
+};
+
+
+//===================================================================================
+
 
 class TPZPlaneFractCouplingMat : public TPZElast3Dnlinear
 {
@@ -32,6 +100,8 @@ public:
                              STATE vsp);
     
     ~TPZPlaneFractCouplingMat();
+    
+    void SetLastElastCMesh(TPZCompMesh * LastElastCMesh);
     
     //Soh para nao ficar mostrando warnings!
     using TPZElast3Dnlinear::TPZMaterial::Contribute;
@@ -112,6 +182,8 @@ public:
 
 private:
     
+    TPZLastElastFunction * fLastElastFunction;
+    
     //Fluid
     STATE fVisc;
     
@@ -121,6 +193,5 @@ private:
     REAL fgradPref;//Pressao de referencia da medicao do Cl
     REAL fvsp;//spurt loss
 };
-
 
 #endif /* defined(__PZ__TPZPlaneFractCouplingMat__) */

@@ -16,6 +16,7 @@ TPZPlaneFractCouplingMat::EState TPZPlaneFractCouplingMat::gState = EActualState
 
 TPZPlaneFractCouplingMat::TPZPlaneFractCouplingMat() : TPZElast3Dnlinear()
 {
+    fLastElastFunction = new TPZLastElastFunction();
     fVisc = 0.;
     fCl = 0.;
     fPe = 0.;
@@ -33,6 +34,7 @@ TPZPlaneFractCouplingMat::TPZPlaneFractCouplingMat(int nummat, STATE E, STATE po
                                                    STATE vsp) :
                                                    TPZElast3Dnlinear(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
 {
+    fLastElastFunction = new TPZLastElastFunction();
     fVisc = visc;
     fCl = Cl;
     fPe = Pe;
@@ -42,11 +44,17 @@ TPZPlaneFractCouplingMat::TPZPlaneFractCouplingMat(int nummat, STATE E, STATE po
 
 TPZPlaneFractCouplingMat::~TPZPlaneFractCouplingMat()
 {
+    fLastElastFunction = NULL;
     fVisc = 0.;
     fCl = 0.;
     fPe = 0.;
     fgradPref = 0.;
     fvsp = 0.;
+}
+
+void TPZPlaneFractCouplingMat::SetLastElastCMesh(TPZCompMesh * LastElastCMesh)
+{
+    fLastElastFunction->SetLastElastCMesh(LastElastCMesh);
 }
 
 int TPZPlaneFractCouplingMat::NSolutionVariables(int var)
@@ -96,39 +104,11 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     TPZFMatrix<REAL>  & dphi_p = datavec[1].dphix;
     TPZManVector<REAL,3> sol_p = datavec[1].sol[0];
     TPZFMatrix<REAL> & dsol_p = datavec[1].dsol[0];
-    
-#ifdef DEBUG
-    if(dsol_p.Rows() != 2 || dphi_p.Rows() != 2)
-    {
-        DebugStop();
-    }
-#endif
-    
     TPZFMatrix<REAL> & phi_u = datavec[0].phi;
-    
-    REAL w = 0.;
-    {
-        int nsolu = datavec[0].sol.NElements();
-//#ifdef DEBUG //AQUICAJU
-        if(nsolu != 1)
-        {
-            std::cout << "\n\n\nMore than 1 Nsolutions???\n";
-            std::cout << "See " << __PRETTY_FUNCTION__ << ".\n\n\n";
-            DebugStop();
-        }
-//#endif
-        for(int s = 0; s < nsolu; s++)
-        {
-            TPZManVector<REAL,3> sol_u = datavec[0].sol[s];
-            REAL uy = sol_u[1];
-            w += 2.*uy;
-        }
-    }
     
     int phipRows = phi_p.Rows();
     int phiuCols = phi_u.Cols();
     
-    REAL visc = this->fVisc;
     REAL deltaT = globTimeControl.actDeltaT();
     
 	if(gState == EActualState) //current state (n+1): Matrix stiffnes
@@ -136,17 +116,20 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
         REAL actQl = 0.;
         REAL actdQldp = 0.;
         
+        REAL w = 0.;
+        {
+            TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
+            REAL uy = sol_u[1];
+            w += 2.*uy;
+        }
         if(w > 0.)
         {
-//AQUICAJU
-//            int layer = globMaterialIdGen.WhatLayerFromInsideFracture(this->Id());
-//            int stripe = globMaterialIdGen.WhatStripe(this->Id());
-//            REAL pfrac = globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
             REAL pfrac = sol_p[0];
-            
             actQl = globLeakoffStorage.QlFVl(datavec[1].gelElId, pfrac, deltaT, fCl, fPe, fgradPref, fvsp);
             actdQldp = globLeakoffStorage.dQlFVl(datavec[1].gelElId, pfrac, deltaT, fCl, fPe, fgradPref, fvsp);
         }
+        
+        REAL visc = this->fVisc;
         for(int in = 0; in < phipRows; in++)
         {
             //----Residuo----
@@ -187,15 +170,12 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
         for(int in = 0; in < phipRows; in++)
         {
             //termo w/deltaT * Vp
+            REAL uy;
+            this->fLastElastFunction->Execute(datavec[1].x,uy);
+            REAL w = 2.*uy;
             ef(phiuCols+in,0) += (+1.) * weight * w/deltaT * phi_p(in,0);
         }
     }
-#ifdef DEBUG
-    else
-    {
-        DebugStop();//mas hein???
-    }
-#endif
 }
 
 void TPZPlaneFractCouplingMat::ContributeBC(TPZVec<TPZMaterialData> &datavec,

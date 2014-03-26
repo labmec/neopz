@@ -15,6 +15,7 @@
 #include "pzintel.h"
 #include "TPZPlaneFractureMesh.h"
 
+
 const REAL gIntegrPrecision = 1.e-4;
 
 
@@ -27,7 +28,7 @@ LinearPath3D::LinearPath3D()
 }
 
 
-LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic,
+LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
                            TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius)
 {    
     this->fFinalPoint = FinalPoint;
@@ -37,14 +38,20 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic,
     this->fDETdxdt = this->fradius/2.;
     
     this->fcmeshElastic = cmeshElastic;
-    //Se crackPressure acabar sendo positivo, teremos ponta da fratura fechando (imporei KI = 0.)!!!
+    this->fcmeshFluid = cmeshFluid;
     
     this->fInitialPoint.Resize(3, 0.);
-    this->fInitialPoint[0] = (this->fFinalPoint[0] - this->fradius*sin((M_PI)/2.)*sin(atan2(this->fNormalDirection[2],this->fNormalDirection[0])));
-    this->fInitialPoint[1] = this->fradius*cos((M_PI)/2.); 
-    this->fInitialPoint[2] = (this->fFinalPoint[2] + this->fradius*cos(atan2(this->fNormalDirection[2],this->fNormalDirection[0]))*sin((M_PI)/2.));
+    this->fInitialPoint[0] =
+                (this->fFinalPoint[0] - this->fradius*sin((M_PI)/2.)*sin(atan2(this->fNormalDirection[2],this->fNormalDirection[0])));
+    
+    this->fInitialPoint[1] =
+                this->fradius*cos((M_PI)/2.);
+    
+    this->fInitialPoint[2] =
+                (this->fFinalPoint[2] + this->fradius*cos(atan2(this->fNormalDirection[2],this->fNormalDirection[0]))*sin((M_PI)/2.));
     
     this->f_t_elIndexqsi_Elastic.clear();
+    this->f_t_elIndexqsi_Fluid.clear();
 }
 
 LinearPath3D::LinearPath3D(LinearPath3D * cp)
@@ -57,13 +64,16 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
     this->fDETdxdt = cp->fDETdxdt;
     
     this->fcmeshElastic = cp->fcmeshElastic;
+    this->fcmeshFluid = cp->fcmeshFluid;
     
     this->f_t_elIndexqsi_Elastic.clear();
+    this->f_t_elIndexqsi_Fluid.clear();
 }
 
 LinearPath3D::~LinearPath3D()
 {
     this->fcmeshElastic = NULL;
+    this->fcmeshFluid = NULL;
 }
 
 void LinearPath3D::X(REAL t, TPZVec<REAL> & xt)
@@ -153,19 +163,14 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     if(!geoEl)
     {
-        geoEl = this->fcmeshElastic->Reference()->ElementVec()[it->second.first];
-        qsi = it->second.second;
-        
-//        std::cout.precision(15);
-//        std::cout << "\n\ngeoEl not found!\n";
-//        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
-//        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
-//        DebugStop();
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
+        DebugStop();
     }
-    else
-    {
-        this->f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
-    }
+    
+    this->f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -221,9 +226,16 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
             std::cout << "\n\nNao achou vizinho dentro da fratura!!!";
             DebugStop();
         }
-        int layer = globMaterialIdGen.WhatLayerFromInsideFracture(insideMatId);
+        
+        int layer = globMaterialIdGen.WhatLayer(insideMatId);
+
+/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido */
+//        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
+//        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
+
+/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media */
         int stripe = globMaterialIdGen.WhatStripe(insideMatId);
-        Sigma_n[1] = globLayerStruct.GetEffectiveStressApplied(this->fcmeshElastic->Solution(), layer,stripe);
+        Sigma_n[1] = globElastReducedSolution.GetNetPressure(layer, stripe);
     }
     
     TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());
@@ -232,6 +244,55 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     return young;
 }
 
+
+REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
+{
+    this->fcmeshFluid->LoadReferences();
+    
+    TPZVec<REAL> qsi(2,0.);
+
+    long InitialElementIndex = 0;
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = this->f_t_elIndexqsi_Fluid.lower_bound(t);
+    if(it != this->f_t_elIndexqsi_Fluid.end())
+    {
+        InitialElementIndex = it->second.first;
+        qsi = it->second.second;
+    }
+    else if(this->f_t_elIndexqsi_Fluid.size() > 0)
+    {
+        it--;
+        InitialElementIndex = it->second.first;
+        qsi = it->second.second;
+    }
+    else
+    {
+        qsi.Resize(this->fcmeshFluid->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
+    }
+
+    TPZGeoEl * geoEl = this->fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
+    
+    if(!geoEl)
+    {
+        std::cout.precision(15);
+        std::cout << "\n\ngeoEl not found!\n";
+        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
+        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
+        DebugStop();
+    }
+    
+    this->f_t_elIndexqsi_Fluid[t] = std::make_pair(geoEl->Index(), qsi);
+    
+    TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(geoEl->Reference());
+    TPZMaterialData data;
+    intpEl->InitMaterialData(data);
+    
+    intpEl->ComputeShape(qsi, data);
+    intpEl->ComputeSolution(qsi, data);
+    
+    REAL pressure = data.sol[0][0];
+    
+    return (pressure - prestress);
+}
 
 //--------------------------------------------------------class ArcPath3D
 
@@ -729,11 +790,11 @@ Path3D::Path3D()
 }
 
 
-Path3D::Path3D(TPZCompMesh * cmeshElastic,
+Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
                TPZVec<REAL> &Origin, REAL &KIc, int &myLayer, int &myStripe,
                TPZVec<REAL> &normalDirection, REAL radius)
 {
-    this->fLinearPath3D = new LinearPath3D(cmeshElastic,Origin,normalDirection,radius);
+    this->fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     this->fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     this->fAreaPath3D = new AreaPath3D(this->fLinearPath3D);
     
@@ -779,18 +840,6 @@ void Path3D::ComputeJIntegral()
     this->fJintegral = 0.;
     this->fKI = 0.;
     this->fJDirection.Fill(0.);
-    
-    //Nao serah computado KI quando appliedStress < SigYY //AQUICAJUX
-//    {
-//        int pathLayer = MyLayer();
-//        REAL stressApplied = this->fLinearPath3D->CMeshElastic()->Solution()(1,0);
-//        REAL layerSigYY = -globLayerStruct.GetLayer(pathLayer).fSigYY;
-//        if(stressApplied < layerSigYY)
-//        {
-//            //Neste caso nao deve-se calcular KI.
-//            return;
-//        }
-//    }
     
     Adapt intRule(gIntegrPrecision);
     

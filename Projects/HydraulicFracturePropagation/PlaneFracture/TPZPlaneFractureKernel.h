@@ -41,7 +41,7 @@ public:
      * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
-                           REAL xLength, REAL yLength, REAL Lmax, bool just1Stripe, REAL Qinj_well, REAL visc,
+                           REAL xLength, REAL yLength, REAL Lmax, REAL Qinj_well, REAL visc,
                            REAL Jradius,
                            int porder,
                            REAL MaxDispl,
@@ -49,14 +49,13 @@ public:
     
     ~TPZPlaneFractureKernel();
     
-    void RunUncoupled();
-    void RunCoupled();
+    void Run();
     
 protected:
     
     void InitializePoligonalChain();
     
-    void InitializeMeshes();
+    void InitializeMeshes(TPZCompMesh * lastElastCMesh);
     
     /**
      * @brief Method that will run a FEM simmulation of linear elasticity in NULL newman condition (for reduced space)
@@ -64,20 +63,14 @@ protected:
      */
     void ProcessLinearElasticCMesh(TPZCompMesh * cmesh);
     
-    /** Calcula a pressao aplicada que resulta na propagacao com MAX(KI/KIc) = 1. */
-    void ComputeStressAppliedThatpropagatesWhithKI1(REAL & maxKI_KIc, std::set<int> & whoPropagate);
-    
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param volAcum [in] : Poligonal chain that represents the crack boundary
      * @param justTransferingElasticSolution [in] : time step
      */
-    void RunThisFractureGeometry(REAL & volAcum, bool justTransferingElasticSolution);
+    void RunThisFractureGeometry();
     
-    void PredictActDeltaT(REAL fractVolum);
-    
-    void CloseActualTimeStepUncoupled();
-    void CloseActualTimeStepCoupled();
+    void CloseActualTimeStep();
     
     /**
      * @brief Method that will initializate the JPath3D vector structure, based on 1D cracktip elements (available on fPlaneFractureMesh atribute)
@@ -112,8 +105,7 @@ protected:
     
     void UpdateLeakoffKernel();
     
-    void PostProcessAll_Uncoupled();
-    void PostProcessAll_Coupled();
+    void PostProcessAll();
     
     void PostProcessSolutions(int num = -1);
     
@@ -148,7 +140,7 @@ protected:
     
     /** Will check if fracture propagate and, if true, return new geometry of poligonal chain */
     bool CheckPropagationCriteria(REAL & maxKI_KIc, std::set<int> & whoPropagate,
-                                  int & maxKI_KIcPosition, TPZFMatrix<REAL> & ElastReducedSolution);
+                                  int & maxKI_KIcPosition);
     
     /**
      * Auxiliar method for CheckPropagationCriteria(...) method that computes the new geometry of the poligonal chain
@@ -164,8 +156,6 @@ protected:
     bool RemoveZigZag(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain);
     
     void RemoveLayerInvasion(TPZVec< std::pair<REAL,REAL> > &newPoligonalChain);
-    
-    void TransferElasticSolution(REAL volAcum);
     
     /**
      *  After the fracture propagation, this method will transfer the leakoff from the old data structure (based on given cmesh)
@@ -197,8 +187,6 @@ protected:
     REAL fMaxDispl;
     
     JIntegral3D fPath3D;
-    
-    bool fjust1Stripe;
     
     int actColor;
     static const std::string color[];

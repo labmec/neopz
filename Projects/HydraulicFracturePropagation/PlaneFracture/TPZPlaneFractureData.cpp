@@ -17,7 +17,7 @@
 #include "pzgeoquad.h"
 
 
-void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cmesh, REAL deltaT)
+void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
 {
     if(this->fDefaultLeakoffEnabled == false)
     {
@@ -37,13 +37,6 @@ void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cm
     for(int i = 0;  i < cmesh->ElementVec().NElements(); i++)
     {
         TPZCompEl * cel = cmesh->ElementVec()[i];
-        
-#ifdef DEBUG
-        if(!cel)
-        {
-            DebugStop();
-        }
-#endif
         
         if(cel->Reference()->Dimension() != 2 || globMaterialIdGen.IsInsideFractMat(cel->Reference()->MaterialId()) == false)
         {
@@ -92,11 +85,7 @@ void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cm
         sp->InitMaterialData(data);
         sp->ComputeShape(qsi, data);
         sp->ComputeSolution(qsi, data);
-        
-//AQUICAJU
-//        int layer = globMaterialIdGen.WhatLayerFromInsideFracture(cel->Reference()->MaterialId());
-//        int stripe = globMaterialIdGen.WhatStripe(cel->Reference()->MaterialId());
-//        REAL pfrac = globLayerStruct.GetEffectiveStressApplied(ElastSol, layer, stripe);
+
         REAL pfrac = data.sol[0][0];
         
         TPZBndCond * matbnd = dynamic_cast<TPZBndCond*> (cel->Material());
@@ -148,11 +137,6 @@ void LeakoffStorage::UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cm
 
 REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-    if(pfrac <= Pe)
-    {
-        return 0.;
-    }
-    
     REAL gradPcalc = 1.;
     if(fPressureIndependent == false)
     {
@@ -168,11 +152,6 @@ REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPre
 
 REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-    if(pfrac <= Pe)
-    {
-        return 0.;
-    }
-    
     REAL tStar = 0.;
     if(VlAcum > vsp)
     {
@@ -193,6 +172,11 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
 
 REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+    if(pfrac <= Pe || fLeakoffEnabled == false)
+    {
+        return 0.;
+    }
+    
     std::map<int,REAL>::iterator it = fGelId_Penetration.find(gelId);
     if(it == fGelId_Penetration.end())
     {
@@ -200,37 +184,27 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
         it = fGelId_Penetration.find(gelId);
     }
     
-    REAL Ql = 0.;
+    REAL VlAcum = it->second;
     
-    if(fLeakoffEnabled && pfrac >= Pe)
-    {
-        REAL VlAcum = it->second;
-        
-        REAL tStar = FictitiousTime(VlAcum, pfrac, Cl, Pe, gradPref, vsp);
-        REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
-        Ql = (Vlnext - VlAcum)/deltaT;
-    }
+    REAL tStar = FictitiousTime(VlAcum, pfrac, Cl, Pe, gradPref, vsp);
+    REAL Vlnext = VlFtau(pfrac, tStar + deltaT, Cl, Pe, gradPref, vsp);
+    REAL Ql = (Vlnext - VlAcum)/deltaT;
     
     return Ql;
 }
 
 REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
+    if(pfrac <= Pe || fLeakoffEnabled == false)
+    {
+        return 0.;
+    }
+    
     std::map<int,REAL>::iterator it = fGelId_Penetration.find(gelId);
     if(it == fGelId_Penetration.end())
     {
         fGelId_Penetration[gelId] = 0.;
         it = fGelId_Penetration.find(gelId);
-    }
-    
-    if(fLeakoffEnabled == false)
-    {
-        return 0.;//There is no leakoff.
-    }
-    
-    if(fPressureIndependent)
-    {
-        return 0.;//Once Q is not function of p, dQdp=0.
     }
     
     REAL VlAcum = it->second;
@@ -272,6 +246,52 @@ void LeakoffStorage::Printleakoff(std::ofstream & outf)
     }
 }
 
+
+//------------------------------------------------------------
+
+
+ElastReducedSolution::ElastReducedSolution()
+{
+    this->fElastReducedSolution.Resize(0,0);
+}
+
+ElastReducedSolution::~ElastReducedSolution()
+{
+    this->fElastReducedSolution.Resize(0,0);
+}
+
+void ElastReducedSolution::SetElastReducedSolution(TPZFMatrix<REAL> & ElastReducedSolution)
+{
+    this->fElastReducedSolution = ElastReducedSolution;
+}
+
+REAL ElastReducedSolution::GetTotalPressure(int stripe)
+{
+    //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
+    REAL pressAppliedEntireFract = this->fElastReducedSolution(1,0);
+    
+    int stripePressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
+    REAL pressAppliedStripe = this->fElastReducedSolution(stripePressAppliedRow,0);
+    
+    REAL pressApplied = pressAppliedEntireFract + pressAppliedStripe;
+    
+    return pressApplied;
+}
+
+REAL ElastReducedSolution::GetNetPressure(int layer, int stripe)
+{
+    REAL totalPressApplied = this->GetTotalPressure(stripe);
+    REAL preStress = -globLayerStruct.GetLayer(layer).fSigYY;
+    
+    REAL netPressure = totalPressApplied - preStress;
+    
+    return netPressure;
+}
+
+int ElastReducedSolution::GetStressAppliedSolutionRow(int stripe)
+{
+    return stripe+2;
+}
 
 //------------------------------------------------------------
 
@@ -472,5 +492,7 @@ LeakoffStorage globLeakoffStorage;
 MaterialIdGen globMaterialIdGen;
 
 Output3DDataStruct globFractOutput3DData;
+
+ElastReducedSolution globElastReducedSolution;
 
 LayerStruct globLayerStruct;

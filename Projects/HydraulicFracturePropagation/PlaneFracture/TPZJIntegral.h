@@ -29,7 +29,7 @@ class LinearPath3D
 public:
     
     LinearPath3D();//It is not to be used
-    LinearPath3D(TPZCompMesh * cmeshElastic,
+    LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
                  TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
     LinearPath3D(LinearPath3D * cp);
     ~LinearPath3D();
@@ -53,10 +53,7 @@ public:
     
     virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n);
     
-    TPZCompMesh * CMeshElastic()
-    {
-        return this->fcmeshElastic;
-    }
+    virtual REAL ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress);
     
 protected:
     
@@ -81,8 +78,14 @@ protected:
     /** CMesh that constains elastic data */
     TPZCompMesh * fcmeshElastic;
     
+    /** CMesh that constains fluid data */
+    TPZCompMesh * fcmeshFluid;
+    
     /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
+    
+    /** map that holds t and respective elIndex from FluidMesh and qsi for ComputeXInverse optimization */
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Fluid;
 };
 
 
@@ -221,7 +224,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path3D(TPZCompMesh * cmeshElastic,
+    Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
            TPZVec<REAL> &Origin, REAL &KIc, int &myLayer, int &myStripe,
            TPZVec<REAL> &normalDirection, REAL radius);
     

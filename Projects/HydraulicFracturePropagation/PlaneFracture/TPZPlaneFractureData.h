@@ -83,9 +83,9 @@ public:
         fwasLeftLastTime = false;
         
         if(freachTime_right == false)
-        {//1st time reach time on right from KI=KIc
-            fDeltaT_left -= 10.;
-            fDeltaT_left = MAX(0.,fDeltaT_left);
+        {
+            //1st time reach time on right from KI=KIc
+            fDeltaT_left = MAX(fDeltaT_left-10.,0.01);
             freachTime_right = true;
         }
         
@@ -232,7 +232,7 @@ public:
         fGelId_Penetration = GelId_Penetration;
     }
     
-    void UpdateLeakoff(TPZFMatrix<REAL> & ElastSol, TPZCompMesh * cmesh, REAL deltaT);
+    void UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT);
     
     REAL VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPref, REAL vsp);
     
@@ -301,13 +301,11 @@ public:
     
     int RockMatId(int layer)
     {
-#ifdef DEBUG
         if(layer < 0 || layer > 99)
         {
             //Soh pode ter 100 camadas (de 0 a 99)
             DebugStop();
         }
-#endif
         
         return (layer+1)*10;
     }
@@ -319,13 +317,11 @@ public:
     
     int InsideFractMatId(int layer, int stripe)
     {
-#ifdef DEBUG
         if(stripe < 0 || stripe > 9)
         {
             //Soh pode ter 10 faixas de pressao (de 0 a 9)
             DebugStop();
         }
-#endif
         
         return -(RockMatId(layer) + 1000 + stripe);
     }
@@ -434,14 +430,13 @@ public:
         }
     }
     
-    int WhatLayerFromInsideFracture(int insideMatId)
+    int WhatLayer(int insideMatId)
     {
-#ifdef DEBUG
         if(IsInsideFractMat(insideMatId) == false)
-        {//The given materialId IS NOT inside fracture
+        {
+            //The given materialId IS NOT inside fracture
             DebugStop();
         }
-#endif
         
         int inside = fabs(insideMatId);
         int stripe = inside - (inside/10)*10;
@@ -450,8 +445,28 @@ public:
         
         return lay;
     }
-    //------------------------------------------------------------------------------------------------------------
 };
+
+
+
+class ElastReducedSolution
+{
+public:
+    ElastReducedSolution();
+    
+    ~ElastReducedSolution();
+    
+    void SetElastReducedSolution(TPZFMatrix<REAL> & ElastReducedSolution);
+    
+    REAL GetTotalPressure(int stripe);
+    
+    REAL GetNetPressure(int layer, int stripe);
+    
+    int GetStressAppliedSolutionRow(int stripe);
+
+    TPZFMatrix<REAL> fElastReducedSolution;
+};
+
 
 
 class LayerProperties
@@ -592,23 +607,6 @@ public:
         }
     }
     
-    REAL GetEffectiveStressApplied(TPZFMatrix<REAL> & ElastReducedSolution, int layer, int stripe)
-    {
-        //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-        REAL pressAppliedEntireFract = ElastReducedSolution(1,0);
-        
-        int stripePressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
-        REAL pressAppliedStripe = ElastReducedSolution(stripePressAppliedRow,0);
-        
-        REAL pressApplied = pressAppliedEntireFract + pressAppliedStripe;
-        
-        REAL preStress = -this->fLayerVec[layer].fSigYY;
-
-        REAL cellStressApllied = pressApplied - preStress;
-        
-        return cellStressApllied;
-    }
-    
     REAL GetLowerPreStress()
     {
         return this->fminPrestress;
@@ -648,11 +646,6 @@ public:
         return -1;
     }
     
-    int GetStressAppliedSolutionRow(int stripe)
-    {
-        return stripe+2;
-    }
-    
 protected:
 
     /** Vetor de camadas. Posicao 0: camada mais acima. Ultima posicao: camada mais abaixo */
@@ -661,6 +654,7 @@ protected:
     REAL fminPrestress;
     REAL fmaxPrestress;
 };
+
 
 
 class Output3DDataStruct
@@ -693,6 +687,8 @@ public:
     std::map<REAL,REAL> fTHinf;
 };
 
+
+
 extern TimeControl globTimeControl;
 
 extern LeakoffStorage globLeakoffStorage;
@@ -700,6 +696,8 @@ extern LeakoffStorage globLeakoffStorage;
 extern MaterialIdGen globMaterialIdGen;
 
 extern Output3DDataStruct globFractOutput3DData;
+
+extern ElastReducedSolution globElastReducedSolution;
 
 extern LayerStruct globLayerStruct;
 

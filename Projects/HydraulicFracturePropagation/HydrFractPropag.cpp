@@ -60,9 +60,9 @@ int main(int argc, char * const argv[])
     REAL bulletTVDFin = 2120.;
     
     //KIc
-    REAL KIc0 = 10.*1.09884E6 * globStressScale;//AQUICAJU
-    REAL KIc1 = 10.*1.09884E6 * globStressScale;
-    REAL KIc2 = 10.*1.09884E6 * globStressScale;
+    REAL KIc0 = 1.09884E6 * globStressScale;
+    REAL KIc1 = 1.09884E6 * globStressScale;
+    REAL KIc2 = 1.09884E6 * globStressScale;
     
     //Leakoff
     REAL Cl0 = 0.;
@@ -95,24 +95,14 @@ int main(int argc, char * const argv[])
     int porder = 1;
     REAL MaxDispl = 2.0;
     
-    bool just1Stripe = false;
-    bool coupled = true;
     bool pressureINdependent = true;//If true, Carter Leakoff Coefficient is pressure independent
-    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax, just1Stripe,
+    TPZPlaneFractureKernel * plfrac = new TPZPlaneFractureKernel(layerVec, bulletTVDIni, bulletTVDFin, lengthX, lengthY, Lmax,
                                                                  QinjWell, visc,
                                                                  Jradius,
                                                                  porder,
                                                                  MaxDispl,
                                                                  pressureINdependent);
-    globLeakoffStorage.DisableLeakoff();
-    if(coupled)
-    {
-        plfrac->RunCoupled();
-    }
-    else
-    {
-        plfrac->RunUncoupled();
-    }
+    plfrac->Run();
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");
 //    gRefDBase.WriteRefPatternDBase(outRefP);
