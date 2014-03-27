@@ -65,9 +65,9 @@ int main(int argc, char *argv[]) {
 	InitializePZLOG();
 #endif
     
-    int gcaseinit = 1, gcaseend = 4;
-    int nsubdivisionsinit = 3, nsubdivisionsend = 6, nsubdivisionsinterval = 2;
-    int porder = 3;
+    int gcaseinit = 2, gcaseend = 3;
+    int nsubdivisionsinit = 3, nsubdivisionsend = 13, nsubdivisionsinterval = 2;
+    int porder = 5;
     switch(argc) {
         case 7:
             nsubdivisionsinterval = atoi(argv[6]);

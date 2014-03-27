@@ -162,7 +162,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	int itypeel = 2;
+	int itypeel = 7;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -395,7 +395,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-			REAL factorError = 1./3.;
+			REAL factorError = .25;
 			while(!ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref,itypeel,factorError)) {
 				factorError -= 0.075;
 				out << "\nFactorError " << factorError << std::endl;
@@ -442,15 +442,14 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	// To see where the computation is doing
 	long index = -1;
 	TPZVec<long> counterreftype(50,0);
-	REAL MaxGrad;
 	long i, ii;
-	REAL factorBigError = 0.8;
-	REAL factorGrad = 0.6;
+
+	REAL factorGrad = 0.2;
 	REAL GradErLimit = 9.;
+	if(dim==3) GradErLimit = 30.;
 	
-	REAL BigError = factorBigError*MaxErrorByElement+(1.-factorBigError)*MinErrorByElement;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
-	MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
+	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	if(MaxGrad > GradErLimit) MaxGrad = GradErLimit;
 
 	/* Printing maximum and minimun values of the errors */
@@ -462,7 +461,10 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 		bool hused = false, pused = false;
 		subels.Resize(0);
 		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
-		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		if(!el || el->Dimension()!=cmesh->Dimension()) {
+			counterreftype[0]++;
+			continue;
+		}
 
 		// element data
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
@@ -473,33 +475,24 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
 		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel && nref < 7) {
 			counterreftype[10]++;
-			if(nref && pelement < MaxPOrder && ervecbyel[i] > SmallError) {
-				counterreftype[11]++;
-				el->PRefine(pelement);
-				pused = true;
-			}
 			el->Divide(index,subels);
+			el = NULL;
 			level++;
 			hused = true;
-			if(nref && ervecbyel[i] > BigError && level < MaxHLevel) {
-				counterreftype[12]++;
-				for(ii=0;ii<subels.NElements();ii++) {
-					if(subels[ii]) {
-						cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
-						subels[ii]=0;
-					}
-				}
-				level++;
-			}
 		}
-		else if(ervecbyel[i] > SmallError && pelement < MaxPOrder && nref) {
+		if(ervecbyel[i] > SmallError && pelement < MaxPOrder && nref) {
 			counterreftype[20]++;
 			if(el)
 				el->PRefine(pelement);
+			else {
+				for(ii=0;ii<subels.NElements();ii++) {
+					dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]])->PRefine(pelement);
+				}
+			}
 			pused = true;
 		}
-		else {
-			counterreftype[32]++;
+		if(!pused && !hused) {
+			counterreftype[30]++;
 		}
 		if(pused)
 			MaxPUsed = (pelement > MaxPUsed) ? pelement : MaxPUsed;
@@ -532,15 +525,13 @@ int MaxLevelReached(TPZCompMesh *cmesh) {
 }
 
 void PrintNRefinementsByType(int nref, long nels,long newnels,TPZVec<long> &counter,ostream &out) {
-	long Total = 0L;
 	out << "\nHP Refinement done, on  " << nels << " elements, given " << newnels << " elements. "<< std::endl;
 	out << "NRef = " << nref << std::endl;
 	for(int j=0;j<counter.NElements();j++)
 		if(counter[j]) {
 			out << "Refinement type " << j << " : " << counter[j] << std::endl;
-			Total += counter[j];
 		}
-	out << "Processed elements " << Total;
+	out << "Processed elements " << (nels-counter[0]);
 }
 /**
  * Get Global L2 Error for solution and the L2 error for each element.
