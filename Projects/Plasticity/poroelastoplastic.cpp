@@ -1684,10 +1684,10 @@ int main ()
         well.GetCurrentConfig()->CreateMesh();
         int porder = 3;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
-        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        well.GetCurrentConfig()->CreatePostProcessingMesh(well.GetPostProcessNumber(), 0);
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         //well.LinearConfiguration(1);
-        well.PostProcess(0);
+        well.PostProcess();
         TPZBFileStream save;
         save.OpenWrite("Wellbore0.bin");
         well.Write(save);
@@ -1910,7 +1910,8 @@ int main ()
             std::cout << it->first << " " << xellips << " error " <<  (it->first-xellips)/innerradius << endl;
         }
         well.AddEllipticBreakout(ratios[0], ratios[1]);
-        well.PostProcess(1);
+	well.GetCurrentConfig()->CreatePostProcessingMesh(well.GetPostProcessNumber(), 1);
+        well.PostProcess();
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteSimulation();
         well.DivideElementsAbove(0.0001);
@@ -1972,7 +1973,8 @@ int main ()
         ellips.StandardFormatForSimpleEllipse(center, ratios);
         well.AddEllipticBreakout(ratios[0], ratios[1]);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
-        well.PostProcess(1);
+	well.GetCurrentConfig()->CreatePostProcessingMesh(well.GetPostProcessNumber(), 1);
+        well.PostProcess();
         well.ExecuteSimulation();
         well.DivideElementsAbove(0.0001);
         well.PRefineElementAbove(0.0001, 3);
