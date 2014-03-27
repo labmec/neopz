@@ -9,7 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-#define PV
+//#define PV
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
@@ -115,7 +115,7 @@ public:
         void CreateComputationalMesh(int porder);
         
         /// Setup post processing mesh
-        void CreatePostProcessingMesh();
+        void CreatePostProcessingMesh(int PostProcessNumber, int resolution);
         
 
          STATE ComputeFarFieldWork();
@@ -263,7 +263,7 @@ public:
     unsigned int DivideElementsAbove(REAL sqj2);
     
     /// Post process the results of the current configuration
-    void PostProcess(int resolution);
+    void PostProcess();
     
     /// GetPostProcessedValues
     void PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::string> &variables, TPZFMatrix<STATE> &values);

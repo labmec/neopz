@@ -17,6 +17,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzplasticdiagnostic.h"
 #include <iostream>
+#include "pzbfilestream.h"
 
 #include "pzlog.h"
 
@@ -415,8 +416,6 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     fAllSol.Read(input, 0);
     TPZSaveable::ReadObjects(input,fPlasticDeformSqJ2);
     input.Read(&fHistoryLog);
-    CreatePostProcessingMesh();
-
     
     int verify = 0;
     input.Read(&verify);
@@ -535,19 +534,22 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
         fCurrentConfig.ComputeElementDeformation();
         
-        fCurrentConfig.CreatePostProcessingMesh();
+
         
         if (i==0) {
-            PostProcess(0);// pOrder
+            fCurrentConfig.CreatePostProcessingMesh(fPostProcessNumber, 0);
+            PostProcess();
         }
         else {
-            PostProcess(1);// pOrder
+            fCurrentConfig.CreatePostProcessingMesh(fPostProcessNumber,1);
+            PostProcess();
         }
         
         if (fLinearMatrix) {
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
         }
 
+        cout << "-------------------> i: " << i << "Pressao atual: " << mattemp;
         
         fCurrentConfig.VerifyGlobalEquilibrium();
         //fPostProcessNumber++;            
@@ -636,9 +638,9 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     
     fCurrentConfig.ComputeElementDeformation();
     
-    fCurrentConfig.CreatePostProcessingMesh();
+    fCurrentConfig.CreatePostProcessingMesh(fPostProcessNumber, 1);
     
-    PostProcess(1);// resolution
+    PostProcess();
     
     fCurrentConfig.VerifyGlobalEquilibrium();
 
@@ -685,17 +687,15 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
     
     matincrement = matfinal-matinit;
     matincrement *= (1./nsteps);
-    mattemp = matinit;
-    
-    
+    mattemp = matinit + matincrement;
     
     int neq = analysis.Mesh()->Solution().Rows();
     fCurrentConfig.fAllSol.Redim(neq, nsteps+1);
     
     
-    for(int i=0;i<=nsteps;i++)
+    for(int i=1;i<=nsteps;i++)
     {
-        std::cout << "Initial Simulation Step " << i << " out of " << nsteps << std::endl;
+        std::cout << "Simulation Step " << i << " out of " << nsteps << std::endl;
         pBC->Val1()=mattemp;
         
         ComputeLinearMatrix();
@@ -726,15 +726,19 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
 //        }
         analysis.AcceptSolution();
         fCurrentConfig.ComputeElementDeformation();
-        fCurrentConfig.CreatePostProcessingMesh();
+
         
         if (i==0) {
-            PostProcess(0);// pOrder
+            fCurrentConfig.CreatePostProcessingMesh(fPostProcessNumber, 0);
+            PostProcess();
         }
         else {
-            PostProcess(1);// pOrder
+            fCurrentConfig.CreatePostProcessingMesh(fPostProcessNumber, 1);
+            PostProcess();
         }
         
+        cout << "-------------------> i: "<< i << " Pressao atual: " << mattemp;
+
         fCurrentConfig.VerifyGlobalEquilibrium();
         mattemp += matincrement;
         
@@ -1762,7 +1766,7 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
     }
 }
 
-void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
+void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh(int PostProcessNumber, int resolution)
 {
 #ifdef PV
     std::string vtkFile = "pocoplasticoPV.vtk";
@@ -1778,40 +1782,40 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     
     TPZVec<int> PostProcMatIds(1,1);
     TPZStack<std::string> PostProcVars, scalNames, vecNames;
-    scalNames.Push("Alpha");
-    scalNames.Push("PlasticSqJ2");
-    scalNames.Push("PlasticSqJ2El");
-    scalNames.Push("POrder");
+    scalNames.Push("Alpha");//
+    scalNames.Push("PlasticSqJ2");//
+    scalNames.Push("PlasticSqJ2El");//
+    scalNames.Push("POrder");//
     //    scalnames[1] = "PlasticSteps";
     //    scalnames[2] = "VolElasticStrain";
     //    scalnames[3] = "VolPlasticStrain";
     //    scalnames[4] = "VolTotalStrain";
+    scalNames.Push("I1Stress");//
+    scalNames.Push("J2Stress");//
+    scalNames.Push("DisplacementX");//
+    scalNames.Push("DisplacementY");//
+    scalNames.Push("DisplacementZ");//
+    scalNames.Push("PrincipalStressDirection1");//
+    scalNames.Push("PrincipalStressDirection2");//
+    scalNames.Push("PrincipalStressDirection3");//
+    scalNames.Push("StressX");//
+    scalNames.Push("StressY");//
+    scalNames.Push("StressZ");//
 #ifdef MustComeBack
-    scalNames.Push("I1Stress");
-    scalNames.Push("J2Stress");
     scalNames.Push("I1HorStress");
     scalNames.Push("J2HorStress");
     
-	vecNames.Push("Displacement");
+    vecNames.Push("Displacement");
     vecNames.Push("YieldSurface");
-    vecNames.Push("NormalStress");
-    vecNames.Push("ShearStress");
-    vecNames.Push("NormalStrain");
-    vecNames.Push("ShearStrain");
+    vecNames.Push("NormalStress");//
+    vecNames.Push("ShearStress");//
+    vecNames.Push("NormalStrain");//
+    vecNames.Push("ShearStrain");//
     vecNames.Push("DisplacementMem");
     vecNames.Push("PrincipalStress");
 #endif
-    
-    scalNames.Push("I1Stress");
-    scalNames.Push("J2Stress");
-    //vecNames.Push("YieldSurface");
-    vecNames.Push("NormalStress");
-    vecNames.Push("ShearStress");
-    vecNames.Push("NormalStrain");
-    vecNames.Push("ShearStrain");
-    //vecNames.Push("DisplacementMem");
-    vecNames.Push("PrincipalStress");
-    vecNames.Push("DisplacementMem");
+    vecNames.Push("DisplacementMem");//
+
     for (int i=0; i<scalNames.size(); i++) {
         PostProcVars.Push(scalNames[i]);
     }
@@ -1825,16 +1829,16 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     //
     fPostprocess.TransferSolution();
     
+    fPostprocess.SetStep(PostProcessNumber);
+    if (fPostprocess.ReferenceCompMesh() != &fCMesh) {
+        fPostprocess.SetCompMesh(&fCMesh);
+    }
+    fPostprocess.PostProcess(resolution);
 }
 
 int passCount = 0;
-void TPZWellBoreAnalysis::PostProcess(int resolution)
+void TPZWellBoreAnalysis::PostProcess()
 {
-    fCurrentConfig.fPostprocess.SetStep(fPostProcessNumber);
-    if (fCurrentConfig.fPostprocess.ReferenceCompMesh() != &fCurrentConfig.fCMesh) {
-        fCurrentConfig.fPostprocess.SetCompMesh(&fCurrentConfig.fCMesh);
-    }
-    fCurrentConfig.fPostprocess.PostProcess(resolution);
     fPostProcessNumber++;
 
     //*** DANGER (definido pelo programador) ***
