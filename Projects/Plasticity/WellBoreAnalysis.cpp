@@ -1765,9 +1765,8 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
 void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 {
 #ifdef PV
-    //std::string vtkFile = "pocoplasticoPV.vtk";
+    std::string vtkFile = "pocoplasticoPV.vtk";
     //std::string vtkFile = "pocoplasticoPV2.vtk";
-    std::string vtkFile = "testeExecuteSimulation.vtk";
 #else
     std::string vtkFile = "pocoplasticoErick.vtk";
 #endif
@@ -1800,7 +1799,18 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     vecNames.Push("NormalStrain");
     vecNames.Push("ShearStrain");
     vecNames.Push("DisplacementMem");
+    vecNames.Push("PrincipalStress");
 #endif
+    
+    scalNames.Push("I1Stress");
+    scalNames.Push("J2Stress");
+    //vecNames.Push("YieldSurface");
+    vecNames.Push("NormalStress");
+    vecNames.Push("ShearStress");
+    vecNames.Push("NormalStrain");
+    vecNames.Push("ShearStrain");
+    //vecNames.Push("DisplacementMem");
+    vecNames.Push("PrincipalStress");
     vecNames.Push("DisplacementMem");
     for (int i=0; i<scalNames.size(); i++) {
         PostProcVars.Push(scalNames[i]);

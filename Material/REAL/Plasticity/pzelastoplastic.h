@@ -56,7 +56,10 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 						EMisesStress,//29
                         EDisplacementMem, //30
                         EI1HorStress, //31
-                        EJ2HorStress  //32
+                        EJ2HorStress,  //32
+                        EStressX,
+                        EStressY,
+                        EStressZ
           
 				//		ERadialDisplacement,
 				//		ERadialStressR,
