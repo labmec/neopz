@@ -242,6 +242,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
+        f(2,0) = 1.;
         TPZBndCond * dirichDirLeft = new TPZBndCond(materialLin,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(dirichDirLeft);
 
@@ -419,6 +420,7 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
+        f(2,0) = 1.;
         TPZBndCond * dirichDirLeft = new TPZBndCond(materialLin,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(dirichDirLeft);
         
@@ -572,6 +574,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         k.Zero();
         f.Zero();
         f(0,0) = 1.;
+        f(2,0) = 1.;
         TPZBndCond * dirichDirLeft = new TPZBndCond(couplingMat,globMaterialIdGen.LeftMatId(lay), dirichDir, k, f);
         cmesh->InsertMaterialObject(dirichDirLeft);
         
