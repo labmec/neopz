@@ -141,7 +141,10 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
 
 REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZVec<STATE> & Sigma_n)
 {
-    this->fcmeshElastic->LoadReferences();
+    if(this->fcmeshElastic->Reference()->Reference() != this->fcmeshElastic)
+    {
+        this->fcmeshElastic->LoadReferences();
+    }
     
     TPZVec<REAL> qsi(3,0.);
     
@@ -232,6 +235,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido : PIOR */
 //        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
 //        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
+//        Se for utilizar isso, vá no método LinearPath3D::ComputeElasticData e descomente a linha "this->fcmeshElastic->LoadReferences();"
 
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media : MELHOR */
         int stripe = globMaterialIdGen.WhatStripe(insideMatId);
@@ -247,7 +251,10 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 
 REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
 {
-    this->fcmeshFluid->LoadReferences();
+    if(this->fcmeshFluid->Reference()->Reference() != this->fcmeshFluid)
+    {
+        this->fcmeshFluid->LoadReferences();
+    }
     
     TPZVec<REAL> qsi(2,0.);
 
@@ -384,8 +391,6 @@ TPZVec<REAL> ArcPath3D::Func(REAL t)
 
 TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
-    this->fcmeshElastic->LoadReferences();
-    
     TPZFMatrix<STATE> Sigma(3,3), strain(3,3), GradUtxy(3,3);
     Sigma.Zero();
     strain.Zero();
@@ -428,6 +433,11 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 
 REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain)
 {
+    if(this->fcmeshElastic->Reference()->Reference() != this->fcmeshElastic)
+    {
+        this->fcmeshElastic->LoadReferences();
+    }
+    
     TPZVec<REAL> qsi(0);
     
     long InitialElementIndex = 0;
@@ -623,6 +633,11 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::ComputeFiniteDifference(RE
 
 TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction)
 {
+    if(this->fcmeshElastic->Reference()->Reference() != this->fcmeshElastic)
+    {
+        this->fcmeshElastic->LoadReferences();
+    }
+    
     TPZVec<REAL> qsi(0);
     
     long InitialElementIndex = 0;
@@ -872,43 +887,27 @@ void Path3D::ComputeJIntegral()
     areaJIntegral[1] = 0.;
     areaJIntegral[2] = 2. * areaJIntegral[2] * this->fAreaPath3D->DETdxdt();
     
-    /*
-    //------------------ COMBINING : Projetando Jvector para a normal externa da frente da fratura
+    //------------------ COMBINING
     REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
     REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
     REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
     
-    {//AQUICAJU : projetando na normal
-        REAL ex = this->fNormalDirection[0];
-        REAL ez = this->fNormalDirection[2];
-        ex = ex/sqrt(ex*ex + ez*ez);
-        ez = ez/sqrt(ex*ex + ez*ez);
-        
-        REAL Jx2 = Jx - ex*(ex*Jx + ez*Jz);
-        REAL Jy2 = Jy;
-        REAL Jz2 = Jz - ez*(ex*Jx + ez*Jz);
-        
-        REAL Jnorm = sqrt(Jx2*Jx2 + Jy2*Jy2 + Jz2*Jz2);
-        this->fJDirection[0] = Jx2/Jnorm;
-        this->fJDirection[1] = Jy2/Jnorm;
-        this->fJDirection[2] = Jz2/Jnorm;
-        this->fJintegral = Jnorm;
-    }
+    //------------------- PROJETANDO O J VECTOR PARA A NORMAL EXTERNA
+    REAL ex = this->fNormalDirection[0];
+    REAL ez = this->fNormalDirection[2];
+    ex = ex/sqrt(ex*ex + ez*ez);
+    ez = ez/sqrt(ex*ex + ez*ez);
     
-    this->fKI = sqrt(this->fJintegral);//<< in fact, this->fJintegral is (young * J-integral)
-     */
+    REAL Jxproj = Jx - ex*(ex*Jx + ez*Jz);
+    REAL Jyproj = Jy;
+    REAL Jzproj = Jz - ez*(ex*Jx + ez*Jz);
     
-    //------------------ COMBINING : Jvector na forma original (sem projetar na normal)
-    REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
-    REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
-    REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
-    
-    this->fJintegral = sqrt(Jx*Jx + Jy*Jy + Jz*Jz);
-    
-    //Normalizing
-    this->fJDirection[0] = Jx/this->fJintegral;
-    this->fJDirection[1] = Jy/this->fJintegral;
-    this->fJDirection[2] = Jz/this->fJintegral;
+    //------------------- SETANDO VALORES
+    REAL Jprojnorm = sqrt(Jxproj*Jxproj + Jyproj*Jyproj + Jzproj*Jzproj);
+    this->fJDirection[0] = Jxproj/Jprojnorm;
+    this->fJDirection[1] = Jyproj/Jprojnorm;
+    this->fJDirection[2] = Jzproj/Jprojnorm;
+    this->fJintegral = Jprojnorm;
     
     this->fKI = sqrt(this->fJintegral);//<< in fact, this->fJintegral is (young * J-integral)
 }

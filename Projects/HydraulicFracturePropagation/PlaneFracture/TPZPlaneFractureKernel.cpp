@@ -163,24 +163,20 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
         REAL x  = MIN(sAx - 0.001,p * sAx/nptsUp);
         REAL fx = yc + (sAy*sqrt(sAx*sAx - x*x))/sAx;
         x += shiftX;
-        if(x > this->fLmax)
-        {
-            int oldSize = fpoligonalChain.NElements();
-            this->fpoligonalChain.Resize(oldSize+1);
-            this->fpoligonalChain[oldSize] = std::make_pair(x,fx);
-        }
+
+        int oldSize = fpoligonalChain.NElements();
+        this->fpoligonalChain.Resize(oldSize+1);
+        this->fpoligonalChain[oldSize] = std::make_pair(x,fx);
     }
     for(int p = nptsUp-1; p > 0; p--)
     {
         REAL x  = MIN(sAx - 0.001,p * sAx/nptsUp);
         REAL fx = yc - (sAy*sqrt(sAx*sAx - x*x))/sAx;
         x += shiftX;
-        if(x > this->fLmax)
-        {
-            int oldSize = fpoligonalChain.NElements();
-            this->fpoligonalChain.Resize(oldSize+1);
-            this->fpoligonalChain[oldSize] = std::make_pair(x,fx);
-        }
+
+        int oldSize = fpoligonalChain.NElements();
+        this->fpoligonalChain.Resize(oldSize+1);
+        this->fpoligonalChain[oldSize] = std::make_pair(x,fx);
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -937,8 +933,6 @@ void TPZPlaneFractureKernel::PostProcessAcumVolW()
 
 void TPZPlaneFractureKernel::PostProcessVolLeakoff(int num)
 {
-    this->fmeshVec[1]->LoadReferences();
-    
     if(num < 0)
     {
         num = this->fstep;
@@ -982,8 +976,6 @@ void TPZPlaneFractureKernel::PostProcessVolLeakoff(int num)
 
 void TPZPlaneFractureKernel::PostProcessElasticity(int num)
 {
-    this->fmeshVec[0]->LoadReferences();
-    
     if(num < 0)
     {
         num = this->fstep;
@@ -1005,8 +997,6 @@ void TPZPlaneFractureKernel::PostProcessElasticity(int num)
 
 void TPZPlaneFractureKernel::PostProcessPressure(int num)
 {
-    this->fmeshVec[1]->LoadReferences();
-    
     if(num < 0)
     {
         num = this->fstep;
@@ -1103,8 +1093,6 @@ void TPZPlaneFractureKernel::PostProcessFractGeometry(int num)
 
 REAL TPZPlaneFractureKernel::IntegrateW(bool & thereIsNegW, REAL & negVol)
 {
-    this->fmeshVec[0]->LoadReferences();
-    
     thereIsNegW = false;
     negVol = 0.;
     

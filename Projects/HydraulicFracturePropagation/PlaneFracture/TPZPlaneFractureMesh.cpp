@@ -1910,7 +1910,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
     std::map<int,locFracture2DEl> fracturedElems;
     
     int maxNStripes = 9;//limitacao do globMaterialIdGen
-    int mult = 2;
+    int mult = 1; // (stripe width) = (mult * this->fLmax)
     int predictedNStripes = this->fLfrac / (mult * this->fLmax) + 1;
     while(predictedNStripes > maxNStripes)
     {
