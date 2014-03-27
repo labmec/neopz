@@ -968,35 +968,42 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 {
 	
 	T I1,I2,I3,R,theta,Q,x1,x2,x3,costheta,e1temp,e2temp,e3temp;
-	I1 = (this->I1());
-	I2 = (this->I2());
-	I3 = (this->I3());
+    TPZTensor<T> InternalTensor(*this);
+    T norm =(InternalTensor.Norm());
+    if(norm>0.)
+    {
+        InternalTensor*=(T(1.)/norm);
+    }
+	I1 = (InternalTensor.I1());
+	I2 = (InternalTensor.I2());
+	I3 = (InternalTensor.I3());
 	
+    T toll=1.e-12;
 	
 	R=(T(-2.)*I1*I1*I1+T(9.)*I1*I2-T(27.)*I3)/T(54.);
-	
 	Q=(I1*I1-T(3.)*I2)/T(9.);
-	if (Q < T(0.) || Q < T(1.e-14)) {
+	if (Q < T(0.) || Q < toll) {
 		Q = T(0.);
 	}
+    
 	T denom = sqrt(Q*Q*Q);
-	
-	
 	
 	REAL Rval = shapeFAD::val(R);
 	REAL denomval = shapeFAD::val(denom);
 	TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
 	TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
 	
-	if (fabs(Rval) < 1.e-5 && fabs(denomval) < 1.e-5 && fabs(denomval) <= fabs(Rval)) {
+	if (fabs(Rval) < toll && fabs(denomval) < toll && fabs(denomval) <= fabs(Rval)) {
 		// three equal eigenvalues
-		x1 = I1/3.;
+		x1 = (this->I1())/3.;
 		x2 = x1;
 		x3 = x1;
-		//        Eigenvectors[0].Identity();
-		//        Eigenvectors[0].Scale(T(1/3.));
-		//        Eigenvectors[1] = Eigenvectors[0];
-		//        Eigenvectors[2] = Eigenvectors[1];
+        
+		//Eigenvectors[0].Identity();
+		//Eigenvectors[0].Scale(T(1/3.));
+		//Eigenvectors[1] = Eigenvectors[0];
+		//Eigenvectors[2] = Eigenvectors[1];
+        
 		Eigenvectors[0].XX() = 1.;
 		Eigenvectors[1].YY() = 1.;
 		Eigenvectors[2].ZZ() = 1.;
@@ -1007,6 +1014,23 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		return;
 	}
 	
+    I1 = (this->I1());
+	I2 = (this->I2());
+	I3 = (this->I3());
+	
+	R=(T(-2.)*I1*I1*I1+T(9.)*I1*I2-T(27.)*I3)/T(54.);
+	Q=(I1*I1-T(3.)*I2)/T(9.);
+    
+	if (Q < T(0.) || Q < toll) {
+		Q = T(0.);
+	}
+    denom = sqrt(Q*Q*Q);
+	
+    Rval = shapeFAD::val(R);
+	denomval = shapeFAD::val(denom);
+	Eigenvalues = eigensystem.fEigenvalues;
+	Eigenvectors = eigensystem.fEigenvectors;
+    
 	costheta=R/denom;
 	
 	if(shapeFAD::val(costheta) < -(1.-1.e-12))
@@ -1065,7 +1089,8 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		valx2 = valx3;
 		valx3 = valtemp;
 	}
-	REAL tolerance = 5.e-5;
+	REAL tolerance = shapeFAD::val(toll);
+    tolerance = 5.e-5;
 	if(valx1-valx2 > tolerance && valx2-valx3 > tolerance)
 	{
 		Eigenvectors.resize(3);
@@ -1191,7 +1216,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 			//std::cout << "i = " << i << std::endl;
 			//Eigenvectors[i].Print(std::cout);
 		}
-		
+
 #ifdef DEBUG
 		{
 			// Faz Transpose[Eigenvectors].DiagonalMatrix[Eigenvalues].Eigenvectors e verifica se recupero o tensor
@@ -1337,7 +1362,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 			//std::cout << "i = " << i << std::endl;
 			//Eigenvectors[i].Print(std::cout);
 		}
-		
+
 #ifdef DEBUG
 		{
 			// Faz Transpose[Eigenvectors].DiagonalMatrix[Eigenvalues].Eigenvectors e verifica se recupero o tensor
@@ -1393,6 +1418,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		}
 		
 #endif
+
 	}
 	else {
 		

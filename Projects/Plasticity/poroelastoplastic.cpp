@@ -1722,7 +1722,7 @@ int main ()
 
 
         well.ExecuteInitialSimulation(nsteps, numnewton);
-        well.ExecuteSimulation(5,15.);
+        //well.ExecuteSimulation(5,15.);
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         TPZBFileStream save;
         save.OpenWrite("Wellbore1.bin");
@@ -1734,7 +1734,7 @@ int main ()
     std::cout << "\n tempo 1 = "<< time2.seconds()<< std::endl;
     time2.reset();
     time2.start();
-    return 0;
+    //return 0;
     if (startfrom == 2)
     {
         TPZBFileStream read;

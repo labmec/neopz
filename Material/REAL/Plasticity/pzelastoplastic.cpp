@@ -239,7 +239,7 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlastic<T,TMEM>::EAlpha)                     return 1;  
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps)              return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2)              return 1;
-   // if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha
+    if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha
     if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
     if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementMem)          return 3; 
     if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;

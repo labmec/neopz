@@ -108,7 +108,7 @@ STATE TPZSandlerExtended::GetR()
 template<class T>
 T TPZSandlerExtended::EpsEqX(T X) const
 {
-//    return (fW*( exp(fD*X) - 1 ));
+   // return (fW*( exp(fD*X) - 1 ));
    return fW* exp(fD*X);
 }
 
@@ -312,7 +312,7 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
     STATE dist = DistF2(sigproj, theta, beta, k);
     if (fabs(dist) > 1.e-8 || err > 1.e-8) {
-        //DebugStop();
+        DebugStop();
     }
 #endif
     
@@ -1101,6 +1101,139 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
     }
 
 }
+/*
+void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj, TPZFMatrix<STATE> &GradSigma) const
+{
+    STATE I1;
+    //Firstk(epspv,k0);
+    TPZManVector<STATE,2> yield(2);
+    I1 = sigtrial[0]+sigtrial[1]+sigtrial[2];
+    
+    YieldFunction(sigtrial,kprev,yield);
+    bool treeEigEqual = false;
+    STATE tol=1.e-8;
+    if (fabs(sigtrial[0]-sigtrial[1])<tol && fabs(sigtrial[1]-sigtrial[2])<tol) {
+        treeEigEqual=true;
+    }
+    
+    
+    if (I1<kprev)
+    {
+        if (yield[1]>0. && treeEigEqual==false)
+        {
+            ProjectF2(sigtrial,kprev,sigproj,kproj);
+            // we can compute the tangent matrix
+            TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
+            STATE theta,beta;
+            SurfaceParamF2(sigproj, kproj, theta, beta);
+            GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, dbetadsigtrial);
+            D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
+            jacF2.Solve_LU(&dbetadsigtrial);
+            DF2Cart(theta, beta, kproj, DF2cart);
+            DF2cart.Multiply(dbetadsigtrial, GradSigma);
+            GradSigma *= -1.;
+        }
+        else if (yield[1]>0. && treeEigEqual==true)
+        {
+            ProjectBetaConstF2(sigtrial,kprev,sigproj,kproj);
+            // we can compute the tangent matrix
+            TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
+            STATE theta,beta;
+            SurfaceParamF2(sigproj, kproj, theta, beta);
+            beta=0;
+            //#ifdef DEBUG
+            //            if(fabs(sigproj[1]) > tol)
+            //            {
+            //                DebugStop();
+            //            }
+            //#endif
+            GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, dbetadsigtrial);
+            for(int i=0; i<3; i++) dbetadsigtrial(1,i) = 0.;
+            D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
+            for (int i=0; i<3; i++) {
+                jacF2(i,1) = 0.;
+                jacF2(1,i) = 0.;
+            }
+            jacF2(1,1) = 1.;
+            jacF2.Solve_LU(&dbetadsigtrial);
+            DF2Cart(theta, beta, kproj, DF2cart);
+            for(int i=0; i<3; i++) DF2cart(i,1) = 0.;
+            DF2cart.Multiply(dbetadsigtrial, GradSigma);
+            GradSigma *= -1.;
+            
+        }
+        else
+        {
+            sigproj = sigtrial;
+            kproj = kprev;
+            GradSigma.Identity();
+        }
+    }
+    else
+    {
+        if (yield[0]>0.)
+        {
+            ProjectF1(sigtrial,kprev,sigproj,kproj);
+            
+            I1 = 0.;
+            for (int i=0; i<3; i++) {
+                I1 += sigproj[i];
+            }
+            if (I1<kproj)
+            {
+                ProjectRing(sigtrial,kprev,sigproj,kproj);
+                
+                // we can compute the tangent matrix
+                TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
+                STATE theta,beta;
+                SurfaceParamF2(sigproj, kproj, theta, beta);
+#ifdef DEBUG
+                if(fabs(theta - M_PI_2) > 1.e-8)
+                {
+                    DebugStop();
+                }
+#endif
+                GradF2SigmaTrial(sigtrial, theta, beta, kproj, kprev, dbetadsigtrial);
+                for(int i=0; i<3; i++) dbetadsigtrial(0,i) = 0.;
+                D2DistFunc2(sigtrial, theta, beta, kproj, jacF2);
+                for (int i=0; i<3; i++) {
+                    jacF2(i,0) = 0.;
+                    jacF2(0,1) = 0.;
+                }
+                jacF2(0,0) = 1.;
+                jacF2.Solve_LU(&dbetadsigtrial);
+                DF2Cart(theta, beta, kproj, DF2cart);
+                for(int i=0; i<3; i++) DF2cart(i,0) = 0.;
+                DF2cart.Multiply(dbetadsigtrial, GradSigma);
+                GradSigma *= -1.;
+            }
+            else
+            {
+                // we can compute the tangent matrix
+                TPZFNMatrix<9,STATE> dbetadsigtrial(2,3), jacF1(2,2), DF1cart(3,2);
+                STATE xi,beta;
+                SurfaceParamF1(sigproj, xi, beta);
+                GradF1SigmaTrial(sigtrial, xi, beta, dbetadsigtrial);
+                D2DistFunc1(sigtrial, xi, beta, jacF1);
+                jacF1.Solve_LU(&dbetadsigtrial);
+                DF1Cart(xi, beta, DF1cart);
+                DF1cart.Multiply(dbetadsigtrial, GradSigma);
+                GradSigma *= -1.;
+            }
+            
+        }
+        else
+        {
+            // elastic behaviour
+            sigproj = sigtrial;
+            kproj=kprev;
+            GradSigma.Identity();
+        }
+    }
+    
+}
+
+*/
 
 void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj, TPZFMatrix<STATE> &GradSigma) const
 {
