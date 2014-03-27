@@ -1836,7 +1836,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 
     GetJ2Isoline(J2val, polygonalChain);
     
-    {//just4Debug AQUICAJU
+    {
         std::stringstream nm;
         nm << "EllipDots" << passCount << ".nb";
         std::ofstream outEllips(nm.str().c_str());
