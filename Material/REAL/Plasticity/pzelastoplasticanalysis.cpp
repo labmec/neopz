@@ -130,34 +130,36 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
     AdjustResidual(fRhs);
     REAL RhsNormPrev = Norm(fRhs);
     
-    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 	
 	while(error > tol && iter < numiter) {
 		
 		//fSolution.Redim(0,0);
         REAL RhsNormResult = 0.;
+#ifdef DEBUG
         if (linearmatrix) {
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
         }
+#endif
 		LocalSolve();
         TPZFMatrix<STATE> solkeep(fSolution);
-        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		if (linesearch){
             {
-                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
                 TPZFMatrix<STATE> nextsol(prevsol);
                 nextsol += solkeep;
                 LoadSolution(nextsol);
                 AssembleResidual();
                 AdjustResidual(fRhs);
                 RhsNormResult = Norm(fRhs);
-                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
-                std::cout << "RhsNormResult " << RhsNormResult << std::endl;
+//                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//                std::cout << "RhsNormResult " << RhsNormResult << std::endl;
             }
             if (RhsNormResult > tol && RhsNormResult > RhsNormPrev) {
                 fSolution = prevsol;
                 TPZFMatrix<REAL> nextSol;
-                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 #ifdef LOG4CXX
                 if (EPAnalysisLogger->isDebugEnabled()) {
                     std::stringstream sout;
@@ -184,10 +186,10 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		}
 		
 		prevsol -= fSolution;
-        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		REAL normDeltaSol = Norm(prevsol);
 		prevsol = fSolution;
-        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
+//        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		REAL norm = RhsNormResult;
         
 #ifdef DEBUG

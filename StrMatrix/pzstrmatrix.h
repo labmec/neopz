@@ -151,6 +151,8 @@ protected:
 	{
 		/// Initialize the mutex semaphores and others
 		ThreadData(TPZStructMatrix *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+		/// Initialize the mutex semaphores and others
+		ThreadData(TPZStructMatrix *strmat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
 		/// Destructor: Destroy the mutex semaphores and others
 		~ThreadData();
 		/// Current structmatrix object

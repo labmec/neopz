@@ -412,7 +412,28 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	//please implement me
-	this->Serial_Assemble(rhs, guiInterface);
+//	this->Serial_Assemble(rhs, guiInterface);
+	ThreadData threaddata(this,rhs,fMaterialIds,guiInterface);
+	const int numthreads = this->fNumThreads;
+	TPZVec<pthread_t> allthreads(numthreads);
+	int itr;
+	if(guiInterface){
+		if(guiInterface->AmIKilled()){
+			return;
+		}
+	}
+	for(itr=0; itr<numthreads; itr++)
+	{
+        PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork,
+                          &threaddata, __FUNCTION__);
+	}
+	
+	ThreadData::ThreadAssembly(&threaddata);
+	
+	for(itr=0; itr<numthreads; itr++)
+	{
+        PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+	}
 }
 
 /// filter out the equations which are out of the range
@@ -477,6 +498,39 @@ TPZStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat, TPZMatrix<STATE
  */
 }
 
+TPZStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat,
+										TPZFMatrix<STATE> &rhs,
+										std::set<int> &MaterialIds,
+										TPZAutoPointer<TPZGuiInterface> guiInterface)
+: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fNextElement(0)
+{
+	
+	PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrix::ThreadData::ThreadData()");
+	/*	sem_t *sem_open( ... );
+	 int sem_close(sem_t *sem);
+	 int sem_unlink(const char *name);
+	 */
+    /*
+     #ifdef MACOSX
+     std::stringstream sout;
+     static int counter = 0;
+     sout << "AssemblySem" << counter++;
+     fAssembly = sem_open(sout.str().c_str(), O_CREAT,777,1);
+     if(fAssembly == SEM_FAILED)
+     {
+     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
+     DebugStop();
+     }
+     #else
+     int sem_result = sem_init(&fAssembly,0,0);
+     if(sem_result != 0)
+     {
+     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
+     }
+     #endif
+     */
+}
+
 TPZStructMatrix::ThreadData::~ThreadData()
 {
 	PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrix::ThreadData::~ThreadData()");
@@ -500,15 +554,29 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	while(iel < nel)
 	{
 		
-		TPZAutoPointer<TPZElementMatrix> ek = new TPZElementMatrix(cmesh,TPZElementMatrix::EK);
+		TPZAutoPointer<TPZElementMatrix> ek;
 		TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
+        if (data->fGlobMatrix) {
+            ek = new TPZElementMatrix(cmesh,TPZElementMatrix::EK);
+        }
+        else
+        {
+            ek = ef;
+        }
 		
 		TPZCompEl *el = cmesh->ElementVec()[iel];
 		TPZElementMatrix *ekp = ek.operator->();
 		TPZElementMatrix *efp = ef.operator->();
 		TPZElementMatrix &ekr = *ekp;
 		TPZElementMatrix &efr = *efp;
-		el->CalcStiff(ekr,efr);
+        
+        if (data->fGlobMatrix) {
+            el->CalcStiff(ekr,efr);
+        }
+        else
+        {
+            el->CalcResidual(efr);
+        }
 		
 		if(guiInterface) if(guiInterface->AmIKilled()){
 			break;
@@ -533,7 +601,9 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 #endif
 		} else {
 			// the element has dependent nodes
-			ek->ApplyConstraints();
+            if (data->fGlobMatrix) {
+                ek->ApplyConstraints();
+            }
 			ef->ApplyConstraints();
 			ek->ComputeDestinationIndices();
 			if(data->fStruct->HasRange())
@@ -642,13 +712,17 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 				// Assemble the matrix
 				if(!ek->HasDependency())
 				{
-					data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);
-					data->fGlobRhs->AddFel(ef->fMat,ek->fSourceIndex,ek->fDestinationIndex);				
+                    if (data->fGlobMatrix) {
+                        data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);
+                    }
+					data->fGlobRhs->AddFel(ef->fMat,ek->fSourceIndex,ek->fDestinationIndex);
 				}
 				else
 				{
-					data->fGlobMatrix->AddKel(ek->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
-					data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);				
+                    if (data->fGlobMatrix) {
+                        data->fGlobMatrix->AddKel(ek->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
+                    }
+					data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
 				}
 				// acquire the mutex
 				PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");

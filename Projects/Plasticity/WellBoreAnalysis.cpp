@@ -519,12 +519,12 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
             fCurrentConfig.fAllSol(ieq,i) = sol(ieq,0);
         }
         
-        TPZPlasticDiagnostic diag(analysis.Mesh());
-        diag.CheckGlobal();
-        
-        if (i == nsteps) {
-            VerifyTangentValidity();
-        }
+//        TPZPlasticDiagnostic diag(analysis.Mesh());
+//        diag.CheckGlobal();
+//        
+//        if (i == nsteps) {
+//            VerifyTangentValidity();
+//        }
         
         analysis.AcceptSolution();
         
@@ -624,8 +624,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
         //analysis.AcceptSolution();
         //analysis.TransferSolution(ppanalysis);
         
-    VerifyTangentValidity();    
-        
+//    VerifyTangentValidity();    
+    
         
     TPZFMatrix<STATE> &sol = analysis.Mesh()->Solution();
     for (int ieq=0; ieq<neq; ieq++) {
@@ -718,12 +718,12 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
             fCurrentConfig.fAllSol(ieq,i) = sol(ieq,0);
         }
         
-        TPZPlasticDiagnostic diag(analysis.Mesh());
-        diag.CheckGlobal();
-        
-        if (i == nsteps) {
-            VerifyTangentValidity();
-        }
+//        TPZPlasticDiagnostic diag(analysis.Mesh());
+//        diag.CheckGlobal();
+//        
+//        if (i == nsteps) {
+//            VerifyTangentValidity();
+//        }
         analysis.AcceptSolution();
         fCurrentConfig.ComputeElementDeformation();
         fCurrentConfig.CreatePostProcessingMesh();
@@ -1478,6 +1478,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<S
     }
     allmaterials.erase(matid);
     TPZFStructMatrix str(&fCMesh);
+    str.SetNumThreads(8);
     str.SetMaterialIds(allmaterials);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
@@ -1493,6 +1494,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsForMatid(int matid, TPZFMatrix<STAT
     allmaterials.insert(matid);
     TPZFStructMatrix str(&fCMesh);
     str.SetMaterialIds(allmaterials);
+    str.SetNumThreads(8);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
 }
@@ -1772,7 +1774,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     
     fPostprocess.SetCompMesh(&fCMesh);
     TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-    structmatrix.SetNumThreads(0);
+    structmatrix.SetNumThreads(8);
     fPostprocess.SetStructuralMatrix(structmatrix);
     
     TPZVec<int> PostProcMatIds(1,1);
@@ -2494,6 +2496,7 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterial &mat)
 void TPZWellBoreAnalysis::ComputeLinearMatrix()
 {
     TPZSkylineStructMatrix skylstr(&fCurrentConfig.fCMesh);
+    skylstr.SetNumThreads(8);
     TPZFMatrix<STATE> rhs;
     TPZCompMesh *compmesh1 = &fCurrentConfig.fCMesh;
 
