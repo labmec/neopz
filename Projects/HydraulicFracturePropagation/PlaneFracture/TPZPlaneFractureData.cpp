@@ -284,7 +284,7 @@ REAL ElastReducedSolution::GetNetPressure(int layer, int stripe)
     REAL preStress = -globLayerStruct.GetLayer(layer).fSigYY;
 
     /** NAO COLOQUE MAX(0.,NETPRESSURE)!!! JA VI QUE NAO DA CERTO!!! */
-    REAL netPressure = totalPressApplied - preStress;
+    REAL netPressure = (totalPressApplied - preStress);
 
     return netPressure;
 }

@@ -85,11 +85,11 @@ int main(int argc, char * const argv[])
     layerVec[2] = LayerProperties(Young2, Poisson2, SigYY2,TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
     
     //Fluid injection data
-    REAL QinjWell = 1.*(-0.0533333333333);//m3/s (1.* pois os 80 bpm jah eh no poco e nao 1 wing)
+    REAL QinjWell = 1.*(-0.0533333333333);//m3/s
     REAL visc = 200.02E-3 * globStressScale;
     
     //J-Integral data
-    REAL Jradius = 0.5;
+    REAL Jradius = 1.;
 
     //Simulation p-order data
     int porder = 1;

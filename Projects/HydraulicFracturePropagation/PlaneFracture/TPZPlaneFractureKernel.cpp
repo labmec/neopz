@@ -153,10 +153,11 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     fpoligonalChain.Resize(0);
     
     REAL yc = -fCenterTVD;
-    REAL sAx = 1.05 * this->fHbullet/2.;
+    
+    REAL shiftX = this->fJIntegralRadius;
+    REAL sAx = 3.;
     REAL sAy = 1.05 * this->fHbullet/2.;
     
-    REAL shiftX = 0.;
     for(int p = 1; p <= nptsUp; p++)
     {
         REAL x  = MIN(sAx - 0.001,p * sAx/nptsUp);
@@ -211,6 +212,15 @@ void TPZPlaneFractureKernel::InitializeMeshes(TPZCompMesh * lastElastCMesh)
     this->ApplyInitialCondition(2.*globLayerStruct.GetHigherPreStress());
     
     this->InitializePath3DVector();
+    
+//    {
+//        this->fmeshVec[0]->Solution()(1,0) = 3.4528254983;
+//        REAL maxKI_KIc = 0.;
+//        std::set<int> who;
+//        int maxKI_KIcPos = 0;
+//        this->CheckPropagationCriteria(maxKI_KIc, who, maxKI_KIcPos);
+//        DebugStop();
+//    }
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -291,6 +301,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 void TPZPlaneFractureKernel::RunThisFractureGeometry()
 {
 //    {/** Desacoplado meia boca : só para ver KI=KIc */
+//        std::cout << "\n\nDESACOPLADO, 1 FAIXA!!!\n\n\n";
 //        this->fmeshVec[0]->Solution()(1,0) = globLayerStruct.GetLowerPreStress();
 //        
 //        bool thereIs = true;
@@ -368,7 +379,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         this->MassMatrix(matMass);
         
         REAL normRes = 1.;
-        REAL tolRes = 1.e-3;
+        REAL tolResEntire = 1.e-1;
+        REAL tolResStripe = 1.e-2;
         int maxit = 20;
         int nit = 0;
         
@@ -378,7 +390,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
         matRes_total = matRes_partial + matMass;
         
-        while(normRes > tolRes && nit < maxit)
+        while(normRes > tolResEntire && nit < maxit)
         {
             an->Rhs() = matRes_total;
             an->Solve();
@@ -399,8 +411,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             std::cout << "normRes = " << normRes << std::endl;
             nit++;
         }
-        bool just1Stripe = true;
-        if(just1Stripe == false && normRes <= tolRes)
+        bool just1Stripe = false;
+        if(just1Stripe == false && normRes <= tolResEntire)
         {
             ///Metodo de Newton para Stripes
             std::cout << "\n-> Stripes\n";
@@ -410,7 +422,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             
             normRes = 1.;
             nit = 0;
-            while(normRes > tolRes && nit < maxit)
+            while(normRes > tolResStripe && nit < maxit)
             {
                 an->Rhs() = matRes_total;
                 an->Solve();
@@ -433,10 +445,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             }
         }
 
-        if(normRes > tolRes)
+        if(normRes > tolResStripe)
         {
-            //Quando o actDeltaT leva a um instante em que Vleakoff = Vinj, nao converge, necessitando
-            //trazer o limite esquerdo do deltaT da bisseccao para a direita
             globTimeControl.TimeisOnLeft();
             
             std::cout << "\nNao convergiu (provavelmente w muito pequeno resultando em grande gradiente de pressão)...\n";
@@ -458,7 +468,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             {
                 int maxKI_KIcPosition = -1;
                 propagate = this->CheckPropagationCriteria(maxKI_KIc, whoPropagate, maxKI_KIcPosition);
-                
+
                 if(propagate == false)
                 {
                     globTimeControl.TimeisOnLeft();
@@ -1270,7 +1280,10 @@ bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL & maxKI_KIc, std::set
         
         if(cracktipKI >= 0.9 * cracktipKIc)
         {
-            propagate = true;
+            if(cracktipKI >= 1.0 * cracktipKIc)
+            {
+                propagate = true;
+            }
             whoPropagate.insert(p);
         }
         if(cracktipKI/cracktipKIc > maxKI_KIc)
@@ -1295,14 +1308,14 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
     for(int p = 0; p < this->fPath3D.NPaths(); p++)
     {
         it = whoPropagate.find(p);
-        if(it == whoPropagate.end())
-        {//Nao propagou, portanto serah mantido o ponto medio
-            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
-            
-            newX = originVec[0];
-            newZ = originVec[2];
-        }
-        else
+//        if(it == whoPropagate.end())//AQUICAJU
+//        {//Nao propagou, portanto serah mantido o ponto medio
+//            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
+//            
+//            newX = originVec[0];
+//            newZ = originVec[2];
+//        }
+//        else
         {//Propagou, portanto serah definido novo ponto a partir de seu centro
             REAL KI = this->fPath3D.Path(p)->KI();
             REAL KIc = this->fPath3D.Path(p)->KIc();

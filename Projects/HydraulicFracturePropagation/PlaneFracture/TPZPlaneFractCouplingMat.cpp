@@ -255,7 +255,6 @@ void TPZPlaneFractCouplingMat::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec
     }
     else
     {
-        DebugStop();//Validar!!!
         TPZElast3Dnlinear::ContributeBC(datavec[0], weight, ek, ef, bc);
     }
 }

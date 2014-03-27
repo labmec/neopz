@@ -202,7 +202,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-//    RefineDirectionalToCrackTip(1);
+    RefineDirectionalToCrackTip(2);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -222,7 +222,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
     cmesh->SetDefaultOrder(porder);
     
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int newmann = 1, dirichDir = 3;
+    int newmann = 1, dirich = 0, dirichDir = 3;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
@@ -247,33 +247,28 @@ TPZCompMesh * TPZPlaneFractureMesh::GetFractureCompMesh(int porder)
 
         k.Zero();
         f.Zero();
-        f(0,0) = 1.;
-        TPZBndCond * dirichDirRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirRight);
+        TPZBndCond * dirichRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichRight);
 
         k.Zero();
         f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * dirichDirOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirOutFracture);
+        TPZBndCond * dirichOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichOutFracture);
         
         k.Zero();
         f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * dirichDirFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirFarfield);
+        TPZBndCond * dirichFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichFarfield);
 
         k.Zero();
         f.Zero();
-        f(2,0) = 1.;
-        TPZBndCond * dirichDirTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirTop);
+        TPZBndCond * dirichTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichTop);
 
         k.Zero();
         f.Zero();
-        f(2,0) = 1.;
-        TPZBndCond * dirichDirBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirBottom);
+        TPZBndCond * dirichBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichBottom);
         
         ///////////insideFract
         k.Zero();
@@ -406,7 +401,7 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
     cmesh->SetDefaultOrder(porder+1);
     
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int newmann = 1, dirichDir = 3;
+    int newmann = 1, dirich = 0, dirichDir = 3;
 
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
@@ -429,33 +424,28 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
         
         k.Zero();
         f.Zero();
-        f(0,0) = 1.;
-        TPZBndCond * dirichDirRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirRight);
+        TPZBndCond * dirichRight = new TPZBndCond(materialLin,globMaterialIdGen.RightMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichRight);
         
         k.Zero();
         f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * dirichDirOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirOutFracture);
+        TPZBndCond * dirichOutFracture = new TPZBndCond(materialLin,globMaterialIdGen.OutSideFractMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichOutFracture);
         
         k.Zero();
         f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * dirichDirFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirFarfield);
+        TPZBndCond * dirichFarfield = new TPZBndCond(materialLin,globMaterialIdGen.FarfieldMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichFarfield);
         
         k.Zero();
         f.Zero();
-        f(2,0) = 1.;
-        TPZBndCond * dirichDirTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirTop);
+        TPZBndCond * dirichTop = new TPZBndCond(materialLin,globMaterialIdGen.TopMatId(), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichTop);
         
         k.Zero();
         f.Zero();
-        f(2,0) = 1.;
-        TPZBndCond * dirichDirBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirBottom);
+        TPZBndCond * dirichBottom = new TPZBndCond(materialLin,globMaterialIdGen.BottomMatId(), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichBottom);
         
         ///////////insideFract
         k.Zero();
@@ -545,7 +535,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
     
-    int newmann = 1, dirichDir = 3, newmannFluxIn = 4;
+    int newmann = 1, dirich = 0, dirichDir = 3, newmannFluxIn = 4;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
@@ -587,33 +577,28 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
         
         k.Zero();
         f.Zero();
-        f(0,0) = 1.;
-        TPZBndCond * dirichDirRight = new TPZBndCond(couplingMat,globMaterialIdGen.RightMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirRight);
+        TPZBndCond * dirichRight = new TPZBndCond(couplingMat,globMaterialIdGen.RightMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichRight);
         
         k.Zero();
         f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * dirichDirOutFracture = new TPZBndCond(couplingMat,globMaterialIdGen.OutSideFractMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirOutFracture);
+        TPZBndCond * dirichOutFracture = new TPZBndCond(couplingMat,globMaterialIdGen.OutSideFractMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichOutFracture);
         
         k.Zero();
         f.Zero();
-        f(1,0) = 1.;
-        TPZBndCond * dirichDirFarfield = new TPZBndCond(couplingMat,globMaterialIdGen.FarfieldMatId(lay), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirFarfield);
+        TPZBndCond * dirichFarfield = new TPZBndCond(couplingMat,globMaterialIdGen.FarfieldMatId(lay), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichFarfield);
         
         k.Zero();
         f.Zero();
-        f(2,0) = 1.;
-        TPZBndCond * dirichDirTop = new TPZBndCond(couplingMat,globMaterialIdGen.TopMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirTop);
+        TPZBndCond * dirichTop = new TPZBndCond(couplingMat,globMaterialIdGen.TopMatId(), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichTop);
         
         k.Zero();
         f.Zero();
-        f(2,0) = 1.;
-        TPZBndCond * dirichDirBottom = new TPZBndCond(couplingMat,globMaterialIdGen.BottomMatId(), dirichDir, k, f);
-        cmesh->InsertMaterialObject(dirichDirBottom);
+        TPZBndCond * dirichBottom = new TPZBndCond(couplingMat,globMaterialIdGen.BottomMatId(), dirich, k, f);
+        cmesh->InsertMaterialObject(dirichBottom);
         
         ///////////insideFract
         for(int stripe = 0; stripe < this->fnstripes; stripe++)
