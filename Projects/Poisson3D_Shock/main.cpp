@@ -162,7 +162,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	int itypeel = 3;
+	int itypeel = 7;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -192,7 +192,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int materialBC1 = 2;
 	// Generic data for problems to solve
 	int NRefs = 100;
-	int ninitialrefs = 3;
+	int ninitialrefs = 2;
 
 	// auxiliar string
 	char saida[512];
@@ -252,7 +252,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		NRefs = 15;
 		break;
 	default:
-		NRefs = 12;
+		NRefs = 4;
 		break;
 	}
 
@@ -443,7 +443,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = 1./3.;
+	REAL factorGrad = .2;
+	if(dim == 2) factorGrad = 1./3.;
 	
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
@@ -476,7 +477,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 			level++;
 			hused = true;
 		}
-		if(ervecbyel[i] > SmallError && pelement < MaxPOrder) {
+		if(ervecbyel[i] > SmallError && pelement < MaxPOrder && nref) {
 			counterreftype[20]++;
 			if(el)
 				el->PRefine(pelement);
