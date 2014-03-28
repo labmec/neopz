@@ -642,7 +642,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     
     PostProcess();
     
-    fCurrentConfig.VerifyGlobalEquilibrium();
+//    fCurrentConfig.VerifyGlobalEquilibrium();
 
     fSequence.push_back(fCurrentConfig);
 }
@@ -670,9 +670,9 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
     if (!pMatWithMem) {
         DebugStop();
     }
-    pMatWithMem->ResetMemory();
+//    pMatWithMem->ResetMemory();
     
-    CmeshWell(&fCurrentConfig.fCMesh, pMatWithMem, fCurrentConfig.fConfinement, fCurrentConfig.fFluidPressure);
+//    CmeshWell(&fCurrentConfig.fCMesh, pMatWithMem, fCurrentConfig.fConfinement, fCurrentConfig.fFluidPressure);
     
     int BCId=-2;
     TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
