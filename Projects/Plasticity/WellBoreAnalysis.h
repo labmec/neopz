@@ -280,6 +280,26 @@ public:
         return &fCurrentConfig;
     }
 
+    /// Access method
+    TConfig * GetConfig (int index) {
+        if (index < 0 || index >= fSequence.size())
+            DebugStop();
+
+        list<TPZWellBoreAnalysis::TConfig>::iterator inte;
+        int i=0;
+        for (inte=fSequence.begin(); inte!=fSequence.end(); ++inte, i++)
+            if (i == index)
+                return &(*inte);
+
+        DebugStop();
+        return 0;
+    }
+
+    /// Return size of config list
+    int GetConfigListSize () {
+        return fSequence.size();
+    }
+
     /// Initialize the object with standard parameters
     static void StandardConfiguration(TPZWellBoreAnalysis &obj);
     

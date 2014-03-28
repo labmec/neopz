@@ -549,18 +549,22 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
         }
 
-        cout << "-------------------> i: " << i << "Pressao atual: " << mattemp;
-        
-        fCurrentConfig.VerifyGlobalEquilibrium();
+        //fCurrentConfig.VerifyGlobalEquilibrium();
         //fPostProcessNumber++;            
-        
+
+        std::stringstream strout;
+        strout << "Step " << fPostProcessNumber-1;
+        fCurrentConfig.fHistoryLog = strout.str();
+
+        fSequence.push_back(fCurrentConfig);
+
         mattemp += matincrement;
         
     }
     
-    fCurrentConfig.VerifyGlobalEquilibrium();
+//    fCurrentConfig.VerifyGlobalEquilibrium();
     
-    fSequence.push_back(fCurrentConfig);
+//    fSequence.push_back(fCurrentConfig);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) 
     {
@@ -643,6 +647,10 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     PostProcess();
     
 //    fCurrentConfig.VerifyGlobalEquilibrium();
+
+    std::stringstream strout;
+    strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure;
+    fCurrentConfig.fHistoryLog = strout.str();
 
     fSequence.push_back(fCurrentConfig);
 }
@@ -739,15 +747,23 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
         
         cout << "-------------------> i: "<< i << " Pressao atual: " << mattemp;
 
-        fCurrentConfig.VerifyGlobalEquilibrium();
+        //fCurrentConfig.VerifyGlobalEquilibrium();
+
+        fCurrentConfig.fFluidPressure=-mattemp(0,0);
+        //fCurrentConfig.VerifyGlobalEquilibrium();
+
+        std::stringstream strout;
+        strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure;
+        fCurrentConfig.fHistoryLog = strout.str();
+
+        fSequence.push_back(fCurrentConfig);
+
         mattemp += matincrement;
-        
     }
-    fCurrentConfig.fFluidPressure=pwb;
-    
-    fCurrentConfig.VerifyGlobalEquilibrium();
-    
-    fSequence.push_back(fCurrentConfig);
+
+//    fCurrentConfig.fFluidPressure=pwb;
+//    fCurrentConfig.VerifyGlobalEquilibrium();
+//    fSequence.push_back(fCurrentConfig);
 
 }
 
@@ -1828,13 +1844,14 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh(int PostProcessNumbe
     //
     fPostprocess.SetPostProcessVariables(PostProcMatIds, PostProcVars);
     //
+//    fPostprocess.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
     fPostprocess.TransferSolution();
     
     fPostprocess.SetStep(PostProcessNumber);
     if (fPostprocess.ReferenceCompMesh() != &fCMesh) {
         fPostprocess.SetCompMesh(&fCMesh);
     }
-    fPostprocess.PostProcess(resolution);
+//    fPostprocess.PostProcess(resolution);
 }
 
 int passCount = 0;
