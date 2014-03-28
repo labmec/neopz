@@ -44,7 +44,7 @@ TPZPlaneFractureMesh::TPZPlaneFractureMesh(REAL bulletTVDIni, REAL bulletTVDFin,
     this->fLmax = Lmax;
     this->fLfrac = 0.;
     
-    this->fnstripes = 0;//Serah inicializada corretamente no metodo this->SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh)
+    this->fnstripes = 0;
     
     this->fCouplingMatVec.Resize(0);
     
@@ -202,7 +202,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
     SeparateElementsInMaterialSets(fRefinedMesh);
     UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    RefineDirectionalToCrackTip(2);
+    RefineDirectionalToCrackTip(3);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -484,7 +484,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
     TPZCompMesh * cmesh = new TPZCompMesh(fRefinedMesh);
     
     cmesh->SetDimModel(2);
-    cmesh->SetDefaultOrder(porder+1);
+    cmesh->SetDefaultOrder(porder+0);//AQUICAJU : Porder=2 tem dado muita oscilacao.
     
     TPZFMatrix<REAL> xk(1,1,1.);
     TPZFMatrix<REAL> xc(1,1,0.);
@@ -1014,6 +1014,42 @@ void TPZPlaneFractureMesh::RefineDirectionalToCrackTip(int ndiv)
             if(gel->HasSubElement() == false)
             {
                 TPZRefPatternTools::RefineDirectional(gel, crackTipMat);
+            }
+        }
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
+{
+    for(int i = 0; i < fcrackBoundaryElementsIndexes.NElements(); i++)
+    {
+        TPZGeoEl * gel1D = refinedMesh->ElementVec()[fcrackBoundaryElementsIndexes[i]];
+        
+#ifdef DEBUG
+        if(gel1D->Dimension() != 1)
+        {
+            DebugStop();
+        }
+#endif
+        
+        for(int s = 0; s < 2; s++)
+        {
+            TPZGeoElSide edge(gel1D,s);
+            TPZGeoElSide neigh(edge.Neighbour());
+            
+            while(edge != neigh)
+            {
+                if(neigh.Element()->HasSubElement() == false && neigh.Element()->IsLinearMapping())
+                {
+                    int neighSide = neigh.Side();
+                    TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(refinedMesh, neigh.Element()->Index(), neighSide);
+                    neigh = neighEl->Neighbour(neighSide);
+                }
+                else
+                {
+                    neigh = neigh.Neighbour();
+                }
             }
         }
     }
@@ -1918,6 +1954,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
         predictedNStripes = this->fLfrac / (mult * this->fLmax) + 1;
     }
     
+    this->fnstripes = 0;
     
     //Capturando subelementos que encostam no contorno da fratura
     for(int el = 0; el < n1Dels; el++)

@@ -155,7 +155,7 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     REAL yc = -fCenterTVD;
     
     REAL shiftX = this->fJIntegralRadius;
-    REAL sAx = 3.;
+    REAL sAx = 4.;
     REAL sAy = 1.05 * this->fHbullet/2.;
     
     for(int p = 1; p <= nptsUp; p++)
@@ -183,8 +183,6 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
 
 void TPZPlaneFractureKernel::InitializeMeshes(TPZCompMesh * lastElastCMesh)
 {
-    globLayerStruct.ResetData();
-    
     //GeoMesh
     this->fPlaneFractureMesh->InitializeFractureGeoMesh(fpoligonalChain);
     
@@ -331,7 +329,11 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
 //        
 //        return;
 //    }
-
+    
+    globFractOutput3DData.fKI_KI_history << "STEP " << this->fstep << ":\n";
+    globFractOutput3DData.fKI_KI_history << "actTime = " << globTimeControl.actTime() << "s\n\n";
+    std::map<REAL,std::string> deltaT_historyMap;
+    
     TPZAnalysis * an = new TPZAnalysis(this->fmphysics);
     
     /** Convergence test */
@@ -375,10 +377,16 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         this->MassMatrix(matMass);
         
         REAL normRes = 1.;
-        REAL tolResEntire = 1.e-1;
-        REAL tolResStripe = 1.e-2;
+        REAL tolResEntire = 1.E-1;
+        REAL tolResStripe = 1.E-2;
         int maxit = 20;
         int nit = 0;
+        
+        bool just1Stripe = true;// <<<<<<<<<<<<<<<<<<<<<<<
+        if(just1Stripe)
+        {
+            tolResEntire = 1.E-3;
+        }
         
         ///Metodo de Newton para EntireFracture
         std::cout << "\n-> Entire fracture\n";
@@ -407,7 +415,6 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             std::cout << "normRes = " << normRes << std::endl;
             nit++;
         }
-        bool just1Stripe = false;
         if(just1Stripe == false && normRes <= tolResEntire)
         {
             ///Metodo de Newton para Stripes
@@ -447,6 +454,15 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             
             std::cout << "\nNao convergiu (provavelmente w muito pequeno resultando em grande gradiente de pressão)...\n";
             std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
+
+            {
+                std::ostringstream strVal;
+                strVal << globTimeControl.actDeltaT();
+                std::string tempstr = "detlaT ";
+                tempstr += strVal.str();
+                tempstr += " s : Não convergiu\n";
+                deltaT_historyMap[globTimeControl.actDeltaT()] = tempstr;
+            }
         }
         else
         {
@@ -459,6 +475,18 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
                 globTimeControl.TimeisOnLeft();
                 std::cout << "\nNegativeW = " << negVol << "\n";
                 std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
+                
+                {
+                    std::ostringstream strVal, strVol;
+                    strVal << globTimeControl.actDeltaT();
+                    strVol << negVol;
+                    std::string tempstr = "detlaT ";
+                    tempstr += strVal.str();
+                    tempstr += " s : W negativo = ";
+                    tempstr += strVol.str();
+                    tempstr += " m3\n";
+                    deltaT_historyMap[globTimeControl.actDeltaT()] = tempstr;
+                }
             }
             else
             {
@@ -470,12 +498,36 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
                     globTimeControl.TimeisOnLeft();
                     std::cout << "KI < KIc\n";
                     std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
+                    
+                    {
+                        std::ostringstream strVal, strKI;
+                        strVal << globTimeControl.actDeltaT();
+                        strKI << maxKI_KIc;
+                        std::string tempstr = "detlaT ";
+                        tempstr += strVal.str();
+                        tempstr += " s : KI < KIc (relativo = ";
+                        tempstr += strKI.str();
+                        tempstr += ")\n";
+                        deltaT_historyMap[globTimeControl.actDeltaT()] = tempstr;
+                    }
                 }
                 else
                 {
                     globTimeControl.TimeisOnRight();
                     std::cout << "\nPropagate: maxKI/respectiveKIc = " << maxKI_KIc << "\n";
                     std::cout << "************* t está a Direita de KI=KIc *************\n";
+                    
+                    {
+                        std::ostringstream strVal, strKI;
+                        strVal << globTimeControl.actDeltaT();
+                        strKI << maxKI_KIc;
+                        std::string tempstr = "detlaT ";
+                        tempstr += strVal.str();
+                        tempstr += " s : KI >= KIc (relativo = ";
+                        tempstr += strKI.str();
+                        tempstr += ")\n";
+                        deltaT_historyMap[globTimeControl.actDeltaT()] = tempstr;
+                    }
                 }
             }
         }
@@ -503,6 +555,16 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
     this->CloseActualTimeStep();
     
     this->DefinePropagatedPoligonalChain(maxKI_KIc, whoPropagate);
+    
+    std::map<REAL,std::string>::iterator itdeltaTmap;
+    for(itdeltaTmap = deltaT_historyMap.begin(); itdeltaTmap != deltaT_historyMap.end(); itdeltaTmap++)
+    {
+        globFractOutput3DData.fKI_KI_history << (itdeltaTmap->second);
+    }
+    globFractOutput3DData.fKI_KI_history << "\n----------------------------------------------------------\n";
+    std::ofstream outKIhistory("000stepLOG.txt");
+    outKIhistory << globFractOutput3DData.fKI_KI_history.str();
+    outKIhistory.close();
     
     this->fstep++;
 }
@@ -1296,14 +1358,14 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
     for(int p = 0; p < this->fPath3D.NPaths(); p++)
     {
         it = whoPropagate.find(p);
-//        if(it == whoPropagate.end())//AQUICAJU
-//        {//Nao propagou, portanto serah mantido o ponto medio
-//            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
-//            
-//            newX = originVec[0];
-//            newZ = originVec[2];
-//        }
-//        else
+        if(it == whoPropagate.end())
+        {//Nao propagou, portanto serah mantido o ponto medio
+            TPZVec<REAL> originVec = this->fPath3D.Path(p)->Origin();
+            
+            newX = originVec[0];
+            newZ = originVec[2];
+        }
+        else
         {//Propagou, portanto serah definido novo ponto a partir de seu centro
             REAL KI = this->fPath3D.Path(p)->KI();
             REAL KIc = this->fPath3D.Path(p)->KIc();

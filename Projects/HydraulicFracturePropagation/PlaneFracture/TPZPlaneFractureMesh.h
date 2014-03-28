@@ -211,6 +211,8 @@ protected:
     
     void RefineDirectionalToCrackTip(int ndiv);
 
+    void TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh);
+    
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
      *  @param espacamentoVerticalDEPTH [in] : espacamento vertical que define interfaces entre camadas horizontais

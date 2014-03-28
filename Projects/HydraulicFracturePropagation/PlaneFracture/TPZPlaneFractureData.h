@@ -566,7 +566,6 @@ public:
     LayerStruct()
     {
         this->fLayerVec.Resize(0);
-        //this->fLayer_Stripe_SolutionRow.clear();
         this->fminPrestress = +1.E15;
         this->fmaxPrestress = -1.E15;
     }
@@ -581,15 +580,8 @@ public:
         return 1.;//DO NOT TOUCH!!!
     }
     
-    void ResetData()
-    {
-        //this->fLayer_Stripe_SolutionRow.clear();
-    }
-    
     void SetStaticPressureAsPrestress()
     {
-        //Quando leakoff eh PressureIndependent, preciso do Pe para realizar a seguinte avaliacao para QlFVl:
-        //if(pfrac <= Pe) return 0.;
         for(int lay = 0; lay < this->fLayerVec.NElements(); lay++)
         {
             REAL prestress = -this->fLayerVec[lay].fSigYY;
@@ -679,6 +671,7 @@ public:
     
     //maps indexed by time
     std::stringstream fFractContour;
+    std::stringstream fKI_KI_history;
     
     std::map<REAL,REAL> fTAcumVolW;
     std::map<REAL,REAL> fTAcumVolLeakoff;

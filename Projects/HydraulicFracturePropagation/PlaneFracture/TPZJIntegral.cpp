@@ -404,7 +404,8 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     REAL W = 0.;
     for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < 3; c++)
+//        for(int c = 0; c < 3; c++)//AQUICAJU
+        for(int c = r; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
         }
@@ -713,7 +714,8 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
     REAL W = 0.;
     for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < 3; c++)
+        //        for(int c = 0; c < 3; c++)//AQUICAJU
+        for(int c = r; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
         }
@@ -907,6 +909,12 @@ void Path3D::ComputeJIntegral()
     this->fJDirection[0] = Jxproj/Jprojnorm;
     this->fJDirection[1] = Jyproj/Jprojnorm;
     this->fJDirection[2] = Jzproj/Jprojnorm;
+    
+//    {//Contencao de crescimento vertical
+//        REAL zComponent = fabs(this->fJDirection[2]);
+//        REAL mult = 1. - pow(zComponent,5)/2.;
+//        Jprojnorm *= mult;
+//    }
     this->fJintegral = Jprojnorm;
     
     this->fKI = sqrt(this->fJintegral);//<< in fact, this->fJintegral is (young * J-integral)
