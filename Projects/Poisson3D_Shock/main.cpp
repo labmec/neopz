@@ -162,7 +162,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	int itypeel = 7;
+	int itypeel = 3;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -192,7 +192,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int materialBC1 = 2;
 	// Generic data for problems to solve
 	int NRefs = 100;
-	int ninitialrefs = 2;
+	int ninitialrefs = 3;
 
 	// auxiliar string
 	char saida[512];
@@ -247,7 +247,6 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	// Adjusting parameters
 	switch(typeel) {
 	case EQuadrilateral:
-//		ninitialrefs = 3;
 	case ETriangle:
 	case ETetraedro:
 		NRefs = 15;
@@ -395,7 +394,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
-			REAL factorError = .25;
+			REAL factorError = 1./3.;
 			while(!ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(cmesh,ervecbyel,gradervecbyel,MaxErrorByElement,MinErrorByElement,MinGradErrorByElement,nref,itypeel,factorError)) {
 				factorError -= 0.075;
 				out << "\nFactorError " << factorError << std::endl;
@@ -444,13 +443,10 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = 0.2;
-	REAL GradErLimit = 9.;
-	if(dim==3) GradErLimit = 30.;
+	REAL factorGrad = 1./3.;
 	
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
-	if(MaxGrad > GradErLimit) MaxGrad = GradErLimit;
 
 	/* Printing maximum and minimun values of the errors */
 	out << "\nErro ->   Min " << MinErrorByElement << "    Max " << MaxErrorByElement << std::endl << "Grad ->   Min " << MinGrad << "   Max " << gradervecbyel[nels] << "\t";
@@ -473,14 +469,14 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 		level = el->Reference()->Level();
 
 		// Applying hp refinement depends on high gradient and high laplacian value, and depends on computed error by element
-		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel && nref < 7) {
+		if(gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
 			counterreftype[10]++;
 			el->Divide(index,subels);
 			el = NULL;
 			level++;
 			hused = true;
 		}
-		if(ervecbyel[i] > SmallError && pelement < MaxPOrder && nref) {
+		if(ervecbyel[i] > SmallError && pelement < MaxPOrder) {
 			counterreftype[20]++;
 			if(el)
 				el->PRefine(pelement);
