@@ -72,16 +72,33 @@ namespace pzgeom {
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            TPZGeoLinear::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            TPZManVector<REAL,3> gradx(3);
+            CornerCoordinates(gel, coord);
+            REAL cosval = cos(fNumWaves*M_PI*param[0]);
+            for (int i=0; i<3; i++) {
+                gradx[i] = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
+            }
+            REAL normv = 0.;
+            for (int i=0; i<3; i++) {
+                normv += gradx[i]*gradx[i];
+            }
+            normv = sqrt(normv);
+            jacobian(0,0) = normv;
+            detjac = normv;
+            jacinv(0,0) = 1./normv;
+            for (int i=0; i<3; i++) {
+                axes(0,i) = gradx[i]/normv;
+            }
         }
         
 		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
         {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
             TPZGeoLinear::X(nodes,loc,result);
+            REAL sinval = sin(this->fNumWaves*M_PI*loc[0]);
+            for (int i=0; i<3; i++) {
+                result[i] += this->fWaveDir[i]*sinval;
+            }
         }
 		
 		

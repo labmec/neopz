@@ -16,50 +16,47 @@ namespace pzgeom {
     
     class TPZQuadTorus : public TPZGeoQuad
     {
-        int fNumWaves;
-        TPZManVector<REAL,3> fWaveDir;
-
+        TPZFNMatrix<8,REAL> fPhiTheta;
     public:
         
         /** @brief Constructor with list of nodes */
-		TPZQuadTorus(TPZVec<long> &nodeindexes) : TPZGeoQuad(nodeindexes), fNumWaves(0), fWaveDir()
+		TPZQuadTorus(TPZVec<long> &nodeindexes) : TPZGeoQuad(nodeindexes), fPhiTheta(4,2,0.)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZQuadTorus() : TPZGeoQuad(), fNumWaves(0), fWaveDir()
+		TPZQuadTorus() : TPZGeoQuad(), fPhiTheta(4,2,0.)
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZQuadTorus(const TPZQuadTorus &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoQuad(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+				   std::map<long,long> & gl2lcNdMap) : TPZGeoQuad(cp,gl2lcNdMap), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZQuadTorus(const TPZQuadTorus &cp) : TPZGeoQuad(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZQuadTorus(const TPZQuadTorus &cp) : TPZGeoQuad(cp), fPhiTheta(cp.fPhiTheta)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZQuadTorus(const TPZQuadTorus &cp, TPZGeoMesh &) : TPZGeoQuad(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZQuadTorus(const TPZQuadTorus &cp, TPZGeoMesh &) : TPZGeoQuad(cp), fPhiTheta(cp.fPhiTheta)
 		{
 		}
         
-        void SetData(TPZVec<REAL> &wavedir, int numwaves)
+        void SetData(const TPZFMatrix<REAL> &phitheta)
         {
 #ifdef DEBUG
-            if (wavedir.size() != 3) {
+            if (phitheta.Rows() != 4 || phitheta.Cols() != 2) {
                 DebugStop();
             }
 #endif
-            fWaveDir = wavedir;
-            fNumWaves = numwaves;
+            fPhiTheta = phitheta;
         }
 
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Wavy";}
+		static std::string TypeName() { return "TorusQuad";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
@@ -96,15 +93,11 @@ namespace pzgeom {
         void Read(TPZStream &buf,void *context)
         {
             pzgeom::TPZGeoQuad::Read(buf,0);
-            buf.Read(&fNumWaves,1);
-            TPZSaveable::ReadObjects<3>(buf, fWaveDir);
         }
         
         void Write(TPZStream &buf)
         {
             pzgeom::TPZGeoQuad::Write(buf);
-            buf.Write(&fNumWaves,1);
-            TPZSaveable::WriteObjects(buf, fWaveDir);
 		}
 
 		

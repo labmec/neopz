@@ -105,10 +105,14 @@ int main(int argc, char *argv[])
     quadrilatero->X(qsi,xqsi);
     std::cout << "qsi = { " << qsi[0] << " , " << qsi[1] << " }  ;  x(qsi) = { " << xqsi[0] << " , " << xqsi[1] << " , " << xqsi[2] << " }\n";
 
+    TPZFNMatrix<9,REAL> jac(2,2),axes(2,3),jacinv(2,2);
+    REAL detjac;
+    quadrilatero->Jacobian(qsi, jac, axes, detjac, jacinv);
     qsi[0] = -0.89;
     qsi[1] = +0.31;
     quadrilatero->X(qsi,xqsi);
     std::cout << "qsi = { " << qsi[0] << " , " << qsi[1] << " }  ;  x(qsi) = { " << xqsi[0] << " , " << xqsi[1] << " , " << xqsi[2] << " }\n";
+    
     
     qsi[0] = +0.05;
     qsi[1] = +1.0;
@@ -137,6 +141,8 @@ int main(int argc, char *argv[])
     
     std::ofstream outfile("malha.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile);
+    
+    geomesh->Print();
     
     
 	return 0;
