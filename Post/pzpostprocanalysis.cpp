@@ -79,6 +79,11 @@ TPZPostProcAnalysis::~TPZPostProcAnalysis()
 /// Set the computational mesh we are going to post process
 void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
 {
+    // the postprocess mesh already exists, do nothing
+    if (fpMainMesh == pRef) {
+        return;
+    }
+    
     if (fCompMesh) {
         delete fCompMesh;
         fCompMesh = 0;
