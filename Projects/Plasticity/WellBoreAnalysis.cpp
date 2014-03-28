@@ -1774,6 +1774,9 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh(int PostProcessNumbe
 #else
     std::string vtkFile = "pocoplasticoErick.vtk";
 #endif
+    if (fPostprocess.ReferenceCompMesh() == &fCMesh) {
+        return;
+    }
     
     fPostprocess.SetCompMesh(&fCMesh);
     TPZFStructMatrix structmatrix(fPostprocess.Mesh());
@@ -1824,8 +1827,6 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh(int PostProcessNumbe
     }
     //
     fPostprocess.SetPostProcessVariables(PostProcMatIds, PostProcVars);
-    //
-    fPostprocess.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
     //
     fPostprocess.TransferSolution();
     
