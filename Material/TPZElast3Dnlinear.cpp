@@ -252,7 +252,6 @@ void TPZElast3Dnlinear::ContributeVecShapeBCAux(TPZMaterialData &data,
     {
 		case 0:// Dirichlet condition
         {
-            DebugStop();
 			for(in = 0 ; in < phc; in++)
             {
                 for(int il = 0; il < fNumLoadCases; il++)
