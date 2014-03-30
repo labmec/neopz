@@ -48,7 +48,7 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
             if(this->fPressureIndependent == false)
             {
                 std::cout << "\n\n\nElemento de Id = " << cel->Reference()->Id() << " e Index = " << cel->Reference()->Index() <<
-                             " nao encontrado no UpdateLeakoff\n";
+                " nao encontrado no UpdateLeakoff\n";
                 std::cout << "Seria o TransferLeakoff anterior que nao o incluiu???\n";
                 std::cout << "Ver método " << __PRETTY_FUNCTION__ << "\n\n\n";
                 DebugStop();
@@ -59,7 +59,7 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
                 it = fGelId_Penetration.find(cel->Reference()->Id());
             }
         }
-
+        
         TPZInterpolatedElement * sp = NULL;
         if(cel->Reference()->Type() == ETriangle)
         {
@@ -85,18 +85,18 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         sp->InitMaterialData(data);
         sp->ComputeShape(qsi, data);
         sp->ComputeSolution(qsi, data);
-
+        
         REAL pfrac = data.sol[0][0];
         
         TPZBndCond * matbnd = dynamic_cast<TPZBndCond*> (cel->Material());
-
+        
 #ifdef DEBUG
         if(!matbnd)
         {
             DebugStop();
         }
 #endif
-
+        
         TPZPlaneFractCouplingMat * mat = dynamic_cast<TPZPlaneFractCouplingMat *>(matbnd->Material());
         
 #ifdef DEBUG
@@ -156,7 +156,7 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
     if(VlAcum > vsp)
     {
         REAL gradPcalc = 1.;
-
+        
         if(fPressureIndependent == false)
         {
             REAL gradP = pfrac - Pe;
@@ -246,9 +246,7 @@ void LeakoffStorage::Printleakoff(std::ofstream & outf)
     }
 }
 
-
 //------------------------------------------------------------
-
 
 ElastReducedSolution::ElastReducedSolution()
 {

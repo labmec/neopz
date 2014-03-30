@@ -32,7 +32,7 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
                            TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius)
 {    
     this->fFinalPoint = FinalPoint;
-    this->fNormalDirection = normalDirection;
+    this->fPlaneNormalDirection = normalDirection;
     this->fradius = radius;
     
     this->fDETdxdt = this->fradius/2.;
@@ -42,13 +42,13 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     
     this->fInitialPoint.Resize(3, 0.);
     this->fInitialPoint[0] =
-                (this->fFinalPoint[0] - this->fradius*sin((M_PI)/2.)*sin(atan2(this->fNormalDirection[2],this->fNormalDirection[0])));
+                (this->fFinalPoint[0] - this->fradius*sin((M_PI)/2.)*sin(atan2(this->fPlaneNormalDirection[2],this->fPlaneNormalDirection[0])));
     
     this->fInitialPoint[1] =
                 this->fradius*cos((M_PI)/2.);
     
     this->fInitialPoint[2] =
-                (this->fFinalPoint[2] + this->fradius*cos(atan2(this->fNormalDirection[2],this->fNormalDirection[0]))*sin((M_PI)/2.));
+                (this->fFinalPoint[2] + this->fradius*cos(atan2(this->fPlaneNormalDirection[2],this->fPlaneNormalDirection[0]))*sin((M_PI)/2.));
     
     this->f_t_elIndexqsi_Elastic.clear();
     this->f_t_elIndexqsi_Fluid.clear();
@@ -58,7 +58,7 @@ LinearPath3D::LinearPath3D(LinearPath3D * cp)
 {
     this->fInitialPoint = cp->fInitialPoint;
     this->fFinalPoint = cp->fFinalPoint;
-    this->fNormalDirection = cp->fNormalDirection;
+    this->fPlaneNormalDirection = cp->fPlaneNormalDirection;
     this->fradius = cp->fradius;
     
     this->fDETdxdt = cp->fDETdxdt;
@@ -235,7 +235,6 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido : PIOR */
 //        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
 //        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
-//        Se for utilizar isso, vá no método LinearPath3D::ComputeElasticData e descomente a linha "this->fcmeshElastic->LoadReferences();"
 
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media : MELHOR */
         int stripe = globMaterialIdGen.WhatStripe(insideMatId);
@@ -313,7 +312,7 @@ ArcPath3D::ArcPath3D()
 ArcPath3D::ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
     this->fOrigin = Origin;
-    this->fNormalDirection = normalDirection;
+    this->fPlaneNormalDirection = normalDirection;
     this->fradius = radius;
     
     this->fDETdxdt = M_PI*this->fradius/2.;
@@ -327,7 +326,7 @@ ArcPath3D::ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<RE
 ArcPath3D::ArcPath3D(ArcPath3D * cp)
 {
     this->fOrigin = cp->fOrigin;
-    this->fNormalDirection = cp->fNormalDirection;
+    this->fPlaneNormalDirection = cp->fPlaneNormalDirection;
     this->fradius = cp->fradius;
     
     this->fDETdxdt = cp->fDETdxdt;
@@ -348,9 +347,9 @@ void ArcPath3D::X(REAL t, TPZVec<REAL> & xt)
 {
     xt.Resize(3,0.);
     
-    xt[0] = (this->fOrigin[0] - this->fradius*sin((M_PI*t)/2.)*sin(atan2(this->fNormalDirection[2],this->fNormalDirection[0])));
+    xt[0] = (this->fOrigin[0] - this->fradius*sin((M_PI*t)/2.)*sin(atan2(this->fPlaneNormalDirection[2],this->fPlaneNormalDirection[0])));
     xt[1] = this->fradius*cos((M_PI*t)/2.);
-    xt[2] = (this->fOrigin[2] + this->fradius*cos(atan2(this->fNormalDirection[2],this->fNormalDirection[0]))*sin((M_PI*t)/2.));
+    xt[2] = (this->fOrigin[2] + this->fradius*cos(atan2(this->fPlaneNormalDirection[2],this->fPlaneNormalDirection[0]))*sin((M_PI*t)/2.));
 }
 
 
@@ -532,7 +531,7 @@ AreaPath3D::LinearPath3D_2::LinearPath3D_2()
 
 AreaPath3D::LinearPath3D_2::LinearPath3D_2(LinearPath3D * cp) : LinearPath3D(cp)
 {
-    this->fArcPath3D = new ArcPath3D_2(this->fcmeshElastic, this->fFinalPoint, this->fNormalDirection, this->fradius);
+    this->fArcPath3D = new ArcPath3D_2(this->fcmeshElastic, this->fFinalPoint, this->fPlaneNormalDirection, this->fradius);
     
 #ifdef DEBUG
     if(!this->fArcPath3D)
@@ -597,7 +596,7 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::Function(REAL t, TPZVec<RE
 
 TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta)
 {
-    TPZVec<REAL> direction = this->fNormalDirection;
+    TPZVec<REAL> direction = this->fPlaneNormalDirection;
     REAL norm = 0;
     for(int i = 0; i < 3; i++)
     {
@@ -714,7 +713,7 @@ TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec
     REAL W = 0.;
     for(int r = 0; r < 3; r++)
     {
-        //        for(int c = 0; c < 3; c++)//AQUICAJU
+        //for(int c = 0; c < 3; c++)//AQUICAJU
         for(int c = r; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
@@ -795,7 +794,7 @@ Path3D::Path3D()
     this->fArcPath3D = NULL;
     this->fAreaPath3D = NULL;
     
-    this->fNormalDirection.Resize(0,0.);
+    this->fPlaneNormalDirection.Resize(0,0.);
     this->fOriginZcoord = 0.;
     this->fKI = 0.;
     this->fKIc = 0.;
@@ -815,7 +814,7 @@ Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     this->fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
     this->fAreaPath3D = new AreaPath3D(this->fLinearPath3D);
     
-    this->fNormalDirection = normalDirection;
+    this->fPlaneNormalDirection = normalDirection;
     this->fOriginZcoord = Origin[2];
     
     this->fKI = 0.;
@@ -895,10 +894,10 @@ void Path3D::ComputeJIntegral()
     REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
     
     //------------------- PROJETANDO O J VECTOR PARA A NORMAL EXTERNA
-    REAL ex = this->fNormalDirection[0];
-    REAL ez = this->fNormalDirection[2];
-    ex = ex/sqrt(ex*ex + ez*ez);
-    ez = ez/sqrt(ex*ex + ez*ez);
+    REAL ex_ = this->fPlaneNormalDirection[0];
+    REAL ez_ = this->fPlaneNormalDirection[2];
+    REAL ex = ex_/sqrt(ex_*ex_ + ez_*ez_);
+    REAL ez = ez_/sqrt(ex_*ex_ + ez_*ez_);
     
     REAL Jxproj = Jx - ex*(ex*Jx + ez*Jz);
     REAL Jyproj = Jy;

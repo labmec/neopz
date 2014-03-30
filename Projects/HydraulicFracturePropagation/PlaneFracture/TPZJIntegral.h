@@ -67,7 +67,7 @@ protected:
      *  (this direction is orthogonal to coupled arc plane and defines
      *   the right hand convention for the coupled arc direction)
      */
-    TPZVec<REAL> fNormalDirection;
+    TPZVec<REAL> fPlaneNormalDirection;
     
     /** Radius of coupled arc */
     REAL fradius;
@@ -109,7 +109,7 @@ public:
     }
     TPZVec<REAL> & NormalPlane()
     {
-        return this->fNormalDirection;
+        return this->fPlaneNormalDirection;
     }
     REAL Radius();
     
@@ -136,7 +136,7 @@ protected:
      *  (this direction is orthogonal to arc plane and defines
      *   the right hand convention for the arc direction)
      */
-    TPZVec<REAL> fNormalDirection;
+    TPZVec<REAL> fPlaneNormalDirection;
     
     /** Radius of arc */
     REAL fradius;
@@ -288,7 +288,7 @@ protected:
     ArcPath3D * fArcPath3D;
     AreaPath3D * fAreaPath3D;
     
-    TPZVec<REAL> fNormalDirection;
+    TPZVec<REAL> fPlaneNormalDirection;
     REAL fOriginZcoord;
     
     REAL fKI;

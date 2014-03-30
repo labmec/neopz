@@ -124,7 +124,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
 	std::list< std::pair<long,REAL> > auxElIndexSequence;
 	
     //Searching for the edges that are intersected by poligonal chain
-	DetectEdgesCrossed(poligonalChain, fRefinedMesh, auxElIndex_TrimCoords, auxElIndexSequence);
+	this->DetectEdgesCrossed(poligonalChain, fRefinedMesh, auxElIndex_TrimCoords, auxElIndexSequence);
 	
 	//Refining auxiliar 1D elements
 	TPZVec<TPZGeoEl*> sons;
@@ -198,11 +198,11 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
 		}
 	}
 	
-	GenerateCrackBoundary(fRefinedMesh, auxElIndexSequence);
-    SeparateElementsInMaterialSets(fRefinedMesh);
-    UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
+	this->GenerateCrackBoundary(fRefinedMesh, auxElIndexSequence);
+    this->SeparateElementsInMaterialSets(fRefinedMesh);
+    this->UpdatePoligonalChain(fRefinedMesh, auxElIndexSequence, poligonalChain);
     
-    RefineDirectionalToCrackTip(3);
+    this->RefineDirectionalToCrackTip(3);
     
 //    {
 //        std::ofstream outRefinedMesh("RefinedMesh.vtk");
@@ -819,7 +819,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
     long nNodesByLayer = nrows*ncols;
     long Qnodes = nNodesByLayer * nLayersY;
 	
-	//initializing gmesh->NodeVec()
+	//initializing gmesh
 	this->fPreservedMesh->NodeVec().Resize(Qnodes);
     
     long pos = 0;
@@ -946,7 +946,7 @@ void TPZPlaneFractureMesh::GeneratePreservedMesh(std::list<REAL> & espacamentoVe
 //    RefineUniformAllFracturePlane(1);
     
 //    std::ofstream outPreservedMesh("PreservedMesh.vtk");
-//    TPZVTKGeoMesh::PrintGMeshVTK(fPreservedMesh, outPreservedMesh, true);
+//    TPZVTKGeoMesh::PrintGMeshVTK(this->fPreservedMesh, outPreservedMesh, true);
 }
 //------------------------------------------------------------------------------------------------------------
 

@@ -33,6 +33,7 @@ class TimeControl
 public:
     TimeControl()
     {
+        fdeltaTstep = 5.;
         fTtot = 0.;
         factTime = 0.;
         
@@ -42,6 +43,7 @@ public:
         factDeltaT = 0.;
         
         fwasLeftLastTime = true;
+        freachTime_left = false;
         freachTime_right = false;
     }
     
@@ -52,13 +54,15 @@ public:
     
     void SetTimeControl(REAL Ttot)
     {
+        fdeltaTstep = 10.;
         fTtot = Ttot;
         factTime = 0.;
         
-        fDeltaT_left = 10.;
-        fDeltaT_right = Ttot + 10.;
+        fDeltaT_left = fdeltaTstep;
+        fDeltaT_right = Ttot + fdeltaTstep;
         
         fwasLeftLastTime = true;
+        freachTime_left = false;
         freachTime_right = false;
         
         ComputeActDeltaT();
@@ -70,24 +74,24 @@ public:
         
         if(freachTime_right == false)
         {
-            fDeltaT_left += 10.;
+            fDeltaT_left += fdeltaTstep;
         }
         else
         {
             fDeltaT_left = factDeltaT;
         }
+        freachTime_left = true;
     }
     
     void TimeisOnRight()
     {
-        fwasLeftLastTime = false;
-        
-        if(freachTime_right == false)
+        if(freachTime_left == false || freachTime_right == false)
         {
             //1st time reach time on right from KI=KIc
-            fDeltaT_left = MAX(fDeltaT_left-10.,0.01);
-            freachTime_right = true;
+            fDeltaT_left = MAX(fDeltaT_left-fdeltaTstep,0.01);
         }
+        fwasLeftLastTime = false;
+        freachTime_right = true;
         
         fDeltaT_right = factDeltaT;
     }
@@ -132,15 +136,17 @@ public:
     
     void RestartBissection()
     {
+        freachTime_left = false;
         freachTime_right = false;
-        factDeltaT = MAX( 0.01 , factDeltaT-5. );
+        factDeltaT = MAX( 0.01 , 0.8 * factDeltaT );
         fDeltaT_left = factDeltaT;
-        fDeltaT_right = fTtot + 10.;
+        fDeltaT_right = fTtot + fdeltaTstep;
     }
     
     bool ReachEndOftime()
     {
-        return (factTime >= fTtot - 0.01);
+        REAL tol = 0.1;
+        return (factTime >= fTtot - tol);
     }
     
     bool TimeLimitsIsCloseEnough()
@@ -173,6 +179,8 @@ public:
     }
     
 private:
+    
+    REAL fdeltaTstep;
     REAL fTtot;//Tempo total da simulacao
     REAL factTime;//tempo atual (em segundos)
     REAL factDeltaT;//delta T atual
@@ -181,6 +189,7 @@ private:
     REAL fDeltaT_right;//deltaT cujo factTime+dt propagou a fratura (serah utilizado no metodo da bisseccao).
     
     bool fwasLeftLastTime;
+    bool freachTime_left;
     bool freachTime_right;
 };
 
@@ -268,7 +277,6 @@ protected:
     bool fLeakoffEnabled;
     bool fDefaultLeakoffEnabled;
 };
-
 
 
 

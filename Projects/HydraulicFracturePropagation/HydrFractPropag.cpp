@@ -85,8 +85,8 @@ int main(int argc, char * const argv[])
     layerVec[2] = LayerProperties(Young2, Poisson2, SigYY2,TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
     
     //Fluid injection data
-    REAL QinjWell = 0.1*(-0.0533333333333);//m3/s
-    std::cout << "\n\n\n10% da vazão!!!\n\n\n";
+    REAL QinjWell = 1.*(-0.0533333333333);//m3/s
+//    std::cout << "\n\n\n10% da vazão!!!\n\n\n";
     
     REAL visc = 200.02E-3 * globStressScale;
     
@@ -105,7 +105,7 @@ int main(int argc, char * const argv[])
                                                                  MaxDispl,
                                                                  pressureINdependent);
     
-    globLeakoffStorage.DisableLeakoff();
+//    globLeakoffStorage.DisableLeakoff();
     plfrac->Run();
     
 //    std::ofstream outRefP("RefPatternsUsed.txt");

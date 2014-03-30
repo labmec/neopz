@@ -112,8 +112,8 @@ protected:
     /** Compute the volume of the interior of the fracture (by w=2*uy integral) */
     void PostProcessAcumVolW();
 
-    /** Compute the volume of the leakoof */
-    void PostProcessVolLeakoff(int num = -1);
+    /** Compute the volume of the leakoff */
+    void PostProcessLeakoff(int num = -1);
     
     /** Generate vtk for displacement post process */
     void PostProcessElasticity(int num = -1);
