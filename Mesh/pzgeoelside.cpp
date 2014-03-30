@@ -659,17 +659,23 @@ void TPZGeoElSide::AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &son
     {
         return;
     }
-    TPZVec<TPZGeoEl*> lowerSubelements(0);
-    this->Element()->GetHigherSubElements(lowerSubelements);
-    long nlowerSubelements = lowerSubelements.NElements();
-    for(long sub = 0; sub < nlowerSubelements; sub++)
+    TPZVec<TPZGeoEl*> higherSubelements(0);
+    
+    /** filling higherSubelements vector with all higher level subelements this->Element() */
+    this->Element()->GetHigherSubElements(higherSubelements);
+    
+    /** checking what of the subelements touch (*this) side */
+    long nhigherSubelements = higherSubelements.NElements();
+    for(long sub = 0; sub < nhigherSubelements; sub++)
     {
-        TPZGeoEl * subEl = lowerSubelements[sub];
+        TPZGeoEl * subEl = higherSubelements[sub];
         int nsides = subEl->NSides();
         for(int s = 0; s < nsides; s++)
         {
             TPZGeoEl * actEl = subEl;
             TPZGeoElSide actside(actEl,s);
+            
+            /** filter by dimension side */
             if(actside.Dimension() < this->Dimension())
             {
                 continue;
@@ -678,11 +684,14 @@ void TPZGeoElSide::AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &son
             {
                 break;
             }
+            
+            /** Descending the level until reach (*this)->Element level, holding each father side */
             while(actEl != this->fGeoEl)
             {
                 actside = actEl->Father2(actside.Side());
                 actEl = actEl->Father();
             }
+            /** Checking if sides are the same */
             if(actside.Side() == this->Side())
             {
                 TPZGeoElSide sonEl_Side(subEl,s);

@@ -514,6 +514,9 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
  
     qsi.Resize(targetDim, 0.);
+ 
+    REAL Tol;
+	ZeroTolerance(Tol);
     
     if(gel->Dimension() != targetDim)
     {
@@ -542,7 +545,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
     {
         return NULL;
     }
-    else if(gel->ComputeXInverseAlternative(x, qsi) == true)
+    else if(gel->ComputeXInverse(x, qsi, Tol) == true)
     {
         gel = FindSubElement(gel, x, qsi, InitialElIndex);
         return gel;
@@ -553,7 +556,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
     bool mustStop = false;
     bool projectOrthogonal = true;
     int bissectionCalled = 0;
-    while(gel->ComputeXInverseAlternative(x, qsi) == false &&
+    while(gel->ComputeXInverse(x, qsi, Tol) == false &&
           mustStop == false)
     {
         int side = -1;
@@ -649,8 +652,11 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
 
 TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex)
 {
+    REAL Tol;
+    ZeroTolerance(Tol);
+    
 #ifdef DEBUG
-    if(gel->ComputeXInverseAlternative(x,qsi) == false)
+    if(gel->ComputeXInverse(x,qsi,Tol) == false)
     {
         //The given gel does NOT contains the given x!!!
         DebugStop();
@@ -674,7 +680,7 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
         {
             son = subElements[s];
             qsiSonVec[s].Resize(son->Dimension(),0.);
-            if(son->ComputeXInverseAlternative(x, qsiSonVec[s]))
+            if(son->ComputeXInverse(x, qsiSonVec[s],Tol))
             {
                 qsi = qsiSonVec[s];
                 InitialElIndex = son->Index();

@@ -522,9 +522,6 @@ public:
      * @note ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
      */
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol);
-    
-    /** by Caju 2012 */
-    bool ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi);
 
 	/**
 	 * @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element

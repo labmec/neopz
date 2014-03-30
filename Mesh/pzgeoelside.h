@@ -222,6 +222,7 @@ public:
     
     TPZGeoElSide LowestFatherSide();
     
+    /** Fill given vector with the higher level subelements that touch (*this) side */
     void AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides);
 	
 	/** @brief Returns a pointer to the elementside referenced by the geometric elementside*/
