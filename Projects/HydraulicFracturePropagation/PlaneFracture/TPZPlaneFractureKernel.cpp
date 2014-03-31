@@ -165,7 +165,7 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
 //    REAL sAy = this->fHbullet/2. + 0.2;
     
     REAL shiftX = 1.5 * this->fJIntegralRadius;
-    REAL sAx = 0.5;
+    REAL sAx = 4.;
     REAL sAy = this->fHbullet/2. + 0.2;
 
     
@@ -296,41 +296,6 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 
 void TPZPlaneFractureKernel::RunThisFractureGeometry()
 {
-    {/** Desacoplado meia boca : só para ver KI=KIc */
-//        std::cout << "\n\nDESACOPLADO, 1 FAIXA!!!\n\n\n";
-//        this->fmeshVec[0]->Solution()(1,0) = globLayerStruct.GetLowerPreStress();
-//        
-//        bool thereIs = true;
-//        REAL negV = 0.;
-//        while(thereIs == true)
-//        {
-//            this->IntegrateW(thereIs, negV);
-//            this->fmeshVec[0]->Solution()(1,0) += 0.01;
-//        }
-//        
-//        REAL maxKI_KIc = 0.;
-//        std::set<int> who;
-//        int maxKI_KIcPos = 0;
-//        bool prop = false;
-//
-//        while(prop == false)
-//        {
-//            prop = this->CheckPropagationCriteria(maxKI_KIc, who, maxKI_KIcPos);
-//            if(prop == false) this->fmeshVec[0]->Solution()(1,0) += 0.01;
-//        }
-//        
-//        REAL vol = this->IntegrateW(thereIs, negV);
-//        REAL Qinj = -this->fQinj1wing_Hbullet*this->fHbullet;
-//        REAL Ttot = vol/Qinj;
-//        REAL deltaT = Ttot - globTimeControl.actTime();
-//        globTimeControl.SetDeltaT(deltaT);
-//        
-//        this->CloseActualTimeStep();
-//        this->DefinePropagatedPoligonalChain(maxKI_KIc, who);
-//        this->fstep++;
-//        
-//        return;
-    }
     globFractOutput3DData.fKI_KI_history << "STEP " << this->fstep << ":\n";
     globFractOutput3DData.fKI_KI_history << "actTime = " << globTimeControl.actTime() << "s\n\n";
     std::map<REAL,std::string> deltaT_historyMap;
@@ -379,23 +344,27 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         this->MassMatrix(matMass);
         
         REAL normRes = 1.;
-        REAL tolResEntire = 1.E-1;
-        REAL tolResStripe = 1.E-2;
+        REAL tolRes = 1.E-2;
         int maxit = 20;
         int nit = 0;
         
-        bool just1Stripe = false;// <<<<<<<<<<<<<<<<<<<<<<< AQUICAJU
-
+        bool just1Stripe = false;
         
+        if(just1Stripe)
+        {
+            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
+        }
+        else
+        {
+            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, ENoBlock);
+        }
         
-        
-        ///Metodo de Newton para EntireFracture
-        std::cout << "\n-> Entire fracture\n";
-        
-        this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
         matRes_total = matRes_partial + matMass;
         
-        while(normRes > tolResEntire && nit < maxit)
+        ///Metodo de Newton
+        std::cout << "\n-> Método de Newton\n";
+        
+        while(normRes > tolRes && nit < maxit)
         {
             an->Rhs() = matRes_total;
             an->Solve();
@@ -408,7 +377,14 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             
             Sol_0 = an->Solution();
             
-            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
+            if(just1Stripe)
+            {
+                this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
+            }
+            else
+            {
+                this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, ENoBlock);
+            }
             matRes_total = matRes_partial + matMass;
             
             normRes = Norm(matRes_total);
@@ -416,39 +392,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             std::cout << "normRes = " << normRes << std::endl;
             nit++;
         }
-        if(just1Stripe == false && normRes <= tolResEntire)
-        {
-            ///Metodo de Newton para Stripes
-            std::cout << "\n-> Stripes\n";
-            
-            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, EentireFracure);
-            matRes_total = matRes_partial + matMass;
-            
-            normRes = 1.;
-            nit = 0;
-            while(normRes > tolResStripe && nit < maxit)
-            {
-                an->Rhs() = matRes_total;
-                an->Solve();
-                
-                TPZFMatrix<REAL> Sol_1_minus_Sol_0 = an->Solution();
-                TPZFMatrix<REAL> Sol_1 = Sol_1_minus_Sol_0 + Sol_0;
-                
-                an->LoadSolution(Sol_1);
-                TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
-                
-                Sol_0 = an->Solution();
-                
-                this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, EentireFracure);
-                matRes_total = matRes_partial + matMass;
-                
-                normRes = Norm(matRes_total);
-                
-                std::cout << "normRes = " << normRes << std::endl;
-                nit++;
-            }
-        }
-        if(normRes > tolResStripe)
+
+        if(normRes > tolRes)
         {
             globTimeControl.TimeisOnLeft();
             

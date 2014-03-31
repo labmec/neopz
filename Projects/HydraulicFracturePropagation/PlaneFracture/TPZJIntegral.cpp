@@ -233,12 +233,12 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         int layer = globMaterialIdGen.WhatLayer(insideMatId);
 
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido : PIOR */
-//        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
-//        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
+        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
+        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
 
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media : MELHOR */
-        int stripe = globMaterialIdGen.WhatStripe(insideMatId);
-        Sigma_n[1] = globElastReducedSolution.GetNetPressure(layer, stripe);
+//        int stripe = globMaterialIdGen.WhatStripe(insideMatId);
+//        Sigma_n[1] = globElastReducedSolution.GetNetPressure(layer, stripe);
     }
     
     TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());
