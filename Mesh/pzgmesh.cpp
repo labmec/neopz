@@ -711,7 +711,7 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
     
 #ifdef DEBUG
     TPZManVector<REAL,3> locqsi(qsi);
-    if(gel->ComputeXInverseAlternative(x,locqsi) == false)
+    if(gel->ComputeXInverse(x,locqsi,Tol*100.) == false)
     {
         //The given gel does NOT contains the given x!!!
         std::cout << "FindSubElement called for non conforming point\n";
@@ -736,7 +736,7 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
         {
             son = subElements[s];
             qsiSonVec[s].Resize(son->Dimension(),0.);
-            if(son->ComputeXInverseAlternative(locx, qsiSonVec[s]))
+            if(son->ComputeXInverse(locx, qsiSonVec[s],Tol*100.))
             {
                 qsi = qsiSonVec[s];
                 InitialElIndex = son->Index();
