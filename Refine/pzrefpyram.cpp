@@ -400,7 +400,7 @@ namespace pzrefine {
 	
 	void TPZRefPyramid::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
-		subel.Resize(0);
+//		subel.Resize(0);
 		if(side<0 || side>TPZShapePiram::NSides || !father->HasSubElement()){
 			PZError << "TPZRefPyramid::GetSubelements2 called with error arguments\n";
 			return;

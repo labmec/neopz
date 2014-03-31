@@ -76,7 +76,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, long ElemIndex)
 #endif
     /////////////////////////
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(!OldElem)
     {
         std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;
@@ -86,7 +86,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, long ElemIndex)
     {
         return OldElem;
     }
-    #endif
+#endif
     
     TPZGeoEl * father = OldElem->Father();
     

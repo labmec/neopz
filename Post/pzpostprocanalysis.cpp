@@ -121,7 +121,16 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 	TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
 	TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
+    
+    if (!pcPostProcMesh) {
+        DebugStop();
+    }
 	
+    if (pcPostProcMesh->ReferredMesh() == pcMainMesh) {
+        return;
+    }
+
+    /*
 	TPZStack<int> avlMatIds;
 	long nel = pgmesh->NElements(), i;	
 	for(i = 0; i < nel; i++)
@@ -153,9 +162,9 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 			}
 		}
 	}
-	
+	*/
 	nMat = matIds.NElements();
-	for(i = 0; i < nMat; i++)
+	for(int i = 0; i < nMat; i++)
 	{
 		TPZMaterial * pmat = pcMainMesh->FindMaterial(matIds[i]);
 		if(!pmat)
@@ -174,6 +183,7 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 	
 	//pcPostProcMesh->AutoBuild();
 	//pcPostProcMesh->AutoBuildDisc();
+    
 	AutoBuildDisc();
 	
 	pcPostProcMesh->LoadReferred(pcMainMesh);

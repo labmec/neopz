@@ -652,54 +652,18 @@ TPZGeoElSide TPZGeoElSide::LowestFatherSide()
     return side;
 }
 
-void TPZGeoElSide::AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides)
+void TPZGeoElSide::GetAllSiblings(TPZStack<TPZGeoElSide> &sonSides)
 {
-    sonsSides.Resize(0);
     if(this->Element()->HasSubElement() == false)
     {
-        return;
+        sonSides.Push(*this);
     }
-    TPZVec<TPZGeoEl*> higherSubelements(0);
-    
-    /** filling higherSubelements vector with all higher level subelements this->Element() */
-    this->Element()->GetHigherSubElements(higherSubelements);
-    
-    /** checking what of the subelements touch (*this) side */
-    long nhigherSubelements = higherSubelements.NElements();
-    for(long sub = 0; sub < nhigherSubelements; sub++)
-    {
-        TPZGeoEl * subEl = higherSubelements[sub];
-        int nsides = subEl->NSides();
-        for(int s = 0; s < nsides; s++)
-        {
-            TPZGeoEl * actEl = subEl;
-            TPZGeoElSide actside(actEl,s);
-            
-            /** filter by dimension side */
-            if(actside.Dimension() < this->Dimension())
-            {
-                continue;
-            }
-            else if(actside.Dimension() > this->Dimension())
-            {
-                break;
-            }
-            
-            /** Descending the level until reach (*this)->Element level, holding each father side */
-            while(actEl != this->fGeoEl)
-            {
-                actside = actEl->Father2(actside.Side());
-                actEl = actEl->Father();
-            }
-            /** Checking if sides are the same */
-            if(actside.Side() == this->Side())
-            {
-                TPZGeoElSide sonEl_Side(subEl,s);
-                int oldSize = sonsSides.NElements();
-                sonsSides.Resize(oldSize+1);
-                sonsSides[oldSize] = sonEl_Side;
-            }
-        }
+    int dim = Dimension();
+    TPZStack<TPZGeoElSide> lowerSubelements;
+    fGeoEl->GetSubElements2(fSide,lowerSubelements,dim);
+    int nsub = lowerSubelements.size();
+    for (int s=0; s<nsub; s++) {
+        lowerSubelements[s].GetAllSiblings(sonSides);
     }
 }
 
@@ -790,7 +754,8 @@ TPZGeoElSide TPZGeoElSide::StrictFather()
 void TPZGeoElSide::GetSubElements2(TPZStack<TPZGeoElSide> &subelements)
 {
 	if(!fGeoEl || !fGeoEl->HasSubElement()) {   // Jorge 10/01/2000
-		subelements.Resize(0);
+// comentei para poder acumular subelementos
+//		subelements.Resize(0);
 		return;
 	}
 	fGeoEl->GetSubElements2(fSide,subelements);

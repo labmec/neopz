@@ -380,7 +380,7 @@ void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dime
 	}
 }
 
-void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
+void TPZGeoEl::GetAllSiblings(TPZStack<TPZGeoEl*> &unrefinedSons)
 {
     int nsons = this->NSubElements();
     for(int s = 0; s < nsons; s++)
@@ -388,12 +388,11 @@ void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
         TPZGeoEl * son = this->SubElement(s);
         if(son->HasSubElement() == false)
         {
-            int oldSize = unrefinedSons.NElements();
-            unrefinedSons.Resize(oldSize+1, son);
+            unrefinedSons.Push(son);
         }
         else
         {
-            son->GetHigherSubElements(unrefinedSons);
+            son->GetAllSiblings(unrefinedSons);
         }
     }
 }
@@ -664,7 +663,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 	
 	// Verify if the point is not a corner node
 	TPZManVector<REAL,3> values(3);
-	int nn = NNodes();
+	int nn = NCornerNodes();
 	if(nn <= 1)
 	{
 		return false;
@@ -754,6 +753,149 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
     #endif
 	
 	return ( this->IsInParametricDomain(qsi) );
+}
+
+bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
+{
+    int dim = this->Dimension();
+    
+	REAL Tol;
+	ZeroTolerance(Tol);
+    if(dim != 3)
+    {
+        return ComputeXInverse(x, qsi, Tol);
+    }
+    if(qsi.NElements() != dim)
+    {
+        qsi.Resize(dim, 0.);
+    }
+    
+    ///else...
+    TPZVec<REAL> centerP(dim,1);
+    this->CenterPoint(this->NSides()-1, qsi);
+    //qsi = centerP;
+    
+    REAL radius = this->SmallerEdge();
+    if(this->Father())
+    {
+        TPZGeoEl * highFather = LowestFather();
+        TPZStack<TPZGeoEl *> sons;
+        highFather->GetAllSiblings(sons);
+        for(int s = 0; s < sons.NElements(); s++)
+        {
+            REAL sonRadius = sons[s]->SmallerEdge();
+            radius = min(radius,sonRadius);
+        }
+    }
+    radius = min(radius,(REAL)1.);
+    
+    REAL err = 10.;
+    REAL tol = radius * 1.E-3;//tolerancia minima em XYX de 1mm
+    REAL tolQsi = 1.e-6;
+
+    int count = 0, max = 50;
+    while(count < max)
+    {
+        TPZVec<REAL> x1(3);
+        this->X(qsi, x1);
+        
+        err = 0.;
+        TPZFMatrix<REAL> res(3,1);
+        for(int i = 0; i < 3; i++)
+        {
+            res(i,0) = x1[i] - x[i];
+            err += res(i,0)*res(i,0);
+        }
+        err = sqrt(err);
+        
+        if(err <= tol)
+        {
+            return ( this->IsInParametricDomain(qsi, tolQsi) );
+        }
+        
+        REAL detjac;
+        TPZFMatrix<REAL> jac(dim,dim), axes(dim,3), jacinv(dim,dim), JacInvCn(dim,3), temp(dim,1);
+        this->Jacobian(qsi, jac, axes, detjac, jacinv);
+        
+        if(IsZero(detjac))
+        {
+            if(this->IsInParametricDomain(qsi, tolQsi))
+            {
+                //aproximate tangent (jacobian matrix) by the secant (finite differences)
+                TPZVec<REAL> qsiDesloc(dim,1);
+                REAL norm = 0.;
+                for(int c = 0; c < dim; c++)
+                {
+                    qsiDesloc[c] = centerP[c] - qsi[c];
+                    norm += qsiDesloc[c]*qsiDesloc[c];
+                }
+                norm = sqrt(norm);
+                
+                #ifdef DEBUG
+                if(IsZero(norm))
+                {
+                    //jacobiano nulo no centro do elemento...
+                    DebugStop();
+                }
+                #endif
+                
+                REAL alpha = 0.02;
+                for(int c = 0; c < dim; c++)
+                {
+                    qsiDesloc[c] = qsi[c] + alpha*qsiDesloc[c]/norm;
+                }
+                TPZVec<REAL> xDesloc(3,1), xTemp(3,1);
+                this->X(qsiDesloc,xDesloc);
+                
+                TPZFMatrix<REAL> jacTrapCn(3,dim,0.), axest(3,dim);
+                for(int c = 0; c < dim; c++)
+                {
+                    TPZVec<REAL> qsiTemp(qsiDesloc);
+                    qsiTemp[c] = qsiTemp[c] + alpha;
+                    this->X(qsiTemp,xTemp);
+                    
+                    xTemp[0] = (xTemp[0] - xDesloc[0])/alpha;
+                    xTemp[1] = (xTemp[1] - xDesloc[1])/alpha;
+                    xTemp[2] = (xTemp[2] - xDesloc[2])/alpha;
+                    
+                    for(int r = 0; r < 3; r++)
+                    {
+                        jacTrapCn(r,c) = xTemp[r];
+                    }
+                }
+                jacTrapCn.GramSchmidt(axest, jac);
+                axest.Transpose(&axes);
+                jac.DeterminantInverse(detjac, jacinv);
+                
+                if(IsZero(detjac))
+                {
+                    //Nem com calculo alternativo (diferencas finitas) demos jeito no jacobiano nulo
+                    DebugStop();
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            jacinv.Multiply(axes, JacInvCn);
+        }
+        JacInvCn.Multiply(res,temp);
+        
+        for(int d = 0; d < dim; d++)
+        {
+            qsi[d] = qsi[d] - temp(d,0);
+        }
+        if(this->IsInParametricDomain(qsi, tolQsi) == false)
+        {
+            max--;
+        }
+        count++;
+    }
+    
+    return false;
 }
 
 

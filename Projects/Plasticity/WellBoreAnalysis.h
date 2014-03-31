@@ -18,6 +18,7 @@
 #include "pzpostprocanalysis.h"
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
+#include "pzstack.h"
 
 class TPZElasticityMaterial;
 
@@ -115,7 +116,7 @@ public:
         void CreateComputationalMesh(int porder);
         
         /// Setup post processing mesh
-        void CreatePostProcessingMesh(int PostProcessNumber, int resolution);
+        void CreatePostProcessingMesh();
         
 
          STATE ComputeFarFieldWork();
@@ -263,7 +264,10 @@ public:
     unsigned int DivideElementsAbove(REAL sqj2);
     
     /// Post process the results of the current configuration
-    void PostProcess();
+    void PostProcess(int resolution);
+    
+    /// Get the post processing variables
+    static void PostProcessVariables(TPZStack<std::string> &scalnames, TPZStack<std::string> &vecnames);
     
     /// GetPostProcessedValues
     void PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::string> &variables, TPZFMatrix<STATE> &values);

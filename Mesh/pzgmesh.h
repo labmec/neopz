@@ -163,13 +163,16 @@ public:
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
     
+    /** @brief find an element/parameter close to the point */
+    TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    
     /** by Caju 2013 */
     /** @brief Returns the subelement that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex);
 	
     /** by Philippe 2013 */
     /** @brief Returns the element that is close to the given point x */
-    TPZGeoEl * FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, int targetDim = 0);
+    TPZGeoEl * FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, int targetDim) const;
 	
 	/** @brief Alternative method for computing the connectivity */
 	void BuildConnectivityOld();

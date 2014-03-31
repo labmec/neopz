@@ -144,7 +144,7 @@ namespace pzrefine {
 	}
 	
 	void TPZRefLinear::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel) {
-		subel.Resize(0);
+//		subel.Resize(0);
 		if(side<0 || side>TPZShapeLinear::NSides || !father->HasSubElement()){
 			PZError << "TPZRefCube::GetSubelements2 called with error arguments\n";
 			return;

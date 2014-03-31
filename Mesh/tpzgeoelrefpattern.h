@@ -318,13 +318,13 @@ void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> 
 	TPZVec<TPZGeoElSideIndex> sideIndexes;
 	this->GetRefPattern()->InternalSidesIndexes(side, sideIndexes);
 	long size = sideIndexes.NElements();
-	subel.Resize(size);
+	//subel.Resize(size);
 	for(long el = 0; el < size; el++)
 	{
 		long subelIndex = sideIndexes[el].ElementIndex();
 		int subelSide = sideIndexes[el].Side();
 		TPZGeoEl *mysub = SubElement(subelIndex);
-		subel[el] = TPZGeoElSide(mysub, subelSide);
+		subel.Push(TPZGeoElSide(mysub, subelSide));
 	}
 }
 

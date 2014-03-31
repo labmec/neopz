@@ -305,7 +305,7 @@ namespace pzrefine {
 	
 	void TPZRefTetrahedra::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
-		subel.Resize(0);
+//		subel.Resize(0);
 		if(side<0 || side>TPZShapeTetra::NSides || !father->HasSubElement()){
 			PZError << "TPZRefTetrahedra::GetSubelements2 called with error arguments\n";
 			return;

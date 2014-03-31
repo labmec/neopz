@@ -413,7 +413,7 @@ namespace pzrefine {
 	
 	void TPZRefPrism::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
-		subel.Resize(0);
+//		subel.Resize(0);
 		if(side<0 || side>TPZShapePrism::NSides || !father->HasSubElement()){
 			PZError << "TPZRefPrism::GetSubelements2 called with error arguments\n";
 			return;

@@ -103,7 +103,7 @@ namespace pzrefine {
 	}
 	
 	void TPZRefPoint::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel) {
-		subel.Resize(0);
+//		subel.Resize(0);
 		if(side<0 || side>1 || !father->HasSubElement()){
 			PZError << "TPZRefPoint::GetSubElements called with bad arguments\n";
 			return;
