@@ -970,7 +970,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 	T I1,I2,I3,R,theta,Q,x1,x2,x3,costheta,e1temp,e2temp,e3temp;
     TPZTensor<T> InternalTensor(*this);
     T norm =(InternalTensor.Norm());
-    if(norm>0.)
+    if(norm>0.&&norm>10.)
     {
         InternalTensor*=(T(1.)/norm);
     }

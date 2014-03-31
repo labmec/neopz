@@ -1651,8 +1651,8 @@ int main ()
     TPZWellBoreAnalysis well;
     REAL innerradius = 4.25*0.0254;
     REAL outerradius = 3.;
-    //REAL innerradius = 4.25*0.0254;
-    //REAL outerradius = innerradius*10.;
+//    REAL innerradius = 0.10;
+//    REAL outerradius = innerradius*30.;
     REAL computedquarter = 7.05761678496926;
     REAL sqj2_refine = 0.0007;
     std::cout << std::setprecision(15);
@@ -1663,9 +1663,11 @@ int main ()
         confinement[0] = -45.9;
         confinement[1] = -62.1;
         confinement[2] = -48.2;
+        
+        
         well.SetConfinementStresses(confinement, 28.9);
 //
-        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9 
+        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
         well.SetConfinementStresses(confinement, effectivePressure);
         REAL poisson = 0.203;
         REAL elast = 29269.;
@@ -1675,6 +1677,8 @@ int main ()
         REAL R = 0.91969;
         REAL D = 0.018768;
         REAL W = 0.006605;
+        
+        
         well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
         int divisions = 20;
         REAL delx = 0.2*innerradius*M_PI_2/divisions;
@@ -1684,10 +1688,10 @@ int main ()
         well.GetCurrentConfig()->CreateMesh();
         int porder = 3;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
-        well.GetCurrentConfig()->CreatePostProcessingMesh(well.GetPostProcessNumber(), 0);
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         //well.LinearConfiguration(1);
-        well.PostProcess();
+        well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Wellbore0.bin");
         well.Write(save);
@@ -1798,14 +1802,18 @@ int main ()
                 polygonalChain.insert(std::make_pair(it->first,it->second));
             }
         }
-        TPZProjectEllipse ellips(polygonalChain);
-        TPZManVector<REAL,2> center(2),ratios(2),verify(2);
-        ellips.StandardFormatForSimpleEllipse(center, ratios);
-        verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
-        verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
-        REAL a = ratios[0];
-        REAL b = ratios[1];
-        well.AddEllipticBreakout(a, b);
+        if (polygonalChain.size()!=0)
+        {
+            TPZProjectEllipse ellips(polygonalChain);
+            TPZManVector<REAL,2> center(2),ratios(2),verify(2);
+            ellips.StandardFormatForSimpleEllipse(center, ratios);
+            verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
+            verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
+            REAL a = ratios[0];
+            REAL b = ratios[1];
+            well.AddEllipticBreakout(a, b);
+
+        }
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         //well.PostProcess(1);
         well.ExecuteSimulation();
@@ -1910,8 +1918,8 @@ int main ()
             std::cout << it->first << " " << xellips << " error " <<  (it->first-xellips)/innerradius << endl;
         }
         well.AddEllipticBreakout(ratios[0], ratios[1]);
-	well.GetCurrentConfig()->CreatePostProcessingMesh(well.GetPostProcessNumber(), 1);
-        well.PostProcess();
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        well.PostProcess(1);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteSimulation();
         well.DivideElementsAbove(0.0001);
@@ -1973,8 +1981,8 @@ int main ()
         ellips.StandardFormatForSimpleEllipse(center, ratios);
         well.AddEllipticBreakout(ratios[0], ratios[1]);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
-	well.GetCurrentConfig()->CreatePostProcessingMesh(well.GetPostProcessNumber(), 1);
-        well.PostProcess();
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        well.PostProcess(1);
         well.ExecuteSimulation();
         well.DivideElementsAbove(0.0001);
         well.PRefineElementAbove(0.0001, 3);

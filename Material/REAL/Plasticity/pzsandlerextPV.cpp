@@ -108,8 +108,8 @@ STATE TPZSandlerExtended::GetR()
 template<class T>
 T TPZSandlerExtended::EpsEqX(T X) const
 {
-   // return (fW*( exp(fD*X) - 1 ));
-   return fW* exp(fD*X);
+    return (fW*( exp(fD*X) - 1 ));
+   //return fW* exp(fD*X);
 }
 
 template<class T>

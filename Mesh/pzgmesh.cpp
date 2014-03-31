@@ -477,7 +477,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, 
         REAL closestcorner = cornerdist.begin()->first;
         // if the center node is closer than the cornernode, return the element
         if (geldist < closestcorner || closestcorner < 1.e-15) {
-#ifdef DEBUG
+#ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Distance from the closest corner " << closestcorner << "bailing out " << std::endl;

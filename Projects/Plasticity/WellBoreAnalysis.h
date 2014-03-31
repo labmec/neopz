@@ -9,7 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-//#define PV
+#define PV
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
