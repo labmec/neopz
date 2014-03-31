@@ -15,7 +15,7 @@
 #include "TPZJIntegral.h"
 #include "pzanalysis.h"
 
-enum EWhoBlock {ENoBlock, EentireFracure, Estripes};
+enum EWhoBlock {ENoBlock, EBlockEntireFracure, EBlockStripes};
 
 class TPZPlaneFractureKernel
 {

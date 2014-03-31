@@ -165,7 +165,7 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
 //    REAL sAy = this->fHbullet/2. + 0.2;
     
     REAL shiftX = 1.5 * this->fJIntegralRadius;
-    REAL sAx = 4.;
+    REAL sAx = 1.0;
     REAL sAy = this->fHbullet/2. + 0.2;
 
     
@@ -343,29 +343,31 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         //Calculo da matriz de massa para o deltaT atual
         this->MassMatrix(matMass);
         
-        REAL normRes = 1.;
-        REAL tolRes = 1.E-2;
-        int maxit = 20;
-        int nit = 0;
-        
-        bool just1Stripe = false;
-        
-        if(just1Stripe)
-        {
-            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
-        }
-        else
-        {
-            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, ENoBlock);
-        }
+        EWhoBlock whoBlock = EBlockStripes;
+        this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, whoBlock);
         
         matRes_total = matRes_partial + matMass;
         
         ///Metodo de Newton
         std::cout << "\n-> Método de Newton\n";
         
+        REAL normRes = 1.;
+        REAL stripeTol = 1.E-1;
+        REAL tolRes = 1.E-2;
+        int maxit = 10;
+        int nit = 0;
+
         while(normRes > tolRes && nit < maxit)
         {
+            if(nit == 0 && whoBlock == EBlockStripes)
+            {
+                std::cout << "---> Entire fracture:\n";
+            }
+            else if(nit == 0 && whoBlock == EBlockEntireFracure)
+            {
+                std::cout << "\n---> Stripes:\n";
+            }
+
             an->Rhs() = matRes_total;
             an->Solve();
             
@@ -377,20 +379,28 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             
             Sol_0 = an->Solution();
             
-            if(just1Stripe)
-            {
-                this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, Estripes);
-            }
-            else
-            {
-                this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, ENoBlock);
-            }
+            this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, whoBlock);
+
             matRes_total = matRes_partial + matMass;
             
             normRes = Norm(matRes_total);
             
-            std::cout << "normRes = " << normRes << std::endl;
-            nit++;
+            if(normRes <= stripeTol && whoBlock == EBlockStripes)
+            {
+                maxit = 20;
+                nit = 0;
+                whoBlock = EBlockEntireFracure;
+                this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, whoBlock);
+                matRes_total = matRes_partial + matMass;
+                
+                std::cout << "normRes = " << normRes << std::endl;
+                normRes = 1.;
+            }
+            else
+            {
+                std::cout << "normRes = " << normRes << std::endl;
+                nit++;
+            }
         }
 
         if(normRes > tolRes)
@@ -656,11 +666,11 @@ void TPZPlaneFractureKernel::ApplyEquationFilter(TPZAnalysis * an, EWhoBlock who
     long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
     eqOut.insert(posBlock);
     
-    if(whoBlock == EentireFracure)
+    if(whoBlock == EBlockEntireFracure)
     {
         eqOut.insert(posBlock+1);
     }
-    else if(whoBlock == Estripes)
+    else if(whoBlock == EBlockStripes)
     {
         for(int r = 0; r < this->fPlaneFractureMesh->NStripes(); r++)
         {

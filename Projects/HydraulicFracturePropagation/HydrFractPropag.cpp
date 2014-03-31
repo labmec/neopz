@@ -86,7 +86,6 @@ int main(int argc, char * const argv[])
     
     //Fluid injection data
     REAL QinjWell = 1.*(-0.0533333333333);//m3/s
-//    std::cout << "\n\n\n10% da vazão!!!\n\n\n";
     
     REAL visc = 200.02E-3 * globStressScale;
     

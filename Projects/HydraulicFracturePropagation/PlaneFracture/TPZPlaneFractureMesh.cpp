@@ -484,7 +484,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
     TPZCompMesh * cmesh = new TPZCompMesh(fRefinedMesh);
     
     cmesh->SetDimModel(2);
-    cmesh->SetDefaultOrder(porder+0);//AQUICAJU : Porder=2 tem dado muita oscilacao.
+    cmesh->SetDefaultOrder(porder+1);
     
     TPZFMatrix<REAL> xk(1,1,1.);
     TPZFMatrix<REAL> xc(1,1,0.);
