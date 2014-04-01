@@ -66,36 +66,38 @@ int main(int argc, char *argv[]) {
 #endif
     
     int gcaseinit = 2, gcaseend = 3;
-    int nsubdivisionsinit = 3, nsubdivisionsend = 13, nsubdivisionsinterval = 2;
-    int porder = 5;
+    int nsubdivisionsinit = 3, nsubdivisionsend = 16, nsubdivisionsinterval = 3;
+    int porderinit = 1, porderend = 4;
     switch(argc) {
+        case 8:
+            nsubdivisionsinterval = atoi(argv[7]);
         case 7:
-            nsubdivisionsinterval = atoi(argv[6]);
+            nsubdivisionsend = atoi(argv[6]);
         case 6:
-            nsubdivisionsend = atoi(argv[5]);
+            nsubdivisionsinit = atoi(argv[5]);
         case 5:
-            nsubdivisionsinit = atoi(argv[4]);
+            gcaseend = atoi(argv[4]);
         case 4:
-            gcaseend = atoi(argv[3]);
+			gcaseinit = atoi(argv[3]);
         case 3:
-			gcaseinit = atoi(argv[2]);
+            porderend = atoi(argv[2]);
         case 2:
-            porder = atoi(argv[1]);
+            porderinit = atoi(argv[1]);
             break;
         case 1:
             std::cout << "\nCommand line: Program p_order geomesh_initial geomesh_last n_initial n_final dn_interval (h = 1/n)" << std::endl;
-            std::cout << "\nRunning with: Executavel " << porder << " " << gcaseinit << " " << gcaseend << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << "\n";
-            out << "\nRunning with: Executavel " << porder << " " << gcaseinit << " " << gcaseend << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << "\n";
+            std::cout << "\nRunning with: Executavel p " << porderinit << " - " << porderend << " " << gcaseinit << " " << gcaseend << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << "\n";
+            out << "\nRunning with: Executavel " << porderinit << " - " << porderend << " " << gcaseinit << " " << gcaseend << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << "\n";
             break;
         default:
             std::cout << "\nBad number of arguments. Finishing." << std::endl;
             return 1;
     }
-    if(porder < 1 || gcaseinit < 0 || gcaseend < 0 || nsubdivisionsinit < 1 || nsubdivisionsend <= nsubdivisionsinit || nsubdivisionsinterval < 1) {
+    if(porderinit < 1 || porderinit > porderend || gcaseinit < 0 || gcaseend < 0 || nsubdivisionsinit < 1 || nsubdivisionsend <= nsubdivisionsinit || nsubdivisionsinterval < 1) {
         std::cout << "\nBad parameter.";
         out << "\nBad parameter.";
     }
-    if(porder > 12 || gcaseinit > 4 || gcaseend > 4 || nsubdivisionsinit > 100 || nsubdivisionsend > 100) {
+    if(porderend > 10 || gcaseinit > 4 || gcaseend > 4 || nsubdivisionsinit > 100 || nsubdivisionsend > 100) {
         std::cout << "\nParameter out of avaliable limit.";
         out << "\nParameter out of avaliable limit.";
     }
@@ -111,7 +113,7 @@ int main(int argc, char *argv[]) {
     
     // setting p order
     /** Set polynomial order */
-    for(POrder=porder;POrder>0;POrder--) {
+    for(POrder=porderinit;POrder<porderend+1;POrder++) {
         std::cout << "\nInterpolation order " << POrder << std::endl;
         out << "\nInterpolation order " << POrder << std::endl;
         TPZCompEl::SetgOrder(POrder);
@@ -143,7 +145,7 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
           if(!gel || gel->HasSubElement())
               continue;
           if(dim > 0 && gel->Dimension() != dim) continue;
-          if(!allmaterial){
+          if(!allmaterial) {
               if(gel->MaterialId() == matidtodivided){
                   gel->Divide(filhos);
               }

@@ -127,13 +127,16 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     analysis.Run();
     
 	static int printsol = 0;
-	if(printsol == 4)
-		analysis.PostProcess(3,dim);
-	else
+//	if(printsol == 4)
+	//	analysis.PostProcess(3,dim);
+//	else
 	    analysis.PostProcess(0,dim);
 	printsol++;
     
     analysis.PostProcessError(errvec,out);
+
+	// printing error
+	
     
     /** Cleaning allocated meshes */
     if(cmesh) {
