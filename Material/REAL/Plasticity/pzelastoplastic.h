@@ -24,46 +24,22 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
    public:
 
       enum SOLUTIONVARS{ENone = -1,
-	                    EDisplacement = 0,//0
-		                EDisplacementX,//1
-		                EDisplacementY,//2
-		                EDisplacementZ,//3
-		  				ENormalStrain,//4
-		  				EShearStrain,//5
-		  				ENormalStress,//6
-		  				EShearStress,//7
-                        EPrincipalStress,//8
-		                EStress1,//9
-		                EPrincipalStrain,//10
-		                EStrain1,//11
-		                EPrincipalStressDirection1,//12
-		                EPrincipalStressDirection2,//13
-		                EPrincipalStressDirection3,//14
-		                EI1Stress,//15
-		                EJ2Stress,//16
-		                EI1J2Stress,//17
-		                EDirStress,//18
-		                EDirStrain,//19
-	  					EVolElasticStrain,//20
-	  					EVolPlasticStrain,//21
-	                    EVolTotalStrain,//22
-		                EVolTEPStrain,//23
-	                    EAlpha,//24
-	                    EPlasticSteps,//25
-                        EPlasticSqJ2,//26
-						EYield,//27
-						ENormalPlasticStrain,//28
-						EMisesStress,//29
-                        EDisplacementMem, //30
-                        EI1HorStress, //31
-                        EJ2HorStress,  //32
-                        EStressX,
-                        EStressY,
-                        EStressZ
+	         
+          EDisplacement=0,//0
+          EDisplacementMem,//1
+          EPrincipalStress,//2
+          ENormalStress,//3
+          EShearStress,//4
+          ENormalStrain,//5
+          EShearStrain,//6
+          ENormalPlasticStrain,//7
+          EPrincipalStrain,//8
           
-				//		ERadialDisplacement,
-				//		ERadialStressR,
-				//		ERadialStressTheta};
+          EVolElasticStrain,//9
+          EVolPlasticStrain,//10
+          EVolTotalStrain,//11
+          EAlpha,EPlasticSteps,EPlasticSqJ2,EYield,EMisesStress//12
+          
 };
 		
 		
