@@ -168,7 +168,10 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
     if(!strcmp("PrincipalStress",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStress;
     if(!strcmp("PrincipalStrain",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain;
     
+    if(!strcmp("I1Stress",         name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1Stress;
+    if(!strcmp("J2Stress",         name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EJ2Stress;
    if(!strcmp("VolElasticStrain",         name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolElasticStrain;
+    
    if(!strcmp("VolPlasticStrain",         name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain;
    if(!strcmp("VolTotalStrain",           name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolTotalStrain;
    if(!strcmp("Alpha",                    name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EAlpha;
@@ -198,6 +201,8 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)       return 3;
     if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain)           return 3;
     
+    if(var == TPZMatElastoPlastic<T,TMEM>::EI1Stress)                  return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EJ2Stress)                  return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EVolElasticStrain)          return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain)          return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EVolTotalStrain)            return 1;
@@ -284,6 +289,16 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain){
         DebugStop();
 	}//EPrincipalStrain
+    else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EI1Stress){
+        TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+        Solout[0] = Sigma.I1();
+    }//EI1Stress - makes sense only if the evaluated point refers to an identified integration point
+    else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EJ2Stress){
+        TPZTensor<REAL> Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+        Solout[0] = Sigma.J2();
+    }//EJ2Stress - makes sense only if the evaluated point refers to an identified integration point
     else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;

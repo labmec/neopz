@@ -1911,26 +1911,15 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
     vecNames.Resize(0);
     scalNames.Push("Alpha");//
     scalNames.Push("PlasticSqJ2");//
-    scalNames.Push("PlasticSqJ2El");//
     scalNames.Push("POrder");//
     scalNames.Push("I1Stress");//
     scalNames.Push("J2Stress");//
-    scalNames.Push("DisplacementX");//
-    scalNames.Push("DisplacementY");//
-    scalNames.Push("DisplacementZ");//
-    scalNames.Push("PrincipalStressDirection1");//
-    scalNames.Push("PrincipalStressDirection2");//
-    scalNames.Push("PrincipalStressDirection3");//
-    scalNames.Push("StressX");//
-    scalNames.Push("StressY");//
-    scalNames.Push("StressZ");//
+
+
+
     
     vecNames.Push("DisplacementMem");//
-    vecNames.Push("DisplacementMem");//
-    vecNames.Push("DisplacementMem");//
-    vecNames.Push("DisplacementMem");//
-    vecNames.Push("DisplacementMem");//
-    vecNames.Push("DisplacementMem");//
+
     
     
 //    if(!strcmp("Displacement",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacement;

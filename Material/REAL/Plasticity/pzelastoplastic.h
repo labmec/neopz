@@ -38,7 +38,13 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
           EVolElasticStrain,//9
           EVolPlasticStrain,//10
           EVolTotalStrain,//11
-          EAlpha,EPlasticSteps,EPlasticSqJ2,EYield,EMisesStress//12
+          EAlpha,
+          EPlasticSteps,
+          EPlasticSqJ2,
+          EYield,
+          EMisesStress,//12
+          EI1Stress,//13
+          EJ2Stress//14
           
 };
 		
