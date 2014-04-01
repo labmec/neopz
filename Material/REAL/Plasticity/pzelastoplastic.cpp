@@ -287,7 +287,10 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EPrincipalStress - makes sense only if the evaluated point refers to an identified integration point
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain){
-        DebugStop();
+        TPZTensor<REAL> & eps = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+        TPZTensor<REAL>::TPZDecomposed eigensystem;
+        eps.EigenSystem(eigensystem);
+        for(int i=0;i<3;i++)Solout[i]= eigensystem.fEigenvalues[i];
 	}//EPrincipalStrain
     else
     if(var == TPZMatElastoPlastic<T,TMEM>::EI1Stress){
