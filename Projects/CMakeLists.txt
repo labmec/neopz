@@ -104,12 +104,13 @@ ENABLE_TESTING()
 			if (NOT WIN32)
 				#Projeto Teo Refinamento Paralelo
 				add_subdirectory(RefThread)
-				#projeto Diogo 08-FEB-2012
-				add_subdirectory(Plasticity)
 				# Projeto Caju: precisamos consertar para rodar no windows! problema com SWX components
-				add_subdirectory(HydraulicFracturePropagation)
+				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
+
+			#projeto Diogo
+			add_subdirectory(Plasticity)
 
 			# MHM project
 			add_subdirectory(MHM)
