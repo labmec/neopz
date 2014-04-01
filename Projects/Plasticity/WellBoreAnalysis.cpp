@@ -1909,58 +1909,29 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
 {
     scalNames.Resize(0);
     vecNames.Resize(0);
-    scalNames.Push("Alpha");//
-    scalNames.Push("PlasticSqJ2");//
-    scalNames.Push("POrder");//
-    scalNames.Push("I1Stress");//
-    scalNames.Push("J2Stress");//
 
+    scalNames.Push("Alpha");
+    scalNames.Push("PlasticSqJ2");
+    scalNames.Push("PlasticSqJ2El");
+    scalNames.Push("POrder");
+    scalNames.Push("I1Stress");
+    scalNames.Push("J2Stress");
 
+    scalNames.Push("VolElasticStrain");
+    scalNames.Push("VolPlasticStrain");
+    scalNames.Push("VolTotalStrain");
+    scalNames.Push("PlasticSteps");
+    //scalNames.Push("YieldSurface");
 
-    
-    vecNames.Push("DisplacementMem");//
+    vecNames.Push("TotalPlasticStrain"); // x y z
+    vecNames.Push("ShearStress"); //xy xz yz
+    vecNames.Push("ShearStrain"); //xy xz yz
 
-    
-    
-//    if(!strcmp("Displacement",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacement;
-//    if(!strcmp("DisplacementX",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementX;
-//    if(!strcmp("DisplacementY",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementY;
-//    if(!strcmp("DisplacementZ",            name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementZ;
-//    if(!strcmp("NormalStress",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStress;
-//    if(!strcmp("StressX",                   name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStressX;
-//    if(!strcmp("StressY",                   name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStressY;
-//    if(!strcmp("StressZ",                   name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStressZ;
-//    if(!strcmp("ShearStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStress;
-//    if(!strcmp("NormalStrain",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalStrain;
-//    if(!strcmp("ShearStrain",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EShearStrain;
-//    if(!strcmp("PrincipalStress",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStress;
-//    if(!strcmp("Stress1",                  name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStress1;
-//    if(!strcmp("PrincipalStrain",          name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStrain;
-//    if(!strcmp("Strain1",                  name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EStrain1;
-//    if(!strcmp("PrincipalStressDirection1",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection1;
-//    if(!strcmp("PrincipalStressDirection2",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection2;
-//    if(!strcmp("PrincipalStressDirection3",name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPrincipalStressDirection3;
-//    if(!strcmp("I1Stress",                 name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1Stress;
-//    if(!strcmp("J2Stress",                 name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EJ2Stress;
-//    if(!strcmp("I1HorStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1HorStress;
-//    if(!strcmp("J2HorStress",              name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EJ2HorStress;
-//    
-//    if(!strcmp("I1J2Stress",               name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EI1J2Stress;
-//    if(!strcmp("DirStress",                name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDirStress;
-//    if(!strcmp("DirStrain",                name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDirStrain;
-//    if(!strcmp("VolElasticStrain",         name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolElasticStrain;
-//    if(!strcmp("VolPlasticStrain",         name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolPlasticStrain;
-//    if(!strcmp("VolTotalStrain",           name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolTotalStrain;
-//    if(!strcmp("VolTEPStrain",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EVolTEPStrain;
-//    if(!strcmp("Alpha",                    name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EAlpha;
-//    if(!strcmp("PlasticSteps",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPlasticSteps;
-//    if(!strcmp("PlasticSqJ2",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2;
-//    if(!strcmp("YieldSurface",             name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EYield;
-//	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain;
-//	if(!strcmp("EMisesStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EMisesStress;
-//	if(!strcmp("DisplacementMem",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMem;
-
-
+    vecNames.Push("NormalStress");// x y z
+    vecNames.Push("NormalStrain"); // x y z
+    vecNames.Push("PrincipalStress"); //1 2 3
+    //vecNames.Push("PrincipalStrain"); //1 2 3
+    vecNames.Push("DisplacementMem"); // x y z
 }
 
 
