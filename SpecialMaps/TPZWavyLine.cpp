@@ -8,6 +8,8 @@
 
 #include "TPZWavyLine.h"
 #include "tpzgeomid.h"
+#include "tpzgeoelmapped.h"
+#include "tpzgeoelrefpattern.h"
 
 namespace pzgeom {
 
@@ -36,8 +38,6 @@ TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         return newel;
 }
 
-#include "tpzgeoelmapped.h"
-    
     /**
      * Creates a geometric element according to the type of the father element
      */
@@ -55,7 +55,6 @@ TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 
 }
 
-#include "tpzgeoelrefpattern.h"
 
 /**
  * @ingroup geometry
