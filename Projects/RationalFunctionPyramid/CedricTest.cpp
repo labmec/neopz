@@ -37,6 +37,54 @@ static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
 
 TPZManVector<REAL,3> TCedricTest::fX0(3,0.5), TCedricTest::fEps(3,0.1);
 
+TCedricTest::TCedricTest()
+{
+    REAL coord[8][3] = {
+//        {0,0,0},
+//        {1,0,0},
+//        {1,1,0},
+//        {0,1,0},
+//        {0,0,1},
+//        {1,0,1},
+//        {1,1,1},
+//        {0,1,1}
+        {-0.5,-0.5,-0.5},
+        {2,-1,-1},
+        {1.1,1.1,-0.1},
+        {-1,2,-1},
+        {-1,-1,2},
+        {1.2,-0.2,1.2},
+        {2,2,2},
+        {-0.5,1.5,1.5}
+    };
+    fDeformed.NodeVec().Resize(8);
+    TPZManVector<long,8> indices(8);
+    for (int i=0; i<8; i++) {
+        indices[i] = i;
+        for (int c=0; c<3; c++) {
+            fDeformed.NodeVec()[i].SetCoord(c, coord[i][c]);
+        }
+    }
+    long index;
+    fDeformed.CreateGeoElement(ECube, indices, 1, index);
+}
+
+/// Deform the geometric mesh according to the coordinates of fDeformed
+void TCedricTest::DeformGMesh(TPZGeoMesh &gmesh)
+{
+    long nnodes = gmesh.NodeVec().NElements();
+    TPZManVector<REAL,3> xbefore(3),xafter(3);
+    for (long nod=0; nod<nnodes; nod++) {
+        gmesh.NodeVec()[nod].GetCoordinates(xbefore);
+        for (int i=0; i<3; i++) {
+            xbefore[i] = 2.*xbefore[i]-1.;
+        }
+        fDeformed.ElementVec()[0]->X(xbefore, xafter);
+        gmesh.NodeVec()[nod].SetCoord(xafter);
+    }
+}
+
+
 void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out) {
     TPZGeoMesh *gmesh;
     switch(geocase) {
@@ -53,6 +101,13 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
             gmesh = TetrahedralMeshUsingRefinement(nsubdivisions,MaterialId);
             break;
     }
+#define DEFORM
+#ifdef DEFORM
+    DeformGMesh(*gmesh);
+#else
+    CheckConsistency(gmesh);
+#endif
+    
 #ifdef LOG4CXX
     {
         std::stringstream sout;
@@ -60,7 +115,6 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    CheckConsistency(gmesh);
     int nelembc = AddBoundaryElements(gmesh);
     
     /** Generating computational mesh */
@@ -109,7 +163,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     TPZManVector<REAL> errvec;
     
     TPZSkylineStructMatrix skylstr(cmesh);
-    skylstr.SetNumThreads(1);
+    skylstr.SetNumThreads(8);
     analysis.SetStructuralMatrix(skylstr);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);

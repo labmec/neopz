@@ -11,9 +11,9 @@ class TCedricTest {
 public:
     static TPZManVector<REAL,3> fX0, fEps;
     
+    TPZGeoMesh fDeformed;
 public:
-    TCedricTest() {
-    }
+    TCedricTest();
 
     void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
 
@@ -59,6 +59,9 @@ public:
             deriv(i,0) = dvz*v[(i+1)%3]*v[(i+2)%3];
         }
     }
+    
+    /// Deform the geometric mesh according to the coordinates of fDeformed
+    void DeformGMesh(TPZGeoMesh &gmesh);
     
     /// verify if the faces without neighbour should be orthogonal to the main planes
     void CheckConsistency(TPZGeoMesh *mesh);

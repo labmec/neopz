@@ -57,13 +57,15 @@ int MaterialBC1 = -1;
 void PrintGeoMeshAsCompMeshInVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
 
-
 // MAIN FUNCTION FOR NUMERICAL TESTS TO CEDRIC CLASS
 int main(int argc, char *argv[]) {
 	
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
+    
+    // launch arguments
+    // porderinit porderend  gcaseinit(meshtype)  gcaseend nsubdivisoninit nsubdivisionend nsubdivisioninterval
     
     int gcaseinit = 2, gcaseend = 3;
     int nsubdivisionsinit = 3, nsubdivisionsend = 16, nsubdivisionsinterval = 3;
@@ -106,7 +108,7 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeAllUniformRefPatterns();
     
     // To store errors
-    std::ofstream arq("Errors.txt");
+    std::ofstream arq("Errors.txt",ios::app);
     std::cout << "\nRUNNING CedricTest.\n\n";
     out << "\nRUNNING CedricTest.\n\n";
     arq << "\nRUNNING CedricTest:\n\n";
