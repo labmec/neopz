@@ -5,12 +5,155 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "tpzquadrilateral.h"
+#include "TPZQuadSphere.h"
 
 #include "TPZVTKGeoMesh.h"
 
+void QuadSphere();
+void ExemploIni();
+
+int main(int argc, char *argv[])
+{
+	QuadSphere();
+	return 0;
+}
+
+void QuadSphere()
+{
+	///INSTANCIACAO DA MALHA GEOMETRICA
+	TPZGeoMesh * geomesh = new TPZGeoMesh;
+	
+	int nnodes = 4;//quantidade de nos da malha geometrica
+	geomesh->NodeVec().Resize(nnodes);
+	
+	///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
+	TPZGeoNode node0, node1, node2, node3;	
+	TPZVec<REAL> coord(3,0.);
+	const REAL r = 2.;
+	TPZManVector<REAL,3> xc(3,0.);
+	xc[0] = 1.;
+	xc[1] = 2.;
+	xc[2] = 3.;
+	
+	//no 0
+	coord[0] = xc[0] + r;
+	coord[1] = xc[1] + 0.;
+	coord[2] = xc[2] + 0.;
+	node0.SetNodeId(0);
+	node0.SetCoord(coord);
+	geomesh->NodeVec()[0] = node0;
+	
+	//no 1
+	coord[0] = xc[0] + r/sqrt(2.);
+	coord[1] = xc[1] + r/sqrt(2.);
+	coord[2] = xc[2] + 0.;
+	node1.SetNodeId(1);
+	node1.SetCoord(coord);
+	geomesh->NodeVec()[1] = node1;
+	
+	//no 2
+	coord[0] = xc[0] + 0.;
+	coord[1] = xc[1] + r;
+	coord[2] = xc[2] + 0.;
+	node2.SetNodeId(2);
+	node2.SetCoord(coord);
+	geomesh->NodeVec()[2] = node2;
+	
+	//no 3
+	coord[0] = xc[0] + 0.;
+	coord[1] = xc[1] + 0.;
+	coord[2] = xc[2] + r;
+	node3.SetNodeId(3);
+	node3.SetCoord(coord);
+	geomesh->NodeVec()[3] = node3;
+	
+	
+	//INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
+	TPZVec<long> topology(4);//Quadrilatero ira utilizar 4 nos
+	topology[0] = 0;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
+	topology[1] = 1;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
+	topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
+	topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
+	
+	long materialId = 1;
+	
+	TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * quadrilatero =
+	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (topology,materialId,*geomesh);
+	
+	quadrilatero->Geom().SetData(r,xc);
+	
+	//CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
+	geomesh->BuildConnectivity();
+	
+	
+	///EXEMPLOS DE MAPEAMENTO GEOMETRICO ATRAVES DO METODO X
+	TPZVec<REAL> qsi(2,0.), xqsi(3,0.);
+	TPZFNMatrix<9,REAL> jac(2,2),axes(2,3),jacinv(2,2);
+	REAL detjac;
+	
+	std::cout << "\n\n";
+	
+	qsi[0] = +0.23;
+	qsi[1] = -0.17;
+	quadrilatero->X(qsi,xqsi);
+	std::cout << "qsi = { " << qsi[0] << " , " << qsi[1] << " }  ;  x(qsi) = { " << xqsi[0] << " , " << xqsi[1] << " , " << xqsi[2] << " }\n";
+	quadrilatero->Jacobian(qsi, jac, axes, detjac, jacinv);
+	jac.Print("Jac:");
+	axes.Print("axes");
+	std::cout << "detjac = " << detjac << std::endl;
+
+	qsi[0] = -0.89;
+	qsi[1] = +0.31;
+	quadrilatero->X(qsi,xqsi);
+	std::cout << "qsi = { " << qsi[0] << " , " << qsi[1] << " }  ;  x(qsi) = { " << xqsi[0] << " , " << xqsi[1] << " , " << xqsi[2] << " }\n";
+	quadrilatero->Jacobian(qsi, jac, axes, detjac, jacinv);
+	jac.Print("Jac:");
+	axes.Print("axes");
+	std::cout << "detjac = " << detjac << std::endl;		
+	
+	qsi[0] = +0.05;
+	qsi[1] = +1.0;
+	quadrilatero->X(qsi,xqsi);
+	std::cout << "qsi = { " << qsi[0] << " , " << qsi[1] << " }  ;  x(qsi) = { " << xqsi[0] << " , " << xqsi[1] << " , " << xqsi[2] << " }\n";
+	quadrilatero->Jacobian(qsi, jac, axes, detjac, jacinv);
+	jac.Print("Jac:");
+	axes.Print("axes");
+	std::cout << "detjac = " << detjac << std::endl;
+	
+	qsi[0] = -0.73;
+	qsi[1] = -0.35;
+	quadrilatero->X(qsi,xqsi);
+	std::cout << "qsi = { " << qsi[0] << " , " << qsi[1] << " }  ;  x(qsi) = { " << xqsi[0] << " , " << xqsi[1] << " , " << xqsi[2] << " }\n";
+	quadrilatero->Jacobian(qsi, jac, axes, detjac, jacinv);
+	jac.Print("Jac:");
+	axes.Print("axes");
+	std::cout << "detjac = " << detjac << std::endl;
+	
+	std::cout << "\n\n";
+	
+	
+	///Refinando o elemento quadrilateral em subelementos (chamados de "filhos")
+	TPZVec<TPZGeoEl *> sons0, sons1;
+	quadrilatero->Divide(sons0);
+	
+	///Refinando os filhos do elemento quadrilateral
+	for(int s = 0; s < sons0.NElements(); s++)
+	{
+		sons1.Resize(0);
+		TPZGeoEl * actSon = sons0[s];
+		actSon->Divide(sons1);
+	}
+	
+	std::ofstream outfile("malha.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile);
+	
+	geomesh->Print();
+	
+	
+}
 
 /** Geracao de uma malha geometrica de 1 elemento quadrilateral apenas */
-int main(int argc, char *argv[])
+void ExemploIni()
 {
     ///INSTANCIACAO DA MALHA GEOMETRICA
 	TPZGeoMesh * geomesh = new TPZGeoMesh;
@@ -144,6 +287,4 @@ int main(int argc, char *argv[])
     
     geomesh->Print();
     
-    
-	return 0;
 }
