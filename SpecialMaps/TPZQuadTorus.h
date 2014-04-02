@@ -16,16 +16,21 @@ namespace pzgeom {
     
     class TPZQuadTorus : public TPZGeoQuad
     {
-        TPZFNMatrix<8,REAL> fPhiTheta;
+	private:
+		
+		REAL fR;
+		REAL fr;
+		
+        TPZFNMatrix<12,REAL> fPhiTheta;
     public:
         
         /** @brief Constructor with list of nodes */
-		TPZQuadTorus(TPZVec<long> &nodeindexes) : TPZGeoQuad(nodeindexes), fPhiTheta(4,2,0.)
+		TPZQuadTorus(TPZVec<long> &nodeindexes) : TPZGeoQuad(nodeindexes), fPhiTheta(3,4,0.)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZQuadTorus() : TPZGeoQuad(), fPhiTheta(4,2,0.)
+		TPZQuadTorus() : TPZGeoQuad(), fPhiTheta(3,4,0.)
 		{
 		}
 		
@@ -45,15 +50,27 @@ namespace pzgeom {
 		{
 		}
         
-        void SetData(const TPZFMatrix<REAL> &phitheta)
+        void SetDataPhiTheta(const TPZFMatrix<REAL> &phitheta)
         {
 #ifdef DEBUG
-            if (phitheta.Rows() != 4 || phitheta.Cols() != 2) {
+            if (phitheta.Rows() != 3 || phitheta.Cols() != 4) {
                 DebugStop();
             }
 #endif
             fPhiTheta = phitheta;
         }
+		
+        void SetDataRadius(const REAL &R, const REAL &r)
+        {
+#ifdef DEBUG
+            if (R < r) 
+			{
+                DebugStop();
+            }
+#endif
+            fR = R;
+            fr = r;			
+        }		
 
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "TorusQuad";}
@@ -67,20 +84,10 @@ namespace pzgeom {
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            TPZGeoQuad::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
-        }
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+
         
-		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
-        {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            TPZGeoQuad::X(nodes,loc,result);
-        }
-		
+		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;		
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
@@ -102,6 +109,7 @@ namespace pzgeom {
 
 		
 	};
+	
 
     
 }
