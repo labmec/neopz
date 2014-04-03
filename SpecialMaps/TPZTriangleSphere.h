@@ -17,45 +17,46 @@ namespace pzgeom {
     class TPZTriangleSphere : public TPZGeoTriangle
     {
         int fNumWaves;
-        TPZManVector<REAL,3> fWaveDir;
+        TPZVec<REAL> fXc;
+		REAL fR;
 
     public:
         
         /** @brief Constructor with list of nodes */
-		TPZTriangleSphere(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fNumWaves(0), fWaveDir()
+		TPZTriangleSphere(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fXc()
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZTriangleSphere() : TPZGeoTriangle(), fNumWaves(0), fWaveDir()
+		TPZTriangleSphere() : TPZGeoTriangle(), fR(0), fXc()
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZTriangleSphere(const TPZTriangleSphere &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fXc(cp.fXc)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleSphere(const TPZTriangleSphere &cp) : TPZGeoTriangle(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZTriangleSphere(const TPZTriangleSphere &cp) : TPZGeoTriangle(cp), fR(cp.fR), fXc(cp.fXc)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleSphere(const TPZTriangleSphere &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fNumWaves(cp.fNumWaves), fWaveDir(cp.fWaveDir)
+		TPZTriangleSphere(const TPZTriangleSphere &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fR(cp.fR), fXc(cp.fXc)
 		{
 		}
         
-        void SetData(TPZVec<REAL> &wavedir, int numwaves)
+        void SetData(TPZVec<REAL> &Xc, const REAL R)
         {
 #ifdef DEBUG
-            if (wavedir.size() != 3) {
+            if (Xc.size() != 3 || R == 0.0 ) {
                 DebugStop();
             }
 #endif
-            fWaveDir = wavedir;
-            fNumWaves = numwaves;
+            fXc = Xc;
+            fR = R;
         }
 
 		/** @brief Returns the type name of the element */
@@ -70,19 +71,9 @@ namespace pzgeom {
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
-        }
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
         
-		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
-        {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            TPZGeoTriangle::X(nodes,loc,result);
-        }
+		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;
 		
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
@@ -96,15 +87,13 @@ namespace pzgeom {
         void Read(TPZStream &buf,void *context)
         {
             pzgeom::TPZGeoTriangle::Read(buf,0);
-            buf.Read(&fNumWaves,1);
-            TPZSaveable::ReadObjects<3>(buf, fWaveDir);
+            buf.Read(&fR,1);
         }
         
         void Write(TPZStream &buf)
         {
             pzgeom::TPZGeoTriangle::Write(buf);
-            buf.Write(&fNumWaves,1);
-            TPZSaveable::WriteObjects(buf, fWaveDir);
+            buf.Write(&fR,1);
 		}
 
 		
