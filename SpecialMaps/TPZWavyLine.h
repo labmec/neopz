@@ -20,6 +20,8 @@ namespace pzgeom {
         TPZManVector<REAL,3> fWaveDir;
 
     public:
+			
+		bool IsLinearMapping() const { return false; }
         
         /** @brief Constructor with list of nodes */
 		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
