@@ -253,10 +253,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	case EQuadrilateral:
 	case ETriangle:
 	case ETetraedro:
-		NRefs = 15;
+		NRefs = 10;
 		break;
 	default:
-		NRefs = 12;
+		NRefs = 4;
 		break;
 	}
 
@@ -447,7 +447,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = .4;
+	REAL factorGrad = .6;
 	REAL factorErrorBig = 0.8;
 	REAL factorGradSmall = .1;
 
@@ -455,17 +455,29 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	REAL SmallGrad = factorGradSmall*gradervecbyel[nels] + (1.-factorGradSmall)*MinGrad;
-	REAL LaplacianValue, MaxLap, MinLap = 10000.;
-	MaxLap = 0.;
+	if(MaxGrad > 10.) {
+		if(MaxGrad > MinGrad) MaxGrad = 10.;
+		else MaxGrad = SmallGrad = MinGrad;
+		if(SmallGrad > MaxGrad) SmallGrad = MaxGrad;
+	}
+	if(BigError > 0.01) {
+		if(BigError > MinErrorByElement) BigError = 0.01;
+		else BigError = SmallError = MinErrorByElement;
+		if(SmallError > BigError) SmallError = BigError;
+	}
+//	REAL LaplacianValue, MaxLap, MinLap = 10000.;
+//	MaxLap = 0.;
 
-	TPZVec<REAL> Laplacian(1);
-	TPZFMatrix<REAL> dLap(3);
-	TPZVec<REAL> psi(3,0.);
-	TPZVec<REAL> center(3,0.);
+//	TPZVec<REAL> Laplacian(1);
+//	TPZFMatrix<REAL> dLap(3);
+//	TPZVec<REAL> psi(3,0.);
+//	TPZVec<REAL> center(3,0.);
 
 	/* Printing maximum and minimun values of the errors */
 	out << "\nErro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad;
 	out << "\nMaxGrad " << MaxGrad << "     BigError " << BigError << "     SError " << SmallError << "    FactorError " << factorError;
+	cout << "\nErro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad;
+	cout << "\nMaxGrad " << MaxGrad << "  MinGrad " << SmallGrad << "     BigError " << BigError << "     SError " << SmallError << "    FactorError " << factorError;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -478,12 +490,12 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 		}
 
 		// Getting center of the element to compute forcing function value on element(center)
-		el->Reference()->CenterPoint(el->Reference()->NSides()-1,psi);
-		el->Reference()->X(psi,center);
-		RightTermArcTangent(center,Laplacian,dLap);
-		LaplacianValue = fabs(Laplacian[0])/ValueK;
-		if(MaxLap < LaplacianValue) MaxLap = LaplacianValue;
-		if(MinLap > LaplacianValue) MinLap = LaplacianValue;
+//		el->Reference()->CenterPoint(el->Reference()->NSides()-1,psi);
+//		el->Reference()->X(psi,center);
+//		RightTermArcTangent(center,Laplacian,dLap);
+//		LaplacianValue = fabs(Laplacian[0])/ValueK;
+//		if(MaxLap < LaplacianValue) MaxLap = LaplacianValue;
+//		if(MinLap > LaplacianValue) MinLap = LaplacianValue;
 
 		// element data
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
@@ -506,7 +518,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 				level++;
 			}
 		}
-		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder /*&& nref*/) {
+		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder && nref) {
 			counterreftype[20]++;
 			el->PRefine(pelement);
 			pused = true;
@@ -530,7 +542,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 
 	// Printing information stored
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype,out);
-	out << "\n MaxLap = " << MaxLap << "\t\tMinLap = " << MinLap << std::endl;
+//	out << "\n MaxLap = " << MaxLap << "\t\tMinLap = " << MinLap << std::endl;
 	PrintNRefinementsByType(nref,nels,cmesh->NElements(),counterreftype);
 	return result;
 }
