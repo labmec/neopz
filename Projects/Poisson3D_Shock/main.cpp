@@ -252,11 +252,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	switch(typeel) {
 	case EQuadrilateral:
 	case ETriangle:
-	case ETetraedro:
-		NRefs = 10;
+		NRefs = 15;
 		break;
 	default:
-		NRefs = 4;
+		NRefs = 11;
 		break;
 	}
 
@@ -447,7 +446,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = .6;
+	REAL factorGrad = .5;
 	REAL factorErrorBig = 0.8;
 	REAL factorGradSmall = .1;
 
@@ -455,8 +454,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	REAL SmallGrad = factorGradSmall*gradervecbyel[nels] + (1.-factorGradSmall)*MinGrad;
-	if(MaxGrad > 10.) {
-		if(MaxGrad > MinGrad) MaxGrad = 10.;
+	if(MaxGrad > 8.) {
+		if(MaxGrad > MinGrad) MaxGrad = 8.;
 		else MaxGrad = SmallGrad = MinGrad;
 		if(SmallGrad > MaxGrad) SmallGrad = MaxGrad;
 	}
@@ -503,7 +502,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 		index = el->Index();
 		level = el->Reference()->Level();
 
-		if((gradervecbyel[i] > MaxGrad || ervecbyel[i] > BigError) && level < MaxHLevel) {
+		if(nref < 6 && (gradervecbyel[i] > MaxGrad || ervecbyel[i] > BigError) && level < MaxHLevel) {
 			counterreftype[10]++;
 			el->Divide(index,subels);
 			el = NULL;
