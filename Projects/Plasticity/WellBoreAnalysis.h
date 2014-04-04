@@ -239,7 +239,8 @@ public:
         std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
-				return elindices.size();
+
+        return elindices.size();
     }
     
     /// Modify the geometry of the domain simulating an elliptic breakout
@@ -368,6 +369,8 @@ public:
     int GetPostProcessNumber () {
         return fPostProcessNumber;
     }
+
+    void SaveConfig(stringstream &strout);
     
 private:
     /// The object with the current configuration

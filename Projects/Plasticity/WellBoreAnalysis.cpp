@@ -2134,7 +2134,8 @@ unsigned int TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
     
     // invalidate the computational mesh associated with the postprocess mesh
     fCurrentConfig.fPostprocess.SetCompMesh(0);
-		return elindices.size();
+
+    return elindices.size();
 }
 
 /// GetPostProcessedValues at a given coordinate x
@@ -2737,6 +2738,12 @@ void TPZWellBoreAnalysis::Print(std::ostream &out)
     {
         out << "No linear matrix ";
     }
+}
+
+void TPZWellBoreAnalysis::SaveConfig(std::stringstream &strout) {
+    //Saving TConfig
+    fCurrentConfig.fHistoryLog = strout.str();
+    fSequence.push_back(fCurrentConfig);
 }
 
 void TPZWellBoreAnalysis::TConfig::Print(ostream &out)
