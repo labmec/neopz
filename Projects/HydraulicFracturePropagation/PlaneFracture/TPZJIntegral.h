@@ -55,6 +55,13 @@ public:
     
     virtual REAL ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress);
     
+    bool ThereIsNegativeNetPressure();//Eh Utilizado pelo kernel para verificar se a solucao de pressao eh valida.
+    
+    REAL Jradius()
+    {
+        return this->fradius;
+    }
+    
 protected:
     
     /** Initial point of Line */
@@ -152,59 +159,6 @@ protected:
 };
 
 
-class AreaPath3D
-{
-public:
-    
-    AreaPath3D();//It is not to be used
-    AreaPath3D(LinearPath3D * givenLinearPath3D);
-    ~AreaPath3D();
-    
-    REAL DETdxdt();
-    
-    TPZVec<REAL> operator()(REAL t)
-    {
-        TPZVec<REAL> Vval = Func(t);
-        return Vval;
-    }
-    
-    virtual TPZVec<REAL> Func(REAL t);
-    
-protected:
-    
-    struct LinearPath3D_2 : public LinearPath3D
-    {
-        public:
-        LinearPath3D_2();
-        LinearPath3D_2(LinearPath3D * cp);
-        ~LinearPath3D_2();
-        
-        virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
-        
-        struct ArcPath3D_2 : public ArcPath3D
-        {
-            public:
-            ArcPath3D_2();
-            ArcPath3D_2(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
-            ~ArcPath3D_2();
-            
-            virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
-            
-            TPZVec<REAL> ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta = 0.1);
-            
-            TPZVec<REAL> FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction);
-        };
-        
-        ArcPath3D_2 * fArcPath3D;
-    };
-    
-    LinearPath3D_2 * fLinearPath3D;
-    
-    /** Determinant of dXdt(3x1) */
-    REAL fDETdxdt;
-};
-
-
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
  *          THE CLASS Path3D CONSIDERS THAT THE NORMAL DIRECTION IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE) AND
@@ -225,12 +179,14 @@ public:
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
     Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-           TPZVec<REAL> &Origin, REAL &KIc, int &myLayer, int &myStripe,
+           TPZVec<REAL> &Origin, REAL &KIc,
            TPZVec<REAL> &normalDirection, REAL radius);
     
     ~Path3D();
     
     void ComputeJIntegral();
+    
+    bool ThereIsNegativeNetPressure();
     
     REAL OriginZcoord()
     {
@@ -257,16 +213,6 @@ public:
         return this->fKIc;
     }
     
-    int MyLayer()
-    {
-        return this->fmyLayer;
-    }
-    
-    int MyStripe()
-    {
-        return this->fmyStripe;
-    }
-    
     TPZVec<REAL> & JDirection()
     {
         return this->fJDirection;
@@ -286,15 +232,13 @@ protected:
     
     LinearPath3D * fLinearPath3D;
     ArcPath3D * fArcPath3D;
-    AreaPath3D * fAreaPath3D;
     
     TPZVec<REAL> fPlaneNormalDirection;
     REAL fOriginZcoord;
     
     REAL fKI;
     REAL fKIc;
-    int fmyLayer;
-    int fmyStripe;
+
     TPZVec<REAL> fJDirection;
     REAL fJintegral;
 };
@@ -314,6 +258,8 @@ public:
     virtual void PushBackPath3D(Path3D *Path3DElem);
     
     virtual void IntegratePath3D();
+    
+    bool ThereIsNegativeNetPressure();
     
     Path3D * Path(int p)
     {

@@ -191,7 +191,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
-    
+        
     //remember: Dont need to multiply with axes once this
     //          last is IDENTITY in PZ (because is 3D element).
     GradUtxy = data.dsol[0];
@@ -201,7 +201,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         int insideMatId = geoEl2D->MaterialId();
         
         if(globMaterialIdGen.IsInsideFractMat(insideMatId) == false)
-        {
+        {//Quando t = +1, pode achar o elemento 2D de fora da fratura, vizinho do de dentro da fratura
             bool found = false;
             for(int s = geoEl2D->NNodes(); s < geoEl2D->NSides(); s++)
             {
@@ -233,12 +233,14 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         int layer = globMaterialIdGen.WhatLayer(insideMatId);
 
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido : PIOR */
-//        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
-//        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
+        REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
+        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
 
 /** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media : MELHOR */
-        int stripe = globMaterialIdGen.WhatStripe(insideMatId);
-        Sigma_n[1] = globElastReducedSolution.GetNetPressure(layer, stripe);
+//        int stripe = globMaterialIdGen.WhatStripe(insideMatId);
+//        REAL netPress = 0.;
+//        globElastReducedSolution.GetNetPressure(layer, stripe, netPress);
+//        Sigma_n[1] = netPress;
     }
     
     TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());
@@ -256,7 +258,7 @@ REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
     }
     
     TPZVec<REAL> qsi(2,0.);
-
+    
     long InitialElementIndex = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = this->f_t_elIndexqsi_Fluid.lower_bound(t);
     if(it != this->f_t_elIndexqsi_Fluid.end())
@@ -269,10 +271,6 @@ REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
         it--;
         InitialElementIndex = it->second.first;
         qsi = it->second.second;
-    }
-    else
-    {
-        qsi.Resize(this->fcmeshFluid->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
 
     TPZGeoEl * geoEl = this->fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
@@ -300,8 +298,29 @@ REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
     return (pressure - prestress);
 }
 
-//--------------------------------------------------------class ArcPath3D
+bool LinearPath3D::ThereIsNegativeNetPressure()
+{
+    if(this->fcmeshFluid->Reference()->Reference() != this->fcmeshFluid)
+    {
+        this->fcmeshFluid->LoadReferences();
+    }
+    
+    REAL t = 0.99;
+    TPZVec<REAL> xt(3,0.);
+    this->X(t,xt);
+    
+    REAL prestress = globLayerStruct.GetLowerPreStress();
+    REAL netPress = this->ComputeNetPressure(t,xt,prestress);
+    
+    if(netPress < 0.)
+    {//net pressure is negative
+        return true;
+    }
+    //else...
+    return false;//net pressure is not negative
+}
 
+//--------------------------------------------------------class ArcPath3D
 
 ArcPath3D::ArcPath3D()
 {
@@ -403,8 +422,8 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     REAL W = 0.;
     for(int r = 0; r < 3; r++)
     {
-//        for(int c = 0; c < 3; c++)//AQUICAJU
-        for(int c = r; c < 3; c++)
+        for(int c = 0; c < 3; c++)//AQUICAJU
+//        for(int c = r; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
         }
@@ -521,270 +540,6 @@ REAL ArcPath3D::Radius()
     return this->fradius;
 }
 
-//--------------------------------------------------------class AreaPath3D
-
-
-AreaPath3D::LinearPath3D_2::LinearPath3D_2()
-{
-    DebugStop();//Nao eh para usar construtor vazio
-}
-
-AreaPath3D::LinearPath3D_2::LinearPath3D_2(LinearPath3D * cp) : LinearPath3D(cp)
-{
-    this->fArcPath3D = new ArcPath3D_2(this->fcmeshElastic, this->fFinalPoint, this->fPlaneNormalDirection, this->fradius);
-    
-#ifdef DEBUG
-    if(!this->fArcPath3D)
-    {
-        DebugStop();
-    }
-#endif
-}
-
-AreaPath3D::LinearPath3D_2::~LinearPath3D_2()
-{
-    this->fcmeshElastic = NULL;
-}
-
-TPZVec<REAL> AreaPath3D::LinearPath3D_2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
-{
-    TPZVec<REAL> arcIntegral(3,0.);
-    REAL arcRadius = 0.;
-    for(int c = 0; c < 3; c++)
-    {
-        arcRadius += (this->fFinalPoint[c] - xt[c])*(this->fFinalPoint[c] - xt[c]);
-    }
-    arcRadius = sqrt(arcRadius);
-    this->fArcPath3D->SetRadius(arcRadius);
-    
-    Adapt intRule(1.e-1);
-    arcIntegral = intRule.Vintegrate(*(this->fArcPath3D),3,-1.,+1.);
-    
-    for(int i = 0; i < 3; i++)
-    {
-        arcIntegral[i] = arcIntegral[i] * this->fArcPath3D->DETdxdt();
-    }
-    
-    return arcIntegral;
-}
-
-//------------
-
-AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2()
-{
-    DebugStop();//Nao eh para usar construtor vazio
-}
-
-AreaPath3D::LinearPath3D_2::ArcPath3D_2::ArcPath3D_2(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
-ArcPath3D(cmeshElastic,Origin,normalDirection,radius)
-{
-    
-}
-
-AreaPath3D::LinearPath3D_2::ArcPath3D_2::~ArcPath3D_2()
-{
-    this->fcmeshElastic = NULL;
-}
-
-TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
-{
-    TPZVec<REAL> answ(3,0.);
-    answ = ComputeFiniteDifference(t, xt, 0.001);
-    
-    return answ;
-}
-
-TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta)
-{
-    TPZVec<REAL> direction = this->fPlaneNormalDirection;
-    REAL norm = 0;
-    for(int i = 0; i < 3; i++)
-    {
-        norm += direction[i]*direction[i];
-    }
-    norm = sqrt(norm);
-    
-#ifdef DEBUG
-    if(norm < 1.8-12)
-    {
-        DebugStop();
-    }
-#endif
-    
-    TPZVec<REAL> upPos(3,0.), downPos(3,0.);
-    for (int i = 0; i < 3; i++)
-    {
-        upPos[i]    = xt[i] + halfDelta*direction[i]/norm;
-        downPos[i]  = xt[i] - halfDelta*direction[i]/norm;
-    }
-    
-    TPZVec<REAL> upSol(3,0.), downSol(3,0.);
-    upSol = FunctionAux(t,upPos,direction);
-    downSol = FunctionAux(t,downPos,direction);
-    
-    TPZVec<REAL> answ(3,0.);
-    for(int i = 0; i < 3; i++)
-    {
-        answ[i] = (upSol[i] - downSol[i])/(2.*halfDelta);
-    }
-    
-    return answ;
-}
-
-TPZVec<REAL> AreaPath3D::LinearPath3D_2::ArcPath3D_2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction)
-{
-    if(this->fcmeshElastic->Reference()->Reference() != this->fcmeshElastic)
-    {
-        this->fcmeshElastic->LoadReferences();
-    }
-    
-    TPZVec<REAL> qsi(0);
-    
-    long InitialElementIndex = 0;
-    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = this->f_t_elIndexqsi_Elastic.lower_bound(t);
-    if(it != this->f_t_elIndexqsi_Elastic.end())
-    {
-        InitialElementIndex = it->second.first;
-        qsi = it->second.second;
-    }
-    else if(this->f_t_elIndexqsi_Elastic.size() > 0)
-    {
-        it--;
-        InitialElementIndex = it->second.first;
-        qsi = it->second.second;
-    }
-    else
-    {
-        qsi.Resize(this->fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
-    }
-    TPZGeoEl * geoEl = this->fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
-    
-    if(!geoEl)
-    {
-        std::cout.precision(15);
-        std::cout << "\n\ngeoEl not found!\n";
-        std::cout << "xt={ " << xt[0] << " , " << xt[1] << " , " << xt[2] << "};\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << " !!!\n\n";
-        DebugStop();
-    }
-    
-    this->f_t_elIndexqsi_Elastic[t] = std::make_pair(geoEl->Index(), qsi);
-    
-    TPZCompEl * compEl = geoEl->Reference();
-    
-#ifdef DEBUG
-    if(!compEl)
-    {
-        std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-#endif
-    
-    TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
-    TPZMaterialData data;
-    intpEl->InitMaterialData(data);
-    
-    intpEl->ComputeShape(qsi, data);
-    intpEl->ComputeSolution(qsi, data);
-    
-    TPZFMatrix<STATE> Sigma(3,3), strain(3,3), GradUtxy(3,3);
-    Sigma.Zero();
-    strain.Zero();
-    GradUtxy.Zero();
-    
-    GradUtxy = data.dsol[0];
-    
-    TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
-    
-#ifdef DEBUG
-    if(!elast3D)
-    {
-        std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-#endif
-    
-    elast3D->ComputeStressTensor(Sigma, data);
-    elast3D->ComputeStrainTensor(strain, GradUtxy);
-    
-    TPZFMatrix<STATE> GradUt_Sigma(3,3,0.);
-    GradUtxy.Multiply(Sigma, GradUt_Sigma);
-    
-    REAL W = 0.;
-    for(int r = 0; r < 3; r++)
-    {
-        //for(int c = 0; c < 3; c++)//AQUICAJU
-        for(int c = r; c < 3; c++)
-        {
-            W += 0.5*Sigma(r,c)*strain(r,c);
-        }
-    }
-    
-    TPZFMatrix<STATE> W_I(3,3,0.);
-    for(int d = 0; d < 3; d++)
-    {
-        W_I(d,d) = W;
-    }
-    
-    TPZFMatrix<STATE> W_I_minus_GradUt_Sigma(3,3,0.);
-    W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
-    
-    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(3,0.);
-    for(int r = 0; r < 3; r++)
-    {
-        for(int c = 0; c < 3; c++)
-        {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*direction[c]);
-        }
-    }
-    
-    return W_I_minus_GradUt_Sigma__n;
-}
-
-//------------
-
-AreaPath3D::AreaPath3D()
-{
-    DebugStop();//Nao eh para usar construtor vazio
-}
-
-
-AreaPath3D::AreaPath3D(LinearPath3D * givenLinearPath3D)
-{
-    this->fLinearPath3D = new LinearPath3D_2(givenLinearPath3D);
-    
-    this->fDETdxdt = this->fLinearPath3D->DETdxdt();//O ArcPath3D_2 jah incluirah seu Detdxdt(), soh faltarah do LinearPath3D_2::Detdxdt()
-    
-    #ifdef DEBUG
-    if(!this->fLinearPath3D)
-    {
-        DebugStop();
-    }
-    #endif
-}
-
-
-AreaPath3D::~AreaPath3D()
-{
-    this->fLinearPath3D = NULL;
-}
-
-
-REAL AreaPath3D::DETdxdt()
-{
-    return this->fDETdxdt;
-}
-
-
-TPZVec<REAL> AreaPath3D::Func(REAL t)
-{
-    TPZVec<REAL> areaContribution(3,0.);
-    areaContribution = this->fLinearPath3D->Func(t);
-    
-    return areaContribution;
-}
-
-
 //--------------------------------------------------------class JPath3D
 
 
@@ -792,14 +547,12 @@ Path3D::Path3D()
 {
     this->fLinearPath3D = NULL;
     this->fArcPath3D = NULL;
-    this->fAreaPath3D = NULL;
     
     this->fPlaneNormalDirection.Resize(0,0.);
     this->fOriginZcoord = 0.;
+    
     this->fKI = 0.;
     this->fKIc = 0.;
-    this->fmyLayer = -1;
-    this->fmyStripe = -1;
     
     this->fJDirection.Resize(3,0.);
     this->fJintegral = 0.;
@@ -807,20 +560,18 @@ Path3D::Path3D()
 
 
 Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-               TPZVec<REAL> &Origin, REAL &KIc, int &myLayer, int &myStripe,
+               TPZVec<REAL> &Origin, REAL &KIc,
                TPZVec<REAL> &normalDirection, REAL radius)
 {
     this->fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
     this->fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
-    this->fAreaPath3D = new AreaPath3D(this->fLinearPath3D);
     
     this->fPlaneNormalDirection = normalDirection;
     this->fOriginZcoord = Origin[2];
     
     this->fKI = 0.;
     this->fKIc = KIc;
-    this->fmyLayer = myLayer;
-    this->fmyStripe = myStripe;
+
     this->fJDirection.Resize(3,0.);
     this->fJintegral = 0.;
     
@@ -843,7 +594,6 @@ Path3D::~Path3D()
 {
     this->fLinearPath3D = NULL;
     this->fArcPath3D = NULL;
-    this->fAreaPath3D = NULL;
     
     this->fOriginZcoord = 0.;
     
@@ -877,21 +627,10 @@ void Path3D::ComputeJIntegral()
     arcJintegral[1] = 0.;
     arcJintegral[2] = 2. * arcJintegral[2] * this->fArcPath3D->DETdxdt();
     
-    //------------------ AREA
-    TPZVec<REAL> areaJIntegral(3,0.);
-    intRule.SetPrecision(1.e-2);
-    //areaJIntegral = intRule.Vintegrate(*(this->fAreaPath3D),3,-1.,+0.9);
-    //std::cout << "Nao estah integrando na area!!!\n";
-    
-    //Simetry in xz plane
-    areaJIntegral[0] = 2. * areaJIntegral[0] * this->fAreaPath3D->DETdxdt();
-    areaJIntegral[1] = 0.;
-    areaJIntegral[2] = 2. * areaJIntegral[2] * this->fAreaPath3D->DETdxdt();
-    
     //------------------ COMBINING
-    REAL Jx = linJintegral[0] + arcJintegral[0] + areaJIntegral[0];
-    REAL Jy = linJintegral[1] + arcJintegral[1] + areaJIntegral[1];
-    REAL Jz = linJintegral[2] + arcJintegral[2] + areaJIntegral[2];
+    REAL Jx = linJintegral[0] + arcJintegral[0];
+    REAL Jy = linJintegral[1] + arcJintegral[1];
+    REAL Jz = linJintegral[2] + arcJintegral[2];
     
     //------------------- PROJETANDO O J VECTOR PARA A NORMAL EXTERNA
     REAL ex_ = this->fPlaneNormalDirection[0];
@@ -919,35 +658,39 @@ void Path3D::ComputeJIntegral()
     this->fKI = sqrt(this->fJintegral);//<< in fact, this->fJintegral is (young * J-integral)
 }
 
+bool Path3D::ThereIsNegativeNetPressure()
+{
+    return this->fLinearPath3D->ThereIsNegativeNetPressure();
+}
 
 //--------------------------------------------------------class JIntegral
 
 
 JIntegral3D::JIntegral3D()
 {
-    fPath3DVec.Resize(0);
+    this->fPath3DVec.Resize(0);
 }
 
 JIntegral3D::~JIntegral3D()
 {
-    Reset();
+    this->Reset();
 }
 
 void JIntegral3D::Reset()
 {
-    fPath3DVec.Resize(0);
+    this->fPath3DVec.Resize(0);
 }
 
 int JIntegral3D::NPaths()
 {
-    return fPath3DVec.NElements();
+    return this->fPath3DVec.NElements();
 }
 
 void JIntegral3D::PushBackPath3D(Path3D * Path3DElem)
 {
-    int oldSize = fPath3DVec.NElements();
-    fPath3DVec.Resize(oldSize+1);
-    fPath3DVec[oldSize] = Path3DElem;
+    int oldSize = this->fPath3DVec.NElements();
+    this->fPath3DVec.Resize(oldSize+1);
+    this->fPath3DVec[oldSize] = Path3DElem;
 }
 
 void JIntegral3D::IntegratePath3D()
@@ -956,21 +699,35 @@ void JIntegral3D::IntegratePath3D()
     
     for(int p = 0; p < NPaths(); p++)
     {
-        IntegratePath3D(p);
+        this->IntegratePath3D(p);
     }
+}
+
+bool JIntegral3D::ThereIsNegativeNetPressure()
+{
+    for(int p = 0; p < NPaths(); p++)
+    {
+        bool thereIsNegNetPress = this->fPath3DVec[p]->ThereIsNegativeNetPressure();
+        if(thereIsNegNetPress)
+        {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 void JIntegral3D::IntegratePath3D(int p)
 {
-    fPath3DVec[p]->ComputeJIntegral();
+    this->fPath3DVec[p]->ComputeJIntegral();
     std::cout << p+1 << " of " << NPaths() << " ok!\n";
     
     std::cout << "Jvec" << p << " = { "
-              << fPath3DVec[p]->JDirection()[0] << " , "
-              << fPath3DVec[p]->JDirection()[2] << " };\n"
-              << "normJvec" << p << " = " << fPath3DVec[p]->Jintegral() << ";\n"
-              << "KI = " << fPath3DVec[p]->KI() << "\n"
-              << "KI/KIc = " << fPath3DVec[p]->KI()/fPath3DVec[p]->KIc() << "\n\n";
+              << this->fPath3DVec[p]->JDirection()[0] << " , "
+              << this->fPath3DVec[p]->JDirection()[2] << " };\n"
+              << "normJvec" << p << " = " << this->fPath3DVec[p]->Jintegral() << ";\n"
+              << "KI = " << this->fPath3DVec[p]->KI() << "\n"
+              << "KI/KIc = " << this->fPath3DVec[p]->KI()/this->fPath3DVec[p]->KIc() << "\n\n";
 }
 
 

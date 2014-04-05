@@ -124,6 +124,8 @@ protected:
     /** Insert on globFractOutput3DData the actual Lfrac, Hsup and Hinf */
     void PostProcessFractGeometry(int num = -1);
     
+    bool ThereIsNegativeNetPressure();
+    
     /** Auxiliar method for the PostProcessAcumVolW() method*/
     // = 2. * Integral(uy_insideFracture)
     REAL IntegrateW(bool & thereIsNegW, REAL & negVol);
@@ -176,7 +178,7 @@ protected:
     
     REAL fLmax;
     REAL fHbullet;
-    REAL fQinj1wing_Hbullet;
+    REAL fQinj1wing;
     REAL fCenterTVD;
     REAL fJIntegralRadius;
     REAL fvisc;

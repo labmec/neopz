@@ -18,6 +18,8 @@
 #include "pzreducedspace.h"
 #include "TPZElast3Dnlinear.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "TPZInterfaceEl.h"
 
 #include "pzmat2dlin.h"
 
@@ -477,7 +479,7 @@ TPZCompMeshReferred * TPZPlaneFractureMesh::GetFractureCompMeshReferred(TPZCompM
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
+TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(int porder)
 {
     fRefinedMesh->ResetReference();
     
@@ -490,7 +492,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
     TPZFMatrix<REAL> xc(1,1,0.);
     TPZFMatrix<REAL> xb(1,1,0.);
     TPZFMatrix<REAL> xf(1,1,-2.);
-    int newmann = 1;
+    int newmann = 4;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
@@ -508,7 +510,6 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh(REAL Qinj, int porder)
                 if(stripe == 0)
                 {
                     TPZFMatrix<REAL> k(2,2,0.), f(2,1,0.);
-                    f(0,0) = Qinj;
                     TPZBndCond * fluxInBC = new TPZBndCond(mat, globMaterialIdGen.BulletMatId(lay), newmann, k, f);
                     cmesh->InsertMaterialObject(fluxInBC);
                 }
@@ -530,7 +531,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 {
     fRefinedMesh->ResetReference();
     
-    TPZCompMesh * cmesh = new TPZCompMesh(fRefinedMesh);
+    TPZCompMesh * cmesh = new TPZCompMesh(this->fRefinedMesh);
     
     cmesh->SetDimModel(3);
     cmesh->SetDefaultOrder(porder+1);
@@ -639,6 +640,57 @@ TPZCompMesh * TPZPlaneFractureMesh::GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,cmesh);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec,cmesh);
     
+//    {//Elementos de Interface : PIRA
+//        this->fRefinedMesh->ResetReference();
+//        
+//        long index;
+//        for(int el = 0; el < this->fRefinedMesh->NElements(); el++)
+//        {
+//            TPZGeoEl * gel = this->fRefinedMesh->ElementVec()[el];
+//            if(!gel || gel->HasSubElement() || globMaterialIdGen.IsBulletMaterial(gel->MaterialId()) == false)
+//            {
+//                continue;
+//            }
+//            if(gel->Dimension() != 1)
+//            {
+//                DebugStop();
+//            }
+//            cmesh->CreateCompEl(gel, index);
+//        }
+//        
+//        cmesh->LoadReferences();
+//        
+//        for(int el = 0; el < this->fRefinedMesh->NElements(); el++)
+//        {
+//            TPZGeoEl * gel = this->fRefinedMesh->ElementVec()[el];
+//            if(!gel || gel->HasSubElement() || globMaterialIdGen.IsBulletMaterial(gel->MaterialId()) == false)
+//            {
+//                continue;
+//            }
+//            
+//            TPZGeoElSide gel1D(gel,2);//right
+//            TPZCompElSide cel1D = gel1D.Reference();
+//            
+//            TPZGeoElSide gel2D = gel1D.Neighbour();//left
+//            TPZCompElSide cel2D = gel2D.Reference();
+//            
+//            TPZGeoEl * face = gel->CreateBCGeoEl(2, gel->MaterialId());
+//            
+//            new TPZMultiphysicsInterfaceElement(*cmesh, face, index, cel1D, cel2D);
+//        }
+//        
+//        std::set<int>::iterator interfIt;
+//        for(interfIt = bulletMatIds.begin(); interfIt != bulletMatIds.end(); interfIt++)
+//        {
+//            REAL Diameter = 0.3;//por enquanto hardcode
+//            TPZPlaneFractBulletMat * interfMat = new TPZPlaneFractBulletMat(*interfIt,
+//                                                                            Diameter,
+//                                                                            visc,
+//                                                                            Qinj);
+//            cmesh->InsertMaterialObject(interfMat);
+//        }
+//    }
+    
     return cmesh;
 }
 //------------------------------------------------------------------------------------------------------------
@@ -720,6 +772,45 @@ void TPZPlaneFractureMesh::SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int act
         std::cout << "\n\n\nNewman was not applied on stripe " << actStripe << "\n";
         DebugStop();
     }
+}
+//------------------------------------------------------------------------------------------------------------
+
+bool TPZPlaneFractureMesh::SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref, int actLayer, int actStripe)
+{
+    bool newmanWasApplied = false;
+    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
+    {
+        for(int stripe = 0; stripe < this->fnstripes; stripe++)
+        {
+            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
+            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
+            {//Fratura ainda nao entrou nesta camada!
+                continue;
+            }
+            
+            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
+            if(!mat)
+            {
+                DebugStop();
+            }
+            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
+            if(!bcmat)
+            {
+                DebugStop();
+            }
+            if(lay == actLayer && stripe == actStripe)
+            {
+                newmanWasApplied = true;
+                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnFractureStripe();
+            }
+            else
+            {
+                bcmat->Val2()(1,0) = 0.;
+            }
+        }
+    }
+    
+    return newmanWasApplied;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1174,7 +1265,7 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
         int axeNormal = 1;//axe Y
 		while(reachNextPoint == false && nElsCrossed < nelem)
 		{
-			nextGel = CrossToNextNeighbour(gel, x, dx, alphaMin, auxElIndex_TrimCoords, auxElIndexSequence, true, axe0, axe1, axeNormal, false);
+			nextGel = this->CrossToNextNeighbour(gel, x, dx, alphaMin, auxElIndex_TrimCoords, auxElIndexSequence, true, axe0, axe1, axeNormal, false);
 			
 			alphaMin = __smallNum;//qdo vai de vizinho a vizinho ateh chegar no proximo ponto, nao deve-se incluir os (alphaX=0)
 			if(nextGel->ComputeXInverse(xNext, qsi2D,Tol))
@@ -1240,7 +1331,7 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
 	while(gel != nextGel)
 	{
 		gel = nextGel;
-		nextGel = CrossToNextNeighbour(gel, x, dx, alphaMin, auxElIndex_TrimCoords, auxElIndexSequence, true, axe0, axe1, axeNormal, true);
+		nextGel = this->CrossToNextNeighbour(gel, x, dx, alphaMin, auxElIndex_TrimCoords, auxElIndexSequence, true, axe0, axe1, axeNormal, true);
         if(!nextGel)
         {
             DebugStop();

@@ -21,6 +21,7 @@
 
 #include "pzintel.h"
 #include "tpzintpoints.h"
+#include "TPZGeoLinear.h"
 #include "TPZVTKGeoMesh.h"
 
 #include "TSWXGraphMesh.h"
@@ -56,8 +57,9 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVe
     this->fstep = 0;
     
     this->fLmax = Lmax;
+    this->fHbullet = (bulletTVDFin - bulletTVDIni);
     
-    globLayerStruct.SetLayerVec(layerVec);
+    globLayerStruct.SetData(layerVec, bulletTVDFin, this->fHbullet);
     
     this->fPlaneFractureMesh = new TPZPlaneFractureMesh(bulletTVDIni, bulletTVDFin, xLength, yLength, Lmax);
     
@@ -67,17 +69,13 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVe
     
     this->fmphysics = NULL;
     
-    this->fHbullet = (bulletTVDFin - bulletTVDIni);
-    
     REAL Qinj1wing = Qinj_well/2.;
     
     {
         globFractOutput3DData.SetQinj1wing(-Qinj1wing);
     }
     
-    REAL Qinj1wing_Hbullet = Qinj1wing/this->fHbullet;
-    
-    this->fQinj1wing_Hbullet = Qinj1wing_Hbullet;
+    this->fQinj1wing = Qinj1wing;
     
     this->fCenterTVD = (bulletTVDIni + bulletTVDFin)/2.;
     
@@ -160,15 +158,10 @@ void TPZPlaneFractureKernel::InitializePoligonalChain()
     
     REAL yc = -fCenterTVD;
     
-//    REAL shiftX = 2. * this->fJIntegralRadius;
-//    REAL sAx = this->fHbullet/2. + 0.2;
-//    REAL sAy = this->fHbullet/2. + 0.2;
-    
     REAL shiftX = 1.5 * this->fJIntegralRadius;
-    REAL sAx = 1.0;
+    REAL sAx = this->fLmax;
     REAL sAy = this->fHbullet/2. + 0.2;
 
-    
     for(int p = 1; p <= nptsUp; p++)
     {
         REAL x  = MIN(sAx - 0.001,p * sAx/nptsUp);
@@ -207,11 +200,11 @@ void TPZPlaneFractureKernel::InitializeMeshes(TPZCompMesh * lastElastCMesh)
     this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef, this->fpOrder);
     
     //Malha computacional de pressao
-    this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(this->fQinj1wing_Hbullet, this->fpOrder);
+    this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(this->fpOrder);
     
     //Malha computacional de acoplamento (multifisica)
     this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec, lastElastCMesh,
-                                                                        this->fQinj1wing_Hbullet,
+                                                                        this->fQinj1wing,
                                                                         this->fvisc,
                                                                         this->fpOrder);
     this->ApplyInitialCondition(2.*globLayerStruct.GetHigherPreStress());
@@ -271,24 +264,52 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
     }
     
-    ////////////////// Newman=1. em cada faixa da fratura
+    ////////////////// Newman=1. em cada combinacao de camada e faixa da fratura
+    globElastReducedSolution.ClearLayStripeSolRow();
+    
     int NStripes = this->fPlaneFractureMesh->NStripes();
-    for(int stripe = 0; stripe < NStripes; stripe++)
+    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
     {
-        this->fPlaneFractureMesh->SetNewmanOnThisStripe(cmesh,stripe);
-
-        an->Rhs().Zero();
-        an->AssembleResidual();
-        an->Solve();
-        solution1 = cmesh->Solution();
-        
-        int oldSize = solutions.Cols();
-        solutions.Resize(solutions.Rows(), oldSize+1);
-        for(int r = 0; r < solution0.Rows(); r++)
+        for(int stripe = 0; stripe < NStripes; stripe++)
         {
-            solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
+            bool newmanWasApplied = this->fPlaneFractureMesh->SetNewmanOnThisLayerAndStripe(cmesh, lay, stripe);
+            
+            if(newmanWasApplied)
+            {
+                an->Rhs().Zero();
+                an->AssembleResidual();
+                an->Solve();
+                solution1 = cmesh->Solution();
+                
+                int oldSize = solutions.Cols();
+                solutions.Resize(solutions.Rows(), oldSize+1);
+                for(int r = 0; r < solution0.Rows(); r++)
+                {
+                    solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
+                }
+                globElastReducedSolution.SetLayStripeSolRow(lay, stripe, oldSize);
+            }
         }
     }
+    
+    ////////////////// Newman=1. em cada faixa da fratura
+//    int NStripes = this->fPlaneFractureMesh->NStripes();
+//    for(int stripe = 0; stripe < NStripes; stripe++)
+//    {
+//        this->fPlaneFractureMesh->SetNewmanOnThisStripe(cmesh,stripe);
+//
+//        an->Rhs().Zero();
+//        an->AssembleResidual();
+//        an->Solve();
+//        solution1 = cmesh->Solution();
+//        
+//        int oldSize = solutions.Cols();
+//        solutions.Resize(solutions.Rows(), oldSize+1);
+//        for(int r = 0; r < solution0.Rows(); r++)
+//        {
+//            solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
+//        }
+//    }
     
     cmesh->LoadSolution(solutions);
 }
@@ -327,7 +348,6 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
     bool timeLimitsIsCloseEnough = false;
     bool propagate = false;
     
-    
     while(timeLimitsIsCloseEnough == false)
     {
         maxKI_KIc = 0.;
@@ -352,8 +372,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         std::cout << "\n-> Método de Newton\n";
         
         REAL normRes = 1.;
-        REAL stripeTol = 1.E-1;
-        REAL tolRes = 1.E-2;
+        REAL stripeTol = 1.E-2;
+        REAL tolRes = 1.E-3;
         int maxit = 10;
         int nit = 0;
 
@@ -387,7 +407,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             
             if(normRes <= stripeTol && whoBlock == EBlockStripes)
             {
-                maxit = 20;
+                maxit = 10;
                 nit = 0;
                 whoBlock = EBlockEntireFracure;
                 this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, whoBlock);
@@ -401,7 +421,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
                 std::cout << "normRes = " << normRes << std::endl;
                 nit++;
             }
-        }
+        }///end of Newton
 
         if(normRes > tolRes)
         {
@@ -421,11 +441,27 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         }
         else
         {
+            bool thereIsnegNetPress = this->ThereIsNegativeNetPressure();
             bool thereIsNegW;
             REAL negVol = 0.;
             this->IntegrateW(thereIsNegW, negVol);
             
-            if(thereIsNegW)
+            if(thereIsnegNetPress)
+            {
+                globTimeControl.TimeisOnLeft();
+                std::cout << "\nNegative Net Pressure\n";
+                std::cout << "************* dt está a Esquerda de KI=KIc *************\n";
+                {
+                    std::ostringstream strVal, strVol;
+                    strVal << globTimeControl.actDeltaT();
+                    strVol << negVol;
+                    std::string tempstr = "detlaT ";
+                    tempstr += strVal.str();
+                    tempstr += " s : Net pressure negativa\n";
+                    deltaT_historyMap[globTimeControl.actDeltaT()] = tempstr;
+                }
+            }
+            else if(thereIsNegW)
             {
                 globTimeControl.TimeisOnLeft();
                 std::cout << "\nNegativeW = " << negVol << "\n";
@@ -568,36 +604,8 @@ void TPZPlaneFractureKernel::InitializePath3DVector()
         
         REAL KIc = 0.;
         this->fPlaneFractureMesh->GetKIc_FromLayerOfThisZcoord(zCoord, KIc);
-        
-        int myLayer = -1;
-        int myStripe = -1;
-        
-        TPZGeoElSide gel1Dside(gel1D,2);
-        TPZGeoElSide neighSide(gel1Dside.Neighbour());
 
-        bool found = false;
-        while(neighSide != gel1Dside && found == false)
-        {
-            int matId = neighSide.Element()->MaterialId();
-            if(globMaterialIdGen.IsInsideFractMat(matId))
-            {
-                myLayer = globMaterialIdGen.WhatLayer(matId);
-                myStripe = globMaterialIdGen.WhatStripe(matId);
-                found = true;
-                break;
-            }
-            neighSide = neighSide.Neighbour();
-        }
-        if(myLayer < 0 || myStripe < 0)
-        {
-            std::cout << "\n\n\nPath3D layer and/or stripe not found!!!\n";
-            std::cout << "See " << __PRETTY_FUNCTION__ << ".\n\n\n";
-            DebugStop();
-        }
-        this->fPath3D.PushBackPath3D(
-                                        new Path3D(this->fmeshVec[0], this->fmeshVec[1],
-                                                   center, KIc, myLayer, myStripe, normal, this->fJIntegralRadius)
-                                     );
+        this->fPath3D.PushBackPath3D( new Path3D(this->fmeshVec[0], this->fmeshVec[1], center, KIc, normal, this->fJIntegralRadius) );
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -638,9 +646,9 @@ void TPZPlaneFractureKernel::ApplyInitialCondition(REAL val)
     this->fmeshVec[0]->Solution()(1,0) = val;
     
     ///Newman=0 on stripes
-    for(int stripe = 0; stripe < this->fPlaneFractureMesh->NStripes(); stripe++)
+    for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
     {
-        this->fmeshVec[0]->Solution()(globElastReducedSolution.GetStressAppliedSolutionRow(stripe),0) = 0.;
+        this->fmeshVec[0]->Solution()(r,0) = 0.;
     }
 
     this->PutConstantPressureOnFluidSolution(val);
@@ -672,10 +680,9 @@ void TPZPlaneFractureKernel::ApplyEquationFilter(TPZAnalysis * an, EWhoBlock who
     }
     else if(whoBlock == EBlockStripes)
     {
-        for(int r = 0; r < this->fPlaneFractureMesh->NStripes(); r++)
+        for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
         {
-            int stripeRow = r + 2;
-            eqOut.insert(posBlock+stripeRow);
+            eqOut.insert(posBlock+r);
         }
     }
     
@@ -871,12 +878,17 @@ void TPZPlaneFractureKernel::UpdateLeakoffKernel()
         REAL volLeakoffExpected = volInjected - volW;
         REAL volLeakoffComputed = ComputeVlAcumLeakoff(this->fmeshVec[1]);
         
-        REAL alpha = volLeakoffExpected/volLeakoffComputed;
+        REAL alpha = 0.;
+        if(volLeakoffComputed > 0.)
+        {
+            alpha = volLeakoffExpected/volLeakoffComputed;
+        }
         std::map<int,REAL>::iterator itLk;
         for(itLk = globLeakoffStorage.GetLeakoffMap().begin(); itLk != globLeakoffStorage.GetLeakoffMap().end(); itLk++)
         {
             itLk->second *= alpha;
         }
+        std::cout << "\n-----------------------\nalpha leak off = " << alpha << "\n\n";
         
         //Verificacao
         volLeakoffComputed = ComputeVlAcumLeakoff(this->fmeshVec[1]);
@@ -918,12 +930,28 @@ void TPZPlaneFractureKernel::PostProcessSolutions(int num)
     std::ofstream solutFile(nm.str().c_str());
     
     solutFile.precision(8);
-    solutFile << "\nMeshvec[0]:\n";
-    for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
+    solutFile << "\nMeshvec[0]:";
+    
+    REAL entireStripeSol = this->fmeshVec[0]->Solution()(1,0);
+    std::map< int , std::map<int,int> >::iterator itLay;
+    for(itLay = globElastReducedSolution.Lay_Stripe_solRow().begin();
+        itLay != globElastReducedSolution.Lay_Stripe_solRow().end();
+        itLay++)
     {
-        solutFile << "Stripe" << (r-2) << " : " << this->fmeshVec[0]->Solution()(1,0) + this->fmeshVec[0]->Solution()(r,0) << "\n";
+        int lay = itLay->first;
+        solutFile << "\nLayer " << lay << ":\n";
+        
+        std::map<int,int>::iterator itStripe;
+        for(itStripe = itLay->second.begin();
+            itStripe != itLay->second.end();
+            itStripe++)
+        {
+            int stripe = itStripe->first;
+            int solRow = itStripe->second;
+            solutFile << "stripe " << stripe << ": sol = " << entireStripeSol + this->fmeshVec[0]->Solution()(solRow,0) << "\n";
+        }
     }
-    solutFile << "\nMeshvec[1]:\n";
+    solutFile << "-------------------------------------\n\nMeshvec[1]:\n";
     for(int r = 0; r < this->fmeshVec[1]->Solution().Rows(); r++)
     {
         solutFile << this->fmeshVec[1]->Solution()(r,0) << "\n";
@@ -1082,6 +1110,7 @@ void TPZPlaneFractureKernel::PostProcessFractGeometry(int num)
         nmAux << "AppendTo[Lgr,{" << globTimeControl.actTime()/60. << ",L" << num << "}];\n";
         nmAux << "AppendTo[Hsupgr,{" << globTimeControl.actTime()/60. << ",Hsup" << num << "}];\n";
         nmAux << "AppendTo[Hinfgr,{" << globTimeControl.actTime()/60. << ",Hinf" << num << "}];\n";
+        nmAux << "Print[\"time" << num << " = " << globTimeControl.actTime()/60. << " min\"]\n";
         nmAux << "Print[\"L" << num << " = \", L" << num << "]\n";
         nmAux << "Print[\"Hsup" << num << " = \", Hsup" << num << "]\n";
         nmAux << "Print[\"Hinf" << num << " = \", Hinf" << num << "]\n";
@@ -1100,6 +1129,12 @@ void TPZPlaneFractureKernel::PostProcessFractGeometry(int num)
         outF << "Show[l,hs,hi,PlotRange->All]\n";
         outF.close();
     }
+}
+//------------------------------------------------------------------------------------------------------------
+
+bool TPZPlaneFractureKernel::ThereIsNegativeNetPressure()
+{
+    return this->fPath3D.ThereIsNegativeNetPressure();
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1236,7 +1271,7 @@ REAL TPZPlaneFractureKernel::ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh)
 REAL TPZPlaneFractureKernel::ComputeVolInjected()
 {
     REAL actTime = globTimeControl.actTime();
-    REAL Qinj1wing = -(this->fQinj1wing_Hbullet * fHbullet);
+    REAL Qinj1wing = -(this->fQinj1wing);
     
     REAL volInjected = actTime * Qinj1wing;
     

@@ -142,6 +142,10 @@ REAL LeakoffStorage::VlFtau(REAL pfrac, REAL tau, REAL Cl, REAL Pe, REAL gradPre
     {
         REAL gradP = pfrac - Pe;
         gradPcalc = gradP/gradPref;
+        if(gradPcalc < 0.)
+        {
+            return 0.;
+        }
     }
     
     REAL Clcorr = Cl * sqrt(gradPcalc);
@@ -161,6 +165,10 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
         {
             REAL gradP = pfrac - Pe;
             gradPcalc = gradP/gradPref;
+            if(gradPcalc <= 0.)
+            {
+                return 0.;
+            }
         }
         
         REAL Clcorr = Cl * sqrt(gradPcalc);
@@ -172,7 +180,7 @@ REAL LeakoffStorage::FictitiousTime(REAL VlAcum, REAL pfrac, REAL Cl, REAL Pe, R
 
 REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-    if(pfrac <= Pe || fLeakoffEnabled == false)
+    if(fLeakoffEnabled == false)
     {
         return 0.;
     }
@@ -195,7 +203,7 @@ REAL LeakoffStorage::QlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe,
 
 REAL LeakoffStorage::dQlFVl(int gelId, REAL pfrac, REAL deltaT, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
 {
-    if(pfrac <= Pe || fLeakoffEnabled == false)
+    if(fLeakoffEnabled == false)
     {
         return 0.;
     }
@@ -263,34 +271,86 @@ void ElastReducedSolution::SetElastReducedSolution(TPZFMatrix<REAL> & ElastReduc
     this->fElastReducedSolution = ElastReducedSolution;
 }
 
-REAL ElastReducedSolution::GetTotalPressure(int stripe)
+void ElastReducedSolution::ClearLayStripeSolRow()
 {
-    //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-    REAL pressAppliedEntireFract = this->fElastReducedSolution(1,0);
-    
-    int stripePressAppliedRow = this->GetStressAppliedSolutionRow(stripe);
-    REAL pressAppliedStripe = this->fElastReducedSolution(stripePressAppliedRow,0);
-    
-    REAL pressApplied = pressAppliedEntireFract + pressAppliedStripe;
-    
-    return pressApplied;
+    this->fLay_Stripe_solRow.clear();
 }
 
-REAL ElastReducedSolution::GetNetPressure(int layer, int stripe)
+std::map< int , std::map<int,int> > & ElastReducedSolution::Lay_Stripe_solRow()
 {
-    REAL totalPressApplied = this->GetTotalPressure(stripe);
-    REAL preStress = -globLayerStruct.GetLayer(layer).fSigYY;
-
-    /** NAO COLOQUE MAX(0.,NETPRESSURE)!!! JA VI QUE NAO DA CERTO!!! */
-    REAL netPressure = (totalPressApplied - preStress);
-
-    return netPressure;
+    return this->fLay_Stripe_solRow;
 }
 
-int ElastReducedSolution::GetStressAppliedSolutionRow(int stripe)
+void ElastReducedSolution::SetLayStripeSolRow(int layer, int stripe, int solRow)
 {
-    return stripe+2;
+    std::map< int , std::map<int,int> >::iterator itLay = this->fLay_Stripe_solRow.find(layer);
+    if(itLay == this->fLay_Stripe_solRow.end())
+    {
+        this->fLay_Stripe_solRow[layer][stripe] = solRow;
+    }
+    else
+    {
+        std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
+        if(itStripe != itLay->second.end())
+        {
+            if(itStripe->second != solRow)
+            {
+                std::cout << "\n\n\nSobrescrevendo solution row on " << __PRETTY_FUNCTION__ << "\n";
+                DebugStop();
+            }
+        }
+        itLay->second[stripe] = solRow;
+    }
 }
+
+//bool ElastReducedSolution::GetTotalPressure(int layer, int stripe, REAL & totPress)
+//{
+//    bool thereIsSol = false;
+//    totPress = 0.;
+//    
+//    //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
+//    REAL pressAppliedEntireFract = this->fElastReducedSolution(1,0);
+//    
+//    int laystripePressAppliedRow = this->GetStressAppliedSolutionRow(layer,stripe);
+//    if(laystripePressAppliedRow > 1)
+//    {
+//        thereIsSol = true;
+//        
+//        REAL pressAppliedLayerStripe = this->fElastReducedSolution(laystripePressAppliedRow,0);
+//        totPress = pressAppliedEntireFract + pressAppliedLayerStripe;
+//    }
+//    
+//    return thereIsSol;
+//}
+//
+//bool ElastReducedSolution::GetNetPressure(int layer, int stripe, REAL & netPress)
+//{
+//    netPress = 0.;
+//    
+//    REAL totalPressApplied = 0.;
+//    bool thereIsSol = this->GetTotalPressure(layer,stripe, totalPressApplied);
+//    REAL preStress = -globLayerStruct.GetLayer(layer).fSigYY;
+//
+//    /** NAO COLOQUE MAX(0.,NETPRESSURE)!!! JA VI QUE NAO DA CERTO!!! */
+//    netPress = (totalPressApplied - preStress);
+//
+//    return thereIsSol;
+//}
+//
+//int ElastReducedSolution::GetStressAppliedSolutionRow(int lay, int stripe)
+//{
+//    std::map< int , std::map<int,int> >::iterator itLay = this->fLay_Stripe_solRow.find(lay);
+//    if(itLay != this->fLay_Stripe_solRow.end())
+//    {
+//        std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
+//        if(itStripe != itLay->second.end())
+//        {
+//            return itStripe->second;
+//        }
+//    }
+//    
+//    return -1;
+//}
 
 //------------------------------------------------------------
 

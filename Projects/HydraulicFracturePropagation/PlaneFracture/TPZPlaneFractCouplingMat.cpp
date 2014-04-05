@@ -34,22 +34,22 @@ TPZPlaneFractCouplingMat::TPZPlaneFractCouplingMat(int nummat, STATE E, STATE po
                                                    STATE vsp) :
                                                    TPZElast3Dnlinear(nummat, E, poisson, force, preStressXX, preStressYY, preStressZZ)
 {
-    fLastElastFunction = new TPZLastElastFunction();
-    fVisc = visc;
-    fCl = Cl;
-    fPe = Pe;
-    fgradPref = gradPref;
-    fvsp = vsp;
+    this->fLastElastFunction = new TPZLastElastFunction();
+    this->fVisc = visc;
+    this->fCl = Cl;
+    this->fPe = Pe;
+    this->fgradPref = gradPref;
+    this->fvsp = vsp;
 }
 
 TPZPlaneFractCouplingMat::~TPZPlaneFractCouplingMat()
 {
-    fLastElastFunction = NULL;
-    fVisc = 0.;
-    fCl = 0.;
-    fPe = 0.;
-    fgradPref = 0.;
-    fvsp = 0.;
+    this->fLastElastFunction = NULL;
+    this->fVisc = 0.;
+    this->fCl = 0.;
+    this->fPe = 0.;
+    this->fgradPref = 0.;
+    this->fvsp = 0.;
 }
 
 void TPZPlaneFractCouplingMat::SetLastElastCMesh(TPZCompMesh * LastElastCMesh)
@@ -113,15 +113,12 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     
 	if(gState == EActualState) //current state (n+1): Matrix stiffnes
     {
+        TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
+        REAL uy = sol_u[1];
+        REAL w = 2. * uy;
+
         REAL actQl = 0.;
         REAL actdQldp = 0.;
-        
-        REAL w = 0.;
-        {
-            TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
-            REAL uy = sol_u[1];
-            w += 2.*uy;
-        }
         if(w > 0.)
         {
             REAL pfrac = sol_p[0];
@@ -220,6 +217,12 @@ void TPZPlaneFractCouplingMat::ContributeBC(TPZVec<TPZMaterialData> &datavec,
             ApplyNeumann_P(datavec, weight, ek, ef, bc);
             break;
         }
+        case 5:// Dirichlet condition only on the pressure equation pressure
+        {
+            ApplyDirichlet_P(datavec, weight, ek, ef, bc);
+            break;
+        }
+            
         default:
         {
             DebugStop();
@@ -231,16 +234,16 @@ void TPZPlaneFractCouplingMat::Solution(TPZVec<TPZMaterialData> &datavec,
                                         int var,
                                         TPZVec<STATE> &Solout)
 {
+    std::cout << "\n\n\nEntrei no TPZPlaneFractCouplingMat::Solution\n\n\n";
+    DebugStop();
     if(var < 19)
     {
         TPZElast3Dnlinear::Solution(datavec[0], var, Solout);
     }
-#ifdef DEBUG
     else
     {
         DebugStop();
     }
-#endif
 }
 
 void TPZPlaneFractCouplingMat::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec,
@@ -314,6 +317,40 @@ void TPZPlaneFractCouplingMat::ApplyBlockedDir_U(TPZVec<TPZMaterialData> &datave
     }
 }
 
+void TPZPlaneFractCouplingMat::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec,
+                                                STATE weight,
+                                                TPZFMatrix<> &ek,
+                                                TPZFMatrix<> &ef,
+                                                TPZBndCond &bc)
+{
+    if(gState == EPastState)
+    {
+        return;
+    }
+    
+    TPZFMatrix<REAL> & phi_u = datavec[0].phi;
+	int c_u = phi_u.Cols();
+    
+    TPZFMatrix<REAL> & phi_p = datavec[1].phi;
+    int  phrp = phi_p.Rows();
+    
+    TPZManVector<REAL> sol_pMat = datavec[1].sol[0];
+    REAL solpress = sol_pMat[0];
+    REAL imposedPress = bc.Val2()(0,0);
+    
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    for(int in = 0; in < phrp; in++)
+    {
+        ef(in+c_u,0) += (+1.) * weight * BIGNUMBER * imposedPress * phi_p(in,0);
+        ef(in+c_u,0) += (-1.) * weight * BIGNUMBER * solpress * phi_p(in,0);
+        
+        for(int jn = 0; jn < phrp; jn++)
+        {
+            ek(in+c_u,jn+c_u) += weight * BIGNUMBER * (phi_p(in,0) * phi_p(jn,0));
+        }
+    }
+}
+
 void TPZPlaneFractCouplingMat::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
                                               STATE weight,
                                               TPZFMatrix<> &ek,
@@ -331,10 +368,43 @@ void TPZPlaneFractCouplingMat::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL> & phi_p = datavec[1].phi;
     int  phrp = phi_p.Rows();
     
-    REAL Qinj = bc.Val2()(0,0);
-    for(int in = 0; in < phrp; in++)
-    {
-        ef(in+c_u,0) += (-1.) * weight * Qinj * phi_p(in,0);
+//    {//Newmann original (funcao constante)
+//        std::cout << "\n\n\nDividiu por Hbullet no main???\n\n\n";
+//        DebugStop();//<<<< Lembrou de dividir Qinj por Hbullet no main???
+//        
+//        REAL Qinj = bc.Val2()(0,0);
+//        for(int in = 0; in < phrp; in++)
+//        {
+//            ef(in+c_u,0) += (-1.) * weight * Qinj * phi_p(in,0);
+//        }
+//    }
+    
+    {//Newmann suave por funcao seno
+//        std::cout << "\n\n\nDividiu por Hbullet no main???\n\n\n";
+//        DebugStop();//<<<< Lembrou de dividir Qinj por Hbullet no main???
+//        
+//        REAL Qinj_hbul = bc.Val2()(0,0);
+//        REAL z = datavec[1].x[2];
+//        REAL hbullet = 20.;
+//        REAL Qinj = Qinj_hbul * hbullet;
+//        REAL zf = -2120.;
+//        REAL val = (2.*Qinj*pow(sin((M_PI*(z - zf))/hbullet),2))/hbullet;
+//        for(int in = 0; in < phrp; in++)
+//        {
+//            ef(in+c_u,0) += (-1.) * weight * val * phi_p(in,0);
+//        }
+    }
+
+    {//Newmann suave por funcao parabola
+        REAL Qinj1wing = bc.Val2()(0,0);//Aqui nao eh para estar dividido por Hbullet pois a equacao contempla isso!
+        REAL z = datavec[1].x[2];
+        REAL hBullet = globLayerStruct.HBullet();
+        REAL zf = globLayerStruct.DownBulletDepth();
+        REAL val = (6.*Qinj1wing*(z - zf)*(hBullet - z + zf))/(hBullet*hBullet*hBullet);//(3.*Qinj_hbul*(1. + (-2120. - z)/20.)*(2120. + z))/200.;
+        for(int in = 0; in < phrp; in++)
+        {
+            ef(in+c_u,0) += (-1.) * weight * val * phi_p(in,0);
+        }
     }
 }
 
@@ -360,3 +430,130 @@ void TPZPlaneFractCouplingMat::FillBoundaryConditionDataRequirement(int type, TP
 		datavec[i].fNeedsNormal = true;
 	}
 }
+
+
+//=====================================================================
+
+//TPZPlaneFractBulletMat::TPZPlaneFractBulletMat()
+//{
+//    this->fDiameter = 0.;
+//    this->fvisc = 0.;
+//    this->fQinj_hbullet = 0.;
+//}
+//
+//TPZPlaneFractBulletMat::TPZPlaneFractBulletMat(int nummat,
+//                                               REAL Diameter,
+//                                               REAL visc,
+//                                               REAL Qinj_hbullet) : TPZDiscontinuousGalerkin(nummat)
+//{
+//    this->fDiameter = Diameter;
+//    this->fvisc = visc;
+//    this->fQinj_hbullet = Qinj_hbullet;
+//}
+//
+//TPZPlaneFractBulletMat::~TPZPlaneFractBulletMat()
+//{
+//    
+//}
+//
+//void TPZPlaneFractBulletMat::Contribute(TPZVec<TPZMaterialData> &datavec,
+//                                        STATE weight,
+//                                        TPZFMatrix<STATE> &ek,
+//                                        TPZFMatrix<STATE> &ef)
+//{
+//    if(TPZPlaneFractCouplingMat::IsPastState())
+//    {
+//        return;
+//    }
+//    
+//    TPZFMatrix<REAL> & phi_u = datavec[0].phi;
+//	int c_u = phi_u.Cols();
+//    
+//    TPZFMatrix<REAL> & phi_p = datavec[1].phi;
+//    int  phrp = phi_p.Rows();
+//    
+//    TPZFMatrix<REAL> & dphi_p = datavec[1].dphix;
+//    
+//    TPZFMatrix<REAL> & dsol_p = datavec[1].dsol[0];
+//    REAL dpdx = dsol_p(0,0);
+//    
+//    const REAL D = this->fDiameter;
+//    const REAL piD4_128mi = M_PI * D*D*D*D / (128. * this->fvisc);
+//    
+//    for(int in = 0; in < phrp; in++)
+//    {
+//        ef(in+c_u,0) += (-1.) * weight * ( dphi_p(in,0) * piD4_128mi * dpdx  +  this->fQinj_hbullet * phi_p(in,0) );
+//        
+//        for(int jn = 0; jn < phrp; jn++)
+//        {
+//            ek(in+c_u,jn+c_u) += (+1.) * weight * ( piD4_128mi + dphi_p(in,0) * dphi_p(jn,0) );
+//        }
+//    }
+//}
+//
+//void TPZPlaneFractBulletMat::ContributeInterface(TPZVec<TPZMaterialData> &datavec,
+//                                                 TPZVec<TPZMaterialData> &dataleftvec,
+//                                                 TPZVec<TPZMaterialData> &datarightvec,
+//                                                 REAL weight,
+//                                                 TPZFMatrix<STATE> &ek,
+//                                                 TPZFMatrix<STATE> &ef)
+//{
+//    if(TPZPlaneFractCouplingMat::IsPastState())
+//    {
+//        return;
+//    }
+//    
+//    TPZFMatrix<REAL> & phi_u = datavec[0].phi;
+//	int nShapeU = phi_u.Cols();
+//    
+//    TPZFMatrix<REAL> & phi_Left = dataleftvec[1].phi;
+//    TPZManVector<REAL> p_LeftVec = dataleftvec[1].sol[0];
+//    REAL p_Left = p_LeftVec[0];
+//    
+//    TPZFMatrix<REAL> & phi_Right = datarightvec[0].phi;
+//    TPZManVector<REAL> p_RightVec = datarightvec[0].sol[0];
+//    REAL p_Right = p_RightVec[0];
+//    
+//    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+//    
+//    int nShapeLeft = phi_Left.Rows();
+//    int nShapeRight = phi_Right.Rows();
+//    
+//    for(int iL = 0; iL < nShapeLeft; iL++)
+//    {
+//        ef(iL,0) += (-1.) * weight * BIGNUMBER * ( (p_Left - p_Right) * phi_Left(iL,0) );
+//        
+//        for(int jL = 0; jL < nShapeLeft; jL++)
+//        {
+//            ek(iL,jL) += (+1.) * weight * BIGNUMBER * ( phi_Left(jL,0) * phi_Left(iL,0) );
+//        }
+//        for(int jR = 0; jR < nShapeRight; jR++)
+//        {
+//            ek(iL,nShapeLeft+jR) += (-1.) * weight * BIGNUMBER * ( phi_Left(iL,0) * phi_Right(jR,0) );
+//        }
+//    }
+//    for(int iR = 0; iR < nShapeRight; iR++)
+//    {
+//        ef(nShapeLeft + iR,0) += (-1.) * weight * BIGNUMBER * ( (p_Right - p_Left) * phi_Right(iR) );
+//        
+//        for(int jL = 0; jL < nShapeLeft; jL++)
+//        {
+//            ek(nShapeLeft+iR,jL) += (-1.) * weight * BIGNUMBER * ( phi_Left(jL,0) * phi_Right(iR,0) );
+//        }
+//        for(int jR = 0; jR < nShapeRight; jR++)
+//        {
+//            ek(nShapeLeft+iR,nShapeLeft+jR) += (+1.) * weight * BIGNUMBER * ( phi_Right(iR,0) * phi_Right(jR,0) );
+//        }
+//    }
+//}
+//    
+//
+//void TPZPlaneFractBulletMat::FillDataRequirementsInterface(TPZVec<TPZMaterialData> &datavec)
+//{
+//    int nref = datavec.size();
+//	for(int i = 0; i < nref; i++)
+//	{
+//		datavec[i].SetAllRequirements(false);
+//        datavec[i].fNeedsSol = true;
+//	}
+//}

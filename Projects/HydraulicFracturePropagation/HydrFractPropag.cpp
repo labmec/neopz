@@ -90,7 +90,7 @@ int main(int argc, char * const argv[])
     REAL visc = 200.02E-3 * globStressScale;
     
     //J-Integral data
-    REAL Jradius = 1.;
+    REAL Jradius = 1.0;
 
     //Simulation p-order data
     int porder = 1;

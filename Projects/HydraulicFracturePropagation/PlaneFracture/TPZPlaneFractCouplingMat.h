@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include "TPZElast3Dnlinear.h"
+#include "pzdiscgal.h"
 #include "pzfunction.h"
 #include "pzgmesh.h"
 
@@ -150,6 +151,12 @@ public:
                                    TPZFMatrix<> &ef,
                                    TPZBndCond &bc);
     
+    virtual void ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec,
+                                  STATE weight,
+                                  TPZFMatrix<> &ek,
+                                  TPZFMatrix<> &ef,
+                                  TPZBndCond &bc);
+    
     virtual void ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
                                 STATE weight,
                                 TPZFMatrix<> &ek,
@@ -160,8 +167,11 @@ public:
     
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
     
-    void SetPastState(){ gState = EPastState; }
-	void SetActualState(){ gState = EActualState; }
+    static void SetPastState(){ gState = EPastState; }
+	static void SetActualState(){ gState = EActualState; }
+    static bool IsPastState(){ return (gState == EPastState); }
+	static bool IsActualState(){ return (gState == EActualState); }
+
     
     REAL Cl()
     {
@@ -194,4 +204,71 @@ private:
     REAL fvsp;//spurt loss
 };
 
+
+
+
+
+//class TPZPlaneFractBulletMat : public TPZDiscontinuousGalerkin
+//{
+//public:
+//    TPZPlaneFractBulletMat();
+//    
+//    TPZPlaneFractBulletMat(int nummat,
+//                           REAL Diameter,
+//                           REAL visc,
+//                           REAL Qinj_hbullet);
+//    
+//    ~TPZPlaneFractBulletMat();
+//    
+//    virtual void Contribute(TPZVec<TPZMaterialData> &datavec,
+//                            STATE weight,
+//                            TPZFMatrix<STATE> &ek,
+//                            TPZFMatrix<STATE> &ef);
+//    
+//    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec,
+//                                     TPZVec<TPZMaterialData> &dataleftvec,
+//                                     TPZVec<TPZMaterialData> &datarightvec,
+//                                     REAL weight,
+//                                     TPZFMatrix<STATE> &ek,
+//                                     TPZFMatrix<STATE> &ef);
+//    
+//    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+//    {
+//        DebugStop();
+//    }
+//    
+//    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+//    {
+//        DebugStop();
+//    }
+//    
+//    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
+//                                       REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+//    {
+//        DebugStop();
+//    }
+//    
+//    using TPZDiscontinuousGalerkin::FillDataRequirementsInterface;
+//    
+//    virtual void FillDataRequirementsInterface(TPZVec<TPZMaterialData> &datavec);
+//    
+//    virtual int Dimension()
+//    {
+//        return 1;
+//    }
+//    
+//    virtual int NStateVariables()
+//    {
+//        return 1;
+//    }
+//    
+//protected:
+//    
+//    REAL fDiameter;
+//    REAL fvisc;
+//    REAL fQinj_hbullet;
+//};
+
 #endif /* defined(__PZ__TPZPlaneFractCouplingMat__) */
+
+

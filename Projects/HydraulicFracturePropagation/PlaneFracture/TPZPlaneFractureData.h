@@ -54,12 +54,12 @@ public:
     
     void SetTimeControl(REAL Ttot)
     {
-        fdeltaTstep = 10.;
+        fdeltaTstep = 5.;
         fTtot = Ttot;
         factTime = 0.;
         
         fDeltaT_left = fdeltaTstep;
-        fDeltaT_right = Ttot + fdeltaTstep;
+        fDeltaT_right = Ttot;
         
         fwasLeftLastTime = true;
         freachTime_left = false;
@@ -138,9 +138,8 @@ public:
     {
         freachTime_left = false;
         freachTime_right = false;
-        factDeltaT = MAX( 0.01 , 0.8 * factDeltaT );
         fDeltaT_left = factDeltaT;
-        fDeltaT_right = fTtot + fdeltaTstep;
+        fDeltaT_right = fTtot;
     }
     
     bool ReachEndOftime()
@@ -465,14 +464,22 @@ public:
     ~ElastReducedSolution();
     
     void SetElastReducedSolution(TPZFMatrix<REAL> & ElastReducedSolution);
-    
-    REAL GetTotalPressure(int stripe);
-    
-    REAL GetNetPressure(int layer, int stripe);
-    
-    int GetStressAppliedSolutionRow(int stripe);
 
+    void ClearLayStripeSolRow();
+    void SetLayStripeSolRow(int layer, int stripe, int solRow);
+    std::map< int , std::map<int,int> > & Lay_Stripe_solRow();
+    
+//    bool GetTotalPressure(int layer, int stripe, REAL & totPress);
+//    
+//    bool GetNetPressure(int layer, int stripe, REAL & netPress);
+//
+//    int GetStressAppliedSolutionRow(int layer, int stripe);
+
+protected:
+    
     TPZFMatrix<REAL> fElastReducedSolution;
+    
+    std::map< int , std::map<int,int> > fLay_Stripe_solRow;
 };
 
 
@@ -573,6 +580,8 @@ class LayerStruct
 public:
     LayerStruct()
     {
+        this->fDownBulletDepth = 0.;
+        this->fHBullet = 0.;
         this->fLayerVec.Resize(0);
         this->fminPrestress = +1.E15;
         this->fmaxPrestress = -1.E15;
@@ -597,14 +606,27 @@ public:
         }
     }
     
-    void SetLayerVec(TPZVec<LayerProperties> & LayerVec)
+    void SetData(TPZVec<LayerProperties> & LayerVec, REAL DownBulletTVD, REAL HBullet)
     {
+        this->fDownBulletDepth = -DownBulletTVD;
+        this->fHBullet = HBullet;
+        
         this->fLayerVec = LayerVec;
         for(int lay = 0; lay < LayerVec.NElements(); lay++)
         {
-            this->fminPrestress = Min(this->fminPrestress,-LayerVec[lay].fSigYY);
+            this->fminPrestress = MIN(this->fminPrestress,-LayerVec[lay].fSigYY);
             this->fmaxPrestress = MAX(this->fmaxPrestress,-LayerVec[lay].fSigYY);
         }
+    }
+    
+    REAL DownBulletDepth()
+    {
+        return this->fDownBulletDepth;
+    }
+    
+    REAL HBullet()
+    {
+        return this->fHBullet;
     }
     
     REAL GetLowerPreStress()
@@ -650,6 +672,9 @@ protected:
 
     /** Vetor de camadas. Posicao 0: camada mais acima. Ultima posicao: camada mais abaixo */
     TPZVec<LayerProperties> fLayerVec;
+    
+    REAL fDownBulletDepth;
+    REAL fHBullet;
     
     REAL fminPrestress;
     REAL fmaxPrestress;

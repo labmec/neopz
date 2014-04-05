@@ -169,13 +169,14 @@ class TPZPlaneFractureMesh
     
     TPZCompMeshReferred * GetFractureCompMeshReferred(TPZCompMesh * cmeshRef, int porder);
     
-    TPZCompMesh * GetPressureCompMesh(REAL Qinj, int porder);
+    TPZCompMesh * GetPressureCompMesh(int porder);
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, TPZCompMesh * lastElastCMesh,
                                           REAL Qinj, REAL visc, int porder);
     
     void SetNewmanOnEntireFracture(TPZCompMesh * cmeshref);
     void SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int actStripe);
+    bool SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref, int actLayer, int actStripe);
     
     int NStripes();
     
