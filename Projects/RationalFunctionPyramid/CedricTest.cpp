@@ -22,6 +22,7 @@
 #include "TPZRefPatternTools.h"
 
 #include "TPZParSkylineStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
 
 #include <stdio.h>
 
@@ -34,8 +35,9 @@
 static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
 #endif
 
+#define DEFORM
 
-TPZManVector<REAL,3> TCedricTest::fX0(3,0.5), TCedricTest::fEps(3,0.1);
+TPZManVector<REAL,3> TCedricTest::fX0(3,0.5), TCedricTest::fEps(3,0.05);
 
 TCedricTest::TCedricTest()
 {
@@ -83,6 +85,155 @@ void TCedricTest::DeformGMesh(TPZGeoMesh &gmesh)
         gmesh.NodeVec()[nod].SetCoord(xafter);
     }
 }
+void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int MaterialId,std::ostream &out)
+{
+    
+    TPZGeoMesh *gmesh;
+    switch(geocase) {
+        case 1:
+            gmesh = HexahedralMesh(nsubdivisions,MaterialId);
+            break;
+        case 2:
+            gmesh = PyramidalAndTetrahedralMesh(nsubdivisions,MaterialId);
+            break;
+        case 3:
+            gmesh = TetrahedralMesh(nsubdivisions,MaterialId);
+            break;
+        case 4:
+            gmesh = TetrahedralMeshUsingRefinement(nsubdivisions,MaterialId);
+            break;
+    }
+
+#ifdef DEFORM
+    DeformGMesh(*gmesh);
+    out << "Deformed ";
+#else
+    CheckConsistency(gmesh);
+    out << "Regular ";
+#endif
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    int nelembc = AddBoundaryElements(gmesh);
+
+    TPZCompEl::SetgOrder(1);
+    
+    /** Generating computational mesh */
+    
+    TPZCompMesh *cmesh = GenerateCompMesh(gmesh);
+    if(!cmesh) {
+        if(gmesh) {
+            delete gmesh;
+            gmesh = NULL;
+        }
+        out << "Interp_err nsubdivision " << nsubdivisions << " eltype " << geocase << " aborted\n";;
+        return;
+    }
+
+    int dim = cmesh->Dimension();
+
+    TPZAnalysis analysis(cmesh);
+
+    out << "Interp_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
+    
+    LoadInterpolation(cmesh);
+    
+    switch(geocase) {
+        case 1:
+            out << "Hexahedra ";
+            break;
+        case 2:
+            out << " Pyramid ";
+            break;
+        case 4:
+            out << " Tetraedra ";
+            break;
+        case 3:
+            out << " TetraedraRef ";
+            break;
+        default:
+            out << "Undefined ";
+            break;
+    }
+    
+    out << "POrder " << 1 << " Neq " << cmesh->NEquations() ;
+    analysis.SetExact(Exact);
+    TPZManVector<REAL> errvec;
+    
+    analysis.Solution() = cmesh->Solution();
+    
+    analysis.PostProcessError(errvec,std::cout);
+    
+	// printing error
+    out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
+    
+	// printing error
+	
+    out << std::endl;
+    
+    
+    long nelem = cmesh->NElements();
+    for (long el=0; el<nelem; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZMaterial *mat = cel->Material();
+        TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
+        if (!bc) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        int ncorner = gel->NCornerNodes();
+        for (int ic=0; ic<ncorner; ic++) {
+            TPZConnect &c = cmesh->ConnectVec()[ic];
+            long seqnum = c.SequenceNumber();
+            STATE val = cmesh->Block()(seqnum,0,0,0);
+            if (fabs(val) > 1.e-6) {
+                TPZManVector<REAL,3> x(3);
+                gel->NodePtr(ic)->GetCoordinates(x);
+                std::cout << "Coordinate " << x << " solution " << val << std::endl;
+            }
+        }
+    }
+	
+    
+    /** Cleaning allocated meshes */
+    if(cmesh) {
+        delete cmesh;
+        cmesh = NULL;
+    }
+    if(gmesh) {
+        delete gmesh;
+        gmesh = NULL;
+    }
+
+
+}
+void TCedricTest::LoadInterpolation(TPZCompMesh *cmesh)
+{
+    cmesh->Solution().Zero();
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    TPZManVector<REAL,3> value(1);
+    TPZFNMatrix<3,REAL> deriv(3,1);
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->ElementVec()[el];
+        TPZCompEl *cel = gel->Reference();
+        TPZManVector<REAL,3> x(3);
+        int ncorner = gel->NCornerNodes();
+        for (int ic=0; ic<ncorner; ic++) {
+            gel->NodePtr(ic)->GetCoordinates(x);
+            Exact(x, value, deriv);
+            TPZConnect &c = cel->Connect(ic);
+            long seqnum = c.SequenceNumber();
+            cmesh->Block()(seqnum,0,0,0) = value[0];
+        }
+    }
+}
 
 
 void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out) {
@@ -101,14 +252,16 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
             gmesh = TetrahedralMeshUsingRefinement(nsubdivisions,MaterialId);
             break;
     }
-#define DEFORM
 #ifdef DEFORM
+    out << "Deformed ";
     DeformGMesh(*gmesh);
 #else
+    out << "Regular ";
     CheckConsistency(gmesh);
 #endif
     
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -118,18 +271,20 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     int nelembc = AddBoundaryElements(gmesh);
     
     /** Generating computational mesh */
+
     TPZCompMesh *cmesh = GenerateCompMesh(gmesh);
     if(!cmesh) {
         if(gmesh) {
             delete gmesh;
             gmesh = NULL;
         }
-        out << "Computational mesh is Null for sub divisions : " << nsubdivisions << ". Case : " << geocase << std::endl;
+        out << "Approx_err nsubdivision " << nsubdivisions << " eltype " << geocase << " aborted\n";;
         return;
     }
     int dim = cmesh->Dimension();
     
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);
@@ -139,34 +294,35 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     
     TPZAnalysis analysis(cmesh);
     
-    out << "****\n\nCriando para " << nsubdivisions << " subdivisoes. Malha com " << (cmesh->NElements()-nelembc) << " elementos.\n";
+    out << "Approx_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
     switch(geocase) {
         case 1:
-            out << "Type of element: Hexahedral.\n";
+            out << "Hexahedra ";
             break;
         case 2:
-            out << "Type of element: Pyramidal and tetrahedral.\n";
+            out << " Pyramid ";
             break;
         case 4:
-            out << "Type of elements: Tetrahedral.\n";
+            out << " Tetraedra ";
             break;
         case 3:
-            out << "Type of elements: Tetrahedral(phil).\n";
+            out << " TetraedraRef ";
             break;
         default:
-            out << "Undefined type.\n";
+            out << "Undefined ";
             break;
     }
     
-    out << "POrder = " << POrder << ". Numero de equacoes = " << cmesh->NEquations() << std::endl << "ERROS: ";
+    out << "POrder " << POrder << " Neq " << cmesh->NEquations() ;
     analysis.SetExact(Exact);
     TPZManVector<REAL> errvec;
     
-    TPZSkylineStructMatrix skylstr(cmesh);
+//    TPZSkylineStructMatrix skylstr(cmesh);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > skylstr(cmesh);
     skylstr.SetNumThreads(8);
     analysis.SetStructuralMatrix(skylstr);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
+    step.SetDirect(ECholesky);
     analysis.SetSolver(step);
     
     // To post process
@@ -179,7 +335,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     analysis.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
     
     analysis.Run();
-    
+        
 	static int printsol = 0;
 //	if(printsol == 4)
 	//	analysis.PostProcess(3,dim);
@@ -187,10 +343,13 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
 	    analysis.PostProcess(0,dim);
 	printsol++;
     
-    analysis.PostProcessError(errvec,out);
+    analysis.PostProcessError(errvec,std::cout);
+    
+    out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
 
 	// printing error
 	
+    out << std::endl;
     
     /** Cleaning allocated meshes */
     if(cmesh) {
@@ -215,7 +374,7 @@ class ForceFunction : public TPZFunction<STATE>
             REAL vy = TCedricTest::fx(x[j], TCedricTest::fX0[j], TCedricTest::fEps[j]);
             int k = (j+1)%3;
             REAL vz = TCedricTest::d2fx(x[k], TCedricTest::fX0[k], TCedricTest::fEps[k]);
-            val[0] -= vx*vy*vz;
+            val[0] += vx*vy*vz;
         }
     }
     
@@ -446,6 +605,7 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(long nelem,int MaterialId)
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
 #ifdef LOG4CXX
+                if (logger->isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Cube nodes " << nodes;

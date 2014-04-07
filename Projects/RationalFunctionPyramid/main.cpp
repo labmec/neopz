@@ -67,9 +67,9 @@ int main(int argc, char *argv[]) {
     // launch arguments
     // porderinit porderend  gcaseinit(meshtype)  gcaseend nsubdivisoninit nsubdivisionend nsubdivisioninterval
     
-    int gcaseinit = 2, gcaseend = 3;
+    int gcaseinit = 1, gcaseend = 3;
     int nsubdivisionsinit = 3, nsubdivisionsend = 16, nsubdivisionsinterval = 3;
-    int porderinit = 1, porderend = 4;
+    int porderinit = 3, porderend = 4;
     switch(argc) {
         case 8:
             nsubdivisionsinterval = atoi(argv[7]);
@@ -128,7 +128,15 @@ int main(int argc, char *argv[]) {
             for(int nsubdivisions=nsubdivisionsinit;nsubdivisions<nsubdivisionsend;nsubdivisions+=nsubdivisionsinterval) {
                 std::cout << "\n\t\tNumber of sub-divisions " << nsubdivisions << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << " ";
                 out << "\n\t\tNumber of sub-divisions " << nsubdivisions << " " << nsubdivisionsinit << " " << nsubdivisionsend << " " << nsubdivisionsinterval << " ";
+                out << "\nApproximation error ";
+                arq << "\nApproximation error ";
                 cedric.Run(nsubdivisions,gcase,POrder,MaterialId,arq);
+                if(POrder == 1)
+                {
+                    out << "\nInterpolation errors";
+                    arq << "\nInterpolation errors";
+                    cedric.InterpolationError(nsubdivisions,gcase,MaterialId,arq);
+                }
             }
         }
     }

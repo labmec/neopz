@@ -58,30 +58,15 @@ template<class front>
 TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh)
 {
 	fMaxStackSize = 500;
-	fNThreads = 3;
+	TPZFStructMatrix::SetNumThreads(3);
 }
 
 template<class front>
-TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy): TPZFrontStructMatrix<front>(copy), fNThreads(copy.fNThreads), fMaxStackSize(copy.fMaxStackSize)
+TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy): TPZFrontStructMatrix<front>(copy), fMaxStackSize(copy.fMaxStackSize)
 {
 }
 
 
-template<class front>
-void TPZParFrontStructMatrix<front>::SetNumberOfThreads(int nthreads)
-{
-	if(nthreads > 2)
-	{
-		fNThreads = nthreads;
-		cout << "Number of Threads set to " << fNThreads << endl;
-		cout.flush();
-	}else{
-		cout << "At least '3' threads are necessary !" << endl;
-		cout << "Setting Number of Threads to 3 !!" << endl;
-		cout.flush();
-		fNThreads = 3;
-	}
-}
 
 
 template<class front>
@@ -124,12 +109,14 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		PZ_PTHREAD_MUTEX_LOCK(&mutex_element_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
 		
 		//Stack is full and process must wait here!
-		if(parfront->felnum.NElements()==parfront->fMaxStackSize){
+		if(parfront->felnum.NElements()==parfront->fMaxStackSize)
+        {
 			/*          cout << "    Stack full" << endl;
 			 cout << "    Waiting" << endl;
 			 cout.flush();*/
 			//cout << "Mutex unlocked on Condwait" << endl;
 #ifdef LOG4CXX
+            if (logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Entering cond_wait because of stack overflow ";
@@ -139,17 +126,22 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 			PZ_PTHREAD_COND_WAIT(&stackfull,&mutex_element_assemble,"TPZParFrontStructMatrix<front>::ElementAssemble()");
 			//cout << "Mutex LOCKED leaving Condwait" << endl;
 			
-		}
+        }
 		
 		//cout << "Locking mutex_element_assemble" << endl;
 		//cout.flush();
 		long local_element = parfront->fCurrentElement;
-		if(local_element==parfront->fNElements) return 0;
+		if(local_element==parfront->fNElements)
+        {
+            PZ_PTHREAD_MUTEX_UNLOCK(&mutex_element_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
+            return 0;
+        }
 		/*          cout << "All element matrices assembled" << endl;
 		 return 0;
 		 }
 		 */
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Computing element " << local_element;
@@ -175,7 +167,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//if mutex is locked go to condwait waiting for an specific condvariable
 		// este mutex deve ser outro mutex -> mutexassemble
 		
-		PZ_PTHREAD_MUTEX_LOCK(&mutex_global_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
+		PZ_PTHREAD_MUTEX_LOCK(&mutex_global_assemble, "TPZParFrontStructMatrix<front>::ElementGlobalAssemble()");
 		//cout << "Locking mutex_global_assemble" << endl;
 		//cout << "Pushing variables to the stack" << endl;
 		//cout.flush();
@@ -186,6 +178,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		parfront->fefstack.Push(ef);
 		
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Pushing element " << local_element << " on the stack, stack sizes " << parfront->felnum.NElements() << " " << parfront->fekstack.NElements() << " " << parfront->fefstack.NElements();
@@ -210,9 +203,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		 cout.flush();
 		 */
 		//Alterado cond_broadcast para cond_signal
-		//invertendo a sequ�cia das chamadas
-		PZ_PTHREAD_COND_BROADCAST(&condassemble,"TPZParFrontStructMatrix<front>::ElementAssemble()");
-		PZ_PTHREAD_MUTEX_UNLOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::ElementAssemble()");
+		//invertendo a sequencia das chamadas
+		PZ_PTHREAD_COND_BROADCAST(&condassemble,"TPZParFrontStructMatrix<front>::CondAssemble()");
+		PZ_PTHREAD_MUTEX_UNLOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::ElementGlobalAssemble()");
 
 		// o thread de assemblagem utiliza mutexassemble
 		// e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs);
@@ -223,6 +216,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 	}//fim for iel
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Falling through";
@@ -242,11 +236,13 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 	while(parfront->fCurrentAssembled < parfront->fNElements) {
 		
 #ifndef USING_ATLAS
-		cout << "*";
+        const int unit = (parfront->fNElements/200 == 0 ? 1 : parfront->fNElements/200);
+        if(!(parfront->fCurrentAssembled%unit))cout << "*";
 		cout.flush();
-		if(!(parfront->fCurrentAssembled%20)){
+		if(!(parfront->fCurrentAssembled%(20*unit)) && parfront->fCurrentAssembled)
+        {
 			if(parfront->fCurrentElement!=parfront->fNElements){
-				cout << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << endl;
+				cout << " Element " << parfront->fCurrentElement << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << endl;
 				cout.flush();
 			}else{
 				cout << " " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << endl;
@@ -290,6 +286,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		TPZElementMatrix *ekaux = 0, *efaux = 0;
 		PZ_PTHREAD_MUTEX_LOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::GlobalAssemble()");
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Acquired mutex_global_assemble";
@@ -322,6 +319,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 			if(aux!=local_element){
 				i=0;
 #ifdef LOG4CXX
+                if (logger->isDebugEnabled())
 				{
 					std::stringstream sout;
 					sout << "Waiting on condassemble";
@@ -332,6 +330,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 			}
 		}
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Unlocking mutex_global_assemble";
@@ -342,10 +341,15 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		parfront->AssembleElement(el, *ekaux, *efaux, *parfront->fStiffness, *parfront->fRhs);
 		if(parfront->fCurrentAssembled == parfront->fNElements)
 		{
-			//		  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZFileEqnStorage, front>* > (parfront->fStiffness);
+#ifdef STACKSTORAGE
             TPZParFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast< TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
+#else
+            TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (parfront->fStiffness);
+            
+#endif
 			mat->FinishWriting();
 #ifdef LOG4CXX
+            if (logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "fFinishedComputing set to 1";
@@ -358,7 +362,12 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		delete efaux;
 		
 		if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
+#ifdef STACKSTORAGE
 			TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
+#else
+            TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (parfront->fStiffness);
+
+#endif
 			mat->FinishWriting();
 			break;
 		}
@@ -366,6 +375,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		
 	}//fim for iel
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Terminating assemble thread";
@@ -383,7 +393,12 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 {
 	this->fGuiInterface = guiInterface;
 	
+#ifdef STACKSTORAGE
 	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *>(&matref);
+#else
+    TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (&matref);
+
+#endif
 	if(!mat)
 	{
 		cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< endl;
@@ -394,8 +409,11 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	//cout << "Number of Threads " << endl;
 	//cin >> nthreads;
 	//fNThreads = nthreads;
-	cout << "Number of Threads " << fNThreads << endl;
-	nthreads = fNThreads;
+    if (this->fNumThreads < 3) {
+        this->fNumThreads = 3;
+    }
+	cout << "Number of Threads " << this->fNumThreads << endl;
+	nthreads = this->fNumThreads;
 	cout.flush();
 	//int nthreads = fNThreads+1;
 	
@@ -622,7 +640,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	cin >> threads;
 	cout << endl;
 	
-	mat.SetNumberOfThreads(threads);
+	mat.SetNumThreads(threads);
 	//mat.SetNumberOfThreads(1);
 	
 	an.SetStructuralMatrix(mat);
@@ -693,8 +711,12 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
 	long neq = this->fEquationFilter.NActiveEquations();
 	
-	//  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
+	//
+#ifdef STACKSTORAGE
 	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>(neq);
+#else
+    TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>(neq);
+#endif
 	rhs.Redim(neq,1);
 	
 	Assemble(*mat,rhs,guiInterface);

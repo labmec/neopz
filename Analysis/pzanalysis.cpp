@@ -487,12 +487,19 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
     for(i=0;i<nel;i++) {
         TPZCompEl *el = (TPZCompEl *) elvec[i];
         if(el) {
-            errors.Fill(0.0);
-            el->EvaluateError(fExact, errors, 0);
-            int nerrors = errors.NElements();
-            values.Resize(nerrors, 0.);
-            for(int ier = 0; ier < nerrors; ier++)
-                values[ier] += errors[ier] * errors[ier];
+            TPZMaterial *mat = el->Material();
+            TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
+            if(!bc)
+            {
+                errors.Fill(0.0);
+                el->EvaluateError(fExact, errors, 0);
+                int nerrors = errors.NElements();
+                values.Resize(nerrors, 0.);
+                for(int ier = 0; ier < nerrors; ier++)
+                {
+                    values[ier] += errors[ier] * errors[ier];
+                }
+            }
         }
     }
     

@@ -203,7 +203,10 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
             cuthill_mckee_ordering(G, s, inv_perm.begin(), get(vertex_color, G),
                                    get(vertex_degree, G));
 #ifdef LOG4CXX
-            LOGPZ_DEBUG(logger,"Reverse Cuthill-McKee ordering:")
+            if(logger->isDebugEnabled())
+            {
+                LOGPZ_DEBUG(logger,"Reverse Cuthill-McKee ordering:")
+            }
 #endif
             
         }
@@ -214,7 +217,9 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
             cuthill_mckee_ordering(G, inv_perm.begin(), get(vertex_color, G),
                                    get(vertex_degree, G));
 #ifdef LOG4CXX
-            LOGPZ_DEBUG(logger, "Reverse Expensive Cuthill-McKee ordering:")
+            if (logger->isDebugEnabled()) {
+                LOGPZ_DEBUG(logger, "Reverse Expensive Cuthill-McKee ordering:")
+            }
 #endif
             
         }
@@ -222,7 +227,9 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
         case Sloan:
         {
 #ifdef DEBUG
-            LOGPZ_DEBUG(logger,  "Sloan ordering:")
+            if (logger->isDebugEnabled()) {
+                LOGPZ_DEBUG(logger,  "Sloan ordering:")
+            }
 #endif
             
             //Setting the start node
@@ -303,7 +310,9 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
         inverseperm[i] = inv_perm[i];
     }
 #ifdef LOG4CXX
-    LOGPZ_DEBUG(logger, "TPZBoostGraph::Resequence finished")
+    if (logger->isDebugEnabled()) {
+        LOGPZ_DEBUG(logger, "TPZBoostGraph::Resequence finished")
+    }
 #endif
     
 }

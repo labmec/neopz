@@ -1191,7 +1191,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	if(numThreads){
 		fstr = new TPZParFrontStructMatrix<TPZFrontNonSym<STATE> >(this);
 		static_cast<TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > *>(fstr.operator->())
-		->SetNumberOfThreads(numThreads+2); //o frontal tem dois threads auxiliares
+		->SetNumThreads(numThreads+2); //o frontal tem dois threads auxiliares
 	}
 	else{
 		fstr = new TPZFrontStructMatrix<TPZFrontNonSym<STATE> >(this);

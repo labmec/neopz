@@ -33,6 +33,7 @@ class TPZCompMesh;
 template<class TVar>
 class TPZFileEqnStorage;
 
+//#define STACKSTORAGE
 
 /**
  * @brief Is a structural matrix with parallel techniques included. \ref structural "Structural Matrix" \ref frontal "Frontal"
@@ -50,10 +51,7 @@ private:
 	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 	
 public:     
-	
-	/** @brief Sets number of threads to be used in frontal process */
-	void SetNumberOfThreads(int nthreads);   //! Number of threads to be used
-	
+		
 	/** @brief It clones a TPZStructMatrix */
 	/** Virtual function must return same type */
 	TPZStructMatrix *Clone();
@@ -92,14 +90,6 @@ public:
 	static void *GlobalAssemble(void *t);
 	
 private:
-	/** @brief Number of threads used in the process. */
-	/**
-	 * It needs at least three independet threads to execute:\n
-	 *  ElementAssemble\n
-	 *  GlobalAssemble\n
-	 *  WriteFile\n
-	 */  
-	int fNThreads;
 	/** @brief Current computed element*/
 	long fCurrentElement;
 	/** @brief Current assembled element in the global stiffness matrix*/

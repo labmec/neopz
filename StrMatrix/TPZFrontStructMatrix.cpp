@@ -111,6 +111,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 	}
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout<<"numelconnected " << numelconnected << endl;
@@ -139,6 +140,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   	}
 	//  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout<< "elconnect "<< elconnect;
@@ -153,6 +155,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 	//  int no;
 	for(long no=0; no< fMesh->ConnectVec().NElements(); no++) {
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout<< "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
@@ -203,9 +206,10 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		fElementOrder[elorderinv[seq]] = seq;
   	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout<< "elorderinv " << elorderinv<<std::endl;
+		sout<< "elorderinv " << elorderinv << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -241,6 +245,7 @@ TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE>
 	Assemble(*mat,rhs,guiInterface);
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
         mat->FinishWriting();
@@ -373,6 +378,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 		std::cout<< " assemblando elemento frontal " << iel <<std::endl;
 		
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			ek.fMat.Print("Element stiffness Frontal",sout);
@@ -416,6 +422,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
 		ek.ComputeDestinationIndices();
 		this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
             std::stringstream sout;
             sout << "Element index " << el->Index() << " Unconstrained destination index " << ek.fDestinationIndex;
@@ -433,6 +440,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
         ek.ComputeDestinationIndices();
         FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
         {
 			std::stringstream sout;
 			sout << "Element index " << el->Index() << " Constrained destination index " << ek.fDestinationIndex;
@@ -676,6 +684,7 @@ void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 		}
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " permutation " << permute;

@@ -177,6 +177,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
 #ifdef LOG4CXX
+                if (logger->isDebugEnabled())
                 {
                     std::stringstream sout;
                     cmesh.ElementVec()[index]->Print(sout);

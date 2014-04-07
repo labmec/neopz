@@ -28,26 +28,42 @@ public:
     TPZCompMesh *GenerateCompMesh(TPZGeoMesh *gmesh);
 
     static REAL fx(REAL x, REAL x0, REAL eps) {
-        REAL result = 0.;
-        REAL a = exp(-(x-x0)*(x-x0)/eps);
-        REAL b = exp(-x0*x0/eps)*(1.-x);
-        REAL c = exp(-(1.-x0)*(1.-x0)/eps)*x;
-        result = a-b-c;
-        return result;
+        if (x < 0. || x > 1.) {
+            return 0;
+        }
+        REAL a = x*x*(1-x)*(1-x)*exp(-(x-x0)*(x-x0)/eps);
+//        REAL a = 4.*x*(1-x);
+        return a;
     }
 
     static REAL dfx(REAL x, REAL x0, REAL eps) {
-        REAL a = -exp(-(1-x0)*(1.-x0)/eps);
-        REAL b = exp(-x0*x0/eps);
-        REAL c = -2.*(x-x0)*exp(-(x-x0)*(x-x0)/eps)/eps;
+        if (x < 0. || x > 1.) {
+            return 0;
+        }
+        REAL a = 2*x*(1-x)*(1-x)*exp(-(x-x0)*(x-x0)/eps);
+        REAL b = -2*(1-x)*x*x*exp(-(x-x0)*(x-x0)/eps);
+        REAL c = -2.*(x-x0)*x*x*(1-x)*(1-x)*exp(-(x-x0)*(x-x0)/eps)/eps;
         REAL result = a+b+c; 
+//        REAL result = 4.*(1-2.*x);
         return result;
     }
 
     static REAL d2fx(REAL x, REAL x0, REAL eps) {
-        REAL a = 2.*exp(-(x-x0)*(x-x0)/eps)/eps;
-        REAL b = -4.*(x-x0)*(x-x0)*exp(-(x-x0)*(x-x0)/eps)/eps/eps;
-        REAL result = a+b;
+        if (x < 0. || x > 1.) {
+            return 0;
+        }
+
+        REAL result = 2*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*(1-x) -
+        8*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*x +
+        2*pow(M_E,((x - x0)*(-x + x0))/eps)*(x*x) -
+        (2*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*(1-x)*x*x)/eps +
+        4*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*(1-x)*x*
+        (-((x - x0)/eps) + (-x + x0)/eps) -
+        4*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*(x*x)*
+        (-((x - x0)/eps) + (-x + x0)/eps) +
+        pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*(1-x)*(x*x)*
+        (-((x - x0)/eps) + (-x + x0)/eps)*(-((x - x0)/eps) + (-x + x0)/eps);
+//        REAL result = -8.;
         return result;
     }
     
@@ -67,6 +83,10 @@ public:
     void CheckConsistency(TPZGeoMesh *mesh);
     
     void Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out=std::cout);
+    
+    void LoadInterpolation(TPZCompMesh *cmesh);
+    
+    void InterpolationError(int nsubdivisions,int geocase, int MaterialId,std::ostream &out);
 };
 
 #endif

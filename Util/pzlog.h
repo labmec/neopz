@@ -41,9 +41,12 @@ extern pthread_mutex_t glogmutex;
 ///        LOG4CXX macro does not have to log anything. Assuming the log
 ///        level does not change during execution, we could check for log level
 ///        before locking.
+///PHIL : PERFORMANCE NOTE : most of the time is spent composing the string for logging
+///        Check on the loglevel before composing the log string
 
 /// Define log for debug
-#define LOGPZ_DEBUG(A,B) {if(A->isDebugEnabled()) {        \
+#define LOGPZ_DEBUG(A,B) { \
+      if(A->isDebugEnabled()) {		\
       PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_DEBUG");	   \
       LOG4CXX_DEBUG(A,B);				   \
       PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex,"LOGPZ_DEBUG"); } }
