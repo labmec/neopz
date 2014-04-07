@@ -58,7 +58,7 @@ template<class front>
 TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh)
 {
 	fMaxStackSize = 500;
-	TPZFStructMatrix::SetNumThreads(3);
+	TPZStructMatrix::SetNumThreads(3);
 }
 
 template<class front>
