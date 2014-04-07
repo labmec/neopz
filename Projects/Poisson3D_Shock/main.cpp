@@ -86,7 +86,7 @@ long MaxEquations = 1300000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
-int MaxPOrder = 13;     // Maximum order for p refinement allowed
+int MaxPOrder = 9;     // Maximum order for p refinement allowed
 int MaxHLevel = 6;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
@@ -164,7 +164,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	int itypeel = 7;
+	int itypeel = 3;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -194,9 +194,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int materialBC1 = 2;
 	// Generic data for problems to solve
 	int NRefs = 100;
-	int ninitialrefs = 3;
+	int ninitialrefs = 2;
 	// Percent of error permited
-	REAL factorError = .2;
+	REAL factorError = .3;
 
 	// auxiliar string
 	char saida[512];
@@ -252,10 +252,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	switch(typeel) {
 	case EQuadrilateral:
 	case ETriangle:
-		NRefs = 15;
+		NRefs = 12;
 		break;
 	default:
-		NRefs = 11;
+		NRefs = 10;
 		break;
 	}
 
@@ -395,6 +395,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 			NEquations.Resize(NRefs);
 			continue;
 		}
+		fileerrors.flush();
+		out.flush();
 		if(NRefs > 1 && nref < (NRefs-1)) {
 			out << "\n\nApplying Adaptive Methods... step " << nref << "\n";
 			std::cout << "\n\nApplying Adaptive Methods... step " << nref << "\n";
@@ -446,14 +448,13 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = .5;
+	REAL factorGrad = .6;
 	REAL factorErrorBig = 0.8;
-	REAL factorGradSmall = .1;
 
 	REAL BigError = factorErrorBig*MaxErrorByElement + (1.-factorErrorBig)*MinErrorByElement;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
-	REAL SmallGrad = factorGradSmall*gradervecbyel[nels] + (1.-factorGradSmall)*MinGrad;
+	REAL SmallGrad = factorError*gradervecbyel[nels] + (1.-factorError)*MinGrad;
 	if(MaxGrad > 8.) {
 		if(MaxGrad > MinGrad) MaxGrad = 8.;
 		else MaxGrad = SmallGrad = MinGrad;
@@ -464,13 +465,6 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 		else BigError = SmallError = MinErrorByElement;
 		if(SmallError > BigError) SmallError = BigError;
 	}
-//	REAL LaplacianValue, MaxLap, MinLap = 10000.;
-//	MaxLap = 0.;
-
-//	TPZVec<REAL> Laplacian(1);
-//	TPZFMatrix<REAL> dLap(3);
-//	TPZVec<REAL> psi(3,0.);
-//	TPZVec<REAL> center(3,0.);
 
 	/* Printing maximum and minimun values of the errors */
 	out << "\nErro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad;
@@ -487,14 +481,6 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 			counterreftype[0]++;
 			continue;
 		}
-
-		// Getting center of the element to compute forcing function value on element(center)
-//		el->Reference()->CenterPoint(el->Reference()->NSides()-1,psi);
-//		el->Reference()->X(psi,center);
-//		RightTermArcTangent(center,Laplacian,dLap);
-//		LaplacianValue = fabs(Laplacian[0])/ValueK;
-//		if(MaxLap < LaplacianValue) MaxLap = LaplacianValue;
-//		if(MinLap > LaplacianValue) MinLap = LaplacianValue;
 
 		// element data
 		pelement = el->PreferredSideOrder(el->NConnects() - 1);
@@ -522,9 +508,9 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 			el->PRefine(pelement);
 			pused = true;
 		}
-		else {
-			counterreftype[30]++;
-		}
+//		else {
+//			counterreftype[30]++;
+//		}
 
 		if(!pused && !hused) {
 			counterreftype[40]++;
