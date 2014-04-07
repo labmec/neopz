@@ -89,19 +89,26 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     // Pegando os autovetores
     TPZManVector<TPZFNMatrix<3>,3> epsegveFromProj(3);
     TPZManVector<TPZFNMatrix<9,REAL>, 3 > EigenvecMat(3);
-    for (int i = 0; i < 3; i++)
-    {
-        EigenvecMat[i] = DecompSig.fEigenvectors[i];
-        epsegveFromProj[i].Resize(3,1);
-        for     (int k = 0 ; k < 3 ; k++){
-            bool IsnoZero = false;
-            for (int j = 0; j < 3; j++) {
-                epsegveFromProj[i](j,0) = EigenvecMat[i](j,k);
-                if (!IsZero(epsegveFromProj[i](j,0))) IsnoZero = true;
+	for (int i = 0; i < 3; i++)
+	{
+		EigenvecMat[i] = DecompSig.fEigenvectors[i];
+		epsegveFromProj[i].Resize(3,1);
+        STATE maxvecnorm = 0;
+        int maxvecindex = 0;
+		for	(int k = 0 ; k < 3 ; k++){
+            STATE vecnorm=0.;
+            for (int j=0; j<3; j++) {
+                vecnorm += EigenvecMat[i](j,k)*EigenvecMat[i](j,k);
             }
-            if (IsnoZero) break;
+            if (vecnorm> maxvecnorm) {
+                maxvecindex = k;
+                maxvecnorm = vecnorm;
+            }
+		}
+        for (int j=0; j<3; j++) {
+            epsegveFromProj[i](j,0) = EigenvecMat[i](j,maxvecindex);
         }
-    }
+	}
     for (int i = 0; i < 3; i++) {
         REAL normvec = 0.;
         normvec = NormVecOfMat(epsegveFromProj[i]);
