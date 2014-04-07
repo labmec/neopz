@@ -176,7 +176,6 @@ class TPZPlaneFractureMesh
     
     void SetNewmanOnEntireFracture(TPZCompMesh * cmeshref);
     void SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int actStripe);
-    bool SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref, int actLayer, int actStripe);
     
     int NStripes();
     

@@ -775,45 +775,6 @@ void TPZPlaneFractureMesh::SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int act
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZPlaneFractureMesh::SetNewmanOnThisLayerAndStripe(TPZCompMesh * cmeshref, int actLayer, int actStripe)
-{
-    bool newmanWasApplied = false;
-    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
-    {
-        for(int stripe = 0; stripe < this->fnstripes; stripe++)
-        {
-            int matId = globMaterialIdGen.InsideFractMatId(lay, stripe);
-            if(cmeshref->MaterialVec().find(matId) == cmeshref->MaterialVec().end())
-            {//Fratura ainda nao entrou nesta camada!
-                continue;
-            }
-            
-            TPZMaterial * mat = cmeshref->MaterialVec().find(matId)->second;
-            if(!mat)
-            {
-                DebugStop();
-            }
-            TPZBndCond * bcmat = dynamic_cast<TPZBndCond *>(mat);
-            if(!bcmat)
-            {
-                DebugStop();
-            }
-            if(lay == actLayer && stripe == actStripe)
-            {
-                newmanWasApplied = true;
-                bcmat->Val2()(1,0) = globLayerStruct.StressAppliedOnFractureStripe();
-            }
-            else
-            {
-                bcmat->Val2()(1,0) = 0.;
-            }
-        }
-    }
-    
-    return newmanWasApplied;
-}
-//------------------------------------------------------------------------------------------------------------
-
 int TPZPlaneFractureMesh::NStripes()
 {
     return this->fnstripes;

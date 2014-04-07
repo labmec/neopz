@@ -266,57 +266,30 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
     }
     
-    ////////////////// Newman=1. em cada combinacao de camada e faixa da fratura
-    this->fLay_Stripe_solRow.clear();
-    
+    ////////////////// Newman=1. em cada faixa da fratura
     int NStripes = this->fPlaneFractureMesh->NStripes();
-    for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
+    for(int stripe = 0; stripe < NStripes; stripe++)
     {
-        for(int stripe = 0; stripe < NStripes; stripe++)
+        this->fPlaneFractureMesh->SetNewmanOnThisStripe(cmesh,stripe);
+
+        an->Rhs().Zero();
+        an->AssembleResidual();
+        an->Solve();
+        solution1 = cmesh->Solution();
+        
+        int oldSize = solutions.Cols();
+        solutions.Resize(solutions.Rows(), oldSize+1);
+        for(int r = 0; r < solution0.Rows(); r++)
         {
-            bool newmanWasApplied = this->fPlaneFractureMesh->SetNewmanOnThisLayerAndStripe(cmesh, lay, stripe);
-            
-            if(newmanWasApplied)
-            {
-                an->Rhs().Zero();
-                an->AssembleResidual();
-                an->Solve();
-                solution1 = cmesh->Solution();
-                
-                int oldSize = solutions.Cols();
-                solutions.Resize(solutions.Rows(), oldSize+1);
-                for(int r = 0; r < solution0.Rows(); r++)
-                {
-                    solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
-                }
-                this->SetLayStripeSolRow(lay, stripe, oldSize);
-            }
+            solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
         }
     }
-    
-    ////////////////// Newman=1. em cada faixa da fratura
-//    int NStripes = this->fPlaneFractureMesh->NStripes();
-//    for(int stripe = 0; stripe < NStripes; stripe++)
-//    {
-//        this->fPlaneFractureMesh->SetNewmanOnThisStripe(cmesh,stripe);
-//
-//        an->Rhs().Zero();
-//        an->AssembleResidual();
-//        an->Solve();
-//        solution1 = cmesh->Solution();
-//        
-//        int oldSize = solutions.Cols();
-//        solutions.Resize(solutions.Rows(), oldSize+1);
-//        for(int r = 0; r < solution0.Rows(); r++)
-//        {
-//            solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
-//        }
-//    }
     
     cmesh->LoadSolution(solutions);
 }
 //------------------------------------------------------------------------------------------------------------
 
+#define NStripes
 void TPZPlaneFractureKernel::RunThisFractureGeometry()
 {
     globFractOutput3DData.fKI_KI_history << "STEP " << this->fstep << ":\n";
@@ -931,30 +904,14 @@ void TPZPlaneFractureKernel::PostProcessSolutions(int num)
     nm << "Solutions_Step" << num << ".txt";
     std::ofstream solutFile(nm.str().c_str());
     
-    solutFile.precision(8);
-    solutFile << "\nMeshvec[0]:";
-    
-    REAL entireStripeSol = this->fmeshVec[0]->Solution()(1,0);
-    solutFile << "(entire fracture solution: " << entireStripeSol << ")\n\n";
-    std::map< int , std::map<int,int> >::iterator itLay;
-    for(itLay = this->fLay_Stripe_solRow.begin();
-        itLay != this->fLay_Stripe_solRow.end();
-        itLay++)
+    solutFile.precision(10);
+    solutFile << "\nMeshvec[0]:\n";
+    solutFile << "(Entire fracture : " << this->fmeshVec[0]->Solution()(1,0) << ")\n";
+    for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
     {
-        int lay = itLay->first;
-        solutFile << "\nLayer " << lay << ":\n";
-        
-        std::map<int,int>::iterator itStripe;
-        for(itStripe = itLay->second.begin();
-            itStripe != itLay->second.end();
-            itStripe++)
-        {
-            int stripe = itStripe->first;
-            int solRow = itStripe->second;
-            solutFile << "stripe " << stripe << ": sol = " << entireStripeSol + this->fmeshVec[0]->Solution()(solRow,0) << "\n";
-        }
+        solutFile << "Stripe" << (r-2) << " : " << this->fmeshVec[0]->Solution()(1,0) + this->fmeshVec[0]->Solution()(r,0) << ")\n";
     }
-    solutFile << "-------------------------------------\n\nMeshvec[1]:\n";
+    solutFile << "\nMeshvec[1]:\n";
     for(int r = 0; r < this->fmeshVec[1]->Solution().Rows(); r++)
     {
         solutFile << this->fmeshVec[1]->Solution()(r,0) << "\n";
@@ -1699,27 +1656,6 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::SetLayStripeSolRow(int layer, int stripe, int solRow)
-{
-    std::map< int , std::map<int,int> >::iterator itLay = this->fLay_Stripe_solRow.find(layer);
-    if(itLay == this->fLay_Stripe_solRow.end())
-    {
-        this->fLay_Stripe_solRow[layer][stripe] = solRow;
-    }
-    else
-    {
-        std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
-        if(itStripe != itLay->second.end())
-        {
-            if(itStripe->second != solRow)
-            {
-                std::cout << "\n\n\nSobrescrevendo solution row on " << __PRETTY_FUNCTION__ << "\n";
-                DebugStop();
-            }
-        }
-        itLay->second[stripe] = solRow;
-    }
-}
 
 //------------------------------------------------------------------------------------------------------------
 BezierCurve::BezierCurve()

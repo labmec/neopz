@@ -165,8 +165,6 @@ protected:
      */
     void TransferLastLeakoff(TPZCompMesh * cmeshFrom);
     
-    void SetLayStripeSolRow(int layer, int stripe, int solRow);
-    
     //Atributes:
     
     TPZVec< std::pair<REAL,REAL> > fpoligonalChain;
@@ -191,8 +189,6 @@ protected:
     REAL fMaxDispl;
     
     JIntegral3D fPath3D;
-    
-    std::map< int , std::map<int,int> > fLay_Stripe_solRow;
     
     int actColor;
     static const std::string color[];
