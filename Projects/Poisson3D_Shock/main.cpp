@@ -252,7 +252,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	switch(typeel) {
 	case EQuadrilateral:
 	case ETriangle:
-		NRefs = 12;
+		NRefs = 15;
 		break;
 	default:
 		NRefs = 10;
@@ -374,6 +374,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		time_elapsed = endtime - sttime;
 		formatTimeInSec(time_formated,256,time_elapsed);
 		out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
+		fileerrors << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
+		std::cout << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
 				
 		REAL MinErrorByElement, MinGradErrorByElement;
 		ervecbyel.Resize(0);
@@ -455,8 +457,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	REAL SmallGrad = factorError*gradervecbyel[nels] + (1.-factorError)*MinGrad;
-	if(MaxGrad > 8.) {
-		if(MaxGrad > MinGrad) MaxGrad = 8.;
+	if(MaxGrad > 1.) {
+		if(MaxGrad > MinGrad) MaxGrad = 1.;
 		else MaxGrad = SmallGrad = MinGrad;
 		if(SmallGrad > MaxGrad) SmallGrad = MaxGrad;
 	}
@@ -508,9 +510,9 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 			el->PRefine(pelement);
 			pused = true;
 		}
-//		else {
-//			counterreftype[30]++;
-//		}
+		else {
+			counterreftype[30]++;
+		}
 
 		if(!pused && !hused) {
 			counterreftype[40]++;
