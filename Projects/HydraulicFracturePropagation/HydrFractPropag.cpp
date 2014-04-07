@@ -82,7 +82,7 @@ int main(int argc, char * const argv[])
     
     layerVec[0] = LayerProperties(Young0, Poisson0, SigYY0, TVDi0, TVDf0, KIc0, Cl0, Pe0, gradPref0, vsp0);
     layerVec[1] = LayerProperties(Young1, Poisson1, SigYY1, TVDi1, TVDf1, KIc1, Cl1, Pe1, gradPref1, vsp1);
-    layerVec[2] = LayerProperties(Young2, Poisson2, SigYY2,TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
+    layerVec[2] = LayerProperties(Young2, Poisson2, SigYY2, TVDi2, TVDf2, KIc2, Cl2, Pe2, gradPref2, vsp2);
     
     //Fluid injection data
     REAL QinjWell = 1.*(-0.0533333333333);//m3/s

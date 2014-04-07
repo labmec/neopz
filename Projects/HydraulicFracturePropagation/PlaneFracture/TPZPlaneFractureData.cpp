@@ -253,107 +253,10 @@ void LeakoffStorage::Printleakoff(std::ofstream & outf)
         outf << "Id = " << it->first << " : Penetration = " << it->second << "\n";
     }
 }
-
 //------------------------------------------------------------
 
-ElastReducedSolution::ElastReducedSolution()
-{
-    this->fElastReducedSolution.Resize(0,0);
-}
-
-ElastReducedSolution::~ElastReducedSolution()
-{
-    this->fElastReducedSolution.Resize(0,0);
-}
-
-void ElastReducedSolution::SetElastReducedSolution(TPZFMatrix<REAL> & ElastReducedSolution)
-{
-    this->fElastReducedSolution = ElastReducedSolution;
-}
-
-void ElastReducedSolution::ClearLayStripeSolRow()
-{
-    this->fLay_Stripe_solRow.clear();
-}
-
-std::map< int , std::map<int,int> > & ElastReducedSolution::Lay_Stripe_solRow()
-{
-    return this->fLay_Stripe_solRow;
-}
-
-void ElastReducedSolution::SetLayStripeSolRow(int layer, int stripe, int solRow)
-{
-    std::map< int , std::map<int,int> >::iterator itLay = this->fLay_Stripe_solRow.find(layer);
-    if(itLay == this->fLay_Stripe_solRow.end())
-    {
-        this->fLay_Stripe_solRow[layer][stripe] = solRow;
-    }
-    else
-    {
-        std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
-        if(itStripe != itLay->second.end())
-        {
-            if(itStripe->second != solRow)
-            {
-                std::cout << "\n\n\nSobrescrevendo solution row on " << __PRETTY_FUNCTION__ << "\n";
-                DebugStop();
-            }
-        }
-        itLay->second[stripe] = solRow;
-    }
-}
-
-//bool ElastReducedSolution::GetTotalPressure(int layer, int stripe, REAL & totPress)
-//{
-//    bool thereIsSol = false;
-//    totPress = 0.;
-//    
-//    //Como agora eh aplicado newman unitario, o alpha corresponde aa pressao aplicada!
-//    REAL pressAppliedEntireFract = this->fElastReducedSolution(1,0);
-//    
-//    int laystripePressAppliedRow = this->GetStressAppliedSolutionRow(layer,stripe);
-//    if(laystripePressAppliedRow > 1)
-//    {
-//        thereIsSol = true;
-//        
-//        REAL pressAppliedLayerStripe = this->fElastReducedSolution(laystripePressAppliedRow,0);
-//        totPress = pressAppliedEntireFract + pressAppliedLayerStripe;
-//    }
-//    
-//    return thereIsSol;
-//}
-//
-//bool ElastReducedSolution::GetNetPressure(int layer, int stripe, REAL & netPress)
-//{
-//    netPress = 0.;
-//    
-//    REAL totalPressApplied = 0.;
-//    bool thereIsSol = this->GetTotalPressure(layer,stripe, totalPressApplied);
-//    REAL preStress = -globLayerStruct.GetLayer(layer).fSigYY;
-//
-//    /** NAO COLOQUE MAX(0.,NETPRESSURE)!!! JA VI QUE NAO DA CERTO!!! */
-//    netPress = (totalPressApplied - preStress);
-//
-//    return thereIsSol;
-//}
-//
-//int ElastReducedSolution::GetStressAppliedSolutionRow(int lay, int stripe)
-//{
-//    std::map< int , std::map<int,int> >::iterator itLay = this->fLay_Stripe_solRow.find(lay);
-//    if(itLay != this->fLay_Stripe_solRow.end())
-//    {
-//        std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
-//        if(itStripe != itLay->second.end())
-//        {
-//            return itStripe->second;
-//        }
-//    }
-//    
-//    return -1;
-//}
 
 //------------------------------------------------------------
-
 Output3DDataStruct::Output3DDataStruct()
 {
     fQinj1wing = 0.;
@@ -551,7 +454,5 @@ LeakoffStorage globLeakoffStorage;
 MaterialIdGen globMaterialIdGen;
 
 Output3DDataStruct globFractOutput3DData;
-
-ElastReducedSolution globElastReducedSolution;
 
 LayerStruct globLayerStruct;

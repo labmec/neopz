@@ -2096,7 +2096,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
                 if(crossYcomp > 0.)
                 {
                     if(neigh->LowestFather() != neigh)
-                    {
+                    {//O elemento pai define que stripe seus filhos estao pois uma stripe tem largura do elemento pai.
                         neigh->LowestFather()->CenterPoint(neigh->LowestFather()->NSides()-1, neighCenterQSI);
                         neigh->LowestFather()->X(neighCenterQSI, neighCenterX);
                     }

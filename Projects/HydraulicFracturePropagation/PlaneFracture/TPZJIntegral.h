@@ -11,6 +11,7 @@
 #include <iostream>
 #include "TPZGeoElement.h"
 #include "pzcmesh.h"
+#include "tpzcompmeshreferred.h"
 #include "pzelasmat.h"
 #include "pzelast3d.h"
 #include "pzcompel.h"
@@ -29,8 +30,7 @@ class LinearPath3D
 public:
     
     LinearPath3D();//It is not to be used
-    LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-                 TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
+    LinearPath3D(TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius);
     LinearPath3D(LinearPath3D * cp);
     ~LinearPath3D();
     
@@ -56,6 +56,9 @@ public:
     virtual REAL ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress);
     
     bool ThereIsNegativeNetPressure();//Eh Utilizado pelo kernel para verificar se a solucao de pressao eh valida.
+    
+    void SetElastCMesh(TPZCompMeshReferred * cmeshElast);
+    void SetFluidCMesh(TPZCompMesh * cmeshFluid);
     
     REAL Jradius()
     {
@@ -83,7 +86,7 @@ protected:
     REAL fDETdxdt;
     
     /** CMesh that constains elastic data */
-    TPZCompMesh * fcmeshElastic;
+    TPZCompMeshReferred * fcmeshElastic;
     
     /** CMesh that constains fluid data */
     TPZCompMesh * fcmeshFluid;
@@ -101,7 +104,7 @@ class ArcPath3D
 public:
     
     ArcPath3D();//It is not to be used
-    ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath3D(TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ArcPath3D(ArcPath3D * cp);
     ~ArcPath3D();
     
@@ -132,6 +135,7 @@ public:
     
     virtual REAL ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> & GradUtxy, TPZFMatrix<STATE> & Sigma, TPZFMatrix<STATE> & strain);
     
+    void SetElastCMesh(TPZCompMeshReferred * cmeshElast);
     void SetRadius(REAL radius);
     
 protected:
@@ -152,7 +156,7 @@ protected:
     REAL fDETdxdt;
     
     /** CMesh that constains elastic data */
-    TPZCompMesh * fcmeshElastic;
+    TPZCompMeshReferred * fcmeshElastic;
     
     /** map that holds t and respective elIndex from ElasticMesh and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIndexqsi_Elastic;
@@ -178,8 +182,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-           TPZVec<REAL> &Origin, REAL &KIc,
+    Path3D(TPZVec<REAL> &Origin, REAL &KIc,
            TPZVec<REAL> &normalDirection, REAL radius);
     
     ~Path3D();
@@ -187,6 +190,9 @@ public:
     void ComputeJIntegral();
     
     bool ThereIsNegativeNetPressure();
+    
+    void SetElastCMesh(TPZCompMeshReferred * cmeshElast);
+    void SetFluidCMesh(TPZCompMesh * cmeshFluid);
     
     REAL OriginZcoord()
     {
@@ -260,6 +266,9 @@ public:
     virtual void IntegratePath3D();
     
     bool ThereIsNegativeNetPressure();
+    
+    void SetElastCMesh(TPZCompMeshReferred * cmeshElast);
+    void SetFluidCMesh(TPZCompMesh * cmeshFluid);
     
     Path3D * Path(int p)
     {

@@ -369,38 +369,19 @@ void TPZPlaneFractCouplingMat::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
     int  phrp = phi_p.Rows();
     
 //    {//Newmann original (funcao constante)
-//        std::cout << "\n\n\nDividiu por Hbullet no main???\n\n\n";
-//        DebugStop();//<<<< Lembrou de dividir Qinj por Hbullet no main???
-//        
-//        REAL Qinj = bc.Val2()(0,0);
+//        REAL Qinj = bc.Val2()(0,0)/globLayerStruct.HBullet();
 //        for(int in = 0; in < phrp; in++)
 //        {
 //            ef(in+c_u,0) += (-1.) * weight * Qinj * phi_p(in,0);
 //        }
 //    }
-    
-    {//Newmann suave por funcao seno
-//        std::cout << "\n\n\nDividiu por Hbullet no main???\n\n\n";
-//        DebugStop();//<<<< Lembrou de dividir Qinj por Hbullet no main???
-//        
-//        REAL Qinj_hbul = bc.Val2()(0,0);
-//        REAL z = datavec[1].x[2];
-//        REAL hbullet = 20.;
-//        REAL Qinj = Qinj_hbul * hbullet;
-//        REAL zf = -2120.;
-//        REAL val = (2.*Qinj*pow(sin((M_PI*(z - zf))/hbullet),2))/hbullet;
-//        for(int in = 0; in < phrp; in++)
-//        {
-//            ef(in+c_u,0) += (-1.) * weight * val * phi_p(in,0);
-//        }
-    }
 
     {//Newmann suave por funcao parabola
         REAL Qinj1wing = bc.Val2()(0,0);//Aqui nao eh para estar dividido por Hbullet pois a equacao contempla isso!
         REAL z = datavec[1].x[2];
         REAL hBullet = globLayerStruct.HBullet();
         REAL zf = globLayerStruct.DownBulletDepth();
-        REAL val = (6.*Qinj1wing*(z - zf)*(hBullet - z + zf))/(hBullet*hBullet*hBullet);//(3.*Qinj_hbul*(1. + (-2120. - z)/20.)*(2120. + z))/200.;
+        REAL val = (6.*Qinj1wing*(z - zf)*(hBullet - z + zf))/(hBullet*hBullet*hBullet);
         for(int in = 0; in < phrp; in++)
         {
             ef(in+c_u,0) += (-1.) * weight * val * phi_p(in,0);

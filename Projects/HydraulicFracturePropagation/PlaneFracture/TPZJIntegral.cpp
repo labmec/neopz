@@ -28,8 +28,7 @@ LinearPath3D::LinearPath3D()
 }
 
 
-LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-                           TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius)
+LinearPath3D::LinearPath3D(TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius)
 {    
     this->fFinalPoint = FinalPoint;
     this->fPlaneNormalDirection = normalDirection;
@@ -37,8 +36,8 @@ LinearPath3D::LinearPath3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
     
     this->fDETdxdt = this->fradius/2.;
     
-    this->fcmeshElastic = cmeshElastic;
-    this->fcmeshFluid = cmeshFluid;
+    this->fcmeshElastic = NULL;
+    this->fcmeshFluid = NULL;
     
     this->fInitialPoint.Resize(3, 0.);
     this->fInitialPoint[0] =
@@ -232,15 +231,9 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         
         int layer = globMaterialIdGen.WhatLayer(insideMatId);
 
-/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao de fluido : PIOR */
         REAL prestress = -globLayerStruct.GetLayer(layer).fSigYY;
-        Sigma_n[1] = this->ComputeNetPressure(t,xt,prestress);
-
-/** Nesta abordagem, a pressao aplicada na parede da fratura eh a pressao media : MELHOR */
-//        int stripe = globMaterialIdGen.WhatStripe(insideMatId);
-//        REAL netPress = 0.;
-//        globElastReducedSolution.GetNetPressure(layer, stripe, netPress);
-//        Sigma_n[1] = netPress;
+        REAL totalPress = this->fcmeshElastic->Solution()(1,0);//p media
+        Sigma_n[1] = totalPress - prestress;
     }
     
     TPZElasticity3D * mat3d = dynamic_cast<TPZElasticity3D*>(compEl->Material());
@@ -305,11 +298,21 @@ bool LinearPath3D::ThereIsNegativeNetPressure()
         this->fcmeshFluid->LoadReferences();
     }
     
-    REAL t = 0.99;
+    REAL t = 0.90;
     TPZVec<REAL> xt(3,0.);
     this->X(t,xt);
     
     REAL prestress = globLayerStruct.GetLowerPreStress();
+    {
+        REAL z = xt[2];
+        int lay = globLayerStruct.WhatLayer(z);
+        REAL SigYY = -globLayerStruct.GetLayer(lay).fSigYY;
+        
+        if(fabs(SigYY - prestress) > 1.E-3)
+        {
+            return false;
+        }
+    }
     REAL netPress = this->ComputeNetPressure(t,xt,prestress);
     
     if(netPress < 0.)
@@ -320,6 +323,21 @@ bool LinearPath3D::ThereIsNegativeNetPressure()
     return false;//net pressure is not negative
 }
 
+void LinearPath3D::SetElastCMesh(TPZCompMeshReferred * cmeshElast)
+{
+    if(cmeshElast->Reference()->Reference() != cmeshElast)
+    {
+        cmeshElast->LoadReferences();
+    }
+    this->fcmeshElastic = new TPZCompMeshReferred(*cmeshElast);
+    for(int r = 2; r < this->fcmeshElastic->Solution().Rows(); r++) this->fcmeshElastic->Solution()(r,0) = 0.;
+}
+
+void LinearPath3D::SetFluidCMesh(TPZCompMesh * cmeshFluid)
+{
+    this->fcmeshFluid = cmeshFluid;
+}
+
 //--------------------------------------------------------class ArcPath3D
 
 ArcPath3D::ArcPath3D()
@@ -328,7 +346,7 @@ ArcPath3D::ArcPath3D()
 }
 
 
-ArcPath3D::ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
+ArcPath3D::ArcPath3D(TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
     this->fOrigin = Origin;
     this->fPlaneNormalDirection = normalDirection;
@@ -336,7 +354,7 @@ ArcPath3D::ArcPath3D(TPZCompMesh * cmeshElastic, TPZVec<REAL> &Origin, TPZVec<RE
     
     this->fDETdxdt = M_PI*this->fradius/2.;
     
-    this->fcmeshElastic = cmeshElastic;
+    this->fcmeshElastic = NULL;
     
     this->f_t_elIndexqsi_Elastic.clear();
 }
@@ -422,8 +440,7 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     REAL W = 0.;
     for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < 3; c++)//AQUICAJU
-//        for(int c = r; c < 3; c++)
+        for(int c = 0; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
         }
@@ -526,6 +543,16 @@ REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     return young;
 }
 
+void ArcPath3D::SetElastCMesh(TPZCompMeshReferred * cmeshElast)
+{
+    if(cmeshElast->Reference()->Reference() != cmeshElast)
+    {
+        cmeshElast->LoadReferences();
+    }
+    this->fcmeshElastic = new TPZCompMeshReferred(*cmeshElast);
+    for(int r = 2; r < this->fcmeshElastic->Solution().Rows(); r++) this->fcmeshElastic->Solution()(r,0) = 0.;
+}
+
 void ArcPath3D::SetRadius(REAL radius)
 {
     this->fradius = radius;
@@ -559,12 +586,11 @@ Path3D::Path3D()
 }
 
 
-Path3D::Path3D(TPZCompMesh * cmeshElastic, TPZCompMesh * cmeshFluid,
-               TPZVec<REAL> &Origin, REAL &KIc,
+Path3D::Path3D(TPZVec<REAL> &Origin, REAL &KIc,
                TPZVec<REAL> &normalDirection, REAL radius)
 {
-    this->fLinearPath3D = new LinearPath3D(cmeshElastic,cmeshFluid,Origin,normalDirection,radius);
-    this->fArcPath3D = new ArcPath3D(cmeshElastic,Origin,normalDirection,radius);
+    this->fLinearPath3D = new LinearPath3D(Origin,normalDirection,radius);
+    this->fArcPath3D = new ArcPath3D(Origin,normalDirection,radius);
     
     this->fPlaneNormalDirection = normalDirection;
     this->fOriginZcoord = Origin[2];
@@ -648,7 +674,7 @@ void Path3D::ComputeJIntegral()
     this->fJDirection[1] = Jyproj/Jprojnorm;
     this->fJDirection[2] = Jzproj/Jprojnorm;
     
-//    {//Contencao de crescimento vertical
+//    {//Contencao de crescimento vertical : AQUICAJU
 //        REAL zComponent = fabs(this->fJDirection[2]);
 //        REAL mult = 1. - pow(zComponent,5)/2.;
 //        Jprojnorm *= mult;
@@ -661,6 +687,17 @@ void Path3D::ComputeJIntegral()
 bool Path3D::ThereIsNegativeNetPressure()
 {
     return this->fLinearPath3D->ThereIsNegativeNetPressure();
+}
+
+void Path3D::SetElastCMesh(TPZCompMeshReferred * cmeshElast)
+{
+    this->fLinearPath3D->SetElastCMesh(cmeshElast);
+    this->fArcPath3D->SetElastCMesh(cmeshElast);
+}
+
+void Path3D::SetFluidCMesh(TPZCompMesh * cmeshFluid)
+{
+    this->fLinearPath3D->SetFluidCMesh(cmeshFluid);
 }
 
 //--------------------------------------------------------class JIntegral
@@ -715,6 +752,22 @@ bool JIntegral3D::ThereIsNegativeNetPressure()
     }
     
     return false;
+}
+
+void JIntegral3D::SetElastCMesh(TPZCompMeshReferred * cmeshElast)
+{
+    for(int p = 0; p < NPaths(); p++)
+    {
+        this->fPath3DVec[p]->SetElastCMesh(cmeshElast);
+    }
+}
+
+void JIntegral3D::SetFluidCMesh(TPZCompMesh * cmeshFluid)
+{
+    for(int p = 0; p < NPaths(); p++)
+    {
+        this->fPath3DVec[p]->SetFluidCMesh(cmeshFluid);
+    }
 }
 
 void JIntegral3D::IntegratePath3D(int p)

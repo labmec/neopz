@@ -456,34 +456,6 @@ public:
 
 
 
-class ElastReducedSolution
-{
-public:
-    ElastReducedSolution();
-    
-    ~ElastReducedSolution();
-    
-    void SetElastReducedSolution(TPZFMatrix<REAL> & ElastReducedSolution);
-
-    void ClearLayStripeSolRow();
-    void SetLayStripeSolRow(int layer, int stripe, int solRow);
-    std::map< int , std::map<int,int> > & Lay_Stripe_solRow();
-    
-//    bool GetTotalPressure(int layer, int stripe, REAL & totPress);
-//    
-//    bool GetNetPressure(int layer, int stripe, REAL & netPress);
-//
-//    int GetStressAppliedSolutionRow(int layer, int stripe);
-
-protected:
-    
-    TPZFMatrix<REAL> fElastReducedSolution;
-    
-    std::map< int , std::map<int,int> > fLay_Stripe_solRow;
-};
-
-
-
 class LayerProperties
 {
 public:
@@ -624,6 +596,11 @@ public:
         return this->fDownBulletDepth;
     }
     
+    REAL UpBulletDepth()
+    {
+        return (this->fDownBulletDepth + this->fHBullet);
+    }
+    
     REAL HBullet()
     {
         return this->fHBullet;
@@ -722,8 +699,6 @@ extern LeakoffStorage globLeakoffStorage;
 extern MaterialIdGen globMaterialIdGen;
 
 extern Output3DDataStruct globFractOutput3DData;
-
-extern ElastReducedSolution globElastReducedSolution;
 
 extern LayerStruct globLayerStruct;
 

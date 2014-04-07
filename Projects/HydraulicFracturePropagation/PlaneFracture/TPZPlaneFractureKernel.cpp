@@ -153,14 +153,15 @@ void TPZPlaneFractureKernel::Run()
 
 void TPZPlaneFractureKernel::InitializePoligonalChain()
 {
+    ///Elipse
     int nptsUp = 50;
     fpoligonalChain.Resize(0);
     
     REAL yc = -fCenterTVD;
     
-    REAL shiftX = 1.5 * this->fJIntegralRadius;
-    REAL sAx = this->fLmax;
-    REAL sAy = this->fHbullet/2. + 0.2;
+    REAL shiftX = 0.5 * this->fJIntegralRadius;
+    REAL sAx = 4.5 - shiftX;
+    REAL sAy = this->fHbullet/2. + 0.2;//Nao posso ter altura de fratura menor que hbullet, senao a BC de Qinj nao contribuira totalmente.
 
     for(int p = 1; p <= nptsUp; p++)
     {
@@ -207,6 +208,7 @@ void TPZPlaneFractureKernel::InitializeMeshes(TPZCompMesh * lastElastCMesh)
                                                                         this->fQinj1wing,
                                                                         this->fvisc,
                                                                         this->fpOrder);
+    
     this->ApplyInitialCondition(2.*globLayerStruct.GetHigherPreStress());
     
     this->InitializePath3DVector();
@@ -265,7 +267,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     }
     
     ////////////////// Newman=1. em cada combinacao de camada e faixa da fratura
-    globElastReducedSolution.ClearLayStripeSolRow();
+    this->fLay_Stripe_solRow.clear();
     
     int NStripes = this->fPlaneFractureMesh->NStripes();
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
@@ -287,7 +289,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
                 {
                     solutions(r,oldSize) = (solution1(r,0) - solution0(r,0));
                 }
-                globElastReducedSolution.SetLayStripeSolRow(lay, stripe, oldSize);
+                this->SetLayStripeSolRow(lay, stripe, oldSize);
             }
         }
     }
@@ -376,7 +378,6 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         REAL tolRes = 1.E-3;
         int maxit = 10;
         int nit = 0;
-
         while(normRes > tolRes && nit < maxit)
         {
             if(nit == 0 && whoBlock == EBlockStripes)
@@ -404,7 +405,8 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             matRes_total = matRes_partial + matMass;
             
             normRes = Norm(matRes_total);
-            
+
+#ifdef NStripes
             if(normRes <= stripeTol && whoBlock == EBlockStripes)
             {
                 maxit = 10;
@@ -417,11 +419,15 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
                 normRes = 1.;
             }
             else
+#endif
             {
                 std::cout << "normRes = " << normRes << std::endl;
                 nit++;
             }
         }///end of Newton
+        TPZCompMeshReferred * cmref = dynamic_cast<TPZCompMeshReferred*>(this->fmeshVec[0]);
+        this->fPath3D.SetElastCMesh(cmref);
+        this->fPath3D.SetFluidCMesh(this->fmeshVec[1]);
 
         if(normRes > tolRes)
         {
@@ -605,7 +611,7 @@ void TPZPlaneFractureKernel::InitializePath3DVector()
         REAL KIc = 0.;
         this->fPlaneFractureMesh->GetKIc_FromLayerOfThisZcoord(zCoord, KIc);
 
-        this->fPath3D.PushBackPath3D( new Path3D(this->fmeshVec[0], this->fmeshVec[1], center, KIc, normal, this->fJIntegralRadius) );
+        this->fPath3D.PushBackPath3D( new Path3D(center, KIc, normal, this->fJIntegralRadius) );
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -615,8 +621,6 @@ void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis * an,
                                                         TPZFMatrix<REAL> & matRes,
                                                         EWhoBlock whoBlock)
 {
-    globElastReducedSolution.SetElastReducedSolution(this->fmeshVec[0]->Solution());
-    
 	this->fPlaneFractureMesh->SetActualState();
     
     TPZFStructMatrix structMat(this->fmphysics);
@@ -674,11 +678,11 @@ void TPZPlaneFractureKernel::ApplyEquationFilter(TPZAnalysis * an, EWhoBlock who
     long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
     eqOut.insert(posBlock);
     
-    if(whoBlock == EBlockEntireFracure)
+    if(whoBlock == EAllBlock || whoBlock == EBlockEntireFracure)
     {
         eqOut.insert(posBlock+1);
     }
-    else if(whoBlock == EBlockStripes)
+    if(whoBlock == EAllBlock || whoBlock == EBlockStripes)
     {
         for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
         {
@@ -860,8 +864,6 @@ void TPZPlaneFractureKernel::CheckConv()
 
 void TPZPlaneFractureKernel::UpdateLeakoffKernel()
 {
-    globElastReducedSolution.SetElastReducedSolution(this->fmeshVec[0]->Solution());
-    
     globLeakoffStorage.UpdateLeakoff(this->fmphysics, globTimeControl.actDeltaT());
 
     
@@ -933,9 +935,10 @@ void TPZPlaneFractureKernel::PostProcessSolutions(int num)
     solutFile << "\nMeshvec[0]:";
     
     REAL entireStripeSol = this->fmeshVec[0]->Solution()(1,0);
+    solutFile << "(entire fracture solution: " << entireStripeSol << ")\n\n";
     std::map< int , std::map<int,int> >::iterator itLay;
-    for(itLay = globElastReducedSolution.Lay_Stripe_solRow().begin();
-        itLay != globElastReducedSolution.Lay_Stripe_solRow().end();
+    for(itLay = this->fLay_Stripe_solRow.begin();
+        itLay != this->fLay_Stripe_solRow.end();
         itLay++)
     {
         int lay = itLay->first;
@@ -1282,8 +1285,6 @@ REAL TPZPlaneFractureKernel::ComputeVolInjected()
 bool TPZPlaneFractureKernel::CheckPropagationCriteria(REAL & maxKI_KIc, std::set<int> & whoPropagate,
                                                       int & maxKI_KIcPosition)
 {
-    globElastReducedSolution.SetElastReducedSolution(this->fmeshVec[0]->Solution());
-    
     bool propagate = false;
     
     maxKI_KIc = 0.;
@@ -1359,7 +1360,7 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
             TPZVec<REAL> Jdirection = this->fPath3D.Path(p)->JDirection();
             
             //Variacao linear no decorrer do tempo de fMaxDispl para fMinDispl
-            REAL alpha = 1.;//alphaMin = [1.0~2.0]
+            REAL alpha = 2.;//alphaMin = [1.0~2.0]
             REAL displacement = this->fMaxDispl * pow((KI/KIc)/(maxKI_KIc),alpha);
             
             newX = originVec[0] + displacement * Jdirection[0];
@@ -1698,6 +1699,27 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
 }
 //------------------------------------------------------------------------------------------------------------
 
+void TPZPlaneFractureKernel::SetLayStripeSolRow(int layer, int stripe, int solRow)
+{
+    std::map< int , std::map<int,int> >::iterator itLay = this->fLay_Stripe_solRow.find(layer);
+    if(itLay == this->fLay_Stripe_solRow.end())
+    {
+        this->fLay_Stripe_solRow[layer][stripe] = solRow;
+    }
+    else
+    {
+        std::map<int,int>::iterator itStripe = itLay->second.find(stripe);
+        if(itStripe != itLay->second.end())
+        {
+            if(itStripe->second != solRow)
+            {
+                std::cout << "\n\n\nSobrescrevendo solution row on " << __PRETTY_FUNCTION__ << "\n";
+                DebugStop();
+            }
+        }
+        itLay->second[stripe] = solRow;
+    }
+}
 
 //------------------------------------------------------------------------------------------------------------
 BezierCurve::BezierCurve()
