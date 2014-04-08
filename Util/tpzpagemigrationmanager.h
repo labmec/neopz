@@ -35,6 +35,8 @@
 #include <numaif.h>
 #endif
 
+#include <stdio.h>
+
 class TPZPageMigrationManager {
 	public:
 		/**
