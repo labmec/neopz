@@ -86,8 +86,8 @@ long MaxEquations = 1300000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
-int MaxPOrder = 9;     // Maximum order for p refinement allowed
-int MaxHLevel = 6;      // Maximum level for h refinement allowed
+int MaxPOrder = 10;     // Maximum order for p refinement allowed
+int MaxHLevel = 5;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 // Poisson problem
@@ -196,7 +196,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int NRefs = 100;
 	int ninitialrefs = 2;
 	// Percent of error permited
-	REAL factorError = .3;
+	REAL factorError = .2;
 
 	// auxiliar string
 	char saida[512];
@@ -252,7 +252,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	switch(typeel) {
 	case EQuadrilateral:
 	case ETriangle:
-		NRefs = 15;
+		NRefs = 12;
 		break;
 	default:
 		NRefs = 10;
@@ -348,7 +348,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		}
 				
 		// Solve using symmetric matrix then using Cholesky (direct method)
-		TPZParSkylineStructMatrix strmat(cmesh,2);
+		TPZParSkylineStructMatrix strmat(cmesh,4);
 		an.SetStructuralMatrix(strmat);
 		
 		TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
@@ -373,9 +373,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		time(&endtime);
 		time_elapsed = endtime - sttime;
 		formatTimeInSec(time_formated,256,time_elapsed);
-		out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
-		fileerrors << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
-		std::cout << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n\n";
+		out << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n";
+		fileerrors << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n";
+		std::cout << "  Time elapsed " << time_elapsed << " <-> " << time_formated << "\n\n";
 				
 		REAL MinErrorByElement, MinGradErrorByElement;
 		ervecbyel.Resize(0);
@@ -490,20 +490,28 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 		index = el->Index();
 		level = el->Reference()->Level();
 
-		if(nref < 6 && (gradervecbyel[i] > MaxGrad || ervecbyel[i] > BigError) && level < MaxHLevel) {
+		if(nref < 7 && (gradervecbyel[i] > MaxGrad || ervecbyel[i] > BigError) && level < MaxHLevel) {
 			counterreftype[10]++;
 			el->Divide(index,subels);
 			el = NULL;
 			level++;
 			hused = true;
-			if(ervecbyel[i] > BigError && gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
-				counterreftype[11]++;
+			if(pelement < MaxPOrder) {
+				counterreftype[12]++;
 				for(ii=0;ii<subels.NElements();ii++) {
-					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
-					subels[ii]=0;
+					dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]])->PRefine(pelement);
 				}
-				level++;
+				pused = true;
 			}
+//			if(ervecbyel[i] > BigError && gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
+//				counterreftype[11]++;
+//				for(ii=0;ii<subels.NElements();ii++) {
+//					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
+//					subels[ii]=0;
+//				}
+//				level++;
+//			}
+//			else if(pelement < MaxPOrder && nref) {
 		}
 		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder && nref) {
 			counterreftype[20]++;
