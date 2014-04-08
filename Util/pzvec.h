@@ -8,7 +8,7 @@
 
 #include "pzreal.h"
 #include "pzerror.h"
-#include "pznuma.h"
+#include "tpzpagemigrationmanager.h"
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
