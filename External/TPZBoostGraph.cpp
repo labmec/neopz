@@ -226,7 +226,7 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
             break;
         case Sloan:
         {
-#ifdef DEBUG
+#ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 LOGPZ_DEBUG(logger,  "Sloan ordering:")
             }
