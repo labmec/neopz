@@ -196,7 +196,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int NRefs = 100;
 	int ninitialrefs = 2;
 	// Percent of error permited
-	REAL factorError = .2;
+	REAL factorError = .25;
 
 	// auxiliar string
 	char saida[512];
@@ -361,7 +361,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		an.Run();
 				
 		// Post processing
-		if(nref < 3 || !(nref%5) || nref==NRefs-1)
+		if(nref < 3 || !(nref%3) || nref==NRefs-1)
 			an.PostProcess(0,ModelDimension);
 		if(gDebug) {
 			std::ofstream out(MeshFileName.c_str());
@@ -450,15 +450,15 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = .6;
+	REAL factorGrad = .7;
 	REAL factorErrorBig = 0.8;
 
 	REAL BigError = factorErrorBig*MaxErrorByElement + (1.-factorErrorBig)*MinErrorByElement;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 	REAL SmallGrad = factorError*gradervecbyel[nels] + (1.-factorError)*MinGrad;
-	if(MaxGrad > 1.) {
-		if(MaxGrad > MinGrad) MaxGrad = 1.;
+	if(MaxGrad > 3.) {
+		if(MaxGrad > MinGrad) MaxGrad = 3.;
 		else MaxGrad = SmallGrad = MinGrad;
 		if(SmallGrad > MaxGrad) SmallGrad = MaxGrad;
 	}
@@ -496,7 +496,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 			el = NULL;
 			level++;
 			hused = true;
-			if(pelement < MaxPOrder) {
+			if(nref < 1 && pelement < MaxPOrder) {
 				counterreftype[12]++;
 				for(ii=0;ii<subels.NElements();ii++) {
 					dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]])->PRefine(pelement);
@@ -513,7 +513,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 //			}
 //			else if(pelement < MaxPOrder && nref) {
 		}
-		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder && nref) {
+		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder && nref < 1) {
 			counterreftype[20]++;
 			el->PRefine(pelement);
 			pused = true;

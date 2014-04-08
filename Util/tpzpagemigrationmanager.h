@@ -91,6 +91,6 @@ class TPZPageMigrationManager {
 }; // class TPZPageMigrationManager
 
 
-void migrate_to_local(char* start, unsigned long long sz_in_bytes);
+void migrate_to_local(char* start, unsigned long sz_in_bytes);
 
 #endif

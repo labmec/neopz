@@ -235,7 +235,7 @@ void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, unsigned long lon
 
 TPZPageMigrationManager MigrationManager;
 
-void migrate_to_local(char* start, unsigned long long sz_in_bytes) {	
+void migrate_to_local(char* start,unsigned long sz_in_bytes) {	
 #if defined (USING_HWLOC) || defined (USING_LIBNUMA)
 	MigrationManager.MigrateToLocal(start, sz_in_bytes);
 #else
