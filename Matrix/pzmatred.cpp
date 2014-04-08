@@ -160,7 +160,11 @@ void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
 {
-	if (!fDim0)  return;
+	if (!fDim0)
+    {
+        F1Red = fF1;
+        return;
+    }
     TPZFNMatrix<100,TVar> F0Invert(fF0.Rows(),fF0.Cols());
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
