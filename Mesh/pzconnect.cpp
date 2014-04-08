@@ -538,7 +538,11 @@ void TPZConnect::BuildConnectList(long index, std::set<long> &indepconnectlist, 
 			dep = dep->fNext;
 		}
 	}
-	else
+	else if (IsCondensed())
+    {
+        depconnectlist.insert(index);
+    }
+    else
 	{
 		indepconnectlist.insert(index);
 	}

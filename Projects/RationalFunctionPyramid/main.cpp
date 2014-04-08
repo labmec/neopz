@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     
     int gcaseinit = 1, gcaseend = 3;
     int nsubdivisionsinit = 3, nsubdivisionsend = 16, nsubdivisionsinterval = 3;
-    int porderinit = 3, porderend = 4;
+    int porderinit = 2, porderend = 4;
     switch(argc) {
         case 8:
             nsubdivisionsinterval = atoi(argv[7]);

@@ -658,7 +658,9 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 	
 	long neq = NEquations();
 	skyline.Resize(neq);
-	skyline.NElements();
+    if (neq == 0) {
+        return;
+    }
 	//cout << "Element Equations";
 	//int eleq=0;
 	long i, n, l, nelem = NElements();

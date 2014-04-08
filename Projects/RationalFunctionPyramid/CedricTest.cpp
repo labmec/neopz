@@ -24,6 +24,9 @@
 #include "TPZParSkylineStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
+
 #include <stdio.h>
 
 #include "pzlog.h"
@@ -235,6 +238,7 @@ void TCedricTest::LoadInterpolation(TPZCompMesh *cmesh)
     }
 }
 
+#define CONDENSE
 
 void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out) {
     TPZGeoMesh *gmesh;
@@ -281,7 +285,14 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
         out << "Approx_err nsubdivision " << nsubdivisions << " eltype " << geocase << " aborted\n";;
         return;
     }
+    
+#ifdef CONDENSE
+    CreateCondensedElements(cmesh);
+#endif
+    
     int dim = cmesh->Dimension();
+    
+    TPZAnalysis analysis(cmesh);
     
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -291,8 +302,6 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    
-    TPZAnalysis analysis(cmesh);
     
     out << "Approx_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
     switch(geocase) {
@@ -343,6 +352,10 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
 	    analysis.PostProcess(0,dim);
 	printsol++;
     
+#ifdef CONDENSE
+    UnwrapElements(cmesh);
+#endif
+    
     analysis.PostProcessError(errvec,std::cout);
     
     out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
@@ -378,6 +391,17 @@ class ForceFunction : public TPZFunction<STATE>
         }
     }
     
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &val)
+    {
+        int i = 0;
+        REAL vx = TCedricTest::fx(x[i], TCedricTest::fX0[i], TCedricTest::fEps[i]);
+        int j = (i+1)%3;
+        REAL vy = TCedricTest::fx(x[j], TCedricTest::fX0[j], TCedricTest::fEps[j]);
+        int k = (j+1)%3;
+        REAL vz = TCedricTest::fx(x[k], TCedricTest::fX0[k], TCedricTest::fEps[k]);
+        val[0] = vx*vy*vz;
+        
+    }
     virtual int NFunctions()
     {
         return 1;
@@ -685,6 +709,7 @@ TPZCompMesh *TCedricTest::GenerateCompMesh(TPZGeoMesh *gmesh)
     /** Inserting boundary condition - Dirichlet with value 0.0 */
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     TPZBndCond *bc = new TPZBndCond(poiss, -1, 0, val1, val2);
+    bc->TPZMaterial::SetForcingFunction(force);
     cmesh->InsertMaterialObject(bc);
     
     /** Constructing computational mesh */
@@ -714,3 +739,67 @@ int TCedricTest::AddBoundaryElements(TPZGeoMesh *gmesh)
     return nelembc;
 }
 
+void TCedricTest::CreateCondensedElements(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        if (!intel) continue;
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Dimension() != 3) continue;
+        long index;
+        TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+        int nsides = gel->NSides();
+        for (int is = 0; is<nsides; is++) {
+            int sidedim = gel->SideDimension(is);
+            TPZCompElSide celside(cel,is);
+            TPZGeoElSide gelside(gel,is);
+            TPZStack<TPZCompElSide> elsidevec;
+            gelside.ConnectedCompElementList(elsidevec, 0, 0);
+            int nelside = elsidevec.size();
+            for (int neigh=0; neigh<nelside; neigh++) {
+                TPZCompElSide celneigh = elsidevec[neigh];
+                TPZGeoElSide gelneigh = celneigh.Reference();
+                TPZGeoEl *geln = gelneigh.Element();
+                if (geln->Dimension() == sidedim) {
+                    elgr->AddElement(celneigh.Element());
+                }
+            }
+        }
+        elgr->AddElement(intel);
+    }
+    cmesh->ComputeNodElCon();
+    
+    nel = cmesh->NElements();
+    for (int el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if (!cel) continue;
+        TPZElementGroup *celgr = dynamic_cast<TPZElementGroup *>(cel);
+        if (!celgr) {
+            DebugStop();
+        }
+        TPZCondensedCompEl *cond = new TPZCondensedCompEl(celgr);
+    }
+}
+
+void TCedricTest::UnwrapElements(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->ElementVec().NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
+        if(cond)
+        {
+            cond->Unwrap();
+        }
+    }
+    nel = cmesh->ElementVec().NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+        if (elgr) {
+            elgr->Unwrap();
+        }
+    }
+}

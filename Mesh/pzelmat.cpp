@@ -39,7 +39,8 @@ TPZElementMatrix::TPZElementMatrix(const TPZElementMatrix &cp) :
     fConstrBlock(cp.fConstrBlock), fDestinationIndex(cp.fDestinationIndex),
     fSourceIndex(cp.fSourceIndex), fNumStateVars(cp.fNumStateVars)
 {
-    
+    fBlock.SetMatrix(&fMat);
+    fConstrBlock.SetMatrix(&fConstrMat);
 }
 
 
@@ -382,6 +383,14 @@ void TPZElementMatrix::PermuteGather(TPZVec<long> &permute)
         fBlock.Set(i, cp.fBlock.Size(permute[i]));
     }
     fBlock.Resequence();
+#ifdef LOG4CXX2
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        cp.fBlock.Print("cp.fBlock ",sout);
+        fBlock.Print("fBlock ",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     if (fType == EK) {
         long ibl,jbl;
         for (ibl=0; ibl<fBlock.NBlocks(); ++ibl) {

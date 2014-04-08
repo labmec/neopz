@@ -26,20 +26,18 @@ public:
     int AddBoundaryElements(TPZGeoMesh *gmesh);
 
     TPZCompMesh *GenerateCompMesh(TPZGeoMesh *gmesh);
+    
+    void CreateCondensedElements(TPZCompMesh *cmesh);
+    
+    void UnwrapElements(TPZCompMesh *cmesh);
 
     static REAL fx(REAL x, REAL x0, REAL eps) {
-        if (x < 0. || x > 1.) {
-            return 0;
-        }
         REAL a = x*x*(1-x)*(1-x)*exp(-(x-x0)*(x-x0)/eps);
 //        REAL a = 4.*x*(1-x);
         return a;
     }
 
     static REAL dfx(REAL x, REAL x0, REAL eps) {
-        if (x < 0. || x > 1.) {
-            return 0;
-        }
         REAL a = 2*x*(1-x)*(1-x)*exp(-(x-x0)*(x-x0)/eps);
         REAL b = -2*(1-x)*x*x*exp(-(x-x0)*(x-x0)/eps);
         REAL c = -2.*(x-x0)*x*x*(1-x)*(1-x)*exp(-(x-x0)*(x-x0)/eps)/eps;
@@ -49,9 +47,6 @@ public:
     }
 
     static REAL d2fx(REAL x, REAL x0, REAL eps) {
-        if (x < 0. || x > 1.) {
-            return 0;
-        }
 
         REAL result = 2*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*(1-x) -
         8*pow(M_E,((x - x0)*(-x + x0))/eps)*(1 - x)*x +

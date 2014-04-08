@@ -211,8 +211,23 @@ void TPZCondensedCompEl::Resequence()
 void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
     fReferenceCompEl->CalcStiff(ek,ef);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
+        sout << "fIndices " << fIndexes;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     ek.PermuteGather(fIndexes);
     ef.PermuteGather(fIndexes);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        ek.fMat.Print("EKPermute = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     
 #ifdef USING_DGER
     

@@ -24,6 +24,9 @@
 
 #include "TPZParFrontMatrix.h"
 
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
+
 #include "pzdxmesh.h"
 #include <fstream>
 using namespace std;
@@ -274,7 +277,9 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		else 
 		{
 			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
-			if(!submesh)
+            TPZElementGroup *elgrp = dynamic_cast<TPZElementGroup *>(el);
+            TPZCondensedCompEl *condel = dynamic_cast<TPZCondensedCompEl *>(el);
+			if(!submesh && ! elgrp && ! condel)
 			{
 				continue;
 			}
@@ -435,6 +440,14 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	this->OrderElement();
 	
 	this->AdjustSequenceNumbering();
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        this->fMesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	
 	this->GetNumElConnected(numelconnected);
 	
@@ -446,6 +459,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	fRhs = &rhs;
 	fCurrentElement = 0;
 	fCurrentAssembled = 0;
+    
 	
 	/*
 	 *Triger 'n' threads passing Assemble as argument

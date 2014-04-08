@@ -3,7 +3,7 @@
  * @brief Contains declaration of TPZCheckMesh class which verifies the consistency of the datastructure of a TPZCompMesh.
  */
 
-#ifndef PZGHECKMESHH
+#ifndef PZCHECKMESHH
 #define PZCHECKMESHH
 
 #include "pzcompel.h"
