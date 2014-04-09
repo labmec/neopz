@@ -563,20 +563,29 @@ void TPZAnalysis::LoadShape(double ,double , long ,TPZConnect* start){
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
+#include "run_stats_table.h"
+RunStatsTable sol_rdt ("-sol_rdt", "Solve statistics raw data table.");
+RunStatsTable ass_rdt ("-ass_rdt", "Assemble statistics raw data table.");
+
 void TPZAnalysis::Run(std::ostream &out)
 {
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+    ass_rdt.start();
 	Assemble();
+    ass_rdt.stop();
+    
+   
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
+ sol_rdt.start();
     Solve();
+    sol_rdt.stop();
 	
 #ifdef USING_BOOST
     boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-	
     std::cout << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
 #endif
 }

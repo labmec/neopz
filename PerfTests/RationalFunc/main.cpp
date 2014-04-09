@@ -29,13 +29,11 @@ static LoggerPtr logger(Logger::getLogger("pz.Cedric-Perf"));
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
 
-RunStatsTable total_rst ("-tot_rdt", "Whole program (total) statistics raw data table.");
-RunStatsTable cedric_rst ("-tot_rdt", "TCedric::Run statistics raw data table.");
+RunStatsTable cedric_rst ("-ced_rdt", "TCedric::Run statistics raw data table.");
 
 int main (int argc, char **argv)
 {
-    /* Total stats */
-    total_rst.start();
+
     /* Log initialization */
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -69,8 +67,6 @@ int main (int argc, char **argv)
     cedric.Run(nsub.get_value(), gcase.get_value(), porder.get_value(), 1, arq);
     /* CedridTest stats */
     cedric_rst.stop();
-    /* Total stats */
-    total_rst.stop();
 }
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial, const int matidtodivided) {
     TPZManVector<TPZGeoEl*> filhos;
