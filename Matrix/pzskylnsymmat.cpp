@@ -26,7 +26,8 @@ extern "C"
 #include <cblas.h>
 }
 #endif
-const int templatedepth = 10;
+
+//const int templatedepth = 10;
 
 /**
  * Commented out by Longhin

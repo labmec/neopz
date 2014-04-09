@@ -113,12 +113,13 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
 
 void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames)
 {
-	int j, nMat, matNumber;
+	//int j;
+    int nMat, matNumber;
 
 
 	TPZCompMesh * pcMainMesh = fpMainMesh;
 	
-	TPZGeoMesh * pgmesh = pcMainMesh->Reference();
+	//TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
 	TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
     

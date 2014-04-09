@@ -16,35 +16,36 @@ namespace pzgeom {
     
     class TPZTriangleSphere : public TPZGeoTriangle
     {
-        int fNumWaves;
+        //int fNumWaves;
+       
         TPZVec<REAL> fXc;
-		REAL fR;
+		 REAL fR;
 
     public:
         
         /** @brief Constructor with list of nodes */
-		TPZTriangleSphere(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fXc()
+		TPZTriangleSphere(TPZVec<long> &nodeindexes) : TPZGeoTriangle(nodeindexes), fXc(0), fR(0)
 		{
 		}
 		
 		/** @brief Empty constructor */
-		TPZTriangleSphere() : TPZGeoTriangle(), fR(0), fXc()
+		TPZTriangleSphere() : TPZGeoTriangle(), fXc(0), fR(0)
 		{
 		}
 		
 		/** @brief Constructor with node map */
 		TPZTriangleSphere(const TPZTriangleSphere &cp,
-				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fR(cp.fR), fXc(cp.fXc)
+				   std::map<long,long> & gl2lcNdMap) : TPZGeoTriangle(cp,gl2lcNdMap), fXc(cp.fXc), fR(cp.fR)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleSphere(const TPZTriangleSphere &cp) : TPZGeoTriangle(cp), fR(cp.fR), fXc(cp.fXc)
+		TPZTriangleSphere(const TPZTriangleSphere &cp) : TPZGeoTriangle(cp), fXc(cp.fXc), fR(cp.fR)
 		{
 		}
 		
 		/** @brief Copy constructor */
-		TPZTriangleSphere(const TPZTriangleSphere &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fR(cp.fR), fXc(cp.fXc)
+		TPZTriangleSphere(const TPZTriangleSphere &cp, TPZGeoMesh &) : TPZGeoTriangle(cp), fXc(cp.fXc), fR(cp.fR)
 		{
 		}
         

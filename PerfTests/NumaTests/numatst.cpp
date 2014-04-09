@@ -421,10 +421,10 @@ synchronized_threads_t::execute_n_threads(unsigned n,
     threads.resize(nthreads);
     thread_timer.resize(nthreads);
     
-    for (unsigned i=0; i<nthreads; i++) {
+    for (int i=0; i<nthreads; i++) {
         synchronized_threads_t::thread_arg_t arg(i,init_routine,parallel_routine,
                                                  &mutex, &cond, &main_cond);
-        PZ_PTHREAD_CREATE(&threads[i],NULL,threadfunc,(void*) i, __FUNCTION__);
+        PZ_PTHREAD_CREATE(&threads[i],NULL,threadfunc,(void*) &i, __FUNCTION__);
     }
     
     /* Wait for all to be initialized */

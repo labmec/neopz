@@ -22,10 +22,6 @@
 
 #include "arglib.h"
 
-const long PAGE_EXP  = 12;
-const long PAGE_SZ   = (1<<12);
-const long PAGE_MSK  = ((1<<PAGE_EXP)-1);
-
 #ifdef USING_LIBNUMA
 /**
  * @brief Command line arguments habilited by libnuma.
@@ -94,6 +90,10 @@ void TPZPageMigrationManager::MigrateToLocal(char* start, unsigned long long siz
 #endif
 
 #ifdef USING_LIBNUMA
+
+const long PAGE_EXP  = 12;
+const long PAGE_SZ   = (1<<12);
+const long PAGE_MSK  = ((1<<PAGE_EXP)-1);
 
 /**
  * @brief Migrate data using the system call move_pages.
