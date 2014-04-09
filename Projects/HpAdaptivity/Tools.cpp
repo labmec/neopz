@@ -19,6 +19,15 @@
 
 #include <cmath>
 
+int const bc0=-1; //em y=0
+int const bc1=-2; //em x=1
+int const bc2=-3; //em y=1
+int const bc3=-4; //em x=0
+
+int const dirichlet =0;
+int const neumann = 1;
+int const mixed = 2;
+
 
 #ifdef LOG4CXX
 
@@ -135,7 +144,7 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 		file.close();
 }
 const REAL MyPi=4.*atan(1.);
-const REAL epsilon=10^3;
+const REAL epsilon=1000.;
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 		REAL x = pt[0];
 		REAL y = pt[1];
@@ -193,14 +202,6 @@ void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     flux(2,0)=0;
 
 }
-void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-    double x=pt[0];
-    double y=pt[1];
-    //double fator=-x*x;//-4.-x*x;
-   f[0] = (-1.)*(2.+4.*x);//exp(fator)*x;//0.;//2*(1-x*x);//
-   // f[0]=3.-x;
-
-}
 
 void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux){
     REAL x = pt[0];
@@ -211,40 +212,55 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     REAL prodx = x*(x-1.);
     REAL prody = y*(y-1.);
     REAL prod = prodx*prody;
-    p[0] = (8*prod*(1+(2./MyPi)*(atan(arc))));//solucao p
+    p[0] = 8.*prod*(1.+(2./MyPi)*(atan(arc)));//solucao p
     //gradiente
     
     REAL temp = prody*(2*x-1.)*(MyPi + 2*atan(arc));
     REAL frac = 2*prod*F*(1.-2*x);
     frac = frac/(1+arc*arc);
     //componente x
-    flux(0,0) = (8./MyPi)*(temp + frac);
+    flux(0,0) = (-8./MyPi)*(temp + frac);
     //componente y
     temp = prodx*(2*y-1.)*(MyPi + 2*atan(arc));
     frac = 2*prod*F*(1.-2*y);
     frac = frac/(1+arc*arc);
     
-    flux(1,0) = (8./ MyPi)*(temp + frac);
+    flux(1,0) = (-8./ MyPi)*(temp + frac);
     
     //divergente
-    REAL B = (16.*epsilon)/MyPi;
-	REAL G = -0.4375;
+//    REAL B = (16.*epsilon)/MyPi;
+//	REAL G = -0.4375;
 	
-	REAL sum = prodx + prody;
+//	REAL sum = prodx + prody;
 	
-	REAL temp2 = F*(G-sum);
-	REAL arctan = atan(temp2);
-	REAL den = (1+temp2*temp2)*(1+temp2*temp2);
-	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
-    
-    flux(2,0)= (-1.)*B*(sum*(MyPi+2*arctan)+(num/den));
+//	REAL temp2 = F*(G-sum);
+//	REAL arctan = atan(temp2);
+//	REAL den = (1+temp2*temp2)*(1+temp2*temp2);
+//	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
+//
+    REAL aux=0;
+    aux=(16*(-1 + x)*x*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
+                              (640000*sqrt(10)*pow(-0.5 + x,2)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2)))/
+                              pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
+    (160*sqrt(10)*(-0.5 + x)*(8*(-1 + x) + 8*x)*(-1 + y)*y)/
+    (MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
+    16*(-1 + y)*y*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi) +
+    8*(-1 + x)*x*((2*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
+                      (640000*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*pow(-0.5 + y,2))/
+                      pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
+                  (160*sqrt(10)*(-0.5 + y)*(-1 + 2*y))/(MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
+                  2*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi));
+    flux(2,0)=(-1.)*aux;
+    /*B*(sum*(MyPi+2*arctan)+(num/den));*/
     
 
 }
 void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+//void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
+//    disp.Redim(2,1);
     REAL x = pt[0];
     REAL y = pt[1];
-    REAL B = (16.*epsilon)/MyPi;
+   /* REAL B = (16.*epsilon)/MyPi;
 	REAL G = -0.4375;
     REAL F = 2*sqrt(epsilon);
     REAL prodx = x*(x-1.);
@@ -254,30 +270,59 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	REAL sum = prodx + prody;
     REAL temp2 = F*(G-sum);
 	REAL arctan = atan(temp2);
-    REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
-	REAL den = (1+temp2*temp2)*(1+temp2*temp2);
+    REAL num = 2.*F*(sum*(2.*F*F*prod*(8.*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
+	REAL den = (1.+temp2*temp2)*(1.+temp2*temp2);
+    disp[0]=(-1.)*B*(sum*(MyPi+2.*arctan)+(num/den));
+//disp(0,0)=(-1.)*B*(sum*(MyPi+2.*arctan)+(num/den));
+    */
+    
+    	disp[0]=(16*(-1 + x)*x*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
+                    (640000*sqrt(10)*pow(-0.5 + x,2)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2)))/
+                    pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
+    (160*sqrt(10)*(-0.5 + x)*(8*(-1 + x) + 8*x)*(-1 + y)*y)/
+    (MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
+    16*(-1 + y)*y*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi) +
+    8*(-1 + x)*x*((2*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
+                      (640000*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*pow(-0.5 + y,2))/
+                      pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
+                  (160*sqrt(10)*(-0.5 + y)*(-1 + 2*y))/(MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
+                  2*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi));
+    disp[0]=(-1.)*disp[0];
 
-disp[0]=B*(sum*(MyPi+2*arctan)+(num/den));
+    
+    
+    
+    
 
+}
+
+void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
+    REAL x=pt[0];
+    REAL prodx=x*(x-1.);
+    REAL arc=20.*sqrt(10.)*((-3./16.)-(x-0.5)*(x-0.5));
+    f[0]= 8.*prodx*(1. + (2./MyPi)*atan(arc));
+ 
+
+    
 }
 
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-    double x=pt[0];
-    double y=pt[1];
-    //double fator=-4.-y*y;
-    f[0] = 3.+4.*y;//2.*exp(fator);//2.*//MyPi*cos(MyPi*y);//0.;//2*(1-x*x);//
-	//f[0]=8.+6.*y;
+
+    REAL y=pt[0];
+    REAL prody=y*(y-1.);
+    REAL arc=20.*sqrt(10.)*((-3./16.)-(y-0.5)*(y-0.5));
+    f[0]= 8.*prody*(1 + (2./MyPi)*atan(arc));
 }
 void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     double x=pt[0];
-    double y=pt[1];
+ 
     //double fator=-4.-x*x;
     f[0]=2.+4.*x;//x*exp(fator);//0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//
     //f[0]=7.*x+7.;
 }
 void CC4(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
-    double x=pt[0];
-    double y=pt[1];
+
+    double y=pt[0];
 		//double fator=-4.-y*y;
     f[0]=(-1.)*(3.+4.*y);//0.;//-2.*exp(fator);//-MyPi*cos(MyPi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;
     //f[0]=2.-2.*y;
@@ -296,62 +341,55 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		comp->InsertMaterialObject(automat);
 		
 		
-    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+        TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(ForcingTang);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
+		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolArcTan);
 		mat->SetForcingFunctionExact(exata1);
 			
 		///Criar condicoes de contorno
 		
     
 		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
-		TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
+        TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
 		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
 		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
     
 		
-		//TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-		TPZMaterial *bnd = automat->CreateBC (automat,-1,1,val1,val2);
-		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,1,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,1,val1,val2);
-		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,1,val1,val2);
+
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+
+		TPZMaterial *bnd = automat->CreateBC (mat,bc0,neumann,val1,val2);
+		TPZMaterial *bnd2 = automat->CreateBC (mat,bc1,neumann,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (mat,bc2,neumann,val1,val2);
+		TPZMaterial *bnd4 = automat->CreateBC (mat,bc3,neumann,val1,val2);
+  //      TPZMaterial *bnd5 = automat->CreateBC (automat,-5,0,val1,val2);
+ //   TPZMaterial *bnd6 = automat->CreateBC (automat,-6,0,val1,val2);
+ //   TPZMaterial *bnd7 = automat->CreateBC (automat,-7,0,val1,val2);
+  //  TPZMaterial *bnd8 = automat->CreateBC (automat,-8,0,val1,val2);
+    
 		
-			bnd->SetForcingFunction(fCC1);
-			bnd2->SetForcingFunction(fCC2);
-			bnd3->SetForcingFunction(fCC3);
-			bnd4->SetForcingFunction(fCC4);
+            bnd->SetForcingFunction(fCC1);
+            bnd2->SetForcingFunction(fCC2);
+			bnd3->SetForcingFunction(fCC1);
+			bnd4->SetForcingFunction(fCC2);
 		
 	
 		///Inserir condicoes de contorno
 		comp->InsertMaterialObject(bnd);
 		comp->InsertMaterialObject(bnd2);
 		comp->InsertMaterialObject(bnd3);
-		comp->InsertMaterialObject(bnd4);	
+		comp->InsertMaterialObject(bnd4);
+//    comp->InsertMaterialObject(bnd5);
+//    comp->InsertMaterialObject(bnd6);
+//    comp->InsertMaterialObject(bnd7);
+//    comp->InsertMaterialObject(bnd8);
 
     
-
+    
+   // comp->SetAllCreateFunctionsHDivFull();
 		comp->SetAllCreateFunctionsHDivPressure();
 		//comp->SetAllCreateFunctionsContinuous();
-			
-		
-  	//AutoBuild()
-		//AQUI: AutoBuild(mat1)
-//		std::set< int > SETmat1;
-//		SETmat1.insert(1);
-//		SETmat1.insert(-1);
-//		SETmat1.insert(-2);
-//		SETmat1.insert(-3);
-//		SETmat1.insert(-4);
-//		comp->AutoBuild(SETmat1);
-//		
-//#ifdef LOG4CXX
-//		{
-//				std::stringstream sout;
-//				comp->Print(sout);
-//				LOGPZ_DEBUG(logger,sout.str())
-//		}
-//#endif
+        
 
 		
 		// Ajuste da estrutura de dados computacional
@@ -367,7 +405,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 				LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-	
+	/*
 		
 		int nel = comp->NElements();
     int iel;
@@ -385,7 +423,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 						int fator=iel%2;
 			
 						if (cel->Dimension()==2 && fator==0) {
-								
+                            
 								intel->PRefine(porder+1);
 													
 						}
@@ -404,10 +442,12 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 				
 				
 		}
+     
+    
 		comp->LoadReferences();
 		comp->ExpandSolution();
 		comp->AdjustBoundaryElements();
-		
+		*/
 		comp->SetName("Malha Computacional com ordens diferentes");	
 #ifdef LOG4CXX
 		{
@@ -439,17 +479,17 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 		
 		TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
 		TPZFMatrix<STATE> val11(1,1,0.), val22(1,1,0.);
-		TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);//1
-		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
-		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
+		TPZMaterial *bnd = automat->CreateBC (automat,-1,1,val1,val2);//1
+		TPZMaterial *bnd2 = automat->CreateBC (automat,-2,1,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (automat,-3,1,val1,val2);//1
+		TPZMaterial *bnd4 = automat->CreateBC (automat,-4,1,val1,val2);
 		
-		//	TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
-		//    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
-		//	bnd->SetForcingFunction(fCC1);
-		//	bnd2->SetForcingFunction(fCC1);
-		//	bnd3->SetForcingFunction(fCC1);
-		//	bnd4->SetForcingFunction(fCC1);
+			TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
+		   //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
+        bnd->SetForcingFunction(fCC1);
+        bnd2->SetForcingFunction(fCC1);
+			bnd3->SetForcingFunction(fCC1);
+        bnd4->SetForcingFunction(fCC1);
 		
     
 		
@@ -495,6 +535,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		
 		REAL co[nnode][dim] ={{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};// {{0.,0.},{2.,0},{2.,2.},{0.,2.}};//{{-2.,-2},{2.,-2},{2.,2.},{-2.,2.}};//
 		long indices[2][nnode];//como serao enumerados os nos
+   
 		
 		//el 1
 		indices[0][0] = 0;
@@ -536,71 +577,46 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		
 		
 		//Cria as condicoes de contorno
-		TPZGeoElBC gbc1(elvec[0],3,-1);// condicao de fronteira tipo -1: 
-		TPZGeoElBC gbc2(elvec[0],5,-2);// condicao de fronteira tipo -2: 
+		TPZGeoElBC gbc1(elvec[0],3,bc0);// condicao de fronteira tipo -1:
+		TPZGeoElBC gbc2(elvec[0],5,bc3);// condicao de fronteira tipo -2:
 		
-		TPZGeoElBC gbc3(elvec[1],3,-3);// condicao de fronteira tipo -3: 
-		TPZGeoElBC gbc4(elvec[1],5,-4);// condicao de fronteira tipo -4: 
+		TPZGeoElBC gbc3(elvec[1],3,bc2);// condicao de fronteira tipo -3:
+		TPZGeoElBC gbc4(elvec[1],5,bc1);// condicao de fronteira tipo -4:
 		
 		const std::string nameref;
 		
 		TPZAutoPointer<TPZRefPattern> ref;
 		
-		
-		//	Refinamento uniforme
-		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
-				TPZVec<TPZGeoEl *> filhos;
-				long n = gmesh->NElements();
-				for(long i = 0; i < n; i++){
-						TPZGeoEl * gel = gmesh->ElementVec()[i];
-						if(!gel->HasSubElement())
-						{
-								gel->Divide(filhos);
-						}		
-				}}
-		
-		if (hrefine) {
-				//refinamento diferencialvel
-				{
-						
-						TPZVec<TPZGeoEl *> filhos;
-						long n = gmesh->NElements();
-						
-						
-						for(long i = 0; i < n; i++){	
-								TPZGeoEl * gel = gmesh->ElementVec()[i];
-								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
-										
-								{
-										gel->Divide(filhos);
-								}		
-						}
-				}
-				
-				//refinamento 1D--irei refinar tambem os elementos 1D
-				
-				{
-						
-						TPZVec<TPZGeoEl *> filhos;
-						long n = gmesh->NElements();
-						
-						
-						for(long i = 0; i < n; i++){	
-								TPZGeoEl * gel = gmesh->ElementVec()[i];
-								if (gel->Dimension()!=1) {
-										continue;
-								}
-								TPZGeoElSide Elside=gel->Neighbour(2);
-								TPZGeoEl *NeighEl=Elside.Element();
-								if (NeighEl->HasSubElement()) {
-										gel->Divide(filhos);
-								}
-								
-								
-								
-						}
-				}
-		}
+    //refinamento nao uniforme
+    if (hrefine) {
+        NoUniformRefine(gmesh, h);
+    }
+    
+    
+    else{
+        ///Refinamento uniforme
+        for ( int ref = 0; ref < h; ref++ )
+        {// h indica o numero de refinamentos
+            TPZVec<TPZGeoEl *> filhos;
+            long n = gmesh->NElements();
+            for ( long i = 0; i < n; i++ )
+            {
+                TPZGeoEl * gel = gmesh->ElementVec() [i];
+                //if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
+                if(!gel->HasSubElement())
+                {
+                    gel->Divide(filhos);
+                }
+            }//for i
+        }
+    
+    
+    
+    }
+    
+    
+    
+//    else UniformRefine(gmesh, h);
 		
 		
 #ifdef LOG4CXX
@@ -646,14 +662,30 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 		TPZGeoElBC gbc2 ( elvec[0],5,-2 );// condicao de fronteira tipo -2: (x=1,y)
 		TPZGeoElBC gbc3 ( elvec[0],6,-3 );// condicao de fronteira tipo -3: (x,y=1)
 		TPZGeoElBC gbc4 ( elvec[0],7,-4 );// condicao de fronteira tipo -4: (x=0,y)
-		
-        //refinamento nao uniforme
-		if (hrefine) {
-            NoUniformRefine(gmesh, h);
-        }
     
-    else UniformRefine(gmesh, h);
-        
+    ///Refinamento uniforme
+	for ( int ref = 0; ref < h; ref++ )
+	{// h indica o numero de refinamentos
+		TPZVec<TPZGeoEl *> filhos;
+		long n = gmesh->NElements();
+		for ( long i = 0; i < n; i++ )
+		{
+			TPZGeoEl * gel = gmesh->ElementVec() [i];
+			//if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
+			if(!gel->HasSubElement())
+			{
+				gel->Divide(filhos);
+			}
+		}//for i
+	}
+		
+//        //refinamento nao uniforme
+//		if (hrefine) {
+//            NoUniformRefine(gmesh, h);
+//        }
+//    
+//    else UniformRefine(gmesh, h);
+    
 				
 #ifdef LOG4CXX
 		{
@@ -667,10 +699,10 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 }
 
 
-TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
+TPZGeoMesh * MalhaGeo2(const int h,bool hrefine){//malha quadrilatero com 4 elementos
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
-//		int nelem=4;
-//		TPZGeoEl *elvec[4/*nelem*/];
+	int nelem=4;
+		TPZGeoEl *elvec[nelem];
 		//Criar ns
 		const int nnode = 9;//AQUI
 		const int dim = 2;//AQUI
@@ -678,7 +710,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		REAL co[nnode][dim] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.},{0.5,0},{1.,0.5},{0.5,1.},{0.,0.5},{0.5,0.5}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.},{0.,-1.},{0.,1.}};
 		
 		
-//		int nodindAll[4][4]={{0,4,8,7},{4,1,5,8},{8,5,2,6},{7,8,6,3}};//como serao enumerados os nos
+		int nodindAll[4][4]={{0,4,8,7},{4,1,5,8},{8,5,2,6},{7,8,6,3}};//como serao enumerados os nos
 		
 		
 		int nod;
@@ -692,7 +724,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 				}
 				gmesh->NodeVec()[nod].Initialize(nodind,coord,*gmesh);
 		}
-		//Criacao de elementos
+		/*Criacao de elementos
 		int matId=40;
 		long id=0;
 		TPZVec <long> TopolQuad(4);
@@ -771,53 +803,98 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 				TopolLine[1] = 0;
 				new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,-8,*gmesh);
 
+		*/
+    //Criacao de elementos
+    int matId=10;
+    long index;
+	for ( int el=0; el<nelem; el++ )
+	{
+		TPZVec<long> nodind(4);
+		nodind[0]=nodindAll[el][0];
+		nodind[1]=nodindAll[el][1];
+		nodind[2]=nodindAll[el][2];
+		nodind[3]=nodindAll[el][3];
 		
-		//-----
-//		for ( int el=0; el<nelem; el++ )
-//		{
-//				TPZVec<int> nodind ( 4 );
-//				for ( int nod=0; nod<4; nod++ ){
-//						nodind[nod]=nodindAll[el][nod];
-//				}
-//				
-//				elvec[el] = gmesh->CreateGeoElement (EQuadrilateral,nodind,matId,index );
-//				
-//				matId++;
-//					
-//				
-//		}
+		elvec[el] = gmesh->CreateGeoElement (EQuadrilateral,nodind,matId,index );
+        
+			//matId++;
+        index++;
+        
+        
+	}
+    
 		
 			
 		gmesh->BuildConnectivity();
-		
-		//Cria as condicoes de contorno
-//		TPZGeoElBC gbc1(elvec[0],4,-1);
-//		TPZGeoElBC gbc2(elvec[0],7,-2);
-//		TPZGeoElBC gbc3(elvec[1],4,-3);
-//		TPZGeoElBC gbc4(elvec[1],5,-4);
-//		TPZGeoElBC gbc5(elvec[2],5,-5);
-//		TPZGeoElBC gbc6(elvec[2],6,-6);
-//		TPZGeoElBC gbc7(elvec[3],6,-7);
-//		TPZGeoElBC gbc8(elvec[3],7,-8);
+    
+    //Cria as condicoes de contorno
+	TPZGeoElBC gbc1(elvec[0],4,-1);
+    TPZGeoElBC gbc2(elvec[0],7,-2);
+	TPZGeoElBC gbc3(elvec[1],4,-3);
+	TPZGeoElBC gbc4(elvec[1],5,-4);
+	TPZGeoElBC gbc5(elvec[2],5,-5);
+	TPZGeoElBC gbc6(elvec[2],6,-6);
+	TPZGeoElBC gbc7(elvec[3],6,-7);
+    TPZGeoElBC gbc8(elvec[3],7,-8);
 
 
-		
-		//Refinamento uniforme
-		for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
-				TPZVec<TPZGeoEl *> filhos;
-				int n = gmesh->NElements();
-				for(int i = 0; i < n; i++){
-						TPZGeoEl * gel = gmesh->ElementVec()[i];
-						if(!gel->HasSubElement())
-						{
-								gel->Divide(filhos);
-						}		
-						
-						
-				}
-				
-				
-		}
+
+	//	Refinamento uniforme
+    for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
+        TPZVec<TPZGeoEl *> filhos;
+        long n = gmesh->NElements();
+        for(long i = 0; i < n; i++){
+            TPZGeoEl * gel = gmesh->ElementVec()[i];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(filhos);
+            }
+        }}
+    
+    if (hrefine) {
+        //refinamento diferencialvel
+        {
+            
+            TPZVec<TPZGeoEl *> filhos;
+            long n = gmesh->NElements();
+            
+            
+            for(long i = 0; i < n; i++){
+                TPZGeoEl * gel = gmesh->ElementVec()[i];
+                if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+                    
+                {
+                    gel->Divide(filhos);
+                }
+            }
+        }
+        
+        //refinamento 1D--irei refinar tambem os elementos 1D
+        
+        {
+            
+            TPZVec<TPZGeoEl *> filhos;
+            long n = gmesh->NElements();
+            
+            
+            for(long i = 0; i < n; i++){
+                TPZGeoEl * gel = gmesh->ElementVec()[i];
+                if (gel->Dimension()!=1) {
+                    continue;
+                }
+                TPZGeoElSide Elside=gel->Neighbour(2);
+                TPZGeoEl *NeighEl=Elside.Element();
+                if (NeighEl->HasSubElement()) {
+                    gel->Divide(filhos);
+                }
+                
+                
+                
+            }
+        }
+    }
+    
+
 		
 		
 #ifdef LOG4CXX
@@ -1051,23 +1128,28 @@ void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVe
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
-    for(int D = 0; D < nDiv; D++)
-    {
-        int nels = gmesh->NElements();
-        for(int elem = 0; elem < nels; elem++)
+    TPZVec<TPZGeoEl *> filhos;
+    long n = gmesh->NElements();
+    for(long i = 0; i < n; i++){
+        TPZGeoEl * gel = gmesh->ElementVec()[i];
+        
+        if(!gel->HasSubElement() )
         {
-            TPZVec< TPZGeoEl * > filhos;
-            TPZGeoEl * gel = gmesh->ElementVec()[elem];
-			if(!gel) continue;
             gel->Divide(filhos);
         }
     }
+    
+    gmesh->ResetConnectivities();
+	gmesh->BuildConnectivity();
+//    return gmesh;
+    
 }
+
 
 void NoUniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
    
-        //refinamento diferencialvel
+        //refinamento nao uniforme
         
             
             TPZVec<TPZGeoEl *> filhos;
@@ -1101,7 +1183,10 @@ void NoUniformRefine(TPZGeoMesh* gmesh, int nDiv)
                 
             }
         
-    
+//    gmesh->ResetConnectivities();
+//	gmesh->BuildConnectivity();
+//    
+//    return gmesh;
 }
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs) {
