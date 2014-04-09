@@ -53,7 +53,7 @@ TPZGeoMesh * MalhaGeoT( const int h, bool hrefine);
 //Malha Quadrilateral formada por um elemento e refinamento nao uniforme
 TPZGeoMesh * MalhaGeo( const int h, bool hrefine);
 //Malha Quadrilateral formada por 4 elemento e refinamento uniforme
-TPZGeoMesh * MalhaGeo2(const int h);
+TPZGeoMesh * MalhaGeo2(const int h, bool hrefine);
 //Malha computacional convencional
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
@@ -71,6 +71,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux 
 void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
 void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
 void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux);
+
 
 //metodo para graficar a sol no mathematica
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol);
