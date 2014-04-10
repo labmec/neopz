@@ -86,8 +86,8 @@ long MaxEquations = 1300000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
-int MaxPOrder = 10;     // Maximum order for p refinement allowed
-int MaxHLevel = 5;      // Maximum level for h refinement allowed
+int MaxPOrder = 13;     // Maximum order for p refinement allowed
+int MaxHLevel = 6;      // Maximum level for h refinement allowed
 int MaxHUsed = 0;
 int MaxPUsed = 0;
 // Poisson problem
@@ -194,9 +194,9 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int materialBC1 = 2;
 	// Generic data for problems to solve
 	int NRefs = 100;
-	int ninitialrefs = 2;
+	int ninitialrefs = 3;
 	// Percent of error permited
-	REAL factorError = .25;
+	REAL factorError = .3;
 
 	// auxiliar string
 	char saida[512];
@@ -252,10 +252,10 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	switch(typeel) {
 	case EQuadrilateral:
 	case ETriangle:
-		NRefs = 12;
+		NRefs = 11;
 		break;
 	default:
-		NRefs = 10;
+		NRefs = 5;
 		break;
 	}
 
@@ -450,29 +450,29 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
 
-	REAL factorGrad = .7;
+	REAL factorGrad = .6;
+	REAL factorSGrad = .2;
 	REAL factorErrorBig = 0.8;
 
 	REAL BigError = factorErrorBig*MaxErrorByElement + (1.-factorErrorBig)*MinErrorByElement;
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
-	REAL SmallGrad = factorError*gradervecbyel[nels] + (1.-factorError)*MinGrad;
-	if(MaxGrad > 3.) {
-		if(MaxGrad > MinGrad) MaxGrad = 3.;
-		else MaxGrad = SmallGrad = MinGrad;
-		if(SmallGrad > MaxGrad) SmallGrad = MaxGrad;
-	}
-	if(BigError > 0.01) {
-		if(BigError > MinErrorByElement) BigError = 0.01;
-		else BigError = SmallError = MinErrorByElement;
-		if(SmallError > BigError) SmallError = BigError;
-	}
+	REAL SmallGrad = factorSGrad*gradervecbyel[nels] + (1.-factorSGrad)*MinGrad;
+//	if(MaxGrad > 5.) MaxGrad = 5.;
+//	if(SmallGrad > 1.) SmallGrad = 1.;
+//	if(BigError > 0.1) BigError = 0.1;
+//	if(SmallError > 0.5*BigError) SmallError = 0.5*BigError;
 
+/*	if(nref > 2) {
+		factorError -= 0.03;
+		if(factorError < 0.1) factorError = 0.1;
+	}
+*/
 	/* Printing maximum and minimun values of the errors */
 	out << "\nErro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad;
-	out << "\nMaxGrad " << MaxGrad << "     BigError " << BigError << "     SError " << SmallError << "    FactorError " << factorError;
+	out << "\nMaxGrad " << MaxGrad << "  SmallGrad " << SmallGrad << "    BigError " << BigError << "  SError " << SmallError << "  FactorError " << factorError;
 	cout << "\nErro ->   Max " << MaxErrorByElement << "    Min " << MinErrorByElement << "\nGrad ->   Max " << gradervecbyel[nels] << "   Min " << MinGrad;
-	cout << "\nMaxGrad " << MaxGrad << "  MinGrad " << SmallGrad << "     BigError " << BigError << "     SError " << SmallError << "    FactorError " << factorError;
+	cout << "\nMaxGrad " << MaxGrad << "  SmallGrad " << SmallGrad << "    BigError " << BigError << "  SError " << SmallError << "  FactorError " << factorError;
 
 	// Applying hp refinement only for elements with dimension as model dimension
 	for(i=0L;i<nels;i++) {
@@ -490,30 +490,30 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 		index = el->Index();
 		level = el->Reference()->Level();
 
-		if(nref < 7 && (gradervecbyel[i] > MaxGrad || ervecbyel[i] > BigError) && level < MaxHLevel) {
+		if(nref < 4 && (gradervecbyel[i] > MaxGrad || ervecbyel[i] > BigError) && level < MaxHLevel) {
 			counterreftype[10]++;
 			el->Divide(index,subels);
 			el = NULL;
 			level++;
 			hused = true;
-			if(nref < 1 && pelement < MaxPOrder) {
+			if(nref && pelement < MaxPOrder) {
 				counterreftype[12]++;
 				for(ii=0;ii<subels.NElements();ii++) {
 					dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[subels[ii]])->PRefine(pelement);
 				}
 				pused = true;
 			}
-//			if(ervecbyel[i] > BigError && gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
-//				counterreftype[11]++;
-//				for(ii=0;ii<subels.NElements();ii++) {
-//					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
-//					subels[ii]=0;
-//				}
-//				level++;
-//			}
+			if(ervecbyel[i] > BigError && gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
+				counterreftype[11]++;
+				for(ii=0;ii<subels.NElements();ii++) {
+					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
+					subels[ii]=0;
+				}
+				level++;
+			}
 //			else if(pelement < MaxPOrder && nref) {
 		}
-		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder && nref < 1) {
+		else if((gradervecbyel[i] > SmallGrad || ervecbyel[i] > SmallError) && pelement < MaxPOrder && nref) {
 			counterreftype[20]++;
 			el->PRefine(pelement);
 			pused = true;
