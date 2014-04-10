@@ -317,7 +317,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
         case 3:
             out << " TetraedraRef ";
             break;
-        default:
+        default:  
             out << "Undefined ";
             break;
     }

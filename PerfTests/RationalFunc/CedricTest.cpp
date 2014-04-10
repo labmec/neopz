@@ -241,7 +241,7 @@ void TCedricTest::LoadInterpolation(TPZCompMesh *cmesh)
 
 #define CONDENSE
 
-clarg::argInt  nthreads ("-g", "Number of threads.", 1);
+clarg::argInt  nthreads ("-nt", "Number of threads.", 1);
 
 void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,std::ostream &out) {
     TPZGeoMesh *gmesh;
