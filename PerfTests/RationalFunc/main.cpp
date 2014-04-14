@@ -24,6 +24,7 @@ void usage (char *prg)
 }
 
 #ifdef LOG4CXX
+#include "pzlog.h"
 static LoggerPtr logger(Logger::getLogger("pz.Cedric-Perf"));
 #endif
 
