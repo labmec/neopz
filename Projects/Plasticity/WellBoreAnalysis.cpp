@@ -340,6 +340,7 @@ TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fN
   , fSDPV()
 #endif
 {
+    fCMesh.SetReference(&fGMesh);
 }
 
 TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.fInnerRadius), fOuterRadius(conf.fOuterRadius),fNx(conf.fNx),fDelx(conf.fDelx),
@@ -367,8 +368,8 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fSD = copy.fSD;
     fFluidPressure = copy.fFluidPressure;
     fPostprocess.SetCompMesh(0);
-    fGMesh = copy.fGMesh;
     fCMesh = copy.fCMesh;
+    fGMesh = copy.fGMesh;
     fCMesh.SetReference(&fGMesh);
     fAllSol = copy.fAllSol;
     fPlasticDeformSqJ2 = copy.fPlasticDeformSqJ2;
@@ -1883,7 +1884,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(8);
+        structmatrix.SetNumThreads(0);
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);
