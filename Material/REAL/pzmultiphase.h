@@ -11,62 +11,259 @@
 
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
+#include "fad.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 /**
  * @ingroup material
  * @author Omar Duran
  * @since 19/08/2013
- * @brief Material to solve a 2d multiphase transport problems by multiphysics simulation
- * @brief Here is used H1, Hdiv ... spaces
+ * @brief Material to solve a 2d multiphase transport problem by multiphysics simulation
+ * @brief Here is used L, Hdiv ... spaces and first order upwind scheme
  */
 
 
 class TPZMultiphase : public TPZDiscontinuousGalerkin {
     
 protected:
+	
+    /** @brief Problem dimension */
+	int fDim;
+    
+    /** @brief Material id */
+    int fmatId;	
+	
 	/** @brief Definition of constants */
 	REAL ff;
+	
+	/** @brief State: Stiffness or Mass Matrix Calculations */
+	enum EState { ELastState = 0, ECurrentState = 1 };
+	EState gState;
+	
+	typedef TFad<2, double> BFadREAL;	
     
 public:
+
+	bool fnewWS;
+	
     TPZMultiphase();
     
     TPZMultiphase(int matid, int dim);
     
 	virtual ~TPZMultiphase();
     
+    /** @brief copy constructor */
+    TPZMultiphase(const TPZMultiphase &copy);
+    
+    TPZMultiphase &operator=(const TPZMultiphase &copy);
+	
 	virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMultiphase"; }
-    
-	virtual int NStateVariables();
 	
+	virtual int Dimension();
+	
+	virtual int NStateVariables();	
     
-    /**
-     * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
-     * @param datavec [in] stores all input data
-     * @param weight [in] is the weight of the integration rule
-     * @param ek [out] is the stiffness matrix
-     * @param ef [out] is the load vector
-     */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual int MatId();
+	
+
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);	
+	
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	
+
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);	
+	
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);	
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    	
+	
+
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	
+	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+
+	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);	
+	
+	virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec,TPZVec<TPZMaterialData> &dataleftvec,TPZVec<TPZMaterialData> &datarightvec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+	
+
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+		
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+				
+
+	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);	
+	
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);	
+
+	
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int var);
-	
-    /**
-     * @brief It return a solution to multiphysics simulation.
-	 * @param datavec [in] Data material vector
-     * @param var [in] number of solution variables. See  NSolutionVariables() method
-     * @param Solout [out] is the solution vector
-     */	
-	
+		
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
-	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
-	    	
+	
+	
+	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
+	{
+        TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
+    }
+	
+
+	// Here is needed to spefify which models are used in this bi-phasic model see Advanced-Petroleum-Reservoir-Simulation M. Rafiqul Islam
+
+	/** @brief K map */	
+	TPZStack< TPZFMatrix<REAL> > fKabsoluteMap;	
+
+	/** @brief Use or not K map */		
+	bool fYorN;
+	
+	/** @brief Simulation time step */
+	double fDeltaT;
+	
+	/** @brief Parameter representing temporal scheme */
+	double fTheta;	
+	
+	/** @brief Defines simulation time step. */
+	void SetTimeStep(double timestep){ this->fDeltaT = timestep;}	
+	
+	/** @brief Defines simulation time step. */
+	void SetTheta(double timetheta){ this->fTheta = timetheta;}		
+	
+	void SetLastState(){ gState = ELastState;}
+	
+	void SetCurrentState(){ gState = ECurrentState;}
+	
+	/** @brief Defines simulation use a K map */
+	void SetYorN(bool dummybool){ this->fYorN = dummybool;}		
+	
+	
+	/**
+	 * @name Getting Data
+	 * @{
+	 */
+	
+	void SetKMap(TPZStack< TPZFMatrix<REAL> > KabsoluteMap)
+	{
+		fKabsoluteMap = KabsoluteMap;
+	}	
+	
+	/** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
+	void CapillaryPressure(double So, double &pc, double &DpcDSo);
+	void CapillaryPressure(BFadREAL So, BFadREAL &pc);	
+	
+	/**
+	 * @brief Oil relative permeability.
+	 * \f$ Kro = Kro( Sw ) \f$
+	 */
+	void Kro(double Sw, double &Kro, double &dKroDSw);
+	void Kro(BFadREAL Sw, BFadREAL &Kro);
+	
+	/**
+	 * @brief Water relative permeability.
+	 * \f$ Krw = Krw( Sw ) \f$
+	 */
+	void Krw(double Sw, double &Krw, double &dKrwSo);
+	void Krw(BFadREAL Sw, BFadREAL &Krw);
+	
+	/** 
+	 * @brief \f$ Rock porosity. \f$ Phi = Phi( p ) \f$
+	 * @param po Refrence pressure
+	 */	
+	void Porosity(double po, double &poros, double &dPorosDp);
+	void Porosity(BFadREAL po, BFadREAL &poros);	
+	
+	/** 
+	 * @brief \f$ Oil density RhoOil = RhoOil( po ) \f$
+	 * @param po Refrence pressure
+	 */
+	void RhoOil(double po, double &RhoOil, double &dRhoOilDpo);
+	void RhoOil(BFadREAL po, BFadREAL &RhoOil);
+	
+	/** 
+	 * @brief \f$ Water density RhoWater = RhoWater( pw ) \f$
+	 * @param pw Refrence pressure
+	 */
+	void RhoWater(double pw, double &RhoWater, double &dRhoWaterDpo);
+	void RhoWater(BFadREAL pw, BFadREAL &RhoWater);	
+	
+	/** 
+	 * @brief Oil viscosity. \f$ OilViscosity = ViscOleo( po ) \f$
+	 * @param po Refrence pressure
+	 */
+	void OilViscosity(double po, double &OilViscosity, double &dOilViscosityDpo);
+	void OilViscosity(BFadREAL po, BFadREAL &OilViscosity);
+
+	/** 
+	 * @brief Water viscosity. \f$ WaterViscosity = WaterViscosity( pw ) \f$
+	 * @param po Refrence pressure
+	 */	
+	void WaterViscosity(double po, double &WaterViscosity, double &dWaterViscosityDpo);
+	void WaterViscosity(BFadREAL po, BFadREAL &WaterViscosity);
+	
+	
+	/**
+	 * @brief Oil mobility.
+	 * \f$ \lambda_{Oil} = \lambda_{Oil}( po , Sw ) \f$
+	 */
+	void OilLabmda(double &OilLabmda, double Po, double Sw, double &dOilLabmdaDPo, double &dOilLabmdaDSw);
+	void OilLabmda(BFadREAL OilLabmda, BFadREAL Po, BFadREAL &Sw);
+	
+	/**
+	 * @brief Water mobility.
+	 * \f$ \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$
+	 */
+	void WaterLabmda(double &WaterLabmda, double Pw, double Sw, double &dWaterLabmdaDPw, double &dWaterLabmdaDSw);
+	void WaterLabmda(BFadREAL WaterLabmda, BFadREAL Pw, BFadREAL &Sw);
+	
+	/**
+	 * @brief Bulk mobility.
+	 * \f$ \lambda = \lambda( pw , Sw ) \f$
+	 */
+	void Labmda(double &Labmda, double Pw, double Sw, double &dLabmdaDPw, double &dLabmdaDSw);
+	void Labmda(BFadREAL Labmda, BFadREAL Pw, BFadREAL &Sw);
+	
+	/**
+	 * @brief Fractional oil flux.
+	 * \f$ f_{Oil} = f_{Oil}( po , Sw ) \f$
+	 */
+	void fOil(double &fOil, double Pw, double Sw, double &dfOilDPw, double &dfOilDSw);
+	void fOil(BFadREAL fOil, BFadREAL Pw, BFadREAL &Sw);
+	
+	
+	/**
+	 * @brief Fractional water flux.
+	 * \f$ f_{Water} = f_{Water}( pw , Sw ) \f$
+	 */
+	void fWater(double &fWater, double Pw, double Sw, double &dfWaterDPw, double &dfWaterDSw);
+	void fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw);	
+	
+	
+	/** @brief Oil density on standard conditions - kg/m3 */
+	double RhoOilSC();
+	
+	/** @brief Water density on standard conditions - kg/m3 */
+	double RhoWaterSC();
+	
+	/** @brief Gravity */
+	double g();
+		
+	/** @brief Absolute permeability. */
+	void K(TPZFMatrix<REAL> &K);
+	
+	/** @brief Absolute permeability. */
+	void LoadKMap(std::string MaptoRead);	
+	
+	/** @} */
+	
 };
 
 #endif
