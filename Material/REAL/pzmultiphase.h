@@ -44,8 +44,12 @@ protected:
 	enum EState { ELastState = 0, ECurrentState = 1 };
 	EState gState;
 	
+#ifdef _AUTODIFF	
+	
 	typedef TFad<2, double> BFadREAL;	
     
+#endif	
+	
 public:
 
 	bool fnewWS;
