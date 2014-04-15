@@ -11,7 +11,9 @@
 
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
+#ifdef _AUTODIFF
 #include "fad.h"
+#endif
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -158,93 +160,163 @@ public:
 	
 	/** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
 	void CapillaryPressure(double So, double &pc, double &DpcDSo);
-	void CapillaryPressure(BFadREAL So, BFadREAL &pc);	
 	
 	/**
 	 * @brief Oil relative permeability.
 	 * \f$ Kro = Kro( Sw ) \f$
 	 */
 	void Kro(double Sw, double &Kro, double &dKroDSw);
-	void Kro(BFadREAL Sw, BFadREAL &Kro);
 	
 	/**
 	 * @brief Water relative permeability.
 	 * \f$ Krw = Krw( Sw ) \f$
 	 */
 	void Krw(double Sw, double &Krw, double &dKrwSo);
-	void Krw(BFadREAL Sw, BFadREAL &Krw);
 	
 	/** 
 	 * @brief \f$ Rock porosity. \f$ Phi = Phi( p ) \f$
 	 * @param po Refrence pressure
 	 */	
 	void Porosity(double po, double &poros, double &dPorosDp);
-	void Porosity(BFadREAL po, BFadREAL &poros);	
 	
 	/** 
 	 * @brief \f$ Oil density RhoOil = RhoOil( po ) \f$
 	 * @param po Refrence pressure
 	 */
 	void RhoOil(double po, double &RhoOil, double &dRhoOilDpo);
-	void RhoOil(BFadREAL po, BFadREAL &RhoOil);
 	
 	/** 
 	 * @brief \f$ Water density RhoWater = RhoWater( pw ) \f$
 	 * @param pw Refrence pressure
 	 */
 	void RhoWater(double pw, double &RhoWater, double &dRhoWaterDpo);
-	void RhoWater(BFadREAL pw, BFadREAL &RhoWater);	
 	
 	/** 
 	 * @brief Oil viscosity. \f$ OilViscosity = ViscOleo( po ) \f$
 	 * @param po Refrence pressure
 	 */
 	void OilViscosity(double po, double &OilViscosity, double &dOilViscosityDpo);
-	void OilViscosity(BFadREAL po, BFadREAL &OilViscosity);
 
 	/** 
 	 * @brief Water viscosity. \f$ WaterViscosity = WaterViscosity( pw ) \f$
 	 * @param po Refrence pressure
 	 */	
 	void WaterViscosity(double po, double &WaterViscosity, double &dWaterViscosityDpo);
-	void WaterViscosity(BFadREAL po, BFadREAL &WaterViscosity);
-	
 	
 	/**
 	 * @brief Oil mobility.
 	 * \f$ \lambda_{Oil} = \lambda_{Oil}( po , Sw ) \f$
 	 */
 	void OilLabmda(double &OilLabmda, double Po, double Sw, double &dOilLabmdaDPo, double &dOilLabmdaDSw);
-	void OilLabmda(BFadREAL OilLabmda, BFadREAL Po, BFadREAL &Sw);
 	
 	/**
 	 * @brief Water mobility.
 	 * \f$ \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$
 	 */
 	void WaterLabmda(double &WaterLabmda, double Pw, double Sw, double &dWaterLabmdaDPw, double &dWaterLabmdaDSw);
-	void WaterLabmda(BFadREAL WaterLabmda, BFadREAL Pw, BFadREAL &Sw);
 	
 	/**
 	 * @brief Bulk mobility.
 	 * \f$ \lambda = \lambda( pw , Sw ) \f$
 	 */
 	void Labmda(double &Labmda, double Pw, double Sw, double &dLabmdaDPw, double &dLabmdaDSw);
-	void Labmda(BFadREAL Labmda, BFadREAL Pw, BFadREAL &Sw);
 	
 	/**
 	 * @brief Fractional oil flux.
 	 * \f$ f_{Oil} = f_{Oil}( po , Sw ) \f$
 	 */
 	void fOil(double &fOil, double Pw, double Sw, double &dfOilDPw, double &dfOilDSw);
-	void fOil(BFadREAL fOil, BFadREAL Pw, BFadREAL &Sw);
-	
 	
 	/**
 	 * @brief Fractional water flux.
 	 * \f$ f_{Water} = f_{Water}( pw , Sw ) \f$
 	 */
 	void fWater(double &fWater, double Pw, double Sw, double &dfWaterDPw, double &dfWaterDSw);
-	void fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw);	
+	
+#ifdef _AUTODIFF	
+	
+	// Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
+	void CapillaryPressure(BFadREAL So, BFadREAL &pc);	
+	
+	/**
+	 * @brief Oil relative permeability.
+	 * \f$ Kro = Kro( Sw ) \f$
+	 */
+	void Kro(BFadREAL Sw, BFadREAL &Kro);
+	
+	/**
+	 * @brief Water relative permeability.
+	 * \f$ Krw = Krw( Sw ) \f$
+	 */
+	void Krw(BFadREAL Sw, BFadREAL &Krw);
+	
+	/** 
+	 * @brief \f$ Rock porosity. \f$ Phi = Phi( p ) \f$
+	 * @param po Refrence pressure
+	 */	
+	void Porosity(BFadREAL po, BFadREAL &poros);	
+	
+	/** 
+	 * @brief \f$ Oil density RhoOil = RhoOil( po ) \f$
+	 * @param po Refrence pressure
+	 */
+	void RhoOil(BFadREAL po, BFadREAL &RhoOil);	
+	
+	/** 
+	 * @brief \f$ Water density RhoWater = RhoWater( pw ) \f$
+	 * @param pw Refrence pressure
+	 */
+	void RhoWater(BFadREAL pw, BFadREAL &RhoWater);		
+	
+	/** 
+	 * @brief Oil viscosity. \f$ OilViscosity = ViscOleo( po ) \f$
+	 * @param po Refrence pressure
+	 */
+	void OilViscosity(BFadREAL po, BFadREAL &OilViscosity);	
+	
+	/** 
+	 * @brief Water viscosity. \f$ WaterViscosity = WaterViscosity( pw ) \f$
+	 * @param po Refrence pressure
+	 */	
+	void WaterViscosity(BFadREAL po, BFadREAL &WaterViscosity);	
+	
+	/**
+	 * @brief Oil mobility.
+	 * \f$ \lambda_{Oil} = \lambda_{Oil}( po , Sw ) \f$
+	 */
+	void OilLabmda(BFadREAL OilLabmda, BFadREAL Po, BFadREAL &Sw);	
+	
+	/**
+	 * @brief Water mobility.
+	 * \f$ \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$
+	 */
+	void WaterLabmda(BFadREAL WaterLabmda, BFadREAL Pw, BFadREAL &Sw);	
+	
+	
+	/**
+	 * @brief Bulk mobility.
+	 * \f$ \lambda = \lambda( pw , Sw ) \f$
+	 */
+	void Labmda(BFadREAL Labmda, BFadREAL Pw, BFadREAL &Sw);	
+	
+	/**
+	 * @brief Fractional oil flux.
+	 * \f$ f_{Oil} = f_{Oil}( po , Sw ) \f$
+	 */
+	void fOil(BFadREAL fOil, BFadREAL Pw, BFadREAL &Sw);	
+	
+	
+	/**
+	 * @brief Fractional water flux.
+	 * \f$ f_{Water} = f_{Water}( pw , Sw ) \f$
+	 */
+	void fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw);		
+	
+#endif	
+	
+	// Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 	
 	/** @brief Oil density on standard conditions - kg/m3 */
