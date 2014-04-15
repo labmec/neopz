@@ -250,6 +250,9 @@ public:
         std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
+        
+        fCurrentConfig.fCMesh.Solution().Zero();
+        fCurrentConfig.fAllSol = fCurrentConfig.fCMesh.Solution();
 
         return elindices.size();
     }

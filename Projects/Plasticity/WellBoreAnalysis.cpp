@@ -1694,6 +1694,8 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
     }
     fCMesh.AdjustBoundaryElements();
     fCMesh.InitializeBlock();
+    fCMesh.Solution().Zero();
+    fCurrentConfig.fAllSol.Resize(0, 0);
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -1814,6 +1816,8 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long>
     }
     fCMesh.AdjustBoundaryElements();
     fCMesh.InitializeBlock();
+    fCMesh.Solution().Zero();
+    fCurrentConfig.fAllSol.Resize(0, 0);
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -2089,7 +2093,8 @@ void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
         }
     }
     ApplyHistory(elindices);
-    
+    fCurrentConfig.fCMesh.Solution().Zero();
+    fCurrentConfig.fAllSol.Resize(0, 0);
     fCurrentConfig.fPostprocess.SetCompMesh(0);
 }
 
@@ -2132,6 +2137,9 @@ unsigned int TPZWellBoreAnalysis::DivideElementsAbove(REAL sqj2)
     // subject the integration points with the deformation history
     ApplyHistory(elindices);
     fCurrentConfig.ComputeElementDeformation();
+    
+    fCurrentConfig.fCMesh.Solution().Zero();
+    fCurrentConfig.fAllSol = fCurrentConfig.fCMesh.Solution();
     
     // invalidate the computational mesh associated with the postprocess mesh
     fCurrentConfig.fPostprocess.SetCompMesh(0);
