@@ -72,8 +72,8 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 void UniformRefinement(TPZGeoMesh *gMesh, int nh);
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *an, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
-void CheckConvergence(TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
-void ComputeResidual(REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void CheckConvergence(TPZFMatrix<STATE> SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void ComputeResidual(TPZFMatrix<STATE> SoltUattn,REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
 bool ftriang = false;
 
@@ -113,7 +113,7 @@ int main()
 	std::vector<double> dd(2,0);
 	
 	
-	int Href = 0;
+	int Href = 1;
 	int div = 0;		
 	int POrderBulkFlux = 1;	
 	int POrderPseudopressure = 1;
@@ -164,6 +164,70 @@ int main()
 		InitialQSolution(i)=0.0;
 	}
 	
+	
+	REAL initqx = 0.1;
+	
+	
+//	InitialQSolution(8)=1.0;	
+//	InitialQSolution(9)=0.0;		
+//	InitialQSolution(10)=0.0;
+//	InitialQSolution(11)=0.0;	
+//
+//	InitialQSolution(0)=initqx;
+//	InitialQSolution(1)=initqx;
+//	InitialQSolution(2)=0.0;
+//	InitialQSolution(3)=0.0;
+//	InitialQSolution(4)=0.0;
+//	InitialQSolution(5)=0.0;
+//	InitialQSolution(6)=-initqx;
+//	InitialQSolution(7)=-initqx;
+//	InitialQSolution(8)=0.0;	
+//	InitialQSolution(9)=0.0;		
+//	InitialQSolution(10)=0.0;
+//	InitialQSolution(11)=0.0;		
+//	
+//	InitialQSolution(0)=0.0;
+//	InitialQSolution(1)=0.0;
+//	InitialQSolution(2)=initqx;
+//	InitialQSolution(3)=initqx;
+//	InitialQSolution(4)=0.0;
+//	InitialQSolution(5)=0.0;
+//	InitialQSolution(6)=0.0;
+//	InitialQSolution(7)=0.0;
+//	InitialQSolution(8)=-initqx;//	
+//	InitialQSolution(9)=-initqx;//		
+//	InitialQSolution(10)=0.0;
+//	InitialQSolution(11)=0.0;
+//	InitialQSolution(12)=0.0;
+//	InitialQSolution(13)=0.0;
+//	InitialQSolution(14)=-initqx;//
+//	InitialQSolution(15)=-initqx;//
+//	InitialQSolution(16)=0.0;
+//	InitialQSolution(17)=0.0;
+//	InitialQSolution(18)=0.0;
+//	InitialQSolution(19)=0.0;
+//	InitialQSolution(20)=0.0;
+//	InitialQSolution(21)=0.0;
+//	InitialQSolution(22)=0.0;	
+//	InitialQSolution(23)=0.0;
+//	InitialQSolution(24)=initqx;
+//	InitialQSolution(25)=initqx;	
+//
+//	InitialQSolution(26)=0.0;
+//	InitialQSolution(27)=0.0;
+//	InitialQSolution(28)=0.0;
+//	InitialQSolution(29)=0.0;	
+//	InitialQSolution(30)=initqx;
+//	InitialQSolution(31)=initqx;
+//
+//	InitialQSolution(32)=0.0;
+//	InitialQSolution(33)=0.0;
+//	InitialQSolution(34)=-initqx;//
+//	InitialQSolution(35)=-initqx;//
+//	InitialQSolution(36)=0.0;
+//	InitialQSolution(37)=0.0;	
+//	InitialQSolution(38)=0.0;
+//	InitialQSolution(39)=0.0;
 	
 	Anbulkflux.LoadSolution(InitialQSolution);
 	int num= InitialQSolution.Rows();
@@ -290,8 +354,8 @@ int main()
 	int	Nthreads = 1;
 	//    //TPZFStructMatrix matsk(mphysics);
 //    TPZSkylineStructMatrix matsk(MultiphysicsMesh);	
-//	TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);	
-	TPZFStructMatrix matsk(MultiphysicsMesh);
+	TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);	
+//	TPZFStructMatrix matsk(MultiphysicsMesh);
 	MultiphysicsAn->SetStructuralMatrix(matsk);
 //	an.StructMatrix()->SetNumThreads(Nthreads);
 	TPZStepSolver<STATE> step;
@@ -313,7 +377,7 @@ int main()
 	int datar = MultiphysicsAn->Solution().Rows();
 	
 
-    REAL deltaT = 0.01; //second
+    REAL deltaT = 0.1; //second
     REAL maxTime = 0.1;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, meshvec, MultiphysicsMesh);
 
@@ -583,8 +647,8 @@ int main()
 
 		val2(0,0)=0.0;// qx
 		val2(1,0)=0.0;// qy
-		val2(2,0)=1.0;// P
-		val2(3,0)=1.0;// S	
+		val2(2,0)=0.1;// P
+		val2(3,0)=0.0;// S	
 		TPZMaterial * BCond5 = material1->CreateBC(mat1,5,1, val1, val2);
 		
 		val2(0,0)=0.0;// qx
@@ -801,14 +865,13 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 	
 
 	REAL TimeValue = 0.0;
-	double Tolerance = 1.0e-9;
+	double Tolerance = 1.0e-7;
 	int cent = 0;
-	int MaxIterations = 100;
-	int iterations= 0;
+	int MaxIterations = 10;
 	TimeValue = cent*deltaT;
 	double NormValue =1.0;
 	bool StopCriteria = false;
-	
+	TPZFMatrix<STATE> RhsAtn, RhsAtnPlusOne, Residual;
 	
 	while (TimeValue < maxTime)
 	{	
@@ -817,42 +880,42 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //		material1->SetLastState();
 //		material2->SetLastState();	
 		NonLinearAn->Assemble();
-		TPZFMatrix<STATE> RhsAtn = NonLinearAn->Rhs();	
+		RhsAtn = NonLinearAn->Rhs();	
 		
 		material1->SetCurrentState();
 		//			material2->SetCurrentState();
 		NonLinearAn->Assemble();
-		TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
-		TPZFMatrix<STATE> Residual= RhsAtn + RhsAtnPlusOne;		
+		RhsAtnPlusOne = NonLinearAn->Rhs();
+		Residual= RhsAtn + RhsAtnPlusOne;		
 		NormValue = Norm(Residual);
 		
-		// Getting EK
-		TPZFStructMatrix matsp(mphysics);		
-		std::set< int > materialid;
-		int matid = material1->MatId();
-		materialid.insert(matid);
-		materialid.insert(2);
-		materialid.insert(3);
-		materialid.insert(4);
-		materialid.insert(5);			
-		matsp.SetMaterialIds (materialid);
-		TPZAutoPointer<TPZGuiInterface> guiInterface;
-		TPZFMatrix<STATE> Un;
-		TPZAutoPointer <TPZMatrix<STATE> > matK2 = matsp.CreateAssemble(Un,guiInterface);
-		TPZFMatrix<STATE> TangentMat = *(matK2.operator->());
+//		// Getting EK
+//		TPZFStructMatrix matsp(mphysics);		
+//		std::set< int > materialid;
+//		int matid = material1->MatId();
+//		materialid.insert(matid);
+//		materialid.insert(2);
+//		materialid.insert(3);
+//		materialid.insert(4);
+//		materialid.insert(5);			
+//		matsp.SetMaterialIds (materialid);
+//		TPZAutoPointer<TPZGuiInterface> guiInterface;
+//		TPZFMatrix<STATE> Un;
+//		TPZAutoPointer <TPZMatrix<STATE> > matK2 = matsp.CreateAssemble(Un,guiInterface);
+//		TPZFMatrix<STATE> TangentMat = *(matK2.operator->());
 		
-#ifdef LOG4CXX
-		if(logdata->isDebugEnabled())
-		{
-			std::stringstream sout;
-			RhsAtn.Print("RhsAtn = ", sout,EMathematicaInput);				
-			RhsAtnPlusOne.Print("RhsAtnPlusOne = ", sout,EMathematicaInput);
-			NonLinearAn->Solver().Matrix()->Print("Tangent2 = ", sout,EMathematicaInput);
-			matK2->Print("Tangent = ", sout,EMathematicaInput);					
-			LastSolution.Print("LastSolution = ", sout,EMathematicaInput);
-			LOGPZ_DEBUG(logdata,sout.str())
-		}
-#endif		
+//#ifdef LOG4CXX
+//		if(logdata->isDebugEnabled())
+//		{
+//			std::stringstream sout;
+//			RhsAtn.Print("RhsAtn = ", sout,EMathematicaInput);				
+//			RhsAtnPlusOne.Print("RhsAtnPlusOne = ", sout,EMathematicaInput);
+//			NonLinearAn->Solver().Matrix()->Print("Tangent2 = ", sout,EMathematicaInput);
+//			matK2->Print("Tangent = ", sout,EMathematicaInput);					
+//			LastSolution.Print("LastSolution = ", sout,EMathematicaInput);
+//			LOGPZ_DEBUG(logdata,sout.str())
+//		}
+//#endif		
 		
 //#ifdef LOG4CXX
 //		if(logdata->isDebugEnabled())
@@ -865,8 +928,9 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //		}
 //#endif		
 
-		LastSolution.Print("LastSolution = :");
-		Residual.Print("Residual = :");		
+//		LastSolution.Print("LastSolution = :");
+//		Residual.Print("Residual = :");	
+		int iterations= 0;		
 		while (NormValue > Tolerance)
 		{		
 			
@@ -924,8 +988,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 			
 			LastSolution = NonLinearAn->Solution();	
 			
-			DeltaX.Print("DeltaX = :");
-			NonLinearAn->Solution().Print("NonLinearAn->Solution() = :");		
+//			DeltaX.Print("DeltaX = :");
+//			NonLinearAn->Solution().Print("NonLinearAn->Solution() = :");		
 
 			
 			material1->SetCurrentState();
@@ -935,8 +999,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 			Residual= RhsAtn + RhsAtnPlusOne;		
 			NormValue = Norm(Residual);
 			
-			Residual.Print("Residual = :");
-			mphysics->Solution().Print("NonLinearAn->Solution() = :");				
+//			Residual.Print("Residual = :");
+//			mphysics->Solution().Print("NonLinearAn->Solution() = :");				
 			
 			
 //#ifdef LOG4CXX
@@ -978,7 +1042,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
 	}
 	
-//	CheckConvergence(NonLinearAn, meshvec, mphysics);	
+	CheckConvergence(RhsAtn,NonLinearAn, meshvec, mphysics);	
 	
 	
 }
@@ -1071,16 +1135,17 @@ void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     
 }
 
-void CheckConvergence(TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+
+void CheckConvergence(TPZFMatrix<STATE> SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
 
-	
+	TPZFMatrix<REAL> U = NonLinearAn->Solution();
 	long neq = mphysics->NEquations();
     int nsteps = 10;
 	REAL alpha;
 	TPZFMatrix<REAL> alphas(nsteps,1,0.0),ResNorm(nsteps,1,0.0),ConvergenceOrder(nsteps-1,1,0.0);
 
-    TPZFMatrix<REAL> DeltaX(neq,1,0.001),ResAlpha(neq,0.0);
+    TPZFMatrix<REAL> DeltaX(neq,1,0.0001),ResAlpha(neq,0.0);
 //    for(long i = 0; i < neq; i++)
 //    {
 //        REAL val = (double)(rand())*(1.e-10);
@@ -1091,12 +1156,15 @@ void CheckConvergence(TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TP
     {
         alpha = (i+1.0)/10.0;
         alphas(i,0) = log(alpha);
-		ComputeResidual(alpha, DeltaX, ResAlpha, NonLinearAn, meshvec, mphysics);
+		NonLinearAn->LoadSolution(U);
+		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+		ComputeResidual(SoltUattn,alpha, DeltaX, ResAlpha, NonLinearAn, meshvec, mphysics);
+		
 		ResNorm(i,0)=log(Norm(ResAlpha));
 		
 	}
 	
-    for(int i = 0; i < nsteps - 1; i++){ ConvergenceOrder(i,0) =  (ResNorm(i,0)-ResNorm(i+1,0))/(alphas(i,0)-alphas(i+1,0));}	
+    for(int i = 0; i < nsteps - 1; i++){ ConvergenceOrder(i,0) =  (ResNorm(i+1,0)-ResNorm(i,0))/(alphas(i+1,0)-alphas(i,0));}	
 	
 	
 	DeltaX.Print("DeltaX =");	
@@ -1107,7 +1175,7 @@ void CheckConvergence(TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TP
 
 }
 
-void ComputeResidual(REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+void ComputeResidual(TPZFMatrix<STATE> SoltUattn, REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
 
 	TPZFMatrix<STATE> TangentRes;	
@@ -1116,34 +1184,40 @@ void ComputeResidual(REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &Re
 	
 	
 	// Computing the first part of the residual expresion.
-	material1->SetLastState();
-	NonLinearAn->Assemble();
-	TPZFMatrix<STATE> RhsAtn = NonLinearAn->Rhs();		
+//	material1->SetLastState();
+//	NonLinearAn->Assemble();
+//	TPZFMatrix<STATE> RhsAtn = NonLinearAn->Rhs();		
 	material1->SetCurrentState();
 	NonLinearAn->Assemble();
 	TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
-	TPZFMatrix<STATE> ResidualAtU = RhsAtn + RhsAtnPlusOne;		
+	TPZFMatrix<STATE> ResidualAtU = SoltUattn + RhsAtnPlusOne;	
+	
+	REAL normvalue = Norm(ResidualAtU);
+	
 	NonLinearAn->Solver().Matrix()->Multiply(alpha*DeltaU,TangentRes);
 	
 //	TangentRes.Print("TangentRes = ");
 //	ResidualAtU.Print("ResidualAtU = ");	
 		
-
 	NonLinearAn->LoadSolution(NonLinearAn->Solution()+alpha*DeltaU);			
 	TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);		
 	
-	material1->SetLastState();
-	NonLinearAn->Assemble();
-	RhsAtn = NonLinearAn->Rhs();	
+//	material1->SetLastState();
+//	NonLinearAn->Assemble();
+//	RhsAtn = NonLinearAn->Rhs();	
 	
 	material1->SetCurrentState();
 	NonLinearAn->Assemble();
 	RhsAtnPlusOne = NonLinearAn->Rhs();
-	TPZFMatrix<STATE> ResidualAtUplusAlphaDeltaU = (RhsAtn + RhsAtnPlusOne);
+	TPZFMatrix<STATE> ResidualAtUplusAlphaDeltaU = SoltUattn + RhsAtnPlusOne;
 	
 //	ResidualAtUplusAlphaDeltaU.Print("ResidualAtUplusAlphaDeltaU = ");
 	
-	ResAlpha =  (ResidualAtUplusAlphaDeltaU - ResidualAtU) - TangentRes;
+	ResAlpha =  (ResidualAtUplusAlphaDeltaU - (ResidualAtU - TangentRes));
+	
+	REAL number = Norm(ResAlpha);
+	
+	number= 0;
 //	ResAlpha.Print("ResAlpha = ");	
 	
 	

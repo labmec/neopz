@@ -350,7 +350,7 @@ void TPZMultiphase::fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw)
 		
 }
 
-#endif
+#endif 
 
 // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1339,8 +1339,6 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 		}
 	
 		
-		
-		
 		//	Upwind scheme
 		//	Third Vector Block (Equation three) Saturation  equation
 		REAL dotqnL = (qxL*n1) + (qyL*n2);
@@ -1349,72 +1347,28 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 
 		if (dotqnL > 0.0) 
 		{
-			
 			UpwindSaturation = SaturationL;			
 			
-		//	Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}]	(Equation three) Left-Left Part			
+			//	Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}]	(Equation three) Left-Left Part			
 			for(int isat=0; isat<SRowsleft; isat++)
 			{
 				for(int jsat=0; jsat<SRowsleft; jsat++)
 				{
 					ek(isat+QRowsleft+PRowsleft,jsat+QRowsleft+PRowsleft) 
-					+= weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * phiSL(jsat,0) * dotqnL;
+					+= weight * (Theta) * (TimeStep) * phiSL(isat,0) * phiSL(jsat,0) * dotqnL;
 				}
 			}
-		//	Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part			
+
+			//	Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part			
 			for(int isat=0; isat<SRowsRight; isat++)
 			{
 				
 				for(int jsat=0; jsat<SRowsleft; jsat++)
 				{
-					ek(isat+QRowsRight+PRowsRight+iRightInterfaceBlock,jsat+QRowsRight+PRowsRight) 
-					-= weight * (1-Theta) * (TimeStep) * phiSR(isat,0) * phiSL(jsat,0) * dotqnL;
+					ek(isat+QRowsRight+PRowsRight+iRightInterfaceBlock,jsat+QRowsleft+PRowsleft) 
+					-= weight * (Theta) * (TimeStep) * phiSR(isat,0) * phiSL(jsat,0) * dotqnL;
 				}				
 			}	
-			
-			
-			//	Third Vector Block (Equation three) Saturation  equation
-			//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Left-Left Part		
-			for (int isat=0; isat < SRowsleft; isat++) {
-				
-				for (int jq=0; jq<QRowsleft; jq++)
-				{
-					int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
-					int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
-					
-					
-					REAL dotprodL = 
-					(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-					(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-					//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
-					
-					ek(isat+QRowsleft+PRowsleft,jq)	+= weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * UpwindSaturation * dotprodL;
-					
-				}
-				
-			}
-			
-			//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part		
-			for (int isat=0; isat < SRowsRight; isat++) {
-				
-				
-				for (int jq=0; jq<QRowsleft; jq++)
-				{
-					int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
-					int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
-					
-					
-					REAL dotprodL = 
-					(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-					(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-					//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
-					
-					ek(isat+QRowsleft+PRowsleft,jq)	-= weight * (1-Theta) * (TimeStep) * phiSR(isat,0) * UpwindSaturation * dotprodL;
-					
-				}				
-				
-				
-			}			
 			
 		}	
 		
@@ -1429,7 +1383,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 				for(int jsat=0; jsat<SRowsRight; jsat++)
 				{
 					ek(isat+QRowsleft+PRowsleft,jsat+QRowsRight+PRowsRight+jRightInterfaceBlock) 
-					-= weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * phiSR(jsat,0) * dotqnR;
+					+= weight * (Theta) * (TimeStep) * phiSL(isat,0) * phiSR(jsat,0) * dotqnL;
 				}
 			}
 		//	Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}]	(Equation three) Right-Right Part			
@@ -1439,57 +1393,51 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 				for(int jsat=0; jsat<SRowsRight; jsat++)
 				{
 					ek(isat+QRowsRight+PRowsRight+iRightInterfaceBlock,jsat+QRowsRight+PRowsRight+jRightInterfaceBlock) 
-					+= weight * (1-Theta) * (TimeStep) * phiSR(isat,0) * phiSR(jsat,0) * dotqnR;
+					-= weight * (Theta) * (TimeStep) * phiSR(isat,0) * phiSR(jsat,0) * dotqnL;
 				}				
 			}
 			
-
-			
-			//	Third Vector Block (Equation three) Saturation  equation
-			//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Left-Left Part		
-			for (int isat=0; isat < SRowsleft; isat++) {
-				
-				
-				for (int jq=0; jq<QRowsRight; jq++)
-				{
-					int jRvectorindex		= dataright[0].fVecShapeIndex[jq].first;
-					int jRshapeindex		= dataright[0].fVecShapeIndex[jq].second;
-					
-					
-					REAL dotprodR = 
-					(phiQR(jRshapeindex,0)*dataright[0].fNormalVec(0,jRvectorindex)) * (n1) +
-					(phiQR(jRshapeindex,0)*dataright[0].fNormalVec(1,jRvectorindex)) * (n2) ;//+
-					//				(phiQR(jRshapeindex,0)*dataright[0].fNormalVec(2,jRvectorindex)) * (n3) ;	//	dot(q,n)	left
-					
-					ek(isat+QRowsleft+PRowsleft,jq)	-= weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * UpwindSaturation * dotprodR;
-					
-				}
-				
-			}
-			
-			//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part		
-			for (int isat=0; isat < SRowsRight; isat++) {
-				
-				for (int jq=0; jq<QRowsRight; jq++)
-				{
-					int jRvectorindex		= dataright[0].fVecShapeIndex[jq].first;
-					int jRshapeindex		= dataright[0].fVecShapeIndex[jq].second;
-					
-					
-					REAL dotprodR = 
-					(phiQR(jRshapeindex,0)*dataright[0].fNormalVec(0,jRvectorindex)) * (n1) +
-					(phiQR(jRshapeindex,0)*dataright[0].fNormalVec(1,jRvectorindex)) * (n2) ;//+
-					//				(phiQR(jRshapeindex,0)*dataright[0].fNormalVec(2,jRvectorindex)) * (n3) ;	//	dot(q,n)	left
-					
-					ek(isat+QRowsleft+PRowsleft+iRightInterfaceBlock,jq)	+= weight * (1-Theta) * (TimeStep) * phiSR(isat,0) * UpwindSaturation * dotprodR;
-					
-				}
-				
-			}			
-			
 		}
 
+
+		//	Third Vector Block (Equation three) Saturation  equation
+		//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Left-Left Part		
+		for (int isat=0; isat < SRowsleft; isat++) {
+			
+			for (int jq=0; jq<QRowsleft; jq++)
+			{
+				int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
+				int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
+				
+				
+				REAL dotprodL = 
+				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
+				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+				//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
+				
+				ek(isat+QRowsleft+PRowsleft,jq)	+= weight * (Theta) * (TimeStep) * phiSL(isat,0) * UpwindSaturation * dotprodL;
+				
+			}
+		}
 		
+		//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part		
+		for (int isat=0; isat < SRowsRight; isat++) 
+		{
+			for (int jq=0; jq<QRowsleft; jq++)
+			{
+				int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
+				int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
+				
+				
+				REAL dotprodL = 
+				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
+				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+				//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
+				
+				ek(isat+QRowsRight+PRowsRight+iRightInterfaceBlock,jq)	-= weight * (Theta) * (TimeStep) * phiSR(isat,0) * UpwindSaturation * dotprodL;
+				
+			}				
+		}			
 			
 		
 	}
@@ -1701,21 +1649,19 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 		}			
 		
 		//	Third Vector Block (Equation three)
-		// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Left-Left Part
+		// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Left-Left Part
 		for(int isat=0; isat<SRowsleft; isat++)
 		{
-			
-			REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
-			ef(isat+QRowsleft+PRowsleft) -= weight * phiSL(isat,0) * ResidualPart;
+			REAL ResidualPart	=	(Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
+			ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
 		}
 		
-		// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
+		// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
 		for(int isat=0; isat<SRowsRight; isat++)
 		{
-			
-			REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
-			ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) += weight * phiSR(isat,0) * ResidualPart;
-		}			
+			REAL ResidualPart	=	(Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
+			ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) -= weight * phiSR(isat,0) * ResidualPart;
+		}
 		
 		
 	}
@@ -1743,20 +1689,21 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 		}
 		
 		//	Third Vector Block (Equation three)
-		// (1-theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Left-Left Part
+		// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Left-Left Part
 		for(int isat=0; isat<SRowsleft; isat++)
 		{
 			
-			REAL ResidualPart	=	(Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
-			ef(isat+QRowsleft+PRowsleft) -= weight * phiSL(isat,0) * ResidualPart;
+			REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
+			ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
 		}
-		// (1-theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
+		
+		// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
 		for(int isat=0; isat<SRowsRight; isat++)
 		{
 			
-			REAL ResidualPart	=	(Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
-			ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) += weight * phiSR(isat,0) * ResidualPart;
-		}				
+			REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( UpwindSaturation * dotqnL );
+			ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) -= weight * phiSR(isat,0) * ResidualPart;
+		}					
 
 		
 	
@@ -2051,16 +1998,17 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //			//	Third Vector Block (Equation three) Saturation  equation
 			REAL UpwindSaturation = 0.0;
 				
-				if (dotqnL > 0.0) {
+				if (dotqnL > 0.0) 
+				{
 						
-					UpwindSaturation = SaturationL;		
+					UpwindSaturation = SaturationL;
 					
 					//	Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}]	(Equation three) Bc-Left Part			
 					for(int isat=0; isat<SRowsleft; isat++)
 					{
 						for(int jsat=0; jsat<SRowsleft; jsat++)
 						{
-							ek(isat+QRowsleft+PRowsleft,jsat+QRowsleft+PRowsleft) += weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * phiSL(jsat,0) * dotqnL;
+							ek(isat+QRowsleft+PRowsleft,jsat+QRowsleft+PRowsleft) += weight * (Theta) * (TimeStep) * phiSL(isat,0) * phiSL(jsat,0) * dotqnL;
 						}
 					}						
 					
@@ -2070,39 +2018,36 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				{
 					UpwindSaturation = v2[3];	
 					
+				}
+								
 
+				//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part		
+				for (int isat=0; isat < SRowsleft; isat++) {
 					
-					
-					//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part		
-					for (int isat=0; isat < SRowsleft; isat++) {
+					for (int jq=0; jq<QRowsleft; jq++)
+					{
+						int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
+						int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
 						
-						for (int jq=0; jq<QRowsleft; jq++)
-						{
-							int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
-							int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
-							
-							
-							REAL dotprodL = 
-							(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-							(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-							//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
-							
-							ek(isat+QRowsleft+PRowsleft,jq)	+= weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation-SaturationL) * dotprodL;
-							
-						}
+						
+						REAL dotprodL = 
+						(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
+						(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+						//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
+						
+						ek(isat+QRowsleft+PRowsleft,jq)	+= weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
 						
 					}
 					
-					// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
-					for(int isat=0; isat<SRowsleft; isat++)
-					{
-						
-						REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( (UpwindSaturation-SaturationL) * dotqnL );
-						ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
-					}								
-					
 				}
-
+				
+				// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
+				for(int isat=0; isat<SRowsleft; isat++)
+				{
+					
+					REAL ResidualPart	=	(Theta) * (TimeStep) * ( (UpwindSaturation) * dotqnL );
+					ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
+				}	
 				
 							
 				
@@ -2120,26 +2065,26 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				REAL UpwindSaturation = 0.0;
 				
 				
-				if (dotqnL > 0.0) {
+				if (dotqnL > 0.0) 
+				{
 					UpwindSaturation = SaturationL;
 				}
 				
 				else 
-				{
-					UpwindSaturation = v2[3];
-					
-					// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
-					for(int isat=0; isat<SRowsleft; isat++)
-					{
-						
-						REAL ResidualPart	=	(Theta) * (TimeStep) * ( (UpwindSaturation-SaturationL) * dotqnL );
-						ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
-					}								
+				{								
 					
 				}
 				
+				UpwindSaturation = v2[3];
 				
-		
+				// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
+				for(int isat=0; isat<SRowsleft; isat++)
+				{
+					
+					REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( (UpwindSaturation) * dotqnL );
+					ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
+				}				
+				
 				
 				
 			}
@@ -2183,6 +2128,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				//	Third Vector Block (Equation three) Saturation  equation
 				REAL UpwindSaturation = 0.0;				
 				UpwindSaturation = SaturationL;	
+								
 				
 				if (dotqnL > 0.0) 
 				{
@@ -2194,7 +2140,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 					{
 						for(int jsat=0; jsat<SRowsleft; jsat++)
 						{
-							ek(isat+QRowsleft+PRowsleft,jsat+QRowsleft+PRowsleft) += weight * (1-Theta) * (TimeStep) * phiSL(isat,0) * phiSL(jsat,0) * dotqnL;
+							ek(isat+QRowsleft+PRowsleft,jsat+QRowsleft+PRowsleft) += weight * (Theta) * (TimeStep) * phiSL(isat,0) * phiSL(jsat,0) * dotqnL;
 						}
 					}						
 					
@@ -2204,12 +2150,40 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 					
 				{					
 					
+				UpwindSaturation = SaturationL;					
+					
 				if (dotqnL < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";					
 					
 				}			
 						
 
+				//	Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]	(Equation three) Right-Left Part		
+				for (int isat=0; isat < SRowsleft; isat++) {
+					
+					for (int jq=0; jq<QRowsleft; jq++)
+					{
+						int jLvectorindex		= dataleft[0].fVecShapeIndex[jq].first;
+						int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;
+						
+						
+						REAL dotprodL = 
+						(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
+						(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+						//				(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;	//	dot(q,n)	left
+						
+						ek(isat+QRowsleft+PRowsleft,jq)	+= weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
+						
+					}
+					
+				}
 				
+				// (1-Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
+				for(int isat=0; isat<SRowsleft; isat++)
+				{
+					
+					REAL ResidualPart	=	(Theta) * (TimeStep) * ( (UpwindSaturation) * dotqnL );
+					ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
+				}				
 				
 				
 				
@@ -2218,6 +2192,30 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 			
 			if(gState == ELastState)
 			{
+				
+				REAL dotqnL = (qxL*n1) + (qyL*n2);
+				REAL UpwindSaturation = 0.0;
+				
+				
+				if (dotqnL > 0.0) 
+				{
+					UpwindSaturation = SaturationL;
+				}
+				
+				else 
+				{								
+					
+				}
+				
+				UpwindSaturation = v2[3];
+				
+				// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
+				for(int isat=0; isat<SRowsleft; isat++)
+				{
+					
+					REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( (UpwindSaturation) * dotqnL );
+					ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
+				}				
 								
 				
 			}	
