@@ -1695,7 +1695,7 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
     fCMesh.AdjustBoundaryElements();
     fCMesh.InitializeBlock();
     fCMesh.Solution().Zero();
-    fCurrentConfig.fAllSol.Resize(0, 0);
+    fAllSol.Resize(0, 0);
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -1817,7 +1817,7 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long>
     fCMesh.AdjustBoundaryElements();
     fCMesh.InitializeBlock();
     fCMesh.Solution().Zero();
-    fCurrentConfig.fAllSol.Resize(0, 0);
+    fAllSol.Resize(0, 0);
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
