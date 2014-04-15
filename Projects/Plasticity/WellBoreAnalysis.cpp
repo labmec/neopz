@@ -2744,6 +2744,10 @@ void TPZWellBoreAnalysis::Print(std::ostream &out)
 void TPZWellBoreAnalysis::SaveConfig(std::stringstream &strout) {
     //Saving TConfig
     fCurrentConfig.fHistoryLog = strout.str();
+    if(fCurrentConfig.fAllSol.Cols() == 0)
+    {
+        fCurrentConfig.fAllSol = fCurrentConfig.fCMesh.Solution();
+    }
     fSequence.push_back(fCurrentConfig);
 }
 

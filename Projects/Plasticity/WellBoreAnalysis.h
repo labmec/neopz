@@ -19,6 +19,9 @@
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "pzstack.h"
+//#include "TPZMohrCoulomb.h"
+//#include "TPZMohrCoulombNeto.h"
+//#include "TPZMohrCoulombPV.h"
 
 class TPZElasticityMaterial;
 
@@ -159,10 +162,18 @@ public:
         
         /// Parameters of the Sandler DiMaggio plasticity
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
+
+        /// Parameters of the Mohr Coulomb material
+        //TPZMohrCoulomb<MOHRCOULOMBPARENT> fMC;
+
+        /// Parameters
+        //TPZElasticityMaterial fEl;
         
 #ifdef PV
         // Sandler Dimaggio PV
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
+
+        //Mohr PV
 #endif
         /// Fluid pressure
         REAL fFluidPressure;
