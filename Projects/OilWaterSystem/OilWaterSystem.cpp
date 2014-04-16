@@ -88,6 +88,8 @@ int main()
 	#ifdef LOG4CXX
 		InitializePZLOG();
 	#endif		
+		
+	gRefDBase.InitializeAllUniformRefPatterns();
 
 	//	Reading mesh
 	std::string GridFileName;	
@@ -158,82 +160,18 @@ int main()
     outputfiletemp1 << outputfile1 << ".vtk";
     std::string plotfilebuklflux = outputfiletemp1.str();
 	TPZFMatrix<STATE> InitialQSolution = Anbulkflux.Solution();	
-	int rwosQ= InitialQSolution.Rows();
-	for (int i=0; i < InitialQSolution.Rows(); i++) 
-	{
-		InitialQSolution(i)=0.0;
-	}
-	
-	
-	REAL initqx = 0.1;
-	
-	
-//	InitialQSolution(8)=1.0;	
-//	InitialQSolution(9)=0.0;		
-//	InitialQSolution(10)=0.0;
-//	InitialQSolution(11)=0.0;	
-//
-//	InitialQSolution(0)=initqx;
-//	InitialQSolution(1)=initqx;
-//	InitialQSolution(2)=0.0;
-//	InitialQSolution(3)=0.0;
-//	InitialQSolution(4)=0.0;
-//	InitialQSolution(5)=0.0;
-//	InitialQSolution(6)=-initqx;
-//	InitialQSolution(7)=-initqx;
-//	InitialQSolution(8)=0.0;	
-//	InitialQSolution(9)=0.0;		
-//	InitialQSolution(10)=0.0;
-//	InitialQSolution(11)=0.0;		
-//	
-//	InitialQSolution(0)=0.0;
-//	InitialQSolution(1)=0.0;
-//	InitialQSolution(2)=initqx;
-//	InitialQSolution(3)=initqx;
-//	InitialQSolution(4)=0.0;
-//	InitialQSolution(5)=0.0;
-//	InitialQSolution(6)=0.0;
-//	InitialQSolution(7)=0.0;
-//	InitialQSolution(8)=-initqx;//	
-//	InitialQSolution(9)=-initqx;//		
-//	InitialQSolution(10)=0.0;
-//	InitialQSolution(11)=0.0;
-//	InitialQSolution(12)=0.0;
-//	InitialQSolution(13)=0.0;
-//	InitialQSolution(14)=-initqx;//
-//	InitialQSolution(15)=-initqx;//
-//	InitialQSolution(16)=0.0;
-//	InitialQSolution(17)=0.0;
-//	InitialQSolution(18)=0.0;
-//	InitialQSolution(19)=0.0;
-//	InitialQSolution(20)=0.0;
-//	InitialQSolution(21)=0.0;
-//	InitialQSolution(22)=0.0;	
-//	InitialQSolution(23)=0.0;
-//	InitialQSolution(24)=initqx;
-//	InitialQSolution(25)=initqx;	
-//
-//	InitialQSolution(26)=0.0;
-//	InitialQSolution(27)=0.0;
-//	InitialQSolution(28)=0.0;
-//	InitialQSolution(29)=0.0;	
-//	InitialQSolution(30)=initqx;
-//	InitialQSolution(31)=initqx;
-//
-//	InitialQSolution(32)=0.0;
-//	InitialQSolution(33)=0.0;
-//	InitialQSolution(34)=-initqx;//
-//	InitialQSolution(35)=-initqx;//
-//	InitialQSolution(36)=0.0;
-//	InitialQSolution(37)=0.0;	
-//	InitialQSolution(38)=0.0;
-//	InitialQSolution(39)=0.0;
+// 	int rwosQ= InitialQSolution.Rows();
+// 	for (int i=0; i < InitialQSolution.Rows(); i++) 
+// 	{
+// 		InitialQSolution(i)=0.0;
+// 	}
+
 	
 	Anbulkflux.LoadSolution(InitialQSolution);
 	int num= InitialQSolution.Rows();
 
 
-	TPZVec<STATE> soliniQ(InitialQSolution.Rows(),0.0);
+	TPZVec<STATE> soliniQ(num,0.0);
     TPZCompMesh  * cmeshQL2 = L2ProjectionQ(gmesh, POrderBulkFlux, soliniQ);
     
     TPZAnalysis anQL2(cmeshQL2);
@@ -280,12 +218,12 @@ int main()
 	AnSaturation.LoadSolution(InitialSSolution);
 	PosProcessL2(AnSaturation,plotfileSaturation);		
 	
-	//	This is so rare!!
-	if (twoMaterial) 
-	{
-		gmesh->AddInterfaceMaterial(1,2, 1);
-		gmesh->AddInterfaceMaterial(2,1, 1);
-	}
+// 	//	This is so rare!!
+// 	if (twoMaterial) 
+// 	{
+// 		gmesh->AddInterfaceMaterial(1,2, 1);
+// 		gmesh->AddInterfaceMaterial(2,1, 1);
+// 	}
 	
     //	Multiphysics Mesh
     TPZVec<TPZCompMesh *> meshvec(3);
@@ -321,7 +259,7 @@ int main()
     REAL year = 365.0*day;
 
     REAL deltaT = 0.1*day; //seconds
-    REAL maxTime = 5.0*day;
+    REAL maxTime = 0.1*day;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, meshvec, MultiphysicsMesh);
 
     return 0;
@@ -925,7 +863,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 			NonLinearAn->Solve();
 //			LastSolution.Print("LastSolution = :");
 //			NonLinearAn->Solution().Print("NonLinearAn->Solution() = :");				
-			DeltaX = NonLinearAn->Solution();
+// 			DeltaX = NonLinearAn->Solution();
 //			mphysics->LoadSolution((LastSolution + NonLinearAn->Solution()));
 			NonLinearAn->LoadSolution((LastSolution + NonLinearAn->Solution()));			
 			TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -986,7 +924,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
 	}
 	
-	CheckConvergence(RhsAtn,NonLinearAn, meshvec, mphysics);	
+// 	CheckConvergence(RhsAtn,NonLinearAn, meshvec, mphysics);	
 	
 	
 }
