@@ -110,10 +110,10 @@ int main()
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
 	}
 	
-	std::vector<double> dd(2,0);
+// 	std::vector<double> dd(2,0);
 	
 	
-	int Href = 3;
+	int Href = 2;
 	int div = 0;		
 	int POrderBulkFlux = 1;	
 	int POrderPseudopressure = 1;
@@ -261,55 +261,10 @@ int main()
     
     TPZAnalysis anL2(cmeshL2);
     SolveSyst(anL2, cmeshL2);
-	
-//	InitialPSolution(0)=0.0;
-//	InitialPSolution(1)=0.0;
-//	InitialPSolution(2)=-6.36396103;
-//	InitialPSolution(3)=5.50000000;
 		
-	
-//	InitialPSolution(0)=5.5;
-//	InitialPSolution(1)=14.5;
-//	InitialPSolution(2)=14.5;
-//	InitialPSolution(3)=5.5;	
     AnPressure.LoadSolution(anL2.Solution());
-	
-
-//	int TotalComputationalElements	= CMeshPseudopressure->NElements();		
-//	for ( int el = 0; el < TotalComputationalElements ; el++ )
-//	{
-//		
-//		TPZCompEl * ComputationalElement = CMeshPseudopressure->ElementVec()[el];
-//		TPZGeoEl * GeoemtricElement;
-//		GeoemtricElement = ComputationalElement->Reference();
-//		int NumberNodeCorners = ComputationalElement->Reference()->NCornerNodes();
-//		
-//		for (int ConnectIndex = 0; ConnectIndex < NumberNodeCorners ; ConnectIndex++) 
-//		{
-//			if (NumberNodeCorners == 2) {
-//				continue;
-//			}
-//			else 
-//			{
-//				TPZConnect & ThisConnect = ComputationalElement->Connect(ConnectIndex);
-//				TPZVec <REAL> Coordenates(3,0.0);
-//				REAL InitialValue;			
-//				Coordenates[0] = GeoemtricElement->NodePtr(ConnectIndex)->Coord(0);
-//				Coordenates[1] = GeoemtricElement->NodePtr(ConnectIndex)->Coord(1);
-//				Coordenates[2] = GeoemtricElement->NodePtr(ConnectIndex)->Coord(2);						
-//				
-//				int Sequence = ThisConnect.SequenceNumber();
-//				int BlockPos = CMeshPseudopressure->Block().Position(Sequence);
-//				
-//				InitialPSolution(BlockPos)= 1.0e6;				
-//			}
-//
-//
-//		}
-//	}
-	
-//	AnPressure.LoadSolution(InitialPSolution);	
-	PosProcessL2(AnPressure,plotfilePressure);	
+		
+    PosProcessL2(AnPressure,plotfilePressure);	
 	
 
 	TPZAnalysis AnSaturation(CMeshWaterSaturation);
@@ -331,11 +286,6 @@ int main()
 		gmesh->AddInterfaceMaterial(1,2, 1);
 		gmesh->AddInterfaceMaterial(2,1, 1);
 	}
-//	
-//	
-//	RefinUniformElemComp(CMeshBulkflux, 2);
-//	RefinUniformElemComp(CMeshPseudopressure, 2);
-//	RefinUniformElemComp(CMeshWaterSaturation, 2);	
 	
     //	Multiphysics Mesh
     TPZVec<TPZCompMesh *> meshvec(3);
@@ -348,40 +298,33 @@ int main()
     ofstream ArgumentMultiphysic("MultiphysicsMesh.txt");
     MultiphysicsMesh->Print(ArgumentMultiphysic);
 	
-//	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(MultiphysicsMesh, Href, true)	
 	
     TPZAnalysis *MultiphysicsAn = new TPZAnalysis(MultiphysicsMesh);
-	int	Nthreads = 2;
-	//    //TPZFStructMatrix matsk(mphysics);
-//    TPZSkylineStructMatrix matsk(MultiphysicsMesh);	
-	TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);	
-//	TPZFStructMatrix matsk(MultiphysicsMesh);
-	MultiphysicsAn->SetStructuralMatrix(matsk);
-	MultiphysicsAn->StructMatrix()->SetNumThreads(Nthreads);
-	TPZStepSolver<STATE> step;
-	step.SetDirect(ELU); 					
-	MultiphysicsAn->SetSolver(step);
+    int	Nthreads = 2;
+    TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);	
+    MultiphysicsAn->SetStructuralMatrix(matsk);
+    MultiphysicsAn->StructMatrix()->SetNumThreads(Nthreads);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELU); 					
+    MultiphysicsAn->SetSolver(step);
 		
 	
-//	an.Run();	
-//	an.Solve();	
-	
-//	TPZFMatrix<STATE> Initialsolution = MultiphysicsAn.Solution();
     std::string outputfile;
-	outputfile = "TransientSolution";
+    outputfile = "TransientSolution";
     std::stringstream outputfiletemp;
     outputfiletemp << outputfile << ".vtk";
     std::string plotfile = outputfiletemp.str();
-	PosProcessMultphysics(meshvec,MultiphysicsMesh,*MultiphysicsAn,plotfile);		
+    PosProcessMultphysics(meshvec,MultiphysicsMesh,*MultiphysicsAn,plotfile);		
 	
-	int datar = MultiphysicsAn->Solution().Rows();
-	
+    REAL hour = 60.0*60.0;
+    REAL day = 24.0*hour;
+    REAL year = 365.0*day;
 
-    REAL deltaT = 0.8; //second
-    REAL maxTime = 8.0;
+    REAL deltaT = 0.1*day; //seconds
+    REAL maxTime = 5.0*day;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, meshvec, MultiphysicsMesh);
 
-	return 0;
+    return 0;
 	
 }	
 	
@@ -616,6 +559,7 @@ int main()
 		
 		REAL deltaT = 0.1;
 		REAL maxTime = 0.1;
+		REAL MPa = 1.0e+6;
 		
 		material1->SetTimeStep(1.0);
 		material1->fnewWS=true;
@@ -647,7 +591,7 @@ int main()
 
 		val2(0,0)=0.0;// qx
 		val2(1,0)=0.0;// qy
-		val2(2,0)=0.1;// P
+		val2(2,0)=100.0*MPa;// P
 		val2(3,0)=1.0;// S	
 		TPZMaterial * BCond5 = material1->CreateBC(mat1,5,1, val1, val2);
 		
@@ -668,7 +612,7 @@ int main()
 		
 		val2(0,0)=0.0;// qx
 		val2(1,0)=0.0;// qy
-		val2(2,0)=0.0;// P
+		val2(2,0)=10.0*MPa;// P
 		val2(3,0)=0.0;// S			
 		TPZMaterial * BCond4 = material1->CreateBC(mat1,3,2, val1, val2);				
 		//		TPZMaterial * BCond3 = material1->CreateBC(mat1,3,1, val1, val2);
@@ -865,9 +809,9 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 	
 
 	REAL TimeValue = 0.0;
-	double Tolerance = 1.0e-5;
+	double Tolerance = 1.0e-8;
 	int cent = 0;
-	int MaxIterations = 30;
+	int MaxIterations = 50;
 	TimeValue = cent*deltaT;
 	double NormValue =1.0;
 	bool StopCriteria = false;
