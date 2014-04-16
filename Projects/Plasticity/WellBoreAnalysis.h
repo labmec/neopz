@@ -199,6 +199,10 @@ public:
     };
 
     TPZWellBoreAnalysis();
+
+    TPZWellBoreAnalysis(const TPZWellBoreAnalysis &copy);
+
+    TPZWellBoreAnalysis &operator=(const TPZWellBoreAnalysis &copy);
     
     ~TPZWellBoreAnalysis();
     

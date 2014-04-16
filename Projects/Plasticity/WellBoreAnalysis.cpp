@@ -122,6 +122,19 @@ TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPos
     
 }
 
+TPZWellBoreAnalysis::TPZWellBoreAnalysis(const TPZWellBoreAnalysis &copy) : fCurrentConfig(copy.fCurrentConfig), fSequence(copy.fSequence), fPostProcessNumber(copy.fPostProcessNumber), fLinearMatrix(copy.fLinearMatrix)
+{
+
+}
+
+TPZWellBoreAnalysis &TPZWellBoreAnalysis::operator=(const TPZWellBoreAnalysis &copy)
+{
+    fCurrentConfig = copy.fCurrentConfig;
+    fSequence = copy.fSequence;
+    fPostProcessNumber = copy.fPostProcessNumber;
+    fLinearMatrix = copy.fLinearMatrix;
+}
+
 TPZWellBoreAnalysis::~TPZWellBoreAnalysis()
 {
     
@@ -347,7 +360,11 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
     fGreater(conf.fGreater),fSmaller(conf.fSmaller),
         fConfinement(conf.fConfinement), fSD(conf.fSD), fFluidPressure(conf.fFluidPressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog)
+#ifdef PV
+  , fSDPV(conf.fSDPV)
+#endif
 {
+    fPostprocess.SetCompMesh(0);
     fGMesh.ResetReference();
     fCMesh.SetReference(&fGMesh);
     fCMesh.LoadReferences();
@@ -365,8 +382,16 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fInnerRadius = copy.fInnerRadius;
     fOuterRadius = copy.fOuterRadius;
     fConfinement = copy.fConfinement;
+    fDelx = copy.fDelx;
+    fNx = copy.fNx;
+    fSmaller = copy.fSmaller;
+    fGreater = copy.fGreater;
     fSD = copy.fSD;
+#ifdef PV
+    fSDPV = copy.fSDPV;
+#endif
     fFluidPressure = copy.fFluidPressure;
+    fPostprocess = copy.fPostprocess;
     fPostprocess.SetCompMesh(0);
     fCMesh = copy.fCMesh;
     fGMesh = copy.fGMesh;
