@@ -538,15 +538,15 @@ int TPZPlasticStepPV<YC_t, ER_t>::SignCorrection() const
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
 {
-    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    //DebugStop();
+		PZError << " \n this method is not implemented in PlasticStepPV." << std::endl;
+    DebugStop();
 }
 
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf)
 {
-    //std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    //DebugStop();
+    PZError << " \n this method is not implemented in PlasticStepPV." << std::endl;
+    DebugStop();
 }
 
 template <class YC_t, class ER_t>
