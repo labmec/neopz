@@ -347,24 +347,31 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 
-TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(), fSD(), fFluidPressure(0.),
+TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(),  fFluidPressure(0.),
     fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog()
 #ifdef PV
   , fSDPV()
+#else
+    , fSD()
 #endif
+
 {
     fCMesh.SetReference(&fGMesh);
 }
 
 TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.fInnerRadius), fOuterRadius(conf.fOuterRadius),fNx(conf.fNx),fDelx(conf.fDelx),
     fGreater(conf.fGreater),fSmaller(conf.fSmaller),
-        fConfinement(conf.fConfinement), fSD(conf.fSD), fFluidPressure(conf.fFluidPressure),
+        fConfinement(conf.fConfinement), fFluidPressure(conf.fFluidPressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog)
 #ifdef PV
   , fSDPV(conf.fSDPV)
 #endif
 {
-    fPostprocess.SetCompMesh(0);
+#ifdef PV
+    fSDPV = conf.fSDPV;
+#else
+    fSD = conf.fSD;
+#endif
     fGMesh.ResetReference();
     fCMesh.SetReference(&fGMesh);
     fCMesh.LoadReferences();
@@ -382,14 +389,15 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fInnerRadius = copy.fInnerRadius;
     fOuterRadius = copy.fOuterRadius;
     fConfinement = copy.fConfinement;
+#ifdef PV
+    fSDPV = copy.fSDPV;
+#else
+    fSD = copy.fSD;
+#endif
     fDelx = copy.fDelx;
     fNx = copy.fNx;
     fSmaller = copy.fSmaller;
     fGreater = copy.fGreater;
-    fSD = copy.fSD;
-#ifdef PV
-    fSDPV = copy.fSDPV;
-#endif
     fFluidPressure = copy.fFluidPressure;
     fPostprocess = copy.fPostprocess;
     fPostprocess.SetCompMesh(0);
@@ -412,7 +420,11 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     TPZSaveable::WriteObjects(out, fGreater);
     TPZSaveable::WriteObjects(out, fSmaller);
     fConfinement.Write(out);
+#ifdef PV
+    fSDPV.Write(out);
+#else
     fSD.Write(out);
+#endif
     out.Write(&fFluidPressure);
     fGMesh.Write(out, 0);
     fCMesh.Write(out, 0);
@@ -435,7 +447,11 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     TPZSaveable::ReadObjects(input, fSmaller);
     
     fConfinement.Read(input);
+#ifdef PV
+    fSDPV.Read(input);
+#else
     fSD.Read(input);
+#endif
     input.Read(&fFluidPressure);
     fGMesh.Read(input, 0);
     fCMesh.Read(input, &fGMesh);
@@ -2680,8 +2696,13 @@ void TPZWellBoreAnalysis::LinearConfiguration(int porder)
 void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterial &mat)
 {
     REAL E,nu, lambda,G;
+#ifdef PV
+    G = fCurrentConfig.fSDPV.fER.fMu;
+    lambda = fCurrentConfig.fSDPV.fER.fLambda;
+#else
     G = fCurrentConfig.fSD.fER.fMu;
     lambda = fCurrentConfig.fSD.fER.fLambda;
+#endif
     E=G*(3.*lambda+2.*G)/(lambda+G);
     nu = lambda/(2.*(lambda+G));
     mat.SetElasticity(E, nu);
@@ -2826,8 +2847,13 @@ void TPZWellBoreAnalysis::TConfig::Print(ostream &out)
     out << "fGreater " << fGreater << endl;
     out << "fSmaller " << fSmaller << endl;
     out << "fConfinement " << fConfinement << endl;
+#ifdef PV
+    out << "fSDPV ";
+    fSDPV.Print(out);
+#else
     out << "fSD ";
     fSD.Print(out);
+#endif
     out << "fFluidPressure " << fFluidPressure << endl;
     out << "fGMesh ";
     fGMesh.Print(out);

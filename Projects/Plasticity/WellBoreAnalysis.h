@@ -29,6 +29,8 @@ class TPZElasticityMaterial;
 /// create de standard mesh
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
+enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
+
 /// Class which simulates the stability of a wellbore
 class TPZWellBoreAnalysis
 {
@@ -161,20 +163,21 @@ public:
         /// confinement stress
         TPZTensor<STATE> fConfinement;
         
-        /// Parameters of the Sandler DiMaggio plasticity
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
-
-        /// Parameters of the Mohr Coulomb material
-        //TPZMohrCoulomb<MOHRCOULOMBPARENT> fMC;
-
         /// Parameters
         //TPZElasticityMaterial fEl;
+        
+        EPlasticModel fModel;
         
 #ifdef PV
         // Sandler Dimaggio PV
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
 
         //Mohr PV
+#else
+        /// Parameters of the Sandler DiMaggio plasticity
+        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
+        
+        
 #endif
         
         
@@ -365,7 +368,6 @@ public:
     
    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {
-        fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
 
 #ifdef PV
         STATE G=Elast/(2.*(1.+poisson));
@@ -373,6 +375,8 @@ public:
         STATE phi=0,psi=1.,N=0.;
         fCurrentConfig.fSDPV.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
         fCurrentConfig.fSDPV.fER.SetUp(Elast,poisson);
+#else
+        fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
 #endif
 
 
