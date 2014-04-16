@@ -84,6 +84,16 @@ public:
 	TPZYCMohrCoulombPV(const TPZYCMohrCoulombPV &cp);
 	
 	/**
+	 * @brief Sets up the data
+	 */
+	void SetUp(REAL Phi, REAL Psi, REAL c, TPZElasticResponse &ER){
+		fPhi = Phi;
+		fPsi = Psi;
+		fc = c;
+		fER = ER;
+	}
+	
+	/**
 	 * @brief Operator =
 	 */
 	TPZYCMohrCoulombPV & operator=(const TPZYCMohrCoulombPV &cp);
@@ -109,7 +119,7 @@ public:
 	 * @brief Calculates the value c(epsp) and its derivative
 	 */
 	template <class T>
-	void PlasticityFunction(const T epsp, T &sigmay, T &H) const;
+	void PlasticityFunction(const T epsp, T &c, T &H) const;
 	
 	/**
 	 * @brief sigma = lambda Tr(E)I + 2 mu E

@@ -33,10 +33,10 @@ void TPZYCMohrCoulombPV::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi
 }
 
 template <class T>
-void TPZYCMohrCoulombPV::PlasticityFunction(const T epsp, T &sigmay, T &H) const
+void TPZYCMohrCoulombPV::PlasticityFunction(const T epsp, T &c, T &H) const
 {
-	sigmay = 15.+2571.43*(-0.0035) + 12904.8*epsp; // c(epsp)
-	H = 12904.8; // dc(epsp)/depsp
+	c = fc; // c(epsp)
+	H = 0.; // dc(epsp)/depsp
 }
 
 template<class T>
