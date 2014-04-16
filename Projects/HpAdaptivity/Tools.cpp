@@ -148,10 +148,7 @@ const REAL epsilon=1000.;
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
 		REAL x = pt[0];
 		REAL y = pt[1];
-		//double fator=(-1)*(x*x+y*y);
-		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
 		disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
-   // disp[0]=0.;
 		return;
 }
 void Forcing2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
@@ -257,9 +254,10 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
 }
 void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
-//    disp.Redim(2,1);
+ //   disp.Redim(2,1);
     REAL x = pt[0];
     REAL y = pt[1];
+    int aux=0;
    /* REAL B = (16.*epsilon)/MyPi;
 	REAL G = -0.4375;
     REAL F = 2*sqrt(epsilon);
@@ -276,7 +274,7 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //disp(0,0)=(-1.)*B*(sum*(MyPi+2.*arctan)+(num/den));
     */
     
-    	disp[0]=(16*(-1 + x)*x*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
+    	aux=(16*(-1 + x)*x*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
                     (640000*sqrt(10)*pow(-0.5 + x,2)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2)))/
                     pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
     (160*sqrt(10)*(-0.5 + x)*(8*(-1 + x) + 8*x)*(-1 + y)*y)/
@@ -287,19 +285,15 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
                       pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
                   (160*sqrt(10)*(-0.5 + y)*(-1 + 2*y))/(MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
                   2*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi));
-    disp[0]=(-1.)*disp[0];
+   disp[0]=(-1.)*aux;
 
     
     
-    
-    
-
 }
-
 void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     REAL x=pt[0];
     REAL prodx=x*(x-1.);
-    REAL arc=20.*sqrt(10.)*((-3./16.)-(x-0.5)*(x-0.5));
+    REAL arc=2.*sqrt(epsilon)*((-3./16.)-(x-0.5)*(x-0.5));
     f[0]= 8.*prodx*(1. + (2./MyPi)*atan(arc));
  
 
@@ -308,9 +302,9 @@ void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
-    REAL y=pt[0];
+    REAL y=pt[1];
     REAL prody=y*(y-1.);
-    REAL arc=20.*sqrt(10.)*((-3./16.)-(y-0.5)*(y-0.5));
+    REAL arc=2.*sqrt(epsilon)*((-3./16.)-(y-0.5)*(y-0.5));
     f[0]= 8.*prody*(1 + (2./MyPi)*atan(arc));
 }
 void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
@@ -351,8 +345,8 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
 		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
         TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
-		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
-		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
+		//TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
+		//TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
     
 		
 
@@ -371,7 +365,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
             bnd->SetForcingFunction(fCC1);
             bnd2->SetForcingFunction(fCC2);
 			bnd3->SetForcingFunction(fCC1);
-			bnd4->SetForcingFunction(fCC2);
+            bnd4->SetForcingFunction(fCC2);
 		
 	
 		///Inserir condicoes de contorno
@@ -388,7 +382,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
    // comp->SetAllCreateFunctionsHDivFull();
 		comp->SetAllCreateFunctionsHDivPressure();
-		//comp->SetAllCreateFunctionsContinuous();
+	//	comp->SetAllCreateFunctionsContinuous();
         
 
 		
