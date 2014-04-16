@@ -511,19 +511,25 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         }
         
         
-        ComputeLinearMatrix();        
-        analysis.AdjustTangentMatrix(fLinearMatrix);
-        analysis.Solver().SetMatrix(fLinearMatrix);
-        if (fLinearMatrix) {
-            std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
-        }
+
         bool linesearch = true,checkconv=false;
 		REAL tol = 1.e-6;
+        bool conv;
 #ifdef PV
-        //analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
-        analysis.IterativeProcess(cout, fLinearMatrix,tol, numnewton, linesearch);
+        
+        analysis.IterativeProcess(cout, tol, numnewton,linesearch,checkconv,conv);
+        
+        if (conv==false) {
+            ComputeLinearMatrix();
+            analysis.AdjustTangentMatrix(fLinearMatrix);
+            analysis.Solver().SetMatrix(fLinearMatrix);
+            if (fLinearMatrix) {
+                std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
+            }
+            analysis.IterativeProcess(cout, fLinearMatrix, tol, numnewton, linesearch);
+        }
 #else
-        //analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
+        //analysis.IterativeProcess(cout, tol, numnewton,linesearch,checkconv);
         analysis.IterativeProcess(cout, fLinearMatrix, tol, numnewton, linesearch);
 #endif
         
@@ -565,11 +571,11 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
         if (istep==0) {
             fCurrentConfig.CreatePostProcessingMesh();
-            PostProcess(2);
+            PostProcess(0);
         }
         else {
             fCurrentConfig.CreatePostProcessingMesh();
-            PostProcess(1);
+            PostProcess(0);
         }
         
         if (fLinearMatrix) {
@@ -620,9 +626,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     //step.SetDirect(ECholesky);
 	analysis.SetSolver(step);
     
-    ComputeLinearMatrix();
-    analysis.AdjustTangentMatrix(fLinearMatrix);
-    analysis.Solver().SetMatrix(fLinearMatrix);
+
     
     
     
@@ -646,11 +650,20 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     int neq = analysis.Mesh()->Solution().Rows();
     fCurrentConfig.fAllSol.Redim(neq, 1);
     
-    int NumIter = 60;
+    int NumIter = 50;
     bool linesearch = true;
     bool checkconv = false;
-//    analysis.IterativeProcess(cout, 1.e-6, NumIter, linesearch, checkconv);
-    analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, NumIter, linesearch);
+    REAL tol =1.e-5;
+    bool conv;
+
+    analysis.IterativeProcess(cout, tol, NumIter,linesearch,checkconv,conv);
+    if (conv==false) {
+        ComputeLinearMatrix();
+        analysis.AdjustTangentMatrix(fLinearMatrix);
+        analysis.Solver().SetMatrix(fLinearMatrix);
+        analysis.IterativeProcess(cout, fLinearMatrix, tol, NumIter, linesearch);
+    }
+//    analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, NumIter, linesearch);
     
     
         //analysis.Solution().Print();
@@ -671,7 +684,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     
     fCurrentConfig.CreatePostProcessingMesh();
     
-    PostProcess(2);
+    PostProcess(0);
     
 //    fCurrentConfig.VerifyGlobalEquilibrium();
 
@@ -733,19 +746,24 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
         std::cout << "Simulation Step " << i << " out of " << nsteps << std::endl;
         pBC->Val1()=mattemp;
         
-        ComputeLinearMatrix();
-        analysis.AdjustTangentMatrix(fLinearMatrix);
-        analysis.Solver().SetMatrix(fLinearMatrix);
+
         
         bool linesearch = true;
         bool checkconv=false;
-        int numNewton =60;
+        int numNewton =50;
+        REAL tol =1.e-6;
+        bool conv;
 #ifdef PV
-        //analysis.IterativeProcess(cout, 1.e-8, numNewton,linesearch,checkconv);
-        analysis.IterativeProcess(cout, fLinearMatrix, 1.e-8, numNewton, linesearch);
+        analysis.IterativeProcess(cout, tol, numNewton,linesearch,checkconv,conv);
+        if (conv==false) {
+            ComputeLinearMatrix();
+            analysis.AdjustTangentMatrix(fLinearMatrix);
+            analysis.Solver().SetMatrix(fLinearMatrix);
+            analysis.IterativeProcess(cout, fLinearMatrix, tol, numNewton, linesearch);
+        }
 #else
 
-        analysis.IterativeProcess(cout, fLinearMatrix, 1.e-8, numNewton, linesearch);
+        analysis.IterativeProcess(cout, fLinearMatrix, tol, numNewton, linesearch);
 #endif
         
         TPZFMatrix<STATE> &sol = analysis.Mesh()->Solution();
@@ -764,7 +782,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
 
         
         fCurrentConfig.CreatePostProcessingMesh();
-        PostProcess(1);
+        PostProcess(0);
         
         cout << "-------------------> i: "<< i << " Pressao atual: " << mattemp;
 
@@ -1956,6 +1974,11 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
     vecNames.Push("TotalPlasticStrain"); // x y z
     vecNames.Push("ShearStress"); //xy xz yz
     vecNames.Push("ShearStrain"); //xy xz yz
+    vecNames.Push("NormalStress");//
+    vecNames.Push("ShearStress");//
+    vecNames.Push("PrincipalStress");//
+    vecNames.Push("ShearStrain");//
+    vecNames.Push("TotalPlasticStrain");//
 
     vecNames.Push("NormalStress");// x y z
     vecNames.Push("NormalStrain"); // x y z
@@ -1971,12 +1994,18 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     fCurrentConfig.CreatePostProcessingMesh();
 
 #ifdef PV
-    std::string vtkFile = "pocoplasticoPV.vtk";
+    //std::string vtkFile = "pocoplasticoPVIV.vtk";
+//    std::string vtkFile = "pocoplasticoPVSemRFk.vtk";
+//     std::string vtkFile = "PVOnlyInitial.vtk";
+//    std::string vtkFile = "PVOnlyInitialFR.vtk";
+        std::string vtkFile = "PVOnlyInitialFRII.vtk";
+    //std::string vtkFile = "pocoplasticoPVTestePosproc.vtk";
     //std::string vtkFile = "pocoplasticoPV2.vtk";
 #else
-    std::string vtkFile = "pocoplasticoErick.vtk";
+    std::string vtkFile = "pocoplasticoErickII.vtk";
 #endif
     TPZStack<std::string> scalNames,vecNames;
+    PostProcessVariables(scalNames,vecNames);
     fCurrentConfig.fPostprocess.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
     fCurrentConfig.fPostprocess.SetStep(fPostProcessNumber);
     fCurrentConfig.fPostprocess.PostProcess(resolution);
@@ -2553,12 +2582,14 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &fCMesh;
     
+    
 #ifdef PV
     
     int materialid=1;
     bool planestrain=true;
     TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =fSDPV;
     TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
+
     
     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     TPZTensor<REAL> initstress(0.),finalstress(0.);
@@ -2568,6 +2599,8 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     finalstress.XX() = hydro;
     finalstress.YY() = hydro;
     finalstress.ZZ() = hydro;
+    
+    SD.fN.fAlpha=-41.;
     
     PrepareInitialMat(SD, initstress, finalstress, 10);
     initstress = finalstress;
@@ -2737,7 +2770,7 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
             TPZManVector<REAL,3> ksi1(1,0.), ksi2(2,0.);
             t1.Apply(ksi, ksi1);
             t2.Apply(ksi1, ksi2);
-            compneigh.Element()->Solution(ksi2, 30, sol);
+            compneigh.Element()->Solution(ksi2, 1, sol);
             
             gel->X(ksi, xvec);
             intel->GetIntegrationRule().Point(0, ksi, weight);

@@ -10,6 +10,7 @@
 #define PZ_WellBoreAnalysis_h
 
 #define PV
+#define Elastic
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
@@ -175,8 +176,14 @@ public:
 
         //Mohr PV
 #endif
+        
+        
+    
+
         /// Fluid pressure
         REAL fFluidPressure;
+        
+        REAL fPorePressure;
         
         /// Geometric mesh3
         TPZGeoMesh fGMesh;
@@ -349,6 +356,11 @@ public:
         fCurrentConfig.fConfinement.YY() = stress[1];
         fCurrentConfig.fConfinement.ZZ() = stress[2];
         fCurrentConfig.fFluidPressure = wellpressure;
+    }
+    
+    void SetPorePressure(STATE porepressure)
+    {
+        fCurrentConfig.fPorePressure = porepressure;
     }
     
    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)

@@ -42,7 +42,9 @@ public:
 	 * @brief It process a Newton's method to solve the non-linear problem.
 	 * In this implementation, the line search is temporarily disabled.
 	 */
-	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
+	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv,bool &ConvOrDiverg);
+
+    	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
     
     /// Iterative process using the linear elastic material as tangent matrix
     virtual void IterativeProcess(std::ostream &out, TPZAutoPointer<TPZMatrix<STATE> > linearmatrix, REAL tol, int numiter, bool linesearch);
