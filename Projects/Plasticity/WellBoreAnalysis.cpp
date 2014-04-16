@@ -222,6 +222,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     SD.fER.SetUp(elast,poisson);
     TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
 
+		//AQUINATHAN SETAR MOHRCOULOMB COM O BASICO
 #else
     
     //TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
@@ -350,7 +351,7 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(),  fFluidPressure(0.),
     fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog()
 #ifdef PV
-  , fSDPV()
+  , fSDPV(), fMCPV()
 #else
     , fSD()
 #endif
@@ -364,7 +365,7 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
         fConfinement(conf.fConfinement), fFluidPressure(conf.fFluidPressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog)
 #ifdef PV
-  , fSDPV(conf.fSDPV)
+  , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV)
 #endif
 {
 #ifdef PV
@@ -391,10 +392,12 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fConfinement = copy.fConfinement;
 #ifdef PV
     fSDPV = copy.fSDPV;
+		fMCPV = copy.fMCPV;
 #else
     fSD = copy.fSD;
 #endif
-    fDelx = copy.fDelx;
+
+		fDelx = copy.fDelx;
     fNx = copy.fNx;
     fSmaller = copy.fSmaller;
     fGreater = copy.fGreater;
@@ -422,9 +425,13 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fConfinement.Write(out);
 #ifdef PV
     fSDPV.Write(out);
+		fMCPV.Write(out);
 #else
     fSD.Write(out);
 #endif
+		int IntEPlasticModel = fModel;
+		out.Write(&IntEPlasticModel);
+	
     out.Write(&fFluidPressure);
     fGMesh.Write(out, 0);
     fCMesh.Write(out, 0);
@@ -449,9 +456,14 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     fConfinement.Read(input);
 #ifdef PV
     fSDPV.Read(input);
+		fMCPV.Read(input);
 #else
     fSD.Read(input);
 #endif
+		int IntEPlasticModel;
+		input.Read(&IntEPlasticModel);
+		fModel = (EPlasticModel) IntEPlasticModel;
+	
     input.Read(&fFluidPressure);
     fGMesh.Read(input, 0);
     fCMesh.Read(input, &fGMesh);
@@ -2600,6 +2612,8 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     
     
 #ifdef PV
+	
+	// AQUINATHAN, CRIAR CMESH COM MOHRCOULOMBPV (PrepareInitialStress?)
     
     int materialid=1;
     bool planestrain=true;
@@ -2850,6 +2864,8 @@ void TPZWellBoreAnalysis::TConfig::Print(ostream &out)
 #ifdef PV
     out << "fSDPV ";
     fSDPV.Print(out);
+		out << "fMCPV ";
+		fMCPV.Print(out);
 #else
     out << "fSD ";
     fSD.Print(out);

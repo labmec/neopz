@@ -22,7 +22,7 @@
 #include "pzstack.h"
 //#include "TPZMohrCoulomb.h"
 //#include "TPZMohrCoulombNeto.h"
-//#include "TPZMohrCoulombPV.h"
+#include "TPZYCMohrCoulombPV.h"
 
 class TPZElasticityMaterial;
 
@@ -173,17 +173,13 @@ public:
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
 
         //Mohr PV
+				TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fMCPV;
 #else
         /// Parameters of the Sandler DiMaggio plasticity
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
-        
-        
 #endif
-        
-        
-    
 
-        /// Fluid pressure
+				/// Fluid pressure
         REAL fFluidPressure;
         
         REAL fPorePressure;
@@ -379,9 +375,21 @@ public:
         fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
 #endif
 
-
     }
-
+		
+	void SetMohrCoulombParameters(REAL poisson, REAL Elast, REAL c, REAL Phi, REAL Psi)
+	{
+#ifdef PV
+		TPZElasticResponse ER;
+		ER.SetUp(Elast,poisson);
+		fCurrentConfig.fMCPV.fYC.SetUp(Phi, Psi, c, ER);
+		fCurrentConfig.fMCPV.fER.SetUp(Elast,poisson);
+#else
+		PZError << "You have to define PV to use MohrCoulombPV!" << std::endl;
+		DebugStop();
+#endif
+	}
+	
     void Print(std::ostream &out);
     
 private:
