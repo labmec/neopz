@@ -81,14 +81,23 @@ void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const Pi = 4.*atan(1.);
-
+// nao esta rodando com estas configuracoes..aguardar Agnaldo
 bool ftriang = true;
 bool isStab = false;
 bool iscontinuou = false;
-bool useh2 = true;
+bool useh2 = false;
 REAL delta1 = 0.5;
 REAL delta2 = 0.5;
 bool isFullHdiv=false;
+ /*
+bool ftriang = true;//seta polinomios completos ou totais
+bool isStab = false;//ativa ou nao estabilizacao
+bool iscontinuou = false;//ativa h1 ou l2 para pressao
+bool useh2 = false;//ativa o termo h2 para penalizacao
+REAL delta1 = 0.5;//seta os valores de delta 1 e 2 para a penalizacao
+REAL delta2 = 0.5;
+bool isFullHdiv=false;//seta espaco completo ou nao para o fluxo
+  */
 
 #include "pztransfer.h"
 int main(int argc, char *argv[])
@@ -100,7 +109,7 @@ int main(int argc, char *argv[])
     REAL Lx = 1.;
     REAL Ly = 1.;
     
-    ofstream saidaerro("Erro.txt");
+    ofstream saidaerro("ErroPoissonHdivMalhaTriang.txt");
     
     for(int p = 1; p<2; p++)
     {
