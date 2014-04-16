@@ -2071,11 +2071,12 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				}
 				
 				else 
-				{								
+				{
+					UpwindSaturation = v2[3];
+				  
 					
 				}
 				
-				UpwindSaturation = v2[3];
 				
 				// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
 				for(int isat=0; isat<SRowsleft; isat++)
@@ -2207,7 +2208,6 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 					
 				}
 				
-				UpwindSaturation = v2[3];
 				
 				// (Theta) * deltat * Integrate[L*S dot(q,n), Gamma_{e}] (Equation three) Right-Left Part
 				for(int isat=0; isat<SRowsleft; isat++)
@@ -2284,8 +2284,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 					
 					REAL vni	=	(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);						
 					
-					ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * vni ) );
-//					ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN  ) * vni ) );
+//					ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * vni ) );
+					ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN  ) * vni ) );
 //					ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN ) * ( dotqnL - qN  ) * ( dotqnL - qN  ) * vni ) );					
 					
 					for (int jq=0; jq < QRowsleft; jq++) 
@@ -2294,8 +2294,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 						int jLshapeindex		= dataleft[0].fVecShapeIndex[jq].second;	
 						
 						REAL vnj	=	(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);							
-						ek(iq,jq) += weight * ( (gBigNumber * ( vnj ) * vni ) );
-//						ek(iq,jq) += weight * ( 2.0 * (gBigNumber * ( dotqnL - qN ) * ( vnj ) * vni ) );												
+//						ek(iq,jq) += weight * ( (gBigNumber * ( vnj ) * vni ) );
+						ek(iq,jq) += weight * ( 2.0 * (gBigNumber * ( dotqnL - qN ) * ( vnj ) * vni ) );												
 //						ek(iq,jq) += weight * ( 4.0 * (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN ) * ( dotqnL - qN ) * ( vnj ) * vni ) );						
 					}
 				}
