@@ -73,28 +73,29 @@ int main()
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	std::ofstream erro("TaxaArcTanTriangUni.txt");
-   // std::ofstream erro("TaxaArcTanQuadUni.txt");
+	//std::ofstream erro("TaxaArcTanTriangUni.txt");
+    std::ofstream erro("TaxaArcTanQuadUni.txt");
+    	
 	TPZVec<REAL> calcErro;
-	for (int porder=1; porder<5; porder++) {
+	for (int porder=2; porder<3; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<5;h++){
+			for(int h=2;h<3;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;//true nao uniforme
 					bool prefine=false;
-                TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
+                TPZGeoMesh *gmesh = MalhaGeo(h,hrefine);
                 
 
-           //     RefiningNearCircunference(2,gmesh,h,1);
+              // RefiningNearCircunference(2,gmesh,h,1);
                 
                 
 
                 
-               // std::ofstream filemesh("MalhaGeoArcTan.vtk");
-               // PrintGMeshVTK( gmesh, filemesh);
+           //    std::ofstream filemesh("MalhaGeoArcTan.vtk");
+           //     PrintGMeshVTK( gmesh, filemesh);
        
 
         TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
@@ -116,17 +117,17 @@ int main()
 			analysis.PostProcess(calcErro,erro);
         
 			
-			/*4. visualizacao grafica usando vtk
-			 TPZVec<std::string> scalnames(4), vecnames(2);
-			 scalnames[3] = "Divergence";
-			 scalnames[2] = "ExactDiv";
-			 scalnames[0] = "Pressure";
+			//4. visualizacao grafica usando vtk
+			 TPZVec<std::string> scalnames(2), vecnames(2);
+			 //scalnames[3] = "Divergence";
+			// scalnames[2] = "ExactDiv";
+			 scalnames[0] = "Pressure";//"Solution";//
 			 scalnames[1] = "ExactPressure";
 			 //scalnames[1] = "ExactDiv";
 			 
 			 
 			 vecnames[0] = "ExactFlux";
-			 vecnames[1] = "Flux";
+			 vecnames[1] = "Flux";//"Derivative";//
 			
 			 
 			 
@@ -139,8 +140,7 @@ int main()
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
              
-            */
-			
+        
 		}}
 	
 	
