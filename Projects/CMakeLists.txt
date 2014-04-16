@@ -148,6 +148,7 @@ ENABLE_TESTING()
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
 			add_subdirectory(Poisson2DGID)
+			add_subdirectory(OilWaterSystem)
 			#add_subdirectory(Poisson2DLabyrinth)
 			add_subdirectory(SubStruct)
 			add_subdirectory(MultiphysicsSimulation)
