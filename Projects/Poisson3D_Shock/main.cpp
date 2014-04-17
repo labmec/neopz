@@ -82,7 +82,7 @@ using namespace pzgeom;
 int gDebug = 0;
 bool usethreads = false;
 // Maximum number of equations allowed
-long MaxEquations = 1300000;
+long MaxEquations = 1700000;
 // Input - output
 ofstream out("OutPoissonArcTan.txt",ios::app);             // To store output of the console
 // ABOUT H P ADAPTIVE
@@ -164,7 +164,7 @@ int main(int argc,char *argv[]) {
 //    gRefDBase.InitializeRefPatterns();
 
 	// Getting input data
-	int itypeel = 3;
+	int itypeel = 4;
 	int count = 0;
 	do {
 		if(argc > 1)
@@ -191,12 +191,11 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	int materialId = 1;
 	int id_bc0 = -1;
 	int id_bc1 = -2;
-	int materialBC1 = 2;
 	// Generic data for problems to solve
 	int NRefs = 100;
-	int ninitialrefs = 3;
+	int ninitialrefs = 2;
 	// Percent of error permited
-	REAL factorError = .3;
+	REAL factorError = .25;
 
 	// auxiliar string
 	char saida[512];
@@ -249,15 +248,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	out.flush();
 
 	// Adjusting parameters
-	switch(typeel) {
-	case EQuadrilateral:
-	case ETriangle:
-		NRefs = 11;
-		break;
-	default:
-		NRefs = 5;
-		break;
-	}
+    NRefs = 11;
 
 	// Initial uniform refinement or printing solution on mesh with 7-h refinements
 	if(printingsol) {
@@ -438,7 +429,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	if(!cmesh) return false;
 	bool result = true;
 	long nels = cmesh->NElements();
-	int dim = cmesh->Dimension();
+//	int dim = cmesh->Dimension();
 
 	TPZVec<long> subels;
 	TPZVec<long> subsubels;
@@ -451,7 +442,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	long i, ii;
 
 	REAL factorGrad = .6;
-	REAL factorSGrad = .2;
+	REAL factorSGrad = .15;
 	REAL factorErrorBig = 0.8;
 
 	REAL BigError = factorErrorBig*MaxErrorByElement + (1.-factorErrorBig)*MinErrorByElement;
@@ -503,7 +494,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 				}
 				pused = true;
 			}
-			if(ervecbyel[i] > BigError && gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
+			if(gradervecbyel[i] > MaxGrad && level < MaxHLevel) {
 				counterreftype[11]++;
 				for(ii=0;ii<subels.NElements();ii++) {
 					cmesh->ElementVec()[subels[ii]]->Divide(subels[ii],subsubels);
