@@ -66,6 +66,9 @@ protected:
 	
 	/** @brief Maximum id used by all elements of this mesh */
 	long fElementMaxId;
+    
+    /** @brief dimension of the geometric domain */
+    long fDim;
 	
 	typedef std::map<std::pair<int,int>, int> InterfaceMaterialsMap;
 	
@@ -247,6 +250,18 @@ public:
 	 * @since Feb 05, 2004
 	 */
 	void ClearInterfaceMaterialsMap();
+    
+    /**
+	 * @brief Set Dimension.
+	 * @since April 17, 2004
+	 */
+    void SetDimension(long dim){fDim = dim;}
+    
+    /**
+	 * @brief Get Dimension.
+	 * @since April 17, 2004
+	 */
+    long Dimension(){return fDim;}
 	
 private:
 	

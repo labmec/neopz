@@ -47,6 +47,7 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
 	fReference = 0;
 	fNodeMaxId = -1;
 	fElementMaxId = -1;
+    fDim = -1;
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSaveable(cp)
@@ -78,6 +79,7 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 	
 	this->fReference = NULL;
 	
+    this->fDim = cp.fDim;
 	return *this;
 }
 
