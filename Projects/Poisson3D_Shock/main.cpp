@@ -248,7 +248,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	out.flush();
 
 	// Adjusting parameters
-    NRefs = 11;
+    NRefs = 12;
 
 	// Initial uniform refinement or printing solution on mesh with 7-h refinements
 	if(printingsol) {
@@ -440,7 +440,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
     
-	REAL factorGrad = .5;
+	REAL factorGrad = .3;
 	REAL factorSmall = .1;
 	REAL factorErrorBig = 0.8;
     
