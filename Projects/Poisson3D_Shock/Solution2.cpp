@@ -218,6 +218,48 @@ bool GradientAndLaplacian(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian)
 	}
 	return true;
 }
+bool LaplacianValue(TPZInterpolatedElement *el,REAL &Laplacian) {
+	Laplacian = 0.0;
+	if(!el) return false;
+	int nstates = el->Material()->NStateVariables();
+    int dim = el->Dimension();
+    TPZManVector<STATE,3> sol(nstates,(STATE)0.0);
+    TPZFMatrix<STATE> dsol(dim,nstates);
+	dsol.Zero();
+	TPZVec<REAL> qsi(3,0.0);
+	TPZManVector<REAL,3> x(3,0.0);
+	TPZManVector<STATE,9> deriv2(9,0.0);
+    TPZVec<REAL> force(1,0.0);
+    
+	// Computing on the center of the element
+	// Computing gradient and gradient norm maxime
+	el->Reference()->CenterPoint(el->NConnects()-1, qsi);
+	el->Reference()->X(qsi,x);
+    
+    RightTermArcTangent(x,force,dsol);
+    Laplacian = fabs(force[0]);
+	return true;
+}
+
+void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &MinLaplacian) {
+	MaxLaplacian = 0.0;
+    MinLaplacian = 1.e+5;
+	REAL Laplace;
+	long nels = cmesh->NElements();
+	TPZInterpolatedElement *el;
+    
+	for(long i=0L;i<nels;i++) {
+		el = dynamic_cast<TPZInterpolatedElement* >(cmesh->ElementVec()[i]);
+		if(!el || el->Dimension()!=cmesh->Dimension()) continue;
+		// If error is small and laplacian value is very little then the order will be minimized
+		if(!LaplacianValue(el,Laplace))
+			DebugStop();
+        
+        MinLaplacian = (Laplace < MinLaplacian) ? Laplace : MinLaplacian;
+		MaxLaplacian = (Laplace > MaxLaplacian) ? Laplace : MaxLaplacian;
+	}
+}
+
 void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,REAL &MaxGrad,REAL &MaxLaplacian) {
 	MaxGrad = 0.0;
 	MaxLaplacian = 0.0;
