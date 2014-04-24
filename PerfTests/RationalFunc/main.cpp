@@ -32,8 +32,10 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 
 RunStatsTable cedric_rst ("-ced_rdt", "TCedric::Run statistics raw data table.");
 
+
 int main (int argc, char **argv)
 {
+    
 
     /* Log initialization */
 #ifdef LOG4CXX

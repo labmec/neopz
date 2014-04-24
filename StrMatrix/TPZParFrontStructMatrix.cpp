@@ -80,11 +80,57 @@ TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
 	
 }
 
+#define PERF_FRONTMATRIX
 
+#ifdef PERF_FRONTMATRIX  
+#include <sys/time.h>
+class thread_timer_t
+{
+public:
+    thread_timer_t() {}
+    void start()
+    {start_time = getms();}
+    void stop()
+    {stop_time = getms();}
+    unsigned long long get_start() {return start_time; }
+    unsigned long long get_stop() {return stop_time; }
+    unsigned long long get_elapsed() {return stop_time-start_time; }
+private:
+    unsigned long long getms()
+    {
+        timeval t;
+        gettimeofday(&t,NULL);
+        return (t.tv_sec*1000) + (t.tv_usec/1000);
+    }
+    unsigned long long start_time;
+    unsigned long long stop_time;
+};
+
+
+#include <pthread.h>
+pthread_mutex_t id_mutex=PTHREAD_MUTEX_INITIALIZER;
+
+std::vector<thread_timer_t> thread_timer_element_assemble;
+std::vector<thread_timer_t> thread_timer_global_assemble;
+int id_counter = 0;
+int get_unique_id()
+{
+    int v;
+    pthread_mutex_lock(&id_mutex);
+    v = id_counter++;
+    pthread_mutex_unlock(&id_mutex);
+    return v;
+}
+#endif
 
 template<class front>
 void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
-	
+    
+#ifdef PERF_FRONTMATRIX
+    int id = get_unique_id();
+    thread_timer_element_assemble[id].start();
+#endif
+    
 	TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
 	
 	TPZElementMatrix *ek,*ef;
@@ -137,6 +183,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		if(local_element==parfront->fNElements)
         {
             PZ_PTHREAD_MUTEX_UNLOCK(&mutex_element_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
+#ifdef PERF_FRONTMATRIX
+            thread_timer_element_assemble[id].stop();
+#endif
             return 0;
         }
 		/*          cout << "All element matrices assembled" << endl;
@@ -157,7 +206,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//cout << "Unlocking mutex_element_assemble" << endl;
 		//cout.flush();
 		PZ_PTHREAD_MUTEX_UNLOCK(&mutex_element_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
-
+        
 		
 		if(parfront->fElementOrder[local_element] < 0) continue;
 		TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
@@ -209,7 +258,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//invertendo a sequencia das chamadas
 		PZ_PTHREAD_COND_BROADCAST(&condassemble,"TPZParFrontStructMatrix<front>::CondAssemble()");
 		PZ_PTHREAD_MUTEX_UNLOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::ElementGlobalAssemble()");
-
+        
 		// o thread de assemblagem utiliza mutexassemble
 		// e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs);
 		
@@ -227,6 +276,10 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 	}
 #endif
 	std::cout << __PRETTY_FUNCTION__ << " Falling through \n";
+    
+#ifdef PERF_FRONTMATRIX
+    thread_timer_element_assemble[id].stop();
+#endif
 	return NULL;
 	
 }
@@ -234,6 +287,10 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 
 template<class front>
 void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
+    
+#ifdef PERF_FRONTMATRIX
+    thread_timer_global_assemble[0].start();
+#endif
 	TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
 	while(parfront->fCurrentAssembled < parfront->fNElements) {
@@ -371,7 +428,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 			TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
 #else
             TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (parfront->fStiffness);
-
+            
 #endif
 			mat->FinishWriting();
 			break;
@@ -389,7 +446,9 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 #endif
 	cout << "Matrix assembled\n";
 	cout.flush();
-	
+#ifdef PERF_FRONTMATRIX
+    thread_timer_global_assemble[0].stop();
+#endif
 	return 0;
 }
 
@@ -402,7 +461,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *>(&matref);
 #else
     TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (&matref);
-
+    
 #endif
 	if(!mat)
 	{
@@ -460,6 +519,10 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	fCurrentElement = 0;
 	fCurrentAssembled = 0;
     
+#ifdef PERF_FRONTMATRIX
+    thread_timer_global_assemble.resize(1);
+    thread_timer_element_assemble.resize(nthreads-2);
+#endif
 	
 	/*
 	 *Triger 'n' threads passing Assemble as argument
@@ -467,7 +530,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	//pthread_create(&allthreads[fNThreads-1],NULL,this->GlobalAssemble, this);
 	// try{
 	res[nthreads-1] = PZ_PTHREAD_CREATE(&allthreads[nthreads-1], NULL,
-					    this->GlobalAssemble, this, __FUNCTION__);
+                                        this->GlobalAssemble, this, __FUNCTION__);
 	if(!res[nthreads-1]){
 #ifdef VC
 		cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1].x << endl;
@@ -485,7 +548,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 		//          DebugStop();
 	}
 	res[nthreads-2] = PZ_PTHREAD_CREATE(&allthreads[nthreads-2], NULL, 
-					    mat->WriteFile, mat, __FUNCTION__);
+                                        mat->WriteFile, mat, __FUNCTION__);
 	if(!res[nthreads-2]){
 #ifdef VC
 		cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2].x << endl;
@@ -504,8 +567,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	}
 	
 	for(i=0;i<nthreads-2;i++){
-	  res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL, 
-				     this->ElementAssemble, this, __FUNCTION__);
+        res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL, 
+                                   this->ElementAssemble, this, __FUNCTION__);
 		if(!res[i]){
 #ifdef VC
 			cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i].x << endl;
@@ -524,7 +587,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 		}
 	}
 	for(i=0;i<nthreads;i++) {
-	  PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+        PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
 	}
 	
 	delete allthreads;// fThreadUsed, fDec;
@@ -532,6 +595,13 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	mat->GetFront().ProductTensorMTFinish(); // Here it ends the multthread decomposition (comment to deactivate. Remember to coment the initialization also)
 	fStiffness = 0;
 	fRhs = 0;
+    
+#ifdef PERF_FRONTMATRIX
+    cout << "Global Assemble Thread 0 : " << thread_timer_global_assemble[0].get_elapsed() << " milliseconds.\n";
+    for(i=0;i<nthreads-2;i++){
+        cout << "Element Assemble Thread " << i << " : " << thread_timer_element_assemble[i].get_elapsed() << " milliseconds.\n";
+    }
+#endif
 }
 
 
