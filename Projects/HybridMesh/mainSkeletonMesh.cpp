@@ -73,7 +73,8 @@ const int bc4 = -4;
 
 
 TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly);
-TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh,int pOrder);
+TPZCompMesh *MalhaCompTemporaria(TPZGeoMesh * gmesh);
+TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh,int pOrder,std::set<long> coarseindex);
 
 void RefinamentoUniforme(TPZGeoMesh *gmesh, int nref,TPZVec<int> dims);
 void RefinamentoAdaptado(TPZGeoMesh *gmesh, TPZStack<TPZManVector<REAL,3> > coordcentro);
@@ -100,33 +101,33 @@ int main(int argc, char *argv[])
 	gmesh->Print(arg1);
     
     //refinamento uniforme em alguns elementos
-    TPZStack<TPZManVector<REAL,3> > coordcentro;
+    TPZStack<TPZManVector<REAL,3> > coordcenter;
     TPZManVector<REAL,3> xcoord(3,0.);
     
     xcoord[0]=0.25; xcoord[1]=0.75;
-    coordcentro.Push(xcoord);
+    coordcenter.Push(xcoord);
     
     xcoord[0]=0.25; xcoord[1]=1.0;
-    coordcentro.Push(xcoord);
+    coordcenter.Push(xcoord);
     
     xcoord[0]=0.0; xcoord[1]=0.75;
-    coordcentro.Push(xcoord);
+    coordcenter.Push(xcoord);
     
     xcoord[0]=0.75; xcoord[1]=0.25;
-    coordcentro.Push(xcoord);
+    coordcenter.Push(xcoord);
     
     xcoord[0]=1.0; xcoord[1]=0.25;
-    coordcentro.Push(xcoord);
+    coordcenter.Push(xcoord);
     
     xcoord[0]=0.75; xcoord[1]= 0.0;
-    coordcentro.Push(xcoord);
+    coordcenter.Push(xcoord);
     
-    RefinamentoAdaptado(gmesh,coordcentro);
+    RefinamentoAdaptado(gmesh,coordcenter);
     ofstream arg2("gmesh2.txt");
 	gmesh->Print(arg2);
     
     //construir elementos 1D de interface
-    TPZCompMesh * cmesh = MalhaComp2(gmesh, 1);
+    TPZCompMesh * cmesh1 = MalhaCompTemporaria(gmesh);
     gmesh->ResetReference();
     
     //mudar matId dos elementos 1D de interface
@@ -140,6 +141,12 @@ int main(int argc, char *argv[])
     //index dos elementos da malha coarse
     std::set<long> coarseindex;
     GetElIndexCoarseMesh(gmesh, coarseindex);
+    
+    if(coarseindex.find(6) != coarseindex.end())
+    {
+        std::cout << "\n\n\nNAO ACHEI O NUMERO DESEJADO\n\n\n";
+    }
+    
     
     std::set<long>::iterator it;
     std::cout << "coarse index: \n";
@@ -158,14 +165,21 @@ int main(int argc, char *argv[])
     ofstream file2("malhageometricaFina.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file2, true);
     
+//malha computacional
+    TPZCompMesh * cmesh = MalhaComp2(gmesh,1,coarseindex);
+    ofstream arg5("cmesh.txt");
+	cmesh->Print(arg5);
+    
     return EXIT_SUCCESS;
 }
 
 TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly)
 {
     int Qnodes = 4;
-	
+	long dim = 2;
+    
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(dim);
 	gmesh->SetMaxNodeId(Qnodes-1);
 	gmesh->NodeVec().Resize(Qnodes);
 	TPZVec<TPZGeoNode> Node(Qnodes);
@@ -234,46 +248,26 @@ TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly)
 	return gmesh;
 }
 
-TPZCompMesh* MalhaComp2(TPZGeoMesh * gmesh, int pOrder)
+TPZCompMesh* MalhaCompTemporaria(TPZGeoMesh * gmesh)
 {
 	/// criar materiais
 	int dim = 2;
     TPZMatPoisson3d *material = new TPZMatPoisson3d(matInterno,dim);
-    
 	TPZMaterial * mat1(material);
-    
 	material->NStateVariables();
     
-    //    REAL diff = -1.;
-    //	REAL conv = 0.;
-    //	TPZVec<REAL> convdir(3,0.);
-    //	REAL flux = 8.;
-    //
-    //	material->SetParameters(diff, conv, convdir);
-    //	material->SetInternalFlux( flux);
-    //	material->NStateVariables();
-    //
-    
-	TPZCompEl::SetgOrder(pOrder);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
-    
 	cmesh->InsertMaterialObject(mat1);
 	
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	
-	TPZFMatrix<STATE> val12(2,2,0.), val22(2,1,0.);
-	REAL uD=0.;
-	val22(0,0)=uD;
-	TPZMaterial * BCondD1 = material->CreateBC(mat1, bc2,dirichlet, val12, val22);
+    TPZMaterial * BCondD1 = material->CreateBC(mat1, bc2,dirichlet, val1, val2);
 	cmesh->InsertMaterialObject(BCondD1);
 	
-	TPZMaterial * BCondD2 = material->CreateBC(mat1, bc4,dirichlet, val12, val22);
+	TPZMaterial * BCondD2 = material->CreateBC(mat1, bc4,dirichlet, val1, val2);
 	cmesh->InsertMaterialObject(BCondD2);
-	
-	REAL uN=0.;
-	val2(0,0)=uN;
     
 	TPZMaterial * BCondN1 = material->CreateBC(mat1, bc1,dirichlet, val1, val2);
 	cmesh->InsertMaterialObject(BCondN1);
@@ -286,6 +280,122 @@ TPZCompMesh* MalhaComp2(TPZGeoMesh * gmesh, int pOrder)
     cmesh->AutoBuild();
     
     TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
+    
+    return cmesh;
+}
+
+TPZCompMesh* MalhaComp2(TPZGeoMesh * gmesh, int pOrder,std::set<long> coarseindex)
+{
+	/// criar materiais
+	int dim = 2;
+    TPZMatPoisson3d *material1 = new TPZMatPoisson3d(matInterno,dim);
+    TPZMatPoisson3d *material2 = new TPZMatPoisson3d(matCoarse,dim);
+    
+	TPZMaterial * mat1(material1);
+    TPZMaterial * mat2(material2);
+    
+	material1->NStateVariables();
+    material2->NStateVariables();
+    
+    //    REAL diff = -1.;
+    //	REAL conv = 0.;
+    //	TPZVec<REAL> convdir(3,0.);
+    //	REAL flux = 8.;
+    //
+    //	material1->SetParameters(diff, conv, convdir);
+    //	material1->SetInternalFlux( flux);
+    
+    TPZCompEl::SetgOrder(pOrder);
+	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+	cmesh->SetDimModel(dim);
+	cmesh->InsertMaterialObject(mat1);
+    cmesh->InsertMaterialObject(mat2);
+	
+	///Inserir condicao de contorno
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+	
+    TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
+	cmesh->InsertMaterialObject(BCondD1);
+	
+	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
+	cmesh->InsertMaterialObject(BCondD2);
+
+	TPZMaterial * BCondN1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
+	cmesh->InsertMaterialObject(BCondN1);
+    
+    TPZMaterial * BCondN2 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(BCondN2);
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+    
+    //Criar elementos computacionais malha MHM
+    int nel = gmesh->NElements();
+    int matid, eldim;
+    long index;
+    int hassubel, nsubels;
+    int iel, is;
+
+    TPZGeoEl *gel = NULL;
+    TPZGeoEl *gsubel = NULL;
+    
+    for(iel = 0; iel<nel; iel++)
+    {
+        gel = gmesh->ElementVec()[iel];
+        if(!gel) DebugStop();
+        
+        eldim = gel->Dimension();
+        matid = gel->MaterialId();
+        
+        //elementos de dimensao = dim (malha fina)
+        if(eldim==dim)
+        {
+            index = gel->Index();
+            if(coarseindex.find(index) != coarseindex.end())
+            {
+                nsubels = gel->NSubElements();
+                for (is=0; is<nsubels; is++)
+                {
+                    gsubel = gel->SubElement(is);
+                    hassubel = gsubel->HasSubElement();
+                    if(!hassubel){
+                        cmesh->CreateCompEl(gsubel,index);
+                    }
+                }
+                for (is=0; is<nsubels; is++)
+                {
+                    gsubel = gel->SubElement(is);
+                    hassubel = gsubel->HasSubElement();
+                    if(!hassubel){
+                        gsubel->ResetReference();
+                    }
+                }
+            }
+            continue;
+        }
+        
+        //elementos de dimensao = dim-1
+        
+        //malha coarse
+        if(matid==matCoarse)
+        {
+            cmesh->CreateCompEl(gel, index);
+            gel->ResetReference();
+            
+            continue;
+        }
+        
+        //elementos de contorno
+        hassubel =gel->HasSubElement();
+        if(!hassubel)
+        {
+            cmesh->CreateCompEl(gel, index);
+            gel->ResetReference();
+        }
+    }
+    
+    cmesh->LoadReferences();
+    cmesh->ExpandSolution();
     
     return cmesh;
 }
@@ -367,13 +477,16 @@ void GetElIndexCoarseMesh(TPZGeoMesh * gmesh, std::set<long> &coarseindex)
     int nel = gmesh->NElements();
     int iel;
     int hassubel=0;
+    int dim = gmesh->Dimension();
+    int eldim;
     for(iel = 0; iel<nel; iel++)
     {
         TPZGeoEl * gel = gmesh->ElementVec()[iel];
         if(!gel) DebugStop();
         
         hassubel = gel->HasSubElement();
-        if(!hassubel)
+        eldim = gel->Dimension();
+        if(!hassubel && eldim ==dim)
         {
             coarseindex.insert(gel->Index());
         }
@@ -400,6 +513,7 @@ void ChangeIndex(TPZGeoMesh *gmesh, int matcoarse1D)
             if (ninterf==1)
             {
                 gel->SetMaterialId(matcoarse1D);
+                gel->DecrementNumInterfaces();
             }
         }
     }
