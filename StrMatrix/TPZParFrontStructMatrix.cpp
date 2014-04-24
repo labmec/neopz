@@ -284,6 +284,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 	
 }
 
+#include "arglib.h"
+
+clarg::argInt num_threads("-ntdec", "Number of threads to decompose in TPZParFrontStructMatrix.", 6);
 
 template<class front>
 void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
@@ -512,7 +515,10 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	
 	mat->SetNumElConnected(numelconnected);
 	
-	mat->GetFront().ProductTensorMTInitData( nthreads - 2 ); // Here it initializes the multthread decomposition (comment to deactivate. Remember to coment the Finish also)
+    if (num_threads.was_set())
+        mat->GetFront().ProductTensorMTInitData(num_threads.get_value());
+    else
+        mat->GetFront().ProductTensorMTInitData( nthreads - 2 ); // Here it initializes the multthread decomposition (comment to deactivate. Remember to coment the Finish also)
 	
 	fStiffness = mat;
 	fRhs = &rhs;
