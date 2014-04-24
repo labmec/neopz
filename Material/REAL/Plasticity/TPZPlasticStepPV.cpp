@@ -512,27 +512,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetState(const TPZPlasticState<REAL> &state)
     fN=state;
 }
 
-template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::SetIntegrTol(REAL integrTol)
-{
-    std::cout<< " \n this method is not implemented in PlasticStepPV. ";
-    //DebugStop();
-}
-
-
-template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::SetTensionSign(int s)
-{
-    fInterfaceTensionSign = (s >= 0) ? 1 : -1;
-   
-}
-
-
-template <class YC_t, class ER_t>
-int TPZPlasticStepPV<YC_t, ER_t>::SignCorrection() const
-{
-    return fMaterialTensionSign * fInterfaceTensionSign;
-}
 
 
 template <class YC_t, class ER_t>
@@ -542,11 +521,35 @@ void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
     DebugStop();
 }
 
+/** @brief Object which represents the yield criterium */
+//YC_t fYC;
+
+/** @brief Object representing the elastic response */
+//ER_t fER;
+
+/** @brief Residual tolerance accepted in the plastic loop processes */
+//REAL fResTol;
+
+/** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
+//int fMaxNewton;	// COLOCAR = 30 (sugestao do erick!)
+
+
+
+
+/** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */
+//TPZPlasticState<STATE> fN;
+
+
+
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf)
+void TPZPlasticStepPV<YC_t, ER_t>::Write(TPZStream &buf) const
 {
-    PZError << " \n this method is not implemented in PlasticStepPV." << std::endl;
-    DebugStop();
+    fYC.Write(buf);
+    fER.Write(buf);
+    buf.Write(&fResTol);
+    buf.Write(&fMaxNewton);
+    fN.Write(buf);
+    
 }
 
 template <class YC_t, class ER_t>

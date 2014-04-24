@@ -68,6 +68,12 @@ public:
     
     STATE GetF(STATE x) const;
     
+    void Read(TPZStream &buf);
+    
+    void Write(TPZStream &buf) const;
+    
+
+    
 private:
     /// The function which defines the plastic surface
   
@@ -251,8 +257,11 @@ public:
     static void PreSMat(TPZSandlerExtended &mat);// em MPa
     
 
+    STATE A() { return fA;}
+    STATE R() { return fR;}
+private:
     STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fE,fnu;//,fk0;
-    bool fIsonCap;
+//    bool fIsonCap;
     TPZElasticResponse    fElasticResponse;
     
     

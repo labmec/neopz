@@ -253,7 +253,8 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 
     TPZTensor<REAL> initstress,finalstress;
     REAL hydro = obj.fCurrentConfig.fConfinement.I1();
-    hydro -= SD.fYC.fA*SD.fYC.fR;
+//    hydro -= SD.fYC.fA*SD.fYC.fR;
+    hydro -= A*R;
     hydro /= 3.;
     finalstress.XX() = hydro;
     finalstress.YY() = hydro;
@@ -332,7 +333,9 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
             }
             epst[j].first = ca*scale;
             epst[j].second = sa*scale;
+#ifndef PV
             SD.fYC.fIsonCap = false;
+#endif
             SD.ApplyStrainComputeSigma(epstotal,sigma);
             // print I1 and sqrt(J2)
             REAL i1sigma = sigma.I1();
@@ -2624,7 +2627,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     TPZTensor<REAL> initstress(0.),finalstress(0.);
     REAL hydro = fConfinement.I1();
-    hydro -= SD.fYC.fA*SD.fYC.fR;
+    hydro -= SD.fYC.A()*SD.fYC.R();
     hydro /= 3.;
     finalstress.XX() = hydro;
     finalstress.YY() = hydro;

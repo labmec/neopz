@@ -98,6 +98,12 @@ public:
 	 */
 	TPZYCMohrCoulombPV & operator=(const TPZYCMohrCoulombPV &cp);
 	
+    
+    void Read(TPZStream &buf);
+    
+    void Write(TPZStream &buf) const;
+    
+
 	/**
 	 * @brief Sets epsbar
 	 */

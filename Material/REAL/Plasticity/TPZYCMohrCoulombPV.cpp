@@ -27,6 +27,27 @@ TPZYCMohrCoulombPV & TPZYCMohrCoulombPV::operator=(const TPZYCMohrCoulombPV &cp)
 	return *this;
 }
 
+
+void TPZYCMohrCoulombPV::Read(TPZStream &buf)
+{
+    buf.Read(&fPhi);
+    buf.Read(&fPsi);
+    buf.Read(&fc);
+    buf.Read(&fEpsPlasticBar);
+    fER.Read(buf);
+    
+}
+
+void TPZYCMohrCoulombPV::Write(TPZStream &buf) const
+{
+    buf.Write(&fPhi);
+    buf.Write(&fPsi);
+    buf.Write(&fc);
+    buf.Write(&fEpsPlasticBar);
+    fER.Write(buf);
+}
+
+
 void TPZYCMohrCoulombPV::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const
 {
     

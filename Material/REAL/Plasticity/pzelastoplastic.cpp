@@ -90,7 +90,7 @@ void TPZMatElastoPlastic<T,TMEM>::SetPlasticity(T & plasticity)
 	
 	fPlasticity = plasticity;
 	
-	fPlasticity.SetTensionSign(1);
+	//fPlasticity.SetTensionSign(1);
     
     T plastloc(fPlasticity);
 	

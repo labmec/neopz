@@ -95,6 +95,45 @@ void TPZSandlerExtended::SetUp(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G
     
 }
 
+void TPZSandlerExtended::Read(TPZStream &buf)
+{
+    buf.Read(&fA);
+    buf.Read(&fB);
+    buf.Read(&fC);
+    buf.Read(&fD);
+    buf.Read(&fK);
+    buf.Read(&fG);
+    buf.Read(&fW);
+    buf.Read(&fR);
+    buf.Read(&fPhi);
+    buf.Read(&fN);
+    buf.Read(&fPsi);
+    buf.Read(&fE);
+    buf.Read(&fnu);
+    fElasticResponse.Read(buf);
+    
+}
+
+void TPZSandlerExtended::Write(TPZStream &buf) const
+{
+    buf.Write(&fA);
+    buf.Write(&fB);
+    buf.Write(&fC);
+    buf.Write(&fD);
+    buf.Write(&fK);
+    buf.Write(&fG);
+    buf.Write(&fW);
+    buf.Write(&fR);
+    buf.Write(&fPhi);
+    buf.Write(&fN);
+    buf.Write(&fPsi);
+    buf.Write(&fE);
+    buf.Write(&fnu);
+    fElasticResponse.Write(buf);
+}
+
+
+
 TPZElasticResponse TPZSandlerExtended::GetElasticResponse()
 {
     return fElasticResponse;
@@ -597,6 +636,9 @@ void TPZSandlerExtended::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi
     YieldFunction(DecompSig.fEigenvalues,alpha, phi);
 }
 
+std::map<int,long> gF1Stat;
+std::map<int,long> gF2Stat;
+
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
 //#ifdef LOG4CXX
@@ -665,6 +707,8 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
         
     }
+    
+    gF1Stat[counter]++;
     
     TPZManVector<STATE,3> sigprojcyl(3);
     F1Cyl(xn[0], xn[1], sigprojcyl);
@@ -772,6 +816,8 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         counter++;
         
     }
+    
+    gF2Stat[counter]++;
     
     
 //if(counter == 30) cout << "resnorm = " << resnorm << std::endl;

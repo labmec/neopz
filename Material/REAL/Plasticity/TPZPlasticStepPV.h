@@ -50,7 +50,7 @@ public:
 	 * @param[in] alpha damage variable
 	 */
 	
-  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fInterfaceTensionSign(-1), fN()
+  TPZPlasticStepPV(REAL alpha=0.):fYC(), fER(), fResTol(1.e-12), fMaxNewton(30), fN()
 	{ 
 		fN.fAlpha = alpha; 
 	}
@@ -165,11 +165,6 @@ public:
 	 */
     virtual void SetState(const TPZPlasticState<REAL> &state);
     
-    /** @brief Sets the tolerance allowed in the pde integration */
-    virtual void SetIntegrTol(REAL integrTol);
-    
-    virtual void SetTensionSign(int sign);
-    
     
     //void CopyFromFNMatrixToTensor(TPZFNMatrix<6> FNM,TPZTensor<STATE> &copy);
     void CopyFromTensorToFMatrix(TPZTensor<STATE> tensor,TPZFMatrix<STATE> &copy);
@@ -183,7 +178,7 @@ public:
     
     virtual void Read(TPZStream &buf);
     
-    virtual void Write(TPZStream &buf);
+    virtual void Write(TPZStream &buf) const;
     
 	
 	/**
@@ -198,54 +193,7 @@ public:
 	
 	REAL ComputeNFromTaylorCheck(REAL alpha1, REAL alpha2, TPZFMatrix<REAL> &error1Mat, TPZFMatrix<REAL> &error2Mat);
 	
-	/**
-	 * Defines whether the tension/extension sign is desired by the external user.
-	 *
-	 * @param s [in] sign (1 or -1)
-	 */
-	//void SetTensionSign(int s);
 	
-	
-protected:
-	
-
-	
-public:
-	/**
-	 * @brief Return the value of the yield functions for the given strain
-	 * @param[in] epsTotal strain tensor (total strain)
-	 * @param[out] phi vector of yield functions
-	 */
-	//virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
-	
-		
-	/**
-	 * @brief Update the damage values
-	 * @param[in] state Plastic state proposed
-	 */
-	//virtual void SetState(const TPZPlasticState<REAL> &state);
-
-	
-	/** @brief Retrieve the plastic state variables */	
-	//virtual const TPZPlasticState<REAL> GetState()const;
-	
-	/** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
-	virtual int IntegrationSteps() const
-	{
-		return 1;
-	}
-	
-
-protected:	
-	
-	/**
-	 * @brief Updates the damage values - makes no interface sign checks
-	 * @param[in] state Plastic state proposed
-	 */
-	//virtual void SetState_Internal(const TPZPlasticState<REAL> &state);
-
-
-
 
 public:
 	
@@ -256,7 +204,7 @@ public:
     
     void ResetPlasticMem()
     {
-        fPlasticMem.Resize(0);
+        //fPlasticMem.Resize(0);
     }
 	
 	//virtual void Write(TPZStream &buf) const;
@@ -270,7 +218,6 @@ public:
 	/** @brief Object representing the elastic response */
 	ER_t fER;
 	
-	REAL fIntegrTol;
 protected:
 	
 	/** @brief Residual tolerance accepted in the plastic loop processes */
@@ -279,38 +226,12 @@ protected:
 	/** @brief Maximum number of Newton interations allowed in the nonlinear solvers */
 	int fMaxNewton;	// COLOCAR = 30 (sugestao do erick!)
     
-    /** @brief The tension sign in the convention used in the implementation of the material */
-	int fMaterialTensionSign;
-	
-	/** @brief The tension sign in the convention defined by the external user */
-	int fInterfaceTensionSign;
-    
-
-    /**
-	 * @brief Stores the plastic evolution in the last evaluated PlasticIntegration call,
-	 * It includes the N-1 data, the elastic step until yield when it exists,
-	 * the plastic substeppings and the N step.
-	 */
-	TPZStack< TPZPlasticIntegrMem<REAL, YC_t::NYield> > fPlasticMem;
 	
 	
 public:
 	
 	/** @brief Plastic State Variables (EpsT, EpsP, Alpha) at the current time step */	
-	TPZPlasticState<REAL> fN;
-	
-	/**
-	 * @brief Stores the plastic evolution in the last evaluated PlasticIntegration call,
-	 * It includes the N-1 data, the elastic step until yield when it exists,
-	 * the plastic substeppings and the N step.
-	 */
-	//TPZStack< TPZPlasticIntegrMem<REAL, YC_t::NYield> > fPlasticMem;
-
-	
-	//ofstream fOutfile(string &str);
-    
-    
-    
+	TPZPlasticState<STATE> fN;
 	
 	
 };

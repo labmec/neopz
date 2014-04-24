@@ -1619,6 +1619,8 @@ int startfrom = 0;
 #include "TPZTimer.h"
 
 
+
+
 int main ()
 {
   
@@ -1734,6 +1736,19 @@ int main ()
         
     }
 
+    extern std::map<int,long> gF1Stat;
+    extern std::map<int,long> gF2Stat;
+    
+    std::map<int,long>::iterator it;
+    for (it=gF1Stat.begin(); it!=gF1Stat.end(); it++) {
+        std::cout << "Numero de iteracoes F1 " << it->first << " numero de ocorrencias " << it->second << std::endl;
+    }
+    for (it=gF2Stat.begin(); it!=gF2Stat.end(); it++) {
+        std::cout << "Numero de iteracoes F2 " << it->first << " numero de ocorrencias " << it->second << std::endl;
+    }
+    
+    gF1Stat.clear();
+    gF2Stat.clear();
     time2.stop();
     std::cout << "\n tempo 1 = "<< time2.seconds()<< std::endl;
     time2.reset();
@@ -1781,6 +1796,17 @@ int main ()
         read.OpenRead("Wellbore2.bin");
         well.Read(read);        
     }
+    
+    for (it=gF1Stat.begin(); it!=gF1Stat.end(); it++) {
+        std::cout << "Numero de iteracoes F1 " << it->first << " numero de ocorrencias " << it->second << std::endl;
+    }
+    for (it=gF2Stat.begin(); it!=gF2Stat.end(); it++) {
+        std::cout << "Numero de iteracoes F2 " << it->first << " numero de ocorrencias " << it->second << std::endl;
+    }
+    
+    gF1Stat.clear();
+    gF2Stat.clear();
+
     if (startfrom <= 3)
     {
         // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4
@@ -1859,6 +1885,16 @@ int main ()
         read.OpenRead("Wellbore3.bin");
         well.Read(read);        
     }
+    for (it=gF1Stat.begin(); it!=gF1Stat.end(); it++) {
+        std::cout << "Numero de iteracoes F1 " << it->first << " numero de ocorrencias " << it->second << std::endl;
+    }
+    for (it=gF2Stat.begin(); it!=gF2Stat.end(); it++) {
+        std::cout << "Numero de iteracoes F2 " << it->first << " numero de ocorrencias " << it->second << std::endl;
+    }
+    
+    gF1Stat.clear();
+    gF2Stat.clear();
+
     if (startfrom <= 4)
     {
         // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4

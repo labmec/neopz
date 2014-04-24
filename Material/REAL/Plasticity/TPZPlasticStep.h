@@ -38,11 +38,13 @@ public:
     virtual void SetState(const TPZPlasticState<REAL> &state) = 0;
 	virtual TPZPlasticState<REAL> GetState() const = 0;
 	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const = 0;
-	virtual int IntegrationSteps()const = 0;
-	virtual void SetIntegrTol(REAL integrTol)=0;
+	virtual int IntegrationSteps()const
+    {
+        return 1;
+    }
+//	virtual void SetIntegrTol(REAL integrTol)=0;
 	virtual const char * Name()const = 0;
 	virtual void Print(std::ostream & out)const = 0;
-	virtual void SetTensionSign(int sign) = 0;
     //virtual void Write(TPZStream &buf) const = 0;
     virtual void Read(TPZStream &buf) = 0;
 	
