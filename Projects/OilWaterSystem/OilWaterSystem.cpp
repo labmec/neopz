@@ -72,8 +72,10 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 void UniformRefinement(TPZGeoMesh *gMesh, int nh);
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *an, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
-void CheckConvergence(TPZFMatrix<STATE> SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
-void ComputeResidual(TPZFMatrix<STATE> SoltUattn,REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void CheckConvergence(TPZFMatrix<STATE> &SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void ComputeResidual(TPZFMatrix<STATE> &SoltUattn,REAL &alpha, TPZFMatrix<STATE> &DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void CheckElConvergence(TPZFMatrix<STATE> &SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
+void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics);
 
 bool ftriang = false;
 
@@ -89,7 +91,7 @@ int main()
 		InitializePZLOG();
 	#endif		
 		
-	gRefDBase.InitializeAllUniformRefPatterns();
+//  	gRefDBase.InitializeAllUniformRefPatterns();
 
 	//	Reading mesh
 	std::string GridFileName;	
@@ -112,10 +114,10 @@ int main()
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
 	}
 	
-// 	std::vector<double> dd(2,0);
+// 	std::vector<REAL> dd(2,0);
 	
 	
-	int Href = 2;
+	int Href = 0;
 	int div = 0;		
 	int POrderBulkFlux = 1;	
 	int POrderPseudopressure = 1;
@@ -207,7 +209,7 @@ int main()
 
 	TPZAnalysis AnSaturation(CMeshWaterSaturation);
     std::string outputfile3;
-	outputfile3 = "SolutionSaturation";
+    outputfile3 = "SolutionSaturation";
     std::stringstream outputfiletemp3;
     outputfiletemp3 << outputfile3 << ".vtk";
     std::string plotfileSaturation = outputfiletemp3.str();
@@ -254,12 +256,15 @@ int main()
     std::string plotfile = outputfiletemp.str();
     PosProcessMultphysics(meshvec,MultiphysicsMesh,*MultiphysicsAn,plotfile);		
 	
+    
+//     Tima control parameters
+    
     REAL hour = 60.0*60.0;
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
 
     REAL deltaT = 0.1*day; //seconds
-    REAL maxTime = 0.1*day;
+    REAL maxTime = 10.0*day;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, meshvec, MultiphysicsMesh);
 
     return 0;
@@ -699,47 +704,15 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 
 void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics){
     
-	//	Hard code and hard core
-
-	//	Newton analysis and loading  initial Solution
-//	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);	
-//	TPZAnalysis NonLinearAn(mphysics);
-	int	Nthreads = 1;
-//	TPZSkylineNSymStructMatrix
-	
-	
-//	TPZSkylineStructMatrix  matsk(mphysics);
-//	NonLinearAn.SetStructuralMatrix(matsk);
-//	//	an.StructMatrix()->SetNumThreads(Nthreads);
-//	TPZStepSolver<STATE> step;
-//	step.SetDirect(ELDLt); 					
-//	NonLinearAn.SetSolver(step);	
-//    //TPZFStructMatrix matsk(mphysics);
-//    TPZSkylineStructMatrix matsk(mphysics);
-//	NonLinearAn.SetStructuralMatrix(matsk);
-//    //matsk.SetNumThreads(30);
-//	TPZStepSolver<STATE> step;virtual clonedrive 5.4.6.0.rar
-//	step.SetDirect(ELDLt);
-//	//step.SetDirect(ELU);
-//	NonLinearAn.SetSolver(step);	
-	
-	
-	
-	
-//	
     TPZMaterial *mat1 = mphysics->FindMaterial(1);
 //    TPZMaterial *mat2 = mphysics->FindMaterial(2);	
 	
     TPZMultiphase * material1 = dynamic_cast<TPZMultiphase *>(mat1);  
 //    TPZMultiphase * material2 = dynamic_cast<TPZMultiphase *>(mat2);  	
     material1->SetTimeStep(deltaT);
-//    material2->SetTimeStep(deltaT);
     material1->SetTheta(1.0);
-//    material2->SetTheta(0.5);
 
 //	Starting Newton Iterations
-	
-	
 	TPZFMatrix<STATE> DeltaX = mphysics->Solution();
 	TPZFMatrix<STATE> LastSolution = mphysics->Solution();
 	
@@ -747,11 +720,11 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 	
 
 	REAL TimeValue = 0.0;
-	double Tolerance = 1.0e-8;
+	REAL Tolerance = 1.0e-10;
 	int cent = 0;
 	int MaxIterations = 50;
 	TimeValue = cent*deltaT;
-	double NormValue =1.0;
+	REAL NormValue =1.0;
 	bool StopCriteria = false;
 	TPZFMatrix<STATE> RhsAtn, RhsAtnPlusOne, Residual;
 	
@@ -924,7 +897,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
 	}
 	
-// 	CheckConvergence(RhsAtn,NonLinearAn, meshvec, mphysics);	
+  	CheckConvergence(RhsAtn,NonLinearAn, meshvec, mphysics);
+	CheckElConvergence(RhsAtn,NonLinearAn, meshvec, mphysics);
 	
 	
 }
@@ -994,8 +968,8 @@ TPZCompMesh *L2ProjectionQ(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 // It requires modfify L2 number os state variables
 void InitialFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
-	double x = pt[0];
-	double y = pt[1];
+	REAL x = pt[0];
+	REAL y = pt[1];
     disp[0] = 0.0;
 //    disp[1] = 0.0;	
     
@@ -1003,75 +977,213 @@ void InitialFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 
 void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
-	double x = pt[0];
-	double y = pt[1];
+	REAL x = pt[0];
+	REAL y = pt[1];
     disp[0] = 0.0*(10.0 - 10.0 * x);
     
 }
 
 void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
-	double x = pt[0];
-	double y = pt[1];
+	REAL x = pt[0];
+	REAL y = pt[1];
     disp[0] = 0.0;
     
 }
 
 
-void CheckConvergence(TPZFMatrix<STATE> SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+void CheckConvergence(TPZFMatrix<STATE> &SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
 
 	TPZFMatrix<REAL> U = NonLinearAn->Solution();
 	long neq = mphysics->NEquations();
+	
 	int nsteps = 10;
 	REAL alpha;
 	TPZFMatrix<REAL> alphas(nsteps,1,0.0),ResNorm(nsteps,1,0.0),ConvergenceOrder(nsteps-1,1,0.0);
 
-	TPZFMatrix<REAL> DeltaX(neq,1,0.0001),ResAlpha(neq,0.0);
+	TPZFMatrix<REAL> DeltaX(neq,1,0.001),ResAlpha(neq,0.0);
 
     for(int i = 0; i < nsteps; i++)
     {
-        alpha = (i+1.0)/100.0;
+        alpha = (1.0*i+1.0)/10.0;
         alphas(i,0) = log(alpha);
-		NonLinearAn->LoadSolution(U);
-		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-		ComputeResidual(SoltUattn,alpha, DeltaX, ResAlpha, NonLinearAn, meshvec, mphysics);
-		
-		ResNorm(i,0)=log(Norm(ResAlpha));
+	    NonLinearAn->LoadSolution(U);
+	    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+	    ComputeResidual(SoltUattn,alpha, DeltaX, ResAlpha, NonLinearAn, meshvec, mphysics);	    
+	    ResNorm(i,0)=log(Norm(ResAlpha));
 		
 	}
 	
-    for(int i = 0; i < nsteps - 1; i++){ ConvergenceOrder(i,0) =  (ResNorm(i+1,0)-ResNorm(i,0))/(alphas(i+1,0)-alphas(i,0));}	
+    for(int i = 1; i < nsteps; i++){ ConvergenceOrder(i-1,0) =  (ResNorm(i,0)-ResNorm(i-1,0))/(alphas(i,0)-alphas(i-1,0));}	
 	
+ 	ResNorm.Print("ResNorm =");
 	ConvergenceOrder.Print("ConvergenceOrder = ");	
+	NonLinearAn->LoadSolution(U);
+	TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);	
+	
+}
 
+void ComputeResidual(TPZFMatrix<STATE> &SoltUattn, REAL &alpha, TPZFMatrix<STATE> &DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+{
+
+      TPZFMatrix<STATE> TangentRes;
+      TPZMaterial *mat1 = mphysics->FindMaterial(1);
+      TPZMultiphase * material1 = dynamic_cast<TPZMultiphase *>(mat1); 	
+
+
+      // Computing the first part of the residual expresion.		  
+
+      material1->SetCurrentState();
+      NonLinearAn->Assemble();	
+      TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
+
+      TPZFMatrix<STATE> ResidualAtU = SoltUattn + RhsAtnPlusOne;		
+      NonLinearAn->Solver().Matrix()->Multiply((1.0)*alpha*DeltaU,TangentRes);
+	      
+      NonLinearAn->LoadSolution(NonLinearAn->Solution()+alpha*DeltaU);			
+      TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);			
+
+      material1->SetCurrentState();
+      NonLinearAn->Assemble();
+      RhsAtnPlusOne = NonLinearAn->Rhs();
+      TPZFMatrix<STATE> ResidualAtUplusAlphaDeltaU = SoltUattn + RhsAtnPlusOne;
+      
+      
+      ResAlpha = ((1.0)*ResidualAtUplusAlphaDeltaU - ((1.0)*ResidualAtU + (1.0) * TangentRes));
+      
+      REAL norm1 = Norm(ResidualAtU);
+      REAL norm2 = Norm(ResidualAtUplusAlphaDeltaU);
+      REAL norm3 = Norm(TangentRes);
+      REAL norm4 = Norm(ResAlpha);
+      REAL norm5 = Norm(ResidualAtUplusAlphaDeltaU+TangentRes);      
+      REAL norm6 = norm3 - norm2;   
+      REAL num = 10.0;      
+      
+}
+
+void CheckElConvergence(TPZFMatrix<STATE> &SoltUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
+{
+  
+      TPZMaterial *mat = mphysics->FindMaterial(1);
+      TPZMultiphase * material = dynamic_cast<TPZMultiphase *>(mat);
+
+      TPZFMatrix<STATE> Usol = NonLinearAn->Solution();
+      std::ofstream outsol("Solution.txt");
+      Usol.Print("Sol =",outsol,EMathematicaInput);
+      outsol.flush();
+      
+      int NumberofEl = mphysics->ElementVec().NElements();      
+      long neq = mphysics->NEquations();
+      TPZElementMatrix elk(mphysics, TPZElementMatrix::EK),elf(mphysics, TPZElementMatrix::EF);      
+      
+      int nsteps = 4;
+      STATE du=0.0001;
+      
+      
+      TPZFMatrix<REAL> DeltaU(neq,1,du);
+      TPZFNMatrix<4,REAL> alphas(nsteps,1,0.0),ElConvergenceOrder(nsteps-1,1,0.0);
+      TPZFNMatrix<9,REAL> res(nsteps,1,0.0);
+
+      std::ofstream outfile("CheckConvergencebyElements.txt");
+
+      for(long i = 0; i < NumberofEl; i++ )
+      {
+
+	  NonLinearAn->LoadSolution(SoltUattn);			
+	  TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);	
+	    
+	  TPZCompEl * iel = mphysics->ElementVec()[i];  
+	  material->SetLastState();	  
+
+	  iel->CalcStiff(elk,elf);
+	  TPZFNMatrix<9,REAL> elResidualUn = elf.fMat;	
+
+	  NonLinearAn->LoadSolution(Usol);			
+	  TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+	  
+	  material->SetCurrentState();	  
+	  iel->CalcStiff(elk,elf);	  
+	  TPZFNMatrix<9,REAL> elTangentU = elk.fMat;
+	  TPZFNMatrix<9,REAL> elResidualU = elf.fMat;
+	  
+	  int SizeOfElMat = elTangentU.Rows();
+	  TPZFNMatrix<9,STATE> deltaUel(SizeOfElMat,1,du),ResTangUel(SizeOfElMat,1,0.0);
+	  TPZFNMatrix<9,STATE> ResU(SizeOfElMat,1,0.0),ResUalphadu(SizeOfElMat,1,0.0);
+	  
+	  ResU= elResidualU+elResidualUn;
+	  
+	  std::ofstream outek("TangentEl.txt");
+	  std::ofstream outef("ResidualEl.txt");
+	  std::ofstream outefn("ResidualEln.txt");	  
+	  elTangentU.Print("Tangent = ",outek,EMathematicaInput);
+	  outek.flush();
+	  
+	  elResidualU.Print("ResU = ",outef,EMathematicaInput);	  
+	  outef.flush();
+	  
+	  elResidualUn.Print("Resn = ",outefn,EMathematicaInput);	  
+	  outefn.flush();
+	  
+	  REAL alpha = 0;
+	  for(int j = 0; j < nsteps; j++)
+	  {	
+
+		alpha = (1.0*j+1.0)/10.0;
+		elTangentU.Multiply(alpha*deltaUel,ResTangUel);		
+		alphas(j,0) = log(alpha);
+
+		NonLinearAn->LoadSolution(Usol+alpha*DeltaU);			
+		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+	  
+		iel->CalcStiff(elk,elf);
+		std::ofstream outefa("ResUa.txt");
+		TPZFNMatrix<9,REAL> elResidualUalphadx = elf.fMat;
+		elResidualUalphadx.Print("ResUa =",outefa,EMathematicaInput);
+		ResUalphadu = elResidualUalphadx + elResidualUn;
+		STATE NormValue = Norm(ResUalphadu-(ResU+ResTangUel));
+		STATE NormValue1 = Norm(ResU);
+		STATE NormValue2 = Norm(ResTangUel);
+		STATE NormValue3 = Norm(ResUalphadu);
+		res(j) = log(NormValue);
+
+	  }      
+
+	  for(int j = 1; j < nsteps ; j++){ElConvergenceOrder(j-1,0)=(res(j,0)-res(j-1,0))/(alphas(j,0)-alphas(j-1,0));}  
+// 	  AllOrders[i]= ElConvergenceOrder;
+	  ElConvergenceOrder.Print("CheckConv = ",outfile,EMathematicaInput);
+	  outfile.flush();
+
+      }	  
+ 
+      
 
 }
 
-void ComputeResidual(TPZFMatrix<STATE> SoltUattn, REAL alpha, TPZFMatrix<STATE> DeltaU, TPZFMatrix<STATE> &ResAlpha, TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
-{
 
-	TPZFMatrix<STATE> TangentRes;	
-    TPZMaterial *mat1 = mphysics->FindMaterial(1);
-    TPZMultiphase * material1 = dynamic_cast<TPZMultiphase *>(mat1); 	
-	
-	
-	// Computing the first part of the residual expresion.		
-	material1->SetCurrentState();
-	NonLinearAn->Assemble();
-		
-	TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
-	TPZFMatrix<STATE> ResidualAtU = SoltUattn + RhsAtnPlusOne;		
-	NonLinearAn->Solver().Matrix()->Multiply(alpha*DeltaU,TangentRes);
-		
-	NonLinearAn->LoadSolution(NonLinearAn->Solution()+alpha*DeltaU);			
-	TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);		
-	
-	material1->SetCurrentState();
-	NonLinearAn->Assemble();
-	RhsAtnPlusOne = NonLinearAn->Rhs();
-	TPZFMatrix<STATE> ResidualAtUplusAlphaDeltaU = SoltUattn + RhsAtnPlusOne;
-	
-	ResAlpha = (ResidualAtUplusAlphaDeltaU - (ResidualAtU + TangentRes));
+void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
+{
+  if(!cel) {return;}
+  
+  TPZBlock<STATE> &Block = mphysics->Block(); 
+  int NumberOfEquations = cel->NEquations();  
+  int NumberOfConnects = cel->NConnects();
+  TPZFMatrix<STATE> elSolution(NumberOfEquations,1,0.0);
+  long DestinationIndex = 0L;
+  
+  for(int iconnect = 0; iconnect < NumberOfConnects; iconnect++)
+  {
+    TPZConnect Connect = cel->Connect(iconnect);
+    int seq = Connect.SequenceNumber();
+    int SizeOfBlockAtseq = Block.Size(seq);
+    int BlockGlobalPosition = Block.Position(seq);
+    
+    for(int iblock = 0; iblock	 < SizeOfBlockAtseq; iblock++)
+    {
+     
+     elSolution(DestinationIndex++,0) = mphysics->Solution()[BlockGlobalPosition+iblock];  
+      
+    }
+  }
 
 }

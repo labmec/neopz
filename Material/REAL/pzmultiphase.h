@@ -46,7 +46,7 @@ protected:
 	
 #ifdef _AUTODIFF	
 	
-	typedef TFad<2, double> BFadREAL;	
+	typedef TFad<2, REAL> BFadREAL;	
     
 #endif	
 	
@@ -133,16 +133,16 @@ public:
 	bool fYorN;
 	
 	/** @brief Simulation time step */
-	double fDeltaT;
+	REAL fDeltaT;
 	
 	/** @brief Parameter representing temporal scheme */
-	double fTheta;	
+	REAL fTheta;	
 	
 	/** @brief Defines simulation time step. */
-	void SetTimeStep(double timestep){ this->fDeltaT = timestep;}	
+	void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}	
 	
 	/** @brief Defines simulation time step. */
-	void SetTheta(double timetheta){ this->fTheta = timetheta;}		
+	void SetTheta(REAL timetheta){ this->fTheta = timetheta;}		
 	
 	void SetLastState(){ gState = ELastState;}
 	
@@ -163,79 +163,79 @@ public:
 	}	
 	
 	/** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
-	void CapillaryPressure(double So, double &pc, double &DpcDSo);
+	void CapillaryPressure(REAL So, REAL &pc, REAL &DpcDSo);
 	
 	/**
 	 * @brief Oil relative permeability.
 	 * \f$ Kro = Kro( Sw ) \f$
 	 */
-	void Kro(double Sw, double &Kro, double &dKroDSw);
+	void Kro(REAL Sw, REAL &Kro, REAL &dKroDSw);
 	
 	/**
 	 * @brief Water relative permeability.
 	 * \f$ Krw = Krw( Sw ) \f$
 	 */
-	void Krw(double Sw, double &Krw, double &dKrwSo);
+	void Krw(REAL Sw, REAL &Krw, REAL &dKrwSo);
 	
 	/** 
 	 * @brief \f$ Rock porosity. \f$ Phi = Phi( p ) \f$
 	 * @param po Refrence pressure
 	 */	
-	void Porosity(double po, double &poros, double &dPorosDp);
+	void Porosity(REAL po, REAL &poros, REAL &dPorosDp);
 	
 	/** 
 	 * @brief \f$ Oil density RhoOil = RhoOil( po ) \f$
 	 * @param po Refrence pressure
 	 */
-	void RhoOil(double po, double &RhoOil, double &dRhoOilDpo);
+	void RhoOil(REAL po, REAL &RhoOil, REAL &dRhoOilDpo);
 	
 	/** 
 	 * @brief \f$ Water density RhoWater = RhoWater( pw ) \f$
 	 * @param pw Refrence pressure
 	 */
-	void RhoWater(double pw, double &RhoWater, double &dRhoWaterDpo);
+	void RhoWater(REAL pw, REAL &RhoWater, REAL &dRhoWaterDpo);
 	
 	/** 
 	 * @brief Oil viscosity. \f$ OilViscosity = ViscOleo( po ) \f$
 	 * @param po Refrence pressure
 	 */
-	void OilViscosity(double po, double &OilViscosity, double &dOilViscosityDpo);
+	void OilViscosity(REAL po, REAL &OilViscosity, REAL &dOilViscosityDpo);
 
 	/** 
 	 * @brief Water viscosity. \f$ WaterViscosity = WaterViscosity( pw ) \f$
 	 * @param po Refrence pressure
 	 */	
-	void WaterViscosity(double po, double &WaterViscosity, double &dWaterViscosityDpo);
+	void WaterViscosity(REAL po, REAL &WaterViscosity, REAL &dWaterViscosityDpo);
 	
 	/**
 	 * @brief Oil mobility.
 	 * \f$ \lambda_{Oil} = \lambda_{Oil}( po , Sw ) \f$
 	 */
-	void OilLabmda(double &OilLabmda, double Po, double Sw, double &dOilLabmdaDPo, double &dOilLabmdaDSw);
+	void OilLabmda(REAL &OilLabmda, REAL Po, REAL Sw, REAL &dOilLabmdaDPo, REAL &dOilLabmdaDSw);
 	
 	/**
 	 * @brief Water mobility.
 	 * \f$ \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$
 	 */
-	void WaterLabmda(double &WaterLabmda, double Pw, double Sw, double &dWaterLabmdaDPw, double &dWaterLabmdaDSw);
+	void WaterLabmda(REAL &WaterLabmda, REAL Pw, REAL Sw, REAL &dWaterLabmdaDPw, REAL &dWaterLabmdaDSw);
 	
 	/**
 	 * @brief Bulk mobility.
 	 * \f$ \lambda = \lambda( pw , Sw ) \f$
 	 */
-	void Labmda(double &Labmda, double Pw, double Sw, double &dLabmdaDPw, double &dLabmdaDSw);
+	void Labmda(REAL &Labmda, REAL Pw, REAL Sw, REAL &dLabmdaDPw, REAL &dLabmdaDSw);
 	
 	/**
 	 * @brief Fractional oil flux.
 	 * \f$ f_{Oil} = f_{Oil}( po , Sw ) \f$
 	 */
-	void fOil(double &fOil, double Pw, double Sw, double &dfOilDPw, double &dfOilDSw);
+	void fOil(REAL &fOil, REAL Pw, REAL Sw, REAL &dfOilDPw, REAL &dfOilDSw);
 	
 	/**
 	 * @brief Fractional water flux.
 	 * \f$ f_{Water} = f_{Water}( pw , Sw ) \f$
 	 */
-	void fWater(double &fWater, double Pw, double Sw, double &dfWaterDPw, double &dfWaterDSw);
+	void fWater(REAL &fWater, REAL Pw, REAL Sw, REAL &dfWaterDPw, REAL &dfWaterDSw);
 	
 #ifdef _AUTODIFF	
 	
@@ -324,13 +324,13 @@ public:
 	
 	
 	/** @brief Oil density on standard conditions - kg/m3 */
-	double RhoOilSC();
+	REAL RhoOilSC();
 	
 	/** @brief Water density on standard conditions - kg/m3 */
-	double RhoWaterSC();
+	REAL RhoWaterSC();
 	
 	/** @brief Gravity */
-	double g();
+	REAL g();
 		
 	/** @brief Absolute permeability. */
 	void K(TPZFMatrix<REAL> &K);
