@@ -61,7 +61,6 @@ int main() {
     int shouldinterpolate = 0;
 	cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
 
-    cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
 
