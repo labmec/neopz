@@ -68,7 +68,7 @@ protected:
 	long fElementMaxId;
     
     /** @brief dimension of the geometric domain */
-    long fDim;
+    int fDim;
 	
 	typedef std::map<std::pair<int,int>, int> InterfaceMaterialsMap;
 	
@@ -255,13 +255,13 @@ public:
 	 * @brief Set Dimension.
 	 * @since April 17, 2004
 	 */
-    void SetDimension(long dim){fDim = dim;}
+    void SetDimension(int dim){fDim = dim;}
     
     /**
 	 * @brief Get Dimension.
 	 * @since April 17, 2004
 	 */
-    long Dimension(){return fDim;}
+    int Dimension(){return fDim;}
 	
 private:
 	
