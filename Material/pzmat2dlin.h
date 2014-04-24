@@ -24,7 +24,7 @@ class TPZMat2dLin : public TPZMaterial {
 	TPZFMatrix<STATE>    fKxx, fKxy, fKyx, fKyy, fKx0, fK0x, fKy0, fK0y, fK00, fXf;
 	public :
 	
-    TPZMat2dLin(int num = 0) : TPZMaterial(num), fKxx(), fKxy(),
+    TPZMat2dLin(int num = 1) : TPZMaterial(num), fKxx(), fKxy(),
 	fKyx() , fKyy(), fKx0(), fK0x(), fKy0(), fK0y(), fK00(), fXf() {
     }
 	

@@ -26,7 +26,8 @@ using namespace std;
 TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main() {
-	TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
+    InitializePZLOG();
+	//TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 5 -->> Writing and reading meshes on files\n";
@@ -41,11 +42,11 @@ int main() {
 	TPZCompEl::SetgOrder(order);
 	
 	//Creates the geometric mesh
-	TPZGeoMesh *mesh = GetMesh(nx,ny);
-	mesh->SetName("testing a space");
+	TPZGeoMesh *gmesh = GetMesh(nx,ny);
+	gmesh->SetName("testing a space");
 	ofstream out("all.dat");
 	
-	TPZCompMesh *cmesh = new TPZCompMesh(mesh);
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 	
 	TPZMat2dLin *mat2d = new TPZMat2dLin (1);
 	TPZFMatrix<REAL> xkin (1,1,1e6);
@@ -56,20 +57,22 @@ int main() {
 	cmesh->InsertMaterialObject (mat2d);
 	cmesh->AutoBuild();
 	TPZVec<long> subelindex(4,0);
-	cmesh->ElementVec()[0]->Divide(0,subelindex,0);
+    long elindex = 0;
+    int shouldinterpolate = 0;
+	cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
 
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
 
-	cmesh->Reference()->Print(cout);
+	cmesh->Reference()->Print(out);
 	out << "antes de lido\n";
 	//Prints the refined mesh
 	cmesh->Print(out);
 	{
 		TPZFileStream fstr;
 		fstr.OpenWrite("dump.dat");
-		mesh->Write(fstr,1);
+		gmesh->Write(fstr,1);
 		cmesh->Write(fstr,1);
 	}
 	{
@@ -85,7 +88,7 @@ int main() {
 		delete tst;
 	}
 	if(cmesh) delete cmesh;
-	if(mesh) delete mesh;
+	if(gmesh) delete gmesh;
 	return 0;
 	
 }

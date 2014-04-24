@@ -138,6 +138,9 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;
+        if (gel->Reference()) {
+            continue;
+        }
 		if(!gel->HasSubElement()) {
 			neltocreate++;
 		}
