@@ -603,10 +603,28 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	fRhs = 0;
     
 #ifdef PERF_FRONTMATRIX
-    cout << "Global Assemble Thread 0 : " << thread_timer_global_assemble[0].get_elapsed() << " milliseconds.\n";
-    for(i=0;i<nthreads-2;i++){
-        cout << "Element Assemble Thread " << i << " : " << thread_timer_element_assemble[i].get_elapsed() << " milliseconds.\n";
+
+   
+    unsigned long long begin_min, stop_fmax, stop_smax;
+    begin_min = thread_timer_element_assemble[0].get_start();
+    stop_fmax = thread_timer_element_assemble[0].get_stop();
+    stop_smax = thread_timer_element_assemble[0].get_stop();
+    for(i=1;i<nthreads-2;i++){
+        if (begin_min > thread_timer_element_assemble[i].get_start())
+            begin_min = thread_timer_element_assemble[i].get_start();
+        if (stop_fmax < thread_timer_element_assemble[i].get_stop()) {
+            stop_smax = stop_fmax;
+            stop_fmax = thread_timer_element_assemble[i].get_stop();
+        } else if (stop_smax < thread_timer_element_assemble[i].get_stop()) {
+            stop_smax = thread_timer_element_assemble[i].get_stop();
+        }
+        cout << thread_timer_element_assemble[i].get_elapsed() << std::endl;
     }
+    
+    cout << "GLOBAL_ASSEMBLE_THREAD_TIME, MIN_BEGIN_ELEMENT_TIME, MAX_STOP_ELEMENT_TIME, ELAPSED_MIN_MAX_ELEMENT_TIME\n";
+    cout << thread_timer_global_assemble[0].get_elapsed() << ", ";
+    cout << begin_min << ", " << stop_smax << ", " << stop_smax - begin_min << endl;
+
 #endif
 }
 
