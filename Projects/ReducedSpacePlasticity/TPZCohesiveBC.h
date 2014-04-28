@@ -50,10 +50,10 @@ public:
 	void SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, const REAL &DeltaT);
 	
 	/** @brief Calculates Sigma for determined solution */
-	void CalculateSigma(TPZVec<TPZMaterialData> &datavec, REAL &sigma) const; 
+	void CalculateSigma(TPZMaterialData &data, REAL &sigma) const;
 
 	/** @brief Updates the cohesive curve acording to the calculated w of the time step */
-	void UpdateCohesiveCurve(TPZVec<TPZMaterialData> &datavec);
+	void UpdateCohesiveCurve(TPZMaterialData &data);
 	
 	/** 
 	 * @brief Fill material data parameter with necessary requirements for the
@@ -73,7 +73,13 @@ public:
 	virtual int Dimension() {
 		return 1;
 	}
-		
+  
+  /** @brief Returns the number of state variables associated with the material */
+  virtual int NStateVariables()
+  {
+    return 2;
+  }
+  
 	/** @brief Prints out the data associated with the material */
 	virtual void Print(std::ostream &out = std::cout);
 	
@@ -87,8 +93,28 @@ public:
 	 * @param ef [out] is the residual vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+	//virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
 	
+ 	/**
+	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
+	 * @param data stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 */
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+  
+  /**
+   * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+   * @param data [in] stores all input data
+   * @param weight [in] is the weight of the integration rule
+   * @param ek [out] is the stiffness matrix
+   * @param ef [out] is the load vector
+   * @param bc [in] is the boundary condition material
+   * @since October 07, 2011
+   */
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+  
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
 	 * @param datavec [in] stores all input data

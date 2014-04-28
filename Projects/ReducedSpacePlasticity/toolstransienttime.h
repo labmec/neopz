@@ -16,6 +16,7 @@
 
 
 class TPZElastoPlasticAnalysis;
+class TPZNonLinearAnalysis;
 
 
 class ToolsTransient
@@ -74,9 +75,12 @@ public:
   void ElastTest();
   void ElastNLTest();
   TPZGeoMesh* CreateGeoMesh();
+  TPZGeoMesh* CreateGeoMeshCohe();
   TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh);
+  TPZCompMesh* CreateCMeshCohe(TPZGeoMesh *gmesh);
   void SolveLinearElasticity(TPZCompMesh *cmesh);
-  void SolveNLElasticity(TPZCompMesh *cmesh);
+  void SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis &an);
+  void ElastNLTestWithCohesive();
   
   //---------------------------------------------------------------
   

@@ -37,13 +37,13 @@ void TPZCohesiveBC::SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, cons
 	this->SetDefaultMem(DTST);
 }
 
-void TPZCohesiveBC::CalculateSigma(TPZVec<TPZMaterialData> &datavec, REAL &sigma) const 
+void TPZCohesiveBC::CalculateSigma(TPZMaterialData &data, REAL &sigma) const
 {
-	TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
+	TPZManVector<REAL,3> sol_u = data.sol[0];
 	const REAL uy = sol_u[1];
 	const REAL w = 2.*uy;
 	
-	const int index = datavec[0].intGlobPtIndex; 
+	const int index = data.intGlobPtIndex;
 	TPZFMatrix<REAL> DTST = this->MemItem(index);
 	if (DTST.Rows() != 2 || DTST.Cols() != 1) {
 		PZError << "The DTST memory number of Rows must be 2 and Cols 1\n";
@@ -53,48 +53,87 @@ void TPZCohesiveBC::CalculateSigma(TPZVec<TPZMaterialData> &datavec, REAL &sigma
 	const REAL SigmaT = DTST(1,0);
 	
 	// Calculating the function
-	if (w <= DeltaT) {
+  if (w < 0) {
+    sigma =  - w * SigmaT/DeltaT;
+  }
+	else if (w <= DeltaT) {
 		sigma = w * SigmaT/DeltaT;
 	}
-	else {
+	else if (w <= fDeltaC) {
 		sigma = SigmaT * (1. - (w - DeltaT)/(fDeltaC - DeltaT) );
 	}
+  else{
+    sigma = 0.;
+  }
 
 }
 
-void TPZCohesiveBC::UpdateCohesiveCurve(TPZVec<TPZMaterialData> &datavec)
+void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
 {
-	TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
+	TPZManVector<REAL,3> sol_u = data.sol[0];
 	const REAL w = 2.*sol_u[1];
 	REAL sigma = -6378.;
-	CalculateSigma(datavec,sigma);
+	CalculateSigma(data,sigma);
 	
 	TPZFMatrix<REAL> DTST(2,1,0.);
 	DTST(0,0) = w;
 	DTST(1,0) = sigma;
 	
-	int index = datavec[0].intGlobPtIndex;
+	int index = data.intGlobPtIndex;
 	this->MemItem(index) = DTST;
 }
 
+void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+	TPZFMatrix<REAL> &phi = data.phi; // 0 is the elastic mesh
+  REAL sigma = -6378.;
+	CalculateSigma(data,sigma);
+  
+  
+  int in = 0, phr = phi.Rows();
+  for (in = 0; in < phr; in++)
+  {
+    for (int il = 0; il <fNumLoadCases; il++)
+    {
+      TPZFNMatrix<2,STATE> v2(2,1);
+      v2(1,0) = -sigma;
+      ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
+      ef(2*in+1,il) +=  v2(1,0) * phi(in,0) * weight;      // force in y direction
+    }
+  }
+  
+}
+
+/*
+
 void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
 {
-	/*
-	TPZFMatrix<REAL> &phi = data[0].phi; // 0 is the elastic mesh
-	TPZFMatrix<REAL> &sol = data[0].sol[0];
-
 	
-	for(in=0 ; in<numnod ; ++in){
-		for(idf = 0;idf<r;idf++) {
-			(ef)(in*r+idf,0) += (STATE)phi(in,0)*bc.Val2()(idf,0)*(STATE)weight;
-		}
-	}	
-	 */
+	TPZFMatrix<REAL> &phi = data.phi; // 0 is the elastic mesh
+	
+  int in = 0, phr = phi.Rows();
+  for (in = 0; in < phr; in++)
+  {
+    for (int il = 0; il <fNumLoadCases; il++)
+    {
+      TPZFNMatrix<2,STATE> v2(2,1);
+      v2(1,0) = -1;
+      ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
+      ef(2*in+1,il) +=  v2(1,0) * phi(in,0) * weight;      // force in y direction
+    }
+  }
 }
+
+*/
 
 void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 	
+}
+
+void TPZCohesiveBC::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+{
+  
 }
 
 void TPZCohesiveBC::Print(std::ostream &out)
