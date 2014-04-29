@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzanalysis.h"
 #include "tpzcompmeshreferred.h"
-#include "pznlfluidstructure2d.h"
+#include "TPZPlasticFrac2D.h"
 
 
 class TPZElastoPlasticAnalysis;
@@ -87,8 +87,8 @@ public:
   int fpOrder;
   bool fMustStop;
   
-  TPZNLFluidStructure2d * fCouplingMaterial1;
-  TPZNLFluidStructure2d * fCouplingMaterial2;
+  TPZPlasticFrac2D * fCouplingMaterial1;
+  TPZPlasticFrac2D * fCouplingMaterial2;
   TPZGeoMesh * fgmesh;
   
   /** fmeshvec[0] = Malha computacional elastica do tipo referred */

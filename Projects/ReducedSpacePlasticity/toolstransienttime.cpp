@@ -60,27 +60,27 @@ ToolsTransient::ToolsTransient(){
 
 ToolsTransient::ToolsTransient(int pOrder)
 {
-  fpOrder = pOrder;
-  fMustStop = false;
-  
-  int dim = 2;
-  fCouplingMaterial1 = new TPZNLFluidStructure2d(globMultiFisicMatId1,dim,
-                                                 globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
-  
-  fCouplingMaterial2 = new TPZNLFluidStructure2d(globMultiFisicMatId2,dim,
-                                                 globFractInputData.E2(), globFractInputData.Poisson2(), globFractInputData.Visc());
-  
-  int planestrain = 0;
-  fCouplingMaterial1->SetfPlaneProblem(planestrain);
-  fCouplingMaterial2->SetfPlaneProblem(planestrain);
-  
-  fgmesh = NULL;
-  fmeshvec.Resize(2);
-  fmphysics = NULL;
+    fpOrder = pOrder;
+    fMustStop = false;
+    
+    int dim = 2;
+    fCouplingMaterial1 = new TPZPlasticFrac2D(globMultiFisicMatId1,dim,
+                                                   globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
+    
+    fCouplingMaterial2 = new TPZPlasticFrac2D(globMultiFisicMatId2,dim,
+                                                   globFractInputData.E2(), globFractInputData.Poisson2(), globFractInputData.Visc());
+    
+    int planestrain = 0;
+    fCouplingMaterial1->SetfPlaneProblem(planestrain);
+    fCouplingMaterial2->SetfPlaneProblem(planestrain);
+    
+    fgmesh = NULL;
+    fmeshvec.Resize(2);
+    fmphysics = NULL;
 }
 
 ToolsTransient::~ToolsTransient(){
-  
+    
 }
 
 

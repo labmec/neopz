@@ -50,10 +50,11 @@ public:
 	void SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, const REAL &DeltaT);
 	
 	/** @brief Calculates Sigma for determined solution */
-	void CalculateSigma(TPZMaterialData &data, REAL &sigma) const;
+	void CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma) const; 
 
 	/** @brief Updates the cohesive curve acording to the calculated w of the time step */
 	void UpdateCohesiveCurve(TPZMaterialData &data);
+
 	
 	/** 
 	 * @brief Fill material data parameter with necessary requirements for the
