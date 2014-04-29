@@ -44,6 +44,7 @@ if(BUILD_PERF_TESTS)
   add_subdirectory(GFlopsTest)
   add_subdirectory(TBBTests)
   add_subdirectory(RationalFunc)
+  add_subdirectory(DataMigration)
 
   # Add your run scripts into RunScripts/CMakeLists.txt
   add_subdirectory(RunScripts)

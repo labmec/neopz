@@ -401,7 +401,7 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
 		// reading a general mesh information by filter
 		std::ifstream read (FileName.c_str());
 		std::string FlagString;
-		int flag = -1;		
+//		int flag = -1;		
 		while(read)
 		{
 			char buf[1024];
@@ -506,8 +506,8 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
 		std::ifstream read (FileName.c_str());
 		std::string FlagString;
 		long cont = 0;
-		int dim = 0;
-		int flag = 0;
+//		int dim = 0;
+//		int flag = 0;
 		while(read)
 		{
 			char buf[1024];	
@@ -628,9 +628,9 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<REAL>  &phiP =  datavec[1].phi;
     TPZFMatrix<REAL>  &phiS =  datavec[2].phi;	
 
-    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
+//    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
-    TPZFMatrix<REAL> &dphiS = datavec[2].dphix;// it is a zero value since S is constant by element.
+//    TPZFMatrix<REAL> &dphiS = datavec[2].dphix;// it is a zero value since S is constant by element.
 	
 	// number of test functions for each state variable
     int phrQ, phrP, phrS;
@@ -639,8 +639,8 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     phrS = phiS.Rows();
 	
     //	Getting and computing another required data
-    REAL TimeStep = this->fDeltaT;
-    REAL Theta = this->fTheta;
+//    REAL TimeStep = this->fDeltaT;
+//    REAL Theta = this->fTheta;
     int GeoID = datavec[0].gelElId;	
     TPZFMatrix<REAL> Kabsolute;
     if (fYorN)
@@ -834,9 +834,9 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<REAL>  &phiP =  datavec[1].phi;
     TPZFMatrix<REAL>  &phiS =  datavec[2].phi;	
 
-    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
+//    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
-    TPZFMatrix<REAL> &dphiS = datavec[2].dphix;// This a null value since S is constant by element.
+//    TPZFMatrix<REAL> &dphiS = datavec[2].dphix;// This a null value since S is constant by element.
 
     // number of test functions for each state variable
     int phrQ, phrP, phrS;
@@ -867,7 +867,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<> axesQ, axesP;
     axesQ=datavec[0].axes;
     
-    REAL Pressure = sol_p[0];
+//    REAL Pressure = sol_p[0];
     
     REAL rockporosity, oildensity, waterdensity;
     REAL drockporositydp, doildensitydp, dwaterdensitydp;	
@@ -901,7 +901,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 		
 		//	First Block (Equation One) constitutive law
 		// Integrate[(viscosity/density)*dot(q,v), Omega_{e}]	(Equation One)
-		REAL ViscOverdensity = waterviscosity/waterdensity;
+//		REAL ViscOverdensity = waterviscosity/waterdensity;
 		REAL OneOverLambda = 1.0/bulklambda;			
 		for(int iq=0; iq<phrQ; iq++)
 		{
@@ -1043,13 +1043,13 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
       //	Getting Q solution for left and right side
       REAL qxL = sol_qL[0];
       REAL qyL = sol_qL[1];
-      REAL qxR = sol_qR[0];
-      REAL qyR = sol_qR[1];	
+//      REAL qxR = sol_qR[0];
+//      REAL qyR = sol_qR[1];	
       //	REAL qz = sol_qR[2];		
 
       //	Getting S solution for left and right side	
-      REAL SaturationL	=	sol_sL[0];
-      REAL SaturationR	=	sol_sR[0];
+//      REAL SaturationL	=	sol_sL[0];
+//      REAL SaturationR	=	sol_sR[0];
 
       //	Getting another required data
       REAL TimeStep = this->fDeltaT;
@@ -1268,7 +1268,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 		//	Upwind scheme
 		//	Third Vector Block (Equation three) Saturation  equation
 		REAL dotqnL = (qxL*n1) + (qyL*n2);
-		REAL dotqnR = (qxR*n1) + (qyR*n2);		
+//		REAL dotqnR = (qxR*n1) + (qyR*n2);		
 		REAL UpwindSaturation = 0.0;		
 
 		if (dotqnL > 0.0) 
@@ -1429,8 +1429,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
       REAL PseudoPressureR	=	sol_pR[0];	
 
       //	Getting S solution for left and right side	
-      REAL SaturationL	=	sol_sL[0];
-      REAL SaturationR	=	sol_sR[0];
+//      REAL SaturationL	=	sol_sL[0];
+//      REAL SaturationR	=	sol_sR[0];
 
       REAL dotqnL = (qxL*n1) + (qyL*n2);
       REAL dotqnR = (qxR*n1) + (qyR*n2);
@@ -1537,7 +1537,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 	int SRowsRight = phiSR.Rows();	
 	
 	int iRightInterfaceBlock = QRowsleft + PRowsleft + SRowsleft;
-	int jRightInterfaceBlock = QRowsleft + PRowsleft + SRowsleft;	
+//	int jRightInterfaceBlock = QRowsleft + PRowsleft + SRowsleft;	
 	
 	
 	//	////////////////////////// Residual Vector ///////////////////////////////////
@@ -1649,7 +1649,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 	{
 		
 		REAL dotqnL = (qxL*n1) + (qyL*n2);
-		REAL dotqnR = (qxR*n1) + (qyR*n2);
+//		REAL dotqnR = (qxR*n1) + (qyR*n2);
 		REAL UpwindSaturation = 0.0;
 		
 		if (dotqnL > 0.0) 
@@ -1753,7 +1753,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
       TPZFMatrix<REAL> &phiPL = dataleft[1].phi;	
       TPZFMatrix<REAL> &phiSL = dataleft[2].phi;
       int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
-      int QRowsleft1 = phiQL.Rows();
+//      int QRowsleft1 = phiQL.Rows();
       int PRowsleft = phiPL.Rows();
       int SRowsleft = phiSL.Rows();
 
@@ -1776,7 +1776,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
       REAL PseudoPressureL	=	sol_pL[0];
 
       //	Getting S solution for left side	
-      REAL SaturationL	=	sol_sL[0];
+//      REAL SaturationL	=	sol_sL[0];
 
       //	Getting another required data
 
@@ -1933,7 +1933,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 	v2[0] = bc.Val2()(0,0);	//	qx
 	v2[1] = bc.Val2()(1,0);	//	qy
 	v2[2] = bc.Val2()(2,0);	//	Pressure
-	v2[3] = bc.Val2()(3,0);	//	Saturation
+//	v2[3] = bc.Val2()(3,0);	//	Saturation
 	REAL qN = (v2[0]*n1 + v2[1]*n2);	// Normal Flux	
 	
 
@@ -1994,7 +1994,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				
 				else 
 				{
-					fWater(bulkfwaterl, sol_pL[VecPos], v2[3], dbulkfwaterdpl, dbulkfwaterdsl); 				  
+//					fWater(bulkfwaterl, sol_pL[VecPos], v2[3], dbulkfwaterdpl, dbulkfwaterdsl); 				  
 					UpwindSaturation = bulkfwaterl;	
 					
 				}
@@ -2042,7 +2042,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				
 				else 
 				{
-					fWater(bulkfwaterl, sol_pL[VecPos], v2[3], dbulkfwaterdpl, dbulkfwaterdsl); 				  
+//					fWater(bulkfwaterl, sol_pL[VecPos], v2[3], dbulkfwaterdpl, dbulkfwaterdsl); 				  
 					UpwindSaturation = bulkfwaterl;
 				  
 					
