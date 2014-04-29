@@ -237,6 +237,7 @@ public:
 			TPZFront<TVar> * mat = mypair->second->fMat;
 			if(!mat) DebugStop();
 			mat->TensorProductIJ(mypair->first,mypair->second);
+			delete mypair;
 			return NULL;
 		}
 		
