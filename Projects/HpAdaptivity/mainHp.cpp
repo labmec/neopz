@@ -74,36 +74,36 @@ int main()
 	}
 #endif
 	//std::ofstream erro("TaxaArcTanTriangUni.txt");
-    std::ofstream erro("TaxaArcTanQuadUni.txt");
+    //std::ofstream erro("TaxaArcTanQuadUni.txt");
+    std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
     	
 	TPZVec<REAL> calcErro;
-	for (int porder=2; porder<3; porder++) {
+	for (int porder=1; porder<2; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=2;h<3;h++){
+			for(int h=1;h<5;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;//true nao uniforme
 					bool prefine=false;
-                TPZGeoMesh *gmesh = MalhaGeo(h,hrefine);
-                
+                TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
 
-              // RefiningNearCircunference(2,gmesh,h,1);
-                
-                
+                std::ofstream filemesh("MalhaGeoArcTan.vtk");
+               PrintGMeshVTK( gmesh, filemesh);
 
-                
-           //    std::ofstream filemesh("MalhaGeoArcTan.vtk");
-           //     PrintGMeshVTK( gmesh, filemesh);
+            //  RefiningNearCircunference(2,gmesh,h,1);
+               // std::ofstream filemesh2("MalhaGeoArcTanRefeineNearCirc.vtk");
+                //PrintGMeshVTK( gmesh, filemesh2);
        
 
         TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
                 int nDofs;
                 nDofs=cmesh->NEquations();
+                
                 erro<< "\n NRefinamento "<<h<< "   NDofs "<<nDofs<<std::endl;
             
-        //2. Resolve o problema
+        /*2. Resolve o problema
 		
 		 TPZAnalysis analysis(cmesh);
          SolveLU ( analysis );
@@ -118,9 +118,9 @@ int main()
         
 			
 			//4. visualizacao grafica usando vtk
-			 TPZVec<std::string> scalnames(2), vecnames(2);
-			 //scalnames[3] = "Divergence";
-			// scalnames[2] = "ExactDiv";
+			 TPZVec<std::string> scalnames(4), vecnames(2);
+			 scalnames[3] = "Divergence";
+			 scalnames[2] = "ExactDiv";
 			 scalnames[0] = "Pressure";//"Solution";//
 			 scalnames[1] = "ExactPressure";
 			 //scalnames[1] = "ExactDiv";
@@ -132,14 +132,22 @@ int main()
 			 
 			 
 			 //vecnames[0] = "Derivate";
+               //  std::string plotfile("GraficArcTanHpAdaptivity.vtk");
+                 const int dim = 2;
+                 int div = 2;
+                 
+                 char buf[256] ;
+                 sprintf(buf,"ArcTanHpNaoUniMeshT_porder%d_h%d.vtk",porder,h);
+                 analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
+                 analysis.PostProcess(div);
+			 */
 			 
-			 
-			 std::string plotfile("GraficArcTanHpAdaptivity.vtk");
+			 /*std::string plotfile("GraficArcTanHpAdaptivity.vtk");
 			 const int dim = 2;
 			 int div = 2;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
-             
+           */  
         
 		}}
 	
