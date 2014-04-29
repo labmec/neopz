@@ -197,8 +197,10 @@ public:
 	 */
 	void ProjectSigmaDep(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigmaproj, STATE &kproj, TPZFMatrix<STATE> &tang);
     
-    void Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const;
-
+	/**
+	 * @brief Calculates the value of phi based on eps
+	 */
+  void Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const;
 	
 };
 

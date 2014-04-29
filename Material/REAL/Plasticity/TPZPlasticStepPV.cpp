@@ -64,7 +64,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
 	fN.fEpsP = epsPN; 
 }
 
-// EM FASE DE DEBUG!!!!!!!
+
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
@@ -517,8 +517,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetState(const TPZPlasticState<REAL> &state)
 template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::Read(TPZStream &buf)
 {
-		PZError << " \n this method is not implemented in PlasticStepPV." << std::endl;
-    DebugStop();
+	fYC.Read(buf);
+	fER.Read(buf);
+	buf.Read(&fResTol);
+	buf.Read(&fMaxNewton);
+	fN.Read(buf);
 }
 
 /** @brief Object which represents the yield criterium */
