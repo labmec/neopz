@@ -40,6 +40,7 @@
 #include "pznlelasmat.h"
 #include "pznonlinanalysis.h"
 #include "TPZCohesiveBC.h"
+#include "TPZParFrontStructMatrix.h"
 //Teste CohesiveBC
 
 #include "pzlog.h"
@@ -80,7 +81,8 @@ ToolsTransient::ToolsTransient(int pOrder)
 }
 
 ToolsTransient::~ToolsTransient(){
-    
+	delete fCouplingMaterial1;
+	delete fCouplingMaterial2;
 }
 
 
@@ -1869,14 +1871,19 @@ void ToolsTransient::ElastTest()
 {
   TPZGeoMesh *gmesh = this->CreateGeoMesh();
   TPZCompMesh *cmesh = this->CreateCMesh(gmesh);
-  this->SolveLinearElasticity(cmesh);
+	for (int i = 0; i < 300; i++) {
+	  this->SolveLinearElasticity(cmesh);
+	}
+  //this->SolveLinearElasticity(cmesh);
 }
 
 void ToolsTransient::ElastNLTest()
 {
   TPZGeoMesh *gmesh = this->CreateGeoMesh();
   TPZCompMesh *cmesh = this->CreateCMesh(gmesh);
-  //this->SolveNLElasticity(cmesh);
+
+	delete cmesh;
+	delete gmesh;
 }
 
 
@@ -1886,11 +1893,12 @@ void ToolsTransient::SolveLinearElasticity(TPZCompMesh *cmesh)
   TPZAnalysis an(cmesh);
   TPZStepSolver<STATE> step;
   step.SetDirect(ECholesky);
-  TPZSkylineStructMatrix skyl(cmesh);
+  TPZParFrontStructMatrix<TPZFrontSym<STATE> > skyl(cmesh);
+	skyl.SetNumThreads(1);
   an.SetStructuralMatrix(skyl);
   an.SetSolver(step);
   an.Run();
-  
+  /*
   int dim = 2;
   TPZStack<std::string> scalnames,vecnames;
   vecnames.push_back("Strain");
@@ -1900,6 +1908,8 @@ void ToolsTransient::SolveLinearElasticity(TPZCompMesh *cmesh)
   
   an.DefineGraphMesh(dim, scalnames, vecnames, "ElastSol.vtk");
   an.PostProcess(0);
+	 */
+	
 }
 
 
@@ -1949,7 +1959,7 @@ TPZGeoMesh* ToolsTransient::CreateGeoMesh()
   
   gmesh->BuildConnectivity();
   
-  int nref = 2;
+  int nref = 4;
   TPZVec<TPZGeoEl *> sons;
   for (int iref = 0; iref < nref; iref++) {
     int nel = gmesh->NElements();
