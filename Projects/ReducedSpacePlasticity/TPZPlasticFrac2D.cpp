@@ -1,12 +1,12 @@
 //
-//  pznlfluidstructure2d.cpp
+//  TPZPlasticFrac2D.cpp
 //  PZ
 //
 //  Created by Agnaldo Farias on 9/17/12.
 //
 //
 
-#include "pznlfluidstructure2d.h"
+#include "TPZPlasticFrac2D.h"
 
 
 #include <iostream>
@@ -23,48 +23,48 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 #endif
 
 
-TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
+TPZPlasticFrac2D::EState TPZPlasticFrac2D::gState = ECurrentState;
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin()
+TPZPlasticFrac2D::TPZPlasticFrac2D() : TPZDiscontinuousGalerkin()
 {
 	fmatId = 0;
 	fE = 0.;
 	fPoiss = 0.;
 	fVisc = 0.;
 	fDim = 2;
-	fPlaneStress = 1.;
+	fPlaneStress = 1;
 	
 	ff.resize(fDim);
 	ff[0] = 0.;
 	ff[1] = 0.;
 }
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc): TPZDiscontinuousGalerkin(matid)
+TPZPlasticFrac2D::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL poiss, REAL visc) : TPZDiscontinuousGalerkin(matid) 
 {
 	fmatId = matid;
 	fE = young;
 	fPoiss = poiss;
 	fVisc = visc;
 	fDim = dim;
-	fPlaneStress = 1.;
+	fPlaneStress = 1;
 	
-	ff.resize(fDim);
+	ff.resize(2);
 	ff[0] = 0.;
 	ff[1] = 0.;
 }
 
-TPZNLFluidStructure2d::~TPZNLFluidStructure2d()
+TPZPlasticFrac2D::~TPZPlasticFrac2D()
 {
 }
 
 
-int TPZNLFluidStructure2d::NStateVariables()
+int TPZPlasticFrac2D::NStateVariables()
 {
 	return 1;
 }
 
 
-void TPZNLFluidStructure2d::Print(std::ostream &out)
+void TPZPlasticFrac2D::Print(std::ostream &out)
 {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
@@ -84,7 +84,7 @@ void TPZNLFluidStructure2d::Print(std::ostream &out)
 }
 
 
-void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZPlasticFrac2D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	if(gState == ELastState)
 	{
@@ -209,9 +209,9 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 			{/* Plain stress state */
 				ek(in,jn) += weight*(fEover1MinNu2*dphix_i(0,0)*dphix_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dphix_j(1,0) +
 														 
-														 fEover1MinNu2*dphix_i(0,0)*dphiy_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dphiy_j(0,0) +
+														 fEover1MinNu2*poisson*dphix_i(0,0)*dphiy_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dphiy_j(0,0) +
 														 
-														 fEover1MinNu2*dphiy_i(1,0)*dphix_j(0,0) + fEover21PlusNu*dphiy_i(0,0)*dphix_j(1,0) +
+														 fEover1MinNu2*poisson*dphiy_i(1,0)*dphix_j(0,0) + fEover21PlusNu*dphiy_i(0,0)*dphix_j(1,0) +
 														 
 														 fEover1MinNu2*dphiy_i(1,0)*dphiy_j(1,0) + fEover21PlusNu*dphiy_i(0,0)*dphiy_j(0,0));
 			}
@@ -222,7 +222,7 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	ContributePressure(datavec, weight, ek, ef);
 }
 
-void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZPlasticFrac2D::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	if(!datavec[1].phi) return;
 	
@@ -298,7 +298,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
 	}
 }
 
-void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPlasticFrac2D::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -330,7 +330,7 @@ void TPZNLFluidStructure2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, R
 	}
 }
 
-void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc)
+void TPZPlasticFrac2D::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -378,7 +378,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
 	}
 }
 
-void TPZNLFluidStructure2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
+void TPZPlasticFrac2D::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -421,7 +421,7 @@ void TPZNLFluidStructure2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL 
 }
 
 
-void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
+void TPZPlasticFrac2D::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -442,7 +442,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REA
 }
 
 
-void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+void TPZPlasticFrac2D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
 	TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
 	if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!= 0)
@@ -482,7 +482,7 @@ void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 	}
 }
 
-int TPZNLFluidStructure2d::VariableIndex(const std::string &name){
+int TPZPlasticFrac2D::VariableIndex(const std::string &name){
 	if(!strcmp("Pressure",name.c_str()))        return 1;
 	if(!strcmp("MinusKGradP",name.c_str()))     return 2;
 	if(!strcmp("DisplacementX",name.c_str()))   return 3;
@@ -495,7 +495,7 @@ int TPZNLFluidStructure2d::VariableIndex(const std::string &name){
 	return TPZMaterial::VariableIndex(name);
 }
 
-int TPZNLFluidStructure2d::NSolutionVariables(int var){
+int TPZPlasticFrac2D::NSolutionVariables(int var){
 	if(var == 1) return 1;
 	if(var == 2) return 1;
 	if(var == 3) return 1;
@@ -509,7 +509,7 @@ int TPZNLFluidStructure2d::NSolutionVariables(int var){
 }
 
 
-void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZPlasticFrac2D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
 	
 	Solout.Resize(this->NSolutionVariables(var));
 	
@@ -623,7 +623,7 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 	}
 }
 
-void TPZNLFluidStructure2d::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+void TPZPlasticFrac2D::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 {
 	int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
@@ -636,7 +636,7 @@ void TPZNLFluidStructure2d::FillDataRequirements(TPZVec<TPZMaterialData > &datav
 	}
 }
 
-void TPZNLFluidStructure2d::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+void TPZPlasticFrac2D::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
 	int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
