@@ -204,7 +204,7 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     REAL x = pt[0];
     REAL y = pt[1];   
     
-    REAL F = 2*sqrt(epsilon);
+    REAL F = 2.*sqrt(epsilon);
     REAL arc = F*((0.25*0.25) - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
     REAL prodx = x*(x-1.);
     REAL prody = y*(y-1.);
@@ -212,43 +212,41 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     p[0] = 8.*prod*(1.+(2./MyPi)*(atan(arc)));//solucao p
     //gradiente
     
-    REAL temp = prody*(2*x-1.)*(MyPi + 2*atan(arc));
-    REAL frac = 2*prod*F*(1.-2*x);
-    frac = frac/(1+arc*arc);
-    //componente x
-    flux(0,0) = (-8./MyPi)*(temp + frac);
-    //componente y
-    temp = prodx*(2*y-1.)*(MyPi + 2*atan(arc));
-    frac = 2*prod*F*(1.-2*y);
-    frac = frac/(1+arc*arc);
+    REAL temp = (MyPi + 2.*atan(arc))*(2.*x-1);
+    REAL frac = 0;
+    REAL aux2x= (0.25*0.25)-(x-0.5)*(x-0.5)-(y-0.5)*(y-0.5);
+    frac= (8.*prodx*(x-0.5)*sqrt(epsilon))/(1.+(4.*aux2x*aux2x)*epsilon);
+    //componente ux
+    flux(0,0) = (-1.)*(8./MyPi)*prody*(temp - frac);
+    //componente uy
     
-    flux(1,0) = (-8./ MyPi)*(temp + frac);
+    REAL temp2 = (MyPi + 2.*atan(arc))*(2.*y-1.);
+    frac= (8.*prody*(y-0.5)*sqrt(epsilon))/(1.+(4.*aux2x*aux2x*epsilon));
+    //componente ux
+    flux(1,0) = (-1.)*(8.*prodx)/MyPi*(temp2 - frac);
     
+   
     //divergente
-//    REAL B = (16.*epsilon)/MyPi;
-//	REAL G = -0.4375;
-	
-//	REAL sum = prodx + prody;
-	
-//	REAL temp2 = F*(G-sum);
-//	REAL arctan = atan(temp2);
-//	REAL den = (1+temp2*temp2)*(1+temp2*temp2);
-//	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
-//
-    REAL aux=0;
-    aux=(16*(-1 + x)*x*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
-                              (640000*sqrt(10)*pow(-0.5 + x,2)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2)))/
-                              pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
-    (160*sqrt(10)*(-0.5 + x)*(8*(-1 + x) + 8*x)*(-1 + y)*y)/
-    (MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
-    16*(-1 + y)*y*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi) +
-    8*(-1 + x)*x*((2*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
-                      (640000*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*pow(-0.5 + y,2))/
-                      pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
-                  (160*sqrt(10)*(-0.5 + y)*(-1 + 2*y))/(MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
-                  2*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi));
-    flux(2,0)=(-1.)*aux;
-    /*B*(sum*(MyPi+2*arctan)+(num/den));*/
+    //uxx
+    
+    REAL fracaux=(1.+(4.*aux2x*aux2x)*epsilon);
+    REAL termo2=fracaux*fracaux;
+    REAL fator1=prody*(MyPi+2.*atan(arc));
+    REAL fator2=(4./fracaux)*prody*sqrt(epsilon)*((2*x-1)*(2*x-1)+x*(x-1));
+    REAL fator3=(64./termo2)*(prod*(x-0.5)*(x-0.5)*aux2x*(pow(epsilon, 1.5)));
+    REAL aux2xx= (16./MyPi)*(fator1-fator2-fator3);
+    
+    //uyy
+    
+    REAL fator1y=prodx*(MyPi+2.*atan(arc));
+    REAL fator2y=(4./fracaux)*prodx*sqrt(epsilon)*((2*y-1)*(2*y-1)+y*(y-1));
+    REAL fator3y=(64./termo2)*(prod*(y-0.5)*(y-0.5)*aux2x*(pow(epsilon,1.5)));
+    REAL aux2yy= (16./MyPi)*(fator1y-fator2y-fator3y);
+    
+    //uxx+uyy
+    
+    flux(2,0)=(-1.)*(aux2xx+aux2yy);
+    
     
 
 }
@@ -257,35 +255,36 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
  //   disp.Redim(2,1);
     REAL x = pt[0];
     REAL y = pt[1];
-    int aux=0;
-   /* REAL B = (16.*epsilon)/MyPi;
-	REAL G = -0.4375;
+    
     REAL F = 2*sqrt(epsilon);
+    REAL arc = F*((0.25*0.25) - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
     REAL prodx = x*(x-1.);
     REAL prody = y*(y-1.);
     REAL prod = prodx*prody;
-	
-	REAL sum = prodx + prody;
-    REAL temp2 = F*(G-sum);
-	REAL arctan = atan(temp2);
-    REAL num = 2.*F*(sum*(2.*F*F*prod*(8.*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
-	REAL den = (1.+temp2*temp2)*(1.+temp2*temp2);
-    disp[0]=(-1.)*B*(sum*(MyPi+2.*arctan)+(num/den));
-//disp(0,0)=(-1.)*B*(sum*(MyPi+2.*arctan)+(num/den));
-    */
+    REAL aux=8*prod*sqrt(epsilon)*(2*x-1.)*(x-0.5);
+    REAL frac = aux/(1+arc*arc);
+
     
-    	aux=(16*(-1 + x)*x*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
-                    (640000*sqrt(10)*pow(-0.5 + x,2)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2)))/
-                    pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
-    (160*sqrt(10)*(-0.5 + x)*(8*(-1 + x) + 8*x)*(-1 + y)*y)/
-    (MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
-    16*(-1 + y)*y*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi) +
-    8*(-1 + x)*x*((2*((-40*sqrt(10))/(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2)) -
-                      (640000*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*pow(-0.5 + y,2))/
-                      pow(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2),2))*(-1 + y)*y)/MyPi -
-                  (160*sqrt(10)*(-0.5 + y)*(-1 + 2*y))/(MyPi*(1 + 4000*pow(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2),2))) +
-                  2*(1 + (2*atan(20*sqrt(10)*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))))/MyPi));
-   disp[0]=(-1.)*aux;
+    
+    //uxx
+    REAL aux2x= (0.25*0.25)-(x-0.5)*(x-0.5)-(y-0.5)*(y-0.5);
+    REAL fracaux=(1.+(4.*aux2x*aux2x)*epsilon);
+    REAL termo2=fracaux*fracaux;
+    REAL fator1=prody*(MyPi+2.*atan(arc));
+    REAL fator2=(4./fracaux)*prody*sqrt(epsilon)*((2*x-1)*(2*x-1)+x*(x-1));
+    REAL fator3=(64./termo2)*(prod*(x-0.5)*(x-0.5)*aux2x*(pow(epsilon, 1.5)));
+    REAL aux2xx= (16./MyPi)*(fator1-fator2-fator3);
+    
+    //uyy
+    
+    REAL fator1y=prodx*(MyPi+2.*atan(arc));
+    REAL fator2y=(4./fracaux)*prodx*sqrt(epsilon)*((2*y-1)*(2*y-1)+y*(y-1));
+    REAL fator3y=(64./termo2)*(prod*(y-0.5)*(y-0.5)*aux2x*(pow(epsilon,1.5)));
+    REAL aux2yy= (16./MyPi)*(fator1y-fator2y-fator3y);
+    
+    //divergente uxx+uyy
+        
+   disp[0]=(-1.)*(aux2xx+aux2yy);
 
     
     
@@ -293,8 +292,8 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     REAL x=pt[0];
     REAL prodx=x*(x-1.);
-    REAL arc=2.*sqrt(epsilon)*((-3./16.)-(x-0.5)*(x-0.5));
-    f[0]= 8.*prodx*(1. + (2./MyPi)*atan(arc));
+    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(x-0.5)*(x-0.5));
+    f[0]= -8.*prodx*(1. + (2./MyPi)*atan(arc));
  
 
     
@@ -304,8 +303,8 @@ void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
     REAL y=pt[1];
     REAL prody=y*(y-1.);
-    REAL arc=2.*sqrt(epsilon)*((-3./16.)-(y-0.5)*(y-0.5));
-    f[0]= 8.*prody*(1 + (2./MyPi)*atan(arc));
+    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(y-0.5)*(y-0.5));
+    f[0]= -8.*prody*(1 + (2./MyPi)*atan(arc));
 }
 void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     double x=pt[0];
@@ -574,8 +573,8 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		TPZGeoElBC gbc1(elvec[0],3,bc0);// condicao de fronteira tipo -1:
 		TPZGeoElBC gbc2(elvec[0],5,bc3);// condicao de fronteira tipo -2:
 		
-		TPZGeoElBC gbc3(elvec[1],3,bc2);// condicao de fronteira tipo -3:
-		TPZGeoElBC gbc4(elvec[1],5,bc1);// condicao de fronteira tipo -4:
+		TPZGeoElBC gbc3(elvec[1],3,bc1);// condicao de fronteira tipo -3:
+		TPZGeoElBC gbc4(elvec[1],5,bc2);// condicao de fronteira tipo -4:
 		
 		const std::string nameref;
 		
@@ -587,7 +586,9 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
     }
     
     
-    else{
+    else UniformRefine(gmesh, h);
+    
+    /*{
         ///Refinamento uniforme
         for ( int ref = 0; ref < h; ref++ )
         {// h indica o numero de refinamentos
@@ -606,12 +607,9 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
     
     
     
-    }
+    }*/
     
-    
-    
-//    else UniformRefine(gmesh, h);
-		
+        
 		
 #ifdef LOG4CXX
 		{
@@ -1122,7 +1120,7 @@ void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVe
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 {
-    TPZVec<TPZGeoEl *> filhos;
+ /*   TPZVec<TPZGeoEl *> filhos;
     long n = gmesh->NElements();
     for(long i = 0; i < n; i++){
         TPZGeoEl * gel = gmesh->ElementVec()[i];
@@ -1132,10 +1130,28 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
             gel->Divide(filhos);
         }
     }
+   */ 
+    
+    
+    ///Refinamento uniforme
+    for ( int ref = 0; ref < nDiv; ref++ )
+    {// h indica o numero de refinamentos
+        TPZVec<TPZGeoEl *> filhos;
+        long n = gmesh->NElements();
+        for ( long i = 0; i < n; i++ )
+        {
+            TPZGeoEl * gel = gmesh->ElementVec() [i];
+            //if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(filhos);
+            }
+        }//for i
+    }
     
     gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
-//    return gmesh;
+    gmesh->BuildConnectivity();
+
     
 }
 
