@@ -69,8 +69,11 @@ TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(const TPZParFrontStructM
 {
 }
 
+template<class front>
+TPZParFrontStructMatrix<front>::~TPZParFrontStructMatrix()
+{
 
-
+}
 
 template<class front>
 TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
@@ -142,8 +145,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 	
 	while(parfront->fCurrentElement < parfront->fNElements) {
 		
-		ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
-		ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
+
 		
 		/**
 		 *Lock mutex and search for an avilable element
@@ -214,6 +216,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//		int dim = el->NumNodes();
 		
 		//Builds elements stiffness matrix
+		ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
+		ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
+		
 		el->CalcStiff(*ek, *ef);
 		//Locks a mutex and adds element contribution to frontmatrix
 		//if mutex is locked go to condwait waiting for an specific condvariable

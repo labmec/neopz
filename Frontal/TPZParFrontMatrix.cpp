@@ -84,11 +84,13 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
+
 	long mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
-	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {
 
+		TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
+		
 		this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
 		this->CheckCompress();
 		PZ_PTHREAD_MUTEX_LOCK(&fwritelock,"TPZParFrontMatrix<...>::AddKel()");
@@ -118,8 +120,10 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 #endif
 	long mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
-	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
+
 	if(maxeq >= mineq) {
+		TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
+
 		this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
 		this->CheckCompress();
 		PZ_PTHREAD_MUTEX_LOCK(&fwritelock,"TPZParFrontMatrix<...>::AddKel()");

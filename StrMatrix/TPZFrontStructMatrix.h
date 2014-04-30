@@ -69,7 +69,7 @@ public:
 	static int main();
 	
     /** @brief Class destructor */ 
-	~TPZFrontStructMatrix();
+	virtual ~TPZFrontStructMatrix();
 	
 	/** @brief Returns a pointer to TPZMatrix<STATE> */
 	TPZMatrix<STATE> * Create();
