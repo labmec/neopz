@@ -41,6 +41,7 @@
 #include "pznonlinanalysis.h"
 #include "TPZCohesiveBC.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPZFrontStructMatrix.h"
 //Teste CohesiveBC
 
 #include "pzlog.h"
@@ -1659,6 +1660,35 @@ TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
   return cmesh;
 }
 
+void ToolsTransient::GetSolAtLeft(TPZCompMesh	*cmesh)
+{
+	TPZGeoMesh *gmesh = cmesh->Reference();
+	TPZGeoEl *gel = gmesh->ElementVec()[0];
+	if (!gel ) {
+		DebugStop();
+	}
+	TPZGeoElSide gelside(gel,0);
+	TPZGeoElSide gelsideneig = gelside.Neighbour();
+	TPZCompEl *cel = NULL;
+	while (gelsideneig != gelside) {
+		TPZGeoEl *gelRefinado = gelsideneig.Element();
+		cel = gelRefinado->Reference();
+		if (cel) {
+			break;
+		}
+		gelsideneig = gelsideneig.Neighbour();
+	}
+
+	TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *> (cel);
+	if (!sp) {
+		DebugStop();
+	}
+	int var = 9;
+	TPZManVector<REAL,3> Solout(3,0.), qsi(3,-1.);
+	sp->Solution(qsi, var, Solout);
+	std::cout << "uy = " << Solout[1] << std::endl;
+}
+
 void ToolsTransient::ElastNLTestWithCohesive()
 {
   TPZGeoMesh *gmesh = this->CreateGeoMeshCohe();
@@ -1670,19 +1700,9 @@ void ToolsTransient::ElastNLTestWithCohesive()
   an.SetStructuralMatrix(skyl);
   an.SetSolver(step);
   
-  REAL sigma = 1;
-  /*
-  std::map<int,TPZMaterial*>::iterator it = cmesh->MaterialVec().begin();
-  for (; it != cmesh->MaterialVec().end(); it++) {
-    TPZCohesiveBC *bc = dynamic_cast<TPZCohesiveBC*> (it->second);
-    if (bc) {
-      bc->SetCohesiveData(sigma, sigma, sigma);
-    }
-  }
-  */
-  
   this->SolveNLElasticity(cmesh,an);
-  int nsteps = 1;
+	this->GetSolAtLeft(cmesh);
+	
 
   int dim = 2;
   TPZStack<std::string> scalnames,vecnames;
@@ -1695,6 +1715,7 @@ void ToolsTransient::ElastNLTestWithCohesive()
   
   an.PostProcess(0);
   
+  int nsteps = 1;
   for (int i = 2; i <= nsteps ; i++) {
    /*
     it = cmesh->MaterialVec().begin();
@@ -1761,15 +1782,17 @@ TPZGeoMesh* ToolsTransient::CreateGeoMeshCohe()
   gel->SetId(index);
   index++;
   
-  long bcdir = -1;
-  gel->CreateBCGeoEl(1,bcdir);
+//  long bcdir = -1;
+//  gel->CreateBCGeoEl(1,bcdir);
   
-  long bcmixed = -3;
-  gel->CreateBCGeoEl(2, bcmixed);
+  long bcfixedx = -3;
+  gel->CreateBCGeoEl(2, bcfixedx);
   
   long bcneu = -2;
   gel->CreateBCGeoEl(6,bcneu);
-  
+
+//  long bcneu2 = -4;
+//  gel->CreateBCGeoEl(4,bcneu2);
   
   TPZVec<long> TopolLine(2,0);
   TopolLine[0] = 0;
@@ -1827,19 +1850,25 @@ TPZCompMesh* ToolsTransient::CreateCMeshCohe(TPZGeoMesh *gmesh)
   
   TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
   
-  int bcdir = -1, bcneu = -2, bcmixed = -3;
-  int dir = 0, neu = 1, mixed = 2;
-  TPZMaterial * BCond11 = material1->CreateBC(mat1, bcdir, dir, val1, val2);
-  cmesh->InsertMaterialObject(BCond11);
+  int bcdir = -1, bcneu = -2, bcfixedx = -3;
+  int dir = 0, neu = 1, fixedx = 3;
+//  TPZMaterial * BCond11 = material1->CreateBC(mat1, bcdir, dir, val1, val2);
+//  cmesh->InsertMaterialObject(BCond11);
 
-  val2(1,0) = 0.00001;
+  val2(1,0) = 0.001;
   TPZMaterial * BCond12 = material1->CreateBC(mat1, bcneu, neu, val1, val2);
   cmesh->InsertMaterialObject(BCond12);
   
   val2.Zero();
-  val1(0,0) = 1.e10;
-  TPZMaterial * BCond13 = material1->CreateBC(mat1, bcmixed, mixed, val1, val2);
-  cmesh->InsertMaterialObject(BCond13);
+//  TPZMaterial * BCond13 = material1->CreateBC(mat1, bcfixedx, fixedx, val1, val2);
+//  cmesh->InsertMaterialObject(BCond13);
+	
+//	val1.Zero();
+//  val2.Zero();
+//  val2(1,0) = -0.00001;
+//	int bcneu2 = -4;
+//  TPZMaterial * BCond14 = material1->CreateBC(mat1, bcneu2, neu, val1, val2);
+//  cmesh->InsertMaterialObject(BCond14);
   
   int cohesiveid = 2;
   TPZCohesiveBC * material2 = new TPZCohesiveBC(cohesiveid);
@@ -1875,13 +1904,38 @@ void ToolsTransient::ElastTest()
 	  this->SolveLinearElasticity(cmesh);
 	}
   //this->SolveLinearElasticity(cmesh);
+	
+	delete cmesh;
+	delete gmesh;
 }
 
 void ToolsTransient::ElastNLTest()
 {
   TPZGeoMesh *gmesh = this->CreateGeoMesh();
   TPZCompMesh *cmesh = this->CreateCMesh(gmesh);
-
+  TPZNonLinearAnalysis an(cmesh,std::cout);
+  TPZStepSolver<STATE> step;
+  step.SetDirect(ELDLt);
+  TPZSkylineStructMatrix skyl(cmesh);
+  an.SetStructuralMatrix(skyl);
+  an.SetSolver(step);
+  
+  REAL sigma = 1;
+  
+  this->SolveNLElasticity(cmesh,an);
+  int nsteps = 1;
+	
+  int dim = 2;
+  TPZStack<std::string> scalnames,vecnames;
+  vecnames.push_back("Strain");
+  vecnames.push_back("Displacement");
+  scalnames.push_back("SigmaX");
+  scalnames.push_back("SigmaY");
+  
+  an.DefineGraphMesh(dim, scalnames, vecnames, "ElastNLSol.vtk");
+	
+	an.PostProcess(0);
+	
 	delete cmesh;
 	delete gmesh;
 }
@@ -1894,8 +1948,9 @@ void ToolsTransient::SolveLinearElasticity(TPZCompMesh *cmesh)
   TPZStepSolver<STATE> step;
   step.SetDirect(ECholesky);
   TPZParFrontStructMatrix<TPZFrontSym<STATE> > skyl(cmesh);
-	skyl.SetNumThreads(1);
-  an.SetStructuralMatrix(skyl);
+	skyl.SetNumThreads(0);
+	//TPZSkylineStructMatrix skyl(cmesh);
+	an.SetStructuralMatrix(skyl);
   an.SetSolver(step);
   an.Run();
   /*
@@ -1959,7 +2014,7 @@ TPZGeoMesh* ToolsTransient::CreateGeoMesh()
   
   gmesh->BuildConnectivity();
   
-  int nref = 4;
+  int nref = 2;
   TPZVec<TPZGeoEl *> sons;
   for (int iref = 0; iref < nref; iref++) {
     int nel = gmesh->NElements();
@@ -2006,7 +2061,8 @@ TPZCompMesh* ToolsTransient::CreateCMesh(TPZGeoMesh *gmesh)
   TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
   
   int bcdir = -1, bcneu = -2;
-  int dir = 0, neu = 1;  TPZMaterial * BCond11 = material1->CreateBC(mat1, bcdir, dir, val1, val2);
+  int dir = 0, neu = 1;  
+	TPZMaterial * BCond11 = material1->CreateBC(mat1, bcdir, dir, val1, val2);
   cmesh->InsertMaterialObject(BCond11);
   
   val1.Redim(2,2);

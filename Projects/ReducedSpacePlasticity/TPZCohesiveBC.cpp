@@ -40,10 +40,9 @@ void TPZCohesiveBC::SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, cons
 void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma) const 
 {
 
-	
 	// Calculating the function
 	if (w<=0) { // simulates contact between fracture walls in case of closening
-		sigma = -w*fSigmaT/fDeltaT;
+		sigma = w*fSigmaT/fDeltaT;
 	}
 	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
 		sigma = w * SigmaT/DeltaT;
@@ -54,6 +53,30 @@ void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sig
 	else { // if it passes the critical oppening, the cohesive tension ceases to exist
 		sigma = 0;
 	}
+	
+	sigma *= -1.0;
+ 
+	
+}
+
+void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv) const 
+{
+	
+	if (w<=0) { // simulates contact between fracture walls in case of closening
+		deriv = fSigmaT/fDeltaT;
+	}
+	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
+		deriv = SigmaT/DeltaT;
+	}
+	else if (w <= fDeltaC){ // sigma folow the linear law specified for the cohesive tension
+		deriv = -SigmaT/(fDeltaC-DeltaT);
+	}
+	else { // if it passes the critical oppening, the cohesive tension ceases to exist
+		deriv = 0;
+	}
+	
+		deriv *= -1.0;
+	 
 }
 
 void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
@@ -64,6 +87,7 @@ void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
 	
 	const int index = data.intGlobPtIndex; 
 	TPZFMatrix<REAL> DTST = this->MemItem(index);
+	
 	if (DTST.Rows() != 2 || DTST.Cols() != 1) {
 		PZError << "The DTST memory number of Rows must be 2 and Cols 1\n";
 		DebugStop();
@@ -88,7 +112,7 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 	TPZFMatrix<REAL> &phi = data.phi;
 	int phr = phi.Rows();
 	
-	REAL CohesiveStress;
+	REAL CohesiveStress, DerivCohesive;
 	TPZManVector<REAL,3> sol_u = data.sol[0];
 	const REAL uy = sol_u[1];
 	REAL w = 2.*uy;
@@ -99,15 +123,24 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 		PZError << "The DTST memory number of Rows must be 2 and Cols 1\n";
 		DebugStop();
 	}
+	
+	
 	REAL DeltaT = DTST(0,0);
 	REAL SigmaT = DTST(1,0);	
 	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress);
+	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive);
+		
+	//CohesiveStress = -0.001;
+	//DerivCohesive = 0.;
 	
 	for (int in = 0; in < phr; in++) 
 	{
 		for (int il = 0; il < fNumLoadCases; il++) 
 		{
-			ef(in,il) += CohesiveStress * phi(0,in) * weight;        // force in x direction
+			ef(2*in+1,il) += CohesiveStress * phi(in,0) * weight; // negativo da formula do residuo com negativo do residuo por causa do nonlinanalysis da positivo
+		}
+		for (int jn = 0; jn < phr; jn++) {
+			ek(2*in+1,2*jn+1) += (- 2. * DerivCohesive) * phi(jn,0) * phi(in,0) * weight; // eh o negativo da formula do residuo
 		}
 	}
 	

@@ -188,6 +188,8 @@ void TPZNLElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFM
                                              + fEover21PlusNu * (du(1,0)+dv(0,0)) * dphiy(0,0) );// direcao y <<<----
       }
     }
+		
+		
 		for( int jn = 0; jn < phr; jn++ ) {
       dphixj(0,0) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
       dphixj(1,0) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);
@@ -256,8 +258,8 @@ void TPZNLElasticityMaterial::FillDataRequirements(TPZMaterialData &data)
 
 void TPZNLElasticityMaterial::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
 {
-  data.fNeedsSol = false;
-  data.fNeedsNormal = false;
+  data.fNeedsSol = true;
+  data.fNeedsNormal = true;
   if (type == 4 || type == 5 || type == 6) {
     data.fNeedsNormal = true;
   }
@@ -371,13 +373,15 @@ void TPZNLElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 	TPZFMatrix<STATE> &v1 = bc.Val1();
   int nstate = NStateVariables();
   
-  
+	
+  REAL dif0 = (data.sol[0][0]-v2[0]);
+  REAL dif1 = (data.sol[0][1]-v2[1]);
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
 		{
 			for(in = 0 ; in < phr; in++) {
-				ef(2*in,0)   += BIGNUMBER * v2[0] * phi(in,0) * weight;        // forced v2 displacement
-				ef(2*in+1,0) += BIGNUMBER * v2[1] * phi(in,0) * weight;        // forced v2 displacement
+				ef(2*in,0)   += - BIGNUMBER * dif0 * phi(in,0) * weight;        // forced v2 displacement
+				ef(2*in+1,0) += - BIGNUMBER * dif1 * phi(in,0) * weight;        // forced v2 displacement
 				for (jn = 0 ; jn < phi.Rows(); jn++)
         {
 					ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
@@ -394,8 +398,8 @@ void TPZNLElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
         for (int il = 0; il <fNumLoadCases; il++)
         {
           TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-          ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
-          ef(2*in+1,il) +=  v2(1,0) * phi(in,0) * weight;      // force in y direction
+          ef(2*in,il) += (-1.) * (- v2(0,0)) * phi(in,0) * weight;        // force in x direction
+          ef(2*in+1,il) += (-1.) * (- v2(1,0)) * phi(in,0) * weight;      // force in y direction
         }
       }
 		}
@@ -423,18 +427,21 @@ void TPZNLElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 					phi(jn,0) * weight;
 				}
 			}   // este caso pode reproduzir o caso 0 quando o deslocamento
-      
+      break;
       
     case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
-      for(in = 0 ; in < phr; in++) {
-        //                ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
-        //                ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;
-        for (jn = 0 ; jn < phr; jn++) {
-          ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
-          ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
-        }//jn
-      }//in
-      break;
+		{
+			for(in = 0 ; in < phr; in++) {
+				ef(2*in,0)   += - BIGNUMBER * dif0 * phi(in,0) * weight;        // forced v2 displacement
+				//ef(2*in+1,0) += - BIGNUMBER * dif1 * phi(in,0) * weight;        // forced v2 displacement
+				for (jn = 0 ; jn < phi.Rows(); jn++)
+				{
+					ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+					//ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+				}
+			}
+		}
+		break;
       
       
     case 4: // stressField Neumann condition

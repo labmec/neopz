@@ -81,6 +81,7 @@ public:
   void SolveLinearElasticity(TPZCompMesh *cmesh);
   void SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis &an);
   void ElastNLTestWithCohesive();
+	void GetSolAtLeft(TPZCompMesh	*cmesh);
   
   //---------------------------------------------------------------
   

@@ -52,6 +52,9 @@ public:
 	/** @brief Calculates Sigma for determined solution */
 	void CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma) const; 
 
+	/** @brief Calculates DerivSigma for determined solution */	
+	void CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv) const;	
+
 	/** @brief Updates the cohesive curve acording to the calculated w of the time step */
 	void UpdateCohesiveCurve(TPZMaterialData &data);
 
