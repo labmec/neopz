@@ -733,14 +733,13 @@ public:
         /** Destructor. */
         ~RunStatsRecorder()
         {
-            stat_items.clear();
-            /** @brief vector::clear Removes all elements from the vector (which are destroyed), leaving the container with a size of 0. */
-            
-//            vector<RunStat*>::iterator it;
-//            for (it=stat_items.begin(); it!=stat_items.end(); it++) {
-//                RunStat* i = *it;
-//                delete i;
-//            }
+           vector<RunStat*>::iterator it;
+           for (it=stat_items.begin(); it!=stat_items.end(); it++) {
+               RunStat* i = *it;
+               delete i;
+           }
+          /** @brief vector::clear Removes all elements from the vector (which are destroyed), leaving the container with a size of 0. */
+	  stat_items.clear();
         }
         
         /** Starts recording the execution statistics. */
