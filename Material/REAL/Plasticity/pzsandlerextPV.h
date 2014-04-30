@@ -258,7 +258,17 @@ public:
     
 
     STATE A() { return fA;}
+    STATE B() { return fB;}
+    STATE C() { return fC;}
+    STATE D() { return fD;}
+    STATE W() { return fW;}
+    STATE K() { return fK;}
     STATE R() { return fR;}
+    STATE G() { return fG;}
+    STATE E() { return fE;}
+    STATE N() { return fN;}
+    STATE Poisson() { return fnu; }
+
 private:
     STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fE,fnu;//,fk0;
 //    bool fIsonCap;
