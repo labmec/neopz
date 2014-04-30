@@ -180,6 +180,9 @@ public:
 		///num threads
 		int NThreads(){ return fThreads.NElements(); };
 		
+		//vec to storage
+		TPZVec<STensorProductThreadData*> fThreadData;  
+		
 		///matriz TPZFront
 		TPZFront<TVar> * fMat;
 		
@@ -197,10 +200,12 @@ public:
 			}
 			
 			fThreads.Resize(nthreads);
+			fThreadData.Resize(nthreads);
 			for(int i = 0; i < nthreads; i++){
 				STensorProductThreadData * threadData = new STensorProductThreadData;
 				threadData->first = i;
 				threadData->second = this;
+				fThreadData[i] = threadData;
 				tht::CreateThread( fThreads[i], & Execute, threadData);
 			}
 			
@@ -220,6 +225,8 @@ public:
 			}
 			for(int i = 0; i < nthreads; i++){
 				tht::ThreadWaitFor(fThreads[i]);
+				delete fThreadData[i];
+				fThreadData[i] = NULL;
 			}
 			
 			///desalocando objetos, exceto threads que, ao menos no embarcadero, morrem sozinhos
@@ -237,7 +244,6 @@ public:
 			TPZFront<TVar> * mat = mypair->second->fMat;
 			if(!mat) DebugStop();
 			mat->TensorProductIJ(mypair->first,mypair->second);
-			delete mypair;
 			return NULL;
 		}
 		
