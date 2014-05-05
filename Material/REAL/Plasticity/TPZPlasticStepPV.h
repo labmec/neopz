@@ -173,7 +173,7 @@ public:
     //void CopyFromTensorToFNMatrix(TPZTensor<STATE> tensor,TPZFNMatrix<6> &copy);
     void CopyFromFMatrixToTensor(TPZFMatrix<STATE> FNM,TPZTensor<STATE> &copy);
     
-    int SignCorrection() const;
+//    int SignCorrection() const;
     
     
     virtual void Read(TPZStream &buf);

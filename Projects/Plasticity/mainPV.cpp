@@ -1714,7 +1714,7 @@ void UniaxialLoadingPV(TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> P
 	epst.XX()=0;
 	sigload*=1;
 	PlasticStepPV.ApplyLoad(sigload, epst);
-	epst*=PlasticStepPV.SignCorrection();
+///////	epst*=PlasticStepPV.SignCorrection();
 	// PlasticStepPV.ApplyStrainComputeSigma(epst,sigma1);
 }
 
