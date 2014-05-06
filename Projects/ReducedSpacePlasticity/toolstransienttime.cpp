@@ -1755,12 +1755,12 @@ TPZGeoMesh* ToolsTransient::CreateGeoMeshCohe()
   gmesh->NodeVec()[nodeid].SetCoord(coord);
   nodeid++;
   
-  coord[0] = 30.;
+  coord[0] = 1.;
   gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
   gmesh->NodeVec()[nodeid].SetCoord(coord);
   nodeid++;
   
-  coord[1] = 5.;
+  coord[1] = 1.;
   gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
   gmesh->NodeVec()[nodeid].SetCoord(coord);
   nodeid++;
@@ -1855,7 +1855,7 @@ TPZCompMesh* ToolsTransient::CreateCMeshCohe(TPZGeoMesh *gmesh)
 //  TPZMaterial * BCond11 = material1->CreateBC(mat1, bcdir, dir, val1, val2);
 //  cmesh->InsertMaterialObject(BCond11);
 
-  val2(1,0) = 0.001;
+  val2(1,0) = 1;
   TPZMaterial * BCond12 = material1->CreateBC(mat1, bcneu, neu, val1, val2);
   cmesh->InsertMaterialObject(BCond12);
   
@@ -1872,7 +1872,7 @@ TPZCompMesh* ToolsTransient::CreateCMeshCohe(TPZGeoMesh *gmesh)
   
   int cohesiveid = 2;
   TPZCohesiveBC * material2 = new TPZCohesiveBC(cohesiveid);
-  const REAL SigmaT = 2., DeltaC = 0.2, DeltaT = 0.02;
+  const REAL SigmaT = 2., DeltaC = 1, DeltaT = 0.2;
   material2->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *mat2(material2);
 	cmesh->InsertMaterialObject(mat2);

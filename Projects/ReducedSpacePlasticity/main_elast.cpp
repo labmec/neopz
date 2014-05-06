@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
                              QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius);
   ToolsTransient ToolTrans(p);
   
-	ToolTrans.ElastNLTest();
+	//ToolTrans.ElastNLTest();
   ToolTrans.ElastNLTestWithCohesive();
   
   
