@@ -49,7 +49,7 @@ public:
 	
 	virtual std::string Name() { return "TPZMatPoissonDesacoplado"; }
 	
-	int Dimension() {return fDim;}
+	int Dimension() const {return fDim;}
 	
 	virtual int NStateVariables();
 	

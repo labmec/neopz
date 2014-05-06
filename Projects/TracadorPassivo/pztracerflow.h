@@ -84,7 +84,7 @@ public:
 	
 	virtual std::string Name() { return "TPZTracerFlow"; }
 	
-	int Dimension() {return fDim;}
+	int Dimension() const {return fDim;}
     
     int MatId()
     {

@@ -77,7 +77,7 @@ public:
 	
 	virtual std::string Name() { return "TPZPlasticFrac2D"; }
 	
-	int Dimension() {return fDim;}
+	int Dimension() const {return fDim;}
 	
 	virtual int NStateVariables();
 	

@@ -63,7 +63,7 @@ class TPZNLElasticityMaterial : public TPZDiscontinuousGalerkin {
     ff[2] = 0.;
   }
 	/** @brief Returns the model dimension */
-	int Dimension() { return 2;}
+	int Dimension() const { return 2;}
 	
 	/** @brief Returns the number of state variables associated with the material */
 	virtual  int NStateVariables();

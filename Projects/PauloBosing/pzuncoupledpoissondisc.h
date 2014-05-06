@@ -71,7 +71,7 @@ public:
 	
 	virtual std::string Name() { return "TPZMatUncoupledPoissonDisc"; }
 	
-	int Dimension() {return fDim;}
+	int Dimension() const {return fDim;}
 	
 	virtual int NStateVariables();
 	

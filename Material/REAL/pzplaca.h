@@ -34,7 +34,7 @@ class TPZPlaca : public TPZMaterial{
 	
 	virtual int NStateVariables() { return 6; }
 	
-	int Dimension() { return 2; }
+	int Dimension() const { return 2; }
 	
 	void Print(std::ostream & out);
 	

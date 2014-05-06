@@ -101,7 +101,7 @@ public:
 	
 	virtual std::string Name() { return "TPZPoroElastic2d"; }
 	
-	int Dimension() {return fDim;}
+	int Dimension() const {return fDim;}
 	
 	virtual int NStateVariables();
 	
