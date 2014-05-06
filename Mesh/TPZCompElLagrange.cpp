@@ -31,15 +31,17 @@ TPZCompEl *TPZCompElLagrange::ClonePatchEl(TPZCompMesh &mesh,
                                 std::map<long,long> & gl2lcElMap) const
 {
     TPZCompElLagrange *newel = new TPZCompElLagrange(mesh,*this,gl2lcElMap);
-    for (int i=0; i<2; i++) {
-        newel->fIdf[i] = fIdf[i];
-        std::map<long,long>::iterator it = gl2lcConMap.find(fConnect[i]);
-        if (it != gl2lcConMap.end()) {
-            newel->fConnect[i] = it->second;
-        }
-        else
-        {
-            DebugStop();
+    for (long l=0; l<fDef.size(); l++) {
+        for (int i=0; i<2; i++) {
+            newel->fDef[l].fIdf[i] = fDef[l].fIdf[i];
+            std::map<long,long>::iterator it = gl2lcConMap.find(fDef[l].fConnect[i]);
+            if (it != gl2lcConMap.end()) {
+                newel->fDef[l].fConnect[i] = it->second;
+            }
+            else
+            {
+                DebugStop();
+            }
         }
     }
     return newel;
@@ -53,12 +55,29 @@ TPZCompEl *TPZCompElLagrange::ClonePatchEl(TPZCompMesh &mesh,
 void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
     InitializeElementMatrix(ek, ef);
-    TPZConnect &c = Connect(0);
-    int blsize = c.NShape()*c.NState();
-    ek.fMat(fIdf[0],fIdf[0]) = 1.;
-    ek.fMat(fIdf[0],blsize+fIdf[1]) = -1.;
-    ek.fMat(blsize+fIdf[1],fIdf[0]) = -1.;
-    ek.fMat(blsize+fIdf[1],blsize+fIdf[1]) = 1.;
+#ifdef DEBUG
+    if (ef.fMat.Cols() != 1) {
+        DebugStop();
+    }
+#endif
+    long nlagrange = fDef.size();
+    long count = 0;
+    for (long l=0; l<nlagrange; l++)
+    {
+        TPZConnect &c0 = Connect(2*l);
+        int blsize0 = c0.NShape()*c0.NState();
+        TPZConnect &c1 = Connect(2*l+1);
+        int blsize1 = c1.NShape()*c1.NState();
+        ek.fMat(count+fDef[l].fIdf[0],count+fDef[l].fIdf[0]) = 1.;
+        ek.fMat(count+fDef[l].fIdf[0],count+blsize0+fDef[l].fIdf[1]) = -1.;
+        ek.fMat(count+blsize0+fDef[l].fIdf[1],count+fDef[l].fIdf[0]) = -1.;
+        ek.fMat(count+blsize0+fDef[l].fIdf[1],count+blsize0+fDef[l].fIdf[1]) = 1.;
+        count += blsize0+blsize1;
+        const TPZBlock<STATE> &bl = Mesh()->Block();
+        STATE diff = bl(c0.SequenceNumber(),0,fDef[l].fIdf[0],0)-bl(c1.SequenceNumber(),0,fDef[l].fIdf[1],0);
+        ef.fMat(count+fDef[l].fIdf[0],0) = -diff;
+        ef.fMat(count+blsize0+fDef[l].fIdf[1],0) = diff;
+    }
 }
 
 /**
@@ -76,8 +95,7 @@ void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElement
     TPZMaterial *mat = this->Material();
     if (mat)
     {
-        mat->NumLoadCases();
-        mat->NStateVariables();
+        numloadcases = mat->NumLoadCases();
     }
 	const int ncon = this->NConnects();
     

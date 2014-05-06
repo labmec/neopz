@@ -87,9 +87,9 @@ void TPZInterfaceElement::IncrementElConnected(){
 TPZInterfaceElement::~TPZInterfaceElement(){
 	DecreaseElConnected();
 	TPZGeoEl *gel = this->Reference();
-	if(gel){
+    gel->ResetReference();
+	if(gel && gel->NumInterfaces() > 0){
 		gel->DecrementNumInterfaces();
-		gel->ResetReference();
 		if(gel->NumInterfaces() == 0)
 		{
 			gel->RemoveConnectivities();// deleta o elemento das vizinhancas

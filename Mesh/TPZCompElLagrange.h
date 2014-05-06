@@ -16,38 +16,51 @@
 
 class TPZCompElLagrange : public TPZCompEl
 {
-    /// Which connects are linked by a Lagrange multiplier
-    long fConnect[2];
-    /// Degree of freedom which is connected
-    int fIdf[2];
     
 public:
     
-    TPZCompElLagrange() : TPZCompEl()
+    struct TLagrange
     {
-        for(int i=0;i<2;i++)
+        /// Which connects are linked by a Lagrange multiplier
+        long fConnect[2];
+        /// Degree of freedom which is connected
+        int fIdf[2];
+        
+        TLagrange()
         {
-            fConnect[i] = -1;
-            fIdf[i] = -1;
+            fConnect[0] = -1;
+            fConnect[1] = -1;
+            fIdf[0] = -1;
+            fIdf[1] = -1;
         }
+    };
+    
+private:
+    
+    TPZManVector<TLagrange,3> fDef;
+    
+public:
+    
+    TPZCompElLagrange() : TPZCompEl(), fDef()
+    {
     }
     
     TPZCompElLagrange(const TPZCompElLagrange &copy) : TPZCompEl(copy)
     {
-        for(int i=0;i<2;i++)
-        {
-            fConnect[i] = copy.fConnect[i];
-            fIdf[i] = copy.fIdf[i];
-        }
+        fDef = copy.fDef;
         
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, long connect1, int idf1, long connect2, int idf2, long &index) : TPZCompEl(mesh,0,index)
+    TPZCompElLagrange(TPZCompMesh &mesh, long connect1, int idf1, long connect2, int idf2, long &index) : TPZCompEl(mesh,0,index), fDef(1)
     {
-        fConnect[0] = connect1;
-        fConnect[1] = connect2;
-        fIdf[0] = idf1;
-        fIdf[1] = idf2;
+        fDef[0].fConnect[0] = connect1;
+        fDef[0].fConnect[1] = connect2;
+        fDef[0].fIdf[0] = idf1;
+        fDef[0].fIdf[1] = idf2;
+    }
+    
+    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, long &index) : TPZCompEl(mesh,0,index), fDef(Dependencies)
+    {
     }
     
 	/** @brief Put a copy of the element in the referred mesh */
@@ -57,11 +70,7 @@ public:
         if (!lcop) {
             DebugStop();
         }
-        for(int i=0;i<2;i++)
-        {
-            fConnect[i] = lcop->fConnect[i];
-            fIdf[i] = lcop->fConnect[i];
-        }
+        fDef = lcop->fDef;
     }
 	
 	/** @brief Put a copy of the element in the patch mesh */
@@ -71,11 +80,7 @@ public:
         if (!lcop) {
             DebugStop();
         }
-        for(int i=0;i<2;i++)
-        {
-            fConnect[i] = lcop->fConnect[i];
-            fIdf[i] = fIdf[i];
-        }
+        fDef = lcop->fDef;
         
     }
 	
@@ -86,11 +91,7 @@ public:
         if (!lcop) {
             DebugStop();
         }
-        for(int i=0;i<2;i++)
-        {
-            fConnect[i] = lcop->fConnect[i];
-            fIdf[i] = lcop->fIdf[i];
-        }
+        fDef = lcop->fDef;
         
     }
     
@@ -120,7 +121,7 @@ public:
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const
     {
-        return 2;
+        return 2*fDef.size();
     }
 	
 	/**
@@ -129,8 +130,8 @@ public:
 	 */
 	virtual long ConnectIndex(int i) const
     {
-        if (i==0 || i==1) {
-            return fConnect[i];
+        if (i>=0 && i==2*fDef.size()) {
+            return fDef[i/2].fConnect[i%2];
         }
         DebugStop();
         return -1;
@@ -145,7 +146,10 @@ public:
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
     {
-        connectindexes.insert(fConnect, fConnect+2);
+        for (long i=0; i<fDef.size(); i++) {
+            connectindexes.insert(fDef[i].fConnect[0]);
+            connectindexes.insert(fDef[i].fConnect[1]);
+        }
     }
     
 	/**
@@ -155,8 +159,8 @@ public:
 	 */
 	virtual void SetConnectIndex(int inode, long index)
     {
-        if (inode == 0 || inode == 1) {
-            fConnect[inode] = index;
+        if (inode >= 0 && inode < fDef.size()) {
+            fDef[inode/2].fConnect[inode%2] = index;
         }
         else
         {
