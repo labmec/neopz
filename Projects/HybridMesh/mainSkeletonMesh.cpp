@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
     
     dims.Resize(1, 0);
     dims[0]=2;
-    int nref = 1;
+    int nref = 2;
     RefinamentoUniforme(gmesh2, nref, dims);
 
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        mhm.PrintDiagnostics(sout);
+        mhm.PrintDiagnostics(std::cout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif

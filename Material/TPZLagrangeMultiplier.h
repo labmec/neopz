@@ -22,6 +22,8 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     /// Dimensiona associated with the material
     int fDimension;
     
+    STATE fMultiplier;
+    
     public :
 	/** @brief Simple constructor */
 	TPZLagrangeMultiplier() : TPZDiscontinuousGalerkin()
@@ -29,7 +31,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
         
     }
 	/** @brief Constructor with the index of the material object within the vector */
-	TPZLagrangeMultiplier(int nummat, int dimension, int nstate) : TPZDiscontinuousGalerkin(nummat), fNStateVariables(nstate), fDimension(dimension)
+	TPZLagrangeMultiplier(int nummat, int dimension, int nstate) : TPZDiscontinuousGalerkin(nummat), fNStateVariables(nstate), fDimension(dimension), fMultiplier(1.)
     {
         
     }
@@ -49,6 +51,11 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     virtual int Dimension() const
     {
         return fDimension;
+    }
+    
+    virtual void SetMultiplier(STATE mult)
+    {
+        fMultiplier = mult;
     }
     
 	

@@ -204,6 +204,7 @@ void TPZMHMeshControl::BuildComputationalMesh()
     int dim = fGMesh->Dimension();
     TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
     TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
+    matright->SetMultiplier(-1.);
     fCMesh->InsertMaterialObject(matleft);
     fCMesh->InsertMaterialObject(matright);
     CreateInternalElements();
@@ -256,6 +257,7 @@ void TPZMHMeshControl::CreateInternalElements()
 /// will create the elements on the skeleton
 void TPZMHMeshControl::CreateSkeleton()
 {
+//    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
     std::map<long, std::pair<long,long> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
         long elindex = it->first;
@@ -454,10 +456,11 @@ void TPZMHMeshControl::AddElementBoundaries(long elseed, long compelindex, TPZSt
             father = father.Father2();
         }
         // if the elseed is not a father along the boundary, the element is not on the boundary
-        if (!father) {
+        if (!father || father.Dimension() != dim-1) {
             continue;
         }
         TPZCompElSide celside(cel,is);
+        
         result.Push(celside);
     }
 }
