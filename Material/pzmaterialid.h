@@ -71,6 +71,9 @@ const int TPZELASTICITY3DNLINEARMATERIALID = 328;
 /** @brief Id of a simple laplace equation */
 const int TPZMatLaplacianID = 329;
 
+/** @brief Id of a Lagrange Multiplier Material object */
+const int TPZLagrangeMultiplierID = 330;
+
 /** @} */
 
 #endif //PZMATERIALIDH
