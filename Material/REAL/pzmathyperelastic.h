@@ -43,7 +43,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 		fXf[2] = xfin(2,0);
 	}
 	
-	int Dimension() { return 3;}
+	int Dimension() const { return 3;}
 	
 	int NStateVariables();
 	

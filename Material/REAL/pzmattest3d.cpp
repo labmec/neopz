@@ -213,7 +213,7 @@ void TPZMaterialTest3D::SetMaterial(TPZFMatrix<STATE> &xfin)
 	fXf = xfin;
 }
 
-int TPZMaterialTest3D::Dimension()
+int TPZMaterialTest3D::Dimension() const
 {
 	return 3;
 }

@@ -50,7 +50,7 @@ TPZMultiphase::~TPZMultiphase()
 {
 }
 
-int TPZMultiphase::Dimension() {return fDim;}
+int TPZMultiphase::Dimension() const {return fDim;}
 
 int TPZMultiphase::MatId() {return fmatId;}
 

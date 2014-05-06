@@ -46,7 +46,7 @@ public:
 		return new TPZLinearConvecDiff(*this);
 	}
 
-	int Dimension() { return 2;}
+	virtual int Dimension() const { return 2;}
 
 	int NStateVariables(){ return 1; }
 

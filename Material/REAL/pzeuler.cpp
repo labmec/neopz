@@ -103,7 +103,7 @@ int TPZEulerEquation::NStateVariables() {
 	return 5; //U = (rho, rhou, rhov, rhow, rhoe)
 }
 
-int TPZEulerEquation::Dimension(){
+int TPZEulerEquation::Dimension() const {
 	return 3;
 }
 

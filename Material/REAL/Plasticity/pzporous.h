@@ -61,7 +61,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 								const REAL &Rhof);
 
       /**returns the integrable dimension of the material*/
-      virtual int Dimension() { return TBASEPOROUS(T, TMEM)::Dimension(); }
+      virtual int Dimension() const { return TBASEPOROUS(T, TMEM)::Dimension(); }
 
       /** returns the number of state variables associated with the material*/
       virtual int NStateVariables() { return TBASEPOROUS(T, TMEM)::NStateVariables() + 1; }

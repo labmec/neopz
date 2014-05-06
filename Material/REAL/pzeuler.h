@@ -118,7 +118,7 @@ public:
 	int NStateVariables();
 	
 	/** @brief Object-based overload */
-	virtual int Dimension();
+	virtual int Dimension() const;
 	
 	/** @brief Returns the pressure value */
 	static REAL Pressure(TPZVec<STATE> &U, double gamma);

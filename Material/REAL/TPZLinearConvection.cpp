@@ -50,7 +50,7 @@ void TPZLinearConvection::Print(std::ostream & out) {
 int TPZLinearConvection::NStateVariables()  {
     return 1;
 }
-int TPZLinearConvection::Dimension() {
+int TPZLinearConvection::Dimension() const {
     return 2;
 }
 void TPZLinearConvection::Contribute(TPZMaterialData &data, REAL weight,

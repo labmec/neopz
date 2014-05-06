@@ -141,7 +141,7 @@ public:
     }
     
 	
-	int Dimension() { return fDim;}
+	int Dimension() const { return fDim;}
 	
 	int NStateVariables();
 	

@@ -123,7 +123,7 @@ public:
     }
 
 
-	int Dimension() { return fDim;}
+	virtual int Dimension() const { return fDim;}
 
 	int NStateVariables();
 

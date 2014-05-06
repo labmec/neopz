@@ -87,7 +87,7 @@ public:
 	 * @{ */
 	
 	/** @brief Returns the dimension of the problem */
-	int Dimension();
+	int Dimension() const;
 	
 	/** @brief Returns the value of the time step */
 	REAL TimeStep();
@@ -269,7 +269,7 @@ protected:
  * @}
  */
 
-inline int TPZConservationLaw::Dimension()
+inline int TPZConservationLaw::Dimension() const
 {
 	return fDim;
 }

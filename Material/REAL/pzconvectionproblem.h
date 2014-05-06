@@ -74,7 +74,7 @@ public:
 	
 	virtual std::string Name() { return "TPZMatConvectionProblem"; }
 	
-	int Dimension() {return fDim;}
+	int Dimension() const {return fDim;}
     
     int MatId()
     {

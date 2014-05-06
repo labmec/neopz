@@ -102,7 +102,7 @@ public:
 	}
 	
 	/** @brief Returns problem dimension */
-	virtual int Dimension(){ return this->fDim; }
+	virtual int Dimension() const { return this->fDim; }
 	
 	/** @brief Returns number of state variables */
 	virtual int NStateVariables(){ return this->fNStateVars; }

@@ -36,7 +36,7 @@ private:
 	/** @brief Set the flow */
 	void SetMaterial(TPZFMatrix<STATE> &xfin);
 	
-	virtual int Dimension();
+	virtual int Dimension() const;
 	
 	virtual int NStateVariables();
 	

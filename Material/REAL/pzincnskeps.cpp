@@ -33,7 +33,7 @@ void TPZIncNavierStokesKEps::GetParameters(STATE &MU, STATE &RHO, STATE &Cmu, ST
 	BodyForce = fBodyForce;
 }
 
-int TPZIncNavierStokesKEps::Dimension(){
+int TPZIncNavierStokesKEps::Dimension() const {
 	return this->fDimension;
 }
 

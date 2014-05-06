@@ -27,7 +27,7 @@ protected:
 	
 	TPZBndCond * fMaterials[2];
 	
-	TPZBndCond * GetNonNullMaterial(){
+	TPZBndCond * GetNonNullMaterial() const {
 		if (this->fMaterials[0]) return this->fMaterials[0];
 		if (this->fMaterials[1]) return this->fMaterials[1];
 		PZError << "Error! - "  << __PRETTY_FUNCTION__ << std::endl;
@@ -71,7 +71,7 @@ protected:
 	}
 	
 	/** @brief Returns the integrable dimension of the material */
-	int Dimension() { 
+	int Dimension() const {
 		return this->GetNonNullMaterial()->Dimension();
 	}
 	

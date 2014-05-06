@@ -39,7 +39,7 @@ private:
 		fXf = xfin;
 	}
 	
-	int Dimension() { return 2;}
+	virtual int Dimension() const { return 2;}
 	
 	/** @brief Returns one because of scalar problem */
 	int NStateVariables(){

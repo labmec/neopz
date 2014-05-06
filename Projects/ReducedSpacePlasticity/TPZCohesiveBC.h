@@ -74,7 +74,7 @@ public:
 	virtual std::string Name() { return "TPZCohesiveBC"; }
 	
 	/** @brief Returns the integrable dimension of the material */
-	virtual int Dimension() {
+	virtual int Dimension() const {
 		return 1;
 	}
   

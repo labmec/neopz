@@ -70,7 +70,7 @@ public:
 	virtual TPZMaterial * NewMaterial();
 	
 	/** @brief Returns problem dimension */
-	virtual int Dimension(){ return 3; }
+	virtual int Dimension() const { return 3; }
 	
 	/** @brief Returns number of state variables: oil pressure and oil saturation */
 	virtual int NStateVariables(){ return 2; }

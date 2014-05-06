@@ -37,7 +37,7 @@ protected:
 		fXf = xfin;
 	}
 	/** @brief Model dimension */
-	int Dimension() { return 2;}
+	int Dimension() const { return 2;}
 	
 	/** @brief Returns one because of scalar problem */
 	int NStateVariables(){

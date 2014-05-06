@@ -44,7 +44,7 @@ public:
     }
     
     /// returns the integrable dimension of the material
-    virtual int Dimension()
+    virtual int Dimension() const
     {
         return 2;
     }

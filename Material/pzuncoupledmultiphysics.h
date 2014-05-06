@@ -81,7 +81,7 @@ public:
     virtual std::string Name() { return "TPZUncoupledMultiPhysics"; }
     
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() 
+    virtual int Dimension() const
     {
         return fReferredMaterials[0]->Dimension();
     }

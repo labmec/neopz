@@ -69,7 +69,7 @@ public:
 	
 	virtual std::string Name() { return "TPZMultiphase"; }
 	
-	virtual int Dimension();
+	virtual int Dimension() const;
 	
 	virtual int NStateVariables();	
     

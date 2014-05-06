@@ -36,7 +36,7 @@ class TPZMat1dLin : public TPZMaterial{
         return fXk.Rows();
     }
 	
-	int Dimension() {
+	virtual int Dimension() const {
         return 1;
     }
 	

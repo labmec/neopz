@@ -129,7 +129,7 @@ protected:
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	
 	/** @brief Returns the integrable dimension of the material*/
-	int Dimension() { return fMaterial->Dimension(); }
+	int Dimension() const { return fMaterial->Dimension(); }
 	
 	virtual int NFluxes(){ return fMaterial->NFluxes(); }
 	

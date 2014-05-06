@@ -51,7 +51,7 @@ class TPZElasticity3D : public TPZMaterial {
 	virtual ~TPZElasticity3D();
 	
 	/** @brief Returns model dimension */
-	int Dimension() { return 3;}
+	int Dimension() const { return 3;}
 	
 	/** @brief Number of state variables */
 	int NStateVariables(){ return 3;}

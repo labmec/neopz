@@ -79,7 +79,7 @@ public:
     virtual int NStateVariables();
 	
 	/** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() {return 2;}
+    virtual int Dimension() const {return 2;}
 
 private:
 	/** @brief Vector of layers */

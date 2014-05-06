@@ -129,7 +129,7 @@ public:
     virtual std::string Name() { return "no_name"; }
     
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() = 0;
+    virtual int Dimension() const = 0;
     
     int Id() const { return fId; }
     void SetId(int id) {

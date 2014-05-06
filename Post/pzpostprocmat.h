@@ -74,7 +74,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin
       virtual std::string Name();
 
       /** @brief returns the integrable dimension of the material*/
-      virtual int Dimension();
+      virtual int Dimension() const;
 
       /** @brief returns the number of state variables associated with the material*/
       virtual int NStateVariables();

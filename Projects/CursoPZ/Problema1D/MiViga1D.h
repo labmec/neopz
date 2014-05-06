@@ -38,7 +38,7 @@ public:
 	// MUST TO BE IMPLEMENTED
 	
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() { return 1; }
+    virtual int Dimension() const { return 1; }
 
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables() { return 2; }

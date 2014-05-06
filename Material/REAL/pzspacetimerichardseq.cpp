@@ -43,7 +43,7 @@ void TPZSpaceTimeRichardsEq::Set(STATE Alpha, STATE N, STATE ThetaS, STATE Theta
 	this->fKs = Ks;
 }
 
-int TPZSpaceTimeRichardsEq::Dimension(){
+int TPZSpaceTimeRichardsEq::Dimension() const {
 	return 2;
 }
 

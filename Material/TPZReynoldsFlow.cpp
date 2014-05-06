@@ -40,7 +40,7 @@ TPZReynoldsFlow::~TPZReynoldsFlow()
 }
 
 
-int TPZReynoldsFlow::Dimension()
+int TPZReynoldsFlow::Dimension() const
 {
     return 2;
 }

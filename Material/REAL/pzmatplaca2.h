@@ -39,7 +39,7 @@ protected:
 	
 	virtual int NStateVariables() { return fIdfMax; }
 	
-	int Dimension() { return 2; }
+	virtual int Dimension() const { return 2; }
 	
 	void Print(std::ostream & out);
 	

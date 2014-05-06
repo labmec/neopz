@@ -60,7 +60,7 @@ public:
 	
 	virtual int HasForcingFunction() {return this->GetCurrentMaterial()->HasForcingFunction();}
 	
-	TPZMatPoisson3d * GetCurrentMaterial(){
+	TPZMatPoisson3d * GetCurrentMaterial() const {
 #ifdef DEBUG
 		if (!this->fMaterials[0] || !this->fMaterials[1]){
 			PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
@@ -109,7 +109,7 @@ public:
 		return new TPZCoupledTransportDarcy(*this);
 	}
 	
-	int Dimension() {
+	int Dimension() const {
 		return this->GetCurrentMaterial()->Dimension();
 	}
 	

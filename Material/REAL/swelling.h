@@ -118,7 +118,7 @@ class TPZSwelling : public TPZMaterial {
 	virtual ~TPZSwelling();
 	
 	/** @brief Dimension of the problem */
-	int Dimension() { return 3;}
+	virtual int Dimension() const { return 3;}
 	
 	/**
 	 * @brief Number of state variables, in this case: \n

@@ -46,7 +46,7 @@ public:
     void Set(STATE Alpha, STATE N, STATE ThetaS, STATE ThetaR, STATE Ks);
 	
 	/** @brief It returns the integrable dimension of the material */
-	virtual int Dimension();
+	virtual int Dimension() const;
 	
 	/** @brief It returns the number of state variables associated with the material */
 	virtual int NStateVariables();

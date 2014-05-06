@@ -51,7 +51,7 @@ public:
 		return new TPZMatDualHybridPoisson(*this);
 	}
 
-	int Dimension() { return mydim;}
+	virtual int Dimension() const { return mydim;}
 
 	int NStateVariables(){
     return 1;

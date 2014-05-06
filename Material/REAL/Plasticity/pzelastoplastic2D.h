@@ -48,7 +48,7 @@ public:
 	virtual std::string Name();
 	
 	/**returns the integrable dimension of the material*/
-	virtual int Dimension() { return 2; }
+	virtual int Dimension() const { return 2; }
 	
 	/** returns the number of state variables associated with the material*/
 	virtual int NStateVariables() { return 2; }

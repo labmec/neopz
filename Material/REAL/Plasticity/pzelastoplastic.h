@@ -80,7 +80,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       virtual std::string Name();
 
       /**returns the integrable dimension of the material*/
-      virtual int Dimension() { return 3; }
+      virtual int Dimension() const { return 3; }
 
       /** returns the number of state variables associated with the material*/
       virtual int NStateVariables() { return 3; }

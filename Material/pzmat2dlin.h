@@ -35,7 +35,7 @@ class TPZMat2dLin : public TPZMaterial {
 	
 	virtual int NStateVariables() { return fKxx.Rows(); }
 	
-	int Dimension() { return 2; }
+	virtual int Dimension() const { return 2; }
 	
 	void Print(std::ostream & out = std::cout);
 	

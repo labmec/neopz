@@ -256,7 +256,7 @@ void TPZPostProcMat::SetPostProcessVarIndexList(TPZVec<std::string> & varIndexNa
 	
 }
 
-int TPZPostProcMat::Dimension()
+int TPZPostProcMat::Dimension() const
 {
 	return fDimension;
 }
