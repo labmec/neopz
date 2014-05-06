@@ -77,10 +77,10 @@ T TPZYCMohrCoulombPV::PhiPlane(const TPZVec<T> &sigma) const
 {
 	const REAL sinphi = sin(fPhi);
 	const REAL cosphi = cos(fPhi);
-	T sigmay,H;
-	PlasticityFunction(T(fEpsPlasticBar),sigmay, H);
+	T c,H;
+	PlasticityFunction(T(fEpsPlasticBar),c, H);
 	
-	return sigma[0]-sigma[2]+(sigma[0]+sigma[2])*sinphi-2.*sigmay*cosphi;
+	return sigma[0]-sigma[2]+(sigma[0]+sigma[2])*sinphi-2.*c*cosphi;
 }
 
 template<class T>
@@ -359,8 +359,7 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
 			LOGPZ_DEBUG(loggerMohrCoulombPV, sout.str())
 		}
 #endif
-		residual=(fabs(phival[0])+fabs(phival[1]));//aqui diogo
-		cout << "\n residula = "<< residual << endl;
+		residual=(fabs(phival[0])+fabs(phival[1]));
 	}while (residual>tolerance);
 	
 	memory.fGamma[0] = shapeFAD::val(gamma[0]);
@@ -438,8 +437,8 @@ bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &s
 	T DEpsPV = 0.;
 	T epsbarnp1 = T(fEpsPlasticBar);
 	T c,H;
-	std::cout << "c = " << c << "\tH = " << H << "\tptrnp1 = " << ptrnp1 << std::endl;
 	PlasticityFunction(epsbarnp1, c, H);
+	std::cout << "ReturnMap do Apex: c = " << c << "\tH = " << H << "\tptrnp1 = " << ptrnp1 << std::endl;
 	T alpha = cos(fPhi)/sin(fPsi);
 	REAL tol = 1.e-8;
 	
