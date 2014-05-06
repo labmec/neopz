@@ -578,7 +578,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
         analysis.IterativeProcess(cout, tol, numnewton,linesearch,checkconv,conv);
         
-        if (conv==false) {
+        if (conv==false) { 
             ComputeLinearMatrix();
             analysis.AdjustTangentMatrix(fLinearMatrix);
             analysis.Solver().SetMatrix(fLinearMatrix);
@@ -2653,21 +2653,21 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
-//        TPZTensor<REAL> initstress(0.),finalstress(0.);
-//        REAL hydro = fConfinement.I1();
+        TPZTensor<REAL> initstress(0.),finalstress(0.);
+        REAL hydro = fConfinement.I1();
 //        hydro -= //SD.fYC.A()*SD.fYC.R();
-//        hydro /= 3.;
-//        finalstress.XX() = hydro;
-//        finalstress.YY() = hydro;
-//        finalstress.ZZ() = hydro;
+        hydro /= 3.;
+        finalstress.XX() = hydro;
+        finalstress.YY() = hydro;
+        finalstress.ZZ() = hydro;
 
-//        SD.fN.fAlpha=-41.;
+        //SD.fN.fAlpha=-41.;
 
-//        PrepareInitialMat(SD, initstress, finalstress, 10);
-//        initstress = finalstress;
-//        finalstress = fConfinement;
-//        PrepareInitialMat(SD, initstress, finalstress, 10);
-//        SD.ResetPlasticMem();
+        PrepareInitialMat(MC, initstress, finalstress, 10);
+        initstress = finalstress;
+        finalstress = fConfinement;
+        PrepareInitialMat(MC, initstress, finalstress, 10);
+        //SD.ResetPlasticMem();
 
         TPZMaterial *plastic(PlasticMC);
 

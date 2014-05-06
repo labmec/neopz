@@ -1682,6 +1682,13 @@ int main ()
         
         
         well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+				
+				if (0) {
+					REAL cohesion = A - C;
+					REAL Phi = B*C;
+					well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);					
+				}
+			
         int divisions = 20;
         REAL delx = 0.2*innerradius*M_PI_2/divisions;
         TPZManVector<int,2> numdiv(2,divisions);
