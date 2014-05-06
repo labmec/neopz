@@ -86,7 +86,8 @@ TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
 #define PERF_FRONTMATRIX
 
 #ifdef PERF_FRONTMATRIX  
-#include <sys/time.h>
+//#include <sys/time.h>
+#include "pz_gettime.h"
 class thread_timer_t
 {
 public:
