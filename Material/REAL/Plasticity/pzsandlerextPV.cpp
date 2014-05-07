@@ -163,7 +163,7 @@ void TPZSandlerExtended::Firstk(STATE &epsp,STATE &k) const
     int counter =1;
     resnorm=1;
     kn=epsp;//chute inicial
-    while (resnorm>1.e-12 && counter<30) {
+    while (resnorm>ftol && counter<30) {
         
         f=EpsEqk(kn)-epsp;
         df =fD*exp(fD*(kn - (fA - fC*exp(fB*kn))*fR))*(1 + fB*fC*exp(fB*kn)*fR)*fW;
@@ -253,6 +253,7 @@ void  TPZSandlerExtended::FromHWCylToHWCart(const TPZVec<STATE> &HWCylCoords, TP
     cart[0]=HWCylCoords[0];
     cart[1]=HWCylCoords[1]*cos(HWCylCoords[2]);
     cart[2]=HWCylCoords[1]*sin(HWCylCoords[2]);
+    
 }
 
 void TPZSandlerExtended::FromPrincipalToHWCart(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCart)
@@ -266,6 +267,7 @@ void TPZSandlerExtended::FromPrincipalToHWCart(const TPZVec<STATE> &PrincipalCoo
     HWCart[0]=cart(0,0);
     HWCart[1]=cart(1,0);
     HWCart[2]=cart(2,0);
+    
 }
 
 void TPZSandlerExtended::FromPrincipalToHWCyl(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCyl)
@@ -305,8 +307,8 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
     beta = sigHWCyl[2];
 #ifdef DEBUG
     STATE dist = DistF1(sigproj, xi, beta);
-    if (fabs(dist) > 1.e-8) {
-        //DebugStop();
+    if (fabs(dist) > ftol) {
+        DebugStop();
     }
 #endif
 }
@@ -350,7 +352,7 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
 #ifdef DEBUG
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
     STATE dist = DistF2(sigproj, theta, beta, k);
-    if (fabs(dist) > 1.e-8 || err > 1.e-8) {
+    if (fabs(dist) > ftol || err > ftol) {
         DebugStop();
     }
 #endif
@@ -638,6 +640,7 @@ void TPZSandlerExtended::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi
 
 std::map<int,long> gF1Stat;
 std::map<int,long> gF2Stat;
+std::vector<int> gYield;
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
@@ -675,7 +678,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     TPZFNMatrix<4,STATE> xn1(2,1,0.),xn(2,1,0.),jac,invjac,sol(2,1,0.),fxn(2,1,0.),diff(2,1,0.);
     xn(0,0)=xi;
     xn(1,0)=beta;
-    while (resnorm > 10e-12 && counter < 30)
+    while (resnorm > ftol && counter < 30)
     {
         
         TPZFNMatrix<4,STATE> jac(2,2);
@@ -685,31 +688,18 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         resnorm=Norm(sol);
         jac.Solve_LU(&sol);
         xn1=xn-sol;
-        diff=xn1-xn;
-        resnorm=Norm(diff);
-#ifdef DEBUG
-//        convergenceF1 << counter << " "<<resnorm <<endl;
-#endif
-        
-//#ifdef LOG4CXX
-//        {
-           // std::stringstream outfile;//("convergencF1.txt");
-            //outfile<< "\n" <<counter << " "<<resnorm <<endl;
-            //jac.Print(outfile);
-            //outfile<< "\n xn " << " "<<fxnvec <<endl;
-            //outfile<< "\n res " << " "<<fxnvec <<endl;
-            //LOGPZ_DEBUG(logger,outfile.str());
-            
-//        }
-//#endif
+        //diff=xn1-xn;
+        //resnorm=Norm(diff);
         xn=xn1;
         counter++;
 
         
     }
-    
+
     gF1Stat[counter]++;
+
     
+
     TPZManVector<STATE,3> sigprojcyl(3);
     F1Cyl(xn[0], xn[1], sigprojcyl);
     FromHWCylToPrincipal(sigprojcyl, sigproj);
@@ -741,7 +731,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
     */
  
-    while (fabs(resl) > 1.e-14 && count < 30) {
+    while (fabs(resl) > ftol && count < 30) {
         STATE dresl = DResLF1(sigmatrial, sigproj, kguess, kprev);
         kguess -= resl/dresl;
         resl = ResLF1(sigmatrial, sigproj, kguess, kprev);
@@ -785,7 +775,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     xn(0,0)=theta;
     xn(1,0)=beta;
     xn(2,0)=kprev;
-    while (resnorm > 10.e-15 && counter < 30)
+    while (resnorm >ftol && counter < 30)
     {
 
         TPZFNMatrix<9,STATE> jac(3,3);
@@ -818,12 +808,8 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
     
     gF2Stat[counter]++;
+
     
-    
-//if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
-//    cout<< "\n resnorm = "<<resnorm <<endl;
-//    cout<< "\n counter = "<<counter <<endl;
-//    cout<< "\n k = "<<(xn1(2,0)-kprev) <<endl;
     STATE thetasol,betasol,ksol;
     
     thetasol=xn1(0);
@@ -853,17 +839,19 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
     }
     resnorm=1;
     long counter=1;
-    TPZFMatrix<STATE> xn1(3,1,0.),xn(3,1,0.),sol(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
+    TPZFMatrix<STATE> xn1(3,1,0.),xn(3,1,0.),fxn(3,1,0.),diff(3,1,0.);
+    TPZFNMatrix<3,STATE> sol(3,1,0.);
     xn(0,0)=M_PI/2;
     xn(1,0)=beta;
     xn(2,0)=kprev;
-    while (resnorm > 10e-15 && counter < 30)
+    while (resnorm > ftol && counter < 30)
     {
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial,xn[0],xn[1],xn[2],jac);
         TPZManVector<STATE> fxnvec(3);
         DDistFunc2(sigmatrial, xn(0),xn(1),xn(2),kprev,fxnvec);
         for(int k=0; k<3; k++) fxn(k,0) = fxnvec[k];
+
         for (int i=0; i<3; i++) {
             jac(i,0) = 0.;
             jac(0,i) = 0.;
@@ -871,14 +859,15 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         jac(0,0) = 1.;
         fxn(0,0) = 0.;
         sol = fxn;
+        resnorm=Norm(sol);
         jac.Solve_LU(&sol);
         
         xn1(0,0)=xn(0,0);
         xn1(1,0)=xn(1,0)-sol(1,0);
         xn1(2,0)=xn(2,0)-sol(2,0);
         
-        diff=xn1-xn;
-        resnorm=Norm(diff);
+        //diff=xn1-xn;
+        //resnorm=Norm(diff);
         xn=xn1;
         counter++;
 
@@ -887,7 +876,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 //    cout<< "\n counter = "<<xn1 <<endl;
 //    cout<< "\n k = "<<xn1[2] <<endl;
     STATE thetasol,betasol,ksol;
-    
+ 
     thetasol=xn1[0];
     betasol=xn1[1];
     ksol=xn1[2];
@@ -930,7 +919,7 @@ void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STA
     xn(0,0)=theta;
     xn(1,0)=beta;
     xn(2,0)=kprev;
-    while (resnorm > 10.e-15 && counter < 30)
+    while (resnorm > ftol && counter < 30)
     {
         TPZFNMatrix<9,STATE> jac(3,3);
         D2DistFunc2(sigmatrial, xn(0),xn(1),xn(2),jac);
@@ -944,20 +933,24 @@ void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STA
         jac(1,1) = 1.;
         fxn(1,0) = 0.;
         sol = fxn;
+        resnorm=Norm(sol);
         jac.Solve_LU(&sol);
         
         xn1(0,0)=xn(0,0)-sol(0,0);
         xn1(1,0)=xn(1,0);
         xn1(2,0)=xn(2,0)-sol(2,0);
         
-        diff=xn1-xn;
-        resnorm=Norm(diff);
+//        diff=xn1-xn;
+//        resnorm=Norm(diff);
         xn=xn1;
         counter++;
         
     }
     //if(counter == 30) cout << "resnorm = " << resnorm << std::endl;
     STATE thetasol,betasol,ksol;
+
+
+
     
     thetasol=xn1(0);
     betasol=xn1(1);
@@ -1024,6 +1017,8 @@ void TPZSandlerExtended::ApplyStressComputeElasticStrain(TPZVec<STATE> &stress,T
     
 }
 
+
+
 /**
  * Imposes the specified strain tensor and returns the correspondent stress state.
  *
@@ -1042,7 +1037,6 @@ void TPZSandlerExtended::ApplyStrainComputeSigma(TPZVec<STATE> &epst,TPZVec<STAT
     ApplyStrainComputeElasticStress(stresstrial,epsT);
     YieldFunction(stresstrial, kprev, yield);
     ComputeI1(stresstrial,I1tr);
-    
     
     if ((yield[1]<=0 && I1tr<=kprev)||(yield[0]<=0 && I1tr>kprev))
     {
@@ -1281,6 +1275,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 
 */
 
+
+
 void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj, TPZFMatrix<STATE> &GradSigma) const
 {
     STATE I1;
@@ -1319,6 +1315,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             DF2Cart(theta, beta, kproj, DF2cart);
             DF2cart.Multiply(dbetadsigtrial, GradSigma);
             GradSigma *= -1.;
+            
+            
         }
         else if (yield[1]>0. && treeEigEqual==true)
         {
@@ -1442,6 +1440,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             sigproj = sigtrial;
             kproj = kprev;
             GradSigma.Identity();
+       
         }
     }
     else
@@ -1464,6 +1463,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             if (I1<kproj)
             {
                 ProjectRing(sigtrial,kprev,sigproj,kproj);
+              
                 
                 // we can compute the tangent matrix
                 TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
@@ -1488,6 +1488,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 for(int i=0; i<3; i++) DF2cart(i,0) = 0.;
                 DF2cart.Multiply(dbetadsigtrial, GradSigma);
                 GradSigma *= -1.;
+                            
             }
             else
             {
@@ -1501,6 +1502,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 DF1Cart(xi, beta, DF1cart);
                 DF1cart.Multiply(dbetadsigtrial, GradSigma);
                 GradSigma *= -1.;
+               
             }
             
         }
@@ -1517,6 +1519,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             sigproj = sigtrial;
             kproj=kprev;
             GradSigma.Identity();
+
         }
     }
 
