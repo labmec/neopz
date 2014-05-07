@@ -51,7 +51,7 @@ protected:
 #endif	
 	
 public:
-
+	
 	bool fnewWS;
 	
     TPZMultiphase();
@@ -75,46 +75,46 @@ public:
     
     virtual int MatId();
 	
-
+	
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);	
 	
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
-
+	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);	
 	
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);	
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
-
+	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-
+	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);	
 	
 	virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec,TPZVec<TPZMaterialData> &dataleftvec,TPZVec<TPZMaterialData> &datarightvec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
-
+	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-		
+	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-				
-
+	
+	
 	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);	
 	
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);	
-
+	
 	
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int var);
-		
+	
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 	
 	
@@ -123,12 +123,12 @@ public:
         TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
     }
 	
-
+	
 	// Here is needed to spefify which models are used in this bi-phasic model see Advanced-Petroleum-Reservoir-Simulation M. Rafiqul Islam
-
+	
 	/** @brief K map */	
 	TPZStack< TPZFMatrix<REAL> > fKabsoluteMap;	
-
+	
 	/** @brief Use or not K map */		
 	bool fYorN;
 	
@@ -200,7 +200,7 @@ public:
 	 * @param po Refrence pressure
 	 */
 	void OilViscosity(REAL po, REAL &OilViscosity, REAL &dOilViscosityDpo);
-
+	
 	/** 
 	 * @brief Water viscosity. \f$ WaterViscosity = WaterViscosity( pw ) \f$
 	 * @param po Refrence pressure
@@ -330,10 +330,13 @@ public:
 	REAL RhoWaterSC();
 	
 	/** @brief Gravity */
-	REAL g();
-		
+	TPZFMatrix<REAL> Gravity();
+	
 	/** @brief Absolute permeability. */
-	void K(TPZFMatrix<REAL> &K);
+	void K(TPZFMatrix<REAL> &Kab);
+	
+	/** @brief Absolute permeability inverse. */
+	TPZFMatrix<REAL>  Kinv(TPZFMatrix<REAL> &Kab);	
 	
 	/** @brief Absolute permeability. */
 	void LoadKMap(std::string MaptoRead);	
