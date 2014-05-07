@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 
 TPZSandlerExtended::TPZSandlerExtended()
 {
-    
+	ftol = 1.e-5;
 }
 
 TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
@@ -30,6 +30,7 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
     fPhi=copy.fPhi;
     fN=copy.fN;
     fPsi=copy.fPsi;
+    ftol = copy.ftol;
     fE=(9.*fK*fG)/(3.*fK+fG);
     fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));
     TPZElasticResponse ER;
@@ -45,6 +46,7 @@ fA(A),fB(B),fC(C),fD(D),fK(K),fW(W),fR(R),fG(G),fPhi(Phi),fN(N),fPsi(Psi)
     TPZElasticResponse ER;
     ER.SetUp(fE, fnu);
     fElasticResponse =ER;
+    ftol = 1.e-5;
 }
 
 TPZSandlerExtended::~TPZSandlerExtended()
@@ -696,7 +698,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         
     }
 
-    gF1Stat[counter]++;
+    //gF1Stat[counter]++;
 
     
 
@@ -807,7 +809,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
         
     }
     
-    gF2Stat[counter]++;
+    //gF2Stat[counter]++;
 
     
     STATE thetasol,betasol,ksol;
