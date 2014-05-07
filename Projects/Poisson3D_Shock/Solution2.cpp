@@ -32,34 +32,19 @@ REAL PolinomicValue(int var,int dim,const TPZVec<REAL> &x,TPZVec<REAL> &x0) {
 	return 1.;
 }
 void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZVec<STATE> &ddsol) {
-	dsol.Zero();
-	ddsol.Resize(9);
+	ExactSolutionArcTangent(x,sol,dsol);
 	REAL B = 5.;
 	if(ModelDimension==1)
 		B *= 0.25;
 	else if(ModelDimension==3)
 		B *= 4;
-	// Argument value (arc) to compute ArcTangent( arc )
     REAL arc = ArgumentArc(ModelDimension,RCircle,x,CCircle);
-    REAL Prod, temp, den;
+    REAL temp, den;
+    temp = 0.5*M_PI + atan(arc);
+	den = 1. + arc*arc;
 	REAL prodx = VarTimesOneMinusVar(0,ModelDimension,x);
 	REAL prody = VarTimesOneMinusVar(1,ModelDimension,x);
 	REAL prodz = VarTimesOneMinusVar(2,ModelDimension,x);
-
-    Prod = prodx*prody*prodz;
-    temp = 0.5*M_PI + atan(arc);
-    sol[0] = B*Prod*temp;
-	den = 1. + arc*arc;
-	
-	// Derivatives of the first order
-    dsol(0,0) = B*prody*prodz*((1.-2*x[0])*temp - (2*F*(x[0]-CCircle[0])*(prodx/den)));
-    if(ModelDimension>1) {
-        dsol(1,0) = B*prodx*prodz*((1.-2*x[1])*temp - (2*F*(x[1]-CCircle[1])*(prody/den)));
-    }
-    else if(ModelDimension>2) {
-        dsol(2,0) = B*prodx*prody*((1.-2*x[2])*temp - (2*F*(x[2]-CCircle[2])*(prodz/den)));
-    }
-
 	//Derivatives of the second order
 	// ddsol = {d2u/dx2, d2u/dxdy, d2u/dxdz, d2u/dy2, d2u/dydx, d2u/dydz, d2u/dz2, d2u/dzdx, d2u/dzdy}
 	for(int i=0;i<9;i++)
@@ -237,7 +222,7 @@ bool LaplacianValue(TPZInterpolatedElement *el,REAL &Laplacian) {
 	el->Reference()->X(qsi,x);
     
     RightTermArcTangent(x,force,dsol);
-    Laplacian = fabs(force[0]);
+    Laplacian = fabs(force[0]/ValueK);
 	return true;
 }
 
