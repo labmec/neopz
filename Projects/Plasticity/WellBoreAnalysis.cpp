@@ -572,7 +572,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
 
         bool linesearch = true,checkconv=false;
-		REAL tol = 1.e-6;
+		REAL tol = 1.e-5;
         bool conv;
 #ifdef PV
         
@@ -2053,13 +2053,8 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     fCurrentConfig.CreatePostProcessingMesh();
 
 #ifdef PV
-    //std::string vtkFile = "pocoplasticoPVIV.vtk";
-//    std::string vtkFile = "pocoplasticoPVSemRFk.vtk";
-//     std::string vtkFile = "PVOnlyInitial.vtk";
-//    std::string vtkFile = "PVOnlyInitialFR.vtk";
-        std::string vtkFile = "PVOnlyInitialFRII.vtk";
-    //std::string vtkFile = "pocoplasticoPVTestePosproc.vtk";
-    //std::string vtkFile = "pocoplasticoPV2.vtk";
+      std::string vtkFile = "out.vtk";
+    
 #else
     std::string vtkFile = "pocoplasticoErickII.vtk";
 #endif

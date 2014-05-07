@@ -142,6 +142,12 @@ inline void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStre
         
 		
 		mat.ApplyLoad(localLoad, strain);
+//        cout << "\n load  = "<< localLoad <<endl;
+//        cout << "\n strain  = "<< strain <<endl;
+        if(i==1||i==10)
+        {
+            //cout << "\n State = "<< mat.GetState() <<endl;
+        }
 		
 	}
 	

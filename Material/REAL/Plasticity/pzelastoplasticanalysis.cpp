@@ -64,7 +64,7 @@ TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis()
 #endif
 }
 
-REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter){
+REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter, bool & converging){
 
     TPZFMatrix<REAL> Interval = DeltaW;
 
@@ -95,7 +95,15 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         std::cout << "Scale factor " << scalefactor << " resnorm " << RhsNormResult << std::endl;
         scalefactor *= 0.5;
         iter++;
-    } while (RhsNormResult > RhsNormPrev && iter < 30 && RhsNormResult<1.e-8);
+    } while (RhsNormResult > RhsNormPrev && iter < 30);
+    if(fabs(RhsNormResult - RhsNormPrev)<1.e-6 )
+    {
+        converging=false;
+    }
+    else
+    {
+        converging=true;
+    }
     scalefactor *= 2.;
 	return scalefactor;
 	
@@ -131,7 +139,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
     REAL RhsNormPrev = Norm(fRhs);
     
 //    std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
-	
+	bool linesearchconv=true;
 	while(error > tol && iter < numiter) {
 		
 		//fSolution.Redim(0,0);
@@ -168,7 +176,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
                 }
 #endif
                 const int niter = 10;
-                this->LineSearch(prevsol, solkeep, nextSol, RhsNormPrev, RhsNormResult, niter);
+                this->LineSearch(prevsol, solkeep, nextSol, RhsNormPrev, RhsNormResult, niter,linesearchconv);
                 fSolution = nextSol;
             }
             else
@@ -251,8 +259,14 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	}
     
     REAL RhsNormPrev = LocalAssemble(0);
-	
+	bool linesearchconv=true;
+    
 	while(error > tol && iter < numiter) {
+        
+        if(iter!=0)
+        {
+            LocalAssemble(0);
+        }
 		
 		fSolution.Redim(0,0);
         REAL RhsNormResult = 0.;
@@ -260,7 +274,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 		if (linesearch){
 			TPZFMatrix<REAL> nextSol;
 			const int niter = 10;
-			this->LineSearch(prevsol, fSolution, nextSol, RhsNormPrev, RhsNormResult, niter);
+			this->LineSearch(prevsol, fSolution, nextSol, RhsNormPrev, RhsNormResult, niter,linesearchconv);
 			fSolution = nextSol;
 		}
 		else{
@@ -286,7 +300,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
             ConvOrDiverg=true;
 			
 		} else
-			if( (norm - error) > 1.e-9 ) {
+			if( (norm - error) > 1.e-9  || linesearchconv ==false) {
                 std::cout << "\nDivergent Method -- Exiting Consistent Tangent Iterative Process \n";
                 std::cout << "\n Trying linearMatrix IterativeProcess \n\n";
                 ConvOrDiverg=false;
@@ -327,7 +341,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	}
     
     REAL RhsNormPrev = LocalAssemble(0);
-	
+	bool linesearchconv=true;
 	while(error > tol && iter < numiter) {
 		
 		fSolution.Redim(0,0);
@@ -336,7 +350,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 		if (linesearch){
 			TPZFMatrix<REAL> nextSol;
 			const int niter = 10;
-			this->LineSearch(prevsol, fSolution, nextSol, RhsNormPrev, RhsNormResult, niter);
+			this->LineSearch(prevsol, fSolution, nextSol, RhsNormPrev, RhsNormResult, niter,linesearchconv);
 			fSolution = nextSol;
 		}
 		else{

@@ -247,9 +247,11 @@ void TPZPostProcMat::SetPostProcessVarIndexList(TPZVec<std::string> & varIndexNa
 			fVars[k].fIndex = varindex;
 			fVars[k].fNumEq = pRefMat->NSolutionVariables(varindex);
 			fVars[k].fName  = varIndexNames[i];
+            
 			k++;
 		}
 	}
+    
 	
 	fVars.Resize(k);
 	fDimension = pRefMat->Dimension();

@@ -180,7 +180,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
     else 
     {
         this->ComputeDeltaStrainVector(data, DeltaStrain);
-        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);        
+        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
     }
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
@@ -346,7 +346,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
     {
         this->ComputeDeltaStrainVector(data, DeltaStrain);
         this->ApplyDeltaStrain(data,DeltaStrain,Stress);
-//        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);        
+//        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
     }
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);

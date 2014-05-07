@@ -49,7 +49,10 @@ public:
     /// Iterative process using the linear elastic material as tangent matrix
     virtual void IterativeProcess(std::ostream &out, TPZAutoPointer<TPZMatrix<STATE> > linearmatrix, REAL tol, int numiter, bool linesearch);
     
-	virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter);
+	//virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter);
+    
+    //Improved:A verification is made in order to check convergence.
+    virtual REAL LineSearch(const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter, bool &converging );
 	
 	/**
 	 * @brief The code below manages the update of a certain boundary condition (BCId)

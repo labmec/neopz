@@ -268,9 +268,11 @@ public:
     STATE E() { return fE;}
     STATE N() { return fN;}
     STATE Poisson() { return fnu; }
+    STATE ftol=1.e-5;
 
 private:
     STATE fA,fB,fC,fD,fW,fK,fR,fG,fPhi,fN,fPsi,fE,fnu;//,fk0;
+
 //    bool fIsonCap;
     TPZElasticResponse    fElasticResponse;
     
