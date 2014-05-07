@@ -248,7 +248,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	out.flush();
 
 	// Adjusting parameters
-    NRefs = 12;
+    NRefs = 10;
 
 	// Initial uniform refinement or printing solution on mesh with 7-h refinements
 	if(printingsol) {
@@ -352,8 +352,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		an.Run();
 				
 		// Post processing
-		if(nref < 3 || !(nref%3) || nref==NRefs-1)
-			an.PostProcess(0,ModelDimension);
+		if(nref > 8 || !(nref%3) || nref==NRefs-1)
+			an.PostProcess(2,ModelDimension);
 		if(gDebug) {
 			std::ofstream out(MeshFileName.c_str());
 			cmesh->LoadReferences();
@@ -440,7 +440,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 	TPZVec<long> counterreftype(50,0);
 	long i, ii;
     
-	REAL factorGrad = .3;
+	REAL factorGrad = .5;
 	REAL factorSmall = .1;
 	REAL factorErrorBig = 0.8;
     
