@@ -501,6 +501,7 @@ void TPZYCMohrCoulombPV::ProjectSigma(const TPZVec<STATE> &sigma_trial, STATE ep
 	memory.fGamma[0] = 0.;
 	if (this->ReturnMapPlane<REAL>(sigma_trial, sigma_projected, memory, epsbartemp)) {
 		eproj = epsbartemp;
+		this->SetEpsBar(eproj);
 		sigma = sigma_projected;
 		memory.fWhichPlane = TComputeSequence::EMainPlane;
 	}
