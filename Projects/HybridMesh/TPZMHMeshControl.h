@@ -71,6 +71,9 @@ private:
     /// Add the boundary elements to the computational mesh
     void AddBoundaryElements();
     
+    /// Add the boundary interface elements to the computational mesh
+    void AddBoundaryInterfaceElements();
+    
     /// will create the elements on the skeleton
     void CreateSkeleton();
     

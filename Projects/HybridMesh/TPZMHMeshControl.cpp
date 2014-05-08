@@ -10,6 +10,7 @@
 
 #include "pzl2projection.h"
 #include "TPZLagrangeMultiplier.h"
+#include "TPZCompElLagrange.h"
 #include "pzbndcond.h"
 #include "TPZInterfaceEl.h"
 #include "pzlog.h"
@@ -125,7 +126,7 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
             TPZGeoElSide neighbour = gelside.Neighbour();
             while (neighbour != gelside) {
                 if (neighbour.Element()->Dimension() == dim-1) {
-                    bcids.insert(neighbour.Element()->MaterialId());
+                    //bcids.insert(neighbour.Element()->MaterialId());
                 }
                 neighbour = neighbour.Neighbour();
             }
@@ -185,7 +186,10 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
             TPZGeoElSide neighbour = gelside.Neighbour();
             while (neighbour != gelside) {
                 if (neighbour.Element()->Dimension() == dim-1) {
-                    create.CreateCompEl(neighbour.Element(), *cmesh, index);
+                    int matid = neighbour.Element()->MaterialId();
+                    if (bcids.find(matid) != bcids.end()) {
+                        create.CreateCompEl(neighbour.Element(), *cmesh, index);
+                    }
                 }
                 neighbour = neighbour.Neighbour();
             }
@@ -211,6 +215,7 @@ void TPZMHMeshControl::BuildComputationalMesh()
     AddBoundaryElements();
     CreateSkeleton();
     CreateInterfaceElements();
+    AddBoundaryInterfaceElements();
     fCMesh->ExpandSolution();
 }
 
@@ -230,6 +235,7 @@ void TPZMHMeshControl::CreateInternalElements()
     for (std::set<long>::iterator it = fCoarseIndices.begin(); it != fCoarseIndices.end(); it++)
     {
         std::set<long> elset;
+        bool LagrangeCreated = false;
         long iel = *it;
         elset.insert(iel);
         while (elset.size()) {
@@ -241,6 +247,17 @@ void TPZMHMeshControl::CreateInternalElements()
             if (! gel->HasSubElement()) {
                 long index;
                 fCMesh->CreateCompEl(gel, index);
+                if (!LagrangeCreated) {
+                    LagrangeCreated = true;
+                    TPZCompEl *cel = fCMesh->ElementVec()[index];
+                    long cindex = cel->ConnectIndex(0);
+                    int nshape(1), nvar(1), order(1);
+                    long newconnect = fCMesh->AllocateNewConnect(nshape,nvar,order);
+                    fCMesh->ConnectVec()[newconnect].SetLagrangeMultiplier(2);
+                    long index;
+                    /*TPZCompElLagrange *lagrange = */new TPZCompElLagrange(fCMesh,cindex,0,newconnect,0,index);
+                    
+                }
                 continue;
             }
             int nsubels = gel->NSubElements();
@@ -264,6 +281,11 @@ void TPZMHMeshControl::CreateSkeleton()
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
         long index;
         fCMesh->CreateCompEl(gel, index);
+        TPZCompEl *cel = fCMesh->ElementVec()[index];
+        int nc = cel->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            cel->Connect(ic).SetLagrangeMultiplier(1);
+        }
         fCMesh->ElementVec()[index]->Reference()->ResetReference();
         it++;
     }
@@ -338,6 +360,7 @@ void TPZMHMeshControl::CreateInterfaceElements()
         }
         it++;
     }
+    // loop over the boundary elements and create the interfaces
 
 }
 
@@ -379,6 +402,9 @@ void TPZMHMeshControl::PrintSubdomain(long elindex, std::ostream &out)
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = fCMesh->ElementVec()[el];
         TPZGeoEl *gel = cel->Reference();
+        if (!gel) {
+            continue;
+        }
         long gelindex = gel->Index();
         if(IsSibling(gelindex, elindex))
         {
@@ -488,6 +514,55 @@ void TPZMHMeshControl::AddBoundaryElements()
         fCMesh->CreateCompEl(gel, index);
     }
 }
+
+/// Add the boundary interface elements to the computational mesh
+void TPZMHMeshControl::AddBoundaryInterfaceElements()
+{
+    fCMesh->LoadReferences();
+    int dim = fGMesh->Dimension();
+    std::set<int> notincluded;
+    notincluded.insert(fSkeletonMatId);
+    notincluded.insert(fLagrangeMatIdLeft);
+    notincluded.insert(fLagrangeMatIdRight);
+    long nel = fCMesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fCMesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() == dim || gel->HasSubElement()) {
+            continue;
+        }
+        int matid = gel->MaterialId();
+        if (notincluded.find(matid) != notincluded.end()) {
+            continue;
+        }
+        if (gel->Dimension() != dim-1) {
+            DebugStop();
+        }
+        TPZStack<TPZCompElSide> celstack;
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
+        TPZCompElSide celside = gelside.Reference();
+        gelside.EqualorHigherCompElementList2(celstack, 1, 0);
+        long nst = celstack.size();
+        for (long i=0; i<nst; i++) {
+            TPZCompElSide cs = celstack[i];
+            TPZGeoElSide gs = cs.Reference();
+            if (gs == gelside) {
+                continue;
+            }
+            long index;
+            TPZGeoEl *gelnew = gs.Element()->CreateBCGeoEl(gs.Side(), matid);
+            new TPZInterfaceElement(fCMesh, gelnew , index, cs, celside);
+
+        }
+    }
+    
+    
+}
+
+
 
 /// print the indices of the boundary elements and interfaces
 void TPZMHMeshControl::PrintBoundaryInfo(std::ostream &out)

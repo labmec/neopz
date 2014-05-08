@@ -130,7 +130,7 @@ public:
 	 */
 	virtual long ConnectIndex(int i) const
     {
-        if (i>=0 && i==2*fDef.size()) {
+        if (i>=0 && i < 2*fDef.size()) {
             return fDef[i/2].fConnect[i%2];
         }
         DebugStop();

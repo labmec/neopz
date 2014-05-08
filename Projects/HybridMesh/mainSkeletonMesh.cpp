@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
     
     dims.Resize(1, 0);
     dims[0]=2;
-    int nref = 2;
+    int nref = 0;
     RefinamentoUniforme(gmesh2, nref, dims);
 
 
