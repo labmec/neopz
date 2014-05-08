@@ -44,7 +44,6 @@ int main() {
 	//Creates the geometric mesh
 	TPZGeoMesh *gmesh = GetMesh(nx,ny);
 	gmesh->SetName("testing a space");
-	ofstream out("all.dat");
 	
 	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 	
@@ -55,19 +54,25 @@ int main() {
 	mat2d->SetMaterial(xkin,xcin,xfin);
 	//TPZMaterial* mat(mat2d);
 	cmesh->InsertMaterialObject (mat2d);
+//    cmesh->SetAllCreateFunctionsDiscontinuous();
+//    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->SetAllCreateFunctionsHDivPressure();
 	cmesh->AutoBuild();
+//    cmesh->ApproxSpace().CreateInterfaces(*cmesh);
 	TPZVec<long> subelindex(4,0);
     long elindex = 0;
     int shouldinterpolate = 0;
-	cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
+	//cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
 
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
 
-	cmesh->Reference()->Print(out);
-	out << "antes de lido\n";
-	//Prints the refined mesh
-	cmesh->Print(out);
+    {
+        ofstream out("all.dat");
+        cmesh->Reference()->Print(out);
+        out << "antes de lido\n";
+        cmesh->Print(out);
+    }
 	{
 		TPZFileStream fstr;
 		fstr.OpenWrite("dump.dat");
@@ -81,9 +86,9 @@ int main() {
 		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(sv);
 		sv = TPZSaveable::Restore(fstr,tst);
 		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(sv);
-		out << "depois de lido "<<endl;
+        std::cout << "depois de lido "<<endl;
 		//if(tst) tst->Print(out);
-		if(tsc) tsc->Print(out);
+		if(tsc) tsc->Print(std::cout);
 		delete tst;
 	}
 	if(cmesh) delete cmesh;

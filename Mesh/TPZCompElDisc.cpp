@@ -107,8 +107,10 @@ TPZCompElDisc::~TPZCompElDisc() {
 TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
-	this->fIntRule = this->CreateIntegrationRule();
-    SetTrueUseQsiEta();
+	this->fIntRule = NULL;
+    fUseQsiEta = true;
+    fConstC = 1.;
+
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,long &index) :
