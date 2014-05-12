@@ -12,12 +12,27 @@
 
 #include "TPZVTKGeoMesh.h"
 #include "TPZRefPatternDataBase.h"
+#include "CohesiveTests.h"
 
 //#ifdef LOG4CXX
 //static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
 //#endif
 
+
+void CohesiveTest();
+int mainFrac(int argc, char *argv[]);
+
+
 int main(int argc, char *argv[])
+{	
+	if(0){
+		mainFrac(argc,argv);
+	}
+	else {
+		CohesiveTest();
+	}
+}
+int mainFrac(int argc, char *argv[])
 {
   //Propagation criterion
   REAL Lx = 1000.;
@@ -106,4 +121,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-
+void CohesiveTest()
+{
+	ElastTest();
+}
