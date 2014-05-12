@@ -267,7 +267,9 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     {
         std::stringstream sout;
         TPZVec<STATE> phi;
-        Phi(fN.fEpsT, phi);
+        TPZTensor<STATE> epsElastic(fN.fEpsT);
+        epsElastic-=fN.fEpsP;
+        Phi(epsElastic, phi);
         sout << " \n phi = [";
         for (int i=0;i<phi.size();i++)
         {
@@ -276,7 +278,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
         
         sout << " ] "<<endl;
         
-        sout << " \n eigenvalues = [";
+        sout << " \n eigenvalues Sigma = [";
         for (int i=0;i<3;i++)
         {
             sout << DecompSig.fEigenvalues[i] <<" ";

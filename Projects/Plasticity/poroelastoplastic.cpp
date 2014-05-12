@@ -101,7 +101,7 @@ int main ()
     REAL outerradius = 3.;
 
     REAL computedquarter = 7.05761678496926;
-    REAL sqj2_refine = 0.0001;
+    REAL sqj2_refine;
     std::cout << std::setprecision(15);
     if (startfrom == 0)
     {
@@ -128,17 +128,21 @@ int main ()
         
         
 
-        bool modelMC =true;
+      
+        bool modelMC =false;
 				
         if (modelMC)
         {
             REAL cohesion = A - C;
             REAL Phi = B*C;
             well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+            sqj2_refine=0.001;
         }
         else
         {
             well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+            sqj2_refine=0.0001;
+            
         }
 			
         int divisions = 20;

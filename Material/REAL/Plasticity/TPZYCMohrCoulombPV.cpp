@@ -50,8 +50,9 @@ void TPZYCMohrCoulombPV::Write(TPZStream &buf) const
 
 void TPZYCMohrCoulombPV::Phi(TPZVec<STATE> sigvec,STATE alpha,TPZVec<STATE> &phi)const
 {
-   phi.resize(3);
-   phi[0]= PhiPlane(sigvec);
+    phi.resize(3);
+    for(int i=0;i<3;i++)phi[i]=0;
+    phi[0]= PhiPlane(sigvec);
 }
 
 template <class T>
