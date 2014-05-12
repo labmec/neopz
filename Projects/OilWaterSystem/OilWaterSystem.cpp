@@ -119,9 +119,9 @@ int main()
 	
 	{
 		//	Print Geometrical Base Mesh
-		ofstream argument("GeometicMesh.txt");
+		std::ofstream argument("GeometicMesh.txt");
 		gmesh->Print(argument);
-		ofstream Dummyfile("GeometricMesh.vtk");
+		std::ofstream Dummyfile("GeometricMesh.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
 	}
 	
@@ -138,9 +138,9 @@ int main()
 	
 	{
 		//	Print Geometrical Base Mesh
-		ofstream argument("RefGeometicMesh.txt");
+		std::ofstream argument("RefGeometicMesh.txt");
 		gmesh->Print(argument);
-		ofstream Dummyfile("RefGeometricMesh.vtk");
+		std::ofstream Dummyfile("RefGeometricMesh.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
 		//		gmesh->BuildConnectivity();
 	}	
@@ -151,19 +151,19 @@ int main()
 	//	First computational mesh
 	TPZCompMesh * CMeshBulkflux = ComputationalMeshBulkflux(gmesh, POrderBulkFlux);
 	//	Print Second computational mesh
-	ofstream ArgumentBulkflux("ComputationalMeshForBulkflux.txt");
+	std::ofstream ArgumentBulkflux("ComputationalMeshForBulkflux.txt");
 	CMeshBulkflux->Print(ArgumentBulkflux);	
 	
 	//	Second computational mesh
 	TPZCompMesh * CMeshPseudopressure = ComputationalMeshPseudopressure(gmesh, POrderPseudopressure);
 	//	Print First computational mesh
-	ofstream ArgumentPseudopressure("ComputationalMeshForPseudopressure.txt");
+	std::ofstream ArgumentPseudopressure("ComputationalMeshForPseudopressure.txt");
 	CMeshPseudopressure->Print(ArgumentPseudopressure);
 	
 	//	Third computational mesh
 	TPZCompMesh * CMeshWaterSaturation = ComputationalMeshWaterSaturation(gmesh, POrderWaterSaturation);
 	//	Print Second computational mesh
-	ofstream ArgumentWaterSaturation("ComputationalMeshForWaterSaturation.txt");
+	std::ofstream ArgumentWaterSaturation("ComputationalMeshForWaterSaturation.txt");
 	CMeshWaterSaturation->Print(ArgumentWaterSaturation);
 	
 	TPZAnalysis Anbulkflux(CMeshBulkflux);
@@ -246,7 +246,7 @@ int main()
 	
     
     TPZCompMesh * MultiphysicsMesh = ComputationalMeshMultiphase(gmesh,meshvec);
-    ofstream ArgumentMultiphysic("MultiphysicsMesh.txt");
+    std::ofstream ArgumentMultiphysic("MultiphysicsMesh.txt");
     MultiphysicsMesh->Print(ArgumentMultiphysic);
 	
 	

@@ -12,7 +12,6 @@
 #include "pzfmatrix.h"
 #include "pzaxestools.h"
 
-
 #include <iostream>
 
 #ifdef LOG4CXX
@@ -2755,7 +2754,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 		}
 			break;
 			
-		default: cout << "This BC doesn't exist." << endl;
+		default: std::cout << "This BC doesn't exist." << std::endl;
 			DebugStop();
 	}
 	
