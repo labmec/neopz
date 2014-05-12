@@ -137,11 +137,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
     
 	TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
 	
-	TPZElementMatrix *ek,*ef;
-	
-	
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
-	
 	
 	
 	while(parfront->fCurrentElement < parfront->fNElements) {
@@ -217,8 +213,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//		int dim = el->NumNodes();
 		
 		//Builds elements stiffness matrix
-		ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
-		ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
+		TPZElementMatrix *ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
+		TPZElementMatrix *ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
 		
 		el->CalcStiff(*ek, *ef);
 		//Locks a mutex and adds element contribution to frontmatrix

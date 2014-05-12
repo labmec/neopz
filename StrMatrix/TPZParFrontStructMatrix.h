@@ -13,6 +13,7 @@
 #include "TPZFrontMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
+#include "tpzautopointer.h"
 
 #include "pzelmat.h"
 
@@ -66,7 +67,7 @@ public:
 	/**
 	* @brief Destructor
 	*/
-	~TPZParFrontStructMatrix();
+	virtual ~TPZParFrontStructMatrix();
 	
 	/**
 	 * @brief Returns a pointer to TPZMatrix
