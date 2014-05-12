@@ -101,7 +101,7 @@ int main ()
     REAL outerradius = 3.;
 
     REAL computedquarter = 7.05761678496926;
-    REAL sqj2_refine = 0.0005;
+    REAL sqj2_refine = 0.0001;
     std::cout << std::setprecision(15);
     if (startfrom == 0)
     {
@@ -115,7 +115,7 @@ int main ()
         //well.SetConfinementStresses(confinement, 28.9);
         //
         //REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-        REAL effectivePressure = 23.5; // 19.5 ou 23.4 ou 28.9
+        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
         well.SetConfinementStresses(confinement, effectivePressure);
         REAL poisson = 0.203;
         REAL elast = 29269.;
@@ -127,13 +127,19 @@ int main ()
         REAL W = 0.006605;
         
         
-        well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+
+        bool modelMC =true;
 				
-				if (0) {
-					REAL cohesion = A - C;
-					REAL Phi = B*C;
-					well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);					
-				}
+        if (modelMC)
+        {
+            REAL cohesion = A - C;
+            REAL Phi = B*C;
+            well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+        }
+        else
+        {
+            well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+        }
 			
         int divisions = 20;
         REAL delx = 0.2*innerradius*M_PI_2/divisions;

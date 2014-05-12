@@ -132,8 +132,11 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 #endif
     
     
+    
+    
     // ReturMap in the principal values
     STATE nextalpha = -6378.;
+    STATE printPlastic = fN.Alpha();
     TPZFNMatrix<9> GradSigma(3,3,0.);
     fYC.ProjectSigmaDep(sigtrvec, fN.fAlpha, sigprvec, nextalpha, GradSigma);
     //GradSigma.Print("Grad");
@@ -246,12 +249,46 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     DecompSig.fEigenvalues = sigprvec; // CHANGING THE EIGENVALUES FOR THE ONES OF SIGMAPR
     sigma = TPZTensor<REAL>(DecompSig);
     
+    
+
+    
+    
     fER.ComputeDeformation(sigma,epsElaNp1);
     fN.fEpsT = epsTotal;
     epsPN = epsTotal;
     epsPN -= epsElaNp1; // Transforma epsPN em epsPNp1
     fN.fEpsP = epsPN;
     Dep = dSigDe;
+    
+    
+#ifdef LOG4CXX
+    
+    if(fabs(printPlastic-fN.fAlpha)>1.e-4)
+    {
+        std::stringstream sout;
+        TPZVec<STATE> phi;
+        Phi(fN.fEpsT, phi);
+        sout << " \n phi = [";
+        for (int i=0;i<phi.size();i++)
+        {
+            sout << phi[i] <<" ";
+        }
+        
+        sout << " ] "<<endl;
+        
+        sout << " \n eigenvalues = [";
+        for (int i=0;i<3;i++)
+        {
+            sout << DecompSig.fEigenvalues[i] <<" ";
+        }
+        
+        sout << " ] "<<endl;
+        
+        
+        
+        LOGPZ_DEBUG(logger2, sout.str())
+    }
+#endif
 }
 
 template <class YC_t, class ER_t>
@@ -499,10 +536,17 @@ TPZPlasticState<STATE>  TPZPlasticStepPV<YC_t, ER_t>::GetState() const
 }
 
 template <class YC_t, class ER_t>
-void TPZPlasticStepPV<YC_t, ER_t>::Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
+void TPZPlasticStepPV<YC_t, ER_t>::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) const
 {
-
-    fYC.Phi(epsTotal,fN.Alpha(),phi);
+    TPZTensor<STATE> sigma;
+    fER.Compute(eps, sigma);
+    TPZTensor<STATE>::TPZDecomposed DecSig;
+    sigma.EigenSystem(DecSig);
+    TPZVec<STATE> sigvec(3);
+    sigvec[0]=DecSig.fEigenvalues[0];
+    sigvec[1]=DecSig.fEigenvalues[1];
+    sigvec[2]=DecSig.fEigenvalues[2];
+    fYC.Phi(sigvec,fN.Alpha(),phi);
 }
 
 

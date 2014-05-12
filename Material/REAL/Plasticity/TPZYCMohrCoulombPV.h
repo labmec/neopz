@@ -200,7 +200,7 @@ public:
 	/**
 	 * @brief Calculates the value of phi based on eps
 	 */
-  void Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const;
+  void Phi(TPZVec<STATE> sigvec,STATE alpha,TPZVec<STATE> &phi)const;
 	
 };
 

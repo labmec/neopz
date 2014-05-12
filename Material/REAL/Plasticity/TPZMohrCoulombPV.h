@@ -30,7 +30,7 @@ class TPZMohrCoulombPV
     REAL fPoisson;
     REAL fPhi;
     REAL fPsi;
-    REAL coesion;
+    REAL fCoesion;
     
 public:
     
@@ -142,8 +142,10 @@ public:
        // H = T(12904.8)-T(5.90476e6)*epsp;
        //sigmay=20.;
        // H=0.;
-            sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp; // NATHAN: de onde vieram esse valores?
-            H = T(12904.8);
+      //      sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp; // NATHAN: de onde vieram esse valores?
+      //      H = T(12904.8);
+        sigmay=fCoesao;
+        H=0.;//dphi/dA
     }
     
     /// a piecewise linear hardening function

@@ -172,7 +172,7 @@ private:
     
 public:
     
-    void Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const;
+    void Phi(TPZVec<REAL> sigma,STATE alpha,TPZVec<STATE> &phi)const;
     
     void SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE &beta) const;
     

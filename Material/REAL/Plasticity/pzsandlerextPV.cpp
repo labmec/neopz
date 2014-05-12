@@ -600,7 +600,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
 
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const
 {
-    
+    yield.resize(2);
     STATE II1,JJ2,JJ3,ggamma,temp1,temp3,f2,sqrtj2,f1,beta;
     TPZManVector<STATE,3> cylstress(3);
     FromPrincipalToHWCyl(sigma,cylstress);
@@ -622,22 +622,22 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     temp3=(ggamma*sqrtj2)/(F(kprev));
     
     f1=sqrtj2-F(II1);
-    f2=temp1*temp1+temp3*temp3-1;
+    f2=(temp1*temp1+temp3*temp3-1);
 
     yield[0]=f1;
     yield[1]=f2;
     
 }
 
-void TPZSandlerExtended::Phi(TPZTensor<STATE> eps,STATE alpha,TPZVec<STATE> &phi)const
+void TPZSandlerExtended::Phi(TPZVec<REAL> sigma,STATE alpha,TPZVec<STATE> &phi)const
 {
 
-    TPZTensor<REAL>::TPZDecomposed DecompSig;
-    TPZTensor<STATE> sig;
-    TPZElasticResponse ER;
-    ER.Compute(eps,sig);
-    sig.EigenSystem(DecompSig);
-    YieldFunction(DecompSig.fEigenvalues,alpha, phi);
+//    TPZTensor<REAL>::TPZDecomposed DecompSig;
+//    TPZTensor<STATE> sig;
+//    TPZElasticResponse ER;
+//    ER.Compute(eps,sig);
+//    sig.EigenSystem(DecompSig);
+    YieldFunction(sigma,alpha, phi);
 }
 
 std::map<int,long> gF1Stat;

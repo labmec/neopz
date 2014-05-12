@@ -331,12 +331,12 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps){
 		Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps;
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
-//	else
-//	if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
-//        
-//        TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
-//        plasticloc.Phi(EpsT,Solout);
-//	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
+	else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
+
+        TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+        plasticloc.Phi(EpsT,Solout);
+	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
