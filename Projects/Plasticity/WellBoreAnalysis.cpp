@@ -1990,7 +1990,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(4);
+        structmatrix.SetNumThreads(0);
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);
@@ -2028,7 +2028,7 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
     scalNames.Push("VolPlasticStrain");
     scalNames.Push("VolTotalStrain");
     scalNames.Push("PlasticSteps");
-    //scalNames.Push("YieldSurface");
+    
 
     vecNames.Push("TotalPlasticStrain"); // x y z
     vecNames.Push("ShearStress"); //xy xz yz
@@ -2044,6 +2044,7 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
     vecNames.Push("PrincipalStress"); //1 2 3
     //vecNames.Push("PrincipalStrain"); //1 2 3
     vecNames.Push("DisplacementMem"); // x y z
+    vecNames.Push("YieldSurface");
 }
 
 
@@ -2053,7 +2054,9 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
     fCurrentConfig.CreatePostProcessingMesh();
 
 #ifdef PV
-      std::string vtkFile = "out.vtk";
+//      std::string vtkFile = "out.vtk";
+    std::string vtkFile = "outSD.vtk";
+    //std::string vtkFile = "outMC.vtk";
     
 #else
     std::string vtkFile = "pocoplasticoErickII.vtk";
