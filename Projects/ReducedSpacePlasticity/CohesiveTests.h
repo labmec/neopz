@@ -21,12 +21,17 @@ void ElastNLTestWithCohesive();
 void CohesiveTwoLoads();
 void OpenFractureTest();
 
+void TestContinuousDiscontinuous();
+
 TPZGeoMesh* CreateGeoMesh();
 TPZGeoMesh* CreateGeoMeshCohe();
 TPZGeoMesh* CreateGeoMeshToOpen();
 TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh);
 TPZCompMesh* CreateCMeshCohe(TPZGeoMesh *gmesh,REAL val);
 TPZCompMesh* CreateCMeshToOpen(TPZGeoMesh *gmesh, REAL val);
+
+TPZGeoMesh* CreateGeomeshContDisc();
+TPZCompMesh* CreateCmeshContDisc(TPZGeoMesh *gmesh);
 
 void SolveLinearElasticity(TPZCompMesh *cmesh);
 void SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis &an);

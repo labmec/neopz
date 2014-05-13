@@ -64,7 +64,7 @@ void GetSolAtLeft(TPZCompMesh	*cmesh)
 void ElastNLTestWithCohesive()
 {
   TPZGeoMesh *gmesh = CreateGeoMeshCohe();
-  REAL val = 0.25;
+  REAL val = 0.3;
   TPZCompMesh *cmesh = CreateCMeshCohe(gmesh,val);
   TPZNonLinearAnalysis an(cmesh,std::cout);
   TPZStepSolver<STATE> step;
@@ -86,23 +86,6 @@ void ElastNLTestWithCohesive()
   an.DefineGraphMesh(dim, scalnames, vecnames, "ElastNLSol.vtk");
   
   an.PostProcess(0);
-  
-  int nsteps = 1;
-  for (int i = 2; i <= nsteps ; i++) {
-   /*
-    it = cmesh->MaterialVec().begin();
-    sigma = i;
-    for (; it != cmesh->MaterialVec().end(); it++) {
-      TPZCohesiveBC *bc = dynamic_cast<TPZCohesiveBC*> (it->second);
-      if (bc) {
-        bc->SetCohesiveData(sigma, sigma, sigma);
-      }
-    }
-    */
-    SolveNLElasticity(cmesh,an);
-    an.PostProcess(0);
-  }
-  
 }
 
 void CohesiveTwoLoads()
@@ -799,5 +782,204 @@ void UpdateBcValue(TPZCompMesh *cmesh, REAL val)
     val2(1,0) = val;
     bnd->Val2() = val2;
   }
+}
+
+void TestContinuousDiscontinuous()
+{
+	TPZGeoMesh *gmesh = CreateGeomeshContDisc();
+	TPZCompMesh *cmesh = CreateCmeshContDisc(gmesh);
+	
+	std::ofstream out2("gMeshContDisc.txt");
+	cmesh->Reference()->Print(out2);
+	
+	std::ofstream out("cMeshContDisc.txt");
+	cmesh->Print(out);
+	
+	delete cmesh;
+	delete gmesh;
+}
+
+TPZGeoMesh* CreateGeomeshContDisc()
+{
+  TPZGeoMesh *gmesh = new TPZGeoMesh;
+  int nnodes = 6, nodeid = 0;
+  
+  TPZVec<REAL> coord(3,0.);
+  gmesh->NodeVec().Resize(nnodes);
+  
+  gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
+  gmesh->NodeVec()[nodeid].SetCoord(coord);
+  nodeid++;
+  
+  coord[0] = 1.;
+  gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
+  gmesh->NodeVec()[nodeid].SetCoord(coord);
+  nodeid++;
+  
+  coord[1] = 1.;
+  gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
+  gmesh->NodeVec()[nodeid].SetCoord(coord);
+  nodeid++;
+  
+  coord[0] = 0.;
+  gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
+  gmesh->NodeVec()[nodeid].SetCoord(coord);
+  nodeid++;
+  
+  coord[0] = 2.;
+  coord[1] = 0.;
+  gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
+  gmesh->NodeVec()[nodeid].SetCoord(coord);
+  nodeid++;
+	
+  coord[0] = 2.;
+  coord[1] = 1.;
+  gmesh->NodeVec()[nodeid].SetNodeId(nodeid);
+  gmesh->NodeVec()[nodeid].SetCoord(coord);
+  nodeid++;
+	
+	// id das cond contorno
+	int bcdircont = -1;
+ 	int bcdirdisc = -2;
+	int matidcont = 1;
+	int matiddisc = 2;
+  
+	// Elemento 0
+  TPZVec<long> TopolQuad(4,0);
+  TopolQuad[0] = 0;
+  TopolQuad[1] = 1;
+  TopolQuad[2] = 2;
+  TopolQuad[3] = 3;
+  
+  long index = 0;
+  TPZGeoEl *gel = NULL;
+	int matid = 1;
+  gel = gmesh->CreateGeoElement(EQuadrilateral, TopolQuad, matidcont, index);
+  gel->SetId(index);
+  index++;
+  
+	// Cond contorno do El 0
+  gel->CreateBCGeoEl(4,bcdircont);
+	gel->CreateBCGeoEl(6,bcdircont);
+	gel->CreateBCGeoEl(7,bcdircont);
+	
+	// Elemento 1
+  TopolQuad[0] = 1;
+  TopolQuad[1] = 4;
+  TopolQuad[2] = 5;
+  TopolQuad[3] = 2;
+  gel = gmesh->CreateGeoElement(EQuadrilateral, TopolQuad, matiddisc, index);
+  gel->SetId(index);
+  index++;
+
+	// Cond contorno El 1
+  gel->CreateBCGeoEl(4,bcdirdisc);
+	gel->CreateBCGeoEl(5,bcdirdisc);
+	gel->CreateBCGeoEl(6,bcdirdisc);
+	
+	gmesh->AddInterfaceMaterial(matidcont,matiddisc,matiddisc); //Adicionar um material de interface associados aos elementos mat2 e mat1 do material.
+	gmesh->AddInterfaceMaterial(matiddisc,matidcont,matiddisc);
+   
+  gmesh->BuildConnectivity();
+  
+	//Refinamento
+	/*
+  int nref = 3;
+  TPZVec<TPZGeoEl *> sons;
+  for (int iref = 0; iref < nref; iref++) {
+    int nel = gmesh->NElements();
+    for (int iel = 0; iel < nel; iel++) {
+      TPZGeoEl *gel = gmesh->ElementVec()[iel];
+      if (!gel->HasSubElement()) {
+        gel->Divide(sons);
+      }
+    }
+  }
+	*/
+  
+  std::ofstream out("ElastGmeshContDisc.vtk");
+  TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+  
+  return gmesh;
+}
+
+TPZCompMesh* CreateCmeshContDisc(TPZGeoMesh *gmesh)
+{
+	
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  
+	
+	/// criar materiais
+	int dim = 2;
+	
+  TPZVec<REAL> force(dim,0.);
+  
+  //int planestress = 1;
+  int planestress = 1;
+  
+  REAL ela = 40., nu = 0., fx = 0., fy = 0.;
+	int bcdircont = -1;
+ 	int bcdirdisc = -2;
+	int matidcont = 1;
+	int matiddisc = 2;
+  TPZNLElasticityMaterial * material1 = new TPZNLElasticityMaterial(matidcont,
+                                                                    ela,
+                                                                    nu,
+                                                                    fx,
+                                                                    fy,
+                                                                    planestress);
+	TPZNLElasticityMaterial * material2 = new TPZNLElasticityMaterial(matiddisc,
+                                                                    ela,
+                                                                    nu,
+                                                                    fx,
+                                                                    fy,
+                                                                    planestress);
+	
+  
+  TPZMaterial * mat1(material1);
+	TPZMaterial * mat2(material2);
+  
+  ///criar malha computacional
+  cmesh->SetDefaultOrder(2);
+	cmesh->SetDimModel(dim);
+	
+  cmesh->InsertMaterialObject(mat1);
+  cmesh->InsertMaterialObject(mat2);
+	
+  TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+  
+  int dir = 0, neu = 1;
+  
+  TPZMaterial * BCond11 = material1->CreateBC(mat1, bcdircont, dir, val1, val2);
+  cmesh->InsertMaterialObject(BCond11);
+	
+	TPZMaterial * BCond12 = material2->CreateBC(mat2, bcdirdisc, dir, val1, val2);
+  cmesh->InsertMaterialObject(BCond12);
+  
+  //  val2(1,0) = 1;
+  //  TPZMaterial * BCond12 = material1->CreateBC(mat1, bcneu, neu, val1, val2);
+  //  cmesh->InsertMaterialObject(BCond12);
  
+	
+	std::set<int> MatCont, MatDisc;
+	MatCont.insert(matidcont);
+	MatCont.insert(bcdircont);
+	MatDisc.insert(matiddisc);
+	MatDisc.insert(bcdirdisc);
+	
+  //cmesh->SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetAllCreateFunctionsContinuous();
+	
+	cmesh->AutoBuild(MatCont);
+	gmesh->ResetReference();
+
+	cmesh->SetAllCreateFunctionsDiscontinuous();
+	cmesh->AutoBuild(MatDisc);
+	cmesh->LoadReferences(); 
+
+  cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+	
+  return cmesh;
+	
 }

@@ -118,5 +118,5 @@ int mainFrac(int argc, char *argv[])
 
 void CohesiveTest()
 {
-	OpenFractureTest();
+	TestContinuousDiscontinuous();
 }
