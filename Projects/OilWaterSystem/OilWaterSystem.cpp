@@ -16,7 +16,6 @@
 #include "pzmultiphase.h"
 #include "pzl2projection.h"
 #include "TPZSkylineNSymStructMatrix.h"
-#include "fad.h"
 
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
