@@ -201,6 +201,12 @@ public:
 	 * @brief Calculates the value of phi based on eps
 	 */
   void Phi(TPZVec<STATE> sigvec,STATE alpha,TPZVec<STATE> &phi)const;
+
+  STATE Phi() { return fPhi; }
+  STATE Psi() { return fPsi; }
+  STATE Cohesion() { return fc; }
+  STATE E() { return fER.E(); }
+  STATE Poisson() { return fER.Poisson(); }
 	
 };
 
