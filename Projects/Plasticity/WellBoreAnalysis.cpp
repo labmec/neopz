@@ -2659,8 +2659,6 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         finalstress.YY() = hydro;
         finalstress.ZZ() = hydro;
 
-        //SD.fN.fAlpha=-41.;
-
         PrepareInitialMat(MC, initstress, finalstress, 10);
         initstress = finalstress;
         finalstress = fConfinement;
@@ -2688,13 +2686,11 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
         TPZTensor<REAL> initstress(0.),finalstress(0.);
         REAL hydro = fConfinement.I1();
-        hydro -= SD.fYC.A()*SD.fYC.R();
+        //TEST// hydro -= SD.fYC.A()*SD.fYC.R();
         hydro /= 3.;
         finalstress.XX() = hydro;
         finalstress.YY() = hydro;
         finalstress.ZZ() = hydro;
-
-        SD.fN.fAlpha=-41.;
 
         PrepareInitialMat(SD, initstress, finalstress, 10);
         initstress = finalstress;
