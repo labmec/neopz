@@ -9,6 +9,7 @@
 #ifndef CohesiveTests
 #define CohesiveTests
 
+#include "pzreal.h"
 
 class TPZGeoMesh;
 class TPZCompMesh;
@@ -16,14 +17,21 @@ class TPZNonLinearAnalysis;
 
 void ElastTest();
 void ElastNLTest();
+void ElastNLTestWithCohesive();
+void CohesiveTwoLoads();
+void OpenFractureTest();
+
 TPZGeoMesh* CreateGeoMesh();
 TPZGeoMesh* CreateGeoMeshCohe();
+TPZGeoMesh* CreateGeoMeshToOpen();
 TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh);
-TPZCompMesh* CreateCMeshCohe(TPZGeoMesh *gmesh);
+TPZCompMesh* CreateCMeshCohe(TPZGeoMesh *gmesh,REAL val);
+TPZCompMesh* CreateCMeshToOpen(TPZGeoMesh *gmesh, REAL val);
+
 void SolveLinearElasticity(TPZCompMesh *cmesh);
 void SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis &an);
-void ElastNLTestWithCohesive();
 void GetSolAtLeft(TPZCompMesh	*cmesh);
+void UpdateBcValue(TPZCompMesh *cmesh, REAL val);
   
 
 #endif

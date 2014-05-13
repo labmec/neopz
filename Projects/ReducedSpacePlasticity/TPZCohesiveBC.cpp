@@ -21,6 +21,7 @@ TPZCohesiveBC::TPZCohesiveBC(const TPZCohesiveBC &cp) : TPZMatWithMem<TPZFMatrix
 	
 }
 
+
 TPZCohesiveBC::~TPZCohesiveBC()
 {
 	
@@ -31,15 +32,22 @@ void TPZCohesiveBC::SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, cons
 	fSigmaT = SigmaT;
 	fDeltaC = DeltaC;
 	fDeltaT = DeltaT;
-	TPZFNMatrix<2,REAL> DTST(2,1,0.);
+	TPZFNMatrix<2,REAL> DTST(3,1,0.);
 	DTST(0,0) = DeltaT;
 	DTST(1,0) = SigmaT;
+  REAL notpropageted = 0.;
+  DTST(2,0) = notpropageted;
 	this->SetDefaultMem(DTST);
 }
 
-void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma) const 
+void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma, REAL &propageted) const
 {
-
+#ifdef DEBUG
+  if (w>=0 && propageted > 1.) { // if it is already propageted sigma is always zero, but i already do this check in the contribute
+    DebugStop(); // i hope it never gets here
+  }
+#endif
+  
 	// Calculating the function
 	if (w<=0) { // simulates contact between fracture walls in case of closening
 		sigma = w*fSigmaT/fDeltaT;
@@ -51,18 +59,24 @@ void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sig
 		sigma = SigmaT * (1. - (w - DeltaT)/(fDeltaC - DeltaT) );
 	}
 	else { // if it passes the critical oppening, the cohesive tension ceases to exist
-		sigma = 0;
+		sigma = 0.;
 	}
-	
-	sigma *= -1.0;
- 
-	
+  
+	sigma *= -1.0; // the cohesive stress in oposite to the displacement
+
 }
 
-void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv) const 
+void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv, REAL &propageted) const
 {
+ 
+#ifdef DEBUG
+  if (w>=0 && propageted > 1.) { // if it is already propageted deriv is always zero, but i already do this check in the contribute
+    DebugStop();
+  }
+#endif
 	
-	if (w<=0) { // simulates contact between fracture walls in case of closening
+  // Calculating the deriv of the function
+	if (w<=0) { // simulates compression between fracture walls in case of closening
 		deriv = fSigmaT/fDeltaT;
 	}
 	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
@@ -74,9 +88,7 @@ void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &Sigm
 	else { // if it passes the critical oppening, the cohesive tension ceases to exist
 		deriv = 0;
 	}
-	
 		deriv *= -1.0;
-	 
 }
 
 void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
@@ -88,19 +100,30 @@ void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
 	const int index = data.intGlobPtIndex; 
 	TPZFMatrix<REAL> DTST = this->MemItem(index);
 	
-	if (DTST.Rows() != 2 || DTST.Cols() != 1) {
-		PZError << "The DTST memory number of Rows must be 2 and Cols 1\n";
+	if (DTST.Rows() != 3 || DTST.Cols() != 1) {
+		PZError << "The DTST memory number of Rows must be 3 and Cols 1\n";
 		DebugStop();
 	}
 	REAL DeltaT = DTST(0,0);
-	REAL SigmaT = DTST(1,0);	
-	CalculateSigma(w,DeltaT,SigmaT,sigma);
-	
-	if (IsZero(sigma)) {
-		w = 0.; // in case of fracture oppened, i dont need to store the sigma anymore or it is zero
-	}
+	REAL SigmaT = DTST(1,0);
+  REAL propageted = DTST(2,0);
+  
+  if (propageted > 1.) { // if propageted, there is nothing to be done
+    return;
+  }
+  
+  if (w >= fDeltaC) {
+    w = fDeltaC;
+    sigma = 0.;
+    propageted = 2.;
+  }
+  else{
+    CalculateSigma(w,DeltaT,SigmaT,sigma, propageted);
+  }
+  
 	DTST(0,0) = w;
-	DTST(1,0) = sigma;
+	DTST(1,0) = -sigma; // I assume it isnt beatiful, but the value of the sigma in function must be positive according to the way that i tought
+  DTST(2,0) = propageted;
 	
 	//int index = data.intGlobPtIndex;
 	this->MemItem(index) = DTST;
@@ -109,6 +132,10 @@ void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
 
 void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
+  if(fUpdateMem){
+    UpdateCohesiveCurve(data);
+  }
+  
 	TPZFMatrix<REAL> &phi = data.phi;
 	int phr = phi.Rows();
 	
@@ -119,16 +146,20 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 	
 	const int index = data.intGlobPtIndex; 
 	TPZFMatrix<REAL> DTST = this->MemItem(index);
-	if (DTST.Rows() != 2 || DTST.Cols() != 1) {
-		PZError << "The DTST memory number of Rows must be 2 and Cols 1\n";
+	if (DTST.Rows() != 3 || DTST.Cols() != 1) {
+		PZError << "The DTST memory number of Rows must be 3 and Cols 1\n";
 		DebugStop();
 	}
 	
 	
 	REAL DeltaT = DTST(0,0);
-	REAL SigmaT = DTST(1,0);	
-	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress);
-	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive);
+	REAL SigmaT = DTST(1,0);
+  REAL propageted = DTST(2,0); // Fracture is considered oppened when propageted is greater than 1!
+  if (propageted > 1.) { // if propageted, there is nothing to be done
+    return;
+  }
+	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
+	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
 		
 	//CohesiveStress = -0.001;
 	//DerivCohesive = 0.;
@@ -165,7 +196,8 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 	}
 	REAL DeltaT = DTST(0,0);
 	REAL SigmaT = DTST(1,0);
-	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress);
+  REAL propageted = DTST(2,0);
+	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
 	
 	for (int in = 0; in < phr; in++) 
 	{

@@ -42,7 +42,7 @@ public:
 	/** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
 	TPZCohesiveBC(const TPZCohesiveBC &mat);
-	
+  
 	/** @brief Default destructor */
 	virtual ~TPZCohesiveBC();
 	
@@ -50,14 +50,15 @@ public:
 	void SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, const REAL &DeltaT);
 	
 	/** @brief Calculates Sigma for determined solution */
-	void CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma) const; 
+	void CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma, REAL &propageted) const;
 
 	/** @brief Calculates DerivSigma for determined solution */	
-	void CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv) const;	
+	void CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv, REAL &propageted) const;	
 
 	/** @brief Updates the cohesive curve acording to the calculated w of the time step */
 	void UpdateCohesiveCurve(TPZMaterialData &data);
 
+  
 	
 	/** 
 	 * @brief Fill material data parameter with necessary requirements for the

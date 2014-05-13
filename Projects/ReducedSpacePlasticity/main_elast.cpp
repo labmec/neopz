@@ -81,11 +81,6 @@ int mainFrac(int argc, char *argv[])
                              QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius);
   ToolsTransient ToolTrans(p);
   
-	//ToolTrans.ElastNLTest();
-  ToolTrans.ElastNLTestWithCohesive();
-  
-  
-  
   std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
   std::cout << "****\n";
   std::cout << "*****\n";
@@ -123,5 +118,5 @@ int mainFrac(int argc, char *argv[])
 
 void CohesiveTest()
 {
-	ElastTest();
+	OpenFractureTest();
 }
