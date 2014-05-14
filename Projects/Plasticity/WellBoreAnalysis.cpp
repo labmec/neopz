@@ -393,7 +393,7 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
     fGreater(conf.fGreater),fSmaller(conf.fSmaller),
         fConfinement(conf.fConfinement), fFluidPressure(conf.fFluidPressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fAllSol(conf.fAllSol), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2),
-    fHistoryLog(conf.fHistoryLog), fModel(conf.fModel), fFluidModel(conf.fFluidModel)
+    fHistoryLog(conf.fHistoryLog), fModel(conf.fModel), fFluidModel(conf.fFluidModel), fBiotCoef(conf.fBiotCoef)
 #ifdef PV
   , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV)
 #endif
@@ -442,6 +442,7 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fHistoryLog = copy.fHistoryLog;
     fModel = copy.fModel;
     fFluidModel = copy.fFluidModel;
+    fBiotCoef = copy.fBiotCoef;
     return *this;
 }
 
@@ -466,6 +467,8 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
 
         int IntEFluidModel = fFluidModel;
         out.Write(&IntEFluidModel);
+
+    out.Write(&fBiotCoef);
 	
     out.Write(&fFluidPressure);
     fGMesh.Write(out, 0);
@@ -502,6 +505,8 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
         int IntEFluidModel;
         input.Read(&IntEFluidModel);
         fFluidModel = (EFluidModel) IntEFluidModel;
+
+    input.Read(&fBiotCoef);
 	
     input.Read(&fFluidPressure);
     fGMesh.Read(input, 0);

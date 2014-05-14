@@ -172,6 +172,9 @@ public:
 
         /// Fluid model
         EFluidModel fFluidModel;
+
+        /// Biot coefficient
+        REAL fBiotCoef;
         
 #ifdef PV
         // Sandler Dimaggio PV
@@ -184,9 +187,10 @@ public:
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
 #endif
 
-				/// Fluid pressure
+        /// Fluid pressure
         REAL fFluidPressure;
         
+        /// Pore pressure
         REAL fPorePressure;
         
         /// Geometric mesh3
