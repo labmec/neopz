@@ -30,6 +30,7 @@ class TPZElasticityMaterial;
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
 enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
+enum EFluidModel  {EPenetrating, ENonPenetrating};
 
 /// Class which simulates the stability of a wellbore
 class TPZWellBoreAnalysis
@@ -166,7 +167,11 @@ public:
         /// Parameters
         //TPZElasticityMaterial fEl;
         
+        /// Plastic model
         EPlasticModel fModel;
+
+        /// Fluid model
+        EFluidModel fFluidModel;
         
 #ifdef PV
         // Sandler Dimaggio PV
