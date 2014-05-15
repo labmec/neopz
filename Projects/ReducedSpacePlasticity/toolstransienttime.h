@@ -35,8 +35,16 @@ public:
   
   void InitializeUncoupledMeshesAttributes();
   TPZCompMesh * ElastCMeshReferenceProcessed();
+  
   void Mesh2D();
+  
+  /// Used to construct geomesh for hat function used in the reduces space
+  void Mesh2DHat(int &ihat);
+  
   TPZCompMesh * CMeshElastic();
+  //TPZCompMesh * CMeshElasticForCohesive();
+  TPZCompMesh * CMeshTest();
+  
   void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
   void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);
   TPZCompMeshReferred * CMeshReduced(TPZCompMesh * cmeshref);
@@ -78,6 +86,7 @@ public:
   TPZPlasticFrac2D * fCouplingMaterial1;
   TPZPlasticFrac2D * fCouplingMaterial2;
   TPZGeoMesh * fgmesh;
+  TPZGeoMesh * fgmeshHat;
   
   /** fmeshvec[0] = Malha computacional elastica do tipo referred */
   /** fmeshvec[1] = Malha computacional de fluxo 1D */

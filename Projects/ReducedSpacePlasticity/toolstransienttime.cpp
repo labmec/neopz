@@ -62,23 +62,23 @@ ToolsTransient::ToolsTransient(){
 
 ToolsTransient::ToolsTransient(int pOrder)
 {
-    fpOrder = pOrder;
-    fMustStop = false;
-    
-    int dim = 2;
-    fCouplingMaterial1 = new TPZPlasticFrac2D(globMultiFisicMatId1,dim,
-                                                   globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
-    
-    fCouplingMaterial2 = new TPZPlasticFrac2D(globMultiFisicMatId2,dim,
-                                                   globFractInputData.E2(), globFractInputData.Poisson2(), globFractInputData.Visc());
-    
-    int planestrain = 0;
-    fCouplingMaterial1->SetfPlaneProblem(planestrain);
-    fCouplingMaterial2->SetfPlaneProblem(planestrain);
-    
-    fgmesh = NULL;
-    fmeshvec.Resize(2);
-    fmphysics = NULL;
+  fpOrder = pOrder;
+  fMustStop = false;
+  
+  int dim = 2;
+  fCouplingMaterial1 = new TPZPlasticFrac2D(globMultiFisicMatId1,dim,
+                                            globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
+  
+  fCouplingMaterial2 = new TPZPlasticFrac2D(globMultiFisicMatId2,dim,
+                                            globFractInputData.E2(), globFractInputData.Poisson2(), globFractInputData.Visc());
+  
+  int planestrain = 0;
+  fCouplingMaterial1->SetfPlaneProblem(planestrain);
+  fCouplingMaterial2->SetfPlaneProblem(planestrain);
+  
+  fgmesh = NULL;
+  fmeshvec.Resize(2);
+  fmphysics = NULL;
 }
 
 ToolsTransient::~ToolsTransient(){
@@ -158,8 +158,8 @@ void ToolsTransient::Run()
   PostprocessPressure();
   PostProcessAcumVolW();
   PostProcessVolLeakoff();
-  REAL KI = ComputeKIPlaneStrain();
-  globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
+  //REAL KI = ComputeKIPlaneStrain();
+  //globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
   
   bool initialElasticKickIsNeeded = true;
   while(fMustStop == false)
@@ -212,6 +212,11 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
   
+  
+  TPZCompMesh *cmeshtest = this->CMeshTest();
+  TPZAnalysis antest(cmeshtest);
+  this->SolveInitialElasticity(antest, cmeshtest);
+  
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
   TPZFMatrix<STATE> solutions(0,0);
   
@@ -256,6 +261,7 @@ void ToolsTransient::Mesh2D()
   REAL deltadivV = globFractInputData.Lx()/ndivV;
   REAL deltandivH = globFractInputData.Ly()/ndivH;
   
+  // Creating nodes
   long nid = 0;
   REAL cracktipDist = globFractInputData.Lf();
   int colCracktip = -1;
@@ -285,6 +291,7 @@ void ToolsTransient::Mesh2D()
     colCracktip = 1;//fratura minima corresponde aa distancia entre coluna 0 e coluna 1
   }
   
+  // Creating elements
   TPZGeoEl * gel = NULL;
   TPZVec<long> topol(4);
   long indx = 0;
@@ -310,6 +317,7 @@ void ToolsTransient::Mesh2D()
   
   fgmesh->BuildConnectivity();
   
+  // Creating the BCs
   REAL stripeWidth = globFractInputData.Lf() / globFractInputData.NStripes();
   long nelem = fgmesh->NElements();
   int bcId = globPressureMatId;
@@ -357,7 +365,15 @@ void ToolsTransient::Mesh2D()
     TPZGeoElSide neighE(sideE.Neighbour());
     if(sideE == neighE)
     {
-      gel->CreateBCGeoEl(5, globDirichletElastMatId2);
+      if(gel->MaterialId() == globReservMatId1)
+      {
+        gel->CreateBCGeoEl(5, globDirichletElastMatId1);
+      }
+      else
+      {
+        gel->CreateBCGeoEl(5, globDirichletElastMatId2);
+      }
+      
     }
     
     //north BC
@@ -398,7 +414,73 @@ void ToolsTransient::Mesh2D()
     }
     indx++;
   }
+  
+  
+  int diridhat = globDirichletRecElastMatId1Cohe;
+  int recidhat = diridhat - 1;
+  int ihat = 0;
+  int ieltohat = 0;
+  int whathat = 0;
+  for(long el = 0; el < nelem; el++)
+  {
+    TPZGeoEl * gel = fgmesh->ElementVec()[el];
+    
+    if (gel->MaterialId() == globReservMatId1){
+      //south BC
+      TPZGeoElSide sideS(gel,4);
+      TPZGeoElSide neighS(sideS.Neighbour());
+      if(el < ndivV)
+      {
+        if(el < colCracktip)
+        {
+          gel->CreateBCGeoEl(4, diridhat);
+          
+        }
+        else if (ieltohat == 0 && whathat == ihat)
+        {
+          gel->CreateBCGeoEl(1, recidhat);
+          ieltohat++;
+        }
+        else if(ieltohat == 1){
+          ieltohat++;
+        }
+        else{
+          gel->CreateBCGeoEl(4, diridhat);
+          whathat++;
+        }
+      }
+      
+      //east BC
+      //TPZGeoElSide sideE(gel,5);
+      //TPZGeoElSide neighE(sideE.Neighbour());
+      if((el+1)%(ndivV) == 0 && el != 0)
+      {
+        gel->CreateBCGeoEl(5, diridhat);
+      }
+      
+      //north BC
+      //TPZGeoElSide sideN(gel,6);
+      //TPZGeoElSide neighN(sideN.Neighbour());
+      if(el > ((ndivH-1)*ndivV)-1)
+      {
+        gel->CreateBCGeoEl(6, diridhat);
+      }
+      
+      //west BC
+      //TPZGeoElSide sideW(gel,7);
+      //TPZGeoElSide neighW(sideW.Neighbour());
+      if(el%ndivV == 0)
+      {
+        //gel->CreateBCGeoEl(7, globMixedElastMatId); ja existe!
+      }
+    }
+  }
+  
+  
   fgmesh->BuildConnectivity();
+  
+  
+  
   
   //#ifdef usingQPoints
   //    TPZGeoElSide pt(gel,0);
@@ -418,6 +500,7 @@ void ToolsTransient::Mesh2D()
   //    }
   //#endif
   
+  // Refining near the fracture
   int nrefUnif = 3;
   for(int ref = 0; ref < nrefUnif; ref++)
   {
@@ -457,6 +540,13 @@ void ToolsTransient::Mesh2D()
     }
   }
   
+  
+  
+  
+  
+  std::ofstream outg("GeoMeshUncoupled.vtk");
+  TPZVTKGeoMesh::PrintGMeshVTK(fgmesh, outg, true);
+  
   //#ifdef usingRefdir
   //    std::set<int> matDir;
   //    //matDir.insert(__2DfractureMat_inside);
@@ -476,7 +566,7 @@ void ToolsTransient::Mesh2D()
   //#endif
 }
 
-TPZCompMesh * ToolsTransient::CMeshElastic()
+TPZCompMesh * ToolsTransient::CMeshTest()
 {
   /// criar materiais
 	int dim = 2;
@@ -493,21 +583,25 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
                                                                 globFractInputData.Fy(),
                                                                 planestrain);
   
-  TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
-                                                                globFractInputData.E2(),
-                                                                globFractInputData.Poisson2(),
-                                                                globFractInputData.Fx(),
-                                                                globFractInputData.Fy(),
-                                                                planestrain);
+  /* Only using one material!
+   TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
+   globFractInputData.E2(),
+   globFractInputData.Poisson2(),
+   globFractInputData.Fx(),
+   globFractInputData.Fy(),
+   planestrain);
+   */
+  
   TPZMaterial * mat1(material1);
-  TPZMaterial * mat2(material2);
+  
+  //TPZMaterial * mat2(material2);
   
   ///criar malha computacional
   TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
   cmesh->SetDefaultOrder(fpOrder);
 	cmesh->SetDimModel(dim);
   cmesh->InsertMaterialObject(mat1);
-  cmesh->InsertMaterialObject(mat2);
+  //cmesh->InsertMaterialObject(mat2);
   
   ///Inserir condicao de contorno
   REAL big = material1->gBigNumber;
@@ -528,22 +622,106 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
     }
     else
     {//estou no globReservMatId2
-      TPZMaterial * BCond12 = material2->CreateBC(mat2, bcId, typeNeumann, val1, val2);
-      cmesh->InsertMaterialObject(BCond12);
+      DebugStop(); // Nunca deveria entra nesse caso pois soh uso um material
+                   //TPZMaterial * BCond12 = material2->CreateBC(mat2, bcId, typeNeumann, val1, val2);
+                   //cmesh->InsertMaterialObject(BCond12);
     }
   }
   
   val1.Redim(2,2);
   val2.Redim(2,1);
   TPZMaterial * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
-  TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
+  //TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
   
   val1(0,0) = big;
   TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
   
   cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(BCond21);
-  cmesh->InsertMaterialObject(BCond22);
+  //cmesh->InsertMaterialObject(BCond22);
+	cmesh->InsertMaterialObject(BCond31);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+  
+	return cmesh;
+}
+
+TPZCompMesh * ToolsTransient::CMeshElastic()
+{
+  /// criar materiais
+	int dim = 2;
+	
+  TPZVec<REAL> force(dim,0.);
+  
+  //int planestress = 1;
+  int planestrain = 0;
+  
+  TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1,
+                                                                globFractInputData.E1(),
+                                                                globFractInputData.Poisson1(),
+                                                                globFractInputData.Fx(),
+                                                                globFractInputData.Fy(),
+                                                                planestrain);
+  
+  /* Only using one material!
+   TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
+   globFractInputData.E2(),
+   globFractInputData.Poisson2(),
+   globFractInputData.Fx(),
+   globFractInputData.Fy(),
+   planestrain);
+   */
+  
+  TPZMaterial * mat1(material1);
+  
+  //TPZMaterial * mat2(material2);
+  
+  ///criar malha computacional
+  TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
+  cmesh->SetDefaultOrder(fpOrder);
+	cmesh->SetDimModel(dim);
+  cmesh->InsertMaterialObject(mat1);
+  //cmesh->InsertMaterialObject(mat2);
+  
+  ///Inserir condicao de contorno
+  REAL big = material1->gBigNumber;
+  
+  TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+  
+  std::map< int,std::pair<int,int> >::iterator it;
+  for(it = globFractInputData.GetPressureMatIds_StripeId_ElastId().begin();
+      it != globFractInputData.GetPressureMatIds_StripeId_ElastId().end();
+      it++)
+  {
+    int bcId = it->first;
+    int elastId = it->second.second;
+    if(elastId == globReservMatId1)
+    {//estou no globReservMatId1
+      TPZMaterial * BCond11 = material1->CreateBC(mat1, bcId, typeNeumann, val1, val2);
+      cmesh->InsertMaterialObject(BCond11);
+    }
+    else
+    {//estou no globReservMatId2
+      DebugStop(); // Nunca deveria entra nesse caso pois soh uso um material
+                   //TPZMaterial * BCond12 = material2->CreateBC(mat2, bcId, typeNeumann, val1, val2);
+                   //cmesh->InsertMaterialObject(BCond12);
+    }
+  }
+  
+  val1.Redim(2,2);
+  val2.Redim(2,1);
+  TPZMaterial * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
+  //TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
+  
+  val1(0,0) = big;
+  TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
+  
+  cmesh->SetAllCreateFunctionsContinuous();
+	cmesh->InsertMaterialObject(BCond21);
+  //cmesh->InsertMaterialObject(BCond22);
 	cmesh->InsertMaterialObject(BCond31);
 	
 	//Ajuste da estrutura de dados computacional
@@ -1080,7 +1258,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
       an->LoadSolution(SolIterK + an->Solution());
       
       
-      DebugStop(); // NATHAN LEMBRAR DE ATUALIZAR O MATERIAL COESIVO
+      //DebugStop(); // NATHAN LEMBRAR DE ATUALIZAR O MATERIAL COESIVO
       
       
       TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
@@ -1109,8 +1287,9 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     
     PostprocessPressure();
     
-    REAL KI = ComputeKIPlaneStrain();
-    if(KI > globFractInputData.KIc())
+    //    REAL KI = ComputeKIPlaneStrain();
+    //    if(KI > globFractInputData.KIc())
+    if(0)
     {//propagou!!!
       globFractInputData.SetMinDeltaT();
       propagate = true;
@@ -1125,7 +1304,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
       PostProcessAcumVolW();
       PostProcessVolLeakoff();
     }
-    globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
+    //globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
     REAL peteleco = 1.E-8;
     if( globFractInputData.actTime() > (globFractInputData.Ttot() - peteleco) )
     {

@@ -40,8 +40,8 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
     fXinterface = XinterfaceBetween1and2;
     
     REAL leftLimit = (Lmax_edge-1.E-10);
-    REAL rightLimit = (Lx - Lmax_edge)  -1.E-10;
-    if(XinterfaceBetween1and2 < leftLimit || XinterfaceBetween1and2 > rightLimit)
+  //REAL rightLimit = (Lx - Lmax_edge)  -1.E-10;
+    if(XinterfaceBetween1and2 < leftLimit)// || XinterfaceBetween1and2 > rightLimit) NOT GOING TO USE INTERFACE
     {
         std::cout << "A interface deve estar entre Lmax_edge e (Lx - Lmax_edge)!!!\n\n";
         DebugStop();
@@ -622,6 +622,10 @@ void OutputDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
 
 void OutputDataStruct::PrintMathematica(std::ofstream & outf)
 {
+  int sztonto = fTposP.size();
+  for (int i = 0; i < sztonto; i++) {
+    fTKI[i] = 1.;
+  }
 #ifdef DEBUG
     if(fTposP.size() == 0 || fTposVolLeakoff.size() == 0 || fTAcumVolW.size() == 0 || fTAcumVolLeakoff.size() == 0 || fTKI.size() == 0)
     {

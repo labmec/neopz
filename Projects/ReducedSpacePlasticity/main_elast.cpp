@@ -1,4 +1,4 @@
-//
+ //
 //  File.cpp
 //  PZ
 //
@@ -25,7 +25,7 @@ int mainFrac(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {	
-	if(0){
+	if(1){
 		mainFrac(argc,argv);
 	}
 	else {
@@ -39,12 +39,15 @@ int mainFrac(int argc, char *argv[])
   REAL Ly = 600.;
   REAL Lf = 50.;
   REAL Hf = 1.;
-  REAL Lmax_edge = 10.;
+  REAL Lmax_edge = 50.;
   REAL Young1 = 3.9E4;
   REAL Poiss1 = 0.25;
+  
+  
   REAL Young2 = 3.9E5;
   REAL Poiss2 = 0.25;
-  REAL Xinterface = 120.;
+  REAL Xinterface = Lx + 10; // BECAUSE I WILL NOT USE INTERFACE
+  
   REAL Fx = 0.;
   REAL Fy = 0.;
   REAL preStressXX = 0.;
@@ -111,7 +114,7 @@ int mainFrac(int argc, char *argv[])
   std::cout << "*******************************************************\n";
   //    LEIA ACIMA!!!
 	
-	ToolTrans.RunPlasticity();
+	ToolTrans.Run();
   
   return 0;
 }
