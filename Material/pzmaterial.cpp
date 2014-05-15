@@ -274,14 +274,14 @@ void TPZMaterial::Clone(std::map<int, TPZMaterial * >&matvec) {
  * element with polinomial order p */
 int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
 {   
-    if(fForcingFunction){return 20;}
+//    if(fForcingFunction){return 20;}
     return 2*elPMaxOrder;
     
 }
 
 int TPZMaterial::IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
 {
-    if(fForcingFunction){return 20;}
+//    if(fForcingFunction){return 20;}
     
 	int pmax = 0;
 	for (int ip=0;  ip<elPMaxOrder.size(); ip++) 

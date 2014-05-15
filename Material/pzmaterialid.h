@@ -74,6 +74,9 @@ const int TPZMatLaplacianID = 329;
 /** @brief Id of a Lagrange Multiplier Material object */
 const int TPZLagrangeMultiplierID = 330;
 
+/** @brief Id of a forcing function representing a poro elastic drag force */
+const int TPZBiotForceID = 331;
+
 /** @} */
 
 #endif //PZMATERIALIDH

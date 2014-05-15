@@ -205,79 +205,47 @@ TPZGeoMesh * MalhaGeo( const int h )
 	return gmesh;
 }
 
-
-TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
-	TPZCompEl::SetgOrder ( porder );
-	TPZCompMesh *result = new TPZCompMesh( &gmesh );
-	result->SetDimModel ( 2 );
+void InsertMaterialObjects(TPZCompMesh *cmesh, int matid)
+{
+	cmesh->SetDimModel ( 2 );
 	
 	//result->SetAllCreateFunctionsDiscontinuous();
-    result->SetAllCreateFunctionsContinuous();//default, não precisaria ser setado novamente
+    cmesh->SetAllCreateFunctionsContinuous();//default, não precisaria ser setado novamente
 	
-//	TPZMatPoisson3d *material ;
-//	material = new TPZMatPoisson3d ( 1,2 );
-
+    //	TPZMatPoisson3d *material ;
+    //	material = new TPZMatPoisson3d ( 1,2 );
+    
     TPZMatDarcyMHM *materialinterface1 = new TPZMatDarcyMHM( 10,2 );
-  	result->InsertMaterialObject ( materialinterface1 );
+  	cmesh->InsertMaterialObject ( materialinterface1 );
     TPZMatDarcyMHM *materialinterface2 = new TPZMatDarcyMHM( 11,2 );
     materialinterface2->SetMultiplier(-1.);
-  	result->InsertMaterialObject ( materialinterface2 );
+  	cmesh->InsertMaterialObject ( materialinterface2 );
     
-
+    
     
     TPZMatDarcyMHM *material ;
-	material = new TPZMatDarcyMHM( 1,2 );
-	   
-//	TPZVec<REAL> convdir(3);//direção da convecção
-//	convdir[0]=0.0;//sqrt(2.)/2.;
-//	convdir[1]=0.0;//sqrt(2.)/2.;
-//	REAL diff= 1.;
-//	REAL conv=0.;
-//	material-> SetParameters(diff, conv, convdir);
-//    TPZAutoPointer<TPZFunction<STATE> > ExactSol = new TPZDummyFunction<STATE> (ExactSolution);
-//	material->SetForcingFunctionExact(ExactSol);
-    //material->SetNonSymmetric();
-	//material->SetSymmetric();
+	material = new TPZMatDarcyMHM( matid,2 );
+    
 	TPZMaterial *mat ( material );
     
-    
-	
-//	TPZAutoPointer<TPZFunction<STATE> > BC1 = new TPZDummyFunction<STATE> (CC1);
-//	TPZAutoPointer<TPZFunction<STATE> > BC2 = new TPZDummyFunction<STATE> (CC2);
-//	TPZAutoPointer<TPZFunction<STATE> > BC3 = new TPZDummyFunction<STATE> (CC3);
-//	TPZAutoPointer<TPZFunction<STATE> > BC4 = new TPZDummyFunction<STATE> (CC4);
-    
-//	TPZAutoPointer<TPZFunction<STATE> > LoadVector = new TPZDummyFunction<STATE> (Forcing1);
-//	material->SetForcingFunction ( LoadVector );
-	result->InsertMaterialObject ( mat );
+	cmesh->InsertMaterialObject ( mat );
 	
 	TPZFMatrix<STATE> val1 ( 1,1,0. ), val2 ( 1,1,0. );// 0 é Dirichlet, 1 é Neumann, 2 é Robin(implementada apenas no Contínuo)
     
 	TPZMaterial *bnd1 = material->CreateBC ( mat,-1,1, val1, val2 );
-//	TPZMaterial *bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
-//	TPZMaterial *bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );
-//	TPZMaterial *bnd4 = material->CreateBC ( mat,-4,0, val1, val2 );
-//	TPZMaterial *bnd5 = material->CreateBC ( mat,-5,0, val1, val2 );
-//	TPZMaterial *bnd6 = material->CreateBC ( mat,-6,0, val1, val2 );
-//	TPZMaterial *bnd7 = material->CreateBC ( mat,-7,0, val1, val2 );
-//	TPZMaterial *bnd8 = material->CreateBC ( mat,-8,0, val1, val2 );
-    
    	TPZMaterial *bnd9 = material->CreateBC ( mat,2,1, val1, val2 );
     
-//	bnd1->SetForcingFunction ( BC1 );
-//	bnd2->SetForcingFunction ( BC2 );
-//	bnd3->SetForcingFunction ( BC3 );
-//	bnd4->SetForcingFunction ( BC4 );
-	
-	result->InsertMaterialObject ( bnd1 );
-//	result->InsertMaterialObject ( bnd2 );
-//	result->InsertMaterialObject ( bnd3 );
-//	result->InsertMaterialObject ( bnd4 );
-//	result->InsertMaterialObject ( bnd5 );
-//	result->InsertMaterialObject ( bnd6 );
-//	result->InsertMaterialObject ( bnd7 );
-//	result->InsertMaterialObject ( bnd8 );
-	result->InsertMaterialObject ( bnd9 );
+	cmesh->InsertMaterialObject ( bnd1 );
+	cmesh->InsertMaterialObject ( bnd9 );
+    
+}
+
+TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
+	TPZCompEl::SetgOrder ( porder );
+	TPZCompMesh *result = new TPZCompMesh( &gmesh );
+    
+    int matid = 1;
+    InsertMaterialObjects(result, matid);
 	
     BuildByParts(*result);
 
@@ -288,17 +256,27 @@ TPZCompMesh *CreateCompMeshHybrid ( TPZGeoMesh &gmesh, int porder ){
 	return result;
 }
 
+void DefineCoarsestMesh(TPZGeoMesh *gmesh, int matid, std::list<TPZGeoEl *> &rootelements);
+
+void BuildCoarseInterfaces(TPZCompMesh *cmesh, int matid, const std::list<TPZGeoEl *> &rootelements);
+
+void BuildVolumeMesh(TPZCompMesh *cmesh, int matid, const std::list<TPZGeoEl *> &rootelements);
+
+void BuildInterfaceVolumeSkeleton(TPZCompMesh *cmesh, int volumeid, int skeletonid, const std::list<TPZGeoEl *> &rootelements);
+
 void BuildByParts(TPZCompMesh & cmesh)
 {
 
     TPZGeoMesh *gmesh=cmesh.Reference();
     for (int igel=0; igel<gmesh->NElements(); igel++)
     {
+        // create the skeleton
         TPZGeoEl *gelroot=gmesh->ElementVec()[igel];
         if (gelroot && gelroot->MaterialId()== 1 && !gelroot->Father()) //se eh um macroelemento
         {
         
         // gelroot é um "macroelemento"
+            // cria os elementos computacionais em baixo de gelroot
             for (int igel2=0; igel2<gmesh->NElements(); igel2++)
             {
                 TPZGeoEl *gel2=gmesh->ElementVec()[igel2];
@@ -316,6 +294,7 @@ void BuildByParts(TPZCompMesh & cmesh)
             gmesh->SetReference(&cmesh);
         }
 
+        // elementos unidimensionais sem pai
         if (gelroot && gelroot->Dimension()==1  && !gelroot->Father()) //se eh um elemento 1D (Lambda)
         {
             long index3;
@@ -370,6 +349,7 @@ void BuildByParts(TPZCompMesh & cmesh)
         {
             DebugStop();// todos os elementos 1D tem 3 lados
         }
+        // now we have an interior element of dimension 1
 		int is;
 		for (is=0; is<nsides; ++is)// percorro os lados do elemento, embora esteja interessado apenas no lado 2
         {
@@ -379,17 +359,23 @@ void BuildByParts(TPZCompMesh & cmesh)
 				continue;
 			}
 			TPZStack<TPZCompElSide> celsides;
+            // gelside is a onedimensional element with a flux associated
 			TPZGeoElSide gelside(gel,is);
             TPZGeoElSide gelneigh(gelside.Neighbour());
 //            gelneigh.Element()->Print(std::cout);
             int reorient = 0;
+            // loop over all the neighbours
             while (gelneigh != gelside)
             {
+                // if the neighbour does not have sub elements put him on the stack
+                // subgeoelements contains only geometric elements that have no sons
                 TPZStack<TPZGeoElSide> subgeoelements;
                 gelneigh.GetSubElements2(subgeoelements);
+                // if gelneigh does not have subelements put gelneigh itself on the stack
                 if (subgeoelements.NElements() == 0 && gelneigh.Element()->MaterialId() == 1) {
                     subgeoelements.Push(gelneigh);
                 }
+                // we look at only one level difference!
                 for (int i = 0; i < subgeoelements.NElements(); i++)
                 {
                     if (reorient > 1) {

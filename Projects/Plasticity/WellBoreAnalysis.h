@@ -136,7 +136,13 @@ public:
         // this value will be used to identify the meaningful points to match the next ellips
         REAL MaxYfromLastBreakout();
         
+        /// print the configuration
         void Print(ostream &out);
+        
+        /// this method will modify the boundary condition of the computational mesh and the forcing function
+        // factor is a transition parameter between the confinement tension and well pressure
+        // factor = 1 corresponds to pure well pressure
+        void SetWellPressure(STATE wellpressure, STATE factor = 1.);
         
         /// Return gmesh
         TPZGeoMesh * GetGeoMesh();
@@ -181,7 +187,7 @@ public:
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
 
         //Mohr PV
-				TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fMCPV;
+        TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fMCPV;
 #else
         /// Parameters of the Sandler DiMaggio plasticity
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;

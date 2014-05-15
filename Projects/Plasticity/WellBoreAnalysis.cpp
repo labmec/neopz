@@ -18,8 +18,9 @@
 #include "pzplasticdiagnostic.h"
 #include <iostream>
 #include "pzbfilestream.h"
-
+#include "TPBrBiotForce.h"
 #include "pzlog.h"
+
 
 
 #ifdef LOG4CXX
@@ -133,6 +134,7 @@ TPZWellBoreAnalysis &TPZWellBoreAnalysis::operator=(const TPZWellBoreAnalysis &c
     fSequence = copy.fSequence;
     fPostProcessNumber = copy.fPostProcessNumber;
     fLinearMatrix = copy.fLinearMatrix;
+    return *this;
 }
 
 TPZWellBoreAnalysis::~TPZWellBoreAnalysis()
@@ -378,7 +380,7 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinement(),  fFluidPressure(0.),
-    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog()
+    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog(), fBiotCoef(0.), fModel(ESandler), fFluidModel(ENonPenetrating)
 #ifdef PV
   , fSDPV(), fMCPV()
 #else
@@ -553,20 +555,6 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     
     CmeshWell(&fCurrentConfig.fCMesh, pMatWithMem, fCurrentConfig.fConfinement, fCurrentConfig.fFluidPressure);
     
-    int BCId=-2;
-    TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
-    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
-
-    TPZFNMatrix<9,STATE> mattemp(3,3,0.), matinit(3,3,0.),matfinal(3,3,0.), matincrement(3,3,0.);
-    matinit = pBC->Val1();
-    matfinal(0,0) = -fCurrentConfig.fFluidPressure;//-29.3;
-    matfinal(1,1) = -fCurrentConfig.fFluidPressure;//-29.3;
-    matfinal(2,2) = -fCurrentConfig.fFluidPressure;//-29.3;
-    
-    matincrement = matfinal-matinit;
-    matincrement *= (1./nsteps);
-    mattemp = matinit;
-    
     
         
     int neq = analysis.Mesh()->Solution().Rows();
@@ -576,7 +564,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     for(int istep=0;istep<=nsteps;istep++)
     {
         std::cout << "Execute Initial Simulation Step = " << istep << " out of " << nsteps << std::endl;
-        pBC->Val1()=mattemp;
+        fCurrentConfig.SetWellPressure(fCurrentConfig.fFluidPressure,istep*1./nsteps);
         
         if (fLinearMatrix) {
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
@@ -662,8 +650,6 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         fCurrentConfig.fHistoryLog = strout.str();
 
         fSequence.push_back(fCurrentConfig);
-
-        mattemp += matincrement;
         
     }
     
@@ -793,21 +779,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
 //    pMatWithMem->ResetMemory();
     
 //    CmeshWell(&fCurrentConfig.fCMesh, pMatWithMem, fCurrentConfig.fConfinement, fCurrentConfig.fFluidPressure);
-    
-    int BCId=-2;
-    TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
-    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
-    
-    TPZFNMatrix<9,STATE> mattemp(3,3,0.), matinit(3,3,0.),matfinal(3,3,0.), matincrement(3,3,0.);
-    matfinal(0,0) = -pwb;
-    matfinal(1,1) = -pwb;
-    matinit(0,0) = -fCurrentConfig.fFluidPressure;//-29.3;
-    matinit(1,1) = -fCurrentConfig.fFluidPressure;//-29.3;
-    matinit(2,2)=0.;
-    
-    matincrement = matfinal-matinit;
-    matincrement *= (1./nsteps);
-    mattemp = matinit + matincrement;
+    STATE pressureinit = fCurrentConfig.fFluidPressure;
     
     int neq = analysis.Mesh()->Solution().Rows();
     fCurrentConfig.fAllSol.Redim(neq, nsteps+1);
@@ -816,10 +788,9 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
     for(int i=1;i<=nsteps;i++)
     {
         std::cout << "Simulation Step " << i << " out of " << nsteps << std::endl;
-        pBC->Val1()=mattemp;
-        
+        STATE pressure = pressureinit+i*(pwb-pressureinit);
+        fCurrentConfig.SetWellPressure(pressure);
 
-        
         bool linesearch = true;
         bool checkconv=false;
         int numNewton =50;
@@ -856,12 +827,10 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
         fCurrentConfig.CreatePostProcessingMesh();
         PostProcess(0);
         
-        cout << "-------------------> i: "<< i << " Pressao atual: " << mattemp;
+        cout << "-------------------> i: "<< i << " Pressao atual: " << fCurrentConfig.fFluidPressure;
 
         //fCurrentConfig.VerifyGlobalEquilibrium();
 
-        fCurrentConfig.fFluidPressure=-mattemp(0,0);
-        //fCurrentConfig.VerifyGlobalEquilibrium();
 
         std::stringstream strout;
         strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure;
@@ -869,13 +838,51 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
 
         fSequence.push_back(fCurrentConfig);
 
-        mattemp += matincrement;
     }
 
-//    fCurrentConfig.fFluidPressure=pwb;
 //    fCurrentConfig.VerifyGlobalEquilibrium();
 //    fSequence.push_back(fCurrentConfig);
 
+}
+
+/// this method will modify the boundary condition of the computational mesh and the forcing function
+void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE wellpressure, STATE factor)
+{
+    int BCId=-2;
+    TPZMaterial * mat = fCMesh.FindMaterial(BCId);
+    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    if (!pBC) {
+        DebugStop();
+    }
+    mat = fCMesh.FindMaterial(1);
+    TPZAutoPointer<TPZFunction<STATE> > force = mat->ForcingFunction();
+    
+    TPBrBiotForce *biotforce = dynamic_cast<TPBrBiotForce *>(force.operator->());
+    if (!biotforce) {
+        DebugStop();
+    }
+    REAL inner = fInnerRadius;
+    REAL outer = fOuterRadius;
+    REAL reservoirpress = fPorePressure;
+    REAL biot = fBiotCoef;
+    if (fFluidModel == EPenetrating)
+    {
+        biotforce->SetConstants(inner, outer, wellpressure, reservoirpress,factor*biot);
+        TPZFNMatrix<9,STATE> mattemp(3,3,0.);
+        mattemp(0,0) = factor*(-wellpressure*(1.-biot))+(1-factor)*fConfinement.XX();
+        mattemp(1,1) = factor*(-wellpressure*(1.-biot))+(1.-factor)*fConfinement.YY();
+        pBC->Val1()=mattemp;
+    }
+    else{
+        biot = 0.;
+        biotforce->SetConstants(inner, outer, wellpressure, reservoirpress,factor*biot);
+        TPZFNMatrix<9,STATE> mattemp(3,3,0.);
+        mattemp(0,0) = factor*(-wellpressure*(1.-biot))+(1-factor)*fConfinement.XX();
+        mattemp(1,1) = factor*(-wellpressure*(1.-biot))+(1.-factor)*fConfinement.YY();
+        pBC->Val1()=mattemp;
+    }
+    fFluidPressure = wellpressure;
+    
 }
 
 
@@ -2082,11 +2089,11 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 
     fPostProcessNumber++;
 
-    //*** DANGER (definido pelo programador) ***
-    REAL J2val = 0.0004;
-    //******************************************
     
 #ifdef TESTPOLYCHAIN
+    //*** DANGER (definido pelo programador) ***
+    //******************************************
+    REAL J2val = 0.0004;
     std::multimap<REAL,REAL> polygonalChain;
 
     GetJ2Isoline(J2val, polygonalChain);
@@ -2387,12 +2394,7 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
     CreateMesh();
 
     CreateComputationalMesh(2);
-    int BCId=-2;
-    TPZMaterial * mat = fCMesh.FindMaterial(BCId);
-    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
-    
-    pBC->Val1()(0,0) = -fFluidPressure;//-29.3;
-    pBC->Val1()(1,1) = -fFluidPressure;//-29.3;
+    SetWellPressure(fFluidPressure);
 
     
 }
@@ -2651,13 +2653,13 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     int defaultporder = porder;
     fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &fCMesh;
+    int materialid=1;
     
     
 #ifdef PV
 	
     if (fModel == EMohrCoulomb) {
 
-        int materialid=1;
         bool planestrain=true;
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC = fMCPV;
         TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain);
@@ -2690,7 +2692,6 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     else
     {
     
-        int materialid=1;
         bool planestrain=true;
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =fSDPV;
         TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
@@ -2699,7 +2700,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
         TPZTensor<REAL> initstress(0.),finalstress(0.);
         REAL hydro = fConfinement.I1();
-        //TEST// hydro -= SD.fYC.A()*SD.fYC.R();
+        hydro -= SD.fYC.A()*SD.fYC.R();
         hydro /= 3.;
         finalstress.XX() = hydro;
         finalstress.YY() = hydro;
@@ -2727,7 +2728,6 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     
     SD.SetResidualTolerance(1.e-10);
     SD.fIntegrTol = 10.;
-    int materialid = 1;
     bool planestrain = true;
     TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(materialid,planestrain);
     
@@ -2759,8 +2759,17 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     compmesh1->AutoBuild();
     
 #endif
-    
-    
+    {
+        TPZMaterial *plastic = compmesh1->FindMaterial(materialid);
+        REAL inner = fInnerRadius;
+        REAL outer = fOuterRadius;
+        REAL wellpress = fFluidPressure;
+        REAL reservoirpress = fPorePressure;
+        REAL biot = 0.7;
+        TPBrBiotForce *force = new TPBrBiotForce;
+        force->SetConstants(inner, outer, wellpress, reservoirpress, biot);
+        plastic->SetForcingFunction(force);
+    }
     
 }
 
@@ -2809,6 +2818,16 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterial &mat)
     REAL sigxy = fCurrentConfig.fConfinement.XY();
     REAL sigzz = fCurrentConfig.fConfinement.ZZ();
     mat.SetPreStress(sigxx, sigyy, sigxy, sigzz);
+    TPBrBiotForce *force = new TPBrBiotForce;
+    
+    REAL inner = fCurrentConfig.fInnerRadius;
+    REAL outer = fCurrentConfig.fOuterRadius;
+    REAL wellpress = fCurrentConfig.fFluidPressure;
+    REAL reservoirpress = fCurrentConfig.fPorePressure;
+    REAL biot = 0.7;
+    force->SetConstants(inner, outer, wellpress, reservoirpress, biot);
+
+    mat.SetForcingFunction(force);
     
 }
 

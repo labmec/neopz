@@ -279,13 +279,13 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     
     TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
     int order = material->IntegrationRuleOrder(data.p);
-    if(material->HasForcingFunction())
-    {
-        int maxorder = intrule->GetMaxOrder();
-        if (maxorder > order) {
-            order = maxorder;
-        }
-    }
+//    if(material->HasForcingFunction())
+//    {
+//        int maxorder = intrule->GetMaxOrder();
+//        if (maxorder > order) {
+//            order = maxorder;
+//        }
+//    }
     TPZManVector<int,3> intorder(dim,order);
     intrule->SetOrder(intorder);
     
@@ -324,13 +324,13 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	
 	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
     int order = material->IntegrationRuleOrder(data.p);
-    if(material->HasForcingFunction())
-    {
-        int maxorder = intrule->GetMaxOrder();
-        if (maxorder > order) {
-            order = maxorder;
-        }
-    }
+//    if(material->HasForcingFunction())
+//    {
+//        int maxorder = intrule->GetMaxOrder();
+//        if (maxorder > order) {
+//            order = maxorder;
+//        }
+//    }
     TPZManVector<int,3> intorder(dim,order);
     intrule->SetOrder(intorder);
 	//  material->SetIntegrationRule(intrule, data.p, dim);
