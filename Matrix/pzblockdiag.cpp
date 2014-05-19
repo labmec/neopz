@@ -471,7 +471,8 @@ TPZBlockDiagonal<TVar>::Substitution( TPZFMatrix<TVar> *B) const
 			bsize = fBlockSize[b];
 			if(!bsize) continue;
 			TPZFMatrix<TVar> BTemp(bsize,1,&(B->operator()(eq,c)),bsize);
-			TPZFMatrix<TVar>::Substitution(fStorage+pos,bsize,&BTemp);
+			TVar *ptr = fStorage.begin()+pos;
+			TPZFMatrix<TVar>::Substitution(ptr,bsize,&BTemp);
 			eq+= bsize;
 		}
 	}

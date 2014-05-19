@@ -135,7 +135,7 @@ REAL dist(TPZVec<T1> &vec1, TPZVec<T1> &vec2)
 template< class T >
 TPZVec< T >& Sort( TPZVec< T >& v )
 {
-	std::sort( static_cast< T* >( v ), v + v.NElements() );
+	std::sort( static_cast< T* >( v.begin() ), v.begin() + v.NElements() );
 	
 	return v;
 }

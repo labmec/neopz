@@ -59,7 +59,7 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	}
 #endif
 	/** Writes fNumHeaders positions for the headers */
-	fwrite(Position,sizeof(long  int),fNumHeaders,fIOStream);
+	fwrite(Position.begin(),sizeof(long  int),fNumHeaders,fIOStream);
 
 	/** Get starting position of first header */
 	long int firstaddress = ftell(fIOStream);

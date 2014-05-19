@@ -90,8 +90,8 @@ template class TPZRestoreClass<TPZConductivityProblem, TPZCONDUCTIVITYID>;
 /// write this object to the TPZStream buffer. Include the classid if withclassid = true
 void TPZConductivityProblem::Write(TPZStream &buf, int withclassid)
 {
-    buf.Write(fDelx);
-    buf.Write(fNx);
+		buf.Write(fDelx.begin(),fDelx.size());
+    buf.Write(fNx.begin(),fNx.size());
     buf.Write(&fBridgeVoidRatio,1);
     buf.Write(&fConductivity,1);
     buf.Write(&fDelPressure,1);
@@ -107,8 +107,8 @@ fDelPressure(cp.fDelPressure), fGraphicsFile(cp.fGraphicsFile)
 /// read objects from the stream
 void TPZConductivityProblem::Read(TPZStream &buf, void *context)
 {
-    buf.Read(fDelx);
-    buf.Read(fNx);
+		TPZSaveable::ReadObjects(buf,fDelx);
+		TPZSaveable::ReadObjects(buf,fNx);
     buf.Read(&fBridgeVoidRatio,1);
     buf.Read(&fConductivity,1);
     buf.Read(&fDelPressure,1);

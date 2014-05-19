@@ -460,8 +460,8 @@ void TPZBiharmonicEstimator::OrderSolution(TPZMaterialData &data)
 
 	data.phi.Resize(6,1);
 	data.dphix.Resize(data.dsol[0].Rows(),6);
-	data.phi(0,0) = data.sol[3]- data.sol[2];//erro aprox. dual
-	data.phi(1,0) = data.sol[1]- data.sol[0];//erro aprox. primal 
+	data.phi(0,0) = data.sol[0][3]- data.sol[0][2];//erro aprox. dual
+	data.phi(1,0) = data.sol[0][1]- data.sol[0][0];//erro aprox. primal 
 	data.phi(2,0) = 0.;//erro exato dual p
 	data.phi(3,0) = 0.;//erro exato primal p 
 	data.phi(4,0) = 0.;//erro exato dual p enriquecido 
@@ -515,8 +515,8 @@ void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data, TPZMateria
 
 	dataleft.phi.Resize(6,1);
 	dataleft.dphix.Resize(dataleft.dsol[0].Rows(),6);
-	dataleft.phi(0,0) = dataleft.sol[3]-dataleft.sol[2];//erro aprox. dual
-	dataleft.phi(1,0) = dataleft.sol[1]-dataleft.sol[0];//erro aprox. primal 
+	dataleft.phi(0,0) = dataleft.sol[0][3]-dataleft.sol[0][2];//erro aprox. dual
+	dataleft.phi(1,0) = dataleft.sol[0][1]-dataleft.sol[0][0];//erro aprox. primal 
 	dataleft.phi(2,0) = 0.;//erro exato dual   
 	dataleft.phi(3,0) = 0.;//erro exato primal  
 	dataleft.phi(4,0) = 0.;//erro exato dual enriquecido
@@ -573,8 +573,8 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data, TPZMateri
 
 	dataright.phi.Resize(6,1);
 	dataright.dphix.Resize(dataright.dsol[0].Rows(),6);
-	dataright.phi(0,0) = dataright.sol[3]-dataright.sol[2];//erro aprox. dual
-	dataright.phi(1,0) = dataright.sol[1]-dataright.sol[0];//erro aprox. primal 
+	dataright.phi(0,0) = dataright.sol[0][3]-dataright.sol[0][2];//erro aprox. dual
+	dataright.phi(1,0) = dataright.sol[0][1]-dataright.sol[0][0];//erro aprox. primal 
 	dataright.phi(2,0) = 0.;//erro exato dual   
 	dataright.phi(3,0) = 0.;//erro exato primal  
 	dataright.phi(4,0) = 0.;//erro exato dual enriquecido   

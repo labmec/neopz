@@ -192,13 +192,13 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 	axes.Write(buf,0);
 	jacobian.Write(buf,0);
 	jacinv.Write(buf,0);
-	buf.Write(normal);
-	buf.Write(x);
+	buf.Write(normal.begin(),normal.size());
+	buf.Write(x.begin(),x.size());
 	buf.Write(&p,1);
     int nsol = sol.size();
     buf.Write(&nsol);
     for (int is=0; is<nsol; is++) {
-        buf.Write(sol[is]);
+        buf.Write(sol[is].begin(),sol[is].size());
     }
 	
     nsol = dsol.size();
@@ -209,7 +209,7 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 	
 	buf.Write(&HSize,1);
 	buf.Write(&detjac,1);
-    buf.Write(XCenter);
+    buf.Write(XCenter.begin(),XCenter.size());
 	buf.Write(&intLocPtIndex,1);
 	buf.Write(&intGlobPtIndex,1);
     buf.Write(&NintPts,1);
@@ -227,13 +227,13 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
 	axes.Read(buf,0);
 	jacobian.Read(buf,0);
 	jacinv.Read(buf,0);
-	buf.Read(normal);
-	buf.Read(x);
+	TPZSaveable::ReadObjects(buf,normal);
+	TPZSaveable::ReadObjects(buf,x);
 	buf.Read(&p,1);
     int nsol;
     buf.Read(&nsol,1);
     for (int is=0; is<nsol; is++) {
-        buf.Read(sol[is]);
+        TPZSaveable::ReadObjects(buf,sol[is]);
     }
     buf.Read(&nsol,1);
     for (int is = 0; is<nsol; is++) {
@@ -242,7 +242,7 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
 	
 	buf.Read(&HSize,1);
 	buf.Read(&detjac,1);
-    buf.Read(XCenter);
+    TPZSaveable::ReadObjects(buf,XCenter);
 	buf.Read(&intLocPtIndex,1);
 	buf.Read(&intGlobPtIndex,1);
     buf.Read(&NintPts,1);

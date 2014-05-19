@@ -1242,7 +1242,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	//values[1] : eror em norma L2
 	
 	//Jump aprox. solution - jump of exact solution i.e. zero
-	aux = (Lsol - Rsol);
+	aux = (Lsol[0] - Rsol[0]);
 	
 	//*= h ^ -gAlfa
 	aux *= pow(elsize, (STATE(-1.)) * gAlfa);

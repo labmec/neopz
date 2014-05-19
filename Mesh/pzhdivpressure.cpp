@@ -556,7 +556,7 @@ void TPZCompElHDivPressure<TSHAPE>::Write(TPZStream &buf, int withclassid)
 		TPZManVector<int,3> order(3,0);
 		this-> fIntRule.GetOrder(order);
 		this->  WriteObjects(buf,order);
-		buf.Write(this->fConnectIndexes,TSHAPE::NSides);
+		buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 		buf.Write(&this->fPreferredOrder,1);
         buf.Write(&this->fPressureOrder);
 		int classid = this->ClassId();
@@ -573,7 +573,7 @@ void TPZCompElHDivPressure<TSHAPE>::Read(TPZStream &buf, void *context)
 		TPZManVector<int,3> order;
 		this-> ReadObjects(buf,order);
 		this-> fIntRule.SetOrder(order);
-		buf.Read(this->fConnectIndexes,TSHAPE::NSides);
+		buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 		buf.Read(&this->fPreferredOrder,1);
         buf.Read(&this->fPressureOrder);
 		int classid = -1;

@@ -321,7 +321,7 @@ void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	TPZManVector<int,3> order(3,0);
 	fIntRule.GetOrder(order);
 	WriteObjects(buf,order);
-	buf.Write(fConnectIndexes,TSHAPE::NSides);
+	buf.Write(fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&fPreferredOrder,1);
 	int classid = this->ClassId();
 	buf.Write ( &classid, 1 );
@@ -335,7 +335,7 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 	TPZManVector<int,3> order;
 	ReadObjects(buf,order);
 	fIntRule.SetOrder(order);
-	buf.Read(fConnectIndexes,TSHAPE::NSides);
+	buf.Read(fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&fPreferredOrder,1);
 	int classid = -1;
 	buf.Read( &classid, 1 );

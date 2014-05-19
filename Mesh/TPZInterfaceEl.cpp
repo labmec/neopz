@@ -1041,7 +1041,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     InitMaterialData(data);
 	
 	
-	if( !dataleft.x||!dataright.x){
+	if( !dataleft.x.size() ||!dataright.x.size() ){
 		PZError << "\n Error at TPZInterfaceElement::CalcStiff null interface\n";
 		ek.Reset();
 		ef.Reset();

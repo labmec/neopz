@@ -153,10 +153,10 @@ public:
 	friend std::ostream& operator<<( std::ostream& Out, const TPZVec< T2 >& v );
 	
 	/** @brief Casting operator. Returns The fStore pointer. */
-	operator T*() const { return fStore; }
+	//operator T*() const { return fStore; }
     
     /** @brief Returns a pointer to the first element */
-    T *begin();
+    T *begin() const;
 	
 	/**
 	 * @brief Will fill the elements of the vector with a copy object.
@@ -401,7 +401,7 @@ void TPZVec<T>::clear()
 }
 
 template<class T>
-T *TPZVec<T>::begin()
+T *TPZVec<T>::begin() const
 {
 #ifndef NODEBUG
     if(!fStore)

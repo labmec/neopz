@@ -129,7 +129,7 @@ void TPZMetis::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm) {
     int ninvers = inverseperm.NElements();
     int *permint = new int[nperms];
     int *inversepermint = new int[ninvers];
-    if(!permint || !inverseperm) {
+    if(!permint || !inverseperm.size()) {
         std::cout << "TPZMetis::Resequence memory is not enough.\n";
         return;
     }

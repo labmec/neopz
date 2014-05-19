@@ -206,6 +206,92 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	file.close();
 }
 
+
+// Generate an output of all geomesh to VTK, associating to each one the given data
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData)
+{
+	if(gmesh->NElements() != elData.NElements())
+	{
+		std::cout << "Wrong vector size of elements data!" << std::endl;
+		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+	}
+	file.clear();
+	long nelements = gmesh->NElements();
+	
+	std::stringstream node, connectivity, type, material;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	long actualNode = -1, size = 0, nVALIDelements = 0;
+	TPZGeoEl *gel;
+	
+	for(long el = 0; el < nelements; el++)
+	{
+		gel = gmesh->ElementVec()[el];
+		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
+		{
+			continue;
+		}
+		if (elData[el] == -999) {
+			continue;
+		}
+		
+		MElementType elt = gel->Type();
+		int elNnodes = MElementType_NNodes(elt);
+		
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(int t = 0; t < elNnodes; t++)
+		{
+			for(int c = 0; c < 3; c++)
+			{
+				double coord = gmesh->NodeVec()[gel->NodeIndex(t)].Coord(c);
+				node << coord << " ";
+			}			
+			node << std::endl;
+			
+			actualNode++;
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
+		type << elType << std::endl;
+		
+		material << elData[el] << std::endl;
+		
+		nVALIDelements++;
+	}
+	node << std::endl;
+	actualNode++;
+	file << actualNode << " float" << std::endl << node.str();
+	
+	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str() << std::endl;
+	
+	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+	file << "FIELD FieldData 1" << std::endl;
+	
+	file << "Substructure 1 " << nVALIDelements << " int" << std::endl;
+	
+	file << material.str();
+	
+	file.close();
+}
+
+
 // Generate an output of all geomesh to VTK, associating to each one the given data
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<REAL> &elData)
 {
