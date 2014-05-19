@@ -73,7 +73,7 @@ using namespace tbb;
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh);
-void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
+void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
 TPZGeoMesh *MalhaPredio();
 TPZGeoMesh *MalhaCubo();
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
             InsertElasticity(cmeshauto);
             cmeshauto->AutoBuild();
         }
-        if (mc.was_set()) // Cubo Viscoso
+        if (mc.was_set()) // Cubo Elastico
         {
             if (running) {
                 cerr << "ERROR: you must select only one of the start modes: "
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
             cmeshauto->SetDefaultOrder(plevel.get_value());
             //cmeshauto->SetAllCreateFunctionsContinuousWithMem();
             //cmeshauto->SetAllCreateFunctionsContinuous();
-            InsertViscoElasticityCubo(cmeshauto);
+            InsertElasticityCubo(cmeshauto);
             cmeshauto->AutoBuild();
         }
         
@@ -671,6 +671,7 @@ int main(int argc, char *argv[])
                 TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
                 if(vmat)
                 {
+										DebugStop(); // Should never enter because it is using elasticity
                     vmat->SetUpdateMem(true);
                 }
             }
@@ -785,7 +786,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
     mesh->InsertMaterialObject(bcauto);
 }
 
-void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
+void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 {
     mesh->SetDimModel(3);
     int nummat = 1, neumann = 1, mixed = 2;
@@ -793,7 +794,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
     int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;
     TPZManVector<STATE> force(3,0.);
     //force[1] = 0.;
-    REAL Ela = 1000, poisson = 0.;
+    REAL Ela = 1000., poisson = 0.;
     REAL lambdaV = 0, muV = 0, alphaT = 0;
     lambdaV = 11.3636;
     muV = 45.4545;
@@ -801,49 +802,49 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
     
     
     //TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
-    TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+    TPZElasticity3D *elast = new TPZElasticity3D(nummat, Ela, poisson, force);
     
     TPZFNMatrix<6> qsi(6,1,0.);
     //viscoelast->SetDefaultMem(qsi); //elast
     //int index = viscoelast->PushMemItem(); //elast
-    TPZMaterial * viscoelastauto(viscoelast);
-    mesh->InsertMaterialObject(viscoelastauto);
+    TPZMaterial * elastauto(elast);
+    mesh->InsertMaterialObject(elastauto);
     
     // Neumann em x = 1;
     TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
     val2(0,0) = 1.;
-    TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
+    TPZBndCond *bc4 = elast->CreateBC(elastauto, neumann1, neumann, val1, val2);
     TPZMaterial * bcauto4(bc4);
     mesh->InsertMaterialObject(bcauto4);
     
     // Neumann em x = -1;
     val2(0,0) = -1.;
-    TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
+    TPZBndCond *bc5 = elast->CreateBC(elastauto, neumann2, neumann, val1, val2);
     TPZMaterial * bcauto5(bc5);
     mesh->InsertMaterialObject(bcauto5);
     
     val2.Zero();
     // Dirichlet em -1 -1 -1 xyz;
-    val1(0,0) = 1e4;
-    val1(1,1) = 1e4;
-    val1(2,2) = 1e4;
-    TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
+    val1(0,0) = 1.e4;
+    val1(1,1) = 1.e4;
+    val1(2,2) = 1.e4;
+    TPZBndCond *bc1 = elast->CreateBC(elastauto, dir1, mixed, val1, val2);
     TPZMaterial * bcauto1(bc1);
     mesh->InsertMaterialObject(bcauto1);
     
     // Dirichlet em 1 -1 -1 yz;
     val1(0,0) = 0.;
-    val1(1,1) = 1e4;
-    val1(2,2) = 1e4;
-    TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
+    val1(1,1) = 1.e4;
+    val1(2,2) = 1.e4;
+    TPZBndCond *bc2 = elast->CreateBC(elastauto, dir2, mixed, val1, val2);
     TPZMaterial * bcauto2(bc2);
     mesh->InsertMaterialObject(bcauto2);
     
     // Dirichlet em 1 1 -1 z;
     val1(0,0) = 0.;
     val1(1,1) = 0.;
-    val1(2,2) = 1e4;
-    TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
+    val1(2,2) = 1.e4;
+    TPZBndCond *bc3 = elast->CreateBC(elastauto, dir3, mixed, val1, val2);
     TPZMaterial * bcauto3(bc3);
     mesh->InsertMaterialObject(bcauto3);
 }
