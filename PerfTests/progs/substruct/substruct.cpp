@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
             //cmeshauto->SetAllCreateFunctionsContinuousWithMem();
             //cmeshauto->SetAllCreateFunctionsContinuous();
             InsertElasticityCubo(cmeshauto);
-            cmeshauto->AutoBuild();
+            cmeshauto->AutoBuild(); 
         }
         
         VERBOSE(1, "Number of equations " << cmeshauto->NEquations() << endl);
@@ -707,7 +707,7 @@ int main(int argc, char *argv[])
         {
             vecnames[0] = "state";
         }
-        std::string postprocessname("dohrmann_visco.vtk");
+        std::string postprocessname("dohrmann_visco.vtk"); // Remember it is not viscoelastic, just elastic!
         TPZVTKGraphMesh vtkmesh(cmeshauto.operator->(),dim,mat,scalnames,vecnames);
         vtkmesh.SetFileName(postprocessname);
         vtkmesh.SetResolution(1);
