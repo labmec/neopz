@@ -1311,11 +1311,11 @@ template class TPZCompElHDiv<TPZShapeTriang>;
 template class TPZCompElHDiv<TPZShapePoint>;
 template class TPZCompElHDiv<TPZShapeLinear>;
 template class TPZCompElHDiv<TPZShapeQuad>;
-
-template class TPZCompElHDivBound2<TPZShapeTriang>;
-template class TPZCompElHDivBound2<TPZShapePoint>;
-template class TPZCompElHDivBound2<TPZShapeLinear>;
-template class TPZCompElHDivBound2<TPZShapeQuad>;
+//
+//template class TPZCompElHDivBound2<TPZShapeTriang>;
+//template class TPZCompElHDivBound2<TPZShapePoint>;
+//template class TPZCompElHDivBound2<TPZShapeLinear>;
+//template class TPZCompElHDivBound2<TPZShapeQuad>;
 
 template class TPZCompElHDiv<TPZShapeTetra>;
 template class TPZCompElHDiv<TPZShapePrism>;
