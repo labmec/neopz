@@ -1280,7 +1280,6 @@ int TPZCompElHDiv<TPZShapePiram>::ClassId() const
 	return TPZHDIVPYRAMID;
 }
 
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
 
@@ -1304,7 +1303,7 @@ TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>, TPZHDIVPRISMID>;
 
 template class
 TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
-#endif
+
 
 
 
@@ -1312,18 +1311,28 @@ template class TPZCompElHDiv<TPZShapeTriang>;
 template class TPZCompElHDiv<TPZShapePoint>;
 template class TPZCompElHDiv<TPZShapeLinear>;
 template class TPZCompElHDiv<TPZShapeQuad>;
+
+template class TPZCompElHDivBound2<TPZShapeTriang>;
+template class TPZCompElHDivBound2<TPZShapePoint>;
+template class TPZCompElHDivBound2<TPZShapeLinear>;
+template class TPZCompElHDivBound2<TPZShapeQuad>;
+
 template class TPZCompElHDiv<TPZShapeTetra>;
 template class TPZCompElHDiv<TPZShapePrism>;
 template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
-	return new TPZCompElHDiv<TPZShapePoint>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index);
 }
 
 
 TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+	return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index);
+}
+
+TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
 }
 
@@ -1333,6 +1342,14 @@ TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 
 TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index);
+}
+
+TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+	return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index);
+}
+
+TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+	return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index);
 }
 
 TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {

@@ -64,13 +64,13 @@ public:
     /** @brief Create a continuous approximation space with referred elements */
 	void SetAllCreateFunctionsContinuousReferred();
     /** @brief Create an approximation space with HDiv elements */
-	void SetAllCreateFunctionsHDiv();
+	void SetAllCreateFunctionsHDiv(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
-	void SetAllCreateFunctionsHDivFull();
+	void SetAllCreateFunctionsHDivFull(int meshdim);
 	
 #ifndef STATE_COMPLEX
     /** @brief Create an approximation space with HDivxL2 elements */
-	void SetAllCreateFunctionsHDivPressure();
+	void SetAllCreateFunctionsHDivPressure(int meshdim);
 #endif
     /** @brief Create approximation spaces corresponding to the space defined by cel */
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);
@@ -134,22 +134,5 @@ public:
     /// this method will substitute all interface elements with materialid within the set by three elements : one H1 element and two interface elements
     static void Hybridize(TPZCompMesh &cmesh,const std::set<int> &matids);
 };
-
-/** @brief Creates computational point element */
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational linear element */
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational quadrilateral element */
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational triangular element */
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational cube element */
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational prismal element */
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational pyramidal element */
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
-/** @brief Creates computational tetrahedral element */
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 
 #endif

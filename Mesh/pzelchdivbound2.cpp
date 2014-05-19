@@ -756,16 +756,16 @@ int TPZCompElHDivBound2<TPZShapeQuad>::ClassId() const
 
 #ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>, TPZHDIVBOUNDPOINTID>;
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapePoint>, TPZHDIVBOUND2POINTID>;
 
 template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>, TPZHDIVBOUNDLINEARID>;
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapeLinear>, TPZHDIVBOUND2LINEARID>;
 
 template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>, TPZHDIVBOUNDTRIANGLEID>;
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapeTriang>, TPZHDIVBOUND2TRIANGLEID>;
 
 template class
-TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>, TPZHDIVBOUNDQUADID>;
+TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>, TPZHDIVBOUND2QUADID>;
 #endif
 
 

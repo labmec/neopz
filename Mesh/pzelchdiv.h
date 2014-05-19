@@ -207,8 +207,6 @@ public:
 	
 };
 
-/** @brief Creates computational point element for HDiv approximate space */
-TPZCompEl *CreateHDivPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational linear element for HDiv approximate space */
 TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
@@ -223,6 +221,14 @@ TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational tetrahedral element for HDiv approximate space */
 TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational point element for HDiv approximate space */
+TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational linear element for HDiv approximate space */
+TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational quadrilateral element for HDiv approximate space */
+TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational triangular element for HDiv approximate space */
+TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 
 /** @} */
 

@@ -682,16 +682,28 @@ template class TPZCompElHDivFull<pzshape::TPZShapeCube>;
 
 
 TPZCompEl * CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
-    return new TPZCompElHDiv<pzshape::TPZShapePoint>(mesh,gel,index);
+    return new TPZCompElHDivBound2<pzshape::TPZShapePoint>(mesh,gel,index);
 }
 
 
 TPZCompEl * CreateHDivFullLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
-    return new TPZCompElHDivBound2< pzshape::TPZShapeLinear>(mesh,gel,index);
+    return new TPZCompElHDivFull< pzshape::TPZShapeLinear>(mesh,gel,index);
 }
 
 TPZCompEl * CreateHDivFullQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     return new TPZCompElHDivFull< pzshape::TPZShapeQuad>(mesh,gel,index);
+}
+
+TPZCompEl * CreateHDivFullBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+    return new TPZCompElHDivBound2< pzshape::TPZShapeTriang >(mesh,gel,index);
+}
+
+TPZCompEl * CreateHDivFullBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+    return new TPZCompElHDivBound2< pzshape::TPZShapeLinear>(mesh,gel,index);
+}
+
+TPZCompEl * CreateHDivFullBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+    return new TPZCompElHDivBound2< pzshape::TPZShapeQuad>(mesh,gel,index);
 }
 
 TPZCompEl * CreateHDivFullTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {

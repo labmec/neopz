@@ -30,14 +30,14 @@ TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
     this->fConnectIndexes[this->NConnects()-1] = this->CreateMidSideConnect(2);
     
     int nshape = 0;
-    if(this->Dimension!= mesh.Dimension()-1) DebugStop();
-    nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::ETensorial);
+    if(gel->Dimension()!= mesh.Dimension()-1) DebugStop();
+    nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, gel->Dimension(), pzshape::TPZShapeDisc::ETensorial);
     
-    if(this->Dimension==2 && TSHAPE::Type()==EQuadrilateral){
-        nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial);
+    if(gel->Dimension()==2 && TSHAPE::Type()==EQuadrilateral){
+        nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, gel->Dimension(), pzshape::TPZShapeDisc::  ETensorial);
     }
-    if (this->Dimension==2 && TSHAPE::Type()==ETriangle){
-        nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
+    if (gel->Dimension()==2 && TSHAPE::Type()==ETriangle){
+        nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, gel->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
     }
     
     int nstate = 1;
@@ -305,46 +305,40 @@ int TPZCompElHDivPressureBound<TPZShapePoint>::ClassId() const
 	return TPZHDIVBOUND2POINTID;
 }
 
-#ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapePoint>, TPZHDIVBOUNDPOINTID>;
-#endif
+TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapePoint>, TPZHDIVPRESSUREBOUNDPOINTID>;
 
 template<>
 int TPZCompElHDivPressureBound<TPZShapeLinear>::ClassId() const
 {
-	return TPZHDIVBOUND2LINEARID;
+	return TPZHDIVPRESSUREBOUNDLINEARID;
 }
 
-#ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeLinear>, TPZHDIVBOUNDLINEARID>;
-#endif
+TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeLinear>, TPZHDIVPRESSUREBOUNDLINEARID>;
 
 template<>
 int TPZCompElHDivPressureBound<TPZShapeTriang>::ClassId() const
 {
-	return TPZHDIVBOUND2TRIANGLEID;
+	return TPZHDIVPRESSUREBOUNDTRIANGLEID;
 }
 
-#ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeTriang>, TPZHDIVBOUNDTRIANGLEID>;
-#endif
+TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeTriang>, TPZHDIVPRESSUREBOUNDTRIANGLEID>;
 
 template<>
 int TPZCompElHDivPressureBound<TPZShapeQuad>::ClassId() const
 {
-	return TPZHDIVBOUND2QUADID;
+	return TPZHDIVPRESSUREBOUNDQUADID;
 }
 
 #ifndef BORLAND
 template class
-TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>, TPZHDIVBOUNDQUADID>;
+TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>, TPZHDIVPRESSUREBOUNDQUADID>;
 #endif
 
 
-template class TPZCompElHDivBound2<TPZShapeTriang>;
-template class TPZCompElHDivBound2<TPZShapePoint>;
-template class TPZCompElHDivBound2<TPZShapeLinear>;
-template class TPZCompElHDivBound2<TPZShapeQuad>;
+template class TPZCompElHDivPressureBound<TPZShapeTriang>;
+template class TPZCompElHDivPressureBound<TPZShapePoint>;
+template class TPZCompElHDivPressureBound<TPZShapeLinear>;
+template class TPZCompElHDivPressureBound<TPZShapeQuad>;

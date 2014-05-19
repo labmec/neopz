@@ -131,13 +131,13 @@ const int TPZHDIVTETRAID = 250;
 const int TPZHDIVPYRAMID = 251;
 
 /** @brief Id of HDiv boundary point element */
-const int TPZHDIVBOUNDPOINTID = 252;
+const int TPZHDIVPRESSUREBOUNDPOINTID = 252;
 /** @brief Id of HDiv boundary linear element */
-const int TPZHDIVBOUNDLINEARID = 253;
+const int TPZHDIVPRESSUREBOUNDLINEARID = 253;
 /** @brief Id of HDiv boundary triangular element */
-const int TPZHDIVBOUNDTRIANGLEID = 254;
+const int TPZHDIVPRESSUREBOUNDTRIANGLEID = 254;
 /** @brief Id of HDiv boundary quadrilateral element */
-const int TPZHDIVBOUNDQUADID = 255;
+const int TPZHDIVPRESSUREBOUNDQUADID = 255;
 
 /** @brief Id of HDiv point element */
 const int TPZHDIVPOINT_PRESSURE_ID = 260;
@@ -175,13 +175,13 @@ const int TPZHDIVPYRAM_FULL_ID = 275;
 
 
 
-/** @brief Id of HDiv two-dimensional boundary point element (?) */
+/** @brief Id of HDiv one-dimensional boundary point element */
 const int TPZHDIVBOUND2POINTID = 256;
-/** @brief Id of HDiv two-dimensional boundary linear element (?) */
+/** @brief Id of HDiv two-dimensional boundary linear element  */
 const int TPZHDIVBOUND2LINEARID = 257;
-/** @brief Id of HDiv two-dimensional boundary triangular element (?) */
+/** @brief Id of HDiv three-dimensional boundary triangular element */
 const int TPZHDIVBOUND2TRIANGLEID = 258;
-/** @brief Id of HDiv two-dimensional boundary quadrilateral element (?) */
+/** @brief Id of HDiv three-dimensional boundary quadrilateral element */
 const int TPZHDIVBOUND2QUADID = 259;
 
 /** @brief Id of geometric blended point element (?) */

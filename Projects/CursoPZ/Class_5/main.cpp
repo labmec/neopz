@@ -16,6 +16,9 @@
 #include "pzmaterialid.h"
 #include "pzmeshid.h"
 #include "pzbfilestream.h"
+#include "pzbndcond.h"
+
+#include "pzfstrmatrix.h"
 
 #include <iostream>
 #include <fstream>
@@ -35,25 +38,49 @@ int main() {
 	cout << "***********************************************************************\n\n";
 	cout << "Number of nodes: x direction and y direction:     ";
 	int nx,ny;
-	cin >> nx >> ny;
+	//cin >> nx >> ny;
+    nx =3;
+    ny = 3;
 	int order;
 	cout << "Enter the order of the element:\n";
-	cin >> order;
+//	cin >> order;
+    order = 1;
 	TPZCompEl::SetgOrder(order);
 	
 	//Creates the geometric mesh
 	TPZGeoMesh *gmesh = GetMesh(nx,ny);
+    gmesh->ElementVec()[0]->CreateBCGeoEl(4, -1);
+    gmesh->ElementVec()[2]->CreateBCGeoEl(4, -2);
+    gmesh->ElementVec()[2]->CreateBCGeoEl(5, -3);
+    gmesh->ElementVec()[3]->CreateBCGeoEl(2, -4);
 	gmesh->SetName("testing a space");
 	
 	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(2);
 	
 	TPZMat2dLin *mat2d = new TPZMat2dLin (1);
-	TPZFMatrix<REAL> xkin (1,1,1e6);
-	TPZFMatrix<REAL> xcin (1,1,0.);
+	TPZFMatrix<REAL> xkin (1,1,1);
+	TPZFMatrix<REAL> xcin (1,1,1.);
 	TPZFMatrix<REAL> xfin (1,1,1e3);
 	mat2d->SetMaterial(xkin,xcin,xfin);
-	//TPZMaterial* mat(mat2d);
 	cmesh->InsertMaterialObject (mat2d);
+    
+    TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,1.);
+    TPZBndCond *bc1 = mat2d->CreateBC(mat2d, -1, 1, val1, val2);
+    cmesh->InsertMaterialObject(bc1);
+    val1(0,0) = 1.;
+    val2(0,0) = 5.;
+    TPZBndCond *bc2 = mat2d->CreateBC(mat2d, -2, 2, val1, val2);
+    cmesh->InsertMaterialObject(bc2);
+    
+    val2(0,0) = 5;
+    TPZBndCond *bc3 = mat2d->CreateBC(mat2d, -3, 0, val1, val2);
+    cmesh->InsertMaterialObject(bc3);
+    
+    val2(0,0) = 0.;
+    TPZBndCond *bc4 = mat2d->CreateBC(mat2d, -4, 0, val1, val2);
+    cmesh->InsertMaterialObject(bc4);
+	//TPZMaterial* mat(mat2d);
 //    cmesh->SetAllCreateFunctionsDiscontinuous();
 //    cmesh->SetAllCreateFunctionsContinuous();
     cmesh->SetAllCreateFunctionsHDivPressure();
@@ -62,16 +89,23 @@ int main() {
 	TPZVec<long> subelindex(4,0);
     long elindex = 0;
     int shouldinterpolate = 0;
-	//cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
+	cmesh->ElementVec()[elindex]->Divide(elindex,subelindex,shouldinterpolate);
 
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
+    
+    long neq = cmesh->NEquations();
+    TPZFMatrix<STATE> rhs(neq,1);
+    TPZFStructMatrix full(cmesh);
+    TPZMatrix<STATE> *stiff = full.CreateAssemble(rhs, 0);
 
+    
     {
         ofstream out("all.dat");
         cmesh->Reference()->Print(out);
         out << "antes de lido\n";
         cmesh->Print(out);
+        stiff->Print("Rigidez global",out);
     }
 	{
 		TPZFileStream fstr;

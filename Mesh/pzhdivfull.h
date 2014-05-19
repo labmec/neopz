@@ -79,6 +79,14 @@ TPZCompEl *CreateHDivFullPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 TPZCompEl *CreateHDivFullPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 /** @brief Creates computational tetrahedral element for HDivFull approximate space */
 TPZCompEl *CreateHDivFullTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational point element for HDivFull approximate space */
+TPZCompEl *CreateHDivFullBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational linear element for HDivFull approximate space */
+TPZCompEl *CreateHDivFullBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational quadrilateral element for HDivFull approximate space */
+TPZCompEl *CreateHDivFullBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational triangular element for HDivFull approximate space */
+TPZCompEl *CreateHDivFullBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
 
 #endif
 

@@ -36,12 +36,45 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcreateapproximationspace"));
 #endif
 
+/** @brief Creates computational point element */
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational linear element */
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational quadrilateral element */
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational triangular element */
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational cube element */
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational prismal element */
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational pyramidal element */
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+/** @brief Creates computational tetrahedral element */
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
 
 using namespace pzshape;
 
+TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+#ifdef LOG4CXX
+    if (logger->isWarnEnabled()) {
+        std::stringstream sout;
+        sout << "Mesh dimension " << mesh.Dimension() << " gel dimension " << gel->Dimension() << " will not create a computational element\n";
+        LOGPZ_WARN(logger, sout.str())
+    }
+#endif
+    index = -1;
+	return NULL;
+}
+
+
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    {
 		return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
+    }
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
@@ -50,36 +83,43 @@ TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 		TPZCompEl *result = new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
         return result;//new TPZCondensedCompel(result);
     }
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeCube>(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapePrism>(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapePiram>(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeTetra>(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 
@@ -88,41 +128,49 @@ TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapePoint> >(mesh,gel,index) ;
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem < TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem <TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
+    index = -1;
 	return NULL;
 }
 
@@ -306,16 +354,43 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 
 #include "pzelchdiv.h"
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 	
-    fp[EPoint] = CreateHDivPointEl;
-    fp[EOned] = CreateHDivLinearEl;
-    fp[ETriangle] = CreateHDivTriangleEl;
-    fp[EQuadrilateral] = CreateHDivQuadEl;
-    fp[ETetraedro] = CreateHDivTetraEl;
-    fp[EPiramide] = CreateHDivPyramEl;
-    fp[EPrisma] = CreateHDivPrismEl;
-    fp[ECube] = CreateHDivCubeEl;
+    switch (dimension) {
+        case 1:
+            fp[EPoint] = CreateHDivBoundPointEl;
+            fp[EOned] = CreateHDivLinearEl;
+            fp[ETriangle] = CreateHDivTriangleEl;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 2:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateHDivBoundLinearEl;
+            fp[ETriangle] = CreateHDivTriangleEl;
+            fp[EQuadrilateral] = CreateHDivQuadEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = CreateHDivBoundTriangleEl;
+            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
+            fp[ETetraedro] = CreateHDivTetraEl;
+            fp[EPiramide] = CreateHDivPyramEl;
+            fp[EPrisma] = CreateHDivPrismEl;
+            fp[ECube] = CreateHDivCubeEl;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
     
     /*
      pzgeom::TPZGeoPoint::fp =  CreateHDivPointEl;
@@ -331,16 +406,43 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
 
 #include "pzhdivfull.h"
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(int dimension){
 	
-    fp[EPoint] = CreateHDivFullPointEl;
-    fp[EOned] = CreateHDivFullLinearEl;
-    fp[ETriangle] = CreateHDivFullTriangleEl;
-    fp[EQuadrilateral] = CreateHDivFullQuadEl;
-    fp[ETetraedro] = CreateHDivFullTetraEl;
-    fp[EPiramide] = CreateHDivFullPyramEl;
-    fp[EPrisma] = CreateHDivFullPrismEl;
-    fp[ECube] = CreateHDivFullCubeEl;
+    switch (dimension) {
+        case 1:
+            fp[EPoint] = CreateHDivBoundPointEl;
+            fp[EOned] = CreateHDivFullLinearEl;
+            fp[ETriangle] = CreateNoElement;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 2:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateHDivBoundLinearEl;
+            fp[ETriangle] = CreateHDivFullTriangleEl;
+            fp[EQuadrilateral] = CreateHDivFullQuadEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = CreateHDivBoundTriangleEl;
+            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
+            fp[ETetraedro] = CreateHDivFullTetraEl;
+            fp[EPiramide] = CreateHDivFullPyramEl;
+            fp[EPrisma] = CreateHDivFullPrismEl;
+            fp[ECube] = CreateHDivFullCubeEl;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
     
 }
 
@@ -349,16 +451,42 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(){
 #ifndef STATE_COMPLEX
 #include "pzhdivpressure.h"
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(){
-    
-    fp[EPoint] = CreateHDivPressurePointEl;
-    fp[EOned] = CreateHDivPressureLinearEl;
-    fp[ETriangle] = CreateHDivPressureTriangleEl;
-    fp[EQuadrilateral] = CreateHDivPressureQuadEl;
-    fp[ETetraedro] = CreateHDivPressureTetraEl;
-    fp[EPiramide] = CreateHDivPressurePyramEl;
-    fp[EPrisma] = CreateHDivPressurePrismEl;
-    fp[ECube] = CreateHDivPressureCubeEl;
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimension){
+    switch (dimension) {
+        case 1:
+            fp[EPoint] = CreateHDivBoundPointEl;
+            fp[EOned] = CreateHDivPressureLinearEl;
+            fp[ETriangle] = CreateNoElement;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 2:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateHDivBoundLinearEl;
+            fp[ETriangle] = CreateHDivPressureTriangleEl;
+            fp[EQuadrilateral] = CreateHDivPressureQuadEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = CreateHDivBoundTriangleEl;
+            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
+            fp[ETetraedro] = CreateHDivPressureTetraEl;
+            fp[EPiramide] = CreateHDivPressurePyramEl;
+            fp[EPrisma] = CreateHDivPressurePrismEl;
+            fp[ECube] = CreateHDivPressureCubeEl;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
     
 }
 #endif

@@ -111,6 +111,14 @@ TPZCompElHDiv<TSHAPE>()
 
 template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::~TPZCompElHDivPressure(){
+    TPZGeoEl *gel = this->Reference();
+	TPZCompEl *cel = gel->Reference();
+	if(gel) {
+		if(cel) {
+			this->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
+		}
+		this->Reference()->ResetReference();
+	}
 		
 }
 
