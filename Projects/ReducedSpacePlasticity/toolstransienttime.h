@@ -43,7 +43,7 @@ public:
   
   TPZCompMesh * CMeshElastic();
   //TPZCompMesh * CMeshElasticForCohesive();
-  TPZCompMesh * CMeshTest();
+  TPZCompMesh * CMeshHat(int &dirid, int &porder);
   
   void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
   void SolveInitialElasticity(TPZAnalysis &an, TPZCompMesh *Cmesh);

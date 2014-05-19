@@ -77,6 +77,7 @@ public:
   
   int NStripes();
   std::map< int,std::pair<int,int> > & GetPressureMatIds_StripeId_ElastId();
+  std::map< int,std::pair<int,int> > & GetfMatID_Rec_GeoEl();
   int StripeId(int bcId);
   int ElastId(int bcId);
   void InsertBCId_StripeId_ElastId(int BCId, int StripeId, int ElastId);
@@ -128,9 +129,10 @@ private:
   REAL fPreStressXY;//pre-stress tensor XY component
   REAL fPreStressYY;//pre-stress tensor YY component
   int fNStripes;//Amount of pressure stripes for reduced space elastic references
+  
   std::map< int,std::pair<int,int> > fPressureMatIds_StripeId_ElastId;//Correspondence between MaterialIds of Pressures BCs and < Stripe Number , ElastMatId >
   
-  std::map< int, int > fMatID_GeoEl_Rec; // correspondence between rec matid and Dirichlet Id
+  std::map< int, std::pair<int,int> > fMatID_Rec_GeoEl; // correspondence between diri for rec matid and the two geoels who must be of sideorder1
   
   //Fluid property:
   REAL fVisc;//viscosidade do fluido de injecao

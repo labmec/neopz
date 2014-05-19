@@ -213,9 +213,17 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   this->Mesh2D();
   
   
-  TPZCompMesh *cmeshtest = this->CMeshTest();
+  int dirid = globDirichletRecElastMatId1Cohe;
+  int porder = 2;
+  TPZCompMesh *cmeshtest = this->CMeshHat(dirid, porder);
   TPZAnalysis antest(cmeshtest);
   this->SolveInitialElasticity(antest, cmeshtest);
+  TPZStack<std::string> scalnames, vecnames;
+  vecnames.Push("displacement");
+  std::string myplotfile = "PostProcHat1.vtk";
+  antest.DefineGraphMesh(2, scalnames, vecnames, myplotfile);
+  antest.PostProcess(0);
+  
   
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
   TPZFMatrix<STATE> solutions(0,0);
@@ -419,63 +427,94 @@ void ToolsTransient::Mesh2D()
   int diridhat = globDirichletRecElastMatId1Cohe;
   int recidhat = diridhat - 1;
   int ihat = 0;
-  int ieltohat = 0;
-  int whathat = 0;
-  for(long el = 0; el < nelem; el++)
-  {
-    TPZGeoEl * gel = fgmesh->ElementVec()[el];
-    
-    if (gel->MaterialId() == globReservMatId1){
-      //south BC
-      TPZGeoElSide sideS(gel,4);
-      TPZGeoElSide neighS(sideS.Neighbour());
-      if(el < ndivV)
-      {
-        if(el < colCracktip)
+  int nhat = 3;
+
+  
+  for (ihat = 0 ; ihat < nhat ; ihat++){
+    int ieltohat = 0;
+    int whathat = 0;
+    std::pair<int,int> twogeoelsindex;
+    for(long el = 0; el < nelem; el++)
+    {
+      TPZGeoEl * gel = fgmesh->ElementVec()[el];
+      
+      if (gel->MaterialId() == globReservMatId1){
+        //south BC
+        //TPZGeoElSide sideS(gel,4);
+        //TPZGeoElSide neighS(sideS.Neighbour());
+        if(el < ndivV)
         {
-          gel->CreateBCGeoEl(4, diridhat);
-          
+          if(el < colCracktip)
+          {
+            gel->CreateBCGeoEl(4, diridhat);
+          }
+          else if (ieltohat == 0 && whathat == ihat)
+          {
+            gel->CreateBCGeoEl(1, recidhat);
+            ieltohat++;
+            
+            int gelindex = gel->Index();
+            if (gelindex != el) {
+              DebugStop(); // Id is diferent for position in the vector?
+            }
+            twogeoelsindex.first = gelindex;
+          }
+          else if(ieltohat == 1){
+            ieltohat++;
+            
+            int gelindex = gel->Index();
+            if (gelindex != el) {
+              DebugStop(); // Id is diferent for position in the vector?
+            }
+            twogeoelsindex.second = gelindex;
+          }
+          else{
+            gel->CreateBCGeoEl(4, diridhat);
+            whathat++;
+          }
         }
-        else if (ieltohat == 0 && whathat == ihat)
+        
+        //east BC
+        //TPZGeoElSide sideE(gel,5);
+        //TPZGeoElSide neighE(sideE.Neighbour());
+        if((el+1)%(ndivV) == 0 && el != 0)
         {
-          gel->CreateBCGeoEl(1, recidhat);
-          ieltohat++;
+          gel->CreateBCGeoEl(5, diridhat);
         }
-        else if(ieltohat == 1){
-          ieltohat++;
+        
+        //north BC
+        //TPZGeoElSide sideN(gel,6);
+        //TPZGeoElSide neighN(sideN.Neighbour());
+        if(el > ((ndivH-1)*ndivV)-1)
+        {
+          gel->CreateBCGeoEl(6, diridhat);
         }
-        else{
-          gel->CreateBCGeoEl(4, diridhat);
-          whathat++;
+        
+        //west BC
+        //TPZGeoElSide sideW(gel,7);
+        //TPZGeoElSide neighW(sideW.Neighbour());
+        if(el%ndivV == 0)
+        {
+          //gel->CreateBCGeoEl(7, globMixedElastMatId); ja existe!
         }
-      }
-      
-      //east BC
-      //TPZGeoElSide sideE(gel,5);
-      //TPZGeoElSide neighE(sideE.Neighbour());
-      if((el+1)%(ndivV) == 0 && el != 0)
-      {
-        gel->CreateBCGeoEl(5, diridhat);
-      }
-      
-      //north BC
-      //TPZGeoElSide sideN(gel,6);
-      //TPZGeoElSide neighN(sideN.Neighbour());
-      if(el > ((ndivH-1)*ndivV)-1)
-      {
-        gel->CreateBCGeoEl(6, diridhat);
-      }
-      
-      //west BC
-      //TPZGeoElSide sideW(gel,7);
-      //TPZGeoElSide neighW(sideW.Neighbour());
-      if(el%ndivV == 0)
-      {
-        //gel->CreateBCGeoEl(7, globMixedElastMatId); ja existe!
       }
     }
+
+    globFractInputData.GetfMatID_Rec_GeoEl()[diridhat] = twogeoelsindex;
+    diridhat-=2;
+    recidhat-=2;
   }
   
+#ifdef DEBUG
+  std::map<int,std::pair<int, int> >::iterator it = globFractInputData.GetfMatID_Rec_GeoEl().begin();
+  for (; it != globFractInputData.GetfMatID_Rec_GeoEl().end(); it++) {
+    std::cout << "diriid = " << it->first << std::endl;
+    std::cout << "Geoel 1 = " << it->second.first << "\tGeoel 2 = " << it->second.second << std::endl;
+    if (it->second.second - it->second.first != 1) {
+      DebugStop(); // Why arent the elements side by side? is there any new refinement?
+    }
+  }
+#endif
   
   fgmesh->BuildConnectivity();
   
@@ -501,6 +540,7 @@ void ToolsTransient::Mesh2D()
   //#endif
   
   // Refining near the fracture
+  /*
   int nrefUnif = 3;
   for(int ref = 0; ref < nrefUnif; ref++)
   {
@@ -539,6 +579,7 @@ void ToolsTransient::Mesh2D()
       }
     }
   }
+   */
   
   
   
@@ -566,7 +607,7 @@ void ToolsTransient::Mesh2D()
   //#endif
 }
 
-TPZCompMesh * ToolsTransient::CMeshTest()
+TPZCompMesh * ToolsTransient::CMeshHat(int &dirid, int &porder)
 {
   /// criar materiais
 	int dim = 2;
@@ -583,68 +624,76 @@ TPZCompMesh * ToolsTransient::CMeshTest()
                                                                 globFractInputData.Fy(),
                                                                 planestrain);
   
-  /* Only using one material!
-   TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
-   globFractInputData.E2(),
-   globFractInputData.Poisson2(),
-   globFractInputData.Fx(),
-   globFractInputData.Fy(),
-   planestrain);
-   */
   
   TPZMaterial * mat1(material1);
-  
-  //TPZMaterial * mat2(material2);
   
   ///criar malha computacional
   TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
   cmesh->SetDefaultOrder(fpOrder);
 	cmesh->SetDimModel(dim);
   cmesh->InsertMaterialObject(mat1);
-  //cmesh->InsertMaterialObject(mat2);
+
   
   ///Inserir condicao de contorno
   REAL big = material1->gBigNumber;
-  
   TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
   
-  std::map< int,std::pair<int,int> >::iterator it;
-  for(it = globFractInputData.GetPressureMatIds_StripeId_ElastId().begin();
-      it != globFractInputData.GetPressureMatIds_StripeId_ElastId().end();
-      it++)
-  {
-    int bcId = it->first;
-    int elastId = it->second.second;
-    if(elastId == globReservMatId1)
-    {//estou no globReservMatId1
-      TPZMaterial * BCond11 = material1->CreateBC(mat1, bcId, typeNeumann, val1, val2);
-      cmesh->InsertMaterialObject(BCond11);
-    }
-    else
-    {//estou no globReservMatId2
-      DebugStop(); // Nunca deveria entra nesse caso pois soh uso um material
-                   //TPZMaterial * BCond12 = material2->CreateBC(mat2, bcId, typeNeumann, val1, val2);
-                   //cmesh->InsertMaterialObject(BCond12);
-    }
-  }
-  
+  // Dirichlet em volta
   val1.Redim(2,2);
   val2.Redim(2,1);
-  TPZMaterial * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
-  //TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
-  
+  TPZMaterial * BCond11 = material1->CreateBC(mat1, dirid, typeDirichlet, val1, val2);
+
+  // mista na esquerda
   val1(0,0) = big;
-  TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
+  TPZMaterial * BCond21 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
   
+	//Recalque unitario para fazer a funcao chapeu
+  val1.Redim(2,2);
+  val2.Redim(2,1);
+  val2(1,0) = 1.;
+  int recid = dirid - 1;
+  TPZMaterial * BCond31 = material1->CreateBC(mat1, recid, typeDirichlet, val1, val2);
+
   cmesh->SetAllCreateFunctionsContinuous();
+	cmesh->InsertMaterialObject(BCond11);
 	cmesh->InsertMaterialObject(BCond21);
-  //cmesh->InsertMaterialObject(BCond22);
 	cmesh->InsertMaterialObject(BCond31);
-	
+  
+  cmesh->SetDefaultOrder(porder);
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
+  
+  // Setando order 1 nos sides sul dos elementos ao lado do recalque
+  std::map< int,std::pair<int,int> >::iterator it = globFractInputData.GetfMatID_Rec_GeoEl().find(dirid);
+  if (it == globFractInputData.GetfMatID_Rec_GeoEl().end()) {
+    DebugStop(); // essa BC nao eXISTE!
+  }
+
+  
+  std::pair<int, int> mygeoels;
+  mygeoels = it->second;
+  int geoel1 = mygeoels.first;
+  int geoel2 = mygeoels.second;
+  
+  TPZGeoEl *gel1 = cmesh->Reference()->ElementVec()[geoel1];
+  TPZGeoEl *gel2 = cmesh->Reference()->ElementVec()[geoel2];
+  TPZCompEl *cel1 = gel1->Reference();
+  TPZCompEl *cel2 = gel2->Reference();
+  if(!cel1 || !cel2){
+    DebugStop(); // Porque esse compels nao existem?
+  }
+  TPZInterpolatedElement *intel1 = dynamic_cast<TPZInterpolatedElement*>(cel1);
+  TPZInterpolatedElement *intel2 = dynamic_cast<TPZInterpolatedElement*>(cel2);
+  if (!intel1 || !intel2) {
+    DebugStop(); // nao existe o interpoaletedelement?
+  }
+  
+  int side = 4;
+  int neworder = 1;
+  intel1->SetSideOrder(side,neworder);
+  intel2->SetSideOrder(side,neworder);
   
 	return cmesh;
 }
