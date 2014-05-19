@@ -58,6 +58,9 @@ public:
   REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);//0 = meshvec[0] ; 1 = meshvec[1]
   void TransferLeakoff(TPZCompMesh * oldMphysicsCMesh);
   
+  //--------------------------------------------------------------- Print Methods
+  void PlotAllHatsVTK();
+  
   //---------------------------------------------------------------
   
   void MassMatrix(TPZFMatrix<REAL> & Un);

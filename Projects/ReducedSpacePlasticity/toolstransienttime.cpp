@@ -212,17 +212,9 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
   
-  
-  int dirid = globDirichletRecElastMatId1Cohe;
-  int porder = 2;
-  TPZCompMesh *cmeshtest = this->CMeshHat(dirid, porder);
-  TPZAnalysis antest(cmeshtest);
-  this->SolveInitialElasticity(antest, cmeshtest);
-  TPZStack<std::string> scalnames, vecnames;
-  vecnames.Push("displacement");
-  std::string myplotfile = "PostProcHat1.vtk";
-  antest.DefineGraphMesh(2, scalnames, vecnames, myplotfile);
-  antest.PostProcess(0);
+
+  // Discoment if want to see hat functions of reduce space JEW
+  //ToolsTransient::PlotAllHatsVTK();
   
   
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
@@ -427,7 +419,7 @@ void ToolsTransient::Mesh2D()
   int diridhat = globDirichletRecElastMatId1Cohe;
   int recidhat = diridhat - 1;
   int ihat = 0;
-  int nhat = 3;
+  int nhat = globNHat;
 
   
   for (ihat = 0 ; ihat < nhat ; ihat++){
@@ -1890,4 +1882,23 @@ TPZCompMesh * ToolsTransient::CMeshElastoPlastic(TPZGeoMesh *gmesh, REAL SigmaN)
   cmesh->CleanUpUnconnectedNodes();
   
   return cmesh;
+}
+
+void ToolsTransient::PlotAllHatsVTK()
+{
+  int nhat = globNHat;
+  int dirid = globDirichletRecElastMatId1Cohe;
+  int porder = 2;
+  std::string myplotfile = "PostProcHat.vtk";
+  for (int i = 0; i < nhat; i++) {
+    TPZCompMesh *cmeshtest = this->CMeshHat(dirid, porder);
+    TPZAnalysis antest(cmeshtest);
+    this->SolveInitialElasticity(antest, cmeshtest);
+    TPZStack<std::string> scalnames, vecnames;
+    vecnames.Push("displacement");
+    antest.SetStep(i);
+    antest.DefineGraphMesh(2, scalnames, vecnames, myplotfile);
+    antest.PostProcess(0);
+    dirid-=2;
+  }
 }
