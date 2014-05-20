@@ -928,7 +928,8 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 	long nrows;
 	nrows = matM->Rows();
 	TPZFMatrix<STATE> TotalRhs(nrows,1,0.0);
-	TPZFMatrix<STATE> TotalRhstemp(nrows,1,0.0);
+	TPZFMatrix<STATE> TotalRhstemp1(nrows,1,1.0);
+    TPZFMatrix<STATE> TotalRhstemp2(nrows,1,0.0);
 	TPZFMatrix<STATE> Lastsolution = Initialsolution;
 	
 	REAL TimeValue = 0.0;
@@ -939,22 +940,22 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 	{
 		// This time solution i for Transient Analytic Solution
 		material->SetTimeValue(TimeValue);
-		matM->Multiply(Lastsolution,TotalRhstemp);
-        
-//        #ifdef LOG4CXX
-//                if(logdata->isDebugEnabled())
-//            {
-//                std::stringstream sout;
-//                sout<< " tempo = " << cent;
-//                Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-//                TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);
-//                LOGPZ_DEBUG(logdata,sout.str())
-//            }
-//        #endif
-        
-		TotalRhs = fvecK + TotalRhstemp;
+
+//--------- Resolver usando Runge-Kutta -------------------
+        //primeiro estagio de Runge-Kutta
+        matM->Multiply(Lastsolution,TotalRhstemp1);
+		TotalRhs = TotalRhstemp1 + fvecK;
 		an.Rhs() = TotalRhs;
 		an.Solve();
+        
+        //segundo estagio de Runge-Kutta
+        Lastsolution = an.Solution();
+        matM->Multiply(Lastsolution,TotalRhstemp2);
+        TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvecK);
+        TotalRhs = 0.5*TotalRhs;
+        an.Rhs() = TotalRhs;
+        an.Solve();
+//---------------------------------------------------------
         
         //Reconstrucao do gradiente e linearizacao da solucao
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
