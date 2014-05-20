@@ -249,40 +249,58 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 void ToolsTransient::Mesh2D()
 {
   fgmesh = new TPZGeoMesh;
-	REAL q = 1.1;
+	bool IsPG = true;
 	
-  /*
-  int ndivV = int(globFractInputData.Lx()/globFractInputData.Lmax_edge() + 0.5);
-  int ndivH = int(globFractInputData.Ly()/globFractInputData.Lmax_edge() + 0.5);
-  */
-  int ndivV = 20;
-  int ndivH = 10;
+	// PG Values mesh
+	REAL q = 1.1;		
+	int ndivV = 20;
+	int ndivH = 10;
 	REAL a1V = globFractInputData.Lx() * (q - 1.)/(mypow(q,ndivV) - 1.); 
 	REAL a1H = globFractInputData.Ly() * (q - 1.)/(mypow(q,ndivH) - 1.); 
+	REAL posV = 0., posH = 0., acumV = 0., acumH = 0.;
 	
-	 
+	// Normal mesh values
+	if (!IsPG) {
+		ndivV = int(globFractInputData.Lx()/globFractInputData.Lmax_edge() + 0.5);
+		ndivH = int(globFractInputData.Ly()/globFractInputData.Lmax_edge() + 0.5);			
+	}
+	REAL deltadivV = globFractInputData.Lx()/ndivV;
+	REAL deltandivH = globFractInputData.Ly()/ndivH;
+
+
   long ncols = ndivV + 1;
   long nrows = ndivH + 1;
   long nnodes = nrows*ncols;
   
   fgmesh->NodeVec().Resize(nnodes);
   
-  //REAL deltadivV = globFractInputData.Lx()/ndivV;
-  //REAL deltandivH = globFractInputData.Ly()/ndivH;
-  
-  // Creating nodes
+    // Creating nodes
   long nid = 0;
   REAL cracktipDist = globFractInputData.Lf();
   int colCracktip = -1;
-	REAL posV = 0., posH = 0., acumV = 0., acumH = 0.;
+	
   for(long r = 0; r < nrows; r++)
   {
-		posH += acumH*a1H;
+		if (IsPG) {
+			posH += acumH*a1H;			
+		}	
+		else {
+			posH = r*deltandivH; 
+		}
+
+
     for(long c = 0; c < ncols; c++)
     {
+			if (IsPG) {
+				posV += acumV*a1V; 
+			}
+			else {
+				posV = c*deltadivV;
+			}
+
       //REAL x = c*deltadivV;
       //REAL y = r*deltandivH;
-			posV += acumV*a1V; 
+
       REAL dist = fabs(globFractInputData.Lf()-posV);
       if(r == 0 && dist < cracktipDist)
       {
@@ -296,23 +314,25 @@ void ToolsTransient::Mesh2D()
       fgmesh->NodeVec()[r*ncols + c].SetCoord(coord);
       fgmesh->NodeVec()[r*ncols + c].SetNodeId(nid);
       nid++;
-			
-			if (c == 0) {
-				acumV = 1.;
+			if (IsPG) {
+				if (c == 0) {
+					acumV = 1.;
+				}
+				else {
+					acumV *= q;
+				}				
+			}
+    }
+		if (IsPG) {
+			if (r == 0) {
+				acumH = 1.;
 			}
 			else {
-				acumV *= q;
+				acumH *= q;
 			}
-			
-    }
-		if (r == 0) {
-			acumH = 1.;
+			posV = 0.;
+			acumV = 0.;			
 		}
-		else {
-			acumH *= q;
-		}
-		posV = 0.;
-		acumV = 0.;
   }
 	
 	

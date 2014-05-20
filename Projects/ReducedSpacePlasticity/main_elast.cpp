@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
 int mainFrac(int argc, char *argv[])
 {
   //Propagation criterion
-  REAL Lx = 15.;
+  REAL Lx = 10;
   REAL Ly = 5.;
-  REAL Lf = 0.25;
+  REAL Lf = 0.5;
   REAL Hf = 1.;
-  REAL Lmax_edge = 0.25/4.;
+  REAL Lmax_edge = 0.25;
   REAL Young1 = 25.e9;
   REAL Poiss1 = 0.2;
   
