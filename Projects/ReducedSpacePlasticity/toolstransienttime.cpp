@@ -49,6 +49,7 @@
 static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
 #endif
 
+REAL mypow(REAL a, int n);
 
 ToolsTransient::ToolsTransient(){
   fMustStop = true;
@@ -214,7 +215,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   
 
   // Discoment if want to see hat functions of reduce space JEW
-  //ToolsTransient::PlotAllHatsVTK();
+  ToolsTransient::PlotAllHatsVTK();
   
   
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
@@ -248,30 +249,41 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 void ToolsTransient::Mesh2D()
 {
   fgmesh = new TPZGeoMesh;
-  
+	REAL q = 1.1;
+	
+  /*
   int ndivV = int(globFractInputData.Lx()/globFractInputData.Lmax_edge() + 0.5);
   int ndivH = int(globFractInputData.Ly()/globFractInputData.Lmax_edge() + 0.5);
-  
+  */
+  int ndivV = 20;
+  int ndivH = 10;
+	REAL a1V = globFractInputData.Lx() * (q - 1.)/(mypow(q,ndivV) - 1.); 
+	REAL a1H = globFractInputData.Ly() * (q - 1.)/(mypow(q,ndivH) - 1.); 
+	
+	 
   long ncols = ndivV + 1;
   long nrows = ndivH + 1;
   long nnodes = nrows*ncols;
   
   fgmesh->NodeVec().Resize(nnodes);
   
-  REAL deltadivV = globFractInputData.Lx()/ndivV;
-  REAL deltandivH = globFractInputData.Ly()/ndivH;
+  //REAL deltadivV = globFractInputData.Lx()/ndivV;
+  //REAL deltandivH = globFractInputData.Ly()/ndivH;
   
   // Creating nodes
   long nid = 0;
   REAL cracktipDist = globFractInputData.Lf();
   int colCracktip = -1;
+	REAL posV = 0., posH = 0., acumV = 0., acumH = 0.;
   for(long r = 0; r < nrows; r++)
   {
+		posH += acumH*a1H;
     for(long c = 0; c < ncols; c++)
     {
-      REAL x = c*deltadivV;
-      REAL y = r*deltandivH;
-      REAL dist = fabs(globFractInputData.Lf()-x);
+      //REAL x = c*deltadivV;
+      //REAL y = r*deltandivH;
+			posV += acumV*a1V; 
+      REAL dist = fabs(globFractInputData.Lf()-posV);
       if(r == 0 && dist < cracktipDist)
       {
         cracktipDist = dist;
@@ -279,13 +291,31 @@ void ToolsTransient::Mesh2D()
       }
       
       TPZVec<REAL> coord(3,0.);
-      coord[0] = x;
-      coord[1] = y;
+      coord[0] = posV;
+      coord[1] = posH;
       fgmesh->NodeVec()[r*ncols + c].SetCoord(coord);
       fgmesh->NodeVec()[r*ncols + c].SetNodeId(nid);
       nid++;
+			
+			if (c == 0) {
+				acumV = 1.;
+			}
+			else {
+				acumV *= q;
+			}
+			
     }
+		if (r == 0) {
+			acumH = 1.;
+		}
+		else {
+			acumH *= q;
+		}
+		posV = 0.;
+		acumV = 0.;
   }
+	
+	
   if(colCracktip == 0)
   {
     colCracktip = 1;//fratura minima corresponde aa distancia entre coluna 0 e coluna 1
@@ -306,11 +336,11 @@ void ToolsTransient::Mesh2D()
       
       gel = fgmesh->CreateGeoElement(EQuadrilateral, topol, globReservMatId1, indx);
       gel->SetId(indx);
-      REAL x = c*deltadivV;
-      if((x + 1.E-3) > globFractInputData.Xinterface())
-      {
-        gel->SetMaterialId(globReservMatId2);
-      }
+      //REAL x = c*deltadivV;
+      //if((x + 1.E-3) > globFractInputData.Xinterface())
+      //{
+      //  gel->SetMaterialId(globReservMatId2);
+      //}
       indx++;
     }
   }
@@ -496,7 +526,11 @@ void ToolsTransient::Mesh2D()
     diridhat-=2;
     recidhat-=2;
   }
-  
+	
+	
+  fgmesh->BuildConnectivity();
+	
+	
 #ifdef DEBUG
   std::map<int,std::pair<int, int> >::iterator it = globFractInputData.GetfMatID_Rec_GeoEl().begin();
   for (; it != globFractInputData.GetfMatID_Rec_GeoEl().end(); it++) {
@@ -508,28 +542,12 @@ void ToolsTransient::Mesh2D()
   }
 #endif
   
-  fgmesh->BuildConnectivity();
+
   
   
   
   
-  //#ifdef usingQPoints
-  //    TPZGeoElSide pt(gel,0);
-  //    TPZGeoElSide ptneigh(pt.Neighbour());
-  //    while(pt != ptneigh)
-  //    {
-  //        if(ptneigh.Element()->HasSubElement() == false)
-  //        {
-  //            int neighSide = ptneigh.Side();
-  //            TPZGeoEl * ptneighEl = TPZChangeEl::ChangeToQuarterPoint(fgmesh, ptneigh.Element()->Id(), neighSide);
-  //            ptneigh = ptneighEl->Neighbour(neighSide);
-  //        }
-  //        else
-  //        {
-  //            ptneigh = ptneigh.Neighbour();
-  //        }
-  //    }
-  //#endif
+
   
   // Refining near the fracture
   /*
@@ -1901,4 +1919,10 @@ void ToolsTransient::PlotAllHatsVTK()
     antest.PostProcess(0);
     dirid-=2;
   }
+}
+
+REAL mypow(REAL a, int n)
+{
+	if (n == 0) return 1.;
+	return (a * mypow(a,n-1));
 }

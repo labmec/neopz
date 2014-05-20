@@ -35,13 +35,13 @@ int main(int argc, char *argv[])
 int mainFrac(int argc, char *argv[])
 {
   //Propagation criterion
-  REAL Lx = 1000.;
-  REAL Ly = 600.;
-  REAL Lf = 50.;
+  REAL Lx = 15.;
+  REAL Ly = 5.;
+  REAL Lf = 0.25;
   REAL Hf = 1.;
-  REAL Lmax_edge = 50.;
-  REAL Young1 = 3.9E4;
-  REAL Poiss1 = 0.25;
+  REAL Lmax_edge = 0.25/4.;
+  REAL Young1 = 25.e9;
+  REAL Poiss1 = 0.2;
   
   
   REAL Young2 = 3.9E5;
@@ -50,22 +50,22 @@ int mainFrac(int argc, char *argv[])
   
   REAL Fx = 0.;
   REAL Fy = 0.;
-  REAL preStressXX = 0.;
+  REAL preStressXX = -50.e6;
   REAL preStressXY = 0.;
-  REAL preStressYY = -50.; //(negativo : estado de compressao)
+  REAL preStressYY = -25.e6; //(negativo : estado de compressao)
   
   int NStripes = 1;
-  REAL Visc = 0.001E-6;
+  REAL Visc = 5.e-2;
   
-  REAL SigN = 10.;
+  REAL SigN = 1.;
   
   /**
    * Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
    * Aqui vai Qinj total mesmo (no poco)!!!
    */
-  REAL QinjTot  = -0.5;
+  REAL QinjTot  = -0.0001;
   
-  REAL Ttot = 20.; /** em segundos */
+  REAL Ttot = 10.; /** em segundos */
   REAL maxDeltaT = 4.; /** em segundos */
   int nTimes = 1; /** quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes) */
   
@@ -77,7 +77,7 @@ int mainFrac(int argc, char *argv[])
   REAL KIc = 25.;
   REAL Jradius = 0.5;
   
-  int p = 1;
+  int p = 2;
   
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
