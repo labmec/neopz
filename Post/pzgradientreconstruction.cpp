@@ -15,6 +15,7 @@
 #include "pzintel.h"
 #include "pzgnode.h"
 #include "pzstepsolver.h"
+#include "pzbndcond.h"
 #include <cmath>
 
 #include "pzlog.h"
@@ -184,6 +185,23 @@ void TPZGradientReconstruction::AssembleGlobalMatrix(TPZCompEl *el, TPZElementMa
     }
 }
 
+void TPZGradientReconstruction::SetDataGhostsNeighbors(TPZVec<REAL> LxLyLz, TPZVec<int> MatIdBC, TPZManVector<TPZVec<REAL> > coordmin, TPZManVector<TPZVec<REAL> > coordmax)
+{
+    if(LxLyLz.size()==0 || MatIdBC.size()==0) {
+        PZError << "TPZGradientReconstruction: uninitialized data.\n";
+        DebugStop();
+    }
+    
+    if(coordmin.size()!=coordmax.size() || coordmin.size()!=MatIdBC.size()){
+        PZError << "TPZGradientReconstruction: Amount of coordinates may not be different from the number of indexes boundary condition.\n";
+        DebugStop();
+    }
+    
+    fGradData->UseGhostsNeighbors(LxLyLz, MatIdBC, coordmin, coordmax);
+}
+
+
+
 TPZGradientReconstruction::TPZGradientData::TPZGradientData()
 {
     fSolCellAndNeighbors.resize(0);
@@ -193,14 +211,19 @@ TPZGradientReconstruction::TPZGradientData::TPZGradientData()
     
     this->fForcingFunctionExact = NULL;
     this->fUseForcinfFuncion = false;
+    fGhostNeighbor = false;
     
     fWeightsGrad.resize(0);
     fGradient.resize(0);
     fdim=0;
-    fSlopeLimiter=0.;
+    fSlopeLimiter=1.;
     fUseWeight=false;
     fparamK = 0;
     
+    fLxLyLz.resize(0);
+    fMatIdBC.resize(0);
+    fcoordminBC.Resize(0);
+    fcoordmaxBC.Resize(0);
 }
 
 TPZGradientReconstruction::TPZGradientData::~TPZGradientData()
@@ -225,6 +248,12 @@ TPZGradientReconstruction::TPZGradientData::TPZGradientData(const TPZGradientDat
     
     fForcingFunctionExact = cp.fForcingFunctionExact;
     fUseForcinfFuncion = cp.fUseForcinfFuncion;
+    
+    fGhostNeighbor = cp.fGhostNeighbor;
+    fLxLyLz = cp.fLxLyLz;
+    fMatIdBC = cp.fMatIdBC;
+    fcoordminBC = cp.fcoordminBC;
+    fcoordmaxBC = cp.fcoordmaxBC;
 }
 
 TPZGradientReconstruction::TPZGradientData & TPZGradientReconstruction::TPZGradientData::operator=(const TPZGradientData &copy)
@@ -243,6 +272,13 @@ TPZGradientReconstruction::TPZGradientData & TPZGradientReconstruction::TPZGradi
     
     fForcingFunctionExact = copy.fForcingFunctionExact;
     fUseForcinfFuncion = copy.fUseForcinfFuncion;
+    
+    fGhostNeighbor = copy.fGhostNeighbor;
+    fLxLyLz = copy.fLxLyLz;
+    fMatIdBC = copy.fMatIdBC;
+    fcoordminBC = copy.fcoordminBC;
+    fcoordmaxBC = copy.fcoordmaxBC;
+    
     return *this;
 }
 
@@ -265,6 +301,8 @@ void TPZGradientReconstruction::TPZGradientData::SetCel(TPZCompEl * cel, bool us
     fparamK = paramK;
     
     InitializeGradData(cel);
+    
+    if(fGhostNeighbor==true) CreateGhostsNeighbors(cel);
     
     ComputeGradient();
     
@@ -540,6 +578,16 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
             }
         }
     }
+    
+    int ncorn = cel->Reference()->NCornerNodes();
+    for(int side = 0; side <  ncorn; side++)
+    {
+        TPZCompElSide celside(cel,side);
+        TPZGeoElSide gelside = celside.Reference();
+        gelside.CenterPoint(point);
+        gelside.X(point,xpoint);
+        fCenterPointInterface.Push(xpoint);
+    }
 }
 
 
@@ -576,9 +624,9 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
     {
         for(j=0; j<fdim; j++)
         {
-            DeltaXcenter(i,j) = fCenterPointCellAndNeighbors[0][j] - fCenterPointCellAndNeighbors[i+1][j];
+            DeltaXcenter(i,j) = fCenterPointCellAndNeighbors[i+1][j] - fCenterPointCellAndNeighbors[0][j];
         }
-        DifSol(i,0) = fSolCellAndNeighbors[0] - fSolCellAndNeighbors[i+1];
+        DifSol(i,0) = fSolCellAndNeighbors[i+1] - fSolCellAndNeighbors[0];
     }
     
     //insert weight
@@ -591,18 +639,34 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
     TPZFMatrix<REAL> grad;
     grad.Redim(fdim, 1);
     
-    if(nneighs==fdim)
+    
+    if(nneighs==fdim-1)
     {
-        DeltaXcenter.SolveDirect(DifSol,ELU);
-        grad= DifSol;
+        grad(0,0) = DifSol(0,0)/DeltaXcenter(0,0);
+        //grad(1,0) = -DifSol(0,0)/DeltaXcenter(1,0);
+        
+//        TPZFMatrix<REAL> A(fdim,fdim);
+//        DeltaXcenter.Transpose(&DeltaXcenterTranspose);
+//        A = DeltaXcenterTranspose*DeltaXcenter;
+//        grad = DeltaXcenterTranspose*DifSol;
+//        A.SolveDirect(grad,ELU);
+    }
+    else if(nneighs==fdim)
+    {
+        TPZVec<long> index;
+        DeltaXcenter.Decompose_LU(index);
+        DeltaXcenter.Substitution(&DifSol, index);
+        grad = DifSol;
     }
     else
     {
 #ifdef USING_LAPACK
         //QR factorization
         QRFactorization(DeltaXcenter,DifSol);
-        DeltaXcenter.SolveDirect(DifSol,ELU);
-        grad=DifSol;
+        TPZVec<long> index;
+        DeltaXcenter.Decompose_LU(index);
+        DeltaXcenter.Substitution(&DifSol, index);
+        grad= DifSol;
 #else
         
         // Solving the system by least squares: DeltaXcenter_T * DifSol = DeltaXcenter_T * DeltaXcenter*Grad(u)
@@ -769,14 +833,14 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter()
         else if((solKside - solKmax) > 1.e-12)
         {
             temp = (solKmax - solcel)/(solKside-solcel);
-            if(temp>1.) temp = 1.;
             if(temp<0.) temp = fabs(temp);
+            if(temp>1.) temp = 1.;
         }
         else if((solKside - solKmin) < 1.e-12)
         {
             temp = (solKmin - solcel)/(solKside-solcel);
-            if(temp>1.) temp = 1.;
             if(temp<0.) temp = fabs(temp);
+            if(temp>1.) temp = 1.;
         }
         else temp = 1.;
         
@@ -860,8 +924,8 @@ void TPZGradientReconstruction::TPZGradientData::ComputeSlopeLimiter2()
         else if(solKside - solcel < 1.e-12)
         {
             temp = (solKmin-solcel)/(solKside-solcel);
-            if(temp>1.) temp = 1.;
             if(temp<0.) temp = fabs(temp);
+            if(temp>1.) temp = 1.;
         }
         else temp =1.;
         
@@ -1055,6 +1119,73 @@ void TPZGradientReconstruction::TPZGradientData::InsertWeights(TPZFMatrix<REAL> 
         
         for (long k = 0; k<ncD; k++){
             DifSol(i,k) = fWeightsGrad[i]*DifSol(i,k);
+        }
+    }
+}
+
+ void TPZGradientReconstruction::TPZGradientData::CreateGhostsNeighbors(TPZCompEl *cel)
+{
+    int nbc = fMatIdBC.size();
+    int i, j;
+
+    int in, nneighs;
+    int is, nside = cel->Reference()->NSides();
+    int ncorn = cel->Reference()->NCornerNodes();
+    
+    TPZStack<TPZCompElSide> neighequal;
+    TPZManVector<REAL,3> xcent(3,0.);
+    
+    for(is = ncorn; is < nside; is++)
+    {
+        neighequal.Resize(0);
+        TPZCompElSide celside(cel,is);
+        celside.EqualLevelElementList(neighequal, 0, 0);
+        nneighs = neighequal.NElements();
+       
+        for(in =0; in<nneighs; in++)
+        {
+            TPZInterpolationSpace * InterpEl = dynamic_cast<TPZInterpolationSpace *>(neighequal[in].Element());
+            if(!InterpEl) continue;
+            
+            //Do not assume neighbors by node
+            if(neighequal[in].Side() <neighequal[in].Reference().Element()->NCornerNodes()) continue;
+            
+            if(neighequal[in].Element()->Dimension() == fdim) continue;
+            
+            //verificando se eh elemento de contorno
+            if(neighequal[in].Element()->Dimension() == fdim-1){
+                
+                TPZCompEl *bccel = neighequal[in].Element();
+                TPZMaterial *mymat  = bccel->Material();
+                TPZBndCond *bcmat = dynamic_cast< TPZBndCond *> (mymat);
+                
+                for(i=0; i<nbc; i++){
+                    j=0;
+                    if(mymat->Id() == fMatIdBC[i])
+                    {
+                        //Neumann condition (is not inflow or outflow)
+                        if(bcmat->Type() != 1){
+                            PZError << "TPZGradientReconstruction::TPZDataGradient: boundary conditions is not of the type Neumann.\n";
+                            DebugStop();
+                            
+                        }
+                        
+                        while (fcoordminBC[i][j] != fcoordmaxBC[i][j]){
+                            j++;
+                        }
+                        
+                        fCelAndNeighbors.Push(cel);
+                        fSolCellAndNeighbors.Push(fSolCellAndNeighbors[0]);
+                        xcent = fCenterPointCellAndNeighbors[0];
+                        
+                        if(xcent[j]>fLxLyLz[j]/2.){
+                            xcent[j] = fLxLyLz[j] + (fLxLyLz[j]- xcent[j]);
+                        }else xcent[j] = fcoordminBC[i][j]- xcent[j];
+
+                        fCenterPointCellAndNeighbors.Push(xcent);
+                    }
+                }
+            }
         }
     }
 }

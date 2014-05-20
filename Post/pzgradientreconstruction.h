@@ -136,7 +136,22 @@ class TPZGradientReconstruction
             }
         }
         
-      
+        void UseGhostsNeighbors(TPZVec<REAL> LxLyLz, TPZVec<int> MatIdBC, TPZManVector<TPZVec<REAL> > coordmin, TPZManVector<TPZVec<REAL> > coordmax){
+            
+            fGhostNeighbor = true;
+            
+            fLxLyLz = LxLyLz;
+            fMatIdBC = MatIdBC;
+            fcoordminBC = coordmin;
+            fcoordmaxBC = coordmax;
+        }
+        
+        /**@brief Method to create ghosts neighbors of the element cel.
+         *This method is used only for regular domain
+         *@param cel [in]: computational element of the cell
+         */
+        void CreateGhostsNeighbors(TPZCompEl *cel);
+        
         
     protected:
         
@@ -169,6 +184,23 @@ class TPZGradientReconstruction
         
         /** @param fparamK: parameter used in the harmonic mean, equal 1 or 2*/
         REAL fparamK;
+        
+        
+        //parameter the ghosts neighbors
+        /** @param fGhostNeighbor: Parameter that indicates the use of ghosts neighbors in some boundary of the mesh.*/
+        bool fGhostNeighbor;
+        
+        TPZVec<REAL> fLxLyLz;
+        /**@param fLxLyLz: Dimension of the domain: Lx X Ly X Lz*/
+        
+        TPZVec<int> fMatIdBC;
+        /**@param fMatIdBC: Indices of the boundary conditions (Neumann type, No flux) that there are ghosts*/
+        
+        TPZManVector< TPZVec<REAL> > fcoordminBC;
+        /**@param fcoordminBC: The minimum coordinate for each boundary (xmin,ymin,zmin)*/
+        
+        TPZManVector< TPZVec<REAL> > fcoordmaxBC;
+        /**@param fcoordmaxBC: The maximum coordinate for each boundary (xmax,ymax,zmax)*/
     };
     
 public:
@@ -205,6 +237,15 @@ public:
         useweight = fDistortedMesh;
         paramK = fparam;
     }
+    
+    /*
+     *@brief Method to insert the data of the boundaries (No flux) that there are ghosts neighbors.
+     *@param LxLyLz [in]: Dimension of the domain: Lx X Ly X Lz
+     *@param MatIdBC [in]: Indices of the Neumann type boundary conditions (No flux).
+     *@param coordmin [in]: The minimum coordinate for each boundary (xmin,ymin,zmin).
+     *@param coordmax [in]: The maximum coordinate for each boundary (xmax,ymax,zmax).
+     */
+    void SetDataGhostsNeighbors(TPZVec<REAL> LxLyLz, TPZVec<int> MatIdBC, TPZManVector< TPZVec<REAL> > coordmin, TPZManVector< TPZVec<REAL> > coordmax);
     
     TPZGradientData * fGradData;
     
