@@ -25,6 +25,7 @@ TPZMatConvectionProblem::TPZMatConvectionProblem():TPZDiscontinuousGalerkin(){
     fTimeStep = 0.;
     fTimeValue = 0.;
     fmatId = 0;
+    fRungeKuttaTwo = false;
 }
 
 TPZMatConvectionProblem::TPZMatConvectionProblem(int matid, int dim):TPZDiscontinuousGalerkin(matid){
@@ -40,6 +41,7 @@ TPZMatConvectionProblem::TPZMatConvectionProblem(int matid, int dim):TPZDisconti
     fTimeStep = 0.;
     fTimeValue = 0.;
     fmatId = matid;
+    fRungeKuttaTwo = false;
 }
 
 TPZMatConvectionProblem::~TPZMatConvectionProblem(){
@@ -60,6 +62,7 @@ TPZMatConvectionProblem & TPZMatConvectionProblem::operator=(const TPZMatConvect
     fTimeStep = copy.fTimeStep ;
     fTimeValue = copy.fTimeValue;
     fmatId = copy.fmatId;
+    fRungeKuttaTwo = copy.fRungeKuttaTwo;
 
 	return *this;
 }
@@ -101,7 +104,7 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
 	
     TPZFMatrix<REAL>  &phi = data.phi;
-	TPZFMatrix<REAL> &dphi = data.dphix;
+	//TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZVec<REAL>  &x = data.x;
 	TPZFMatrix<REAL> &axes = data.axes;
 	int phr = phi.Rows();
@@ -131,26 +134,38 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
     //Last state (n): mass matrix
 	if(gState == ELastState)
     {
-        TPZVec<STATE> ConvDirAx;
-        ConvDirAx.Resize(fDim, 0.);
-        
-        int di,dj;
-        for(di=0; di<fDim; di++){
-            for(dj=0; dj<fDim; dj++){
-                ConvDirAx[di] += axes(di,dj)*fConvDir[dj];
+        if(fRungeKuttaTwo == true)
+        {
+            for(int in = 0; in < phr; in++) {
+                
+                for(int jn = 0; jn < phr; jn++)
+                {
+                    ek(in,jn) += weight*fRho*phi(in,0)*phi(jn,0);
+                }
             }
         }
-        
-        int kd;
-        for(int in = 0; in < phr; in++) {
+        else {
+            TPZVec<STATE> ConvDirAx;
+            ConvDirAx.Resize(fDim, 0.);
             
-            for(int jn = 0; jn < phr; jn++)
-            {
-                ek(in,jn) += weight*fRho*phi(in,0)*phi(jn,0);
+            int di,dj;
+            for(di=0; di<fDim; di++){
+                for(dj=0; dj<fDim; dj++){
+                    ConvDirAx[di] += axes(di,dj)*fConvDir[dj];
+                }
+            }
+            
+            //int kd;
+            for(int in = 0; in < phr; in++) {
                 
-                for(kd=0; kd<fDim; kd++)
+                for(int jn = 0; jn < phr; jn++)
                 {
-                    ek(in,jn) += weight*(fTimeStep*ConvDirAx[kd]*dphi(kd,in)*phi(jn,0));
+                    ek(in,jn) += weight*fRho*phi(in,0)*phi(jn,0);
+                    
+//                for(kd=0; kd<fDim; kd++)
+//                {
+//                    ek(in,jn) += weight*(fTimeStep*ConvDirAx[kd]*dphi(kd,in)*phi(jn,0));
+//                }
                 }
             }
         }
@@ -171,6 +186,8 @@ void TPZMatConvectionProblem::ContributeInterface(TPZMaterialData &data, TPZMate
     if(gState == ECurrentState){
 		return;
 	}
+    
+    if(fRungeKuttaTwo == true) return;
     
 	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
@@ -319,6 +336,7 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<ST
 	Sol_u=data.sol[0];
     DSol_u = data.dsol[0];
     axes_u=data.axes;
+    ExactSol.Resize(1, 0.);
     
 	if(var == 1){
 		Solout[0] = Sol_u[0];//function (state variable u)
