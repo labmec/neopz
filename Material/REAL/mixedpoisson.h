@@ -52,7 +52,7 @@ protected:
     REAL fdelta1;
     REAL fdelta2;
     
-    /** @brief Coeficient that multiplies the Stabilization term fdelta2*/
+    /** @brief Coeficient that multiplies the Stabilization term fdelta1*/
     REAL fh2;
     bool fUseHdois;
     
