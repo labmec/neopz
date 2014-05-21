@@ -376,6 +376,16 @@ public:
     {
         fCurrentConfig.fPorePressure = porepressure;
     }
+
+    void SetBiotCoefficient(STATE biot)
+    {
+        fCurrentConfig.fBiotCoef = biot;
+    }
+
+    void SetFluidModel(EFluidModel fmodel)
+    {
+        fCurrentConfig.fFluidModel = fmodel;
+    }
     
    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {

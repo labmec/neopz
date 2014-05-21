@@ -2765,7 +2765,12 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         REAL outer = fOuterRadius;
         REAL wellpress = fFluidPressure;
         REAL reservoirpress = fPorePressure;
-        REAL biot = 0.7;
+        REAL biot = fBiotCoef;
+
+        if (fFluidModel == ENonPenetrating) {
+            biot = 0.;
+        }
+
         TPBrBiotForce *force = new TPBrBiotForce;
         force->SetConstants(inner, outer, wellpress, reservoirpress, biot);
         plastic->SetForcingFunction(force);
@@ -2824,7 +2829,10 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterial &mat)
     REAL outer = fCurrentConfig.fOuterRadius;
     REAL wellpress = fCurrentConfig.fFluidPressure;
     REAL reservoirpress = fCurrentConfig.fPorePressure;
-    REAL biot = 0.7;
+    REAL biot = fCurrentConfig.fBiotCoef;
+    if (fCurrentConfig.fFluidModel == ENonPenetrating) {
+        biot = 0.;
+    }
     force->SetConstants(inner, outer, wellpress, reservoirpress, biot);
 
     mat.SetForcingFunction(force);
