@@ -215,7 +215,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   
 
   // Discoment if want to see hat functions of reduce space JEW
-  ToolsTransient::PlotAllHatsVTK();
+  //ToolsTransient::PlotAllHatsVTK();
   
   
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
@@ -252,9 +252,9 @@ void ToolsTransient::Mesh2D()
 	bool IsPG = true;
 	
 	// PG Values mesh
-	REAL q = 1.1;		
-	int ndivV = 20;
-	int ndivH = 10;
+	REAL q = globFractInputData.GMeshq();
+	int ndivV = globFractInputData.NdivV();
+	int ndivH = globFractInputData.NdivH();
 	REAL a1V = globFractInputData.Lx() * (q - 1.)/(mypow(q,ndivV) - 1.); 
 	REAL a1H = globFractInputData.Ly() * (q - 1.)/(mypow(q,ndivH) - 1.); 
 	REAL posV = 0., posH = 0., acumV = 0., acumH = 0.;
@@ -402,9 +402,11 @@ void ToolsTransient::Mesh2D()
         if(gel->MaterialId() == globReservMatId1)
         {
           gel->CreateBCGeoEl(4, globDirichletElastMatId1);
+          gel->CreateBCGeoEl(4, globCohesiveMatId);
         }
         else
         {
+          DebugStop(); // only using one mat, should never enter here
           gel->CreateBCGeoEl(4, globDirichletElastMatId2);
         }
       }
@@ -1326,9 +1328,10 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     
     res_total = fres + fmat;
     REAL res = Norm(res_total);
-    REAL tol = 1.e-8;
+    REAL tol = 1.e-4;
     int maxit = 15;
     int nit = 0;
+    res = 1.;
     
     while(res > tol && nit < maxit) //itercao de Newton
     {

@@ -9,6 +9,7 @@
 #ifndef PZ_pznlfluidstructureData_h
 #define PZ_pznlfluidstructureData_h
 
+#define NOleakoff
 
 
 ////////// Materials //////////////////////////////
@@ -22,6 +23,7 @@ int const globMultiFisicMatId2 = 2;//multiphisics
 int const globDirichletElastMatId1 = -1;
 int const globDirichletElastMatId2 = -2;
 int const globMixedElastMatId   = -3;
+int const globCohesiveMatId = -4;
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;
@@ -56,7 +58,7 @@ public:
   void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius);
+               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q);
   
   void SetLf(REAL Lf);
   
@@ -64,6 +66,9 @@ public:
   REAL Ly();
   REAL Lf();
   REAL Hf();
+  int NdivV();
+  int NdivH();
+  REAL GMeshq();
   REAL Lmax_edge();
   REAL E1();
   REAL Poisson1();
@@ -116,6 +121,9 @@ private:
   REAL fLy;//Dimensao em y do domínio da malha do MEF
   REAL fLf;//Comprimento de 1/2 asa da fratura
   REAL fHf;//Altura da fratura
+  int fndivV; // divisios em x para Gmesh com PG
+  int fndivH; // divisios em y para Gmesh com PG
+  REAL fq; // ordem da Gmesh pg
   REAL fLmax_edge;//Extensao maxima da aresta de 1 quadrilatero
   
   //Elastic properties:

@@ -25,12 +25,15 @@ InputDataStruct::~InputDataStruct()
 void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                               REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                               int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-                              REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius)
+                              REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q)
 {
   fLx = Lx;
   fLy = Ly;
   fLf = Lf;
   fHf = Hf;
+  fndivV = ndivV;
+  fndivH = ndivH;
+  fq = q;
   fLmax_edge = Lmax_edge;
   
   fE1 = E1;
@@ -106,6 +109,20 @@ REAL InputDataStruct::Lf()
 REAL InputDataStruct::Hf()
 {
   return fHf;
+}
+
+int InputDataStruct::NdivV()
+{
+  return fndivV;
+}
+
+int InputDataStruct::NdivH()
+{
+  return fndivH;
+}
+REAL InputDataStruct::GMeshq()
+{
+  return fq;
 }
 
 REAL InputDataStruct::Lmax_edge()
