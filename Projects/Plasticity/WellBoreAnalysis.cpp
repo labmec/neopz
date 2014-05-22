@@ -563,11 +563,15 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     
     for(int istep=0;istep<=nsteps;istep++)
     {
+#ifdef DEBUG
         std::cout << "Execute Initial Simulation Step = " << istep << " out of " << nsteps << std::endl;
+#endif
         fCurrentConfig.SetWellPressure(fCurrentConfig.fFluidPressure,istep*1./nsteps);
         
         if (fLinearMatrix) {
+#ifdef DEBUG
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
+#endif
         }
         
         
@@ -584,7 +588,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
             analysis.AdjustTangentMatrix(fLinearMatrix);
             analysis.Solver().SetMatrix(fLinearMatrix);
             if (fLinearMatrix) {
+#ifdef DEBUG
                 std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
+#endif
             }
             analysis.IterativeProcess(cout, fLinearMatrix, tol, numnewton, linesearch);
         }
@@ -601,7 +607,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         //analysis.TransferSolution(ppanalysis);
         
         if (fLinearMatrix) {
+#ifdef DEBUG
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
+#endif
         }
 
         
@@ -621,7 +629,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         analysis.AcceptSolution();
         
         if (fLinearMatrix) {
+#ifdef DEBUG
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
+#endif
         }
 
         
@@ -639,7 +649,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         }
         
         if (fLinearMatrix) {
+#ifdef DEBUG
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
+#endif
         }
 
         //fCurrentConfig.VerifyGlobalEquilibrium();
@@ -787,7 +799,9 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
     
     for(int i=1;i<=nsteps;i++)
     {
+#ifdef DEBUG
         std::cout << "Simulation Step " << i << " out of " << nsteps << std::endl;
+#endif
         STATE pressure = pressureinit+i*(pwb-pressureinit);
         fCurrentConfig.SetWellPressure(pressure);
 
@@ -827,7 +841,9 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
         fCurrentConfig.CreatePostProcessingMesh();
         PostProcess(0);
         
+#ifdef DEBUG
         cout << "-------------------> i: "<< i << " Pressao atual: " << fCurrentConfig.fFluidPressure;
+#endif
 
         //fCurrentConfig.VerifyGlobalEquilibrium();
 
@@ -1761,10 +1777,12 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+#ifdef DEBUG
     {
         std::ofstream file("AdjustedMesh.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(fCMesh.Reference(), file, true);
     }
+#endif
     
     std::cout << "Number of elements deleted " << ndel << std::endl;
 }
@@ -2073,6 +2091,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 {
     fCurrentConfig.CreatePostProcessingMesh();
 
+#ifdef DEBUG
 #ifdef PV
 //      std::string vtkFile = "out.vtk";
     std::string vtkFile = "outSD.vtk";
@@ -2081,9 +2100,12 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 #else
     std::string vtkFile = "pocoplasticoErickII.vtk";
 #endif
+#endif
     TPZStack<std::string> scalNames,vecNames;
     PostProcessVariables(scalNames,vecNames);
+#ifdef DEBUG
     fCurrentConfig.fPostprocess.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+#endif
     fCurrentConfig.fPostprocess.SetStep(fPostProcessNumber);
     fCurrentConfig.fPostprocess.PostProcess(resolution);
 
@@ -2928,7 +2950,9 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
         }
         
     }
+#ifdef DEBUG
     cout << "\n WORK "<< work << endl;
+#endif
     return work;
     
 }

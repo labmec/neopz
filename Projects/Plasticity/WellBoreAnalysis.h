@@ -271,8 +271,9 @@ public:
     {
         std::set<long> elindices;
         fCurrentConfig.PRefineElementsAbove(sqj2, porder,elindices);
-
+#ifdef DEBUG
         std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
+#endif
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
         
