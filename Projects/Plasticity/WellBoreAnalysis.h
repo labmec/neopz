@@ -30,7 +30,7 @@ class TPZElasticityMaterial;
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
 enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
-enum EFluidModel  {EPenetrating, ENonPenetrating};
+enum EFluidModel  {ENonPenetrating=0,EPenetrating=1};
 
 /// Class which simulates the stability of a wellbore
 class TPZWellBoreAnalysis
