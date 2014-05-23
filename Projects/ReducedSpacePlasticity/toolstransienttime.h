@@ -65,6 +65,7 @@ public:
   
   void MassMatrix(TPZFMatrix<REAL> & Un);
   
+	void ApplyEquationFilter(TPZAnalysis * an);
   void StiffMatrixLoadVec(TPZAnalysis *an,
                           TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
   
