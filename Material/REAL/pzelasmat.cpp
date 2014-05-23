@@ -165,8 +165,8 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		
         for (int col = 0; col < efc; col++) 
         {
-            ef(2*in, col) += weight * (ff[0]*phi(in,0) - du(0,0)*fPreStressXX - du(0,1)*fPreStressXY);  // direcao x
-            ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(1,0)*fPreStressXY - du(1,1)*fPreStressYY);// direcao y <<<----
+					ef(2*in, col) += weight * (ff[0]*phi(in,0) - du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
+					ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(0,0)*fPreStressXY - du(1,0)*fPreStressYY);// direcao y <<<----
         }		
 		for( int jn = 0; jn < phr; jn++ ) {
 			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);//dux
