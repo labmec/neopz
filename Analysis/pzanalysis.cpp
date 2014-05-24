@@ -378,7 +378,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	TPZManVector<REAL,10> values(10,0.);
 	TPZManVector<REAL,10> values2(10,0.);
 	fCompMesh->LoadSolution(fSolution);
-	TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
+	TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
 	TPZManVector<REAL,10> errors(10);
 	errors.Fill(0.0);
 	long nel = elvec.NElements();
@@ -395,6 +395,8 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 		TPZCompEl *el = (TPZCompEl *) elvec[i];
 		if(el) {
 			errors.Fill(0.0);
+            TPZGeoEl *gel = el->Reference();
+            if(gel->Dimension() != fCompMesh->Dimension()) continue;
 			el->EvaluateError(fExact, errors, 0);
 			if(matId0==el->Material()->Id()){
 				for(int ier = 0; ier < errors.NElements(); ier++) 	values[ier] += errors[ier] * errors[ier];

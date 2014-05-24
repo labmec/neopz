@@ -682,7 +682,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	if(data.numberdualfunctions){
 		REAL diffP = abs(u_exact[0]-sol[0]);
 		values[0]  = diffP*diffP;
-	}	
+	}
 	//values[1] : flux error using L2 norm
 	for(int id=0; id<fDim; id++) {
         REAL diffFlux = abs(dsol[id] - du_exact(id,0));

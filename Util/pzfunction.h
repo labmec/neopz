@@ -79,11 +79,13 @@ class TPZDummyFunction : public TPZFunction<TVar>
 	
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
-    void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);	
+    void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
+    
+    int fPorder;
 public:
 	
 	/** @brief Class constructor */
-	TPZDummyFunction()
+	TPZDummyFunction() : TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc = 0;
 		fFunc2 = 0;
@@ -117,16 +119,19 @@ public:
 		fFunc3 = FuncPtr;		
     }	
     
-    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3)
+    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fPorder(cp.fPorder)
     {
         
     }
+    
+
     
     TPZDummyFunction &operator=(const TPZDummyFunction &cp)
     {
         fFunc = cp.fFunc;
 		fFunc2 = cp.fFunc2;
-		fFunc3 = cp.fFunc3;		
+		fFunc3 = cp.fFunc3;
+        fPorder = cp.fPorder;
         return *this;
     }
 	/**
@@ -183,12 +188,17 @@ public:
     {
         return 1;
     }
+    
+    void SetPolynomialOrder(int porder)
+    {
+        fPorder = porder;
+    }
 	
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() 
     {
-        return -1;
+        return fPorder;
     }
 	
 	/** @brief Unique identifier for serialization purposes */
