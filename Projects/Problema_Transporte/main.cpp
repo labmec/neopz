@@ -121,21 +121,21 @@ void ForcingInicial2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfile);
 
 //Riemann Problem
-bool triang = false;
+bool triang = true;
 bool userecgrad = true;
 
-REAL teta = M_PI/6.;
+REAL teta =0.;// M_PI/6.;
 
-int main(int argc, char *argv[])
+int mainRiemann(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
     TPZVec<REAL> erros;
     ofstream arg0("Erro.txt");
     int p = 1;
-    int h = 2;
+    int h = 6;
     REAL Lx=1., Ly=1.;
     
 
@@ -270,22 +270,24 @@ int main(int argc, char *argv[])
     {
         TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
         
-        TPZVec<REAL> LxLyLz(2,0.);
-        LxLyLz[0] = 1.; LxLyLz[1]=1.;
-        
-        TPZVec<int> MatIdBC(2,0);
-        MatIdBC[0] = -1; MatIdBC[1] = -3;
-        
-        TPZVec<REAL>  Xmin(2,0.);
-        TPZVec<REAL> Xmax(2,0.);
-        TPZManVector<TPZVec<REAL> > coordmin(2,0.);
-        TPZManVector<TPZVec<REAL> > coordmax(2,0.);
-        Xmin[0] = 0.; Xmin[1] = 0.; Xmax[0] = 1.; Xmax[1] = 0.;
-        coordmin[0] = Xmin; coordmax[0] = Xmax;
-        Xmin[0] = 0.; Xmin[1] = 1.; Xmax[0] = 1.; Xmax[1] = 1.;
-        coordmin[1] = Xmin; coordmax[1] = Xmax;
-        
-        //gradreconst->SetDataGhostsNeighbors(LxLyLz, MatIdBC, coordmin, coordmax);
+        if(triang==true){
+            TPZVec<REAL> LxLyLz(2,0.);
+            LxLyLz[0] = 1.; LxLyLz[1]=1.;
+            
+            TPZVec<int> MatIdBC(2,0);
+            MatIdBC[0] = -1; MatIdBC[1] = -3;
+            
+            TPZVec<REAL>  Xmin(2,0.);
+            TPZVec<REAL> Xmax(2,0.);
+            TPZManVector<TPZVec<REAL> > coordmin(2,0.);
+            TPZManVector<TPZVec<REAL> > coordmax(2,0.);
+            Xmin[0] = 0.; Xmin[1] = 0.; Xmax[0] = 1.; Xmax[1] = 0.;
+            coordmin[0] = Xmin; coordmax[0] = Xmax;
+            Xmin[0] = 0.; Xmin[1] = 1.; Xmax[0] = 1.; Xmax[1] = 1.;
+            coordmin[1] = Xmin; coordmax[1] = Xmax;
+            
+            gradreconst->SetDataGhostsNeighbors(LxLyLz, MatIdBC, coordmin, coordmax);
+        }
         SolveSistTransient(deltaT, material, cmesh, gradreconst);
     }else
     {
@@ -297,7 +299,7 @@ int main(int argc, char *argv[])
 }
 
 //problema estacionario
-int mainEstacionario(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -891,25 +893,31 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 		an.Rhs() = TotalRhs;
 		an.Solve();
         
-        gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
-        an.LoadSolution(cmesh->Solution());
+        //an.Solution().Print("\nsolAntesRG = ");
         
-        //segundo estagio de Runge-Kutta
-        matMAux->Multiply(Lastsolution,TotalRhstemp1);
-        Lastsolution = an.Solution();
-        matM->Multiply(Lastsolution,TotalRhstemp2);
-        TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvec);
-        TotalRhs = 0.5*TotalRhs;
-        an.Rhs() = TotalRhs;
-        an.Solution().Zero();
-        an.Solve();
+//        gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
+//        an.LoadSolution(cmesh->Solution());
+//        
+//       // an.Solution().Print("\nsolDeposRG = ");
+//        
+//        //segundo estagio de Runge-Kutta
+//        matMAux->Multiply(Lastsolution,TotalRhstemp1);
+//        Lastsolution = an.Solution();
+//        matM->Multiply(Lastsolution,TotalRhstemp2);
+//        TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvec);
+//        TotalRhs = 0.5*TotalRhs;
+//        an.Rhs() = TotalRhs;
+//        an.Solution().Zero();
+//        an.Solve();
         //---------------------------------------------------------
         
         gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
         an.LoadSolution(cmesh->Solution());
         Lastsolution = an.Solution();
         
-        if(cent%1==0){
+        //an.Solution().Print("\nsolDeposRG = ");
+        
+        if(cent%10==0){
             std::stringstream outputfiletemp;
             outputfiletemp << outputfile << ".vtk";
             std::string plotfile = outputfiletemp.str();

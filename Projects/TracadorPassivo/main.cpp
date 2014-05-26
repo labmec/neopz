@@ -114,16 +114,21 @@ void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void Permeability(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT);
 
-bool ftriang = false;
+void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-bool fishomogmedium = false;
+bool ftriang = false;
+bool fishomogmedium = true;
+bool recgrad = true;
+
+REAL ftimeatual = 0.;
+
 REAL  fLx = 400.;//m
 REAL  fLy = 100.;//m
 REAL fk1 =  9.86923e-13;//m2
 REAL fk2 = 0.;
 
 REAL fvazaoentrada = 60.;//m3/d
-REAL fporos = 0.2;
+REAL fporos = 1.;//0.2;
 
 REAL fLref = fLy;
 REAL fkref = fk1;//(fk1+fk2)/2.;
@@ -136,9 +141,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
     if(fishomogmedium == true)
     {
@@ -279,7 +284,7 @@ int main(int argc, char *argv[])
     REAL tD = (1.*temp + 1.);
 
     REAL deltaX = Ly/(pow(2.,h));
-    bool recgrad = true;
+
     if(recgrad==true)
     {
         TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
@@ -756,6 +761,11 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     forcefK = new TPZDummyFunction<STATE>(Permeability);
     material1->SetForcingFunction(forcefK);
     
+    if(fishomogmedium==true){
+        TPZAutoPointer<TPZFunction<STATE> > solExata;
+        solExata = new TPZDummyFunction<STATE>(SolExata);
+        material1->SetForcingFunctionExact(solExata);
+    }
     
     TPZMaterial *mat1(material1);
     mphysics->InsertMaterialObject(mat1);
@@ -895,6 +905,8 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     
 //------------------- Criando matriz de massa (matM) ---------------------
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(material, mphysics);
+    material->SetTrueRungeKuttaTwo();
+    TPZAutoPointer <TPZMatrix<STATE> > matMAux = MassMatrix(material, mphysics);
 //#ifdef LOG4CXX
 //    if(logdata->isDebugEnabled())
 //    {
@@ -934,10 +946,11 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 	
 	REAL TimeValue = 0.0;
 	int cent = 1;
+    TimeValue = cent*deltaT;
     
-	TimeValue = cent*deltaT;
 	while (TimeValue <= maxTime)
 	{
+        ftimeatual  = TimeValue;
 		// This time solution i for Transient Analytic Solution
 		material->SetTimeValue(TimeValue);
 
@@ -948,12 +961,19 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 		an.Rhs() = TotalRhs;
 		an.Solve();
         
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+        gradreconst-> ProjectionL2GradientReconstructed(meshvec[0], matIdL2Proj);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+        an.LoadSolution(mphysics->Solution());
+
         //segundo estagio de Runge-Kutta
+        matMAux->Multiply(Lastsolution,TotalRhstemp1);
         Lastsolution = an.Solution();
         matM->Multiply(Lastsolution,TotalRhstemp2);
         TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvecK);
         TotalRhs = 0.5*TotalRhs;
         an.Rhs() = TotalRhs;
+        an.Solution().Zero();
         an.Solve();
 //---------------------------------------------------------
         
@@ -978,6 +998,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 		
         cent++;
 		TimeValue = cent*deltaT;
+        an.Solution().Zero();
     }
 }
 
@@ -1076,6 +1097,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
 	TimeValue = cent*deltaT;
 	while (TimeValue <= maxTime)
 	{
+        ftimeatual = TimeValue;
 		// This time solution i for Transient Analytic Solution
 		material->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
@@ -1155,7 +1177,7 @@ void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT
             count++;
         }
     }
-    std::cout<<"\nNumero de passos de tempo NDt = " << NDt << " e valor DeltaT = " << deltaT << "\n ";
+    std::cout<<"\nNumero de passos de tempo NDt = " << NDt << ", valor DeltaT = " << deltaT << " e CFL = " << CFL<< "\n ";
 }
 
 #include "pzfstrmatrix.h"
@@ -1251,11 +1273,12 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(3), vecnames(2);
+	TPZManVector<std::string,10> scalnames(4), vecnames(2);
 	
     scalnames[0] = "Saturation";
     scalnames[1] = "Pressure";
     scalnames[2] = "DivFlux";
+    scalnames[3] = "ExactSaturation";
     vecnames[0]  = "Flux";
     vecnames[1] = "SaturationFlux";
     
@@ -1383,3 +1406,26 @@ TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &so
     
 	return cmesh;
 }
+
+void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+    
+    double x = pt[0];
+    //double y = pt[1];
+    
+    REAL tp = ftimeatual;
+    u[0]=0.;
+    
+    REAL AreaPoro = fLy*1.*fporos;
+    REAL qinDia = fvazaoentrada/AreaPoro;//m/d
+    REAL qin = qinDia/86400.;//m/s
+    REAL num = fvisref*fLref;
+    REAL denom = fkref*fpref;
+    REAL qinD = (-1.)*(qin*num/denom);
+    REAL velx = -1.*qinD;
+    
+    REAL ptx = x-velx*tp;
+    
+    if(ptx < 0.0) u[0] = 1.;
+    if(ptx > 0.0) u[0] = 0.;
+}
+
