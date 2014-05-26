@@ -134,6 +134,7 @@ void TPZMatConvectionProblem::Contribute(TPZMaterialData &data, REAL weight, TPZ
     //Last state (n): mass matrix
 	if(gState == ELastState)
     {
+        //apenas para criar uma matriz auxiliar
         if(fRungeKuttaTwo == true)
         {
             for(int in = 0; in < phr; in++) {
