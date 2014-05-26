@@ -88,10 +88,11 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 	}
 #endif
     
+    STATE force = ff;
     if(fForcingFunction) {            
 		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(datavec[1].x,res);   
-		ff = res[0];
+		force = res[0];
 	}
     
     // Setting the phis
@@ -132,7 +133,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             {
                 divqi += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
             }
-            ef(iq, 0) += weight*(fdelta2*divqi*ff);
+            ef(iq, 0) += weight*(fdelta2*divqi*force);
         }
         
         for (int jq=0; jq<phrq; jq++)
@@ -222,7 +223,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     //termo fonte referente a equacao da pressao
     for(int ip=0; ip<phrp; ip++){
-         ef(phrq+ip,0) += (-1.)*weight*ff*phip(ip,0);
+         ef(phrq+ip,0) += (-1.)*weight*force*phip(ip,0);
     }
     
     //Contribution for estabilization delta1 for gradPu*gradPv. Matrix D

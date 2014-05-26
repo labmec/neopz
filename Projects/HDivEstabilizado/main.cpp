@@ -66,7 +66,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
-void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
+void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 void PosProcessFlux(TPZAnalysis &an, std::string plotfile);
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     REAL Lx = 1.;
     REAL Ly = 1.;
     
-    ofstream saidaerro("ErroPoissonHdivMalhaTriang.txt",ios::app);
+    ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
     for(int p = 1; p<2; p++)
     {
@@ -134,6 +134,9 @@ int main(int argc, char *argv[])
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
         for (ndiv = 1; ndiv< 9; ndiv++)
         {
+            
+            std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
+            
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
             TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
@@ -145,14 +148,14 @@ int main(int argc, char *argv[])
             TPZCompMesh *cmesh1 = CMeshFlux(gmesh, pq);
             TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp);
             
-            ofstream arg1("cmeshflux.txt");
-            cmesh1->Print(arg1);
-            
-            ofstream arg2("cmeshpressure.txt");
-            cmesh2->Print(arg2);
-            
-            ofstream arg4("gmesh2.txt");
-            gmesh->Print(arg4);
+//            ofstream arg1("cmeshflux.txt");
+//            cmesh1->Print(arg1);
+//            
+//            ofstream arg2("cmeshpressure.txt");
+//            cmesh2->Print(arg2);
+//            
+//            ofstream arg4("gmesh2.txt");
+//            gmesh->Print(arg4);
             
             
             //malha multifisica
@@ -162,22 +165,30 @@ int main(int argc, char *argv[])
             
             TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
             
+            std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
+            int numthreads = 8;
+            std::cout << "Number of threads " << numthreads << std::endl;
+
             TPZAnalysis an(mphysics);
-            SolveSyst(an, mphysics);
+            SolveSyst(an, mphysics,numthreads);
             
-            ofstream arg5("cmeshmultiphysics.txt");
-            mphysics->Print(arg5);
+            
+//            ofstream arg5("cmeshmultiphysics.txt");
+//            mphysics->Print(arg5);
 
             //Calculo do erro
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             TPZVec<REAL> erros;
     
             saidaerro << "Valor de epsilone " << EPSILON << std::endl;
+            saidaerro << "Numero de threads " << numthreads << std::endl;
             saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
             ErrorHDiv(cmesh1, saidaerro);
             
             saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
             ErrorL2(cmesh2, saidaerro);
+            
+            std::cout << "Postprocessed\n";
             
             //Plot da solucao aproximada
 //            string plotfile("Solution_mphysics.vtk");
@@ -541,10 +552,11 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     return mphysics;
 }
 
-void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
+void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
 {
 	//TPZBandStructMatrix full(fCmesh);
 	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+    full.SetNumThreads(numthreads);
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico
