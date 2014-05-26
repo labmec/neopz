@@ -33,6 +33,7 @@ TPZTracerFlow::TPZTracerFlow():TPZDiscontinuousGalerkin(){
     fTimeValue = 0.;
     fmatId = 0;
     fPressureEquationFilter = false;
+    fRungeKuttaTwo = false;
 }
 
 TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZDiscontinuousGalerkin(matid){
@@ -52,6 +53,7 @@ TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZDiscontinuousGalerkin(matid)
     fTimeValue = 0.;
     fmatId = matid;
     fPressureEquationFilter = false;
+    fRungeKuttaTwo = false;
 }
 
 TPZTracerFlow::~TPZTracerFlow(){
@@ -76,6 +78,7 @@ TPZTracerFlow & TPZTracerFlow::operator=(const TPZTracerFlow &copy){
     fTimeValue = copy.fTimeValue;
     fmatId = copy.fmatId;
     fPressureEquationFilter = copy.fPressureEquationFilter;
+     fRungeKuttaTwo = copy.fRungeKuttaTwo;
     
 	return *this;
 }
@@ -228,7 +231,7 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         }
         else
         {
-            //Calculate the matrix contribution for saturation. Matrix D
+            //Calculate the matrix contribution for saturation.
             for(int in = 0; in < phrS; in++ ) {
                 
                 ef(in, 0) += fTimeStep*weight*fxfS*phiS(in,0);
@@ -246,29 +249,41 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     //Last state (n): mass matrix
 	if(gState == ELastState)
     {
-        fConvDir[0] = datavec[1].sol[0][0];
-        fConvDir[1] = datavec[1].sol[0][1];
-        
-        TPZVec<STATE> ConvDirAx;
-        ConvDirAx.Resize(fDim, 0.);
-        
-        int di,dj;
-        for(di=0; di<fDim; di++){
-            for(dj=0; dj<fDim; dj++){
-                ConvDirAx[di] += axesS(di,dj)*fConvDir[dj];
+        //apenas para criar uma matriz auxiliar
+        if(fRungeKuttaTwo == true)
+        {
+            for(int in = 0; in < phrS; in++){
+                
+                for(int jn = 0; jn < phrS; jn++){
+                    ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
+                }
             }
         }
-
-        int kd;
-        for(int in = 0; in < phrS; in++) {
+        else{
+            fConvDir[0] = datavec[1].sol[0][0];
+            fConvDir[1] = datavec[1].sol[0][1];
             
-            for(int jn = 0; jn < phrS; jn++)
-            {
-                ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
+            TPZVec<STATE> ConvDirAx;
+            ConvDirAx.Resize(fDim, 0.);
+            
+            int di,dj;
+            for(di=0; di<fDim; di++){
+                for(dj=0; dj<fDim; dj++){
+                    ConvDirAx[di] += axesS(di,dj)*fConvDir[dj];
+                }
+            }
+
+            int kd;
+            for(int in = 0; in < phrS; in++) {
                 
-                for(kd=0; kd<fDim; kd++)
+                for(int jn = 0; jn < phrS; jn++)
                 {
-                    ek(in,jn) += weight*(fTimeStep*ConvDirAx[kd]*dphiS(kd,in)*phiS(jn,0));
+                    ek(in,jn) += weight*fPoros*phiS(in,0)*phiS(jn,0);
+                    
+                    for(kd=0; kd<fDim; kd++)
+                    {
+                        ek(in,jn) += weight*(fTimeStep*ConvDirAx[kd]*dphiS(kd,in)*phiS(jn,0));
+                    }
                 }
             }
         }
@@ -379,6 +394,8 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     if(gState == ECurrentState){
 		return;
 	}
+    
+    if(fRungeKuttaTwo == true) return;
 
 	TPZFMatrix<REAL> &dphiLdAxes = dataleft[0].dphix;
 	TPZFMatrix<REAL> &dphiRdAxes = dataright[0].dphix;
@@ -595,6 +612,7 @@ int TPZTracerFlow::VariableIndex(const std::string &name)
 	if(!strcmp("Saturation",name.c_str()))          return  3;
 	if(!strcmp("SaturationFlux",name.c_str()))      return  4;
     if(!strcmp("DivFlux",name.c_str()))      return  5;
+    if(!strcmp("ExactSaturation",name.c_str()))        return  6;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -605,6 +623,7 @@ int TPZTracerFlow::NSolutionVariables(int var){
     if(var == 3) return 1;
     if(var == 4) return fDim;
     if(var == 5) return 1;
+    if(var == 6) return 1;
 	
 	return TPZMaterial::NSolutionVariables(var);
 }
@@ -612,6 +631,10 @@ int TPZTracerFlow::NSolutionVariables(int var){
 void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize(this->NSolutionVariables(var));
+    
+    TPZVec<STATE> ExactSol(1);
+    TPZFMatrix<STATE> deriv(3,1);
+    ExactSol.Resize(1, 0.);
     
     if(var == 1){ //function (state variable Q)
 		Solout[0] = datavec[1].sol[0][0];
@@ -642,6 +665,12 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
         Solout[0]=datavec[1].dsol[0](0,0)+datavec[1].dsol[0](1,1);
         return;
     }
+    
+    if(var == 6){
+		fForcingFunctionExact->Execute(datavec[0].x, ExactSol, deriv);
+		Solout[0] = ExactSol[0];
+		return;
+	}
 
 }
 

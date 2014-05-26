@@ -62,6 +62,9 @@ protected:
     
     bool fPressureEquationFilter;
     
+    //Second order Runge-Kutta
+    bool fRungeKuttaTwo;
+    
 	/** @brief State: n ou n+1 */
 	enum EState {ELastState = 0, ECurrentState = 1};
     EState gState;
@@ -136,6 +139,10 @@ public:
     void GetTimeValue(REAL &TimeValue){
 		TimeValue = fTimeValue;
 	}
+    
+    void SetTrueRungeKuttaTwo(){
+        fRungeKuttaTwo = true;
+    }
     
 	/** @name Contribute methods
 	 * @{
