@@ -81,20 +81,20 @@ int main()
 	for (int porder=1; porder<2; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<5;h++){
+			for(int h=2;h<3;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;//true nao uniforme
 					bool prefine=false;
-                TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
+                TPZGeoMesh *gmesh = MalhaGeo(h,hrefine);
 
-                std::ofstream filemesh("MalhaGeoArcTan.vtk");
-               PrintGMeshVTK( gmesh, filemesh);
+              //  std::ofstream filemesh("MalhaGeoArcTan.vtk");
+              // PrintGMeshVTK( gmesh, filemesh);
 
-            //  RefiningNearCircunference(2,gmesh,h,1);
-               // std::ofstream filemesh2("MalhaGeoArcTanRefeineNearCirc.vtk");
-                //PrintGMeshVTK( gmesh, filemesh2);
+              RefiningNearCircunference(2,gmesh,h,1);
+                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
+                PrintGMeshVTK( gmesh, filemesh2);
        
 
         TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
