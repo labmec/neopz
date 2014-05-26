@@ -82,7 +82,7 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const Pi = 4.*atan(1.);
 // nao esta rodando com estas configuracoes..aguardar Agnaldo
-bool ftriang = true;
+bool ftriang = false;
 bool isStab = false;
 bool iscontinuou = false;
 bool useh2 = false;
@@ -102,7 +102,7 @@ bool isFullHdiv=false;//seta espaco completo ou nao para o fluxo
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out);
 void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out);
 
-STATE EPSILON = 100.;
+STATE EPSILON = 1000.;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.main"));
@@ -111,16 +111,16 @@ static LoggerPtr logger(Logger::getLogger("pz.main"));
 #include "pztransfer.h"
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
     REAL Lx = 1.;
     REAL Ly = 1.;
     
     ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(int p = 1; p<2; p++)
+    for(int p = 1; p<4; p++)
     {
         int pq = p;
         int pp;
@@ -132,10 +132,10 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 1; ndiv< 9; ndiv++)
+        for (ndiv = 2; ndiv< 7; ndiv++)
         {
             
-            std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
+            //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
             
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             

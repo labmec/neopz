@@ -102,7 +102,7 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCom
 
 void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec);
 
-void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMesh *,3> meshvec, TPZCompMesh* mphysics, TPZGradientReconstruction *gradreconst);
+void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMesh *,3> meshvec, TPZCompMesh* mphysics, TPZGradientReconstruction *gradreconst, bool useRK2);
 
 void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 
@@ -119,6 +119,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 bool ftriang = false;
 bool fishomogmedium = true;
 bool recgrad = true;
+bool useRK2 = false;
 
 REAL ftimeatual = 0.;
 
@@ -141,9 +142,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     if(fishomogmedium == true)
     {
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
         pp = pq;
     }
 
-    int h = 4;
+    int h = 0;
     //TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
     TPZGeoMesh *gmesh = GMesh2(Lx, Ly,ftriang);
     UniformRefine(gmesh,h);
@@ -288,7 +289,7 @@ int main(int argc, char *argv[])
     if(recgrad==true)
     {
         TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
-        ResolverComReconstGradiente(deltaX,tD,meshvec, mphysics,gradreconst);
+        ResolverComReconstGradiente(deltaX,tD,meshvec, mphysics,gradreconst, useRK2);
     }else{
         ResolverSemReconstGradiente(deltaX,tD,meshvec, mphysics);
     }
@@ -843,7 +844,7 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 
-void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMesh *,3> meshvec,TPZCompMesh* mphysics,TPZGradientReconstruction *gradreconst)
+void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMesh *,3> meshvec,TPZCompMesh* mphysics,TPZGradientReconstruction *gradreconst, bool useRK2)
 {
     
     //inserir solucao inicial
@@ -961,20 +962,22 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 		an.Rhs() = TotalRhs;
 		an.Solve();
         
-        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-        gradreconst-> ProjectionL2GradientReconstructed(meshvec[0], matIdL2Proj);
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-        an.LoadSolution(mphysics->Solution());
+        if(useRK2==true){
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+            gradreconst-> ProjectionL2GradientReconstructed(meshvec[0], matIdL2Proj);
+            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+            an.LoadSolution(mphysics->Solution());
 
-        //segundo estagio de Runge-Kutta
-        matMAux->Multiply(Lastsolution,TotalRhstemp1);
-        Lastsolution = an.Solution();
-        matM->Multiply(Lastsolution,TotalRhstemp2);
-        TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvecK);
-        TotalRhs = 0.5*TotalRhs;
-        an.Rhs() = TotalRhs;
-        an.Solution().Zero();
-        an.Solve();
+            //segundo estagio de Runge-Kutta
+            matMAux->Multiply(Lastsolution,TotalRhstemp1);
+            Lastsolution = an.Solution();
+            matM->Multiply(Lastsolution,TotalRhstemp2);
+            TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvecK);
+            TotalRhs = 0.5*TotalRhs;
+            an.Rhs() = TotalRhs;
+            an.Solution().Zero();
+            an.Solve();
+        }
 //---------------------------------------------------------
         
         //Reconstrucao do gradiente e linearizacao da solucao
