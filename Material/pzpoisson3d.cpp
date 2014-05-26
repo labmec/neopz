@@ -696,15 +696,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
         values[3]= values[1]+values[2];
     }
 		
-#ifdef LOG4CXX
-		{
-		std::stringstream sout;
-		sout << " Erro pressao  " << values[0]<< std::endl;
-		sout<< "Erro fluxo  " <<values[1]<<std::endl;
-		sout<< " Erro div " <<values[2] <<std::endl;		
-		LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
+
 	
 
 }
