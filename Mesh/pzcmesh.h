@@ -559,6 +559,7 @@ public:
     
     /** @brief Put the sequence number of the pressure connects after the seq number of the flux connects */
     void SaddlePermute();
+    void SaddlePermute2();
 
 	
 	/**

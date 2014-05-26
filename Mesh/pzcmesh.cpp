@@ -2071,8 +2071,145 @@ void TPZCompMesh::SaddlePermute()
 }
 */
 
+static void switchEq(long eqsmall, long eqlarge, TPZVec<long> &permutegather, TPZVec<long> &permutescatter)
+{
+    long eqkeep = permutegather[eqsmall];
+    for (long eq = eqsmall; eq< eqlarge; eq++) {
+        permutegather[eq] = permutegather[eq+1];
+    }
+    permutegather[eqlarge] = eqkeep;
+    for (long eq = eqsmall; eq<= eqlarge; eq++) {
+        permutescatter[permutegather[eq]] = eq;
+    }
+}
 
 void TPZCompMesh::SaddlePermute()
+{
+    TPZVec<long> permutegather,permutescatter;
+    long numinternalconnects = NIndependentConnects();
+    permutegather.Resize(numinternalconnects,0);
+    permutescatter.Resize(numinternalconnects,0);
+    for (long i=0L; i<numinternalconnects; i++) {
+        permutegather[i] = i;
+        permutescatter[i] = i;
+    }
+    long nel = NElements();
+    for (long el = 0L; el<nel ; el++) {
+        TPZCompEl *cel = ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        if (nc == 0) {
+            continue;
+        }
+        TPZConnect &c0 = cel->Connect(0);
+        int minlagrange = c0.LagrangeMultiplier();
+        int maxlagrange = c0.LagrangeMultiplier();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if(c.HasDependency()) continue;
+            int lagrange = c.LagrangeMultiplier();
+            minlagrange = min(lagrange, minlagrange);
+            maxlagrange = max(lagrange,maxlagrange);
+        }
+        for (int lagr = minlagrange+1; lagr <= maxlagrange; lagr++) {
+            // put all connects after the connect largest seqnum and lower lagrange number
+            long maxseq = -1;
+            for (int ic=0; ic<nc ; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                long eq = permutegather[c.SequenceNumber()];
+                if (c.LagrangeMultiplier() < lagr && eq > maxseq) {
+                    maxseq = eq;
+                }
+            }
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                int eq = permutegather[c.SequenceNumber()];
+                if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
+                    // we have to switch
+                    switchEq(eq, maxseq, permutegather, permutescatter);
+                }
+            }
+#ifdef DEBUG
+            for (long i=0; i<numinternalconnects; i++) {
+                if (permutescatter[permutegather[i]] != i) {
+                    std::cout << "permutegather " << permutegather << std::endl;
+                    std::cout << "permutescatter " << permutescatter << std::endl;
+                    DebugStop();
+                }
+            }
+            // put all connects after the connect largest seqnum and lower lagrange number
+            maxseq = -1;
+            for (int ic=0; ic<nc ; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                long eq = permutegather[c.SequenceNumber()];
+                if (c.LagrangeMultiplier() < lagr && eq < maxseq) {
+                    maxseq = eq;
+                }
+            }
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                int eq = permutegather[c.SequenceNumber()];
+                if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
+                    // we have to switch
+                    DebugStop();
+                }
+            }
+#endif
+        }
+    }
+    Permute(permutescatter);
+#ifdef DEBUG
+    
+    for (long i=0L; i<numinternalconnects; i++) {
+        permutegather[i] = i;
+        permutescatter[i] = i;
+    }
+    for (long el = 0L; el<nel ; el++) {
+        TPZCompEl *cel = ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        if (nc == 0) {
+            continue;
+        }
+        TPZConnect &c0 = cel->Connect(0);
+        int minlagrange = c0.LagrangeMultiplier();
+        int maxlagrange = c0.LagrangeMultiplier();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if(c.HasDependency()) continue;
+            int lagrange = c.LagrangeMultiplier();
+            minlagrange = min(lagrange, minlagrange);
+            maxlagrange = max(lagrange,maxlagrange);
+        }
+        for (int lagr = minlagrange+1; lagr <= maxlagrange; lagr++) {
+            // put all connects after the connect largest seqnum and lower lagrange number
+            long maxseq = -1;
+            for (int ic=0; ic<nc ; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                long eq = permutegather[c.SequenceNumber()];
+                if (c.LagrangeMultiplier() < lagr && eq > maxseq) {
+                    maxseq = eq;
+                }
+            }
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                int eq = permutegather[c.SequenceNumber()];
+                if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
+                    // we have to switch
+                    DebugStop();
+                }
+            }
+        }
+    }
+
+#endif
+}
+
+void TPZCompMesh::SaddlePermute2()
 {
     TPZVec<long> permute;
     long numinternalconnects = NIndependentConnects();
