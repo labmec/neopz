@@ -83,6 +83,13 @@ REAL TPZBlendNACA::dyc(REAL x)
 REAL TPZBlendNACA::yt(REAL x)
 {
     REAL aux = x/fCord;
+    
+//    const REAL a0 = 0.2969,
+//    a1 = -0.1260,
+//    a2 = -0.3516,
+//    a3 = +0.2843,
+//    a4 = -0.1015;
+
     const REAL a0 =  1.4845,
 	a1 = -0.6300,
 	a2 = -1.7580,

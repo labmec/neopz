@@ -52,7 +52,6 @@ public:
 									  TPZVec<long>& nodeindexes,
 									  int matid,
 									  long& index);
-
 private:
 	
     REAL P();
