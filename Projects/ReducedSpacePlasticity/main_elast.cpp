@@ -55,11 +55,11 @@ int mainFrac(int argc, char *argv[])
   
   REAL Fx = 0.;
   REAL Fy = 0.;
-  REAL preStressXX = 0.; // era 50
+  REAL preStressXX = 0.; // era -50
   REAL preStressXY = 0.;
-  REAL preStressYY = 0.; // era 25 //(positivo : estado de compressao)
+  REAL preStressYY = -25.; // era 25 //(positivo : estado de compressao)
   
-  int NStripes = 2;
+  int NStripes = 1;
   REAL Visc = 5.e-8;//-2
   
   REAL SigN = 1.;
