@@ -126,6 +126,22 @@ public:
 	
 	// Here is needed to spefify which models are used in this bi-phasic model see Advanced-Petroleum-Reservoir-Simulation M. Rafiqul Islam
 	
+	/** @brief Characteristic length - m */
+	REAL fLref;	
+	
+	/** @brief Permeability reference - m2 */
+	REAL fKref;
+	
+	/** @brief Pressure reference - Pa */	
+	REAL fPref;
+	
+	/** @brief density reference - kg/m3 */
+	REAL fRhoref;
+	
+	/** @brief viscosity reference - Pa s */
+	REAL fEtaref;
+	
+	
 	/** @brief K map */	
 	TPZStack< TPZFMatrix<REAL> > fKabsoluteMap;	
 	
@@ -135,14 +151,17 @@ public:
 	/** @brief Simulation time step */
 	REAL fDeltaT;
 	
-	/** @brief Parameter representing temporal scheme */
-	REAL fTheta;	
+	/** @brief Parameter representing temporal scheme for transport equation */
+	REAL fTheta;
+	
+	/** @brief Parameter representing temporal scheme for conservation equation */
+	REAL fGamma;	
 	
 	/** @brief Defines simulation time step. */
 	void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}	
 	
-	/** @brief Defines simulation time step. */
-	void SetTheta(REAL timetheta){ this->fTheta = timetheta;}		
+	/** @brief Defines stemporal scheme. */
+	void SetTScheme(REAL timegamma, REAL timetheta){ this->fTheta = timetheta; this->fGamma = timegamma;}
 	
 	void SetLastState(){ gState = ELastState;}
 	
@@ -322,6 +341,21 @@ public:
 	
 	// Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
+
+	/** @brief Set characteristic length - m */
+	REAL SetLreference(REAL &Lref){ fLref = Lref;}
+	
+	/** @brief Set permeability reference - m2 */
+	REAL SetKreference(REAL &Kref){ fKref = Kref;}
+	
+	/** @brief Set pressure reference - Pa */
+	REAL SetPreference(REAL &Pref){ fPref = Pref;}	
+	
+	/** @brief Set density reference - kg/m3 */
+	REAL SetRhoSCreference(REAL &Densityref){ fRhoref = Densityref;}
+	
+	/** @brief Set viscosity reference - Pa s */
+	REAL SetEtaSCreference(REAL &Viscosityref){ fEtaref = Viscosityref;}
 	
 	/** @brief Oil density on standard conditions - kg/m3 */
 	REAL RhoOilSC();
