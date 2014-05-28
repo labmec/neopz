@@ -62,9 +62,11 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
 
     std::vector<std::pair<std::size_t, std::size_t> > edges;
     
-    if (fNNodes*fNNodes > edges.max_size())
+		size_t maxsize = 1000000;
+		
+    if (fNNodes*fNNodes > maxsize)
     {
-      edges.reserve(edges.max_size());
+      edges.reserve(maxsize);
     } else {
       edges.reserve(fNNodes*fNNodes);
     }

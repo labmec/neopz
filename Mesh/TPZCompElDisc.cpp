@@ -631,8 +631,11 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 		}//pyram
 	}//3d
 	
-	if(dimension == 1 && mat > 0){
-		new TPZGraphEl1dd(this,&grmesh);
+	if(dimension == 1 && this->NConnects() /* && mat > 0 */){
+		if(nsides == 3){
+		  new TPZGraphEl1dd(this,&grmesh);
+			return;
+		}
 	}//1d
 }
 

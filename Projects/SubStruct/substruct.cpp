@@ -91,8 +91,8 @@ int main1(int argc, char *argv[])
 	int maxlevel = 5;
 	int sublevel = 3;
 	int plevel = 1;
-	TPZPairStructMatrix::gNumThreads = 0;
-	int numthreads = 0;
+	TPZPairStructMatrix::gNumThreads = 4;
+	int numthreads = 4;
 	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
@@ -110,7 +110,7 @@ int main1(int argc, char *argv[])
 		else 
 		{
 			dim = 3;
-			if (0) // Predio Elastisco
+			if (1) // Predio Elastisco
 			{
 				gmesh = MalhaPredio();
 				cmesh = new TPZCompMesh(gmesh);
@@ -132,16 +132,16 @@ int main1(int argc, char *argv[])
 				cmesh->AutoBuild();
 			}
 		}
-		
+/*		
         {
             std::ofstream sout("cmesh_nw.txt");
             cmesh->Print(sout);
         }
-
+*/
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
-		int numthread_assemble = 0;
-		int numthread_decompose = 0;
+		int numthread_assemble = 4;
+		int numthread_decompose = 4;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
 		TPZDohrStructMatrix dohrstruct(cmeshauto);
 		
@@ -152,18 +152,20 @@ int main1(int argc, char *argv[])
 		//REAL height = Height(gmesh);
 		//int nsubstruct = SubStructure(cmesh, height/2);
 		
-		dohrstruct.SubStructure(4);
+		dohrstruct.SubStructure(8);
 		//	tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
 		//	std::cout << tempo.ft0sub << std::endl;
 		
 		//	sub.SubStructure();
 #ifdef LOG4CXX
+		if(logger->isDebugEnabled())
 		{
 			std::stringstream str;
 			cmesh->Print(str);
 			LOGPZ_DEBUG(logger,str.str());
 		}
 #endif
+/*
         {
             TPZFileStream CheckPoint1;
             CheckPoint1.OpenWrite("CheckPoint1.txt");
@@ -183,13 +185,14 @@ int main1(int argc, char *argv[])
             locdohrstruct.Read(CheckPoint1);
             
         }
-		
+*/		
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
 		TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
         TPZMatrix<STATE> *matptr = dohrstruct.Create();
+/*				
         {
             TPZFileStream CheckPoint2;
             CheckPoint2.OpenWrite("CheckPoint2.txt");
@@ -213,11 +216,13 @@ int main1(int argc, char *argv[])
             locdohrstruct.Read(CheckPoint2);
             
         }
+*/        
+        std::cout << "Assembling the substructures\n";
         dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
 
 		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
 		TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
-		
+/*		
         {
             TPZFileStream CheckPoint3;
             CheckPoint3.OpenWrite("CheckPoint3.txt");
@@ -243,7 +248,7 @@ int main1(int argc, char *argv[])
             TPZFMatrix<STATE> rhsloc;
             rhsloc.Read(CheckPoint3, 0);
         }
-        
+*/        
         int neq = dohr->Rows();
         
         
@@ -299,6 +304,7 @@ int main1(int argc, char *argv[])
 		}
 		
 #ifdef LOG4CXX
+		if(loggerconverge->isInfoEnabled())
 		{
 			std::stringstream sout;
 			diag.Print("Resultado do processo iterativo",sout);
@@ -976,11 +982,14 @@ int main2(int argc, char *argv[])
 #endif
 	
 #ifdef LOG4CXX
-	std::stringstream sout;
-	sout << "Three dimensional substructures, maxlevel " << maxlevel << " level of substructures " << sublevel << std::endl;
-	sout << "Number of substructures " << dohrptr2->SubStructures().size() << std::endl;
-	sout << "Interpolation order " << plevel;
-	LOGPZ_DEBUG(loggerconverge,sout.str());
+	if(loggerconverge->isDebugEnabled())
+	{
+			std::stringstream sout;
+			sout << "Three dimensional substructures, maxlevel " << maxlevel << " level of substructures " << sublevel << std::endl;
+			sout << "Number of substructures " << dohrptr2->SubStructures().size() << std::endl;
+			sout << "Interpolation order " << plevel;
+			LOGPZ_DEBUG(loggerconverge,sout.str());
+	}
 #endif
 	
 	
@@ -989,6 +998,7 @@ int main2(int argc, char *argv[])
 	
 	
 #ifdef LOG4CXX
+	if(loggerconverge->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Printing after creating the preconditioner\n";
@@ -1005,6 +1015,7 @@ int main2(int argc, char *argv[])
 	TPZFMatrix<STATE> diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
 	precondptr2->Multiply(diag,produto);
 #ifdef LOG4CXX
+	if(loggerconverge->isDebugEnabled())
 	{
 		std::stringstream sout;
 		produto.Print("O valor do produto", sout );
@@ -1014,6 +1025,7 @@ int main2(int argc, char *argv[])
 	
 	precondptr2->Multiply(diag,produto2);
 #ifdef LOG4CXX
+	if(loggerconverge->isDebugEnabled())
 	{
 		std::stringstream sout;
 		produto2.Print("O valor do produto2", sout );
@@ -1056,6 +1068,7 @@ int main2(int argc, char *argv[])
 	dohrptr2->AdjustResidual(produto);
 	
 #ifdef LOG4CXX
+	if(loggerconverge->isDebugEnabled())
 	{
 		std::stringstream sout;
 		produto.Print("O valor do produto", sout );

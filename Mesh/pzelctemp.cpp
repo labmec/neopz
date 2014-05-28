@@ -358,7 +358,7 @@ void TPZIntelGen<pzshape::TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &g
 
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-	if(dimension == TSHAPE::Dimension && Material()->Id() > 0) {
+	if(dimension == TSHAPE::Dimension /* && Material()->Id() > 0 */) {
 		new typename TSHAPE::GraphElType(this,&grafgrid);
 	}
 }

@@ -1554,6 +1554,8 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 		gel->X(qsi,data.XCenter);
 	}
 	
+	data.gelElId = elem->Reference()->Id();
+	
 }//void
 
 
