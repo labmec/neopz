@@ -44,7 +44,7 @@ int mainFrac(int argc, char *argv[])
   int ndivH = 25; // division in y for PGmesh
   REAL q = 1.01; // PG order
   
-  REAL Lmax_edge = 0.1;
+  REAL Lmax_edge = 0.2;
   REAL Young1 = 25.e3;//9
   REAL Poiss1 = 0.2;
   

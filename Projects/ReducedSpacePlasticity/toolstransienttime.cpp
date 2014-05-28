@@ -213,11 +213,12 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 	
 	fmeshvec[0]->Solution()(0,0) = 1.; // porque o multiplicador da solucao com neumann zero eh sempre 1
 		
-	bool SeeSol = false;
+	bool SeeSol = true;
 	if (SeeSol) {
-		fmeshvec[0]->Solution()(1,0) = 26.;
+    fmeshvec[0]->Solution()(0,0) = 0.;
+		fmeshvec[0]->Solution()(2,0) = 10.;
+    fmeshvec[0]->Solution().Print("Solu");
 		TPZMaterial * mat = fmeshvec[0]->FindMaterial(globReservMatId1);
-		int nstate = mat->NStateVariables();
 		TPZManVector<std::string> scalnames(2),vecnames(1);
 		scalnames[0]= "SigmaX";            
 		scalnames[1]= "SigmaY";    
@@ -233,7 +234,10 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 		int istep = 0;
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
-	}	
+    fmeshvec[0]->Solution()(0,0) = 1.;
+		fmeshvec[0]->Solution()(2,0) = 0.;
+	}
+  
 }
 
 TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
@@ -262,6 +266,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 		an->PostProcess(0);		
 	}
   
+  // colocando as solucoes com as stripes
   int NStripes = globFractInputData.NStripes();
   for(int stripe = 0; stripe < NStripes; stripe++)
   {
@@ -277,6 +282,40 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
     {
       solutions(r,stripe+1) = cmesh_elast->Solution()(r,0) - solutions(r,0);
     }
+  }
+  
+  // colocando as funcoes hat
+  int nhat = globNHat;
+  int porder = fpOrder;
+  int oldsz = solutions.Cols();
+  solutions.Resize(solutions.Rows(), oldsz+nhat);
+  int dirid = globDirichletRecElastMatId1Cohe;
+  bool IWantToSeeHat = true;
+  for (int ihat = 0; ihat < nhat; ihat++) {
+    TPZCompMesh *cmesh_hat = CMeshHat(dirid, porder);
+    an->SetCompMesh(cmesh_hat, false);
+    this->SolveInitialElasticity(*an, cmesh_hat);
+    if (IWantToSeeHat) {
+      TPZStack<std::string> scalnames,vecnames;
+      vecnames.Push("Displacement");
+      scalnames.Push("SigmaX");
+      scalnames.Push("SigmaY");
+      std::string filename = "ElasticUncoupledSolutions.vtk";
+      int dim = 2;
+      an->DefineGraphMesh(dim, scalnames, vecnames, filename);
+      an->SetStep(NStripes+1+ihat);
+      an->PostProcess(0);
+    }
+    int rowshat = cmesh_hat->Solution().Rows();
+    if (rowshat != solutions.Rows()) {
+      DebugStop(); //they have to be equal
+    }
+    for(int r = 0; r < rowshat; r++)
+    {
+      solutions(r,oldsz+ihat) = cmesh_hat->Solution()(r,0);// - solutions(r,0);
+    }
+    
+    dirid-=2;
   }
   cmesh_elast->LoadSolution(solutions);
 	 
