@@ -26,15 +26,11 @@
 
 #include "TSWXGraphMesh.h"
 #include "TSWXGraphElement.h"
-
-//Utilize 1. para output (Mathematica) em metros e 3.280829131 para output (Mathematica) em foot
-const REAL feet = 1.;//3.280829131;
-
-//Inicializando vetor de cores
-const std::string TPZPlaneFractureKernel::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
+#include "pzvtkmesh.h"
 
 
-TPZPlaneFractureKernel::TPZPlaneFractureKernel() : actColor(0)
+
+TPZPlaneFractureKernel::TPZPlaneFractureKernel()
 {
     DebugStop();//Use constructor below;
 }
@@ -43,9 +39,8 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel() : actColor(0)
 TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                                                REAL xLength, REAL yLength, REAL Lmax, REAL Qinj_well, REAL visc,
                                                REAL Jradius,
-                                               int pOrder,
                                                REAL MaxDispl,
-                                               bool pressureIndependent) : actColor(0)
+                                               bool pressureIndependent)
 {
     if(Jradius > 0.7 * Lmax)
     {
@@ -75,15 +70,13 @@ TPZPlaneFractureKernel::TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVe
         globFractOutput3DData.SetQinj1wing(-Qinj1wing);
     }
     
-    this->fQinj1wing = Qinj1wing;
+    this->fQinj1wing_Hbullet = Qinj1wing/this->fHbullet;
     
     this->fCenterTVD = (bulletTVDIni + bulletTVDFin)/2.;
     
     this->fvisc = visc;
     
     this->fJIntegralRadius = Jradius;
-    
-    this->fpOrder = pOrder;
     
     this->fMaxDispl = MaxDispl;
     
@@ -145,9 +138,7 @@ void TPZPlaneFractureKernel::Run()
         
         globTimeControl.RestartBissection();
     }
-    
-    std::ofstream outMath("GlobalProstProcess.txt");
-    globFractOutput3DData.PrintMathematica(outMath);
+    std::cout << "\n\n\n\n\n********** THE END **********\n\n\n";
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -194,20 +185,19 @@ void TPZPlaneFractureKernel::InitializeMeshes(TPZCompMesh * lastElastCMesh)
     std::cout << "\n************** GERANDO MALHAS COMPUTACIONAIS\n";
     
     //Malha computacional elastica, processada com newman aplicado em toda a fratura e por faixas
-    TPZCompMesh * fractureCMeshRef = this->fPlaneFractureMesh->GetFractureCompMesh(this->fpOrder);
+    TPZCompMesh * fractureCMeshRef = this->fPlaneFractureMesh->GetFractureCompMesh();
     this->ProcessLinearElasticCMesh(fractureCMeshRef);
     
     //Malha computacional do tipo CMeshReferred
-    this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef, this->fpOrder);
+    this->fmeshVec[0] = this->fPlaneFractureMesh->GetFractureCompMeshReferred(fractureCMeshRef);
     
     //Malha computacional de pressao
-    this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh(this->fpOrder);
+    this->fmeshVec[1] = this->fPlaneFractureMesh->GetPressureCompMesh();
     
     //Malha computacional de acoplamento (multifisica)
     this->fmphysics = this->fPlaneFractureMesh->GetMultiPhysicsCompMesh(this->fmeshVec, lastElastCMesh,
-                                                                        this->fQinj1wing,
-                                                                        this->fvisc,
-                                                                        this->fpOrder);
+                                                                        this->fQinj1wing_Hbullet,
+                                                                        this->fvisc);
     
     this->ApplyInitialCondition(2.*globLayerStruct.GetHigherPreStress());
     
@@ -224,6 +214,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
         int neq = cmesh->NEquations();
         std::cout << "\nNequacoes elastica 3D = " << neq << "\n";
     }
+    
     TPZAnalysis * an = new TPZAnalysis(cmesh, true);
 
     TPZSkylineStructMatrix skyl(cmesh); //caso simetrico
@@ -289,7 +280,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
 }
 //------------------------------------------------------------------------------------------------------------
 
-#define NStripes
+
 void TPZPlaneFractureKernel::RunThisFractureGeometry()
 {
     globFractOutput3DData.fKI_KI_history << "STEP " << this->fstep << ":\n";
@@ -335,10 +326,10 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         " : actDeltaT = " << globTimeControl.actDeltaT() << "s " <<
         " : dtRight = " << globTimeControl.RightDeltaT() << "s\n";
         
-        //Calculo da matriz de massa para o deltaT atual
         this->MassMatrix(matMass);
         
-        EWhoBlock whoBlock = EBlockStripes;
+        EWhoBlock whoBlock = EBlockStripes;//set what degree of freedom is locked on equation filter
+        
         this->AssembleStiffMatrixLoadVec(an, matK, matRes_partial, whoBlock);
         
         matRes_total = matRes_partial + matMass;
@@ -346,10 +337,12 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         ///Metodo de Newton
         std::cout << "\n-> Método de Newton\n";
         
+        int stripeStepStart = 1E10;//set what stripe will include ntripes and net pressure verification
+        
         REAL normRes = 1.;
         REAL stripeTol = 1.E-2;
         REAL tolRes = 1.E-3;
-        int maxit = 10;
+        int maxit = 20;
         int nit = 0;
         while(normRes > tolRes && nit < maxit)
         {
@@ -379,8 +372,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
             
             normRes = Norm(matRes_total);
 
-#ifdef NStripes
-            if(normRes <= stripeTol && whoBlock == EBlockStripes)
+            if((this->fstep >= stripeStepStart) && (normRes <= stripeTol && whoBlock == EBlockStripes))
             {
                 maxit = 10;
                 nit = 0;
@@ -392,16 +384,11 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
                 normRes = 1.;
             }
             else
-#endif
             {
                 std::cout << "normRes = " << normRes << std::endl;
                 nit++;
             }
         }///end of Newton
-        TPZCompMeshReferred * cmref = dynamic_cast<TPZCompMeshReferred*>(this->fmeshVec[0]);
-        this->fPath3D.SetElastCMesh(cmref);
-        this->fPath3D.SetFluidCMesh(this->fmeshVec[1]);
-
         if(normRes > tolRes)
         {
             globTimeControl.TimeisOnLeft();
@@ -421,6 +408,7 @@ void TPZPlaneFractureKernel::RunThisFractureGeometry()
         else
         {
             bool thereIsnegNetPress = this->ThereIsNegativeNetPressure();
+            
             bool thereIsNegW;
             REAL negVol = 0.;
             this->IntegrateW(thereIsNegW, negVol);
@@ -584,7 +572,7 @@ void TPZPlaneFractureKernel::InitializePath3DVector()
         REAL KIc = 0.;
         this->fPlaneFractureMesh->GetKIc_FromLayerOfThisZcoord(zCoord, KIc);
 
-        this->fPath3D.PushBackPath3D( new Path3D(center, KIc, normal, this->fJIntegralRadius) );
+        this->fPath3D.PushBackPath3D( new Path3D(center, KIc, normal, this->fJIntegralRadius, this->fmeshVec[0], this->fmeshVec[1]) );
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -886,10 +874,14 @@ void TPZPlaneFractureKernel::PostProcessAll()
     
     this->PostProcessSolutions();
     this->PostProcessAcumVolW();
+    
     this->PostProcessLeakoff();
     this->PostProcessElasticity();
+    //this->PostProcessInvariants();
     this->PostProcessPressure();
-    this->PostProcessFractGeometry();
+    
+    this->PostProcessOutputData();
+    
     std::cout << "Tempo atual desta geometria = " << globTimeControl.actTime()/60. << " minuto(s)\n\n";
 }
 //------------------------------------------------------------------------------------------------------------
@@ -924,10 +916,7 @@ void TPZPlaneFractureKernel::PostProcessAcumVolW()
     bool thereIsNegW;
     REAL negVol = 0.;
     REAL wAcum = this->IntegrateW(thereIsNegW, negVol);
-    globFractOutput3DData.InsertTAcumVolW(globTimeControl.actTime(), wAcum);
-    
-    std::cout.precision(10);
-    std::cout << "wAcum = " << wAcum << ";\n";
+    globFractOutput3DData.InsertTAcumVolW(globTimeControl.actTime()/60., wAcum);
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -939,7 +928,7 @@ void TPZPlaneFractureKernel::PostProcessLeakoff(int num)
     }
     REAL leakAcum = this->ComputeVlAcumLeakoff(this->fmeshVec[1]);
     
-    globFractOutput3DData.InsertTAcumVolLeakoff(globTimeControl.actTime(), leakAcum);
+    globFractOutput3DData.InsertTAcumVolLeakoff(globTimeControl.actTime()/60., leakAcum);
     
     {
         std::map<int,REAL>::iterator it;
@@ -963,14 +952,8 @@ void TPZPlaneFractureKernel::PostProcessLeakoff(int num)
         std::stringstream nm;
         nm << "LeakoffPenetration_Step" << num << ".vtk";
         std::ofstream file(nm.str().c_str());
-        TPZVTKGeoMesh::PrintCMeshVTK(this->fmeshVec[1], file, penetrationValues);
+        TPZVTKGeoMesh::PrintCMeshVTK(this->fmeshVec[1], file, penetrationValues, "PenetrationLength");
     }
-    
-    std::cout.precision(10);
-    std::cout << "leakAcum = " << leakAcum << ";\n";
-    std::cout << "VlInjected = " << ComputeVolInjected() << ";\n";
-    std::cout << "wAcum+leakAcum\n";
-    std::cout << "Eficiencia = wAcum/VlInjected\n";
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -995,6 +978,36 @@ void TPZPlaneFractureKernel::PostProcessElasticity(int num)
 }
 //------------------------------------------------------------------------------------------------------------
 
+void TPZPlaneFractureKernel::PostProcessInvariants(int num)
+{
+    if(num < 0)
+    {
+        num = this->fstep;
+    }
+    
+    TPZMaterial * mat = this->fmeshVec[0]->FindMaterial(globMaterialIdGen.RockMatId(1));
+
+    TPZManVector<std::string> scalnames(3), vecnames(0);
+    scalnames[0] = "I1";
+    scalnames[1] = "I2";
+    scalnames[2] = "I3";
+
+    std::stringstream nm;
+    nm << "Invariants_Step" << num << ".vtk";
+
+    int dim = 3;
+    TPZVTKGraphMesh vtkmesh(this->fmeshVec[0],dim,mat,scalnames,vecnames);
+    vtkmesh.SetFileName(nm.str());
+    vtkmesh.SetResolution(0);
+    int numcases = 1;
+
+    // Iteracoes de tempo
+    int istep = 0;
+    vtkmesh.DrawMesh(numcases);
+    vtkmesh.DrawSolution(istep, 1.);
+}
+//------------------------------------------------------------------------------------------------------------
+
 void TPZPlaneFractureKernel::PostProcessPressure(int num)
 {
     if(num < 0)
@@ -1011,84 +1024,44 @@ void TPZPlaneFractureKernel::PostProcessPressure(int num)
     nm << "Pressure_Step" << num << ".vtk";
     std::ofstream file(nm.str().c_str());
     grMesh.ToParaview(file);
+    
+    {
+        REAL integralP = 0.;
+        for(int c = 0; c < this->fmeshVec[1]->NElements(); c++)
+        {
+            TPZCompEl * cel = this->fmeshVec[1]->ElementVec()[c];
+            if(!cel || globMaterialIdGen.IsInsideFractMat(cel->Reference()->MaterialId()) == false)
+            {
+                continue;
+            }
+            TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace*>(cel);
+            if(!intel)
+            {
+                DebugStop();
+            }
+            TPZVec<REAL> value;
+            intel->Integrate(0, value);
+            
+            integralP += value[0];
+        }
+        
+        REAL fractA = this->Fracture1wing_Area();
+        REAL pmedTot = integralP/fractA;
+        REAL netpressure = pmedTot - globLayerStruct.GetLowerPreStress();
+        
+        globFractOutput3DData.InsertTNetPressure(globTimeControl.actTime()/60., netpressure);
+    }
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFractureKernel::PostProcessFractGeometry(int num)
+void TPZPlaneFractureKernel::PostProcessOutputData(int num)
 {
     if(num < 0)
     {
         num = this->fstep;
     }
-    REAL Lfrac = 0;
-    REAL Hsup = 0.;
-    REAL Hinf = 0.;
-    
-    for(int p = 0; p < fpoligonalChain.NElements(); p++)
-    {
-        REAL x = fpoligonalChain[p].first;
-        REAL z = fpoligonalChain[p].second + fCenterTVD;
-        
-        Lfrac = MAX(Lfrac,x);
-        Hsup  = MAX(Hsup,z);
-        Hinf  = MIN(Hinf,z);
-    }
-    
-    globFractOutput3DData.InsertTL(globTimeControl.actTime(), Lfrac);
-    globFractOutput3DData.InsertTHsup(globTimeControl.actTime(), Hsup);
-    globFractOutput3DData.InsertTHinf(globTimeControl.actTime(), Hinf);
-    
-    {   //Output
-        std::ofstream outF("000FractContours.txt");
-        {   //Preamble for PostProcessFractGeometry method
-            outF << "(* colors = {Red,Green,Blue,Black,Gray,Cyan,Magenta,Yellow,Brown,Orange,Pink,Purple} *)\n";
-            outF << "AllPolChains={};\n";
-            outF << "Lgr={};\n";
-            outF << "Hsupgr={};\n";
-            outF << "Hinfgr={};\n\n";
-        }
-        
-        std::stringstream nmMath, nmAux;
-        nmAux << "pcm={";
-        
-        for(int p = 0; p < fpoligonalChain.NElements(); p++)
-        {
-            globFractOutput3DData.fFractContour << "fractureDots" << p << " = {" << feet * fpoligonalChain[p].first << ","
-                                                          << feet * fpoligonalChain[p].second + fCenterTVD << "};\n";
-            nmAux << "fractureDots" << p;
-            if(p < fpoligonalChain.NElements()-1)
-            {
-                nmAux << ",";
-            }
-        }
-        nmAux << "};\n";
-        nmAux << "gr" << num << "=ListPlot[pcm,Joined->True,AxesOrigin->{0,0},AspectRatio->1,PlotStyle->" << color[actColor%12] << ",AxesLabel->{\"L (m)\", \"H (m)\"}];\n";
-        nmAux << "L" << num << "=Max[Transpose[pcm][[1]]];\n";
-        nmAux << "Hsup" << num << "=Max[Transpose[pcm][[2]]];\n";
-        nmAux << "Hinf" << num << "=-Min[Transpose[pcm][[2]]];\n";
-        nmAux << "AppendTo[AllPolChains,gr" << num << "];\n";
-        nmAux << "AppendTo[Lgr,{" << globTimeControl.actTime()/60. << ",L" << num << "}];\n";
-        nmAux << "AppendTo[Hsupgr,{" << globTimeControl.actTime()/60. << ",Hsup" << num << "}];\n";
-        nmAux << "AppendTo[Hinfgr,{" << globTimeControl.actTime()/60. << ",Hinf" << num << "}];\n";
-        nmAux << "Print[\"time" << num << " = " << globTimeControl.actTime()/60. << " min\"]\n";
-        nmAux << "Print[\"L" << num << " = \", L" << num << "]\n";
-        nmAux << "Print[\"Hsup" << num << " = \", Hsup" << num << "]\n";
-        nmAux << "Print[\"Hinf" << num << " = \", Hinf" << num << "]\n";
-        nmAux << "Print[\"\"]\n\n";
-        globFractOutput3DData.fFractContour << nmAux.str();
-        actColor++;
-        
-        outF << globFractOutput3DData.fFractContour.str();
-        
-        outF << "grRange=Max[Max[Transpose[Lgr][[2]]],Max[Transpose[Hsupgr][[2]]],Max[Transpose[Hinfgr][[2]]]]+1;\n";
-        outF << "Show[AllPolChains,PlotRange->{{0,2*grRange},{-grRange,grRange}}]\n";
-        outF << "l={ListPlot[Lgr,AxesOrigin->{0,0},Filling->Axis,AxesLabel->{\"Time (min)\", \"L (green), Hsup (blue), Hinf (red) (m)\"}],";
-        outF << "ListPlot[Lgr,Joined->True,AxesOrigin->{0,0},PlotStyle->Green]};\n";
-        outF << "hs={ListPlot[Hsupgr,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hsupgr,Joined->True]};\n";
-        outF << "hi={ListPlot[Hinfgr,PlotStyle->Red,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hinfgr,Joined->True,PlotStyle->Red]};\n";
-        outF << "Show[l,hs,hi,PlotRange->All]\n";
-        outF.close();
-    }
+    globFractOutput3DData.PrintFractureGeometry(num, this->fpoligonalChain, this->fCenterTVD);
+    globFractOutput3DData.PrintConservationMass();
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1119,12 +1092,6 @@ REAL TPZPlaneFractureKernel::IntegrateW(bool & thereIsNegW, REAL & negVol)
         TPZVec<REAL> value;
         intel->Integrate(0, value);
         
-#ifdef DEBUG
-        if(value.NElements() != 3)
-        {
-            DebugStop();
-        }
-#endif
         if(value[1] < 0.)
         {
             thereIsNegW = true;
@@ -1231,7 +1198,8 @@ REAL TPZPlaneFractureKernel::ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh)
 REAL TPZPlaneFractureKernel::ComputeVolInjected()
 {
     REAL actTime = globTimeControl.actTime();
-    REAL Qinj1wing = -(this->fQinj1wing);
+    REAL Qinj1wing_Hbullet = -(this->fQinj1wing_Hbullet);
+    REAL Qinj1wing = Qinj1wing_Hbullet * this->fHbullet;
     
     REAL volInjected = actTime * Qinj1wing;
     
@@ -1317,14 +1285,12 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
             TPZVec<REAL> Jdirection = this->fPath3D.Path(p)->JDirection();
             
             //Variacao linear no decorrer do tempo de fMaxDispl para fMinDispl
-            REAL alpha = 2.;//alphaMin = [1.0~2.0]
+            REAL alpha = 2.;//alphaMin = 1.0
             REAL displacement = this->fMaxDispl * pow((KI/KIc)/(maxKI_KIc),alpha);
             
             newX = originVec[0] + displacement * Jdirection[0];
             newZ = originVec[2] + displacement * Jdirection[2];
-        }
-        //if(newX >= fLmax/2.) //AQUICAJU : protecao para evitar que o raio da integral J ocasione pontos fora do dominio
-        {
+
             int oldSize = newPoligonalChain.NElements();
             newPoligonalChain.Resize(oldSize+1);
             newPoligonalChain[oldSize] = std::make_pair(newX,newZ);
@@ -1368,27 +1334,18 @@ void TPZPlaneFractureKernel::DefinePropagatedPoligonalChain(REAL & maxKI_KIc, st
         {
             std::cout << "\n\nPoligonal chain reach the top limit of available domain!\n";
             std::cout << "Simulation should stop!\n\n";
-            
-            std::ofstream outMath("GlobalProstProcess.txt");
-            globFractOutput3DData.PrintMathematica(outMath);
             DebugStop();
         }
         if(z < this->fResBottom + tol)
         {
             std::cout << "\n\nPoligonal chain reach the bottom limit of available domain!\n";
             std::cout << "Simulation should stop!\n\n";
-            
-            std::ofstream outMath("GlobalProstProcess.txt");
-            globFractOutput3DData.PrintMathematica(outMath);
             DebugStop();
         }
         if(x > this->fResRight - tol)
         {
             std::cout << "\n\nPoligonal chain reach the right limit of available domain!\n";
             std::cout << "Simulation should stop!\n\n";
-            
-            std::ofstream outMath("GlobalProstProcess.txt");
-            globFractOutput3DData.PrintMathematica(outMath);
             DebugStop();
         }
     }

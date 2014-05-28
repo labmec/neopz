@@ -15,6 +15,7 @@
 #include "TPZJIntegral.h"
 #include "pzanalysis.h"
 
+
 enum EWhoBlock {ENoBlock, EAllBlock, EBlockEntireFracure, EBlockStripes};
 
 class TPZPlaneFractureKernel
@@ -43,7 +44,6 @@ public:
     TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                            REAL xLength, REAL yLength, REAL Lmax, REAL Qinj_well, REAL visc,
                            REAL Jradius,
-                           int porder,
                            REAL MaxDispl,
                            bool pressureIndependent);
     
@@ -117,12 +117,15 @@ protected:
     
     /** Generate vtk for displacement post process */
     void PostProcessElasticity(int num = -1);
+    
+    /** Generate vtk for stress tensor invariants post process */
+    void PostProcessInvariants(int num = -1);
 
     /** Generate vtk for pressure post process */
     void PostProcessPressure(int num = -1);
     
     /** Insert on globFractOutput3DData the actual Lfrac, Hsup and Hinf */
-    void PostProcessFractGeometry(int num = -1);
+    void PostProcessOutputData(int num = -1);
     
     bool ThereIsNegativeNetPressure();
     
@@ -178,21 +181,19 @@ protected:
     
     REAL fLmax;
     REAL fHbullet;
-    REAL fQinj1wing;
+    REAL fQinj1wing_Hbullet;
     REAL fCenterTVD;
     REAL fJIntegralRadius;
     REAL fvisc;
-    int fpOrder;
     
     REAL fResTop, fResBottom, fResRight;//Limits of reservoir domain in z and x
     
     REAL fMaxDispl;
     
     JIntegral3D fPath3D;
-    
-    int actColor;
-    static const std::string color[];
 };
+
+
 
 class BezierCurve
 {

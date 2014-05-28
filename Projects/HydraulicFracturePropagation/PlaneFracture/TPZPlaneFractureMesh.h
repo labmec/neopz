@@ -163,16 +163,16 @@ class TPZPlaneFractureMesh
 	 */
 	void InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL> > &poligonalChain);
     
-    TPZCompMesh * GetFractureCompMesh(int porder);
+    TPZCompMesh * GetFractureCompMesh();
     
     void IncreasePOrderOnFracture(TPZCompMesh * cmesh, int oldPorder);
     
-    TPZCompMeshReferred * GetFractureCompMeshReferred(TPZCompMesh * cmeshRef, int porder);
+    TPZCompMeshReferred * GetFractureCompMeshReferred(TPZCompMesh * cmeshRef);
     
-    TPZCompMesh * GetPressureCompMesh(int porder);
+    TPZCompMesh * GetPressureCompMesh();
     
     TPZCompMesh * GetMultiPhysicsCompMesh(TPZVec<TPZCompMesh *> & meshvec, TPZCompMesh * lastElastCMesh,
-                                          REAL Qinj, REAL visc, int porder);
+                                          REAL Qinj1wing_Hbullet, REAL visc);
     
     void SetNewmanOnEntireFracture(TPZCompMesh * cmeshref);
     void SetNewmanOnThisStripe(TPZCompMesh * cmeshref, int actStripe);
@@ -192,6 +192,11 @@ class TPZPlaneFractureMesh
     bool GeoElementIsOnPreservedMesh(TPZGeoEl * gel);
     
     TPZGeoEl * Find2DElementNearCrackTip(int posCrackTip, TPZVec<REAL> & x);
+    
+    REAL Lfrac()
+    {
+        return this->fLfrac;
+    }
     
 protected:
     

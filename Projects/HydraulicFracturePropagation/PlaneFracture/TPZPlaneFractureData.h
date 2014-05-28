@@ -324,9 +324,9 @@ public:
     
     int InsideFractMatId(int layer, int stripe)
     {
-        if(stripe < 0 || stripe > 9)
+        if(stripe < 0 || stripe > 2009)
         {
-            //Soh pode ter 10 faixas de pressao (de 0 a 9)
+            std::cout << "\n\n\nA faixa máxima é 2009, e foi solicitado faixa " << stripe << " no gerador de materialId\n\n\n";
             DebugStop();
         }
         
@@ -335,37 +335,37 @@ public:
     
     int OutSideFractMatId(int layer)
     {
-        return -(RockMatId(layer) + 2000);
+        return -(RockMatId(layer) + 3000);
     }
     
     int FarfieldMatId(int layer)
     {
-        return -(RockMatId(layer) + 3000);
+        return -(RockMatId(layer) + 4000);
     }
     
     int LeftMatId(int layer)
     {
-        return -(RockMatId(layer) + 4000);
+        return -(RockMatId(layer) + 5000);
     }
     
     int RightMatId(int layer)
     {
-        return -(RockMatId(layer) + 5000);
+        return -(RockMatId(layer) + 6000);
     }
     
     int TopMatId()
     {
-        return -6010;
+        return -7010;
     }
     
     int BottomMatId()
     {
-        return -7010;
+        return -8010;
     }
     
     bool IsInsideFractMat(int matId)
     {
-        if(matId <= -1010 && matId >= -2009)
+        if(matId <= -1010 && matId >= -3009)
         {
             return true;
         }
@@ -391,7 +391,7 @@ public:
     
     bool IsOutsideFractMat(int matId)
     {
-        if(matId <= -2010 && matId >= -3000)
+        if(matId <= -3010 && matId >= -4000)
         {
             return true;
         }
@@ -403,7 +403,7 @@ public:
     
     bool IsBoundaryMaterial(int matId)
     {
-        if(matId <= -3010 && matId >= -7010)
+        if(matId <= -4010 && matId >= -8010)
         {//is 2D BC between: left, right, farfield, top or bottom
             return true;
         }
@@ -671,11 +671,12 @@ public:
     int NTimes();
     void InsertTAcumVolW(REAL time, REAL vol);
     void InsertTAcumVolLeakoff(REAL time, REAL vol);
-    void InsertTL(REAL time, REAL L);
-    void InsertTHsup(REAL time, REAL Hsup);
-    void InsertTHinf(REAL time, REAL Hinf);
+    void InsertTNetPressure(REAL time, REAL netpressure);
 
-    void PrintMathematica(std::ofstream & outf);
+    void PrintConservationMass();
+    void PrintFractureGeometry(int num,
+                               TPZVec< std::pair<REAL,REAL> > & poligonalChain,
+                               REAL CenterTVD);
         
     REAL fQinj1wing;
     
@@ -685,9 +686,10 @@ public:
     
     std::map<REAL,REAL> fTAcumVolW;
     std::map<REAL,REAL> fTAcumVolLeakoff;
-    std::map<REAL,REAL> fTL;
-    std::map<REAL,REAL> fTHsup;
-    std::map<REAL,REAL> fTHinf;
+    std::map<REAL,REAL> fTNetPressure;
+    
+    int actColor;
+    static const std::string color[];
 };
 
 

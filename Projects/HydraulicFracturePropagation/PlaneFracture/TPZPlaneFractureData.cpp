@@ -257,21 +257,20 @@ void LeakoffStorage::Printleakoff(std::ofstream & outf)
 
 
 //------------------------------------------------------------
-Output3DDataStruct::Output3DDataStruct()
+
+//Inicializando vetor de cores
+const std::string Output3DDataStruct::color[12] = {"Red","Green","Blue","Black","Gray","Cyan","Magenta","Yellow","Brown","Orange","Pink","Purple"};
+
+Output3DDataStruct::Output3DDataStruct() : actColor(0)
 {
     fQinj1wing = 0.;
     fTAcumVolW.clear();
     fTAcumVolLeakoff.clear();
-    fTL.clear();
-    fTHsup.clear();
-    fTHinf.clear();
     fFractContour.clear();
+    fTNetPressure.clear();
     
     InsertTAcumVolW(0.,0.);
     InsertTAcumVolLeakoff(0,0.);
-    InsertTL(0.,0.);
-    InsertTHsup(0.,0.);
-    InsertTHinf(0.,0.);
 }
 
 void Output3DDataStruct::SetQinj1wing(REAL Qinj1wing)
@@ -283,9 +282,7 @@ Output3DDataStruct::~Output3DDataStruct()
 {
     fTAcumVolW.clear();
     fTAcumVolLeakoff.clear();
-    fTL.clear();
-    fTHsup.clear();
-    fTHinf.clear();
+    fTNetPressure.clear();
 }
 
 int Output3DDataStruct::NTimes()
@@ -304,35 +301,20 @@ void Output3DDataStruct::InsertTAcumVolLeakoff(REAL time, REAL vol)
     fTAcumVolLeakoff[time] = vol;
 }
 
-void Output3DDataStruct::InsertTL(REAL time, REAL L)
+void Output3DDataStruct::InsertTNetPressure(REAL time, REAL netpressure)
 {
-    fTL[time] = L;
+    fTNetPressure[time] = netpressure;
 }
 
-void Output3DDataStruct::InsertTHsup(REAL time, REAL Hsup)
+void Output3DDataStruct::PrintConservationMass()
 {
-    fTHsup[time] = Hsup;
-}
-
-void Output3DDataStruct::InsertTHinf(REAL time, REAL Hinf)
-{
-    fTHinf[time] = Hinf;
-}
-
-void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
-{
-#ifdef DEBUG
-    if(fTAcumVolW.size() == 0 || fTAcumVolLeakoff.size() == 0)
-    {
-        DebugStop();
-    }
-#endif
+    std::ofstream outf("000ConservationMass.txt");
     
     std::map<REAL,REAL>::iterator itTAcumVolW, itTAcumVolWLast = fTAcumVolW.end();
     itTAcumVolWLast--;
     
-    outf << "(* Output Fracture Propagation 1D *)\n";
-    outf << "Caju2013;\n\n";
+    outf << "(* Output Fracture Propagation 1D *)\n\n";
+    
     outf << "ntimes=" << NTimes() << ";\n";
     outf << "times={";
     for(itTAcumVolW = fTAcumVolW.begin(); itTAcumVolW != fTAcumVolW.end(); itTAcumVolW++)
@@ -374,77 +356,101 @@ void Output3DDataStruct::PrintMathematica(std::ofstream & outf)
     outf << "};\n\n";
     
     outf << "(* Qinj 1 wing *)\n";
-    outf << "Qinj1wing=" << fQinj1wing << ";\n";
+    outf << "Qinj1wing=" << fQinj1wing << "*60;\n";
     
     outf << "maxinj = Qinj1wing*times[[ntimes]];\n";
-    outf << "GrD = Plot[Qinj1wing*t, {t, 0, times[[ntimes]]},PlotLabel -> \"Graphic D: Time x Volume Injected\",AxesLabel -> {\"time (s)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    outf << "GrD = Plot[Qinj1wing*t, {t, 0, times[[ntimes]]},PlotLabel -> \"Graphic D: Time x Volume Injected\",AxesLabel -> {\"time (min)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
     
-    outf << "GrE = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic E: Time x Fracture Volume\",AxesLabel -> {\"time (s)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    outf << "GrE = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic E: Time x Fracture Volume\",AxesLabel -> {\"time (min)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
     
-    outf << "GrF = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic F: Time x Leakoff volume\",AxesLabel -> {\"time (s)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+    outf << "GrF = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic F: Time x Leakoff volume\",AxesLabel -> {\"time (min)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
     
     outf << "WplusLeakoff = {};\n";
     outf << "For[tt = 1, tt <= ntimes,\n";
     outf << "AppendTo[WplusLeakoff, {times[[tt]], TvsVolW[[tt, 2]] + TvsVolLeakoff[[tt, 2]]}];\n";
     outf << "tt++;\n";
     outf << "];\n";
-    outf << "GrG = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic G: Grahics (E+F)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
-    outf << "Show[GrD, GrE, GrF, GrG, PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n\n\n";
+    outf << "GrG = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic G: Grahics (E+F)\",AxesLabel -> {\"time (min)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
+    outf << "Show[GrD, GrF, GrE, GrG, PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n\n\n";
     
-    //--------------------------
     
-    std::map<REAL,REAL>::iterator itT, itTlast = fTL.end();
-    itTlast--;
+    std::map<REAL,REAL>::iterator itTNetPress, itTNetPressLast = fTNetPressure.end();
+    itTNetPressLast--;
     
-    outf << "(* time x Max Lfrac *)\n";
-    outf << "TvsLfracmax={";
-    for(itT = fTL.begin(); itT != fTL.end(); itT++)
+    outf << "(* time x NetPressure *)\n";
+    outf << "TvsNetPressure={";
+    for(itTNetPress = fTNetPressure.begin(); itTNetPress != fTNetPressure.end(); itTNetPress++)
     {
-        outf << "{" << itT->first << "," << itT->second << "}";
-        if(itT != itTlast)
+        outf << "{" << itTNetPress->first << "," << itTNetPress->second << "}";
+        if(itTNetPress != itTNetPressLast)
         {
             outf << ",";
         }
     }
     outf << "};\n\n";
-    
-    //--------------------------
-    
-    itTlast = fTHsup.end();
-    itTlast--;
-    
-    outf << "(* time x Hsup *)\n";
-    outf << "TvsHsup={";
-    for(itT = fTHsup.begin(); itT != fTHsup.end(); itT++)
+    outf << "ListPlot[TvsNetPressure, Joined -> True,PlotLabel -> \"Graphic H: Time x Net Pressure\",AxesLabel -> {\"time (min)\", \"Net pressure (MPa)\"},Filling -> Axis,FillingStyle -> Opacity[0.3,Cyan], AxesOrigin -> {0,0},PlotRange -> All]\n\n";
+}
+
+void Output3DDataStruct::PrintFractureGeometry(int num,
+                                               TPZVec< std::pair<REAL,REAL> > & poligonalChain,
+                                               REAL CenterTVD)
+{
+    if(num < 0)
     {
-        outf << "{" << itT->first << "," << itT->second << "}";
-        if(itT != itTlast)
+        std::cout << "\n\n\nnum<0. See " << __PRETTY_FUNCTION__ << ".\n\n\n";
+        DebugStop();
+    }
+    
+    std::ofstream outF("000FractContours.txt");
+    
+    {   //Preamble for PostProcessFractGeometry method
+        outF << "(* colors = {Red,Green,Blue,Black,Gray,Cyan,Magenta,Yellow,Brown,Orange,Pink,Purple} *)\n";
+        outF << "AllPolChains={};\n";
+        outF << "Lgr={};\n";
+        outF << "Hsupgr={};\n";
+        outF << "Hinfgr={};\n\n";
+    }
+    
+    std::stringstream nmMath, nmAux;
+    nmAux << "pcm={";
+    
+    for(int p = 0; p < poligonalChain.NElements(); p++)
+    {
+        globFractOutput3DData.fFractContour << "fractureDots" << p << " = {" << poligonalChain[p].first << ","
+        << poligonalChain[p].second + CenterTVD << "};\n";
+        nmAux << "fractureDots" << p;
+        if(p < poligonalChain.NElements()-1)
         {
-            outf << ",";
+            nmAux << ",";
         }
     }
-    outf << "};\n\n";
+    nmAux << "};\n";
+    nmAux << "gr" << num << "=ListPlot[pcm,Joined->True,AxesOrigin->{0,0},AspectRatio->1,PlotStyle->" << color[actColor%12] << ",AxesLabel->{\"L (m)\", \"H (m)\"}];\n";
+    nmAux << "L" << num << "=Max[Transpose[pcm][[1]]];\n";
+    nmAux << "Hsup" << num << "=Max[Transpose[pcm][[2]]];\n";
+    nmAux << "Hinf" << num << "=-Min[Transpose[pcm][[2]]];\n";
+    nmAux << "AppendTo[AllPolChains,gr" << num << "];\n";
+    nmAux << "AppendTo[Lgr,{" << globTimeControl.actTime()/60. << ",L" << num << "}];\n";
+    nmAux << "AppendTo[Hsupgr,{" << globTimeControl.actTime()/60. << ",Hsup" << num << "}];\n";
+    nmAux << "AppendTo[Hinfgr,{" << globTimeControl.actTime()/60. << ",Hinf" << num << "}];\n";
+    nmAux << "Print[\"time" << num << " = " << globTimeControl.actTime()/60. << " min\"]\n";
+    nmAux << "Print[\"L" << num << " = \", L" << num << "]\n";
+    nmAux << "Print[\"Hsup" << num << " = \", Hsup" << num << "]\n";
+    nmAux << "Print[\"Hinf" << num << " = \", Hinf" << num << "]\n";
+    nmAux << "Print[\"\"]\n\n";
+    globFractOutput3DData.fFractContour << nmAux.str();
+    actColor++;
     
-    //--------------------------
+    outF << globFractOutput3DData.fFractContour.str();
     
-    itTlast = fTHinf.end();
-    itTlast--;
-    
-    outf << "(* time x Hinf *)\n";
-    outf << "TvsHinf={";
-    for(itT = fTHinf.begin(); itT != fTHinf.end(); itT++)
-    {
-        outf << "{" << itT->first << "," << itT->second << "}";
-        if(itT != itTlast)
-        {
-            outf << ",";
-        }
-    }
-    outf << "};\n\n";
-    
-    //--------------------------
-    
-    
+    outF << "grRange=Max[Max[Transpose[Lgr][[2]]],Max[Transpose[Hsupgr][[2]]],Max[Transpose[Hinfgr][[2]]]]+1;\n";
+    outF << "Show[AllPolChains,PlotRange->{{0,2*grRange},{-grRange,grRange}}]\n";
+    outF << "l={ListPlot[Lgr,AxesOrigin->{0,0},Filling->Axis,AxesLabel->{\"Time (min)\", \"L (green), Hsup (blue), Hinf (red) (m)\"}],";
+    outF << "ListPlot[Lgr,Joined->True,AxesOrigin->{0,0},PlotStyle->Green]};\n";
+    outF << "hs={ListPlot[Hsupgr,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hsupgr,Joined->True]};\n";
+    outF << "hi={ListPlot[Hinfgr,PlotStyle->Red,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hinfgr,Joined->True,PlotStyle->Red]};\n";
+    outF << "Show[l,hs,hi,PlotRange->All]\n";
+    outF.close();
 }
 
 TimeControl globTimeControl;
