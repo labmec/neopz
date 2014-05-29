@@ -50,6 +50,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.material.linearwave"));
 #endif
 
+TPZLinearWave::EState TPZLinearWave::gState;
+
 
 TPZLinearWave::TPZLinearWave(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
     fC = 1.;
@@ -91,8 +93,8 @@ int TPZLinearWave::NStateVariables() {
 
 void TPZLinearWave::Print(std::ostream &out) {
     out << "name of material : " << Name() << "\n";
-    out << "Wave speed, laplace operator multiplier fC "<< fK << endl;
-    out << "Forcing vector fXf " << fXf << endl;
+    out << "Wave speed, laplace operator multiplier fC "<< fC << std::endl;
+    out << "Forcing vector fXf " << fXf << std::endl;
     out << "Base Class properties :";
     TPZMaterial::Print(out);
     out << "\n";
@@ -115,7 +117,7 @@ void TPZLinearWave::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STAT
         {
             for(int kd=0; kd<fDim; kd++) 
             {
-                ek(in,jn) += (STATE) weight *( (fDeltaT*fDeltaT) (fC*fC)*(STATE)( dphi(kd,in) * dphi(kd,jn) ) 
+                ek(in,jn) += (STATE) weight *( (fDeltaT*fDeltaT) * (fC*fC)*(STATE)( dphi(kd,in) * dphi(kd,jn) ) 
                                        + (STATE)(phi(in) * phi(jn)) );
             }
         }
@@ -249,7 +251,9 @@ void TPZLinearWave::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solo
     
     TPZVec<STATE> pressure(1);
     TPZVec<REAL> pto(3);
-    TPZFMatrix<STATE> flux(3,1);
+//     TPZFMatrix<STATE> flux(3,1);
+      TPZFMatrix<STATE>  DSol = data.dsol[0], Axes = data.axes;
+      STATE solP = data.sol[0][0];
     
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -258,7 +262,7 @@ void TPZLinearWave::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solo
     
     if(var == 1)
     {
-        Solout[0] = Sol[0];//Pressure
+        Solout[0] = solP;//Pressure
         return;
     }//var == 1
     
@@ -268,7 +272,7 @@ void TPZLinearWave::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solo
         for(id=0 ; id<fDim; id++) 
         {
             TPZFNMatrix<9,STATE> dsoldx;
-            TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+            TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, Axes);
             Solout[id] = dsoldx(id,0);//Velocity
         }
         return;

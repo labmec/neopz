@@ -111,9 +111,14 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	TPZStepSolver<STATE> direct;
 	direct.SetDirect(ELDLt);
 	MyAnalysis->SetSolver(direct);
-	MyAnalysis->Run();
-	std::string plotfile("MyProblemSolution.vtk");		
-	PosProcess(myreader.fProblemDimension,*MyAnalysis, plotfile, div);	
+    
+    REAL deltaT = 0.5;
+    REAL maxTime = 10.0;
+    SolveSystemTransient(deltaT, maxTime, MyAnalysis,cmesh);
+    
+// 	MyAnalysis->Run();
+// 	std::string plotfile("MyProblemSolution.vtk");		
+// 	PosProcess(myreader.fProblemDimension,*MyAnalysis, plotfile, div);	
 	
 	
 }
@@ -344,10 +349,7 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
     //step.SetDirect(ELU);
     an.SetSolver(step);
     an.Run();
-    
-    //  //Saida de Dados: solucao e  grafico no VT
-    //  ofstream file("Solutout");
-    //  an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
+
 }
 
 TPZCompMesh *L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)

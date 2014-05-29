@@ -66,7 +66,7 @@
 class TPZLinearWave : public TPZDiscontinuousGalerkin 
 {
     
-protected :
+protected:
     
     /** @brief Forcing function value */
     STATE fXf;
@@ -74,17 +74,18 @@ protected :
     /** @brief Problem dimension */
     int fDim;
     
-    /** @brief Wave speed coeficient which multiplies the Laplacian operator. */
+    /** @brief Wave speed coefficient which multiplies the Laplace operator. */
     STATE fC;
     
     /** @brief Simulation time step */
     STATE fDeltaT;      
     
-    /** @brief Enumerate for timestep definitions */
-    enum EState { EMinusOneState = 0, ENState = 1, ENPlusOneState = 2 };
-    static EState gState;
-    
 public:
+    
+     /** @brief Enumerate for timestep definitions */
+    enum EState { EMinusOneState = 0, ENState = 1, ENPlusOneState = 2 };
+    
+    static EState gState;
     
     /** @brief Defines simulation time step. */
     void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}     
@@ -109,10 +110,10 @@ public:
     
     TPZLinearWave &operator=(const TPZLinearWave &copy);
     
-//     virtual TPZMaterial * NewMaterial(){
-//         return new TPZLinearWave(*this);
-//     }
-//     
+    virtual TPZMaterial * NewMaterial(){
+        return new TPZLinearWave(*this);
+    }
+    
     /** 
      * @brief Fill material data parameter with necessary requirements for the
      * @since April 10, 2007
@@ -171,13 +172,21 @@ public:
     virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
     virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);    
         
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-        TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) 
+    {
+        DebugStop();
     }
     
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
-        TPZDiscontinuousGalerkin::ContributeBC(datavec,weight,ek,ef,bc);
-    }    
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    {
+        DebugStop();
+    }
+
+    
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) 
+    {
+        DebugStop();
+    }
     
     virtual int VariableIndex(const std::string &name);
     
