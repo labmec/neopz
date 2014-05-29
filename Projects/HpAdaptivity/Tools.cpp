@@ -202,14 +202,32 @@ void SolExata3(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
 
 void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux){
     REAL x = pt[0];
-    REAL y = pt[1];   
+    REAL y = pt[1];
+    p[0]=0;
+    flux(0,0)=0;
+    flux(1,0)=0;
+    flux(2,0)=0;
     
+    p[0]=8*(1-x)*x*(1-y)*y*atan(0.0625+2*sqrt(epsilon)*(0.0625-pow(x-0.5, 2)-pow(y-0.5, 2)));
+   
+    //px
+   flux(0,0)=(-1.)*((-32*(1. - x)*(-0.5 + x)*x*(1. - y)*y*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + 8*(1. - x)*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)) -                           8*x*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+    //py
+                                       
+   flux(1,0)=(-1.)*((-32*(1. - x)*x*(1. - y)*(-0.5 + y)*y*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)) - 8*(1. - x)*x*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+   //div
+   flux(2,0)=(-1.)*((-8*(8*(1. - x) - 8*x)*(-0.5 + x)*(1. - y)*y*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) -(32*pow(-0.5 + x,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/ pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) + 8*(1. - x)*x*((-8*(1. - 2*y)*(-0.5 + y)*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + (1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) - (32*pow(-0.5 + y,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) -  2*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))) -  16*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+                                       
+                                       
+                                       
+    
+    /*
     REAL F = 2.*sqrt(epsilon);
-    REAL arc = F*((0.25*0.25) - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
+    REAL arc = F*(0.25*0.25 - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
     REAL prodx = x*(x-1.);
     REAL prody = y*(y-1.);
     REAL prod = prodx*prody;
-    p[0] = 8.*prod*(1.+(2./MyPi)*(atan(arc)));//solucao p
+    p[0] = 8.*prod*(1.+(2./MyPi)*atan(arc));//solucao p
     //gradiente
     
     REAL temp = (MyPi + 2.*atan(arc))*(2.*x-1);
@@ -248,14 +266,18 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     flux(2,0)=(-1.)*(aux2xx+aux2yy);
     
     
-
+*/
 }
 void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
  //   disp.Redim(2,1);
+    
     REAL x = pt[0];
     REAL y = pt[1];
-    
+    disp[0]=0;
+
+    disp[0]=(-1.)*((-8*(8*(1. - x) - 8*x)*(-0.5 + x)*(1. - y)*y*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) -(32*pow(-0.5 + x,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/ pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) + 8*(1. - x)*x*((-8*(1. - 2*y)*(-0.5 + y)*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + (1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) - (32*pow(-0.5 + y,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) -  2*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))) -  16*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+   /*
     REAL F = 2*sqrt(epsilon);
     REAL arc = F*((0.25*0.25) - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
     REAL prodx = x*(x-1.);
@@ -285,15 +307,18 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     //divergente uxx+uyy
         
    disp[0]=(-1.)*(aux2xx+aux2yy);
+    */
 
     
     
 }
 void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     REAL x=pt[0];
-    REAL prodx=x*(x-1.);
-    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(x-0.5)*(x-0.5));
-    f[0]= -8.*prodx*(1. + (2./MyPi)*atan(arc));
+//    REAL prodx=x*(x-1.);
+//    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(x-0.5)*(x-0.5));
+//    f[0]= 8.*prodx*(1. + (2./MyPi)*atan(arc));
+    
+    f[0]=8.*(1. - x)*x*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + x,2)));
  
 
     
@@ -302,9 +327,10 @@ void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
     REAL y=pt[1];
-    REAL prody=y*(y-1.);
-    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(y-0.5)*(y-0.5));
-    f[0]= -8.*prody*(1 + (2./MyPi)*atan(arc));
+    f[0]=8.*(1. - y)*y*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + y,2)));
+//    REAL prody=y*(y-1.);
+//    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(y-0.5)*(y-0.5));
+//    f[0]= 8.*prody*(1 + (2./MyPi)*atan(arc));
 }
 void CC3(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     double x=pt[0];
@@ -328,6 +354,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		TPZCompMesh *comp = new TPZCompMesh(&gmesh);
 		
 		comp->SetDefaultOrder(porder);
+        comp->SetDimModel(2);
 		// Criar e inserir os materiais na malha
 		TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
 		TPZMaterial * automat(mat);
@@ -336,17 +363,29 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		
         TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(ForcingTang);
 		mat->SetForcingFunction(force1);
-		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolArcTan);
-		mat->SetForcingFunctionExact(exata1);
+        TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolArcTan);
+        mat->SetForcingFunctionExact(exata1);
+    
+//    TPZAutoPointer<TPZFunction<STATE> > force1;
+//    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingTang);
+//    dum->SetPolynomialOrder(20);
+//    force1 = dum;
+//    mat->SetForcingFunction(force1);
+    
+    
+    
+    
+    
+
 			
 		///Criar condicoes de contorno
 		
     
 		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
         TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
-		//TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC3);
-		//TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC4);
-    
+		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC1);
+		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC2);
+   
 		
 
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -360,11 +399,11 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
  //   TPZMaterial *bnd7 = automat->CreateBC (automat,-7,0,val1,val2);
   //  TPZMaterial *bnd8 = automat->CreateBC (automat,-8,0,val1,val2);
     
-		
+	
             bnd->SetForcingFunction(fCC1);
             bnd2->SetForcingFunction(fCC2);
-			bnd3->SetForcingFunction(fCC1);
-            bnd4->SetForcingFunction(fCC2);
+			bnd3->SetForcingFunction(fCC3);
+            bnd4->SetForcingFunction(fCC4);
 		
 	
 		///Inserir condicoes de contorno
@@ -1240,4 +1279,71 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 }
+
+void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
+{
+    long nel = hdivmesh->NElements();
+    int dim = hdivmesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = hdivmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        cel->EvaluateError(SolArcTan, elerror, NULL);
+        elerror.Print();
+    
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+   // out << "Errors associated with HDiv space\n";
+    out << "L2 Norm for pressure = "    << sqrt(globerrors[0]) << std::endl;
+    out << "L2 Norm for flux = "    << sqrt(globerrors[1]) << std::endl;
+    out << "L2 Norm for divergence = "    << sqrt(globerrors[2])  <<std::endl;
+    out << "Hdiv Norm for flux = "    << sqrt(globerrors[3])  <<std::endl;
+    
+}
+
+void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
+{
+    long nel = l2mesh->NElements();
+    int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        cel->EvaluateError(SolExata, elerror, NULL);
+        int nerr = elerror.size();
+        globerrors.resize(nerr);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+    out << "Errors associated with L2 space\n";
+    out << "L2 Norm = "    << sqrt(globerrors[1]) << std::endl;
+}
+
 
