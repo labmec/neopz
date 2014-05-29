@@ -73,28 +73,28 @@ int main()
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	//std::ofstream erro("TaxaArcTanTriangUni.txt");
+	std::ofstream erro("TaxaArcTanTriangUni.txt");
     //std::ofstream erro("TaxaArcTanQuadUni.txt");
-    std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
+ //   std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
     	
 	TPZVec<REAL> calcErro;
 	for (int porder=1; porder<2; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=2;h<3;h++){
+			for(int h=1;h<5;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;//true nao uniforme
 					bool prefine=false;
-                TPZGeoMesh *gmesh = MalhaGeo(h,hrefine);
+                TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
 
               //  std::ofstream filemesh("MalhaGeoArcTan.vtk");
               // PrintGMeshVTK( gmesh, filemesh);
-
-              RefiningNearCircunference(2,gmesh,h,1);
-                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
-                PrintGMeshVTK( gmesh, filemesh2);
+//
+//              RefiningNearCircunference(2,gmesh,h,1);
+//                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
+//                PrintGMeshVTK( gmesh, filemesh2);
        
 
         TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
@@ -103,7 +103,7 @@ int main()
                 
                 erro<< "\n NRefinamento "<<h<< "   NDofs "<<nDofs<<std::endl;
             
-        /*2. Resolve o problema
+        //2. Resolve o problema
 		
 		 TPZAnalysis analysis(cmesh);
          SolveLU ( analysis );
@@ -112,9 +112,11 @@ int main()
 			
 			//3. Calcula o erro 
 					
-			TPZVec<REAL> calcErro;
-            analysis.SetExact(*SolArcTan);
-			analysis.PostProcess(calcErro,erro);
+//			TPZVec<REAL> calcErro;
+//            analysis.SetExact(*SolArcTan);
+//			analysis.PostProcess(calcErro,erro);
+                
+                ErrorHDiv(cmesh, erro);
         
 			
 			//4. visualizacao grafica usando vtk
@@ -137,10 +139,10 @@ int main()
                  int div = 2;
                  
                  char buf[256] ;
-                 sprintf(buf,"ArcTanHpNaoUniMeshT_porder%d_h%d.vtk",porder,h);
+                 sprintf(buf,"ArcTanPhilUniMeshT_porder%d_h%d.vtk",porder,h);
                  analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
                  analysis.PostProcess(div);
-			 */
+			 
 			 
 			 /*std::string plotfile("GraficArcTanHpAdaptivity.vtk");
 			 const int dim = 2;
