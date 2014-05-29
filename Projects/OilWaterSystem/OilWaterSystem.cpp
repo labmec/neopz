@@ -87,18 +87,19 @@ void ComputeResidual(TPZFMatrix<STATE> &RUattn,REAL &alpha, TPZFMatrix<STATE> &D
 void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics);
 void BulkFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &Val);
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients);
 
 void FilterPressureFluxEquation(TPZMultiphase *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an);
 void FilterHigherOrderSaturations(TPZManVector<long> &active,TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
 bool ftriang = false;
-REAL angle = 1.0*M_PI/8.0;
+REAL angle = 1.0*M_PI/16.0;
 
 int main()
 {
 	
 #ifdef LOG4CXX
-	InitializePZLOG("../OilWaterLog4cxx.cfg");
+	InitializePZLOG("OilWaterLog4cxx.cfg");
 #endif		
 	
 	
@@ -110,9 +111,10 @@ int main()
 	
 	//	Reading mesh
 	
-	string GridFileName, dirname = PZSOURCEDIR;
+	std::string GridFileName, dirname = PZSOURCEDIR;
 	GridFileName = dirname + "/Projects/OilWaterSystem/";
-	GridFileName += "OilWaterSystemUnit.dump";	
+	//GridFileName += "OilWaterSystemUnit.dump";
+    GridFileName += "Labyrinth.dump";    
 
 //	GridFileName = "Labyrinth.dump";	
 	//	GridFileName = "OilWaterSystemUnitTwo.dump";
@@ -122,9 +124,9 @@ int main()
 	
 	bool twoMaterial = false;
 	TPZReadGIDGrid GeometryInfo;
-	GeometryInfo.SetfDimensionlessL(100.0);
+	GeometryInfo.SetfDimensionlessL(1.0);
 	TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
-	
+//	RotateGeomesh(gmesh, angle);
 	{
 		//	Print Geometrical Base Mesh
 		std::ofstream argument("GeometicMesh.txt");
@@ -189,10 +191,10 @@ int main()
     std::string plotfilebuklflux = outputfiletemp1.str();
 	TPZFMatrix<STATE> InitialQSolution = Anbulkflux.Solution();	
  	int rwosQ= InitialQSolution.Rows();
- 	for (int i=0; i < InitialQSolution.Rows(); i++) 
- 	{
- 		InitialQSolution(i)=0.0;
- 	}
+//  	for (int i=0; i < InitialQSolution.Rows(); i++) 
+//  	{
+//  		InitialQSolution(i)=0.0;
+//  	}
 	
 //	InitialQSolution(0) =  0.1;
 //	InitialQSolution(1) =  0.1;	
@@ -222,16 +224,16 @@ int main()
     outputfiletemp2 << outputfile2 << ".vtk";
     std::string plotfilePressure = outputfiletemp2.str();
 	TPZFMatrix<STATE> InitialPSolution = AnPressure.Solution();	
-	for (int i=0; i < InitialPSolution.Rows(); i++) {
-		InitialPSolution(i)=0.0;
-	}
+// 	for (int i=0; i < InitialPSolution.Rows(); i++) {
+// 		InitialPSolution(i)=0.0;
+// 	}
 	
 	
 	TPZVec<STATE> solini(InitialPSolution.Rows(),0.0);
     TPZCompMesh  * cmeshL2 = L2ProjectionP(gmesh, POrderPseudopressure, solini);
     
     TPZAnalysis anL2(cmeshL2);
-    SolveSyst(anL2, cmeshL2);
+//    SolveSyst(anL2, cmeshL2);
 	
     AnPressure.LoadSolution(anL2.Solution());
 	
@@ -245,26 +247,27 @@ int main()
     outputfiletemp3 << outputfile3 << ".vtk";
     std::string plotfileSaturation = outputfiletemp3.str();
 	TPZFMatrix<STATE> InitialSSolution = AnSaturation.Solution();	
-	for (int i=0; i < InitialSSolution.Rows(); i++) {
-		InitialSSolution(i)=0.0;
-	}
+// 	for (int i=0; i < InitialSSolution.Rows(); i++) 
+//     {
+// 		InitialSSolution(i)=0.0;
+// 	}
 	
 	TPZVec<STATE> solSini(InitialSSolution.Rows(),0.0);
     TPZCompMesh  * cmeshsatL2 = L2ProjectionS(gmesh, POrderWaterSaturation, solSini);
     
     TPZAnalysis ansatL2(cmeshsatL2);
-    SolveSyst(ansatL2, cmeshsatL2);
+//    SolveSyst(ansatL2, cmeshsatL2);
 	
-	AnSaturation.LoadSolution(ansatL2.Solution());
-	PosProcessL2(AnSaturation,plotfileSaturation);		
+	AnSaturation.LoadSolution(InitialSSolution);
+	PosProcessL2(AnSaturation,plotfileSaturation);
 	
 	// 	//	This is so rare!!
 	// 	if (twoMaterial) 
 	// 	{
 	// 		gmesh->AddInterfaceMaterial(1,2, 1);
 	// 		gmesh->AddInterfaceMaterial(2,1, 1);
-	// 	}
-	
+	// 	}  
+
     //	Multiphysics Mesh
     TPZVec<TPZCompMesh *> meshvec(3);//4);
     meshvec[0] = CMeshBulkflux;
@@ -280,11 +283,11 @@ int main()
 	
     TPZAnalysis *MultiphysicsAn = new TPZAnalysis(MultiphysicsMesh);
     TPZAnalysis *MultiphysicsAnTan = new TPZAnalysis(MultiphysicsMesh);	
-    int	Nthreads = 1;
+    int	Nthreads = 4;
     TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);
     TPZSkylineNSymStructMatrix matskTan(MultiphysicsMesh);	
 
-//	TPZFrontStructMatrix <TPZFrontNonSym<STATE> > matsk(MultiphysicsMesh);
+	//TPZFrontStructMatrix <TPZFrontNonSym<STATE> > matsk(MultiphysicsMesh);
     
 	MultiphysicsAn->SetStructuralMatrix(matsk);
     MultiphysicsAn->StructMatrix()->SetNumThreads(Nthreads);
@@ -298,23 +301,26 @@ int main()
     TPZStepSolver<STATE> steptan;
     steptan.SetDirect(ELU); 					
     MultiphysicsAnTan->SetSolver(steptan);	
-	
+    TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);
+    FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,MultiphysicsMesh);
+    TPZFMatrix<STATE> SolutiontoMod=MultiphysicsMesh->Solution();
+    CleanGradientSolution(SolutiontoMod,WithGradients);
+    MultiphysicsAn->LoadSolution(SolutiontoMod);
     std::string outputfile;
     outputfile = "TransientSolutionini";
     std::stringstream outputfiletemp;
     outputfiletemp << outputfile << ".vtk";
     std::string plotfile = outputfiletemp.str();
     PosProcessMultphysics(meshvec,MultiphysicsMesh,*MultiphysicsAn,plotfile);		
-	
-    
+
 	//     Tima control parameters
     
     REAL hour = 60.0*60.0;
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
 	
-    REAL deltaT = 0.05;
-    REAL maxTime = 0.8;
+    REAL deltaT = 0.5;
+    REAL maxTime = 10.0;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, MultiphysicsAnTan, meshvec, MultiphysicsMesh);
 	
     return 0;
@@ -515,7 +521,7 @@ TPZCompMesh *ComputationalMeshPseudopressure(TPZGeoMesh *gmesh, int pOrder)
 	
 	cmesh->SetDefaultOrder(pOrder);
 	cmesh->SetDimModel(dim);
-	cmesh->AutoBuild();			
+	cmesh->AutoBuild();
 	
 	
 	///inserir connect da pressao
@@ -618,7 +624,17 @@ TPZCompMesh *ComputationalMeshWaterSaturation(TPZGeoMesh * gmesh, int pOrder)
 	cmesh->InsertMaterialObject(BCond4);
 	cmesh->InsertMaterialObject(BCond5);
 	cmesh->InsertMaterialObject(BCond6);
-	cmesh->InsertMaterialObject(BCond7);	
+	cmesh->InsertMaterialObject(BCond7);
+    
+    // Void material
+    int matIdL2Proj = 2;
+    TPZVec<STATE> sol(1,0.);
+    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,material1->NStateVariables(),sol);
+    cmesh->InsertMaterialObject(matl2proj);     
+    
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
 	
 //	cmesh->InsertMaterialObject(BCond2);
 //	cmesh->InsertMaterialObject(BCond3);		
@@ -633,6 +649,11 @@ TPZCompMesh *ComputationalMeshWaterSaturation(TPZGeoMesh * gmesh, int pOrder)
 	for(int i=0; i<nel; i++){
 		TPZCompEl *cel = cmesh->ElementVec()[i];
 		TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        celdisc->SetConstC(1.);
+        celdisc->SetCenterPoint(0, 0.);
+        celdisc->SetCenterPoint(1, 0.);
+        celdisc->SetCenterPoint(2, 0.);
+        celdisc->SetTrueUseQsiEta();
 		if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
 		{
 			if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
@@ -640,15 +661,7 @@ TPZCompMesh *ComputationalMeshWaterSaturation(TPZGeoMesh * gmesh, int pOrder)
 		}
 	}
 	
-	// Void material
-	int matIdL2Proj = 2;
-	TPZVec<STATE> sol(1,0.);
-	TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,material1->NStateVariables(),sol);
-	cmesh->InsertMaterialObject(matl2proj);		
-	
-	cmesh->AdjustBoundaryElements();
-	cmesh->CleanUpUnconnectedNodes();		
-	cmesh->AutoBuild();
+			
 	
 	
 	return cmesh;
@@ -681,7 +694,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 		REAL Rhoref,Etaref,Lref,Kref,Pref,Qref;
 		Rhoref = 1000.0;
 		Etaref = 1.0e-3;
-		Lref = 100.0;
+		Lref = 1.0;
 		Kref = 1.0e-13;
 		Pref = 20.0*MPa;
 		Qref = (Rhoref*(Kref/Etaref))*(Pref/Lref);
@@ -693,14 +706,15 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 		material1->SetPreference(Pref);
 	}
 	
-//	string GridFileName, dirname = PZSOURCEDIR;
-//	GridFileName = dirname + "/Projects/OilWaterSystem/";	
+	std::string GridFileName, dirname = PZSOURCEDIR;
+	GridFileName = dirname + "/Projects/OilWaterSystem/";
+    GridFileName += "LabyrinthKvaluesH.txt";    
 	
 	material1->SetTimeStep(1.0);
 	material1->fnewWS=true; 
 	material1->SetTScheme(1.0, 1.0);
 //	material1->LoadKMap("Permeabilities.txt");
-	material1->LoadKMap("LabyrinthKvaluesH.txt");	
+	material1->LoadKMap(GridFileName);	
 	material1->SetYorN(false);		
 	
 	TPZMaterial *mat1(material1);
@@ -714,7 +728,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 	val2(1,0)=0.000*sin(angle);// qy
 	val2(2,0)=1.0*20.0*MPa;// P
 	val2(3,0)=1.0;// S	
-	TPZMaterial * BCond5 = material1->CreateBC(mat1,5,1, val1, val2);
+	TPZMaterial * BCond5 = material1->CreateBC(mat1,6,1, val1, val2);
 	
 //	val2(0,0)=0.0;// qx
 //	val2(1,0)=0.0;// qy
@@ -729,13 +743,13 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 	val2(3,0)=0.0;// S			
 //	TPZMaterial * BCond2 = material1->CreateBC(mat1,4,4, val1, val2);		
 	TPZMaterial * BCond2Nflux = material1->CreateBC(mat1,2,3, val1, val2);
-//	TPZMaterial * BCond2Nflux2 = material1->CreateBC(mat1,3,4, val1, val2);
+	TPZMaterial * BCond2Nflux2 = material1->CreateBC(mat1,3,3, val1, val2);
 	val2(0,0)=0.0;// qx
 	val2(1,0)=0.0;// qy
 	val2(2,0)=0.0*MPa;// P
 	val2(3,0)=0.0;// S		
 	TPZMaterial * BCond2Nflux3 = material1->CreateBC(mat1,4,3, val1, val2);
-//	TPZMaterial * BCond2Nflux4 = material1->CreateBC(mat1,5,4, val1, val2);	
+	TPZMaterial * BCond2Nflux4 = material1->CreateBC(mat1,5,3, val1, val2);	
 	//		TPZMaterial * BCond4 = material1->CreateBC(mat1,4,2, val1, val2);		
 	//		TPZMaterial * BCond6 = material2->CreateBC(mat2,6,3, val1, val2);
 	
@@ -743,15 +757,15 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 	val2(1,0)=0.0;// qy
 	val2(2,0)=1.0*18.0*MPa;// P
 	val2(3,0)=0.0;// S			
-	TPZMaterial * BCond4 = material1->CreateBC(mat1,3,1, val1, val2);				
+	TPZMaterial * BCond4 = material1->CreateBC(mat1,7,2, val1, val2);				
 		
 	
 	mphysics->SetAllCreateFunctionsMultiphysicElem();		
 //	mphysics->InsertMaterialObject(BCond2);
 	mphysics->InsertMaterialObject(BCond2Nflux);
-//	mphysics->InsertMaterialObject(BCond2Nflux2);
+	mphysics->InsertMaterialObject(BCond2Nflux2);
 	mphysics->InsertMaterialObject(BCond2Nflux3);
-//	mphysics->InsertMaterialObject(BCond2Nflux4);	
+	mphysics->InsertMaterialObject(BCond2Nflux4);	
 	//		mphysics->InsertMaterialObject(BCond4);
 //	mphysics->InsertMaterialObject(BCond3);
 	//		mphysics->InsertMaterialObject(BCond6);
@@ -866,7 +880,6 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
 	TPZFMatrix<STATE> SolutiontoLoad;
 	TPZFMatrix<STATE> SolutiontoSave = meshvec[2]->Solution();
-	RotateGeomesh(mphysics->Reference(), angle);
 	
 //	{
 //		TPZBFileStream load;
@@ -878,14 +891,14 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 
 
 	TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);	
-	std::string OutPutFile = "TransientSolutionWithTilted";
+	std::string OutPutFile = "TransientSolutionGRActiveHref2";
     TPZMaterial *mat1 = mphysics->FindMaterial(1);
 	//    TPZMaterial *mat2 = mphysics->FindMaterial(2);	
 	
     TPZMultiphase * material1 = dynamic_cast<TPZMultiphase *>(mat1);  
 	//    TPZMultiphase * material2 = dynamic_cast<TPZMultiphase *>(mat2);  	
     material1->SetTimeStep(deltaT);
-    material1->SetTScheme(1.0, 1.0);
+    material1->SetTScheme(1.0,1.0);
 	bool UsingGradient = true;
 	int matIdL2Proj = 2;	
 	
@@ -897,8 +910,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 	
 	
 	REAL TimeValue = 0.0;
-	//	REAL Tolerance = 1.0e-10;
-	REAL Tolerance = 1.0e-6; // Deformed Elements
+	REAL Tolerance = 1.0e-7;
 	int cent = 0;
 	int MaxIterations = 50;
 	TimeValue = cent*deltaT;
@@ -939,10 +951,10 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 	NonLinearAn->StructMatrix()->EquationFilter().SetActiveEquations(NoGradients);
 	
 	
-	std::cout << " Starting the time computations. " << endl;	
+	std::cout << " Starting the time computations. " << std::endl;	
 	while (TimeValue < maxTime)
 	{
-		
+		//RotateGeomesh(mphysics->Reference(),angle);
 		
 		material1->SetLastState();
 		NonLinearAn->AssembleResidual();
@@ -984,7 +996,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 			{
 				std::stringstream sout;
 				sout.precision(20);
-	//			Residual.Print(sout);
+                Residual.Print(sout);
 				Uatk.Print(sout);		
 				LOGPZ_DEBUG(logdata,sout.str());
 			}
@@ -999,14 +1011,16 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //			}
 //#endif				
 
+
 			
 			if (UsingGradient) 
 			{
 				gradreconst->ProjectionL2GradientReconstructed(meshvec[2], matIdL2Proj);
 				TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-				NonLinearAn->LoadSolution(mphysics->Solution());				
-				Uatk=mphysics->Solution();
-			}			
+                Uatk=mphysics->Solution();
+                CleanGradientSolution(Uatk,WithGradients);
+				NonLinearAn->LoadSolution(Uatk);
+			}
 		
 			
 //			material1->SetCurrentState();
@@ -1028,7 +1042,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 				std::stringstream sout;
 				sout.precision(15);				
 				Uatk.Print(sout);
-//				Residual.Print("Res = ",sout,EMathematicaInput);
+				Residual.Print("Res = ",sout,EMathematicaInput);
 				LOGPZ_DEBUG(logdata,sout.str());
 			}
 #endif		
@@ -1065,19 +1079,21 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 		}	
 			
 		
-if (UsingGradient) {
+        if (UsingGradient) 
+        {
 			TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
 			gradreconst->ProjectionL2GradientReconstructed(meshvec[2], matIdL2Proj);
 			TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-			NonLinearAn->LoadSolution(mphysics->Solution());
-			Uatk=mphysics->Solution();			
+            Uatk=mphysics->Solution();
+//             CleanGradientSolution(Uatk,WithGradients);
+            NonLinearAn->LoadSolution(Uatk);		
 		}	
 			
-//		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);		
-//		SolutiontoSave = meshvec[2]->Solution();
-//		TPZBFileStream save;
-//        save.OpenWrite("MultiphaseSaturationSol.bin");
-//		SolutiontoSave.Write(save,0);
+		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);		
+		SolutiontoSave = mphysics->Solution();
+		TPZBFileStream save;
+        save.OpenWrite("GRSolution.bin");
+		SolutiontoSave.Write(save,0);
 		
 		
 		outputfile = OutPutFile;
@@ -1095,6 +1111,12 @@ if (UsingGradient) {
 		TimeValue = cent*deltaT;
 		
 		std::cout << " Time Step :  " << cent  << "  Time :  " << TimeValue <<  std::endl;	
+        
+/*        if(cent==15)
+        {
+            UsingGradient=true;
+            std::cout << " Now Using Gradient Reconstruction. " << std::endl;                    
+        }  */      
 		
 	}
 	
@@ -1140,6 +1162,19 @@ TPZCompMesh *L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
 	cmesh->AutoBuild();
+    
+    ///set order total da shape
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
+        }
+    }    
+    
 	return cmesh;
 	
 }
@@ -1183,6 +1218,19 @@ TPZCompMesh *L2ProjectionS(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
 	cmesh->AutoBuild();
+    
+    ///set order total da shape
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
+        }
+    }    
+    
 	return cmesh;
 	
 }
@@ -1493,4 +1541,12 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle)
 		gmesh->NodeVec()[inode] = GeoNode;
 	}
 	
+}
+
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients)
+{
+    for(int i=0; i < Gradients.size(); i++ )
+    {
+        Solution(Gradients[i],0)=0.0;
+    }   
 }

@@ -2083,7 +2083,7 @@ static void switchEq(long eqsmall, long eqlarge, TPZVec<long> &permutegather, TP
     }
 }
 
-void TPZCompMesh::SaddlePermute()
+void TPZCompMesh::SaddlePermute2()
 {
     TPZVec<long> permutegather,permutescatter;
     long numinternalconnects = NIndependentConnects();
@@ -2244,7 +2244,7 @@ void TPZCompMesh::SaddlePermute()
 #endif
 }
 
-void TPZCompMesh::SaddlePermute2()
+void TPZCompMesh::SaddlePermute()
 {
     TPZVec<long> permute;
     long numinternalconnects = NIndependentConnects();

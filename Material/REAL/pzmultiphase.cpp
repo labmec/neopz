@@ -1349,24 +1349,11 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 			TPZManVector<STATE> Gradphis(2,0);		
 			Gradphis[0] = dphiS(0,isat)*datavec[2].axes(0,0)+dphiS(1,isat)*datavec[2].axes(1,0);
 			Gradphis[1] = dphiS(0,isat)*datavec[2].axes(0,1)+dphiS(1,isat)*datavec[2].axes(1,1);
-			TPZFMatrix<STATE> TempMat(2,1,0.0);
 						
 			REAL dotprod = 
 			(Gradphis[0]) * (sol_q[0]) +
 			(Gradphis[1]) * (sol_q[1]);	
-			
-			TempMat(0,0) = Gradphis[0];
-			TempMat(1,0) = Gradphis[1];			
-			
-#ifdef LOG4CXX
-			if(logdata->isDebugEnabled())
-			{
-				std::stringstream sout;
-				sout.precision(20);
-				TempMat.Print(sout);		
-				LOGPZ_DEBUG(logdata,sout.str());
-			}
-#endif				
+
 			
 			ef(isat+phrQ+phrP) -= (Theta) * (TimeStep) * weight * bulkfwater * dotprod;				
 			
@@ -1643,78 +1630,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 				
 			}
 			
-		}
-		
-//		//	First Block (Equation One) constitutive law
-//		// Integrate[L dot(K v, n), Gamme_{e}]	(Equation One) Left-Right part		
-//		for (int iq=0; iq < QRowsleft; iq++) 
-//		{
-//			
-//			int iLvectorindex		= dataright[0].fVecShapeIndex[iq].first;
-//			int iLshapeindex		= dataright[0].fVecShapeIndex[iq].second;			
-//			
-//			for (int jp=0; jp<PRowsRight; jp++)
-//			{						
-//				
-//				
-//				
-//				if (fnewWS) 
-//				{
-//					REAL e1e1	=	(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);					
-//					REAL e2e2	=	(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
-//					ek(iq,QRowsRight + jp + jRightInterfaceBlock) += (1.0) * weight * (e1e1 + e2e2 ) * phiPR(jp,0);						
-//				}
-//				else
-//				{
-//					REAL e1e1	=	(Kmean(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+	
-//									 Kmean(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
-//					
-//					REAL e2e2	=	(Kmean(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+	
-//									 Kmean(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
-//					ek(iq, QRowsRight + jp + jRightInterfaceBlock) += (1.0) * weight * (e1e1 + e2e2 ) * phiPR(jp,0);						
-//				}
-//				
-//			}
-//			
-//		}
-//		
-//		
-//		//	First Block (Equation One) constitutive law
-//		// Integrate[L dot(K v, n), Gamme_{e}]	(Equation One) Right-Left Part		
-//		for (int iq=0; iq < QRowsRight; iq++) 
-//		{
-//			int iRvectorindex		= dataright[0].fVecShapeIndex[iq].first;
-//			int iRshapeindex		= dataright[0].fVecShapeIndex[iq].second;			
-//			
-//			for (int jp=0; jp<PRowsleft; jp++)
-//			{		
-//				
-//				
-//				if (fnewWS) 
-//				{
-//					
-//					REAL e1e1	=	(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))*(n1);
-//					REAL e2e2	=	(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex))*(n2);					
-//					
-//					ek(iq + iRightInterfaceBlock, QRowsRight + jp + jRightInterfaceBlock) +=  (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0) ;
-//				}
-//				else 
-//				{
-//					REAL e1e1	=	(Kmean(0,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+	
-//									 Kmean(0,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n1);
-//					
-//					REAL e2e2	=	(Kmean(1,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+	
-//									 Kmean(1,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n2);				
-//					
-//					
-//					ek(iq + iRightInterfaceBlock, QRowsleft + jp) +=  (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0) ;
-//				}
-//				
-//				
-//				
-//			}
-//			
-//		}			
+		}		
 		
 		//	First Block (Equation One) constitutive law
 		// Integrate[L dot(K v, n), Gamme_{e}]	(Equation One) Right-Right Part		
@@ -1775,50 +1691,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 			}
 			
 		}
-		
-		
-//		//	Second Block (Equation Two) Bulk flux  equation
-//		// Integrate[L dot(v, n), Gamma_{e}]	(Equation Two) Left-Right Part		
-//		for (int ip=0; ip < PRowsleft; ip++) 
-//		{
-//			
-//			for (int jq=0; jq<QRowsRight; jq++)
-//			{
-//				
-//				int jvectorindex	= dataright[0].fVecShapeIndex[jq].first;
-//				int jshapeindex		= dataright[0].fVecShapeIndex[jq].second;
-//				
-//				REAL dotprod = 
-//				(n1) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(0,jvectorindex)) +
-//				(n2) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(1,jvectorindex)) ;
-//				
-//				ek(ip+QRowsleft,jq+jRightInterfaceBlock) += (1.0) * (Gamma) * (TimeStep) * weight * dotprod * phiPL(ip,0);					
-//				
-//			}
-//			
-//		}		
-//		
-//		
-//		//	Second Block (Equation Two) Bulk flux  equation
-//		// Integrate[L dot(v, n), Gamma_{e}]	(Equation Two) Left-Right Part		
-//		for (int ip=0; ip < PRowsleft; ip++) 
-//		{
-//			
-//			for (int jq=0; jq<QRowsRight; jq++)
-//			{
-//				
-//				int jvectorindex	= dataright[0].fVecShapeIndex[jq].first;
-//				int jshapeindex		= dataright[0].fVecShapeIndex[jq].second;
-//				
-//				REAL dotprod = 
-//				(n1) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(0,jvectorindex)) +
-//				(n2) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(1,jvectorindex)) ;
-//				
-//				ek(ip+QRowsleft,jq+jRightInterfaceBlock) += (-1.0) * (Gamma) * (TimeStep) * weight * dotprod * phiPL(ip,0);					
-//				
-//			}
-//			
-//		}		
+
 		
 		//	Second Block (Equation Two) Bulk flux  equation
 		// Integrate[L dot(v, n), Gamma_{e}]	(Equation Two) Right-Right Part		
@@ -2279,69 +2152,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 			
 			
 		}
-		
-//		//This block was verified			
-//		//	First Block (Equation One) constitutive law
-//		// Integrate[P dot(K v, n), Gamme_{e}]	(Equation One) Left-Right part		
-//		for (int iq=0; iq < QRowsleft; iq++) 
-//		{
-//			
-//			int iLvectorindex		= dataleft[0].fVecShapeIndex[iq].first;
-//			int iLshapeindex		= dataleft[0].fVecShapeIndex[iq].second;
-//			
-//			
-//			if (fnewWS) 
-//			{
-//				
-//				REAL e1e1	=	(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-//				REAL e2e2	=	(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
-//				
-//				ef(iq) += (1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureR;
-//			}
-//			else 
-//			{
-//				REAL e1e1	=	(Kmean(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+	
-//								 Kmean(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
-//				
-//				REAL e2e2	=	(Kmean(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+	
-//								 Kmean(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
-//				
-//				ef(iq) += (1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureR;
-//			}	
-//			
-//		}		
-//		
-//		
-//		//This block was verified			
-//		//	First Block (Equation One) constitutive law
-//		// Integrate[P dot(K v, n), Gamme_{e}]	(Equation One) Left-Right Part		
-//		for (int iq=0; iq < QRowsRight; iq++) 
-//		{
-//			
-//			int iRvectorindex		= dataright[0].fVecShapeIndex[iq].first;
-//			int iRshapeindex		= dataright[0].fVecShapeIndex[iq].second;
-//			
-//			if (fnewWS) 
-//			{
-//				
-//				REAL e1e1	=	(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))*(n1);			
-//				REAL e2e2	=	(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex))*(n2);			
-//				
-//				
-//				ef(iq+iRightInterfaceBlock) += (-1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureL;
-//			}
-//			else 
-//			{
-//				REAL e1e1	=	(Kmean(0,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+	
-//								 Kmean(0,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n1);
-//				
-//				REAL e2e2	=	(Kmean(1,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+	
-//								 Kmean(1,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n2);				
-//				
-//				ef(iq+iRightInterfaceBlock) += (-1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureL;
-//			}
-//			
-//		}			
+
 		
 		
 		//This block was verified			
@@ -3384,7 +3195,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				
 				else 
 				{	
-					UpwindSaturation = 0.0*bulkfwaterl;					
+					UpwindSaturation = 0.0;					
 					if (dotqnL < 0.) {std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}				  
 					
 				}
@@ -3394,7 +3205,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 				for(int isat=0; isat<SRowsleft; isat++)
 				{
 					
-					REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( (UpwindSaturation) * qN );
+					REAL ResidualPart	=	(1-Theta) * (TimeStep) * ( (UpwindSaturation) * dotqnL );
 					ef(isat+QRowsleft+PRowsleft) -= (-1.0) * weight * phiSL(isat,0) * ResidualPart;
 				}				
 				
