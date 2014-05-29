@@ -75,7 +75,7 @@ public:
   
   REAL ComputeKIPlaneStrain();
   
-  void CheckConv();
+  void CheckConv(bool OptimizeBandwidth);
   
   void SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh);
   

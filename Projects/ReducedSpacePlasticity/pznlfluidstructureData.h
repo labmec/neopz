@@ -24,6 +24,8 @@ int const globDirichletElastMatId1 = -1;
 int const globDirichletElastMatId2 = -2;
 int const globMixedElastMatId   = -3;
 int const globCohesiveMatId = -4;
+int const globDirichletBottom = -5;
+
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;

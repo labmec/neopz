@@ -158,7 +158,8 @@ void ToolsTransient::Run()
   int anCount = 0;
   this->InitializeUncoupledMeshesAttributes();
   this->CMeshMultiphysics();
-  TPZAnalysis * an = new TPZAnalysis(fmphysics);
+	bool OptimizeBandwidth = false;
+  TPZAnalysis * an = new TPZAnalysis(fmphysics,OptimizeBandwidth);
   globFractOutputData.PlotElasticVTK(an, anCount);
   PostprocessPressure();
   PostProcessAcumVolW();
@@ -167,6 +168,14 @@ void ToolsTransient::Run()
   //globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
   
   bool initialElasticKickIsNeeded = true;
+	
+	// CUIDADO ESSE CHECKCONV FERRA O RESULTADO FINAL!
+	bool IWantCheckConv = false;
+	if(IWantCheckConv){
+		CheckConv(OptimizeBandwidth);
+		DebugStop();
+	}
+	
   while(fMustStop == false)
   {
     bool propagate = this->SolveSistTransient(an, initialElasticKickIsNeeded);
@@ -186,7 +195,7 @@ void ToolsTransient::Run()
       this->InitializeUncoupledMeshesAttributes();
       this->CMeshMultiphysics();
       this->TransferSolutions(lastMPhysicsCMesh, lastElastReferredCMesh);
-      an = new TPZAnalysis(fmphysics);
+      an = new TPZAnalysis(fmphysics,OptimizeBandwidth);
       
       globFractOutputData.PlotElasticVTK(an, anCount);
       PostProcessAcumVolW();
@@ -213,7 +222,7 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 	
 	fmeshvec[0]->Solution()(0,0) = 1.; // porque o multiplicador da solucao com neumann zero eh sempre 1
 		
-	bool SeeSol = true;
+	bool SeeSol = false;
 	if (SeeSol) {
     fmeshvec[0]->Solution()(0,0) = 0.;
 		fmeshvec[0]->Solution()(2,0) = 10.;
@@ -249,7 +258,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //ToolsTransient::PlotAllHatsVTK();
   
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
-  TPZAnalysis * an = new TPZAnalysis(cmesh_elast);
+  TPZAnalysis * an = new TPZAnalysis(cmesh_elast,false);
 	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo o primeiro problema com Neumann zero por causa do PresStress
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
@@ -501,7 +510,7 @@ void ToolsTransient::Mesh2D()
       {
         if(gel->MaterialId() == globReservMatId1)
         {
-          gel->CreateBCGeoEl(4, globDirichletElastMatId1);
+          gel->CreateBCGeoEl(4, globDirichletBottom);
           gel->CreateBCGeoEl(4, globCohesiveMatId);
         }
         else
@@ -828,8 +837,8 @@ TPZCompMesh * ToolsTransient::CMeshHat(int &dirid, int &porder)
   
   int side = 4;
   int neworder = 1;
-  intel1->SetSideOrder(side,neworder);
-  intel2->SetSideOrder(side,neworder);
+  //intel1->SetSideOrder(side,neworder); //AQUINATHAN, devo mudar a ordem?
+  //intel2->SetSideOrder(side,neworder);
   
 	return cmesh;
 }
@@ -901,7 +910,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
   val1.Redim(2,2);
   val2.Redim(2,1);
   TPZMaterial * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
-  //TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
+  TPZMaterial * BCond22 = material1->CreateBC(mat1, globDirichletBottom, typeDirichlet, val1, val2);
   
   val1(0,0) = big;
   TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2); //AQUINATHAN typeMixed
@@ -909,7 +918,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
   
   cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(BCond21);
-  //cmesh->InsertMaterialObject(BCond22);
+  cmesh->InsertMaterialObject(BCond22);
 	cmesh->InsertMaterialObject(BCond31);
 	
 	//Ajuste da estrutura de dados computacional
@@ -1131,13 +1140,14 @@ void ToolsTransient::CMeshMultiphysics()
     {//estou no globReservMatId2
       TPZMaterial * BCond12 = mat2->CreateBC(fCouplingMaterial2, bcId, typeNeumann, val1, val2);
       fmphysics->InsertMaterialObject(BCond12);
+			DebugStop(); // not using matid2
     }
   }
   
   val2.Redim(3,1);
   val1.Redim(3,2);
   TPZMaterial * BCond21 = fCouplingMaterial1->CreateBC(mat1, globDirichletElastMatId1, typeDir_elast, val1, val2);
-  TPZMaterial * BCond22 = fCouplingMaterial2->CreateBC(mat2, globDirichletElastMatId2, typeDir_elast, val1, val2);
+  //TPZMaterial * BCond22 = fCouplingMaterial2->CreateBC(mat2, globDirichletElastMatId2, typeDir_elast, val1, val2);
   
   val1(0,0) = big;
   TPZMaterial * BCond31 = fCouplingMaterial1->CreateBC(mat1, globMixedElastMatId, typeMix_elast, val1, val2);
@@ -1146,10 +1156,11 @@ void ToolsTransient::CMeshMultiphysics()
   val1.Redim(3,2);
   val2(0,0) = globFractInputData.Qinj();
   TPZMaterial * BCond41 = fCouplingMaterial1->CreateBC(mat1, globBCfluxIn, typeNeum_pressure, val1, val2);
+	
   
   fmphysics->SetAllCreateFunctionsMultiphysicElem();
   fmphysics->InsertMaterialObject(BCond21);
-  fmphysics->InsertMaterialObject(BCond22);
+  //fmphysics->InsertMaterialObject(BCond22);
   fmphysics->InsertMaterialObject(BCond31);
   fmphysics->InsertMaterialObject(BCond41);
   
@@ -1161,6 +1172,23 @@ void ToolsTransient::CMeshMultiphysics()
 	TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fmphysics);
 	TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fmphysics);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
+	
+	
+	// Preciso criar o MultiPhysicsWithMem
+	/*
+	int cohesiveid = globCohesiveMatId;
+  TPZCohesiveBC * material2 = new TPZCohesiveBC(cohesiveid);
+  const REAL SigmaT = 3., DeltaC = 0.0001024;
+	const REAL DeltaT = 0.1 * DeltaC;
+  material2->SetCohesiveData(SigmaT, DeltaC, DeltaT);
+  TPZMaterial *CoheMat(material2);
+	fmphysics->InsertMaterialObject(CoheMat);
+	std::set<int> matids;
+	matids.insert(cohesiveid);
+	fmphysics->SetAllCreateFunctionsContinuousWithMem();
+	fmphysics->AutoBuild(matids);
+	*/
+		
 }
 
 
@@ -1224,6 +1252,7 @@ void ToolsTransient::TransferElasticSolution(TPZCompMesh * cmeshFrom)
   }
   else
   {
+		DebugStop(); //only using one mat
     it = fmeshvec[0]->MaterialVec().find(globReservMatId2);
     if(it != fmeshvec[0]->MaterialVec().end())
     {
@@ -1407,13 +1436,7 @@ void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 
 bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded)
 {
-  //CheckConv(); CUIDADO ESSE CHECKCONV AS VEZES FERRA O RESULTADO FINAL!
-	bool IWantCheckConv = true;
-	if(IWantCheckConv){
-		CheckConv();
-		DebugStop();
-	}
-  
+ 
 	int nrows = an->Solution().Rows();
 	TPZFMatrix<REAL> res_total(nrows,1,0.);
   
@@ -1443,7 +1466,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     
     res_total = fres + fmat;
     REAL res = Norm(res_total);
-    REAL tol = 1.e-4;
+    REAL tol = 1.e-6;
     int maxit = 15;
     int nit = 0;
     //res = 1.;
@@ -1477,6 +1500,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
       std::cout << "||res|| = " << res << std::endl;
       nit++;
     }
+		an->Solution().Print("Sol");
     
     if(res >= tol)
     {
@@ -1486,6 +1510,10 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     }
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
+		fmeshvec[0]->Solution().Print("SolEla");
+		fmeshvec[1]->Solution().Print("SolP");		
+		
+		
     globFractInputData.UpdateLeakoff(fmeshvec[1]);
     globFractInputData.UpdateActTime();
     
@@ -1682,151 +1710,8 @@ void ToolsTransient::PostProcessVolLeakoff()
   
   globFractOutputData.InsertTAcumVolLeakoff(globFractInputData.actTime(), vlAcum);
 }
-/*
-{
-	std::cout << "\n\n\nInside CheckConv\n\n\n";
-	
-	long blockAlphaEslast = this->fmphysics->ConnectVec()[0].SequenceNumber();
-	long posBlock = this->fmphysics->Block().Position(blockAlphaEslast);
-	
-	globTimeControl.SetDeltaT(120.);
-	long neq = this->fmphysics->NEquations();
-	int nsteps = 10;
-	
-	this->ApplyInitialCondition(globLayerStruct.GetHigherPreStress());
-	TPZFMatrix<REAL> xIni = this->fmphysics->Solution();
-	//    for(long i = 0; i < xIni.Rows(); i++)
-	//    {
-	//        REAL val = (double)(rand())*(1.e-8);
-	//        xIni(i,0) = val;
-	//    }
-	//    xIni(posBlock) = 1.;
-	
-	TPZAnalysis *an = new TPZAnalysis(this->fmphysics);
-	an->LoadSolution(xIni);
-	TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
-	
-	TPZFMatrix<REAL> actX = xIni;
-	
-	TPZAutoPointer< TPZMatrix<REAL> > fL_xIni;
-	TPZFMatrix<REAL> f_xIni(neq,1);
-	
-	AssembleStiffMatrixLoadVec(an, fL_xIni, f_xIni, ENoBlock);
-	
-	TPZFMatrix<REAL> fAprox_x(neq,1);
-	TPZFMatrix<REAL> fExato_x(neq,1);
-	
-	TPZFMatrix<REAL> errorVec(neq,1,0.);
-	TPZFMatrix<REAL> errorNorm(nsteps,1,0.);
-	
-	TPZAutoPointer< TPZMatrix<REAL> > fLtemp;
-	TPZFMatrix<REAL> dFx(neq,1);
-	
-	TPZVec<REAL> deltaX(neq,0.001), alphas(nsteps);
-	deltaX[posBlock] = 0.;
-	double alpha;
-	
-	std::stringstream exatoSS, aproxSS;
-	exatoSS << "exato={";
-	aproxSS << "aprox={";
-	for(int i = 0; i < nsteps; i++)
-	{
-		alpha = (i+1)/10.;
-		alphas[i] = alpha;
-		
-		///Fx aproximado
-		dFx.Zero();
-		for(long r = 0; r < neq; r++)
-		{
-			int activeRow = r;
-			if(activeRow == posBlock)
-			{
-				continue;
-			}
-			else if(activeRow > posBlock)
-			{
-				activeRow--;
-			}
-			for(long c = 0; c < neq; c++)
-			{
-				int activeCol = c;
-				if(activeCol == posBlock)
-				{
-					continue;
-				}
-				if(activeCol >= posBlock)
-				{
-					activeCol--;
-				}
-				dFx(r,0) +=  (-1.) * fL_xIni->GetVal(activeRow,activeCol) * (alpha * deltaX[c]); // (-1) porque fLini = -D[res,sol]
-			}
-		}
-		fAprox_x = f_xIni + dFx;
-		
-		//        int wantToSeeRow = 0;
-		
-		//        {
-		//            REAL aproxSol = fAprox_x(wantToSeeRow,0);
-		//            aproxSS << aproxSol;
-		//            if(i < nsteps-1)
-		//            {
-		//                aproxSS << ",";
-		//            }
-		//        }
-		
-		///Fx exato
-		for(long r = 0; r < neq; r++)
-		{
-			if(r != posBlock)
-			{
-				actX(r,0) = xIni(r,0) + (alpha * deltaX[r]);
-			}
-		}
-		an->LoadSolution(actX);
-		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(this->fmeshVec, this->fmphysics);
-		
-		fExato_x.Zero();
-		if(fLtemp) fLtemp->Zero();
-		this->AssembleStiffMatrixLoadVec(an, fLtemp, fExato_x, ENoBlock);
-		
-		//        {
-		//            REAL exatoSol = fExato_x(wantToSeeRow,0);
-		//            exatoSS << exatoSol;
-		//            if(i < nsteps-1)
-		//            {
-		//                exatoSS << ",";
-		//            }
-		//        }
-		
-		///Erro
-		errorVec.Zero();
-		for(long r = 0; r < neq; r++)
-		{
-			errorVec(r,0) = fExato_x(r,0) - fAprox_x(r,0);
-		}
-		
-		///Norma do erro
-		double XDiffNorm = Norm(errorVec);
-		errorNorm(i,0) = XDiffNorm;
-	}
-	aproxSS << "};";
-	exatoSS << "};";
-	std::cout << aproxSS.str() << std::endl;
-	std::cout << exatoSS.str() << std::endl;
-	std::cout << "Show[ListPlot[aprox, Joined -> True, PlotStyle -> Red],ListPlot[exato, Joined -> True]]\n";
-	
-	std::cout << "Convergence Order:\n";
-	for(int j = 1; j < nsteps; j++)
-	{
-		std::cout << ( log(errorNorm(j,0)) - log(errorNorm(j-1,0)) )/( log(alphas[j]) - log(alphas[j-1]) ) << "\n";
-	}
-	std::cout << "\n\n\nEnding CheckConv\n\n\n";
-	DebugStop();
-	
-}
-	*/
 
-void ToolsTransient::CheckConv()
+void ToolsTransient::CheckConv(bool OptimizeBandwidth)
 {
 	
 	long neq = fmphysics->NEquations();
@@ -1844,7 +1729,7 @@ void ToolsTransient::CheckConv()
   }
 	xIni(posBlock) = 1.;
 	
-  TPZAnalysis *an = new TPZAnalysis(fmphysics);
+  TPZAnalysis *an = new TPZAnalysis(fmphysics,OptimizeBandwidth);
   an->LoadSolution(xIni);
   TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
 	
