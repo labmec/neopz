@@ -82,7 +82,7 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const Pi = 4.*atan(1.);
 // nao esta rodando com estas configuracoes..aguardar Agnaldo
-bool ftriang = false;
+bool ftriang = true;
 bool isStab = false;
 bool iscontinuou = false;
 bool useh2 = false;
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     REAL Ly = 1.;
     
     ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
-    
+
     for(int p = 1; p<4; p++)
     {
         int pq = p;
