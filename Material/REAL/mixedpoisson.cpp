@@ -414,6 +414,7 @@ void TPZMixedPoisson::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 		datavec[i].fNeedsNeighborSol = false;
 		datavec[i].fNeedsNeighborCenter = false;
 		datavec[i].fNeedsNormal = false;
+        datavec[i].fNeedsHSize = true;
 	}
 	
 }
