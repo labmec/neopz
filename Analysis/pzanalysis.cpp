@@ -165,7 +165,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
 	fRenumber->Resequence(perm,iperm);
 	fCompMesh->Permute(perm);
-    fCompMesh->SaddlePermute2();
+    fCompMesh->SaddlePermute();
 	
 #endif
 	
