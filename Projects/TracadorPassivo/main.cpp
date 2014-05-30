@@ -118,7 +118,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 bool ftriang = false;
 bool fishomogmedium = true;
-bool recgrad = true;
+bool recgrad = false;
 bool useRK2 = false;
 
 REAL ftimeatual = 0.;
@@ -129,7 +129,7 @@ REAL fk1 =  9.86923e-13;//m2
 REAL fk2 = 0.;
 
 REAL fvazaoentrada = 60.;//m3/d
-REAL fporos = 1.;//0.2;
+REAL fporos = 0.3;
 
 REAL fLref = fLy;
 REAL fkref = fk1;//(fk1+fk2)/2.;
@@ -142,9 +142,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
     if(fishomogmedium == true)
     {
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         pp = pq;
     }
 
-    int h = 0;
+    int h = 4;
     //TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
     TPZGeoMesh *gmesh = GMesh2(Lx, Ly,ftriang);
     UniformRefine(gmesh,h);
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     REAL denom = fvisref*fLref*fLref;
     
     REAL tempoAdimens = (num/denom)*tempoSeg;
-    int temp = (int)tempoAdimens;
+    int temp = (int)tempoAdimens*fporos;
     REAL tD = (1.*temp + 1.);
 
     REAL deltaX = Ly/(pow(2.,h));
@@ -289,6 +289,26 @@ int main(int argc, char *argv[])
     if(recgrad==true)
     {
         TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
+        
+        if(ftriang==true){
+            TPZVec<REAL> LxLyLz(2,0.);
+            LxLyLz[0] = Lx; LxLyLz[1]=Ly;
+            
+            TPZVec<int> MatIdBC(2,0);
+            MatIdBC[0] = -1; MatIdBC[1] = -3;
+            
+            TPZVec<REAL>  Xmin(2,0.);
+            TPZVec<REAL> Xmax(2,0.);
+            TPZManVector<TPZVec<REAL> > coordmin(2,0.);
+            TPZManVector<TPZVec<REAL> > coordmax(2,0.);
+            Xmin[0] = 0.; Xmin[1] = 0.; Xmax[0] = Lx; Xmax[1] = 0.;
+            coordmin[0] = Xmin; coordmax[0] = Xmax;
+            Xmin[0] = 0.; Xmin[1] = Ly; Xmax[0] = Lx; Xmax[1] = Ly;
+            coordmin[1] = Xmin; coordmax[1] = Xmax;
+            
+            gradreconst->SetDataGhostsNeighbors(LxLyLz, MatIdBC, coordmin, coordmax);
+        }
+        
         ResolverComReconstGradiente(deltaX,tD,meshvec, mphysics,gradreconst, useRK2);
     }else{
         ResolverSemReconstGradiente(deltaX,tD,meshvec, mphysics);
@@ -341,13 +361,13 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
     {
         TopolTriang[0] = 0;
         TopolTriang[1] = 1;
-        TopolTriang[2] = 3;
+        TopolTriang[2] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,matId,*gmesh);
         id++;
         
         TopolTriang[0] = 2;
-        TopolTriang[1] = 1;
-        TopolTriang[2] = 3;
+        TopolTriang[1] = 3;
+        TopolTriang[2] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
         id++;
         
@@ -356,13 +376,13 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
         id++;
         
-        TopolLine[0] = 2;
-        TopolLine[1] = 1;
+        TopolLine[0] = 1;
+        TopolLine[1] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
-        TopolLine[1] = 2;
+        TopolLine[0] = 2;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
         id++;
         
@@ -476,20 +496,16 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
         {
             TopolTriang[0] = i;
             TopolTriang[1] = i+1;
+            TopolTriang[2] = (Qnodes-2) - i;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
+            id++;
+            
+            TopolTriang[0] = i;
+            TopolTriang[1] = (Qnodes-2) - i;
             TopolTriang[2] = (Qnodes-1) - i;
             new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
             id++;
         }
-        
-        for(int i = 0; i< nelem; i++)
-        {
-            TopolTriang[0] = hnodes + i;
-            TopolTriang[1] = hnodes + (i+1);
-            TopolTriang[2] = hnodes - (i+1);
-            new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
-            id++;
-        }
-        
     }
     
     //elemsentos do contorno
@@ -657,7 +673,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         
     }
 #endif
-    
+
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
     
@@ -707,6 +723,16 @@ TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder)
     cmesh->InsertMaterialObject(BCond4);
     
     
+    TPZVec<STATE> sol(1,0.);
+    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,material->NStateVariables(),sol);
+    cmesh->InsertMaterialObject(matl2proj);
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
     ///set order total da shape
     int nel = cmesh->NElements();
     for(int i=0; i<nel; i++){
@@ -718,15 +744,6 @@ TPZCompMesh *CMeshSaturation(TPZGeoMesh * gmesh, int pOrder)
             else celdisc->SetTensorialShape();
         }
     }
-	
-    TPZVec<STATE> sol(1,0.);
-    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,material->NStateVariables(),sol);
-    cmesh->InsertMaterialObject(matl2proj);
-    
-    //Ajuste da estrutura de dados computacional
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
-	cmesh->AutoBuild();
     
 	return cmesh;
 }
@@ -906,8 +923,11 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     
 //------------------- Criando matriz de massa (matM) ---------------------
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(material, mphysics);
-    material->SetTrueRungeKuttaTwo();
-    TPZAutoPointer <TPZMatrix<STATE> > matMAux = MassMatrix(material, mphysics);
+    TPZAutoPointer <TPZMatrix<STATE> > matMAux;
+     if(useRK2==true){
+         material->SetTrueRungeKuttaTwo();
+         matMAux = MassMatrix(material, mphysics);
+     }
 //#ifdef LOG4CXX
 //    if(logdata->isDebugEnabled())
 //    {
@@ -1152,6 +1172,7 @@ void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT
             if(fabs(temp) > maxsolq) maxsolq = fabs(temp);
         }
     }
+    maxsolq /=fporos;
     int NDt = 10;
     deltaT = 0.;
     REAL CFL = 0.;
@@ -1160,7 +1181,7 @@ void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT
     {
         deltaT = maxTime/NDt;
         CFL = maxsolq*(deltaT/deltaX);
-        while (CFL > 0.1)
+        while (CFL > 0.2)
         {
             NDt = 2*NDt;
             deltaT = maxTime/NDt;
@@ -1407,6 +1428,18 @@ TPZCompMesh *SetCondicaoInicial(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &so
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
     
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++)
+    {
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
+        }
+    }
+
 	return cmesh;
 }
 
@@ -1424,7 +1457,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     REAL num = fvisref*fLref;
     REAL denom = fkref*fpref;
     REAL qinD = (-1.)*(qin*num/denom);
-    REAL velx = -1.*qinD;
+    REAL velx = -1.*qinD/fporos;
     
     REAL ptx = x-velx*tp;
     

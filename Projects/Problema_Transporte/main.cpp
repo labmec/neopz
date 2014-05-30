@@ -126,7 +126,7 @@ bool userecgrad = true;
 
 REAL teta =0.;// M_PI/6.;
 
-int mainRiemann(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 //#ifdef LOG4CXX
 //    InitializePZLOG();
@@ -135,15 +135,13 @@ int mainRiemann(int argc, char *argv[])
     TPZVec<REAL> erros;
     ofstream arg0("Erro.txt");
     int p = 1;
-    int h = 6;
+    int h = 4;
     REAL Lx=1., Ly=1.;
     
 
     TPZGeoMesh *gmesh = MalhaGeom(Lx,Ly,triang);
     //TPZGeoMesh *gmesh = GMesh3(Lx,Ly);
     UniformRefine(gmesh,h);
-    ofstream arg1("gmesh.txt");
-    gmesh->Print(arg1);
     
     TPZMatConvectionProblem *material;
     TPZCompMesh *cmesh = MalhaComp(gmesh, p, material);
@@ -239,6 +237,10 @@ int mainRiemann(int argc, char *argv[])
     gmesh->ResetReference();
     cmesh->LoadReferences();
     CreatInterface(cmesh);
+    
+    ofstream arg1("gmesh.txt");
+    gmesh->Print(arg1);
+    
     ofstream arg2("cmesh.txt");
     cmesh->Print(arg2);
     
@@ -299,7 +301,7 @@ int mainRiemann(int argc, char *argv[])
 }
 
 //problema estacionario
-int main(int argc, char *argv[])
+int mainestacionario(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -446,8 +448,8 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
         id++;
         
-        TopolLine[0] = 1;
-        TopolLine[1] = 0;
+        TopolLine[0] = 0;
+        TopolLine[1] = 1;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
         id++;
         
