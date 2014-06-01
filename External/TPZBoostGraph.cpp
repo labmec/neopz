@@ -40,21 +40,10 @@ void TPZBoostGraph::ClearDataStructures()
 	TPZRenumbering::ClearDataStructures();
 }
 
-/*------------------------------------------------*/
-/* Code to read the wall clock time.              */
-#include <sys/time.h>
-double mysecond()
-{
-    struct timeval tp;
-    struct timezone tzp;
-    gettimeofday(&tp,&tzp);
-    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
-}
-
 void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
 {
     
-    double t = mysecond();
+
     /* if the graph is empty, trivial */
     if (this->fNNodes == 0)
     {
@@ -72,15 +61,11 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     
     NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
     
-    t = mysecond() - t;
-    std::cout << "\nnode-to-el-graph: " << t << std::endl;
-    
-     t = mysecond();
     std::vector<std::pair<std::size_t, std::size_t> > edges;
     
-    size_t maxsize = 1000000;
+    size_t maxsize = 100000;
     int resize_times = 1;
-    edges.reserve(maxsize);
+    edges.reserve(1000000);
     
     for(nod=0; nod<fNNodes; nod++)
     {
@@ -101,16 +86,11 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
         {
             edges.push_back(std::make_pair(nod, *it));
             edges.push_back(std::make_pair(*it, nod));
-            if (edges.size() > (maxsize*resize_times)) {
-                edges.reserve(maxsize*(++resize_times));
+            if (edges.size() > (edges.size()+maxsize*resize_times)) {
+                edges.reserve(edges.size()+maxsize*(++resize_times));
             }
         }
     }
-    
-    std::cout << "\t # of edges: " << edges.size() << std::endl;
-    t = mysecond() - t;
-    std::cout << "\t create graph: " << t << std::endl;
-    t = mysecond();
     
     BoostGraph G(boost::edges_are_unsorted_multi_pass, edges.begin(), edges.end(), fNNodes);
     
@@ -130,9 +110,6 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
         perm[inv_perm[i]] = i;
         inverseperm[i]=inv_perm[i];
     }
-    
-    t = mysecond() - t;
-    std::cout << "\t cut-hill: " << t << std::endl;
 
 }
 void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
