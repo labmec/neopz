@@ -40,10 +40,22 @@ void TPZBoostGraph::ClearDataStructures()
 	TPZRenumbering::ClearDataStructures();
 }
 
+/*------------------------------------------------*/
+/* Code to read the wall clock time.              */
+#include <sys/time.h>
+double mysecond()
+{
+    struct timeval tp;
+    struct timezone tzp;
+    gettimeofday(&tp,&tzp);
+    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+}
+
 void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
 {
-  
-      /* if the graph is empty, trivial */
+    
+    double t = mysecond();
+    /* if the graph is empty, trivial */
     if (this->fNNodes == 0)
     {
         perm.resize(0);
@@ -53,54 +65,61 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     /* define type graph */
     typedef boost::compressed_sparse_row_graph<boost::directedS> BoostGraph;
     
-    /* this code is a copy modified from the method ConvertGraph. Used here to create a Compressed Sparse Row Graph Boost */
+    /* this code is a copy modified from the method ConvertGraph. Used here to create a  Compressed Sparse Row Graph Boost */
     long nod,el;
     TPZVec<long> nodtoelgraphindex;
     TPZVec<long> nodtoelgraph;
-
+    
     NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
-
+    
+    t = mysecond() - t;
+    std::cout << "\nnode-to-el-graph: " << t << std::endl;
+    
+     t = mysecond();
     std::vector<std::pair<std::size_t, std::size_t> > edges;
     
-		size_t maxsize = 1000000;
-		
-    if (fNNodes*fNNodes > maxsize)
-    {
-      edges.reserve(maxsize);
-    } else {
-      edges.reserve(fNNodes*fNNodes);
-    }
-  
-    for(nod=0; nod<fNNodes; nod++) 
+    size_t maxsize = 1000000;
+    int resize_times = 1;
+    edges.reserve(maxsize);
+    
+    for(nod=0; nod<fNNodes; nod++)
     {
         long firstel = nodtoelgraphindex[nod];
         long lastel = nodtoelgraphindex[nod+1];
         std::set<long> nodecon;
-        for(el=firstel; el<lastel; el++) 
-	{
+        for(el=firstel; el<lastel; el++)
+        {
             long gel = nodtoelgraph[el];
             long firstelnode = fElementGraphIndex[gel];
             long lastelnode = fElementGraphIndex[gel+1];
             nodecon.insert(&fElementGraph[firstelnode],&fElementGraph[(lastelnode-1)]+1);
         }
         nodecon.erase(nod);
-
-	std::set<long>::iterator it;
+        
+        std::set<long>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++)
-	{
-	  edges.push_back(std::make_pair(nod, *it));
-	  edges.push_back(std::make_pair(*it, nod));
-	}
+        {
+            edges.push_back(std::make_pair(nod, *it));
+            edges.push_back(std::make_pair(*it, nod));
+            if (edges.size() > (maxsize*resize_times)) {
+                edges.reserve(maxsize*(++resize_times));
+            }
+        }
     }
-
+    
+    std::cout << "\t # of edges: " << edges.size() << std::endl;
+    t = mysecond() - t;
+    std::cout << "\t create graph: " << t << std::endl;
+    t = mysecond();
+    
     BoostGraph G(boost::edges_are_unsorted_multi_pass, edges.begin(), edges.end(), fNNodes);
-  
+    
     boost::property_map<BoostGraph, boost::vertex_index_t>::type boost_index_map;
     boost_index_map = get(boost::vertex_index, G);
-
+    
     // Compute graph re-ordering
     std::vector<std::size_t> inv_perm(fNNodes);
-
+    
     boost::cuthill_mckee_ordering(G, inv_perm.begin());
     
     perm.Resize(fNNodes);
@@ -108,9 +127,13 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
     
     for (std::size_t i = 0; i < fNNodes; ++i)
     {
-      perm[inv_perm[i]] = i;
-      inverseperm[i]=inv_perm[i];
+        perm[inv_perm[i]] = i;
+        inverseperm[i]=inv_perm[i];
     }
+    
+    t = mysecond() - t;
+    std::cout << "\t cut-hill: " << t << std::endl;
+
 }
 void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
 {
@@ -147,7 +170,7 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
             }
         }
     }
-        
+    
     for(i=0; i< (size_type)nconnects.size(); i++)
     {
         if(!nconnects[i])
@@ -271,8 +294,8 @@ void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
      }
      std::cout << std::endl;
      */
-//    property_map<Graph, vertex_index_t>::type
-//    index_map = get(vertex_index, G);
+    //    property_map<Graph, vertex_index_t>::type
+    //    index_map = get(vertex_index, G);
     
     /*    std::cout << "  bandwidth: "
      << bandwidth(G, make_iterator_property_map(&l_perm[0], index_map, l_perm[0]))
