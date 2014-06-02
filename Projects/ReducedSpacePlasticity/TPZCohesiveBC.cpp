@@ -161,8 +161,6 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
 	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
 		
-	//CohesiveStress = -0.001;
-	//DerivCohesive = 0.;
 	
 	for (int in = 0; in < phr; in++) 
 	{
@@ -181,31 +179,42 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 {
 	// datavec[0] = elasticity
 	// datavec[1] = pressure
+  if(fUpdateMem){
+    UpdateCohesiveCurve(datavec[0]);
+  }
 	TPZFMatrix<REAL> &phi = datavec[0].phi;
 	int phr = phi.Rows();
-	REAL CohesiveStress;
+	REAL CohesiveStress, DerivCohesive;
 	TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
 	const REAL uy = sol_u[1];
 	REAL w = 2.*uy;
 	
 	const int index = datavec[0].intGlobPtIndex; 
 	TPZFMatrix<REAL> DTST = this->MemItem(index);
-	if (DTST.Rows() != 2 || DTST.Cols() != 1) {
-		PZError << "The DTST memory number of Rows must be 2 and Cols 1\n";
+	if (DTST.Rows() != 3 || DTST.Cols() != 1) {
+		PZError << "The DTST memory number of Rows must be 3 and Cols 1\n";
 		DebugStop();
 	}
-	REAL DeltaT = DTST(0,0);
+
+  REAL DeltaT = DTST(0,0);
 	REAL SigmaT = DTST(1,0);
-  REAL propageted = DTST(2,0);
+  REAL propageted = DTST(2,0); // Fracture is considered oppened when propageted is greater than 1!
+  if (propageted > 1.) { // if propageted, there is nothing to be done
+    return;
+  }
 	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
+	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
 	
-	for (int in = 0; in < phr; in++) 
+	for (int in = 0; in < phr; in++)
 	{
-		for (int il = 0; il < fNumLoadCases; il++) 
+		for (int il = 0; il < fNumLoadCases; il++)
 		{
-			ef(in,il) += CohesiveStress * phi(0,in) * weight;        // force in x direction
+			ef(2*in+1,il) += CohesiveStress * phi(in,0) * weight; // negativo da formula do residuo com negativo do residuo por causa do nonlinanalysis da positivo
 		}
-	}	
+		for (int jn = 0; jn < phr; jn++) {
+			ek(2*in+1,2*jn+1) += (- 2. * DerivCohesive) * phi(jn,0) * phi(in,0) * weight; // eh o negativo da formula do residuo
+		}
+	}
 }
 
 void TPZCohesiveBC::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
