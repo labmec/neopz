@@ -23,9 +23,10 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 #endif
 
 
-TPZPlasticFrac2D::EState TPZPlasticFrac2D::gState = ECurrentState;
 
-TPZPlasticFrac2D::TPZPlasticFrac2D() : TPZDiscontinuousGalerkin()
+
+template<class T,class TMEM>
+TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D() : TPZMatElastoPlastic2D<T,TMEM>()
 {
 	fmatId = 0;
 	fE = 0.;
@@ -37,34 +38,38 @@ TPZPlasticFrac2D::TPZPlasticFrac2D() : TPZDiscontinuousGalerkin()
 	ff.resize(fDim);
 	ff[0] = 0.;
 	ff[1] = 0.;
+	this->SetCurrentState();
 }
 
-TPZPlasticFrac2D::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL poiss, REAL visc) : TPZDiscontinuousGalerkin(matid) 
+template<class T,class TMEM>
+TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL poiss, REAL visc) : TPZMatElastoPlastic2D<T,TMEM>(matid,1) 
 {
 	fmatId = matid;
 	fE = young;
 	fPoiss = poiss;
 	fVisc = visc;
 	fDim = dim;
-	fPlaneStress = 1;
+	fPlaneStress = 1; // it has to be one because of matelastoplastic initializer!!!!!
 	
 	ff.resize(2);
 	ff[0] = 0.;
 	ff[1] = 0.;
+	this->SetCurrentState();
 }
 
-TPZPlasticFrac2D::~TPZPlasticFrac2D()
+template<class T,class TMEM>
+TPZPlasticFrac2D<T,TMEM>::~TPZPlasticFrac2D()
 {
 }
 
-
-int TPZPlasticFrac2D::NStateVariables()
+template<class T,class TMEM>
+int TPZPlasticFrac2D<T,TMEM>::NStateVariables()
 {
 	return 1;
 }
 
-
-void TPZPlasticFrac2D::Print(std::ostream &out)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::Print(std::ostream &out)
 {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
@@ -83,8 +88,8 @@ void TPZPlasticFrac2D::Print(std::ostream &out)
 	out << "\n";
 }
 
-
-void TPZPlasticFrac2D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	if(gState == ELastState)
 	{
@@ -116,10 +121,10 @@ void TPZPlasticFrac2D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	int phcu = phi_u.Cols();
 	int efcu = ef.Cols();
 	
-	if(fForcingFunction)
+	if(this->fForcingFunction)
 	{// phi(in, 0) :  node in associated forcing function
 		TPZManVector<STATE> res(3);
-		fForcingFunction->Execute(datavec[0].x,res);
+		this->fForcingFunction->Execute(datavec[0].x,res);
 		ff[0] = res[0];
 		ff[1] = res[1];
 		ff[2] = res[2];
@@ -222,7 +227,8 @@ void TPZPlasticFrac2D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	ContributePressure(datavec, weight, ek, ef);
 }
 
-void TPZPlasticFrac2D::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	if(!datavec[1].phi) return;
 	
@@ -298,7 +304,8 @@ void TPZPlasticFrac2D::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL
 	}
 }
 
-void TPZPlasticFrac2D::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -313,7 +320,7 @@ void TPZPlasticFrac2D::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL w
 	
 	for(int in = 0 ; in < phc; in++)
 	{
-		for(int il = 0; il < fNumLoadCases; il++)
+		for(int il = 0; il < this->fNumLoadCases; il++)
 		{
 			//termo big*u*v do vetor de carga
 			TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
@@ -330,7 +337,8 @@ void TPZPlasticFrac2D::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL w
 	}
 }
 
-void TPZPlasticFrac2D::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -357,7 +365,7 @@ void TPZPlasticFrac2D::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
 	for (int in = 0; in < nc_u; in++)
 	{
 		//--- residuo ----
-		for (int il = 0; il <fNumLoadCases; il++)
+		for (int il = 0; il < this->fNumLoadCases; il++)
 		{
 			ef(in,il) += weight * factor * ( phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1] )
 			- weight * ( phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1] );
@@ -378,7 +386,8 @@ void TPZPlasticFrac2D::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
 	}
 }
 
-void TPZPlasticFrac2D::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -392,7 +401,7 @@ void TPZPlasticFrac2D::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	
 	for(int in = 0 ; in < phc; in++)
 	{
-		for (int il = 0; il <fNumLoadCases; il++)
+		for (int il = 0; il < this->fNumLoadCases; il++)
 		{
 			TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
 			ef(in,il)+= weight * ( v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in) );
@@ -420,8 +429,8 @@ void TPZPlasticFrac2D::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	}
 }
 
-
-void TPZPlasticFrac2D::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc)
 {
 	if(gState == ELastState)
 	{
@@ -441,8 +450,8 @@ void TPZPlasticFrac2D::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL wei
 	}
 }
 
-
-void TPZPlasticFrac2D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
 	TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
 	if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!= 0)
@@ -482,7 +491,8 @@ void TPZPlasticFrac2D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	}
 }
 
-int TPZPlasticFrac2D::VariableIndex(const std::string &name){
+template<class T,class TMEM>
+int TPZPlasticFrac2D<T,TMEM>::VariableIndex(const std::string &name){
 	if(!strcmp("Pressure",name.c_str()))        return 1;
 	if(!strcmp("MinusKGradP",name.c_str()))     return 2;
 	if(!strcmp("DisplacementX",name.c_str()))   return 3;
@@ -495,7 +505,8 @@ int TPZPlasticFrac2D::VariableIndex(const std::string &name){
 	return TPZMaterial::VariableIndex(name);
 }
 
-int TPZPlasticFrac2D::NSolutionVariables(int var){
+template<class T,class TMEM>
+int TPZPlasticFrac2D<T,TMEM>::NSolutionVariables(int var){
 	if(var == 1) return 1;
 	if(var == 2) return 1;
 	if(var == 3) return 1;
@@ -508,8 +519,8 @@ int TPZPlasticFrac2D::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-
-void TPZPlasticFrac2D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
 	
 	Solout.Resize(this->NSolutionVariables(var));
 	
@@ -623,7 +634,8 @@ void TPZPlasticFrac2D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	}
 }
 
-void TPZPlasticFrac2D::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 {
 	int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
@@ -636,7 +648,8 @@ void TPZPlasticFrac2D::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 	}
 }
 
-void TPZPlasticFrac2D::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
 	int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
@@ -646,7 +659,11 @@ void TPZPlasticFrac2D::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZM
 	}
 }
 
+#include "pzsandlerextPV.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZSandlerDimaggio.h"
 
-
-
-
+template class TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
+//template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+//template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;

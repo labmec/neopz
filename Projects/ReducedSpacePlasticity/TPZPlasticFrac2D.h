@@ -15,6 +15,7 @@
 #include "pzdiscgal.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
+#include "pzelastoplastic2D.h"
 
 #include "pznlfluidstructureData.h"
 
@@ -34,7 +35,8 @@
  */
 
 
-class TPZPlasticFrac2D : public TPZDiscontinuousGalerkin
+template <class T, class TMEM = TPZElastoPlasticMem>
+class TPZPlasticFrac2D : public TPZMatElastoPlastic2D<T,TMEM>
 {
 	
 protected:
@@ -61,11 +63,12 @@ protected:
 	REAL fPoiss;//poisson
 	REAL fVisc;//viscosity
 	
+
 	/** @brief State: one ou one+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
-	static EState gState;
-	
+	EState gState;	
 public:
+
 	
 	TPZPlasticFrac2D();
 	
@@ -77,7 +80,7 @@ public:
 	
 	virtual std::string Name() { return "TPZPlasticFrac2D"; }
 	
-	int Dimension() const {return fDim;}
+	//virtual int Dimension() const {return 2;}
 	
 	virtual int NStateVariables();
 	

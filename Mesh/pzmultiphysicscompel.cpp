@@ -24,7 +24,7 @@
 #include "pzmaterialdata.h"
 #include "pzinterpolationspace.h"
 #include "pzlog.h"
-//#include "pzcompelwithmem.h"
+#include "pzcompelwithmem.h"
 
 #include <set>
 
@@ -677,7 +677,18 @@ template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid>;
 
-
+/*
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoCube> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >;
+template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >;
+*/
+ 
+ 
 TPZCompEl * CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>(mesh, gel, index); 
 }
@@ -709,3 +720,55 @@ TPZCompEl * CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &inde
 TPZCompEl * CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid >(mesh,gel,index);
 }
+
+/*
+// with mem
+TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >(mesh,gel,index) ;
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle > >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoCube > >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid > >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >(mesh,gel,index);
+//	index = -1;
+//	return NULL;
+}
+ */

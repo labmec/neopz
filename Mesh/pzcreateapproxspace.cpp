@@ -565,6 +565,20 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
      */
 }
 
+void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElemWithMem()
+{
+	/*
+	fp[EPoint] = CreateMultiphysicsPointElWithMem;
+	fp[EOned] = CreateMultiphysicsLinearElWithMem;
+	fp[ETriangle] = CreateMultiphysicsTriangleElWithMem;
+	fp[EQuadrilateral] = CreateMultiphysicsQuadElWithMem;
+	fp[ETetraedro] = CreateMultiphysicsTetraElWithMem;
+	fp[EPiramide] = CreateMultiphysicsPyramElWithMem;
+	fp[EPrisma] = CreateMultiphysicsPrismElWithMem;
+	fp[ECube] = CreateMultiphysicsCubeElWithMem;
+	*/
+}
+
 /*
  * @brief Create a computational element using the function pointer for the topology
  */

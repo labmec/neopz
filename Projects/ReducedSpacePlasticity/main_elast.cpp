@@ -55,9 +55,9 @@ int mainFrac(int argc, char *argv[])
   
   REAL Fx = 0.;
   REAL Fy = 0.;
-  REAL preStressXX = -50.; // era -50
+  REAL preStressXX = -25.; // era -50
   REAL preStressXY = 0.;
-  REAL preStressYY = -25.; // era 25 //(positivo : estado de compressao)
+  REAL preStressYY = -50.; // era 25 //(positivo : estado de compressao)
   
   int NStripes = 1;
   REAL Visc = 5.e-8;//-2
@@ -128,13 +128,14 @@ int mainFrac(int argc, char *argv[])
 
 void CohesiveTest()
 {
-	TestContinuousDiscontinuous();
+	ElastTest();
 }
 
 /* Dados do caju
  // APAGAR
  int ndivV = 10; // division in x for PGmesh
- int ndivH = 25; // division in y for PGmesh
+ int ndivH = 25; // division in y for PGm
+ esh
  REAL q = 1.01; // PG order
  //Propagation criterion
  REAL Lx = 1000.;

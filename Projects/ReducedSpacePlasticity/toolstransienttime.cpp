@@ -72,10 +72,10 @@ ToolsTransient::ToolsTransient(int pOrder)
   fMustStop = false;
   
   int dim = 2;
-  fCouplingMaterial1 = new TPZPlasticFrac2D(globMultiFisicMatId1,dim,
+  fCouplingMaterial1 = new TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(globMultiFisicMatId1,dim,
                                             globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
   
-  fCouplingMaterial2 = new TPZPlasticFrac2D(globMultiFisicMatId2,dim,
+  fCouplingMaterial2 = new TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(globMultiFisicMatId2,dim,
                                             globFractInputData.E2(), globFractInputData.Poisson2(), globFractInputData.Visc());
   
   int planestrain = 0;

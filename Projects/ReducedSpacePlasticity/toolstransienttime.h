@@ -13,6 +13,7 @@
 #include "pzanalysis.h"
 #include "tpzcompmeshreferred.h"
 #include "TPZPlasticFrac2D.h"
+#include "TPZSandlerDimaggio.h"
 
 
 class TPZElastoPlasticAnalysis;
@@ -87,8 +88,8 @@ public:
   int fpOrder;
   bool fMustStop;
   
-  TPZPlasticFrac2D * fCouplingMaterial1;
-  TPZPlasticFrac2D * fCouplingMaterial2;
+  TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial1;
+  TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial2;
   TPZGeoMesh * fgmesh;
   TPZGeoMesh * fgmeshHat;
   
