@@ -103,16 +103,26 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
 	if(fSolver) fSolver->ResetMatrix();
+    fCompMesh->ExpandSolution();
+    fSolution = fCompMesh->Solution();
+    long neq = fCompMesh->NEquations();
+    fSolution.Resize(neq,1);
+    if(neq > 20000)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth\n";
+        std::cout.flush();
+    }
 	if(mustOptimizeBandwidth)
     {
         OptimizeBandwidth();
     }
+    if(neq > 20000)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
+        std::cout.flush();
+    }
 	fStep = 0;
 	fTime = 0.;
-	fCompMesh->ExpandSolution();
-	fSolution = fCompMesh->Solution();
-	long neq = fCompMesh->NEquations();
-	fSolution.Resize(neq,1);
 }
 
 TPZAnalysis::~TPZAnalysis(void){
@@ -571,14 +581,26 @@ RunStatsTable ass_rdt ("-ass_rdt", "Assemble statistics raw data table.");
 
 void TPZAnalysis::Run(std::ostream &out)
 {
+    long neq = fCompMesh->NEquations();
+    
+    if(neq > 20000)
+    {
+        std::cout << "Entering Assemble Equations\n";
+        std::cout.flush();
+    }
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     ass_rdt.start();
 	Assemble();
     ass_rdt.stop();
-    
-   
+
+    if(neq > 20000)
+    {
+        std::cout << "Entering Solve\n";
+        std::cout.flush();
+    }
+
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
