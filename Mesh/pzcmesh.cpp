@@ -2130,14 +2130,14 @@ void TPZCompMesh::SaddlePermute2()
             long maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                long eq = permutegather[c.SequenceNumber()];
+                long eq = permutescatter[c.SequenceNumber()];
                 if (!c.HasDependency() && c.LagrangeMultiplier() < lagr && eq > maxseq) {
                     maxseq = eq;
                 }
             }
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                int eq = permutegather[c.SequenceNumber()];
+                int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
 #ifdef DEBUG
                     if (c.HasDependency()) {
@@ -2161,14 +2161,14 @@ void TPZCompMesh::SaddlePermute2()
             maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                long eq = permutegather[c.SequenceNumber()];
+                long eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() < lagr && eq < maxseq) {
                     maxseq = eq;
                 }
             }
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                int eq = permutegather[c.SequenceNumber()];
+                int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
                     // we have to switch
                     DebugStop();
@@ -2220,14 +2220,14 @@ void TPZCompMesh::SaddlePermute2()
             long maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                long eq = permutegather[c.SequenceNumber()];
+                long eq = permutescatter[c.SequenceNumber()];
                 if (!c.HasDependency() && c.LagrangeMultiplier() < lagr && eq > maxseq) {
                     maxseq = eq;
                 }
             }
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
-                int eq = permutegather[c.SequenceNumber()];
+                int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
                     // we have to switch
                     cel->Print(std::cout);
