@@ -18,6 +18,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZMultiPhysicsElement"));
 #endif
 
+TPZMultiphysicsElement::TPZMultiphysicsElement(TPZCompMesh &mesh, const TPZMultiphysicsElement &copy) : TPZCompEl(mesh,copy)
+{
+  
+}
 
 void TPZMultiphysicsElement::CreateInterfaces()
 {

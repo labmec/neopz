@@ -567,7 +567,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElemWithMem()
 {
-	/*
+	
 	fp[EPoint] = CreateMultiphysicsPointElWithMem;
 	fp[EOned] = CreateMultiphysicsLinearElWithMem;
 	fp[ETriangle] = CreateMultiphysicsTriangleElWithMem;
@@ -576,7 +576,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElemWithMem()
 	fp[EPiramide] = CreateMultiphysicsPyramElWithMem;
 	fp[EPrisma] = CreateMultiphysicsPrismElWithMem;
 	fp[ECube] = CreateMultiphysicsCubeElWithMem;
-	*/
+	
 }
 
 /*

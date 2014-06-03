@@ -12,6 +12,7 @@
 #include "pzmaterialdata.h"
 
 #include "pzelctemp.h"
+#include "pzreducedspace.h"
 
 class TPZTransform;
 
@@ -37,6 +38,15 @@ public:
 	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
 	/** @brief Default constructor */
 	TPZMultiphysicsCompEl();
+  
+	/** @brief Put a copy of the element in the referred mesh */
+  TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy);
+  /** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
+	TPZMultiphysicsCompEl(TPZCompMesh &mesh,
+              const TPZMultiphysicsCompEl<TGeometry> &copy,
+              std::map<long,long> & gl2lcConMap,
+              std::map<long,long> & gl2lcElMap);
+  
 	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsCompEl();
 	
@@ -234,7 +244,28 @@ public:
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	
-	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);	
+	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);
+  
+  const TPZIntPoints &GetIntegrationRule() const {
+    
+    // Use this at your on risk. You have to know which compel you need the integration rule. To use, only discoment DebugStop and chose IKnowThatIHaveToUseElNumber variable
+    DebugStop();
+    
+    long IKnowThatIHaveToUseElNumber = 0;
+    TPZCompEl *cel = fElementVec[IKnowThatIHaveToUseElNumber];
+    //if (!cel) DebugStop();
+    TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace*>(cel);
+    if (sp) {
+      return sp->GetIntegrationRule();
+    }
+    TPZReducedSpace *reduc = dynamic_cast<TPZReducedSpace*>(cel);
+    if (reduc){ // reduced is derived form interpoaltion space, so should never get in here
+      DebugStop();
+    }
+    DebugStop();
+    TPZInt1d fake;
+    return fake;
+	}
 	
 };
 
@@ -262,5 +293,33 @@ TPZCompEl *CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index
 
 /** @brief Creates computational tetrahedral element for Multiphysics approximate space */
 TPZCompEl *CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+//--------------------- WITH MEMORY ----------------------
+
+/** @brief Creates computational point element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational linear element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational quadrilateral element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational triangular element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational cube element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational prismal element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational pyramidal element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+/** @brief Creates computational tetrahedral element for Multiphysics approximate space */
+TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index);
+
+
 
 #endif

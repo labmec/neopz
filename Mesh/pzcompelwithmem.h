@@ -14,6 +14,7 @@ class TPZMaterialData;
 #include "pzquad.h"
 #include "pzmaterial.h"
 #include "pzelctemp.h"
+#include "pzmultiphysicscompel.h"
 
 //#include "tpzpoint.h"
 
@@ -143,12 +144,14 @@ TBASE(mesh, gel, index){
 	PrepareIntPtIndices();
 }
 
+
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy) :
 TBASE(mesh, copy) {
 	CopyIntPtIndicesFrom(copy);
 }
 
+ 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh,
 										  const TPZCompElWithMem<TBASE> &copy,

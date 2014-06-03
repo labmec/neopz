@@ -219,6 +219,25 @@ const int TPZCOMPELWITHMEMPRISMID = 417;
 const int TPZCOMPELWITHMEMPIRAMID = 418;
 
 const int TPZCOMPMESHREFERREDID = 419;
+
+//For Multiphysics
+/** @brief Id of computational memory point element (?) */
+const int TPZMPCOMPELWITHMEMPOINTID = 420;
+/** @brief Id of computational memory linear element (?) */
+const int TPZMPCOMPELWITHMEMLINEARID = 421;
+/** @brief Id of computational memory triangle element (?) */
+const int TPZMPCOMPELWITHMEMTRIANGID = 422;
+/** @brief Id of computational memory quadrilateral element (?) */
+const int TPZMPCOMPELWITHMEMQUADID = 423;
+/** @brief Id of computational memory cube element (?) */
+const int TPZMPCOMPELWITHMEMCUBEID = 424;
+/** @brief Id of computational memory tetrahedral element (?) */
+const int TPZMPCOMPELWITHMEMTETRAID = 425;
+/** @brief Id of computational memory prismal element (?) */
+const int TPZMPCOMPELWITHMEMPRISMID = 426;
+/** @brief Id of computational memory pyramidal element (?) */
+const int TPZMPCOMPELWITHMEMPIRAMID = 427;
+
 /** @} */
 
 #endif

@@ -29,6 +29,10 @@ public:
 	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) : TPZCompEl(mesh, ref, index)
 	{
 	}
+  
+  /** @brief Put a copy of the element in the referred mesh */
+  TPZMultiphysicsElement(TPZCompMesh &mesh, const TPZMultiphysicsElement &copy);
+  
 	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsElement()
 	{

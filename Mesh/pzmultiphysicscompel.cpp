@@ -39,6 +39,23 @@ TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZMultiphysicsEleme
 }
 
 template <class TGeometry>
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy) : TPZMultiphysicsElement(mesh,copy),
+                                                                                                                     fElementVec(copy.fElementVec), fConnectIndexes(copy.fConnectIndexes)
+{
+  DebugStop(); // only implemented to use withmem. Hope it is not called
+}
+
+template <class TGeometry>
+TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh,
+                      const TPZMultiphysicsCompEl<TGeometry> &copy,
+                      std::map<long,long> & gl2lcConMap,
+                      std::map<long,long> & gl2lcElMap){
+  
+  DebugStop(); // if this is called, withmem should not work
+}
+
+
+template <class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) :TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
 }
 
@@ -677,6 +694,7 @@ template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid>;
 
+
 /*
 template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >;
 template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >;
@@ -721,8 +739,8 @@ TPZCompEl * CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &inde
 	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid >(mesh,gel,index);
 }
 
-/*
-// with mem
+//--------------------- WITH MEMORY ----------------------
+
 TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 //	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >(mesh,gel,index) ;
@@ -771,4 +789,4 @@ TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long
 //	index = -1;
 //	return NULL;
 }
- */
+

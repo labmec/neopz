@@ -20,6 +20,33 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCub
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >, TPZCOMPELWITHMEMTETRAID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >, TPZCOMPELWITHMEMPRISMID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >, TPZCOMPELWITHMEMPIRAMID>;
+
+#include "pzgeopoint.h"
+#include "pzgeoquad.h"
+#include "pzgeotriangle.h"
+#include "pzgeotetrahedra.h"
+#include "pzgeoprism.h"
+#include "TPZGeoCube.h"
+#include "TPZGeoLinear.h"
+#include "pzgeopyramid.h"
+
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >, TPZMPCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >, TPZMPCOMPELWITHMEMLINEARID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle> >, TPZMPCOMPELWITHMEMTRIANGID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >, TPZMPCOMPELWITHMEMQUADID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoCube> >, TPZMPCOMPELWITHMEMCUBEID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >, TPZMPCOMPELWITHMEMTETRAID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >, TPZMPCOMPELWITHMEMPRISMID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >, TPZMPCOMPELWITHMEMPIRAMID>;
+
 #endif
-
-
+/*
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoCube>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>;
+template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid>;*/
