@@ -82,7 +82,7 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const Pi = 4.*atan(1.);
 // nao esta rodando com estas configuracoes..aguardar Agnaldo
-bool ftriang = true;
+bool ftriang = false;
 bool isStab = false;
 bool iscontinuou = false;
 bool useh2 = false;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     REAL Lx = 1.;
     REAL Ly = 1.;
     
-    ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
+    ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
 
     for(int p = 1; p<4; p++)
     {
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 2; ndiv< 7; ndiv++)
+        for (ndiv = 0; ndiv< 8; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;

@@ -563,7 +563,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZManVector<int,3> intorder(dim,order);
 	intrule->SetOrder(intorder);	
 	int intrulepoints = intrule->NPoints();
-    if(intrulepoints > 1000) {DebugStop();}
+    if(intrulepoints > 1000) {
+        DebugStop();
+    }
 	
 	TPZFMatrix<REAL> jac, axe, jacInv;
 	REAL detJac; 

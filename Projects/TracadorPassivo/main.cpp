@@ -116,9 +116,9 @@ void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT
 
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-bool ftriang = false;
+bool ftriang = true;
 bool fishomogmedium = true;
-bool recgrad = false;
+bool recgrad = true;
 bool useRK2 = false;
 
 REAL ftimeatual = 0.;
@@ -142,9 +142,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     if(fishomogmedium == true)
     {
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         pp = pq;
     }
 
-    int h = 4;
+    int h = 0;
     //TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
     TPZGeoMesh *gmesh = GMesh2(Lx, Ly,ftriang);
     UniformRefine(gmesh,h);
@@ -775,13 +775,19 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     material1->SetPorosity(fporos);
     
     //funcao que define a permeabilidade
-    TPZAutoPointer<TPZFunction<STATE> > forcefK;
-    forcefK = new TPZDummyFunction<STATE>(Permeability);
-    material1->SetForcingFunction(forcefK);
+    if(fishomogmedium==false){
+        TPZAutoPointer<TPZFunction<STATE> > forcefK;
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Permeability);
+        dum->SetPolynomialOrder(10);
+        forcefK = dum;
+        material1->SetForcingFunction(forcefK);
+    }
     
     if(fishomogmedium==true){
         TPZAutoPointer<TPZFunction<STATE> > solExata;
-        solExata = new TPZDummyFunction<STATE>(SolExata);
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExata);
+        dum->SetPolynomialOrder(10);
+        solExata = dum;
         material1->SetForcingFunctionExact(solExata);
     }
     
@@ -1228,7 +1234,7 @@ void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *>
     mymaterial->SetCurrentState();
     mymaterial->SetPressureEqFilter();
     TPZSkylineStructMatrix matsk(mphysics);
-    matsk.SetNumThreads(4);
+    //matsk.SetNumThreads(4);
     //TPZFStructMatrix matsk(mphysics);
     //TPZBandStructMatrix matsk(mphysics);
     matsk.EquationFilter().SetActiveEquations(active);
@@ -1270,7 +1276,7 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
         mymaterial->SetCurrentState();
         mymaterial->SetFalsePressureEqFilter();
         TPZSkylineStructMatrix matsk(mphysics);
-        matsk.SetNumThreads(4);
+        //matsk.SetNumThreads(4);
         matsk.EquationFilter().SetActiveEquations(active);
         an.SetStructuralMatrix(matsk);
         TPZStepSolver<STATE> step;
@@ -1284,7 +1290,7 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
         mymaterial->SetFalsePressureEqFilter();
         TPZSkylineNSymStructMatrix matst(mphysics);
         //TPZSpStructMatrix matst(mphysics);
-        //matsp.SetNumThreads(30);
+        //matsp.SetNumThreads(4);
         matst.EquationFilter().SetActiveEquations(active);
         an.SetStructuralMatrix(matst);
         TPZStepSolver<STATE> step;

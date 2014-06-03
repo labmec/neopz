@@ -102,21 +102,24 @@ public:
     {
         fFunc = FuncPtr;
 		fFunc2 = 0;
-		fFunc3 = 0;		
+		fFunc3 = 0;
+		fPorder = -1;
     }
     
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
     {
 		fFunc = 0;
         fFunc2 = FuncPtr;		
-		fFunc3 = 0;		
+		fFunc3 = 0;
+		fPorder = -1;
     }
 	
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
     {
 		fFunc = 0;
         fFunc2 = 0;		
-		fFunc3 = FuncPtr;		
+		fFunc3 = FuncPtr;
+		fPorder = -1;
     }	
     
     TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fPorder(cp.fPorder)
@@ -125,7 +128,6 @@ public:
     }
     
 
-    
     TPZDummyFunction &operator=(const TPZDummyFunction &cp)
     {
         fFunc = cp.fFunc;
