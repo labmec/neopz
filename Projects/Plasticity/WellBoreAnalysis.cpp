@@ -658,7 +658,8 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         //fPostProcessNumber++;            
 
         std::stringstream strout;
-        strout << "Step " << fPostProcessNumber-1;
+        //strout << "Step " << fPostProcessNumber-1;
+        strout << "Substep " << istep;
         fCurrentConfig.fHistoryLog = strout.str();
 
         fSequence.push_back(fCurrentConfig);
@@ -759,7 +760,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
 //    fCurrentConfig.VerifyGlobalEquilibrium();
 
     std::stringstream strout;
-    strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure;
+    strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure << " MPa";
     fCurrentConfig.fHistoryLog = strout.str();
 
     fSequence.push_back(fCurrentConfig);
@@ -849,7 +850,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
 
 
         std::stringstream strout;
-        strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure;
+        //strout << "Step " << fPostProcessNumber-1 << " pwb=" << fCurrentConfig.fFluidPressure;
+        strout << "Substep " << i << " pwb=" << fCurrentConfig.fFluidPressure << " MPa";
         fCurrentConfig.fHistoryLog = strout.str();
 
         fSequence.push_back(fCurrentConfig);
