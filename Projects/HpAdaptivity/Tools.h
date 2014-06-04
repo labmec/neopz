@@ -93,5 +93,6 @@ void SolveLU ( TPZAnalysis &an );
 void ChangeP(TPZCompMesh * cmesh, TPZCompEl * cel, int newP);
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out);
+void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out);
 
 #endif
