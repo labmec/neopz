@@ -1296,7 +1296,6 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         }
         TPZManVector<STATE,10> elerror(10,0.);
         cel->EvaluateError(SolArcTan, elerror, NULL);
-        elerror.Print();
     
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1327,7 +1326,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
             continue;
         }
         TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolArcTan, elerror, NULL);
         int nerr = elerror.size();
         globerrors.resize(nerr);
 #ifdef LOG4CXX
@@ -1343,7 +1342,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
         
     }
     out << "Errors associated with L2 space\n";
-    out << "L2 Norm = "    << sqrt(globerrors[1]) << std::endl;
+    out << "L2 Norm for pressure = "    << sqrt(globerrors[0]) << std::endl;
 }
 
 
