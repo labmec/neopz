@@ -78,10 +78,10 @@ int main()
  //   std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
     	
 	TPZVec<REAL> calcErro;
-	for (int porder=1; porder<2; porder++) {
+	for (int porder=1; porder<5; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<5;h++){
+			for(int h=1;h<8;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
@@ -89,8 +89,8 @@ int main()
 					bool prefine=false;
                 TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
 
-              //  std::ofstream filemesh("MalhaGeoArcTan.vtk");
-              // PrintGMeshVTK( gmesh, filemesh);
+                std::ofstream filemesh("MalhaGeoArcTan.vtk");
+               PrintGMeshVTK( gmesh, filemesh);
 //
 //              RefiningNearCircunference(2,gmesh,h,1);
 //                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
@@ -116,7 +116,8 @@ int main()
 //            analysis.SetExact(*SolArcTan);
 //			analysis.PostProcess(calcErro,erro);
                 
-                ErrorHDiv(cmesh, erro);
+               ErrorHDiv(cmesh, erro);
+
         
 			
 			//4. visualizacao grafica usando vtk
