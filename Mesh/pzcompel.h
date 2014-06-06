@@ -366,6 +366,16 @@ public:
         indices.resize(0);
     }
 	
+		/** @brief Prepare the vector of the material withmem with the correct integration point indexes */
+ 		virtual void PrepareIntPtIndices(){
+			
+		}
+
+	/** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
+	virtual int NumberOfCompElementsInsideThisCompEl(){
+		return 1;
+	}	
+	
 	/**
 	 * @brief Calculates the solution - sol - for the variable var
 	 * at point qsi, where qsi is expressed in terms of the

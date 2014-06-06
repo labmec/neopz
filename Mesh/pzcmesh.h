@@ -505,7 +505,12 @@ public:
         fCreate.SetAllCreateFunctionsMultiphysicElem();
     }
 
-    void SetAllCreateFunctionsContinuousWithMem()
+		void SetAllCreateFunctionsMultiphysicElemWithMem()
+		{
+			fCreate.SetAllCreateFunctionsMultiphysicElemWithMem();
+		}
+	
+		void SetAllCreateFunctionsContinuousWithMem()
     {
         fCreate.SetAllCreateFunctionsContinuousWithMem();
     }

@@ -44,7 +44,7 @@ int mainFrac(int argc, char *argv[])
   int ndivH = 25; // division in y for PGmesh
   REAL q = 1.01; // PG order
   
-  REAL Lmax_edge = 0.15;
+  REAL Lmax_edge = 0.2;
   REAL Young1 = 25.e3;//9
   REAL Poiss1 = 0.2;
   
@@ -55,22 +55,23 @@ int mainFrac(int argc, char *argv[])
   
   REAL Fx = 0.;
   REAL Fy = 0.;
-  REAL preStressXX = -25.; // era -50
+	// Now im using net pressure. So PreStress must be zero!!!
+  REAL preStressXX = 0.; // era -50
   REAL preStressXY = 0.;
-  REAL preStressYY = -50.; // era 25 //(positivo : estado de compressao)
+  REAL preStressYY = 0.; // era 25 //(positivo : estado de compressao)
   
   int NStripes = 1;
   REAL Visc = 5.e-8;//-2
   
   REAL SigN = 1.;
   
-  TPZMaterial::gBigNumber = 1.e15;
+  //TPZMaterial::gBigNumber = 1.e15;
    
    // Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
    //Aqui vai Qinj total mesmo (no poco)!!!
    
   
-  REAL QinjTot  = -0.007;
+  REAL QinjTot  = -0.0001;
   
   REAL Ttot = 10.; // em segundos
   REAL maxDeltaT = 1; // em segundos

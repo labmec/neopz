@@ -73,13 +73,17 @@ public:
 	}
 	
 	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
+	
+	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, 
+																	 int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
+
     
     long GetGlobalIntegrationPointIndex(TPZMaterialData &data);
 	
 protected:
 	
 	/** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
-	void PrepareIntPtIndices();
+	virtual void PrepareIntPtIndices();
 	
 	/** @brief Frees the material damage varibles memory in the proper material class. */
 	void SetFreeIntPtIndices();
@@ -87,7 +91,7 @@ protected:
 	void CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE> & copy);
 	
 public:
-    
+	
     /** @brief Get the indices of the vector of element memory associated with the integration points */
     /**
      * Will return an empty vector if no memory is associated with the integration point
@@ -179,11 +183,17 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
 			LOGPZ_ERROR(CompElWMemlogger,sout.str().c_str());
 		}
 #endif
+		return;
 	}
 	
 	TPZMaterial * material = TBASE::Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+		return;
+	}
+	
+	if (this->NumberOfCompElementsInsideThisCompEl() == 0) {
+		// This is suposed to happen if in the constructor of a multiphysics element. The CompEl vector is only initialized after the autobuild
 		return;
 	}
 	
@@ -275,6 +285,18 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
     data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
 	//material index for the n-th CompEl integration point									
 	
+}
+
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, 
+																												 int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+{
+	TBASE::ComputeRequiredData(datavec, int_ind,intrulepoints,intpointtemp,trvec);
+	
+	int nelofthismphysics = this->NumberOfCompElementsInsideThisCompEl();
+	for (int icel = 0; icel < nelofthismphysics; icel++) {
+		datavec[icel].intGlobPtIndex = GetGlobalIntegrationPointIndex(datavec[icel]);
+	}
 }
 
 template <class TBASE>

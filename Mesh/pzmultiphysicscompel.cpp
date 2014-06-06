@@ -575,7 +575,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
 
-        long ElemVecSize = fElementVec.size();
+		this->ComputeRequiredData(datavec,int_ind,intrulepoints,intpointtemp,trvec);
+		/*
+		long ElemVecSize = fElementVec.size();
 		for (long iref = 0; iref < ElemVecSize; iref++)
 		{
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
@@ -591,11 +593,81 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 
 			msp->ComputeRequiredData(datavec[iref], intpoint);
 		}
+		 */
+		TPZManVector<REAL,3> x(3,0.);
+		this->Reference()->X(datavec[0].x,x);
+		std::cout << x << std::endl;
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
-	
-	
 }//CalcStiff
+
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, 
+																													 int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+{
+	long ElemVecSize = fElementVec.size();
+	TPZManVector<REAL,3> intpoint(this->Dimension(),0.);
+	for (long iref = 0; iref < ElemVecSize; iref++)
+	{
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		if (!msp) {
+			continue;
+		}
+		trvec[iref].Apply(intpointtemp, intpoint);
+		
+		datavec[iref].intLocPtIndex = int_ind;
+		datavec[iref].NintPts = intrulepoints;
+		
+		msp->ComputeRequiredData(datavec[iref], intpoint);
+	}
+}//ComputeRequiredData
+
+
+template <class TGeometry>
+const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
+{
+	if (fElementVec.NElements() == 0) {
+		DebugStop(); // This case should be treated before
+	}
+	
+	TPZMaterial * material = Material();
+	if(!material){
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+		DebugStop();
+	}
+	
+	const long nref = fElementVec.size(); 
+	TPZManVector<TPZMaterialData,3> datavec;
+	datavec.resize(nref);
+	this->InitMaterialData(datavec);
+	int dim = Dimension();
+	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+	TPZManVector<int> ordervec;
+	//ordervec.resize(nref);
+	for (long iref=0;  iref<nref; iref++) 
+	{
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		int svec;
+		if(msp)
+		{
+			ordervec.Resize(ordervec.size()+1);
+			svec = ordervec.size();
+		}
+		else
+		{
+			continue;
+		}
+		datavec[iref].p = msp->MaxOrder();
+		ordervec[svec-1] = datavec[iref].p;
+	}
+	int order = material->IntegrationRuleOrder(ordervec);
+	
+	TPZGeoEl *ref = this->Reference();
+	const TPZIntPoints * intrulePtr = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+	const TPZIntPoints &intrule = *intrulePtr;
+	return intrule;
+}
+
 
 /** Returns the maximum interpolation order of all connected elements */
 template <class TGeometry>

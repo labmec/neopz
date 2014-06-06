@@ -116,6 +116,10 @@ public:
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
 	virtual void Integrate(int variable, TPZVec<REAL> & value);	
+	
+	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
+	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
+	
 
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.
@@ -246,27 +250,16 @@ public:
 	
 	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);
   
-  const TPZIntPoints &GetIntegrationRule() const {
-    
-    // Use this at your on risk. You have to know which compel you need the integration rule. To use, only discoment DebugStop and chose IKnowThatIHaveToUseElNumber variable
-    DebugStop();
-    
-    long IKnowThatIHaveToUseElNumber = 0;
-    TPZCompEl *cel = fElementVec[IKnowThatIHaveToUseElNumber];
-    //if (!cel) DebugStop();
-    TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace*>(cel);
-    if (sp) {
-      return sp->GetIntegrationRule();
-    }
-    TPZReducedSpace *reduc = dynamic_cast<TPZReducedSpace*>(cel);
-    if (reduc){ // reduced is derived form interpoaltion space, so should never get in here
-      DebugStop();
-    }
-    DebugStop();
-    TPZInt1d fake;
-    return fake;
-	}
+		
+	/** 
+	 * @brief Return the Integration rule being used by multiphysics compel
+	 */	
+	const TPZIntPoints &GetIntegrationRule();
 	
+	/** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
+	virtual int NumberOfCompElementsInsideThisCompEl(){
+		return fElementVec.NElements();
+	}	
 };
 
 

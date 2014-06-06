@@ -30,7 +30,12 @@ private:
 	/// DeltaT (diplacement for maximum traction). The point (DeltaT,SigmaT)
 	REAL fDeltaT;
 	
+	/** @brief State: one ou one+1 */
+	enum EState { ELastState = 0, ECurrentState = 1 };
+	EState gState;	
+	
 public:
+	
 	
 	/** @brief Creates a material object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
@@ -58,7 +63,8 @@ public:
 	/** @brief Updates the cohesive curve acording to the calculated w of the time step */
 	void UpdateCohesiveCurve(TPZMaterialData &data);
 
-  
+	void SetLastState(){ gState = ELastState; }
+	void SetCurrentState(){ gState = ECurrentState; }
 	
 	/** 
 	 * @brief Fill material data parameter with necessary requirements for the
