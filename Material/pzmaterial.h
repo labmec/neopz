@@ -53,7 +53,14 @@ protected:
     TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
 	
 	/** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
-    TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;	
+    TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
+    
+    /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
+    TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
+    
+    /** @brief Pointer to time dependent bc forcing function, it is a variable boundary condition at differential equation */
+    TPZAutoPointer<TPZFunction<STATE> > fTimedependentBCForcingFunction;    
+    
 
     /**
 	 * @brief Defines whether the equation context is linear solver or non linear
@@ -325,9 +332,30 @@ public:
 	{
 		fTimedependentFunctionExact = fp;
 	}
+	
+    /** 
+     * @brief Sets a procedure as variable boundary condition
+     * @param fp pointer of exact solution function
+     */
+    void SetfBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fBCForcingFunction = fp;
+    }
+    
+    /** 
+     * @brief Sets a procedure as variable boundary condition
+     * @param fp pointer of exact solution function
+     */
+    void SetTimedependentBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fTimedependentBCForcingFunction = fp;
+    }    
+        
     
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
 	virtual int HasfForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+    virtual int HasffBCForcingFunction() {return (fBCForcingFunction != 0);}
+    virtual int HasfTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}    
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
