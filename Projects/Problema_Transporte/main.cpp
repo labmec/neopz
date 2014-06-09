@@ -100,7 +100,8 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZMatConvectionProblem * mymateri
 void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec);
 
 //Ativar apenas a ultima equacao, que corresponde a funcao de base constante
-void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate);
+void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate, TPZManVector<long> &nonactive);
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients);
 
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
@@ -121,9 +122,9 @@ void ForcingInicial2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void PosProcessSolution(TPZCompMesh* cmesh, TPZAnalysis &an, std::string plotfile);
 
 //Riemann Problem
-bool triang = true;
+bool triang = false;
 bool userecgrad = true;
-
+bool calcresiduo =true;
 REAL teta =0.;// M_PI/6.;
 
 int main(int argc, char *argv[])
@@ -848,7 +849,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 	TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvec;
     //StiffMatrixLoadVec(mymaterial, cmesh, an, matK, fvec);
-    FilterEquation(mymaterial, cmesh, an, true);
+    TPZManVector<long> nonactive(0);
+    FilterEquation(mymaterial, cmesh, an, true,nonactive);
     matK = an.Solver().Matrix();
     fvec = an.Rhs();
     
@@ -895,27 +897,72 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 		an.Rhs() = TotalRhs;
 		an.Solve();
         
-        //an.Solution().Print("\nsolAntesRG = ");
-        
-//        gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
-//        an.LoadSolution(cmesh->Solution());
-//        
-//       // an.Solution().Print("\nsolDeposRG = ");
-//        
-//        //segundo estagio de Runge-Kutta
-//        matMAux->Multiply(Lastsolution,TotalRhstemp1);
-//        Lastsolution = an.Solution();
-//        matM->Multiply(Lastsolution,TotalRhstemp2);
-//        TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvec);
-//        TotalRhs = 0.5*TotalRhs;
-//        an.Rhs() = TotalRhs;
-//        an.Solution().Zero();
-//        an.Solve();
-        //---------------------------------------------------------
-        
-        gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
-        an.LoadSolution(cmesh->Solution());
-        Lastsolution = an.Solution();
+        if(calcresiduo == false){
+            //an.Solution().Print("\nsolAntesRG = ");
+
+            //        gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
+            //        an.LoadSolution(cmesh->Solution());
+            //        
+            //       // an.Solution().Print("\nsolDeposRG = ");
+            //        
+            //        //segundo estagio de Runge-Kutta
+            //        matMAux->Multiply(Lastsolution,TotalRhstemp1);
+            //        Lastsolution = an.Solution();
+            //        matM->Multiply(Lastsolution,TotalRhstemp2);
+            //        TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvec);
+            //        TotalRhs = 0.5*TotalRhs;
+            //        an.Rhs() = TotalRhs;
+            //        an.Solution().Zero();
+            //        an.Solve();
+            //---------------------------------------------------------
+
+            gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
+            an.LoadSolution(cmesh->Solution());
+            Lastsolution = an.Solution();
+        }
+        else{
+            
+            REAL tol = 1.e-8;
+            REAL diffsol = 0.;
+            TPZFMatrix<STATE> Residuo(nrows,1,0.0);
+            TPZFMatrix<STATE> SolIt_k(nrows,1,0.0);
+            
+            gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
+            an.LoadSolution(cmesh->Solution());
+            Lastsolution = an.Solution();
+            
+            matMAux->Multiply(Lastsolution,TotalRhstemp2);
+            Residuo = TotalRhs - TotalRhstemp2;
+//            TotalRhstemp2.Print("sol = \n");
+//            TotalRhs.Print("ladodireito = \n");
+            
+            diffsol = Norm(Residuo);
+            int k = 0;
+            while(diffsol > tol)
+            {
+                
+                Residuo *=-1.;
+                an.Rhs() = Residuo;
+                an.Solve();
+                SolIt_k = Lastsolution + an.Solution();
+                
+                CleanGradientSolution(SolIt_k, nonactive);
+                an.LoadSolution(SolIt_k);
+                cmesh->LoadSolution(SolIt_k);
+                
+                gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
+                an.LoadSolution(cmesh->Solution());
+                Lastsolution = an.Solution();
+                
+                matMAux->Multiply(Lastsolution,TotalRhstemp2);
+                Residuo = TotalRhs - TotalRhstemp2;
+                CleanGradientSolution(Residuo, nonactive);
+                diffsol = Norm(Residuo);
+                //Lastsolution = SolIt_k;
+                
+                k++;
+            }
+        }
         
         //an.Solution().Print("\nsolDeposRG = ");
         
@@ -928,7 +975,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
         
         cent++;
 		TimeValue = cent*deltaT;
-        an.Solution().Zero();
+        //an.Solution().Zero();
 	}
  
 }
@@ -964,7 +1011,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvec;
-    FilterEquation(mymaterial, cmesh, an, true);
+    TPZManVector<long> nonactive(0);
+    FilterEquation(mymaterial, cmesh, an, true,nonactive);
     matK = an.Solver().Matrix();
     fvec = an.Rhs();
     
@@ -1119,10 +1167,11 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
 }
 
 //Ativar apenas a ultima equacao, que corresponde a funcao de base constante
-void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate)
+void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZAnalysis &an, bool currentstate, TPZManVector<long> &nonactive)
 {
     int ncon_saturation = cmesh->NConnects();
     TPZManVector<long> active(0);
+    
     for(int i = 0; i<ncon_saturation; i++)
     {
         TPZConnect &con = cmesh->ConnectVec()[i];
@@ -1162,8 +1211,30 @@ void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZ
         an.SetSolver(step);
         an.Assemble();
     }
+    
+    
+    for(int i = 0; i<ncon_saturation; i++)
+    {
+        TPZConnect &con = cmesh->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = cmesh->Block().Position(seqnum);
+        int blocksize = cmesh->Block().Size(seqnum);
+        int vs = nonactive.size();
+        nonactive.Resize(vs+blocksize-1);
+        for(int ieq = 0; ieq<blocksize-1; ieq++)
+		{
+            nonactive[vs+ieq] = pos+ieq;
+        }
+    }
 }
 
+void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients)
+{
+    for(int i=0; i < Gradients.size(); i++ )
+    {
+        Solution(Gradients[i],0)=0.0;
+    }
+}
 
 //----------------------------------------------------------------------------
 #include "pzgengrid.h"

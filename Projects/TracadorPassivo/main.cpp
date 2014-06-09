@@ -116,8 +116,8 @@ void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT
 
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-bool ftriang = true;
-bool fishomogmedium = true;
+bool ftriang = false;
+bool fishomogmedium = false;
 bool recgrad = true;
 bool useRK2 = false;
 
@@ -142,9 +142,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
     if(fishomogmedium == true)
     {
@@ -166,12 +166,12 @@ int main(int argc, char *argv[])
         pp = pq;
     }
 
-    int h = 0;
+    int h = 4;
     //TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
     TPZGeoMesh *gmesh = GMesh2(Lx, Ly,ftriang);
     UniformRefine(gmesh,h);
-    ofstream arg("gmesh1.txt");
-    gmesh->Print(arg);
+//    ofstream arg("gmesh1.txt");
+//    gmesh->Print(arg);
     
     TPZCompMesh *cmesh1 = CMeshSaturation(gmesh, ps);
     TPZCompMesh *cmesh2 = CMeshFlux(gmesh, pq);
@@ -225,14 +225,14 @@ int main(int argc, char *argv[])
      */
     
 
-    ofstream arg1("cmeshsaturation.txt");
-    cmesh1->Print(arg1);
-    
-    ofstream arg2("cmeshflux.txt");
-    cmesh2->Print(arg2);
-    
-    ofstream arg3("cmeshpressure.txt");
-    cmesh3->Print(arg3);
+//    ofstream arg1("cmeshsaturation.txt");
+//    cmesh1->Print(arg1);
+//    
+//    ofstream arg2("cmeshflux.txt");
+//    cmesh2->Print(arg2);
+//    
+//    ofstream arg3("cmeshpressure.txt");
+//    cmesh3->Print(arg3);
     
     //ofstream arg4("gmesh2.txt");
     //gmesh->Print(arg4);
@@ -262,16 +262,16 @@ int main(int argc, char *argv[])
     meshvec[2] = cmesh3;
     
     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
-    ofstream arg5("cmeshmultiphysics.txt");
-    mphysics->Print(arg5);
+//    ofstream arg5("cmeshmultiphysics.txt");
+//    mphysics->Print(arg5);
     
-    ofstream arg7("gmesh3.txt");
-    gmesh->Print(arg7);
+//    ofstream arg7("gmesh3.txt");
+//    gmesh->Print(arg7);
     ofstream file("malhageometrica.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, true);
-    
-    ofstream arg8("cmeshvec0.txt");
-    meshvec[0]->Print(arg8);
+//
+//    ofstream arg8("cmeshvec0.txt");
+//    meshvec[0]->Print(arg8);
     
     REAL VolPoros = fLx*fLy*1.*fporos;
     REAL tempoDia = VolPoros/fvazaoentrada;
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
     {
         TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
         
-        if(ftriang==true){
+        //if(ftriang==true){
             TPZVec<REAL> LxLyLz(2,0.);
             LxLyLz[0] = Lx; LxLyLz[1]=Ly;
             
@@ -307,8 +307,8 @@ int main(int argc, char *argv[])
             coordmin[1] = Xmin; coordmax[1] = Xmax;
             
             gradreconst->SetDataGhostsNeighbors(LxLyLz, MatIdBC, coordmin, coordmax);
-        }
-        
+        //}
+    
         ResolverComReconstGradiente(deltaX,tD,meshvec, mphysics,gradreconst, useRK2);
     }else{
         ResolverSemReconstGradiente(deltaX,tD,meshvec, mphysics);
@@ -1303,14 +1303,19 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(4), vecnames(2);
+	TPZManVector<std::string,10> scalnames(3), vecnames(2);
 	
     scalnames[0] = "Saturation";
     scalnames[1] = "Pressure";
     scalnames[2] = "DivFlux";
-    scalnames[3] = "ExactSaturation";
     vecnames[0]  = "Flux";
     vecnames[1] = "SaturationFlux";
+    
+    if(fishomogmedium==true)
+    {
+        scalnames.Resize(4);
+        scalnames[3] = "ExactSaturation";
+    }
     
 	const int dim = 2;
 	int div =0;

@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     
     ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
 
-    for(int p = 1; p<4; p++)
+    for(int p = 1; p<8; p++)
     {
         int pq = p;
         int pp;
