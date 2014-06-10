@@ -35,7 +35,7 @@
 
 #include <iostream>
 #include <pthread.h>
-#include <sys/time.h>
+#include <pz_gettime.h>
 #include <sstream>
 #include <cmath>
 
