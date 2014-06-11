@@ -47,7 +47,7 @@ using namespace pzshape; // needed for TPZShapeCube and related classes
 
 
 
-#define MACOS
+//#define MACOS
 #ifdef MACOS
 
 #include <iostream>
