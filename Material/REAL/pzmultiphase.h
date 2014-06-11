@@ -367,19 +367,19 @@ public:
     
 
     /** @brief Set characteristic length - m */
-    REAL SetLreference(REAL &Lref){ fLref = Lref;}
+    void SetLreference(REAL &Lref){ fLref = Lref;}
     
     /** @brief Set permeability reference - m2 */
-    REAL SetKreference(REAL &Kref){ fKref = Kref;}
+    void SetKreference(REAL &Kref){ fKref = Kref;}
     
     /** @brief Set pressure reference - Pa */
-    REAL SetPreference(REAL &Pref){ fPref = Pref;}  
+    void SetPreference(REAL &Pref){ fPref = Pref;}  
     
     /** @brief Set density reference - kg/m3 */
-    REAL SetRhoSCreference(REAL &Densityref){ fRhoref = Densityref;}
+    void SetRhoSCreference(REAL &Densityref){ fRhoref = Densityref;}
     
     /** @brief Set viscosity reference - Pa s */
-    REAL SetEtaSCreference(REAL &Viscosityref){ fEtaref = Viscosityref;}
+    void SetEtaSCreference(REAL &Viscosityref){ fEtaref = Viscosityref;}
     
     /** @brief Oil density on standard conditions - kg/m3 */
     REAL RhoOilSC();
