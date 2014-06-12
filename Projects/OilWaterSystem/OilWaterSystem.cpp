@@ -94,17 +94,17 @@ void FilterPressureFluxEquation(TPZMultiphase *mymaterial, TPZVec<TPZCompMesh *>
 void FilterHigherOrderSaturations(TPZManVector<long> &active,TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
 bool ftriang = false;
-REAL angle = 0.0*M_PI/4.0;
+REAL angle = 0.5*M_PI/4.0;
 
 int main()
 {   
 	std::string dirname = PZSOURCEDIR;
 #ifdef LOG4CXX
      std::string FileName = dirname;
-  FileName = dirname + "/Projects/OilWaterSystem/";
-  FileName += "OilWaterLog4cxx.cfg";
-  InitializePZLOG(FileName);
-  InitializePZLOG();
+//   FileName = dirname + "/Projects/OilWaterSystem/";
+//   FileName += "OilWaterLog4cxx.cfg";
+//   InitializePZLOG(FileName);
+//   InitializePZLOG();
 #endif
     
 //  
@@ -285,7 +285,12 @@ int main()
     
     TPZAnalysis *MultiphysicsAn = new TPZAnalysis(MultiphysicsMesh);
     TPZAnalysis *MultiphysicsAnTan = new TPZAnalysis(MultiphysicsMesh); 
+#ifdef DEBUG    
+    int Nthreads = 1;
+#else
     int Nthreads = 4;
+#endif     
+    
     TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);
     TPZSkylineNSymStructMatrix matskTan(MultiphysicsMesh);  
 
@@ -735,7 +740,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     val2(1,0)=0.0*0.0020*sin(angle);// qy
     val2(2,0)=0.0*20.0*MPa;// P
     val2(3,0)=0.0*1.0;// S
-    TPZMaterial * BCond5 = material1->CreateBC(mat1,4,2, val1, val2);
+    TPZMaterial * BCond5 = material1->CreateBC(mat1,4,1, val1, val2);
     
 //  val2(0,0)=0.0;// qx
 //  val2(1,0)=0.0;// qy
@@ -918,7 +923,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
     
     REAL TimeValue = 0.0;
-    REAL Tolerance = 1.0e-8;
+    REAL Tolerance = 1.0e-6;
     int cent = 0;
     int MaxIterations = 50;
     TimeValue = cent*deltaT;
@@ -999,7 +1004,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     TPZFMatrix<STATE> fvec;
     matK=NonLinearAn->Solver().Matrix();
     fvec = NonLinearAn->Rhs();
-#ifdef LOG4CXX
+/*#ifdef LOG4CXX
    if(logdata->isDebugEnabled())
    {
        std::stringstream sout;
@@ -1007,7 +1012,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
        fvec.Print("fvec = ", sout,EMathematicaInput);
        LOGPZ_DEBUG(logdata,sout.str())
    }
-#endif        
+#endif*/        
         
         int iterations= 0;      
         while (NormValue > Tolerance)
@@ -1289,7 +1294,7 @@ void HydroStaticPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
     REAL x = pt[0];
     REAL y = pt[1];
-    disp[0] = 1.0*(0.05 - 0.05 * y);
+    disp[0] = 1.0*(0.0425 - 0.0425 * y);
     
 }
 
@@ -1298,11 +1303,31 @@ void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL x = pt[0];
     REAL y = pt[1];
     
-    if (y>=0.25 ) {
-            disp[0] = 1.0;
-    }   else {
-            disp[0] = 0.0;
+//    disp[0] = 1.0*( -1.0*y + 1.0 );
+    
+    if (y>=0.5) 
+    {
+         disp[0] = 1.0;
+    }else
+    {
+        disp[0] = 0.0;
     }
+    
+/*    if (y<=0.25) {
+            disp[0] = 1.0;
+    }
+    
+    if (y>0.25 && y<=0.5) {
+            disp[0] = 1.0;
+    }    
+    
+    if (y>0.5 && y<=0.75) {
+            disp[0] = 0.0;
+    }     
+
+    if (y>0.75 && y<=1.0) {
+            disp[0] = 1.0;
+    }*/    
     
 }
 

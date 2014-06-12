@@ -136,7 +136,7 @@ void TPZMultiphase::SWaterstar(REAL &Swstar, REAL &Po, REAL &Sw)
     REAL dwaterdensitydp,doildensitydp;
     REAL waterviscosity, oilviscosity;
     REAL dwaterviscositydp, doilviscositydp;
-    REAL SUser=0.9; 
+    REAL SUser=0.98; 
     
     RhoWater(Po,waterdensity,dwaterdensitydp);
     RhoOil(Po,oildensity,doildensitydp);
@@ -327,8 +327,8 @@ void TPZMultiphase::fWaterstar(REAL &fWstar, REAL Pw, REAL Sw, REAL &dfWstarDPw,
         fOil(foil,Pw,Swcutoff,dfoildP,dfoildSw);
         fWater(fwater,Pw,Swcutoff,dfwaterdP,dfwaterdSw);
         fWstar = foil*fwater;
-        dfWstarDPw = (dfoildP)*fwater + (dfwaterdP)*foil;
-        dfWstarDSw = (dfoildSw)*fwater + (dfwaterdSw)*foil;        
+        dfWstarDPw = 0.0*((dfoildP)*fwater + (dfwaterdP)*foil);
+        dfWstarDSw = 0.0*((dfoildSw)*fwater + (dfwaterdSw)*foil);        
     }
     
     
@@ -360,8 +360,8 @@ void TPZMultiphase::fOilstar(REAL &fOstar, REAL Pw, REAL Sw, REAL &dfOstarDPw, R
         fOil(foil,Pw,Swcutoff,dfoildP,dfoildSw);
         fWater(fwater,Pw,Swcutoff,dfwaterdP,dfwaterdSw);
         fOstar = foil*fwater;
-        dfOstarDPw = (dfoildP)*fwater + (dfwaterdP)*foil;
-        dfOstarDSw = (dfoildSw)*fwater + (dfwaterdSw)*foil;        
+        dfOstarDPw = 0.0*((dfoildP)*fwater + (dfwaterdP)*foil);
+        dfOstarDSw = 0.0*((dfoildSw)*fwater + (dfwaterdSw)*foil);        
     }    
 }
 
@@ -369,7 +369,7 @@ void TPZMultiphase::fOilstar(REAL &fOstar, REAL Pw, REAL Sw, REAL &dfOstarDPw, R
 *  Fractional product upwind function, Gdotn > 0 means water decrease (dSw/dt < 0), Gdotn < 0 means water increase (dSw/dt > 0).
 * \f$ f*  \f$
 */
-void TPZMultiphase::fstar(REAL &fstar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfstarDPw, REAL &dfstarDSw)
+void TPZMultiphase::fstar(REAL &fStar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfstarDPw, REAL &dfstarDSw)
 {
     REAL fwaterStar, foilStar;
     REAL dfwaterStardP, dfoilStardP;
@@ -378,26 +378,23 @@ void TPZMultiphase::fstar(REAL &fstar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfsta
     if(Gdotn > 0.0)
     {
             fWaterstar(fwaterStar,Pw,Sw,dfwaterStardP,dfwaterStardSw);
-            fstar = fwaterStar;
+            fStar = fwaterStar;
             dfstarDPw = dfwaterStardP;
             dfstarDSw = dfwaterStardSw;
     }
     else
     {
-        if(Gdotn <= 0.0)
-        {
             fOilstar(foilStar,Pw,Sw,dfoilStardP,dfoilStardSw);
-            fstar = foilStar;
+            fStar = foilStar;
             dfstarDPw = dfoilStardP;
-            dfstarDSw = dfoilStardSw;
-        }
-        else
-        {
-            fOilstar(foilStar,Pw,0.0,dfoilStardP,dfoilStardSw);
-            fstar = foilStar;
-            dfstarDPw = dfoilStardP;
-            dfstarDSw = dfoilStardSw;;
-        }
+            dfstarDSw = dfoilStardSw;        
+//             if(fabs(Gdotn) <= 1.0e-14)
+//             {
+//                 fStar = 0.0;
+//                 dfstarDPw = 0.0;
+//                 dfstarDSw = 0.0;
+//             }
+
     }
     
 }
@@ -522,7 +519,7 @@ void TPZMultiphase::fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw)
 
 /** Oil density at standar conditions - kg/m3 */
 REAL TPZMultiphase::RhoOilSC(){
-    return 400.00;
+    return 700.00;
 }
 
 /** Water density at standar conditions - kg/m3 */
@@ -1785,8 +1782,26 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     Gfield = this->Gravity();
     REAL Gravitydotnl =  Gfield(0,0)*(n1) + Gfield(1,0)*(n2);
     REAL Gravitydotnr =  Gfield(0,0)*(n1) + Gfield(1,0)*(n2);    
-    this->fstar(bulkfStarl,sol_pL[VecPos], sol_sL[VecPos],Gravitydotnl,dbulkfStardpl,dbulkfStardsl);
+    this->fstar(bulkfStarl,sol_pL[VecPos], sol_sL[VecPos],1.0*Gravitydotnl,dbulkfStardpl,dbulkfStardsl);
     this->fstar(bulkfStarr,sol_pR[VecPos], sol_sR[VecPos],-1.0*Gravitydotnr,dbulkfStardpr,dbulkfStardsr);
+    
+    // Min of fstar at Gamma
+    REAL bulkfstar = 0.0;
+    REAL dbulkfstardp = 0.0;
+    REAL dbulkfstards = 0.0;    
+    if(fabs(bulkfStarl) >= fabs(bulkfStarr))
+    {
+        bulkfstar = bulkfStarr;
+        dbulkfstardp = dbulkfStardpr;
+        dbulkfstards = dbulkfStardsr;
+    }
+    else
+    {
+        bulkfstar = bulkfStarl;
+        dbulkfstardp = dbulkfStardpl;
+        dbulkfstards = dbulkfStardsl;        
+    }      
+    
     
     for (int in=0; in < 3; in++) {
         for (int jn=0; jn < 3; jn++) {
@@ -2054,66 +2069,33 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
                 
             }
         }
- 
- 
-        REAL QGgstarL = bulkfStarl * bulklambdal * (waterdensityl - oildensityl) * (KGL(0,0)*n1 + KGL(1,0)*n2);
-        REAL QGgstarR = bulkfStarr * bulklambdar * (waterdensityr - oildensityr) * (KGR(0,0)*n1 + KGR(1,0)*n2);
+
+        
+        
+        REAL QGgstarL = bulklambdal * (waterdensityl - oildensityl) * (KGL(0,0)*n1 + KGL(1,0)*n2);
+        REAL QGgstarR = bulklambdar * (waterdensityr - oildensityr) * (KGR(0,0)*n1 + KGR(1,0)*n2);        
         
         // It is needed to implement the complete derivative of P
-        REAL dQGgstarLdP = ((bulkfStarl * bulklambdal * (dwaterdensitydpl - doildensitydpl)) + 
-                           ((dbulkfStardpl * bulklambdal + bulkfStarl * dbulklambdadpl) 
-                           * (waterdensityl - oildensityl))) * (KGL(0,0)*n1 + KGL(1,0)*n2);
-        REAL dQGgstarRdP = ((bulkfStarr * bulklambdar * (dwaterdensitydpr - doildensitydpr)) + 
-                           ((dbulkfStardpr * bulklambdar + bulkfStarr * dbulklambdadpr) 
-                           * (waterdensityr - oildensityr))) * (KGR(0,0)*n1 + KGR(1,0)*n2);
+        REAL dQGgstarLdP = ((bulklambdal * (dwaterdensitydpl - doildensitydpl)) + 
+                           (dbulklambdadpl * (waterdensityl - oildensityl))) * (KGL(0,0)*n1 + KGL(1,0)*n2);
+                           
+        REAL dQGgstarRdP = ((bulklambdar * (dwaterdensitydpr - doildensitydpr)) + 
+                           (dbulklambdadpr * (waterdensityr - oildensityr))) * (KGR(0,0)*n1 + KGR(1,0)*n2);
         
-        REAL dQGgstarLdS = (dbulkfStardsl * bulklambdal + bulkfStarl * dbulklambdadsl) 
-                           * (waterdensityl - oildensityl) * (KGL(0,0)*n1 + KGL(1,0)*n2);
-        REAL dQGgstarRdS = (dbulkfStardsr * bulklambdar + bulkfStarr * dbulklambdadsr) 
-                           * (waterdensityr - oildensityr) * (KGR(0,0)*n1 + KGR(1,0)*n2);      
+        REAL dQGgstarLdS = (dbulklambdadsl) * (waterdensityl - oildensityl) * (KGL(0,0)*n1 + KGL(1,0)*n2);
+        REAL dQGgstarRdS = (dbulklambdadsr) * (waterdensityr - oildensityr) * (KGR(0,0)*n1 + KGR(1,0)*n2);      
+        
         REAL QGstar = 0.0;
         REAL dQGstardP = 0.0;
         REAL dQGstardS = 0.0;        
         
-        if(abs(QGgstarL) >= abs(QGgstarR))
-        {
-            QGstar = -1.0*QGgstarR;
-            dQGstardP = -1.0*dQGgstarRdP;
-            dQGstardS = -1.0*dQGgstarRdS;
-            
-            // Gravitational segregation scheme
-            //  Four Block (Equation Four) gravitational flux constitutive law
-            // Integrate[L dot(K v, n), Gamma_{e}]  (Equation One) Left-Left part
-            for (int iqg=0; iqg < QGRowsleft; iqg++)
-            {
-                int iLvectorindex       = dataleft[3].fVecShapeIndex[iqg].first;
-                int iLshapeindex        = dataleft[3].fVecShapeIndex[iqg].second;
-                REAL e1e1i   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(0,iLvectorindex))*(n1);
-                REAL e2e2i   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(1,iLvectorindex))*(n2);
-                
-                for(int jsat=0; jsat<SRowsRight; jsat++)
-                {            
-                    // This degree of freedom is equal for Left and Right part
-                    ek(QRowsleft+PRowsleft+SRowsleft+iqg,jRightInterfaceBlock+QRowsRight+PRowsRight+jsat) 
-                   += weight * (dQGstardS * phiSR(jsat,0)) * (e1e1i + e2e2i);
-                }
-                
-                for(int jp=0; jp<PRowsRight; jp++)
-                {            
-                    // This degree of freedom is equal for Left and Right part
-                    ek(QRowsleft+PRowsleft+SRowsleft+iqg,jRightInterfaceBlock+QRowsRight+jp) 
-                    += weight * (dQGstardP * phiPR(jp,0)) * (e1e1i + e2e2i);
-                }                
-                
-            }            
-             
-            
-        }
-        else
-        {
-            QGstar = 1.0*QGgstarL;
-            dQGstardS = 1.0*dQGgstarLdS;            
-            dQGstardP = 1.0*dQGgstarLdP;
+//         if(Gravitydotnl > 0.0 )
+//         {
+        if(fabs(1.0*bulkfStarl*QGgstarL) < fabs(1.0*bulkfStarr*QGgstarR))
+        {           
+            QGstar = 1.0 * bulkfStarl * QGgstarL;
+            dQGstardS = 1.0*(dbulkfStardsl * QGgstarL + bulkfStarl * dQGgstarLdS);            
+            dQGstardP = 1.0*(dbulkfStardpl * QGgstarL + bulkfStarl * dQGgstarLdP);
             
             // Gravitational segregation scheme
             //  Four Block (Equation Four) gravitational flux constitutive law
@@ -2129,18 +2111,51 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
                 {            
                     // This degree of freedom is equal for Left and Right part
                     ek(QRowsleft+PRowsleft+SRowsleft+iqg,QRowsleft+PRowsleft+jsat) 
-                    += weight * (dQGstardS * phiSL(jsat,0)) * (e1e1i + e2e2i);
+                    -= weight * (dQGstardS * phiSL(jsat,0)) * (e1e1i + e2e2i);
                 }
                 
                 for(int jp=0; jp<PRowsleft; jp++)
-                {            
+                {
                     // This degree of freedom is equal for Left and Right part
                     ek(QRowsleft+PRowsleft+SRowsleft+iqg,QRowsleft+jp) 
-                    += weight * (dQGstardP * phiPL(jp,0)) * (e1e1i + e2e2i);
+                    -= weight * (dQGstardP * phiPL(jp,0)) * (e1e1i + e2e2i);
                 }                
                 
-            }              
+            }                          
             
+        }
+        else
+        {
+            QGstar = 1.0 *bulkfStarr*QGgstarR;
+            dQGstardS = 1.0*(dbulkfStardsr * QGgstarR + bulkfStarr * dQGgstarRdS);            
+            dQGstardP = 1.0*(dbulkfStardpr * QGgstarR + bulkfStarr * dQGgstarRdP);
+            
+            // Gravitational segregation scheme
+            //  Four Block (Equation Four) gravitational flux constitutive law
+            // Integrate[L dot(K v, n), Gamma_{e}]  (Equation One) Left-Left part
+            for (int iqg=0; iqg < QGRowsleft; iqg++)
+            {
+                int iLvectorindex       = dataleft[3].fVecShapeIndex[iqg].first;
+                int iLshapeindex        = dataleft[3].fVecShapeIndex[iqg].second;
+                REAL e1e1i   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(0,iLvectorindex))*(n1);
+                REAL e2e2i   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(1,iLvectorindex))*(n2);
+                
+                for(int jsat=0; jsat<SRowsRight; jsat++)
+                {            
+                    // This degree of freedom is equal for Left and Right part
+                    ek(QRowsleft+PRowsleft+SRowsleft+iqg,jRightInterfaceBlock+QRowsRight+PRowsRight+jsat) 
+                   -= weight * (dQGstardS * phiSR(jsat,0)) * (e1e1i + e2e2i);
+                }
+                
+                for(int jp=0; jp<PRowsRight; jp++)
+                {            
+                    // This degree of freedom is equal for Left and Right part
+                    ek(QRowsleft+PRowsleft+SRowsleft+iqg,jRightInterfaceBlock+QRowsRight+jp) 
+                    -= weight * (dQGstardP * phiPR(jp,0)) * (e1e1i + e2e2i);
+                }                
+                
+            }            
+
         }
         
         
@@ -2194,91 +2209,13 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
                 int jLvectorindex       = dataleft[3].fVecShapeIndex[jqg].first;
                 int jLshapeindex        = dataleft[3].fVecShapeIndex[jqg].second;
                 REAL e1e1j   =   (phiQGL(jLshapeindex,0)*dataleft[3].fNormalVec(0,jLvectorindex))*(n1);
-                REAL e2e2j   =   (phiQGL(jLshapeindex,0)*dataleft[3].fNormalVec(1,jLvectorindex))*(n2);             
+                REAL e2e2j   =   (phiQGL(jLshapeindex,0)*dataleft[3].fNormalVec(1,jLvectorindex))*(n2);              
                 
                 REAL ResidualPart   =   (Theta) * (TimeStep) * ( e1e1j + e2e2j );
                 ek(isat+QRowsRight+PRowsRight+iRightInterfaceBlock,jqg+QRowsleft+PRowsleft+SRowsleft) 
                 -= weight * phiSR(isat,0) * ResidualPart;
             }
         }   
- 
- 
- 
- 
- 
- 
-//         //  Four Block (Equation Four) gravitational flux constitutive law
-//         // Integrate[L dot(K v, n), Gamme_{e}]  (Equation One) Left-Left part
-//         for (int iqg=0; iqg < QGRowsleft; iqg++)
-//         {
-//             
-//             int iLvectorindex       = dataleft[3].fVecShapeIndex[iqg].first;
-//             int iLshapeindex        = dataleft[3].fVecShapeIndex[iqg].second;
-//             
-//             for (int jp=0; jp<PRowsleft; jp++)
-//             {
-//                 
-//                 
-//                 
-//                 if (fnewWS)
-//                 {
-//                     REAL e1e1   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(0,iLvectorindex))*(n1);
-//                     REAL e2e2   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(1,iLvectorindex))*(n2);
-//                     ek(iqg+QRowsleft+PRowsleft+SRowsleft, QRowsleft + jp) 
-//                     += (-1.0) * weight * (e1e1 + e2e2 ) * (dwaterdensitydpl - doildensitydpl) * phiPL(jp,0);
-//                 }
-//                 else
-//                 {
-//                     REAL e1e1   =   (Kmean(0,0)*(phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(0,iLvectorindex))+
-//                                      Kmean(0,1)*(phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(1,iLvectorindex)))*(n1);
-//                     
-//                     REAL e2e2   =   (Kmean(1,0)*(phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(0,iLvectorindex))+
-//                                      Kmean(1,1)*(phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(1,iLvectorindex)))*(n2);
-//                     ek(iqg+QRowsleft+PRowsleft+SRowsleft, QRowsleft + jp) 
-//                     += (-1.0) * weight * (e1e1 + e2e2 ) * (dwaterdensitydpl - doildensitydpl) * phiPL(jp,0);
-//                 }
-//                 
-//             }
-//             
-//         }
-//         
-//         //  Four Block (Equation Four) gravitational flux constitutive law
-//         // Integrate[L dot(K v, n), Gamme_{e}]  (Equation One) Right-Right Part
-//         for (int iqg=0; iqg < QGRowsRight; iqg++)
-//         {
-//             int iRvectorindex       = dataright[3].fVecShapeIndex[iqg].first;
-//             int iRshapeindex        = dataright[3].fVecShapeIndex[iqg].second;
-//             
-//             for (int jp=0; jp<PRowsRight; jp++)
-//             {
-//                 
-//                 
-//                 if (fnewWS)
-//                 {
-//                     
-//                     REAL e1e1   =   (phiQGR(iRshapeindex,0)*dataright[3].fNormalVec(0,iRvectorindex))*(n1);
-//                     REAL e2e2   =   (phiQGR(iRshapeindex,0)*dataright[3].fNormalVec(1,iRvectorindex))*(n2);
-//                     
-//                     ek(iqg + iRightInterfaceBlock + QGRowsRight + PRowsRight + SRowsRight, QRowsRight + jp + jRightInterfaceBlock) 
-//                     +=  (1.0) * weight * (e1e1 + e2e2 ) * (dwaterdensitydpr - doildensitydpr) * phiPR(jp,0) ;
-//                 }
-//                 else
-//                 {
-//                     REAL e1e1   =   (Kmean(0,0)*(phiQGR(iRshapeindex,0)*dataright[3].fNormalVec(0,iRvectorindex))+
-//                                      Kmean(0,1)*(phiQGR(iRshapeindex,0)*dataright[3].fNormalVec(1,iRvectorindex)))*(n1);
-//                     
-//                     REAL e2e2   =   (Kmean(1,0)*(phiQGR(iRshapeindex,0)*dataright[3].fNormalVec(0,iRvectorindex))+
-//                                      Kmean(1,1)*(phiQGR(iRshapeindex,0)*dataright[3].fNormalVec(1,iRvectorindex)))*(n2);
-//                     
-//                     
-//                     ek(iqg + iRightInterfaceBlock + QGRowsRight + PRowsRight + SRowsRight, QRowsRight + jp + jRightInterfaceBlock) 
-//                     +=  (1.0) * weight * (e1e1 + e2e2 ) * (dwaterdensitydpr - doildensitydpr)  * phiPR(jp,0) ;
-//                 }
-// 
-//             }
-//             
-//         }
- 
  
         
     }
@@ -2454,8 +2391,26 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     Gfield = this->Gravity();
     REAL Gravitydotnl =  Gfield(0,0)*(n1)  + Gfield(1,0)*(n2);
     REAL Gravitydotnr =  Gfield(0,0)*(n1)  + Gfield(1,0)*(n2);    
-    this->fstar(bulkfStarl,sol_pL[VecPos], sol_sL[VecPos],Gravitydotnl,dbulkfStardpl,dbulkfStardsl);
-    this->fstar(bulkfStarr,sol_pR[VecPos], sol_sR[VecPos],-1.0*Gravitydotnr,dbulkfStardpr,dbulkfStardsr); 
+    this->fstar(bulkfStarl,sol_pL[VecPos], sol_sL[VecPos],1.0*Gravitydotnl,dbulkfStardpl,dbulkfStardsl);
+    this->fstar(bulkfStarr,sol_pR[VecPos], sol_sR[VecPos],-1.0*Gravitydotnr,dbulkfStardpr,dbulkfStardsr);
+    
+    // Min of fstar at Gamma
+    REAL bulkfstar = 0.0;
+    REAL dbulkfstardp = 0.0;
+    REAL dbulkfstards = 0.0;    
+    if(fabs(bulkfStarl) >= fabs(bulkfStarr))
+    {
+        bulkfstar = bulkfStarr;
+        dbulkfstardp = dbulkfStardpr;
+        dbulkfstards = dbulkfStardsr;
+    }
+    else
+    {
+        bulkfstar = bulkfStarl;
+        dbulkfstardp = dbulkfStardpl;
+        dbulkfstards = dbulkfStardsl;        
+    }      
+    
     
     for (int in=0; in < 3; in++) {
         for (int jn=0; jn < 3; jn++) {
@@ -2615,35 +2570,47 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             REAL ResidualPart   =   (Theta) * (TimeStep) * ( UpwindSaturation * dotqnR );
             ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) -= weight * phiSR(isat,0) * ResidualPart;
         }
-
-        
-        
               
         
-        REAL QGgstarL = bulkfStarl * bulklambdal * (waterdensityl - oildensityl) * (KGL(0,0)*n1 + KGL(1,0)*n2);
-        REAL QGgstarR = bulkfStarr * bulklambdar * (waterdensityr - oildensityr) * (KGR(0,0)*n1 + KGR(1,0)*n2);        
+        REAL QGgstarL = bulklambdal * (waterdensityl - oildensityl) * (KGL(0,0)*n1 + KGL(1,0)*n2);
+        REAL QGgstarR = bulklambdar * (waterdensityr - oildensityr) * (KGR(0,0)*n1 + KGR(1,0)*n2);        
         REAL QGstar = 0.0;
-        if(abs(QGgstarL) >= abs(QGgstarR))
-        {
-            QGstar = -1.0*QGgstarR;
+        
+//         if(Gravitydotnl > 0.0 )
+//         {
+        if(fabs(1.0*bulkfStarl*QGgstarL) < fabs(1.0*bulkfStarr*QGgstarR))
+        {    
+            QGstar = 1.0*bulkfStarl*QGgstarL;
         }
         else
         {
-            QGstar = 1.0*QGgstarL;            
+            QGstar = 1.0*bulkfStarr*QGgstarR;            
         }
-
         
+// #ifdef LOG4CXX
+//             if(logdata->isDebugEnabled())
+//             {
+//                 std::stringstream sout;
+//                 sout <<  "SLeft =" << sol_sL[VecPos] << " bulkfStarl =" << bulkfStarl << " Gravitydotnl =" << Gravitydotnl << std::endl;
+//                 sout <<  "SRight =" << sol_sR[VecPos] << " bulkfStarr =" << bulkfStarr << " Gravitydotnr =" << -1.0*Gravitydotnr << std::endl;
+//                 sout <<  "QGstarL =" << 1.0*bulkfStarl*QGgstarL << " Gravitydotnl =" << Gravitydotnl << std::endl;
+//                 sout <<  "QGstarR =" << 1.0*bulkfStarr*QGgstarR << " Gravitydotnl =" << -1.0*Gravitydotnr << std::endl;             
+//                 sout <<  "QGstar =" << QGstar << std::endl;                 
+//                 LOGPZ_DEBUG(logdata,sout.str());
+//             }
+// #endif
+
         // Gravitational segregation scheme
         //  Four Block (Equation Four) gravitational flux constitutive law
-        // Integrate[L dot(K v, n), Gamma_{e}]  (Equation One) Left-Left part
+        // Integrate[L dot(K v, n), Gamma{e}]  (Equation One) Left-Left part
         for (int iqg=0; iqg < QGRowsleft; iqg++)
         {
             int iLvectorindex       = dataleft[3].fVecShapeIndex[iqg].first;
             int iLshapeindex        = dataleft[3].fVecShapeIndex[iqg].second;
             REAL e1e1   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(0,iLvectorindex))*(n1);
             REAL e2e2   =   (phiQGL(iLshapeindex,0)*dataleft[3].fNormalVec(1,iLvectorindex))*(n2);
-            // This degree of freedom is equal for Left and Right part
-            ef(QRowsleft+PRowsleft+SRowsleft+iqg) += weight * (dotqgnL+QGstar) * (e1e1 + e2e2);
+            // This degree of freedom is the same for Left and Right part
+            ef(QRowsleft+PRowsleft+SRowsleft+iqg) += weight * (dotqgnL-QGstar) * (e1e1 + e2e2);
             
         }
         
@@ -2786,14 +2753,14 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         for(int isat=0; isat<SRowsleft; isat++)
         {
             REAL ResidualPart   =   (1-Theta) * (TimeStep) * ( dotqgnL );
-            ef(isat+QRowsleft+PRowsleft) -= weight * phiSL(isat,0) * ResidualPart;
+            ef(isat+QRowsleft+PRowsleft) += weight * phiSL(isat,0) * ResidualPart;
         }
         
         // (Theta) * deltat * Integrate[L* dot(qg,n), Gamma_{e}] (Equation three) Right-Left Part
         for(int isat=0; isat<SRowsRight; isat++)
         {
             REAL ResidualPart   =   (1-Theta) * (TimeStep) * ( dotqgnR);
-            ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) += weight * phiSR(isat,0) * ResidualPart;
+            ef(isat+QRowsRight+PRowsRight+iRightInterfaceBlock) -= weight * phiSR(isat,0) * ResidualPart;
         }         
         
         
@@ -3191,7 +3158,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 {
                     
                     UpwindSaturation = 0.0;
-                    if (dotqnL < 0.0 && abs(dotqnL) > 1.0e-12){ std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
+                    if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-12){ std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
                     
                 }
                 
@@ -3241,7 +3208,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 else
                 {
                     UpwindSaturation = 0.0*bulkfwaterl;
-                    if (dotqnL < 0.0 && abs(dotqnL) > 1.0e-12) {std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
+                    if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-12) {std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
                     
                 }
                 
@@ -3474,7 +3441,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 {
                     
                     UpwindSaturation = 0.0;
-                    if (dotqnL < 0.0 && abs(dotqnL) > 1.0e-12){ std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
+                    if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-12){ std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
                     
                 }
                 
@@ -3524,7 +3491,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 else
                 {
                     UpwindSaturation = 0.0;
-                    if (dotqnL < 0.0 && abs(dotqnL) > 1.0e-12) {std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
+                    if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-12) {std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
                     
                 }
                 

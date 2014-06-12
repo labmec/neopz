@@ -218,7 +218,7 @@ public:
      * @brief Fractional product upwind function, Gdotn > 0 means water decrease (dSw/dt < 0), Gdotn < 0 means water increase (dSw/dt > 0).
      * \f$ f*  \f$
      */
-    void fstar(REAL &fstar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfstarDPw, REAL &dfstarDSw);      
+    void fstar(REAL &fStar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfstarDPw, REAL &dfstarDSw);      
     
     /** 
      * @brief \f$ Rock porosity. \f$ Phi = Phi( p ) \f$
