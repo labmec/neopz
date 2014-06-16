@@ -14,9 +14,11 @@
 #include "TPZRefPatternDataBase.h"
 #include "CohesiveTests.h"
 
-//#ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
-//#endif
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+#endif
 
 
 void CohesiveTest();
@@ -34,7 +36,10 @@ int main(int argc, char *argv[])
 }
 int mainFrac(int argc, char *argv[])
 {
-  
+ 
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
   //Propagation criterion
   REAL Lx = 10;
   REAL Ly = 5.;
@@ -73,7 +78,7 @@ int mainFrac(int argc, char *argv[])
   
   REAL QinjTot  = -0.0001;
   
-  REAL Ttot = 10.; // em segundos
+  REAL Ttot = 40.; // em segundos
   REAL maxDeltaT = 1; // em segundos
   int nTimes = 1; // quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes)
   
