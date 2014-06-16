@@ -593,11 +593,8 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 
 			msp->ComputeRequiredData(datavec[iref], intpoint);
 		}
-		 
-		TPZManVector<REAL,3> x(3,0.);
-		this->Reference()->X(datavec[0].x,x);
-		std::cout << "x = " << x << std::endl;
 		 */
+		 
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
 }//CalcStiff
