@@ -28,35 +28,44 @@ fCord(cord), fFourDigits(FourDigits), fAngle(angle)
     fX0[0] = x0[0];
     fX0[1] = x0[1];
     fX0[2] = x0[2];
-    fP = P();
-    fM = M();
-    fTT = TT();
+    fP = P<REAL>();
+    fM = M<REAL>();
+    fTT = TT<REAL>();
 }
 
 TPZBlendNACA::~TPZBlendNACA()
 {
 }
 
-REAL TPZBlendNACA::P()
+template<class Type>
+Type TPZBlendNACA::P()
 {
     int aux = fFourDigits/100;
     aux -= ((int)(aux/10))*10;
-    return (REAL)(aux/10.);
+    return (Type)(aux/10.);
 }
+//template<> REAL TPZBlendNACA::P();
 
-REAL TPZBlendNACA::M()
+template<class Type>
+Type TPZBlendNACA::M()
 {
     int aux = fFourDigits/1000;
-    return (REAL)(aux/100.)*fCord;
+    return (Type)(aux/100.)*fCord;
 }
+//template<> REAL TPZBlendNACA::M();
 
-REAL TPZBlendNACA::TT()
+
+template<class Type>
+Type TPZBlendNACA::TT()
 {
     int aux = fFourDigits - ((int)(fFourDigits/100))*100;
-    return (REAL)(aux/100.)*fCord;
+    return (Type)(aux/100.)*fCord;
 }
+//template<> REAL TPZBlendNACA::TT();
 
-REAL TPZBlendNACA::yc(REAL x)
+
+template <class Type>
+Type TPZBlendNACA::yc(Type x)
 {
     if(x/fCord<fP)
     {
@@ -68,7 +77,11 @@ REAL TPZBlendNACA::yc(REAL x)
     }
 }
 
-REAL TPZBlendNACA::dyc(REAL x)
+template<> REAL TPZBlendNACA::yc(REAL x);
+
+//*******
+template <class Type>
+Type TPZBlendNACA::dyc(Type x)
 {
     if(x/fCord<fP)
     {
@@ -79,17 +92,13 @@ REAL TPZBlendNACA::dyc(REAL x)
         return 2.*fM/(1.-fP)/(1.-fP)*(fP-x/fCord)/fCord;
     }
 }
+template<> REAL TPZBlendNACA::dyc(REAL x);
 
-REAL TPZBlendNACA::yt(REAL x)
+//********
+template <class Type>
+Type TPZBlendNACA::yt(Type x)
 {
     REAL aux = x/fCord;
-    
-//    const REAL a0 = 0.2969,
-//    a1 = -0.1260,
-//    a2 = -0.3516,
-//    a3 = +0.2843,
-//    a4 = -0.1015;
-
     const REAL a0 =  1.4845,
 	a1 = -0.6300,
 	a2 = -1.7580,
@@ -99,27 +108,47 @@ REAL TPZBlendNACA::yt(REAL x)
     return fTT * (a0*sqrt(aux) + a1*aux + a2*aux*aux + a3*aux*aux*aux + a4*aux*aux*aux*aux);
 }
 
-REAL TPZBlendNACA::xu(REAL x)
+template<> REAL TPZBlendNACA::yt(REAL x);
+
+//********
+template <class Type>
+Type TPZBlendNACA::xu(Type x)
 {
     return x-yt(x)*sin(atan(dyc(x)));
 }
 
-REAL TPZBlendNACA::yu(REAL x)
+template <>REAL TPZBlendNACA::xu(REAL x);
+//*********
+
+
+template <class Type>
+Type TPZBlendNACA::yu(Type x)
 {
     return yc(x) + yt(x)*cos(atan(dyc(x)));
 }
+template<> REAL TPZBlendNACA::yu(REAL x);
+//********
 
-REAL TPZBlendNACA::xl(REAL x)
+template <class Type>
+Type TPZBlendNACA::xl(Type x)
 {
     return x+yt(x)*sin(atan(dyc(x)));
 }
+template<> REAL TPZBlendNACA::xl(REAL x);
 
-REAL TPZBlendNACA::yl(REAL x)
+//********
+template <class Type>
+Type TPZBlendNACA::yl(Type x)
 {
     return yc(x) - yt(x)*cos(atan(dyc(x)));
 }
+template<> REAL TPZBlendNACA::yl(REAL x);
 
-REAL TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt)
+
+//********
+
+template<class Type>
+void TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,Type& Result)
 {
     REAL distminlow = 20.*fCord;
     REAL distminup  = 20.*fCord;
@@ -193,34 +222,52 @@ REAL TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt)
             }
         }
     }
-    return par;
+    Result = par;
 }
+template<> void TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,REAL& Result);
 
 ///************************************
-REAL TPZBlendNACA::xua(REAL x)
+template <class Type>
+Type TPZBlendNACA::xua(Type x)
 {
     return fX0[0]+(xu(x)-fCord/2.)*cos(fAngle) + yu(x) * sin(fAngle) + fCord/2.;
 }
+template<> REAL TPZBlendNACA::xua(REAL x);
 
-REAL TPZBlendNACA::yua(REAL x)
+//***************
+
+template <class Type>
+Type TPZBlendNACA::yua(Type x)
 {
     return fX0[1]+yu(x)*cos(fAngle) - (xu(x)-fCord/2.) * sin(fAngle);
 }
+template<> REAL TPZBlendNACA::yua(REAL x);
 
-REAL TPZBlendNACA::xla(REAL x)
+//************
+template <class Type>
+Type TPZBlendNACA::xla(Type x)
 {
     return fX0[0]+(xl(x)-fCord/2.)*cos(fAngle) + yl(x) * sin(fAngle) + fCord/2.;
 }
+template<> REAL TPZBlendNACA::xla(REAL x);
 
-REAL TPZBlendNACA::yla(REAL x)
+//************
+template <class Type>
+Type TPZBlendNACA::yla(Type x)
 {
     return fX0[1]+yl(x)*cos(fAngle) - (xl(x)-fCord/2.) * sin(fAngle);
 }
+template<> REAL TPZBlendNACA::yla(REAL x);
+
 ///************************************
-void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt)
+template <class Type>
+void TPZBlendNACA::ProjectPoint(TPZVec<Type> &pt, int maxPt)
 {
     int uplow;
-    REAL par = NearestParameter(pt,uplow, maxPt);
+    
+    Type par;
+    NearestParameter(pt,uplow, maxPt,par);
+    
     if(uplow == 0)
     {
         pt[0] = xla(par);
@@ -232,6 +279,7 @@ void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt)
         pt[1] = yua(par);
     }
 }
+template<> void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt);
 
 #include "tpzgeoelmapped.h"
 
@@ -246,5 +294,6 @@ TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
+
 
 

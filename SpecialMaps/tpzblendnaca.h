@@ -31,14 +31,19 @@ public:
 	
     /// with attack angle
     /// superior profile
-    REAL xua(REAL x);
-    REAL yua(REAL x);
+    template <class Type>
+    Type xua(Type x);
+    template <class Type>
+    Type yua(Type x);
 	
     /// inferior profile
-    REAL xla(REAL x);
-    REAL yla(REAL x);
-	
-    void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000);
+    template <class Type>
+    Type xla(Type x);
+    template <class Type>
+    Type yla(Type x);
+    
+    template <class Type>
+    void ProjectPoint(TPZVec<Type> &pt, int maxPt = 1000);
 	
 public:
     
@@ -54,28 +59,40 @@ public:
 									  long& index);
 private:
 	
-    REAL P();
-    REAL M();
-    REAL TT();
+    template<class Type>
+    Type P();
+    template<class Type>
+    Type M();
+    template<class Type>
+    Type TT();
 	
     /** @brief Mean line for the wing */
-    REAL yc(REAL x);
-    REAL dyc(REAL x);
+    template <class Type>
+    Type yc(Type x);
+    template <class Type>
+    Type dyc(Type x);
 	
     /** @brief Thickness */
-    REAL yt(REAL x);
+    template <class Type>
+    Type yt(Type x);
 	
     /** @brief Superior profile */
-    REAL xu(REAL x);
-    REAL yu(REAL x);
+    template <class Type>
+    Type xu(Type x);
+    template <class Type>
+    Type yu(Type x);
 	
     /** @brief Inferior profile */
-    REAL xl(REAL x);
-    REAL yl(REAL x);
-	
-    REAL NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt);
-	
+    template <class Type>
+    Type xl(Type x);
+    template <class Type>
+    Type yl(Type x);
+    
+	template <class Type>
+    void NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,Type &);
+
 public:
+    
     REAL fCord;
     int  fFourDigits;
     REAL fAngle;
@@ -84,5 +101,4 @@ public:
     REAL fM;
     REAL fTT;
 };
-
 #endif
