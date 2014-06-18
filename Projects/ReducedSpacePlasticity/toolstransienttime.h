@@ -52,6 +52,8 @@ public:
   TPZCompMeshReferred * CMeshReduced(TPZCompMesh * cmeshref);
   TPZCompMesh * CMeshPressure();
   void CMeshMultiphysics();
+	TPZCompMesh* CMeshCohesiveH1();
+	void SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis &an);
   
   bool SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded);
   
@@ -68,12 +70,15 @@ public:
   void MassMatrix(TPZFMatrix<REAL> & Un);
   
 	void ApplyEquationFilter(TPZAnalysis * an);
+	void ApplyEquationFilterOnPressure(TPZAnalysis * an);
   void StiffMatrixLoadVec(TPZAnalysis *an,
                           TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
   
   void PostprocessPressure();
   void PostProcessAcumVolW();
   void PostProcessVolLeakoff();
+	
+	void ShowDisplacementSigmaYCohesive();
   
   REAL ComputeKIPlaneStrain();
   

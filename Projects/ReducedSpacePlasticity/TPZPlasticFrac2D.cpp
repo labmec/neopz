@@ -17,9 +17,9 @@
 #include "pzaxestools.h"
 #include "pzintel.h"
 
-#include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
+#include "pzlog.h"
+static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
 
@@ -302,6 +302,17 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 			ef(phiuCols+phip,0) += (+1.) * weight * w/deltaT * phi_p(phip,0);
 		}
 	}
+	
+#ifdef LOG4CXX
+	if (logger->isDebugEnabled()) {
+		std::stringstream str;
+		str << "\n------- Contribute da Pressure -------" << std::endl;
+		str << "GeoElId = " << datavec[1].gelElId << std::endl; 
+		ek.Print("ek",str);
+		ef.Print("ef",str);
+		LOGPZ_DEBUG(logger,str.str())		
+	}
+#endif
 }
 
 template<class T,class TMEM>
@@ -609,7 +620,7 @@ void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int va
 		else
 		{
 			SigX = young/((1.-2.*poisson)*(1.+poisson))*((1.-poisson)*epsx+poisson*epsy) + globFractInputData.PreStressXX();
-			SigY = young/((1.-2.*poisson)*(1.+poisson))*(poisson*epsx+(1.-poisson)*epsy) + globFractInputData.PreStressYY();
+			SigY = young/((1.-2.*poisson)*(1.+poisson))*(poisson*epsx+(1.-poisson)*epsy) + globFractInputData.PreStressYY();			
 		}
 		if(var == 5)
 		{

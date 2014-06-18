@@ -6,6 +6,11 @@
 #include "TPZCohesiveBC.h"
 
 
+#ifdef LOG4CXX
+#include "pzlog.h"
+static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+#endif
+
 TPZCohesiveBC::TPZCohesiveBC() : TPZMatWithMem<TPZFMatrix<REAL> >(), fSigmaT(0.), fDeltaC(0.), fDeltaT(0.)
 {
  	this->SetCurrentState();
@@ -47,14 +52,13 @@ void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sig
     DebugStop(); // i hope it never gets here
   }
 #endif
-  
+  REAL big = 1.;
 	// Calculating the function
 	if (w < 0.) { // simulates contact between fracture walls in case of closening
-		REAL big = 1.;
-		sigma = big*w*fSigmaT/fDeltaT;
+		sigma = big * w*fSigmaT/fDeltaT;
 	}
-	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
-		sigma = w * SigmaT/DeltaT;
+	else if (true/*w <= DeltaT*/) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
+		sigma = big * w * SigmaT/DeltaT;
 	}
 	else if (w <= fDeltaC){ // sigma folow the linear law specified for the cohesive tension
 		sigma = SigmaT * (1. - (w - DeltaT)/(fDeltaC - DeltaT) );
@@ -76,13 +80,13 @@ void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &Sigm
   }
 #endif
 	
+  REAL big = 1.;
   // Calculating the deriv of the function
 	if (w < 0.) { // simulates compression between fracture walls in case of closening
-		REAL big = 1.;
-		deriv = big*fSigmaT/fDeltaT;
+		deriv = big * fSigmaT/fDeltaT;
 	}
-	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
-		deriv = SigmaT/DeltaT;
+	else if (true/*w <= DeltaT*/) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
+		deriv = big * SigmaT/DeltaT;
 	}
 	else if (w <= fDeltaC){ // sigma folow the linear law specified for the cohesive tension
 		deriv = -SigmaT/(fDeltaC-DeltaT);
@@ -222,28 +226,7 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
 	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
 	
-	/*
-	// PARA COLOCAR COMO SE FOSSE UM DIRICHLET (TESTE)
-	const REAL big  = TPZMaterial::gBigNumber;
-	
-	for(int in = 0 ; in < phc; in++)
-	{
-		for(int il = 0; il < this->fNumLoadCases; il++)
-		{
-			//termo big*u*v do vetor de carga
-			TPZFNMatrix<3,STATE> v2(2,1,0.);
-			ef(in,il) += big * ( v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in) ) * weight;
-			
-			//termo big*u*v da matriz
-			ef(in,il) += (-1.)*big * ( phi(0,in)*sol_u[0] + phi(1,in)*sol_u[1] ) * weight;
-		}
-		
-		for (int jn = 0; jn < phc; jn++)
-		{
-			ek(in,jn) += big * ( phi(0,in)*phi(0,jn) + phi(1,in)*phi(1,jn) ) * weight;
-		}
-	}
-	*/
+
 	for (int in = 0; in < phc; in++)
 	{
 		for (int il = 0; il < fNumLoadCases; il++)
@@ -254,7 +237,18 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 			ek(in,jn) += (- 2. * DerivCohesive) * phi(1,jn) * phi(1,in) * weight; // eh o negativo da formula do residuo
 		}
 	}
-	 
+	
+#ifdef LOG4CXX
+	if (logger->isDebugEnabled()) {
+		std::stringstream str;
+		str << "\n------- Contribute do Cohesive -------" << std::endl;
+		str << "GeoElId = " << datavec[0].gelElId << std::endl; 
+		ek.Print("ek",str);
+		ef.Print("ef",str);
+		LOGPZ_DEBUG(logger,str.str())		
+	}
+#endif
+		
 }
 
 void TPZCohesiveBC::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
