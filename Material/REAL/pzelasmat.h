@@ -182,18 +182,6 @@ public:
 	/** @brief Set PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REAL Sigzz);
     
-    /** @brief indicates which variable should be post processed */
-    void SetPostProcessIndex(int index)
-    {
-#ifdef DEBUG
-        if (index < 0) 
-        {
-            DebugStop();
-        }
-#endif
-        fPostProcIndex = index;
-    }
-	
 	virtual int ClassId() const;
 	
 	virtual void Read(TPZStream &buf, void *context);
@@ -233,8 +221,6 @@ private:
 	/** @brief Uses plain stress */
 	int fPlaneStress;
     
-    /** @brief indicates which solution should be used for post processing */
-    int fPostProcIndex;
 };
 
 #endif

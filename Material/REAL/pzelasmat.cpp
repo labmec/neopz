@@ -337,37 +337,44 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
     
 	int phr = phi.Rows();
 	short in,jn;
-	REAL v2[2];
-	v2[0] = bc.Val2()(0,0);
-	v2[1] = bc.Val2()(1,0);
+    
+    if (ef.Cols() != bc.NumLoadCases()) {
+        DebugStop();
+    }
 	
 //		In general when the problem is  needed to stablish any convention for ContributeBC implementations
 
 //     REAL v2[2];
 // 	v2[0] = bc.Val2()(0,0);
 // 	v2[1] = bc.Val2()(1,0);
-    
-	TPZFMatrix<STATE> &v1 = bc.Val1();
     int nstate = NStateVariables();
-    
-    
-	switch (bc.Type()) {
-		case 0 :			// Dirichlet condition
-		{
-			for(in = 0 ; in < phr; in++) {
-				ef(2*in,0)   += BIGNUMBER * v2[0] * phi(in,0) * weight;        // forced v2 displacement
-				ef(2*in+1,0) += BIGNUMBER * v2[1] * phi(in,0) * weight;        // forced v2 displacement
-				for (jn = 0 ; jn < phi.Rows(); jn++)
+
+    TPZFMatrix<STATE> &v1 = bc.Val1();
+
+
+    switch (bc.Type()) {
+        case 0 :			// Dirichlet condition
+        {
+            for(in = 0 ; in < phr; in++) {
+                for (int il = 0; il<NumLoadCases(); il++)
                 {
-					ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
-					ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
-				}
-			}
-		}
-			break;
-			
-		case 1 :		// Neumann condition
-		{
+                    REAL v2[2];
+                    v2[0] = bc.Val2(il)(0,0);
+                    v2[1] = bc.Val2(il)(1,0);
+                    ef(2*in,il)   += BIGNUMBER * v2[0] * phi(in,0) * weight;        // forced v2 displacement
+                    ef(2*in+1,il) += BIGNUMBER * v2[1] * phi(in,0) * weight;        // forced v2 displacement
+                }
+                for (jn = 0 ; jn < phi.Rows(); jn++)
+                {
+                    ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+                    ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+                }
+            }
+        }
+            break;
+            
+        case 1 :		// Neumann condition
+        {
             for (in = 0; in < phr; in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
@@ -377,12 +384,12 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                     ef(2*in+1,il) +=  v2(1,0) * phi(in,0) * weight;      // force in y direction
                 }
             }
-		}
-			break;
-			
-		case 2 :		// Mixed Condition
-		{
-			for(in = 0 ; in < phi.Rows(); in++) 
+        }
+            break;
+            
+        case 2 :		// Mixed Condition
+        {
+            for(in = 0 ; in < phi.Rows(); in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
@@ -390,18 +397,18 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                     ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
                     ef(2*in+1,il) += v2(1,0) * phi(in,0) * weight;      // forced in y direction
                 }
-				
-				for (jn = 0 ; jn < phi.Rows(); jn++) {
-					ek(2*in,2*jn) += bc.Val1()(0,0) * phi(in,0) *
-					phi(jn,0) * weight;         // peso de contorno => integral de contorno
-					ek(2*in+1,2*jn) += bc.Val1()(1,0) * phi(in,0) *
-					phi(jn,0) * weight;
-					ek(2*in+1,2*jn+1) += bc.Val1()(1,1) * phi(in,0) *
-					phi(jn,0) * weight;
-					ek(2*in,2*jn+1) += bc.Val1()(0,1) * phi(in,0) *
-					phi(jn,0) * weight;
-				}
-			}   // este caso pode reproduzir o caso 0 quando o deslocamento
+                
+                for (jn = 0 ; jn < phi.Rows(); jn++) {
+                    ek(2*in,2*jn) += bc.Val1()(0,0) * phi(in,0) *
+                    phi(jn,0) * weight;         // peso de contorno => integral de contorno
+                    ek(2*in+1,2*jn) += bc.Val1()(1,0) * phi(in,0) *
+                    phi(jn,0) * weight;
+                    ek(2*in+1,2*jn+1) += bc.Val1()(1,1) * phi(in,0) *
+                    phi(jn,0) * weight;
+                    ek(2*in,2*jn+1) += bc.Val1()(0,1) * phi(in,0) *
+                    phi(jn,0) * weight;
+                }
+            }   // este caso pode reproduzir o caso 0 quando o deslocamento
             
             
         case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
@@ -409,36 +416,42 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 //                ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
 //                ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;
                 for (jn = 0 ; jn < phr; jn++) {
-                    ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
-                    ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
+                    ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * bc.Val2()(0,0);
+                    ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * bc.Val2()(1,0);
                 }//jn
             }//in
             break;
             
             
         case 4: // stressField Neumann condition
-            for(in = 0; in < dim; in ++)
             {
-                v2[in] =  ( v1(in,0) * data.normal[0] +
-                            v1(in,1) * data.normal[1]);
-            }
-            // The normal vector points towards the neighbour. The negative sign is there to
-            // reflect the outward normal vector.
-            for(in = 0 ; in < phi.Rows(); in++) {
-                ef(nstate*in+0,0) += v2[0] * phi(in,0) * weight;
-                ef(nstate*in+1,0) += v2[1] * phi(in,0) * weight;
-                //	cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
-                //	cout << "val2:  " << v2[0]  << endl;
+                REAL v2[2];
+                for(in = 0; in < dim; in ++)
+                {
+                    v2[in] =  ( v1(in,0) * data.normal[0] +
+                                v1(in,1) * data.normal[1]);
+                }
+                // The normal vector points towards the neighbour. The negative sign is there to
+                // reflect the outward normal vector.
+                for(in = 0 ; in < phi.Rows(); in++) {
+                    ef(nstate*in+0,0) += v2[0] * phi(in,0) * weight;
+                    ef(nstate*in+1,0) += v2[1] * phi(in,0) * weight;
+                    //	cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
+                    //	cout << "val2:  " << v2[0]  << endl;
+                }
             }
             break;
             
-		case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
+        case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
             {
                 TPZFNMatrix<2,STATE> res(2,1,0.);
                 for(in = 0 ; in < phi.Rows(); in++)
                 {
-                    ef(nstate*in+0,0) += (v2[0]*data.normal[0]) * phi(in,0) * weight ;
-                    ef(nstate*in+1,0) += (v2[0]*data.normal[1]) * phi(in,0) * weight ;
+                    for (int il=0; il<NumLoadCases(); il++)
+                    {
+                        ef(nstate*in+0,0) += (bc.Val2(il)(0,0)*data.normal[0]) * phi(in,0) * weight ;
+                        ef(nstate*in+1,0) += (bc.Val2(il)(0,0)*data.normal[1]) * phi(in,0) * weight ;
+                    }
                     for(jn=0; jn<phi.Rows(); jn++)
                     {
                         for(int idf=0; idf<2; idf++) for(int jdf=0; jdf<2; jdf++)
@@ -451,15 +464,18 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                     
                 }
             }
-			break;
-			
-		case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
+            break;
+            
+        case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
             {
                 TPZFNMatrix<2,STATE> res(2,1,0.);
                 for(in = 0 ; in < phi.Rows(); in++)
                 {
-                    ef(nstate*in+0,0) += (v2[0]*data.normal[0]) * phi(in,0) * weight ;
-                    ef(nstate*in+1,0) += (v2[0]*data.normal[1]) * phi(in,0) * weight ;
+                    for (int il=0; il<NumLoadCases(); il++)
+                    {
+                        ef(nstate*in+0,0) += (bc.Val2(il)(0,0)*data.normal[0]) * phi(in,0) * weight ;
+                        ef(nstate*in+1,0) += (bc.Val2(il)(0,0)*data.normal[1]) * phi(in,0) * weight ;
+                    }
                     for(jn=0; jn<phi.Rows(); jn++)
                     {
                         for(int idf=0; idf<2; idf++) for(int jdf=0; jdf<2; jdf++)
@@ -474,12 +490,9 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                 
             }
             break;
-
             
-            
-            
-	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
-} // 1 Val1 : a leitura �00 01 10 11
+        }      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
+    } // 1 Val1 : a leitura �00 01 10 11
 }
 
 

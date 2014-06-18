@@ -75,6 +75,9 @@ protected:
      */
     int fNumLoadCases;
     
+    /** @brief indicates which solution should be used for post processing */
+    int fPostProcIndex;
+    
 public:
     /** @brief Big number to penalization method, used for Dirichlet conditions */
     static REAL gBigNumber;
@@ -176,6 +179,18 @@ public:
         fNumLoadCases = numloadcases;
     }
     
+    /** @brief indicates which variable should be post processed */
+    void SetPostProcessIndex(int index)
+    {
+#ifdef DEBUG
+        if (index < 0 || index >= fNumLoadCases)
+        {
+            DebugStop();
+        }
+#endif
+        fPostProcIndex = index;
+    }
+	
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout);
     
