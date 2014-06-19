@@ -234,12 +234,13 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 		
 	
 	//AQUINATHAN
-
+  
 	int neqpr = this->fmeshvec[1]->NEquations();	
 	
 	for (int i = 0; i < neqpr; i++) {
 		fmeshvec[1]->Solution()(i,0) = 100.;
 	}
+   
 	//AQUINATHAN
 	
 	bool SeeSol = false;
@@ -276,7 +277,8 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   
   // Discoment if want to see hat functions of reduce space
   //ToolsTransient::PlotAllHatsVTK();
-  if(0)
+  
+  if(0) // test using h1 and plane stress linear elasticity
 	{
 		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1();		
 		TPZNonLinearAnalysis *nlan = new TPZNonLinearAnalysis(cmesh_h1,std::cout);
@@ -307,7 +309,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	an->SetSolver(step);
-	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo o primeiro problema com Neumann zero por causa do PresStress
+	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo todos os problemas
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
 	bool IWantToSeeElastSol = true;
@@ -331,6 +333,8 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
         }
 	}
   
+  std::cout << "aaaa" << std::endl;
+  /*
   // colocando as solucoes com as stripes
   int NStripes = globFractInputData.NStripes();
 	solutions.Resize(solutions.Rows(), NStripes);	
@@ -350,7 +354,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 		int oldsz = solutions.Cols();
 		for(int r = 0; r < cmesh_elast->Solution().Rows(); r++)
     {
-      solutions(r,stripe/*+1*/) = cmesh_elast->Solution()(r,0);// - solutions(r,0);
+      solutions(r,stripe) = cmesh_elast->Solution()(r,0);// - solutions(r,0);
     }
   }
   
@@ -387,6 +391,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
     
     dirid-=2;
   }
+*/
   cmesh_elast->LoadSolution(solutions);
 	 
   return cmesh_elast;
@@ -709,14 +714,10 @@ void ToolsTransient::Mesh2D()
               DebugStop(); // Id is diferent for position in the vector?
             }
             twogeoelsindex.second = gelindex;
+            gel->CreateBCGeoEl(1, diridhat);
           }
           else{
 						if (ieltohat > 1) {
-                            static int primeiro=0;
-                            if (primeiro == 0) {
-                                gel->CreateBCGeoEl(0, diridhat);
-                                primeiro++;
-                            }
 							gel->CreateBCGeoEl(1, diridhat);
 						}
             whathat++;
@@ -772,79 +773,12 @@ void ToolsTransient::Mesh2D()
   }
 #endif
   
-
   
-  
-  
-  
-
-  
-  // Refining near the fracture
-  /*
-  int nrefUnif = 3;
-  for(int ref = 0; ref < nrefUnif; ref++)
-  {
-    nelem = fgmesh->NElements();
-    for(long el = 0; el < nelem; el++)
-    {
-      if(fgmesh->ElementVec()[el]->Dimension() < 1) continue;
-      if(fgmesh->ElementVec()[el]->HasSubElement()) continue;
-      if(globFractInputData.IsBC(fgmesh->ElementVec()[el]->MaterialId()))
-      {
-        TPZVec<TPZGeoEl*> sons;
-        fgmesh->ElementVec()[el]->Divide(sons);
-        continue;
-      }
-      //else...
-      for(long s = 0; s < fgmesh->ElementVec()[el]->NSides(); s++)
-      {
-        TPZGeoElSide gelside(fgmesh->ElementVec()[el],s);
-        TPZGeoElSide neighside(gelside.Neighbour());
-        bool refinedAlready = false;
-        while(neighside != gelside)
-        {
-          if(globFractInputData.IsBC(neighside.Element()->MaterialId()))
-          {
-            TPZVec<TPZGeoEl*> sons;
-            fgmesh->ElementVec()[el]->Divide(sons);
-            refinedAlready = true;
-            break;
-          }
-          neighside = neighside.Neighbour();
-        }
-        if(refinedAlready == true)
-        {
-          break;
-        }
-      }
-    }
-  }
-   */
-  
-  
-  
-  
-  
-  std::ofstream outg("GeoMeshUncoupled.vtk");
+#ifdef DEBUG
+  std::ofstream outg("GeoMeshForAll.vtk");
   TPZVTKGeoMesh::PrintGMeshVTK(fgmesh, outg, true);
+#endif
   
-  //#ifdef usingRefdir
-  //    std::set<int> matDir;
-  //    //matDir.insert(__2DfractureMat_inside);
-  //    matDir.insert(bcfluxOut);
-  //    int nrefDir = 1;
-  //    for(int ref = 0; ref < nrefDir; ref++)
-  //    {
-  //        nelem = fgmesh->NElements();
-  //        for(int el = 0; el < nelem; el++)
-  //        {
-  //            if(!gmesh->ElementVec()[el]) continue;
-  //            if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
-  //            if(gmesh->ElementVec()[el]->HasSubElement()) continue;
-  //            TPZRefPatternTools::RefineDirectional(gmesh->ElementVec()[el], matDir);
-  //        }
-  //    }
-  //#endif
 }
 
 TPZCompMesh * ToolsTransient::CMeshHat(int &dirid, int &porder)
@@ -940,136 +874,133 @@ TPZCompMesh * ToolsTransient::CMeshHat(int &dirid, int &porder)
 
 TPZCompMesh * ToolsTransient::CMeshElastic()
 {
-    /// criar materiais
+  /// criar materiais
 	int dim = 2;
 	
-    TPZVec<REAL> force(dim,0.);
-    
-    //int planestress = 1;
-    int planestrain = 0;
-    
-    TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1,
-                                                                  globFractInputData.E1(),
-                                                                  globFractInputData.Poisson1(),
-                                                                  globFractInputData.Fx(),
-                                                                  globFractInputData.Fy(),
-                                                                  planestrain);
+  TPZVec<REAL> force(dim,0.);
+  
+  //int planestress = 1;
+  int planestrain = 0;
+  
+  TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1,
+                                                                globFractInputData.E1(),
+                                                                globFractInputData.Poisson1(),
+                                                                globFractInputData.Fx(),
+                                                                globFractInputData.Fy(),
+                                                                planestrain);
 	
-	material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
-    material1->SetNumLoadCases(3);
-    
-    /* Only using one material!
-     TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
-     globFractInputData.E2(),
-     globFractInputData.Poisson2(),
-     globFractInputData.Fx(),
-     globFractInputData.Fy(),
-     planestrain);
-     */
 	
+  
+  material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
+  
+  
+  unsigned int nstripes = globFractInputData.NStripes();
+  int nhats = globNHat;
+  const int nloadcases = nstripes + nhats;
+  material1->SetNumLoadCases(nloadcases);
+  
 	// material coesivo
 	int cohesiveid = globCohesiveMatId;
-    TPZCohesiveBC * material3 = new TPZCohesiveBC(cohesiveid);
-    const REAL SigmaT = 0., DeltaC = -1.;
+  TPZCohesiveBC * material3 = new TPZCohesiveBC(cohesiveid);
+  const REAL SigmaT = 0., DeltaC = -1.;
 	const REAL DeltaT = 0. * DeltaC;
-    material3->SetCohesiveData(SigmaT, DeltaC, DeltaT);
-    TPZMaterial *CoheMat(material3);
-    
-    TPZMaterial * mat1(material1);
-    
-    //TPZMaterial * mat2(material2);
-    
-    ///criar malha computacional
-    TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
-    cmesh->SetDefaultOrder(fpOrder);
+  material3->SetCohesiveData(SigmaT, DeltaC, DeltaT);
+  TPZMaterial *CoheMat(material3);
+  
+  TPZMaterial * mat1(material1);
+  
+  //TPZMaterial * mat2(material2);
+  
+  ///criar malha computacional
+  TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
+  cmesh->SetDefaultOrder(fpOrder);
 	cmesh->SetDimModel(dim);
-    cmesh->InsertMaterialObject(mat1);
-    //cmesh->InsertMaterialObject(mat2);
+  cmesh->InsertMaterialObject(mat1);
+  //cmesh->InsertMaterialObject(mat2);
 	cmesh->InsertMaterialObject(CoheMat);
-    
-    ///Inserir condicao de contorno
-    REAL big = material1->gBigNumber*1000;
-    
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    // tototototototo
-    val2(1,0) = 1.;
-    
-    std::map< int,std::pair<int,int> >::iterator it;
-    unsigned int nstripes = globFractInputData.NStripes();
-    int nhats = globNHat;
-    TPZVec<TPZFMatrix<STATE> > val2vec(nstripes+nhats);
-    val1.Redim(2,2);
-    val2.Redim(2,1);
-    for (int i=0; i<nstripes+nhats; i++) {
-        val2vec[i] = val2;
+  
+  ///Inserir condicao de contorno
+  REAL big = material1->gBigNumber;
+  
+  TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+  // tototototototo
+  val2(1,0) = 1.;
+  
+  std::map< int,std::pair<int,int> >::iterator it;
+  TPZVec<TPZFMatrix<STATE> > val2vec(nloadcases);
+  val1.Redim(2,2);
+  val2.Redim(2,1);
+  for (int i=0; i<nloadcases; i++) {
+    val2vec[i] = val2;
+  }
+  
+  for(it = globFractInputData.GetPressureMatIds_StripeId_ElastId().begin();
+      it != globFractInputData.GetPressureMatIds_StripeId_ElastId().end();
+      it++)
+  {
+    int bcId = it->first;
+    int elastId = it->second.second;
+    int stripeindex = it->second.first;
+    if(elastId == globReservMatId1)
+    {//estou no globReservMatId1
+      TPZBndCond* BCond11 = material1->CreateBC(mat1, bcId, typeNeumann, val1, val2); //AQUINATHAN typeNeumann
+      val2vec[stripeindex](1,0) = 1.;
+      BCond11->SetLoadCases(val2vec);
+      val2vec[stripeindex](1,0) = 0.;
+      cmesh->InsertMaterialObject(BCond11);
     }
-    
-    for(it = globFractInputData.GetPressureMatIds_StripeId_ElastId().begin();
-        it != globFractInputData.GetPressureMatIds_StripeId_ElastId().end();
-        it++)
+    else
+    {//estou no globReservMatId2
+      DebugStop(); // Nunca deveria entra nesse caso pois soh uso um material
+    }
+  }
+  
+  TPZBndCond * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
+ 	cmesh->InsertMaterialObject(BCond21);
+  
+  TPZBndCond * BCond22 = material1->CreateBC(mat1, globDirichletRecElastMatId1Cohe-(nhats-1)*2, typeDirichlet, val1, val2);
+  cmesh->InsertMaterialObject(BCond22);
+  
+  TPZMaterial * BCondDiri = material1->CreateBC(mat1, globDirichletBottom, typeDirichlet, val1, val2);
+	//cmesh->InsertMaterialObject(BCondDiri);
+  
+  val1(0,0) = big;
+  val1(1,1) = big;
+  //val1.Zero();
+  for (int ihat = 0; ihat<nhats; ihat++)
+  {
+    TPZBndCond * BCond23 = material1->CreateBC(mat1, globDirichletRecElastMatId1Cohe-1-2*ihat, typeMixed, val1, val2);
+    BCond23->SetNumLoadCases(nloadcases);
+    for(int j=ihat; j<nhats; j++)
     {
-        int bcId = it->first;
-        int elastId = it->second.second;
-        int stripeindex = it->second.first;
-        if(elastId == globReservMatId1)
-        {//estou no globReservMatId1
-            TPZBndCond* BCond11 = material1->CreateBC(mat1, bcId, typeNeumann, val1, val2); //AQUINATHAN typeNeumann
-            val2vec[stripeindex](1,0) = 1.;
-            BCond11->SetLoadCases(val2vec);
-            val2vec[stripeindex](1,0) = 0.;
-            cmesh->InsertMaterialObject(BCond11);
-        }
-        else
-        {//estou no globReservMatId2
-            DebugStop(); // Nunca deveria entra nesse caso pois soh uso um material
-            //TPZMaterial * BCond12 = material2->CreateBC(mat2, bcId, typeNeumann, val1, val2);
-            //cmesh->InsertMaterialObject(BCond12);
-        }
+      val2vec[nstripes+j](1,0) = big*0.0001;
     }
-    
-    TPZBndCond * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
-    
-    //TPZMaterial * BCond22 = material1->CreateBC(mat1, globDirichletBottom, typeDirichlet, val1, val2);
-    TPZBndCond * BCond22 = material1->CreateBC(mat1, globDirichletRecElastMatId1Cohe, typeDirichlet, val1, val2);
-    val1(0,0) = big;
-    val1(1,1) = big;
-    val1.Zero();
-    for (int ihat = 0; ihat<nhats; ihat++)
+    BCond23->SetLoadCases(val2vec);
+    for(int j=ihat; j<nhats; j++)
     {
-        TPZBndCond * BCond23 = material1->CreateBC(mat1, globDirichletRecElastMatId1Cohe-1-2*ihat, typeMixed, val1, val2);
-        BCond23->SetNumLoadCases(nstripes+nhats);
-        for(int j=ihat; j<nhats; j++)
-        {
-            val2vec[nstripes+j](1,0) = 1.;//big*0.0001;
-        }
-        BCond23->SetLoadCases(val2vec);
-        for(int j=ihat; j<nhats; j++)
-        {
-            val2vec[nstripes+j](1,0) = 0.;
-        }
-//        val2vec[nstripes+ihat](1,0) = 0.;
-        cmesh->InsertMaterialObject(BCond23);
+      val2vec[nstripes+j](1,0) = 0.;
     }
-    
 
-    val1(0,0) = big;
-    val1(1,1) = 0.;
-
-    TPZBndCond * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
-    
-    //AQUINATHAN typeMixed
-    //TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeDirichlet, val1, val2); //AQUINATHAN typeMixed
-    
-    cmesh->SetAllCreateFunctionsContinuous();
-	cmesh->InsertMaterialObject(BCond21);
-    cmesh->InsertMaterialObject(BCond22);
+    cmesh->InsertMaterialObject(BCond23);
+  }
+  
+  
+  val1(0,0) = big;
+  val1(1,1) = 0.;
+  
+  TPZBndCond * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
 	cmesh->InsertMaterialObject(BCond31);
-	
+  
+  //AQUINATHAN typeMixed
+  //TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeDirichlet, val1, val2); //AQUINATHAN typeMixed
+  
+  cmesh->SetAllCreateFunctionsContinuous();
+  
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
-    cmesh->AdjustBoundaryElements();
+  cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
-    
+  
 	return cmesh;
 }
 
@@ -1795,10 +1726,6 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
       an->Solve();
 			an->Solution().Print("dsol");
       an->LoadSolution(SolIterK + an->Solution());
-      
-      
-      //DebugStop(); // NATHAN LEMBRAR DE ATUALIZAR O MATERIAL COESIVO depois de uma rodada certa
-      
       
       TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
       

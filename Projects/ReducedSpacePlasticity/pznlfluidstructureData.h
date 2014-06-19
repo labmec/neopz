@@ -29,7 +29,7 @@ int const globDirichletBottom = -5;
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;
-int const globNHat = 3;
+int const globNHat = 5;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure
