@@ -116,13 +116,11 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
   if (fSetRunPlasticity)
   {
     ContributePlastic(datavec[0],weight,ek,ef);
-   	//ContributePressure(datavec, weight, ek, ef);
-    TPZFMatrix<REAL> ekP(ek);
-    TPZFMatrix<REAL> efP(ef);
-    ek.Zero();
-    ef.Zero();
-    //return;
+   	ContributePressure(datavec, weight, ek, ef);
+    return;
   }
+
+
 	
 	//Calculate the matrix contribution for elastic problem.
 	TPZFMatrix<REAL> &dphi_u = datavec[0].dphix;
@@ -236,6 +234,31 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 			}
 		}//fim para a tangente
 	}
+  
+  /* Old test to verify if matrixes are equal in case of non plastification
+  REAL zeroK = 0.;
+  REAL zeroF = 0.;
+  for (int i = 0; i < phcu; i++) {
+    zeroF += fabs(efP(i,0)-ef(i,0));
+    for (int j = 0; j < phcu; j++) {
+      zeroK += fabs(ekP(i,j)-ek(i,j));
+    }
+  }
+  if (zeroF > 1.e-8 || zeroK > 1.e-8) {
+    DebugStop();
+  }
+   */
+  
+#ifdef LOG4CXX
+  if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
+		sout << " Resultant rhs vector:\n" << ef;
+		sout << " Resultant stiff vector:\n" << ek;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
 	
 	// Calculate the matrix contribution for pressure
 	ContributePressure(datavec, weight, ek, ef);
@@ -350,17 +373,8 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
 		
 		for( int jn = 0; jn < phc; jn++)
 		{
-      /*
-			for(int ud = 0; ud < 2; ud++)
-			{
-				for(int vd = 0; vd < 2; vd++)
-				{
-					Deriv(vd,ud) = dphiXY(vd,in)*dphiXY(ud,jn);
-				}
-			}
-       */
       
-      /*
+      /* EXPLANATION
        phi and dphi are ordered in the following way for each reduced space i
        phi(0,i) = phix
        phi(1,i) = phiy
@@ -408,7 +422,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
+		sout << "<<< TPZPlasticFrac2D<T,TMEM>::ContributePlastic ***";
 		sout << " Resultant rhs vector:\n" << ef;
 		sout << " Resultant stiff vector:\n" << ek;
 		LOGPZ_DEBUG(logger,sout.str().c_str());
