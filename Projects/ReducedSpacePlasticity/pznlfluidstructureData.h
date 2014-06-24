@@ -29,7 +29,7 @@ int const globDirichletBottom = -5;
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;
-int const globNHat = 5;
+int const globNHat = 0;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure
@@ -53,7 +53,9 @@ int const typeNeum_pressure = 4;
 class InputDataStruct
 {
 public:
-  
+
+  enum EPlasticModel {EElastic = 0, EMohrCoulomb = 1, ESandler = 2};
+
   InputDataStruct();
   ~InputDataStruct();
   
@@ -84,6 +86,15 @@ public:
   REAL PreStressXX();
   REAL PreStressXY();
   REAL PreStressYY();
+  
+  // Plastic Methods
+  void SetPlasticModel(EPlasticModel model)
+  {
+    fEModel = model;
+  }
+  bool IsElastic();
+  bool IsMohrCoulomb();
+  bool IsSandler();
   REAL Cohesion();
   REAL PhiMC();
   
@@ -119,6 +130,8 @@ public:
   REAL FictitiousTime(REAL VlAcum, REAL pfrac);
   REAL QlFVl(int gelId, REAL pfrac);
   REAL dQlFVl(int gelId, REAL pfrac);
+  
+  
   
 private:
   
@@ -177,6 +190,9 @@ private:
   //Propagation criterion
   REAL fJradius;
   REAL fKIc;
+  
+  //Plastic Model
+  EPlasticModel fEModel;
   
   //MohrCoulomb Parameters
   REAL fCohesion;

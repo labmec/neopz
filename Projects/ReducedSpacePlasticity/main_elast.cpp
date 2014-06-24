@@ -99,7 +99,7 @@ int mainFrac(int argc, char *argv[])
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
                              QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q);
-  globFractInputData.SetMohrCoulombData(cohesion,phiMC);
+  globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
   ToolsTransient ToolTrans(p);
   
   std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";

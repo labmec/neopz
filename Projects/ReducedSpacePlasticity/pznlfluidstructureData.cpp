@@ -23,6 +23,7 @@ InputDataStruct::~InputDataStruct()
 }
 void InputDataStruct::SetMohrCoulombData(REAL cohesion, REAL phiMC)
 {
+  fEModel = EMohrCoulomb;
   fCohesion = cohesion;
   fPhiMC = phiMC;
 }
@@ -183,6 +184,19 @@ REAL InputDataStruct::PreStressXY()
 REAL InputDataStruct::PreStressYY()
 {
   return fPreStressYY;
+}
+
+bool InputDataStruct::IsElastic()
+{
+  return (fEModel == EElastic);
+}
+bool InputDataStruct::IsMohrCoulomb()
+{
+  return (fEModel == EMohrCoulomb);
+}
+bool InputDataStruct::IsSandler()
+{
+  return (fEModel == ESandler);
 }
 
 REAL InputDataStruct::Cohesion()

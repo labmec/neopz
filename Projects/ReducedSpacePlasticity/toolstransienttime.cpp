@@ -54,8 +54,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
-bool UsingPreStrees = false; //if true remeber to solve the first reduced space problem with neumann zero
-
 REAL mypow(REAL a, int n)
 {
 	if (n == 0) return 1.;
@@ -66,7 +64,6 @@ ToolsTransient::ToolsTransient(){
   fMustStop = true;
   fCouplingMaterial1 = NULL;
 	fCohesiveMaterial = NULL;
-  //fCouplingMaterial2 = NULL;
   fgmesh = NULL;
   fmeshvec.Resize(0);
   fmphysics = NULL;
@@ -82,7 +79,9 @@ ToolsTransient::ToolsTransient(int pOrder)
   //fCouplingMaterial1 = new TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
   fCouplingMaterial1 = new TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
   
-  this->SetMohrCoulombParameters(globFractInputData.Poisson1(), globFractInputData.E1(), globFractInputData.Cohesion(), globFractInputData.PhiMC(), globFractInputData.PhiMC());
+  if (globFractInputData.IsMohrCoulomb()) {
+    this->SetMohrCoulombParameters(globFractInputData.Poisson1(), globFractInputData.E1(), globFractInputData.Cohesion(), globFractInputData.PhiMC(), globFractInputData.PhiMC());
+  }
 
 	fCohesiveMaterial = new TPZCohesiveBC(globCohesiveMatId);
 	
@@ -105,66 +104,8 @@ void ToolsTransient::SetMohrCoulombParameters(REAL poisson, REAL elast, REAL coh
 ToolsTransient::~ToolsTransient(){
 	delete fCouplingMaterial1;
 	delete fCohesiveMaterial;
-	//delete fCouplingMaterial2;
 }
 
-
-void ToolsTransient::RunPlasticity()
-{
-  //std::map<int,REAL> leakoffMap;
-  
-  this->Mesh2D();
-  
-  TPZCompMesh * cmesh = CMeshElastoPlastic(fgmesh, globFractInputData.SigN());
-  TPZElastoPlasticAnalysis an(cmesh,std::cout);
-  
-  this->SolveInitialElastoPlasticity(an, cmesh);
-  /*
-   std::cout << "<<<<<<<<<<<<<<<<<<<<<<< 0\n";
-   std::stringstream notUsedHere("none.txt");
-   REAL KI = ComputeKIPlaneStrain();
-   std::cout << "KI = " << KI << " >>>>>>>>>>>>>>>>>>>\n\n\n";
-   */
-  std::string vtkFile = "pocoplastico.vtk";
-  TPZPostProcAnalysis ppanalysis(cmesh);
-  ppanalysis.SetStep(0);
-  TPZFStructMatrix structmatrix(ppanalysis.Mesh());
-  structmatrix.SetNumThreads(8);
-  ppanalysis.SetStructuralMatrix(structmatrix);
-  
-  TPZVec<int> PostProcMatIds(1,1);
-  TPZStack<std::string> PostProcVars, scalNames, vecNames;
-  scalNames.Push("Alpha");
-  scalNames.Push("PlasticSqJ2");
-  scalNames.Push("PlasticSqJ2El");
-  scalNames.Push("POrder");
-  
-  scalNames.Push("I1Stress");
-  scalNames.Push("J2Stress");
-  
-  vecNames.Push("Displacement");
-  vecNames.Push("YieldSurface");
-  vecNames.Push("NormalStress");
-  vecNames.Push("ShearStress");
-  vecNames.Push("NormalStrain");
-  vecNames.Push("ShearStrain");
-  vecNames.Push("DisplacementMem");
-  for (int i=0; i<scalNames.size(); i++)
-  {
-    PostProcVars.Push(scalNames[i]);
-  }
-  for (int i=0; i<vecNames.size(); i++)
-  {
-    PostProcVars.Push(vecNames[i]);
-  }
-  //
-  ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
-  //
-  ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
-  //
-  ppanalysis.TransferSolution();
-  ppanalysis.PostProcess(0);// pOrder
-}
 
 void ToolsTransient::Run()
 {
@@ -172,6 +113,9 @@ void ToolsTransient::Run()
   TPZCompMesh * lastElastReferredCMesh = NULL;
   
   int anCount = 0;
+  if (globFractInputData.IsMohrCoulomb() || globFractInputData.IsSandler()) {
+    fCouplingMaterial1->SetRunPlasticity(); // AQUINATHAN PLASTICIDADE
+  }
   this->InitializeUncoupledMeshesAttributes();
   this->CMeshMultiphysics();
 	bool OptimizeBandwidth = false;
@@ -180,8 +124,6 @@ void ToolsTransient::Run()
   PostprocessPressure();
   PostProcessAcumVolW();
   PostProcessVolLeakoff();
-  //REAL KI = ComputeKIPlaneStrain();
-  //globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
   
   bool initialElasticKickIsNeeded = true;
 	
@@ -236,12 +178,6 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
   fmeshvec[1] = this->CMeshPressure();
   fgmesh->ResetReference();
 	
-	
-	if (UsingPreStrees){
-		fmeshvec[0]->Solution()(0,0) = 1.; // porque o multiplicador da solucao com neumann zero eh sempre 1		
-	}
-		
-	
 	//AQUINATHAN
   
 	int neqpr = this->fmeshvec[1]->NEquations();	
@@ -283,9 +219,6 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 {
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
-  
-  // Discoment if want to see hat functions of reduce space
-  //ToolsTransient::PlotAllHatsVTK();
   
   if(0) // test using h1 and plane stress linear elasticity
 	{
@@ -406,6 +339,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   return cmesh_elast;
 }
 
+// Used when was using prestress
 void ToolsTransient::ApplyEquationFilter(TPZAnalysis * an)
 {
 	std::set<long> eqOut;
@@ -429,13 +363,13 @@ void ToolsTransient::ApplyEquationFilter(TPZAnalysis * an)
 	
 }
 
+// Used for tests. MustOptimizeBandwitch must be false
 void ToolsTransient::ApplyEquationFilterOnPressure(TPZAnalysis * an)
 {
 	std::set<long> eqOut;
 	
 	int neq = this->fmphysics->NEquations();
 	int neqel = this->fmeshvec[0]->NEquations();
-	int neqpr = this->fmeshvec[1]->NEquations();	
 	
 	for (int i = neqel; i < neq; i++) {
 		eqOut.insert(i);
@@ -452,7 +386,6 @@ void ToolsTransient::ApplyEquationFilterOnPressure(TPZAnalysis * an)
 	TPZEquationFilter eqF(neq);
 	eqF.SetActiveEquations(actEquations);
 	an->StructMatrix()->EquationFilter() = eqF;
-	
 }
 
 void ToolsTransient::Mesh2D()
@@ -565,11 +498,6 @@ void ToolsTransient::Mesh2D()
       
       gel = fgmesh->CreateGeoElement(EQuadrilateral, topol, globReservMatId1, indx);
       gel->SetId(indx);
-      //REAL x = c*deltadivV;
-      //if((x + 1.E-3) > globFractInputData.Xinterface())
-      //{
-      //  gel->SetMaterialId(globReservMatId2);
-      //}
       indx++;
     }
   }
@@ -632,7 +560,7 @@ void ToolsTransient::Mesh2D()
       }
       else
       {
-				DebugStop();
+				DebugStop(); // only using one mat, should never enter here
         gel->CreateBCGeoEl(5, globDirichletElastMatId2);
       }
       
@@ -683,7 +611,6 @@ void ToolsTransient::Mesh2D()
   int recidhat = diridhat - 1;
   int ihat = 0;
   int nhat = globNHat;
-
   
   for (ihat = 0 ; ihat < nhat ; ihat++){
     int ieltohat = 0;
@@ -734,24 +661,18 @@ void ToolsTransient::Mesh2D()
         }
         
         //east BC
-        //TPZGeoElSide sideE(gel,5);
-        //TPZGeoElSide neighE(sideE.Neighbour());
         if((el+1)%(ndivV) == 0 && el != 0)
         {
           gel->CreateBCGeoEl(5, diridhat);
         }
         
         //north BC
-        //TPZGeoElSide sideN(gel,6);
-        //TPZGeoElSide neighN(sideN.Neighbour());
         if(el > ((ndivH-1)*ndivV)-1)
         {
           gel->CreateBCGeoEl(6, diridhat);
         }
         
         //west BC
-        //TPZGeoElSide sideW(gel,7);
-        //TPZGeoElSide neighW(sideW.Neighbour());
         if(el%ndivV == 0)
         {
           //gel->CreateBCGeoEl(7, globMixedElastMatId); ja existe!
@@ -764,9 +685,7 @@ void ToolsTransient::Mesh2D()
     recidhat-=2;
   }
 	
-	
   fgmesh->BuildConnectivity();
-	
 	
 #ifdef DEBUG
   std::map<int,std::pair<int, int> >::iterator it = globFractInputData.GetfMatID_Rec_GeoEl().begin();
@@ -918,8 +837,6 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
   
   TPZMaterial * mat1(material1);
   
-  //TPZMaterial * mat2(material2);
-  
   ///criar malha computacional
   TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
   cmesh->SetDefaultOrder(fpOrder);
@@ -1000,9 +917,6 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
   TPZBndCond * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
 	cmesh->InsertMaterialObject(BCond31);
   
-  //AQUINATHAN typeMixed
-  //TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeDirichlet, val1, val2); //AQUINATHAN typeMixed
-  
   cmesh->SetAllCreateFunctionsContinuous();
   
 	//Ajuste da estrutura de dados computacional
@@ -1067,25 +981,14 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
 	const REAL DeltaT = 0.1 * DeltaC;
   fCohesiveMaterial->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *CoheMat(fCohesiveMaterial);
-
-	/*
-  TPZElasticityMaterial * material2 = new TPZElasticityMaterial(globReservMatId2,
-                                                                globFractInputData.E2(),
-                                                                globFractInputData.Poisson2(),
-                                                                globFractInputData.Fx(),
-                                                                globFractInputData.Fy(),
-                                                                planestrain);*/
   
-  material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
-  //material2->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
+  //material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.); NOT USING
   
   TPZCompMeshReferred * cmeshreferred = new TPZCompMeshReferred(fgmesh);
   
   cmeshreferred->SetDimModel(dim);
   TPZMaterial * mat1(material1);
-  //TPZMaterial * mat2(material2);
   cmeshreferred->InsertMaterialObject(mat1);
-  //cmeshreferred->InsertMaterialObject(mat2);
 	cmeshreferred->InsertMaterialObject(CoheMat);
   
   ///Inserir condicao de contorno
@@ -1107,28 +1010,23 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
     }
     else
     {//estou no globReservMatId2
-      //TPZMaterial * BCond12 = material2->CreateBC(mat2, bcId, typeNeumann, val1, val2);
-      //cmeshreferred->InsertMaterialObject(BCond12);
-			DebugStop();
+			DebugStop(); // Soh tenho um!
     }
   }
   
   val1.Redim(2,2);
   val2.Redim(2,1);
   TPZMaterial * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
-  //TPZMaterial * BCond22 = material2->CreateBC(mat2, globDirichletElastMatId2, typeDirichlet, val1, val2);
+  cmeshreferred->InsertMaterialObject(BCond21);
   
   val1(0,0) = big;
   TPZMaterial * BCond31 = material1->CreateBC(mat1, globMixedElastMatId, typeMixed, val1, val2);
+  cmeshreferred->InsertMaterialObject(BCond31);
   
   int numsol = cmeshref->Solution().Cols();
   cmeshreferred->AllocateNewConnect(numsol, 1, 1);
   
 	TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmeshreferred);
-  
-  cmeshreferred->InsertMaterialObject(BCond21);
-  //cmeshreferred->InsertMaterialObject(BCond22);
-  cmeshreferred->InsertMaterialObject(BCond31);
   
 	cmeshreferred->SetDefaultOrder(fpOrder);
   cmeshreferred->SetDimModel(dim);
@@ -1210,11 +1108,10 @@ void ToolsTransient::CMeshMultiphysics()
 	fmphysics = new TPZCompMesh(fgmesh);
   fmphysics->SetDefaultOrder(fpOrder);
   
+  fCouplingMaterial1->SetPlasticity(fPlasticStepPV);
   TPZMaterial *mat1(fCouplingMaterial1);
-  fmphysics->InsertMaterialObject(mat1);
   
-  //TPZMaterial *mat2(fCouplingMaterial2);
-  //fmphysics->InsertMaterialObject(mat2);
+  fmphysics->InsertMaterialObject(mat1);
   
   ///Inserir condicao de contorno
   REAL big = fCouplingMaterial1->gBigNumber;
@@ -1245,18 +1142,20 @@ void ToolsTransient::CMeshMultiphysics()
   val2.Redim(3,1);
   val1.Redim(3,2);
   TPZMaterial * BCond21 = fCouplingMaterial1->CreateBC(mat1, globDirichletElastMatId1, typeDir_elast, val1, val2);
-  //TPZMaterial * BCond22 = fCouplingMaterial2->CreateBC(mat2, globDirichletElastMatId2, typeDir_elast, val1, val2);
-
+  fmphysics->InsertMaterialObject(BCond21);
+  
  	// dirichlet em x na esquerda
   val1(0,0) = big;
   TPZMaterial * BCond31 = fCouplingMaterial1->CreateBC(mat1, globMixedElastMatId, typeMix_elast, val1, val2);
-  
+  fmphysics->InsertMaterialObject(BCond31);
+
 	// vazao de entrada
   val2.Redim(3,1);
   val1.Redim(3,2);
   val2(0,0) = globFractInputData.Qinj();
   TPZMaterial * BCond41 = fCouplingMaterial1->CreateBC(mat1, globBCfluxIn, typeNeum_pressure, val1, val2);
-	
+	fmphysics->InsertMaterialObject(BCond41);
+  
 	// material coesivo
 	int cohesiveid = globCohesiveMatId;
   const REAL SigmaT = 3., DeltaC = 0.0001024;
@@ -1265,12 +1164,9 @@ void ToolsTransient::CMeshMultiphysics()
   TPZMaterial *CoheMat(fCohesiveMaterial);
 	fmphysics->InsertMaterialObject(CoheMat);
   
+  // Setando o espaco
   fmphysics->SetAllCreateFunctionsMultiphysicElemWithMem();
-  fmphysics->InsertMaterialObject(BCond21);
-  //fmphysics->InsertMaterialObject(BCond22);
-  fmphysics->InsertMaterialObject(BCond31);
-  fmphysics->InsertMaterialObject(BCond41);
-  
+ 
   fmphysics->AutoBuild();
 	fmphysics->AdjustBoundaryElements();
 	fmphysics->CleanUpUnconnectedNodes();
@@ -1280,6 +1176,7 @@ void ToolsTransient::CMeshMultiphysics()
 	TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fmphysics);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
 
+  // Preparando os index dos pontos de integracao.
 	long nel = fmphysics->NElements();
 	for (long iel = 0; iel < nel; iel++) {
 		TPZCompEl *cel = fmphysics->ElementVec()[iel];
@@ -1290,8 +1187,6 @@ void ToolsTransient::CMeshMultiphysics()
 	std::ofstream out("cmeshMult.txt");
 	fmphysics->Print(out);
 	*/
-
-		
 }
 
 //------------------------------------------------------------------------------------
@@ -1358,7 +1253,6 @@ TPZCompMesh* ToolsTransient::CMeshCohesiveH1()
   
 	
 	// material coesivo
-	int cohesiveid = globCohesiveMatId;
   const REAL SigmaT = 3., DeltaC = 0.0001024;
 	const REAL DeltaT = 0.1 * DeltaC;
 	TPZCohesiveBC *CoheMat = new TPZCohesiveBC;
@@ -1419,12 +1313,6 @@ void ToolsTransient::SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis 
 		iter++;
     std::cout.flush();
 	}
-	
-  /*
-	 REAL tol = 1.e-8;
-	 int numiter = 30;
-	 an.IterativeProcess(std::cout, tol, numiter);
-   */
 }
 
 //------------------------------------------------------------------------------------
@@ -1433,15 +1321,10 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
 {
 	fCouplingMaterial1->SetCurrentState();
 	fCohesiveMaterial->SetCurrentState();
-  //fCouplingMaterial2->SetCurrentState();
   
   TPZFStructMatrix matsk(fmphysics);
   
 	an->SetStructuralMatrix(matsk);
-	
-	if (UsingPreStrees) {
-		this->ApplyEquationFilter(an);
-	}
 	
 	// AQUINATHAN
 	this->ApplyEquationFilterOnPressure(an);
@@ -1671,7 +1554,6 @@ void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 {
   fCouplingMaterial1->SetLastState();
 	fCohesiveMaterial->SetLastState();
-  //fCouplingMaterial2->SetLastState();
 	TPZSpStructMatrix matsp(fmphysics);
 	TPZAutoPointer<TPZGuiInterface> guiInterface;
   matsp.CreateAssemble(Un,guiInterface);
@@ -1784,9 +1666,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     
     PostprocessPressure();
     
-    //    REAL KI = ComputeKIPlaneStrain();
-    //    if(KI > globFractInputData.KIc())
-    if(0)
+    if(0) //AQUINATHAN create methodology to indecate if propagated
     {//propagou!!!
       globFractInputData.SetMinDeltaT();
       propagate = true;
@@ -1802,7 +1682,6 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
       PostProcessVolLeakoff();
 			ShowDisplacementSigmaYCohesive();
     }
-    //globFractOutputData.InsertTKI(globFractInputData.actTime(), KI);//its for output data to txt (Mathematica format)
     REAL peteleco = 1.E-8;
     if( globFractInputData.actTime() > (globFractInputData.Ttot() - peteleco) )
     {
@@ -1813,67 +1692,6 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
   return propagate;
 }
 
-
-REAL ToolsTransient::ComputeKIPlaneStrain()
-{
-  REAL radius = globFractInputData.Jradius();
-  
-  REAL KI = -1.;
-  
-  REAL XcrackTip = -1.;
-  TPZGeoMesh * gm = fmeshvec[0]->Reference();
-  for(int ell = 0; ell < gm->NElements(); ell++)
-  {
-    if(gm->ElementVec()[ell] && gm->ElementVec()[ell]->MaterialId() == globCracktip)
-    {
-      int nodeIndex = gm->ElementVec()[ell]->NodeIndex(0);
-      XcrackTip = gm->NodeVec()[nodeIndex].Coord(0);
-      break;
-    }
-  }
-  if(XcrackTip < 1.E-3)
-  {
-    DebugStop();
-  }
-  TPZVec<REAL> Origin(3,0.);
-  Origin[0] = XcrackTip;
-  TPZVec<REAL> normalDirection(3,0.);
-  normalDirection[2] = 1.;
-  
-  Path2D * Jpath = new Path2D(fmeshvec[0], Origin, normalDirection, radius);
-  JIntegral2D integralJ;
-  integralJ.SetPath2D(Jpath);
-  
-  integralJ.IntegratePath2D();
-  REAL computedJ = integralJ.Path()->Jintegral();
-  
-  REAL young = 0.;
-  REAL poisson = 0.;
-  
-  //<<< Isso nao tah legal qdo o arco da integral J pega os 2 materiais
-  if((XcrackTip + 1.E-3) < globFractInputData.Xinterface())
-  {
-    young = globFractInputData.E1();
-    poisson = globFractInputData.Poisson1();
-  }
-  else
-  {
-    young = globFractInputData.E2();
-    poisson = globFractInputData.Poisson2();
-  }
-  /////////////////////////////////////////////////////////////////////
-  
-  if(computedJ < 0.)
-  {
-    //Estado compressivo!!!
-    computedJ = 0.;
-  }
-  KI = sqrt( (computedJ*young) / (1. - poisson*poisson) );
-  
-  std::cout << "\n>>>>>>>>>>> KI = " << KI << "\n";
-  
-  return KI;
-}
 
 void ToolsTransient::PostprocessPressure()
 {
@@ -2293,6 +2111,61 @@ int TLeakoffFunction<TVar>::PolynomialOrder()
 {
   return 0;
 }
+
+//--------------------------------------------------- Tests and Prints -------------------------------------------------------------
+
+void ToolsTransient::RunPlasticity()
+{
+  //std::map<int,REAL> leakoffMap;
+  
+  this->Mesh2D();
+  
+  TPZCompMesh * cmesh = CMeshElastoPlastic(fgmesh, globFractInputData.SigN());
+  TPZElastoPlasticAnalysis an(cmesh,std::cout);
+  
+  this->SolveInitialElastoPlasticity(an, cmesh);
+  
+  std::string vtkFile = "pocoplastico.vtk";
+  TPZPostProcAnalysis ppanalysis(cmesh);
+  ppanalysis.SetStep(0);
+  TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+  structmatrix.SetNumThreads(8);
+  ppanalysis.SetStructuralMatrix(structmatrix);
+  
+  TPZVec<int> PostProcMatIds(1,1);
+  TPZStack<std::string> PostProcVars, scalNames, vecNames;
+  scalNames.Push("Alpha");
+  scalNames.Push("PlasticSqJ2");
+  scalNames.Push("PlasticSqJ2El");
+  scalNames.Push("POrder");
+  
+  scalNames.Push("I1Stress");
+  scalNames.Push("J2Stress");
+  
+  vecNames.Push("Displacement");
+  vecNames.Push("YieldSurface");
+  vecNames.Push("NormalStress");
+  vecNames.Push("ShearStress");
+  vecNames.Push("NormalStrain");
+  vecNames.Push("ShearStrain");
+  vecNames.Push("DisplacementMem");
+  for (int i=0; i<scalNames.size(); i++)
+  {
+    PostProcVars.Push(scalNames[i]);
+  }
+  for (int i=0; i<vecNames.size(); i++)
+  {
+    PostProcVars.Push(vecNames[i]);
+  }
+  //
+  ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+  //
+  ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+  //
+  ppanalysis.TransferSolution();
+  ppanalysis.PostProcess(0);// pOrder
+}
+
 
 void ToolsTransient::SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh)
 {
