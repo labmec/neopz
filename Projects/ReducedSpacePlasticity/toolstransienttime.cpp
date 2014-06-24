@@ -79,18 +79,27 @@ ToolsTransient::ToolsTransient(int pOrder)
   fMustStop = false;
   
   int dim = 2;
-  fCouplingMaterial1 = new TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(globMultiFisicMatId1,dim,
-                                            globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
+  //fCouplingMaterial1 = new TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
+  fCouplingMaterial1 = new TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
+  
+  this->SetMohrCoulombParameters(globFractInputData.Poisson1(), globFractInputData.E1(), globFractInputData.Cohesion(), globFractInputData.PhiMC(), globFractInputData.PhiMC());
 
 	fCohesiveMaterial = new TPZCohesiveBC(globCohesiveMatId);
 	
   int planestrain = 0;
   fCouplingMaterial1->SetfPlaneProblem(planestrain);
-  //fCouplingMaterial2->SetfPlaneProblem(planestrain);
   
   fgmesh = NULL;
   fmeshvec.Resize(2);
   fmphysics = NULL;
+}
+
+void ToolsTransient::SetMohrCoulombParameters(REAL poisson, REAL elast, REAL cohesion, REAL Phi, REAL Psi)
+{
+  TPZElasticResponse ER;
+  ER.SetUp(elast,poisson);
+  fPlasticStepPV.fYC.SetUp(Phi, Psi, cohesion, ER);
+  fPlasticStepPV.fER.SetUp(elast,poisson);
 }
 
 ToolsTransient::~ToolsTransient(){

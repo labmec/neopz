@@ -58,6 +58,10 @@ protected:
 	 */
 	int fPlaneStress;
 	
+	/** @brief If set,the material will calculate contribution of a plastic material
+   */
+  bool fSetRunPlasticity;
+  
 	REAL fmatId;
 	REAL fE;//young
 	REAL fPoiss;//poisson
@@ -92,12 +96,15 @@ public:
 	{
 		fPlaneStress = planestress;
 	}
-	
+  
+  /** @brief if IsPlasticity is true, it will calculate the contribution of a plastic material
+   */
+  void SetRunPlasticity(bool IsPlasticity = true);
+  
 	int MatId()
 	{
 		return fmatId;
 	}
-	
 	
   void SetLastState(){ gState = ELastState; }
 	void SetCurrentState(){ gState = ECurrentState; }
@@ -110,6 +117,8 @@ public:
 	 * @param ef [out] is the load vector
 	 */
 	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+
+	virtual void ContributePlastic(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	

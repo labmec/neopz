@@ -62,7 +62,9 @@ public:
                int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
                REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q);
   
+  void SetMohrCoulombData(REAL cohesion, REAL phiMC);
   void SetLf(REAL Lf);
+  
   
   REAL Lx();
   REAL Ly();
@@ -82,6 +84,8 @@ public:
   REAL PreStressXX();
   REAL PreStressXY();
   REAL PreStressYY();
+  REAL Cohesion();
+  REAL PhiMC();
   
   int NStripes();
   std::map< int,std::pair<int,int> > & GetPressureMatIds_StripeId_ElastId();
@@ -173,6 +177,10 @@ private:
   //Propagation criterion
   REAL fJradius;
   REAL fKIc;
+  
+  //MohrCoulomb Parameters
+  REAL fCohesion;
+  REAL fPhiMC;
 };
 
 

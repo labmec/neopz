@@ -15,6 +15,8 @@
 #include "TPZPlasticFrac2D.h"
 #include "TPZSandlerDimaggio.h"
 #include "TPZCohesiveBC.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
 
 
 class TPZElastoPlasticAnalysis;
@@ -31,6 +33,7 @@ public:
   ~ToolsTransient();
   
   //---------------------------------------------------------------
+  void SetMohrCoulombParameters(REAL poisson, REAL elast, REAL cohesion, REAL Phi, REAL Psi);
   
   void Run();
   void RunPlasticity();
@@ -94,7 +97,9 @@ public:
   int fpOrder;
   bool fMustStop;
   
-  TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial1;
+  //TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial1;
+  TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * fCouplingMaterial1;
+  TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fPlasticStepPV;
 	TPZCohesiveBC * fCohesiveMaterial;
   //TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial2;
 	

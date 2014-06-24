@@ -16,6 +16,7 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 #include "pzintel.h"
+#include "TPZElasticResponse.h"
 
 #ifdef LOG4CXX
 #include "pzlog.h"
@@ -39,6 +40,7 @@ TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D() : TPZMatElastoPlastic2D<T,TMEM>()
 	ff[0] = 0.;
 	ff[1] = 0.;
 	this->SetCurrentState();
+  fSetRunPlasticity = false;
 }
 
 template<class T,class TMEM>
@@ -55,6 +57,7 @@ TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL 
 	ff[0] = 0.;
 	ff[1] = 0.;
 	this->SetCurrentState();
+  fSetRunPlasticity = false;
 }
 
 template<class T,class TMEM>
@@ -109,6 +112,17 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 		std::cout << " The space to elasticity problem must be reduced space.\n";
 		DebugStop();
 	}
+  
+  if (fSetRunPlasticity)
+  {
+    ContributePlastic(datavec[0],weight,ek,ef);
+   	//ContributePressure(datavec, weight, ek, ef);
+    TPZFMatrix<REAL> ekP(ek);
+    TPZFMatrix<REAL> efP(ef);
+    ek.Zero();
+    ef.Zero();
+    //return;
+  }
 	
 	//Calculate the matrix contribution for elastic problem.
 	TPZFMatrix<REAL> &dphi_u = datavec[0].dphix;
@@ -226,6 +240,183 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 	// Calculate the matrix contribution for pressure
 	ContributePressure(datavec, weight, ek, ef);
 }
+
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
+	TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
+	TPZFMatrix<REAL> &phi  = data.phi;
+	//TPZFMatrix<REAL> &axes = data.axes, axesT;
+	dphiXY = dphi;
+	//axes.Transpose(&axesT);
+	//axesT.Multiply(dphi,dphiXY);
+	
+	const int phc = phi.Cols();
+	
+	TPZFNMatrix<4>  Deriv(2,2);
+	TPZFNMatrix<9> Dep(3,3);
+	TPZFNMatrix<3>  DeltaStrain(3,1);
+	TPZFNMatrix<3>  Stress(3,1);
+  int ptindex = data.intGlobPtIndex;
+  
+  
+  //	feclearexcept(FE_ALL_EXCEPT);
+  //	int res = fetestexcept(FE_ALL_EXCEPT);
+  //	if(res)
+  //	{
+  //		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+  //		DebugStop();
+  //	}
+  //
+  if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 1)
+  {
+    // Loop over the solutions if update memory is true
+    TPZSolVec locsol(data.sol);
+    TPZGradSolVec locdsol(data.dsol);
+    int numsol = locsol.size();
+    
+    for (int is=0; is<numsol; is++)
+    {
+      data.sol[0] = locsol[is];
+      data.dsol[0] = locdsol[is];
+      
+      this->ComputeDeltaStrainVector(data, DeltaStrain);
+      this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+    }
+  }
+  else
+  {
+    // Tenho que fazer esse calculo vetorial tambem????? Acho que nao, o datasol={ux,uy} e data.dsol={{duxdx,duxdy},{duydx,duydy}} aqui
+    this->ComputeDeltaStrainVector(data, DeltaStrain);
+    this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+  }
+#ifdef MACOS
+  feclearexcept(FE_ALL_EXCEPT);
+  if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT	)) {
+    std::cout << "division by zero reported\n";
+    DebugStop();
+  }
+#endif
+	
+#ifdef LOG4CXX
+  if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
+		sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
+		sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
+		sout << "\ndata.axes = " << data.axes;
+		sout << "\nDep " <<endl;
+		sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
+		sout << Dep(1,0) << "\t" << Dep(1,1) << "\t" << Dep(1,2) <<"\n";
+		sout << Dep(2,0) << "\t" << Dep(2,1) << "\t" << Dep(2,2) <<"\n";
+		
+		sout << "\nStress " <<endl;
+		sout << Stress(0,0) << "\t" << Stress(1,0) << "\t" << Stress(2,0) <<"\n";
+		
+		sout << "\nDELTA STRAIN " <<endl;
+		sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
+		sout << "data.phi" << data.phi;
+		
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+  /*
+   //NAN detector
+   res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW );
+   if(res)
+   {
+   std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+   DebugStop();
+   }
+   */
+  ptindex = 0;
+	//int nstate = NStateVariables();
+	REAL val;/*,val1,val2,val3,val4*/;
+	
+	int in;
+	for(in = 0; in < phc; in++)
+	{
+		
+		val  = this->fRhoB * this->fForce[0] * phi(0,in);
+		val -= Stress(0,0) * dphiXY(0,in); //dphixdx
+		val -= Stress(2,0) * dphiXY(1,in); //dphixdy
+		ef(in,0) += weight * val;
+    
+		val  = this->fRhoB * this->fForce[1] * phi(1,in);
+		val -= Stress(2,0) * dphiXY(2,in); //dphiydx
+		val -= Stress(1,0) * dphiXY(3,in); //dphiydy
+		ef(in,0) += weight * val;
+		
+		for( int jn = 0; jn < phc; jn++)
+		{
+      /*
+			for(int ud = 0; ud < 2; ud++)
+			{
+				for(int vd = 0; vd < 2; vd++)
+				{
+					Deriv(vd,ud) = dphiXY(vd,in)*dphiXY(ud,jn);
+				}
+			}
+       */
+      
+      /*
+       phi and dphi are ordered in the following way for each reduced space i
+       phi(0,i) = phix
+       phi(1,i) = phiy
+       
+       dphiXY(0,i) = dphixdx
+       dphiXY(1,i) = dphixdy
+       dphiXY(2,i) = dphiydx
+       dphiXY(3,i) = dphiydy
+       */
+			
+			
+			val  = 2. * Dep(0,0) * dphiXY(0,in)*dphiXY(0,jn);//dphixdxI*dphixdxJ
+			val +=      Dep(0,2) * dphiXY(0,in)*dphiXY(1,jn);//dphixdxI*dphixdyJ
+			val += 2. * Dep(2,0) * dphiXY(1,in)*dphiXY(0,jn);//dphixdyI*dphixdxJ
+			val +=      Dep(2,2) * dphiXY(1,in)*dphiXY(1,jn);//dphixdyI*dphixdyJ
+			val *= 0.5;
+			ek(in,jn) += weight * val;
+			
+			val  =      Dep(0,2) * dphiXY(0,in)*dphiXY(2,jn);//dphixdxI*dphiydxJ
+			val += 2. * Dep(0,1) * dphiXY(0,in)*dphiXY(3,jn);//dphixdxI*dphiydyJ
+			val +=      Dep(2,2) * dphiXY(1,in)*dphiXY(2,jn);//dphixdyI*dphiydxJ
+			val += 2. * Dep(2,1) * dphiXY(1,in)*dphiXY(3,jn);//dphixdyI*dphiydyJ
+			val *= 0.5;
+			ek(in,jn) += weight * val;
+      
+			val  = 2. * Dep(2,0) * dphiXY(2,in)*dphiXY(0,jn);//dphiydxI*dphixdxJ
+			val +=      Dep(2,2) * dphiXY(2,in)*dphiXY(1,jn);//dphiydxI*dphixdyJ
+			val += 2. * Dep(1,0) * dphiXY(3,in)*dphiXY(0,jn);//dphiydyI*dphixdxJ
+			val	+=      Dep(1,2) * dphiXY(3,in)*dphiXY(1,jn);//dphiydyI*dphixdyJ
+			val *= 0.5;
+			ek(in,jn) += weight * val;
+      
+			val  =      Dep(2,2) * dphiXY(2,in)*dphiXY(2,jn);//dphiydxI*dphiydxJ
+			val += 2. * Dep(2,1) * dphiXY(2,in)*dphiXY(3,jn);//dphiydxI*dphiydyJ
+			val +=      Dep(1,2) * dphiXY(3,in)*dphiXY(2,jn);//dphiydyI*dphiydxJ
+			val += 2. * Dep(1,1) * dphiXY(3,in)*dphiXY(3,jn);//dphiydyI*dphiydyJ
+			val *= 0.5;
+			ek(in,jn) += weight * val;
+			
+		}
+	}
+  
+	
+#ifdef LOG4CXX
+  if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
+		sout << " Resultant rhs vector:\n" << ef;
+		sout << " Resultant stiff vector:\n" << ek;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+
+}
+
 
 template<class T,class TMEM>
 void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
@@ -670,11 +861,18 @@ void TPZPlasticFrac2D<T,TMEM>::FillBoundaryConditionDataRequirement(int type,TPZ
 	}
 }
 
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
+{
+  fSetRunPlasticity = IsPlasticity;
+}
+
+
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZSandlerDimaggio.h"
 
 template class TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
-//template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 //template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;

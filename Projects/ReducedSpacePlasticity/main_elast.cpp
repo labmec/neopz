@@ -74,14 +74,13 @@ int mainFrac(int argc, char *argv[])
    
    // Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
    //Aqui vai Qinj total mesmo (no poco)!!!
-   
-  
   REAL QinjTot  = -0.0001;
   
   REAL Ttot = 40.; // em segundos
   REAL maxDeltaT = 1; // em segundos
   int nTimes = 1; // quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes)
   
+  // LeakOff Param
   REAL Cl = 0.005;
   REAL Pe = 10.;
   REAL SigmaConf = -preStressYY;
@@ -90,11 +89,17 @@ int mainFrac(int argc, char *argv[])
   REAL KIc = 25.;
   REAL Jradius = 0.5;
   
+  // porder
   int p = 1;
+  
+  //MohrCoulomb parameters
+  REAL cohesion = 100. * 5.77; //article is 5.77
+  REAL phiMC = 30.*M_PI/180.; // article is 30 degres
 
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
                              QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q);
+  globFractInputData.SetMohrCoulombData(cohesion,phiMC);
   ToolsTransient ToolTrans(p);
   
   std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";

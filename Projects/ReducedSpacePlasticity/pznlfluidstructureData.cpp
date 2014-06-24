@@ -21,6 +21,11 @@ InputDataStruct::~InputDataStruct()
 {
   
 }
+void InputDataStruct::SetMohrCoulombData(REAL cohesion, REAL phiMC)
+{
+  fCohesion = cohesion;
+  fPhiMC = phiMC;
+}
 
 void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                               REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
@@ -180,10 +185,21 @@ REAL InputDataStruct::PreStressYY()
   return fPreStressYY;
 }
 
+REAL InputDataStruct::Cohesion()
+{
+  return fCohesion;
+}
+
+REAL InputDataStruct::PhiMC()
+{
+  return fPhiMC;
+}
+
 int InputDataStruct::NStripes()
 {
   return fNStripes;
 }
+
 
 std::map< int,std::pair<int,int> > & InputDataStruct::GetPressureMatIds_StripeId_ElastId()
 {
@@ -343,10 +359,12 @@ void InputDataStruct::UpdateActTime()
 
 void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
 {
+  
+  
 #ifdef DEBUG
   if(fLeakoffmap.size() == 0)
   {//Se a fratura nao alcancou ainda a regiao elastica 2, este mapa estah vazio!!!
-    DebugStop();
+   //DebugStop();
   }
 #endif
   
