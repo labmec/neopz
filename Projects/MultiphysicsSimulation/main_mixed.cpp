@@ -31,6 +31,8 @@
 
 #include "pzlog.h"
 
+#include "pzl2projection.h"
+
 #include <iostream>
 #include <math.h>
 using namespace std;
@@ -49,6 +51,7 @@ REAL const Pi = 4.*atan(1.);
 
 TPZGeoMesh *GMesh(bool triang_elements);
 TPZGeoMesh *GMesh2(bool triang_elements);
+TPZGeoMesh *GMesh3();
 
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
@@ -74,11 +77,15 @@ void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
-
 void Compute_dudn(TPZCompMesh *cmesh);
 void Compute_dudnQuadrado(TPZCompMesh *cmesh);
+REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh,bool isquadradofechado);
+REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh);
+bool EstaNoQuadrado(TPZGeoEl *gel, int ndiv);
 TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi);
 void PrintToFile(std::ofstream &myfile, const std::string &title, std::map<REAL,REAL> &mymap);
+void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out);
+TPZCompMesh *L2Projection(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
@@ -86,24 +93,27 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 
 const bool triang = false;
 const int teste = 3;
-int mainAgnaldo(int argc, char *argv[])
+bool l2proj = false;
+bool calcerroglobal = false;
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-//	std::string logs("../logmixedproblem.cfg");
-//	InitializePZLOG("../logmixedproblem.cfg");
+////	std::string logs("../logmixedproblem.cfg");
+////	InitializePZLOG("../logmixedproblem.cfg");
     InitializePZLOG();
 #endif
-    gRefDBase.InitializeAllUniformRefPatterns();
+    //gRefDBase.InitializeAllUniformRefPatterns();
     
     TPZVec<REAL> erros;
-    ofstream arg12("Erro.txt");
+    ofstream arg12("ErroQuadrado.txt");
+    int ndiv, p;
     arg12<<"\n\nERRO PARA MALHA COM TRIANGULO  = " << triang;
-    for (int p = 1; p< 4; p++)
+    for (p = 1; p< 4; p++)
     {
         arg12<<"\n\n----------- ORDEM p = " << p <<" -----------";
-        for(int h = 1; h < 6;h++)
+        for(ndiv = 1; ndiv < 5;ndiv++)
         {
-            arg12<<"\nRefinamento ndiv  = " << h;
+            arg12<<"\nRefinamento ndiv  = " << ndiv;
             // int p = 5;
             //primeira malha
 
@@ -116,164 +126,191 @@ int mainAgnaldo(int argc, char *argv[])
             else if(teste == 3)
             {
                 gmesh = GMesh2(triang);
+                //gmesh = GMesh3();
+    
             }
-            //UniformRefine(gmesh,h);
-           // ofstream arg1("gmesh_inicial.txt");
-            //gmesh->Print(arg1);
+            UniformRefine(gmesh,ndiv);
+            //ofstream arg1("gmesh_inicial.txt");
+            //mesh->Print(arg1);
 
-          
-            // First computational mesh
-            TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
-            //ofstream arg2("cmesh1_inicial.txt");
-            //cmesh1->Print(arg2);
+            if(l2proj==false)
+            {
+                // First computational mesh
+                TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
+//                ofstream arg2("cmesh1_inicial.txt");
+//                cmesh1->Print(arg2);
 
-#ifdef LOG4CXX
-						if(logdata->isDebugEnabled())
-						{
-							std::stringstream sout;
-							sout << "Flux mesh\n";
-							cmesh1->Print(sout);
-							LOGPZ_DEBUG(logdata,sout.str())
-						}
-#endif
+        #ifdef LOG4CXX
+                            if(logdata->isDebugEnabled())
+                            {
+                                std::stringstream sout;
+                                sout << "Flux mesh\n";
+                                cmesh1->Print(sout);
+                                LOGPZ_DEBUG(logdata,sout.str())
+                            }
+        #endif
 
-            // Second computational mesh
-            TPZCompMesh * cmesh2;
-            if(triang==true){
-               cmesh2 = CMeshPressure(gmesh, p-1);
-            }
-            else cmesh2 = CMeshPressure(gmesh, p);
-            //ofstream arg3("cmesh2_inicial.txt");
-            //cmesh2->Print(arg3);
-#ifdef LOG4CXX
-						if(logdata->isDebugEnabled())
-						{
-							std::stringstream sout;
-							sout << "Pressure mesh\n";
-							cmesh2->Print(sout);
-							LOGPZ_DEBUG(logdata,sout.str())
-						}
-#endif
+                // Second computational mesh
+                TPZCompMesh * cmesh2;
+                if(triang==true){
+                   cmesh2 = CMeshPressure(gmesh, p-1);
+                }
+                else cmesh2 = CMeshPressure(gmesh, p);
+                //ofstream arg3("cmesh2_inicial.txt");
+                //cmesh2->Print(arg3);
+        #ifdef LOG4CXX
+                            if(logdata->isDebugEnabled())
+                            {
+                                std::stringstream sout;
+                                sout << "Pressure mesh\n";
+                                cmesh2->Print(sout);
+                                LOGPZ_DEBUG(logdata,sout.str())
+                            }
+        #endif
 
-            // Cleaning reference of the geometric mesh to cmesh1
-            gmesh->ResetReference();
-            cmesh1->LoadReferences();
-            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h,false);
-            //ofstream arg4("cmesh1_final.txt");
-            //cmesh1->Print(arg4);
-            
+//                // Cleaning reference of the geometric mesh to cmesh1
+//                gmesh->ResetReference();
+//                cmesh1->LoadReferences();
+//                TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,ndiv,false);
+//        //            ofstream arg4("cmesh1_final.txt");
+//        //            cmesh1->Print(arg4);
+//
+//
+//                // Cleaning reference to cmesh2
+//                gmesh->ResetReference();
+//                cmesh2->LoadReferences();
+//                TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,ndiv,true);
+//        //             ofstream arg5("cmesh2_final.txt");
+//        //             cmesh2->Print(arg5);
 
-            // Cleaning reference to cmesh2
-            gmesh->ResetReference();
-            cmesh2->LoadReferences();
-            TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,true);
-           // ofstream arg5("cmesh2_final.txt");
-           // cmesh2->Print(arg5);
+                //malha multifisica
+                TPZVec<TPZCompMesh *> meshvec(2);
+                meshvec[0] = cmesh1;
+                meshvec[1] = cmesh2;
+                TPZMixedPoisson * mymaterial;
+                TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
+                //ofstream arg6("mphysic.txt");
+                //mphysics->Print(arg6);
+        #ifdef LOG4CXX
+                            if(logdata->isDebugEnabled())
+                            {
+                                std::stringstream sout;
+                                sout << "Multiphysics mesh\n";
+                                mphysics->Print(sout);
+                                LOGPZ_DEBUG(logdata,sout.str())
+                            }
+        #endif
 
-            //malha multifisica
-            TPZVec<TPZCompMesh *> meshvec(2);
-            meshvec[0] = cmesh1;
-            meshvec[1] = cmesh2;
-            TPZMixedPoisson * mymaterial;
-            TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-            //ofstream arg6("mphysic.txt");
-            //mphysics->Print(arg6);
-#ifdef LOG4CXX
-						if(logdata->isDebugEnabled())
-						{
-							std::stringstream sout;
-							sout << "Multiphysics mesh\n";
-							mphysics->Print(sout);
-							LOGPZ_DEBUG(logdata,sout.str())
-						}
-#endif
+                int NEq = mphysics->NEquations();
+                
+        //            ofstream arg7("gmesh_Final.txt");
+        //            gmesh->Print(arg7);
 
-            int NEq = mphysics->NEquations();
-            
-//            ofstream arg7("gmesh_Final.txt");
-//            gmesh->Print(arg7);
+                TPZAnalysis an(mphysics);
+                
+        //           ofstream arg10("mphysic_posAnalysis.txt");
+        //            mphysics->Print(arg10);
+                
+                SolveSyst(an, mphysics);
+                
+        //            ofstream arg6("mphysic.txt");
+        //            mphysics->Print(arg6);
+                
+                TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+                
+        //            ofstream arg9("mphysic_apos_Transferfrom.txt");
+        //            mphysics->Print(arg9);
 
-            TPZAnalysis an(mphysics);
-            
-//           ofstream arg10("mphysic_posAnalysis.txt");
-//            mphysics->Print(arg10);
-            
-            SolveSyst(an, mphysics);
-            
-//            ofstream arg6("mphysic.txt");
-//            mphysics->Print(arg6);
-            
-            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-            
-//            ofstream arg9("mphysic_apos_Transferfrom.txt");
-//            mphysics->Print(arg9);
-
-            //Compute_dudnQuadrado(meshvec[0]);
-            
-            
-            arg12<<"\nNumero de Equacoes = " << NEq;
-            
-            arg12<<"\n\nErro da simulacao multifisica  para o flux";
-            TPZAnalysis an1(cmesh1);
-            if (teste==1){
-                an1.SetExact(*SolExata1);
-            }
-            else if(teste==2){
-                an1.SetExact(*SolExata2);
-            }
-            else{
-                an1.SetExact(*SolExataSteklov);
-            }
-            an1.PostProcessError(erros, arg12);
-            
-            
-            arg12<<"\n\nErro da simulacao multifisica  para a pressao";
-            TPZAnalysis an2(cmesh2);
-            if (teste==1){
-                an2.SetExact(*SolExata1);
-            }
-            else if (teste==2){
-                an2.SetExact(*SolExata2);
-            }
-            else{
-                an2.SetExact(*SolExataSteklov);
-            }
-            an2.PostProcessError(erros, arg12);
-
+                //Compute_dudnQuadrado(meshvec[0]);
+                
+                
+                arg12<<"\nNumero de Equacoes = " << NEq;
+                
+                if(calcerroglobal==true){
+                    
+                        arg12<<"\n\nErro da simulacao multifisica  para o flux";
+                        TPZAnalysis an1(cmesh1);
+                        if (teste==1){
+                            an1.SetExact(*SolExata1);
+                        }
+                        else if(teste==2){
+                            an1.SetExact(*SolExata2);
+                        }
+                        else{
+                            an1.SetExact(*SolExataSteklov);
+                        }
+                        //an1.PostProcessError(erros, arg12);
+                        ErrorHDiv(cmesh1,arg12);
+                    
+                        
+                        arg12<<"\n\nErro da simulacao multifisica  para a pressao";
+                        TPZAnalysis an2(cmesh2);
+                        if (teste==1){
+                            an2.SetExact(*SolExata1);
+                        }
+                        else if (teste==2){
+                            an2.SetExact(*SolExata2);
+                        }
+                        else{
+                            an2.SetExact(*SolExataSteklov);
+                        }
+                        an2.PostProcessError(erros, arg12);
+                        
+                    }
+                    else
+                    {
+                        REAL errofluxo = Compute_dudnQuadradoError(ndiv,cmesh1,false);
+                        //REAL errofluxo = Compute_dudnQuadradoError(cmesh1);
+                        arg12<<"\n\nErro L2 do fluxo = " << errofluxo<<"\n";
+                        arg12.flush();
+                    }
+                    
             //string plotfile("Solution_mphysics.vtk");
             //PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
-
-/*
-            //solucao HDivPressure
-            TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
-//            ofstream arg8("cmesh_HdivInicial.txt");
-//            cmesh3->Print(arg8);
-
-//            ofstream arg10("gmesh_final.txt");
-//            gmesh->Print(arg10);
-
-            TPZAnalysis an3(cmesh3);
-            SolveSyst(an3, cmesh3);
-            ofstream arg8("cmesh_HdivInicial.txt");
-            cmesh3->Print(arg8);
-
-            //TPZVec<REAL> erros;
-            arg12<<" \nErro da HdivPressure  " <<endl;
-            if (teste==1) an3.SetExact(*SolExata1);
-            else an3.SetExact(*SolExata2);
-            an3.PostProcess(erros, arg12);
-
-
-            string plotile2("Solution_HDiv.vtk");
-            PosProcessHDiv(an3, plotile2);
- */
-            cmesh1->CleanUp();
-            cmesh2->CleanUp();
-            //mphysics->CleanUp();
-            delete cmesh1;
-            delete cmesh2;
-            //delete mphysics;
-            delete gmesh;
+                
+                /*
+                 //solucao HDivPressure
+                 TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
+                 //            ofstream arg8("cmesh_HdivInicial.txt");
+                 //            cmesh3->Print(arg8);
+                 
+                 //            ofstream arg10("gmesh_final.txt");
+                 //            gmesh->Print(arg10);
+                 
+                 TPZAnalysis an3(cmesh3);
+                 SolveSyst(an3, cmesh3);
+                 ofstream arg8("cmesh_HdivInicial.txt");
+                 cmesh3->Print(arg8);
+                 
+                 //TPZVec<REAL> erros;
+                 arg12<<" \nErro da HdivPressure  " <<endl;
+                 if (teste==1) an3.SetExact(*SolExata1);
+                 else an3.SetExact(*SolExata2);
+                 an3.PostProcess(erros, arg12);
+                 
+                 
+                 string plotile2("Solution_HDiv.vtk");
+                 PosProcessHDiv(an3, plotile2);
+                 */
+                cmesh1->CleanUp();
+                cmesh2->CleanUp();
+                //mphysics->CleanUp();
+                delete cmesh1;
+                delete cmesh2;
+                //delete mphysics;
+                delete gmesh;
+            }
+            else
+            {
+                TPZVec<STATE> solini;
+                TPZCompMesh  * cmeshL2 = L2Projection(gmesh, p, solini);
+                TPZAnalysis an(cmeshL2);
+                SolveSyst(an, cmeshL2);
+                an.SetExact(*SolExataSteklov);
+                REAL errofluxo = Compute_dudnQuadradoError(ndiv,cmeshL2,false);
+                arg12<<"\n\nErro L2 da projecao L2f da solucao = " << errofluxo<<"\n";
+                arg12.flush();
+            }
         }
     }
     return 0;
@@ -394,9 +431,10 @@ TPZGeoMesh *GMesh(bool triang_elements){
 	return gmesh;
 }
 
-TPZGeoMesh *GMesh2(bool triang_elements){
+TPZGeoMesh *GMesh2(bool triang_elements)
+{
     TPZManVector<int,2> nx(2,2);
-		nx[1] =1;
+    nx[1] =1;
     TPZManVector<REAL,3> x0(3,0.),x1(3,0.5);
     x0[0] = -0.5;
     TPZGenGrid gengrid(nx,x0,x1);
@@ -406,6 +444,8 @@ TPZGeoMesh *GMesh2(bool triang_elements){
       gengrid.SetElementType(1);
     }
     gengrid.Read(gmesh);
+    
+    //elementos de contorno
     TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
     firstpoint[0] = 0.5;
     secondpoint[0] = 0.5;
@@ -420,6 +460,7 @@ TPZGeoMesh *GMesh2(bool triang_elements){
     firstpoint = secondpoint;
     secondpoint[0] = 0.5;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc0);
+    
 #ifdef LOG4CXX
     if(logdata->isDebugEnabled())
     {
@@ -449,6 +490,165 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 }
 
 
+TPZGeoMesh *GMesh3(){
+    
+    int Qnodes = 15;
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+	
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
+	
+	//indice dos nos
+	long id = 0;
+	REAL valx, valy, dx=0.25;
+	for(int xi = 0; xi < Qnodes/3; xi++)
+	{
+		valx = -0.5 + xi*dx;
+        valy = 0.;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx);//coord X
+		Node[id].SetCoord(1 ,valy);//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	for(int xi = 0; xi < Qnodes/3; xi++)
+	{
+		valx = -0.5 + xi*dx;
+        valy = 0.25;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx);//coord X
+		Node[id].SetCoord(1 ,valy);//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+    
+    for(int xi = 0; xi < Qnodes/3; xi++)
+	{
+		valx = -0.5 + xi*dx;
+        valy = 0.5;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx);//coord X
+		Node[id].SetCoord(1 ,valy);//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	//indice dos elementos
+	id = 0;
+    for(int i =0; i< 4; i++){
+        TopolQuad[0] = i;
+        TopolQuad[1] = i+1;
+        TopolQuad[2] = 6+i;
+        TopolQuad[3] = 5+i;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+        id++;
+    }
+
+    for(int i =0; i< 4; i++){
+        TopolQuad[0] = 5+i;
+        TopolQuad[1] = 6+i;
+        TopolQuad[2] = 11+i;
+        TopolQuad[3] = 10+i;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+        id++;
+    }
+    
+    TopolLine[0] = 6;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+    id++;
+    
+    TopolLine[0] = 3;
+    TopolLine[1] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+    id++;
+    
+    TopolLine[0] = 8;
+    TopolLine[1] = 7;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+    id++;
+    
+    TopolLine[0] = 7;
+    TopolLine[1] = 6;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+    id++;
+
+//    TopolLine[0] = 1;
+//    TopolLine[1] = 2;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+//    id++;
+//    
+//    TopolLine[0] = 2;
+//    TopolLine[1] = 3;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+//    id++;
+    
+    TopolLine[0] = 0;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
+    id++;
+    
+    TopolLine[0] = 1;
+    TopolLine[1] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
+    id++;
+    
+    TopolLine[0] = 2;
+    TopolLine[1] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+    id++;
+    
+    TopolLine[0] = 3;
+    TopolLine[1] = 4;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+    id++;
+    
+    TopolLine[0] = 4;
+    TopolLine[1] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+    id++;
+    
+    TopolLine[0] = 9;
+    TopolLine[1] = 14;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+    id++;
+    
+    for(int i =0; i<4; i++){
+        TopolLine[0] = 14-i;
+        TopolLine[1] = 13-i;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+    }
+    
+    TopolLine[0] = 10;
+    TopolLine[1] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    id++;
+    
+    TopolLine[0] = 5;
+    TopolLine[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    
+	gmesh->BuildConnectivity();
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Geometrica Inicial\n ";
+    //        gmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+	return gmesh;
+}
+
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
@@ -472,6 +672,8 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
     
+    cmesh->SetDimModel(dim);
+    
     cmesh->InsertMaterialObject(mat);
 	cmesh->SetAllCreateFunctionsHDiv();
     cmesh->InsertMaterialObject(BCond0);
@@ -481,7 +683,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     cmesh->InsertMaterialObject(BCond4);
     
 	cmesh->SetDefaultOrder(pOrder);
-    cmesh->SetDimModel(dim);
+    
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -665,8 +867,15 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
         
     }
     else{
-        solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
+//        solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
+//        mymaterial->SetForcingFunctionExact(solExata);
+        
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov);
+        dum->SetPolynomialOrder(20);
+        solExata = dum;
         mymaterial->SetForcingFunctionExact(solExata);
+        
+
         
         //Inserir condicoes de contorno
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -952,19 +1161,18 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     const REAL sol = pow((REAL)2,0.25 + n/2.)*pow(r,0.5 + n)*cos((0.5 + n)*t);
     u[0] = sol;
     
-//    if(IsZero(y) && IsZero(y)){
-//        y=y+1.e-3;
-//        //x=x+1.e-2;
-//    }
+    if(IsZero(x) && IsZero(y)){
+        y=y+1.e-3;
+        x=x+1.e-2;
+    }
     
     //flux = -k*grad(u), k=1 nesse problema
     du(0,0) = -pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(x*cos((0.5 + n)*atan2(y,x)) + y*sin((0.5 + n)*atan2(y,x)));
     du(1,0) = -pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(y*cos((0.5 + n)*atan2(y,x)) - x*sin((0.5 + n)*atan2(y,x)));
-    
 }
 
 void Compute_dudnQuadrado(TPZCompMesh *cmesh){
-    std::map<REAL,REAL> dudn, dudnExato;
+    std::map<REAL,REAL> dudn, dudnExato, erro;
     const int npts = 100;
     const REAL rsize = 0.25;
     const REAL delta = rsize/(npts-1);
@@ -973,14 +1181,14 @@ void Compute_dudnQuadrado(TPZCompMesh *cmesh){
     
     REAL sval;
     ///aresta y = 0 - tem tamanho 2*rsize por isso i < 2*npts
-    for(int i = 1; i < 2*npts-2; i++){
-        sval = delta/2.+i*delta;
-        REAL x = rsize - sval;
-        REAL y = 0;
-        std::pair<REAL,REAL> normal(0,-1);
-        sPath[sval] = std::make_pair(x,y);
-        sNormal[sval] = normal;
-    }
+//    for(int i = 1; i < 2*npts-2; i++){
+//        sval = delta/2.+i*delta;
+//        REAL x = rsize - sval;
+//        REAL y = 0;
+//        std::pair<REAL,REAL> normal(0,-1);
+//        sPath[sval] = std::make_pair(x,y);
+//        sNormal[sval] = normal;
+//    }
     
     ///aresta x = -rsize
     for(int i = 1; i < npts-1; i++){
@@ -1045,20 +1253,476 @@ void Compute_dudnQuadrado(TPZCompMesh *cmesh){
         SolExataSteklov(xVec, uExato, duExato);
         
         dudnExato[s] = duExato(0,0)*normal[0]+duExato(1,0)*normal[1];
+        
+        erro[s] =  (dudn[s] -  dudnExato[s])*(dudn[s] -  dudnExato[s]);
     }///for i
     
     std::ofstream myfile("/Users/agnaldofarias/Documents/Fluxo-Steklov/dudnQuadradoHdiv.nb");
-    PrintToFile(myfile, "dudnQuadradoHdiv", dudn);
-    myfile << "\n";
-    PrintToFile(myfile, "dudnQuadradoExatoHdiv", dudnExato);
-    myfile << "\n\n";
+//    PrintToFile(myfile, "dudnQuadradoHdiv", dudn);
+//    myfile << "\n";
     
-    myfile << "ListPlot[{dudnQuadradoExatoHdiv, dudnQuadradoHdiv},PlotStyle->{Red,Black},Frame->True]\n\n";
+    PrintToFile(myfile, "erroaoquadrado", erro);
+    myfile << "\n";
+    
+//    PrintToFile(myfile, "dudnQuadradoExatoHdiv", dudnExato);
+//    myfile << "\n\n";
+    
+    //myfile << "ListPlot[{dudnQuadradoExatoHdiv, dudnQuadradoHdiv},PlotStyle->{Red,Black},Frame->True]\n\n";
     myfile << "R[v_] = Round[10*v]/10.;\n\n";
-    myfile <<"Integrate[Interpolation[dudnQuadradoHdiv, InterpolationOrder -> 1][s], {s, 0, R[dudnQuadradoHdiv[[-1, 1]]]/12}]\n\n";
-    myfile<<"Integrate[Interpolation[dudnQuadradoHdiv, InterpolationOrder -> 1][s], {s, 0,R[dudnQuadradoHdiv[[-1, 1]]]}]\n";
+    //myfile <<"Integrate[Interpolation[dudnQuadradoHdiv, InterpolationOrder -> 1][s], {s, 0, R[dudnQuadradoHdiv[[-1, 1]]]/12}]\n\n";
+    //myfile<<"Integrate[Interpolation[dudnQuadradoHdiv, InterpolationOrder -> 1][s], {s, 0,R[dudnQuadradoHdiv[[-1, 1]]]}]\n";
+    
+    myfile <<"f = Interpolation[erroaoquadrado, InterpolationOrder -> 1]\n";
+    myfile <<"Integrate[f[s], {s, f[[1,1,1]], f[[1,1,2]]}]\n\n";
 }///void
 
+
+///Gamma eh a uniao das regioes: 1) x=-0.25 e 0<=y<=0.25; 2) -0.25<=x<=0.25 e y=0.25; 3) x=0.25 e 0<=y<=0.25
+REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofechado){
+    
+    if (ndiv==0 || triang==true) {
+        std::cout<<"ndiv nao pode ser menor que 1 \n";
+        std::cout<<"considera-se apenas malha quadrilateral\n";
+        DebugStop();
+    }
+    
+    REAL error = 0.;
+    const REAL rsize = 0.25;
+    const int ninterf = pow((REAL)2,ndiv-1);
+
+    const REAL delta = rsize/ninterf;
+    
+    TPZStack<TPZManVector<REAL> > coordX;
+    TPZStack<TPZManVector<REAL> > solflux;
+    TPZStack<REAL> soldudn;
+
+    TPZManVector<REAL,3> xVec(3), faceNormal(2);
+    xVec[0] = 0.; xVec[1] = 0.; xVec[2] = 0.;
+
+    ///Regiao 1): x = -rsize e 0=<y<=rsize
+    faceNormal[0] = -1.;
+    faceNormal[1] = 0.;
+    for(int i = 0; i < ninterf; i++)
+    {
+        xVec[0] = -rsize + 1.e-3;
+        xVec[1] = (0. + delta/2.) + i*delta;
+        
+        TPZManVector<REAL,3> qsi(2);
+        TPZInterpolationSpace * sp = FindInterpolationSpace(xVec,cmesh,qsi);
+        if(!sp) DebugStop();
+        
+        TPZGeoEl *gel = sp->Reference();
+        int dim = gel->Dimension();
+        //verificando se o elemento esta no quadrado
+        if(EstaNoQuadrado(gel, ndiv) == false) DebugStop();
+        
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(7, 2);
+        TPZManVector<int,3> prevorder(dim), maxorder(dim,intrule->GetMaxOrder());
+        //intrule->GetOrder(prevorder);
+        intrule->SetOrder(maxorder);
+        TPZGeoElSide geoside(gel,7);
+        
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        
+        const int npoints = intrule->NPoints();
+        for(int ip = 0; ip < npoints; ip++)
+        {
+            REAL weight;
+            qsi[0]=0.; qsi[1]=0.;
+            intrule->Point(ip,qsi,weight);
+            TPZTransform tr;
+            TPZGeoElSide geosideh(gel,8);
+            tr = geoside.SideToSideTransform(geosideh);
+            TPZManVector<REAL,3> qsih(2);
+            tr.Apply(qsi, qsih);
+            geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+            weight *= fabs(data.detjac);
+            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
+            //sp->Shape(qsih,data.phi,dphi);
+            //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
+            sp->ComputeSolution(qsih,data);
+            
+            TPZManVector<REAL,2> flux(2,0.);
+            flux[0]=data.sol[0][0];
+            flux[1]=data.sol[0][1];
+            REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
+            
+            geoside.X(qsi,xVec);
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            SolExataSteklov(xVec, uExato, duExato);
+            REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
+            
+            error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
+            
+            coordX.push_back(xVec);
+            solflux.push_back(flux);
+            soldudn.push_back(dudnval);
+        }
+        //intrule->SetOrder(prevorder);
+    }
+    
+    ///Regiao 2): y = rsize e -rsize <=x<=rsize
+    faceNormal[0] = 0.;
+    faceNormal[1] = 1.;
+    for(int i = 0; i < 2*ninterf; i++)
+    {
+        xVec[0] = (-rsize + delta/2.) + i*delta;
+        xVec[1] = rsize - 1.e-3;
+        
+        TPZManVector<REAL,3> qsi(2);
+        TPZInterpolationSpace * sp = FindInterpolationSpace(xVec,cmesh,qsi);
+        if(!sp) DebugStop();
+        
+        TPZGeoEl *gel = sp->Reference();
+        int dim = gel->Dimension();
+        //verificando se o elemento esta no quadrado
+        if(EstaNoQuadrado(gel, ndiv) == false) DebugStop();
+
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(6, 2);
+        TPZManVector<int,3> prevorder(dim), maxorder(dim,intrule->GetMaxOrder());
+        //intrule->GetOrder(prevorder);
+        intrule->SetOrder(maxorder);
+        TPZGeoElSide geoside(gel,6);
+  
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        
+        const int npoints = intrule->NPoints();
+        for(int ip = 0; ip < npoints; ip++)
+        {
+            REAL weight;
+            qsi[0]=0.; qsi[1]=0.;
+            intrule->Point(ip,qsi,weight);
+            TPZTransform tr;
+            TPZGeoElSide geosideh(gel,8);
+            tr = geoside.SideToSideTransform(geosideh);
+            TPZManVector<REAL,3> qsih(2);
+            tr.Apply(qsi, qsih);
+            geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+            weight *= fabs(data.detjac);
+            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
+            //sp->Shape(qsih,data.phi,dphi);
+            //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
+           
+            sp->ComputeSolution(qsih,data);
+            
+            TPZManVector<REAL,2> flux(2,0.);
+            flux[0]=data.sol[0][0];
+            flux[1]=data.sol[0][1];
+            REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
+            
+            geoside.X(qsi,xVec);
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            SolExataSteklov(xVec, uExato, duExato);
+            REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
+            
+            error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
+            
+            coordX.push_back(xVec);
+            solflux.push_back(flux);
+            soldudn.push_back(dudnval);
+        }
+        //intrule->SetOrder(prevorder);
+    }
+    
+    ///Regiao 3): x = +rsize e 0<=y<=rsize
+    faceNormal[0] = 1.;
+    faceNormal[1] = 0.;
+    for(int i = 0; i < ninterf; i++)
+    {
+        xVec[0] = rsize - 1.e-3;
+        xVec[1] = (0. + delta/2.) + i*delta;
+        
+        TPZManVector<REAL,3> qsi(2);
+        TPZInterpolationSpace * sp = FindInterpolationSpace(xVec,cmesh,qsi);
+        if(!sp) DebugStop();
+        
+        TPZGeoEl *gel = sp->Reference();
+        int dim = gel->Dimension();
+        //verificando se o elemento esta no quadrado
+        if(EstaNoQuadrado(gel, ndiv) == false) DebugStop();
+
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(5, 2);
+        TPZManVector<int,3> prevorder(dim), maxorder(dim,intrule->GetMaxOrder());
+        //intrule->GetOrder(prevorder);
+        intrule->SetOrder(maxorder);
+        TPZGeoElSide geoside(gel,5);
+        
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        
+        const int npoints = intrule->NPoints();
+        for(int ip = 0; ip < npoints; ip++)
+        {
+            REAL weight;
+            qsi[0]=0.; qsi[1]=0.;
+            intrule->Point(ip,qsi,weight);
+            TPZTransform tr;
+            TPZGeoElSide geosideh(gel,8);
+            tr = geoside.SideToSideTransform(geosideh);
+            TPZManVector<REAL,3> qsih(2);
+            tr.Apply(qsi, qsih);
+            geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+            weight *= fabs(data.detjac);
+            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
+            //sp->Shape(qsih,data.phi,dphi);
+            //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
+
+            sp->ComputeSolution(qsih,data);
+            
+            TPZManVector<REAL,2> flux(2,0.);
+            flux[0]=data.sol[0][0];
+            flux[1]=data.sol[0][1];
+            REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
+            
+            geoside.X(qsi,xVec);
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            SolExataSteklov(xVec, uExato, duExato);
+            REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
+            
+            error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
+            
+            coordX.push_back(xVec);
+            solflux.push_back(flux);
+            soldudn.push_back(dudnval);
+        }
+        //intrule->SetOrder(prevorder);
+    }
+    
+    if(isquadradofechado==true){
+        ///Regiao 4): -rsize =<x <= rsize e y=0
+        faceNormal[0] = 0.;
+        faceNormal[1] = -1.;
+        for(int i = 0; i < 2*ninterf; i++)
+        {
+            xVec[0] = (-rsize + delta/2.) + i*delta;
+            //xVec[0] = (0 + delta/2.) + i*delta;
+            xVec[1] = 0 + 1.e-3;
+            
+            TPZManVector<REAL,3> qsi(2);
+            TPZInterpolationSpace * sp = FindInterpolationSpace(xVec,cmesh,qsi);
+            if(!sp) DebugStop();
+            
+            TPZGeoEl *gel = sp->Reference();
+            int dim =gel->Dimension();
+            //verificando se o elemento esta no quadrado
+            if(EstaNoQuadrado(gel, ndiv) == false) DebugStop();
+            
+            TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(4, 2);
+            TPZManVector<int,3> prevorder(dim), maxorder(dim,intrule->GetMaxOrder());
+            intrule->GetOrder(prevorder);
+            intrule->SetOrder(maxorder);
+            TPZGeoElSide geoside(gel,4);
+            
+            TPZMaterialData data;
+            sp->InitMaterialData(data);
+            
+            const int npoints = intrule->NPoints();
+            for(int ip = 0; ip < npoints; ip++)
+            {
+                REAL weight;
+                qsi[0]=0.; qsi[1]=0.;
+                intrule->Point(ip,qsi,weight);
+                TPZTransform tr;
+                TPZGeoElSide geosideh(gel,8);
+                tr = geoside.SideToSideTransform(geosideh);
+                TPZManVector<REAL,3> qsih(2);
+                tr.Apply(qsi, qsih);
+                geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+                weight *= fabs(data.detjac);
+                sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+                //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
+                //sp->Shape(qsih,data.phi,dphi);
+                //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
+            
+                sp->ComputeSolution(qsih,data);
+                
+                 TPZManVector<REAL,2> flux(2,0.);
+                flux[0]=data.sol[0][0];
+                flux[1]=data.sol[0][1];
+                REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
+                
+                geoside.X(qsi,xVec);
+                TPZManVector<REAL> uExato(1);
+                TPZFNMatrix<100> duExato(2,1);
+                SolExataSteklov(xVec, uExato, duExato);
+                REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
+                
+                error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
+                
+                coordX.push_back(xVec);
+                solflux.push_back(flux);
+                soldudn.push_back(dudnval);
+            }
+            
+            intrule->SetOrder(prevorder);
+        }
+
+    }
+    
+#ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "\nResultados com SideToSideTransform\n";
+        int npts = coordX.size();
+        for(int i=0;i<npts; i++) {
+            sout << "(x,y) = (" << coordX[i][0] << ", " << coordX[i][1]<<")  e   " << "fluxo = (" << solflux[i][0] <<", " <<solflux[i][1] << ")\n";
+        }
+        LOGPZ_DEBUG(logdata,sout.str())
+    }
+#endif
+    
+#ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "\nSolSideToSide = {";
+        int npts = coordX.size();
+        for(int i=0;i<npts-1; i++) {
+            sout << "{" << coordX[i][0]<< ", " << coordX[i][1]<<", " << soldudn[i] <<"},";
+        }
+        sout << "{" << coordX[npts-1][0]<< ", " << coordX[npts-1][1]<<", " << soldudn[npts-1] <<"}";
+        sout << "}";
+        LOGPZ_DEBUG(logdata,sout.str())
+    }
+#endif
+
+    
+    error = sqrt(error);
+    return error;
+    
+}///method
+
+REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
+    
+    TPZStack<TPZManVector<REAL,2> > coordX;
+    TPZStack<TPZManVector<REAL,2> > solflux;
+    TPZStack<REAL> soldudn;
+    
+    REAL error = 0.;
+    int nel = cmesh->NElements();
+    int iel;
+    for(iel=0; iel<nel; iel++)
+    {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        if(!cel) continue;
+        
+        int dim = cel->Dimension();
+        if(dim != 1) continue;
+        int matid = cel->Material()->Id();
+        if(matid != matId) continue;
+        
+        TPZGeoEl *gel = cel->Reference();
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 2);
+        TPZManVector<int,3> prevorder(dim), maxorder(dim,intrule->GetMaxOrder());
+        intrule->GetOrder(prevorder);
+        intrule->SetOrder(maxorder);
+        
+        TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        const int npoints = intrule->NPoints();
+        TPZManVector<REAL,3> qsi(1), xVec(3), faceNormal(2);
+        faceNormal[0]=0.;
+        faceNormal[1]=0.;
+        gel->CenterPoint(gel->NSides()-1, qsi);
+        gel->X(qsi,xVec);
+        if(xVec[0]==-0.25) faceNormal[0]=-1.;
+        if(xVec[0]== 0.25) faceNormal[0]=1.;
+        if(xVec[1]== 0.25) faceNormal[1]=1.;
+        //            if(data.x[1]== 0.0) data.normal[1] = -1.;
+        
+        for(int ip = 0; ip < npoints; ip++)
+        {
+            REAL weight;
+            intrule->Point(ip,qsi,weight);
+            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            weight *= fabs(data.detjac);
+            sp->ComputeSolution(qsi,data);
+            
+            REAL sign = faceNormal[0] + faceNormal[1];
+            
+            TPZManVector<REAL,2> flux(2,0.);
+            flux[0]=data.sol[0][0];
+            REAL dudnval = flux[0]*sign;
+            
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            gel->X(qsi,xVec);
+            SolExataSteklov(xVec, uExato, duExato);
+            REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
+            
+            error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
+            
+            coordX.push_back(xVec);
+            solflux.push_back(flux);
+            soldudn.push_back(dudnval);
+        }
+        intrule->SetOrder(prevorder);
+    }
+    
+#ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "\nResultados com elemento 1D\n";
+        int npts = coordX.size();
+        for(int i=0;i<npts; i++) {
+            sout << "(x,y) = (" << coordX[i][0] << ", " << coordX[i][1]<<")  e   " << "fluxo = " << solflux[i][0] <<"\n";
+        }
+        LOGPZ_DEBUG(logdata,sout.str())
+    }
+#endif
+    
+    
+#ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "\nSol1D = {";
+        int npts = coordX.size();
+        for(int i=0;i<npts-1; i++) {
+            sout << "{" << coordX[i][0]<< ", " << coordX[i][1]<<", " << soldudn[i] <<"},";
+        }
+        sout << "{" << coordX[npts-1][0]<< ", " << coordX[npts-1][1]<<", " << soldudn[npts-1] <<"}";
+        sout << "}";
+        LOGPZ_DEBUG(logdata,sout.str())
+    }
+#endif
+    
+    error = sqrt(error);
+    return error;
+    
+}///method
+
+bool EstaNoQuadrado(TPZGeoEl *gel, int ndiv){
+    
+    if(gel->Index()==9 || gel->Index()==12){
+        return true;
+    }
+    
+    int nfather = ndiv;
+    TPZGeoEl *gelf = gel;
+    while (nfather > 1) {
+        gelf = gelf->Father();
+        nfather--;
+    }
+    
+    if(gelf->Index()==9 || gelf->Index()==12){
+        return true;
+    }
+    
+    return false;
+    
+}///bool
 
 TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi){
     const int nel = cmesh->NElements();
@@ -1086,3 +1750,72 @@ void PrintToFile(std::ofstream &myfile, const std::string &title, std::map<REAL,
         if(i%4 == 0) myfile << "\n";
     }///for w
 }
+
+TPZCompMesh *L2Projection(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
+{
+    /// criar materiais
+	int dim = 2;
+	TPZL2Projection *material;
+	material = new TPZL2Projection(matId, dim, 1, solini, pOrder);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(SolExataSteklov);
+    material->SetForcingFunction(forcef);
+    
+	cmesh->SetAllCreateFunctionsDiscontinuous();
+    
+	cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDimModel(dim);
+    
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+    
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++)
+    {
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            if(triang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
+        }
+    }
+    
+	return cmesh;
+}
+
+void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
+{
+    long nel = hdivmesh->NElements();
+    int dim = hdivmesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = hdivmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        cel->EvaluateError(SolExataSteklov, elerror, NULL);
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+    out << "Errors associated with HDiv space\n";
+    out << "L2 Norm for flux = "    << sqrt(globerrors[1]) << endl;
+    out << "L2 Norm for divergence = "    << sqrt(globerrors[2])  <<endl;
+    out << "Hdiv Norm for flux = "    << sqrt(globerrors[3])  <<endl;
+    
+}
+
+
