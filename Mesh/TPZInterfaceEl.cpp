@@ -1041,13 +1041,17 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     InitMaterialData(data);
 	
 	
+#ifdef DEBUG
 	if( !dataleft.x.size() ||!dataright.x.size() ){
 		PZError << "\n Error at TPZInterfaceElement::CalcStiff null interface\n";
 		ek.Reset();
 		ef.Reset();
 		DebugStop();
 	}
+#endif
 	
+    InitializeElementMatrix(ek, ef);
+    /*
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
 	TPZManVector<long> ConnectIndexL, ConnectIndexR;
 	
@@ -1089,7 +1093,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ek.fBlock.Resequence();
 	ef.fBlock.Resequence();
 	
-    
+    */
     
     //LOOKING FOR MAX INTERPOLATION ORDER
 	int leftmaxp = left->MaxOrder();
@@ -1460,6 +1464,17 @@ void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTrans
 	TPZTransform LocalTransf(dim);
 	TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
 	TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "thisgeoside = \n";
+        thisgeoside.Print(sout);
+        sout << "neighgeoside = \n";
+        neighgeoside.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	thisgeoside.SideTransform3(neighgeoside, LocalTransf);
 	
 	TPZGeoElSide highdim(neighel, neighel->NSides()-1);

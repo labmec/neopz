@@ -140,7 +140,16 @@ int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect) const{
 	if(connect < TSHAPE::NCornerNodes) return 1;
 	int order = SideOrder(connect);
 	if(order < 0) return 0;
-	return TSHAPE::NConnectShapeF(connect, order);
+    int nshape = TSHAPE::NConnectShapeF(connect, order);
+#ifdef DEBUG
+    if(nshape < 0 )
+    {
+        order = SideOrder(connect);
+        nshape = TSHAPE::NConnectShapeF(connect, order);
+        DebugStop();
+    }
+#endif
+	return nshape;
 }
 
 template<class TSHAPE>

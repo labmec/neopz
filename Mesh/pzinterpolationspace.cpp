@@ -250,6 +250,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        int matid = Reference()->MaterialId();
+        PZError << "Material Id which is missing = " << matid << std::endl;
         ek.Reset();
         ef.Reset();
         return;

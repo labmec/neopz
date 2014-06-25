@@ -808,8 +808,8 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         TPZCompElSide left, right;
         left = face->LeftElementSide();
         right = face->RightElementSide();
-        //        int leftmatid = left.Element()->Material()->Id();
-        //        int rightmatid = right.Element()->Material()->Id();
+        int leftmatid = left.Element()->Material()->Id();
+        int rightmatid = right.Element()->Material()->Id();
         TPZGeoEl *gelface = face->Reference();
         gelface = gelface->CreateBCGeoEl(gelface->NSides()-1, matid);
         delete face;
@@ -819,11 +819,11 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         gelface->ResetReference();
         TPZCompElSide center(newcel,gelface->NSides()-1);
         //        
-        //        TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
-        //        TPZGeoEl *rightgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, rightmatid);
+        TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
+        TPZGeoEl *rightgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, rightmatid);
         
-        //        TPZInterfaceElement *faceleft = new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
-        //        TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
+        TPZInterfaceElement *faceleft = new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
+        TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
         
     }
     cmesh.ExpandSolution();

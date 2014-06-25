@@ -197,7 +197,7 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
     }
 
     TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
-    
+    cmesh->ExpandSolution();
     return cmesh;
 }
 
@@ -247,7 +247,9 @@ void TPZMHMeshControl::CreateInternalElements()
             if (! gel->HasSubElement()) {
                 long index;
                 fCMesh->CreateCompEl(gel, index);
-                if (!LagrangeCreated) {
+                // we need to create a lagrange multiplier element in order to delay decomposition of an equation
+                if (!LagrangeCreated)
+                {
                     LagrangeCreated = true;
                     TPZCompEl *cel = fCMesh->ElementVec()[index];
                     long cindex = cel->ConnectIndex(0);
@@ -274,6 +276,7 @@ void TPZMHMeshControl::CreateInternalElements()
 /// will create the elements on the skeleton
 void TPZMHMeshControl::CreateSkeleton()
 {
+    // comment this line or not to switch the type of skeleton elements
 //    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
     std::map<long, std::pair<long,long> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
@@ -344,16 +347,32 @@ void TPZMHMeshControl::CreateInterfaceElements()
                     matid = gelneigh.Element()->MaterialId();
                 }
                 celindices.insert(celindex);
-                long index;
-                TPZGeoEl *gelnew = gelneigh.Element()->CreateBCGeoEl(gelneigh.Side(), matid);
-                new TPZInterfaceElement(fCMesh, gelnew , index, celside, celskeleton);
-#ifdef LOG4CXX
-                if (logger->isDebugEnabled()) {
-                    std::stringstream sout;
-                    sout << "New interface left " << gelneigh.Element()->Index() << " right " << gel->Index();
-                    LOGPZ_DEBUG(logger, sout.str())
+                if (!tmp || i < nstack-1)
+                {
+                    long index;
+                    TPZGeoEl *gelnew = gelneigh.Element()->CreateBCGeoEl(gelneigh.Side(), matid);
+                    new TPZInterfaceElement(fCMesh, gelnew , index, celside, celskeleton);
+    #ifdef LOG4CXX
+                    if (logger->isDebugEnabled()) {
+                        std::stringstream sout;
+                        sout << "New interface left " << gelneigh.Element()->Index() << " right " << gel->Index();
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
+    #endif
                 }
+                else
+                {
+                    long index;
+                    TPZGeoEl *gelnew = gelside.Element()->CreateBCGeoEl(gelside.Side(), matid);
+                    new TPZInterfaceElement(fCMesh, gelnew , index, celside, celskeleton);
+#ifdef LOG4CXX
+                    if (logger->isDebugEnabled()) {
+                        std::stringstream sout;
+                        sout << "New interface left " << gelneigh.Element()->Index() << " right " << gel->Index();
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
 #endif
+                }
                 
             }
             neighbour = neighbour.Neighbour();

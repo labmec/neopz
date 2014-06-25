@@ -678,6 +678,9 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 		TPZConnect *np = &fConnectVec[connectlist[0]];
 		while(ifirstnode < nnod && (np->HasDependency() || np->IsCondensed()) ) {
 			ifirstnode++;
+            if (ifirstnode == nnod) {
+                break;
+            }
 			np = &fConnectVec[connectlist[ifirstnode]];
 		}
 		long ibl = np->SequenceNumber();

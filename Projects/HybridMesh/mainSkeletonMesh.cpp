@@ -38,6 +38,7 @@
 #include "pzpoisson3dreferred.h"
 #include "pzelasmat.h" 
 #include "pzelasthybrid.h"
+#include "pzmat1dlin.h"
 
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzelementgroup.h"
@@ -158,7 +159,11 @@ int main(int argc, char *argv[])
     mhm.CreateCoarseInterfaces(matCoarse);
     InsertMaterialObjects(mhm.CMesh());
     mhm.BuildComputationalMesh();
-    
+    mhm.CMesh()->CleanUpUnconnectedNodes();
+    {
+        ofstream arq("gmeshmhm.txt");
+        mhm.CMesh()->Reference()->Print(arq);
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -174,6 +179,22 @@ int main(int argc, char *argv[])
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+
+    long neq = mhm.CMesh()->NEquations();
+    TPZFMatrix<STATE> rhs(neq,1,0.);
+    TPZFStructMatrix str(mhm.CMesh());
+    TPZAutoPointer<TPZMatrix<STATE> > stiff;
+    stiff = str.CreateAssemble(rhs, NULL);
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        stiff->Print("Stiffness = ",sout);
+        rhs.Print("Rhs = ",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
     
     //construir elementos 1D de interface
     TPZCompMesh * cmesh1 = MalhaCompTemporaria(gmesh);
@@ -343,6 +364,11 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
     
 	TPZMaterial * mat1(material1);
     
+    TPZMat1dLin *materialCoarse = new TPZMat1dLin(matCoarse);
+    TPZFNMatrix<1,STATE> xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
+    materialCoarse->SetMaterial(xk, xc, xb, xf);
+    
+    cmesh.InsertMaterialObject(materialCoarse);
     
     //    REAL diff = -1.;
     //	REAL conv = 0.;
@@ -375,6 +401,7 @@ TPZCompMesh* MalhaComp2(TPZAutoPointer<TPZGeoMesh> gmesh, int pOrder,std::set<lo
 {
 	/// criar materiais
 	int dim = 2;
+    TPZCompEl::SetgOrder(pOrder);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
 
@@ -390,8 +417,7 @@ TPZCompMesh* MalhaComp2(TPZAutoPointer<TPZGeoMesh> gmesh, int pOrder,std::set<lo
     //	material1->SetParameters(diff, conv, convdir);
     //	material1->SetInternalFlux( flux);
     
-    TPZCompEl::SetgOrder(pOrder);
-    
+    cmesh->SetDefaultOrder(pOrder);
 	   
     cmesh->SetAllCreateFunctionsContinuous();
     
@@ -790,9 +816,10 @@ void InterfaceToCoarse(TPZCompMesh *cmesh, int matvolume, int matskeleton, int m
         if (matid != matskeleton) {
             continue;
         }
+        // the element cel is a skeleton element
         TPZGeoEl *gel = cel->Reference();
         std::set<long> celindices;
-        TPZGeoElSide gelside(cel->Reference(),cel->Reference()->NSides()-1);
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
         TPZCompElSide celskeleton = gelside.Reference();
         TPZGeoElSide neighbour = gelside.Neighbour();
         while (neighbour != gelside) {
