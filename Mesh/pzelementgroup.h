@@ -71,7 +71,9 @@ public:
         return dimension;
     }
 	
-
+    TPZStack<TPZCompEl *, 5> GetElGroup(){
+        return fElGroup;
+    }
     
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const 
