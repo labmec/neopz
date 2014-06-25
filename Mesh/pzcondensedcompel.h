@@ -78,6 +78,9 @@ public:
         return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
 
+    TPZCompEl * ReferenceCompEl(){
+        return fReferenceCompEl;
+    }
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	
