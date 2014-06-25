@@ -29,7 +29,7 @@
 #include <math.h>
 
 
-int main(int argc, char *argv[])
+int mainLNCC(int argc, char *argv[])
 {
 	///malha geometrica
   TPZGeoMesh * gmesh = new TPZGeoMesh();
