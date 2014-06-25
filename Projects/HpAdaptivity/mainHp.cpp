@@ -47,11 +47,15 @@
 #include <cmath>
 #include "Tools.h"
 
+#include "pzskylstrmatrix.h"
+
 #ifdef LOG4CXX
 
 static LoggerPtr logger(Logger::getLogger("HpAdaptivity.main"));
 
 #endif
+
+void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
 
 using namespace std;
 
@@ -65,14 +69,14 @@ using namespace std;
 int main()
 {
 	
-#ifdef LOG4CXX
-	{
-		InitializePZLOG();
-		std::stringstream sout;
-		sout<< "Testando p adaptatividade"<<endl;
-		LOGPZ_DEBUG(logger, sout.str().c_str());
-	}
-#endif
+//#ifdef LOG4CXX
+//	{
+//		InitializePZLOG();
+//		std::stringstream sout;
+//		sout<< "Testando p adaptatividade"<<endl;
+//		LOGPZ_DEBUG(logger, sout.str().c_str());
+//	}
+//#endif
 	std::ofstream erro("TaxaArcTanTriangUni.txt");
     //std::ofstream erro("TaxaArcTanQuadUni.txt");
  //   std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
@@ -106,7 +110,8 @@ int main()
         //2. Resolve o problema
 		
 		 TPZAnalysis analysis(cmesh);
-         SolveLU ( analysis );
+         SolveSyst(analysis, cmesh, 8);
+        // SolveLU ( analysis );
 			
 			
 			
@@ -121,28 +126,31 @@ int main()
         
 			
 			//4. visualizacao grafica usando vtk
-			 TPZVec<std::string> scalnames(4), vecnames(2);
-			 scalnames[3] = "Divergence";
-			 scalnames[2] = "ExactDiv";
-			 scalnames[0] = "Pressure";//"Solution";//
-			 scalnames[1] = "ExactPressure";
-			 //scalnames[1] = "ExactDiv";
-			 
-			 
-			 vecnames[0] = "ExactFlux";
-			 vecnames[1] = "Flux";//"Derivative";//
-			
-			 
-			 
-			 //vecnames[0] = "Derivate";
-               //  std::string plotfile("GraficArcTanHpAdaptivity.vtk");
-                 const int dim = 2;
-                 int div = 2;
-                 
-                 char buf[256] ;
-                 sprintf(buf,"ArcTanPhilUniMeshT_porder%d_h%d.vtk",porder,h);
-                 analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
-                 analysis.PostProcess(div);
+        
+//			 TPZVec<std::string> scalnames(4), vecnames(2);
+//			 scalnames[3] = "Divergence";
+//			 scalnames[2] = "ExactDiv";
+//			 scalnames[0] = "Pressure";//"Solution";//
+//			 scalnames[1] = "ExactPressure";
+//			 //scalnames[1] = "ExactDiv";
+//			 
+//			 
+//			 vecnames[0] = "ExactFlux";
+//			 vecnames[1] = "Flux";//"Derivative";//
+//                 
+//			
+//			 
+//			 
+//			 //vecnames[0] = "Derivate";
+//               //  std::string plotfile("GraficArcTanHpAdaptivity.vtk");
+//                 const int dim = 2;
+//                 int div = 2;
+//                 
+//                 char buf[256] ;
+//                 sprintf(buf,"ArcTanPhilUniMeshT_porder%d_h%d.vtk",porder,h);
+//                 analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
+//                 analysis.PostProcess(div);
+               
 			 
 			 
 			 /*std::string plotfile("GraficArcTanHpAdaptivity.vtk");
@@ -157,4 +165,22 @@ int main()
 	
 	return 0;
 }
+
+void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
+{
+	//TPZBandStructMatrix full(fCmesh);
+	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+    full.SetNumThreads(numthreads);
+	an.SetStructuralMatrix(full);
+	TPZStepSolver<STATE> step;
+	step.SetDirect(ELDLt); //caso simetrico
+	//step.SetDirect(ELU);
+	an.SetSolver(step);
+	an.Run();
+	
+	//Saida de Dados: solucao e  grafico no VT
+    //	ofstream file("Solutout");
+    //	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
+}
+
 
