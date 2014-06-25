@@ -43,12 +43,14 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzelementgroup.h"
 #include "pzcondensedcompel.h"
-
+#include "pzfunction.h"
 #include "pzgraphmesh.h"
+#include "pzfmatrix.h"
 
 #include "pzlog.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "pzgengrid.h"
 
 #include "TPZMHMeshControl.h"
 
@@ -62,21 +64,10 @@
 
 using namespace std;
 
-const int matInterno = 1;
-const int matCoarse = 2;
-const int matInterface = 3;
-
-const int dirichlet = 0;
-
-const int bc1 = -1;
-const int bc2 = -2;
-const int bc3 = -3;
-const int bc4 = -4;
-
-
 TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly);
 TPZCompMesh *MalhaCompTemporaria(TPZAutoPointer<TPZGeoMesh>  gmesh);
 TPZCompMesh *MalhaComp2(TPZAutoPointer<TPZGeoMesh>  gmesh,int pOrder,std::set<long> coarseindex);
+TPZGeoMesh *GMeshSteklov(bool triang_elements);
 
 void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> dims);
 void RefinamentoAdaptado(TPZAutoPointer<TPZGeoMesh> gmesh, TPZStack<TPZManVector<REAL,3> > coordcentro);
@@ -96,6 +87,28 @@ void InterfaceToCoarse(TPZCompMesh *cmesh, int matvolume, int matskeleton, int m
 static LoggerPtr logger(Logger::getLogger("pz.mainskeleton"));
 #endif
 
+
+const int matInterno = 1;
+const int matCoarse = 2;
+const int matInterface = 3;
+
+const int dirichlet = 0;
+const int neumann = 1;
+
+int const bc1=-1;
+int const bc2=-2;
+int const bc3=-3;
+int const bc4=-4;
+int const bc5=-5;
+
+void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
+
+static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    TPZFMatrix<STATE> du(2,1);
+    SolExataSteklov(loc,result,du);
+}
+
+
 int main(int argc, char *argv[])
 {
     InitializePZLOG();
@@ -104,7 +117,7 @@ int main(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(ETriangle);
 
     
-    TPZAutoPointer<TPZGeoMesh> gmesh = MalhaGeom2(1.,1.);
+    TPZAutoPointer<TPZGeoMesh> gmesh = GMeshSteklov(false);
 	ofstream arg0("gmesh0.txt");
 	gmesh->Print(arg0);
     
@@ -195,6 +208,11 @@ int main(int argc, char *argv[])
     }
 #endif
     
+    //calculo do erro
+    TPZAnalysis an(mhm.CMesh());
+    an.SetExact(*SolExataSteklov);
+    TPZVec<REAL> erros(3);
+    an.PostProcessError(erros);
     
     //construir elementos 1D de interface
     TPZCompMesh * cmesh1 = MalhaCompTemporaria(gmesh);
@@ -320,6 +338,40 @@ TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly)
 	return gmesh;
 }
 
+
+TPZGeoMesh *GMeshSteklov(bool triang_elements)
+{
+    TPZManVector<int,2> nx(2,2);
+    nx[1] =1;
+    TPZManVector<REAL,3> x0(3,0.),x1(3,0.5);
+    x0[0] = -0.5;
+    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    if(triang_elements)
+    {
+        gengrid.SetElementType(1);
+    }
+    gengrid.Read(gmesh);
+    
+    //elementos de contorno
+    TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
+    firstpoint[0] = 0.5;
+    secondpoint[0] = 0.5;
+    secondpoint[1] = 0.5;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,bc2);
+    gengrid.SetBC(gmesh,6,bc3);
+    gengrid.SetBC(gmesh,7,bc4);
+    firstpoint[0] = -0.5;
+    secondpoint[0] = 0.;
+    secondpoint[1] = 0.;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,bc5);
+    firstpoint = secondpoint;
+    secondpoint[0] = 0.5;
+    gengrid.SetBC(gmesh,firstpoint,secondpoint,bc1);
+    
+    return gmesh;
+}
+
 TPZCompMesh* MalhaCompTemporaria(TPZAutoPointer<TPZGeoMesh>  gmesh)
 {
 	/// criar materiais
@@ -383,18 +435,33 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 	
-    TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
-	cmesh.InsertMaterialObject(BCondD1);
-	
-	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
-	cmesh.InsertMaterialObject(BCondD2);
+    //BC -1
+    TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(Dirichlet);
+    BCondD1->SetForcingFunction(bcmatDirichlet1);
+    cmesh.InsertMaterialObject(BCondD1);
     
-	TPZMaterial * BCondN1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
-	cmesh.InsertMaterialObject(BCondN1);
+    //BC -2
+	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(Dirichlet);
+    BCondD2->SetForcingFunction(bcmatDirichlet2);
+    cmesh.InsertMaterialObject(BCondD2);
     
-    TPZMaterial * BCondN2 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
-    cmesh.InsertMaterialObject(BCondN2);
+    //BC -3
+	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(Dirichlet);
+    BCondD3->SetForcingFunction(bcmatDirichlet3);
+    cmesh.InsertMaterialObject(BCondD3);
     
+    //BC -4
+	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(Dirichlet);
+    BCondD4->SetForcingFunction(bcmatDirichlet4);
+    cmesh.InsertMaterialObject(BCondD4);
+    
+    //BC -5: dirichlet nulo
+   TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,dirichlet, val1, val2);
+   cmesh.InsertMaterialObject(BCondD5);
 }
 
 TPZCompMesh* MalhaComp2(TPZAutoPointer<TPZGeoMesh> gmesh, int pOrder,std::set<long> coarseindex)
@@ -844,3 +911,19 @@ void InterfaceToCoarse(TPZCompMesh *cmesh, int matvolume, int matskeleton, int m
     }
 }
 
+
+void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+    
+    const REAL n = 0;
+    
+    const REAL x = loc[0];
+    const REAL y = loc[1];
+    const REAL r = sqrt(x*x+y*y);
+    const REAL t = atan2(y,x);
+    const REAL sol = pow((REAL)2,0.25 + n/2.)*pow(r,0.5 + n)*cos((0.5 + n)*t);
+    u[0] = sol;
+    
+    du(0,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(x*cos((0.5 + n)*atan2(y,x)) + y*sin((0.5 + n)*atan2(y,x)));
+    du(1,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(y*cos((0.5 + n)*atan2(y,x)) - x*sin((0.5 + n)*atan2(y,x)));
+    
+}
