@@ -7,6 +7,8 @@
 //
 
 #include "TPZLagrangeMultiplier.h"
+#include "pzaxestools.h"
+
 
 
 /** @brief Unique identifier for serialization purposes */
@@ -42,8 +44,34 @@ void TPZLagrangeMultiplier::Read(TPZStream &buf, void *context)
  */
 void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-#ifdef DEBUG
-#endif
+	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
+	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &phiR = dataright.phi;
+	
+	TPZFNMatrix<660> dphiL, dphiR;
+	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
+	
+	
+	
+	int nrowl = phiL.Rows();
+	int nrowr = phiR.Rows();
+	int il,jl,ir,jr;
+    
+	// 3) phi_I_left, phi_J_right
+	for(il=0; il<nrowl; il++) {
+		for(jr=0; jr<nrowr; jr++) {
+			ek(il,jr+nrowl) += weight * fMultiplier * (phiL(il) * phiR(jr));
+		}
+	}
+	
+    //	// 4) phi_I_right, phi_J_left
+	for(ir=0; ir<nrowr; ir++) {
+		for(jl=0; jl<nrowl; jl++) {
+			ek(ir+nrowl,jl) += weight * fMultiplier * (phiR(ir) * phiL(jl));
+		}
+	}
     
 }
 
