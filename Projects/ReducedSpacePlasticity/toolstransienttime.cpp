@@ -254,6 +254,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo todos os problemas
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
+#ifdef DEBUG
 	bool IWantToSeeElastSol = true;
 	if (IWantToSeeElastSol) {
 		TPZStack<std::string> scalnames,vecnames;
@@ -263,19 +264,19 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 		std::string filename = "ElasticUncoupledSolutions.vtk";
 		int dim = 2;
 		an->DefineGraphMesh(dim, scalnames, vecnames, filename);
-        TPZMaterial *mat = cmesh_elast->MaterialVec()[globReservMatId1];
-        if (!mat) {
-            DebugStop();
-        }
-        int NStripes = globFractInputData.NStripes();
-        int NHats = globNHat;
-        for (int i=0; i<NStripes+NHats; i++) {
-            mat->SetPostProcessIndex(i);
-            an->PostProcess(0);
-        }
+    TPZMaterial *mat = cmesh_elast->MaterialVec()[globReservMatId1];
+    if (!mat) {
+      DebugStop();
+    }
+    int NStripes = globFractInputData.NStripes();
+    int NHats = globNHat;
+    for (int i=0; i<NStripes+NHats; i++) {
+      mat->SetPostProcessIndex(i);
+      an->PostProcess(0);
+    }
 	}
+#endif
   
-  std::cout << "aaaa" << std::endl;
   /*
   // colocando as solucoes com as stripes
   int NStripes = globFractInputData.NStripes();
@@ -819,7 +820,7 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
 	
 	
   
-  material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
+  //material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.);
   
   
   unsigned int nstripes = globFractInputData.NStripes();
@@ -884,11 +885,14 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
   TPZBndCond * BCond21 = material1->CreateBC(mat1, globDirichletElastMatId1, typeDirichlet, val1, val2);
  	cmesh->InsertMaterialObject(BCond21);
   
-  TPZBndCond * BCond22 = material1->CreateBC(mat1, globDirichletRecElastMatId1Cohe-(nhats-1)*2, typeDirichlet, val1, val2);
-  cmesh->InsertMaterialObject(BCond22);
-  
-  TPZMaterial * BCondDiri = material1->CreateBC(mat1, globDirichletBottom, typeDirichlet, val1, val2);
-	//cmesh->InsertMaterialObject(BCondDiri);
+  if (nhats == 0){
+    TPZMaterial * BCondDiri = material1->CreateBC(mat1, globDirichletBottom, typeDirichlet, val1, val2);
+    cmesh->InsertMaterialObject(BCondDiri);
+  }
+  else{
+    TPZBndCond * BCond22 = material1->CreateBC(mat1, globDirichletRecElastMatId1Cohe-(nhats-1)*2, typeDirichlet, val1, val2);
+    cmesh->InsertMaterialObject(BCond22);
+  }
   
   val1(0,0) = big;
   val1(1,1) = big;
