@@ -717,6 +717,7 @@ int TPZPlasticFrac2D<T,TMEM>::VariableIndex(const std::string &name){
 	if(!strcmp("SigmaY",name.c_str()))          return 6;
 	if(!strcmp("Displacement",name.c_str()))    return 7;
 	if(!strcmp("W",name.c_str()))               return 8;
+	if(!strcmp("Displacement",name.c_str()))    return 9;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -731,6 +732,7 @@ int TPZPlasticFrac2D<T,TMEM>::NSolutionVariables(int var){
 	if(var == 6) return 1;
 	if(var == 7) return fDim;
 	if(var == 8) return 1;
+ 	if(var == 9) return 2;
 	
 	return TPZMaterial::NSolutionVariables(var);
 }
@@ -848,6 +850,11 @@ void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int va
 	{
 		Solout[0] = 2.*SolU[1];
 	}
+  else if(var == 9)
+  {
+    Solout[0] = SolU[0];
+    Solout[1] = SolU[1];
+  }
 }
 
 template<class T,class TMEM>
