@@ -126,7 +126,7 @@ public:
   //---------------------------------------------------------------
   
   /// Method to show the displacement x sigmay of the first cohesive elements
-	void ShowDisplacementSigmaYCohesive();
+	void ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh);
 
   /// Plot all the hat functions separately using cmeshhat. Deprecated!
   void PlotAllHatsVTK();
@@ -150,7 +150,7 @@ public:
   void SolveInitialElastoPlasticity(TPZElastoPlasticAnalysis &analysis, TPZCompMesh *Cmesh);
   
   /// Creates an H1 mesh for uncoupled simulation. Used to test Cohesive material
-	TPZCompMesh* CMeshCohesiveH1();
+	TPZCompMesh* CMeshCohesiveH1(REAL pressure);
   
   /// Solves an NonLinear elasticity problem given an NonLinearAnalysis and a cmesh. Used to test Cohesive
 	void SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis &an);

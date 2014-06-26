@@ -220,9 +220,10 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
   
-  if(0) // test using h1 and plane stress linear elasticity
+  if(1) // test using h1 and plane stress linear elasticity
 	{
-		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1();		
+    REAL pressure = 10.;
+		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1(pressure);
 		TPZNonLinearAnalysis *nlan = new TPZNonLinearAnalysis(cmesh_h1,std::cout);
 		TPZSkylineStructMatrix skyl(cmesh_h1);
 		nlan->SetStructuralMatrix(skyl);
@@ -241,7 +242,8 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 		
 		nlan->DefineGraphMesh(dim, scalnames, vecnames, "CMeshH1.vtk");
 		
-		nlan->PostProcess(0);				
+		nlan->PostProcess(0);
+    this->ShowDisplacementSigmaYCohesive(cmesh_h1);
 	}
 	
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
@@ -1195,7 +1197,7 @@ void ToolsTransient::CMeshMultiphysics()
 
 //------------------------------------------------------------------------------------
 
-TPZCompMesh* ToolsTransient::CMeshCohesiveH1()
+TPZCompMesh* ToolsTransient::CMeshCohesiveH1(REAL pressure)
 {
   //Creating computational mesh for multiphysic elements
 	fgmesh->ResetReference();
@@ -1234,7 +1236,7 @@ TPZCompMesh* ToolsTransient::CMeshCohesiveH1()
     int elastId = it->second.second;
     if(elastId == globReservMatId1)
     {//estou no globReservMatId1
-			val2(1,0) = 10.;
+			val2(1,0) = pressure;
       TPZMaterial * BCond11 = material1->CreateBC(material1, bcId, 1, val1, val2);
       cmesh->InsertMaterialObject(BCond11);
     }
@@ -1259,7 +1261,7 @@ TPZCompMesh* ToolsTransient::CMeshCohesiveH1()
 	// material coesivo
   const REAL SigmaT = 3., DeltaC = 0.0001024;
 	const REAL DeltaT = 0.1 * DeltaC;
-	TPZCohesiveBC *CoheMat = new TPZCohesiveBC;
+	TPZCohesiveBC *CoheMat = new TPZCohesiveBC(globCohesiveMatId);
   CoheMat->SetCohesiveData(SigmaT, DeltaC, DeltaT);
 	cmesh->InsertMaterialObject(CoheMat);
   
@@ -1285,7 +1287,7 @@ void ToolsTransient::SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis 
 	TPZFMatrix<STATE> prevsol(an.Solution());
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
 	
-  REAL tol = 5.e-4;
+  REAL tol = 1.e-8;
   int numiter = 20;
 	while(error > tol && iter < numiter) {
 		
@@ -1684,7 +1686,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
       globFractOutputData.PlotElasticVTK(an);
       PostProcessAcumVolW();
       PostProcessVolLeakoff();
-			ShowDisplacementSigmaYCohesive();
+			ShowDisplacementSigmaYCohesive(fmphysics);
     }
     REAL peteleco = 1.E-8;
     if( globFractInputData.actTime() > (globFractInputData.Ttot() - peteleco) )
@@ -2278,14 +2280,14 @@ void ToolsTransient::PlotAllHatsVTK()
 	std::cout << "End of VTK plot for Hat Functions of Reduced Space" << std::endl;
 }
 
-void ToolsTransient::ShowDisplacementSigmaYCohesive()
+void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 {
-	int nel = fmphysics->NElements();
+	int nel = cmesh->NElements();
 	
 	TPZStack<std::pair<REAL,REAL> > cohepoints;
 	int nelcomputed = 0;
 	for (int iel = 0; iel < nel; iel++) {
-		TPZCompEl *cel = fmphysics->ElementVec()[iel];
+		TPZCompEl *cel = cmesh->ElementVec()[iel];
 		if (!cel) {
 			continue;
 		}
@@ -2309,6 +2311,9 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive()
 		if (gelside == neighbour) {
 			continue;
 		}
+    if (neighbour.Element()->MaterialId() != globCohesiveMatId) {
+      DebugStop();
+    }
 
 		//TPZMultiphysicsCompEl *mpcel = dynamic_cast<TPZMultiphysicsCompEl*> (cel);
 		int var = -6378;
@@ -2317,14 +2322,25 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive()
 		TPZVec <REAL> qsi(3,-1.), Solout(3,0.);
 		REAL delta =  2./ (REAL) (npoints-1);
 		REAL displa,sigma;
+    
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(cel);
+    int var1 = -1, var2 = -1;
+    if (intel) {
+      var1 = 9;
+      var2 = 6;
+    }
+    else{
+      var1 = 9;
+      var2 = 6;
+    }
 				
 		for (int i = 0 ; i < npoints; i++) {
 			qsi[0] = -1 + i * delta;
-			var = 4;
+			var = var1;
 			cel->Solution(qsi, var, Solout);
-			displa = Solout[0];
+			displa = Solout[1];
 			
-			var = 6;
+			var = var2;
 			cel->Solution(qsi, var, Solout);
 			sigma = Solout[0];
 			
