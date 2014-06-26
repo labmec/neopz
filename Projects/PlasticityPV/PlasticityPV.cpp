@@ -64,6 +64,7 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 int main()
 {
 	InitializePZLOG();
+  CurvaFig12PlasticPV();
 //	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 //	TPZElasticResponse ER;
 //	ER.SetUp(1000, 0.25);
@@ -246,26 +247,41 @@ void CurvaFig12PlasticPV()
 	kproj=0.;
 	kprev=0.13;
 	materialmodel.Firstk(epv,kprev);
-	TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(kprev);
+	
+  REAL cohesion = A - C;
+  REAL PhiMC = B*C;
+  
+  TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> stepPV(kprev);
 	stepPV.fYC = materialmodel;
-	stepPV.fER = ER;
-
-	REAL deltaEps= -0.00135;
+  stepPV.fER = ER;
+  
+  TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> MCPV;
+  MCPV.fYC.SetUp(PhiMC, PhiMC, cohesion, ER);
+  MCPV.fER = ER;
+  
+	REAL deltaEps= -0.0000135;
 	std::list<std::pair<REAL,REAL> > loadcicle;
-	for (int i = 0; i < 65; i++) {
-		if (i == 50) {
+ 	std::list<std::pair<REAL,REAL> > unloadcicle;
+	for (int i = 0; i < 500; i++) {
+		if (i == 250) {
 			deltaEps *= -1.;
 		}
 		//epsT.YY() = iniEpsAxi*i;
 		//epsT.ZZ() = iniEpsAxi*i;
 		epsT.Print(std::cout);
-		stepPV.ApplyStrainComputeSigma(epsT,Sigma);
-		loadcicle.push_back(std::pair<REAL,REAL>(-epsT.XX(),-Sigma.XX()));
+		MCPV.ApplyStrainComputeSigma(epsT,Sigma);
+    if (deltaEps < 0){
+  		loadcicle.push_back(std::pair<REAL,REAL>(-epsT.XX(),-Sigma.XX()));
+    }
+    else{
+  		unloadcicle.push_back(std::pair<REAL,REAL>(-epsT.XX(),-Sigma.XX()));
+    }
+
 		//loadcicle[-epsT.XX()] = -Sigma.XX();
 		epsT.XX() += deltaEps;
 	}
 	
-	ofstream out("LoadCicle.nb");
+	ofstream out("LoadCicleMC.nb");
 	std::list<std::pair<REAL,REAL> >::iterator it = loadcicle.begin();
 	out << "loadcicle=" << "{";
 	out << "{" << it->first << "," << it->second << "}";
@@ -274,7 +290,19 @@ void CurvaFig12PlasticPV()
 		out << ",{" << it->first << "," << it->second << "}";
 	}
 	out << "};" << endl;
-	out << "ListPlot[loadcicle,Joined->True,PlotStyle->Thick]" << endl;
+  
+  out << "unloadcicle=" << "{";
+  it = unloadcicle.begin();
+	out << "{" << it->first << "," << it->second << "}";
+	it++;
+	for (; it != unloadcicle.end(); it++) {
+		out << ",{" << it->first << "," << it->second << "}";
+	}
+	out << "};" << endl;
+
+	out << "loadcicleplot=ListPlot[loadcicle,Joined->True,PlotStyle->Thick];" << endl;
+ 	out << "unloadcicleplot=ListPlot[unloadcicle,Joined->True,PlotStyle->{Red,Thick}];" << endl;
+  out << "Show[loadcicleplot,unloadcicleplot]" << endl;
 }
 
 void CurvaFig12Diogo()
