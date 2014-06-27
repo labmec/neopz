@@ -176,18 +176,37 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
 	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
 		
-	
+	REAL big = TPZMaterial::gBigNumber;
+	REAL dif = sol_u[0];
 	for (int in = 0; in < phr; in++) 
 	{
 		for (int il = 0; il < fNumLoadCases; il++) 
 		{
+			ef(2*in,il) += - big * dif * phi(in,0) * weight; // para impedir deslocamento em x
 			ef(2*in+1,il) += CohesiveStress * phi(in,0) * weight; // negativo da formula do residuo com negativo do residuo por causa do nonlinanalysis da positivo
 		}
 		for (int jn = 0; jn < phr; jn++) {
+		  ek(2*in,2*jn)     += big * phi(in,0) *phi(jn,0) * weight;
 			ek(2*in+1,2*jn+1) += (- 2. * DerivCohesive) * phi(jn,0) * phi(in,0) * weight; // eh o negativo da formula do residuo
 		}
 	}
-	
+	/*
+	 REAL dif0 = (data.sol[0][0]-v2[0]);
+	 REAL dif1 = (data.sol[0][1]-v2[1]);
+	 switch (bc.Type()) {
+	 case 0 :			// Dirichlet condition
+	 {
+	 for(in = 0 ; in < phr; in++) {
+	 ef(2*in,0)   += - BIGNUMBER * dif0 * phi(in,0) * weight;        // forced v2 displacement
+	 ef(2*in+1,0) += - BIGNUMBER * dif1 * phi(in,0) * weight;        // forced v2 displacement
+	 for (jn = 0 ; jn < phi.Rows(); jn++)
+	 {
+	 ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+	 ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+	 }
+	 }
+	 }	 
+	 */
 }
 
 void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
