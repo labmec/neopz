@@ -31,11 +31,11 @@ namespace pzgeom {
 		jacinv.Redim(0,0);
 		detjac = 1.;
 		axes.Zero();
-		axes.Redim(3,3);
+		axes.Redim(0,3);
 		axes.Zero();
-		axes(0,0) = 1.;
+		/*axes(0,0) = 1.;
 		axes(1,1) = 1.;
-		axes(2,2) = 1.;
+		axes(2,2) = 1.;*/
 	}
 	
 	TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
