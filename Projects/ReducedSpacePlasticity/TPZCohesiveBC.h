@@ -82,7 +82,7 @@ public:
 	
 	/** @brief Returns the integrable dimension of the material */
 	virtual int Dimension() const {
-		return 1;
+		return 0;
 	}
   
   /** @brief Returns the number of state variables associated with the material */

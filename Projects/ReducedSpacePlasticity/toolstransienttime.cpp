@@ -64,6 +64,7 @@ ToolsTransient::ToolsTransient(){
   fMustStop = true;
   fCouplingMaterial1 = NULL;
 	fCohesiveMaterial = NULL;
+  fCohesiveMaterialFirst = NULL;
   fgmesh = NULL;
   fmeshvec.Resize(0);
   fmphysics = NULL;
@@ -84,6 +85,7 @@ ToolsTransient::ToolsTransient(int pOrder)
   }
 
 	fCohesiveMaterial = new TPZCohesiveBC(globCohesiveMatId);
+  fCohesiveMaterialFirst = new TPZCohesiveBC(globCohesiveMatIdHalf);
 	
   int planestrain = 0;
   fCouplingMaterial1->SetfPlaneProblem(planestrain);
@@ -104,6 +106,7 @@ void ToolsTransient::SetMohrCoulombParameters(REAL poisson, REAL elast, REAL coh
 ToolsTransient::~ToolsTransient(){
 	delete fCouplingMaterial1;
 	delete fCohesiveMaterial;
+  delete fCohesiveMaterialFirst;
 }
 
 
@@ -183,7 +186,7 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 	int neqpr = this->fmeshvec[1]->NEquations();	
 	
 	for (int i = 0; i < neqpr; i++) {
-		fmeshvec[1]->Solution()(i,0) = 100.;
+		fmeshvec[1]->Solution()(i,0) = 20.;
 	}
    
 	//AQUINATHAN
@@ -220,9 +223,9 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
   
-  if(1) // test using h1 and plane stress linear elasticity
+  if(0) // test using h1 and plane stress linear elasticity
 	{
-    REAL pressure = 10.;
+    REAL pressure = 20.;
 		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1(pressure);
 		TPZNonLinearAnalysis *nlan = new TPZNonLinearAnalysis(cmesh_h1,std::cout);
 		TPZSkylineStructMatrix skyl(cmesh_h1);
@@ -257,7 +260,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
 #ifdef DEBUG
-	bool IWantToSeeElastSol = true;
+	bool IWantToSeeElastSol = false;
 	if (IWantToSeeElastSol) {
 		TPZStack<std::string> scalnames,vecnames;
 		vecnames.Push("Displacement");
@@ -514,7 +517,7 @@ void ToolsTransient::Mesh2D()
   for(long el = 0; el < nelem; el++)
   {
     TPZGeoEl * gel = fgmesh->ElementVec()[el];
-    
+   
     //south BC
     TPZGeoElSide sideS(gel,4);
     TPZGeoElSide neighS(sideS.Neighbour());
@@ -536,13 +539,17 @@ void ToolsTransient::Mesh2D()
         
         bcId++;
         ////////
+        
+        if (el+1 == colCracktip) {
+          gel->CreateBCGeoEl(1, globCohesiveMatIdHalf);
+        }
       }
       else
       {
         if(gel->MaterialId() == globReservMatId1)
         {
           gel->CreateBCGeoEl(4, globDirichletBottom);
-          gel->CreateBCGeoEl(4, globCohesiveMatId);
+          gel->CreateBCGeoEl(1, globCohesiveMatId);
         }
         else
         {
@@ -829,6 +836,11 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
   int nhats = globNHat;
   const int nloadcases = nstripes + nhats;
   material1->SetNumLoadCases(nloadcases);
+
+  ///criar malha computacional
+  TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
+  cmesh->SetDefaultOrder(fpOrder);
+	cmesh->SetDimModel(dim);
   
 	// material coesivo
 	int cohesiveid = globCohesiveMatId;
@@ -837,17 +849,15 @@ TPZCompMesh * ToolsTransient::CMeshElastic()
 	const REAL DeltaT = 0. * DeltaC;
   material3->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *CoheMat(material3);
-  
-  TPZMaterial * mat1(material1);
-  
-  ///criar malha computacional
-  TPZCompMesh * cmesh = new TPZCompMesh(fgmesh);
-  cmesh->SetDefaultOrder(fpOrder);
-	cmesh->SetDimModel(dim);
-  cmesh->InsertMaterialObject(mat1);
-  //cmesh->InsertMaterialObject(mat2);
 	cmesh->InsertMaterialObject(CoheMat);
   
+  TPZCohesiveBC *CoheMatFirst = new TPZCohesiveBC(globCohesiveMatIdHalf);
+  CoheMatFirst->SetCohesiveData(SigmaT, DeltaC, DeltaT);
+  cmesh->InsertMaterialObject(CoheMatFirst);
+  
+  TPZMaterial * mat1(material1);
+  cmesh->InsertMaterialObject(mat1);
+   
   ///Inserir condicao de contorno
   REAL big = material1->gBigNumber;
   
@@ -974,6 +984,8 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
   TPZVec<REAL> force(dim,0.);
   int planestrain = 0;
   
+  TPZCompMeshReferred * cmeshreferred = new TPZCompMeshReferred(fgmesh);
+  
   TPZElasticityMaterial * material1 = new TPZElasticityMaterial(globReservMatId1,
                                                                 globFractInputData.E1(),
                                                                 globFractInputData.Poisson1(),
@@ -982,21 +994,22 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
                                                                 planestrain);
   
 	// material coesivo
-	int cohesiveid = globCohesiveMatId;
-  const REAL SigmaT = 3., DeltaC = 0.0001024;
+	const REAL SigmaT = 3., DeltaC = 0.0001024;
 	const REAL DeltaT = 0.1 * DeltaC;
   fCohesiveMaterial->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *CoheMat(fCohesiveMaterial);
+	cmeshreferred->InsertMaterialObject(CoheMat);
+  
+  fCohesiveMaterialFirst->SetCohesiveData(SigmaT/2., DeltaC, DeltaT);
+  TPZMaterial *CoheMatFirst(fCohesiveMaterial);
+	cmeshreferred->InsertMaterialObject(CoheMatFirst);
   
   //material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.); NOT USING
-  
-  TPZCompMeshReferred * cmeshreferred = new TPZCompMeshReferred(fgmesh);
   
   cmeshreferred->SetDimModel(dim);
   TPZMaterial * mat1(material1);
   cmeshreferred->InsertMaterialObject(mat1);
-	cmeshreferred->InsertMaterialObject(CoheMat);
-  
+
   ///Inserir condicao de contorno
   REAL big = material1->gBigNumber;
   
@@ -1144,7 +1157,7 @@ void ToolsTransient::CMeshMultiphysics()
     }
   }
   
-	// dirichlet na direita e esquerda
+	// dirichlet na direita e topo
   val2.Redim(3,1);
   val1.Redim(3,2);
   TPZMaterial * BCond21 = fCouplingMaterial1->CreateBC(mat1, globDirichletElastMatId1, typeDir_elast, val1, val2);
@@ -1163,12 +1176,15 @@ void ToolsTransient::CMeshMultiphysics()
 	fmphysics->InsertMaterialObject(BCond41);
   
 	// material coesivo
-	int cohesiveid = globCohesiveMatId;
   const REAL SigmaT = 3., DeltaC = 0.0001024;
 	const REAL DeltaT = 0.1 * DeltaC;
   fCohesiveMaterial->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *CoheMat(fCohesiveMaterial);
 	fmphysics->InsertMaterialObject(CoheMat);
+
+  fCohesiveMaterialFirst->SetCohesiveData(SigmaT/2., DeltaC, DeltaT);
+  TPZMaterial *CoheMatFirst(fCohesiveMaterial);
+  fmphysics->InsertMaterialObject(CoheMatFirst);
   
   // Setando o espaco
   fmphysics->SetAllCreateFunctionsMultiphysicElemWithMem();
@@ -1189,7 +1205,7 @@ void ToolsTransient::CMeshMultiphysics()
 		cel->PrepareIntPtIndices();
 	}
 	
-	/*
+	/*+
 	std::ofstream out("cmeshMult.txt");
 	fmphysics->Print(out);
 	*/
@@ -1264,9 +1280,14 @@ TPZCompMesh* ToolsTransient::CMeshCohesiveH1(REAL pressure)
 	TPZCohesiveBC *CoheMat = new TPZCohesiveBC(globCohesiveMatId);
   CoheMat->SetCohesiveData(SigmaT, DeltaC, DeltaT);
 	cmesh->InsertMaterialObject(CoheMat);
+
+  // primeiro coesivo
+  TPZCohesiveBC *CoheMatFirst = new TPZCohesiveBC(globCohesiveMatIdHalf);
+  CoheMatFirst->SetCohesiveData(SigmaT/2., DeltaC, DeltaT);
+	cmesh->InsertMaterialObject(CoheMatFirst);
   
-	std::ofstream outg("GeoMeshH1.vtk");
-  TPZVTKGeoMesh::PrintCMeshVTK(cmesh, outg, true);
+//	std::ofstream outg("GeoMeshH1.vtk");
+//  TPZVTKGeoMesh::PrintCMeshVTK(cmesh, outg, true);
 
 	cmesh->SetAllCreateFunctionsContinuousWithMem();
   cmesh->AutoBuild();
@@ -1327,6 +1348,7 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
 {
 	fCouplingMaterial1->SetCurrentState();
 	fCohesiveMaterial->SetCurrentState();
+  fCohesiveMaterialFirst->SetCurrentState();
   
   TPZFStructMatrix matsk(fmphysics);
   
@@ -1560,6 +1582,7 @@ void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 {
   fCouplingMaterial1->SetLastState();
 	fCohesiveMaterial->SetLastState();
+  fCohesiveMaterialFirst->SetLastState();
 	TPZSpStructMatrix matsp(fmphysics);
 	TPZAutoPointer<TPZGuiInterface> guiInterface;
   matsp.CreateAssemble(Un,guiInterface);
@@ -2297,11 +2320,11 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 			continue;
 		}
 		
-		TPZGeoElSide gelside(gel,4);
+		TPZGeoElSide gelside(gel,1);
 		TPZGeoElSide neighbour = gelside.Neighbour();
 		while (gelside != neighbour) {
 			
-			if (neighbour.Element()->Dimension() == 1) {
+			if (neighbour.Element()->Dimension() == 0) {
 				if (neighbour.Element()->MaterialId() == globCohesiveMatId) {
 					break;
 				}
@@ -2318,7 +2341,7 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 		//TPZMultiphysicsCompEl *mpcel = dynamic_cast<TPZMultiphysicsCompEl*> (cel);
 		int var = -6378;
 		
-		int npoints = 3;
+		int npoints = 5;
 		TPZVec <REAL> qsi(3,-1.), Solout(3,0.);
 		REAL delta =  2./ (REAL) (npoints-1);
 		REAL displa,sigma;
@@ -2361,7 +2384,5 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 	}
 	std::cout << "};" << std::endl;
 	std::cout << "ListPlot[cohepoints,Joined->True]" << std::endl;
-	
-	
 	
 }

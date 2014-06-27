@@ -174,6 +174,7 @@ public:
 
   /// Cohesive Material
 	TPZCohesiveBC * fCohesiveMaterial;
+  TPZCohesiveBC * fCohesiveMaterialFirst;
 
 	/// Geometric mesh
   TPZGeoMesh * fgmesh;

@@ -25,11 +25,12 @@ int const globDirichletElastMatId2 = -2;
 int const globMixedElastMatId   = -3;
 int const globCohesiveMatId = -4;
 int const globDirichletBottom = -5;
+int const globCohesiveMatIdHalf = -6;
 
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;
-int const globNHat = 0;
+int const globNHat = 5;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure
