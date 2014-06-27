@@ -223,7 +223,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
   
-  if(0) // test using h1 and plane stress linear elasticity
+  if(1) // test using h1 and plane stress linear elasticity
 	{
     REAL pressure = 20.;
 		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1(pressure);
@@ -260,7 +260,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
 #ifdef DEBUG
-	bool IWantToSeeElastSol = false;
+	bool IWantToSeeElastSol = true;
 	if (IWantToSeeElastSol) {
 		TPZStack<std::string> scalnames,vecnames;
 		vecnames.Push("Displacement");
@@ -1001,7 +1001,7 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
 	cmeshreferred->InsertMaterialObject(CoheMat);
   
   fCohesiveMaterialFirst->SetCohesiveData(SigmaT/2., DeltaC, DeltaT);
-  TPZMaterial *CoheMatFirst(fCohesiveMaterial);
+  TPZMaterial *CoheMatFirst(fCohesiveMaterialFirst);
 	cmeshreferred->InsertMaterialObject(CoheMatFirst);
   
   //material1->SetPreStress(globFractInputData.PreStressXX(), globFractInputData.PreStressYY(), globFractInputData.PreStressXY(), 0.); NOT USING
@@ -1183,7 +1183,7 @@ void ToolsTransient::CMeshMultiphysics()
 	fmphysics->InsertMaterialObject(CoheMat);
 
   fCohesiveMaterialFirst->SetCohesiveData(SigmaT/2., DeltaC, DeltaT);
-  TPZMaterial *CoheMatFirst(fCohesiveMaterial);
+  TPZMaterial *CoheMatFirst(fCohesiveMaterialFirst);
   fmphysics->InsertMaterialObject(CoheMatFirst);
   
   // Setando o espaco
@@ -1288,11 +1288,20 @@ TPZCompMesh* ToolsTransient::CMeshCohesiveH1(REAL pressure)
   
 //	std::ofstream outg("GeoMeshH1.vtk");
 //  TPZVTKGeoMesh::PrintCMeshVTK(cmesh, outg, true);
-
+	
 	cmesh->SetAllCreateFunctionsContinuousWithMem();
   cmesh->AutoBuild();
 	cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
+	/*
+	const int neworder = 4;
+	const int side = 4;
+	for (int i = 0 ; i < 6 ; i++){
+		TPZCompEl *cel = cmesh->ElementVec()[i];
+		TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(cel);
+		intel->SetSideOrder(side,neworder);		
+	}
+	 */
 	
 	return cmesh;
 }
