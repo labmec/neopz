@@ -132,6 +132,10 @@ public:
   REAL QlFVl(int gelId, REAL pfrac);
   REAL dQlFVl(int gelId, REAL pfrac);
   
+  // Propagations methods
+  void SetPropagated();
+  void SetNotPropagated();
+  bool IsPropagated();
   
   
 private:
@@ -191,6 +195,7 @@ private:
   //Propagation criterion
   REAL fJradius;
   REAL fKIc;
+  bool fIsPropag;
   
   //Plastic Model
   EPlasticModel fEModel;

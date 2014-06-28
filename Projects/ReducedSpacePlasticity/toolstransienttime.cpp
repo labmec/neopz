@@ -145,6 +145,13 @@ void ToolsTransient::Run()
     
     if(propagate == true)///Setting new Lfrac and tranferring solution
     {
+      DebugStop(); // The methodology is now different. I dont have to transfer the entire mesh
+
+      REAL newLfrac = globFractInputData.Lf() + globFractInputData.Lmax_edge();
+      globFractInputData.SetLf(newLfrac);
+      
+      
+      /* antiga metodolia
       TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
       lastMPhysicsCMesh = fmphysics;
       lastElastReferredCMesh = fmeshvec[0];
@@ -161,6 +168,7 @@ void ToolsTransient::Run()
       globFractOutputData.PlotElasticVTK(an, anCount);
       PostProcessAcumVolW();
       PostProcessVolLeakoff();
+       */
     }
   }
   
@@ -1704,7 +1712,7 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     
     PostprocessPressure();
     
-    if(0) //AQUINATHAN create methodology to indecate if propagated
+    if(globFractInputData.IsPropagated()) //AQUINATHAN create methodology to indecate if propagated
     {//propagou!!!
       globFractInputData.SetMinDeltaT();
       propagate = true;
@@ -2350,7 +2358,7 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 		//TPZMultiphysicsCompEl *mpcel = dynamic_cast<TPZMultiphysicsCompEl*> (cel);
 		int var = -6378;
 		
-		int npoints = 5;
+		int npoints = 3;
 		TPZVec <REAL> qsi(3,-1.), Solout(3,0.);
 		REAL delta =  2./ (REAL) (npoints-1);
 		REAL displa,sigma;
@@ -2381,7 +2389,7 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 		}
 		
 		nelcomputed++;
-		if (nelcomputed == 5) {
+		if (nelcomputed == 20) {
 			break;
 		}
 	}

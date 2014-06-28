@@ -10,6 +10,7 @@
 #include "pzmaterial.h"
 #include "pzbndcond.h"
 #include "pzmatwithmem.h"
+#include "pznlfluidstructureData.h"
 
 const int TPZCohesiveBCID = 400;
 

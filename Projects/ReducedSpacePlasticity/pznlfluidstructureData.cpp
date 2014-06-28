@@ -15,6 +15,8 @@
 InputDataStruct::InputDataStruct()
 {
   fPressureMatIds_StripeId_ElastId.clear();
+  fEModel = EElastic;
+  fIsPropag = false;
 }
 
 InputDataStruct::~InputDataStruct()
@@ -563,7 +565,16 @@ REAL InputDataStruct::dQlFVl(int gelId, REAL pfrac)
 #endif
 }
 
-
+// Propagation
+void InputDataStruct::SetPropagated(){
+  fIsPropag = true;
+}
+void InputDataStruct::SetNotPropagated(){
+  fIsPropag = false;
+}
+bool InputDataStruct::IsPropagated(){
+  return fIsPropag;
+}
 
 //------------------------------------------------------------
 
