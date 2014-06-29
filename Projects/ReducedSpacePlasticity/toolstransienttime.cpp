@@ -151,8 +151,11 @@ void ToolsTransient::Run()
       REAL newLfrac = globFractInputData.Lf() + globFractInputData.Lmax_edge();
       globFractInputData.SetLf(newLfrac);
       
+      // here should create a new fluid element in the propagated element a
       
-      /* antiga metodolia
+      globFractInputData.SetNotPropagated(); // so it can run the next time steps
+      
+      /* antiga metodologia
       TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
       lastMPhysicsCMesh = fmphysics;
       lastElastReferredCMesh = fmeshvec[0];
@@ -1714,13 +1717,13 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
 		//fmeshvec[0]->Solution().Print("SolEla");
 		//fmeshvec[1]->Solution().Print("SolP");		
 		
-		
+		this->AcceptSolution(an); // this will update the memory
     globFractInputData.UpdateLeakoff(fmeshvec[1]);
     globFractInputData.UpdateActTime();
     
     PostprocessPressure();
     
-    if(globFractInputData.IsPropagated()) //AQUINATHAN create methodology to indecate if propagated
+    if(globFractInputData.IsPropagated())
     {//propagou!!!
       globFractInputData.SetMinDeltaT();
       propagate = true;
@@ -1746,6 +1749,49 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
   return propagate;
 }
 
+void ToolsTransient::SetUpdateMem(int update)
+{
+	if(!fmphysics) return;
+	
+	std::map<int, TPZMaterial *> & refMatVec = fmphysics->MaterialVec();
+  
+  std::map<int, TPZMaterial * >::iterator mit;
+	
+	TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem; // defined in file pzelastoplastic.h
+  
+  TPZCohesiveBC *CoheBC;
+  
+  for(mit=refMatVec.begin(); mit!= refMatVec.end(); mit++)
+  {
+    pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *>( mit->second );
+		if(pMatWithMem != NULL)
+    {
+      pMatWithMem->SetUpdateMem(update);
+    }
+    CoheBC = dynamic_cast<TPZCohesiveBC *>(mit->second);
+    if (CoheBC) {
+      CoheBC->SetUpdateMem(update);
+    }
+  }
+	
+}
+
+void ToolsTransient::AcceptSolution(TPZAnalysis *an)
+{
+	this->SetUpdateMem(true);
+	
+	an->Rhs().Zero();
+	
+  an->AssembleResidual();
+  //AdjustResidual(fRhs);
+	//REAL norm = Norm(fRhs);
+	
+	this->SetUpdateMem(false);
+	
+	an->Solution().Zero();
+	
+	an->LoadSolution();
+}
 
 void ToolsTransient::PostprocessPressure()
 {
@@ -2519,3 +2565,4 @@ void ToolsTransient::ShowDisplacementSigmaYBottom(TPZCompMesh *cmesh)
 	std::cout << "ListPlot[cohepoints,Joined->True]" << std::endl;
 	
 }
+

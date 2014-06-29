@@ -147,6 +147,7 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 	
   if(fUpdateMem){
     UpdateCohesiveCurve(data);
+    return;
   }
   
 	TPZFMatrix<REAL> &phi = data.phi;
@@ -227,6 +228,7 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 	
   if(fUpdateMem){
     UpdateCohesiveCurve(datavec[0]);
+    return;
   }
 	TPZFMatrix<REAL> &phi = datavec[0].phi;
 	int phc = phi.Cols();

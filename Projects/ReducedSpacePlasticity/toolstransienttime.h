@@ -78,6 +78,12 @@ public:
   /// Sets The Sigma in determined stripe of the compmesh
   void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
   
+  /// Sets if should update memory
+  void SetUpdateMem(int update = true);
+
+  /// Updates the memory of each integration point
+  void AcceptSolution(TPZAnalysis *an);
+  
   /// Run Methods
   //---------------------------------------------------------------
   

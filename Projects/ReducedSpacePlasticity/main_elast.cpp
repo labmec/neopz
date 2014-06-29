@@ -96,7 +96,7 @@ int mainFrac(int argc, char *argv[])
   REAL cohesion = 100. * 5.77; //article is 5.77
   REAL phiMC = 30.*M_PI/180.; // article is 30 degres
 	
-	int NThreadsForAssemble = 2;
+	int NThreadsForAssemble = 0; // if set 0 it will be serial
 
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
