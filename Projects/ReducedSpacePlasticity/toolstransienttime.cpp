@@ -617,6 +617,8 @@ void ToolsTransient::Mesh2D()
     }
   }
   
+  
+  globFractInputData.SetLastFracMatId(bcId);
   topol.Resize(1);
   for(long p = 0; p < ncols; p++)
   {

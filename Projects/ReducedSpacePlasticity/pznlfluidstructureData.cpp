@@ -18,6 +18,7 @@ InputDataStruct::InputDataStruct()
   fEModel = EElastic;
   fIsPropag = false;
 	fNthreadsForAssemble = 0;
+  fLastFracMatId = -6378;
 }
 
 InputDataStruct::~InputDataStruct()
@@ -95,6 +96,16 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   
   fKIc = KIc;
   fJradius = Jradius;
+}
+
+void InputDataStruct::SetLastFracMatId(int matid)
+{
+  fLastFracMatId = matid;
+}
+
+int InputDataStruct::GetLastFracMatId()
+{
+  return fLastFracMatId;
 }
 
 REAL InputDataStruct::NthreadsForAssemble()

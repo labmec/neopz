@@ -137,6 +137,11 @@ public:
   void SetNotPropagated();
   bool IsPropagated();
   
+  //MatId
+  void SetLastFracMatId(int matid);
+  int GetLastFracMatId();
+  
+  
   
 private:
   
@@ -178,6 +183,7 @@ private:
   //BCs:
   REAL fSigN;//Sigma.n no problema elastico que servira de espaco de aproximacao para o elastico multifisico
   REAL fQinj;//vazao de 1 asa de fratura dividido pela altura da fratura
+  int fLastFracMatId;
   
   //time:
   REAL fTtot;//Tempo total da simulacao
