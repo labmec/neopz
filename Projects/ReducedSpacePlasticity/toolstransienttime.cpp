@@ -233,7 +233,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   
   if(1) // test using h1 and plane stress linear elasticity
 	{
-    REAL pressure = 20.;
+    REAL pressure = 1.;
 		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1(pressure);
 		TPZNonLinearAnalysis *nlan = new TPZNonLinearAnalysis(cmesh_h1,std::cout);
 		TPZSkylineStructMatrix skyl(cmesh_h1);
@@ -255,6 +255,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 		
 		nlan->PostProcess(0);
     this->ShowDisplacementSigmaYCohesive(cmesh_h1);
+		this->ShowDisplacementSigmaYBottom(cmesh_h1);
 	}
 	
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
@@ -2392,6 +2393,114 @@ void ToolsTransient::ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh)
 		if (nelcomputed == 20) {
 			break;
 		}
+	}
+	
+	std::cout << "cohepoints = " << "{"
+	<< "{" << cohepoints[0].first << "," << cohepoints[0].second << "}";
+	for (int i = 1; i < cohepoints.NElements(); i++) {
+		std::cout << ",{" << cohepoints[i].first << "," << cohepoints[i].second << "}";
+	}
+	std::cout << "};" << std::endl;
+	std::cout << "ListPlot[cohepoints,Joined->True]" << std::endl;
+	
+}
+
+void ToolsTransient::ShowDisplacementSigmaYBottom(TPZCompMesh *cmesh)
+{
+	int nel = cmesh->NElements();
+	
+	TPZStack<std::pair<REAL,REAL> > cohepoints;
+	int nelcomputed = 0;
+	for (int iel = 0; iel < nel; iel++) {
+		TPZCompEl *cel = cmesh->ElementVec()[iel];
+		if (!cel) {
+			continue;
+		}
+		TPZGeoEl *gel = cel->Reference();
+		int matid = gel->MaterialId();
+		if (matid != globMultiFisicMatId1) {
+			continue;
+		}
+		
+		TPZGeoElSide gelside(gel,1);
+		TPZGeoElSide neighbour = gelside.Neighbour();
+		while (gelside != neighbour) {
+			
+			if (neighbour.Element()->Dimension() == 0) {
+				if (neighbour.Element()->MaterialId() == globCohesiveMatId) {
+					break;
+				}
+			}
+			neighbour = neighbour.Neighbour();
+		}
+		if (gelside == neighbour) {
+			TPZGeoElSide gelside(gel,4);
+			TPZGeoElSide neighbour = gelside.Neighbour();
+			while (gelside != neighbour) {
+				
+				if (neighbour.Element()->Dimension() == 1) {
+					if (globFractInputData.IsBC(neighbour.Element()->MaterialId())) {
+						break;
+					}
+				}
+				neighbour = neighbour.Neighbour();
+			}
+			if (gelside == neighbour) {
+				continue;
+			}			
+		}
+		
+		//TPZMultiphysicsCompEl *mpcel = dynamic_cast<TPZMultiphysicsCompEl*> (cel);
+		int var = -6378;
+		
+		int npoints = 3;
+		TPZVec <REAL> qsi(3,-1.), Solout(3,0.);
+		REAL delta =  2./ (REAL) (npoints-1);
+		REAL displa,sigma;
+    
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(cel);
+    int var1 = -1, var2 = -1;
+    if (intel) {
+      var1 = 9;
+      var2 = 6;
+    }
+    else{
+      var1 = 9;
+      var2 = 6;
+    }
+		
+
+		qsi[0] = -1;
+		var = var1;
+		cel->Solution(qsi, var, Solout);
+		displa = Solout[1];
+		
+		var = var2;
+		cel->Solution(qsi, var, Solout);
+		sigma = Solout[0];
+		
+		std::pair<REAL,REAL> mypair(displa,sigma);
+		cohepoints.Push(mypair);
+		
+		if (nelcomputed == 49) {
+			qsi[0] = 1;
+			var = var1;
+			cel->Solution(qsi, var, Solout);
+			displa = Solout[1];
+			
+			var = var2;
+			cel->Solution(qsi, var, Solout);
+			sigma = Solout[0];
+			
+			std::pair<REAL,REAL> mypair(displa,sigma);
+			cohepoints.Push(mypair);
+		}
+
+		nelcomputed++;
+		if (nelcomputed > 50) {
+			DebugStop();
+		}
+		
 	}
 	
 	std::cout << "cohepoints = " << "{"

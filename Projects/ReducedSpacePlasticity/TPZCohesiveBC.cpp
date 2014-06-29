@@ -57,7 +57,7 @@ void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sig
 	if (w < 0.) { // simulates contact between fracture walls in case of closening
 		sigma = big * w*fSigmaT/fDeltaT;
 	}
-	else if (true/*w <= DeltaT*/) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
+	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
 		sigma = big * w * SigmaT/DeltaT;
 	}
 	else if (w <= fDeltaC){ // sigma folow the linear law specified for the cohesive tension
@@ -85,7 +85,7 @@ void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &Sigm
 	if (w < 0.) { // simulates compression between fracture walls in case of closening
 		deriv = big * fSigmaT/fDeltaT;
 	}
-	else if (true/*w <= DeltaT*/) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
+	else if (w <= DeltaT) { // until it reaches the sigmaT max on the first time. It alters the curve at each time step
 		deriv = big * SigmaT/DeltaT;
 	}
 	else if (w <= fDeltaC){ // sigma folow the linear law specified for the cohesive tension
@@ -174,9 +174,14 @@ void TPZCohesiveBC::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
   if (propageted > 1.) { // if propageted, there is nothing to be done
     return;
   }
+
+	REAL InfluenceArea = globFractInputData.Lmax_edge();
+	
 	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
+	CohesiveStress *= InfluenceArea;
 	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
-		
+	DerivCohesive *= InfluenceArea;
+	
 	REAL big = TPZMaterial::gBigNumber;
 	REAL dif = sol_u[0];
 	for (int in = 0; in < phr; in++) 

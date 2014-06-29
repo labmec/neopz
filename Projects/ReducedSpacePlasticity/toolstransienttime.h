@@ -128,6 +128,9 @@ public:
   /// Method to show the displacement x sigmay of the first cohesive elements
 	void ShowDisplacementSigmaYCohesive(TPZCompMesh *cmesh);
 
+  /// Method to show the displacement x sigmay of all the bottom el
+	void ShowDisplacementSigmaYBottom(TPZCompMesh *cmesh);
+
   /// Plot all the hat functions separately using cmeshhat. Deprecated!
   void PlotAllHatsVTK();
   
