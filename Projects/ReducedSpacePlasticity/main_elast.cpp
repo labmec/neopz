@@ -95,10 +95,12 @@ int mainFrac(int argc, char *argv[])
   //MohrCoulomb parameters
   REAL cohesion = 100. * 5.77; //article is 5.77
   REAL phiMC = 30.*M_PI/180.; // article is 30 degres
+	
+	int NThreadsForAssemble = 2;
 
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
-                             QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q);
+                             QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q,NThreadsForAssemble);
   globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
   ToolsTransient ToolTrans(p);
   
@@ -139,7 +141,7 @@ int mainFrac(int argc, char *argv[])
 
 void CohesiveTest()
 {
-	ElastTest();
+	ElastNLTestWithCohesive();
 }
 
 /* Dados do caju

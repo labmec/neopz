@@ -63,12 +63,12 @@ public:
   void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q);
+               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q, int NThreadsForAssemble);
   
   void SetMohrCoulombData(REAL cohesion, REAL phiMC);
   void SetLf(REAL Lf);
   
-  
+  REAL NthreadsForAssemble();
   REAL Lx();
   REAL Ly();
   REAL Lf();
@@ -140,6 +140,8 @@ public:
   
 private:
   
+	int fNthreadsForAssemble;
+	
   //Dimensions:
   REAL fLx;//Dimensao em x do domínio da malha do MEF
   REAL fLy;//Dimensao em y do domínio da malha do MEF

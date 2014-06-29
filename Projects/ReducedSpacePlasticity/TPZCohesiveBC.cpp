@@ -241,16 +241,20 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 		PZError << "The DTST memory number of Rows must be 3 and Cols 1\n";
 		DebugStop();
 	}
-
+	
   REAL DeltaT = DTST(0,0);
 	REAL SigmaT = DTST(1,0);
   REAL propageted = DTST(2,0); // Fracture is considered oppened when propageted is greater than 1!
   if (propageted > 1.) { // if propageted, there is nothing to be done
     return;
   }
-	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
-	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
 	
+	REAL InfluenceArea = globFractInputData.Lmax_edge();
+	
+	this->CalculateSigma(w,DeltaT,SigmaT,CohesiveStress,propageted);
+	CohesiveStress *= InfluenceArea;
+	this->CalculateCohesiveDerivative(w,DeltaT,SigmaT,DerivCohesive,propageted);
+	DerivCohesive *= InfluenceArea;
 
 	for (int in = 0; in < phc; in++)
 	{

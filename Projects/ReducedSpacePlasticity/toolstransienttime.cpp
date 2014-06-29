@@ -25,6 +25,7 @@
 #include "tpzmathtools.cpp"
 #include "TPZVTKGeoMesh.h"
 #include "pzvtkmesh.h"
+#include "TPZSkylineNSymStructMatrix.h"
 
 //Plasticidade
 #include "pzelastoplasticanalysis.h"
@@ -194,7 +195,7 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 	int neqpr = this->fmeshvec[1]->NEquations();	
 	
 	for (int i = 0; i < neqpr; i++) {
-		fmeshvec[1]->Solution()(i,0) = 20.;
+		fmeshvec[1]->Solution()(i,0) = 1.;
 	}
    
 	//AQUINATHAN
@@ -261,11 +262,14 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   TPZCompMesh * cmesh_elast = this->CMeshElastic();
   TPZAnalysis * an = new TPZAnalysis(cmesh_elast,false);
 	TPZSkylineStructMatrix full(cmesh_elast); //caso simetrico
+	if (globFractInputData.NthreadsForAssemble() > 0) {
+		full.SetNumThreads(globFractInputData.NthreadsForAssemble());
+	}
 	an->SetStructuralMatrix(full);
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	an->SetSolver(step);
-	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo todos os problemas
+	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo todos os problemas AO MESMO TEMPO! UAU!!!!
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
 #ifdef DEBUG
@@ -1368,7 +1372,10 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
 	fCohesiveMaterial->SetCurrentState();
   fCohesiveMaterialFirst->SetCurrentState();
   
-  TPZFStructMatrix matsk(fmphysics);
+  TPZSkylineNSymStructMatrix matsk(fmphysics);
+	if (globFractInputData.NthreadsForAssemble() > 0) {
+		matsk.SetNumThreads(globFractInputData.NthreadsForAssemble());
+	}
   
 	an->SetStructuralMatrix(matsk);
 	

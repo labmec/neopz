@@ -17,6 +17,7 @@ InputDataStruct::InputDataStruct()
   fPressureMatIds_StripeId_ElastId.clear();
   fEModel = EElastic;
   fIsPropag = false;
+	fNthreadsForAssemble = 0;
 }
 
 InputDataStruct::~InputDataStruct()
@@ -33,8 +34,10 @@ void InputDataStruct::SetMohrCoulombData(REAL cohesion, REAL phiMC)
 void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                               REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                               int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-                              REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q)
+                              REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q, int NThreadsForAssemble)
 {
+	fNthreadsForAssemble = NThreadsForAssemble;
+	
   fLx = Lx;
   fLy = Ly;
   fLf = Lf;
@@ -92,6 +95,11 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   
   fKIc = KIc;
   fJradius = Jradius;
+}
+
+REAL InputDataStruct::NthreadsForAssemble()
+{
+	return fNthreadsForAssemble;
 }
 
 void InputDataStruct::SetLf(REAL Lf)
