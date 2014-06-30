@@ -129,7 +129,7 @@ void ToolsTransient::Run()
   PostProcessAcumVolW();
   PostProcessVolLeakoff();
   
-  bool initialElasticKickIsNeeded = true;
+  bool initialElasticKickIsNeeded = false;
 	
 	// CUIDADO ESSE CHECKCONV FERRA O RESULTADO FINAL! E ESTA FEITO PARA O CASO DE PRESTRESS
 	bool IWantCheckConv = false;
@@ -1662,14 +1662,7 @@ void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 
 bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded)
 {
- 
-	
-	//AQUINATHAN EquationFilter da hat
-	
-	fmeshvec[0]->Solution()(1,0) = 10.;
-  TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
-	
-	//AQUINATHAN
+
 
   if(initialElasticKickIsNeeded)
   {
@@ -1682,25 +1675,60 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
 	while( fMustStop == false && propagate == false )
 	{
 
+		
+		//AQUINATHAN EquationFilter da hat
+		
+		fmeshvec[0]->Solution()(1,0) = 0.;
+		TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
+		
+		//AQUINATHAN
+
 		TPZFMatrix<REAL> fmat(fmphysics->NEquations(),1);
-		MassMatrix(fmat);
+		REAL tol = 1.e-10;
+    int maxit = 20;		
 		
-    REAL tol = 1.e-10;
-    int maxit = 50;		
-		REAL res = this->IterativeProcess(an,maxit,tol); // Newton Method for one time step!
 		
-		/*
-		an->Solution().Print("Sol");
-		TPZFMatrix<> thisrhs = an->Rhs();
-		thisrhs += fmat;
-		thisrhs.Print("rhs");
-		an->StructMatrix()->EquationFilter().Reset();
-		an->AssembleResidual();
-		an->Rhs().Print("rhsbefore");
-		thisrhs = an->Rhs();
-		thisrhs += fmat;
-		thisrhs.Print("rhs");
-    */
+		REAL delta = 0.001;
+		REAL aj = -6378;
+		TPZStack<std::pair<REAL,REAL> > mypoints;
+		for (int i = 0; i < 9; i++) {
+			aj = i * delta;
+			fmat.Zero();
+			an->Solution().Zero();
+			an->LoadSolution();
+			TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
+			fmeshvec[0]->Solution()(1,0) = aj;
+			TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
+			an->Solution().Print("sol");
+			fmphysics->Solution().Print("solmphysics");
+			MassMatrix(fmat);			
+			REAL res = this->IterativeProcess(an,maxit,tol); // Newton Method for one time step!
+			fmat.Print("fmat");		
+			TPZFMatrix<> thisrhs = an->Rhs();
+			thisrhs += fmat;
+			thisrhs.Print("rhsEqF:");
+			an->StructMatrix()->EquationFilter().Reset();
+			an->AssembleResidual();
+			thisrhs = an->Rhs();
+			thisrhs.Print("rhsbefore:");
+			thisrhs += fmat;			
+			thisrhs.Print("rhs:");
+			std::pair<REAL,REAL> mypair(aj,thisrhs(1,0));
+			mypoints.Push(mypair);
+		}
+		std::cout << "RhsForEachAlphaJ = " << "{"
+		<< "{" << mypoints[0].first << "," << mypoints[0].second << "}";
+		for (int i = 1; i < mypoints.NElements(); i++) {
+			std::cout << ",{" << mypoints[i].first << "," << mypoints[i].second << "}";
+		}
+		std::cout << "};" << std::endl;
+		std::cout << "ListPlot[RhsForEachAlphaJ,Joined->True]" << std::endl;
+		
+		
+		
+
+		MassMatrix(fmat);					
+		REAL res = this->IterativeProcess(an,maxit,tol); // Newton Method for one time step!    
 		 
     if(res >= tol)
     {
@@ -1766,8 +1794,10 @@ REAL ToolsTransient::IterativeProcess(TPZAnalysis *an, int maxit, REAL tol)
 	StiffMatrixLoadVec(an, matK, fres);
 	
 	res_total = fres + fmat;
-	REAL res = Norm(res_total);
+	REAL lastres = Norm(res_total);
+	REAL res = lastres;
 	int nit = 0;
+	an->Solution().Print("sol");
 	std::cout << "iter = " << nit << "\t||res|| = " << res << std::endl;
 	
 #ifdef LOG4CXX
@@ -1818,6 +1848,7 @@ REAL ToolsTransient::IterativeProcess(TPZAnalysis *an, int maxit, REAL tol)
 		if (res <= tol) {
 			std::cout << "Convergencia atingida!!" << std::endl;
 		}
+				
 		nit++;
 	}
 	return res;
