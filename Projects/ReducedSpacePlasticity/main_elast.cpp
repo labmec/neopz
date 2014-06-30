@@ -76,8 +76,8 @@ int mainFrac(int argc, char *argv[])
    //Aqui vai Qinj total mesmo (no poco)!!!
   REAL QinjTot  = -0.0001;
   
-  REAL Ttot = 40.; // em segundos
-  REAL maxDeltaT = 1; // em segundos
+  REAL Ttot = 10.; // em segundos
+  REAL maxDeltaT = 1.; // em segundos
   int nTimes = 1; // quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes)
   
   // LeakOff Param
@@ -91,6 +91,11 @@ int mainFrac(int argc, char *argv[])
   
   // porder
   int p = 1;
+	
+	//cohesive param
+	REAL DeltaC = 0.0001024;
+	REAL DeltaT = 0.1 * DeltaC;
+	REAL SigmaT = 100.;
   
   //MohrCoulomb parameters
   REAL cohesion = 100. * 5.77; //article is 5.77
@@ -100,8 +105,8 @@ int mainFrac(int argc, char *argv[])
 
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
-                             QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q,NThreadsForAssemble);
-  globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
+                             QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q,DeltaC,DeltaT,SigmaT,NThreadsForAssemble);
+  //globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
   ToolsTransient ToolTrans(p);
   
   std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";

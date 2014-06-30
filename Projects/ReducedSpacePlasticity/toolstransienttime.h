@@ -99,9 +99,14 @@ public:
   /// Creates the jacobian and residuum for one step of newton method
   void StiffMatrixLoadVec(TPZAnalysis *an,
                           TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
+	
+	REAL IterativeProcess(TPZAnalysis *an, int maxit, REAL tol);
 
   /// Apply equation filter on first solution if using prestress. NOT USED ANYMORE
   void ApplyEquationFilter(TPZAnalysis * an);
+	
+	// Just for test
+	void ApplyEquationFilterInOneHat(TPZAnalysis * an);
   
   
   /// Post Process Methods

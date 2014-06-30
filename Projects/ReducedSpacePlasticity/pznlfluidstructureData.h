@@ -30,7 +30,7 @@ int const globCohesiveMatIdHalf = -6;
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;
-int const globNHat = 5;
+int const globNHat = 1;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure
@@ -63,7 +63,8 @@ public:
   void SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q, int NThreadsForAssemble);
+               REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q,
+							 REAL DeltaC, REAL DeltaT, REAL SigmaT, int NThreadsForAssemble);
   
   void SetMohrCoulombData(REAL cohesion, REAL phiMC);
   void SetLf(REAL Lf);
@@ -140,13 +141,16 @@ public:
   //MatId
   void SetLastFracMatId(int matid);
   int GetLastFracMatId();
-  
-  
-  
+  	
+	//cohesive
+	REAL DeltaC();
+	REAL DeltaT();
+	REAL SigmaT();
+
 private:
   
 	int fNthreadsForAssemble;
-	
+		
   //Dimensions:
   REAL fLx;//Dimensao em x do domínio da malha do MEF
   REAL fLy;//Dimensao em y do domínio da malha do MEF
@@ -211,6 +215,11 @@ private:
   //MohrCoulomb Parameters
   REAL fCohesion;
   REAL fPhiMC;
+	
+	//Cohesive param
+	REAL fDeltaC;
+	REAL fDeltaT;
+	REAL fSigmaT;
 };
 
 

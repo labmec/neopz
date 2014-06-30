@@ -146,12 +146,24 @@ void ToolsTransient::Run()
     
     if(propagate == true)///Setting new Lfrac and tranferring solution
     {
-      DebugStop(); // The methodology is now different. I dont have to transfer the entire mesh
-
+      DebugStop(); // The methodology is now different. I dont have to transfer the entire mesh or i have to transfer also the int points memory
+     
+      TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
+      lastMPhysicsCMesh = fmphysics;
+      lastElastReferredCMesh = fmeshvec[0];
+      
       REAL newLfrac = globFractInputData.Lf() + globFractInputData.Lmax_edge();
+      
       globFractInputData.SetLf(newLfrac);
       
-      // here should create a new fluid element in the propagated element a
+      this->InitializeUncoupledMeshesAttributes();
+      this->CMeshMultiphysics();
+      this->TransferSolutions(lastMPhysicsCMesh, lastElastReferredCMesh);
+      an = new TPZAnalysis(fmphysics,OptimizeBandwidth);
+      
+      globFractOutputData.PlotElasticVTK(an, anCount);
+      PostProcessAcumVolW();
+      PostProcessVolLeakoff();
       
       globFractInputData.SetNotPropagated(); // so it can run the next time steps
       
@@ -193,14 +205,15 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
   fmeshvec[1] = this->CMeshPressure();
   fgmesh->ResetReference();
 	
-	//AQUINATHAN
-  
+	//AQUINATHAN EquationFilter
+	  /*
 	int neqpr = this->fmeshvec[1]->NEquations();	
 	
+
 	for (int i = 0; i < neqpr; i++) {
 		fmeshvec[1]->Solution()(i,0) = 1.;
 	}
-   
+   */
 	//AQUINATHAN
 	
 	bool SeeSol = false;
@@ -235,7 +248,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
   //Principal Geometric Mesh (Lf initial)
   this->Mesh2D();
   
-  if(1) // test using h1 and plane stress linear elasticity
+  if(0) // test using h1 and plane stress linear elasticity
 	{
     REAL pressure = 1.;
 		TPZCompMesh *cmesh_h1 = this->CMeshCohesiveH1(pressure);
@@ -384,6 +397,30 @@ void ToolsTransient::ApplyEquationFilter(TPZAnalysis * an)
 	an->StructMatrix()->EquationFilter() = eqF;
 	
 }
+
+// equation filter in one hat function
+void ToolsTransient::ApplyEquationFilterInOneHat(TPZAnalysis * an)
+{
+	std::set<long> eqOut;
+	
+	int neq = this->fmphysics->NEquations();
+	long posblock = 1;
+	eqOut.insert(posblock);
+	
+	TPZVec<long> actEquations(neq-eqOut.size());
+	int p = 0;
+	for (long eq = 0; eq < neq; eq++) {
+		if (eqOut.find(eq) == eqOut.end()) {
+			actEquations[p] = eq;
+			p++;
+		}
+	}
+	TPZEquationFilter eqF(neq);
+	eqF.SetActiveEquations(actEquations);
+	an->StructMatrix()->EquationFilter() = eqF;
+	
+}
+
 
 // Used for tests. MustOptimizeBandwitch must be false
 void ToolsTransient::ApplyEquationFilterOnPressure(TPZAnalysis * an)
@@ -1012,8 +1049,9 @@ TPZCompMeshReferred * ToolsTransient::CMeshReduced(TPZCompMesh *cmeshref){
                                                                 planestrain);
   
 	// material coesivo
-	const REAL SigmaT = 3., DeltaC = 0.0001024;
-	const REAL DeltaT = 0.1 * DeltaC;
+	const REAL SigmaT = globFractInputData.SigmaT();
+	const REAL DeltaC = globFractInputData.DeltaC();
+	const REAL DeltaT = globFractInputData.DeltaT();
   fCohesiveMaterial->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *CoheMat(fCohesiveMaterial);
 	cmeshreferred->InsertMaterialObject(CoheMat);
@@ -1194,8 +1232,9 @@ void ToolsTransient::CMeshMultiphysics()
 	fmphysics->InsertMaterialObject(BCond41);
   
 	// material coesivo
-  const REAL SigmaT = 3., DeltaC = 0.0001024;
-	const REAL DeltaT = 0.1 * DeltaC;
+	const REAL SigmaT = globFractInputData.SigmaT();
+	const REAL DeltaC = globFractInputData.DeltaC();
+	const REAL DeltaT = globFractInputData.DeltaT();
   fCohesiveMaterial->SetCohesiveData(SigmaT, DeltaC, DeltaT);
   TPZMaterial *CoheMat(fCohesiveMaterial);
 	fmphysics->InsertMaterialObject(CoheMat);
@@ -1293,8 +1332,9 @@ TPZCompMesh* ToolsTransient::CMeshCohesiveH1(REAL pressure)
   
 	
 	// material coesivo
-  const REAL SigmaT = 3., DeltaC = 0.0001024;
-	const REAL DeltaT = 0.1 * DeltaC;
+	const REAL SigmaT = globFractInputData.SigmaT();
+	const REAL DeltaC = globFractInputData.DeltaC();
+	const REAL DeltaT = globFractInputData.DeltaT();
 	TPZCohesiveBC *CoheMat = new TPZCohesiveBC(globCohesiveMatId);
   CoheMat->SetCohesiveData(SigmaT, DeltaC, DeltaT);
 	cmesh->InsertMaterialObject(CoheMat);
@@ -1377,7 +1417,8 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
 	fCohesiveMaterial->SetCurrentState();
   fCohesiveMaterialFirst->SetCurrentState();
   
-  TPZSkylineNSymStructMatrix matsk(fmphysics);
+  //TPZSkylineNSymStructMatrix matsk(fmphysics);
+  TPZFStructMatrix matsk(fmphysics);
 	if (globFractInputData.NthreadsForAssemble() > 0) {
 		matsk.SetNumThreads(globFractInputData.NthreadsForAssemble());
 	}
@@ -1385,7 +1426,8 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
 	an->SetStructuralMatrix(matsk);
 	
 	// AQUINATHAN
-	this->ApplyEquationFilterOnPressure(an);
+	//this->ApplyEquationFilterOnPressure(an);
+	this->ApplyEquationFilterInOneHat(an);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec,fmphysics);
 	// AQUINATHAN
 	
@@ -1426,12 +1468,12 @@ void ToolsTransient::TransferElasticSolution(TPZCompMesh * cmeshFrom)
   TPZAutoPointer< TPZFunction<STATE> > func = new TElastSolFunction<STATE>(cmeshFrom);
   
   //Setting old solution as forcing function on new cmesh (fmeshvec[0])
-  TPZMaterial * elastMat = NULL;
+  TPZMaterial * ReservMat = NULL;
   std::map<int,TPZMaterial*>::iterator it = fmeshvec[0]->MaterialVec().find(globReservMatId1);
   if(it != fmeshvec[0]->MaterialVec().end())
   {
-    elastMat = it->second;
-    elastMat->SetForcingFunction(func);
+    ReservMat = it->second;
+    ReservMat->SetForcingFunction(func);
   }
   else
   {
@@ -1439,8 +1481,8 @@ void ToolsTransient::TransferElasticSolution(TPZCompMesh * cmeshFrom)
     it = fmeshvec[0]->MaterialVec().find(globReservMatId2);
     if(it != fmeshvec[0]->MaterialVec().end())
     {
-      elastMat = it->second;
-      elastMat->SetForcingFunction(func);
+      ReservMat = it->second;
+      ReservMat->SetForcingFunction(func);
     }
     else
     {
@@ -1459,7 +1501,7 @@ void ToolsTransient::TransferElasticSolution(TPZCompMesh * cmeshFrom)
   anTo.LoadSolution();
   
   //Restoring original state
-  elastMat->SetForcingFunction(NULL);
+  ReservMat->SetForcingFunction(NULL);
   
   ///Integral correction
   REAL AreaTo = IntegrateSolution(fmeshvec[0], 0);
@@ -1621,21 +1663,14 @@ void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded)
 {
  
-	int nrows = an->Solution().Rows();
-	TPZFMatrix<REAL> res_total(nrows,1,0.);
-  
-  TPZFMatrix<REAL> SolIterK = fmphysics->Solution();
-	SolIterK.Print("SolIterK");
-	TPZAutoPointer< TPZMatrix<REAL> > matK;
-	TPZFMatrix<REAL> fres(fmphysics->NEquations(),1);
-  TPZFMatrix<REAL> fmat(fmphysics->NEquations(),1);
-  fres.Zero();
-  fmat.Zero();
-  
-  TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
-  
-  MassMatrix(fmat);
-  
+	
+	//AQUINATHAN EquationFilter da hat
+	
+	fmeshvec[0]->Solution()(1,0) = 10.;
+  TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
+	
+	//AQUINATHAN
+
   if(initialElasticKickIsNeeded)
   {
     TPZFMatrix<REAL> chutenewton(fmeshvec[0]->Solution().Rows(), fmeshvec[0]->Solution().Cols(), 0.);
@@ -1646,68 +1681,27 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
   bool propagate = false;
 	while( fMustStop == false && propagate == false )
 	{
-    fres.Zero();
-    StiffMatrixLoadVec(an, matK, fres);
-    
-    res_total = fres + fmat;
-    REAL res = Norm(res_total);
-    REAL tol = 1.e-8;
-    int maxit = 50;
-    int nit = 0;
-    std::cout << "iter = " << nit << "\t||res|| = " << res << std::endl;
-    
-#ifdef LOG4CXX
-		if (logger->isDebugEnabled()) {
-			std::stringstream totout;
-			totout << "************** Comecando as iteracoes do metodo de Newton *************** " << std::endl;
-			totout << "iter = " << nit << "\t||res|| = " << res << std::endl; 
-			an->Solution().Print("Solution",totout);
-			res_total.Print("restotal",totout);
-			fres.Print("fres",totout);
-			fmat.Print("fmat",totout);
-			matK->Print("matk",totout);				
-			LOGPZ_DEBUG(logger,totout.str())
-		}
-#endif		
 
-    while(res > tol && nit < maxit) //itercao de Newton
-    {
-      an->Rhs() = res_total;
-      an->Solve();
-			an->Solution().Print("dsol");
-      an->LoadSolution(SolIterK + an->Solution());
-      
-      TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
-      
-      SolIterK = an->Solution();
-      
-      fres.Zero();
-      StiffMatrixLoadVec(an, matK, fres);
-			
-      res_total = fres + fmat;
-
-#ifdef LOG4CXX
-			if (logger->isDebugEnabled()) {
-				std::stringstream totout;
-				totout << "iter = " << nit+1 << "\t||res|| = " << res << std::endl; 
-				SolIterK.Print("Solution",totout);
-				res_total.Print("restotal",totout);
-				fres.Print("fres",totout);
-				fmat.Print("fmat",totout);
-				matK->Print("matk",totout);				
-				LOGPZ_DEBUG(logger,totout.str())
-			}
-#endif
-      
-      res = Norm(res_total);
-      std::cout << "iter = " << nit+1 << "\t||res|| = " << res << std::endl;
-			if (res <= tol) {
-				std::cout << "Convergencia atingida!!" << std::endl;
-			}
-      nit++;
-    }
+		TPZFMatrix<REAL> fmat(fmphysics->NEquations(),1);
+		MassMatrix(fmat);
+		
+    REAL tol = 1.e-10;
+    int maxit = 50;		
+		REAL res = this->IterativeProcess(an,maxit,tol); // Newton Method for one time step!
+		
+		/*
 		an->Solution().Print("Sol");
-    
+		TPZFMatrix<> thisrhs = an->Rhs();
+		thisrhs += fmat;
+		thisrhs.Print("rhs");
+		an->StructMatrix()->EquationFilter().Reset();
+		an->AssembleResidual();
+		an->Rhs().Print("rhsbefore");
+		thisrhs = an->Rhs();
+		thisrhs += fmat;
+		thisrhs.Print("rhs");
+    */
+		 
     if(res >= tol)
     {
       std::cout << "\nAtingido o numero maximo de iteracoes, nao convergindo portanto!!!\n";
@@ -1716,16 +1710,15 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     }
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
-		//fmeshvec[0]->Solution().Print("SolEla");
-		//fmeshvec[1]->Solution().Print("SolP");		
 		
 		this->AcceptSolution(an); // this will update the memory
+		
     globFractInputData.UpdateLeakoff(fmeshvec[1]);
     globFractInputData.UpdateActTime();
     
     PostprocessPressure();
     
-    if(globFractInputData.IsPropagated())
+    if(0/*globFractInputData.IsPropagated()*/)
     {//propagou!!!
       globFractInputData.SetMinDeltaT();
       propagate = true;
@@ -1750,6 +1743,86 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
   
   return propagate;
 }
+
+REAL ToolsTransient::IterativeProcess(TPZAnalysis *an, int maxit, REAL tol)
+{
+	int nrows = an->Solution().Rows();
+	
+	TPZFMatrix<REAL> res_total(nrows,1,0.);
+  TPZFMatrix<REAL> SolIterK = fmphysics->Solution();
+	SolIterK.Print("SolIterK");
+	
+	TPZAutoPointer< TPZMatrix<REAL> > matK;
+	TPZFMatrix<REAL> fres(fmphysics->NEquations(),1);
+  TPZFMatrix<REAL> fmat(fmphysics->NEquations(),1);
+  fres.Zero();
+  fmat.Zero();
+
+  TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
+  
+	MassMatrix(fmat);
+		
+	fres.Zero();
+	StiffMatrixLoadVec(an, matK, fres);
+	
+	res_total = fres + fmat;
+	REAL res = Norm(res_total);
+	int nit = 0;
+	std::cout << "iter = " << nit << "\t||res|| = " << res << std::endl;
+	
+#ifdef LOG4CXX
+	if (logger->isDebugEnabled()) {
+		std::stringstream totout;
+		totout << "************** Comecando as iteracoes do metodo de Newton *************** " << std::endl;
+		totout << "iter = " << nit << "\t||res|| = " << res << std::endl; 
+		an->Solution().Print("Solution",totout);
+		res_total.Print("restotal",totout);
+		fres.Print("fres",totout);
+		fmat.Print("fmat",totout);
+		matK->Print("matk",totout);				
+		LOGPZ_DEBUG(logger,totout.str())
+	}
+#endif		
+	
+	while(res > tol && nit < maxit) //itercao de Newton
+	{
+		an->Rhs() = res_total;
+		an->Solve();
+		an->LoadSolution(SolIterK + an->Solution());
+		
+		TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
+		
+		SolIterK = an->Solution();
+		
+		fres.Zero();
+		StiffMatrixLoadVec(an, matK, fres);
+		
+		res_total = fres + fmat;
+		
+#ifdef LOG4CXX
+		if (logger->isDebugEnabled()) {
+			std::stringstream totout;
+			totout << "iter = " << nit+1 << "\t||res|| = " << res << std::endl; 
+			SolIterK.Print("Solution",totout);
+			res_total.Print("restotal",totout);
+			fres.Print("fres",totout);
+			fmat.Print("fmat",totout);
+			matK->Print("matk",totout);				
+			LOGPZ_DEBUG(logger,totout.str())
+		}
+#endif
+		
+		res = Norm(res_total);
+		an->Solution().Print("sol");
+		std::cout << "iter = " << nit+1 << "\t||res|| = " << res << std::endl;
+		if (res <= tol) {
+			std::cout << "Convergencia atingida!!" << std::endl;
+		}
+		nit++;
+	}
+	return res;
+}
+
 
 void ToolsTransient::SetUpdateMem(int update)
 {

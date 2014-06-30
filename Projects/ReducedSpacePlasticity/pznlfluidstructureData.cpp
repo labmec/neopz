@@ -19,6 +19,9 @@ InputDataStruct::InputDataStruct()
   fIsPropag = false;
 	fNthreadsForAssemble = 0;
   fLastFracMatId = -6378;
+	fDeltaC = 0.;
+	fDeltaT = 0.;
+	fSigmaT = 0.;
 }
 
 InputDataStruct::~InputDataStruct()
@@ -35,9 +38,14 @@ void InputDataStruct::SetMohrCoulombData(REAL cohesion, REAL phiMC)
 void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
                               REAL Fx, REAL Fy, REAL preStressXX, REAL preStressXY, REAL preStressYY,
                               int NStripes, REAL Visc, REAL SigN, REAL QinjTot, REAL Ttot, REAL maxDeltaT, int nTimes,
-                              REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q, int NThreadsForAssemble)
+                              REAL Cl, REAL Pe, REAL SigmaConf, REAL Pref, REAL vsp, REAL KIc, REAL Jradius, int ndivV, int ndivH, REAL q, 
+															REAL DeltaC, REAL DeltaT, REAL SigmaT,
+															int NThreadsForAssemble)
 {
 	fNthreadsForAssemble = NThreadsForAssemble;
+	fDeltaC = DeltaC;
+	fDeltaT = DeltaT;
+	fSigmaT = SigmaT;
 	
   fLx = Lx;
   fLy = Ly;
@@ -96,6 +104,18 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   
   fKIc = KIc;
   fJradius = Jradius;
+}
+
+REAL InputDataStruct::DeltaC(){
+	return fDeltaC;
+}
+
+REAL InputDataStruct::DeltaT(){
+	return fDeltaT;
+}
+
+REAL InputDataStruct::SigmaT(){
+	return fSigmaT;
 }
 
 void InputDataStruct::SetLastFracMatId(int matid)
