@@ -49,6 +49,7 @@ void TPZMHMeshControl::CreateCoarseInterfaces(int matid)
     TPZCompMesh *cmesh = CriaMalhaTemporaria();
     
     long nel = fGMesh->NElements();
+    int dimension = fGMesh->Dimension();
     int ninterf;
     
     for(long iel = 0; iel<nel; iel++)
@@ -65,12 +66,23 @@ void TPZMHMeshControl::CreateCoarseInterfaces(int matid)
             if (!intface) {
                 DebugStop();
             }
+            int interfacematid = matid;
             TPZCompEl *left = intface->LeftElement();
             TPZCompEl *right = intface->RightElement();
             long leftind = left->Reference()->Index();
             long rightind = right->Reference()->Index();
+            if (left->Reference()->Dimension() == dimension-1) {
+                // the boundary element is the skeleton element
+                fInterfaces[leftind]=std::make_pair(rightind, leftind);
+                continue;
+            }
+            if (right->Reference()->Dimension() == dimension-1) {
+                // the boundary element is the skeleton element
+                fInterfaces[rightind]=std::make_pair(leftind, rightind);
+                continue;
+            }
             fInterfaces[iel] = std::make_pair(leftind, rightind);
-            gel->SetMaterialId(matid);
+            gel->SetMaterialId(interfacematid);
             gel->DecrementNumInterfaces();
         }
     }
@@ -126,7 +138,7 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
             TPZGeoElSide neighbour = gelside.Neighbour();
             while (neighbour != gelside) {
                 if (neighbour.Element()->Dimension() == dim-1) {
-                    //bcids.insert(neighbour.Element()->MaterialId());
+                    bcids.insert(neighbour.Element()->MaterialId());
                 }
                 neighbour = neighbour.Neighbour();
             }
@@ -212,11 +224,12 @@ void TPZMHMeshControl::BuildComputationalMesh()
     fCMesh->InsertMaterialObject(matleft);
     fCMesh->InsertMaterialObject(matright);
     CreateInternalElements();
-    AddBoundaryElements();
+//    AddBoundaryElements();
     CreateSkeleton();
     CreateInterfaceElements();
-    AddBoundaryInterfaceElements();
+//    AddBoundaryInterfaceElements();
     fCMesh->ExpandSolution();
+    fCMesh->CleanUpUnconnectedNodes();
 }
 
 /// will create the internal elements, one coarse element at a time
@@ -277,7 +290,14 @@ void TPZMHMeshControl::CreateInternalElements()
 void TPZMHMeshControl::CreateSkeleton()
 {
     // comment this line or not to switch the type of skeleton elements
-//    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    int meshdim = fCMesh->Dimension();
+    fCMesh->SetDimModel(meshdim-1);
+    fCMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    int order = fpOrderInternal-2;
+    if (order < 0) {
+        order = 0;
+    }
+    fCMesh->SetDefaultOrder(order);
     std::map<long, std::pair<long,long> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
         long elindex = it->first;
@@ -289,9 +309,10 @@ void TPZMHMeshControl::CreateSkeleton()
         for (int ic=0; ic<nc; ic++) {
             cel->Connect(ic).SetLagrangeMultiplier(1);
         }
-        fCMesh->ElementVec()[index]->Reference()->ResetReference();
+        gel->ResetReference();
         it++;
     }
+    fCMesh->SetDimModel(meshdim);
 }
 
 /// will create the interface elements between the internal elements and the skeleton
@@ -307,9 +328,9 @@ void TPZMHMeshControl::CreateInterfaceElements()
         
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
         int matid = gel->MaterialId();
-        if (matid != fSkeletonMatId) {
-            DebugStop();
-        }
+//        if (matid != fSkeletonMatId) {
+//            DebugStop();
+//        }
         std::set<long> celindices;
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         TPZCompElSide celskeleton = gelside.Reference();
@@ -344,7 +365,8 @@ void TPZMHMeshControl::CreateInterfaceElements()
                 }
                 // this means the element is a boundary. Retain its material id
                 if (gelneigh.Element()->Dimension() < dim) {
-                    matid = gelneigh.Element()->MaterialId();
+                    DebugStop();
+//                    matid = gelneigh.Element()->MaterialId();
                 }
                 celindices.insert(celindex);
                 if (!tmp || i < nstack-1)
@@ -531,6 +553,7 @@ void TPZMHMeshControl::AddBoundaryElements()
         }
         long index;
         fCMesh->CreateCompEl(gel, index);
+        gel->ResetReference();
     }
 }
 

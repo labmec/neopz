@@ -395,7 +395,7 @@ long TPZCompElDisc::CreateMidSideConnect(){
 	TPZGeoEl *ref = Reference();
 	TPZStack<TPZCompElSide> list;
 	int nsides = ref->NSides();
-	int dimgrid = material->Dimension();
+	int dimgrid = Mesh()->Dimension();
 	int dim = Dimension();
 	int existsconnect = 0;
 	

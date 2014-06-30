@@ -94,6 +94,7 @@ const int matInterface = 3;
 
 const int dirichlet = 0;
 const int neumann = 1;
+const int mixed = 2;
 
 int const bc1=-1;
 int const bc2=-2;
@@ -126,10 +127,11 @@ int main(int argc, char *argv[])
     //1 refinamento uniforme
     TPZVec<int> dims(2,0);
     dims[0]=1; dims[1]=2;
-    RefinamentoUniforme(gmesh, 1, dims);
+    int nref = 0;
+    RefinamentoUniforme(gmesh, 0, dims);
     ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
-    
+/*
     //refinamento uniforme em alguns elementos
     TPZStack<TPZManVector<REAL,3> > coordcenter;
     TPZManVector<REAL,3> xcoord(3,0.);
@@ -155,7 +157,7 @@ int main(int argc, char *argv[])
     RefinamentoAdaptado(gmesh,coordcenter);
     ofstream arg2("gmesh2.txt");
 	gmesh->Print(arg2);
-    
+*/    
     //index dos elementos da malha coarse
     std::set<long> coarseindex;
     GetElIndexCoarseMesh(gmesh, coarseindex);
@@ -164,15 +166,15 @@ int main(int argc, char *argv[])
     
     dims.Resize(1, 0);
     dims[0]=2;
-    int nref = 0;
+    nref = 0;
     RefinamentoUniforme(gmesh2, nref, dims);
 
 
     TPZMHMeshControl mhm(gmesh2,coarseindex);
+    mhm.SetInternalPOrder(2);
     mhm.CreateCoarseInterfaces(matCoarse);
     InsertMaterialObjects(mhm.CMesh());
     mhm.BuildComputationalMesh();
-    mhm.CMesh()->CleanUpUnconnectedNodes();
     {
         ofstream arq("gmeshmhm.txt");
         mhm.CMesh()->Reference()->Print(arq);
@@ -202,7 +204,7 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        stiff->Print("Stiffness = ",sout);
+        stiff->Print("Stiffness = ",sout,EMathematicaInput);
         rhs.Print("Rhs = ",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
@@ -433,34 +435,34 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 	cmesh.InsertMaterialObject(mat1);
 	
 	///Inserir condicao de contorno
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
 	
     //BC -1
-    TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,dirichlet, val1, val2);
+    TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,neumann, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(Dirichlet);
     BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2
-	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,dirichlet, val1, val2);
+	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(Dirichlet);
     BCondD2->SetForcingFunction(bcmatDirichlet2);
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
-	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
+	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,neumann, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(Dirichlet);
     BCondD3->SetForcingFunction(bcmatDirichlet3);
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
-	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
+	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,neumann, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(Dirichlet);
     BCondD4->SetForcingFunction(bcmatDirichlet4);
     cmesh.InsertMaterialObject(BCondD4);
     
     //BC -5: dirichlet nulo
-   TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,dirichlet, val1, val2);
+   TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,neumann, val1, val2);
    cmesh.InsertMaterialObject(BCondD5);
 }
 

@@ -407,6 +407,16 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
 	  PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
 	}
 	
+#ifdef LOG4CXX
+    if(loggerCheck->isDebugEnabled())
+	{
+		std::stringstream sout;
+		//stiffness.Print("Matriz de Rigidez: ",sout);
+        mat.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
+		rhs.Print("Right Handside", sout,EMathematicaInput);
+		LOGPZ_DEBUG(loggerCheck,sout.str())
+	}
+#endif
 }
 
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
