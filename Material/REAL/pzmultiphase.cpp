@@ -3094,7 +3094,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     
     REAL Qref = (this->fRhoref*(this->fKref/this->fEtaref))*(this->fPref/this->fLref);
     
-    STATE v2[3];
+    STATE v2[4];
     v2[0] = bc.Val2()(0,0)/Qref;    //  qx
     v2[1] = bc.Val2()(1,0)/Qref;    //  qy
     v2[2] = bc.Val2()(2,0)/this->fPref; //  Pressure
