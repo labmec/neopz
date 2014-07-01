@@ -82,7 +82,7 @@ void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const Pi = 4.*atan(1.);
 // nao esta rodando com estas configuracoes..aguardar Agnaldo
-bool ftriang = false;
+bool ftriang = true;
 bool isStab = false;
 bool iscontinuou = false;
 bool useh2 = false;
@@ -111,16 +111,38 @@ static LoggerPtr logger(Logger::getLogger("pz.main"));
 #include "pztransfer.h"
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     REAL Lx = 1.;
     REAL Ly = 1.;
     
-    ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
+    
+    {// Checando funcoes
+        TPZVec<REAL> pto(2,0.), disp(1,0.),solp(1,0.);
+        pto[0]=0.200935;
+        pto[1]=0.598129;
+        TPZFMatrix<>flux(3,1,0.);
+        SolExata(pto, solp,flux);
+        Forcing(pto, disp);
+        
+        solp.Print(std::cout);
+        flux.Print(std::cout);
+        disp.Print(std::cout);
+        
+        
+    
+    
+    
+    }
+    
+    
+    
+   // ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
+    ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
 
-    for(int p = 1; p<8; p++)
+    for(int p = 1; p<2; p++)
     {
         int pq = p;
         int pp;
@@ -132,7 +154,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 0; ndiv< 8; ndiv++)
+        for (ndiv = 1; ndiv< 2; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -302,15 +324,15 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Geometrica Inicial\n ";
-    //        gmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
+    #ifdef LOG4CXX
+    	if(logger->isDebugEnabled())
+    	{
+            std::stringstream sout;
+            sout<<"\n\n Malha Geometrica Inicial\n ";
+            gmesh->Print(sout);
+          LOGPZ_DEBUG(logger,sout.str())
+    	}
+    #endif
     
 	return gmesh;
 }
