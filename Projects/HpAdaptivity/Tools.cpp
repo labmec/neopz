@@ -27,6 +27,7 @@ int const bc3=-4; //em x=0
 int const dirichlet =0;
 int const neumann = 1;
 int const mixed = 2;
+int matId =1;
 
 
 #ifdef LOG4CXX
@@ -268,12 +269,15 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     
 */
 }
+#define Power pow
+#define ArcTan atan
+#define Sqrt sqrt
 void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //void ForcingTang(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
  //   disp.Redim(2,1);
+    double x = pt[0];
+    double y = pt[1];
     
-    REAL x = pt[0];
-    REAL y = pt[1];
     disp[0]=0;
 
     disp[0]=(-1.)*((-8*(8*(1. - x) - 8*x)*(-0.5 + x)*(1. - y)*y*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) -(32*pow(-0.5 + x,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/ pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) + 8*(1. - x)*x*((-8*(1. - 2*y)*(-0.5 + y)*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + (1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) - (32*pow(-0.5 + y,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) -  2*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))) -  16*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
@@ -357,20 +361,27 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
         comp->SetDimModel(2);
 		// Criar e inserir os materiais na malha
 		TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
+    mat-> SetTrueFShapeHdiv();
 		TPZMaterial * automat(mat);
 		comp->InsertMaterialObject(automat);
 		
+    
+    //funcao do lado direito da equacao do problema
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingTang);
+    dum->SetPolynomialOrder(20);
+    forcef = dum;
+    mat->SetForcingFunction(forcef);
+    
+    
 		
-        TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(ForcingTang);
-		mat->SetForcingFunction(force1);
+//        TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(ForcingTang);
+//     force1->SetPolynomialOrder(20);
+//		mat->SetForcingFunction(force1);
+    
         TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolArcTan);
         mat->SetForcingFunctionExact(exata1);
     
-//    TPZAutoPointer<TPZFunction<STATE> > force1;
-//    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingTang);
-//    dum->SetPolynomialOrder(20);
-//    force1 = dum;
-//    mat->SetForcingFunction(force1);
     
     
     
@@ -380,30 +391,30 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 			
 		///Criar condicoes de contorno
 		
-    
-		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
-        TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
-		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC1);
-		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC2);
+//    
+//		TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
+//        TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
+//		TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(CC1);
+//		TPZAutoPointer<TPZFunction<STATE> > fCC4 = new TPZDummyFunction<STATE>(CC2);
    
 		
 
         TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 
-		TPZMaterial *bnd = automat->CreateBC (mat,bc0,neumann,val1,val2);
-		TPZMaterial *bnd2 = automat->CreateBC (mat,bc1,neumann,val1,val2);
-		TPZMaterial *bnd3 = automat->CreateBC (mat,bc2,neumann,val1,val2);
-		TPZMaterial *bnd4 = automat->CreateBC (mat,bc3,neumann,val1,val2);
+		TPZMaterial *bnd = automat->CreateBC (mat,bc0,dirichlet,val1,val2);
+		TPZMaterial *bnd2 = automat->CreateBC (mat,bc1,dirichlet,val1,val2);
+		TPZMaterial *bnd3 = automat->CreateBC (mat,bc2,dirichlet,val1,val2);
+		TPZMaterial *bnd4 = automat->CreateBC (mat,bc3,dirichlet,val1,val2);
   //      TPZMaterial *bnd5 = automat->CreateBC (automat,-5,0,val1,val2);
  //   TPZMaterial *bnd6 = automat->CreateBC (automat,-6,0,val1,val2);
  //   TPZMaterial *bnd7 = automat->CreateBC (automat,-7,0,val1,val2);
   //  TPZMaterial *bnd8 = automat->CreateBC (automat,-8,0,val1,val2);
     
-	
-            bnd->SetForcingFunction(fCC1);
-            bnd2->SetForcingFunction(fCC2);
-			bnd3->SetForcingFunction(fCC3);
-            bnd4->SetForcingFunction(fCC4);
+//	
+//            bnd->SetForcingFunction(fCC1);
+//            bnd2->SetForcingFunction(fCC2);
+//			bnd3->SetForcingFunction(fCC3);
+//            bnd4->SetForcingFunction(fCC4);
 		
 	
 		///Inserir condicoes de contorno
@@ -411,10 +422,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
 		comp->InsertMaterialObject(bnd2);
 		comp->InsertMaterialObject(bnd3);
 		comp->InsertMaterialObject(bnd4);
-//    comp->InsertMaterialObject(bnd5);
-//    comp->InsertMaterialObject(bnd6);
-//    comp->InsertMaterialObject(bnd7);
-//    comp->InsertMaterialObject(bnd8);
+
 
     
     
@@ -659,6 +667,127 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 #endif 		 		 
 		return gmesh;
 }
+TPZGeoMesh *GMesh(bool ftriang, REAL Lx, REAL Ly){
+    
+    int Qnodes = 4;
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+	
+	TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+	TPZVec <long> TopolLine(2);
+    TPZVec <long> TopolPoint(1);
+	
+	//indice dos nos
+	long id = 0;
+	REAL valx;
+	for(int xi = 0; xi < Qnodes/2; xi++)
+	{
+		valx = xi*Lx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx );//coord X
+		Node[id].SetCoord(1 ,0. );//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	for(int xi = 0; xi < Qnodes/2; xi++)
+	{
+		valx = Lx - xi*Lx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,valx );//coord X
+		Node[id].SetCoord(1 ,Ly);//coord Y
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	//indice dos elementos
+	id = 0;
+    
+    if(ftriang==true)
+    {
+        TopolTriang[0] = 0;
+        TopolTriang[1] = 1;
+        TopolTriang[2] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,matId,*gmesh);
+        id++;
+        
+        TopolTriang[0] = 2;
+        TopolTriang[1] = 1;
+        TopolTriang[2] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
+        id++;
+        
+        TopolLine[0] = 0;
+        TopolLine[1] = 1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+        id++;
+        
+        TopolLine[0] = 2;
+        TopolLine[1] = 1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+        id++;
+        
+        TopolLine[0] = 3;
+        TopolLine[1] = 2;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+        id++;
+        
+        TopolLine[0] = 3;
+        TopolLine[1] = 0;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    }
+    else{
+        TopolQuad[0] = 0;
+        TopolQuad[1] = 1;
+        TopolQuad[2] = 2;
+        TopolQuad[3] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+        id++;
+        
+        TopolLine[0] = 0;
+        TopolLine[1] = 1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+        id++;
+        
+        TopolLine[0] = 1;
+        TopolLine[1] = 2;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+        id++;
+        
+        TopolLine[0] = 2;
+        TopolLine[1] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+        id++;
+        
+        TopolLine[0] = 3;
+        TopolLine[1] = 0;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    }
+    
+	gmesh->BuildConnectivity();
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout<<"\n\n Malha Geometrica Inicial\n ";
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+	return gmesh;
+}
+
+
+
+
+
+
 TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 {
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
