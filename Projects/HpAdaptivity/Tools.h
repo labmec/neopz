@@ -54,6 +54,7 @@ TPZGeoMesh * MalhaGeoT( const int h, bool hrefine);
 TPZGeoMesh * MalhaGeo( const int h, bool hrefine);
 //Malha Quadrilateral formada por 4 elemento e refinamento uniforme
 TPZGeoMesh * MalhaGeo2(const int h, bool hrefine);
+TPZGeoMesh *GMesh(bool ftriang, REAL Lx, REAL Ly);
 //Malha computacional convencional
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
