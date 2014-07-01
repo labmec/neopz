@@ -13,6 +13,7 @@
 #include "pzanalysis.h"
 #include "tpzcompmeshreferred.h"
 #include "TPZPlasticFrac2D.h"
+#include "TPZH1PlasticFrac2D.h"
 #include "TPZSandlerDimaggio.h"
 #include "TPZCohesiveBC.h"
 #include "TPZPlasticStepPV.h"
@@ -79,8 +80,11 @@ public:
   void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
   
   /// Sets if should update memory
-  void SetUpdateMem(int update = true);
-
+  void SetUpdateMem(bool update = true);
+	
+	/// Sets if running with H1 space for elastoplasticity
+	void SetRunH1(bool RunH1 = true);
+	
   /// Updates the memory of each integration point
   void AcceptSolution(TPZAnalysis *an);
   
@@ -178,11 +182,14 @@ public:
   
   /// bool that indicates when the max time of simulation is reached
   bool fMustStop;
+	bool fSetRunH1;
   
   /// Sandler Dimaggio material for coupled problem (Good idea to exchange to pzsandlerextend!)
   //TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial1;
   
   /// MohrCoulomb material for coupled problem
+  TPZH1PlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * fCouplingMaterialH1;
+	
   TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * fCouplingMaterial1;
   TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fPlasticStepPV;
 

@@ -64,22 +64,27 @@ REAL mypow(REAL a, int n)
 ToolsTransient::ToolsTransient(){
   fMustStop = true;
   fCouplingMaterial1 = NULL;
+	fCouplingMaterialH1 = NULL;
 	fCohesiveMaterial = NULL;
   fCohesiveMaterialFirst = NULL;
   fgmesh = NULL;
   fmeshvec.Resize(0);
   fmphysics = NULL;
+	fSetRunH1 = false;
   DebugStop();//Nao deveria utilizar este construtor
 }
 
 ToolsTransient::ToolsTransient(int pOrder)
 {
   fpOrder = pOrder;
+	fSetRunH1 = false;
   fMustStop = false;
   
   int dim = 2;
   //fCouplingMaterial1 = new TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
   fCouplingMaterial1 = new TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
+	
+	fCouplingMaterialH1 = new TPZH1PlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(globMultiFisicMatId1,dim, globFractInputData.E1(), globFractInputData.Poisson1(), globFractInputData.Visc());
   
   if (globFractInputData.IsMohrCoulomb()) {
     this->SetMohrCoulombParameters(globFractInputData.Poisson1(), globFractInputData.E1(), globFractInputData.Cohesion(), globFractInputData.PhiMC(), globFractInputData.PhiMC());
@@ -90,6 +95,7 @@ ToolsTransient::ToolsTransient(int pOrder)
 	
   int planestrain = 0;
   fCouplingMaterial1->SetfPlaneProblem(planestrain);
+	fCouplingMaterialH1->SetfPlaneProblem(planestrain);
   
   fgmesh = NULL;
   fmeshvec.Resize(2);
@@ -106,8 +112,14 @@ void ToolsTransient::SetMohrCoulombParameters(REAL poisson, REAL elast, REAL coh
 
 ToolsTransient::~ToolsTransient(){
 	delete fCouplingMaterial1;
+	delete fCouplingMaterialH1;
 	delete fCohesiveMaterial;
   delete fCohesiveMaterialFirst;
+}
+
+void ToolsTransient::SetRunH1(bool RunH1)
+{
+	fSetRunH1 = RunH1;
 }
 
 
@@ -119,6 +131,7 @@ void ToolsTransient::Run()
   int anCount = 0;
   if (globFractInputData.IsMohrCoulomb() || globFractInputData.IsSandler()) {
     fCouplingMaterial1->SetRunPlasticity(); // AQUINATHAN PLASTICIDADE
+		fCouplingMaterialH1->SetRunPlasticity();
   }
   this->InitializeUncoupledMeshesAttributes();
   this->CMeshMultiphysics();
@@ -1184,12 +1197,23 @@ void ToolsTransient::CMeshMultiphysics()
   fmphysics->SetDefaultOrder(fpOrder);
   
   fCouplingMaterial1->SetPlasticity(fPlasticStepPV);
-  TPZMaterial *mat1(fCouplingMaterial1);
+	fCouplingMaterialH1->SetPlasticity(fPlasticStepPV);
+	
+	TPZMaterial *mat1 = NULL;
+	if (fSetRunH1) {
+		mat1 = fCouplingMaterialH1;
+	}
+	else {
+	  mat1 = fCouplingMaterial1;
+	}
+	if (!mat1) {
+		DebugStop();
+	}
   
   fmphysics->InsertMaterialObject(mat1);
   
   ///Inserir condicao de contorno
-  REAL big = fCouplingMaterial1->gBigNumber;
+  REAL big = TPZMaterial::gBigNumber;
   
   TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
   
@@ -1202,7 +1226,17 @@ void ToolsTransient::CMeshMultiphysics()
     int elastId = it->second.second;
     if(elastId == globReservMatId1)
     {//estou no globReservMatId1
-      TPZMaterial * BCond11 = mat1->CreateBC(fCouplingMaterial1, bcId, typeNeumann, val1, val2);
+			TPZMaterial * BCond11 = NULL;
+			if (fSetRunH1) {
+				BCond11 = mat1->CreateBC(fCouplingMaterialH1, bcId, typeNeumann, val1, val2);
+			}
+			else {
+				BCond11 = mat1->CreateBC(fCouplingMaterial1, bcId, typeNeumann, val1, val2);
+			}
+			if (!BCond11) {
+				DebugStop();
+			}
+      
       fmphysics->InsertMaterialObject(BCond11);
     }
     else
@@ -1216,19 +1250,19 @@ void ToolsTransient::CMeshMultiphysics()
 	// dirichlet na direita e topo
   val2.Redim(3,1);
   val1.Redim(3,2);
-  TPZMaterial * BCond21 = fCouplingMaterial1->CreateBC(mat1, globDirichletElastMatId1, typeDir_elast, val1, val2);
+  TPZMaterial * BCond21 = mat1->CreateBC(mat1, globDirichletElastMatId1, typeDir_elast, val1, val2);
   fmphysics->InsertMaterialObject(BCond21);
   
  	// dirichlet em x na esquerda
   val1(0,0) = big;
-  TPZMaterial * BCond31 = fCouplingMaterial1->CreateBC(mat1, globMixedElastMatId, typeMix_elast, val1, val2);
+  TPZMaterial * BCond31 = mat1->CreateBC(mat1, globMixedElastMatId, typeMix_elast, val1, val2);
   fmphysics->InsertMaterialObject(BCond31);
 
 	// vazao de entrada
   val2.Redim(3,1);
   val1.Redim(3,2);
   val2(0,0) = globFractInputData.Qinj();
-  TPZMaterial * BCond41 = fCouplingMaterial1->CreateBC(mat1, globBCfluxIn, typeNeum_pressure, val1, val2);
+  TPZMaterial * BCond41 = mat1->CreateBC(mat1, globBCfluxIn, typeNeum_pressure, val1, val2);
 	fmphysics->InsertMaterialObject(BCond41);
   
 	// material coesivo
@@ -1413,7 +1447,13 @@ void ToolsTransient::SolveNLElasticity(TPZCompMesh *cmesh, TPZNonLinearAnalysis 
 
 void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec)
 {
-	fCouplingMaterial1->SetCurrentState();
+	if (fSetRunH1) {
+		fCouplingMaterialH1->SetCurrentState();
+	}
+	else {
+		fCouplingMaterial1->SetCurrentState();
+	}
+	
 	fCohesiveMaterial->SetCurrentState();
   fCohesiveMaterialFirst->SetCurrentState();
   
@@ -1427,8 +1467,8 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
 	
 	// AQUINATHAN
 	//this->ApplyEquationFilterOnPressure(an);
-	this->ApplyEquationFilterInOneHat(an);
-	TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec,fmphysics);
+	//this->ApplyEquationFilterInOneHat(an);
+	//TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec,fmphysics);
 	// AQUINATHAN
 	
 	TPZStepSolver<REAL> step;
@@ -1652,7 +1692,13 @@ void ToolsTransient::TransferLeakoff(TPZCompMesh * oldMphysicsCMesh)
 
 void ToolsTransient::MassMatrix(TPZFMatrix<REAL> & Un)
 {
-  fCouplingMaterial1->SetLastState();
+	if (fSetRunH1) {
+		fCouplingMaterialH1->SetLastState();
+	}
+	else {
+		fCouplingMaterial1->SetLastState();
+	}
+	
 	fCohesiveMaterial->SetLastState();
   fCohesiveMaterialFirst->SetLastState();
 	TPZSpStructMatrix matsp(fmphysics);
@@ -1678,20 +1724,20 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
 		
 		//AQUINATHAN EquationFilter da hat
 		
-		fmeshvec[0]->Solution()(1,0) = 0.;
-		TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
+		//fmeshvec[0]->Solution()(1,0) = 0.;
+		//TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fmphysics);
 		
 		//AQUINATHAN
 
-		TPZFMatrix<REAL> fmat(fmphysics->NEquations(),1);
+		//TPZFMatrix<REAL> fmat(fmphysics->NEquations(),1);
 		REAL tol = 1.e-10;
     int maxit = 20;		
 		
-		
+		/* Teste do phil
 		REAL delta = 0.001;
 		REAL aj = -6378;
 		TPZStack<std::pair<REAL,REAL> > mypoints;
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < 30; i++) {
 			aj = i * delta;
 			fmat.Zero();
 			an->Solution().Zero();
@@ -1724,10 +1770,11 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
 		std::cout << "};" << std::endl;
 		std::cout << "ListPlot[RhsForEachAlphaJ,Joined->True]" << std::endl;
 		
+		 */
 		
 		
 
-		MassMatrix(fmat);					
+		//MassMatrix(fmat);					
 		REAL res = this->IterativeProcess(an,maxit,tol); // Newton Method for one time step!    
 		 
     if(res >= tol)
@@ -1754,8 +1801,8 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     else
     {//nao propagou!!!
       globFractInputData.SetNextDeltaT();
-      fmat.Zero();
-      MassMatrix(fmat);
+      //fmat.Zero();
+      //MassMatrix(fmat);
       
       globFractOutputData.PlotElasticVTK(an);
       PostProcessAcumVolW();
@@ -1855,7 +1902,7 @@ REAL ToolsTransient::IterativeProcess(TPZAnalysis *an, int maxit, REAL tol)
 }
 
 
-void ToolsTransient::SetUpdateMem(int update)
+void ToolsTransient::SetUpdateMem(bool update)
 {
 	if(!fmphysics) return;
 	
@@ -1894,9 +1941,9 @@ void ToolsTransient::AcceptSolution(TPZAnalysis *an)
 	
 	this->SetUpdateMem(false);
 	
-	an->Solution().Zero();
+	//an->Solution().Zero();
 	
-	an->LoadSolution();
+	//an->LoadSolution();
 }
 
 void ToolsTransient::PostprocessPressure()
