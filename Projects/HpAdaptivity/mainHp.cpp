@@ -69,32 +69,38 @@ using namespace std;
 int main()
 {
 	
-//#ifdef LOG4CXX
-//	{
-//		InitializePZLOG();
-//		std::stringstream sout;
-//		sout<< "Testando p adaptatividade"<<endl;
-//		LOGPZ_DEBUG(logger, sout.str().c_str());
-//	}
-//#endif
+#ifdef LOG4CXX
+	{
+		InitializePZLOG();
+		std::stringstream sout;
+		sout<< "Testando p adaptatividade"<<endl;
+		LOGPZ_DEBUG(logger, sout.str().c_str());
+	}
+#endif
 	std::ofstream erro("TaxaArcTanTriangUni.txt");
     //std::ofstream erro("TaxaArcTanQuadUni.txt");
  //   std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
-    	
+    
+    bool ftriang=true;
+    REAL Lx=1;
+    REAL Ly=1;
+    
+    
 	TPZVec<REAL> calcErro;
 	for (int porder=1; porder<5; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<8;h++){
+			for(int h=1;h<7;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
 					bool hrefine=false;//true nao uniforme
 					bool prefine=false;
-                TPZGeoMesh *gmesh = MalhaGeoT(h,hrefine);
+                TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
+                UniformRefine(gmesh, h);
 
-                std::ofstream filemesh("MalhaGeoArcTan.vtk");
-               PrintGMeshVTK( gmesh, filemesh);
+  //              std::ofstream filemesh("MalhaGeoArcTan.vtk");
+  //            PrintGMeshVTK( gmesh, filemesh);
 //
 //              RefiningNearCircunference(2,gmesh,h,1);
 //                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
@@ -110,7 +116,7 @@ int main()
         //2. Resolve o problema
 		
 		 TPZAnalysis analysis(cmesh);
-         SolveSyst(analysis, cmesh, 8);
+         SolveSyst(analysis, cmesh, 1);
         // SolveLU ( analysis );
 			
 			
