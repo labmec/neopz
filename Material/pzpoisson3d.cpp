@@ -32,6 +32,7 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
+    fShapeHdiv=false;
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
@@ -43,6 +44,7 @@ TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1),
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
+    fShapeHdiv=false;
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZDiscontinuousGalerkin(copy){
@@ -55,6 +57,7 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
 	fDim = copy.fDim;
 	fK   = copy.fK;
 	fC   = copy.fC;
+    fShapeHdiv= copy.fShapeHdiv;
 	for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
 	fSymmetry = copy.fSymmetry;
 	fSD = copy.fSD;
@@ -239,6 +242,16 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	for(i=0; i<numdual; i++)
 	{
 		ef(numvec+i,0) += (STATE)((-1.)*weight*data.phi(numprimalshape+i,0))*fXfLoc;//calcula o termo da matriz f
+        
+#ifdef LOG4CXX
+		{
+            std::stringstream sout;
+            sout<< "Verificando termo fonte\n";
+            sout << "  pto  " <<data.x << std::endl;
+            sout<< " fpto " <<fXfLoc <<std::endl;
+            LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 	}
     
 }
@@ -301,7 +314,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
-	if(data.fShapeType == TPZMaterialData::EVecandShape || data.fShapeType == TPZMaterialData::EVecShape)
+	if(fShapeHdiv==true)//data.fShapeType == TPZMaterialData::EVecandShape || data.fShapeType == TPZMaterialData::EVecShape)
 	{
 		
 		ContributeBCHDiv(data , weight , ek, ef, bc);
