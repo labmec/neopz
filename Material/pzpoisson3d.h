@@ -57,6 +57,8 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Penalty term definition */
 	EPenaltyType fPenaltyType;
+    
+    bool fShapeHdiv;
 	
 public:
 	
@@ -98,6 +100,10 @@ public:
 	void SetSymmetric(){
 		this->fSymmetry = -1.0;
 	}
+    void SetTrueFShapeHdiv(){
+        fShapeHdiv=true;
+    }
+    
 	
 	/** @brief Set material elliptic term as the Baumann's formulation, i.e. the non-symmetrical formulation */
 	void SetNonSymmetric() {
