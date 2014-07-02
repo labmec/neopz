@@ -282,6 +282,11 @@ int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
         return 2*order;
     }
 
+    if(fForcingFunction){
+        int order = 0;
+        order = fForcingFunction->PolynomialOrder();
+        return 2*order;
+    }
     return 2*elPMaxOrder;
     
 }
