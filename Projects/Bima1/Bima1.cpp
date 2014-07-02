@@ -93,24 +93,36 @@ using namespace std;
 
 TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder);
 
+TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi);
+
+
+//pira
+bool EstaNoQuadrado(const TPZVec<REAL> &xVec, REAL r, REAL tol);
+REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh);
+REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REAL> &normal);
+
+#include "pzfmatrix.h"
+#include "pzaxestools.h"
+
+bool erronoquadrado = true;
 int main()
 {
     
     std::ofstream myerrorfile("erros.txt");
+//	
+//#ifdef LOG4CXX
+//    if (logger->isDebugEnabled())
+//	{
+//		InitializePZLOG();
+//		std::stringstream sout;
+//		sout<< "Problema Hibrido do Abimael"<<endl;
+//		LOGPZ_DEBUG(logger, sout.str());
+//	}
+//#endif
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-	{
-		InitializePZLOG();
-		std::stringstream sout;
-		sout<< "Problema Hibrido do Abimael"<<endl;
-		LOGPZ_DEBUG(logger, sout.str());
-	}
-#endif
-	
-	for (int porder= 1; porder<4; porder++) {
+	for (int porder= 2; porder<3; porder++) {
 		
-		for(int h=1;h<5;h++){
+		for(int h=6;h<8;h++){
 			
 			
 			TPZGeoMesh *gmesh = MalhaGeo(h);//malha geometrica
@@ -118,17 +130,21 @@ int main()
 			
 			TPZCompMesh *cmesh = CreateHybridCompMesh(*gmesh,porder);//malha computacional
             
+            std::ofstream out2("gmeshfinal.txt");
+            gmesh->Print(out2);
+            
             GroupElements(cmesh);
-			
-			
-			
+            
 			cmesh->LoadReferences();//mapeia para a malha geometrica lo
+            
+            std::ofstream out("cmesh.txt");
+            cmesh->Print(out);
 			
 			TPZAnalysis analysis(cmesh);
             
             TPZSkylineNSymStructMatrix str(cmesh);
-            
-            
+            str.SetNumThreads(8);
+            //TPZFStructMatrix str(cmesh);
             
             TPZAutoPointer<TPZMatrix<STATE> > mat = str.Create();
             str.EquationFilter().Reset();
@@ -143,25 +159,35 @@ int main()
             TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
             TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
             analysis.SetSolver(autogmres);
-
-            
+           
             analysis.Run();
+            
             TPZVec<std::string> scalnames(1),vecnames(0);
             scalnames[0] = "Solution";
             analysis.DefineGraphMesh(2,scalnames,vecnames,"bima.vtk");
             
-            analysis.PostProcess(0);
-            
-            analysis.SetExact(SolExataSteklov);
-            TPZVec<REAL> erros(3);
-            analysis.PostProcessError(erros);
+            myerrorfile << "\nh = "<< h << " p = " << porder << "\n";
             myerrorfile << "neq = " << cmesh->NEquations() << "\n";
-            myerrorfile << "h = "<< h << " p = " << porder << "\n";
-            myerrorfile << "H1 = " << erros[0];
-            myerrorfile << " L2 = " << erros[1];
-            myerrorfile << " semi H1 = " << erros[2] << std::endl;
             
-            
+            //erro global
+            if(erronoquadrado==false){
+                analysis.PostProcess(0);
+                analysis.SetExact(SolExataSteklov);
+                TPZVec<REAL> erros(3);
+                analysis.PostProcessError(erros);
+                myerrorfile << "H1 = " << erros[0];
+                myerrorfile << " L2 = " << erros[1];
+                myerrorfile << " semi H1 = " << erros[2] << "\n"<<std::endl;
+            }
+            else{
+               
+                 REAL errofluxo =  Compute_dudnQuadradoError(h, cmesh);
+                // REAL errofluxo = Compute_dudnQuadradoError(h, cmesh, false);
+                //REAL errofluxo = Error_dudn(cmesh, h);
+                myerrorfile<<"Erro semi H1 para fluxo = " << errofluxo<<"\n\n";
+                myerrorfile.flush();
+            }
+
 				
             cmesh->SetName("Malha depois de Analysis-----");
 #ifdef LOG4CXX
@@ -177,6 +203,7 @@ int main()
             delete gmesh;
 	
         }
+        myerrorfile << "\n"<<std::endl;
     }
 	return 0;
 }
@@ -255,6 +282,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
     }
     
 	comp->AutoBuild(matids);
+    comp->SetDimModel(2);
     
 	comp->AdjustBoundaryElements();//ajusta as condicoes de contorno
 	comp->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
@@ -294,10 +322,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	}
 #endif
 	
-	
-	
     return comp;
-	
 }
 
 
@@ -476,3 +501,224 @@ void GroupElements(TPZCompMesh *cmesh)
     }
 #endif
 }
+
+TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi){
+    const int nel = cmesh->NElements();
+    for(int iel = 0; iel < nel; iel++){
+        TPZCondensedCompEl * cel = dynamic_cast<TPZCondensedCompEl *>(cmesh->ElementVec()[iel]);
+        if(!cel) continue;
+        if(cel->Dimension()==1) continue;
+    
+        TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(cel->ReferenceCompEl());
+
+        TPZInterpolationSpace *sp;
+        bool IsInDomain;
+        for(int i=0; i<eg->GetElGroup().size(); i++)
+        {
+            sp = dynamic_cast<TPZInterpolationSpace *>(eg->GetElGroup()[i]);
+            if(!sp) continue;
+            IsInDomain = sp->Reference()->ComputeXInverse(xVec, qsi, 1e-8);
+            if(IsInDomain) return sp;
+        }
+    }
+    
+    DebugStop();//nao achei ninguem
+    return NULL;
+    
+}
+
+///Gamma eh a uniao das regioes: 1) x=-0.25 e 0<=y<=0.25; 2) -0.25<=x<=0.25 e y=0.25; 3) x=0.25 e 0<=y<=0.25
+//considera-se apenas malha quadrilateral
+REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh)
+{
+    
+    REAL error = 0.;
+    const REAL rsize = 0.25;
+    const int nel = cmesh->NElements();
+    int dim = cmesh->Dimension();
+    int facesFound = 0;
+    for(int iel = 0; iel < nel; iel++)
+    {
+        TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cmesh->ElementVec()[iel]);
+        if(!sp) continue;
+        
+        int dimcel = sp->Dimension();
+        if(dimcel != dim-1) continue;
+        int matid = sp->Material()->Id();
+        if(matid < 0) continue;
+      
+        TPZGeoEl * gel = sp->Reference();
+        TPZManVector<REAL,3> qsi(gel->Dimension()), xCenter(3,0.);
+        gel->CenterPoint(gel->NSides()-1, qsi);
+        gel->X(qsi,xCenter);
+        const REAL tol = 1e-3;
+        if(EstaNoQuadrado(xCenter,rsize,tol) == false) continue;
+        facesFound++;
+        
+        TPZManVector<REAL> faceNormal(3,0.);
+        if(xCenter[0]==-0.25) faceNormal[0]=-1.;
+        if(xCenter[0]== 0.25) faceNormal[0]=1.;
+        if(xCenter[1]== 0.25) faceNormal[1]=1.;
+        
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 2);
+        TPZManVector<int,3> order(gel->Dimension(),intrule->GetMaxOrder());
+        intrule->SetOrder(order);
+        
+        const int npoints = intrule->NPoints();
+        //LOOP OVER INTEGRATION POINTS
+        for(int ip = 0; ip < npoints; ip++){
+            REAL weight, detjac;
+            intrule->Point(ip,qsi,weight);
+            TPZFNMatrix<9> jacobian(3,3), axes(3,3), jacinv(3,3);
+            gel->Jacobian( qsi, jacobian, axes, detjac, jacinv);
+            weight *= fabs(detjac);
+            const REAL dudnval = Compute_dudn(sp,qsi,faceNormal);
+            TPZManVector<REAL> xVec(3,0.);
+            gel->X(qsi,xVec);
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            SolExataSteklov(xVec, uExato, duExato);
+            const REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
+            error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
+        }///for i
+    }///iel
+    
+    
+    int ninterf = 4*pow(2.,ndiv-1);
+    //for(int i = 1; i < ndiv-1; i++) n *= 2;
+    if(facesFound != ninterf){
+        std::cout<<"Opa, numero errado de interfaces"<< std::endl;
+        DebugStop();
+    }
+    
+    error = sqrt(error);
+    return error;
+    
+}///method
+
+
+bool EstaNoQuadrado(const TPZVec<REAL> &xVec, REAL r, REAL tol){
+    
+    const REAL x = xVec[0];
+    const REAL y = xVec[1];
+    
+    //esta aresta nunca seria bem integrada por causa da singularidade  ///aresta y = 0
+    /*tamarindo  if( fabs(y-0.) <= tol && fabs(x) <= r + tol){
+     return true;
+     }        */
+    
+    ///aresta y = r
+    if( fabs(y-r) <= tol && fabs(x) <= r +tol ){
+        return true;
+    }
+    
+    ///aresta x = -r ou x = +r
+    if( fabs( fabs(x) -r ) <= tol && y <= r + tol){
+        return true;
+    }
+    
+    return false;
+    
+}///bool
+
+REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REAL> &normal){
+    
+    TPZGeoEl *gel = sp->Reference();
+    if(gel->Dimension()!=1) DebugStop();
+    
+    //procurando elemento de interface vizinho
+    TPZStack<TPZCompElSide> neighequal;
+    neighequal.Resize(0);
+    TPZCompElSide celside(sp,gel->NSides()-1);
+    celside.EqualLevelElementList(neighequal, 0, 0);
+    
+    int i, nneighs = neighequal.size();
+    if(nneighs!=4) DebugStop();
+//    for(i=0; i<nneighs; i++){
+//        neighequal[i].Element()->Print();
+//    }
+    
+    TPZFMatrix<REAL> dsoldxL, dsoldxR;
+    TPZStack<TPZFMatrix<REAL>,2> dsolVec;
+    for(i=0; i<nneighs; i++){
+    
+        TPZInterfaceElement *face = dynamic_cast<TPZInterfaceElement *>(neighequal[i].Element());
+        if(!face) continue;
+        
+        //debug
+        TPZManVector<REAL> faceNormal(3);
+        face->CenterNormal(faceNormal);
+        REAL inner = faceNormal[0]*normal[0] + faceNormal[1]*normal[1];
+        if(fabs(inner) < 0.95){
+            DebugStop();
+        }
+        
+        //Transformacao do elemento de Lagrange para o elemento de interface
+        TPZGeoElSide gels(gel,gel->NSides()-1);
+        TPZGeoElSide gelintef = neighequal[i].Reference();
+        TPZGeoElSide gelsideinterf(gelintef.Element(),gelintef.Element()->NSides()-1);
+        TPZTransform tr1 = gels.NeighbourSideTransform(gelintef);
+        TPZTransform tr2 = gelintef.SideToSideTransform(gelsideinterf);
+        TPZTransform transfLagranToInterf = tr2.Multiply(tr1);
+        TPZManVector<REAL,3> IntPointInterf(2);
+        transfLagranToInterf.Apply(intpoint,IntPointInterf);
+        
+        
+        //Transformacao do elemento de interface para o elemento 2D
+        TPZCompElSide LeftSide = face->LeftElementSide();
+        TPZTransform transfLeft;
+        face->ComputeSideTransform(LeftSide, transfLeft);
+        TPZInterpolationSpace * LeftEl = dynamic_cast<TPZInterpolationSpace*>(LeftSide.Element());
+        
+        TPZCompElSide RightSide = face->RightElementSide();
+        TPZTransform transfRight;
+        face->ComputeSideTransform(RightSide, transfRight);
+        TPZInterpolationSpace * RightEl = dynamic_cast<TPZInterpolationSpace*>(RightSide.Element());
+        
+        TPZManVector<REAL,3> LeftIntPoint(2), RightIntPoint(2);
+        TPZVec<REAL> solL, solR;
+        TPZFMatrix<REAL> dsoldaxes(2,1);
+        
+        //Calculo da solucao
+        int count = 0;
+        if(LeftSide.Element()->Dimension() > sp->Dimension())
+        {
+            transfLeft.Apply(IntPointInterf, LeftIntPoint);
+            TPZMaterialData dataL;
+            LeftEl->InitMaterialData(dataL);
+            LeftEl->ComputeShape(LeftIntPoint, dataL);
+            LeftEl->ComputeSolution(LeftIntPoint, dataL);
+            dsoldaxes(0,0) = dataL.dsol[0][0];
+            dsoldaxes(1,0) = dataL.dsol[0][1];
+            TPZAxesTools<STATE>::Axes2XYZ(dsoldaxes, dsoldxL, dataL.axes);
+            dsolVec.push_back(dsoldxL);
+            count++;
+            continue;
+        }
+        
+        if(RightSide.Element()->Dimension() > sp->Dimension())
+        {
+            transfRight.Apply(IntPointInterf, RightIntPoint);
+            TPZMaterialData dataR;
+            RightEl->InitMaterialData(dataR);
+            RightEl->ComputeShape(LeftIntPoint, dataR);
+            RightEl->ComputeSolution(LeftIntPoint, dataR);
+            dsoldaxes(0,0) = dataR.dsol[0][0];
+            dsoldaxes(1,0) = dataR.dsol[0][1];
+            TPZAxesTools<STATE>::Axes2XYZ(dsoldaxes, dsoldxR, dataR.axes);
+            dsolVec.push_back(dsoldxR);
+            count++;
+            continue;
+        }
+        
+        if(count==0 || dsolVec.size()!=2){
+            DebugStop();
+        }
+    }
+    
+    REAL result;
+    result = (0.5*(dsolVec[0](0,0)*normal[0]+dsolVec[0](1,0)*normal[1]) + 0.5*(dsolVec[1](0,0)*normal[0]+dsolVec[1](1,0)*normal[1]));
+    return result;
+}
+
+
