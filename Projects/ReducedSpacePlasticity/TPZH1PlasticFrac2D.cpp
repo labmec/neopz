@@ -68,7 +68,7 @@ TPZH1PlasticFrac2D<T,TMEM>::~TPZH1PlasticFrac2D()
 template<class T,class TMEM>
 int TPZH1PlasticFrac2D<T,TMEM>::NStateVariables()
 {
-	return 1;
+	return 2;
 }
 
 template<class T,class TMEM>
@@ -109,14 +109,36 @@ void TPZH1PlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, RE
 	TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
 	if(shapetype == datavec[0].EVecShape)
 	{
-		std::cout << " The space to elasticity problem must be reduced space.\n";
+		std::cout << " The space to elasticity problem cant be reduced space.\n";
 		DebugStop();
 	}
   
   if (fSetRunPlasticity)
   {
+    //const int phr = datavec[0].phi.Rows();
+    //TPZFNMatrix<40,REAL> ekP(phr,phr,0.), efP(phr,1,0.);
     ContributePlastic(datavec[0],weight,ek,ef);
+    /*
+    for (int i = 0; i < phr; i++) {
+      ef(i,0) += efP(i,0);
+      for (int j = 0; j < phr; j++) {
+        ek(i,j) += ekP(i,j);
+      }
+    }*/
    	ContributePressure(datavec, weight, ek, ef);
+    
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+      std::stringstream sout;
+      sout << "<<< TPZH1PlasticFrac2D<T,TMEM>::Contribute ***";
+      sout << " Resultant rhs vector:\n" << ef;
+      sout << " Resultant stiff vector:\n" << ek;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    
     return;
   }
 	DebugStop();
@@ -458,6 +480,7 @@ void TPZH1PlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &dat
 	
 	int phipRows = phi_p.Rows();
 	int phiuRows = phi_u.Rows();
+  int phiuCols = phi_u.Cols();
 	
 	REAL visc = this->fVisc;
 	REAL deltaT = globFractInputData.actDeltaT();
@@ -727,9 +750,9 @@ template<class T,class TMEM>
 void TPZH1PlasticFrac2D<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
 	TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
-	if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!= 0)
+	if(shapetype == datavec[0].EVecShape)
 	{
-		std::cout << " The space to elasticity problem must be reduced space.\n";
+		std::cout << " The space to elasticity problem cant be reduced space.\n";
 		DebugStop();
 	}
 	

@@ -60,6 +60,9 @@ public:
 
   /// Creates the Cmesh using reduces space for coupled simulation
   TPZCompMeshReferred * CMeshReduced(TPZCompMesh * cmeshref);
+  
+  /// Creates Cmesh with H1 for multiphysics simulation
+  TPZCompMesh * CMeshElasticH1();
 
   /// Creates the computational mesh for pressure. 1 dimensional
   TPZCompMesh * CMeshPressure();

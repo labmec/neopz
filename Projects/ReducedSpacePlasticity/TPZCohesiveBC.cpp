@@ -226,6 +226,13 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 		return;
 	}	
 	
+  TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
+	if(shapetype != datavec[0].EVecShape)
+	{
+    this->Contribute(datavec[0], weight, ek, ef);
+    return;
+  }
+  
   if(fUpdateMem){
     UpdateCohesiveCurve(datavec[0]);
     return;
