@@ -48,97 +48,74 @@
 #include <math.h>
 using namespace std;
 
-int matId =1;
+int MatId =1;
 
-int dirichlet = 0;
-int neumann = 1;
+int bcdirichlet = 0;
+int bcneumann = 1;
 
-int bc0=-1;
-int bc1=-2;
-int bc2=-3;
-int bc3=-4;
+int BC0=-1;
+int BC1=-2;
+int BC2=-3;
+int BC3=-4;
 
 
-TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly);
+TPZGeoMesh *GMesh2(REAL Lx, REAL Ly,bool triang_elements);
 
-TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
-TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
-TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
+TPZCompMesh *CMeshFlux2(int pOrder, TPZGeoMesh *gmesh);
+TPZCompMesh *CMeshPressure2(int pOrder,TPZGeoMesh *gmesh);
+TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh);
 
-void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
-void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
-void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
-void PosProcessFlux(TPZAnalysis &an, std::string plotfile);
+void RefinamentoUnif(TPZGeoMesh* gmesh, int nDiv);
+void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
+void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
+void PosProcessFluxo(TPZAnalysis &an, std::string plotfile);
 
 //solucao exata
-void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
+void SolExataMista(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
+void SolExataPressao(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
 
 //lado direito da equacao
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingMista(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 //Para condicao de contorno de Neumann
-void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void NeumannAbaixo(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-REAL const Pi = 4.*atan(1.);
+REAL const pi = 4.*atan(1.);
 // nao esta rodando com estas configuracoes..aguardar Agnaldo
-bool ftriang = true;
-bool isStab = false;
-bool iscontinuou = false;
-bool useh2 = false;
-REAL delta1 = 0.5;
-REAL delta2 = 0.5;
-bool isFullHdiv=false;
- /*
-bool ftriang = true;//seta polinomios completos ou totais
-bool isStab = false;//ativa ou nao estabilizacao
-bool iscontinuou = false;//ativa h1 ou l2 para pressao
-bool useh2 = false;//ativa o termo h2 para penalizacao
-REAL delta1 = 0.5;//seta os valores de delta 1 e 2 para a penalizacao
-REAL delta2 = 0.5;
-bool isFullHdiv=false;//seta espaco completo ou nao para o fluxo
-  */
+bool fTriang = true;
+bool IsStab = false;
+bool IsContinuou = false;
+bool Useh2 = false;
+REAL Delta1 = 0.5;
+REAL Delta2 = 0.5;
+bool IsFullHdiv=false;
 
-void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out);
-void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out);
-
-STATE EPSILON = 1000.;
+//erros
+void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out);
+void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.main"));
 #endif
 
 #include "pztransfer.h"
-int main2(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
     
     REAL Lx = 1.;
-    REAL Ly = 1.;
+    REAL Ly = 0.5;
     
-    {// Checando funcoes
-        TPZVec<REAL> pto(2,0.), disp(1,0.),solp(1,0.);
-        pto[0]=0.200935;
-        pto[1]=0.598129;
-        TPZFMatrix<>flux(3,1,0.);
-        SolExata(pto, solp,flux);
-        Forcing(pto, disp);
-        
-        solp.Print(std::cout);
-        flux.Print(std::cout);
-        disp.Print(std::cout);
-    }
-    
-   // ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
-    ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
+    ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
 
-    for(int p = 1; p<2; p++)
+    for(int p = 2; p<3; p++)
     {
         int pq = p;
         int pp;
-        if(ftriang==true){
+        if(fTriang==true){
             pp = pq-1;
         }else{
             pp = pq;
@@ -146,21 +123,21 @@ int main2(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 1; ndiv< 2; ndiv++)
+        for (ndiv = 4; ndiv< 5; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
             
             saidaerro<<"\n<<<<<< Numero de divisoes uniforme ndiv = " << ndiv <<" >>>>>>>>>>> "<<endl;
             
-            TPZGeoMesh *gmesh = GMesh(ftriang, Lx, Ly);
-            ofstream arg("gmesh1.txt");
-            gmesh->Print(arg);
+            TPZGeoMesh *gmesh = GMesh2(Lx, Ly,fTriang);
+           // ofstream arg("gmesh1.txt");
+            //gmesh->Print(arg);
             
-            UniformRefine(gmesh, ndiv);
+            RefinamentoUnif(gmesh, ndiv);
             
-            TPZCompMesh *cmesh1 = CMeshFlux(gmesh, pq);
-            TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp);
+            TPZCompMesh *cmesh1 = CMeshFlux2(pq,gmesh);
+            TPZCompMesh *cmesh2 = CMeshPressure2(pp,gmesh);
             
 //            ofstream arg1("cmeshflux.txt");
 //            cmesh1->Print(arg1);
@@ -177,14 +154,14 @@ int main2(int argc, char *argv[])
             meshvec[0] = cmesh1;
             meshvec[1] = cmesh2;
             
-            TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
+            TPZCompMesh * mphysics = CMeshMixed2(meshvec,gmesh);
             
             std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
             int numthreads = 8;
             std::cout << "Number of threads " << numthreads << std::endl;
 
             TPZAnalysis an(mphysics);
-            SolveSyst(an, mphysics,numthreads);
+            ResolverSistema(an, mphysics,numthreads);
             
             
 //            ofstream arg5("cmeshmultiphysics.txt");
@@ -194,26 +171,24 @@ int main2(int argc, char *argv[])
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             TPZVec<REAL> erros;
     
-            saidaerro << "Valor de epsilone " << EPSILON << std::endl;
-            saidaerro << "Numero de threads " << numthreads << std::endl;
-            saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
-            ErrorHDiv(cmesh1, saidaerro);
+            saidaerro<<"\nErro da simulacao multifisica do fluxo (q)" <<endl;
+            ErrorHDiv2(cmesh1, saidaerro);
             
-            saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
-            ErrorL2(cmesh2, saidaerro);
+            saidaerro<<"Erro da simulacao multifisica da pressao (p)" <<endl;
+            ErrorL22(cmesh2, saidaerro);
             
             std::cout << "Postprocessed\n";
             
             //Plot da solucao aproximada
-//            string plotfile("Solution_mphysics.vtk");
-//            PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+            //string plotfile("Solution_mphysics.vtk");
+           //PosProcessMultph(meshvec,  mphysics, an, plotfile);
         }
     }
     
 	return EXIT_SUCCESS;
 }
 
-TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
+TPZGeoMesh *GMesh2(REAL Lx, REAL Ly,bool triang_elements){
     
     int Qnodes = 4;
 	
@@ -258,60 +233,60 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
         TopolTriang[0] = 0;
         TopolTriang[1] = 1;
         TopolTriang[2] = 3;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,matId,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,MatId,*gmesh);
         id++;
         
         TopolTriang[0] = 2;
         TopolTriang[1] = 1;
         TopolTriang[2] = 3;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,MatId,*gmesh);
         id++;
         
         TopolLine[0] = 0;
         TopolLine[1] = 1;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC0,*gmesh);
         id++;
         
         TopolLine[0] = 2;
         TopolLine[1] = 1;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC1,*gmesh);
         id++;
         
         TopolLine[0] = 3;
         TopolLine[1] = 2;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC2,*gmesh);
         id++;
         
         TopolLine[0] = 3;
         TopolLine[1] = 0;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC3,*gmesh);
     }
     else{
         TopolQuad[0] = 0;
         TopolQuad[1] = 1;
         TopolQuad[2] = 2;
         TopolQuad[3] = 3;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,MatId,*gmesh);
         id++;
         
         TopolLine[0] = 0;
         TopolLine[1] = 1;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC0,*gmesh);
         id++;
         
         TopolLine[0] = 1;
         TopolLine[1] = 2;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC1,*gmesh);
         id++;
         
         TopolLine[0] = 2;
         TopolLine[1] = 3;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC2,*gmesh);
         id++;
         
         TopolLine[0] = 3;
         TopolLine[1] = 0;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,BC3,*gmesh);
     }
     
 	gmesh->BuildConnectivity();
@@ -329,7 +304,7 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
 	return gmesh;
 }
 
-void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
+void RefinamentoUnif(TPZGeoMesh* gmesh, int nDiv)
 {
     for(int D = 0; D < nDiv; D++)
     {
@@ -345,12 +320,12 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 }
 
 
-TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
+TPZCompMesh *CMeshFlux2(int pOrder,TPZGeoMesh *gmesh)
 {
     /// criar materiais
 	int dim = 2;
 	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim);
+	material = new TPZMatPoisson3d(MatId,dim);
 	TPZMaterial * mat(material);
 	material->NStateVariables();
     
@@ -363,15 +338,15 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+	TPZMaterial * BCond0 = material->CreateBC(mat, BC0,bcdirichlet, val1, val2);
+    TPZMaterial * BCond1 = material->CreateBC(mat, BC1,bcdirichlet, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(mat, BC2,bcdirichlet, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(mat);
 	
 
-    if(isFullHdiv){
+    if(IsFullHdiv){
         cmesh->SetAllCreateFunctionsHDivFull();
     }
     else{
@@ -402,12 +377,12 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	return cmesh;
 }
 
-TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
+TPZCompMesh *CMeshPressure2(int pOrder,TPZGeoMesh *gmesh)
 {
     /// criar materiais
 	int dim = 2;
 	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim);
+	material = new TPZMatPoisson3d(MatId,dim);
 	material->NStateVariables();
     
     //    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
@@ -420,10 +395,10 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+	TPZMaterial * BCond0 = material->CreateBC(mat, BC0,bcdirichlet, val1, val2);
+    TPZMaterial * BCond1 = material->CreateBC(mat, BC1,bcdirichlet, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(mat, BC2,bcdirichlet, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
@@ -433,7 +408,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
-    if(iscontinuou==false)
+    if(IsContinuou==false)
     {
         cmesh->SetAllCreateFunctionsDiscontinuous();
 
@@ -459,7 +434,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
             celdisc->SetTrueUseQsiEta();
             if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
             {
-                if(ftriang==true) celdisc->SetTotalOrderShape();
+                if(fTriang==true) celdisc->SetTotalOrderShape();
                 else celdisc->SetTensorialShape();
             }
             
@@ -496,7 +471,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 	return cmesh;
 }
 
-TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
+TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     
     //Creating computational mesh for multiphysic elements
 	gmesh->ResetReference();
@@ -504,7 +479,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     
     //criando material
     int dim =2;
-    TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim);
+    TPZMixedPoisson *material = new TPZMixedPoisson(MatId,dim);
     
     //incluindo os dados do problema
     REAL coefk = 1.;
@@ -512,20 +487,20 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     material->SetPermeability(coefk);
     material->SetViscosity(coefvisc);
     
-    if(isStab==true){
+    if(IsStab==true){
         material->SetStabilizedMethod();
-        material->SetStabilizationCoeficients(delta1,delta2);
+        material->SetStabilizationCoeficients(Delta1,Delta2);
 	}
-    if(isStab==true && useh2==true) material->SetHdois();
+    if(IsStab==true && Useh2==true) material->SetHdois();
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExataMista);
     material->SetForcingFunctionExact(solexata);
     
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingMista);
     dum->SetPolynomialOrder(20);
     forcef = dum;
     material->SetForcingFunction(forcef);
@@ -534,7 +509,6 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     TPZMaterial *mat(material);
     mphysics->InsertMaterialObject(mat);
     
-    
     //Criando condicoes de contorno
     TPZMaterial * BCond0;
     TPZMaterial * BCond1;
@@ -542,10 +516,18 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     TPZMaterial * BCond3;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    BCond0 = material->CreateBC(mat, BC0,bcneumann, val1, val2);
+    BCond1 = material->CreateBC(mat, BC1,bcneumann, val1, val2);
+    BCond2 = material->CreateBC(mat, BC2,bcneumann, val1, val2);
+    BCond3 = material->CreateBC(mat, BC3,bcneumann, val1, val2);
+    
+    TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
+    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+    BCond2->SetForcingFunction(bcmatNeumannAcima);
+    
+    TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
+    bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
+    BCond0->SetForcingFunction(bcmatNeumannAbaixo);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond0);
@@ -566,7 +548,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
     return mphysics;
 }
 
-void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
+void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
 {
 	//TPZBandStructMatrix full(fCmesh);
 	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
@@ -583,15 +565,17 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
 //	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 
-void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
+void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(2), vecnames(3);
+	TPZManVector<std::string,10> scalnames(3), vecnames(4);
 	vecnames[0]  = "Flux";
     vecnames[1]  = "GradFluxX";
     vecnames[2]  = "GradFluxY";
+    vecnames[3]  = "ExactFlux";
     scalnames[0] = "Pressure";
     scalnames[1] = "DivFlux";
+    scalnames[2] = "ExactPressure";
     
 	const int dim = 2;
 	int div =1;
@@ -602,127 +586,54 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
     
 }
 
-void SolExata2(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
+void SolExataMista(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
     solp.Resize(1, 0.);
     flux.Resize(3, 1.);
     flux(0,0)=flux(1,0)=flux(2,0)=0.;
     double x = pt[0];
     double y = pt[1];
-    solp[0] = sin(Pi*x)*sin(Pi*y);
-    flux(0,0)=-Pi*cos(Pi*x)*sin(Pi*y);
-    flux(1,0)=-Pi*cos(Pi*y)*sin(Pi*x);
-    flux(2,0)=2*Pi*Pi*sin(Pi*y)*sin(Pi*x);
+    
+    solp[0] = (-2./pi)*cos(pi*x)*exp(y/2.);
+    flux(0,0)= -2*sin(pi*x)*exp(y/2.);
+    flux(1,0)= (1./pi)*cos(pi*x)*exp(y/2.);
+    flux(2,0)= (1.- 4.*pi*pi)/(2.*pi)*(cos(pi*x)*exp(y/2.));
 }
 
-#define Power pow
-#define ArcTan atan
-#define Sqrt sqrt
-
-void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
+void SolExataPressao(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
     solp.Resize(1, 0.);
-    flux.Resize(3, 1);
-    REAL eps = EPSILON;
-    REAL x = pt[0];
-    REAL y = pt[1];
+    flux.Resize(3, 1.);
     flux(0,0)=flux(1,0)=flux(2,0)=0.;
-    solp[0] = 8*(1. - x)*x*(1. - y)*y*ArcTan(0.0625 +
-                                             2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-    STATE a = (-64*Sqrt(eps)*(1. - x)*(-0.5 + x)*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (32*Sqrt(eps)*(1. - x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) + (64*Sqrt(eps)*(-0.5 + x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (256*eps*(1. - x)*Power(-0.5 + x,2)*x*
-                      (0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))*(1. - y)*
-                      y)/Power(1 + Power(0.0625 + 2*Sqrt(eps)*
-                                         (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),2),2) -
-    16*(1. - y)*y*ArcTan(0.0625 + 2*Sqrt(eps)*
-                         (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-    STATE b = (-64*Sqrt(eps)*(1. - x)*x*(1. - y)*(-0.5 + y))/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (32*Sqrt(eps)*(1. - x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) + (64*Sqrt(eps)*(1. - x)*x*(-0.5 + y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (256*eps*(1. - x)*x*(0.0625 +
-                                          2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))*(1. - y)*
-                      Power(-0.5 + y,2)*y)/
-    Power(1 + Power(0.0625 + 2*Sqrt(eps)*
-                    (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),2),2) -
-    16*(1. - x)*x*ArcTan(0.0625 + 2*Sqrt(eps)*
-                         (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-    flux(2,0) = -a-b;
-    flux(0,0) = (-32*Sqrt(eps)*(1. - x)*(-0.5 + x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) + 8*(1. - x)*(1. - y)*y*
-    ArcTan(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))) -
-    8*x*(1. - y)*y*ArcTan(0.0625 + 2*Sqrt(eps)*
-                          (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-    flux(1,0) = (-32*Sqrt(eps)*(1. - x)*x*(1. - y)*(-0.5 + y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) + 8*(1. - x)*x*(1. - y)*
-    ArcTan(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))) -
-    8*(1. - x)*x*y*ArcTan(0.0625 + 2*Sqrt(eps)*
-                          (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-    flux(0,0) *= -1.;
-    flux(1,0) *= -1.;
-}
-
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-	double x = pt[0];
-    double y = pt[1];
-    REAL eps = EPSILON;
-    STATE a = (-64*Sqrt(eps)*(1. - x)*(-0.5 + x)*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (32*Sqrt(eps)*(1. - x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) + (64*Sqrt(eps)*(-0.5 + x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (256*eps*(1. - x)*Power(-0.5 + x,2)*x*
-                      (0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))*(1. - y)*
-                      y)/Power(1 + Power(0.0625 + 2*Sqrt(eps)*
-                                         (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),2),2) -
-    16*(1. - y)*y*ArcTan(0.0625 + 2*Sqrt(eps)*
-                         (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-    STATE b = (-64*Sqrt(eps)*(1. - x)*x*(1. - y)*(-0.5 + y))/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (32*Sqrt(eps)*(1. - x)*x*(1. - y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) + (64*Sqrt(eps)*(1. - x)*x*(-0.5 + y)*y)/
-    (1 + Power(0.0625 + 2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),
-               2)) - (256*eps*(1. - x)*x*(0.0625 +
-                                          2*Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))*(1. - y)*
-                      Power(-0.5 + y,2)*y)/
-    Power(1 + Power(0.0625 + 2*Sqrt(eps)*
-                    (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)),2),2) -
-    16*(1. - x)*x*ArcTan(0.0625 + 2*Sqrt(eps)*
-                         (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)));
-
-    disp[0]= -a-b;
-}
-
-void Forcing2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-	double x = pt[0];
-    double y = pt[1];
-    disp[0]= 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);
-}
-
-void ForcingBC0(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
-    disp[0]= Pi*cos(Pi*y)*sin(Pi*x);
+    
+    solp[0] = (-2./pi)*cos(pi*x)*exp(y/2.);
+    flux(0,0)= 2*sin(pi*x)*exp(y/2.);
+    flux(1,0)= -(1./pi)*cos(pi*x)*exp(y/2.);
 }
 
-void ForcingBC2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
+void ForcingMista(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+	double x = pt[0];
     double y = pt[1];
-    disp[0]= -Pi*cos(Pi*y)*sin(Pi*x);
+    disp[0]= (1.- 4.*pi*pi)/(2.*pi)*(cos(pi*x)*exp(y/2.));
 }
 
-void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
+void NeumannAbaixo(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+    double x = pt[0];
+    //double y = pt[1];
+    disp[0] = -cos(pi*x)/pi;
+}
+
+void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+    double x = pt[0];
+    //double y = pt[1];
+    disp[0] = cos(pi*x)/pi;
+}
+
+void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
@@ -737,7 +648,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
             continue;
         }
         TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExataMista, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globerrors[i] += elerror[i]*elerror[i];
@@ -751,7 +662,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 
 }
 
-void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
+void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
 {
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
@@ -766,7 +677,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
             continue;
         }
         TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
+        cel->EvaluateError(SolExataPressao, elerror, NULL);
         int nerr = elerror.size();
         globerrors.resize(nerr);
 #ifdef LOG4CXX
@@ -781,6 +692,9 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
         }
         
     }
-    out << "Errors associated with L2 space\n";
+    out << "\n";
+    out << "Errors associated with L2 or H1 space\n";
+    out << "H1 Norm = "    << sqrt(globerrors[0]) << endl;
     out << "L2 Norm = "    << sqrt(globerrors[1]) << endl;
+    out << "Semi H1 Norm = "    << sqrt(globerrors[2]) << endl;
 }

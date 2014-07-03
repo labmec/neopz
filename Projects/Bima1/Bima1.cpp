@@ -71,7 +71,6 @@ static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatri
     
 }
 
-
 static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     TPZFNMatrix<10,REAL> fake(2,1);
     SolExataSteklov(loc,result,fake);
@@ -80,6 +79,31 @@ static void Dirichlet2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     TPZFNMatrix<10,REAL> fake(2,1);
     result[0] = loc[0]*loc[0];
 }
+
+static void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+    
+    u.Resize(1, 0.);
+    du.Resize(2, 1);
+    du(0,0)=0.;
+    du(1,0)=0.;
+    
+    REAL x = loc[0];
+    REAL y = loc[1];
+    //const REAL r = sqrt(x*x+y*y);
+    const REAL t = atan2(y,x);
+    const REAL sol = 3.363585661014858*pow(pow(x,2) + pow(y,2),1.75)*cos(3.5*t);
+    u[0] = sol;
+    
+    //flux = -k*grad(u), k=1 nesse problema
+    du(0,0) = pow(pow(x,2) + pow(y,2),0.75)*(11.772549813552002*x*cos(3.5*t) + 11.772549813552002*y*sin(3.5*t));
+    du(1,0) = pow(pow(x,2) + pow(y,2),0.75)*(11.772549813552002*y*cos(3.5*t) - 11.772549813552002*x*sin(3.5*t));
+}
+
+static void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    TPZFNMatrix<10,REAL> fake(2,1);
+    SolExataSteklovSuave(loc,result,fake);
+}
+
 
 TPZGeoMesh * MalhaGeo(const int h);
 void GroupElements(TPZCompMesh *cmesh);
@@ -94,9 +118,6 @@ using namespace std;
 TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder);
 
 TPZInterpolationSpace * FindInterpolationSpace(TPZVec<REAL> &xVec, TPZCompMesh *cmesh, TPZVec<REAL> &qsi);
-
-
-//pira
 bool EstaNoQuadrado(const TPZVec<REAL> &xVec, REAL r, REAL tol);
 REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh);
 REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REAL> &normal);
@@ -120,9 +141,9 @@ int main()
 //	}
 //#endif
 	
-	for (int porder= 2; porder<3; porder++) {
+	for (int porder= 3; porder<4; porder++) {
 		
-		for(int h=6;h<8;h++){
+		for(int h=1;h<6;h++){
 			
 			
 			TPZGeoMesh *gmesh = MalhaGeo(h);//malha geometrica
@@ -172,7 +193,7 @@ int main()
             //erro global
             if(erronoquadrado==false){
                 analysis.PostProcess(0);
-                analysis.SetExact(SolExataSteklov);
+                analysis.SetExact(SolExataSteklovSuave);
                 TPZVec<REAL> erros(3);
                 analysis.PostProcessError(erros);
                 myerrorfile << "H1 = " << erros[0];
@@ -235,7 +256,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-2,0,val1,val2);
 	TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(DirichletSuave);
 //	bndcond->SetValFunction(ValFunction);
 	comp->InsertMaterialObject(bnd);
 	
@@ -243,28 +264,28 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-3,0,val1,val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(DirichletSuave);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-4,0,val1,val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(DirichletSuave);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-5,0,val1,val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(DirichletSuave);
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-6,0,val1,val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(DirichletSuave);
 	comp->InsertMaterialObject(bnd);
 	
 	// Ajuste da estrutura de dados computacional
@@ -577,7 +598,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh)
             gel->X(qsi,xVec);
             TPZManVector<REAL> uExato(1);
             TPZFNMatrix<100> duExato(2,1);
-            SolExataSteklov(xVec, uExato, duExato);
+            SolExataSteklovSuave(xVec, uExato, duExato);
             const REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
         }///for i
