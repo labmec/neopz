@@ -39,6 +39,12 @@ protected:
 	/** @brief Medium permeability. Coeficient which multiplies the gradient operator*/
 	REAL fk;
     
+    /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
+	TPZFMatrix<REAL> fKtensor;
+    
+    /** @brief inverse of the permeability tensor.*/
+	TPZFMatrix<REAL> fKinv;
+    
     /** @brief fluid viscosity*/
 	REAL fvisc;
     
@@ -77,6 +83,13 @@ public:
 	void SetPermeability(REAL perm) {
 		fk = perm;
 	}
+    
+    //Set the permeability tensor and inverser tensor
+   void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> Kinv){
+   
+       fKtensor = K;
+       fKinv = Kinv;
+   }
 	
     void SetViscosity(REAL visc) {
 		fvisc = visc;
