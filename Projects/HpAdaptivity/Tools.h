@@ -64,6 +64,8 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void NoUniformRefine(TPZGeoMesh* gmesh, int nDiv);
+
+void RegularizeMesh(TPZGeoMesh *gmesh);
 // funcao de forcing funciton
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
