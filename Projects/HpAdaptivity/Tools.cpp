@@ -361,7 +361,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
         comp->SetDimModel(2);
 		// Criar e inserir os materiais na malha
 		TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
-    mat-> SetTrueFShapeHdiv();
+        mat-> SetTrueFShapeHdiv();
 		TPZMaterial * automat(mat);
 		comp->InsertMaterialObject(automat);
 		
@@ -1399,27 +1399,100 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 		for(i=0;i<nref+1;i++) {
 			// To refine elements with center near to points than radius
 			RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
-			if(nref < 5) radius *= 0.6;
+			if(nref < 8) radius *= 0.6;
 			else if(nref < 7) radius *= 0.3;
 			else radius *= 0.15;
 		}
 	}
 	// Constructing connectivities
-	gmesh->ResetConnectivities();
+	//gmesh->ResetConnectivities();
+    RegularizeMesh(gmesh);
 	gmesh->BuildConnectivity();
 }
+
+void RegularizeMesh(TPZGeoMesh *gmesh)
+{
+    bool changed = true;
+    while (changed)
+    {
+        changed = false;
+        int nel = gmesh->NElements();
+        for (long el=0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[el];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            int dim = gel->Dimension();
+            if (dim != 2) {
+                continue;
+            }
+            int nsides = gel->NSides();
+            int nrefined = 0;
+            int nsidedim = 3;
+            for (int is=0; is<nsides; is++) {
+                int sidedim = gel->SideDimension(is);
+                if (sidedim != dim-1) {
+                    continue;
+                }
+
+                TPZGeoElSide thisside(gel,is);
+                TPZGeoElSide neighbour = thisside.Neighbour();
+                if (neighbour != thisside) {
+                    TPZStack<TPZGeoElSide> subelements;
+                    neighbour.GetSubElements2(subelements);
+                    int nsub = subelements.size();
+                    if (nsub > 0) {
+                        nrefined++;
+                    }
+                    for (int isub=0; isub<nsub; isub++) {
+                        TPZGeoElSide sub = subelements[isub];
+                        if (sub.Dimension() != dim-1) {
+                            continue;
+                        }
+                        if (sub.HasSubElement()) {
+                            TPZManVector<TPZGeoEl *> newsub;
+                            gel->Divide(newsub);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+                if (gel->HasSubElement()) {
+                    break;
+                }
+            }
+            if (nrefined >= nsidedim-1) {
+                TPZManVector<TPZGeoEl *> newsub;
+                gel->Divide(newsub);
+                changed = true;
+            }
+        }
+    }
+}
+
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
+    TPZStack<REAL> vech;
     TPZManVector<STATE,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
             continue;
         }
+        //TPZMaterial *material= hdivmesh-> MaterialVec()[el];
+        TPZMaterialData data;
+        data.fNeedsHSize=true;
+        TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace * >(cel);
+        TPZVec<REAL> qsi(2,0.);
+        sp->ComputeRequiredData(data, qsi);
+        REAL &hsize = data.HSize;
+        vech.push_back(hsize);
+        
         TPZGeoEl *gel = cel->Reference();
+    
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
@@ -1432,7 +1505,16 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         }
         
     }
+    
+    int nh = vech.size();
+    REAL hmax=0;
+    for(int i=0; i<nh; i++){
+        if(vech[i]<hmax){
+            hmax=vech[i];
+        }
+    }
    // out << "Errors associated with HDiv space\n";
+    out << "Hmax = "    << hmax << std::endl;
     out << "L2 Norm for pressure = "    << sqrt(globerrors[0]) << std::endl;
     out << "L2 Norm for flux = "    << sqrt(globerrors[1]) << std::endl;
     out << "L2 Norm for divergence = "    << sqrt(globerrors[2])  <<std::endl;
