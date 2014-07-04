@@ -43,6 +43,7 @@
 #include "pzlog.h"
 
 #include "pzhdivfull.h"
+#include "pzaxestools.h"
 
 #include <iostream>
 #include <math.h>
@@ -80,20 +81,24 @@ void ForcingMista(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 //Para condicao de contorno de Neumann
 void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void NeumannAbaixo(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void DirichletEsquerda(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 REAL const pi = 4.*atan(1.);
 // nao esta rodando com estas configuracoes..aguardar Agnaldo
-bool fTriang = true;
-bool IsStab = false;
-bool IsContinuou = false;
+bool fTriang = false;
+bool IsStab = true;
+bool IsContinuou = true;
 bool Useh2 = false;
 REAL Delta1 = 0.5;
 REAL Delta2 = 0.5;
-bool IsFullHdiv=false;
+bool IsFullHdiv=true;
 
 //erros
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out);
 void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out);
+
+void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out);
+void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.main"));
@@ -111,7 +116,7 @@ int main(int argc, char *argv[])
     
     ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
 
-    for(int p = 2; p<3; p++)
+    for(int p = 1; p<2; p++)
     {
         int pq = p;
         int pp;
@@ -123,7 +128,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 4; ndiv< 5; ndiv++)
+        for (ndiv = 1; ndiv< 6; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -174,14 +179,12 @@ int main(int argc, char *argv[])
             saidaerro<<"\nErro da simulacao multifisica do fluxo (q)" <<endl;
             ErrorHDiv2(cmesh1, saidaerro);
             
-            saidaerro<<"Erro da simulacao multifisica da pressao (p)" <<endl;
+            saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
             ErrorL22(cmesh2, saidaerro);
             
-            std::cout << "Postprocessed\n";
-            
             //Plot da solucao aproximada
-            //string plotfile("Solution_mphysics.vtk");
-           //PosProcessMultph(meshvec,  mphysics, an, plotfile);
+            string plotfile("Solution_mphysics.vtk");
+            PosProcessMultph(meshvec,  mphysics, an, plotfile);
         }
     }
     
@@ -483,9 +486,14 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     
     //incluindo os dados do problema
     REAL coefk = 1.;
-    REAL coefvisc = 1.;
     material->SetPermeability(coefk);
+    REAL coefvisc = 1.;
     material->SetViscosity(coefvisc);
+    TPZFMatrix<REAL> Ktensor(3,3,0.);
+    TPZFMatrix<REAL> InvK(3,3,0.);
+    Ktensor(0,0)=1.; Ktensor(1,1)=1.; Ktensor(2,2)=1.;
+    InvK=Ktensor;
+    material->SetPermeabilityTensor(Ktensor,InvK);
     
     if(IsStab==true){
         material->SetStabilizedMethod();
@@ -519,7 +527,7 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     BCond0 = material->CreateBC(mat, BC0,bcneumann, val1, val2);
     BCond1 = material->CreateBC(mat, BC1,bcneumann, val1, val2);
     BCond2 = material->CreateBC(mat, BC2,bcneumann, val1, val2);
-    BCond3 = material->CreateBC(mat, BC3,bcneumann, val1, val2);
+    BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
     
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
     bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
@@ -528,6 +536,10 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
     bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
     BCond0->SetForcingFunction(bcmatNeumannAbaixo);
+    
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletEsquerda;
+    bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda);
+    BCond3->SetForcingFunction(bcmatDirichletEsquerda);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond0);
@@ -630,7 +642,13 @@ void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     double x = pt[0];
     //double y = pt[1];
-    disp[0] = cos(pi*x)/pi;
+    disp[0] = 0.4087179842429694*cos(pi*x);
+}
+
+void DirichletEsquerda(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+    TPZFMatrix<STATE> flux;
+    SolExataMista(pt, disp, flux);
 }
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
@@ -698,3 +716,165 @@ void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
     out << "L2 Norm = "    << sqrt(globerrors[1]) << endl;
     out << "Semi H1 Norm = "    << sqrt(globerrors[2]) << endl;
 }
+
+void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out){
+    
+    TPZManVector<REAL,2> errors(3,0.);
+    
+    int dimmesh = cmesh->Dimension();
+    int nel = cmesh->NElements();
+    int iel;
+    for(iel=0; iel<nel; iel++)
+    {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        if(!cel) continue;
+        
+        int dimcel = cel->Dimension();
+        if(dimcel != dimmesh) continue;
+        
+        TPZGeoEl *gel = cel->Reference();
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 2);
+        TPZManVector<int,3> prevorder(dimcel), maxorder(dimcel,intrule->GetMaxOrder());
+        intrule->GetOrder(prevorder);
+        intrule->SetOrder(maxorder);
+        
+        TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        const int npoints = intrule->NPoints();
+        TPZManVector<REAL,3> qsi(dimcel), xVec(3);
+        
+        for(int ip = 0; ip < npoints; ip++)
+        {
+            REAL weight;
+            intrule->Point(ip,qsi,weight);
+            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            weight *= fabs(data.detjac);
+            sp->ComputeSolution(qsi,data);
+            
+            TPZManVector<REAL,2> flux(2,0.);
+            REAL divfluxo;
+            flux[0]=data.sol[0][0];
+            flux[1]=data.sol[0][1];
+            divfluxo =  data.dsol[0](0,0)+data.dsol[0](1,1);
+            
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            gel->X(qsi,xVec);
+            SolExataMista(xVec, uExato, duExato);
+        
+            
+            TPZManVector<REAL,2> diff(2,0.);
+            diff[0] = flux[0]- duExato(0,0);
+            diff[1] = flux[1]- duExato(1,0);
+            
+            //erro L2 do fluxo
+            errors[0] += weight*(diff[0]*diff[0] + diff[1]*diff[1]);
+            
+            //erro L2 do divergente do fluxo
+            REAL diffDiv = abs(divfluxo - duExato(2,0));
+            errors[1] += weight*diffDiv*diffDiv;
+            
+            //erro Hdiv para o fluxo
+//            errors[2] += errors[0] + errors[1];
+        }
+        intrule->SetOrder(prevorder);
+    }
+    
+    //erro Hdiv para o fluxo
+    errors[2] = errors[0] + errors[1];
+    
+    errors[0] = sqrt(errors[0]);
+    errors[1] = sqrt(errors[1]);
+    errors[2] = sqrt(errors[2]);
+    
+    out << "\n";
+    out << "Erros associados ao fluxo na norma L2\n";
+    out << "Norma L2  para fluxo = " << errors[0] << endl;
+    out << "Norma L2 para divergente = " << errors[1] << endl;
+    out << "Norma Hdiv para o fluxo = " << errors[2] << endl;
+    
+}///method
+
+void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
+    
+    TPZManVector<REAL,2> errors(3,0.);
+    errors.Fill(0.);
+    
+    int dimmesh = cmesh->Dimension();
+    int nel = cmesh->NElements();
+    int iel;
+    for(iel=0; iel<nel; iel++)
+    {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        if(!cel) continue;
+        
+        int dimcel = cel->Dimension();
+        if(dimcel != dimmesh) continue;
+        
+        TPZGeoEl *gel = cel->Reference();
+        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 2);
+        TPZManVector<int,3> prevorder(dimcel), maxorder(dimcel,intrule->GetMaxOrder());
+        intrule->GetOrder(prevorder);
+        intrule->SetOrder(maxorder);
+        
+        TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        const int npoints = intrule->NPoints();
+        TPZManVector<REAL,3> qsi(dimcel), xVec(3);
+        
+        for(int ip = 0; ip < npoints; ip++)
+        {
+            REAL weight;
+            intrule->Point(ip,qsi,weight);
+            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            weight *= fabs(data.detjac);
+            sp->ComputeSolution(qsi,data);
+            
+            TPZManVector<REAL,2> gradP(2,0.);
+            REAL diffP;
+            
+            TPZManVector<REAL> uExato(1);
+            TPZFNMatrix<100> duExato(2,1);
+            gel->X(qsi,xVec);
+            SolExataPressao(xVec, uExato, duExato);
+            
+            //erro L2 da pressao
+            REAL solP = data.sol[0][0];
+            diffP = solP - uExato[0];
+            errors[1] += weight*(diffP*diffP);
+            
+            //erro semi H1 da pressao
+            TPZFNMatrix<3,REAL> dsoldx;
+            TPZFMatrix<REAL> dsoldaxes(2,1);
+            dsoldaxes(0,0) = data.dsol[0][0];
+            dsoldaxes(1,0) = data.dsol[0][1];
+            
+            TPZAxesTools<REAL>::Axes2XYZ(dsoldaxes, dsoldx, data.axes);
+            TPZManVector<REAL,2> diffGrad(2,0.);
+            diffGrad[0] = dsoldx(0,0)-duExato(0,0);
+            diffGrad[1] = dsoldx(1,0)-duExato(1,0);
+            errors[2] += weight*(diffGrad[0]*diffGrad[0] + diffGrad[1]*diffGrad[1]);
+            
+            //erro H1 para a pressao
+            //errors[0] += errors[1] + errors[2];
+        }
+        intrule->SetOrder(prevorder);
+    }
+    
+    //erro H1 para a pressao
+    errors[0] = errors[1] + errors[2];
+    
+    errors[0] = sqrt(errors[0]);
+    errors[1] = sqrt(errors[1]);
+    errors[2] = sqrt(errors[2]);
+    
+    out << "\n";
+    out << "Erros associados a pressao nas normas L2 e H1\n";
+    out << "Norma H1 para a pressao = " << errors[0] << endl;
+    out << "Norma L2 para a pressao = " << errors[1] << endl;
+    out << "Norma semi-H1 para a pressao = " << errors[2] << endl;
+    
+
+}///method

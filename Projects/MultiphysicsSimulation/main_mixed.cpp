@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     ofstream arg12("ErroQuadrado.txt");
     int ndiv, p;
     arg12<<"\n\nERRO PARA MALHA COM TRIANGULO  = " << triang;
-    for (p = 3; p< 4; p++)
+    for (p = 2; p< 3; p++)
     {
         arg12<<"\n\n----------- ORDEM p = " << p <<" -----------";
         for(ndiv = 0; ndiv < 5;ndiv++)
