@@ -77,27 +77,34 @@ int main()
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	std::ofstream erro("TaxaArcTanTriangUni.txt");
+
     //std::ofstream erro("TaxaArcTanQuadUni.txt");
- //   std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
+    std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
     
-    bool ftriang=true;
+    bool ftriang=false;
     REAL Lx=1;
     REAL Ly=1;
-    
-    
+  
+  
+  
+TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);
+UniformRefine(gmesh, 1);
+RefiningNearCircunference(2,gmesh,1,1);
+std::ofstream filemesh2("MalhaGeoIni.vtk");
+PrintGMeshVTK( gmesh, filemesh2);
+  
 	TPZVec<REAL> calcErro;
-	for (int porder=1; porder<5; porder++) {
+	for (int porder=2; porder<3; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<7;h++){
+			for(int h=1;h<4;h++){
 			erro<<std::endl;
 			
 			//1. Criacao da malha geom. e computacional
-					bool hrefine=false;//true nao uniforme
+      //			bool hrefine=false;//true nao uniforme
 					bool prefine=false;
-                TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
-                UniformRefine(gmesh, h);
+        // TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
+        //           UniformRefine(gmesh, h);
 
   //              std::ofstream filemesh("MalhaGeoArcTan.vtk");
   //            PrintGMeshVTK( gmesh, filemesh);
@@ -133,17 +140,17 @@ int main()
 			
 			//4. visualizacao grafica usando vtk
         
-//			 TPZVec<std::string> scalnames(4), vecnames(2);
-//			 scalnames[3] = "Divergence";
-//			 scalnames[2] = "ExactDiv";
-//			 scalnames[0] = "Pressure";//"Solution";//
-//			 scalnames[1] = "ExactPressure";
-//			 //scalnames[1] = "ExactDiv";
-//			 
-//			 
-//			 vecnames[0] = "ExactFlux";
-//			 vecnames[1] = "Flux";//"Derivative";//
-//                 
+			 TPZVec<std::string> scalnames(5), vecnames(2);
+			 scalnames[0] = "Divergence";
+			 scalnames[1] = "ExactDiv";
+			 scalnames[2] = "Pressure";//"Solution";//
+			 scalnames[3] = "ExactPressure";
+			 scalnames[4] = "ExactDiv";
+			 
+			 
+			 vecnames[0] = "ExactFlux";
+			 vecnames[1] = "Flux";//"Derivative";//
+//
 //			
 //			 
 //			 
@@ -159,12 +166,16 @@ int main()
                
 			 
 			 
-			 /*std::string plotfile("GraficArcTanHpAdaptivity.vtk");
+			 std::string plotfile("GraficArcTanHpAdaptivity.vtk");
 			 const int dim = 2;
 			 int div = 2;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
-           */  
+        
+        UniformRefine(gmesh, 1);
+         std::ofstream filemesh2("MalhaGeoDepois.vtk");
+        PrintGMeshVTK( gmesh, filemesh2);
+        
         
 		}}
 	
