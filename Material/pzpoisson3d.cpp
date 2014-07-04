@@ -681,7 +681,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 		sout<< " pressao exata " <<u_exact <<std::endl;
 		sout<< " pressao aprox " <<sol <<std::endl;
 		sout<< " ---- "<<std::endl;
-		sout<< " fluxo exato " <<du_exact<<std::endl;
+		sout<< " fluxo exato " <<du_exact(0,0)<<", " << du_exact(1,0)<<std::endl;
 		sout<< " fluxo aprox " <<dsol<<std::endl;
 		sout<< " ---- "<<std::endl;
 		if(du_exact.Rows()>fDim) sout<< " div exato " <<du_exact(2,0)<<std::endl;
@@ -708,10 +708,6 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
         //values[3] : Hdiv norm => values[1]+values[2];
         values[3]= values[1]+values[2];
     }
-		
-
-	
-
 }
 
 void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
