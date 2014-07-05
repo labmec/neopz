@@ -459,7 +459,8 @@ TPZMatrix<STATE> * TPZStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAu
 	TPZMatrix<STATE> *stiff = Create();
     
 	//long neq = stiff->Rows();
-	rhs.Redim(fEquationFilter.NEqExpand(),rhs.Cols());
+    long cols = MAX(1, rhs.Cols());
+	rhs.Redim(fEquationFilter.NEqExpand(),cols);
     Assemble(*stiff,rhs,guiInterface);
 	
 #ifdef LOG4CXX2
