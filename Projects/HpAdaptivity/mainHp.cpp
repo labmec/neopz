@@ -87,97 +87,106 @@ int main()
   
   
   
-TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);
-UniformRefine(gmesh, 1);
-RefiningNearCircunference(2,gmesh,1,1);
-std::ofstream filemesh2("MalhaGeoIni.vtk");
-PrintGMeshVTK( gmesh, filemesh2);
+//TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);
+//UniformRefine(gmesh, 1);
+//RefiningNearCircunference(2,gmesh,1,1);
+//std::ofstream filemesh2("MalhaGeoIni.vtk");
+//PrintGMeshVTK( gmesh, filemesh2);
+//TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
+
   
 	TPZVec<REAL> calcErro;
 	for (int porder=2; porder<3; porder++) {
-		
-		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<4;h++){
-			erro<<std::endl;
-			
-			//1. Criacao da malha geom. e computacional
-      //			bool hrefine=false;//true nao uniforme
-					bool prefine=false;
-        // TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
-        //           UniformRefine(gmesh, h);
 
-  //              std::ofstream filemesh("MalhaGeoArcTan.vtk");
-  //            PrintGMeshVTK( gmesh, filemesh);
-//
-//              RefiningNearCircunference(2,gmesh,h,1);
-//                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
-//                PrintGMeshVTK( gmesh, filemesh2);
-       
+    erro<<"ordem "<<porder <<std::endl;
+        for(int h=1;h<2;h++){
+          
+              erro<<std::endl;
 
-        TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
-                int nDofs;
-                nDofs=cmesh->NEquations();
-                
-                erro<< "\n NRefinamento "<<h<< "   NDofs "<<nDofs<<std::endl;
-            
-        //2. Resolve o problema
-		
-		 TPZAnalysis analysis(cmesh);
-         SolveSyst(analysis, cmesh, 1);
-        // SolveLU ( analysis );
-			
-			
-			
-			//3. Calcula o erro 
-					
-//			TPZVec<REAL> calcErro;
-//            analysis.SetExact(*SolArcTan);
-//			analysis.PostProcess(calcErro,erro);
-                
-               ErrorHDiv(cmesh, erro);
+              //1. Criacao da malha geom. e computacional
+              bool hrefine=true;//true nao uniforme
+              bool prefine=false;
+          
+           TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
+          UniformRefine(gmesh, h);
+//          UniformRefine(gmesh, 1);
+ NoUniformRefine(gmesh, 1);
+          //NoUniformRefine(gmesh, 1);
+              //           UniformRefine(gmesh, h);
 
-        
-			
-			//4. visualizacao grafica usando vtk
-        
-			 TPZVec<std::string> scalnames(5), vecnames(2);
-			 scalnames[0] = "Divergence";
-			 scalnames[1] = "ExactDiv";
-			 scalnames[2] = "Pressure";//"Solution";//
-			 scalnames[3] = "ExactPressure";
-			 scalnames[4] = "ExactDiv";
-			 
-			 
-			 vecnames[0] = "ExactFlux";
-			 vecnames[1] = "Flux";//"Derivative";//
+//              std::ofstream filemesh("MalhaGeoNaoUniT.vtk");
+//              PrintGMeshVTK( gmesh, filemesh);
+              //
+              //              RefiningNearCircunference(2,gmesh,h,1);
+              //                std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
+              //                PrintGMeshVTK( gmesh, filemesh2);
+
+
+              TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
+              int nDofs;
+              nDofs=cmesh->NEquations();
+
+              erro<< "\n NRefinamento "<<h<< "   NDofs "<<nDofs<<std::endl;
+
+              //2. Resolve o problema
+
+              TPZAnalysis analysis(cmesh);
+              SolveSyst(analysis, cmesh, 1);
+              // SolveLU ( analysis );
+
+
+
+              //3. Calcula o erro 
+
+              //			TPZVec<REAL> calcErro;
+              //            analysis.SetExact(*SolArcTan);
+              //			analysis.PostProcess(calcErro,erro);
+
+              ErrorHDiv(cmesh, erro);
+
+
+
+              //4. visualizacao grafica usando vtk
+
+              TPZVec<std::string> scalnames(5), vecnames(2);
+              scalnames[0] = "Divergence";
+              scalnames[1] = "ExactDiv";
+              scalnames[2] = "Pressure";//"Solution";//
+              scalnames[3] = "ExactPressure";
+              scalnames[4] = "ExactDiv";
+
+
+              vecnames[0] = "ExactFlux";
+              vecnames[1] = "Flux";//"Derivative";//
 //
 //			
 //			 
 //			 
 //			 //vecnames[0] = "Derivate";
 //               //  std::string plotfile("GraficArcTanHpAdaptivity.vtk");
-//                 const int dim = 2;
-//                 int div = 2;
-//                 
-//                 char buf[256] ;
-//                 sprintf(buf,"ArcTanPhilUniMeshT_porder%d_h%d.vtk",porder,h);
-//                 analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
-//                 analysis.PostProcess(div);
-               
-			 
-			 
-			 std::string plotfile("GraficArcTanHpAdaptivity.vtk");
-			 const int dim = 2;
-			 int div = 2;
-			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-			 analysis.PostProcess(div);
-        
-        UniformRefine(gmesh, 1);
-         std::ofstream filemesh2("MalhaGeoDepois.vtk");
-        PrintGMeshVTK( gmesh, filemesh2);
-        
-        
-		}}
+                 const int dim = 2;
+                 int div = 2;
+                 
+                 char buf[256] ;
+                 sprintf(buf,"ArcTanPhilUniMeshQ_porder%d_h%d.vtk",porder,h);
+                 analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
+                 analysis.PostProcess(div);
+          
+
+
+//              std::string plotfile("GraficArcTanHpAdaptivity.vtk");
+//              const int dim = 2;
+//              int div = 2;
+//              analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+//              analysis.PostProcess(div);
+              //
+              //        UniformRefine(gmesh, 1);
+              //         std::ofstream filemesh2("MalhaGeoDepois.vtk");
+              //        PrintGMeshVTK( gmesh, filemesh2);
+
+
+        }
+  }
 	
 	
 	return 0;
