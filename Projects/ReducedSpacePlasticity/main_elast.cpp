@@ -41,6 +41,7 @@ int mainFrac(int argc, char *argv[])
 	InitializePZLOG();
 #endif
   //Propagation criterion
+  
   REAL Lx = 10;
   REAL Ly = 5.;
   REAL Lf = 1;
@@ -74,7 +75,7 @@ int mainFrac(int argc, char *argv[])
    
    // Lembre-se que a divisao por 2 (1 asa) e por Hf (na secao de 1 asa) eh feita no kernel.
    //Aqui vai Qinj total mesmo (no poco)!!!
-  REAL QinjTot  = -0.0001;
+  REAL QinjTot  = -0.001;
   
   REAL Ttot = 10.; // em segundos
   REAL maxDeltaT = 1.; // em segundos
@@ -91,11 +92,11 @@ int mainFrac(int argc, char *argv[])
   
   // porder
   int p = 1;
-	
+  
 	//cohesive param
-	REAL DeltaC = 0.0001024;
-	REAL DeltaT = 0.1 * DeltaC;
-	REAL SigmaT = 100.;
+	REAL DeltaC = 0.001024; //0.0001024
+	REAL DeltaT = 0.2 * DeltaC;
+	REAL SigmaT = 40.; //3
   
   //MohrCoulomb parameters
   REAL cohesion = 10000000. * 5.77; //article is 5.77
@@ -106,7 +107,7 @@ int mainFrac(int argc, char *argv[])
   globFractInputData.SetData(Lx, Ly, Lf, Hf, Lmax_edge, Young1, Poiss1, Young2, Poiss2, Xinterface,
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
                              QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q,DeltaC,DeltaT,SigmaT,NThreadsForAssemble);
-  globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
+  //globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
   ToolsTransient ToolTrans(p);
   
   std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";

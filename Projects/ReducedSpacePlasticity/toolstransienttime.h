@@ -91,6 +91,14 @@ public:
   /// Updates the memory of each integration point
   void AcceptSolution(TPZAnalysis *an);
   
+  /// Adds dirichlet condition without big number
+  void AddNoPenetration(int matid, int direction)
+  {
+    fMaterialIds[matid] = direction;
+  }
+  
+  void IdentifyEquationsToZero();
+  
   /// Run Methods
   //---------------------------------------------------------------
   
@@ -101,20 +109,31 @@ public:
   bool SolveSistTransient(TPZAnalysis *an, bool initialElasticKickIsNeeded);
   
   /// Assemble the last step
-  void MassMatrix(TPZFMatrix<REAL> & Un);
+  void MassMatrix(TPZFMatrix<REAL> & Un, bool IsFirstTime);
   
   /// Creates the jacobian and residuum for one step of newton method
   void StiffMatrixLoadVec(TPZAnalysis *an,
-                          TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec);
+                          TPZAutoPointer< TPZMatrix<REAL> > & matK1, TPZFMatrix<REAL> &fvec, bool IsEqFilter = false);
 	
-	REAL IterativeProcess(TPZAnalysis *an, int maxit, REAL tol);
+	REAL IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int maxit, REAL tol, bool linesearch = false, bool IsEqFilter = false);
 
   /// Apply equation filter on first solution if using prestress. NOT USED ANYMORE
   void ApplyEquationFilter(TPZAnalysis * an);
 	
 	// Just for test
-	void ApplyEquationFilterInOneHat(TPZAnalysis * an);
+	void ApplyEquationFilterInAllHats(TPZAnalysis * an);
   
+  /// Apply zero on the lines and columns of the Dirichlet boundary conditions
+  void AdjustTangentMatrix(TPZMatrix<STATE> &matrix);
+  
+  /// Apply zero to the equations of the Dirichlet boundary conditions
+  void AdjustResidual(TPZFMatrix<STATE> &rhs);
+  
+  /// Linear search for iterative process
+  REAL LineSearch(TPZAnalysis *an, const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &MassVec, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter, bool & converging);
+  
+  /// finds the quarilateral element index positioned after the fracture tip. The bool return if found
+  bool FindElementAfterFracture(int index);
   
   /// Post Process Methods
   //---------------------------------------------------------------
@@ -148,9 +167,6 @@ public:
 
   /// Method to show the displacement x sigmay of all the bottom el
 	void ShowDisplacementSigmaYBottom(TPZCompMesh *cmesh);
-
-  /// Plot all the hat functions separately using cmeshhat. Deprecated!
-  void PlotAllHatsVTK();
   
   /// Tests
   //---------------------------------------------------------------
@@ -179,6 +195,13 @@ public:
   
   /// Atributes
   //---------------------------------------------------------------
+  
+  /// Equations with zero dirichlet boundary condition
+  std::set<long> fEquationstoZero;
+  
+  /// Materials with no penetration boundary conditions
+  // the second value of the map indicates x (0) or y (1) restraint
+  std::map<int,int> fMaterialIds;
   
   /// Polinomyal order of approximation
   int fpOrder;

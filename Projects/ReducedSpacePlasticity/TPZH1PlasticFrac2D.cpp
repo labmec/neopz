@@ -115,18 +115,8 @@ void TPZH1PlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, RE
   
   if (fSetRunPlasticity)
   {
-    //const int phr = datavec[0].phi.Rows();
-    //TPZFNMatrix<40,REAL> ekP(phr,phr,0.), efP(phr,1,0.);
     ContributePlastic(datavec[0],weight,ek,ef);
-    /*
-    for (int i = 0; i < phr; i++) {
-      ef(i,0) += efP(i,0);
-      for (int j = 0; j < phr; j++) {
-        ek(i,j) += ekP(i,j);
-      }
-    }*/
    	ContributePressure(datavec, weight, ek, ef);
-    
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())

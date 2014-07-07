@@ -113,9 +113,11 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 		DebugStop();
 	}
   
+  TPZFNMatrix<40> ekP(ek), efP(ef);
   if (fSetRunPlasticity)
   {
-    ContributePlastic(datavec[0],weight,ek,ef);
+
+    ContributePlastic(datavec[0],weight,ekP,efP);
    	ContributePressure(datavec, weight, ek, ef);
     return;
   }
@@ -235,7 +237,8 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 		}//fim para a tangente
 	}
   
-  /* Old test to verify if matrixes are equal in case of non plastification
+
+  // Old test to verify if matrixes are equal in case of non plastification
   REAL zeroK = 0.;
   REAL zeroF = 0.;
   for (int i = 0; i < phcu; i++) {
@@ -245,9 +248,9 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     }
   }
   if (zeroF > 1.e-8 || zeroK > 1.e-8) {
-    DebugStop();
+    //DebugStop();
   }
-   */
+  
   
 #ifdef LOG4CXX
   if(logger->isDebugEnabled())
@@ -309,7 +312,6 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   }
   else
   {
-    // Tenho que fazer esse calculo vetorial tambem????? Acho que nao, o datasol={ux,uy} e data.dsol={{duxdx,duxdy},{duydx,duydy}} aqui
     this->ComputeDeltaStrainVector(data, DeltaStrain);
     this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
   }
@@ -453,7 +455,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 		REAL uy = sol_u[1];
 		w += 2.*uy;
 	}
-	
+  
 	int phipRows = phi_p.Rows();
 	int phiuCols = phi_u.Cols();
 	
@@ -462,6 +464,8 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 	
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
 	{
+    const STATE wconst = 0.01; // AQUINATHAN
+    
 		REAL actQl = globFractInputData.QlFVl(datavec[1].gelElId, sol_p[0]);
 		REAL actdQldp = globFractInputData.dQlFVl(datavec[1].gelElId, sol_p[0]);
 		
@@ -469,13 +473,14 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 		{
 			//----Residuo----
 			//termo (wˆ3/(12*mi))*gradP * gradVp
+      //ef(phiuCols+in,0) += (-1.) * weight * (wconst*wconst*wconst/(12.*visc)) * dsol_p(0,0) * dphi_p(0,in); w constante
 			ef(phiuCols+in,0) += (-1.) * weight * (w*w*w/(12.*visc)) * dsol_p(0,0) * dphi_p(0,in);
 			
 			//termo w/deltaT * Vp
 			ef(phiuCols+in,0) += (-1.) * weight * w/deltaT * phi_p(in,0);
 			
 			//termo 2Ql * Vp
-			ef(phiuCols+in,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
+			//ef(phiuCols+in,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0) ;AQUINATHAN leakoff
 			
 			
 			//------Matriz tangente-----
@@ -491,9 +496,10 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 			{
 				//termo D[ (wˆ3/(12*mi))*gradP * gradVp , p ]
 				ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (w*w*w/(12.*visc)) * dphi_p(0,in) * dphi_p(0,jn);
-				
+				//ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (wconst*wconst*wconst/(12.*visc)) * dphi_p(0,in) * dphi_p(0,jn); w constante
+        
 				//termo D[ 2Ql * Vp , p]
-				ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
+				//ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0); AQUINATHAN leakoff derivada
 			}
 		}
 	}
