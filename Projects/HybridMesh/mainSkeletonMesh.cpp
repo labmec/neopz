@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 
 
     TPZMHMeshControl mhm(gmesh2,coarseindex);
-    mhm.SetInternalPOrder(2);
+    //mhm.SetInternalPOrder(2);
     mhm.CreateCoarseInterfaces(matCoarse);
     InsertMaterialObjects(mhm.CMesh());
     mhm.BuildComputationalMesh();
