@@ -366,7 +366,12 @@ public:
 	 */
 	template < class T2>
 	void Scale( const T2 & constant );
-	
+
+	/**
+	 Zera o tensor
+	 */
+	void Zero();
+  
 	/**
 	 Metodo que calcula os autovetores to tensor
 	 @param [out] eigVec autovetores
@@ -677,6 +682,15 @@ void TPZTensor<T>::Scale(const T2 & constant )
 	int i, size=6;
 	for(i=0;i<size;i++){
 		fData[i]*= constant;
+	}
+}
+
+template < class T >
+void TPZTensor<T>::Zero()
+{
+	int i, size=6;
+	for(i=0;i<size;i++){
+		fData[i] = 0.;
 	}
 }
 
