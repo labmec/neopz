@@ -288,8 +288,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 //            order = maxorder;
 //        }
 //    }
-    TPZManVector<int,3> intorder(dim,order);
-    intrule->SetOrder(intorder);
+//    TPZManVector<int,3> intorder(dim,order);
+//    intrule->SetOrder(intorder);
     
     int intrulepoints = intrule->NPoints();
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
@@ -333,8 +333,8 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 //            order = maxorder;
 //        }
 //    }
-    TPZManVector<int,3> intorder(dim,order);
-    intrule->SetOrder(intorder);
+//    TPZManVector<int,3> intorder(dim,order);
+//    intrule->SetOrder(intorder);
 	//  material->SetIntegrationRule(intrule, data.p, dim);
 	
 	int intrulepoints = intrule->NPoints();
