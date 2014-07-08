@@ -141,7 +141,7 @@ int main()
 //	}
 //#endif
 	
-	for (int porder= 3; porder<4; porder++) {
+	for (int porder= 4; porder<5; porder++) {
 		
 		for(int h=1;h<6;h++){
 			
@@ -200,11 +200,9 @@ int main()
                 myerrorfile << " L2 = " << erros[1];
                 myerrorfile << " semi H1 = " << erros[2] << "\n"<<std::endl;
             }
-            else{
-               
-                 REAL errofluxo =  Compute_dudnQuadradoError(h, cmesh);
-                // REAL errofluxo = Compute_dudnQuadradoError(h, cmesh, false);
-                //REAL errofluxo = Error_dudn(cmesh, h);
+            else
+            {
+                REAL errofluxo =  Compute_dudnQuadradoError(h, cmesh);
                 myerrorfile<<"Erro semi H1 para fluxo = " << errofluxo<<"\n\n";
                 myerrorfile.flush();
             }
@@ -230,7 +228,7 @@ int main()
 }
 
 TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
-	TPZCompEl::SetgOrder(porder);
+	//TPZCompEl::SetgOrder(porder);
 	TPZCompMesh *comp = new TPZCompMesh(&gmesh);
 	
     comp->ApproxSpace().CreateDisconnectedElements(true);
@@ -302,6 +300,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
         matids.insert(-i);
     }
     
+    comp->SetDefaultOrder(porder);
 	comp->AutoBuild(matids);
     comp->SetDimModel(2);
     

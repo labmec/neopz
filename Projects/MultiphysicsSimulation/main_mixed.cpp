@@ -97,10 +97,10 @@ void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-const bool triang = false;
+const bool triang = true;
 const int teste = 3;
 bool l2proj = false;
-bool calcerroglobal = false;
+bool calcerroglobal = true;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -114,10 +114,10 @@ int main(int argc, char *argv[])
     ofstream arg12("ErroQuadrado.txt");
     int ndiv, p;
     arg12<<"\n\nERRO PARA MALHA COM TRIANGULO  = " << triang;
-    for (p = 2; p< 3; p++)
+    for (p = 3; p< 4; p++)
     {
         arg12<<"\n\n----------- ORDEM p = " << p <<" -----------";
-        for(ndiv = 0; ndiv < 5;ndiv++)
+        for(ndiv = 1; ndiv < 8;ndiv++)
         {
             arg12<<"\nRefinamento ndiv  = " << ndiv;
             // int p = 5;
@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
             }
             else if(teste == 3)
             {
-                //gmesh = GMesh2(triang);
-                gmesh = GMesh3();
+                gmesh = GMesh2(triang);
+                //gmesh = GMesh3();
     
             }
             UniformRefine(gmesh,ndiv);
