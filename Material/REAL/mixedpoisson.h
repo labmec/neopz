@@ -13,6 +13,7 @@
 #include "pzdiscgal.h"
 #include "pzpoisson3d.h"
 #include "pzmaterial.h"
+#include "pzfunction.h"
 
 /**
  * @ingroup material
@@ -40,10 +41,10 @@ protected:
 	REAL fk;
     
     /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
-	TPZFMatrix<REAL> fKtensor;
+	TPZFMatrix<REAL> fTensorK;
     
     /** @brief inverse of the permeability tensor.*/
-	TPZFMatrix<REAL> fKinv;
+	TPZFMatrix<REAL> fInvK;
     
     /** @brief fluid viscosity*/
 	REAL fvisc;
@@ -61,6 +62,9 @@ protected:
     /** @brief Coeficient that multiplies the Stabilization term fdelta1*/
     REAL fh2;
     bool fUseHdois;
+    
+    /** @brief Pointer to forcing function, it is the Permeability and its inverse */
+    TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
     
 public:
     TPZMixedPoisson();
@@ -85,10 +89,13 @@ public:
 	}
     
     //Set the permeability tensor and inverser tensor
-   void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> Kinv){
+   void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
    
-       fKtensor = K;
-       fKinv = Kinv;
+       if(K.Rows()>fDim || K.Cols()>fDim) DebugStop();
+       if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
+       
+       fTensorK = K;
+       fInvK = invK;
    }
 	
     void SetViscosity(REAL visc) {
@@ -115,6 +122,12 @@ public:
         fdelta1 = delta1;
         fdelta2 = delta2;
     }
+    
+    void SetPermeabilityFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+        fPermeabilityFunction = fp;
+    }
+
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
