@@ -36,6 +36,7 @@ using namespace pzgeom;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoel"));
+static LoggerPtr loggerorient(Logger::getLogger("pz.mesh.tpzgeoel.orient"));
 #endif
 
 
@@ -1685,8 +1686,38 @@ int TPZGeoEl::NormalOrientation(int side)
 		LOGPZ_ERROR(logger,"NormalOrientation called with wrong side")
 		return 0;
 	}
+#ifdef LOG4CXX
+    if (loggerorient->isDebugEnabled())
+    {
+        std::stringstream sout;
+        TPZCompEl *cel = Reference();
+        if (cel) {
+            sout << "Comp Element index " << cel->Index() << std::endl;
+        }
+        sout << "Element index " << this->Index() << " Id = " << this->Id() << " side = " << side;
+        LOGPZ_DEBUG(loggerorient, sout.str())
+    }
+#endif
 	TPZGeoElSide thisside(this,side);
-	TPZGeoElSide neighbour(thisside.Neighbour());
+
+	TPZGeoElSide fatherside = thisside.Father2();
+	while(fatherside.Exists() && fatherside.Dimension() == dimside)//a segunda condicional eu inclui agora
+	{
+		thisside = fatherside;
+		fatherside = fatherside.Father2();
+	}
+
+#ifdef LOG4CXX
+    if (loggerorient->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "largest father index " << thisside.Element()->Index() << " id = " << thisside.Element()->Id() << std::endl;
+        LOGPZ_DEBUG(loggerorient, sout.str())
+    }
+#endif
+
+    
+    TPZGeoElSide neighbour(thisside.Neighbour());
     // case there is no neighbour (should put a debugstop here)
 	if(!neighbour.Exists() ) 
 	{
@@ -1701,12 +1732,6 @@ int TPZGeoEl::NormalOrientation(int side)
         return 1;
     }
 	
-	TPZGeoElSide fatherside = thisside.Father2();
-	while(fatherside.Exists() && fatherside.Dimension() == dimside)//a segunda condicional eu inclui agora
-	{
-		thisside = fatherside;
-		fatherside = fatherside.Father2();
-	}
 //	fatherside = thisside.Neighbour();
     neighbour = thisside.Neighbour();
     // Considerando elementos hibridos, o elemento pode ter um vizinho de dimensao menor
@@ -1726,6 +1751,21 @@ int TPZGeoEl::NormalOrientation(int side)
 		DebugStop();
 		
 	}
+#ifdef LOG4CXX
+    if (loggerorient->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "neighbour index " << neighbour.Element()->Index() << " id = " << neighbour.Element()->Index() << std::endl;
+        if(thisside.Element()->Id() < neighbour.Element()->Id())
+        {
+            sout << "returning 1\n";
+        }
+        else {
+            sout << "returning -1\n";
+        }
+        LOGPZ_DEBUG(loggerorient, sout.str())
+    }
+#endif
 	
 	if(thisside.Element()->Id() < neighbour.Element()->Id())
 	{
