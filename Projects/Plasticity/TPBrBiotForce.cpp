@@ -21,7 +21,7 @@ int TPBrBiotForce::ClassId() const
 }
 
 /** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
-void TPBrBiotForce::Write(TPZStream &buf, int withclassid) const
+void TPBrBiotForce::Write(TPZStream &buf, int withclassid) 
 {
     TPZFunction<STATE>::Write(buf,withclassid);
     buf.Write(&fRwell);

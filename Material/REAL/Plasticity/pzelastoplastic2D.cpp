@@ -653,9 +653,28 @@ int TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPla
   return TPZSANDLERDIMAGGIOL2_ID + NUMPLASTICMODELS;
 }
 
+#include "pzsandlerextPV.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+
+template<>
+int TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS;
+}
+
+template<>
+int TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS;
+}
+
+
+
 template <class T, class TMEM>
 int TPZMatElastoPlastic2D<T,TMEM>::ClassId() const
 {
+    DebugStop();
 	return TPZMatElastoPlastic<T,TMEM>::ClassId() - NUMPLASTICMODELS;
 	//	return TBASEPOROUS(T, TMEM)::ClassId() - NUMPLASTICMODELS;
   //#warning Erick = como funciona isso???
@@ -716,9 +735,6 @@ void TPZMatElastoPlastic2D<T,TMEM>::Print(std::ostream &out)
 #include "TPZVonMises.h"
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
-#include "pzsandlerextPV.h"
-#include "TPZPlasticStepPV.h"
-#include "TPZYCMohrCoulombPV.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
@@ -755,3 +771,7 @@ template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLER
 
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
+
+
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS >;
+template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS>;

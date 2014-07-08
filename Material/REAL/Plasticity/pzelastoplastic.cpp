@@ -1040,6 +1040,22 @@ int TPZMatElastoPlastic<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlast
     return TPZSANDLERDIMAGGIOL2_ID;
 }
 
+#include "pzsandlerextPV.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+
+template<>
+int TPZMatElastoPlastic<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZSANDLERDIMAGGIOPV_ID;
+}
+
+template<>
+int TPZMatElastoPlastic<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZMOHRCOULOMBPV_ID;
+}
+
 
 
 template <class T, class TMEM>
