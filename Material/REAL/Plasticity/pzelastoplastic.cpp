@@ -407,26 +407,32 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
   int nstate = NStateVariables();
   REAL val,val2,val3,val4,val5,val6,val7,val8,val9,val10;
 		
+  TPZVec<STATE> ForceLoc(this->fForce);
+  if(this->fForcingFunction)
+  {
+		this->fForcingFunction->Execute(data.x,ForceLoc);
+	}	
+	
   int in;
   for(in = 0; in < phr; in++) { //in: test function index
 	
 	// fForce represents the gravity acceleration
 	//First equation: fb and fk
-	val  = fRhoB * fForce[0] * phi(in,0); // fb
+	val  = fRhoB * ForceLoc[0] * phi(in,0); // fb
 	val -= Stress(_XX_,0) * dphiXYZ(0,in); // |
 	val -= Stress(_XY_,0) * dphiXYZ(1,in); // fk
 	val -= Stress(_XZ_,0) * dphiXYZ(2,in); // |
 	ef(in*nstate+0,0) += weight * val;
 	  
 	//Second equation: fb and fk
-	val  = fRhoB * fForce[1] * phi(in,0); // fb
+	val  = fRhoB * ForceLoc[1] * phi(in,0); // fb
 	val -= Stress(_XY_,0) * dphiXYZ(0,in); // |
 	val -= Stress(_YY_,0) * dphiXYZ(1,in); // fk
 	val -= Stress(_YZ_,0) * dphiXYZ(2,in); // |
 	ef(in*nstate+1,0) += weight * val;
 
 	//third equation: fb and fk
-	val  = fRhoB * fForce[2] * phi(in,0); // fb
+	val  = fRhoB * ForceLoc[2] * phi(in,0); // fb
 	val -= Stress(_XZ_,0) * dphiXYZ(0,in); // |
 	val -= Stress(_YZ_,0) * dphiXYZ(1,in); // fk
 	val -= Stress(_ZZ_,0) * dphiXYZ(2,in); // |
