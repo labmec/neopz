@@ -411,7 +411,7 @@ void TPZMultiphase::CapillaryPressure(BFadREAL So, BFadREAL &pc){
 
 /** Oil relative permeability \f$ Kro = 1 - Sw \f$ */
 void TPZMultiphase::Kro(BFadREAL Sw, BFadREAL &Kro){
-    Kro = 1.0-Sw;
+    Kro = 1.0-Sw.val();
 }
 
 
@@ -746,7 +746,7 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
                                 Kabsolute(2,1)=kzy;
                                 Kabsolute(2,2)=kzz;
                                 
-                                KabsoluteMap[elementId]=(1.0/fKref)*Kabsolute;
+                                KabsoluteMap[elementId]=(REAL(1.0)/fKref)*Kabsolute;
                                 
                                 ContOfKs++;
                             }

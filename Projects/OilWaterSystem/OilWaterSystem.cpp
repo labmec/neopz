@@ -1381,7 +1381,7 @@ void ComputeResidual(TPZFMatrix<STATE> &RUattn, REAL &alpha, TPZFMatrix<STATE> &
     TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
     
     TPZFMatrix<STATE> ResidualAtU = RUattn + RhsAtnPlusOne;     
-    NonLinearAn->Solver().Matrix()->Multiply((1.0)*alpha*DeltaU,TangentRes);
+    NonLinearAn->Solver().Matrix()->Multiply(STATE(1.0)*alpha*DeltaU,TangentRes);
     
     NonLinearAn->LoadSolution(NonLinearAn->Solution()+alpha*DeltaU);            
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);          
@@ -1392,7 +1392,7 @@ void ComputeResidual(TPZFMatrix<STATE> &RUattn, REAL &alpha, TPZFMatrix<STATE> &
     TPZFMatrix<STATE> ResidualAtUplusAlphaDeltaU = RUattn + RhsAtnPlusOne;
     
     
-    ResAlpha = ((1.0)*ResidualAtUplusAlphaDeltaU - ((1.0)*ResidualAtU + (1.0) * TangentRes));
+    ResAlpha = (STATE(1.0)*ResidualAtUplusAlphaDeltaU - (STATE(1.0)*ResidualAtU + STATE(1.0) * TangentRes));
     
     
 }

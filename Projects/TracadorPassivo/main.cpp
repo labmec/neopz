@@ -999,7 +999,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
             Lastsolution = an.Solution();
             matM->Multiply(Lastsolution,TotalRhstemp2);
             TotalRhs = TotalRhstemp1 + (TotalRhstemp2 + fvecK);
-            TotalRhs = 0.5*TotalRhs;
+            TotalRhs = STATE(0.5)*TotalRhs;
             an.Rhs() = TotalRhs;
             an.Solution().Zero();
             an.Solve();
