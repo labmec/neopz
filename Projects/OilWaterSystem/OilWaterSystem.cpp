@@ -119,6 +119,8 @@ int main()
     GridFileName = dirname + "/Projects/OilWaterSystem/";
     GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "Labyrinth.dump";
+//    GridFileName += "BaseGeometryMazeOne.dump";
+    GridFileName += "BaseGeometryDake.dump";
 
 //  GridFileName = "Labyrinth.dump";    
     //  GridFileName = "OilWaterSystemUnitTwo.dump";
@@ -126,7 +128,7 @@ int main()
     //  GridFileName = "OilWaterSystemUnitTwoHRef.dump";
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(100.0);
+    GeometryInfo.SetfDimensionlessL(500.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     RotateGeomesh(gmesh, angle);
     {
@@ -140,14 +142,14 @@ int main()
     //  std::vector<REAL> dd(2,0);
     
     
-    int Href = 2;
-    int div = 0;        
+    int Href = 1;
+    int div = 0;
     int POrderBulkFlux = 1;
     int POrderGravitationalFlux = 1;
     int POrderPseudopressure = 1;
-    int POrderWaterSaturation = 0;
+    int POrderWaterSaturation = 1;
     
-    UniformRefinement(gmesh, Href); 
+    UniformRefinement(gmesh, Href);
     
     {
         //  Print Geometrical Base Mesh
@@ -155,7 +157,6 @@ int main()
         gmesh->Print(argument);
         std::ofstream Dummyfile("RefGeometricMesh.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
-        //      gmesh->BuildConnectivity();
     }   
     
     
@@ -193,6 +194,7 @@ int main()
     std::string plotfilebuklflux = outputfiletemp1.str();
     TPZFMatrix<STATE> InitialQSolution = Anbulkflux.Solution(); 
     int rwosQ= InitialQSolution.Rows();
+    
 //      for (int i=0; i < InitialQSolution.Rows(); i++) 
 //      {
 //          InitialQSolution(i)=0.0;
@@ -235,10 +237,9 @@ int main()
     TPZCompMesh  * cmeshL2 = L2ProjectionP(gmesh, POrderPseudopressure, solini);
     
     TPZAnalysis anL2(cmeshL2);
-//    SolveSyst(anL2, cmeshL2);
+    SolveSyst(anL2, cmeshL2);
     
     AnPressure.LoadSolution(anL2.Solution());
-    
     PosProcessL2(AnPressure,plotfilePressure);  
     
     
@@ -258,9 +259,9 @@ int main()
     TPZCompMesh  * cmeshsatL2 = L2ProjectionS(gmesh, POrderWaterSaturation, solSini);
     
     TPZAnalysis ansatL2(cmeshsatL2);
-    SolveSyst(ansatL2, cmeshsatL2);
+//    SolveSyst(ansatL2, cmeshsatL2);
     
-    AnSaturation.LoadSolution(ansatL2.Solution());
+//    AnSaturation.LoadSolution(ansatL2.Solution());
     PosProcessL2(AnSaturation,plotfileSaturation);
     
     //  //  This is so rare!!
@@ -302,17 +303,7 @@ int main()
     step.SetDirect(ELU);                    
     MultiphysicsAn->SetSolver(step);
 
-    // I can't believe that this is needed!!!
-//     MultiphysicsAnTan->SetStructuralMatrix(matskTan);
-//     MultiphysicsAnTan->StructMatrix()->SetNumThreads(Nthreads);
-//     TPZStepSolver<STATE> steptan;
-//     steptan.SetDirect(ELU);                     
-//     MultiphysicsAnTan->SetSolver(steptan);  
-//     TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);
-//     FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,MultiphysicsMesh);
-//     TPZFMatrix<STATE> SolutiontoMod=MultiphysicsMesh->Solution();
-//     CleanGradientSolution(SolutiontoMod,WithGradients);
-//     MultiphysicsAn->LoadSolution(SolutiontoMod);
+
     std::string outputfile;
     outputfile = "TransientSolutionini";
     std::stringstream outputfiletemp;
@@ -326,10 +317,9 @@ int main()
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
     
-    REAL deltaT = 4.0;
-    REAL maxTime = 120.0;
+    REAL deltaT = 0.0025;
+    REAL maxTime = 0.25;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, MultiphysicsAnTan, meshvec, MultiphysicsMesh);
-    
     return 0;
     
 }
@@ -716,38 +706,42 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     
     std::string GridFileName, dirname = PZSOURCEDIR;
     GridFileName = dirname + "/Projects/OilWaterSystem/";
-    GridFileName += "LabyrinthKvaluesH.txt";    
+    GridFileName += "LabyrinthKvalues.txt";
     
     material1->SetTimeStep(1.0);
+    material1->SetTime(0.0);
     material1->fnewWS=true; 
     material1->SetTScheme(1.0, 1.0);
 //  material1->LoadKMap("Permeabilities.txt");
     material1->LoadKMap(GridFileName);  
-    material1->SetYorN(false);      
+    material1->SetYorN(false);
     
     TPZMaterial *mat1(material1);
     mphysics->InsertMaterialObject(mat1);
     mphysics->SetDimModel(dim);
     
-    TPZAutoPointer<TPZFunction<STATE> > HydroP;
-    HydroP = new TPZDummyFunction<STATE>(HydroStaticPressure);    
-    material1->SetfBCForcingFunction(HydroP);
+//    TPZAutoPointer<TPZFunction<STATE> > HydroP;
+//    HydroP = new TPZDummyFunction<STATE>(HydroStaticPressure);    
+//    material1->SetfBCForcingFunction(HydroP);
+    
+	TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact;
+    TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution);
+	material1->SetTimeDependentFunctionExact(TimeDepFExact);
     
     
     TPZFMatrix<STATE> val1(4,2,0.), val2(4,1,0.);
     
-    val2(0,0)=0.0*0.0020*cos(angle);// qx
-    val2(1,0)=0.0*0.0020*sin(angle);// qy
+    val2(0,0)=1.0*0.0020*cos(angle);// qx
+    val2(1,0)=1.0*0.0020*sin(angle);// qy
     val2(2,0)=0.0*20.0*MPa;// P
-    val2(3,0)=0.0*1.0;// S
-    TPZMaterial * BCond5 = material1->CreateBC(mat1,4,1, val1, val2);
+    val2(3,0)=1.0*1.0;// S
+    TPZMaterial * BCond5 = material1->CreateBC(mat1,5,3, val1, val2);
     
 //  val2(0,0)=0.0;// qx
 //  val2(1,0)=0.0;// qy
 //  val2(2,0)=0.0;// P
 //  val2(3,0)=0.0;// S          
-//  TPZMaterial * BCond3 = material1->CreateBC(mat1,2,4, val1, val2);       
-    //      TPZMaterial * BCond4 = material2->CreateBC(mat2,4,0, val1, val2);
+//    TPZMaterial * BCond3 = material1->CreateBC(mat1,2,3, val1, val2);
     
     val2(0,0)=0.0;// qx
     val2(1,0)=0.0;// qy
@@ -756,20 +750,21 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 //  TPZMaterial * BCond2 = material1->CreateBC(mat1,4,4, val1, val2);       
     TPZMaterial * BCond2Nflux = material1->CreateBC(mat1,2,3, val1, val2);
     //TPZMaterial * BCond2Nflux2 = material1->CreateBC(mat1,3,3, val1, val2);
+    
     val2(0,0)=0.0;// qx
     val2(1,0)=0.0;// qy
     val2(2,0)=0.0*MPa;// P
     val2(3,0)=0.0;// S      
-    TPZMaterial * BCond2Nflux3 = material1->CreateBC(mat1,3,3, val1, val2);
-    //TPZMaterial * BCond2Nflux4 = material1->CreateBC(mat1,5,3, val1, val2);
-    //      TPZMaterial * BCond4 = material1->CreateBC(mat1,4,2, val1, val2);       
-    //      TPZMaterial * BCond6 = material2->CreateBC(mat2,6,3, val1, val2);
+    TPZMaterial * BCond2Nflux3 = material1->CreateBC(mat1,4,3, val1, val2);
+//    TPZMaterial * BCond2Nflux4 = material1->CreateBC(mat1,5,3, val1, val2);
+//    TPZMaterial * BCond4 = material1->CreateBC(mat1,2,3, val1, val2);
+//    TPZMaterial * BCond6 = material1->CreateBC(mat1,2,3, val1, val2);
     
     val2(0,0)=0.000;// qx
     val2(1,0)=0.0;// qy
-    val2(2,0)=0.0*18.0*MPa;// P
+    val2(2,0)=1.0*18.0*MPa;// P
     val2(3,0)=0.0;// S          
-    TPZMaterial * BCond4 = material1->CreateBC(mat1,5,3, val1, val2);
+    TPZMaterial * BCond4 = material1->CreateBC(mat1,3,2, val1, val2);
         
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();       
@@ -777,10 +772,10 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     mphysics->InsertMaterialObject(BCond2Nflux);
 //  mphysics->InsertMaterialObject(BCond2Nflux2);
     mphysics->InsertMaterialObject(BCond2Nflux3);
-//  mphysics->InsertMaterialObject(BCond2Nflux4);   
+//  mphysics->InsertMaterialObject(BCond2Nflux4);
     //      mphysics->InsertMaterialObject(BCond4);
 //  mphysics->InsertMaterialObject(BCond3);
-    //      mphysics->InsertMaterialObject(BCond6);
+//    mphysics->InsertMaterialObject(BCond6);
     mphysics->InsertMaterialObject(BCond4);
     //      mphysics->InsertMaterialObject(BCond8);
     mphysics->InsertMaterialObject(BCond5);     
@@ -821,7 +816,7 @@ void PosProcessBulkflux(TPZAnalysis &an, std::string plotfile){
     vecnames[0]= "FluxL2";
     
     const int dim = 2;
-    int div = 5;
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     std::ofstream out("malhaflux.txt");
@@ -833,7 +828,7 @@ void PosProcessL2(TPZAnalysis &an, std::string plotfile){
     scalnames[0]= "Solution";
     
     const int dim = 2;
-    int div = 1;
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     std::ofstream out("malhaflux.txt");
@@ -843,16 +838,18 @@ void PosProcessL2(TPZAnalysis &an, std::string plotfile){
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    TPZManVector<std::string,10> scalnames(3), vecnames(2);
+    TPZManVector<std::string,10> scalnames(4), vecnames(2);
     
     scalnames[0] = "WeightedPressure";
     scalnames[1] = "WaterSaturation";
-    scalnames[2] = "OilSaturation";
+    scalnames[2] = "SwExact";
+    scalnames[3] = "OilSaturation";
     vecnames[0] = "BulkVelocity";
-    vecnames[1] = "GravityVelocity";    
+    vecnames[1] = "GravityVelocity";
+//    vecnames[2] = "Kabsolute";
     
     const int dim = 2;
-    int div =1;
+    int div =0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     std::ofstream out("malha.txt");
@@ -902,19 +899,18 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //      TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);        
 //  }
 
-
     TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);   
-    std::string OutPutFile = "TransientSolutionGRImpHT4";
+    std::string OutPutFile = "TransientSolutionCNGR";
     TPZMaterial *mat1 = mphysics->FindMaterial(1);
     //    TPZMaterial *mat2 = mphysics->FindMaterial(2);    
     
     TPZMultiphase * material1 = dynamic_cast<TPZMultiphase *>(mat1);  
     //    TPZMultiphase * material2 = dynamic_cast<TPZMultiphase *>(mat2);      
     material1->SetTimeStep(deltaT);
-    material1->SetTScheme(1.0,1.0);
-    bool UsingGradient = false;
-    int matIdL2Proj = 2;    
-    
+    material1->SetTime(0.0);
+    material1->SetTScheme(0.5,0.5);
+    bool UsingGradient = true;
+    int matIdL2Proj = 2;
     
     //  Starting Newton Iterations
     TPZFMatrix<STATE> DeltaX = mphysics->Solution();
@@ -950,22 +946,21 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     PosProcessMultphysics(meshvec,mphysics,*NonLinearAn,plotfile);      
     
     
-//     TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);
-//     FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,mphysics);
-//     AllConnects = NoGradients;
-//
-//     
-//     
-//     AllConnects.Resize(NoGradients.size()+WithGradients.size());
-//     for (int i=0; i<(WithGradients.size()); i++) 
-//     {
-//         AllConnects[i+NoGradients.size()]=WithGradients[i];
-//     };  
-//    // No using filter
-//
-//     NonLinearAn->StructMatrix()->EquationFilter().Reset();
-//     NonLinearAn->StructMatrix()->EquationFilter().SetActiveEquations(NoGradients);
-    
+     TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);
+     FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,mphysics);
+     AllConnects = NoGradients;
+
+     
+     
+     AllConnects.Resize(NoGradients.size()+WithGradients.size());
+     for (int i=0; i<(WithGradients.size()); i++) 
+     {
+         AllConnects[i+NoGradients.size()]=WithGradients[i];
+     };  
+    // No using filter
+
+     NonLinearAn->StructMatrix()->EquationFilter().Reset();
+     NonLinearAn->StructMatrix()->EquationFilter().SetActiveEquations(NoGradients);
     
     std::cout << " Starting the time computations. " << std::endl;  
     while (TimeValue < maxTime)
@@ -1055,7 +1050,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
                 gradreconst->ProjectionL2GradientReconstructed(meshvec[2], matIdL2Proj);
                 TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
                 Uatk=mphysics->Solution();
-//                 CleanGradientSolution(Uatk,WithGradients);
+                CleanGradientSolution(Uatk,WithGradients);
                 NonLinearAn->LoadSolution(Uatk);
             }
         
@@ -1067,6 +1062,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //          NormValueT = Norm(ResidualT);           
             
             material1->SetCurrentState();
+            material1->SetTime(cent*deltaT);
             NonLinearAn->Assemble();
             RhsAtnPlusOne = NonLinearAn->Rhs();
             Residual= RhsAtn + RhsAtnPlusOne;
@@ -1122,9 +1118,9 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             gradreconst->ProjectionL2GradientReconstructed(meshvec[2], matIdL2Proj);
             TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
             Uatk=mphysics->Solution();
-//             CleanGradientSolution(Uatk,WithGradients);
+            //CleanGradientSolution(Uatk,WithGradients);
             NonLinearAn->LoadSolution(Uatk);        
-        }   
+        }
             
 //      TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);      
 //      SolutiontoSave = mphysics->Solution();
@@ -1305,7 +1301,7 @@ void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     
 //    disp[0] = 1.0*( -1.0*y + 1.0 );
     
-    if (y>=0.5) 
+    if (y>=0.5)
     {
          disp[0] = 1.0;
     }else
@@ -1526,9 +1522,13 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
 
 void FilterHigherOrderSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
+    int ncon_flux       = meshvec[0]->NConnects();
+    int ncon_pressure   = meshvec[1]->NConnects();
     int ncon_saturation = meshvec[2]->NConnects();
+    int ncon_gravity    = meshvec[3]->NConnects();
     int ncon = mphysics->NConnects();
-    for(int i = 0; i < ncon-ncon_saturation; i++)
+    
+    for(int i = 0; i < ncon-ncon_saturation-ncon_gravity; i++)
     {
         TPZConnect &con = mphysics->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
@@ -1540,9 +1540,26 @@ void FilterHigherOrderSaturations(TPZManVector<long> &active, TPZManVector<long>
         for(int ieq = 0; ieq<blocksize; ieq++){
             active[vs+ieq] = pos+ieq;
         }
-    }   
+    }
     
-    for(int i = ncon-ncon_saturation; i<ncon; i++)
+    for(int i = ncon-ncon_gravity; i < ncon; i++)
+    {
+        TPZConnect &con = mphysics->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        if (seqnum == -1) {
+            continue;
+        }
+        int pos = mphysics->Block().Position(seqnum);
+        int blocksize = mphysics->Block().Size(seqnum);
+        int vs = active.size();
+        active.Resize(vs+blocksize);
+        for(int ieq = 0; ieq<blocksize; ieq++){
+            active[vs+ieq] = pos+ieq;
+        }
+        
+    }
+    
+    for(int i = ncon-ncon_saturation-ncon_gravity; i<ncon-ncon_gravity; i++)
     {
         TPZConnect &con = mphysics->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
@@ -1555,7 +1572,7 @@ void FilterHigherOrderSaturations(TPZManVector<long> &active, TPZManVector<long>
         active[vs] = pos+ieq;
     }
     
-    for(int i = ncon-ncon_saturation; i<ncon; i++)
+    for(int i = ncon-ncon_saturation-ncon_gravity; i<ncon-ncon_gravity; i++)
     {
         TPZConnect &con = mphysics->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
@@ -1608,4 +1625,36 @@ void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Grad
     {
         Solution(Gradients[i],0)=0.0;
     }   
+<<<<<<< .mine
 }
+
+void ExactSolution(const TPZVec<STATE> &ptx, STATE timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
+    
+    REAL x = ptx[0];
+    //double y = pt[1];
+    
+    REAL tp = timestep;
+//    u[0]=0.;
+    
+//    REAL AreaPoro = fLy*1.*fporos;
+//    REAL qinDia = fvazaoentrada/AreaPoro;//m/d
+//    REAL qin = qinDia/86400.;//m/s
+//    REAL num = fvisref*fLref;
+//    REAL denom = fkref*fpref;
+//    REAL qinD = (-1.)*(qin*num/denom);
+    REAL velx = 1.0;
+    
+    REAL pt = x-velx*tp;
+    
+    if(pt < 0.0)
+    {sol[0] = 1.;}
+    else
+    {sol[0] = 0.0;}
+
+    
+//    sol[0] = 0.5;
+    
+}
+=======
+}
+>>>>>>> .r5876

@@ -519,7 +519,7 @@ void TPZMultiphase::fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw)
 
 /** Oil density at standar conditions - kg/m3 */
 REAL TPZMultiphase::RhoOilSC(){
-    return 700.00;
+    return 1000.0;
 }
 
 /** Water density at standar conditions - kg/m3 */
@@ -531,7 +531,7 @@ REAL TPZMultiphase::RhoWaterSC(){
 TPZFMatrix<REAL> TPZMultiphase::Gravity(){
     TPZFMatrix<REAL> gravity(3,1,0.0);
     gravity(0,0) =  0.0;
-    gravity(1,0) = -10.0;
+    gravity(1,0) =  0.0;
     gravity(2,0) =  0.0;
     gravity *= (1.0/(fPref/(fLref*fRhoref)));
     return gravity;
@@ -736,17 +736,21 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
                                 read >> kzy;
                                 read >> kzz;
                                 
-                                Kabsolute(0,0)=kxx;
-                                Kabsolute(0,1)=kxy;
-                                Kabsolute(0,2)=kxz;
-                                Kabsolute(1,0)=kyx;
-                                Kabsolute(1,1)=kyy;
-                                Kabsolute(1,2)=kyz;
-                                Kabsolute(2,0)=kzx;
-                                Kabsolute(2,1)=kzy;
-                                Kabsolute(2,2)=kzz;
+                                Kabsolute(0,0)=(1.0/fKref)*kxx;
+                                Kabsolute(0,1)=(1.0/fKref)*kxy;
+                                Kabsolute(0,2)=(1.0/fKref)*kxz;
+                                Kabsolute(1,0)=(1.0/fKref)*kyx;
+                                Kabsolute(1,1)=(1.0/fKref)*kyy;
+                                Kabsolute(1,2)=(1.0/fKref)*kyz;
+                                Kabsolute(2,0)=(1.0/fKref)*kzx;
+                                Kabsolute(2,1)=(1.0/fKref)*kzy;
+                                Kabsolute(2,2)=(1.0/fKref)*kzz;
                                 
+<<<<<<< .mine
+                                KabsoluteMap[elementId]=Kabsolute;
+=======
                                 KabsoluteMap[elementId]=(REAL(1.0)/fKref)*Kabsolute;
+>>>>>>> .r5876
                                 
                                 ContOfKs++;
                             }
@@ -3817,7 +3821,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
             
         default: std::cout << "This BC doesn't exist." << std::endl;
         {
-            //  DebugStop();            
+            
+            DebugStop();
         }
             break;
     }
@@ -3840,7 +3845,9 @@ int TPZMultiphase::VariableIndex(const std::string &name){
     if(!strcmp("WaterDensity",name.c_str()))    return  7;
     if(!strcmp("OilDensity",name.c_str()))    return  8;
     if(!strcmp("RockPorosity",name.c_str()))    return  9;
-    if(!strcmp("GravityVelocity",name.c_str()))        return  10;     
+    if(!strcmp("GravityVelocity",name.c_str()))        return  10;
+    if(!strcmp("Kabsolute",name.c_str()))    return  11;
+    if(!strcmp("SwExact",name.c_str()))    return  12;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -3855,7 +3862,9 @@ int TPZMultiphase::NSolutionVariables(int var){
     if(var == 7) return 1;
     if(var == 8) return 1;
     if(var == 9) return 1;
-    if(var == 10) return 2;    
+    if(var == 10) return 2;
+    if(var == 11) return 3;
+    if(var == 12) return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -3863,11 +3872,12 @@ int TPZMultiphase::NSolutionVariables(int var){
 void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
     
     Solout.Resize( this->NSolutionVariables(var));
-    TPZVec<STATE> SolQ, SolP, SolS, SolQG;
+    TPZVec<STATE> SolQ, SolP, SolS, SolQG, SolSExact(1);
+    TPZFMatrix<STATE> SolSExactD;
     SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
     SolS = datavec[2].sol[0];
-    SolQG   = datavec[3].sol[0];    
+    SolQG   = datavec[3].sol[0];
     
     if(var == 1){ //function (state variable Q)
         Solout[0] = SolQ[0];
@@ -3894,7 +3904,40 @@ void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
         Solout[0] = SolQG[0];
         Solout[1] = SolQG[1];
         return;
-    }       
+    }
+    
+    if(var == 11){ //function (state variable QG)
+        
+        TPZFMatrix<REAL> Kabsolute;
+        TPZFMatrix<REAL> Kinverse;
+        TPZFMatrix<REAL> Gfield;
+        if (fYorN)
+        {
+            int iel  = datavec[0].gelElId;
+            Kabsolute=this->fKabsoluteMap[iel];
+        }
+        else
+        {
+            this->K(Kabsolute);
+        }
+        
+        Kinverse=this->Kinv(Kabsolute);
+        Gfield = this->Gravity();
+
+        Solout[0] = Kabsolute(0,0);
+        Solout[1] = Kabsolute(1,1);
+        Solout[2] = Kabsolute(2,2);
+        
+        return;
+    }
+    
+    
+    if(var == 12){ // ExactSolution
+		fTimedependentFunctionExact->Execute(datavec[2].x, fTime, SolSExact,SolSExactD);
+		Solout[0] = SolSExact[0];
+        return;
+    }
+    
     
 }
 

@@ -151,6 +151,9 @@ public:
     /** @brief Simulation time step */
     REAL fDeltaT;
     
+    /** @brief Simulation current time */
+    REAL fTime;
+    
     /** @brief Parameter representing temporal scheme for transport equation */
     REAL fTheta;
     
@@ -158,7 +161,10 @@ public:
     REAL fGamma;    
     
     /** @brief Defines simulation time step. */
-    void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;} 
+    void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}
+    
+    /** @brief Defines simulation time step. */
+    void SetTime(REAL time){ this->fTime = time;}
     
     /** @brief Defines stemporal scheme. */
     void SetTScheme(REAL timegamma, REAL timetheta){ this->fTheta = timetheta; this->fGamma = timegamma;}
