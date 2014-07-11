@@ -746,11 +746,7 @@ void TPZMultiphase::LoadKMap(std::string MaptoRead)
                                 Kabsolute(2,1)=(1.0/fKref)*kzy;
                                 Kabsolute(2,2)=(1.0/fKref)*kzz;
                                 
-<<<<<<< .mine
                                 KabsoluteMap[elementId]=Kabsolute;
-=======
-                                KabsoluteMap[elementId]=(REAL(1.0)/fKref)*Kabsolute;
->>>>>>> .r5876
                                 
                                 ContOfKs++;
                             }

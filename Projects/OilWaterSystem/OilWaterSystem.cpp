@@ -89,7 +89,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
 void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics);
 void BulkFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &Val);
 void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Gradients);
-
+void ExactSolution(const TPZVec<STATE> &ptx, STATE timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux);
 void FilterPressureFluxEquation(TPZMultiphase *mymaterial, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics, TPZAnalysis &an);
 void FilterHigherOrderSaturations(TPZManVector<long> &active,TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
@@ -117,7 +117,7 @@ int main()
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/OilWaterSystem/";
-    GridFileName += "OilWaterSystemUnit.dump";
+//    GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "Labyrinth.dump";
 //    GridFileName += "BaseGeometryMazeOne.dump";
     GridFileName += "BaseGeometryDake.dump";
@@ -1624,8 +1624,7 @@ void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<long> &Grad
     for(int i=0; i < Gradients.size(); i++ )
     {
         Solution(Gradients[i],0)=0.0;
-    }   
-<<<<<<< .mine
+    }
 }
 
 void ExactSolution(const TPZVec<STATE> &ptx, STATE timestep, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux){
@@ -1655,6 +1654,3 @@ void ExactSolution(const TPZVec<STATE> &ptx, STATE timestep, TPZVec<STATE> &sol,
 //    sol[0] = 0.5;
     
 }
-=======
-}
->>>>>>> .r5876
