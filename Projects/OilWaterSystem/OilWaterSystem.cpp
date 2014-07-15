@@ -11,7 +11,8 @@
 #include "pzmatrix.h"
 #include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
-
+#include "clock_timer.h"
+#include "time.h"
 #include "pzconvectionproblem.h"
 #include "pzmultiphase.h"
 #include "pzl2projection.h"
@@ -94,7 +95,7 @@ void FilterPressureFluxEquation(TPZMultiphase *mymaterial, TPZVec<TPZCompMesh *>
 void FilterHigherOrderSaturations(TPZManVector<long> &active,TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics);
 
 bool ftriang = false;
-REAL angle = 0.5*M_PI/4.0;
+REAL angle = 0.0*M_PI/4.0;
 
 int main()
 {   
@@ -142,12 +143,12 @@ int main()
     //  std::vector<REAL> dd(2,0);
     
     
-    int Href = 1;
+    int Href = 3;
     int div = 0;
     int POrderBulkFlux = 1;
     int POrderGravitationalFlux = 1;
     int POrderPseudopressure = 1;
-    int POrderWaterSaturation = 1;
+    int POrderWaterSaturation = 0;
     
     UniformRefinement(gmesh, Href);
     
@@ -215,7 +216,7 @@ int main()
     
     TPZAnalysis anQL2(cmeshQL2);
 //    SolveSyst(anQL2, cmeshQL2);
-    Anbulkflux.LoadSolution(InitialQSolution);  
+//    Anbulkflux.LoadSolution(InitialQSolution);  
     PosProcessBulkflux(Anbulkflux,plotfilebuklflux);
     
     
@@ -293,10 +294,11 @@ int main()
 #endif     
     
     TPZSkylineNSymStructMatrix matsk(MultiphysicsMesh);
-    TPZSkylineNSymStructMatrix matskTan(MultiphysicsMesh);  
+    //TPZSkylineNSymStructMatrix matskTan(MultiphysicsMesh);  
 
-    //TPZFrontStructMatrix <TPZFrontNonSym<STATE> > matsk(MultiphysicsMesh);
+    //TPZFrontStructMatrix <TPZFrontNonSym<STATE> > *matsk = new TPZFrontStructMatrix <TPZFrontNonSym<STATE> > (MultiphysicsMesh);
     
+    //matsk->SetQuiet(0);
     MultiphysicsAn->SetStructuralMatrix(matsk);
     MultiphysicsAn->StructMatrix()->SetNumThreads(Nthreads);
     TPZStepSolver<STATE> step;
@@ -317,8 +319,8 @@ int main()
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
     
-    REAL deltaT = 0.0025;
-    REAL maxTime = 0.25;
+    REAL deltaT = 0.025;
+    REAL maxTime = 0.5;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, MultiphysicsAnTan, meshvec, MultiphysicsMesh);
     return 0;
     
@@ -900,7 +902,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //  }
 
     TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);   
-    std::string OutPutFile = "TransientSolutionCNGR";
+    std::string OutPutFile = "TransientSolution";
     TPZMaterial *mat1 = mphysics->FindMaterial(1);
     //    TPZMaterial *mat2 = mphysics->FindMaterial(2);    
     
@@ -908,8 +910,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     //    TPZMultiphase * material2 = dynamic_cast<TPZMultiphase *>(mat2);      
     material1->SetTimeStep(deltaT);
     material1->SetTime(0.0);
-    material1->SetTScheme(0.5,0.5);
-    bool UsingGradient = true;
+    material1->SetTScheme(1.0,1.0);
+    bool UsingGradient = false;
     int matIdL2Proj = 2;
     
     //  Starting Newton Iterations
@@ -919,7 +921,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
     
     REAL TimeValue = 0.0;
-    REAL Tolerance = 1.0e-6;
+    REAL Tolerance = 1.0e-7;
     int cent = 0;
     int MaxIterations = 50;
     TimeValue = cent*deltaT;
@@ -961,18 +963,25 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 
      NonLinearAn->StructMatrix()->EquationFilter().Reset();
      NonLinearAn->StructMatrix()->EquationFilter().SetActiveEquations(NoGradients);
-    
+
+       material1->SetCurrentState();
+        NonLinearAn->Assemble();
+        RhsAtnPlusOne = NonLinearAn->Rhs();
+     
+     
     std::cout << " Starting the time computations. " << std::endl;  
+    std::cout << " Number of DOF: " << mphysics->Solution().Rows() <<  std::endl;  
     while (TimeValue < maxTime)
     {
         
+      
         material1->SetLastState();
         NonLinearAn->AssembleResidual();
         RhsAtn = NonLinearAn->Rhs();
         
-        material1->SetCurrentState();
-        NonLinearAn->Assemble();
-        RhsAtnPlusOne = NonLinearAn->Rhs();
+//         material1->SetCurrentState();
+//         NonLinearAn->Assemble();
+//         RhsAtnPlusOne = NonLinearAn->Rhs();
         Residual= RhsAtn + RhsAtnPlusOne;       
         NormValue = Norm(Residual);
         
@@ -1015,7 +1024,11 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             
             Residual*=-1.0;
             NonLinearAn->Rhs()=Residual;
-            NonLinearAn->Solve();           
+	    const clock_t tini = clock();	    
+            NonLinearAn->Solve();
+	    const clock_t tend = clock();
+	    const REAL time = REAL(REAL(tend - tini)/CLOCKS_PER_SEC);
+	    std::cout << "Time for solving: " << time << std::endl;
             DeltaX = NonLinearAn->Solution();
             Uatk = (Uatn + DeltaX);
             
@@ -1063,10 +1076,14 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             
             material1->SetCurrentState();
             material1->SetTime(cent*deltaT);
-            NonLinearAn->Assemble();
+            const clock_t tini2 = clock();
+	    NonLinearAn->Assemble();
             RhsAtnPlusOne = NonLinearAn->Rhs();
             Residual= RhsAtn + RhsAtnPlusOne;
-            NormValue = Norm(Residual); 
+            NormValue = Norm(Residual);
+	    const clock_t tend2 = clock();
+	    const REAL time2 = REAL(REAL(tend2 - tini2)/CLOCKS_PER_SEC);
+	    std::cout << "Time for Assemble and computing norm: " << time2 << std::endl;	    
                 
             
 #ifdef LOG4CXX
