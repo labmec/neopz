@@ -350,6 +350,57 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     
 }
+
+//Dados para o problema do juan
+void ForcingMista(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+	double x = pt[0];
+    double y = pt[1];
+    disp[0]= (1.- 4.*MyPi*MyPi)/(2.*MyPi)*(cos(MyPi*x)*exp(y/2.));
+}
+void NeumannAbaixo(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+    double x = pt[0];
+    //double y = pt[1];
+    disp[0] = -cos(MyPi*x)/MyPi;
+}
+
+void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+    double x = pt[0];
+    //double y = pt[1];
+    disp[0] = 0.4087179842429694*cos(MyPi*x);
+}
+
+void DirichletEsquerda(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+//    TPZFMatrix<STATE> flux;
+//    SolExataMista(pt, disp, flux);
+    double y=pt[1];
+    disp[0]=-(2./MyPi)*exp(y/2);
+}
+
+void SolExataMista(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
+    
+    solp.Resize(1, 0.);
+    flux.Resize(3, 1.);
+    flux(0,0)=flux(1,0)=flux(2,0)=0.;
+    double x = pt[0];
+    double y = pt[1];
+    
+    solp[0] = (-2./MyPi)*cos(MyPi*x)*exp(y/2.);
+    flux(0,0)= -2*sin(MyPi*x)*exp(y/2.);
+    flux(1,0)= (1./MyPi)*cos(MyPi*x)*exp(y/2.);
+    flux(2,0)= (1.- 4.*MyPi*MyPi)/(2.*MyPi)*(cos(MyPi*x)*exp(y/2.));
+}
+
+
+
+
+
+//
+
+
+
 void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     REAL x=pt[0];
     //    REAL prodx=x*(x-1.);
@@ -408,15 +459,8 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     mat->SetForcingFunction(forcef);
     
     
-    
-    //        TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(ForcingTang);
-    //     force1->SetPolynomialOrder(20);
-    //		mat->SetForcingFunction(force1);
-    
     TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolArcTan);
     mat->SetForcingFunctionExact(exata1);
-    
-    
     
     
     
@@ -472,7 +516,142 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     comp->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
     
     comp->SetName("Malha Computacional com ordem inicializada");
-#ifdef LOG4CXX2
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        comp->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+	/*
+     
+     int nel = comp->NElements();
+     int iel;
+     for(iel=0; iel<nel; iel++){
+     
+     TPZInterpolatedElement *intel;
+     TPZCompEl *cel = comp->ElementVec()[iel];
+     
+     if (prefine) {
+     
+     
+     intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+     if(intel){
+     
+     int fator=iel%2;
+     
+     if (cel->Dimension()==2 && fator==0) {
+     
+     intel->PRefine(porder+1);
+     
+     }
+     
+     
+     if(cel->Dimension()==2 && fator!=0) {
+     
+     intel->PRefine(porder);
+     
+     
+     }
+     
+     
+     }
+     }
+     
+     
+     }
+     
+     
+     comp->LoadReferences();
+     comp->ExpandSolution();
+     comp->AdjustBoundaryElements();
+     */
+    comp->SetName("Malha Computacional com ordens diferentes");
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gmesh.Print(sout);
+        comp->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    
+    
+    return comp;
+    
+}
+
+TPZCompMesh *CompMeshPAdapJuan(TPZGeoMesh &gmesh,int porder,bool prefine){
+    
+    
+    TPZCompMesh *comp = new TPZCompMesh(&gmesh);
+    
+    comp->SetDefaultOrder(porder);
+    comp->SetDimModel(2);
+    // Criar e inserir os materiais na malha
+    TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
+    mat-> SetTrueFShapeHdiv();
+    TPZMaterial * automat(mat);
+    comp->InsertMaterialObject(automat);
+    
+    
+    //funcao do lado direito da equacao do problema
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingMista);
+    dum->SetPolynomialOrder(20);
+    forcef = dum;
+    mat->SetForcingFunction(forcef);
+    
+    
+    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExataMista);
+    mat->SetForcingFunctionExact(exata1);
+    
+    
+    
+    
+    
+    
+    ///Criar condicoes de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZMaterial * BCond0 = automat->CreateBC(mat, bc0,neumann, val1, val2);
+    TPZMaterial * BCond1 = automat->CreateBC(mat, bc1,neumann, val1, val2);
+    TPZMaterial * BCond2 = automat->CreateBC(mat, bc2,neumann, val1, val2);
+    TPZMaterial * BCond3 = automat->CreateBC(mat, bc3,dirichlet, val1, val2);
+    
+    TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
+    bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+    BCond2->SetForcingFunction(bcmatNeumannAcima);
+    
+    TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
+    bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
+    BCond0->SetForcingFunction(bcmatNeumannAbaixo);
+    
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletEsquerda;
+    bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda);
+    BCond3->SetForcingFunction(bcmatDirichletEsquerda);
+    
+    comp->InsertMaterialObject(BCond0);
+    comp->InsertMaterialObject(BCond1);
+    comp->InsertMaterialObject(BCond2);
+    comp->InsertMaterialObject(BCond3);
+
+    
+    //
+    
+        comp->SetAllCreateFunctionsHDivPressure();
+
+    
+    
+    
+    // Ajuste da estrutura de dados computacional
+    comp->AutoBuild();
+    comp->AdjustBoundaryElements();//ajusta as condicoes de contorno
+    comp->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
+    
+    comp->SetName("Malha Computacional com ordem inicializada");
+#ifdef LOG4CXX
     {
         std::stringstream sout;
         comp->Print(sout);
@@ -1539,7 +1718,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
             continue;
         }
         TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolArcTan, elerror, NULL);
+        cel->EvaluateError(SolExataMista, elerror, NULL);
         
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1579,7 +1758,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
             continue;
         }
         TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolArcTan, elerror, NULL);
+        cel->EvaluateError(SolExataMista, elerror, NULL);
         int nerr = elerror.size();
         globerrors.resize(nerr);
 #ifdef LOG4CXX
