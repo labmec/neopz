@@ -103,15 +103,14 @@ void DirichletXIgualUm(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<STATE> &tensorK);
 
 REAL const pi = 4.*atan(1.);
-// nao esta rodando com estas configuracoes..aguardar Agnaldo
 bool fTriang = false;
-bool IsStab = true;
-bool IsContinuou = true;
+bool IsStab = false;
+bool IsContinuou = false;
 bool Useh2 = false;
 REAL Delta1 = 0.5;
 REAL Delta2 = 0.5;
-bool IsFullHdiv=true;
-bool IsHomogeneo=false;
+bool IsFullHdiv=false;
+bool IsHomogeneo=true;
 
 //erros
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out);
@@ -134,7 +133,8 @@ int main(int argc, char *argv[])
     REAL Lx = 1.;
     REAL Ly = 0.5;
     
-    ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
+    //ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
+    ofstream saidaerro( "erros-hdiv-estab.txt",ios::app);
 
     for(int p = 1; p<2; p++)
     {
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 0; ndiv< 5; ndiv++)
+        for (ndiv = 1; ndiv< 2; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
             TPZCompMesh * mphysics = CMeshMixed2(meshvec,gmesh);
             
             std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
-            int numthreads = 8;
+            int numthreads = 1;
             std::cout << "Number of threads " << numthreads << std::endl;
 
             TPZAnalysis an(mphysics);
@@ -894,6 +894,7 @@ void SolExataPressao(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STA
     solp[0] = (-2./pi)*cos(pi*x)*exp(y/2.);
     flux(0,0)= 2*sin(pi*x)*exp(y/2.);
     flux(1,0)= -(1./pi)*cos(pi*x)*exp(y/2.);
+    
 }
 
 void ForcingMista(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
@@ -918,8 +919,10 @@ void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 void DirichletEsquerda(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-    TPZFMatrix<STATE> flux;
-    SolExataMista(pt, disp, flux);
+//    TPZFMatrix<STATE> flux;
+//    SolExataMista(pt, disp, flux);
+    double y=pt[1];
+    disp[0]=-(2./pi)*exp(y/2);
 }
 
 //meio heterogeneo
