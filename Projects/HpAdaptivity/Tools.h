@@ -68,6 +68,7 @@ void NoUniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void RegularizeMesh(TPZGeoMesh *gmesh);
 // funcao de forcing funciton
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 // definir a funcao exata
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux );
@@ -97,5 +98,13 @@ void ChangeP(TPZCompMesh * cmesh, TPZCompEl * cel, int newP);
 
 void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out);
 void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out);
+
+//testes do juan
+void DirichletEsquerda(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void NeumannAcima(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void NeumannAbaixo(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void ForcingMista(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void SolExataMista(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
+TPZCompMesh *CompMeshPAdapJuan(TPZGeoMesh &gmesh,int porder,bool prefine);
 
 #endif
