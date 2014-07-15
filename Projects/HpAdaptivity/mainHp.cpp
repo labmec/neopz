@@ -79,11 +79,12 @@ int main()
 #endif
     
     //std::ofstream erro("TaxaArcTanQuadUni.txt");
-    std::ofstream erro("TaxaArcTanTriangNaoUni.txt",ios::app);
+    //std::ofstream erro("TaxaArcTanTriangNaoUni.txt",ios::app);
+    std::ofstream erro("TaxaProbJuan.txt",ios::app);
     
     bool ftriang=false;
     REAL Lx=1;
-    REAL Ly=1;
+    REAL Ly=0.5;
     
     
     
@@ -96,10 +97,10 @@ int main()
     
     
 	TPZVec<REAL> calcErro;
-	for (int porder=2; porder<3; porder++) {
+	for (int porder=1; porder<2; porder++) {
         
         erro<<"ordem "<<porder <<std::endl;
-        for(int h=3;h<4;h++){
+        for(int h=1;h<5;h++){
             erro << "NRef " << h << std::endl;
             
             erro<<std::endl;
@@ -109,17 +110,17 @@ int main()
             bool prefine=false;
             
             TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
-//            UniformRefine(gmesh, h);
+            UniformRefine(gmesh, h);
 //            NoUniformRefine(gmesh, 1);
 //            std::ofstream filemesh("MalhaGeoNaoUniT.vtk");
 //            PrintGMeshVTK( gmesh, filemesh);
             
 
-            RefiningNearCircunference(2,gmesh,h,1);
-            std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
-            PrintGMeshVTK( gmesh, filemesh2);
+//            RefiningNearCircunference(2,gmesh,h,1);
+//            std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
+//            PrintGMeshVTK( gmesh, filemesh2);
             
-            TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
+            TPZCompMesh *cmesh = CompMeshPAdapJuan(*gmesh,porder,prefine);
             int nDofs;
             nDofs=cmesh->NEquations();
             
