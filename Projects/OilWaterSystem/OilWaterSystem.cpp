@@ -121,7 +121,7 @@ int main()
 //    GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "Labyrinth.dump";
 //    GridFileName += "BaseGeometryMazeOne.dump";
-    GridFileName += "BaseGeometryDake.dump";
+    GridFileName += "BaseGeometryDakeThin.dump";
 
 //  GridFileName = "Labyrinth.dump";    
     //  GridFileName = "OilWaterSystemUnitTwo.dump";
@@ -143,12 +143,12 @@ int main()
     //  std::vector<REAL> dd(2,0);
     
     
-    int Href = 3;
+    int Href = 1;
     int div = 0;
     int POrderBulkFlux = 1;
     int POrderGravitationalFlux = 1;
     int POrderPseudopressure = 1;
-    int POrderWaterSaturation = 0;
+    int POrderWaterSaturation = 1;
     
     UniformRefinement(gmesh, Href);
     
@@ -319,7 +319,7 @@ int main()
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
     
-    REAL deltaT = 0.025;
+    REAL deltaT = 0.0025;
     REAL maxTime = 0.5;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, MultiphysicsAnTan, meshvec, MultiphysicsMesh);
     return 0;
@@ -902,7 +902,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //  }
 
     TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);   
-    std::string OutPutFile = "TransientSolution";
+    std::string OutPutFile = "TransientSolutionGRCN";
     TPZMaterial *mat1 = mphysics->FindMaterial(1);
     //    TPZMaterial *mat2 = mphysics->FindMaterial(2);    
     
@@ -910,8 +910,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     //    TPZMultiphase * material2 = dynamic_cast<TPZMultiphase *>(mat2);      
     material1->SetTimeStep(deltaT);
     material1->SetTime(0.0);
-    material1->SetTScheme(1.0,1.0);
-    bool UsingGradient = false;
+    material1->SetTScheme(0.5,0.5);
+    bool UsingGradient = true;
     int matIdL2Proj = 2;
     
     //  Starting Newton Iterations
@@ -921,7 +921,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
     
     REAL TimeValue = 0.0;
-    REAL Tolerance = 1.0e-7;
+    REAL Tolerance = 1.0e-8;
     int cent = 0;
     int MaxIterations = 50;
     TimeValue = cent*deltaT;
@@ -948,11 +948,17 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     PosProcessMultphysics(meshvec,mphysics,*NonLinearAn,plotfile);      
     
     
-     TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);
-     FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,mphysics);
-     AllConnects = NoGradients;
+    TPZManVector<long> AllConnects(0),NoGradients(0),WithGradients(0);	
+    FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,mphysics);
+    AllConnects = NoGradients;
 
-     
+	TPZManVector<STATE> PrintStep(5);
+	int control = 0;
+	PrintStep[0]=0.1;
+	PrintStep[1]=0.2;
+	PrintStep[2]=0.3;
+	PrintStep[3]=0.4;
+	PrintStep[4]=0.5;	
      
      AllConnects.Resize(NoGradients.size()+WithGradients.size());
      for (int i=0; i<(WithGradients.size()); i++) 
@@ -1145,13 +1151,26 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //        save.OpenWrite("GRSolution.bin");
 //      SolutiontoSave.Write(save,0);
         
-        
-        outputfile = OutPutFile;
-        std::stringstream outputfiletemp;
-        outputfiletemp << outputfile << ".vtk";
-        std::string plotfile = outputfiletemp.str();
-        PosProcessMultphysics(meshvec,mphysics,*NonLinearAn,plotfile);      
-        
+		if (fabs(PrintStep[control] - TimeValue) < 1.0e-8 || PrintStep.size()-1 == control) 
+		{
+		
+		
+			const clock_t tini3 = clock();
+			
+			outputfile = OutPutFile;
+			std::stringstream outputfiletemp;
+			outputfiletemp << outputfile << ".vtk";
+			std::string plotfile = outputfiletemp.str();
+			PosProcessMultphysics(meshvec,mphysics,*NonLinearAn,plotfile);
+			
+			const clock_t tend3 = clock();
+			const REAL time3 = REAL(REAL(tend3 - tini3)/CLOCKS_PER_SEC);
+			std::cout << "Time for printing: " << time3 << std::endl;
+			std::cout << "Control: " << control << std::endl;
+			control++;
+
+		}			
+			
         if (StopCriteria) {
             std::cout << " Newton's Iteration = : " << iterations  << "     L2 norm = : " << NormValue <<  std::endl;       
             break;
