@@ -1,0 +1,829 @@
+//
+//  PZMatPoissonD3.cpp
+//  PZ
+//
+//  Created by Douglas Castro on 5/23/14.
+//
+//
+
+#include "PZMatPoissonD3.h"
+#include "pzlog.h"
+#include "pzfmatrix.h"
+#include "pzmaterialdata.h"
+#include "pzbndcond.h"
+#include "pzaxestools.h"
+#include "pzlog.h"
+
+
+#include <iostream>
+
+#ifdef LOG4CXX
+static LoggerPtr logdata(Logger::getLogger("pz.tpzmatpoissonD3.data"));
+#endif
+
+using namespace std;
+
+TPZMatPoissonD3::TPZMatPoissonD3():TPZDiscontinuousGalerkin(){
+	
+    /** Valor da funcao de carga */
+    fCarga = 0.; //fF
+    
+    /** Dimensao do dominio */
+    fDim = 2;
+    
+    /** Material id no initialized */
+    fMatId = -1;
+    
+    /** Coeficiente que multiplica o gradiente */
+    fK = 1.;
+
+}
+
+TPZMatPoissonD3::TPZMatPoissonD3(int matid, int dim):TPZDiscontinuousGalerkin(matid){
+	
+    if(dim<0 || dim >3){
+        DebugStop();
+    }
+    
+    /** Valor da funcao de carga */
+    fCarga = 0.; //fF
+    
+    /** Dimensao do dominio */
+    fDim = dim;
+    
+    /** Material id no initialized */
+    fMatId = matid;
+    
+    /** Coeficiente que multiplica o gradiente */
+    fK = 1.;
+}
+
+TPZMatPoissonD3::~TPZMatPoissonD3(){
+}
+
+TPZMatPoissonD3::TPZMatPoissonD3(const TPZMatPoissonD3 &copy):TPZDiscontinuousGalerkin(copy){
+    
+    this->operator=(copy);
+}
+
+TPZMatPoissonD3 & TPZMatPoissonD3::operator=(const TPZMatPoissonD3 &copy){
+    
+    TPZDiscontinuousGalerkin::operator = (copy);
+    this->fCarga = copy.fCarga; //fF
+    this->fDim = copy.fDim;
+    this->fMatId = copy.fMatId;
+    this->fK = copy.fK;
+    
+	return *this;
+}
+
+int TPZMatPoissonD3::NStateVariables() {
+	return (1+fDim);
+}
+
+//void TPZMatPoissonD3::SetForcesPressure(REAL fx){
+//    fxfPQ = fx;
+//}
+//
+//void TPZMatPoissonD3::SetForcesSaturation(REAL gx){
+//    fxfS = gx;
+//}
+//
+//void TPZMatPoissonD3::SetPermeability(REAL perm) {
+//    fk = perm;
+//}
+//
+//void TPZMatPoissonD3::SetViscosity(REAL visc) {
+//    fVisc = visc;
+//}
+//
+//void TPZMatPoissonD3::SetPorosity(REAL poros){
+//    fPoros = poros;
+//}
+//
+//void TPZMatPoissonD3::GetPermeability(REAL &perm) {
+//    perm = fk;
+//}
+//
+//void TPZMatPoissonD3::SetConvectionDirection(TPZVec<REAL> convdir){
+//    
+//    for(int d=0; d<fDim; d++) fConvDir[d] = convdir[d];
+//}
+//
+//void TPZMatPoissonD3::GetConvectionDirection(TPZVec<REAL> &convdir){
+//    
+//    for(int d=0; d<fDim; d++) convdir[d] = fConvDir[d];
+//}
+
+void TPZMatPoissonD3::Print(std::ostream &out) {
+	out << "name of material : " << Name() << "\n";
+    out << "Dimesion of problem " << fDim << endl;
+	out << "Material ID  "<< fMatId << endl;
+    out << "Forcing function  "<< fCarga << endl;
+    out << "Grad Coeficient  "<< fK << endl;
+	out << "Base Class properties :";
+	TPZMaterial::Print(out);
+	out << "\n";
+}
+
+
+// Contribute methods
+// esse metodo esta ok
+void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    
+#ifdef DEBUG
+	int nref =  datavec.size();
+	if (nref != 2 ) {
+        std::cout << " Erro. The size of the datavec is different from 2 \n";
+		DebugStop();
+	}
+#endif
+    REAL force = fCarga;
+    if(fForcingFunction) {
+		TPZManVector<STATE> res(1);
+		fForcingFunction->Execute(datavec[1].x,res);
+		force = res[0];
+	}
+    
+    // Setting the phis
+    TPZFMatrix<REAL>  &phiQ =  datavec[0].phi;
+    TPZFMatrix<REAL>  &phip =  datavec[1].phi;
+	//TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
+    TPZFMatrix<REAL> &dphipLoc = datavec[1].dphix;
+    
+    TPZFNMatrix<200,REAL> dphip(3,datavec[1].dphix.Cols(),0.0);
+    
+    for (int ip = 0; ip<dphip.Cols(); ip++) {
+        for (int d = 0; d<dphipLoc.Rows(); d++) {
+            for (int j=0; j< 3; j++) {
+                dphip(j,ip)+=datavec[1].axes(d,j)*dphipLoc(d,ip);
+            }
+        }
+    }
+    
+    int phrq, phrp;
+    phrp = phip.Rows();
+    phrq = datavec[0].fVecShapeIndex.NElements();
+	
+	//Calculate the matrix contribution for flux. Matrix A
+    // A matriz de rigidez é tal que A{ij}=\int_\Omega K^{-1} \varphi_j\cdot\varphi_i d\Omega
+    // K, futuramente sera uma matriz ou funcao, deve-se ter cuidado com essa parte da inversao de K
+    REAL InvK = 1./fK;
+    for (int iq = 0; iq<phrq; iq++)
+    {
+        int ivecind = datavec[0].fVecShapeIndex[iq].first;
+        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3> ivec(3,1);
+        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
+        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        
+        for (int jq=0; jq<phrq; jq++)
+        {
+            TPZFNMatrix<3> jvec(3,1);
+            int jvecind = datavec[0].fVecShapeIndex[jq].first;
+            int jshapeind = datavec[0].fVecShapeIndex[jq].second;
+            jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
+            jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
+            jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+            
+            //dot product between u and v
+            REAL prod = 0.;
+            for(int iloc=0; iloc<3; iloc++)
+            {
+                prod += ivec(iloc,0)*jvec(iloc,0);
+                //ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
+            }
+            ek(iq,jq) += InvK*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+            
+        }
+    }
+    
+    // Coupling terms between flux and pressure. Matrix B
+    // A matriz de rigidez é tal que B{ij}=\int_\Omega \nabla\phi_j\cdot\varphi_i d\Omega
+    for(int iq=0; iq<phrq; iq++)
+    {
+        int ivecind = datavec[0].fVecShapeIndex[iq].first;
+        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3> ivec(3,1);
+        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
+        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        
+        for (int jp=0; jp<phrp; jp++)
+        {
+            //dot product between  varphi and grad phi
+            REAL prod = 0.;
+            for(int iloc=0; iloc<3; iloc++)
+            {
+                prod += (  ivec(iloc,0)*phiQ(ishapeind,0)  )*dphip(iloc,jp);
+            }
+            
+            REAL fact = weight*prod;
+            // Matrix B
+            ek(iq, phrq+jp) += fact;
+            
+            // Matrix B^T
+            ek(phrq+jp,iq) += fact;
+            
+        }
+    }
+    
+    //termo fonte referente a equacao da pressao
+    for(int ip=0; ip<phrp; ip++){
+        ef(phrq+ip,0) += (-1.)*weight*force*phip(ip,0);
+    }
+    
+}
+
+void TPZMatPoissonD3::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+{
+    return;
+}
+
+
+//Contribute interface methods
+void TPZMatPoissonD3::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
+	//TPZFMatrix<REAL> &phiQR = dataright[0].phi;
+	TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
+	TPZFMatrix<REAL> &phiPR = dataright[1].phi;
+    
+    int pRowsL = phiPL.Rows();
+    int pRowsR = phiPR.Rows();
+    int QRowsL = dataleft[0].fVecShapeIndex.NElements();
+    //int QRowsR = dataright[0].fVecShapeIndex.NElements();
+    
+    TPZManVector<REAL,3> &normal = data.normal;
+    
+    // Para o bloco left-left
+    for (int iq = 0; iq < QRowsL; iq++)
+    {
+        int ivecind = dataleft[0].fVecShapeIndex[iq].first;
+        int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3> ivec(3,1);
+        ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
+        ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
+        ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+        ivec *= phiQL(ishapeind,0);
+        
+        
+        REAL NormalProjectioni = 0.;
+        for(int iloc=0; iloc<3; iloc++)
+        {
+            NormalProjectioni += ivec(iloc,0)*normal[iloc];
+        }
+        
+        for (int jp = 0; jp < pRowsL; jp++)
+        {
+            
+            REAL fact = weight*NormalProjectioni*phiPL(jp,0);
+            
+            ek(iq, QRowsL+jp) += -1.0*fact; // ???????
+            
+            ek(QRowsL+jp, iq) += -1.0*fact; // ???????
+            
+        }
+    }
+    // Para o bloco left-right
+    for (int iq = 0; iq < QRowsL; iq++)
+    {
+        int ivecind = dataleft[0].fVecShapeIndex[iq].first;
+        int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3> ivec(3,1);
+        ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
+        ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
+        ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+        ivec *= phiQL(ishapeind,0);
+        
+        REAL NormalProjectionj = 0.;
+        for(int iloc=0; iloc<fDim; iloc++)
+        {
+            NormalProjectionj += ivec(iloc,0)*normal[iloc];
+        }
+     
+        
+        for (int jp = 0; jp < pRowsR; jp++)
+        {
+        
+            REAL fact = weight*NormalProjectionj*phiPR(jp,0);
+            
+            int pulo = QRowsL + pRowsL + QRowsL;
+            
+            ek(iq, pulo+jp) += 1.0*fact;
+            
+            ek(pulo+jp, iq) += 1.0*fact;
+            
+        }
+    }
+    
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //		std::stringstream sout;
+    //		ek.Print("ek = ",sout,EMathematicaInput);
+    //		ef.Print("ef = ",sout,EMathematicaInput);
+    //		LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+}
+
+void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+{
+    
+    
+#ifdef DEBUG
+	int nref =  dataleft.size();
+	if (nref != 2 ) {
+        std::cout << " Error. This implementation needs only two computational meshes. \n";
+		DebugStop();
+	}
+#endif
+    
+#ifdef DEBUG
+	int bref =  bc.Val2().Rows();
+	if (bref != 2 ) {
+        std::cout << " Erro. The size of the datavec is different from 2 \n";
+		DebugStop();
+	}
+#endif
+    
+    REAL Qn = bc.Val2()(0,0); // cuidado para, na hora de passar os valores de cond contorno, seguir essa ordem
+    REAL Pd = 0.0; // = bc.Val2()(1,0); // fluxo normal na primeira casa e pressao na segunda
+    
+	TPZManVector<REAL,3> &normal = data.normal;
+	//REAL n1 = normal[0];
+	//REAL n2 = normal[1];
+    
+    //REAL v2;
+    if(bc.HasForcingFunction())
+    {
+		TPZManVector<STATE> res(3);
+		bc.ForcingFunction()->Execute(dataleft[0].x,res);
+		Pd = res[0];
+	}else
+    {
+        Pd = bc.Val2()(1,0);
+    }
+    
+
+    // Setting the phis
+    TPZFMatrix<REAL>  &phiQ =  dataleft[0].phi;
+    TPZFMatrix<REAL>  &phip =  dataleft[1].phi;
+	//TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
+    //TPZFMatrix<REAL> &dphip = datavec[1].dphix;
+
+    int phrq, phrp;
+    phrp = phip.Rows();
+    phrq = dataleft[0].fVecShapeIndex.NElements();
+
+	//Calculate the matrix contribution for boundary conditions
+    for (int iq = 0; iq<phrq; iq++)
+    {
+        int ivecind = dataleft[0].fVecShapeIndex[iq].first;
+        int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3> ivec(3,1);
+        ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
+        ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
+        ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+        ivec *= phiQ(ishapeind,0);
+        
+        
+        REAL NormalProjectioni = 0.;
+        for(int iloc=0; iloc<fDim; iloc++)
+        {
+            NormalProjectioni += ivec(iloc,0)*normal[iloc];
+        }
+        
+        for (int jp=0; jp<phrp; jp++)
+        {
+            
+            REAL integration = weight*NormalProjectioni*phip(jp,0);
+            
+            //para a equacao do fluxo - 1o conjunto da formulacao
+            ek(iq, phrq+jp) += (-1.0)*integration;
+            
+            // para a equacao da pressao - 2o conjunto da formulacao
+            ek(phrq+jp, iq) += (-1.0)*integration;
+            
+        }
+    }
+    
+
+    //if (bc.Type()==0){std::cout << "...." << std::endl;}
+
+    switch (bc.Type())
+    {  
+        case 0:  // Dirichlet
+        {
+            //REAL InvK = 1./fK;
+                        //termo fonte referente a equacao do fluxo
+            for (int iq = 0; iq<phrq; iq++)
+            {
+                int ivecind = dataleft[0].fVecShapeIndex[iq].first;
+                int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
+                TPZFNMatrix<3> ivec(3,1);
+                ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
+                ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
+                ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+                ivec *= phiQ(ishapeind,0);
+                
+                
+                REAL NormalProjectioni = 0.;
+                for(int iloc=0; iloc<fDim; iloc++)
+                {
+                    NormalProjectioni += ivec(iloc,0)*normal[iloc];
+                }
+                
+                //para a equacao do fluxo
+                ef(iq,0) += (-1.0)*weight*Pd*NormalProjectioni;
+            }
+
+            // fim dirichlet
+
+        }
+            break;
+        case 1:  // Neumann
+        {
+//            REAL InvK = 1./fK;
+            for (int iq = 0; iq<phrq; iq++)
+            {
+                int ivecind = dataleft[0].fVecShapeIndex[iq].first;
+                int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
+                TPZFNMatrix<3> ivec(3,1);
+                ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
+                ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
+                ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+                ivec *= phiQ(ishapeind,0);
+                
+                
+                REAL NormalProjectioni = 0.;
+                for(int iloc=0; iloc<fDim; iloc++)
+                {
+                    NormalProjectioni += ivec(iloc,0)*normal[iloc];
+                }
+                ef(iq,0) += gBigNumber*weight*Qn*NormalProjectioni;
+
+                for (int jq=0; jq<phrq; jq++)
+                {
+                    TPZFNMatrix<3> jvec(3,1);
+                    int jvecind = dataleft[0].fVecShapeIndex[jq].first;
+                    int jshapeind = dataleft[0].fVecShapeIndex[jq].second;
+                    jvec(0,0) = dataleft[0].fNormalVec(0,jvecind);
+                    jvec(1,0) = dataleft[0].fNormalVec(1,jvecind);
+                    jvec(2,0) = dataleft[0].fNormalVec(2,jvecind);
+                    
+                    jvec *= phiQ(jshapeind,0);
+
+                    REAL NormalProjectionj = 0.;
+                    for(int iloc=0; iloc<fDim; iloc++)
+                    {
+                        NormalProjectionj += jvec(iloc,0)*normal[iloc];
+                    }
+                    
+                    ek(iq,jq) += gBigNumber*weight*NormalProjectioni*NormalProjectionj;
+
+                }
+            }
+            //termo fonte referente a equacao da pressao no entra!!!!
+            for (int jp = 0; jp < phrp ; jp++)
+            {
+                TPZFNMatrix<3> jvec(3,1);
+                int jvecind = dataleft[0].fVecShapeIndex[jp].first;
+                int jshapeind = dataleft[0].fVecShapeIndex[jp].second;
+                jvec(0,0) = dataleft[0].fNormalVec(0,jvecind);
+                jvec(1,0) = dataleft[0].fNormalVec(1,jvecind);
+                jvec(2,0) = dataleft[0].fNormalVec(2,jvecind);
+                
+                jvec *= phiQ(jshapeind,0);
+                
+                REAL NormalProjectionj = 0.;
+                for(int iloc=0; iloc<fDim; iloc++)
+                {
+                    NormalProjectionj += jvec(iloc,0)*normal[iloc];
+                }
+
+                ef(jp,0) += gBigNumber*weight*Qn*NormalProjectionj;
+            }
+
+            // fim neumann
+        }
+            break;
+        case 3:  // Robin
+        {
+            std::cout << " Robin Nao implementada " << std::endl;
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            std::cout << " Nao implementada " << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+
+void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+{
+	DebugStop();
+}
+
+
+void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+{
+	DebugStop();
+}
+
+void TPZMatPoissonD3::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+{
+    int nref = datavec.size();
+	for(int i = 0; i<nref; i++)
+	{
+        datavec[i].fNeedsSol = true;
+		datavec[i].fNeedsNormal = true;
+	}
+}
+
+/** Returns the variable index associated with the name */
+int TPZMatPoissonD3::VariableIndex(const std::string &name){
+	if(!strcmp("Flux",name.c_str()))           return 1;
+	if(!strcmp("Pressure",name.c_str()))       return 2;
+    if(!strcmp("GradFluxX",name.c_str()))      return 3;
+    if(!strcmp("GradFluxY",name.c_str()))      return 4;
+    if(!strcmp("DivFlux",name.c_str()))        return 5;
+    if(!strcmp("ExactPressure",name.c_str()))  return 6;
+    if(!strcmp("ExactFlux",name.c_str()))      return 7;
+	
+	return TPZMaterial::VariableIndex(name);
+}
+
+int TPZMatPoissonD3::NSolutionVariables(int var){
+	if(var == 1) return fDim;
+	if(var == 2) return 1;
+    if(var == 3) return 3;
+    if(var == 4) return 3;
+    if(var == 5) return 1;
+    if(var == 6) return 1;
+    if(var == 7) return fDim;
+	return TPZMaterial::NSolutionVariables(var);
+}
+
+void TPZMatPoissonD3::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
+	
+#ifndef STATE_COMPLEX
+	Solout.Resize( this->NSolutionVariables( var ) );
+	
+	if(var == 1){
+		Solout[0] = Sol[0];//function
+		return;
+	}
+	if(var == 2) {
+		int id;
+		for(id=0 ; id<fDim; id++) {
+			TPZFNMatrix<9,STATE> dsoldx;
+			TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+			Solout[id] = dsoldx(id,0);//derivate
+		}
+		return;
+	}//var == 2
+	if (var == 3){ //KDuDx
+		TPZFNMatrix<9,STATE> dsoldx;
+		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+		Solout[0] = dsoldx(0,0) * this->fK;
+		return;
+	}//var ==3
+	if (var == 4){ //KDuDy
+		TPZFNMatrix<9,STATE> dsoldx;
+		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+		Solout[0] = dsoldx(1,0) * this->fK;
+		return;
+	}//var == 4
+	if (var == 5){ //KDuDz
+		TPZFNMatrix<9,STATE> dsoldx;
+		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+		Solout[0] = dsoldx(2,0) * this->fK;
+		return;
+	}//var == 5
+	if (var == 6){ //NormKDu
+		int id;
+		REAL val = 0.;
+		for(id=0 ; id<fDim; id++){
+			val += (DSol(id,0) * this->fK) * (DSol(id,0) * this->fK);
+		}
+		Solout[0] = sqrt(val);
+		return;
+	}//var == 6
+	if (var == 7){ //MinusKGradU
+		int id;
+		//REAL val = 0.;
+		TPZFNMatrix<9,STATE> dsoldx;
+		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+		for(id=0 ; id<fDim; id++) {
+			Solout[id] = -1. * this->fK * dsoldx(id,0);
+		}
+		return;
+	}//var == 7
+	if(var == 9){//Laplac
+		Solout.Resize(1);
+		Solout[0] = DSol(2,0);
+		return;
+	}//Laplac
+	
+#endif
+	TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
+	
+}//method
+
+void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+	
+	Solout.Resize( this->NSolutionVariables(var));
+	
+	TPZVec<STATE> SolP, SolQ;
+    
+    // SolQ = datavec[0].sol[0];
+    SolP = datavec[1].sol[0];
+    
+    if(var == 1){ //function (state variable Q)
+		Solout[0] = datavec[0].sol[0][0];
+        Solout[1] = datavec[0].sol[0][1];
+		return;
+	}
+    
+    if(var == 2){
+		Solout[0] = SolP[0];//function (state variable p)
+		return;
+	}
+    
+    if(var==3){
+        Solout[0]=datavec[0].dsol[0](0,0);
+        Solout[1]=datavec[0].dsol[0](1,0);
+        Solout[2]=datavec[0].dsol[0](2,0);
+        return;
+    }
+    
+    if(var==4){
+        Solout[0]=datavec[0].dsol[0](0,1);
+        Solout[1]=datavec[0].dsol[0](1,1);
+        Solout[2]=datavec[0].dsol[0](2,1);
+        return;
+    }
+    
+    if(var==5){
+        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
+        return;
+    }
+    
+    TPZVec<REAL> ptx(3);
+	TPZVec<STATE> solExata(1);
+	TPZFMatrix<STATE> flux(2,1);
+    
+    //Exact soluion
+	if(var == 6){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[0];
+		return;
+	}//var6
+    
+    if(var == 7){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = flux(0,0);
+        Solout[1] = flux(1,0);
+		return;
+	}//var7
+    
+}
+
+
+void TPZMatPoissonD3::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+{
+	int nref = datavec.size();
+	for(int i = 0; i<nref; i++)
+	{
+		datavec[i].SetAllRequirements(false);
+        datavec[i].fNeedsSol = true;
+		datavec[i].fNeedsNeighborSol = false;
+		datavec[i].fNeedsNeighborCenter = false;
+		datavec[i].fNeedsNormal = true;
+	}
+}
+
+void TPZMatPoissonD3::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+	
+	values.Resize(NEvalErrors());
+    values.Fill(0.0);
+	TPZManVector<STATE> dudxEF(1,0.), dudyEF(1,0.),dudzEF(1,0.);
+	this->Solution(u,dudx,axes,VariableIndex("KDuDx"), dudxEF);
+    STATE fraq = dudxEF[0]/fK;
+    fraq = fraq - du_exact(0,0);
+    REAL diff = fabs(fraq);
+	values[3] = diff*diff;
+	if(fDim > 1) {
+		this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
+        fraq = dudyEF[0]/fK;
+        fraq = fraq - du_exact(1,0);
+		diff = fabs(fraq);
+		values[4] = diff*diff;
+		if(fDim > 2) {
+			this->Solution(u,dudx,axes, this->VariableIndex("KDuDz"), dudzEF);
+			fraq = dudzEF[0]/fK;
+            fraq = fraq - du_exact(2,0);
+            diff = fabs(fraq);
+			values[5] = diff*diff;
+		}
+	}
+    
+    std::cout << " entrou " << std::endl;
+    
+	TPZManVector<STATE> sol(1),dsol(3,0.);
+	Solution(u,dudx,axes,1,sol);
+	Solution(u,dudx,axes,2,dsol);
+	int id;
+	//values[1] : eror em norma L2
+    diff = fabs(sol[0] - u_exact[0]);
+	values[1]  = diff*diff;
+	//values[2] : erro em semi norma H1
+	values[2] = 0.;
+	for(id=0; id<fDim; id++) {
+        diff = fabs(dsol[id] - du_exact(id,0));
+		values[2]  += abs(fK)*diff*diff;
+	}
+	//values[0] : erro em norma H1 <=> norma Energia
+	values[0]  = values[1]+values[2];
+}
+
+
+
+
+
+///** Returns the variable index associated with the name */
+//int TPZMatPoissonD3::VariableIndex(const std::string &name)
+//{
+//    if(!strcmp("Flux",name.c_str()))                return  1;
+//    if(!strcmp("Pressure",name.c_str()))            return  2;
+//	if(!strcmp("Saturation",name.c_str()))          return  3;
+//	if(!strcmp("SaturationFlux",name.c_str()))      return  4;
+//    if(!strcmp("DivFlux",name.c_str()))      return  5;
+//
+//	return TPZMaterial::VariableIndex(name);
+//}
+
+//int TPZMatPoissonD3::NSolutionVariables(int var){
+//    if(var == 1) return fDim;
+//	if(var == 2) return 1;
+//    if(var == 3) return 1;
+//    if(var == 4) return fDim;
+//    if(var == 5) return 1;
+//
+//	return TPZMaterial::NSolutionVariables(var);
+//}
+
+//void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+//
+//	Solout.Resize(this->NSolutionVariables(var));
+//
+//    if(var == 1){ //function (state variable Q)
+//		Solout[0] = datavec[1].sol[0][0];
+//        Solout[1] = datavec[1].sol[0][1];
+//		return;
+//	}
+//
+//    if(var == 2){
+//		Solout[0] = datavec[2].sol[0][0];//function (state variable p)
+//		return;
+//	}
+//
+//	if(var == 3){
+//		Solout[0] = datavec[0].sol[0][0];//function (state variable S)
+//		return;
+//	}
+//
+//	if(var == 4) {
+//		int id;
+//		for(id=0 ; id<fDim; id++) {
+//            fConvDir[id] = datavec[1].sol[0][id];
+//			Solout[id] = fConvDir[id]*datavec[0].sol[0][0];//function (state variable Q*S)
+//		}
+//		return;
+//	}
+//
+//    if(var==5){
+//        Solout[0]=datavec[1].dsol[0](0,0)+datavec[1].dsol[0](1,1);
+//        return;
+//    }
+//
+//}
+
+//void TPZMatPoissonD3::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+//	DebugStop();
+//}
+
+

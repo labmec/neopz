@@ -42,6 +42,10 @@ ENABLE_TESTING()
 			
 			#Example of the  convection problem
 			add_subdirectory(Problema_Transporte)
+
+			#Testes Douglas
+			add_subdirectory(dactests)
+ 
 	
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)
