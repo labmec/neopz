@@ -58,7 +58,17 @@ public:
 	 * @param trVec Transform 
 	 **/
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const;
+    
 
+    /**
+	 * @brief Performs an error estimate on the elemen
+	 * @param fp function pointer which computes the exact solution
+	 * @param errors (output) each norm or true error of the error of the solution at each physics
+	 * @param flux (input) value of the interpolated flux values
+	 */
+	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                               TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
+    
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
 	 * @param cmeshVec Vector of computational meshes

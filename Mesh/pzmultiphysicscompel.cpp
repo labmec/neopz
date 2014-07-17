@@ -26,6 +26,8 @@
 #include "pzlog.h"
 #include "pzcompelwithmem.h"
 
+#include "pzbndcond.h"
+
 #include <set>
 
 using namespace pzgeom;
@@ -666,6 +668,13 @@ const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
 	return intrule;
 }
 
+
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                           TPZVec<REAL> &errors,TPZBlock<REAL> * flux )
+{
+    DebugStop(); // PLEASE, IMPLEMENT ME!
+}
 
 /** Returns the maximum interpolation order of all connected elements */
 template <class TGeometry>
