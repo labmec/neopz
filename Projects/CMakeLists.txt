@@ -76,6 +76,8 @@ ENABLE_TESTING()
 			# Simple project to test rational function defined by Cedric on pyramids
 			add_subdirectory(RationalFunctionPyramid)
 
+add_subdirectory(proDG)
+
 		endif(BUILD_COMPLEX_PROJECTS)
 
 
