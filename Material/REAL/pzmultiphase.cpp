@@ -79,6 +79,57 @@ void TPZMultiphase::Print(std::ostream &out) {
 
 // Data set
 
+/**
+ * @brief Lame First Parameter.
+ * \f$ lamelamda \f$
+ */
+STATE TPZMultiphase::LameLambda()
+{
+    REAL lamelambda = 1.0;
+    return lamelambda;
+}
+
+/**
+ * @brief Undrained Lame First Parameter.
+ * \f$ lamelamdaU \f$
+ */
+STATE TPZMultiphase::LameLambdaU()
+{
+    REAL lamelambdaU = 1.0;
+    return lamelambdaU;
+}
+
+/**
+ * @brief Lame Second Parameter.
+ * \f$ lamemu \f$
+ */
+STATE TPZMultiphase::LameMu()
+{
+    REAL lameMu = 1.0;
+    return lameMu;
+}
+
+/**
+ * @brief Biot parameter Parameter.
+ * \f$ lamemu \f$
+ */
+STATE TPZMultiphase::BiotAlpha()
+{
+    REAL alpha = 0.5;
+    return alpha;
+}
+
+/**
+ * @brief //Se o 1/M coeficiente poroelastico de armazenamento a volume constante.
+ * \f$ Se \f$
+ */
+STATE TPZMultiphase::Se()
+{
+    REAL Se = 0.8;
+    return Se;
+}
+
+
 /** Capilar pressure \f$ pc = pc( Sw ) \f$ */
 void TPZMultiphase::CapillaryPressure(REAL So, REAL &pc, REAL &DpcDSo){
     pc = 0.0;
@@ -806,27 +857,29 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
     
     // Getting weight functions
-    TPZFMatrix<REAL>  &phiQ =  datavec[0].phi;
-    TPZFMatrix<REAL>  &phiP =  datavec[1].phi;
-    TPZFMatrix<REAL>  &phiS =  datavec[2].phi;
-    TPZFMatrix<REAL>  &phiQG =  datavec[3].phi;     
+    TPZFMatrix<REAL>  &phiU =  datavec[0].phi;
+    TPZFMatrix<REAL>  &phiQ =  datavec[1].phi;
+    TPZFMatrix<REAL>  &phiP =  datavec[2].phi;
+    TPZFMatrix<REAL>  &phiS =  datavec[3].phi;
+    TPZFMatrix<REAL>  &phiQG =  datavec[4].phi;
     
     //    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
-    TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
-    TPZFMatrix<REAL> &dphiS = datavec[2].dphix;
+    TPZFMatrix<REAL> &dphiP = datavec[2].dphix;
+    TPZFMatrix<REAL> &dphiS = datavec[3].dphix;
     
     // number of test functions for each state variable
-    int phrQ, phrP, phrS, phrQG;
-    phrQ = datavec[0].fVecShapeIndex.NElements();
+    int phrU, phrQ, phrP, phrS, phrQG;
+    phrU = phiU.Rows();
+    phrQ = datavec[1].fVecShapeIndex.NElements();
     phrP = phiP.Rows();
     phrS = phiS.Rows();
-    phrQG = datavec[3].fVecShapeIndex.NElements();    
+    phrQG = datavec[4].fVecShapeIndex.NElements();
     
     //  Getting and computing another required data
     REAL TimeStep = this->fDeltaT;
     REAL Theta = this->fTheta;
     REAL Gamma = this->fGamma;
-    int GeoID = datavec[0].gelElId;
+    int GeoID = datavec[1].gelElId;
     TPZFMatrix<REAL> Kabsolute;
     TPZFMatrix<REAL> Kinverse;
     TPZFMatrix<REAL> Gfield;
@@ -842,11 +895,16 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     Kinverse=this->Kinv(Kabsolute);
     Gfield = this->Gravity();
     
+
+    TPZManVector<REAL,3> sol_u =datavec[0].sol[0];
+    TPZFMatrix<REAL> dphiu =datavec[0].dsol[0];
+    TPZManVector<REAL,3> sol_q =datavec[1].sol[0];
+    TPZManVector<REAL,3> sol_p =datavec[2].sol[0];
+    TPZManVector<REAL,3> sol_s =datavec[3].sol[0];
+    TPZManVector<REAL,3> sol_qg =datavec[4].sol[0];
     
-    TPZManVector<REAL,3> sol_q =datavec[0].sol[0];
-    TPZManVector<REAL,3> sol_p =datavec[1].sol[0];
-    TPZManVector<REAL,3> sol_s =datavec[2].sol[0];
-    TPZManVector<REAL,3> sol_qg =datavec[3].sol[0];    
+    REAL LambdaL, LambdaLU, MuL;
+    REAL Balpha, Sestr;
     
     REAL rockporosity, oildensity, waterdensity;
     REAL drockporositydp, doildensitydp, dwaterdensitydp;
@@ -863,6 +921,12 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     REAL dbulkfoilds, dbulkfwaterds;
     
     // Functions computed at point x_{k} for each integration point
+    LambdaL     = this->LameLambda();
+    LambdaLU    = this->LameLambdaU();
+    MuL         = this->LameMu();
+    Balpha      = this->BiotAlpha();
+    Sestr       = this->Se();
+
     int VecPos= 0;
     this->Porosity(sol_p[VecPos], rockporosity, drockporositydp);
     this->RhoOil(sol_p[VecPos], oildensity, doildensitydp);
@@ -881,6 +945,92 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     // n+1 time step
     if(gState == ECurrentState)
     {
+        
+        
+         //  Elasticity Block (Equation for elasticity )
+        
+		TPZVec <double> StateVariable(3,0.0);
+        
+		//	Elastic equation
+		//	Linear strain operator
+		//	Ke Matrix
+        TPZFMatrix<REAL>	du(2,2);
+		for(int in = 0; in < phrU; in++ )
+		{
+			//	Derivative calculations for Vx
+			du(0,0) = dphiu(0,in)*datavec[0].axes(0,0)+dphiu(1,in)*datavec[0].axes(1,0);
+			//	Derivative calculations for Vy
+			du(1,0) = dphiu(0,in)*datavec[0].axes(0,1)+dphiu(1,in)*datavec[0].axes(1,1);
+			
+			//	Fu Vector Force right hand term
+			ef(2*in, 0)		+= weight*Gfield(0,0)*phiU(in, 0);
+			ef(2*in+1, 0)	+= weight*Gfield(1,0)*phiU(in, 0);
+			
+			for(int jn = 0; jn < phrU; jn++)
+			{
+				//	Derivative calculations for Ux
+				du(0,1) = dphiu(0,jn)*datavec[0].axes(0,0)+dphiu(1,jn)*datavec[0].axes(1,0);
+				//	Derivative calculations for Uy
+				du(1,1) = dphiu(0,jn)*datavec[0].axes(0,1)+dphiu(1,jn)*datavec[0].axes(1,1);
+				
+				if (fPlaneStress == 1)
+				{
+					/* Plain stress state */
+					ek(2*in,2*jn)		+= weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(0,0)*du(0,1)		+ (2*MuL)*du(1,0)*du(1,1));
+					
+					ek(2*in,2*jn+1)		+= weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(0,0)*du(1,1)			+ (2*MuL)*du(1,0)*du(0,1));
+					
+					ek(2*in+1,2*jn)		+= weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(1,0)*du(0,1)			+ (2*MuL)*du(0,0)*du(1,1));
+					
+					ek(2*in+1,2*jn+1)	+= weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(1,0)*du(1,1)		+ (2*MuL)*du(0,0)*du(0,1));
+				}
+				else
+				{
+					/* Plain Strain State */
+					ek(2*in,2*jn)		+= weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1)	+ (MuL)*du(1,0)*du(1,1));
+					
+					ek(2*in,2*jn+1)		+= weight*	(LambdaL*du(0,0)*du(1,1)			+ (MuL)*du(1,0)*du(0,1));
+					
+					ek(2*in+1,2*jn)		+= weight*	(LambdaL*du(1,0)*du(0,1)			+ (MuL)*du(0,0)*du(1,1));
+					
+					ek(2*in+1,2*jn+1)	+= weight*	((LambdaL + 2*MuL)*du(1,0)*du(1,1)	+ (MuL)*du(0,0)*du(0,1));
+					
+				}
+			}
+		}
+        
+//		//	Matrix Qc
+//		//	Coupling matrix
+//		for(int in = 0; in < phrU; in++ )
+//		{
+//			du(0,0) = dphiu(0,in)*datavec[0].axes(0,0)+dphiu(1,in)*datavec[0].axes(1,0);
+//			du(1,0) = dphiu(0,in)*datavec[0].axes(0,1)+dphiu(1,in)*datavec[0].axes(1,1);
+//			
+//			for(int jn = 0; jn < phrP; jn++)
+//			{
+//				ek(2*in,2*phrU+jn) += (-1.)*Balpha*weight*(phiP(jn,0)*du(0,0));
+//				ek(2*in+1,2*phrU+jn) += (-1.)*Balpha*weight*(phiP(jn,0)*du(1,0));
+//			}
+//		}
+//		
+//		//	Matrix QcˆT
+//		//	Coupling matrix transpose
+//		for(int in = 0; in < phrU; in++ )
+//		{
+//			du(0,0) = dphiu(0,in)*datavec[0].axes(0,0)+dphiu(1,in)*datavec[0].axes(1,0);
+//			du(1,0) = dphiu(0,in)*datavec[0].axes(0,1)+dphiu(1,in)*datavec[0].axes(1,1);
+//			
+//			for(int jn = 0; jn < phrP; jn++)
+//			{
+//				ek(2*phrU+jn,2*in) += (-1.)*Balpha*weight*(phiP(jn,0)*du(0,0));
+//				ek(2*phrU+jn,2*in+1) += (-1.)*Balpha*weight*(phiP(jn,0)*du(1,0));
+//				
+//			}
+//		}
+        
+        
+        
+        
         REAL SaturationAtnplusOne = sol_s[0];
         
         //  First Block (Equation One) constitutive law
@@ -1351,7 +1501,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZManVector<REAL,3> sol_q =datavec[0].sol[0];
     TPZManVector<REAL,3> sol_p =datavec[1].sol[0];
     TPZManVector<REAL,3> sol_s =datavec[2].sol[0];
-    TPZManVector<REAL,3> sol_qg =datavec[0].sol[0];     
+    TPZManVector<REAL,3> sol_qg =datavec[3].sol[0];
     TPZFMatrix<REAL> dsol_q =datavec[0].dsol[0];
     TPZFMatrix<REAL> dsol_p =datavec[1].dsol[0];
     TPZFMatrix<REAL> dsol_s =datavec[2].dsol[0];

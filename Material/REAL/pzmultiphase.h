@@ -144,6 +144,9 @@ public:
     
     /** @brief K map */ 
     TPZStack< TPZFMatrix<REAL> > fKabsoluteMap; 
+
+    /** @brief plane stress condition */    
+    STATE fPlaneStress;
     
     /** @brief Use or not K map */      
     bool fYorN;
@@ -175,6 +178,36 @@ public:
     
     /** @brief Defines simulation use a K map */
     void SetYorN(bool dummybool){ this->fYorN = dummybool;}     
+    
+    /**
+     * @brief Lame First Parameter.
+     * \f$ lamelamda \f$
+     */
+    STATE LameLambda();
+
+    /**
+     * @brief Undrained Lame First Parameter.
+     * \f$ lamelamdaU \f$
+     */
+    STATE LameLambdaU();
+    
+    /**
+     * @brief Lame Second Parameter.
+     * \f$ lamemu \f$
+     */
+    STATE LameMu();
+
+    /**
+     * @brief Biot parameter Parameter.
+     * \f$ lamemu \f$
+     */
+    STATE BiotAlpha();
+
+    /**
+     * @brief //Se o 1/M coeficiente poroelastico de armazenamento a volume constante.
+     * \f$ Se \f$
+     */
+    STATE Se();
     
     
     /**

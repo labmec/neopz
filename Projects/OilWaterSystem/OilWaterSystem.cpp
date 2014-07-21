@@ -11,7 +11,6 @@
 #include "pzmatrix.h"
 #include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
-#include "clock_timer.h"
 #include "time.h"
 #include "pzconvectionproblem.h"
 #include "pzmultiphase.h"
@@ -145,6 +144,7 @@ int main()
     
     int Href = 1;
     int div = 0;
+    int POrderElasticity = 1;
     int POrderBulkFlux = 1;
     int POrderGravitationalFlux = 1;
     int POrderPseudopressure = 1;
@@ -164,6 +164,12 @@ int main()
     // Computational meshes 
     
     //  First computational mesh
+    TPZCompMesh * CMeshElascticity = ComputationalMeshElasticity(gmesh, POrderElasticity);
+    //  Print Second computational mesh
+    std::ofstream ArgumentElascticity("ComputationalMeshForEslaticity.txt");
+    CMeshElascticity->Print(ArgumentElascticity);
+    
+    //  Second computational mesh
     TPZCompMesh * CMeshBulkflux = ComputationalMeshBulkflux(gmesh, POrderBulkFlux);
     //  Print Second computational mesh
     std::ofstream ArgumentBulkflux("ComputationalMeshForBulkflux.txt");
@@ -175,17 +181,24 @@ int main()
     std::ofstream ArgumentGravitationalflux("ComputationalMeshFoflux.txt");
     CMeshGravitationalflux->Print(ArgumentGravitationalflux);       
     
-    //  Second computational mesh
+    //  Third computational mesh
     TPZCompMesh * CMeshPseudopressure = ComputationalMeshPseudopressure(gmesh, POrderPseudopressure);
     //  Print First computational mesh
     std::ofstream ArgumentPseudopressure("ComputationalMeshForPseudopressure.txt");
     CMeshPseudopressure->Print(ArgumentPseudopressure);
     
-    //  Third computational mesh
+    //  Four computational mesh
     TPZCompMesh * CMeshWaterSaturation = ComputationalMeshWaterSaturation(gmesh, POrderWaterSaturation);
     //  Print Second computational mesh
     std::ofstream ArgumentWaterSaturation("ComputationalMeshForWaterSaturation.txt");
     CMeshWaterSaturation->Print(ArgumentWaterSaturation);
+    
+    TPZAnalysis Anelasticity(CMeshElascticity);
+    std::string outputfile0;
+    outputfile0 = "SolutionElasticity";
+    std::stringstream outputfiletemp0;
+    outputfiletemp0 << outputfile0 << ".vtk";
+    std::string plotfileEslaticity = outputfiletemp0.str();
     
     TPZAnalysis Anbulkflux(CMeshBulkflux);
     std::string outputfile1;
@@ -195,17 +208,6 @@ int main()
     std::string plotfilebuklflux = outputfiletemp1.str();
     TPZFMatrix<STATE> InitialQSolution = Anbulkflux.Solution(); 
     int rwosQ= InitialQSolution.Rows();
-    
-//      for (int i=0; i < InitialQSolution.Rows(); i++) 
-//      {
-//          InitialQSolution(i)=0.0;
-//      }
-    
-//  InitialQSolution(8) =  -0.1;
-//  InitialQSolution(9) =  -0.1;
-//  
-//  InitialQSolution(10) = 0.1;
-//  InitialQSolution(11) = 0.1;
     
     Anbulkflux.LoadSolution(InitialQSolution);
     int num= InitialQSolution.Rows();
@@ -273,11 +275,12 @@ int main()
     //  }  
 
     //  Multiphysics Mesh
-    TPZVec<TPZCompMesh *> meshvec(4);//4);
-    meshvec[0] = CMeshBulkflux;
-    meshvec[1] = CMeshPseudopressure;   
-    meshvec[2] = CMeshWaterSaturation;
-    meshvec[3] = CMeshGravitationalflux;  
+    TPZVec<TPZCompMesh *> meshvec(5);//4);
+    meshvec[0] = CMeshElascticity;
+    meshvec[1] = CMeshBulkflux;
+    meshvec[2] = CMeshPseudopressure;
+    meshvec[3] = CMeshWaterSaturation;
+    meshvec[4] = CMeshGravitationalflux;
     
     
     TPZCompMesh * MultiphysicsMesh = ComputationalMeshMultiphase(gmesh,meshvec);
@@ -328,40 +331,41 @@ int main()
 
 TPZCompMesh * ComputationalMeshElasticity(TPZGeoMesh *gmesh, int pOrder)
 {
-//  // Plane strain assumption
-//  int planestress = 0;
-//  
-//  // Getting mesh dimension
-//  int dim = 2;
-//  
-//  TPZCompEl::SetgOrder(pOrder);
-//  TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-//  cmesh->SetDimModel(dim);
-//  
-//  
-//  TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-//  TPZMaterial * BCond2 = material1->CreateBC(mat1,2,0, val1, val2);
-//  TPZMaterial * BCond3 = material1->CreateBC(mat1,3,0, val1, val2);       
-//  //      TPZMaterial * BCond4 = material2->CreateBC(mat2,4,0, val1, val2);
-//  TPZMaterial * BCond4 = material1->CreateBC(mat1,4,0, val1, val2);
-//  //      TPZMaterial * BCond6 = material2->CreateBC(mat2,6,0, val1, val2);
-//  TPZMaterial * BCond5 = material1->CreateBC(mat1,5,0, val1, val2);
-//  //      TPZMaterial * BCond8 = material2->CreateBC(mat2,8,0, val1, val2);       
-//  
-//  cmesh->SetAllCreateFunctionsContinuous(); // H1 approximation space
-//  cmesh->InsertMaterialObject(BCond2);
-//  cmesh->InsertMaterialObject(BCond3);        
-//  //      cmesh->InsertMaterialObject(BCond4);
-//  cmesh->InsertMaterialObject(BCond4);
-//  //      cmesh->InsertMaterialObject(BCond6);
-//  cmesh->InsertMaterialObject(BCond5);
-//  //      cmesh->InsertMaterialObject(BCond8);    
-//  
-//  cmesh->AutoBuild();
-//  
-//  
-//  return cmesh;
-    return NULL;
+    // Plane strain assumption
+    int planestress = 0;
+
+    // Getting mesh dimension
+    int dim = 2;
+    int matId1 = 1;
+    int matId2 = 2;
+
+    TPZMatPoisson3d *material1;
+    material1 = new TPZMatPoisson3d(matId1,dim);
+    
+    TPZCompEl::SetgOrder(pOrder);
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+
+    TPZMaterial * mat1(material1);
+    
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZMaterial * BCond2 = material1->CreateBC(mat1,2,0, val1, val2);
+    TPZMaterial * BCond3 = material1->CreateBC(mat1,3,0, val1, val2);
+    TPZMaterial * BCond4 = material1->CreateBC(mat1,4,0, val1, val2);
+    TPZMaterial * BCond5 = material1->CreateBC(mat1,5,0, val1, val2);
+    TPZMaterial * BCond6 = material1->CreateBC(mat1,6,0, val1, val2);
+    TPZMaterial * BCond7 = material1->CreateBC(mat1,7,0, val1, val2);
+
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
+    cmesh->InsertMaterialObject(BCond5);
+    cmesh->InsertMaterialObject(BCond6);
+    cmesh->InsertMaterialObject(BCond7);
+    cmesh->AutoBuild();
+    return cmesh;
+    
 }
 
 TPZCompMesh *ComputationalMeshBulkflux(TPZGeoMesh *gmesh, int pOrder)
@@ -851,7 +855,7 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 //    vecnames[2] = "Kabsolute";
     
     const int dim = 2;
-    int div =0;
+    int div =1;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     std::ofstream out("malha.txt");
@@ -975,7 +979,12 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
         RhsAtnPlusOne = NonLinearAn->Rhs();
      
      
-    std::cout << " Starting the time computations. " << std::endl;  
+    // Starting
+    material1->SetCurrentState();
+    NonLinearAn->Assemble();
+    RhsAtnPlusOne = NonLinearAn->Rhs();
+    
+    std::cout << " Starting the time computations. " << std::endl;
     std::cout << " Number of DOF: " << mphysics->Solution().Rows() <<  std::endl;  
     while (TimeValue < maxTime)
     {
