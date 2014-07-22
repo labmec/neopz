@@ -848,9 +848,9 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
 #ifdef DEBUG
     int nref =  datavec.size();
-    if (nref != 4 )
+    if (nref != 5 )
     {
-        std::cout << " Erro. The size of the datavec is different from 3 \n";
+        std::cout << " Erro. The size of the datavec is different from 5 \n";
         DebugStop();
     }
 #endif
@@ -863,9 +863,10 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<REAL>  &phiS =  datavec[3].phi;
     TPZFMatrix<REAL>  &phiQG =  datavec[4].phi;
     
+    TPZFMatrix<REAL> &dphiU =   datavec[0].dphix;
     //    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
-    TPZFMatrix<REAL> &dphiP = datavec[2].dphix;
-    TPZFMatrix<REAL> &dphiS = datavec[3].dphix;
+    TPZFMatrix<REAL> &dphiP =   datavec[2].dphix;
+    TPZFMatrix<REAL> &dphiS =   datavec[3].dphix;
     
     // number of test functions for each state variable
     int phrU, phrQ, phrP, phrS, phrQG;
@@ -874,6 +875,13 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     phrP = phiP.Rows();
     phrS = phiS.Rows();
     phrQG = datavec[4].fVecShapeIndex.NElements();
+    
+    // blocks
+    int FirstU  = 0;
+    int FirstQ  = phrU+FirstU;
+    int FirstP  = phrQ+FirstQ;
+    int FirstS  = phrP+FirstP;
+//    int FirstQG = FirstS;
     
     //  Getting and computing another required data
     REAL TimeStep = this->fDeltaT;
@@ -897,7 +905,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
 
     TPZManVector<REAL,3> sol_u =datavec[0].sol[0];
-    TPZFMatrix<REAL> dphiu =datavec[0].dsol[0];
     TPZManVector<REAL,3> sol_q =datavec[1].sol[0];
     TPZManVector<REAL,3> sol_p =datavec[2].sol[0];
     TPZManVector<REAL,3> sol_s =datavec[3].sol[0];
@@ -955,45 +962,45 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 		//	Linear strain operator
 		//	Ke Matrix
         TPZFMatrix<REAL>	du(2,2);
-		for(int in = 0; in < phrU; in++ )
+		for(int iu = 0; iu < phrU; iu++ )
 		{
-			//	Derivative calculations for Vx
-			du(0,0) = dphiu(0,in)*datavec[0].axes(0,0)+dphiu(1,in)*datavec[0].axes(1,0);
-			//	Derivative calculations for Vy
-			du(1,0) = dphiu(0,in)*datavec[0].axes(0,1)+dphiu(1,in)*datavec[0].axes(1,1);
+			//	Derivative for Vx
+			du(0,0) = dphiU(0,iu)*datavec[0].axes(0,0)+dphiU(1,iu)*datavec[0].axes(1,0);
+			//	Derivative for Vy
+			du(1,0) = dphiU(0,iu)*datavec[0].axes(0,1)+dphiU(1,iu)*datavec[0].axes(1,1);
 			
 			//	Fu Vector Force right hand term
-			ef(2*in, 0)		+= weight*Gfield(0,0)*phiU(in, 0);
-			ef(2*in+1, 0)	+= weight*Gfield(1,0)*phiU(in, 0);
+			ef(2*iu, 0)		+= weight*Gfield(0,0)*phiU(iu, 0);
+			ef(2*iu+1, 0)	+= weight*Gfield(1,0)*phiU(iu, 0);
 			
-			for(int jn = 0; jn < phrU; jn++)
+			for(int ju = 0; ju < phrU; ju++)
 			{
-				//	Derivative calculations for Ux
-				du(0,1) = dphiu(0,jn)*datavec[0].axes(0,0)+dphiu(1,jn)*datavec[0].axes(1,0);
-				//	Derivative calculations for Uy
-				du(1,1) = dphiu(0,jn)*datavec[0].axes(0,1)+dphiu(1,jn)*datavec[0].axes(1,1);
+				//	Derivative for Ux
+				du(0,1) = dphiU(0,ju)*datavec[0].axes(0,0)+dphiU(1,ju)*datavec[0].axes(1,0);
+				//	Derivative for Uy
+				du(1,1) = dphiU(0,ju)*datavec[0].axes(0,1)+dphiU(1,ju)*datavec[0].axes(1,1);
 				
 				if (fPlaneStress == 1)
 				{
 					/* Plain stress state */
-					ek(2*in,2*jn)		+= weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(0,0)*du(0,1)		+ (2*MuL)*du(1,0)*du(1,1));
+					ek(2*iu,2*ju)		+= weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(0,0)*du(0,1)		+ (2*MuL)*du(1,0)*du(1,1));
 					
-					ek(2*in,2*jn+1)		+= weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(0,0)*du(1,1)			+ (2*MuL)*du(1,0)*du(0,1));
+					ek(2*iu,2*ju+1)		+= weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(0,0)*du(1,1)			+ (2*MuL)*du(1,0)*du(0,1));
 					
-					ek(2*in+1,2*jn)		+= weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(1,0)*du(0,1)			+ (2*MuL)*du(0,0)*du(1,1));
+					ek(2*iu+1,2*ju)		+= weight*((2*(MuL)*(LambdaL)/(LambdaL+2*MuL))*du(1,0)*du(0,1)			+ (2*MuL)*du(0,0)*du(1,1));
 					
-					ek(2*in+1,2*jn+1)	+= weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(1,0)*du(1,1)		+ (2*MuL)*du(0,0)*du(0,1));
+					ek(2*iu+1,2*ju+1)	+= weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(1,0)*du(1,1)		+ (2*MuL)*du(0,0)*du(0,1));
 				}
 				else
 				{
 					/* Plain Strain State */
-					ek(2*in,2*jn)		+= weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1)	+ (MuL)*du(1,0)*du(1,1));
+					ek(2*iu,2*ju)		+= weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1)	+ (MuL)*du(1,0)*du(1,1));
 					
-					ek(2*in,2*jn+1)		+= weight*	(LambdaL*du(0,0)*du(1,1)			+ (MuL)*du(1,0)*du(0,1));
+					ek(2*iu,2*ju+1)		+= weight*	(LambdaL*du(0,0)*du(1,1)			+ (MuL)*du(1,0)*du(0,1));
 					
-					ek(2*in+1,2*jn)		+= weight*	(LambdaL*du(1,0)*du(0,1)			+ (MuL)*du(0,0)*du(1,1));
+					ek(2*iu+1,2*ju)		+= weight*	(LambdaL*du(1,0)*du(0,1)			+ (MuL)*du(0,0)*du(1,1));
 					
-					ek(2*in+1,2*jn+1)	+= weight*	((LambdaL + 2*MuL)*du(1,0)*du(1,1)	+ (MuL)*du(0,0)*du(0,1));
+					ek(2*iu+1,2*ju+1)	+= weight*	((LambdaL + 2*MuL)*du(1,0)*du(1,1)	+ (MuL)*du(0,0)*du(0,1));
 					
 				}
 			}
@@ -1036,33 +1043,33 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  First Block (Equation One) constitutive law
         // Integrate[(viscosity/density)*dot(v,v), Omega_{e} ]  (Equation One)
         REAL OneOverLambda = 1.0/bulklambda;
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
-            for (int jq=0; jq<phrQ; jq++)
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
+            for (int jq=FirstQ; jq<phrQ; jq++)
             {
                 
-                int jvectorindex    = datavec[0].fVecShapeIndex[jq].first;
-                int jshapeindex     = datavec[0].fVecShapeIndex[jq].second;
+                int jvectorindex    = datavec[1].fVecShapeIndex[jq].first;
+                int jshapeindex     = datavec[1].fVecShapeIndex[jq].second;
                 
                 if (fnewWS)
                 {
                     
-                    REAL vec1 = (Kinverse(0,0)*datavec[0].fNormalVec(0,ivectorindex)+Kinverse(0,1)*datavec[0].fNormalVec(1,ivectorindex));
-                    REAL vec2 = (Kinverse(1,0)*datavec[0].fNormalVec(0,ivectorindex)+Kinverse(1,1)*datavec[0].fNormalVec(1,ivectorindex));
+                    REAL vec1 = (Kinverse(0,0)*datavec[1].fNormalVec(0,ivectorindex)+Kinverse(0,1)*datavec[1].fNormalVec(1,ivectorindex));
+                    REAL vec2 = (Kinverse(1,0)*datavec[1].fNormalVec(0,ivectorindex)+Kinverse(1,1)*datavec[1].fNormalVec(1,ivectorindex));
                     
                     REAL dotprod =
-                    (phiQ(ishapeindex,0)*vec1) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                    (phiQ(ishapeindex,0)*vec2) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;  //  dot(K q,v)
+                    (phiQ(ishapeindex,0)*vec1) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(0,jvectorindex)) +
+                    (phiQ(ishapeindex,0)*vec2) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(1,jvectorindex)) ;  //  dot(K q,v)
                     
                     ek(iq,jq) += weight * OneOverLambda * dotprod;
                 }
                 else {
                     REAL dotprod =
-                    (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                    (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ; //  dot(q,v)
+                    (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(0,jvectorindex)) +
+                    (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(1,jvectorindex)) ; //  dot(q,v)
                     
                     ek(iq,jq) += weight * OneOverLambda * dotprod;
                 }
@@ -1076,30 +1083,30 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  First Block (Equation One) constitutive law
         // Integrate[(d(1/bulklambdal)/dS)*dot(q,v), Omega_{e} ]    (Equation One)
         /*REAL OneOverLambda = 1/bulklambda;*/
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
-            for (int jsat=0; jsat<phrS; jsat++)
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
+            for (int jsat=FirstS; jsat<phrS; jsat++)
             {
                 
                 if (fnewWS)
                 {
                     
                     REAL dotprod =
-                    (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-                    (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+                    (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) +
+                    (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) ;
                     
-                    ek(iq,jsat + phrQ + phrP) -= weight * dbulklambdads  * OneOverLambda * OneOverLambda * phiS(jsat,0) * dotprod;
+                    ek(iq,jsat) -= weight * dbulklambdads  * OneOverLambda * OneOverLambda * phiS(jsat,0) * dotprod;
                 }
                 else
                 {
                     REAL dotprod =
-                    (sol_q[0]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-                    (sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+                    (sol_q[0]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) +
+                    (sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) ;
                     
-                    ek(iq,jsat + phrQ + phrP) -= weight * dbulklambdads  * OneOverLambda * OneOverLambda * phiS(jsat,0) * dotprod;
+                    ek(iq,jsat) -= weight * dbulklambdads  * OneOverLambda * OneOverLambda * phiS(jsat,0) * dotprod;
                 }
                 
             }
@@ -1109,30 +1116,30 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  First Block (Equation One) constitutive law
         // Integrate[(d(1/bulklambdal)/dP)*dot(q,v), Omega_{e} ]    (Equation One)
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
-            for (int jp=0; jp<phrP; jp++)
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
+            for (int jp=FirstP; jp<phrP; jp++)
             {
                 
                 if (fnewWS)
                 {
                     
                     REAL dotprod =
-                    (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-                    (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+                    (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) +
+                    (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) ;
                     
-                    ek(iq, phrQ + jp) -= weight * dbulklambdadp  * OneOverLambda * OneOverLambda * phiP(jp,0) * dotprod;
+                    ek(iq, jp) -= weight * dbulklambdadp  * OneOverLambda * OneOverLambda * phiP(jp,0) * dotprod;
                 }
                 else
                 {
                     REAL dotprod =
-                    (sol_q[0]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-                    (sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+                    (sol_q[0]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) +
+                    (sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) ;
                     
-                    ek(iq,phrQ + jp) -= weight * dbulklambdadp  * OneOverLambda * OneOverLambda * phiP(jp,0) * dotprod;
+                    ek(iq,jp) -= weight * dbulklambdadp  * OneOverLambda * OneOverLambda * phiP(jp,0) * dotprod;
                 }
                 
             }
@@ -1143,13 +1150,13 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //      This block was verified
         //  First Block (Equation One) constitutive law
         //  Integrate [ K dot(v,grad(P)) , Omega_{e}]   (Equation One)
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
-            for (int jp=0; jp<phrP; jp++)
+            for (int jp=FirstP; jp<phrP; jp++)
             {
                 
                 
@@ -1161,19 +1168,19 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 if (fnewWS)
                 {
                     
-                    REAL e1e1   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex))*(dsolp[0]);
-                    REAL e2e2   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex))*(dsolp[1]);
-                    ek(iq, phrQ + jp) += weight * ( e1e1 + e2e2 );
+                    REAL e1e1   =   (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex))*(dsolp[0]);
+                    REAL e2e2   =   (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex))*(dsolp[1]);
+                    ek(iq,jp) += weight * ( e1e1 + e2e2 );
                     
                 }
                 else {
                     REAL e1e1   =   (Kabsolute(0,0)*(dsolp[0])+
-                                     Kabsolute(0,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
+                                     Kabsolute(0,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
                     
                     REAL e2e2   =   (Kabsolute(1,0)*(dsolp[0])+
-                                     Kabsolute(1,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                                     Kabsolute(1,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                     
-                    ek(iq, phrQ + jp) += weight * ( e1e1 + e2e2 );
+                    ek(iq,jp) += weight * ( e1e1 + e2e2 );
                     
                 }
             }
@@ -1184,35 +1191,35 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  First Block (Equation One) constitutive law
         //  Integrate [ K (dot(f1*rho1*grad(g*z),v)+dot(f1*rho1*grad(g*z),v)) , Omega_{e}]  (Equation One)
         //  dS/dPalpha;
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
-                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
+                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
-                for (int jp=0; jp<phrP; jp++)
+                for (int jp=FirstP; jp<phrP; jp++)
                 {
-                    ek(iq,jp+phrQ) -= weight * ( ( bulkfwater * dwaterdensitydp + bulkfoil * doildensitydp ) * phiP(jp,0) * (e1e1 + e2e2));
+                    ek(iq,jp) -= weight * ( ( bulkfwater * dwaterdensitydp + bulkfoil * doildensitydp ) * phiP(jp,0) * (e1e1 + e2e2));
                 }
                 
             }
             else
             {
                 REAL e1e1   =   (Kabsolute(0,0)*(Gfield(0,0))+
-                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
+                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
                 
                 REAL e2e2   =   (Kabsolute(1,0)*(Gfield(0,0))+
-                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
-                for (int jp=0; jp<phrP; jp++)
+                for (int jp=FirstP; jp<phrP; jp++)
                 {
-                    ek(iq,jp+phrQ) -= weight * ( ( bulkfwater * dwaterdensitydp + bulkfoil * doildensitydp ) * phiP(jp,0) * (e1e1 + e2e2));
+                    ek(iq,jp) -= weight * ( ( bulkfwater * dwaterdensitydp + bulkfoil * doildensitydp ) * phiP(jp,0) * (e1e1 + e2e2));
                 }
             }
             
@@ -1222,35 +1229,35 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  First Block (Equation One) constitutive law
         //  Integrate [ K (dot(f1*rho1*grad(g*z),v)+dot(f1*rho1*grad(g*z),v)) , Omega_{e}]  (Equation One)
         //  dS/dPalpha;
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
-                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
+                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
-                for (int jp=0; jp<phrP; jp++)
+                for (int jp=FirstP; jp<phrP; jp++)
                 {
-                    ek(iq,phrQ+jp) -= weight * ( ( dbulkfwaterdp * waterdensity + dbulkfoildp * oildensity ) * phiP(jp,0) * (e1e1 + e2e2));
+                    ek(iq,jp) -= weight * ( ( dbulkfwaterdp * waterdensity + dbulkfoildp * oildensity ) * phiP(jp,0) * (e1e1 + e2e2));
                 }
                 
             }
             else
             {
                 REAL e1e1   =   (Kabsolute(0,0)*(Gfield(0,0))+
-                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
+                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
                 
                 REAL e2e2   =   (Kabsolute(1,0)*(Gfield(0,0))+
-                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
-                for (int jp=0; jp<phrP; jp++)
+                for (int jp=FirstP; jp<phrP; jp++)
                 {
-                    ek(iq,phrQ+jp) -= weight * ( ( dbulkfwaterdp * waterdensity + dbulkfoildp * oildensity ) * phiP(jp,0) * (e1e1 + e2e2));
+                    ek(iq,jp) -= weight * ( ( dbulkfwaterdp * waterdensity + dbulkfoildp * oildensity ) * phiP(jp,0) * (e1e1 + e2e2));
                 }
             }
             
@@ -1260,35 +1267,35 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  First Block (Equation One) constitutive law
         //  Integrate [ K (dot(f1*rho1*grad(g*z),v)+dot(f1*rho1*grad(g*z),v)) , Omega_{e}]  (Equation One)
         //  dS/dSalpha;
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
-                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
+                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
-                for (int jsat=0; jsat<phrS; jsat++)
+                for (int jsat=FirstS; jsat<phrS; jsat++)
                 {
-                    ek(iq,jsat+phrQ+phrP) -= weight * ( ( dbulkfwaterds * waterdensity + dbulkfoilds * oildensity ) * phiS(jsat,0) * (e1e1 + e2e2));
+                    ek(iq,jsat) -= weight * ( ( dbulkfwaterds * waterdensity + dbulkfoilds * oildensity ) * phiS(jsat,0) * (e1e1 + e2e2));
                 }
                 
             }
             else
             {
                 REAL e1e1   =   (Kabsolute(0,0)*(Gfield(0,0))+
-                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
+                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
                 
                 REAL e2e2   =   (Kabsolute(1,0)*(Gfield(0,0))+
-                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
-                for (int jsat=0; jsat<phrS; jsat++)
+                for (int jsat=FirstS; jsat<phrS; jsat++)
                 {
-                    ek(iq,jsat+phrQ+phrP) -= weight * ( ( dbulkfwaterds * waterdensity + dbulkfoilds * oildensity ) * phiS(jsat,0) * (e1e1 + e2e2));
+                    ek(iq,jsat) -= weight * ( ( dbulkfwaterds * waterdensity + dbulkfoilds * oildensity ) * phiS(jsat,0) * (e1e1 + e2e2));
                 }
             }
             
@@ -1297,13 +1304,13 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         // d(porosity)/dPalpha
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             
-            for (int jp=0; jp<phrP; jp++)
+            for (int jp=FirstP; jp<phrP; jp++)
             {
                 REAL Integrating = phiP(ip,0) * drockporositydp * phiP(jp,0) * (waterdensity * (SaturationAtnplusOne) + oildensity * (1 - SaturationAtnplusOne));
-                ek(ip+phrQ,jp+phrQ) -=  weight * Integrating;
+                ek(ip,jp) -=  weight * Integrating;
             }
             
         }
@@ -1312,13 +1319,13 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         // d(porosity)/dPalpha
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             
-            for (int jp=0; jp<phrP; jp++)
+            for (int jp=FirstP; jp<phrP; jp++)
             {
                 REAL Integrating = phiP(ip,0) * rockporosity * (dwaterdensitydp * (SaturationAtnplusOne) + doildensitydp * (1 - SaturationAtnplusOne)) * phiP(jp,0);
-                ek(ip+phrQ,jp+phrQ) -=  weight * Integrating;
+                ek(ip,jp) -=  weight * Integrating;
             }
             
         }
@@ -1327,13 +1334,13 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         // d(S1)/dSalpha
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             
-            for (int jsat=0; jsat<phrS; jsat++)
+            for (int jsat=FirstS; jsat<phrS; jsat++)
             {
                 REAL Integrating = phiP(ip,0) * rockporosity * (waterdensity - oildensity) * phiS(jsat,0);
-                ek(ip+phrQ,jsat+phrQ+phrP) -=  weight * Integrating;
+                ek(ip,jsat) -=  weight * Integrating;
             }
             
         }
@@ -1342,24 +1349,24 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[dot(grad(w),v), Omega_{e}] (Equation Two)
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             //  Compute grad(W)
             TPZManVector<STATE> dsolp(2,0);
             dsolp[0] = dphiP(0,ip)*datavec[1].axes(0,0)+dphiP(1,ip)*datavec[1].axes(1,0);
             dsolp[1] = dphiP(0,ip)*datavec[1].axes(0,1)+dphiP(1,ip)*datavec[1].axes(1,1);
             
-            for (int jq=0; jq<phrQ; jq++)
+            for (int jq=FirstQ; jq<phrQ; jq++)
             {
                 
-                int jvectorindex    = datavec[0].fVecShapeIndex[jq].first;
-                int jshapeindex     = datavec[0].fVecShapeIndex[jq].second;
+                int jvectorindex    = datavec[1].fVecShapeIndex[jq].first;
+                int jshapeindex     = datavec[1].fVecShapeIndex[jq].second;
                 
                 REAL dotprod =
-                (dsolp[0]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                (dsolp[1]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;
+                (dsolp[0]) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(0,jvectorindex)) +
+                (dsolp[1]) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(1,jvectorindex)) ;
                 
-                ek(ip+phrQ,jq) += (Gamma) * (TimeStep) * weight * dotprod;
+                ek(ip,jq) += (Gamma) * (TimeStep) * weight * dotprod;
                 
             }
             
@@ -1370,7 +1377,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         for(int isat=0; isat<phrS; isat++)
         {
             
-            for (int jsat=0; jsat<phrS; jsat++)
+            for (int jsat=FirstS; jsat<phrS; jsat++)
             {
                 ek(isat+phrQ+phrP,jsat+phrQ+phrP) +=  (rockporosity * waterdensity) * weight * phiS(isat,0) * phiS(jsat,0);
             }
@@ -1379,10 +1386,10 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  Third Vector Block (Equation three)
         //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             
-            for (int jp=0; jp<phrP; jp++)
+            for (int jp=FirstP; jp<phrP; jp++)
             {
                 ek(isat+phrQ+phrP,jp+phrQ) += weight * (drockporositydp * waterdensity + rockporosity * dwaterdensitydp) * SaturationAtnplusOne * phiS(isat,0) * phiP(jp,0);
             }
@@ -1391,7 +1398,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  Third Vector Block (Equation three)
         // Integrate[dot(d(f1(S1)/ds)q,grad(L)), Omega_{e}] (Equation three)
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             
             //  Compute grad(L)
@@ -1404,7 +1411,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             (Gradphis[0]) * (sol_q[0]) +
             (Gradphis[1]) * (sol_q[1]);
             
-            for (int jsat=0; jsat<phrS; jsat++)
+            for (int jsat=FirstS; jsat<phrS; jsat++)
             {
                 ek(isat+phrQ+phrP,jsat+phrQ+phrP) -= (Theta) * (TimeStep) * weight * dbulkfwaterds * phiS(jsat,0) * dotprod;
                 
@@ -1414,21 +1421,21 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  Third Vector Block (Equation three)
         // Integrate[dot(f1(S1)v,grad(L)), Omega_{e}]   (Equation three)
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             //  Compute grad(L)
             TPZManVector<STATE> Gradphis(2,0);
             Gradphis[0] = dphiS(0,isat)*datavec[2].axes(0,0)+dphiS(1,isat)*datavec[2].axes(1,0);
             Gradphis[1] = dphiS(0,isat)*datavec[2].axes(0,1)+dphiS(1,isat)*datavec[2].axes(1,1);
             
-            for (int jq=0; jq<phrQ; jq++)
+            for (int jq=FirstQ; jq<phrQ; jq++)
             {
                 
-                int jvectorindex    = datavec[0].fVecShapeIndex[jq].first;
-                int jshapeindex     = datavec[0].fVecShapeIndex[jq].second;
+                int jvectorindex    = datavec[1].fVecShapeIndex[jq].first;
+                int jshapeindex     = datavec[1].fVecShapeIndex[jq].second;
                 REAL dotprod =
-                (Gradphis[0]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                (Gradphis[1]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex));
+                (Gradphis[0]) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(0,jvectorindex)) +
+                (Gradphis[1]) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(1,jvectorindex));
                 
                 ek(isat+phrQ+phrP,jq) -= (Theta) * (TimeStep) * weight * bulkfwater * dotprod;
                 
@@ -1461,22 +1468,32 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
     // Getting weight functions
-    TPZFMatrix<REAL>  &phiQ =  datavec[0].phi;
-    TPZFMatrix<REAL>  &phiP =  datavec[1].phi;
-    TPZFMatrix<REAL>  &phiS =  datavec[2].phi;
-    TPZFMatrix<REAL>  &phiQG    =  datavec[3].phi;     
+    TPZFMatrix<REAL>  &phiU =  datavec[0].phi;
+    TPZFMatrix<REAL>  &phiQ =  datavec[1].phi;
+    TPZFMatrix<REAL>  &phiP =  datavec[2].phi;
+    TPZFMatrix<REAL>  &phiS =  datavec[3].phi;
+    TPZFMatrix<REAL>  &phiQG    =  datavec[4].phi;
     
+    TPZFMatrix<REAL> &dphiU = datavec[0].dphix;
     //    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
     TPZFMatrix<REAL> &dphiS = datavec[2].dphix;// This a null value since S is constant by element.
     
     
     // number of test functions for each state variable
-    int phrQ, phrP, phrS, phrQG;
-    phrQ = datavec[0].fVecShapeIndex.NElements(); //    phiQ.Rows();
+    int phrU, phrQ, phrP, phrS, phrQG;
+    phrU = phiU.Rows();
+    phrQ = datavec[1].fVecShapeIndex.NElements(); //    phiQ.Rows();
     phrP = phiP.Rows();
     phrS = phiS.Rows();
-    phrQG   = datavec[3].fVecShapeIndex.NElements();    
+    phrQG   = datavec[3].fVecShapeIndex.NElements();
+    
+    
+    // blocks
+    int FirstU  = 0;
+    int FirstQ  = phrU+FirstU;
+    int FirstP  = phrQ+FirstQ;
+    int FirstS  = phrP+FirstP;
     
     //  Getting and computing another required data
     REAL TimeStep = this->fDeltaT;
@@ -1498,13 +1515,15 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     Kinverse=this->Kinv(Kabsolute);
     Gfield = this->Gravity();
     
-    TPZManVector<REAL,3> sol_q =datavec[0].sol[0];
-    TPZManVector<REAL,3> sol_p =datavec[1].sol[0];
-    TPZManVector<REAL,3> sol_s =datavec[2].sol[0];
-    TPZManVector<REAL,3> sol_qg =datavec[3].sol[0];
-    TPZFMatrix<REAL> dsol_q =datavec[0].dsol[0];
-    TPZFMatrix<REAL> dsol_p =datavec[1].dsol[0];
-    TPZFMatrix<REAL> dsol_s =datavec[2].dsol[0];
+    TPZManVector<REAL,3> sol_u =datavec[0].sol[0];
+    TPZManVector<REAL,3> sol_q =datavec[1].sol[0];
+    TPZManVector<REAL,3> sol_p =datavec[2].sol[0];
+    TPZManVector<REAL,3> sol_s =datavec[3].sol[0];
+    TPZManVector<REAL,3> sol_qg =datavec[4].sol[0];
+    TPZFMatrix<REAL> dsol_u = datavec[0].dsol[0];
+    TPZFMatrix<REAL> dsol_q =datavec[1].dsol[0];
+    TPZFMatrix<REAL> dsol_p =datavec[2].dsol[0];
+    TPZFMatrix<REAL> dsol_s =datavec[3].dsol[0];
     
     TPZFMatrix<> axesQ, axesP;
     axesQ=datavec[0].axes;
@@ -1551,26 +1570,26 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         // Integrate[(viscosity/density)*dot(q,v), Omega_{e}]   (Equation One)
         //      REAL ViscOverdensity = waterviscosity/waterdensity;
         REAL OneOverLambda = 1.0/bulklambda;
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
             
             if (fnewWS)
             {
                 REAL dotprod =
-                (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-                (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+                (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) +
+                (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) ;
                 
                 ef(iq) +=  OneOverLambda * weight * dotprod;
             }
             else
             {
                 REAL dotprod =
-                (sol_q[0]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-                (sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+                (sol_q[0]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex)) +
+                (sol_q[1]) * (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex)) ;
                 
                 ef(iq) +=  OneOverLambda * weight * dotprod;
             }
@@ -1588,27 +1607,27 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         dsolp[0] = dsol_p(0,0)*datavec[1].axes(0,0)+dsol_p(1,0)*datavec[1].axes(1,0);
         dsolp[1] = dsol_p(0,0)*datavec[1].axes(0,1)+dsol_p(1,0)*datavec[1].axes(1,1);
         
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex))*(dsolp[0]);
-                REAL e2e2   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex))*(dsolp[1]);
+                REAL e1e1   =   (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex))*(dsolp[0]);
+                REAL e2e2   =   (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex))*(dsolp[1]);
                 
                 ef(iq) += weight * (e1e1 + e2e2);
             }
             else
             {
                 REAL e1e1   =   (Kabsolute(0,0)*(dsolp[0])+
-                                 Kabsolute(0,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
+                                 Kabsolute(0,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
                 
                 REAL e2e2   =   (Kabsolute(1,0)*(dsolp[0])+
-                                 Kabsolute(1,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                                 Kabsolute(1,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
                 ef(iq) += weight * (e1e1 + e2e2);
             }
@@ -1620,27 +1639,27 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  First Block (Equation One) constitutive law
         //  Integrate [ K (dot(f1*rho1*grad(g*z),v)+dot(f1*rho1*grad(g*z),v)) , Omega_{e}]  (Equation One)
         
-        for(int iq=0; iq<phrQ; iq++)
+        for(int iq=FirstQ; iq<phrQ; iq++)
         {
             
-            int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
-            int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
+            int ivectorindex        = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeindex         = datavec[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
-                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                REAL e1e1   =   (Gfield(0,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
+                REAL e2e2   =   (Gfield(1,0))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
                 ef(iq) -= weight * ( ( bulkfwater * waterdensity + bulkfoil * oildensity )* (e1e1 + e2e2));
             }
             else
             {
                 REAL e1e1   =   (Kabsolute(0,0)*(Gfield(0,0))+
-                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex));
+                                 Kabsolute(0,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex));
                 
                 REAL e2e2   =   (Kabsolute(1,0)*(Gfield(0,0))+
-                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex));
+                                 Kabsolute(1,1)*(Gfield(1,0)))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
                 
                 ef(iq) -= weight * ((bulkfwater * waterdensity + bulkfoil * oildensity)* (e1e1 + e2e2));
             }
@@ -1650,7 +1669,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             REAL Integrating = phiP(ip,0) * rockporosity * (waterdensity * SaturationAtnplusOne + oildensity * (1 - SaturationAtnplusOne));
             ef(ip+phrQ) -= weight * Integrating;
@@ -1662,7 +1681,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[dot(grad(W),q), Omega_{e}] (Equation Two)
         //      This block was verified
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             
             //  Compute grad(W)
@@ -1684,7 +1703,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Third Vector Block (Equation three)
         // Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
         
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             ef(isat+phrQ+phrP) += weight * (rockporosity * waterdensity) * phiS(isat,0) * SaturationAtnplusOne;
         }
@@ -1693,7 +1712,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Third Vector Block (Equation three)
         // Integrate[dot(f1(S1)q,grad(L)), Omega_{e}]   (Equation three)
         //      std::cout << "phrS:   " << phrS << "   \n" << std::endl;
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             
             //  Compute grad(L)
@@ -1721,7 +1740,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             REAL Integrating = phiP(ip,0) * rockporosity * (waterdensity * SaturationAtnTimeStep + oildensity * (1 - SaturationAtnTimeStep));
             ef(ip+phrQ) += weight * Integrating;
@@ -1731,7 +1750,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[dot(grad(w),q), Omega_{e}] (Equation Two)
         //      This block was verified
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=FirstP; ip<phrP; ip++)
         {
             
             //  Compute grad(W)
@@ -1751,14 +1770,14 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  Third Vector Block (Equation three)
         // (-1.0) * Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
         
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             ef(isat+phrQ+phrP) -= weight * (rockporosity * waterdensity) * phiS(isat,0) * SaturationAtnTimeStep;
         }
         
         //  Third Vector Block (Equation three)
         // Integrate[dot(f1(S1)q,grad(L)), Omega_{e}]   (Equation three)
-        for(int isat=0; isat<phrS; isat++)
+        for(int isat=FirstS; isat<phrS; isat++)
         {
             
             //  Compute grad(L)
@@ -1796,14 +1815,16 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZMaterialData &
 void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
-    TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
-    TPZFMatrix<REAL> &phiQR = dataright[0].phi;
-    TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
-    TPZFMatrix<REAL> &phiPR = dataright[1].phi;
-    TPZFMatrix<REAL> &phiSL = dataleft[2].phi;
-    TPZFMatrix<REAL> &phiSR = dataright[2].phi;
-    TPZFMatrix<REAL> &phiQGL = dataleft[3].phi;
-    TPZFMatrix<REAL> &phiQGR = dataright[3].phi;    
+    TPZFMatrix<REAL> &phiUL = dataleft[0].phi;
+    TPZFMatrix<REAL> &phiUR = dataright[0].phi;
+    TPZFMatrix<REAL> &phiQL = dataleft[1].phi;
+    TPZFMatrix<REAL> &phiQR = dataright[1].phi;
+    TPZFMatrix<REAL> &phiPL = dataleft[2].phi;
+    TPZFMatrix<REAL> &phiPR = dataright[2].phi;
+    TPZFMatrix<REAL> &phiSL = dataleft[3].phi;
+    TPZFMatrix<REAL> &phiSR = dataright[3].phi;
+    TPZFMatrix<REAL> &phiQGL = dataleft[4].phi;
+    TPZFMatrix<REAL> &phiQGR = dataright[4].phi;
     
     
     TPZManVector<REAL,3> &normal = data.normal;
@@ -1811,16 +1832,18 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL n1 = normal[0];
     REAL n2 = normal[1];
     //  REAL n3 = normal[2];
-    
-    TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
-    TPZManVector<REAL,3> sol_sL =dataleft[2].sol[0];
-    TPZManVector<REAL,3> sol_qgL =dataleft[3].sol[0];    
-    
-    TPZManVector<REAL,3> sol_qR =dataright[0].sol[0];
-    TPZManVector<REAL,3> sol_pR =dataright[1].sol[0];
-    TPZManVector<REAL,3> sol_sR =dataright[2].sol[0];
-    TPZManVector<REAL,3> sol_qgR =dataright[3].sol[0];    
+
+    TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
+    TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
+    TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
+    TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+    TPZManVector<REAL,3> sol_qgL =dataleft[4].sol[0];
+
+    TPZManVector<REAL,3> sol_uR =dataright[0].sol[0];
+    TPZManVector<REAL,3> sol_qR =dataright[1].sol[0];
+    TPZManVector<REAL,3> sol_pR =dataright[2].sol[0];
+    TPZManVector<REAL,3> sol_sR =dataright[3].sol[0];
+    TPZManVector<REAL,3> sol_qgR =dataright[4].sol[0];
     
     //  Getting Q solution for left and right side
     REAL qxL = sol_qL[0];
@@ -1854,8 +1877,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     TPZFMatrix<REAL> Gfield;
     TPZFMatrix<REAL> Kmean(3,3,0);
     
-    int GeoIDLeft = dataleft[0].gelElId;
-    int GeoIDRight = dataright[0].gelElId;
+    int GeoIDLeft = dataleft[1].gelElId;
+    int GeoIDRight = dataright[1].gelElId;
     
     REAL rockporosityl, oildensityl, waterdensityl;
     REAL drockporositydpl, doildensitydpl, dwaterdensitydpl;
@@ -1982,18 +2005,21 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     (KabsoluteRight(1,0)*Gfield(0,0) + KabsoluteRight(1,1)*Gfield(1,0))*(n2);
     
     
-    int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
-    int QRowsRight = dataright[0].fVecShapeIndex.NElements();
+    int URowsleft = phiUL.Rows();
+    int URowsRight = phiUR.Rows();
+    int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
+    int QRowsRight = dataright[1].fVecShapeIndex.NElements();
     int PRowsleft = phiPL.Rows();
     int PRowsRight = phiPR.Rows();
     int SRowsleft = phiSL.Rows();
     int SRowsRight = phiSR.Rows();
-    
-    int QGRowsleft = dataleft[3].fVecShapeIndex.NElements();
-    int QGRowsRight = dataright[3].fVecShapeIndex.NElements();    
+    int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+    int QGRowsRight = dataright[4].fVecShapeIndex.NElements();
     
     int iRightInterfaceBlock = QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
     int jRightInterfaceBlock = QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+    
+    
     
     
     if(gState == ECurrentState)
@@ -2008,8 +2034,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         for (int iq=0; iq < QRowsleft; iq++)
         {
             
-            int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-            int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+            int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+            int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
             
             for (int jp=0; jp<PRowsleft; jp++)
             {
@@ -2018,17 +2044,17 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
                 
                 if (fnewWS)
                 {
-                    REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                    REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                    REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                    REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                     ek(iq, QRowsleft + jp) += (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                 }
                 else
                 {
-                    REAL e1e1   =   (Kmean(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                     Kmean(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                    REAL e1e1   =   (Kmean(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                     Kmean(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                     
-                    REAL e2e2   =   (Kmean(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                     Kmean(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                    REAL e2e2   =   (Kmean(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                     Kmean(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                     ek(iq, QRowsleft + jp) += (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                 }
                 
@@ -2040,8 +2066,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         // Integrate[L dot(K v, n), Gamme_{e}]  (Equation One) Right-Right Part
         for (int iq=0; iq < QRowsRight; iq++)
         {
-            int iRvectorindex       = dataright[0].fVecShapeIndex[iq].first;
-            int iRshapeindex        = dataright[0].fVecShapeIndex[iq].second;
+            int iRvectorindex       = dataright[1].fVecShapeIndex[iq].first;
+            int iRshapeindex        = dataright[1].fVecShapeIndex[iq].second;
             
             for (int jp=0; jp<PRowsRight; jp++)
             {
@@ -2050,18 +2076,18 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
                 if (fnewWS)
                 {
                     
-                    REAL e1e1   =   (phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))*(n1);
-                    REAL e2e2   =   (phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex))*(n2);
+                    REAL e1e1   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))*(n1);
+                    REAL e2e2   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex))*(n2);
                     
                     ek(iq + iRightInterfaceBlock, QRowsRight + jp + jRightInterfaceBlock) +=  (1.0) * weight * (e1e1 + e2e2 ) * phiPR(jp,0) ;
                 }
                 else
                 {
-                    REAL e1e1   =   (Kmean(0,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+
-                                     Kmean(0,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n1);
+                    REAL e1e1   =   (Kmean(0,0)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))+
+                                     Kmean(0,1)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex)))*(n1);
                     
-                    REAL e2e2   =   (Kmean(1,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+
-                                     Kmean(1,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n2);
+                    REAL e2e2   =   (Kmean(1,0)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))+
+                                     Kmean(1,1)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex)))*(n2);
                     
                     
                     ek(iq + iRightInterfaceBlock, QRowsRight + jp + jRightInterfaceBlock) +=  (1.0) * weight * (e1e1 + e2e2 ) * phiPR(jp,0) ;
@@ -2084,12 +2110,12 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             for (int jq=0; jq<QRowsleft; jq++)
             {
                 
-                int jvectorindex    = dataleft[0].fVecShapeIndex[jq].first;
-                int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
+                int jvectorindex    = dataleft[1].fVecShapeIndex[jq].first;
+                int jshapeindex     = dataleft[1].fVecShapeIndex[jq].second;
                 
                 REAL dotprod =
-                (n1) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(0,jvectorindex)) +
-                (n2) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(1,jvectorindex)) ;
+                (n1) * (phiQL(jshapeindex,0)*dataleft[1].fNormalVec(0,jvectorindex)) +
+                (n2) * (phiQL(jshapeindex,0)*dataleft[1].fNormalVec(1,jvectorindex)) ;
                 
                 ek(ip+QRowsleft,jq) += (-1.0) * (Gamma) * (TimeStep) * weight * dotprod * phiPL(ip,0);
                 
@@ -2106,12 +2132,12 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             for (int jq=0; jq<QRowsRight; jq++)
             {
                 
-                int jvectorindex    = dataright[0].fVecShapeIndex[jq].first;
-                int jshapeindex     = dataright[0].fVecShapeIndex[jq].second;
+                int jvectorindex    = dataright[1].fVecShapeIndex[jq].first;
+                int jshapeindex     = dataright[1].fVecShapeIndex[jq].second;
                 
                 REAL dotprod =
-                (n1) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(0,jvectorindex)) +
-                (n2) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(1,jvectorindex)) ;
+                (n1) * (phiQR(jshapeindex,0)*dataright[1].fNormalVec(0,jvectorindex)) +
+                (n2) * (phiQR(jshapeindex,0)*dataright[1].fNormalVec(1,jvectorindex)) ;
                 
                 ek(ip+QRowsRight+iRightInterfaceBlock,jq+jRightInterfaceBlock) += (1.0) * (Gamma) * (TimeStep) * weight * dotprod * phiPR(ip,0);
                 
@@ -2187,14 +2213,14 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             
             for (int jq=0; jq<QRowsleft; jq++)
             {
-                int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                 
                 
                 REAL dotprodL =
-                (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-                (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-                //              (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
+                (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
+                (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+                //              (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
                 
                 ek(isat+QRowsleft+PRowsleft,jq) += weight * (Theta) * (TimeStep) * phiSL(isat,0) * UpwindSaturation * dotprodL;
                 
@@ -2206,14 +2232,14 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         {
             for (int jq=0; jq<QRowsleft; jq++)
             {
-                int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                 
                 
                 REAL dotprodL =
-                (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-                (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-                //              (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
+                (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
+                (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+                //              (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
                 
                 ek(isat+QRowsRight+PRowsRight+iRightInterfaceBlock,jq)  -= weight * (Theta) * (TimeStep) * phiSR(isat,0) * UpwindSaturation * dotprodL;
                 
@@ -2590,8 +2616,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL GravityFluxR   =   (KabsoluteRight(0,0)*Gfield(0,0) + KabsoluteRight(0,1)*Gfield(1,0))*(n1)+
     (KabsoluteRight(1,0)*Gfield(0,0) + KabsoluteRight(1,1)*Gfield(1,0))*(n2);
     
-    int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
-    int QRowsRight = dataright[0].fVecShapeIndex.NElements();
+    int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
+    int QRowsRight = dataright[1].fVecShapeIndex.NElements();
     int PRowsleft = phiPL.Rows();
     int PRowsRight = phiPR.Rows();
     int SRowsleft = phiSL.Rows();
@@ -2618,25 +2644,25 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         for (int iq=0; iq < QRowsleft; iq++)
         {
             
-            int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-            int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+            int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+            int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
             
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                 
                 ef(iq) += (-1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureL;
             }
             else
             {
-                REAL e1e1   =   (Kmean(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                 Kmean(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                REAL e1e1   =   (Kmean(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                 Kmean(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                 
-                REAL e2e2   =   (Kmean(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                 Kmean(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                REAL e2e2   =   (Kmean(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                 Kmean(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                 
                 ef(iq) += (-1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureL;
             }
@@ -2652,25 +2678,25 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         for (int iq=0; iq < QRowsRight; iq++)
         {
             
-            int iRvectorindex       = dataright[0].fVecShapeIndex[iq].first;
-            int iRshapeindex        = dataright[0].fVecShapeIndex[iq].second;
+            int iRvectorindex       = dataright[1].fVecShapeIndex[iq].first;
+            int iRshapeindex        = dataright[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))*(n1);
-                REAL e2e2   =   (phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex))*(n2);
+                REAL e1e1   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))*(n1);
+                REAL e2e2   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex))*(n2);
                 
                 
                 ef(iq+iRightInterfaceBlock) += (1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureR;
             }
             else
             {
-                REAL e1e1   =   (Kmean(0,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+
-                                 Kmean(0,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n1);
+                REAL e1e1   =   (Kmean(0,0)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))+
+                                 Kmean(0,1)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex)))*(n1);
                 
-                REAL e2e2   =   (Kmean(1,0)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))+
-                                 Kmean(1,1)*(phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex)))*(n2);
+                REAL e2e2   =   (Kmean(1,0)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))+
+                                 Kmean(1,1)*(phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex)))*(n2);
                 
                 ef(iq+iRightInterfaceBlock) += (1.0) * weight * (e1e1 + e2e2 ) * PseudoPressureR;
             }
@@ -2939,7 +2965,7 @@ void TPZMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
 #ifdef DEBUG
     int nref =  datavec.size();
-    if (nref != 4 ) {
+    if (nref != 5 ) {
         std::cout << " Error.!! datavec size not equal to 4 \n";
         DebugStop();
     }
@@ -2963,7 +2989,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 {
     
     int nref =  dataleft.size();
-    if (nref != 4) {
+    if (nref != 5) {
         std::cout << " Error:: datavec size must to be equal to 4 \n" << std::endl;
         DebugStop();
     }
@@ -2985,7 +3011,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     TPZFMatrix<REAL> &phiSL = dataleft[2].phi;
     TPZFMatrix<REAL> &phiQGL = dataleft[3].phi;    
     
-    int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
+    int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
     //      int QRowsleft1 = phiQL.Rows();
     int PRowsleft = phiPL.Rows();
     int SRowsleft = phiSL.Rows();
@@ -3089,24 +3115,24 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
             
             for (int jp=0; jp<PRowsleft; jp++)
             {
-                int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                 
                 if (fnewWS)
                 {
-                    REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                    REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                    REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                    REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                     
                     ek(iq, QRowsleft + jp) += (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                     
                 }
                 else
                 {
-                    REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                     Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                    REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                     Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                     
-                    REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                     Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                    REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                     Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                     
                     ek(iq, QRowsleft + jp) += (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                     
@@ -3126,12 +3152,12 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
             for (int jq=0; jq<QRowsleft; jq++)
             {
                 
-                int jvectorindex    = dataleft[0].fVecShapeIndex[jq].first;
-                int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
+                int jvectorindex    = dataleft[1].fVecShapeIndex[jq].first;
+                int jshapeindex     = dataleft[1].fVecShapeIndex[jq].second;
                 
                 REAL dotprod =
-                (n1) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(0,jvectorindex)) +
-                (n2) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(1,jvectorindex)) ;
+                (n1) * (phiQL(jshapeindex,0)*dataleft[1].fNormalVec(0,jvectorindex)) +
+                (n2) * (phiQL(jshapeindex,0)*dataleft[1].fNormalVec(1,jvectorindex)) ;
                 
                 ek(ip+QRowsleft,jq) += (-1.0) * (Gamma) * (TimeStep) * weight * dotprod * phiPL(ip,0);
                 
@@ -3146,25 +3172,25 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         for (int iq=0; iq < QRowsleft; iq++)
         {
             
-            int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-            int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+            int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+            int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
             
             if (fnewWS)
             {
                 
-                REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                 
                 ef(iq) += (-1.0) * weight * (e1e1 + e2e2) * PseudoPressureL;
                 
             }
             else
             {
-                REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                 Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                 Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                 
-                REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                 Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                 Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                 
                 
                 ef(iq) += (-1.0) * weight * (e1e1 + e2e2) * PseudoPressureL;
@@ -3186,14 +3212,14 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
             int iLvectorindex       = dataleft[3].fVecShapeIndex[iq].first;
             int iLshapeindex        = dataleft[3].fVecShapeIndex[iq].second;
             
-            REAL vni    =   (phiQGL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQGL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
+            REAL vni    =   (phiQGL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex)*n1)+(phiQGL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)*n2);
             
             for (int jq=0; jq < QGRowsleft; jq++)
             {
                 int jLvectorindex       = dataleft[3].fVecShapeIndex[jq].first;
                 int jLshapeindex        = dataleft[3].fVecShapeIndex[jq].second;
                 
-                REAL vnj    =   (phiQGL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQGL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
+                REAL vnj    =   (phiQGL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)*n1)+(phiQGL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)*n2);
 
                 ek(iq+QRowsleft+PRowsleft+SRowsleft,jq+QRowsleft+PRowsleft+SRowsleft) += weight * (gBigNumber * ( vnj ) * vni );
             }
@@ -3261,10 +3287,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 //  Phil's Hint
                 for(int iq=0; iq < QRowsleft; iq++)
                 {
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
-                    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
+                    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)*n2);
                     
                     ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * vni ) );
                     //ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN  ) * vni ) );
@@ -3272,10 +3298,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jq=0; jq < QRowsleft; jq++)
                     {
-                        int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                        int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                        int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                        int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                         
-                        REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
+                        REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)*n2);
                         ek(iq,jq) += weight * ( (gBigNumber * ( vnj ) * vni ) );
                         //ek(iq,jq) += weight * ( 2.0 * (gBigNumber * ( dotqnL - qN ) * ( vnj ) * vni ) );
                         //ek(iq,jq) += weight * ( 4.0 * (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN ) * ( dotqnL - qN ) * ( vnj ) * vni ) );
@@ -3317,14 +3343,14 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jq=0; jq<QRowsleft; jq++)
                     {
-                        int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                        int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                        int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                        int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                         
                         
                         REAL dotprodL =
-                        (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-                        (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-                        //              (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
+                        (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
+                        (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+                        //              (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
                         
                         ek(isat+QRowsleft+PRowsleft,jq) -= (-1.0) * weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
                         
@@ -3395,25 +3421,25 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 for (int iq=0; iq < QRowsleft; iq++)
                 {
                     
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
                     if (fnewWS)
                     {
                         
-                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2 ) * (v2[2]);
                         
                     }
                     else
                     {
-                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                         
-                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2 ) * (v2[2]);
                         
@@ -3457,12 +3483,12 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jq=0; jq<QRowsleft; jq++)
                     {
-                        int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                        int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                        int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                        int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                         
                         REAL dotprodL =
-                        (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-                        (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+                        (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
+                        (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
                         
                         ek(isat+QRowsleft+PRowsleft,jq) -= (-1.0) * weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
                         
@@ -3535,25 +3561,25 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 for (int iq=0; iq < QRowsleft; iq++)
                 {
                     
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
                     if (fnewWS)
                     {
                         
-                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2 ) * (v2[2]);
                         
                     }
                     else
                     {
-                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                         
-                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2 ) * (v2[2]);
                         
@@ -3600,14 +3626,14 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jq=0; jq<QRowsleft; jq++)
                     {
-                        int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                        int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                        int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                        int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                         
                         
                         REAL dotprodL =
-                        (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-                        (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
-                        //              (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
+                        (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
+                        (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+                        //              (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(2,jLvectorindex)) * (n3) ;    //  dot(q,n)    left
                         
                         ek(isat+QRowsleft+PRowsleft,jq) -= (-1.0) * weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
                         
@@ -3672,24 +3698,24 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jp=0; jp<PRowsleft; jp++)
                     {
-                        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                        int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                        int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                         
                         if (fnewWS)
                         {
-                            REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                            REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                            REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                            REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                             
                             ek(iq, QRowsleft + jp) += (1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                             
                         }
                         else
                         {
-                            REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                             Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                            REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                             Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                             
-                            REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                             Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                            REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                             Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                             
                             ek(iq, QRowsleft + jp) += (1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                             
@@ -3708,25 +3734,25 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 for (int iq=0; iq < QRowsleft; iq++)
                 {
                     
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
                     if (fnewWS)
                     {
                         
-                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2) * PseudoPressureL;
                         
                     }
                     else
                     {
-                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                         
-                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                         
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2) * PseudoPressureL;
@@ -3738,10 +3764,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 //  Phil's Hint
                 for(int iq=0; iq < QRowsleft; iq++)
                 {
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
-                    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
+                    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)*n2);
                     //                  REAL vni    =   phiQL(iLshapeindex,0);
                     
                     ef(iq) += weight * 0.0001 * ( gBigNumber * ( dotqnL - qN ) * vni );
@@ -3750,10 +3776,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jq=0; jq < QRowsleft; jq++)
                     {
-                        int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                        int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                        int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                        int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                         
-                        REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
+                        REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)*n2);
                         //                      REAL vnj    =   phiQL(jLshapeindex,0);
                         ek(iq,jq) += weight * 0.0001 * (gBigNumber * ( vnj ) * vni );
                         //                      ek(iq,jq) += weight * ( 2.0 * (gBigNumber * ( dotqnL - qN ) * ( vnj ) * vni ) );
@@ -3796,12 +3822,12 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //                  
 //                  for (int jq=0; jq<QRowsleft; jq++)
 //                  {
-//                      int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-//                      int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+//                      int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+//                      int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
 //                      
 //                      REAL dotprodL =
-//                      (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)) * (n1) +
-//                      (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)) * (n2) ;//+
+//                      (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
+//                      (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
 //                      
 //                      ek(isat+QRowsleft+PRowsleft,jq) -= (-0.0) * weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
 //                      
@@ -3867,24 +3893,24 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jp=0; jp<PRowsleft; jp++)
                     {
-                        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                        int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                        int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                         
                         if (fnewWS)
                         {
-                            REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                            REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                            REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                            REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                             
                             ek(iq, QRowsleft + jp) += (1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                             
                         }
                         else
                         {
-                            REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                             Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                            REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                             Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                             
-                            REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                             Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                            REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                             Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                             
                             ek(iq, QRowsleft + jp) += (1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
                             
@@ -3903,25 +3929,25 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 for (int iq=0; iq < QRowsleft; iq++)
                 {
                     
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
                     if (fnewWS)
                     {
                         
-                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+                        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+                        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2) * PseudoPressureL;
                         
                     }
                     else
                     {
-                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n1);
+                        REAL e1e1   =   (Kabsolute(0,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(0,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n1);
                         
-                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))+
-                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)))*(n2);
+                        REAL e2e2   =   (Kabsolute(1,0)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))+
+                                         Kabsolute(1,1)*(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)))*(n2);
                         
                         
                         ef(iq) += (1.0) * weight * (e1e1 + e2e2) * PseudoPressureL;
@@ -3933,10 +3959,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 //  Phil's Hint
                 for(int iq=0; iq < QRowsleft; iq++)
                 {
-                    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-                    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
+                    int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+                    int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
                     
-                    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
+                    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex)*n2);
                     // The coefficient 0.0001 is required for balance the residual contribution
                     ef(iq) += weight * ( 0.0001 * (gBigNumber * ( dotqnL - qN ) * vni ) );
                     //                  ef(iq) += weight * ( (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN  ) * vni ) );
@@ -3944,10 +3970,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                     
                     for (int jq=0; jq < QRowsleft; jq++)
                     {
-                        int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-                        int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+                        int jLvectorindex       = dataleft[1].fVecShapeIndex[jq].first;
+                        int jLshapeindex        = dataleft[1].fVecShapeIndex[jq].second;
                         
-                        REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
+                        REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)*n2);
                         ek(iq,jq) += weight * ( 0.0001 * (gBigNumber * ( vnj ) * vni ) );
                         //                      ek(iq,jq) += weight * ( 2.0 * (gBigNumber * ( dotqnL - qN ) * ( vnj ) * vni ) );
                         //                      ek(iq,jq) += weight * ( 4.0 * (gBigNumber * ( dotqnL - qN ) * ( dotqnL - qN ) * ( dotqnL - qN ) * ( vnj ) * vni ) );
@@ -4020,10 +4046,10 @@ void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
     Solout.Resize( this->NSolutionVariables(var));
     TPZVec<STATE> SolQ, SolP, SolS, SolQG, SolSExact(1);
     TPZFMatrix<STATE> SolSExactD;
-    SolQ = datavec[0].sol[0];
-    SolP = datavec[1].sol[0];
-    SolS = datavec[2].sol[0];
-    SolQG   = datavec[3].sol[0];
+    SolQ = datavec[1].sol[0];
+    SolP = datavec[2].sol[0];
+    SolS = datavec[3].sol[0];
+    SolQG   = datavec[4].sol[0];
     
     if(var == 1){ //function (state variable Q)
         Solout[0] = SolQ[0];

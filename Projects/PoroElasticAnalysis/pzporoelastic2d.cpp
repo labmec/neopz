@@ -63,9 +63,9 @@ int TPZPoroElastic2d::NStateVariables() {
 
 void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef) {
 	
-	// Th finite element formnulation at element level is implemented in this method
+	// The finite element formulation at element level is implemented in this method
 	// Numerical Approximation of Reservoir Fault Stability with Linear Poroelasticty
-	// Duran O.	
+	// Duran O.	Devloo P.
 	
 	int nref =  datavec.size();
 	

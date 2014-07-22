@@ -142,7 +142,7 @@ int main()
     //  std::vector<REAL> dd(2,0);
     
     
-    int Href = 1;
+    int Href = 0;
     int div = 0;
     int POrderElasticity = 1;
     int POrderBulkFlux = 1;
@@ -164,10 +164,10 @@ int main()
     // Computational meshes 
     
     //  First computational mesh
-    TPZCompMesh * CMeshElascticity = ComputationalMeshElasticity(gmesh, POrderElasticity);
+    TPZCompMesh * CMeshElasticity = ComputationalMeshElasticity(gmesh, POrderElasticity);
     //  Print Second computational mesh
     std::ofstream ArgumentElascticity("ComputationalMeshForEslaticity.txt");
-    CMeshElascticity->Print(ArgumentElascticity);
+    CMeshElasticity->Print(ArgumentElascticity);
     
     //  Second computational mesh
     TPZCompMesh * CMeshBulkflux = ComputationalMeshBulkflux(gmesh, POrderBulkFlux);
@@ -193,7 +193,7 @@ int main()
     std::ofstream ArgumentWaterSaturation("ComputationalMeshForWaterSaturation.txt");
     CMeshWaterSaturation->Print(ArgumentWaterSaturation);
     
-    TPZAnalysis Anelasticity(CMeshElascticity);
+    TPZAnalysis Anelasticity(CMeshElasticity);
     std::string outputfile0;
     outputfile0 = "SolutionElasticity";
     std::stringstream outputfiletemp0;
@@ -276,7 +276,7 @@ int main()
 
     //  Multiphysics Mesh
     TPZVec<TPZCompMesh *> meshvec(5);//4);
-    meshvec[0] = CMeshElascticity;
+    meshvec[0] = CMeshElasticity;
     meshvec[1] = CMeshBulkflux;
     meshvec[2] = CMeshPseudopressure;
     meshvec[3] = CMeshWaterSaturation;
@@ -1567,10 +1567,11 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
 
 void FilterHigherOrderSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive, TPZVec<TPZCompMesh *> meshvec,TPZCompMesh* mphysics)
 {
-    int ncon_flux       = meshvec[0]->NConnects();
-    int ncon_pressure   = meshvec[1]->NConnects();
-    int ncon_saturation = meshvec[2]->NConnects();
-    int ncon_gravity    = meshvec[3]->NConnects();
+    int ncon_elasticity = meshvec[0]->NConnects();
+    int ncon_flux       = meshvec[1]->NConnects();
+    int ncon_pressure   = meshvec[2]->NConnects();
+    int ncon_saturation = meshvec[3]->NConnects();
+    int ncon_gravity    = meshvec[4]->NConnects();
     int ncon = mphysics->NConnects();
     
     for(int i = 0; i < ncon-ncon_saturation-ncon_gravity; i++)
