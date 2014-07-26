@@ -440,7 +440,7 @@ bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &s
 	T epsbarnp1 = T(fEpsPlasticBar);
 	T c,H;
 	PlasticityFunction(epsbarnp1, c, H);
-	std::cout << "ReturnMap do Apex: c = " << c << "\tH = " << H << "\tptrnp1 = " << ptrnp1 << std::endl;
+	//std::cout << "ReturnMap do Apex: c = " << c << "\tH = " << H << "\tptrnp1 = " << ptrnp1 << std::endl;
 	T alpha = cos(fPhi)/sin(fPsi);
 	REAL tol = 1.e-8;
 	
