@@ -104,7 +104,7 @@ void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<
 
 REAL const pi = 4.*atan(1.);
 bool fTriang = false;
-bool IsStab = false;
+bool IsStab = true;
 bool IsContinuou = false;
 bool Useh2 = false;
 REAL Delta1 = 0.5;
@@ -126,15 +126,15 @@ static LoggerPtr logger(Logger::getLogger("pz.main"));
 #include "pztransfer.h"
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     REAL Lx = 1.;
     REAL Ly = 0.5;
     
     //ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
-    ofstream saidaerro( "erros-hdiv-estab.txt",ios::app);
+    ofstream saidaerro( "erros-hdiv-estab.txt");
 
     for(int p = 1; p<2; p++)
     {
@@ -143,12 +143,12 @@ int main(int argc, char *argv[])
         if(fTriang==true){
             pp = pq-1;
         }else{
-            pp = pq;
+            pp = p;
         }
         
         int ndiv;
-        saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 1; ndiv< 2; ndiv++)
+      //  saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
+        for (ndiv = 1; ndiv< 5; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 //            
 //            ofstream arg2("cmeshpressure.txt");
 //            cmesh2->Print(arg2);
-//            
+//
 //            ofstream arg4("gmesh2.txt");
 //            gmesh->Print(arg4);
             
@@ -185,6 +185,9 @@ int main(int argc, char *argv[])
             meshvec[1] = cmesh2;
             
             TPZCompMesh * mphysics = CMeshMixed2(meshvec,gmesh);
+            
+//            ofstream arg4("gmeshMulti.txt");
+//            mphysics->Print(arg4);
             
             std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
             int numthreads = 1;
@@ -201,15 +204,19 @@ int main(int argc, char *argv[])
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             TPZVec<REAL> erros;
     
-            saidaerro<<"\nErro da simulacao multifisica do fluxo (q)" <<endl;
+            //saidaerro<<"\nErro da simulacao multifisica do fluxo (q)" <<endl;
             ErrorHDiv2(cmesh1, saidaerro);
             
-            saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
+            //saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
             ErrorL22(cmesh2, saidaerro);
             
             //Plot da solucao aproximada
-            string plotfile("Solution_mphysics.vtk");
-            PosProcessMultph(meshvec,  mphysics, an, plotfile);
+           // string plotfile("Solution_mphysics.vtk");
+            
+            char buf[256] ;
+            //sprintf(buf,"ArcTanPhilUniMeshQ_porder%d_h%d.vtk",porder,h);
+            sprintf(buf,"ProblemaJuan_porder%d_h%d.vtk",p,ndiv);
+            PosProcessMultph(meshvec,  mphysics, an, buf);
         }
     }
     
@@ -539,10 +546,34 @@ TPZCompMesh *CMeshFlux2(int pOrder,TPZGeoMesh *gmesh)
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     if(IsHomogeneo==true)
     {
-        TPZMaterial * BCond0 = material->CreateBC(mat, BC0,bcdirichlet, val1, val2);
-        TPZMaterial * BCond1 = material->CreateBC(mat, BC1,bcdirichlet, val1, val2);
-        TPZMaterial * BCond2 = material->CreateBC(mat, BC2,bcdirichlet, val1, val2);
+//        TPZMaterial * BCond0 = material->CreateBC(mat, BC0,bcdirichlet, val1, val2);
+//        TPZMaterial * BCond1 = material->CreateBC(mat, BC1,bcdirichlet, val1, val2);
+//        TPZMaterial * BCond2 = material->CreateBC(mat, BC2,bcdirichlet, val1, val2);
+//        TPZMaterial * BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
+//        
+//        cmesh->InsertMaterialObject(BCond0);
+//        cmesh->InsertMaterialObject(BCond1);
+//        cmesh->InsertMaterialObject(BCond2);
+//        cmesh->InsertMaterialObject(BCond3);
+        
+        ///Criar condicoes de contorno
+        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+        TPZMaterial * BCond0 = material->CreateBC(mat, BC0,bcneumann, val1, val2);
+        TPZMaterial * BCond1 = material->CreateBC(mat, BC1,bcneumann, val1, val2);
+        TPZMaterial * BCond2 = material->CreateBC(mat, BC2,bcneumann, val1, val2);
         TPZMaterial * BCond3 = material->CreateBC(mat, BC3,bcdirichlet, val1, val2);
+        
+        TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAcima;
+        bcmatNeumannAcima = new TPZDummyFunction<STATE>(NeumannAcima);
+        BCond2->SetForcingFunction(bcmatNeumannAcima);
+        
+        TPZAutoPointer<TPZFunction<STATE> > bcmatNeumannAbaixo;
+        bcmatNeumannAbaixo = new TPZDummyFunction<STATE>(NeumannAbaixo);
+        BCond0->SetForcingFunction(bcmatNeumannAbaixo);
+        
+        TPZAutoPointer<TPZFunction<STATE> > bcmatDirichletEsquerda;
+        bcmatDirichletEsquerda = new TPZDummyFunction<STATE>(DirichletEsquerda);
+        BCond3->SetForcingFunction(bcmatDirichletEsquerda);
         
         cmesh->InsertMaterialObject(BCond0);
         cmesh->InsertMaterialObject(BCond1);
@@ -568,15 +599,15 @@ TPZCompMesh *CMeshFlux2(int pOrder,TPZGeoMesh *gmesh)
     cmesh->SetDimModel(dim);
 	cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
-    //        cmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
+//        cmesh->Print(sout);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
 	
 	return cmesh;
 }
@@ -859,6 +890,7 @@ void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZA
     scalnames[0] = "Pressure";
     scalnames[1] = "DivFlux";
     scalnames[2] = "ExactPressure";
+
     
 	const int dim = 2;
 	int div =0;
@@ -1074,6 +1106,25 @@ void DirichletXIgualMenosUm(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 
 
 void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<STATE> &tensorK){
+    
+     
+    if(IsHomogeneo){
+    tensorK.Resize(4,2);
+
+        tensorK(0,0)=1.;
+        tensorK(0,1)=0.;
+        tensorK(1,0)=0.;
+        tensorK(1,1)=1.;
+        
+        //kinv
+        tensorK(2,0)=1.;
+        tensorK(2,1)=0.;
+        tensorK(3,0)=0.;
+        tensorK(3,1)=1.;
+
+    }
+    
+    else{
     REAL x = pt[0];
     tensorK.Resize(4,2);
     kabs.Resize(1, 0.);
@@ -1104,6 +1155,7 @@ void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<
         tensorK(3,0)=-1./3.;
         tensorK(3,1)=2./3.;
     }
+    }
 }
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
@@ -1132,7 +1184,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
         }
         
     }
-    out << "Errors associated with HDiv space\n";
+   // out << "Errors associated with HDiv space\n";
     out << "L2 Norm for flux = "    << sqrt(globerrors[1]) << endl;
     out << "L2 Norm for divergence = "    << sqrt(globerrors[2])  <<endl;
     out << "Hdiv Norm for flux = "    << sqrt(globerrors[3])  <<endl;
