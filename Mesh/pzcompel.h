@@ -374,7 +374,12 @@ public:
 	/** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
 	virtual int NumberOfCompElementsInsideThisCompEl(){
 		return 1;
-	}	
+	}
+    
+    virtual void TransferMultiphysicsElementSolution()
+    {
+        // Nothing to be done here
+    }
 	
 	/**
 	 * @brief Calculates the solution - sol - for the variable var

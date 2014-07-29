@@ -196,8 +196,7 @@ private:
 
 public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
-	void ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames,//1o : TPZConnect* nod,
-				   char *plotfile, std::ostream &out=std::cout);
+	void ShowShape(const std::string &plotfile, TPZVec<long> &equationindices);
 	/** @brief Make assembling and clean the load and solution vectors */
 	void LoadShape(double dx,double dy, long numelem,TPZConnect* nod);
 	

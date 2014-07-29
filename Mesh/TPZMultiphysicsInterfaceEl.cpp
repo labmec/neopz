@@ -35,7 +35,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl()
 }
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index,
-                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index),fLeftElSide(leftside), fRightElSide(rightside)
+                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index)
 {
 	
 	ref->SetReference(this);
@@ -46,7 +46,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
 //		DebugStop();
 //	}
 //	
-	//this->SetLeftRightElement(leftside, rightside);
+	this->SetLeftRightElement(leftside, rightside);
 	
 	this->IncrementElConnected();
 	
@@ -79,6 +79,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
     }
     fLeftElSide = TPZCompElSide(leftel,leftside);
     fRightElSide = TPZCompElSide(rightel,rightside);
+    SetLeftRightElement(fLeftElSide, fRightElSide);
 }
 
 /** @brief create a copy of the given element using index mapping */
@@ -102,8 +103,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
     if (!leftel || !rightel) {
         DebugStop();
     }
-    fLeftElSide = TPZCompElSide(leftel,leftside);
-    fRightElSide = TPZCompElSide(rightel,rightside);
+    SetLeftRightElement(TPZCompElSide(leftel,leftside), TPZCompElSide(rightel,rightside));
     
 }
 
@@ -111,6 +111,9 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
 
 
 TPZMultiphysicsInterfaceElement::~TPZMultiphysicsInterfaceElement(){
+    if (Reference()) {
+        Reference()->ResetReference();
+    }
 }
 
 void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZManVector<TPZCompElSide> &Neighbor, TPZManVector<TPZTransform> &transf)
@@ -134,10 +137,19 @@ void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZManVector<TPZCompE
 /**
  * Add elements to the list of left and right elements
  */
-void TPZMultiphysicsInterfaceElement::SetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel)
+void TPZMultiphysicsInterfaceElement::SetLeftRightElement(const TPZCompElSide &leftel, const TPZCompElSide &rightel)
 {
     fLeftElSide = leftel;
     fRightElSide = rightel;
+    int ncl = leftel.Element()->NConnects();
+    int ncr = rightel.Element()->NConnects();
+    fConnectIndexes.Resize(ncl+ncr);
+    for (int ic=0; ic<ncl; ic++) {
+        fConnectIndexes[ic] = leftel.Element()->ConnectIndex(ic);
+    }
+    for (int ic=0; ic<ncr; ic++) {
+        fConnectIndexes[ic+ncl] = rightel.Element()->ConnectIndex(ic);
+    }
 }
 
 /**
@@ -152,7 +164,7 @@ void TPZMultiphysicsInterfaceElement::GetLeftRightElement(TPZCompElSide &leftel,
 /** @brief Returns the number of nodes of the element */
 int TPZMultiphysicsInterfaceElement::NConnects() const
 {
-    return fLeftElSide.Element()->NConnects() + fRightElSide.Element()->NConnects();
+    return fConnectIndexes.size();
 }
 
 /**
@@ -161,21 +173,13 @@ int TPZMultiphysicsInterfaceElement::NConnects() const
  */
 long TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 {
+
 #ifdef DEBUG
-    if (i < 0) {
+    if (i < 0 || i >= fConnectIndexes.size()) {
         DebugStop();
     }
 #endif
-    int nleft = fLeftElSide.Element()->NConnects();
-    if (i < nleft) {
-        return fLeftElSide.Element()->ConnectIndex(i);
-    }
-    int nright = fRightElSide.Element()->NConnects();
-    if (i < nleft+nright) {
-        return fRightElSide.Element()->ConnectIndex(i-nleft);
-    }
-    DebugStop();
-    return -1;
+    return fConnectIndexes[i];
 }
 
 

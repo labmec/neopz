@@ -57,19 +57,20 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMateri
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
+    int secondblock = ek.Rows()-phiR.Rows();
 	int il,jl,ir,jr;
     
 	// 3) phi_I_left, phi_J_right
 	for(il=0; il<nrowl; il++) {
 		for(jr=0; jr<nrowr; jr++) {
-			ek(il,jr+nrowl) += weight * fMultiplier * (phiL(il) * phiR(jr));
+			ek(il,jr+secondblock) += weight * fMultiplier * (phiL(il) * phiR(jr));
 		}
 	}
 	
     //	// 4) phi_I_right, phi_J_left
 	for(ir=0; ir<nrowr; ir++) {
 		for(jl=0; jl<nrowl; jl++) {
-			ek(ir+nrowl,jl) += weight * fMultiplier * (phiR(ir) * phiL(jl));
+			ek(ir+secondblock,jl) += weight * fMultiplier * (phiR(ir) * phiL(jl));
 		}
 	}
     

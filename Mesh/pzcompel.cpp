@@ -164,12 +164,12 @@ TPZCompEl::~TPZCompEl() {
         fMesh->ElementVec()[index] = 0;
         fMesh->ElementVec().SetFree(index);        
     }
-    #ifdef DEBUG
+#ifdef DEBUG
 	TPZGeoEl *gel = Reference();
 	if (gel && gel->Reference()) {
 		DebugStop();
 	}
-	#endif
+#endif
     fIndex = -1;
     fReferenceIndex = -1;
     fMesh = 0;
@@ -460,7 +460,10 @@ REAL TPZCompEl::CompareElement(int var, char *matname){
 void TPZCompEl::LoadElementReference()
 {
 	TPZGeoEl *ref = Reference();
-	if(ref) ref->SetReference(this);
+	if(ref)
+    {
+        ref->SetReference(this);
+    }
 }
 
 void TPZCompEl::CalcResidual(TPZElementMatrix &ef){

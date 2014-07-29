@@ -427,6 +427,42 @@ void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZ
 }
 
 
+void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
+{
+    int nmeshes = this->NMeshes();
+    int icon = 0;
+    int nload = this->Mesh()->Solution().Cols();
+    for (int imesh = 0; imesh < nmeshes; imesh++) {
+        TPZCompEl *cel = this->ReferredElement(imesh);
+        if (!cel) {
+            continue;
+        }
+        int ncon = cel->NConnects();
+        for (int iconloc = 0; iconloc < ncon; iconloc++, icon++) {
+            TPZConnect &con = this->Connect(icon);
+            TPZConnect &conloc = cel->Connect(iconloc);
+            long seq = con.SequenceNumber();
+            long seqloc = conloc.SequenceNumber();
+            int blsz = this->Mesh()->Block().Size(seq);
+
+#ifdef DEBUG
+            int blszloc = cel->Mesh()->Block().Size(seqloc);
+            if (blsz != blszloc) {
+                DebugStop();
+            }
+#endif
+            int pos = this->Mesh()->Block().Position(seq);
+            int posloc = cel->Mesh()->Block().Position(seqloc);
+            for (int ibl = 0; ibl < blsz; ibl++) {
+                for (int iload = 0; iload < nload; iload++) {
+                    cel->Mesh()->Solution()(posloc+ibl,iload) = this->Mesh()->Solution()(pos+ibl,iload);
+                }
+
+            }
+        }
+    }
+}
+
 void TPZMultiphysicsElement::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                                                      TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
     
@@ -452,4 +488,5 @@ void TPZMultiphysicsElement::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,
     
 
 }//method
+
 

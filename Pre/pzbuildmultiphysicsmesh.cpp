@@ -7,6 +7,7 @@
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzmaterial.h"
+#include "pzanalysis.h"
 
 #include "TPZInterfaceEl.h"
 
@@ -153,13 +154,14 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 	long nelem = MFMesh->NElements();
 	for (iel = 0; iel < nelem; iel++) 
 	{
-		TPZMultiphysicsElement *cel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
-		TPZMultiphysicsInterfaceElement *interfacee = dynamic_cast<TPZMultiphysicsInterfaceElement *> (MFMesh->ElementVec()[iel]);
+        TPZCompEl *celorig = MFMesh->ElementVec()[iel];
+		TPZMultiphysicsElement *cel = dynamic_cast<TPZMultiphysicsElement *> (celorig);
+		TPZMultiphysicsInterfaceElement *interfacee = dynamic_cast<TPZMultiphysicsInterfaceElement *> (celorig);
 		if (interfacee) {
 			continue;
 		}
 		if (!cel) {
-			DebugStop();
+			continue;
 		}
 		TPZStack<long> connectindexes;
 		long imesh;
@@ -225,6 +227,10 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
 			if(seqnum<0) continue;       /// Whether connect was deleted by previous refined process
 			int blsize = block.Size(seqnum);
 			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
+            int nelconnected = conMF.NElConnected();
+            if (nelconnected == 0) {
+                continue;
+            }
 			long seqnumMF = conMF.SequenceNumber();
 			int idf;
 			for (idf=0; idf<blsize; idf++) {
@@ -232,6 +238,15 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
 			}
 		}
 	}
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Solutions of the referred meshes";
+    }
+#endif
+    for (imesh=0; imesh<nmeshes; imesh++) {
+        cmeshVec[imesh]->LoadSolution(cmeshVec[imesh]->Solution());
+    }
 }
 
 void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, std::set<int> &BCMaterialIds, int LagrangeMat, int InterfaceMat)
@@ -256,7 +271,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 //#endif
 
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
-    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous(cmesh->Dimension());
     
     long nelem = cmesh->Reference()->NElements();
 
@@ -564,3 +579,27 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, long ind
 }
 
 
+/**
+ * @brief Show shape functions associated with connects of a multiphysics mesh
+ */
+void TPZBuildMultiphysicsMesh::ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZAnalysis &analysis, const std::string &filename, TPZVec<long> &equationindices)
+{
+    TPZStack<std::string> scalnames,vecnames;
+    scalnames.Push("State");
+    analysis.DefineGraphMesh(analysis.Mesh()->Dimension(), scalnames, vecnames, filename);
+    int porder = analysis.Mesh()->GetDefaultOrder();
+    
+    int neq = equationindices.size();
+    TPZFMatrix<STATE> solkeep(analysis.Solution());
+    analysis.Solution().Zero();
+    for (int ieq = 0; ieq < neq; ieq++) {
+        analysis.Solution()(equationindices[ieq],0) = 1.;
+        analysis.LoadSolution();
+        TransferFromMultiPhysics(cmeshVec, MFMesh);
+        analysis.PostProcess(porder);
+        analysis.Solution().Zero();
+    }
+    analysis.Solution() = solkeep;
+    analysis.LoadSolution();
+
+}

@@ -443,8 +443,6 @@ template<class TVar, class TSideMatrix>
 int TPZMatRed<TVar,TSideMatrix>::Redim(long dim, long dim00){
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	if(fK00) fK00->Redim(dim00,dim00);
-	if(fF0)  delete fF0;
-	if(fF1)  delete fF1;
 	
 	fDim0=dim00;
 	fDim1=dim-dim00;
@@ -453,8 +451,8 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(long dim, long dim00){
 	fK10.Redim(fDim1,fDim0);
 	fK11.Redim(fDim1,fDim1);
 	
-	fF0=(TPZFMatrix<TVar>)0;//(TVar)NULL;
-	fF1=(TPZFMatrix<TVar>)0;//(TVar)NULL;
+	fF0.Redim(fDim0,1);
+	fF1.Redim(fDim1,1);
 	this->fRow = dim;
 	this->fCol = dim;
     fIsReduced = false;

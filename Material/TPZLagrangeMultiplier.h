@@ -37,10 +37,25 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     }
 	
 	/** @brief Copy constructor */
-	TPZLagrangeMultiplier(const TPZLagrangeMultiplier &copy) : TPZDiscontinuousGalerkin(copy), fNStateVariables(copy.fNStateVariables)
+	TPZLagrangeMultiplier(const TPZLagrangeMultiplier &copy) : TPZDiscontinuousGalerkin(copy), fNStateVariables(copy.fNStateVariables), fDimension(copy.fDimension), fMultiplier(copy.fMultiplier)
     {
         
     }
+    
+    TPZLagrangeMultiplier &operator=(const TPZLagrangeMultiplier &copy)
+    {
+        TPZDiscontinuousGalerkin::operator=(copy);
+        fNStateVariables = copy.fNStateVariables;
+        fDimension = copy.fDimension;
+        fMultiplier = copy.fMultiplier;
+        return *this;
+    }
+    
+    TPZMaterial *NewMaterial()
+    {
+        return new TPZLagrangeMultiplier(*this);
+    }
+    
 	/** @brief Destructor */
 	virtual ~TPZLagrangeMultiplier()
     {
@@ -138,7 +153,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 */
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
     {
-        DebugStop();
+        ContributeInterface(data, dataleft[0], dataright[0], weight, ek, ef);
     }
     
 	
@@ -165,7 +180,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 */
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef)
     {
-        DebugStop();
+        ContributeInterface(data, dataleft[0], dataright[0], weight, ef);
     }
 	
     

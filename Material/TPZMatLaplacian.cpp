@@ -246,6 +246,12 @@ void TPZMatLaplacian::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 	
 	
 }
+
+void TPZMatLaplacian::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+
+    ContributeBC(datavec[0],weight,ek,ef,bc);
+}
+
 void TPZMatLaplacian::ContributeBC(TPZMaterialData &data,REAL weight,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	

@@ -183,8 +183,7 @@ void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout
 }
 
 void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
-	
-    this->Solution(datavec, var, Solout);
+	DebugStop();
 }
 
 void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)

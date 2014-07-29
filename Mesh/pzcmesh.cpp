@@ -133,7 +133,17 @@ void TPZCompMesh::CleanUp() {
     ComputeNodElCon();
 #endif
 	long i, nelem = this->NElements();
+
+	//deleting subcompmesh
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZSubCompMesh * subc = dynamic_cast<TPZSubCompMesh*>(el);
+		if(subc){
+			delete subc;
+		}
+	}
 	
+    
 	//unwrapping condensed compel
 	for(i=0; i<nelem; i++){
 		TPZCompEl *el = fElementVec[i];
@@ -197,6 +207,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	out << "number of connects            = " << NConnects() << std::endl;
 	out << "number of elements            = " << NElements() << std::endl;
 	out << "number of materials           = " << NMaterials() << std::endl;
+	out << "dimension of the mesh         = " << this->Dimension() << std::endl;
 	//  out << "number of nodal bound cond    = " << NBCConnects() << endl;
 	
 	out << "\n\t Connect Information:\n\n";
@@ -288,7 +299,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 	fBlock.SetNBlocks(nbl);
 	
 	//Creating continuous elements
-	fCreate.SetAllCreateFunctionsContinuous();
+	fCreate.SetAllCreateFunctionsContinuous(Dimension());
 	long ncont = continuous.NElements();
 	for(long i = 0; i < ncont; i++){
 		TPZGeoEl *gel = continuous[i];
@@ -383,16 +394,12 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
     long solrow = fSolution.Rows();
     fSolution.Resize(solrow, ncol);
 	long i,j;
-    REAL val;
+    STATE val;
 	for(j=0;j<ncol;j++)
     {
         for(i=0;i<nrow;i++)
         {
-        #ifdef STATE_COMPLEX
-            val = (mat.GetVal(i,j)).real();
-            #else
-            val = mat.GetVal(i,j);
-            #endif
+            val = (mat.GetVal(i,j));
             fSolution(i,j) =  val;
         }
         
@@ -404,6 +411,18 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
 		if(!cel) continue;
 		cel->LoadSolution();
 	}
+}
+
+void TPZCompMesh::TransferMultiphysicsSolution()
+{
+    long nel = this->NElements();
+    for (long iel = 0; iel < nel; iel++) {
+        TPZCompEl *cel = this->Element(iel);
+        if (!cel) {
+            continue;
+        }
+        cel->TransferMultiphysicsElementSolution();
+    }
 }
 
 void TPZCompMesh::LoadReferences() {
@@ -1033,7 +1052,7 @@ void TPZCompMesh::Coarsen(TPZVec<long> &elements, long &index, bool CreateDiscon
 	}
 	
 	if (CreateDiscontinuous) fCreate.SetAllCreateFunctionsDiscontinuous();
-	else fCreate.SetAllCreateFunctionsContinuous();
+	else fCreate.SetAllCreateFunctionsContinuous(Dimension());
 	
 	TPZCompEl * newcel = CreateCompEl(father,index);
 	
@@ -1068,7 +1087,7 @@ void TPZCompMesh::Discontinuous2Continuous(long disc_index, long &new_index) {
 	//  this->fElementVec[ cel->Index() ] = NULL;
 	//  delete cel;
 	
-	fCreate.SetAllCreateFunctionsContinuous();
+	fCreate.SetAllCreateFunctionsContinuous(Dimension());
 	TPZCompEl * newcel = CreateCompEl(ref,new_index);
 	TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
 	intel->CreateInterfaces(false);

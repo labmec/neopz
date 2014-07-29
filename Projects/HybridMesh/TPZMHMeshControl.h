@@ -24,6 +24,16 @@ class TPZMHMeshControl
     /// computational MHM mesh being built by this class
     TPZAutoPointer<TPZCompMesh> fCMesh;
     
+    /// computational mesh to represent the constant states
+    TPZAutoPointer<TPZCompMesh> fCMeshLagrange;
+    
+    /// computational mesh to represent the constant states
+    TPZAutoPointer<TPZCompMesh> fCMeshConstantPressure;
+    
+    /// computational mesh to contain the pressure elements
+    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
+    TPZAutoPointer<TPZCompMesh> fPressureMesh;
+    
     /// material id associated with the skeleton elements
     int fSkeletonMatId;
     
@@ -33,14 +43,23 @@ class TPZMHMeshControl
     /// interpolation order of the internal elements
     int fpOrderInternal;
     
+    /// interpolation order of the skeleton elements
+    int fpOrderSkeleton;
+    
     /// indices of the geometric elements which define the skeleton mesh
     std::set<long> fCoarseIndices;
     
     /// indices of the skeleton elements and their left/right elements of the skeleton mesh
     std::map<long, std::pair<long,long> > fInterfaces;
     
+    /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
+    /**
+     * when imposing average pressure to be zero, a multiphysics mesh is created
+     */
+    bool fLagrangeAveragePressure;
+    
 public:
-    TPZMHMeshControl()
+    TPZMHMeshControl() : fSkeletonMatId(-1), fLagrangeMatIdLeft(-1), fLagrangeMatIdRight(-1), fpOrderInternal(-1), fpOrderSkeleton(-1), fLagrangeAveragePressure(false)
     {
         
     }
@@ -52,6 +71,24 @@ public:
         return fCMesh;
     }
     
+    /// Set the porder for the internal elements
+    void SetInternalPOrder(int order)
+    {
+        fpOrderInternal = order;
+        fCMesh->SetDefaultOrder(order);
+    }
+    
+    void SetSkeletonPOrder(int order)
+    {
+        fpOrderSkeleton = order;
+    }
+    
+    /// Set the flag for creating Lagrange Dofs for the average pressure
+    void SetLagrangeAveragePressure(bool flag)
+    {
+        fLagrangeAveragePressure = flag;
+    }
+    
     /// Create all data structures for the computational mesh
     void BuildComputationalMesh();
     
@@ -60,6 +97,17 @@ public:
     
     /// Print diagnostics
     void PrintDiagnostics(std::ostream &out);
+    
+    /// Put the pointers to the meshes in a vector
+    void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
+    {
+        meshvec.Resize(3);
+        meshvec[0] = fPressureMesh.operator->();
+        meshvec[1] = fCMeshLagrange.operator->();
+        meshvec[2] = fCMeshConstantPressure.operator->();
+    }
+    
+
     
 private:
     /// will create a computational mesh using the coarse element indexes and its interface elements
@@ -85,6 +133,16 @@ private:
     
     /// put the element side which face the boundary on the stack
     void AddElementBoundaries(long elseed, long compelindex, TPZStack<TPZCompElSide> &result);
+    
+    /// create the lagrange multiplier mesh, one element for each subdomain
+    void CreateLagrangeMultiplierMesh();
+    
+    /// transform the computational mesh into a multiphysics mesh
+    void TransferToMultiphysics();
+    
+    /// substructure the mesh
+    void SubStructure();
+    
     
     /// print the diagnostics for a subdomain
     void PrintSubdomain(long elindex, std::ostream &out);

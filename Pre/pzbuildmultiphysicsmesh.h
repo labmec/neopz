@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "pzcompel.h"
+class TPZAnalysis;
 
 /**
  * @brief This class has methods to build the mesh multiphysics
@@ -52,6 +53,11 @@ public:
 	 */	
 	static void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 		
+    
+    /**
+     * @brief Show shape functions associated with connects of a multiphysics mesh
+     */
+    static void ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZAnalysis &analysis, const std::string &filename, TPZVec<long> &equationindices);
 	/**
 	 * @brief Creating computational mesh with interface elements
 	 * @param cmesh [in]: computational mesh

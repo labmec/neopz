@@ -293,7 +293,12 @@ public:
   	 * (internal and external).
 	 */
 	virtual void LoadSolution();
-		
+    
+    /**
+     * @brief Transfer multiphysics solution
+     */
+    virtual void TransferMultiphysicsElementSolution();
+    
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate

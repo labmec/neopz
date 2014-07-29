@@ -265,7 +265,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 //			test2.Print("matriz de rigidez interface",std::cout);
 
 #ifdef LOG4CXX
-			if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
+			if(loggerel->isDebugEnabled())
 			{
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();

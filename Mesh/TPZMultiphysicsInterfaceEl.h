@@ -29,7 +29,7 @@ protected:
 	TPZCompElSide 	fRightElSide;
     
     /** @brief indexes of the connects */
-    TPZManVector<long,100> fConnectIndexes;
+    TPZManVector<long,20> fConnectIndexes;
 	
 public:
 	/** @brief Default constructor */
@@ -92,7 +92,7 @@ public:
     /**
      * Add elements to the list of left and right elements
      */
-    void SetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel);
+    void SetLeftRightElement(const TPZCompElSide &leftel, const TPZCompElSide &rightel);
     
 	/**
 	 * Get left and right elements
@@ -106,8 +106,7 @@ public:
 	 */
 	virtual void SetConnectIndex(int inode, long index)
     {
-        PZError << __FUNCTION__ << " should never be called\n";
-        DebugStop();
+        fConnectIndexes[inode] = index;
     }
 	
     /** @brief Returns the number of nodes of the element */

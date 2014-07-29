@@ -366,7 +366,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	myqsi.resize(qsi.size());
 	
 	long nref = fElementVec.size();
-	TPZVec<TPZMaterialData> datavec;
+	TPZManVector<TPZMaterialData,2> datavec;
 	datavec.resize(nref);
     
 	for (long iref = 0; iref<nref; iref++)
@@ -418,8 +418,7 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMa
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, long index){
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
+	fConnectIndexes[inode] = index;
 }
 
 template <class TGeometry>
@@ -673,7 +672,7 @@ template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                            TPZVec<REAL> &errors,TPZBlock<REAL> * flux )
 {
-    DebugStop(); // PLEASE, IMPLEMENT ME!
+//    DebugStop(); // PLEASE, IMPLEMENT ME!
 }
 
 /** Returns the maximum interpolation order of all connected elements */

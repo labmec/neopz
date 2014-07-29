@@ -39,6 +39,7 @@
 #include "pzelasmat.h" 
 #include "pzelasthybrid.h"
 #include "pzmat1dlin.h"
+#include "TPZMatLaplacianLagrange.h"
 
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzelementgroup.h"
@@ -68,6 +69,8 @@ TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly);
 TPZCompMesh *MalhaCompTemporaria(TPZAutoPointer<TPZGeoMesh>  gmesh);
 TPZCompMesh *MalhaComp2(TPZAutoPointer<TPZGeoMesh>  gmesh,int pOrder,std::set<long> coarseindex);
 TPZGeoMesh *GMeshSteklov(bool triang_elements);
+
+void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref);
 
 void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> dims);
 void RefinamentoAdaptado(TPZAutoPointer<TPZGeoMesh> gmesh, TPZStack<TPZManVector<REAL,3> > coordcentro);
@@ -127,37 +130,14 @@ int main(int argc, char *argv[])
     //1 refinamento uniforme
     TPZVec<int> dims(2,0);
     dims[0]=1; dims[1]=2;
-    int nref = 0;
-    RefinamentoUniforme(gmesh, 0, dims);
+    int nref = 1;
+    RefinamentoUniforme(gmesh, nref, dims);
+    
+    nref = 4;
+    RefinamentoSingular(gmesh, nref);
+    
     ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
-/*
-    //refinamento uniforme em alguns elementos
-    TPZStack<TPZManVector<REAL,3> > coordcenter;
-    TPZManVector<REAL,3> xcoord(3,0.);
-    
-    xcoord[0]=0.25; xcoord[1]=0.75;
-    coordcenter.Push(xcoord);
-    
-    xcoord[0]=0.25; xcoord[1]=1.0;
-    coordcenter.Push(xcoord);
-    
-    xcoord[0]=0.0; xcoord[1]=0.75;
-    coordcenter.Push(xcoord);
-    
-    xcoord[0]=0.75; xcoord[1]=0.25;
-    coordcenter.Push(xcoord);
-    
-    xcoord[0]=1.0; xcoord[1]=0.25;
-    coordcenter.Push(xcoord);
-    
-    xcoord[0]=0.75; xcoord[1]= 0.0;
-    coordcenter.Push(xcoord);
-    
-    RefinamentoAdaptado(gmesh,coordcenter);
-    ofstream arg2("gmesh2.txt");
-	gmesh->Print(arg2);
-*/    
     //index dos elementos da malha coarse
     std::set<long> coarseindex;
     GetElIndexCoarseMesh(gmesh, coarseindex);
@@ -166,12 +146,15 @@ int main(int argc, char *argv[])
     
     dims.Resize(1, 0);
     dims[0]=2;
-    nref = 0;
+    nref = 2;
     RefinamentoUniforme(gmesh2, nref, dims);
 
 
     TPZMHMeshControl mhm(gmesh2,coarseindex);
-    //mhm.SetInternalPOrder(2);
+    bool uselagrange = true;
+    mhm.SetLagrangeAveragePressure(uselagrange);
+    mhm.SetInternalPOrder(3);
+    mhm.SetSkeletonPOrder(1);
     mhm.CreateCoarseInterfaces(matCoarse);
     InsertMaterialObjects(mhm.CMesh());
     mhm.BuildComputationalMesh();
@@ -190,18 +173,13 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        mhm.PrintDiagnostics(std::cout);
+//        mhm.PrintDiagnostics(std::cout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
 
-    long neq = mhm.CMesh()->NEquations();
-    TPZFMatrix<STATE> rhs(neq,1,0.);
-    TPZFStructMatrix str(mhm.CMesh());
-    TPZAutoPointer<TPZMatrix<STATE> > stiff;
-    stiff = str.CreateAssemble(rhs, NULL);
     
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         stiff->Print("Stiffness = ",sout,EMathematicaInput);
@@ -212,55 +190,85 @@ int main(int argc, char *argv[])
     
     //calculo do erro
     TPZAnalysis an(mhm.CMesh());
+    
+    
+    TPZSkylineStructMatrix skyl(mhm.CMesh());
+    an.SetStructuralMatrix(skyl);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    an.SetSolver(step);
+    an.Assemble();
+    
+    long neq = an.Solution().Rows();
+    long numeq = MIN(20, neq);
+    TPZManVector<long> equationindices(numeq);
+    for (int i=0; i<numeq; i++) {
+        equationindices[i] = i;
+    }
+    an.ShowShape("Shapes.vtk", equationindices);
+    
+    an.Run();
+    
+    an.SetStep(0);
+    
+    std::string plotfile("result.vtk");
+    TPZStack<std::string> scalnames,vecnames;
+    scalnames.Push("State");
+    an.DefineGraphMesh(mhm.CMesh()->Dimension(), scalnames, vecnames, plotfile);
+
+//    mhm.CMesh()->Print();
+    
+    an.PostProcess(1);
+    
     an.SetExact(*SolExataSteklov);
     TPZVec<REAL> erros(3);
     an.PostProcessError(erros);
     
-    //construir elementos 1D de interface
-    TPZCompMesh * cmesh1 = MalhaCompTemporaria(gmesh);
-    gmesh->ResetReference();
-    
-    //mudar matId dos elementos 1D de interface
-    ChangeIndex(gmesh, matCoarse);
-    ofstream arg3("gmesh3.txt");
-	gmesh->Print(arg3);
-    
-    ofstream file1("malhageometricaCoarse.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), file1, true);
-    
-    
-    if(coarseindex.find(6) != coarseindex.end())
-    {
-        std::cout << "\n\n\nNAO ACHEI O NUMERO DESEJADO\n\n\n";
-    }
-    
-    
-    std::set<long>::iterator it;
-    std::cout << "coarse index: \n";
-    for (it=coarseindex.begin(); it!=coarseindex.end(); ++it)
-        std::cout << ' ' << *it;
-    std::cout << '\n';
-
-//-------- malha mais fina -------
-    //refinamento uniforme dos elementos 2D
-    dims.Resize(1, 0);
-    dims[0]=2;
-    RefinamentoUniforme(gmesh, 1, dims);
-    ofstream arg4("gmesh4.txt");
-	gmesh->Print(arg4);
-    
-    ofstream file2("malhageometricaFina.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), file2, true);
-    
-//malha computacional
-    TPZCompMesh * cmesh = MalhaComp2(gmesh,1,coarseindex);
-    ofstream arg5("cmesh.txt");
-	cmesh->Print(arg5);
-    
-    InterfaceToCoarse(cmesh, matInterno, matCoarse, matInterface);
-
-    ofstream arg6("cmesh2.txt");
-	cmesh->Print(arg6);
+//    //construir elementos 1D de interface
+//    TPZCompMesh * cmesh1 = MalhaCompTemporaria(gmesh);
+//    gmesh->ResetReference();
+//    
+//    //mudar matId dos elementos 1D de interface
+//    ChangeIndex(gmesh, matCoarse);
+//    ofstream arg3("gmesh3.txt");
+//	gmesh->Print(arg3);
+//    
+//    ofstream file1("malhageometricaCoarse.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), file1, true);
+//    
+//    
+//    if(coarseindex.find(6) != coarseindex.end())
+//    {
+//        std::cout << "\n\n\nNAO ACHEI O NUMERO DESEJADO\n\n\n";
+//    }
+//    
+//    
+//    std::set<long>::iterator it;
+//    std::cout << "coarse index: \n";
+//    for (it=coarseindex.begin(); it!=coarseindex.end(); ++it)
+//        std::cout << ' ' << *it;
+//    std::cout << '\n';
+//
+////-------- malha mais fina -------
+//    //refinamento uniforme dos elementos 2D
+//    dims.Resize(1, 0);
+//    dims[0]=2;
+//    RefinamentoUniforme(gmesh, 1, dims);
+//    ofstream arg4("gmesh4.txt");
+//	gmesh->Print(arg4);
+//    
+//    ofstream file2("malhageometricaFina.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), file2, true);
+//    
+////malha computacional
+//    TPZCompMesh * cmesh = MalhaComp2(gmesh,1,coarseindex);
+//    ofstream arg5("cmesh.txt");
+//	cmesh->Print(arg5);
+//    
+//    InterfaceToCoarse(cmesh, matInterno, matCoarse, matInterface);
+//
+//    ofstream arg6("cmesh2.txt");
+//	cmesh->Print(arg6);
 
     return EXIT_SUCCESS;
 }
@@ -344,9 +352,10 @@ TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly)
 TPZGeoMesh *GMeshSteklov(bool triang_elements)
 {
     TPZManVector<int,2> nx(2,2);
+    REAL extent = 1;
     nx[1] =1;
-    TPZManVector<REAL,3> x0(3,0.),x1(3,0.5);
-    x0[0] = -0.5;
+    TPZManVector<REAL,3> x0(3,0.),x1(3,extent);
+    x0[0] = -extent;
     TPZGenGrid gengrid(nx,x0,x1);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
@@ -357,18 +366,18 @@ TPZGeoMesh *GMeshSteklov(bool triang_elements)
     
     //elementos de contorno
     TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
-    firstpoint[0] = 0.5;
-    secondpoint[0] = 0.5;
-    secondpoint[1] = 0.5;
+    firstpoint[0] = extent;
+    secondpoint[0] = extent;
+    secondpoint[1] = extent;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc2);
     gengrid.SetBC(gmesh,6,bc3);
     gengrid.SetBC(gmesh,7,bc4);
-    firstpoint[0] = -0.5;
+    firstpoint[0] = -extent;
     secondpoint[0] = 0.;
     secondpoint[1] = 0.;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc5);
     firstpoint = secondpoint;
-    secondpoint[0] = 0.5;
+    secondpoint[0] = extent;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc1);
     
     return gmesh;
@@ -414,7 +423,7 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 {
 	/// criar materiais
 	int dim = cmesh.Dimension();
-    TPZMatPoisson3d *material1 = new TPZMatPoisson3d(matInterno,dim);
+    TPZMatLaplacianLagrange *material1 = new TPZMatLaplacianLagrange(matInterno,dim);
     
 	TPZMaterial * mat1(material1);
     
@@ -928,4 +937,54 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     du(0,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(x*cos((0.5 + n)*atan2(y,x)) + y*sin((0.5 + n)*atan2(y,x)));
     du(1,0) = pow((REAL)2,-0.75 + n/2.)*(1 + 2*n)*pow(pow(x,2) + pow(y,2),-0.75 + n/2.)*(y*cos((0.5 + n)*atan2(y,x)) - x*sin((0.5 + n)*atan2(y,x)));
     
+}
+
+void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
+{
+    long nnodes = gmesh->NNodes();
+    long in;
+    for (in=0; in<nnodes; in++) {
+        TPZGeoNode *gno = &gmesh->NodeVec()[in];
+        if (abs(gno->Coord(0))< 1.e-6 && abs(gno->Coord(1)) < 1.e-6) {
+            break;
+        }
+    }
+    if (in == nnodes) {
+        DebugStop();
+    }
+    TPZGeoElSide gelside;
+    long nelem = gmesh->NElements();
+    for (long el = 0; el<nelem; el++) {
+        TPZGeoEl *gel = gmesh->ElementVec()[el];
+        int ncorner = gel->NCornerNodes();
+        for (int ic=0; ic<ncorner; ic++) {
+            long nodeindex = gel->NodeIndex(ic);
+            if (nodeindex == in) {
+                gelside = TPZGeoElSide(gel, ic);
+                break;
+            }
+        }
+        if (gelside.Element()) {
+            break;
+        }
+    }
+    if (!gelside.Element()) {
+        DebugStop();
+    }
+    for (int iref = 0; iref <nref; iref++) {
+        TPZStack<TPZGeoElSide> gelstack;
+        gelstack.Push(gelside);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while (neighbour != gelside) {
+            gelstack.Push(neighbour);
+            neighbour = neighbour.Neighbour();
+        }
+        long nstack = gelstack.size();
+        for (long ist=0; ist < nstack; ist++) {
+            if (!gelstack[ist].Element()->HasSubElement()) {
+                TPZVec<TPZGeoEl *> subel;
+                gelstack[ist].Element()->Divide(subel);
+            }
+        }
+    }
 }

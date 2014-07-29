@@ -40,8 +40,8 @@ public:
 	TPZMultiphysicsCompEl();
   
 	/** @brief Put a copy of the element in the referred mesh */
-  TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy);
-  /** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
+    TPZMultiphysicsCompEl(TPZCompMesh &mesh, const TPZMultiphysicsCompEl<TGeometry> &copy);
+    /** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
 	TPZMultiphysicsCompEl(TPZCompMesh &mesh,
               const TPZMultiphysicsCompEl<TGeometry> &copy,
               std::map<long,long> & gl2lcConMap,

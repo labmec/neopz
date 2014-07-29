@@ -36,6 +36,10 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsElement()
 	{
+        TPZGeoEl *reference = Reference();
+        if (reference) {
+            reference->ResetReference();
+        }
 	}
 	
 	virtual void AddElement(TPZCompEl *cel, long mesh) = 0;
@@ -88,6 +92,7 @@ public:
         DebugStop();
     }
 
+    virtual void TransferMultiphysicsElementSolution();
 };
 
 #endif

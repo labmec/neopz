@@ -9,7 +9,6 @@
 struct TPZElementMatrix;
 class TPZCompEl;
 class TPZInterpolatedElement;
-class TPZCompElDisc;
 class TPZGeoEl;
 class TPZCompMesh;
 #include "pzfmatrix.h"

@@ -57,6 +57,18 @@ public:
         fDef[0].fConnect[1] = connect2;
         fDef[0].fIdf[0] = idf1;
         fDef[0].fIdf[1] = idf2;
+        mesh.ConnectVec()[connect1].IncrementElConnected();
+        mesh.ConnectVec()[connect2].IncrementElConnected();
+#ifdef DEBUG
+        TPZConnect &c1 = mesh.ConnectVec()[connect1];
+        TPZConnect &c2 = mesh.ConnectVec()[connect2];
+        if (idf1 >= c1.NShape()*c1.NState()) {
+            DebugStop();
+        }
+        if (idf2 >= c2.NShape()*c2.NState()) {
+            DebugStop();
+        }
+#endif
     }
     
     TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, long &index) : TPZCompEl(mesh,0,index), fDef(Dependencies)
@@ -159,7 +171,7 @@ public:
 	 */
 	virtual void SetConnectIndex(int inode, long index)
     {
-        if (inode >= 0 && inode < fDef.size()) {
+        if (inode >= 0 && inode < 2*fDef.size()) {
             fDef[inode/2].fConnect[inode%2] = index;
         }
         else

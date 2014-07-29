@@ -230,9 +230,10 @@ int main()
 TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	//TPZCompEl::SetgOrder(porder);
 	TPZCompMesh *comp = new TPZCompMesh(&gmesh);
+    comp->SetDimModel(gmesh.Dimension());
 	
     comp->ApproxSpace().CreateDisconnectedElements(true);
-    comp->ApproxSpace().SetAllCreateFunctionsContinuous();
+    comp->ApproxSpace().SetAllCreateFunctionsContinuous(comp->Dimension());
 	
 	
 	// Criar e inserir os materiais na malha
@@ -288,7 +289,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	
 	// Ajuste da estrutura de dados computacional
     comp->ApproxSpace().CreateDisconnectedElements(true);
-    comp->ApproxSpace().SetAllCreateFunctionsContinuous();
+    comp->ApproxSpace().SetAllCreateFunctionsContinuous(comp->Dimension());
 
     std::set<int> matids;
     matids.insert(1);

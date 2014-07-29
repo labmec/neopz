@@ -31,7 +31,7 @@ class TPZAgglomerateMesh;
 /** TPZAgglomerateElement clase that it manages the generation of elements 
  * from the agglomeration of some geometric elements
  */
-class TPZAgglomerateElement : public TPZCompElDisc { 
+class TPZAgglomerateElement : public TPZCompElDisc {
 	
 private:
 	

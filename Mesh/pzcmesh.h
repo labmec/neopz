@@ -36,7 +36,6 @@ class TPZTransfer;
 class TPZCoSys;
 class TPZGeoEl;
 class TPZStream;
-class TPZCompElDisc;
 class TPZInterpolatedElement;
 template<class T> class TPZReferredCompEl;
 
@@ -181,6 +180,11 @@ public:
 	
 	/** @brief Returns a reference to the element pointers vector */
 	TPZAdmChunkVector<TPZCompEl *>   &ElementVec() { return fElementVec; }
+    
+    TPZCompEl * Element(long iel)
+    {
+        return fElementVec[iel];
+    }
 	
 	/** @brief Returns a reference to the element pointers vector */
 	const TPZAdmChunkVector<TPZCompEl *>   &ElementVec() const { return fElementVec; }
@@ -463,7 +467,7 @@ public:
     
     void SetAllCreateFunctionsContinuous()
     {
-        fCreate.SetAllCreateFunctionsContinuous();
+        fCreate.SetAllCreateFunctionsContinuous(Dimension());
     }
     
     void SetAllCreateFunctionsDiscontinuousReferred()
@@ -529,6 +533,11 @@ public:
 	 * @param sol given solution matrix
 	 */
 	void LoadSolution(const TPZFMatrix<STATE> &sol);
+    
+    /**
+     * @brief Transfer multiphysics mesh solution
+     */
+    void TransferMultiphysicsSolution();
 	
 	/**
 	 * @brief Divide the element corresponding to index

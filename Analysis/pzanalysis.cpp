@@ -347,16 +347,18 @@ void TPZAnalysis::Solve() {
 		LOGPZ_WARN(logger,sout.str())
 	}
 #endif
-#ifdef LOG4CXX_KEEP
+#ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << "Solution norm " << Norm(delu) << std::endl;
-		delu.Print("delu",sout);
+		sout << "Solution norm " << Norm(fSolution) << std::endl;
+		fSolution.Print("delu",sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif	
 	fCompMesh->LoadSolution(fSolution);
+    fCompMesh->TransferMultiphysicsSolution();
+
 }
 
 void TPZAnalysis::LoadSolution() {	
@@ -550,17 +552,26 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 	return;
 }
 
-void TPZAnalysis::ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, char *plotfile, std::ostream &) {//1o :TPZConnect  *nod,
+void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<long> &equationindices)
+{
 	
-    TPZMaterial * mat = fCompMesh->MaterialVec().rbegin()->second;
-	TPZV3DGraphMesh gg(fCompMesh,2,mat);
-	
-	gg.SetFileName(plotfile);
-	gg.SetResolution(0);
-	gg.DrawMesh(1);
-	gg.SetNames(scalnames,vecnames);
-	gg.DrawSolution(0,0.);
-	
+    TPZStack<std::string> scalnames,vecnames;
+    scalnames.Push("State");
+    DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
+    int porder = fCompMesh->GetDefaultOrder();
+    
+    int neq = equationindices.size();
+    TPZFMatrix<STATE> solkeep(fSolution);
+    fSolution.Zero();
+    for (int ieq = 0; ieq < neq; ieq++) {
+        fSolution(equationindices[ieq],0) = 1.;
+        LoadSolution();
+        Mesh()->TransferMultiphysicsSolution();
+        PostProcess(porder+1);
+        fSolution.Zero();
+    }
+    fSolution = solkeep;
+    LoadSolution();
 }
 
 void TPZAnalysis::LoadShape(double ,double , long ,TPZConnect* start){

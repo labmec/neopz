@@ -31,6 +31,26 @@ class TPZMat1dLin : public TPZMaterial{
 	
     TPZMat1dLin(int num) : TPZMaterial(num) , fXk(), fXc(), fXb(), fXf() {
 	}
+    
+    TPZMat1dLin(const TPZMat1dLin &copy) : TPZMaterial(copy), fXk(copy.fXk), fXc(copy.fXc), fXb(copy.fXb), fXf(copy.fXf)
+    {
+        
+    }
+    
+    TPZMat1dLin &operator=(const TPZMat1dLin &copy)
+    {
+        TPZMaterial::operator=(copy);
+        fXk = copy.fXk;
+        fXc = copy.fXc;
+        fXb = copy.fXb;
+        fXf = copy.fXf;
+        return *this;
+    }
+    
+    virtual TPZMaterial *NewMaterial() 
+    {
+        return new TPZMat1dLin(*this);
+    }
 	
 	virtual int NStateVariables() {
         return fXk.Rows();

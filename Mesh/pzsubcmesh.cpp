@@ -7,6 +7,7 @@
 #include "pzgmesh.h"
 #include "pzcompel.h"
 #include "TPZInterfaceEl.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "pznonlinanalysis.h"
@@ -22,6 +23,10 @@
 #include "pzsmanal.h"
 #include "pzbndcond.h"
 #include "pzvisualmatrix.h"
+
+#include "pzcondensedcompel.h"
+#include "pzelementgroup.h"
+
 
 #ifndef STATE_COMPLEX
 #include "pzmathyperelastic.h"
@@ -184,15 +189,67 @@ TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl(), fSingularConnect(
 }
 
 TPZSubCompMesh::~TPZSubCompMesh(){
-	long sz = ElementVec().NElements();
-	for (long iel = 0 ; iel < sz ; iel++)
-	{
-		TPZCompEl *cel = ElementVec()[iel];
-		if (cel) 
-		{
-			delete cel;
+
+	// THIS ROUTINE NEEDS TO INCLUDE THE DELETION OF THE LIST POINTERS
+	TPZGeoMesh *ref = TPZCompMesh::Reference();
+	if (ref){
+		ref->ResetReference();
+		this->LoadReferences();
+	}
+#ifdef DEBUG
+    ComputeNodElCon();
+#endif
+	long i, nelem = this->NElements();
+    
+	//deleting subcompmesh
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZSubCompMesh * subc = dynamic_cast<TPZSubCompMesh*>(el);
+		if(subc){
+			delete subc;
 		}
 	}
+	
+    
+	//unwrapping condensed compel
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZCondensedCompEl * cond = dynamic_cast<TPZCondensedCompEl*>(el);
+		if(cond){
+			cond->Unwrap();
+		}
+	}
+	
+	//unwrapping element groups
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
+		if(group){
+            group->Unwrap();
+		}
+	}
+	
+	//deleting interface elements
+	for(i=0; i<nelem; i++){
+		TPZCompEl *el = fElementVec[i];
+		TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
+		if(face){
+            delete el;
+		}
+	}
+	
+	//deleting other elements
+	for(i=0; i<nelem; i++) {
+		TPZCompEl *el = fElementVec[i];
+		if(!el) continue;
+		delete el;
+	}
+	
+	fElementVec.Resize(0);
+	fElementVec.CompactDataStructure(1);
+	fConnectVec.Resize(0);
+	fConnectVec.CompactDataStructure(1);
+	
 	MaterialVec().clear();
 }
 
@@ -734,7 +791,19 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
 		return -1;
 	}
     TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *> (cel);
-    if(!interf)
+    TPZMultiphysicsInterfaceElement *multinterf = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+    TPZCompEl *left = 0;
+    TPZCompEl *right = 0;
+    if (interf) {
+        left = interf->LeftElement();
+        right = interf->RightElement();
+    }
+    if (multinterf) {
+        left = multinterf->LeftElement();
+        right = multinterf->RightElement();
+    }
+    
+    if(!interf && !multinterf)
     {
         int ncon = cel->NConnects();
         for (int i=0; i<ncon; i++){
@@ -745,24 +814,29 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
     }
     else
     {
+        int nleftcon = left->NConnects();
         {
-            TPZCompEl *left = interf->LeftElement();
             TPZCompMesh *comm = CommonMesh(left->Mesh());
-            int ncon = left->NConnects();
+            int ncon = nleftcon;
             for (int ic=0; ic<ncon ; ic++) {
                 long superind = left->ConnectIndex(ic);
-                left->Mesh()->PutinSuperMesh(superind, comm);
-                //                long subindex = GetFromSuperMesh(superind, comm);
+                long commind = left->Mesh()->PutinSuperMesh(superind, comm);
+                if (multinterf) {
+                    long subindex = GetFromSuperMesh(commind, comm);
+                    cel->SetConnectIndex(ic, subindex);
+                }
             }
         }
         {
-            TPZCompEl *right = interf->RightElement();
             TPZCompMesh *comm = CommonMesh(right->Mesh());
             int ncon = right->NConnects();
             for (int ic=0; ic<ncon ; ic++) {
                 long superind = right->ConnectIndex(ic);
-                right->Mesh()->PutinSuperMesh(superind, comm);
-                //                long subindex = GetFromSuperMesh(superind, comm);
+                long commind = right->Mesh()->PutinSuperMesh(superind, comm);
+                if (multinterf) {
+                    long subindex = GetFromSuperMesh(commind, comm);
+                    cel->SetConnectIndex(ic+nleftcon, subindex);
+                }
             }
         }
     }
@@ -1116,6 +1190,14 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	}
     
     SaddlePermute();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	PermuteExternalConnects();
     
 	
@@ -1144,13 +1226,6 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
         fAnalysis->SetSolver(autostep);
     }
 	
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        Print(sout);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
     
 #ifdef DEBUG 
 	{
@@ -1436,8 +1511,29 @@ void TPZSubCompMesh::LoadSolution() {
 			}
 		}
 	}
+//    fSolution.Print(std::cout);
+    
 	if(fAnalysis) fAnalysis->LoadSolution(fSolution);
 	TPZCompMesh::LoadSolution(fSolution);
+}
+
+void TPZSubCompMesh::TransferMultiphysicsElementSolution()
+{
+    long nel = this->NElements();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        fSolution.Print("SubMeshSol",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    for (long iel = 0; iel < nel; iel++) {
+        TPZCompEl *cel = this->Element(iel);
+        if (!cel) {
+            continue;
+        }
+        cel->TransferMultiphysicsElementSolution();
+    }
 }
 
 

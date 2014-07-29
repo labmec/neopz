@@ -9,6 +9,13 @@
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.analysis.pzsmanalysis"));
+
+#endif
+
 using namespace std;
 
 // Construction/Destruction
@@ -106,5 +113,14 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
         matred->UGlobal(soltemp,uglobal);        
         fSolution = fReferenceSolution + uglobal;
     }
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        soltemp.Print("External DOF Solution",sout);
+        uglobal.Print("Epxanded solution",sout);
+        fSolution.Print("fSolution",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	TPZAnalysis::LoadSolution();
 }

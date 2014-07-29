@@ -62,7 +62,7 @@ public:
 
 	TPZMatLaplacian(int nummat, int dim);
 
-  TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.),
+  TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
      fSymmetry(0.), fPenaltyType(ENoPenalty)
   {
 
@@ -151,6 +151,11 @@ public:
 	 */
 
     virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+        TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);
+    }
+
 
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
@@ -159,6 +164,8 @@ public:
 
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
