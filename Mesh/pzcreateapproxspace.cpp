@@ -6,7 +6,7 @@
 #include "pzcreateapproxspace.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"
-#include "pzelctemp.h"
+#include "pzelctempplus.h"
 #include "pzcondensedcompel.h"
 #include "pzinterpolationspace.h" 
 
@@ -92,6 +92,14 @@ TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
     index = -1;
 	return NULL;
 }
+
+TPZCompEl *CreateQuadElLagrange(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZIntelGenPlus<TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
+    index = -1;
+	return NULL;
+}
+
 TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
 		return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
@@ -314,11 +322,18 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
 }
 
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(int meshdim){
     fp[EPoint] = CreatePointEl;
     fp[EOned] = CreateLinearEl;
-    fp[ETriangle] = CreateTriangleEl;
-    fp[EQuadrilateral] = CreateQuadEl;
+    if (meshdim == 2 && fCreateLagrangeMultiplier) {
+        fp[EQuadrilateral] = CreateQuadElLagrange;
+        fp[ETriangle] = CreateNoElement;
+    }
+    else
+    {
+        fp[EQuadrilateral] = CreateQuadEl;
+        fp[ETriangle] = CreateTriangleEl;
+    }
     fp[ETetraedro] = CreateTetraEl;
     fp[EPiramide] = CreatePyramEl;
     fp[EPrisma] = CreatePrismEl;
@@ -789,7 +804,7 @@ void TPZCreateApproximationSpace::CreateInterfaceElements(TPZCompMesh *mesh, boo
 /// this method will substitute all interface elements with materialid within the set by three elements : one H1 element and two interface elements
 void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<int> &matids)
 {
-    cmesh.ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh.ApproxSpace().SetAllCreateFunctionsContinuous(cmesh.Dimension());
     cmesh.Reference()->ResetReference();
     int nel = cmesh.NElements();
     for (int el=0; el<nel; el++) {

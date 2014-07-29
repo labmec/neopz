@@ -31,15 +31,18 @@ class TPZCreateApproximationSpace
      * this flag allows to create hybrid meshes (default is false)
      */
     bool fCreateHybridMesh;
+    
+    /// flag indicating whether each element should have an aditional lagrange multiplier
+    bool fCreateLagrangeMultiplier;
 
 public:
     
-    TPZCreateApproximationSpace() : fCreateHybridMesh(false)
+    TPZCreateApproximationSpace() : fCreateHybridMesh(false), fCreateLagrangeMultiplier(false)
     {
-        SetAllCreateFunctionsContinuous();
+        SetAllCreateFunctionsContinuous(1);
     }
     
-    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) : fCreateHybridMesh(copy.fCreateHybridMesh)
+    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) : fCreateHybridMesh(copy.fCreateHybridMesh), fCreateLagrangeMultiplier(copy.fCreateLagrangeMultiplier)
     {
         for (int i=0; i<8; i++) {
             fp[i] = copy.fp[i];
@@ -52,13 +55,19 @@ public:
             fp[i] = copy.fp[i];
         }
         fCreateHybridMesh = copy.fCreateHybridMesh;
+        fCreateLagrangeMultiplier = copy.fCreateLagrangeMultiplier;
         return *this;
+    }
+    
+    void SetCreateLagrange(bool flag)
+    {
+        fCreateLagrangeMultiplier = flag;
     }
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
-	void SetAllCreateFunctionsContinuous();
+	void SetAllCreateFunctionsContinuous(int meshdim);
     /** @brief Create a discontinuous approximation space with referred elements */
 	void SetAllCreateFunctionsDiscontinuousReferred();
     /** @brief Create a continuous approximation space with referred elements */
