@@ -77,6 +77,9 @@ const int TPZLagrangeMultiplierID = 330;
 /** @brief Id of a forcing function representing a poro elastic drag force */
 const int TPZBiotForceID = 331;
 
+/** @brief Id of a simple laplace equation with lagrange multiplier */
+const int TPZMatLaplacianLagrangeID = 332;
+
 /** @} */
 
 #endif //PZMATERIALIDH
