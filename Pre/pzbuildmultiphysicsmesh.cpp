@@ -271,7 +271,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 //#endif
 
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
-    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous(cmesh->Dimension());
+    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
     
     long nelem = cmesh->Reference()->NElements();
 

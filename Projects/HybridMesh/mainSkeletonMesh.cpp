@@ -124,6 +124,7 @@ int main(int argc, char *argv[])
     TPZAutoPointer<TPZGeoMesh> gmesh = GMeshSteklov(false);
 	ofstream arg0("gmesh0.txt");
 	gmesh->Print(arg0);
+
     
 //-------- construindo malha coarse ----------
     
@@ -135,6 +136,7 @@ int main(int argc, char *argv[])
     
     nref = 4;
     RefinamentoSingular(gmesh, nref);
+  
     
     ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
@@ -200,7 +202,7 @@ int main(int argc, char *argv[])
     an.Assemble();
     
     long neq = an.Solution().Rows();
-    long numeq = MIN(20, neq);
+    long numeq = MIN(1, neq);
     TPZManVector<long> equationindices(numeq);
     for (int i=0; i<numeq; i++) {
         equationindices[i] = i;

@@ -39,7 +39,7 @@ public:
     
     TPZCreateApproximationSpace() : fCreateHybridMesh(false), fCreateLagrangeMultiplier(false)
     {
-        SetAllCreateFunctionsContinuous(1);
+        SetAllCreateFunctionsContinuous();
     }
     
     TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) : fCreateHybridMesh(copy.fCreateHybridMesh), fCreateLagrangeMultiplier(copy.fCreateLagrangeMultiplier)
@@ -67,7 +67,7 @@ public:
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
-	void SetAllCreateFunctionsContinuous(int meshdim);
+	void SetAllCreateFunctionsContinuous();
     /** @brief Create a discontinuous approximation space with referred elements */
 	void SetAllCreateFunctionsDiscontinuousReferred();
     /** @brief Create a continuous approximation space with referred elements */

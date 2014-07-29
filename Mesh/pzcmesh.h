@@ -467,7 +467,7 @@ public:
     
     void SetAllCreateFunctionsContinuous()
     {
-        fCreate.SetAllCreateFunctionsContinuous(Dimension());
+        fCreate.SetAllCreateFunctionsContinuous();
     }
     
     void SetAllCreateFunctionsDiscontinuousReferred()

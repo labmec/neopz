@@ -243,7 +243,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
         TPZMaterial *mat = mit->second;
         if (!mat) {
-            DebugStop();
+          DebugStop();
         }
 		mat->Print(out);
 	}
@@ -299,7 +299,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 	fBlock.SetNBlocks(nbl);
 	
 	//Creating continuous elements
-	fCreate.SetAllCreateFunctionsContinuous(Dimension());
+	fCreate.SetAllCreateFunctionsContinuous();
 	long ncont = continuous.NElements();
 	for(long i = 0; i < ncont; i++){
 		TPZGeoEl *gel = continuous[i];
@@ -1052,7 +1052,7 @@ void TPZCompMesh::Coarsen(TPZVec<long> &elements, long &index, bool CreateDiscon
 	}
 	
 	if (CreateDiscontinuous) fCreate.SetAllCreateFunctionsDiscontinuous();
-	else fCreate.SetAllCreateFunctionsContinuous(Dimension());
+	else fCreate.SetAllCreateFunctionsContinuous();
 	
 	TPZCompEl * newcel = CreateCompEl(father,index);
 	
@@ -1087,7 +1087,7 @@ void TPZCompMesh::Discontinuous2Continuous(long disc_index, long &new_index) {
 	//  this->fElementVec[ cel->Index() ] = NULL;
 	//  delete cel;
 	
-	fCreate.SetAllCreateFunctionsContinuous(Dimension());
+	fCreate.SetAllCreateFunctionsContinuous();
 	TPZCompEl * newcel = CreateCompEl(ref,new_index);
 	TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
 	intel->CreateInterfaces(false);

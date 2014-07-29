@@ -1008,7 +1008,7 @@ void TPZMHMeshControl::SubStructure()
             if (cel->Mesh() != fCMesh.operator->()) {
                 continue;
             }
-#ifdef DEBUG
+#ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Transferring element index " << cel->Index() << " geometric index ";
