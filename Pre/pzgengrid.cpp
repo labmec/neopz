@@ -60,6 +60,7 @@ void TPZGenGrid::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, in
 
 short TPZGenGrid::Read(TPZGeoMesh *grid,int matid) {
 	if(!grid) return 1;
+    grid->SetDimension(2);
 	if(!GenerateNodes(grid))
 		return 1;
     if(!GenerateElements(grid,matid))
@@ -74,6 +75,7 @@ short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
     {
         DebugStop();
     }
+    grid->SetDimension(2);
 	if(!GenerateNodes(grid.operator->()))
 		return 1;
     if(!GenerateElements(grid.operator->()))
@@ -87,7 +89,7 @@ short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
 /* This method merge gridtomerge into the gridinitial. The process is as follow:
  * 1. Each node in gridtomerge is checked wether it is in meshinitial. If it is then the node has its id modified as the id in gridinitial.
  * Elsewhere a new node is created into the gridinitial, then we get the id of the new node and change the id node (old) by the id of the new node in all the elements of the gridtomerge.
- * 2. For each node repeated in the gridtomerge (case 1. true), we get the id and is substitutived in the elements of the gridinitial.
+ * 2. For each node repeated in the gridtomerge (case 1. true), we get the id and is substitutied in the elements of the gridinitial.
  * 3. For each element in meshtomerge is constructed a new element copy in meshinitial.
  * 4. Constructed the connectivity again to meshinitial.
  */
