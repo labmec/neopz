@@ -637,10 +637,14 @@ void TPZMatLaplacian::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 }
 
 void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	values.Resize(3);
+  
+  TPZFMatrix<STATE> dudx(dudxaxes);
+  TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
+    
 	///L2 norm
 	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0]);
 	
