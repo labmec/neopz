@@ -370,6 +370,17 @@ public:
  		virtual void PrepareIntPtIndices(){
 			
 		}
+  
+  /** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
+	virtual void ForcePrepareIntPtIndices(){
+    
+  }
+  
+  /** @brief Frees the material damage varibles memory in the proper material class. */
+	virtual void SetFreeIntPtIndices(){
+    
+  }
+
 
 	/** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
 	virtual int NumberOfCompElementsInsideThisCompEl(){

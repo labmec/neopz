@@ -84,9 +84,12 @@ protected:
 	
 	/** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
 	virtual void PrepareIntPtIndices();
+  
+	/** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
+	virtual void ForcePrepareIntPtIndices();
 	
 	/** @brief Frees the material damage varibles memory in the proper material class. */
-	void SetFreeIntPtIndices();
+	virtual void SetFreeIntPtIndices();
 	
 	void CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE> & copy);
 	
@@ -97,7 +100,7 @@ public:
      * Will return an empty vector if no memory is associated with the integration point
      * Is implemented in TPZCompElWithMem
      */
-    void GetMemoryIndices(TPZVec<long> &indices) const;
+  void GetMemoryIndices(TPZVec<long> &indices) const;
 
     /// Modify the maximum order an integration rule can integrate
 	void SetIntegrationRule(int ord);
@@ -210,6 +213,47 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
 	//entries in the related pzmatwithmem for further use.
 	
 }
+
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
+	
+//	if(fIntPtIndices.NElements())
+//	{
+//#ifdef LOG4CXX
+//		{
+//			std::stringstream sout;
+//			sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
+//			LOGPZ_ERROR(CompElWMemlogger,sout.str().c_str());
+//		}
+//#endif
+//		return;
+//	}
+	
+	TPZMaterial * material = TBASE::Material();
+	if(!material){
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+		return;
+	}
+	
+	if (this->NumberOfCompElementsInsideThisCompEl() == 0) {
+		// This is suposed to happen if in the constructor of a multiphysics element. The CompEl vector is only initialized after the autobuild
+		return;
+	}
+	
+	const TPZIntPoints &intrule = TBASE::GetIntegrationRule();
+	
+	int intrulepoints = intrule.NPoints();
+	
+	fIntPtIndices.Resize(intrulepoints);
+	
+	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+		fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+		// Pushing a new entry in the material memory
+	} //Loop over integratin points generating a reference vector of memory
+	//entries in the related pzmatwithmem for further use.
+	
+}
+
 
 
 template <class TBASE>

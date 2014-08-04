@@ -59,6 +59,8 @@ public:
 	virtual void Write(TPZStream &buf, int withclassid);
 	
 	virtual void Read(TPZStream &buf, void *context);
+  
+  TPZAdmChunkVector<TMEM> & GetMemory();
 	
 	/**
 	 * @brief Pushes a new entry in the context of materials with memory
@@ -228,6 +230,12 @@ void TPZMatWithMem<TMEM,TFather>::Read(TPZStream &buf, void *context)
 	for(i = 0; i < size; i++)
 		fMemory[i].Read(buf, context);
 	
+}
+
+template <class TMEM, class TFather>
+TPZAdmChunkVector<TMEM> & TPZMatWithMem<TMEM,TFather>::GetMemory()
+{
+  return fMemory;
 }
 
 
