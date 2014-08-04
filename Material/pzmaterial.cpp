@@ -266,7 +266,9 @@ void TPZMaterial::Clone(std::map<int, TPZMaterial * >&matvec) {
 	matit = matvec.find(matid);
 	if(matit != matvec.end()) return;
 	TPZMaterial * newmat = NewMaterial();
-	newmat->SetForcingFunction(TPZMaterial::fForcingFunction);
+  if (this->fForcingFunction) {
+    newmat->SetForcingFunction(this->fForcingFunction);
+  }
 	matvec[matid] = newmat;
 }
 
