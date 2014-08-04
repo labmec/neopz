@@ -337,6 +337,9 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
 								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+  
+  virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                                     TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */);
 	
 	/** @} */
 	

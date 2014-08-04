@@ -1887,3 +1887,10 @@ long TPZSubCompMesh::InternalIndex(long IndexinFather)
     }
     return fFatherToLocal[IndexinFather];
 }
+
+void TPZSubCompMesh::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                                          TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
+
+  fAnalysis->SetExact(fp);
+  fAnalysis->PostProcessError(errors);
+}
