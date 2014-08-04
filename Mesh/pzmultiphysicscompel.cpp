@@ -672,7 +672,86 @@ template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                            TPZVec<REAL> &errors,TPZBlock<REAL> * flux )
 {
-//    DebugStop(); // PLEASE, IMPLEMENT ME!
+	int NErrors = this->Material()->NEvalErrors();
+	errors.Resize(NErrors);
+	errors.Fill(0.);
+	TPZMaterial * material = this->Material();
+	//TPZMaterial * matptr = material.operator->();
+	if(!material){
+		PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
+		Print(PZError);
+		return;
+	}
+	if(dynamic_cast<TPZBndCond *>(material)) {
+		LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
+		return;
+	}
+	int problemdimension = Mesh()->Dimension();
+	if(Reference()->Dimension() < problemdimension) return;
+	
+	// Adjust the order of the integration rule
+	//Cesar 2007-06-27 ==>> Begin
+	//this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
+	//fp can be any function and max order of the integration rule could produce best results
+	int dim = Dimension();
+	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
+	int maxIntOrder = intrule->GetMaxOrder();
+	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+	//end
+	intrule->GetOrder(prevorder);
+	
+	intrule->SetOrder(maxorder);
+	
+	int ndof = material->NStateVariables();
+	int nflux = material->NFluxes();
+	TPZManVector<STATE,10> u_exact(ndof);
+	TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
+	TPZManVector<REAL,10> intpoint(3), values(NErrors);
+	values.Fill(0.0);
+	REAL weight;
+	TPZManVector<STATE,9> flux_el(nflux,0.);
+	
+	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+	
+	TPZManVector<TPZMaterialData,3> datavec;
+	const long nref = fElementVec.size();
+	datavec.resize(nref);
+	InitMaterialData(datavec);
+	
+	TPZManVector<TPZTransform> trvec;
+	AffineTransform(trvec);
+	 
+	int nintpoints = intrule->NPoints();
+  TPZFNMatrix<9,REAL> jac, axe, jacInv;
+	REAL detJac;
+  TPZGeoEl *ref = this->Reference();
+	
+	for(int nint = 0; nint < nintpoints; nint++) {
+		
+		intrule->Point(nint,intpoint,weight);
+    
+    ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
+		this->ComputeRequiredData(datavec,nint,nintpoints,intpoint,trvec);
+    
+		weight *= fabs(datavec[0].detjac);
+		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+		//this->ComputeSolution(intpoint, data);
+		//contribuicoes dos erros
+		if(fp) {
+			fp(datavec[0].x,u_exact,du_exact);
+      material->Errors(datavec[0],u_exact,du_exact,values);
+      
+			for(int ier = 0; ier < NErrors; ier++)
+				errors[ier] += values[ier]*weight;
+		}
+		
+	}//fim for : integration rule
+	//Norma sobre o elemento
+	for(int ier = 0; ier < NErrors; ier++){
+		errors[ier] = sqrt(errors[ier]);
+	}//for ier
+	
+	intrule->SetOrder(prevorder);
 }
 
 /** Returns the maximum interpolation order of all connected elements */
