@@ -18,7 +18,8 @@
 #include "TPZCohesiveBC.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
-
+#include "pzpostprocanalysis.h"
+#include "pzsandlerextPV.h"
 
 class TPZElastoPlasticAnalysis;
 class TPZNonLinearAnalysis;
@@ -63,6 +64,9 @@ public:
   
   /// Creates Cmesh with H1 for multiphysics simulation
   TPZCompMesh * CMeshElasticH1();
+  
+  /// Creates Cmesh with H1 Referred
+  TPZCompMesh * CMeshElasticH1ForPostProc();
 
   /// Creates the computational mesh for pressure. 1 dimensional
   TPZCompMesh * CMeshPressure();
@@ -78,6 +82,9 @@ public:
   
   /// Sets the parameters of the MohrCoulomb model
   void SetMohrCoulombParameters(REAL poisson, REAL elast, REAL cohesion, REAL Phi, REAL Psi);
+
+  /// Sets the parameters of the sanlder dimaggio model
+  void SetSandlerParameters();
   
   /// Sets The Sigma in determined stripe of the compmesh
   void SetSigmaNStripeNum(TPZCompMesh * cmeshref, int actStripe);
@@ -96,6 +103,8 @@ public:
   {
     fMaterialIds[matid] = direction;
   }
+  
+  void SetUpdateToUseFullU(TPZAnalysis *an);
   
   void IdentifyEquationsToZero();
   
@@ -133,7 +142,9 @@ public:
   REAL LineSearch(TPZAnalysis *an, const TPZFMatrix<REAL> &Wn, const TPZFMatrix<REAL> &DeltaW, TPZFMatrix<REAL> &MassVec, TPZFMatrix<REAL> &NextW, REAL RhsNormPrev, REAL &RhsNormResult, int niter, bool & converging);
   
   /// finds the quarilateral element index positioned after the fracture tip. The bool return if found
-  bool FindElementAfterFracture(int index);
+  bool FindElementAfterFracture(int &index);
+  
+  bool RunOneStep(TPZAnalysis *an);
   
   /// Post Process Methods
   //---------------------------------------------------------------
@@ -142,7 +153,7 @@ public:
   void TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompMesh * lastElastReferredCMesh);
   
   /// Transfer Solution between meshes. Elastoplastic will change????
-  void TransferElasticSolution(TPZCompMesh * cmeshFrom);
+  void TransferElasticSolution(TPZAnalysis *an,TPZCompMesh * cmeshFrom);
   
   /// Integrates the solution
   REAL IntegrateSolution(TPZCompMesh * cmesh, int variable);//0 = meshvec[0] ; 1 = meshvec[1]
@@ -158,6 +169,15 @@ public:
   
   /// Post Process leak off volume
   void PostProcessVolLeakoff();
+  
+  /// Creates mesh for postprocessing
+  void CreatePostProcessingMesh();
+  
+  /// Get the post processing variables
+  void PostProcessVariables(TPZStack<std::string> &scalNames, TPZStack<std::string> &vecNames);
+  
+  /// PostProcess after transfering
+  void PostProcess(int resolution = 0);
 
   /// Print Methods
   //---------------------------------------------------------------
@@ -196,6 +216,18 @@ public:
   /// Atributes
   //---------------------------------------------------------------
   
+  /// The post processing mesh with the transferred solution
+  TPZPostProcAnalysis fPostprocess;
+  
+  /// the postprocess number
+  int fPostProcessNumber;
+  
+  /// ugly way to store last elastic cmesh
+  TPZFMatrix<> flastElastSol;
+  
+  /// ugly way to store last mass matrix
+  TPZFMatrix<> flastMass;
+  
   /// Equations with zero dirichlet boundary condition
   std::set<long> fEquationstoZero;
   
@@ -208,7 +240,12 @@ public:
   
   /// bool that indicates when the max time of simulation is reached
   bool fMustStop;
-	bool fSetRunH1;
+	
+  /// bool to set if running h1
+  bool fSetRunH1;
+  
+  /// int saying in which propagation are we
+  int fwhichPropag;
   
   /// Sandler Dimaggio material for coupled problem (Good idea to exchange to pzsandlerextend!)
   //TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > * fCouplingMaterial1;
@@ -216,9 +253,23 @@ public:
   /// MohrCoulomb material for coupled problem
   TPZH1PlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * fCouplingMaterialH1;
 	
+  
+  //#define PlasticMC
+#define PlasticMC
+#ifdef PlasticMC
+  
   TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * fCouplingMaterial1;
   TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fPlasticStepPV;
-
+  
+#endif
+  /// MohrCoulomb material for coupled problem
+	
+#ifdef PlasticSDi
+  
+  TPZPlasticFrac2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> * fCouplingMaterial1;
+  TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fPlasticStepPV;
+  
+#endif
   /// Cohesive Material
 	TPZCohesiveBC * fCohesiveMaterial;
   TPZCohesiveBC * fCohesiveMaterialFirst;

@@ -41,6 +41,7 @@ TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D() : TPZMatElastoPlastic2D<T,TMEM>()
 	ff[1] = 0.;
 	this->SetCurrentState();
   fSetRunPlasticity = false;
+  flastElastFunction = new TPZLastElastFunction;
 }
 
 template<class T,class TMEM>
@@ -58,6 +59,7 @@ TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL 
 	ff[1] = 0.;
 	this->SetCurrentState();
   fSetRunPlasticity = false;
+  flastElastFunction = new TPZLastElastFunction;
 }
 
 template<class T,class TMEM>
@@ -90,6 +92,11 @@ void TPZPlasticFrac2D<T,TMEM>::Print(std::ostream &out)
 	TPZMaterial::Print(out);
 	out << "\n";
 }
+template<class T,class TMEM>
+void TPZPlasticFrac2D<T,TMEM>::SetUpdateToUseFullU(bool update)
+{
+  fUpdateToUseFullDiplacement = update;
+}
 
 template<class T,class TMEM>
 void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
@@ -113,17 +120,14 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 		DebugStop();
 	}
   
-  TPZFNMatrix<40> ekP(ek), efP(ef);
+  //TPZFNMatrix<40> ekP(ek), efP(ef);
   if (fSetRunPlasticity)
   {
-
-    ContributePlastic(datavec[0],weight,ekP,efP);
+    ContributePlastic(datavec[0],weight,ek,ef);
    	ContributePressure(datavec, weight, ek, ef);
     return;
   }
 
-
-	
 	//Calculate the matrix contribution for elastic problem.
 	TPZFMatrix<REAL> &dphi_u = datavec[0].dphix;
 	TPZFMatrix<REAL> &phi_u = datavec[0].phi;
@@ -239,6 +243,7 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
   
 
   // Old test to verify if matrixes are equal in case of non plastification
+  /*
   REAL zeroK = 0.;
   REAL zeroF = 0.;
   for (int i = 0; i < phcu; i++) {
@@ -250,6 +255,7 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
   if (zeroF > 1.e-8 || zeroK > 1.e-8) {
     //DebugStop();
   }
+   */
   
   
 #ifdef LOG4CXX
@@ -294,6 +300,17 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   //		DebugStop();
   //	}
   //
+  
+  if (fUpdateToUseFullDiplacement){ // SO I CAN RUN PLASTICITY WITH u AND NOT DeltaU
+    TPZMatWithMem<TMEM>::fMemory[ptindex].fPlasticState.fEpsT.Zero();
+    int solsize = data.sol[0].size();
+		for(int i=0; i<solsize; i++)
+    {
+      TPZMatWithMem<TMEM>::fMemory[ptindex].fDisplacement[i] = 0.;
+    }
+    return;
+  }
+  
   if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 1)
   {
     // Loop over the solutions if update memory is true
@@ -323,6 +340,8 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   }
 #endif
 	
+
+  
 #ifdef LOG4CXX
   if(logger->isDebugEnabled())
 	{
@@ -480,7 +499,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 			ef(phiuCols+in,0) += (-1.) * weight * w/deltaT * phi_p(in,0);
 			
 			//termo 2Ql * Vp
-			//ef(phiuCols+in,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0) ;AQUINATHAN leakoff
+			ef(phiuCols+in,0) += (-1.) * weight * (2.*actQl) * phi_p(in,0);
 			
 			
 			//------Matriz tangente-----
@@ -499,7 +518,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 				//ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (wconst*wconst*wconst/(12.*visc)) * dphi_p(0,in) * dphi_p(0,jn); w constante
         
 				//termo D[ 2Ql * Vp , p]
-				//ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0); AQUINATHAN leakoff derivada
+				ek(phiuCols+in, phiuCols+jn) += (+1.) * weight * (2.*actdQldp) * phi_p(in,0) * phi_p(jn,0);
 			}
 		}
 	}
@@ -510,6 +529,11 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 		for(int phip = 0; phip < phipRows; phip++)
 		{            
 			//termo w/deltaT * Vp
+      if (this->flastElastFunction->flastElastCMesh) {
+        REAL uy = 0.;
+        this->flastElastFunction->Execute(datavec[1].x,uy);
+        w = 2.*uy;
+      }
 			ef(phiuCols+phip,0) += (+1.) * weight * w/deltaT * phi_p(phip,0);
 		}
 	}
@@ -715,6 +739,11 @@ void TPZPlasticFrac2D<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
 
 template<class T,class TMEM>
 int TPZPlasticFrac2D<T,TMEM>::VariableIndex(const std::string &name){
+  if(fSetRunPlasticity){ // Soh acontece
+    return TPZMatElastoPlastic<T,TMEM>::VariableIndex(name);
+    return TPZMaterial::VariableIndex(name);
+  }
+  
 	if(!strcmp("Pressure",name.c_str()))        return 1;
 	if(!strcmp("MinusKGradP",name.c_str()))     return 2;
 	if(!strcmp("DisplacementX",name.c_str()))   return 3;
@@ -724,12 +753,18 @@ int TPZPlasticFrac2D<T,TMEM>::VariableIndex(const std::string &name){
 	if(!strcmp("Displacement",name.c_str()))    return 7;
 	if(!strcmp("W",name.c_str()))               return 8;
 	if(!strcmp("Displacement",name.c_str()))    return 9;
+  if(!strcmp("YieldSurface",name.c_str()))    return 10;
 	
 	return TPZMaterial::VariableIndex(name);
 }
 
 template<class T,class TMEM>
 int TPZPlasticFrac2D<T,TMEM>::NSolutionVariables(int var){
+  if(fSetRunPlasticity){ // Soh acontece
+    return TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(var);
+    return TPZMaterial::NSolutionVariables(var);
+  }
+  
 	if(var == 1) return 1;
 	if(var == 2) return 1;
 	if(var == 3) return 1;
@@ -739,14 +774,20 @@ int TPZPlasticFrac2D<T,TMEM>::NSolutionVariables(int var){
 	if(var == 7) return fDim;
 	if(var == 8) return 1;
  	if(var == 9) return 2;
+  if(var == 10) return T::fNYields::NYield;
 	
 	return TPZMaterial::NSolutionVariables(var);
 }
 
 template<class T,class TMEM>
 void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
-	
+
 	Solout.Resize(this->NSolutionVariables(var));
+  
+  if(fSetRunPlasticity){ // Soh acontece
+    TPZMatElastoPlastic2D<T,TMEM>::Solution(datavec[0],var,Solout);
+    return;
+  }
 	
 	TPZVec<REAL> SolP, SolU;
 	TPZFMatrix<> DSolP, DSolU;
@@ -861,6 +902,16 @@ void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int va
     Solout[0] = SolU[0];
     Solout[1] = SolU[1];
   }
+  else if(var == 10)
+  {
+    /*
+    TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+    TPZTensor<STATE> epsElastic(EpsT);
+    epsElastic-=TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
+    plasticloc.Phi(epsElastic,Solout);
+     */
+    Solout[0] = -6378.;
+  }
 }
 
 template<class T,class TMEM>
@@ -900,6 +951,7 @@ void TPZPlasticFrac2D<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZSandlerDimaggio.h"
 
-template class TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
+//template class TPZPlasticFrac2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
 template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
 //template class TPZPlasticFrac2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;

@@ -9,7 +9,7 @@
 #ifndef PZ_pznlfluidstructureData_h
 #define PZ_pznlfluidstructureData_h
 
-#define NOleakoff
+//#define NOleakoff
 
 
 ////////// Materials //////////////////////////////
@@ -31,7 +31,9 @@ int const globPointZeroDisplacement = -7;
 
 // For Cohesive hat functions
 int const globDirichletRecElastMatId1Cohe = -30;
-int const globNHat = 3;
+int const globNHat = 2;
+int const globMaxNumberOfPropagations = 50;
+bool const globPlotVTK = true;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure
@@ -68,6 +70,7 @@ public:
 							 REAL DeltaC, REAL DeltaT, REAL SigmaT, int NThreadsForAssemble);
   
   void SetMohrCoulombData(REAL cohesion, REAL phiMC);
+  void SetSandlerData();
   void SetLf(REAL Lf);
   
   REAL NthreadsForAssemble();
@@ -115,7 +118,9 @@ public:
   REAL Qinj();
   REAL Ttot();
   REAL actTime();
+  int actTimeStep();
   REAL actDeltaT();
+  REAL MaxDeltaT();
   REAL Cl();
   REAL Pe();
   REAL SigmaConf();
@@ -133,11 +138,14 @@ public:
   REAL FictitiousTime(REAL VlAcum, REAL pfrac);
   REAL QlFVl(int gelId, REAL pfrac);
   REAL dQlFVl(int gelId, REAL pfrac);
+  void SetUsingLeakOff(bool usingLeakOff = true);
+  bool GetIfUsingLeakOff();
   
   // Propagations methods
   void SetPropagated();
   void SetNotPropagated();
   bool IsPropagated();
+  int & GetnElPropag();
   
   //MatId
   void SetLastFracMatId(int matid);
@@ -197,6 +205,7 @@ private:
   REAL fminDeltaT;//delta T minimo
   REAL factDeltaT;//delta T atual
   int fNDeltaTsteps;//quantidade de incrementos do deltaT para definir o deltaT minimo
+  int ftimeStep;
   
   //Leakoff:
   REAL fCl;//Carter
@@ -204,11 +213,13 @@ private:
   REAL fSigmaConf;//Tensao de confinamento
   REAL fPref;//Pressao de referencia da medicao do Cl
   REAL fvsp;//spurt loss
+  bool fusingLeakOff;
   
   //Propagation criterion
   REAL fJradius;
   REAL fKIc;
   bool fIsPropag;
+  int fnElPropag;
   
   //Plastic Model
   EPlasticModel fEModel;
@@ -221,6 +232,7 @@ private:
 	REAL fDeltaC;
 	REAL fDeltaT;
 	REAL fSigmaT;
+  
 };
 
 
@@ -331,6 +343,10 @@ public:
   std::map<int,REAL> fTAcumVolW;
   std::map<int,REAL> fTAcumVolLeakoff;
   std::map<int,REAL> fTKI;
+  std::map<int,REAL> fStepDeltaT; // map of deltaT of each step
+  std::map<int,REAL> fStepTAcum; // map of time of each step
+  std::map<REAL,REAL> fTxLfrac; // time x lfrac
+  
   REAL fQinj1wing;
   REAL fLfracMax;
 };

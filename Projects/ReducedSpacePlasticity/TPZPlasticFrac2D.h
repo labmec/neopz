@@ -21,6 +21,47 @@
 
 #include <iostream>
 
+class TPZLastElastFunction{
+public:
+  
+  TPZLastElastFunction(){
+    this->flastElastCMesh = NULL;
+    this->finiElIndex = 0;
+  }
+  
+  void SetLastElastCMesh(TPZCompMesh *lastElastCMesh){
+    this->flastElastCMesh = lastElastCMesh;
+  }
+  
+  ~TPZLastElastFunction(){}
+  
+  virtual void Execute(TPZVec<STATE> &x, REAL &uy){
+    if (!flastElastCMesh) {
+      uy = 0.;
+      return;
+    }
+    this->flastElastCMesh->LoadReferences();
+    TPZGeoMesh *gmesh = this->flastElastCMesh->Reference();
+    TPZManVector<REAL,3> qsi(3,0.);
+    int targetdim = 2;
+    TPZGeoEl *gel = gmesh->FindElement(x, qsi, this->finiElIndex, targetdim);
+    if (!gel){
+      DebugStop();
+    }
+    if(!gel->Reference()){
+      DebugStop();
+    }
+    
+    TPZManVector<STATE> sol(3,0.);
+    int displacementVar = 0;
+    gel->Reference()->Solution(qsi, displacementVar, sol);
+    uy = MAX(0.,sol[1]);
+  }
+  
+  TPZCompMesh *flastElastCMesh;
+  long finiElIndex;
+};
+
 /**
  * @ingroup material
  * @brief Material  to validate the reduce space.
@@ -33,8 +74,6 @@
  * \f$ * div(Q) + dw/dt + qL= 0 (Eq. 2)  \f$
  *
  */
-
-
 template <class T, class TMEM = TPZElastoPlasticMem>
 class TPZPlasticFrac2D : public TPZMatElastoPlastic2D<T,TMEM>
 {
@@ -61,6 +100,10 @@ protected:
 	/** @brief If set,the material will calculate contribution of a plastic material
    */
   bool fSetRunPlasticity;
+
+	/** @brief opening function for last time step
+   */
+  TPZLastElastFunction *flastElastFunction;
   
 	REAL fmatId;
 	REAL fE;//young
@@ -70,7 +113,10 @@ protected:
 
 	/** @brief State: one ou one+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
-	EState gState;	
+	EState gState;
+  
+  /** @brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU */
+	bool fUpdateToUseFullDiplacement;
 public:
 
 	
@@ -97,6 +143,14 @@ public:
 		fPlaneStress = planestress;
 	}
   
+  void SetLastElastCMesh(TPZCompMesh *cmesh){
+    this->flastElastFunction->SetLastElastCMesh(cmesh);
+  }
+  
+  TPZCompMesh * GetLastElastCMesh(){
+    return this->flastElastFunction->flastElastCMesh;
+  }
+  
   /** @brief if IsPlasticity is true, it will calculate the contribution of a plastic material
    */
   void SetRunPlasticity(bool IsPlasticity = true);
@@ -108,6 +162,9 @@ public:
 	
   void SetLastState(){ gState = ELastState; }
 	void SetCurrentState(){ gState = ECurrentState; }
+  
+  /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
+  void SetUpdateToUseFullU(bool update = true);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.

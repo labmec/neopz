@@ -122,10 +122,15 @@ void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
     w = fDeltaC;
     sigma = 0.;
     propageted = 2.;
+    globFractInputData.GetnElPropag()++;
     globFractInputData.SetPropagated();
   }
   else if (w < DeltaT){
     return;
+  }
+  else if (w == DeltaT){
+    w+=fDeltaC*0.1; //AQUINATHAN
+    CalculateSigma(w,DeltaT,SigmaT,sigma, propageted);
   }
   else if (w > DeltaT && w <= fDeltaC){
     CalculateSigma(w,DeltaT,SigmaT,sigma, propageted);

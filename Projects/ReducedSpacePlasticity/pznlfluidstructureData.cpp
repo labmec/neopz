@@ -22,6 +22,8 @@ InputDataStruct::InputDataStruct()
 	fDeltaC = 0.;
 	fDeltaT = 0.;
 	fSigmaT = 0.;
+  fnElPropag = 0;
+  fusingLeakOff = false;
 }
 
 InputDataStruct::~InputDataStruct()
@@ -33,6 +35,11 @@ void InputDataStruct::SetMohrCoulombData(REAL cohesion, REAL phiMC)
   fEModel = EMohrCoulomb;
   fCohesion = cohesion;
   fPhiMC = phiMC;
+}
+
+void InputDataStruct::SetSandlerData()
+{
+  fEModel = ESandler;
 }
 
 void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge, REAL E1, REAL Poisson1, REAL E2, REAL Poisson2, REAL XinterfaceBetween1and2,
@@ -94,7 +101,8 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   fmaxDeltaT = maxDeltaT;
   fNDeltaTsteps = nTimes;
   fminDeltaT = fmaxDeltaT/fNDeltaTsteps;
-  factDeltaT = fminDeltaT;
+  factDeltaT = fmaxDeltaT;
+  ftimeStep = 0;
   
   fCl = Cl;
   fPe = Pe;
@@ -104,6 +112,21 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   
   fKIc = KIc;
   fJradius = Jradius;
+  globFractOutputData.fStepDeltaT[ftimeStep] = factDeltaT;
+  globFractOutputData.fStepTAcum[ftimeStep] = 0.;
+  globFractOutputData.fTxLfrac[factTime] = globFractInputData.Lf();
+}
+
+int & InputDataStruct::GetnElPropag(){
+	return fnElPropag;
+}
+
+void InputDataStruct::SetUsingLeakOff(bool usingLeakOff){
+  fusingLeakOff = usingLeakOff;
+}
+
+bool InputDataStruct::GetIfUsingLeakOff(){
+  return fusingLeakOff;
 }
 
 REAL InputDataStruct::DeltaC(){
@@ -344,6 +367,11 @@ REAL InputDataStruct::actTime()
   return factTime;
 }
 
+int InputDataStruct::actTimeStep()
+{
+  return ftimeStep;
+}
+
 REAL InputDataStruct::actDeltaT()
 {
   return factDeltaT;
@@ -395,19 +423,28 @@ void InputDataStruct::SetMinDeltaT()
 
 void InputDataStruct::SetNextDeltaT()
 {
-  factDeltaT = MIN(fmaxDeltaT,(factDeltaT+fmaxDeltaT/fNDeltaTsteps));
+  factDeltaT = MIN(fmaxDeltaT,(fmaxDeltaT/fNDeltaTsteps));
   if(factTime + factDeltaT > fTtot)
   {
     factDeltaT = fTtot - factTime;
   }
+  globFractOutputData.fStepDeltaT[ftimeStep] = factDeltaT;
+  
 }
 
 void InputDataStruct::UpdateActTime()
 {
   factTime += factDeltaT;
+  ftimeStep++;
   std::cout << "\n\n=============== ActTime = " << factTime << " ===============\n\n";
+  globFractOutputData.fStepTAcum[ftimeStep] = factTime;
+  globFractOutputData.fTxLfrac[factTime] = globFractInputData.Lf();
 }
 
+REAL InputDataStruct::MaxDeltaT()
+{
+  return fmaxDeltaT;
+}
 
 ////////////////////////////////////////////////////////////////// Leakoff
 
@@ -475,12 +512,13 @@ void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
     REAL tStar = FictitiousTime(VlAcum, pfrac);
     REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
     
-#ifdef NOleakoff
-    it->second = 0.;
-#else
-    it->second = Vlnext;
-#endif
-    
+    if (fusingLeakOff) {
+      it->second = Vlnext;
+    }
+    else{
+      it->second = 0.;
+    }
+
     outVlCount++;
   }
   
@@ -553,11 +591,12 @@ REAL InputDataStruct::QlFVl(int gelId, REAL pfrac)
   REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
   REAL Ql = (Vlnext - VlAcum)/deltaT;
   
-#ifdef NOleakoff
-  return 0.;
-#else
-  return Ql;
-#endif
+  if(fusingLeakOff){
+    return Ql;
+  }
+  else{
+    return 0.;
+  }
 }
 
 REAL InputDataStruct::dQlFVl(int gelId, REAL pfrac)
@@ -597,11 +636,12 @@ REAL InputDataStruct::dQlFVl(int gelId, REAL pfrac)
   
   REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
   
-#ifdef NOleakoff
-  return 0.;
-#else
-  return dQldpfrac;
-#endif
+  if(fusingLeakOff){
+    return dQldpfrac;
+  }
+  else{
+    return 0.;
+  }
 }
 
 // Propagation
@@ -667,6 +707,9 @@ void OutputDataStruct::InsertTposP(int time, std::map<REAL,REAL> & posPmap)
     newposP.fposP = posPmap;
     fTposP[time] = newposP;
   }
+  else{
+    DebugStop();
+  }
   
 }
 
@@ -708,7 +751,7 @@ void OutputDataStruct::SetQinj1WingAndLfracmax(REAL Qinj1wing, REAL Lfracmax)
 
 void OutputDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
 {
-  std::string plotfile = "TransientSolution.vtk";
+  std::string plotfile = "PapanastasiouEla4.vtk";
   if(anCount >= 0)
   {
     an->SetStep(anCount);
@@ -737,6 +780,9 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   }
 #endif
   
+  std::cout << "fTposVolLeakoff.size() = " << fTposVolLeakoff.size() << std::endl;
+  std::cout << "fTAcumVolLeakoff.size() = " << fTAcumVolLeakoff.size() << std::endl;
+  
   std::map<int,posP>::iterator itTposP, itTposPLast = fTposP.end();
   itTposPLast--;
   
@@ -754,7 +800,7 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   
   outf << "(* Output Fracture Propagation 1D *)\n";
   
-  outf << "Caju2013;\n\n";
+  outf << "Nathan2014;\n\n";
   outf << "ntimes=" << NTimes() << ";\n";
   outf << "times={";
   for(itTposP = fTposP.begin(); itTposP != fTposP.end(); itTposP++)
@@ -791,11 +837,25 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   }
   outf << "};\n\n";
   
+  outf << "TimeStepXDeltaT={";
+  std::map<int,REAL>::iterator itstep, itstepLast = fStepTAcum.end();
+  itstepLast--;
+  for(itstep = fStepTAcum.begin(); itstep != fStepTAcum.end(); itstep++)
+  {
+    outf << "{" << itstep->first << "," << itstep->second << "}";
+    if(itstep != itstepLast)
+    {
+      outf << ",";
+    }
+  }
+  outf << "};\n\n";
+  outf << "lastTime=TimeStepXDeltaT[[ntimes,2]];\n\n" << std::endl;
+  
   outf << "(* time x W Volume *)\n";
   outf << "TvsVolW={";
   for(itTAcumVolW = fTAcumVolW.begin(); itTAcumVolW != fTAcumVolW.end(); itTAcumVolW++)
   {
-    outf << "{" << itTAcumVolW->first << "," << itTAcumVolW->second << "}";
+    outf << "{" << "TimeStepXDeltaT[[" << itTAcumVolW->first+1 << ",2]]," << itTAcumVolW->second << "}";
     if(itTAcumVolW != itTAcumVolWLast)
     {
       outf << ",";
@@ -807,7 +867,7 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   outf << "TvsVolLeakoff={";
   for(itTAcumVolLeakoff = fTAcumVolLeakoff.begin(); itTAcumVolLeakoff != fTAcumVolLeakoff.end(); itTAcumVolLeakoff++)
   {
-    outf << "{" << itTAcumVolLeakoff->first << "," << itTAcumVolLeakoff->second << "}";
+    outf << "{" << "TimeStepXDeltaT[[" << itTAcumVolLeakoff->first+1 << ",2]]," << itTAcumVolLeakoff->second << "}";
     if(itTAcumVolLeakoff != itTAcumVolLeakoffLast)
     {
       outf << ",";
@@ -815,12 +875,14 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   }
   outf << "};\n\n";
   
-  outf << "(* time x KI *)\n";
-  outf << "TvsKI={";
-  for(itTKI = fTKI.begin(); itTKI != fTKI.end(); itTKI++)
+  outf << "(* time x Lfrac *)\n";
+  outf << "TvsLfrac={";
+  std::map<REAL,REAL>::iterator itlfrac, itlfraclast = fTxLfrac.end();
+  itlfraclast--;
+  for(itlfrac = fTxLfrac.begin(); itlfrac != fTxLfrac.end(); itlfrac++)
   {
-    outf << "{" << itTKI->first << "," << itTKI->second << "}";
-    if(itTKI != itTKILast)
+    outf << "{" << itlfrac->first << "," << itlfrac->second << "}";
+    if(itlfrac != itlfraclast)
     {
       outf << ",";
     }
@@ -831,6 +893,10 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   outf << "Qinj1wing=" << fQinj1wing << ";\n";
   outf << "LfracMax=" << fLfracMax << ";\n\n";
   
+  
+  REAL maxDeltaT = globFractInputData.MaxDeltaT();
+  outf << "DeltaT=" << maxDeltaT << ";\n\n";
+  
   outf << "maxp = Max[Transpose[Flatten[posvsPvsT, 1]][[2]]];\n";
   outf << "Manipulate[ListPlot[posvsPvsT[[t]], Joined -> True,PlotLabel ->\"Graphic A: Position x Pressure @ \" <> ToString[times[[t]]] <> \"s\",AxesLabel -> {\"position (m)\", \"pressure (Pa)\"}, Filling -> Axis,PlotRange -> {{0, LfracMax}, {0, maxp}}], {t, 1, ntimes, 1}]\n\n";
   
@@ -840,23 +906,24 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   outf << "maxleakoff = Max[Transpose[Flatten[posvsVolleakoffvsT, 1]][[2]]];\n";
   outf << "Manipulate[ListPlot[posvsVolleakoffvsT[[t]], Joined -> True,PlotLabel ->\"Graphic C: Position x Leakoff penetration @ \" <> ToString[times[[t]]] <>\"s\", AxesLabel -> {\"position (m)\", \"leakoff penetration (m)\"},Filling -> Axis, PlotRange -> {{0, LfracMax}, {0, maxleakoff}}], {t, 1,ntimes, 1}]\n\n";
   
-  outf << "maxinj = Qinj1wing*times[[ntimes]];\n";
-  outf << "GrD = Plot[Qinj1wing*t, {t, 0, times[[ntimes]]},PlotLabel -> \"Graphic D: Time x Volume Injected\",AxesLabel -> {\"time (s)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+  outf << "maxinj = Qinj1wing*TimeStepXDeltaT[[ntimes,2]];\n";
+  outf << "GrD = Plot[Qinj1wing*t, {t, 0, TimeStepXDeltaT[[ntimes,2]]},PlotLabel -> \"Graphic D: Time x Volume Injected\",AxesLabel -> {\"time (s)\", \"Volume injected (m3)\"},Filling -> Axis, FillingStyle -> Red,PlotRange -> {{0, lastTime}, {0, maxinj}}]\n\n";
   
-  outf << "GrE = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic E: Time x Fracture Volume\",AxesLabel -> {\"time (s)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+  outf << "GrE = ListPlot[TvsVolW, Joined -> True,PlotLabel -> \"Graphic E: Time x Fracture Volume\",AxesLabel -> {\"time (s)\", \"Fracture volume (m3)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, lastTime}, {0, maxinj}}]\n\n";
   
-  outf << "GrF = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic F: Time x Leakoff volume\",AxesLabel -> {\"time (s)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, times[[ntimes]]}, {0, maxinj}}]\n\n";
+  outf << "GrF = ListPlot[TvsVolLeakoff, Joined -> True,PlotLabel -> \"Graphic F: Time x Leakoff volume\",AxesLabel -> {\"time (s)\", \"Leakoff volume (m3)\"},Filling -> Axis, FillingStyle -> Blue,PlotRange -> {{0, lastTime}, {0, maxinj}}]\n\n";
   
   outf << "WplusLeakoff = {};\n";
   outf << "For[tt = 1, tt <= ntimes,\n";
-  outf << "AppendTo[WplusLeakoff, {times[[tt]], TvsVolW[[tt, 2]] + TvsVolLeakoff[[tt, 2]]}];\n";
+  outf << "AppendTo[WplusLeakoff, {TimeStepXDeltaT[[tt,2]], TvsVolW[[tt, 2]] + TvsVolLeakoff[[tt, 2]]}];\n";
   outf << "tt++;\n";
   outf << "];\n";
-  outf << "GrG = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic G: Grahics (E+F)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> {{0, times[[ntimes]] + 1}, {0, maxinj + 1}}];\n";
-  outf << "Show[GrD, GrE, GrF, GrG, PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n";
+  outf << "GrG = ListPlot[WplusLeakoff, Joined -> False,PlotStyle -> {Black, PointSize[0.03]},PlotLabel -> \"Graphic G: Grahics (E+F)\",AxesLabel -> {\"time (s)\", \"Vol graphics(D+E)\"},PlotRange -> All];\n";
+  outf << "Show[GrD, GrE, GrF, GrG, PlotRange -> All,PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n";
   
-  outf << "maxki = Max[Transpose[TvsKI][[2]]];\n";
-  outf << "ListPlot[TvsKI, Joined -> True, PlotLabel -> \"Graphic H: Time x KI\", AxesLabel -> {\"time (s)\", \"KI (Pa.m2)\"},Filling -> Axis,PlotRange -> {{0, times[[ntimes]]}, {0, maxki}}]\n";
+  outf << "maxlfrac = TvsLfrac[[-1,2]];\n";
+  outf << "GrH = ListPlot[TvsLfrac, Joined -> True,PlotLabel -> \"Graphic H: Time x Fracture Length\",AxesLabel -> {\"time (s)\", \"Fracture length (m)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, lastTime}, {0, maxlfrac}}]\n\n";
+  outf << std::endl;
 }
 
 InputDataStruct globFractInputData;
