@@ -49,7 +49,7 @@ int mainFrac(int argc, char *argv[])
   int ndivV = 10; // division in x for PGmesh
   int ndivH = 25; // division in y for PGmesh
   REAL q = 1.01; // PG order
-  REAL Lmax_edge = 0.05;
+  REAL Lmax_edge = 0.025;
 
   REAL Young1 = 25.e3;//9
   REAL Poiss1 = 0.2;
@@ -77,16 +77,16 @@ int mainFrac(int argc, char *argv[])
    //Aqui vai Qinj total mesmo (no poco)!!!
   REAL QinjTot  = -0.0004; //-0.002;
   
-  REAL Ttot = 4; // em segundos
-  REAL maxDeltaT = 0.1; // em segundos
-  int nTimes = 4; // quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes)
+  REAL Ttot = 6; // em segundos
+  REAL maxDeltaT = 0.2; // em segundos
+  int nTimes = 14; // quantidade de divisao do maxDeltaT para definir minDeltaT (minDeltaT = maxDeltaT/nTimes)
   
   // LeakOff Param
   REAL Cl = 0.001; //0.005
-  REAL Pe = 10.;
+  REAL Pe = 0.; // 10.
   REAL SigmaConf = -preStressYY;
   REAL Pref = 60000.;
-  REAL vsp = 0.00001; //0.001
+  REAL vsp = 0.*0.000001; //0.001
   REAL KIc = 25.;
   REAL Jradius = 0.5;
   bool usingLeakOff = false;
@@ -95,12 +95,12 @@ int mainFrac(int argc, char *argv[])
   int p = 1;
   
 	//cohesive param
-	REAL DeltaC = 0.0001024; //0.0001024
+	REAL DeltaC = 1.75*0.0001024; //0.0001024
 	REAL DeltaT = 0.2 * DeltaC;
-	REAL SigmaT = 10;//30 //3
+	REAL SigmaT = 3;//30 //3
   
   //MohrCoulomb parameters
-  REAL cohesion = 0.5 * 5.77; //article is 5.77
+  REAL cohesion = 0.13 * 5.77; //article is 5.77
   REAL phiMC = 30.*M_PI/180.; // article is 30 degres
 	
 	int NThreadsForAssemble = 8; // if set 0 it will be serial
@@ -109,7 +109,7 @@ int mainFrac(int argc, char *argv[])
                              Fx, Fy, preStressXX, preStressXY, preStressYY, NStripes, Visc, SigN,
                              QinjTot, Ttot, maxDeltaT, nTimes, Cl, Pe, SigmaConf, Pref, vsp, KIc, Jradius,ndivV,ndivH,q,DeltaC,DeltaT,SigmaT,NThreadsForAssemble);
   
-  //globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
+  globFractInputData.SetMohrCoulombData(cohesion,phiMC);  //Plastic Model is set here
   //globFractInputData.SetSandlerData();  //Plastic Model is set here
   
   globFractInputData.SetUsingLeakOff(usingLeakOff);

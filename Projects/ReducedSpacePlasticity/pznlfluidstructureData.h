@@ -33,7 +33,7 @@ int const globPointZeroDisplacement = -7;
 int const globDirichletRecElastMatId1Cohe = -30;
 int const globNHat = 2;
 int const globMaxNumberOfPropagations = 50;
-bool const globPlotVTK = true;
+bool const globPlotVTK = false;
 
 int const globBCfluxIn  = -10; //bc pressure
 int const globCracktip = -20; //bc pressure
@@ -72,11 +72,13 @@ public:
   void SetMohrCoulombData(REAL cohesion, REAL phiMC);
   void SetSandlerData();
   void SetLf(REAL Lf);
+  void SetOpening(REAL op);
   
   REAL NthreadsForAssemble();
   REAL Lx();
   REAL Ly();
   REAL Lf();
+  REAL Opening();
   REAL Hf();
   int NdivV();
   int NdivH();
@@ -164,6 +166,7 @@ private:
   REAL fLx;//Dimensao em x do domínio da malha do MEF
   REAL fLy;//Dimensao em y do domínio da malha do MEF
   REAL fLf;//Comprimento de 1/2 asa da fratura
+  REAL fop;//abertura no poço
   REAL fHf;//Altura da fratura
   int fndivV; // divisios em x para Gmesh com PG
   int fndivH; // divisios em y para Gmesh com PG
@@ -346,6 +349,7 @@ public:
   std::map<int,REAL> fStepDeltaT; // map of deltaT of each step
   std::map<int,REAL> fStepTAcum; // map of time of each step
   std::map<REAL,REAL> fTxLfrac; // time x lfrac
+  std::map<REAL,REAL> fTxOp; // time x Opening
   
   REAL fQinj1wing;
   REAL fLfracMax;

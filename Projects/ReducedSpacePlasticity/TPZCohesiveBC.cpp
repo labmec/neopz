@@ -129,7 +129,7 @@ void TPZCohesiveBC::UpdateCohesiveCurve(TPZMaterialData &data)
     return;
   }
   else if (w == DeltaT){
-    w+=fDeltaC*0.1; //AQUINATHAN
+    w+=fDeltaC*0.001; //AQUINATHAN
     CalculateSigma(w,DeltaT,SigmaT,sigma, propageted);
   }
   else if (w > DeltaT && w <= fDeltaC){

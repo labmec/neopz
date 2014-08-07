@@ -2423,6 +2423,7 @@ void ToolsTransient::AcceptSolution(TPZAnalysis *an)
 	//an->Solution().Zero();
 	
 	//an->LoadSolution();
+  SetOpening();
 }
 
 void ToolsTransient::SetUpdateToUseFullU(TPZAnalysis *an)
@@ -2470,6 +2471,15 @@ void ToolsTransient::PostprocessPressure()
   }
   
   globFractOutputData.InsertTposP(globFractInputData.actTimeStep(), pos_pressure);
+}
+
+void ToolsTransient::SetOpening()
+{
+  TPZCompEl *cel = fmphysics->Element(0);
+  TPZManVector<REAL,3> qsi(3,-1.), sol(3,0.);
+  int varu = 7;
+  cel->Solution(qsi, varu, sol);
+  globFractInputData.SetOpening(sol[1]);  
 }
 
 void ToolsTransient::PostProcessAcumVolW()
@@ -3328,6 +3338,8 @@ bool ToolsTransient::FindElementAfterFracture(int &index)
   index = iel;
   return found;
 }
+
+
 
 void ToolsTransient::CreatePostProcessingMesh()
 {

@@ -57,6 +57,7 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   fLx = Lx;
   fLy = Ly;
   fLf = Lf;
+  fop = 0.;
   fHf = Hf;
   fndivV = ndivV;
   fndivH = ndivH;
@@ -115,6 +116,7 @@ void InputDataStruct::SetData(REAL Lx, REAL Ly, REAL Lf, REAL Hf, REAL Lmax_edge
   globFractOutputData.fStepDeltaT[ftimeStep] = factDeltaT;
   globFractOutputData.fStepTAcum[ftimeStep] = 0.;
   globFractOutputData.fTxLfrac[factTime] = globFractInputData.Lf();
+  globFractOutputData.fTxOp[factTime] = 0.;
 }
 
 int & InputDataStruct::GetnElPropag(){
@@ -161,6 +163,11 @@ void InputDataStruct::SetLf(REAL Lf)
   fLf = Lf;
 }
 
+void InputDataStruct::SetOpening(REAL op)
+{
+  fop = op;
+}
+
 REAL InputDataStruct::Lx()
 {
   return fLx;
@@ -174,6 +181,11 @@ REAL InputDataStruct::Ly()
 REAL InputDataStruct::Lf()
 {
   return fLf;
+}
+
+REAL InputDataStruct::Opening()
+{
+  return fop;
 }
 
 REAL InputDataStruct::Hf()
@@ -439,6 +451,7 @@ void InputDataStruct::UpdateActTime()
   std::cout << "\n\n=============== ActTime = " << factTime << " ===============\n\n";
   globFractOutputData.fStepTAcum[ftimeStep] = factTime;
   globFractOutputData.fTxLfrac[factTime] = globFractInputData.Lf();
+  globFractOutputData.fTxOp[factTime] = globFractInputData.Opening();
 }
 
 REAL InputDataStruct::MaxDeltaT()
@@ -664,6 +677,8 @@ OutputDataStruct::OutputDataStruct()
   fTAcumVolW.clear();
   fTAcumVolLeakoff.clear();
   fTKI.clear();
+  fTxLfrac.clear();
+  fTxOp.clear();
   fQinj1wing = 0.;
   fLfracMax = 0.;
 }
@@ -675,6 +690,8 @@ OutputDataStruct::~OutputDataStruct()
   fTAcumVolW.clear();
   fTAcumVolLeakoff.clear();
   fTKI.clear();
+  fTxLfrac.clear();
+  fTxOp.clear();
   fQinj1wing = 0.;
   fLfracMax = 0.;
 }
@@ -888,6 +905,20 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
     }
   }
   outf << "};\n\n";
+
+  outf << "(* time x Opening *)\n";
+  outf << "TvsOp={";
+  std::map<REAL,REAL>::iterator itop, itoplast = fTxOp.end();
+  itoplast--;
+  for(itop = fTxOp.begin(); itop != fTxOp.end(); itop++)
+  {
+    outf << "{" << itop->first << "," << itop->second << "}";
+    if(itop != itoplast)
+    {
+      outf << ",";
+    }
+  }
+  outf << "};\n\n";
   
   outf << "(* Qinj 1 wing and Lfrac max *)\n";
   outf << "Qinj1wing=" << fQinj1wing << ";\n";
@@ -922,7 +953,10 @@ void OutputDataStruct::PrintMathematica(std::ofstream & outf)
   outf << "Show[GrD, GrE, GrF, GrG, PlotRange -> All,PlotLabel -> \"Graphic G: Grahics D, E, F and (E+F)\"]\n\n";
   
   outf << "maxlfrac = TvsLfrac[[-1,2]];\n";
-  outf << "GrH = ListPlot[TvsLfrac, Joined -> True,PlotLabel -> \"Graphic H: Time x Fracture Length\",AxesLabel -> {\"time (s)\", \"Fracture length (m)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, lastTime}, {0, maxlfrac}}]\n\n";
+  outf << "GrH = ListPlot[TvsLfrac, Joined -> True,PlotLabel -> \"Graphic H: Time x Fracture Length\",AxesLabel -> {\"time (s)\", \"Fracture length (m)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, lastTime}, {0, maxlfrac}}, PlotMarkers -> Automatic]\n\n";
+  
+  outf << "maxOp = TvsOp[[-1,2]];\n";
+  outf << "GrI = ListPlot[TvsOp, Joined -> True,PlotLabel -> \"Graphic I: Time x Opening\",AxesLabel -> {\"time (s)\", \"Opening (m)\"},Filling -> Axis, FillingStyle -> Green,PlotRange -> {{0, lastTime}, {0, maxOp}}, PlotMarkers -> Automatic]\n\n";
   outf << std::endl;
 }
 

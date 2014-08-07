@@ -104,6 +104,9 @@ public:
     fMaterialIds[matid] = direction;
   }
   
+  // Sets the mouth opening
+  void SetOpening();
+  
   void SetUpdateToUseFullU(TPZAnalysis *an);
   
   void IdentifyEquationsToZero();

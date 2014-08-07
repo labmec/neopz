@@ -784,7 +784,7 @@ void TPZPlasticFrac2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int va
 
 	Solout.Resize(this->NSolutionVariables(var));
   
-  if(fSetRunPlasticity){ // Soh acontece
+  if(fSetRunPlasticity && var != 7){ // Soh acontece
     TPZMatElastoPlastic2D<T,TMEM>::Solution(datavec[0],var,Solout);
     return;
   }
