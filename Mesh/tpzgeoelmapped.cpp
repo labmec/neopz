@@ -47,6 +47,37 @@ TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
+template<class TBase>
+TPZGeoEl * TPZGeoElMapped<TBase>::Clone(TPZGeoMesh &DestMesh) const
+{
+    return new TPZGeoElMapped<TBase>(DestMesh,*this);
+}
+
+/** @} */
+
+template<class TBase>
+TPZGeoEl * TPZGeoElMapped<TBase>::ClonePatchEl(TPZGeoMesh &DestMesh,
+                                std::map<long,long> &gl2lcNdIdx,
+                                std::map<long,long> &gl2lcElIdx) const
+{
+    return new TPZGeoElMapped<TBase>(DestMesh,*this,gl2lcNdIdx,gl2lcElIdx);
+}
+
+template <class TBase>
+TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy) : TBase(destmesh,copy), fCornerCo(copy.fCornerCo)
+{
+    
+}
+
+template <class TBase>
+TPZGeoElMapped<TBase>::TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
+                                      std::map<long,long> &gl2lcElIdx) : TBase(destmesh,copy,gl2lcNdIdx,gl2lcElIdx),
+    fCornerCo(copy.fCornerCo)
+{
+    
+}
+
+
 
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"

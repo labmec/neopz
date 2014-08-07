@@ -48,12 +48,27 @@ public:
 	TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
 	{
 	}
+    
+    TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy);
+    
+    TPZGeoElMapped(TPZGeoMesh &destmesh, const TPZGeoElMapped<TBase> &copy, std::map<long,long> &gl2lcNdIdx,
+                   std::map<long,long> &gl2lcElIdx);
 	
 	~TPZGeoElMapped()
 	{
 	}
 	
 	virtual int ClassId() const;
+    
+    virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
+    
+	/** @} */
+	
+	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
+									std::map<long,long> &gl2lcNdIdx,
+									std::map<long,long> &gl2lcElIdx) const;
+	
+
     
     /** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid)
