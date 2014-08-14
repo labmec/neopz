@@ -134,9 +134,9 @@ void ToolsTransient::SetSandlerParameters()
 {
 #ifdef PlasticSDi
   
-  REAL poisson = 0.203;
-  REAL elast = 29269.;
-  REAL A = 152.54;
+  REAL poisson = 0.2;
+  REAL elast = 25.e3;
+  REAL A = 155.54; //152.54
   REAL B = 0.0015489;
   REAL C = 146.29;
   REAL R = 0.91969;
@@ -508,7 +508,9 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
       int dim = 2;
       an->DefineGraphMesh(dim, scalnames, vecnames, filename);
       an->SetStep(NStripes+1+ihat);
-      an->PostProcess(0);
+      if (globPlotVTK){
+        an->PostProcess(0);
+      }
     }
     int rowshat = cmesh_hat->Solution().Rows();
     if (rowshat != solutions.Rows()) {

@@ -591,10 +591,17 @@ void TPZPlasticFrac2D<T,TMEM>::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, 
 		return;
 	}
 	
-	//    REAL auxvar, G;
-	//    auxvar = 0.817*(1.-fPoiss)*globFractInputData.Hf();
-	//    G = fE/(2.*(1. + fPoiss));
-	REAL factor = 0.;//G/auxvar;
+  REAL auxvar, G, factor;
+  auxvar = 0.817*(1.-fPoiss)*globFractInputData.Hf();
+  G = fE/(2.*(1. + fPoiss));
+  bool EnglandGreen = true;
+  if (EnglandGreen) {
+    factor = G/auxvar;
+  }
+  else{
+    factor = 0.;//G/auxvar;
+  }
+
 	
 	TPZFMatrix<REAL> &phi_u = datavec[0].phi;
 	
