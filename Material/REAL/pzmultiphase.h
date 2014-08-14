@@ -40,6 +40,9 @@ protected:
     /** @brief Definition of constants */
     REAL ff;
     
+    /** @brief Big number balance */
+    REAL fxi;    
+    
     /** @brief State: Stiffness or Mass Matrix Calculations */
     enum EState { ELastState = 0, ECurrentState = 1 };
     EState gState;
@@ -105,6 +108,16 @@ public:
     
     virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
+    // Contribution for each state variable
+    virtual void ApplyUxD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplyUyD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplySigmaN    (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    virtual void ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);   
     
@@ -133,6 +146,9 @@ public:
     REAL fKref;
     
     /** @brief Pressure reference - Pa */   
+    REAL fQref;    
+    
+    /** @brief Pressure reference - Pa */   
     REAL fPref;
     
     /** @brief density reference - kg/m3 */
@@ -146,7 +162,7 @@ public:
     TPZStack< TPZFMatrix<REAL> > fKabsoluteMap; 
 
     /** @brief plane stress condition */    
-    STATE fPlaneStress;
+    int fPlaneStress;
     
     /** @brief Use or not K map */      
     bool fYorN;
@@ -163,6 +179,9 @@ public:
     /** @brief Parameter representing temporal scheme for conservation equation */
     REAL fGamma;    
     
+    /** @brief Defines simulation bc numeric balance. */
+    void SetXiBalance(REAL xi){ this->fxi = xi;}
+        
     /** @brief Defines simulation time step. */
     void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}
     
@@ -412,7 +431,10 @@ public:
     void SetKreference(REAL &Kref){ fKref = Kref;}
     
     /** @brief Set pressure reference - Pa */
-    void SetPreference(REAL &Pref){ fPref = Pref;}  
+    void SetPreference(REAL &Pref){ fPref = Pref;}
+    
+    /** @brief Set flux reference - Pa */
+    void SetQreference(REAL &Qref){ fQref = Qref;}     
     
     /** @brief Set density reference - kg/m3 */
     void SetRhoSCreference(REAL &Densityref){ fRhoref = Densityref;}
