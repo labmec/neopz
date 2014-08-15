@@ -13,6 +13,7 @@
 #include "pzpoisson3d.h"
 #include "pzelasmat.h"
 #include "pzgeoelbc.h"
+#include "TPZSkylineNSymStructMatrix.h"
 
 
 DadosMalhas::DadosMalhas(){
@@ -1086,12 +1087,13 @@ void DadosMalhas::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	an.Run();
 }
 
-TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * mymaterial, TPZCompMesh* mphysics){
+TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * mymaterial, TPZCompMesh* mphysics, int nthreads){
     
     mymaterial->SetLastState();
     //TPZSkylineStructMatrix matsp(mphysics);
+    //TPZSkylineNSymStructMatrix matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
-    matsp.SetNumThreads(30);
+    matsp.SetNumThreads(nthreads);
     
 	std::set< int > materialid;
 	int matid = mymaterial->MatId();
@@ -1099,6 +1101,8 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * 
 	matsp.SetMaterialIds (materialid);
 	TPZAutoPointer<TPZGuiInterface> guiInterface;
 	TPZFMatrix<STATE> Un;
+    
+    
     //TPZMatrix<REAL> *matK2 = matsp.CreateAssemble(Un,guiInterface);
     
     TPZAutoPointer <TPZMatrix<STATE> > matK2 = matsp.CreateAssemble(Un,guiInterface);
@@ -1106,7 +1110,7 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * 
     return matK2;
 }
 
-TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics){
+TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics, int nthreads){
     
     TPZMaterial * mat1 = mphysics->FindMaterial(fmatId);
     TPZMaterial * mat2 = mphysics->FindMaterial(fmatId+1);
@@ -1119,7 +1123,7 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics
     
     //TPZSkylineStructMatrix matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
-    matsp.SetNumThreads(30);
+    matsp.SetNumThreads(nthreads);
 	std::set< int > materialid;
 	materialid.insert(fmatId);
     materialid.insert(fmatId+1);
@@ -1134,12 +1138,12 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics
 }
 
 
-void DadosMalhas::StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec) {
+void DadosMalhas::StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec, int nthreads) {
     
     mymaterial->SetCurrentState();
     //TPZFStructMatrix matsk(mphysics);
     TPZSkylineStructMatrix matsk(mphysics);
-    matsk.SetNumThreads(30);
+    matsk.SetNumThreads(nthreads);
 	an.SetStructuralMatrix(matsk);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt);
@@ -1159,7 +1163,7 @@ void DadosMalhas::StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh
     //    an.SetSolver(step);
 }
 
-void DadosMalhas::StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec){
+void DadosMalhas::StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec, int nthreads){
     
 	TPZMaterial * mat1 = mphysics->FindMaterial(fmatId);
     TPZMaterial * mat2 = mphysics->FindMaterial(fmatId+1);
@@ -1173,7 +1177,7 @@ void DadosMalhas::StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZ
     //TPZFStructMatrix matsk(mphysics);
     TPZSkylineStructMatrix matsk(mphysics);
 	an.SetStructuralMatrix(matsk);
-    matsk.SetNumThreads(30);
+    matsk.SetNumThreads(nthreads);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt);
 	//step.SetDirect(ELU);
@@ -1195,26 +1199,26 @@ void DadosMalhas::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMe
 {
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
-	TPZManVector<std::string,10> scalnames(6), vecnames(2);
-	scalnames[0] = "DisplacementX";
-	scalnames[1] = "DisplacementY";
-    vecnames[0] = "Displacement";
+	TPZManVector<std::string,10> scalnames(3), vecnames(2);
+	//scalnames[0] = "DisplacementX";
+	//scalnames[1] = "DisplacementY";
+    //vecnames[0] = "Displacement";
     //scalnames[2] = "SigmaX";
 	//scalnames[3] = "SigmaY";
-	scalnames[2] = "PorePressure";
-    //scalnames[3] = "FluxoY";
-	//vecnames[1] = "Fluxo";
+	scalnames[0] = "PorePressure";
+    scalnames[2] = "FluxoY";
+	vecnames[0] = "Fluxo";
 	//vecnames[1] = "MinusKMuGradP";
     
-    scalnames[3] = "ExactPressure";
+    scalnames[1] = "ExactPressure";
     //scalnames[6] = "FluxoX";
     
-    scalnames[4] = "ExactDisplacementX";
-    scalnames[5] = "ExactDisplacementY";
+    //scalnames[4] = "ExactDisplacementX";
+    //scalnames[5] = "ExactDisplacementY";
    // scalnames[8] = "ExactSigmaX";
     //scalnames[6] = "ExactSigmaY";
-    //vecnames[2]  = "ExactFluxo";
-    vecnames[1]  = "ExactDisplacement";
+    vecnames[1]  = "ExactFluxo";
+    //vecnames[1]  = "ExactDisplacement";
     //vecnames[4] = "MinusKMuGradP";
 	
 	const int dim = 2;
@@ -1240,7 +1244,7 @@ void DadosMalhas::SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2
     PosProcessMultphysics(meshvec,mphysics,an,plotfile);
     
     //Criando matriz de massa (matM)
-    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mymaterial, mphysics);
+    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mymaterial, mphysics, 8);
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -1254,7 +1258,7 @@ void DadosMalhas::SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<STATE> matK;
 	TPZFMatrix<STATE> fvec;
-    StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+    StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec,8);
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -1346,12 +1350,12 @@ void DadosMalhas::SolveSistWithError(REAL deltaT,REAL maxTime,TPZVec<TPZCompMesh
     PosProcessMultphysics(meshvec,mphysics,an,plotfile);
     
     //Criando matriz de massa (matM)
-    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(matporoelast, mphysics);
+    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(matporoelast, mphysics,8);
     
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<STATE> matK;
 	TPZFMatrix<STATE> fvec;
-    StiffMatrixLoadVec(matporoelast, mphysics, an, matK, fvec);
+    StiffMatrixLoadVec(matporoelast, mphysics, an, matK, fvec,8);
     
     int nrows;
 	nrows = matM->Rows();
@@ -1429,7 +1433,7 @@ void DadosMalhas::SolveSistBarryMercert(REAL deltaT,REAL maxTime,TPZVec<TPZCompM
     PosProcessMultphysics(meshvec,mphysics,an,plotfile);
     
     //Criando matriz de massa (matM)
-    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mphysics);
+    TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mphysics,8);
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -1443,7 +1447,7 @@ void DadosMalhas::SolveSistBarryMercert(REAL deltaT,REAL maxTime,TPZVec<TPZCompM
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<STATE> matK;
 	TPZFMatrix<STATE> fvec;
-    StiffMatrixLoadVec(mphysics, an, matK, fvec);
+    StiffMatrixLoadVec(mphysics, an, matK, fvec,8);
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -1477,7 +1481,7 @@ void DadosMalhas::SolveSistBarryMercert(REAL deltaT,REAL maxTime,TPZVec<TPZCompM
         timeatual  = TimeValue;
 		// This time solution i for Transient Analytic Solution
 		matM->Multiply(Lastsolution,TotalRhstemp);
-        StiffMatrixLoadVec(mphysics, an, matK, fvec);
+        StiffMatrixLoadVec(mphysics, an, matK, fvec,8);
         
         //#ifdef LOG4CXX
         //        if(logdata->isDebugEnabled())

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	REAL pesoEspecifico = 32.69*1000.; //N/m3
 	REAL E = 20.59*10.e9;//N/m^2
 	REAL poisson = 0.;
-	bool anelleve =false;
+	bool anelleve =true;
 	
 	tools * Shell = new tools(rc, h, alpha, a, b, pesoEspecifico,E,poisson,anelleve);
 	
@@ -57,11 +57,11 @@ int main(int argc, char *argv[])
 	{
 		for (int p = 2; p < 9; p++)
 		{
-			REAL Mreal =/*-36.79203075692789*/-40.87558070391361;
-			REAL Qreal =/*943.6507129421782*/949.2660050261283;
+			REAL Mreal =-36.79203075692789/*-40.87558070391361*/;
+			REAL Qreal =943.6507129421782/*949.2660050261283*/;
 
 			//------------- RESOLUCAO MALHA CONTINUA ---------------------------------------------------------------------------------------
-			/*TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel,nDiv_DirectRefPonto, false, 4);
+			TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel,nDiv_DirectRefPonto, false, 4);
 			ofstream arg("gmeshContin.txt");
 			gmesh->Print(arg);
 		
@@ -70,6 +70,16 @@ int main(int argc, char *argv[])
 		
 				
 			TPZCompMesh * cmesh = Shell->MalhaCompGen(gmesh, p);
+            
+            int nEqfem = cmesh->NEquations();
+            TPZAdmChunkVector<TPZConnect > veccon =cmesh->ConnectVec();
+            int npfem = veccon.NElements();
+            int ndoffem=0;
+            for (int i = 0; i<npfem; i++) {
+                TPZConnect &df = veccon[i];
+                ndoffem += df.NDof();
+            }
+            
 			TPZAnalysis an(cmesh);
 			ofstream arg4("cmeshContin.txt");
 			cmesh->Print(arg4);
@@ -84,27 +94,40 @@ int main(int argc, char *argv[])
 			cmesh = 0;
 			delete gmesh;
 			gmesh = 0;
-		*/	
+			
 			outfile <<"\n Termo de simetria, sim = " << sim <<endl;	
 			outfile <<"=====Calculo com, nh = " << nh << ", Ndiv = "<< ndiv <<" e p = " << p <<endl;
+            outfile <<" Numero de graus de liberdade = " << ndoffem<< "  Numero de Equacoes = "<<nEqfem<<endl;
 			outfile<<" RefDirAnel = "<< nDiv_DirectRefAnel<<"   RefDirCasca = "<< nDiv_DirectRefCasca<<" e   RefDirPonto = "<< nDiv_DirectRefPonto<<endl<<endl;
-		/*	outfile<<"RESULTADOS SEM INTERFACE"<<endl;
-			outfile <<" MomentoR = "<<QeM[0]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[0])/Mreal)*100.<<" %"<<endl;
-			outfile <<" MomentoL = "<<QeM[2]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[2])/Mreal)*100.<<" %"<<endl;
+			outfile<<"RESULTADOS SEM INTERFACE"<<endl;
+//			outfile <<" MomentoR = "<<QeM[0]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[0])/Mreal)*100.<<" %"<<endl;
+//			outfile <<" MomentoL = "<<QeM[2]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[2])/Mreal)*100.<<" %"<<endl;
+//			outfile <<" MomentoMedia = "<<QeM[4]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[4])/Mreal)*100.<<" %"<<endl;
+//			outfile <<endl;
+//			outfile <<" CortanteR = "<<QeM[1]<<"  Erro Relativo ==> " << fabs((Qreal - QeM[1])/Qreal)*100.<<" %"<<endl;
+//			outfile <<" CortanteL = "<<QeM[3]<<"  Erro Relativo ==> " << fabs((Qreal - QeM[3])/Qreal)*100.<<" %"<<endl;
+//			outfile <<" CortanteMedia= "<<QeM[5]<<"  Erro Relativo ==> " << fabs((Qreal - QeM[5])/Qreal)*100.<<" %"<<endl;
+//			outfile <<endl;
+//			outfile <<" T1zR = "<<QeM[6]<<endl;
+//			outfile <<" T1zL = "<<QeM[7]<<endl;
+//			outfile <<" T1z = "<<QeM[8]<<endl;
+//			outfile <<endl;
+            outfile <<" MomentoR = "<<QeM[0]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[0])/Mreal)*100.<<" %"<<endl;
+			outfile <<" MomentoL = "<<QeM[2]<<"  Erro Relativo ==> " << fabs((Mreal - (-QeM[2]))/Mreal)*100.<<" %"<<endl;
 			outfile <<" MomentoMedia = "<<QeM[4]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[4])/Mreal)*100.<<" %"<<endl;
 			outfile <<endl;
 			outfile <<" CortanteR = "<<QeM[1]<<"  Erro Relativo ==> " << fabs((Qreal - QeM[1])/Qreal)*100.<<" %"<<endl;
-			outfile <<" CortanteL = "<<QeM[3]<<"  Erro Relativo ==> " << fabs((Qreal - QeM[3])/Qreal)*100.<<" %"<<endl;
+			outfile <<" CortanteL = "<<QeM[3]<<"  Erro Relativo ==> " << fabs((Qreal - (-QeM[3]))/Qreal)*100.<<" %"<<endl;
 			outfile <<" CortanteMedia= "<<QeM[5]<<"  Erro Relativo ==> " << fabs((Qreal - QeM[5])/Qreal)*100.<<" %"<<endl;
 			outfile <<endl;
 			outfile <<" T1zR = "<<QeM[6]<<endl;
 			outfile <<" T1zL = "<<QeM[7]<<endl;
 			outfile <<" T1z = "<<QeM[8]<<endl;
 			outfile <<endl;
+
 		
-		*/
 		
-			//------------- RESOLUCAO MALHA DESCONTINUA ---------------------------------------------------------------------------------------
+/*			//------------- RESOLUCAO MALHA DESCONTINUA ---------------------------------------------------------------------------------------
 			TPZGeoMesh * gmesh2 = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel, nDiv_DirectRefPonto, true, 4);
 							
 			Shell->RefinamentoUniforme(*gmesh2, nh);
@@ -157,6 +180,7 @@ int main(int argc, char *argv[])
 			outfile <<" T1zL = "<<QeM2[7]<<endl;
 			outfile <<" T1z = "<<QeM2[8]<<endl;
 			outfile <<endl;
+ */
 	
 		}
 	}

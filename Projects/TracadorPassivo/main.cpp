@@ -118,7 +118,8 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 bool ftriang = false;
 bool fishomogmedium = false;
-bool recgrad = true;
+int fhetertest = 4;
+bool recgrad = false;
 bool useRK2 = false;
 
 REAL ftimeatual = 0.;
@@ -282,7 +283,7 @@ int main(int argc, char *argv[])
     
     REAL tempoAdimens = (num/denom)*tempoSeg;
     int temp = (int)tempoAdimens*fporos;
-    REAL tD = (1.*temp + 1.);
+    REAL tD = (temp + 1.);
 
     REAL deltaX = Ly/(pow(2.,h));
 
@@ -1358,21 +1359,104 @@ void Permeability(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL LyD = fLy/fLref;
     REAL LxD = fLx/fLref;
     
-    REAL dx = LxD/(8.);
-    REAL dy = LyD/(8.);
-    
-   
-    
-    //disp[0] = k1;
-    if((x>= dx && x<=2.*dx) && (y>= 4.*dy && y<=LyD))
+    if(fhetertest==1)
     {
-        disp[0] = k2D;
+        REAL dx = LxD/(8.);
+        REAL dy = LyD/(8.);
+        
+        //disp[0] = k1;
+        if((x>= dx && x<=2.*dx) && (y>= 4.*dy && y<=LyD))
+        {
+            disp[0] = k2D;
+        }
+        else if ((x>= 6.*dx && x<=7.*dx) && (y>= 0. && y<= 4.*dy))
+        {
+            disp[0] = k2D;
+        }
+            else disp[0] = k1D;
     }
-    else if ((x>= 6.*dx && x<=7.*dx) && (y>= 0. && y<= 4.*dy))
+    
+    if(fhetertest==2)
     {
-        disp[0] = k2D;
+        REAL dx = LxD/(64.);
+        REAL dy = LyD/(16.);
+        
+        //disp[0] = k1;
+        if((/*(x>=0. && x<=2.*dx) ||*/ (x>=14.*dx && x<=18.*dx) || (x>=30.*dx && x<=34.*dx) || (x>=46.*dx && x<=50.*dx) || (x>=62.*dx && x<=LxD)) && (y>= 0. && y<= 12.*dy))
+        {
+            disp[0] = k2D;
+        }
+        else if (((x>=6.*dx && x<=10.*dx) || (x>=22.*dx && x<=26.*dx) || (x>=38.*dx && x<=42.*dx) || (x>=54.*dx && x<=58.*dx)) && (y>= 4.*dy && y<=LyD))
+        {
+            disp[0] = k2D;
+        }
+        else disp[0] = k1D;
     }
-    else disp[0] = k1D;
+    
+    if(fhetertest==3)
+    {
+        REAL dx = LxD/(64.);
+        REAL dy = LyD/(16.);
+        
+        if(((x>=12.*dx && x<=20.*dx)/*|| (x>=28.*dx && x<=36.*dx)*/ || (x>=44.*dx && x<=52.*dx)) && (y>= 4.*dy && y<=12.*dy))
+        {
+            disp[0] = k2D;
+        }
+        else disp[0] = k1D;
+    }
+    
+    if(fhetertest==4)
+    {
+        REAL f1 = 0., f3 = 0.,f2 = 0.,f4 = 0.,f5 = 0;
+        REAL temp1=0., temp2=0., temp3=0., temp4 =0., temp5;
+        
+        temp1 = -4.11184*x*x + (6.57895 - 65.7895*y)*y +x*(1.64474 + 29.6053*y);
+        f1 = 0.0850595*exp(temp1);
+        
+        temp2 = -0.0868056*x*x + (50.- 138.889*y)*y + x*(-0.9375 + 5.55556*y);
+        f2 = 0.00714023*exp(temp2);
+        
+        temp3 = -80.3472 - 0.0868056*x*x + (211.111- 138.889*y)*y + x*(-4.09722 + 5.55556*y);
+        f3 = 0.663146*exp(temp3);
+        
+        temp4 = -62.5 - 4.11184*x*x + x*(31.25 - 29.6053*y) + (125.0 - 65.7895*y)*y;
+        f4 = 2.28204*exp(temp4);
+        
+        temp5 = -2.864788975654116*x*x;
+        f5 = 1.909859317102744*exp(temp5);
+        
+        REAL eps = 0.00001;
+        disp[0] =  (f2 + f3 + f5/4.) + (f1 + f4)/4. + eps;
+        //disp[0] = 1 - (f1 + f4)/4. + eps;
+        //disp[0] = (2.*f5 + (f1 + f4))/4.5641 + eps;
+    }
+    
+    if(fhetertest==5)
+    {
+        REAL f1 = 0., f2 = 0.;
+        REAL temp1=0., temp2=0.;
+        
+        temp1 = -1.04167*x*x + (8.33333 - 16.6667*y)*y + x*(2.08333 + 4.16667*y);
+        f1 =0.0178078*exp(temp1);
+        
+        temp2 = -12.5 - 1.04167*x*x + x*(6.25 - 4.16667*y) + (25.0 - 16.6667*y)*y;
+        f2 = 1.1486*exp(temp2);
+        
+        disp[0] = 1.149 - (f1 + f2)/2.;
+    }
+    
+    if(fhetertest==6)
+    {
+        REAL f1 = 0.;
+        REAL temp1=0.;
+        
+        temp1 = -0.789141*x*x + x*(2.84091 + 0.631313*y) + (11.3636 - 12.6263*y)*y;
+        f1 =0.00340644*exp(temp1);
+        
+        disp[0] = 1. - f1 ;
+    }
+
+
 }
 
 TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCompMesh* mphysics){

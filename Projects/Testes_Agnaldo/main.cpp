@@ -89,8 +89,10 @@ int main_Loula(int argc, char *argv[])
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    bool triang=true;
+    bool triang=false;
     bool dimensionless = true;
+    
+    int nthreads = 8;
     
     REAL Eyoung = 3.e4;
     REAL poisson = 0.2;
@@ -145,7 +147,7 @@ int main_Loula(int argc, char *argv[])
     ofstream saidaerro("Erro.txt");
     
     
-    for(int p = 3; p < 4; p++)
+    for(int p = 2; p < 3; p++)
     {
         int pu = p;
         int pq = pu;
@@ -159,7 +161,7 @@ int main_Loula(int argc, char *argv[])
         
         int h;
         saidaerro<<"\n CALCULO DO ERRO, ELEM. TRIANG., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 4; h< 5; h++)
+        for (h = 3; h< 4; h++)
         {
         
         saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
@@ -257,7 +259,7 @@ int main_Loula(int argc, char *argv[])
         mymaterial->SetTimeStep(deltaT);
         REAL maxTime = timeT;
 
-       // mydata->SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics,1,ftimeatual);
+       // mydata->SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics,intervsaidas,ftimeatual);
 
 
         //Saida dos erros
@@ -294,12 +296,12 @@ int main_Loula(int argc, char *argv[])
 //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
         
         //Criando matriz de massa (matM)
-        TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
+        TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics,nthreads);
         
         //Criando matriz de rigidez (matK) e vetor de carga
         TPZFMatrix<STATE> matK;
         TPZFMatrix<STATE> fvec;
-        mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+        mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec,nthreads);
         
         int nrows;
         nrows = matM->Rows();
@@ -523,14 +525,16 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 
 
 //problema de Terzaghi com Se!=0
-int main_Terzaghi(int argc, char *argv[]){
+int main(int argc, char *argv[]){
 #ifdef LOG4CXX
 	std::string logs("../logporoelastc2d.cfg");
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    bool triang = false;
-   fdimensionless = true;
+    int nthreads = 0;
+    
+    bool triang = true;
+    fdimensionless = true;
     
     REAL Eyoung = 1.e5;
     REAL poisson = 0.2;
@@ -595,7 +599,7 @@ int main_Terzaghi(int argc, char *argv[]){
     ofstream saidaerro("Erro.txt");
     
     
-    for(int p =2; p<3; p++)
+    for(int p =1; p<2; p++)
     {
         int pu = p;
         int pq = pu;
@@ -609,12 +613,13 @@ int main_Terzaghi(int argc, char *argv[]){
         
         int h;
         saidaerro<<"\n CALCULO DO ERRO, ELEM. QUAD., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 0; h< 7; h++)
+        for (h = 4; h< 5; h++)
         {
             
             saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
             // geometric mesh (initial)
             TPZGeoMesh * gmesh = mydata->GMesh(triang,Lx,Ly);
+            mydata->UniformRefine(gmesh, h);
             //mydata->RefiningNearLine(2, gmesh, 4);
 
 
@@ -626,7 +631,7 @@ int main_Terzaghi(int argc, char *argv[]){
 
             // Third computational mesh
             TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang, false);
-
+/*
             // Cleaning reference of the geometric mesh to cmesh1
             gmesh->ResetReference();
             cmesh1->LoadReferences();
@@ -649,18 +654,16 @@ int main_Terzaghi(int argc, char *argv[]){
 
             cmesh3->AdjustBoundaryElements();
             cmesh3->CleanUpUnconnectedNodes();
-
+*/
 
             //	Set initial conditions for pressure
             TPZAnalysis an3(cmesh3);
             int nrs = an3.Solution().Rows();
             TPZVec<STATE> solini(nrs,pini);
-
             TPZCompMesh  * cmeshL2 = mydata->CMeshPressureL2(gmesh, pp, solini,triang);
             TPZAnalysis anL2(cmeshL2);
             mydata->SolveSist(anL2, cmeshL2);
             //anL2.Solution().Print("sol");
-
             an3.LoadSolution(anL2.Solution());
 
             //malha multifisica
@@ -689,18 +692,18 @@ int main_Terzaghi(int argc, char *argv[]){
             std::string outputfile;
             outputfile = "TransientSolution";
 
-            //        std::stringstream outputfiletemp;
-            //        outputfiletemp << outputfile << ".vtk";
-            //        std::string plotfile = outputfiletemp.str();
-            //        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+//        std::stringstream outputfiletemp;
+//        outputfiletemp << outputfile << ".vtk";
+//        std::string plotfile = outputfiletemp.str();
+//        mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
 
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
+            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics, nthreads);
 
             //Criando matriz de rigidez (matK) e vetor de carga
             TPZFMatrix<STATE> matK;
             TPZFMatrix<STATE> fvec;
-            mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+            mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec, nthreads);
 
             int nrows;
             nrows = matM->Rows();
@@ -810,7 +813,7 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
     
     if(fdimensionless==true)
     {
-        for (in =0; in<1000; in++)
+        for (in =999; in >= 0; in--)
         {
             aux2 = 4./(PI*(2.*in + 1.));
             aux3 = PI*(2.*in + 1.)/2.;
@@ -831,7 +834,7 @@ void TerzaghiProblem1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
         flux(1,0) = -VDy;
         
     }else{
-        for (in =0; in<1000; in++)
+        for (in =999; in >= 0; in--)
         {
             aux2 = 4./(PI*(2.*in + 1.));
             aux3 = Pi*(2.*in + 1.)/(2.*H);
@@ -900,7 +903,7 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
     
     if(dimensionless==true)
     {
-        for (in =0; in<1000; in++)
+        for (in =999; in >= 0; in--)
         {
             aux2 = 4./(PI*(2.*in + 1.));
             aux3 = PI*(2.*in + 1.)/2.;
@@ -921,7 +924,7 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
         //flux(2,0) = -DivVD;
         
     }else{
-        for (in =0; in<1000; in++)
+        for (in = 999; in >= 0; in--)
         {
             aux2 = 4./(PI*(2.*in + 1.));
             aux3 = Pi*(2.*in + 1.)/(2.*H);
@@ -952,6 +955,8 @@ int main_BarryMarcer(int argc, char *argv[]){
     
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    
+    int nthreads = 8;
     
     bool triang = false;
     fdimensionless = true;
@@ -1162,12 +1167,12 @@ int main_BarryMarcer(int argc, char *argv[]){
             outputfile = "TransientSolution";
             
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mphysics);
+            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mphysics, nthreads);
             
             //Criando matriz de rigidez (matK) e vetor de carga
             TPZFMatrix<STATE> matK;
             TPZFMatrix<STATE> fvec;
-            mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec);
+            mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec, nthreads);
             
             int nrows;
             nrows = matM->Rows();
@@ -1183,7 +1188,7 @@ int main_BarryMarcer(int argc, char *argv[]){
                 ftimeatual  = TimeValue;
                 // This time solution i for Transient Analytic Solution
                 matM->Multiply(Lastsolution,TotalRhstemp);
-                mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec);
+                mydata->StiffMatrixLoadVec(mphysics, an, matK, fvec, nthreads);
                 
                 TotalRhs = fvec + TotalRhstemp;
                 an.Rhs() = TotalRhs;
@@ -2105,12 +2110,13 @@ void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #include "pzgradientreconstruction.h"
 
 //Problema Barry and Mercer: pressure solution
-int main(int argc, char *argv[]){
+int main_BarryMercerPressureSolution(int argc, char *argv[]){
     
     //    #ifdef LOG4CXX
     //        InitializePZLOG();
     //    #endif
     
+    int nthreads = 8;
     
     bool triang = true;
     fdimensionless = true;
@@ -2251,7 +2257,7 @@ int main(int argc, char *argv[]){
             outputfile = "TransientSolution";
             
             //Criando matriz de massa (matM)
-            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics);
+            TPZAutoPointer <TPZMatrix<STATE> > matM = mydata->MassMatrix(mymaterial, mphysics, nthreads);
             
             //Criando matriz de rigidez (matK) e vetor de carga
             TPZFMatrix<STATE> matK;
@@ -2272,7 +2278,7 @@ int main(int argc, char *argv[]){
                 ftimeatual  = TimeValue;
                 // This time solution i for Transient Analytic Solution
                 matM->Multiply(Lastsolution,TotalRhstemp);
-                mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
+                mydata->StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec, nthreads);
                 
                 TotalRhs = fvec + TotalRhstemp;
                 an.Rhs() = TotalRhs;
