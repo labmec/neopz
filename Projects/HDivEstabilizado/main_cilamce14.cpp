@@ -109,7 +109,7 @@ bool IsContinuou = false;
 bool Useh2 = false;
 REAL Delta1 = 0.5;
 REAL Delta2 = 0.5;
-bool IsFullHdiv=false;
+bool IsFullHdiv=true;
 bool IsHomogeneo=true;
 
 //erros
@@ -130,13 +130,16 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
-    REAL Lx = 1.;
-    REAL Ly = 0.5;
+    REAL Lx=0., Ly=0.;
+    if(IsHomogeneo==true){
+        Lx = 1.;
+        Ly = 0.5;
+    }
     
     //ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
     ofstream saidaerro( "erros-hdiv-estab.txt");
 
-    for(int p = 1; p<2; p++)
+    for(int p = 4; p<5; p++)
     {
         int pq = p;
         int pp;
@@ -147,8 +150,8 @@ int main(int argc, char *argv[])
         }
         
         int ndiv;
-      //  saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 1; ndiv< 5; ndiv++)
+        saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
+        for (ndiv = 1; ndiv< 6; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -738,22 +741,26 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     material->SetPermeability(coefk);
     REAL coefvisc = 1.;
     material->SetViscosity(coefvisc);
-//    TPZFMatrix<REAL> Ktensor(dim,dim,0.);
-//    TPZFMatrix<REAL> InvK(dim,dim,0.);
-//    Ktensor(0,0)=1.; Ktensor(1,1)=1.;
-//    InvK=Ktensor;
-//    material->SetPermeabilityTensor(Ktensor,InvK);
+    
+    //permeabilidade
+    if(IsHomogeneo==true){
+        TPZFMatrix<REAL> Ktensor(dim,dim,0.);
+        TPZFMatrix<REAL> InvK(dim,dim,0.);
+        Ktensor(0,0)=1.; Ktensor(1,1)=1.;
+        InvK=Ktensor;
+        material->SetPermeabilityTensor(Ktensor,InvK);
+    }
+    else{
+        TPZAutoPointer<TPZFunction<STATE> > tensorK;
+        tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor);
+        material->SetPermeabilityFunction(tensorK);
+    }
     
     if(IsStab==true){
         material->SetStabilizedMethod();
         material->SetStabilizationCoeficients(Delta1,Delta2);
 	}
     if(IsStab==true && Useh2==true) material->SetHdois();
-    
-    //permeabilidade
-    TPZAutoPointer<TPZFunction<STATE> > tensorK;
-    tensorK = new TPZDummyFunction<STATE>(PermeabilityTensor);
-    material->SetPermeabilityFunction(tensorK);
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
