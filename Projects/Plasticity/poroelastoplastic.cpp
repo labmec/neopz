@@ -78,9 +78,7 @@ int startfrom = 0;
 #include "TPZTimer.h"
 
 
-
-
-int main ()
+int main2 ()
 {
     
 #ifdef MACOS
@@ -133,6 +131,8 @@ int main ()
 				
         if (modelMC)
         {
+//            REAL cohesion = 7.;
+//            REAL Phi = 0.25;
             REAL cohesion = A - C;
             REAL Phi = B*C;
             well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
@@ -161,6 +161,18 @@ int main ()
         save.OpenWrite("Wellbore0.bin");
         well.Write(save);
     }
+    
+    
+    {
+        
+        int nsteps = 5;
+        int numnewton = 90;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteInitialSimulation(nsteps, numnewton);
+        
+    }
+    
+    
     time2.stop();
     std::cout << "\n tempo 0 = "<< time2.seconds()<< std::endl;
     time2.reset();
@@ -185,6 +197,11 @@ int main ()
         well.Write(save);
         
     }
+    
+    
+    
+    
+    
     
     extern std::map<int,long> gF1Stat;
     extern std::map<int,long> gF2Stat;
@@ -212,7 +229,7 @@ int main ()
     }
     if (startfrom <= 2) {
         
-        
+        //well.PRefineElementAbove(0.0001, 3);
         well.DivideElementsAbove(0.0001);
         well.PRefineElementAbove(0.0001, 3);
         well.ExecuteSimulation();
