@@ -58,6 +58,10 @@ void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL 
 
 
 #include "pzlog.h"
+#include "tpztimer.h"
+#include "WellBoreAnalysis.h"
+#include "pzbfilestream.h"
+#include "TPZProjectEllipse.h"
 
 
 #ifdef LOG4CXX
@@ -65,136 +69,247 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 #endif
 
 
-int main2()
+void FindBug()
 {
-  
+#ifdef MACOS
     
-//    TPZSandlerDimaggio sandler;
-//    sandler.McCormicRanchSand(sandler);
-//    ofstream outfiletxty("MohrNetoy.txt");
-//        ofstream outfiletxtS("SandlerApplyLoad.txt");
-//    TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
-//    
-//    
-//    sandler.fIntegrTol = 1.e-12;
-//    sandler.SetIntegrTol(1.e-4);
-//    
-//    deltaeps.XX()= -0.0013;
-//    deltaeps.YY()=0;
-//    deltaeps.ZZ()=0;
-//    eps=deltaeps;
-//    
-//    
-//    for(int i=0;i<100;i++)
-//    {
-//        
-//        sandler.ApplyStrainComputeSigma(eps, sigma);
-//       // sandler.ApplyLoad(sigma, eps);
-//        
-//        TPZPlasticState<REAL> state = sandler.GetState();
-//        //state.Print(cout);
-//        if(i==49)
-//        {
-//            deltaeps*=-1;
-//        }
-//        
-//        outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
-//        eps+=deltaeps;
-//    }
-//    
-//    TPZSandlerDimaggio sandler2;
-//    sandler2.McCormicRanchSand(sandler2);
-//    sandler2.SetIntegrTol(0.0000001);
-//    deltaeps.XX()= 1.5*-0.065;
-//    deltaeps.YY()=0;
-//    deltaeps.ZZ()=0;
-//    eps=deltaeps;
-//    sandler2.ApplyStrainComputeSigma(eps, sigma);
-//    //outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
-//
-//    ///TESTE DE COMPRESSAO SIMPLES
-//    deltasigma.XX()=-0.8;
-//    deltasigma.YY()=deltasigma.XX()*0.6;
-//    deltasigma.ZZ()=deltasigma.YY();
-//    sigma=deltasigma;
-//    
-//    TPZSandlerDimaggio sandler3;
-//    sandler3.McCormicRanchSand(sandler3);
-//    
-//    for(int i=0;i<1;i++)
-//    {
-//        sandler3.ApplyLoad(sigma,eps);
-//        outfiletxtS << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
-//         sigma+=deltasigma;
-//    }
+    ENABLE_FPO_EXCEPTIONS;
+    ATTACH_FPO_SIGNAL;
     
-    /*
+#endif
     
+    TPZTimer time1,time2;
+    time1.start();
     InitializePZLOG();
-      ofstream outfiletxt("MohrNetox.txt");
-    ofstream outfiletxty("MohrNetoy.txt");
-    //   MohrCoulombTestX();
-    //   calctalude();
-    //   calcVonMisesBar();
-    TPZMohrCoulombNeto toto;
-    TPZTensor<REAL> epstotal,sigma,epsplastic;
-    TPZFNMatrix<36,REAL> tangent(6,6);
-    REAL deltaeps =0.00005;
-    epstotal.XX() = deltaeps;
-    TPZFMatrix<REAL> curve(7,2);
-
-    for(int i =1;i<360;i++)
+    gRefDBase.InitializeAllUniformRefPatterns();
+    
+    time2.start();
+    TPZWellBoreAnalysis well;
+    REAL innerradius = 4.25*0.0254;
+    REAL outerradius = 3.;
+    
+    REAL computedquarter = 7.05761678496926;
+    REAL sqj2_refine;
+    std::cout << std::setprecision(15);
+    int Startfrom=0;
+    if (Startfrom == 0)
     {
-        cout << "\n i = "<<i<<endl;
-        TPZMohrCoulombNeto::TComputeSequence memory;
-        memory = toto.ComputeSigma<REAL>(epstotal, sigma);
-        toto.CommitDeformation(epstotal,memory);
-        epstotal.XX()+=deltaeps;
-        //epsplastic=toto.fState.fEpsPlastic;
-        outfiletxty << epstotal.XX() << " " << sigma.XX() << "\n";
-        if(i==50 || i==80)
+        well.SetInnerOuterRadius(innerradius, outerradius);
+        TPZManVector<STATE,3> confinement(3,0.);
+        confinement[0] = -45.9;
+        confinement[1] = -62.1;
+        confinement[2] = -48.2;
+        
+        
+        //well.SetConfinementStresses(confinement, 28.9);
+        //
+        //REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
+        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
+        well.SetConfinementStresses(confinement, effectivePressure);
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL A = 152.54;
+        REAL B = 0.0015489;
+        REAL C = 146.29;
+        REAL R = 0.91969;
+        REAL D = 0.018768;
+        REAL W = 0.006605;
+        
+        
+        
+        
+        bool modelMC =false;
+        
+        if (modelMC)
         {
-            deltaeps*=-1;
+            //            REAL cohesion = 7.;
+            //            REAL Phi = 0.25;
+            REAL cohesion = 13.;
+            REAL Phi = 0.52;
+            well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+            sqj2_refine=0.001;
         }
+        else
+        {
+            well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+            sqj2_refine=0.0001;
+            
+        }
+        
+        int divisions = 20;
+        REAL delx = 0.2*innerradius*M_PI_2/divisions;
+        TPZManVector<int,2> numdiv(2,divisions);
+        numdiv[1] = 40;
+        well.SetMeshTopology(delx, numdiv);
+        well.GetCurrentConfig()->CreateMesh();
+        int porder = 2;
+        well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
+        //well.LinearConfiguration(1);
+        well.PostProcess(0);
+        TPZBFileStream save;
+        save.OpenWrite("wellbore0.bin");
+        well.Write(save);
+    }
+    
+    if (Startfrom ==1)
+    {
+        TPZBFileStream read;
+        read.OpenRead("wellbore0.bin");
+        well.Read(read);
+    }
+    
+    if (Startfrom <=1)
+    {
+        
+        int nsteps = 5;
+        int numnewton = 90;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteInitialSimulation(nsteps, numnewton);
+
+    }
+    
+    
+
+    if (Startfrom <=1)
+    {
+        std::cout << "\n ------- 1 -------- "<<std::endl;
+        
+        well.PRefineElementAbove(0.00001, 3);
+        well.DivideElementsAbove(0.00001);
+        well.ExecuteSimulation();
+        sqj2_refine=0.0007;
+        std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+        well.GetJ2Isoline(sqj2_refine, polygonalChainbase);
+        REAL maxy = well.GetCurrentConfig()->MaxYfromLastBreakout();
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+            if (it->second < maxy) {
+                polygonalChain.insert(std::make_pair(it->first,it->second));
+            }
+        }
+        if (polygonalChain.size()!=0)
+        {
+            TPZProjectEllipse ellips(polygonalChain);
+            TPZManVector<REAL,2> center(2),ratios(2),verify(2);
+            ellips.StandardFormatForSimpleEllipse(center, ratios);
+            verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
+            verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
+            REAL a = ratios[0];
+            REAL b = ratios[1];
+            well.AddEllipticBreakout(a, b);
+            
+        }
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("wellbore1.bin");
+        well.Write(save);
+        
+        
+    }
+    
+    if (Startfrom ==2)
+    {
+        TPZBFileStream read;
+        read.OpenRead("wellbore1.bin");
+        well.Read(read);
+    }
+    
+    if (Startfrom <=2)
+    {
+     
+        std::cout << "\n ------- 2 -------- "<<std::endl;
+        well.PRefineElementAbove(0.00001, 3);
+        well.DivideElementsAbove(0.00001);
+        well.ExecuteSimulation();
+        sqj2_refine=0.0007;
+        std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+        well.GetJ2Isoline(sqj2_refine, polygonalChainbase);
+        REAL maxy = well.GetCurrentConfig()->MaxYfromLastBreakout();
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+            if (it->second < maxy) {
+                polygonalChain.insert(std::make_pair(it->first,it->second));
+            }
+        }
+        if (polygonalChain.size()!=0)
+        {
+            TPZProjectEllipse ellips(polygonalChain);
+            TPZManVector<REAL,2> center(2),ratios(2),verify(2);
+            ellips.StandardFormatForSimpleEllipse(center, ratios);
+            verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
+            verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
+            REAL a = ratios[0];
+            REAL b = ratios[1];
+            well.AddEllipticBreakout(a, b);
+            
+        }
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("wellbore2.bin");
+        well.Write(save);
+        
+        
+    }
+    
+    if (Startfrom ==3)
+    {
+        TPZBFileStream read;
+        read.OpenRead("wellbore2.bin");
+        well.Read(read);
+    }
+    
+    if (Startfrom <=3)
+    {
+        
+        std::cout << "\n ------- 3 -------- "<<std::endl;
+        well.PRefineElementAbove(0.00001, 3);
+        well.DivideElementsAbove(0.00001);
+        well.ExecuteSimulation();
+        sqj2_refine=0.0007;
+        std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+        well.GetJ2Isoline(sqj2_refine, polygonalChainbase);
+        REAL maxy = well.GetCurrentConfig()->MaxYfromLastBreakout();
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+            if (it->second < maxy) {
+                polygonalChain.insert(std::make_pair(it->first,it->second));
+            }
+        }
+        if (polygonalChain.size()!=0)
+        {
+            TPZProjectEllipse ellips(polygonalChain);
+            TPZManVector<REAL,2> center(2),ratios(2),verify(2);
+            ellips.StandardFormatForSimpleEllipse(center, ratios);
+            verify[0] = ratios[0]/well.GetCurrentConfig()->fInnerRadius;
+            verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
+            REAL a = ratios[0];
+            REAL b = ratios[1];
+            well.AddEllipticBreakout(a, b);
+            
+        }
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("wellbore3.bin");
+        well.Write(save);
+        
         
     }
     
     
-    do {
-        TPZMohrCoulombNeto::TComputeSequence memory;
-        memory = toto.ComputeSigma(epstotal, sigma );
-#ifdef LOG4CXX
-        {
-            std::stringstream sout;
-            sout << "Deformation tensor ";
-            epstotal.Print(sout);
-            sout << "Stress tensor " << sigma;
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
-        
-        toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
-        toto.CommitDeformation(epstotal, memory);
-#ifdef LOG4CXX
-        {
-            std::stringstream sout;
-            sout << "Total deformation tensor ";
-            epstotal.Print(sout);
-            sout << "Stress tensor " << sigma;
-            tangent.Print("Tangent stress",sout);
-            toto.Print(sout);
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
-        epstotal.XX() += deltaeps;
-      
-        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
-        
-        
     
-    } while (epstotal.XX() < 0.0035);
+      
+}
 
-    */
+int main()
+{
+  
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    
+    FindBug();
+    
+
     return 0;
 }
 
