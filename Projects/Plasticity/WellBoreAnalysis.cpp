@@ -1855,11 +1855,25 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long>
 {
     fGMesh.ResetReference();
     fCMesh.LoadReferences();
+    TPZManVector<REAL,3> findel(3,0.),qsi(2,0.);
+    findel[0] = 0.108;
+    findel[1] = 0.0148;
+    long elindex = 0;
+    fCMesh.Reference()->FindElement(findel, qsi, elindex, 2);
+    TPZGeoEl *targetel = fCMesh.Reference()->ElementVec()[elindex];
+    TPZCompEl *targetcel = targetel->Reference();
+    long targetindex = targetcel->Index();
+    
     long nelem = fCMesh.NElements();
     for (long el=0; el<nelem; el++) {
         TPZCompEl *cel = fCMesh.ElementVec()[el];
         if (!cel) {
             continue;
+        }
+        int investigate = false;
+        if (el == targetindex) {
+            std::cout << "I should investigate\n";
+            investigate = true;
         }
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         if (!intel) {
@@ -1875,10 +1889,31 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long>
         int porder = intel->GetPreferredOrder();
         TPZStack<long> subels;
         long index = cel->Index();
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled() && investigate == true) {
+            std::stringstream sout;
+            cel->Reference()->Print(sout);
+            for (int in=0; in< cel->Reference()->NCornerNodes(); in++) {
+                cel->Reference()->NodePtr(in)->Print(sout);
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         intel->Divide(index, subels,0);
         for (int is=0; is<subels.size(); is++) {
             elindices.insert(subels[is]);
             TPZCompEl *subcel = fCMesh.ElementVec()[subels[is]];
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled() && investigate == true) {
+                std::stringstream sout;
+                subcel->Reference()->Print(sout);
+                for (int in=0; in< subcel->Reference()->NCornerNodes(); in++) {
+                    subcel->Reference()->NodePtr(in)->Print(sout);
+                }
+
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             TPZInterpolationSpace *subintel = dynamic_cast<TPZInterpolationSpace *>(subcel);
             if (!subintel) {
                 DebugStop();
@@ -2548,6 +2583,16 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
 
 void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 {
+#ifdef DEBUG
+    TPZManVector<REAL,3> findel(3,0.),qsi(2,0.);
+    findel[0] = 0.108;
+    findel[1] = 0.0148;
+    long elindex = 0;
+    fCMesh.Reference()->FindElement(findel, qsi, elindex, 2);
+    TPZGeoEl *targetel = fCMesh.Reference()->ElementVec()[elindex];
+    TPZCompEl *targetcel = targetel->Reference();
+    long targetindex = targetcel->Index();
+#endif
     
     int nelem = fGMesh.NElements();
     for(int el = 0; el < nelem; el++)
@@ -2584,19 +2629,73 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         int nodeIdlocal = 2;
         int nodeIdnodevec = -1;
         nodeIdnodevec = bcGel->NodeIndex(nodeIdlocal);
+#ifdef DEBUG
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            TPZManVector<TPZManVector<REAL,3>,3> allcoord(3);
+            std::stringstream sout;
+            sout << "Coordinates of the quadratic element before projecting\n";
+            for (int in=0; in<3; in++) {
+                allcoord[in].Resize(3, 0.);
+                bcGel->NodePtr(in)->GetCoordinates(allcoord[in]);
+                bcGel->NodePtr(in)->Print(sout);
+            }
+            for (int ic=0; ic<3; ic++) {
+                allcoord[2][ic] -= (allcoord[0][ic]+allcoord[1][ic])*0.5;
+            }
+            sout << "Relative position of the middle node " << allcoord[2];
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+#endif
         
         TPZManVector<REAL,3> nodeCoord(3,0.);
         fGMesh.NodeVec()[nodeIdnodevec].GetCoordinates(nodeCoord);
-        ProjectNode(nodeCoord);
+        bool adjusted = ProjectNode(nodeCoord);
+        
+#ifdef DEBUG
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            TPZManVector<TPZManVector<REAL,3>,3> allcoord(3);
+            std::stringstream sout;
+            sout << "Coordinates of the quadratic element after projecting\n";
+            for (int in=0; in<3; in++) {
+                allcoord[in].Resize(3, 0.);
+                bcGel->NodePtr(in)->GetCoordinates(allcoord[in]);
+                bcGel->NodePtr(in)->Print(sout);
+            }
+            for (int ic=0; ic<3; ic++) {
+                allcoord[2][ic] = nodeCoord[ic]-(allcoord[0][ic]+allcoord[1][ic])*0.5;
+            }
+            sout << "Relative position of the middle node " << allcoord[2];
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+#endif
         
         TPZGeoElSide neighSide(bcSide.Neighbour());
         while(neighSide != bcSide)
         {
+#ifdef DEBUG
+            long neighindex = neighSide.Element()->Index();
+            if (neighindex == elindex) {
+                std::cout << "I should stop\n";
+                std::cout << "One d element index = " << el << " node index " << nodeIdnodevec << std::endl;
+                fGMesh.NodeVec()[nodeIdnodevec].GetCoordinates(nodeCoord);
+                ProjectNode(nodeCoord);
+
+            }
+#endif
             TPZGeoEl * quadraticGel = TPZChangeEl::ChangeToQuadratic(&fGMesh, neighSide.Element()->Index());
             neighSide = quadraticGel->Neighbour(neighSide.Side());
         }
         
-        fGMesh.NodeVec()[nodeIdnodevec].SetCoord(nodeCoord);
+        if(adjusted)
+        {
+            fGMesh.NodeVec()[nodeIdnodevec].SetCoord(nodeCoord);
+        }
     }
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -2613,10 +2712,13 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
 {
     bool wasadjusted = false;
-    for (int ellips = fGreater.size()-1; ellips >=0; ellips--) {
+    bool considered = false;
+    int ellips = 0;
+    for (ellips = fGreater.size()-1; ellips >=0; ellips--) {
         if (co[1] > fSmaller[ellips]) {
             continue;
         }
+        considered = true;
         REAL a = fGreater[ellips];
         REAL b = fSmaller[ellips];
         REAL xadjust = a*sqrt(1.-co[1]*co[1]/(b*b));
@@ -2626,7 +2728,7 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
         }
         // only one adjustment can be applied
     }
-    if (!wasadjusted) {
+    if (!wasadjusted && !considered) {
         REAL radius = std::sqrt(co[0]*co[0]+co[1]*co[1]);
         if (fabs(radius-fInnerRadius) > 1.e-7) {
             wasadjusted = true;
