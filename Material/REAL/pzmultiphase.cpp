@@ -117,7 +117,7 @@ STATE TPZMultiphase::LameMu()
  */
 STATE TPZMultiphase::BiotAlpha()
 {
-    REAL alpha = 0.5;
+    REAL alpha = 1.0;
     return alpha;
 }
 
@@ -127,7 +127,7 @@ STATE TPZMultiphase::BiotAlpha()
  */
 STATE TPZMultiphase::Se()
 {
-    REAL Se = 0.8;
+    REAL Se = 1.0;
     return Se;
 }
 
@@ -910,6 +910,11 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZManVector<REAL,3> sol_p =    datavec[2].sol[0];
     TPZManVector<REAL,3> sol_s =    datavec[3].sol[0];
     TPZManVector<REAL,3> sol_qg =   datavec[4].sol[0];
+
+    TPZFMatrix<REAL> dsol_u = datavec[0].dsol[0];
+    TPZFMatrix<REAL> dsol_q =datavec[1].dsol[0];
+    TPZFMatrix<REAL> dsol_p =datavec[2].dsol[0];
+    TPZFMatrix<REAL> dsol_s =datavec[3].dsol[0];    
     
     REAL LambdaL, LambdaLU, MuL;
     REAL Balpha, Sestr;
@@ -935,6 +940,8 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     Balpha      = this->BiotAlpha();
     Sestr       = this->Se();
 
+    REAL Pressure = sol_p[0];
+    
     int VecPos= 0;
     this->Porosity(sol_p[VecPos], rockporosity, drockporositydp);
     this->RhoOil(sol_p[VecPos], oildensity, doildensitydp);
@@ -972,7 +979,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 				//	Derivative for Uy
 				du(1,1) = dphiU(0,ju)*datavec[0].axes(0,1)+dphiU(1,ju)*datavec[0].axes(1,1);
 				
-				if (fPlaneStress == 1)
+				if (this->fPlaneStress == 1)
 				{
 					/* Plain stress state */
 					ek(2*iu + FirstU, 2*ju + FirstU)	     += weight*((4*(MuL)*(LambdaL+MuL)/(LambdaL+2*MuL))*du(0,0)*du(0,1)		+ (2*MuL)*du(1,0)*du(1,1));
@@ -998,35 +1005,19 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 			}
 		}
         
-//		//	Matrix Qc
-//		//	Coupling matrix
-//		for(int in = 0; in < phrU; in++ )
-//		{
-//			du(0,0) = dphiu(0,in)*datavec[0].axes(0,0)+dphiu(1,in)*datavec[0].axes(1,0);
-//			du(1,0) = dphiu(0,in)*datavec[0].axes(0,1)+dphiu(1,in)*datavec[0].axes(1,1);
-//			
-//			for(int jn = 0; jn < phrP; jn++)
-//			{
-//				ek(2*in,2*phrU+jn) += (-1.)*Balpha*weight*(phiP(jn,0)*du(0,0));
-//				ek(2*in+1,2*phrU+jn) += (-1.)*Balpha*weight*(phiP(jn,0)*du(1,0));
-//			}
-//		}
-//		
-//		//	Matrix QcˆT
-//		//	Coupling matrix transpose
-//		for(int in = 0; in < phrU; in++ )
-//		{
-//			du(0,0) = dphiu(0,in)*datavec[0].axes(0,0)+dphiu(1,in)*datavec[0].axes(1,0);
-//			du(1,0) = dphiu(0,in)*datavec[0].axes(0,1)+dphiu(1,in)*datavec[0].axes(1,1);
-//			
-//			for(int jn = 0; jn < phrP; jn++)
-//			{
-//				ek(2*phrU+jn,2*in) += (-1.)*Balpha*weight*(phiP(jn,0)*du(0,0));
-//				ek(2*phrU+jn,2*in+1) += (-1.)*Balpha*weight*(phiP(jn,0)*du(1,0));
-//				
-//			}
-//		}
-        
+		//	Matrix Qc
+		//	Coupling matrix for Elastic equation
+		for(int in = 0; in < phrU; in++ )
+		{
+			du(0,0) = dphiU(0,in)*datavec[0].axes(0,0)+dphiU(1,in)*datavec[0].axes(1,0);
+			du(1,0) = dphiU(0,in)*datavec[0].axes(0,1)+dphiU(1,in)*datavec[0].axes(1,1);
+			
+			for(int jp = 0; jp < phrP; jp++)
+			{
+				ek(2*in + FirstU,jp + FirstP)    += (-1.0)*Balpha*weight*(phiP(jp,0)*du(0,0));
+				ek(2*in+1 + FirstU,jp + FirstP)  += (-1.0)*Balpha*weight*(phiP(jp,0)*du(1,0));
+			}
+		}
         
 
         REAL SaturationAtnplusOne = sol_s[0];
@@ -1268,7 +1259,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 {
                     ek(iq+ FirstQ,jsat + FirstS) -= weight * ( ( dbulkfwaterds * waterdensity + dbulkfoilds * oildensity ) * phiS(jsat,0) * (e1e1 + e2e2));
                 }
-                
             }
             else
             {
@@ -1286,28 +1276,90 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
         }
         
+        //  Poroelastic Contribution
+        REAL divphiU, divU, dsolU[2][2], dPhiU[2][2];
+        
+        dsolU[0][0] = dsol_u(0,0)*datavec[0].axes(0,0)+dsol_u(1,0)*datavec[0].axes(1,0); // dUx/dx
+        dsolU[1][0] = dsol_u(0,0)*datavec[0].axes(0,1)+dsol_u(1,0)*datavec[0].axes(1,1); // dUx/dy
+
+        dsolU[0][1] = dsol_u(0,1)*datavec[0].axes(0,0)+dsol_u(1,1)*datavec[0].axes(1,0); // dUy/dx
+        dsolU[1][1] = dsol_u(0,1)*datavec[0].axes(0,1)+dsol_u(1,1)*datavec[0].axes(1,1); // dUy/dy
+        divU = dsolU[0][0]+dsolU[1][1]+0.0;
+        
+        REAL PhiStar = Balpha * divU + Sestr * Pressure;       
+        
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         // d(porosity)/dPalpha
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=0; ip < phrP; ip++)
         {
-            
-            for (int jp=0; jp<phrP; jp++)
+            for (int ju = 0; ju < phrU; ju++)
             {
-                REAL Integrating = phiP(ip,0) * drockporositydp * phiP(jp,0) * (waterdensity * (SaturationAtnplusOne) + oildensity * (1 - SaturationAtnplusOne));
+                TPZFMatrix<REAL>    du(2,2);               
+
+                du(0,0) = dphiU(0,ju)*datavec[0].axes(0,0); // dPhiU/dx dalphax
+                du(1,0) = dphiU(0,ju)*datavec[0].axes(0,1); // dPhiU/dy dalphax
+                
+                du(0,1) = dphiU(1,ju)*datavec[0].axes(1,0); // dPhiU/dx dalphay
+                du(1,1) = dphiU(1,ju)*datavec[0].axes(1,1); // dPhiU/dy dalphay        
+
+                divphiU = du(0,0)+du(1,0)+0.0;
+
+                REAL dPhiStardUx = Balpha * (du(0,0)+du(1,0));
+                REAL dPhiStardUy = Balpha * (du(0,1)+du(1,1));
+
+                REAL Integratingx = phiP(ip,0) * dPhiStardUx * (waterdensity * (SaturationAtnplusOne) + oildensity * (1 - SaturationAtnplusOne));
+                REAL Integratingy = phiP(ip,0) * dPhiStardUy * (waterdensity * (SaturationAtnplusOne) + oildensity * (1 - SaturationAtnplusOne));
+                
+                ek(ip + FirstP,2*ju + FirstU)       += (-1.0) * weight * Integratingx;
+                ek(ip + FirstP,2*ju + 1 + FirstU)   += (-1.0) * weight * Integratingy;
+            }
+        }
+        
+        //  Second Block (Equation Two) Bulk flux  equation
+        // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
+        // d(porosity)/dPalpha
+        for(int ip=0; ip < phrP; ip++)
+        {
+            for (int jp=0; jp < phrP; jp++)
+            {
+                REAL dPhiStardP = Sestr * phiP(jp,0);                  
+                REAL Integrating = phiP(ip,0) * dPhiStardP * (waterdensity * (SaturationAtnplusOne) + oildensity * (1 - SaturationAtnplusOne));
+                ek(ip + FirstP,jp + FirstP) += (-1.0) * weight * Integrating;
+            }
+        }
+        
+        //  Second Block (Equation Two) Bulk flux  equation
+        // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
+        // d(porosity)/dPalpha
+        for(int ip=0; ip < phrP; ip++)
+        {
+            for (int jp=0; jp < phrP; jp++)
+            {
+                REAL Integrating = phiP(ip,0) * PhiStar * (dwaterdensitydp * (SaturationAtnplusOne) + doildensitydp * (1 - SaturationAtnplusOne)) * phiP(jp,0);
                 ek(ip + FirstP,jp + FirstP) -=  weight * Integrating;
             }
-            
+        }        
+        
+        //  Second Block (Equation Two) Bulk flux  equation
+        // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
+        // d(porosity)/dPalpha
+        for(int ip=0; ip < phrP; ip++)
+        {
+            for (int jp=0; jp < phrP; jp++)
+            {
+                REAL Integrating = phiP(ip,0) * drockporositydp * phiP(jp,0) * (waterdensity * (SaturationAtnplusOne) + oildensity * (1 - SaturationAtnplusOne));
+                ek(ip + FirstP,jp + FirstP) +=  (-1.0) * weight * Integrating;
+            }
         }
         
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         // d(porosity)/dPalpha
-        for(int ip=0; ip<phrP; ip++)
+        for(int ip=0; ip < phrP; ip++)
         {
-            
-            for (int jp=0; jp<phrP; jp++)
+            for (int jp=0; jp < phrP; jp++)
             {
                 REAL Integrating = phiP(ip,0) * rockporosity * (dwaterdensitydp * (SaturationAtnplusOne) + doildensitydp * (1 - SaturationAtnplusOne)) * phiP(jp,0);
                 ek(ip + FirstP,jp + FirstP) -=  weight * Integrating;
@@ -1320,7 +1372,19 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         // d(S1)/dSalpha
         for(int ip=0; ip<phrP; ip++)
         {
+            for (int jsat=0; jsat<phrS; jsat++)
+            {
+                REAL Integrating = phiP(ip,0) * PhiStar * (waterdensity - oildensity) * phiS(jsat,0);
+                ek(ip + FirstP,jsat + FirstS) -=  weight * Integrating;
+            }
             
+        }        
+        
+        //  Second Block (Equation Two) Bulk flux  equation
+        // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
+        // d(S1)/dSalpha
+        for(int ip=0; ip<phrP; ip++)
+        {
             for (int jsat=0; jsat<phrS; jsat++)
             {
                 REAL Integrating = phiP(ip,0) * rockporosity * (waterdensity - oildensity) * phiS(jsat,0);
@@ -1328,8 +1392,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             }
             
         }
-        
-        
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[dot(grad(w),v), Omega_{e}] (Equation Two)
@@ -1351,10 +1413,21 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 (dsolp[1]) * (phiQ(jshapeindex,0)*datavec[1].fNormalVec(1,jvectorindex)) ;
                 
                 ek(ip + FirstP,jq + FirstQ) += (Gamma) * (TimeStep) * weight * dotprod;
-                
             }
             
         }
+        
+        //  Third Vector Block (Equation three)
+        //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
+        for(int isat=0; isat<phrS; isat++)
+        {
+            
+            for (int jsat=0; jsat<phrS; jsat++)
+            {
+                ek(isat + FirstS,jsat+ FirstS) +=  (PhiStar * waterdensity) * weight * phiS(isat,0) * phiS(jsat,0);
+            }
+            
+        }        
         
         //  Third Vector Block (Equation three)
         //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
@@ -1368,6 +1441,43 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
         }
         
+        //  Poroelastic contribution        
+        //  Third Vector Block (Equation three)
+        //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
+        for(int isat=0; isat<phrS; isat++)
+        {
+            for (int ju=0; ju<phrU; ju++)
+            {
+                TPZFMatrix<REAL>    du(2,2);          
+
+                du(0,0) = dphiU(0,ju)*datavec[0].axes(0,0); // dPhiU/dx dalphax
+                du(1,0) = dphiU(0,ju)*datavec[0].axes(0,1); // dPhiU/dy dalphax
+
+                du(0,1) = dphiU(1,ju)*datavec[0].axes(1,0); // dPhiU/dx dalphay
+                du(1,1) = dphiU(1,ju)*datavec[0].axes(1,1); // dPhiU/dy dalphay        
+
+                divphiU = du(0,0)+du(1,0)+0.0;
+
+                REAL dPhiStardUx = Balpha * (du(0,0)+du(1,0));
+                REAL dPhiStardUy = Balpha * (du(0,1)+du(1,1));
+
+                ek(isat + FirstS,2*ju + FirstU)     += weight * (dPhiStardUx * waterdensity) * SaturationAtnplusOne * phiS(isat,0);
+                ek(isat + FirstS,2*ju + 1 + FirstU) += weight * (dPhiStardUy * waterdensity) * SaturationAtnplusOne * phiS(isat,0);                
+            }
+        }           
+        
+        //  Poroelastic contribution
+        //  Third Vector Block (Equation three)
+        //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
+        for(int isat=0; isat<phrS; isat++)
+        {
+            for (int jp=0; jp<phrP; jp++)
+            {
+                REAL dPhiStardP =  Sestr * phiP(jp,0);                   
+                ek(isat + FirstS,jp + FirstP) += weight * (dPhiStardP * waterdensity + PhiStar * dwaterdensitydp * phiP(jp,0)) * SaturationAtnplusOne * phiS(isat,0);
+            }
+        }
+
         //  Third Vector Block (Equation three)
         //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
         for(int isat=0; isat<phrS; isat++)
@@ -1397,10 +1507,8 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
             for (int jsat=0; jsat<phrS; jsat++)
             {
-                ek(isat + FirstS,jsat + FirstS) -= (Theta) * (TimeStep) * weight * dbulkfwaterds * phiS(jsat,0) * dotprod;
-                
+                ek(isat + FirstS,jsat + FirstS) -= (Theta) * (TimeStep) * weight * dbulkfwaterds * phiS(jsat,0) * dotprod;   
             }
-            
         }
         
         //  Third Vector Block (Equation three)
@@ -1513,7 +1621,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<> axesQ, axesP;
     axesQ=datavec[1].axes;
     
-    //    REAL Pressure = sol_p[0];
+    REAL Pressure = sol_p[0];
     
     REAL LambdaL, LambdaLU, MuL;
     REAL Balpha, Sestr;    
@@ -1618,6 +1726,17 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 }
         }
         
+        //  Matrix Qc
+        //  Coupling matrix for Elastic equation
+        for(int in = 0; in < phrU; in++ )
+        {
+            du(0,0) = dphiU(0,in)*datavec[0].axes(0,0)+dphiU(1,in)*datavec[0].axes(1,0);
+            du(1,0) = dphiU(0,in)*datavec[0].axes(0,1)+dphiU(1,in)*datavec[0].axes(1,1);
+            
+            ef(2*in + FirstU)    += (-1.0)*Balpha*weight*(Pressure*du(0,0));
+            ef(2*in+1 + FirstU)  += (-1.0)*Balpha*weight*(Pressure*du(1,0));
+        }        
+        
         //  This block was verified
         REAL SaturationAtnplusOne = sol_s[0];
         //  First Block (Equation One) constitutive law
@@ -1650,10 +1769,9 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         }
         
         
-        //      This block was verified
+        //  This block was verified
         //  First Block (Equation One) constitutive law
         //  Integrate [ K dot(v,grad(P)) , Omega_{e}]   (Equation One)
-        
         //  Compute grad(P)
         TPZManVector<STATE> dsolp(2,0);
         dsolp[0] = dsol_p(0,0)*datavec[2].axes(0,0)+dsol_p(1,0)*datavec[2].axes(1,0);
@@ -1667,7 +1785,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
             if (fnewWS)
             {
-                
                 REAL e1e1   =   (phiQ(ishapeindex,0)*datavec[1].fNormalVec(0,ivectorindex))*(dsolp[0]);
                 REAL e2e2   =   (phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex))*(dsolp[1]);
                 
@@ -1680,10 +1797,9 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 
                 REAL e2e2   =   (Kabsolute(1,0)*(dsolp[0])+
                                  Kabsolute(1,1)*(dsolp[1]))*(phiQ(ishapeindex,0)*datavec[1].fNormalVec(1,ivectorindex));
-                
+
                 ef(iq + FirstQ) += weight * (e1e1 + e2e2);
             }
-            
         }
         
         
@@ -1718,15 +1834,33 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             
         }
         
+        //  Poroelastic Contribution
+        REAL divU, dsolU[2][2];
+        dsolU[0][0] = dsol_u(0,0)*datavec[0].axes(0,0)+dsol_u(1,0)*datavec[0].axes(1,0); // dUx/dx
+        dsolU[1][0] = dsol_u(0,0)*datavec[0].axes(0,1)+dsol_u(1,0)*datavec[0].axes(1,1); // dUx/dy
+
+        dsolU[0][1] = dsol_u(0,1)*datavec[0].axes(0,0)+dsol_u(1,1)*datavec[0].axes(1,0); // dUy/dx
+        dsolU[1][1] = dsol_u(0,1)*datavec[0].axes(0,1)+dsol_u(1,1)*datavec[0].axes(1,1); // dUy/dy
+
+        divU = dsolU[0][0]+dsolU[1][1]+0.0;
+        REAL PhiStar = Balpha * divU + Sestr * Pressure;
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         for(int ip=0; ip<phrP; ip++)
         {
             // Here rockporosity is the poroelastic contribution
+            REAL Integrating = phiP(ip,0) * PhiStar * (waterdensity * SaturationAtnplusOne + oildensity * (1 - SaturationAtnplusOne));
+            ef(ip + FirstP) += (-1.0) * weight * Integrating;
+        }
+       
+        //  Second Block (Equation Two) Bulk flux  equation
+        // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
+        for(int ip=0; ip<phrP; ip++)
+        {
+            // Here rockporosity is the poroelastic contribution
             REAL Integrating = phiP(ip,0) * rockporosity * (waterdensity * SaturationAtnplusOne + oildensity * (1 - SaturationAtnplusOne));
-            ef(ip + FirstP) -= weight * Integrating;
-            
+            ef(ip + FirstP) += (-1.0) * weight * Integrating;
         }
         
         //  Second Block (Equation Two) Bulk flux  equation
@@ -1734,7 +1868,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //      This block was verified
         for(int ip=0; ip<phrP; ip++)
         {
-            
             //  Compute grad(W)
             TPZManVector<STATE> dsolp(2,0);
             dsolp[0] = dphiP(0,ip)*datavec[2].axes(0,0)+dphiP(1,ip)*datavec[2].axes(1,0);
@@ -1745,13 +1878,21 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             (dsolp[1]) * (sol_q[1]);
             
             ef(ip + FirstP) += (Gamma) * (TimeStep) * weight * dotprod;
-            
         }
         
-        
-        //      This block was verified
+        //  Poroelastic Contribution
         //  Third Vector Block (Equation three)
-        // Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
+        //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
+        for(int isat=0; isat<phrS; isat++)
+        {
+            // Here rockporosity is the poroelastic contribution            
+            ef(isat + FirstS) += weight * (PhiStar * waterdensity) * phiS(isat,0) * SaturationAtnplusOne;
+        }        
+        
+        
+        //  This block was verified
+        //  Third Vector Block (Equation three)
+        //  Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
         for(int isat=0; isat<phrS; isat++)
         {
             // Here rockporosity is the poroelastic contribution            
@@ -1764,7 +1905,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //  std::cout << "phrS:   " << phrS << "   \n" << std::endl;
         for(int isat=0; isat<phrS; isat++)
         {
-
             //  Compute grad(L)
             TPZManVector<STATE> Gradphis(2,0);
             Gradphis[0] = dphiS(0,isat)*datavec[3].axes(0,0)+dphiS(1,isat)*datavec[3].axes(1,0);
@@ -1784,6 +1924,27 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     if(gState == ELastState)
     {
         REAL SaturationAtnTimeStep = sol_s[0]; //   Gettin Saturation at n time step
+        
+        //  Poroelastic contribution
+        REAL divU, dsolU[2][2];
+        dsolU[0][0] = dsol_u(0,0)*datavec[0].axes(0,0)+dsol_u(1,0)*datavec[0].axes(1,0); // dUx/dx
+        dsolU[1][0] = dsol_u(0,0)*datavec[0].axes(0,1)+dsol_u(1,0)*datavec[0].axes(1,1); // dUx/dy
+
+        dsolU[0][1] = dsol_u(0,1)*datavec[0].axes(0,0)+dsol_u(1,1)*datavec[0].axes(1,0); // dUy/dx
+        dsolU[1][1] = dsol_u(0,1)*datavec[0].axes(0,1)+dsol_u(1,1)*datavec[0].axes(1,1); // dUy/dy
+
+        divU = dsolU[0][0]+dsolU[1][1]+0.0;
+        REAL PhiStar = Balpha * divU + Sestr * Pressure;
+        
+        //  Second Block (Equation Two) Bulk flux  equation
+        // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
+        for(int ip = 0; ip < phrP; ip++)
+        {
+            // Here rockporosity is the poroelastic contribution            
+            REAL Integrating = phiP(ip,0) * PhiStar * (waterdensity * SaturationAtnTimeStep + oildensity * (1 - SaturationAtnTimeStep));
+            ef(ip + FirstP) += weight * Integrating;
+        }
+        
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[W*(d(\phi*(rho1 * S1 + rho2 * S2)/dt)), Omega_{e}] (Equation Two)
         for(int ip = 0; ip < phrP; ip++)
@@ -1798,7 +1959,6 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         //      This block was verified
         for(int ip=0; ip<phrP; ip++)
         {
-            
             //  Compute grad(W)
             TPZManVector<STATE> dsolp(2,0);
             dsolp[0] = dphiP(0,ip)*datavec[2].axes(0,0)+dphiP(1,ip)*datavec[2].axes(1,0);
@@ -1812,17 +1972,25 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         }
         
         
+        //  Poroelastic Contribution
         //  Third Vector Block (Equation three)
-        // (-1.0) * Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
-        
+        // Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
         for(int isat=0; isat<phrS; isat++)
         {
             // Here rockporosity is the poroelastic contribution            
-            ef(isat + FirstS) -= weight * (rockporosity * waterdensity) * phiS(isat,0) * SaturationAtnTimeStep;
+            ef(isat + FirstS) += (-1.0) * weight * (PhiStar * waterdensity) * phiS(isat,0) * SaturationAtnTimeStep;
         }
         
         //  Third Vector Block (Equation three)
-        // Integrate[dot(f1(S1)q,grad(L)), Omega_{e}]   (Equation three)
+        //  (-1.0) * Integrate[porosity*density*L*S, Omega_{e}] (Equation three)
+        for(int isat=0; isat<phrS; isat++)
+        {
+            // Here rockporosity is the poroelastic contribution            
+            ef(isat + FirstS) = (-1.0) * weight * (rockporosity * waterdensity) * phiS(isat,0) * SaturationAtnTimeStep;
+        }
+        
+        //  Third Vector Block (Equation three)
+        //  Integrate[dot(f1(S1)q,grad(L)), Omega_{e}]   (Equation three)
         for(int isat=0; isat<phrS; isat++)
         {
             //  Compute grad(L)
@@ -4616,7 +4784,9 @@ int TPZMultiphase::VariableIndex(const std::string &name){
     if(!strcmp("GravityVelocity",name.c_str()))        return  10;
     if(!strcmp("Kabsolute",name.c_str()))    return  11;
     if(!strcmp("SwExact",name.c_str()))    return  12;
-    if(!strcmp("Displacement",name.c_str()))    return  13;    
+    if(!strcmp("Displacement",name.c_str()))    return  13;
+    if(!strcmp("SigmaX",name.c_str()))                      return  14;
+    if(!strcmp("SigmaY",name.c_str()))                      return  15;    
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -4634,7 +4804,9 @@ int TPZMultiphase::NSolutionVariables(int var){
     if(var == 10) return 2;
     if(var == 11) return 3;
     if(var == 12) return 1;
-    if(var == 13) return 3;    
+    if(var == 13) return 3;  
+    if(var == 14) return 1;
+    if(var == 15) return 1;     
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -4649,6 +4821,20 @@ void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
     SolP = datavec[2].sol[0];
     SolS = datavec[3].sol[0];
     SolQG   = datavec[4].sol[0];
+    
+    TPZFNMatrix <6,STATE> dSolU;    
+    dSolU = datavec[0].dsol[0];
+    TPZFNMatrix <9> axesU;
+    axesU = datavec[0].axes;
+    
+    REAL epsx;
+    REAL epsy;
+    REAL epsxy;
+    REAL SigX;
+    REAL SigY;
+    REAL SigZ;
+    REAL Tau, DSolxy[2][2];
+    REAL divu;  
     
     if(var == 1){ //function (state variable Q)
         Solout[0] = SolQ[0];
@@ -4715,6 +4901,55 @@ void TPZMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
         Solout[2] = 0.0;        
         return;
     }    
+    
+
+                        
+    DSolxy[0][0] = dSolU(0,0)*axesU(0,0)+dSolU(1,0)*axesU(1,0); // dUx/dx
+    DSolxy[1][0] = dSolU(0,0)*axesU(0,1)+dSolU(1,0)*axesU(1,1); // dUx/dy
+    
+    DSolxy[0][1] = dSolU(0,1)*axesU(0,0)+dSolU(1,1)*axesU(1,0); // dUy/dx
+    DSolxy[1][1] = dSolU(0,1)*axesU(0,1)+dSolU(1,1)*axesU(1,1); // dUy/dy
+    
+    divu = DSolxy[0][0]+DSolxy[1][1]+0.0;   
+    
+    REAL lambda,lambdau, mu, Balpha, Sestr;
+        // Functions computed at point x_{k} for each integration point
+    lambda     = this->LameLambda();
+    lambdau    = this->LameLambdaU();
+    mu         = this->LameMu();
+    Balpha      = this->BiotAlpha();
+    Sestr       = this->Se();
+    
+    epsx = DSolxy[0][0];// du/dx
+    epsy = DSolxy[1][1];// dv/dy
+    epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+    REAL C11 = 4*(mu)*(lambda+mu)/(lambda+2*mu);
+    REAL C22 = 2*(mu)*(lambda)/(lambda+2*mu);
+    
+    if (this->fPlaneStress==1)
+    {
+        SigX = C11*epsx+C22*epsy;
+        SigY = C11*epsy+C22*epsx;
+        SigZ = 0.0;
+        Tau = 2.0*mu*epsxy;
+    }
+    else
+    {
+        SigX = ((lambda + 2*mu)*(epsx) + (lambda)*epsy - Balpha*SolP[0]);
+        SigY = ((lambda + 2*mu)*(epsy) + (lambda)*epsx - Balpha*SolP[0]);    
+        SigZ = lambda*divu - Balpha*SolP[0];
+        Tau = 2.0*mu*epsxy;        
+    }
+    
+    if(var == 14){ // (SigmaX)
+        Solout[0] = SigX;        
+        return;
+    }       
+
+    if(var == 15){ // (SigmaY)
+        Solout[0] = SigY;        
+        return;
+    }           
     
 }
 
