@@ -79,7 +79,7 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
 
 void ResetMesh(TPZCompMesh *cmesh);
 
-int main2(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	InitializePZLOG();
