@@ -32,7 +32,7 @@ class TPZMHMeshControl
     
     /// computational mesh to contain the pressure elements
     // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
-    TPZAutoPointer<TPZCompMesh> fPressureMesh;
+    TPZAutoPointer<TPZCompMesh> fPressureFineMesh;
     
     /// material id associated with the skeleton elements
     int fSkeletonMatId;
@@ -106,7 +106,7 @@ public:
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {
         meshvec.Resize(3);
-        meshvec[0] = fPressureMesh.operator->();
+        meshvec[0] = fPressureFineMesh.operator->();
         meshvec[1] = fCMeshLagrange.operator->();
         meshvec[2] = fCMeshConstantPressure.operator->();
     }

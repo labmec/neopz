@@ -38,7 +38,7 @@ fSkeletonMatId(0), fLagrangeMatIdLeft(50), fLagrangeMatIdRight(51), fCoarseIndic
 #endif
     
     fCMesh = new TPZCompMesh(fGMesh);
-    fPressureMesh = fCMesh;
+    fPressureFineMesh = fCMesh;
     fCMesh->SetDimModel(fGMesh->Dimension());
 }
 
@@ -56,7 +56,9 @@ TPZMHMeshControl &TPZMHMeshControl::operator=(const TPZMHMeshControl &cp){
     fCoarseIndices = cp.fCoarseIndices;
     fLagrangeAveragePressure = cp.fLagrangeAveragePressure;
     fCMesh = cp.fCMesh;
-    fPressureMesh = cp.fPressureMesh;
+    fPressureFineMesh = cp.fPressureFineMesh;
+    fpOrderSkeleton = cp.fpOrderSkeleton;
+    fpOrderInternal = cp.fpOrderInternal;
     return *this;
 }
 
@@ -66,6 +68,8 @@ void TPZMHMeshControl::CreateCoarseInterfaces(int matid)
     if (fInterfaces.size()) {
         DebugStop();
     }
+    
+    if(matid < 0) DebugStop();
     
     fSkeletonMatId = matid;
     
@@ -840,15 +844,15 @@ void TPZMHMeshControl::TransferToMultiphysics()
     fCMesh->SetAllCreateFunctionsMultiphysicElem();
     
     // copy the material objects
-    std::map<int,TPZMaterial *>::iterator it = fPressureMesh->MaterialVec().begin();
-    while (it != fPressureMesh->MaterialVec().end()) {
+    std::map<int,TPZMaterial *>::iterator it = fPressureFineMesh->MaterialVec().begin();
+    while (it != fPressureFineMesh->MaterialVec().end()) {
         it->second->Clone(fCMesh->MaterialVec());
         it++;
     }
     
-    long nel = fPressureMesh->NElements();
+    long nel = fPressureFineMesh->NElements();
     for (long el=0; el<nel; el++) {
-        TPZCompEl *cel = fPressureMesh->ElementVec()[el];
+        TPZCompEl *cel = fPressureFineMesh->ElementVec()[el];
         if (!cel) {
             continue;
         }
@@ -933,15 +937,15 @@ void TPZMHMeshControl::TransferToMultiphysics()
 
     //void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
     TPZManVector<TPZCompMesh *,3> cmeshvec(3,0);
-    cmeshvec[0] = fPressureMesh.operator->();
+    cmeshvec[0] = fPressureFineMesh.operator->();
     cmeshvec[1] = fCMeshLagrange.operator->();
     cmeshvec[2] = fCMeshConstantPressure.operator->();
     TPZCompMesh *cmesh = fCMesh.operator->();
     TPZBuildMultiphysicsMesh::AddConnects(cmeshvec,cmesh);
     
-    nel = fPressureMesh->NElements();
+    nel = fPressureFineMesh->NElements();
     for (long el=0; el<nel; el++) {
-        TPZCompEl *cel = fPressureMesh->ElementVec()[el];
+        TPZCompEl *cel = fPressureFineMesh->ElementVec()[el];
         if (!cel) {
             continue;
         }
@@ -963,7 +967,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
 
     
     nel = fCMeshConstantPressure->NElements();
-    long npressconnect = fPressureMesh->NConnects();
+    long npressconnect = fPressureFineMesh->NConnects();
     long nlagrangeconnect = fCMeshLagrange->NConnects();
     // nel numero de dominios MHM, tem um connect associado a cada um e os mesmos estao no final
     for (long el=0; el<nel; el++)
