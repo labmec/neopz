@@ -12,7 +12,7 @@
 TPZDPGMeshControl::TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : fGMesh(gmesh), fPOrderCoarseInternal(-1)
 {
  
-    fPressureCoarseMesh = new TPZCompMesh(fGMesh);
+    //fPressureCoarseMesh = new TPZCompMesh(fGMesh);
     
     fMHMControl  = new TPZMHMeshControl(fGMesh,coarseindices);
 }
