@@ -137,6 +137,9 @@ int main(int argc, char *argv[])
     dims[0]=2;
     nref = 2;
     RefinamentoUniforme(gmesh2, nref, dims);
+    //--------------------------------------------------
+    
+    
 	
 	return EXIT_SUCCESS;
 }
