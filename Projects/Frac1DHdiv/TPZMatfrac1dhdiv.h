@@ -37,12 +37,7 @@ protected:
     /** @brief State: Stiffness or Mass Matrix Calculations */
     enum EState { ELastState = 0, ECurrentState = 1 };
     EState gState;
-    
-#ifdef _AUTODIFF
-    
-    typedef TFad<6, REAL> MFad; // Material Fad
-    
-#endif
+  
     
 public:
     
