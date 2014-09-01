@@ -20,6 +20,7 @@ TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMaterial()
   fTheta = 0.0;
   fDeltaT = 0.0;
   fmu = 0.;
+  this->SetCurrentState();
 }
 
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMaterial(matid)
@@ -28,6 +29,7 @@ TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMaterial(matid)
   fTheta = 0.0;
   fDeltaT = 0.0;
   fmu = 0.;
+  this->SetCurrentState();
 }
 
 
@@ -38,7 +40,7 @@ TPZMatfrac1dhdiv::~TPZMatfrac1dhdiv()
 
 int TPZMatfrac1dhdiv::Dimension() const {return fDim;};
 
-int TPZMatfrac1dhdiv::NStateVariables() {return 2;}
+int TPZMatfrac1dhdiv::NStateVariables() {return 1;}
 
 void TPZMatfrac1dhdiv::Print(std::ostream &out) {
   out << "name of material : " << Name() << "\n";
@@ -84,7 +86,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   const REAL dwdp = 0.;
   
   // Leak Off
-  const REAL ql = 0.;
+  const REAL ql = datavec[0].x[0];
   const REAL dqldp = 0.;
   
   //  Contribution of domain integrals for Jacobian matrix and Residual vector
@@ -105,7 +107,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
       }
     }
     for (int ip = 0; ip < phrP ; ip++) {
-      const REAL res = dQ * dphiP(0,ip) + 1./fDeltaT * w * phiP(ip,0) + ql * phiP(ip,0);
+      const REAL res = dQ * phiP(ip,0) + 1./fDeltaT * w * phiP(ip,0) + ql * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
         const REAL jac = dphiQ(0,jq) * phiP(ip,0);
@@ -188,7 +190,6 @@ void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
       for (int iq = 0; iq < phrQ; iq++) {
         ef(FirstQ+iq,0) += w*w*w/(12.*fmu) * v2 * phiQ(iq,0);
       }
-      DebugStop(); // Tenho derivada aqui???
     }
     break;
       
@@ -222,17 +223,17 @@ void TPZMatfrac1dhdiv::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
   const REAL SolP = datavec[1].sol[0][0];
   
   if(var == 0){ //function (state variable Q)
-    Solout[0] = SolQ;
+    Solout[0] = SolP;
     return;
   }
   
   if(var == 1){
-    Solout[0] = SolP;//function (state variable p)
+    Solout[0] = SolQ;//function (state variable p)
     return;
   }
   
   if (var == 2) {
-    const REAL w = 1.; // Trocar pela formula do w
+    const REAL w = 1.; // AQUINATHAN Trocar pela formula do w
     Solout[0] = w;
   }
 }
