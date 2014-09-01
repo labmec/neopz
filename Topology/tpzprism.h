@@ -174,6 +174,9 @@ namespace pztopology {
 
 		/** @brief Volume of the master element*/
 		static REAL RefElVolume() { return 1.0L; }
+        
+        /* Given side and gradx the method returns directions needed for Hdiv space */
+        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
 		
 	protected:
 		/** @name Data structure which defines the prism transformations and topology */

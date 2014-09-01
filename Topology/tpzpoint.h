@@ -196,6 +196,9 @@ namespace pztopology {
 		static REAL RefElVolume() {
 			return 0.;
 		}
+        
+        /* Given side and gradx the method returns directions needed for Hdiv space */
+        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
 
 	};
 	

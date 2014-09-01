@@ -455,9 +455,57 @@ TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 	}
 }
 
+template<class TGeo>
+void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)
+{
+    TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
+    REAL detjac;
+
+    this->Jacobian(pt,jac,axes,detjac,jacinv);
+    /*
+    //eh isso ? gradx = axesˆT * jac
+    for (int il=0; il<TGeo::Dimension; il++)
+    {
+        for (int jc=0; jc<3; jc++)
+        {
+            for (int i=0; i<TGeo::Dimension; i++)
+            {
+                gradx(il,jc) += axes(i,jc)*jac(i,il);//??????
+            }
+        }
+    }
+    
+    TGeo::ComputeDirections(side, gradx, directions, vectorsides);
+    */
+    
+    // ou eh isso?   grad =  (jac  * axes)ˆT
+    TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
+    for (int il=0; il<TGeo::Dimension; il++)
+    {
+        for (int jc=0; jc<3; jc++)
+        {
+            for (int i = 0 ; i<TGeo::Dimension; i++)
+            {
+                gradxt(il,jc) += jac(il,i) * axes(i,jc);
+            }
+        }
+    }
+    gradxt.Transpose(&gradx);
+    TGeo::ComputeDirections(side, gradx, directions, vectorsides);
+    
+//    TPZStack<int> lowdim;
+//	LowerDimensionSides(side,lowdim);
+//	lowdim.Push(side);
+//
+//    TGeo::GetSideHDivPermutation(side);
+    
+}
+
+
 #include "pzgeoquad.h"
 
 /** Compute the permutation for an HDiv side */
+/*
 template<>
 inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -486,10 +534,11 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVe
 		permutegather[2] = 2;
 	}
 }
-
+*/
 #include "pzgeotriangle.h"
 
 /** Compute the permutation for an HDiv side */
+/*
 template<>
 inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -518,6 +567,7 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, T
 		permutegather[2] = 2;
 	}
 }
+*/
 
 /** Compute the permutation for an HDiv side */
 template<class TGeo>
@@ -540,7 +590,25 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
         long nodeindex = fGeo.fNodeIndexes[i];
         id[i] = Mesh()->NodeVec()[nodeindex].Id();
     }
-	TGeo::GetSideHDivPermutation(side, id, permutegather);
+    MElementType sidetype = TGeo::Type(side);
+    int transformid;
+    switch (sidetype) {
+        case EOned:
+            transformid = pztopology::TPZLine::GetTransformId(id);
+            pztopology::TPZLine::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        case EQuadrilateral:
+            transformid = pztopology::TPZQuadrilateral::GetTransformId(id);
+            pztopology::TPZQuadrilateral::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        case ETriangle:
+            transformid = pztopology::TPZTriangle::GetTransformId(id);
+            pztopology::TPZTriangle::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        default:
+            DebugStop();
+            break;
+    }
 }
 
 //HDiv

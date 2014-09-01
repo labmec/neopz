@@ -177,10 +177,13 @@ namespace pztopology {
 		 * @param id Ids of the corner nodes of the elements
 		 * @param permgather Permutation vector in a gather order
 		 */
-		static void GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather);
+		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
 		static REAL RefElVolume() { return 0.5L; }
+        
+        /* Given side and gradx the method returns directions needed for Hdiv space */
+        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
 
 	};
 	

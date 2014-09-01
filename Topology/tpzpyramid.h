@@ -178,6 +178,9 @@ namespace pztopology {
 		
 		/** @brief Volume of the master element*/
 		static REAL RefElVolume() {return (4.L/3.L); }
+        
+        /* Given side and gradx the method returns directions needed for Hdiv space */
+        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
 
 	protected:
 		/** @name Data structure which defines the pyramid transformations */

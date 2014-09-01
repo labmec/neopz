@@ -252,7 +252,96 @@ namespace pztopology {
 		/*16*/{ 0.,-1., 1.},/*17*/{1., 0., 1.},/*18*/{0.,1., 1.},/*19*/{-1.,0., 1.},
 		/*20*/{ 0., 0.,-1.},/*21*/{0.,-1., 0.},/*22*/{1.,0., 0.},/*23*/{ 0.,1., 0.},
 		/*24*/{-1., 0., 0.},/*25*/{0., 0., 1.},/*26*/{0.,0., 0.} };
-	
+    
+    static REAL bCubo[81][3] = // direcao perpendicular ao lado
+    {
+        {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1},// face 0
+        {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0},// face 1
+        {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} ,// face 2
+        {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} ,// face 3
+        {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0},// face 4
+        {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1}, // face 5
+        //interiores
+        //faces
+        {1,0,0}, {0,-1,0}, // tang da face 0
+        {1,0,0}, {0,0,1},  // tang da face 1
+        {0,0,-1}, {0,1,0}, // tang da face 2
+        {1,0,0}, {0,0,-1}, // tang da face 3
+        {0,0,1}, {0,1,0},  // tang da face 4
+        {1,0,0}, {0,1,0},  // tang da face 5
+        //arestas
+        {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},  {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},
+        {1,0,0}, // volume
+        {0,1,0}, // volume
+        {0,0,1}  // volume
+    };
+    
+    static REAL t1Cubo[81][3] = // diretor da aresta (escolhido para formar uma base positivamente orientada)
+    {
+        {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},//face 0
+        {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, //face 1
+        {0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},//face 2
+        {1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,//face 3
+        {0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,//face 4
+        {1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0}, //face 5
+        //interiores
+        //faces
+        {0,-1,0}, {-1,0,0},  // 1 complementar da face 0
+        {0,0,1},  {-1,0,0},  // 1 complementar da face 1
+        {0,1,0},  {0,0,-1}, // 1 complementar da face 2
+        {0,0,-1}, {1,0,0},  // 1 complementar da face 3
+        {0,1,0},  {0,0,-1},  // 1 complementar da face 4
+        {0,1,0},  {1,0,0},  // 1 complementar da face 5
+        //arestas
+        {0,-1,0},{1,0,0},{0,1,0},{0,0,-1},  {-1,0,0},{0,-1,0},{1,0,0},{0,1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},
+        {0,1,0},  // volume
+        {0,0,1},  // volume
+        {1,0,0}   // volume
+        
+    };
+    static REAL t2Cubo[81][3] = // diretor da aresta (escolhido para formar uma base positivamente orientada)
+    {
+        {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 0
+        {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1},// face 1
+        {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 2
+        {0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},{0,0,-1},// face 3
+        {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 4
+        {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 5
+        //interiores
+        //faces
+        {0,0,-1}, {0,0,-1}, // 2 complementar da face 0
+        {0,-1,0}, {0,-1,0}, // 2 complementar da face 1
+        {1,0,0},  {-1,0,0},  // 2 complementar da face 2
+        {0,1,0},  {0,-1,0},  // 2 complementar da face 3
+        {-1,0,0}, {-1,0,0}, // 2 complementar da face 4
+        {0,0,1},  {0,0,-1},  // 2 complementar da face 5
+        //arestas
+        {0,0,-1},{0,0,-1},{0,0,-1},{-1,0,0},  {0,-1,0},{1,0,0},{0,1,0},{-1,0,0},  {0,-1,0},{1,0,0},{0,1,0},{-1,0,0},
+        {0,0,1},  // volume
+        {1,0,0},  // volume
+        {0,1,0}   // volume
+    };
+
+	static int vectorsideorderC [81] =
+    {
+        0,1,8,2,9,3,10,11,20, //face 0
+        0,1,8,5,13,4,16,12,21,//face 1
+        1,2,9,6,14,5,17,13,22,//face 2
+        3,2,10,6,14,7,18,15,23,//face 3
+        0,3,11,7,15,4,19,12,24,//face 4
+        4,5,16,6,17,7,18,19,25,//face 5
+        20,20,//tg face 0
+        21,21,//tg face 1
+        22,22,//tg face 2
+        23,23,//tg face 3
+        24,24,//tg face 4
+        25,25,//tg face 5
+        8,9,10,11,
+        12,13,14,15,
+        16,17,18,19,
+        26,26,26
+    };
+    
 	void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
 		smallsides.Resize(0);
@@ -875,5 +964,187 @@ namespace pztopology {
 	void TPZCube::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
 	{
 	}
+    
+    void computedirectionsC(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+                           TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+    
+    void computedirectionsC(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+                           TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
+    {
+        REAL detgrad = 0.0;
+        TPZVec<REAL> u(3);
+        TPZVec<REAL> v(3);
+        TPZVec<REAL> uxv(3);// result
+        int cont = 0;
+        
+        for (int ivet=inicio; ivet<=fim; ivet++)
+        {
+            for (int ilin=0; ilin<3; ilin++)
+            {
+                u[ilin] = t1vec(ilin,ivet);
+                v[ilin] = t2vec(ilin,ivet);
+            }
+            TPZVec<REAL> e2(3);
+            detgrad = 0.0;
+            REAL normaX0xX1 = 0.0;
+            //TPZNumeric::ProdVetorial(u,v,e2);
+            e2[0] = u[1]*v[2]-u[2]*v[1];
+            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
+            e2[2] = u[0]*v[1]-v[0]*u[1];
+            
+            // calc do v gradx*b
+            TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
+            REAL be2 = 0.0, ne2 = 0.0;
+            for(int i=0;i<3;i++)
+            {
+                ne2 += e2[i]*e2[i];
+            }
+            ne2 = sqrt(fabs(ne2));
+            for (int il=0; il<3; il++)
+            {
+                for (int i = 0 ; i<3; i++)
+                {
+                    dxt1[il] += gradx(il,i) * t1vec(i,ivet);
+                    dxt2[il] += gradx(il,i) * t2vec(i,ivet);
+                    dxt3[il] += gradx(il,i) * e2[i]/ne2;
+                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                }
+                be2 += bvec(il,ivet)*e2[il]/ne2;
+            }
+            TPZManVector<REAL,3> normal(3,0.);
+            //TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
+            normal[0] = dxt1[1]*dxt2[2]-dxt1[2]*dxt2[1];
+            normal[1] = -(dxt1[0]*dxt2[2]-dxt2[0]*dxt1[2]);
+            normal[2] = dxt1[0]*dxt2[1]-dxt2[0]*dxt1[1];
+            
+            for (int pos=0; pos<3; pos++)
+            {
+                detgrad += normal[pos]*dxt3[pos];//uxv[pos]*gradx.GetVal(pos, 2);
+                normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+            }
+            TPZFMatrix<REAL> Wvec(3,1);
+            detgrad = fabs(detgrad);
+            normaX0xX1 = sqrt(normaX0xX1);
+            
+            for (int il=0; il<3; il++)
+            {
+                Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad*be2);
+                directions(il,cont) = Wvec(il,0);
+            }
+            cont++;
+        }
+
+    }
+    
+    void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        if(gradx.Cols()!=3)
+        { std::cout << "Gradient dimensions are not compatible with this topology" << std::endl;
+            DebugStop();
+        }
+        TPZFMatrix<REAL> bvec(3,81);
+        int numvec = bvec.Cols();
+        TPZFMatrix<REAL> t1vec(3,numvec);
+        TPZFMatrix<REAL> t2vec(3,numvec);
+        
+        directions.Redim(3, numvec);
+        for (int lin = 0; lin<numvec; lin++)
+        {
+            for(int col = 0;col<3;col++)
+            {
+                bvec.PutVal(col, lin, bCubo[lin][col]);
+                t1vec.PutVal(col, lin, t1Cubo[lin][col]);
+                t2vec.PutVal(col, lin, t2Cubo[lin][col]);
+            }
+        }
+        
+        // calcula os vetores
+       
+        switch (side) {
+            case 20:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 0, fim = 8;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 9; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+            case 21:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 9, fim = 17;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 9; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+            case 22:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 18, fim = 26;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 9; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+            case 23:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 27, fim = 35;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 9; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+            case 24:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 36, fim = 44;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 9; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+            case 25:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 45, fim = 53;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 9; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+            case 26:
+            {
+                directions.Resize(3, 27);
+                sidevectors.Resize(27);
+                int inicio = 54, fim = 80;
+                computedirectionsC( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                for (int ip = 0; ip < 27; ip++) {
+                    sidevectors[ip] = vectorsideorderC[ip+inicio];
+                }
+            }
+                break;
+
+                
+            default:
+                break;
+        }
+        
+	}
+
 
 }

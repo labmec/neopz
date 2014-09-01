@@ -176,6 +176,9 @@ namespace pztopology {
 		static REAL RefElVolume() {
 			return (1.0L/6.0L);
 		}
+        
+        /* Given side and gradx the method returns directions needed for Hdiv space */
+        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
 
 	protected:
 		/** @name Data structure which defines the tetrahedral transformations */
@@ -191,7 +194,7 @@ namespace pztopology {
 		static int ShapeFaceId[4][3];
 		
 		/** @} */
-		
+        
 	};
 	
 }

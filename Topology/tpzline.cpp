@@ -46,6 +46,12 @@ namespace pztopology {
 	static REAL MidSideNode[3][1] = {{-1.},{1.},{0.}};
 	
 	static int nsidenodes[3] = {1,1,2};
+    
+    static int permutationsL [2][3] =
+    {
+        {0,1,2},
+        {1,0,2}
+    };
 	
 	int TPZLine::NSideNodes(int side)
 	{
@@ -347,9 +353,15 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZLine::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+	void TPZLine::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
-		switch (side) {
+        permgather.Resize(3);
+        for (int i=0; i<3; i++)
+        {
+            permgather[i] = permutationsL[transformationid][i];
+        }
+		/*
+         switch (side) {
 			case 0:
 			case 1:
 				permgather[0] = 0;
@@ -371,7 +383,34 @@ namespace pztopology {
 			default:
 				break;
 		}
-		LOGPZ_ERROR(logger,"Wrong input parameter")
+		LOGPZ_ERROR(logger,"Wrong input parameter")*/
 	}
+    
+    
+    void TPZLine::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        
+        if(gradx.Cols()!=1)
+        {
+            DebugStop();
+        }
+        TPZFMatrix<REAL> bvec = gradx;
+        REAL norma = 0.0;
+        for (int i = 0; i<3; i++)
+        {
+            norma += bvec(i,0)*bvec(i,0);
+        }
+        norma = sqrt(norma);
+
+        directions.Redim(3, 1);
+        for (int i=0; i<3; i++)
+        {
+            directions(i,0) = bvec(i,0)/norma;
+        }
+        sidevectors.Resize(1);
+        sidevectors[0] = -1; // ??????????????????????
+
+    }
+
 
 }

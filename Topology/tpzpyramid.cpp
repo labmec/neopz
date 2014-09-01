@@ -180,6 +180,89 @@ namespace pztopology {
 		/*09*/{-.5,-.5,.5},/*10*/{.5,-.5,.5},/*11*/{.5,.5,.5},/*12*/{-.5,.5,.5},
 		/*13*/{0.,  0. ,  0. },/*14*/{  0.  ,-2./3.,1./3.},/*15*/{2./3.,0.,1./3.},
 		/*16*/{0.,2./3.,1./3.},/*17*/{-2./3.,  0.  ,1./3.},/*18*/{  0. ,0.,1./5.} };
+    
+    static REAL bPiram[58][3] =
+    {
+        {-1,-1,-1}, {1,-1,-1}, {0,-1,-1}, {1,1,-1}, {1,0,-1}, {-1,1,-1}, {0,1,-1}, {-1,0,-1}, {0,0,-1},// face 0
+        {0,-1,0}, {0,-1,0}, {0,-1,0}, {-1,-1,1}, {1,-3,1}, {-1,-3,1}, {0,-1,1}, // face 1
+        {1,0,0}, {1,0,0},  {1,0,0}, {1,1,1}, {3,1,1},{3,-1,1}, {1,0,1}, // face 2
+        {0,1,0}, {0,1,0}, {0,1,0}, {1,1,1}, {-1,3,1}, {1,3,1}, {0,1,1}, // fsce 3
+        {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,1,1}, {-3,1,1}, {-3,-1,1}, {-1,0,1}, // face 4
+        //internos
+        //faces
+        {-1,0,0}, {0,1,0}, // tang da face 0
+        {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)},{sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, //face 1
+        {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, //face 2
+        {1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, //face 3
+        {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))}, //face 4
+        // arestas
+        {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {1,1,1},  {-1,1,1},  {-1,-1,1},  {1,-1,1},
+        //interior
+        {1,0,0} ,
+        {0,1,0} ,
+        {0,0,1}
+    };
+    static REAL t1Piram[58][3] =
+    {
+        {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},// face 0
+        {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // face 1
+        {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // face 2
+        {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // fsce 3
+        {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, // face 4
+        //internos
+        //faces
+        {0,1,0}, {1,0,0}, //face 0
+        {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))},    {1/sqrt(3),1/sqrt(3),1/sqrt(3)}, //face 1
+        {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},      {-1/sqrt(3),1/sqrt(3),1/sqrt(3)}, //face 2
+        {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))},    {-1/sqrt(3),-1/sqrt(3),1/sqrt(3)}, //face 3
+        {-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},   {1/sqrt(3),-1/sqrt(3),1/sqrt(3)}, //face 4
+        // arestas
+        {0,-1,0},{1,0,0},{0,1,0},{0,0,-1},  {-1,0,1},{0-1,1},{1,0,1},{0,1,1},
+        //interior
+        {0,1,0} ,
+        {0,0,1} ,
+        {1,0,0}
+    };
+    
+    static REAL t2Piram[58][3] =
+    {
+        {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 0
+        {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, // face 1
+        {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},  {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, // face 2
+        {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))},{-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, // face 3
+        {-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))}, // face 4
+        //internos
+        //faces
+        {0,0,-1}, {0,0,-1}, //face 0
+        {0,-1,0},{0,-1,0}, //face 1
+        {1,0,0},{1,0,0}, //face 2
+        {0,1,0},{0,1,0}, //face 3
+        {-1,0,0},{-1,0,0}, //face 4
+        // arestas
+        {0,0,-1},{0,0,-1},{0,0,-1},{-1,0,0},  {0,-1,1},{1,0,1},{0,1,1},{-1,0,1},
+        //interior
+        {0,0,1} ,
+        {1,0,0} ,
+        {0,1,0}
+    };
+    
+    static int vectorsideorderPi [58] =
+    {
+        0,1,5,2,6,3,7,8,13, //face 0
+        0,1,5,4,9,10,14,//face 1
+        1,2,6,4,10,11,15,//face 2
+        2,3,7,4,11,12,16,//face 3
+        0,3,8,4,9,12,17,//face 4
+        13,13,//tg face 0
+        14,14,//tg face 1
+        15,15,//tg face 2
+        16,16,//tg face 3
+        17,17,//tg face 3
+        5,6,7,
+        8,9,10,11,12,
+        18,18,18
+    };
+
 	
 	void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
@@ -988,4 +1071,182 @@ namespace pztopology {
 		std::cout << "Please implement me\n";
 		DebugStop();
 	}
+    
+    void computedirectionsPy(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+                           TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+    
+    void computedirectionsPy(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+                           TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
+    {
+        REAL detgrad = 0.0;
+        TPZVec<REAL> u(3);
+        TPZVec<REAL> v(3);
+        TPZVec<REAL> uxv(3);// result
+        int cont = 0;
+        
+        for (int ivet=inicio; ivet<=fim; ivet++)
+        {
+            for (int ilin=0; ilin<3; ilin++)
+            {
+                u[ilin] = t1vec(ilin,ivet);
+                v[ilin] = t2vec(ilin,ivet);
+            }
+            TPZVec<REAL> e2(3);
+            detgrad = 0.0;
+            REAL normaX0xX1 = 0.0;
+            //TPZNumeric::ProdVetorial(u,v,e2);
+            e2[0] = u[1]*v[2]-u[2]*v[1];
+            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
+            e2[2] = u[0]*v[1]-v[0]*u[1];
+            
+            // calc do v gradx*b
+            TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
+            REAL be2 = 0.0, ne2 = 0.0;
+            for(int i=0;i<3;i++)
+            {
+                ne2 += e2[i]*e2[i];
+            }
+            ne2 = sqrt(fabs(ne2));
+            for (int il=0; il<3; il++)
+            {
+                for (int i = 0 ; i<3; i++)
+                {
+                    dxt1[il] += gradx(il,i) * t1vec(i,ivet);
+                    dxt2[il] += gradx(il,i) * t2vec(i,ivet);
+                    dxt3[il] += gradx(il,i) * e2[i]/ne2;
+                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                }
+                be2 += bvec(il,ivet)*e2[il]/ne2;
+            }
+            TPZManVector<REAL,3> normal(3,0.);
+            //TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
+            normal[0] = dxt1[1]*dxt2[2]-dxt1[2]*dxt2[1];
+            normal[1] = -(dxt1[0]*dxt2[2]-dxt2[0]*dxt1[2]);
+            normal[2] = dxt1[0]*dxt2[1]-dxt2[0]*dxt1[1];
+            
+            for (int pos=0; pos<3; pos++)
+            {
+                detgrad += normal[pos]*dxt3[pos];//uxv[pos]*gradx.GetVal(pos, 2);
+                normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+            }
+            TPZFMatrix<REAL> Wvec(3,1);
+            detgrad = fabs(detgrad);
+            normaX0xX1 = sqrt(normaX0xX1);
+            
+            for (int il=0; il<3; il++)
+            {
+                Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad*be2);
+                directions(il,cont) = Wvec(il,0);
+            }
+            cont++;
+        }
+        
+        
+    }
+
+    
+    void TPZPyramid::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        if(gradx.Cols()!=3)
+        { std::cout << "Gradient dimensions are not compatible with this topology" << std::endl;
+            DebugStop();
+        }
+        TPZFMatrix<REAL> bvec(3,58);
+        int numvec = bvec.Cols();
+        TPZFMatrix<REAL> t1vec(3,numvec);
+        TPZFMatrix<REAL> t2vec(3,numvec);
+        
+        directions.Redim(3, numvec);
+        for (int lin = 0; lin<numvec; lin++)
+        {
+            for(int col = 0;col<3;col++)
+            {
+                bvec.PutVal(col, lin, bPiram[lin][col]);
+                t1vec.PutVal(col, lin, t1Piram[lin][col]);
+                t2vec.PutVal(col, lin, t2Piram[lin][col]);
+            }
+        }
+        
+        // calcula os vetores
+        switch (side) {
+            case 13:
+            {
+                directions.Resize(3, 9);
+                sidevectors.Resize(9);
+                int inicio = 0, fim = 8;
+                computedirectionsPy( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                int diff = fim-inicio+1;
+                for (int ip = 0; ip < diff; ip++) {
+                    sidevectors[ip] = vectorsideorderPi[ip+inicio];
+                }
+                
+            }
+                break;
+            case 14:
+            {
+                directions.Resize(3, 7);
+                sidevectors.Resize(7);
+                int inicio = 9, fim = 15;
+                computedirectionsPy( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                int diff = fim-inicio+1;
+                for (int ip = 0; ip < diff; ip++) {
+                    sidevectors[ip] = vectorsideorderPi[ip+inicio];
+                }
+            }
+                break;
+            case 15:
+            {
+                directions.Resize(3, 7);
+                sidevectors.Resize(7);
+                int inicio = 16, fim = 22;
+                computedirectionsPy( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                int diff = fim-inicio+1;
+                for (int ip = 0; ip < diff; ip++) {
+                    sidevectors[ip] = vectorsideorderPi[ip+inicio];
+                }
+            }
+                break;
+            case 16:
+            {
+                directions.Resize(3, 7);
+                sidevectors.Resize(7);
+                int inicio = 23, fim = 29;
+                computedirectionsPy( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                int diff = fim-inicio+1;
+                for (int ip = 0; ip < diff; ip++) {
+                    sidevectors[ip] = vectorsideorderPi[ip+inicio];
+                }
+            }
+                break;
+            case 17:
+            {
+                directions.Resize(3, 7);
+                sidevectors.Resize(7);
+                int inicio = 30, fim = 36;
+                computedirectionsPy( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                int diff = fim-inicio+1;
+                for (int ip = 0; ip < diff; ip++) {
+                    sidevectors[ip] = vectorsideorderPi[ip+inicio];
+                }
+            }
+                break;
+            case 18:
+            {
+                directions.Resize(3, 21);
+                sidevectors.Resize(21);
+                int inicio = 37, fim = 57;
+                computedirectionsPy( inicio, fim, bvec, t1vec, t2vec, gradx, directions);
+                int diff = fim-inicio+1;
+                for (int ip = 0; ip < diff; ip++) {
+                    sidevectors[ip] = vectorsideorderPi[ip+inicio];
+                }
+            }
+                break;
+                
+            default:
+                break;
+        }
+
+	}
+
 }

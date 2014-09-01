@@ -92,6 +92,67 @@ namespace pztopology {
 		/*00*/{-1.,-1.},/*01*/{ 1.,-1.},/*02*/{1.,1.},
 		/*03*/{-1., 1.},/*04*/{ 0.,-1.},/*05*/{1.,0.},
 		/*06*/{ 0., 1.},/*07*/{-1., 0.},/*08*/{0.,0.} };
+    
+    static REAL bQuad[18][2] = 
+    {
+        {0,-1},
+        {0,-1},
+        {0,-1},
+        {1,0},
+        {1,0},
+        {1,0},
+        {0,1},
+        {0,1},
+        {0,1},
+        {-1,0},
+        {-1,0},
+        {-1,0},
+        {1,0},
+        {0,1},
+        {-1,0},
+        {0,-1},
+        {1,0},
+        {0,1}
+        
+    };
+    
+    static REAL tQuad[18][2] = 
+    {
+        {-1,0},
+        {-1,0},
+        {-1,0},
+        {0,-1},
+        {0,-1},
+        {0,-1},
+        {1,0},
+        {1,0},
+        {1,0},
+        {0,1},
+        {0,1},
+        {0,1},
+        {0,-1},
+        {1,0},
+        {0,1},
+        {-1,0},
+        {0,-1},
+        {1,0}
+    };
+    
+    static int vectorsideorder [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
+    
+    static int permutationsQ [8][9] =
+    {
+        {0,1,2,3,4,5,6,7,8}, // id 0
+        {0,3,2,1,7,6,5,4,8}, // id 1
+        {1,2,3,0,5,6,7,4,8}, // id 2
+        {1,0,3,2,4,7,6,5,8}, // id 3
+        {2,3,0,1,6,7,4,5,8}, // id 4
+        {2,1,0,3,5,4,7,6,8}, // id 5
+        {3,0,1,2,7,4,5,6,8}, // id 6
+        {3,2,1,0,6,5,4,7,8}  // id 7
+    };
+
+
 	
 	int TPZQuadrilateral::SideNodeLocId(int side, int node)
 	{
@@ -511,8 +572,89 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZQuadrilateral::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+	void TPZQuadrilateral::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
+        permgather.Resize(9);
+        
+        for (int i=0; i<9; i++)
+        {
+            permgather[i] = permutationsQ[transformationid][i];
+        }
+        
+        /*
+        switch (transformationid)
+        {
+            case 0:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[0][i];
+                }
+            }
+                break;
+            case 1:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[1][i];
+                }
+            }
+                break;
+            case 2:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[2][i];
+                }
+            }
+                break;
+            case 3:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[3][i];
+                }
+            }
+                break;
+            case 4:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[4][i];
+                }
+            }
+                break;
+            case 5:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[5][i];
+                }
+            }
+                break;
+            case 6:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[6][i];
+                }
+            }
+                break;
+            case 7:
+            {
+                for (int i=0; i<9; i++)
+                {
+                    permgather[i] = permutationsQ[7][i];
+                }
+            }
+                break;
+            default:
+                DebugStop();
+                break;
+        }*/
+
+        
+        /*
 		switch (side) {
 			case 0:
 			case 1:
@@ -606,7 +748,169 @@ namespace pztopology {
 			default:
 				break;
 		}
-		LOGPZ_ERROR(logger,"Wrong side parameter")
+		LOGPZ_ERROR(logger,"Wrong side parameter")*/
 	}
-	
+    
+    void computedirectionsq(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+                           TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+    void computedirectionsq(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+                           TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
+    {
+        REAL detgrad = 0.0;
+        TPZVec<REAL> u(3);
+        TPZVec<REAL> v(3);
+        TPZVec<REAL> uxv(3);// result
+        
+        for (int ilin=0; ilin<3; ilin++)
+        {
+            u[ilin] = gradx(ilin, 0);
+            v[ilin] = gradx(ilin, 1);
+        }
+        
+        //TPZNumeric::ProdVetorial(u,v,uxv);
+        uxv[0] = u[1]*v[2]-u[2]*v[1];
+        uxv[1] = -(u[0]*v[2]-v[0]*u[2]);
+        uxv[2] = u[0]*v[1]-v[0]*u[1];
+        
+        for (int pos=0; pos<3; pos++)
+        {
+            detgrad += uxv[pos]*uxv[pos];
+        }
+        detgrad = sqrt(fabs(detgrad));
+        
+        int cont = 0;
+        
+        for (int ivet=inicio; ivet<=fim; ivet++)
+        {
+            TPZFMatrix<REAL> Wvec(3,1);
+            TPZVec<REAL> uxvtmp(3);
+            REAL acumng = 0.0;
+            // calc do g gradx*t
+            TPZManVector<REAL,3> gvec(3,0.),Vvec(3,0.);
+            REAL gvecnorm;
+            for (int il=0; il<3; il++)
+            {
+                for (int i = 0 ; i<2; i++)
+                {
+                    gvec[il] += gradx(il,i) * t1vec(i,ivet);
+                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                }
+                u[il] = gvec[il];
+                acumng += gvec[il]*gvec[il];
+            }
+            gvecnorm = sqrt(acumng);
+            
+            for (int il=0; il<3; il++)
+            {
+                Wvec(il,0) = Vvec[il]*gvecnorm/detgrad;
+                directions(il,cont) = Wvec(il,0);
+            }
+            cont++;
+        }
+        
+        
+    }
+
+    void TPZQuadrilateral::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        if(gradx.Cols()!=2)
+        {
+            DebugStop();
+        }
+        TPZFMatrix<REAL> bvec(2,18);
+        TPZFMatrix<REAL> t1vec(2,18);
+       
+        bvec.Redim(2, 18);
+        t1vec.Redim(2, 18);
+        directions.Redim(3, 18);
+        for (int lin = 0; lin<18; lin++)
+        {
+            for(int col = 0;col<2;col++)
+            {
+                bvec.PutVal(col, lin, bQuad[lin][col]);
+                t1vec.PutVal(col, lin, tQuad[lin][col]);
+            }
+        }
+        // calcula os vetores
+        
+        switch (side) {
+            /*case 0:
+            {
+            }
+                break;
+            case 1:
+            {
+            }
+                break;
+            case 2:
+            {
+            }
+                break;
+            case 3:
+            {
+            }
+                break;*/
+            case 4:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 0, fnumvec = 2;
+                computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip];
+                }
+                
+            }
+                break;
+            case 5:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 3, fnumvec = 5;
+                computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+            case 6:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 6, fnumvec = 8;
+                computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+            case 7:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 9, fnumvec = 11;
+                computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+            case 8:
+            {
+                directions.Redim(3, 6);
+                sidevectors.Resize(6);
+                int inumvec = 12, fnumvec = 17;
+                computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 6; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+                
+            default:
+                break;
+        }
+
+        
+	}
 }

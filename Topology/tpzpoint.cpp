@@ -77,5 +77,10 @@ namespace pztopology {
 //		permgather[0] = 0;
 //		return;
 //	}
+    void TPZPoint::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        directions.Redim(3, 0);
+        sidevectors.Resize(0);
+    }
 	
 }
