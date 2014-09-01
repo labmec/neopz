@@ -179,6 +179,7 @@ add_subdirectory(proDG)
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)
+			add_subdirectory(Frac1DHdiv)
 			add_subdirectory(ReducedSpace)
 			add_subdirectory(ReducedSpacePlasticity)
 			add_subdirectory(StabilizedHybridElasticity)
