@@ -53,12 +53,13 @@ TPZGeoMesh * MalhaGeoT( const int h, bool hrefine);
 //Malha Quadrilateral formada por um elemento e refinamento nao uniforme
 TPZGeoMesh * MalhaGeo( const int h, bool hrefine);
 //Malha Quadrilateral formada por 4 elemento e refinamento uniforme
-TPZGeoMesh * MalhaGeo2(const int h, bool hrefine);
+TPZGeoMesh * MalhaGeo2(const int h);
 TPZGeoMesh *GMesh(bool ftriang, REAL Lx, REAL Ly);
 //Malha computacional convencional
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine);
+void SetDifferentOrderP(TPZCompMesh *comp,int porder);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
