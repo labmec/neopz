@@ -1,26 +1,13 @@
-//
-//  pzmultiphase.h
-//  PZ
-//
-//  Created by Omar Duran and Nathan Shauer on 19/08/2014.
-//  Copyright (c) 2014 LabMec-Unicamp. All rights reserved.
-//
-
-#ifndef PZ_pzmultiphase_h
-#define PZ_pzmultiphase_h
+#ifndef TPZMatfrac1dhdiv_H
+#define TPZMatfrac1dhdiv_H
 
 #include "pzmaterial.h"
-#ifdef _AUTODIFF
-#include "fad.h"
-#endif
-#include <iostream>
-#include <fstream>
-#include <string>
-
+#include "tpzautopointer.h"
+#include "TPZFracData.h"
 /**
  * @ingroup material
  * @author Omar Duran and Nathan Shauer
- * @since 19/08/2013
+ * @since 19/08/2014
  * @brief Material to solve a 1d mixed formulation for fracture opening
  * @brief Here is used H1 for flux and L2 for pressure
  */
@@ -30,11 +17,6 @@ protected:
   
   /** @brief Problem dimension */
   int fDim;
-  
-  /** @brief State: Stiffness or Mass Matrix Calculations */
-  enum EState { ELastState = 0, ECurrentState = 1 };
-  EState gState;
-  
   
 public:
   
@@ -98,40 +80,15 @@ public:
   /** @brief Calculates a solution given datavec*/
   virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
   
-  
 private:
-  
-  /** @brief Fluid Viscosity - Pa.s */
-  REAL fmu;
-  
-  /** @brief Simulation time step */
-  REAL fDeltaT;
-  
-  /** @brief Simulation current time */
-  REAL fTime;
-  
-  /** @brief Parameter representing temporal scheme for transport equation */
-  REAL fTheta;
+
+  /** @brief Data of the simulation */
+  TPZAutoPointer<TPZFracData> fData;
   
 public:
   
-  /** @brief Set fluid viscosity. */
-  void SetViscosity(REAL mu){this->fmu = mu;}
-  
-  /** @brief Defines simulation time step. */
-  void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}
-  
-  /** @brief Defines simulation time step. */
-  void SetTime(REAL time){ this->fTime = time;}
-  
-  /** @brief Defines stemporal scheme. */
-  void SetTScheme(REAL timetheta){ this->fTheta = timetheta;}
-  
-  /** @brief Set evaluating step n */
-  void SetLastState(){ gState = ELastState;}
-  
-  /** @brief Set evaluating step n + 1 */
-  void SetCurrentState(){ gState = ECurrentState;}
+  /** @brief Sets data of the simulation */
+  void SetSimulationData(TPZAutoPointer<TPZFracData> Data) { fData = Data;}
   
 };
 
