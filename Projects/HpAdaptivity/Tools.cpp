@@ -453,13 +453,13 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingTang);
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing1);
     dum->SetPolynomialOrder(20);
     forcef = dum;
     mat->SetForcingFunction(forcef);
     
     
-    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolArcTan);
+    TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata);
     mat->SetForcingFunctionExact(exata1);
     
     
@@ -566,7 +566,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
      comp->ExpandSolution();
      comp->AdjustBoundaryElements();
      */
-    comp->SetName("Malha Computacional com ordens diferentes");
+    comp->SetName("Malha Computacional");
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -842,7 +842,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
     
     TPZAutoPointer<TPZRefPattern> ref;
     
-    //refinamento nao uniforme
+    /*refinamento nao uniforme
     if (hrefine) {
         NoUniformRefine(gmesh, h);
     }
@@ -850,7 +850,7 @@ TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
     
     else UniformRefine(gmesh, h);
     
-    /*{
+    {
      ///Refinamento uniforme
      for ( int ref = 0; ref < h; ref++ )
      {// h indica o numero de refinamentos
@@ -1003,7 +1003,7 @@ TPZGeoMesh *GMesh(bool ftriang, REAL Lx, REAL Ly){
 
 
 
-TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
+TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool nouniform)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
@@ -1038,28 +1038,33 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
     TPZGeoElBC gbc3 ( elvec[0],6,-3 );// condicao de fronteira tipo -3: (x,y=1)
     TPZGeoElBC gbc4 ( elvec[0],7,-4 );// condicao de fronteira tipo -4: (x=0,y)
     
-    ///Refinamento uniforme
-	for ( int ref = 0; ref < h; ref++ )
-	{// h indica o numero de refinamentos
-		TPZVec<TPZGeoEl *> filhos;
-		long n = gmesh->NElements();
-		for ( long i = 0; i < n; i++ )
-		{
-			TPZGeoEl * gel = gmesh->ElementVec() [i];
-			//if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
-			if(!gel->HasSubElement())
-			{
-				gel->Divide(filhos);
-			}
-		}//for i
-	}
+  /*  if (nouniform) {
+        NoUniformRefine(gmesh, h);
+    }
+    else UniformRefine(gmesh, h);*/
     
-    //        //refinamento nao uniforme
-    //		if (hrefine) {
-    //            NoUniformRefine(gmesh, h);
-    //        }
-    //
-    //    else UniformRefine(gmesh, h);
+/////Refinamento uniforme
+//for ( int ref = 0; ref < h; ref++ )
+//{// h indica o numero de refinamentos
+//TPZVec<TPZGeoEl *> filhos;
+//long n = gmesh->NElements();
+//for ( long i = 0; i < n; i++ )
+//{
+//TPZGeoEl * gel = gmesh->ElementVec() [i];
+////if ( gel->Dimension() == 2 ) gel->Divide ( filhos );
+//if(!gel->HasSubElement())
+//{
+//gel->Divide(filhos);
+//}
+//}//for i
+//}
+//
+////        //refinamento nao uniforme
+////		if (hrefine) {
+////            NoUniformRefine(gmesh, h);
+////        }
+////
+////    else UniformRefine(gmesh, h);
     
     
 #ifdef LOG4CXX
@@ -1074,7 +1079,7 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 }
 
 
-TPZGeoMesh * MalhaGeo2(const int h,bool hrefine){//malha quadrilatero com 4 elementos
+TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     const int nelem=4;
     TPZGeoEl *elvec[nelem];
@@ -1214,7 +1219,7 @@ TPZGeoMesh * MalhaGeo2(const int h,bool hrefine){//malha quadrilatero com 4 elem
     
     
     
-	//	Refinamento uniforme
+	/*	Refinamento uniforme
     for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
         TPZVec<TPZGeoEl *> filhos;
         long n = gmesh->NElements();
@@ -1270,7 +1275,7 @@ TPZGeoMesh * MalhaGeo2(const int h,bool hrefine){//malha quadrilatero com 4 elem
     }
     
     
-    
+    */
     
 #ifdef LOG4CXX
     {
@@ -1718,7 +1723,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
             continue;
         }
         TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExataMista, elerror, NULL);
+        cel->EvaluateError(SolExata, elerror, NULL);
         
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1730,7 +1735,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
     int nh = vech.size();
     REAL hmax=0;
     for(int i=0; i<nh; i++){
-        if(vech[i]<hmax){
+        if(vech[i]>hmax){
             hmax=vech[i];
         }
     }
@@ -1775,6 +1780,57 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
     }
     out << "Errors associated with L2 space\n";
     out << "L2 Norm for pressure = "    << sqrt(globerrors[0]) << std::endl;
+}
+
+void SetDifferentOrderP(TPZCompMesh *comp,int porder){
+    int nel = comp->NElements();
+    int iel;
+    for(iel=0; iel<nel; iel++){
+        
+        TPZInterpolatedElement *intel;
+        TPZCompEl *cel = comp->ElementVec()[iel];
+        
+               
+            
+            intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+            if(intel){
+                
+                int fator=iel%2;
+                
+                if (cel->Dimension()==2 && fator==0) {
+                    
+                    intel->PRefine(porder+1);
+                    
+                }
+                
+                
+                if(cel->Dimension()==2 && fator!=0) {
+                    
+                    intel->PRefine(porder);
+                    
+                    
+                }
+                
+                
+            }
+        }
+        
+    
+    
+    comp->LoadReferences();
+    comp->ExpandSolution();
+    comp->AdjustBoundaryElements();
+    
+    comp->SetName("Malha Computacional cOm diferentes Ordens");
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        comp->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+
 }
 
 
