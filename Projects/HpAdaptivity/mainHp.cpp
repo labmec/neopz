@@ -79,12 +79,17 @@ int main()
 #endif
     
     //std::ofstream erro("TaxaArcTanQuadUni.txt");
-    //std::ofstream erro("TaxaArcTanTriangNaoUni.txt",ios::app);
-    std::ofstream erro("TaxaProbJuan.txt",ios::app);
+   // std::ofstream erro("TaxaArcTanTriangNaoUni.txt");
+    //std::ofstream erro("TaxaProbJuan.txt");
+    //std::ofstream erro("TaxaCNMACQuadUni.txt");
+    //    std::ofstream erro("TaxaCNMACQuadNaoUni.txt");
+    std::ofstream erro("TaxaCNMACTriangUni.txt");
     
-    bool ftriang=false;
-    REAL Lx=1;
-    REAL Ly=0.5;
+   //bool ftriang=false;
+    bool prefine=false;
+    bool nouniform=false;//false para ref uniforme
+//    REAL Lx=1;
+//    REAL Ly=1;
     
     
     
@@ -93,34 +98,58 @@ int main()
     //RefiningNearCircunference(2,gmesh,1,1);
     //std::ofstream filemesh2("MalhaGeoIni.vtk");
     //PrintGMeshVTK( gmesh, filemesh2);
-    //TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
-    
+   // TPZGeoMesh *gmesh =GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
+    TPZGeoMesh *gmesh =MalhaGeo2(1);
+    ofstream arg("gmeshInicial.txt");
+    gmesh->Print(arg);
     
 	TPZVec<REAL> calcErro;
 	for (int porder=1; porder<2; porder++) {
         
+//        TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);
+//        ofstream arg2("CmeshInicial.txt");
+//        cmesh->Print(arg2);
+//        
+//        SetDifferentOrderP(cmesh,porder);
+//        ofstream arg22("CmeshDifOrder.txt");
+//        cmesh->Print(arg22);
+
+        
         erro<<"ordem "<<porder <<std::endl;
-        for(int h=1;h<5;h++){
-            erro << "NRef " << h << std::endl;
+        for(int h=1;h<4;h++){
+        //    erro << "NRef " << h << std::endl;
             
             erro<<std::endl;
             
             //1. Criacao da malha geom. e computacional
-            bool hrefine=true;//true nao uniforme
-            bool prefine=false;
+ //           bool hrefine=true;//true nao uniforme
+           // TPZGeoMesh *gmesh =MalhaGeo2(h);//MalhaGeoT(h,nouniform);//MalhaGeo(h,nouniform);//GMesh(ftriang, Lx,  Ly);//MalhaGeo(h,nonuniform);
             
-            TPZGeoMesh *gmesh = GMesh(ftriang, Lx,  Ly);//MalhaGeoT(h,hrefine);
-            UniformRefine(gmesh, h);
-//            NoUniformRefine(gmesh, 1);
+
+//            UniformRefine(gmesh, h);
+//            ofstream arg3("gmeshRefinada.txt");
+//            gmesh->Print(arg3);
+//         NoUniformRefine(gmesh, h);
 //            std::ofstream filemesh("MalhaGeoNaoUniT.vtk");
-//            PrintGMeshVTK( gmesh, filemesh);
+//            std::ofstream filemesh("MalhaGeoUniQCNMAC.vtk");
+            //std::ofstream filemesh("MalhaGeoNaoUniQCNMAC.vtk");
+           std::ofstream filemesh("MalhaGeo4ElCNMAC.vtk");
+            PrintGMeshVTK( gmesh, filemesh);
             
 
 //            RefiningNearCircunference(2,gmesh,h,1);
 //            std::ofstream filemesh2("MalhaGeoQArcTanRefeineNearCirc.vtk");
 //            PrintGMeshVTK( gmesh, filemesh2);
             
-            TPZCompMesh *cmesh = CompMeshPAdapJuan(*gmesh,porder,prefine);
+            TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder,prefine);//CompMeshPAdapJuan(*gmesh,porder,prefine);
+            ofstream arg2("CmeshInicial.txt");
+            cmesh->Print(arg2);
+            
+            SetDifferentOrderP(cmesh,porder);
+            ofstream arg22("CmeshDifOrder.txt");
+            cmesh->Print(arg22);
+            
+            
             int nDofs;
             nDofs=cmesh->NEquations();
             
@@ -131,23 +160,26 @@ int main()
             //2. Resolve o problema
             
             TPZAnalysis analysis(cmesh);
-            int numthreads = 4;
+            int numthreads = 1;
             SolveSyst(analysis, cmesh, numthreads);
             // SolveLU ( analysis );
             
             
             
             //3. Calcula o erro
-            
-            //			TPZVec<REAL> calcErro;
-            //            analysis.SetExact(*SolArcTan);
-            //			analysis.PostProcess(calcErro,erro);
+
+//			TPZVec<REAL> calcErro;
+//            analysis.SetExact(*SolExata);
+//			analysis.PostProcess(calcErro,erro);
             
             ErrorHDiv(cmesh, erro);
             
+            UniformRefine(gmesh, h);
+            ofstream arg3("gmeshRefinada.txt");
             
             
-            //4. visualizacao grafica usando vtk
+      
+            /*4. visualizacao grafica usando vtk
             
             TPZVec<std::string> scalnames(5), vecnames(2);
             scalnames[0] = "Divergence";
@@ -159,20 +191,17 @@ int main()
             
             vecnames[0] = "ExactFlux";
             vecnames[1] = "Flux";//"Derivative";//
-            //
-            //
-            //
-            //
-            //			 //vecnames[0] = "Derivate";
-            //               //  std::string plotfile("GraficArcTanHpAdaptivity.vtk");
+
             const int dim = 2;
             int div = 2;
             
             char buf[256] ;
-            sprintf(buf,"ArcTanPhilUniMeshQ_porder%d_h%d.vtk",porder,h);
+            //sprintf(buf,"ArcTanPhilUniMeshQ_porder%d_h%d.vtk",porder,h);
+           // sprintf(buf,"ProblemaJuan_porder%d_h%d.vtk",porder,h);
+            sprintf(buf,"ProblemaCNAMC_porder%d_h%d.vtk",porder,h);
             analysis.DefineGraphMesh(dim,scalnames,vecnames,buf);
             analysis.PostProcess(div);
-            
+ 
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 std::stringstream sout;
@@ -180,6 +209,8 @@ int main()
                 LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
+            */
+            
             
             //              std::string plotfile("GraficArcTanHpAdaptivity.vtk");
             //              const int dim = 2;
@@ -190,8 +221,8 @@ int main()
             //        UniformRefine(gmesh, 1);
             //         std::ofstream filemesh2("MalhaGeoDepois.vtk");
             //        PrintGMeshVTK( gmesh, filemesh2);
-            delete cmesh;
-            delete gmesh;
+           // delete cmesh;
+           // delete gmesh;
             
         }
     }
