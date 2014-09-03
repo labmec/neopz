@@ -115,9 +115,6 @@ public:
 	/** @brief Returns the number of neighbours, excluding the given element (thisElem) */
 	int NNeighboursButThisElem(TPZGeoEl *thisElem);
 	
-	/** @brief Will return all elements of equal or higher level than than the current element */
-	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
-	
 	TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
 	
 	TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide = side;}
@@ -245,6 +242,9 @@ public:
 	/** @brief Returns 1 if neighbour is a neighbour of the element along side*/
 	int NeighbourExists(const TPZGeoElSide &neighbour) const;
 	
+    /** @brief Will return all elements of equal or higher level than than the current element */
+	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
+    
 	/** @brief Pushes all connected computational elements which have higher dimension than the current element/side \n
 	 * if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack \n
      * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack */
@@ -265,6 +265,22 @@ public:
      * if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack \n
      * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
 	void EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,	int onlyinterpolated, int removeduplicates);
+    
+    /** @brief Will return all elements of equal or higher level than than the current element \n
+     * if onlymultiphysicelement == 1 only elements TPZMultiphysicsElement will be put on the stack \n
+     * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
+	void EqualorHigherCompElementList3(TPZStack<TPZCompElSide> &celside, int onlymultiphysicelement, int removeduplicates);
+    
+    /** @brief Returns all connected computational elements which have equal level to the current element */
+	/** This method will not put this on the stack \n
+     * if onlymultiphysicelement == 1 only elements TPZMultiphysicsElement will be put on the stack \n
+     * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
+	void EqualLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec,	int onlymultiphysicelement, int removeduplicates);
+    
+    /** @brief Returns all connected computational elements which have level higher to the current element \n
+     * if onlymultiphysicelement == 1 only elements TPZMultiphysicsElement will be put on the stack \n
+     * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
+	void HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec, int onlymultiphysicelement, int removeduplicates);
 };
 
 /** @brief Overload operator << to print geometric element side data */

@@ -15,6 +15,8 @@
 #include "pzintel.h"
 #include "pznumeric.h"
 
+#include "pzmultiphysicscompel.h"
+
 using namespace pzshape;
 using namespace std;
 
@@ -600,6 +602,25 @@ void TPZGeoElSide::EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,
 	}
 }
 
+void TPZGeoElSide::EqualLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec,
+											 int onlymultiphysicelement, int removeduplicates) {
+	
+	TPZGeoElSide neighbour;
+	TPZCompElSide ref;
+	neighbour = Neighbour();
+	if(!neighbour.Exists()) return;
+	
+	while(neighbour.Element() != this->Element()) {
+		ref = neighbour.Reference();
+		if(ref.Element() && ref.Element() != Reference().Element() && (!onlymultiphysicelement || dynamic_cast<TPZMultiphysicsElement *>(ref.Element()) )) {
+			elsidevec.Push(ref);
+			if(removeduplicates) return;
+		}
+		neighbour = neighbour.Neighbour();
+	}
+}
+
+
 void TPZGeoElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated) {
 	
 	TPZStack<TPZGeoElSide> gelsides;
@@ -782,6 +803,28 @@ void TPZGeoElSide::HigherLevelCompElementList2(TPZStack<TPZCompElSide> &elvec, i
 	} while(neighbour != *this);
 }
 
+void TPZGeoElSide::HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elvec, int onlymultiphysicelement, int removeduplicates) {
+	
+	if(!Dimension()) return;
+	TPZGeoElSide neighbour(*this);
+	TPZStack<TPZGeoElSide> subel;
+	do {
+		if(neighbour.HasSubElement() && neighbour.NSubElements() > 1) {
+			neighbour.GetSubElements2(subel);
+			int nsub = subel.NElements();
+			int is;
+			for(is=0; is<nsub; is++) {
+				subel[is].EqualorHigherCompElementList3(elvec,onlymultiphysicelement,removeduplicates);
+			}
+			neighbour = *this;
+		} else {
+			neighbour = neighbour.Neighbour();
+		}
+		if(!neighbour.Exists()) break;
+	} while(neighbour != *this);
+}
+
+
 void TPZGeoElSide::EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates){
 	
 	
@@ -812,6 +855,38 @@ void TPZGeoElSide::EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celsid
 	} while(neighbour != *this);
 	
 }
+
+void TPZGeoElSide::EqualorHigherCompElementList3(TPZStack<TPZCompElSide> &celside, int onlymultiphysicelement, int removeduplicates){
+	
+	
+	int ncelsides = celside.NElements();
+	if(Reference().Exists()) {
+		celside.Push(Reference());
+		if(removeduplicates) {
+			return;
+		}
+	}
+	this->EqualLevelCompElementList3(celside,onlymultiphysicelement,removeduplicates);
+	if(ncelsides != celside.NElements()) return;
+	TPZStack<TPZGeoElSide> gelsides;
+	TPZGeoElSide neighbour(*this);
+	do {
+		if(neighbour.HasSubElement() && neighbour.NSubElements() > 1) {
+			neighbour.GetSubElements2(gelsides);
+			int nsub = gelsides.NElements();
+			int is;
+			for(is=0; is<nsub; is++) {
+				gelsides[is].EqualorHigherCompElementList3(celside,onlymultiphysicelement,removeduplicates);
+			}
+			neighbour = *this;
+		} else {
+			neighbour = neighbour.Neighbour();
+		}
+		if(!neighbour.Exists()) break;
+	} while(neighbour != *this);
+	
+}
+
 
 
 int TPZGeoElSide::NSubElements()
