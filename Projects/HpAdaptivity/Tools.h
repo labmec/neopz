@@ -60,6 +60,7 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 //Malha computacional com p adaptatividade
 TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine);
 void SetDifferentOrderP(TPZCompMesh *comp,int porder);
+void SetDifferentOrderPMesh4Elem(TPZCompMesh *comp,int porder);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined);
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);

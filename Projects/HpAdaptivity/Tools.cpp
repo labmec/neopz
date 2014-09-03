@@ -445,7 +445,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     comp->SetDefaultOrder(porder);
     comp->SetDimModel(2);
     // Criar e inserir os materiais na malha
-    TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
+    TPZMatPoisson3d *mat = new TPZMatPoisson3d(matId,2);
     mat-> SetTrueFShapeHdiv();
     TPZMaterial * automat(mat);
     comp->InsertMaterialObject(automat);
@@ -479,14 +479,14 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
-    TPZMaterial *bnd = automat->CreateBC (mat,bc0,dirichlet,val1,val2);
-    TPZMaterial *bnd2 = automat->CreateBC (mat,bc1,dirichlet,val1,val2);
-    TPZMaterial *bnd3 = automat->CreateBC (mat,bc2,dirichlet,val1,val2);
-    TPZMaterial *bnd4 = automat->CreateBC (mat,bc3,dirichlet,val1,val2);
-    //      TPZMaterial *bnd5 = automat->CreateBC (automat,-5,0,val1,val2);
-    //   TPZMaterial *bnd6 = automat->CreateBC (automat,-6,0,val1,val2);
-    //   TPZMaterial *bnd7 = automat->CreateBC (automat,-7,0,val1,val2);
-    //  TPZMaterial *bnd8 = automat->CreateBC (automat,-8,0,val1,val2);
+    TPZMaterial *bnd1 = mat->CreateBC (automat,-1,dirichlet,val1,val2);
+    TPZMaterial *bnd2 = mat->CreateBC (automat,-2,dirichlet,val1,val2);
+    TPZMaterial *bnd3 = mat->CreateBC (automat,-3,dirichlet,val1,val2);
+    TPZMaterial *bnd4 = mat->CreateBC (automat,-4,dirichlet,val1,val2);
+    TPZMaterial *bnd5 = mat->CreateBC (automat,-5,0,val1,val2);
+    TPZMaterial *bnd6 = mat->CreateBC (automat,-6,0,val1,val2);
+    TPZMaterial *bnd7 = mat->CreateBC (automat,-7,0,val1,val2);
+    TPZMaterial *bnd8 = mat->CreateBC (automat,-8,0,val1,val2);
     
     //
     //            bnd->SetForcingFunction(fCC1);
@@ -496,12 +496,14 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder,bool prefine){
     
 	
     ///Inserir condicoes de contorno
-    comp->InsertMaterialObject(bnd);
+    comp->InsertMaterialObject(bnd1);
     comp->InsertMaterialObject(bnd2);
     comp->InsertMaterialObject(bnd3);
     comp->InsertMaterialObject(bnd4);
-    
-    
+    comp->InsertMaterialObject(bnd5);
+    comp->InsertMaterialObject(bnd6);
+    comp->InsertMaterialObject(bnd7);
+    comp->InsertMaterialObject(bnd8);
     
     
     // comp->SetAllCreateFunctionsHDivFull();
@@ -1185,7 +1187,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
      
      */
     //Criacao de elementos
-    int matId=10;
+    //int matId=10;
     long index;
 	for ( int el=0; el<nelem; el++ )
 	{
@@ -1832,5 +1834,66 @@ void SetDifferentOrderP(TPZCompMesh *comp,int porder){
 #endif
 
 }
+
+void SetDifferentOrderPMesh4Elem(TPZCompMesh *comp,int porder){
+    int nel = comp->NElements();
+    int iel;
+    for(iel=0; iel<nel; iel++)
+    {
+        
+        TPZInterpolatedElement *intel;
+        TPZCompEl *cel = comp->ElementVec()[iel];
+        if(!cel) continue;
+        
+        TPZGeoEl *gel = cel->Reference();
+        
+        if(gel->Dimension()==2)
+        {
+            //pegar o elemento geometrico mais grosso que contenha gel
+            TPZGeoEl *fgel = gel->LowestFather();
+            
+            if(fgel->Index()==0)
+            {
+                intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+                 intel->PRefine(porder);
+            }
+            
+            if(fgel->Index()==1)
+            {
+                intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+                intel->PRefine(porder+1);
+            }
+            
+            if(fgel->Index()==2)
+            {
+                intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+                intel->PRefine(porder+2);
+            }
+            
+            if(fgel->Index()==3)
+            {
+                intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+                intel->PRefine(porder+3);
+            }
+        }
+        
+    }
+    
+    comp->LoadReferences();
+    comp->ExpandSolution();
+    comp->AdjustBoundaryElements();
+    
+    comp->SetName("Malha Computacional cOm diferentes Ordens");
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        comp->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+}
+
 
 

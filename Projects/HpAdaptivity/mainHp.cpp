@@ -145,7 +145,7 @@ int main()
             ofstream arg2("CmeshInicial.txt");
             cmesh->Print(arg2);
             
-            SetDifferentOrderP(cmesh,porder);
+            SetDifferentOrderPMesh4Elem(cmesh,porder);
             ofstream arg22("CmeshDifOrder.txt");
             cmesh->Print(arg22);
             
@@ -176,7 +176,7 @@ int main()
             
             UniformRefine(gmesh, h);
             ofstream arg3("gmeshRefinada.txt");
-            
+            gmesh->Print(arg3);
             
       
             /*4. visualizacao grafica usando vtk
