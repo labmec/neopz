@@ -19,7 +19,10 @@
  ******************************************************************************/
 
 #include "tpzpagemigrationmanager.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 #include "arglib.h"
 
 #ifdef USING_LIBNUMA
