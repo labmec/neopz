@@ -22,13 +22,22 @@ class TPZDPGMeshControl
     TPZAutoPointer<TPZGeoMesh> fGMesh;
     
      /// computational mesh to contain the pressure elements in the coarse mesh
-    TPZAutoPointer<TPZCompMesh> fPressureCoarseMesh;
+    TPZCompMesh fPressureCoarseMesh;
     
     ///pointers to MHM mesh
-    TPZMHMeshControl * fMHMControl;
+    TPZMHMeshControl fMHMControl;
     
     /// interpolation order of the internal elements at coarse mesh
     int fPOrderCoarseInternal;
+    
+    ///Materials Id of fine mesh
+    int fFinerMatId;
+    
+    ///Materials Id of coarse mesh
+    int fCoarseMatId;
+    
+    ///Materials Id of skeleton mesh. Elements with dimension equal to dim(mesh)-1
+    int fSkeletMatId;
     
 public:
     
@@ -44,14 +53,31 @@ public:
     
     TPZDPGMeshControl &operator=(const TPZDPGMeshControl &cp);
     
-    void SetInternalCoarsePOrder(int order)
+    void SetPOrderMeshes(int porderfinermesh, int pordercoarsemesh, int porderskeleton)
     {
-        fPOrderCoarseInternal = order;
-        fPressureCoarseMesh->SetDefaultOrder(order);
+        fPOrderCoarseInternal = pordercoarsemesh;
+        fPressureCoarseMesh.SetDefaultOrder(pordercoarsemesh);
+        
+        fMHMControl.SetInternalPOrder(porderfinermesh);
+        fMHMControl.SetSkeletonPOrder(porderskeleton);
     }
     
-    TPZMHMeshControl * MHMMControl(){
+    TPZMHMeshControl & MHMControl(){
         return fMHMControl;
+    }
+    
+    TPZCompMesh & PressureCoarseMesh(){
+        return fPressureCoarseMesh;
+    }
+    
+    void BuildComputationalMesh();
+    
+    void SetMatIds(int finermat, int coarsemat, int skeletonmat){
+   
+        if((finermat == skeletonmat) || (coarsemat==skeletonmat)) DebugStop();
+        fFinerMatId = finermat;
+        fCoarseMatId = coarsemat;
+        fSkeletMatId = skeletonmat;
     }
 };
 

@@ -73,8 +73,7 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
         ef(in, 0) +=  (STATE)weight * XfLoc * (STATE)phi(in,0);
         for( int jn = 0; jn < phr; jn++ ) {
             for(kd=0; kd<fDim; kd++) {
-                ek(in,jn) += (STATE)weight * (
-                                              +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) );
+                ek(in,jn) += (STATE)weight * (+fK * (STATE)( dphi(kd,in) * dphi(kd,jn)));
             }
         }
     }

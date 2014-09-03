@@ -49,13 +49,15 @@ TPZMHMeshControl::TPZMHMeshControl(const TPZMHMeshControl &copy){
 
 TPZMHMeshControl &TPZMHMeshControl::operator=(const TPZMHMeshControl &cp){
     
-    fGMesh = cp.fGMesh;
+    fGMesh = new TPZGeoMesh(*cp.fGMesh.operator->());
     fSkeletonMatId = cp.fSkeletonMatId;
     fLagrangeMatIdLeft = cp.fLagrangeMatIdLeft;
     fLagrangeMatIdRight = cp.fLagrangeMatIdRight;
     fCoarseIndices = cp.fCoarseIndices;
     fLagrangeAveragePressure = cp.fLagrangeAveragePressure;
     fCMesh = cp.fCMesh;
+    fCMesh->SetReference(fGMesh);
+    fPressureFineMesh = cp.fPressureFineMesh;
     fPressureFineMesh = cp.fPressureFineMesh;
     fpOrderSkeleton = cp.fpOrderSkeleton;
     fpOrderInternal = cp.fpOrderInternal;
@@ -269,8 +271,10 @@ void TPZMHMeshControl::BuildComputationalMesh()
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    this->SubStructure();
-    fCMesh->SaddlePermute();
+
+//    std::cout << "Coloca em outra chamada\n";
+//    this->SubStructure();
+//    fCMesh->SaddlePermute();
 }
 
 /// will create the internal elements, one coarse element at a time
@@ -1123,5 +1127,7 @@ void TPZMHMeshControl::SubStructure()
         submesh->SetAnalysisSkyline(numthreads, preconditioned, 0);
         itsub++;
     }
+    
+    fCMesh->SaddlePermute();
 }
 

@@ -106,7 +106,6 @@ int const bc4=-4;
 int const bc5=-5;
 
 void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
-
 static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     TPZFMatrix<STATE> du(2,1);
     SolExataSteklov(loc,result,du);
@@ -121,7 +120,7 @@ int main(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     
     
-    TPZAutoPointer<TPZGeoMesh> gmesh = GMeshSteklov(false);
+    TPZAutoPointer<TPZGeoMesh> gmesh = MalhaGeom2(1, 1);//GMeshSteklov(false);
 	ofstream arg0("gmesh0.txt");
 	gmesh->Print(arg0);
     
@@ -131,10 +130,10 @@ int main(int argc, char *argv[])
     //1 refinamento uniforme
     TPZVec<int> dims(2,0);
     dims[0]=1; dims[1]=2;
-    int nref = 1;
+    int nref = 0;
     RefinamentoUniforme(gmesh, nref, dims);
     
-    nref = 4;
+    nref = 0;
     RefinamentoSingular(gmesh, nref);
     
     
@@ -144,11 +143,12 @@ int main(int argc, char *argv[])
     std::set<long> coarseindex;
     GetElIndexCoarseMesh(gmesh, coarseindex);
     
+    
     TPZAutoPointer<TPZGeoMesh> gmesh2 = new TPZGeoMesh(gmesh);
     
     dims.Resize(1, 0);
     dims[0]=2;
-    nref = 2;
+    nref = 0;
     RefinamentoUniforme(gmesh2, nref, dims);
     
     
@@ -159,6 +159,7 @@ int main(int argc, char *argv[])
     mhm.SetSkeletonPOrder(1);
     mhm.CreateCoarseInterfaces(matCoarse);
     InsertMaterialObjects(mhm.CMesh());
+//    mhm.CMesh()->Print();
     mhm.BuildComputationalMesh();
     {
         ofstream arq("gmeshmhm.txt");

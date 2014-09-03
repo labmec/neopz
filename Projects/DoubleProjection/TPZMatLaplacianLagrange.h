@@ -21,11 +21,13 @@
 class TPZMatLaplacianLagrange : public TPZMatLaplacian {
 	
 	protected :
+    
+    bool fIsFinerMesh;
 	
 public:
 	
 
-	TPZMatLaplacianLagrange(int nummat, int dim);
+  TPZMatLaplacianLagrange(int nummat, int dim, bool finermesh);
 
   TPZMatLaplacianLagrange(int matid) : TPZMatLaplacian(matid)
   {
@@ -34,11 +36,8 @@ public:
 
 	TPZMatLaplacianLagrange();
 
-	TPZMatLaplacianLagrange(const TPZMatLaplacianLagrange &copy) : TPZMatLaplacian(copy)
-    {
-        
-    }
-
+	TPZMatLaplacianLagrange(const TPZMatLaplacianLagrange &copy);
+    
 	virtual ~TPZMatLaplacianLagrange();
 
 	TPZMatLaplacianLagrange &operator=(const TPZMatLaplacianLagrange &copy);
@@ -67,6 +66,10 @@ public:
      * @param ef [out] is the load vector
      */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    ///contribute to coarse mesh, which uses enriched space
+    ///implements the inner product: (u,v) = grad(u)grad(v) + uv
+    void ContributeCoarse(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 

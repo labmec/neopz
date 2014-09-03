@@ -70,9 +70,14 @@ public:
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
-    TPZAutoPointer<TPZCompMesh> CMesh()
+    TPZAutoPointer<TPZCompMesh> CMesh() const
     {
         return fCMesh;
+    }
+    
+    TPZAutoPointer<TPZGeoMesh> GMesh() const
+    {
+        return fGMesh;
     }
     
     /// Set the porder for the internal elements
