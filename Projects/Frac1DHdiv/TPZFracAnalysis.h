@@ -25,7 +25,7 @@ public:
   void Run();
   
   /** @brief Creates geometric mesh */
-  TPZGeoMesh * CreateGMesh(const int nel);
+  TPZGeoMesh * CreateGMesh();
   
   /** @brief Creates fmeshvec[0] for flux with H1 space */
   TPZCompMesh * CreateCMeshFluxH1();
@@ -36,8 +36,14 @@ public:
   /** @brief Creates Multiphysic mesh for mixed simulation of fracture */
   TPZCompMesh * CreateCMeshMixed();
   
+  /** @brief Assemble last step */
+  void AssembleLastStep(TPZAnalysis *an);
+  
   /** @brief Newton Method */
   void IterativeProcess(TPZAnalysis *an, std::ostream &out);
+
+  /** @brief Solve time steps */
+  void SolveSistTransient(TPZAnalysis *an);
   
 private:
   
@@ -52,6 +58,9 @@ private:
   
   /** @brief Multphysics cmesh for mixed analysis */
   TPZCompMesh * fcmeshMixed;
+
+  /** @brief Mass Residual of step n */
+  TPZFMatrix<> fLastStepRhs;
   
 };
 

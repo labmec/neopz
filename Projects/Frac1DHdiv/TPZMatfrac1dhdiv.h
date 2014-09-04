@@ -90,6 +90,12 @@ public:
   /** @brief Sets data of the simulation */
   void SetSimulationData(TPZAutoPointer<TPZFracData> Data) { fData = Data;}
   
+  /** @brief Return w based on p of the material data */
+  REAL Getw(REAL p);
+  
+  /** @brief Return dwdp based on p of the material data */
+  REAL Getdwdp();
+  
 };
 
 #endif

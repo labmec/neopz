@@ -42,6 +42,15 @@ void TPZMatfrac1dhdiv::Print(std::ostream &out) {
   out << "\n";
 }
 
+REAL TPZMatfrac1dhdiv::Getw(REAL p)
+{
+  return 0.817 * (1 - fData->Viscosity()) * fData->Hf() / fData->G() * (p - fData->SigmaConf());
+}
+
+REAL TPZMatfrac1dhdiv::Getdwdp()
+{
+  return 0.817 * (1 - fData->Viscosity()) * fData->Hf() / fData->G();
+}
 
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
@@ -55,11 +64,14 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   }
 #endif
   
+  // Simulation Data
+  const REAL mu = fData->Viscosity();
+  const REAL DeltaT = fData->TimeStep();
+  
   // Getting shape functions
   TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
   TPZFMatrix<REAL>  &phiP = datavec[1].phi;
   TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
-  TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
   
   // number of test functions for each state variable
   const int phrQ = phiQ.Rows(), phrP = phiP.Rows();
@@ -74,43 +86,45 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   const REAL p = datavec[1].sol[0][0];
   
   // Abertura
-  const REAL w = 1.; // sera uma funcao de p
-  const REAL dwdp = 0.;
+  REAL w = Getw(p);
+  const REAL dwdp = Getdwdp();
+  /*
+  const REAL wtol = 1.e-4;
+  if (w < wtol){
+    w = wtol;
+  }
+   */
   
   // Leak Off
-  const REAL ql = datavec[0].x[0];
+  const REAL ql = 0.;
   const REAL dqldp = 0.;
-  
-  // Simulation Data
-  const REAL mu = fData->Viscosity();
-  const REAL DeltaT = fData->TimeStep();
   
   //  Contribution of domain integrals for Jacobian matrix and Residual vector
   //  n + 1 time step
   if(!fData->IsLastState())
   {
-    REAL cte = w*w*w/(12.*mu);
+    REAL cte = (12.*mu)/(w*w*w);
     for (int iq = 0; iq < phrQ; iq++) {
-      const REAL res = Q * phiQ(iq,0) - cte * dphiQ(0,iq) * p;
+      const REAL res = cte * Q * phiQ(iq,0) - dphiQ(0,iq) * p;
       ef(FirstQ+iq,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
-        const REAL jac = phiQ(iq,0) * phiQ(jq,0);
+        const REAL jac = cte * phiQ(iq,0) * phiQ(jq,0);
         ek(FirstQ+iq,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-        const REAL jac = - 3 *  w * w / (12. * mu) * dwdp * phiP(jp,0) * dphiQ(0,iq) * p - cte * dphiQ(0,iq) * phiP(jp,0);
+        const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
         ek(FirstQ+iq,FirstP+jp) += weight * jac;
       }
     }
     for (int ip = 0; ip < phrP ; ip++) {
-      const REAL res = dQ * phiP(ip,0) + 1./DeltaT * w * phiP(ip,0) + ql * phiP(ip,0);
+      const REAL res = - dQ * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0) - ql * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
-        const REAL jac = dphiQ(0,jq) * phiP(ip,0);
+        const REAL jac = - dphiQ(0,jq) * phiP(ip,0);
         ek(FirstP+ip,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-        const REAL jac = 1./DeltaT * dwdp * phiP(jp,0) * phiP(ip,0) + dqldp * phiP(jp,0) * phiP(ip,0);
+        const REAL jac = - 1./DeltaT * dwdp * phiP(jp,0) * phiP(ip,0) - dqldp * phiP(jp,0) * phiP(ip,0);
         ek(FirstP+ip,FirstP+jp) += weight * jac;
       }
     }
@@ -121,7 +135,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   if(fData->IsLastState())
   {
     for (int ip = 0; ip < phrP; ip++) {
-      const REAL res = - 1./DeltaT * w * phiP(ip,0);
+      const REAL res = + 1./DeltaT * w * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
     }
   }
@@ -159,14 +173,6 @@ void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
 
   // Solutions and derivate of solutions
   const REAL Q = datavec[0].sol[0][0];
-  //const REAL p = datavec[1].sol[0][0];
-  
-  // Abertura
-  const REAL w = 1.; // sera uma funcao de p
-  //const REAL dwdp = 0.;
-  
-  // Dados da simulacao
-  const REAL mu = fData->Viscosity();
   
   // Valores impostos
   REAL v2 = bc.Val2()(0,0);
@@ -187,7 +193,7 @@ void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
     case 1: // Pressure weak imposition (v2 = imposed pressure)
     {
       for (int iq = 0; iq < phrQ; iq++) {
-        ef(FirstQ+iq,0) += w*w*w/(12.*mu) * v2 * phiQ(iq,0);
+        ef(FirstQ+iq,0) += v2 * phiQ(iq,0);
       }
     }
     break;
@@ -232,7 +238,7 @@ void TPZMatfrac1dhdiv::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
   }
   
   if (var == 2) {
-    const REAL w = 1.; // AQUINATHAN Trocar pela formula do w
+    const REAL w = Getw(SolP);
     Solout[0] = w;
   }
 }

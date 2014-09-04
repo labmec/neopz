@@ -38,23 +38,62 @@ private:
   
   /** @brief Simulation current time */
   REAL fTime;
+
+  /** @brief Simulation Total time */
+  REAL fTtot;
   
   /** @brief Fracture length */
   REAL fLfrac;
   
+  /** @brief Fracture height */
+  REAL fHf;
+
+  /** @brief Reservoir young modulus */
+  REAL fE;
+  
+  /** @brief Reservoir poisson */
+  REAL fnu;
+  
+  /** @brief Flow BC */
+  REAL fQ;
+
+  /** @brief Confinement Stress */
+  REAL fSigmaConf;
+  
   /** @brief P order of pressure (p) analysis for fracturing simulation */
-  REAL fPorderPressure;
+  int fPorderPressure;
 
   /** @brief P order of flow (Q) analysis for fracturing simulation */
-  REAL fPorderFlow;
-
+  int fPorderFlow;
+  
+  /** @brief Number of elements in the fracture */
+  int fnelFrac;
+  
+  /** @brief Name of the postprocess file for fracture vtk */
+  std::string fpostProcessFileName;
+  
 public:
+  
+  /** @brief Sets next time of simulation */
+  void SetNextTime();
+  
+  /** @brief Sets the postprocess file for fracture vtk */
+  void SetPostProcessFileName(std::string &postProcessFileName);
+  
+  /** @brief Returns the postprocess file for fracture vtk */
+  std::string PostProcessFileName();
   
   /** @brief Set fluid viscosity. */
   void SetViscosity(REAL mu){this->fmu = mu;}
   
   /** @brief Returns fluid viscosity. */
   REAL Viscosity(){return this->fmu;}
+  
+  /** @brief Set fluid viscosity. */
+  void SetTotalTime(REAL Ttot){this->fTtot = Ttot;}
+  
+  /** @brief Returns fluid viscosity. */
+  REAL TotalTime(){return this->fTtot;}
   
   /** @brief Defines simulation time step. */
   void SetTimeStep(REAL timestep){ this->fDeltaT = timestep;}
@@ -74,6 +113,39 @@ public:
   /** @brief Returns simulation fracture length */
   REAL Lfrac(){return this->fLfrac;}
 
+  /** @brief Defines simulation fracture height */
+  void SetHf(REAL Hf){ this->fHf = Hf;}
+  
+  /** @brief Returns simulation fracture height */
+  REAL Hf(){return this->fHf;}
+  
+  /** @brief Defines simulation elasticity */
+  void SetE(REAL E){ this->fE = E;}
+  
+  /** @brief Returns simulation elasticity */
+  REAL E(){return this->fE;}
+
+  /** @brief Defines simulation poisson */
+  void SetPoisson(REAL nu){ this->fnu = nu;}
+  
+  /** @brief Returns simulation poisson */
+  REAL Poisson(){return this->fnu;}
+  
+  /** @brief Defines simulation Flow BC */
+  void SetQ(REAL Q){ this->fQ = Q;}
+  
+  /** @brief Returns simulation Flow BC */
+  REAL Q(){return this->fQ;}
+  
+  /** @brief Defines simulation Confinement stress */
+  void SetSigmaConf(REAL SigmaConf){ this->fSigmaConf = SigmaConf;}
+  
+  /** @brief Returns simulation confinement stress */
+  REAL SigmaConf(){return this->fSigmaConf;}
+  
+  /** @brief Returns simulation G */
+  REAL G();
+
   /** @brief Defines p order of the pressure in L2 space */
   void SetPorderPressure(int PorderPressure){ this->fPorderPressure = PorderPressure;}
   
@@ -86,6 +158,12 @@ public:
   /** @brief Returns p order of the flow */
   int PorderFlow(){return this->fPorderFlow;}
 
+  /** @brief Defines p order of the flow in H1 space */
+  void SetNelFrac(int NelFrac){ this->fnelFrac = NelFrac;}
+  
+  /** @brief Returns p order of the flow */
+  int NelFrac(){return this->fnelFrac;}
+  
   /** @brief Set evaluating step n */
   void SetLastState(){ gState = ELastState;}
   
