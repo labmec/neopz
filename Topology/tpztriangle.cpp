@@ -818,81 +818,72 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         // calcula os vetores
         //int numvec = bvec.Cols();
         
-        if (side<3)
+        switch (side)
         {
-            
-        }
-        else
-        {
-            switch (side)
+            case 0:
             {
-               /* case 0:
-                {
-                    
-                }
-                    break;
-                case 1:
-                {
-                    
-                }
-                    break;
-                case 2:
-                {
-                    
-                }
-                    break;*/
-                case 3:
-                {
-                    directions.Redim(3, 3);
-                    sidevectors.Resize(3);
-                    int inumvec = 0, fnumvec = 2;
-                    computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                    for (int ip = 0; ip < 3; ip++) {
-                        sidevectors[ip] = vectorsideorder[ip+inumvec];
-                    }
-                    
-                }
-                    break;
-                case 4:
-                {
-                    directions.Redim(3, 3);
-                    sidevectors.Resize(3);
-                    int inumvec = 3, fnumvec = 5;
-                    computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                    for (int ip = 0; ip < 3; ip++) {
-                        sidevectors[ip] = vectorsideorder[ip+inumvec];
-                    }
-                }
-                    break;
-                case 5:
-                {
-                    directions.Redim(3, 3);
-                    sidevectors.Resize(3);
-                    int inumvec = 6, fnumvec = 8;
-                    computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                    for (int ip = 0; ip < 3; ip++) {
-                        sidevectors[ip] = vectorsideorder[ip+inumvec];
-                    }
-                }
-                    break;
-                case 6:
-                {
-                    directions.Redim(3, 5);
-                    sidevectors.Resize(5);
-                    int inumvec = 9, fnumvec = 13;
-                    computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                    for (int ip = 0; ip < 5; ip++) {
-                        sidevectors[ip] = vectorsideorder[ip+inumvec];
-                    }
-                }
-                    break;
-                default:
-                    break;
+                
             }
-
+                break;
+            case 1:
+            {
+                
+            }
+                break;
+            case 2:
+            {
+                
+            }
+                break;
+            case 3:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 0, fnumvec = 2;
+                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+                
+            }
+                break;
+            case 4:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 3, fnumvec = 5;
+                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+            case 5:
+            {
+                directions.Redim(3, 3);
+                sidevectors.Resize(3);
+                int inumvec = 6, fnumvec = 8;
+                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 3; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+            case 6:
+            {
+                directions.Redim(3, 5);
+                sidevectors.Resize(5);
+                int inumvec = 9, fnumvec = 13;
+                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+                for (int ip = 0; ip < 5; ip++) {
+                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                }
+            }
+                break;
+            default:
+                DebugStop();
+                break;
         }
-            
-        
         
     }
 

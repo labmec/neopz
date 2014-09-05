@@ -584,12 +584,28 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
 	}
-	TPZManVector<long,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
-	for(int i=0; i<TGeo::NCornerNodes; i++)
+    
+    // Douglas -- teste em 2014 09 04
+    // conta o numero de lados da face
+    const long nsidenodes = TGeo::NSideNodes(side);
+    TPZManVector<long,4> id(nsidenodes);  // 
+    
+	for(int inode=0; inode<nsidenodes; inode++)
     {
-        long nodeindex = fGeo.fNodeIndexes[i];
-        id[i] = Mesh()->NodeVec()[nodeindex].Id();
+        // esta parte pega os indices locais dos nos apenas da face em questao
+        long nodeindex = SideNodeLocId(side, inode);
+        // com base nestes indices locais, pegamos os indices globais para determinar a permutacao
+        id[inode] = NodePtr(nodeindex)->Id();
     }
+    
+    // Esse bloco parece pegar todo os vertices do cubo para fazer a permutacao, deveria ser da face
+//    TPZManVector<long,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
+//	for(int i=0; i<TGeo::NCornerNodes; i++)
+//    {
+//        long nodeindex = fGeo.fNodeIndexes[i];
+//        id[i] = Mesh()->NodeVec()[nodeindex].Id();
+//    }
+    
     MElementType sidetype = TGeo::Type(side);
     int transformid;
     switch (sidetype) {

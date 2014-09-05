@@ -22,6 +22,11 @@
 #include "pzfstrmatrix.h"
 #include "pzstepsolver.h"
 
+#include "pzmultiphysicselement.h"
+#include "pzmultiphysicscompel.h"
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "pzbuildmultiphysicsmesh.h"
+
 #include "pzanalysis.h"
 #include "TPZParSkylineStructMatrix.h"
 
@@ -43,6 +48,10 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
 static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem = 3, int fluxorder = 4);
 int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
 int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
+
+static TPZAutoPointer<TPZCompMesh> HDivMesh, PressureMesh;
+//static TPZCompMesh *HDivMesh, *PressureMesh;
+
 static void Force(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 {
     force[0] = 5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
@@ -253,6 +262,104 @@ BOOST_AUTO_TEST_SUITE_END()
 
 static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem, int fluxorder)
 {
+    int dimmodel = 2;
+    TPZManVector<int,3> nx(2,nelem);
+    TPZManVector<REAL,3> x0(3,0.),x1(3,3.);
+    x1[2] = 0.;
+    TPZGenGrid grid(nx,x0,x1);
+    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
+    grid.Read(gmesh);
+    grid.SetBC(gmesh, 4, -1);
+    grid.SetBC(gmesh, 5, -1);
+    grid.SetBC(gmesh, 6, -1);
+    grid.SetBC(gmesh, 7, -1);
+    
+    TPZMatPoisson3d *matpoisP = new TPZMatPoisson3d(1, 2);
+    TPZMaterial *poisP(matpoisP);
+    
+    PressureMesh = new TPZCompMesh(gmesh);
+    
+    TPZFNMatrix<4,STATE> val1(1,1,0.),val2(1,1,0.);
+    TPZBndCond *bndP = matpoisP->CreateBC(poisP, -1, 0, val1, val2);
+    PressureMesh->InsertMaterialObject(poisP);
+    //PressureMesh->SetAllCreateFunctionsContinuous();
+    PressureMesh->SetAllCreateFunctionsDiscontinuous();
+    TPZMaterial *matbndP(bndP);
+    PressureMesh->InsertMaterialObject(matbndP);
+    bndP = matpoisP->CreateBC(poisP, -2, 1, val1, val2);
+    PressureMesh->InsertMaterialObject(bndP);
+    PressureMesh->SetDefaultOrder(fluxorder);
+    PressureMesh->SetDimModel(dimmodel);
+    PressureMesh->AutoBuild();
+    
+    
+    TPZMatPoisson3d *matpoisH = new TPZMatPoisson3d(1, 2);
+    TPZMaterial *poisH(matpoisH);
+    HDivMesh = new TPZCompMesh(gmesh);
+    TPZBndCond *bndh = matpoisH->CreateBC(poisH, -1, 0, val1, val2);
+    HDivMesh->InsertMaterialObject(poisH);
+    HDivMesh->SetAllCreateFunctionsHDiv();
+    
+    TPZMaterial *matbndh(bndh);
+    HDivMesh->InsertMaterialObject(matbndh);
+    
+    bndh = matpoisH->CreateBC(poisH, -2, 1, val1, val2);
+    HDivMesh->InsertMaterialObject(bndh);
+    
+    HDivMesh->SetDefaultOrder(fluxorder);
+    HDivMesh->SetDimModel(dimmodel);
+    HDivMesh->AutoBuild();
+    
+    
+    // malha multifisica
+    TPZVec<TPZCompMesh *>  meshvec(2);
+    // static TPZAutoPointer<TPZCompMesh> HDivMesh, PressureMesh;
+    meshvec[0] = HDivMesh.operator->();
+    meshvec[1] = PressureMesh.operator->();
+    
+    gmesh->ResetReference();
+    
+    TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+    
+    TPZMatPoisson3d *matpoisM = new TPZMatPoisson3d(1, 2);
+    TPZMaterial *poisM(matpoisM);
+    
+    mphysics->SetDimModel(dimmodel);
+    mphysics->InsertMaterialObject(poisM);
+    TPZBndCond *bndm = matpoisM->CreateBC(poisM, -1, 0, val1, val2);
+    mphysics->InsertMaterialObject(poisH);
+    bndm = matpoisM->CreateBC(poisM, -2, 1, val1, val2);
+    mphysics->InsertMaterialObject(bndm);
+    
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    mphysics->AutoBuild();
+    mphysics->AdjustBoundaryElements();
+    mphysics->CleanUpUnconnectedNodes();
+    
+    TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvec, mphysics);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    
+    mphysics->Reference()->ResetReference();
+    mphysics->LoadReferences();
+
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        mphysics->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    return mphysics;
+
+    
+    
+    
+    
+    
+  /**
     TPZManVector<int,3> nx(2,nelem);
     TPZManVector<REAL,3> x0(3,0.),x1(3,3.);
     x1[2] = 0.;
@@ -286,6 +393,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem, int fluxord
     }
 #endif
     return cmesh;
+   */
 }
 
 int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)

@@ -834,7 +834,7 @@ namespace pztopology {
         // calcula os vetores
         
         switch (side) {
-            /*case 0:
+            case 0:
             {
             }
                 break;
@@ -849,7 +849,7 @@ namespace pztopology {
             case 3:
             {
             }
-                break;*/
+                break;
             case 4:
             {
                 directions.Redim(3, 3);
@@ -908,6 +908,7 @@ namespace pztopology {
                 break;
                 
             default:
+                DebugStop();
                 break;
         }
 

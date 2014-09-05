@@ -50,11 +50,11 @@
 #include "pzlog.h"
 
 #include "pzhdivfull.h"
+#include "pzelchdiv.h"
 
 #include "pzgeopyramid.h"
 
 #include "PZMatPoissonD3.h"
-#include "pzcompelhdivcurved.h"
 
 #include "pznumeric.h"
 
@@ -76,6 +76,7 @@ int bc3 = -4;
 TPZGeoMesh *GMesh(int dimensao, int tipo, REAL Lx, REAL Ly, REAL Lz);
 TPZGeoMesh *GMeshDeformed();
 
+TPZGeoMesh *CreateOneCubo();
 TPZGeoMesh *CreateGMeshCubo();
 TPZGeoMesh *CreateGMeshTetra();
 TPZGeoMesh *CreateGMeshPiramide();
@@ -129,8 +130,8 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 
 
-#define MAIN3D
-//#define MAIN2D
+//#define MAIN3D
+#define MAIN2D
 
 #include "pztransfer.h"
 
@@ -146,13 +147,17 @@ int main(int argc, char *argv[])
     ofstream saidavets("../vetoresTeB.txt",ios::app);
     
     
+    //TPZGeoMesh *gmesh = CreateOneCubo();
     TPZGeoMesh *gmesh = CreateGMeshCubo();
-    //return 0;
     
     //TPZGeoMesh *gmesh = MalhaCubo(); //cubo em tetraedros
     //TPZGeoMesh *gmesh = CreateGMeshPiramide();
     //TPZGeoMesh *gmesh = CreateGMeshPrisma();
     //TPZGeoMesh *gmesh = GMeshDeformed();
+    
+    ofstream arg200("gmesh1.txt");
+    gmesh->Print(arg200);
+
     //TPZGeoEl *gel;
     //gel =  gmesh->ElementVec()[0];
 //    int nele = gmesh->NElements();
@@ -161,8 +166,123 @@ int main(int argc, char *argv[])
 //    {
 //        TPZGeoEl *gel;
 //        gel =  gmesh->ElementVec()[iel]; // vejo a dimensao do elemento (lado) aqui para saber se esta devolvendo os vetores corretamente.
-//        TestVec(gel, saidavets);
+//        int nsides = gel->NSides();
+//        for (int is = 0 ; is < nsides; is++)
+//        {
+//            TPZGeoElSide igeoside(gel,is);
+//            
+//            if(igeoside.Dimension() < 2)
+//            {
+//                continue;
+//            }
+//            int iside = igeoside.Side();
+//            TPZAutoPointer<TPZIntPoints> IntegrationRule = gel->CreateSideIntegrationRule(iside, 2);
+//            TPZManVector<int,3> order(gel->Dimension(),2);
+//            IntegrationRule->SetOrder(order);
+//            TPZFMatrix<REAL> directions;
+//            TPZVec<int> vectorsides;
+//            TPZManVector<REAL,3> qsi(gel->Dimension());
+//            int npoints = IntegrationRule->NPoints();
+//            for (int ipoint =0; ipoint < npoints; ipoint++) {
+//                REAL weitgh;
+//                IntegrationRule->Point(ipoint, qsi, weitgh);
+//                gel->Directions(iside, qsi, directions, vectorsides);
+//            }
+//        }
+//        //TestVec(gel, saidavets);
 //    }
+    int nele = gmesh->NElements();
+
+    for (int iel = 0 ; iel < nele; iel++)
+    {
+    
+        TPZGeoEl *gel;
+        gel =  gmesh->ElementVec()[iel]; // vejo a dimensao do elemento (lado) aqui para saber se esta devolvendo os vetores corretamente.
+        int nsides = gel->NSides();
+        for (int is = 0 ; is < nsides; is++)
+        {
+            TPZGeoElSide igeoside(gel,is);
+            int isdim = igeoside.Dimension();
+            if (isdim!=2)
+            {
+                continue;
+            }
+            TPZVec<int> permutegather;
+            gel->HDivPermutation(is, permutegather);
+            cout << "Elemento " << iel << " Lado " << is << endl;
+            cout << permutegather << endl;
+            
+            TPZManVector<REAL,3> center(3); // por no ponto de integracao
+            gel->CenterPoint(is, center);
+//            igeoside.CenterPoint(center);
+            TPZVec<REAL> ptx = center ;
+//            cout << "ponto ptx " << ptx << endl;
+            TPZFMatrix<REAL> directions;
+            TPZVec<int> sidenormals;
+            gel->Directions(is, ptx, directions,sidenormals);
+            
+            TPZFMatrix<REAL> vetores;
+            int nvec = directions.Cols();
+            vetores.Resize(directions.Rows(), nvec);
+            TPZVec<int> lados(nvec,0);
+            for (int ip=0; ip < nvec; ip++)
+            {
+                for(int id = 0; id<3; id++)
+                {
+                    vetores(id,ip) = directions(id,permutegather[ip]);
+                }
+                lados[ip] = sidenormals[permutegather[ip]];
+            }
+            
+            //determina o indice dos vizinhos de menor dimensao.
+            TPZStack<int> lowdim;
+            gel->LowerDimensionSides(is,lowdim);
+            //anexa o indice do lado side
+            lowdim.Push(is);
+            
+            for (int nn = 0; nn<4; nn++)
+            {
+                cout << "no " << gel->SideNodeLocIndex(is, nn) << endl;
+            }
+            //retornou os mesmos ids dos nos, dados por LowerDimensionSides
+            
+            cout << "indices lado " << is << endl;
+            cout << lowdim << endl;
+            
+            
+            if ((is==22 && iel==0)||(is==24 && iel==1)) {
+#ifdef LOG4CXX
+                std::stringstream sout;
+                sout << std::endl;
+                sout << "LADO " << is << endl;
+                //            directions.Print("direcoes orig ", sout);
+                sout << std::endl;
+                sout << "sidenormals  orig " << sidenormals << std::endl;
+                sout << std::endl;
+                sout << "permutacao " << permutegather << std::endl;
+                sout << "PERMUTADO LADO " << is << endl;
+                //            vetores.Print("direcoes perm ", sout);
+                sout << std::endl;
+                sout << "sidenormals perm " << lados << std::endl;
+                LOGPZ_DEBUG(logdata, sout.str());
+#endif
+
+            }
+            
+            // Inicio da relacao entre shape e vetor
+            //TPZCompElHDiv elemhdiv(gmesh,gel,1);
+            
+            TPZManVector<long,27> FirstIndex;
+            
+            
+        }
+    }
+    
+    
+
+    
+    return 0;
+    
     
     int p = 1;
     
@@ -203,7 +323,7 @@ int main(int argc, char *argv[])
     
     TPZAnalysis an(mphysics);
     string plotfile("Solution_mphysics.vtk");
-    //    PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+    PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
     
     SolveSyst(an, mphysics);
     
@@ -244,7 +364,7 @@ int main(int argc, char *argv[])
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     ofstream saidavets("../vetoresTeB.txt",ios::app);
     
-    for(p=1;p<2;p++)
+    for(p=2;p<3;p++)
     {
         int pq = p;
         int pp;
@@ -309,10 +429,21 @@ int main(int argc, char *argv[])
             
             
             TPZAnalysis an(mphysics);
-            string plotfile("Solution_mphysics.vtk");
-            //    PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+            string plotfile("HDivSpace.vtk");
             
-            SolveSyst(an, mphysics);
+            int neq= an.Solution().Rows();
+            int neq2= an.Solution().Cols();
+
+            SolveSyst(an, mphysics);            
+            TPZFMatrix<STATE> SolutionToload(neq,1,1.0);
+            an.LoadSolution(SolutionToload);
+            mphysics->LoadSolution(SolutionToload);
+            
+            PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+            
+            
+            
+
             
             
             //
@@ -544,7 +675,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
 	
     cmesh->SetDimModel(dim);
     
-    //    cmesh->SetAllCreateFunctionsHDivFull();
+    //cmesh->SetAllCreateFunctionsHDivFull();
     cmesh->SetAllCreateFunctionsHDiv();
     //    cmesh->SetAllCreateFunctionsHDivCurved();
     
@@ -815,7 +946,7 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
     scalnames[2] = "ExactPressure";
     
 	const int dim = 2;
-	int div =2;
+	int div =4;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -1257,6 +1388,107 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 	}
 }
 
+TPZGeoMesh *CreateOneCubo()
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    int nnodes = 8;
+    gmesh->SetDimension(3);
+    gmesh->NodeVec().Resize(nnodes);
+    
+    TPZManVector<REAL,3> coord(3,0.);
+    int in = 0;
+    
+    //c0
+    coord[0] = 0;
+    coord[1] = 0;
+    coord[2] = 0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c1
+    coord[0] = 0.5;
+    coord[1] = 0;
+    coord[2] = 0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c2
+    coord[0] = 0.5;
+    coord[1] = 1;
+    coord[2] = 0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c3
+    coord[0] = 0;
+    coord[1] = 1;
+    coord[2] = 0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c4
+    coord[0] = 0;
+    coord[1] = 0;
+    coord[2] = 1;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c5
+    coord[0] = 0.5;
+    coord[1] = 0;
+    coord[2] = 1;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c6
+    coord[0] = 0.5;
+    coord[1] = 1;
+    coord[2] = 1;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    //c7
+    coord[0] = 0;
+    coord[1] = 1;
+    coord[2] = 1;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in++);
+    
+     
+    
+    int index = 0;
+    TPZManVector<long,8> TopolCubo(8,0);
+    
+    
+    TopolCubo[0] = 0;
+    TopolCubo[1] = 1;
+    TopolCubo[2] = 2;
+    TopolCubo[3] = 3;
+    TopolCubo[4] = 4;
+    TopolCubo[5] = 5;
+    TopolCubo[6] = 6;
+    TopolCubo[7] = 7;
+    
+    
+    new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (index, TopolCubo, matId, *gmesh);
+    
+    
+    gmesh->BuildConnectivity();
+    
+    /// gmesh para aqui
+    
+    int nref = 0;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("SingleCubeDAC.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
 
 TPZGeoMesh *CreateGMeshCubo()
 {
