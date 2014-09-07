@@ -58,7 +58,8 @@ void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL 
 
 
 #include "pzlog.h"
-#include "tpztimer.h"
+//#include "tpztimer.h"
+#include "TPZTimer.h"
 #include "WellBoreAnalysis.h"
 #include "pzbfilestream.h"
 #include "TPZProjectEllipse.h"
