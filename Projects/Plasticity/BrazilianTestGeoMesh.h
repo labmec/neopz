@@ -115,6 +115,7 @@ inline REAL propPA(REAL ratio, int nrad, int ncirc, int i)
 	return SAi / SAn;
 }
 
+#define PLASTICITY_CLEAN_OUT
 
 inline void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStress, TPZTensor<REAL> &endStress, int steps)
 {
@@ -128,7 +129,9 @@ inline void PrepareInitialMat(TPZPlasticBase & mat, TPZTensor<REAL> &initialStre
 	
 	for(i = 1; i <= steps; i++)
 	{
+#ifndef PLASTICITY_CLEAN_OUT
 		cout << "Starting step " << i << " of " << steps << endl;
+#endif
 		if(i == 0)
 		{
 			multipl = 0;

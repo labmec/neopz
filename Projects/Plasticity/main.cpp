@@ -42,7 +42,7 @@
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
-static void calcVonMisesBar();
+//static void calcVonMisesBar();
 void MohrCoulombTestX();
 void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat);//,REAL theta,int axes);
 void taludecmesh(TPZCompMesh *CMesh, TPZMaterial * mat);
@@ -62,12 +62,15 @@ void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL 
 #include "WellBoreAnalysis.h"
 #include "pzbfilestream.h"
 #include "TPZProjectEllipse.h"
+#include "arglib.h"
+#include "run_stats_table.h"
 
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 #endif
 
+RunStatsTable plast_tot("-tpz_plast_tot", "Raw data table statistics for Plasticity::FindBug");
 
 void FindBug()
 {
@@ -77,6 +80,8 @@ void FindBug()
     ATTACH_FPO_SIGNAL;
     
 #endif
+    
+    plast_tot.start();
     
     TPZTimer time1,time2;
     time1.start();
@@ -88,7 +93,7 @@ void FindBug()
     REAL innerradius = 4.25*0.0254;
     REAL outerradius = 3.;
     
-    REAL computedquarter = 7.05761678496926;
+    //    REAL computedquarter = 7.05761678496926;
     REAL sqj2_refine;
     std::cout << std::setprecision(15);
     int Startfrom=0;
@@ -145,7 +150,7 @@ void FindBug()
         int porder = 2;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
-        REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
+        //        REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         //well.LinearConfiguration(1);
         well.PostProcess(0);
         TPZBFileStream save;
@@ -167,11 +172,11 @@ void FindBug()
         int numnewton = 90;
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteInitialSimulation(nsteps, numnewton);
-
+        
     }
     
     
-
+    
     if (Startfrom <=1)
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
@@ -218,7 +223,7 @@ void FindBug()
     
     if (Startfrom <=2)
     {
-     
+        
         std::cout << "\n ------- 2 -------- "<<std::endl;
         well.PRefineElementAbove(0.00001, 3);
         well.DivideElementsAbove(0.00001);
@@ -297,98 +302,98 @@ void FindBug()
         
     }
     
-    
-    
-      
+    plast_tot.stop();
 }
 
-int main()
+int main(int argc, char **argv)
 {
-  
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    clarg::parse_arguments(argc, argv);
+    
+    //    TPZGeoMesh *gmesh = new TPZGeoMesh;
     
     FindBug();
     
-
+    
     return 0;
 }
 
-
-static void calcVonMisesBar()
-{
-    TPZGeoMesh *barmesh1;
-    barmesh1 = barmesh(0);
-    ofstream arg("barmesh.txt");
-    barmesh1->Print(arg);
-    
-    TPZCompEl::SetgOrder(1);
-	TPZCompMesh *compmesh1 = new TPZCompMesh(barmesh1);
-	
-    
-	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
-    
-    TPZVonMises VM;
-    TPZVonMises::Steel(VM);
-    
-	TPZMatElastoPlastic<TPZVonMises> PlasticVonM(1);
-	PlasticVonM.SetPlasticity(VM);
-    
-    TPZMaterial *plastic(&PlasticVonM);
-    compmesh1->InsertMaterialObject(plastic);
-    
-//    REAL theta = 45;
-//    int axes=2;
-    //cmesh(compmesh1,plastic,theta,axes);
-    // FIX ME
-    DebugStop();
-    
-    ofstream arg2("barcmesh.txt");
-    compmesh1->Print(arg2);
-    
-	
-	TPZElastoPlasticAnalysis EPAnalysis(compmesh1,cout);
-    SolverSetUp(EPAnalysis,compmesh1);
-	
-	TPZPostProcAnalysis PPAnalysis(compmesh1);
-	TPZFStructMatrix structmatrix(PPAnalysis. Mesh());
-	PPAnalysis.SetStructuralMatrix(structmatrix);
-    
-    PPAnalysis.SetStructuralMatrix(structmatrix);
-    TPZVec<int> PostProcMatIds(1,1);
-	TPZVec<std::string> PostProcVars, scalNames, vecNames;
-	SetUPPostProcessVariables(PostProcVars,scalNames,vecNames);
-    
-	PPAnalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
-	
-	EPAnalysis.TransferSolution(PPAnalysis);
-	
-	cout << "\nDefining Graph Mesh\n";
-	int dimension =3;
-    
-    
-	
-    //	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick4.vtk");
-    //  PPAnalysis.PostProcess(0/*pOrder*/);
-	
-    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(3,3,0.), EndStress2(3,3,0.);
-	TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
-	
-	int nsteps,taxa,nnewton;
-	nnewton = 30;
-	nsteps =1;
-	taxa = 1;
-	REAL beginforce = 209.9999;
-	REAL endforce = 209.9999;
-    int bc =-2;
-    
-    ManageIterativeProcess(EPAnalysis ,beginforce,endforce,bc, nsteps,&PPAnalysis);
-    
-	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick8.vtk");
-	PPAnalysis.PostProcess(0);
-	PPAnalysis.CloseGraphMesh();
-
-}
-
+/*
+ static void calcVonMisesBar()
+ {
+ TPZGeoMesh *barmesh1;
+ barmesh1 = barmesh(0);
+ ofstream arg("barmesh.txt");
+ barmesh1->Print(arg);
+ 
+ TPZCompEl::SetgOrder(1);
+ TPZCompMesh *compmesh1 = new TPZCompMesh(barmesh1);
+ 
+ 
+ TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+ 
+ TPZVonMises VM;
+ TPZVonMises::Steel(VM);
+ 
+ TPZMatElastoPlastic<TPZVonMises> PlasticVonM(1);
+ PlasticVonM.SetPlasticity(VM);
+ 
+ TPZMaterial *plastic(&PlasticVonM);
+ compmesh1->InsertMaterialObject(plastic);
+ 
+ //    REAL theta = 45;
+ //    int axes=2;
+ //cmesh(compmesh1,plastic,theta,axes);
+ // FIX ME
+ DebugStop();
+ 
+ ofstream arg2("barcmesh.txt");
+ compmesh1->Print(arg2);
+ 
+ 
+ TPZElastoPlasticAnalysis EPAnalysis(compmesh1,cout);
+ SolverSetUp(EPAnalysis,compmesh1);
+ 
+ TPZPostProcAnalysis PPAnalysis(compmesh1);
+ TPZFStructMatrix structmatrix(PPAnalysis. Mesh());
+ PPAnalysis.SetStructuralMatrix(structmatrix);
+ 
+ PPAnalysis.SetStructuralMatrix(structmatrix);
+ TPZVec<int> PostProcMatIds(1,1);
+ TPZVec<std::string> PostProcVars, scalNames, vecNames;
+ SetUPPostProcessVariables(PostProcVars,scalNames,vecNames);
+ 
+ PPAnalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+ 
+ EPAnalysis.TransferSolution(PPAnalysis);
+ 
+ cout << "\nDefining Graph Mesh\n";
+ int dimension =3;
+ 
+ 
+ 
+ //	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick4.vtk");
+ // Porder
+ //  PPAnalysis.PostProcess(0);
+ 
+ TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(3,3,0.), EndStress2(3,3,0.);
+ TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
+ 
+ int nsteps,taxa,nnewton;
+ nnewton = 30;
+ nsteps =1;
+ taxa = 1;
+ REAL beginforce = 209.9999;
+ REAL endforce = 209.9999;
+ int bc =-2;
+ 
+ ManageIterativeProcess(EPAnalysis ,beginforce,endforce,bc, nsteps,&PPAnalysis);
+ 
+ PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick8.vtk");
+ PPAnalysis.PostProcess(0);
+ PPAnalysis.CloseGraphMesh();
+ 
+ }
+ */
 
 void calctalude()
 {
@@ -418,7 +423,7 @@ void calctalude()
 	PlasticMohrC.SetPlasticity(MC);
     PlasticMohrC.SetBulkDensity(1.);//kN/mˆ3
     
-   // TPZMaterial *plastic(&PlasticMohrC);
+    // TPZMaterial *plastic(&PlasticMohrC);
     TPZMaterial *plasticDP(&PlasticDP);
     //compmesh1->InsertMaterialObject(plastic);
     compmesh1->InsertMaterialObject(plasticDP);
@@ -470,7 +475,7 @@ void calctalude()
 	PPAnalysis.PostProcess(0);
 	PPAnalysis.CloseGraphMesh();
 	
-
+    
 }
 
 
@@ -512,7 +517,7 @@ void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)//,REAL theta,int axes)
     TPZFMatrix<REAL> k2(3,3,0.);
     TPZFMatrix<REAL> f2(3,1,0.);
     f2(0,0)=1.;
-
+    
     TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,k2,f2);
     CMesh->InsertMaterialObject(bc2);
     
@@ -675,7 +680,7 @@ void SetUPPostProcessVariables(TPZVec<std::string> &postprocvars, TPZVec<std::st
 
 void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost)
 {
-
+    
     TPZGeoMesh *barmesh1;
     barmesh1 = barmesh(0);
     ofstream arg("barmesh.txt");
@@ -686,7 +691,7 @@ void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REA
 	
     
 	//TPZAnalysis::SetAllCreateFunctionsContinuous(compmesh1);
-  
+    
     
     int nummat=1;
     REAL e = 5088.; // [MPa]
@@ -749,8 +754,8 @@ void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REA
         
 		pBC->Val2() = mattemp;
         cout<< "\n pBC->Val2() = " <<pBC->Val2()<<endl;
-        bool linesearch = false;
-        bool checkconv = false;
+        //        bool linesearch = false;
+        //        bool checkconv = false;
 		//analysis.IterativeProcess(cout, 1.e-5, 30, linesearch, checkconv);
         
         analysis.AcceptSolution();
@@ -789,7 +794,7 @@ void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL 
         //  mat->SetBulkDensity(increment);
         
 		pMC->SetBulkDensity(tempmattemp);
-        bool linesearch = false;
+        //        bool linesearch = false;
         bool checkconv = false;
 		//analysis.IterativeProcess(cout, 1.e-5, 5, linesearch, checkconv);
         
@@ -872,7 +877,7 @@ void MohrCoulombTestX()
 		cout << "\nphis " << phis << endl;
  		//cout<<  "\nEigen " << eigenval << endl;
         //if(step==50 || step == 100 ||step == 200 ||step == 300)deltastress*=-1.;
-		outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n"; 
+		outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n";
 		
 	}
 	

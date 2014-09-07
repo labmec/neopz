@@ -144,18 +144,18 @@ public:
     /* Start recording the execution statistics. */
     void start()
     {
-      PAPI_flops ( &rtimeS, &ptimeS, &flpopsS, &mflopsS);
+        PAPI_flops ( &rtimeS, &ptimeS, &flpopsS, &mflopsS);
     }
     
     /* Stop recording the execution statistics. */
     void stop()
     {
-      float rtimeP, ptimeP, mflopsP;
-      long long flpopsP;
-      PAPI_flops ( &rtimeP, &ptimeP, &flpopsP, &mflopsP);
-      rtimeACC += (rtimeP-rtimeS);
-      ptimeACC += (ptimeP-ptimeS);
-      flpopsACC += (flpopsP-flpopsS);
+        float rtimeP, ptimeP, mflopsP;
+        long long flpopsP;
+        PAPI_flops ( &rtimeP, &ptimeP, &flpopsP, &mflopsP);
+        rtimeACC += (rtimeP-rtimeS);
+        ptimeACC += (ptimeP-ptimeS);
+        flpopsACC += (flpopsP-flpopsS);
     }
     
     /**
@@ -164,12 +164,12 @@ public:
      */
     void print(ostream& os) const
     {
-      os << "HEADERS,PAPI_RTIME,PAPI_PTIME,PAPI_FLPOPS,PAPI_MFLOPS" << endl;
-      os << "VALUES," 
-	 << rtimeACC << ","  
-	 << ptimeACC << ","  
-	 << flpopsACC << ","  
-	 << ((double) flpopsACC  / (double) ptimeACC)/1000000.0 << endl;
+        os << "HEADERS,PAPI_RTIME,PAPI_PTIME,PAPI_FLPOPS,PAPI_MFLOPS" << endl;
+        os << "VALUES,"
+        << rtimeACC << ","
+        << ptimeACC << ","
+        << flpopsACC << ","
+        << ((double) flpopsACC  / (double) ptimeACC)/1000000.0 << endl;
     }
     
     /**
@@ -183,31 +183,31 @@ public:
     {
         if (st.nRows() <= row) return -1;
         int ret;
-	if ((ret = st.setCell(row,"PAPI_RTIME",rtimeACC,true)))
-	  return ret;
-	if ((ret = st.setCell(row,"PAPI_PTIME",ptimeACC,true)))
-	  return ret;
-	if ((ret = st.setCell(row,"PAPI_FLPOPS",flpopsACC,true)))
-	  return ret;
-	double av_mflops = ((double) flpopsACC / (double) ptimeACC) / 1000000.0;
-	if ((ret = st.setCell(row,"PAPI_AV_MFLOPS",av_mflops,true)))
-	  return ret;
-
+        if ((ret = st.setCell(row,"PAPI_RTIME",rtimeACC,true)))
+            return ret;
+        if ((ret = st.setCell(row,"PAPI_PTIME",ptimeACC,true)))
+            return ret;
+        if ((ret = st.setCell(row,"PAPI_FLPOPS",flpopsACC,true)))
+            return ret;
+        double av_mflops = ((double) flpopsACC / (double) ptimeACC) / 1000000.0;
+        if ((ret = st.setCell(row,"PAPI_AV_MFLOPS",av_mflops,true)))
+            return ret;
+        
         return 0; // Return ok
     }
     
     void clearStats()
     {
-      memset(&rtimeACC, 0, sizeof(rtimeACC));
-      memset(&ptimeACC, 0, sizeof(ptimeACC));
-      memset(&flpopsACC, 0, sizeof(flpopsACC));
+        memset(&rtimeACC, 0, sizeof(rtimeACC));
+        memset(&ptimeACC, 0, sizeof(ptimeACC));
+        memset(&flpopsACC, 0, sizeof(flpopsACC));
     }
     
 protected:
     
     float rtimeS, ptimeS, mflopsS;
     long long flpopsS;
-
+    
     float rtimeACC, ptimeACC;
     long long flpopsACC;
     
@@ -229,16 +229,16 @@ public:
     /* Start recording the execution statistics. */
     void start()
     {
-      start_counter.copy(TPZFlopCounter::gCount);
+        start_counter.copy(TPZFlopCounter::gCount);
     }
     
     /* Stop recording the execution statistics. */
     void stop()
     {
-      TPZCounter stop_counter;
-      stop_counter.copy(TPZFlopCounter::gCount);
-      stop_counter -= start_counter;
-      acc_counter += stop_counter;
+        TPZCounter stop_counter;
+        stop_counter.copy(TPZFlopCounter::gCount);
+        stop_counter -= start_counter;
+        acc_counter += stop_counter;
     }
     
     /**
@@ -247,19 +247,19 @@ public:
      */
     void print(ostream& os) const
     {
-      stringstream headers;
-      stringstream values;
-
-      headers << "HEADERS";
-      for (int i=0; i<gNumOp; i++) {
-	headers << "," << "PZCOUNT_" << OpNames[i];
-      }
-      values << "VALUES";
-      for (int i=0; i<gNumOp; i++) {
-	values << "," << acc_counter[i];
-      }
-      os << headers << endl;
-      os << values << endl;
+        stringstream headers;
+        stringstream values;
+        
+        headers << "HEADERS";
+        for (int i=0; i<gNumOp; i++) {
+            headers << "," << "PZCOUNT_" << OpNames[i];
+        }
+        values << "VALUES";
+        for (int i=0; i<gNumOp; i++) {
+            values << "," << acc_counter[i];
+        }
+        os << headers << endl;
+        os << values << endl;
     }
     
     /**
@@ -273,20 +273,20 @@ public:
     {
         if (st.nRows() <= row) return -1;
         int ret;
-
-	for (int i=0; i<gNumOp; i++) {
-	  stringstream header;
-	  header << "PZCOUNT_" << OpNames[i];
-	  if ((ret = st.setCell(row,header,acc_counter[i],true)))
-	    return ret;
-	}
-
+        
+        for (int i=0; i<gNumOp; i++) {
+            stringstream header;
+            header << "PZCOUNT_" << OpNames[i];
+            if ((ret = st.setCell(row,header,acc_counter[i],true)))
+                return ret;
+        }
+        
         return 0; // Return ok
     }
     
     void clearStats()
     {
-      acc_counter.clear();
+        acc_counter.clear();
     }
     
 protected:
@@ -324,15 +324,15 @@ public:
         getrusage(RUSAGE_SELF, &self);
         getrusage(RUSAGE_CHILDREN, &children);
 #define SET_TOTAL(fld) total_self.fld += (self.fld - lap_self.fld); total_children.fld += (children.fld - lap_children.fld)
-
+        
 #define SET_TOTAL_TIMEVAL(fld)						\
-	total_self.fld.tv_sec += (self.fld.tv_sec - lap_self.fld.tv_sec); \
-	total_self.fld.tv_usec += (self.fld.tv_usec - lap_self.fld.tv_usec); \
-	total_children.fld.tv_sec += (children.fld.tv_sec - lap_children.fld.tv_sec); \
-	total_children.fld.tv_usec += (children.fld.tv_usec - lap_children.fld.tv_usec)
-	
-	SET_TOTAL_TIMEVAL(ru_utime);   /* user time used */
-	SET_TOTAL_TIMEVAL(ru_stime);   /* system time used */
+total_self.fld.tv_sec += (self.fld.tv_sec - lap_self.fld.tv_sec); \
+total_self.fld.tv_usec += (self.fld.tv_usec - lap_self.fld.tv_usec); \
+total_children.fld.tv_sec += (children.fld.tv_sec - lap_children.fld.tv_sec); \
+total_children.fld.tv_usec += (children.fld.tv_usec - lap_children.fld.tv_usec)
+        
+        SET_TOTAL_TIMEVAL(ru_utime);   /* user time used */
+        SET_TOTAL_TIMEVAL(ru_stime);   /* system time used */
         SET_TOTAL(ru_maxrss);          /* integral max resident set size */
         SET_TOTAL(ru_ixrss);           /* integral shared text memory size */
         SET_TOTAL(ru_idrss);           /* integral unshared data size */
@@ -357,15 +357,15 @@ public:
     {
         stringstream header;
         stringstream values;
-
+        
 #define PRINT_FLD(hd,fld) header << ",SELF_" << hd << ",CHD_" << hd; values << "," << total_self.fld << "," << total_children.fld
         
 #define TIMEVAL_TO_DOUBLE_MS(s) ( ((double) s.tv_sec) * 1000.0 + ((double) s.tv_usec) / 1000.0)
-
+        
 #define PRINT_TIMEVAL_FLD(hd,fld)					\
-	header << ",SELF_" << hd << ",CHD_" << hd;			\
-	values << "," << TIMEVAL_TO_DOUBLE_MS(total_self.fld) << "," << TIMEVAL_TO_DOUBLE_MS(total_children.fld)
-
+header << ",SELF_" << hd << ",CHD_" << hd;			\
+values << "," << TIMEVAL_TO_DOUBLE_MS(total_self.fld) << "," << TIMEVAL_TO_DOUBLE_MS(total_children.fld)
+        
         PRINT_TIMEVAL_FLD("RU_UTIME",ru_utime);           /* user time used */
         PRINT_TIMEVAL_FLD("RU_STIME",ru_stime);           /* system time used */
         PRINT_FLD("RU_MAXRSS",ru_maxrss);          /* integral max resident set size */
@@ -405,10 +405,10 @@ header = "CHD_"; header += hd;					\
 if ((ret = st.setCell(row, header, total_children.fld, true)))	\
 return ret;							\
 }
-
+        
 #define APPEND_TIMEVAL_FLD(hd,fld)						\
 { int ret; string header("SELF_"); header += hd;			\
-  if ((ret = st.setCell(row, header, TIMEVAL_TO_DOUBLE_MS(total_self.fld), true))) \
+if ((ret = st.setCell(row, header, TIMEVAL_TO_DOUBLE_MS(total_self.fld), true))) \
 return ret;							\
 header = "CHD_"; header += hd;					\
 if ((ret = st.setCell(row, header, TIMEVAL_TO_DOUBLE_MS(total_children.fld), true)))	\
@@ -723,8 +723,8 @@ public:
             stat_items.push_back(new RUsageRunStat());
 #endif
 #ifdef USING_PAPI
-	    /* Add the PAPI counters statistics. */
-	    stat_items.push_back(new PAPIRunStat());
+            /* Add the PAPI counters statistics. */
+            stat_items.push_back(new PAPIRunStat());
 #endif
             /* Add the elapsed time statistic. */
             stat_items.push_back(new ElapsedTimeRunStat());
@@ -733,13 +733,13 @@ public:
         /** Destructor. */
         ~RunStatsRecorder()
         {
-           vector<RunStat*>::iterator it;
-           for (it=stat_items.begin(); it!=stat_items.end(); it++) {
-               RunStat* i = *it;
-               delete i;
-           }
-          /** @brief vector::clear Removes all elements from the vector (which are destroyed), leaving the container with a size of 0. */
-	  stat_items.clear();
+            vector<RunStat*>::iterator it;
+            for (it=stat_items.begin(); it!=stat_items.end(); it++) {
+                RunStat* i = *it;
+                delete i;
+            }
+            /** @brief vector::clear Removes all elements from the vector (which are destroyed), leaving the container with a size of 0. */
+            stat_items.clear();
         }
         
         /** Starts recording the execution statistics. */
@@ -773,11 +773,11 @@ public:
         /**
          * Append metrics to the statistics table.  The idea is to keep one
          * table for each segment of code. New runs are appended to the
-         * table.  
-         * Returns: the new_row number if Ok 
+         * table.
+         * Returns: the new_row number if Ok
          *          the setCell error code (< 0) if Error.
          */
-        int append_to(CSVStringTable& st) const 
+        int append_to(CSVStringTable& st) const
         {
             int ret;
             unsigned new_row = st.addRows(1);
@@ -790,10 +790,10 @@ public:
         
         /**
          * Update a row at the statistics table.
-         * Returns: 0 if Ok 
+         * Returns: 0 if Ok
          *          the setCell error code (< 0) if Error.
          */
-        int update_row(CSVStringTable& st, unsigned row) const 
+        int update_row(CSVStringTable& st, unsigned row) const
         {
             int ret;
             
@@ -810,7 +810,7 @@ public:
         void clear() {
             
             vector<RunStat*>::iterator it;
-            for (it=stat_items.begin(); it!=stat_items.end(); it++) 
+            for (it=stat_items.begin(); it!=stat_items.end(); it++)
                 (*it)->clearStats();
             n_laps = 0;
         }

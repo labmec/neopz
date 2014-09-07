@@ -92,7 +92,9 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         AssembleResidual();
         AdjustResidual(fRhs);
         RhsNormResult = Norm(fRhs);
+#ifndef PLASTICITY_CLEAN_OUT
         std::cout << "Scale factor " << scalefactor << " resnorm " << RhsNormResult << std::endl;
+#endif
         scalefactor *= 0.5;
         iter++;
     } while (RhsNormResult > RhsNormPrev && iter < 30);

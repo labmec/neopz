@@ -21,7 +21,8 @@
 #include "TPBrBiotForce.h"
 #include "pzlog.h"
 
-
+#include "arglib.h"
+#include "run_stats_table.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
@@ -525,14 +526,15 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     }
 }
 
-
+RunStatsTable well_init("-tpz_well_init", "Raw data table statistics for TPZElastoPlasticAnalysis::IterativeProcess");
+clarg::argInt nthreads_sky("-nts", "Number of threads to TPZSkylineStructMatrix", 4);
 
 void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 {
     TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
 
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
-    full.SetNumThreads(4);
+    full.SetNumThreads(nthreads_sky.get_value());
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
@@ -574,14 +576,15 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 #endif
         }
         
-        
-
         bool linesearch = true,checkconv=false;
 		REAL tol = 1.e-5;
         bool conv;
 #ifdef PV
         
+        // performance counter
+        well_init.start();
         analysis.IterativeProcess(cout, tol, numnewton,linesearch,checkconv,conv);
+        well_init.stop();
         
         if (conv==false) { 
             ComputeLinearMatrix();
@@ -592,7 +595,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
                 std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
 #endif
             }
+            well_init.start();
             analysis.IterativeProcess(cout, fLinearMatrix, tol, numnewton, linesearch);
+            well_init.stop();
         }
 #else
         //analysis.IterativeProcess(cout, tol, numnewton,linesearch,checkconv);
@@ -685,7 +690,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
     
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
-    full.SetNumThreads(4);
+    full.SetNumThreads(nthreads_sky.get_value());
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
@@ -727,12 +732,18 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     REAL tol =1.e-5;
     bool conv;
 
+    well_init.start();
     analysis.IterativeProcess(cout, tol, NumIter,linesearch,checkconv,conv);
+    well_init.stop();
+    
     if (conv==false) {
         ComputeLinearMatrix();
         analysis.AdjustTangentMatrix(fLinearMatrix);
         analysis.Solver().SetMatrix(fLinearMatrix);
+        
+        well_init.start();
         analysis.IterativeProcess(cout, fLinearMatrix, tol, NumIter, linesearch);
+        well_init.stop();
     }
 //    analysis.IterativeProcess(cout, fLinearMatrix, 1.e-6, NumIter, linesearch);
     
@@ -773,7 +784,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
     TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
     
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
-    full.SetNumThreads(4);
+    full.SetNumThreads(nthreads_sky.get_value());
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
