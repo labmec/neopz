@@ -1,0 +1,114 @@
+//
+//  TPZMatDarcy2dhdiv.h
+//  PZ
+//
+//  Created by nathan and omar on 9/3/14.
+//
+//
+
+#ifndef __PZ__TPZMatDarcy2dhdiv__
+#define __PZ__TPZMatDarcy2dhdiv__
+
+#include <iostream>
+#include "pzdiscgal.h"
+#include "tpzautopointer.h"
+#include "TPZFracData.h"
+
+
+class TPZMatDarcy2dhdiv : public TPZDiscontinuousGalerkin {
+    
+protected:
+    
+    /** @brief Problem dimension */
+    int fDim;
+    
+public:
+    
+    /** @brief Default Constructor */
+    TPZMatDarcy2dhdiv();
+    
+    /** @brief Constructor with matid */    
+    TPZMatDarcy2dhdiv(int matid);
+    
+    /** @brief Destructor */      
+    virtual ~TPZMatDarcy2dhdiv();
+    
+    /** @brief copy constructor */
+    TPZMatDarcy2dhdiv(const TPZMatDarcy2dhdiv &copy);
+    
+    /** @brief operator equal */    
+    TPZMatDarcy2dhdiv &operator=(const TPZMatDarcy2dhdiv &copy);
+    
+    /** @brief Print Method */
+    virtual void Print(std::ostream & out);
+    
+    /** @brief Name of the material */
+    virtual std::string Name() { return "TPZMatDarcy2dhdiv"; }
+    
+    /** @brief Returns the integrable dimension */    
+    virtual int Dimension() const;
+    
+    /** @brief Return the number of state variables */
+    virtual int NStateVariables();
+    
+    
+    /** @brief Not used contribute methods */
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    
+    /** @brief Used contribute methods */
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec,TPZVec<TPZMaterialData> &dataleftvec,TPZVec<TPZMaterialData> &datarightvec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    /** @brief Bc Contribution for flux state variable */
+    virtual void ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /** @brief Bc Contribution for pressure state variable */
+    virtual void ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+
+    /** @brief Fill material data parameter with necessary requirements for the Contribute method*/    
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    
+    /** @brief Fill material data parameter with necessary requirements for the ContributeBC method*/    
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    
+    /** @brief Returns the variable index associated with the name */    
+    virtual int VariableIndex(const std::string &name);
+    
+    /** @brief Returns the number of variables associated with the variable indexed by var */
+    virtual int NSolutionVariables(int var);
+    
+    /** @brief Calculates a solution given datavec*/    
+    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    
+    
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
+    {
+        TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
+    }
+    
+private:
+    
+    /** @brief Data of the simulation */
+    TPZAutoPointer<TPZFracData> fData;
+    
+public:
+    
+    /** @brief Sets data of the simulation */
+    void SetSimulationData(TPZAutoPointer<TPZFracData> Data) { fData = Data;}
+    
+};
+
+
+#endif /* defined(__PZ__TPZMatDarcy2dhdiv__) */
+
+

@@ -257,75 +257,75 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 {
 	int iter = 0;
 	REAL error = 1.e10;
-  const REAL tol = 1.e-8;
-  const int numiter = 50;
-  
-  fData->SetCurrentState();
+    const REAL tol = 1.e-8;
+    const int numiter = 50;
+    
+    fData->SetCurrentState();
 	int numeq = an->Mesh()->NEquations();
 	
 	TPZFMatrix<STATE> prevsol(an->Solution());
-  TPZFMatrix<STATE> SoliterK(prevsol);
+    TPZFMatrix<STATE> SoliterK(prevsol);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
-  
-  an->Assemble();
-  an->Rhs() += fLastStepRhs;
-  TPZAutoPointer< TPZMatrix<REAL> > matK;
-  
+    
+    an->Assemble();
+    an->Rhs() += fLastStepRhs;
+    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    
 	while(error > tol && iter < numiter) {
 		
 		an->Solve(); // o an->Solution() eh o deltaU aqui
-    SoliterK = prevsol - an->Solution();
+        SoliterK = prevsol - an->Solution();
 		REAL normDeltaSol = Norm(an->Solution());
-    
+        
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-      std::stringstream sout;
-      matK=an->Solver().Matrix();
-      matK->Print("matK = ", sout,EMathematicaInput);
-      an->Solution().Print("DeltaX = ", sout,EMathematicaInput);
-      SoliterK.Print("Xk = ", sout,EMathematicaInput);
-      LOGPZ_DEBUG(logger,sout.str())
-    }
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            matK=an->Solver().Matrix();
+            matK->Print("matK = ", sout,EMathematicaInput);
+            an->Solution().Print("DeltaX = ", sout,EMathematicaInput);
+            SoliterK.Print("Xk = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
-    
-    an->LoadSolution(SoliterK); // Aqui o an->Solution() eh o U
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
-    an->Assemble();
-    an->Rhs() += fLastStepRhs;
-    
+        
+        an->LoadSolution(SoliterK); // Aqui o an->Solution() eh o U
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
+        an->Assemble();
+        an->Rhs() += fLastStepRhs;
+        
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-      std::stringstream sout;
-      an->Rhs().Print("Res = ", sout,EMathematicaInput);
-      LOGPZ_DEBUG(logger,sout.str())
-    }
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            an->Rhs().Print("Res = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
-    
-    double NormResLambda = Norm(an->Rhs());
+        
+        double NormResLambda = Norm(an->Rhs());
 		double norm = normDeltaSol;
 		out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << std::endl;
-    
+        
 		if(norm < tol) {
 			out << "\nTolerancia atingida na iteracao : " << (iter+1) << std::endl;
 			out << "\n\nNorma da solucao |Delta(Un)|  : " << norm << std::endl << std::endl;
-
+            
 		}
-    else if( (norm - error) > 1.e-9 ) {
-      out << "\nDivergent Method\n";
-    }
-    
+        else if( (norm - error) > 1.e-9 ) {
+            out << "\nDivergent Method\n";
+        }
+        
 		error = norm;
 		iter++;
-    prevsol = SoliterK;
+        prevsol = SoliterK;
 		out.flush();
 	}
-  
-  if (error > tol) {
-    DebugStop(); // Metodo nao convergiu!!
-  }
-  
+    
+    if (error > tol) {
+        DebugStop(); // Metodo nao convergiu!!
+    }
+    
 }
 
 void TPZFracAnalysis::AssembleLastStep(TPZAnalysis *an)

@@ -2,6 +2,7 @@
 #define TPZFRACDATA_H
 
 #include "pzvec.h"
+#include "pzfmatrix.h"
 
 /**
  * @author Omar Duran and Nathan Shauer
@@ -27,20 +28,32 @@ public:
 private:
   
   /** @brief State: Stiffness or Mass Matrix Calculations */
-  enum EState { ELastState = 0, ECurrentState = 1 };
-  EState gState;
+  enum nState { n = 0, nplusone = 1 };
+  nState State;
   
   /** @brief Fluid Viscosity - Pa.s */
   REAL fmu;
+    
+    /** @brief Fluid Density - kg/m3 */
+    REAL fRho;
+
+    /** @brief Intrinsic absolute permeability - m2 */
+    TPZFMatrix<STATE> fKab;
+    
+    /** @brief Rock porosity - fraction */
+    REAL fPhi;
   
   /** @brief Simulation time step */
   REAL fDeltaT;
   
   /** @brief Simulation current time */
   REAL fTime;
-
-  /** @brief Simulation Total time */
-  REAL fTtot;
+    
+    /** @brief Simulation Total time */
+    REAL fTtot;
+    
+    /** @brief Simulation temporal scheme (theta = 1, means full implicit) */
+    REAL fTheta;
   
   /** @brief Fracture length */
   REAL fLfrac;
@@ -88,6 +101,48 @@ public:
   
   /** @brief Returns fluid viscosity. */
   REAL Viscosity(){return this->fmu;}
+
+// Nathan: Our indentation setting are different
+    
+/** @brief Set fluid density. */
+void SetDensity(REAL rho){this->fRho = rho;}
+
+/** @brief Returns fluid density. */
+REAL Density(){return this->fRho;}
+
+/** @brief Set absolute permeability. */
+void SetK(TPZFMatrix<STATE> &Kab){ this->fKab = Kab;}
+
+/** @brief Returns absolute permeability. */
+TPZFMatrix<STATE> K();
+
+/** @brief Returns absolute permeability inverse. */
+TPZFMatrix<STATE>  Kinv();
+
+/** @brief Set rock porosity. */
+void SetPorosity(REAL phi){this->fPhi = phi;}
+
+/** @brief Returns rock porosity. */
+REAL Porosity(){return this->fPhi;}
+
+/**
+ * @brief \f$ Rock porosity function. \f$ Phi = Phi( p ) \f$
+ * @param p pressure
+ */
+void Porosity(REAL p, REAL &porosity, REAL &dPorosityDp);
+
+/**
+ * @brief \f$ Fluid density function. \f$ RhoFluid = RhoFluid( p ) \f$
+ * @param p pressure
+ */
+void Density(REAL p, REAL &RhoFluid, REAL &dRhoDp);
+
+/**
+ * @brief Fluid viscosity function. \f$ FluidViscosity = Visc( p ) \f$
+ * @param p pressure
+ */
+void Viscosity(REAL p, REAL &FluidViscosity, REAL &dFluidViscosityDp);
+    
   
   /** @brief Set fluid viscosity. */
   void SetTotalTime(REAL Ttot){this->fTtot = Ttot;}
@@ -106,6 +161,12 @@ public:
   
   /** @brief Returns simulation time */
   REAL Time(){return this->fTime;}
+    
+    /** @brief Defines simulation temporal scheme  */
+    void SetTheta(REAL theta){ this->fTheta = theta;}
+    
+    /** @brief Returns simulation temporal scheme  */
+    REAL Theta(){return this->fTheta;}
 
   /** @brief Defines simulation fracture length */
   void SetLfrac(REAL Lfrac){ this->fLfrac = Lfrac;}
@@ -165,12 +226,12 @@ public:
   int NelFrac(){return this->fnelFrac;}
   
   /** @brief Set evaluating step n */
-  void SetLastState(){ gState = ELastState;}
+  void SetLastState(){ State = n;}
   
   /** @brief Set evaluating step n + 1 */
-  void SetCurrentState(){ gState = ECurrentState;}
+  void SetCurrentState(){ State = nplusone;}
   
-  bool IsLastState() { return gState == ELastState;}
+  bool IsLastState() { return State == n;}
   
 };
 
