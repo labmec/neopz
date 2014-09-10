@@ -44,12 +44,12 @@ void TPZMatfrac1dhdiv::Print(std::ostream &out) {
 
 REAL TPZMatfrac1dhdiv::Getw(REAL p)
 {
-  return 0.817 * (1 - fData->Viscosity()) * fData->Hf() / fData->G() * (p - fData->SigmaConf());
+  return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G() * (p - fData->SigmaConf());
 }
 
 REAL TPZMatfrac1dhdiv::Getdwdp()
 {
-  return 0.817 * (1 - fData->Viscosity()) * fData->Hf() / fData->G();
+  return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G();
 }
 
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
@@ -82,7 +82,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   
   // Solutions and derivate of solutions
   const REAL Q = datavec[0].sol[0][0];
-  const REAL dQ = datavec[0].dsol[0](0,0);
+  const REAL dQdx = datavec[0].dsol[0](0,0);
   const REAL p = datavec[1].sol[0][0];
   
   // Abertura
@@ -112,12 +112,12 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
         ek(FirstQ+iq,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-        const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
+        const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12.*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
         ek(FirstQ+iq,FirstP+jp) += weight * jac;
       }
     }
     for (int ip = 0; ip < phrP ; ip++) {
-      const REAL res = - dQ * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0) - ql * phiP(ip,0);
+      const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0) - ql * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
         const REAL jac = - dphiQ(0,jq) * phiP(ip,0);

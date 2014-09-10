@@ -25,15 +25,15 @@ int main()
   const REAL Q = 0.01e6, SigmaConf = 10.;
    */
 
-  const REAL mu = 1.e-8, InitTime = 0., timeStep = 0.1, Lfrac = 1000., Ttot = 1.;
-  const REAL hf = 1000., nu = 0.2, E = 1.e3;
-  const REAL Q = 0.01e6, SigmaConf = 10.;
+  const REAL mu = 1.e-8, InitTime = 0., timeStep = 1., Lfrac = 1000., Ttot = 2.;
+  const REAL hf = 50000., nu = 0.2, E = 1.e4;
+  const REAL Q = 100., SigmaConf = 0.;
   
   
   const int pOrdQ = 1;
   const int pOrdP = 0;
-  const int nel = 10;
-  std::string PostProcessFileName = "Transient.vtk";
+  const int nel = 100;
+  std::string PostProcessFileName = "TransientMathematica.vtk";
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
   Data->SetPostProcessFileName(PostProcessFileName);
   Data->SetTotalTime(Ttot);

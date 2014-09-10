@@ -10,6 +10,7 @@
  * @since 19/08/2014
  * @brief Material to solve a 1d mixed formulation for fracture opening
  * @brief Here is used H1 for flux and L2 for pressure
+ * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
  */
 class TPZMatfrac1dhdiv : public TPZMaterial {
   

@@ -49,7 +49,7 @@ void TPZFracAnalysis::Run()
   fcmeshMixed = CreateCMeshMixed();
   
   // Analysis
-  bool mustOptimizeBandwidth = true;
+  bool mustOptimizeBandwidth = false;
   TPZAnalysis *an = new TPZAnalysis(fcmeshMixed,mustOptimizeBandwidth);
   TPZSkylineNSymStructMatrix skyl(fcmeshMixed);
   TPZStepSolver<STATE> step;
@@ -138,7 +138,8 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshFluxH1()
   TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
 
-  TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
+  // Condicao de contorno na direita
+  TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
   
   // Setando H1
@@ -173,8 +174,10 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshPressureL2()
   // Condicao de contorno na esquerda
   TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
+
   
-  TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
+  // Condicao de contorno na direita
+  TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
   
   // Setando L2
@@ -196,7 +199,7 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshPressureL2()
   }
   
   for (int i = 0; i < cmesh->Solution().Rows(); i++) {
-    cmesh->Solution()(i,0) = 1.01 * fData->SigmaConf();
+    cmesh->Solution()(i,0) = 1.001 * fData->SigmaConf() + 0.01;
   }
   
 #ifdef DEBUG
@@ -226,9 +229,10 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshMixed()
   val2(0,0) = fData->Q();
   TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
-  
-  val2(0,0) = fData->SigmaConf();
-  TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
+
+  // Condicao de contorno na direita
+  val2(0,0) = 0.*fData->SigmaConf();
+  TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
   
   // Setando Multifisico
