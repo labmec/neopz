@@ -66,9 +66,9 @@ STATE TPZSandlerExtended::GetF(STATE x) const
 }
 
 template<class T>
-T TPZSandlerExtended::X(T k) const
+T TPZSandlerExtended::X(T L) const
 {
-    return (k - fR * F(k));
+    return (L - fR * F(L));
 }
 
 STATE TPZSandlerExtended::GetX(STATE k)
@@ -261,6 +261,7 @@ void  TPZSandlerExtended::FromHWCylToHWCart(const TPZVec<STATE> &HWCylCoords, TP
 void TPZSandlerExtended::FromPrincipalToHWCart(const TPZVec<STATE> &PrincipalCoords, TPZVec<STATE> &HWCart)
 {
     TPZFNMatrix<9,STATE> Rot(3,3,0.),temp(3,1,0.),cart(3,1,0.);
+    HWCart.Resize(3,0.);
     temp(0,0)=PrincipalCoords[0];
     temp(1,0)=PrincipalCoords[1];
     temp(2,0)=PrincipalCoords[2];
@@ -642,29 +643,20 @@ void TPZSandlerExtended::Phi(TPZVec<REAL> sigma,STATE alpha,TPZVec<STATE> &phi)c
 
 std::map<int,long> gF1Stat;
 std::map<int,long> gF2Stat;
-std::vector<int> gYield;
+std::vector<long> gYield;
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
-//#ifdef LOG4CXX
-//    {
-        //std::stringstream outfile;
-        //outfile << "\n projection over F1 " <<endl;
-        //LOGPZ_DEBUG(logger,outfile.str());
-        
- //   }
-//#endif
-    
-#ifdef DEBUG
-//    std::ofstream convergenceF1("convergenceF1.txt");
-#endif
     STATE xi = fA,resnorm,beta = 0.,distxi,distnew;
     distxi=1.e8;
     STATE guessxi=fA;
+    TPZManVector<STATE> sigstar;
+    FromPrincipalToHWCart(sigmatrial, sigstar);
+    STATE betaguess = atan(sigstar[2]/sigstar[1]);
     for (STATE xiguess=-2*guessxi; xiguess <= 2*guessxi; xiguess += 2*guessxi/20.)
     {
-        for(STATE betaguess=0;betaguess<=2*M_PI;betaguess+=M_PI/20.)
-        {
+        //for(STATE betaguess=0;betaguess<=2*M_PI;betaguess+=M_PI/20.)
+        //{
             distnew=DistF1(sigmatrial, xiguess,betaguess);
             if (fabs(distnew) < fabs(distxi))
             {
@@ -672,7 +664,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
                 beta=betaguess;
                 distxi = distnew;
             }
-        }
+       // }
     }
     
     resnorm=1.;
@@ -1512,9 +1504,12 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
         {
 #ifdef LOG4CXX
             {
-                std::stringstream sout;
-                sout << "Elastic Behaviour";
-                LOGPZ_DEBUG(logger, sout.str())
+                if(logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Elastic Behaviour";
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
             }
 #endif
             // elastic behaviour
