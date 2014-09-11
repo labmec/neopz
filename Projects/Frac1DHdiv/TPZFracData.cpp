@@ -27,8 +27,8 @@ TPZFracData::~TPZFracData()
  */
 void TPZFracData::Porosity(REAL p, REAL &porosity, REAL &dPorosityDp)
 {
-    const REAL Rockcomp = (0.0e-8);
-    const REAL pref = (1.0e6);
+    const REAL Rockcomp = (1.0e-8);
+    const REAL pref = (10.0e6);
     porosity = fPhi*exp(Rockcomp*(p-pref));
     dPorosityDp = fPhi*Rockcomp*exp(Rockcomp*(p-pref));
 }
@@ -39,8 +39,8 @@ void TPZFracData::Porosity(REAL p, REAL &porosity, REAL &dPorosityDp)
  */
 void TPZFracData::Density(REAL p, REAL &RhoFluid, REAL &dRhoDp)
 {
-    const REAL Oilcomp = (0.0e-8);
-    const REAL pref = (1.0e6);
+    const REAL Oilcomp = (1.0e-8);
+    const REAL pref = (10.0e6);
     RhoFluid = fRho*exp(Oilcomp*(p-pref));
     dRhoDp = fRho*Oilcomp*exp(Oilcomp*(p-pref));
 }
@@ -70,12 +70,7 @@ TPZFMatrix<STATE> TPZFracData::Kinv(){
         std::cout << "Absolute permeability must to be 2 Rows 2 Cols Matrix" << std::endl;
         DebugStop();
     }
-    
-    if (Constant <= 1.0e-14) {
-        std::cout << "Singular absolute permeability" << std::endl;
-        DebugStop();
-    }
-    
+        
     Kinverse(0,0) =     1.0*fKab(1,1)/(Constant);
     Kinverse(0,1) = -   1.0*fKab(0,1)/(Constant);
     Kinverse(1,0) = -   1.0*fKab(1,0)/(Constant);

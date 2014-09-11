@@ -20,6 +20,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzstepsolver.h"
 #include "TPZCompElDisc.h"
+#include "pzl2projection.h"
 
 
 #ifdef LOG4CXX
@@ -48,6 +49,14 @@ void TPZDarcyAnalysis::Run()
     
     fmeshvec[0] = CreateCMeshFluxHdiv();
     fmeshvec[1] = CreateCMeshPressureL2();
+    
+    // Initial Pressure
+    TPZVec<STATE> solini(1,0.0);
+    TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderPressure(), solini);
+    TPZAnalysis anL2(cmeshL2);
+    SolveSyst(anL2, cmeshL2);
+    fmeshvec[1]->LoadSolution(anL2.Solution());
+    
     fcmeshMixed = CreateCMeshMixed();
     
     // Transferindo para a multifisica
@@ -86,7 +95,7 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(100.0);
+    GeometryInfo.SetfDimensionlessL(1.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     RotateGeomesh(gmesh, angle);
     
@@ -218,7 +227,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     // Bc Right
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
+    val2(2,0) = 50.0e6;
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
@@ -230,7 +239,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
  	cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    val2(0,0) = 1.0;
+    val2(0,0) = 0.01;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
@@ -243,6 +252,49 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     
     return cmesh;
 }
+
+/** @brief Initial pressure field */
+void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
+{
+    REAL x = pt[0];
+    REAL y = pt[1];
+    disp[0] = 50.0e6;//0.0*(1.0 - 0.1 * x);
+}
+
+TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
+{
+    /// criar materiais
+    int dim = 2;
+    TPZL2Projection *material;
+    material = new TPZL2Projection(1, dim, 1, solini, pOrder);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialPressure);
+    material->SetForcingFunction(forcef);
+    cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDimModel(dim);
+    cmesh->AutoBuild();
+    
+//    ///set order total da shape
+//    int nel = cmesh->NElements();
+//    for(int i=0; i<nel; i++){
+//        TPZCompEl *cel = cmesh->ElementVec()[i];
+//        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+//        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+//        {
+//            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+//            else celdisc->SetTensorialShape();
+//        }
+//    }
+    
+    return cmesh;
+    
+}
+
 
 void TPZDarcyAnalysis::CreateInterfaces(TPZCompMesh *cmesh)
 {
@@ -341,18 +393,19 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
         
         double NormResLambda = Norm(an->Rhs());
 		double norm = normDeltaSol;
-		out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << std::endl;
+		out << "Iteracao n : " << (iter+1) << " : normas |Delta(U)| e |Residual| : " << normDeltaSol << " / " << NormResLambda << std::endl;
         
-		if(norm < tol) {
+		if(norm < tol || NormResLambda < tol) {
 			out << "\nTolerancia atingida na iteracao : " << (iter+1) << std::endl;
-			out << "\n\nNorma da solucao |Delta(Un)|  : " << norm << std::endl << std::endl;
+			out << "\n\nNorma do Dx |Delta(U)|  : " << norm << std::endl;
+            out << "\n\nNorma do residuo |Residual|  : " << NormResLambda << std::endl;
             
 		}
         else if( (norm - error) > 1.e-9 ) {
             out << "\nDivergent Method\n";
         }
         
-		error = norm;
+		error = NormResLambda;
 		iter++;
         prevsol = SoliterK;
 		out.flush();
@@ -371,8 +424,31 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     fLastStepRhs = an->Rhs();
 }
 
+void TPZDarcyAnalysis::SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
+{
+    
+    TPZSkylineStructMatrix full(Cmesh);
+    an.SetStructuralMatrix(full);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    //step.SetDirect(ELU);
+    an.SetSolver(step);
+    an.Run();
+
+}
+
 void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
 {
+    
+    const int dim = 2;
+    int div =2;
+    TPZStack<std::string> scalnames, vecnames;
+    std::string plotfile = "2DMixedDarcy.vtk";
+    scalnames.Push("Pressure");
+    vecnames.Push("BulkVelocity");
+    an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    an->PostProcess(div,dim);
+    
     
     bool mustStop = false;
     while (mustStop == false) {
@@ -408,6 +484,8 @@ void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
         }
     }
 }
+
+
 
 void TPZDarcyAnalysis::UniformRefinement(TPZGeoMesh *gMesh, int nh)
 {

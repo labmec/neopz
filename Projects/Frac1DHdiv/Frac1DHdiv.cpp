@@ -32,14 +32,14 @@ const REAL Q = 0.01e6, SigmaConf = 10.;
   const REAL theta = 1.0;
   
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
-  Kabolute(0,0) = 1.0;
-  Kabolute(1,1) = 1.0;
+  Kabolute(0,0) = 1.0e-13;
+  Kabolute(1,1) = 1.0e-13;
 
-  const REAL mu = 1.e-8;
+  const REAL mu = 1.0e-3;
   const REAL InitTime = 0.;
-  const REAL    timeStep = 1.;
+  const REAL    timeStep = 0.1;
   const REAL    Lfrac = 1000.;
-  const REAL Ttot = 2.;
+  const REAL Ttot = 1.;
 
   const REAL hf = 50000.;
   const REAL    nu = 0.2;
@@ -59,7 +59,7 @@ const REAL Q = 0.01e6, SigmaConf = 10.;
   std::string PostProcessFileName = "TransientMathematica.vtk";
 
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
-  Data->SetPostProcessFileName(PostProcessFileName);    
+  Data->SetPostProcessFileName(PostProcessFileName);
   Data->SetK(Kabolute);
   Data->SetTheta(theta);
   Data->SetPorosity(phi);
@@ -78,11 +78,15 @@ const REAL Q = 0.01e6, SigmaConf = 10.;
     Data->SetQ(Q);
     Data->SetSigmaConf(SigmaConf);
   
-  TPZFracAnalysis fracAn(Data);
-  fracAn.Run();
+//    Data->SetPorderFlow(pOrdQFrac);
+//    Data->SetPorderPressure(pOrdPFrac);
+//  TPZFracAnalysis fracAn(Data);
+//  fracAn.Run();
 
-//    TPZDarcyAnalysis DarcyAn(Data);
-//    DarcyAn.Run();
+    Data->SetPorderFlow(pOrdQDarcy);
+    Data->SetPorderPressure(pOrdQDarcy);
+    TPZDarcyAnalysis DarcyAn(Data);
+    DarcyAn.Run();
     
   return 0;
 }

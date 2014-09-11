@@ -47,6 +47,9 @@ public:
     
     /** @brief Creates fmeshvec[1] for pressure with L2 space */
     TPZCompMesh * CreateCMeshPressureL2();
+
+    /** @brief Creates a L2 projection for intial pressure */
+    TPZCompMesh * L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
     
     /** @brief Creates Multiphysic mesh for mixed simulation of darcy flow */
     TPZCompMesh * CreateCMeshMixed();
@@ -59,6 +62,9 @@ public:
     
     /** @brief Newton Method */
     void IterativeProcess(TPZAnalysis *an, std::ostream &out);
+    
+    /** @brief Solve LS */
+    void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh);
     
     /** @brief Solve time steps */
     void SolveSistTransient(TPZAnalysis *an);
