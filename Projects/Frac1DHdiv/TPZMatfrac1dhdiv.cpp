@@ -49,7 +49,7 @@ REAL TPZMatfrac1dhdiv::Getw(REAL p)
 
 REAL TPZMatfrac1dhdiv::Getdwdp()
 {
-  return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G();
+  return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G(); // AQUINATHAN Nao precisa calcular toda vez. Colocar no fData depois de fazer o leakoff
 }
 
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
@@ -88,6 +88,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   // Abertura
   REAL w = Getw(p);
   const REAL dwdp = Getdwdp();
+  
   /*
   const REAL wtol = 1.e-4;
   if (w < wtol){
