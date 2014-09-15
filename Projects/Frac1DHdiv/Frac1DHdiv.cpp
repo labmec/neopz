@@ -13,51 +13,37 @@ int main()
   InitializePZLOG();
 #endif
   
-  // Parametros
-
-  /*
-const REAL mu = 1./12., InitTime = 0., timeStep = 0.1, Lfrac = 1., Ttot = 1.;
-const REAL hf = 1., nu = 0.2, E = 1.e3;
-const REAL Q = 10., SigmaConf = 90.0;
-   */
-  
-  /*
-const REAL mu = 1.e-8, InitTime = 0., timeStep = 0.1, Lfrac = 1000., Ttot = 1.;
-const REAL hf = 1000., nu = 0.2, E = 1.e3;
-const REAL Q = 0.01e6, SigmaConf = 10.;
-   */
-
+  // ---------- Parametros ----------
+  // Reservoir Data
   const REAL phi= 0.1;
   const REAL Density = 1000.0;
-  const REAL theta = 1.0;
-  
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
   Kabolute(0,0) = 1.0e-13;
   Kabolute(1,1) = 1.0e-13;
-
-  const REAL mu = 1.0e-3;
+  const REAL nu = 0.2;
+  const REAL E = 1.e4;
+  const REAL SigmaConf = 0.;
+  
+  // Simulation Data
+  const REAL theta = 1.0;
   const REAL InitTime = 0.;
-  const REAL    timeStep = 0.1;
-  const REAL    Lfrac = 1000.;
-  const REAL Ttot = 1.;
-
-  const REAL hf = 50000.;
-  const REAL    nu = 0.2;
-  const REAL    E = 1.e4;
-
-  const REAL Q = 100.;
-  const REAL    SigmaConf = 0.;
-
-
-
+  const REAL timeStep = 1.;
+  const REAL Ttot = 2.;
   const int pOrdQDarcy = 1;
   const int pOrdPDarcy = 1;
-
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
   std::string PostProcessFileName = "TransientMathematica.vtk";
-
+  
+  // Fluid Data
+  const REAL mu = 1.e-8;
+  
+  // Fracture Data
+  const REAL Lfrac = 1000.;
+  const REAL hf = 50000.;
+  const REAL Q = 100.;
+  
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
   Data->SetPostProcessFileName(PostProcessFileName);
   Data->SetK(Kabolute);
@@ -69,24 +55,26 @@ const REAL Q = 0.01e6, SigmaConf = 10.;
   Data->SetViscosity(mu);
   Data->SetDensity(Density);
   Data->SetLfrac(Lfrac);
-    Data->SetHf(hf);
-    Data->SetPoisson(nu);
-    Data->SetE(E);
-    Data->SetNelFrac(nel);
+  Data->SetHf(hf);
+  Data->SetPoisson(nu);
+  Data->SetE(E);
+  Data->SetNelFrac(nel);
   Data->SetPorderFlow(pOrdQFrac);
   Data->SetPorderPressure(pOrdPFrac);
-    Data->SetQ(Q);
-    Data->SetSigmaConf(SigmaConf);
+  Data->SetQ(Q);
+  Data->SetSigmaConf(SigmaConf);
   
-//    Data->SetPorderFlow(pOrdQFrac);
-//    Data->SetPorderPressure(pOrdPFrac);
-//  TPZFracAnalysis fracAn(Data);
-//  fracAn.Run();
+  // Fracture Simulation uncoupled
+  Data->SetPorderFlow(pOrdQFrac);
+  Data->SetPorderPressure(pOrdPFrac);
+  TPZFracAnalysis fracAn(Data);
+  fracAn.Run();
 
-    Data->SetPorderFlow(pOrdQDarcy);
-    Data->SetPorderPressure(pOrdQDarcy);
-    TPZDarcyAnalysis DarcyAn(Data);
-    DarcyAn.Run();
-    
+  // Reservoir Simulation uncoupled
+//  Data->SetPorderFlow(pOrdQDarcy);
+//  Data->SetPorderPressure(pOrdQDarcy);
+//  TPZDarcyAnalysis DarcyAn(Data);
+//  DarcyAn.Run();
+  
   return 0;
 }
