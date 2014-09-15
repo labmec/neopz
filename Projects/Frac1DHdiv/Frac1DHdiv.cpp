@@ -15,7 +15,7 @@ int main()
   
   // ---------- Parametros ----------
   // Reservoir Data
-  const REAL phi= 0.1;
+  const REAL phi = 0.1;
   const REAL Density = 1000.0;
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
   Kabolute(0,0) = 1.0e-13;
@@ -44,6 +44,13 @@ int main()
   const REAL hf = 50000.;
   const REAL Q = 100.;
   
+  // Leak off data
+  const REAL Cl = 0.00005; // Carter coefficient
+  const REAL Pe = 0.; // Should come from darcy simulation
+  const REAL Pref = 60000.; // pressure where Cl was measured
+  const REAL vsp = 0.*0.000001; // spurt loss
+
+  
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
   Data->SetPostProcessFileName(PostProcessFileName);
   Data->SetK(Kabolute);
@@ -63,6 +70,10 @@ int main()
   Data->SetPorderPressure(pOrdPFrac);
   Data->SetQ(Q);
   Data->SetSigmaConf(SigmaConf);
+  Data->SetCl(Cl);
+  Data->SetPe(Pe);
+  Data->SetPref(Pref);
+  Data->SetVsp(vsp);
   
   // Fracture Simulation uncoupled
   Data->SetPorderFlow(pOrdQFrac);

@@ -1,7 +1,7 @@
 #ifndef TPZMatfrac1dhdiv_H
 #define TPZMatfrac1dhdiv_H
 
-#include "pzmaterial.h"
+#include "pzmatwithmem.h"
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
 /**
@@ -10,9 +10,10 @@
  * @since 19/08/2014
  * @brief Material to solve a 1d mixed formulation for fracture opening
  * @brief Here is used H1 for flux and L2 for pressure
+ * @brief Memory is used to store leak-off
  * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
  */
-class TPZMatfrac1dhdiv : public TPZMaterial {
+class TPZMatfrac1dhdiv : public TPZMatWithMem<TPZFMatrix<REAL> > {
   
 protected:
   
@@ -94,7 +95,7 @@ public:
   /** @brief Return w based on p of the material data */
   REAL Getw(REAL p);
   
-  /** @brief Return dwdp based on p of the material data */
+  /** @brief Return dwdp (which is always the same) */
   REAL Getdwdp();
   
 };

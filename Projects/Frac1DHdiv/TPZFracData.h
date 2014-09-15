@@ -7,7 +7,7 @@
 /**
  * @author Omar Duran and Nathan Shauer
  * @since 19/08/2014
- * @brief Material to store data of fracture propagation simulation
+ * @brief class to store data of fracture propagation simulation
  */
 class TPZFracData {
   
@@ -72,6 +72,19 @@ private:
   
   /** @brief Confinement Stress */
   REAL fSigmaConf;
+  
+  // --------- Leak off ---------
+  /** @brief Carter coefficient */
+  REAL fCl;
+
+  /** @brief Static pressure */
+  REAL fPe;
+  
+  /** @brief Reference pressure */
+  REAL fPref;
+  
+  /** @brief Spurt loss */
+  REAL fvsp;
   
   /** @brief P order of pressure (p) analysis for fracturing simulation */
   int fPorderPressure;
@@ -230,9 +243,34 @@ public:
   
   /** @brief Set evaluating step n + 1 */
   void SetCurrentState(){ State = nplusone;}
-  
+
+  /** @brief Returns true if is last state */
   bool IsLastState() { return State == n;}
   
+  /** @brief Sets Carter coefficient */
+  void SetCl(REAL Cl) {fCl = Cl;}
+
+  /** @brief Return Carter coefficient */
+  REAL Cl(){return fCl;}
+  
+  /** @brief Sets static pressure */
+  void SetPe(REAL Pe) {fPe = Pe;}
+  
+  /** @brief Returns static pressure */
+  REAL Pe(){return fPe;}
+  
+  /** @brief Sets reference pressure for leak off */
+  void SetPref(REAL Pref){fPref = Pref;}
+  
+  /** @brief Returns reference pressure for leak off */
+  REAL Pref(){return fPref;}
+  
+  /** @brief Sets spurt loss */
+  void SetVsp(REAL vsp){fvsp = vsp;}
+
+  /** @brief Returns spurt loss */
+  REAL Vsp(){return fvsp;}
+
 };
 
 #endif
