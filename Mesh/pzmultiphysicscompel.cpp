@@ -576,33 +576,24 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
 
-		this->ComputeRequiredData(datavec,int_ind,intrulepoints,intpointtemp,trvec);
-		/*
-		long ElemVecSize = fElementVec.size();
-		for (long iref = 0; iref < ElemVecSize; iref++)
-		{
-			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-            if (!msp) {
-                continue;
-            }
-			trvec[iref].Apply(intpointtemp, intpoint);
-			
-			//msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
-            // datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
-			datavec[iref].intLocPtIndex = int_ind;
-            datavec[iref].NintPts = intrulepoints;
+    
+    for (long iref = 0; iref < fElementVec.size(); iref++)
+    {
+      TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+      if (!msp) {
+        continue;
+      }
+      datavec[iref].intLocPtIndex = int_ind;
+    }
 
-			msp->ComputeRequiredData(datavec[iref], intpoint);
-		}
-		 */
+		this->ComputeRequiredData(datavec,intpointtemp,trvec);
 		 
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
 }//CalcStiff
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, 
-																													 int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
 {
 	long ElemVecSize = fElementVec.size();
 	TPZManVector<REAL,3> intpoint(this->Dimension(),0.);
@@ -613,9 +604,6 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialDat
 			continue;
 		}
 		trvec[iref].Apply(intpointtemp, intpoint);
-		
-		datavec[iref].intLocPtIndex = int_ind;
-		datavec[iref].NintPts = intrulepoints;
 		
 		msp->ComputeRequiredData(datavec[iref], intpoint);
 	}
@@ -731,7 +719,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		intrule->Point(nint,intpoint,weight);
     
     ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
-		this->ComputeRequiredData(datavec,nint,nintpoints,intpoint,trvec);
+		this->ComputeRequiredData(datavec,intpoint,trvec);
     
 		weight *= fabs(datavec[0].detjac);
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);

@@ -74,11 +74,9 @@ public:
 	
 	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
 	
-	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, 
-																	 int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
+	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
 
-    
-    long GetGlobalIntegrationPointIndex(TPZMaterialData &data);
+  long GetGlobalIntegrationPointIndex(TPZMaterialData &data);
 	
 protected:
 	
@@ -332,10 +330,9 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
 }
 
 template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, int &int_ind, 
-																												 int &intrulepoints, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
 {
-	TBASE::ComputeRequiredData(datavec, int_ind,intrulepoints,intpointtemp,trvec);
+	TBASE::ComputeRequiredData(datavec,intpointtemp,trvec);
 	
 	int nelofthismphysics = this->NumberOfCompElementsInsideThisCompEl();
 	for (int icel = 0; icel < nelofthismphysics; icel++) {
