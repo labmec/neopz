@@ -261,6 +261,17 @@ namespace pzshape {
 			Shape(pt,id,order,phi,dphi);
 		}
 	}
+    
+    void TPZShapeCube::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    {
+        DebugStop();
+    }
+    
+    
+    void TPZShapeCube::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    {
+        DebugStop();
+    }
 	
 	void TPZShapeCube::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
 									 TPZFMatrix<REAL> &dphi) {//,int cube_transformation_index

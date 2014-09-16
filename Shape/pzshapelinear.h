@@ -10,6 +10,7 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "tpzline.h"
+#include "pzshtmat.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -114,6 +115,18 @@ public:
 		static void Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides);
+        
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the internal shapefunctions of a side
+         * @param sides is a vector with copy of side as much as needed, it depends on the order
+         */
+        static void SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders);
+        
 		
 		/**
 		 * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the

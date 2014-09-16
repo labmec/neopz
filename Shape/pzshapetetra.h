@@ -10,6 +10,7 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "tpztetrahedron.h"
+#include "pzshtmat.h"
 
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
@@ -38,7 +39,20 @@ namespace pzshape {
 		 * The shapefunction computation uses the shape functions of the linear and triangular element for its implementation
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides);
+        
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the internal shapefunctions of a side
+         * @param sides is a vector with copy of side as much as needed, it depends on the order
+         */
+        static void SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders);
+        
 		
 		/**
 		 * @brief Computes the corner shape functions for a tetrahedral element

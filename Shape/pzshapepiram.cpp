@@ -305,6 +305,17 @@ namespace pzshape {
 		}
 		
 	}
+    
+    void TPZShapePiram::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    {
+        DebugStop();
+    }
+    
+    
+    void TPZShapePiram::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    {
+        DebugStop();
+    }
 	
 	void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
 									  TPZFMatrix<REAL> &dphi) {

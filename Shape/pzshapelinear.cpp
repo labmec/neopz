@@ -220,6 +220,17 @@ namespace pzshape {
 		}
 	}
 	
+    void TPZShapeLinear::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    {
+        DebugStop();
+    }
+    
+    
+    void TPZShapeLinear::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
+    {
+        DebugStop();
+    }
+    
 	void TPZShapeLinear::ShapeInternal(TPZVec<REAL>  &x, int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int transformation_index){
 		// Quadratic or higher shape functions
 		int num = ord-1;

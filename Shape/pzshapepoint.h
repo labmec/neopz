@@ -10,6 +10,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "tpzpoint.h"
+#include "pzshtmat.h"
 
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape{
@@ -48,6 +49,16 @@ namespace pzshape{
 			if(side == 0) Shape(pt,id,order,phi,dphi);
 		}
 		
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+        {
+            shapeorders(0,0) = 0;
+            sides[0] = 0;
+        }
+        
+
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
 		 * of interpolation of the element
