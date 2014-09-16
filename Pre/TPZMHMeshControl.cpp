@@ -273,8 +273,8 @@ void TPZMHMeshControl::BuildComputationalMesh()
 #endif
 
 //    std::cout << "Coloca em outra chamada\n";
-//    this->SubStructure();
-//    fCMesh->SaddlePermute();
+    //this->SubStructure();
+    //fCMesh->SaddlePermute();
 }
 
 /// will create the internal elements, one coarse element at a time
@@ -982,7 +982,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
         fCMesh->ConnectVec()[cindex].SetLagrangeMultiplier(3);
     }
     fCMesh->ExpandSolution();
-    fCMesh->SaddlePermute();
+    //fCMesh->SaddlePermute();
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;

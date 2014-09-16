@@ -41,13 +41,14 @@ class TPZDPGMeshControl
     
 public:
     
-    TPZDPGMeshControl(){
-    };
+    TPZDPGMeshControl() : fPOrderCoarseInternal(-1), fFinerMatId(0),fCoarseMatId(0), fSkeletMatId(0)
+    {
+        
+    }
     
     TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
-    
-    ~TPZDPGMeshControl(){
-    }
+    //~TPZDPGMeshControl();
+
     
     TPZDPGMeshControl(const TPZDPGMeshControl &copy);
     
@@ -79,6 +80,19 @@ public:
         fCoarseMatId = coarsemat;
         fSkeletMatId = skeletonmat;
     }
+    
+    /// Put the pointers to the meshes in a vector
+    void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
+    {
+        TPZVec<TPZCompMesh *> meshvecold;
+        fMHMControl.GetMeshVec(meshvecold);
+        meshvec.Resize(4);
+        meshvec[0] = meshvecold[0];
+        meshvec[1] = meshvecold[1];
+        meshvec[2] = meshvecold[2];
+        meshvec[3] = &fPressureCoarseMesh;
+    }
+
 };
 
 #endif /* defined(__PZ__TPZDPGMeshControl__) */

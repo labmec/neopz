@@ -32,6 +32,49 @@ void TPZLagrangeMultiplier::Read(TPZStream &buf, void *context)
     
 }
 
+void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    int nmesh = dataleft.size();
+    if (nmesh==3){
+        ContributeInterface(data, dataleft[0], dataright[0], weight, ek, ef);
+        return;
+    }
+    
+    TPZFMatrix<REAL> &dphiLdAxes = dataleft[0].dphix;
+	TPZFMatrix<REAL> &dphiRdAxes = dataright[0].dphix;
+	TPZFMatrix<REAL> &phiLf = dataleft[0].phi;
+	TPZFMatrix<REAL> &phiRf = dataright[0].phi;
+    //TPZFMatrix<REAL> &phiRc = dataright[3].phi;//c=coarce
+	
+	TPZFNMatrix<660> dphiLf, dphiRf;//f=fine
+	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiLf, dataleft[0].axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiRf, dataright[0].axes);
+    
+    
+    int nrowl_f = phiLf.Rows();
+	int nrowr_f = phiRf.Rows();
+   // int nrowr_c = phiRc.Rows();
+    int secondblock = ek.Rows()-phiRf.Rows();
+	int il,jl,ir,jr;
+    
+//------- Block of matrix B2 ------
+    // 1) phi_I_left, phi_J_right
+	for(il=0; il<nrowl_f; il++) {
+		for(jr=0; jr<nrowr_f; jr++) {
+			ek(il,jr+secondblock) += weight*fMultiplier*(phiLf(il)*phiRf(jr));
+		}
+	}
+    
+    
+//------- Block of matrix B2^T ------
+    // 2) phi_I_right, phi_J_left
+	for(ir=0; ir<nrowr_f; ir++) {
+		for(jl=0; jl<nrowr_f; jl++) {
+			ek(ir+secondblock,jl) += weight*fMultiplier*(phiRf(ir)*phiLf(jl));
+		}
+	}
+}
+
 /**
  * @brief It computes a contribution to stiffness matrix and load vector at one integration point
  * @param data [in]
@@ -53,8 +96,7 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMateri
 	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
 	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 	
-	
-	
+
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
     int secondblock = ek.Rows()-phiR.Rows();

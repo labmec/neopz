@@ -20,7 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.dpgmeshcontrol"));
 TPZDPGMeshControl::TPZDPGMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : fGMesh(gmesh),
        fPressureCoarseMesh(gmesh), fMHMControl(gmesh,coarseindices), fPOrderCoarseInternal(-1), fFinerMatId(0),fCoarseMatId(0), fSkeletMatId(0)
 {
- 
+    fPressureCoarseMesh.SetDimModel(gmesh->Dimension());
     
 }
 
@@ -45,20 +45,24 @@ TPZDPGMeshControl & TPZDPGMeshControl::operator=(const TPZDPGMeshControl &cp){
 void TPZDPGMeshControl::BuildComputationalMesh()
 {
     fGMesh->ResetReference();
-    fPressureCoarseMesh.LoadReferences();
+    //fPressureCoarseMesh.LoadReferences();
     fPressureCoarseMesh.SetAllCreateFunctionsContinuous();
     fPressureCoarseMesh.AutoBuild();
-    std::cout <<"Aqui ===\n";
-    fPressureCoarseMesh.Print();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout<< "\n\ MESH COARSE \n";
+        fPressureCoarseMesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     
     fMHMControl.SetLagrangeAveragePressure(true);
     fMHMControl.CreateCoarseInterfaces(fSkeletMatId);
-       
     fMHMControl.BuildComputationalMesh();
-    TPZVec<TPZCompMesh *> meshvec(1,&fPressureCoarseMesh);
-    TPZBuildMultiphysicsMesh::AddConnects(meshvec,fMHMControl.CMesh().operator->());
-    int coarsemeshindex = 3;
     
+    //adding elements from coarse mesh pressure to mhm mesh
+    int coarsemeshindex = 3;
     fMHMControl.GMesh()->ResetReference();
     fMHMControl.CMesh()->LoadReferences();
     long nelc = fPressureCoarseMesh.NElements();
@@ -90,11 +94,38 @@ void TPZDPGMeshControl::BuildComputationalMesh()
             if (!cmult) {
                 DebugStop();
             }
-            cmult->AddElement(cel, coarsemeshindex);
+            if(cmult->Dimension()==cel->Dimension()){
+                cmult->AddElement(cel, coarsemeshindex);
+            }
         }
     }
     
+    //Add the mesh 4 to the multi-physics element with 3 meshes
+    int nel = fMHMControl.CMesh()->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fMHMControl.CMesh()->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZMultiphysicsElement *multel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!multel) {
+            continue;
+        }
+        int nmeshes = multel->NMeshes();
+        for (int im=nmeshes; im<coarsemeshindex+1; im++) {
+            multel->AddElement(0, im);
+        }
+    }
+
+    
+    //adding connects from coarse mesh pressure to mhm mesh
+    TPZCompMesh * cmesh = &fPressureCoarseMesh;
+    TPZBuildMultiphysicsMesh::AppendConnects(cmesh,fMHMControl.CMesh().operator->());
+    //AppendConnect
+    
+    
     fMHMControl.CMesh()->ExpandSolution();
+    //fMHMControl.CMesh()->SaddlePermute();
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;

@@ -23,9 +23,8 @@ static LoggerPtr logger(Logger::getLogger("pz.material.TPZMatLaplacian"));
 
 using namespace std;
 
-TPZMatLaplacianLagrange::TPZMatLaplacianLagrange(int nummat, int dim, bool finermesh) : TPZMatLaplacian(nummat,dim)
+TPZMatLaplacianLagrange::TPZMatLaplacianLagrange(int nummat, int dim) : TPZMatLaplacian(nummat,dim)
 {
-    fIsFinerMesh = finermesh;
 }
 
 TPZMatLaplacianLagrange::TPZMatLaplacianLagrange() : TPZMatLaplacian()
@@ -36,7 +35,6 @@ TPZMatLaplacianLagrange::TPZMatLaplacianLagrange() : TPZMatLaplacian()
 TPZMatLaplacianLagrange & TPZMatLaplacianLagrange::operator=(const TPZMatLaplacianLagrange &copy)
 {
 	TPZMatLaplacian::operator = (copy);
-    fIsFinerMesh = copy.fIsFinerMesh;
 	return *this;
 }
 
@@ -54,50 +52,73 @@ void TPZMatLaplacianLagrange::Print(std::ostream &out) {
     TPZMatLaplacian::Print(out);
 }
 
-void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
 	
-    if(fIsFinerMesh==false)
-    {
-        ContributeCoarse(data, weight,ek,ef);
-        return;
-    }
-    TPZFMatrix<REAL>  &phi = data[0].phi;
-    TPZFMatrix<REAL> &dphi = data[0].dphix;
-    TPZVec<REAL>  &x = data[0].x;
+    //contribuicoes referente a malha fina: 
+    TPZFMatrix<REAL>  &phif = datavec[0].phi;
+    TPZFMatrix<REAL> &dphif = datavec[0].dphix;
+    TPZVec<REAL>  &x = datavec[0].x;
     //    TPZFMatrix<REAL> &axes = data.axes;
     //    TPZFMatrix<REAL> &jacinv = data.jacinv;
-    int phr = phi.Rows();
+    int phr_f = phif.Rows();
     
     STATE XfLoc = fXf;
     
     if(fForcingFunction) {            // phi(in, 0) = phi_in
         TPZManVector<STATE,1> res(1);
-        TPZFMatrix<STATE> dres(Dimension(),1);
-        fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        //TPZFMatrix<STATE> dres(Dimension(),1);
+        fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
         XfLoc = res[0];
     }
     
-    //Equacao de Poisson
-    for( int in = 0; in < phr; in++ ) {
+    //Produto interno (e,y) = gard(e).grad(y) + e*y. Obter espaco teste otimo
+    for(int in = 0; in < phr_f; in++)
+    {
         int kd;
-        ef(in, 0) +=  (STATE)weight * XfLoc*(STATE)phi(in,0);
-        for(int jn = 0; jn < phr; jn++)
+        ef(in, 0) += (STATE)weight*XfLoc*(STATE)phif(in,0);
+        for(int jn = 0; jn < phr_f; jn++)
         {
+            ek(in,jn) += (STATE)weight*((STATE)(phif(in,0)*phif(jn,0)));
+            
             for(kd=0; kd<fDim; kd++)
             {
-                ek(in,jn) += (STATE)weight*(fK*(STATE)(dphi(kd,in)*dphi(kd,jn)));
+                ek(in,jn) += (STATE)weight*((STATE)(dphif(kd,in)*dphif(kd,jn)));
             }
         }
     }
-    for (int in=0; in<phr; in++)
+    
+    
+    for (int in=0; in<phr_f; in++)
     {
-        ek(phr,in) -= (STATE)phi(in,0)*weight;
-        ek(in,phr) -= (STATE)phi(in,0)*weight;
+        ek(phr_f,in) -= (STATE)phif(in,0)*weight;
+        ek(in,phr_f) -= (STATE)phif(in,0)*weight;
     }
-    ek(phr+1,phr) += weight;
-    ek(phr,phr+1) += weight;
+    
+    //dessingularizando a matriz
+    ek(phr_f+1,phr_f) += weight;
+    ek(phr_f,phr_f+1) += weight;
     //ek(phr,phr) -= 1.*(STATE)weight;
+
+
+    //Equacao de Poisson: espaco coarce
+    TPZFMatrix<REAL>  &phic = datavec[3].phi;
+    TPZFMatrix<REAL> &dphic = datavec[3].dphix;
+    int phr_c = phic.Rows();
+
+    for( int in = 0; in < phr_f; in++ ) {
+        int kd;
+        for(int jn = 0; jn < phr_c; jn++)
+        {
+            for(kd=0; kd<fDim; kd++)
+            {
+                //B
+                ek(in, phr_f + 2 + jn) += (STATE)weight*(fK*(STATE)(dphif(kd,in)*dphic(kd,jn)));
+                //B^T
+                ek(phr_f + 2 + jn, in) += (STATE)weight*(fK*(STATE)(dphic(kd,jn)*dphif(kd,in)));
+            }
+        }
+    }
     
 #ifdef DEBUG
     if (this->IsSymetric()){
@@ -107,39 +128,96 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
     
 }
 
-void TPZMatLaplacianLagrange::ContributeCoarse(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
-{
+void TPZMatLaplacianLagrange::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
-    TPZFMatrix<REAL>  &phi = datavec[3].phi;
-    TPZFMatrix<REAL> &dphi = datavec[3].dphix;
-    int phr = phi.Rows();
+	TPZFMatrix<REAL>  &phif = datavec[0].phi;
+    TPZFMatrix<REAL>  &phic = datavec[3].phi;
+    //	TPZFMatrix<REAL> &axes = data.axes;
     
+	int phrf = phif.Rows();
+    int phrc = phic.Rows();
+	short in,jn;
+	STATE v2[1];
+	v2[0] = bc.Val2()(0,0);
     
-    //inner product
-    for( int in = 0; in < phr; in++ ) {
-        int kd;
-        for(int jn = 0; jn < phr; jn++)
-        {
-            ek(in,jn) += (STATE)phi(in,0)*phi(jn,0)*weight;
-            
-            for(kd=0; kd<fDim; kd++)
-            {
-                ek(in,jn) += (STATE)weight*(STATE)(dphi(kd,in)*dphi(kd,jn));
-            }
-        }
-    }
+	if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in                          // JORGE 2013 01 26
+		TPZManVector<STATE> res(1);
+		bc.ForcingFunction()->Execute(datavec[3].x,res);       // dphi(i,j) = dphi_j/dxi
+		v2[0] = res[0];
+	}
+    
+	switch (bc.Type()) {
+		case 0 :			// Dirichlet condition
+			for(in = 0 ; in < phrc; in++) {
+				ef(phrf+in,0) += (STATE)(gBigNumber* phic(in,0)*weight)*v2[0];
+				for (jn = 0 ; jn < phrc; jn++) {
+					ek(phrf+in,phrf+jn) += gBigNumber * phic(in,0)*phic(jn,0)*weight;
+				}
+			}
+			break;
+		case 1 :			// Neumann condition
+			for(in = 0 ; in < phif.Rows(); in++) {
+                std::cout<<"nao implementado\n";
+                DebugStop();
+				//ef(in,0) += v2[0]*(STATE)(phif(in,0)*weight);
+			}
+			break;
+		case 2 :		// mixed condition
+			for(in = 0 ; in < phif.Rows(); in++) {
+                std::cout<<"nao implementado\n";
+                DebugStop();
+//				ef(in, 0) += v2[0]*(STATE)(phif(in, 0)*weight);
+//				for (jn = 0 ; jn < phif.Rows(); jn++) {
+//					ek(in,jn) += bc.Val1()(0,0)*(STATE)(phif(in,0)*phif(jn,0)*weight);     // peso de contorno => integral de contorno
+//				}
+			}
+			break;
+	}
+    
+	if (this->IsSymetric()) {//only 1.e-3 because of bignumbers.
+		if ( !ek.VerifySymmetry( 1.e-3 ) ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+	}
 }
+
+int TPZMatLaplacianLagrange::VariableIndex(const std::string &name){
+	if(!strcmp("Solution",name.c_str()))        return  1;
+	if(!strcmp("Derivative",name.c_str()))      return  2;
+	if(!strcmp("ExactSolution",name.c_str()))   return  3;
+    if(!strcmp("ErrorEstimatorDPG",name.c_str())) return 4;
+	return TPZMaterial::VariableIndex(name);
+}
+
+int TPZMatLaplacianLagrange::NSolutionVariables(int var){
+	if(var==1 || var==3 || var==4) return 1;
+	if(var == 2) return fDim;
+    
+	return TPZMaterial::NSolutionVariables(var);
+}
+
 
 
 void TPZMatLaplacianLagrange::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
-    if (var == 0) {
-        Solout[0] = datavec[0].sol[0][0];//+datavec[2].sol[0][0];
+    if (var == 1) {
+        Solout[0] = datavec[3].sol[0][0];
+        return;
     }
-    else
-    {
-        TPZMaterial::Solution(datavec, var, Solout);
+    
+    if (var == 4) {
+        Solout[0] = datavec[0].sol[0][0];;
+        return;
     }
+
+    
+    TPZVec<STATE> solExata(1);
+	TPZFMatrix<STATE> flux(2,1);
+    //Exact soluion
+	if(var == 3){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[0];
+		return;
+	}//var6
+
 }
 
 void TPZMatLaplacianLagrange::Write(TPZStream &buf, int withclassid){

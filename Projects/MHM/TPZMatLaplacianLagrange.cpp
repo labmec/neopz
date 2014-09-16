@@ -77,10 +77,13 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
             }
         }
     }
+    //constantes 1
     for (int in=0; in<phr; in++) {
         ek(phr,in) -= (STATE)phi(in,0)*weight;
         ek(in,phr) -= (STATE)phi(in,0)*weight;
     }
+    
+    //constante 2
     ek(phr+1,phr) += weight;
     ek(phr,phr+1) += weight;
     //ek(phr,phr) -= 1.*(STATE)weight;
