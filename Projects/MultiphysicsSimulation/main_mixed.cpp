@@ -101,7 +101,7 @@ const bool triang = true;
 const int teste = 3;
 bool l2proj = false;
 bool calcerroglobal = true;
-int main(int argc, char *argv[])
+int main5(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 ////	std::string logs("../logmixedproblem.cfg");
