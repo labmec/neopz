@@ -262,7 +262,23 @@ namespace pztopology {
         8,9,10,11,12,
         18,18,18
     };
-
+    
+    static int bilinearounao [58] =   {
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,1,1,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0};
+    
+    static int direcaoksioueta [58] = {
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,1,0,
+        1,0,1,0,1,0,1,0,0,0,
+        0,0,0,0,0,0,1,2};
+    
 	
 	void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
@@ -1248,5 +1264,21 @@ namespace pztopology {
         }
 
 	}
+    
+    void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    {
+        int nsides = NumSides()*3;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorderPi[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+    }
 
 }

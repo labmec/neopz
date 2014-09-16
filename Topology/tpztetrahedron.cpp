@@ -226,6 +226,9 @@ namespace pztopology {
         14,14,14
     };
     
+    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,1,2};
+    
 	
 	void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
@@ -1027,6 +1030,24 @@ namespace pztopology {
                 
                 
 	}
+    
+    void TPZTetrahedron::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    {
+        int nsides = NumSides()*3;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorderTe[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+    }
+    
+    
 
 
 }

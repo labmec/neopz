@@ -109,6 +109,10 @@ namespace pztopology {
 
     static int vectorsideorder [14] = {0,1,3,1,2,4,2,0,5,3,4,5,6,6};
     
+    static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+//    static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,0,0};
+    static int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    
     static int permutationsT [6][7] =
     {
         {0,1,2,3,4,5,6}, // id 0
@@ -885,6 +889,22 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
                 break;
         }
         
+    }
+    
+    void TPZTriangle::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    {
+        int nsides = NumSides()*2;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
     }
 
 }

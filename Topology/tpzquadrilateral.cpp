@@ -140,6 +140,9 @@ namespace pztopology {
     
     static int vectorsideorder [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
     
+    static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
+    static int direcaoksioueta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    
     static int permutationsQ [8][9] =
     {
         {0,1,2,3,4,5,6,7,8}, // id 0
@@ -914,4 +917,20 @@ namespace pztopology {
 
         
 	}
+    
+    void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    {
+        int nsides = NumSides()*2;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+    }
 }

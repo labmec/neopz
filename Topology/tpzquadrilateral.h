@@ -189,6 +189,7 @@ namespace pztopology {
         
         /* Given gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int is, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
+        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
 
 	};
 	

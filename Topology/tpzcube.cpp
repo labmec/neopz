@@ -363,6 +363,28 @@ namespace pztopology {
         26,26,26
     };
 
+    static int bilinearounao [81] =   {
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,
+        1
+    };
+    
+    static int direcaoksioueta [81] = {
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,1,0,1,0,1,
+        0,1,0,1,0,1,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,1,
+        2};
     
 	void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
@@ -985,6 +1007,7 @@ namespace pztopology {
 	 */
 	void TPZCube::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
 	{
+        DebugStop();
 	}
     
     void computedirectionsC(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
@@ -1167,6 +1190,22 @@ namespace pztopology {
         }
         
 	}
+    
+    void TPZCube::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    {
+        int nsides = NumSides()*3;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorderC[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+    }
 
 
 }
