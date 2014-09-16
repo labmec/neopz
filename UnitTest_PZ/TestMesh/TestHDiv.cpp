@@ -11,6 +11,7 @@
 #include "pzgengrid.h"
 #include "tpzautopointer.h"
 #include "pzpoisson3d.h"
+#include "mixedpoisson.h"
 #include "pzbndcond.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"
@@ -62,7 +63,7 @@ static void ExactNormalFlux(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 }
 
 /// verify if the divergence of each vector function is included in the pressure space
-static void CheckDRham(TPZInterpolatedElement *intel);
+static void CheckDRham(TPZCompEl *cel);
 
 
 // Tests for the 'voidflux' class.
@@ -122,7 +123,7 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
         REAL weight;
         rule->Point(ip, xi, weight);
         gel->X(xi, xco);
-        cel->Solution(xi, 1, sol);
+        cel->Solution(xi, 2, sol);
         Force(xco,exactsol);
 //        autofunc->Execute(xco, exactsol);
         BOOST_CHECK(fabs(sol[0]-exactsol[0]) < 1.e-6);
@@ -156,7 +157,7 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
             if(dim != gel->Dimension()-1) continue;
             TPZStack<TPZCompElSide> connected;
             TPZGeoElSide gelside(gel,is);
-            gelside.ConnectedCompElementList(connected, 1, 1);
+            gelside.ConnectedCompElementList(connected, 0, 1);
             if (connected.NElements() != 1) {
                 std::cout << "Number of elements connected along face side = " << connected.NElements() << std::endl;
                 DebugStop();
@@ -226,7 +227,7 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
             if(dim != gel->Dimension()-1) continue;
             TPZStack<TPZCompElSide> connected;
             TPZGeoElSide gelside(gel,is);
-            gelside.ConnectedCompElementList(connected, 1, 1);
+            gelside.ConnectedCompElementList(connected, 0, 1);
             if (connected.NElements() != 1) {
                 std::cout << "Number of elements connected along face side = " << connected.NElements() << std::endl;
                 DebugStop();
@@ -293,9 +294,10 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem, int fluxord
     PressureMesh->AutoBuild();
     
     
-    TPZMatPoisson3d *matpoisH = new TPZMatPoisson3d(1, 2);
+    TPZMixedPoisson *matpoisH = new TPZMixedPoisson(1, 2);
     TPZMaterial *poisH(matpoisH);
     HDivMesh = new TPZCompMesh(gmesh);
+    HDivMesh->SetDimModel(2);
     TPZBndCond *bndh = matpoisH->CreateBC(poisH, -1, 0, val1, val2);
     HDivMesh->InsertMaterialObject(poisH);
     HDivMesh->SetAllCreateFunctionsHDiv();
@@ -321,13 +323,13 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type, int nelem, int fluxord
     
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
     
-    TPZMatPoisson3d *matpoisM = new TPZMatPoisson3d(1, 2);
+    TPZMixedPoisson *matpoisM = new TPZMixedPoisson(1, 2);
     TPZMaterial *poisM(matpoisM);
     
     mphysics->SetDimModel(dimmodel);
     mphysics->InsertMaterialObject(poisM);
     TPZBndCond *bndm = matpoisM->CreateBC(poisM, -1, 0, val1, val2);
-    mphysics->InsertMaterialObject(poisH);
+    mphysics->InsertMaterialObject(bndm);
     bndm = matpoisM->CreateBC(poisM, -2, 1, val1, val2);
     mphysics->InsertMaterialObject(bndm);
     
@@ -404,8 +406,13 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     int sideB = gelsideB.Side();
     TPZCompEl *celA = celsideA.Element();
     TPZCompEl *celB = celsideB.Element();
-    TPZInterpolatedElement *interA = dynamic_cast<TPZInterpolatedElement *>(celA);
-    TPZInterpolatedElement *interB = dynamic_cast<TPZInterpolatedElement *>(celB);
+    TPZMultiphysicsElement *MFcelA = dynamic_cast<TPZMultiphysicsElement *>(celA);
+    TPZMultiphysicsElement *MFcelB = dynamic_cast<TPZMultiphysicsElement *>(celB);
+    TPZInterpolatedElement *interA = dynamic_cast<TPZInterpolatedElement *>(MFcelA->Element(0));
+    TPZInterpolatedElement *interB = dynamic_cast<TPZInterpolatedElement *>(MFcelB->Element(0));
+    if (!interA || !interB) {
+        DebugStop();
+    }
     TPZGeoEl *gel = gelsideA.Element();
     int nshapeA = interA->NSideShapeF(sideA);
     TPZIntPoints *intrule = gel->CreateSideIntegrationRule(gelsideA.Side(), 4);
@@ -450,9 +457,11 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     int sideA = gelsideA.Side();
     int sideB = gelsideB.Side();
     TPZCompEl *celA = celsideA.Element();
-    TPZCompEl *celB = celsideB.Element();
-    TPZInterpolatedElement *interA = dynamic_cast<TPZInterpolatedElement *>(celA);
-    TPZInterpolatedElement *interB = dynamic_cast<TPZInterpolatedElement *>(celB);
+    TPZCompEl *celB = celsideB.Element();    TPZMultiphysicsElement *MFcelA = dynamic_cast<TPZMultiphysicsElement *>(celA);
+    TPZMultiphysicsElement *MFcelB = dynamic_cast<TPZMultiphysicsElement *>(celB);
+    TPZInterpolatedElement *interA = dynamic_cast<TPZInterpolatedElement *>(MFcelA->Element(0));
+    TPZInterpolatedElement *interB = dynamic_cast<TPZInterpolatedElement *>(MFcelB->Element(0));
+
     TPZMaterialData dataA;
     TPZMaterialData dataB;
     interA->InitMaterialData(dataA);
@@ -497,11 +506,10 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         trA.Apply(pointA, pointElA);
         trB.Apply(pointB, pointElB);
         int nshapeA = 0, nshapeB = 0;
-        TPZFNMatrix<200> phiA(nshapeA,1),dphiA(dimensionA,nshapeA),phiB(nshapeB,1),dphiB(dimensionB,nshapeB);
-        interA->Shape(pointElA, phiA, dphiA);
-        interB->Shape(pointElB, phiB, dphiB);
-        nshapeA = phiA.Rows();
-        nshapeB = phiB.Rows();
+        interA->ComputeRequiredData(dataA, pointElA);
+        interB->ComputeRequiredData(dataB, pointElA);
+        nshapeA = dataA.phi.Rows();
+        nshapeB = dataB.phi.Rows();
         BOOST_CHECK_EQUAL(nSideshapeA, nSideshapeB);
 
         TPZManVector<REAL> shapesA(nSideshapeA), shapesB(nSideshapeB);
@@ -531,9 +539,9 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
                 }
 
             }
-            shapesA[i-firstShapeA] = phiA(Ashapeind,0);
-            shapesB[j-firstShapeB] = phiB(Bshapeind,0);
-            REAL diff = phiA(Ashapeind,0)-phiB(Bshapeind,0);
+            shapesA[i-firstShapeA] = dataA.phi(Ashapeind,0);
+            shapesB[j-firstShapeB] = dataB.phi(Bshapeind,0);
+            REAL diff = dataA.phi(Ashapeind,0)-dataB.phi(Bshapeind,0);
             REAL decision = fabs(diff)-1.e-6;
             if(decision > 0.)
             {
@@ -557,22 +565,22 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
 }
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner);
+static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner);
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
-static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &multiplier);
+static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier);
 
 /// verify if the divergence of each vector function is included in the pressure space
-static void CheckDRham(TPZInterpolatedElement *intel)
+static void CheckDRham(TPZCompEl *cel)
 {
     TPZFMatrix<STATE> inner, multiplier;
     TPZAutoPointer<TPZMatrix<STATE> > L2 = new TPZFMatrix<STATE>;
-    GenerateProjectionMatrix(intel, L2, inner);
+    GenerateProjectionMatrix(cel, L2, inner);
     TPZStepSolver<STATE> step(L2);
     step.SetDirect(ELU);
     step.Solve(inner,multiplier);
     int nwrong = 0;
-    nwrong = VerifyProjection(intel, multiplier);
+    nwrong = VerifyProjection(cel, multiplier);
     if(nwrong)
     {
         std::cout << "Number of points with wrong pressure projection " << nwrong << std::endl;
@@ -583,14 +591,21 @@ static void CheckDRham(TPZInterpolatedElement *intel)
 }
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner)
+static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner)
 {
-    TPZMaterialData dataA;
+    TPZMaterialData dataA,dataB;
+    TPZMultiphysicsElement *celMF = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if (!celMF) {
+        DebugStop();
+    }
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
+    TPZInterpolatedElement *intelP = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(1));
     intel->InitMaterialData(dataA);
+    intelP->InitMaterialData(dataB);
     int dim = intel->Reference()->Dimension();
     const TPZIntPoints &intrule = intel->GetIntegrationRule();
     int np = intrule.NPoints();
-    int npressure = dataA.numberdualfunctions;
+    int npressure = dataB.phi.Rows();
     int nflux = dataA.fVecShapeIndex.NElements();
     L2->Redim(npressure,npressure);
     inner.Redim(npressure,nflux);
@@ -601,12 +616,11 @@ static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPoint
         intrule.Point(ip, pos, weight);
 //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
         intel->ComputeShape(pos,dataA);
-        int firstpressure = dataA.phi.Rows()-npressure;
-        int lastpressure = dataA.phi.Rows();
+        intelP->ComputeShape(pos, dataB);
         int ish,jsh;
-        for (ish=firstpressure; ish<lastpressure; ish++) {
-            for (jsh=firstpressure; jsh<lastpressure; jsh++) {
-                L2->s(ish-firstpressure,jsh-firstpressure) += dataA.phi(ish,0)*dataA.phi(jsh,0)*weight*fabs(dataA.detjac);
+        for (ish=0; ish<npressure; ish++) {
+            for (jsh=0; jsh<npressure; jsh++) {
+                L2->s(ish,jsh) += dataB.phi(ish,0)*dataB.phi(jsh,0)*weight*fabs(dataB.detjac);
             }
             for (jsh=0; jsh<nflux; jsh++) {
                 // compute the divergence of the shapefunction
@@ -625,22 +639,28 @@ static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPoint
                 for (d=0; d<dim; d++) {
                     divphi += dataA.dphix(d,phiindex)*vecinner[d];                
                 }
-                inner(ish-firstpressure,jsh) += dataA.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
+                inner(ish,jsh) += dataB.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
             }
         }
     }
 }
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
-static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &multiplier)
+static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
 {
-    TPZMaterialData dataA;
+    TPZMaterialData dataA,dataB;
+    TPZMultiphysicsElement *celMF = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if (!celMF) {
+        DebugStop();
+    }
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
+    TPZInterpolatedElement *intelP = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(1));
     intel->InitMaterialData(dataA);
-	
+    intelP->InitMaterialData(dataB);
     int dim = intel->Reference()->Dimension();
     const TPZIntPoints &intrule = intel->GetIntegrationRule();
     int np = intrule.NPoints();
-    int npressure = dataA.numberdualfunctions;
+    int npressure = dataB.phi.Rows();
     int nflux = dataA.fVecShapeIndex.NElements();
     TPZFNMatrix<30> pointpos(2,np);
     TPZFNMatrix<30> divergence(np,nflux);
@@ -655,6 +675,7 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &mu
         pointpos(1,ip) = pos[1];
 //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
         intel->ComputeShape(pos,dataA);
+        intelP->ComputeShape(pos, dataB);
 #ifdef LOG4CXX
 				{
 						std::stringstream sout;
@@ -663,8 +684,6 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &mu
 						LOGPZ_DEBUG(logger,sout.str())
 				}
 #endif	
-        int firstpressure = dataA.phi.Rows()-npressure;
-        int lastpressure = dataA.phi.Rows();
         int ish,jsh;
         for (jsh=0; jsh<nflux; jsh++) {
             // compute the divergence of the shapefunction
@@ -694,9 +713,9 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &mu
             divergence(ip,jsh) = divphi;
             REAL phival = 0;
 
-            for (ish=firstpressure; ish<lastpressure; ish++) {
+            for (ish=0; ish<npressure; ish++) {
 
-                phival += multiplier(ish-firstpressure,jsh)*dataA.phi(ish);
+                phival += multiplier(ish,jsh)*dataB.phi(ish);
             }
             // the divergence of the vector function should be equal to the value of projected pressure space
             REAL diff = phival-divphi;
@@ -716,8 +735,9 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &mu
         }
     }
     
+/*
     int ifl;
-		std::ofstream fluxes("fluxes.nb");
+    std::ofstream fluxes("fluxes.nb");
     for (ifl=0; ifl<nflux; ifl++) {
         fluxes << "flux" << ifl << " = {\n";
         for (ip=0; ip<np; ip++) {
@@ -726,7 +746,7 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<STATE> &mu
         }
         fluxes << " };\n";
     }
-     
+*/     
     return nwrong;
 }
 
