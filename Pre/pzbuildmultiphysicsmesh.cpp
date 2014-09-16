@@ -103,6 +103,8 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 {
 	long nmeshes = cmeshVec.size();
+    MFMesh->SetNMeshes(nmeshes);
+    
 	TPZVec<long> FirstConnect(nmeshes,0);
 	long nconnects = 0;
 	long imesh;
@@ -179,6 +181,121 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 		cel->SetConnectIndexes(connectindexes);
 	}
 }
+
+void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *MFMesh)
+{
+    long nmeshes = MFMesh->GetNMeshes();
+    if(nmeshes<1) DebugStop();
+    nmeshes +=1;
+    
+    //adding connects from cmesh to MFMesh
+    long nconnects_old = MFMesh->NConnects();
+    long nconnects = nconnects_old + cmesh->NConnects();
+    
+    MFMesh->ConnectVec().Resize(nconnects);
+    MFMesh->Block().SetNBlocks(nconnects);
+    
+    long counter = nconnects_old;
+    long seqnum  = nconnects_old;
+    
+    long ic;
+    long nc = cmesh->NConnects();
+    for (ic=0; ic<nc; ic++)
+    {
+        TPZConnect &refcon =  cmesh->ConnectVec()[ic];
+        MFMesh->ConnectVec()[counter] = refcon;
+        if (refcon.SequenceNumber() >= 0)
+        {
+            MFMesh->ConnectVec()[counter].SetSequenceNumber(seqnum);
+            MFMesh->ConnectVec()[counter].SetNState(refcon.NState());
+            MFMesh->ConnectVec()[counter].SetNShape(refcon.NShape());
+            MFMesh->ConnectVec()[counter].SetLagrangeMultiplier(refcon.LagrangeMultiplier());
+            int ndof = refcon.NDof(*cmesh);
+            MFMesh->Block().Set(seqnum,ndof);
+            seqnum++;
+        }
+        counter++;
+    }
+    
+    ///ajustar as dependencias
+    for (ic=0; ic<nc; ic++)
+    {
+        TPZConnect &cn = MFMesh->ConnectVec()[nconnects_old + ic];
+        if (cn.HasDependency())
+        {
+            TPZConnect::TPZDepend *dep = cn.FirstDepend();
+            while (dep)
+            {
+                dep->fDepConnectIndex = dep->fDepConnectIndex + nconnects_old;
+                dep = dep->fNext;
+            }
+        }
+    }
+
+	MFMesh->Block().SetNBlocks(seqnum);
+	MFMesh->ExpandSolution();
+    TPZCompEl *celorig  = NULL;
+    TPZMultiphysicsElement *cel = NULL;
+    TPZCompEl *celref = NULL;
+    TPZMultiphysicsInterfaceElement *interface = NULL;
+    
+    long iel;
+    TPZVec<long> FirstConnect(nmeshes,0);
+    long nelem = MFMesh->NElements();
+    for (iel = 0; iel < nelem; iel++)
+    {
+        celorig = MFMesh->ElementVec()[iel];
+        cel = dynamic_cast<TPZMultiphysicsElement *> (celorig);
+        if (!cel) {
+            continue;
+        }
+        
+        long nfirstcon= 0;
+        long imesh;
+        int nrefel = cel->NMeshes();
+        if(nrefel!=nmeshes) DebugStop();
+        for (imesh=0; imesh<nrefel; imesh++)
+        {
+            celref = cel->ReferredElement(imesh);
+            if (!celref) {
+                continue;
+            }
+            FirstConnect[imesh] = nfirstcon;
+            nfirstcon += celref->Mesh()->NConnects();
+        }
+        break;
+    }
+	
+    //Set connect index to multiphysics element
+	for (iel = 0; iel < nelem; iel++)
+	{
+        celorig = MFMesh->ElementVec()[iel];
+		cel = dynamic_cast<TPZMultiphysicsElement *> (celorig);
+		interface = dynamic_cast<TPZMultiphysicsInterfaceElement *> (celorig);
+		if (interface) {
+			continue;
+		}
+		if (!cel) {
+			continue;
+		}
+		TPZStack<long> connectindexes;
+		
+        long imesh;
+		for (imesh=0; imesh < nmeshes; imesh++) {
+			celref = cel->ReferredElement(imesh);
+            if (!celref) {
+                continue;
+            }
+			long ncon = celref->NConnects();
+			long ic;
+			for (ic=0; ic<ncon; ic++) {
+				connectindexes.Push(celref->ConnectIndex(ic)+FirstConnect[imesh]);
+			}
+		}
+		cel->SetConnectIndexes(connectindexes);
+	}
+}
+
 
 void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {

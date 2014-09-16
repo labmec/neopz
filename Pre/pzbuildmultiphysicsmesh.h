@@ -19,7 +19,6 @@ class TPZAnalysis;
 
 class TPZBuildMultiphysicsMesh {
 	
-	
 public:
 	TPZBuildMultiphysicsMesh();
 	
@@ -38,6 +37,13 @@ public:
 	 * @param MFMesh [out]: my mesh multiphysics  
 	 */
 	static void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
+    
+    /*
+	 * @brief Methodo to append connects from mesh to a multiphysics mesh
+	 * @param cmesh: pointer to an computational mesh
+	 * @param MFMesh [out]: my mesh multiphysics
+	 */
+    static void AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *MFMesh);
 	
 	/**
 	 * @brief Transfer information from a specific set of meshes for the current mesh multiphysics
@@ -80,7 +86,7 @@ public:
 	 * @param indexEl [in]: index of the element
 	 */
 	static void UniformRefineCompEl(TPZCompMesh  *cMesh, long indexEl, bool isLagrMult);
-		
+    
 };
 
 #endif
