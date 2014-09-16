@@ -505,7 +505,7 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
 #include "pzgeoquad.h"
 
 /** Compute the permutation for an HDiv side */
-/*
+
 template<>
 inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -534,11 +534,11 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVe
 		permutegather[2] = 2;
 	}
 }
-*/
+
 #include "pzgeotriangle.h"
 
 /** Compute the permutation for an HDiv side */
-/*
+
 template<>
 inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -567,7 +567,7 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, T
 		permutegather[2] = 2;
 	}
 }
-*/
+
 
 /** Compute the permutation for an HDiv side */
 template<class TGeo>
