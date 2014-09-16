@@ -17,13 +17,16 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMatWithMem()
 {
   fDim = 1;
+	TPZFNMatrix<3,STATE> Vl(1,1,0.);
+	this->SetDefaultMem(Vl);
 }
 
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMatWithMem(matid)
 {
   fDim = 1;
+	TPZFNMatrix<3,STATE> Vl(1,1,0.);
+	this->SetDefaultMem(Vl);
 }
-
 
 TPZMatfrac1dhdiv::~TPZMatfrac1dhdiv()
 {
@@ -64,6 +67,11 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   }
 #endif
   
+  if(fUpdateMem){
+    this->UpdateMemory(datavec);
+    return;
+  }
+  
   // Simulation Data
   const REAL mu = fData->Viscosity();
   const REAL DeltaT = fData->TimeStep();
@@ -96,9 +104,12 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   }
    */
   
-  // Leak Off
-  const REAL ql = 0.;
-  const REAL dqldp = 0.;
+  // Leak off
+  const int intGlobPtIndex = datavec[0].intGlobPtIndex;
+  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  
+  const REAL ql = fData->QlFVl(Vl(0,0),p);
+  const REAL dqldp = fData->dQlFVl(Vl(0,0), p);
   
   //  Contribution of domain integrals for Jacobian matrix and Residual vector
   //  n + 1 time step
@@ -140,7 +151,20 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
       ef(FirstP+ip,0) += weight * res;
     }
   }
+}
+
+void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
+{
+  const int intGlobPtIndex = datavec[0].intGlobPtIndex;
+  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  const STATE pfrac = datavec[1].sol[0][0];
+  const REAL deltaT = fData->TimeStep();
   
+  REAL tStar = fData->FictitiousTime(Vl(0,0), pfrac);
+  REAL Vlnext = fData->VlFtau(pfrac, tStar + deltaT);
+  
+  Vl(0,0) = Vlnext;
+  this->MemItem(intGlobPtIndex) = Vl;
 }
 
 void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)

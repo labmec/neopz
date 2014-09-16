@@ -66,6 +66,9 @@ public:
 
   /** @brief ContributeBC method beeing used */
   virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+
+  /** @brief Updates the leak off memory */
+  void UpdateMemory(TPZVec<TPZMaterialData> &datavec);
   
   /** @brief Fill material data parameter with necessary requirements for the Contribute method*/
   virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);

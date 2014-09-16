@@ -115,7 +115,7 @@ REAL TPZFracData::VlFtau(REAL pfrac, REAL tau) const
     Pcalc = 0.;
   }
   
-  REAL Clcorr = Cl * sqrt(Pcalc);
+  REAL Clcorr = Cl;// * sqrt(Pcalc); AQUINATHAN
   REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
   
   return Vl;
@@ -138,7 +138,7 @@ REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac) const
     {
       Pcalc = 0.;
     }
-    REAL Clcorr = Cl * sqrt(Pcalc);
+    REAL Clcorr = Cl;// * sqrt(Pcalc); AQUINATHAN
     tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
   }
   
@@ -157,7 +157,6 @@ REAL TPZFracData::QlFVl(REAL VlAcum, REAL pfrac) const
   
 }
 
-// AQUINATHAN - depois trocar essa diferencas finitas da derivada do leak off pela analitica
 REAL TPZFracData::dQlFVl(REAL VlAcum, REAL pfrac) const
 {
   
@@ -190,4 +189,21 @@ REAL TPZFracData::dQlFVl(REAL VlAcum, REAL pfrac) const
   
   return dQldpfrac;
 
+}
+
+void TPZFracData::PrintDebugMapForMathematica(std::string filename)
+{
+  std::ofstream out(filename.c_str());
+  std::map<REAL,REAL>::const_iterator it = fDebugMap.begin();
+  
+  out << "DebugMap = ";
+  out << "{{" << it->first << "," << it->second << "}";
+  it++;
+  for (; it != fDebugMap.end(); it++) {
+    out << ",{" << it->first << "," << it->second << "}";
+  }
+  out << "};" << std::endl;
+  out << "ListPlot[DebugMap,Joined -> True,PlotMarkers -> Automatic]";
+  
+  out.close();
 }

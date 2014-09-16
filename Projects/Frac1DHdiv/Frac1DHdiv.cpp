@@ -25,32 +25,32 @@ int main()
   const REAL SigmaConf = 0.;
   
   // Simulation Data
-  const REAL theta = 1.0;
+  const REAL theta = 1.;
   const REAL InitTime = 0.;
   const REAL timeStep = 1.;
-  const REAL Ttot = 2.;
+  const REAL Ttot = 50.;
   const int pOrdQDarcy = 1;
   const int pOrdPDarcy = 1;
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
-  std::string PostProcessFileName = "TransientMathematica.vtk";
+  std::string PostProcessFileName = "SolWithLeakOff.vtk";
   
   // Fluid Data
-  const REAL mu = 1.e-8;
+  const REAL mu = 1.e-8; // N/mm2 . s
   
   // Fracture Data
-  const REAL Lfrac = 1000.;
-  const REAL hf = 50000.;
-  const REAL Q = 100.;
+  const REAL Lfrac = 1000.; // mm
+  const REAL hf = 50000.; // mm
+  const REAL Q = 100.; // mm3/s
   
   // Leak off data
-  const REAL Cl = 0.00005; // Carter coefficient
+  const REAL Cl = 0.0005; // Carter coefficient
   const REAL Pe = 0.; // Should come from darcy simulation
-  const REAL Pref = 60000.; // pressure where Cl was measured
-  const REAL vsp = 0.*0.000001; // spurt loss
+  const REAL Pref = 1.; // pressure where Cl was measured
+  const REAL vsp = 0.0001; // spurt loss
 
-  
+  // Preenchendo estrutura TPZFracData
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
   Data->SetPostProcessFileName(PostProcessFileName);
   Data->SetK(Kabolute);

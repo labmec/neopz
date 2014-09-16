@@ -98,6 +98,9 @@ private:
   /** @brief Name of the postprocess file for fracture vtk */
   std::string fpostProcessFileName;
   
+  /** @brief Map used ONLY for debbuging */
+  std::map<REAL,REAL> fDebugMap;
+  
 public:
   
   /** @brief Sets next time of simulation */
@@ -276,10 +279,18 @@ public:
 
   /** @brief Return the "ficticious time" based on acumulated volume and pressure */
   REAL FictitiousTime(REAL VlAcum, REAL pfrac) const;
-  
+
+  /** @brief Return the seapage velocity ql (mm/s) */
   REAL QlFVl(REAL VlAcum, REAL pfrac) const;
   
+  /** @brief Return the seapage velocity derivative */
   REAL dQlFVl(REAL VlAcum, REAL pfrac) const;
+  
+  /** @brief Return debug map */
+  std::map<REAL,REAL> & DebugMap() {return fDebugMap;}
+
+  /** @brief Prints debug map in Mathematica style */
+  void PrintDebugMapForMathematica(std::string filename);
 };
 
 #endif

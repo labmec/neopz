@@ -6,6 +6,8 @@
 #include "pzcmesh.h"
 #include "pzanalysis.h"
 
+class TPZMatfrac1dhdiv;
+
 /**
  * @author Omar Duran and Nathan Shauer
  * @since 19/08/2014
@@ -44,6 +46,9 @@ public:
 
   /** @brief Solve time steps */
   void SolveSistTransient(TPZAnalysis *an);
+
+  /** @brief Updates Leak Off integration points values */
+  void AcceptSolution(TPZAnalysis *an);
   
 private:
   
@@ -61,6 +66,9 @@ private:
 
   /** @brief Mass Residual of step n */
   TPZFMatrix<> fLastStepRhs;
+  
+  /** @brief Pointer to material of fracturing phenomena  */
+  TPZMatfrac1dhdiv *fMatFrac;
   
 };
 
