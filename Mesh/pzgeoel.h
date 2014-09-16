@@ -466,7 +466,7 @@ public:
 	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
 	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const = 0;
 	
-	void ComputeNormals(TPZMatrix<REAL> &normal);
+//	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
 	/** @brief To test continuity */
 	int ElementExists(TPZGeoEl *elem,long id);
@@ -567,6 +567,11 @@ public:
 	 */
 	/** This method will accumulate the normals for all the sides */
 	void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+    
+    /// Computation of NormalVectors for curvilinear elements
+    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+    
+    
 	virtual REAL CharacteristicSize();
 	virtual REAL SmallerEdge();
 	/**
@@ -578,6 +583,7 @@ public:
 	 * and then permuted according to the node id's
 	 */
 	void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+	void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
 	/**
 	 * @brief Compute the permutation needed to order the normal vectors in a consistent way
 	 * \f$ normal(indexfrom[i]) = normal(i) \f$

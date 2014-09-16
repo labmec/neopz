@@ -1212,127 +1212,127 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal);
 /** @brief Normalize normlow vector (in self) */
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 
-void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
-{
-    
-#ifdef LOG4CXX
-    {
-		std::stringstream sout;
-		sout<< "Metodo Compute normal \n";
-		
-		LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-
-    
-	int numbernormals = 0;
-	int dimension = Dimension();
-	int is;
-	int nsides = NSides();
-	for(is=0; is<nsides; is++)
-	{
-        TPZStack<int> lowdim;
-		if(SideDimension(is) == dimension-1)
-		{
-			//TPZStack<int> lowdim;
-			LowerDimensionSides(is,lowdim);
-			numbernormals += lowdim.NElements()+1;
-		}
-        
-	}
-	normals.Redim(3, numbernormals);
-	int counter = 0;
-	for(is=0; is<nsides; is++)
-	{
-		if(SideDimension(is) == dimension-1)
-            
-		{
-            
-#ifdef LOG4CXX
-            {
-                std::stringstream sout;
-                sout<< "Side "<<is<<std::endl;
-            
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
-
-            
-			TPZStack<int> lowdim;
-			LowerDimensionSides(is,lowdim);
-            lowdim.Push(is);
-#ifdef LOG4CXX
-            {
-                std::stringstream sout;
-                sout<< "LowerDimensionSides "<<lowdim<<std::endl;
-                
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
-            
-			int nlowdim = lowdim.NElements();
-			int lowis;
-			for(lowis=0; lowis < nlowdim; lowis++)
-			{
-				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
-				TPZGeoElSide LC(this,conj_side);
-				TPZGeoElSide LS(this,lowdim[lowis]);
-#ifdef LOG4CXX
-                {
-                    std::stringstream sout;
-                    sout<< "Side "<<is << " Conjugate Side "<< conj_side<< " Ls side "<< lowdim[lowis]<<std::endl;
-                    
-                    LOGPZ_DEBUG(logger,sout.str())
-                }
-#endif
-				TPZManVector<REAL> normal(3,0.);
-				NormalVector(LC,LS,normal);
-                
-#ifdef LOG4CXX
-                {
-                    std::stringstream sout;
-                    sout<< "Vetores do NormalVector "<<normal<<std::endl;
-                    
-                    LOGPZ_DEBUG(logger,sout.str())
-                }
-#endif
-                
-				int d;
-				for(d=0; d<3; d++) normals(d,counter) = normal[d];
-				counter++;
-			}
-            
-#ifdef LOG4CXX
-            {
-                std::stringstream sout;
-                sout<< "A partir daqui sera um processo de normalizacao dos vetores normals"<<std::endl;
-                normals.Print("vetor normals",sout);
-                
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
-			TPZManVector<REAL,3> normal(3,0.);
-			int d;
-			for(d=0; d<3; d++) normal[d] = normals(d,counter-1);
-			for(lowis = counter-nlowdim; lowis < counter; lowis++)
-			{
-				TPZManVector<REAL,3> normlow(3,0.);
-				for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
-				Normalize(normlow,normal);
-				for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
-			}
-		}
-	}
-    
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        sout<< "Vetores Normais normalizados "<<normals<<std::endl;
-        
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-}
+//void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
+//{
+//    
+//#ifdef LOG4CXX
+//    {
+//		std::stringstream sout;
+//		sout<< "Metodo Compute normal \n";
+//		
+//		LOGPZ_DEBUG(logger,sout.str())
+//    }
+//#endif
+//
+//    
+//	int numbernormals = 0;
+//	int dimension = Dimension();
+//	int is;
+//	int nsides = NSides();
+//	for(is=0; is<nsides; is++)
+//	{
+//        TPZStack<int> lowdim;
+//		if(SideDimension(is) == dimension-1)
+//		{
+//			//TPZStack<int> lowdim;
+//			LowerDimensionSides(is,lowdim);
+//			numbernormals += lowdim.NElements()+1;
+//		}
+//        
+//	}
+//	normals.Redim(3, numbernormals);
+//	int counter = 0;
+//	for(is=0; is<nsides; is++)
+//	{
+//		if(SideDimension(is) == dimension-1)
+//            
+//		{
+//            
+//#ifdef LOG4CXX
+//            {
+//                std::stringstream sout;
+//                sout<< "Side "<<is<<std::endl;
+//            
+//                LOGPZ_DEBUG(logger,sout.str())
+//            }
+//#endif
+//
+//            
+//			TPZStack<int> lowdim;
+//			LowerDimensionSides(is,lowdim);
+//            lowdim.Push(is);
+//#ifdef LOG4CXX
+//            {
+//                std::stringstream sout;
+//                sout<< "LowerDimensionSides "<<lowdim<<std::endl;
+//                
+//                LOGPZ_DEBUG(logger,sout.str())
+//            }
+//#endif
+//            
+//			int nlowdim = lowdim.NElements();
+//			int lowis;
+//			for(lowis=0; lowis < nlowdim; lowis++)
+//			{
+//				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
+//				TPZGeoElSide LC(this,conj_side);
+//				TPZGeoElSide LS(this,lowdim[lowis]);
+//#ifdef LOG4CXX
+//                {
+//                    std::stringstream sout;
+//                    sout<< "Side "<<is << " Conjugate Side "<< conj_side<< " Ls side "<< lowdim[lowis]<<std::endl;
+//                    
+//                    LOGPZ_DEBUG(logger,sout.str())
+//                }
+//#endif
+//				TPZManVector<REAL> normal(3,0.);
+//				NormalVector(LC,LS,normal);
+//                
+//#ifdef LOG4CXX
+//                {
+//                    std::stringstream sout;
+//                    sout<< "Vetores do NormalVector "<<normal<<std::endl;
+//                    
+//                    LOGPZ_DEBUG(logger,sout.str())
+//                }
+//#endif
+//                
+//				int d;
+//				for(d=0; d<3; d++) normals(d,counter) = normal[d];
+//				counter++;
+//			}
+//            
+//#ifdef LOG4CXX
+//            {
+//                std::stringstream sout;
+//                sout<< "A partir daqui sera um processo de normalizacao dos vetores normals"<<std::endl;
+//                normals.Print("vetor normals",sout);
+//                
+//                LOGPZ_DEBUG(logger,sout.str())
+//            }
+//#endif
+//			TPZManVector<REAL,3> normal(3,0.);
+//			int d;
+//			for(d=0; d<3; d++) normal[d] = normals(d,counter-1);
+//			for(lowis = counter-nlowdim; lowis < counter; lowis++)
+//			{
+//				TPZManVector<REAL,3> normlow(3,0.);
+//				for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
+//				Normalize(normlow,normal);
+//				for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
+//			}
+//		}
+//	}
+//    
+//#ifdef LOG4CXX
+//    {
+//        std::stringstream sout;
+//        sout<< "Vetores Normais normalizados "<<normals<<std::endl;
+//        
+//        LOGPZ_DEBUG(logger,sout.str())
+//    }
+//#endif
+//}
 
 void TPZGeoEl::SetNeighbourForBlending(int side){
 	if( !this->IsGeoBlendEl() ) return;
@@ -1642,6 +1642,44 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &
 	}
 }
 
+void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
+{
+    
+    Directions(side, pt, normals, vectorsides);
+    if (SideDimension(side) == Dimension()-1)
+    {
+        // we need to permute the normals and associated sides
+        TPZGeoElSide thisside(this,side);
+        int nlowdim = thisside.NSides();
+        
+		TPZManVector<int,9> sidepermutationgather(nlowdim);
+		HDivPermutation(side,sidepermutationgather);
+		TPZFNMatrix<12> sidenormals(3,nlowdim);
+		TPZManVector<int> localvecsides(nlowdim);
+		// compute whether the side is from this element to the next or contrary
+		int sideorient = NormalOrientation(side);
+		int i;
+		for(i=0; i<nlowdim; i++)
+		{
+			for(int d=0; d<3; d++)
+			{
+				sidenormals(d,i) = normals(d,sidepermutationgather[i]);
+			}
+			localvecsides[i] = vectorsides[sidepermutationgather[i]];
+		}
+		for(i=0; i<nlowdim; i++)
+		{
+			for(int d=0; d<3; d++)
+			{
+				normals(d,i) = sidenormals(d,i)*sideorient;
+			}
+			vectorsides[i] = localvecsides[i];
+		}
+        
+    }
+
+}
+
 void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
 {
 	int numbernormals = 0;
@@ -1675,6 +1713,41 @@ void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorside
 		}
 	}
 }
+
+void TPZGeoEl::ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
+{
+	int numbernormals = 0;
+    //	int dimension = Dimension();
+	// the normals corresponding to the internal shape functions
+	int is;
+	// Compute the number of normals we need to compute
+	int nsides = NSides();
+	numbernormals = nsides*2;
+	normals.Redim(3, numbernormals);
+	vectorsides.Resize(numbernormals);
+	vectorsides.Fill(0);
+	int counter = 0;
+	// effectively compute the normals
+	for(is=0; is<nsides; is++)
+	{
+		TPZFNMatrix<100> sidenormals;
+		TPZManVector<int> sidevectors;
+		ComputeNormalsDG(is,pt, sidenormals,sidevectors);
+		int numnormals = sidevectors.NElements();
+		int in;
+		for(in=0; in<numnormals; in++)
+		{
+			int d;
+			for(d=0; d<3; d++)
+			{
+				normals(d,counter) = sidenormals(d,in);
+			}
+			vectorsides[counter] = sidevectors[in];
+			counter++;
+		}
+	}
+}
+
 
 // Determine the orientation of the normal vector comparing the ids of the neighbouring elements
 int TPZGeoEl::NormalOrientation(int side)
