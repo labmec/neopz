@@ -95,7 +95,10 @@ protected:
     
     /// Modify the permute vector swapping the lagrangeq with maxeq and shifting the intermediate equations
     void ModifyPermute(TPZVec<long> &permute, long lagrangeq, long maxeq);
-	
+    
+    //quantity of meshes associated with a mesh multiphysics
+	long fNmeshes;
+
 public:
 	
 	/**
@@ -422,6 +425,15 @@ public:
 	/** @brief To discontinuous elements */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer<STATE> &transfer);
 	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
+    
+    //set nummber of meshs
+    void SetNMeshes(long nmeshes){
+        fNmeshes = nmeshes;
+    }
+    
+    long GetNMeshes(){
+        return fNmeshes;
+    }
 	
 private:
 	

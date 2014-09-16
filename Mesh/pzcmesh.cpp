@@ -74,6 +74,8 @@ fSolution(0,1) {
     }
 	fBlock.SetMatrix(&fSolution);
 	fSolutionBlock.SetMatrix(&fSolution);
+    
+    fNmeshes = 0;
 }
 
 
@@ -99,7 +101,8 @@ fSolution(0,1)
     }
     fBlock.SetMatrix(&fSolution);
     fSolutionBlock.SetMatrix(&fSolution);
-	
+    
+    fNmeshes = 0;
 }
 
 TPZCompMesh::~TPZCompMesh() {
