@@ -129,8 +129,47 @@ namespace pzshape {
 		
 	} //end of method
 	
+    /**
+     * @brief Jacobi parameters orthogonal polynomials
+     */
+    REAL TPZShapeLinear::JacobiA = 0.5;
+    REAL TPZShapeLinear::JacobiB = 0.5;
+    
 	void TPZShapeLinear::Jacobi(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-	}
+		// Quadratic or higher shape functions
+        REAL a = JacobiA, b = JacobiB;
+		if(num <= 0) return;
+		phi.Put(0,0,1.0);
+		dphi.Put(0,0, 0.0);
+		if(num == 1) return;
+		phi.Put(1,0, 0.5 * (a - b + (2.0 + a + b) * x));
+		dphi.Put(0,1, 0.5*(num + a + b + 1)*phi(num-1,0) );
+        // Following http://mathworld.wolfram.com/JacobiPolynomial.html
+        REAL A_ab=0.0, B_ab=0.0, C_ab=0.0;
+		for(int ord = 2;ord<num;ord++) {
+            //Computing Coefficients for three terms recursion relation
+            A_ab = ((2.0*ord+a+b+1)*(2.0*ord+a+b+2))/(2.0*(ord+1)*(ord+a+b+1));
+            B_ab = ((b*b-a*a)*(2.0*ord+a+b+1))/(2.0*(ord+1)*(ord+a+b+1)*(2.0*ord+a+b));
+            C_ab = ((ord+a)*(ord+b)*(2.0*ord+a+b+2))/((ord+1)*(ord+a+b+1)*(2.0*ord+a+b));
+			phi.Put(ord,0, (A_ab*x - B_ab)*phi(ord-1,0) - C_ab*phi(ord-2,0));
+			dphi.Put(0,ord, 0.5*(ord + a + b + 1)*phi(ord-1,0));
+		}
+	} //end of method
+    
+	void TPZShapeLinear::Hermite(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+		// Quadratic or higher shape functions (for physicists)
+		if(num <= 0) return;
+		phi.Put(0,0,1.0);
+		dphi.Put(0,0, 0.0);
+		if(num == 1) return;
+		phi.Put(1,0, 2.0*x);
+		dphi.Put(0,1, 2.0);
+        // Following http://mathworld.wolfram.com/HermitePolynomial.html
+		for(int ord = 2;ord<num;ord++) {
+			phi.Put(ord,0, 2.0*x*phi(ord-1,0) - (2.0*(REAL)ord-1.0)*phi(ord-2,0));
+			dphi.Put(0,ord, (2.0*(REAL)ord-1.0)*phi(ord-2,0));
+		}
+	} //end of method
 	
 	// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
 	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Chebyshev;

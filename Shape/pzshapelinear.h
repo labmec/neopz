@@ -69,6 +69,17 @@ namespace pzshape {
 		 * @brief Jacobi orthogonal polynomials
 		 */
 		static void Jacobi(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
+        
+		/**
+		 * @brief Jacobi parameters orthogonal polynomials
+		 */
+        static REAL JacobiA;
+        static REAL JacobiB;
+        
+		/**
+		 * @brief Hermite orthogonal polynomials
+		 */
+		static void Hermite(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
 		/**
 		 * @brief Legendre function computing several derivatives.
