@@ -24,7 +24,8 @@ TPZExtendGridDimension::TPZExtendGridDimension(TPZGeoMesh* finegeomesh,REAL thic
 	fThickness = thickness;
 }
 
-TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh() {
+TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
+{
 	// a malha 2D sera extendida para uma malha 3D: logo ela eh plana e conforme
 	// as incidencias devem estar dadas em sentido antihorario - vista superior do plano XY
 	// e as coordenadas sao da forma (x,y,0)
@@ -87,6 +88,29 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh() {
 	return extendedmesh;
 }
 
+void TPZExtendGridDimension::DeformMesh(TPZFMatrix<STATE> &Tr, TPZGeoMesh * GeoSurface)
+{
+    // It represents a 3D Linear transformation around the z axis.
+
+    TPZVec<STATE> iCoords(3,0.0);
+    TPZVec<STATE> iCoordsTr(3,0.0);
+    
+    Tr.Print("Rotation = ");
+    
+    int NumberofGeoNodes = GeoSurface->NNodes();
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+    {
+        TPZGeoNode GeoNode = GeoSurface->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        // Apply rotation
+        iCoordsTr[0] = Tr(0,0)*iCoords[0]+Tr(0,1)*iCoords[1]+Tr(0,2)*iCoords[2];
+        iCoordsTr[1] = Tr(1,0)*iCoords[0]+Tr(1,1)*iCoords[1]+Tr(1,2)*iCoords[2];
+        iCoordsTr[2] = Tr(2,0)*iCoords[0]+Tr(2,1)*iCoords[1]+Tr(2,2)*iCoords[2];
+        GeoNode.SetCoord(iCoordsTr);
+        GeoSurface->NodeVec()[inode] = GeoNode;
+    }
+}
+
 TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbottom,int matidtop){
 	if(naumentedlayers < 1)   // returns the same geometric mesh
 		return fFineGeoMesh.operator->();
@@ -96,8 +120,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	// e as coordenadas sao da forma (x,y,0)
 	// a terceira componente devera ser thickness: altura da malha
 	// os elementos 2D podem ser triangulos ou quadrilateros
-	// si os elementos sao triangulos os elementos 3D serao prismas retos
-	// si os elementos sao quadrilateros os elementos 3D serao hexaedros retos
+	// se os elementos sao triangulos os elementos 3D serao prismas retos
+	// se os elementos sao quadrilateros os elementos 3D serao hexaedros retos
 	
 	TPZGeoMesh *extendedmesh = new TPZGeoMesh;
 	long maxid = fFineGeoMesh->CreateUniqueNodeId();
@@ -131,6 +155,11 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	for(i=0;i<nelem;i++) {
 		gel = fFineGeoMesh->ElementVec()[i];
 		if(!gel) continue;
+        // evitar criacao de malha multiescala, pega so elementos sem os filhos (dac 2014 09 17)
+        if(gel->HasSubElement() == true)
+        {
+            continue;
+        }
 		int type = gel->Type();
 		if(type==2 || type==3) {//triangle
 			nnodes = gel->NNodes();
@@ -166,6 +195,10 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 					if(fThickness > 0) {
 						for(j=0;j<nnodes;j++) incidel[j] = incidelorig[j];
 						for(j=nnodes;j<2*nnodes;j++) incidel[j] = incidel[j-nnodes]+maxid;
+                        // reordena os indices
+                        long a = incidel[3];
+                        incidel[3] = incidel[2];
+                        incidel[2] = a;
 						// initial indexes of the nodes must to be update, upper triangle
 						for(j=0;j<nnodes;j++) incidelorig[j] = incidel[j+nnodes];
 					} else if(fThickness < 0) {
@@ -186,6 +219,10 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 		for(i=0;i<nelem;i++) {
 			gel = fFineGeoMesh->ElementVec()[i];
 			if(!gel || gel->MaterialId() < 0) continue;
+            if(gel->HasSubElement() == true)
+            {
+                continue;
+            }
 			nnodes = gel->NNodes();
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
@@ -199,6 +236,10 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 		for(i=0;i<nelem;i++) {
 			gel = fFineGeoMesh->ElementVec()[i];
 			if(!gel || gel->MaterialId() < 0) continue;
+            if(gel->HasSubElement() == true)
+            {
+                continue;
+            }
 			nnodes = gel->NNodes();
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
