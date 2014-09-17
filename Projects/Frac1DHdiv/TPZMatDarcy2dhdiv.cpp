@@ -149,11 +149,9 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     //  End of contribution of domain integrals for Residual Vector
     
     
-    //  ////////////////////////// Jacobian Matrix and Residual Vector ///////////////////////////////////
-    //  Contribution of domain integrals for Jacobian matrix and Residual Vector
-    // n+1 time step
-//    if(!fData->IsLastState())
-//    {
+        //  ////////////////////////// Jacobian Matrix and Residual Vector ///////////////////////////////////
+        //  Contribution of domain integrals for Jacobian matrix and Residual Vector
+        // n+1 time step
     
         //  First Block (Equation One) constitutive law
         // Integrate[(Kinv/bulklambda)*dot(v,v), Omega_{e} ]  (Equation One)
@@ -224,8 +222,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             
         }
         
-        
-        
+
         //  Second Block (Equation Two) Bulk flux  equation
         for(int ip=0; ip < phrP; ip++)
         {
@@ -233,7 +230,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             // Integrate[W*(d(\phi*(rho)/dt)), Omega_{e}] (Equation Two)
             REAL Integrating = phiP(ip,0) * rockporosity * (oildensity);
             ef(ip + FirstP) += (-1.0) * weight * Integrating;
-
+            
             // d(porosity)/dPalpha and d(oildensity)/dPalpha
             for (int jp=0; jp < phrP; jp++)
             {
@@ -249,11 +246,11 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             dphip[0] = dphiP(0,ip)*datavec[1].axes(0,0)+dphiP(1,ip)*datavec[1].axes(1,0);
             dphip[1] = dphiP(0,ip)*datavec[1].axes(0,1)+dphiP(1,ip)*datavec[1].axes(1,1);
             
-            REAL dotprod =
+            REAL gradwdotq =
             (dphip[0]) * (sol_q[0]) +
             (dphip[1]) * (sol_q[1]);
             
-            ef(ip + FirstP) += (Theta) * (TimeStep) * weight * dotprod;
+            ef(ip + FirstP) += (Theta) * (TimeStep) * weight * gradwdotq;
             
             // d(q)/dQalpha
             for (int jq=0; jq<phrQ; jq++)
@@ -262,19 +259,17 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 int jvectorindex    = datavec[0].fVecShapeIndex[jq].first;
                 int jshapeindex     = datavec[0].fVecShapeIndex[jq].second;
                 
-                REAL GradWdotv =
+                REAL gradwdotv =
                 (dphip[0]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
                 (dphip[1]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;
                 
-                ek(ip + FirstP,jq + FirstQ) += (Theta) * (TimeStep) * weight * GradWdotv;
+                ek(ip + FirstP,jq + FirstQ) += (Theta) * (TimeStep) * weight * gradwdotv;
             }
             
         }
         
         //  ////////////////////////// Jacobian Matrix and Residual Vector ///////////////////////////////////
         //  End of contribution of domain integrals for Jacobian matrix and Residual Vector
-        
-//    }
     
     
 
@@ -386,9 +381,6 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     //  End of contribution of contour integrals for Residual Vector
     
     
-//    if(!fData->IsLastState())
-//    {
-    
         //  ////////////////////////// Jacobian Matrix and Residual Vector ///////////////////////////////////
         //  Contribution of contour integrals for Jacobian matrix and Residual Vector
         //  Time step n+1
@@ -412,8 +404,7 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             {
                 ek(iq + FirstQL, jp + FirstPL) += (-1.0) * weight * phiPL(jp,0) * vnL;
             }
-            
-            
+
         }
         
         for (int iq=0; iq < QRowsRight; iq++)
@@ -481,9 +472,7 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             }
             
         }
-        
-        
-//    }
+
     
     //  ////////////////////////// Jacobian Matrix and Residual Vector ///////////////////////////////////
     //  End of contribution of countour integrals for Jacobian matrix and Residual Vector
@@ -655,8 +644,6 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
         
         ef(ip + FirstPL) += (-1.0) * (Theta) * (TimeStep) * weight * qnL * phiPL(ip,0);
         
-        
-        
         for (int jq=0; jq<QRowsleft; jq++)
         {
             
@@ -670,7 +657,6 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
             ek(ip + FirstPL,jq + FirstQL) += (-1.0) * (Theta) * (TimeStep) * weight * phiPL(ip,0) * vnL;
             
         }
-        
     }
     
 //    }
@@ -737,26 +723,22 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
     REAL qN = (v2[0]*n1 + v2[1]*n2);    // Normal Flux
     
     
+//    //  First Block (Equation One) constitutive law
+//    //  Integrate[P dot(K v, n), Gamme_{e}]  (Equation One) Left-Left part
 //    for (int iq=0; iq < QRowsleft; iq++)
 //    {
-//        
-//        
 //        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
 //        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
 //        
-//        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
+//        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1) +
+//        (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
 //        
-//        
-//        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
-//        
-//        ef(iq + FirstQL) += (1.0) * weight * (e1e1 + e2e2 ) * PressureL;
-//        
+//        ef(iq + FirstQL) += (-1.0) * weight * vnL * PressureL;
 //        
 //        for (int jp=0; jp < PRowsleft; jp++)
 //        {
-//            ek(iq + FirstQL, jp + FirstPL) += (1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
+//            ek(iq + FirstQL, jp + FirstPL) += (-1.0) * weight * vnL * phiPL(jp,0);
 //        }
-//        
 //        
 //    }
     
@@ -766,7 +748,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
         int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
         
         REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
-        ef(iq + FirstQL) += weight * (0.0001) * ( (gBigNumber * ( qnL - qN ) * vni ) );
+        ef(iq + FirstQL) += weight * (0.001) * ( (gBigNumber * ( qnL - qN ) * vni ) );
         
         for (int jq=0; jq < QRowsleft; jq++)
         {
@@ -774,7 +756,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
             int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
             
             REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
-            ek(iq + FirstQL,jq + FirstQL) += weight * (0.0001)  * ( (gBigNumber * ( vnj ) * vni ) );
+            ek(iq + FirstQL,jq + FirstQL) += weight * (0.001)  * ( (gBigNumber * ( vnj ) * vni ) );
         }
     }
 }

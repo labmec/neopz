@@ -42,7 +42,7 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 void TPZDarcyAnalysis::Run()
 {
     // Parametros
-    const int nel = 0;
+    const int nel = 1;
     
     // Malha geometrica
     fgmesh = CreateGMesh(nel);
@@ -95,7 +95,7 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(1.0);
+    GeometryInfo.SetfDimensionlessL(100.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     RotateGeomesh(gmesh, angle);
     
@@ -227,7 +227,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     // Bc Right
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 50.0e6;
+    val2(2,0) = 0.0;
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
@@ -239,7 +239,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
  	cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    val2(0,0) = 0.01;
+    val2(0,0) = 1.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
@@ -258,7 +258,7 @@ void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
     REAL x = pt[0];
     REAL y = pt[1];
-    disp[0] = 50.0e6;//0.0*(1.0 - 0.1 * x);
+    disp[0] = 0.0;//0.0*(1.0 - 0.1 * x);
 }
 
 TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
@@ -321,7 +321,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 {
 	int iter = 0;
 	REAL error = 1.e10;
-    const REAL tol = 1.e-4;
+    const REAL tol = 1.e-6;
     const int numiter = 50;
     
     fData->SetCurrentState();
@@ -343,6 +343,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
         std::stringstream sout;
         matK=an->Solver().Matrix();
         matK->Print("matK = ", sout,EMathematicaInput);
+        
         an->Rhs().Print("Rhs = ", sout,EMathematicaInput);
         LOGPZ_DEBUG(logger,sout.str())
     }
@@ -460,6 +461,7 @@ void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
         {
             std::stringstream sout;
             an->Rhs().Print("ResAtn = ", sout,EMathematicaInput);
+            fLastStepRhs.Print("fLastStepRhs = ", sout,EMathematicaInput);
             LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
