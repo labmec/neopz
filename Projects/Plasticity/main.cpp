@@ -106,12 +106,14 @@ void FindBug()
         confinement[1] = -62.1;
         confinement[2] = -48.2;
         
-        
+        well.SetBiotCoefficient(0.65);
+        well.SetEffectivePorePressure(19.5);
+        well.SetFluidModel(EPenetrating);
         //well.SetConfinementStresses(confinement, 28.9);
         //
         //REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-        well.SetConfinementStresses(confinement, effectivePressure);
+        REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
+        well.SetConfinementEffectiveStresses(confinement, effectiveWellPressure);
         REAL poisson = 0.203;
         REAL elast = 29269.;
         REAL A = 152.54;
@@ -171,7 +173,7 @@ void FindBug()
         
         int nsteps = 5;
         int numnewton = 90;
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+//        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteInitialSimulation(nsteps, numnewton);
         
     }
@@ -206,7 +208,7 @@ void FindBug()
             well.AddEllipticBreakout(a, b);
             
         }
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+//        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteSimulation();
         TPZBFileStream save;
         save.OpenWrite("wellbore1.bin");
@@ -250,7 +252,9 @@ void FindBug()
             well.AddEllipticBreakout(a, b);
             
         }
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.PostProcess(0);
+//        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.PostProcess(2);
         well.ExecuteSimulation();
         TPZBFileStream save;
         save.OpenWrite("wellbore2.bin");
@@ -271,7 +275,10 @@ void FindBug()
         
         std::cout << "\n ------- 3 -------- "<<std::endl;
         well.PRefineElementAbove(0.00001, 3);
+//        well.PostProcess(0);
+        well.PostProcess(2);
         well.DivideElementsAbove(0.00001);
+        well.PostProcess(0);
         well.ExecuteSimulation();
         sqj2_refine=0.0007;
         std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
@@ -294,7 +301,7 @@ void FindBug()
             well.AddEllipticBreakout(a, b);
             
         }
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+//        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteSimulation();
         TPZBFileStream save;
         save.OpenWrite("wellbore3.bin");

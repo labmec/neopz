@@ -29,8 +29,14 @@ class TPZElasticityMaterial;
 /// create de standard mesh
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
+/// Simulation models
 enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
+
+/// Fluid model indicates whether the fluid pressure evolves around the well
 enum EFluidModel  {ENonPenetrating=0,EPenetrating=1};
+
+/// Indication of the well configuration
+enum EWellConfiguration {EVerticalWell, EHorizontalWell};
 
 /// Class which simulates the stability of a wellbore
 class TPZWellBoreAnalysis
@@ -122,6 +128,9 @@ public:
         /// Initialize the Sandler DiMaggio object and create the computational mesh
         void CreateComputationalMesh(int porder);
         
+        /// Create the multiphysics mesh to acount for subsidence in vertical wells
+        void CreateMultiphysicsMesh();
+        
         /// Setup post processing mesh
         void CreatePostProcessingMesh();
         
@@ -150,8 +159,11 @@ public:
         // Geometry of mesh
         /// radius of the well
         REAL fInnerRadius;
-        /// radius of the computational domain
+        /// radius of the computational domain, whether it is vertical or horizontal
         REAL fOuterRadius;
+        
+        /// Variable defining the well configuration
+        EWellConfiguration fWellConfig;
         
         /// number of elements in the radial and circumferential direction
         TPZManVector<int,2> fNx;
@@ -168,7 +180,7 @@ public:
         TPZManVector<REAL,3> fSmaller;
         
         /// confinement stress
-        TPZTensor<STATE> fConfinement;
+        TPZTensor<STATE> fConfinementEffective;
         
         /// Parameters
         //TPZElasticityMaterial fEl;
@@ -193,17 +205,23 @@ public:
         TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
 #endif
 
-        /// Fluid pressure
-        REAL fFluidPressure;
+        /// Wellbore effective pressure
+        REAL fWellboreEffectivePressure;
         
-        /// Pore pressure
-        REAL fPorePressure;
+        /// Far field pore pressure
+        REAL fEffectivePorePressure;
         
         /// Geometric mesh3
         TPZGeoMesh fGMesh;
         
         /// Computational mesh
         TPZCompMesh fCMesh;
+        
+        /// Constant vertical strain mesh
+        TPZCompMesh fZDeformation;
+        
+        /// Multiphysics Mesh
+        TPZCompMesh fMultiPhysics;
         
         /// Matrix of incremental solutions
         TPZFMatrix<STATE> fAllSol;
@@ -365,19 +383,50 @@ public:
     }
     
     /// Define the geological stress state and well pressure
-    void SetConfinementStresses(TPZVec<STATE> &stress, STATE wellpressure)
+    void SetConfinementEffectiveStresses(TPZVec<STATE> &stress, STATE Effectivewellpressure)
     {
-        fCurrentConfig.fConfinement.XX() = stress[0];
-        fCurrentConfig.fConfinement.YY() = stress[1];
-        fCurrentConfig.fConfinement.ZZ() = stress[2];
-        fCurrentConfig.fFluidPressure = wellpressure;
+        fCurrentConfig.fConfinementEffective.XX() = stress[0];
+        fCurrentConfig.fConfinementEffective.YY() = stress[1];
+        fCurrentConfig.fConfinementEffective.ZZ() = stress[2];
+        fCurrentConfig.fWellboreEffectivePressure = Effectivewellpressure;
     }
     
-    void SetPorePressure(STATE porepressure)
+    void SetEffectivePorePressure(STATE effectiveporepressure)
     {
-        fCurrentConfig.fPorePressure = porepressure;
+        fCurrentConfig.fEffectivePorePressure = effectiveporepressure;
     }
 
+    static TPZVec<STATE> FromTotaltoEffective(TPZVec<STATE> &totalstress, STATE biot, STATE totalporepressure)
+    {
+        int nel = totalstress.size();
+        TPZVec<STATE> result(nel);
+        for (int i=0; i<nel; i++) {
+            result[i] = totalstress[i]-biot*totalporepressure;
+        }
+        return result;
+    }
+    
+    static TPZVec<STATE> FromEffectivetoTotal(TPZVec<STATE> &effectivestress, STATE biot, STATE totalporepressure)
+    {
+        int nel = effectivestress.size();
+        TPZVec<STATE> result(nel);
+        for (int i=0; i<nel; i++) {
+            result[i] = effectivestress[i]+biot*totalporepressure;
+        }
+        return result;
+        
+    }
+    
+    static STATE FromTotalPorePressuretoEffective(STATE totalpressure, STATE biot)
+    {
+        return totalpressure*(1-biot);
+    }
+    
+    static STATE FromEffectivePorePressuretoTotal(STATE effectivepressure, STATE biot)
+    {
+        return effectivepressure/(1.-biot);
+    }
+    
     void SetBiotCoefficient(STATE biot)
     {
         fCurrentConfig.fBiotCoef = biot;
