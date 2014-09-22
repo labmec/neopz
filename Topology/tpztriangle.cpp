@@ -200,8 +200,13 @@ namespace pztopology {
                     JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi);
 				}
 				break;
+            case 6:
+                SidePar = InternalPar;
+                JacToSide.Resize(2, 2);
+                JacToSide.Identity();
+                regularmap = true;
 		}
-		if(side > 5)
+		if(side > 6)
 		{
 			cout << "Cant compute MapToSide method in TPZGeoTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n";
 			DebugStop();
