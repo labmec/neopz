@@ -91,7 +91,7 @@ public:
     //Set the permeability tensor and inverser tensor
    void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
    
-       if(K.Rows()>fDim || K.Cols()>fDim) DebugStop();
+       if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
        
        fTensorK = K;

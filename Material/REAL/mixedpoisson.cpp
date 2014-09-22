@@ -30,6 +30,8 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
     
     fInvK.Resize(1, 1);
     fTensorK.Resize(1, 1);
+    fTensorK.Identity();
+    fInvK.Identity();
     fPermeabilityFunction = NULL;
 }
 
@@ -43,8 +45,10 @@ TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim)
     fUseHdois = false;
     fh2 = 1.;
     
-    fInvK.Resize(1, 1);
-    fTensorK.Resize(1, 1);
+    fInvK.Redim(dim, dim);
+    fTensorK.Resize(dim, dim);
+    fInvK.Identity();
+    fTensorK.Identity();
     fPermeabilityFunction = NULL;
 }
 
