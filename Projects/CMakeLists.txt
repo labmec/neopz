@@ -118,7 +118,7 @@ add_subdirectory(proDG)
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
-			add_subdirectory(projteste)
+			#add_subdirectory(projteste)
 
 			# MHM project
 			add_subdirectory(MHM)
