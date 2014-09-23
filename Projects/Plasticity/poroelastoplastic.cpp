@@ -114,7 +114,7 @@ int main2 ()
         //
         //REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
         REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-        well.SetConfinementStresses(confinement, effectivePressure);
+        well.SetConfinementEffectiveStresses(confinement, effectivePressure);
         REAL poisson = 0.203;
         REAL elast = 29269.;
         REAL A = 152.54;
