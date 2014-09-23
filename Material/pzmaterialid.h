@@ -80,6 +80,9 @@ const int TPZBiotForceID = 331;
 /** @brief Id of a simple laplace equation with lagrange multiplier */
 const int TPZMatLaplacianLagrangeID = 332;
 
+/** @brief Id of a material to the double projection method */
+const int TPZMDPMaterialID = 333;
+
 /** @} */
 
 #endif //PZMATERIALIDH
