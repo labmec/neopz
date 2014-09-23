@@ -51,7 +51,7 @@ void TPZDPGMeshControl::BuildComputationalMesh()
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        sout<< "\n\ MESH COARSE \n";
+        sout<< "\n MESH COARSE \n";
         fPressureCoarseMesh.Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
@@ -125,7 +125,7 @@ void TPZDPGMeshControl::BuildComputationalMesh()
     
     
     fMHMControl.CMesh()->ExpandSolution();
-    //fMHMControl.CMesh()->SaddlePermute();
+    fMHMControl.CMesh()->SaddlePermute();
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;

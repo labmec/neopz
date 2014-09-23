@@ -15,7 +15,7 @@
 #include "pzgmesh.h"
 #include "TPZMHMeshControl.h"
 
-///class  oriented towards the creation of Discontiunos Petrov-Galerkin (DPG) meshes
+///class oriented towards the creation of Discontiunos Petrov-Galerkin (DPG) meshes
 class TPZDPGMeshControl
 {
     /// geometric mesh used to create the computational mesh
@@ -92,7 +92,6 @@ public:
         meshvec[2] = meshvecold[2];
         meshvec[3] = &fPressureCoarseMesh;
     }
-
 };
 
 #endif /* defined(__PZ__TPZDPGMeshControl__) */

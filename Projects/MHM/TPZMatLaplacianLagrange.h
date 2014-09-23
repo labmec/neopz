@@ -69,6 +69,9 @@ public:
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    
+    virtual int VariableIndex(const std::string &name);
+    virtual int NSolutionVariables(int var);
 
 
   public:

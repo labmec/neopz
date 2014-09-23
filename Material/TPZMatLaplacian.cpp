@@ -100,8 +100,9 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     
     if(fForcingFunction) {            // phi(in, 0) = phi_in
         TPZManVector<STATE,1> res(1);
-        TPZFMatrix<STATE> dres(Dimension(),1);
-        fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        //TPZFMatrix<STATE> dres(Dimension(),1);
+        //fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        fForcingFunction->Execute(x,res);
         fXfLoc = res[0];
     }
     
@@ -110,9 +111,9 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         int kd;
         ef(in, 0) +=  (STATE)weight * fXfLoc * (STATE)phi(in,0);
         for( int jn = 0; jn < phr; jn++ ) {
+            //ek(in,jn) += (STATE)weight*((STATE)(phi(in,0)*phi(jn,0)));
             for(kd=0; kd<fDim; kd++) {
-                ek(in,jn) += (STATE)weight * (
-                                              +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) );
+                ek(in,jn) += (STATE)weight*(fK*(STATE)(dphi(kd,in)*dphi(kd,jn)));
             }
         }
     }

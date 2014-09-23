@@ -63,7 +63,7 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
     if(fForcingFunction) {            // phi(in, 0) = phi_in
         TPZManVector<STATE,1> res(1);
         TPZFMatrix<STATE> dres(Dimension(),1);
-        fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
         XfLoc = res[0];
     }
     
@@ -96,17 +96,42 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
     
 }
 
-void TPZMatLaplacianLagrange::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
-{
-    if (var == 0) {
-        Solout[0] = datavec[0].sol[0][0];//+datavec[2].sol[0][0];
-    }
-    else
-    {
-        TPZMaterial::Solution(datavec, var, Solout);
-    }
+int TPZMatLaplacianLagrange::VariableIndex(const std::string &name){
+	if(!strcmp("Solution",name.c_str()))        return  1;
+	if(!strcmp("ExactSolution",name.c_str()))   return  2;
+    if(!strcmp("PressureConstante",name.c_str())) return 3;
+	return TPZMaterial::VariableIndex(name);
 }
 
+int TPZMatLaplacianLagrange::NSolutionVariables(int var){
+	if(var==1 || var==2 || var==3) return 1;
+	return TPZMaterial::NSolutionVariables(var);
+}
+
+
+
+void TPZMatLaplacianLagrange::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+{
+    if (var == 1) {
+        Solout[0] = datavec[0].sol[0][0];
+        return;
+    }
+    
+    
+    if (var == 3) {
+        Solout[0] = datavec[2].sol[0][0];
+        return;
+    }
+    
+    TPZVec<STATE> solExata(1);
+	TPZFMatrix<STATE> flux(2,1);
+    //Exact soluion
+	if(var == 2){
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[0];
+		return;
+	}
+}
 
 
 
