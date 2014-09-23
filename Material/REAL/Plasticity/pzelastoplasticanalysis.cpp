@@ -476,10 +476,13 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
 {
 	#ifdef LOG4CXX
 	{
-	   std::stringstream sout;
-	   sout << ">>> TPZElastoPlasticAnalysis::Solve() *** "
-	        << "About to SOLVE the linear system";
-	   LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
+        if(EPAnalysisLogger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << ">>> TPZElastoPlasticAnalysis::Solve() *** "
+                << "About to SOLVE the linear system";
+            LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
+        }
 	}
 	#endif
 	
@@ -512,11 +515,14 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
     REAL norm = Norm(fSolution);
 	#ifdef LOG4CXX
 	{
-	   std::stringstream sout;
-	   sout << "<<< TPZElastoPlasticAnalysis::Solve() *** "
+        if(EPAnalysisLogger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "<<< TPZElastoPlasticAnalysis::Solve() *** "
 	        << " with Norm(DeltaU) = " << norm;
-	//   sout << Rhs();
-	   LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
+            //   sout << Rhs();
+            LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
+        }
 	}
 	#endif
 
@@ -1066,13 +1072,16 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
     }
 #ifdef LOG4CXX
     {
-        std::stringstream sout;
-        sout << "Equations to zero ";
-        std::set<long>::iterator it;
-        for (it=fEquationstoZero.begin(); it!= fEquationstoZero.end(); it++) {
-            sout << *it << " ";
+        if(EPAnalysisLogger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Equations to zero ";
+            std::set<long>::iterator it;
+            for (it=fEquationstoZero.begin(); it!= fEquationstoZero.end(); it++) {
+                sout << *it << " ";
+            }
+            LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
         }
-        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
     }
 #endif
 }

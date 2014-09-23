@@ -485,10 +485,10 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
       
       val4  =      Dep(_XX_,_XZ_) * Deriv(0,0);
 	  val4 +=      Dep(_XX_,_YZ_) * Deriv(0,1);
-	  val4 += 2. * Dep(_XX_,_ZZ_) * Deriv(0,2);
+	  val4 += 2. * Dep(_XX_,_ZZ_) * Deriv(0,2);//
 	  val4 +=      Dep(_XY_,_XZ_) * Deriv(1,0);
 	  val4 +=      Dep(_XY_,_YZ_) * Deriv(1,1);
-	  val4 += 2. * Dep(_XY_,_ZZ_) * Deriv(1,2);
+	  val4 += 2. * Dep(_XY_,_ZZ_) * Deriv(1,2);//
 	  val4 +=      Dep(_XZ_,_XZ_) * Deriv(2,0);
 	  val4 +=      Dep(_XZ_,_YZ_) * Deriv(2,1);
 	  val4 += 2. * Dep(_XZ_,_ZZ_) * Deriv(2,2);
@@ -522,10 +522,10 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
       
       val7  =      Dep(_XY_,_XZ_) * Deriv(0,0);
 	  val7 +=      Dep(_XY_,_YZ_) * Deriv(0,1);
-	  val7 += 2. * Dep(_XY_,_ZZ_) * Deriv(0,2);
+	  val7 += 2. * Dep(_XY_,_ZZ_) * Deriv(0,2);//
 	  val7 +=      Dep(_YY_,_XZ_) * Deriv(1,0);
 	  val7 +=      Dep(_YY_,_YZ_) * Deriv(1,1);
-	  val7 += 2. * Dep(_YY_,_ZZ_) * Deriv(1,2);
+	  val7 += 2. * Dep(_YY_,_ZZ_) * Deriv(1,2);//
 	  val7 +=      Dep(_YZ_,_XZ_) * Deriv(2,0);
 	  val7 +=      Dep(_YZ_,_YZ_) * Deriv(2,1);
 	  val7 += 2. * Dep(_YZ_,_ZZ_) * Deriv(2,2);
@@ -539,8 +539,8 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 	  val8 += 2. * Dep(_YZ_,_XX_) * Deriv(1,0);
 	  val8 +=      Dep(_YZ_,_XY_) * Deriv(1,1);
 	  val8 +=      Dep(_YZ_,_XZ_) * Deriv(1,2);
-	  val8 += 2. * Dep(_ZZ_,_XX_) * Deriv(2,0);
-	  val8 +=      Dep(_ZZ_,_XY_) * Deriv(2,1);
+	  val8 += 2. * Dep(_ZZ_,_XX_) * Deriv(2,0);//
+	  val8 +=      Dep(_ZZ_,_XY_) * Deriv(2,1);//
 	  val8 +=      Dep(_ZZ_,_XZ_) * Deriv(2,2);
 	  val8 *= 0.5;
       ek(in*nstate+2,jn*nstate+0) += weight * val8;
@@ -551,8 +551,8 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 	  val9 +=      Dep(_YZ_,_XY_) * Deriv(1,0);
 	  val9 += 2. * Dep(_YZ_,_YY_) * Deriv(1,1);
 	  val9 +=      Dep(_YZ_,_YZ_) * Deriv(1,2);
-	  val9 +=      Dep(_ZZ_,_XY_) * Deriv(2,0);
-	  val9 += 2. * Dep(_ZZ_,_YY_) * Deriv(2,1);
+	  val9 +=      Dep(_ZZ_,_XY_) * Deriv(2,0);//
+	  val9 += 2. * Dep(_ZZ_,_YY_) * Deriv(2,1);//
 	  val9 +=      Dep(_ZZ_,_YZ_) * Deriv(2,2);
 	  val9 *= 0.5;
       ek(in*nstate+2,jn*nstate+1) += weight * val9;
@@ -565,7 +565,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 	  val10 += 2. * Dep(_YZ_,_ZZ_) * Deriv(1,2);
 	  val10 +=      Dep(_ZZ_,_XZ_) * Deriv(2,0);
 	  val10 +=      Dep(_ZZ_,_YZ_) * Deriv(2,1);
-	  val10 += 2. * Dep(_ZZ_,_ZZ_) * Deriv(2,2);
+	  val10 += 2. * Dep(_ZZ_,_ZZ_) * Deriv(2,2);//
 	  val10 *= 0.5;
       ek(in*nstate+2,jn*nstate+2) += weight * val10;
       
@@ -922,10 +922,13 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
         }
 #ifdef LOG4CXX
         {
-            std::stringstream sout;
-            sout << "Point index " << intPt << " Coordinate " << data.x << std::endl;
-            sout << "Sigma " << Sigma << " plastic state " << plasticloc.GetState() << " plastic steps " << plasticloc.IntegrationSteps();
-            LOGPZ_DEBUG(updatelogger, sout.str())
+            if(updatelogger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Point index " << intPt << " Coordinate " << data.x << std::endl;
+                sout << "Sigma " << Sigma << " plastic state " << plasticloc.GetState() << " plastic steps " << plasticloc.IntegrationSteps();
+                LOGPZ_DEBUG(updatelogger, sout.str())
+            }
         }
 #endif
 	}

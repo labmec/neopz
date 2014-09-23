@@ -49,7 +49,8 @@ extern pthread_mutex_t glogmutex;
       if(A->isDebugEnabled()) {		\
       PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_DEBUG");	   \
       LOG4CXX_DEBUG(A,B);				   \
-      PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex,"LOGPZ_DEBUG"); } }
+      PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex,"LOGPZ_DEBUG"); } \
+        else std::cout << "Melhore Isso " << __FILE__ << ":" << __LINE__ << std::endl;}
 
 /// Define log for info
 #define LOGPZ_INFO(A,B) {if(A->isInfoEnabled()) {		\

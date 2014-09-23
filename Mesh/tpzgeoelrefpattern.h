@@ -444,11 +444,14 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	this->SetSubElementConnectivities();
 #ifdef LOG4CXX
     {
-    	std::stringstream sout;
-    	sout << "Dividing element " << this->Index() << std::endl;
-    	sout << "Subelement indices ";
-    	for(i=0; i<NSubEl; i++) sout << SubElVec[i]->Index() << " ";
-    	LOGPZ_DEBUG(loggerrefpattern,sout.str())
+        if (loggerrefpattern->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Dividing element " << this->Index() << std::endl;
+            sout << "Subelement indices ";
+            for(i=0; i<NSubEl; i++) sout << SubElVec[i]->Index() << " ";
+            LOGPZ_DEBUG(loggerrefpattern,sout.str())
+        }
     }
 #endif
 }

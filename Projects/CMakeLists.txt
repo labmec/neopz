@@ -118,6 +118,8 @@ add_subdirectory(proDG)
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
+			add_subdirectory(projteste)
+
 			# MHM project
 			add_subdirectory(MHM)
 
@@ -150,7 +152,7 @@ add_subdirectory(proDG)
 			add_subdirectory(SteamInjection)
 			
 			#projeto agnaldo 09-09-2011
-			add_subdirectory(DoubleProjection)
+			#add_subdirectory(DoubleProjection)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
 			add_subdirectory(Poisson2DGID)

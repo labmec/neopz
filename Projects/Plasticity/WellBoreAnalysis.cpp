@@ -22,7 +22,8 @@
 
 #include "pzl2projection.h"
 #include "pzbuildmultiphysicsmesh.h"
-
+#include "TPZProjectEllipse.h"
+const int globnthreadsdiogo = 8;
 #include "pzlog.h"
 
 #include "arglib.h"
@@ -30,6 +31,10 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
+#endif
+
+#ifdef LOG4CXX
+static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 #endif
 
 
@@ -1690,7 +1695,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<S
     }
     allmaterials.erase(matid);
     TPZFStructMatrix str(&fCMesh);
-    str.SetNumThreads(8);
+    str.SetNumThreads(globnthreadsdiogo);
     str.SetMaterialIds(allmaterials);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
@@ -1706,7 +1711,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsForMatid(int matid, TPZFMatrix<STAT
     allmaterials.insert(matid);
     TPZFStructMatrix str(&fCMesh);
     str.SetMaterialIds(allmaterials);
-    str.SetNumThreads(8);
+    str.SetNumThreads(globnthreadsdiogo);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
 }
@@ -2104,7 +2109,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(0);
+        structmatrix.SetNumThreads(globnthreadsdiogo);
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);
@@ -2169,10 +2174,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 
 #ifdef DEBUG
 #ifdef PV
-//      std::string vtkFile = "out.vtk";
-    std::string vtkFile = "outSD.vtk";
-    //std::string vtkFile = "outMC.vtk";
-    
+    std::string vtkFile = "out.vtk";
 #else
     std::string vtkFile = "pocoplasticoErickII.vtk";
 #endif
@@ -2299,16 +2301,48 @@ void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & po
                     }
                     TPZManVector<REAL,3> searchedX(3,0.);
                     cel->Reference()->X(qsiMiddle, searchedX);
-                    polygonalChain.insert( std::make_pair(searchedX[0],searchedX[1]) );
+                    REAL Sx,Sy;
+                    Sx=fCurrentConfig.fConfinementEffective.XX();
+                    Sy=fCurrentConfig.fConfinementEffective.YY();
+                    
+                    if(fabs(Sx)>fabs(Sy))
+                    {
+                        polygonalChain.insert( std::make_pair(searchedX[1],searchedX[0]) );
+                    }
+                    else
+                    {
+                        polygonalChain.insert( std::make_pair(searchedX[0],searchedX[1]) );
+                    }
+            
+                    
                 }
             }
         }
     }
+    
+    
+#ifdef LOG4CXX
+    if (loggerEllipse->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "\n polygonalChain"<<std::endl;
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChain.begin(); it!= polygonalChain.end(); it++) {
+            sout << it->first << " " << it->second <<std::endl;
+        }
+        std::cout << sout.str() << std::endl;
+        
+        LOGPZ_DEBUG(loggerEllipse, sout.str())
+    }
+#endif
+    
+
+
 }
 
 /// Modify the geometry of the domain simulating an elliptic breakout
 void TPZWellBoreAnalysis::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
 {
+
     fCurrentConfig.AddEllipticBreakout(MaiorAxis, MinorAxis);
     std::set<long> elindices;
     int nel = fCurrentConfig.fCMesh.NElements();
@@ -2468,6 +2502,86 @@ void TPZWellBoreAnalysis::PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::strin
     
 }
 
+void TPZWellBoreAnalysis::ComputeAandB(REAL sqj2_refine, REAL &a,REAL &b)
+{
+    std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
+    GetJ2Isoline(sqj2_refine, polygonalChainbase);
+    REAL maxy = fCurrentConfig.MaxYfromLastBreakout();
+    for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++) {
+        if (it->second < maxy) {
+            polygonalChain.insert(std::make_pair(it->first,it->second));
+        }
+    }
+    
+#ifdef LOG4CXX
+    if (loggerEllipse->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "\n sqj2_refine " << sqj2_refine <<std::endl;
+        sout << "\n maxy " << maxy <<std::endl;
+        
+        
+        sout << "\n polygonalChainbase = "<<std::endl;
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it!= polygonalChainbase.end(); it++) {
+            
+            if (it==polygonalChainbase.begin()) {
+                sout << "{{"<<it->first << "," << it->second << "},"<<std::endl;   
+            }
+            else if(it==polygonalChainbase.end()){
+                sout << "{"<<it->first << "," << it->second << "}};"<<std::endl;    
+            }
+            else{
+                sout << "{"<<it->first << "," << it->second << "},"<<std::endl;   
+            }
+            
+        }
+        
+        sout << "\n polygonalChain ="<<std::endl;
+        for (std::multimap<REAL, REAL>::iterator it = polygonalChain.begin(); it!= polygonalChain.end(); it++) {
+            if (it==polygonalChain.begin()) {
+                sout << "{{"<<it->first << "," << it->second << "},"<<std::endl;
+            }
+            else if(it==polygonalChain.end()){
+                sout << "{"<<it->first << "," << it->second << "}};"<<std::endl;
+            }
+            else{
+                sout << "{"<<it->first << "," << it->second << "},"<<std::endl;
+            }
+        }
+        
+        std::cout << sout.str() << std::endl;
+        
+        LOGPZ_DEBUG(loggerEllipse, sout.str())
+    }
+#endif
+    
+    if(polygonalChain.size()!=0)
+    {
+        TPZProjectEllipse ellips(polygonalChain);
+        TPZManVector<REAL,2> center(2),ratios(2),verify(2);
+        ellips.StandardFormatForSimpleEllipse(center, ratios);
+        verify[0] = ratios[0]/fCurrentConfig.fInnerRadius;
+        verify[1] = ratios[1]/fCurrentConfig.fInnerRadius;
+        a = ratios[0];
+        b = ratios[1];
+        
+#ifdef LOG4CXX
+        if (loggerEllipse->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "\n a " << a <<std::endl;
+            sout << "\n b " << b <<std::endl;
+            std::cout << sout.str() << std::endl;
+            
+            LOGPZ_DEBUG(loggerEllipse, sout.str())
+        }
+#endif
+        
+    }
+    
+}
+
+
 /// Add elliptic breakout
 void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
 {
@@ -2496,7 +2610,6 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
 
     
 }
-
 
 #include "pzgengrid.h"
 #include "TPZVTKGeoMesh.h"
@@ -2548,32 +2661,60 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
         return;
     }
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         fGMesh.Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+    
+    std::ofstream ssout("WellboreBefore.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, ssout,true);
+    
+    /// number of elements in the radial and circumferential direction = nx
+    
     // project the nodes on the elliptic boundaries
-    for (int iy=0; iy < nx[1]+1; iy++) {
+   for (int iy=0; iy < nx[1]+1; iy++) {//loop over the circumferential
         int index = iy*(nx[0]+1);
         TPZManVector<REAL,3> co(3);
         fGMesh.NodeVec()[index].GetCoordinates(co);
         REAL xinit = co[0];
+        REAL yinit=co[1];
         bool changed = ProjectNode(co);
         if (changed) {
-            REAL xadjust = co[0];
-            int endindex = index+nx[0];
-            TPZManVector<REAL,3> endco(3);
-            fGMesh.NodeVec()[endindex].GetCoordinates(endco);
-            REAL xend = endco[0];
-            for (int ix=0; ix< nx[0]+1; ix++) {
-                TPZManVector<REAL,3> nodeco(3);
-                fGMesh.NodeVec()[index+ix].GetCoordinates(nodeco);
-                REAL factor = (nodeco[0]-xinit)/(xend-xinit);
-                REAL correctx = xadjust + factor*(xend-xadjust);
-                nodeco[0] = correctx;
-                fGMesh.NodeVec()[index+ix].SetCoord(nodeco);
+            REAL Sh1,Sh2;
+            Sh1=fConfinementEffective.XX();
+            Sh2=fConfinementEffective.YY();
+            if(fabs(Sh1)<fabs(Sh2))
+            {
+                REAL xadjust = co[0];
+                int endindex = index+nx[0];
+                TPZManVector<REAL,3> endco(3);
+                fGMesh.NodeVec()[endindex].GetCoordinates(endco);
+                REAL xend = endco[0];
+                for (int ix=0; ix< nx[0]+1; ix++) {//loop over the radial
+                    TPZManVector<REAL,3> nodeco(3);
+                    fGMesh.NodeVec()[index+ix].GetCoordinates(nodeco);
+                    REAL factor = (nodeco[0]-xinit)/(xend-xinit);
+                    REAL correctx = xadjust + factor*(xend-xadjust);
+                    nodeco[0] = correctx;
+                    fGMesh.NodeVec()[index+ix].SetCoord(nodeco);
+                }
+            }else{
+                REAL yadjust = co[1];
+                int endindex = index+nx[0];
+                TPZManVector<REAL,3> endco(3);
+                fGMesh.NodeVec()[endindex].GetCoordinates(endco);
+                REAL yend = endco[1];
+                for (int iy=0; iy< nx[0]+1; iy++) {//loop over the radial
+                    TPZManVector<REAL,3> nodeco(3);
+                    fGMesh.NodeVec()[index+iy].GetCoordinates(nodeco);
+                    REAL factor = (nodeco[1]-yinit)/(yend-yinit);
+                    REAL correcty = yadjust + factor*(yend-yadjust);
+                    nodeco[1] = correcty;
+                    fGMesh.NodeVec()[index+iy].SetCoord(nodeco);
+                }
             }
         }
     }
@@ -2592,7 +2733,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 //    TPZCompEl *targetcel = targetel->Reference();
 //    long targetindex = targetcel->Index();
 //#endif
-    
+    //fGMesh.Print();
     int nelem = fGMesh.NElements();
     for(int el = 0; el < nelem; el++)
     {
@@ -2618,6 +2759,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 #endif
         if(bcGel->HasSubElement() || bcGel->Father())
         {
+
             DebugStop();//este metodo nao funciona para elementos refinados e/ou filhos
         }
         int inner1DSide = 2;
@@ -2713,18 +2855,49 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
     bool wasadjusted = false;
     bool considered = false;
     int ellips = 0;
+    REAL Sh1,Sh2;
+    Sh1=fConfinementEffective.XX();
+    Sh2=fConfinementEffective.YY();
+    
     for (ellips = fGreater.size()-1; ellips >=0; ellips--) {
-        if (co[1] > fSmaller[ellips]) {
-            continue;
+        
+        if(fabs(Sh1)<fabs(Sh2))
+        {
+   
+            if (co[1] > fSmaller[ellips]) {
+                continue;
+            }
+            
+            considered = true;
+            REAL a = fGreater[ellips];
+            REAL b = fSmaller[ellips];
+            REAL xadjust = a*sqrt(1.-co[1]*co[1]/(b*b));
+        
+            
+            if (xadjust > co[0]) {
+                co[0] = xadjust;
+                wasadjusted = true;
+            }
+            
+
         }
-        considered = true;
-        REAL a = fGreater[ellips];
-        REAL b = fSmaller[ellips];
-        REAL xadjust = a*sqrt(1.-co[1]*co[1]/(b*b));
-        if (xadjust > co[0]) {
-            co[0] = xadjust;
-            wasadjusted = true;
+        else{
+            
+            if (co[0] > fSmaller[ellips]) {//sup
+                continue;
+            }
+            considered = true;
+            REAL G = fGreater[ellips];
+            REAL S = fSmaller[ellips];
+
+            REAL yadjust = G*sqrt(1.-co[0]*co[0]/(S*S));//sup
+            
+            if (yadjust > co[1]) {//sup
+                co[1] = yadjust;
+                wasadjusted = true;
+            }
         }
+        
         // only one adjustment can be applied
     }
     if (!wasadjusted && !considered) {
@@ -2735,6 +2908,7 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
         co[0] *= fInnerRadius/radius;
         co[1] *= fInnerRadius/radius;
     }
+    
     return wasadjusted;
 }
 
@@ -2742,6 +2916,8 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
 // this value will be used to identify the meaningful points to match the next ellips
 REAL TPZWellBoreAnalysis::TConfig::MaxYfromLastBreakout()
 {
+   
+ /*
     if(fGreater.size() == 0) return this->fInnerRadius;
     // we will use regula falsi
     int numell = fGreater.size();
@@ -2765,7 +2941,49 @@ REAL TPZWellBoreAnalysis::TConfig::MaxYfromLastBreakout()
         }
     }
     return y;
+
+*/
+
+
+    //if (fGreater.size()>1) {
+ 
+    REAL r =fInnerRadius;
+    REAL y,num,denom;
+    if(fGreater.size() == 0)
+    {
+        return this->fInnerRadius;   
+    }
+
+    
+    if(fGreater.size() == 1)
+    {
+        REAL a =fGreater[0];
+        REAL b =fSmaller[0];
+        num=sqrt(a*a-r*r);
+        denom=sqrt(( (a*a)/(b*b) ) -1 );
+        y=num/denom;
+        return y;
+    }
+    else
+    {
+        int numell = fGreater.size();
+        REAL a1 = fGreater[numell-1];
+        REAL b1 = fSmaller[numell-1];
+        REAL a2 =fGreater[numell-2];
+        REAL b2 =fSmaller[numell-2];
+        num = sqrt(a1*a1-a2*a2);
+        denom = sqrt(((a1*a1)/(b1*b1))-((a2*a2)/(b2*b2)));
+        y=num/denom;
+        return y;
+    }
+
+
+
+
 }
+
+
+
 
 
 
@@ -2780,6 +2998,9 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     TPZCompMesh *compmesh1 = &fCMesh;
     int materialid=1;
     
+    
+    std::ofstream sout("CreateComputationalMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, sout,true);
     
 #ifdef PV
 	
@@ -3024,7 +3245,7 @@ void TPZWellBoreAnalysis::ComputeLinearMatrix()
     // For vertical wells, the material should be able to compute a vertical strain component as well in a multiphysics setting
     
     TPZSkylineStructMatrix skylstr(&fCurrentConfig.fCMesh);
-    skylstr.SetNumThreads(8);
+    skylstr.SetNumThreads(globnthreadsdiogo);
     TPZFMatrix<STATE> rhs;
     TPZCompMesh *compmesh1 = &fCurrentConfig.fCMesh;
 

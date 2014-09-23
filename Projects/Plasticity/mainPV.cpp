@@ -18,6 +18,10 @@
 static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 #endif
 
+#ifdef LOG4CXX
+static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#endif
+
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
 #include <math.h>
@@ -896,7 +900,7 @@ void InitialLoad(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> Plastic
 }
 
 
-int main()
+int main22()
 {
  /*   //STATE val = atan2(3,1.);
     REAL poisson = 0.203;
@@ -925,6 +929,11 @@ int main()
   */
  
     InitializePZLOG();
+    
+    UnaxialLoadingSD();
+    
+    return 0;
+    
     //CheckDepConv();
     //ReadData("ensaio_UCS_all_columns.txt");
     //ReadData("ensaio_all_columns.txt");
@@ -1058,6 +1067,8 @@ int main()
 
 int VerifyTangentSandlerPV()
 {
+   
+    
 	const REAL A = 0.25, B = 0.67, C = 0.18, D = 0.67, K = 66.67, G = 40., W = 0.066, R = 2.5, Phi = 0., N = 0., Psi = 1.;    
 	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi);
 	TPZPlasticState<REAL> plasticstate;
@@ -1506,7 +1517,7 @@ void UnaxialLoadingSD()
     }
     
     STATE kproj,kprev,epv=0.;
-    TPZFMatrix<STATE> GradSigma;
+    TPZFMatrix<STATE> GradSigma(3,3);
     
     kproj=0.;
     kprev=0.13304;
@@ -1520,7 +1531,7 @@ void UnaxialLoadingSD()
         
         materialmodel.ApplyStrainComputeElasticStress(epssol, sigtrial);
         materialmodel.ProjectSigmaDep(sigtrial,kprev,sigproj,kproj,GradSigma);
-        materialmodel.ProjectSigma(sigtrial,kprev,sigproj,kproj);
+        //materialmodel.ProjectSigma(sigtrial,kprev,sigproj,kproj);
         outfile << -epsT[0]<< " " << -sigproj[0] << "\n";
         
         if(i==12)

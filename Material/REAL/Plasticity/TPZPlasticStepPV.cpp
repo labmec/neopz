@@ -262,33 +262,35 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     
     
 #ifdef LOG4CXX
-    
-    if(fabs(printPlastic-fN.fAlpha)>1.e-4)
+    if(logger->isDebugEnabled())
     {
-        std::stringstream sout;
-        TPZVec<STATE> phi;
-        TPZTensor<STATE> epsElastic(fN.fEpsT);
-        epsElastic-=fN.fEpsP;
-        Phi(epsElastic, phi);
-        sout << " \n phi = [";
-        for (int i=0;i<phi.size();i++)
+        if(fabs(printPlastic-fN.fAlpha)>1.e-4)
         {
-            sout << phi[i] <<" ";
+            std::stringstream sout;
+            TPZVec<STATE> phi;
+            TPZTensor<STATE> epsElastic(fN.fEpsT);
+            epsElastic-=fN.fEpsP;
+            Phi(epsElastic, phi);
+            sout << " \n phi = [";
+            for (int i=0;i<phi.size();i++)
+            {
+                sout << phi[i] <<" ";
+            }
+            
+            sout << " ] "<<endl;
+            
+            sout << " \n eigenvalues Sigma = [";
+            for (int i=0;i<3;i++)
+            {
+                sout << DecompSig.fEigenvalues[i] <<" ";
+            }
+            
+            sout << " ] "<<endl;
+            
+            
+            
+            LOGPZ_DEBUG(logger2, sout.str())
         }
-        
-        sout << " ] "<<endl;
-        
-        sout << " \n eigenvalues Sigma = [";
-        for (int i=0;i<3;i++)
-        {
-            sout << DecompSig.fEigenvalues[i] <<" ";
-        }
-        
-        sout << " ] "<<endl;
-        
-        
-        
-        LOGPZ_DEBUG(logger2, sout.str())
     }
 #endif
 }

@@ -134,6 +134,8 @@ public:
         /// Setup post processing mesh
         void CreatePostProcessingMesh();
         
+        
+        
 
          STATE ComputeFarFieldWork();
         
@@ -144,6 +146,7 @@ public:
         /// return the largest y-coordinate belonging to the last ellips
         // this value will be used to identify the meaningful points to match the next ellips
         REAL MaxYfromLastBreakout();
+        
         
         /// print the configuration
         void Print(ostream &out);
@@ -363,6 +366,8 @@ public:
         return fSequence.size();
     }
 
+    
+    
     /// Initialize the object with standard parameters
     static void StandardConfiguration(TPZWellBoreAnalysis &obj);
     
@@ -486,6 +491,8 @@ public:
     /** by Caju 2013 */
     /// Returns a set of points that belongs to the isoline defined by the ginen J2 value
     void GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
+    
+    void ComputeAandB(REAL sqj2_refine,REAL &a,REAL &b);
 
     int GetPostProcessNumber () {
         return fPostProcessNumber;

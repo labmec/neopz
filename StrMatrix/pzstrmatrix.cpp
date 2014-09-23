@@ -374,10 +374,13 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TP
 	}//fim for iel
 #ifdef LOG4CXX
 	{
-		std::stringstream sout;
-		sout << calcresidual.processName() << " " << calcresidual << std::endl;
-		sout << assemble.processName() << " " << assemble;
-		LOGPZ_DEBUG(logger,sout.str().c_str());
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << calcresidual.processName() << " " << calcresidual << std::endl;
+            sout << assemble.processName() << " " << assemble;
+            LOGPZ_DEBUG(logger,sout.str().c_str());
+        }
 	}
 #endif
     //std::cout << std::endl;
@@ -700,9 +703,12 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 				TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;
 				data->fSubmitted.erase(itavail);
 #ifdef LOG4CXX
-				std::stringstream sout;
-				sout << "Assembling element " << iel;
-				LOGPZ_DEBUG(logger,sout.str())
+                if(logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Assembling element " << iel;
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
 #endif
 #ifdef CHECKCONSISTENCY
 				//static TPZCheckConsistency stiffconsist("ElementStiff");
@@ -742,7 +748,10 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		if(!keeplooking)
 		{
 		        PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
-			LOGPZ_DEBUG(logger,"Going to sleep within assembly")
+            if(logger->isDebugEnabled())
+            {
+                LOGPZ_DEBUG(logger,"Going to sleep within assembly")
+            }
 			// wait for a signal
             data->fAssembly.Wait();
             /*
@@ -752,7 +761,10 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 			sem_wait(&data->fAssembly);
 #endif
              */
-			LOGPZ_DEBUG(logger,"Waking up for assembly")
+            if(logger->isDebugEnabled())
+            {
+                LOGPZ_DEBUG(logger,"Waking up for assembly")
+            }
 		        PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 		}
 		nextel = data->fNextElement;
@@ -764,7 +776,10 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		std::stringstream sout;
 		sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
 		sout << "The comparaison results are : consistency check " << globalresult;
-		LOGPZ_DEBUG(loggerCheck,sout.str())
+        if(logger->isDebugEnabled())
+        {
+            LOGPZ_DEBUG(loggerCheck,sout.str())
+        }
 	}
 	PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 	return 0;	
@@ -806,9 +821,12 @@ long TPZStructMatrix::ThreadData::NextElement()
         PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
 #ifdef LOG4CXX
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
-		LOGPZ_DEBUG(logger,sout.str())
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
 	}
 #endif
 	return nextel;

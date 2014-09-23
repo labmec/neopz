@@ -7,10 +7,16 @@
 //
 
 #include "pzsandlerextPV.h"
+#include "pzlog.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
 #endif
+
+#ifdef LOG4CXX
+static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#endif
+
 
 TPZSandlerExtended::TPZSandlerExtended()
 {
@@ -647,6 +653,16 @@ std::vector<long> gYield;
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
+#ifdef LOG4CXX
+    if(loggerConvTest->isDebugEnabled())
+    {
+        std::stringstream outfile;
+        outfile << "\n projection over F1 " <<endl;
+        LOGPZ_DEBUG(loggerConvTest,outfile.str());
+        
+    }
+#endif
+    
     STATE xi = fA,resnorm,beta = 0.,distxi,distnew;
     distxi=1.e8;
     STATE guessxi=fA;
@@ -680,6 +696,19 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         DDistFunc1(sigmatrial, xn(0),xn(1),fxn);
         sol = fxn;
         resnorm=Norm(sol);
+        
+#ifdef LOG4CXX
+        if(loggerConvTest->isDebugEnabled())
+        {
+            std::stringstream outfile;//("convergencF1.txt");
+            outfile<< counter << " "<<log(resnorm) <<endl;
+            //jac.Print(outfile);
+            //outfile<< "\n xn " << " "<<fxnvec <<endl;
+            //outfile<< "\n res " << " "<<fxnvec <<endl;
+            LOGPZ_DEBUG(loggerConvTest,outfile.str());
+        }
+#endif
+        
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         //diff=xn1-xn;
@@ -740,10 +769,11 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const
 {
 #ifdef LOG4CXX
+    if(loggerConvTest->isDebugEnabled())
     {
-        //std::stringstream outfile;
-        //outfile << "\n projection over F2 " <<endl;
-        //LOGPZ_DEBUG(logger,outfile.str());
+        std::stringstream outfile;
+        outfile << "\n projection over F2 " <<endl;
+        LOGPZ_DEBUG(loggerConvTest,outfile.str());
         
     }
 #endif
@@ -779,17 +809,17 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
         for(int k=0; k<3; k++) sol(k,0) = fxnvec[k];
         resnorm=Norm(sol);
-//#ifdef LOG4CXX
-//        {
-            //std::stringstream outfile;//("convergencF1.txt");
-            //outfile<< "\n" <<counter << " "<<resnorm <<endl;
+#ifdef LOG4CXX
+        if(loggerConvTest->isDebugEnabled())
+        {
+            std::stringstream outfile;//("convergencF1.txt");
+            outfile<< counter << " "<<log(resnorm) <<endl;
             //jac.Print(outfile);
             //outfile<< "\n xn " << " "<<fxnvec <<endl;
             //outfile<< "\n res " << " "<<fxnvec <<endl;
-            //LOGPZ_DEBUG(logger,outfile.str());
-            
-//        }
-//#endif
+            LOGPZ_DEBUG(loggerConvTest,outfile.str());
+        }
+#endif
         jac.Solve_LU(&sol);
         xn1=xn-sol;
         diff=xn1-xn;
