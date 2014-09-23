@@ -80,6 +80,7 @@ TPZCompMesh *SkeletonCoarseCompMesh (TPZCompMesh *cmesh, int matId);
 void InsertMaterialObjects(TPZCompMesh &cmesh);
 
 
+
 void ChangeIndex(TPZAutoPointer<TPZGeoMesh> gmesh, int matcoarse1D);
 
 void GetElIndexCoarseMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, std::set<long> &coarseindex);
@@ -111,6 +112,12 @@ static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     SolExataSteklov(loc,result,du);
 }
 
+//sol suave
+void InsertMaterialObjectsSuave(TPZCompMesh &cmesh);
+void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
+void ForceSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &force);
+void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
+bool problemasuave = true;
 
 int main(int argc, char *argv[])
 {
@@ -120,9 +127,13 @@ int main(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     
     
-    TPZAutoPointer<TPZGeoMesh> gmesh = MalhaGeom2(1, 1);//GMeshSteklov(false);
-	ofstream arg0("gmesh0.txt");
-	gmesh->Print(arg0);
+    TPZAutoPointer<TPZGeoMesh> gmesh;
+    if(problemasuave){
+        gmesh= MalhaGeom2(1, 1);}
+    else gmesh = GMeshSteklov(false);
+    
+	//ofstream arg0("gmesh0.txt");
+	//gmesh->Print(arg0);
     
     
     //-------- construindo malha coarse ----------
@@ -130,11 +141,13 @@ int main(int argc, char *argv[])
     //1 refinamento uniforme
     TPZVec<int> dims(2,0);
     dims[0]=1; dims[1]=2;
-    int nref = 0;
+    int nref = 3;
     RefinamentoUniforme(gmesh, nref, dims);
     
-    nref = 0;
-    RefinamentoSingular(gmesh, nref);
+    if(!problemasuave){
+        nref = 2;
+        RefinamentoSingular(gmesh, nref);
+    }
     
     
     ofstream arg1("gmesh1.txt");
@@ -158,8 +171,11 @@ int main(int argc, char *argv[])
     mhm.SetInternalPOrder(3);
     mhm.SetSkeletonPOrder(1);
     mhm.CreateCoarseInterfaces(matCoarse);
-    InsertMaterialObjects(mhm.CMesh());
-//    mhm.CMesh()->Print();
+    if(problemasuave){
+        InsertMaterialObjectsSuave(mhm.CMesh());
+    }else {
+        InsertMaterialObjects(mhm.CMesh());
+    }
     mhm.BuildComputationalMesh();
     {
         ofstream arq("gmeshmhm.txt");
@@ -191,41 +207,36 @@ int main(int argc, char *argv[])
     }
 #endif
     
-    //calculo do erro
+    //calculo solution
     TPZAnalysis an(mhm.CMesh());
-    
-    
     TPZSkylineStructMatrix skyl(mhm.CMesh());
     an.SetStructuralMatrix(skyl);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an.SetSolver(step);
     an.Assemble();
+    an.Solve();
     
-    long neq = an.Solution().Rows();
-    long numeq = MIN(1, neq);
-    TPZManVector<long> equationindices(numeq);
-    for (int i=0; i<numeq; i++) {
-        equationindices[i] = i;
-    }
-    an.ShowShape("Shapes.vtk", equationindices);
-    
-    an.Run();
-    
-    an.SetStep(0);
+//    long neq = an.Solution().Rows();
+//    long numeq = MIN(1, neq);
+//    TPZManVector<long> equationindices(numeq);
+//    for (int i=0; i<numeq; i++) {
+//        equationindices[i] = i;
+//    }
+//    an.ShowShape("Shapes.vtk", equationindices);
+//    an.SetStep(0);
     
     std::string plotfile("result.vtk");
     TPZStack<std::string> scalnames,vecnames;
-    scalnames.Push("State");
+    scalnames.Push("Solution");
+    scalnames.Push("ExactSolution");
+    scalnames.Push("PressureConstante");
     an.DefineGraphMesh(mhm.CMesh()->Dimension(), scalnames, vecnames, plotfile);
+    an.PostProcess(0,2);
     
-    //    mhm.CMesh()->Print();
-    
-    an.PostProcess(1);
-    
-    an.SetExact(*SolExataSteklov);
-    TPZVec<REAL> erros(3);
-    an.PostProcessError(erros);
+//    an.SetExact(*SolExataSteklov);
+//    TPZVec<REAL> erros(3);
+//    an.PostProcessError(erros);
     
     //    //construir elementos 1D de interface
     //    TPZCompMesh * cmesh1 = MalhaCompTemporaria(gmesh);
@@ -477,6 +488,54 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
     TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,neumann, val1, val2);
     cmesh.InsertMaterialObject(BCondD5);
 }
+
+void InsertMaterialObjectsSuave(TPZCompMesh &cmesh)
+{
+	/// criar materiais
+	int dim = cmesh.Dimension();
+    TPZMatLaplacianLagrange *materialFiner = new TPZMatLaplacianLagrange(matInterno,dim);
+    TPZAutoPointer<TPZFunction<REAL> > forcef = new TPZDummyFunction<REAL>(ForceSuave);
+    materialFiner->SetForcingFunction(forcef);
+    TPZAutoPointer<TPZFunction<STATE> > solExata= new TPZDummyFunction<STATE>(SolSuave);
+    materialFiner->SetForcingFunctionExact(solExata);
+    
+	TPZMaterial * mat1(materialFiner);
+    
+    TPZMat1dLin *materialSkeleton = new TPZMat1dLin(matCoarse);
+    TPZFNMatrix<1,STATE> xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
+    materialSkeleton->SetMaterial(xk, xc, xb, xf);
+    
+	cmesh.InsertMaterialObject(mat1);
+    cmesh.InsertMaterialObject(materialSkeleton);
+	
+	///Inserir condicao de contorno
+	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
+	
+    //BC -1
+    TPZMaterial * BCondD1 = materialFiner->CreateBC(mat1, bc1,neumann, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD1->SetForcingFunction(bcmatDirichlet1);
+    cmesh.InsertMaterialObject(BCondD1);
+    
+    //BC -2
+	TPZMaterial * BCondD2 = materialFiner->CreateBC(mat1, bc2,neumann, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD2->SetForcingFunction(bcmatDirichlet2);
+    cmesh.InsertMaterialObject(BCondD2);
+    
+    //BC -3
+	TPZMaterial * BCondD3 = materialFiner->CreateBC(mat1, bc3,neumann, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD3->SetForcingFunction(bcmatDirichlet3);
+    cmesh.InsertMaterialObject(BCondD3);
+    
+    //BC -4
+	TPZMaterial * BCondD4 = materialFiner->CreateBC(mat1, bc4,neumann, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD4->SetForcingFunction(bcmatDirichlet4);
+    cmesh.InsertMaterialObject(BCondD4);
+}
+
 
 TPZCompMesh* MalhaComp2(TPZAutoPointer<TPZGeoMesh> gmesh, int pOrder,std::set<long> coarseindex)
 {
@@ -991,3 +1050,27 @@ void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
         }
     }
 }
+
+void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+    
+    const REAL x = loc[0];
+    const REAL y = loc[1];
+    const REAL sol = sin(M_PI*x)*sin(M_PI*y);
+    u[0] = sol;
+    du.Resize(2, 1);
+    du(0,0) = M_PI*cos(M_PI*x)*sin(M_PI*y);
+    du(1,0) = M_PI*cos(M_PI*y)*sin(M_PI*x);
+}
+
+void ForceSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &force){
+    const REAL x = loc[0];
+    const REAL y = loc[1];
+    const REAL f = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
+    force[0] = f;
+}
+
+void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
+    TPZFMatrix<STATE> du(2,1);
+    SolSuave(loc,result,du);
+}
+

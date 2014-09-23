@@ -48,9 +48,11 @@
 #include "pzfunction.h"
 #include "pzgraphmesh.h"
 #include "pzfmatrix.h"
+#include "pzbstrmatrix.h"
 
 #include "TPZDPGMeshControl.h"
 #include "TPZMHMeshControl.h"
+#include "TPZSkylineNSymStructMatrix.h"
 
 #include "pzbuildmultiphysicsmesh.h"
 
@@ -81,6 +83,7 @@ const int matskeletonmesh = 2;
 const int dirichlet = 0;
 const int neumann = 1;
 const int mixed = 2;
+const int neumanndirichlet = 10;
 
 int const bc1=-1;
 int const bc2=-2;
@@ -91,7 +94,7 @@ int const bc5=-5;
 
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool triang_elements);
 void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> dims);
-void InsertMaterialObjectsMHM(TPZCompMesh &cmesh);
+void InsertMaterialObjectsMHM(TPZCompMesh &cmesh, bool useDPGPhil, bool useDPG);
 void InsertMaterialObjects(TPZCompMesh &cmesh);
 void GetElIndexCoarseMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, std::set<long> &coarseindex);
 
@@ -102,6 +105,7 @@ static void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     SolSuave(loc,result,du);
 }
 
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out);
 
 ///problema de Steklov
 TPZGeoMesh *GMeshSteklov(bool triang_elements);
@@ -115,7 +119,7 @@ static void DirichletSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 
 int main(int argc, char *argv[])
 {
-    //InitializePZLOG();
+//    InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -123,10 +127,12 @@ int main(int argc, char *argv[])
     
     ofstream saidaerros("ErroDPG.txt");
     saidaerros << "\nCalculo do Erro\n";
-    for(int p=4; p<5; p++){
+    
+    saidaerros.precision(16);
+    for(int p=1; p<5; p++){
         saidaerros << "\n";
         saidaerros << "Ordens P: p_fine = "<<p+2 <<", p_coarse = " << p <<", p_interface = " << p-1 <<"\n";
-        for(int h=0; h<5; h++){
+        for(int h=0; h<6; h++){
             saidaerros << "\nRefinamento: h = "<< h <<"\n";
             
             TPZAutoPointer<TPZGeoMesh> gmesh = MalhaGeom(1.,1.,false);
@@ -168,7 +174,9 @@ int main(int argc, char *argv[])
             InsertMaterialObjects(corsemesh);
             
             TPZMHMeshControl &mhm = dpgmesh.MHMControl();
-            InsertMaterialObjectsMHM(mhm.CMesh());
+            bool useDPGPhil=false;
+            bool useMDP=false;
+            InsertMaterialObjectsMHM(mhm.CMesh(),useDPGPhil,useMDP);
             
             //refinar malha fina
         //    mhm.SetLagrangeAveragePressure(true);
@@ -188,10 +196,19 @@ int main(int argc, char *argv[])
             dpgmesh.BuildComputationalMesh();
             
             TPZAnalysis an(mhm.CMesh(),false);
-            TPZSkylineStructMatrix skyl(mhm.CMesh());
-            an.SetStructuralMatrix(skyl);
             TPZStepSolver<STATE> step;
-            step.SetDirect(ELDLt);
+            if(useMDP) {
+                TPZSkylineNSymStructMatrix bst(mhm.CMesh().operator->());
+                //TPZBandStructMatrix bst(mhm.CMesh().operator->());
+                an.SetStructuralMatrix(bst);
+                bst.SetNumThreads(8);
+                step.SetDirect(ELU);
+            }else{
+                TPZSkylineStructMatrix skyl(mhm.CMesh());
+                an.SetStructuralMatrix(skyl);
+                skyl.SetNumThreads(8);
+                step.SetDirect(ELDLt);
+            }
             an.SetSolver(step);
             an.Assemble();
             //an.Run();
@@ -200,23 +217,25 @@ int main(int argc, char *argv[])
 //            std::string plotfile("result.vtk");
 //            TPZStack<std::string> scalnames,vecnames;
 //            scalnames.Push("Solution");
-//            scalnames.Push("ExactSolution");F
+//            scalnames.Push("ExactSolution");
 //            scalnames.Push("ErrorEstimatorDPG");
 //            an.DefineGraphMesh(mhm.CMesh()->Dimension(), scalnames, vecnames, plotfile);
 //            an.PostProcess(0,2);
 
             
             //calculo do erro
-            TPZVec<REAL> erros(3);
             TPZVec<TPZCompMesh *> meshvec;
             dpgmesh.GetMeshVec(meshvec);
             int NEq1 = mhm.CMesh()->NEquations();
             int NEq2 =meshvec[3]->NEquations();
             saidaerros << "\nNumero Equacoes: Malha Multifisica = "<< NEq1 <<"  e Malha coarse = "<< NEq2 <<"\n";
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mhm.CMesh().operator->());
-            TPZAnalysis an_coarse(meshvec[3],false);
-            an_coarse.SetExact(*SolSuave);
-            an_coarse.PostProcessError(erros,saidaerros);
+            
+//            TPZVec<REAL> erros(3);
+//            TPZAnalysis an_coarse(meshvec[3],false);
+//            an_coarse.SetExact(*SolSuave);
+//            an_coarse.PostProcessError(erros,saidaerros);
+            ErrorH1(meshvec[3], saidaerros);
             
             mhm.CMesh().operator->()->CleanUp();
             meshvec[0]->CleanUp();
@@ -229,6 +248,301 @@ int main(int argc, char *argv[])
     }
     
 	return EXIT_SUCCESS;
+}
+
+
+//STANDARD FEM
+TPZCompMesh *CompMesh(TPZGeoMesh *gmesh, int porder);
+int mainfem(int argc, char *argv[])
+{
+    //InitializePZLOG();
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    
+    ofstream saidaerros("ErroProjecaoSemiH1.txt");
+    saidaerros << "\nCalculo do Erro\n";
+    int h= 0;
+    int p=0;
+    
+    saidaerros.precision(16);
+    
+    for(p=1; p<5; p++)
+    {
+        saidaerros << "\n";
+        saidaerros << "Ordens p = " << p <<"\n";
+        for(h=0; h<6; h++)
+        {
+            saidaerros << "\nRefinamento: h = "<< h <<"\n";
+            
+            //TPZGeoMesh * gmesh = MalhaGeom(1.,1.,false);
+            TPZAutoPointer<TPZGeoMesh> gmesh = MalhaGeom(1.,1.,false);
+            TPZVec<int> dims(2,0);
+            dims[0]=1; dims[1]=2;
+            int nref = h;
+            RefinamentoUniforme(gmesh, nref, dims);
+            
+            TPZCompMesh * cmesh = CompMesh(gmesh.operator->(),p);
+            
+            //analysis
+            TPZAnalysis an(cmesh,false);
+            TPZSkylineStructMatrix skyl(cmesh);
+            an.SetStructuralMatrix(skyl);
+            TPZStepSolver<STATE> step;
+            step.SetDirect(ELDLt);
+            an.SetSolver(step);
+            an.Assemble();
+            an.Solve();
+            
+//            std::string plotfile("result.vtk");
+//            TPZStack<std::string> scalnames,vecnames;
+//            scalnames.Push("Solution");
+//            scalnames.Push("ExactPressure");
+//            an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
+//            an.PostProcess(0,2);
+            
+ //           TPZVec<REAL> erros(3);
+//            an.SetExact(*SolSuave);
+//            an.PostProcessError(erros,saidaerros);
+            ErrorH1(cmesh, saidaerros);
+            
+            cmesh->CleanUp();
+            gmesh->CleanUp();
+            delete cmesh;
+        }
+    }
+    
+    return EXIT_SUCCESS;
+}
+
+#include "TPZMDPMaterial.h"
+TPZCompMesh *MalhaMDP(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh);
+int mainMDP(int argc, char *argv[])
+{
+    //InitializePZLOG();
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    
+    ofstream saidaerros("ErroMDP.txt");
+    saidaerros << "\nCalculo do Erro\n";
+    int h= 0;
+    int p=0, pr;
+    
+    saidaerros.precision(8);
+    
+    for(p=2; p<5; p++)
+    {
+        pr = p+2;
+        saidaerros << "\n";
+        saidaerros << "Ordens p = " << p << " and Ordens pr = " << pr <<"\n";
+        for(h=0; h<5; h++)
+        {
+            saidaerros << "\nRefinamento: h = "<< h <<"\n";
+            
+            //TPZGeoMesh * gmesh = MalhaGeom(1.,1.,false);
+            TPZAutoPointer<TPZGeoMesh> gmesh = MalhaGeom(1.,1.,false);
+            TPZVec<int> dims(2,0);
+            dims[0]=1; dims[1]=2;
+            int nref = h;
+            RefinamentoUniforme(gmesh, nref, dims);
+            
+            TPZCompMesh * cmesh1 = CompMesh(gmesh.operator->(),pr);
+            TPZCompMesh * cmesh2 = CompMesh(gmesh.operator->(),p);
+            
+            // Criando a malha computacional multifísica
+            //malha multifisica
+            TPZVec<TPZCompMesh *> meshvec(2);
+            meshvec[0] = cmesh1;
+            meshvec[1] = cmesh2;
+            TPZCompMesh * mphysics = MalhaMDP(meshvec,gmesh.operator->());
+
+            //analysis
+            TPZAnalysis an(mphysics,false);
+            TPZStepSolver<STATE> step;
+            //TPZBandStructMatrix bst(mphysics);
+            TPZSkylineNSymStructMatrix bst(mphysics);
+            an.SetStructuralMatrix(bst);
+            bst.SetNumThreads(8);
+            step.SetDirect(ELU);
+            an.SetSolver(step);
+            an.Assemble();
+            an.Solve();
+            
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+            
+//            std::string plotfile("result.vtk");
+//            TPZStack<std::string> scalnames,vecnames;
+//            scalnames.Push("Solution");
+//            scalnames.Push("ExactSolution");
+//            scalnames.Push("OptimalTestFunction");
+//            an.DefineGraphMesh(mphysics->Dimension(), scalnames, vecnames, plotfile);
+//            an.PostProcess(0,2);
+            
+            saidaerros<<"\n\nErro da simulacao MDP  para a pressao";
+//            TPZVec<REAL> erros(3);
+//            TPZAnalysis an2(cmesh2);
+//            an2.SetExact(*SolSuave);
+//            an2.PostProcessError(erros, saidaerros);
+            ErrorH1(cmesh2, saidaerros);
+            
+            mphysics->CleanUp();
+            gmesh->CleanUp();
+            delete mphysics;
+        }
+    }
+    
+    return EXIT_SUCCESS;
+}
+
+
+TPZCompMesh * CompMesh(TPZGeoMesh *gmesh, int porder)
+{
+    /// criar materiais
+	int dim = gmesh->Dimension();
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    TPZMatLaplacian *material = new TPZMatLaplacian(1,dim);
+    
+//    TPZAutoPointer<TPZFunction<REAL> > forcef = new TPZDummyFunction<REAL>(ForceSuave);
+//    material->SetForcingFunction(forcef);
+    
+    TPZAutoPointer<TPZFunction<STATE> > force;
+    TPZDummyFunction<STATE> *dum;
+    dum = new TPZDummyFunction<STATE>(ForceSuave);
+    dum->SetPolynomialOrder(20);
+    force = dum;
+    material->SetForcingFunction(force);
+    
+    
+    TPZAutoPointer<TPZFunction<STATE> > solExata= new TPZDummyFunction<STATE>(SolSuave);
+    material->SetForcingFunctionExact(solExata);
+    
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(porder);
+
+	///Inserir condicao de contorno
+	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
+	
+    //BC -1
+    TPZMaterial * BCondD1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD1->SetForcingFunction(bcmatDirichlet1);
+    cmesh->InsertMaterialObject(BCondD1);
+    
+    //BC -2
+	TPZMaterial * BCondD2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD2->SetForcingFunction(bcmatDirichlet2);
+    cmesh->InsertMaterialObject(BCondD2);
+    
+    //BC -3
+	TPZMaterial * BCondD3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD3->SetForcingFunction(bcmatDirichlet3);
+    cmesh->InsertMaterialObject(BCondD3);
+    
+    //BC -4
+	TPZMaterial * BCondD4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD4->SetForcingFunction(bcmatDirichlet4);
+    cmesh->InsertMaterialObject(BCondD4);
+    
+    
+    //Fazendo auto build
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+	cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+    
+    return cmesh;
+}
+
+//malha multifisica para o metodo da dupla projecao
+TPZCompMesh *MalhaMDP(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
+    
+    //Creating computational mesh for multiphysic elements
+	gmesh->ResetReference();
+	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+    
+    //criando material
+    int dim =2;
+    TPZMDPMaterial *material = new TPZMDPMaterial(1,dim);
+    
+    //incluindo os dados do problema
+    REAL coefk = 1.;
+    material->SetParameters(coefk, 0.);
+    
+    //solucao exata
+    TPZAutoPointer<TPZFunction<STATE> > solexata;
+    solexata = new TPZDummyFunction<STATE>(SolSuave);
+    material->SetForcingFunctionExact(solexata);
+    
+    //funcao do lado direito da equacao do problema
+    TPZAutoPointer<TPZFunction<STATE> > force;
+    TPZDummyFunction<STATE> *dum;
+    dum = new TPZDummyFunction<STATE>(ForceSuave);
+    dum->SetPolynomialOrder(20);
+    force = dum;
+    material->SetForcingFunction(force);
+    
+    //inserindo o material na malha computacional
+    TPZMaterial *mat(material);
+    mphysics->InsertMaterialObject(mat);
+    
+    //Criando condicoes de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    int boundcond = dirichlet;
+    //BC -1
+    TPZMaterial * BCondD1 = material->CreateBC(mat, bc1,boundcond, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD1->SetForcingFunction(bcmatDirichlet1);
+    mphysics->InsertMaterialObject(BCondD1);
+    
+    //BC -2
+	TPZMaterial * BCondD2 = material->CreateBC(mat, bc2,boundcond, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD2->SetForcingFunction(bcmatDirichlet2);
+    mphysics->InsertMaterialObject(BCondD2);
+    
+    //BC -3
+	TPZMaterial * BCondD3 = material->CreateBC(mat, bc3,boundcond, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD3->SetForcingFunction(bcmatDirichlet3);
+    mphysics->InsertMaterialObject(BCondD3);
+    
+    //BC -4
+	TPZMaterial * BCondD4 = material->CreateBC(mat, bc4,boundcond, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletSuave);
+    BCondD4->SetForcingFunction(bcmatDirichlet4);
+    mphysics->InsertMaterialObject(BCondD4);
+
+    
+    mphysics->InsertMaterialObject(BCondD1);
+    mphysics->InsertMaterialObject(BCondD2);
+    mphysics->InsertMaterialObject(BCondD3);
+    mphysics->InsertMaterialObject(BCondD4);
+    
+    
+    //set multiphysics element
+    mphysics->SetDimModel(dim);
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    
+    //Fazendo auto build
+    mphysics->AutoBuild();
+	mphysics->AdjustBoundaryElements();
+	mphysics->CleanUpUnconnectedNodes();
+    
+    // Creating multiphysic elements into mphysics computational mesh
+	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    
+    return mphysics;
 }
 
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
@@ -404,15 +718,34 @@ void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> 
 }
 
 
-void InsertMaterialObjectsMHM(TPZCompMesh &cmesh)
+void InsertMaterialObjectsMHM(TPZCompMesh &cmesh, bool useDPGPhil, bool useDPG)
 {
 	/// criar materiais
 	int dim = cmesh.Dimension();
     TPZMatLaplacianLagrange *materialFiner = new TPZMatLaplacianLagrange(matfinermesh,dim);
-    TPZAutoPointer<TPZFunction<REAL> > forcef = new TPZDummyFunction<REAL>(ForceSuave);
-    materialFiner->SetForcingFunction(forcef);
+    
+//    TPZAutoPointer<TPZFunction<REAL> > forcef = new TPZDummyFunction<REAL>(ForceSuave);
+//    materialFiner->SetForcingFunction(forcef);
+    
     TPZAutoPointer<TPZFunction<STATE> > solExata= new TPZDummyFunction<STATE>(SolSuave);
     materialFiner->SetForcingFunctionExact(solExata);
+    
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    TPZDummyFunction<STATE> *dum;
+    dum = new TPZDummyFunction<STATE>(ForceSuave);
+    dum->SetPolynomialOrder(20);
+    forcef = dum;
+    materialFiner->SetForcingFunction(forcef);
+    
+    
+    if(useDPGPhil==true){
+        materialFiner->SetDPGPhil();
+        useDPG=false;
+    }
+    if(useDPG==true){
+        materialFiner->SetMDP();
+        useDPGPhil=false;
+    }
     
 	TPZMaterial * mat1(materialFiner);
     
@@ -426,26 +759,29 @@ void InsertMaterialObjectsMHM(TPZCompMesh &cmesh)
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
 	
+    int boundcond = dirichlet;
+    if(useDPG) boundcond = neumanndirichlet;
+    
     //BC -1
-    TPZMaterial * BCondD1 = materialFiner->CreateBC(mat1, bc1,dirichlet, val1, val2);
+    TPZMaterial * BCondD1 = materialFiner->CreateBC(mat1, bc1,boundcond, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletSuave);
     BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2
-	TPZMaterial * BCondD2 = materialFiner->CreateBC(mat1, bc2,dirichlet, val1, val2);
+	TPZMaterial * BCondD2 = materialFiner->CreateBC(mat1, bc2,boundcond, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletSuave);
     BCondD2->SetForcingFunction(bcmatDirichlet2);
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
-	TPZMaterial * BCondD3 = materialFiner->CreateBC(mat1, bc3,dirichlet, val1, val2);
+	TPZMaterial * BCondD3 = materialFiner->CreateBC(mat1, bc3,boundcond, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletSuave);
     BCondD3->SetForcingFunction(bcmatDirichlet3);
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
-	TPZMaterial * BCondD4 = materialFiner->CreateBC(mat1, bc4,dirichlet, val1, val2);
+	TPZMaterial * BCondD4 = materialFiner->CreateBC(mat1, bc4,boundcond, val1, val2);
     TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletSuave);
     BCondD4->SetForcingFunction(bcmatDirichlet4);
     cmesh.InsertMaterialObject(BCondD4);
@@ -529,7 +865,7 @@ void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
 void ForceSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &force){
     const REAL x = loc[0];
     const REAL y = loc[1];
-    const REAL f = /*2.*(1. - x)*x + 2.*(1. - y)*y;*/2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
+    const REAL f = /*2.*(1. - x)*x + 2.*(1. - y)*y;*/2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);// + sin(M_PI*x)*sin(M_PI*y);
     force[0] = f;
 }
 
@@ -598,5 +934,44 @@ void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
             }
         }
     }
+}
+
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
+{
+    long nel = l2mesh->NElements();
+    int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(SolSuave, elerror, NULL);
+        
+        int nerr = elerror.size();
+        //globerrors.resize(nerr);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+    }
+    out << "\n";
+    out << "Errors associated with L2 or H1 space\n";
+    out << "\nH1 Norm = "    << sqrt(globerrors[0]) << endl;
+    out << "\nL2 Norm = "    << sqrt(globerrors[1]) << endl;
+    out << "\nSemi H1 Norm = "    << sqrt(globerrors[2]) << endl;
+    out << "\n=============================\n"<<endl;
 }
 
