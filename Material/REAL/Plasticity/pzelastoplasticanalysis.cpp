@@ -934,7 +934,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 // CompEl create Functions setup
 
 #include "pzintel.h"
-#include "pzelctempplus.h"
+//#include "pzelctempplus.h"
 
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
