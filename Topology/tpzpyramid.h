@@ -174,7 +174,7 @@ namespace pztopology {
 		 * @param id Ids of the corner nodes of the elements
 		 * @param permgather Permutation vector in a gather order
 		 */
-		static void GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather);
+		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element*/
 		static REAL RefElVolume() {return (4.L/3.L); }
@@ -182,6 +182,11 @@ namespace pztopology {
         /* Given side and gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        
+        /**
+         * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
+         */
+        static int NBilinearSides();
 
 	protected:
 		/** @name Data structure which defines the pyramid transformations */

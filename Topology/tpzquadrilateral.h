@@ -190,6 +190,11 @@ namespace pztopology {
         /* Given gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int is, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        
+        /**
+         * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
+         */
+        static int NBilinearSides();
 
 	};
 	

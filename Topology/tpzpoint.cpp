@@ -32,6 +32,9 @@ namespace pztopology {
 		}
 	}
     
+    int TPZPoint::NBilinearSides()
+    {return 0;}
+    
     bool TPZPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		SidePar.Resize(0); JacToSide.Resize(0,0);
 		return true;

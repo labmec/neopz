@@ -52,6 +52,9 @@ namespace pztopology {
         {0,1,2},
         {1,0,2}
     };
+    
+    int TPZLine::NBilinearSides()
+    {return 0;}
 	
 	int TPZLine::NSideNodes(int side)
 	{

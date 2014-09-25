@@ -317,6 +317,12 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,1,2};
     
+    int TPZPrism:: NBilinearSides()
+    {
+        DebugStop();
+        return 9;
+    }
+    
 	void TPZPrism::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
 		smallsides.Resize(0);
@@ -1054,8 +1060,10 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZPrism::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+	void TPZPrism::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
+	// Not complete
+        DebugStop();
 		LOGPZ_ERROR(logger,"Please implement me")
 		int nel = permgather.NElements();
 		int iel;

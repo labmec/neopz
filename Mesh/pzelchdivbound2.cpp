@@ -29,7 +29,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 	gel->SetReference(this);
     TPZIntelGen<TSHAPE>::fConnectIndexes.resize(1);
 		
-		this->fConnectIndexes[0] = this->CreateMidSideConnect(2);
+    this->fConnectIndexes[0] = this->CreateMidSideConnect(TSHAPE::NSides-1);
 #ifdef LOG4CXX
 		{
 				std::stringstream sout;
@@ -221,7 +221,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 	if(connect == 0)
 	{
 		
-		TPZManVector<int,1> order(1,ConnectOrder(connect));
+		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,ConnectOrder(connect));
 			return TSHAPE::NShapeF(order);
 //		//se a ordem eh maior depedenra do tipo de TSHAPE
 //		
@@ -280,10 +280,11 @@ int TPZCompElHDivBound2<TSHAPE>::SideConnectLocId(int node, int side) const
 //Identifies the interpolation order on the connects of the element
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
-	ord.Resize(NConnects());
+    int myorder = ConnectOrder(0);
+    ord.Resize(TSHAPE::NSides-TSHAPE::NCornerNodes, 0);
 	int i;
-	for(i=0; i<NConnects(); i++) {
-		ord[i] = ConnectOrder(i);
+	for(i=0; i<ord.size(); i++) {
+		ord[i] = myorder;
 	}
 }
 
@@ -442,7 +443,7 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex) {
 	
 	TPZManVector<long> firstshapeindex;    // Para o que?
-	FirstShapeIndex(firstshapeindex);      // se foram calculados os indices mas não utilizados?
+	FirstShapeIndex(firstshapeindex);      // se foram calculados os indices mas nï¿½o utilizados?
 	int nshape = TPZIntelGen<TSHAPE>::NShapeF();
 	shapeindex.Resize(nshape);
 	long nsides = sides.NElements();
@@ -477,23 +478,19 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 	
 	Index.Resize(TSHAPE::NSides+1);
 	Index[0]=0;
+    int order = ConnectOrder(0);
 		
-		for(int iside=0;iside<TSHAPE::NSides;iside++)
-				{
-						TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
-						TPZGeoElSide neighbour = gelside.Neighbour();
-						TPZGeoEl *geol = neighbour.Element();
-						
-						if(geol->Type()==EQuadrilateral){
-								int order= SideOrder(iside);//estava -1
-								Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-								}
-						else{
-								int order= SideOrder(iside);
-								Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-								}
-						}
-	
+    for(int iside=0;iside<TSHAPE::NSides;iside++)
+    {
+        
+        if(TSHAPE::Type()==EQuadrilateral){
+            Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+        }
+        else{
+            Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+        }
+    }
+    
 #ifdef LOG4CXX
     std::stringstream sout;
     sout << " FirsShapeIndex result " << Index;
@@ -507,7 +504,7 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
 	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension ){
-		return ;
+		DebugStop() ;
 	}
     TPZGeoEl *gel = this->Reference();
     int nc = gel->NCornerNodes();
@@ -515,18 +512,34 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     for (int ic=0; ic<nc; ic++) {
         id[ic] = gel->Node(ic).Id();
     }
-    TPZManVector<int,2> ord;
+    TPZManVector<int,TSHAPE::NSides> ord;
     this->GetInterpolationOrder(ord);
 
-    TSHAPE::Shape(point,id,ord,phi,dphi);
-    if (id[0] > id[1]) {
-        REAL tmp = phi(0,0);
-        phi(0,0) = phi(1,0);
-        phi(1,0) = tmp;
-        tmp = dphi(0,0);
-        dphi(0,0) = dphi(0,1);
-        dphi(0,1) = tmp;
+    TPZFNMatrix<50,REAL> philoc(phi.Rows(),phi.Cols()),dphiloc(dphi.Rows(),dphi.Cols());
+    TSHAPE::Shape(point,id,ord,philoc,dphiloc);
+    
+    int idsize = id.size();
+    TPZVec<int> permutegather(idsize);
+    int transformid = TSHAPE::GetTransformId(id);
+    TSHAPE::GetSideHDivPermutation(transformid, permutegather);
+    
+    TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
+    FirstShapeIndex(FirstIndex);
+   
+
+    int order = this->Connect(0).Order();
+    for (int side=0; side < TSHAPE::NSides; side++) {
+        int ifirst = FirstIndex[side];
+        int kfirst = FirstIndex[permutegather[side]];
+        int nshape = TSHAPE::NConnectShapeF(side,order);
+        for (int i=0; i<nshape; i++) {
+            phi(ifirst+i,0) = philoc(kfirst,0);
+            for (int d=0; d< TSHAPE::Dimension; d++) {
+                dphi(d,ifirst+i) = dphiloc(d,kfirst+i);
+            }
+        }
     }
+    
     return;
 }
 
@@ -534,11 +547,12 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
-    TPZManVector<int,2> ordl;
+    TPZManVector<int,TSHAPE::NSides> ordl;
     this->GetInterpolationOrder(ordl);
-    phi.Resize(ordl[0]+1, 1);
-    dphi.Resize(1, ordl[0]+1);
-    SideShapeFunction(2, pt, phi, dphi);
+    int nshape = NConnectShapeF(0);
+    phi.Resize(nshape, 1);
+    dphi.Resize(TSHAPE::Dimension, nshape);
+    SideShapeFunction(TSHAPE::NSides-1, pt, phi, dphi);
     return;
 	/*
   TPZCompElSide thisside(this,TSHAPE::NSides-1);

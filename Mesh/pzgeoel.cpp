@@ -1722,7 +1722,7 @@ void TPZGeoEl::ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZ
 	int is;
 	// Compute the number of normals we need to compute
 	int nsides = NSides();
-	numbernormals = nsides*2;
+	numbernormals = nsides*Dimension();
 	normals.Redim(3, numbernormals);
 	vectorsides.Resize(numbernormals);
 	vectorsides.Fill(0);

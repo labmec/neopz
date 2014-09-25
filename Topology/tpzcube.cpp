@@ -262,15 +262,16 @@ namespace pztopology {
         {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0},// face 4
         {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1}, // face 5
         //interiores
-        //faces
-        {1,0,0}, {0,-1,0}, // tang da face 0
-        {1,0,0}, {0,0,1},  // tang da face 1
-        {0,0,-1}, {0,1,0}, // tang da face 2
-        {1,0,0}, {0,0,-1}, // tang da face 3
-        {0,0,1}, {0,1,0},  // tang da face 4
-        {1,0,0}, {0,1,0},  // tang da face 5
         //arestas
+        //{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},  {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},
         {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},  {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},
+        //faces
+        {1,0,0}, {0,1,0}, // tang da face 0
+        {1,0,0}, {0,0,1},  // tang da face 1
+        {0,1,0}, {0,0,1}, // tang da face 2
+        {1,0,0}, {0,0,1}, // tang da face 3
+        {0,1,0}, {0,0,1}, // tang da face 4
+        {1,0,0}, {0,1,0},  // tang da face 5
         {1,0,0}, // volume
         {0,1,0}, // volume
         {0,0,1}  // volume
@@ -285,15 +286,17 @@ namespace pztopology {
         {0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,//face 4
         {1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0} ,{1,0,0}, //face 5
         //interiores
-        //faces
-        {0,-1,0}, {-1,0,0},  // 1 complementar da face 0
-        {0,0,1},  {-1,0,0},  // 1 complementar da face 1
-        {0,1,0},  {0,0,-1}, // 1 complementar da face 2
-        {0,0,-1}, {1,0,0},  // 1 complementar da face 3
-        {0,1,0},  {0,0,-1},  // 1 complementar da face 4
-        {0,1,0},  {1,0,0},  // 1 complementar da face 5
         //arestas
-        {0,-1,0},{1,0,0},{0,1,0},{0,0,-1},  {-1,0,0},{0,-1,0},{1,0,0},{0,1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},
+        {0,-1,0},{1,0,0},{0,1,0},{1,0,0},  {-1,0,0},{0,-1,0},{1,0,0},{0,1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},
+        //faces
+        {0,-1,0}, {1,0,0},   //  complementar da face 0
+        {0,0,1},  {-1,0,0},  //  complementar da face 1
+        {1,0,0},  {1,0,0},   //  complementar da face 2
+        {0,0,-1}, {1,0,0},   //  complementar da face 3
+        {0,0,-1}, {0,1,0},   //  complementar da face 4
+        {0,1,0},  {1,0,0},   //  complementar da face 5
+
+        
         {0,1,0},  // volume
         {0,0,1},  // volume
         {1,0,0}   // volume
@@ -308,40 +311,19 @@ namespace pztopology {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 4
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 5
         //interiores
+        //arestas
+        {0,0,-1},{0,0,-1},{0,0,-1},{0,0,1},  {0,-1,0},{1,0,0},{0,1,0},{-1,0,0},  {0,-1,0},{1,0,0},{0,1,0},{-1,0,0},
         //faces
         {0,0,-1}, {0,0,-1}, // 2 complementar da face 0
         {0,-1,0}, {0,-1,0}, // 2 complementar da face 1
-        {1,0,0},  {-1,0,0},  // 2 complementar da face 2
-        {0,1,0},  {0,-1,0},  // 2 complementar da face 3
+        {0,0,-1},  {0,1,0},  // 2 complementar da face 2
+        {0,1,0},  {0,1,0},  // 2 complementar da face 3
         {-1,0,0}, {-1,0,0}, // 2 complementar da face 4
         {0,0,1},  {0,0,-1},  // 2 complementar da face 5
-        //arestas
-        {0,0,-1},{0,0,-1},{0,0,-1},{-1,0,0},  {0,-1,0},{1,0,0},{0,1,0},{-1,0,0},  {0,-1,0},{1,0,0},{0,1,0},{-1,0,0},
         {0,0,1},  // volume
         {1,0,0},  // volume
         {0,1,0}   // volume
     };
-
-//	static int vectorsideorderC [81] =
-//    {
-//        0,1,2,3,8,9,10,11,20, //face 0
-//        0,1,5,4,8,13,16,12,21,//face 1
-//        1,2,6,5,9,14,17,13,22,//face 2
-//        3,7,6,2,15,18,14,10,23,//face 3 
-//        0,4,7,3,12,19,15,11,24,//face 4 
-//        4,7,6,5,19,18,17,16,25,//face 5 
-//        20,20,//tg face 0
-//        21,21,//tg face 1
-//        22,22,//tg face 2
-//        23,23,//tg face 3
-//        24,24,//tg face 4
-//        25,25,//tg face 5
-//        8,9,10,11,
-//        12,13,14,15,
-//        16,17,18,19,
-//        26,26,26
-//    };
-    
     
 	static int vectorsideorderC [81] =
     {
@@ -349,17 +331,18 @@ namespace pztopology {
         0,1,5,4,8,13,16,12,21,//face 1
         1,2,6,5,9,14,17,13,22,//face 2
         3,2,6,7,10,14,18,15,23,//face 3
+        //2,3,7,6,10,15,18,14,23,//face 3
         0,3,7,4,11,15,19,12,24,//face 4
         4,5,6,7,16,17,18,19,25,//face 5
+        8,9,10,11,
+        12,13,14,15,
+        16,17,18,19,
         20,20,//tg face 0
         21,21,//tg face 1
         22,22,//tg face 2
         23,23,//tg face 3
         24,24,//tg face 4
         25,25,//tg face 5
-        8,9,10,11,
-        12,13,14,15,
-        16,17,18,19,
         26,26,26
     };
 
@@ -381,10 +364,22 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,1,0,1,0,1,
-        0,1,0,1,0,1,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,1,
-        2};
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,
+        0,1,0,1,0,1,0,1,0,1,0,1,//0,1,0,2,1,2,0,2,1,2,0,1,
+        0,1,2};
+
+    int TPZCube::NBilinearSides()
+    {
+        return 27;
+    }
+    
+    static int permutacoesC [48][27] =
+    {
+        {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26},
+        {1,2,3,0,5,6,7,4,9,10,11,8,13,14,15,12,17,18,19,16,20,22,23,24,21,25,26}
+        
+    };
     
 	void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
@@ -1005,7 +1000,7 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZCube::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+	void TPZCube::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
         DebugStop();
 	}
@@ -1016,70 +1011,153 @@ namespace pztopology {
     void computedirectionsC(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
                            TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
     {
-        REAL detgrad = 0.0;
         TPZVec<REAL> u(3);
         TPZVec<REAL> v(3);
         TPZVec<REAL> uxv(3);// result
         int cont = 0;
         
         for (int ivet=inicio; ivet<=fim; ivet++)
-        {
-            for (int ilin=0; ilin<3; ilin++)
+        { 
+            if(inicio < 54)
             {
-                u[ilin] = t1vec(ilin,ivet);
-                v[ilin] = t2vec(ilin,ivet);
-            }
-            TPZVec<REAL> e2(3);
-            detgrad = 0.0;
-            REAL normaX0xX1 = 0.0;
-            //TPZNumeric::ProdVetorial(u,v,e2);
-            e2[0] = u[1]*v[2]-u[2]*v[1];
-            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
-            e2[2] = u[0]*v[1]-v[0]*u[1];
-            
-            // calc do v gradx*b
-            TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
-            REAL be2 = 0.0, ne2 = 0.0;
-            for(int i=0;i<3;i++)
-            {
-                ne2 += e2[i]*e2[i];
-            }
-            ne2 = sqrt(fabs(ne2));
-            for (int il=0; il<3; il++)
-            {
-                for (int i = 0 ; i<3; i++)
+                for (int ilin=0; ilin<3; ilin++)
                 {
-                    dxt1[il] += gradx(il,i) * t1vec(i,ivet);
-                    dxt2[il] += gradx(il,i) * t2vec(i,ivet);
-                    dxt3[il] += gradx(il,i) * e2[i]/ne2;
-                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                    u[ilin] = t1vec(ilin,ivet);
+                    v[ilin] = t2vec(ilin,ivet);
                 }
-                be2 += bvec(il,ivet)*e2[il]/ne2;
+                TPZVec<REAL> e2(3);
+                TPZNumeric::ProdVetorial(u,v,e2);
+                //            e2[0] = u[1]*v[2]-u[2]*v[1];
+                //            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
+                //            e2[2] = u[0]*v[1]-v[0]*u[1];
+                
+                // calc do v gradx*b
+                TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
+                for (int il=0; il<3; il++)
+                {
+                    for (int i = 0 ; i<3; i++)
+                    {
+                        dxt1[il] += gradx(il,i) * t1vec(i,ivet);
+                        dxt2[il] += gradx(il,i) * t2vec(i,ivet);
+                        //                    dxt3[il] += gradx(il,i) * e2[i];
+                        Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                    }
+                    //be2 += bvec(il,ivet)*e2[il];
+                }
+                REAL normaX0xX1 = 0.0;
+                TPZManVector<REAL,3> normal(3,0.);
+                TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
+                for (int pos=0; pos<3; pos++)
+                {
+                    normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+                }
+                
+                TPZFMatrix<REAL> Wvec(3,1);
+                
+                REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
+                
+                
+                if (detgrad<0)
+                {
+                    DebugStop();
+                }
+                
+                for (int il=0; il<3; il++)
+                {
+                    Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad);
+                    directions(il,cont) = Wvec(il,0);
+                }
+                cont++;
             }
-            TPZManVector<REAL,3> normal(3,0.);
-            //TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
-            normal[0] = dxt1[1]*dxt2[2]-dxt1[2]*dxt2[1];
-            normal[1] = -(dxt1[0]*dxt2[2]-dxt2[0]*dxt1[2]);
-            normal[2] = dxt1[0]*dxt2[1]-dxt2[0]*dxt1[1];
-            
-            for (int pos=0; pos<3; pos++)
+            else
             {
-                detgrad += normal[pos]*dxt3[pos];//uxv[pos]*gradx.GetVal(pos, 2);
-                normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+                // calc do v gradx*b
+                TPZManVector<REAL,3> Vvec(3,0.);
+                for (int il=0; il<3; il++)
+                {
+                    for (int i = 0 ; i<3; i++)
+                    {
+                        Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                    }
+                }
+                for (int il=0; il<3; il++)
+                {
+                    directions(il,cont) = Vvec[il];
+                }
+                cont++;
             }
-            TPZFMatrix<REAL> Wvec(3,1);
-            detgrad = fabs(detgrad);
-            normaX0xX1 = sqrt(normaX0xX1);
-            
-            for (int il=0; il<3; il++)
-            {
-                Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad*be2);
-                directions(il,cont) = Wvec(il,0);
-            }
-            cont++;
         }
+            
 
     }
+    
+//    void computedirectionsC(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+//                            TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
+//    {
+//        REAL detgrad = 0.0;
+//        TPZVec<REAL> u(3);
+//        TPZVec<REAL> v(3);
+//        TPZVec<REAL> uxv(3);// result
+//        int cont = 0;
+//        
+//        for (int ivet=inicio; ivet<=fim; ivet++)
+//        {
+//            for (int ilin=0; ilin<3; ilin++)
+//            {
+//                u[ilin] = t1vec(ilin,ivet);
+//                v[ilin] = t2vec(ilin,ivet);
+//            }
+//            TPZVec<REAL> e2(3);
+//            detgrad = 0.0;
+//            REAL normaX0xX1 = 0.0;
+//            //TPZNumeric::ProdVetorial(u,v,e2);
+//            e2[0] = u[1]*v[2]-u[2]*v[1];
+//            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
+//            e2[2] = u[0]*v[1]-v[0]*u[1];
+//            
+//            // calc do v gradx*b
+//            TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
+//            REAL be2 = 0.0, ne2 = 0.0;
+//            for(int i=0;i<3;i++)
+//            {
+//                ne2 += e2[i]*e2[i];
+//            }
+//            ne2 = sqrt(fabs(ne2));
+//            for (int il=0; il<3; il++)
+//            {
+//                for (int i = 0 ; i<3; i++)
+//                {
+//                    dxt1[il] += gradx(il,i) * t1vec(i,ivet);
+//                    dxt2[il] += gradx(il,i) * t2vec(i,ivet);
+//                    dxt3[il] += gradx(il,i) * e2[i]/ne2;
+//                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+//                }
+//                be2 += bvec(il,ivet)*e2[il]/ne2;
+//            }
+//            TPZManVector<REAL,3> normal(3,0.);
+//            //TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
+//            normal[0] = dxt1[1]*dxt2[2]-dxt1[2]*dxt2[1];
+//            normal[1] = -(dxt1[0]*dxt2[2]-dxt2[0]*dxt1[2]);
+//            normal[2] = dxt1[0]*dxt2[1]-dxt2[0]*dxt1[1];
+//            
+//            for (int pos=0; pos<3; pos++)
+//            {
+//                detgrad += normal[pos]*dxt3[pos];//uxv[pos]*gradx.GetVal(pos, 2);
+//                normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+//            }
+//            TPZFMatrix<REAL> Wvec(3,1);
+//            detgrad = fabs(detgrad);
+//            normaX0xX1 = sqrt(normaX0xX1);
+//            
+//            for (int il=0; il<3; il++)
+//            {
+//                Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad*be2);
+//                directions(il,cont) = Wvec(il,0);
+//            }
+//            cont++;
+//        }
+//        
+//    }
     
     void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {

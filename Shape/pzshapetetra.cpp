@@ -357,7 +357,7 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapeTetra::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    void TPZShapeTetra::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
     {
         DebugStop();
     }

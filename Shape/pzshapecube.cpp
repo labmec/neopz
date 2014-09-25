@@ -262,15 +262,127 @@ namespace pzshape {
 		}
 	}
     
-    void TPZShapeCube::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    void TPZShapeCube::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
     {
-        DebugStop();
+        //DebugStop();
+    
+        long nsides = TPZShapeCube::NSides;
+        int nshape = NCornerNodes;
+        
+        int linha = 0;
+        for (int side = 0; side < nsides; side++)
+        {
+            
+            nshape = 1;
+            if(side >= NCornerNodes) nshape = NConnectShapeF(side,order[side-NCornerNodes]);
+            int sideorder = 1;
+            if(side >= NCornerNodes) sideorder = order[side-NCornerNodes];
+            
+            TPZGenMatrix<int> locshapeorders(nshape,3);
+            SideShapeOrder(side, id, sideorder, locshapeorders);
+            
+            int nlin = locshapeorders.Rows();
+            int ncol = locshapeorders.Cols();
+            
+            for (int il = 0; il<nlin; il++)
+            {
+                for (int jc = 0; jc<ncol; jc++)
+                {
+                    shapeorders(linha, jc) = locshapeorders(il, jc);
+                }
+                linha++;
+            }
+        }
     }
     
     
     void TPZShapeCube::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
-        DebugStop();
+        //DebugStop();
+        if (side<=7)
+        {
+            if (shapeorders.Rows() != 1)
+            {
+                DebugStop();
+            }
+            shapeorders(0,0) = 1;
+            shapeorders(0,1) = 0;
+            shapeorders(0,2) = 0;
+        }
+        else if (side == 26)
+        {
+            int nsei = (order-1)*(order-1)*(order-1);
+            if (shapeorders.Rows() != nsei) {
+                DebugStop();
+            }
+            int count = 0;
+            for (int i=2; i<order+1; i++) {
+                for (int j=2; j<order+1; j++) {
+                    for (int k=2; k<order+1; k++) {
+                        int a = i;
+                        int b = j;
+                        int c = k;
+                        shapeorders(count,0) = a;
+                        shapeorders(count,1) = b;
+                        shapeorders(count,2) = c;
+                        count++;
+
+                    }
+                    
+                }
+            }
+        }
+        else if (side>7 && side<20)
+        {
+            int nshape = order-1;
+            if (shapeorders.Rows() != nshape)
+            {
+                DebugStop();
+            }
+            for (int ioy = 0; ioy < order-1; ioy++)
+            {
+                shapeorders(ioy,0) = ioy+2;
+            }
+        }
+        else
+        {
+
+            if (shapeorders.Rows() != (order-1)*(order-1))
+            {
+                DebugStop();
+            }
+            TPZStack<int> lowersides;
+            LowerDimensionSides(side, lowersides);
+            lowersides.Push(side);
+            
+            //TPZVec<int> locsideorder(lowersides.size(),order);
+            
+            int nnodes = NSideNodes(side);
+            
+            TPZManVector<long, 4> locid(nnodes);
+            for (int node=0; node<locid.size(); node++) {
+                locid[node] = id[ContainedSideLocId(side, node)];// SideNodeLocId( side, node);
+            }// sera que esta pegando os ids corretos mesmo? 
+            
+            int nshape = (order-1)*(order-1);
+            TPZGenMatrix<int> locshapeorders(nshape,3);
+
+            
+            TPZShapeQuad::SideShapeOrder(8,locid, order, locshapeorders);
+            
+            // temos que arrumar a saida de locshapeorders para adequar a orientacao dos vetores que geram
+            // a face do lado side
+            
+            // aqui o locshapeorders esta armazenado so para x e y
+            for (int il = 0; il<nshape; il++)
+            {
+                shapeorders(il, 0) = locshapeorders(il, 0);
+                shapeorders(il, 1) = locshapeorders(il, 1);
+                shapeorders(il, 2) = locshapeorders(il, 2);
+            }
+           
+        }
+
     }
 	
 	void TPZShapeCube::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,

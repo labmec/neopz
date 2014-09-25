@@ -259,7 +259,7 @@ namespace pzshape {
 		}
 	}
 	
-    void TPZShapeLinear::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    void TPZShapeLinear::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
     {
         DebugStop();
     }

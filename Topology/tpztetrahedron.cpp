@@ -229,7 +229,12 @@ namespace pztopology {
     static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,1,2};
     
-	
+	int TPZTetrahedron::NBilinearSides()
+    {
+        DebugStop();
+        return 0;
+    }
+    
 	void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 	{
 		smallsides.Resize(0);
@@ -848,20 +853,23 @@ namespace pztopology {
 	 * @param id : ids of the corner nodes of the elements
 	 * @param permgather : permutation vector in a gather order
 	 */
-	void TPZTetrahedron::GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+	void TPZTetrahedron::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
-#ifdef DEBUG
-        if (SideDimension(side) != 2) {
-            DebugStop();
-        }
-#endif
-        permgather.Resize(7);
-        TPZManVector<long,7> locids(3);
-        for (int in=0; in<3; in++) {
-            locids[in] = id[SideNodeLocId(side, in)];
-        }
-        int transformid = pztopology::TPZTriangle::GetTransformId(locids);
-        pztopology::TPZTriangle::GetHDivGatherPermute(transformid,permgather);
+	// Not complete
+        DebugStop();
+        
+//#ifdef DEBUG
+//        if (SideDimension(side) != 2) {
+//            DebugStop();
+//        }
+//#endif
+//        permgather.Resize(7);
+//        TPZManVector<long,7> locids(3);
+//        for (int in=0; in<3; in++) {
+//            locids[in] = id[SideNodeLocId(side, in)];
+//        }
+//        int transformid = pztopology::TPZTriangle::GetTransformId(locids);
+//        pztopology::TPZTriangle::GetHDivGatherPermute(transformid,permgather);
     }
     
     

@@ -32,13 +32,13 @@ fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot) {
 	fDelx[0] = (x1[0]-x0[0])/(nx[0]);   // Delta x
 	fDelx[1] = (x1[1]-x0[1])/(nx[1]);   // Delta y
 	fNumNodes= (nx[0]+1)*(nx[1]+1)+(fNumLayers-1)*(nx[0])*(nx[1]+1);
-	fElementType = 0;
+	fElementType = EQuadrilateral;
 }
 
 TPZGenGrid::~TPZGenGrid() {    
 }
 
-void TPZGenGrid::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int eltype, int numl, REAL rot) {
+void TPZGenGrid::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MElementType eltype, int numl, REAL rot) {
 	int i;
 	fNx.Resize(nx.NElements());
 	for(i=0;i<fNx.NElements();i++)
@@ -411,7 +411,7 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 	// create the geometric elements (retangular)    
 	int num_rectangles=fNx[0]*fNx[1]*fNumLayers;
 	TPZVec<long> nos(9);
-	if(fElementType == 0) nos.Resize(4);
+	if(fElementType == EQuadrilateral) nos.Resize(4);
     long i, index;
 	
 	// grid can not to contain other elements
@@ -423,14 +423,14 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 	}
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
-		if(fElementType == 0) {
+		if(fElementType == EQuadrilateral) {
 		  grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
-		} else if(fElementType == 1) {
-		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
+		} else if(fElementType == ETriangle) {
+		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);
 		  nos[1] = nos[2];
 		  nos[2] = nos[3];
 		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
-		} else if(fElementType == 2) {
+		} else if(fElementType == ENoType) {
             std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
             DebugStop();
 			grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);  
@@ -444,13 +444,13 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
 	int ix = 0;
 	int iy = 0;
 	int ilayer = 0;
-	if(fElementType == 0 || fElementType == 1) {
+	if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 		if(i < (fNx[0]+1)*(fNx[1]+1)) {
 			ilayer = 0;
 		} else {
 			ilayer = (i-(fNx[0]+1)*(fNx[1]+1))/((fNx[0])*(fNx[1]+1))+1;
 		}
-	} else if(fElementType == 2) {
+	} else if(fElementType == ENoType) {
 		if(i < (2*fNx[0]+1)*(2*fNx[1]+1) ) {
 			ilayer = 0;
 		} else {
@@ -458,24 +458,24 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
 		}
 	}
 	REAL Rot = fRotAngle*ilayer;
-	if(ilayer != 0 && (fElementType == 0 || fElementType == 1)) {
+	if(ilayer != 0 && (fElementType == EQuadrilateral || fElementType == ETriangle)) {
 		i -= ((fNx[0]+1)*(fNx[1]+1))+(ilayer-1)*((fNx[0])*(fNx[1]+1));
-	} else if (ilayer != 0 && fElementType == 2) {
+	} else if (ilayer != 0 && fElementType == ENoType) {
 		i -= ((2*fNx[0]+1)*(2*fNx[1]+1))+(ilayer-1)*((2*fNx[0])*(2*fNx[1]+1));
 	}
 	if(ilayer == 0) {
-		if(fElementType == 0 || fElementType == 1) {
+		if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 			ix = i%(fNx[0]+1);
 			iy = i/(fNx[0]+1);
-		} else if(fElementType == 2) {
+		} else if(fElementType == ENoType) {
 			ix = i%(2*fNx[0]+1);
 			iy = i/(2*fNx[0]+1);
 		}
 	} else {
-		if(fElementType == 0 || fElementType == 1) {
+		if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 			ix = i%(fNx[0])+1;
 			iy = i/(fNx[0]);
-		} else if(fElementType == 2) {
+		} else if(fElementType == ENoType) {
 			ix = i%(2*fNx[0])+1;
 			iy = i/(2*fNx[0]);
 		}
@@ -508,14 +508,14 @@ void TPZGenGrid::ElementConnectivity(long i, TPZVec<long> &rectangle_nodes){
 	int layer = i/(fNx[0]*fNx[1]);
     //cout << "ElConnectivity : xel = " << xel << " yel = " << yel << " layer = " << layer << endl;
     //cout.flush();
-    if(fElementType == 0 || fElementType == 1) {
+    if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 		rectangle_nodes[0] = GlobalI(xel,yel,layer);
 		rectangle_nodes[1] = GlobalI(xel+1,yel,layer);
 		rectangle_nodes[2] = GlobalI(xel+1,yel+1,layer);
 		rectangle_nodes[3] = GlobalI(xel,yel+1,layer);
         //cout << "ElConnectivity : " << rectangle_nodes[0] << ' '<< rectangle_nodes[1] << ' '<<rectangle_nodes[2] << ' '<<rectangle_nodes[3] << endl;
         //cout.flush();
-    } else if(fElementType == 2) {
+    } else if(fElementType == ENoType) {
 		rectangle_nodes[0] = GlobalI(2*xel,2*yel,layer);
 		rectangle_nodes[1] = GlobalI(2*xel+2,2*yel,layer);
 		rectangle_nodes[2] = GlobalI(2*xel+2,2*yel+2,layer);
@@ -572,7 +572,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
                 DebugStop();
 				return;
 		}
-		if(fElementType == 1) {
+		if(fElementType == ETriangle) {
 			elementside -= 1;
 			ielfirst *= 2;
 			iellast *= 2;
@@ -610,15 +610,15 @@ void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, in
 
 int TPZGenGrid::GlobalI(int ix, int iy, int layer) {
 	if(layer == 0 || ix == 0) {
-		if(fElementType == 0 || fElementType == 1) {
+		if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 			return ix+iy*(fNx[0]+1);
-		} else if(fElementType == 2) {
+		} else if(fElementType == ENoType) {
 			return ix+iy*(2*fNx[0]+1);
 		}
 	} else {
-		if(fElementType == 0 || fElementType == 1) {
+		if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 			return (fNx[0]+1)*(fNx[1]+1)+(fNx[0])*(fNx[1]+1)*(layer-1)+ix-1+iy*(fNx[0]);
-		} else if(fElementType == 2) {
+		} else if(fElementType == ENoType) {
 			return (2*fNx[0]+1)*(2*fNx[1]+1)+(2*fNx[0])*(2*fNx[1]+1)*(layer-1)+ix-1+iy*(2*fNx[0]);
 		}
 	}
@@ -627,7 +627,7 @@ int TPZGenGrid::GlobalI(int ix, int iy, int layer) {
 
 
 long TPZGenGrid::ElemId(long iel,long jel, int layer){
-    return (fElementType == 0 || fElementType == 2)? ( iel*fNx[0]+jel+fNx[0]*fNx[1]*layer ):(iel*2*fNx[0]+jel+layer*2*fNx[0]*fNx[1]) ;
+    return (fElementType == EQuadrilateral || fElementType == ENoType)? ( iel*fNx[0]+jel+fNx[0]*fNx[1]*layer ):(iel*2*fNx[0]+jel+layer*2*fNx[0]*fNx[1]) ;
 }
 
 REAL TPZGenGrid::Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2){
@@ -638,13 +638,17 @@ REAL TPZGenGrid::Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2){
 	return( sqrt(l1*l1+l2*l2+l3*l3) );
 }
 
-void TPZGenGrid::SetElementType(int type) {
+void TPZGenGrid::SetElementType(MElementType type) {
+    
+    if (type != EQuadrilateral && type != ETriangle) {
+        DebugStop();
+    }
 	fElementType = type;
-	if(fElementType == 0 || fElementType == 1) {
+	if(fElementType == EQuadrilateral || fElementType == ETriangle) {
 		fNumNodes = (fNx[0]+1)*(fNx[1]+1)+(fNumLayers-1)*(fNx[0])*(fNx[1]+1);
 		fDelx[0] = (fX1[0]-fX0[0])/(fNx[0]);
 		fDelx[1] = (fX1[1]-fX0[1])/(fNx[1]);
-	} else if(fElementType == 2) {
+	} else if(fElementType == ENoType) {
 		fNumNodes = (2*fNx[0]+1)*(2*fNx[1]+1)+(fNumLayers-1)*(2*fNx[0])*(2*fNx[1]+1);
 		fDelx[0] = (fX1[0]-fX0[0])/(2*fNx[0]);
 		fDelx[1] = (fX1[1]-fX0[1])/(2*fNx[1]);

@@ -123,7 +123,12 @@ namespace pztopology {
         {2,1,0,4,3,5,6}  // id 5
     };
 
-	
+	int TPZTriangle::NBilinearSides()
+    {
+        return 0;
+    }
+    
+    
 	int TPZTriangle::NSideNodes(int side)
 	{
 		return nsidenodes[side];

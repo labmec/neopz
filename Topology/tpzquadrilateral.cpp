@@ -155,7 +155,10 @@ namespace pztopology {
         {3,2,1,0,6,5,4,7,8}  // id 7
     };
 
-
+    int TPZQuadrilateral::NBilinearSides()
+    {
+        return 6;
+    }
 	
 	int TPZQuadrilateral::SideNodeLocId(int side, int node)
 	{
@@ -578,11 +581,73 @@ namespace pztopology {
 	void TPZQuadrilateral::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
         permgather.Resize(9);
+        /*
+         for (int i=0; i<9; i++)
+         {
+         permgather[i] = permutationsQ[transformationid][i];
+         }
+         */
+        int i;
         
-        for (int i=0; i<9; i++)
+        if(transformationid%2 == 0)
         {
-            permgather[i] = permutationsQ[transformationid][i];
+            switch (transformationid)
+            {
+                case 0:
+                    for(i=0; i<9; i++) permgather[i] = i;
+                    break;
+                case 2:
+                    for(i=0; i<4; i++) permgather[i] = (i+1)%4;
+                    for(i=4; i<8; i++) permgather[i] = 4+(i+1)%4;
+                    permgather[8] = 8;
+                    break;
+                case 4:
+                    for(i=0; i<4; i++) permgather[i] = (i+2)%4;
+                    for(i=4; i<8; i++) permgather[i] = 4+(i+2)%4;
+                    permgather[8] = 8;
+                    break;
+                case 6:
+                    for(i=0; i<4; i++) permgather[i] = (i+3)%4;
+                    for(i=4; i<8; i++) permgather[i] = 4+(i+3)%4;
+                    permgather[8] = 8;
+                    break;
+            }
         }
+        else
+        {
+            TPZManVector<int,4> invid(4);
+            invid[0] = 0;
+            invid[1] = 3;
+            invid[2] = 2;
+            invid[3] = 1;
+            switch (transformationid) {
+                case 1:
+                    for(i=0; i<4; i++) permgather[i] = invid[i];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+0)%4];
+                    permgather[8] = 8;
+                    break;
+                case 3:
+                    for(i=0; i<4; i++) permgather[i] = invid[(i+1)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+1)%4];
+                    permgather[8] = 8;
+                    break;
+                case 5:
+                    for(i=0; i<4; i++) permgather[i] = invid[(i+2)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+2)%4];
+                    permgather[8] = 8;
+                    break;
+                case 7:
+                    for(i=0; i<4; i++) permgather[i] = invid[(i+3)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+3)%4];
+                    permgather[8] = 8;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        
+
         
         /*
         switch (transformationid)

@@ -130,7 +130,7 @@ public:
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */
-        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides);
+        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<long> &sides
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the internal shapefunctions of a side

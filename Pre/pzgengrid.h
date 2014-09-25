@@ -17,6 +17,8 @@ class TPZGeoMesh;
 #include "pzreal.h"
 #include "tpzautopointer.h"
 
+#include "pzeltype.h"
+
 #include <fstream>
 
 /** 
@@ -45,7 +47,7 @@ public:
 	/**
 	 * @brief Change points and all data to generate geometric mesh
 	 */
-    void SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int eltype = 0, int numl = 1, REAL rot = 0.5);
+    void SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MElementType eltype = EQuadrilateral, int numl = 1, REAL rot = 0.5);
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
@@ -141,7 +143,7 @@ public:
 	 * @param type Bi-dimensional element type
 	 * @note Values: \f$ type = 0 \f$ (quadrilateral); \f$ type = 1 \f$ (triangle); \f$ type = 2 \f$ (quadratic quadrilaterals)
      */
-    virtual void SetElementType(int type);
+    virtual void SetElementType(MElementType type);
     
     /**
 	 * @brief Returns the element id for the element addressed by the parameters
@@ -222,11 +224,9 @@ protected:
 	long fNumNodes;
     /** 
 	 * @brief Variable which indicates the type of element that should be generated
-     * \li type = 0 -> quadrilateral
-	 * \li type = 1 -> triangle
-     * \li type = 2 -> quadratic quadrilaterals
+     * Only EQuadrilateral or ETriangle is supported
      */
-	int fElementType;
+	MElementType fElementType;
     
     /** @brief Number of meshes which will be generated hinging along an axis */
     int fNumLayers;

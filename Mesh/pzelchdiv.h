@@ -135,15 +135,23 @@ public:
 	/**
      * @brief return the number of continuous functions 
      **/
-	void NShapeContinuous(TPZVec<int> &order, int &nshape  );
+	int NShapeContinuous(TPZVec<int> &order);
+    
+    /// Fill the polynomial order needed from the continuous shape functions
+    void FillOrder(TPZVec<int> &order) const ;
 	
+    /// Return the maximum order??
     virtual int MaxOrder();
     
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data);
-	
+    
+	/** @brief Compute and fill data with requested attributes */
+	virtual void ComputeRequiredData(TPZMaterialData &data,
+									 TPZVec<REAL> &qsi);
+
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex);
 	
@@ -151,7 +159,7 @@ public:
 	 * @brief Returns the vector index  of the first index shape associate to to each side 
 	 * Special implementation to Hdiv
 	 */
-	void FirstShapeIndex(TPZVec<long> &Index);
+	void FirstShapeIndex(TPZVec<long> &Index) const;
     
 	/**
      * @brief Returns a matrix index of the shape and vector  associate to element
@@ -161,6 +169,14 @@ public:
 	 */
 	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder);
 	
+	/**
+     * @brief Returns a matrix index of the shape and vector  associate to element
+     * @param[in] VectorSide Indicates the side associated with each vector
+     * @param[out] IndexVecShape Indicates for the vector/shape function for the approximation space
+	 * @param[in] pressureorder Order of the pressure (to select shape functions?)
+	 */
+	void IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder);
+
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	

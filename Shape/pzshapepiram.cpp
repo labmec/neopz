@@ -306,7 +306,7 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapePiram::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+    void TPZShapePiram::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
     {
         DebugStop();
     }

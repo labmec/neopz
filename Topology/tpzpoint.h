@@ -186,7 +186,7 @@ namespace pztopology {
 		 * @param id Ids of the corner nodes of the elements
 		 * @param permgather Permutation vector in a gather order
 		 */
-		static void GetSideHDivPermutation(int side, TPZVec<long> &id, TPZVec<int> &permgather)
+		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
 		permgather[0] = 0;
 		return;
@@ -205,6 +205,11 @@ namespace pztopology {
             dir[0] = 0;
             bilinearounao[0] = 0;
         }
+        
+        /**
+         * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
+         */
+        static int NBilinearSides();
 
 	};
 	
