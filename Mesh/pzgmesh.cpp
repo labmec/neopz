@@ -600,10 +600,12 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
     // this method will call ComputeXInverse if the element dimension != 3
     if(gel->ComputeXInverse(x, qsi,zero*100.) == true)
     {
+#ifdef LOG4CXX
         if (logger->isDebugEnabled())
         {
             LOGPZ_DEBUG(logger, "Going into the FindSubElement alternative")
         }
+#endif
         gel = FindSubElement(gel, x, qsi, InitialElIndex);
         return gel;
     }
@@ -657,7 +659,9 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, lon
         qsi.Fill(0.);
         if(locgel->ComputeXInverse(x, qsi, zero*100.) == true)
         {
+#ifdef LOG4CXX
             if (logger->isDebugEnabled())LOGPZ_DEBUG(logger, "FOUND ! Going into the FindSubElement alternative")
+#endif
             gel = FindSubElement(locgel, x, qsi, InitialElIndex);
             return gel;
         }
@@ -1257,10 +1261,12 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 	try
 	{
 		TPZSaveable::Write(buf,withclassid);
+#ifdef LOG4CXX
         if (logger->isDebugEnabled())
         {
             LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
         }
+#endif
 		int classid = ClassId();
 		buf.Write(&classid,1);
 		buf.Write(&fName,1);
