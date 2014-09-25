@@ -52,10 +52,9 @@ namespace pzshape{
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */
-        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders, TPZVec<long> &sides)
+        static void ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
         {
             shapeorders(0,0) = 0;
-            sides[0] = 0;
         }
         
 
