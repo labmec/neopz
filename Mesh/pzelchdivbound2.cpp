@@ -533,7 +533,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         int kfirst = FirstIndex[permutegather[side]];
         int nshape = TSHAPE::NConnectShapeF(side,order);
         for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst,0);
+            phi(ifirst+i,0) = philoc(kfirst+i,0);
             for (int d=0; d< TSHAPE::Dimension; d++) {
                 dphi(d,ifirst+i) = dphiloc(d,kfirst+i);
             }
