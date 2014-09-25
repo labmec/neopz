@@ -934,6 +934,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 // CompEl create Functions setup
 
 #include "pzintel.h"
+#include "pzelctempplus.h"
 
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
@@ -1028,7 +1029,8 @@ TPZCompEl * TPZElastoPlasticAnalysis::CreatePyramElWithMem(TPZGeoEl *gel, TPZCom
 
 TPZCompEl * TPZElastoPlasticAnalysis::CreateQuadElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeQuad > >(mesh,gel,index);
+//	return new TPZCompElWithMem< TPZIntelGenPlus<TPZIntelGen< pzshape::TPZShapeQuad > > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeQuad > > (mesh,gel,index);
 }
 
 TPZCompEl * TPZElastoPlasticAnalysis::CreateTetraElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, long &index)

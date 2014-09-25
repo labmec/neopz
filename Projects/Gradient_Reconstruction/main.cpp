@@ -777,7 +777,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
 			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
-			gen.SetElementType(1);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			gen.SetElementType(ETriangle);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmesh,matId);             // generating grid in gmesh
 			gmesh->BuildConnectivity();
 			TPZGeoElBC gbc10(gmesh->ElementVec()[0],3,bc0);
@@ -792,8 +792,8 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
 			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
-			if(typeel==ETriangle) gen.SetElementType(1);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
-			else gen.SetElementType(0);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			if(typeel==ETriangle) gen.SetElementType(ETriangle);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			else gen.SetElementType(EQuadrilateral);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmesh,matId);             // generating grid in gmesh
 			gmesh->BuildConnectivity();
 			TPZGeoElBC gbc10(gmesh->ElementVec()[0],4,bc0);
@@ -810,7 +810,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
 			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-			gen.SetElementType(0);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			gen.SetElementType(EQuadrilateral);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmeshtemp,matId);             // generating grid in gmesh
 			
 			REAL InitialH = MaxX;

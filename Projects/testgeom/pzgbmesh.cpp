@@ -58,7 +58,7 @@ int main_pre() {
 	x1[2]=0.;
 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator 
-	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.SetElementType(EQuadrilateral);       // type = 0 means rectangular elements
 	gen.Read(gmesh);            // generating mesh in gmesh
 
 	ofstream saida("malhateste.txt");
@@ -75,7 +75,7 @@ int main_pre() {
 	x1[1] = 3.;
 
 	TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
-	gen2.SetElementType(0);
+	gen2.SetElementType(EQuadrilateral);
 
 	// generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
 	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);

@@ -25,6 +25,8 @@
 #include "pzvtkmesh.h"
 #include "pzanalysis.h"
 
+#include "pzeltype.h"
+
 // integration rule
 #include <pzquad.h>
 
@@ -35,7 +37,7 @@ using namespace pzshape;
 using namespace std;
 
 
-TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int elem_type);
+TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,MElementType elem_type);
 TPZAutoPointer<TPZCompMesh> CompMesh();
 
 void TestShape(TPZInterpolatedElement *el,int order,ostream &out);
@@ -283,7 +285,7 @@ void MakingQuadrilateral(TPZGeoMesh *gmesh,REAL radio) {
     gmesh->BuildConnectivity();
 }
 
-TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
+TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,MElementType type) {
 	if(dim != 3)
 		dim = 2;
 
@@ -298,8 +300,8 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
 		X1[i] = 3.;
 	}
 	TPZGenGrid gen(nx,X0,X1,1);
-	if(type==1) gen.SetElementType(type);  // type = 1 para elementos triangulares
-	else gen.SetElementType(0);  // type = 0 para elementos quadrilateros
+	if(type==ETriangle) gen.SetElementType(type);  // type = 1 para elementos triangulares
+	else gen.SetElementType(EQuadrilateral);  // type = 0 para elementos quadrilateros
 	gen.Read(g);
 	if(dim == 3) {
 		TPZExtendGridDimension genext(g,1.);

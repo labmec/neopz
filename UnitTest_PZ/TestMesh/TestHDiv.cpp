@@ -379,7 +379,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         }
 
     
-    gmesh
+
 
     
     if (type == EPrisma || type == ECube) {

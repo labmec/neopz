@@ -447,7 +447,7 @@ TPZGeoMesh *GMesh2(bool triang_elements)
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {
-      gengrid.SetElementType(1);
+      gengrid.SetElementType(ETriangle);
     }
     gengrid.Read(gmesh);
     

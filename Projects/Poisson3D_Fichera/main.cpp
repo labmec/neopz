@@ -937,7 +937,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	x0[0] = InitialL; x0[1] = x0[2] = -InitialL;
 	x1[0] = x1[2] = - InitialL; x1[1] = InitialL;
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.SetElementType(EQuadrilateral);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
@@ -963,7 +963,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
 	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
 	nx[0] = 2; nx[1] = 1;
-	gen.SetData(nx,x0,x1,0);
+	gen.SetData(nx,x0,x1,EQuadrilateral);
 	gen.Read(gmesh2);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
@@ -985,7 +985,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	x0[0] = x0[1] = x0[2] = 0.;
 	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
 	nx[0] = nx[1] = 1;
-	gen.SetData(nx,x0,x1,0);       // type = 0 means rectangular elements
+	gen.SetData(nx,x0,x1,EQuadrilateral);       // type = 0 means rectangular elements
 	gen.Read(gmesh3);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements

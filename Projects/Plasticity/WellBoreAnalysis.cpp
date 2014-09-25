@@ -42,80 +42,113 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinem
 {
     
     TPZMaterial *prev = 0;
+    TPZBndCond *prevbnd = 0;
     
-    TPZFMatrix<REAL> f1(3,1,0.);
-    TPZFMatrix<REAL> k1(3,3,0.);
-    k1(0,0)=Confinement.XX();
-    k1(1,1)=Confinement.YY();
-    k1(2,2)=Confinement.ZZ();
-    TPZMaterial *bc1 = mat->CreateBC(mat,-2,4,k1,f1);
     prev = CMesh->FindMaterial(-2);
-    if(prev)
+    TPZFMatrix<REAL> f2(3,1,0.);
+    TPZFMatrix<REAL> k2(3,3,0.);
+    k2(0,0)=Confinement.XX();
+    k2(1,1)=Confinement.YY();
+    k2(2,2)=Confinement.ZZ();
+    prev = CMesh->FindMaterial(-2);
+    prevbnd = dynamic_cast<TPZBndCond *>(prev);
+    if(!prevbnd || prevbnd->Material() != mat)
     {
-        delete prev;
+//        DebugStop();
+        prevbnd = mat->CreateBC(mat,-2,4,k2,f2);
+        CMesh->InsertMaterialObject(prevbnd);
     }
-    CMesh->InsertMaterialObject(bc1);
+    else
+    {
+        prevbnd->SetType(4);
+        prevbnd->Val1() = k2;
+        prevbnd->Val2() = f2;
+    }
 
     
     // type 6 constraints in x and y
     // type 5 only normal constraint
-    TPZFNMatrix<9> k5(3,3,0.),f5(3,1,pressure);
+    TPZFNMatrix<9> k6(3,3,0.),f6(3,1,pressure);
     for (int i=0; i<3; i++) {
-        k5(i,i) = 1.e5;
+        k6(i,i) = 1.e5;
     }
-    TPZMaterial *bc5 = mat->CreateBC(mat, -6, 6, k5, f5);
     prev = CMesh->FindMaterial(-6);
-    if(prev)
-    {
-        delete prev;
+    prevbnd = dynamic_cast<TPZBndCond *>(prev);
+    if (!prevbnd || prevbnd->Material() != mat) {
+        TPZMaterial *bc6 = mat->CreateBC(mat, -6, 6, k6, f6);
+        CMesh->InsertMaterialObject(bc6);
+//        DebugStop();
     }
-    CMesh->InsertMaterialObject(bc5);
+    else
+    {
+        prevbnd->Val1() = k6;
+        prevbnd->Val2() = f6;
+        prevbnd->SetType(6);
+    }
+
+    
 
    
-    TPZFMatrix<REAL> k2(3,3,0.);
-    TPZFMatrix<REAL> f2(3,1,0.);
-    k2(0,0)=Confinement.XX();
-    k2(1,1)=Confinement.YY();
-    k2(2,2)=Confinement.ZZ();
-    TPZMaterial * bc2 = mat->CreateBC(mat,-3,4,k2,f2);
-    
+    TPZFMatrix<REAL> k3(3,3,0.);
+    TPZFMatrix<REAL> f3(3,1,0.);
+    k3(0,0)=Confinement.XX();
+    k3(1,1)=Confinement.YY();
+    k3(2,2)=Confinement.ZZ();
     prev = CMesh->FindMaterial(-3);
-    if(prev)
+    prevbnd = dynamic_cast<TPZBndCond *>(prev);
+    if (!prevbnd || prevbnd->Material() != mat) {
+//        DebugStop();
+        TPZMaterial * bc3 = mat->CreateBC(mat,-3,4,k3,f3);
+        CMesh->InsertMaterialObject(bc3);
+    }
+    else
     {
-        delete prev;
+        prevbnd->SetType(4);
+        prevbnd->Val1() = k3;
+        prevbnd->Val2() = f3;
     }
  
-    CMesh->InsertMaterialObject(bc2);
     
-    
-    TPZFMatrix<REAL> k3(2,2,0.);
-    TPZFMatrix<REAL> f3(2,1,0.);
-    f3(1,0)=1.;
-   // k3(1,1)=1.e12;
-    TPZMaterial * bc3 = mat->CreateBC(mat,-4,3,k3,f3);
-    prev = CMesh->FindMaterial(-4);
-    if(prev)
-    {
-        delete prev;
-    }
-
-    CMesh->InsertMaterialObject(bc3);
     
     TPZFMatrix<REAL> k4(2,2,0.);
     TPZFMatrix<REAL> f4(2,1,0.);
-     f4(0,0)=1.;
+    f4(1,0)=1.;
+   // k3(1,1)=1.e12;
+    prev = CMesh->FindMaterial(-4);
+    prevbnd = dynamic_cast<TPZBndCond *>(prev);
+    if (!prevbnd || prevbnd->Material() != mat) {
+//        DebugStop();
+        TPZMaterial * bc4 = mat->CreateBC(mat,-4,3,k4,f4);
+        CMesh->InsertMaterialObject(bc4);
+    }
+    else
+    {
+        prevbnd->SetType(3);
+        prevbnd->Val1() = k4;
+        prevbnd->Val2() = f4;
+    }
+    
+    
+    TPZFMatrix<REAL> k5(2,2,0.);
+    TPZFMatrix<REAL> f5(2,1,0.);
+     f5(0,0)=1.;
     //k4(0,0)=1.e12;
     
-    TPZMaterial * bc4 = mat->CreateBC(mat,-5,3,k4,f4);
     prev = CMesh->FindMaterial(-5);
-    if(prev)
+    prevbnd = dynamic_cast<TPZBndCond *>(prev);
+    if (!prevbnd || prevbnd->Material() != mat)
     {
-        delete prev;
+//        DebugStop();
+        TPZMaterial * bc5 = mat->CreateBC(mat,-5,3,k5,f5);
+        CMesh->InsertMaterialObject(bc5);
     }
-
-    CMesh->InsertMaterialObject(bc4);
-//    CMesh->SetDefaultOrder(2);
-//    CMesh->AutoBuild();
+    else
+    {
+        prevbnd->SetType(3);
+        prevbnd->Val1() = k5;
+        prevbnd->Val2() = f5;
+    }
+    
 
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -212,7 +245,12 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     obj.fCurrentConfig.fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &obj.fCurrentConfig.fCMesh;
     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
-    
+
+    obj.fCurrentConfig.fConfinementEffective.XX() = -45.9;//-44.3;// MPa
+    obj.fCurrentConfig.fConfinementEffective.YY() = -62.1;//-58.2;
+    obj.fCurrentConfig.fConfinementEffective.ZZ() = -48.2;//-53.8;
+    obj.fCurrentConfig.fWellboreEffectivePressure = 19.5;//29.3;
+
 #ifdef PV
 
 
@@ -234,7 +272,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
         REAL phi=0,psi=1.,N=0.;
         SD.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
         SD.fER.SetUp(elast,poisson);
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
+        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,obj.fCurrentConfig.fConfinementEffective.ZZ());
 
 
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC =obj.fCurrentConfig.fMCPV;
@@ -246,7 +284,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
         MC.fYC.SetUp(angle, angle, cohesion, ER);
         MC.fER.SetUp(elast,poisson);
 
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain);
+        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,obj.fCurrentConfig.fConfinementEffective.ZZ());
 
 #else
     
@@ -270,10 +308,6 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 #endif
 
     
-    obj.fCurrentConfig.fConfinementEffective.XX() = -45.9;//-44.3;// MPa
-    obj.fCurrentConfig.fConfinementEffective.YY() = -62.1;//-58.2;
-    obj.fCurrentConfig.fConfinementEffective.ZZ() = -48.2;//-53.8;
-    obj.fCurrentConfig.fWellboreEffectivePressure = 19.5;//29.3;
     
 
     TPZTensor<REAL> initstress,finalstress;
@@ -567,9 +601,14 @@ clarg::argInt nthreads_sky("-nts", "Number of threads to TPZSkylineStructMatrix"
 
 void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 {
-    TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
+    
+    TPZCompMesh *workablemesh = &fCurrentConfig.fCMesh;
+    if (fCurrentConfig.fWellConfig == EVerticalWell) {
+        workablemesh = &fCurrentConfig.fMultiPhysics;
+    }
+    TPZElastoPlasticAnalysis analysis(workablemesh,std::cout);
 
-	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
+	TPZSkylineStructMatrix full(workablemesh);
     full.SetNumThreads(nthreads_sky.get_value());
 	analysis.SetStructuralMatrix(full);
     
@@ -594,7 +633,6 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     CmeshWell(&fCurrentConfig.fCMesh, pMatWithMem, fCurrentConfig.fConfinementEffective, fCurrentConfig.fWellboreEffectivePressure);
     
     
-        
     int neq = analysis.Mesh()->Solution().Rows();
     fCurrentConfig.fAllSol.Redim(neq, 1);
     
@@ -3008,7 +3046,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 
         bool planestrain=true;
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC = fMCPV;
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain);
+        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,fConfinementEffective.ZZ());
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
@@ -3040,7 +3078,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     
         bool planestrain=true;
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =fSDPV;
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain);
+        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,fConfinementEffective.ZZ());
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
@@ -3119,9 +3157,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
             biot = 0.;
         }
 
-        TPBrBiotForce *force = new TPBrBiotForce;
-        force->SetConstants(inner, outer, wellpress, reservoirpress, biot);
-        plastic->SetForcingFunction(force);
+        SetWellPressure(fWellboreEffectivePressure);
     }
     if (fWellConfig == EVerticalWell) {
         CreateMultiphysicsMesh();
@@ -3144,6 +3180,7 @@ void TPZWellBoreAnalysis::TConfig::CreateMultiphysicsMesh()
     fMultiPhysics.SetReference(&fGMesh);
     // create the constant strain mesh
     fZDeformation.SetAllCreateFunctionsDiscontinuous();
+    fZDeformation.SetDefaultOrder(0);
     fZDeformation.SetDimModel(2);
     int matid = 1;
     int dim = 2;
@@ -3172,8 +3209,26 @@ void TPZWellBoreAnalysis::TConfig::CreateMultiphysicsMesh()
     meshvec[0] = &fCMesh;
     meshvec[1] = &fZDeformation;
     
+//    for (long el=0; el<nel; el++) {
+//        TPZCompEl *cel = fCMesh.Element(el);
+//        TPZGeoEl *gel = cel->Reference();
+//        new TPZMultiPht
+//    }
+    fMultiPhysics.SetAllCreateFunctionsMultiphysicElem();
+    fGMesh.ResetReference();
+    //Fazendo auto build
+    fMultiPhysics.AutoBuild();
+
     TPZBuildMultiphysicsMesh::AddElements(meshvec, &fMultiPhysics);
     TPZBuildMultiphysicsMesh::AddConnects(meshvec, &fMultiPhysics);
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        fMultiPhysics.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     
 }
 
@@ -3186,6 +3241,8 @@ void TPZWellBoreAnalysis::LinearConfiguration(int porder)
     int defaultporder = porder;
     fCurrentConfig.fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &fCurrentConfig.fCMesh;
+    DebugStop();
+    // configure a material that simulates reservoir compaction
     TPZElasticityMaterial *elasmat = new TPZElasticityMaterial(1);
     ConfigureLinearMaterial(*elasmat);
     compmesh1->InsertMaterialObject(elasmat);

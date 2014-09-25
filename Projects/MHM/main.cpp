@@ -374,7 +374,7 @@ TPZGeoMesh *GMeshSteklov(bool triang_elements)
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {
-        gengrid.SetElementType(1);
+        gengrid.SetElementType(ETriangle);
     }
     gengrid.Read(gmesh);
     

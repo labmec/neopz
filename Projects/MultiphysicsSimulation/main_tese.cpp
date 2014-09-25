@@ -182,7 +182,7 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(fTriang)
     {
-        gengrid.SetElementType(1);
+        gengrid.SetElementType(ETriangle);
     }
     gengrid.Read(gmesh);
     

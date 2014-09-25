@@ -224,6 +224,121 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	
 }
 
+void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
+    
+    TPZMaterialData::MShapeFunctionType shapetype = data[0].fShapeType;
+    if(shapetype==data[0].EVecShape){
+        DebugStop();
+        return;
+    }
+    DebugStop();
+    TPZFMatrix<REAL> &dphi = data[0].dphix;
+    TPZFMatrix<REAL> &phi = data[0].phi;
+    TPZFMatrix<REAL> &axes=data[0].axes;
+    
+    int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+    phc = phi.Cols();
+    phr = phi.Rows();
+    dphc = dphi.Cols();
+    dphr = dphi.Rows();
+    efr = ef.Rows();
+    efc = ef.Cols();
+    ekr = ek.Rows();
+    ekc = ek.Cols();
+    if(phc != 1 || dphr != 2 || phr != dphc ||
+       ekr != phr*2 || ekc != phr*2 ||
+       efr != phr*2 ){
+        PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
+        "phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
+        " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
+        dphi.Rows() << "\nek.Rows() = " << ek.Rows() << " ek.Cols() = "
+        << ek.Cols() <<
+        "\nef.Rows() = " << ef.Rows() << " ef.Cols() = "
+        << ef.Cols() << "\n";
+        return;
+        //		PZError.show();
+    }
+    if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
+        TPZManVector<STATE,3> res(3);
+        fForcingFunction->Execute(data[0].x,res);
+        ff[0] = res[0];
+        ff[1] = res[1];
+        ff[2] = res[2];
+    }
+    
+    TPZFNMatrix<4,STATE> du(2,2);
+    /*
+     * Plain strain materials values
+     */
+    REAL nu1 = 1. - fnu;//(1-nu)
+    REAL nu2 = (1.-2.*fnu)/2.;
+    REAL F = fE/((1.+fnu)*(1.-2.*fnu));
+    
+    for( int in = 0; in < phr; in++ ) {
+        du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);//dvx
+        du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);//dvy
+        
+        for (int col = 0; col < efc; col++)
+        {
+            ef(2*in, col) += weight * (ff[0]*phi(in,0) - du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
+            ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(0,0)*fPreStressXY - du(1,0)*fPreStressYY);// direcao y <<<----
+        }
+        for( int jn = 0; jn < phr; jn++ ) {
+            du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);//dux
+            du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);//duy
+            
+            
+            if (fPlaneStress != 1){
+                /* Plain Strain State */
+                ek(2*in,2*jn) += weight * (
+                                           nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
+                                           ) * F;
+                
+                ek(2*in,2*jn+1) += weight * (
+                                             fnu*du(0,0)*du(1,1)+ nu2*du(1,0)*du(0,1)
+                                             ) * F;
+                
+                ek(2*in+1,2*jn) += weight * (
+                                             fnu*du(1,0)*du(0,1)+ nu2*du(0,0)*du(1,1)
+                                             ) * F;
+                
+                ek(2*in+1,2*jn+1) += weight * (
+                                               nu1*du(1,0)*du(1,1)+ nu2*du(0,0)*du(0,1)
+                                               ) * F;
+            }
+            else{
+                /* Plain stress state */
+                ek(2*in,2*jn) += weight * (
+                                           fEover1MinNu2 * du(0,0)*du(0,1)+ fEover21PlusNu * du(1,0)*du(1,1)
+                                           );
+                
+                ek(2*in,2*jn+1) += weight * (
+                                             fEover1MinNu2*fnu*du(0,0)*du(1,1)+ fEover21PlusNu*du(1,0)*du(0,1)
+                                             );
+                
+                ek(2*in+1,2*jn) += weight * (
+                                             fEover1MinNu2*fnu*du(1,0)*du(0,1)+ fEover21PlusNu*du(0,0)*du(1,1)
+                                             );
+                
+                ek(2*in+1,2*jn+1) += weight * (
+                                               fEover1MinNu2*du(1,0)*du(1,1)+ fEover21PlusNu*du(0,0)*du(0,1)
+                                               );
+            }
+        }
+    }
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //		std::stringstream sout;
+    //		ek.Print("ek_elastmat = ",sout,EMathematicaInput);
+    //		ef.Print("ef_elastmat = ",sout,EMathematicaInput);
+    //		LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+}
+
 
 
 void TPZElasticityMaterial::FillDataRequirements(TPZMaterialData &data)

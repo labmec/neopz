@@ -900,7 +900,7 @@ void InitialLoad(TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> Plastic
 }
 
 
-int main22()
+int main()
 {
  /*   //STATE val = atan2(3,1.);
     REAL poisson = 0.203;

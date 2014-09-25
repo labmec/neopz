@@ -135,11 +135,11 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     
-    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
-    {
-        DebugStop();
-    }
+//    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+//                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+//    {
+//        DebugStop();
+//    }
 	
 	/**
 	 * @brief Computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
