@@ -1,4 +1,4 @@
-//
+
 //  TPZDarcyAnalysis.cpp
 //  PZ
 //
@@ -21,6 +21,7 @@
 #include "pzstepsolver.h"
 #include "TPZCompElDisc.h"
 #include "pzl2projection.h"
+#include <boost/math/special_functions/erf.hpp>
 
 
 #ifdef LOG4CXX
@@ -39,10 +40,27 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
     
 }
 
+/** @brief Initial pressure field */
+void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
+{
+    //    REAL x = pt[0];
+    //    REAL y = pt[1];
+    disp[0] = 20.0e6;// 20 MPa
+}
+
+/** @brief Analytic pressure field */
+void PressureAnal(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
+{
+    REAL x = pt[0], t=time;
+    if (time <= 1.0e-8){t=1.0e-8;}
+    sol[0]      =   (sqrt((4.0*t)/(M_PI))*exp(-1.0*(x*x)/(4.0*t))) - x*(1.0-boost::math::erf(x/sqrt(4.0*t)));
+    flux(0,0)   =   (1.0-boost::math::erf(x/sqrt(4.0*t)));
+}
+
 void TPZDarcyAnalysis::Run()
 {
     // Parametros
-    const int nel = 1;
+    const int nel = 0;
     
     // Malha geometrica
     fgmesh = CreateGMesh(nel);
@@ -68,7 +86,7 @@ void TPZDarcyAnalysis::Run()
     CreateInterfaces(fcmeshMixed);
     
     // Analysis
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     TPZAnalysis *an = new TPZAnalysis(fcmeshMixed,mustOptimizeBandwidth);
     TPZSkylineNSymStructMatrix skyl(fcmeshMixed);
     TPZStepSolver<STATE> step;
@@ -77,10 +95,8 @@ void TPZDarcyAnalysis::Run()
     an->SetStructuralMatrix(skyl);
     
     SolveSistTransient(an);
-    
     delete an;
     
-
 }
 
 TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
@@ -90,25 +106,24 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     
     //  Reading mesh
     std::string GridFileName;
-    GridFileName = dirname + "/Projects/OilWaterSystem/";
-    GridFileName += "OilWaterSystemUnit.dump";
+    GridFileName = dirname + "/Projects/Frac1DHdiv/";
+//    GridFileName += "OilWaterSystemUnit.dump";
+//    GridFileName += "BaseGeometryDakeThin.dump";//"FiveSpot.dump";
+    GridFileName += "FiveSpot.dump";//"FiveSpot.dump";
     REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(100.0);
+    GeometryInfo.SetfDimensionlessL(0.0001);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     RotateGeomesh(gmesh, angle);
     
     UniformRefinement(gmesh, nel);
 
-    
-#ifdef DEBUG
     //  Print Geometrical Base Mesh
     std::ofstream argument("GeometicMesh.txt");
     gmesh->Print(argument);
     std::ofstream Dummyfile("GeometricMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
-#endif
     
     return gmesh;
 }
@@ -142,6 +157,10 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
     // Bc Left
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
+    
+    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typeFlux, val1, val2);
+ 	cmesh->InsertMaterialObject(bcLeft2);
+    
     
     // Setando Hdiv
     cmesh->SetDimModel(2);
@@ -183,6 +202,9 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
+    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typeFlux, val1, val2);
+ 	cmesh->InsertMaterialObject(bcLeft2);
+    
     // Setando L2
     cmesh->SetDimModel(2);
     cmesh->SetDefaultOrder(pressureorder);
@@ -216,6 +238,8 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
     mat->SetSimulationData(fData);
     cmesh->InsertMaterialObject(mat);
+    TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnal);
+    mat->SetTimeDependentFunctionExact(TimeDepFExact);
     
     // Bc Bottom
     val2(0,0) = 0.0;
@@ -226,24 +250,30 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     
     // Bc Right
     val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
+    val2(1,0) = 0.0005;
+    val2(2,0) = 0.0*40.0e6;
+    TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
     // Bc Top
-    val2(0,0) = 0.0;
+    val2(0,0) = 0.0005;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcTop = mat->CreateBC(mat, bcTopId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    val2(0,0) = 1.0;
+    val2(0,0) = 0.0*0.0005;// Massic flux 5.0 kg/s over 100000 m2
     val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
+    val2(2,0) = 20.0e6;
+    TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    val2(2,0) = 20.0e6;
+    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typePressure, val1, val2);
+ 	cmesh->InsertMaterialObject(bcLeft2);
     
     // Setando Multifisico
     cmesh->SetDimModel(2);
@@ -251,14 +281,6 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     cmesh->AutoBuild();
     
     return cmesh;
-}
-
-/** @brief Initial pressure field */
-void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
-{
-    REAL x = pt[0];
-    REAL y = pt[1];
-    disp[0] = 0.0;//0.0*(1.0 - 0.1 * x);
 }
 
 TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
@@ -321,7 +343,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 {
 	int iter = 0;
 	REAL error = 1.e10;
-    const REAL tol = 1.e-6;
+    const REAL tol = 1.e-2;
     const int numiter = 50;
     
     fData->SetCurrentState();
@@ -343,7 +365,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
         std::stringstream sout;
         matK=an->Solver().Matrix();
         matK->Print("matK = ", sout,EMathematicaInput);
-        
+        fLastStepRhs.Print("fLastStepRhs = ", sout,EMathematicaInput);
         an->Rhs().Print("Rhs = ", sout,EMathematicaInput);
         LOGPZ_DEBUG(logger,sout.str())
     }
@@ -393,12 +415,12 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 #endif
         
         double NormResLambda = Norm(an->Rhs());
-		double norm = normDeltaSol;
+		double norm = NormResLambda;
 		out << "Iteracao n : " << (iter+1) << " : normas |Delta(U)| e |Residual| : " << normDeltaSol << " / " << NormResLambda << std::endl;
         
-		if(norm < tol || NormResLambda < tol) {
+		if(norm < tol /*|| NormResLambda < tol*/) {
 			out << "\nTolerancia atingida na iteracao : " << (iter+1) << std::endl;
-			out << "\n\nNorma do Dx |Delta(U)|  : " << norm << std::endl;
+			out << "\n\nNorma do Dx |Delta(U)|  : " << normDeltaSol << std::endl;
             out << "\n\nNorma do residuo |Residual|  : " << NormResLambda << std::endl;
             
 		}
@@ -406,7 +428,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
             out << "\nDivergent Method\n";
         }
         
-		error = NormResLambda;
+		error = norm;
 		iter++;
         prevsol = SoliterK;
 		out.flush();
@@ -446,7 +468,9 @@ void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile = "2DMixedDarcy.vtk";
     scalnames.Push("Pressure");
-    vecnames.Push("BulkVelocity");
+    scalnames.Push("PressureAnal");
+    vecnames.Push("MassVelocity");
+    vecnames.Push("MassVelocityAnal");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div,dim);
     
@@ -456,18 +480,17 @@ void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
         
         AssembleLastStep(an);
         
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            an->Rhs().Print("ResAtn = ", sout,EMathematicaInput);
-            fLastStepRhs.Print("fLastStepRhs = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
+//#ifdef LOG4CXX
+//        if(logger->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            an->Rhs().Print("ResAtn = ", sout,EMathematicaInput);
+//            fLastStepRhs.Print("fLastStepRhs = ", sout,EMathematicaInput);
+//            LOGPZ_DEBUG(logger,sout.str())
+//        }
+//#endif
         
         IterativeProcess(an, std::cout);
-        
         fData->SetNextTime();
         
         const int dim = 2;
@@ -475,7 +498,9 @@ void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
         TPZStack<std::string> scalnames, vecnames;
         std::string plotfile = "2DMixedDarcy.vtk";
         scalnames.Push("Pressure");
-        vecnames.Push("BulkVelocity");
+        scalnames.Push("PressureAnal");
+        vecnames.Push("MassVelocity");
+        vecnames.Push("MassVelocityAnal");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div,dim);
         

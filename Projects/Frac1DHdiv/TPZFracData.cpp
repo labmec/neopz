@@ -24,18 +24,35 @@ TPZFracData::~TPZFracData()
 
 void TPZFracData::Porosity(REAL p, REAL &porosity, REAL &dPorosityDp) const
 {
-  const REAL Rockcomp = (1.0e-8);
-  const REAL pref = (10.0e6);
-  porosity = fPhi*exp(Rockcomp*(p-pref));
-  dPorosityDp = fPhi*Rockcomp*exp(Rockcomp*(p-pref));
+  const REAL Rockcomp = 1.0*(5.09858e-10);// 5.09858e-10 (Pa)-1 -> 50e-6 (kgf/m2)-1
+  const REAL pref = (18.0e6);// 1.0 Mpa
+  const bool islinear = true;
+    if (islinear) {
+        // Linear model
+        porosity = fPhi*(1.0+Rockcomp*(p-pref));
+        dPorosityDp = fPhi*Rockcomp;
+    }else
+    {
+        porosity = fPhi*exp(Rockcomp*(p-pref));
+        dPorosityDp = fPhi*Rockcomp*exp(Rockcomp*(p-pref));
+    }
 }
 
 void TPZFracData::Density(REAL p, REAL &RhoFluid, REAL &dRhoDp) const
 {
-  const REAL Oilcomp = (1.0e-8);
-  const REAL pref = (10.0e6);
-  RhoFluid = fRho*exp(Oilcomp*(p-pref));
-  dRhoDp = fRho*Oilcomp*exp(Oilcomp*(p-pref));
+    // Using constant density
+  const REAL Oilcomp = 0.0*(1.01971e-10);// 1.01971e-9 (Pa)-1 -> 10e-6 (kgf/m2)-1
+  const REAL pref = (18.0e6);// 1.0 Mpa
+  const bool islinear = true;
+    if (islinear) {
+        // Linear model
+        RhoFluid = fRho*(1+Oilcomp*(p-pref));
+        dRhoDp = fRho*Oilcomp;
+    }else
+    {
+      RhoFluid = fRho*exp(Oilcomp*(p-pref));
+      dRhoDp = fRho*Oilcomp*exp(Oilcomp*(p-pref));
+    }
 }
 
 
@@ -65,8 +82,8 @@ TPZFMatrix<STATE> TPZFracData::Kinv() const{
   Kinverse(0,1) = -   1.0*Kab(0,1)/(Constant);
   Kinverse(1,0) = -   1.0*Kab(1,0)/(Constant);
   Kinverse(1,1) =     1.0*Kab(0,0)/(Constant);
-  
   return Kinverse;
+    
 }
 
 REAL TPZFracData::G() const

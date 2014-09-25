@@ -110,7 +110,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     REAL bulklambda, dbulklambdadp;
     bulklambda = (oildensity/oilviscosity);
-    dbulklambdadp = -1.0*((oildensity*doilviscositydp)/(oilviscosity*oilviscosity)) + (doildensitydp/oilviscosity);
+    dbulklambdadp = /*-1.0*((oildensity*doilviscositydp)/(oilviscosity*oilviscosity)) + */ (doildensitydp/oilviscosity);
     
     //  ////////////////////////// Residual Vector ///////////////////////////////////
     //  Contribution of domain integrals for Residual Vector
@@ -149,6 +149,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     //  End of contribution of domain integrals for Residual Vector
     
     
+    
         //  ////////////////////////// Jacobian Matrix and Residual Vector ///////////////////////////////////
         //  Contribution of domain integrals for Jacobian matrix and Residual Vector
         // n+1 time step
@@ -162,11 +163,11 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             int ivectorindex        = datavec[0].fVecShapeIndex[iq].first;
             int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
                 
-            REAL qdotv =
+            REAL Kqdotv =
             (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
             (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
 
-            ef(iq + FirstQ) +=  OneOverLambda * weight * qdotv;
+            ef(iq + FirstQ) +=  OneOverLambda * weight * Kqdotv;
 
             
             for (int jq=0; jq<phrQ; jq++)
@@ -177,18 +178,18 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 REAL vec1 = (Kinverse(0,0)*datavec[0].fNormalVec(0,ivectorindex)+Kinverse(0,1)*datavec[0].fNormalVec(1,ivectorindex));
                 REAL vec2 = (Kinverse(1,0)*datavec[0].fNormalVec(0,ivectorindex)+Kinverse(1,1)*datavec[0].fNormalVec(1,ivectorindex));
 
-                REAL vdotv =
+                REAL Kvdotv =
                 (phiQ(ishapeindex,0) * vec1) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
                 (phiQ(ishapeindex,0) * vec2) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;  //  dot(K q,v)
 
-                ek(iq + FirstQ,jq + FirstQ) += weight * OneOverLambda * vdotv;
+                ek(iq + FirstQ,jq + FirstQ) += weight * OneOverLambda * Kvdotv;
             }
             
             //  First Block (Equation One) constitutive law
             // Integrate[(d(1/bulklambdal)/dP)*dot(q,v), Omega_{e} ]    (Equation One)
             for (int jp=0; jp<phrP; jp++)
             {
-                ek(iq + FirstQ,jp + FirstP) += (-1.0) * weight * dbulklambdadp  * OneOverLambda * OneOverLambda * phiP(jp,0) * qdotv;
+                ek(iq + FirstQ,jp + FirstP) += (-1.0) * weight * dbulklambdadp  * OneOverLambda * OneOverLambda * phiP(jp,0) * Kqdotv;
             }
             
             
@@ -216,7 +217,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 REAL gradPhiPdotv   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex))*(dphip[0]) +
                                         (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex))*(dphip[1]);
                 
-                ek(iq + FirstQ,jp + FirstP) += weight * ( gradPhiPdotv );
+                ek(iq + FirstQ,jp + FirstP) += weight * gradPhiPdotv;
                 
             }
             
@@ -606,6 +607,8 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
     //  End of contribution of contour integrals for Residual Vector
     
     
+    
+    
 //    if(!fData->IsLastState())
 //    {
     
@@ -614,23 +617,23 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
         //  Time step n+1
         
         
-        //  First Block (Equation One) constitutive law
-        //  Integrate[L dot(v, n), Gamme_{e}]  (Equation One) Left-Left part
-        
+//    //  First Block (Equation One) constitutive law
+//    //  Integrate[L dot(v, n), Gamme_{e}]  (Equation One) Left-Left part
+//        
 //    for (int iq=0; iq < QRowsleft; iq++)
 //    {
 //        
 //        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
 //        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
 //        
-//        REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1);
-//        REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+//        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1) +
+//                       (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
 //        
-//        ef(iq + FirstQL) += (-1.0) * weight * (e1e1 + e2e2 ) * PressureL;
+//        ef(iq + FirstQL) += (-1.0) * weight * vnL * PressureL;
 //        
 //        for (int jp=0; jp < PRowsleft; jp++)
 //        {
-//            ek(iq + FirstQL, jp + FirstPL) += (-1.0) * weight * (e1e1 + e2e2 ) * phiPL(jp,0);
+//            ek(iq + FirstQL, jp + FirstPL) += (-1.0) * weight * vnL * phiPL(jp,0);
 //        }
 //        
 //        
@@ -646,7 +649,6 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
         
         for (int jq=0; jq<QRowsleft; jq++)
         {
-            
             int jvectorindex    = dataleft[0].fVecShapeIndex[jq].first;
             int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
             
@@ -658,6 +660,8 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
             
         }
     }
+    
+
     
 //    }
     //  Regular Controur integrals
@@ -748,7 +752,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
         int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
         
         REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
-        ef(iq + FirstQL) += weight * (0.001) * ( (gBigNumber * ( qnL - qN ) * vni ) );
+        ef(iq + FirstQL) += weight * 0.001 *( (gBigNumber * ( qnL - qN ) * vni ) );
         
         for (int jq=0; jq < QRowsleft; jq++)
         {
@@ -756,7 +760,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
             int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
             
             REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
-            ek(iq + FirstQL,jq + FirstQL) += weight * (0.001)  * ( (gBigNumber * ( vnj ) * vni ) );
+            ek(iq + FirstQL,jq + FirstQL) += weight * 0.001 * ( (gBigNumber * ( vnj ) * vni ) );
         }
     }
 }
@@ -823,8 +827,10 @@ void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMateria
 
 /** Returns the variable index associated with the name */
 int TPZMatDarcy2dhdiv::VariableIndex(const std::string &name){
-    if(!strcmp("BulkVelocity",name.c_str()))        return  1;
+    if(!strcmp("MassVelocity",name.c_str()))        return  1;
     if(!strcmp("Pressure",name.c_str()))    return  2;
+    if(!strcmp("MassVelocityAnal",name.c_str()))        return  3;
+    if(!strcmp("PressureAnal",name.c_str()))    return  4;
 
     
     return TPZMaterial::VariableIndex(name);
@@ -833,6 +839,9 @@ int TPZMatDarcy2dhdiv::VariableIndex(const std::string &name){
 int TPZMatDarcy2dhdiv::NSolutionVariables(int var){
     if(var == 1) return 2;
     if(var == 2) return 1;
+    if(var == 3) return 2;
+    if(var == 4) return 1;
+    
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -850,8 +859,25 @@ void TPZMatDarcy2dhdiv::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         return;
     }
     
-    if(var == 2){
-        Solout[0] = SolP[0];//function (state variable p)
+    if(var == 2){//function (state variable p)
+        Solout[0] = SolP[0];
+        return;
+    }
+
+    if(var == 3){ //function (state variable Q anal)
+        TPZVec<STATE> solExact(1);
+        TPZFMatrix<STATE> flux(1,1);
+        fTimedependentFunctionExact->Execute(datavec[1].x, fData->Time(), solExact,flux);
+        Solout[0] = flux(0,0);
+        Solout[1] = 0.0;
+        return;
+    }
+    
+    if(var == 4){//function (state variable p anal)
+        TPZVec<STATE> solExact(1);
+        TPZFMatrix<STATE> flux(1,1);
+        fTimedependentFunctionExact->Execute(datavec[1].x, fData->Time(), solExact,flux);
+        Solout[0] = solExact[0];
         return;
     }
     
