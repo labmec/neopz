@@ -33,7 +33,7 @@ public:
 	 *  contains the index of the material object within the
 	 *  vector
 	 */
-	TPZMatElastoPlastic2D(int id ,  int PlaneStrainOrPlaneStress);
+	TPZMatElastoPlastic2D(int id ,  int PlaneStrainOrPlaneStress, STATE sigmaz);
 	
 	/** Creates a material object based on the referred object and
 	 *  inserts it in the vector of material pointers of the mesh.
@@ -83,9 +83,30 @@ public:
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
     /**
+	 * @brief Computes a contribution to the stiffness matrix and load vector at one integration point.
+     * This contribution includes a approximationspace for the vertical deformation of domain
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 */
+	virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<REAL> &ef);
+	
+	/**
+	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * This contribution includes a approximationspace for the vertical deformation of domain
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 */
+	virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+
+    /**
      * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
      */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
+    
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
 	 * @param data [in] stores all input data
@@ -94,8 +115,43 @@ public:
 	 * @param ef [out] is the load vector
 	 * @param bc [in] is the boundary condition material
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
-	
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
+     */
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
+     */
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    {
+        ContributeBC(data[0], weight, ek, ef, bc);
+    }
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
+     */
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    {
+        ContributeBC(data[0], weight, ef, bc);
+    }
+    
 	
 	/** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
 	 * @param DeltaStrain [out] 
@@ -103,6 +159,12 @@ public:
 	 */
 	void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
 	
+    /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
+     * @param DeltaStrain [out]
+     * @param data [in]
+     */
+    void ComputeDeltaStrainVector(TPZVec<TPZMaterialData> & data, TPZFMatrix<REAL> &DeltaStrain);
+    
 	
 	/** Calls the plasticity template aggregate applyStrainComputeDep method
 	 *  @param data [in]
@@ -140,11 +202,24 @@ public:
 	 * Read the element data from a stream
 	 */
 	virtual void Read(TPZStream &buf, void *context);
+    
+    /**
+     * Set the total overburden
+     */
+    void SetTotalOverburden(STATE sigmaz)
+    {
+        fSigmaZ = sigmaz;
+    }
 	
 protected:
 	
 	
 	int fPlaneStrain;
+    
+    /**
+     * @brief Vertical overburden total tension
+     */
+    STATE fSigmaZ;
 	
 };
 
