@@ -748,10 +748,12 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		if(!keeplooking)
 		{
 		        PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
+#ifdef LOG4CXX
             if(logger->isDebugEnabled())
             {
                 LOGPZ_DEBUG(logger,"Going to sleep within assembly")
             }
+#endif
 			// wait for a signal
             data->fAssembly.Wait();
             /*
@@ -761,10 +763,12 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 			sem_wait(&data->fAssembly);
 #endif
              */
+#ifdef LOG4CXX
             if(logger->isDebugEnabled())
             {
                 LOGPZ_DEBUG(logger,"Waking up for assembly")
             }
+#endif
 		        PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 		}
 		nextel = data->fNextElement;
@@ -776,10 +780,12 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		std::stringstream sout;
 		sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
 		sout << "The comparaison results are : consistency check " << globalresult;
+#ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
             LOGPZ_DEBUG(loggerCheck,sout.str())
         }
+#endif
 	}
 	PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 	return 0;	
