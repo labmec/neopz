@@ -114,7 +114,7 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 		LOGPZ_DEBUG(loggerCheck,"jacinv different")
 	}
 	result = result && locres;
-	return true;
+	return result;
 }
 
 // Compare the object for identity with the object pointed to, eventually copy the object
@@ -124,6 +124,7 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
  */
 bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
 {
+    DebugStop();
 	return true;
 }
 
