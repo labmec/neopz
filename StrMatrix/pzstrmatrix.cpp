@@ -776,17 +776,15 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		
 	}
 	//	std::cout << std::endl;
-	{
+#ifdef LOG4CXX
+    if(loggerCheck->isDebugEnabled())
+    {
 		std::stringstream sout;
 		sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
 		sout << "The comparaison results are : consistency check " << globalresult;
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            LOGPZ_DEBUG(loggerCheck,sout.str())
-        }
+        LOGPZ_DEBUG(loggerCheck,sout.str())
+    }
 #endif
-	}
 	PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 	return 0;	
 }		

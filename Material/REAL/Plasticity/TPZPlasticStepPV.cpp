@@ -262,7 +262,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger2->isDebugEnabled())
     {
         if(fabs(printPlastic-fN.fAlpha)>1.e-4)
         {

@@ -603,9 +603,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 {
     
     TPZCompMesh *workablemesh = &fCurrentConfig.fCMesh;
-    if (fCurrentConfig.fWellConfig == EVerticalWell) {
-        workablemesh = &fCurrentConfig.fMultiPhysics;
-    }
+//    if (fCurrentConfig.fWellConfig == EVerticalWell) {
+//        workablemesh = &fCurrentConfig.fMultiPhysics;
+//    }
     TPZElastoPlasticAnalysis analysis(workablemesh,std::cout);
 
 	TPZSkylineStructMatrix full(workablemesh);
@@ -956,6 +956,9 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE welleffectivepressure, 
     }
     mat = fCMesh.FindMaterial(1);
     TPZAutoPointer<TPZFunction<STATE> > force = mat->ForcingFunction();
+    if (!force) {
+        force = new TPBrBiotForce();
+    }
     
     TPBrBiotForce *biotforce = dynamic_cast<TPBrBiotForce *>(force.operator->());
     if (!biotforce) {
