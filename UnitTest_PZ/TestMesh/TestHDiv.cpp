@@ -349,15 +349,15 @@ BOOST_AUTO_TEST_CASE(vector_direction)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec, MElementType type, int nelem, int fluxorder, int ndiv)
+static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec, MElementType eltype, int nelem, int fluxorder, int ndiv)
 {
     int dimmodel = 2;
     TPZManVector<int,3> nx(2,nelem);
     TPZManVector<REAL,3> x0(3,-1.),x1(3,1.);
     x1[2] = -1.;
     TPZGenGrid grid(nx,x0,x1);
-    if (type == ETriangle || type == EPrisma) {
-        grid.SetElementType(type);
+    if (eltype == ETriangle || eltype == EPrisma) {
+        grid.SetElementType(ETriangle);
     }
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     grid.Read(gmesh);
@@ -382,7 +382,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
 
 
     
-    if (type == EPrisma || type == ECube) {
+    if (eltype == EPrisma || eltype == ECube) {
         REAL thickness = 2.;
         TPZExtendGridDimension extend(gmesh,thickness);
         int numlayers = nelem;
@@ -407,29 +407,41 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     PressureMesh = new TPZCompMesh(gmesh);
     
     TPZFNMatrix<4,STATE> val1(1,1,0.),val2(1,1,0.);
-    TPZBndCond *bndP = matpoisP->CreateBC(poisP, -1, 0, val1, val2);
     PressureMesh->InsertMaterialObject(poisP);
-    PressureMesh->SetAllCreateFunctionsContinuous();
-    PressureMesh->ApproxSpace().CreateDisconnectedElements(true);
-//    PressureMesh->SetAllCreateFunctionsDiscontinuous();
-    TPZMaterial *matbndP(bndP);
-    PressureMesh->InsertMaterialObject(matbndP);
-    bndP = matpoisP->CreateBC(poisP, -2, 1, val1, val2);
-    PressureMesh->InsertMaterialObject(bndP);
+    if (eltype == ETriangle) {
+        PressureMesh->SetAllCreateFunctionsDiscontinuous();
+    }
+    else
+    {
+        PressureMesh->SetAllCreateFunctionsContinuous();
+        PressureMesh->ApproxSpace().CreateDisconnectedElements(true);
+    }
     
-    TPZMaterial *matbndP2(bndP);
-    PressureMesh->InsertMaterialObject(matbndP2);
-    bndP = matpoisP->CreateBC(poisP, -3, 1, val1, val2);
-    PressureMesh->InsertMaterialObject(bndP);
+//    TPZBndCond *bndP = matpoisP->CreateBC(poisP, -1, 0, val1, val2);
+//    TPZMaterial *matbndP(bndP);
+//    PressureMesh->InsertMaterialObject(matbndP);
+//    bndP = matpoisP->CreateBC(poisP, -2, 1, val1, val2);
+//    PressureMesh->InsertMaterialObject(bndP);
+//    
+//    TPZMaterial *matbndP2(bndP);
+//    PressureMesh->InsertMaterialObject(matbndP2);
+//    bndP = matpoisP->CreateBC(poisP, -3, 1, val1, val2);
+//    PressureMesh->InsertMaterialObject(bndP);
     
-    PressureMesh->SetDefaultOrder(fluxorder);
+    if (eltype != ETriangle) {
+        PressureMesh->SetDefaultOrder(fluxorder);
+    }
+    else
+    {
+        PressureMesh->SetDefaultOrder(fluxorder-1);
+    }
     PressureMesh->SetDimModel(dimmodel);
     std::set<int> matids;
     matids.insert(1);
     PressureMesh->AutoBuild(matids);
     PressureMesh->LoadReferences();
-    PressureMesh->ApproxSpace().CreateDisconnectedElements(false);
-    PressureMesh->AutoBuild();
+//    PressureMesh->ApproxSpace().CreateDisconnectedElements(false);
+//    PressureMesh->AutoBuild();
     
     int ncon = PressureMesh->NConnects();
     for(int i=0; i<ncon; i++)
@@ -507,6 +519,22 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     
     TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
     TPZBuildMultiphysicsMesh::AddConnects(meshvec, mphysics);
+    
+    {
+        long nel = mphysics->NElements();
+        for (long el=0; el<nel; el++) {
+            TPZCompEl *cel = mphysics->Element(el);
+            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+            if (!mfcel) {
+                DebugStop();
+            }
+            if (mfcel->NMeshes() != 2) {
+                mfcel->AddElement(0, 1);
+            }
+        }
+    }
+    
+    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
     mphysics->Reference()->ResetReference();

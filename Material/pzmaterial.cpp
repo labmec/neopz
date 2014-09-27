@@ -42,6 +42,7 @@ TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1), fPostProcIndex(0) 
 
 TPZMaterial::~TPZMaterial()
 {
+    this->fId = -999;
 }
 
 

@@ -727,13 +727,14 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int>
     FirstShapeIndex(FirstIndex); // Nao preenche para o cubo????
     //FirstIndex.Print();
     
-{
 #ifdef LOG4CXX
-    std::stringstream sout;
-    sout << "FirstIndex "<<FirstIndex << std::endl;
-    LOGPZ_DEBUG(logger,sout.str())
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "FirstIndex "<<FirstIndex << std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
-}
 
     MElementType tipo = TSHAPE::Type();
 
@@ -1187,6 +1188,10 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
             }
         }
     }
+    else
+    {
+        DebugStop();
+    }
 }
 
 template<class TSHAPE>
@@ -1463,6 +1468,13 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG;
     TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(qsi,data.fNormalVec, normalsidesDG);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     
 
@@ -1531,17 +1543,19 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.fShapeType = TPZMaterialData::EVecShape;
 
     
-//#ifdef LOG4CXX
-//	{
-//		std::stringstream sout;
-//		data.fNormalVec.Print("Normal vector ", sout);
-//        NormalsDouglas.Print("Normal do Douglas ",sout);
-//		sout << "NormalVector/Shape indexes " << data.fVecShapeIndex << std::endl;
-//        sout << "Nova versao              : " << IndexVecShape << std::endl;
-//        std::cout << sout.str().c_str();
-//		LOGPZ_DEBUG(logger,sout.str())
-//	}
-//#endif    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		data.fNormalVec.Print("Normal vector ", sout);
+        for (int i=0; i<TSHAPE::NCornerNodes; i++) {
+            sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
+        }
+        sout << std::endl;
+		sout << "NormalVector/Shape indexes " << data.fVecShapeIndex << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif    
     
      
 }

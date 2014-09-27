@@ -29,14 +29,14 @@ public:
 	 * @param cmeshVec [in]:  pointer to an vector of meshes
 	 * @param MFMesh [out]: my mesh multiphysics  
 	 */
-	static void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
+	static void AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 	
 	/*
 	 * @brief Method to add connects in the mesh multiphisics
 	 * @param cmeshVec [in]: pointer to an vector of meshes
 	 * @param MFMesh [out]: my mesh multiphysics  
 	 */
-	static void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
+	static void AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
     
     /*
 	 * @brief Methodo to append connects from mesh to a multiphysics mesh

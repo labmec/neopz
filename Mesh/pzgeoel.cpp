@@ -1644,8 +1644,9 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &
 
 void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
 {
-    
-    Directions(side, pt, normals, vectorsides);
+    if (SideDimension(side) >= Dimension()-1) {
+        Directions(side, pt, normals, vectorsides);
+    }
     if (SideDimension(side) == Dimension()-1)
     {
         // we need to permute the normals and associated sides
