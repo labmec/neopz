@@ -1034,7 +1034,16 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	for(int nint = 0; nint < nintpoints; nint++) {
 		
 		intrule->Point(nint,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+        
+        //in the case of the hdiv functions
+        TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+        if(shapetype==data.EVecShape){
+            this->ComputeRequiredData(data, intpoint);
+        }
+        else
+        {
+            this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+        }
 		weight *= fabs(data.detjac);
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		//this->ComputeSolution(intpoint, data);

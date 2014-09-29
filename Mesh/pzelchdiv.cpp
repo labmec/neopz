@@ -1200,6 +1200,7 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &s
     TPZMaterialData data;
 	InitMaterialData(data);
 	//this->ComputeSolutionHDiv(data);
+    this->ComputeRequiredData(data,qsi);
     this->ComputeSolutionHDiv(qsi,data);
 	this->Material()->Solution(data,var,sol);
 }
