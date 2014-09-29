@@ -72,7 +72,7 @@ const int bc0 = -1;
 const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
-bool fTriang = false;
+bool fTriang = true;
 
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool triang_elements);
 
@@ -87,6 +87,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out);
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out);
 
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
     TPZVec<REAL> erros;
     ofstream saidaerros("Erros.txt");
     saidaerros << "\nCalculo do Erro\n";
-    for(int p=2; p<3; p++){
+    for(int p=1; p<5; p++){
         saidaerros << "\n";
         
         int pq = p;
@@ -118,7 +119,7 @@ int main(int argc, char *argv[])
         }
         
         saidaerros<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for(int h=3; h<4; h++){
+        for(int h=1; h<5; h++){
             saidaerros << "\nRefinamento: h = "<< h <<"\n";
             
             /*------------ Etapa 1 ------------*/
@@ -161,9 +162,10 @@ int main(int argc, char *argv[])
             ErrorHDiv2(cmesh1,saidaerros);
             
             saidaerros<<"\n\nErro da simulacao multifisica  para a pressao";
-            TPZAnalysis an2(cmesh2);
-            an2.SetExact(*SolSuave);
-            an2.PostProcessError(erros, saidaerros);
+//            TPZAnalysis an2(cmesh2);
+//            an2.SetExact(*SolSuave);
+//            an2.PostProcessError(erros, saidaerros);
+            ErrorH1(cmesh2, saidaerros);
         
         }
     }
@@ -661,6 +663,46 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
     out << "Hdiv Norm for flux = "    << sqrt(globerrors[3])  <<endl;
     
 }
+
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
+{
+    long nel = l2mesh->NElements();
+    int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(SolSuave, elerror, NULL);
+        
+        int nerr = elerror.size();
+        //globerrors.resize(nerr);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+    }
+    out << "\n";
+    out << "Errors associated with L2 or H1 space\n";
+    out << "\nH1 Norm = "    << sqrt(globerrors[0]) << endl;
+    out << "\nL2 Norm = "    << sqrt(globerrors[1]) << endl;
+    out << "\nSemi H1 Norm = "    << sqrt(globerrors[2]) << endl;
+    out << "\n=============================\n"<<endl;
+}
+
 
 void UniformRefine2(TPZGeoMesh* gmesh, int nDiv)
 {
