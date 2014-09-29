@@ -47,12 +47,14 @@ void TPZMatfrac1dhdiv::Print(std::ostream &out) {
 
 REAL TPZMatfrac1dhdiv::Getw(REAL p)
 {
+  DebugStop(); // deprecated
   return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G() * (p - fData->SigmaConf());
 }
 
 REAL TPZMatfrac1dhdiv::Getdwdp()
 {
-  return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G(); // AQUINATHAN Nao precisa calcular toda vez. Colocar no fData depois de fazer o leakoff
+  DebugStop(); // deprecated
+  return 0.817 * (1. - fData->Poisson()) * fData->Hf() / fData->G();
 }
 
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
@@ -94,8 +96,8 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   const REAL p = datavec[1].sol[0][0];
   
   // Abertura
-  REAL w = Getw(p);
-  const REAL dwdp = Getdwdp();
+  REAL w = fData->GetW(p);
+  const REAL dwdp = fData->GetDwDp();
   
   /*
   const REAL wtol = 1.e-4;
@@ -107,9 +109,8 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   // Leak off
   const int intGlobPtIndex = datavec[0].intGlobPtIndex;
   TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
-  
-  const REAL ql = fData->QlFVl(Vl(0,0),p);
-  const REAL dqldp = fData->dQlFVl(Vl(0,0), p);
+  const REAL ql = 2.*fData->QlFVl(Vl(0,0),p);
+  const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
   
   //  Contribution of domain integrals for Jacobian matrix and Residual vector
   //  n + 1 time step
@@ -160,7 +161,7 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
   const STATE pfrac = datavec[1].sol[0][0];
   const REAL deltaT = fData->TimeStep();
   
-  REAL tStar = fData->FictitiousTime(Vl(0,0), pfrac);
+  REAL tStar = fData->FictitiousTime(Vl(0,0), pfrac-fData->SigmaConf());
   REAL Vlnext = fData->VlFtau(pfrac, tStar + deltaT);
   
   Vl(0,0) = Vlnext;
@@ -188,7 +189,6 @@ void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
   
   // Getting shape functions
   TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
-  //TPZFMatrix<REAL>  &phiP = datavec[1].phi;
   
   // number of test functions for each state variable
   const int phrQ = phiQ.Rows();
@@ -263,7 +263,7 @@ void TPZMatfrac1dhdiv::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
   }
   
   if (var == 2) {
-    const REAL w = Getw(SolP);
+    const REAL w = fData->GetW(SolP);
     Solout[0] = w;
   }
 }

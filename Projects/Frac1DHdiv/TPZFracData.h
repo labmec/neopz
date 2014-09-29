@@ -13,6 +13,10 @@ class TPZFracData {
   
 public:
   
+  
+  
+public:
+  
   /** @brief Default Constructor */
   TPZFracData();
   
@@ -85,6 +89,9 @@ private:
   
   /** @brief Spurt loss */
   REAL fvsp;
+
+  /** @brief Vl for new element after propagation  */
+  REAL fAccumVl;
   
   /** @brief P order of pressure (p) analysis for fracturing simulation */
   int fPorderPressure;
@@ -95,6 +102,12 @@ private:
   /** @brief Number of elements in the fracture */
   int fnelFrac;
   
+  /** @brief Size of the elements in the fracture */
+  REAL felSize;
+  
+  /** @brief Derivative of opening with relation to the pressure */
+  REAL fdwdp;
+  
   /** @brief Name of the postprocess file for fracture vtk */
   std::string fpostProcessFileName;
   
@@ -102,6 +115,15 @@ private:
   std::map<REAL,REAL> fDebugMap;
   
 public:
+  
+  /** @brief Returns w based on pfrac */
+  REAL GetW(REAL pfrac) const;
+
+  /** @brief Returns dwdp based on pfrac */
+  REAL GetDwDp() const;
+  
+  /** @brief Sets dwdp which is constant for the simulation. Can only be called after defining some other atributes */
+  void SetDwDp();
   
   /** @brief Sets next time of simulation */
   void SetNextTime();
@@ -235,11 +257,17 @@ public:
   /** @brief Returns p order of the flow */
   int PorderFlow() const {return this->fPorderFlow;}
   
-  /** @brief Defines p order of the flow in H1 space */
+  /** @brief Defines Number of elements in the fracture */
   void SetNelFrac(int NelFrac){ this->fnelFrac = NelFrac;}
   
-  /** @brief Returns p order of the flow */
+  /** @brief Returns number of elements in the fracture */
   int NelFrac() const {return this->fnelFrac;}
+
+  /** @brief Defines p order of the flow in H1 space */
+  void SetElSize(REAL elSize){ this->felSize = elSize;}
+  
+  /** @brief Returns p order of the flow */
+  REAL ElSize() const {return this->felSize;}
   
   /** @brief Set evaluating step n */
   void SetLastState(){ State = n;}
@@ -273,6 +301,12 @@ public:
 
   /** @brief Returns spurt loss */
   REAL Vsp() const {return fvsp;}
+  
+  /** @brief Sets vl of the element to be propagated */
+  void SetAccumVl(REAL AccumVl){fAccumVl = AccumVl;}
+  
+  /** @brief Returns vl of the element to be propagated */
+  REAL AccumVl() const {return fAccumVl;}
 
   /** @brief Return vl based on exposition time and pressure */
   REAL VlFtau(REAL pfrac, REAL tau) const;

@@ -23,8 +23,11 @@ public:
   /** @brief Destructor */  
   ~TPZFracAnalysis();
 
-  /** @brief Runs simulation */
+  /** @brief Runs case where fracture starts from zero */
   void Run();
+  
+  /** @brief Runs test where fracture has determined length */
+  void RunTest();
   
   /** @brief Creates geometric mesh */
   TPZGeoMesh * CreateGMesh();
@@ -36,7 +39,7 @@ public:
   TPZCompMesh * CreateCMeshPressureL2();
   
   /** @brief Creates Multiphysic mesh for mixed simulation of fracture */
-  TPZCompMesh * CreateCMeshMixed();
+  TPZCompMesh * CreateCMeshMixed(TPZFMatrix<STATE> vlMatrix);
   
   /** @brief Assemble last step */
   void AssembleLastStep(TPZAnalysis *an);
@@ -45,12 +48,33 @@ public:
   void IterativeProcess(TPZAnalysis *an, std::ostream &out);
 
   /** @brief Solve time steps */
-  void SolveSistTransient(TPZAnalysis *an);
+  bool SolveSistTransient(TPZAnalysis *an);
 
   /** @brief Updates Leak Off integration points values */
   void AcceptSolution(TPZAnalysis *an);
+
+  /** @brief PostProcess mesh in VTK */
+  void PostProcessVTK(TPZAnalysis *an);
+
+  /** @brief Calculates Q of the tip of the fracture */
+  REAL Qtip();
+    
+  /** @brief Finds the initial time step to run simulation and returns the vl to train the integration points */
+  REAL RunUntilOpen();
+  
+  /** @brief Creates first GeoEl with bc */
+  TPZGeoEl* CreateFirstGeoElWithBC();
+  
+  /** @brief Verifies if has to propagate, ie, the qtip is bigger than leak off of the next element */
+  bool VerifyIfPropagate(REAL qtip);
+
+  /** @brief Find the pressure BC geo element */
+  TPZGeoEl * FindPressureBCElement();
   
 private:
+  
+  /** @brief bool which indicates if the end of time is reached */
+  bool fmustStop;
   
   /** @brief Data of the simulation */
   TPZAutoPointer<TPZFracData> fData;

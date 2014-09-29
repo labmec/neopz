@@ -13,6 +13,8 @@ int main()
   InitializePZLOG();
 #endif
   
+  TPZMaterial::gBigNumber = 1.e8;
+  
   // ---------- Parametros ----------
   // Reservoir Data
   const REAL phi = 0.1;
@@ -22,19 +24,20 @@ int main()
   Kabolute(1,1) = 1.0e-13;
   const REAL nu = 0.2;
   const REAL E = 1.e4;
-  const REAL SigmaConf = 0.;
+  const REAL SigmaConf = 20.;
   
   // Simulation Data
   const REAL theta = 1.;
   const REAL InitTime = 0.;
   const REAL timeStep = 1.;
-  const REAL Ttot = 50.;
+  const REAL Ttot = 100.;
   const int pOrdQDarcy = 1;
   const int pOrdPDarcy = 1;
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
-  std::string PostProcessFileName = "SolWithLeakOff.vtk";
+  const REAL elsize = 50.;
+  std::string PostProcessFileName = "Propag.vtk";
   
   // Fluid Data
   const REAL mu = 1.e-8; // N/mm2 . s
@@ -42,13 +45,13 @@ int main()
   // Fracture Data
   const REAL Lfrac = 1000.; // mm
   const REAL hf = 50000.; // mm
-  const REAL Q = 100.; // mm3/s
+  const REAL Q = 100.; // mm3/s/mm
   
   // Leak off data
-  const REAL Cl = 0.0005; // Carter coefficient
-  const REAL Pe = 0.; // Should come from darcy simulation
-  const REAL Pref = 1.; // pressure where Cl was measured
-  const REAL vsp = 0.0001; // spurt loss
+  const REAL Cl = 0.3; // Carter coefficient
+  const REAL Pe = 5.; // Should come from darcy simulation
+  const REAL Pref = 30.; // pressure where Cl was measured
+  const REAL vsp = 0.*0.002; // spurt loss
 
   // Preenchendo estrutura TPZFracData
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
@@ -74,6 +77,8 @@ int main()
   Data->SetPe(Pe);
   Data->SetPref(Pref);
   Data->SetVsp(vsp);
+  Data->SetElSize(elsize);
+  Data->SetDwDp();
   
   // Fracture Simulation uncoupled
   Data->SetPorderFlow(pOrdQFrac);

@@ -7,11 +7,33 @@
 
 TPZFracData::TPZFracData()
 {
-  fDeltaT = 0.0;
-  fRho = 0.0;
-  fPhi = 0.0;
+
+  fmu = 0.;
+  fRho = 0.;
+  fKab.Redim(0, 0);
+  fPhi = 0.;;
+  fDeltaT = 0.;
   fTime = 0.;
-  fTheta = 1.0;
+  fTtot = 0.;
+  fTheta = 0.;
+  fLfrac = 0.;
+  fHf = 0.;
+  fE = 0.;
+  fnu = 0.;
+  fQ = 0.;
+  fSigmaConf = 0.;
+  fCl = 0.;
+  fPe = 0.;
+  fPref = 0.;
+  fvsp = 0.;
+  fAccumVl = 0.;
+  fPorderPressure = 0;
+  fPorderFlow = 0;
+  fnelFrac = 0;
+  felSize = 0.;
+  fdwdp = 0.;
+  fpostProcessFileName = "DefaultName.vtk";
+  fDebugMap.clear();
   this->SetCurrentState();
 }
 
@@ -120,13 +142,11 @@ std::string TPZFracData::PostProcessFileName()
 REAL TPZFracData::VlFtau(REAL pfrac, REAL tau) const
 {
   const REAL Cl = this->Cl();
-  REAL sigmaConf = this->SigmaConf();
   REAL Pe = this->Pe();
   REAL Pref = this->Pref();
   REAL vsp = this->Vsp();
   
-  REAL Pef = pfrac + sigmaConf;
-  REAL Pcalc = (Pef - Pe)/Pref;
+  REAL Pcalc = (pfrac - Pe)/Pref;
   if(Pcalc < 0.)
   {
     Pcalc = 0.;
@@ -141,7 +161,6 @@ REAL TPZFracData::VlFtau(REAL pfrac, REAL tau) const
 REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac) const
 {
   REAL Cl = this->Cl();
-  REAL sigmaConf = this->SigmaConf();
   REAL Pe = this->Pe();
   REAL Pref = this->Pref();
   REAL vsp = this->Vsp();
@@ -149,8 +168,7 @@ REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac) const
   REAL tStar = 0.;
   if(VlAcum > vsp)
   {
-    REAL Pef = pfrac + sigmaConf;
-    REAL Pcalc = (Pef - Pe)/Pref;
+    REAL Pcalc = (pfrac - Pe)/Pref;
     if(Pcalc < 0.)
     {
       Pcalc = 0.;
@@ -223,4 +241,19 @@ void TPZFracData::PrintDebugMapForMathematica(std::string filename)
   out << "ListPlot[DebugMap,Joined -> True,PlotMarkers -> Automatic]";
   
   out.close();
+}
+
+void TPZFracData::SetDwDp(){
+  if (fnu <= 0. || fHf <= 0. || fE <= 0.){
+    DebugStop(); // initialize those variables before using this method
+  }
+  fdwdp = 0.817 * (1. - this->Poisson()) * this->Hf() / this->G();
+}
+
+REAL TPZFracData::GetDwDp() const{
+  return fdwdp;
+}
+
+REAL TPZFracData::GetW(REAL pfrac) const{
+  return this->GetDwDp() * (pfrac - this->SigmaConf());
 }
