@@ -36,6 +36,9 @@ class TPZMDPMaterial : public TPZMatLaplacian {
 	
 	protected :
     
+    /** @brief Direction of the convection operator */
+    REAL fC[3];
+    
 public:
 	
     
@@ -88,6 +91,13 @@ public:
     virtual int VariableIndex(const std::string &name);
     
 	virtual int NSolutionVariables(int var);
+    
+    void SetConvection(TPZVec<REAL> conv){
+        if(conv.size()!=3) DebugStop();
+        fC[0]=conv[0];
+        fC[1]=conv[1];
+        fC[2]=conv[2];
+    }
     
 public:
     

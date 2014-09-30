@@ -28,16 +28,25 @@ using namespace std;
 
 TPZMDPMaterial::TPZMDPMaterial(int nummat, int dim) : TPZMatLaplacian(nummat,dim)
 {
+    fC[0]=0.;
+    fC[1]=0.;
+    fC[2]=0.;
 }
 
 TPZMDPMaterial::TPZMDPMaterial() : TPZMatLaplacian()
 {
+    fC[0]=0.;
+    fC[1]=0.;
+    fC[2]=0.;
 }
 
 
 TPZMDPMaterial & TPZMDPMaterial::operator=(const TPZMDPMaterial &copy)
 {
 	TPZMatLaplacian::operator = (copy);
+    fC[0]=copy.fC[0];
+    fC[1]=copy.fC[1];
+    fC[2]=copy.fC[2];
 	return *this;
 }
 
@@ -61,6 +70,8 @@ void TPZMDPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     TPZFMatrix<REAL>  &phif = datavec[0].phi;
     TPZFMatrix<REAL> &dphif = datavec[0].dphix;
     TPZVec<REAL>  &x = datavec[0].x;
+    TPZFMatrix<REAL> &axes = datavec[0].axes;
+    
     int phr_f = phif.Rows();
     
     STATE XfLoc = fXf;
@@ -71,6 +82,29 @@ void TPZMDPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
         XfLoc = res[0];
     }
     
+    //-------------------------------
+    
+    STATE ConvDirAx[3];
+
+    switch(fDim) {
+        case 1:
+            ConvDirAx[0] = axes(0,0)*fC[0]+axes(0,1)*fC[1]+axes(0,2)*fC[2];
+            break;
+        case 2:
+            ConvDirAx[0] = axes(0,0)*fC[0]+axes(0,1)*fC[1]+axes(0,2)*fC[2];
+            ConvDirAx[1] = axes(1,0)*fC[0]+axes(1,1)*fC[1]+axes(1,2)*fC[2];
+            break;
+        case 3:
+            ConvDirAx[0] = axes(0,0)*fC[0]+axes(0,1)*fC[1]+axes(0,2)*fC[2];
+            ConvDirAx[1] = axes(1,0)*fC[0]+axes(1,1)*fC[1]+axes(1,2)*fC[2];
+            ConvDirAx[2] = axes(2,0)*fC[0]+axes(2,1)*fC[1]+axes(2,2)*fC[2];
+            break;
+        default:
+            PZError << "TPZMDPMaterial::Contribute dimension error " << fDim << endl;
+    }
+
+    //-------------------------------
+    
     /**
      *@ingroup Obter espaco teste otimo: obter e in Vr
      *@brief Find ur in Vr such that: \f$ a(ur,vr) = f(vr), for all vr in Vr \f$
@@ -80,11 +114,14 @@ void TPZMDPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     {
         int kd;
         ef(in, 0) += (STATE)weight*XfLoc*(STATE)phif(in,0);
+        
+        
         for(int jn = 0; jn < phr_f; jn++)
         {
             for(kd=0; kd<fDim; kd++)
             {
-                ek(in,jn) += (STATE)weight*(fK*(STATE)(dphif(kd,in)*dphif(kd,jn)));
+                ek(in,jn) += (STATE)weight*(fK*(STATE)(dphif(kd,in)*dphif(kd,jn))
+                                + (STATE)(dphif(kd,jn)*ConvDirAx[kd]*phif(in)));
             }
         }
     }
@@ -105,12 +142,12 @@ void TPZMDPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
         for(int jn = 0; jn < phr_f; jn++)
         {
             //ur*vh
-            ek(phr_f + in, jn) += (STATE)weight*((STATE)(phic(in,0)*phif(jn,0)));
+            //ek(phr_f + in, jn) += (STATE)weight*((STATE)(phic(in,0)*phif(jn,0)));
             
             for(kd=0; kd<fDim; kd++)
             {
                 //grad(ur)*grad(vh)
-                ek(phr_f + in, jn) += (STATE)weight*((STATE)(dphic(kd,in)*dphif(kd,jn)));
+                ek(phr_f + in, jn) += (STATE)weight*(fC[0]/fK*(STATE)(dphic(kd,in)*dphif(kd,jn)));
             }
         }
     }
@@ -118,16 +155,15 @@ void TPZMDPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     //-b(uh,vh)
     for( int in = 0; in < phr_c; in++ ) {
         int kd;
-        //ef(phr_f + 2 +in, 0) += (STATE)weight*XfLoc*(STATE)phic(in,0);
         for(int jn = 0; jn < phr_c; jn++)
         {
             //-(u,v)
-            ek(phr_f + in, phr_f + jn) += (-1.)*(STATE)weight*((STATE)(phic(in,0)*phic(jn,0)));
+           // ek(phr_f + in, phr_f + jn) += (-1.)*(STATE)weight*((STATE)(phic(in,0)*phic(jn,0)));
             
             for(kd=0; kd<fDim; kd++)
             {
                 //-grad(uh)grad(vh)
-                ek(phr_f + in, phr_f + jn) += (-1.)*(STATE)weight*((STATE)(dphic(kd,in)*dphic(kd,jn)));
+                ek(phr_f + in, phr_f + jn) += (-1.)*(STATE)weight*(fC[0]/fK*(STATE)(dphic(kd,in)*dphic(kd,jn)));
             }
         }
     }
@@ -149,6 +185,7 @@ void TPZMDPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, 
     
 	TPZFMatrix<REAL>  &phif = datavec[0].phi;
     TPZFMatrix<REAL>  &phic = datavec[1].phi;
+     TPZFMatrix<REAL> &axes = datavec[0].axes;
     
 	int phrf = phif.Rows();
     int phrc = phic.Rows();
@@ -164,25 +201,24 @@ void TPZMDPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, 
     
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
-
-//			for(in = 0 ; in < phrc; in++)
-//            {
-//				ef(phrf+in,0) += (STATE)(gBigNumber* phic(in,0)*weight)*v2[0];
-//				for (jn = 0 ; jn < phrc; jn++)
-//                {
-//					ek(phrf+in,phrf+jn) += gBigNumber * phic(in,0)*phic(jn,0)*weight;
-//				}
-//			}
             
             for(in = 0 ; in < phrf; in++)
             {
-				ef(in,0) += (STATE)(gBigNumber* phif(in,0)*weight)*v2[0];
-				for (jn = 0 ; jn < phrf; jn++)
+                ef(in,0) += (STATE)(gBigNumber* phif(in,0)*weight)*v2[0];
+                for (jn = 0 ; jn < phrf; jn++)
                 {
-					ek(in,jn) += gBigNumber * phif(in,0)*phif(jn,0)*weight;
+                    ek(in,jn) += gBigNumber * phif(in,0)*phif(jn,0)*weight;
+                }
+            }
+
+			for(in = 0 ; in < phrc; in++)
+            {
+				ef(phrf+in,0) += (STATE)(gBigNumber* phic(in,0)*weight)*v2[0];
+				for (jn = 0 ; jn < phrc; jn++)
+                {
+					ek(phrf+in,phrf+jn) += gBigNumber * phic(in,0)*phic(jn,0)*weight;
 				}
 			}
-            
 			break;
             
 		case 1 :			// Neumann condition
@@ -191,10 +227,10 @@ void TPZMDPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, 
 				ef(in,0) += v2[0]*(STATE)(phif(in,0)*weight);
 			}
             
-//            for(in = 0 ; in < phrc; in++)
-//            {
-//				ef(phrf+in,0) += v2[0]*(STATE)(phic(in,0)*weight);
-//			}
+            for(in = 0 ; in < phrc; in++)
+            {
+				ef(phrf+in,0) += v2[0]*(STATE)(phic(in,0)*weight);
+			}
 			break;
             
 		case 2 :		// mixed condition
@@ -216,6 +252,34 @@ void TPZMDPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, 
 //				}
 //			}
 			break;
+            
+        case 3: // outflow condition
+            int id, il, jl;
+            REAL normal[3];
+            if (fDim == 1) PZError << __PRETTY_FUNCTION__ << " - ERROR! The normal vector is not available for 1D TPZInterpolatedElement\n";
+            if (fDim == 2){
+                normal[0] = axes(0,1);
+                //normal[1] = axes(1,1);
+            }
+            if (fDim == 3){
+                normal[0] = axes(0,2);
+                normal[1] = axes(1,2);
+                normal[2] = axes(2,2);
+            }
+            REAL ConvNormal = 0.;
+            for(id=0; id<fDim; id++) ConvNormal += fC[id]*normal[id];
+            if(ConvNormal > 0.) {
+                for(il=0; il<phrf; il++) {
+                    for(jl=0; jl<phrf; jl++) {
+                        ek(il,jl) += weight * ConvNormal * phif(il)*phif(jl);
+                    }
+                }
+            }
+            else{
+                if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
+            }
+            break;
+
 	}
 }
 
