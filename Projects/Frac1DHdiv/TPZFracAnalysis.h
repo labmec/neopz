@@ -45,7 +45,7 @@ public:
   void AssembleLastStep(TPZAnalysis *an);
   
   /** @brief Newton Method */
-  void IterativeProcess(TPZAnalysis *an, std::ostream &out);
+  void IterativeProcess(TPZAnalysis *an, std::ostream &out, int nit = 50);
 
   /** @brief Solve time steps */
   bool SolveSistTransient(TPZAnalysis *an);

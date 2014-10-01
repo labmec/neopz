@@ -161,7 +161,7 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
   const STATE pfrac = datavec[1].sol[0][0];
   const REAL deltaT = fData->TimeStep();
   
-  REAL tStar = fData->FictitiousTime(Vl(0,0), pfrac-fData->SigmaConf());
+  REAL tStar = fData->FictitiousTime(Vl(0,0), pfrac);
   REAL Vlnext = fData->VlFtau(pfrac, tStar + deltaT);
   
   Vl(0,0) = Vlnext;

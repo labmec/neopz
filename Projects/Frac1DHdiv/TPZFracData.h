@@ -108,6 +108,9 @@ private:
   /** @brief Derivative of opening with relation to the pressure */
   REAL fdwdp;
   
+  /** @brief Last q tip */
+  REAL fLastQtip;
+  
   /** @brief Name of the postprocess file for fracture vtk */
   std::string fpostProcessFileName;
   
@@ -308,6 +311,12 @@ public:
   /** @brief Returns vl of the element to be propagated */
   REAL AccumVl() const {return fAccumVl;}
 
+  /** @brief Sets last q tip */
+  void SetLastQtip(REAL lastQtip){fLastQtip = lastQtip;}
+  
+  /** @brief Returns last q tip */
+  REAL LastQtip() const {return fLastQtip;}
+  
   /** @brief Return vl based on exposition time and pressure */
   REAL VlFtau(REAL pfrac, REAL tau) const;
 
@@ -319,7 +328,7 @@ public:
   
   /** @brief Return the seapage velocity derivative */
   REAL dQlFVl(REAL VlAcum, REAL pfrac) const;
-  
+
   /** @brief Return debug map */
   std::map<REAL,REAL> & DebugMap() {return fDebugMap;}
 

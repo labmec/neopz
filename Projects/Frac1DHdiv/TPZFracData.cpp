@@ -32,6 +32,7 @@ TPZFracData::TPZFracData()
   fnelFrac = 0;
   felSize = 0.;
   fdwdp = 0.;
+  fLastQtip = 0.;
   fpostProcessFileName = "DefaultName.vtk";
   fDebugMap.clear();
   this->SetCurrentState();
@@ -152,7 +153,7 @@ REAL TPZFracData::VlFtau(REAL pfrac, REAL tau) const
     Pcalc = 0.;
   }
   
-  REAL Clcorr = Cl;// * sqrt(Pcalc); AQUINATHAN
+  REAL Clcorr = Cl * sqrt(Pcalc);
   REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
   
   return Vl;
@@ -173,7 +174,7 @@ REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac) const
     {
       Pcalc = 0.;
     }
-    REAL Clcorr = Cl;// * sqrt(Pcalc); AQUINATHAN
+    REAL Clcorr = Cl * sqrt(Pcalc);
     tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
   }
   

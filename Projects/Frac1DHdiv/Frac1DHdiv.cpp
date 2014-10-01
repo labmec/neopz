@@ -49,8 +49,8 @@ int main()
   
   // Leak off data
   const REAL Cl = 0.3; // Carter coefficient
-  const REAL Pe = 5.; // Should come from darcy simulation
-  const REAL Pref = 30.; // pressure where Cl was measured
+  const REAL Pe = 15.; // Should come from darcy simulation
+  const REAL Pref = 10.; // pressure where Cl was measured
   const REAL vsp = 0.*0.002; // spurt loss
 
   // Preenchendo estrutura TPZFracData

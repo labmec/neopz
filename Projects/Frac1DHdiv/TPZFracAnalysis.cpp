@@ -9,7 +9,7 @@
 #include "pzanalysis.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzstepsolver.h"
-
+#include "pzmatred.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
@@ -432,12 +432,11 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshMixed(TPZFMatrix<STATE> vlMatrix)
   return cmesh;
 }
 
-void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
+void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
 {
 	int iter = 0;
 	REAL error = 1.e10, NormResLambdaLast = 1.e10;
   const REAL tol = 1.e-8;
-  const int numiter = 50;
   
   fData->SetCurrentState();
 	int numeq = an->Mesh()->NEquations();
@@ -453,8 +452,9 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 	while(error > tol && iter < numiter) {
 		
 		an->Solve(); // o an->Solution() eh o deltaU aqui
-    SoliterK = prevsol - an->Solution();
-		REAL normDeltaSol = Norm(an->Solution());
+    TPZFMatrix<STATE> DeltaU = an->Solution();
+    SoliterK = prevsol - DeltaU;
+		REAL normDeltaSol = Norm(DeltaU);
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -486,7 +486,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 		double norm = normDeltaSol;
 		out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << std::endl;
     
-    //SoliterK.Print("Sol");
+    SoliterK.Print("Sol");
     //an->Rhs().Print("Rhs:");
     
 		if(norm < tol) {
@@ -494,8 +494,23 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 			out << "\n\nNorma da solucao |Delta(Un)|  : " << norm << std::endl << std::endl;
       
 		}
-    else if( (NormResLambda - NormResLambdaLast) > 1.e-9 ) {
-      out << "\nDivergent Method\n";
+    else if( (NormResLambda - NormResLambdaLast) > 1.e-4 ) {
+      out << "\nDivergent Method\n" << "Applying Line Search" << std::endl;
+      REAL scale = 0.5;
+      int itls = 0;
+      while (NormResLambda > NormResLambdaLast) {
+        SoliterK = prevsol - scale * DeltaU;
+        SoliterK.Print("Sol");
+        an->LoadSolution(SoliterK);
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
+        an->Assemble();
+        an->Rhs() += fLastStepRhs;
+        NormResLambda = Norm(an->Rhs());
+        scale *= scale;
+        out << " Line Search iter: " << itls << " : normas |Delta(Un)| e |Delta(rhs)| : " << Norm(scale*DeltaU) << " / " << NormResLambda << std::endl;
+        itls++;
+      }
+      
     }
     
     NormResLambdaLast = NormResLambda;
@@ -505,7 +520,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 		out.flush();
 	}
   
-  if (error > tol) {
+  if (error > tol && numiter != 1) {
     DebugStop(); // Metodo nao convergiu!!
   }
   
@@ -530,13 +545,14 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
     AssembleLastStep(an);
     TPZFMatrix<> lastSol = an->Solution();
     
-    if (it == 0) {
+    TPZEquationFilter eqF(fcmeshMixed->NEquations());
+    if (it == 0) { // aqui inicializo chutes iniciais para newton depois da propagacao
 
       const long pSolSize = fmeshvec[1]->Solution().Rows();
-      if(itglob == 0){
+      if(itglob == 0){ // esse caso eh para o primeiro elemento da simulacao
         fmeshvec[0]->Solution()(0,0) = fData->Q();
         
-        const REAL pfrac = 0.;
+        const REAL pfrac = fData->SigmaConf();
         const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
         const REAL vlnext = fData->VlFtau(pfrac, tstar+fData->TimeStep());
         const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
@@ -550,19 +566,78 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
         for (int i = 0; i < pSolSize; i++) {
           fmeshvec[1]->Solution()(i,0) = pini;
         }
-        
+
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
+        an->LoadSolution(fcmeshMixed->Solution());
+        an->Solution().Print("anini: ");
+
       }
-      else{
+      else{ // aqui eh quando ha mais de 1 elemento
+        
         fmeshvec[1]->Solution()(pSolSize-1,0) = fmeshvec[1]->Solution()(pSolSize-2,0);
+        if (fmeshvec[1]->Solution().Rows() > 5) {
+          fmeshvec[1]->Solution()(pSolSize-2,0) = fmeshvec[1]->Solution()(pSolSize-3,0);
+        }
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
+        an->LoadSolution(fcmeshMixed->Solution());
+        
+        const REAL qin = fData->LastQtip();
+        const REAL qout = qin/2.;
+        const REAL qmedia = (qin + qout)/2.;
+        const REAL dwdp = fData->GetDwDp();
+        const REAL factor = 12 * fData->Viscosity() * qmedia * fData->ElSize() / (dwdp*dwdp*dwdp);
+        const REAL pi = fData->SigmaConf() + pow(factor, 1./4.);
+        //std::cout << "pi = " << pi << std::endl;
+        //std::cout << "piantigo = " << fmeshvec[1]->Solution()(pSolSize-1,0) << std::endl;
+        //fmeshvec[1]->Solution()(pSolSize-1,0) = pi;
+        
+        // Fixo a pressao no ultimo elemento, e o resultado eh o chute inicial para o newton
+        TPZCompEl *cel = fcmeshMixed->Element(fcmeshMixed->ElementVec().NElements()-2);
+        TPZConnect &c = cel->Connect(3);
+        const int sq = c.SequenceNumber();
+        const int pos = fcmeshMixed->Block().Position(sq);
+        if (fcmeshMixed->Block().Size(sq) != 1) {
+          DebugStop();
+        }
+        std::set<long> eqOut;
+        
+        eqOut.insert(pos);
+        
+        const int neq = fcmeshMixed->NEquations();
+        TPZVec<long> actEquations(neq-eqOut.size());
+        int p = 0;
+        for (long eq = 0; eq < neq; eq++) {
+          if (eqOut.find(eq) == eqOut.end()) {
+            actEquations[p] = eq;
+            p++;
+          }
+        }
+        
+        eqF.SetActiveEquations(actEquations);
+        
       }
       
       fData->SetAccumVl(0.); // Zerando accumvl para os proximos
-      TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
-      an->LoadSolution(fcmeshMixed->Solution());
-      an->Solution().Print("anini: ");
+      
     }
 
-    IterativeProcess(an, std::cout);
+    const REAL tol = 1.e-8;
+    do{
+      
+      an->StructMatrix()->EquationFilter() = eqF;
+      an->Solver().SetMatrix(NULL);
+      IterativeProcess(an, std::cout);
+      an->StructMatrix()->EquationFilter().Reset();
+      
+      IterativeProcess(an, std::cout,1);
+      an->Rhs()(0,0) = 0.;
+      an->Rhs().Print("rhs");
+      
+    }while (Norm(an->Rhs()) > tol);
+    
+    
+
+    //IterativeProcess(an, std::cout);
     
     if (0)
     {
@@ -580,6 +655,7 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
     }
     
     if (propagate) {
+      fData->SetLastQtip(qtip);
       an->Solution() = lastSol;
       an->LoadSolution();
       TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
@@ -712,13 +788,13 @@ bool TPZFracAnalysis::VerifyIfPropagate(REAL qtip)
   const REAL dt = fData->TimeStep();
   const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
   const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
-  const REAL pfrac = 0.;
+  const REAL pfrac = fData->SigmaConf();
   const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
   REAL vl = fData->VlFtau(pfrac, tstar+dt);
   const REAL totalLeakOff = 2. * fData->ElSize() * vl;
   const REAL totalLeakOffprev = 2. * fData->ElSize() * fData->AccumVl();
   const REAL ql = (totalLeakOff - totalLeakOffprev)/dt;
-  if (qtip > 2.5 * ql) { // AQUINATHAN
+  if (qtip > 4. * ql) { // AQUINATHAN
     return true;
   }
   else{
@@ -739,7 +815,7 @@ REAL TPZFracAnalysis::RunUntilOpen()
     const REAL dt = fData->TimeStep();
     const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
     const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
-    const REAL pfrac = 0.;
+    const REAL pfrac = fData->SigmaConf();
     const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
     REAL vlnext = fData->VlFtau(pfrac, tstar+dt);
     const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;

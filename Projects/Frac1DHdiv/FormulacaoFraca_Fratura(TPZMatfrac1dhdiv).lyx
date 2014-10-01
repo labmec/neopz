@@ -368,7 +368,7 @@ Considerando-se o domínio unidimensional:
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\int_{0}^{l_{f}}\frac{12\mu}{w^{3}}q\ v\ dx-\int_{0}^{l_{f}}\frac{\partial v}{dx}\ p\ dx+p\ v\ |_{0}^{l_{f}}=0
+\int_{0}^{l_{f}}\frac{12\mu}{w^{3}}q\ v\ dx-\int_{0}^{l_{f}}\frac{\partial v}{dx}\ p\ dx+p\ v_{n}\ |_{0}^{l_{f}}=0
 \]
 
 \end_inset
@@ -383,7 +383,7 @@ Considerando um espaço de dimensão finita:
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\int_{0}^{l_{f}}\frac{12\mu}{w^{3}}q\ \phi_{q_{i}}\ dx-\int_{0}^{l_{f}}\frac{\partial\phi_{q_{i}}}{dx}\ p\ dx+p\ v\ |_{0}^{l_{f}}=0
+\int_{0}^{l_{f}}\frac{12\mu}{w^{3}}q\ \phi_{q_{i}}\ dx-\int_{0}^{l_{f}}\frac{\partial\phi_{q_{i}}}{dx}\ p\ dx+p\ v_{n}\ |_{0}^{l_{f}}=0
 \]
 
 \end_inset
@@ -395,7 +395,7 @@ Considerando um espaço de dimensão finita:
 Chama-se essa equação de resíduo:
 \begin_inset Formula 
 \[
-R_{q}=\int_{0}^{l_{f}}\frac{12\mu}{w^{3}}q\ \phi_{q_{i}}\ dx-\int_{0}^{l_{f}}\frac{\partial\phi_{q_{i}}}{dx}\ p\ dx+p\ v\ |_{0}^{l_{f}}
+R_{q}=\int_{0}^{l_{f}}\frac{12\mu}{w^{3}}q\ \phi_{q_{i}}\ dx-\int_{0}^{l_{f}}\frac{\partial\phi_{q_{i}}}{dx}\ p\ dx+p\ v_{n}\ |_{0}^{l_{f}}
 \]
 
 \end_inset
