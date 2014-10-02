@@ -610,6 +610,13 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
             DebugStop();
             break;
     }
+#ifdef LOG4CXX
+    if (loggerrefless->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "side = " << side << " transform id " << transformid << " permutegather " << permutegather;
+        LOGPZ_DEBUG(loggerrefless, sout.str())
+    }
+#endif
 }
 
 //HDiv

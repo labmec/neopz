@@ -1655,6 +1655,13 @@ void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &no
         
 		TPZManVector<int,9> sidepermutationgather(nlowdim);
 		HDivPermutation(side,sidepermutationgather);
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled()){
+            std::stringstream sout;
+            sout << "Permutation for side " << side << " is " << sidepermutationgather;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		TPZFNMatrix<12> sidenormals(3,nlowdim);
 		TPZManVector<int> localvecsides(nlowdim);
 		// compute whether the side is from this element to the next or contrary

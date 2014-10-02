@@ -580,13 +580,18 @@ namespace pztopology {
 	 */
 	void TPZQuadrilateral::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
-        permgather.Resize(9);
-        /*
+//        permgather.Resize(9);
+#ifdef DEBUG
+        if (transformationid < 0 || transformationid > 8 || permgather.size() != 9) {
+            DebugStop();
+        }
+#endif
+        
          for (int i=0; i<9; i++)
          {
-         permgather[i] = permutationsQ[transformationid][i];
+             permgather[i] = permutationsQ[transformationid][i];
          }
-         */
+        return;
         int i;
         
         if(transformationid%2 == 0)
@@ -623,22 +628,22 @@ namespace pztopology {
             switch (transformationid) {
                 case 1:
                     for(i=0; i<4; i++) permgather[i] = invid[i];
-                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+0)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+1)%4];
                     permgather[8] = 8;
                     break;
                 case 3:
                     for(i=0; i<4; i++) permgather[i] = invid[(i+1)%4];
-                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+1)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+2)%4];
                     permgather[8] = 8;
                     break;
                 case 5:
                     for(i=0; i<4; i++) permgather[i] = invid[(i+2)%4];
-                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+2)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+3)%4];
                     permgather[8] = 8;
                     break;
                 case 7:
                     for(i=0; i<4; i++) permgather[i] = invid[(i+3)%4];
-                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+3)%4];
+                    for(i=4; i<8; i++) permgather[i] = 4+invid[(i+0)%4];
                     permgather[8] = 8;
                     break;
                 default:

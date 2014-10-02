@@ -1266,6 +1266,27 @@ namespace pztopology {
             default:
                 break;
         }
+#ifdef DEBUG
+        if (SideDimension(side) == 2) {
+            TPZStack<int> lowerdim;
+            LowerDimensionSides(side, lowerdim);
+            lowerdim.Push(side);
+            if (sidevectors.size() != lowerdim.size()) {
+                DebugStop();
+            }
+            int nwrong = 0;
+            for (int i=0; i<lowerdim.size(); i++) {
+                if (lowerdim[i] != sidevectors[i]) {
+                    nwrong++;
+                }
+            }
+            if (nwrong)
+            {
+                std::cout << "sidevectors = " << sidevectors << " lowerdim = " << lowerdim << std::endl;
+                DebugStop();
+            }
+        }
+#endif
         
 	}
     

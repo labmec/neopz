@@ -207,20 +207,28 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
 BOOST_AUTO_TEST_CASE(sideshape_continuity)
 {
     InitializePZLOG();
-    MElementType eltype = EQuadrilateral;
+    for (int i=0; i<8; i++) {
+        TPZManVector<int,9> permgather(9);
+        pztopology::TPZQuadrilateral::GetSideHDivPermutation(i,permgather);
+        std::cout << "transform id " << i << " permgather " << permgather << std::endl;
+        
+    }
+    MElementType eltype = ECube;
     TPZVec<TPZCompMesh *>  meshvec(2);
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
     TPZGeoMesh *gmesh = cmesh->Reference();
-    TPZManVector<int,4> nodeids(4,0), nodesperm(4,0);
     TPZGeoEl *gel = gmesh->ElementVec()[0];
-    for (int i = 0; i<4; i++) {
+    const int ncorner = gel->NCornerNodes();
+    TPZManVector<int,8> nodeids(ncorner,0), nodesperm(ncorner,0);
+    for (int i = 0; i<ncorner; i++) {
         nodeids[i] = gel->NodePtr(i)->Id();
     }
-    TPZPermutation perm(4);
+    TPZPermutation perm(ncorner);
     perm++;
+    long permcount = 1;
     while (!perm.IsFirst()) {
         perm.Permute(nodeids, nodesperm);
-        for (int i = 0; i<4; i++) {
+        for (int i = 0; i<ncorner; i++) {
             gel->NodePtr(i)->SetNodeId(nodesperm[i]);
         }
         int nsides = gel->NSides();
@@ -252,6 +260,10 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
         // compute the vectors of shape function
         // compare
         perm++;
+        permcount++;
+        if (!(permcount%1000)) {
+            std::cout << "permcount = " << permcount << std::endl;
+        }
     }
 }
                 
@@ -261,7 +273,7 @@ BOOST_AUTO_TEST_CASE(drham_check)
 {
 		InitializePZLOG();
     // generate a mesh
-    MElementType eltype = EQuadrilateral;
+    MElementType eltype = ECube;
     TPZVec<TPZCompMesh *>  meshvec(2);
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
     // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
@@ -271,7 +283,10 @@ BOOST_AUTO_TEST_CASE(drham_check)
     for (iel=0; iel<nel; iel++) {
         TPZCompEl *cel = cmesh->ElementVec()[iel];
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-        if(!intel) continue;
+        if(!intel)
+        {
+            DebugStop();
+        }
         if(intel->Reference()->Dimension() != meshdim) continue;
         CheckDRham(intel);
     }
@@ -279,18 +294,20 @@ BOOST_AUTO_TEST_CASE(drham_check)
 
 BOOST_AUTO_TEST_CASE(drham_permute_check)
 {
-    MElementType eltype = EQuadrilateral;
+    MElementType eltype = ECube;
     TPZVec<TPZCompMesh *>  meshvec(2);
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
     TPZGeoMesh *gmesh = cmesh->Reference();
     int meshdim = cmesh->Dimension();
 
-    TPZManVector<int,4> nodeids(4,0), nodesperm(4,0);
-    TPZGeoEl *gel = gmesh->ElementVec()[4];
-    for (int i = 0; i<4; i++) {
+    const long nel = gmesh->NElements();
+    TPZGeoEl *gel = gmesh->ElementVec()[nel/2];
+    const int ncorner = gel->NCornerNodes();
+    TPZManVector<int,8> nodeids(ncorner,0), nodesperm(ncorner,0);
+    for (int i = 0; i<ncorner; i++) {
         nodeids[i] = gel->NodePtr(i)->Id();
     }
-    TPZPermutation perm(4);
+    TPZPermutation perm(ncorner);
     perm++;
     while (!perm.IsFirst()) {
         perm.Permute(nodeids, nodesperm);
@@ -313,7 +330,10 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
             TPZCompElSide celside = gelside.Reference();
             TPZCompEl *cel = celside.Element();
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-            if(!intel) continue;
+            if(!intel)
+            {
+                DebugStop();
+            }
             if(intel->Reference()->Dimension() != meshdim) continue;
             CheckDRham(intel);            
         }
@@ -604,6 +624,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     TPZGeoElSide gelsideB = celsideB.Reference();
     int sideA = gelsideA.Side();
     int sideB = gelsideB.Side();
+    const int sidedimension = gelsideA.Dimension();
     TPZCompEl *celA = celsideA.Element();
     TPZCompEl *celB = celsideB.Element();
     TPZMultiphysicsElement *MFcelA = dynamic_cast<TPZMultiphysicsElement *>(celA);
@@ -625,7 +646,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         intrule->Point(ip, pointA, weight);
         TPZTransform tr = gelsideA.NeighbourSideTransform(gelsideB);
         tr.Apply(pointA, pointB);
-        TPZFNMatrix<200> phiA(nshapeA,1),dphiA(1,nshapeA),phiB(nshapeA,1),dphiB(1,nshapeA,1);
+        TPZFNMatrix<200> phiA(nshapeA,1),dphiA(sidedimension,nshapeA),phiB(nshapeA,1),dphiB(sidedimension,nshapeA);
         interA->SideShapeFunction(sideA, pointA, phiA, dphiA);
         interB->SideShapeFunction(sideB, pointB, phiB, dphiB);
         int nshapeA = phiA.Rows();
@@ -637,14 +658,14 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
             REAL Bval = phiB(ish,0);
             if(abs(Aval-Bval) > 1.e-6) 
             {
-//                std::cout << "i " << ish << " " << Aval << " " << Bval << std::endl;
+                std::cout << "i " << ish << " " << Aval << " " << Bval << std::endl;
                 nwrong++;   
             }
         }
-//        if(nwrong)
-//        {
-//            std::cout << "\nNumber of different shape functions " << nwrong << std::endl;
-//        }
+        if(nwrong)
+        {
+            std::cout << "\nNumber of different shape functions " << nwrong << std::endl;
+        }
 //        BOOST_CHECK(nwrong == 0);
     }
     return nwrong;
@@ -699,12 +720,17 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         TPZFNMatrix<9> jacobian(sidedim,sidedim),jacinv(sidedim,sidedim),axes(sidedim,3);
         REAL detjac;
         gelsideA.Jacobian(pointA, jacobian, jacinv, detjac, jacinv);
-        TPZManVector<REAL,3> normal(3,0.);
+        TPZManVector<REAL,3> normal(3,0.), xA(3),xB(3);
         normal[0] = axes(0,1);
         normal[1] = -axes(0,0);
         tr.Apply(pointA, pointB);
         trA.Apply(pointA, pointElA);
         trB.Apply(pointB, pointElB);
+        gelsideA.Element()->X(pointElA, xA);
+        gelsideB.Element()->X(pointElB, xB);
+        for (int i=0; i<3; i++) {
+            BOOST_CHECK_CLOSE(xA[i], xB[i], 1.e-6);
+        }
         int nshapeA = 0, nshapeB = 0;
         interA->ComputeRequiredData(dataA, pointElA);
         interB->ComputeRequiredData(dataB, pointElB);
@@ -719,17 +745,21 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         {
             int Ashapeind = i;
             int Bshapeind = j;
+            int Avecind = -1;
+            int Bvecind = -1;
             // if A or B are boundary elements, their shapefunctions come in the right order
             if (dimensionA != sidedim) {
                 Ashapeind = dataA.fVecShapeIndex[i].second;
+                Avecind = dataA.fVecShapeIndex[i].first;
             }
             if (dimensionB != sidedim) {
                 Bshapeind = dataB.fVecShapeIndex[j].second;
+                Bvecind = dataB.fVecShapeIndex[j].first;
             }
             if (dimensionA != sidedim && dimensionB != sidedim) {
                 // vefify that the normal component of the normal vector corresponds
-                int Avecind = dataA.fVecShapeIndex[i].first;
-                int Bvecind = dataB.fVecShapeIndex[j].first;
+                Avecind = dataA.fVecShapeIndex[i].first;
+                Bvecind = dataB.fVecShapeIndex[j].first;
                 REAL vecnormalA = dataA.fNormalVec(0,Avecind)*normal[0]+dataA.fNormalVec(1,Avecind)*normal[1];
                 REAL vecnormalB = dataB.fNormalVec(0,Bvecind)*normal[0]+dataB.fNormalVec(1,Bvecind)*normal[1];
                 if(fabs(vecnormalA-vecnormalB) > 1.e-6)
@@ -741,11 +771,16 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
             }
             shapesA[i-firstShapeA] = dataA.phi(Ashapeind,0);
             shapesB[j-firstShapeB] = dataB.phi(Bshapeind,0);
-            REAL diff = dataA.phi(Ashapeind,0)-dataB.phi(Bshapeind,0);
+            REAL valA = dataA.phi(Ashapeind,0);
+            REAL valB = dataB.phi(Bshapeind,0);
+            REAL diff = valA-valB;
             REAL decision = fabs(diff)-1.e-6;
             if(decision > 0.)
             {
                 nwrong ++;
+                std::cout << "valA = " << valA << " valB = " << valB << " Avecind " << Avecind << " Bvecind " << Bvecind <<
+                " Ashapeind " << Ashapeind << " Bshapeind " << Bshapeind <<
+                " sideA " << sideA << " sideB " << sideB << std::endl;
                 LOGPZ_ERROR(logger, "shape function values are different")
             }
         }

@@ -1144,54 +1144,79 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 	}
     int ncontained = TSHAPE::NContainedSides(side);
     int nsideshape = 0;
-    int order = SideOrder(side);
+    int connectlocid = SideConnectLocId(0, side);
+    int order = this->Connect(connectlocid).Order();
     int is;
     for (is=0; is<ncontained; is++) {
         int ic = TSHAPE::ContainedSideLocId(side,is);
         nsideshape += TSHAPE::NConnectShapeF(ic,order);
     }
+#ifdef DEBUG
     if (nsideshape != this->NSideShapeF(side)) {
-        // create a philoc and copy
-        TPZFNMatrix<200,REAL> philoc(nsideshape,1),dphiloc(TSHAPE::SideDimension(side),nsideshape);
-        TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,philoc,dphiloc);
-        long nsh = phi.Rows();
-        for (long ish = 0; ish < nsh; ish++) {
-            phi(ish,0) = philoc(ish,0);
-            for (int d=0; d<TSHAPE::SideDimension(side); d++) {
-                dphi(d,ish) = dphiloc(d,ish);
-            }
-        }
-    }
-    else
-    {
-        TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,phi,dphi);
-    }
-    
-    if(TSHAPE::SideDimension(side) == 1)
-    {
-        int locnod0 = TSHAPE::SideNodeLocId(side,0);
-        int locnod1 = TSHAPE::SideNodeLocId(side,1);
-        TPZGeoEl *gel = this->Reference();
-        int locnodid0 = gel->NodePtr(locnod0)->Id();
-        int locnodid1 = gel->NodePtr(locnod1)->Id();
-        if(locnodid0 > locnodid1)
-        {
-            REAL temp;
-            temp = phi(0,0);
-            phi(0,0) = phi(1,0);
-            phi(1,0) = temp;
-            int d;
-            for (d=0; d<TSHAPE::SideDimension(side); d++) {
-                temp = dphi(d,0);
-                dphi(d,0) = dphi(d,1);
-                dphi(d,1) = temp;
-            }
-        }
-    }
-    else
-    {
         DebugStop();
     }
+#endif
+    
+    TPZGeoEl *gel = this->Reference();
+    int nc = gel->NCornerNodes();
+    int nsn = TSHAPE::NSideNodes(side);
+    TPZManVector<long,8> id(nsn);
+    for (int ic=0; ic<nsn; ic++) {
+        int locid = TSHAPE::SideNodeLocId(side,ic);
+        id[ic] = gel->Node(locid).Id();
+    }
+    
+    int idsize = id.size();
+    TPZManVector<int,9> permutegather(ncontained);
+    int transformid;
+
+    
+    MElementType sidetype = TSHAPE::Type(side);
+    switch (sidetype) {
+        case EOned:
+            transformid = pztopology::TPZLine::GetTransformId(id);
+            pztopology::TPZLine::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        case EQuadrilateral:
+            transformid = pztopology::TPZQuadrilateral::GetTransformId(id);
+            pztopology::TPZQuadrilateral::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        case ETriangle:
+            transformid = pztopology::TPZTriangle::GetTransformId(id);
+            pztopology::TPZTriangle::GetSideHDivPermutation(transformid, permutegather);
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+    
+    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NSides);
+    this->GetInterpolationOrder(ord);
+    
+    int sidedimension = TSHAPE::SideDimension(side);
+    TPZFNMatrix<50,REAL> philoc(nsideshape,1),dphiloc(sidedimension,nsideshape);
+    
+    TSHAPE::SideShape(side,point,id,ord,philoc,dphiloc);
+    
+    int ncs = TSHAPE::NContainedSides(side);
+    TPZManVector<long,28> FirstIndex(ncs+1,0);
+    for (int ls=0; ls<ncs; ls++) {
+        int localside = TSHAPE::ContainedSideLocId(side,ls);
+        FirstIndex[ls+1] = FirstIndex[ls]+TSHAPE::NConnectShapeF(localside,order);
+    }
+    
+    for (int side=0; side < ncs; side++) {
+        int ifirst = FirstIndex[side];
+        int kfirst = FirstIndex[permutegather[side]];
+        int nshape = FirstIndex[side+1]-FirstIndex[side];
+        for (int i=0; i<nshape; i++) {
+            phi(ifirst+i,0) = philoc(kfirst+i,0);
+            for (int d=0; d< sidedimension; d++) {
+                dphi(d,ifirst+i) = dphiloc(d,kfirst+i);
+            }
+        }
+    }
+
 }
 
 template<class TSHAPE>
@@ -1552,8 +1577,18 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         for (int i=0; i<TSHAPE::NCornerNodes; i++) {
             sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
         }
+        sout << "Sides associated with the normals\n";
+        for (int i=0; i<normalsidesDG.size(); i++) {
+            sout << i << '|' << normalsidesDG[i] << " ";
+        }
         sout << std::endl;
-		sout << "NormalVector/Shape indexes " << data.fVecShapeIndex << std::endl;
+        
+        sout << std::endl;
+		sout << "NormalVector/Shape indexes \n";
+        for (int i=0; i<data.fVecShapeIndex.size(); i++) {
+            sout << i << '|' << data.fVecShapeIndex[i] << " ";
+        }
+        sout << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif    

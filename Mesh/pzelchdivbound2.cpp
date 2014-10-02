@@ -222,35 +222,8 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 	{
 		
 		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,ConnectOrder(connect));
-			return TSHAPE::NShapeF(order);
-//		//se a ordem eh maior depedenra do tipo de TSHAPE
-//		
-//		if (order[0]==1) {
-//			return TSHAPE::NShapeF(order);
-//		}
-//		else{
-//			TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
-//			TPZGeoElSide neighbour = gelside.Neighbour();
-//			while(gelside != neighbour)
-//			{	switch (neighbour.Element()->Type()) {
-//				case EQuadrilateral:
-//					return TSHAPE::NShapeF(order);//mudei aq coloquei -2 era -1//
-//					break;
-//				case ETriangle:
-//					return TSHAPE::NShapeF(order);
-//					break;
-//				default : DebugStop();return -1;
-//			}
-//				neighbour = neighbour.Neighbour();
-//				
-//				
-//			}
-//			
-//			
-//		}
-		
-	}
-    
+        return TSHAPE::NShapeF(order);
+    }
     return -1;
 }
 
@@ -519,7 +492,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     TSHAPE::Shape(point,id,ord,philoc,dphiloc);
     
     int idsize = id.size();
-    TPZVec<int> permutegather(idsize);
+    TPZManVector<int,9> permutegather(TSHAPE::NSides);
     int transformid = TSHAPE::GetTransformId(id);
     TSHAPE::GetSideHDivPermutation(transformid, permutegather);
     

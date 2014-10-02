@@ -554,10 +554,14 @@ namespace pztopology {
 void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 {
 #ifdef DEBUG
-    if (permute.size() != 7) {
+    if (permute.size() != 7 || transformid >= 6 || transformid < 0) {
         DebugStop();
     }
 #endif
+    for (int i=0; i<7; i++) {
+        permute[i] = permutationsT[transformid][i];
+    }
+    return;
     int dir = 1;
     if (transformid%2 ==1) dir = -1;
     int runsmall = transformid/2;
