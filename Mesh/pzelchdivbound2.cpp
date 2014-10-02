@@ -31,6 +31,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 		
     this->fConnectIndexes[0] = this->CreateMidSideConnect(TSHAPE::NSides-1);
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << "After creating boundary flux connect " << this->fConnectIndexes[0] << std::endl;
@@ -76,6 +77,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 //	mesh.ConnectVec()[connectIndex0].IncrementElConnected();
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		
@@ -96,14 +98,15 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
 
-	 #ifdef LOG4CXX
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	 {
-	 std::stringstream sout;
-	 sout << "Finalizando criacao do elemento ";
-	 this->Print(sout);
-	 LOGPZ_DEBUG(logger,sout.str())
+         std::stringstream sout;
+         sout << "Finalizando criacao do elemento ";
+         this->Print(sout);
+         LOGPZ_DEBUG(logger,sout.str())
 	 }
-	 #endif
+#endif
 	 
 }
 
@@ -349,6 +352,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.fShapeType = TPZMaterialData::EScalarShape;
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 	}
@@ -465,9 +469,12 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
     }
     
 #ifdef LOG4CXX
-    std::stringstream sout;
-    sout << " FirsShapeIndex result " << Index;
-    LOGPZ_DEBUG(logger,sout.str())
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << " FirsShapeIndex result " << Index;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
 	
 	

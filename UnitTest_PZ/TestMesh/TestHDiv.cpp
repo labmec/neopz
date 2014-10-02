@@ -224,9 +224,8 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
         nodeids[i] = gel->NodePtr(i)->Id();
     }
     TPZPermutation perm(ncorner);
-    perm++;
-    long permcount = 1;
-    while (!perm.IsFirst()) {
+    long permcount = 0;
+    do {
         perm.Permute(nodeids, nodesperm);
         for (int i = 0; i<ncorner; i++) {
             gel->NodePtr(i)->SetNodeId(nodesperm[i]);
@@ -264,7 +263,7 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
         if (!(permcount%1000)) {
             std::cout << "permcount = " << permcount << std::endl;
         }
-    }
+    } while (!perm.IsFirst() && permcount < 100);
 }
                 
 /// Check that the Div of the vector functions can be represented
@@ -275,14 +274,14 @@ BOOST_AUTO_TEST_CASE(drham_check)
     // generate a mesh
     MElementType eltype = ECube;
     TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,2);
     // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
     int nel = cmesh->NElements();
     int meshdim = cmesh->Dimension();
     int iel;
     for (iel=0; iel<nel; iel++) {
         TPZCompEl *cel = cmesh->ElementVec()[iel];
-        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if(!intel)
         {
             DebugStop();
@@ -301,15 +300,21 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
     int meshdim = cmesh->Dimension();
 
     const long nel = gmesh->NElements();
-    TPZGeoEl *gel = gmesh->ElementVec()[nel/2];
+    long nel3d = 0;
+    for (long el=0; el<nel; el++) {
+        if (gmesh->ElementVec()[el]->Dimension() == meshdim) {
+            nel3d++;
+        }
+    }
+    TPZGeoEl *gel = gmesh->ElementVec()[nel3d/2];
     const int ncorner = gel->NCornerNodes();
     TPZManVector<int,8> nodeids(ncorner,0), nodesperm(ncorner,0);
     for (int i = 0; i<ncorner; i++) {
         nodeids[i] = gel->NodePtr(i)->Id();
     }
     TPZPermutation perm(ncorner);
-    perm++;
-    while (!perm.IsFirst()) {
+    long permcounter = 0;
+    do {
         perm.Permute(nodeids, nodesperm);
         for (int i = 0; i<4; i++) {
             gel->NodePtr(i)->SetNodeId(nodesperm[i]);
@@ -329,7 +334,7 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
             }
             TPZCompElSide celside = gelside.Reference();
             TPZCompEl *cel = celside.Element();
-            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+            TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
             if(!intel)
             {
                 DebugStop();
@@ -348,7 +353,8 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
         // compute the vectors of shape function
         // compare
         perm++;
-    }
+        permcounter++;
+    } while (!perm.IsFirst() && permcounter < 10);
 
 }
 
@@ -413,6 +419,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     }
     
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -564,6 +571,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
 //    mphysics->Print(arq4);
     
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
 //        gmesh->Print(sout);
@@ -850,7 +858,7 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
         TPZManVector<REAL,3> pos(dim);
         intrule.Point(ip, pos, weight);
 //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
-        intel->ComputeShape(pos,dataA);
+        intel->ComputeRequiredData(dataA, pos);
         intelP->ComputeShape(pos, dataB);
         int ish,jsh;
         for (ish=0; ish<npressure; ish++) {
@@ -909,9 +917,10 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
         pointpos(0,ip) = pos[0];
         pointpos(1,ip) = pos[1];
 //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
-        intel->ComputeShape(pos,dataA);
+        intel->ComputeRequiredData(dataA, pos);
         intelP->ComputeShape(pos, dataB);
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 				{
 						std::stringstream sout;
 						sout << "Phi's " << dataA.phi<< " dphix's "<< dataA.dphix<<std::endl;
@@ -955,12 +964,13 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             // the divergence of the vector function should be equal to the value of projected pressure space
             REAL diff = phival-divphi;
 #ifdef LOG4CXX
-						{
-						std::stringstream sout;
-						sout << "phi: " << phival<<" dphi: "<< divphi <<"\n";
-						sout << "flux number " << jsh << " diff: "<<diff<< "\n";
-								LOGPZ_DEBUG(logger,sout.str())
-						}
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "phi: " << phival<<" dphi: "<< divphi <<"\n";
+                sout << "flux number " << jsh << " diff: "<<diff<< "\n";
+                LOGPZ_DEBUG(logger,sout.str())
+            }
 #endif
             if(fabs(diff) > 1.e-6) 
             {

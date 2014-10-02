@@ -41,6 +41,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
         int sideaux= facesides[i];
 		this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled()) 
         {
             std::stringstream sout;
             sout << "After creating last flux connect " << i << std::endl;
@@ -148,6 +149,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
 #endif
 	this-> fConnectIndexes[i] = connectindex;
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
@@ -209,13 +211,14 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
      FirstShapeIndex(FirstIndex); // Nao preenche para o cubo????
      //FirstIndex.Print();
      
-     {
 #ifdef LOG4CXX
+     if (logger->isDebugEnabled()) 
+     {
          std::stringstream sout;
          sout << "FirstIndex "<<FirstIndex << std::endl;
          LOGPZ_DEBUG(logger,sout.str())
-#endif
      }
+#endif
      
      MElementType tipo = TSHAPE::Type();
      
@@ -456,11 +459,11 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
 //     }
  
  #ifdef LOG4CXX
- {
- std::stringstream sout;
- sout <<__PRETTY_FUNCTION__<< "unhandled case ";
- LOGPZ_ERROR(logger,sout.str())
- }
+     {
+         std::stringstream sout;
+         sout <<__PRETTY_FUNCTION__<< "unhandled case ";
+         LOGPZ_ERROR(logger,sout.str())
+     }
  #endif
  return -1;
  
@@ -664,9 +667,11 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index) const {
 	}
 	
 #ifdef LOG4CXX
-    std::stringstream sout;
-    sout << "First  Index " << Index;
-    LOGPZ_DEBUG(logger,sout.str())
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "First  Index " << Index;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
 }
 
@@ -1478,6 +1483,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &
 	}
 	shapeindex.Resize(count);
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "count = " << count << " nshape " << nshape;
@@ -1519,6 +1525,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //        data.p = maxorder+1;
 //    }
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
 		{
 				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHDiv")
 		}
@@ -1648,11 +1655,12 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
         side= ConnectSideLocId(icon);
         
 #ifdef LOG4CXX
-{
-        std::stringstream sout;
-        sout << "side " << side << " order " << this->PreferredSideOrder(side)<<std::endl;
-        LOGPZ_DEBUG(logger,sout.str())
-}
+        if (logger->isDebugEnabled())
+        {
+                std::stringstream sout;
+                sout << "side " << side << " order " << this->PreferredSideOrder(side)<<std::endl;
+                LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
         
         this->IdentifySideOrder(side);
