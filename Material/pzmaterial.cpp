@@ -297,11 +297,12 @@ int TPZMaterial::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
 	{
 		if(elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];  
 	}
+    int integrationorder = 2*pmax;
     if (pmax < order) {
-        pmax = order;
+        integrationorder = order+pmax;
     }
 	
-	return  2*pmax;
+	return  integrationorder;
 }
 
 int TPZMaterial::ClassId() const
