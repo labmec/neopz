@@ -36,6 +36,13 @@ TPZMatPoissonD3::TPZMatPoissonD3():TPZDiscontinuousGalerkin(){
     
     /** Coeficiente que multiplica o gradiente */
     fK = 1.;
+    
+    fvisc = 1.;
+    fInvK.Resize(1, 1);
+    fTensorK.Resize(1, 1);
+    fTensorK.Identity();
+    fInvK.Identity();
+    fPermeabilityFunction = NULL;
 
 }
 
@@ -56,6 +63,14 @@ TPZMatPoissonD3::TPZMatPoissonD3(int matid, int dim):TPZDiscontinuousGalerkin(ma
     
     /** Coeficiente que multiplica o gradiente */
     fK = 1.;
+    
+    fvisc = 1.;
+    
+    fInvK.Redim(dim, dim);
+    fTensorK.Resize(dim, dim);
+    fInvK.Identity();
+    fTensorK.Identity();
+    fPermeabilityFunction = NULL;
 }
 
 TPZMatPoissonD3::~TPZMatPoissonD3(){
@@ -80,40 +95,6 @@ TPZMatPoissonD3 & TPZMatPoissonD3::operator=(const TPZMatPoissonD3 &copy){
 int TPZMatPoissonD3::NStateVariables() {
 	return (1+fDim);
 }
-
-//void TPZMatPoissonD3::SetForcesPressure(REAL fx){
-//    fxfPQ = fx;
-//}
-//
-//void TPZMatPoissonD3::SetForcesSaturation(REAL gx){
-//    fxfS = gx;
-//}
-//
-//void TPZMatPoissonD3::SetPermeability(REAL perm) {
-//    fk = perm;
-//}
-//
-//void TPZMatPoissonD3::SetViscosity(REAL visc) {
-//    fVisc = visc;
-//}
-//
-//void TPZMatPoissonD3::SetPorosity(REAL poros){
-//    fPoros = poros;
-//}
-//
-//void TPZMatPoissonD3::GetPermeability(REAL &perm) {
-//    perm = fk;
-//}
-//
-//void TPZMatPoissonD3::SetConvectionDirection(TPZVec<REAL> convdir){
-//    
-//    for(int d=0; d<fDim; d++) fConvDir[d] = convdir[d];
-//}
-//
-//void TPZMatPoissonD3::GetConvectionDirection(TPZVec<REAL> &convdir){
-//    
-//    for(int d=0; d<fDim; d++) convdir[d] = fConvDir[d];
-//}
 
 void TPZMatPoissonD3::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
@@ -169,7 +150,28 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 	//Calculate the matrix contribution for flux. Matrix A
     // A matriz de rigidez é tal que A{ij}=\int_\Omega K^{-1} \varphi_j\cdot\varphi_i d\Omega
     // K, futuramente sera uma matriz ou funcao, deve-se ter cuidado com essa parte da inversao de K
-    REAL InvK = 1./fK;
+    
+    TPZFNMatrix<3,REAL> PermTensor = fTensorK;
+    TPZFNMatrix<3,REAL> InvPermTensor = fInvK;
+    
+    if(fPermeabilityFunction){
+        PermTensor.Redim(fDim,fDim);
+        InvPermTensor.Redim(fDim,fDim);
+        TPZFNMatrix<3,REAL> resultMat;
+        TPZManVector<STATE> res;
+        fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
+        
+        for(int id=0; id<fDim; id++){
+            for(int jd=0; jd<fDim; jd++){
+                
+                PermTensor(id,jd) = resultMat(id,jd);
+                InvPermTensor(id,jd) = resultMat(id+fDim,jd);
+            }
+        }
+    }
+
+    
+    //REAL InvK = 1./fK;
     for (int iq = 0; iq<phrq; iq++)
     {
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
@@ -178,6 +180,8 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
         ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
         ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        
+        TPZFNMatrix<3,REAL> jvecZ(fDim,1,0.);
         
         for (int jq=0; jq<phrq; jq++)
         {
@@ -188,20 +192,32 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
             jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             
-            //dot product between u and v
-            REAL prod = 0.;
-            for(int iloc=0; iloc<3; iloc++)
-            {
-                prod += ivec(iloc,0)*jvec(iloc,0);
-                //ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
+            //dot product between Kinv[u]v
+            jvecZ.Zero();
+            for(int id=0; id<fDim; id++){
+                for(int jd=0; jd<fDim; jd++){
+                    jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
+                }
             }
-            ek(iq,jq) += InvK*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+            REAL prod = ivec(0,0)*jvecZ(0,0) + ivec(1,0)*jvecZ(1,0) + ivec(2,0)*jvecZ(2,0);
+            ek(iq,jq) += fvisc*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+
+            
+            //dot product between u and v
+//            REAL prod = 0.;
+//            for(int iloc=0; iloc<3; iloc++)
+//            {
+//                prod += ivec(iloc,0)*jvec(iloc,0);
+//                //ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
+//            }
+//            ek(iq,jq) += InvK*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
             
         }
     }
     
     // Coupling terms between flux and pressure. Matrix B
     // A matriz de rigidez é tal que B{ij}=\int_\Omega \nabla\phi_j\cdot\varphi_i d\Omega
+    
     for(int iq=0; iq<phrq; iq++)
     {
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
@@ -214,6 +230,7 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         for (int jp=0; jp<phrp; jp++)
         {
             //dot product between  varphi and grad phi
+            
             REAL prod = 0.;
             for(int iloc=0; iloc<3; iloc++)
             {

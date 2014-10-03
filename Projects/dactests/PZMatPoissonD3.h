@@ -42,6 +42,18 @@ protected:
     
     /** Coeficiente que multiplica o gradiente */
     REAL fK;
+    
+    /** @brief fluid viscosity*/
+	REAL fvisc;
+    
+    /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
+	TPZFMatrix<REAL> fTensorK;
+    
+    /** @brief inverse of the permeability tensor.*/
+	TPZFMatrix<REAL> fInvK;
+    
+    /** @brief Pointer to forcing function, it is the Permeability and its inverse */
+    TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
 	
 public:
     
@@ -67,48 +79,32 @@ public:
 	
 	virtual int NStateVariables();
     
-//    void SetForcesPressure(REAL fxfPQ);
-//    
-//    void SetForcesSaturation(REAL fxfS);
-//    
-//    void SetPermeability(REAL perm);
-//    
-//    void SetViscosity(REAL visc);
-//    
-//    void SetPorosity(REAL poros);
-//    
-//    void GetPermeability(REAL &perm);
-//    
-//	void SetConvectionDirection(TPZVec<REAL> convdir);
-//	
-//	void GetConvectionDirection(TPZVec<REAL> &convdir);
-//    
-//    void SetLastState(){
-//        gState = ELastState;
-//    }
-//    
-//	void SetCurrentState(){
-//        gState = ECurrentState;
-//    }
-//    
-//    void SetPressureEqFilter(){
-//        fPressureEquationFilter = true;
-//    }
-//    void SetFalsePressureEqFilter(){
-//        fPressureEquationFilter = false;
-//    }
-//    
-//	void SetTimeStep(REAL delt){
-//		fTimeStep = delt;
-//	}
-//    
-//	void SetTimeValue(REAL TimeValue){
-//		fTimeValue = TimeValue;
-//	}
-//    
-//    void GetTimeValue(REAL &TimeValue){
-//		TimeValue = fTimeValue;
-//	}
+    void SetPermeability(REAL perm) {
+		fK = perm;
+	}
+    
+    //Set the permeability tensor and inverser tensor
+    void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
+        
+        if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
+        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
+        
+        fTensorK = K;
+        fInvK = invK;
+    }
+	
+    void SetViscosity(REAL visc) {
+		fvisc = visc;
+	}
+    
+	void GetPermeability(REAL &perm) {
+		perm = fK;
+	}
+	
+	void SetInternalFlux(REAL flux) {
+		fCarga = flux;
+	}
+
     
     void Print(std::ostream &out);
     
