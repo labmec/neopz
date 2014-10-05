@@ -74,7 +74,9 @@ virtual bool operator==(const TPZHierarquicalGrid& other) const;
         fParametricFunction = fp;
     }
     
-    TPZGeoMesh * ComputeExtrusion(STATE t, STATE dt, int n);  
+    TPZGeoMesh * ComputeExtrusion(STATE t, STATE dt, int n);
+    
+    void CreateGeometricElement(int n, int iel, int eldim, int elmatid, int &elid, TPZGeoMesh * ngmesh);
     
 };
 
