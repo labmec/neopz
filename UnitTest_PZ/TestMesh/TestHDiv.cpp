@@ -17,6 +17,7 @@
 #include "pzcmesh.h"
 #include "tpzpermutation.h"
 #include "pzcompel.h"
+#include "TPZCompElDisc.h"
 #include "tpzintpoints.h"
 #include "pztrnsform.h"
 #include "pzintel.h"
@@ -66,6 +67,9 @@ static int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsi
 
 static TPZAutoPointer<TPZCompMesh> HDivMesh, PressureMesh;
 
+static void CheckDRhamFacePermutations(MElementType Etype);
+static void CheckDRhamPermutations(MElementType Etype);
+
 template<class tshape>
 static void CheckShapeOrder(int order);
 
@@ -75,7 +79,7 @@ void VectorDirections();
 
 static void ExactPressure(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 {
-    force[0] = 5. ;//+ 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
+    force[0] = 5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
 }
 static void ExactNormalFluxTop(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 {
@@ -90,6 +94,14 @@ static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZCompEl *cel);
 
+/// run a problem simulating a bilinear solution for the given element type
+static void RunBilinear(MElementType eltype);
+
+/// verify is the shape functions have continuity
+static void VerifySideShapeContinuity(MElementType eltype);
+
+/// verify if the pressure space is compatible with the flux space
+static void VerifyDRhamCompatibility(MElementType eltype);
 
 // Tests for the 'voidflux' class.
 BOOST_AUTO_TEST_SUITE(mesh_tests)
@@ -99,278 +111,60 @@ BOOST_AUTO_TEST_SUITE(mesh_tests)
 BOOST_AUTO_TEST_CASE(bilinearsolution_check)
 {
     InitializePZLOG();
-    MElementType eltype = ETriangle; //ETriangle; //ECube;  //EQuadrilateral;
-    int nelx = 1;
-    int fluxorder = 1;
-    int ndiv = 0; // para refinar a malha
-     TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,nelx,fluxorder, ndiv);
-
-    
-    {
-        TPZMaterial *mat = cmesh->FindMaterial(-1);
-        if(!mat) DebugStop();
-        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactPressure);
-        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
-        mat->SetForcingFunction(autofunc);
-    }
-    {
-        TPZMaterial *mat = cmesh->FindMaterial(-2);
-        if(!mat) DebugStop();
-        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxTop);
-        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
-        mat->SetForcingFunction(autofunc);
-    }
-    
-    {
-        TPZMaterial *mat = cmesh->FindMaterial(-3);
-        if(!mat) DebugStop();
-        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxBottom);
-        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
-        mat->SetForcingFunction(autofunc);
-    }
-
-    
-//    {
-//        //  Print Geometrical Base Mesh
-//        std::ofstream Dummyfile("GeometricMesh.vtk");
-//        TPZVTKGeoMesh::PrintGMeshVTK(cmesh,Dummyfile, true);
-//    }
-    
-   // cmesh->SaddlePermute();
-    TPZAnalysis an(cmesh);
-    // para resolver o sistema
-    // escolhe entre isso 
-//    TPZFStructMatrix str(cmesh);
-//    an.SetStructuralMatrix(str);
-//    TPZStepSolver<STATE> step;
-//    step.SetDirect(ELU);
-    /// ou isso
-    TPZSkylineStructMatrix str(cmesh);
-    an.SetStructuralMatrix(str);
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
-    
-    
-    an.SetSolver(step);
-    an.Run();
-
-    
-    an.Solution().Print("Solucao");
-    
-    std::string plotfile("GSaida.vtk");
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh.operator->());
-	TPZManVector<std::string,10> scalnames(1), vecnames(1);
-	vecnames[0]  = "Flux";
-    scalnames[0] = "Pressure";
-	const int dim = cmesh->Dimension();
-	int div =1;
-	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
-
-    
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        cmesh->Reference()->Print(sout);
-        cmesh->Print(sout);
-        an.Rhs().Print("Right Hand Side",sout);
-        an.Solution().Print("Solution",sout);
-        LOGPZ_DEBUG(logger, sout.str())
-        std::ofstream test("onde_esta_este_arquivo.txt");
-    }
-#endif
-    TPZCompEl *cel = cmesh->ElementVec()[0];
-    TPZGeoEl *gel = cel->Reference();
-    int ns = gel->NSides();
-    TPZIntPoints *rule = gel->CreateSideIntegrationRule(ns-1, 4);//3
-    int np = rule->NPoints();
-    for(int ip=0; ip<np; ip++)
-    {
-        //TPZManVector<REAL,3> xi(2), xco(3), sol(1), exactsol(1);
-        TPZManVector<REAL,3> xi(3), xco(3), sol(1), exactsol(1);
-        REAL weight;
-        rule->Point(ip, xi, weight);
-        gel->X(xi, xco);
-        cel->Solution(xi, 2, sol);
-        ExactPressure(xco,exactsol);
-//        autofunc->Execute(xco, exactsol);
-        BOOST_CHECK(fabs(sol[0]-exactsol[0]) < 1.e-6);
-    }
-    
+    std::cout << "Initializing solution check\n";
+    RunBilinear(ETriangle);
+    RunBilinear(EQuadrilateral);
+    RunBilinear(ECube);
+    std::cout << "Leaving solution check\n";
 }
 
 
 BOOST_AUTO_TEST_CASE(sideshape_continuity)
 {
-    InitializePZLOG();
-    for (int i=0; i<8; i++) {
-        TPZManVector<int,9> permgather(9);
-        pztopology::TPZQuadrilateral::GetSideHDivPermutation(i,permgather);
-        std::cout << "transform id " << i << " permgather " << permgather << std::endl;
-        
-    }
-    MElementType eltype = ECube;
-    TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
-    TPZGeoMesh *gmesh = cmesh->Reference();
-    TPZGeoEl *gel = gmesh->ElementVec()[0];
-    const int ncorner = gel->NCornerNodes();
-    TPZManVector<int,8> nodeids(ncorner,0), nodesperm(ncorner,0);
-    for (int i = 0; i<ncorner; i++) {
-        nodeids[i] = gel->NodePtr(i)->Id();
-    }
-    TPZPermutation perm(ncorner);
-    long permcount = 0;
-    do {
-        perm.Permute(nodeids, nodesperm);
-        for (int i = 0; i<ncorner; i++) {
-            gel->NodePtr(i)->SetNodeId(nodesperm[i]);
-        }
-        int nsides = gel->NSides();
-        int is;
-        int nwrong = 0;
-        for (is=0; is<nsides; is++) {
-            int dim = gel->SideDimension(is);
-            if(dim != gel->Dimension()-1) continue;
-            TPZStack<TPZCompElSide> connected;
-            TPZGeoElSide gelside(gel,is);
-            gelside.ConnectedCompElementList(connected, 0, 1);
-            if (connected.NElements() != 1) {
-                std::cout << "Number of elements connected along face side = " << connected.NElements() << std::endl;
-                DebugStop();
-            }
-            TPZCompElSide celside = gelside.Reference();
-            nwrong += CompareSideShapeFunctions(celside, connected[0]);
-            nwrong += CompareShapeFunctions(celside, connected[0]);
-            
-        }
-        if(nwrong)
-        {
-            std::cout << "Node ids " << nodesperm << " created incompatible shape functions\n";
-        }
-        BOOST_CHECK(nwrong == 0);
-        // now compare the shape function value between neighbrouring elements
-        // create a side integration rule
-        // compute the transformation between the element and his neighbour
-        // compute the vectors of shape function
-        // compare
-        perm++;
-        permcount++;
-        if (!(permcount%1000)) {
-            std::cout << "permcount = " << permcount << std::endl;
-        }
-    } while (!perm.IsFirst() && permcount < 100);
+    std::cout << "Initializing sideshape_continuity check\n";
+    VerifySideShapeContinuity(ECube);
+    VerifySideShapeContinuity(EQuadrilateral);
+    VerifySideShapeContinuity(ETriangle);
+    std::cout << "Leaving sideshape_continuity check\n";
 }
-                
+
 /// Check that the Div of the vector functions can be represented
 BOOST_AUTO_TEST_CASE(drham_check)
 
 {
-		InitializePZLOG();
-    // generate a mesh
-    MElementType eltype = ECube;
-    TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,2);
-    // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
-    int nel = cmesh->NElements();
-    int meshdim = cmesh->Dimension();
-    int iel;
-    for (iel=0; iel<nel; iel++) {
-        TPZCompEl *cel = cmesh->ElementVec()[iel];
-        TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-        if(!intel)
-        {
-            DebugStop();
-        }
-        if(intel->Reference()->Dimension() != meshdim) continue;
-        CheckDRham(intel);
-    }
+    std::cout << "Initializing DRham consistency check\n";
+    VerifyDRhamCompatibility(ECube);
+    VerifyDRhamCompatibility(EQuadrilateral);
+    VerifyDRhamCompatibility(ETriangle);
+    std::cout << "Leaving  DRham consistency check\n";
 }
 
 BOOST_AUTO_TEST_CASE(drham_permute_check)
 {
-    MElementType eltype = ECube;
-    TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
-    TPZGeoMesh *gmesh = cmesh->Reference();
-    int meshdim = cmesh->Dimension();
-
-    const long nel = gmesh->NElements();
-    long nel3d = 0;
-    for (long el=0; el<nel; el++) {
-        if (gmesh->ElementVec()[el]->Dimension() == meshdim) {
-            nel3d++;
-        }
-    }
-    TPZGeoEl *gel = gmesh->ElementVec()[nel3d/2];
-    const int ncorner = gel->NCornerNodes();
-    TPZManVector<int,8> nodeids(ncorner,0), nodesperm(ncorner,0);
-    for (int i = 0; i<ncorner; i++) {
-        nodeids[i] = gel->NodePtr(i)->Id();
-    }
-    TPZPermutation perm(ncorner);
-    long permcounter = 0;
-    do {
-        perm.Permute(nodeids, nodesperm);
-        for (int i = 0; i<4; i++) {
-            gel->NodePtr(i)->SetNodeId(nodesperm[i]);
-        }
-        int nsides = gel->NSides();
-        int is;
-        int nwrong = 0;
-        for (is=0; is<nsides; is++) {
-            int dim = gel->SideDimension(is);
-            if(dim != gel->Dimension()-1) continue;
-            TPZStack<TPZCompElSide> connected;
-            TPZGeoElSide gelside(gel,is);
-            gelside.ConnectedCompElementList(connected, 0, 1);
-            if (connected.NElements() != 1) {
-                std::cout << "Number of elements connected along face side = " << connected.NElements() << std::endl;
-                DebugStop();
-            }
-            TPZCompElSide celside = gelside.Reference();
-            TPZCompEl *cel = celside.Element();
-            TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-            if(!intel)
-            {
-                DebugStop();
-            }
-            if(intel->Reference()->Dimension() != meshdim) continue;
-            CheckDRham(intel);            
-        }
-        if(nwrong)
-        {
-            std::cout << "Node ids " << nodesperm << " created drham incompatible shape functions\n";
-        }
-        BOOST_CHECK(nwrong == 0);
-        // now compare the shape function value between neighbrouring elements
-        // create a side integration rule
-        // compute the transformation between the element and his neighbour
-        // compute the vectors of shape function
-        // compare
-        perm++;
-        permcounter++;
-    } while (!perm.IsFirst() && permcounter < 10);
-
+    std::cout << "Initializing  DRham consistency under permutation check\n";
+    CheckDRhamFacePermutations(ECube);
+    CheckDRhamPermutations(EQuadrilateral);
+    CheckDRhamPermutations(ETriangle);
+    std::cout << "Leaving  DRham consistency under permutation check\n";
 }
 
 
 BOOST_AUTO_TEST_CASE(shape_order)
 {
+    std::cout << "Initializing shape_order check\n";
     CheckShapeOrder<pzshape::TPZShapeQuad>(6);
     CheckShapeOrder<pzshape::TPZShapeTriang>(6);
     CheckShapeOrder<pzshape::TPZShapeCube>(6);
+    std::cout << "Leaving shape_order check\n";
 }
 
 BOOST_AUTO_TEST_CASE(vector_direction)
 {
+    std::cout << "Initializing vector_direction check\n";
     VectorDirections<pzshape::TPZShapeCube>();
     VectorDirections<pzshape::TPZShapeTriang>();
     VectorDirections<pzshape::TPZShapeQuad>();
+    std::cout << "Leaving vector_direction check\n";
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -466,6 +260,10 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     std::set<int> matids;
     matids.insert(1);
     PressureMesh->AutoBuild(matids);
+    if (eltype == ETriangle) {
+        TPZCompElDisc::SetTotalOrderShape(PressureMesh.operator->());
+    }
+    
     PressureMesh->LoadReferences();
 //    PressureMesh->ApproxSpace().CreateDisconnectedElements(false);
 //    PressureMesh->AutoBuild();
@@ -842,7 +640,10 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
         DebugStop();
     }
     TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
-    TPZInterpolatedElement *intelP = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(1));
+    TPZInterpolationSpace *intelP = dynamic_cast<TPZInterpolationSpace *>(celMF->Element(1));
+    if (!intel || ! intelP) {
+        DebugStop();
+    }
     intel->InitMaterialData(dataA);
     intelP->InitMaterialData(dataB);
     int dim = intel->Reference()->Dimension();
@@ -897,7 +698,11 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
         DebugStop();
     }
     TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
-    TPZInterpolatedElement *intelP = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(1));
+    TPZInterpolationSpace *intelP = dynamic_cast<TPZInterpolationSpace *>(celMF->Element(1));
+    
+    if (!intelP || !intel) {
+        DebugStop();
+    }
     intel->InitMaterialData(dataA);
     intelP->InitMaterialData(dataB);
     int dim = intel->Reference()->Dimension();
@@ -1192,5 +997,385 @@ void VectorDirections()
         BOOST_CHECK(fabs(diff) < 1.e-6);
     }
 }
+
+void CheckDRhamFacePermutations(MElementType eltype)
+{
+    TPZVec<TPZCompMesh *>  meshvec(2);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    int meshdim = cmesh->Dimension();
+
+    const long nel = gmesh->NElements();
+    long nel3d = 0;
+    for (long el=0; el<nel; el++) {
+        if (gmesh->ElementVec()[el]->Dimension() == meshdim) {
+            nel3d++;
+        }
+    }
+    TPZGeoEl *gel = gmesh->ElementVec()[nel3d/2];
+    TPZCompEl *cel = gel->Reference();
+    TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if(!intel)
+    {
+        DebugStop();
+    }
+    const int gelcorner = gel->NCornerNodes();
+    TPZManVector<long,8> nodeids(gelcorner,0), nodesperm(gelcorner,0);
+    for (int i = 0; i<gelcorner; i++) {
+        nodeids[i] = gel->NodePtr(i)->Id();
+    }
+    int dimension = gel->Dimension();
+    int nfaces = 0;
+    for (int side = 0; side<dimension; side++) {
+        if (gel->SideDimension(side) == dimension-1) {
+            nfaces++;
+        }
+    }
+    
+    int nsides = gel->NSides();
+    TPZManVector<std::set<int>, 27> verifiedperms(nsides);
+    
+    long permcounter = 0;
+    for (int side = 0; side < nsides; side++) {
+        if (gel->SideDimension(side) != dimension-1) {
+            continue;
+        }
+        for (int i = 0; i<gelcorner; i++) {
+            gel->NodePtr(i)->SetNodeId(nodeids[i]);
+        }
+        int ncorner = gel->NSideNodes(side);
+        TPZPermutation perm(ncorner);
+        do {
+            TPZManVector<long> cornerids(ncorner);
+            for (int ic = 0; ic<ncorner; ic++) {
+                int locindex = gel->SideNodeLocIndex(side, ic);
+                cornerids[ic] = nodeids[locindex];
+            }
+            perm.Permute(cornerids, nodesperm);
+            for (int ic = 0; ic<ncorner; ic++) {
+                int locindex = gel->SideNodeLocIndex(side, ic);
+                int id = nodesperm[locindex];
+                gel->NodePtr(locindex)->SetNodeId(id);
+            }
+            
+            // verify the tranformation ids of all faces, starting with side
+            int transid = 0;
+            if (ncorner == 4) {
+                transid = TPZShapeQuad::GetTransformId2dQ(nodesperm);
+            }
+            else if (ncorner == 3) {
+                transid = TPZShapeTriang::GetTransformId2dT(nodesperm);
+            }
+            else if (ncorner == 2) {
+                transid = TPZShapeLinear::GetTransformId1d(nodesperm);
+            }
+            else
+            {
+                DebugStop();
+            }
+            if (verifiedperms[side].find(transid) != verifiedperms[side].end()) {
+                perm++;
+                continue;
+            }
+
+            
+            for (int is=0; is<nsides; is++) {
+                if (gel->SideDimension(is) != dimension-1) {
+                    continue;
+                }
+                int nc = gel->NSideNodes(is);
+                TPZManVector<long,4> cornids(nc);
+                for (int ic=0; ic<nc; ic++) {
+                    int locid = gel->SideNodeLocIndex(is, ic);
+                    cornids[ic] = gel->NodePtr(locid)->Id();
+                }
+                if (nc == 4) {
+                    int transid = TPZShapeQuad::GetTransformId2dQ(cornids);
+                    verifiedperms[is].insert(transid);
+                }
+                else if(nc == 3)
+                {
+                    int transid = TPZShapeTriang::GetTransformId2dT(cornids);
+                    verifiedperms[is].insert(transid);
+                }
+                else if(nc == 2)
+                {
+                    int transid = TPZShapeLinear::GetTransformId1d(cornids);
+                    verifiedperms[is].insert(transid);
+                }
+                else
+                {
+                    DebugStop();
+                }
+            }
+            
+            CheckDRham(intel);
+            // now compare the shape function value between neighbrouring elements
+            // create a side integration rule
+            // compute the transformation between the element and his neighbour
+            // compute the vectors of shape function
+            // compare
+            perm++;
+            permcounter++;
+        } while (!perm.IsFirst() && permcounter < 150);
+    }
+}
+
+void CheckDRhamPermutations(MElementType eltype)
+{
+    TPZVec<TPZCompMesh *>  meshvec(2);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    int meshdim = cmesh->Dimension();
+    
+    const long nel = gmesh->NElements();
+    long nel3d = 0;
+    for (long el=0; el<nel; el++) {
+        if (gmesh->ElementVec()[el]->Dimension() == meshdim) {
+            nel3d++;
+        }
+    }
+    TPZGeoEl *gel = gmesh->ElementVec()[nel3d/2];
+    int dimension = gel->Dimension();
+    if (dimension != meshdim) {
+        DebugStop();
+    }
+
+    
+    TPZCompEl *cel = gel->Reference();
+    TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if(!intel)
+    {
+        DebugStop();
+    }
+
+    const int gelcorner = gel->NCornerNodes();
+    TPZManVector<int,8> nodeids(gelcorner,0), nodesperm(gelcorner,0);
+    for (int i = 0; i<gelcorner; i++) {
+        nodeids[i] = gel->NodePtr(i)->Id();
+    }
+    long permcounter = 0;
+    TPZPermutation perm(gelcorner);
+    do {
+        TPZManVector<int> cornerids(gelcorner);
+        perm.Permute(cornerids, nodesperm);
+        for (int ic = 0; ic<gelcorner; ic++) {
+            gel->NodePtr(ic)->SetNodeId(nodesperm[ic]);
+        }
+        CheckDRham(intel);
+        // now compare the shape function value between neighbrouring elements
+        // create a side integration rule
+        // compute the transformation between the element and his neighbour
+        // compute the vectors of shape function
+        // compare
+        perm++;
+        permcounter++;
+    } while (!perm.IsFirst() && permcounter < 150);
+}
+
+/// run a problem simulating a bilinear solution for the given element type
+void RunBilinear(MElementType eltype)
+{
+    int nelx = 1;
+    int fluxorder = 1;
+    if (eltype == ETriangle) {
+        fluxorder = 3;
+    }
+    int ndiv = 0; // para refinar a malha
+    TPZVec<TPZCompMesh *>  meshvec(2);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,nelx,fluxorder, ndiv);
+    
+    
+    {
+        TPZMaterial *mat = cmesh->FindMaterial(-1);
+        if(!mat) DebugStop();
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactPressure);
+        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
+        mat->SetForcingFunction(autofunc);
+    }
+    {
+        TPZMaterial *mat = cmesh->FindMaterial(-2);
+        if(!mat) DebugStop();
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxTop);
+        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
+        mat->SetForcingFunction(autofunc);
+    }
+    
+    {
+        TPZMaterial *mat = cmesh->FindMaterial(-3);
+        if(!mat) DebugStop();
+        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactNormalFluxBottom);
+        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
+        mat->SetForcingFunction(autofunc);
+    }
+    
+    
+    //    {
+    //        //  Print Geometrical Base Mesh
+    //        std::ofstream Dummyfile("GeometricMesh.vtk");
+    //        TPZVTKGeoMesh::PrintGMeshVTK(cmesh,Dummyfile, true);
+    //    }
+    
+    // cmesh->SaddlePermute();
+    TPZAnalysis an(cmesh);
+    // para resolver o sistema
+    // escolhe entre isso
+    //    TPZFStructMatrix str(cmesh);
+    //    an.SetStructuralMatrix(str);
+    //    TPZStepSolver<STATE> step;
+    //    step.SetDirect(ELU);
+    /// ou isso
+    TPZSkylineStructMatrix str(cmesh);
+    an.SetStructuralMatrix(str);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    
+    
+    an.SetSolver(step);
+    an.Run();
+    
+    
+//    an.Solution().Print("Solucao");
+    
+    std::string plotfile("GSaida.vtk");
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh.operator->());
+    TPZManVector<std::string,10> scalnames(1), vecnames(1);
+    vecnames[0]  = "Flux";
+    scalnames[0] = "Pressure";
+    const int dim = cmesh->Dimension();
+    int div =1;
+    an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+    an.PostProcess(div,dim);
+    
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        cmesh->Reference()->Print(sout);
+        cmesh->Print(sout);
+        an.Rhs().Print("Right Hand Side",sout);
+        an.Solution().Print("Solution",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    TPZCompEl *cel = cmesh->ElementVec()[0];
+    TPZGeoEl *gel = cel->Reference();
+    int ns = gel->NSides();
+    TPZIntPoints *rule = gel->CreateSideIntegrationRule(ns-1, 4);//3
+    int np = rule->NPoints();
+    for(int ip=0; ip<np; ip++)
+    {
+        //TPZManVector<REAL,3> xi(2), xco(3), sol(1), exactsol(1);
+        TPZManVector<REAL,3> xi(3), xco(3), sol(1), exactsol(1);
+        REAL weight;
+        rule->Point(ip, xi, weight);
+        gel->X(xi, xco);
+        cel->Solution(xi, 2, sol);
+        ExactPressure(xco,exactsol);
+        //        autofunc->Execute(xco, exactsol);
+        BOOST_CHECK(fabs(sol[0]-exactsol[0]) < 1.e-6);
+    }
+}
+
+/// verify is the shape functions have continuity
+void VerifySideShapeContinuity(MElementType eltype)
+{
+    long permcount = 0;
+    TPZVec<TPZCompMesh *>  meshvec(2);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    TPZGeoEl *gel = gmesh->ElementVec()[0];
+    const int gelcorner = gel->NCornerNodes();
+    TPZManVector<int,8> nodeids(gelcorner,0);
+    for (int i = 0; i<gelcorner; i++) {
+        nodeids[i] = gel->NodePtr(i)->Id();
+    }
+    int dimension = gel->Dimension();
+    for (int side = 0; side < gel->NSides(); side++) {
+        if (gel->SideDimension(side) != dimension-1) {
+            continue;
+        }
+        for (int i = 0; i<gelcorner; i++) {
+            gel->NodePtr(i)->SetNodeId(nodeids[i]);
+        }
+        int ncorner = gel->NSideNodes(side);
+        TPZPermutation perm(ncorner);
+        do {
+            TPZManVector<int> cornerids(ncorner), nodesperm(ncorner,0);
+            for (int ic = 0; ic<ncorner; ic++) {
+                int locindex = gel->SideNodeLocIndex(side, ic);
+                cornerids[ic] = nodeids[locindex];
+            }
+            perm.Permute(cornerids, nodesperm);
+            for (int ic = 0; ic<ncorner; ic++) {
+                int locindex = gel->SideNodeLocIndex(side, ic);
+                int id = nodesperm[ic];
+                gel->NodePtr(locindex)->SetNodeId(id);
+            }
+            TPZManVector<long,8> gelids(gelcorner);
+            for (int i=0; i< gelcorner; i++) {
+                gelids[i] = gel->NodePtr(i)->Id();
+            }
+            int nsides = gel->NSides();
+            int is;
+            int nwrong = 0;
+            for (is=0; is<nsides; is++) {
+                int dim = gel->SideDimension(is);
+                if(dim != gel->Dimension()-1) continue;
+                TPZStack<TPZCompElSide> connected;
+                TPZGeoElSide gelside(gel,is);
+                gelside.ConnectedCompElementList(connected, 0, 1);
+                if (connected.NElements() != 1) {
+                    std::cout << "Number of elements connected along face side = " << connected.NElements() << std::endl;
+                    DebugStop();
+                }
+                TPZCompElSide celside = gelside.Reference();
+                nwrong += CompareSideShapeFunctions(celside, connected[0]);
+                nwrong += CompareShapeFunctions(celside, connected[0]);
+                
+            }
+            if(nwrong)
+            {
+                std::cout << "Node ids " << nodesperm << " created incompatible shape functions\n";
+            }
+            BOOST_CHECK(nwrong == 0);
+            // now compare the shape function value between neighbrouring elements
+            // create a side integration rule
+            // compute the transformation between the element and his neighbour
+            // compute the vectors of shape function
+            // compare
+            perm++;
+            permcount++;
+            if (!(permcount%1000)) {
+                std::cout << "permcount = " << permcount << std::endl;
+            }
+        } while (!perm.IsFirst() && permcount < 150);
+    }
+}
+
+/// verify if the pressure space is compatible with the flux space
+void VerifyDRhamCompatibility(MElementType eltype)
+{
+    // generate a mesh
+    TPZVec<TPZCompMesh *>  meshvec(2);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,2);
+    // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
+    int nel = cmesh->NElements();
+    int meshdim = cmesh->Dimension();
+    int iel;
+    for (iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if(!intel)
+        {
+            DebugStop();
+        }
+        if(intel->Reference()->Dimension() != meshdim) continue;
+        CheckDRham(intel);
+    }
+}
+
+
 
 #endif

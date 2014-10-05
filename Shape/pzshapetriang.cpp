@@ -351,7 +351,10 @@ namespace pzshape {
 	
 	int TPZShapeTriang::NShapeF(TPZVec<int> &order) {
 		int in,res=NCornerNodes;
-		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
+		for(in=NCornerNodes;in<NSides;in++)
+        {
+            res += NConnectShapeF(in,order[in-NCornerNodes]);
+        }
 		return res;
 	}
 
