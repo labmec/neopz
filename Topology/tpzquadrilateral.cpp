@@ -14,6 +14,8 @@
 #include "pzcreateapproxspace.h"
 #include "pzshapequad.h"
 
+#include "pznumeric.h"
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -987,6 +989,40 @@ namespace pztopology {
 
         
 	}
+    
+    void TPZQuadrilateral::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        TPZManVector<REAL, 3> v1(3),v2(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+        }
+        REAL Nv1 = TPZNumeric::Norma(v1);
+        REAL Nv2 = TPZNumeric::Norma(v2);
+        
+        for (int i=0; i<3; i++) {
+            v1[i] *= Nv2/detjac;
+            v2[i] *= Nv1/detjac;
+        }
+        
+        for (int i=0; i<3; i++) {
+            for (int v=0; v<3; v++) {
+                directions(i,v) = -v2[i];
+                directions(i,v+3) = v1[i];
+                directions(i,v+6) = v2[i];
+                directions(i,v+9) = -v1[i];
+            }
+            directions(i,12) = v1[i];
+            directions(i,13) = v2[i];
+            directions(i,14) = -v1[i];
+            directions(i,15) = -v2[i];
+            directions(i,16) = v1[i];
+            directions(i,17) = v2[i];
+        }
+        for (int i=0; i<18; i++) {
+            sidevectors[i] = vectorsideorder[i];
+        }
+    }
     
     void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
