@@ -1642,6 +1642,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &
 	}
 }
 
+
 void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
 {
     if (SideDimension(side) >= Dimension()-1) {
@@ -1896,6 +1897,7 @@ void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
 #endif
 		cout << sout.str() << std::endl;
 	}
+    DebugStop();
 }
 
 

@@ -69,6 +69,8 @@ public:
     
     virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
     
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
+    
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) = 0;
 	
 	/** @brief Returns number of TPZInterfaceElement pointing to this */

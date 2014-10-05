@@ -486,6 +486,31 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
     
 }
 
+template<class TGeo>
+void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)
+{
+    TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
+    REAL detjac;
+    
+    this->Jacobian(pt,jac,axes,detjac,jacinv);
+    
+    // ou eh isso?   grad =  (jac  * axes)ˆT
+    TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
+    for (int il=0; il<TGeo::Dimension; il++)
+    {
+        for (int jc=0; jc<3; jc++)
+        {
+            for (int i = 0 ; i<TGeo::Dimension; i++)
+            {
+                gradx(jc,il) += jac(i,il) * axes(i,jc);
+            }
+        }
+    }
+    //    gradxt.Transpose(&gradx);
+    TGeo::ComputeDirections(gradx, detjac, directions, vectorsides);
+        
+}
+
 
 #include "pzgeoquad.h"
 

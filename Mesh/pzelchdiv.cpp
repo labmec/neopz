@@ -794,6 +794,115 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int>
         
 }
 
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder)
+{
+    TPZManVector<int,27> order(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
+    FillOrder(order);
+    int nshape = TSHAPE::NShapeF(order);
+    
+    TPZManVector<long, TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes);
+    for (int i=0; i<id.size(); i++) {
+        id[i] = this->Reference()->NodePtr(i)->Id();
+    }
+    
+    // compute the permutation which needs to be applied to the vectors to enforce compatibility between neighbours
+    TPZManVector<int,81> vecpermute(TSHAPE::NSides*TSHAPE::Dimension);
+    int count = 0;
+    for (int side = 0; side < TSHAPE::NSides; side++) {
+        if (TSHAPE::SideDimension(side) < TSHAPE::Dimension -1) {
+            continue;
+        }
+        TPZGeoElSide gelside(this->Reference(),side);
+        int nlowdim = gelside.NSides();
+        TPZManVector<int,27> permgather(nlowdim);
+        this->Reference()->HDivPermutation(side,permgather);
+        int counthold = count;
+        for (int i=0; i<nlowdim; i++) {
+            vecpermute[counthold+i] = permgather[i]+counthold;
+            count++;
+        }
+    }
+    for (; count < TSHAPE::NSides*TSHAPE::Dimension; count++) {
+        vecpermute[count] = count;
+    }
+    TPZGenMatrix<int> shapeorders(nshape,3);
+    TSHAPE::ShapeOrder(id, order, shapeorders);
+    
+    int nshapeflux = NFluxShapeF();
+    IndexVecShape.Resize(nshapeflux);
+    count = 0;
+    
+    // VectorSide indicates the side associated with each vector entry
+    TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
+    // the first index of the shape functions
+    FirstShapeIndex(FirstIndex); // Nao preenche para o cubo????
+    //FirstIndex.Print();
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "FirstIndex "<<FirstIndex << std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    MElementType tipo = TSHAPE::Type();
+    
+    long nvec = VectorSide.NElements();
+    for (int locvec = 0; locvec<nvec; locvec++) {
+        int ivec = vecpermute[locvec];
+        int side = VectorSide[ivec];
+        int bil = bilinear[ivec];
+        int dir = direction[ivec];
+        
+        int firstshape = FirstIndex[side];
+        int lastshape = FirstIndex[side+1];
+        
+        for (int ish = firstshape; ish<lastshape; ish++) {
+            int sidedimension = TSHAPE::SideDimension(side);
+            int maxorder[3] = {pressureorder,pressureorder,pressureorder};
+            if (bil) {
+                maxorder[dir]++;
+            }
+            int include=true;
+            for (int d=0; d<sidedimension; d++)
+            {
+                if (tipo==ETriangle)
+                {
+                    if (shapeorders(ish,d) > maxorder[d]+1) {
+                        include = false;
+                    }
+                }
+                else if(tipo==EQuadrilateral)
+                {
+                    if (shapeorders(ish,d) > maxorder[d]) {
+                        include = false;
+                    }
+                }
+                else if(tipo==ECube)
+                {
+                    if (shapeorders(ish,d) > maxorder[d]) {
+                        include = false;
+                    }
+                }
+            }
+            if (include)
+            {
+                IndexVecShape[count] = std::make_pair(ivec, ish);
+                count++;
+            }
+        }
+    }
+    
+    if (count != IndexVecShape.size()) {
+        DebugStop();
+    }
+    
+}
+
+
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder){

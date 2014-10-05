@@ -1158,7 +1158,106 @@ namespace pztopology {
 //        }
 //        
 //    }
+
     
+//    static REAL bCubo[81][3] = // direcao perpendicular ao lado
+//    {
+//        {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1},// face 0
+//        {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0},// face 1
+//        {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} , {1,0,0} ,// face 2
+//        {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} , {0,1,0} ,// face 3
+//        {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0}, {-1,0,0},// face 4
+//        {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1} , {0,0,1}, // face 5
+//        //interiores
+//        //arestas
+//        //{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},  {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},
+//        {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {0,0,1},{0,0,1},{0,0,1},{0,0,1},  {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},
+//        //faces
+//        {1,0,0}, {0,1,0}, // tang da face 0
+//        {1,0,0}, {0,0,1},  // tang da face 1
+//        {0,1,0}, {0,0,1}, // tang da face 2
+//        {1,0,0}, {0,0,1}, // tang da face 3
+//        {0,1,0}, {0,0,1}, // tang da face 4
+//        {1,0,0}, {0,1,0},  // tang da face 5
+//        {1,0,0}, // volume
+//        {0,1,0}, // volume
+//        {0,0,1}  // volume
+//    };
+
+    void TPZCube::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    {
+        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
+        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            v3[i] = gradx(i,2);
+        }
+        TPZNumeric::ProdVetorial(v1,v2,v1v2);
+        TPZNumeric::ProdVetorial(v2,v3,v2v3);
+        TPZNumeric::ProdVetorial(v3,v1,v3v1);
+        
+        REAL Nv1v2 = TPZNumeric::Norma(v1v2);
+        REAL Nv2v3 = TPZNumeric::Norma(v2v3);
+        REAL Nv3v1 = TPZNumeric::Norma(v3v1);
+        
+        for (int i=0; i<3; i++) {
+            v1[i] *= Nv2v3/detgrad;
+            v2[i] *= Nv3v1/detgrad;
+            v3[i] *= Nv1v2/detgrad;
+        }
+        for (int i=0; i<3; i++) {
+            for (int iv=0; iv<9; iv++) {
+                directions(i,iv) = -v3[i];
+                directions(i,iv+9) = -v2[i];
+                directions(i,iv+18) = v1[i];
+                directions(i,iv+27) = v2[i];
+                directions(i,iv+36) = -v1[i];
+                directions(i,iv+45) = v3[i];
+            }
+            directions(i,54) = v1[i];
+            directions(i,55) = v2[i];
+            directions(i,56) = -v1[i];
+            directions(i,57) = -v2[i];
+
+            directions(i,58) = v3[i];
+            directions(i,59) = v3[i];
+            directions(i,60) = v3[i];
+            directions(i,61) = v3[i];
+
+            directions(i,62) = v1[i];
+            directions(i,63) = v2[i];
+            directions(i,64) = -v1[i];
+            directions(i,65) = -v2[i];
+            
+            directions(i,66) = v1[i];
+            directions(i,67) = v2[i];
+            
+            directions(i,68) = v1[i];
+            directions(i,69) = v3[i];
+            directions(i,70) = v2[i];
+            directions(i,71) = v3[i];
+            directions(i,72) = v1[i];
+            directions(i,73) = v3[i];
+            directions(i,74) = v1[i];
+            directions(i,75) = v3[i];
+            
+            directions(i,76) = v1[i];
+            directions(i,77) = v2[i];
+
+            directions(i,78) = v3[i];
+            directions(i,79) = v1[i];
+            directions(i,80) = v3[i];
+            
+        }
+        
+        for(int i=0; i<81; i++)
+        {
+            sidevectors[i] = vectorsideorderC[i];
+        }
+
+    }
+
     void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {
         if(gradx.Cols()!=3)
