@@ -1286,4 +1286,24 @@ namespace pztopology {
         }
     }
 
+    void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    {
+        int nsides = NumSides()*3;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorderPi[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+        
+        for (int i=0; i<Dimension*NumSides(); i++) {
+            sidevectors[i] = vectorsideorderPi[i];
+        }
+    }
+
 }

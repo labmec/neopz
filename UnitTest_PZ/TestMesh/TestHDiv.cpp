@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
 {
     InitializePZLOG();
     std::cout << "Initializing solution check\n";
-    RunBilinear(ETriangle);
+//    RunBilinear(ETriangle);
     RunBilinear(EQuadrilateral);
     RunBilinear(ECube);
     std::cout << "Leaving solution check\n";
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
     std::cout << "Initializing sideshape_continuity check\n";
     VerifySideShapeContinuity(ECube);
     VerifySideShapeContinuity(EQuadrilateral);
-    VerifySideShapeContinuity(ETriangle);
+//    VerifySideShapeContinuity(ETriangle);
     std::cout << "Leaving sideshape_continuity check\n";
 }
 
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(drham_check)
     std::cout << "Initializing DRham consistency check\n";
     VerifyDRhamCompatibility(ECube);
     VerifyDRhamCompatibility(EQuadrilateral);
-    VerifyDRhamCompatibility(ETriangle);
+//    VerifyDRhamCompatibility(ETriangle);
     std::cout << "Leaving  DRham consistency check\n";
 }
 
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
     std::cout << "Initializing  DRham consistency under permutation check\n";
     CheckDRhamFacePermutations(ECube);
     CheckDRhamPermutations(EQuadrilateral);
-    CheckDRhamPermutations(ETriangle);
+//    CheckDRhamPermutations(ETriangle);
     std::cout << "Leaving  DRham consistency under permutation check\n";
 }
 
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(shape_order)
 {
     std::cout << "Initializing shape_order check\n";
     CheckShapeOrder<pzshape::TPZShapeQuad>(6);
-    CheckShapeOrder<pzshape::TPZShapeTriang>(6);
+//    CheckShapeOrder<pzshape::TPZShapeTriang>(6);
     CheckShapeOrder<pzshape::TPZShapeCube>(6);
     std::cout << "Leaving shape_order check\n";
 }
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(vector_direction)
 {
     std::cout << "Initializing vector_direction check\n";
     VectorDirections<pzshape::TPZShapeCube>();
-    VectorDirections<pzshape::TPZShapeTriang>();
+//    VectorDirections<pzshape::TPZShapeTriang>();
     VectorDirections<pzshape::TPZShapeQuad>();
     std::cout << "Leaving vector_direction check\n";
 }

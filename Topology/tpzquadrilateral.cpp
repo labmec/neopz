@@ -990,7 +990,7 @@ namespace pztopology {
         
 	}
     
-    void TPZQuadrilateral::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    void TPZQuadrilateral::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
     {
         TPZManVector<REAL, 3> v1(3),v2(3);
         for (int i=0; i<3; i++) {
@@ -1019,9 +1019,6 @@ namespace pztopology {
             directions(i,16) = v1[i];
             directions(i,17) = v2[i];
         }
-        for (int i=0; i<18; i++) {
-            sidevectors[i] = vectorsideorder[i];
-        }
     }
     
     void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
@@ -1037,6 +1034,24 @@ namespace pztopology {
             sides[is] = vectorsideorder[is];
             dir[is] = direcaoksioueta[is];
             bilounao[is] = bilinearounao[is];
+        }
+    }
+    void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    {
+        int nsides = NumSides()*2;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorder[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+        for (int i=0; i<Dimension*NumSides(); i++) {
+            sidevectors[i] = vectorsideorder[i];
         }
     }
 }

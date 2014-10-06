@@ -810,7 +810,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     TPZManVector<int,81> vecpermute(TSHAPE::NSides*TSHAPE::Dimension);
     int count = 0;
     for (int side = 0; side < TSHAPE::NSides; side++) {
-        if (TSHAPE::SideDimension(side) < TSHAPE::Dimension -1) {
+        if (TSHAPE::SideDimension(side) != TSHAPE::Dimension -1) {
             continue;
         }
         TPZGeoElSide gelside(this->Reference(),side);
@@ -1607,8 +1607,14 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
     
-	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG;
+    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
+
+#ifdef OLDVERSION
     TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(qsi,data.fNormalVec, normalsidesDG);
+#else
+    TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec);
+#endif
+    
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -1640,13 +1646,11 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		}
 #endif
     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
-    TSHAPE::GetSideDirections(vecside,directions,bilinear);
     
-    TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas;
-	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG;
+    TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
+	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
     TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
     
-    TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(pt,NormalsDouglas, normalsidesDG);
     
 //	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsides;
 //	TPZIntelGen<TSHAPE>::Reference()->ComputeNormals(data.fNormalVec, normalsides);
@@ -1681,7 +1685,19 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //    IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
     
     TPZVec<std::pair<int,long> > IndexVecShape;
+
+#ifdef OLDVERSION
+    TSHAPE::GetSideDirections(vecside,directions,bilinear);
+
+    TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(pt,NormalsDouglas, normalsidesDG);
 	IndexShapeToVec(normalsidesDG, bilinear, directions, data.fVecShapeIndex, pressureorder);
+#else
+    TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsidesDG);
+    data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides);
+//    TPZIntelGen<TSHAPE>::Reference()->Directions(pt,NormalsDouglas,normalsidesDG);
+    IndexShapeToVec2(normalsidesDG, bilinear, directions,data.fVecShapeIndex,pressureorder);
+#endif
+    
     data.fShapeType = TPZMaterialData::EVecShape;
 
     

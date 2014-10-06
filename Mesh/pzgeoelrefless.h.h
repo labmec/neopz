@@ -456,7 +456,7 @@ TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 }
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)
+void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
     REAL detjac;
@@ -476,7 +476,7 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
         }
     }
 //    gradxt.Transpose(&gradx);
-    TGeo::ComputeDirections(side, gradx, directions, vectorsides);
+    TGeo::ComputeDirections(side, gradx, directions, sidevectors);
     
 //    TPZStack<int> lowdim;
 //	LowerDimensionSides(side,lowdim);
@@ -487,7 +487,7 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
 }
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)
+void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
     REAL detjac;
@@ -507,7 +507,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &direc
         }
     }
     //    gradxt.Transpose(&gradx);
-    TGeo::ComputeDirections(gradx, detjac, directions, vectorsides);
+    TGeo::ComputeDirections(gradx, detjac, directions);
         
 }
 

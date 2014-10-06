@@ -433,6 +433,27 @@ namespace pztopology {
         }
     }
 
+    void TPZLine::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    {
+        int nsides = NumSides();
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        DebugStop();
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            //            sides[is] = vectorsideorder[is];
+            //            dir[is] = direcaoksioueta[is];
+            //            bilounao[is] = bilinearounao[is];
+        }
+        sidevectors[0] = 0;
+        sidevectors[1] = 1;
+        sidevectors[2] = 2;
+    }
+    
 
 
 }

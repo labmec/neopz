@@ -1184,7 +1184,7 @@ namespace pztopology {
 //        {0,0,1}  // volume
 //    };
 
-    void TPZCube::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    void TPZCube::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
     {
         REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
         TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3);
@@ -1251,10 +1251,6 @@ namespace pztopology {
             
         }
         
-        for(int i=0; i<81; i++)
-        {
-            sidevectors[i] = vectorsideorderC[i];
-        }
 
     }
 
@@ -1402,6 +1398,26 @@ namespace pztopology {
             sides[is] = vectorsideorderC[is];
             dir[is] = direcaoksioueta[is];
             bilounao[is] = bilinearounao[is];
+        }
+    }
+
+    void TPZCube::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    {
+        int nsides = NumSides()*3;
+        
+        sides.Resize(nsides);
+        dir.Resize(nsides);
+        bilounao.Resize(nsides);
+        
+        for (int is = 0; is<nsides; is++)
+        {
+            sides[is] = vectorsideorderC[is];
+            dir[is] = direcaoksioueta[is];
+            bilounao[is] = bilinearounao[is];
+        }
+        
+        for (int i=0; i<Dimension*NumSides(); i++) {
+            sidevectors[i] = vectorsideorderC[i];
         }
     }
 
