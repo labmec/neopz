@@ -467,6 +467,15 @@ TPZWellBoreAnalysis::TConfig::~TConfig()
 
 TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZWellBoreAnalysis::TConfig &copy)
 {
+    // clean up before copying, multiphysics mesh is always create on the fly
+    if (fWellConfig == EVerticalWell) {
+	fZDeformation.CleanUp();
+	fMultiPhysics.MaterialVec().clear();
+	fMultiPhysics.CleanUp();
+    }
+
+  
+  
     fInnerRadius = copy.fInnerRadius;
     fOuterRadius = copy.fOuterRadius;
     fConfinementEffective = copy.fConfinementEffective;
