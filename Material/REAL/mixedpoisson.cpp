@@ -578,13 +578,15 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))  return 7;
+    
+    if(!strcmp("OrdemP",name.c_str()))        return  8;
 	
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMixedPoisson::NSolutionVariables(int var){
 	if(var == 1) return fDim;
-	if(var == 2) return 1;
+	if(var == 2 || var==8) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 1;
@@ -650,6 +652,10 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 		return;
 	}//var7
 
+    if(var==8){
+        Solout[0] = datavec[0].p;
+        return;
+    }
 }
 
 

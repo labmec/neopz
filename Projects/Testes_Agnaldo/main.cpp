@@ -76,6 +76,11 @@ void ForcingSource(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBCPressao(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
+
+void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv));
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv));
+
+
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 #endif
@@ -144,7 +149,7 @@ int main_Loula(int argc, char *argv[])
     DadosMalhas * mydata = new DadosMalhas();
     mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
     
-    ofstream saidaerro("Erro.txt");
+    ofstream saidaerro("ErroLoula.txt");
     
     
     for(int p = 2; p < 3; p++)
@@ -253,7 +258,7 @@ int main_Loula(int argc, char *argv[])
 //        ofstream arg8("mphysic.txt");
 //        mphysics->Print(arg8);
 
-        int NDeltaT = 10000;
+        int NDeltaT = 1000000;
         int intervsaidas = NDeltaT/20;
         REAL deltaT=timeT/NDeltaT; //second
         mymaterial->SetTimeStep(deltaT);
@@ -399,7 +404,7 @@ void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 	
 	REAL tD = tp;//(lamb+2.*mi)*perm*tp/(visc*H*H);
 	REAL xD = fabs(1.-x)/H;
-	for (in =0; in<1000; in++) {
+	for (in =999; in >= 0; in--) {
 		
 		M = PI*(2.*in+1.)/2.;
 		sumpD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
@@ -456,7 +461,7 @@ void SolucaoUMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE
 	
 	REAL tD = tp;//(lamb+2.*mi)*perm*tp/(visc*H*H);
 	REAL xD = fabs(1.-x)/H;
-	for (in =0; in<1000; in++) {
+	for (in =999; in >= 0; in--) {
 		
 		M = PI*(2.*in+1.)/2.;
 		sumuD += (2./(M*M))*cos(M*xD)*exp(-1.*M*M*tD);
@@ -501,7 +506,7 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 	
 	REAL tD = tp;//(lamb+2.*mi)*perm*tp/(visc*H*H);
 	REAL xD = fabs(1.-x)/H;
-	for (in =0; in<1000; in++) {
+	for (in =999; in >= 0; in--) {
 		
 		M = PI*(2.*in+1.)/2.;
 		sumpD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
@@ -558,7 +563,7 @@ int main(int argc, char *argv[]){
    
     REAL Ly = 1.;
     REAL Lx = 1.;
-    REAL timeT = 1000;
+    REAL timeT = 100000;
     
     
     //Incompressible fluid (Se=0)
@@ -582,7 +587,7 @@ int main(int argc, char *argv[]){
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = sig0/pref;
         pini =pini/pref;
-        timeT = 0.1;// timeT*Cf/(Ly*Ly);
+        timeT =/* 0.1;//*/ timeT*Cf/(Ly*Ly);
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
@@ -596,10 +601,10 @@ int main(int argc, char *argv[]){
     mydata->SetParameters(Eyoung, poisson, alpha, Se, perm, visc, fx, fy, sig0);
     
     
-    ofstream saidaerro("Erro.txt");
+    ofstream saidaerro("ErroTerzaghi.txt");
     
     
-    for(int p =1; p<2; p++)
+    for(int p =1; p<3; p++)
     {
         int pu = p;
         int pq = pu;
@@ -613,7 +618,7 @@ int main(int argc, char *argv[]){
         
         int h;
         saidaerro<<"\n CALCULO DO ERRO, ELEM. QUAD., COM ORDEM POLINOMIAL pu = "<< pu << ", pq = "<< pq << " e pp = "<< pp<<endl;
-        for (h = 4; h< 5; h++)
+        for (h = 0; h< 6; h++)
         {
             
             saidaerro<<"\n========= PARA h = "<< h<<"  ============= "<<endl;
@@ -676,7 +681,7 @@ int main(int argc, char *argv[]){
             TPZCompMesh * mphysics = mydata->MalhaCompTerzaghi(gmesh,meshvec,mymaterial,solExata);
 
             
-            int NDeltaT = 10000;
+            int NDeltaT = 1000000;
             int intervsaidas = NDeltaT/20;
             REAL deltaT=timeT/NDeltaT; //second
             mymaterial->SetTimeStep(deltaT);
@@ -714,7 +719,8 @@ int main(int argc, char *argv[]){
             REAL TimeValue = 0.0;
             int cent = 1;
             TimeValue = cent*deltaT;
-            while (TimeValue <= maxTime)
+            //while (TimeValue <= maxTime)
+            while (cent <= intervsaidas)
             {
                 ftimeatual  = TimeValue;
                 // This time solution i for Transient Analytic Solution
@@ -729,23 +735,26 @@ int main(int argc, char *argv[]){
                 if(cent%intervsaidas==0){
                     saidaerro<<"\n========= PARA O PASSO n = "<< cent <<"  E TEMPO tn = "<< TimeValue <<" =========\n"<<endl;
                     
-                    std::stringstream outputfiletemp;
-                    outputfiletemp << outputfile << ".vtk";
-                    std::string plotfile = outputfiletemp.str();
-                    mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+//                    std::stringstream outputfiletemp;
+//                    outputfiletemp << outputfile << ".vtk";
+//                    std::string plotfile = outputfiletemp.str();
+//                    mydata->PosProcessMultphysics(meshvec,mphysics,an,plotfile);
                     
-                    
+                    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
                     TPZVec<REAL> erros;
                     
                     saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
-                    TPZAnalysis an22(cmesh2);
-                    an22.SetExact(*SolucaoPQTerzaghi);
-                    an22.PostProcessError(erros, saidaerro);
+//                    TPZAnalysis an22(cmesh2);
+//                    an22.SetExact(*SolucaoPQTerzaghi);
+//                    an22.PostProcessError(erros, saidaerro);
+                    
+                    ErrorHDiv2(cmesh2,saidaerro,SolucaoPQTerzaghi);
                     
                     saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
-                    TPZAnalysis an32(cmesh3);
-                    an32.SetExact(*SolucaoPQTerzaghi);
-                    an32.PostProcessError(erros, saidaerro);
+//                    TPZAnalysis an32(cmesh3);
+//                    an32.SetExact(*SolucaoPQTerzaghi);
+//                    an32.PostProcessError(erros, saidaerro);
+                    ErrorH1(cmesh3,saidaerro,SolucaoPQTerzaghi);
                 }
                 
                 
@@ -1315,10 +1324,10 @@ void BarryMercerProblem2D(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
 	REAL ptil = 0., util = 0., wtil =0., temp=0.;
     REAL sump=0., sumux = 0., sumuy = 0., sumVDx = 0., sumVDy=0.;
     
-    for(in=1; in<100; in++)
+    for(in=99; in<=0; in--)
     {
         gamman = in*PI;
-        for(jq=1; jq<100; jq++)
+        for(jq=99; jq<=0; jq--)
         {
             gammaq = jq*PI;
             gammanq = gamman*gamman + gammaq*gammaq;
@@ -1405,10 +1414,10 @@ void SolucaoUBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix
 	REAL ptil = 0., util = 0., wtil =0., temp=0.;
     REAL sumux = 0., sumuy = 0., sumsigx=0., sumsigy=0., sumsigxy=0.;
     
-    for(in=1; in<500; in++)
+    for(in=499; in<=0; in--)
     {
         gamman = in*PI;
-        for(jq=1; jq<500; jq++)
+        for(jq=499; jq<=0; jq--)
         {
             gammaq = jq*PI;
             gammanq = gamman*gamman + gammaq*gammaq;
@@ -1493,10 +1502,10 @@ void SolucaoPQBarryMercer(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatri
 	REAL ptil = 0., util = 0., wtil =0., temp=0.;
     REAL sump=0., sumVDx = 0., sumVDy=0.;
     
-    for(in=1; in<500; in++)
+    for(in=499; in<=0; in--)
     {
         gamman = in*PI;
-        for(jq=1; jq<500; jq++)
+        for(jq=499; jq<=0; jq--)
         {
             gammaq = jq*PI;
             gammanq = gamman*gamman + gammaq*gammaq;
@@ -2449,3 +2458,73 @@ void RefinamentoPadrao3x3(TPZGeoMesh *gmesh, int nref,TPZVec<REAL> pt, bool chan
     std::ofstream malhaOut("malhaOut2.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
 }
+
+void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv))
+{
+    long nel = hdivmesh->NElements();
+    int dim = hdivmesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = hdivmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        cel->EvaluateError(fp, elerror, NULL);
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+    out << "Errors associated with HDiv space\n";
+    out << "L2 Norm for flux = "    << sqrt(globerrors[1]) << endl;
+    out << "L2 Norm for divergence = "    << sqrt(globerrors[2])  <<endl;
+    out << "Hdiv Norm for flux = "    << sqrt(globerrors[3])  <<endl;
+    
+}
+
+void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv))
+{
+    long nel = l2mesh->NElements();
+    int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(fp, elerror, NULL);
+        
+        int nerr = elerror.size();
+        //globerrors.resize(nerr);
+//#ifdef LOG4CXX
+//        if (logger->isDebugEnabled()) {
+//            std::stringstream sout;
+//            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//#endif
+        for (int i=0; i<nerr; i++) {
+            globerrors[i] += elerror[i]*elerror[i];
+        }
+    }
+    out << "\n";
+    out << "Errors associated with L2 or H1 space\n";
+    out << "\nH1 Norm = "    << sqrt(globerrors[0]) << endl;
+    out << "\nL2 Norm = "    << sqrt(globerrors[1]) << endl;
+    out << "\nSemi H1 Norm = "    << sqrt(globerrors[2]) << endl;
+    out << "\n=============================\n"<<endl;
+}
+
+
