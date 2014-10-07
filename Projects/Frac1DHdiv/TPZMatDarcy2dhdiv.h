@@ -14,7 +14,14 @@
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
 
-
+/**
+ * @ingroup material
+ * @author Omar Duran and Nathan Shauer
+ * @since 19/08/2014
+ * @brief Material to solve a 2d mixed formulation for darcy flow
+ * @brief Here is used Hdiv for flux and L2 for pressure
+ * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
+ */
 class TPZMatDarcy2dhdiv : public TPZDiscontinuousGalerkin {
     
 protected:
