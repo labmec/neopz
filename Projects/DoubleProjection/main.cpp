@@ -660,7 +660,7 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {
-        gengrid.SetElementType(1);
+        gengrid.SetElementType(EOned);
     }
     gengrid.Read(gmesh);
     
@@ -696,7 +696,7 @@ TPZGeoMesh *GMeshSteklov(bool triang_elements)
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {
-        gengrid.SetElementType(1);
+        gengrid.SetElementType(EOned);
     }
     gengrid.Read(gmesh);
     
