@@ -115,7 +115,7 @@ private:
   std::string fpostProcessFileName;
   
   /** @brief Map used ONLY for debbuging */
-  std::map<REAL,REAL> fDebugMap;
+  std::map<REAL,REAL> fDebugMap, fDebugMap2;
   
 public:
   
@@ -334,6 +334,10 @@ public:
 
   /** @brief Prints debug map in Mathematica style */
   void PrintDebugMapForMathematica(std::string filename);
+  
+  /** @brief Return debug map */
+  std::map<REAL,REAL> & DebugMap2() {return fDebugMap2;}
+
 };
 
 #endif

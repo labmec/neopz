@@ -62,6 +62,9 @@ public:
   /** @brief Finds the initial time step to run simulation and returns the vl to train the integration points */
   REAL RunUntilOpen();
   
+  /** @brief Return the Q (flow) that a fresh new element could absorb in one time step */
+  REAL QOfAFreshNewElement();
+  
   /** @brief Creates first GeoEl with bc */
   TPZGeoEl* CreateFirstGeoElWithBC();
   

@@ -153,7 +153,7 @@ REAL TPZFracData::VlFtau(REAL pfrac, REAL tau) const
     Pcalc = 0.;
   }
   
-  REAL Clcorr = Cl * sqrt(Pcalc);
+  REAL Clcorr = Cl;// * sqrt(Pcalc);
   REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
   
   return Vl;
@@ -174,7 +174,7 @@ REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac) const
     {
       Pcalc = 0.;
     }
-    REAL Clcorr = Cl * sqrt(Pcalc);
+    REAL Clcorr = Cl;// * sqrt(Pcalc);
     tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
   }
   
@@ -239,8 +239,20 @@ void TPZFracData::PrintDebugMapForMathematica(std::string filename)
     out << ",{" << it->first << "," << it->second << "}";
   }
   out << "};" << std::endl;
-  out << "ListPlot[DebugMap,Joined -> True,PlotMarkers -> Automatic]";
+  out << "g1 = ListPlot[DebugMap,Joined -> True,PlotMarkers -> Automatic, PlotRange -> All]" << std::endl;
+
+  it = fDebugMap2.begin();
   
+  out << "DebugMap2 = ";
+  out << "{{" << it->first << "," << it->second << "}";
+  it++;
+  for (; it != fDebugMap2.end(); it++) {
+    out << ",{" << it->first << "," << it->second << "}";
+  }
+  out << "};" << std::endl;
+  out << "g2 = ListPlot[DebugMap2,Joined -> True,PlotMarkers -> Automatic, PlotStyle -> Red, PlotRange -> All]" << std::endl;
+  out << "Show[g2,g1,PlotRange -> All,AxesOrigin -> {0,0}]" << std::endl;
+
   out.close();
 }
 

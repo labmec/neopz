@@ -12,7 +12,7 @@ int main()
 #ifdef LOG4CXX
   InitializePZLOG();
 #endif
-  
+    
   TPZMaterial::gBigNumber = 1.e8;
   
   // ---------- Parametros ----------
@@ -30,7 +30,7 @@ int main()
   const REAL theta = 1.;
   const REAL InitTime = 0.;
   const REAL timeStep = 1.;
-  const REAL Ttot = 100.;
+  const REAL Ttot = 400.;
   const int pOrdQDarcy = 1;
   const int pOrdPDarcy = 1;
   const int pOrdQFrac = 1;

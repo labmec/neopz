@@ -208,7 +208,7 @@ void TPZFracAnalysis::Run()
     this->PostProcessVTK(an);
   }
   
-  //fData->PrintDebugMapForMathematica("DebugMapQl.nb");
+  fData->PrintDebugMapForMathematica("DebugMapQl.nb");
   
   delete an;
 }
@@ -486,7 +486,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
 		double norm = normDeltaSol;
 		out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << std::endl;
     
-    SoliterK.Print("Sol");
+    //SoliterK.Print("Sol");
     //an->Rhs().Print("Rhs:");
     
 		if(norm < tol) {
@@ -629,29 +629,29 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
       IterativeProcess(an, std::cout);
       an->StructMatrix()->EquationFilter().Reset();
       
-      IterativeProcess(an, std::cout,1);
+      IterativeProcess(an, std::cout, 1);
       an->Rhs()(0,0) = 0.;
-      an->Rhs().Print("rhs");
       
     }while (Norm(an->Rhs()) > tol);
-    
-    
 
     //IterativeProcess(an, std::cout);
     
-    if (0)
-    {
-      an->Solver().Matrix()->Print("Jac");
-      an->Rhs().Print("Rhs");
+    const REAL qtip = this->Qtip();
+    
+    if (it == 0 && itglob != 0) {
+      fData->DebugMap().insert(std::pair<REAL, REAL> (fData->Lfrac(),qtip));
     }
     
-    const REAL qtip = this->Qtip();
-    fcmeshMixed->Solution().Print("meshsol");
     if (qtip < 0.) {
+      DebugStop();
       propagate = false;
     }
     else{
       propagate = this->VerifyIfPropagate(qtip);
+    }
+    
+    if (propagate) {
+      fData->DebugMap2().insert(std::pair<REAL, REAL> (fData->Lfrac(),qtip));
     }
     
     if (propagate) {
@@ -794,7 +794,10 @@ bool TPZFracAnalysis::VerifyIfPropagate(REAL qtip)
   const REAL totalLeakOff = 2. * fData->ElSize() * vl;
   const REAL totalLeakOffprev = 2. * fData->ElSize() * fData->AccumVl();
   const REAL ql = (totalLeakOff - totalLeakOffprev)/dt;
-  if (qtip > 4. * ql) { // AQUINATHAN
+  
+  const REAL qFreshNewEl = this->QOfAFreshNewElement();
+  const REAL crit = MAX(qFreshNewEl/3., 4.*ql);
+  if (qtip > crit) { // AQUINATHAN
     return true;
   }
   else{
@@ -821,7 +824,10 @@ REAL TPZFracAnalysis::RunUntilOpen()
     const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
     const REAL totalLeakOffPrev = 2. * fData->ElSize() * fData->AccumVl();
     const REAL ql = (totalLeakOff - totalLeakOffPrev)/dt;
-    if (qtip > 2.5 * ql) { //AQUINATHAN
+    
+    const REAL qFreshNewEl = this->QOfAFreshNewElement();
+    const REAL crit = MAX(qFreshNewEl/3., 4.*ql);
+    if (qtip > crit) { //AQUINATHAN
       break;
     }
     
@@ -856,4 +862,15 @@ TPZGeoEl * TPZFracAnalysis::FindPressureBCElement()
   }
 #endif
   return gel;
+}
+
+REAL TPZFracAnalysis::QOfAFreshNewElement()
+{
+  const REAL dt = fData->TimeStep();
+  const REAL pfrac = fData->SigmaConf();
+  REAL vlnext = fData->VlFtau(pfrac, dt);
+  const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
+  const REAL qFresh = (totalLeakOff)/dt;
+  
+  return qFresh;
 }
