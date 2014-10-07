@@ -41,6 +41,10 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"))
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
+#ifdef USING_TBB
+#include "tbb/task_group.h"
+#endif
+
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
 	this->SetNumThreads(0);
@@ -71,9 +75,13 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
 	cout << "TPZStructMatrix::Clone should never be called\n";
 	return 0;
 }
+#include "run_stats_table.h"
+RunStatsTable tpz_ass_stiff("-tpz_ass_stiff", "Raw data table statistics for TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness");
+RunStatsTable tpz_ass_rhs("-tpz_ass_rhs", "Raw data table statistics for TPZStructMatrix::Assemble(TPZMatrix<STATE> & rhs");
+
 
 void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	
+    tpz_ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         long neqcondense = fEquationFilter.NActiveEquations();
 #ifdef DEBUG
@@ -100,9 +108,11 @@ void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> &
             this->Serial_Assemble(stiffness,rhs,guiInterface);
         }
     }
+    tpz_ass_stiff.stop();
 }
 
 void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    tpz_ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
         long neqcondense = fEquationFilter.NActiveEquations();
@@ -131,6 +141,7 @@ void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInte
             this->Serial_Assemble(rhs,guiInterface);
         }
     }
+    tpz_ass_rhs.stop();
 }
 
 
@@ -397,6 +408,15 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
 			return;
 		}
 	}
+#ifdef USING_TBB
+    tbb::task_group tg;
+    for(itr=0; itr<numthreads; itr++)
+        tg.run(StructMatrixTask(&threaddata));
+    
+    ThreadData::ThreadAssembly(&threaddata);
+    
+    tg.wait();
+#else
 	for(itr=0; itr<numthreads; itr++)
 	{
 	  PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork, 
@@ -409,6 +429,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
 	{
 	  PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
 	}
+#endif
 	
 #ifdef LOG4CXX
     if(loggerCheck->isDebugEnabled())
@@ -435,6 +456,15 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
 			return;
 		}
 	}
+#ifdef USING_TBB
+    tbb::task_group tg;
+    for(itr=0; itr<numthreads; itr++)
+        tg.run(StructMatrixTask(&threaddata));
+    
+    ThreadData::ThreadAssembly(&threaddata);
+    
+    tg.wait();
+#else
 	for(itr=0; itr<numthreads; itr++)
 	{
         PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork,
@@ -447,6 +477,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
 	{
         PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
 	}
+#endif
 }
 
 /// filter out the equations which are out of the range

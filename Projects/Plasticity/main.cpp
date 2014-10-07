@@ -65,6 +65,145 @@ static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 
 RunStatsTable plast_tot("-tpz_plast_tot", "Raw data table statistics for Plasticity::FindBug");
 
+#ifdef USING_TBB
+#include "tbb/task_scheduler_init.h"
+#endif
+void Config2()
+{
+#ifdef USING_TBB
+    tbb::task_scheduler_init init(12);
+#endif
+    
+    InitializePZLOG();
+    gRefDBase.InitializeAllUniformRefPatterns();
+    TPZWellBoreAnalysis well;
+    REAL innerradius = 0.10795;
+    REAL outerradius = 3.;
+    
+    REAL sqj2_refine=1.e-7;
+    REAL sqj2_ellips = 1.e-7;
+    std::cout << std::setprecision(15);
+    TPZManVector<STATE,3> confinement(3,0.);
+    REAL SH,Sh,SV;
+    SH=-62.1;
+    Sh=-45.9;
+    SV=-48.2;
+    
+    confinement[0] = Sh;
+    confinement[1] = SH;
+    confinement[2] = SV;
+    REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
+    well.SetConfinementEffectiveStresses(confinement, effectivePressure);
+    well.SetInnerOuterRadius(innerradius, outerradius);
+    
+    bool modelMC =false;
+    if (modelMC)
+    {
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL cohesion = 13.;
+        REAL Phi = 0.52;
+        well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+        
+    }
+    else
+    {
+        
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL A = 152.54;
+        REAL B = 0.0015489;
+        REAL C = 146.29;
+        REAL R = 0.91969;
+        REAL D = 0.018768;
+        REAL W = 0.006605;
+        well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+        
+    }
+    
+    
+    int Startfrom=0;
+    if (Startfrom == 0)
+    {
+        int porder = 2;
+        int nrad=40;
+        int ncircle = 20;
+        REAL delx = 0.5*innerradius*M_PI_2/ncircle;
+        TPZManVector<int,2> numdiv(2);
+        numdiv[0] = nrad;
+        numdiv[1] = ncircle;
+        well.SetMeshTopology(delx, numdiv);
+        well.GetCurrentConfig()->CreateMesh();
+        
+        well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        //REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
+        well.PostProcess(0);
+        
+    }
+    if (Startfrom ==0)
+    {
+        
+        int nsteps = 5;
+        int numnewton = 80;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteInitialSimulation(nsteps, numnewton);
+        TPZBFileStream save;
+        save.OpenWrite("wellbore0.bin");
+        well.Write(save);
+        
+    }
+    
+    if (Startfrom ==1)
+    {
+        TPZBFileStream read;
+        read.OpenRead("wellbore0.bin");
+        well.Read(read);
+    }
+    
+    
+    if (Startfrom <=1)
+    {
+        std::cout << "\n ------- 1 -------- "<<std::endl;
+        
+        well.PRefineElementAbove(sqj2_refine, 4);
+        well.DivideElementsAbove(sqj2_refine);
+        //well.DivideElementsAbove(sqj2_refine);
+        well.ExecuteSimulation();
+        REAL a, b;
+        well.ComputeAandB(sqj2_ellips, a,b);
+        well.AddEllipticBreakout(a, b);
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        save.OpenWrite("wellbore1.bin");
+        well.Write(save);
+        
+        
+    }
+    
+    
+    for(int i=0;i<1;i++)
+    {
+        std::cout << "\n ------- "<< i+2 <<"-------- "<<std::endl;
+        well.PRefineElementAbove(sqj2_refine, 4);
+        well.DivideElementsAbove(sqj2_refine);
+        well.DivideElementsAbove(sqj2_refine);
+        well.ExecuteSimulation();
+        REAL a, b;
+        well.ComputeAandB(sqj2_ellips, a,b);
+        well.AddEllipticBreakout(a, b);
+        well.ExecuteSimulation();
+        TPZBFileStream save;
+        stringstream outfile;
+        outfile<< "wellbore"<<i+2<<".bin";
+        save.OpenWrite(outfile.str());
+        well.Write(save);
+        
+    }
+    
+    
+}
+
 void Config1()
 {
     TPZTimer time1,time2;
@@ -288,8 +427,9 @@ int main(int argc, char **argv)
 {
     clarg::parse_arguments(argc, argv);
     
-    
-    Config1();
+    plast_tot.start();
+    Config2();
+    plast_tot.stop();
     
     
     return 0;

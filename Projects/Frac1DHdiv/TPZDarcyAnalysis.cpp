@@ -21,8 +21,9 @@
 #include "pzstepsolver.h"
 #include "TPZCompElDisc.h"
 #include "pzl2projection.h"
+#ifdef USING_BOOST
 #include <boost/math/special_functions/erf.hpp>
-
+#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
@@ -51,10 +52,12 @@ void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 /** @brief Analytic pressure field */
 void PressureAnal(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
 {
+#ifdef USING_BOOST
     REAL x = pt[0], t=time;
     if (time <= 1.0e-8){t=1.0e-8;}
     sol[0]      =   (sqrt((4.0*t)/(M_PI))*exp(-1.0*(x*x)/(4.0*t))) - x*(1.0-boost::math::erf(x/sqrt(4.0*t)));
     flux(0,0)   =   (1.0-boost::math::erf(x/sqrt(4.0*t)));
+#endif
 }
 
 void TPZDarcyAnalysis::Run()

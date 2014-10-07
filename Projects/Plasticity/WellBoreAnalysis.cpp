@@ -23,7 +23,6 @@
 #include "pzl2projection.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZProjectEllipse.h"
-const int globnthreadsdiogo = 8;
 #include "pzlog.h"
 
 #include "arglib.h"
@@ -37,6 +36,7 @@ static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 #endif
 
+clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 8);
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
 {
@@ -606,7 +606,7 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
 }
 
 RunStatsTable well_init("-tpz_well_init", "Raw data table statistics for TPZElastoPlasticAnalysis::IterativeProcess");
-clarg::argInt nthreads_sky("-nts", "Number of threads to TPZSkylineStructMatrix", 4);
+
 
 void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 {
@@ -618,7 +618,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     TPZElastoPlasticAnalysis analysis(workablemesh,std::cout);
 
 	TPZSkylineStructMatrix full(workablemesh);
-    full.SetNumThreads(nthreads_sky.get_value());
+    full.SetNumThreads(NumberOfThreads.get_value());
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
@@ -776,7 +776,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
     
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
-    full.SetNumThreads(nthreads_sky.get_value());
+    full.SetNumThreads(NumberOfThreads.get_value());
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
@@ -864,7 +864,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
     TPZElastoPlasticAnalysis analysis(&fCurrentConfig.fCMesh,std::cout);
     
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
-    full.SetNumThreads(nthreads_sky.get_value());
+    full.SetNumThreads(NumberOfThreads.get_value());
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
@@ -1745,7 +1745,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<S
     }
     allmaterials.erase(matid);
     TPZFStructMatrix str(&fCMesh);
-    str.SetNumThreads(globnthreadsdiogo);
+    str.SetNumThreads(NumberOfThreads.get_value());
     str.SetMaterialIds(allmaterials);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
@@ -1761,7 +1761,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsForMatid(int matid, TPZFMatrix<STAT
     allmaterials.insert(matid);
     TPZFStructMatrix str(&fCMesh);
     str.SetMaterialIds(allmaterials);
-    str.SetNumThreads(globnthreadsdiogo);
+    str.SetNumThreads(NumberOfThreads.get_value());
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
 }
@@ -2159,7 +2159,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(globnthreadsdiogo);
+        structmatrix.SetNumThreads(NumberOfThreads.get_value());
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);
@@ -3314,7 +3314,7 @@ void TPZWellBoreAnalysis::ComputeLinearMatrix()
     // For vertical wells, the material should be able to compute a vertical strain component as well in a multiphysics setting
     
     TPZSkylineStructMatrix skylstr(&fCurrentConfig.fCMesh);
-    skylstr.SetNumThreads(globnthreadsdiogo);
+    skylstr.SetNumThreads(NumberOfThreads.get_value());
     TPZFMatrix<STATE> rhs;
     TPZCompMesh *compmesh1 = &fCurrentConfig.fCMesh;
 

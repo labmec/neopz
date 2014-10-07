@@ -189,6 +189,17 @@ protected:
 		}
 		
 	};
+    
+#ifdef USING_TBB
+    class StructMatrixTask {
+    public:
+        ThreadData *threaddata;
+        StructMatrixTask( ThreadData *data) : threaddata(data) {}
+        void operator()() {
+            ThreadData::ThreadWork(threaddata);
+        }
+    };
+#endif
 	
 	friend struct ThreadData;
 protected:
