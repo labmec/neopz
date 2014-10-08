@@ -623,6 +623,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 
 	TPZSkylineStructMatrix full(workablemesh);
     full.SetNumThreads(NumberOfThreads.get_value());
+    full.SetNumThreads(0);
 	analysis.SetStructuralMatrix(full);
     
     analysis.AddNoPenetration(-5, 0);
@@ -648,15 +649,29 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     
     int neq = analysis.Mesh()->Solution().Rows();
     fCurrentConfig.fAllSol.Redim(neq, 1);
-    
-    
+
     for(int istep=0;istep<=nsteps;istep++)
     {
 #ifdef DEBUG
         std::cout << "Execute Initial Simulation Step = " << istep << " out of " << nsteps << std::endl;
 #endif
         fCurrentConfig.SetWellPressure(fCurrentConfig.fWellboreEffectivePressure,istep*1./nsteps);
+
+#ifdef LOG4CXX
+		if (logger->isDebugEnabled()) 
+		{
+			std::map<int, TPZMaterial *>::iterator it;
+			std::stringstream sout;
+			for(it = fCurrentConfig.fCMesh.MaterialVec().begin(); it != fCurrentConfig.fCMesh.MaterialVec().end(); it++)
+			{
+				it->second->Print(sout);
+			}
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		
         
+	
         if (fLinearMatrix) {
 #ifdef DEBUG
             std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << fLinearMatrix->IsDecomposed() << std::endl;
@@ -971,6 +986,7 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE welleffectivepressure, 
     TPZAutoPointer<TPZFunction<STATE> > force = mat->ForcingFunction();
     if (!force) {
         force = new TPBrBiotForce();
+		mat->SetForcingFunction(force);
     }
     
     TPBrBiotForce *biotforce = dynamic_cast<TPBrBiotForce *>(force.operator->());
@@ -2164,6 +2180,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
         structmatrix.SetNumThreads(NumberOfThreads.get_value());
+		structmatrix.SetNumThreads(0);
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);

@@ -138,7 +138,7 @@ void Config2()
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         //REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
-        well.PostProcess(0);
+//        well.PostProcess(0);
         
     }
     if (Startfrom ==0)
