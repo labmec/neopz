@@ -24,12 +24,16 @@ source_group("Substruct" FILES ${pzsubstruct_STAT_SRCS})
 source_group(Integral FILES ${pzintegral_STAT_SRCS})
 source_group(External FILES ${pzexternal_STAT_SRCS})
 source_group(External\\Sloan FILES ${sloan_SRCS})
+source_group(External\\FAD FILES ${FAD_SRCS})
+source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
+source_group(External\\FAD\\TinyFad FILES ${FAD_Tiny_SRCS})
+source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
 
 #creating pz lib and groups of the sources files
 set(pzsources 
 	${pzanalysis_STAT_SRCS} 
 	${pzcommon_STAT_SRCS} 
-	${pzexternal_STAT_SRCS} ${sloan_SRCS}
+	${pzexternal_STAT_SRCS} ${sloan_SRCS} ${FAD_SRCS} ${FAD_fad_SRCS} ${FAD_Tiny_SRCS} ${FAD_TinyET_SRCS}
 	${pzfrontal_STAT_SRCS} 
 	${pzgeom_STAT_SRCS} 
 	${pzintegral_STAT_SRCS} 
