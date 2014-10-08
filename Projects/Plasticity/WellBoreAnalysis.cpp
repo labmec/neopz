@@ -9,6 +9,9 @@
 #include "GeoMeshClass.h"
 #include "pzelastoplasticanalysis.h"
 #include "pzelastoplastic2D.h"
+#include "pzelastoplasticSest2D.h"
+
+#include_next "pzelasticSest2D.h"
 
 #include "BrazilianTestGeoMesh.h"
 #include "tpzchangeel.h"
@@ -36,6 +39,7 @@ static LoggerPtr logger(Logger::getLogger("pz.plasticity.wellboreanalysis"));
 static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 #endif
 
+int TPZWellBoreAnalysis::TConfig::gNumThreads = 8;
 clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 8);
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure)
@@ -272,7 +276,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
         REAL phi=0,psi=1.,N=0.;
         SD.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
         SD.fER.SetUp(elast,poisson);
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,obj.fCurrentConfig.fConfinementEffective.ZZ());
+        TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,obj.fCurrentConfig.fConfinementEffective.ZZ());
 
 
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC =obj.fCurrentConfig.fMCPV;
@@ -284,7 +288,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
         MC.fYC.SetUp(angle, angle, cohesion, ER);
         MC.fER.SetUp(elast,poisson);
 
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,obj.fCurrentConfig.fConfinementEffective.ZZ());
+        TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,obj.fCurrentConfig.fConfinementEffective.ZZ());
 
 #else
     
@@ -303,7 +307,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
    REAL W = 0.006605;
    SD.SetUp(poisson, elast, A, B, C, R, D, W);
 
-	TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
+	TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
     
 #endif
 
@@ -1165,11 +1169,11 @@ void TPZWellBoreAnalysis::TConfig::VerifyPlasticTangent(TPZCompEl *cel)
     
     
 #ifdef PV
-    TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *pMatWithMem2 =
-    dynamic_cast<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *>(cmesh2->MaterialVec()[1]);
+    TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *pMatWithMem2 =
+    dynamic_cast<TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *>(cmesh2->MaterialVec()[1]);
 #else
-    TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *pMatWithMem2 =
-    dynamic_cast<TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *>(cmesh2->MaterialVec()[1]);
+    TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *pMatWithMem2 =
+    dynamic_cast<TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *>(cmesh2->MaterialVec()[1]);
 #endif
 
     
@@ -3058,7 +3062,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 
         bool planestrain=true;
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC = fMCPV;
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,fConfinementEffective.ZZ());
+        TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,fConfinementEffective.ZZ());
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
@@ -3090,7 +3094,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     
         bool planestrain=true;
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =fSDPV;
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlastic2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,fConfinementEffective.ZZ());
+        TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,fConfinementEffective.ZZ());
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
@@ -3125,7 +3129,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     SD.SetResidualTolerance(1.e-10);
     SD.fIntegrTol = 10.;
     bool planestrain = true;
-    TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(materialid,planestrain);
+    TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(materialid,planestrain);
     
     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
@@ -3186,6 +3190,7 @@ void TPZWellBoreAnalysis::TConfig::CreateMultiphysicsMesh()
     fZDeformation.CleanUp();
     fMultiPhysics.MaterialVec().clear();
     fMultiPhysics.CleanUp();
+    fMultiPhysics.SetName("MultiPhysics Mesh");
     // put this in a separate method, to be called after h and p refinements
     
     fZDeformation.SetReference(&fGMesh);
@@ -3255,7 +3260,7 @@ void TPZWellBoreAnalysis::LinearConfiguration(int porder)
     TPZCompMesh *compmesh1 = &fCurrentConfig.fCMesh;
     DebugStop();
     // configure a material that simulates reservoir compaction
-    TPZElasticityMaterial *elasmat = new TPZElasticityMaterial(1);
+    TPZElasticityMaterialSest2D *elasmat = new TPZElasticityMaterialSest2D(1);
     ConfigureLinearMaterial(*elasmat);
     compmesh1->InsertMaterialObject(elasmat);
     CmeshWell(compmesh1, elasmat, fCurrentConfig.fConfinementEffective, fCurrentConfig.fWellboreEffectivePressure);
@@ -3265,7 +3270,7 @@ void TPZWellBoreAnalysis::LinearConfiguration(int porder)
 
 
 /// Set the parameters of the linear material
-void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterial &mat)
+void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &mat)
 {
     REAL E,nu, lambda,G;
 #ifdef PV
@@ -3307,6 +3312,44 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterial &mat)
     
 }
 
+/// Test the linear matrix with vertical compaction
+void TPZWellBoreAnalysis::TestLinearMaterial()
+{
+    TPZFMatrix<STATE> rhs;
+    TPZCompMesh *compmesh1 = 0;
+    if (fCurrentConfig.fWellConfig == EVerticalWell) {
+        compmesh1 = &fCurrentConfig.fMultiPhysics;
+    }
+    else
+    {
+        compmesh1 = &fCurrentConfig.fCMesh;
+    }
+    TPZSkylineStructMatrix skylstr(compmesh1);
+    skylstr.SetNumThreads(0);
+    
+    TPZMaterial *keepmat = compmesh1->MaterialVec()[1];
+    // create a different material for vertical wells
+    TPZElasticityMaterialSest2D *elasmat = new TPZElasticityMaterialSest2D(1);
+    ConfigureLinearMaterial(*elasmat);
+    compmesh1->InsertMaterialObject(elasmat);
+    
+    TPZAnalysis an(compmesh1,false);
+    an.SetStructuralMatrix(skylstr);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    an.SetSolver(step);
+    
+    an.Run();
+    
+    
+    compmesh1->InsertMaterialObject(keepmat);
+    delete elasmat;
+
+}
+
+
+
+
 /// Compute the linear elastic stiffness matrix
 void TPZWellBoreAnalysis::ComputeLinearMatrix()
 {
@@ -3317,10 +3360,17 @@ void TPZWellBoreAnalysis::ComputeLinearMatrix()
     skylstr.SetNumThreads(NumberOfThreads.get_value());
     TPZFMatrix<STATE> rhs;
     TPZCompMesh *compmesh1 = &fCurrentConfig.fCMesh;
+//    if (fCurrentConfig.fWellConfig == EVerticalWell) {
+//        compmesh1 = &fCurrentConfig.fMultiPhysics;
+//    }
+//    else
+//    {
+//         compmesh1 = &fCurrentConfig.fCMesh;
+//    }
 
     TPZMaterial *keepmat = compmesh1->MaterialVec()[1];
     // create a different material for vertical wells
-    TPZElasticityMaterial *elasmat = new TPZElasticityMaterial(1);
+    TPZElasticityMaterialSest2D *elasmat = new TPZElasticityMaterialSest2D(1);
     ConfigureLinearMaterial(*elasmat);
     compmesh1->InsertMaterialObject(elasmat);
     fLinearMatrix = skylstr.CreateAssemble(rhs, NULL);
