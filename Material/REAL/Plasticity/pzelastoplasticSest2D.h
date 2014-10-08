@@ -46,7 +46,7 @@ public:
 	 *  contains the index of the material object within the
 	 *  vector
 	 */
-	TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress);
+	TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress, STATE sigmaZ);
 	
 	/** Creates a material object based on the referred object and
 	 *  inserts it in the vector of material pointers of the mesh.
@@ -55,11 +55,16 @@ public:
 	 */
 	TPZMatElastoPlasticSest2D(const TPZMatElastoPlastic2D<T,TMEM> &mat);	
 	
+    /** @brief Creates a new material from the current object  */
+    virtual TPZMaterial * NewMaterial() {
+        return new TPZMatElastoPlasticSest2D<T,TMEM>(*this);
+    }
+    
+
 	/**
 	 * Unique identifier for serialization purposes
 	 */
-	virtual int ClassId() const;
-
+    virtual int ClassId() const;
 };
 
 #endif /* defined(__PZ__pzelastoplasticSest2D__) */

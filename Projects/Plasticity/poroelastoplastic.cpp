@@ -74,7 +74,7 @@ sigaction(SIGFPE, &act, NULL);
 DECLARE_FPO_HANDLER_FUNC;
 #endif
 
-int startfrom = 0;
+int startfrom = 1;
 #include "TPZTimer.h"
 
 
@@ -184,6 +184,7 @@ int main2 ()
         read.OpenRead("Wellbore0.bin");
         well.Read(read);
     }
+    return 0;
     if (startfrom <= 1)
     {
         

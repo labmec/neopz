@@ -130,9 +130,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	efc = ef.Cols();
 	ekr = ek.Rows();
 	ekc = ek.Cols();
-	if(phc != 1 || dphr != 2 || phr != dphc ||
-	   ekr != phr*2 || ekc != phr*2 ||
-	   efr != phr*2 ){
+	if(phc != 1 || dphr != 2 || phr != dphc){
 		PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
 		"phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
 		" phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
@@ -231,7 +229,6 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
         DebugStop();
         return;
     }
-    DebugStop();
     TPZFMatrix<REAL> &dphi = data[0].dphix;
     TPZFMatrix<REAL> &phi = data[0].phi;
     TPZFMatrix<REAL> &axes=data[0].axes;
@@ -245,9 +242,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
     efc = ef.Cols();
     ekr = ek.Rows();
     ekc = ek.Cols();
-    if(phc != 1 || dphr != 2 || phr != dphc ||
-       ekr != phr*2 || ekc != phr*2 ||
-       efr != phr*2 ){
+    if(phc != 1 || dphr != 2 || phr != dphc ){
         PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
         "phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
         " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
@@ -325,7 +320,28 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
                                                );
             }
         }
+        const STATE E  = this->fE;
+        const STATE nu = this->fnu;
+        const STATE C2 = E * nu / (-1. + nu + 2.*nu*nu);
+        const int nstate = 2;
+        
+//            ek(in*nstate,phr*nstate) += weight*(-C2*dphiXY(0,in));
+//            ek(in*nstate+1,phr*nstate) += weight*(-C2*dphiXY(1,in));
+//            
+//            ek(phr*nstate,in*nstate) += weight*(-C2*dphiXY(0,in));
+//            ek(phr*nstate,in*nstate+1) += weight*(-C2*dphiXY(1,in));
+        ek(in*nstate,phr*nstate) += weight*(-C2*du(0,0));
+        ek(in*nstate+1,phr*nstate) += weight*(-C2*du(1,0));
+        
+        ek(phr*nstate,in*nstate) += weight*(-C2*du(0,0));
+        ek(phr*nstate,in*nstate+1) += weight*(-C2*du(1,0));
+
     }
+    for (int col = 0; col < efc; col++)
+    {
+        ef(2*phr, col) += weight * (-fPreStressZZ);  // direcao x
+    }
+
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())

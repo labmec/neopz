@@ -47,9 +47,15 @@ class TPZElasticityMaterialSest2D : public TPZElasticityMaterial {
 	/** @brief Copies the data of one TPZElasticityMaterial object to another */
 	TPZElasticityMaterialSest2D(const TPZElasticityMaterial &copy);
 	
-	/** @brief Creates a new material from the current object   ??*/
-	virtual TPZMaterial * NewMaterial() { return new TPZElasticityMaterial(*this);}
-	virtual int ClassId() const;
+	/** @brief Creates a new material from the current object  */
+	virtual TPZMaterial * NewMaterial() {
+        return new TPZElasticityMaterialSest2D(*this);
+    }
+    
+	virtual int ClassId() const
+    {
+        return TPZElasticityMaterialSest2DID;
+    }
 
 };
 

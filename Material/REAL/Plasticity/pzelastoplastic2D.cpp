@@ -13,6 +13,7 @@
 
 //#include "TPZModifiedMohrCoulomb.h"
 //#include "TPZYCModifiedMohrCoulomb.h"
+#include "pzelastoplastic2D.h"
 #include "pzelastoplastic.h"
 #include "pzmaterialid.h"
 #include "poroelastoplasticid.h"
@@ -22,7 +23,6 @@
 #include "TPZYCDruckerPrager.h"
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
-#include "pzelastoplastic2D.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #endif

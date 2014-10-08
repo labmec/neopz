@@ -83,6 +83,12 @@ const int TPZMatLaplacianLagrangeID = 332;
 /** @brief Id of a material to the double projection method */
 const int TPZMDPMaterialID = 333;
 
+/** @brief Id of the elasto plastic material included in Sest2D */
+const int TPZMatElastoPlasticSest2DID = 334;
+
+/** @brief Id of the elastic material included in Sest2D */
+const int TPZElasticityMaterialSest2DID = 335;
+
 /** @} */
 
 #endif //PZMATERIALIDH

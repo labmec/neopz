@@ -268,6 +268,9 @@ void Config1()
         well.GetCurrentConfig()->CreateMesh();
         int porder = 2;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        
+//        well.TestLinearMaterial();
+        
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
         //well.LinearConfiguration(1);

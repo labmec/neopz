@@ -24,7 +24,7 @@
 //#include "TPZMohrCoulombNeto.h"
 #include "TPZYCMohrCoulombPV.h"
 
-class TPZElasticityMaterial;
+class TPZElasticityMaterialSest2D;
 
 /// create de standard mesh
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
@@ -236,6 +236,8 @@ public:
         TPZPostProcAnalysis fPostprocess;
 
         std::string fHistoryLog;
+        
+        static int gNumThreads;
 
         
     };
@@ -482,12 +484,15 @@ private:
     void ComputeLinearMatrix();
     
     /// Set the parameters of the linear material
-    void ConfigureLinearMaterial(TPZElasticityMaterial &mat);
+    void ConfigureLinearMaterial(TPZElasticityMaterialSest2D &mat);
     
     /// Recompute the plastic memory of the integration points of these elements
     void ApplyHistory(std::set<long> &elindices);
     
 public:
+    /// Test the linear matrix with vertical compaction
+    void TestLinearMaterial();
+    
     /** by Caju 2013 */
     /// Returns a set of points that belongs to the isoline defined by the ginen J2 value
     void GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
