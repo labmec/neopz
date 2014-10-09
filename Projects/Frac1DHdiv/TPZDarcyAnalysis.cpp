@@ -21,6 +21,7 @@
 #include "pzstepsolver.h"
 #include "TPZCompElDisc.h"
 #include "pzl2projection.h"
+#include "TPZMatfrac1dhdiv.h"
 #ifdef USING_BOOST
 #include <boost/math/special_functions/erf.hpp>
 #endif
@@ -63,7 +64,7 @@ void PressureAnal(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMat
 void TPZDarcyAnalysis::Run()
 {
     // Parametros
-    const int nel = 0;
+    const int nel = 1;
     
     // Malha geometrica
     fgmesh = CreateGMesh(nel);
@@ -110,14 +111,21 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/Frac1DHdiv/";
-//    GridFileName += "OilWaterSystemUnit.dump";
+    GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "BaseGeometryDakeThin.dump";//"FiveSpot.dump";
-    GridFileName += "FiveSpot.dump";//"FiveSpot.dump";
+//    GridFileName += "FiveSpot.dump";//"FiveSpot.dump";
     REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(0.0001);
+    GeometryInfo.SetfDimensionlessL(1.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
+    
+    
+    //---------  Elemento de interface  --------------------------------------------
+    gmesh->AddInterfaceMaterial(1,2,2);
+    gmesh->AddInterfaceMaterial(2,1,2);
+    gmesh->BuildConnectivity();
+    
     RotateGeomesh(gmesh, angle);
     
     UniformRefinement(gmesh, nel);
@@ -145,9 +153,12 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
     TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
     cmesh->InsertMaterialObject(mat);
     
+    TPZMatDarcy2dhdiv *mat1d = new TPZMatDarcy2dhdiv(bcBottomId);
+    cmesh->InsertMaterialObject(mat1d);
+    
     // Bc Bottom
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
- 	cmesh->InsertMaterialObject(bcBottom);
+// 	cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
@@ -189,9 +200,12 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
     TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
     cmesh->InsertMaterialObject(mat);
     
+    TPZMatDarcy2dhdiv *mat1d = new TPZMatDarcy2dhdiv(bcBottomId);
+    cmesh->InsertMaterialObject(mat1d);
+    
     // Bc Bottom
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
- 	cmesh->InsertMaterialObject(bcBottom);
+ 	//cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
@@ -241,25 +255,31 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
     mat->SetSimulationData(fData);
     cmesh->InsertMaterialObject(mat);
+    
+    // Material da fratura
+    TPZMatDarcy2dhdiv *mat1d = new TPZMatDarcy2dhdiv(bcBottomId);
+    mat1d->SetSimulationData(fData);
+    cmesh->InsertMaterialObject(mat1d);
+    
     TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnal);
     mat->SetTimeDependentFunctionExact(TimeDepFExact);
     
     // Bc Bottom
     val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
+    val2(1,0) = 1.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
- 	cmesh->InsertMaterialObject(bcBottom);
+// 	cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     val2(0,0) = 0.0;
-    val2(1,0) = 0.0005;
-    val2(2,0) = 0.0*40.0e6;
-    TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typeFlux, val1, val2);
+    val2(1,0) = 0.0000;
+    val2(2,0) = 1.0*20.0e6;
+    TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
     // Bc Top
-    val2(0,0) = 0.0005;
+    val2(0,0) = 0.0000;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcTop = mat->CreateBC(mat, bcTopId, typeFlux, val1, val2);
@@ -268,15 +288,15 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     // Bc Left
     val2(0,0) = 0.0*0.0005;// Massic flux 5.0 kg/s over 100000 m2
     val2(1,0) = 0.0;
-    val2(2,0) = 20.0e6;
-    TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typePressure, val1, val2);
+    val2(2,0) = 0.0*20.0e6;
+    TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 20.0e6;
-    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typePressure, val1, val2);
- 	cmesh->InsertMaterialObject(bcLeft2);
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    val2(2,0) = 20.0e6;
+//    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typePressure, val1, val2);
+// 	cmesh->InsertMaterialObject(bcLeft2);
     
     // Setando Multifisico
     cmesh->SetDimModel(2);
@@ -304,7 +324,7 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZ
     cmesh->SetDimModel(dim);
     cmesh->AutoBuild();
     
-//    ///set order total da shape
+//    ///set order total da shape HERE when Triangles are used
 //    int nel = cmesh->NElements();
 //    for(int i=0; i<nel; i++){
 //        TPZCompEl *cel = cmesh->ElementVec()[i];
@@ -339,6 +359,30 @@ void TPZDarcyAnalysis::CreateInterfaces(TPZCompMesh *cmesh)
             if(!InterpEl) continue;
             InterpEl->CreateInterfaces();
         }
+        
+        if(compEl->Reference()->Id() == 2)
+        {
+            TPZGeoEl * gel = compEl->Reference();
+            TPZGeoEl * LinearFrac = gel->CreateBCGeoEl(2, 2);
+            
+            TPZStack < TPZCompElSide > neigh;
+            int side = 2;
+            TPZGeoElSide gelside(gel,side);
+            TPZCompElSide Linearside(compEl,side);
+
+            gelside.EqualLevelCompElementList(neigh, 0, 0);
+            if (neigh.size() == 0) {
+                continue;
+            }
+//            if (neigh.size()!= 2) {
+//                DebugStop();
+//            }
+            long gelindex;
+            // TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);
+            new TPZMultiphysicsInterfaceElement(* cmesh, LinearFrac, gelindex, neigh[0], Linearside);
+
+        }
+        
     }
 }
 
@@ -346,8 +390,8 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
 {
 	int iter = 0;
 	REAL error = 1.e10;
-    const REAL tol = 1.e-2;
-    const int numiter = 50;
+    const REAL tol = 1.e-4;
+    const int numiter = 10;
     
     fData->SetCurrentState();
 	int numeq = an->Mesh()->NEquations();

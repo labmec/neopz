@@ -4,6 +4,8 @@
 #include "pzmatwithmem.h"
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
+#include "pzdiscgal.h"
+
 /**
  * @ingroup material
  * @author Omar Duran and Nathan Shauer
@@ -13,7 +15,7 @@
  * @brief Memory is used to store leak-off
  * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
  */
-class TPZMatfrac1dhdiv : public TPZMatWithMem<TPZFMatrix<REAL> > {
+class TPZMatfrac1dhdiv : public TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >   {
   
 protected:
   
@@ -64,6 +66,18 @@ public:
     DebugStop();
   }
 
+  virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+  {
+      DebugStop();
+  }
+
+  virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec,TPZVec<TPZMaterialData> &dataleftvec,TPZVec<TPZMaterialData> &datarightvec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+  {
+      DebugStop();
+  }
+    
+  virtual  void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+    
   /** @brief ContributeBC method beeing used */
   virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
 

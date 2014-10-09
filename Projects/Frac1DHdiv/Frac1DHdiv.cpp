@@ -2,6 +2,7 @@
 #include "pzmaterial.h"
 #include "TPZDarcyAnalysis.h"
 #include "TPZFracAnalysis.h"
+#include "pzshapelinear.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
@@ -18,10 +19,12 @@ int main()
   // ---------- Parametros ----------
   // Reservoir Data
   const REAL phi = 0.1;
-  const REAL Density = 1000.0;
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
-  Kabolute(0,0) = 1.0e-13;
-  Kabolute(1,1) = 1.0e-13;
+    Kabolute(0,0) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
+    Kabolute(1,1) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
+    REAL day    = 86400.0;
+    REAL year    = 365.0*day;
+    
   const REAL nu = 0.2;
   const REAL E = 1.e4;
   const REAL SigmaConf = 20.;
@@ -30,9 +33,9 @@ int main()
   const REAL theta = 1.;
   const REAL InitTime = 0.;
   const REAL timeStep = 1.;
-  const REAL Ttot = 400.;
-  const int pOrdQDarcy = 1;
-  const int pOrdPDarcy = 1;
+  const REAL Ttot = 4.0;
+  const int pOrdQDarcy = 2;
+  const int pOrdPDarcy = 2;
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
@@ -40,7 +43,8 @@ int main()
   std::string PostProcessFileName = "Propag.vtk";
   
   // Fluid Data
-  const REAL mu = 1.e-8; // N/mm2 . s
+  const REAL mu = 1.0e-3; // 1.0e-3 Pa*s -> 1 Centipoise cp
+  const REAL Density = 1000.0; //1000.0 kg/m3 -> 1.0 gr/cm3
   
   // Fracture Data
   const REAL Lfrac = 1000.; // mm
@@ -81,16 +85,16 @@ int main()
   Data->SetDwDp();
   
   // Fracture Simulation uncoupled
-  Data->SetPorderFlow(pOrdQFrac);
-  Data->SetPorderPressure(pOrdPFrac);
-  TPZFracAnalysis fracAn(Data);
-  fracAn.Run();
+//  Data->SetPorderFlow(pOrdQFrac);
+//  Data->SetPorderPressure(pOrdPFrac);
+//  TPZFracAnalysis fracAn(Data);
+//  fracAn.Run();
 
   // Reservoir Simulation uncoupled
-//  Data->SetPorderFlow(pOrdQDarcy);
-//  Data->SetPorderPressure(pOrdQDarcy);
-//  TPZDarcyAnalysis DarcyAn(Data);
-//  DarcyAn.Run();
+  Data->SetPorderFlow(pOrdQDarcy);
+  Data->SetPorderPressure(pOrdPDarcy);
+  TPZDarcyAnalysis DarcyAn(Data);
+  DarcyAn.Run();
   
   return 0;
 }

@@ -491,8 +491,6 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     
 }
 
-
-
 void TPZMatDarcy2dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     DebugStop();
@@ -502,7 +500,6 @@ void TPZMatDarcy2dhdiv::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMat
 {
     DebugStop();
 }
-
 
 void TPZMatDarcy2dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
@@ -752,7 +749,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
         int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
         
         REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
-        ef(iq + FirstQL) += weight * 0.001 *( (gBigNumber * ( qnL - qN ) * vni ) );
+        ef(iq + FirstQL) += weight * ( (gBigNumber * ( qnL - qN ) * vni ) );
         
         for (int jq=0; jq < QRowsleft; jq++)
         {
@@ -760,7 +757,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
             int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
             
             REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
-            ek(iq + FirstQL,jq + FirstQL) += weight * 0.001 * ( (gBigNumber * ( vnj ) * vni ) );
+            ek(iq + FirstQL,jq + FirstQL) += weight * ( (gBigNumber * ( vnj ) * vni ) );
         }
     }
 }

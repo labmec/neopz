@@ -59,6 +59,9 @@ REAL TPZMatfrac1dhdiv::Getdwdp()
 
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
+    
+    // HERE avoiding this contribute
+    return;
   
 #ifdef DEBUG
   int nref =  datavec.size();
@@ -168,9 +171,18 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
   this->MemItem(intGlobPtIndex) = Vl;
 }
 
+void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef)
+{
+    
+    DebugStop();
+}
+
 void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
 
+  // HERE avoiding this contribute
+    return;
+    
   if(fData->IsLastState()){
     return;
   }
