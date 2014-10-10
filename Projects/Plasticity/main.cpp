@@ -38,7 +38,7 @@
 #include "tpzycvonmisescombtresca.h"
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
-
+#include "clock_timer.h"
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
@@ -147,7 +147,16 @@ void Config2()
         int nsteps = 5;
         int numnewton = 80;
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+#ifdef SCA_PERF
+        printf("perf, initial simulation, 0\n");
+        ClockTimer t1;
+        t1.start();
+#endif
         well.ExecuteInitialSimulation(nsteps, numnewton);
+#ifdef SCA_PERF
+        t1.stop();
+        printf("perf, initial simulation, %.2f\n", t1.getUnits());
+#endif
         TPZBFileStream save;
         save.OpenWrite("wellbore0.bin");
         well.Write(save);
@@ -169,11 +178,20 @@ void Config2()
         well.PRefineElementAbove(sqj2_refine, 4);
         well.DivideElementsAbove(sqj2_refine);
         //well.DivideElementsAbove(sqj2_refine);
+#ifdef SCA_PERF
+        printf("perf, simulation 1, 0\n");
+        ClockTimer t1;
+        t1.start();
+#endif
         well.ExecuteSimulation();
         REAL a, b;
         well.ComputeAandB(sqj2_ellips, a,b);
         well.AddEllipticBreakout(a, b);
         well.ExecuteSimulation();
+#ifdef SCA_PERF
+        t1.stop();
+        printf("perf, simulation 1, %.2f\n", t1.getUnits());
+#endif
         TPZBFileStream save;
         save.OpenWrite("wellbore1.bin");
         well.Write(save);
@@ -188,11 +206,20 @@ void Config2()
         well.PRefineElementAbove(sqj2_refine, 4);
         well.DivideElementsAbove(sqj2_refine);
         well.DivideElementsAbove(sqj2_refine);
+#ifdef SCA_PERF
+        printf("perf, simulation %d, 0\n", i+2);
+        ClockTimer t1;
+        t1.start();
+#endif
         well.ExecuteSimulation();
         REAL a, b;
         well.ComputeAandB(sqj2_ellips, a,b);
         well.AddEllipticBreakout(a, b);
         well.ExecuteSimulation();
+#ifdef SCA_PERF
+        t1.stop();
+        printf("perf, simulation %d, %.2f\n", i+2, t1.getUnits());
+#endif
         TPZBFileStream save;
         stringstream outfile;
         outfile<< "wellbore"<<i+2<<".bin";

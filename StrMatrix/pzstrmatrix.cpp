@@ -76,12 +76,17 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
 	return 0;
 }
 #include "run_stats_table.h"
+#include "clock_timer.h"
+
 RunStatsTable tpz_ass_stiff("-tpz_ass_stiff", "Raw data table statistics for TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness");
 RunStatsTable tpz_ass_rhs("-tpz_ass_rhs", "Raw data table statistics for TPZStructMatrix::Assemble(TPZMatrix<STATE> & rhs");
 
-
 void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     tpz_ass_stiff.start();
+#ifdef SCA_PERF
+    ClockTimer t1;
+    t1.start();
+#endif
     if (fEquationFilter.IsActive()) {
         long neqcondense = fEquationFilter.NActiveEquations();
 #ifdef DEBUG
@@ -108,11 +113,20 @@ void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> &
             this->Serial_Assemble(stiffness,rhs,guiInterface);
         }
     }
+#ifdef SCA_PERF
+    t1.stop();
+    printf("perf, assemble_stiff, %.2f, %d\n", t1.getUnits(), stiffness.Rows());
+#endif
+    
     tpz_ass_stiff.stop();
 }
 
 void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     tpz_ass_rhs.start();
+#ifdef SCA_PERF
+    ClockTimer t1;
+    t1.start();
+#endif
     if(fEquationFilter.IsActive())
     {
         long neqcondense = fEquationFilter.NActiveEquations();
@@ -141,6 +155,10 @@ void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInte
             this->Serial_Assemble(rhs,guiInterface);
         }
     }
+#ifdef SCA_PERF
+    t1.stop();
+    printf("perf, assemble_rhs, %.2f, %d\n", t1.getUnits(), rhs.Rows());
+#endif
     tpz_ass_rhs.stop();
 }
 
