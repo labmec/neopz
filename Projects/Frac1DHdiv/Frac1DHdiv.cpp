@@ -14,7 +14,7 @@ int main()
   InitializePZLOG();
 #endif
     
-  TPZMaterial::gBigNumber = 1.e8;
+  TPZMaterial::gBigNumber = 1.e9;
   
   // ---------- Parametros ----------
   // Reservoir Data
