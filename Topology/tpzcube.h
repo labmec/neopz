@@ -39,7 +39,7 @@ namespace pztopology {
 	public:
 		
 		/** @brief enumerate for topological characteristics */
-		enum {NSides = 27, NCornerNodes = 8, Dimension = 3};
+		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6};
 		
 		/** @brief Default constructor */
 		TPZCube() {

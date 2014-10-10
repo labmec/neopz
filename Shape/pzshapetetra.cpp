@@ -359,13 +359,131 @@ namespace pzshape {
     
     void TPZShapeTetra::ShapeOrder(TPZVec<long> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<long> &sides
     {
-        DebugStop();
+        //DebugStop();
+        
+        long nsides = TPZShapeTetra::NSides;
+        int nshape;
+        
+        int linha = 0;
+        for (int side = 0; side < nsides; side++)
+        {
+            
+            nshape = 1;
+            if(side >= NCornerNodes) nshape = NConnectShapeF(side,order[side-NCornerNodes]);
+            int sideorder = 1;
+            if(side >= NCornerNodes) sideorder = order[side-NCornerNodes];
+            
+            TPZGenMatrix<int> locshapeorders(nshape,3);
+            SideShapeOrder(side, id, sideorder, locshapeorders);
+            
+            int nlin = locshapeorders.Rows();
+            int ncol = locshapeorders.Cols();
+            
+            for (int il = 0; il<nlin; il++)
+            {
+                for (int jc = 0; jc<ncol; jc++)
+                {
+                    shapeorders(linha, jc) = locshapeorders(il, jc);
+                }
+                linha++;
+            }
+        }
+
     }
     
     
     void TPZShapeTetra::SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders)
     {
-        DebugStop();
+        //DebugStop();
+        if (side<=3)
+        {
+            if (shapeorders.Rows() != 1)
+            {
+                DebugStop();
+            }
+            shapeorders(0,0) = 1;
+            shapeorders(0,1) = 0;
+            shapeorders(0,2) = 0;
+        }
+        else if (side>=4 && side<=9)
+        {
+            int nshape = order-1;
+            if (shapeorders.Rows() != nshape)
+            {
+                DebugStop();
+            }
+            for (int ioy = 0; ioy < order-1; ioy++)
+            {
+                shapeorders(ioy,0) = ioy+2;
+            }
+        }
+        else if (side >= 10 && side <= 13)
+        {
+            int nshape = (order-2)*(order-1)/2;
+            if (shapeorders.Rows() != nshape)
+            {
+                DebugStop();
+            }
+            TPZStack<int> lowersides;
+            LowerDimensionSides(side, lowersides);
+            lowersides.Push(side);
+            
+            int nnodes = NSideNodes(side);
+            
+            TPZManVector<long, 4> locid(nnodes);
+            for (int node=0; node<locid.size(); node++) {
+                locid[node] = id[ContainedSideLocId(side, node)];
+            }
+            
+            TPZGenMatrix<int> locshapeorders(nshape,3);
+            
+            
+            TPZShapeTriang::SideShapeOrder(6,locid, order, locshapeorders);
+            
+            for (int il = 0; il<nshape; il++)
+            {
+                shapeorders(il, 0) = locshapeorders(il, 0);
+                shapeorders(il, 1) = locshapeorders(il, 1);
+                shapeorders(il, 2) = locshapeorders(il, 2);
+            }
+        }
+        else
+        {   // interno
+            int totsum = 0,sum;
+            int i;
+            for(i=0;i<order-3;i++) {
+                sum = (i+1)*(i+2) / 2;
+                totsum += sum;
+            }
+            int nshape = totsum;
+            
+            if (shapeorders.Rows() != nshape) {
+                DebugStop();
+            }
+            int count = 0;
+            int orderplus1 = order+1;
+            for (int i=4; i<orderplus1; i++)
+            {
+                for (int j=4; j<orderplus1; j++)
+                {
+                    for (int k=4; k<orderplus1; k++)
+                    {
+                        int a = i;
+                        int b = j;
+                        int c = k;
+                        if ((a+b+c)<orderplus1)// Duvida
+                        {
+                            shapeorders(count,0) = a;
+                            shapeorders(count,1) = b;
+                            shapeorders(count,2) = c;
+                            count++;
+                        }
+                    }
+                    
+                }
+            }
+            
+        }
     }
 	
 };

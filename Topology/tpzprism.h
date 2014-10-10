@@ -10,6 +10,7 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "pzeltype.h"
+#include "pznumeric.h"
 
 class TPZIntPoints;
 class TPZIntPrism3D;
@@ -33,7 +34,7 @@ namespace pztopology {
 	public:
 					
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 21, NCornerNodes = 6, Dimension = 3};
+		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFaces = 5};
 		
 		/** @brief Default constructor */
 		TPZPrism() {
@@ -181,10 +182,10 @@ namespace pztopology {
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
-        {
-            DebugStop();
-        }
+        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+//        {
+//            DebugStop();
+//        }
         
 
         /**

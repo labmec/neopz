@@ -1056,6 +1056,7 @@ namespace pztopology {
                 
                 REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
                 
+                normaX0xX1 = sqrt(normaX0xX1);
                 
                 if (detgrad<0)
                 {

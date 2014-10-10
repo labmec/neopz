@@ -34,7 +34,7 @@ namespace pztopology {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
-		enum {NCornerNodes = 1, NSides = 1, Dimension = 0};
+		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0};
 
 		/** @brief Default constructor */
 		TPZPoint() {

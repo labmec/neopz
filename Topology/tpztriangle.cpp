@@ -904,6 +904,43 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
         
     }
+    void TPZTriangle::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    {
+        TPZManVector<REAL, 3> v1(3),v2(3), vdiag(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            vdiag[i] = (gradx(i,0)-gradx(i,1));
+        }
+        REAL Nv1 = TPZNumeric::Norma(v1);
+        REAL Nv2 = TPZNumeric::Norma(v2);
+        REAL Nvdiag = TPZNumeric::Norma(vdiag);
+        
+        for (int i=0; i<3; i++) {
+            v1[i] /= detjac;
+            v2[i] /= detjac;
+            
+        }
+        
+        for (int i=0; i<3; i++)
+        {
+            directions(i,0) = -v2[i]*Nv1;
+            directions(i,1) = (v1[i]-v2[i])*Nv1; 
+            directions(i,2) = (directions(i,0)+directions(i,1))/2.;
+            directions(i,3) = v1[i]*Nvdiag;
+            directions(i,4) = v2[i]*Nvdiag;
+            directions(i,5) = (directions(i,3)+directions(i,4))/2.;
+            directions(i,6) = (v2[i]-v1[i])*Nv2;
+            directions(i,7) = -v1[i]*Nv2;
+            directions(i,8) = (directions(i,6)+directions(i,7))/2.;
+            directions(i,9) = v1[i]*Nv1;
+            directions(i,10) = (v2[i]-v1[i])*Nvdiag/2.;
+            directions(i,11) = -v2[i]*Nv2;
+            directions(i,12) = v1[i]*Nv2;
+            directions(i,13) = v2[i]*Nv1;
+        }
+        //cout << "directions = " << directions << endl;
+    }
     
     void TPZTriangle::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {

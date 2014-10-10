@@ -192,6 +192,8 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
             jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             
+            
+            
             //dot product between Kinv[u]v
             jvecZ.Zero();
             for(int id=0; id<fDim; id++){
@@ -382,6 +384,7 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
 		TPZManVector<STATE> res(3);
 		bc.ForcingFunction()->Execute(dataleft[0].x,res);
 		Pd = res[0];
+        Qn = res[0];
 	}else
     {
         Pd = bc.Val2()(1,0);
@@ -438,6 +441,7 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
         case 0:  // Dirichlet
         {
             //REAL InvK = 1./fK;
+            
                         //termo fonte referente a equacao do fluxo
             for (int iq = 0; iq<phrq; iq++)
             {
@@ -703,7 +707,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     //Exact soluion
 	if(var == 6){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
 		Solout[0] = solExata[0];
 		return;
 	}//var6

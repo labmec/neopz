@@ -20,6 +20,8 @@
 template<class TSHAPE>
 class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
 	
+    TPZManVector<int, TSHAPE::NFaces> fSideOrient;
+    
 	/** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 public:

@@ -225,15 +225,15 @@ namespace pztopology {
         {-1,0,0}, {-1,1,0}, {-1,1,0}, {-1,0,0}, {-1,0,0}, {-1,1,0}, {-1,0,0}, {-1,0,0}, {-1,0,0},// face 3
         {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, // face 4
         //internos
-        //faces
-        {-1,0,0}, {0,1,0}, // tang da face 0
-        {1,0,0 }, {0,0,1}, //face 1
-        {-1,1,0}, {0,0,1}, //face 2
-        {0,0,1},  {0,1,0}, //face 3
-        {1,0,0},  {0,1,0}, //face 4
         // arestas
         {1,0,0},{-1,1,0},{0,-1,0},   {0,0,1},{0,0,1},{0,0,1},   {1,0,0},{-1,1,0},{0,-1,0},
-        //interior
+        //faces
+        {-1,0,0}, {0,1,0}, // tang da face 0	229	        {-1,0,0}, {0,1,0}, // tang da face 0
+        {1,0,0 }, {0,0,1}, //face 1	230	        {1,0,0 }, {0,0,1}, //face 1
+        {-1,1,0}, {0,0,1}, //face 2	231	        {-1,1,0}, {0,0,1}, //face 2
+        {0,0,1},  {0,1,0}, //face 3	232	        {0,0,1},  {0,1,0}, //face 3
+        {1,0,0},  {0,1,0}, //face 4
+                //interior
         {1,0,0} ,
         {0,1,0} ,
         {0,0,1}
@@ -246,14 +246,15 @@ namespace pztopology {
         {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1},{0,0,1},{0,0,1}, // fsce 3
         {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0},{1,0,0},{1,0,0}, // face 4
         //internos
+        // arestas
+        {0,1,0},{-1,-1,0},{1,0,0},   {-1,0,0},{0,-1,0},{1,1,0},  {0,1,0},{-1,-1,0},{1,0,0},
         //faces
-        {0,1,0}, {1,0,0}, //face 0
-        {0,0,1}, {-1,0,0}, //face 1
+        {0,1,0}, {0,0,1},  //face 0
+        {0,1,0}, {-1,1,0}, //face 1
         {0,0,1}, {1,-1,0}, //face 2
         {0,1,0}, {0,0,-1}, //face 3
         {0,1,0}, {-1,0,0}, //face 4
-        // arestas
-        {0,-1,0},{1,1,0},{-1,0,0},   {-1,0,0},{0,-1,0},{1,1,0},  {0,-1,0},{1,1,0},{-1,0,0},
+        
         //interior
         {0,1,0} ,
         {0,0,1} ,
@@ -268,14 +269,14 @@ namespace pztopology {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},{0,1,0}, {0,1,0},{0,1,0},{0,1,0}, // fsce 3
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},{0,1,0},{0,1,0}, // face 4
         //internos
+        // arestas
+        {0,0,1},{0,0,1},{0,0,1},  {0,-1,0},{1,1,0},{-1,0,0},  {0,0,1},{0,0,1},{0,0,1},
         //faces
-        {0,0,-1}, {0,0,-1}, //face 0
-        {0,-1,0}, {0,-1,0}, //face 1
+        {0,0,1}, {1,0,0}, //face 0
+        {0,0,1}, {0,1,0}, //face 1
         {1,1,0},  {1,1,0}, //face 2
         {-1,0,0}, {-1,0,0}, //face 3
         {0,0,1},  {0,0,1}, //face 4
-        // arestas
-        {0,0,-1},{0,0,-1},{0,0,-1},  {0,-1,0},{1,1,0},{-1,0,0},  {0,0,1},{0,0,1},{0,0,1},
         //interior
         {0,0,1} ,
         {1,0,0} ,
@@ -289,12 +290,12 @@ namespace pztopology {
         1,2,5,4,7,11,13,10,17,
         0,2,5,3,8,11,14,9,18,
         3,4,5,12,13,14,19,
+        6,7,8,9,10,11,12,13,14,
         15,15,
         16,16,
         17,17,
         18,18,
         19,19,
-        6,7,8,9,10,11,12,13,14,
         20,20,20
     };
 	
@@ -303,18 +304,18 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        0,0,0,1,1,1,1,1,1,0,
         0,0,0,0,1,1,1,0,0,0,
-        0,0,0//1,1,1 ???????
+        0,0,0,0,0,0,0,0,0,0,//0,0,1,1,1,1,1,1,0,0,
+        0,0,1//1,1,1
     };
     
     static int direcaoksioueta [63] = {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,1,0,
-        1,0,1,0,1,0,1,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,1,0,1,0,1,0,1,0,1,
         0,1,2};
     
     int TPZPrism:: NBilinearSides()
@@ -1085,61 +1086,89 @@ namespace pztopology {
         
         for (int ivet=inicio; ivet<=fim; ivet++)
         {
-            for (int ilin=0; ilin<3; ilin++)
+            if (inicio<41)
             {
-                u[ilin] = t1vec(ilin,ivet);
-                v[ilin] = t2vec(ilin,ivet);
-            }
-            TPZVec<REAL> e2(3);
-            detgrad = 0.0;
-            REAL normaX0xX1 = 0.0;
-            //TPZNumeric::ProdVetorial(u,v,e2);
-            e2[0] = u[1]*v[2]-u[2]*v[1];
-            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
-            e2[2] = u[0]*v[1]-v[0]*u[1];
-            
-            // calc do v gradx*b
-            TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
-            REAL be2 = 0.0, ne2 = 0.0;
-            for(int i=0;i<3;i++)
-            {
-                ne2 += e2[i]*e2[i];
-            }
-            ne2 = sqrt(fabs(ne2));
-            for (int il=0; il<3; il++)
-            {
-                for (int i = 0 ; i<3; i++)
+                for (int ilin=0; ilin<3; ilin++)
                 {
-                    dxt1[il] += gradx(il,i) * t1vec(i,ivet);
-                    dxt2[il] += gradx(il,i) * t2vec(i,ivet);
-                    dxt3[il] += gradx(il,i) * e2[i]/ne2;
-                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                    u[ilin] = t1vec(ilin,ivet);
+                    v[ilin] = t2vec(ilin,ivet);
                 }
-                be2 += bvec(il,ivet)*e2[il]/ne2;
+                TPZVec<REAL> e2(3);
+                detgrad = 0.0;
+                REAL normaX0xX1 = 0.0;
+                TPZNumeric::ProdVetorial(u,v,e2);
+                //            e2[0] = u[1]*v[2]-u[2]*v[1];
+                //            e2[1] = -(u[0]*v[2]-v[0]*u[2]);
+                //            e2[2] = u[0]*v[1]-v[0]*u[1];
+                
+                // calc do v gradx*b
+                TPZManVector<REAL,3> dxt1(3,0.),dxt2(3,0.),dxt3(3,0.),Vvec(3,0.);
+                //            REAL be2 = 0.0, ne2 = 0.0;
+                //            for(int i=0;i<3;i++)
+                //            {
+                //                ne2 += e2[i]*e2[i];
+                //            }
+                //            ne2 = sqrt(fabs(ne2));
+                for (int il=0; il<3; il++)
+                {
+                    for (int i = 0 ; i<3; i++)
+                    {
+                        dxt1[il] += gradx(il,i) * t1vec(i,ivet);
+                        dxt2[il] += gradx(il,i) * t2vec(i,ivet);
+                        //dxt3[il] += gradx(il,i) * e2[i]/ne2;
+                        Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                    }
+                    //be2 += bvec(il,ivet)*e2[il]/ne2;
+                }
+                TPZManVector<REAL,3> normal(3,0.);
+                TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
+                //            normal[0] = dxt1[1]*dxt2[2]-dxt1[2]*dxt2[1];
+                //            normal[1] = -(dxt1[0]*dxt2[2]-dxt2[0]*dxt1[2]);
+                //            normal[2] = dxt1[0]*dxt2[1]-dxt2[0]*dxt1[1];
+                
+                for (int pos=0; pos<3; pos++)
+                {
+                    //                detgrad += normal[pos]*dxt3[pos];//uxv[pos]*gradx.GetVal(pos, 2);
+                    normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+                }
+                TPZFMatrix<REAL> Wvec(3,1);
+                
+                REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
+                //detgrad = fabs(detgrad);
+                
+                normaX0xX1 = sqrt(normaX0xX1);
+                if (detgrad<0)
+                {
+                    DebugStop();
+                }
+                
+                for (int il=0; il<3; il++)
+                {
+                    Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad/**be2*/);
+                    directions(il,cont) = Wvec(il,0);
+                }
+                cont++;
             }
-            TPZManVector<REAL,3> normal(3,0.);
-            //TPZNumeric::ProdVetorial(dxt1,dxt2,normal);
-            normal[0] = dxt1[1]*dxt2[2]-dxt1[2]*dxt2[1];
-            normal[1] = -(dxt1[0]*dxt2[2]-dxt2[0]*dxt1[2]);
-            normal[2] = dxt1[0]*dxt2[1]-dxt2[0]*dxt1[1];
-            
-            for (int pos=0; pos<3; pos++)
+            else
             {
-                detgrad += normal[pos]*dxt3[pos];//uxv[pos]*gradx.GetVal(pos, 2);
-                normaX0xX1 += normal[pos]*normal[pos]; //uxv[pos]*uxv[pos];
+                // calc do v gradx*b
+                TPZManVector<REAL,3> Vvec(3,0.);
+                for (int il=0; il<3; il++)
+                {
+                    for (int i = 0 ; i<3; i++)
+                    {
+                        Vvec[il] += gradx(il,i) * bvec(i,ivet);
+                    }
+                }
+                for (int il=0; il<3; il++)
+                {
+                    directions(il,cont) = Vvec[il];
+                }
+                cont++;
             }
-            TPZFMatrix<REAL> Wvec(3,1);
-            detgrad = fabs(detgrad);
-            normaX0xX1 = sqrt(normaX0xX1);
-            
-            for (int il=0; il<3; il++)
-            {
-                Wvec(il,0) = Vvec[il]*normaX0xX1/(detgrad*be2);
-                directions(il,cont) = Wvec(il,0);
-            }
-            cont++;
+
         }
-        
+            
         
     }
     
@@ -1246,6 +1275,98 @@ namespace pztopology {
 
                 
 	}
+    
+    void TPZPrism::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    {
+        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
+        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3), vdiag(3), v3vdiag(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            v3[i] = gradx(i,2);
+            vdiag[i] = (gradx(i,0)-gradx(i,1));
+        }
+        TPZNumeric::ProdVetorial(v1,v2,v1v2);
+        TPZNumeric::ProdVetorial(v2,v3,v2v3);
+        TPZNumeric::ProdVetorial(v3,v1,v3v1);
+        TPZNumeric::ProdVetorial(v3,vdiag,v3vdiag);
+        
+        REAL Nv1v2 = TPZNumeric::Norma(v1v2);
+        REAL Nv2v3 = TPZNumeric::Norma(v2v3);
+        REAL Nv3v1 = TPZNumeric::Norma(v3v1);
+        REAL Nv3vdiag = TPZNumeric::Norma(v3vdiag);
+        //REAL Nvdiag = TPZNumeric::Norma(vdiag);
+        
+        for (int i=0; i<3; i++) {
+            v1[i] /= detgrad;
+            v2[i] /= detgrad;
+            v3[i] /= detgrad;
+        }
+        for (int i=0; i<3; i++)
+        {
+            for (int iv=0; iv<7; iv++)
+            {
+                directions(i,iv) = -v3[i]*Nv1v2;
+                directions(i,iv+34) = v3[i]*Nv1v2;
+            }
+            for (int iv=0; iv<9; iv++)
+            {
+                directions(i,iv+7) = -v2[i]*Nv3v1;
+                directions(i,iv+25) = -v1[i]*Nv2v3;
+            }
+            
+            directions(i,8) = (v1[i]-v2[i])*Nv3v1/2.;
+            directions(i,9) = (v1[i]-v2[i])*Nv3v1/2.;
+            directions(i,12) = (v1[i]-v2[i])*Nv3v1/2.;
+            
+            directions(i,17) = v2[i]*Nv3vdiag;
+            directions(i,18) = v2[i]*Nv3vdiag;
+            directions(i,21) = v2[i]*Nv3vdiag;
+            directions(i,16) = v1[i]*Nv3vdiag;
+            directions(i,19) = v1[i]*Nv3vdiag;
+            directions(i,23) = v1[i]*Nv3vdiag;
+            directions(i,20) = (v1[i]+v2[i])*Nv3vdiag/2.;
+            directions(i,22) = (v1[i]+v2[i])*Nv3vdiag/2.;
+            directions(i,24) = (v1[i]+v2[i])*Nv3vdiag/2.;
+
+            directions(i,26) = (v2[i]-v1[i])*Nv2v3/2.;
+            directions(i,27) = (v2[i]-v1[i])*Nv2v3/2.;
+            directions(i,30) = (v2[i]-v1[i])*Nv2v3/2.;
+            
+            //arestas
+            directions(i,41) = v1[i]*Nv2v3;
+            directions(i,42) = (v2[i]-v1[i])/2.;//*Nvdiag
+            directions(i,43) = -v2[i]*Nv3v1;
+            
+            directions(i,44) = v3[i]*Nv1v2;
+            directions(i,45) = v3[i]*Nv1v2;
+            directions(i,46) = v3[i]*Nv1v2;
+            
+            directions(i,47) = v1[i]*Nv2v3;
+            directions(i,48) = (v2[i]-v1[i])/2.;//*Nvdiag
+            directions(i,49) = -v2[i]*Nv3v1;
+            
+            //faces
+            directions(i,50) = v1[i]*Nv2v3;
+            directions(i,51) = v2[i]*Nv3v1;
+            directions(i,52) = v1[i]*Nv2v3;
+            directions(i,53) = v3[i]*Nv1v2;
+            directions(i,54) = (v2[i]-v1[i])/2.;//*Nvdiag
+            directions(i,55) = v3[i]*Nv1v2;
+            directions(i,56) = v2[i]*Nv3v1;
+            directions(i,57) = v3[i]*Nv1v2;
+            directions(i,58) = v1[i]*Nv2v3;
+            directions(i,59) = v2[i]*Nv3v1;
+            
+            
+            directions(i,60) = v1[i]*Nv2v3;
+            directions(i,61) = v2[i]*Nv3v1;
+            directions(i,62) = v3[i]*Nv1v2;
+            
+        }
+        cout<< "Direcoes "<< directions << endl;
+        
+    }
 
     void TPZPrism::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {

@@ -20,7 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
-TPZIntelGen<TSHAPE>(mesh,gel,index,1){
+TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -112,7 +112,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1){
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
-TPZIntelGen<TSHAPE>(mesh,copy)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 //	for(int i=0;i<TSHAPE::NSides;i++)
 //	{
@@ -132,7 +132,7 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
 												 const TPZCompElHDivBound2<TSHAPE> &copy,
 												 std::map<long,long> & gl2lcConMap,
 												 std::map<long,long> & gl2lcElMap) :
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
 {
 	
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -200,6 +200,19 @@ MElementType TPZCompElHDivBound2<TSHAPE>::Type() {
 	return TSHAPE::Type();
 }
 
+// NAO TESTADO
+template<class TSHAPE>
+int TPZCompElHDivBound2<TSHAPE>::SetSideOrient(int side)
+{
+    fSideOrient = this->Reference()->NormalOrientation(side);
+}
+
+// NAO TESTADO
+template<class TSHAPE>
+int TPZCompElHDivBound2<TSHAPE>::GetSideOrient( )
+{
+    return fSideOrient;
+}
 
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnects() const {
@@ -646,6 +659,7 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZIntelGen<TSHAPE>::Read(buf,context);
+    buf.Read(&fSideOrient);
 }
 
 /** Save the element data to a stream */
@@ -653,6 +667,18 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid)
 {
 	TPZIntelGen<TSHAPE>::Write(buf,withclassid);
+    buf.Write(&fSideOrient);
+}
+
+/** @brief Prints the relevant data of the element to the output stream */
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::Print(std::ostream &out) const
+{
+    out << __PRETTY_FUNCTION__ << std::endl;
+    out << "Side orientation " << fSideOrient << std::endl;
+    TPZIntelGen<TSHAPE>::Print(out);
+    
+    
 }
 
 /** Returns the actual interpolation order of the polynomial along the side */

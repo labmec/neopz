@@ -34,7 +34,7 @@ namespace pztopology {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 15, NCornerNodes = 4, Dimension = 3};
+		enum {NSides = 15, NCornerNodes = 4, Dimension = 3, NFaces = 4};
 		
 		/** @brief Default constructor */
 		TPZTetrahedron() {
@@ -183,10 +183,7 @@ namespace pztopology {
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
-        {
-            DebugStop();
-        }
+        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )

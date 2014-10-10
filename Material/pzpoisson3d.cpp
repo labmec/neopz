@@ -674,7 +674,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	Solution(data,14,div);//divergente
 		
 #ifdef LOG4CXX
-		{
+		if(logger->isDebugEnabled()){
 		std::stringstream sout;
 		sout<< "\n";
 		sout << " Pto  " << data.x << std::endl;

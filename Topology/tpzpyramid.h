@@ -34,7 +34,7 @@ namespace pztopology {
 	public:
 		
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 19, NCornerNodes = 5, Dimension = 3};
+		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
 		
 		/** @brief Default constructor */
 		TPZPyramid() {

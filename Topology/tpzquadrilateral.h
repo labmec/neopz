@@ -37,7 +37,7 @@ namespace pztopology {
 	public:
 
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 9, NCornerNodes = 4, Dimension = 2};
+		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4};
 
 		/** @brief Default constructor */
 		TPZQuadrilateral() {

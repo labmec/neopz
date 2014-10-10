@@ -508,7 +508,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &direc
     }
     //    gradxt.Transpose(&gradx);
     TGeo::ComputeDirections(gradx, detjac, directions);
-        
+    
 }
 
 

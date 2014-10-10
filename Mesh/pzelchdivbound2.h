@@ -20,6 +20,8 @@
  */
 template<class TSHAPE>
 class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
+    
+    int fSideOrient;
 	
 	/** @brief Method to append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
@@ -85,6 +87,10 @@ public:
 	virtual int NSideConnects(int side) const;
 	
 	virtual int SideConnectLocId(int node, int side) const;
+    
+    
+    virtual int SetSideOrient(int side);
+    virtual int GetSideOrient( );//
 	
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
@@ -128,6 +134,9 @@ public:
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
+    
+    /** @brief Prints the relevant data of the element to the output stream */
+    virtual void Print(std::ostream &out) const;
 
 };
 

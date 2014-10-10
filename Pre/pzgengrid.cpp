@@ -426,10 +426,15 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 		if(fElementType == EQuadrilateral) {
 		  grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
 		} else if(fElementType == ETriangle) {
-		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);
-		  nos[1] = nos[2];
-		  nos[2] = nos[3];
-		  grid->CreateGeoElement(ETriangle,nos, matid, index,0);  
+            TPZManVector<long> nodloc(3);
+            nodloc[0] = nos[0];
+            nodloc[1] = nos[1];
+            nodloc[2] = nos[2];
+		  grid->CreateGeoElement(ETriangle,nodloc, matid, index,0);
+            nodloc[0] = nos[0];
+            nodloc[1] = nos[2];
+            nodloc[2] = nos[3];
+		  grid->CreateGeoElement(ETriangle,nodloc, matid, index,0);
 		} else if(fElementType == ENoType) {
             std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
             DebugStop();

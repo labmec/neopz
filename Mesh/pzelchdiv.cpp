@@ -15,6 +15,8 @@
 #include "pzmaterialdata.h"
 #include "pzhdivpressure.h"
 
+#define OLDVERSION
+
 #include "pzshtmat.h"
 
 #ifdef LOG4CXX
@@ -26,7 +28,7 @@ using namespace std;
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
-TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
+TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
@@ -64,11 +66,16 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	TPZManVector<int,3> order(3,sideorder);
 	this->fIntRule.SetOrder(order);
+    int firstside = TSHAPE::NSides-TSHAPE::NFaces-1;
+    for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
+    {
+        fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
+    }
 }
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy) :
-TPZIntelGen<TSHAPE>(mesh,copy)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
 	int i;
@@ -84,7 +91,7 @@ TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh,
 									 const TPZCompElHDiv<TSHAPE> &copy,
 									 std::map<long,long> & gl2lcConMap,
 									 std::map<long,long> & gl2lcElMap) :
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
 	int i;
@@ -869,7 +876,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
             int include=true;
             for (int d=0; d<sidedimension; d++)
             {
-                if (tipo==ETriangle)
+                if (tipo==ETriangle||tipo==EPrisma)
                 {
                     if (shapeorders(ish,d) > maxorder[d]+1) {
                         include = false;
@@ -1612,7 +1619,31 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 #ifdef OLDVERSION
     TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(qsi,data.fNormalVec, normalsidesDG);
 #else
+
     TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec);
+    
+    
+    // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1) 
+    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+    int lastface = TSHAPE::NSides - 1;
+    int cont = 0;
+    for(int side = firstface; side < lastface; side++)
+    {
+        int nvec = TSHAPE::NContainedSides(side);
+        for (int ivet = 0; ivet<nvec; ivet++)
+        {
+            for (int il = 0; il<3; il++)
+            {
+                data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
+            }
+            
+        }
+        cont += nvec;
+    }
+    
+    
+    
 #endif
     
 #ifdef LOG4CXX
@@ -1674,7 +1705,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //        pressureorder=this->fPreferredOrder-1;
 //    }
     
-    if (TSHAPE::Type()==ETriangle) {
+    if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==EPrisma) {
         pressureorder=this->fPreferredOrder-1;
     }
     else {
@@ -1739,6 +1770,7 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	this->WriteObjects(buf,order);
 	buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
+    this->WriteObjects(buf,fSideOrient);
 	int classid = this->ClassId();
 	buf.Write ( &classid, 1 );
 }
@@ -1752,6 +1784,9 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 	TPZManVector<int,3> order;
 	this-> ReadObjects(buf,order);
 	this-> fIntRule.SetOrder(order);
+    TPZManVector<int, TSHAPE::NFaces> SideOrient;
+    this-> ReadObjects(buf,SideOrient);
+    fSideOrient = SideOrient;
 	buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&this->fPreferredOrder,1);
 	int classid = -1;
@@ -1821,7 +1856,9 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
+    out << "Side orientation " << fSideOrient << std::endl;
     TPZIntelGen<TSHAPE>::Print(out);
+
     
 }
 
