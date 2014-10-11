@@ -69,6 +69,16 @@ public:
     /** @brief Solve time steps */
     void SolveSistTransient(TPZAnalysis *an);
     
+    /** @brief PostProcess mesh in VTK */
+    void PostProcessVTK(TPZAnalysis *an);
+    
+    /** @brief Print geometric mesh in VTK */
+    void PrintGeometricMesh(TPZGeoMesh * gmesh);
+
+    /** @brief adjust mtid's for propagation */
+    void ModifyGmesh(TPZGeoMesh * gmesh);
+    
+    
 private:
     
     /** @brief Data of the simulation */

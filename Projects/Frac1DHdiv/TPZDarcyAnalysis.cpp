@@ -64,10 +64,14 @@ void PressureAnal(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMat
 void TPZDarcyAnalysis::Run()
 {
     // Parametros
-    const int nel = 3;
+    const int nel = 1;
     
     // Malha geometrica
     fgmesh = CreateGMesh(nel);
+    this->PrintGeometricMesh(fgmesh);
+    
+    ModifyGmesh(fgmesh);
+    this->PrintGeometricMesh(fgmesh);
     
     fmeshvec[0] = CreateCMeshFluxHdiv();
     fmeshvec[1] = CreateCMeshPressureL2();
@@ -101,7 +105,13 @@ void TPZDarcyAnalysis::Run()
     an->SetSolver(step);
     an->SetStructuralMatrix(skyl);
     
+    
+    
+    
+    
     SolveSistTransient(an);
+    
+    
     delete an;
     
 }
@@ -120,31 +130,30 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
     REAL angle = 0.0*M_PI/4.0;
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(0.01);
+    GeometryInfo.SetfDimensionlessL(0.5);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     
-    
-    //---------  Elemento de interface  --------------------------------------------
-    gmesh->AddInterfaceMaterial(1,2,2);
-    gmesh->AddInterfaceMaterial(2,1,2);
-    gmesh->BuildConnectivity();
-    
+    // Inserting
+    TPZGeoEl *  Quad = gmesh->ElementVec()[0];
+    TPZGeoElSide gelside(Quad,0);
+    TPZGeoEl *  InletPoint = Quad->CreateBCGeoEl(0,7);
+    long index;
+    TPZVec<long> TopologyPoint(1,InletPoint->Node(0).Id());
+    gmesh->CreateGeoElement(EPoint, TopologyPoint, 7, index);
     RotateGeomesh(gmesh, angle);
     
     UniformRefinement(gmesh, nel);
 
     //  Print Geometrical Base Mesh
-    std::ofstream argument("GeometicMesh.txt");
-    gmesh->Print(argument);
-    std::ofstream Dummyfile("GeometricMesh.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+    this->PrintGeometricMesh(gmesh);
     
     return gmesh;
 }
 
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
 {
-    const int matId = 1, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5;
+    const int matId2d = 1, matId1d = 6, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5;
+    const int bcinlet = 7, bcoutlet = 8;
     const int typeFlux = 0, typePressure = 1;
     const int fluxorder = fData->PorderFlow();
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
@@ -152,16 +161,12 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    // Material da fratura
-    TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
+    TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId2d);
     cmesh->InsertMaterialObject(mat);
-    
-    TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(bcBottomId);
-    cmesh->InsertMaterialObject(mat1d);
     
     // Bc Bottom
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
-// 	cmesh->InsertMaterialObject(bcBottom);
+ 	cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
@@ -175,15 +180,41 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
-    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typeFlux, val1, val2);
- 	//cmesh->InsertMaterialObject(bcLeft2);
+
+    // Material da fratura
+    TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(matId1d);
+    cmesh->InsertMaterialObject(mat1d);
+    
+    // Condicao de contorno na esquerda
+    val2(0,0) = fData->Q();
+    TPZBndCond * bcin = mat1d->CreateBC(mat1d, bcinlet, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcin);
+    
+    // Condicao de contorno na direita
+    val2(0,0) = fData->SigmaConf();
+    TPZBndCond * bcout = mat1d->CreateBC(mat1d, bcoutlet, typePressure, val1, val2);
+    cmesh->InsertMaterialObject(bcout);
     
     
     // Setando Hdiv
     cmesh->SetDimModel(2);
     cmesh->SetDefaultOrder(fluxorder);
     cmesh->SetAllCreateFunctionsHDiv();
-    cmesh->AutoBuild();
+    
+    std::set<int> BuildGroup2D,BuildGroup1D;
+    BuildGroup2D.insert(matId2d);
+    BuildGroup2D.insert(bcLeftId);
+    BuildGroup2D.insert(bcRightId);
+    BuildGroup2D.insert(bcTopId);
+    BuildGroup2D.insert(bcBottomId);
+    cmesh->AutoBuild(BuildGroup2D);
+    
+    BuildGroup1D.insert(matId1d);
+    BuildGroup1D.insert(bcinlet);
+    BuildGroup1D.insert(bcoutlet);
+    
+    
+    cmesh->AutoBuild(BuildGroup1D);
     
     return cmesh;
 }
@@ -191,7 +222,8 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
 {
 
-    const int matId = 1, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5;
+    const int matId2d = 1, matId1d = 6, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5;
+    const int bcinlet = 7, bcoutlet = 8;
     const int typeFlux = 0, typePressure = 1;
     const int pressureorder = fData->PorderPressure();
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
@@ -200,15 +232,12 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
     // Material da fratura
-    TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
+    TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId2d);
     cmesh->InsertMaterialObject(mat);
-    
-    TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(bcBottomId);
-    cmesh->InsertMaterialObject(mat1d);
     
     // Bc Bottom
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
-// 	cmesh->InsertMaterialObject(bcBottom);
+ 	cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
@@ -222,14 +251,39 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
-    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typeFlux, val1, val2);
- 	//cmesh->InsertMaterialObject(bcLeft2);
+    
+    // Material da fratura
+    TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(matId1d);
+    cmesh->InsertMaterialObject(mat1d);
+    
+    // Condicao de contorno na esquerda
+    val2(0,0) = fData->Q();
+    TPZBndCond * bcin = mat1d->CreateBC(mat1d, bcinlet, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcin);
+    
+    // Condicao de contorno na direita
+    val2(0,0) = fData->SigmaConf();
+    TPZBndCond * bcout = mat1d->CreateBC(mat1d, bcoutlet, typePressure, val1, val2);
+    cmesh->InsertMaterialObject(bcout);
+    
     
     // Setando L2
     cmesh->SetDimModel(2);
     cmesh->SetDefaultOrder(pressureorder);
     cmesh->SetAllCreateFunctionsDiscontinuous();
-    cmesh->AutoBuild();
+
+    std::set<int> BuildGroup2D,BuildGroup1D;
+    BuildGroup2D.insert(matId2d);
+    BuildGroup2D.insert(bcLeftId);
+    BuildGroup2D.insert(bcRightId);
+    BuildGroup2D.insert(bcTopId);
+    BuildGroup2D.insert(bcBottomId);
+    cmesh->AutoBuild(BuildGroup2D);
+    
+    BuildGroup1D.insert(matId1d);
+    BuildGroup1D.insert(bcinlet);
+    BuildGroup1D.insert(bcoutlet);
+    
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
@@ -247,7 +301,8 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
 {
     // Definicao de ids e tipos
-    const int matId = 1, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5;
+    const int matId2d = 1, matId1d = 6, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5;
+    const int bcinlet = 7, bcoutlet = 8;
     const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
@@ -255,56 +310,71 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed()
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
     // Material medio poroso
-    TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId);
+    TPZMatDarcy2dhdiv *mat = new TPZMatDarcy2dhdiv(matId2d);
     mat->SetSimulationData(fData);
     cmesh->InsertMaterialObject(mat);
-    
-    // Material da fratura
-    TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(bcBottomId);
-    mat1d->SetSimulationData(fData);
-    cmesh->InsertMaterialObject(mat1d);
     
     TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnal);
     mat->SetTimeDependentFunctionExact(TimeDepFExact);
     
     // Bc Bottom
     val2(0,0) = 0.0;
-    val2(1,0) = 0.01;
+    val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
-// 	cmesh->InsertMaterialObject(bcBottom);
+ 	cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     val2(0,0) = 0.0;
     val2(1,0) = 0.0000;
-    val2(2,0) = 1.0*40.0e6;
+    val2(2,0) = 40.0e6;
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
     // Bc Top
-    val2(0,0) = 0.0000;
+    val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcTop = mat->CreateBC(mat, bcTopId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    val2(0,0) = 0.0*0.0005;// Massic flux 5.0 kg/s over 100000 m2
+    val2(0,0) = 0.0;// Massic flux 5.0 kg/s over 100000 m2
     val2(1,0) = 0.0;
-    val2(2,0) = 0.0*20.0e6;
+    val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
-//    val2(0,0) = 0.0;
-//    val2(1,0) = 0.0;
-//    val2(2,0) = 20.0e6;
-//    TPZBndCond * bcLeft2 = mat->CreateBC(mat, 6, typePressure, val1, val2);
-// 	cmesh->InsertMaterialObject(bcLeft2);
+    
+    // Material da fratura
+    TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(matId1d);
+    mat1d->SetSimulationData(fData);
+    cmesh->InsertMaterialObject(mat1d);
+    
+    // Condicao de contorno na esquerda
+    val2(0,0) = fData->Q();
+    TPZBndCond * bcin = mat1d->CreateBC(mat1d, bcinlet, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcin);
+    
+    // Condicao de contorno na direita
+    val2(0,0) = fData->SigmaConf();
+    TPZBndCond * bcout = mat1d->CreateBC(mat1d, bcoutlet, typePressure, val1, val2);
+    cmesh->InsertMaterialObject(bcout);
     
     // Setando Multifisico
     cmesh->SetDimModel(2);
     cmesh->SetAllCreateFunctionsMultiphysicElem();
-    cmesh->AutoBuild();
+    
+    std::set<int> BuildGroup2D,BuildGroup1D;
+    BuildGroup2D.insert(matId2d);
+    BuildGroup2D.insert(bcLeftId);
+    BuildGroup2D.insert(bcRightId);
+    BuildGroup2D.insert(bcTopId);
+    cmesh->AutoBuild(BuildGroup2D);
+    
+    BuildGroup1D.insert(matId1d);
+    BuildGroup1D.insert(bcBottomId);
+    cmesh->AutoBuild(BuildGroup1D);
     
     return cmesh;
 }
@@ -363,28 +433,22 @@ void TPZDarcyAnalysis::CreateInterfaces(TPZCompMesh *cmesh)
             InterpEl->CreateInterfaces();
         }
         
-        if(compEl->Reference()->MaterialId() == 2)
+        if(compEl->Reference()->MaterialId() == 6)
         {
             TPZGeoEl * gel = compEl->Reference();
             int side = gel->NSides()-1;
             
             TPZStack < TPZCompElSide > neigh;
-            TPZGeoEl * GeoLinearFrac = gel->CreateBCGeoEl(side, 2);
+            TPZGeoEl * GeoLinearFrac = gel->CreateBCGeoEl(side, 6);
             TPZGeoElSide gelside(gel,side);
             TPZCompElSide Linearside(compEl,side);
 
             gelside.EqualLevelCompElementList(neigh, 0, 0);
-            
 
-            int matif = neigh[0].Reference().Dimension();
             if (neigh.size() == 0) {
                 continue;
             }
-//            if (neigh.size()!= 2) {
-//                DebugStop();
-//            }
             long gelindex;
-            // TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);
             new TPZMultiphysicsInterfaceElement(*cmesh, GeoLinearFrac, gelindex, neigh[0], Linearside);
 
         }
@@ -493,6 +557,30 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out)
     
 }
 
+void TPZDarcyAnalysis::PrintGeometricMesh(TPZGeoMesh * gmesh)
+{
+    std::ofstream argument("GeometicMesh.txt");
+    gmesh->Print(argument);
+    std::ofstream Dummyfile("GeometricMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+}
+
+
+void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
+{
+    const int dim = 2;
+    int div =2;
+    TPZStack<std::string> scalnames, vecnames;
+    std::string plotfile = "2DMixedDarcy.vtk";
+    scalnames.Push("Pressure");
+    scalnames.Push("PressureAnal");
+    vecnames.Push("MassVelocity");
+    vecnames.Push("MassVelocityAnal");
+    an->DefineGraphMesh(dim, scalnames, vecnames, fData->PostProcessFileName());
+    an->PostProcess(div,dim);
+}
+
+
 void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
 {
     fData->SetLastState();
@@ -515,18 +603,8 @@ void TPZDarcyAnalysis::SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 
 void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
 {
-    
-    const int dim = 2;
-    int div =2;
-    TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile = "2DMixedDarcy.vtk";
-    scalnames.Push("Pressure");
-    scalnames.Push("PressureAnal");
-    vecnames.Push("MassVelocity");
-    vecnames.Push("MassVelocityAnal");
-    an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    an->PostProcess(div,dim);
-    
+
+    this->PostProcessVTK(an);
     
     bool mustStop = false;
     while (mustStop == false) {
@@ -546,16 +624,7 @@ void TPZDarcyAnalysis::SolveSistTransient(TPZAnalysis *an)
         IterativeProcess(an, std::cout);
         fData->SetNextTime();
         
-        const int dim = 2;
-        int div =2;
-        TPZStack<std::string> scalnames, vecnames;
-        std::string plotfile = "2DMixedDarcy.vtk";
-        scalnames.Push("Pressure");
-        scalnames.Push("PressureAnal");
-        vecnames.Push("MassVelocity");
-        vecnames.Push("MassVelocityAnal");
-        an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-        an->PostProcess(div,dim);
+        this->PostProcessVTK(an);
         
         REAL peteleco = 1.E-8;
         if( fData->Time() > (fData->TotalTime() - peteleco) )
@@ -608,3 +677,57 @@ void TPZDarcyAnalysis::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAng
     }
     
 }
+
+void TPZDarcyAnalysis::ModifyGmesh(TPZGeoMesh * gmesh)
+{
+    int nelements = fgmesh->NElements();
+    for (int iel = 0 ; iel < nelements; iel++)
+    {
+        TPZGeoEl *igel = fgmesh->ElementVec()[iel];
+        if (igel->HasSubElement()) {
+            continue;
+        }
+        if(igel->MaterialId()== 2)
+        {
+            TPZGeoElSide igelside(igel,0);
+            TPZGeoElSide neigh = igelside.Neighbour();
+            while (igelside != neigh) {
+                if (neigh.Element()->Dimension() == 0) {
+                    break;
+                }
+                neigh = neigh.Neighbour();
+            }
+            if (igelside == neigh) {
+                continue;
+            }
+            
+            TPZGeoEl *Neigel = neigh.Element();
+            if (Neigel->MaterialId()==7) {
+                igel->SetMaterialId(6);
+                long rightnode=igel->NodeIndex(1);
+                TPZVec<long> topopoint(1,rightnode);
+                long OutLetindex;
+                fgmesh->CreateGeoElement(EPoint, topopoint, 8, OutLetindex);
+                fgmesh->ResetReference();
+                fgmesh->BuildConnectivity();
+                break;
+            }else if (Neigel->MaterialId()==8)
+            {
+                igel->SetMaterialId(6);
+                long rightnode=igel->NodeIndex(1);
+                Neigel->SetNodeIndex(0,rightnode);
+                fgmesh->ResetReference();
+                fgmesh->BuildConnectivity();
+                break;
+            }
+            
+        }
+    }
+    
+    //---------  Elemento de interface  --------------------------------------------
+    gmesh->AddInterfaceMaterial(1,6,6);
+    gmesh->AddInterfaceMaterial(6,1,6);
+    gmesh->BuildConnectivity();
+    
+}
+

@@ -33,7 +33,7 @@ int main()
   const REAL theta = 1.;
   const REAL InitTime = 0.;
   const REAL timeStep = 1.;
-  const REAL Ttot = 4.0;
+  const REAL Ttot = 100.0;
   const int pOrdQDarcy = 2;
   const int pOrdPDarcy = 2;
   const int pOrdQFrac = 1;
@@ -43,7 +43,7 @@ int main()
   std::string PostProcessFileName = "Propag.vtk";
   
   // Fluid Data
-  const REAL mu = 1.0e-3; // 1.0e-3 Pa*s -> 1 Centipoise cp
+  const REAL mu = 1.0e-8; // 1.0e-3 Pa*s -> 1 Centipoise cp
   const REAL Density = 1000.0; //1000.0 kg/m3 -> 1.0 gr/cm3
   
   // Fracture Data
@@ -85,16 +85,16 @@ int main()
   Data->SetDwDp();
   
   // Fracture Simulation uncoupled
-//  Data->SetPorderFlow(pOrdQFrac);
-//  Data->SetPorderPressure(pOrdPFrac);
-//  TPZFracAnalysis fracAn(Data);
-//  fracAn.Run();
+  Data->SetPorderFlow(pOrdQFrac);
+  Data->SetPorderPressure(pOrdPFrac);
+  TPZFracAnalysis fracAn(Data);
+  fracAn.Run();
 
   // Reservoir Simulation uncoupled
-  Data->SetPorderFlow(pOrdQDarcy);
-  Data->SetPorderPressure(pOrdPDarcy);
-  TPZDarcyAnalysis DarcyAn(Data);
-  DarcyAn.Run();
+//  Data->SetPorderFlow(pOrdQDarcy);
+//  Data->SetPorderPressure(pOrdPDarcy);
+//  TPZDarcyAnalysis DarcyAn(Data);
+//  DarcyAn.Run();
   
   return 0;
 }
