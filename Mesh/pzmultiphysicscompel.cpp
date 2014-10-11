@@ -578,6 +578,13 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		intrule->Point(int_ind,intpointtemp,weight);
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
+        for (int i = 0; i < fElementVec.size(); i++) {
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[i]);
+            if (!msp) {
+                continue;
+            }
+            datavec[i].intLocPtIndex = int_ind;
+        }
         
 		this->ComputeRequiredData(datavec,intpointtemp,trvec);
         
