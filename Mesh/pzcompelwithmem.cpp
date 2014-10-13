@@ -29,6 +29,7 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePir
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"
 #include "pzgeopyramid.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 
 
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >, TPZMPCOMPELWITHMEMPOINTID>;
@@ -39,6 +40,7 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TP
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >, TPZMPCOMPELWITHMEMTETRAID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >, TPZMPCOMPELWITHMEMPRISMID>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >, TPZMPCOMPELWITHMEMPIRAMID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsInterfaceElement>, TPZMPCOMPELWITHMEMINTERFACE>;
 
 #endif
 /*

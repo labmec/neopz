@@ -52,7 +52,7 @@ public:
     TPZCompMesh * L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
     
     /** @brief Creates Multiphysic mesh for mixed simulation of darcy flow */
-    TPZCompMesh * CreateCMeshMixed();
+    TPZCompMesh * CreateCMeshMixed(TPZFMatrix<REAL> Vl);
     
     /** @brief Creates interfaces for mixed simulation of darcy flow */
     void CreateInterfaces(TPZCompMesh *cmesh);
@@ -60,14 +60,17 @@ public:
     /** @brief Assemble last step */
     void AssembleLastStep(TPZAnalysis *an);
     
-    /** @brief Newton Method */
-    void IterativeProcess(TPZAnalysis *an, std::ostream &out);
+    /** @brief Newton Method -> Solves  X(u) [DeltaU] = - [R(u)]; */
+    void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter = 50);
     
     /** @brief Solve LS */
     void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh);
     
     /** @brief Solve time steps */
-    void SolveSistTransient(TPZAnalysis *an);
+    bool SolveSistTransient(TPZAnalysis *an, bool initial);
+
+    /** @brief Solve time steps with Fracture elements */
+    bool SolveSistTransientWithFracture(TPZAnalysis *an);
     
     /** @brief PostProcess mesh in VTK */
     void PostProcessVTK(TPZAnalysis *an);
@@ -76,10 +79,36 @@ public:
     void PrintGeometricMesh(TPZGeoMesh * gmesh);
 
     /** @brief adjust mtid's for propagation */
-    void ModifyGmesh(TPZGeoMesh * gmesh);
+    void InsertFracsGmesh(TPZGeoMesh * gmesh);
     
+    /** @brief adjust mtid's for propagation */
+    void DarcyGmesh(TPZGeoMesh * gmesh);
+    
+    /** @brief Creat Computational Multiphysics Mesh */
+    void CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl);
+
+    /** @brief Updates Leak Off integration points values */
+    void AcceptSolution(TPZAnalysis *an);
+
+    /** @brief Set the pressure on last element as equal of the second last element */
+    void SetPressureOnLastElement(TPZAnalysis *an);
+
+    /** @brief Set the pressure on a new element in order to get zero opening for assemble last step */
+    void SetPressureOnNewElement(TPZAnalysis *an);
+    
+    /** @brief Initialize x0 for newton iterations */    
+    void ComputeFirstSolForOneELement(TPZAnalysis * an);
+    
+    /** @brief Return the quantity of fracture elements */
+    int HowManyFracElement();
+    
+    /** @brief Calculates Q of the tip of the fracture */
+    REAL Qtip();
     
 private:
+    
+    /** @brief bool which indicates if the end of time is reached */
+    bool fmustStop;
     
     /** @brief Data of the simulation */
     TPZAutoPointer<TPZFracData> fData;

@@ -59,6 +59,15 @@ public:
   /** @brief Calculates Q of the tip of the fracture */
   REAL Qtip();
     
+  /** @brief Set the pressure on last element as equal of the second last element */    
+  void SetPressureOnLastElement(TPZAnalysis *an);
+  
+  /** @brief Return the quantity of fracture elements */
+  int HowManyFracElement();
+
+  /** @brief Initialize x0 for newton iterations */
+  void ComputeFirstSolForOneELement(TPZAnalysis * an);
+    
   /** @brief Finds the initial time step to run simulation and returns the vl to train the integration points */
   REAL RunUntilOpen();
   

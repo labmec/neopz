@@ -119,19 +119,19 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
         ek(FirstQ+iq,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-        const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12.*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
+          const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12.*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
         ek(FirstQ+iq,FirstP+jp) += weight * jac;
       }
     }
     for (int ip = 0; ip < phrP ; ip++) { // Conservation of Mass
-        const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0) - ql * phiP(ip,0);
+        const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0);// - ql * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
         const REAL jac = - dphiQ(0,jq) * phiP(ip,0);
         ek(FirstP+ip,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-          const REAL jac = - 1./DeltaT * dwdp * phiP(jp,0) * phiP(ip,0) - dqldp * phiP(jp,0) * phiP(ip,0);
+          const REAL jac = - 1./DeltaT * dwdp * phiP(jp,0) * phiP(ip,0);// - dqldp * phiP(jp,0) * phiP(ip,0);
         ek(FirstP+ip,FirstP+jp) += weight * jac;
       }
     }
@@ -164,7 +164,7 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
 
 void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-    return;
+    
     // ---------------------- Getting Data for Darcy Flow BC ----------------------
     TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
     TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
@@ -173,7 +173,6 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
     
     REAL n1 = normal[0];
     REAL n2 = normal[1];
-    //  REAL n3 = normal[2];
     
     TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
     TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
@@ -199,16 +198,16 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
     
     // ---------------------- Getting Data for Leak Off ----------------------
     // Getting shape functions
-    TPZFMatrix<REAL>  &phiQ = dataright[0].phi;
-    TPZFMatrix<REAL>  &phiP = dataright[1].phi;
-    TPZFMatrix<REAL> &dphiQ = dataright[0].dphix;
+    TPZFMatrix<REAL>  &phiQR = dataright[0].phi;
+    TPZFMatrix<REAL>  &phiPR = dataright[1].phi;
+    TPZFMatrix<REAL> &dphiQR = dataright[0].dphix;
     
     // number of test functions for each state variable
-    const int phrQ = phiQ.Rows(), phrP = phiP.Rows();
+    const int phrQR = phiQR.Rows(), phrPR = phiPR.Rows();
     
     // blocks
-    const int FirstQ  = 0;
-    const int FirstP  = phrQ+FirstQ;
+    const int FirstQR  = 0;
+    const int FirstPR  = phrQR+FirstQR;
     
     // Solutions and derivate of solutions
     const REAL p = dataright[1].sol[0][0];
@@ -220,19 +219,22 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
     const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
 
     // ************************ Leak Off Contribution for Integral *************************************
+    
+    int iblock = QRowsleft + PRowsleft;
+    int jblock = QRowsleft + PRowsleft;
+    
     //  n + 1 time step
     if(!fData->IsLastState())
     {
-        for (int ip = 0; ip < phrP ; ip++) { // Conservation of Mass
-            const REAL res = - ql * phiP(ip,0);
-            ef(FirstP+ip,0) += weight * res;
-            for (int jp = 0; jp < phrP; jp++) {
-                const REAL jac = - dqldp * phiP(jp,0) * phiP(ip,0);
-                ek(FirstP+ip,FirstP+jp) += weight * jac;
+        for (int ip = 0; ip < phrPR ; ip++) { // Conservation of Mass
+            const REAL res = - ql * phiPR(ip,0);
+            ef(FirstPR+ip+ iblock,0) += weight * res;
+            for (int jp = 0; jp < phrPR; jp++) {
+                const REAL jac = - dqldp * phiPR(jp,0) * phiPR(ip,0);
+                ek(FirstPR+ip+iblock,FirstPR+jp+jblock) += weight * jac;
             }
         }
     }
-    
     
     //  ////////////////////////// Residual Vector ///////////////////////////////////
     //  Contribution of contour integrals for Residual Vector
@@ -245,7 +247,7 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
         // Integrate[L dot(v, n), Gamma_{e}]    (Equation Two) Left-Left Part
         for (int ip=0; ip < PRowsleft; ip++)
         {
-            ef(ip + FirstPL) += (-1.0) * (1.0-Theta) * (TimeStep) * weight * phiPL(ip,0) * qnL;
+            ef(ip + FirstPL) += (-0.0) * (1.0-Theta) * (TimeStep) * weight * phiPL(ip,0) * qnL;
         }
         
         return;
@@ -278,7 +280,7 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
         }
     }
     
-    REAL qN = -ql;  // HERE -> Normal Flux
+    REAL qN = -1.0;  // HERE -> Normal Flux
     
     
     for(int iq=0; iq < QRowsleft; iq++)

@@ -5,15 +5,19 @@
 #include "pzshapelinear.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+static LoggerPtr logdata(Logger::getLogger("pz.frac"));
 #endif
 
 int main()
 {
 #ifdef LOG4CXX
-  InitializePZLOG();
+    std::string dirname = PZSOURCEDIR;
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/Frac1DHdiv/";
+    FileName += "FracLog.cfg";
+  InitializePZLOG(FileName);
 #endif
-    
+        
   TPZMaterial::gBigNumber = 1.e9;
   
   // ---------- Parametros ----------
@@ -34,12 +38,12 @@ int main()
   const REAL InitTime = 0.;
   const REAL timeStep = 1.;
   const REAL Ttot = 100.0;
-  const int pOrdQDarcy = 2;
-  const int pOrdPDarcy = 2;
+  const int pOrdQDarcy = 1;
+  const int pOrdPDarcy = 1;
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
-  const REAL elsize = 50.;
+  const REAL elsize = 50.0;
   std::string PostProcessFileName = "Propag.vtk";
   
   // Fluid Data
@@ -83,18 +87,20 @@ int main()
   Data->SetVsp(vsp);
   Data->SetElSize(elsize);
   Data->SetDwDp();
-  
+
+    Data->SetPorderFlow(pOrdQFrac);
+    Data->SetPorderPressure(pOrdPFrac);
+    Data->SetPorderDarcyFlow(pOrdQDarcy);
+    Data->SetPorderDarcyPressure(pOrdPDarcy);
+    
   // Fracture Simulation uncoupled
-  Data->SetPorderFlow(pOrdQFrac);
-  Data->SetPorderPressure(pOrdPFrac);
-  TPZFracAnalysis fracAn(Data);
-  fracAn.Run();
+
+//  TPZFracAnalysis fracAn(Data);
+//  fracAn.Run();
 
   // Reservoir Simulation uncoupled
-//  Data->SetPorderFlow(pOrdQDarcy);
-//  Data->SetPorderPressure(pOrdPDarcy);
-//  TPZDarcyAnalysis DarcyAn(Data);
-//  DarcyAn.Run();
+  TPZDarcyAnalysis DarcyAn(Data);
+  DarcyAn.Run();
   
   return 0;
 }

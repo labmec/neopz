@@ -826,8 +826,8 @@ void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMateria
 int TPZMatDarcy2dhdiv::VariableIndex(const std::string &name){
     if(!strcmp("MassVelocity",name.c_str()))        return  1;
     if(!strcmp("Pressure",name.c_str()))    return  2;
-    if(!strcmp("MassVelocityAnal",name.c_str()))        return  3;
-    if(!strcmp("PressureAnal",name.c_str()))    return  4;
+    if(!strcmp("MassVelocityExact",name.c_str()))        return  3;
+    if(!strcmp("PressureExact",name.c_str()))    return  4;
 
     
     return TPZMaterial::VariableIndex(name);

@@ -12,7 +12,7 @@
 #include "pzmatred.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
+static LoggerPtr logger(Logger::getLogger("pz.frac"));
 #endif
 
 TPZFracAnalysis::TPZFracAnalysis(TPZAutoPointer<TPZFracData> Data)
@@ -78,7 +78,13 @@ void TPZFracAnalysis::Run()
   // Solving transiente system
   while (fmustStop == false) {
     bool propagate = SolveSistTransient(an);
-    if (propagate) {
+      
+
+
+      
+      
+    if (propagate)
+    {
       
       // Novo comprimento de fratura
       REAL newLfrac = fData->Lfrac() + fData->ElSize();
@@ -451,6 +457,16 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
   
 	while(error > tol && iter < numiter) {
 		
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            matK=an->Solver().Matrix();
+            matK->Print("matK = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        
 		an->Solve(); // o an->Solution() eh o deltaU aqui
     TPZFMatrix<STATE> DeltaU = an->Solution();
     SoliterK = prevsol - DeltaU;
@@ -460,8 +476,6 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
     if(logger->isDebugEnabled())
     {
       std::stringstream sout;
-      matK=an->Solver().Matrix();
-      matK->Print("matK = ", sout,EMathematicaInput);
       an->Solution().Print("DeltaX = ", sout,EMathematicaInput);
       SoliterK.Print("Xk = ", sout,EMathematicaInput);
       LOGPZ_DEBUG(logger,sout.str())
@@ -529,92 +543,63 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
 void TPZFracAnalysis::AssembleLastStep(TPZAnalysis *an)
 {
   fData->SetLastState();
-  
   an->Assemble();
   fLastStepRhs = an->Rhs();
+
 }
 
 bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
 {
   
   bool propagate = false;
-  static int itglob = 0;
+  int nfracel = this->HowManyFracElement();
   int it = 0;
   while (fmustStop == false && propagate == false) {
     
     AssembleLastStep(an);
     TPZFMatrix<> lastSol = an->Solution();
-    
-    TPZEquationFilter eqF(fcmeshMixed->NEquations());
+      fLastStepRhs.Print("Rhsatn: ");
+      lastSol.Print("SOlLast: ");
+//    TPZEquationFilter eqF(fcmeshMixed->NEquations());
     if (it == 0) { // aqui inicializo chutes iniciais para newton depois da propagacao
 
-      const long pSolSize = fmeshvec[1]->Solution().Rows();
-      if(itglob == 0){ // esse caso eh para o primeiro elemento da simulacao
-        fmeshvec[0]->Solution()(0,0) = fData->Q();
-        
-        const REAL pfrac = fData->SigmaConf();
-        const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
-        const REAL vlnext = fData->VlFtau(pfrac, tstar+fData->TimeStep());
-        const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
-        const REAL totalLeakOffPrev = 2. * fData->ElSize() * fData->AccumVl();
-        const REAL ql = (totalLeakOff - totalLeakOffPrev)/fData->TimeStep();
-        REAL qout = fData->Q() - ql;
+      if(nfracel == 1){ // esse caso eh para o primeiro elemento da simulacao
+        an->Solution().Print("anBefore");         
+        this->ComputeFirstSolForOneELement(an);
+        an->Solution().Print("anAfter");
 
-        fmeshvec[0]->Solution()(1,0) = qout;
-        const REAL dwdp = fData->GetDwDp();
-        const REAL pini = fData->SigmaConf() + pow(12. * fData->Viscosity() * qout * fData->ElSize() / (dwdp*dwdp*dwdp),1./4.);
-        for (int i = 0; i < pSolSize; i++) {
-          fmeshvec[1]->Solution()(i,0) = pini;
-        }
-
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
-        an->LoadSolution(fcmeshMixed->Solution());
-        an->Solution().Print("anini: ");
 
       }
       else{ // aqui eh quando ha mais de 1 elemento
-        
-        fmeshvec[1]->Solution()(pSolSize-1,0) = fmeshvec[1]->Solution()(pSolSize-2,0);
-        if (fmeshvec[1]->Solution().Rows() > 5) {
-          fmeshvec[1]->Solution()(pSolSize-2,0) = fmeshvec[1]->Solution()(pSolSize-3,0);
-        }
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
-        an->LoadSolution(fcmeshMixed->Solution());
-        
-        const REAL qin = fData->LastQtip();
-        const REAL qout = qin/2.;
-        const REAL qmedia = (qin + qout)/2.;
-        const REAL dwdp = fData->GetDwDp();
-        const REAL factor = 12 * fData->Viscosity() * qmedia * fData->ElSize() / (dwdp*dwdp*dwdp);
-        const REAL pi = fData->SigmaConf() + pow(factor, 1./4.);
-        //std::cout << "pi = " << pi << std::endl;
-        //std::cout << "piantigo = " << fmeshvec[1]->Solution()(pSolSize-1,0) << std::endl;
-        //fmeshvec[1]->Solution()(pSolSize-1,0) = pi;
-        
-        // Fixo a pressao no ultimo elemento, e o resultado eh o chute inicial para o newton
-        TPZCompEl *cel = fcmeshMixed->Element(fcmeshMixed->ElementVec().NElements()-2);
-        TPZConnect &c = cel->Connect(3);
-        const int sq = c.SequenceNumber();
-        const int pos = fcmeshMixed->Block().Position(sq);
-        if (fcmeshMixed->Block().Size(sq) != 1) {
-          DebugStop();
-        }
-        std::set<long> eqOut;
-        
-        eqOut.insert(pos);
-        
-        const int neq = fcmeshMixed->NEquations();
-        TPZVec<long> actEquations(neq-eqOut.size());
-        int p = 0;
-        for (long eq = 0; eq < neq; eq++) {
-          if (eqOut.find(eq) == eqOut.end()) {
-            actEquations[p] = eq;
-            p++;
-          }
-        }
-        
-        eqF.SetActiveEquations(actEquations);
-        
+        an->Solution().Print("anBefore");
+        this->SetPressureOnLastElement(an);
+        an->Solution().Print("anAfter");
+          
+//        // Fixo a pressao no ultimo elemento, e o resultado eh o chute inicial para o newton
+//        TPZCompEl *cel = fcmeshMixed->Element(fcmeshMixed->ElementVec().NElements()-2);
+//        TPZConnect &c = cel->Connect(3);
+//        const int sq = c.SequenceNumber();
+//        const int pos = fcmeshMixed->Block().Position(sq);
+//        if (fcmeshMixed->Block().Size(sq) != 1) {
+//          DebugStop();
+//        }
+//        std::set<long> eqOut;
+//        
+//        eqOut.insert(pos);
+//        
+//        const int neq = fcmeshMixed->NEquations();
+//        TPZVec<long> actEquations(neq-eqOut.size());
+//        int p = 0;
+//        for (long eq = 0; eq < neq; eq++) {
+//          if (eqOut.find(eq) == eqOut.end()) {
+//            actEquations[p] = eq;
+//            p++;
+//          }
+//        }
+//        
+//        eqF.SetActiveEquations(actEquations);
+//        
+     
       }
       
       fData->SetAccumVl(0.); // Zerando accumvl para os proximos
@@ -622,23 +607,26 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
     }
 
     const REAL tol = 1.e-8;
-    do{
-      
-      an->StructMatrix()->EquationFilter() = eqF;
-      an->Solver().SetMatrix(NULL);
-      IterativeProcess(an, std::cout);
-      an->StructMatrix()->EquationFilter().Reset();
-      
-      IterativeProcess(an, std::cout, 1);
-      an->Rhs()(0,0) = 0.;
-      
-    }while (Norm(an->Rhs()) > tol);
+//    do{
+//      
+//      an->StructMatrix()->EquationFilter() = eqF;
+//      an->Solver().SetMatrix(NULL);
+//      IterativeProcess(an, std::cout);
+//      an->StructMatrix()->EquationFilter().Reset();
+//      
+//      IterativeProcess(an, std::cout, 1);
+//      an->Rhs()(0,0) = 0.;
+//      
+//    }while (Norm(an->Rhs()) > tol);
 
-    //IterativeProcess(an, std::cout);
+    IterativeProcess(an, std::cout);
+      
+      
     
+      
     const REAL qtip = this->Qtip();
     
-    if (it == 0 && itglob != 0) {
+    if (it == 0 && nfracel != 1) {
       fData->DebugMap().insert(std::pair<REAL, REAL> (fData->Lfrac(),qtip));
     }
     
@@ -675,7 +663,6 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
       fmustStop = true;
     }
     it++;
-    itglob++;
   }
   return propagate;
 }
@@ -812,7 +799,6 @@ REAL TPZFracAnalysis::RunUntilOpen()
 {
   const int maxinitialit = 10000;
   const REAL qtip = fData->Q();
-  REAL vlForThisTime = 0.;
   int it = 0;
   for (it = 0; it < maxinitialit; it++) {
     const REAL dt = fData->TimeStep();
@@ -873,4 +859,194 @@ REAL TPZFracAnalysis::QOfAFreshNewElement()
   const REAL qFresh = (totalLeakOff)/dt;
   
   return qFresh;
+}
+
+void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
+{
+    fgmesh->ResetReference();
+    fmeshvec[1]->LoadReferences();
+    
+    long nfracel = this->HowManyFracElement();
+    int nel = fmeshvec[1]->NElements();
+    for (int iel = 0; iel < nel; iel++) {
+        TPZCompEl * cel = fmeshvec[1]->Element(iel);
+        if (!cel) continue;
+        TPZGeoEl * gel = cel->Reference();
+        
+        if (gel->Dimension() != 1) {
+            continue;
+        }
+        
+        int side = 1;
+        TPZGeoElSide gelside(gel,side);
+        TPZGeoElSide neigh = gelside.Neighbour();
+        
+        // Seeking for condition 1
+        while (gelside!= neigh) {
+            if (neigh.Element()->Dimension()==0 && neigh.Element()->MaterialId() == -2) {
+                break;
+            }
+            neigh = neigh.Neighbour();
+        }
+        if (gelside == neigh) {
+            continue;
+        }
+        
+        TPZBlock<STATE> & block = fmeshvec[1]->Block();
+        TPZGeoElSide gelsideleft(gel,0);
+        TPZGeoElSide neighTip = gelsideleft.Neighbour();
+        
+        // Seeking for condition 2
+        while (gelsideleft != neighTip) {
+            if (neighTip.Element()->Dimension() == 1 && neighTip.Element()->MaterialId() == 1 ) {
+                break;
+            }
+            neighTip = neighTip.Neighbour();
+        }
+        if (gelsideleft == neighTip) {
+            DebugStop();
+        }
+        TPZGeoEl * gelleft = neighTip.Element();
+        TPZCompEl * celleft = gelleft->Reference();
+        
+        
+        // Chanching value
+#ifdef DEBUG
+        if (celleft->NConnects() != 1 && cel->NConnects() != 1) {
+            DebugStop();
+        }
+#endif
+        TPZConnect &connectleft =  celleft->Connect(0);
+        TPZConnect &connect =  cel->Connect(0);
+        
+        int seqleft = connectleft.SequenceNumber();
+        int seq = connect.SequenceNumber();
+#ifdef DEBUG
+        if (block.Size(seqleft) != 1 && block.Size(seq) != 1) {
+            DebugStop();
+        }
+#endif
+        int posleft = block.Position(seqleft);
+        int pos = block.Position(seq);
+        fmeshvec[1]->Solution()(pos,0) = fmeshvec[1]->Solution()(posleft,0);
+        
+        if (nfracel < 5) {
+            TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
+            an->LoadSolution(fcmeshMixed->Solution());
+            return;
+        }
+        
+        // Seeking for condition 3
+        TPZGeoElSide gelsidesecondleft(gelleft,0);
+        TPZGeoElSide neighsecondeleft = gelsidesecondleft.Neighbour();
+        while (gelsidesecondleft != neighsecondeleft) {
+            if (neighsecondeleft.Element()->Dimension() == 1 && neighsecondeleft.Element()->MaterialId() == 1 ) {
+                break;
+            }
+            neighsecondeleft = neighsecondeleft.Neighbour();
+        }
+        if (gelsidesecondleft == neighsecondeleft) {
+            DebugStop();
+        }
+        TPZGeoEl * gelsecondleft = neighsecondeleft.Element();
+        TPZCompEl * celsecondleft = gelsecondleft->Reference();
+#ifdef DEBUG
+        if (celsecondleft->NConnects() != 1) {
+            DebugStop();
+        }
+#endif
+        TPZConnect &connectsecondleft = celsecondleft->Connect(0);
+        int seqsecondleft = connectsecondleft.SequenceNumber();
+        
+#ifdef DEBUG
+        if (block.Size(seqsecondleft) != 1) {
+            DebugStop();
+        }
+#endif
+        int possecondleft = block.Position(seqsecondleft);
+    
+        fmeshvec[1]->Solution()(posleft,0) = fmeshvec[1]->Solution()(possecondleft,0);
+        
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
+        an->LoadSolution(fcmeshMixed->Solution());
+        return;
+    }
+}
+
+int TPZFracAnalysis::HowManyFracElement()
+{
+    long nel = fgmesh->NElements();
+    long nfracel = 0;
+    for (long iel = 0; iel < nel; iel++) {
+        TPZGeoEl *gel = fgmesh->Element(iel);
+        if (gel->MaterialId() == 1) {
+            nfracel++;
+        }
+    }
+    return nfracel;
+}
+
+void TPZFracAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
+{
+    long nfracel = this->HowManyFracElement();
+    
+    if (nfracel != 1) {
+        PZError << "This method sould only be called when the mesh has a single frac element " << std::endl;
+        DebugStop();
+    }
+    
+    int nel = fgmesh->NElements();
+    TPZGeoEl *gel = NULL;
+    for (int iel = 0; iel < nel; iel++) {
+        gel = fgmesh->Element(iel);
+        if (gel->MaterialId() == 1) {
+            break;
+        }
+    }
+    
+    TPZBlock<STATE> &blockQ = fmeshvec[0]->Block(), &blockP = fmeshvec[1]->Block();
+
+    
+    // Setando os valores dos fluxos na fratura
+    fgmesh->ResetReference();
+    fmeshvec[0]->LoadReferences();
+    
+    const REAL pfrac = fData->SigmaConf();
+    const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
+    const REAL vlnext = fData->VlFtau(pfrac, tstar+fData->TimeStep());
+    const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
+    const REAL totalLeakOffPrev = 2. * fData->ElSize() * fData->AccumVl();
+    const REAL ql = (totalLeakOff - totalLeakOffPrev)/fData->TimeStep();
+    REAL qout = fData->Q() - ql;
+
+    TPZCompEl *celQ = gel->Reference();
+    if (celQ->NConnects() != 3) {
+        DebugStop(); // Mesh H1 1D p = 1
+    }
+    TPZConnect &c1Q = celQ->Connect(0), &c2Q = celQ->Connect(1);
+    int seq1Q = c1Q.SequenceNumber(), seq2Q = c2Q.SequenceNumber();
+    int pos1Q = blockQ.Position(seq1Q), pos2Q = blockQ.Position(seq2Q);
+    fmeshvec[0]->Solution()(pos1Q,0) = fData->Q();
+    fmeshvec[0]->Solution()(pos2Q,0) = qout;
+
+
+    // Setando a pressao
+    fgmesh->ResetReference();
+    fmeshvec[1]->LoadReferences();
+    const REAL dwdp = fData->GetDwDp();
+    const REAL pini = fData->SigmaConf() + pow(12. * fData->Viscosity() * qout * fData->ElSize() / (dwdp*dwdp*dwdp),1./4.);
+    
+    TPZCompEl *celP = gel->Reference();
+    if (celP->NConnects() != 1) {
+        DebugStop(); // Mesh L2 1D p = 0
+    }
+    TPZConnect &cP = celP->Connect(0);
+    int seqP = cP.SequenceNumber();
+    int posP = blockP.Position(seqP);
+
+    fmeshvec[1]->Solution()(posP,0) = pini;
+
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
+    an->LoadSolution(fcmeshMixed->Solution());
+    
 }

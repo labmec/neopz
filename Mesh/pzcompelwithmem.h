@@ -43,6 +43,8 @@ public:
 	virtual ~TPZCompElWithMem();
 	
 	TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
+    
+    TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right);
 	
 	TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy);
 	
@@ -149,6 +151,11 @@ TBASE(mesh, gel, index){
 	PrepareIntPtIndices();
 }
 
+template<class TBASE>
+TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right) :
+TBASE(mesh, ref, index, left, right){
+    PrepareIntPtIndices();
+}
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy) :
@@ -325,8 +332,7 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
 														 TPZVec<REAL> &qsi){
 	TBASE::ComputeRequiredData(data, qsi);
     data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
-	//material index for the n-th CompEl integration point									
-	
+	//material index for the n-th CompEl integration point
 }
 
 template <class TBASE>

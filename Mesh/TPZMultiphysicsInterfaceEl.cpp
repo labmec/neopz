@@ -186,7 +186,7 @@ long TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 #include "pzmultiphysicscompel.h"
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
-	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (Material());
+	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ek.Reset();
@@ -252,8 +252,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     int nintpoints = intrule->NPoints();
     for (int ip =0; ip<nintpoints; ip++) {
         REAL weight;
+        data.intLocPtIndex = ip;
         intrule->Point(ip, Point, weight);
-        ComputeRequiredData(Point, data);
+        ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
         leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
@@ -261,10 +262,45 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         
         data.x = datavecleft[0].x;
-        material->ContributeInterface(data , datavecleft, datavecright, weight, ek.fMat, ef.fMat);
+        material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }	
 	
 }//CalcStiff
+
+const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule()
+{
+    TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        DebugStop();
+    }
+    
+    if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
+    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+    
+#ifdef DEBUG
+    if (!leftel || !rightel) {
+        DebugStop();
+    }
+#endif
+    
+    int intleftorder = leftel->IntegrationOrder();
+    int intrightorder = rightel->IntegrationOrder();
+    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZGeoEl *gel = Reference();
+    int thisside = gel->NSides()-1;
+    
+    const TPZIntPoints * intrulePtr = gel->CreateSideIntegrationRule(thisside, integrationorder);
+    const TPZIntPoints &intrule = *intrulePtr;
+    return intrule;
+}
+
+void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec,
+                                                           TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+{
+    DebugStop();
+}//ComputeRequiredData
 
 void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
@@ -383,7 +419,7 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
 }
 
 /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
-void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, TPZMaterialData &data)
+void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point)
 {
     data.intGlobPtIndex = -1;
     TPZGeoEl *gel = Reference();

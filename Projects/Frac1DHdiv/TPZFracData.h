@@ -98,6 +98,12 @@ private:
   
   /** @brief P order of flow (Q) analysis for fracturing simulation */
   int fPorderFlow;
+    
+    /** @brief P order of pressure (p) analysis for Darcy simulation */
+    int fPorderDarcyPressure;
+    
+    /** @brief P order of flow (Q) analysis for Darcy simulation */
+    int fPorderDarcyFlow;
   
   /** @brief Number of elements in the fracture */
   int fnelFrac;
@@ -259,6 +265,20 @@ public:
   
   /** @brief Returns p order of the flow */
   int PorderFlow() const {return this->fPorderFlow;}
+    
+    
+/** @brief Defines p order of the flow in hdiv space */
+void SetPorderDarcyFlow(int PorderDarcyFlow){ this->fPorderDarcyFlow = PorderDarcyFlow;}
+
+/** @brief Returns p order of the Darcy flow */
+int PorderDarcyFlow() const {return this->fPorderDarcyFlow;}
+
+/** @brief Defines p order of the Darcy pressure in L2 space */
+void SetPorderDarcyPressure(int PorderDarcyPressure){ this->fPorderDarcyPressure = PorderDarcyPressure;}
+
+/** @brief Returns p order of the Darcy pressure */
+int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
+    
   
   /** @brief Defines Number of elements in the fracture */
   void SetNelFrac(int NelFrac){ this->fnelFrac = NelFrac;}

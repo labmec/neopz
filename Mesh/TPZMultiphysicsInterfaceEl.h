@@ -129,7 +129,15 @@ public:
      * Compute the stiffness matrix of the interface element
      */
     void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+    /**
+     * Return max integration rule of this interface element
+     */
+    const TPZIntPoints & GetIntegrationRule();
     
+    /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
+    virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
+
     /** @brief Initialize the structure of the stiffness matrix */
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
     
@@ -166,7 +174,7 @@ public:
     void InitMaterialData(TPZMaterialData &data);
     
     /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
-    void ComputeRequiredData(TPZVec<REAL> &point, TPZMaterialData &data);
+    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point);
     
     /** @brief Compute the required data from the neighbouring elements */
     void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data);
@@ -217,6 +225,27 @@ public:
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+    
+    /** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
+    virtual int NumberOfCompElementsInsideThisCompEl(){
+        
+        if (fLeftElSide) {
+            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(fLeftElSide.Element());
+            if(mfcel)
+            {
+                return mfcel->NMeshes();
+            }
+        }
+        if (fRightElSide) {
+            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+            if (mfcel) {
+                return mfcel->NMeshes();
+            }
+        }
+        return 0;
+
+    }	
+
 	
 	
     

@@ -135,6 +135,7 @@ public:
 	
 	/** @brief Methods for handling pzlists */
 	TPZAdmChunkVector<TPZGeoEl *> &ElementVec() { return fElementVec; }
+    TPZGeoEl * Element(long iel) { return fElementVec[iel]; }
 	TPZAdmChunkVector<TPZGeoNode> &NodeVec() { return fNodeVec; }
 	const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
 	const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }

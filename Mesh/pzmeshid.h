@@ -238,6 +238,10 @@ const int TPZMPCOMPELWITHMEMPRISMID = 426;
 /** @brief Id of computational memory pyramidal element (?) */
 const int TPZMPCOMPELWITHMEMPIRAMID = 427;
 
+//For MultiPhysicsInterface
+/** @brief Id of computational memory interface multiphysics element (?) */
+const int TPZMPCOMPELWITHMEMINTERFACE = 428;
+
 /** @} */
 
 #endif
