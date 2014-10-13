@@ -34,10 +34,6 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
 	"${PROJECT_SOURCE_DIR}/External" 
 	"${PROJECT_SOURCE_DIR}/External/sloan"
-	"${PROJECT_SOURCE_DIR}/External/FAD"
-	"${PROJECT_SOURCE_DIR}/External/FAD/Fad"
-	"${PROJECT_SOURCE_DIR}/External/FAD/TinyFad"
-	"${PROJECT_SOURCE_DIR}/External/FAD/TinyFadET"
 )
 
 ## inserting main definitions
@@ -113,21 +109,8 @@ if(USING_FAD)
 	#Adding a variable to hold this definition
 	set(_AUTODIFF _AUTODIFF)
 	add_definitions(-D${_AUTODIFF})
+	include_directories(External/FAD External/FAD/Fad External/FAD/TinyFad External/FAD/TinyFadET)
 endif(USING_FAD)
-
-#enabling FAD library
-#option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-#if(USING_FAD)
-#	#Adding a variable to hold this definition
-#	set(_AUTODIFF _AUTODIFF)
-#	add_definitions(-D${_AUTODIFF})
-#	find_path(FAD_INCLUDE fad.h PATHS ${SEARCH_DIRS} ./../FAD ./FAD ./externallibs/#FAD ./../externallibs/FAD)
-#	if(FAD_INCLUDE-NOTFOUND)
-#		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
-#	else()
-#		include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/#TinyFad ${FAD_INCLUDE}/TinyFadET)
-#	endif()
-#endif(USING_FAD)
 
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)

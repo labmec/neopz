@@ -25,6 +25,7 @@
 #include <memory>
 #include <iostream>
 #include <iomanip>
+#include <stddef.h>
 
 
 #include <utils/error.h>
