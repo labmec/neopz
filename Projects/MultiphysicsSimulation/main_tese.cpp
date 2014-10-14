@@ -72,7 +72,7 @@ const int bc0 = -1;
 const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
-bool fTriang = true;
+bool fTriang = false;
 
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool triang_elements);
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         }
         
         saidaerros<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for(int h=1; h<5; h++){
+        for(int h=0; h<5; h++){
             saidaerros << "\nRefinamento: h = "<< h <<"\n";
             
             /*------------ Etapa 1 ------------*/
@@ -153,12 +153,13 @@ int main(int argc, char *argv[])
 
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             // Arquivo de saida para plotar a solução
-            string plotfile("Solution_mphysics.vtk");
-            SaidaSolucao(an, plotfile);
+            //string plotfile("Solution_mphysics.vtk");
+            //SaidaSolucao(an, plotfile);
             
             saidaerros<<"\n\nErro da simulacao multifisica  para o flux";
-            TPZAnalysis an1(cmesh1);
-            an1.SetExact(*SolSuave);
+            //TPZAnalysis an1(cmesh1);
+            //an1.SetExact(*SolSuave);
+            //an1.PostProcessError(erros, saidaerros);
             ErrorHDiv2(cmesh1,saidaerros);
             
             saidaerros<<"\n\nErro da simulacao multifisica  para a pressao";
