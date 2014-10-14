@@ -556,7 +556,7 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<long> &equationi
 {
 	
     TPZStack<std::string> scalnames,vecnames;
-    scalnames.Push("State");
+    scalnames.Push("Solution");
     DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
     int porder = fCompMesh->GetDefaultOrder();
     
