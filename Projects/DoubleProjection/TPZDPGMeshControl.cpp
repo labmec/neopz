@@ -59,7 +59,7 @@ void TPZDPGMeshControl::BuildComputationalMesh()
     
     fMHMControl.SetLagrangeAveragePressure(true);
     fMHMControl.CreateCoarseInterfaces(fSkeletMatId);
-    fMHMControl.BuildComputationalMesh();
+    fMHMControl.BuildComputationalMesh(false);
     
     //adding elements from coarse mesh pressure to mhm mesh
     int coarsemeshindex = 3;

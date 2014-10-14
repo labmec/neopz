@@ -99,7 +99,7 @@ public:
     }
     
     /// Create all data structures for the computational mesh
-    void BuildComputationalMesh();
+    void BuildComputationalMesh(bool usersubstructure);
     
     /// will create 1D elements on the interfaces between the coarse element indices
     void CreateCoarseInterfaces(int matid);

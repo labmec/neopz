@@ -243,7 +243,7 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
 }
 
 /// Create all data structures for the computational mesh
-void TPZMHMeshControl::BuildComputationalMesh()
+void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
 {
     int nstate = 1;
     int dim = fGMesh->Dimension();
@@ -272,9 +272,9 @@ void TPZMHMeshControl::BuildComputationalMesh()
     }
 #endif
 
-//    std::cout << "Coloca em outra chamada\n";
-    //this->SubStructure();
-    //fCMesh->SaddlePermute();
+    if(usersubstructure==true){
+        this->SubStructure();
+    }
 }
 
 /// will create the internal elements, one coarse element at a time
