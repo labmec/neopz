@@ -17,15 +17,15 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMatWithMem()
 {
   fDim = 1;
-	TPZFNMatrix<3,STATE> Vl(1,1,0.);
-	this->SetDefaultMem(Vl);
+  TPZFNMatrix<3,STATE> Vl(1,1,0.);
+  this->SetDefaultMem(Vl);
 }
 
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMatWithMem(matid)
 {
   fDim = 1;
-	TPZFNMatrix<3,STATE> Vl(1,1,0.);
-	this->SetDefaultMem(Vl);
+  TPZFNMatrix<3,STATE> Vl(1,1,0.);
+  this->SetDefaultMem(Vl);
 }
 
 TPZMatfrac1dhdiv::~TPZMatfrac1dhdiv()
@@ -59,7 +59,7 @@ REAL TPZMatfrac1dhdiv::Getdwdp()
 
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    
+  
 #ifdef DEBUG
   int nref =  datavec.size();
   if (nref != 2 )
@@ -99,7 +99,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   REAL w = fData->GetW(p);
   const REAL dwdp = fData->GetDwDp();
   
- 
+  
   // Leak off
   const int intGlobPtIndex = datavec[0].intGlobPtIndex;
   TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
@@ -119,19 +119,19 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
         ek(FirstQ+iq,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-          const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12.*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
+        const REAL jac = - 3 / (w*w*w*w) * dwdp * phiP(jp,0) * 12.*mu * Q * phiQ(iq,0) - dphiQ(0,iq) * phiP(jp,0);
         ek(FirstQ+iq,FirstP+jp) += weight * jac;
       }
     }
     for (int ip = 0; ip < phrP ; ip++) { // Conservation of Mass
-        const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0);// - ql * phiP(ip,0);
+      const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0);//- ql * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
         const REAL jac = - dphiQ(0,jq) * phiP(ip,0);
         ek(FirstP+ip,FirstQ+jq) += weight * jac;
       }
       for (int jp = 0; jp < phrP; jp++) {
-          const REAL jac = - 1./DeltaT * dwdp * phiP(jp,0) * phiP(ip,0);// - dqldp * phiP(jp,0) * phiP(ip,0);
+        const REAL jac = - 1./DeltaT * dwdp * phiP(jp,0) * phiP(ip,0);// - dqldp * phiP(jp,0) * phiP(ip,0);
         ek(FirstP+ip,FirstP+jp) += weight * jac;
       }
     }
@@ -164,146 +164,146 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
 
 void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-    
-    // ---------------------- Getting Data for Darcy Flow BC ----------------------
-    TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
-    TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
-    
-    TPZManVector<REAL,3> &normal = data.normal;
-    
-    REAL n1 = normal[0];
-    REAL n2 = normal[1];
-    
-    TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
-    
-    
-    //  Getting Q solution for left and right side
-    REAL qxL = sol_qL[0];
-    REAL qyL = sol_qL[1];
-    REAL qnL = (qxL*n1) + (qyL*n2);
-    
-    //  Getting P solution for left and right side
-    REAL PressureL = sol_pL[0];
-    
-    //  Getting another required data
-    REAL TimeStep = fData->TimeStep();
-    REAL Theta = fData->Theta();
-    
-    int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
-    int PRowsleft = phiPL.Rows();
-    
-    int FirstQL = 0;
-    int FirstPL = QRowsleft + FirstQL;
-    
-    // ---------------------- Getting Data for Leak Off ----------------------
-    // Getting shape functions
-    TPZFMatrix<REAL>  &phiQR = dataright[0].phi;
-    TPZFMatrix<REAL>  &phiPR = dataright[1].phi;
-    TPZFMatrix<REAL> &dphiQR = dataright[0].dphix;
-    
-    // number of test functions for each state variable
-    const int phrQR = phiQR.Rows(), phrPR = phiPR.Rows();
-    
-    // blocks
-    const int FirstQR  = 0;
-    const int FirstPR  = phrQR+FirstQR;
-    
-    // Solutions and derivate of solutions
-    const REAL p = dataright[1].sol[0][0];
-    
-    // Leak off
-    const int intGlobPtIndex = data.intGlobPtIndex;
-    TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
-    const REAL ql = 2.*fData->QlFVl(Vl(0,0),p);
-    const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
-
-    // ************************ Leak Off Contribution for Integral *************************************
-    
-    int iblock = QRowsleft + PRowsleft;
-    int jblock = QRowsleft + PRowsleft;
-    
-    //  n + 1 time step
-    if(!fData->IsLastState())
-    {
-        for (int ip = 0; ip < phrPR ; ip++) { // Conservation of Mass
-            const REAL res = - ql * phiPR(ip,0);
-            ef(FirstPR+ip+ iblock,0) += weight * res;
-            for (int jp = 0; jp < phrPR; jp++) {
-                const REAL jac = - dqldp * phiPR(jp,0) * phiPR(ip,0);
-                ek(FirstPR+ip+iblock,FirstPR+jp+jblock) += weight * jac;
-            }
-        }
+  
+  // ---------------------- Getting Data for Darcy Flow BC ----------------------
+  TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
+  TPZFMatrix<REAL> &phiPL = dataleft[1].phi;
+  
+  TPZManVector<REAL,3> &normal = data.normal;
+  
+  REAL n1 = normal[0];
+  REAL n2 = normal[1];
+  
+  TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
+  TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
+  
+  
+  //  Getting Q solution for left and right side
+  REAL qxL = sol_qL[0];
+  REAL qyL = sol_qL[1];
+  REAL qnL = (qxL*n1) + (qyL*n2);
+  
+  //  Getting P solution for left and right side
+  REAL PressureL = sol_pL[0];
+  
+  //  Getting another required data
+  REAL TimeStep = fData->TimeStep();
+  REAL Theta = fData->Theta();
+  
+  int QRowsleft = dataleft[0].fVecShapeIndex.NElements();
+  int PRowsleft = phiPL.Rows();
+  
+  int FirstQL = 0;
+  int FirstPL = QRowsleft + FirstQL;
+  
+  // ---------------------- Getting Data for Leak Off ----------------------
+  // Getting shape functions
+  TPZFMatrix<REAL>  &phiQR = dataright[0].phi;
+  TPZFMatrix<REAL>  &phiPR = dataright[1].phi;
+  TPZFMatrix<REAL> &dphiQR = dataright[0].dphix;
+  
+  // number of test functions for each state variable
+  const int phrQR = phiQR.Rows(), phrPR = phiPR.Rows();
+  
+  // blocks
+  const int FirstQR  = 0;
+  const int FirstPR  = phrQR+FirstQR;
+  
+  // Solutions and derivate of solutions
+  const REAL p = dataright[1].sol[0][0];
+  
+  // Leak off
+  const int intGlobPtIndex = data.intGlobPtIndex;
+  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  const REAL ql = 2.*fData->QlFVl(Vl(0,0),p);
+  const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
+  
+  // ************************ Leak Off Contribution for Integral *************************************
+  
+  int iblock = QRowsleft + PRowsleft;
+  int jblock = QRowsleft + PRowsleft;
+  
+  //  n + 1 time step
+  if(!fData->IsLastState())
+  {
+    for (int ip = 0; ip < phrPR ; ip++) { // Conservation of Mass
+      const REAL res = - ql * phiPR(ip,0);
+      ef(FirstPR+ip+ iblock,0) += weight * res;
+      for (int jp = 0; jp < phrPR; jp++) {
+        const REAL jac = - dqldp * phiPR(jp,0) * phiPR(ip,0);
+        ek(FirstPR+ip+iblock,FirstPR+jp+jblock) += weight * jac;
+      }
     }
-    
-    //  ////////////////////////// Residual Vector ///////////////////////////////////
-    //  Contribution of contour integrals for Residual Vector
-    //  Time step n
-    
-    if(fData->IsLastState())
-    {
-        
-        //  Second Block (Equation Two) Bulk flux  equation
-        // Integrate[L dot(v, n), Gamma_{e}]    (Equation Two) Left-Left Part
-        for (int ip=0; ip < PRowsleft; ip++)
-        {
-            ef(ip + FirstPL) += (-0.0) * (1.0-Theta) * (TimeStep) * weight * phiPL(ip,0) * qnL;
-        }
-        
-        return;
-    }
-    
-    //  ////////////////////////// Residual Vector ///////////////////////////////////
-    //  End of contribution of contour integrals for Residual Vector
-    
-    
-    
+  }
+  
+  //  ////////////////////////// Residual Vector ///////////////////////////////////
+  //  Contribution of contour integrals for Residual Vector
+  //  Time step n
+  
+  if(fData->IsLastState())
+  {
     
     //  Second Block (Equation Two) Bulk flux  equation
     // Integrate[L dot(v, n), Gamma_{e}]    (Equation Two) Left-Left Part
     for (int ip=0; ip < PRowsleft; ip++)
     {
-        
-        ef(ip + FirstPL) += (-1.0) * (Theta) * (TimeStep) * weight * qnL * phiPL(ip,0);
-        
-        for (int jq=0; jq<QRowsleft; jq++)
-        {
-            int jvectorindex    = dataleft[0].fVecShapeIndex[jq].first;
-            int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
-            
-            REAL vnL =
-            (n1) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(0,jvectorindex)) +
-            (n2) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(1,jvectorindex)) ;
-            
-            ek(ip + FirstPL,jq + FirstQL) += (-1.0) * (Theta) * (TimeStep) * weight * phiPL(ip,0) * vnL;
-            
-        }
+      ef(ip + FirstPL) += (-0.0) * (1.0-Theta) * (TimeStep) * weight * phiPL(ip,0) * qnL;
     }
     
-    REAL qN = -1.0;  // HERE -> Normal Flux
+    return;
+  }
+  
+  //  ////////////////////////// Residual Vector ///////////////////////////////////
+  //  End of contribution of contour integrals for Residual Vector
+  
+  
+  
+  
+  //  Second Block (Equation Two) Bulk flux  equation
+  // Integrate[L dot(v, n), Gamma_{e}]    (Equation Two) Left-Left Part
+  for (int ip=0; ip < PRowsleft; ip++)
+  {
     
+    ef(ip + FirstPL) += (-1.0) * (Theta) * (TimeStep) * weight * qnL * phiPL(ip,0);
     
-    for(int iq=0; iq < QRowsleft; iq++)
+    for (int jq=0; jq<QRowsleft; jq++)
     {
-        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
-        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
-        
-        REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
-        ef(iq + FirstQL) += weight * ( (gBigNumber * ( qnL - qN ) * vni ) );
-        
-        for (int jq=0; jq < QRowsleft; jq++)
-        {
-            int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
-            int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
-            
-            REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
-            ek(iq + FirstQL,jq + FirstQL) += weight * ( (gBigNumber * ( vnj ) * vni ) );
-        }
+      int jvectorindex    = dataleft[0].fVecShapeIndex[jq].first;
+      int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
+      
+      REAL vnL =
+      (n1) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(0,jvectorindex)) +
+      (n2) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(1,jvectorindex)) ;
+      
+      ek(ip + FirstPL,jq + FirstQL) += (-1.0) * (Theta) * (TimeStep) * weight * phiPL(ip,0) * vnL;
+      
     }
+  }
+  
+  REAL qN = -1.0;  // HERE -> Normal Flux
+  
+  
+  for(int iq=0; iq < QRowsleft; iq++)
+  {
+    int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
+    int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
     
+    REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
+    ef(iq + FirstQL) += weight * ( (gBigNumber * ( qnL - qN ) * vni ) );
     
-
-    //ApplyQnD(data, dataleft, weight, ek,ef);
+    for (int jq=0; jq < QRowsleft; jq++)
+    {
+      int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
+      int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
+      
+      REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
+      ek(iq + FirstQL,jq + FirstQL) += weight * ( (gBigNumber * ( vnj ) * vni ) );
+    }
+  }
+  
+  
+  
+  //ApplyQnD(data, dataleft, weight, ek,ef);
 }
 
 void TPZMatfrac1dhdiv::ApplyQnD(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef)
@@ -313,7 +313,7 @@ void TPZMatfrac1dhdiv::ApplyQnD(TPZMaterialData &data, TPZVec<TPZMaterialData> &
 
 void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-   
+  
   if(fData->IsLastState()){
     return;
   }
@@ -338,33 +338,33 @@ void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
   
   // blocks
   const int FirstQ  = 0;
-
+  
   // Solutions and derivate of solutions
   const REAL Q = datavec[0].sol[0][0];
   
   // Valores impostos
   REAL v2 = bc.Val2()(0,0);
   
-	switch (bc.Type()) {
-		case 0: // Flux strong imposition (v2 = imposed flux)
-		{
+  switch (bc.Type()) {
+    case 0: // Flux strong imposition (v2 = imposed flux)
+    {
       const REAL difQ = Q - v2;
-			for(int iq = 0 ; iq < phrQ ; iq++) {
-				ef(FirstQ+iq,0) += BIGNUMBER * difQ * phiQ(iq,0) * weight; // forced v2 flux
-				for (int jq = 0 ; jq < phrQ ; jq++)
+      for(int iq = 0 ; iq < phrQ ; iq++) {
+        ef(FirstQ+iq,0) += BIGNUMBER * difQ * phiQ(iq,0) * weight; // forced v2 flux
+        for (int jq = 0 ; jq < phrQ ; jq++)
         {
-					ek(FirstQ+iq,FirstQ+jq) += BIGNUMBER * phiQ(iq,0) * phiQ(jq,0) * weight;
-				}
-			}
-		}
-    break;
+          ek(FirstQ+iq,FirstQ+jq) += BIGNUMBER * phiQ(iq,0) * phiQ(jq,0) * weight;
+        }
+      }
+    }
+      break;
     case 1: // Pressure weak imposition (v2 = imposed pressure)
     {
       for (int iq = 0; iq < phrQ; iq++) {
         ef(FirstQ+iq,0) += v2 * phiQ(iq,0);
       }
     }
-    break;
+      break;
       
   }
   

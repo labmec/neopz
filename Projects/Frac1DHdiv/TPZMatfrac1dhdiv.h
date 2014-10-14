@@ -29,13 +29,13 @@ public:
   
   /** @brief Constructor with matid */
   TPZMatfrac1dhdiv(int matid);
-
-  /** @brief Destructor */  
+  
+  /** @brief Destructor */
   virtual ~TPZMatfrac1dhdiv();
   
   /** @brief copy constructor */
   TPZMatfrac1dhdiv(const TPZMatfrac1dhdiv &copy);
-
+  
   /** @brief operator equal */
   TPZMatfrac1dhdiv &operator=(const TPZMatfrac1dhdiv &copy);
   
@@ -65,30 +65,30 @@ public:
   {
     DebugStop();
   }
-
+  
   virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
   {
-      DebugStop();
+    DebugStop();
   }
-
+  
   virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec,TPZVec<TPZMaterialData> &dataleftvec,TPZVec<TPZMaterialData> &datarightvec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
   {
-      DebugStop();
+    DebugStop();
   }
-    
+  
   void ApplyQnD(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef);
-    
+  
   virtual  void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    
+  
   /** @brief ContributeBC method beeing used */
   virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-
+  
   /** @brief Updates the leak off memory */
   void UpdateMemory(TPZVec<TPZMaterialData> &datavec);
   
   /** @brief Fill material data parameter with necessary requirements for the Contribute method*/
   virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
-
+  
   /** @brief Fill material data parameter with necessary requirements for the ContributeBC method*/
   virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
   
@@ -102,7 +102,7 @@ public:
   virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
   
 private:
-
+  
   /** @brief Data of the simulation */
   TPZAutoPointer<TPZFracData> fData;
   

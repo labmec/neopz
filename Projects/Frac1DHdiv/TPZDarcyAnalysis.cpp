@@ -623,127 +623,131 @@ void TPZDarcyAnalysis::CreateInterfaces(TPZCompMesh *cmesh)
 
 void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
 {
-	int iter = 0;
-	REAL error = 1.e10;
-    const REAL tol = 1.e-6; // because the SI unit system
+  int iter = 0;
+  REAL error = 1.e10, NormResLambdaLast = 1.e10;;
+  const REAL tol = 1.e-5; // because the SI unit system
+  
+  fData->SetCurrentState();
+  int numeq = an->Mesh()->NEquations();
+  
+  TPZFMatrix<STATE> Uatk0(an->Solution());
+  TPZFMatrix<STATE> Uatk(Uatk0),DeltaU(Uatk0);
+  if(Uatk0.Rows() != numeq) Uatk0.Redim(numeq,1);
+  
+  an->Assemble();
+  an->Rhs() += fLastStepRhs;
+  an->Rhs() *= -1.0; //- [R(U0)];
+  
+  TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
+  
+  
+  
+  //    TPZSkylineNSymStructMatrix skyl(fcmeshMixed);
+  //    std::set<int> matids; // to be computed
+  //    matids.insert(6);
+  //    matids.insert(7);
+  //    matids.insert(8);
+  //    matids.insert(20);
+  //    skyl.SetMaterialIds(matids);
+  //    TPZFMatrix<STATE> rhsfrac;
+  //    TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
+  //    TPZAutoPointer<TPZMatrix<STATE> > matfrac = skyl.CreateAssemble(rhsfrac, gui);
+  //
+  //
+  //#ifdef LOG4CXX
+  //    if(logger->isDebugEnabled())
+  //    {
+  //        std::stringstream sout;
+  //        matfrac->Print("matfrac = ", sout,EMathematicaInput);
+  //        rhsfrac.Print("rhsfrac = ", sout,EMathematicaInput);
+  //        LOGPZ_DEBUG(logger,sout.str())
+  //    }
+  //#endif
+  
+  while(error > tol && iter < numiter) {
     
-    fData->SetCurrentState();
-	int numeq = an->Mesh()->NEquations();
-	
-	TPZFMatrix<STATE> Uatk0(an->Solution());
-    TPZFMatrix<STATE> Uatk(Uatk0),DeltaU(Uatk0);
-	if(Uatk0.Rows() != numeq) Uatk0.Redim(numeq,1);
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+      std::stringstream sout;
+      matK=an->Solver().Matrix();
+      matK->Print("matK = ", sout,EMathematicaInput);
+      an->Rhs().Print("Rhs = ", sout, EMathematicaInput);
+      LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
     
+    // Computing Uatk = Uatn + DeltaU;
+    an->Solve();
+    DeltaU= an->Solution();
+    Uatk = Uatk0 + DeltaU;
+    
+    //Computing ||DeltaU||
+    REAL NormOfDeltaU = Norm(DeltaU);
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+      std::stringstream sout;
+      DeltaU.Print("DeltaU = ", sout,EMathematicaInput);
+      Uatk.Print("Uatk = ", sout,EMathematicaInput);
+      LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    
+    an->LoadSolution(Uatk); // Loading Uatk
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
     an->Assemble();
+    
+    
+    //#ifdef LOG4CXX
+    //    if(logger->isDebugEnabled())
+    //    {
+    //      std::stringstream sout;
+    //      fLastStepRhs.Print("ResAtn = ", sout,EMathematicaInput);
+    //      an->Rhs().Print("Respone = ", sout,EMathematicaInput);
+    //      LOGPZ_DEBUG(logger,sout.str())
+    //    }
+    //#endif
+    
     an->Rhs() += fLastStepRhs;
     an->Rhs() *= -1.0; //- [R(U0)];
     
-    TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
-
-   
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+      std::stringstream sout;
+      an->Rhs().Print("Res = ", sout,EMathematicaInput);
+      LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    // Computing ||[R(Uatk)]||
+    double ResidualNorm = Norm(an->Rhs());
+    double norm = ResidualNorm;
+    out << "Iteration n : " << (iter+1) << " : norms ||DeltaU|| e ||[R(Uatk)]|| : " << NormOfDeltaU << " / " << ResidualNorm << std::endl;
     
-//    TPZSkylineNSymStructMatrix skyl(fcmeshMixed);
-//    std::set<int> matids; // to be computed
-//    matids.insert(6);
-//    matids.insert(7);
-//    matids.insert(8);
-//    matids.insert(20);
-//    skyl.SetMaterialIds(matids);
-//    TPZFMatrix<STATE> rhsfrac;
-//    TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
-//    TPZAutoPointer<TPZMatrix<STATE> > matfrac = skyl.CreateAssemble(rhsfrac, gui);
-//    
-//    
-//#ifdef LOG4CXX
-//    if(logger->isDebugEnabled())
-//    {
-//        std::stringstream sout;
-//        matfrac->Print("matfrac = ", sout,EMathematicaInput);
-//        rhsfrac.Print("rhsfrac = ", sout,EMathematicaInput);
-//        LOGPZ_DEBUG(logger,sout.str())
-//    }
-//#endif
-    
-	while(error > tol && iter < numiter) {
-		
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            matK=an->Solver().Matrix();
-            matK->Print("matK = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-        
-        // Computing Uatk = Uatn + DeltaU;
-		an->Solve();
-        DeltaU= an->Solution();
-        Uatk = Uatk0 + DeltaU;
-        
-        //Computing ||DeltaU||
-		REAL NormOfDeltaU = Norm(DeltaU);
-        
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            DeltaU.Print("DeltaU = ", sout,EMathematicaInput);
-            Uatk.Print("Uatk = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-
-        
-        an->LoadSolution(Uatk); // Loading Uatk
-        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
-        an->Assemble();
-
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            fLastStepRhs.Print("ResAtn = ", sout,EMathematicaInput);
-            an->Rhs().Print("Respone = ", sout,EMathematicaInput);            
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-        
-        an->Rhs() += fLastStepRhs;
-        
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            an->Rhs().Print("Res = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-        // Computing ||[R(Uatk)]||
-        double ResidualNorm = Norm(an->Rhs());
-		double norm = ResidualNorm;
-		out << "Iteration n : " << (iter+1) << " : norms ||DeltaU|| e ||[R(Uatk)]|| : " << NormOfDeltaU << " / " << ResidualNorm << std::endl;
-        
-		if(norm < tol /*|| NormResLambda < tol*/) {
-			out << "\nTolerance at n : " << (iter+1) << std::endl;
-			out << "\n\nNorm ||DeltaU||  : " << NormOfDeltaU << std::endl;
-            out << "\n\nNorm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
-            
-		}
-        else if( (norm - error) > 1.e-9 ) {
-            out << "\nMethod with wrong direction\n";
-        }
-        
-		error = norm;
-		iter++;
-        Uatk0 = Uatk;
-		out.flush();
-	}
-    
-    if (error > tol) {
-        DebugStop(); // Something is very wrong
+    if(norm < tol /*|| NormResLambda < tol*/) {
+      out << "\nTolerance at n : " << (iter+1) << std::endl;
+      out << "\n\nNorm ||DeltaU||  : " << NormOfDeltaU << std::endl;
+      out << "\n\nNorm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
+      
+    }
+    else if( (ResidualNorm - NormResLambdaLast) > 1.e-4 ) {
+      out << "\nDivergent Method\n" << "Implement Line Search Please!!!!!!!!!!!!!!!!!!!!" << std::endl;
     }
     
+    NormResLambdaLast = ResidualNorm;
+    error = norm;
+    iter++;
+    Uatk0 = Uatk;
+    out.flush();
+  }
+  
+  if (error > tol) {
+    DebugStop(); // Something is very wrong
+  }
+  
 }
 
 void TPZDarcyAnalysis::PrintGeometricMesh(TPZGeoMesh * gmesh)

@@ -19,10 +19,10 @@ public:
   
   /** @brief Default Constructor */
   TPZFracAnalysis(TPZAutoPointer<TPZFracData> Data);
-
-  /** @brief Destructor */  
+  
+  /** @brief Destructor */
   ~TPZFracAnalysis();
-
+  
   /** @brief Runs case where fracture starts from zero */
   void Run();
   
@@ -46,28 +46,28 @@ public:
   
   /** @brief Newton Method */
   void IterativeProcess(TPZAnalysis *an, std::ostream &out, int nit = 50);
-
+  
   /** @brief Solve time steps */
   bool SolveSistTransient(TPZAnalysis *an);
-
+  
   /** @brief Updates Leak Off integration points values */
   void AcceptSolution(TPZAnalysis *an);
-
+  
   /** @brief PostProcess mesh in VTK */
   void PostProcessVTK(TPZAnalysis *an);
-
+  
   /** @brief Calculates Q of the tip of the fracture */
   REAL Qtip();
-    
-  /** @brief Set the pressure on last element as equal of the second last element */    
+  
+  /** @brief Set the pressure on last element as equal of the second last element */
   void SetPressureOnLastElement(TPZAnalysis *an);
   
   /** @brief Return the quantity of fracture elements */
   int HowManyFracElement();
-
+  
   /** @brief Initialize x0 for newton iterations */
   void ComputeFirstSolForOneELement(TPZAnalysis * an);
-    
+  
   /** @brief Finds the initial time step to run simulation and returns the vl to train the integration points */
   REAL RunUntilOpen();
   
@@ -79,9 +79,12 @@ public:
   
   /** @brief Verifies if has to propagate, ie, the qtip is bigger than leak off of the next element */
   bool VerifyIfPropagate(REAL qtip);
-
+  
   /** @brief Find the pressure BC geo element */
   TPZGeoEl * FindPressureBCElement();
+  
+  /** @brief Return the flow criteria used to decide if propagates fracture */
+  REAL PropagationFlowCriteria(REAL qFreshNewEl, REAL ql);
   
 private:
   
@@ -99,7 +102,7 @@ private:
   
   /** @brief Multphysics cmesh for mixed analysis */
   TPZCompMesh * fcmeshMixed;
-
+  
   /** @brief Mass Residual of step n */
   TPZFMatrix<> fLastStepRhs;
   

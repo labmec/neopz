@@ -11,24 +11,24 @@ static LoggerPtr logdata(Logger::getLogger("pz.frac"));
 int main()
 {
 #ifdef LOG4CXX
-    std::string dirname = PZSOURCEDIR;
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/Frac1DHdiv/";
-    FileName += "FracLog.cfg";
+  std::string dirname = PZSOURCEDIR;
+  std::string FileName = dirname;
+  FileName = dirname + "/Projects/Frac1DHdiv/";
+  FileName += "FracLog.cfg";
   InitializePZLOG(FileName);
 #endif
-        
+  
   TPZMaterial::gBigNumber = 1.e9;
   
   // ---------- Parametros ----------
   // Reservoir Data
   const REAL phi = 0.1;
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
-    Kabolute(0,0) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
-    Kabolute(1,1) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
-    REAL day    = 86400.0;
-    REAL year    = 365.0*day;
-    
+  Kabolute(0,0) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
+  Kabolute(1,1) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
+  REAL day    = 86400.0;
+  REAL year    = 365.0*day;
+  
   const REAL nu = 0.2;
   const REAL E = 1.e4;
   const REAL SigmaConf = 20.;
@@ -60,7 +60,7 @@ int main()
   const REAL Pe = 15.; // Should come from darcy simulation
   const REAL Pref = 10.; // pressure where Cl was measured
   const REAL vsp = 0.*0.002; // spurt loss
-
+  
   // Preenchendo estrutura TPZFracData
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
   Data->SetPostProcessFileName(PostProcessFileName);
@@ -87,17 +87,16 @@ int main()
   Data->SetVsp(vsp);
   Data->SetElSize(elsize);
   Data->SetDwDp();
-
-    Data->SetPorderFlow(pOrdQFrac);
-    Data->SetPorderPressure(pOrdPFrac);
-    Data->SetPorderDarcyFlow(pOrdQDarcy);
-    Data->SetPorderDarcyPressure(pOrdPDarcy);
-    
+  
+  Data->SetPorderFlow(pOrdQFrac);
+  Data->SetPorderPressure(pOrdPFrac);
+  Data->SetPorderDarcyFlow(pOrdQDarcy);
+  Data->SetPorderDarcyPressure(pOrdPDarcy);
+  
   // Fracture Simulation uncoupled
-
 //  TPZFracAnalysis fracAn(Data);
 //  fracAn.Run();
-
+  
   // Reservoir Simulation uncoupled
   TPZDarcyAnalysis DarcyAn(Data);
   DarcyAn.Run();
