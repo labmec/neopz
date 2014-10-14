@@ -117,7 +117,7 @@ void InsertMaterialObjectsSuave(TPZCompMesh &cmesh);
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 void ForceSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &force);
 void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
-bool problemasuave = true;
+bool problemasuave = false;
 
 int main(int argc, char *argv[])
 {
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     //1 refinamento uniforme
     TPZVec<int> dims(2,0);
     dims[0]=1; dims[1]=2;
-    int nref = 3;
+    int nref = 2;
     RefinamentoUniforme(gmesh, nref, dims);
     
     if(!problemasuave){
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     }else {
         InsertMaterialObjects(mhm.CMesh());
     }
-    mhm.BuildComputationalMesh();
+    mhm.BuildComputationalMesh(true);
     {
         ofstream arq("gmeshmhm.txt");
         mhm.CMesh()->Reference()->Print(arq);
@@ -217,22 +217,24 @@ int main(int argc, char *argv[])
     an.Assemble();
     an.Solve();
     
-//    long neq = an.Solution().Rows();
-//    long numeq = MIN(1, neq);
-//    TPZManVector<long> equationindices(numeq);
-//    for (int i=0; i<numeq; i++) {
-//        equationindices[i] = i;
-//    }
-//    an.ShowShape("Shapes.vtk", equationindices);
-//    an.SetStep(0);
+    long neq = an.Solution().Rows();
+    long numeq = MIN(10, neq);
+    TPZManVector<long> equationindices(numeq);
+    for (int i=0; i<numeq; i++) {
+        equationindices[i] = i;
+    }
+    an.ShowShape("Shapes.vtk", equationindices);
+    an.SetStep(0);
     
-    std::string plotfile("result.vtk");
-    TPZStack<std::string> scalnames,vecnames;
-    scalnames.Push("Solution");
-    scalnames.Push("ExactSolution");
-    scalnames.Push("PressureConstante");
-    an.DefineGraphMesh(mhm.CMesh()->Dimension(), scalnames, vecnames, plotfile);
-    an.PostProcess(0,2);
+    if(problemasuave){
+        std::string plotfile("result.vtk");
+        TPZStack<std::string> scalnames,vecnames;
+        scalnames.Push("Solution");
+        scalnames.Push("ExactSolution");
+        scalnames.Push("PressureConstante");
+        an.DefineGraphMesh(mhm.CMesh()->Dimension(), scalnames, vecnames, plotfile);
+        an.PostProcess(0,2);
+    }
     
 //    an.SetExact(*SolExataSteklov);
 //    TPZVec<REAL> erros(3);
