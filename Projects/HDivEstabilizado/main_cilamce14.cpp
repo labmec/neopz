@@ -44,6 +44,8 @@
 
 #include "pzhdivfull.h"
 #include "pzaxestools.h"
+#include "TPZCopySolve.h"
+#include "pzstrmatrix.h"
 
 #include <iostream>
 #include <math.h>
@@ -73,7 +75,7 @@ TPZCompMesh *CMeshPressure2(int pOrder,TPZGeoMesh *gmesh);
 TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh);
 
 void RefinamentoUnif(TPZGeoMesh* gmesh, int nDiv);
-void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
+void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads, bool direct);
 void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 void PosProcessFluxo(TPZAnalysis &an, std::string plotfile);
 
@@ -119,15 +121,22 @@ void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out);
 void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out);
 void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out);
 
+TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics);
+
+
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.main"));
+static LoggerPtr logger(Logger::getLogger("pz.hdiv"));
 #endif
 
 #include "pztransfer.h"
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-    InitializePZLOG();
+    std::string dirname = PZSOURCEDIR;
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/HDivEstabilizado/";
+    FileName += "Hdivlog.cfg";
+    InitializePZLOG(FileName);
 #endif
     
     REAL Lx=0., Ly=0.;
@@ -136,12 +145,14 @@ int main(int argc, char *argv[])
         Ly = 0.5;
     }
     
+    std::string outputfile("out");
+    
     //ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
     ofstream saidaerro( "erros-hdiv-estab.txt");
 
-    for(int p = 4; p<5; p++)
+    for(int p = 1; p<7; p++)
     {
-        int pq = p;
+        int pq = p+1;
         int pp;
         if(fTriang==true){
             pp = pq-1;
@@ -151,7 +162,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 1; ndiv< 6; ndiv++)
+        for (ndiv = 0; ndiv < 7; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -193,11 +204,13 @@ int main(int argc, char *argv[])
 //            mphysics->Print(arg4);
             
             std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
-            int numthreads = 1;
+            int numthreads = 8;
             std::cout << "Number of threads " << numthreads << std::endl;
 
-            TPZAnalysis an(mphysics);
-            ResolverSistema(an, mphysics,numthreads);
+            
+            bool opti = true;
+            TPZAnalysis  * an = new TPZAnalysis(mphysics,opti);
+            ResolverSistema(*an, mphysics,numthreads, false);
             
             
 //            ofstream arg5("cmeshmultiphysics.txt");
@@ -216,10 +229,9 @@ int main(int argc, char *argv[])
             //Plot da solucao aproximada
            // string plotfile("Solution_mphysics.vtk");
             
-            char buf[256] ;
-            //sprintf(buf,"ArcTanPhilUniMeshQ_porder%d_h%d.vtk",porder,h);
-            sprintf(buf,"ProblemaJuan_porder%d_h%d.vtk",p,ndiv);
-            PosProcessMultph(meshvec,  mphysics, an, buf);
+//            char buf[256] ;
+//            sprintf(buf,"ProblemaJuanGC_porder%d_h%d.vtk",p,ndiv);
+//            PosProcessMultph(meshvec,  mphysics, *an, buf);
         }
     }
     
@@ -869,21 +881,87 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     return mphysics;
 }
 
-void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
+void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads, bool direct)
 {
-	//TPZBandStructMatrix full(fCmesh);
-	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
-    full.SetNumThreads(numthreads);
-	an.SetStructuralMatrix(full);
-	TPZStepSolver<STATE> step;
-	step.SetDirect(ELDLt); //caso simetrico
-	//step.SetDirect(ELU);
-	an.SetSolver(step);
-	an.Run();
+    
+    if (direct)
+    {
+        TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+        full.SetNumThreads(numthreads);
+        an.SetStructuralMatrix(full);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt); //caso simetrico
+        //  step.SetDirect(ELU);
+        an.SetSolver(step);
+        an.Run();
+    }
+    else{
+        
+        TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+        full.SetNumThreads(numthreads);
+        an.SetStructuralMatrix(full);
+        TPZStepSolver<STATE> step;
+        TPZAutoPointer<TPZMatrix<STATE> > Inverse = ComputeInverse(fCmesh);
+        TPZStepSolver<STATE> precond(Inverse);
+        precond.SetMultiply();
+//        step.SetGMRES(10, 40, precond, 1.0e-10, 0);
+        step.SetCG(10, precond, 1.0e-10, 0);
+        an.SetSolver(step);
+        an.Run();
+    }
 	
 	//Saida de Dados: solucao e  grafico no VT
 //	ofstream file("Solutout");
 //	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
+}
+
+TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics)
+{
+    int neq = mphysics->NEquations();
+    TPZFMatrix<STATE> * PreInverse =  new TPZFMatrix<STATE> (neq,neq,0.0);
+    TPZSkylineStructMatrix skyl(mphysics);
+    std::set<int> matids; // to be computed
+    matids.insert(MatId);
+    matids.insert(BC0);
+    matids.insert(BC1);
+    matids.insert(BC2);
+    matids.insert(BC3);
+    skyl.SetMaterialIds(matids);
+    TPZFMatrix<STATE> rhsfrac;
+    TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
+    TPZAutoPointer<TPZMatrix<STATE> > matfrac = skyl.CreateAssemble(rhsfrac, gui);
+    TPZFMatrix<STATE> oldmat = *matfrac.operator->();
+
+    
+//#ifdef LOG4CXX
+//    if(logger->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        sout.precision(20);
+//        matfrac->Print("K = ",sout,EMathematicaInput);
+//        LOGPZ_DEBUG(logger,sout.str());
+//    }
+//#endif
+    
+    matfrac->Inverse( * PreInverse);
+    
+    
+//#ifdef LOG4CXX
+//        if(logger->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout.precision(20);
+////            TPZFMatrix<> Iden(neq,neq,0.);
+////            oldmat.Multiply(*PreInverse, Iden);
+//            PreInverse->Print("Kinv = ",sout,EMathematicaInput);
+////            Iden.Print("Iden = ",sout,EMathematicaInput);
+//            LOGPZ_DEBUG(logger,sout.str());
+//        }
+//#endif
+
+    
+    return PreInverse;
+    
 }
 
 void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
@@ -900,7 +978,7 @@ void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZA
 
     
 	const int dim = 2;
-	int div =0;
+	int div =1;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 //	std::ofstream out("malha.txt");
