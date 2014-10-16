@@ -275,7 +275,7 @@ const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule()
         DebugStop();
     }
     
-    if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+    if (this->NConnects() == 0) return 0; //boundary discontinuous elements have this characteristic
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
     
