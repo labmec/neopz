@@ -14,14 +14,14 @@ static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
 static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 #endif
 
-TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMatWithMem()
+TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >()
 {
   fDim = 1;
   TPZFNMatrix<3,STATE> Vl(1,1,0.);
   this->SetDefaultMem(Vl);
 }
 
-TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMatWithMem(matid)
+TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >(matid)
 {
   fDim = 1;
   TPZFNMatrix<3,STATE> Vl(1,1,0.);
