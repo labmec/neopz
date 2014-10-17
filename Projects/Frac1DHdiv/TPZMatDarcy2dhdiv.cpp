@@ -26,11 +26,13 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(): TPZDiscontinuousGalerkin()
 {
     fDim = 2;
+    fNotContribute = false;
 }
 
 TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(int matid): TPZDiscontinuousGalerkin(matid)
 {
     fDim = 2;
+    fNotContribute = false;
 }
 
 
@@ -60,6 +62,8 @@ void TPZMatDarcy2dhdiv::Contribute(TPZMaterialData &data, REAL weight, TPZFMatri
 
 void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
+  
+  if(fNotContribute) return;
     
 #ifdef DEBUG
     int nref =  datavec.size();
@@ -297,7 +301,8 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZMaterialDa
 
 void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    
+    if(fNotContribute) return;
+  
     TPZFMatrix<REAL> &phiQL = dataleft[0].phi;
     TPZFMatrix<REAL> &phiQR = dataright[0].phi;
     
@@ -528,7 +533,8 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZMaterial
 
 void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
-    
+    if(fNotContribute) return;
+  
     int nref =  dataleft.size();
     if (nref != 2) {
         std::cout << " Error:: datavec size must to be equal to 4 \n" << std::endl;
@@ -820,7 +826,9 @@ void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMateria
     
 }
 
-
+void TPZMatDarcy2dhdiv::SetNotContribute(bool setNotCont){
+  fNotContribute = setNotCont;
+}
 
 /** Returns the variable index associated with the name */
 int TPZMatDarcy2dhdiv::VariableIndex(const std::string &name){

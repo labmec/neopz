@@ -314,7 +314,7 @@ void TPZMatfrac1dhdiv::ApplyQnD(TPZMaterialData &data, TPZVec<TPZMaterialData> &
 void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
   
-  if(fData->IsLastState()){
+  if(fData->IsLastState() || this->fUpdateMem){
     return;
   }
   

@@ -793,7 +793,6 @@ bool TPZFracAnalysis::VerifyIfPropagate(REAL qtip)
     fData->SetAccumVl(vl);
     return false;
   }
-  
 }
 
 REAL TPZFracAnalysis::RunUntilOpen()

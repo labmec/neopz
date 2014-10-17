@@ -44,7 +44,7 @@ int main()
   const int pOrdPFrac = 0;
   const int nel = 100;
   const REAL elsize = 50.0;
-  std::string PostProcessFileName = "Propag.vtk";
+  std::string PostProcessFileName = "SemiCoupled.vtk";
   
   // Fluid Data
   const REAL mu = 1.0e-8; // 1.0e-3 Pa*s -> 1 Centipoise cp

@@ -81,8 +81,7 @@ void TPZDarcyAnalysis::Run()
     
     
     // Computing vl as the first memory value on each integration point
-    TPZFracAnalysis * FracAnalysis = new TPZFracAnalysis(fData);
-    REAL vl = FracAnalysis->RunUntilOpen();
+    REAL vl = this->RunUntilOpen();
     TPZFMatrix<REAL> vlMatrix(1,1,vl);
     
     const REAL lFrac = fData->ElSize();
@@ -100,10 +99,10 @@ void TPZDarcyAnalysis::Run()
 //    this->PrintGeometricMesh(fgmesh);
 //    CreateMultiphysicsMesh(vlMatrix);
 
-    InsertFracsGmesh(fgmesh);
+    this->InsertFracGeoMesh();
     this->PrintGeometricMesh(fgmesh);
     CreateMultiphysicsMesh(vlMatrix);
-    
+  
     // Analysis
     bool mustOptimizeBandwidth = false;
     TPZAnalysis *an = new TPZAnalysis(fcmeshMixed,mustOptimizeBandwidth);
@@ -123,18 +122,42 @@ void TPZDarcyAnalysis::Run()
         if (propagate)
         {
             
-            // Novo comprimento de fratura
-            REAL newLfrac = fData->Lfrac() + fData->ElSize();
-            fData->SetLfrac(newLfrac);
-            std::cout << "Lfrac = " << newLfrac << std::endl;
-            
-            
-            // create new elements
-            
-            // put the acum vl allocated on the new element memory
-            
-            // 
-            
+          // Novo comprimento de fratura
+          REAL newLfrac = fData->Lfrac() + fData->ElSize();
+          fData->SetLfrac(newLfrac);
+          std::cout << "Lfrac = " << newLfrac << std::endl;
+          
+          this->InsertFracGeoMesh();
+          this->InsertFracCompMesh();
+          this->PrintGeometricMesh(fgmesh);
+          
+          // Ajustando a estrutura de dados
+          fmeshvec[0]->ComputeNodElCon();
+          fmeshvec[1]->ComputeNodElCon();
+          fcmeshMixed->ComputeNodElCon();
+          fmeshvec[0]->CleanUpUnconnectedNodes();
+          fmeshvec[1]->CleanUpUnconnectedNodes();
+          fcmeshMixed->CleanUpUnconnectedNodes();
+          fmeshvec[0]->ExpandSolution();
+          fmeshvec[1]->ExpandSolution();
+          fcmeshMixed->ExpandSolution();
+          
+          // Transferindo para a multifisica
+          TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshMixed);
+          TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshMixed);
+          TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
+          
+          // Preparando os index dos pontos de integracao.
+          TPZFMatrix<> Vl(1,1,fData->AccumVl());
+          TPZMatfrac1dhdiv *matfrac = dynamic_cast<TPZMatfrac1dhdiv *> (fcmeshMixed->FindMaterial(6));
+          matfrac->SetDefaultMem(Vl);
+          
+      
+          //TPZEquationFilter newEquationFilter(fcmeshMixed->NEquations());
+          //an->StructMatrix()->EquationFilter() = newEquationFilter; //AQUINATHAN
+          
+          an->LoadSolution(fcmeshMixed->Solution());
+          this->PostProcessVTK(an);
             
         }
     
@@ -152,10 +175,9 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
     bool propagate = false;
     int nfracel = this->HowManyFracElement();
     int it = 0;
+    this->SetPressureOnNewElement(an);
     while (fmustStop == false && propagate == false) {
 
-        this->SetPressureOnNewElement(an);
-        an->Solution().Print("ansol");
         AssembleLastStep(an);
         TPZFMatrix<STATE> lastSol = an->Solution();
     
@@ -181,10 +203,7 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
         
        
         IterativeProcess(an, std::cout, 50);
-        
-        an->Solution().Print("Solutionerrado");
-//        this->PostProcessVTK(an); //AQUIOMAR APAGAR
-        
+      
         const REAL qtip = this->Qtip();
         
         if (qtip < 0.) {
@@ -192,7 +211,7 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
             propagate = false;
         }
         else{
-            propagate = false;//VerifyIfPropagate(qtip);
+          propagate = VerifyIfPropagate(qtip);
         }
         
         
@@ -205,9 +224,7 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
         }
         else{
             fData->SetNextTime();
-            if (qtip > 0.) {
-               // AcceptSolution(an); // updates leak off
-            }
+            AcceptSolution(an); // updates leak off
             this->PostProcessVTK(an);
         }
         
@@ -569,9 +586,10 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZ
 }
 
 
-void TPZDarcyAnalysis::CreateInterfaces(TPZCompMesh *cmesh)
+void TPZDarcyAnalysis::CreateInterfaces()
 {
     fgmesh->ResetReference();
+    TPZCompMesh *cmesh = this->fcmeshMixed;
     cmesh->LoadReferences();
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     // Creation of interface elements
@@ -590,34 +608,7 @@ void TPZDarcyAnalysis::CreateInterfaces(TPZCompMesh *cmesh)
 
     }
     
-    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
-    cmesh->SetDefaultOrder(fData->PorderPressure());
-    // Creation of interface elements for frac coupling
-    for(int el = 0; el < nel; el++)
-    {
-        TPZCompEl * compEl = cmesh->ElementVec()[el];
-        if(!compEl) continue;
-        int index = compEl ->Index();
-        if(compEl->Reference()->MaterialId() == 6)
-        {
-            TPZGeoEl * gel = compEl->Reference();
-            int side = gel->NSides()-1;
-            
-            TPZStack < TPZCompElSide > neigh;
-            TPZGeoEl * GeoLinearFrac = gel->CreateBCGeoEl(side, 20);
-            TPZGeoElSide gelside(gel,side);
-            TPZCompElSide Linearside(compEl,side);
-            
-            gelside.EqualLevelCompElementList(neigh, 0, 0);
-            
-            if (neigh.size() == 0) {
-                continue;
-            }
-            long gelindex;
-            new TPZCompElWithMem <TPZMultiphysicsInterfaceElement >(*cmesh, GeoLinearFrac, gelindex, neigh[0], Linearside);
-            
-        }
-    }
+
     
 }
 
@@ -625,7 +616,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
 {
   int iter = 0;
   REAL error = 1.e10, NormResLambdaLast = 1.e10;;
-  const REAL tol = 1.e-5; // because the SI unit system
+  const REAL tol = 1.e-8; // because the SI unit system
   
   fData->SetCurrentState();
   int numeq = an->Mesh()->NEquations();
@@ -724,12 +715,12 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
 #endif
     // Computing ||[R(Uatk)]||
     double ResidualNorm = Norm(an->Rhs());
-    double norm = ResidualNorm;
+    double norm = NormOfDeltaU; //ResidualNorm;
     out << "Iteration n : " << (iter+1) << " : norms ||DeltaU|| e ||[R(Uatk)]|| : " << NormOfDeltaU << " / " << ResidualNorm << std::endl;
     
     if(norm < tol /*|| NormResLambda < tol*/) {
-      out << "\nTolerance at n : " << (iter+1) << std::endl;
-      out << "\n\nNorm ||DeltaU||  : " << NormOfDeltaU << std::endl;
+      out << "\nNewton Converged! Tolerance at n : " << (iter+1) << std::endl;
+      out << "\n\nNorm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
       out << "\n\nNorm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
       
     }
@@ -762,7 +753,7 @@ void TPZDarcyAnalysis::PrintGeometricMesh(TPZGeoMesh * gmesh)
 void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 {
     const int dim = 2;
-    int div =2;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile = "2DMixedDarcy.vtk";
     scalnames.Push("Pressure");
@@ -770,7 +761,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     vecnames.Push("MassVelocity");
     vecnames.Push("MassVelocityExact");
     an->DefineGraphMesh(dim, scalnames, vecnames, fData->PostProcessFileName());
-    an->PostProcess(div,dim);
+    an->PostProcess(div);
 }
 
 
@@ -863,9 +854,10 @@ void TPZDarcyAnalysis::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAng
     
 }
 
-void TPZDarcyAnalysis::InsertFracsGmesh(TPZGeoMesh * gmesh)
+void TPZDarcyAnalysis::InsertFracGeoMesh()
 {
     int nelements = fgmesh->NElements();
+    fgmesh->ResetReference();
     for (int iel = 0 ; iel < nelements; iel++)
     {
         TPZGeoEl *igel = fgmesh->ElementVec()[iel];
@@ -878,7 +870,7 @@ void TPZDarcyAnalysis::InsertFracsGmesh(TPZGeoMesh * gmesh)
             TPZGeoElSide neigh = igelside.Neighbour();
             
             while (igelside != neigh) {
-                if (neigh.Element()->Dimension() == 0 || (neigh.Element()->MaterialId()==5 && neigh.Element()->Dimension() == 1)) {
+                if (neigh.Element()->Dimension() == 0 || (neigh.Element()->MaterialId()== 5 && neigh.Element()->Dimension() == 1)) {
                     break;
                 }
                 neigh = neigh.Neighbour();
@@ -898,28 +890,81 @@ void TPZDarcyAnalysis::InsertFracsGmesh(TPZGeoMesh * gmesh)
                 long leftnode=igel->NodeIndex(0);
                 topopoint=leftnode;
                 fgmesh->CreateGeoElement(EPoint, topopoint, 7, OutLetindex);
+                igel->CreateBCGeoEl(2, 20);
                 
-                fgmesh->ResetReference();
-                fgmesh->BuildConnectivity();
+//                fgmesh->ResetReference();
+//                fgmesh->BuildConnectivity();
                 break;
             }else if (Neigel->MaterialId()==8)
             {
                 igel->SetMaterialId(6);
+                igel->CreateBCGeoEl(2, 20);
                 long rightnode=igel->NodeIndex(1);
                 Neigel->SetNodeIndex(0,rightnode);
-                fgmesh->ResetReference();
-                fgmesh->BuildConnectivity();
+//                fgmesh->ResetReference();
+//                fgmesh->BuildConnectivity();
                 break;
             }
             
         }
     }
-    
-    //---------  Elemento de interface  --------------------------------------------
-    gmesh->AddInterfaceMaterial(1,6,20);
-    gmesh->AddInterfaceMaterial(6,1,20);
-    gmesh->BuildConnectivity();
-    
+  
+    fgmesh->BuildConnectivity();
+}
+
+void TPZDarcyAnalysis::InsertFracCompMesh()
+{
+  TPZCompMesh *cmesh = this->fcmeshMixed;
+  cmesh->LoadReferences();
+  const long nel = cmesh->NElements();
+  cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+  cmesh->SetDefaultOrder(fData->PorderPressure());
+  // Creation of interface elements for frac coupling by searching interfaces
+  
+  for(int el = 0; el < nel; el++)
+  {
+    TPZGeoEl *gel = fgmesh->ElementVec()[el];
+    if(!gel) continue;
+    if(gel->MaterialId() == 20)
+    {
+      TPZGeoElSide rightside(gel,1);
+      TPZGeoElSide rightneigh = rightside.Neighbour();
+      while (rightside != rightneigh) {
+        if (rightneigh.Element()->MaterialId() == 8) {
+          break;
+        }
+        rightneigh = rightneigh.Neighbour();
+      }
+      if (rightside == rightneigh) {
+        continue;
+      }
+      
+      int side = gel->NSides()-1;
+      TPZStack < TPZCompElSide > neigh;
+      TPZGeoElSide gelside(gel,side);
+      
+      const int onlyinterpolated = 0, removeduplicates = 0;
+      gelside.EqualLevelCompElementList(neigh, onlyinterpolated, removeduplicates);
+      TPZCompElSide darcyside, fracside;
+      for (int i = 0; i < neigh.size(); i++) {
+        if (neigh[i].Element()->Reference()->MaterialId() == 1) {
+          darcyside = neigh[i];
+        }
+        if (neigh[i].Element()->Reference()->MaterialId() == 6) {
+          fracside = neigh[i];
+        }
+      }
+      if (!darcyside || !fracside) {
+        DebugStop();
+      }
+      
+      if (neigh.size() == 0) {
+        continue;
+      }
+      long gelindex;
+      TPZCompEl *cel = new TPZCompElWithMem <TPZMultiphysicsInterfaceElement >(*cmesh, gel, gelindex, darcyside, fracside);
+    }
+  }
 }
 
 void TPZDarcyAnalysis::DarcyGmesh(TPZGeoMesh * gmesh)
@@ -952,12 +997,11 @@ void TPZDarcyAnalysis::DarcyGmesh(TPZGeoMesh * gmesh)
 }
 
 // Computing the flux on the right tip of the fracture
-
 REAL TPZDarcyAnalysis::Qtip()
 {
     fgmesh->ResetReference();
     fcmeshMixed->LoadReferences();
-    const int bcOfTip = 6;
+    const int bcOfTip = 8;
     const long nel = fcmeshMixed->NElements();
     TPZCompEl *cel = NULL;
     for (long iel = 0; iel < nel; iel++) {
@@ -981,10 +1025,8 @@ REAL TPZDarcyAnalysis::Qtip()
         break;
     }
     
-    
-    
     //Here mat 6 means fracture elements
-    TPZMaterial *Material = fcmeshMixed->FindMaterial(bcOfTip);
+    TPZMaterial *Material = fcmeshMixed->FindMaterial(6);
     TPZMatfrac1dhdiv * MaterialOfFract = dynamic_cast<TPZMatfrac1dhdiv *>(Material);
 
     
@@ -995,6 +1037,100 @@ REAL TPZDarcyAnalysis::Qtip()
     std::cout << "\nqtip = " << qTip << std::endl;
     
     return qTip;
+}
+
+REAL TPZDarcyAnalysis::PropagationFlowCriteria(REAL qFreshNewEl, REAL ql){
+  return MAX(qFreshNewEl/3., 4.*ql);
+}
+
+bool TPZDarcyAnalysis::VerifyIfPropagate(REAL qtip)
+{
+  const REAL dt = fData->TimeStep();
+  const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
+  const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
+  const REAL pfrac = fData->SigmaConf();
+  const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
+  REAL vl = fData->VlFtau(pfrac, tstar+dt);
+  const REAL totalLeakOff = 2. * fData->ElSize() * vl;
+  const REAL totalLeakOffprev = 2. * fData->ElSize() * fData->AccumVl();
+  const REAL ql = (totalLeakOff - totalLeakOffprev)/dt;
+  
+  const REAL qFreshNewEl = this->QOfAFreshNewElement();
+  const REAL crit = this->PropagationFlowCriteria(qFreshNewEl,ql);
+  if (qtip > crit) { // AQUINATHAN
+    return true;
+  }
+  else{
+    vl = fData->AccumVl() + qtip*dt/fData->ElSize()/2.;
+    fData->SetAccumVl(vl);
+    return false;
+  }
+}
+
+REAL  TPZDarcyAnalysis::RunUntilOpen()
+{
+  const int maxinitialit = 10000;
+  const REAL qtip = fData->Q();
+  int it = 0;
+  for (it = 0; it < maxinitialit; it++) {
+    const REAL dt = fData->TimeStep();
+    const REAL AccumVolThroughTip = fData->AccumVl() * fData->ElSize() * 2.;
+    const REAL volThroughTip = qtip * dt + AccumVolThroughTip;
+    const REAL pfrac = fData->SigmaConf();
+    const REAL tstar = fData->FictitiousTime(fData->AccumVl(), pfrac); // VlForNextPropag is vl from last propag here
+    REAL vlnext = fData->VlFtau(pfrac, tstar+dt);
+    const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
+    const REAL totalLeakOffPrev = 2. * fData->ElSize() * fData->AccumVl();
+    const REAL ql = (totalLeakOff - totalLeakOffPrev)/dt;
+    
+    const REAL qFreshNewEl = this->QOfAFreshNewElement();
+    const REAL crit = this->PropagationFlowCriteria(qFreshNewEl,ql);
+    if (qtip > crit) { //AQUINATHAN
+      break;
+    }
+    
+    vlnext = fData->AccumVl() + qtip*dt/fData->ElSize()/2.;
+    fData->SetAccumVl(vlnext);
+    fData->SetNextTime();
+  }
+  if (it == maxinitialit) {
+    DebugStop();
+  }
+  
+  std::cout << "#################### Opening of the fracture occured at time t = " << fData->Time() << " s ####################" << std::endl;
+  std::cout << "Total vol injected = " << qtip *fData->Time() << std::endl;
+  std::cout << "\nStarting First Simulation" << std::endl;
+  
+  return fData->AccumVl();
+}
+
+TPZGeoEl * TPZDarcyAnalysis::FindPressureBCElement()
+{
+  TPZGeoEl *gel = NULL;
+  const int bcpressureid = -2;
+  for (long iel = 0; iel < fgmesh->NElements(); iel++) {
+    gel = fgmesh->ElementVec()[iel];
+    if (gel->MaterialId() == bcpressureid) {
+      break;
+    }
+  }
+#ifdef DEBUG
+  if (gel == NULL) {
+    DebugStop();
+  }
+#endif
+  return gel;
+}
+
+REAL TPZDarcyAnalysis::QOfAFreshNewElement()
+{
+  const REAL dt = fData->TimeStep();
+  const REAL pfrac = fData->SigmaConf();
+  REAL vlnext = fData->VlFtau(pfrac, dt);
+  const REAL totalLeakOff = 2. * fData->ElSize() * vlnext;
+  const REAL qFresh = (totalLeakOff)/dt;
+  
+  return qFresh;
 }
 
 
@@ -1143,28 +1279,38 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
     
     // Create Interfaces
-    CreateInterfaces(fcmeshMixed);
-    
-    // Preparando os index dos pontos de integracao.
-    long nel = fcmeshMixed->NElements();
-    for (long iel = 0; iel < nel; iel++) {
-        TPZCompEl *cel = fcmeshMixed->ElementVec()[iel];
-        cel->PrepareIntPtIndices();
-    }
-    
-    
+    this->CreateInterfaces();
+    this->InsertFracCompMesh();
+
+    this->SetIntPointMemory();
+  
     std::ofstream dumpfile("ComputationaMeshMultiphysics.txt");
     fcmeshMixed->Print(dumpfile);
+}
+
+void TPZDarcyAnalysis::SetIntPointMemory()
+{
+  // Preparando os index dos pontos de integracao.
+  long nel = fcmeshMixed->NElements();
+  for (long iel = 0; iel < nel; iel++) {
+    TPZCompEl *cel = fcmeshMixed->ElementVec()[iel];
+    cel->PrepareIntPtIndices();
+  }
+  
 }
 
 void TPZDarcyAnalysis::AcceptSolution(TPZAnalysis *an)
 {
     //Here mat 6 means fracture elements
-    TPZMaterial *Material = fcmeshMixed->FindMaterial(6);
-    TPZMatfrac1dhdiv * MaterialOfFract = dynamic_cast<TPZMatfrac1dhdiv *>(Material);
-    MaterialOfFract->SetUpdateMem();
+    TPZMaterial *material = fcmeshMixed->FindMaterial(6);
+    TPZMatfrac1dhdiv * materialOfFract = dynamic_cast<TPZMatfrac1dhdiv *>(material);
+    material = fcmeshMixed->FindMaterial(1);
+    TPZMatDarcy2dhdiv * materialOfDarcy = dynamic_cast<TPZMatDarcy2dhdiv *>(material);
+    materialOfFract->SetUpdateMem();
+    materialOfDarcy->SetNotContribute();
     an->AssembleResidual();
-    MaterialOfFract->SetUpdateMem(false);
+    materialOfFract->SetUpdateMem(false);
+    materialOfDarcy->SetNotContribute(false);
 }
 
 void TPZDarcyAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)

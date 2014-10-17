@@ -55,7 +55,9 @@ public:
     TPZCompMesh * CreateCMeshMixed(TPZFMatrix<REAL> Vl);
     
     /** @brief Creates interfaces for mixed simulation of darcy flow */
-    void CreateInterfaces(TPZCompMesh *cmesh);
+    void CreateInterfaces();
+  
+  
     
     /** @brief Assemble last step */
     void AssembleLastStep(TPZAnalysis *an);
@@ -79,8 +81,14 @@ public:
     void PrintGeometricMesh(TPZGeoMesh * gmesh);
 
     /** @brief adjust mtid's for propagation */
-    void InsertFracsGmesh(TPZGeoMesh * gmesh);
-    
+    void InsertFracGeoMesh();
+  
+    /** @brief adjust cmesh */
+    void InsertFracCompMesh();
+
+    /** @brief sets the memory of the new integration points */
+    void SetIntPointMemory();
+  
     /** @brief adjust mtid's for propagation */
     void DarcyGmesh(TPZGeoMesh * gmesh);
     
@@ -104,6 +112,24 @@ public:
     
     /** @brief Calculates Q of the tip of the fracture */
     REAL Qtip();
+  
+    /** @brief Finds the initial time step to run simulation and returns the vl to train the integration points */
+    REAL RunUntilOpen();
+    
+    /** @brief Return the Q (flow) that a fresh new element could absorb in one time step */
+    REAL QOfAFreshNewElement();
+    
+    /** @brief Creates first GeoEl with bc */
+    TPZGeoEl* CreateFirstGeoElWithBC();
+    
+    /** @brief Verifies if has to propagate, ie, the qtip is bigger than leak off of the next element */
+    bool VerifyIfPropagate(REAL qtip);
+    
+    /** @brief Find the pressure BC geo element */
+    TPZGeoEl * FindPressureBCElement();
+    
+    /** @brief Return the flow criteria used to decide if propagates fracture */
+    REAL PropagationFlowCriteria(REAL qFreshNewEl, REAL ql);
     
 private:
     
