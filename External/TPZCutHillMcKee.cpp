@@ -14,7 +14,7 @@ TPZCutHillMcKee::~TPZCutHillMcKee(){
 
 }
 
-void TPZCutHillMcKee::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm){
+void TPZCutHillMcKee::Resequence(TPZVec<int> &permGather, TPZVec<int> &permScatter){
 
   std::cout << "TPZCutHillMcKee ConvertGraph...";std::cout.flush();
   SGraph graph;
@@ -28,7 +28,7 @@ void TPZCutHillMcKee::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm){
   TPZStack<int> R;
   TPZManVector<int> adjNodes;
   //reservando memoria em R
-  const unsigned int nnodes = graph.NNodes();
+  const int nnodes = graph.NNodes();
   R.Resize(nnodes);
   R.Resize(0);
   TPZVec<int> ExploredNodes(nnodes,0);
@@ -50,28 +50,27 @@ void TPZCutHillMcKee::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm){
   }//loop completo
   std::cout << " done!\n";std::cout.flush();
 
-  const unsigned int n = R.NElements();
+  const int n = R.NElements();
   if(n != nnodes) DebugStop();
 
 #ifdef DEBUG
 {//verificando se ha duplicados
   std::set<int> check;
-  for(unsigned int i = 0; i < n; i++) check.insert(R[i]);
-  if(check.size() != n) DebugStop();
+  for(int i = 0; i < n; i++) check.insert(R[i]);
+  if( ((int)(check.size())) != n) DebugStop();
 }
-  #endif
+#endif
 
   std::cout << "TPZCutHillMcKee Filling perm and iperm vectors...";std::cout.flush();
   if(fReverse){
-    iperm = R;
-    perm.Resize(n);
-    for(unsigned int i = 0; i < n; i++) perm[ iperm[i] ] = i;
+    permScatter.Resize(n);
+    for(int i = 0; i < n; i++) permScatter[n-1-i] = R[i];
   }
   else{
-    perm = R;
-    iperm.Resize(n);
-    for(unsigned int i = 0; i < n; i++) iperm[ perm[i] ] = i;
+    permScatter = R;
   }
+  permGather.Resize(n);
+  for(int i = 0; i < n; i++) permGather[ permScatter[i] ] = i;
   std::cout << " done!\n";std::cout.flush();
 
 }///void

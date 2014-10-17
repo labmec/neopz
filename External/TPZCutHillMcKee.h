@@ -46,7 +46,7 @@ class TPZCutHillMcKee : public TPZRenumbering {
     void AdjacentNodesOrdered(int parent, TPZVec<int> &adjNodes){
       std::multimap<int,int> order;
 
-      const unsigned int n = this->Degree(parent);
+      const int n = this->Degree(parent);
       for(int i = 0; i < n; i++){
         const int adj = fnodegraph[fnodegraphindex[parent]+i];
         const int adjDegree = this->Degree(adj);
@@ -54,7 +54,7 @@ class TPZCutHillMcKee : public TPZRenumbering {
       }//for
       adjNodes.Resize(n);
 #ifdef DEBUG
-      if(n!=order.size()){
+      if(n!= (int)(order.size()) ){
         DebugStop();
       }
 #endif
@@ -79,7 +79,7 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
   public:
 
-    virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm);
+    virtual void Resequence(TPZVec<int> &permGather, TPZVec<int> &permScatter);
 
     TPZCutHillMcKee();
 
