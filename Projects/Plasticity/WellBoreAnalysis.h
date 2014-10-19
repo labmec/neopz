@@ -27,7 +27,7 @@
 class TPZElasticityMaterialSest2D;
 
 /// create de standard mesh
-void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
+void AddBoundaryConditions(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
 /// Simulation models
 enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
@@ -36,13 +36,16 @@ enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
 enum EFluidModel  {ENonPenetrating=0,EPenetrating=1};
 
 /// Indication of the well configuration
-enum EWellConfiguration {EVerticalWell, EHorizontalWell};
+enum EWellConfiguration {ENoConfig, EVerticalWell, EHorizontalWellalongh, EHorizontalWellalongH};
 
 /// Class which simulates the stability of a wellbore
 class TPZWellBoreAnalysis
 {
     
 public:
+    
+    /// order in which formation stresses are stored
+    enum MFormationOrder {ESh = 0, ESH = 1, ESV = 2};
     
     /// this class represents a particular stage of the wellbore analysis
     struct TConfig
@@ -123,6 +126,9 @@ public:
         /// Create the geometric and computational mesh based on the configuration parameters
         void CreateMesh();
         
+        /// Return the mesh used for computations (multiphysics mesh or fCMesh)
+        TPZCompMesh *CompMeshUsed();
+        
         void ModifyWellElementsToQuadratic();
         
         /// Initialize the Sandler DiMaggio object and create the computational mesh
@@ -147,6 +153,11 @@ public:
         // this value will be used to identify the meaningful points to match the next ellips
         REAL MaxYfromLastBreakout();
         
+        /// Transform from physical domain to computational domain stress
+        /**
+         * the outcome depends on the well configuration
+         */
+        void FromPhysicalDomaintoComputationalDomainStress(TPZTensor<STATE> &physicalStress, TPZTensor<STATE> &computationalStress);
         
         /// print the configuration
         void Print(ostream &out);
@@ -155,6 +166,12 @@ public:
         // factor is a transition parameter between the confinement tension and well pressure
         // factor = 1 corresponds to pure well pressure
         void SetWellPressure(STATE wellpressure, STATE factor = 1.);
+        
+        /// Set the Z deformation (for adapting the compaction)
+        void SetZDeformation(STATE epsZ);
+        
+        /// Compute the average vertical stress of the configuration
+        STATE AverageVerticalStress();
         
         /// Return gmesh
         TPZGeoMesh * GetGeoMesh();
@@ -182,7 +199,7 @@ public:
         // Minor has to be decreasing and smaller than fInnerRadius
         TPZManVector<REAL,3> fSmaller;
         
-        /// confinement stress
+        /// confinement stress in the physical domain
         TPZTensor<STATE> fConfinementEffective;
         
         /// Parameters
@@ -219,12 +236,6 @@ public:
         
         /// Computational mesh
         TPZCompMesh fCMesh;
-        
-        /// Constant vertical strain mesh
-        TPZCompMesh fZDeformation;
-        
-        /// Multiphysics Mesh
-        TPZCompMesh fMultiPhysics;
         
         /// Matrix of incremental solutions
         TPZFMatrix<STATE> fAllSol;
@@ -347,6 +358,15 @@ public:
     {
         return &fCurrentConfig;
     }
+    
+    void PopConfiguration()
+    {
+        if (this->fSequence.size() ==0) {
+            return;
+        }
+        fSequence.pop_back();
+        fCurrentConfig = *(this->fSequence.rbegin());
+    }
 
     /// Access method
     TConfig * GetConfig (int index) {
@@ -375,6 +395,7 @@ public:
     
     /// Configure the wellbore analysis to perform a linear analysis
     void LinearConfiguration(int porder);
+    
 
     /// Define the geometry of the simulation
     void SetInnerOuterRadius(REAL inner, REAL outer)
@@ -392,9 +413,9 @@ public:
     /// Define the geological stress state and well pressure
     void SetConfinementEffectiveStresses(TPZVec<STATE> &stress, STATE Effectivewellpressure)
     {
-        fCurrentConfig.fConfinementEffective.XX() = stress[0];
-        fCurrentConfig.fConfinementEffective.YY() = stress[1];
-        fCurrentConfig.fConfinementEffective.ZZ() = stress[2];
+        fCurrentConfig.fConfinementEffective.XX() = stress[ESh];
+        fCurrentConfig.fConfinementEffective.YY() = stress[ESH];
+        fCurrentConfig.fConfinementEffective.ZZ() = stress[ESV];
         fCurrentConfig.fWellboreEffectivePressure = Effectivewellpressure;
     }
     
@@ -481,7 +502,7 @@ public:
 private:
     
     /// Compute the linear elastic stiffness matrix
-    void ComputeLinearMatrix();
+    void ComputeLinearMatrix(TPZVec<long> &activeEquations);
     
     /// Set the parameters of the linear material
     void ConfigureLinearMaterial(TPZElasticityMaterialSest2D &mat);
