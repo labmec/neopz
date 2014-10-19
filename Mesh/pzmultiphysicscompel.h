@@ -143,6 +143,12 @@ public:
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
 	
+    /**
+     * @brief Compute the integral of a variable
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const;
+
+    
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate
@@ -247,10 +253,20 @@ public:
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
+    /**
+     * @brief Computes the element stiffness matrix and right hand side
+     * @param ek element matrix
+     * @param ef element right hand side
+     */
+    virtual void CalcResidual(TPZElementMatrix &ef);
+    
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
-	/** 
+    /** @brief Initialize element matrix in which is computed CalcStiff */
+    void InitializeElementMatrix(TPZElementMatrix &ef);
+    
+	/**
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
