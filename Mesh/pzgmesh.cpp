@@ -1355,3 +1355,31 @@ void TPZGeoMesh::ResetConnectivities()
 	}
 	this->SetName("reset");
 }
+
+/// Compute the area of the domain
+REAL TPZGeoMesh::Area()
+{
+    TPZVec<int> NeedsComputing(NElements(),1);
+    int meshdim = Dimension();
+    long nel = NElements();
+    REAL result = 0.;
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = ElementVec()[el];
+        if (!gel || !NeedsComputing[el]) {
+            continue;
+        }
+        if (gel->Dimension() != meshdim) {
+            NeedsComputing[el] = 0;
+            continue;
+        }
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while (neighbour != gelside) {
+            long neighindex = neighbour.Element()->Index();
+            NeedsComputing[neighindex] = 0;
+            neighbour = neighbour.Neighbour();
+        }
+        result += gel->SideArea(gel->NSides()-1);
+    }
+    return result;
+}

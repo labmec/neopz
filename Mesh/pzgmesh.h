@@ -140,6 +140,9 @@ public:
 	const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
 	const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }
 
+    /// Compute the area of the domain
+    REAL Area();
+    
 	/** @brief Resets all load references in elements and nodes */
 	void ResetReference();
 	
