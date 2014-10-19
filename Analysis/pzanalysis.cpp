@@ -326,7 +326,7 @@ void TPZAnalysis::Solve() {
     	TPZFMatrix<STATE> delu(nReducedEq,1,0.);
         fStructMatrix->EquationFilter().Gather(fRhs,residual);
 	    fSolver->Solve(residual, delu);
-        fSolution.Zero();
+        fSolution.Redim(numeq,1);
         fStructMatrix->EquationFilter().Scatter(delu,fSolution);
     }
 #ifdef LOG4CXX
@@ -984,3 +984,43 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildSequenceSolver(TPZVec<long> &graph, TP
 	}
 	return result;
 }
+
+/// Integrate the postprocessed variable name over the elements included in the set matids
+TPZVec<STATE> TPZAnalysis::Integrate(const std::string &varname, const std::set<int> &matids)
+{
+    // the postprocessed index of the varname for each material id
+    std::map<int,int> variableids;
+    int nvars = 0;
+    
+    std::map<int,TPZMaterial *>::iterator itmap;
+    for (itmap = fCompMesh->MaterialVec().begin(); itmap != fCompMesh->MaterialVec().end(); itmap++) {
+        if (matids.find(itmap->first) != matids.end()) {
+            variableids[itmap->first] = itmap->second->VariableIndex(varname);
+            nvars = itmap->second->NSolutionVariables(variableids[itmap->first]);
+        }
+    }
+    TPZManVector<STATE,3> result(nvars,0.);
+    long nelem = fCompMesh->NElements();
+    for (long el=0; el<nelem; el++) {
+        TPZCompEl *cel = fCompMesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel) {
+            continue;
+        }
+        int matid = gel->MaterialId();
+        if (matids.find(matid) == matids.end()) {
+            continue;
+        }
+        TPZManVector<STATE,3> locres(nvars,0.);
+        locres = cel->IntegrateSolution(variableids[matid]);
+        for (int iv=0; iv<nvars; iv++)
+        {
+            result[iv] += locres[iv];
+        }
+    }
+    return result;
+}
+

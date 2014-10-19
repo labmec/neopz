@@ -908,3 +908,40 @@ int TPZCompEl::PressureConnectIndex() const
     }
     return index;
 }
+
+/**
+ * @brief Compute the integral of a variable
+ */
+TPZVec<STATE> TPZCompEl::IntegrateSolution(int var) const
+{
+    TPZManVector<STATE,3> result(0);
+    TPZGeoEl *gel = Reference();
+    if (!gel) {
+        return result;
+    }
+    TPZCompEl *celnotconst = (TPZCompEl *) this;
+    int matid = gel->MaterialId();
+    TPZMaterial *material = Material();
+    int nvar  = material->NSolutionVariables(var);
+    TPZIntPoints *intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 5);
+    int dim = gel->Dimension();
+    TPZManVector<REAL,3> xi(dim);
+    TPZMaterialData data;
+    TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
+    REAL detjac;
+    TPZManVector<STATE,3> sol(nvar);
+    result.Resize(nvar, 0.);
+    int npoints = intrule->NPoints();
+    for (int ip =0; ip<npoints; ip++) {
+        REAL weight;
+        intrule->Point(ip, xi, weight);
+        gel->Jacobian(xi, jac, axes, detjac, jacinv);
+        celnotconst->Solution(xi, var, sol);
+        for (int i=0; i <nvar; i++) {
+            result[i] += weight*fabs(detjac)*sol[i];
+        }
+    }
+    delete intrule;
+    return result;
+}
+

@@ -240,10 +240,13 @@ public:
 	virtual void LoadSolution();
 	/** @brief Load the solution into the computable mesh considering sol as Solution vector of the analysis */
 	virtual void LoadSolution(const TPZFMatrix<STATE> &sol){
-		this->Solution() = sol;
+		fSolution = sol;
 		this->LoadSolution();
 	}
 
+    /// Integrate the postprocessed variable name over the elements included in the set matids
+    TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
+    
 	/** @brief Sets the pointer of the exact solution function */
 	void SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */

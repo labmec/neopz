@@ -401,6 +401,11 @@ public:
 	 * @param sol vetor for the solution
 	 */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+    
+    /**
+     * @brief Compute the integral of a variable
+     */
+    virtual TPZVec<STATE> IntegrateSolution(int var) const;
 	
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
 		std::cout <<"Imposed for Hdiv solution ";
