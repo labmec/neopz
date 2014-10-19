@@ -257,10 +257,10 @@ public:
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error);
 	
 	/** @brief Integrate a variable over the element. */
-	virtual void Integrate(int variable, TPZVec<REAL> & value);
+	virtual TPZVec<STATE> IntegrateSolution(int variable) const;
 	
 	/** @brief Integrate the solution over the element */
-	virtual void IntegrateSolution(TPZVec<STATE> & value);
+//	virtual void IntegrateSolution(TPZVec<STATE> & value);
 	
 	/**
 	 * @brief Will project the flux associated with the variational statement onto the finite element interpolation space

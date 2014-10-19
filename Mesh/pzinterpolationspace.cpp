@@ -1115,36 +1115,42 @@ void TPZInterpolationSpace::ComputeError(int errorid,
 	intrule->SetOrder(prevorder);
 }
 
-void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
+TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 	TPZMaterial * material = Material();
+    TPZVec<STATE> result;
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
-		return;
+		return result;
 	}
 	if (!this->Reference()){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
-		return;
+		return result;
 	}
 	const int dim = this->Dimension();
 	REAL weight;
 	TPZMaterialData data;
-	this->InitMaterialData(data);
+    TPZInterpolationSpace *thisnonconst = (TPZInterpolationSpace *) this;
+	thisnonconst->InitMaterialData(data);
 	
 	TPZManVector<REAL, 3> intpoint(dim,0.);
 	const int varsize = material->NSolutionVariables(variable);
-	value.Resize(varsize);
-	value.Fill(0.);
+    TPZManVector<STATE,3> value(varsize,0.);
 	
 	const TPZIntPoints &intrule = this->GetIntegrationRule();
 	int npoints = intrule.NPoints(), ip, iv;
 	TPZManVector<STATE> sol(varsize);
 	for(ip=0;ip<npoints;ip++) {
 		intrule.Point(ip,intpoint,weight);
+        
+        //Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
+        //       It means that the next call would not be necessary if I wrote the whole code here.
+        this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+        data.intLocPtIndex = ip;
+
+        thisnonconst->ComputeRequiredData(data, intpoint);
+        
 		sol.Fill(0.);
-		this->Solution(intpoint, variable, sol);
-		//Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
-		//       It means that the next call would not be necessary if I wrote the whole code here.
-		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+        material->Solution(data, variable, sol);
 		weight *= fabs(data.detjac);
 		for(iv = 0; iv < varsize; iv++) {
 #ifdef STATE_COMPLEX
@@ -1154,44 +1160,45 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 #endif
 		}//for iv
 	}//for ip
+    return value;
 }//method
 
-void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
-	TPZMaterial * material = Material();
-	if(!material){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
-		return;
-	}
-	if (!this->Reference()){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
-		return;
-	}
-	const int dim = this->Dimension();
-	REAL weight;
-	TPZMaterialData data;
-	this->InitMaterialData(data);
-	
-	TPZManVector<REAL, 3> intpoint(dim,0.);
-	const int varsize = material->NStateVariables();
-	value.Resize(varsize);
-	value.Fill(0.);
-	
-	const TPZIntPoints &intrule = this->GetIntegrationRule();
-	int npoints = intrule.NPoints(), ip, iv;
-	
-	for(ip=0;ip<npoints;ip++){
-		intrule.Point(ip,intpoint,weight);
-		data.sol.Fill(0.);
-		this->ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
-		//Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
-		//       It means that the next call would not be necessary if I write the whole code here.
-		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
-		weight *= fabs(data.detjac);
-		for(iv = 0; iv < varsize; iv++){
-			value[iv] += data.sol[0][iv]*(STATE)weight;
-		}//for iv
-	}//for ip
-}//method
+//void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
+//	TPZMaterial * material = Material();
+//	if(!material){
+//		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+//		return;
+//	}
+//	if (!this->Reference()){
+//		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+//		return;
+//	}
+//	const int dim = this->Dimension();
+//	REAL weight;
+//	TPZMaterialData data;
+//	this->InitMaterialData(data);
+//	
+//	TPZManVector<REAL, 3> intpoint(dim,0.);
+//	const int varsize = material->NStateVariables();
+//	value.Resize(varsize);
+//	value.Fill(0.);
+//	
+//	const TPZIntPoints &intrule = this->GetIntegrationRule();
+//	int npoints = intrule.NPoints(), ip, iv;
+//	
+//	for(ip=0;ip<npoints;ip++){
+//		intrule.Point(ip,intpoint,weight);
+//		data.sol.Fill(0.);
+//		this->ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
+//		//Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
+//		//       It means that the next call would not be necessary if I write the whole code here.
+//		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+//		weight *= fabs(data.detjac);
+//		for(iv = 0; iv < varsize; iv++){
+//			value[iv] += data.sol[0][iv]*(STATE)weight;
+//		}//for iv
+//	}//for ip
+//}//method
 
 void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
 	
