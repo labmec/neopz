@@ -115,6 +115,7 @@ void TPZBoostGraph::CompressedResequence(TPZVec<long> &perm, TPZVec<long> &inver
 void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
 {
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << "TPZBoostGraph::Resequence started \n";
