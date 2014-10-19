@@ -46,6 +46,10 @@ class TPZElasticityMaterialSest2D : public TPZElasticityMaterial {
 	
 	/** @brief Copies the data of one TPZElasticityMaterial object to another */
 	TPZElasticityMaterialSest2D(const TPZElasticityMaterial &copy);
+    
+    /// Compute post processed values
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+
 	
 	/** @brief Creates a new material from the current object  */
 	virtual TPZMaterial * NewMaterial() {
