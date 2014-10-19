@@ -70,7 +70,7 @@ public:
         f[1] = -fConstant*x[1]/r2;
         
         df.Redim(1, 1);
-        df(0,0) = fPwell+fConstant*log(r2/fRwell/fRwell)/2.;
+        df(0,0) = fBiot*(fPwell-fPreservoir+fConstant*log(r2/fRwell/fRwell)/2.);
     }
 	
 	/**
