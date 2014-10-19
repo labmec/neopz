@@ -34,7 +34,7 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
 	fPreStressYY = 0.;  //Prestress in the y direction
 	fPreStressXY = 0.;  //Prestress in the z direction
 	fPreStressZZ = 0.;  //Prestress in the z direction
-	fPlaneStress = -1;
+	fPlaneStress = 0;
     
     // Added by Philippe 2012
     fPostProcIndex = 0;
@@ -55,7 +55,7 @@ TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZDiscontinuousGalerkin(
 	fPreStressYY = 0.;  //Prestress in the y direction
 	fPreStressXY = 0.;  //Prestress in the z direction
 	fPreStressZZ = 0.;  //Prestress in the z direction
-	fPlaneStress = -1;
+	fPlaneStress = 0;
     
     // Added by Philippe 2012
     fPostProcIndex = 0;
@@ -172,7 +172,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 			
 			
 			if (fPlaneStress != 1){
-				/* Plain Strain State */
+				/* Plane Strain State */
 				ek(2*in,2*jn) += weight * (
 										   nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
 										   ) * F;
@@ -263,20 +263,41 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
     
     TPZFNMatrix<4,STATE> du(2,2);
     /*
-     * Plain strain materials values
+     * Plane strain materials values
      */
     REAL nu1 = 1. - fnu;//(1-nu)
     REAL nu2 = (1.-2.*fnu)/2.;
     REAL F = fE/((1.+fnu)*(1.-2.*fnu));
+    STATE epsx, epsy,epsxy,epsz;
+    TPZFNMatrix<9,STATE> DSolxy(2,2);
+    // dudx - dudy
+    DSolxy(0,0) = data[0].dsol[0](0,0)*axes(0,0)+data[0].dsol[0](1,0)*axes(1,0);
+    DSolxy(1,0) = data[0].dsol[0](0,0)*axes(0,1)+data[0].dsol[0](1,0)*axes(1,1);
+    // dvdx - dvdy
+    DSolxy(0,1) = data[0].dsol[0](0,1)*axes(0,0)+data[0].dsol[0](1,1)*axes(1,0);
+    DSolxy(1,1) = data[0].dsol[0](0,1)*axes(0,1)+data[0].dsol[0](1,1)*axes(1,1);
+    epsx = DSolxy(0,0);// du/dx
+    epsy = DSolxy(1,1);// dv/dy
+    epsxy = 0.5*(DSolxy(1,0)+DSolxy(0,1));
+    epsz = data[1].sol[0][0];
+    STATE SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*(epsy+epsz))+fPreStressXX;
+    STATE SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*(epsy+epsz))+fPreStressYY;
+    REAL lambda = GetLambda();
+    REAL mu = GetMU();
+
+    STATE SigZ = lambda*(epsx+epsy+epsz)+2.*mu*epsz;
+    STATE TauXY = 2*mu*epsxy+fPreStressXY;
+
     
     for( int in = 0; in < phr; in++ ) {
         du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);//dvx
         du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);//dvy
+
         
         for (int col = 0; col < efc; col++)
         {
-            ef(2*in, col) += weight * (ff[0]*phi(in,0) - du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
-            ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(0,0)*fPreStressXY - du(1,0)*fPreStressYY);// direcao y <<<----
+            ef(2*in,   col) += weight * (ff[0]*phi(in,0) - du(0,0)*(SigX) - du(1,0)*(TauXY));  // direcao x
+            ef(2*in+1, col) += weight * (ff[1]*phi(in,0) - du(0,0)*(TauXY) - du(1,0)*(SigY));  // direcao y <<<----
         }
         for( int jn = 0; jn < phr; jn++ ) {
             du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);//dux
@@ -284,7 +305,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
             
             
             if (fPlaneStress != 1){
-                /* Plain Strain State */
+                /* Plane Strain State */
                 ek(2*in,2*jn) += weight * (
                                            nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
                                            ) * F;
@@ -337,9 +358,10 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
         ek(phr*nstate,in*nstate+1) += weight*(-C2*du(1,0));
 
     }
+    ek(phr*2,phr*2) += weight*(lambda+2.*mu);
     for (int col = 0; col < efc; col++)
     {
-        ef(2*phr, col) += weight * (-fPreStressZZ);  // direcao x
+        ef(2*phr, col) += weight * (-SigZ);  // direcao z
     }
 
     
@@ -426,7 +448,7 @@ void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight
 			
 			
 			if (fPlaneStress != 1){
-				/* Plain Strain State */
+				/* Plane Strain State */
 				ek(in,jn) += weight*(nu1*dphix_i(0,0)*dphix_j(0,0) + nu2*dphix_i(1,0)*dphix_j(1,0) +
                                        
                                        fnu*dphix_i(0,0)*dphiy_j(1,0) + nu2*dphix_i(1,0)*dphiy_j(0,0) +
@@ -819,6 +841,7 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
     TPZVec<STATE> &Sol = data.sol[ipos];
     TPZFMatrix<STATE> &DSol = data.dsol[ipos];
     TPZFMatrix<REAL> &axes = data.axes;
+    TPZFNMatrix<4,STATE> DSolxy(2,2);
 	
 	REAL epsx;
 	REAL epsy;
@@ -827,22 +850,22 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
 	REAL SigX;
 	REAL SigY;
     REAL SigZ;
-	REAL TauXY,aux,Sig1,Sig2,angle,DSolxy[2][2];
+	REAL TauXY,aux,Sig1,Sig2,angle;
     
     // dudx - dudy
-	DSolxy[0][0] = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
-	DSolxy[1][0] = DSol(0,0)*axes(0,1)+DSol(1,0)*axes(1,1);
+	DSolxy(0,0) = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
+	DSolxy(1,0) = DSol(0,0)*axes(0,1)+DSol(1,0)*axes(1,1);
 	// dvdx - dvdy
-	DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
-	DSolxy[1][1] = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
+	DSolxy(0,1) = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
+	DSolxy(1,1) = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
     
-    epsx = DSolxy[0][0];// du/dx
-    epsy = DSolxy[1][1];// dv/dy
-    epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+    epsx = DSolxy(0,0);// du/dx
+    epsy = DSolxy(1,1);// dv/dy
+    epsxy = 0.5*(DSolxy(1,0)+DSolxy(0,1));
     
     REAL lambda = GetLambda();
     REAL mu = GetMU();
-    if (this->fPlaneStress) {
+    if (this->fPlaneStress == 1) {
         REAL lambda = GetLambda();
         REAL mu = GetMU();
         epsz = -lambda*(epsx+epsy)/(lambda+2.*mu);
@@ -863,7 +886,7 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
     }
 	#endif
 #endif
-    if (this->fPlaneStress){
+    if (this->fPlaneStress == 1){
         SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
         SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
         SigZ = fPreStressZZ;
