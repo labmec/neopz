@@ -60,6 +60,8 @@
 
 #include "TPZExtendGridDimension.h"
 
+#include "TestHDivMesh.h"
+
 #include <iostream>
 #include <math.h>
 
@@ -176,7 +178,7 @@ int main(int argc, char *argv[])
             pp = pq;
         }
         
-        for (ndiv=0; ndiv<3; ndiv++)
+        for (ndiv=3; ndiv<4; ndiv++)
         {
 
             TPZGeoMesh *gmesh = CreateOneCubo(ndiv);
@@ -218,6 +220,8 @@ int main(int argc, char *argv[])
             
             
             TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
+            
+            TestMesh(mphysics);
 //            ofstream arg5("cmeshmultiphysics.txt");
 //            mphysics->Print(arg5);
 //            TPZCompEl *cel = mphysics->Element(0);
