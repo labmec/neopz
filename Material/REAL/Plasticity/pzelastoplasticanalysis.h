@@ -25,19 +25,6 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZElastoPlasticAnalysis();
 	
-    
-    /// Assemble the stiffness matrix, eliminating the lines and columns with Dirichlet Boundary condition
-	virtual REAL LocalAssemble(int precond = 0);
-	
-    /// Invert the system of equations eliminating the equations with Dirichlet condition
-	virtual REAL LocalSolve();
-    
-    /// Apply zero on the lines and columns of the Dirichlet boundary conditions
-    void AdjustTangentMatrix(TPZMatrix<STATE> &matrix);
-    
-    /// Apply zero to the equations of the Dirichlet boundary conditions
-    void AdjustResidual(TPZFMatrix<STATE> &rhs);
-	
 	/**
 	 * @brief It process a Newton's method to solve the non-linear problem.
 	 * In this implementation, the line search is temporarily disabled.
@@ -86,6 +73,10 @@ public:
 	 */
 	virtual REAL AcceptSolution(const int ResetOutputDisplacements = 0);
     
+    /** @brief Load the solution into the computable grid, transfering it to the multi physics meshes */
+    virtual void LoadSolution();
+
+    
     TPZFMatrix<REAL> &CumulativeSolution()
     {
         return fCumSol;
@@ -108,6 +99,9 @@ public:
     
     /// build the fEquationstoZero datastructure based on the fMaterialIds data structure
     void IdentifyEquationsToZero();
+    
+    /// return the vector of active equation indices
+    void GetActiveEquations(TPZVec<long> &activeEquations);
     
 protected:	
 	
@@ -138,6 +132,26 @@ public:
 	
 	static void SetAllCreateFunctionsWithMem(TPZCompMesh *cmesh);
 	
+    /// Structure defining a multiphysics configuration
+    bool IsMultiPhysicsConfiguration()
+    {
+        return fMultiPhysics != NULL;
+    }
+    
+    /// Initialize the multiphysics data structure
+    void SetMultiPhysics(TPZCompMesh *mphysics, TPZVec<TPZCompMesh *> &meshvec)
+    {
+        fMultiPhysics = mphysics;
+        fMeshVec = meshvec;
+    }
+    
+    /// Reset the multiphysics data structure
+    void ResetMultiPhysics()
+    {
+        fMultiPhysics = 0;
+        fMeshVec.Resize(0);
+    }
+    
 	
 protected:
 	
@@ -152,6 +166,12 @@ protected:
     /// Materials with no penetration boundary conditions
     // the second value of the map indicates x (0) or y (1) restraint
     std::map<int,int> fMaterialIds;
+    
+    /// The multiphysics mesh
+    TPZCompMesh *fMultiPhysics;
+    
+    /// The elasticity mesh and vertical deformation mesh
+    TPZManVector<TPZCompMesh *,2> fMeshVec;
 	
 	/**
 	 * TPZCompElWithMem<TBASE> creation function setup
