@@ -31,7 +31,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	TPZElasticityMaterial(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress = 1);
+	TPZElasticityMaterial(int id, REAL E, REAL nu, REAL fx, REAL fy, int planestress = 1);
     
     TPZElasticityMaterial(int id);
 	
@@ -52,6 +52,18 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
         fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
         fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
 
+    }
+    
+    /// Set the material configuration to plane strain
+    void SetPlaneStrain()
+    {
+        fPlaneStress = 0;
+    }
+    
+    /// Set the material configuration to plane stress
+    void SetPlaneStress()
+    {
+        fPlaneStress = 1;
     }
     
     /** @brief Set forcing function */
@@ -89,10 +101,10 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
     virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 
     /** @brief Calculates the element stiffness matrix - simulate compaction as aditional variable */
-    virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<STATE> &ef)
-    {
-        DebugStop();
-    }
+//    virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<STATE> &ef)
+//    {
+//        DebugStop();
+//    }
     
     void ContributeVecShape(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
@@ -199,7 +211,7 @@ public:
 	
 	
 	
-private:
+protected:
 	/** @brief Elasticity modulus */
 	REAL fE;
 	
