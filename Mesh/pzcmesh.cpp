@@ -2015,6 +2015,46 @@ void TPZCompMesh::AssembleError(TPZFMatrix<REAL> &estimator, int errorid){
 	
 }
 
+/// Integrate the postprocessed variable name over the elements included in the set matids
+TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<int> &matids)
+{
+    // the postprocessed index of the varname for each material id
+    std::map<int,int> variableids;
+    int nvars = 0;
+    
+    std::map<int,TPZMaterial *>::iterator itmap;
+    for (itmap = MaterialVec().begin(); itmap != MaterialVec().end(); itmap++) {
+        if (matids.find(itmap->first) != matids.end()) {
+            variableids[itmap->first] = itmap->second->VariableIndex(varname);
+            nvars = itmap->second->NSolutionVariables(variableids[itmap->first]);
+        }
+    }
+    TPZManVector<STATE,3> result(nvars,0.);
+    long nelem = NElements();
+    for (long el=0; el<nelem; el++) {
+        TPZCompEl *cel = Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel) {
+            continue;
+        }
+        int matid = gel->MaterialId();
+        if (matids.find(matid) == matids.end()) {
+            continue;
+        }
+        TPZManVector<STATE,3> locres(nvars,0.);
+        locres = cel->IntegrateSolution(variableids[matid]);
+        for (int iv=0; iv<nvars; iv++)
+        {
+            result[iv] += locres[iv];
+        }
+    }
+    return result;
+}
+
+
 /*
 void TPZCompMesh::SaddlePermute()
 {

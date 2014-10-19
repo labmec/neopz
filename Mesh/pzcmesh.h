@@ -587,6 +587,13 @@ public:
     void SaddlePermute();
     void SaddlePermute2();
 
+    /// Integrate the variable name over the mesh
+    /*
+     * @param varname name of the variable that will be integrated
+     * @param matids ids of the materials that will contribute to the integral
+     */
+    TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
+
 	
 	/**
 	 * @brief Evaluates the error given the two vectors of the analised parameters
