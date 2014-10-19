@@ -32,12 +32,14 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	
 	// Comp
 	int sideorder = SideOrder(TSHAPE::NSides-1);
-	int integrationorder = 2*sideorder;
-//	if (integrationorder > fIntRule.GetMaxOrder()) integrationorder = fIntRule.GetMaxOrder();
-	//  TPZManVector<int,3> order(3,2*sideorder+2);
-	TPZManVector<int,3> order(3,integrationorder);
-	//TPZManVector<int,3> order(3,20);
-	fIntRule.SetOrder(order);
+    TPZMaterial *mat = Material();
+    if (Material())
+    {
+        int order = mat->IntegrationRuleOrder(MaxOrder());
+        TPZManVector<int,3> ord(gel->Dimension(),order);
+        fIntRule.SetOrder(ord);
+    }
+
 	
 }
 
