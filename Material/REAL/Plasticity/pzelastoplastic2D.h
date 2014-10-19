@@ -64,6 +64,10 @@ public:
 	 * the finite element approximation*/
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
+    /**returns the solution associated with the var index based on
+     * the finite element approximation*/
+    virtual void Solution(TPZVec<TPZMaterialData> &data, int var, TPZVec<REAL> &Solout);
+    
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
 	 * @param data [in] stores all input data
@@ -90,7 +94,7 @@ public:
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 */
-	virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &data, REAL weight, TPZFMatrix<STATE> &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -157,13 +161,13 @@ public:
 	 * @param DeltaStrain [out] 
 	 * @param data [in]
 	 */
-	void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
+	virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
 	
     /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
      * @param DeltaStrain [out]
      * @param data [in]
      */
-    void ComputeDeltaStrainVector(TPZVec<TPZMaterialData> & data, TPZFMatrix<REAL> &DeltaStrain);
+    virtual void ComputeDeltaStrainVector(TPZVec<TPZMaterialData> & data, TPZFMatrix<REAL> &DeltaStrain);
     
 	
 	/** Calls the plasticity template aggregate applyStrainComputeDep method
@@ -172,7 +176,7 @@ public:
 	 *  @param Stress [out]
 	 *  @param Dep [out]
 	 */
-	void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+	virtual void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,
 									TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
 	
 	/** Calls the plasticity template aggregate applyStrainComputeDep method
@@ -180,7 +184,7 @@ public:
 	 *  @param DeltaStrain [in]
 	 *  @param Stress [out]
 	 */
-	void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+	virtual void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,
 									TPZFMatrix<REAL> & Stress);
 	
 	
@@ -203,13 +207,6 @@ public:
 	 */
 	virtual void Read(TPZStream &buf, void *context);
     
-    /**
-     * Set the total overburden
-     */
-    void SetTotalOverburden(STATE sigmaz)
-    {
-        fSigmaZ = sigmaz;
-    }
 	
 protected:
 	
@@ -220,7 +217,7 @@ protected:
      * @brief Vertical overburden total tension
      */
     STATE fSigmaZ;
-	
+    
 };
 
 #endif

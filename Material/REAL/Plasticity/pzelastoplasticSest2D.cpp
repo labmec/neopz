@@ -23,7 +23,7 @@
  * Default constructor
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlastic2D<T, TMEM>()
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlastic2D<T, TMEM>(), fZDeformation(0.)
 {
 }
 
@@ -33,7 +33,7 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlast
  *  vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress, STATE sigmaZ):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress, sigmaZ)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress, STATE sigmaZ):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress, sigmaZ), fZDeformation(0.)
 {
 }
 
@@ -43,10 +43,46 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int Plane
  *  object within the vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlastic2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation)
 {
     
 }
+
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
+{
+    TPZFNMatrix<9> DSolXYZ(3,3,0.);
+    data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
+    if (DeltaStrain.Rows() != 6) {
+        DebugStop();
+    }
+    //  DeltaStrain.Redim(3,1);
+    DeltaStrain(_XX_,0) = DSolXYZ(0,0);
+    DeltaStrain(_YY_,0) = DSolXYZ(1,1);
+    DeltaStrain(_XY_,0) = 0.5 * ( DSolXYZ(1,0) + DSolXYZ(0,1) );
+    DeltaStrain(_XZ_,0) = 0.;
+    DeltaStrain(_YZ_,0) = 0.;
+    DeltaStrain(_ZZ_,0) = fZDeformation;
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
+{
+    
+    if (DeltaStrain.Rows() != 6) {
+        DebugStop();
+    }
+    TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);//
+    if (this->fPlaneStrain) //
+    {//
+        
+    }
+    else//PlaneStress
+    {
+        DebugStop();
+    }
+}
+
 
 template <class T, class TMEM>
 int TPZMatElastoPlasticSest2D<T,TMEM>::ClassId() const

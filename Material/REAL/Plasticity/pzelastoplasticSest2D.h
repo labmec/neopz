@@ -53,7 +53,7 @@ public:
 	 *  Upon return vectorindex contains the index of the material
 	 *  object within the vector
 	 */
-	TPZMatElastoPlasticSest2D(const TPZMatElastoPlastic2D<T,TMEM> &mat);	
+	TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat);
 	
     /** @brief Creates a new material from the current object  */
     virtual TPZMaterial * NewMaterial() {
@@ -65,6 +65,48 @@ public:
 	 * Unique identifier for serialization purposes
 	 */
     virtual int ClassId() const;
+    
+    /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
+     * @param DeltaStrain [out]
+     * @param data [in]
+     */
+    void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
+    
+    /** Calls the plasticity template aggregate applyStrainComputeDep method
+     *  @param data [in]
+     *  @param DeltaStrain [in]
+     *  @param Stress [out]
+     *  @param Dep [out]
+     */
+    void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,
+                                    TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
+    
+
+        
+    /**
+     * Set the deformation in the Z direction
+     */
+    void SetZDeformation(STATE epsz)
+    {
+        fZDeformation = epsz;
+    }
+    
+    /**
+     * @brief return the increment in z deformation
+     */
+    STATE ZDeformation()
+    {
+        return fZDeformation;
+    }
+
+private:
+    /**
+     * @brief ZDeformation of the mesh
+     */
+    STATE fZDeformation;
+    
+
+
 };
 
 #endif /* defined(__PZ__pzelastoplasticSest2D__) */

@@ -44,7 +44,10 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
           EYield,//15
           EMisesStress,//12
           EI1Stress,//13
-          EJ2Stress//14
+          EJ2Stress,//14
+          EXStress,//15
+          EYStress,//16
+          EZStress//17
           
 };
 		

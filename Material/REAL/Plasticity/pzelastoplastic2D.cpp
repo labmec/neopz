@@ -40,7 +40,7 @@ TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D() : TPZMatElastoPlastic<T,T
 }
 
 template <class T, class TMEM>
-TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D(int id , int PlaneStrainOrPlaneStress, REAL fSigmaZ) : TPZMatElastoPlastic<T,TMEM>(id)
+TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D(int id , int PlaneStrainOrPlaneStress, REAL SigmaZ) : TPZMatElastoPlastic<T,TMEM>(id), fSigmaZ(SigmaZ)
 {
 	fPlaneStrain = PlaneStrainOrPlaneStress;
 }
@@ -69,17 +69,12 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress)
 {
 	
-	TPZFNMatrix<6> DeltaStrain3D(6,1,0.);
     
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
 	
-	//ELASTIC DeltaStrain3D = 0
-	DeltaStrain3D(_XX_,0) = DeltaStrain(_XX_,0);//
-	DeltaStrain3D(_YY_,0) = DeltaStrain(_YY_,0);//
-	DeltaStrain3D(_XY_,0) = DeltaStrain(_XY_,0);//
-	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain3D,Stress);//
+	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);//
 	if (fPlaneStrain) //
 	{//
 		
@@ -99,13 +94,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData &
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
     }
-	TPZFNMatrix<6> DeltaStrain3D(6,1,0.);
-	
-	//ELASTIC DeltaStrain3D = 0
-	DeltaStrain3D(_XX_,0) = DeltaStrain(_XX_,0);//
-	DeltaStrain3D(_YY_,0) = DeltaStrain(_YY_,0);//
-	DeltaStrain3D(_XY_,0) = DeltaStrain(_XY_,0);//
-	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain3D,Stress,Dep);//
+	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);//
 	if (fPlaneStrain) //
 	{//
 		
@@ -132,7 +121,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 	
 	TPZFNMatrix<4>  Deriv(2,2);
 	TPZFNMatrix<36> Dep(6,6);
-	TPZFNMatrix<3>  DeltaStrain(6,1);
+	TPZFNMatrix<6>  DeltaStrain(6,1);
 	TPZFNMatrix<6>  Stress(6,1);
   int ptindex = data.intGlobPtIndex;
   
@@ -302,7 +291,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 	const int phr = phi.Rows();
 	
 	TPZFNMatrix<36>  Deriv(6,6);
-	TPZFNMatrix<3>  DeltaStrain(6,1);
+	TPZFNMatrix<6>  DeltaStrain(6,1);
 	TPZFNMatrix<6>  Stress(6,1);
   int ptindex = data.intGlobPtIndex;
   
@@ -453,12 +442,14 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &data, RE
             data[0].dsol[0] = locdsol[is];
             
             this->ComputeDeltaStrainVector(data[0], DeltaStrain);
+            DeltaStrain(_ZZ_,0) = data[1].sol[0][0];
             this->ApplyDeltaStrainComputeDep(data[0], DeltaStrain, Stress, Dep);
         }
     }
     else
     {
         this->ComputeDeltaStrainVector(data[0], DeltaStrain);
+        DeltaStrain(_ZZ_,0) = data[1].sol[0][0];
         this->ApplyDeltaStrainComputeDep(data[0], DeltaStrain, Stress, Dep);
     }
 #ifdef MACOS
@@ -472,22 +463,25 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &data, RE
 #ifdef LOG4CXX
     if(elastoplasticLogger->isDebugEnabled())
 	{
-		std::stringstream sout;
-		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
-		sout << "\nIntegration Local Point index = " << data[0].intGlobPtIndex;
-		sout << "\nIntegration Global Point index = " << data[0].intGlobPtIndex;
-		sout << "\ndata.axes = " << data[0].axes;
-		sout << "\nDep " <<endl;
-		sout << Dep(_XX_,_XX_) << "\t" << Dep(_XX_,_YY_) << "\t" << Dep(_XX_,_XY_) <<"\n";
-		sout << Dep(_YY_,_XX_) << "\t" << Dep(_YY_,_YY_) << "\t" << Dep(_YY_,_XY_) <<"\n";
-		sout << Dep(_XY_,_XX_) << "\t" << Dep(_XY_,_YY_) << "\t" << Dep(_XY_,_XY_) <<"\n";
-		
-		sout << "\nStress " <<endl;
-		sout << Stress(_XX_,0) << "\t" << Stress(_YY_,0) << "\t" << Stress(_XY_,0) <<"\n";
-		
-		sout << "\nDELTA STRAIN " <<endl;
-		sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
-		sout << "data.phi" << data[0].phi;
+        std::stringstream sout;
+        sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***\n";
+        sout << "Integration Local Point index = " << data[0].intGlobPtIndex;
+        sout << " Integration Global Point index = " << data[0].intGlobPtIndex << std::endl;
+        //		sout << "\ndata.axes = " << data[0].axes;
+        //		sout << "\nDep " <<endl;
+        //        Dep.Print("Dep",sout,EMathematicaInput);
+        
+        sout << "Stress ";
+        for (int i=0; i<6; i++) {
+            sout << Stress(i,0) << ' ';
+        }
+        sout << std::endl;
+        
+        sout << "DELTA STRAIN ";
+        for (int i=0; i<6; i++) {
+            sout << DeltaStrain(i,0) << ' ';
+        }
+        //		sout << "data[0].phi" << data[0].phi;
 		
 		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
 	}
@@ -569,17 +563,17 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &data, RE
 			
 		}
 	}
-    ef(phr*nstate,0) += fSigmaZ + biotpress(0,0) - Stress(2,2);
-    for (int in=0; in<phr; in++) {
-        ek(in*nstate,phr*nstate) += weight*(Dep(_XY_,_ZZ_)*dphiXY(1,in)/2.+Dep(_XX_,_ZZ_)*dphiXY(0,in));
-        ek(in*nstate+1,phr*nstate) += weight*(Dep(_XY_,_ZZ_)*dphiXY(0,in)/2.+Dep(_YY_,_ZZ_)*dphiXY(1,in));
-        
-        ek(phr*nstate,in*nstate) += weight*(Dep(_ZZ_,_XX_)*dphiXY(0,in)+Dep(_ZZ_,_XY_)*dphiXY(1,in)/2.);
-        ek(phr*nstate,in*nstate+1) += weight*(Dep(_ZZ_,_XY_)*dphiXY(0,in)/2.+Dep(_ZZ_,_YY_)*dphiXY(1,in));
-    }
+    ef(phr*nstate,0) += 0.*weight * (fSigmaZ + biotpress(0,0) - Stress(_ZZ_,0));
+//    for (int in=0; in<phr; in++) {
+//        ek(in*nstate,phr*nstate) += weight*(Dep(_XY_,_ZZ_)*dphiXY(1,in)/2.+Dep(_XX_,_ZZ_)*dphiXY(0,in));
+//        ek(in*nstate+1,phr*nstate) += weight*(Dep(_XY_,_ZZ_)*dphiXY(0,in)/2.+Dep(_YY_,_ZZ_)*dphiXY(1,in));
+//        
+//        ek(phr*nstate,in*nstate) += weight*(Dep(_ZZ_,_XX_)*dphiXY(0,in)+Dep(_ZZ_,_XY_)*dphiXY(1,in)/2.);
+//        ek(phr*nstate,in*nstate+1) += weight*(Dep(_ZZ_,_XY_)*dphiXY(0,in)/2.+Dep(_ZZ_,_YY_)*dphiXY(1,in));
+//    }
     ek(phr*nstate,phr*nstate) += weight*Dep(_ZZ_,_ZZ_);
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -606,7 +600,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &data, RE
 	const int phr = phi.Rows();
 	
 	TPZFNMatrix<4>  Deriv(2,2);
-	TPZFNMatrix<3>  DeltaStrain(6,1);
+	TPZFNMatrix<6>  DeltaStrain(6,1);
 	TPZFNMatrix<6>  Stress(6,1);
     int ptindex = data[0].intGlobPtIndex;
     
@@ -655,17 +649,26 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &data, RE
     if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
-		sout << "\nIntegration Local Point index = " << data[0].intGlobPtIndex;
-		sout << "\nIntegration Global Point index = " << data[0].intGlobPtIndex;
-		sout << "\ndata.axes = " << data[0].axes;
-		sout << "\nStress " <<endl;
-		sout << Stress(_XX_,0) << "\t" << Stress(_YY_,0) << "\t" << Stress(_XY_,0) <<"\n";
-		sout << "\nDELTA STRAIN " <<endl;
-		sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
-		sout << "data.phi" << data[0].phi;
+        sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***\n";
+        sout << "Integration Local Point index = " << data[0].intGlobPtIndex;
+        sout << " Integration Global Point index = " << data[0].intGlobPtIndex << std::endl;
+        //		sout << "\ndata.axes = " << data[0].axes;
+        //		sout << "\nDep " <<endl;
+        //        Dep.Print("Dep",sout,EMathematicaInput);
+        
+        sout << "Stress ";
+        for (int i=0; i<6; i++) {
+            sout << Stress(i,0) << ' ';
+        }
+        sout << std::endl;
+        
+        sout << "DELTA STRAIN ";
+        for (int i=0; i<6; i++) {
+            sout << DeltaStrain(i,0) << ' ';
+        }
+        //		sout << "data[0].phi" << data[0].phi;
 		
-		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
+		LOGPZ_DEBUG(elastoplasticLogger,sout.str());
 	}
 #endif
     /*
@@ -703,10 +706,10 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &data, RE
 		ef(in*nstate+1,0) += weight * val;
 		
 	}
-    ef(phr*nstate,0) += fSigmaZ + biotpress(0,0) - Stress(2,2);
+    ef(phr*nstate,0) += 0.*weight*(fSigmaZ + biotpress(0,0) - Stress(_ZZ_,0));
 
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1037,6 +1040,20 @@ void TPZMatElastoPlastic2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
 	
 }
 
+template <class T, class TMEM>
+void TPZMatElastoPlastic2D<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
+    TPZMaterialData datalocal(datavec[0]);
+    datalocal.sol[0].Resize(3,0.);
+    datalocal.dsol[0].Resize(3,3);
+    datalocal.dsol[0](2,0) = 0.;
+    datalocal.dsol[0](2,1) = 0.;
+    datalocal.dsol[0](2,2) = datavec[1].sol[0][0];
+    datalocal.dsol[0](0,2) = 0.;
+    datalocal.dsol[0](1,2) = 0.;
+    TPZMatElastoPlastic<T,TMEM>::Solution(datalocal,var,Solout);
+}
+
+
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
@@ -1060,7 +1077,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(TPZVec<TPZMaterialD
 {
     TPZFNMatrix<9> DSolXYZ(3,3,0.);
     data[0].axes.Multiply(data[0].dsol[0],DSolXYZ,1/*transpose*/);
-    DeltaStrain.Redim(3,1);
+    DeltaStrain.Redim(6,1);
     DeltaStrain(_XX_,0) = DSolXYZ(0,0);
     DeltaStrain(_YY_,0) = DSolXYZ(1,1);
     DeltaStrain(_XY_,0) = 0.5 * ( DSolXYZ(1,0) + DSolXYZ(0,1) );
