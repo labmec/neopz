@@ -199,7 +199,8 @@ REAL TPZPoroElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacem
 	
 	fRhs.Zero();
 	
-	REAL norm = this->LocalAssemble(0);
+    Assemble();
+	REAL norm = Norm(Rhs());
 	
 	this->SetUpdateMem(false);
 	
