@@ -61,7 +61,7 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(i
 template <class T, class TMEM>
 TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(const TPZMatElastoPlastic &mat) : TPZMatWithMem<TMEM>(mat), 
                                fForce(mat.fForce), fRhoB(mat.fRhoB), fPostProcessDirection(mat.fPostProcessDirection),
-                            fTol(mat.fTol)
+                               fPlasticity(mat.fPlasticity), fTol(mat.fTol)
 {
 #ifdef LOG4CXX
     if(elastoplasticLogger->isDebugEnabled())
@@ -181,6 +181,9 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
 	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain;
 	if(!strcmp("EMisesStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EMisesStress;
 	if(!strcmp("DisplacementMem",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EDisplacementMem;
+    if(!strcmp("XStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EXStress;
+    if(!strcmp("YStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EYStress;
+    if(!strcmp("ZStress",     name.c_str()))  return TPZMatElastoPlastic<T,TMEM>::EZStress;
 	if(!strcmp("PlasticSqJ2El",     name.c_str()))  return 100;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
    PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
@@ -212,6 +215,9 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSqJ2)               return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha
     if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)               return 1; 
+    if(var == TPZMatElastoPlastic<T,TMEM>::EXStress)                   return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EYStress)                   return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EZStress)                   return 1;
    
     if(var == 100) return 1;
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -233,8 +239,9 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	
 
 	int intPt = data.intGlobPtIndex;
+    TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
 	T plasticloc(fPlasticity);
-    plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
+    plasticloc.SetState(Memory.fPlasticState);
 
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacement){
 		int i;
@@ -251,36 +258,51 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
     }
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain){
-		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+		TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
 		Solout[0] = totalStrain.XX();
 		Solout[1] = totalStrain.YY();
 		Solout[2] = totalStrain.ZZ();
 	}//ENormalStrain 
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EShearStrain){
-		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+		TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
 		Solout[0] = totalStrain.XY();
 		Solout[1] = totalStrain.XZ();
 		Solout[2] = totalStrain.YZ();
 	}//EShearStrain 
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStress){
-		TPZTensor<REAL> & Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+		TPZTensor<REAL> & Sigma = Memory.fSigma;
 		Solout[0] = Sigma.XX();
 		Solout[1] = Sigma.YY();
 		Solout[2] = Sigma.ZZ();
 
 	}//ENormalStress 
 	else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EXStress){
+        TPZTensor<REAL> & Sigma = Memory.fSigma;
+        Solout[0] = Sigma.YY();
+    }
+    else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EZStress){
+        TPZTensor<REAL> & Sigma = Memory.fSigma;
+        Solout[0] = Sigma.ZZ();
+    }
+    else
+    if(var == TPZMatElastoPlastic<T,TMEM>::EXStress){
+        TPZTensor<REAL> & Sigma = Memory.fSigma;
+        Solout[0] = Sigma.XX();
+    }
+    else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EShearStress){
-		TPZTensor<REAL> & Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+		TPZTensor<REAL> & Sigma = Memory.fSigma;
 		Solout[0] = Sigma.XY();
 		Solout[1] = Sigma.XZ();
 		Solout[2] = Sigma.YZ();
 	}//EShearStress 
 	else
 	if(var == TPZMatElastoPlastic<T,TMEM>::EPrincipalStress){
-        TPZTensor<REAL> & Sigma = TPZMatWithMem<TMEM>::fMemory[intPt].fSigma;
+        TPZTensor<REAL> & Sigma = Memory.fSigma;
         TPZTensor<REAL>::TPZDecomposed eigensystem;
         Sigma.EigenSystem(eigensystem);
         for(int i=0;i<3;i++)Solout[i]= eigensystem.fEigenvalues[i];
