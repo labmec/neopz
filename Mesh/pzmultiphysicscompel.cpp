@@ -482,6 +482,58 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 }//void
 
 template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix &ef)
+{
+    const int ncon = this->NConnects();
+    int numeq = 0;
+    int ic;
+    
+    for(ic=0; ic<ncon; ic++)
+    {
+        long neqThisConn = Connect(ic).NDof(*Mesh());
+        numeq += neqThisConn;
+    }
+    
+    long nref = this->fElementVec.size();
+    int nstate = 0;
+    //nstate=1;
+    int numloadcases = 1;
+    for (long iref=0; iref<nref; iref++) {
+        
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        if (! msp) {
+            continue;
+        }
+        TPZMaterial *mat = msp->Material();
+        nstate += mat->NStateVariables();
+        numloadcases = mat->NumLoadCases();
+        
+    }
+    
+    const int numstate = nstate;
+    ef.fMat.Redim(numeq,numloadcases);
+    ef.fBlock.SetNBlocks(ncon);
+    ef.fNumStateVars = numstate;
+    
+    int i;
+    for(i=0; i<ncon; i++){
+        unsigned int ndof = Connect(i).NDof(*Mesh());
+#ifdef DEBUG
+        TPZConnect &c = Connect(i);
+        if (c.NShape()*c.NState() != ndof) {
+            DebugStop();
+        }
+#endif
+        ef.fBlock.Set(i,ndof);
+    }
+    ef.fConnect.Resize(ncon);
+    for(i=0; i<ncon; i++){
+        (ef.fConnect)[i] = ConnectIndex(i);
+    }
+    
+}//void
+
+template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec)
 {
 	long nref = this->fElementVec.size();
@@ -541,7 +593,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
 	REAL weight = 0.;
 	
-	TPZManVector<int> ordervec;
+	TPZManVector<int,3> ordervec;
 	//ordervec.resize(nref);
 	for (long iref=0;  iref<nref; iref++)
 	{
@@ -591,6 +643,170 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
 }//CalcStiff
+
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
+{
+    TPZMaterial * material = Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        ef.Reset();
+        return;
+    }
+    
+    InitializeElementMatrix(ef);
+    
+    if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+    
+    TPZManVector<TPZMaterialData,3> datavec;
+    const long nref = fElementVec.size();
+    datavec.resize(nref);
+    InitMaterialData(datavec);
+    
+    TPZManVector<TPZTransform> trvec;
+    AffineTransform(trvec);
+    
+    int dim = Dimension();
+    TPZAutoPointer<TPZIntPoints> intrule;
+    
+    TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+    REAL weight = 0.;
+    
+    TPZManVector<int,3> ordervec;
+    //ordervec.resize(nref);
+    for (long iref=0;  iref<nref; iref++)
+    {
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        int svec;
+        if(msp)
+        {
+            ordervec.Resize(ordervec.size()+1);
+            svec = ordervec.size();
+        }
+        else
+        {
+            continue;
+        }
+        datavec[iref].p = msp->MaxOrder();
+        ordervec[svec-1] = datavec[iref].p;
+    }
+    int order = material->IntegrationRuleOrder(ordervec);
+    
+    TPZGeoEl *ref = this->Reference();
+    intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+    
+    TPZManVector<int,3> intorder(dim,order);
+    intrule->SetOrder(intorder);
+    int intrulepoints = intrule->NPoints();
+    if(intrulepoints > 1000) {
+        DebugStop();
+    }
+    
+    TPZFMatrix<REAL> jac, axe, jacInv;
+    REAL detJac;
+    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+    {
+        intrule->Point(int_ind,intpointtemp,weight);
+        ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
+        weight *= fabs(detJac);
+        datavec[0].intLocPtIndex = int_ind;
+        datavec[1].intLocPtIndex = int_ind;
+        
+        this->ComputeRequiredData(datavec,intpointtemp,trvec);
+        
+        material->Contribute(datavec,weight,ef.fMat);
+    }//loop over integratin points
+}//CalcStiff
+
+/**
+ * @brief Compute the integral of a variable
+ */
+template <class TGeometry>
+TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
+{
+    TPZManVector<STATE> result;
+    TPZMaterial * material = Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        return result;
+    }
+    
+    if (this->NConnects() == 0) return result;//boundary discontinuous elements have this characteristic
+    
+    TPZMultiphysicsCompEl<TGeometry> *thisnonconst = (TPZMultiphysicsCompEl<TGeometry> *) this;
+    
+    TPZManVector<TPZMaterialData,3> datavec;
+    const long nref = fElementVec.size();
+    datavec.resize(nref);
+    thisnonconst->InitMaterialData(datavec);
+    
+    TPZManVector<TPZTransform> trvec;
+    AffineTransform(trvec);
+    
+    int dim = Dimension();
+    TPZAutoPointer<TPZIntPoints> intrule;
+    
+    TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+    REAL weight = 0.;
+    
+    TPZManVector<int,3> ordervec;
+    //ordervec.resize(nref);
+    for (long iref=0;  iref<nref; iref++)
+    {
+        datavec[iref].fNeedsSol = true;
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        int svec;
+        if(msp)
+        {
+            ordervec.Resize(ordervec.size()+1);
+            svec = ordervec.size();
+        }
+        else
+        {
+            continue;
+        }
+        datavec[iref].p = msp->MaxOrder();
+        ordervec[svec-1] = datavec[iref].p;
+    }
+    int order = material->IntegrationRuleOrder(ordervec);
+    
+    TPZGeoEl *ref = this->Reference();
+    intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+    
+    TPZManVector<int,3> intorder(dim,order);
+    intrule->SetOrder(intorder);
+    int intrulepoints = intrule->NPoints();
+    if(intrulepoints > 1000) {
+        DebugStop();
+    }
+    int nvar = material->NSolutionVariables(var);
+    TPZManVector<STATE> solout(var);
+    result.Resize(nvar, 0.);
+    
+    TPZFMatrix<REAL> jac, axe, jacInv;
+    REAL detJac;
+    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+    {
+        intrule->Point(int_ind,intpointtemp,weight);
+        ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
+        weight *= fabs(detJac);
+        datavec[0].intLocPtIndex = int_ind;
+        datavec[1].intLocPtIndex = int_ind;
+        
+        
+        thisnonconst->ComputeRequiredData(datavec,intpointtemp,trvec);
+        
+        material->Solution(datavec, var, solout);
+        
+        for (int iv=0; iv<nvar; iv++) {
+            result[iv] += weight*solout[iv];
+        }
+
+    }//loop over integratin points
+    
+    return result;
+}
+
 
 
 template <class TGeometry>
