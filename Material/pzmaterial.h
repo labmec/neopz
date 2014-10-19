@@ -255,6 +255,19 @@ public:
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
     /**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
+     * @param datavec [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     */
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
+    {
+        TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows(),0.);
+        Contribute(datavec, weight, ek, ef);
+    }
+    
+    /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data [in] stores all input data
      * @param weight [in] is the weight of the integration rule
