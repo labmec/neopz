@@ -201,7 +201,8 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
                     jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
                 }
             }
-            REAL prod = ivec(0,0)*jvecZ(0,0) + ivec(1,0)*jvecZ(1,0) + ivec(2,0)*jvecZ(2,0);
+            REAL prod = 0.;
+            for(int id=0; id < fDim;id++) prod += ivec(id,0)*jvecZ(id,0);
             ek(iq,jq) += fvisc*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
 
             
@@ -487,7 +488,8 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
                 {
                     NormalProjectioni += ivec(iloc,0)*normal[iloc];
                 }
-                ef(iq,0) += gBigNumber*weight*Qn*NormalProjectioni;
+                ef(iq,0) += gBigNumber*weight*(Qn)*NormalProjectioni;
+                //ef(iq,0) += gBigNumber*weight*(ValorPhin - Qn)*NormalProjectioni;
 
                 for (int jq=0; jq<phrq; jq++)
                 {
@@ -510,26 +512,26 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
 
                 }
             }
-            //termo fonte referente a equacao da pressao no entra!!!!
-            for (int jp = 0; jp < phrp ; jp++)
-            {
-                TPZFNMatrix<3> jvec(3,1);
-                int jvecind = dataleft[0].fVecShapeIndex[jp].first;
-                int jshapeind = dataleft[0].fVecShapeIndex[jp].second;
-                jvec(0,0) = dataleft[0].fNormalVec(0,jvecind);
-                jvec(1,0) = dataleft[0].fNormalVec(1,jvecind);
-                jvec(2,0) = dataleft[0].fNormalVec(2,jvecind);
-                
-                jvec *= phiQ(jshapeind,0);
-                
-                REAL NormalProjectionj = 0.;
-                for(int iloc=0; iloc<fDim; iloc++)
-                {
-                    NormalProjectionj += jvec(iloc,0)*normal[iloc];
-                }
-
-                ef(jp,0) += gBigNumber*weight*Qn*NormalProjectionj;
-            }
+//            //termo fonte referente a equacao da pressao no entra!!!!
+//            for (int jp = 0; jp < phrp ; jp++)
+//            {
+//                TPZFNMatrix<3> jvec(3,1);
+//                int jvecind = dataleft[0].fVecShapeIndex[jp].first;
+//                int jshapeind = dataleft[0].fVecShapeIndex[jp].second;
+//                jvec(0,0) = dataleft[0].fNormalVec(0,jvecind);
+//                jvec(1,0) = dataleft[0].fNormalVec(1,jvecind);
+//                jvec(2,0) = dataleft[0].fNormalVec(2,jvecind);
+//                
+//                jvec *= phiQ(jshapeind,0);
+//                
+//                REAL NormalProjectionj = 0.;
+//                for(int iloc=0; iloc<fDim; iloc++)
+//                {
+//                    NormalProjectionj += jvec(iloc,0)*normal[iloc];
+//                }
+//
+//                ef(jp,0) += gBigNumber*weight*Qn*NormalProjectionj;
+//            }
 
             // fim neumann
         }
@@ -578,7 +580,7 @@ int TPZMatPoissonD3::VariableIndex(const std::string &name){
 	if(!strcmp("Pressure",name.c_str()))       return 2;
     if(!strcmp("GradFluxX",name.c_str()))      return 3;
     if(!strcmp("GradFluxY",name.c_str()))      return 4;
-    if(!strcmp("DivFlux",name.c_str()))        return 5;
+    if(!strcmp("GradFluxZ",name.c_str()))      return 5;
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))      return 7;
 	
@@ -590,7 +592,7 @@ int TPZMatPoissonD3::NSolutionVariables(int var){
 	if(var == 2) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
-    if(var == 5) return 1;
+    if(var == 5) return 3;
     if(var == 6) return 1;
     if(var == 7) return fDim;
 	return TPZMaterial::NSolutionVariables(var);
@@ -672,8 +674,14 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 1){ //function (state variable Q)
-		Solout[0] = datavec[0].sol[0][0];
-        Solout[1] = datavec[0].sol[0][1];
+        for (int ip = 0; ip<Dimension(); ip++)
+        {
+            Solout[ip] = datavec[0].sol[0][ip];
+        }
+        
+//		Solout[0] = datavec[0].sol[0][0];
+//        Solout[1] = datavec[0].sol[0][1];
+//        Solout[2] = datavec[0].sol[0][2];
 		return;
 	}
     
@@ -683,27 +691,42 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 	}
     
     if(var==3){
-        Solout[0]=datavec[0].dsol[0](0,0);
-        Solout[1]=datavec[0].dsol[0](1,0);
-        Solout[2]=datavec[0].dsol[0](2,0);
+        for (int ip = 0; ip<Dimension(); ip++)
+        {
+            Solout[ip] = datavec[0].dsol[0](ip,0);
+        }
+//        Solout[0]=datavec[0].dsol[0](0,0);
+//        Solout[1]=datavec[0].dsol[0](1,0);
+//        Solout[2]=datavec[0].dsol[0](2,0);
         return;
     }
     
     if(var==4){
-        Solout[0]=datavec[0].dsol[0](0,1);
-        Solout[1]=datavec[0].dsol[0](1,1);
-        Solout[2]=datavec[0].dsol[0](2,1);
+        for (int ip = 0; ip<Dimension(); ip++)
+        {
+            Solout[ip] = datavec[0].dsol[0](ip,1);
+        }
+//        Solout[0]=datavec[0].dsol[0](0,1);
+//        Solout[1]=datavec[0].dsol[0](1,1);
+//        Solout[2]=datavec[0].dsol[0](2,1);
         return;
     }
     
     if(var==5){
-        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
+        for (int ip = 0; ip<Dimension(); ip++)
+        {
+            Solout[ip] = datavec[0].dsol[0](ip,2);
+        }
+
+//        Solout[0]=datavec[0].dsol[0](0,2);
+//        Solout[1]=datavec[0].dsol[0](1,2);
+//        Solout[2]=datavec[0].dsol[0](2,2);
         return;
     }
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(2,1);
+	TPZFMatrix<STATE> flux(fDim,1);
     
     //Exact soluion
 	if(var == 6){
@@ -714,8 +737,13 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     if(var == 7){
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-		Solout[0] = flux(0,0);
-        Solout[1] = flux(1,0);
+        for (int ip = 0; ip<Dimension(); ip++)
+        {
+            Solout[ip] = flux(ip,0);
+        }
+//		Solout[0] = flux(0,0);
+//        Solout[1] = flux(1,0);
+//        Solout[2] = flux(2,0);
 		return;
 	}//var7
     
@@ -734,6 +762,45 @@ void TPZMatPoissonD3::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 		datavec[i].fNeedsNormal = true;
 	}
 }
+
+
+//void TPZMatPoissonD3::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
+//	
+//    values.Fill(0.0);
+//	TPZVec<STATE> sol(1),dsol(fDim),div(1);
+//	if(data.numberdualfunctions) Solution(data,2,sol);//pressao
+//	Solution(data,1,dsol);//fluxo
+//	//Solution(data,14,div);//divergente
+//    
+//#ifdef LOG4CXX
+//    if(logdata->isDebugEnabled()){
+//		std::stringstream sout;
+//		sout<< "\n";
+//		sout << " Pto  " << data.x << std::endl;
+//		sout<< " pressao exata " <<u_exact <<std::endl;
+//		sout<< " pressao aprox " <<sol <<std::endl;
+//		sout<< " ---- "<<std::endl;
+//		sout<< " fluxo exato " <<du_exact(0,0)<<", " << du_exact(1,0)<<std::endl;
+//		sout<< " fluxo aprox " <<dsol<<std::endl;
+//		sout<< " ---- "<<std::endl;
+//		LOGPZ_DEBUG(logdata,sout.str())
+//    }
+//#endif
+//	
+//    
+//	//values[0] : pressure error using L2 norm
+//	if(data.numberdualfunctions){
+//		REAL diffP = abs(u_exact[0]-sol[0]);
+//		values[0]  = diffP*diffP;
+//	}
+//	//values[1] : flux error using L2 norm
+//	for(int id=0; id<fDim; id++) {
+//        REAL diffFlux = abs(dsol[id] - du_exact(id,0));
+//		values[1]  += diffFlux*diffFlux;
+//	}
+//}
+
+
 
 void TPZMatPoissonD3::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
@@ -784,67 +851,5 @@ void TPZMatPoissonD3::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 
 
 
-
-///** Returns the variable index associated with the name */
-//int TPZMatPoissonD3::VariableIndex(const std::string &name)
-//{
-//    if(!strcmp("Flux",name.c_str()))                return  1;
-//    if(!strcmp("Pressure",name.c_str()))            return  2;
-//	if(!strcmp("Saturation",name.c_str()))          return  3;
-//	if(!strcmp("SaturationFlux",name.c_str()))      return  4;
-//    if(!strcmp("DivFlux",name.c_str()))      return  5;
-//
-//	return TPZMaterial::VariableIndex(name);
-//}
-
-//int TPZMatPoissonD3::NSolutionVariables(int var){
-//    if(var == 1) return fDim;
-//	if(var == 2) return 1;
-//    if(var == 3) return 1;
-//    if(var == 4) return fDim;
-//    if(var == 5) return 1;
-//
-//	return TPZMaterial::NSolutionVariables(var);
-//}
-
-//void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
-//
-//	Solout.Resize(this->NSolutionVariables(var));
-//
-//    if(var == 1){ //function (state variable Q)
-//		Solout[0] = datavec[1].sol[0][0];
-//        Solout[1] = datavec[1].sol[0][1];
-//		return;
-//	}
-//
-//    if(var == 2){
-//		Solout[0] = datavec[2].sol[0][0];//function (state variable p)
-//		return;
-//	}
-//
-//	if(var == 3){
-//		Solout[0] = datavec[0].sol[0][0];//function (state variable S)
-//		return;
-//	}
-//
-//	if(var == 4) {
-//		int id;
-//		for(id=0 ; id<fDim; id++) {
-//            fConvDir[id] = datavec[1].sol[0][id];
-//			Solout[id] = fConvDir[id]*datavec[0].sol[0][0];//function (state variable Q*S)
-//		}
-//		return;
-//	}
-//
-//    if(var==5){
-//        Solout[0]=datavec[1].dsol[0](0,0)+datavec[1].dsol[0](1,1);
-//        return;
-//    }
-//
-//}
-
-//void TPZMatPoissonD3::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-//	DebugStop();
-//}
 
 
