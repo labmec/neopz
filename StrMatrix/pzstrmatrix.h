@@ -78,6 +78,13 @@ public:
 	/** @brief Assemble the global right hand side */
 	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
+    /** @brief Find the order to assemble the elements */
+    void OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder);
+    
+    /** @brief Create blocks of elements to parallel processing */
+    
+    void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elBlocked);
+    
 protected:
 	
 	/** @brief Assemble the global system of equations into the matrix which has already been created */
@@ -187,6 +194,14 @@ protected:
 		{
             return fStruct->ShouldCompute(matid);
 		}
+        // Vectors for mesh coloring
+        TPZVec<int> fnextBlocked,felSequenceColor;
+        std::map<int,int> felBlocked;
+        // Condition Variables
+        pthread_cond_t fCondition;
+        bool fSleeping;
+        
+        static void *ThreadWorkResidual(void *datavoid);
 		
 	};
     

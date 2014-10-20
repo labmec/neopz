@@ -598,7 +598,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 	TPZSkylineStructMatrix full(workablemesh);
     full.SetNumThreads(NumberOfThreads.get_value());
     // totototo
-    full.SetNumThreads(0);
+    //full.SetNumThreads(0);
     
     analysis.AddNoPenetration(-5, 0);
     analysis.AddNoPenetration(-4, 1);
