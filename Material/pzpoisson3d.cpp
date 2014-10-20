@@ -492,8 +492,9 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 			break;
             
         case 21:
-            Solout[0]=data.sol[0][0];
-            Solout[1]=data.sol[0][1];
+            for(int k=0;k<Dimension();k++){
+                Solout[k]=data.sol[0][k];
+            }
 			break;
             
 		case 11:
