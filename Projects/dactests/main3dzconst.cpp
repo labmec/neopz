@@ -154,9 +154,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     
     int p = 1;
@@ -255,8 +255,8 @@ int main(int argc, char *argv[])
             
             
             TPZCompMesh * mphysics = CMeshMixedZconst(gmesh,meshvec);
-//            ofstream arg5("cmeshmultiphysics.txt");
-//            mphysics->Print(arg5);
+            ofstream arg5("cmeshmultiphysics.txt");
+            mphysics->Print(arg5);
             //            TPZCompEl *cel = mphysics->Element(0);
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
@@ -266,8 +266,6 @@ int main(int argc, char *argv[])
             SolveSystZconst(an, mphysics);
             std::string plotfile("OurSolution1.vtk");
             PosProcessMultphysicsZconst(meshvec,  mphysics, an, plotfile);
-            ofstream arg5("cmeshmultiphysics.txt");
-            mphysics->Print(arg5);
             
             //Calculo do erro
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -858,7 +856,7 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     int dim = gmesh->Dimension();
     bool interface;
     TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); interface = true; // nesse material tem que ser true
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
+//    TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
     
     //incluindo os dados do problema
     //    if (!interface) {
@@ -996,11 +994,16 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 void SolveSystZconst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
     //TPZBandStructMatrix full(fCmesh);
-    TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+    TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
     //    TPZSkylineNSymStructMatrix full(fCmesh);
-    an.SetStructuralMatrix(full);
+    an.SetStructuralMatrix(skylstr);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt); //caso simetrico
+//    TPZFMatrix<STATE> rhs;
+//    TPZAutoPointer<TPZMatrix<STATE> > global = skylstr.CreateAssemble(rhs, 0, 0, 0);
+//    step.SetMatrix(global);
+//    TPZStepSolver<STATE> gmres;
+//    gmres.SetGMRES(20, 10, step, 1.e-9, 0);
     //	step.SetDirect(ELU);
     an.SetSolver(step);
     //    an.Assemble();

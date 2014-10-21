@@ -1240,14 +1240,14 @@ namespace pztopology {
             directions(i,71) = v3[i];
             directions(i,72) = v1[i];
             directions(i,73) = v3[i];
-            directions(i,74) = v1[i];
+            directions(i,74) = v2[i];
             directions(i,75) = v3[i];
             
             directions(i,76) = v1[i];
             directions(i,77) = v2[i];
 
-            directions(i,78) = v3[i];
-            directions(i,79) = v1[i];
+            directions(i,78) = v1[i];
+            directions(i,79) = v2[i];
             directions(i,80) = v3[i];
             
         }

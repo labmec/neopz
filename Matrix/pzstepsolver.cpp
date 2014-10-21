@@ -130,7 +130,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			{
 				std::stringstream sout;
 				sout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
-				LOGPZ_DEBUG(logger,sout.str().c_str());
+				if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,sout.str().c_str());
 			}
 #endif
 		}

@@ -1740,7 +1740,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		data.fNormalVec.Print("Normal vector ", sout);
+		data.fNormalVec.Print("Normal vector ", sout,EMathematicaInput);
         for (int i=0; i<TSHAPE::NCornerNodes; i++) {
             sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
         }
