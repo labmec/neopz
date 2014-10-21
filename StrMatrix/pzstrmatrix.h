@@ -195,8 +195,10 @@ protected:
             return fStruct->ShouldCompute(matid);
 		}
         // Vectors for mesh coloring
-        TPZVec<int> fnextBlocked,felSequenceColor;
         std::map<int,int> felBlocked;
+        /// Vector for mesh coloring
+        TPZVec<int> *fnextBlocked, *felSequenceColor;
+        
         // Condition Variables
         pthread_cond_t fCondition;
         bool fSleeping;
@@ -227,6 +229,9 @@ protected:
 	
     /// Object which will determine which equations will be assembled
     TPZEquationFilter fEquationFilter;
+    
+    /// Vector for mesh coloring
+    TPZVec<int> fnextBlocked, felSequenceColor;
     
 protected:
 	

@@ -45,16 +45,28 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 #include "tbb/task_group.h"
 #endif
 
-//#define NEW_MULTI_THREAD_ASSEMBLE
+#define SCA_PERF
+
+#define NEW_MULTI_THREAD_ASSEMBLE
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
 	this->SetNumThreads(0);
+#ifdef NEW_MULTI_THREAD_ASSEMBLE
+    TPZManVector<int> ElementOrder;
+    TPZStructMatrix::OrderElement(this->Mesh(), ElementOrder);
+    TPZStructMatrix::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+#endif
 }
 
 TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
 	fMesh = cmesh.operator->();
 	this->SetNumThreads(0);
+#ifdef NEW_MULTI_THREAD_ASSEMBLE
+    TPZManVector<int> ElementOrder;
+    TPZStructMatrix::OrderElement(this->Mesh(), ElementOrder);
+    TPZStructMatrix::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+#endif
 }
 
 TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
@@ -64,6 +76,10 @@ TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy) : fMesh(copy.fMesh
     }
 	fMaterialIds = copy.fMaterialIds;
 	fNumThreads = copy.fNumThreads;
+#ifdef NEW_MULTI_THREAD_ASSEMBLE
+    felSequenceColor = copy.felSequenceColor;
+    fnextBlocked = copy.fnextBlocked;
+#endif
 }
 
 TPZStructMatrix::~TPZStructMatrix() {}
@@ -117,7 +133,7 @@ void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> &
     }
 #ifdef SCA_PERF
     t1.stop();
-    printf("perf, assemble_stiff, %.2f, %d\n", t1.getUnits(), stiffness.Rows());
+    printf("perf, assemble_stiff, %.2f, %ld\n", t1.getUnits(), stiffness.Rows());
 #endif
     
     tpz_ass_stiff.stop();
@@ -1058,7 +1074,10 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
     {
         DebugStop();
     }
+    
     ThreadData threaddata(this, mat, rhs, fMaterialIds, guiInterface);
+    threaddata.fnextBlocked=&fnextBlocked;
+    threaddata.felSequenceColor=&felSequenceColor;
     
     const int numthreads = this->fNumThreads;
     TPZVec<pz_thread_t> allthreads(numthreads);
@@ -1070,9 +1089,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
         }
     }
     
-    TPZManVector<int> ElementOrder;
-    TPZStructMatrix::OrderElement(this->Mesh(), ElementOrder);
-    TPZStructMatrix::ElementColoring(this->Mesh(), ElementOrder, threaddata.felSequenceColor,threaddata.fnextBlocked);
+
     
     for(itr=0; itr<numthreads; itr++)
     {
@@ -1461,11 +1478,11 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
         //        }
         if(data->fNextElement < nel){
             if (!data->felBlocked.size() || data->felBlocked.begin()->first > localiel){
-                iel = data->felSequenceColor[localiel];
+                iel = (*data->felSequenceColor)[localiel];
                 
                 if(localiel==-1) DebugStop();
                 
-                int elBl = data->fnextBlocked[localiel];
+                int elBl = (*data->fnextBlocked)[localiel];
                 if (elBl >= 0){
                     data->felBlocked[elBl]++;
                     hasWork = true;
@@ -1562,7 +1579,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
             
             tht::EnterCriticalSection( data->fAccessElement );
             
-            int elBl = data->fnextBlocked[localiel];
+            int elBl = (*data->fnextBlocked)[localiel];
             if (elBl >= 0 && data->felBlocked.find(elBl) != data->felBlocked.end()){
                 data->felBlocked[elBl]--;
                 if (data->felBlocked[elBl] == 0){
