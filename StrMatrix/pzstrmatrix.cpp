@@ -47,7 +47,7 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 
 #define SCA_PERF
 
-#define NEW_MULTI_THREAD_ASSEMBLE
+//#define NEW_MULTI_THREAD_ASSEMBLE
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
