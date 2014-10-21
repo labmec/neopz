@@ -26,12 +26,12 @@ using namespace std;
 TPZMatPoissonD3::TPZMatPoissonD3():TPZDiscontinuousGalerkin(){
 	
     /** Valor da funcao de carga */
-    fCarga = 0.; //fF
+    fF = 0.; //fF
     
     /** Dimensao do dominio */
     fDim = 2;
     
-    /** Material id no initialized */
+    /** Material id not initialized */
     fMatId = -1;
     
     /** Coeficiente que multiplica o gradiente */
@@ -53,7 +53,7 @@ TPZMatPoissonD3::TPZMatPoissonD3(int matid, int dim):TPZDiscontinuousGalerkin(ma
     }
     
     /** Valor da funcao de carga */
-    fCarga = 0.; //fF
+    fF = 0.; //fF
     
     /** Dimensao do dominio */
     fDim = dim;
@@ -84,7 +84,7 @@ TPZMatPoissonD3::TPZMatPoissonD3(const TPZMatPoissonD3 &copy):TPZDiscontinuousGa
 TPZMatPoissonD3 & TPZMatPoissonD3::operator=(const TPZMatPoissonD3 &copy){
     
     TPZDiscontinuousGalerkin::operator = (copy);
-    this->fCarga = copy.fCarga; //fF
+    this->fF = copy.fF; //fF
     this->fDim = copy.fDim;
     this->fMatId = copy.fMatId;
     this->fK = copy.fK;
@@ -93,14 +93,14 @@ TPZMatPoissonD3 & TPZMatPoissonD3::operator=(const TPZMatPoissonD3 &copy){
 }
 
 int TPZMatPoissonD3::NStateVariables() {
-	return (1+fDim);
+	return 1;//(1+fDim);
 }
 
 void TPZMatPoissonD3::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
     out << "Dimesion of problem " << fDim << endl;
 	out << "Material ID  "<< fMatId << endl;
-    out << "Forcing function  "<< fCarga << endl;
+    out << "Forcing function  "<< fF << endl;
     out << "Grad Coeficient  "<< fK << endl;
 	out << "Base Class properties :";
 	TPZMaterial::Print(out);
@@ -120,7 +120,7 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 		DebugStop();
 	}
 #endif
-    REAL force = fCarga;
+    REAL force = fF;
     if(fForcingFunction) {
 		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(datavec[1].x,res);

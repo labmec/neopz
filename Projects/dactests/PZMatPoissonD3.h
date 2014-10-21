@@ -35,7 +35,7 @@ protected:
     int fMatId;
     
     /** Valor da funcao de carga */
-    REAL fCarga; //fF
+    REAL fF; //fF
     
     /** Dimensao do dominio */
     int fDim;
@@ -102,7 +102,7 @@ public:
 	}
 	
 	void SetInternalFlux(REAL flux) {
-		fCarga = flux;
+		fF = flux;
 	}
 
     
