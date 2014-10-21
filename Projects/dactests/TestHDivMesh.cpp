@@ -197,7 +197,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     return nwrong;
 }
 
-#include "TPZMultiPhysicsInterfaceEl.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 
 void TestMesh(TPZCompMesh *cmesh)
 {
