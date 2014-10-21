@@ -34,8 +34,79 @@ template <class T, class TMEM = TPZElastoPlasticMem>
 class  TPZMatElastoPlasticSest2D : public TPZMatElastoPlastic2D<T,TMEM> //, TPZMatWithMem<TMEM>
 {
 public:
+  
+        enum SOLUTIONVARS{ENone = -1,
+	  // Strain
+	  EStrainVol = 0,
+	  EStrainXX,
+	  EStrainYY,
+	  EStrainZZ,
+	  EStrainXY,
+	  EStrainXZ,
+	  EStrainYZ,
+	  // Elastic Strain
+	  EElStrainVol,
+	  EElStrainXX,
+	  EElStrainYY,
+	  EElStrainZZ,
+	  EElStrainXY,
+	  EElStrainXZ,
+	  EElStrainYZ,
+	  // Plastic Strain
+	  EPlStrainVol,
+	  EPlStrainXX,
+	  EPlStrainYY,
+	  EPlStrainZZ,
+	  EPlStrainXY,
+	  EPlStrainXZ,
+	  EPlStrainYZ,
+	  EPlStrainSqJ2,
+	  EPlStrainSqJ2El,
+	  EPlAlpha,
+	  // Displacement
+	  EDisplacementX,
+	  EDisplacementY,
+	  EDisplacementZ,
+	  EDisplacementTotal,
+	  // Total Stress
+	  ETotStressI1,
+	  ETotStressJ2,
+	  ETotStressXX,
+	  ETotStressYY,
+	  ETotStressZZ,
+	  ETotStressXY,
+	  ETotStressXZ,
+	  ETotStressYZ,
+	  ETotStress1,
+	  ETotStress2,
+	  ETotStress3,
+	  // Effective stress
+	  EEffStressI1,
+	  EEffStressJ2,
+	  EEffStressXX,
+	  EEffStressYY,
+	  EEffStressZZ,
+	  EEffStressXY,
+	  EEffStressXZ,
+	  EEffStressYZ,
+	  EEffStress1,
+	  EEffStress2,
+	  EEffStress3,
+	  // Yield Surface
+	  EYieldSurface1,
+	  EYieldSurface2,
+	  EYieldSurface3,
+	  // Simulation
+	  EPOrder,
+	  ENSteps,	  
+	  // Pore pressure
+	  EPorePressure,
+	  // Material
+	  EMatPorosity,
+	  EMatE,
+	  EMatPoisson
+};
 	
-	//enum SOLUTIONVARS{ENone = -1};
 	/**
 	 * Default constructor
 	 */
@@ -98,6 +169,13 @@ public:
     {
         return fZDeformation;
     }
+    
+    /**returns the variable index associated with the name*/
+    virtual int VariableIndex(const std::string &name);
+    
+      /** returns the number of variables associated with the variable
+	  indexed by var.  var is obtained by calling VariableIndex*/
+      virtual int NSolutionVariables(int var);
 
 private:
     /**
