@@ -15,7 +15,7 @@
 #include "pzmaterialdata.h"
 #include "pzhdivpressure.h"
 
-#define OLDVERSION
+//#define OLDVERSION
 
 #include "pzshtmat.h"
 
@@ -1439,8 +1439,12 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 cols=jv%numdof;
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    data.dsol[is](ilinha,0)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
-                    data.dsol[is](ilinha,1)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
+//                    data.dsol[is](ilinha,0)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
+//                    data.dsol[is](ilinha,1)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
+//                     data.dsol[is](ilinha,2)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(2,ishape)*MeshSol(pos+jn,is);//
+                    for (int kdim = 0 ; kdim < Dimension(); kdim++) {
+                         data.dsol[is](ilinha,kdim)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(kdim,ishape)*MeshSol(pos+jn,is);//
+                    }
                 }
             }
             jv++;
