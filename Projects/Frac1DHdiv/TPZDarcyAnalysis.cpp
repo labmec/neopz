@@ -695,7 +695,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     out << "Iteration n : " << (iter+1) << " : norms ||DeltaU|| e ||[R(Uatk)]|| : " << NormOfDeltaU << " / " << ResidualNorm << std::endl;
     
     if(norm < tol /*|| NormResLambda < tol*/) {
-      out << "\nNewton Converged! Tolerance at n : " << (iter+1) << std::endl;
+      out << "\nNewton Converged! Tolerance Of Norm(DeltaU) at n : " << (iter+1) << std::endl;
       out << "Norm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
       out << "Norm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
       
