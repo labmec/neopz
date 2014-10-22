@@ -188,16 +188,10 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
         { // aqui inicializo chutes iniciais para newton depois da propagacao
         
             if(nfracel == 1){ // esse caso eh para o primeiro elemento da simulacao
-                an->Solution().Print("anBefore");
                 this->ComputeFirstSolForOneELement(an);
-                an->Solution().Print("anAfter");
             }
             else{ // aqui eh quando ha mais de 1 elemento
-                
-                an->Solution().Print("anBefore");
                 this->SetPressureOnLastElement(an);
-                an->Solution().Print("anAfter");
-                
             }
             
             fData->SetAccumVl(0.); // Zerando accumvl para os proximos
@@ -291,19 +285,19 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
     
     // Bc Bottom
     TPZBndCond * bcBottom = mat->CreateBC(mat, bcBottomId, typeFlux, val1, val2);
- 	cmesh->InsertMaterialObject(bcBottom);
+    cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
- 	cmesh->InsertMaterialObject(bcRight);
+    cmesh->InsertMaterialObject(bcRight);
     
     // Bc Top
     TPZBndCond * bcTop = mat->CreateBC(mat, bcTopId, typeFlux, val1, val2);
- 	cmesh->InsertMaterialObject(bcTop);
-    
+    cmesh->InsertMaterialObject(bcTop);
+  
     // Bc Left
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
- 	cmesh->InsertMaterialObject(bcLeft);
+    cmesh->InsertMaterialObject(bcLeft);
     
     // Bc Left
     TPZBndCond * AuxbcLeft = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
@@ -702,8 +696,8 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     
     if(norm < tol /*|| NormResLambda < tol*/) {
       out << "\nNewton Converged! Tolerance at n : " << (iter+1) << std::endl;
-      out << "\n\nNorm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
-      out << "\n\nNorm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
+      out << "Norm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
+      out << "Norm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
       
     }
     else if( (ResidualNorm - NormResLambdaLast) > 1.e-4 ) {
@@ -752,7 +746,6 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     fData->SetLastState();
     an->Assemble();
     fLastStepRhs = an->Rhs();
-    an->Rhs().Print("rhs");
 }
 
 void TPZDarcyAnalysis::SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
