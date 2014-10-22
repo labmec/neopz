@@ -136,7 +136,7 @@ REAL Epsilon = 0.4;
 TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
 TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
 
-REAL const Pi = 4.*atan(1.);
+REAL const Pi = M_PI;//4.*atan(1.);
 
 // Para dimensao 2
 // tipo 1 triangulo
@@ -147,8 +147,6 @@ bool ftriang = false;//true
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
-
-//#define PROBSENO
 
 #include "pztransfer.h"
 
@@ -917,8 +915,8 @@ TPZCompMesh *CMeshMixedArctan(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0NArctan);
-    BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0DArctan);
+    BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     BCond0->SetForcingFunction(FBCond0);
     
     val2(0,0) = 0.0;
@@ -947,8 +945,8 @@ TPZCompMesh *CMeshMixedArctan(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5NArctan);
-    BCond5 = material->CreateBC(mat, bc5,neumann, val1, val2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5DArctan);
+    BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
     BCond5->SetForcingFunction(FBCond5);
 
     
@@ -971,12 +969,12 @@ TPZCompMesh *CMeshMixedArctan(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
-    mphysics->Reference()->ResetReference();
-    mphysics->LoadReferences();
-    
     // Creation of interface elements
     if (interface)
     {
+        mphysics->Reference()->ResetReference();
+        mphysics->LoadReferences();
+        
         int nel = mphysics->ElementVec().NElements();
         for(int el = 0; el < nel; el++)
         {
@@ -1055,8 +1053,6 @@ void SolExataArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
     solp[0]=0.;
     flux.Resize(dim, 1);
     
-    
-#ifdef PROBARCTAN
     flux(0,0)=flux(1,0)=flux(2,0)=0.;
     double x = pt[0];
     double y = pt[1];
@@ -1075,21 +1071,7 @@ void SolExataArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
     flux(0,0)= ( numerador *(TP(0,0)+TP(0,1)+TP(0,2)) )/(   denominador   );
     flux(1,0)= ( numerador *(TP(1,0)+TP(1,1)+TP(1,2)) )/(   denominador   ); // (exp(2.0*(aa+bb+cc)/(Epsilon))+exp(2.0*(x+y+z)/(Epsilon)))*Epsilon
     flux(2,0)= ( numerador *(TP(2,0)+TP(2,1)+TP(2,2)) )/(   denominador   ); // (exp(2.0*(aa+bb+cc)/(Epsilon))+exp(2.0*(x+y+z)/(Epsilon)))*Epsilon
-    //    solp[0] = (x*y*z)*(x*y*z)
-#else
-    solp.Resize(1, 0.);
-    flux.Resize(dim, 1.);
-    double x = pt[0];
-    double y = pt[1];
-    for(int d=0; d<dim;d++) flux(d,0)=0.;
-    solp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
-    flux(0,0)= -2.0*x*(-1.0+y*y);
-    flux(1,0)= -2.0*y*(-1.0+x*x);
-    //    solp[0] = sin(Pi*x)*sin(Pi*y);
-    //    flux(0,0)=-Pi*cos(Pi*x)*sin(Pi*y);
-    //    flux(1,0)=-Pi*cos(Pi*y)*sin(Pi*x);
-    
-#endif
+
     
 }
 
@@ -1099,188 +1081,111 @@ void ForcingArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double y = pt[1];
     double z = pt[2];
     
-#ifdef PROBARCTAN
     //disp[0] = (  exp((aa+bb+cc+x+y+z)/Epsilon)*(  exp((2.0*(aa+bb+cc))/Epsilon)-exp((2.0*(x+y+z))/Epsilon)  )*(TP(0,0)+TP(0,1)+TP(0,2)+TP(1,0)+TP(1,1)+TP(1,2)+TP(2,0)+TP(2,1)+TP(2,2))  )/(   ( (exp((2.0*(aa+bb+cc))/Epsilon)+exp((2.0*(x+y+z))/Epsilon))*(exp((2.0*(aa+bb+cc))/Epsilon)+exp((2.0*(x+y+z))/Epsilon)) )*Epsilon*Epsilon  );
     //disp[0] = 2*x*x*y*y + 2*x*x*z*z + 2*y*y*z*z;
     
     disp[0]=( (TP(0,0)+TP(0,1)+TP(0,2)+TP(1,0)+TP(1,1)+TP(1,2)+TP(2,0)+TP(2,1)+TP(2,2) ) * (1.0/(cosh((aa+bb+cc-x-y-z)/Epsilon))) * tanh((aa+bb+cc-x-y-z)/Epsilon))/(2*Epsilon*Epsilon);
-#else
-    
-    //    disp[0] = 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);
-    disp[0] = -2.0*(-2.0+x*x+y*y);
-    
-#endif
+
     
     
 }
 
 void ForcingBC0DArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    
-#ifdef PROBARCTAN
+
     double x = pt[0];
     double y = pt[1];
     double z = pt[2];
     disp[0] = atan(exp(  (aa + bb + cc - x - y - z)/Epsilon)  );
     //    disp[0] = (x*y*z)*(x*y*z)
-#else
-    double x = pt[0];
-    double y = pt[1];
-    //    disp[0] = 0.;
-    disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
-    
-#endif
 }
 
 void ForcingBC1DArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     double z = pt[2];
-#ifdef PROBARCTAN
     disp[0] = atan(exp(  (aa + bb + cc - x - y - z)/Epsilon)  );
-#else
-    
-    disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);;
-    
-#endif
+
 }
 
 void ForcingBC2DArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     double z = pt[2];
-#ifdef PROBARCTAN
     disp[0] = atan(exp(  (aa + bb + cc - x - y - z)/Epsilon)  );
-#else
-    
-    disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
-    
-#endif
 }
 
 void ForcingBC3DArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     double z = pt[2];
-#ifdef PROBARCTAN
     disp[0] = atan(exp(  (aa + bb + cc - x - y - z)/Epsilon)  );
-#else
-    
-    disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
-    
-#endif
 }
 
 void ForcingBC4DArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     double z = pt[2];
-#ifdef PROBARCTAN
     disp[0] = atan(exp(  (aa + bb + cc - x - y - z)/Epsilon)  );
-#else
-    
-    disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
-    
-#endif
+
 }
 
 void ForcingBC5DArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     double z = pt[2];
-#ifdef PROBARCTAN
+
     disp[0] = atan(exp(  (aa + bb + cc - x - y - z)/Epsilon)  );
-#else
-    
-    //    disp[0] = 0.;
-    disp[0] = (-1.0+x)*(1.0+x)*(-1.0+y)*(1.0+y);
-    
-#endif
+
 }
 
 
 void ForcingBC0NArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
-    //double z = -1.;
-#ifdef PROBARCTAN
+
     disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(1,0)+TP(1,1)+TP(1,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
-    //    disp[0] = (x*y*z)*(x*y*z)
-#else
-    
-    disp[0] = 0.0;
-    
-#endif
-    
     
 }
 
 void ForcingBC1NArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[2];
-#ifdef PROBARCTAN
-    disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(0,0)+TP(0,1)+TP(0,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
-    //    disp[0] = (x*y*z)*(x*y*z)
-#else
-    
-    //    disp[0] = 0.;
-    disp[0] = 2.0-2.0*x*x;
-    
-#endif
+    double z = pt[2];
+
+    disp[0] =  (  exp((1.+aa+bb+cc+x+z)/Epsilon)*(TP(0,0)+TP(0,1)+TP(0,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+z))/Epsilon))*Epsilon );
     
 }
 
 void ForcingBC2NArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[1];
-    double y = pt[2];
-#ifdef PROBARCTAN
-    disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(1,0)+TP(1,1)+TP(1,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+y))/Epsilon))*Epsilon );
-#else
-    
-    //    disp[0] = 0.;
-    disp[0] = 2.0-2.0*y*y;
-    
-#endif
+    double y = pt[1];
+    double z = pt[2];
+
+    disp[0] =  (  exp((1.+aa+bb+cc+y+z)/Epsilon)*(TP(1,0)+TP(1,1)+TP(1,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+y+z))/Epsilon))*Epsilon );
+
 }
 
 void ForcingBC3NArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
-    double y = pt[2];
-#ifdef PROBARCTAN
-    disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(0,0)+TP(0,1)+TP(0,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+y))/Epsilon))*Epsilon );
-#else
-    
-    //    disp[0] = 0.;
-    disp[0] = 2.0-2.0*x*x;
-    
-#endif
+    double z = pt[2];
+
+    disp[0] =  (  exp((1.+aa+bb+cc+x+z)/Epsilon)*(TP(0,0)+TP(0,1)+TP(0,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+z))/Epsilon))*Epsilon );
+
 }
 void ForcingBC4NArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[1];
-    double y = pt[2];
+    double y = pt[1];
+    double z = pt[2];
     
-#ifdef PROBARCTAN
-    disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(2,0)+TP(2,1)+TP(2,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
-    //    disp[0] = (x*y*z)*(x*y*z)
-#else
-    
-    //    disp[0] = 0.;
-    disp[0] = 2.0-2.0*y*y;
-    
-#endif
+
+    disp[0] =  (  exp((1.+aa+bb+cc+y+z)/Epsilon)*(TP(2,0)+TP(2,1)+TP(2,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(z+y))/Epsilon))*Epsilon );
+
 }
 
 void ForcingBC5NArctan(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
     
-#ifdef PROBARCTAN
+
     disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(2,0)+TP(2,1)+TP(2,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+y))/Epsilon))*Epsilon );
-    //    disp[0] = (x*y*z)*(x*y*z)
-#else
-    
-    disp[0] = 0.;
-    
-#endif
+
 }
 
 void ErrorHDivArctan(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
