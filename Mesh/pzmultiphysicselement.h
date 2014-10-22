@@ -44,6 +44,8 @@ public:
 	
 	virtual void AddElement(TPZCompEl *cel, long mesh) = 0;
     
+    virtual void AddElement(const TPZCompElSide &cel, long mesh) = 0;
+    
     virtual TPZCompEl *Element(long elindex) = 0;
 	
 	virtual TPZCompEl *ReferredElement(long mesh) = 0;

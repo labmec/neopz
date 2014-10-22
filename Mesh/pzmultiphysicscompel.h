@@ -23,7 +23,7 @@ class TPZMultiphysicsCompEl : public TPZMultiphysicsElement {
 protected:
 	
 	/** @brief List of pointers to computational elements */
-	TPZManVector<TPZCompEl *,5>		fElementVec;
+	TPZManVector<TPZCompElSide ,5>		fElementVec;
 	
 	/** @brief Indexes of the connects of the element */
 	TPZVec<long> fConnectIndexes;
@@ -51,7 +51,7 @@ public:
 	virtual ~TPZMultiphysicsCompEl();
 	
 	/** @brief Returns a reference to the element pointers vector */
-	TPZManVector<TPZCompEl *,5>   &ElementVec() { return fElementVec; }
+	TPZManVector<TPZCompElSide,5>   &ElementVec() { return fElementVec; }
 	
 	/**
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
@@ -208,12 +208,31 @@ public:
 		{
 			fElementVec.resize(meshindex+1);
 		}
-		fElementVec[meshindex] = cel;
+        if (cel)
+        {
+            TPZGeoEl *gel = cel->Reference();
+            TPZCompElSide celside(cel,gel->NSides()-1);
+            fElementVec[meshindex] = celside;
+        }
+        else
+        {
+            fElementVec[meshindex] = TPZCompElSide();
+        }
+    }
+    
+    /** @brief add an element to the datastructure */
+    virtual void AddElement(const TPZCompElSide &celside, long meshindex)
+    {
+        if (fElementVec.size() <= meshindex)
+        {
+            fElementVec.resize(meshindex+1);
+        }
+        fElementVec[meshindex] = celside;
     }
     
     virtual TPZCompEl *Element(long elindex)
     {
-        return fElementVec[elindex];
+        return fElementVec[elindex].Element();
     }
 	
 	/**@brief Returns referred element of this*/
@@ -227,7 +246,7 @@ public:
 		};
 #endif
 		
-		return fElementVec[mesh];
+		return fElementVec[mesh].Element();
 	}
 	
 	

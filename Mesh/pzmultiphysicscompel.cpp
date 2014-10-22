@@ -69,20 +69,33 @@ template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &trVec) const
 {
 	long nel;
-	int side, dim;
+	int side, dim, dimmf;
 	nel=fElementVec.size();
 	trVec.Resize(nel);
 	TPZGeoEl *gelmf = Reference();
+    dimmf = gelmf->Dimension();
 	side = gelmf->NSides()-1;
 	TPZGeoEl  *geoel;
 	for (long i = 0; i<nel; i++) {
         if (!fElementVec[i]) {
             continue;
         }
-		geoel = fElementVec[i]->Reference();
+		geoel = fElementVec[i].Element()->Reference();
 		dim =  geoel->Dimension();
-		TPZTransform tr(dim);
-		trVec[i] = gelmf->BuildTransform2(side, geoel, tr);
+        if (dim == dimmf) {
+            TPZTransform tr(dim);
+            trVec[i] = gelmf->BuildTransform2(side, geoel, tr);
+        }
+        else
+        {
+            TPZTransform LocalTransf(dimmf);
+            TPZGeoElSide thisgeoside(gelmf,gelmf->NSides()-1);
+            TPZGeoElSide neighgeoside = fElementVec[i].Reference();
+            thisgeoside.SideTransform3(neighgeoside, LocalTransf);
+            TPZGeoElSide highdim(neighgeoside.Element(), neighgeoside.Element()->NSides()-1);
+            trVec[i] = neighgeoside.SideToSideTransform(highdim).Multiply(LocalTransf);
+
+        }
 	}
 }
 
@@ -226,7 +239,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
     for(long iel = 0; iel< nmesh; iel++ ){
         
         out << "\nComputational element belonging to the mesh " << iel+1 <<":\n";
-        TPZCompEl *cel = fElementVec[iel];
+        TPZCompEl *cel = fElementVec[iel].Element();
         if(!cel){
             out << "\n There is not element to computational mesh " << iel+1 <<"\n";
             continue;
@@ -277,7 +290,7 @@ int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
     {
         if(fElementVec[el])
         {
-            return fElementVec[el]->Dimension();
+            return fElementVec[el].Element()->Dimension();
         }
     }
 	return -1;
@@ -311,7 +324,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & va
 	TPZVec<int> nshape(nref);
 	for (long iref = 0; iref<nref; iref++)
 	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
 	}
@@ -371,7 +384,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
     
 	for (long iref = 0; iref<nref; iref++)
 	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
         trvec[iref].Apply(qsi, myqsi);
@@ -442,7 +455,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     int numloadcases = 1;
 	for (long iref=0; iref<nref; iref++) {
 		
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
             continue;
         }
@@ -500,7 +513,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     int numloadcases = 1;
     for (long iref=0; iref<nref; iref++) {
         
-        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
             continue;
         }
@@ -550,9 +563,9 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 	{
         if(fElementVec[iref])
         {
-            dataVec[iref].gelElId = fElementVec[iref]->Reference()->Id();
+            dataVec[iref].gelElId = fElementVec[iref].Element()->Reference()->Id();
         }
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (!msp) {
             continue;
         }
@@ -597,7 +610,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	//ordervec.resize(nref);
 	for (long iref=0;  iref<nref; iref++)
 	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         int svec;
         if(msp)
         {
@@ -631,7 +644,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
         for (int i = 0; i < fElementVec.size(); i++) {
-            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[i]);
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[i].Element());
             if (!msp) {
                 continue;
             }
@@ -676,7 +689,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
     //ordervec.resize(nref);
     for (long iref=0;  iref<nref; iref++)
     {
-        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         int svec;
         if(msp)
         {
@@ -754,7 +767,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
     for (long iref=0;  iref<nref; iref++)
     {
         datavec[iref].fNeedsSol = true;
-        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         int svec;
         if(msp)
         {
@@ -817,7 +830,7 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialDat
 	TPZManVector<REAL,3> intpoint(this->Dimension(),0.);
 	for (long iref = 0; iref < ElemVecSize; iref++)
 	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		if (!msp) {
 			continue;
 		}
@@ -852,7 +865,7 @@ const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
 	//ordervec.resize(nref);
 	for (long iref=0;  iref<nref; iref++) 
 	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		int svec;
 		if(msp)
 		{
@@ -970,7 +983,7 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 	ordervec.resize(nref);
 	for (long iref=0;  iref<nref; iref++)
 	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
 		ordervec[iref] =  msp->MaxOrder();
 	}
